@@ -28,8 +28,8 @@ static void CL_STVEFSPDrawScreenshot( float x, float y, float w, float h ) {
 	STVEFSPScreenshot &screenshot = CL_STVEFSPScreenshot();
 	// In the cgame's screen, placed as its other pictures are.
 	if ( !CL_HudAdjustPic( &x, &y, &w, &h, 0 ) ) return;
-	re.DrawStretchRaw( static_cast<int>( x ), static_cast<int>( y ), static_cast<int>( w ), static_cast<int>( h ),
-		FNTECH3_STVEF_SP_SCREENSHOT_SIZE, FNTECH3_STVEF_SP_SCREENSHOT_SIZE, screenshot.rgba, 0, qtrue );
+	re.DrawSTVEFRaw( static_cast<int>( x ), static_cast<int>( y ), static_cast<int>( w ), static_cast<int>( h ),
+		FNTECH3_STVEF_SP_SCREENSHOT_SIZE, FNTECH3_STVEF_SP_SCREENSHOT_SIZE, screenshot.rgba, 1.0f );
 }
 
 /* A snapshot in single player's record. Retail fills the flags, ping, time,
@@ -51,6 +51,9 @@ static qboolean CL_GetSTVEFSPSnapshot( int number, fntech3_stvef_sp_snapshot_t *
 	static fntech3_stvef_sp_snapshot_t result;
 	result = *destination;
 	result.snapFlags = source->snapFlags & SNAPFLAG_RATE_DELAYED;
+	if ( source->snapFlags & SNAPFLAG_STVEF_SP_DROPPED_COMMANDS ) {
+		result.snapFlags |= 2;
+	}
 	result.ping = source->ping;
 	result.serverTime = source->serverTime;
 	static_assert( sizeof( result.areamask ) == sizeof( source->areamask ) );
@@ -98,10 +101,16 @@ static intptr_t CL_STVEFSPCgameCommonCall( fntech3::stvef::module::Call call, in
 		// One argument; the sound system registers even while a level loads.
 		return S_RegisterSound( reinterpret_cast<const char *>( args[1] ), qfalse );
 	case Call::CG_FF_STARTFX:
+		CL_STVEFSPFeedbackPlay( static_cast<int>( args[1] ), qfalse );
+		return 0;
 	case Call::CG_FF_ENSUREFX:
+		CL_STVEFSPFeedbackPlay( static_cast<int>( args[1] ), qtrue );
+		return 0;
 	case Call::CG_FF_STOPFX:
+		CL_STVEFSPFeedbackStop( static_cast<int>( args[1] ) );
+		return 0;
 	case Call::CG_FF_STOPALLFX:
-		// Force-feedback joysticks: the engine drives none.
+		CL_STVEFSPFeedbackStopAll();
 		return 0;
 	case Call::CG_S_GETSAMPLELENGTH:
 		return S_STVEFSoundLength( static_cast<sfxHandle_t>( args[1] ) );
@@ -193,9 +202,7 @@ static bool CL_STVEFSPCgameCall( intptr_t *args, intptr_t &operation, intptr_t &
 		return true;
 	}
 	case Call::CG_R_SCISSOR:
-		// Neither the retail cgame nor its menus set a scissor; the engine's
-		// renderers keep no scissor state for 2D drawing.
-		Com_DPrintf( "Elite Force SP cgame scissor ignored\n" );
+		re.SetSTVEFScissor( VMF(1), VMF(2), VMF(3), VMF(4) );
 		return true;
 	case Call::CG_GETGLCONFIG: {
 		/* Single player projects world points onto its 2D (the crosshair's

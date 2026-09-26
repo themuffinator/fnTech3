@@ -114,8 +114,9 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         common_font = read("code/renderercommon/tr_font.c")
         stash = read("code/renderercommon/tr_font_stash.c")
 
-        # 30: Medal of Honor's model registration joined the table
-        self.assertIn("#define\tREF_API_VERSION\t\t30", public)
+        # 30: Medal of Honor's model registration joined the table; 31: Elite
+        # Force single player's scissor and raw-image members after it.
+        self.assertIn("#define\tREF_API_VERSION\t\t31", public)
         self.assertIn("Com_Memset( &re, 0, sizeof( re ) );", init)
         exports = (
             "re.RegisterMOHAATiki = RE_RegisterMOHAATiki;",

@@ -492,9 +492,10 @@ class ReleasePackagingTests(unittest.TestCase):
         # 579 before RTCW added a static light file for each of its 47,
         # 626 before F.A.K.K.2 added its HUD rules, 627 before Medal of
         # Honor: Allied Assault added a zone and a static light file for its 54,
-        # and 735 before Alice, Enemy Territory and both Elite Force modes added
-        # their HUD rules.
-        self.assertEqual(len(required_destinations), 739)
+        # 735 before Alice, Enemy Territory and both Elite Force modes added
+        # their HUD rules, and 739 before Elite Force added a zone file for
+        # each of its 99 maps.
+        self.assertEqual(len(required_destinations), 838)
         self.assertIn("pkg/games/quakelive/baseq3/maps/campgrounds.azb", sources)
         self.assertIn("games/quakelive/baseq3/maps/campgrounds.azb", audio_destinations)
         self.assertIn("games/quakelive/baseq3/maps/campgrounds.fog", fog_destinations)
@@ -535,16 +536,21 @@ class ReleasePackagingTests(unittest.TestCase):
                  for suffix in (".azb", ".lights.json")}
                 | {f"games/{profile}/main/fntech3-hud.json"},
             )
-        # Enemy Territory ships a zone file for each of its six official maps.
+        # Enemy Territory ships a zone file for each of its six official maps,
+        # and its HUD rules.
         self.assertEqual(
             {name for name in packaged if name.startswith("games/wolfet/")},
             {f"games/wolfet/etmain/maps/{name}.azb" for name in root_archive.STOCK_WOLFET_MAPS}
             | {"games/wolfet/etmain/fntech3-hud.json"},
         )
-        # Elite Force ships each mode's HUD rules and nothing else.
-        for mode in ("stvef-sp", "stvef-mp"):
+        # Elite Force ships each mode's HUD rules and a zone file for each of
+        # its maps, single player's ten tour maps in their own folder.
+        for mode, names in root_archive.STOCK_STVEF_MAPS.items():
             self.assertEqual({name for name in packaged if name.startswith(f"games/{mode}/")},
-                             {f"games/{mode}/baseEF/fntech3-hud.json"})
+                             {f"games/{mode}/baseEF/maps/{name}.azb" for name in names}
+                             | {f"games/{mode}/baseEF/fntech3-hud.json"})
+        self.assertEqual({mode: len(names) for mode, names in root_archive.STOCK_STVEF_MAPS.items()},
+                         {"stvef-sp": 66, "stvef-mp": 33})
         self.assertEqual(len(root_archive.STOCK_WOLFET_MAPS), 6)
         # Alice ships a zone file and a static light file for each of its 36 maps.
         self.assertEqual(

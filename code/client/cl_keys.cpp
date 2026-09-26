@@ -1255,6 +1255,7 @@ static void CL_KeyDownEvent( int key, unsigned time )
 	}
 
 	// keys can still be used for bound actions
+	if ( CL_STVEFSPCinematicKey( key ) ) return;
 	// Alice also ends a playing demo this way, as Quake III 1.32 did: any
 	// such key clears nextdemo and becomes Escape (alice.exe 0x00429d56..
 	// 0x00429d8d, which tests clc.demoplaying beside the cinematic state).

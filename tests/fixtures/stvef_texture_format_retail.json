@@ -1,0 +1,461 @@
+{
+  "method": "Execute only the native format-selection block with 3/4 components, no lightmap, owned cvars and a return before upload. No game or graphics startup.",
+  "cases": {
+    "sp": [
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "alpha": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "alpha": 1,
+        "format": 4
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "alpha": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "alpha": 1,
+        "format": 4
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "alpha": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "alpha": 1,
+        "format": 4
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "alpha": 0,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "alpha": 1,
+        "format": 32854
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "alpha": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "alpha": 1,
+        "format": 4
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "alpha": 0,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "alpha": 1,
+        "format": 32856
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "alpha": 0,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "alpha": 1,
+        "format": 4
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "alpha": 0,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "alpha": 1,
+        "format": 4
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "alpha": 0,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "alpha": 1,
+        "format": 4
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "alpha": 0,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "alpha": 1,
+        "format": 32854
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "alpha": 0,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "alpha": 1,
+        "format": 4
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "alpha": 0,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "alpha": 1,
+        "format": 32856
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "alpha": 0,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "alpha": 1,
+        "format": 33779
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "alpha": 0,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "alpha": 1,
+        "format": 33779
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "alpha": 0,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "alpha": 1,
+        "format": 33779
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "alpha": 0,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "alpha": 1,
+        "format": 33779
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "alpha": 0,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "alpha": 1,
+        "format": 33779
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "alpha": 0,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "alpha": 1,
+        "format": 33779
+      }
+    ],
+    "mp": [
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "alpha": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "alpha": 1,
+        "format": 4
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "alpha": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "alpha": 1,
+        "format": 4
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "alpha": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "alpha": 1,
+        "format": 4
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "alpha": 0,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "alpha": 1,
+        "format": 32854
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "alpha": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "alpha": 1,
+        "format": 4
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "alpha": 0,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "alpha": 1,
+        "format": 32856
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "alpha": 0,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "alpha": 1,
+        "format": 4
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "alpha": 0,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "alpha": 1,
+        "format": 4
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "alpha": 0,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "alpha": 1,
+        "format": 4
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "alpha": 0,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "alpha": 1,
+        "format": 32854
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "alpha": 0,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "alpha": 1,
+        "format": 4
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "alpha": 0,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "alpha": 1,
+        "format": 32856
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "alpha": 0,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "alpha": 1,
+        "format": 33779
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "alpha": 0,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "alpha": 1,
+        "format": 33779
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "alpha": 0,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "alpha": 1,
+        "format": 33779
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "alpha": 0,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "alpha": 1,
+        "format": 33779
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "alpha": 0,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "alpha": 1,
+        "format": 33779
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "alpha": 0,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "alpha": 1,
+        "format": 33779
+      }
+    ]
+  },
+  "references": [
+    {
+      "profile": "stvef-sp",
+      "executable": "stvoy.exe",
+      "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+      "formatStart": "0x44d7c2",
+      "formatEnd": "0x44d8ad",
+      "textureBitsPointer": "0xaa1a20",
+      "compressionValue": "0xaa1908"
+    },
+    {
+      "profile": "stvef-mp",
+      "executable": "stvoyHM.exe",
+      "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "formatStart": "0x460ba7",
+      "formatEnd": "0x460c92",
+      "textureBitsPointer": "0xad16bc",
+      "compressionValue": "0xad1620"
+    }
+  ]
+}

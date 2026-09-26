@@ -131,8 +131,8 @@ void CL_STVEFSPUIStartLocalLoopingSound( std::int32_t sfx ) {
 	S_AddLoopingSound( 0, zero, zero, sfx );
 }
 void CL_STVEFSPUIDrawStretchRaw( std::int32_t x, std::int32_t y, std::int32_t w, std::int32_t h,
-	std::int32_t cols, std::int32_t rows, const std::uint8_t *data, float ) {
-	re.DrawStretchRaw( x, y, w, h, cols, rows, data, 0, qtrue );
+	std::int32_t cols, std::int32_t rows, const std::uint8_t *data, float lightValue ) {
+	re.DrawSTVEFRaw( x, y, w, h, cols, rows, data, lightValue );
 }
 
 // The load and save menus list the savegames, which the server keeps.

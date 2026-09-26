@@ -1,0 +1,4575 @@
+{
+  "method": "Execute only the native RGB lightmap format-selection block with owned cvars and a return before upload. No game or graphics startup. Both lightmap controls register with default 0 and flags 0x21.",
+  "references": [
+    {
+      "profile": "stvef-sp",
+      "executable": "stvoy.exe",
+      "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+      "formatStart": "0x44d7c2",
+      "formatEnd": "0x44d8ad",
+      "textureBitsPointer": "0xaa1a20",
+      "compressionValue": "0xaa1908",
+      "lightmapBitsName": "r_texturebitslm",
+      "lightmapBitsPointer": "0xaa1990",
+      "lightmapCompressionPointer": "0xaa1a74",
+      "lightmapBitsRegistration": "0x440644",
+      "lightmapCompressionRegistration": "0x4404e0"
+    },
+    {
+      "profile": "stvef-mp",
+      "executable": "stvoyHM.exe",
+      "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "formatStart": "0x460ba7",
+      "formatEnd": "0x460c92",
+      "textureBitsPointer": "0xad16bc",
+      "compressionValue": "0xad1620",
+      "lightmapBitsName": "r_texturebitslm",
+      "lightmapBitsPointer": "0xad16a0",
+      "lightmapCompressionPointer": "0xad170c",
+      "lightmapBitsRegistration": "0x45386e",
+      "lightmapCompressionRegistration": "0x453740"
+    }
+  ],
+  "cases": {
+    "sp": [
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 32849
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33776
+      }
+    ],
+    "mp": [
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": -1,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 0,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 8,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 16,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 24,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 32848
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 3
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 0,
+        "textureBits": 32,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 32849
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 1,
+        "textureBits": -1,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 1,
+        "textureBits": 0,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 1,
+        "textureBits": 8,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 1,
+        "textureBits": 16,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 1,
+        "textureBits": 24,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33697
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 1,
+        "textureBits": 32,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33697
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 2,
+        "textureBits": -1,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 2,
+        "textureBits": 0,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 2,
+        "textureBits": 8,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 2,
+        "textureBits": 16,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 2,
+        "textureBits": 24,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": -1,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": -1,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": -1,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 0,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 0,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 0,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 8,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 8,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 8,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 16,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 16,
+        "compressLightmaps": 0,
+        "format": 32848
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 16,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 24,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 24,
+        "compressLightmaps": 0,
+        "format": 3
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 24,
+        "compressLightmaps": 1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 32,
+        "compressLightmaps": -1,
+        "format": 33776
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 32,
+        "compressLightmaps": 0,
+        "format": 32849
+      },
+      {
+        "compression": 2,
+        "textureBits": 32,
+        "lightmapBits": 32,
+        "compressLightmaps": 1,
+        "format": 33776
+      }
+    ]
+  }
+}

@@ -43,6 +43,23 @@ void R_NoiseInit( void )
 {
 	int i;
 
+	if ( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ) {
+		// Retail SP/MP seed at 1001 and use the same 15-bit sequence
+		// (stvoy.exe 0x458ad0, stvoyHM.exe 0x46bf40). Keep it local so the
+		// table is portable and does not reseed the engine's other randomness.
+		uint32_t state = 1001;
+		// Exact values of retail's float scale words 0x38000100/0x3bff01fe.
+		const double valueScale = 0x1.0002p-15;
+		const double permutationScale = 0x1.fe03fcp-8;
+		for ( i = 0; i < NOISE_SIZE; i++ ) {
+			state = state * 214013u + 2531011u;
+			s_noise_table[i] = (float)( ( ( state >> 16 ) & 32767u ) * valueScale * 2.0 - 1.0 );
+			state = state * 214013u + 2531011u;
+			s_noise_perm[i] = (int)( ( ( state >> 16 ) & 32767u ) * permutationScale ) & NOISE_MASK;
+		}
+		return;
+	}
+
 	for ( i = 0; i < NOISE_SIZE; i++ )
 	{
 		s_noise_table[i] = ( float ) ( ( ( rand() / ( float ) RAND_MAX ) * 2.0 - 1.0 ) );

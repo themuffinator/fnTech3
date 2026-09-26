@@ -171,6 +171,12 @@ void R_ImageList_f( void ) {
 				// 64 bits per 16 pixels, so 4 bits per pixel
 				estSize /= 2;
 				break;
+			case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+				format = "DXT5 ";
+				// Each block occupies 16 bytes, including partial edge blocks.
+				estSize = ( ( image->uploadWidth + 3 ) / 4 ) *
+					( ( image->uploadHeight + 3 ) / 4 ) * 16;
+				break;
 			case GL_RGB4_S3TC:
 				format = "S3TC ";
 				// same as DXT1?
@@ -377,8 +383,10 @@ static void R_MipMap2( unsigned * const out, unsigned * const in, int inWidth, i
 	int			outWidth, outHeight;
 	unsigned	*temp;
 
-	outWidth = inWidth >> 1;
-	outHeight = inHeight >> 1;
+	// A rectangular mip continues along its longer axis after the other
+	// reaches one texel. The wrapped filter still applies on both axes.
+	outWidth = MAX( 1, inWidth >> 1 );
+	outHeight = MAX( 1, inHeight >> 1 );
 
 	if ( out == in )
 		temp = ri.Hunk_AllocateTempMemory( outWidth * outHeight * 4 );
@@ -606,8 +614,23 @@ static GLint RawImage_GetInternalFormat( const byte *scan, int numPixels, qboole
 	GLint internalFormat;
 	qboolean hasAlpha;
 
-	if ( lightMap )
+	if ( lightMap ) {
+		if ( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ) {
+			const int bits = r_texturebitslm->integer > 0 ? r_texturebitslm->integer : r_texturebits->integer;
+			/* Native SP/HM choose compression before lightmap precision.
+			 * Explicit per-image opt-outs remain authoritative.
+			 */
+			if ( allowCompression && r_ext_compress_lightmaps->integer ) {
+				if ( glConfig.textureCompression == TC_S3TC_ARB )
+					return GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+				if ( glConfig.textureCompression == TC_S3TC )
+					return GL_RGB4_S3TC;
+			}
+			if ( bits == 16 ) return GL_RGB5;
+			if ( bits == 32 ) return GL_RGB8;
+		}
 		return GL_RGB;
+	}
 
 	hasAlpha = RawImage_HasAlpha( scan, numPixels );
 
@@ -617,7 +640,16 @@ static GLint RawImage_GetInternalFormat( const byte *scan, int numPixels, qboole
 
 	if ( hasAlpha )
 	{
-		if ( r_texturebits->integer == 16 )
+		/* Elite Force SP/HM compress alpha images with DXT5. The legacy
+		 * S3 extension alone cannot provide this format; retain the ordinary
+		 * RGBA path for it and for other profiles or material opt-outs.
+		 */
+		if ( allowCompression && glConfig.textureCompression == TC_S3TC_ARB &&
+			( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ) )
+		{
+			internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+		}
+		else if ( r_texturebits->integer == 16 )
 		{
 			internalFormat = GL_RGBA4;
 		}
@@ -709,8 +741,8 @@ static void Upload32( byte *data, int x, int y, int width, int height, image_t *
 	//
 	while ( scaled_width > glConfig.maxTextureSize
 		|| scaled_height > glConfig.maxTextureSize ) {
-		scaled_width >>= 1;
-		scaled_height >>= 1;
+		scaled_width = MAX( 1, scaled_width >> 1 );
+		scaled_height = MAX( 1, scaled_height >> 1 );
 		x >>= 1;
 		y >>= 1;
 	}

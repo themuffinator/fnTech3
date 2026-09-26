@@ -1,0 +1,86 @@
+{
+  "source": "User-supplied stvoy.exe 1.20; independently observed operator registration and default nextmap",
+  "executableSha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+  "addresses": {
+    "operatorCommands": "0x4240e0..0x4241b1",
+    "addCommand": "0x410b90",
+    "initialized": "0xa417f8",
+    "nextmap": "0x425a52..0x425a6d",
+    "format": "0x419dc0",
+    "cvarSet": "0x4138c0"
+  },
+  "method": "Map the retail executable without starting the game. Execute the complete operator registration twice with an owned Cmd_AddCommand sink. Execute the native nextmap block with four supplied map names, substituting owned formatting and Cvar_Set callbacks and returning before unrelated server initialization. No retail implementation text or executable bytes are incorporated.",
+  "probeSha256": "b78024e9955022a8e60692b9186822aa73d5bd4cd1d1cfd86717438e404b1141",
+  "observation": {
+    "commands": [
+      {
+        "name": "status",
+        "callback": "0x00424280"
+      },
+      {
+        "name": "serverinfo",
+        "callback": "0x00424440"
+      },
+      {
+        "name": "systeminfo",
+        "callback": "0x00424460"
+      },
+      {
+        "name": "dumpuser",
+        "callback": "0x00424480"
+      },
+      {
+        "name": "sectorlist",
+        "callback": "0x00428860"
+      },
+      {
+        "name": "map",
+        "callback": "0x00424200"
+      },
+      {
+        "name": "devmap",
+        "callback": "0x00424200"
+      },
+      {
+        "name": "maptransition",
+        "callback": "0x004241c0"
+      },
+      {
+        "name": "load",
+        "callback": "0x00426960"
+      },
+      {
+        "name": "loadtransition",
+        "callback": "0x00423fc0"
+      },
+      {
+        "name": "save",
+        "callback": "0x00426ad0"
+      },
+      {
+        "name": "wipe",
+        "callback": "0x00426870"
+      }
+    ],
+    "firstCallCount": 12,
+    "secondCallCount": 0,
+    "nextMaps": [
+      {
+        "name": "nextmap",
+        "value": "map tutorial"
+      },
+      {
+        "name": "nextmap",
+        "value": "map borg2"
+      },
+      {
+        "name": "nextmap",
+        "value": "map _brig"
+      },
+      {
+        "name": "nextmap",
+        "value": "map subdir/mission"
+      }
+    ]
+  }
+}

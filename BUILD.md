@@ -132,7 +132,7 @@ closes no gate, and release builds never enable it.
 | --- | --- | --- | --- |
 | `-Drtcw-development=true` | `-RTCWDevelopment` | `rtcw-sp`, `rtcw-mp` | Client and server, both modes. |
 | `-Dwolfet-development=true` | `-WolfETDevelopment` | `wolfet` | Client and server. |
-| `-Dstvef-development=true` | `-STVEFDevelopment` | `stvef-sp`, `stvef-mp` | Client and server, both modes. |
+| `-Dstvef-development=true` | `-STVEFDevelopment` | `stvef-sp`, `stvef-mp` | Client and server, both modes; single player on Windows x86 only. |
 | `-Djka-development=true` | `-JKADevelopment` | `jka-sp`, `jka-mp` | Dedicated server only. |
 | `-Djk2-development=true` | `-JK2Development` | `jk2-sp`, `jk2-mp` | Dedicated server only. |
 | `-Dq3-ihv-development=true` | `-Q3IHVDevelopment` | `q3-ihv` | Windows x86 dedicated server only. |
@@ -257,7 +257,11 @@ See the [ET gate matrix](docs/fntech3/COMPATIBILITY.md#wolfet-gate-matrix).
 Star Trek Voyager: Elite Force's single player (`stvef-sp`) and Holomatch
 (`stvef-mp`) share one installation and `-Dstvef-development=true` (helper:
 `-STVEFDevelopment`). Elite Force's sounds and music are MP3, so keep the
-default `-Dmp3=true`. Two probes check data without running the game:
+default `-Dmp3=true`. Single player runs the installation's `efgamex86.dll`
+and `efuix86.dll`, so it needs Windows x86; other platforms refuse it before
+filesystem startup. Holomatch runs the installed QVMs, and its dedicated
+server has also been observed on Linux i686. Two probes check data without
+running the game:
 
 ```powershell
 python scripts/probe_stvef_mp3.py --installation "<Elite Force folder>" --output .tmp/stvef/mp3

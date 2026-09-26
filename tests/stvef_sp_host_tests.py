@@ -215,6 +215,75 @@ def build_and_run(test, source, extra=()):
 
 
 class STVEFSPHostTests(unittest.TestCase):
+    def test_initial_clock_allows_delayed_reference_tags(self):
+        spawn = read('code/server/sv_init.cpp')
+        start = spawn.index('\tsv.state = SS_LOADING;')
+        end = spawn.index('\tSV_InitGameProgs();', start) + len('\tSV_InitGameProgs();')
+        # Compile the actual pre-Init phase. A reference tag that schedules a
+        # fractional millisecond delay must not become the zero/no-think value.
+        probe = r'''
+#include <cassert>
+#include <cstring>
+#include <initializer_list>
+enum { Q3, QL, RTCW_SP, RTCW_MP, ET, EF_SP, EF_MP, SS_LOADING, ERR_DROP, CS_SERVERINFO, CVAR_SERVERINFO };
+static int profile, initializedAt, restoreTime, restartMarkers;
+static bool restored;
+static struct { int time, state; } sv;
+static bool Com_GameIsSTVEFSP() { return profile == EF_SP; }
+static bool Com_GameIsWolfET() { return profile == ET; }
+// The IHV test, Q3Test and the Ritual engines start their levels their own
+// way, which their own tests cover; none of the profiles here is one.
+static bool Com_GameIsQuake3IHV() { return false; }
+static bool Com_GameIsQ3Test() { return false; }
+static bool Com_GameIsRitual() { return false; }
+struct Q3TestRelease { int protocol; };
+static const Q3TestRelease *Com_Q3TestRelease() { static const Q3TestRelease release{ 40 }; return &release; }
+static void SV_UpdateSysteminfoConfigstring() { assert(false); }
+static void SV_SetConfigstring(int, const char *) { assert(false); }
+static const char *Cvar_InfoString(int, void *) { assert(false); return ""; }
+static void SV_AliceRestoreLevelTime() { assert(false); }
+static bool SV_RTCWRestoreSaveTime() {
+    restored = true;
+    if (profile == RTCW_SP && restoreTime >= 0) sv.time = restoreTime;
+    return true;
+}
+static void Com_Error(int, const char*) { assert(false); }
+static void Cmd_TokenizeString(const char*) { assert(restored); }
+static void Cvar_Set(const char* name, const char* value) {
+    assert(profile == ET && !std::strcmp(name, "sv_serverRestarting") && !std::strcmp(value, "1"));
+    ++restartMarkers;
+}
+static void SV_InitGameProgs() { assert(restored); initializedAt = sv.time; }
+static void Spawn() {
+    const char* spawnCommand = "devmap probe";
+SPAWN_PHASE
+}
+int main() {
+    for (profile = Q3; profile <= EF_MP; ++profile) {
+        for (int previous : {0, 73000}) {
+            sv.time = previous; restoreTime = -1; restored = false; restartMarkers = 0;
+            Spawn();
+            assert(sv.state == SS_LOADING && restored && restartMarkers == (profile == ET));
+            if (profile == EF_SP) {
+                assert(initializedAt == 1000); // stvoy.exe 1.20, 0x425ac9
+                int deadline = static_cast<int>(initializedAt + 0.1);
+                bool registered = false;
+                for (int frame = 1; frame <= 3; ++frame) {
+                    if (deadline > 0 && deadline <= initializedAt + frame * 100) registered = true;
+                }
+                assert(registered);
+            } else {
+                assert(initializedAt == previous);
+            }
+        }
+    }
+    profile = RTCW_SP; sv.time = 0; restoreTime = 42150; restored = false;
+    Spawn();
+    assert(initializedAt == 42150);
+}
+'''.replace('SPAWN_PHASE', spawn[start:end])
+        build_and_run(self, probe)
+
     def test_records_cross_the_engine_state_whole(self):
         build_and_run(self, RECORDS)
 

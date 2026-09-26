@@ -241,6 +241,16 @@ void R_ColorShiftLightingBytes( const byte in[4], byte out[4], qboolean hasAlpha
 
 static const int lightmapFlags = IMGFLAG_NOLIGHTSCALE | IMGFLAG_NO_COMPRESSION | IMGFLAG_LIGHTMAP | IMGFLAG_NOSCALE | IMGFLAG_COLORSPACE_LINEAR;
 
+static int R_LightmapImageFlags( void ) {
+	/* Retail EF exposes compression for its BSP lightmaps. Other profiles
+	 * and external lightmap loaders keep the unconditional opt-out.
+	 */
+	if ( ( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ) &&
+		r_ext_compress_lightmaps->integer )
+		return lightmapFlags & ~IMGFLAG_NO_COMPRESSION;
+	return lightmapFlags;
+}
+
 static int lightmapWidth;
 static int lightmapHeight;
 static int lightmapCountX;
@@ -456,7 +466,7 @@ static void R_LoadMergedLightmaps( const lump_t *l, byte *image )
 		averageCount = 0;
 
 		tr.lightmaps[ i ] = R_CreateImage( va( "*mergedLightmap%d", i ), NULL, NULL,
-			lightmapWidth, lightmapHeight, lightmapFlags | IMGFLAG_CLAMPTOBORDER );
+			lightmapWidth, lightmapHeight, R_LightmapImageFlags() | IMGFLAG_CLAMPTOBORDER );
 
 		for ( y = 0; y < lightmapCountY; y++ ) {
 			if ( offs >= l->filelen )
@@ -563,7 +573,7 @@ static void R_LoadLightmaps( const lump_t *l ) {
 		R_LightmapAverageColor( image, LIGHTMAP_SIZE, 0, 0, LIGHTMAP_SIZE, LIGHTMAP_SIZE,
 			tr.lightmapAverageColors[i] );
 		tr.lightmaps[i] = R_CreateImage( va( "*lightmap%d", i ), NULL, image, LIGHTMAP_SIZE, LIGHTMAP_SIZE,
-			lightmapFlags | IMGFLAG_CLAMPTOEDGE );
+			R_LightmapImageFlags() | IMGFLAG_CLAMPTOEDGE );
 	}
 
 	if ( r_lightmap->integer == 2 ) {

@@ -10,7 +10,9 @@ General Public License, version 2 or (at your option) any later version.
 #ifndef FNTECH3_STVEF_HANDSHAKE_HPP
 #define FNTECH3_STVEF_HANDSHAKE_HPP
 
-#include <cstdlib>
+#include <charconv>
+#include <cstring>
+#include "netchan_profile.h"
 
 /*
  * Elite Force Holomatch's connectionless handshake.
@@ -33,7 +35,7 @@ namespace fntech3::stvef::handshake {
 inline constexpr const char *GameName = "EliteForce";
 // ioEF and Lilium Voyager speak protocol 26 among themselves and accept the
 // retail protocol from a client that asks for it.
-inline constexpr int IoEFProtocol = 26;
+inline constexpr int IoEFProtocol = NETCHAN_IOEF_PROTOCOL_VERSION;
 
 struct ChallengeReply {
 	bool accepted = false;
@@ -42,6 +44,13 @@ struct ChallengeReply {
 	int advertisedProtocol = 0;
 	bool echoedNonce = false;
 };
+
+[[nodiscard]] inline bool ParseInteger( const char *text, int &value ) noexcept {
+	if ( !text || !*text ) return false;
+	const char *end = text + std::strlen( text );
+	const auto parsed = std::from_chars( text, end, value );
+	return parsed.ec == std::errc{} && parsed.ptr == end;
+}
 
 /* argv[0] is "challengeResponse". A reply that echoes a nonce must echo ours;
  * a bare one proves nothing, so it is taken only from the address the request
@@ -52,39 +61,42 @@ struct ChallengeReply {
 	if ( argc < 2 || !argv || !argv[1] ) {
 		return reply;
 	}
-	reply.challenge = std::atoi( argv[1] );
-	reply.echoedNonce = argc > 2 && argv[2];
-	if ( reply.echoedNonce ? std::atoi( argv[2] ) != clientNonce : !fromExpectedAddress ) {
+	if ( !ParseInteger( argv[1], reply.challenge ) ) return reply;
+	reply.echoedNonce = argc > 2;
+	int echoed = 0;
+	if ( reply.echoedNonce ? !ParseInteger( argv[2], echoed ) || echoed != clientNonce : !fromExpectedAddress ) {
 		return reply;
 	}
-	if ( argc > 3 && argv[3] ) {
-		reply.advertisedProtocol = std::atoi( argv[3] );
-	}
+	if ( argc > 3 && !ParseInteger( argv[3], reply.advertisedProtocol ) ) return reply;
 	reply.accepted = true;
 	return reply;
 }
 
-/* A server that names a protocol must name one that still lets this client
- * speak the retail wire: the retail protocol itself, or ioEF's, whose servers
- * fall back to it. */
-[[nodiscard]] inline bool ServerAcceptsRetailProtocol( int advertisedProtocol,
-	int retailProtocol ) noexcept {
-	return advertisedProtocol == 0 || advertisedProtocol == retailProtocol ||
-		advertisedProtocol == IoEFProtocol;
+/* A bare retail reply selects 24. Protocol 26 is selected only after the
+ * server proves the nonce and advertises that exact contract. Unknown
+ * protocols must not accidentally select Q3 framing through their number. */
+[[nodiscard]] inline int SelectProtocol( const ChallengeReply &reply ) noexcept {
+	if ( !reply.accepted ) return 0;
+	if ( reply.advertisedProtocol == 0 || reply.advertisedProtocol == NETCHAN_STVEF_HM_PROTOCOL_VERSION )
+		return NETCHAN_STVEF_HM_PROTOCOL_VERSION;
+	return reply.echoedNonce && reply.advertisedProtocol == IoEFProtocol ? IoEFProtocol : 0;
 }
 
 /* argv[0] is "connectResponse". A bare reply is the retail server's; one that
  * echoes a challenge must echo ours, and a protocol, when named, must be the
  * one asked for. */
 [[nodiscard]] inline bool AcceptConnectReply( int argc, const char *const *argv,
-	int challenge, int retailProtocol ) noexcept {
+	int challenge, int requestedProtocol ) noexcept {
 	if ( argc < 1 || !argv ) {
 		return false;
 	}
-	if ( argc > 1 && ( !argv[1] || std::atoi( argv[1] ) != challenge ) ) {
+	if ( requestedProtocol != NETCHAN_STVEF_HM_PROTOCOL_VERSION && requestedProtocol != IoEFProtocol ) return false;
+	if ( requestedProtocol == IoEFProtocol && argc < 2 ) return false;
+	int echoed = 0;
+	if ( argc > 1 && ( !ParseInteger( argv[1], echoed ) || echoed != challenge ) ) {
 		return false;
 	}
-	return argc <= 2 || ( argv[2] && std::atoi( argv[2] ) == retailProtocol );
+	return argc <= 2 || ( ParseInteger( argv[2], echoed ) && echoed == requestedProtocol );
 }
 
 } // namespace fntech3::stvef::handshake

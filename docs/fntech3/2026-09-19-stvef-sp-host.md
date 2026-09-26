@@ -10,6 +10,12 @@ slices, and the menus in `efuix86.dll` have [their own record](2026-09-19-stvef-
 the loopback wire is described below.
 The profile stays behind `-Dstvef-development=true`.
 
+The [September 21 clock correction](2026-09-21-stvef-sp-clock.md) fixes an
+omission in the spawn comparison below: fnTech3 previously left the initial
+clock at zero, despite retail's 1,000 ms start. That prevented some reference
+tags from registering and broke scripted camera moves. The corrected path has
+compiled regressions and production scene reruns on all three renderers.
+
 The frozen single-player records in `code/compat/stvef_game_abi.h` cite this
 record for their retail evidence; the offsets below are the ones retail code
 reads.
@@ -21,7 +27,7 @@ reads.
 | Loading | Loads `efgamex86.dll` from beside the executable (`0x42e510`), passes `GetGameAPI` 42 imports filled in a fixed order (`SV_InitGameProgs` `0x425490`), then attaches the cgame half of the same library: `dllEntry` with the client's syscall handler, `vmMain` kept (`0x42e670`). It refuses any API version but 6 | `VM_CreateTable` finds the library as the profile's native module and resolves `GetGameAPI`; the host passes the imports in retail's order, calls `dllEntry` before `Init` and requires version 6. The game half calls cgame functions as it runs (it starts world sounds through them), so without the attachment the game crashes at its first sound; with no client, as on a dedicated server, those calls do nothing |
 | Exports | `Init` at +4, `Shutdown` +8, `WriteLevel` +0xc, `ReadLevel` +0x10, `ClientConnect` +0x18 to `RunFrame` +0x30, `ConsoleCommand` +0x34; `gentities`, `gentitySize` and `num_entities` at +0x38 to +0x40 | The server drives the table through `gvm`: a dispatcher turns the engine's game calls into table calls |
 | `Init` | Map name, `spawntarget`, `sv_mapChecksum`, the entity string, the level time, `com_frameTime` as the seed, the current milliseconds, how the level began (saved game, autosave) and whether it is a hub transition | The same; the last two stay "neither" until the savegame and transition slices |
-| Spawn | Level time 1000, `Init`, three 100 ms frames, baselines, `ClientConnect(0, 0, 0)` for a connected client, one more frame (`SV_SpawnServer` `0x4259c0`) | The shared spawn sequence, which has this shape |
+| Spawn | Level time 1000, `Init`, three 100 ms frames, baselines, `ClientConnect(0, 0, 0)` for a connected client, one more frame (`SV_SpawnServer` `0x4259c0`) | Shared sequencing; the initial clock was incorrectly left at zero in this slice and is corrected to 1000 by the [September 21 change](2026-09-21-stvef-sp-clock.md) |
 | Error levels | 0 fatal, 1 drop (after writing the `current` save), 2 disconnect, 3 missing CD (`Com_Error` `0x411170`) | Mapped by meaning; fnTech3 numbers its levels differently |
 | Cvars | The game keeps the engine's `cvar_t` pointers and reads `string`, `value` and `integer` (+0x4, +0x1c, +0x20) | fnTech3's `cvar_t` keeps those offsets on the only host, so its pointers are passed as they are |
 | Pass entity | Only `ENTITYNUM_NONE` (1023) means none; any other number is looked up without a bounds check, so the game's -1 names a record before `g_entities` that nothing matches (`SV_ClipMoveToEntities` `0x428ff0`) | A pass entity outside the array is `ENTITYNUM_NONE` |

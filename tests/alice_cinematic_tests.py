@@ -214,7 +214,7 @@ class AliceCinematicTests(unittest.TestCase):
         command = function(self.cin, 'void CL_PlayCinematic_f( void ) {')
         alice = command.index('if ( Com_GameIsRitual() ) {')
         # Ignored while one plays (0x004276c0), then CIN_Play(argv 1, argv 2).
-        self.assertLess(alice, command.index('if (cls.state == CA_CINEMATIC) {'))
+        self.assertLess(alice, command.index('if ( cls.state == CA_CINEMATIC ||'))
         self.assertLess(alice, command.index('CL_ShouldSkipIdLogoCinematic'))
         branch = command[alice:command.index('return;', alice)]
         self.assertIn('cls.state != CA_CINEMATIC', branch)

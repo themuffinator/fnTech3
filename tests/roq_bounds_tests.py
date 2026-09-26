@@ -13,14 +13,17 @@ ROOT = Path(__file__).resolve().parents[1]
 HOST = r'''
 #include "code/qcommon/q_shared.h"
 #include "code/renderercommon/tr_types.h"
+#include "code/compat/stvef_cinematic_presentation.hpp"
 #include <algorithm>
 #include <array>
 #include <cassert>
 #include <climits>
 #include <cstdint>
 #include <cstring>
+#include <memory>
 #include <string>
 #include <vector>
+namespace fntech3::stvef::bink {class Movie {};}
 struct ScopedFileHandle {
  int handle=0; int get()const{return handle;} void reset(){handle=0;}
 };

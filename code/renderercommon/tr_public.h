@@ -32,7 +32,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // 29: the IHV and Alice members were appended to both tables after a commit on
 // another branch (b66b036) had already used 28 for a shorter layout.
 // 30: Medal of Honor's model registration and the engine's TIKI table.
-#define	REF_API_VERSION		30
+// 31: that branch's Elite Force SP scissor and raw-image members, merged after
+// all of the above.
+#define	REF_API_VERSION		31
 
 //
 // these are the functions exported by the refresh module
@@ -235,6 +237,12 @@ typedef struct {
 	int (*MarkMOHAAFragments)( int model, const vec3_t angles, const vec3_t origin, int numPoints,
 		const vec3_t *points, const vec3_t projection, int maxPoints, vec3_t pointBuffer, int maxFragments,
 		markFragment_t *fragments, int *patches, float radiusSquared );
+	// Elite Force SP's 2D clip rectangle, in framebuffer pixels. Negative x
+	// restores the whole framebuffer. A new 3D/2D transition resets it too.
+	void (*SetSTVEFScissor)( float x, float y, float w, float h );
+	// Opaque SP UI image, modulated by its own brightness rather than the UI color.
+	void (*DrawSTVEFRaw)( int x, int y, int w, int h, int cols, int rows,
+		const byte *data, float lightValue );
 
 
 } refexport_t;

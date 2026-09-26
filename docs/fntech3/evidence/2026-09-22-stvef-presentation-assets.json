@@ -1,0 +1,1302 @@
+{
+ "schema": 1,
+ "date": "2026-09-22",
+ "title": "Elite Force HUD aspect rules and audio zones",
+ "sourceCommit": "b9062f56d29b0cb5b1e5fd82b077d32f6bfc272f",
+ "baselineCommit": "b9e167ebcd1829f95a2bd8b675e23a8ed789c4ff",
+ "status": "PARTIAL; every official map has a generated audio zone sidecar and both profiles ship HUD aspect rules authored from recorded draws; listening checks and a manual look at the corrected HUD remain open; both Elite Force profiles stay development-gated",
+ "sourceFiles": [
+  {
+   "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\client\\cl_hud.cpp",
+   "bytes": 34415,
+   "sha256": "92b1506ca9e5b6744f02cd003ddaa3bbddb4da13b7c7e8079576eb13a59d1d89"
+  },
+  {
+   "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\qcommon\\files.c",
+   "bytes": 209848,
+   "sha256": "597bb69d920867478c09195fb7e7fa48bf3b3664586c53727383e7b7cf8fc355"
+  },
+  {
+   "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\tools\\audiozones\\audiozonesc.cpp",
+   "bytes": 134721,
+   "sha256": "322fb6e1667fe90b6d27b60203643acd5777df64f6d55e46d1e2e71e584823f5"
+  },
+  {
+   "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\scripts\\root_archive.py",
+   "bytes": 10467,
+   "sha256": "ea876e7a1b4e61d98feb63c8f2225995cae5e0af550e3ec83b6541f5404d5416"
+  },
+  {
+   "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\scripts\\stock_stvef_maps.py",
+   "bytes": 2114,
+   "sha256": "88aebacd1559c3f37bd87d7e3952408f04b7193a4c9f994119e061e0be06cf71"
+  },
+  {
+   "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\scripts\\generate_stock_stvef_audio_zones.py",
+   "bytes": 11434,
+   "sha256": "9e1226ad364005810cc573b009d9528a17a75699886b15bf3031c57a9cca30e6"
+  }
+ ],
+ "baselineSourceObjects": {
+  "code/client/cl_hud.cpp": "9128b3d014a25973500c4026a6945a4b10125d2e",
+  "code/qcommon/files.c": "566661a0195421a0537faaa4fd52a96fb2b2c2f7",
+  "code/tools/audiozones/audiozonesc.cpp": "504aaaa6b9ebc44d01e85c0499a22516a1db15f4",
+  "scripts/root_archive.py": "7d1b4effb6c93fd552f85899a30c3260a7a26c47",
+  "scripts/stock_stvef_maps.py": null,
+  "scripts/generate_stock_stvef_audio_zones.py": null
+ },
+ "testFiles": [
+  {
+   "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\tests\\stvef_presentation_assets_tests.py",
+   "bytes": 10913,
+   "sha256": "d6aa59f22ba4ea8573ab5e326e8ef839de96bf325d72a485ca8acc725298b968"
+  },
+  {
+   "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\tests\\fixtures\\stvef_hud_draws.json",
+   "bytes": 28306,
+   "sha256": "c2f2cccc1872ed99d8f2dac51fdc1224fea3b4b51afb55dd0e7bcd81c1901d19"
+  }
+ ],
+ "correction": "The HUD aspect system was whitelisted to Quake III and RTCW in two places: the client enablement and the root-archive allowlist that decides which files the package may serve. Elite Force reached neither, so its cgame draws were stretched with the frame and a rules file would not have loaded. Both now include Elite Force, and each profile ships rules authored from the draw groups its retail modules actually issued. Separately, no Elite Force map had an audio zone sidecar; the zone compiler now accepts both profiles as the IBSP 46 Quake fork they are, and every official map has one.",
+ "audioZones": {
+  "tool": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql-audiozonesc.exe",
+  "toolSha256": "9e5318c04501c50234d9221a90a7f6f0dc732e94af7846fefef780b156c773de",
+  "installation": "E:\\Games\\fnTech3-tests\\efassets",
+  "officialPackages": [
+   "pak0.pk3",
+   "pak1.pk3",
+   "pak2.pk3",
+   "pak3.pk3"
+  ],
+  "maxZones": 512,
+  "samples": 32768,
+  "totalMaps": 99,
+  "passed": 99,
+  "generateFailed": 0,
+  "auditFailed": 0,
+  "profiles": {
+   "stvef-sp": {
+    "maps": 66,
+    "zones": 20331,
+    "averageZones": 308,
+    "mapsWithWarnings": 32,
+    "grades": {
+     "fair": 15,
+     "good": 32,
+     "excellent": 19
+    },
+    "sidecars": [
+     {
+      "map": "_brig",
+      "zones": 105,
+      "grade": "fair",
+      "overall": 0.68,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "3ed94825e8eb2fade9d5d2fcff19ab552f743e01912d13b4185a51867959abd0",
+      "azbSha256": "648b4f55cfa0a7d79ecc6aedf6ebeb98ef9f25fb7bce0665668734df8a124234"
+     },
+     {
+      "map": "_holodeck_camelot",
+      "zones": 512,
+      "grade": "good",
+      "overall": 0.778,
+      "warnings": [
+       "zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "8484d73c22d2038adc478100a4e5f15e1649f6a2e423584adf6a6602a7bd6330",
+      "azbSha256": "9b8336ce7be4f440379fa305f0d9e8908e9d6408c6d9c3e4f27acf1cfa203b7b"
+     },
+     {
+      "map": "_holodeck_firingrange",
+      "zones": 62,
+      "grade": "good",
+      "overall": 0.75,
+      "warnings": [
+       "zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak3.pk3",
+      "bspSha256": "4c735726770c5a70faf591f3d07fc358884d19194b8503f0647ff8ece4d9fcfd",
+      "azbSha256": "48b339c6c04a8d11240a0752d74ac472f1f329d9be5ccb915c77f90e1761094f"
+     },
+     {
+      "map": "_holodeck_garden",
+      "zones": 321,
+      "grade": "fair",
+      "overall": 0.731,
+      "warnings": [
+       "zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak3.pk3",
+      "bspSha256": "2939e14e168bf08acffc210b79cb6ae9bf2454c18e038a2d1f9a01a9241dbb1d",
+      "azbSha256": "2e2198e12a4c863a2ab50bd0b2eef1af6e20118c138f79aa6072aa79a4de324a"
+     },
+     {
+      "map": "_holodeck_highnoon",
+      "zones": 286,
+      "grade": "good",
+      "overall": 0.879,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "04b5e682ec0490ad3176e244f79acbc876b8e2ad55715f5faeedd7213d3d9470",
+      "azbSha256": "9d695d1863a5c0b1488b062b45fdf6f1faf1f3d572ebbf82afe4280511901bc7"
+     },
+     {
+      "map": "_holodeck_minigame",
+      "zones": 101,
+      "grade": "good",
+      "overall": 0.85,
+      "warnings": [],
+      "pak": "pak3.pk3",
+      "bspSha256": "605b51dc656814e4ac3da4ef512f5c7f47753e7adbcc290bc5ab10276ade2c68",
+      "azbSha256": "75c868d15ec198545fd11623847d0b9d91bc5523772d9ea4cc5a431fd321e787"
+     },
+     {
+      "map": "_holodeck_proton",
+      "zones": 450,
+      "grade": "good",
+      "overall": 0.781,
+      "warnings": [
+       "zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak3.pk3",
+      "bspSha256": "eb139e372a5c4f811c82e3ee2f8346afa0cb17963352e57900e4bb6735b24409",
+      "azbSha256": "bc874d1108dc8da42762c460881eb98b383c9a2a1e8c77e7d4554245830a00ba"
+     },
+     {
+      "map": "_holodeck_proton2",
+      "zones": 306,
+      "grade": "excellent",
+      "overall": 0.923,
+      "warnings": [],
+      "pak": "pak3.pk3",
+      "bspSha256": "2e461826c72f08589930c3e0060084ac3c49e4e800c60ff08fd584e0ff471c24",
+      "azbSha256": "0e42b294655ccb5f82ec21baa75f7cc95dc2b618a6ecb18a847c71780ce75290"
+     },
+     {
+      "map": "_holodeck_temple",
+      "zones": 383,
+      "grade": "fair",
+      "overall": 0.74,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "d833088e898ca916c912e97592406f6abbaed615270977408eecec87053600bb",
+      "azbSha256": "f62e7299b08f74a01debf38f37182523e4236cea2cf7f0bb99c3f88ae330c1ea"
+     },
+     {
+      "map": "_holodeck_warlord",
+      "zones": 406,
+      "grade": "good",
+      "overall": 0.873,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak3.pk3",
+      "bspSha256": "23fcf15b06f97f9995bf97d067b93125021490f8148556e0556f7f5047b89557",
+      "azbSha256": "8516033d7e5084171af907f36a49d37725a544575efb086097abe260ff30648d"
+     },
+     {
+      "map": "borg1",
+      "zones": 512,
+      "grade": "excellent",
+      "overall": 0.984,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "e73c8967525aa939e137a3b83c6cf93e413f7673bf2734f11b4dc84074acc7de",
+      "azbSha256": "81ea78b2903d621e0ef59d01e2f4a1f77c26f0be27d814359f7cea7850c24dd9"
+     },
+     {
+      "map": "borg2",
+      "zones": 465,
+      "grade": "excellent",
+      "overall": 0.991,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "cbc8b0aef78ec919b389fe02500de089025bb3dc8e2f01f835508c86729bc43d",
+      "azbSha256": "5cb247ea915416321beb2899095d66eede8b9c2e030dbe64399ee3d5f66a76fc"
+     },
+     {
+      "map": "borg3",
+      "zones": 512,
+      "grade": "good",
+      "overall": 0.805,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "8748025104eeecca8526b5e78cdd45cd11bebdb11e1b6bd312f5f0c36e5af657",
+      "azbSha256": "e42499b43056fd0a666194647c6bf937b44bab56d4e5c41028209b46b51b7189"
+     },
+     {
+      "map": "borg4",
+      "zones": 512,
+      "grade": "good",
+      "overall": 0.769,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "b7b7d8bc5a6ffb19db5444ee6ea423f47ff8158627e97646e1d1f1ad79685c83",
+      "azbSha256": "87f12d8109c4370a22546cb0b467d7208bd3ece6c9da53dab2c3fcb7dd4c6a5a"
+     },
+     {
+      "map": "borg5",
+      "zones": 512,
+      "grade": "excellent",
+      "overall": 0.974,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "16526fac73f4e7871eeb142b4637989a13b2f2216fddc22de57adcd6fd0974ea",
+      "azbSha256": "ce67ec5d66fc89d02cac6a95a1a7567b70cb160a066089fd9cc5f29415102be5"
+     },
+     {
+      "map": "borg6",
+      "zones": 512,
+      "grade": "good",
+      "overall": 0.823,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak1.pk3",
+      "bspSha256": "aaf51316d40defd9d03b059401b91dbdc47e275bf5198266b7598ec3ffa5cb5f",
+      "azbSha256": "5e0a79503bc34048fdac0ba2a7d381b66b4896b97974b494e6a8b78332d38e26"
+     },
+     {
+      "map": "dn1",
+      "zones": 311,
+      "grade": "excellent",
+      "overall": 0.988,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "0f58643a15f0b2032901154b9db0a24d437e897ff063ccf9e8a40077504ad1ea",
+      "azbSha256": "0e99b0903309d595e5fe724aa883b86e6ede210221d5bdaa65fbb66737e7a70b"
+     },
+     {
+      "map": "dn2",
+      "zones": 325,
+      "grade": "good",
+      "overall": 0.801,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "65bef1329471aec01110c39841016f31f9223a0df7abc2550c42ed849b18f6cb",
+      "azbSha256": "0280e5b63e2eb5ccda9de920983b03c19c62760697433a8dc315eaee55ee191a"
+     },
+     {
+      "map": "dn3",
+      "zones": 164,
+      "grade": "excellent",
+      "overall": 0.975,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "f7764fef6128e050dea976a91b18badced08176844114efa69c4d2df6e51d7fb",
+      "azbSha256": "8455a6da4b7e84eba3aba7a435cef5ea945613bc1ae5b0552811f3b837fbef28"
+     },
+     {
+      "map": "dn4",
+      "zones": 268,
+      "grade": "excellent",
+      "overall": 0.988,
+      "warnings": [
+       "lookup coverage is low across the sampled sidecar bounds"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "f2bc4f7b8badd3938e7f3ce92861abd1d13f2c3c6c517933c48ddc386c68fe81",
+      "azbSha256": "0abb0af911a2d88d2157af6ca64458c066143d2ed97edf94c7a198f8418dd46b"
+     },
+     {
+      "map": "dn5",
+      "zones": 329,
+      "grade": "excellent",
+      "overall": 0.98,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "9b307693a8bacc3cf232bec7f038b0e07188d4d0c93322da3fc12b7eb91d2983",
+      "azbSha256": "bf096298fb0307fb5ea93a92d7591deb55ca875c16a3acab607e294cd08f9d01"
+     },
+     {
+      "map": "dn6",
+      "zones": 512,
+      "grade": "good",
+      "overall": 0.777,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "133158e9bcf47678b10fabfee2df24f6ba5a37fc9ebc92a25f6255d02dfdbe22",
+      "azbSha256": "a73283c9d5ab95854f1c25e7bc59eee66c562c99c1461c5af565dd194f24c5ff"
+     },
+     {
+      "map": "dn8",
+      "zones": 512,
+      "grade": "excellent",
+      "overall": 0.998,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "d8062f286790aab50b955d3f0d7583080b71988dc1a3add524cf5efb72d4bce1",
+      "azbSha256": "b5bd775ad30ab19ccaeb5258a7d554d6aecf8cb54714862bcf2340265e7609d3"
+     },
+     {
+      "map": "forge1",
+      "zones": 290,
+      "grade": "good",
+      "overall": 0.791,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "f938da2950b8bdf0bb8e0461d817e2b64edc0fb58b80d663993f7feeb0d93020",
+      "azbSha256": "1c510e486db5c7b101d4e41af2f62124fded609d8a05cec94cac0de8c3b456d7"
+     },
+     {
+      "map": "forge2",
+      "zones": 317,
+      "grade": "excellent",
+      "overall": 0.991,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "0b314b80e7d748307b9fd27e6a36e2f479cdc11f0ebcc48c3785908f0a9dcb34",
+      "azbSha256": "7f9e46e32fd406da8deb74594fa9221aa60a915ac556737184a117026b66aab2"
+     },
+     {
+      "map": "forge3",
+      "zones": 512,
+      "grade": "excellent",
+      "overall": 0.983,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "8f2136bcb263931f14e9381aaa0846a9f5ba5f55223b7c4c6304de375088c5b4",
+      "azbSha256": "b0c77cfe520bf0169d890e2b08878b2dc4d92ab0d20566cfb76c336f90cf5fa0"
+     },
+     {
+      "map": "forge4",
+      "zones": 428,
+      "grade": "excellent",
+      "overall": 0.986,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "569982c0e8e3ebfec89f3a29dfc813574bbcfa5570ec1f816054d51b5fe2c7f4",
+      "azbSha256": "b8305929515b174fad851270cc1acf37cb73cdf9ea4b0b06277425a73d7d5f19"
+     },
+     {
+      "map": "forge5",
+      "zones": 512,
+      "grade": "excellent",
+      "overall": 0.987,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "5dea7769d38da9cdd8ae9ea80e3f934c2910625324bb7c64815f103c94e00fc6",
+      "azbSha256": "c34385ef8256279490c08082fa8c521b987712025f7e17d91f371e1262014313"
+     },
+     {
+      "map": "forgeboss",
+      "zones": 321,
+      "grade": "good",
+      "overall": 0.79,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "ffd5d5d6284499c761a589bb653984ff9c1e5c351de3715d5b9be03a292abd5e",
+      "azbSha256": "142ebba51942f9ac2891d984257086999951ce8e8fb93603b5cdca6ffcb0cc86"
+     },
+     {
+      "map": "holodeck",
+      "zones": 158,
+      "grade": "excellent",
+      "overall": 0.929,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "37752e06e632c3569338af9c6477c451cbecc31390c66e56b0eb22097cc68c49",
+      "azbSha256": "e25d513a7dae1ade829427e4e93dd66db2837623b5e3b9bec94e9b3763fd6b70"
+     },
+     {
+      "map": "scav1",
+      "zones": 187,
+      "grade": "fair",
+      "overall": 0.737,
+      "warnings": [
+       "zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "468df16416cb53a7b7c81566783bb8d96855f857b8b310aa0af701b17fb7ab34",
+      "azbSha256": "afdbd21c12e363d31b1e2767811978e9326465475f2deb4088cd565ae6decf8e"
+     },
+     {
+      "map": "scav2",
+      "zones": 512,
+      "grade": "excellent",
+      "overall": 0.975,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "d119d96013c11ae7b4b88bbb8ff10e22a3d2a79abdaf232c54a12b479e760891",
+      "azbSha256": "b68decfa773d6b37b98c54c0d328464e3d7758169bc54232062079071cb7246e"
+     },
+     {
+      "map": "scav3",
+      "zones": 512,
+      "grade": "excellent",
+      "overall": 0.948,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "25522b80d666ef14e240abef4c7be46fbe67d13bfbc955d33f62b8aa03bb12a9",
+      "azbSha256": "33090ac32a75d5d002c11ff34ba0a45efc30190f8d10f7306b50a030d4740add"
+     },
+     {
+      "map": "scav3b",
+      "zones": 461,
+      "grade": "excellent",
+      "overall": 0.95,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "704f7072b6ad9edfa0dc6f92a0b6be272a506e0a11ade7f64677c5e038b7da74",
+      "azbSha256": "bcbc871a618f6f84d32a9a0854e64590df49f839d6f87e26ec4d7d5a4dbe9bff"
+     },
+     {
+      "map": "scav4",
+      "zones": 158,
+      "grade": "good",
+      "overall": 0.779,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "def01a9b87906d26c0b9e4221456f1c8d0a590e850daf71621d43522ec2a8f6c",
+      "azbSha256": "2bb81300ef38ed62a00d13f6392cf9d99c053e5dd11143bb814df400feec90b0"
+     },
+     {
+      "map": "scav5",
+      "zones": 241,
+      "grade": "excellent",
+      "overall": 0.93,
+      "warnings": [
+       "lookup coverage is low across the sampled sidecar bounds"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "f2d17879b8044c81dec5a374d064934a58c88c0d6b72b2972fd818f0e3def0a9",
+      "azbSha256": "585baf7eaa51722b077937d6e0eaee7648a2e0083fc844c5860ccbc39789079c"
+     },
+     {
+      "map": "scavboss",
+      "zones": 336,
+      "grade": "good",
+      "overall": 0.86,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "bfd5e6ea89c1bbe229e682ecc29c52a647340e8566e47cfd5412fe67ac76f43f",
+      "azbSha256": "ab0121a3079f46716a31cae0329364e4c455a3ddcf6b73fbd918be1148b44cb8"
+     },
+     {
+      "map": "stasis1",
+      "zones": 107,
+      "grade": "good",
+      "overall": 0.856,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "0a9816fbf6819fc7bd78730e928b0f09d724e4aed64a0ba919f66232548a2751",
+      "azbSha256": "7560cda0a3f94284ea2469470140ed5e4a3b0c41872fa130298c68617a1ad61c"
+     },
+     {
+      "map": "stasis2",
+      "zones": 131,
+      "grade": "good",
+      "overall": 0.866,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "65d9d7e2f17110a4c05167818c90644215f1cdcc61b78e47eada0736add70a23",
+      "azbSha256": "34193564bcc4b96a7a2df7e142a46b94d4cbfd42b244990594188704f97578af"
+     },
+     {
+      "map": "stasis3",
+      "zones": 80,
+      "grade": "good",
+      "overall": 0.876,
+      "warnings": [],
+      "pak": "pak1.pk3",
+      "bspSha256": "39e7123891dba48574e2f32da6fdf267fa6fb1e1e99f34985a7595f87c658bd7",
+      "azbSha256": "2ed1c954f4d6ef0636f0df6f5a9ad5c1cf1dd29149f08acda1fbc14ddcadd484"
+     },
+     {
+      "map": "tour/deck01",
+      "zones": 107,
+      "grade": "fair",
+      "overall": 0.641,
+      "warnings": [
+       "zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak3.pk3",
+      "bspSha256": "40d9458bb881151815d5c233a24201355fef6ac62f702ce168e1bf6a6f6cef9d",
+      "azbSha256": "c3dfcdc9b54658347ca92ab3cb8438ec743b4c21aa3b254bce2249b6b7f3226c"
+     },
+     {
+      "map": "tour/deck02",
+      "zones": 411,
+      "grade": "fair",
+      "overall": 0.704,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak3.pk3",
+      "bspSha256": "f743af2756b50819641c9c8abdbb8e2fbafe8036b93f3f6935f94e77052ab6a6",
+      "azbSha256": "db4d434e429b0c8871227bbcd5e5b870d8798084bd8c350aecdcc2bfd1bbf1d2"
+     },
+     {
+      "map": "tour/deck03",
+      "zones": 330,
+      "grade": "good",
+      "overall": 0.858,
+      "warnings": [],
+      "pak": "pak3.pk3",
+      "bspSha256": "eca93d6e669618789466d5a50f30577b954f85d414502e4ff4e4205f1c6632dd",
+      "azbSha256": "d5c2154647356b9632271ddc6d2aeb9964e11c06889db3512ecfb4fb3d2dad1d"
+     },
+     {
+      "map": "tour/deck04",
+      "zones": 512,
+      "grade": "good",
+      "overall": 0.862,
+      "warnings": [],
+      "pak": "pak3.pk3",
+      "bspSha256": "128cfb0b041e98c926dd5bc0b2dadc4f3fa6bb44706e774a4169bbd30d796eaf",
+      "azbSha256": "f4337c20c2047efec797cda55d7db5d3065b4963f303eb1511f70ad277acc7ec"
+     },
+     {
+      "map": "tour/deck05",
+      "zones": 245,
+      "grade": "good",
+      "overall": 0.769,
+      "warnings": [],
+      "pak": "pak3.pk3",
+      "bspSha256": "16a095b85982dd8ab4e48b085acab83781e9d16dec7c7e614e2db553728cc618",
+      "azbSha256": "e9e96be0c81a32b70b9632bfeeaf3d5bbc5b2cc723e99717b3d9abc33d07b12d"
+     },
+     {
+      "map": "tour/deck08",
+      "zones": 273,
+      "grade": "good",
+      "overall": 0.758,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak3.pk3",
+      "bspSha256": "fa52fd726daff0102cbe2bc18efec48763e75bc06154e01e0b44c62b256af188",
+      "azbSha256": "94a734524bd692fafb7d2f6059ea7535814eaba04fecb6d90b8621477013d731"
+     },
+     {
+      "map": "tour/deck09",
+      "zones": 281,
+      "grade": "good",
+      "overall": 0.852,
+      "warnings": [
+       "lookup coverage is low across the sampled sidecar bounds"
+      ],
+      "pak": "pak3.pk3",
+      "bspSha256": "18014b4cc58630a9a13f89a734b0510057ecd384da6715d1f01967e33a8d1466",
+      "azbSha256": "e4a52247b9734c12a8f04e9a6fbeef161be831ca8d305f0354210782e4f01878"
+     },
+     {
+      "map": "tour/deck10",
+      "zones": 198,
+      "grade": "fair",
+      "overall": 0.702,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak3.pk3",
+      "bspSha256": "116a64d27c40b8975cafee250bb6c8ef6a27338311529b63e64a33269266fc37",
+      "azbSha256": "67d9212b89295ea6b66bcfe651d4c74da5ba8a92bf07a49794dfce3497a91f74"
+     },
+     {
+      "map": "tour/deck11",
+      "zones": 141,
+      "grade": "good",
+      "overall": 0.853,
+      "warnings": [],
+      "pak": "pak3.pk3",
+      "bspSha256": "bea0aed0520e83f180757029c367bc05398aadeca9988d224ee100960a96d723",
+      "azbSha256": "71d845516f84abc3f596a4e63b7d0d9aba8763bbe151b5b5f82372acea2b5598"
+     },
+     {
+      "map": "tour/deck15",
+      "zones": 37,
+      "grade": "fair",
+      "overall": 0.696,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak3.pk3",
+      "bspSha256": "308a8ebd3f3cf9454ed555bb2c624c3405a3a6a618e1b3362e830a24786268ee",
+      "azbSha256": "d5acbce0455fc513b65ce3b8dd708bf9e477123336ae0acd8cefbf89887a00b0"
+     },
+     {
+      "map": "tutorial",
+      "zones": 190,
+      "grade": "excellent",
+      "overall": 0.921,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "9485ae048d679661775e90107bbaa78698ff5d4927ab70ee55cbbecc9cdd619a",
+      "azbSha256": "0ce98afc2b3595e4a28adb6e010282d753961553441830481c3b4a892f70f123"
+     },
+     {
+      "map": "voy1",
+      "zones": 83,
+      "grade": "fair",
+      "overall": 0.67,
+      "warnings": [
+       "zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "f6e869199d7a663fea8055828bf93e7d9484833aa46772000e0fe0ea5c265105",
+      "azbSha256": "dd279cc30acee88f17b76c2500309e2c5f50a6c90f3275a2a3a6c19b8092eb6f"
+     },
+     {
+      "map": "voy13",
+      "zones": 329,
+      "grade": "good",
+      "overall": 0.863,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "041b7f0bf8c705716ea7215fb3314613a6fd0084c586cc1d05b345ff16e2fe84",
+      "azbSha256": "b0afc8d3bcda2c7c200daac7ad0e0cc23d13c775a530183fdf3573806ac5f7c1"
+     },
+     {
+      "map": "voy14",
+      "zones": 279,
+      "grade": "fair",
+      "overall": 0.672,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "e8811e864fbb87370129bbe98f4623b4f3e40b277c27b91dc0ae7e764d40efe2",
+      "azbSha256": "00fcf04322ded5af15c5424036380f8191fbe4e9895ea183153d61ba8f7a1781"
+     },
+     {
+      "map": "voy15",
+      "zones": 326,
+      "grade": "good",
+      "overall": 0.867,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "67597de209f38906070f851177f5a42fb1c8ee3317720892fda66e5dbe9753b7",
+      "azbSha256": "6c0fe88d0687d9177f1ece08298469f0528899fef2d7c988efcfe7ff1f8bfe4f"
+     },
+     {
+      "map": "voy16",
+      "zones": 512,
+      "grade": "good",
+      "overall": 0.867,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "c5a9cf920b838825d21fe082130dd7ab0b379d9bb049aca72e715a21163e9a19",
+      "azbSha256": "394cd93bcac63694bf11c72d64cd54f9230ea1de51f3a4397e6375794409e176"
+     },
+     {
+      "map": "voy17",
+      "zones": 361,
+      "grade": "good",
+      "overall": 0.876,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "9b8a4de5dd39d2df6cbdd4a080eb15e129bf412eb0e8363eedfaa60ec537b62f",
+      "azbSha256": "71f9650026a39690f4a16e6e896a2d325c9097cbf0bb79e729bb6531108234ed"
+     },
+     {
+      "map": "voy2",
+      "zones": 230,
+      "grade": "good",
+      "overall": 0.851,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "bb5f5e2708ba70f5002ba8e7099673f736c7841beff4821b899e2e065ad3d691",
+      "azbSha256": "a6ef26aa849f1280a10f81039ff8edae1575d4d0fafcf533ccf763b48f7f30b4"
+     },
+     {
+      "map": "voy20",
+      "zones": 55,
+      "grade": "fair",
+      "overall": 0.669,
+      "warnings": [
+       "zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "486c067e3d882806b46b5bbf622451cc1f97b5fe47354cdfdcb284ebd3ea5191",
+      "azbSha256": "af957e678d34b2abc991df5e40b10ceb97f1774582b1d76cc1736ab8a6c298cd"
+     },
+     {
+      "map": "voy3",
+      "zones": 214,
+      "grade": "fair",
+      "overall": 0.72,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "f8a72441b87b9c29a13a0dbbb25594ce84da66d8ff432bf8169b9b378b2cb0b3",
+      "azbSha256": "a1e2b70e6c4645a07674f5b4e8f3953ec0fcafa8ab0808b15e329b05ee86f7bd"
+     },
+     {
+      "map": "voy4",
+      "zones": 194,
+      "grade": "fair",
+      "overall": 0.658,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "8c1caa699994d7413d51fadbcf8b4872cb2ff1ce804a85a077d799afafa282e9",
+      "azbSha256": "26a09ae4c5ed385a6916b875bfd5f4ad130190f00f9c551683f7635db1706bed"
+     },
+     {
+      "map": "voy5",
+      "zones": 340,
+      "grade": "good",
+      "overall": 0.865,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "0820d3f5ef9aefffc52e04d2b7f87b9d8f204c7564c855a4ce9a3f90d6bcfce9",
+      "azbSha256": "7674ad0353828c97004f6d9666716f6c8c7fbd9a0c55d012594c6a86c63f0ea5"
+     },
+     {
+      "map": "voy6",
+      "zones": 210,
+      "grade": "fair",
+      "overall": 0.75,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "ce9d9b8ef0dc8471ed67b0201b35e781066fcfbdb10bb16c61d3456c30d35b33",
+      "azbSha256": "15a59f3712833330d7862fcd2e8a80f9442f42a2d325a45c669e7ac8de3c2edd"
+     },
+     {
+      "map": "voy7",
+      "zones": 319,
+      "grade": "good",
+      "overall": 0.866,
+      "warnings": [],
+      "pak": "pak1.pk3",
+      "bspSha256": "abf53af78c30fa85a0050b14998f5fa57072443d3c34598950f545ce3f91a5d3",
+      "azbSha256": "a6e58ecb438946d46dda0a529a6f8cd47adb2ad076b05e26619d4883f419d404"
+     },
+     {
+      "map": "voy8",
+      "zones": 179,
+      "grade": "fair",
+      "overall": 0.726,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak1.pk3",
+      "bspSha256": "38318549a5fdf4e719fe13e04b5bc4947d842f4a69b4bda6e2487182f8195aae",
+      "azbSha256": "dd84d07a61dc067148163b11b34e0c6686a74114fada122654569dfba88e18bd"
+     },
+     {
+      "map": "voy9",
+      "zones": 334,
+      "grade": "good",
+      "overall": 0.865,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "31769f09e8e8c19a71e14941fb3b4a2ece7750ad30845a7d0cad46c0a9bb2951",
+      "azbSha256": "b117c9e45027b470d7cb414a300f415e3be92795c275e3351fb0345a0954fcb7"
+     }
+    ]
+   },
+   "stvef-mp": {
+    "maps": 33,
+    "zones": 13082,
+    "averageZones": 396,
+    "mapsWithWarnings": 11,
+    "grades": {
+     "good": 15,
+     "excellent": 13,
+     "fair": 5
+    },
+    "sidecars": [
+     {
+      "map": "ctf_and1",
+      "zones": 511,
+      "grade": "good",
+      "overall": 0.85,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "57b81237aef767d983fcffa87a7b372b49421e6168e10aa979236ec036bd68b9",
+      "azbSha256": "563fc0c370b9b46b375e27390039cf3177d97b1584a361d1706cdac9de666647"
+     },
+     {
+      "map": "ctf_breach",
+      "zones": 512,
+      "grade": "good",
+      "overall": 0.811,
+      "warnings": [],
+      "pak": "pak3.pk3",
+      "bspSha256": "73ef4a2f93370e49dbac7487d63314995086a7eca3090f13a94e950cceeb04cf",
+      "azbSha256": "a2a8a9477c1eebfa30146416fd933a8a963fba36539890e218e2448f3214f806"
+     },
+     {
+      "map": "ctf_dn1",
+      "zones": 512,
+      "grade": "excellent",
+      "overall": 0.983,
+      "warnings": [],
+      "pak": "pak3.pk3",
+      "bspSha256": "c9510cb81872372d08cc708ae0dfa6fed22221f61a8374f35cbffb9fc0960d7b",
+      "azbSha256": "f08919e624c9e83714c5656a38f26ed1be7ac75bdb96cb8d9626efd6baf0bda2"
+     },
+     {
+      "map": "ctf_for1",
+      "zones": 512,
+      "grade": "excellent",
+      "overall": 0.987,
+      "warnings": [],
+      "pak": "pak3.pk3",
+      "bspSha256": "853dd4b072568e7a64da4087c0c20a8f5f92ae1af9d3d06156667293924dff40",
+      "azbSha256": "cbfb5e23962b470ff79307de477af054bfd5bd184df02fcacf51490dbb32ff25"
+     },
+     {
+      "map": "ctf_kln1",
+      "zones": 369,
+      "grade": "good",
+      "overall": 0.778,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "d557eceb5ba1d2b31753604911d686353428e68ba5a46c7328266d1c5729bcb1",
+      "azbSha256": "a957fa2556decf9ec79acc8e6229c6d3fabfe179e4f3e59de4280b771e0b30f1"
+     },
+     {
+      "map": "ctf_kln2",
+      "zones": 512,
+      "grade": "excellent",
+      "overall": 0.919,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "e5a311a64a8d3a7777e55db1399edbca500abb2e095de22603edb9706459244e",
+      "azbSha256": "8eaffe4fcbe49a95882ce5849b882d07409c6dc8e43b61854383fe0f8e899bef"
+     },
+     {
+      "map": "ctf_neptune",
+      "zones": 249,
+      "grade": "fair",
+      "overall": 0.721,
+      "warnings": [
+       "zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak3.pk3",
+      "bspSha256": "d702629de50ee8d906b4cdf8be6808d348848de092a0a854352a6e3a8829b30b",
+      "azbSha256": "21909c7cf9918c83b1b42fee14474203480d8fe02f1c147ef9be7c9d3611ae6a"
+     },
+     {
+      "map": "ctf_oldwest",
+      "zones": 312,
+      "grade": "good",
+      "overall": 0.823,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak3.pk3",
+      "bspSha256": "e93d43fa781353d4273018f3477af02bae623f0d5798ad19e73ab1ac58149b5a",
+      "azbSha256": "279dbc7e1592a1609eb3c495f820380f0abbc325a00acc0a302c7462edbcdb7a"
+     },
+     {
+      "map": "ctf_reservoir",
+      "zones": 360,
+      "grade": "good",
+      "overall": 0.778,
+      "warnings": [],
+      "pak": "pak3.pk3",
+      "bspSha256": "1b97110d54af898adb260d53e2a205a228dcc0371d9397b957d918fb1b0dac95",
+      "azbSha256": "dc8a7f9581eded8fe3bd449f228292bfc49932f5471ea4ce7c5b77f66be01a30"
+     },
+     {
+      "map": "ctf_singularity",
+      "zones": 512,
+      "grade": "good",
+      "overall": 0.837,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak3.pk3",
+      "bspSha256": "629bfe57eca81106a9a3198195855135fae6cc05a115ce21f0c6d765104a0623",
+      "azbSha256": "98f99326d500b36c76d60c7224b49a4e7b347962953c0daca67cee40dd7a474d"
+     },
+     {
+      "map": "ctf_spyglass2",
+      "zones": 139,
+      "grade": "good",
+      "overall": 0.785,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak3.pk3",
+      "bspSha256": "3e129528ab283ccbdaa8fe477ba8c21de4b4073047ace9e924e62480d390cf8c",
+      "azbSha256": "baf8d7e4793fb0b6421500ca6ecd9582f1493912691058cbdee83a1ad9e9d23c"
+     },
+     {
+      "map": "ctf_stasis",
+      "zones": 43,
+      "grade": "fair",
+      "overall": 0.733,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak3.pk3",
+      "bspSha256": "bd8ac6bfc5e77946d0fe4b777ec2b7aae2df21ff19f372af3ba1424651639374",
+      "azbSha256": "66332a0d599741746fe4a43aaecf42d33a62b0571853cf5916ba26425a3f0b98"
+     },
+     {
+      "map": "ctf_voy1",
+      "zones": 291,
+      "grade": "fair",
+      "overall": 0.663,
+      "warnings": [
+       "zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "0fbaf8cb11d3bda423e71f25f911c736ff25e6011ea501c798667993e138f5e1",
+      "azbSha256": "9719b73e249b44759e8b577f5bda0da87d9a035cb03554d44fa6f4eb11ebdfbd"
+     },
+     {
+      "map": "ctf_voy2",
+      "zones": 290,
+      "grade": "fair",
+      "overall": 0.654,
+      "warnings": [
+       "zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "3de4ba1ea639f8548a146a0e72858dba3436d5cb749cfe60266c5a6b90880eec",
+      "azbSha256": "a6bd91a422b3fc12c4cfc5e2fdc11cb68a867749b7ca2dbb0f189de2b0d9beef"
+     },
+     {
+      "map": "hm_altar",
+      "zones": 512,
+      "grade": "excellent",
+      "overall": 0.915,
+      "warnings": [],
+      "pak": "pak3.pk3",
+      "bspSha256": "6f50d93b73dd64f6c519577941242bc9c1a0f652cb3a1b4d8f687238afde2494",
+      "azbSha256": "59b53d75cb4e25947c37d8e9901ba4b7ac7e72880da936e77780166f1e88ca70"
+     },
+     {
+      "map": "hm_blastradius",
+      "zones": 300,
+      "grade": "good",
+      "overall": 0.786,
+      "warnings": [],
+      "pak": "pak3.pk3",
+      "bspSha256": "4e2d2d6d1a4c84c2ecee4d563bfd7f69caadf2d5f03f2420b8dd4b90044b6024",
+      "azbSha256": "b4c90a626e35d464ca128ead4eeea3e15de4cb6c3ef94d3477bb68b10bbc900d"
+     },
+     {
+      "map": "hm_borg1",
+      "zones": 227,
+      "grade": "excellent",
+      "overall": 0.984,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "2c88ad1fe9c493121f43e5e5de93b038395f8426b9bd76448a49b1ef85fd969e",
+      "azbSha256": "a13468e6d0530d5c04d884b967f3833ea23c2b2233451478c7b76e930b3ed98f"
+     },
+     {
+      "map": "hm_borg2",
+      "zones": 445,
+      "grade": "good",
+      "overall": 0.893,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "17e64cb7e7413e1173cdf1be1a2221c69c58cdd882c61f01d82fdf5866bbde89",
+      "azbSha256": "eafb3b8a8593e282200fd6fe277febd236996aa0bf41a810d9c229ba0b9dd133"
+     },
+     {
+      "map": "hm_borg3",
+      "zones": 359,
+      "grade": "good",
+      "overall": 0.884,
+      "warnings": [
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "91fea0a2dd3af6292bbc57f56c9bf3e3c7c3ac9424479ef0e31b5b7faeddd0af",
+      "azbSha256": "62317dd983d7b41b9dbf22f72338e8bf9d53788ad9d8d8183ee1a40b154911fe"
+     },
+     {
+      "map": "hm_borgattack",
+      "zones": 512,
+      "grade": "excellent",
+      "overall": 0.903,
+      "warnings": [],
+      "pak": "pak3.pk3",
+      "bspSha256": "7f6fcebe6ffbee11b43f81aed56a86e745513951ca90c18d2d190e6a435195d1",
+      "azbSha256": "c798c56628c6fd6b063c508f41ef768685ee9b7afe2f33535c96a180a5628a19"
+     },
+     {
+      "map": "hm_cam",
+      "zones": 512,
+      "grade": "good",
+      "overall": 0.794,
+      "warnings": [
+       "zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "ea52e8c8f0cb4540b5817944a8dabed0744cc3c573de3941999aeccb10d2cd0f",
+      "azbSha256": "92ee4d51e88aef457c71dfe2847110a887f92cb3a92e54dafe4c71d01f815336"
+     },
+     {
+      "map": "hm_dn1",
+      "zones": 412,
+      "grade": "excellent",
+      "overall": 0.994,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "6018c1285974e4c38039a4c3ca4219beb7fa63565164cc0d520c8bf8b5965195",
+      "azbSha256": "73eaf28e24198ee24a3fe3896d399d768c33c481944a657a03052afb5766c87b"
+     },
+     {
+      "map": "hm_dn2",
+      "zones": 512,
+      "grade": "excellent",
+      "overall": 0.934,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "048e7c1fb33ac9e2d787b822a69962f78ccce88aa91ad8fe998018bae9ca44fd",
+      "azbSha256": "4448e0485fa3be8e35a8d5b7cbdcb929ced873fdb69796c165b26911051d4693"
+     },
+     {
+      "map": "hm_for1",
+      "zones": 512,
+      "grade": "excellent",
+      "overall": 0.975,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "634e6efa395d8b9a70761b5308dbeda6095c6e5dc64a507e6579df3b4b38b4b8",
+      "azbSha256": "3b859eefb74a6427477c5f78a6881ade505cdcfe14737c99ba8e270d34b68994"
+     },
+     {
+      "map": "hm_for2",
+      "zones": 512,
+      "grade": "excellent",
+      "overall": 0.984,
+      "warnings": [],
+      "pak": "pak3.pk3",
+      "bspSha256": "b08f0111899934c15a71738b49095ac362d26f6429efd3dc1b3aaf0bf64f2ae8",
+      "azbSha256": "e710ac22d3231050e3b921ade09967ba13d96eece3907995f02990c7a52e22b5"
+     },
+     {
+      "map": "hm_kln1",
+      "zones": 246,
+      "grade": "excellent",
+      "overall": 0.995,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "9d41e30d51e69a0b0c595143bad65a825deedd363779abcde8f119b2c7e34f2f",
+      "azbSha256": "dce180048d08725389f9726693c273a564c6497df81c0dcdf2f2d7d2cb337527"
+     },
+     {
+      "map": "hm_noon",
+      "zones": 274,
+      "grade": "fair",
+      "overall": 0.724,
+      "warnings": [
+       "zones cover more than half of the sidecar bounds; generated volumes may have collapsed",
+       "most lookups resolve to map-scale zones instead of specific volumes"
+      ],
+      "pak": "pak0.pk3",
+      "bspSha256": "7182a7517ce608257482b46c52fe9483bfac7329d48f193abb528bb177bb35b9",
+      "azbSha256": "1eb35be4bc2531e7abc089b9b8a69eccee2aa6db29d6bac9c7c02403af3e73a6"
+     },
+     {
+      "map": "hm_raven",
+      "zones": 343,
+      "grade": "good",
+      "overall": 0.866,
+      "warnings": [],
+      "pak": "pak3.pk3",
+      "bspSha256": "20b44c9edc07d6805fb5bfa3b182650b21116edfa3edc3c12c0ba9d892800f72",
+      "azbSha256": "d8bc597b38c6aadf5a1dde42cad56a6691301028be2167bf595e3d94071e09f2"
+     },
+     {
+      "map": "hm_scav1",
+      "zones": 389,
+      "grade": "excellent",
+      "overall": 0.985,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "742847940f04305f87be354b06cd4849d7e2f8cce1f2ba53c7f9a76dbfaa4eb7",
+      "azbSha256": "d1004cd30cf673864975762b0be02778ed87294604c1be50b50325dba5f053be"
+     },
+     {
+      "map": "hm_temple",
+      "zones": 512,
+      "grade": "excellent",
+      "overall": 0.974,
+      "warnings": [],
+      "pak": "pak3.pk3",
+      "bspSha256": "6c5a514a3a7678b98dc5d307b55776ac73659fd616e914db7f0b15919ed0d0ca",
+      "azbSha256": "222f4b7a2fb4b9e5a82bc918b238aa5eeb33ed76ff249244161fa7aba9149209"
+     },
+     {
+      "map": "hm_voy1",
+      "zones": 512,
+      "grade": "good",
+      "overall": 0.868,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "8706fc6092f3b551ca858bdea4e1af2ff0414bb065994b2ae132d7e063b27eef",
+      "azbSha256": "f9cf88b1eb3189f311e7b942de54b06990ef138f9ea1e27a89722ae12f492fae"
+     },
+     {
+      "map": "hm_voy2",
+      "zones": 512,
+      "grade": "good",
+      "overall": 0.796,
+      "warnings": [],
+      "pak": "pak0.pk3",
+      "bspSha256": "f30c18fdca8aafffbd7f3b5eb45675a359b676f5713fc63625e3a07ce761fa11",
+      "azbSha256": "159693811af997d8141dcfefb7a1690abf50ab2bf5f4bf90344c7141d08bd7b6"
+     },
+     {
+      "map": "hm_voy3",
+      "zones": 355,
+      "grade": "good",
+      "overall": 0.878,
+      "warnings": [],
+      "pak": "pak3.pk3",
+      "bspSha256": "0beb4e44a9b43d80d8fd2d48398deeffac91028d7fc56f87dea33a988051a49f",
+      "azbSha256": "54fcf515f51643c39a0085a8eacc57c3eb1bc5503baff824fa6b6ba6a9e5caa1"
+     }
+    ]
+   }
+  },
+  "zoneMaterials": {
+   "neutral": 13492,
+   "metal": 15918,
+   "sky": 416,
+   "soft": 1044,
+   "stone": 2419,
+   "liquid": 124
+  },
+  "zonePresets": {
+   "hallway": 2733,
+   "room": 474,
+   "small-room": 28092,
+   "hall": 496,
+   "outdoors": 371,
+   "stone-room": 1123,
+   "underwater": 124
+  },
+  "confidence": {
+   "min": 0.641,
+   "mean": 0.848,
+   "max": 0.998
+  },
+  "warnings": {
+   "most lookups resolve to map-scale zones instead of specific volumes": 40,
+   "zones cover more than half of the sidecar bounds; generated volumes may have collapsed": 13,
+   "lookup coverage is low across the sampled sidecar bounds": 3
+  },
+  "mapsWithWarnings": 43,
+  "split": "scripts/arenas.txt and scripts/xpack.arena declare the 33 Holomatch maps; the remaining 66 are single player and its tour decks.",
+  "materialInterpretation": "Quake III's, unchanged. Across all 99 maps Elite Force sets only Quake III flag bits, never SURF_FLESH, and marks its metal environments with SURF_METALSTEPS, so no Elite Force specific material table was invented."
+ },
+ "hudRules": {
+  "stvef-sp": {
+   "rules": 5,
+   "names": [
+    "crosshair",
+    "health_and_armor_caps",
+    "ammo_bar",
+    "status_numbers",
+    "upper_left_text"
+   ],
+   "recordedGroups": 37,
+   "file": {
+    "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\pkg\\games\\stvef-sp\\baseEF\\fntech3-hud.json",
+    "bytes": 1069,
+    "sha256": "0a9e1d8d59997a658e28d134c0d967c727ae31bedad1fda1f17cfaba28a1fe1c"
+   }
+  },
+  "stvef-mp": {
+   "rules": 13,
+   "names": [
+    "crosshair",
+    "health_and_armor_caps",
+    "health_and_armor_bar",
+    "health_and_armor_numbers",
+    "ammo_caps",
+    "ammo_bar",
+    "ammo_numbers",
+    "weapon_select_and_bottom_text",
+    "status_text",
+    "lagometer_and_fps",
+    "pickup_and_weapon_icons",
+    "centerprint",
+    "upper_left_text"
+   ],
+   "recordedGroups": 97,
+   "file": {
+    "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\pkg\\games\\stvef-mp\\baseEF\\fntech3-hud.json",
+    "bytes": 2740,
+    "sha256": "9a951a4aa86e40f6c45e6ee87d616f9adcb03c16e72635ed1c93c8e53f01fc77"
+   }
+  }
+ },
+ "hudCapture": {
+  "method": "cl_hudDump 1 in owned runtime sessions; the engine writes its deduplicated draw groups and the shipped rules were authored from them.",
+  "sessions": [
+   {
+    "case": "hud-dump-stvef-sp",
+    "profile": "stvef-sp",
+    "exit": 0,
+    "completed": true,
+    "groups": 37
+   },
+   {
+    "case": "hud-dump-stvef-mp",
+    "profile": "stvef-mp",
+    "exit": 0,
+    "completed": true,
+    "groups": 97
+   }
+  ],
+  "fixture": {
+   "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\tests\\fixtures\\stvef_hud_draws.json",
+   "bytes": 28306,
+   "sha256": "c2f2cccc1872ed99d8f2dac51fdc1224fea3b4b51afb55dd0e7bcd81c1901d19"
+  }
+ },
+ "platforms": [
+  "Windows x86 (MSVC, meson win32-dev)"
+ ],
+ "limits": [
+  "Generated zones are a first pass from BSP geometry and shader evidence; no listening check has been made, and no acoustic material map was authored for Elite Force.",
+  "43 of 99 maps carry audit warnings about map-scale zone lookups, which is normal for this generator and is recorded per map rather than suppressed.",
+  "HUD rules are pinned against recorded draw groups and the engine's own matching order. How the corrected HUD looks on a wide display is a manual check.",
+  "Elite Force single player's weapon selector is opened by key input, which this harness does not drive, so it was not recorded and keeps the centred default.",
+  "A wide-aspect screenshot pair was captured but is not offered as evidence: the two sessions render different frames, so the difference does not isolate the HUD transform.",
+  "Both Elite Force profiles remain development-gated, and retail SP remains a Windows x86 runtime boundary."
+ ]
+}

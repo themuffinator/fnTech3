@@ -182,3 +182,10 @@ look. No retail-exact option is added.
   presentation of a non-default setting and is not reproduced.
 - Only three opening views, two static-light views and the main menu were
   measured.
+
+## Later work
+
+The Elite Force branch merged on 2026-09-26 registers no overbright bits for
+Elite Force single player either, as `stvoy.exe` registers none; Holomatch
+keeps one of each (`2026-09-20-stvef-mdr.md`). Alice's defaults are
+unchanged.

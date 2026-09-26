@@ -98,8 +98,9 @@ class QLFontSourceTests(unittest.TestCase):
     def test_host_text_service_is_exported_by_every_renderer(self) -> None:
         public = read("code/renderercommon/tr_public.h")
         # 30: Medal of Honor's model registration joined the table after the
-        # text service's members.
-        self.assertIn("REF_API_VERSION\t\t30", public)
+        # text service's members; 31: Elite Force single player's scissor and
+        # raw-image members after those.
+        self.assertIn("REF_API_VERSION\t\t31", public)
         self.assertIn("(*DrawScaledText)", public)
         self.assertIn("(*MeasureScaledText)", public)
         self.assertIn("(*GetScaledFontMetrics)", public)

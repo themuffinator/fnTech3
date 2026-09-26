@@ -1650,7 +1650,16 @@ void SV_Frame( int msec, int realMsec ) {
 
 	// if it isn't time for the next frame, do nothing
 	frameMsec = 0;
-	if ( com_timescale->value > 0.0f ) {
+	const bool stvefSP = Com_GameIsSTVEFSP();
+	if ( stvefSP ) {
+		// Retail SP keeps fixed simulation ticks when timescale changes
+		// (stvoy.exe 1.20, SV_Frame 0x4265c0). Com_ModifyMsec has already
+		// scaled the elapsed game time; sv_fps is range-checked at startup.
+		frameMsec = 1000 / sv_fps->integer;
+		if ( msec > 1000 ) {
+			msec = 1000;
+		}
+	} else if ( com_timescale->value > 0.0f ) {
 		frameMsec = static_cast<int>( 1000.0f / sv_fps->value * com_timescale->value );
 		if ( frameMsec < 1 ) {
 			frameMsec = 1;
@@ -1658,6 +1667,11 @@ void SV_Frame( int msec, int realMsec ) {
 	}
 
 	sv.timeResidual += msec;
+	if ( stvefSP && sv.timeResidual < frameMsec ) {
+		// SP publishes one snapshot after its new tick(s), without
+		// duplicating game state on intervening render frames.
+		return;
+	}
 
 	if ( !com_dedicated->integer )
 		SV_BotFrame( sv.time + sv.timeResidual );

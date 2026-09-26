@@ -1,0 +1,787 @@
+{
+  "recordDate": "2026-09-21",
+  "sourceCommit": "bc0f86366c8ceb67ba17f4783b173e8e5af83936",
+  "profiles": [
+    "stvef-sp",
+    "stvef-mp"
+  ],
+  "windows": "Windows 11, MSVC 19.44.35207 x86, NVIDIA 4060 Laptop GPU, driver 591.74, Vulkan 1.4.325",
+  "linux": "Ubuntu 24.04.3 under WSL2, GCC 13.3 i686, Meson 1.10.2, Mesa llvmpipe software rendering",
+  "settingsBoundary": {
+    "windowed": true,
+    "mouseDisabled": true,
+    "joystickDisabled": true,
+    "inputNotControlled": true,
+    "windowsPrivateDesktopNeverActivated": true,
+    "linuxXvfb": true,
+    "screenshots": "engine screenshot only",
+    "installationUnchanged": true
+  },
+  "proprietaryInputsCommitted": false,
+  "fnWindowsClient": {
+    "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+    "bytes": 8504320,
+    "sha256": "fc24b12d220f255762007eae68f56a2b6afb38651425273cdcf1743da3109047"
+  },
+  "fnLinuxClient": {
+    "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\linux-client-i686\\fntech3",
+    "bytes": 23894000,
+    "sha256": "f9a9e3a348814cd979a82d7f23b302aa7f323f27e1bc24cd6e01195b36462a58"
+  },
+  "retailSP": {
+    "path": "E:\\Games\\Star Trek Voyager Elite Force\\stvoy.exe",
+    "bytes": 675840,
+    "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74"
+  },
+  "installation": [
+    {
+      "path": "E:\\Games\\fnTech3-tests\\efassets-retail\\baseEF\\pak0.pk3",
+      "bytes": 566234769,
+      "sha256": "44feb77eeec4670975e3c9f6c09b930d73d12e5b586761107d20ec105c03c7ae"
+    },
+    {
+      "path": "E:\\Games\\fnTech3-tests\\efassets-retail\\baseEF\\pak1.pk3",
+      "bytes": 6492912,
+      "sha256": "19412051c2e48d0f51c27127f38280d12401afaf53c38e3af4517768641600eb"
+    },
+    {
+      "path": "E:\\Games\\fnTech3-tests\\efassets-retail\\baseEF\\pak2.pk3",
+      "bytes": 12408486,
+      "sha256": "8b573723b6827b38974d6da1619f485f4cd66a0ef26d06a3d0135b5e80988e39"
+    },
+    {
+      "path": "E:\\Games\\fnTech3-tests\\efassets-retail\\baseEF\\pak3.pk3",
+      "bytes": 88885710,
+      "sha256": "6cdbbdd34276eb52f9a3d9b54a4ac95156f8abeced7eee05f26ffa85b538a175"
+    }
+  ],
+  "spAdditionalAssets": [
+    {
+      "path": "E:\\Games\\fnTech3-tests\\efassets\\baseEF\\zSTVEFtex.pk3",
+      "bytes": 839268276,
+      "sha256": "71f1c273accbcbdc5698128d99840b11505ffab9277444e82c51fb204ae31941"
+    }
+  ],
+  "spGameModules": [
+    {
+      "path": "E:\\Games\\Star Trek Voyager Elite Force\\efgamex86.dll",
+      "bytes": 999500,
+      "sha256": "c159cba671544ddcc8694887c21bbeba13fead35bbf4488c08914f66695105a9"
+    },
+    {
+      "path": "E:\\Games\\Star Trek Voyager Elite Force\\efuix86.dll",
+      "bytes": 458824,
+      "sha256": "35dfe9ca1a3ee20cc1d314013d1d5c281cd9ed2b68fc57b22af77bb2a0bedfb2"
+    }
+  ],
+  "saveRuns": [
+    {
+      "case": "fresh",
+      "exit": 0,
+      "terminated": null,
+      "seconds": 16.328,
+      "privateDesktop": true,
+      "command": [
+        "E:\\Games\\fnTech3-tests\\stvef-clock-saves-retail-late-fresh\\stvoy.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\fnTech3-tests\\stvef-clock-saves-retail-late-fresh",
+        "+set",
+        "fs_cdpath",
+        "E:\\Games\\fnTech3-tests\\efassets",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "3",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "developer",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "com_FirstTime",
+        "1",
+        "+set",
+        "com_zoneMegs",
+        "128",
+        "+set",
+        "com_hunkMegs",
+        "256",
+        "+exec",
+        "probe.cfg"
+      ],
+      "settings": {
+        "fs_basepath": "E:\\Games\\fnTech3-tests\\stvef-clock-saves-retail-late-fresh",
+        "fs_cdpath": "E:\\Games\\fnTech3-tests\\efassets",
+        "r_fullscreen": 0,
+        "r_mode": 3,
+        "in_mouse": 0,
+        "in_joystick": 0,
+        "in_nograb": 1,
+        "s_initsound": 0,
+        "developer": 0,
+        "logfile": 2,
+        "com_introplayed": 1,
+        "com_FirstTime": 1,
+        "com_zoneMegs": 128,
+        "com_hunkMegs": 256,
+        "com_maxfps": 60,
+        "com_maxfpsUnfocused": 60,
+        "com_maxfpsMinimized": 60,
+        "net_enabled": 0,
+        "cl_motd": 0,
+        "con_notifytime": 0,
+        "cl_drawFPS": 0,
+        "cl_drawSpeed": 0
+      },
+      "script": "wait 60\ndevmap tutorial\nwait 180\nsave clock_retail_early\nwait 420\nsave clock_retail_reload\nscreenshot clock_retail_reload\nwait 3\necho CLOCK_SAVE_COMPLETE\nquit\n",
+      "executable": {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-clock-saves-retail-late-fresh\\stvoy.exe",
+        "bytes": 675840,
+        "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74"
+      },
+      "log": {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-clock-saves-retail-late-fresh\\baseEF\\qconsole.log",
+        "bytes": 7865,
+        "sha256": "994fe68193bdb4240702f7362172c315ddcbcd6cfed4ad21dad0c53f81d37890"
+      },
+      "completed": true,
+      "saves": [
+        {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-clock-saves-retail-late-fresh\\baseEF\\saves\\auto.sav",
+          "bytes": 328320,
+          "sha256": "85cbce2932d56f295d8a218de2c30ecacf7157c822e80e2851e782d05bd73f85",
+          "chunks": 1099,
+          "engine": {
+            "MPCM": "tutorial",
+            "GAME": 1,
+            "TIME": 0
+          }
+        },
+        {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-clock-saves-retail-late-fresh\\baseEF\\saves\\clock_first.sav",
+          "bytes": 517472,
+          "sha256": "88345264d4624da2dca0d6211be590c3da4d8ba9cc2a52ef44802acba57eb93a",
+          "chunks": 2948,
+          "engine": {
+            "MPCM": "tutorial",
+            "GAME": 0,
+            "TIME": 5100,
+            "TIMR": 5
+          }
+        },
+        {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-clock-saves-retail-late-fresh\\baseEF\\saves\\clock_retail_reload.sav",
+          "bytes": 517018,
+          "sha256": "e3639982f6a088a13d33814655e1cc35b64a4d89665446f8ce3e01d4efcbe4f6",
+          "chunks": 2938,
+          "engine": {
+            "MPCM": "tutorial",
+            "GAME": 0,
+            "TIME": 8300,
+            "TIMR": 32
+          }
+        }
+      ],
+      "captures": [
+        {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-clock-saves-retail-late-fresh\\baseEF\\screenshots\\clock_retail_reload.tga",
+          "bytes": 921618,
+          "sha256": "d3c553a865e75d2bb11fdf3653087068116373c6a4fee21c6e602aba0c389cea"
+        }
+      ],
+      "events": [
+        "Can't savegame while dead!",
+        "^5Saving game \"clock_retail_reload\"...",
+        "^5Done.",
+        "Wrote screenshots/clock_retail_reload.tga",
+        "CLOCK_SAVE_COMPLETE "
+      ],
+      "earlyDeadRefusals": 1
+    },
+    {
+      "case": "reload",
+      "exit": 0,
+      "terminated": null,
+      "seconds": 16.328,
+      "privateDesktop": true,
+      "command": [
+        "E:\\Games\\fnTech3-tests\\stvef-clock-saves-retail-late-reload\\stvoy.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\fnTech3-tests\\stvef-clock-saves-retail-late-reload",
+        "+set",
+        "fs_cdpath",
+        "E:\\Games\\fnTech3-tests\\efassets",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "3",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "developer",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "com_FirstTime",
+        "1",
+        "+set",
+        "com_zoneMegs",
+        "128",
+        "+set",
+        "com_hunkMegs",
+        "256",
+        "+exec",
+        "probe.cfg"
+      ],
+      "settings": {
+        "fs_basepath": "E:\\Games\\fnTech3-tests\\stvef-clock-saves-retail-late-reload",
+        "fs_cdpath": "E:\\Games\\fnTech3-tests\\efassets",
+        "r_fullscreen": 0,
+        "r_mode": 3,
+        "in_mouse": 0,
+        "in_joystick": 0,
+        "in_nograb": 1,
+        "s_initsound": 0,
+        "developer": 0,
+        "logfile": 2,
+        "com_introplayed": 1,
+        "com_FirstTime": 1,
+        "com_zoneMegs": 128,
+        "com_hunkMegs": 256,
+        "com_maxfps": 60,
+        "com_maxfpsUnfocused": 60,
+        "com_maxfpsMinimized": 60,
+        "net_enabled": 0,
+        "cl_motd": 0,
+        "con_notifytime": 0,
+        "cl_drawFPS": 0,
+        "cl_drawSpeed": 0
+      },
+      "script": "wait 60\nload clock_first\nwait 600\nsave clock_retail_reload\nscreenshot clock_retail_reload\nwait 3\necho CLOCK_SAVE_COMPLETE\nquit\n",
+      "executable": {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-clock-saves-retail-late-reload\\stvoy.exe",
+        "bytes": 675840,
+        "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74"
+      },
+      "log": {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-clock-saves-retail-late-reload\\baseEF\\qconsole.log",
+        "bytes": 7876,
+        "sha256": "63ebde7fa124173e5c6a06ee95bbbb708be7413529f86b2bba6c86585b063e9e"
+      },
+      "completed": true,
+      "saves": [
+        {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-clock-saves-retail-late-reload\\baseEF\\saves\\clock_first.sav",
+          "bytes": 517472,
+          "sha256": "88345264d4624da2dca0d6211be590c3da4d8ba9cc2a52ef44802acba57eb93a",
+          "chunks": 2948,
+          "engine": {
+            "MPCM": "tutorial",
+            "GAME": 0,
+            "TIME": 5100,
+            "TIMR": 5
+          }
+        },
+        {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-clock-saves-retail-late-reload\\baseEF\\saves\\clock_retail_reload.sav",
+          "bytes": 517217,
+          "sha256": "56d454fa9947845d4ade4b71102eee9f230549b2bfe05fe9f3bfe64c3e3f9e9a",
+          "chunks": 2938,
+          "engine": {
+            "MPCM": "tutorial",
+            "GAME": 0,
+            "TIME": 12350,
+            "TIMR": 23
+          }
+        }
+      ],
+      "captures": [
+        {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-clock-saves-retail-late-reload\\baseEF\\screenshots\\clock_retail_reload.tga",
+          "bytes": 921618,
+          "sha256": "d3c553a865e75d2bb11fdf3653087068116373c6a4fee21c6e602aba0c389cea"
+        }
+      ],
+      "events": [
+        "^5Loading game \"clock_first\"...",
+        "^5Done.",
+        "^5Saving game \"clock_retail_reload\"...",
+        "^5Done.",
+        "Wrote screenshots/clock_retail_reload.tga",
+        "CLOCK_SAVE_COMPLETE "
+      ],
+      "earlyDeadRefusals": 0
+    },
+    {
+      "case": "return",
+      "exit": 0,
+      "terminated": null,
+      "seconds": 6.218,
+      "privateDesktop": true,
+      "command": [
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "stvef-sp",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\fnTech3-tests\\efassets",
+        "+set",
+        "fs_homepath",
+        "E:\\Games\\fnTech3-tests\\stvef-clock-saves-fn-retail-late-return",
+        "+set",
+        "cl_renderer",
+        "glx",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "3",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "developer",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "com_FirstTime",
+        "1",
+        "+set",
+        "com_zoneMegs",
+        "128",
+        "+set",
+        "com_hunkMegs",
+        "256",
+        "+exec",
+        "probe.cfg"
+      ],
+      "settings": {
+        "com_gameProfile": "stvef-sp",
+        "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets",
+        "fs_homepath": "E:\\Games\\fnTech3-tests\\stvef-clock-saves-fn-retail-late-return",
+        "cl_renderer": "glx",
+        "r_fullscreen": 0,
+        "r_mode": 3,
+        "in_mouse": 0,
+        "in_joystick": 0,
+        "in_nograb": 1,
+        "s_initsound": 0,
+        "developer": 0,
+        "logfile": 2,
+        "com_introplayed": 1,
+        "com_FirstTime": 1,
+        "com_zoneMegs": 128,
+        "com_hunkMegs": 256,
+        "com_maxfps": 60,
+        "com_maxfpsUnfocused": 60,
+        "com_maxfpsMinimized": 60,
+        "net_enabled": 0,
+        "cl_motd": 0,
+        "con_notifytime": 0,
+        "cl_drawFPS": 0,
+        "cl_drawSpeed": 0
+      },
+      "script": "wait 60\nload clock_retail_reload\nwait 10\nsave clock_fn_retail_reload\nscreenshot clock_fn_retail_reload\nwait 3\necho CLOCK_SAVE_COMPLETE\nquit\n",
+      "executable": {
+        "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "bytes": 8504320,
+        "sha256": "fc24b12d220f255762007eae68f56a2b6afb38651425273cdcf1743da3109047"
+      },
+      "log": {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-clock-saves-fn-retail-late-return\\baseEF\\qconsole.log",
+        "bytes": 6728,
+        "sha256": "859994dba9ac9d124c997d7c0aeb8fd14b5d77600670ebb061be93273c42a3d1"
+      },
+      "completed": true,
+      "saves": [
+        {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-clock-saves-fn-retail-late-return\\baseEF\\saves\\clock_fn_retail_reload.sav",
+          "bytes": 517472,
+          "sha256": "d537e4c2fc8bfe3882085498ee2fd1aabdc466194dd4ca00e823303b48cb01bc",
+          "chunks": 2948,
+          "engine": {
+            "MPCM": "tutorial",
+            "GAME": 0,
+            "TIME": 12700,
+            "TIMR": 17
+          }
+        },
+        {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-clock-saves-fn-retail-late-return\\baseEF\\saves\\clock_retail_reload.sav",
+          "bytes": 517217,
+          "sha256": "56d454fa9947845d4ade4b71102eee9f230549b2bfe05fe9f3bfe64c3e3f9e9a",
+          "chunks": 2938,
+          "engine": {
+            "MPCM": "tutorial",
+            "GAME": 0,
+            "TIME": 12350,
+            "TIMR": 23
+          }
+        }
+      ],
+      "captures": [
+        {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-clock-saves-fn-retail-late-return\\baseEF\\screenshots\\clock_fn_retail_reload.png",
+          "bytes": 922218,
+          "sha256": "f7aefa3bbd8df7f5af00b54b2db8945938b541954bf84cf9fb7fa1675b6fb40d"
+        }
+      ],
+      "events": [
+        "^5Loading game \"clock_retail_reload\"...",
+        "^5Done.",
+        "^5Saving game \"clock_fn_retail_reload\"...",
+        "^5Done.",
+        "Wrote screenshots/clock_fn_retail_reload.png",
+        "CLOCK_SAVE_COMPLETE"
+      ],
+      "earlyDeadRefusals": 0
+    }
+  ],
+  "saveRoundTripTimes": [
+    5100,
+    12350,
+    12700
+  ],
+  "nativeSaveGuard": {
+    "address": "0x426b3e",
+    "clientPointer": "0xa41c14",
+    "frameCounterOffset": "0x50ac",
+    "frameMask": 31,
+    "frameStride": 600,
+    "healthOffset": "0x664",
+    "netchannelOffset": "0x5090",
+    "transmitRoutine": "0x418370",
+    "outgoingSequenceOffset": "0x1c",
+    "snapshotBuilder": "0x428330",
+    "disassembly": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail-save-health-disassembly.txt",
+      "bytes": 9393,
+      "sha256": "5fecdef19ec0e5f138eb60a4afaffcff0add6b4d4518eed9d4f0c85c2b538cf0"
+    },
+    "inference": "Early refusal is consistent with an empty/stale buffered health slot; runtime buffer contents were not instrumented."
+  },
+  "fnHealthGuard": {
+    "source": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\server\\server_stvef_sp_save.hpp",
+      "bytes": 32971,
+      "sha256": "8c13e383ffb768f6468928f17d2bf06eeed4a2b91f98d91b0c6b5dc316e91391"
+    },
+    "behavior": "Reads live server player health; does not reproduce retail frame-buffer refusal timing. No code change in this follow-up."
+  },
+  "linuxNativeRT": {
+    "renderer": "rtx",
+    "exit": 0,
+    "seconds": 28.016,
+    "command": [
+      "wsl",
+      "-d",
+      "Ubuntu",
+      "--cd",
+      "/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/.tmp/stvef-gaps/linux-client-i686",
+      "--exec",
+      "env",
+      "TMPDIR=/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/.tmp/stvef-gaps/linux-display-tmp",
+      "LIBGL_ALWAYS_SOFTWARE=1",
+      "LP_NUM_THREADS=2",
+      "timeout",
+      "55",
+      "xvfb-run",
+      "-a",
+      "-e",
+      "/mnt/e/Games/fnTech3-tests/linux-rt-strict-rtx/xvfb.log",
+      "-s",
+      "-screen 0 640x480x24 -nolisten tcp",
+      "/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/.tmp/stvef-gaps/linux-client-i686/fntech3",
+      "+set",
+      "com_gameProfile",
+      "stvef-mp",
+      "+set",
+      "fs_basepath",
+      "/mnt/e/Games/fnTech3-tests/efassets-retail",
+      "+set",
+      "fs_homepath",
+      "/mnt/e/Games/fnTech3-tests/linux-rt-strict-rtx",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "r_mode",
+      "0",
+      "+set",
+      "cl_renderer",
+      "rtx",
+      "+set",
+      "rtx_rt_mode",
+      "2",
+      "+set",
+      "rtx_rt_require",
+      "1",
+      "+set",
+      "rtx_caps_report",
+      "2",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_joystick",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "s_initsound",
+      "0",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "developer",
+      "1",
+      "+set",
+      "com_introplayed",
+      "1",
+      "+set",
+      "cl_motd",
+      "0",
+      "+set",
+      "com_maxfps",
+      "60",
+      "+set",
+      "com_maxfpsUnfocused",
+      "60",
+      "+set",
+      "com_maxfpsMinimized",
+      "60",
+      "+set",
+      "net_enabled",
+      "0",
+      "+set",
+      "com_hunkMegs",
+      "256",
+      "+set",
+      "com_zoneMegs",
+      "128",
+      "+exec",
+      "probe.cfg"
+    ],
+    "script": "set nextdemo \"exec completed.cfg\"\nset timedemo 1\ndemo linux_probe.efdemo\nwait 30\nrenderer_switch\nvkinfo\nscreenshot linux_frame\n",
+    "executableSha256": "f9a9e3a348814cd979a82d7f23b302aa7f323f27e1bc24cd6e01195b36462a58",
+    "sourceSha256": "7a79a29aea4e563576f8c0e0adb6ce923a6b37f4d0c8c20aca870e685384b80a",
+    "completed": true,
+    "events": [
+      "RTX capability gate: requested=ray_tracing_pipeline (2), active=ray_tracing_pipeline (2), require=1",
+      "VK_RENDERER: CPU llvmpipe (LLVM 20.1.2, 256 bits), 0x0000",
+      "RTX RT post stack validation: trace->copy->post_bloom->gamma ordering active (HUD/UI/cinematics remain in post-bloom/main composition path)",
+      "RTX RT primary dispatch validation: vkCmdTraceRaysKHR output copied to scene color; shading=native_rt; raster_role=depth_fallback_overlay",
+      "current renderer: rtx",
+      "capabilities: swapchain=yes, debugMarkers=no, descriptorIndexing=yes, bufferDeviceAddress=yes",
+      "capabilities: timelineSemaphore=yes, memoryModel=yes, deferredHostOps=yes",
+      "capabilities: accelerationStructure=yes, rayQuery=yes, rayTracingPipeline=yes",
+      "rtx_rt_mode: requested=2 active=2 require=1",
+      "Wrote screenshots/linux_frame.png",
+      "107 frames, 17.5 seconds: 6.1 fps",
+      "LINUX_CLIENT_COMPLETE"
+    ],
+    "captures": [
+      {
+        "path": "E:\\Games\\fnTech3-tests\\linux-rt-strict-rtx\\baseEF\\screenshots\\linux_frame.png",
+        "sha256": "a2612c2cedd8826c9f677d7caba21b0d439a131b0ea677e7ce677a508288a9af"
+      }
+    ],
+    "log": {
+      "path": "E:\\Games\\fnTech3-tests\\linux-rt-strict-rtx\\baseEF\\qconsole.log",
+      "bytes": 11556,
+      "sha256": "b4a75ed70baad20c7cde45619b91f77e307babab18ca543b0e32b02bd69d0ecb"
+    },
+    "rendererBinary": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\linux-client-i686\\fnql_rtx_x86.so",
+      "bytes": 8124984,
+      "sha256": "4ba575148c3b3f5e74baaba8af2df15bcfb5ea3d062e1cdb2eb16190d9662681"
+    },
+    "sourceDemo": {
+      "path": "E:\\Games\\fnTech3-tests\\linuxstock-fn-v24-pure1\\client\\baseEF\\demos\\linux_probe.efdemo",
+      "bytes": 9521,
+      "sha256": "7a79a29aea4e563576f8c0e0adb6ce923a6b37f4d0c8c20aca870e685384b80a"
+    }
+  },
+  "limits": [
+    "Single tutorial save round trip; no menu or campaign-wide save acceptance.",
+    "Linux software Vulkan HM native RT subset; no Windows x86 RT or SP RT claim.",
+    "Physical input/listening pending; force-feedback backend remains absent."
+  ],
+  "logs": [
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\late-save-fresh-runtime.log",
+      "bytes": 255,
+      "sha256": "c5cb99a9dcebb474d20ded232c0e8c09d963287c08093b354541b4c1d51199d6"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\late-save-reload-runtime.log",
+      "bytes": 256,
+      "sha256": "e9fe045b0e4817ed279a19c8530d70553badc7105d64f5b52edab9927edc14f6"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\late-save-return-runtime.log",
+      "bytes": 271,
+      "sha256": "2f1a14d37c7cd21a555648a1819b2969e785b45a5b69c81265db6936a675b9f4"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\linux-rt-strict-runtime.log",
+      "bytes": 14,
+      "sha256": "ef4e456e88e8c82ee757bc7198317e7f6a01435d9255e8509feae83c2786eca6"
+    }
+  ],
+  "harnesses": [
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\private_process.py",
+      "bytes": 4310,
+      "sha256": "d3ad5f43a28b4d251af6fce331dd88d72c9e575979ccdc8405534ad8b8ba80ae"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\probe_late_save_fresh.py",
+      "bytes": 5948,
+      "sha256": "34c47b1277ff1662cbf0dbda13b8191d2c987840a4c4a2b5e26a933e9d84d8ef"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\probe_late_save_reload.py",
+      "bytes": 5916,
+      "sha256": "f3ce1139385a6edb2294e874dd538a9200e043ce3979bc38683bea94bc78d019"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\probe_late_save_return.py",
+      "bytes": 5809,
+      "sha256": "221850642aaee45e49301c1b5cbcaa6e060315eda9b871bd7d83d69c02a521ac"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\probe_linux_rt_strict.py",
+      "bytes": 3442,
+      "sha256": "7b7e36f16289505c24feae6d79f200fb194baab3d09b5291ab19786fb939c1f4"
+    }
+  ],
+  "manualInstallation": {
+    "destination": "E:\\Games\\fnTech3-tests\\stvef-manual",
+    "baseCommit": "365cad710530214636b96e2ee9f141a6e25e2629",
+    "files": [
+      {
+        "name": "fntech3.exe",
+        "bytes": 8504320,
+        "sha256": "fc24b12d220f255762007eae68f56a2b6afb38651425273cdcf1743da3109047"
+      },
+      {
+        "name": "fnql_glx_x86.dll",
+        "bytes": 2441216,
+        "sha256": "74237d87ffbdb035137f3583c830f9dd114e0d8bed667cacd037bde853bb62c0"
+      },
+      {
+        "name": "fnql_vk_x86.dll",
+        "bytes": 2611200,
+        "sha256": "53030b737ad013db0ea44929e7adb97b7a49b9e0d5740bb5bc7670385ad9616e"
+      },
+      {
+        "name": "fnql_rtx_x86.dll",
+        "bytes": 2902016,
+        "sha256": "c2aecdd5f288b583fee5e95b7b4e2b4202828c0a7795df8ddaaf16319e050da5"
+      },
+      {
+        "name": "fntech3-pkg.fnz",
+        "bytes": 2972513,
+        "sha256": "758ebd160bb8d8044ce513415f5972f5b48270beb1c9b77eb13ac456cf1d0cf7"
+      },
+      {
+        "name": "fnql-web.pak",
+        "bytes": 59253,
+        "sha256": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382"
+      },
+      {
+        "name": "OpenAL32.dll",
+        "bytes": 1588736,
+        "sha256": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+      },
+      {
+        "name": "COPYING.OpenAL.txt",
+        "bytes": 23330,
+        "sha256": "d808ce217e5b611854da622b57ec29fe545584c48bc5352fae72a4b6e5074a15"
+      }
+    ],
+    "inputEnabledOnlyOnManualLaunch": true,
+    "assets": "E:\\Games\\fnTech3-tests\\efassets",
+    "verifiedSourceCommit": "bc0f86366c8ceb67ba17f4783b173e8e5af83936",
+    "verifiedSources": [
+      {
+        "path": "code/server/sv_init.cpp",
+        "sha256": "58a3a587f00e23a0efeebc4477c59a214253555f722f5be49f5bf84af96cc5ad"
+      },
+      {
+        "path": "code/renderer/tr_shade_calc.c",
+        "sha256": "a15929d3dfcbdf1e200353f90baacd5add9a3aa2ebb66b2a948b75adedd80e9d"
+      },
+      {
+        "path": "code/renderervk/tr_shade_calc.c",
+        "sha256": "4969494a90f31047b06b9c8258c8b63ac879b622ec0fa2ca73b7d2ae409f7550"
+      },
+      {
+        "path": "code/rendererrtx/tr_shade_calc.c",
+        "sha256": "4aa3bf64ad2d6e5aa408e6d83d3ed84cc5d149b7c21aff5e3587f7bbac142298"
+      },
+      {
+        "path": "code/renderercommon/tr_noise.c",
+        "sha256": "5ef88f48feece482efe3c96259b39e57bf6d5d40bd49d664559f2c9f64699736"
+      }
+    ],
+    "acceptance": "Shader-wave production checks passed on all renderers; earlier staged preflight passed for both profiles. Hands-on movement/look/fire/rebinding/menu save-load/listening remain pending.",
+    "waveUpdate": "Updated engine artifacts only; existing manual profiles and launchers retained. Physical input and listening remain pending."
+  }
+}

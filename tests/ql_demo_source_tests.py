@@ -87,7 +87,7 @@ class QuakeLiveDemoSourceTests(unittest.TestCase):
             cl_main,
         )
         self.assertIn(
-            "com_protocolCompat && cl_proto != QL_RETAIL_PROTOCOL_VERSION",
+            "com_protocolCompat && !Com_GameIsSTVEFMP() && cl_proto != QL_RETAIL_PROTOCOL_VERSION",
             sv_client,
         )
 

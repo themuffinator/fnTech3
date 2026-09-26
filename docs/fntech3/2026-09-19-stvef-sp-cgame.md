@@ -1,5 +1,10 @@
 # Elite Force single-player cgame
 
+The [shader-wave follow-up](2026-09-21-stvef-shader-waves.md) adds native
+comparisons and corrections for the random-wave clock and deterministic
+noise initialization in both modes. Accepting `noise` syntax in this slice
+did not by itself establish identical table values or complete image parity.
+
 ## Scope
 
 This record covers running the cgame half of the retail `efgamex86.dll` in
@@ -25,7 +30,7 @@ attaches to is described in the [game host record](2026-09-19-stvef-sp-host.md).
 | Shutdown | The game's `Shutdown`, then any cinematic stopped, then the client's cgame shut down, then the library freed (`SV_ShutdownGameProgs` `0x425450`) | The server calls the client's hook between the game's `Shutdown` and freeing the library, so the cgame never runs from a freed library |
 | Snapshot | 60,004 bytes. Retail writes the flags, ping, server time, area mask, command number, player state, at most 256 entities and the command sequence, and leaves the rest of the cgame's record alone (`CL_GetSnapshot` `0x4026a0`) | The same fields through the state adapter; a snapshot the record cannot express publishes nothing |
 | Gamestate, command, glconfig | 0x4e84, 28 and 0x144c bytes (`0x4025d0`, `0x402610`, `0x4025f0`) | The same records |
-| Command number | The server writes the number of the last command it ran into every snapshot (`SV_WriteSnapshotToClient` `0x428138`) and the client keeps it (`CL_ParseSnapshot` `0x409559`); the cgame replays the commands after it | Loopback snapshots carry that command's time instead, so the client takes the newest command it sent at or before that time |
+| Command number | The server writes the number of the last command it ran into every snapshot (`SV_WriteSnapshotToClient` `0x428138`) and the client keeps it (`CL_ParseSnapshot` `0x409559`); the cgame replays the commands after it | Snapshots now carry the server's actual acknowledged ordinal. The initial timestamp-based inference was incorrect for repeated or adjusted command times and is replaced by the [command-ordinal correction](2026-09-21-stvef-command-ordinals.md) |
 | First snapshot | Single player's snapshot flags are rate-delayed and dropped commands; the client goes active with its first snapshot (`CL_FirstSnapshot` `0x403460`) | This engine marks snapshots from before the player enters the world as inactive and waits for one that is not. The cgame is not shown the inactive ones: the retail cgame stops with "cg.snap->serverTime > cg.time" if its first snapshot is newer than the client's clock, where Quake III 1.32 clamps |
 | Viewpoint | The server asks the cgame for a running camera scene's position (`vmMain(5)`) and otherwise uses the eye, moved by the lean: the roll plus half the lean, then the lean along that right vector (`SV_BuildClientSnapshot` `0x4283a3`) | The same, for the snapshots of the SP profile |
 | Lighting | The light grid at a point; zeros where a map has none (`R_GetLighting` `0x45bf10`). The cgame uses it for the player's light level, which characters can see by | The renderer's `LightForPoint`, with zeros where it has no grid |
@@ -33,7 +38,7 @@ attaches to is described in the [game host record](2026-09-19-stvef-sp-host.md).
 | Kept screenshot | The loading screen draws the 256×256 screenshot a savegame keeps where a level has no levelshot (`0x403006`) | The shared single-player picture of the screen, which the savegames keep and fill ([record](2026-09-19-stvef-sp-savegames.md)) |
 | Sample length | Length in milliseconds, 0 for an unknown sound (`0x423520`) | The same |
 | Sound channels | Raven's SP numbering: an attenuated voice (4) after the voice, item 5, body 6, ambient 7, local 8, announcer 9 and two menu channels. Retail attenuates by channel: a voice stays at full volume to 1,024 units, an attenuated voice falls silent by about 290, others stay full to 256 and then fall off at Quake III's rate (`S_SpatializeOrigin` `0x420510`) | Translated to the engine's channels for the cgame's and the menus' sounds, so body and ambient sounds are no longer taken for the engine's local channels; single player's own channels take distinct numbers above the engine's. The per-channel falloff belongs with the ambient sound slice |
-| Force feedback (34–37) | Force-feedback joysticks | None |
+| Force feedback (34–37) | Force-feedback joysticks | Initially none; the [later opt-in bridge](2026-09-21-stvef-force-feedback.md) implements the native effect and device boundary, with physical acceptance pending |
 | Scissor (55) | A 2D clip rectangle (backend command 3) | Ignored: neither the SDK's cgame nor the menus set one |
 | Ambient sets (65–69) | Sets read from `sound/sound.txt` | Read and played, with retail's crossfade between rooms and its distances for the loops ([record](2026-09-20-stvef-sp-ambient.md)) |
 | Update screen (16) | Pumps the event loop, then redraws | Redraws only, as Quake III 1.32 does, because a server restart inside that loop breaks the load |
@@ -65,8 +70,9 @@ renderer at its panels' noise wave, now drawn as retail draws it.
   VM that owns no library, the export calls and their arguments, the
   client's side lent to the server, the shutdown order, the calls answered
   before the cgame starts, the snapshot record and its inactive-snapshot
-  rule and the viewpoint; its probe checks the command number against sent
-  commands' times.
+  rule and the viewpoint. The obsolete time-inference probe is replaced by
+  native command recovery, mutable game-command and snapshot-header checks
+  in `stvef_sp_user_move_tests.py` ([record](2026-09-21-stvef-command-ordinals.md)).
 - `fntech3_stvef_render_records` turns a picture about its top-right corner
   and refuses non-finite input, and passes the held-frames flag through.
 - The same test file pins held frames and noise waves in all three renderers.

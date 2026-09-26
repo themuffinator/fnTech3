@@ -363,14 +363,18 @@ server remains open. See the
 player and Holomatch share it; always name the mode.
 
 **Status:** experimental; developer builds with `-Dstvef-development=true`.
+Single player needs Windows x86.
 
 - Single player: the retail game module runs every single-player map, and the
   retail menus and client game run in the client, which plays the levels with
-  their ambient sound, saves them and moves between them. Lip-sync,
-  cinematics and parts of the renderer remain open.
+  their ambient sound, saves them and moves between them. Speakers' mouths
+  move with their voices, and the Bink movies play through the installation's
+  own Windows x86 Bink runtime. Image parity with retail and whole-campaign
+  play remain open.
 - Holomatch: the retail QVMs run and the retail demos play. fnTech3 has played
   with, and downloaded from, Lilium Voyager and the retail game, as client and
-  as server, including pure servers.
+  as server, including pure servers, and with Lilium Voyager also over its
+  protocol 26. The dedicated server also runs on Linux i686.
 
 See the [Elite Force gate matrix](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
 

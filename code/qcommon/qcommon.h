@@ -970,6 +970,8 @@ int		FS_Read( void *buffer, int len, fileHandle_t f );
 
 void	FS_FCloseFile( fileHandle_t f );
 // note: you can't just fclose from another DLL, due to MS libc issues
+qboolean FS_FCloseFileWrite( fileHandle_t f );
+// Close a loose output file and report stream/final-flush errors; rejects pak handles.
 
 int		FS_ReadFile( const char *qpath, void **buffer );
 int		FS_ReadProfileFile( const char *qpath, void **buffer );

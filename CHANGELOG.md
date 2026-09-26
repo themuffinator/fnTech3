@@ -1621,6 +1621,37 @@ historical upstream records, not fnTech3 release history. See the
   map startup. SP and MP keep their own visibility rules and cache versions;
   generated files are saved in the writable home and can be read again.
   Retail SP cache interchange passes on three maps. RTCW remains experimental.
+- Refuse Elite Force single player before filesystem startup on platforms that
+  cannot host its Windows x86 modules, with an actionable Holomatch alternative.
+
+- Report unavailable Elite Force movie audio when Bink initializes its sound
+  factory but cannot open the movie's sound buffer; video playback continues.
+
+- Restore Elite Force's full-length stencil shadow extrusion in GLx, Vulkan
+  and RTX, with native geometry fixtures for both SP and Holomatch.
+
+- Bound Elite Force cylinder detail and electricity lengths before integer
+  conversion, with native retail geometry fixtures for all eight Holomatch
+  effect primitives in GLx, Vulkan and RTX.
+
+- Restore Elite Force single-player movie fades and the central crop selected
+  by `cl_VideoQuality 2`, including decoder pause and sound muting during
+  transitions in all three renderers.
+
+- Validate Elite Force RDM5 skeletal models before renderer allocation, restore
+  retail LOD and held-frame behaviour, and match its lighting defaults and
+  colour rounding across GLx, Vulkan and RTX.
+
+- Support Elite Force Holomatch protocol 26 with Lilium Voyager/ioEF, including
+  compressed messages, sequence checksums, pure servers, downloads and `.dm_26`
+  demos. Retail protocol 24 and `.efdemo` remain available in the same build.
+
+- Play Elite Force single-player Bink movies using the user's installed Windows
+  x86 runtime, including in-game pause/resume, German track selection and
+  low-resolution fallback. No proprietary runtime or movie data is included.
+
+- Carry Elite Force single player's scissor rectangle through all three renderers,
+  including fractional pixel conversion, reset, and clipping bounds.
 
 - Name keys as both retail key tables name them. The keypad star is `KP_STAR`
   again, so a retail config line that binds it loads and is written back
@@ -1977,6 +2008,10 @@ historical upstream records, not fnTech3 release history. See the
   them.
 
 ### Builds and Packaging
+
+- Fix a missing botlib header exposed by the Linux i686 build and make four
+  compatibility fixtures portable across GCC, Clang and MSVC. Record Linux
+  Holomatch server sessions with fnTech3, Lilium Voyager and the retail client.
 
 - Start independent fnTech3 versioning at 0.1.0, with reviewed changelog entries
   and manually requested GitHub draft prereleases built from an existing tag.

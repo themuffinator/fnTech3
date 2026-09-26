@@ -205,6 +205,12 @@ void R_ImageList_f( void ) {
 				// 64 bits per 16 pixels, so 4 bits per pixel
 				estSize /= 2;
 				break;
+			case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+				format = "DXT5 ";
+				// Each block occupies 16 bytes, including partial edge blocks.
+				estSize = ( ( image->uploadWidth + 3 ) / 4 ) *
+					( ( image->uploadHeight + 3 ) / 4 ) * 16;
+				break;
 			case GL_RGB4_S3TC:
 				format = "S3TC ";
 				// same as DXT1?
@@ -378,8 +384,10 @@ static void R_MipMap2( unsigned * const out, unsigned * const in, int inWidth, i
 	int			outWidth, outHeight;
 	unsigned	*temp;
 
-	outWidth = inWidth >> 1;
-	outHeight = inHeight >> 1;
+	// A rectangular mip continues along its longer axis after the other
+	// reaches one texel. The wrapped filter still applies on both axes.
+	outWidth = MAX( 1, inWidth >> 1 );
+	outHeight = MAX( 1, inHeight >> 1 );
 
 	if ( out == in )
 		temp = ri.Hunk_AllocateTempMemory( outWidth * outHeight * 4 );
@@ -627,8 +635,8 @@ static void generate_image_upload_data( image_t *image, byte *data, Image_Upload
 	//
 	while ( scaled_width > glConfig.maxTextureSize
 		|| scaled_height > glConfig.maxTextureSize ) {
-		scaled_width >>= 1;
-		scaled_height >>= 1;
+		scaled_width = MAX( 1, scaled_width >> 1 );
+		scaled_height = MAX( 1, scaled_height >> 1 );
 	}
 
 	upload_data->buffer = (byte*) ri.Hunk_AllocateTempMemory( 2 * 4 * scaled_width * scaled_height );
@@ -722,7 +730,7 @@ static void generate_image_upload_data( image_t *image, byte *data, Image_Upload
 	upload_data->buffer_size = mip_level_size;
 	
 	if ( mipmap ) {
-		while (scaled_width > 1 && scaled_height > 1) {
+		while (scaled_width > 1 || scaled_height > 1) {
 			R_MipMap((byte *)scaled_buffer, (byte *)scaled_buffer, scaled_width, scaled_height);
 
 			scaled_width >>= 1;
@@ -756,6 +764,19 @@ static void upload_vk_image( image_t *image, byte *pic ) {
 
 	Image_Upload_Data upload_data;
 	int w, h;
+	int textureBits = r_texturebits->integer;
+
+	if ( image->flags & IMGFLAG_LIGHTMAP ) {
+		/* Lightmaps are opaque, including allocation-only atlas uploads.
+		 * EF's explicit positive lightmap precision overrides texture bits.
+		 */
+		if ( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ) {
+			if ( r_texturebitslm->integer > 0 ) textureBits = r_texturebitslm->integer;
+			if ( textureBits != 16 ) textureBits = 0;
+		} else {
+			textureBits = 0;
+		}
+	}
 
 	generate_image_upload_data( image, pic, &upload_data );
 
@@ -764,11 +785,11 @@ static void upload_vk_image( image_t *image, byte *pic ) {
 
 	if ( image->srgbDecode ) {
 		image->internalFormat = VK_FORMAT_R8G8B8A8_SRGB;
-	} else if ( r_texturebits->integer > 16 || r_texturebits->integer == 0 || ( image->flags & IMGFLAG_LIGHTMAP ) ) {
+	} else if ( textureBits > 16 || textureBits == 0 ) {
 		image->internalFormat = VK_FORMAT_R8G8B8A8_UNORM;
 		//image->internalFormat = VK_FORMAT_B8G8R8A8_UNORM;
 	} else {
-		qboolean has_alpha = RawImage_HasAlpha( upload_data.buffer, w * h );
+		qboolean has_alpha = !( image->flags & IMGFLAG_LIGHTMAP ) && RawImage_HasAlpha( upload_data.buffer, w * h );
 		image->internalFormat = has_alpha ? VK_FORMAT_B4G4R4A4_UNORM_PACK16 : VK_FORMAT_A1R5G5B5_UNORM_PACK16;
 	}
 
@@ -787,12 +808,36 @@ static GLint RawImage_GetInternalFormat( const byte *scan, int numPixels, qboole
 {
 	GLint internalFormat;
 
-	if ( lightMap )
+	if ( lightMap ) {
+		if ( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ) {
+			const int bits = r_texturebitslm->integer > 0 ? r_texturebitslm->integer : r_texturebits->integer;
+			/* Native SP/HM choose compression before lightmap precision.
+			 * Explicit per-image opt-outs remain authoritative.
+			 */
+			if ( allowCompression && r_ext_compress_lightmaps->integer ) {
+				if ( glConfig.textureCompression == TC_S3TC_ARB )
+					return GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+				if ( glConfig.textureCompression == TC_S3TC )
+					return GL_RGB4_S3TC;
+			}
+			if ( bits == 16 ) return GL_RGB5;
+			if ( bits == 32 ) return GL_RGB8;
+		}
 		return GL_RGB;
+	}
 
 	if ( RawImage_HasAlpha( scan, numPixels ) )
 	{
-		if ( r_texturebits->integer == 16 )
+		/* Elite Force SP/HM compress alpha images with DXT5. The legacy
+		 * S3 extension alone cannot provide this format; retain the ordinary
+		 * RGBA path for it and for other profiles or material opt-outs.
+		 */
+		if ( allowCompression && glConfig.textureCompression == TC_S3TC_ARB &&
+			( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ) )
+		{
+			internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+		}
+		else if ( r_texturebits->integer == 16 )
 		{
 			internalFormat = GL_RGBA4;
 		}
@@ -884,8 +929,8 @@ static void Upload32( byte *data, int x, int y, int width, int height, image_t *
 	//
 	while ( scaled_width > glConfig.maxTextureSize
 		|| scaled_height > glConfig.maxTextureSize ) {
-		scaled_width >>= 1;
-		scaled_height >>= 1;
+		scaled_width = MAX( 1, scaled_width >> 1 );
+		scaled_height = MAX( 1, scaled_height >> 1 );
 		x >>= 1;
 		y >>= 1;
 	}

@@ -1,0 +1,371 @@
+{
+ "schema": 1,
+ "date": "2026-09-21",
+ "title": "Elite Force SP raw-image brightness and ordering",
+ "sourceCommit": "b66b036a9f136cf78ef828cf11fd081e26fdd32f",
+ "baselineCommit": "52668dbe77b521a0f79e3884000244acf32ad8ba",
+ "status": "PARTIAL; SP UI image brightness and per-submission image identity corrected; in-menu preview appearance still requires manual confirmation; both Elite Force profiles remain development-gated",
+ "sourceFiles": [
+  {
+   "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\renderercommon\\tr_stvef_raw.h",
+   "bytes": 4502,
+   "sha256": "977cb0aa74e54ceea44f750ec21310f9b8c5622f3cb2132a04ae59ab5b2f1026"
+  },
+  {
+   "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\renderercommon\\tr_public.h",
+   "bytes": 16397,
+   "sha256": "d15312d39cfc98eb45bbc4b8704078987057a91312e806bd15ca31ebbdba1f79"
+  },
+  {
+   "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\client\\client_stvef_sp_ui.hpp",
+   "bytes": 17085,
+   "sha256": "45b4fbef37f8488e6a05c16d95609a1245b46ecb7708b920bacd3e146fbdc88f"
+  },
+  {
+   "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\client\\client_stvef_sp_cgame.hpp",
+   "bytes": 15779,
+   "sha256": "af2cf97a03561d09ba220549fad863c44641fbd77249d065c2ceefcf9377fff6"
+  }
+ ],
+ "baselineSourceObjects": {
+  "code/renderercommon/tr_public.h": "4740c327a4624b9ed13b38467359a3d1ad52a0bd",
+  "code/client/client_stvef_sp_ui.hpp": "f3afa5a7ce65bae5193dc26e96ef43d8d9cfc08b",
+  "code/client/client_stvef_sp_cgame.hpp": "ea14991be4294108004e35c6b2c7c3e8ccad0d46",
+  "code/renderer/tr_backend.c": "dd5c20251e23bc0f292c88c6127e789335559dcc",
+  "code/renderer/tr_init.c": "4e98bf0690d858f7aa0e5505af897a81fc2ad29c",
+  "code/renderer/tr_local.h": "4d055343b06a69967e57b17fac0bddc73e652fcd",
+  "code/renderer/tr_shader.c": "59e52215e5394adbe45faf4902c44440d1b940b1",
+  "code/renderervk/tr_backend.c": "2748a7e7e69e6564e9e69e2887c6b7b80b6fff14",
+  "code/renderervk/tr_init.c": "3fa7a8cb612e2d70373ecbbe7fe60e4bd220454a",
+  "code/renderervk/tr_local.h": "0f7312c92b21a793e959a412a50c4cd276c161d2",
+  "code/renderervk/tr_shader.c": "05fb4adca73fac3172a49edeae3bc6aac150917d",
+  "code/rendererrtx/tr_backend.c": "429ccaecb5f71ecb3d547408671558db86eb5be9",
+  "code/rendererrtx/tr_init.c": "b99b77f4f5f93d47170911d450ca6e7644443eea",
+  "code/rendererrtx/tr_local.h": "27b214ae54301652020b5877d50bdcec7cc95505",
+  "code/rendererrtx/tr_shader.c": "c6f080b6b55e8f4465a3bb5125992337960c89f1"
+ },
+ "testFiles": [
+  {
+   "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\tests\\stvef_sp_raw_image_tests.py",
+   "bytes": 18428,
+   "sha256": "16cf3af7378e59de89844db588198cab7c3de0bde42d6eb18254cafaf9e54fd5"
+  },
+  {
+   "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\tests\\fixtures\\stvef_sp_raw_image_retail.json",
+   "bytes": 21250,
+   "sha256": "2f40cc4d8b90df029aff64dd699badf2b1f626177ae57c4e78682700178330f2"
+  }
+ ],
+ "correction": "The SP UI adapter discarded the brightness its DrawStretchRaw import carries and routed the image through the cinematic scratch path, which ignores it. Raw images now reach a dedicated renderer export whose quad carries the brightness as exact vertex colors, clamped and rounded the way the native glColor3f boundary clamps. Each submission in a client frame takes its own pooled image and shader, so a later upload cannot change pixels an earlier queued quad still references. Past the pool the last slot is reused rather than dropping the client out of the menu being drawn.",
+ "rendererApi": {
+  "previous": 27,
+  "current": 28,
+  "export": "DrawSTVEFRaw",
+  "renderers": [
+   "renderer",
+   "renderervk",
+   "rendererrtx"
+  ]
+ },
+ "provenance": {
+  "retail": {
+   "path": "E:\\Games\\Star Trek Voyager Elite Force\\stvoy.exe",
+   "bytes": 675840,
+   "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74"
+  },
+  "nativeFunction": "RE_StretchRaw",
+  "nativeAddress": "0x44fb50",
+  "nativeColorCall": "0x44fc69..0x44fc70",
+  "probeSha256": "f71dc29be502a5331f03b8d770d1737b4733fa363916743c433138f057c9ed9e",
+  "scope": "Native routine mapped without game startup or GL; owned callbacks record upload, color, vertices and command order. No proprietary code bytes included.",
+  "moduleSources": [
+   {
+    "path": "E:\\Games\\fnTech3-tests\\efassets\\efgamex86.dll",
+    "bytes": 999500,
+    "sha256": "c159cba671544ddcc8694887c21bbeba13fead35bbf4488c08914f66695105a9"
+   },
+   {
+    "path": "E:\\Games\\fnTech3-tests\\efassets\\efuix86.dll",
+    "bytes": 458824,
+    "sha256": "35dfe9ca1a3ee20cc1d314013d1d5c281cd9ed2b68fc57b22af77bb2a0bedfb2"
+   },
+   {
+    "path": "E:\\Games\\fnTech3-tests\\efassets\\binkw32.dll",
+    "bytes": 273408,
+    "sha256": "56d9eb00927c6db570c63e3669672d12b3896088071f72938c4ca92de4269d48"
+   },
+   {
+    "path": "E:\\Games\\fnTech3-tests\\efassets\\FFC10.dll",
+    "bytes": 126976,
+    "sha256": "d4e88d9028e86894be5c61c62c7a0f648a032032d545a37834813389d61354a3"
+   }
+  ],
+  "representation": "Recorded native behavior only: upload decisions, color, vertices and command order from owned callbacks. No proprietary code bytes are incorporated or redistributed."
+ },
+ "platforms": [
+  "Windows x86 (MSVC, meson win32-dev)"
+ ],
+ "nativeCases": {
+  "count": 21,
+  "sizes": [
+   [
+    16,
+    8
+   ],
+   [
+    32,
+    16
+   ]
+  ],
+  "brightness": [
+   -1,
+   0,
+   0.125,
+   0.5,
+   0.75,
+   1,
+   1.5
+  ],
+  "negativeExtents": 7,
+  "resizes": 3
+ },
+ "mutationCheck": {
+  "mutation": "slot = tr.stvefRawUsed++;  ->  slot = 0; tr.stvefRawUsed++;",
+  "meaning": "restores a single shared scratch image for every submission in a frame",
+  "result": "FAILED (failures=3)",
+  "firstAssertion": "image->pixels[0] == fills[draw]",
+  "backends": [
+   "gl",
+   "vulkan"
+  ],
+  "log": ".tmp/stvef-gaps/mutation-shared-slot.log",
+  "restored": "byte-identical header hash after reverting the mutation"
+ },
+ "unitTests": {
+  "focused": {
+   "modules": [
+    "stvef_sp_raw_image_tests",
+    "stvef_sp_menu_tests",
+    "stvef_sp_cgame_tests",
+    "ql_font_source_tests",
+    "rtx_renderer_contract_source_tests"
+   ],
+   "tests": 56,
+   "result": "OK"
+  },
+  "rawImage": {
+   "tests": 3,
+   "result": "OK",
+   "probeConfigurations": [
+    "default (OpenGL upload path)",
+    "USE_VULKAN (Vulkan upload path)"
+   ]
+  }
+ },
+ "builds": [
+  {
+   "target": "meson/build/win32-dev",
+   "result": "OK",
+   "modules": [
+    "fnql_glx_x86.dll",
+    "fnql_vk_x86.dll",
+    "fnql_rtx_x86.dll",
+    "fntech3.exe",
+    "fntech3.ded.exe"
+   ]
+  }
+ ],
+ "windowsSuite": {
+  "targets": 122,
+  "ok": 120,
+  "skipped": 2,
+  "failed": 0,
+  "pythonAggregate": {
+   "tests": 1868,
+   "skipped": 72,
+   "seconds": 853.078
+  },
+  "note": "The first aggregate run failed one assertion: underwater_view_source_tests still pinned REF_API_VERSION 27. That pin is part of this slice and was corrected before the recorded run."
+ },
+ "runtime": [
+  {
+   "case": "raw-image-runtime-stvef-sp",
+   "profile": "stvef-sp",
+   "exit": 0,
+   "completed": true,
+   "renderer": "glx",
+   "rawDraws": 64,
+   "distinctSlots": 1,
+   "distinctFrames": 62,
+   "samples": [
+    {
+     "slot": 0,
+     "cols": 256,
+     "rows": 256,
+     "light": 1.0,
+     "frame": 61
+    },
+    {
+     "slot": 0,
+     "cols": 256,
+     "rows": 256,
+     "light": 1.0,
+     "frame": 62
+    },
+    {
+     "slot": 0,
+     "cols": 256,
+     "rows": 256,
+     "light": 1.0,
+     "frame": 1
+    },
+    {
+     "slot": 0,
+     "cols": 256,
+     "rows": 256,
+     "light": 1.0,
+     "frame": 2
+    }
+   ],
+   "executable": {
+    "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\raw-image-trace-bin\\fntech3.exe",
+    "bytes": 8523776,
+    "sha256": "33c19f3f2367a6e806527c0d408032647e7c790236b3f0a3df1836e7b2b26425"
+   },
+   "rendererBinary": {
+    "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\raw-image-trace-bin\\fnql_glx_x86.dll",
+    "bytes": 2444288,
+    "sha256": "74eec9b9d66292b60f484c77d04561d8bc22277b0747964569dc5bfb583952e0"
+   },
+   "log": {
+    "path": "E:\\Games\\fnTech3-tests\\raw-image-runtime-stvef-sp\\baseEF\\qconsole.log",
+    "bytes": 14297,
+    "sha256": "a47921aa0d92944d18e77ad05fdbe1d53f65a8eefd5067b312f8857d45a3d8b5"
+   },
+   "captures": [
+    {
+     "path": "E:\\Games\\fnTech3-tests\\raw-image-runtime-stvef-sp\\baseEF\\screenshots\\raw-image-runtime.png",
+     "bytes": 922218,
+     "sha256": "ddc2bfb6dd4fea4aa2b767266d4e599f0dc266bd645f174fbc1315acfc0f93f2"
+    }
+   ],
+   "script": "wait 60\nset cg_thirdPerson 1\nload mdr_scene\nwait 180\nsave raw_probe\nwait 120\nload raw_probe\nwait 180\nscreenshot raw-image-runtime\nwait 3\necho RAW_IMAGE_PREFLIGHT_COMPLETE\nquit\n"
+  },
+  {
+   "case": "raw-image-runtime-stvef-mp",
+   "profile": "stvef-mp",
+   "exit": 0,
+   "completed": true,
+   "renderer": "glx",
+   "rawDraws": 0,
+   "distinctSlots": 0,
+   "distinctFrames": 0,
+   "samples": [],
+   "executable": {
+    "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\raw-image-trace-bin\\fntech3.exe",
+    "bytes": 8523776,
+    "sha256": "33c19f3f2367a6e806527c0d408032647e7c790236b3f0a3df1836e7b2b26425"
+   },
+   "rendererBinary": {
+    "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\raw-image-trace-bin\\fnql_glx_x86.dll",
+    "bytes": 2444288,
+    "sha256": "74eec9b9d66292b60f484c77d04561d8bc22277b0747964569dc5bfb583952e0"
+   },
+   "log": {
+    "path": "E:\\Games\\fnTech3-tests\\raw-image-runtime-stvef-mp\\baseEF\\qconsole.log",
+    "bytes": 8274,
+    "sha256": "f626268447a2231c73f34abc955455ec21923f2bf926405756c8dd53193da98b"
+   },
+   "captures": [
+    {
+     "path": "E:\\Games\\fnTech3-tests\\raw-image-runtime-stvef-mp\\baseEF\\screenshots\\raw-image-runtime.png",
+     "bytes": 922218,
+     "sha256": "3746fce9f94b7ec367d1e479850c458fe26aeafa01566fca31002e1cf896b5fd"
+    }
+   ],
+   "script": "wait 60\nset sv_pure 0\nset g_gametype 0\nset sv_maxclients 4\nmap hm_borg1\nwait 120\naddbot Munro 2\nwait 90\nmap_restart 0\nwait 180\nscreenshot raw-image-runtime\nwait 3\necho RAW_IMAGE_PREFLIGHT_COMPLETE\nquit\n"
+  }
+ ],
+ "runtimeInstrumentation": {
+  "method": "Trace binaries built from the committed sources plus one bounded diagnostic print in RE_DrawSTVEFRaw, capped at 64 draws. The diagnostic was reverted and the tree rebuilt before this manifest; the committed sources carry no print.",
+  "binaries": ".tmp/stvef-gaps/raw-image-trace-bin",
+  "marker": "STVEF_RAW_TRACE"
+ },
+ "manualStage": {
+  "installation": "E:\\Games\\fnTech3-tests\\stvef-manual",
+  "refreshedArtifacts": 6,
+  "retainedFiles": [
+   "Launch-Holomatch.cmd",
+   "Launch-SP.cmd",
+   "efconfig.cfg",
+   "hmconfig.cfg",
+   "manual-start.cfg",
+   "manual-start.cfg",
+   "mdr_scene.sav"
+  ],
+  "retainedUnchanged": true,
+  "readme": {
+   "before": {
+    "name": "README.md",
+    "bytes": 3793,
+    "sha256": "46fd9835f48e7b40df89f9bced6255e4a57b38821058c67e250e69dc2f72f925"
+   },
+   "after": {
+    "name": "README.md",
+    "bytes": 3997,
+    "sha256": "d462aea3bbf43616720aba46d4834141d9c734ffcd2c1400de470ae7097cb164"
+   }
+  },
+  "note": "Engine artifacts refreshed after the EF SP raw-image brightness and per-submission image-identity correction, the recorded native draw replay in both upload configurations, a shared-image mutation check, the full Windows suite and SP/Holomatch runtime probes. Existing manual homes, saves and launchers retained. The in-menu preview appearance remains a manual check.",
+  "preflight": [
+   {
+    "case": "raw-image-manual-preflight-stvef-sp",
+    "profile": "stvef-sp",
+    "exit": 0,
+    "completed": true,
+    "renderer": "glx then renderer_switch",
+    "captures": [
+     {
+      "path": "E:\\Games\\fnTech3-tests\\raw-image-manual-preflight-stvef-sp\\baseEF\\screenshots\\preflight.png",
+      "bytes": 922218,
+      "sha256": "2e3a18e7e6d738e0543c103b2d750f394c91fac3514f7da2b23a2ad210912cd6"
+     }
+    ],
+    "log": {
+     "path": "E:\\Games\\fnTech3-tests\\raw-image-manual-preflight-stvef-sp\\baseEF\\qconsole.log",
+     "bytes": 6727,
+     "sha256": "4214f3081fc6dd17f68e16f476301755819571435e9a50f1bbcb0115c196a739"
+    },
+    "drawErrors": []
+   },
+   {
+    "case": "raw-image-manual-preflight-stvef-mp",
+    "profile": "stvef-mp",
+    "exit": 0,
+    "completed": true,
+    "renderer": "glx then renderer_switch",
+    "captures": [
+     {
+      "path": "E:\\Games\\fnTech3-tests\\raw-image-manual-preflight-stvef-mp\\baseEF\\screenshots\\preflight.png",
+      "bytes": 922218,
+      "sha256": "09615c92f83b33549c61c71bee69e72fa907b68c042568303c22516fe22da3bc"
+     }
+    ],
+    "log": {
+     "path": "E:\\Games\\fnTech3-tests\\raw-image-manual-preflight-stvef-mp\\baseEF\\qconsole.log",
+     "bytes": 8307,
+     "sha256": "ad62b01a9ad734db9c08515fc135945c9a2612e19e1ca78bc0c0ef260b377302"
+    },
+    "drawErrors": []
+   }
+  ]
+ },
+ "safety": "Every session runs windowed on a private inactive desktop with mouse, joystick, audio and force feedback disabled. No keyboard or mouse input is controlled, injected or captured. Images come from the engine screenshot command.",
+ "limits": [
+  "Recorded native draw behavior and engine-side geometry, not in-menu preview appearance.",
+  "The save and load menus are opened by key input, which this harness does not drive; their on-screen previews remain a manual gate.",
+  "Runtime coverage is the cgame CG_R_DRAWSCREENSHOT path during save loads on the GL renderer; the Vulkan and RTX upload paths are covered by the compiled probe only.",
+  "Both Elite Force profiles remain development-gated, and retail SP remains a Windows x86 runtime boundary.",
+  "Existing bad-CRC st_21.bik, missing asset paths/messhall warnings, the Windows x86 native RT limitation, existing compiler warnings and previously recorded wider Linux-suite failures remain outside this slice."
+ ]
+}

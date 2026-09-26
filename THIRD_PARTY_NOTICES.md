@@ -113,6 +113,14 @@ asset is redistributed; `system86.dll` is loaded from the user's installation.
 
 ## Elite Force references and minimp3
 
+The [movie audio probe](docs/fntech3/2026-09-20-stvef-movie-audio.md) independently
+declares the observed Bink sound callback boundary and uses the Windows
+DirectSound interface. It contains no proprietary runtime or decoded audio.
+
+The [shadow fixtures](docs/fntech3/2026-09-20-stvef-shadows.md) record
+independently chosen synthetic geometry observed through the user's installed
+executables. They contain no proprietary implementation or game assets.
+
 fnTech3's Elite Force support is interoperability work against the user's
 legitimate installation. Raven's [Elite Force SP mod SDK](https://github.com/UberGames/SP-Mod-Source-Code/tree/04e0e618d1ee57a2919f1a852a688c03b1aa155d)
 is distributed under the non-free "STEF Game Source License"; it is consulted
@@ -123,9 +131,40 @@ are GPL-2.0-or-later and GPLv2 references; their text is not incorporated
 either. Observations of the retail `stvoy.exe` are cited by address in the
 [Elite Force records](docs/fntech3/2026-09-18-stvef-contracts.md).
 
+The protocol-26 tests contain synthetic encoded bytes produced by the pinned
+Lilium message encoder. The optional generator compiles against a separately
+supplied GPL checkout; neither its implementation nor game content is copied
+into fnTech3. The independently written codec and fixture provenance are
+documented in the [ioEF record](docs/fntech3/2026-09-20-stvef-ioef.md).
+
+The RDM5 and lighting tests contain independently authored fixtures and numeric
+observations from retail mathematical routines. No retail binary or model data
+is included; their identities and the limits of the comparison are recorded in
+the [model and lighting record](docs/fntech3/2026-09-20-stvef-mdr.md).
+The [effect geometry fixtures](docs/fntech3/2026-09-20-stvef-effects.md) likewise
+contain only independently chosen inputs and numerical observations; no
+retail code, assets or captured game state is included.
+
 The MP3 codec builds [minimp3](https://github.com/lieff/minimp3/tree/ea99364f61c14656440e8d77e9c233ccf3124633)
 (copyright Lion "lieff") from `subprojects/minimp3.wrap`. minimp3 is dedicated
 to the public domain under Creative Commons CC0 1.0 Universal, which is
 compatible with this repository's GPL license; its `LICENSE` file stays with
 the fetched subproject. Retail MP3 files, Bink movies and the proprietary Bink
 runtime are never redistributed.
+
+The Windows x86 SP client can load the installation's `binkw32.dll` by an
+absolute path. This optional interoperability boundary contains independently
+declared exports and no proprietary SDK headers or implementation text. Its
+framing checks, platform limits and installed observations are documented in
+the [Bink movie record](docs/fntech3/2026-09-20-stvef-bink.md).
+The [presentation follow-up](docs/fntech3/2026-09-20-stvef-cinematic-presentation.md)
+uses synthetic pixels and measured fade values from the installed retail
+executable; no proprietary rendering or decoder implementation is incorporated.
+
+The optional Windows x86 SP force-feedback bridge likewise loads the user's
+installed `FFC10.dll` by an absolute path. Its independently declared CFeel 1.0
+ABI and effect parameters are interoperability observations; no proprietary
+SDK headers, runtime implementation or DLL is incorporated. The
+[feedback fixture and record](docs/fntech3/2026-09-21-stvef-force-feedback.md)
+contain numeric observations and owned test callbacks, not game assets or
+proprietary code.

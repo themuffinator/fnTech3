@@ -1,0 +1,603 @@
+{
+  "buildBaseCommit": "9a2b0ff6897743236f410a9a36b9bf626f8ff5b1",
+  "sourceSnapshotCommit": "cd530eb",
+  "profile": "stvef-sp",
+  "platform": "Windows x86",
+  "client": {
+    "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+    "bytes": 8503808,
+    "sha256": "c78a7d77c3fea7ccd2403bc59b20e5707758c6ec197c236d0b634fc2a3ffa568"
+  },
+  "renderers": {
+    "glx": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_glx_x86.dll",
+      "bytes": 2441216,
+      "sha256": "f25046c6026b105e51bc936c3c4f63bd4ef51f21d604f723f0ca23a8ba533f6d"
+    },
+    "vk": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_vk_x86.dll",
+      "bytes": 2610688,
+      "sha256": "d891f9552e3f6dc9d81e47f8338ad3ff7ebf710d22648dc26be700569382962f"
+    },
+    "rtx": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_rtx_x86.dll",
+      "bytes": 2900992,
+      "sha256": "c15d4058aa366417b838f7ec1dc79bc18752a1a120f9a04c19818ea4d48c47d1"
+    }
+  },
+  "retail": {
+    "path": "E:\\Games\\Star Trek Voyager Elite Force\\stvoy.exe",
+    "bytes": 675840,
+    "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74"
+  },
+  "assets": [
+    {
+      "path": "E:\\Games\\fnTech3-tests\\efassets\\baseEF\\pak0.pk3",
+      "bytes": 566234769,
+      "sha256": "44feb77eeec4670975e3c9f6c09b930d73d12e5b586761107d20ec105c03c7ae"
+    },
+    {
+      "path": "E:\\Games\\fnTech3-tests\\efassets\\baseEF\\pak1.pk3",
+      "bytes": 6492912,
+      "sha256": "19412051c2e48d0f51c27127f38280d12401afaf53c38e3af4517768641600eb"
+    },
+    {
+      "path": "E:\\Games\\fnTech3-tests\\efassets\\baseEF\\pak2.pk3",
+      "bytes": 12408486,
+      "sha256": "8b573723b6827b38974d6da1619f485f4cd66a0ef26d06a3d0135b5e80988e39"
+    },
+    {
+      "path": "E:\\Games\\fnTech3-tests\\efassets\\baseEF\\pak3.pk3",
+      "bytes": 88885710,
+      "sha256": "6cdbbdd34276eb52f9a3d9b54a4ac95156f8abeced7eee05f26ffa85b538a175"
+    },
+    {
+      "path": "E:\\Games\\fnTech3-tests\\efassets\\baseEF\\zSTVEFtex.pk3",
+      "bytes": 839268276,
+      "sha256": "71f1c273accbcbdc5698128d99840b11505ffab9277444e82c51fb204ae31941"
+    }
+  ],
+  "save": {
+    "path": "E:\\Games\\fnTech3-tests\\efsp\\baseEF\\saves\\mdr_scene.sav",
+    "bytes": 517020,
+    "sha256": "d51894ac5b58ff7fbd213f17012bc8512cfbff07935ad9f774bfa5c35d9ad59f"
+  },
+  "probe": {
+    "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\probe_shadow_wide_runtime.py",
+    "bytes": 4122,
+    "sha256": "fcc699d5d697eded74cbebcd7df4c02d20a6dafc35b675ed6707f53de09b0f2a"
+  },
+  "comparison": {
+    "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\compare_shadow_wide.py",
+    "bytes": 1209,
+    "sha256": "bf88e6db13c2482e6ebbfcfd95b6f5af4649f72b59be270be4f46913bec65f0c"
+  },
+  "windowedRuns": [
+    {
+      "engine": "retail",
+      "exit": 0,
+      "seconds": 19.422,
+      "command": [
+        "E:\\Games\\fnTech3-tests\\stvef-shadow-wide-retail\\stvoy.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\fnTech3-tests\\stvef-shadow-wide-retail",
+        "+set",
+        "fs_cdpath",
+        "E:\\Games\\fnTech3-tests\\efassets",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "com_FirstTime",
+        "1",
+        "+set",
+        "com_zoneMegs",
+        "128",
+        "+set",
+        "com_hunkMegs",
+        "256",
+        "+exec",
+        "probe.cfg"
+      ],
+      "script": "wait 60\nload mdr_scene\nwait 90\ncg_draw2D 0\ncg_drawGun 0\nset cg_fov 110\nnpc spawn tuvok\nwait 600\nset d_npcfreeze 1\nset cg_noplayeranims 1\nset cg_shadows 0\nwait 10\nscreenshot shadow_off\nwait 3\nset cg_shadows 1\nwait 10\nscreenshot shadow_blob\nwait 3\nset cg_shadows 2\nwait 10\nscreenshot shadow_stencil\nwait 3\nset cg_shadows 3\nwait 10\nscreenshot shadow_projection\nwait 3\necho SHADOW_PROBE_COMPLETE\nquit\n",
+      "completed": true,
+      "events": [
+        "Working directory: E:\\Games\\fnTech3-tests\\stvef-shadow-wide-retail",
+        "GL_EXTENSIONS: GL_ARB_depth_texture GL_ARB_fragment_program GL_ARB_fragment_program_shadow GL_ARB_fragment_shader GL_ARB_imaging GL_ARB_multisample GL_ARB_multitexture GL_ARB_occlusion_query GL_ARB_point_parameters GL_ARB_point_sprite GL_ARB_shader_objects GL_ARB_shading_language_100 GL_ARB_shadow GL_ARB_texture_border_clamp GL_ARB_texture_compression GL_ARB_texture_cube_map GL_ARB_texture_env_add GL_ARB_texture_env_combine GL_ARB_texture_env_crossbar GL_ARB_texture_env_dot3 GL_ARB_texture_mirrored_repeat GL_ARB_texture_non_power_of_two GL_ARB_texture_rectangle GL_ARB_transpose_matrix GL_ARB_vertex_buffer_object GL_ARB_vertex_program GL_ARB_vertex_shader GL_ARB_window_pos GL_ATI_draw_buffers GL_ATI_texture_float GL_ATI_texture_mirror_once GL_S3_s3tc GL_EXT_texture_env_add GL_EXT_abgr GL_EXT_bgra GL_EXT_blend_color GL_EXT_blend_equation_separate GL_EXT_blend_func_separate GL_EXT_blend_minmax GL_EXT_blend_subtract GL_EXT_compiled_vertex_array GL_EXT_Cg_shader GL_EXT_depth_bounds_test GL_EXT_draw_range_elements GL_EXT_fog_coord GL_EXT_multi_draw_arrays GL_EXT_packed_pixels GL_EXT_pixel_buffer_object GL_EXT_point_parameters GL_EXT_rescale_normal GL_EXT_secondary_color GL_EXT_separate_specular_color GL_EXT_shadow_funcs GL_EXT_stencil_two_side GL_EXT_stencil_wrap GL_EXT_texture3D GL_EXT_texture_compression_s3tc GL_EXT_texture_cube_map GL_EXT_texture_edge_clamp GL_EXT_texture_env_combine GL_EXT_texture_env_dot3 GL_EXT_texture_filter_anisotropic GL_EXT_texture_lod GL_EXT_texture_lod_bias GL_EXT_texture_mirror_clamp GL_EXT_texture_object GL_EXT_vertex_array GL_IBM_rasterpos_clip GL_IBM_texture_mirrored_repeat GL_KTX_buffer_region GL_NV_blend_square GL_NV_copy_depth_to_color GL_NV_depth_clamp GL_NV_fence GL_NV_float_buffer GL_NV_fog_distance GL_NV_fragment_program GL_NV_fragment_program_option GL_NV_fragment_program2 GL_NV_half_float GL_NV_light_max_exponent GL_NV_multisample_filter_hint GL_NV_occlusion_query GL_NV_packed_depth_stencil GL_NV_pixel_data_range GL_NV_point_sprite GL_NV_primitive_restart GL_NV_register_combiners GL_NV_regis",
+        "PIXELFORMAT: color(32-bits) Z(24-bit) stencil(8-bits)",
+        "Wrote screenshots/shadow_off.tga",
+        "Wrote screenshots/shadow_blob.tga",
+        "Wrote screenshots/shadow_stencil.tga",
+        "Wrote screenshots/shadow_projection.tga",
+        "SHADOW_PROBE_COMPLETE "
+      ],
+      "captures": [
+        {
+          "name": "shadow_blob.tga",
+          "sha256": "8c3bc71cf3896a9af7f4d7e6709754740ed353877e44f476236e7adf5e078f77"
+        },
+        {
+          "name": "shadow_off.tga",
+          "sha256": "3151df8f095b14f3a94d0016354f0be9d11b1bd529460677df8735d12d12c14a"
+        },
+        {
+          "name": "shadow_projection.tga",
+          "sha256": "95f04e1899ceee11b1ac0f32514cb9125a41cb034b5dd4a32ab061af02e075b2"
+        },
+        {
+          "name": "shadow_stencil.tga",
+          "sha256": "4a6a3c9e9a893c8e7324aac97728e904ae40a57b0a99606815659e0ed746a3ed"
+        }
+      ]
+    },
+    {
+      "engine": "after-glx",
+      "exit": 0,
+      "seconds": 22.703,
+      "command": [
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "stvef-sp",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\fnTech3-tests\\efassets",
+        "+set",
+        "fs_homepath",
+        "E:\\Games\\fnTech3-tests\\stvef-shadow-wide-after-glx",
+        "+set",
+        "r_renderer",
+        "glx",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "com_FirstTime",
+        "1",
+        "+set",
+        "com_zoneMegs",
+        "128",
+        "+set",
+        "com_hunkMegs",
+        "256",
+        "+exec",
+        "probe.cfg"
+      ],
+      "script": "wait 60\nload mdr_scene\nwait 90\ncg_draw2D 0\ncg_drawGun 0\nset cg_fov 110\nnpc spawn tuvok\nwait 600\nset d_npcfreeze 1\nset cg_noplayeranims 1\nset cg_shadows 0\nwait 10\nscreenshot shadow_off\nwait 3\nset cg_shadows 1\nwait 10\nscreenshot shadow_blob\nwait 3\nset cg_shadows 2\nwait 10\nscreenshot shadow_stencil\nwait 3\nset cg_shadows 3\nwait 10\nscreenshot shadow_projection\nwait 3\necho SHADOW_PROBE_COMPLETE\nquit\n",
+      "completed": true,
+      "events": [
+        "Using 24 color bits, 24 depth, 8 stencil display.",
+        "PIXELFORMAT: color(24-bits) Z(24-bit) stencil(8-bits)",
+        "VM_LoadDll: loaded native module cache 'E:\\Games\\fnTech3-tests\\stvef-shadow-wide-after-glx\\.tmp\\native\\a4aa8e7d4a4b1aa6295274912751949c\\efuix86.dll'",
+        "VM_LoadDll: loaded native module cache 'E:\\Games\\fnTech3-tests\\stvef-shadow-wide-after-glx\\.tmp\\native\\a4aa8e7d4a4b1aa6295274912751949c\\efgamex86.dll'",
+        "VM_LoadDll: loaded native module cache 'E:\\Games\\fnTech3-tests\\stvef-shadow-wide-after-glx\\.tmp\\native\\a4aa8e7d4a4b1aa6295274912751949c\\efuix86.dll'",
+        "Wrote screenshots/shadow_off.png",
+        "Wrote screenshots/shadow_blob.png",
+        "Wrote screenshots/shadow_stencil.png",
+        "Wrote screenshots/shadow_projection.png",
+        "SHADOW_PROBE_COMPLETE"
+      ],
+      "captures": [
+        {
+          "name": "shadow_blob.png",
+          "sha256": "90929983c6e86c2d85b589860a8f71180a662889d7e1de01b7bc0799fcceb6c4"
+        },
+        {
+          "name": "shadow_off.png",
+          "sha256": "b6b08add41d0023c53456dcb0db1989d45b5dadd75e58103052c6c79f4baf649"
+        },
+        {
+          "name": "shadow_projection.png",
+          "sha256": "588b90ba81c47bdea5476e0fe2f143563f0da55de226629356b19ff49a500e9e"
+        },
+        {
+          "name": "shadow_stencil.png",
+          "sha256": "a93c65cdacf9edd0dbabc6c61dde943bd8c13b11a89911c375200e6f8fc7c302"
+        }
+      ]
+    },
+    {
+      "engine": "after-vk",
+      "exit": 0,
+      "seconds": 24.313,
+      "command": [
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "stvef-sp",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\fnTech3-tests\\efassets",
+        "+set",
+        "fs_homepath",
+        "E:\\Games\\fnTech3-tests\\stvef-shadow-wide-after-vk",
+        "+set",
+        "r_renderer",
+        "vk",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "com_FirstTime",
+        "1",
+        "+set",
+        "com_zoneMegs",
+        "128",
+        "+set",
+        "com_hunkMegs",
+        "256",
+        "+exec",
+        "probe.cfg"
+      ],
+      "script": "wait 60\nload mdr_scene\nwait 90\ncg_draw2D 0\ncg_drawGun 0\nset cg_fov 110\nnpc spawn tuvok\nwait 600\nset d_npcfreeze 1\nset cg_noplayeranims 1\nset cg_shadows 0\nwait 10\nscreenshot shadow_off\nwait 3\nset cg_shadows 1\nwait 10\nscreenshot shadow_blob\nwait 3\nset cg_shadows 2\nwait 10\nscreenshot shadow_stencil\nwait 3\nset cg_shadows 3\nwait 10\nscreenshot shadow_projection\nwait 3\necho SHADOW_PROBE_COMPLETE\nquit\n",
+      "completed": true,
+      "events": [
+        "Using 24 color bits, 24 depth, 8 stencil display.",
+        "PIXELFORMAT: color(24-bits) Z(24-bit) stencil(8-bits)",
+        "VM_LoadDll: loaded native module cache 'E:\\Games\\fnTech3-tests\\stvef-shadow-wide-after-vk\\.tmp\\native\\96bc72a7b68a40910ec48afbeb268fab\\efuix86.dll'",
+        "VM_LoadDll: loaded native module cache 'E:\\Games\\fnTech3-tests\\stvef-shadow-wide-after-vk\\.tmp\\native\\96bc72a7b68a40910ec48afbeb268fab\\efgamex86.dll'",
+        "VM_LoadDll: loaded native module cache 'E:\\Games\\fnTech3-tests\\stvef-shadow-wide-after-vk\\.tmp\\native\\96bc72a7b68a40910ec48afbeb268fab\\efuix86.dll'",
+        "Wrote screenshots/shadow_off.png",
+        "Wrote screenshots/shadow_blob.png",
+        "Wrote screenshots/shadow_stencil.png",
+        "Wrote screenshots/shadow_projection.png",
+        "SHADOW_PROBE_COMPLETE"
+      ],
+      "captures": [
+        {
+          "name": "shadow_blob.png",
+          "sha256": "90929983c6e86c2d85b589860a8f71180a662889d7e1de01b7bc0799fcceb6c4"
+        },
+        {
+          "name": "shadow_off.png",
+          "sha256": "b6b08add41d0023c53456dcb0db1989d45b5dadd75e58103052c6c79f4baf649"
+        },
+        {
+          "name": "shadow_projection.png",
+          "sha256": "588b90ba81c47bdea5476e0fe2f143563f0da55de226629356b19ff49a500e9e"
+        },
+        {
+          "name": "shadow_stencil.png",
+          "sha256": "a93c65cdacf9edd0dbabc6c61dde943bd8c13b11a89911c375200e6f8fc7c302"
+        }
+      ]
+    },
+    {
+      "engine": "after-rtx",
+      "exit": 0,
+      "seconds": 22.532,
+      "command": [
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "stvef-sp",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\fnTech3-tests\\efassets",
+        "+set",
+        "fs_homepath",
+        "E:\\Games\\fnTech3-tests\\stvef-shadow-wide-after-rtx",
+        "+set",
+        "r_renderer",
+        "rtx",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "com_FirstTime",
+        "1",
+        "+set",
+        "com_zoneMegs",
+        "128",
+        "+set",
+        "com_hunkMegs",
+        "256",
+        "+exec",
+        "probe.cfg"
+      ],
+      "script": "wait 60\nload mdr_scene\nwait 90\ncg_draw2D 0\ncg_drawGun 0\nset cg_fov 110\nnpc spawn tuvok\nwait 600\nset d_npcfreeze 1\nset cg_noplayeranims 1\nset cg_shadows 0\nwait 10\nscreenshot shadow_off\nwait 3\nset cg_shadows 1\nwait 10\nscreenshot shadow_blob\nwait 3\nset cg_shadows 2\nwait 10\nscreenshot shadow_stencil\nwait 3\nset cg_shadows 3\nwait 10\nscreenshot shadow_projection\nwait 3\necho SHADOW_PROBE_COMPLETE\nquit\n",
+      "completed": true,
+      "events": [
+        "Using 24 color bits, 24 depth, 8 stencil display.",
+        "PIXELFORMAT: color(24-bits) Z(24-bit) stencil(8-bits)",
+        "VM_LoadDll: loaded native module cache 'E:\\Games\\fnTech3-tests\\stvef-shadow-wide-after-rtx\\.tmp\\native\\e4f55ecfcc07d95e8d96d065c4a8cc95\\efuix86.dll'",
+        "VM_LoadDll: loaded native module cache 'E:\\Games\\fnTech3-tests\\stvef-shadow-wide-after-rtx\\.tmp\\native\\e4f55ecfcc07d95e8d96d065c4a8cc95\\efgamex86.dll'",
+        "VM_LoadDll: loaded native module cache 'E:\\Games\\fnTech3-tests\\stvef-shadow-wide-after-rtx\\.tmp\\native\\e4f55ecfcc07d95e8d96d065c4a8cc95\\efuix86.dll'",
+        "Wrote screenshots/shadow_off.png",
+        "Wrote screenshots/shadow_blob.png",
+        "Wrote screenshots/shadow_stencil.png",
+        "Wrote screenshots/shadow_projection.png",
+        "SHADOW_PROBE_COMPLETE"
+      ],
+      "captures": [
+        {
+          "name": "shadow_blob.png",
+          "sha256": "90929983c6e86c2d85b589860a8f71180a662889d7e1de01b7bc0799fcceb6c4"
+        },
+        {
+          "name": "shadow_off.png",
+          "sha256": "b6b08add41d0023c53456dcb0db1989d45b5dadd75e58103052c6c79f4baf649"
+        },
+        {
+          "name": "shadow_projection.png",
+          "sha256": "588b90ba81c47bdea5476e0fe2f143563f0da55de226629356b19ff49a500e9e"
+        },
+        {
+          "name": "shadow_stencil.png",
+          "sha256": "a93c65cdacf9edd0dbabc6c61dde943bd8c13b11a89911c375200e6f8fc7c302"
+        }
+      ]
+    }
+  ],
+  "imageComparison": [
+    {
+      "renderer": "glx",
+      "mode": "blob",
+      "retailShadowPixels": 8244,
+      "shadowPixels": 8344,
+      "maskDisagreement": 192,
+      "background": {
+        "meanAbsoluteChannelDifference": 0.6060807291666667,
+        "maximumChannelDifference": 53,
+        "differentPixels": 238185
+      },
+      "shadowOnly": {
+        "meanAbsoluteChannelDifference": 0.006171875,
+        "maximumChannelDifference": 3,
+        "differentPixels": 2467
+      },
+      "comparedWithGLx": {
+        "meanAbsoluteChannelDifference": 0.0,
+        "maximumChannelDifference": 0,
+        "differentPixels": 0
+      }
+    },
+    {
+      "renderer": "glx",
+      "mode": "stencil",
+      "retailShadowPixels": 3787,
+      "shadowPixels": 3735,
+      "maskDisagreement": 258,
+      "background": {
+        "meanAbsoluteChannelDifference": 0.6060807291666667,
+        "maximumChannelDifference": 53,
+        "differentPixels": 238185
+      },
+      "shadowOnly": {
+        "meanAbsoluteChannelDifference": 0.009352213541666666,
+        "maximumChannelDifference": 22,
+        "differentPixels": 2434
+      },
+      "comparedWithGLx": {
+        "meanAbsoluteChannelDifference": 0.0,
+        "maximumChannelDifference": 0,
+        "differentPixels": 0
+      }
+    },
+    {
+      "renderer": "glx",
+      "mode": "projection",
+      "retailShadowPixels": 3098,
+      "shadowPixels": 3100,
+      "maskDisagreement": 80,
+      "background": {
+        "meanAbsoluteChannelDifference": 0.6060807291666667,
+        "maximumChannelDifference": 53,
+        "differentPixels": 238185
+      },
+      "shadowOnly": {
+        "meanAbsoluteChannelDifference": 0.018450520833333334,
+        "maximumChannelDifference": 42,
+        "differentPixels": 2768
+      },
+      "comparedWithGLx": {
+        "meanAbsoluteChannelDifference": 0.0,
+        "maximumChannelDifference": 0,
+        "differentPixels": 0
+      }
+    },
+    {
+      "renderer": "vk",
+      "mode": "blob",
+      "retailShadowPixels": 8244,
+      "shadowPixels": 8344,
+      "maskDisagreement": 192,
+      "background": {
+        "meanAbsoluteChannelDifference": 0.6060807291666667,
+        "maximumChannelDifference": 53,
+        "differentPixels": 238185
+      },
+      "shadowOnly": {
+        "meanAbsoluteChannelDifference": 0.006171875,
+        "maximumChannelDifference": 3,
+        "differentPixels": 2467
+      },
+      "comparedWithGLx": {
+        "meanAbsoluteChannelDifference": 0.0,
+        "maximumChannelDifference": 0,
+        "differentPixels": 0
+      }
+    },
+    {
+      "renderer": "vk",
+      "mode": "stencil",
+      "retailShadowPixels": 3787,
+      "shadowPixels": 3735,
+      "maskDisagreement": 258,
+      "background": {
+        "meanAbsoluteChannelDifference": 0.6060807291666667,
+        "maximumChannelDifference": 53,
+        "differentPixels": 238185
+      },
+      "shadowOnly": {
+        "meanAbsoluteChannelDifference": 0.009352213541666666,
+        "maximumChannelDifference": 22,
+        "differentPixels": 2434
+      },
+      "comparedWithGLx": {
+        "meanAbsoluteChannelDifference": 0.0,
+        "maximumChannelDifference": 0,
+        "differentPixels": 0
+      }
+    },
+    {
+      "renderer": "vk",
+      "mode": "projection",
+      "retailShadowPixels": 3098,
+      "shadowPixels": 3100,
+      "maskDisagreement": 80,
+      "background": {
+        "meanAbsoluteChannelDifference": 0.6060807291666667,
+        "maximumChannelDifference": 53,
+        "differentPixels": 238185
+      },
+      "shadowOnly": {
+        "meanAbsoluteChannelDifference": 0.018450520833333334,
+        "maximumChannelDifference": 42,
+        "differentPixels": 2768
+      },
+      "comparedWithGLx": {
+        "meanAbsoluteChannelDifference": 0.0,
+        "maximumChannelDifference": 0,
+        "differentPixels": 0
+      }
+    },
+    {
+      "renderer": "rtx",
+      "mode": "blob",
+      "retailShadowPixels": 8244,
+      "shadowPixels": 8344,
+      "maskDisagreement": 192,
+      "background": {
+        "meanAbsoluteChannelDifference": 0.6060807291666667,
+        "maximumChannelDifference": 53,
+        "differentPixels": 238185
+      },
+      "shadowOnly": {
+        "meanAbsoluteChannelDifference": 0.006171875,
+        "maximumChannelDifference": 3,
+        "differentPixels": 2467
+      },
+      "comparedWithGLx": {
+        "meanAbsoluteChannelDifference": 0.0,
+        "maximumChannelDifference": 0,
+        "differentPixels": 0
+      }
+    },
+    {
+      "renderer": "rtx",
+      "mode": "stencil",
+      "retailShadowPixels": 3787,
+      "shadowPixels": 3735,
+      "maskDisagreement": 258,
+      "background": {
+        "meanAbsoluteChannelDifference": 0.6060807291666667,
+        "maximumChannelDifference": 53,
+        "differentPixels": 238185
+      },
+      "shadowOnly": {
+        "meanAbsoluteChannelDifference": 0.009352213541666666,
+        "maximumChannelDifference": 22,
+        "differentPixels": 2434
+      },
+      "comparedWithGLx": {
+        "meanAbsoluteChannelDifference": 0.0,
+        "maximumChannelDifference": 0,
+        "differentPixels": 0
+      }
+    },
+    {
+      "renderer": "rtx",
+      "mode": "projection",
+      "retailShadowPixels": 3098,
+      "shadowPixels": 3100,
+      "maskDisagreement": 80,
+      "background": {
+        "meanAbsoluteChannelDifference": 0.6060807291666667,
+        "maximumChannelDifference": 53,
+        "differentPixels": 238185
+      },
+      "shadowOnly": {
+        "meanAbsoluteChannelDifference": 0.018450520833333334,
+        "maximumChannelDifference": 42,
+        "differentPixels": 2768
+      },
+      "comparedWithGLx": {
+        "meanAbsoluteChannelDifference": 0.0,
+        "maximumChannelDifference": 0,
+        "differentPixels": 0
+      }
+    }
+  ],
+  "limits": [
+    "Positive visible examples of all three legacy shadow modes in one scene",
+    "All three fnTech3 renderers are byte-identical; retail pixel differences remain measured rather than treated as exact parity",
+    "No input control or OS screen capture; only engine screenshots",
+    "The client identity is retained from the movie-audio evidence because a later include-only build has replaced the executable"
+  ],
+  "rendererValidationCorrection": {
+    "date": "2026-09-21",
+    "actualFnTech3LiveRenderer": "glx",
+    "reason": "The probe used r_renderer, but the engine selector is cl_renderer. The retained Vulkan/RTX labels are intended cases, not observed backends.",
+    "invalidatedClaims": [
+      "Live Vulkan/RTX coverage",
+      "Cross-backend image equality or differences"
+    ],
+    "unaffectedEvidence": [
+      "Source inspection",
+      "Native mathematical comparisons",
+      "Compiled fixtures",
+      "Actual GLx live results"
+    ],
+    "followup": "../2026-09-21-stvef-renderer-verification.md"
+  }
+}

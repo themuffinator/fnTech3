@@ -1812,6 +1812,31 @@ void FS_FCloseFile( fileHandle_t f ) {
 }
 
 
+/* Close a loose output file before publishing it. fwrite may have accepted
+ * buffered bytes whose final flush fails, so callers must check fclose too.
+ * The ordinary close path and archive-handle ownership remain unchanged. */
+qboolean FS_FCloseFileWrite( fileHandle_t f ) {
+	fileHandleData_t *fd;
+	qboolean success = qtrue;
+	if ( !fs_searchpaths ) {
+		Com_Error( ERR_FATAL, "Filesystem call made without initialization" );
+		return qfalse;
+	}
+	if ( f <= 0 || f >= MAX_FILE_HANDLES ) {
+		return qfalse;
+	}
+	fd = &fsh[f];
+	if ( fd->zipFile || !fd->handleFiles.file.o ) {
+		return qfalse;
+	}
+	if ( ferror( fd->handleFiles.file.o ) ) success = qfalse;
+	// Close even if an earlier stream error has already made the save fail.
+	if ( fclose( fd->handleFiles.file.o ) != 0 ) success = qfalse;
+	Com_Memset( fd, 0, sizeof( *fd ) );
+	return success;
+}
+
+
 /*
 ===========
 FS_ResetReadOnlyAttribute

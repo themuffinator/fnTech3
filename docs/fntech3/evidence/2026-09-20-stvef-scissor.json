@@ -1,0 +1,379 @@
+{
+  "baseCommit": "9e1841d",
+  "platform": "Windows x86",
+  "profile": "stvef-sp",
+  "build": "RelWithDebInfo, all development profiles; scissor changes plus temporary draw-only instrumentation",
+  "clientSHA256": "081b84aefffd56788edacc1012f632922d2df64d7a6c463d4ed8584e078c2711",
+  "rendererSHA256": {
+    "glx": "cc54aa27a742a21870ef919fc9492beb5dcd473c80ae519bbd42241b1315712b",
+    "vk": "d84f0fc22574a5603b19e5103d32705232500def35bf7980e30ebb9ec2b847eb",
+    "rtx": "9e0a2b5583540a05efa41ca17433ccda3a8a2e57e30baf60b98dbaaadb06b008"
+  },
+  "captureMethod": "engine screenshot command",
+  "runs": [
+    {
+      "renderer": "glx",
+      "exit": 0,
+      "captures": [
+        ".tmp\\stvef-gaps\\scissor-glx\\baseEF\\screenshots\\scissor.png"
+      ],
+      "command": [
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "stvef-sp",
+        "+set",
+        "fs_basepath",
+        "E:/Games/Star Trek Voyager Elite Force",
+        "+set",
+        "fs_homepath",
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\scissor-glx",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "3",
+        "+set",
+        "r_renderer",
+        "glx",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "r_bloom",
+        "0",
+        "+set",
+        "stvef_scissorProbe",
+        "1",
+        "+set",
+        "com_maxfps",
+        "60",
+        "+set",
+        "com_maxfpsUnfocused",
+        "60",
+        "+set",
+        "cl_drawFPS",
+        "0",
+        "+set",
+        "cl_drawSpeed",
+        "0",
+        "+exec",
+        "probe.cfg"
+      ],
+      "size": [
+        640,
+        480
+      ],
+      "colors": {
+        "(0, 0, 255)": 282800,
+        "(0, 255, 0)": 24000,
+        "(255, 0, 0)": 400
+      },
+      "samples": {
+        "0,0": [
+          0,
+          0,
+          255
+        ],
+        "15,15": [
+          255,
+          0,
+          0
+        ],
+        "100,80": [
+          0,
+          0,
+          255
+        ],
+        "100,81": [
+          0,
+          255,
+          0
+        ],
+        "299,200": [
+          0,
+          255,
+          0
+        ],
+        "300,201": [
+          0,
+          0,
+          255
+        ],
+        "400,400": [
+          0,
+          0,
+          255
+        ]
+      },
+      "captureSHA256": "c607ef80327f0ee0805474c02198c0af61e4a23d6be556af61ecf663cb2b492f"
+    },
+    {
+      "renderer": "vk",
+      "exit": 0,
+      "captures": [
+        ".tmp\\stvef-gaps\\scissor-vk\\baseEF\\screenshots\\scissor.png"
+      ],
+      "command": [
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "stvef-sp",
+        "+set",
+        "fs_basepath",
+        "E:/Games/Star Trek Voyager Elite Force",
+        "+set",
+        "fs_homepath",
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\scissor-vk",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "3",
+        "+set",
+        "r_renderer",
+        "vk",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "r_bloom",
+        "0",
+        "+set",
+        "stvef_scissorProbe",
+        "1",
+        "+set",
+        "com_maxfps",
+        "60",
+        "+set",
+        "com_maxfpsUnfocused",
+        "60",
+        "+set",
+        "cl_drawFPS",
+        "0",
+        "+set",
+        "cl_drawSpeed",
+        "0",
+        "+exec",
+        "probe.cfg"
+      ],
+      "size": [
+        640,
+        480
+      ],
+      "colors": {
+        "(0, 0, 255)": 282800,
+        "(0, 255, 0)": 24000,
+        "(255, 0, 0)": 400
+      },
+      "samples": {
+        "0,0": [
+          0,
+          0,
+          255
+        ],
+        "15,15": [
+          255,
+          0,
+          0
+        ],
+        "100,80": [
+          0,
+          0,
+          255
+        ],
+        "100,81": [
+          0,
+          255,
+          0
+        ],
+        "299,200": [
+          0,
+          255,
+          0
+        ],
+        "300,201": [
+          0,
+          0,
+          255
+        ],
+        "400,400": [
+          0,
+          0,
+          255
+        ]
+      },
+      "captureSHA256": "c607ef80327f0ee0805474c02198c0af61e4a23d6be556af61ecf663cb2b492f"
+    },
+    {
+      "renderer": "rtx",
+      "exit": 0,
+      "captures": [
+        ".tmp\\stvef-gaps\\scissor-rtx\\baseEF\\screenshots\\scissor.png"
+      ],
+      "command": [
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "stvef-sp",
+        "+set",
+        "fs_basepath",
+        "E:/Games/Star Trek Voyager Elite Force",
+        "+set",
+        "fs_homepath",
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\scissor-rtx",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "3",
+        "+set",
+        "r_renderer",
+        "rtx",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "r_bloom",
+        "0",
+        "+set",
+        "stvef_scissorProbe",
+        "1",
+        "+set",
+        "com_maxfps",
+        "60",
+        "+set",
+        "com_maxfpsUnfocused",
+        "60",
+        "+set",
+        "cl_drawFPS",
+        "0",
+        "+set",
+        "cl_drawSpeed",
+        "0",
+        "+exec",
+        "probe.cfg"
+      ],
+      "size": [
+        640,
+        480
+      ],
+      "colors": {
+        "(0, 0, 255)": 282800,
+        "(0, 255, 0)": 24000,
+        "(255, 0, 0)": 400
+      },
+      "samples": {
+        "0,0": [
+          0,
+          0,
+          255
+        ],
+        "15,15": [
+          255,
+          0,
+          0
+        ],
+        "100,80": [
+          0,
+          0,
+          255
+        ],
+        "100,81": [
+          0,
+          255,
+          0
+        ],
+        "299,200": [
+          0,
+          255,
+          0
+        ],
+        "300,201": [
+          0,
+          0,
+          255
+        ],
+        "400,400": [
+          0,
+          0,
+          255
+        ]
+      },
+      "captureSHA256": "c607ef80327f0ee0805474c02198c0af61e4a23d6be556af61ecf663cb2b492f"
+    }
+  ],
+  "rendererValidationCorrection": {
+    "date": "2026-09-21",
+    "actualFnTech3LiveRenderer": "glx",
+    "reason": "The probe used r_renderer, but the engine selector is cl_renderer. The retained Vulkan/RTX labels are intended cases, not observed backends.",
+    "invalidatedClaims": [
+      "Live Vulkan/RTX coverage",
+      "Cross-backend image equality or differences"
+    ],
+    "unaffectedEvidence": [
+      "Source inspection",
+      "Native mathematical comparisons",
+      "Compiled fixtures",
+      "Actual GLx live results"
+    ],
+    "followup": "../2026-09-21-stvef-renderer-verification.md"
+  }
+}

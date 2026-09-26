@@ -11,8 +11,10 @@ none (docs/fntech3/2026-09-25-alice-overbright.md).
 
 Each renderer's two registered defaults are compiled and evaluated for every
 profile, so the check reads what the engine registers, however the
-expression is spelled. Alice takes 0 and 0, Elite Force keeps its one map
-bit, and every profile outside the Ritual engines keeps one bit over two.
+expression is spelled. Alice takes 0 and 0, as Elite Force's single player
+does (its executable registers neither bit, docs/fntech3/2026-09-20-stvef-mdr.md),
+Holomatch keeps one of each, and every other profile outside the Ritual
+engines keeps one bit over two.
 """
 from pathlib import Path
 import re
@@ -40,8 +42,9 @@ int main( void ) {
 	int game;
 	for ( game = COM_GAME_QUAKE3; game < COM_GAME_COUNT; game++ ) {
 		ri.gameId = (comGameId_t)game;
-		printf( "%d %d %d %d %s %s\n", game, game == COM_GAME_ALICE, COM_GAME_ID_IS_RITUAL( game ) ? 1 : 0,
-			game == COM_GAME_STVEF_SP || game == COM_GAME_STVEF_MP, ( @OVERBRIGHT@ ), ( @MAP_OVERBRIGHT@ ) );
+		printf( "%d %d %d %d %d %s %s\n", game, game == COM_GAME_ALICE, COM_GAME_ID_IS_RITUAL( game ) ? 1 : 0,
+			game == COM_GAME_STVEF_SP || game == COM_GAME_STVEF_MP, game == COM_GAME_STVEF_SP,
+			( @OVERBRIGHT@ ), ( @MAP_OVERBRIGHT@ ) );
 	}
 	return 0;
 }
@@ -62,7 +65,8 @@ def default_expression(source, name):
 
 
 def evaluate(renderer, folder):
-    """Each profile's (id, is Alice, is Ritual, is Elite Force, r_overBrightBits, r_mapOverBrightBits)."""
+    """Each profile's (id, is Alice, is Ritual, is Elite Force, is its single player,
+    r_overBrightBits, r_mapOverBrightBits)."""
     compiler = shutil.which('clang')
     if not compiler:
         raise unittest.SkipTest('Clang unavailable')
@@ -81,8 +85,9 @@ def evaluate(renderer, folder):
         raise AssertionError(run.stdout + run.stderr)
     rows = []
     for line in run.stdout.splitlines():
-        game, alice, ritual, elite_force, overbright, map_overbright = line.split()
-        rows.append((int(game), alice == '1', ritual == '1', elite_force == '1', overbright, map_overbright))
+        game, alice, ritual, elite_force, single_player, overbright, map_overbright = line.split()
+        rows.append((int(game), alice == '1', ritual == '1', elite_force == '1', single_player == '1',
+                     overbright, map_overbright))
     return rows
 
 
@@ -94,14 +99,14 @@ class AliceOverbrightTests(unittest.TestCase):
                 with self.subTest(renderer=renderer):
                     rows = evaluate(renderer, Path(temp))
                     self.assertGreater(len(rows), 12)
-                    self.assertEqual([row[4:] for row in rows if row[1]], [('0', '0')])
-                    for game, alice, ritual, elite_force, overbright, map_overbright in rows:
+                    self.assertEqual([row[5:] for row in rows if row[1]], [('0', '0')])
+                    for game, alice, ritual, elite_force, single_player, overbright, map_overbright in rows:
                         if ritual:
                             # Heavy Metal: F.A.K.K.2 keeps its own
                             # (tests/fakk2_overbright_tests.py).
                             continue
-                        self.assertEqual((overbright, map_overbright), ('1', '1' if elite_force else '2'),
-                                         f'profile {game}')
+                        expected = ('0', '0') if single_player else ('1', '1' if elite_force else '2')
+                        self.assertEqual((overbright, map_overbright), expected, f'profile {game}')
 
 
 if __name__ == '__main__':

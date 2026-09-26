@@ -1832,6 +1832,7 @@ IN_Shutdown
 */
 void IN_ResetInputState( void )
 {
+	CL_STVEFSPFeedbackSuspend();
 	WIN_ReleaseTemporaryMouseCapture();
 	IN_ClearRawMouseDeltas();
 	rawReadResetQueued = qfalse;
@@ -1851,6 +1852,7 @@ void IN_ResetInputState( void )
 
 
 void IN_Shutdown( void ) {
+	CL_STVEFSPFeedbackShutdown();
 	WIN_ReleaseTemporaryMouseCapture();
 	IN_SetPointerConfinement( qfalse );
 	s_pointerOwner = PointerOwner::Gameplay;
@@ -1951,6 +1953,7 @@ void IN_Init( void ) {
 	IN_GetHotkey( in_minimize, &HotKey );
 
 	IN_Startup();
+	CL_STVEFSPFeedbackInit( g_wv.hInstance, g_wv.hWnd );
 }
 
 
@@ -1966,6 +1969,7 @@ between a deactivate and an activate.
 void IN_Activate( qboolean active ) {
 
 	if ( !active ) {
+		CL_STVEFSPFeedbackSuspend();
 		// Windows drops the clip region on deactivation, so the confinement
 		// latch has to be invalidated here or IN_Frame would never re-assert it.
 		IN_SetPointerConfinement( qfalse );
@@ -1984,6 +1988,8 @@ Called every frame, even if not generating commands
 void IN_Frame( void ) {
 	PointerOwner owner;
 	PointerMode mode;
+	CL_STVEFSPFeedbackFrame( gw_active && WIN_WindowFocused() && !gw_minimized &&
+		!WIN_InputSuspended() && in_nograb && !in_nograb->integer ? qtrue : qfalse );
 
 	// post joystick events
 #ifdef USE_JOYSTICK

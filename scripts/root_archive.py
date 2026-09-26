@@ -15,6 +15,7 @@ from stock_mohaa_maps import SIDECAR_SUFFIXES as MOHAA_SIDECAR_SUFFIXES, STOCK_M
 from stock_q3_assets import Q3_PACKAGE_ASSETS
 from stock_ql_maps import STOCK_QL_MAPS
 from stock_rtcw_maps import STOCK_RTCW_MAPS
+from stock_stvef_maps import STOCK_STVEF_MAPS
 from stock_wolfet_maps import STOCK_WOLFET_MAPS
 
 
@@ -44,9 +45,15 @@ PROFILE_REQUIRED_ASSETS = {
     },
     # Enemy Territory ships a zone file for each official map, and the HUD rules.
     "wolfet": ("etmain/fntech3-hud.json", *(f"etmain/maps/{name}.azb" for name in STOCK_WOLFET_MAPS)),
-    # Elite Force ships each mode's HUD rules.
-    "stvef-sp": ("baseEF/fntech3-hud.json",),
-    "stvef-mp": ("baseEF/fntech3-hud.json",),
+    # Elite Force shares one baseEF game directory between its two profiles,
+    # and ten single-player maps live in the maps/tour/ subdirectory.
+    **{
+        profile: (
+            "baseEF/fntech3-hud.json",
+            *(f"baseEF/maps/{name}.azb" for name in names),
+        )
+        for profile, names in STOCK_STVEF_MAPS.items()
+    },
     # Alice ships an audio zone file and a static light file for every official map,
     # and the HUD rules that place its HUD.
     "alice": (

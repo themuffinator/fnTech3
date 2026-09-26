@@ -76,6 +76,9 @@ ray-tracing pipeline where the driver has one and compute shaders otherwise,
 `1` only the ray-tracing pipeline, `2` only compute. It is latched; apply it
 with `vid_restart`.
 
+The RTX renderer defaults to the linear-light pipeline (`r_hdr 1`); use the
+SDR path (`r_hdr 0`) when comparing its images with a retail engine's.
+
 ## What the Path Tracer Draws
 
 Each main view is drawn in three steps. The raster renderer first draws the

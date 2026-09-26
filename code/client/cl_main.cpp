@@ -60,6 +60,8 @@ extern "C" {
 #include <memory>
 #include <string>
 
+#include "client_stvef_sp_feedback.hpp"
+
 using fnql::CloseFile;
 using fnql::FileRead;
 using fnql::FileWrite;
@@ -629,7 +631,8 @@ static bool CL_ParseDemoProtocolExtension( const char *ext, int *protocol )
 // Each profile plays only the demo protocols it owns. Original RTCW SP and MP
 // each name demos after their single wire protocol (cl_main.c, CL_Record_f).
 // ET names its demos after protocol 84 (et.exe CL_Record_f, dm_84) and reads
-// them with its own wire.
+// them with its own wire. Holomatch's .efdemo path handles retail 24
+// separately; ioEF uses .dm_26.
 static bool CL_DemoProtocolSupported( int protocol )
 {
 	if ( !Com_DemoProtocolSupported( protocol ) ) {
@@ -649,6 +652,8 @@ static bool CL_DemoProtocolSupported( int protocol )
 	case COM_GAME_MOHAA:
 		// Medal of Honor names its demos after protocol 6, dm_6.
 		return protocol == NETCHAN_MOHAA_PROTOCOL_VERSION;
+	case COM_GAME_STVEF_MP:
+		return protocol == NETCHAN_IOEF_PROTOCOL_VERSION;
 	default:
 		return false;
 	}
@@ -674,6 +679,9 @@ static netchanWireProfile_t CL_DemoWireProfileForProtocol( int protocol )
 	if ( protocol == NETCHAN_STVEF_HM_PROTOCOL_VERSION ) {
 		return NETCHAN_WIRE_STVEF_HM;
 	}
+	if ( protocol == NETCHAN_IOEF_PROTOCOL_VERSION ) {
+		return NETCHAN_WIRE_IOEF;
+	}
 	if ( protocol == NEW_PROTOCOL_VERSION ) {
 		return NETCHAN_WIRE_IOQ3;
 	}
@@ -681,7 +689,7 @@ static netchanWireProfile_t CL_DemoWireProfileForProtocol( int protocol )
 }
 
 // Only Q3 message bodies can be relabelled dm_68 until an ioq3 extension
-// message requires dm_71. Every other profile has one demo protocol.
+// message requires dm_71. Other message layouts keep their exact protocol.
 static bool CL_WireProfileKeepsDm68Fallback( netchanWireProfile_t profile )
 {
 	return profile == NETCHAN_WIRE_LEGACY_Q3 || profile == NETCHAN_WIRE_IOQ3;
@@ -1005,7 +1013,8 @@ void CL_StopRecord_f( void ) {
 
 		// Elite Force and Alice demos carry the game's own extension, not a
 		// protocol: stvoyHM.exe's .efdemo and alice.exe's .dm3 (0x0050f314).
-		// Alice shares Elite Force's framing, so it is asked first.
+		// Alice shares Elite Force's framing, so it is asked first. ioEF's
+		// protocol 26 frames as Quake III does and names its demos .dm_26.
 		const char *const gameExt = CL_ActiveWireProfile() == NETCHAN_WIRE_ALICE
 			? fntech3::alice::demo::kExtension
 			: CL_LegacyFraming() ? STVEF_DEMOEXT : nullptr;
@@ -1108,7 +1117,7 @@ static void CL_WriteGamestate( qboolean initial )
 
 	// write out the gamestate message
 	MSG_Init( &msg, bufData.data(), Netchan_MessageLimit( CL_ActiveWireProfile() ) );
-	// Elite Force records retail's layout: raw bits, no acknowledgement, and a
+	// Retail Elite Force records raw bits, no acknowledgement, and a
 	// zero byte with nothing after it (stvoyHM.exe CL_Record_f 0x40c1e0).
 	const bool stvef = CL_LegacyFraming() != qfalse;
 	if ( stvef ) {
@@ -1557,12 +1566,19 @@ static void CL_CompleteRecordName(const char *args, int argNum )
 	{
 		std::array<char, 16> demoExt;
 
-		if ( Com_GameIsSTVEFMP() ) {
+		// Retail Holomatch records .efdemo; every other wire with a contract
+		// names its demos after that contract's protocol, as CL_StopRecord_f
+		// does. A wire without one (the IHV and Q3Test channels) keeps the
+		// profile's own protocol.
+		const fnql::protocol::Contract *contract =
+			fnql::protocol::TryForWireProfile( CL_ActiveWireProfile() );
+		if ( CL_ActiveWireProfile() == NETCHAN_WIRE_STVEF_HM ) {
 			Com_sprintf( demoExt.data(), static_cast<int>( demoExt.size() ), ".%s", STVEF_DEMOEXT );
 		} else if ( Com_GameIsRitual() ) {
 			Com_sprintf( demoExt.data(), static_cast<int>( demoExt.size() ), ".%s", fntech3::alice::demo::kExtension );
 		} else {
-			Com_sprintf( demoExt.data(), static_cast<int>( demoExt.size() ), "." DEMOEXT "%d", com_protocol->integer );
+			Com_sprintf( demoExt.data(), static_cast<int>( demoExt.size() ), "." DEMOEXT "%d",
+				contract ? contract->demoProtocol : com_protocol->integer );
 		}
 		Field_CompleteFilename( "demos", demoExt.data(), qtrue, FS_MATCH_EXTERN | FS_MATCH_STICK );
 	}
@@ -1747,7 +1763,7 @@ static int CL_WalkDemoExt( const char *arg, char *name, int name_len, ScopedFile
 	// even in a profile with no format to search.
 	Com_sprintf( name, name_len, "demos/%s", arg );
 
-	// Holomatch has one demo format, named after the game.
+	// Preserve retail .efdemo lookup first, then try ioEF's .dm_26.
 	if ( Com_GameIsSTVEFMP() ) {
 		Com_sprintf( name, name_len, "demos/%s.%s", arg, STVEF_DEMOEXT );
 		OpenPureFileRead( name, handle );
@@ -1756,6 +1772,8 @@ static int CL_WalkDemoExt( const char *arg, char *name, int name_len, ScopedFile
 			return NETCHAN_STVEF_HM_PROTOCOL_VERSION;
 		}
 		Com_Printf( "Not found: %s\n", name );
+		if ( CL_TryDemoProtocol( arg, NETCHAN_IOEF_PROTOCOL_VERSION, name, name_len, handle ) )
+			return NETCHAN_IOEF_PROTOCOL_VERSION;
 		return -1;
 	}
 
@@ -2687,6 +2705,7 @@ qboolean CL_Disconnect( qboolean showMainMenu ) {
 	}
 
 	cl_disconnecting = true;
+	CL_STVEFSPFeedbackSuspend();
 	const qboolean publishGameEnd =
 		( cls.state >= CA_CONNECTED || clc.demoplaying || clc.demorecording )
 			? qtrue : qfalse;
@@ -4543,8 +4562,8 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 		}
 
 		// Holomatch: retail servers send the challenge alone; Lilium Voyager's
-		// and ours echo the nonce and name a protocol. This client speaks only
-		// the retail protocol, which ioEF servers still accept.
+		// and ours echo the nonce and name a protocol. Select the exact
+		// advertised Holomatch contract, with 24 for a bare retail reply.
 		if ( Com_GameIsSTVEFMP() ) {
 			std::array<const char *, 4> tokens{};
 			const int count = std::min( Cmd_Argc(), static_cast<int>( tokens.size() ) );
@@ -4557,14 +4576,13 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 				Com_DPrintf( "Challenge response did not prove its source. Ignored.\n" );
 				return false;
 			}
-			const int ownProtocol = Com_GameProfile()->preferredProtocol;
-			if ( !fntech3::stvef::handshake::ServerAcceptsRetailProtocol(
-				reply.advertisedProtocol, ownProtocol ) ) {
-				Com_Printf( S_COLOR_YELLOW "Warning: Server reports protocol version %d, "
-					"we have %d. Trying anyways.\n", reply.advertisedProtocol, ownProtocol );
+			const int selectedProtocol = fntech3::stvef::handshake::SelectProtocol( reply );
+			if ( !selectedProtocol ) {
+				Com_Printf( "Unsupported Elite Force server protocol %d. Ignored.\n", reply.advertisedProtocol );
+				return false;
 			}
 			clc.compat = qfalse;
-			clc.handshakeProtocol = ownProtocol;
+			clc.handshakeProtocol = selectedProtocol;
 			clc.challenge = reply.challenge;
 			cls.state = CA_CHALLENGING;
 			clc.connectPacketCount = 0;
@@ -4779,13 +4797,13 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 			}
 			clc.compat = qfalse;
 		} else if ( Com_GameIsSTVEFMP() ) {
-			// The retail server answers with the bare keyword.
+			// Retail answers with the bare keyword; protocol 26 echoes the challenge.
 			std::array<const char *, 3> tokens{};
 			const int count = std::min( Cmd_Argc(), static_cast<int>( tokens.size() ) );
 			for ( int i = 0; i < count; ++i ) {
 				tokens[i] = Cmd_Argv( i );
 			}
-			negotiatedProtocol = Com_GameProfile()->preferredProtocol;
+			negotiatedProtocol = clc.handshakeProtocol > 0 ? clc.handshakeProtocol : com_protocol->integer;
 			if ( !fntech3::stvef::handshake::AcceptConnectReply( count, tokens.data(),
 				clc.challenge, negotiatedProtocol ) ) {
 				Com_Printf( "ConnectResponse with bad challenge received. Ignored.\n" );
@@ -7014,6 +7032,14 @@ void CL_Init( void ) {
 	Cmd_AddCommand ("demo", CL_PlayDemo_f);
 	Cmd_SetCommandCompletionFunc( "demo", CL_CompleteDemoName );
 	Cmd_AddCommand ("cinematic", CL_PlayCinematic_f);
+	if ( Com_GameIsSTVEFSP() ) {
+		Cmd_AddCommand( "ingamecinematic", CL_PlayInGameCinematic_f );
+		Cvar_Get( "cl_VideoUsingLoRes", "0", CVAR_ARCHIVE );
+		Cvar_Get( "cl_VideoQuality", "0", CVAR_ARCHIVE );
+		Cvar_Get( "cl_VidFadeUp", "1", CVAR_TEMP );
+		Cvar_Get( "cl_VidFadeDown", "1", CVAR_TEMP );
+		Cvar_Get( "skippingCinematic", "0", CVAR_ROM );
+	}
 	Cmd_AddCommand ("stoprecord", CL_StopRecord_f);
 	Cmd_AddCommand ("connect", CL_Connect_f);
 	Cmd_AddCommand ("reconnect", CL_Reconnect_f);
@@ -7117,6 +7143,7 @@ void CL_Shutdown( const char *finalmsg, qboolean quit ) {
 	Cmd_RemoveCommand ("record");
 	Cmd_RemoveCommand ("demo");
 	Cmd_RemoveCommand ("cinematic");
+	if ( Com_GameIsSTVEFSP() ) Cmd_RemoveCommand( "ingamecinematic" );
 	Cmd_RemoveCommand ("stoprecord");
 	Cmd_RemoveCommand ("connect");
 	Cmd_RemoveCommand ("reconnect");

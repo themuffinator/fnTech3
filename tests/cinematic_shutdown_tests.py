@@ -12,8 +12,10 @@ ROOT = Path(__file__).resolve().parents[1]
 
 PRELUDE = r'''
 #include "code/qcommon/q_shared.h"
+#include "code/compat/stvef_cinematic_presentation.hpp"
 #include <array>
 #include <cassert>
+#include <memory>
 #include <utility>
 #include <vector>
 constexpr int MAX_VIDEO_HANDLES=16;
@@ -28,6 +30,8 @@ static void CL_ShutdownUI(){order.push_back(2);}
 static void Com_DPrintf(const char *,...){}
 static int nextmaps;
 static void CL_RunCinematicNextmap(){++nextmaps;}
+static int paused, binkClosed;
+static void Cvar_Set(const char *name,const char *value){assert(!strcmp(name,"cl_paused"));paused=atoi(value);}
 '''
 
 HOST = r'''
@@ -35,12 +39,17 @@ struct Movie{
  std::array<char,256>fileName{};ScopedFileHandle iFile;
  unsigned char *buf=nullptr;e_status status=FMV_IDLE;
  bool dirty=false,alterGameState=false;
+ bool stvefInGame=false;
+ struct Decoder {~Decoder(){++binkClosed;}};
+ std::unique_ptr<Decoder> bink;
+ fntech3::stvef::bink::Presentation binkPresentation;
 };
 static std::array<Movie,MAX_VIDEO_HANDLES> cinTable;
 static int currentHandle=-1,CL_handle=-1;
 static int Com_GameIsAlice(){return 0;}
 static int Com_GameIsRitual(){return 0;}
 static void S_AliceMP3Free(){}
+static char stvefPendingMovie[MAX_QPATH];
 static struct{int currentHandle=-1;}cin;
 static struct{int state=CA_ACTIVE;}cls;
 static e_status CIN_StopCinematic(int);
@@ -71,9 +80,16 @@ int main(){
  cls.state=CA_CINEMATIC;Open(0,8,FMV_EOF,false,true);currentHandle=0;
  RoQShutdown();assert(closed==10&&nextmaps==2&&cls.state==CA_DISCONNECTED);
  RoQShutdown();assert(closed==10&&nextmaps==2);
+ // Bink closes even after a connection-state change, and in-game completion
+ // releases its pause without disconnecting the running server/client.
+ cls.state=CA_ACTIVE;Open(0,9,FMV_PLAY,true,true);cinTable[0].bink=std::make_unique<Movie::Decoder>();
+ CIN_StopCinematic(0);assert(closed==11&&binkClosed==1&&nextmaps==2&&cls.state==CA_ACTIVE);
+ Open(0,10,FMV_PLAY,true);cinTable[0].bink=std::make_unique<Movie::Decoder>();cinTable[0].stvefInGame=true;paused=1;CL_handle=0;
+ CIN_StopCinematic(0);assert(closed==12&&binkClosed==2&&!paused&&CL_handle==-1&&cls.state==CA_ACTIVE);
+ stvefPendingMovie[0]='x';CIN_CloseAllVideos();assert(stvefPendingMovie[0]=='x'&&closed==12&&binkClosed==2);
  filesystemLive=false; // Static owners must not call FS_FCloseFile after this.
  for(auto &movie:cinTable)movie.iFile.reset();
- assert(closed==10);
+ assert(closed==12);
 }
 '''
 

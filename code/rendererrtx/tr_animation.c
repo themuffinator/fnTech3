@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "tr_local.h"
+#include "../renderercommon/tr_mdr_frames.h"
 
 /*
 
@@ -217,27 +218,13 @@ void R_MDRAddAnimSurfaces( trRefEntity_t *ent,
 	personalModel = (ent->e.renderfx & RF_THIRD_PERSON) && !R_ViewPassIsPortal( &tr.viewParms );
 	personalShadowCaster = personalModel && !(ent->e.renderfx & ( RF_NOSHADOW | RF_DEPTHHACK ));
 
-	if ( ent->e.renderfx & RF_WRAP_FRAMES )
 	{
-		ent->e.frame %= header->numFrames;
-		ent->e.oldframe %= header->numFrames;
-	}
-
-	//
-	// Validate the frames so there is no chance of a crash.
-	// This will write directly into the entity structure, so
-	// when the surfaces are rendered, they don't need to be
-	// range checked again.
-	//
-	if ((ent->e.frame >= header->numFrames)
-		|| (ent->e.frame < 0)
-		|| (ent->e.oldframe >= header->numFrames)
-		|| (ent->e.oldframe < 0) )
-	{
-		ri.Printf( PRINT_DEVELOPER, "R_MDRAddAnimSurfaces: no such frame %d to %d for '%s'\n",
-			   ent->e.oldframe, ent->e.frame, tr.currentModel->name );
-		ent->e.frame = 0;
-		ent->e.oldframe = 0;
+		const int frame = ent->e.frame, oldframe = ent->e.oldframe;
+		if ( !FnMdr_SelectFrames( header->numFrames, ent->e.renderfx & RF_CAP_FRAMES,
+			ent->e.renderfx & RF_WRAP_FRAMES, &ent->e.frame, &ent->e.oldframe ) ) {
+			ri.Printf( PRINT_DEVELOPER, "R_MDRAddAnimSurfaces: no such frame %d to %d for '%s'\n",
+				oldframe, frame, tr.currentModel->name );
+		}
 	}
 
 	//

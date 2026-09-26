@@ -13,6 +13,9 @@ light (docs/fntech3/2026-09-25-ambient-scale.md):
   0x00449013, bounds kept by 0x004cdd30 and Cvar_Set 0x004cd0a4), and offers it
   as the Video menu's "Ambient Light Scale". Here its bounds come from
   Cvar_CheckRange, since this engine's bit 0x1000 is CVAR_VM_CREATED.
+- Elite Force's single player and Holomatch register "0.5", CVAR_CHEAT, too
+  (stvoy.exe and stvoyHM.exe; the record's table and
+  docs/fntech3/2026-09-20-stvef-mdr.md).
 - r_directedScale is "1", CVAR_CHEAT, in all of them.
 
 Each renderer's registration block is compiled against a recording `ri` and
@@ -112,8 +115,9 @@ int main( void ) {
 		}
 		for ( i = 0; i < registrationCount; i++ ) {
 			const registration_t *r = &registrations[i];
-			printf( "cvar %d %d %d %s %s %d %d %s %s %d\n", game, game == COM_GAME_QUAKELIVE,
-				COM_GAME_ID_IS_RITUAL( game ) ? 1 : 0, r->name, r->value, r->flags, r->ranged,
+			printf( "cvar %d %d %d %d %s %s %d %d %s %s %d\n", game, game == COM_GAME_QUAKELIVE,
+				COM_GAME_ID_IS_RITUAL( game ) ? 1 : 0, game == COM_GAME_STVEF_SP || game == COM_GAME_STVEF_MP,
+				r->name, r->value, r->flags, r->ranged,
 				r->ranged ? r->mins : "-", r->ranged ? r->maxs : "-", r->ranged ? r->validator : -1 );
 		}
 	}
@@ -170,9 +174,9 @@ def evaluate(renderer, folder):
         fields = line.split()
         if fields[0] != 'cvar':
             raise AssertionError(line)
-        game, ql, ritual = int(fields[1]), fields[2] == '1', fields[3] == '1'
-        rows.setdefault(game, {'ql': ql, 'ritual': ritual, 'cvars': []})['cvars'].append(
-            (fields[4], fields[5], int(fields[6]), int(fields[7]), fields[8], fields[9], int(fields[10])))
+        game, ql, ritual, elite_force = int(fields[1]), fields[2] == '1', fields[3] == '1', fields[4] == '1'
+        rows.setdefault(game, {'ql': ql, 'ritual': ritual, 'elite_force': elite_force, 'cvars': []})['cvars'].append(
+            (fields[5], fields[6], int(fields[7]), int(fields[8]), fields[9], fields[10], int(fields[11])))
     return flags, rows
 
 
@@ -192,7 +196,7 @@ class AmbientScaleDefaultsTests(unittest.TestCase):
                         self.assertEqual(directed, ('r_directedScale', '1', cheat, 0, '-', '-', -1), f'profile {game}')
                         if row['ql']:
                             expected = ('r_ambientScale', '10', ql_flags, 1, '1', '100', cv_float)
-                        elif row['ritual']:
+                        elif row['ritual'] or row['elite_force']:
                             expected = ('r_ambientScale', '0.5', cheat, 0, '-', '-', -1)
                         else:
                             # Quake III's value; several other engines differ

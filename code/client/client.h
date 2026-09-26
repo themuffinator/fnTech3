@@ -798,6 +798,9 @@ void	RE_MeasureScaledText( const char *text, const char *end, int fontHandle, fl
 //
 
 void CL_PlayCinematic_f( void );
+void CL_PlayInGameCinematic_f( void );
+qboolean SCR_DrawSTVEFSPInGameCinematic( void );
+qboolean CL_STVEFSPCinematicKey( int key );
 void SCR_DrawCinematic (void);
 void SCR_RunCinematic (void);
 void SCR_StopCinematic (void);
@@ -1019,6 +1022,13 @@ void	CL_LoadJPG( const char *filename, unsigned char **pic, int *width, int *hei
 
 
 // base backend functions
+void CL_STVEFSPFeedbackInit( void *instance, void *window );
+void CL_STVEFSPFeedbackShutdown( void );
+void CL_STVEFSPFeedbackSuspend( void );
+void CL_STVEFSPFeedbackFrame( qboolean active );
+void CL_STVEFSPFeedbackPlay( int id, qboolean ensure );
+void CL_STVEFSPFeedbackStop( int id );
+void CL_STVEFSPFeedbackStopAll( void );
 void	HandleEvents( void );
 void	CL_NotifyWindowResize( int width, int height, qboolean preserveWindow );
 void	CL_CompleteWindowResize( void );

@@ -1,0 +1,4123 @@
+{
+  "provenance": "Native retail 1.20 evaluation of independently chosen wave inputs using synthetic tables, plus generated results from each native noise initializer; no executable or asset bytes.",
+  "references": [
+    {
+      "profile": "sp",
+      "executable": "stvoy.exe",
+      "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+      "evalAddress": "0x4642e0",
+      "refdefTime": "0xaaf924"
+    },
+    {
+      "profile": "mp",
+      "executable": "stvoyHM.exe",
+      "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "evalAddress": "0x47b5c0",
+      "refdefTime": "0xac3acc"
+    }
+  ],
+  "noise": "values[i] = ((i % 17) - 8) / 8; permutation[i] = (i*73 + 19) & 255",
+  "base": 0.125,
+  "amplitude": 0.625,
+  "cases": [
+    {
+      "time": 0,
+      "phase": 0,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 0,
+      "phase": 0,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": 0,
+      "phase": 0,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 0,
+      "phase": 0,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 0,
+      "phase": 0.100000001,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 0,
+      "phase": 0.100000001,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": 0,
+      "phase": 0.100000001,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 0,
+      "phase": 0.100000001,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 0,
+      "phase": 0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 0,
+      "phase": 0.5,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": 0,
+      "phase": 0.5,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 0,
+      "phase": 0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 0,
+      "phase": -0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 0,
+      "phase": -0.5,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": 0,
+      "phase": -0.5,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 0,
+      "phase": -0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 0,
+      "phase": 1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 0,
+      "phase": 1.25,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 0,
+      "phase": 1.25,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 0,
+      "phase": 1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 0,
+      "phase": -1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 0,
+      "phase": -1.25,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 0,
+      "phase": -1.25,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 0,
+      "phase": -1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 0,
+      "phase": 128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 0,
+      "phase": 128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 0,
+      "phase": 128,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 0,
+      "phase": 128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 0,
+      "phase": -128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 0,
+      "phase": -128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 0,
+      "phase": -128,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 0,
+      "phase": -128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 1,
+      "phase": 0,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 1,
+      "phase": 0,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 1,
+      "phase": 0,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 1,
+      "phase": 0,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 1,
+      "phase": 0.100000001,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 1,
+      "phase": 0.100000001,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 1,
+      "phase": 0.100000001,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 1,
+      "phase": 0.100000001,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 1,
+      "phase": 0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 1,
+      "phase": 0.5,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 1,
+      "phase": 0.5,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 1,
+      "phase": 0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 1,
+      "phase": -0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 1,
+      "phase": -0.5,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": 1,
+      "phase": -0.5,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 1,
+      "phase": -0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 1,
+      "phase": 1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 1,
+      "phase": 1.25,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 1,
+      "phase": 1.25,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 1,
+      "phase": 1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 1,
+      "phase": -1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 1,
+      "phase": -1.25,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": 1,
+      "phase": -1.25,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 1,
+      "phase": -1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 1,
+      "phase": 128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 1,
+      "phase": 128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 1,
+      "phase": 128,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 1,
+      "phase": 128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 1,
+      "phase": -128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 1,
+      "phase": -128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 1,
+      "phase": -128,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 1,
+      "phase": -128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 127,
+      "phase": 0,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 127,
+      "phase": 0,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 127,
+      "phase": 0,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 127,
+      "phase": 0,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 127,
+      "phase": 0.100000001,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 127,
+      "phase": 0.100000001,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 127,
+      "phase": 0.100000001,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 127,
+      "phase": 0.100000001,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 127,
+      "phase": 0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 127,
+      "phase": 0.5,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 127,
+      "phase": 0.5,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 127,
+      "phase": 0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 127,
+      "phase": -0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 127,
+      "phase": -0.5,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": 127,
+      "phase": -0.5,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 127,
+      "phase": -0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 127,
+      "phase": 1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 127,
+      "phase": 1.25,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 127,
+      "phase": 1.25,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 127,
+      "phase": 1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 127,
+      "phase": -1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 127,
+      "phase": -1.25,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 127,
+      "phase": -1.25,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 127,
+      "phase": -1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 127,
+      "phase": 128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 127,
+      "phase": 128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 127,
+      "phase": 128,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 127,
+      "phase": 128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 127,
+      "phase": -128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 127,
+      "phase": -128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 127,
+      "phase": -128,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 127,
+      "phase": -128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 128,
+      "phase": 0,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 128,
+      "phase": 0,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 128,
+      "phase": 0,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 128,
+      "phase": 0,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 128,
+      "phase": 0.100000001,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 128,
+      "phase": 0.100000001,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 128,
+      "phase": 0.100000001,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 128,
+      "phase": 0.100000001,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 128,
+      "phase": 0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 128,
+      "phase": 0.5,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 128,
+      "phase": 0.5,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 128,
+      "phase": 0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 128,
+      "phase": -0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 128,
+      "phase": -0.5,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 128,
+      "phase": -0.5,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 128,
+      "phase": -0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 128,
+      "phase": 1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 128,
+      "phase": 1.25,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 128,
+      "phase": 1.25,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 128,
+      "phase": 1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 128,
+      "phase": -1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 128,
+      "phase": -1.25,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": 128,
+      "phase": -1.25,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 128,
+      "phase": -1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 128,
+      "phase": 128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 128,
+      "phase": 128,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": 128,
+      "phase": 128,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 128,
+      "phase": 128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 128,
+      "phase": -128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 128,
+      "phase": -128,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": 128,
+      "phase": -128,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 128,
+      "phase": -128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 255,
+      "phase": 0,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 255,
+      "phase": 0,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 255,
+      "phase": 0,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 255,
+      "phase": 0,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 255,
+      "phase": 0.100000001,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 255,
+      "phase": 0.100000001,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 255,
+      "phase": 0.100000001,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 255,
+      "phase": 0.100000001,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 255,
+      "phase": 0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 255,
+      "phase": 0.5,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 255,
+      "phase": 0.5,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 255,
+      "phase": 0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 255,
+      "phase": -0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 255,
+      "phase": -0.5,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 255,
+      "phase": -0.5,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 255,
+      "phase": -0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 255,
+      "phase": 1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 255,
+      "phase": 1.25,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": 255,
+      "phase": 1.25,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 255,
+      "phase": 1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 255,
+      "phase": -1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 255,
+      "phase": -1.25,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 255,
+      "phase": -1.25,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 255,
+      "phase": -1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 255,
+      "phase": 128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 255,
+      "phase": 128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 255,
+      "phase": 128,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 255,
+      "phase": 128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 255,
+      "phase": -128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 255,
+      "phase": -128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 255,
+      "phase": -128,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 255,
+      "phase": -128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 256,
+      "phase": 0,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 256,
+      "phase": 0,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": 256,
+      "phase": 0,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 256,
+      "phase": 0,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 256,
+      "phase": 0.100000001,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 256,
+      "phase": 0.100000001,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": 256,
+      "phase": 0.100000001,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 256,
+      "phase": 0.100000001,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 256,
+      "phase": 0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 256,
+      "phase": 0.5,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": 256,
+      "phase": 0.5,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 256,
+      "phase": 0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 256,
+      "phase": -0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 256,
+      "phase": -0.5,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 256,
+      "phase": -0.5,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 256,
+      "phase": -0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 256,
+      "phase": 1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 256,
+      "phase": 1.25,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 256,
+      "phase": 1.25,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 256,
+      "phase": 1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 256,
+      "phase": -1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 256,
+      "phase": -1.25,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 256,
+      "phase": -1.25,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 256,
+      "phase": -1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 256,
+      "phase": 128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 256,
+      "phase": 128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 256,
+      "phase": 128,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 256,
+      "phase": 128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 256,
+      "phase": -128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 256,
+      "phase": -128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 256,
+      "phase": -128,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 256,
+      "phase": -128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 4097,
+      "phase": 0,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 4097,
+      "phase": 0,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 4097,
+      "phase": 0,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 4097,
+      "phase": 0,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 4097,
+      "phase": 0.100000001,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 4097,
+      "phase": 0.100000001,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 4097,
+      "phase": 0.100000001,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 4097,
+      "phase": 0.100000001,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 4097,
+      "phase": 0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 4097,
+      "phase": 0.5,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 4097,
+      "phase": 0.5,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 4097,
+      "phase": 0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 4097,
+      "phase": -0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 4097,
+      "phase": -0.5,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": 4097,
+      "phase": -0.5,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 4097,
+      "phase": -0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 4097,
+      "phase": 1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 4097,
+      "phase": 1.25,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 4097,
+      "phase": 1.25,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 4097,
+      "phase": 1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 4097,
+      "phase": -1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 4097,
+      "phase": -1.25,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 4097,
+      "phase": -1.25,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 4097,
+      "phase": -1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 4097,
+      "phase": 128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 4097,
+      "phase": 128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 4097,
+      "phase": 128,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 4097,
+      "phase": 128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 4097,
+      "phase": -128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 4097,
+      "phase": -128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 4097,
+      "phase": -128,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 4097,
+      "phase": -128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 65537,
+      "phase": 0,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 65537,
+      "phase": 0,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 65537,
+      "phase": 0,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 65537,
+      "phase": 0,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 65537,
+      "phase": 0.100000001,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 65537,
+      "phase": 0.100000001,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 65537,
+      "phase": 0.100000001,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 65537,
+      "phase": 0.100000001,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 65537,
+      "phase": 0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 65537,
+      "phase": 0.5,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 65537,
+      "phase": 0.5,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 65537,
+      "phase": 0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 65537,
+      "phase": -0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 65537,
+      "phase": -0.5,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": 65537,
+      "phase": -0.5,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 65537,
+      "phase": -0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 65537,
+      "phase": 1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 65537,
+      "phase": 1.25,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 65537,
+      "phase": 1.25,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 65537,
+      "phase": 1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 65537,
+      "phase": -1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 65537,
+      "phase": -1.25,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 65537,
+      "phase": -1.25,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 65537,
+      "phase": -1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 65537,
+      "phase": 128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 65537,
+      "phase": 128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 65537,
+      "phase": 128,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 65537,
+      "phase": 128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 65537,
+      "phase": -128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 65537,
+      "phase": -128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 65537,
+      "phase": -128,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 65537,
+      "phase": -128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 16777217,
+      "phase": 0,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 16777217,
+      "phase": 0,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 16777217,
+      "phase": 0,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 16777217,
+      "phase": 0,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 16777217,
+      "phase": 0.100000001,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 16777217,
+      "phase": 0.100000001,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 16777217,
+      "phase": 0.100000001,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 16777217,
+      "phase": 0.100000001,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 16777217,
+      "phase": 0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 16777217,
+      "phase": 0.5,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 16777217,
+      "phase": 0.5,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 16777217,
+      "phase": 0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 16777217,
+      "phase": -0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 16777217,
+      "phase": -0.5,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": 16777217,
+      "phase": -0.5,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 16777217,
+      "phase": -0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 16777217,
+      "phase": 1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 16777217,
+      "phase": 1.25,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 16777217,
+      "phase": 1.25,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 16777217,
+      "phase": 1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 16777217,
+      "phase": -1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 16777217,
+      "phase": -1.25,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 16777217,
+      "phase": -1.25,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 16777217,
+      "phase": -1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 16777217,
+      "phase": 128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 16777217,
+      "phase": 128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 16777217,
+      "phase": 128,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 16777217,
+      "phase": 128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 16777217,
+      "phase": -128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 16777217,
+      "phase": -128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 16777217,
+      "phase": -128,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 16777217,
+      "phase": -128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 33554431,
+      "phase": 0,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 33554431,
+      "phase": 0,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 33554431,
+      "phase": 0,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 33554431,
+      "phase": 0,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 33554431,
+      "phase": 0.100000001,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 33554431,
+      "phase": 0.100000001,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 33554431,
+      "phase": 0.100000001,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 33554431,
+      "phase": 0.100000001,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 33554431,
+      "phase": 0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 33554431,
+      "phase": 0.5,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 33554431,
+      "phase": 0.5,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 33554431,
+      "phase": 0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 33554431,
+      "phase": -0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 33554431,
+      "phase": -0.5,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 33554431,
+      "phase": -0.5,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 33554431,
+      "phase": -0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 33554431,
+      "phase": 1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 33554431,
+      "phase": 1.25,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": 33554431,
+      "phase": 1.25,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 33554431,
+      "phase": 1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 33554431,
+      "phase": -1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 33554431,
+      "phase": -1.25,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 33554431,
+      "phase": -1.25,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 33554431,
+      "phase": -1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 33554431,
+      "phase": 128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 33554431,
+      "phase": 128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 33554431,
+      "phase": 128,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 33554431,
+      "phase": 128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 33554431,
+      "phase": -128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 33554431,
+      "phase": -128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 33554431,
+      "phase": -128,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 33554431,
+      "phase": -128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 2147483135,
+      "phase": 0,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 2147483135,
+      "phase": 0,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 2147483135,
+      "phase": 0,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 2147483135,
+      "phase": 0,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 2147483135,
+      "phase": 0.100000001,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 2147483135,
+      "phase": 0.100000001,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 2147483135,
+      "phase": 0.100000001,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 2147483135,
+      "phase": 0.100000001,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 2147483135,
+      "phase": 0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 2147483135,
+      "phase": 0.5,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 2147483135,
+      "phase": 0.5,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 2147483135,
+      "phase": 0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 2147483135,
+      "phase": -0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 2147483135,
+      "phase": -0.5,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 2147483135,
+      "phase": -0.5,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": 2147483135,
+      "phase": -0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 2147483135,
+      "phase": 1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 2147483135,
+      "phase": 1.25,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": 2147483135,
+      "phase": 1.25,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 2147483135,
+      "phase": 1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 2147483135,
+      "phase": -1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 2147483135,
+      "phase": -1.25,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 2147483135,
+      "phase": -1.25,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 2147483135,
+      "phase": -1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 2147483135,
+      "phase": 128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 2147483135,
+      "phase": 128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 2147483135,
+      "phase": 128,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 2147483135,
+      "phase": 128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": 2147483135,
+      "phase": -128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": 2147483135,
+      "phase": -128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": 2147483135,
+      "phase": -128,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": 2147483135,
+      "phase": -128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -1,
+      "phase": 0,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -1,
+      "phase": 0,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -1,
+      "phase": 0,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": -1,
+      "phase": 0,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -1,
+      "phase": 0.100000001,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -1,
+      "phase": 0.100000001,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": -1,
+      "phase": 0.100000001,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": -1,
+      "phase": 0.100000001,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -1,
+      "phase": 0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -1,
+      "phase": 0.5,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": -1,
+      "phase": 0.5,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": -1,
+      "phase": 0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -1,
+      "phase": -0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -1,
+      "phase": -0.5,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -1,
+      "phase": -0.5,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": -1,
+      "phase": -0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -1,
+      "phase": 1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -1,
+      "phase": 1.25,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": -1,
+      "phase": 1.25,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": -1,
+      "phase": 1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -1,
+      "phase": -1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -1,
+      "phase": -1.25,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -1,
+      "phase": -1.25,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": -1,
+      "phase": -1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -1,
+      "phase": 128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -1,
+      "phase": 128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -1,
+      "phase": 128,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": -1,
+      "phase": 128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -1,
+      "phase": -128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -1,
+      "phase": -128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -1,
+      "phase": -128,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": -1,
+      "phase": -128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -2,
+      "phase": 0,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -2,
+      "phase": 0,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -2,
+      "phase": 0,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": -2,
+      "phase": 0,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -2,
+      "phase": 0.100000001,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -2,
+      "phase": 0.100000001,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -2,
+      "phase": 0.100000001,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": -2,
+      "phase": 0.100000001,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -2,
+      "phase": 0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -2,
+      "phase": 0.5,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -2,
+      "phase": 0.5,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": -2,
+      "phase": 0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -2,
+      "phase": -0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -2,
+      "phase": -0.5,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -2,
+      "phase": -0.5,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": -2,
+      "phase": -0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -2,
+      "phase": 1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -2,
+      "phase": 1.25,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": -2,
+      "phase": 1.25,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": -2,
+      "phase": 1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -2,
+      "phase": -1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -2,
+      "phase": -1.25,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -2,
+      "phase": -1.25,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": -2,
+      "phase": -1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -2,
+      "phase": 128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -2,
+      "phase": 128,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": -2,
+      "phase": 128,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": -2,
+      "phase": 128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -2,
+      "phase": -128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -2,
+      "phase": -128,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": -2,
+      "phase": -128,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": -2,
+      "phase": -128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -255,
+      "phase": 0,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -255,
+      "phase": 0,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -255,
+      "phase": 0,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": -255,
+      "phase": 0,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -255,
+      "phase": 0.100000001,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -255,
+      "phase": 0.100000001,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -255,
+      "phase": 0.100000001,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": -255,
+      "phase": 0.100000001,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -255,
+      "phase": 0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -255,
+      "phase": 0.5,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -255,
+      "phase": 0.5,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": -255,
+      "phase": 0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -255,
+      "phase": -0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -255,
+      "phase": -0.5,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -255,
+      "phase": -0.5,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": -255,
+      "phase": -0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -255,
+      "phase": 1.25,
+      "threshold": 0,
+      "value": 0.75
+    },
+    {
+      "time": -255,
+      "phase": 1.25,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": -255,
+      "phase": 1.25,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": -255,
+      "phase": 1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -255,
+      "phase": -1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -255,
+      "phase": -1.25,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": -255,
+      "phase": -1.25,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": -255,
+      "phase": -1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -255,
+      "phase": 128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -255,
+      "phase": 128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -255,
+      "phase": 128,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": -255,
+      "phase": 128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -255,
+      "phase": -128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -255,
+      "phase": -128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -255,
+      "phase": -128,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": -255,
+      "phase": -128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -256,
+      "phase": 0,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -256,
+      "phase": 0,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": -256,
+      "phase": 0,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": -256,
+      "phase": 0,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -256,
+      "phase": 0.100000001,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -256,
+      "phase": 0.100000001,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -256,
+      "phase": 0.100000001,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": -256,
+      "phase": 0.100000001,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -256,
+      "phase": 0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -256,
+      "phase": 0.5,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -256,
+      "phase": 0.5,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": -256,
+      "phase": 0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -256,
+      "phase": -0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -256,
+      "phase": -0.5,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": -256,
+      "phase": -0.5,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": -256,
+      "phase": -0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -256,
+      "phase": 1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -256,
+      "phase": 1.25,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -256,
+      "phase": 1.25,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": -256,
+      "phase": 1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -256,
+      "phase": -1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -256,
+      "phase": -1.25,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -256,
+      "phase": -1.25,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": -256,
+      "phase": -1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -256,
+      "phase": 128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -256,
+      "phase": 128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -256,
+      "phase": 128,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": -256,
+      "phase": 128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -256,
+      "phase": -128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -256,
+      "phase": -128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -256,
+      "phase": -128,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": -256,
+      "phase": -128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -16777217,
+      "phase": 0,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -16777217,
+      "phase": 0,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -16777217,
+      "phase": 0,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": -16777217,
+      "phase": 0,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -16777217,
+      "phase": 0.100000001,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -16777217,
+      "phase": 0.100000001,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": -16777217,
+      "phase": 0.100000001,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": -16777217,
+      "phase": 0.100000001,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -16777217,
+      "phase": 0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -16777217,
+      "phase": 0.5,
+      "threshold": 0.5,
+      "value": 0.75
+    },
+    {
+      "time": -16777217,
+      "phase": 0.5,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": -16777217,
+      "phase": 0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -16777217,
+      "phase": -0.5,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -16777217,
+      "phase": -0.5,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -16777217,
+      "phase": -0.5,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": -16777217,
+      "phase": -0.5,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -16777217,
+      "phase": 1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -16777217,
+      "phase": 1.25,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -16777217,
+      "phase": 1.25,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": -16777217,
+      "phase": 1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -16777217,
+      "phase": -1.25,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -16777217,
+      "phase": -1.25,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -16777217,
+      "phase": -1.25,
+      "threshold": 1,
+      "value": 0.125
+    },
+    {
+      "time": -16777217,
+      "phase": -1.25,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -16777217,
+      "phase": 128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -16777217,
+      "phase": 128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -16777217,
+      "phase": 128,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": -16777217,
+      "phase": 128,
+      "threshold": 2,
+      "value": 0.75
+    },
+    {
+      "time": -16777217,
+      "phase": -128,
+      "threshold": 0,
+      "value": 0.125
+    },
+    {
+      "time": -16777217,
+      "phase": -128,
+      "threshold": 0.5,
+      "value": 0.125
+    },
+    {
+      "time": -16777217,
+      "phase": -128,
+      "threshold": 1,
+      "value": 0.75
+    },
+    {
+      "time": -16777217,
+      "phase": -128,
+      "threshold": 2,
+      "value": 0.75
+    }
+  ],
+  "noiseTable": [
+    [
+      3209450393,
+      147
+    ],
+    [
+      3196761365,
+      41
+    ],
+    [
+      3197009181,
+      80
+    ],
+    [
+      3198760274,
+      143
+    ],
+    [
+      1054721468,
+      31
+    ],
+    [
+      1050950984,
+      51
+    ],
+    [
+      3198719313,
+      119
+    ],
+    [
+      1038193091,
+      33
+    ],
+    [
+      1019101564,
+      167
+    ],
+    [
+      3212284911,
+      20
+    ],
+    [
+      3196927258,
+      226
+    ],
+    [
+      3198727505,
+      18
+    ],
+    [
+      1050680640,
+      220
+    ],
+    [
+      1059211077,
+      94
+    ],
+    [
+      1040226561,
+      181
+    ],
+    [
+      1056818684,
+      179
+    ],
+    [
+      1044175226,
+      60
+    ],
+    [
+      3208269685,
+      48
+    ],
+    [
+      1025630532,
+      81
+    ],
+    [
+      3203755499,
+      200
+    ],
+    [
+      1040771346,
+      120
+    ],
+    [
+      1038102976,
+      197
+    ],
+    [
+      1048394234,
+      76
+    ],
+    [
+      1060808565,
+      31
+    ],
+    [
+      1058454317,
+      253
+    ],
+    [
+      1045399967,
+      34
+    ],
+    [
+      3211298769,
+      130
+    ],
+    [
+      1059650386,
+      81
+    ],
+    [
+      3204764426,
+      151
+    ],
+    [
+      1059274566,
+      220
+    ],
+    [
+      3198653775,
+      78
+    ],
+    [
+      3210042283,
+      160
+    ],
+    [
+      3211737054,
+      54
+    ],
+    [
+      3182768490,
+      17
+    ],
+    [
+      1050010924,
+      221
+    ],
+    [
+      3205738279,
+      243
+    ],
+    [
+      3155525932,
+      207
+    ],
+    [
+      1058067234,
+      102
+    ],
+    [
+      1041996087,
+      165
+    ],
+    [
+      3209756578,
+      241
+    ],
+    [
+      1058973501,
+      107
+    ],
+    [
+      3211689949,
+      67
+    ],
+    [
+      1050027308,
+      243
+    ],
+    [
+      3207989100,
+      65
+    ],
+    [
+      3201111450,
+      64
+    ],
+    [
+      1064478693,
+      21
+    ],
+    [
+      3192822173,
+      172
+    ],
+    [
+      3205702438,
+      226
+    ],
+    [
+      3198342470,
+      0
+    ],
+    [
+      3209905063,
+      191
+    ],
+    [
+      3208946569,
+      22
+    ],
+    [
+      3210635197,
+      176
+    ],
+    [
+      1061901207,
+      55
+    ],
+    [
+      3193014691,
+      44
+    ],
+    [
+      3207161683,
+      212
+    ],
+    [
+      1030103500,
+      251
+    ],
+    [
+      1052224879,
+      211
+    ],
+    [
+      1062236065,
+      239
+    ],
+    [
+      1065112569,
+      251
+    ],
+    [
+      3204985616,
+      68
+    ],
+    [
+      1063062458,
+      203
+    ],
+    [
+      1051149646,
+      32
+    ],
+    [
+      1052331379,
+      68
+    ],
+    [
+      3212660731,
+      30
+    ],
+    [
+      1060024157,
+      224
+    ],
+    [
+      3184013712,
+      59
+    ],
+    [
+      3205793577,
+      97
+    ],
+    [
+      1060519788,
+      37
+    ],
+    [
+      1041586475,
+      133
+    ],
+    [
+      3209195409,
+      55
+    ],
+    [
+      3202018742,
+      116
+    ],
+    [
+      1048033775,
+      35
+    ],
+    [
+      1063019449,
+      224
+    ],
+    [
+      3179401476,
+      171
+    ],
+    [
+      1059281735,
+      165
+    ],
+    [
+      3205788457,
+      69
+    ],
+    [
+      1049627936,
+      245
+    ],
+    [
+      1062818739,
+      36
+    ],
+    [
+      3212230638,
+      211
+    ],
+    [
+      3168321970,
+      126
+    ],
+    [
+      3203501539,
+      231
+    ],
+    [
+      1048365562,
+      136
+    ],
+    [
+      3208942473,
+      110
+    ],
+    [
+      1057710871,
+      0
+    ],
+    [
+      1055630807,
+      93
+    ],
+    [
+      3202381249,
+      173
+    ],
+    [
+      1054715323,
+      102
+    ],
+    [
+      1064484837,
+      217
+    ],
+    [
+      3150381456,
+      7
+    ],
+    [
+      1048226293,
+      253
+    ],
+    [
+      1057506064,
+      69
+    ],
+    [
+      3198371143,
+      182
+    ],
+    [
+      3198610766,
+      69
+    ],
+    [
+      3184095635,
+      74
+    ],
+    [
+      3207706467,
+      98
+    ],
+    [
+      1059954523,
+      184
+    ],
+    [
+      1056747001,
+      235
+    ],
+    [
+      3198612814,
+      180
+    ],
+    [
+      1062950839,
+      55
+    ],
+    [
+      3207453532,
+      117
+    ],
+    [
+      1064758254,
+      38
+    ],
+    [
+      1063215039,
+      191
+    ],
+    [
+      3207618401,
+      211
+    ],
+    [
+      3197900088,
+      23
+    ],
+    [
+      1054887361,
+      127
+    ],
+    [
+      1063008184,
+      120
+    ],
+    [
+      3195222502,
+      117
+    ],
+    [
+      3211174861,
+      145
+    ],
+    [
+      3198588237,
+      5
+    ],
+    [
+      1044191610,
+      198
+    ],
+    [
+      1055901152,
+      59
+    ],
+    [
+      3192662424,
+      9
+    ],
+    [
+      1059726164,
+      138
+    ],
+    [
+      1064703980,
+      212
+    ],
+    [
+      1050062125,
+      248
+    ],
+    [
+      1027252597,
+      70
+    ],
+    [
+      3197799733,
+      18
+    ],
+    [
+      1057060611,
+      164
+    ],
+    [
+      3205953326,
+      47
+    ],
+    [
+      1050766659,
+      91
+    ],
+    [
+      3198211394,
+      78
+    ],
+    [
+      1046362556,
+      181
+    ],
+    [
+      3208887175,
+      28
+    ],
+    [
+      1062580139,
+      89
+    ],
+    [
+      3196757269,
+      74
+    ],
+    [
+      3197394217,
+      211
+    ],
+    [
+      3199974776,
+      246
+    ],
+    [
+      1051247954,
+      51
+    ],
+    [
+      3178488296,
+      44
+    ],
+    [
+      1045170584,
+      7
+    ],
+    [
+      3206838089,
+      62
+    ],
+    [
+      1024500001,
+      183
+    ],
+    [
+      3204005362,
+      25
+    ],
+    [
+      3210660798,
+      155
+    ],
+    [
+      3196167427,
+      49
+    ],
+    [
+      1064574952,
+      174
+    ],
+    [
+      1026466141,
+      62
+    ],
+    [
+      1031610874,
+      85
+    ],
+    [
+      3198729554,
+      99
+    ],
+    [
+      1052300658,
+      24
+    ],
+    [
+      1036292489,
+      242
+    ],
+    [
+      3192506772,
+      181
+    ],
+    [
+      3196951835,
+      113
+    ],
+    [
+      3202215356,
+      132
+    ],
+    [
+      3212292079,
+      253
+    ],
+    [
+      1061840789,
+      111
+    ],
+    [
+      3198672208,
+      212
+    ],
+    [
+      1064005591,
+      151
+    ],
+    [
+      1033376048,
+      251
+    ],
+    [
+      1060748147,
+      235
+    ],
+    [
+      3210334132,
+      220
+    ],
+    [
+      1032483093,
+      162
+    ],
+    [
+      1059077952,
+      224
+    ],
+    [
+      3205226264,
+      2
+    ],
+    [
+      3201123739,
+      191
+    ],
+    [
+      3205057299,
+      95
+    ],
+    [
+      3189643580,
+      162
+    ],
+    [
+      3211158477,
+      184
+    ],
+    [
+      3204894478,
+      208
+    ],
+    [
+      3210737600,
+      208
+    ],
+    [
+      3205040914,
+      248
+    ],
+    [
+      3205273369,
+      59
+    ],
+    [
+      1059917658,
+      212
+    ],
+    [
+      1059319624,
+      61
+    ],
+    [
+      3188787490,
+      67
+    ],
+    [
+      1058414380,
+      228
+    ],
+    [
+      1048864009,
+      123
+    ],
+    [
+      1054524854,
+      78
+    ],
+    [
+      3206695749,
+      146
+    ],
+    [
+      1061396359,
+      107
+    ],
+    [
+      3206699845,
+      235
+    ],
+    [
+      1047972334,
+      74
+    ],
+    [
+      1063030713,
+      198
+    ],
+    [
+      3202729420,
+      46
+    ],
+    [
+      3205612324,
+      130
+    ],
+    [
+      1064206301,
+      116
+    ],
+    [
+      3201988021,
+      217
+    ],
+    [
+      1045731753,
+      161
+    ],
+    [
+      3200433542,
+      159
+    ],
+    [
+      3205255961,
+      134
+    ],
+    [
+      1042204990,
+      65
+    ],
+    [
+      3207494493,
+      221
+    ],
+    [
+      3203489251,
+      158
+    ],
+    [
+      3210904517,
+      82
+    ],
+    [
+      3212743677,
+      116
+    ],
+    [
+      3198500170,
+      77
+    ],
+    [
+      3210703807,
+      237
+    ],
+    [
+      3211101131,
+      123
+    ],
+    [
+      3190053193,
+      147
+    ],
+    [
+      1054240173,
+      114
+    ],
+    [
+      3174605170,
+      62
+    ],
+    [
+      3209066381,
+      83
+    ],
+    [
+      1057090308,
+      40
+    ],
+    [
+      1053654427,
+      221
+    ],
+    [
+      3202231740,
+      218
+    ],
+    [
+      3181482307,
+      217
+    ],
+    [
+      3211723742,
+      13
+    ],
+    [
+      1062671278,
+      54
+    ],
+    [
+      3209058189,
+      33
+    ],
+    [
+      3203562981,
+      215
+    ],
+    [
+      3211164621,
+      115
+    ],
+    [
+      3209653151,
+      102
+    ],
+    [
+      1062879156,
+      16
+    ],
+    [
+      1061567372,
+      28
+    ],
+    [
+      1049847079,
+      7
+    ],
+    [
+      1049492764,
+      232
+    ],
+    [
+      3209168784,
+      254
+    ],
+    [
+      1057902365,
+      217
+    ],
+    [
+      1047136724,
+      51
+    ],
+    [
+      1060065119,
+      55
+    ],
+    [
+      3206281016,
+      119
+    ],
+    [
+      1064135643,
+      37
+    ],
+    [
+      3204216313,
+      136
+    ],
+    [
+      1053015431,
+      85
+    ],
+    [
+      3205668645,
+      36
+    ],
+    [
+      3206656835,
+      141
+    ],
+    [
+      1015267591,
+      64
+    ],
+    [
+      3200736655,
+      129
+    ],
+    [
+      1051043147,
+      229
+    ],
+    [
+      1049890088,
+      223
+    ],
+    [
+      1057423118,
+      227
+    ],
+    [
+      3212601337,
+      251
+    ],
+    [
+      3209368470,
+      13
+    ],
+    [
+      3193461169,
+      252
+    ],
+    [
+      3204101621,
+      17
+    ],
+    [
+      3212444660,
+      248
+    ],
+    [
+      3193936319,
+      173
+    ],
+    [
+      3198987609,
+      222
+    ],
+    [
+      3209419672,
+      91
+    ],
+    [
+      1056581108,
+      170
+    ],
+    [
+      1020477862,
+      16
+    ],
+    [
+      1059668818,
+      173
+    ],
+    [
+      1064262623,
+      87
+    ],
+    [
+      1057995551,
+      111
+    ],
+    [
+      3210581947,
+      75
+    ],
+    [
+      1065287678,
+      0
+    ],
+    [
+      3198031164,
+      185
+    ],
+    [
+      3190774111,
+      32
+    ],
+    [
+      3197185314,
+      245
+    ],
+    [
+      1036767640,
+      57
+    ],
+    [
+      3178766832,
+      160
+    ],
+    [
+      1060235108,
+      121
+    ],
+    [
+      3208822662,
+      252
+    ],
+    [
+      3200038265,
+      6
+    ],
+    [
+      1060257636,
+      247
+    ],
+    [
+      3212590072,
+      172
+    ],
+    [
+      1060727667,
+      153
+    ],
+    [
+      3196488973,
+      246
+    ],
+    [
+      3189418293,
+      249
+    ],
+    [
+      1064954868,
+      10
+    ],
+    [
+      1060186978,
+      101
+    ],
+    [
+      1057900317,
+      63
+    ],
+    [
+      3196882201,
+      218
+    ],
+    [
+      3208917896,
+      207
+    ],
+    [
+      1052194158,
+      141
+    ],
+    [
+      1064970228,
+      145
+    ]
+  ],
+  "noiseInitialization": "Both native engines seed at 1001, produce 15-bit values with state = state*214013 + 2531011 modulo 2^32, and use float scale words 0x38000100 and 0x3bff01fe. SP probe replaces only its CRT thread-storage lookup with owned storage."
+}

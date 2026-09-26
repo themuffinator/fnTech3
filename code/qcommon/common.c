@@ -57,6 +57,7 @@ const int demo_protocols[] = {
 	NETCHAN_RTCW_MP_PROTOCOL_VERSION,
 	NETCHAN_WOLFET_PROTOCOL_VERSION,
 	NETCHAN_MOHAA_PROTOCOL_VERSION,
+	NETCHAN_IOEF_PROTOCOL_VERSION,
 	0
 };
 
@@ -4244,6 +4245,16 @@ static void Com_InitGameProfile( void ) {
 			Com_GameDetectionStatusName( detection.status ),
 			Com_GameDetectionEvidenceName( detection.evidence ),
 			selectable[0] ? selectable : "a profile this build enables" );
+	}
+
+	if ( detection.profile->id == COM_GAME_STVEF_SP ) {
+		char nativeModule[MAX_QPATH];
+		if ( !Com_GameManagerNativeModuleFilename( detection.profile, "qagame",
+			ARCH_STRING, DLL_EXT, 0, nativeModule, sizeof( nativeModule ) ) ) {
+			Com_Error( ERR_FATAL, "Elite Force single player requires Windows x86 and "
+				"the installation's efgamex86.dll and efuix86.dll. "
+				"Use +set com_gameProfile stvef-mp for Holomatch on this platform." );
+		}
 	}
 
 	if ( !Com_ActivateGameProfile( detection.profile->id ) ) {

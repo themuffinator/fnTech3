@@ -15,6 +15,7 @@ def client_source():
 #include "code/botlib/rtcw_navigation.h"
 #include <cstdarg>
 serverStatic_t svs{};
+int Com_GameIsSTVEFSP(){return profile.id==COM_GAME_STVEF_SP;}
 vm_t *gvm;
 static int thinks,thinkClient;
 intptr_t QDECL VM_Call(vm_t *vm,int nargs,int call,...){

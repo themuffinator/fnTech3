@@ -17,8 +17,10 @@ differently when every flag is clear:
 - RTCW SP (RTCW-SP msg.c 1790) has no count: a bit for each of its 76 fields
   (1823), then the array (1860), ammo (1937) and four clip bits (1952).
 - Elite Force Holomatch flags its 48 fields and four arrays one bit each
-  (stvoyHM.exe; compat/stvef_message_codec.hpp). Elite Force SP, which only
-  fnTech3 reads, sends a word count. Alice flags its 49 fields and six arrays
+  (stvoyHM.exe; compat/stvef_message_codec.hpp). ioEF's and Lilium Voyager's
+  protocol 26 reads Quake III's count and array bit over its own fields
+  (compat/stvef_ioef_codec.hpp). Elite Force SP, which only fnTech3 reads,
+  sends a word count. Alice flags its 49 fields and six arrays
   (alice.exe 0x004468e0), and its snapshot ends with a sound block.
 
 Until 2026-09-24 every profile framed in Huffman-coded bits was sent Quake
@@ -70,6 +72,7 @@ EMPTY = {
     'NETCHAN_WIRE_RTCW_MP': RTCW_MP_ET,
     'NETCHAN_WIRE_WOLFET': RTCW_MP_ET,
     'NETCHAN_WIRE_STVEF_HM': HOLOMATCH,
+    'NETCHAN_WIRE_IOEF': QUAKE3,
     'NETCHAN_WIRE_STVEF_SP': STVEF_SP,
     'NETCHAN_WIRE_ALICE': ALICE,
     'NETCHAN_WIRE_Q3_IHV': None,
@@ -113,6 +116,10 @@ struct Drop {};
 void QDECL Com_Error( errorParm_t, const char *, ... ) { throw Drop{}; }
 void QDECL Com_Printf( const char *, ... ) {}
 void QDECL Com_DPrintf( const char *, ... ) {}
+// Elite Force single player's server runs on its own wire, and only there
+// does its snapshot carry the command number (sv_snapshot.cpp).
+static netchanWireProfile_t activeProfile;
+int Com_GameIsSTVEFSP( void ) { return activeProfile == NETCHAN_WIRE_STVEF_SP; }
 '''
 
 # Present only while the engine refuses a layout through this helper.
@@ -167,6 +174,7 @@ static std::unique_ptr<client_t> Client( const Case &c, clientState_t state ) {
 	std::unique_ptr<client_t> client( new client_t() );
 	client->state = state;
 	client->netchan.wireProfile = c.profile;
+	activeProfile = c.profile;
 	client->netchan.outgoingSequence = 40;
 	client->deltaMessage = 40;
 	client->lastClientCommand = 7;
@@ -203,6 +211,9 @@ static msg_t Header( const Case &c, const client_t &client, const msg_t &out, bo
 	if ( c.profile == NETCHAN_WIRE_ALICE && MSG_ReadByte( &in ) != std::clamp( sv.timeResidual, 0, 255 ) )
 		Fail( c, "time residual" );
 	if ( MSG_ReadByte( &in ) != 0 ) Fail( c, "delta" );
+	// Single player's command number follows the delta (cl_parse.cpp).
+	if ( c.profile == NETCHAN_WIRE_STVEF_SP && MSG_ReadLong( &in ) != client.stvefSpCommandNumber )
+		Fail( c, "command number" );
 	const int flags = MSG_ReadByte( &in );
 	if ( ( ( flags & SNAPFLAG_NOT_ACTIVE ) != 0 ) == active ) Fail( c, "snapshot flags" );
 	if ( MSG_ReadByte( &in ) != 0 ) Fail( c, "area bytes" );

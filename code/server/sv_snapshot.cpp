@@ -257,6 +257,10 @@ static void SV_WriteSnapshotToClient( const client_t *client, msg_t *msg ) {
 
 	// what we are delta'ing from
 	MSG_WriteByte( msg, lastframe );
+	if ( Com_GameIsSTVEFSP() ) {
+		// The game can clamp/rewind command times; publish the actual ordinal.
+		MSG_WriteLong( msg, client->stvefSpCommandNumber );
+	}
 
 	snapFlags = svs.snapFlagServerBit;
 	if ( client->rateDelayed ) {
@@ -264,6 +268,9 @@ static void SV_WriteSnapshotToClient( const client_t *client, msg_t *msg ) {
 	}
 	if ( client->state != CS_ACTIVE ) {
 		snapFlags |= SNAPFLAG_NOT_ACTIVE;
+	}
+	if ( Com_GameIsSTVEFSP() && client->stvefSpDroppedCommands ) {
+		snapFlags |= SNAPFLAG_STVEF_SP_DROPPED_COMMANDS;
 	}
 
 	MSG_WriteByte (msg, snapFlags);
@@ -1279,10 +1286,14 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 
 	frame->frameNum = svs.currFrame->frameNum;
 
-	// never send client's own entity, because it can
-	// be regenerated from the playerstate
-	svEnt = &sv.svEntities[ clientNum ];
-	svEnt->snapshotCounter = sv.snapshotCounter;
+	// SP's cgame visits the player through the packet-entity list to update
+	// animation state shared with its game half. Retail SP includes that
+	// entity when visible (stvoy.exe 0x428330, visibility walk 0x4285a0).
+	// Other profiles regenerate it from playerstate without sending it.
+	if ( !Com_GameIsSTVEFSP() ) {
+		svEnt = &sv.svEntities[ clientNum ];
+		svEnt->snapshotCounter = sv.snapshotCounter;
+	}
 
 	// find the client's viewpoint
 	SV_SnapshotViewOrigin( client, playerState, org );
@@ -1386,6 +1397,9 @@ void SV_SendClientSnapshot( client_t *client ) {
 	// send over all the relevant entityState_t
 	// and the playerState_t
 	SV_WriteSnapshotToClient( client, &msg );
+	if ( Com_GameIsSTVEFSP() ) {
+		client->stvefSpDroppedCommands = qfalse;
+	}
 
 	// Alice's queued sounds and print went with this snapshot (retail clears
 	// the list at 0x00457730 once it is sent).
@@ -1432,10 +1446,14 @@ void SV_SendClientMessages( void )
 		//if ( !client.gamestateAcked )
 		//	continue;		// waiting usercmd/downloading
 
-		// 1. Local clients get snapshots every server frame
-		// 2. Remote clients get snapshots depending from rate and requested number of updates
-
-		if ( svs.time - client.lastSnapshotTime < client.snapshotMsec )
+		// Retail Elite Force SP sends a local snapshot after each new
+		// simulation tick (0x4287e0, loopback deadline at 0x427f16).
+		// SV_Frame gates these calls on tick progress. Keep the real-time
+		// schedule for other profiles and remote clients, and preserve the
+		// queue/rate guards below so pending deltas cannot be overwritten.
+		const bool stvefLocal = Com_GameIsSTVEFSP()
+			&& client.netchan.remoteAddress.type == NA_LOOPBACK;
+		if ( !stvefLocal && svs.time - client.lastSnapshotTime < client.snapshotMsec )
 			continue;		// It's not time yet
 
 		if ( client.netchan.unsentFragments || client.netchan_start_queue )

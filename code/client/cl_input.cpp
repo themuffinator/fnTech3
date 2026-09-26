@@ -2112,6 +2112,10 @@ void CL_WritePacket( int repeat ) {
 		}
 
 		// write the command count
+		if ( Com_GameIsSTVEFSP() ) {
+			// SP acknowledges ordinals, including commands with equal times.
+			MSG_WriteLong( &buf, cl.cmdNumber );
+		}
 		MSG_WriteByte( &buf, count );
 
 		// Medal of Honor's move carries the player's eyes first.

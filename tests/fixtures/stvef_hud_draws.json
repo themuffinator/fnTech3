@@ -1,0 +1,1223 @@
+{
+  "schema": 1,
+  "source": {
+    "engine": "fntech3 cl_hudDump",
+    "scope": "Deduplicated HUD draw groups the retail Elite Force cgame modules issued in owned runtime sessions, in 640x480 virtual coordinates. Engine-side records only; no proprietary module code is included."
+  },
+  "profiles": {
+    "stvef-sp": {
+      "groups": [
+        {
+          "shader": "levelShotDetail",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 0.0,
+          "y": 0.0,
+          "w": 640.0,
+          "h": 480.0
+        },
+        {
+          "shader": "gfx/2d/chars_big",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 15.0,
+          "y": 20.0,
+          "w": 101.0,
+          "h": 24.0
+        },
+        {
+          "shader": "menu/loading/smpiece3.tga",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 27.0,
+          "y": 244.0,
+          "w": 128.0,
+          "h": 64.0
+        },
+        {
+          "shader": "menu/loading/smpiece4.tga",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 109.0,
+          "y": 244.0,
+          "w": 128.0,
+          "h": 128.0
+        },
+        {
+          "shader": "gfx/2d/chars_tiny",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 96.0,
+          "y": 249.0,
+          "w": 24.0,
+          "h": 10.0
+        },
+        {
+          "shader": "gfx/2d/chars_tiny",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 34.0,
+          "y": 264.0,
+          "w": 4.0,
+          "h": 10.0
+        },
+        {
+          "shader": "menu/loading/smpiece8.tga",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 88.0,
+          "y": 264.0,
+          "w": 128.0,
+          "h": 64.0
+        },
+        {
+          "shader": "menu/loading/smpiece7.tga",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 48.0,
+          "y": 268.0,
+          "w": 64.0,
+          "h": 128.0
+        },
+        {
+          "shader": "gfx/2d/chars_tiny",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 133.0,
+          "y": 280.0,
+          "w": 3.0,
+          "h": 10.0
+        },
+        {
+          "shader": "menu/loading/smpiece2.tga",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 10.0,
+          "y": 281.0,
+          "w": 64.0,
+          "h": 64.0
+        },
+        {
+          "shader": "menu/loading/quarter.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 71.0,
+          "y": 287.0,
+          "w": 32.0,
+          "h": 32.0
+        },
+        {
+          "shader": "menu/loading/quarter.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 145.0,
+          "y": 287.0,
+          "w": -32.0,
+          "h": 32.0
+        },
+        {
+          "shader": "menu/loading/arrowpiece.tga",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 72.0,
+          "y": 288.0,
+          "w": 128.0,
+          "h": 128.0
+        },
+        {
+          "shader": "gfx/2d/chars_tiny",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 97.0,
+          "y": 309.0,
+          "w": 22.0,
+          "h": 32.0
+        },
+        {
+          "shader": "menu/loading/smpiece9.tga",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 122.0,
+          "y": 310.0,
+          "w": 64.0,
+          "h": 128.0
+        },
+        {
+          "shader": "menu/loading/smpiece5.tga",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 147.0,
+          "y": 325.0,
+          "w": 64.0,
+          "h": 64.0
+        },
+        {
+          "shader": "gfx/2d/chars_tiny",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 175.0,
+          "y": 327.0,
+          "w": 8.0,
+          "h": 10.0
+        },
+        {
+          "shader": "gfx/2d/chars_tiny",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 13.0,
+          "y": 334.0,
+          "w": 7.0,
+          "h": 10.0
+        },
+        {
+          "shader": "menu/loading/smpiece6.tga",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 55.0,
+          "y": 343.0,
+          "w": 128.0,
+          "h": 64.0
+        },
+        {
+          "shader": "menu/loading/smpiece1.tga",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 28.0,
+          "y": 346.0,
+          "w": 128.0,
+          "h": 64.0
+        },
+        {
+          "shader": "menu/loading/quarter.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 71.0,
+          "y": 361.0,
+          "w": 32.0,
+          "h": -32.0
+        },
+        {
+          "shader": "menu/loading/quarter.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 145.0,
+          "y": 361.0,
+          "w": -32.0,
+          "h": -32.0
+        },
+        {
+          "shader": "gfx/2d/chars_tiny",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 111.0,
+          "y": 393.0,
+          "w": 8.0,
+          "h": 10.0
+        },
+        {
+          "shader": "gfx/2d/chars_tiny",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 31.0,
+          "y": 394.0,
+          "w": 16.0,
+          "h": 10.0
+        },
+        {
+          "shader": "gfx/2d/numbers/one",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 25.0,
+          "y": 425.0,
+          "w": 16.0,
+          "h": 32.0
+        },
+        {
+          "shader": "gfx/2d/numbers/zero",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 36.0,
+          "y": 425.0,
+          "w": 27.0,
+          "h": 32.0
+        },
+        {
+          "shader": "gfx/interface/healthcap1",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 5.0,
+          "y": 429.0,
+          "w": 32.0,
+          "h": 64.0
+        },
+        {
+          "shader": "gfx/interface/ammobar",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 64.0,
+          "y": 429.0,
+          "w": 6.0,
+          "h": 41.0
+        },
+        {
+          "shader": "gfx/interface/ammobar",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 72.0,
+          "y": 429.0,
+          "w": 73.0,
+          "h": 41.0
+        },
+        {
+          "shader": "gfx/interface/healthcap2",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 74.0,
+          "y": 429.0,
+          "w": 62.0,
+          "h": 32.0
+        },
+        {
+          "shader": "gfx/interface/healthcap2",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 122.0,
+          "y": 429.0,
+          "w": 41.0,
+          "h": 32.0
+        },
+        {
+          "shader": "gfx/interface/ammobar",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 145.0,
+          "y": 429.0,
+          "w": 0.0,
+          "h": 41.0
+        },
+        {
+          "shader": "gfx/interface/armorcap1",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 20.0,
+          "y": 458.0,
+          "w": 32.0,
+          "h": 16.0
+        },
+        {
+          "shader": "gfx/2d/numbers/t_one",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 46.0,
+          "y": 458.0,
+          "w": 16.0,
+          "h": 16.0
+        },
+        {
+          "shader": "gfx/2d/numbers/t_zero",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 52.0,
+          "y": 458.0,
+          "w": 22.0,
+          "h": 16.0
+        },
+        {
+          "shader": "gfx/interface/armorcap2",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 74.0,
+          "y": 458.0,
+          "w": 62.0,
+          "h": 16.0
+        },
+        {
+          "shader": "gfx/interface/armorcap2",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 122.0,
+          "y": 458.0,
+          "w": 41.0,
+          "h": 16.0
+        }
+      ]
+    },
+    "stvef-mp": {
+      "groups": [
+        {
+          "shader": "white",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 0.0,
+          "y": 0.0,
+          "w": 640.0,
+          "h": 480.0
+        },
+        {
+          "shader": "gfx/2d/chars_big",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 10.0,
+          "y": 10.0,
+          "w": 203.0,
+          "h": 24.0
+        },
+        {
+          "shader": "menu/common/halfroundr_22.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 595.0,
+          "y": 11.0,
+          "w": 32.0,
+          "h": 32.0
+        },
+        {
+          "shader": "levelshots/hm_borg1.tga",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 13.0,
+          "y": 62.0,
+          "w": 256.0,
+          "h": 192.0
+        },
+        {
+          "shader": "menu/common/corner_ll_12_18.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 607.0,
+          "y": 84.0,
+          "w": -32.0,
+          "h": -32.0
+        },
+        {
+          "shader": "gfx/2d/chars_medium.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 288.0,
+          "y": 107.0,
+          "w": 94.0,
+          "h": 34.0
+        },
+        {
+          "shader": "gfx/2d/chars_big",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 259.0,
+          "y": 112.0,
+          "w": 123.0,
+          "h": 26.0
+        },
+        {
+          "shader": "gfx/2d/crosshairb",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 308.0,
+          "y": 228.0,
+          "w": 24.0,
+          "h": 24.0
+        },
+        {
+          "shader": "menu/common/corner_ll_12_18.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 607.0,
+          "y": 232.0,
+          "w": -32.0,
+          "h": 32.0
+        },
+        {
+          "shader": "menu/loading/smpiece3.tga",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 27.0,
+          "y": 309.0,
+          "w": 128.0,
+          "h": 64.0
+        },
+        {
+          "shader": "menu/loading/smpiece4.tga",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 109.0,
+          "y": 309.0,
+          "w": 128.0,
+          "h": 128.0
+        },
+        {
+          "shader": "menu/loading/trimupper.tga",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 140.0,
+          "y": 309.0,
+          "w": 64.0,
+          "h": 16.0
+        },
+        {
+          "shader": "gfx/2d/chars_tiny",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 96.0,
+          "y": 314.0,
+          "w": 24.0,
+          "h": 10.0
+        },
+        {
+          "shader": "menu/common/corner_lr_8_16.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 590.0,
+          "y": 320.0,
+          "w": 32.0,
+          "h": -16.0
+        },
+        {
+          "shader": "menu/common/circle.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 212.0,
+          "y": 323.0,
+          "w": 16.0,
+          "h": 60.0
+        },
+        {
+          "shader": "menu/common/circle.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 212.0,
+          "y": 323.0,
+          "w": 16.0,
+          "h": 82.0
+        },
+        {
+          "shader": "menu/objectives/circle_out.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 212.0,
+          "y": 323.0,
+          "w": 16.0,
+          "h": 60.0
+        },
+        {
+          "shader": "menu/objectives/circle_out.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 212.0,
+          "y": 323.0,
+          "w": 16.0,
+          "h": 82.0
+        },
+        {
+          "shader": "gfx/2d/chars_medium.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 232.0,
+          "y": 323.0,
+          "w": 239.0,
+          "h": 60.0
+        },
+        {
+          "shader": "gfx/2d/chars_medium.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 232.0,
+          "y": 323.0,
+          "w": 239.0,
+          "h": 82.0
+        },
+        {
+          "shader": "gfx/2d/chars_tiny",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 34.0,
+          "y": 329.0,
+          "w": 4.0,
+          "h": 10.0
+        },
+        {
+          "shader": "menu/loading/smpiece8.tga",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 88.0,
+          "y": 329.0,
+          "w": 128.0,
+          "h": 64.0
+        },
+        {
+          "shader": "menu/loading/smpiece7.tga",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 48.0,
+          "y": 333.0,
+          "w": 64.0,
+          "h": 128.0
+        },
+        {
+          "shader": "gfx/interface/weapon_box2",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 500.0,
+          "y": 342.0,
+          "w": 64.0,
+          "h": 64.0
+        },
+        {
+          "shader": "icons/dm_a_arc_sm",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 500.0,
+          "y": 342.0,
+          "w": 64.0,
+          "h": 64.0
+        },
+        {
+          "shader": "icons/dm_armor_sm",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 500.0,
+          "y": 342.0,
+          "w": 64.0,
+          "h": 64.0
+        },
+        {
+          "shader": "icons/dm_health2_sm",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 500.0,
+          "y": 342.0,
+          "w": 64.0,
+          "h": 64.0
+        },
+        {
+          "shader": "icons/dm_health_sm",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 500.0,
+          "y": 342.0,
+          "w": 64.0,
+          "h": 64.0
+        },
+        {
+          "shader": "icons/dm_imod",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 500.0,
+          "y": 342.0,
+          "w": 64.0,
+          "h": 64.0
+        },
+        {
+          "shader": "icons/dm_phaser_sm",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 500.0,
+          "y": 342.0,
+          "w": 64.0,
+          "h": 64.0
+        },
+        {
+          "shader": "icons/dm_scav",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 500.0,
+          "y": 342.0,
+          "w": 64.0,
+          "h": 64.0
+        },
+        {
+          "shader": "icons/dm_tetrion_sm",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 500.0,
+          "y": 342.0,
+          "w": 64.0,
+          "h": 64.0
+        },
+        {
+          "shader": "icons/w_icon_dreadnought",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 500.0,
+          "y": 342.0,
+          "w": 64.0,
+          "h": 64.0
+        },
+        {
+          "shader": "icons/w_icon_imod",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 500.0,
+          "y": 342.0,
+          "w": 64.0,
+          "h": 64.0
+        },
+        {
+          "shader": "icons/w_icon_phaser",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 500.0,
+          "y": 342.0,
+          "w": 64.0,
+          "h": 64.0
+        },
+        {
+          "shader": "icons/w_icon_rifle",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 500.0,
+          "y": 342.0,
+          "w": 64.0,
+          "h": 64.0
+        },
+        {
+          "shader": "icons/w_icon_scav",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 500.0,
+          "y": 342.0,
+          "w": 64.0,
+          "h": 64.0
+        },
+        {
+          "shader": "icons/w_icon_tetrion",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 500.0,
+          "y": 342.0,
+          "w": 64.0,
+          "h": 64.0
+        },
+        {
+          "shader": "models/players2/munro/icon_red.jpg",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 500.0,
+          "y": 342.0,
+          "w": 64.0,
+          "h": 64.0
+        },
+        {
+          "shader": "gfx/2d/chars_tiny",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 133.0,
+          "y": 345.0,
+          "w": 3.0,
+          "h": 10.0
+        },
+        {
+          "shader": "menu/loading/smpiece2.tga",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 10.0,
+          "y": 346.0,
+          "w": 64.0,
+          "h": 64.0
+        },
+        {
+          "shader": "menu/loading/quarter.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 71.0,
+          "y": 352.0,
+          "w": 32.0,
+          "h": 32.0
+        },
+        {
+          "shader": "menu/loading/quarter.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 145.0,
+          "y": 352.0,
+          "w": -32.0,
+          "h": 32.0
+        },
+        {
+          "shader": "menu/loading/arrowpiece.tga",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 72.0,
+          "y": 353.0,
+          "w": 128.0,
+          "h": 128.0
+        },
+        {
+          "shader": "gfx/2d/chars_tiny",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 97.0,
+          "y": 374.0,
+          "w": 22.0,
+          "h": 32.0
+        },
+        {
+          "shader": "menu/loading/smpiece9.tga",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 122.0,
+          "y": 375.0,
+          "w": 64.0,
+          "h": 128.0
+        },
+        {
+          "shader": "gfx/2d/select",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 602.0,
+          "y": 389.0,
+          "w": 38.0,
+          "h": 24.0
+        },
+        {
+          "shader": "white",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 602.0,
+          "y": 389.0,
+          "w": 38.0,
+          "h": 24.0
+        },
+        {
+          "shader": "menu/loading/smpiece5.tga",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 147.0,
+          "y": 390.0,
+          "w": 64.0,
+          "h": 64.0
+        },
+        {
+          "shader": "gfx/2d/chars_tiny",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 175.0,
+          "y": 392.0,
+          "w": 8.0,
+          "h": 10.0
+        },
+        {
+          "shader": "gfx/2d/chars_medium.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 586.0,
+          "y": 393.0,
+          "w": 50.0,
+          "h": 16.0
+        },
+        {
+          "shader": "gfx/2d/chars_tiny",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 13.0,
+          "y": 399.0,
+          "w": 7.0,
+          "h": 10.0
+        },
+        {
+          "shader": "menu/loading/smpiece6.tga",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 55.0,
+          "y": 408.0,
+          "w": 128.0,
+          "h": 64.0
+        },
+        {
+          "shader": "gfx/2d/chars_medium.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 300.0,
+          "y": 410.0,
+          "w": 40.0,
+          "h": 16.0
+        },
+        {
+          "shader": "menu/loading/smpiece1.tga",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 28.0,
+          "y": 411.0,
+          "w": 128.0,
+          "h": 64.0
+        },
+        {
+          "shader": "gfx/2d/numbers/one",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 25.0,
+          "y": 425.0,
+          "w": 38.0,
+          "h": 32.0
+        },
+        {
+          "shader": "gfx/2d/numbers/two",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 36.0,
+          "y": 425.0,
+          "w": 27.0,
+          "h": 32.0
+        },
+        {
+          "shader": "gfx/2d/numbers/eight",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 47.0,
+          "y": 425.0,
+          "w": 16.0,
+          "h": 32.0
+        },
+        {
+          "shader": "gfx/2d/numbers/five",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 47.0,
+          "y": 425.0,
+          "w": 16.0,
+          "h": 32.0
+        },
+        {
+          "shader": "gfx/2d/numbers/four",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 47.0,
+          "y": 425.0,
+          "w": 16.0,
+          "h": 32.0
+        },
+        {
+          "shader": "gfx/2d/numbers/nine",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 47.0,
+          "y": 425.0,
+          "w": 16.0,
+          "h": 32.0
+        },
+        {
+          "shader": "gfx/2d/numbers/seven",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 47.0,
+          "y": 425.0,
+          "w": 16.0,
+          "h": 32.0
+        },
+        {
+          "shader": "gfx/2d/numbers/six",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 47.0,
+          "y": 425.0,
+          "w": 16.0,
+          "h": 32.0
+        },
+        {
+          "shader": "gfx/2d/numbers/three",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 47.0,
+          "y": 425.0,
+          "w": 16.0,
+          "h": 32.0
+        },
+        {
+          "shader": "gfx/2d/numbers/zero",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 47.0,
+          "y": 425.0,
+          "w": 16.0,
+          "h": 32.0
+        },
+        {
+          "shader": "gfx/2d/numbers/five",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 586.0,
+          "y": 425.0,
+          "w": 16.0,
+          "h": 32.0
+        },
+        {
+          "shader": "gfx/2d/numbers/zero",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 597.0,
+          "y": 425.0,
+          "w": 16.0,
+          "h": 32.0
+        },
+        {
+          "shader": "menu/loading/quarter.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 71.0,
+          "y": 426.0,
+          "w": 32.0,
+          "h": -32.0
+        },
+        {
+          "shader": "menu/loading/quarter.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 145.0,
+          "y": 426.0,
+          "w": -32.0,
+          "h": -32.0
+        },
+        {
+          "shader": "gfx/interface/cap4",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 328.0,
+          "y": 428.0,
+          "w": 16.0,
+          "h": 50.0
+        },
+        {
+          "shader": "gfx/2d/select",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 340.0,
+          "y": 428.0,
+          "w": 40.0,
+          "h": 40.0
+        },
+        {
+          "shader": "gfx/interface/weapon_box",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 340.0,
+          "y": 428.0,
+          "w": 38.0,
+          "h": 38.0
+        },
+        {
+          "shader": "gfx/interface/cap5",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 382.0,
+          "y": 428.0,
+          "w": 16.0,
+          "h": 50.0
+        },
+        {
+          "shader": "gfx/interface/healthcap1",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 5.0,
+          "y": 429.0,
+          "w": 32.0,
+          "h": 64.0
+        },
+        {
+          "shader": "gfx/interface/ammobar",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 64.0,
+          "y": 429.0,
+          "w": 26.0,
+          "h": 41.0
+        },
+        {
+          "shader": "gfx/interface/ammobar",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 72.0,
+          "y": 429.0,
+          "w": 73.0,
+          "h": 41.0
+        },
+        {
+          "shader": "gfx/interface/healthcap2",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 74.0,
+          "y": 429.0,
+          "w": 62.0,
+          "h": 32.0
+        },
+        {
+          "shader": "gfx/interface/healthcap2",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 122.0,
+          "y": 429.0,
+          "w": 41.0,
+          "h": 32.0
+        },
+        {
+          "shader": "gfx/interface/ammobar",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 145.0,
+          "y": 429.0,
+          "w": 0.0,
+          "h": 25.0
+        },
+        {
+          "shader": "gfx/interface/ammouppercap2",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 570.0,
+          "y": 429.0,
+          "w": 52.0,
+          "h": 32.0
+        },
+        {
+          "shader": "gfx/interface/ammouppercap1",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 613.0,
+          "y": 429.0,
+          "w": 32.0,
+          "h": 64.0
+        },
+        {
+          "shader": "icons/w_icon_phaser",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 344.0,
+          "y": 432.0,
+          "w": 32.0,
+          "h": 32.0
+        },
+        {
+          "shader": "gfx/2d/chars_medium.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 189.0,
+          "y": 442.0,
+          "w": 265.0,
+          "h": 18.0
+        },
+        {
+          "shader": "gfx/2d/chars_medium.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 247.0,
+          "y": 442.0,
+          "w": 149.0,
+          "h": 18.0
+        },
+        {
+          "shader": "gfx/interface/armorcap1",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 20.0,
+          "y": 458.0,
+          "w": 32.0,
+          "h": 16.0
+        },
+        {
+          "shader": "gfx/2d/numbers/t_two",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 52.0,
+          "y": 458.0,
+          "w": 16.0,
+          "h": 16.0
+        },
+        {
+          "shader": "gfx/2d/numbers/t_five",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 58.0,
+          "y": 458.0,
+          "w": 16.0,
+          "h": 16.0
+        },
+        {
+          "shader": "gfx/interface/armorcap2",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 74.0,
+          "y": 458.0,
+          "w": 62.0,
+          "h": 16.0
+        },
+        {
+          "shader": "gfx/2d/chars_tiny",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 111.0,
+          "y": 458.0,
+          "w": 8.0,
+          "h": 10.0
+        },
+        {
+          "shader": "gfx/interface/armorcap2",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 122.0,
+          "y": 458.0,
+          "w": 41.0,
+          "h": 16.0
+        },
+        {
+          "shader": "gfx/interface/ammolowercap2",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 570.0,
+          "y": 458.0,
+          "w": 52.0,
+          "h": 16.0
+        },
+        {
+          "shader": "gfx/interface/ammobar",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 578.0,
+          "y": 458.0,
+          "w": 33.0,
+          "h": 12.0
+        },
+        {
+          "shader": "menu/common/corner_lr_8_16.tga",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 590.0,
+          "y": 458.0,
+          "w": 32.0,
+          "h": 16.0
+        },
+        {
+          "shader": "gfx/interface/ammobar",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 611.0,
+          "y": 458.0,
+          "w": 0.0,
+          "h": 12.0
+        },
+        {
+          "shader": "gfx/interface/ammolowercap1",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 613.0,
+          "y": 458.0,
+          "w": 16.0,
+          "h": 16.0
+        },
+        {
+          "shader": "gfx/2d/chars_tiny",
+          "textLike": 1,
+          "refdef": 0,
+          "x": 31.0,
+          "y": 459.0,
+          "w": 16.0,
+          "h": 10.0
+        },
+        {
+          "shader": "menu/loading/trimupper.tga",
+          "textLike": 0,
+          "refdef": 0,
+          "x": 140.0,
+          "y": 469.0,
+          "w": 64.0,
+          "h": -16.0
+        }
+      ]
+    }
+  }
+}

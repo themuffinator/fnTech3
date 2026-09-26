@@ -280,3 +280,10 @@ added.
   `CVAR_VM_CREATED` (`code/compat/ql_game_abi.h`), while retail's own cvar
   code uses it as the bounded marker (`0x004cdd30`, `0x004cd0a4`). What the
   retail modules mean by it was not examined here.
+
+## Later work
+
+The Elite Force branch merged on 2026-09-26 gives both Elite Force profiles
+their executables' `0.5` too, as the table above reads them, together with
+single player's own overbright defaults (`2026-09-20-stvef-mdr.md`). RTCW,
+Enemy Territory, the Jedi titles and Q3Test keep `0.6`.

@@ -62,7 +62,7 @@ id Software's source release.
 | Quake Live | `quakelive` (`ql`) | **Enabled** in every build; the client runs on Windows x86, where the retail client modules run. |
 | Return to Castle Wolfenstein | `rtcw-sp`, `rtcw-mp` | Experimental: developer builds with `-Drtcw-development=true`. |
 | Wolfenstein: Enemy Territory | `wolfet` (`et`) | Experimental: `-Dwolfet-development=true`. |
-| Star Trek Voyager: Elite Force | `stvef-sp`, `stvef-mp` | Experimental: `-Dstvef-development=true`. |
+| Star Trek Voyager: Elite Force | `stvef-sp`, `stvef-mp` | Experimental: `-Dstvef-development=true`; single player on Windows x86 only. |
 | Star Wars Jedi Knight: Jedi Academy | `jka-sp`, `jka-mp` | Experimental, dedicated server only: `-Djka-development=true`. |
 | Star Wars Jedi Knight II: Jedi Outcast | `jk2-sp`, `jk2-mp` | Experimental, dedicated server only: `-Djk2-development=true`. |
 | American McGee's Alice | `alice` | Experimental, Windows x86: `-Dalice-development=true`. |

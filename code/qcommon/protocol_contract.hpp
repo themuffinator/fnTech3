@@ -36,6 +36,7 @@ enum class Family : std::uint8_t {
 	WolfET,
 	STVEFHolomatch,
 	STVEFSinglePlayer,
+	IoEF,
 	Alice,
 	MOHAA
 };
@@ -54,6 +55,7 @@ enum class GameMessageLayout : std::uint8_t {
 	WolfET,
 	STVEFHolomatch,
 	STVEFSinglePlayer,
+	IoEF,
 	/* Ritual's, not id's. Alice's entityState is 732 bytes of its own fields
 	 * and its server opcodes stop at nine, with two Ritual additions and no
 	 * end-of-message opcode, so no Quake III field table describes it. No
@@ -329,6 +331,18 @@ inline constexpr Contract MOHAA{
 		Netchan_ReliableCommandLimit( NETCHAN_WIRE_MOHAA ), 32u }
 };
 
+// Lilium Voyager/ioEF protocol 26 uses compressed game messages and a
+// sequence checksum, but its connectionless connect remains plain text.
+// qcommon.h in Lilium 0f7dcd89 sets a 48-block, 1024-byte download window.
+inline constexpr Contract IoEF{
+	Family::IoEF, NETCHAN_IOEF_PROTOCOL_VERSION, NETCHAN_IOEF_PROTOCOL_VERSION,
+	NETCHAN_WIRE_IOEF, GameMessageLayout::IoEF,
+	Bit( Capability::ClientQport ) | Bit( Capability::SequenceChecksum ),
+	QuakeCommands, QuakeInfoKeys,
+	{ 1'400u, Netchan_MessageLimit( NETCHAN_WIRE_IOEF ), 48u, 1'024u,
+		Netchan_ReliableCommandLimit( NETCHAN_WIRE_IOEF ), 32u }
+};
+
 // Single player never leaves the loopback channel.
 inline constexpr Contract STVEFSinglePlayer{
 	Family::STVEFSinglePlayer, NETCHAN_STVEF_SP_PROTOCOL_VERSION,
@@ -345,6 +359,7 @@ inline constexpr Contract STVEFSinglePlayer{
 	if ( protocol == 66 ) return &Quake3_66;
 	if ( protocol == 67 ) return &Quake3_67;
 	if ( protocol == STVEFHolomatch.protocol ) return &STVEFHolomatch;
+	if ( protocol == IoEF.protocol ) return &IoEF;
 	if ( protocol == STVEFSinglePlayer.protocol ) return &STVEFSinglePlayer;
 	if ( protocol == Alice.protocol ) return &Alice;
 	if ( protocol == MOHAA.protocol ) return &MOHAA;
@@ -373,6 +388,8 @@ inline constexpr Contract STVEFSinglePlayer{
 		return &Quake3_66;
 	case NETCHAN_WIRE_Q3_67:
 		return &Quake3_67;
+	case NETCHAN_WIRE_IOEF:
+		return &IoEF;
 	case NETCHAN_WIRE_STVEF_HM:
 		return &STVEFHolomatch;
 	case NETCHAN_WIRE_STVEF_SP:

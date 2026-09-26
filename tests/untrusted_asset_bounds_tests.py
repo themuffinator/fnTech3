@@ -333,25 +333,18 @@ class HuffmanInputBoundaryTests(unittest.TestCase):
         self.assertIn("if ( !Huff_Decompress( msg, header + 8 ) ) {\n\t\t\t\treturn;", server)
 
 class RendererModelLoaderTests(unittest.TestCase):
-    """The three backends carry independent copies -- each must be gated."""
+    """All backends must use the validated model-loading boundary."""
 
     def test_mdr_bone_count_is_bounded_by_the_render_time_array(self) -> None:
         for renderer in RENDERERS:
             with self.subTest(renderer=renderer):
                 source = read(f"code/{renderer}/tr_model.c")
-                block = body(
-                    source,
-                    "static qboolean R_LoadMDR( model_t *mod, void *buffer, int filesize, const char *mod_name )",
-                    "mod->dataSize += size;",
-                )
-                # RB_MDRSurfaceAnim lerps into mdrBone_t[MDR_MAX_BONES]
-                self.assertIn("pinmodel->numBones < 0 || pinmodel->numBones > MDR_MAX_BONES", block)
-                # numFrames feeds the size arithmetic and must be checked first
-                self.assertIn("if(pinmodel->numFrames < 1)", block)
-                self.assertLess(
-                    block.index("pinmodel->numFrames < 1"),
-                    block.index("size += pinmodel->numFrames * sizeof(frame->name);"),
-                )
+                self.assertIn('#include "../renderercommon/tr_mdr_model.h"', source)
+        reader = read("code/renderercommon/tr_mdr_format.h")
+        loader = read("code/renderercommon/tr_mdr_model.h")
+        self.assertIn("result.numBones > FN_MDR_MAX_BONES", reader)
+        self.assertIn("!result.numFrames", reader)
+        self.assertLess(loader.index("FnMdr_Open("), loader.index("ri.Hunk_Alloc("))
 
     def test_mdr_bone_array_is_still_sized_by_the_same_constant(self) -> None:
         self.assertIn("#define\tMDR_MAX_BONES\t128", read("code/qcommon/qfiles.h"))

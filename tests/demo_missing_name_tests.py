@@ -51,7 +51,7 @@ enum { COM_GAME_QUAKE3 = 1, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_
        QL_RETAIL_PROTOCOL_VERSION = 91, NETCHAN_RTCW_SP_PROTOCOL_VERSION = 49,
        NETCHAN_RTCW_MP_PROTOCOL_VERSION = 60, NETCHAN_STVEF_HM_PROTOCOL_VERSION = 24,
        NETCHAN_ALICE_PROTOCOL_VERSION = 1, NETCHAN_MOHAA_PROTOCOL_VERSION = 6,
-       NETCHAN_WOLFET_PROTOCOL_VERSION = 84 };
+       NETCHAN_WOLFET_PROTOCOL_VERSION = 84, NETCHAN_IOEF_PROTOCOL_VERSION = 26 };
 struct Profile { int id; const char *displayName; } profile;
 Profile *Com_GameProfile() { return &profile; }
 int Com_GameIsRTCWSP() { return profile.id == COM_GAME_RTCW_SP; }
@@ -188,8 +188,6 @@ int main() {
                 "demos/missing.dm_49"},
             Missing{COM_GAME_RTCW_MP, "Return to Castle Wolfenstein (Multiplayer)",
                 "demos/missing.dm_60"},
-            Missing{COM_GAME_STVEF_MP, "Star Trek: Voyager - Elite Force (Holomatch)",
-                "demos/missing.efdemo"},
             // Medal of Honor names its demos after protocol 6 alone.
             Missing{COM_GAME_MOHAA, "Medal of Honor: Allied Assault",
                 "demos/missing.dm_6"}}) {
@@ -202,6 +200,19 @@ int main() {
         CHECK(printed == std::vector<std::string>{"Not found: " + missing.path + "\n",
             yellow + "couldn't open " + missing.path + "\n"});
     }
+
+    // Holomatch looks for retail's .efdemo, then ioEF's protocol-26 .dm_26, and
+    // names the last path it tried.
+    const char *holomatch = "Star Trek: Voyager - Elite Force (Holomatch)";
+    CHECK(walk(COM_GAME_STVEF_MP, holomatch, "missing", name) == -1);
+    CHECK(std::string(name) == "demos/missing.dm_26");
+    CHECK(attempts == std::vector<std::string>{"demos/missing.efdemo", "demos/missing.dm_26"});
+    CHECK(printed == std::vector<std::string>{"Not found: demos/missing.efdemo\n",
+        "Not found: demos/missing.dm_26\n"});
+    play(COM_GAME_STVEF_MP, holomatch, "missing");
+    CHECK(transitions == 0);
+    CHECK(printed == std::vector<std::string>{"Not found: demos/missing.efdemo\n",
+        "Not found: demos/missing.dm_26\n", yellow + "couldn't open demos/missing.dm_26\n"});
 
     // Quake III searches each of its formats, then its pre-1.27 dm3, and still
     // names that last fallback.

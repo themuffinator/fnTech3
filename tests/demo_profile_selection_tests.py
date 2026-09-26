@@ -24,7 +24,8 @@ class DemoProfileSelectionTests(unittest.TestCase):
             re.sub(r"/\*.*?\*/", "", table.group(1), flags=re.S).split(",") if entry.strip())
         self.assertEqual(demo_protocols, "66, 67, OLD_PROTOCOL_VERSION, NEW_PROTOCOL_VERSION, 43, 45, 46, 48, "
             "QL_RETAIL_PROTOCOL_VERSION, NETCHAN_RTCW_SP_PROTOCOL_VERSION, "
-            "NETCHAN_RTCW_MP_PROTOCOL_VERSION, NETCHAN_WOLFET_PROTOCOL_VERSION, NETCHAN_MOHAA_PROTOCOL_VERSION, 0")
+            "NETCHAN_RTCW_MP_PROTOCOL_VERSION, NETCHAN_WOLFET_PROTOCOL_VERSION, NETCHAN_MOHAA_PROTOCOL_VERSION, "
+            "NETCHAN_IOEF_PROTOCOL_VERSION, 0")
         def function(signature):
             start = source.index(signature)
             return source[start:source.index("\n}", start)+2]
@@ -46,7 +47,7 @@ enum { COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP,
        QL_RETAIL_PROTOCOL_VERSION = 91, NETCHAN_RTCW_SP_PROTOCOL_VERSION = 49,
        NETCHAN_RTCW_MP_PROTOCOL_VERSION = 60, NETCHAN_STVEF_HM_PROTOCOL_VERSION = 24,
        NETCHAN_ALICE_PROTOCOL_VERSION = 1, NETCHAN_MOHAA_PROTOCOL_VERSION = 6,
-       NETCHAN_WOLFET_PROTOCOL_VERSION = 84 };
+       NETCHAN_WOLFET_PROTOCOL_VERSION = 84, NETCHAN_IOEF_PROTOCOL_VERSION = 26 };
 struct Profile { int id; const char *displayName = "fixture"; } profile;
 Profile *Com_GameProfile() { return &profile; }
 int Com_GameIsRTCWSP() { return profile.id == COM_GAME_RTCW_SP; }
@@ -221,7 +222,7 @@ int main() {
     }
     profile.id = COM_GAME_WOLFET;
 
-    // Elite Force Holomatch plays only its .efdemo files, and only it does.
+    // Elite Force owns retail .efdemo and ioEF .dm_26, and no other profile does.
     profile.id = COM_GAME_STVEF_MP;
     files = std::set<std::string>(everything.begin(), everything.end());
     files.insert("demos/mixed.efdemo"); attempts.clear();
@@ -237,6 +238,18 @@ int main() {
     files.insert("demos/mixed.efdemo"); argument = "mixed.efdemo"; attempts.clear();
     CL_PlayDemo_f();
     assert(transitions == before + 1 && attempts == std::vector<std::string>{"demos/mixed.efdemo"});
+    assert(CL_DemoProtocolSupported(26) && CL_DemoNameCallback_f("x.DM_26", 7));
+    files.insert("demos/mixed.dm_26"); files.erase("demos/mixed.efdemo"); attempts.clear();
+    assert(CL_WalkDemoExt("mixed", name, sizeof(name), handle) == 26);
+    assert(attempts == std::vector<std::string>({"demos/mixed.efdemo", "demos/mixed.dm_26"}));
+    before = transitions; argument = "mixed.dm_26"; attempts.clear();
+    CL_PlayDemo_f(); assert(transitions == before + 1);
+    for (int id : {COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP, COM_GAME_WOLFET}) {
+        profile.id = id; before = transitions; attempts.clear();
+        assert(!CL_DemoProtocolSupported(26) && !CL_DemoNameCallback_f("x.dm_26", 7));
+        CL_PlayDemo_f(); assert(transitions == before && attempts.empty());
+    }
+    argument = "mixed.efdemo";
     profile.id = COM_GAME_QUAKE3; before = transitions; attempts.clear();
     CL_PlayDemo_f(); assert(transitions == before && attempts.empty());
     assert(!CL_DemoNameCallback_f("x.efdemo", 8));
@@ -307,7 +320,9 @@ int main() {
     }
 }
 '''
-        with tempfile.TemporaryDirectory() as tmp:
+        scratch = ROOT / ".tmp"
+        scratch.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="demo-profile-", dir=scratch) as tmp:
             cpp, exe = Path(tmp)/"probe.cpp", Path(tmp)/"probe.exe"
             cpp.write_text(harness, encoding="utf-8")
             subprocess.run([compiler, *compiler_target_args(compiler), "-std=c++17",

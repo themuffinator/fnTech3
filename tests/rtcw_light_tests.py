@@ -453,6 +453,7 @@ float VectorNormalize(vec3_t v) {
 #define myftol(x) ((int)(x))
 #include "code/renderercommon/tr_q3_ihv_model_light_render.h"
 '''
+    fixture+='#include "code/renderercommon/tr_stvef_light.h"\n'
     fixture+=function(header,'static ID_INLINE qboolean R_UsesRTCWLighting(')+'\n'
     fixture+=function(source if renderer=='renderer' else header,
                       'int R_GetDlightMode(' if renderer=='renderer' else 'static ID_INLINE int R_GetDlightMode(')+'\n'

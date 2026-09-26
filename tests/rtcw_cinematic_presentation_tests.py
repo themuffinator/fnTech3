@@ -34,6 +34,13 @@ void S_AliceMusicFreeAll(){}
 qboolean S_AliceMP3Preload(const char *){return qfalse;}
 qboolean S_AliceMP3PlayPreloaded(qboolean){return qfalse;}
 void CL_AliceCinematicPlay(const char *,const char *){assert(false);}
+int Com_GameIsSTVEFSP(){return 0;}
+const char *COM_GetExtension(const char *){assert(false);return "";}
+void COM_DefaultExtension(char *,int,const char *){assert(false);}
+static int CIN_PlayBink(const char *,int,int,int,int,int){assert(false);return -1;}
+static void CIN_DrawBink(int,float,float,float,float){assert(false);}
+static void Cvar_Set(const char *,const char *){assert(false);}
+static char stvefPendingMovie[MAX_QPATH];
 void QDECL Com_Error(errorParm_t,const char *,...){throw 1;}
 void QDECL Com_DPrintf(const char *,...){}
 int QDECL Com_sprintf(char *out,int size,const char *format,...){
@@ -52,7 +59,7 @@ struct Movie {
  std::array<char,256>fileName{};File iFile;int ROQSize=0;
  int xpos=0,ypos=0,width=0,height=0,CIN_WIDTH=0,CIN_HEIGHT=0,drawX=512,drawY=512,playonwalls=0;
  bool looping=false,holdAtEnd=false,dirty=false,alterGameState=false,silent=false,shader=false;
- bool rtcwLetterBox=false;byte *buf=nullptr;e_status status=FMV_IDLE;
+ bool rtcwLetterBox=false,bink=false;byte *buf=nullptr;e_status status=FMV_IDLE;
 };
 static std::array<Movie,MAX_VIDEO_HANDLES> cinTable;
 static struct {int currentHandle;std::array<byte,16>file;} cin;
@@ -293,7 +300,8 @@ constexpr int MAX_VIDEO_HANDLES=16;
 static comGameId_t profile=COM_GAME_RTCW_SP;
 int Com_GameIsRTCWSP(){return profile==COM_GAME_RTCW_SP;}
 struct Movie {int startTime=0,lastTime=0,playonwalls=1;long tfps=0,numQuads=0,roqFPS=24;
- bool shader=false,alterGameState=false,looping=false;e_status status=FMV_PLAY;};
+ bool shader=false,alterGameState=false,looping=false,bink=false;e_status status=FMV_PLAY;};
+static e_status CIN_RunBink(int){assert(false);return FMV_EOF;}
 static std::array<Movie,MAX_VIDEO_HANDLES>cinTable;
 static int currentHandle=0,now=0,interrupts=0,resets=0,shutdowns=0;
 static struct {int currentHandle=0;}cin;

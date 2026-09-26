@@ -778,6 +778,48 @@ is matched against fnTech3's own inherited renderer code.
   [VoyagerSP-Android](https://github.com/imjustadudegamer/VoyagerSP-Android/tree/0d8942e86a8469859da086f590875bcb66b4f4df)
   as a second single-player host. No implementation text from any of them is
   incorporated. See the [Elite Force foundation record](docs/fntech3/2026-09-18-stvef-contracts.md).
+  Protocol 26 also uses independently generated synthetic fixtures from
+  Lilium's message encoder, with [bidirectional runtime evidence](docs/fntech3/2026-09-20-stvef-ioef.md).
+  The independently written RDM5 reader and renderer corrections are checked
+  against the installed retail mathematical routines and model corpus; see
+  the [model and lighting record](docs/fntech3/2026-09-20-stvef-mdr.md).
+  Synthetic effect geometry is compared with the installed Holomatch routines
+  in the [effect record](docs/fntech3/2026-09-20-stvef-effects.md).
+  The [effect capture method](docs/fntech3/2026-09-21-stvef-effect-captures.md)
+  uses independently observed retail screenshot timing and rendered frames;
+  no retail implementation or shader text is incorporated.
+  The [SP cadence record](docs/fntech3/2026-09-21-stvef-sp-cadence.md)
+  pins simulation and local snapshot scheduling to independently observed
+  retail function outputs; no proprietary implementation is incorporated.
+  The [startup/capture follow-up](docs/fntech3/2026-09-21-stvef-sp-startup.md)
+  adds independently observed settling-frame clocks and SP screenshot timing.
+  The [map-reload record](docs/fntech3/2026-09-21-stvef-map-reloads.md) pins
+  SP command registration and full-map continuations to native observations,
+  and documents the independently corrected shared client-storage crash.
+  The [player-snapshot record](docs/fntech3/2026-09-21-stvef-player-snapshots.md)
+  pins SP's visible local-player inclusion to the native executable. The
+  [Elite-Reinforce reference](https://github.com/kugelrund/Elite-Reinforce/tree/526e911c532817b3021aaa564b6b0cf087879827)
+  informed the investigation of shared animation and weapon behavior;
+  its non-GPL implementation text is not incorporated.
+  The [command-ordinal record](docs/fntech3/2026-09-21-stvef-command-ordinals.md)
+  pins SP command recovery, mutable game commands and snapshot acknowledgements
+  to 72 owned native-probe cases and runtime observations. The source reference
+  informed the timestamp-clamp investigation; no implementation is incorporated.
+  The [texture-compression record](docs/fntech3/2026-09-21-stvef-texture-compression.md)
+  pins the menu/configuration control to native registration and runtime facts,
+  and separates texture-format differences from renderer comparisons.
+  The [alpha-format record](docs/fntech3/2026-09-21-stvef-alpha-compression.md)
+  checks independently authored format selection against both native engines.
+  The [method-selection record](docs/fntech3/2026-09-21-stvef-compression-method.md)
+  adds native compression preferences, floating-point enable behavior and
+  live video-restart validation of the independent implementation.
+  The [lightmap-control record](docs/fntech3/2026-09-21-stvef-lightmap-controls.md)
+  pins the native compression/precision choices and validates merged and
+  separate uploads across the three renderer backends.
+  Native projection and stencil extrusion observations are documented in the
+  [shadow record](docs/fntech3/2026-09-20-stvef-shadows.md).
+  The [movie audio record](docs/fntech3/2026-09-20-stvef-movie-audio.md)
+  documents independently observed sound-state and PCM delivery contracts.
 
 - The Star Wars Jedi Knight: Jedi Academy profiles use interoperability facts
   from the user's legitimate retail 1.01 installation -- its pak identity,
@@ -853,6 +895,21 @@ is matched against fnTech3's own inherited renderer code.
   by Lion (lieff), released under CC0 1.0 and consumed through
   `subprojects/minimp3.wrap`. The frame walker that reproduces retail
   unpacking sizes is independently authored.
+
+- Elite Force single-player movies use the user's installed Bink 1 runtime
+  through an independently declared interface observed in that installation.
+  No SDK header, decoder implementation or runtime binary is incorporated.
+  The [movie record](docs/fntech3/2026-09-20-stvef-bink.md) separates the native
+  runtime's role from the engine's file validation, playback and rendering.
+  The [presentation record](docs/fntech3/2026-09-20-stvef-cinematic-presentation.md)
+  documents independently observed retail fade and crop behaviour.
+
+- Elite Force single-player force feedback uses interoperability observations
+  from the user's installed executable and FFC10 runtime. The effect table,
+  scheduler, C++ ABI declarations and lifecycle controller are independently
+  authored; no CFeel SDK or proprietary implementation is incorporated. The
+  [feedback record](docs/fntech3/2026-09-21-stvef-force-feedback.md) identifies
+  the reference binaries, native observations and device-test limits.
 
 ## Retail-content boundary
 

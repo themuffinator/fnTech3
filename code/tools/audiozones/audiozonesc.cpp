@@ -3083,8 +3083,9 @@ static int FromBspCommand( int argc, char **argv ) {
 			}
 			profile = argv[++i];
 			if ( profile != "quake3" && profile != "quakelive" && profile != "rtcw-sp" && profile != "rtcw-mp" &&
-				profile != "wolfet" && profile != "alice" && profile != "fakk2" && profile != "mohaa" ) {
-				std::cerr << "--profile must be quake3, quakelive, rtcw-sp, rtcw-mp, wolfet, alice, fakk2, or mohaa\n";
+				profile != "wolfet" && profile != "stvef-sp" && profile != "stvef-mp" && profile != "alice" &&
+				profile != "fakk2" && profile != "mohaa" ) {
+				std::cerr << "--profile must be quake3, quakelive, rtcw-sp, rtcw-mp, wolfet, stvef-sp, stvef-mp, alice, fakk2, or mohaa\n";
 				return 2;
 			}
 		} else if ( arg == "--max-zones" ) {
@@ -3153,7 +3154,10 @@ static int FromBspCommand( int argc, char **argv ) {
 			"Alice's FAKK 42 maps need --profile alice" ) << "\n";
 		return 1;
 	}
-	if ( !profile.empty() && !map.fakk && !map.mohaa && map.version != ( profile == "quake3" ? kBspVersionQ3 : kBspVersionQL ) ) {
+	// Elite Force is a Quake III fork: its maps are IBSP 46 and its surface
+	// flags keep Quake's meanings, so only the expected version differs here.
+	const bool profileIsBsp46 = profile == "quake3" || profile == "stvef-sp" || profile == "stvef-mp";
+	if ( !profile.empty() && !map.fakk && !map.mohaa && map.version != ( profileIsBsp46 ? kBspVersionQ3 : kBspVersionQL ) ) {
 		std::cerr << input.string() << ": BSP version does not match --profile " << profile << "\n";
 		return 1;
 	}
@@ -3792,11 +3796,12 @@ static void PrintUsage( const char *argv0 ) {
 	std::cerr
 		<< "Usage:\n"
 		<< "  " << argv0 << " [-o output.azb] input.audiozones\n"
-		<< "  " << argv0 << " --from-bsp [-o output.azb] [--profile quake3|quakelive|rtcw-sp|rtcw-mp|wolfet|alice|fakk2|mohaa] [--merge overrides.audiozones] [--material-map audio-materials.txt] [--max-zones N] input.bsp\n"
+		<< "  " << argv0 << " --from-bsp [-o output.azb] [--profile quake3|quakelive|rtcw-sp|rtcw-mp|wolfet|stvef-sp|stvef-mp|alice|fakk2|mohaa] [--merge overrides.audiozones] [--material-map audio-materials.txt] [--max-zones N] input.bsp\n"
 		<< "  " << argv0 << " --dump input.azb\n"
 		<< "  " << argv0 << " --audit [--strict] [--samples N] input.azb\n\n"
 		<< "BSP generation reads IBSP v46/v47, FAKK v42/v12 and 2015 v19 leaves, clusters, areas, surfaces, terrain, brushes, and shaders.\n"
 		<< "Specify --profile rtcw-sp or rtcw-mp for RTCW material flags, wolfet for Enemy Territory's,\n"
+		<< "stvef-sp or stvef-mp for Elite Force, an IBSP 46 fork that keeps Quake's flag meanings,\n"
 		<< "alice for American McGee's Alice's FAKK 42 maps, fakk2 for Heavy Metal: F.A.K.K.2's FAKK 12 maps,\n"
 		<< "or mohaa for Medal of Honor: Allied Assault's 2015 19 maps; the default retains Q3/QL interpretation.\n"
 		<< "Material maps use: shader/pattern material [preset name] [flag outdoor] [weight N].\n"

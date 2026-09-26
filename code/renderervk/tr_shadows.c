@@ -615,8 +615,10 @@ void RB_ShadowTessEnd( void ) {
 #endif
 		VectorCopy( backEnd.currentEntity->lightDir, lightDir );
 
-	// clamp projection by height
-	if ( lightDir[2] > 0.1 ) {
+	// Retail Elite Force extrudes the full light vector (SP 0x4629c0,
+	// Holomatch 0x479380). Retain the modern model-light shadow policy.
+	if ( ( ( ri.gameId != COM_GAME_STVEF_SP && ri.gameId != COM_GAME_STVEF_MP ) ||
+		R_GetDlightMode() == 2 ) && lightDir[2] > 0.1 ) {
 		float s = 0.1 / lightDir[2];
 		VectorScale( lightDir, s, lightDir );
 	}

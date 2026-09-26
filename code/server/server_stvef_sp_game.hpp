@@ -387,8 +387,16 @@ intptr_t QDECL SV_STVEFSPGameEntry( int command, ... ) {
 		game->ClientCommand( arg[0] );
 		break;
 	case GAME_CLIENT_THINK: {
-		fntech3_stvef_sp_usercmd_t cmd = SV_STVEFSPCommand( arg[0] );
+		auto *source = reinterpret_cast<usercmd_t *>( arg[1] );
+		fntech3_stvef_sp_usercmd_t cmd{};
+		if ( !source || !fntech3::stvef::state::FromInternal( *source, cmd ) ) {
+			Com_Error( ERR_DROP, "Invalid Elite Force SP game command" );
+			return 0;
+		}
 		game->ClientThink( arg[0], &cmd );
+		if ( !fntech3::stvef::state::ToInternal( cmd, *source ) ) {
+			Com_Error( ERR_DROP, "Invalid Elite Force SP adjusted command" );
+		}
 		break;
 	}
 	case GAME_RUN_FRAME:

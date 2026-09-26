@@ -26,13 +26,14 @@ class Fakk2OverbrightTests(unittest.TestCase):
         for renderer in RENDERERS:
             source = read(f'code/{renderer}/tr_init.c')
             with self.subTest(renderer=renderer):
-                self.assertIn('r_overBrightBits = ri.Cvar_Get( "r_overBrightBits", '
-                              'COM_GAME_ID_IS_RITUAL( ri.gameId ) ? "0" : "1",\n'
+                self.assertIn('r_overBrightBits = ri.Cvar_Get( "r_overBrightBits",\n'
+                              '\t\t( COM_GAME_ID_IS_RITUAL( ri.gameId ) || ri.gameId == COM_GAME_STVEF_SP ) ? "0" : "1",\n'
                               '\t\tCVAR_ARCHIVE_ND | CVAR_LATCH );', source)
                 self.assertEqual(source.count('ri.Cvar_Get( "r_overBrightBits"'), 1)
-                # The map's own bits stay retail's 2 (Elite Force alone has 1).
-                self.assertIn('( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ) ? "1" : "2",',
-                              source)
+                # The map's own bits stay retail's 2 (Holomatch has 1, and Alice
+                # and Elite Force's single player none).
+                self.assertIn('\t\t( ri.gameId == COM_GAME_ALICE || ri.gameId == COM_GAME_STVEF_SP ) ? "0" :\n'
+                              '\t\tri.gameId == COM_GAME_STVEF_MP ? "1" : "2",', source)
 
 
 if __name__ == '__main__':

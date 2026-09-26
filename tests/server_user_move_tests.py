@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 HARNESS = r'''
 #include <array>
+#include <algorithm>
 #include <cstdlib>
 #include <vector>
 #include <numeric>
@@ -55,6 +56,8 @@ struct client_t {
     int gamestate_rate = 0;
     const char *name = "test-client";
     usercmd_t lastUsercmd{};
+    int stvefSpCommandNumber = 0;
+    bool stvefSpDroppedCommands = false;
     int dropped = 0;
     int entered = 0;
     int thought = 0;
@@ -73,6 +76,7 @@ auto SV_Indices(int count) {
     return indices;
 }
 int MSG_ReadByte(msg_t *msg) { return msg->count; }
+int MSG_ReadLong(msg_t *) { return 0; }
 int MSG_HashKeyForWireProfile(netchanWireProfile_t, const char *, int) { return 0; }
 bool MSG_ReadDeltaUsercmdKeyForWireProfile(msg_t *msg, int,
     const usercmd_t *, usercmd_t *out, netchanWireProfile_t profile) {
@@ -109,12 +113,15 @@ void SV_MOHAAUserMove(client_t *, msg_t *, qboolean delta) {
 }
 
 // The entire SV_UserMove implementation is inserted here from sv_client.cpp.
+@SP_COMMANDS@
 @SV_USER_MOVE@
 
 #define CHECK(condition) do { if (!(condition)) return __LINE__; } while (false)
 int main() {
     for (const auto profile : {NETCHAN_WIRE_LEGACY_Q3,
-        NETCHAN_WIRE_IOQ3, NETCHAN_WIRE_QL_RETAIL}) {
+        NETCHAN_WIRE_IOQ3, NETCHAN_WIRE_QL_RETAIL, NETCHAN_WIRE_RTCW_SP,
+        NETCHAN_WIRE_RTCW_MP, NETCHAN_WIRE_WOLFET, NETCHAN_WIRE_STVEF_HM,
+        NETCHAN_WIRE_IOEF}) {
         for (const int state : {CS_PRIMED, CS_ACTIVE}) {
             for (int failAt = 0; failAt < 3; ++failAt) {
                 client_t sender{};
@@ -192,7 +199,8 @@ class ServerUserMoveTests(unittest.TestCase):
             folder = Path(folder)
             harness = folder / "server_user_move.cpp"
             executable = folder / ("server_user_move.exe" if os.name == "nt" else "server_user_move")
-            harness.write_text(HARNESS.replace("@SV_USER_MOVE@", body), encoding="utf-8")
+            harness.write_text(HARNESS.replace("@SV_USER_MOVE@", body).replace(
+                "@SP_COMMANDS@", function_body(source, "SV_ExecuteSTVEFSPCommands")), encoding="utf-8")
             include = str(ROOT / "code/qcommon")
             if Path(compiler).stem.lower() == "cl":
                 command = [compiler, *compiler_target_args(compiler), "/nologo", "/std:c++17", "/EHsc", "/W4", "/WX",

@@ -65,6 +65,7 @@ uint32_t referenceCRC(const byte*data,unsigned length){
 }
 uint32_t randomState=0x92654ba1u;
 uint32_t randomWord(){randomState^=randomState<<13;randomState^=randomState>>17;randomState^=randomState<<5;return randomState;}
+float storedFloat(float value){volatile float stored=value;return stored;}
 int main(){
  assert(crc32_buffer(nullptr,0)==0);
  assert(crc32_buffer(reinterpret_cast<const byte*>("123456789"),9)==0xcbf43926u);
@@ -103,10 +104,12 @@ int main(){
   vec3_t a[2],b[2];bool match=true;
   for(int axis=0;axis<3;++axis){
    float p=static_cast<int>(randomWord()%2000000)-1000000.0f;
-   float q=p+(static_cast<int>(randomWord()%401)-200)*0.001f;
+   float q=storedFloat(p+(static_cast<int>(randomWord()%401)-200)*0.001f);
    a[0][axis]=p; a[1][axis]=p+static_cast<float>(randomWord()%16);
    b[0][axis]=q; b[1][axis]=q+static_cast<float>(randomWord()%16);
-   if(std::fabs(p-q)>.1)match=false;
+   // The vertex oracle uses the stored coordinates, not x87 intermediates
+   // from constructing them that may retain precision beyond float.
+   if(std::fabs(a[0][axis]-b[0][axis])>.1)match=false;
   }
   if(match)assert(R_PatchBoundsOverlap(a,b));
  }

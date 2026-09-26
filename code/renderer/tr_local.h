@@ -47,6 +47,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_q3_ihv_fog.h"
 #include "../renderercommon/tr_q3_ihv_model_light.h"
 #include "../renderercommon/tr_ritual_model_light.h"
+#include "../renderercommon/tr_stvef_scissor.h"
 #include "../renderercommon/tr_dlight_shadow.h"
 #include "../renderercommon/tr_ql_cvars.h"
 #include "../renderercommon/tr_global_fog.h"
@@ -2089,6 +2090,8 @@ typedef struct {
 	qboolean	skyRenderedThisView;	// flag for drawing sun
 
 	qboolean	projection2D;	// if qtrue, drawstretchpic doesn't need to change modes
+	qboolean scissor2DSet;
+	fnScissorRect_t scissor2D;
 	color4ub_t	color2D;
 	qboolean	doneBloom;		// done bloom this frame
 	qboolean	doneSurfaces;   // done any 3d surfaces already
@@ -2187,6 +2190,9 @@ typedef struct {
 	shader_t				*ihvParticleShader;
 	shader_t *ihvBeamShader;
 	shader_t				*cinematicShader;
+	image_t *stvefRawImages[32];
+	shader_t *stvefRawShaders[32];
+	int stvefRawFrame, stvefRawUsed;
 	shader_t				*shadowShader;
 	shader_t				*projectionShadowShader;
 	shader_t				*enemyRimShader;
@@ -3322,6 +3328,7 @@ typedef enum {
 	RC_END_OF_LIST,
 	RC_SET_COLOR,
 	RC_STRETCH_PIC,
+	RC_STVEF_SCISSOR,
 	RC_DRAW_SURFS,
 	RC_SCREENSHOT,
 	RC_DRAW_BUFFER,
@@ -3409,6 +3416,9 @@ void R_AddAdvertisementQueryCmd( const advertisementQueryEntry_t *entries, int n
 
 void RE_SetColor( const float *rgba );
 void RE_DrawQuad( const refDrawQuad_t *quad );
+void RE_SetSTVEFScissor( float x, float y, float w, float h );
+void RE_DrawSTVEFRaw( int x, int y, int w, int h, int cols, int rows, const byte *data, float lightValue );
+shader_t *R_CreateSTVEFRawShader( const char *name, image_t *image );
 void RE_StretchPic ( float x, float y, float w, float h, 
 					  float s1, float t1, float s2, float t2, qhandle_t hShader );
 void RE_BeginFrame( stereoFrame_t stereoFrame );

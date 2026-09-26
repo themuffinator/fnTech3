@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "tr_local.h"
 #include "../renderercommon/tr_q3_ihv_model.h"
+#include "../renderercommon/tr_stvef_cvars.h"
 #include "../renderercommon/tr_fnq3_bloom_config.h"
 #include "../renderercommon/tr_ql_lighting_config.h"
 #include "../renderercommon/tr_levelshot.h"
@@ -265,6 +266,8 @@ cvar_t	*r_ignoreGLErrors;
 
 //cvar_t	*r_stencilbits;
 cvar_t	*r_texturebits;
+cvar_t	*r_texturebitslm;
+cvar_t	*r_ext_compress_lightmaps;
 cvar_t	*r_ext_multisample;
 cvar_t	*r_ext_alpha_to_coverage;
 
@@ -481,6 +484,9 @@ static qboolean R_HaveExtension( const char *ext )
 }
 
 
+#include "../renderercommon/tr_stvef_compression.h"
+
+
 /*
 ** R_InitExtensions
 */
@@ -552,34 +558,8 @@ static void R_InitExtensions( void )
 		ri.Printf( PRINT_ALL, S_COLOR_YELLOW "...Degraded texture support likely!\n" );
 	}
 
-	// GL_EXT_texture_compression_s3tc
-	if ( R_HaveExtension( "GL_ARB_texture_compression" ) &&
-		 R_HaveExtension( "GL_EXT_texture_compression_s3tc" ) )
-	{
-		if ( r_ext_compressed_textures->integer ){
-			glConfig.textureCompression = TC_S3TC_ARB;
-			ri.Printf( PRINT_ALL, "...using GL_EXT_texture_compression_s3tc\n" );
-		} else {
-			ri.Printf( PRINT_ALL, "...ignoring GL_EXT_texture_compression_s3tc\n" );
-		}
-	} else {
-		ri.Printf( PRINT_ALL, "...GL_EXT_texture_compression_s3tc not found\n" );
-	}
-
-	// GL_S3_s3tc
-	if ( glConfig.textureCompression == TC_NONE && r_ext_compressed_textures->integer ) {
-		if ( R_HaveExtension( "GL_S3_s3tc" ) ) {
-			if ( r_ext_compressed_textures->integer ) {
-				glConfig.textureCompression = TC_S3TC;
-				ri.Printf( PRINT_ALL, "...using GL_S3_s3tc\n" );
-			} else {
-				glConfig.textureCompression = TC_NONE;
-				ri.Printf( PRINT_ALL, "...ignoring GL_S3_s3tc\n" );
-			}
-		} else {
-			ri.Printf( PRINT_ALL, "...GL_S3_s3tc not found\n" );
-		}
-	}
+	// GL_EXT_texture_compression_s3tc / GL_S3_s3tc
+	R_InitTextureCompression();
 
 	// GL_EXT_texture_env_add
 	if ( R_HaveExtension( "EXT_texture_env_add" ) ) {
@@ -2143,18 +2123,21 @@ static void R_Register( void )
 	/* Neither Ritual engine registers an overbright bit: Heavy Metal: F.A.K.K.2
 	 * (fakk2.exe 1.02 0x00460d74), whose lightmaps take r_mapOverBrightBits'
 	 * whole shift and saturate where retail's do, and American McGee's Alice
-	 * (alice.exe 0x00475136). */
-	r_overBrightBits = ri.Cvar_Get( "r_overBrightBits", COM_GAME_ID_IS_RITUAL( ri.gameId ) ? "0" : "1",
+	 * (alice.exe 0x00475136). Nor does Elite Force's single player
+	 * (0x004406dd); Holomatch registers one (0x00453907). */
+	r_overBrightBits = ri.Cvar_Get( "r_overBrightBits",
+		( COM_GAME_ID_IS_RITUAL( ri.gameId ) || ri.gameId == COM_GAME_STVEF_SP ) ? "0" : "1",
 		CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_SetDescription( r_overBrightBits, "Sets the intensity of overall brightness of texture pixels." );
-	// Elite Force's maps are lit for one overbright bit (retail default "1").
+	// Elite Force's Holomatch maps are lit for one overbright bit (retail
+	// default "1", 0x00453a7b); its single player registers none (0x0044086d).
 	// Alice's are lit for none: alice.exe registers "0" (0x0047529e), never
 	// reads it, and shifts lightmaps, vertex colours and the light grid by the
 	// overbright bits alone (0x0049ba40, 0x0049acb0), so at its default they
 	// draw as the map holds them.
 	r_mapOverBrightBits = ri.Cvar_Get( "r_mapOverBrightBits",
-		ri.gameId == COM_GAME_ALICE ? "0" :
-		( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ) ? "1" : "2",
+		( ri.gameId == COM_GAME_ALICE || ri.gameId == COM_GAME_STVEF_SP ) ? "0" :
+		ri.gameId == COM_GAME_STVEF_MP ? "1" : "2",
 		CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_SetDescription( r_mapOverBrightBits, "Sets the number of overbright bits baked into all lightmaps and map data." );
 	r_mapOverBrightCap = ri.Cvar_Get( "r_mapOverBrightCap", "255", CVAR_ARCHIVE | CVAR_LATCH | CVAR_VM_CREATED | CVAR_CLOUD );
@@ -2635,13 +2618,16 @@ static void R_Register( void )
 	// Each engine scales the light grid's ambient on the models it lights from
 	// the grid by its own default: Quake III by 0.6 (quake3.exe 1.32
 	// 0x0045152a), both Ritual engines by 0.5 (alice.exe 0x004754ed, fakk2.exe
-	// 1.02 0x00461123). Quake Live raised it to 10 and made it a player option,
-	// 1 to 100, kept in the replicated config and offered by its Video menu
-	// (quakelive_steam.exe 0x00449013). Its third flag, 0x1000, marks a bounded
-	// cvar there; here that bit would be CVAR_VM_CREATED, so the range is given
-	// by Cvar_CheckRange instead.
+	// 1.02 0x00461123), and both Elite Force executables by 0.5 too (single
+	// player 0x00440a62, Holomatch 0x00453c88). Quake Live raised it to 10 and
+	// made it a player option, 1 to 100, kept in the replicated config and
+	// offered by its Video menu (quakelive_steam.exe 0x00449013). Its third
+	// flag, 0x1000, marks a bounded cvar there; here that bit would be
+	// CVAR_VM_CREATED, so the range is given by Cvar_CheckRange instead.
 	r_ambientScale = ri.Cvar_Get( "r_ambientScale",
-		ri.gameId == COM_GAME_QUAKELIVE ? "10" : RITUAL_ML_PROFILE( ri.gameId ) ? "0.5" : "0.6",
+		ri.gameId == COM_GAME_QUAKELIVE ? "10" :
+		( RITUAL_ML_PROFILE( ri.gameId ) || ri.gameId == COM_GAME_STVEF_SP ||
+			ri.gameId == COM_GAME_STVEF_MP ) ? "0.5" : "0.6",
 		ri.gameId == COM_GAME_QUAKELIVE ? CVAR_PROTECTED | CVAR_CLOUD : CVAR_CHEAT );
 	if ( ri.gameId == COM_GAME_QUAKELIVE ) {
 		ri.Cvar_CheckRange( r_ambientScale, "1", "100", CV_FLOAT );
@@ -2981,7 +2967,7 @@ static void R_Register( void )
 	//
 	r_allowExtensions = ri.Cvar_Get( "r_allowExtensions", "1", CVAR_ARCHIVE_ND | CVAR_LATCH | CVAR_DEVELOPER );
 	ri.Cvar_SetDescription( r_allowExtensions, "Use all of the OpenGL extensions your card is capable of." );
-	r_ext_compressed_textures = ri.Cvar_Get( "r_ext_compressed_textures", "0", CVAR_ARCHIVE_ND | CVAR_LATCH | CVAR_DEVELOPER );
+	r_ext_compressed_textures = R_RegisterTextureCompressionCvar();
 	ri.Cvar_SetDescription( r_ext_compressed_textures, "Enables texture compression." );
 	r_ext_multitexture = ri.Cvar_Get( "r_ext_multitexture", "1", CVAR_ARCHIVE_ND | CVAR_LATCH | CVAR_DEVELOPER );
 	ri.Cvar_SetDescription( r_ext_multitexture, "Enables hardware multi-texturing (0: off, 1: on)." );
@@ -4024,6 +4010,8 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.SetColor = RE_SetColor;
 	re.DrawStretchPic = RE_StretchPic;
 	re.DrawQuad = RE_DrawQuad;
+	re.SetSTVEFScissor = RE_SetSTVEFScissor;
+	re.DrawSTVEFRaw = RE_DrawSTVEFRaw;
 	re.DrawStretchRaw = RE_StretchRaw;
 	re.UploadCinematic = RE_UploadCinematic;
 	re.DrawWebUISurface = RE_DrawWebUISurface;

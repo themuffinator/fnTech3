@@ -72,7 +72,7 @@ const comGameProfile_t *Com_GameProfile() {
     profile.key = "fixture";
     return &profile;
 }
-static int Com_PureProofIsNativeModulePair(const comGameProfile_t *profile) {
+int Com_PureProofIsNativeModulePair(const comGameProfile_t *profile) {
     return profile && (profile->pureProof == COM_PURE_PROOF_RTCW_NATIVE
         || profile->pureProof == COM_PURE_PROOF_WOLFET_NATIVE);
 }

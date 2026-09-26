@@ -250,8 +250,13 @@ def entity_light_harness():
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include "code/renderercommon/tr_stvef_light.h"
 #define myftol( x ) ( (int)( x ) )
 #define COM_GAME_QUAKE3_IHV 1000
+/* Elite Force rounds its vertex light as retail does (tr_stvef_light.h); the
+ * profile checked here is not Elite Force. */
+#define COM_GAME_STVEF_SP 1001
+#define COM_GAME_STVEF_MP 1002
 typedef struct {
     float xyz[4];
     float normal[4];

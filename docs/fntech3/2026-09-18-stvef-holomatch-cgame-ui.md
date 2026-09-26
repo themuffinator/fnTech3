@@ -50,6 +50,11 @@ from 0 to the record's `stscale`; Lilium always uses 1. The portable shield
 passes 1, so both agree there. Retail gives the first corner of a line
 quarter color, which Lilium does not.
 
+The [shader-wave follow-up](2026-09-21-stvef-shader-waves.md) corrects two
+contracts that this slice had not compared directly: the random wave reads
+view time, and retail initializes deterministic noise tables. Earlier image
+observations do not establish those contracts or complete effect parity.
+
 ## Runtime evidence
 
 A Windows x86 developer build ran against the retail installation, windowed,

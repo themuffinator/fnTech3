@@ -1148,6 +1148,7 @@ typedef enum {
 #define	SNAPFLAG_RATE_DELAYED	1
 #define	SNAPFLAG_NOT_ACTIVE		2	// snapshot used during connection and for zombies
 #define SNAPFLAG_SERVERCOUNT	4	// toggled every map_restart so transitions can be detected
+#define SNAPFLAG_STVEF_SP_DROPPED_COMMANDS 8 // internal; marshalled to SP's external bit 2
 
 //
 // per-level limits

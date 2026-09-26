@@ -38,6 +38,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "sdl_glw.h"
 #include "sdl_raii.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 static cvar_t *in_keyboardDebug;
 static cvar_t *in_forceCharset;
 
@@ -2634,6 +2638,9 @@ IN_Frame
 */
 void IN_Frame( void )
 {
+	CL_STVEFSPFeedbackFrame( gw_active && !gw_minimized && SDL_window &&
+		( SDL_GetWindowFlags( SDL_window ) & SDL_WINDOW_INPUT_FOCUS ) &&
+		in_nograb && !in_nograb->integer ? qtrue : qfalse );
 	IN_ReconcileTextInput();
 
 #ifdef USE_JOYSTICK
@@ -2682,6 +2689,7 @@ IN_Init
 */
 void IN_ResetInputState( void )
 {
+	CL_STVEFSPFeedbackSuspend();
 	IN_EndTemporaryMouseCapture();
 	s_absPointerOutside = qfalse;
 	s_absHaveLast = qfalse;
@@ -2800,6 +2808,13 @@ void IN_Init( void )
 	Cmd_AddCommand( "minimize", IN_Minimize );
 	Cmd_AddCommand( "in_restart", IN_Restart );
 
+#ifdef _WIN32
+	CL_STVEFSPFeedbackInit( GetModuleHandleW( nullptr ),
+		SDL_GetPointerProperty( SDL_GetWindowProperties( SDL_window ), SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr ) );
+#else
+	CL_STVEFSPFeedbackInit( nullptr, nullptr );
+#endif
+
 	Com_DPrintf( "------------------------------------\n" );
 }
 
@@ -2811,6 +2826,7 @@ IN_Shutdown
 */
 void IN_Shutdown( void )
 {
+	CL_STVEFSPFeedbackShutdown();
 	IN_SetTextInputActive( qfalse );
 
 	IN_ReleasePointer();

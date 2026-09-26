@@ -235,3 +235,11 @@ the command fnTech3 gives them now does the same.
     every RTCW mode.
   - `stvoy.exe`, `jasp.exe` and `jk2sp.exe` have no `map_restart`, but fnTech3
     registers one for `stvef-sp`, `jka-sp` and `jk2-sp`.
+
+## Later work
+
+The Elite Force branch merged on 2026-09-26 registers no `map_restart` for
+`stvef-sp`, as `stvoy.exe` registers none: single player's `nextmap` reloads
+the level in full with `map <name>`, as retail's does
+(`2026-09-21-stvef-map-reloads.md`). The frame order above is unchanged; the
+`stvef-sp` rows of the tables describe the build this record measured.

@@ -33,6 +33,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../compat/alice_state_adapter.hpp"
 #include "../compat/fakk2_convert.hpp"
 #include "../compat/fakk2_message_codec.hpp"
+#include "../compat/stvef_ioef_codec.hpp"
 #include "../compat/stvef_state_adapter.hpp"
 
 #include <algorithm>
@@ -189,7 +190,8 @@ bool MSG_IsRTCWWireProfile( netchanWireProfile_t profile ) {
 }
 
 bool MSG_IsSTVEFWireProfile( netchanWireProfile_t profile ) {
-	return profile == NETCHAN_WIRE_STVEF_HM || profile == NETCHAN_WIRE_STVEF_SP;
+	return profile == NETCHAN_WIRE_STVEF_HM || profile == NETCHAN_WIRE_STVEF_SP ||
+		profile == NETCHAN_WIRE_IOEF;
 }
 
 /* Every registered layout has a codec, and this names them rather than
@@ -1403,6 +1405,13 @@ qboolean MSG_WriteDeltaUsercmdKeyForWireProfile( msg_t *msg, int key,
 				return fntech3::stvef::message::WriteCommand( io, base, sent ) ? qtrue : qfalse;
 			} );
 	}
+	if ( profile == NETCHAN_WIRE_IOEF ) {
+		return MSG_WriteSTVEFCanonical<fntech3_stvef_mp_usercmd_t>( msg, from, to,
+			[&]( const auto *base, const auto *sent ) {
+				RTCWMessageWriter io( msg );
+				return fntech3::stvef::message::ioef::WriteCommand( io, base, sent ) ? qtrue : qfalse;
+			} );
+	}
 	if ( profile == NETCHAN_WIRE_STVEF_SP ) {
 		return MSG_WriteSTVEFCanonical<fntech3_stvef_sp_usercmd_t>( msg, from, to,
 			[&]( const auto *base, const auto *sent ) {
@@ -1497,6 +1506,13 @@ qboolean MSG_ReadDeltaUsercmdKeyForWireProfile( msg_t *msg, int key,
 			[&]( const auto *base, auto *decoded ) {
 				RTCWMessageReader io( msg );
 				return fntech3::stvef::message::ReadCommand( io, base, decoded );
+			} );
+	}
+	if ( profile == NETCHAN_WIRE_IOEF ) {
+		return MSG_ReadSTVEFCanonical<fntech3_stvef_mp_usercmd_t>( msg, from, to,
+			[&]( const auto *base, auto *decoded ) {
+				RTCWMessageReader io( msg );
+				return fntech3::stvef::message::ioef::ReadCommand( io, base, decoded );
 			} );
 	}
 	if ( profile == NETCHAN_WIRE_STVEF_SP ) {
@@ -2048,6 +2064,13 @@ qboolean MSG_WriteDeltaEntityForWireProfile( msg_t *msg,
 				return fntech3::stvef::message::WriteEntity( io, base, sent, force != qfalse ) ? qtrue : qfalse;
 			} );
 	}
+	if ( profile == NETCHAN_WIRE_IOEF ) {
+		return MSG_WriteSTVEFCanonical<fntech3_stvef_mp_entityState_t>( msg, from, to,
+			[&]( const auto *base, const auto *sent ) {
+				RTCWMessageWriter io( msg );
+				return fntech3::stvef::message::ioef::WriteEntity( io, base, sent, force != qfalse ) ? qtrue : qfalse;
+			} );
+	}
 	if ( profile == NETCHAN_WIRE_STVEF_SP ) {
 		return MSG_WriteSTVEFCanonical<fntech3_stvef_sp_entityState_t>( msg, from, to,
 			[&]( const auto *base, const auto *sent ) {
@@ -2212,6 +2235,13 @@ qboolean MSG_ReadDeltaEntityForWireProfile( msg_t *msg,
 			[&]( const auto *base, auto *decoded ) {
 				RTCWMessageReader io( msg );
 				return fntech3::stvef::message::ReadEntity( io, base, decoded, number );
+			} );
+	}
+	if ( profile == NETCHAN_WIRE_IOEF ) {
+		return MSG_ReadSTVEFCanonical<fntech3_stvef_mp_entityState_t>( msg, from, to,
+			[&]( const auto *base, auto *decoded ) {
+				RTCWMessageReader io( msg );
+				return fntech3::stvef::message::ioef::ReadEntity( io, base, decoded, number );
 			} );
 	}
 	if ( profile == NETCHAN_WIRE_STVEF_SP ) {
@@ -2910,6 +2940,13 @@ qboolean MSG_WriteDeltaPlayerstateForWireProfile( msg_t *msg,
 				return fntech3::stvef::message::WritePlayer( io, base, sent ) ? qtrue : qfalse;
 			} );
 	}
+	if ( profile == NETCHAN_WIRE_IOEF ) {
+		return MSG_WriteSTVEFCanonical<fntech3_stvef_mp_playerState_t>( msg, from, to,
+			[&]( const auto *base, const auto *sent ) {
+				RTCWMessageWriter io( msg );
+				return fntech3::stvef::message::ioef::WritePlayer( io, base, sent ) ? qtrue : qfalse;
+			} );
+	}
 	if ( profile == NETCHAN_WIRE_STVEF_SP ) {
 		return MSG_WriteSTVEFCanonical<fntech3_stvef_sp_playerState_t>( msg, from, to,
 			[&]( const auto *base, const auto *sent ) {
@@ -3112,6 +3149,13 @@ qboolean MSG_ReadDeltaPlayerstateForWireProfile( msg_t *msg,
 			[&]( const auto *base, auto *decoded ) {
 				RTCWMessageReader io( msg );
 				return fntech3::stvef::message::ReadPlayer( io, base, decoded );
+			} );
+	}
+	if ( profile == NETCHAN_WIRE_IOEF ) {
+		return MSG_ReadSTVEFCanonical<fntech3_stvef_mp_playerState_t>( msg, from, to,
+			[&]( const auto *base, auto *decoded ) {
+				RTCWMessageReader io( msg );
+				return fntech3::stvef::message::ioef::ReadPlayer( io, base, decoded );
 			} );
 	}
 	if ( profile == NETCHAN_WIRE_STVEF_SP ) {

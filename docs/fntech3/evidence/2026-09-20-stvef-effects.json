@@ -1,0 +1,434 @@
+{
+  "baseCommit": "30848adf2733f71ae5e2ff893f85f5898028493b",
+  "changes": "Effect conversion bounds and native geometry regressions on this base",
+  "platform": "Windows x86 MSVC",
+  "profile": "stvef-mp",
+  "build": "meson compile -C meson/build/win32-dev; stvef-development, rtcw-development, wolfet-development enabled",
+  "client": {
+    "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+    "bytes": 8503808,
+    "sha256": "d7ebd41b745318cdd56b4b6cf3f586b14c559982a2a424be7c41ea0dba9dc3d4"
+  },
+  "renderers": {
+    "glx": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_glx_x86.dll",
+      "bytes": 2441216,
+      "sha256": "900a4e5c436f54db9f7c66d9fa278cdd4b5950cceeba67eb7087adb2c6649c0c"
+    },
+    "vk": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_vk_x86.dll",
+      "bytes": 2610688,
+      "sha256": "019d67cb898486cea2ae8569fab3edc11895106b938c4bae852df13d650e4a5d"
+    },
+    "rtx": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_rtx_x86.dll",
+      "bytes": 2900992,
+      "sha256": "1dc4847311cf84988fd4758977d0728a65d1a841e1eb96f3585c081a00c2591a"
+    }
+  },
+  "installation": {
+    "path": "E:\\Games\\Star Trek Voyager Elite Force\\stvoyHM.exe",
+    "bytes": 925696,
+    "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff"
+  },
+  "sources": [
+    {
+      "path": "code/renderercommon/tr_stvef_surface.h",
+      "sha256": "75824ec3691e6dd0b7ccc45c0786d7cc4df8c156b2702ccd237d6e55536e2aa8"
+    },
+    {
+      "path": "tests/stvef_surface_tests.py",
+      "sha256": "a82f8efb4acccf9986ebc795b775cd4210e3953d849e2921c43e7f59f989df93"
+    },
+    {
+      "path": "tests/stvef_surface_fixture.c",
+      "sha256": "6b38e9aaa116735d773931ebb48c7bc5b5a1bb7bcc75f6216c7828226fda68d1"
+    },
+    {
+      "path": "tests/fixtures/stvef_surface_retail.json",
+      "sha256": "301c826308b235b42af58859293e6063963e153cc613fff6bbab84972ee15ca3"
+    }
+  ],
+  "nativeGeometry": {
+    "source": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail_surface_probe.c",
+      "bytes": 3660,
+      "sha256": "e353fa56ddda55ea162c7afcd8fd565ddaaf4db9d885c2640e1778962cd05f26"
+    },
+    "binary": {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail_surface_probe.exe",
+      "bytes": 138752,
+      "sha256": "6f1dcadee8b57bcdb24442637c5112f3eb2936e0abc4b019f9689a3e80aa85bc"
+    },
+    "command": [
+      "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail_surface_probe.exe",
+      "E:\\Games\\Star Trek Voyager Elite Force\\stvoyHM.exe",
+      "geometry",
+      "ignored"
+    ],
+    "method": "Synthetic entity records through mapped retail RB_SurfaceEntity 0x476c30; deterministic PRNG in the mapped copy; direct tessellation output",
+    "fixture": "tests/fixtures/stvef_surface_retail.json",
+    "primitives": 8,
+    "cases": 56,
+    "vertices": 1651,
+    "exact": [
+      "vertex and index counts",
+      "index order",
+      "texture coordinates",
+      "color bytes"
+    ],
+    "maxPositionDifference": {
+      "MSVC": 5.8e-06,
+      "LinuxClang": 1.9e-06
+    },
+    "positionTolerance": 2e-05,
+    "alpha": "Native buffer initialized to 255 for otherwise unwritten alpha; engine entity-alpha behavior tested separately"
+  },
+  "bounds": {
+    "originalFailures": [
+      {
+        "input": "NaN cylinder bias",
+        "log": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\surface-unsafe-error.txt",
+          "bytes": 230,
+          "sha256": "f8e648a49a9cbd4c535ae27f464716f030a908ec27267bd37026a197ba80bfc7"
+        }
+      },
+      {
+        "input": "Electricity length 4294967296",
+        "log": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\surface-unsafe-length-error.txt",
+          "bytes": 238,
+          "sha256": "109b96bb042309d1429deae8e5986affdae6d4e1ac2957a30922253fe8e691e2"
+        }
+      }
+    ],
+    "fixes": [
+      "Clamp cylinder detail in floating point before conversion",
+      "Reject invalid or out-of-range electricity lengths before integer conversion and tessellation"
+    ],
+    "coverage": [
+      "NaN",
+      "positive and negative infinity",
+      "large finite bias",
+      "large accepted length",
+      "appended batches",
+      "capacity-triggered flushes",
+      "index containment",
+      "degenerate finite geometry",
+      "entity alpha",
+      "unknown type"
+    ]
+  },
+  "windowedRuns": [
+    {
+      "renderer": "glx",
+      "exit": 0,
+      "seconds": 5.828,
+      "completed": true,
+      "command": [
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "stvef-mp",
+        "+set",
+        "fs_basepath",
+        "E:/Games/Star Trek Voyager Elite Force",
+        "+set",
+        "fs_homepath",
+        "E:\\Games\\fnTech3-tests\\stvef-effects-glx",
+        "+set",
+        "r_renderer",
+        "glx",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "com_hunkMegs",
+        "256",
+        "+exec",
+        "probe.cfg"
+      ],
+      "script": "wait 60\nset timedemo 1\ndemo demo0000\nwait 10\nscreenshot fx_early\nwait 268\nscreenshot fx_shield\nwait 182\nscreenshot fx_later\nwait 3\necho SURFACE_PROBE_COMPLETE\nquit\n",
+      "events": [
+        "CL_FirstSnapshot: maps/CTF_VOY2.bsp, cgame 1377 ms, snapshot wait 2 ms",
+        "Wrote screenshots/fx_early.png",
+        "Wrote screenshots/fx_shield.png",
+        "Wrote screenshots/fx_later.png",
+        "SURFACE_PROBE_COMPLETE"
+      ],
+      "captures": [
+        {
+          "name": "fx_early.png",
+          "sha256": "bee0c27fd6c06ec1b41d641527cc2d3df0abf688d3d0df4406a5d77aa70d6d56"
+        },
+        {
+          "name": "fx_later.png",
+          "sha256": "62b0686e7ec90add128f6544a9f06d7f97e31f02fda1ba86752c3c7e3734861a"
+        },
+        {
+          "name": "fx_shield.png",
+          "sha256": "6a0d2c57a3e7c2eb291dac044146151bbf9722648e1671db7f6b384530de15bd"
+        }
+      ]
+    },
+    {
+      "renderer": "vk",
+      "exit": 0,
+      "seconds": 6.328,
+      "completed": true,
+      "command": [
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "stvef-mp",
+        "+set",
+        "fs_basepath",
+        "E:/Games/Star Trek Voyager Elite Force",
+        "+set",
+        "fs_homepath",
+        "E:\\Games\\fnTech3-tests\\stvef-effects-vk",
+        "+set",
+        "r_renderer",
+        "vk",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "com_hunkMegs",
+        "256",
+        "+exec",
+        "probe.cfg"
+      ],
+      "script": "wait 60\nset timedemo 1\ndemo demo0000\nwait 10\nscreenshot fx_early\nwait 268\nscreenshot fx_shield\nwait 182\nscreenshot fx_later\nwait 3\necho SURFACE_PROBE_COMPLETE\nquit\n",
+      "events": [
+        "CL_FirstSnapshot: maps/CTF_VOY2.bsp, cgame 2200 ms, snapshot wait 3 ms",
+        "Wrote screenshots/fx_early.png",
+        "Wrote screenshots/fx_shield.png",
+        "Wrote screenshots/fx_later.png",
+        "SURFACE_PROBE_COMPLETE"
+      ],
+      "captures": [
+        {
+          "name": "fx_early.png",
+          "sha256": "bee0c27fd6c06ec1b41d641527cc2d3df0abf688d3d0df4406a5d77aa70d6d56"
+        },
+        {
+          "name": "fx_later.png",
+          "sha256": "62b0686e7ec90add128f6544a9f06d7f97e31f02fda1ba86752c3c7e3734861a"
+        },
+        {
+          "name": "fx_shield.png",
+          "sha256": "8d5033d34dc2970608ecb165f0ea507e501dff64d999f823640d3db0f43cfe59"
+        }
+      ]
+    },
+    {
+      "renderer": "rtx",
+      "exit": 0,
+      "seconds": 3.61,
+      "completed": true,
+      "command": [
+        "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "stvef-mp",
+        "+set",
+        "fs_basepath",
+        "E:/Games/Star Trek Voyager Elite Force",
+        "+set",
+        "fs_homepath",
+        "E:\\Games\\fnTech3-tests\\stvef-effects-rtx",
+        "+set",
+        "r_renderer",
+        "rtx",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "com_hunkMegs",
+        "256",
+        "+exec",
+        "probe.cfg"
+      ],
+      "script": "wait 60\nset timedemo 1\ndemo demo0000\nwait 10\nscreenshot fx_early\nwait 268\nscreenshot fx_shield\nwait 182\nscreenshot fx_later\nwait 3\necho SURFACE_PROBE_COMPLETE\nquit\n",
+      "events": [
+        "CL_FirstSnapshot: maps/CTF_VOY2.bsp, cgame 1452 ms, snapshot wait 2 ms",
+        "Wrote screenshots/fx_early.png",
+        "Wrote screenshots/fx_shield.png",
+        "Wrote screenshots/fx_later.png",
+        "SURFACE_PROBE_COMPLETE"
+      ],
+      "captures": [
+        {
+          "name": "fx_early.png",
+          "sha256": "bee0c27fd6c06ec1b41d641527cc2d3df0abf688d3d0df4406a5d77aa70d6d56"
+        },
+        {
+          "name": "fx_later.png",
+          "sha256": "62b0686e7ec90add128f6544a9f06d7f97e31f02fda1ba86752c3c7e3734861a"
+        },
+        {
+          "name": "fx_shield.png",
+          "sha256": "8d5033d34dc2970608ecb165f0ea507e501dff64d999f823640d3db0f43cfe59"
+        }
+      ]
+    }
+  ],
+  "imageComparison": [
+    {
+      "capture": "fx_early.png",
+      "vk": {
+        "identical": true,
+        "meanAbsoluteRGBDifference": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "differentPixels": 0
+      },
+      "rtx": {
+        "identical": true,
+        "meanAbsoluteRGBDifference": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "differentPixels": 0
+      }
+    },
+    {
+      "capture": "fx_shield.png",
+      "vk": {
+        "identical": false,
+        "meanAbsoluteRGBDifference": [
+          2.0644270833333334,
+          4.156891276041667,
+          5.041875
+        ],
+        "differentPixels": 185844
+      },
+      "rtx": {
+        "identical": false,
+        "meanAbsoluteRGBDifference": [
+          2.0644270833333334,
+          4.156891276041667,
+          5.041875
+        ],
+        "differentPixels": 185844
+      }
+    },
+    {
+      "capture": "fx_later.png",
+      "vk": {
+        "identical": true,
+        "meanAbsoluteRGBDifference": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "differentPixels": 0
+      },
+      "rtx": {
+        "identical": true,
+        "meanAbsoluteRGBDifference": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "differentPixels": 0
+      }
+    }
+  ],
+  "validation": {
+    "focusedWindows": {
+      "tests": 16,
+      "failed": 0,
+      "command": "PYTHONPATH=tests python -m unittest stvef_surface_tests stvef_mdr_render_tests stvef_forced_alpha_tests stvef_environment_map_tests rtcw_light_tests"
+    },
+    "focusedLinux": {
+      "tests": 1,
+      "failed": 0,
+      "renderers": 3,
+      "distribution": "Ubuntu via WSL",
+      "compiler": "Clang x86",
+      "sanitizers": "address,undefined,float-cast-overflow",
+      "command": "PYTHONPATH=tests python3 -m unittest stvef_surface_tests"
+    },
+    "fullSuite": {
+      "passed": 120,
+      "skipped": 2,
+      "failed": 0
+    },
+    "log": ".tmp/stvef-gaps/effects-complete-suite.log",
+    "pythonTests": 1842,
+    "pythonSkipped": 72
+  },
+  "limits": [
+    "No general sanitization claim for all effect fields",
+    "Shield captures have unsynchronized wall-clock random waveforms and differ in intensity",
+    "Full image parity, broader shadow coverage and audible movie parity remain open",
+    "Windowed isolated writable homes; no input control or OS capture"
+  ],
+  "rendererValidationCorrection": {
+    "date": "2026-09-21",
+    "actualFnTech3LiveRenderer": "glx",
+    "reason": "The probe used r_renderer, but the engine selector is cl_renderer. The retained Vulkan/RTX labels are intended cases, not observed backends.",
+    "invalidatedClaims": [
+      "Live Vulkan/RTX coverage",
+      "Cross-backend image equality or differences"
+    ],
+    "unaffectedEvidence": [
+      "Source inspection",
+      "Native mathematical comparisons",
+      "Compiled fixtures",
+      "Actual GLx live results"
+    ],
+    "followup": "../2026-09-21-stvef-renderer-verification.md"
+  }
+}

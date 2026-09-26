@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <array>
 #include <cstring>
+#include <type_traits>
 
 namespace {
 
@@ -426,6 +427,7 @@ SV_AllocClients
 */
 static void SV_AllocClients( int count )
 {
+	static_assert( std::is_trivial_v<client_t>, "Client storage must support zero initialization" );
 	svs.clients = SV_ZTagMallocArray<client_t>( count, TAG_CLIENTS );
 	sv.maxclients = count;
 	for ( client_t &client : SV_Clients() ) {
@@ -748,8 +750,12 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 
 	// set nextmap to the same map, but it may be overridden
 	// by the game startup or another console command
-	// Alice's already names this map, as `map <whole argument>`.
-	if ( !Com_GameIsRitual() ) {
+	// Alice's already names this map, as `map <whole argument>`. EF SP reloads
+	// the map in full (stvoy.exe 1.20, 0x425a52): it has no multiplayer
+	// map_restart command and must reinitialize both DLL halves.
+	if ( Com_GameIsSTVEFSP() ) {
+		Cvar_Set( "nextmap", va( "map %s", mapname ) );
+	} else if ( !Com_GameIsRitual() ) {
 		Cvar_Set( "nextmap", "map_restart 0" );
 	}
 //	Cvar_Set( "nextmap", va("map %s", server) );
@@ -847,8 +853,12 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	// to load during actual gameplay
 	sv.state = SS_LOADING;
 
-	// make sure that level time is not zero
-	//sv.time = sv.time ? sv.time : 8;
+	// Retail Elite Force SP starts each level at 1000 (stvoy.exe 1.20,
+	// 0x425ac9). Its delayed reference tags can truncate a fractional delay
+	// to the initial time; zero means no think and leaves camera tags absent.
+	if ( Com_GameIsSTVEFSP() ) {
+		sv.time = 1000;
+	}
 
 	// load and spawn all other entities
 	if ( Com_GameIsQuake3IHV() ) {

@@ -128,6 +128,8 @@ int main() {
        with Elite Force, and no stale compat flag relabels it. */
     Check(NETCHAN_WIRE_ALICE,false,false,false,0,1);
     Check(NETCHAN_WIRE_ALICE,false,true,true,0,1);
+    Check(NETCHAN_WIRE_IOEF,false,false,false,0,26);
+    Check(NETCHAN_WIRE_IOEF,false,true,true,0,26);
 }
 '''
         scratch = ROOT / ".tmp"

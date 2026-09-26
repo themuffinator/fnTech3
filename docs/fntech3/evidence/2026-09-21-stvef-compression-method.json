@@ -1,0 +1,4129 @@
+{
+  "dateUTC": "2026-09-21T07:41:27.083572+00:00",
+  "sourceCommit": "891d694283cbb7206caf6863a2c420f43154faed",
+  "baselineCommit": "d1e42e98894666ff41c275b370700b16c481b5c3",
+  "worktree": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3",
+  "branch": "codex/stvef-support",
+  "sources": [
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\renderercommon\\tr_stvef_cvars.h",
+      "bytes": 923,
+      "sha256": "4a84ff895324c272e489011c4421b7410f51476745786d7518fcff72d54441dd"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\renderercommon\\tr_stvef_compression.h",
+      "bytes": 2409,
+      "sha256": "ebd6dc2a394aabb59643bffe703484f514822c430acab55596e338920c627d82"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\renderer\\tr_init.c",
+      "bytes": 154189,
+      "sha256": "ef43b77073ddafc30260b500405aac160ed8eb383fd3ee9251b11ea3db0b20ac"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\renderervk\\tr_init.c",
+      "bytes": 157757,
+      "sha256": "2c6632e85889ad901c19314e19904e7370368bb250e6d51d327f11e02764e255"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\rendererrtx\\tr_init.c",
+      "bytes": 182394,
+      "sha256": "a415b866a5ea5e87ec9fe321b78cef54fff5f28739d003e7a0d4db434604acdf"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\tests\\stvef_renderer_cvars_tests.py",
+      "bytes": 6857,
+      "sha256": "d7a275bc7f63e15140bab469aa01e872c26f081d44aa9f040a229e86ff21b1f5"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\tests\\stvef_compression_policy_tests.py",
+      "bytes": 5263,
+      "sha256": "8b40fd2e630839d6329cfc630f6cb2a2ba8f4f5a6d68a601b1fcea27d18a4135"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\tests\\fixtures\\stvef_compression_policy_retail.json",
+      "bytes": 53981,
+      "sha256": "c12b9153dc3bf13998ff78fdb60fc486a7d7f7ce706de17fc8e3231b30d1d365"
+    }
+  ],
+  "sourceNote": "Renderer binaries were built from the exact production contents later committed as 891d694. Executables are unchanged from the startup-frame build.",
+  "nativeReferences": [
+    {
+      "path": "E:\\Games\\Star Trek Voyager Elite Force\\stvoy.exe",
+      "bytes": 675840,
+      "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74"
+    },
+    {
+      "path": "E:\\Games\\Star Trek Voyager Elite Force\\stvoyHM.exe",
+      "bytes": 925696,
+      "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff"
+    },
+    {
+      "path": "E:\\Games\\Star Trek Voyager Elite Force\\efuix86.dll",
+      "bytes": 458824,
+      "sha256": "35dfe9ca1a3ee20cc1d314013d1d5c281cd9ed2b68fc57b22af77bb2a0bedfb2"
+    },
+    {
+      "path": "E:\\Games\\Star Trek Voyager Elite Force\\efgamex86.dll",
+      "bytes": 999500,
+      "sha256": "c159cba671544ddcc8694887c21bbeba13fead35bbf4488c08914f66695105a9"
+    }
+  ],
+  "assets": [
+    {
+      "path": "E:\\Games\\fnTech3-tests\\efassets\\baseEF\\pak0.pk3",
+      "bytes": 566234769,
+      "sha256": "44feb77eeec4670975e3c9f6c09b930d73d12e5b586761107d20ec105c03c7ae"
+    },
+    {
+      "path": "E:\\Games\\fnTech3-tests\\efassets\\baseEF\\pak1.pk3",
+      "bytes": 6492912,
+      "sha256": "19412051c2e48d0f51c27127f38280d12401afaf53c38e3af4517768641600eb"
+    },
+    {
+      "path": "E:\\Games\\fnTech3-tests\\efassets\\baseEF\\pak2.pk3",
+      "bytes": 12408486,
+      "sha256": "8b573723b6827b38974d6da1619f485f4cd66a0ef26d06a3d0135b5e80988e39"
+    },
+    {
+      "path": "E:\\Games\\fnTech3-tests\\efassets\\baseEF\\pak3.pk3",
+      "bytes": 88885710,
+      "sha256": "6cdbbdd34276eb52f9a3d9b54a4ac95156f8abeced7eee05f26ffa85b538a175"
+    },
+    {
+      "path": "E:\\Games\\fnTech3-tests\\efassets\\baseEF\\zSTVEFtex.pk3",
+      "bytes": 839268276,
+      "sha256": "71f1c273accbcbdc5698128d99840b11505ffab9277444e82c51fb204ae31941"
+    }
+  ],
+  "nativeProbe": {
+    "method": "Execute the complete native compression method selector with owned cvars and extension strings, a printf sink, and no graphics or game startup. The native string search is unchanged.",
+    "references": [
+      {
+        "profile": "stvef-sp",
+        "executable": "stvoy.exe",
+        "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+        "selector": "0x456cc0",
+        "extensions": "0xaa10e8",
+        "enabledPointer": "0xaa1944",
+        "preferredPointer": "0xaa1a3c",
+        "compressionValue": "0xaa1908",
+        "preferredRegistration": "0x4404f7"
+      },
+      {
+        "profile": "stvef-mp",
+        "executable": "stvoyHM.exe",
+        "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+        "selector": "0x46a140",
+        "extensions": "0xad0e00",
+        "enabledPointer": "0xad1658",
+        "preferredPointer": "0xad16d8",
+        "compressionValue": "0xad1620",
+        "preferredRegistration": "0x453757"
+      }
+    ],
+    "casesPerEngine": 224,
+    "total": 448,
+    "extensionMask": {
+      "1": "GL_S3_s3tc",
+      "2": "GL_ARB_texture_compression",
+      "4": "GL_EXT_texture_compression_s3tc"
+    },
+    "commands": [
+      [
+        ".tmp/stvef-gaps/retail_compression_policy_probe.exe",
+        "E:/Games/Star Trek Voyager Elite Force/stvoy.exe",
+        "geometry",
+        "sp"
+      ],
+      [
+        ".tmp/stvef-gaps/retail_compression_policy_probe.exe",
+        "E:/Games/Star Trek Voyager Elite Force/stvoyHM.exe",
+        "geometry",
+        "mp"
+      ]
+    ],
+    "compilerFlags": [
+      "/O2",
+      "/BASE:0x10000000",
+      "/FIXED",
+      "/DYNAMICBASE:NO"
+    ],
+    "graphicsStartup": false,
+    "gameStartup": false,
+    "userInputControlled": false
+  },
+  "builds": {
+    "windows": {
+      "result": "pass",
+      "architecture": "x86",
+      "compiler": "MSVC 19.44.35222",
+      "command": [
+        "meson",
+        "compile",
+        "-C",
+        "meson/build/win32-dev"
+      ],
+      "artifacts": [
+        {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "bytes": 8522240,
+          "sha256": "9ff8014d323e881de4db19d740733af41ae7335354977b6ef85cdfe489e94b78"
+        },
+        {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.ded.exe",
+          "bytes": 2653184,
+          "sha256": "9454dd8ba50c14aa2ab3b8f89fe24fe83b40190d897361bda56050fb256b9361"
+        },
+        {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_glx_x86.dll",
+          "bytes": 2442240,
+          "sha256": "18afbceecb57352cfcb0737f0fcd841c793a7da58b671688c6eda177c337d6d7"
+        },
+        {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_vk_x86.dll",
+          "bytes": 2611712,
+          "sha256": "36f9fbc7ce4b56e0021230ed442206615b8e7fd05bc90ecc8904b59cc0f1514b"
+        },
+        {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_rtx_x86.dll",
+          "bytes": 2901504,
+          "sha256": "92020fb05e7241db13a4b1551dc6fcbe4c100209f0b832b2b5b7ecfa8c1effcf"
+        },
+        {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3-pkg.fnz",
+          "bytes": 2972513,
+          "sha256": "758ebd160bb8d8044ce513415f5972f5b48270beb1c9b77eb13ac456cf1d0cf7"
+        },
+        {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql-web.pak",
+          "bytes": 59253,
+          "sha256": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382"
+        }
+      ]
+    },
+    "linux": {
+      "result": "pass",
+      "architecture": "i686",
+      "compiler": "GCC 13.3.0",
+      "command": [
+        "meson",
+        "compile",
+        "-C",
+        ".tmp/stvef-gaps/linux-client-i686"
+      ],
+      "artifacts": [
+        {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\linux-client-i686\\fntech3",
+          "bytes": 24060680,
+          "sha256": "09e30f07ee06dccdaa175f5ccbcec54ece224f0e1370e2975a6c727e4a3cb485"
+        },
+        {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\linux-client-i686\\fnql_glx_x86.so",
+          "bytes": 8198856,
+          "sha256": "092f0da92785c955947a7e9c4c5142c8a076ab587b13ab873c40e670a920667e"
+        },
+        {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\linux-client-i686\\fnql_vk_x86.so",
+          "bytes": 7409204,
+          "sha256": "3c67e6506fba18892b3979d7fba3b942c88df837e7fefaa2dd40fbe9d3a46057"
+        },
+        {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\linux-client-i686\\fnql_rtx_x86.so",
+          "bytes": 8125040,
+          "sha256": "5358a9e45e1217707b966e130c711930faae9663e9cba232a214f8184eacddb9"
+        }
+      ],
+      "unrelatedWarnings": [
+        "Existing signedness and unused FN_STVEFScissorRect warnings"
+      ]
+    }
+  },
+  "tests": {
+    "methodSelectionsPerPlatform": 4704,
+    "cvarCasesPerPlatform": 147,
+    "profiles": 7,
+    "previousCodeFailsInAllThree": true,
+    "documentationLinks": {
+      "result": "pass",
+      "test": "ReleasePackagingTests.test_packaged_evidence_links_and_missing_target",
+      "seconds": 7.677
+    },
+    "windowsFocused": {
+      "result": "pass",
+      "pythonTests": 49,
+      "seconds": 29.077
+    },
+    "linuxFocused": {
+      "result": "pass",
+      "methodSeconds": 13.566,
+      "cvarSeconds": 17.871,
+      "sanitizers": [
+        "address",
+        "undefined"
+      ]
+    },
+    "windowsFull": {
+      "status": "passed",
+      "passed": 120,
+      "skipped": 2,
+      "failed": 0,
+      "pythonTests": 1857,
+      "pythonSkips": 72,
+      "pythonSeconds": 633.452,
+      "command": [
+        "meson",
+        "test",
+        "-C",
+        "meson/build/win32-dev",
+        "--no-rebuild",
+        "--print-errorlogs"
+      ],
+      "environment": "MSVC x86 wrapper; TEMP/TMP=.tmp/w",
+      "targets": [
+        {
+          "name": "zlib:example",
+          "result": "OK",
+          "duration": 0.1886749267578125
+        },
+        {
+          "name": "fnTech3:fnql_audio_zones",
+          "result": "OK",
+          "duration": 0.16115450859069824
+        },
+        {
+          "name": "fnTech3:fnql_audio_zone_authoring_audit",
+          "result": "OK",
+          "duration": 0.1531541347503662
+        },
+        {
+          "name": "fnTech3:fnql_audio_recovery",
+          "result": "OK",
+          "duration": 0.14515113830566406
+        },
+        {
+          "name": "fnTech3:fnql_audio_init_policy",
+          "result": "OK",
+          "duration": 0.13714981079101562
+        },
+        {
+          "name": "fnTech3:fnql_audio_occlusion",
+          "result": "OK",
+          "duration": 0.12614655494689941
+        },
+        {
+          "name": "fnTech3:fnql_audio_tone",
+          "result": "OK",
+          "duration": 0.1185150146484375
+        },
+        {
+          "name": "fnTech3:fnql_audio_voice_queue",
+          "result": "OK",
+          "duration": 0.11051511764526367
+        },
+        {
+          "name": "fnTech3:fnql_audio_loopback",
+          "result": "SKIP",
+          "duration": 0.07551264762878418
+        },
+        {
+          "name": "fnTech3:fntech3_game_profiles",
+          "result": "OK",
+          "duration": 0.05000114440917969
+        },
+        {
+          "name": "fnTech3:fntech3_game_abi_layouts",
+          "result": "OK",
+          "duration": 0.03099966049194336
+        },
+        {
+          "name": "ogg:bitwise",
+          "result": "OK",
+          "duration": 0.1966876983642578
+        },
+        {
+          "name": "ogg:framing",
+          "result": "OK",
+          "duration": 0.1851949691772461
+        },
+        {
+          "name": "fnTech3:fnql_retail_sound_compat_source",
+          "result": "OK",
+          "duration": 0.18879365921020508
+        },
+        {
+          "name": "fnTech3:fnql_audio_init_source",
+          "result": "OK",
+          "duration": 0.2461097240447998
+        },
+        {
+          "name": "fnTech3:fntech3_game_abi_adapters",
+          "result": "OK",
+          "duration": 0.18359136581420898
+        },
+        {
+          "name": "fnTech3:fnql_audio_impact_occlusion_source",
+          "result": "OK",
+          "duration": 0.2641019821166992
+        },
+        {
+          "name": "fnTech3:fnql_audio_zone_sweep_script",
+          "result": "OK",
+          "duration": 0.25759434700012207
+        },
+        {
+          "name": "fnTech3:fntech3_server_game_data",
+          "result": "OK",
+          "duration": 0.20259499549865723
+        },
+        {
+          "name": "fnTech3:fntech3_wolfet_contracts",
+          "result": "OK",
+          "duration": 0.18955230712890625
+        },
+        {
+          "name": "fnTech3:fntech3_stvef_mp3_frames",
+          "result": "OK",
+          "duration": 0.17952179908752441
+        },
+        {
+          "name": "fnTech3:fntech3_stvef_abi_layouts",
+          "result": "OK",
+          "duration": 0.1703178882598877
+        },
+        {
+          "name": "fnTech3:fntech3_stvef_vm_rounding",
+          "result": "OK",
+          "duration": 0.16231679916381836
+        },
+        {
+          "name": "fnTech3:fntech3_stvef_client_wire",
+          "result": "OK",
+          "duration": 0.15331459045410156
+        },
+        {
+          "name": "fnTech3:fntech3_stvef_render_records",
+          "result": "OK",
+          "duration": 0.14031648635864258
+        },
+        {
+          "name": "fnTech3:fntech3_wolfet_client_boundary",
+          "result": "OK",
+          "duration": 0.13231730461120605
+        },
+        {
+          "name": "fnTech3:fnql_netchan_profiles",
+          "result": "OK",
+          "duration": 0.1223134994506836
+        },
+        {
+          "name": "fnTech3:fnql_netchan_codec",
+          "result": "OK",
+          "duration": 0.11431550979614258
+        },
+        {
+          "name": "fnTech3:fnql_ql_font_text",
+          "result": "OK",
+          "duration": 0.10631632804870605
+        },
+        {
+          "name": "fnTech3:fnql_window_placement",
+          "result": "OK",
+          "duration": 0.09429359436035156
+        },
+        {
+          "name": "fnTech3:fnql_macos_support_source",
+          "result": "OK",
+          "duration": 0.17157244682312012
+        },
+        {
+          "name": "fnTech3:fnql_global_fog",
+          "result": "OK",
+          "duration": 0.1605687141418457
+        },
+        {
+          "name": "fnTech3:fnql_ql_font_source",
+          "result": "OK",
+          "duration": 0.2105715274810791
+        },
+        {
+          "name": "fnTech3:fnql_map_overbright_cap_source",
+          "result": "OK",
+          "duration": 0.20257234573364258
+        },
+        {
+          "name": "fnTech3:fnql_window_management_source",
+          "result": "OK",
+          "duration": 0.19007492065429688
+        },
+        {
+          "name": "fnTech3:fnql_menu_blur",
+          "result": "OK",
+          "duration": 0.19722199440002441
+        },
+        {
+          "name": "fnTech3:fnql_levelshot_validation",
+          "result": "OK",
+          "duration": 0.17671895027160645
+        },
+        {
+          "name": "fnTech3:fnql_bmp_loader",
+          "result": "OK",
+          "duration": 0.1337134838104248
+        },
+        {
+          "name": "fnTech3:fnql_huffman_decoder",
+          "result": "OK",
+          "duration": 0.12189388275146484
+        },
+        {
+          "name": "fnTech3:fnql_qvm_header_bounds",
+          "result": "OK",
+          "duration": 0.10819125175476074
+        },
+        {
+          "name": "fnTech3:fnql_filesystem_write_bounds",
+          "result": "OK",
+          "duration": 0.09718513488769531
+        },
+        {
+          "name": "fnTech3:fnql_global_fog_source",
+          "result": "OK",
+          "duration": 0.3318660259246826
+        },
+        {
+          "name": "fnTech3:fnql_png_loader",
+          "result": "OK",
+          "duration": 0.2168130874633789
+        },
+        {
+          "name": "fnTech3:fnql_renderer_port_safety_source",
+          "result": "OK",
+          "duration": 0.30686330795288086
+        },
+        {
+          "name": "fnTech3:fnql_untrusted_asset_bounds_source",
+          "result": "OK",
+          "duration": 0.2978639602661133
+        },
+        {
+          "name": "fnTech3:fnql_surface_geometry_limits_source",
+          "result": "OK",
+          "duration": 0.2888636589050293
+        },
+        {
+          "name": "fnTech3:fntech3_steam_paths",
+          "result": "OK",
+          "duration": 0.6029691696166992
+        },
+        {
+          "name": "fnTech3:fnql_menu_blur_source",
+          "result": "OK",
+          "duration": 0.33086395263671875
+        },
+        {
+          "name": "fnTech3:fntech3_application_icons",
+          "result": "OK",
+          "duration": 0.45687246322631836
+        },
+        {
+          "name": "fnTech3:fntech3_unzip",
+          "result": "OK",
+          "duration": 0.24178409576416016
+        },
+        {
+          "name": "fnTech3:fnql_netchan_safety",
+          "result": "OK",
+          "duration": 0.23064637184143066
+        },
+        {
+          "name": "fnTech3:fnql_input_compat",
+          "result": "OK",
+          "duration": 0.21964597702026367
+        },
+        {
+          "name": "fnTech3:fnql_client_cvar_compat",
+          "result": "OK",
+          "duration": 0.20864367485046387
+        },
+        {
+          "name": "fnTech3:fnql_client_cvar_compat_source",
+          "result": "OK",
+          "duration": 0.2565438747406006
+        },
+        {
+          "name": "fnTech3:fnql_server_cvar_compat",
+          "result": "OK",
+          "duration": 0.2405378818511963
+        },
+        {
+          "name": "fnTech3:fnql_message_codec",
+          "result": "OK",
+          "duration": 0.21402740478515625
+        },
+        {
+          "name": "fnTech3:fnql_protocol_layout",
+          "result": "OK",
+          "duration": 0.20602703094482422
+        },
+        {
+          "name": "fnTech3:fnql_protocol_contract",
+          "result": "OK",
+          "duration": 0.14541864395141602
+        },
+        {
+          "name": "fnTech3:fnql_server_cvar_compat_source",
+          "result": "OK",
+          "duration": 0.2509753704071045
+        },
+        {
+          "name": "fnTech3:fnql_spawn_view_angle_source",
+          "result": "OK",
+          "duration": 0.243027925491333
+        },
+        {
+          "name": "fnTech3:fnql_retail_auth_challenge",
+          "result": "OK",
+          "duration": 0.18352985382080078
+        },
+        {
+          "name": "fnTech3:fnql_factory_rotation",
+          "result": "OK",
+          "duration": 0.18310189247131348
+        },
+        {
+          "name": "fnTech3:fnql_stats_session",
+          "result": "OK",
+          "duration": 0.18104267120361328
+        },
+        {
+          "name": "fnTech3:fnql_json_document",
+          "result": "OK",
+          "duration": 0.17504405975341797
+        },
+        {
+          "name": "fnTech3:fnql_factory_catalog",
+          "result": "OK",
+          "duration": 0.16704320907592773
+        },
+        {
+          "name": "fnTech3:fnql_stats_event",
+          "result": "OK",
+          "duration": 0.157545804977417
+        },
+        {
+          "name": "fnTech3:fnql_stats_report",
+          "result": "OK",
+          "duration": 0.14854812622070312
+        },
+        {
+          "name": "fnTech3:fnql_demo_stream",
+          "result": "OK",
+          "duration": 0.1605226993560791
+        },
+        {
+          "name": "fnTech3:fnql_ql_bsp_contract",
+          "result": "OK",
+          "duration": 0.15152263641357422
+        },
+        {
+          "name": "fnTech3:fnql_collision_model_parity",
+          "result": "OK",
+          "duration": 0.13952112197875977
+        },
+        {
+          "name": "fnTech3:fntech3_collision_game_contract",
+          "result": "OK",
+          "duration": 0.132521390914917
+        },
+        {
+          "name": "fnTech3:fnql_ql_demo_source",
+          "result": "OK",
+          "duration": 0.179030179977417
+        },
+        {
+          "name": "fnTech3:fnql_collision_capsule_trace",
+          "result": "OK",
+          "duration": 0.16469216346740723
+        },
+        {
+          "name": "fnTech3:fntech3_stvef_server_policy",
+          "result": "OK",
+          "duration": 0.15469026565551758
+        },
+        {
+          "name": "fnTech3:fnql_collision_model_parity_source",
+          "result": "OK",
+          "duration": 0.1736905574798584
+        },
+        {
+          "name": "fnTech3:fnql_ql_services_source",
+          "result": "OK",
+          "duration": 0.16868925094604492
+        },
+        {
+          "name": "fnTech3:fnql_ql_cvar_configstring_source",
+          "result": "OK",
+          "duration": 0.18287992477416992
+        },
+        {
+          "name": "fnTech3:fnql_join_menu_source",
+          "result": "OK",
+          "duration": 0.19087624549865723
+        },
+        {
+          "name": "fnTech3:fnql_frame_clock_source",
+          "result": "OK",
+          "duration": 0.16022849082946777
+        },
+        {
+          "name": "fnTech3:fnql_lightmap_parity_source",
+          "result": "OK",
+          "duration": 0.1542348861694336
+        },
+        {
+          "name": "fnTech3:fntech3_rtx_mdr_geometry",
+          "result": "OK",
+          "duration": 0.052182674407958984
+        },
+        {
+          "name": "fnTech3:fntech3_rtx_scene_signature",
+          "result": "OK",
+          "duration": 0.06151938438415527
+        },
+        {
+          "name": "fnTech3:fnql_steam_identity",
+          "result": "OK",
+          "duration": 0.028001070022583008
+        },
+        {
+          "name": "fnTech3:fnql_rtx_vulkan_safety_source",
+          "result": "OK",
+          "duration": 0.17122745513916016
+        },
+        {
+          "name": "fnTech3:fnql_renderer_contract_source",
+          "result": "OK",
+          "duration": 0.2247457504272461
+        },
+        {
+          "name": "fnTech3:fnql_webpak_format",
+          "result": "OK",
+          "duration": 0.03200960159301758
+        },
+        {
+          "name": "fnTech3:fnql_rtx_renderer_contract_source",
+          "result": "OK",
+          "duration": 0.2367544174194336
+        },
+        {
+          "name": "fnTech3:fnql_cvar_factory_snapshot_source",
+          "result": "OK",
+          "duration": 0.16288280487060547
+        },
+        {
+          "name": "fnTech3:fnql_webui_backend",
+          "result": "OK",
+          "duration": 0.04492831230163574
+        },
+        {
+          "name": "fnTech3:fnql_retail_factory_probe",
+          "result": "SKIP",
+          "duration": 0.1559748649597168
+        },
+        {
+          "name": "fnTech3:fnql_webui_request_schedule",
+          "result": "OK",
+          "duration": 0.03910493850708008
+        },
+        {
+          "name": "fnTech3:fnql_factory_runtime_source",
+          "result": "OK",
+          "duration": 0.20699000358581543
+        },
+        {
+          "name": "fnTech3:fnql_webui_resource_queue",
+          "result": "OK",
+          "duration": 0.044521331787109375
+        },
+        {
+          "name": "fnTech3:fnql_zmq_endpoint",
+          "result": "OK",
+          "duration": 0.061151981353759766
+        },
+        {
+          "name": "fnTech3:fnql_steam_provider_source",
+          "result": "OK",
+          "duration": 0.220611572265625
+        },
+        {
+          "name": "fnTech3:fnql_glx_logic",
+          "result": "OK",
+          "duration": 0.1446974277496338
+        },
+        {
+          "name": "fnTech3:fnql_glx_spot_shadow_source",
+          "result": "OK",
+          "duration": 0.1391439437866211
+        },
+        {
+          "name": "fnTech3:fnql_steam_identity_source",
+          "result": "OK",
+          "duration": 0.2901296615600586
+        },
+        {
+          "name": "fnTech3:fnql_rtx_raster_feature_parity_source",
+          "result": "OK",
+          "duration": 0.4603581428527832
+        },
+        {
+          "name": "fnTech3:fnql_windowed_mouse_source",
+          "result": "OK",
+          "duration": 0.5455198287963867
+        },
+        {
+          "name": "fnTech3:fnql_webpak_builder_source",
+          "result": "OK",
+          "duration": 0.25311923027038574
+        },
+        {
+          "name": "fnTech3:fnql_static_map_lights_source",
+          "result": "OK",
+          "duration": 0.16051602363586426
+        },
+        {
+          "name": "fnTech3:fnql_surface_light_proxy_source",
+          "result": "OK",
+          "duration": 0.16652321815490723
+        },
+        {
+          "name": "fnTech3:fnql_csm_shadow_cache_source",
+          "result": "OK",
+          "duration": 0.10052371025085449
+        },
+        {
+          "name": "fnTech3:fnql_csm_plan_source",
+          "result": "OK",
+          "duration": 0.09952139854431152
+        },
+        {
+          "name": "fnTech3:fnql_shadow_manager_source",
+          "result": "OK",
+          "duration": 0.09852218627929688
+        },
+        {
+          "name": "fnTech3:fnql_rtx_runtime_smoke_source",
+          "result": "OK",
+          "duration": 0.5638744831085205
+        },
+        {
+          "name": "fnTech3:fnql_vid_restart_fast_source",
+          "result": "OK",
+          "duration": 0.16904568672180176
+        },
+        {
+          "name": "fnTech3:fnql_glx_header_boundary",
+          "result": "OK",
+          "duration": 0.34070444107055664
+        },
+        {
+          "name": "fnTech3:fnql_cgame_native_bridge_source",
+          "result": "OK",
+          "duration": 0.19904065132141113
+        },
+        {
+          "name": "fnTech3:fnql_ui_native_bridge_source",
+          "result": "OK",
+          "duration": 0.19004344940185547
+        },
+        {
+          "name": "fnTech3:fnql_platform_port_safety_source",
+          "result": "OK",
+          "duration": 0.8518075942993164
+        },
+        {
+          "name": "fnTech3:fnql_renderer_cvar_compat_source",
+          "result": "OK",
+          "duration": 0.8563296794891357
+        },
+        {
+          "name": "fnTech3:fnql_fnq3_bloom_parity_source",
+          "result": "OK",
+          "duration": 0.8748106956481934
+        },
+        {
+          "name": "fnTech3:fntech3_rtx_lightmap_execution",
+          "result": "OK",
+          "duration": 1.1732566356658936
+        },
+        {
+          "name": "fnTech3:fnql_audio_zone_material_map",
+          "result": "OK",
+          "duration": 2.4415318965911865
+        },
+        {
+          "name": "fnTech3:fntech3_rtx_raster_execution",
+          "result": "OK",
+          "duration": 1.5544795989990234
+        },
+        {
+          "name": "fnTech3:fntech3_rtx_lifecycle",
+          "result": "OK",
+          "duration": 1.8058784008026123
+        },
+        {
+          "name": "fnTech3:fnql_input_system_source",
+          "result": "OK",
+          "duration": 2.1179418563842773
+        },
+        {
+          "name": "fnTech3:fntech3_rtx_transport",
+          "result": "OK",
+          "duration": 3.1175715923309326
+        },
+        {
+          "name": "fnTech3:fnql_workshop_source",
+          "result": "OK",
+          "duration": 4.008376121520996
+        },
+        {
+          "name": "fnTech3:fnql_python_source_regressions",
+          "result": "OK",
+          "duration": 634.4117422103882
+        }
+      ]
+    },
+    "fullLinuxSuiteRerun": false
+  },
+  "restartCycles": {
+    "windows": [
+      {
+        "case": "stvef-method-restart-stvef-sp-retail",
+        "profile": "stvef-sp",
+        "renderer": "retail",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 44.781,
+        "privateDesktop": true,
+        "command": [
+          "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-retail\\stvoy.exe",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-retail",
+          "+set",
+          "fs_cdpath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-retail",
+          "fs_cdpath": "E:\\Games\\fnTech3-tests\\efassets",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "s_initsound": 0,
+          "use_ff": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_hunkMegs": 256,
+          "com_zoneMegs": 128,
+          "r_ext_compressed_textures": 0,
+          "r_gamma": 1,
+          "r_picmip": 1,
+          "r_picmipmin": 1,
+          "r_picmipFilter": 0,
+          "r_bloom": 0,
+          "r_hdr": 0,
+          "r_ext_texture_filter_anisotropic": 0,
+          "r_textureMode": "GL_LINEAR_MIPMAP_NEAREST",
+          "com_maxfps": 60,
+          "com_maxfpsUnfocused": 60,
+          "com_maxfpsMinimized": 60,
+          "fs_debug": 0,
+          "net_enabled": 0,
+          "cl_motd": 0
+        },
+        "script": "wait 60\nset sv_pure 0\nset sv_maxclients 4\ndevmap tutorial\nwait 120\necho COMPRESSION_PHASE_default\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_default\nwait 3\nset r_ext_preferred_tc_method 1\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_legacy\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_legacy\nwait 3\nset r_ext_preferred_tc_method 2\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_arb\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_arb\nwait 3\nset r_ext_preferred_tc_method -7\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_invalid\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_invalid\nwait 3\nset r_ext_preferred_tc_method 0\nset r_ext_compress_textures 0.5\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_fraction\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_fraction\nwait 3\nset r_ext_preferred_tc_method 0\nset r_ext_compress_textures 0\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_off\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_off\nwait 3\nset r_ext_preferred_tc_method 0\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_restored\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_restored\nwait 3\necho COMPRESSION_RESTART_COMPLETE\nquit\n",
+        "executable": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-retail\\stvoy.exe",
+          "bytes": 675840,
+          "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74"
+        },
+        "rendererBinary": null,
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-retail\\baseEF\\qconsole.log",
+          "bytes": 295055,
+          "sha256": "961c5a20e484cc89ba9793746af9bd343f3c912f365acfe82fc5cf7bd9e17518"
+        },
+        "config": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-retail\\baseEF\\efconfig.cfg",
+          "bytes": 4300,
+          "sha256": "28653361697ea960f7ee636d07b741972c7edaf57390fe7fc7a54f2ff972c8a9"
+        },
+        "completed": true,
+        "verifiedRenderer": true,
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-retail\\baseEF\\screenshots\\compression_arb.tga",
+            "bytes": 921618,
+            "sha256": "6e508edda063e2a0bc2e9710e9a9abea638dce3ab9ddd78f114cc4de144d9b1a"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-retail\\baseEF\\screenshots\\compression_default.tga",
+            "bytes": 921618,
+            "sha256": "abc77836d8638cbe713599d6411e010e652570ad905418af4d208a101f66e290"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-retail\\baseEF\\screenshots\\compression_fraction.tga",
+            "bytes": 921618,
+            "sha256": "6e508edda063e2a0bc2e9710e9a9abea638dce3ab9ddd78f114cc4de144d9b1a"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-retail\\baseEF\\screenshots\\compression_invalid.tga",
+            "bytes": 921618,
+            "sha256": "6e508edda063e2a0bc2e9710e9a9abea638dce3ab9ddd78f114cc4de144d9b1a"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-retail\\baseEF\\screenshots\\compression_legacy.tga",
+            "bytes": 921618,
+            "sha256": "6e508edda063e2a0bc2e9710e9a9abea638dce3ab9ddd78f114cc4de144d9b1a"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-retail\\baseEF\\screenshots\\compression_off.tga",
+            "bytes": 921618,
+            "sha256": "61d02cdbafb26c010e06f2bcdb80dd39bdd5f10911c108828ba60c76270356d1"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-retail\\baseEF\\screenshots\\compression_restored.tga",
+            "bytes": 921618,
+            "sha256": "6e508edda063e2a0bc2e9710e9a9abea638dce3ab9ddd78f114cc4de144d9b1a"
+          }
+        ],
+        "events": [
+          "compressed textures: enabled",
+          "texture compression method: GL_EXT_texture_compression_s3tc",
+          "^1Error streaming file music/elite8.mp3: MP3ERR: Decoder unable to convert to current game audio settings",
+          "COMPRESSION_PHASE_default ",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "texture compression method: GL_EXT_texture_compression_s3tc",
+          "Wrote screenshots/compression_default.tga",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "texture compression method: GL_S3_s3tc",
+          "^1Error streaming file music/elite8.mp3: MP3ERR: Decoder unable to convert to current game audio settings",
+          "COMPRESSION_PHASE_legacy ",
+          "\"r_ext_preferred_tc_method\" is:\"1^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "texture compression method: GL_S3_s3tc",
+          "Wrote screenshots/compression_legacy.tga",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"1^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "texture compression method: GL_EXT_texture_compression_s3tc",
+          "^1Error streaming file music/elite8.mp3: MP3ERR: Decoder unable to convert to current game audio settings",
+          "COMPRESSION_PHASE_arb ",
+          "\"r_ext_preferred_tc_method\" is:\"2^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "texture compression method: GL_EXT_texture_compression_s3tc",
+          "Wrote screenshots/compression_arb.tga",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"2^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "texture compression method: GL_EXT_texture_compression_s3tc",
+          "^1Error streaming file music/elite8.mp3: MP3ERR: Decoder unable to convert to current game audio settings",
+          "COMPRESSION_PHASE_invalid ",
+          "\"r_ext_preferred_tc_method\" is:\"-7^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "texture compression method: GL_EXT_texture_compression_s3tc",
+          "Wrote screenshots/compression_invalid.tga",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"-7^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "texture compression method: GL_EXT_texture_compression_s3tc",
+          "^1Error streaming file music/elite8.mp3: MP3ERR: Decoder unable to convert to current game audio settings",
+          "COMPRESSION_PHASE_fraction ",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0.5^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "texture compression method: GL_EXT_texture_compression_s3tc",
+          "Wrote screenshots/compression_fraction.tga",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0.5^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "texture compression method: None",
+          "^1Error streaming file music/elite8.mp3: MP3ERR: Decoder unable to convert to current game audio settings",
+          "COMPRESSION_PHASE_off ",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "texture compression method: None",
+          "Wrote screenshots/compression_off.tga",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "texture compression method: GL_EXT_texture_compression_s3tc",
+          "^1Error streaming file music/elite8.mp3: MP3ERR: Decoder unable to convert to current game audio settings",
+          "COMPRESSION_PHASE_restored ",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "texture compression method: GL_EXT_texture_compression_s3tc",
+          "Wrote screenshots/compression_restored.tga",
+          "COMPRESSION_RESTART_COMPLETE ",
+          "^1Error streaming file music/elite8.mp3: MP3ERR: Decoder unable to convert to current game audio settings",
+          "^1Error streaming file music/elite8.mp3: MP3ERR: Decoder unable to convert to current game audio settings"
+        ],
+        "graphics": [
+          "GL_VENDOR: NVIDIA Corporation",
+          "GL_RENDERER: NVIDIA GeForce RTX 4060 Laptop GPU/PCIe/SSE2",
+          "GL_VERSION: 4.6.0 NVIDIA 591.74",
+          "GL_VENDOR: NVIDIA Corporation"
+        ]
+      },
+      {
+        "case": "stvef-method-restart-stvef-sp-glx",
+        "profile": "stvef-sp",
+        "renderer": "glx",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 43.688,
+        "privateDesktop": true,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-glx",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-sp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-glx",
+          "cl_renderer": "glx",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "s_initsound": 0,
+          "use_ff": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_hunkMegs": 256,
+          "com_zoneMegs": 128,
+          "r_ext_compressed_textures": 0,
+          "r_gamma": 1,
+          "r_picmip": 1,
+          "r_picmipmin": 1,
+          "r_picmipFilter": 0,
+          "r_bloom": 0,
+          "r_hdr": 0,
+          "r_ext_texture_filter_anisotropic": 0,
+          "r_textureMode": "GL_LINEAR_MIPMAP_NEAREST",
+          "com_maxfps": 60,
+          "com_maxfpsUnfocused": 60,
+          "com_maxfpsMinimized": 60,
+          "fs_debug": 0,
+          "net_enabled": 0,
+          "cl_motd": 0
+        },
+        "script": "wait 60\nset sv_pure 0\nset sv_maxclients 4\ndevmap tutorial\nwait 120\necho COMPRESSION_PHASE_default\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_default\nwait 3\nset r_ext_preferred_tc_method 1\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_legacy\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_legacy\nwait 3\nset r_ext_preferred_tc_method 2\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_arb\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_arb\nwait 3\nset r_ext_preferred_tc_method -7\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_invalid\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_invalid\nwait 3\nset r_ext_preferred_tc_method 0\nset r_ext_compress_textures 0.5\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_fraction\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_fraction\nwait 3\nset r_ext_preferred_tc_method 0\nset r_ext_compress_textures 0\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_off\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_off\nwait 3\nset r_ext_preferred_tc_method 0\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_restored\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_restored\nwait 3\nrenderer_switch\necho COMPRESSION_RESTART_COMPLETE\nquit\n",
+        "executable": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "bytes": 8522240,
+          "sha256": "9ff8014d323e881de4db19d740733af41ae7335354977b6ef85cdfe489e94b78"
+        },
+        "rendererBinary": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_glx_x86.dll",
+          "bytes": 2442240,
+          "sha256": "18afbceecb57352cfcb0737f0fcd841c793a7da58b671688c6eda177c337d6d7"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-glx\\baseEF\\qconsole.log",
+          "bytes": 271432,
+          "sha256": "31e7593614df0f62c3ea6770e1b71d386e3c4a54a4912c89d2a08d65e3cb0c32"
+        },
+        "config": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-glx\\baseEF\\efconfig.cfg",
+          "bytes": 5408,
+          "sha256": "e6ddc43cc1d3efb6aff288afff0a6ef59d6a65415a944a89c4d7364eed9c749c"
+        },
+        "completed": true,
+        "verifiedRenderer": true,
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-glx\\baseEF\\screenshots\\compression_arb.png",
+            "bytes": 922218,
+            "sha256": "474f57b2e6d7d8e6582835c4055a9b5c2c1c74856bd4f089c04663b104b804cc"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-glx\\baseEF\\screenshots\\compression_default.png",
+            "bytes": 922218,
+            "sha256": "18226d555c8faafd7e7edb56ca6bda84fc24406b4e65992b98990105bf60b895"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-glx\\baseEF\\screenshots\\compression_fraction.png",
+            "bytes": 922218,
+            "sha256": "474f57b2e6d7d8e6582835c4055a9b5c2c1c74856bd4f089c04663b104b804cc"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-glx\\baseEF\\screenshots\\compression_invalid.png",
+            "bytes": 922218,
+            "sha256": "474f57b2e6d7d8e6582835c4055a9b5c2c1c74856bd4f089c04663b104b804cc"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-glx\\baseEF\\screenshots\\compression_legacy.png",
+            "bytes": 922218,
+            "sha256": "474f57b2e6d7d8e6582835c4055a9b5c2c1c74856bd4f089c04663b104b804cc"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-glx\\baseEF\\screenshots\\compression_off.png",
+            "bytes": 922218,
+            "sha256": "36cecd20fddd3b07feac04c9885107560e33bedf763c69efa6a01092d1256a4a"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-glx\\baseEF\\screenshots\\compression_restored.png",
+            "bytes": 922218,
+            "sha256": "474f57b2e6d7d8e6582835c4055a9b5c2c1c74856bd4f089c04663b104b804cc"
+          }
+        ],
+        "events": [
+          "compressed textures: enabled",
+          "COMPRESSION_PHASE_default",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "Wrote screenshots/compression_default.png",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "COMPRESSION_PHASE_legacy",
+          "\"r_ext_preferred_tc_method\" is:\"1^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "Wrote screenshots/compression_legacy.png",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"1^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "COMPRESSION_PHASE_arb",
+          "\"r_ext_preferred_tc_method\" is:\"2^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "Wrote screenshots/compression_arb.png",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"2^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "COMPRESSION_PHASE_invalid",
+          "\"r_ext_preferred_tc_method\" is:\"-7^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "Wrote screenshots/compression_invalid.png",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"-7^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "COMPRESSION_PHASE_fraction",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0.5^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "Wrote screenshots/compression_fraction.png",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0.5^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "COMPRESSION_PHASE_off",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "Wrote screenshots/compression_off.png",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "COMPRESSION_PHASE_restored",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "Wrote screenshots/compression_restored.png",
+          "COMPRESSION_RESTART_COMPLETE"
+        ],
+        "graphics": [
+          "GL_VENDOR: NVIDIA Corporation",
+          "GL_RENDERER: NVIDIA GeForce RTX 4060 Laptop GPU/PCIe/SSE2",
+          "GL_VERSION: 4.6.0 NVIDIA 591.74",
+          "GL_VENDOR: NVIDIA Corporation"
+        ]
+      },
+      {
+        "case": "stvef-method-restart-stvef-mp-glx",
+        "profile": "stvef-mp",
+        "renderer": "glx",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 28.062,
+        "privateDesktop": true,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-mp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets-retail",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-glx",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-mp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets-retail",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-glx",
+          "cl_renderer": "glx",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "s_initsound": 0,
+          "use_ff": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_hunkMegs": 256,
+          "com_zoneMegs": 128,
+          "r_ext_compressed_textures": 0,
+          "r_gamma": 1,
+          "r_picmip": 1,
+          "r_picmipmin": 1,
+          "r_picmipFilter": 0,
+          "r_bloom": 0,
+          "r_hdr": 0,
+          "r_ext_texture_filter_anisotropic": 0,
+          "r_textureMode": "GL_LINEAR_MIPMAP_NEAREST",
+          "com_maxfps": 60,
+          "com_maxfpsUnfocused": 60,
+          "com_maxfpsMinimized": 60,
+          "fs_debug": 0,
+          "net_enabled": 0,
+          "cl_motd": 0
+        },
+        "script": "wait 60\nset sv_pure 0\nset sv_maxclients 4\ndevmap hm_borg1\nwait 120\necho COMPRESSION_PHASE_default\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_default\nwait 3\nset r_ext_preferred_tc_method 1\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_legacy\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_legacy\nwait 3\nset r_ext_preferred_tc_method 2\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_arb\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_arb\nwait 3\nset r_ext_preferred_tc_method -7\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_invalid\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_invalid\nwait 3\nset r_ext_preferred_tc_method 0\nset r_ext_compress_textures 0.5\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_fraction\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_fraction\nwait 3\nset r_ext_preferred_tc_method 0\nset r_ext_compress_textures 0\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_off\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_off\nwait 3\nset r_ext_preferred_tc_method 0\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_restored\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_restored\nwait 3\nrenderer_switch\necho COMPRESSION_RESTART_COMPLETE\nquit\n",
+        "executable": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "bytes": 8522240,
+          "sha256": "9ff8014d323e881de4db19d740733af41ae7335354977b6ef85cdfe489e94b78"
+        },
+        "rendererBinary": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_glx_x86.dll",
+          "bytes": 2442240,
+          "sha256": "18afbceecb57352cfcb0737f0fcd841c793a7da58b671688c6eda177c337d6d7"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-glx\\baseEF\\qconsole.log",
+          "bytes": 253450,
+          "sha256": "0143f2a15312ae70e5265856079e82a75723f632c86a1f74652932f0ac57ff18"
+        },
+        "config": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-glx\\baseEF\\hmconfig.cfg",
+          "bytes": 7091,
+          "sha256": "3b976ea9d35b8bdae663ea169e4d8c8d34915fcc7c2ac8bfa3ea8630f7231150"
+        },
+        "completed": true,
+        "verifiedRenderer": true,
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-glx\\baseEF\\screenshots\\compression_arb.png",
+            "bytes": 922218,
+            "sha256": "c395266fd5f2413c271ddea87df37877068e3ef318aeef3513fa6522d6823cee"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-glx\\baseEF\\screenshots\\compression_default.png",
+            "bytes": 922218,
+            "sha256": "c31dcec8336393851c6c77395f103d0c9e851591ca3ad2a8a24235b4036fb928"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-glx\\baseEF\\screenshots\\compression_fraction.png",
+            "bytes": 922218,
+            "sha256": "3f17034307be0b47bd58f4ff69717f172d2ecb546611d213b18471796532e825"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-glx\\baseEF\\screenshots\\compression_invalid.png",
+            "bytes": 922218,
+            "sha256": "d52ae06147a35b7ef621ea296d63bfcb5094792706ce3dc469b0723adeec4a6c"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-glx\\baseEF\\screenshots\\compression_legacy.png",
+            "bytes": 922218,
+            "sha256": "1f089edf7e5714826ae1e4183764cac6a603c77a06c9bae79dcf6e0d72fbb752"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-glx\\baseEF\\screenshots\\compression_off.png",
+            "bytes": 922218,
+            "sha256": "e359697052a1a532b5f25379c051040586a1f2d67b58d8afc42b244f350a78db"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-glx\\baseEF\\screenshots\\compression_restored.png",
+            "bytes": 922218,
+            "sha256": "725263e01291483d8ed265a0f7dcc0835e1add5925877c1d31865e36ae91e598"
+          }
+        ],
+        "events": [
+          "compressed textures: enabled",
+          "sv_pure will be changed upon restarting.",
+          "sv_maxclients will be changed upon restarting.",
+          "COMPRESSION_PHASE_default",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "Wrote screenshots/compression_default.png",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "COMPRESSION_PHASE_legacy",
+          "\"r_ext_preferred_tc_method\" is:\"1^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "Wrote screenshots/compression_legacy.png",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"1^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "COMPRESSION_PHASE_arb",
+          "\"r_ext_preferred_tc_method\" is:\"2^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "Wrote screenshots/compression_arb.png",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"2^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "COMPRESSION_PHASE_invalid",
+          "\"r_ext_preferred_tc_method\" is:\"-7^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "Wrote screenshots/compression_invalid.png",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"-7^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "COMPRESSION_PHASE_fraction",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0.5^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "Wrote screenshots/compression_fraction.png",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0.5^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "COMPRESSION_PHASE_off",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "Wrote screenshots/compression_off.png",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "COMPRESSION_PHASE_restored",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "Wrote screenshots/compression_restored.png",
+          "COMPRESSION_RESTART_COMPLETE"
+        ],
+        "graphics": [
+          "GL_VENDOR: NVIDIA Corporation",
+          "GL_RENDERER: NVIDIA GeForce RTX 4060 Laptop GPU/PCIe/SSE2",
+          "GL_VERSION: 4.6.0 NVIDIA 591.74",
+          "GL_VENDOR: NVIDIA Corporation"
+        ]
+      },
+      {
+        "case": "stvef-method-restart-stvef-mp-retail",
+        "profile": "stvef-mp",
+        "renderer": "retail",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 17.703,
+        "privateDesktop": true,
+        "command": [
+          "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-retail\\stvoyHM.exe",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-retail",
+          "+set",
+          "fs_cdpath",
+          "E:\\Games\\fnTech3-tests\\efassets-retail",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-retail",
+          "fs_cdpath": "E:\\Games\\fnTech3-tests\\efassets-retail",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "s_initsound": 0,
+          "use_ff": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_hunkMegs": 256,
+          "com_zoneMegs": 128,
+          "r_ext_compressed_textures": 0,
+          "r_gamma": 1,
+          "r_picmip": 1,
+          "r_picmipmin": 1,
+          "r_picmipFilter": 0,
+          "r_bloom": 0,
+          "r_hdr": 0,
+          "r_ext_texture_filter_anisotropic": 0,
+          "r_textureMode": "GL_LINEAR_MIPMAP_NEAREST",
+          "com_maxfps": 60,
+          "com_maxfpsUnfocused": 60,
+          "com_maxfpsMinimized": 60,
+          "fs_debug": 0,
+          "net_enabled": 0,
+          "cl_motd": 0
+        },
+        "script": "wait 60\nset sv_pure 0\nset sv_maxclients 4\ndevmap hm_borg1\nwait 120\necho COMPRESSION_PHASE_default\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_default\nwait 3\nset r_ext_preferred_tc_method 1\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_legacy\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_legacy\nwait 3\nset r_ext_preferred_tc_method 2\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_arb\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_arb\nwait 3\nset r_ext_preferred_tc_method -7\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_invalid\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_invalid\nwait 3\nset r_ext_preferred_tc_method 0\nset r_ext_compress_textures 0.5\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_fraction\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_fraction\nwait 3\nset r_ext_preferred_tc_method 0\nset r_ext_compress_textures 0\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_off\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_off\nwait 3\nset r_ext_preferred_tc_method 0\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_restored\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_restored\nwait 3\necho COMPRESSION_RESTART_COMPLETE\nquit\n",
+        "executable": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-retail\\stvoyHM.exe",
+          "bytes": 925696,
+          "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff"
+        },
+        "rendererBinary": null,
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-retail\\baseEF\\qconsole.log",
+          "bytes": 265989,
+          "sha256": "6b502dcb9f2799dda2f503b5c018440f174182a6cf1eec67845c0feff4761e46"
+        },
+        "config": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-retail\\baseEF\\hmconfig.cfg",
+          "bytes": 6391,
+          "sha256": "2125ccce8a5ef67cfd1c2684c23e9ae3e9661567d65db7b13c4dc8bc8a70cfcc"
+        },
+        "completed": true,
+        "verifiedRenderer": true,
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-retail\\baseEF\\screenshots\\compression_arb.tga",
+            "bytes": 921618,
+            "sha256": "18e4b467b7367a433195625c1da7449b036bf4107b577140c2f40b4e9c5487c6"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-retail\\baseEF\\screenshots\\compression_default.tga",
+            "bytes": 921618,
+            "sha256": "b0289da35afb8c8a2db643cabf014cd52c359f04575c819098947cb03b0b7010"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-retail\\baseEF\\screenshots\\compression_fraction.tga",
+            "bytes": 921618,
+            "sha256": "5367ecad29f878cf914fa90b9dc20c4ab9b211f9cd30897397f043eda773c6dd"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-retail\\baseEF\\screenshots\\compression_invalid.tga",
+            "bytes": 921618,
+            "sha256": "a9ea77d9afc1f4e0eea55393067c4299dd6b9f1814abc41120301049f6d26aaf"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-retail\\baseEF\\screenshots\\compression_legacy.tga",
+            "bytes": 921618,
+            "sha256": "d0526164c0c4eec81e9a5fcc2b21ef7a0f536185730eeb57a7ebb5065b48837b"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-retail\\baseEF\\screenshots\\compression_off.tga",
+            "bytes": 921618,
+            "sha256": "daeafde1783062c25c7a5fb79ff47108139394a89bb54588ab4c9c8778a97593"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-mp-retail\\baseEF\\screenshots\\compression_restored.tga",
+            "bytes": 921618,
+            "sha256": "bc98bee1eefe5a75f7be264245418c2fcfdebb1d7ddfe00f465f9f7aeb4c0a36"
+          }
+        ],
+        "events": [
+          "compressed textures: disabled",
+          "texture compression method: None",
+          "sv_maxclients will be changed upon restarting.",
+          "COMPRESSION_PHASE_default ",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "texture compression method: None",
+          "Wrote screenshots/compression_default.tga",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "texture compression method: None",
+          "COMPRESSION_PHASE_legacy ",
+          "\"r_ext_preferred_tc_method\" is:\"1^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "texture compression method: None",
+          "Wrote screenshots/compression_legacy.tga",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"1^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "texture compression method: None",
+          "COMPRESSION_PHASE_arb ",
+          "\"r_ext_preferred_tc_method\" is:\"2^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "texture compression method: None",
+          "Wrote screenshots/compression_arb.tga",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"2^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "texture compression method: None",
+          "COMPRESSION_PHASE_invalid ",
+          "\"r_ext_preferred_tc_method\" is:\"-7^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "texture compression method: None",
+          "Wrote screenshots/compression_invalid.tga",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"-7^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "texture compression method: None",
+          "COMPRESSION_PHASE_fraction ",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0.5^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "texture compression method: None",
+          "Wrote screenshots/compression_fraction.tga",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0.5^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "texture compression method: None",
+          "COMPRESSION_PHASE_off ",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "texture compression method: None",
+          "Wrote screenshots/compression_off.tga",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "texture compression method: None",
+          "COMPRESSION_PHASE_restored ",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "texture compression method: None",
+          "Wrote screenshots/compression_restored.tga",
+          "COMPRESSION_RESTART_COMPLETE "
+        ],
+        "graphics": [
+          "GL_VENDOR: Intel",
+          "GL_RENDERER: Intel(R) Iris(R) Xe Graphics",
+          "GL_VERSION: 4.6.0 - Build 31.0.101.5590",
+          "GL_VENDOR: Intel"
+        ]
+      },
+      {
+        "case": "stvef-method-restart-stvef-sp-vk",
+        "profile": "stvef-sp",
+        "renderer": "vk",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 38.484,
+        "privateDesktop": true,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-vk",
+          "+set",
+          "cl_renderer",
+          "vk",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-sp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-vk",
+          "cl_renderer": "vk",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "s_initsound": 0,
+          "use_ff": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_hunkMegs": 256,
+          "com_zoneMegs": 128,
+          "r_ext_compressed_textures": 0,
+          "r_gamma": 1,
+          "r_picmip": 1,
+          "r_picmipmin": 1,
+          "r_picmipFilter": 0,
+          "r_bloom": 0,
+          "r_hdr": 0,
+          "r_ext_texture_filter_anisotropic": 0,
+          "r_textureMode": "GL_LINEAR_MIPMAP_NEAREST",
+          "com_maxfps": 60,
+          "com_maxfpsUnfocused": 60,
+          "com_maxfpsMinimized": 60,
+          "fs_debug": 0,
+          "net_enabled": 0,
+          "cl_motd": 0
+        },
+        "script": "wait 60\nset sv_pure 0\nset sv_maxclients 4\ndevmap tutorial\nwait 120\necho COMPRESSION_PHASE_default\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_default\nwait 3\nset r_ext_preferred_tc_method 1\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_legacy\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_legacy\nwait 3\nset r_ext_preferred_tc_method 2\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_arb\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_arb\nwait 3\nset r_ext_preferred_tc_method -7\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_invalid\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_invalid\nwait 3\nset r_ext_preferred_tc_method 0\nset r_ext_compress_textures 0.5\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_fraction\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_fraction\nwait 3\nset r_ext_preferred_tc_method 0\nset r_ext_compress_textures 0\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_off\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_off\nwait 3\nset r_ext_preferred_tc_method 0\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_restored\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_restored\nwait 3\nrenderer_switch\necho COMPRESSION_RESTART_COMPLETE\nquit\n",
+        "executable": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "bytes": 8522240,
+          "sha256": "9ff8014d323e881de4db19d740733af41ae7335354977b6ef85cdfe489e94b78"
+        },
+        "rendererBinary": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_vk_x86.dll",
+          "bytes": 2611712,
+          "sha256": "36f9fbc7ce4b56e0021230ed442206615b8e7fd05bc90ecc8904b59cc0f1514b"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-vk\\baseEF\\qconsole.log",
+          "bytes": 271688,
+          "sha256": "497633e861027efee10cdac967125711f356fca74db6ab239bdbc4a0c874e69a"
+        },
+        "config": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-vk\\baseEF\\efconfig.cfg",
+          "bytes": 5484,
+          "sha256": "59afa9c19cc4eb1f80a4f340dec76104e8acad851d251622fae4bd531eb2ade8"
+        },
+        "completed": true,
+        "verifiedRenderer": true,
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-vk\\baseEF\\screenshots\\compression_arb.png",
+            "bytes": 922218,
+            "sha256": "a005a0aa9c73177c2ffeffb3859a0ec4717312d5e4f2243cc584f724d80bbc83"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-vk\\baseEF\\screenshots\\compression_default.png",
+            "bytes": 922218,
+            "sha256": "34d19e9541e7948887529a4f67877b59b7d97559ba1149e64428c0c8ed7925c7"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-vk\\baseEF\\screenshots\\compression_fraction.png",
+            "bytes": 922218,
+            "sha256": "a005a0aa9c73177c2ffeffb3859a0ec4717312d5e4f2243cc584f724d80bbc83"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-vk\\baseEF\\screenshots\\compression_invalid.png",
+            "bytes": 922218,
+            "sha256": "a005a0aa9c73177c2ffeffb3859a0ec4717312d5e4f2243cc584f724d80bbc83"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-vk\\baseEF\\screenshots\\compression_legacy.png",
+            "bytes": 922218,
+            "sha256": "a005a0aa9c73177c2ffeffb3859a0ec4717312d5e4f2243cc584f724d80bbc83"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-vk\\baseEF\\screenshots\\compression_off.png",
+            "bytes": 922218,
+            "sha256": "a005a0aa9c73177c2ffeffb3859a0ec4717312d5e4f2243cc584f724d80bbc83"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-vk\\baseEF\\screenshots\\compression_restored.png",
+            "bytes": 922218,
+            "sha256": "a005a0aa9c73177c2ffeffb3859a0ec4717312d5e4f2243cc584f724d80bbc83"
+          }
+        ],
+        "events": [
+          "COMPRESSION_PHASE_default",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "Wrote screenshots/compression_default.png",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "COMPRESSION_PHASE_legacy",
+          "\"r_ext_preferred_tc_method\" is:\"1^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "Wrote screenshots/compression_legacy.png",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"1^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "COMPRESSION_PHASE_arb",
+          "\"r_ext_preferred_tc_method\" is:\"2^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "Wrote screenshots/compression_arb.png",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"2^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "COMPRESSION_PHASE_invalid",
+          "\"r_ext_preferred_tc_method\" is:\"-7^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "Wrote screenshots/compression_invalid.png",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"-7^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "COMPRESSION_PHASE_fraction",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0.5^7\" default:\"1^7\"",
+          "Wrote screenshots/compression_fraction.png",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0.5^7\" default:\"1^7\"",
+          "COMPRESSION_PHASE_off",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0^7\" default:\"1^7\"",
+          "Wrote screenshots/compression_off.png",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0^7\" default:\"1^7\"",
+          "COMPRESSION_PHASE_restored",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "Wrote screenshots/compression_restored.png",
+          "COMPRESSION_RESTART_COMPLETE"
+        ],
+        "graphics": [
+          "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+          "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+          "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+          "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0"
+        ]
+      },
+      {
+        "case": "stvef-method-restart-stvef-sp-rtx",
+        "profile": "stvef-sp",
+        "renderer": "rtx",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 32.063,
+        "privateDesktop": true,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-rtx",
+          "+set",
+          "cl_renderer",
+          "rtx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-sp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-rtx",
+          "cl_renderer": "rtx",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "s_initsound": 0,
+          "use_ff": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_hunkMegs": 256,
+          "com_zoneMegs": 128,
+          "r_ext_compressed_textures": 0,
+          "r_gamma": 1,
+          "r_picmip": 1,
+          "r_picmipmin": 1,
+          "r_picmipFilter": 0,
+          "r_bloom": 0,
+          "r_hdr": 0,
+          "r_ext_texture_filter_anisotropic": 0,
+          "r_textureMode": "GL_LINEAR_MIPMAP_NEAREST",
+          "com_maxfps": 60,
+          "com_maxfpsUnfocused": 60,
+          "com_maxfpsMinimized": 60,
+          "fs_debug": 0,
+          "net_enabled": 0,
+          "cl_motd": 0
+        },
+        "script": "wait 60\nset sv_pure 0\nset sv_maxclients 4\ndevmap tutorial\nwait 120\necho COMPRESSION_PHASE_default\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_default\nwait 3\nset r_ext_preferred_tc_method 1\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_legacy\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_legacy\nwait 3\nset r_ext_preferred_tc_method 2\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_arb\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_arb\nwait 3\nset r_ext_preferred_tc_method -7\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_invalid\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_invalid\nwait 3\nset r_ext_preferred_tc_method 0\nset r_ext_compress_textures 0.5\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_fraction\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_fraction\nwait 3\nset r_ext_preferred_tc_method 0\nset r_ext_compress_textures 0\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_off\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_off\nwait 3\nset r_ext_preferred_tc_method 0\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_restored\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_restored\nwait 3\nrenderer_switch\necho COMPRESSION_RESTART_COMPLETE\nquit\n",
+        "executable": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "bytes": 8522240,
+          "sha256": "9ff8014d323e881de4db19d740733af41ae7335354977b6ef85cdfe489e94b78"
+        },
+        "rendererBinary": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_rtx_x86.dll",
+          "bytes": 2901504,
+          "sha256": "92020fb05e7241db13a4b1551dc6fcbe4c100209f0b832b2b5b7ecfa8c1effcf"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-rtx\\baseEF\\qconsole.log",
+          "bytes": 271528,
+          "sha256": "dc79064825fc49dc35c2aa0c57ca68e85eb6d696749a9fa09e77ad7b9d8eb4b3"
+        },
+        "config": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-rtx\\baseEF\\efconfig.cfg",
+          "bytes": 5485,
+          "sha256": "14d14be53ad4b590480eabad174d8c1fc7c57fb23e85346578ddbf266e3459d5"
+        },
+        "completed": true,
+        "verifiedRenderer": true,
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-rtx\\baseEF\\screenshots\\compression_arb.png",
+            "bytes": 922218,
+            "sha256": "a005a0aa9c73177c2ffeffb3859a0ec4717312d5e4f2243cc584f724d80bbc83"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-rtx\\baseEF\\screenshots\\compression_default.png",
+            "bytes": 922218,
+            "sha256": "36a4a08f07877f40b311ceecef4d6d5fbfd53d5437be3d72e063ba756d996052"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-rtx\\baseEF\\screenshots\\compression_fraction.png",
+            "bytes": 922218,
+            "sha256": "a005a0aa9c73177c2ffeffb3859a0ec4717312d5e4f2243cc584f724d80bbc83"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-rtx\\baseEF\\screenshots\\compression_invalid.png",
+            "bytes": 922218,
+            "sha256": "a005a0aa9c73177c2ffeffb3859a0ec4717312d5e4f2243cc584f724d80bbc83"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-rtx\\baseEF\\screenshots\\compression_legacy.png",
+            "bytes": 922218,
+            "sha256": "a005a0aa9c73177c2ffeffb3859a0ec4717312d5e4f2243cc584f724d80bbc83"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-rtx\\baseEF\\screenshots\\compression_off.png",
+            "bytes": 922218,
+            "sha256": "a005a0aa9c73177c2ffeffb3859a0ec4717312d5e4f2243cc584f724d80bbc83"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-method-restart-stvef-sp-rtx\\baseEF\\screenshots\\compression_restored.png",
+            "bytes": 922218,
+            "sha256": "a005a0aa9c73177c2ffeffb3859a0ec4717312d5e4f2243cc584f724d80bbc83"
+          }
+        ],
+        "events": [
+          "COMPRESSION_PHASE_default",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "Wrote screenshots/compression_default.png",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "COMPRESSION_PHASE_legacy",
+          "\"r_ext_preferred_tc_method\" is:\"1^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "Wrote screenshots/compression_legacy.png",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"1^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "COMPRESSION_PHASE_arb",
+          "\"r_ext_preferred_tc_method\" is:\"2^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "Wrote screenshots/compression_arb.png",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"2^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "COMPRESSION_PHASE_invalid",
+          "\"r_ext_preferred_tc_method\" is:\"-7^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "Wrote screenshots/compression_invalid.png",
+          "r_ext_preferred_tc_method will be changed upon restarting.",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"-7^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "COMPRESSION_PHASE_fraction",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0.5^7\" default:\"1^7\"",
+          "Wrote screenshots/compression_fraction.png",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0.5^7\" default:\"1^7\"",
+          "COMPRESSION_PHASE_off",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0^7\" default:\"1^7\"",
+          "Wrote screenshots/compression_off.png",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"0^7\" default:\"1^7\"",
+          "COMPRESSION_PHASE_restored",
+          "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "Wrote screenshots/compression_restored.png",
+          "COMPRESSION_RESTART_COMPLETE"
+        ],
+        "graphics": [
+          "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+          "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+          "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+          "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0"
+        ]
+      }
+    ],
+    "linux": {
+      "case": "stvef-method-linux-holomatch",
+      "exit": 0,
+      "seconds": 58.719,
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu",
+        "--cd",
+        "/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/.tmp/stvef-gaps/linux-client-i686",
+        "--exec",
+        "env",
+        "TMPDIR=/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/.tmp/stvef-gaps/linux-display-tmp",
+        "LIBGL_ALWAYS_SOFTWARE=1",
+        "LP_NUM_THREADS=2",
+        "timeout",
+        "90",
+        "xvfb-run",
+        "-a",
+        "-e",
+        "/mnt/e/Games/fnTech3-tests/stvef-method-linux-holomatch/xvfb.log",
+        "-s",
+        "-screen 0 640x480x24 -nolisten tcp",
+        "/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/.tmp/stvef-gaps/linux-client-i686/fntech3",
+        "+set",
+        "com_gameProfile",
+        "stvef-mp",
+        "+set",
+        "fs_basepath",
+        "/mnt/e/Games/fnTech3-tests/efassets-retail",
+        "+set",
+        "fs_homepath",
+        "/mnt/e/Games/fnTech3-tests/stvef-method-linux-holomatch",
+        "+set",
+        "cl_renderer",
+        "glx",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "3",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "0",
+        "+set",
+        "r_ext_compressed_textures",
+        "0",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "cl_motd",
+        "0",
+        "+set",
+        "com_maxfps",
+        "60",
+        "+set",
+        "com_maxfpsUnfocused",
+        "60",
+        "+set",
+        "com_maxfpsMinimized",
+        "60",
+        "+set",
+        "net_enabled",
+        "0",
+        "+set",
+        "com_hunkMegs",
+        "256",
+        "+set",
+        "com_zoneMegs",
+        "128",
+        "+set",
+        "fs_debug",
+        "0",
+        "+exec",
+        "probe.cfg"
+      ],
+      "script": "wait 60\nset sv_pure 0\nset sv_maxclients 4\ndevmap hm_borg1\nwait 120\necho COMPRESSION_PHASE_default\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_default\nwait 3\nset r_ext_preferred_tc_method 1\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_legacy\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_legacy\nwait 3\nset r_ext_preferred_tc_method 2\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_arb\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_arb\nwait 3\nset r_ext_preferred_tc_method -7\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_invalid\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_invalid\nwait 3\nset r_ext_preferred_tc_method 0\nset r_ext_compress_textures 0.5\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_fraction\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_fraction\nwait 3\nset r_ext_preferred_tc_method 0\nset r_ext_compress_textures 0\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_off\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_off\nwait 3\nset r_ext_preferred_tc_method 0\nset r_ext_compress_textures 1\nr_ext_preferred_tc_method\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_restored\nr_ext_preferred_tc_method\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_restored\nwait 3\nrenderer_switch\necho COMPRESSION_RESTART_COMPLETE\nquit\n",
+      "settings": {
+        "com_gameProfile": "stvef-mp",
+        "fs_basepath": "/mnt/e/Games/fnTech3-tests/efassets-retail",
+        "fs_homepath": "/mnt/e/Games/fnTech3-tests/stvef-method-linux-holomatch",
+        "cl_renderer": "glx",
+        "r_fullscreen": 0,
+        "r_mode": 3,
+        "in_mouse": 0,
+        "in_joystick": 0,
+        "in_nograb": 1,
+        "s_initsound": 0,
+        "logfile": 2,
+        "developer": 0,
+        "r_ext_compressed_textures": 0,
+        "com_introplayed": 1,
+        "cl_motd": 0,
+        "com_maxfps": 60,
+        "com_maxfpsUnfocused": 60,
+        "com_maxfpsMinimized": 60,
+        "net_enabled": 0,
+        "com_hunkMegs": 256,
+        "com_zoneMegs": 128,
+        "fs_debug": 0
+      },
+      "executable": {
+        "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\linux-client-i686\\fntech3",
+        "bytes": 24060680,
+        "sha256": "09e30f07ee06dccdaa175f5ccbcec54ece224f0e1370e2975a6c727e4a3cb485"
+      },
+      "log": {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-method-linux-holomatch\\baseEF\\qconsole.log",
+        "bytes": 253700,
+        "sha256": "f5d4c4ec8cd0d3ace9cb06edbf27e3a7a429dff4a82562842c92e0975f45d092"
+      },
+      "rendererBinary": {
+        "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\linux-client-i686\\fnql_glx_x86.so",
+        "bytes": 8198856,
+        "sha256": "092f0da92785c955947a7e9c4c5142c8a076ab587b13ab873c40e670a920667e"
+      },
+      "completed": true,
+      "verifiedRenderer": true,
+      "captures": [
+        {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-method-linux-holomatch\\baseEF\\screenshots\\compression_arb.png",
+          "bytes": 922218,
+          "sha256": "d5a58a204a5cbf0f600fc876b8f22632b1675c8ffd898b083454789c4f96e4f3"
+        },
+        {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-method-linux-holomatch\\baseEF\\screenshots\\compression_default.png",
+          "bytes": 922218,
+          "sha256": "d72c6ce199f10c4bbc24c4acdfa8278c68bdb6136d5e0c6ecfef14354eba3e40"
+        },
+        {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-method-linux-holomatch\\baseEF\\screenshots\\compression_fraction.png",
+          "bytes": 922218,
+          "sha256": "4cb8ce321b724327cd91b8edc00d5da745fec179b7ff2fff835e70e88d83c0d3"
+        },
+        {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-method-linux-holomatch\\baseEF\\screenshots\\compression_invalid.png",
+          "bytes": 922218,
+          "sha256": "f5e9ef1148f84e74bcb7d4ef4650737d08b5e8f944f0fb954af6466e0d04fb94"
+        },
+        {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-method-linux-holomatch\\baseEF\\screenshots\\compression_legacy.png",
+          "bytes": 922218,
+          "sha256": "21daca12785faf93b627397fc1e85790972668b14274f57af9b3f70d059eb879"
+        },
+        {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-method-linux-holomatch\\baseEF\\screenshots\\compression_off.png",
+          "bytes": 922218,
+          "sha256": "04db8a02b5700e327f1e7ba9f5f65ad2f881474feae498b875100fa5b3d76322"
+        },
+        {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-method-linux-holomatch\\baseEF\\screenshots\\compression_restored.png",
+          "bytes": 922218,
+          "sha256": "b3e2a70475cff75480b4f99a672b0e4ec6e39bdf80134d16a4c0f88b8dbd91d8"
+        }
+      ],
+      "events": [
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "compressed textures: enabled",
+        "Server: hm_borg1",
+        "COMPRESSION_PHASE_default",
+        "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+        "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "compressed textures: enabled",
+        "Wrote screenshots/compression_default.png",
+        "r_ext_preferred_tc_method will be changed upon restarting.",
+        "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+        "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "compressed textures: enabled",
+        "COMPRESSION_PHASE_legacy",
+        "\"r_ext_preferred_tc_method\" is:\"1^7\" default:\"0^7\"",
+        "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "compressed textures: enabled",
+        "Wrote screenshots/compression_legacy.png",
+        "r_ext_preferred_tc_method will be changed upon restarting.",
+        "\"r_ext_preferred_tc_method\" is:\"1^7\" default:\"0^7\"",
+        "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "compressed textures: enabled",
+        "COMPRESSION_PHASE_arb",
+        "\"r_ext_preferred_tc_method\" is:\"2^7\" default:\"0^7\"",
+        "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "compressed textures: enabled",
+        "Wrote screenshots/compression_arb.png",
+        "r_ext_preferred_tc_method will be changed upon restarting.",
+        "\"r_ext_preferred_tc_method\" is:\"2^7\" default:\"0^7\"",
+        "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "compressed textures: enabled",
+        "COMPRESSION_PHASE_invalid",
+        "\"r_ext_preferred_tc_method\" is:\"-7^7\" default:\"0^7\"",
+        "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "compressed textures: enabled",
+        "Wrote screenshots/compression_invalid.png",
+        "r_ext_preferred_tc_method will be changed upon restarting.",
+        "r_ext_compress_textures will be changed upon restarting.",
+        "\"r_ext_preferred_tc_method\" is:\"-7^7\" default:\"0^7\"",
+        "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "compressed textures: enabled",
+        "COMPRESSION_PHASE_fraction",
+        "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+        "\"r_ext_compress_textures\" is:\"0.5^7\" default:\"1^7\"",
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "compressed textures: enabled",
+        "Wrote screenshots/compression_fraction.png",
+        "r_ext_compress_textures will be changed upon restarting.",
+        "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+        "\"r_ext_compress_textures\" is:\"0.5^7\" default:\"1^7\"",
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "compressed textures: disabled",
+        "COMPRESSION_PHASE_off",
+        "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+        "\"r_ext_compress_textures\" is:\"0^7\" default:\"1^7\"",
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "compressed textures: disabled",
+        "Wrote screenshots/compression_off.png",
+        "r_ext_compress_textures will be changed upon restarting.",
+        "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+        "\"r_ext_compress_textures\" is:\"0^7\" default:\"1^7\"",
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "compressed textures: enabled",
+        "COMPRESSION_PHASE_restored",
+        "\"r_ext_preferred_tc_method\" is:\"0^7\" default:\"0^7\"",
+        "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "compressed textures: enabled",
+        "Wrote screenshots/compression_restored.png",
+        "current renderer: glx",
+        "COMPRESSION_RESTART_COMPLETE"
+      ],
+      "graphics": [
+        "GL_VENDOR: Mesa",
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "GL_VERSION: 4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.2",
+        "GL_VENDOR: Mesa"
+      ]
+    },
+    "observations": [
+      {
+        "case": "stvef-method-restart-stvef-sp-retail",
+        "phases": [
+          {
+            "phase": "default",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 11,
+              "RGBA": 0,
+              "S3TC": 0,
+              "DXT1": 324,
+              "DXT5": 146
+            },
+            "nativeMethod": "GL_EXT_texture_compression_s3tc"
+          },
+          {
+            "phase": "legacy",
+            "settings": {
+              "r_ext_preferred_tc_method": "1",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 11,
+              "RGBA": 146,
+              "S3TC": 324,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": "GL_S3_s3tc"
+          },
+          {
+            "phase": "arb",
+            "settings": {
+              "r_ext_preferred_tc_method": "2",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 11,
+              "RGBA": 0,
+              "S3TC": 0,
+              "DXT1": 324,
+              "DXT5": 146
+            },
+            "nativeMethod": "GL_EXT_texture_compression_s3tc"
+          },
+          {
+            "phase": "invalid",
+            "settings": {
+              "r_ext_preferred_tc_method": "-7",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 11,
+              "RGBA": 0,
+              "S3TC": 0,
+              "DXT1": 324,
+              "DXT5": 146
+            },
+            "nativeMethod": "GL_EXT_texture_compression_s3tc"
+          },
+          {
+            "phase": "fraction",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "0.5"
+            },
+            "formats": {
+              "RGB": 11,
+              "RGBA": 0,
+              "S3TC": 0,
+              "DXT1": 324,
+              "DXT5": 146
+            },
+            "nativeMethod": "GL_EXT_texture_compression_s3tc"
+          },
+          {
+            "phase": "off",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "0"
+            },
+            "formats": {
+              "RGB": 335,
+              "RGBA": 146,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": "None"
+          },
+          {
+            "phase": "restored",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 11,
+              "RGBA": 0,
+              "S3TC": 0,
+              "DXT1": 324,
+              "DXT5": 146
+            },
+            "nativeMethod": "GL_EXT_texture_compression_s3tc"
+          }
+        ],
+        "graphics": [
+          "GL_VENDOR: NVIDIA Corporation",
+          "GL_RENDERER: NVIDIA GeForce RTX 4060 Laptop GPU/PCIe/SSE2",
+          "GL_VERSION: 4.6.0 NVIDIA 591.74",
+          "GL_VENDOR: NVIDIA Corporation"
+        ]
+      },
+      {
+        "case": "stvef-method-restart-stvef-sp-glx",
+        "phases": [
+          {
+            "phase": "default",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 1,
+              "RGBA": 1,
+              "S3TC": 0,
+              "DXT1": 301,
+              "DXT5": 145
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "legacy",
+            "settings": {
+              "r_ext_preferred_tc_method": "1",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 1,
+              "RGBA": 146,
+              "S3TC": 301,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "arb",
+            "settings": {
+              "r_ext_preferred_tc_method": "2",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 1,
+              "RGBA": 1,
+              "S3TC": 0,
+              "DXT1": 301,
+              "DXT5": 145
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "invalid",
+            "settings": {
+              "r_ext_preferred_tc_method": "-7",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 1,
+              "RGBA": 1,
+              "S3TC": 0,
+              "DXT1": 301,
+              "DXT5": 145
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "fraction",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "0.5"
+            },
+            "formats": {
+              "RGB": 1,
+              "RGBA": 1,
+              "S3TC": 0,
+              "DXT1": 301,
+              "DXT5": 145
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "off",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "0"
+            },
+            "formats": {
+              "RGB": 302,
+              "RGBA": 146,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "restored",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 1,
+              "RGBA": 1,
+              "S3TC": 0,
+              "DXT1": 301,
+              "DXT5": 145
+            },
+            "nativeMethod": null
+          }
+        ],
+        "graphics": [
+          "GL_VENDOR: NVIDIA Corporation",
+          "GL_RENDERER: NVIDIA GeForce RTX 4060 Laptop GPU/PCIe/SSE2",
+          "GL_VERSION: 4.6.0 NVIDIA 591.74",
+          "GL_VENDOR: NVIDIA Corporation"
+        ]
+      },
+      {
+        "case": "stvef-method-restart-stvef-mp-glx",
+        "phases": [
+          {
+            "phase": "default",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 1,
+              "RGBA": 1,
+              "S3TC": 0,
+              "DXT1": 279,
+              "DXT5": 179
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "legacy",
+            "settings": {
+              "r_ext_preferred_tc_method": "1",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 1,
+              "RGBA": 180,
+              "S3TC": 279,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "arb",
+            "settings": {
+              "r_ext_preferred_tc_method": "2",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 1,
+              "RGBA": 1,
+              "S3TC": 0,
+              "DXT1": 279,
+              "DXT5": 179
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "invalid",
+            "settings": {
+              "r_ext_preferred_tc_method": "-7",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 1,
+              "RGBA": 1,
+              "S3TC": 0,
+              "DXT1": 279,
+              "DXT5": 179
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "fraction",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "0.5"
+            },
+            "formats": {
+              "RGB": 1,
+              "RGBA": 1,
+              "S3TC": 0,
+              "DXT1": 279,
+              "DXT5": 179
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "off",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "0"
+            },
+            "formats": {
+              "RGB": 280,
+              "RGBA": 180,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "restored",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 1,
+              "RGBA": 1,
+              "S3TC": 0,
+              "DXT1": 279,
+              "DXT5": 179
+            },
+            "nativeMethod": null
+          }
+        ],
+        "graphics": [
+          "GL_VENDOR: NVIDIA Corporation",
+          "GL_RENDERER: NVIDIA GeForce RTX 4060 Laptop GPU/PCIe/SSE2",
+          "GL_VERSION: 4.6.0 NVIDIA 591.74",
+          "GL_VENDOR: NVIDIA Corporation"
+        ]
+      },
+      {
+        "case": "stvef-method-restart-stvef-mp-retail",
+        "phases": [
+          {
+            "phase": "default",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 287,
+              "RGBA": 179,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": "None"
+          },
+          {
+            "phase": "legacy",
+            "settings": {
+              "r_ext_preferred_tc_method": "1",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 287,
+              "RGBA": 179,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": "None"
+          },
+          {
+            "phase": "arb",
+            "settings": {
+              "r_ext_preferred_tc_method": "2",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 287,
+              "RGBA": 179,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": "None"
+          },
+          {
+            "phase": "invalid",
+            "settings": {
+              "r_ext_preferred_tc_method": "-7",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 287,
+              "RGBA": 179,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": "None"
+          },
+          {
+            "phase": "fraction",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "0.5"
+            },
+            "formats": {
+              "RGB": 287,
+              "RGBA": 179,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": "None"
+          },
+          {
+            "phase": "off",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "0"
+            },
+            "formats": {
+              "RGB": 287,
+              "RGBA": 179,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": "None"
+          },
+          {
+            "phase": "restored",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 287,
+              "RGBA": 179,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": "None"
+          }
+        ],
+        "graphics": [
+          "GL_VENDOR: Intel",
+          "GL_RENDERER: Intel(R) Iris(R) Xe Graphics",
+          "GL_VERSION: 4.6.0 - Build 31.0.101.5590",
+          "GL_VENDOR: Intel"
+        ]
+      },
+      {
+        "case": "stvef-method-restart-stvef-sp-vk",
+        "phases": [
+          {
+            "phase": "default",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 0,
+              "RGBA": 449,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "legacy",
+            "settings": {
+              "r_ext_preferred_tc_method": "1",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 0,
+              "RGBA": 449,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "arb",
+            "settings": {
+              "r_ext_preferred_tc_method": "2",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 0,
+              "RGBA": 449,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "invalid",
+            "settings": {
+              "r_ext_preferred_tc_method": "-7",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 0,
+              "RGBA": 449,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "fraction",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "0.5"
+            },
+            "formats": {
+              "RGB": 0,
+              "RGBA": 449,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "off",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "0"
+            },
+            "formats": {
+              "RGB": 0,
+              "RGBA": 449,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "restored",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 0,
+              "RGBA": 449,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": null
+          }
+        ],
+        "graphics": [
+          "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+          "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+          "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+          "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0"
+        ]
+      },
+      {
+        "case": "stvef-method-restart-stvef-sp-rtx",
+        "phases": [
+          {
+            "phase": "default",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 0,
+              "RGBA": 447,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "legacy",
+            "settings": {
+              "r_ext_preferred_tc_method": "1",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 0,
+              "RGBA": 447,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "arb",
+            "settings": {
+              "r_ext_preferred_tc_method": "2",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 0,
+              "RGBA": 447,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "invalid",
+            "settings": {
+              "r_ext_preferred_tc_method": "-7",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 0,
+              "RGBA": 447,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "fraction",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "0.5"
+            },
+            "formats": {
+              "RGB": 0,
+              "RGBA": 447,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "off",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "0"
+            },
+            "formats": {
+              "RGB": 0,
+              "RGBA": 447,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "restored",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 0,
+              "RGBA": 447,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": null
+          }
+        ],
+        "graphics": [
+          "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+          "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+          "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+          "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0"
+        ]
+      },
+      {
+        "case": "stvef-method-linux-holomatch",
+        "phases": [
+          {
+            "phase": "default",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 1,
+              "RGBA": 1,
+              "S3TC": 0,
+              "DXT1": 279,
+              "DXT5": 179
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "legacy",
+            "settings": {
+              "r_ext_preferred_tc_method": "1",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 1,
+              "RGBA": 180,
+              "S3TC": 279,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "arb",
+            "settings": {
+              "r_ext_preferred_tc_method": "2",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 1,
+              "RGBA": 1,
+              "S3TC": 0,
+              "DXT1": 279,
+              "DXT5": 179
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "invalid",
+            "settings": {
+              "r_ext_preferred_tc_method": "-7",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 1,
+              "RGBA": 1,
+              "S3TC": 0,
+              "DXT1": 279,
+              "DXT5": 179
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "fraction",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "0.5"
+            },
+            "formats": {
+              "RGB": 1,
+              "RGBA": 1,
+              "S3TC": 0,
+              "DXT1": 279,
+              "DXT5": 179
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "off",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "0"
+            },
+            "formats": {
+              "RGB": 280,
+              "RGBA": 180,
+              "S3TC": 0,
+              "DXT1": 0,
+              "DXT5": 0
+            },
+            "nativeMethod": null
+          },
+          {
+            "phase": "restored",
+            "settings": {
+              "r_ext_preferred_tc_method": "0",
+              "r_ext_compress_textures": "1"
+            },
+            "formats": {
+              "RGB": 1,
+              "RGBA": 1,
+              "S3TC": 0,
+              "DXT1": 279,
+              "DXT5": 179
+            },
+            "nativeMethod": null
+          }
+        ],
+        "graphics": [
+          "GL_VENDOR: Mesa",
+          "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+          "GL_VERSION: 4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.2",
+          "GL_VENDOR: Mesa"
+        ]
+      }
+    ]
+  },
+  "manualStage": {
+    "manifest": {
+      "destination": "E:\\Games\\fnTech3-tests\\stvef-manual",
+      "baseCommit": "365cad710530214636b96e2ee9f141a6e25e2629",
+      "files": [
+        {
+          "name": "fntech3.exe",
+          "bytes": 8522240,
+          "sha256": "9ff8014d323e881de4db19d740733af41ae7335354977b6ef85cdfe489e94b78"
+        },
+        {
+          "name": "fnql_glx_x86.dll",
+          "bytes": 2442240,
+          "sha256": "18afbceecb57352cfcb0737f0fcd841c793a7da58b671688c6eda177c337d6d7"
+        },
+        {
+          "name": "fnql_vk_x86.dll",
+          "bytes": 2611712,
+          "sha256": "36f9fbc7ce4b56e0021230ed442206615b8e7fd05bc90ecc8904b59cc0f1514b"
+        },
+        {
+          "name": "fnql_rtx_x86.dll",
+          "bytes": 2901504,
+          "sha256": "92020fb05e7241db13a4b1551dc6fcbe4c100209f0b832b2b5b7ecfa8c1effcf"
+        },
+        {
+          "name": "fntech3-pkg.fnz",
+          "bytes": 2972513,
+          "sha256": "758ebd160bb8d8044ce513415f5972f5b48270beb1c9b77eb13ac456cf1d0cf7"
+        },
+        {
+          "name": "fnql-web.pak",
+          "bytes": 59253,
+          "sha256": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382"
+        },
+        {
+          "name": "OpenAL32.dll",
+          "bytes": 1588736,
+          "sha256": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+        },
+        {
+          "name": "COPYING.OpenAL.txt",
+          "bytes": 23330,
+          "sha256": "d808ce217e5b611854da622b57ec29fe545584c48bc5352fae72a4b6e5074a15"
+        }
+      ],
+      "inputEnabledOnlyOnManualLaunch": true,
+      "assets": "E:\\Games\\fnTech3-tests\\efassets",
+      "verifiedSourceCommit": "1feffe2227dd6a8175f82d552b3e0003cf45248c",
+      "verifiedSources": [
+        {
+          "path": "code/server/sv_init.cpp",
+          "sha256": "58a3a587f00e23a0efeebc4477c59a214253555f722f5be49f5bf84af96cc5ad"
+        },
+        {
+          "path": "code/renderer/tr_shade_calc.c",
+          "sha256": "a15929d3dfcbdf1e200353f90baacd5add9a3aa2ebb66b2a948b75adedd80e9d"
+        },
+        {
+          "path": "code/renderervk/tr_shade_calc.c",
+          "sha256": "4969494a90f31047b06b9c8258c8b63ac879b622ec0fa2ca73b7d2ae409f7550"
+        },
+        {
+          "path": "code/rendererrtx/tr_shade_calc.c",
+          "sha256": "4aa3bf64ad2d6e5aa408e6d83d3ed84cc5d149b7c21aff5e3587f7bbac142298"
+        },
+        {
+          "path": "code/renderercommon/tr_noise.c",
+          "sha256": "5ef88f48feece482efe3c96259b39e57bf6d5d40bd49d664559f2c9f64699736"
+        },
+        {
+          "path": "code/client/client_stvef_sp_cgame.hpp",
+          "sha256": "89efd1f6a372e802caccaaca88752b6b9d6209d8bc9e944b8e6b30e98a7b333a"
+        },
+        {
+          "path": "code/client/client_stvef_sp_feedback.hpp",
+          "sha256": "58a482c9a8790d33b79ba84196bc269af2f0cb3b0c6d3074dea3bd7099d17476"
+        },
+        {
+          "path": "code/client/stvef_force_feedback_native.hpp",
+          "sha256": "eaa0bf9af2b6c9d2476e1da9901b5d3aa614ba7fb62bb248a75630db47e76428"
+        },
+        {
+          "path": "code/compat/stvef_force_feedback.hpp",
+          "sha256": "6b55eb318ac790341073cd9a412b307c831a8a19f6f6e5503d690593fbc2d74e"
+        },
+        {
+          "path": "code/client/cl_main.cpp",
+          "sha256": "df0aa99e44764c424528a4901cfebc5997021bef0d1a0d0726ddcf4698aba432"
+        },
+        {
+          "path": "code/client/client.h",
+          "sha256": "c22715055c412432bc4eaffac94db62f104950a87ce0c497001944d520c576b4"
+        },
+        {
+          "path": "code/sdl/sdl_input.cpp",
+          "sha256": "1587119988af73562470056d5652da2ec2e610ba50cc6f2121a51963320707dc"
+        },
+        {
+          "path": "code/win32/win_input.cpp",
+          "sha256": "27a1bedc88f3af760ffc506923f96fdb627df7a3475767f05f538f41fc1794f4"
+        }
+      ],
+      "acceptance": "Physical input, menu save/load and rebinding, listening, force-feedback hardware and campaign-wide acceptance remain pending. The adjusted capture script aligns displayed snapshot times; packet identifiers differ and broader retail image parity remains open.",
+      "waveUpdate": "Updated engine artifacts only; existing manual profiles and launchers retained. Physical input and listening remain pending.",
+      "feedbackRuntime": {
+        "source": {
+          "path": "E:\\Games\\Star Trek Voyager Elite Force\\FFC10.dll",
+          "bytes": 126976,
+          "sha256": "d4e88d9028e86894be5c61c62c7a0f648a032032d545a37834813389d61354a3"
+        },
+        "copy": {
+          "path": "E:\\Games\\fnTech3-tests\\efassets\\FFC10.dll",
+          "bytes": 126976,
+          "sha256": "d4e88d9028e86894be5c61c62c7a0f648a032032d545a37834813389d61354a3"
+        },
+        "enabledByDefault": false
+      },
+      "feedbackUpdate": "Verified engine artifacts refreshed; homes preserved. Installed FFC10 copied to independent test assets. Launch-SP defaults use_ff to 0; optional user-operated checks documented.",
+      "sourceCommit": "891d694283cbb7206caf6863a2c420f43154faed",
+      "buildBaselineCommit": "73198b0979fcb38a5a5a61e9dfea8be7c41041d8",
+      "cadenceSourceFiles": [
+        {
+          "path": "code/server/sv_main.cpp",
+          "sha256": "cf03d77f11d6aad1961a042fae1ed00d8f498c262adb92f683643331c129b648"
+        },
+        {
+          "path": "code/server/sv_snapshot.cpp",
+          "sha256": "e0fce77e361275d4e149e15b586c87d39fc047951184430511f542316f91906c"
+        }
+      ],
+      "cadenceUpdate": "Engine artifacts refreshed after full Windows suite, focused Linux SP tests, production cadence and retail save round-trip checks. Existing manual homes, saves, launchers and settings preserved.",
+      "imageAssessmentCorrection": "Full-resolution corridor images agree across GLx/Vulkan/RTX within one channel value. The initial backend-specific contact-sheet assessment is retracted.",
+      "imageMipsSourceFiles": [
+        {
+          "path": "code/renderer/tr_image.c",
+          "sha256": "67190351ba97fe4eb9a8bf94743781320be1670eee811e6f9bb4d805890fbeca"
+        },
+        {
+          "path": "code/renderervk/tr_image.c",
+          "sha256": "4b13888874d33d78cee41918488c5386caef2a1f7b4132e5f0459fae7d8b0034"
+        },
+        {
+          "path": "code/rendererrtx/tr_image.c",
+          "sha256": "b1f3564647bc5bdc6ae942773d9408eac20ca1504e76379025c19fd13d99ed78"
+        }
+      ],
+      "imageMipsUpdate": "Engine artifacts refreshed after full Windows suite, Windows/Linux exact mip tests, six controlled GPU comparisons, and stock scene smoke checks. Existing manual homes, saves, settings and launchers preserved.",
+      "imageMipsRetainedFiles": {
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\Launch-Holomatch.cmd": {
+          "name": "Launch-Holomatch.cmd",
+          "bytes": 457,
+          "sha256": "2ccb5a4a2bd4fb2940dd355d0d8d916c3998cae98df0633ab3f7137648edde50"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\Launch-SP.cmd": {
+          "name": "Launch-SP.cmd",
+          "bytes": 471,
+          "sha256": "dc34bddd53c6dd77cef7a3455c967a25e46a21fd7851f3cc77ab73d1f0c33864"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\README.md": {
+          "name": "README.md",
+          "bytes": 3752,
+          "sha256": "9ea288a321da8ee1697e434914a1645c31b9f78b18fba86bb42a6bb686de58c3"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-mp\\baseEF\\hmconfig.cfg": {
+          "name": "hmconfig.cfg",
+          "bytes": 628,
+          "sha256": "03334c93d841eba073757e5b24b42607726eb429b0d59cdd781ebbaa459e93fb"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-mp\\baseEF\\manual-start.cfg": {
+          "name": "manual-start.cfg",
+          "bytes": 103,
+          "sha256": "f42f1f3796522b934899a83e3a23598fe5afd7c24e334992f7daaba207857a14"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\efconfig.cfg": {
+          "name": "efconfig.cfg",
+          "bytes": 628,
+          "sha256": "03334c93d841eba073757e5b24b42607726eb429b0d59cdd781ebbaa459e93fb"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\manual-start.cfg": {
+          "name": "manual-start.cfg",
+          "bytes": 25,
+          "sha256": "db8fc410afb5071121007eed57832e2e4730a7da5c57618b2138e298bca2c75b"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\saves\\mdr_scene.sav": {
+          "name": "mdr_scene.sav",
+          "bytes": 517020,
+          "sha256": "d51894ac5b58ff7fbd213f17012bc8512cfbff07935ad9f774bfa5c35d9ad59f"
+        }
+      },
+      "startupFrameSourceFiles": [
+        {
+          "path": "code/server/sv_init.cpp",
+          "sha256": "d28b2a0d55d223547f3bb40a4bbf4d7a1412ef01d9458907a29261aa2ef4608a"
+        }
+      ],
+      "startupFrameUpdate": "Engine artifacts refreshed after full Windows suite, native startup observations, seven-profile Windows/Linux checks, 66 map starts and retail save round trips. Existing manual homes, saves, settings and launchers preserved.",
+      "startupFrameRetainedFiles": {
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\Launch-Holomatch.cmd": {
+          "name": "Launch-Holomatch.cmd",
+          "bytes": 457,
+          "sha256": "2ccb5a4a2bd4fb2940dd355d0d8d916c3998cae98df0633ab3f7137648edde50"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\Launch-SP.cmd": {
+          "name": "Launch-SP.cmd",
+          "bytes": 471,
+          "sha256": "dc34bddd53c6dd77cef7a3455c967a25e46a21fd7851f3cc77ab73d1f0c33864"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\README.md": {
+          "name": "README.md",
+          "bytes": 3752,
+          "sha256": "9ea288a321da8ee1697e434914a1645c31b9f78b18fba86bb42a6bb686de58c3"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-mp\\baseEF\\hmconfig.cfg": {
+          "name": "hmconfig.cfg",
+          "bytes": 628,
+          "sha256": "03334c93d841eba073757e5b24b42607726eb429b0d59cdd781ebbaa459e93fb"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-mp\\baseEF\\manual-start.cfg": {
+          "name": "manual-start.cfg",
+          "bytes": 103,
+          "sha256": "f42f1f3796522b934899a83e3a23598fe5afd7c24e334992f7daaba207857a14"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\efconfig.cfg": {
+          "name": "efconfig.cfg",
+          "bytes": 628,
+          "sha256": "03334c93d841eba073757e5b24b42607726eb429b0d59cdd781ebbaa459e93fb"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\manual-start.cfg": {
+          "name": "manual-start.cfg",
+          "bytes": 25,
+          "sha256": "db8fc410afb5071121007eed57832e2e4730a7da5c57618b2138e298bca2c75b"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\saves\\mdr_scene.sav": {
+          "name": "mdr_scene.sav",
+          "bytes": 517020,
+          "sha256": "d51894ac5b58ff7fbd213f17012bc8512cfbff07935ad9f774bfa5c35d9ad59f"
+        }
+      },
+      "compressionControlSourceFiles": [
+        {
+          "path": "code/renderercommon/tr_stvef_cvars.h",
+          "sha256": "bcc3b47e04578938722d107597247d57ec29d1d9c5389041acaebb20bba92bc1"
+        },
+        {
+          "path": "code/renderer/tr_init.c",
+          "sha256": "ac6dd2d7551e8a6aba9a2aeceaed5ee67f6c7cca8d26818756d685970b3b4572"
+        },
+        {
+          "path": "code/renderervk/tr_init.c",
+          "sha256": "b125374a8c5390122acbdf888c6a52ee7e0f3c17694df11782815a5e024dfc55"
+        },
+        {
+          "path": "code/rendererrtx/tr_init.c",
+          "sha256": "9a0379336a64e7343e18e96f5d09cc20d3592604c51726456010fd534968565b"
+        }
+      ],
+      "compressionControlUpdate": "Renderer artifacts refreshed after full Windows suite, seven-profile Windows/Linux cvar checks, SP/Holomatch video restarts and controlled texture-format comparisons. Existing manual homes, saves, settings and launchers preserved.",
+      "compressionControlRetainedFiles": {
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\Launch-Holomatch.cmd": {
+          "name": "Launch-Holomatch.cmd",
+          "bytes": 457,
+          "sha256": "2ccb5a4a2bd4fb2940dd355d0d8d916c3998cae98df0633ab3f7137648edde50"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\Launch-SP.cmd": {
+          "name": "Launch-SP.cmd",
+          "bytes": 471,
+          "sha256": "dc34bddd53c6dd77cef7a3455c967a25e46a21fd7851f3cc77ab73d1f0c33864"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\README.md": {
+          "name": "README.md",
+          "bytes": 3752,
+          "sha256": "9ea288a321da8ee1697e434914a1645c31b9f78b18fba86bb42a6bb686de58c3"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-mp\\baseEF\\hmconfig.cfg": {
+          "name": "hmconfig.cfg",
+          "bytes": 628,
+          "sha256": "03334c93d841eba073757e5b24b42607726eb429b0d59cdd781ebbaa459e93fb"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-mp\\baseEF\\manual-start.cfg": {
+          "name": "manual-start.cfg",
+          "bytes": 103,
+          "sha256": "f42f1f3796522b934899a83e3a23598fe5afd7c24e334992f7daaba207857a14"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\efconfig.cfg": {
+          "name": "efconfig.cfg",
+          "bytes": 628,
+          "sha256": "03334c93d841eba073757e5b24b42607726eb429b0d59cdd781ebbaa459e93fb"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\manual-start.cfg": {
+          "name": "manual-start.cfg",
+          "bytes": 25,
+          "sha256": "db8fc410afb5071121007eed57832e2e4730a7da5c57618b2138e298bca2c75b"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\saves\\mdr_scene.sav": {
+          "name": "mdr_scene.sav",
+          "bytes": 517020,
+          "sha256": "d51894ac5b58ff7fbd213f17012bc8512cfbff07935ad9f774bfa5c35d9ad59f"
+        }
+      },
+      "alphaCompressionSourceFiles": [
+        {
+          "path": "code/renderer/tr_image.c",
+          "sha256": "c75671b6a14a353f3f8557830a19ed36d46083100b1d6a2245604961ec3ec29f"
+        },
+        {
+          "path": "code/renderervk/tr_image.c",
+          "sha256": "e3cde57ba16c4d4398ff71e4e60eca68c8947fe2f0e66e7d674de5f15b460c17"
+        },
+        {
+          "path": "code/rendererrtx/tr_image.c",
+          "sha256": "4b1ad88753e0edef3c4e3f28ceb6d2d0c7c3d1bc141b6d25e9645fb4771d7de3"
+        }
+      ],
+      "alphaCompressionUpdate": "Renderer artifacts refreshed after native SP/Holomatch format observations, seven-profile Windows/Linux format checks, video restarts and controlled texture comparisons. Existing manual homes, saves, settings and launchers preserved.",
+      "alphaCompressionRetainedFiles": {
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\Launch-Holomatch.cmd": {
+          "name": "Launch-Holomatch.cmd",
+          "bytes": 457,
+          "sha256": "2ccb5a4a2bd4fb2940dd355d0d8d916c3998cae98df0633ab3f7137648edde50"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\Launch-SP.cmd": {
+          "name": "Launch-SP.cmd",
+          "bytes": 471,
+          "sha256": "dc34bddd53c6dd77cef7a3455c967a25e46a21fd7851f3cc77ab73d1f0c33864"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\README.md": {
+          "name": "README.md",
+          "bytes": 3752,
+          "sha256": "9ea288a321da8ee1697e434914a1645c31b9f78b18fba86bb42a6bb686de58c3"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-mp\\baseEF\\hmconfig.cfg": {
+          "name": "hmconfig.cfg",
+          "bytes": 628,
+          "sha256": "03334c93d841eba073757e5b24b42607726eb429b0d59cdd781ebbaa459e93fb"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-mp\\baseEF\\manual-start.cfg": {
+          "name": "manual-start.cfg",
+          "bytes": 103,
+          "sha256": "f42f1f3796522b934899a83e3a23598fe5afd7c24e334992f7daaba207857a14"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\efconfig.cfg": {
+          "name": "efconfig.cfg",
+          "bytes": 628,
+          "sha256": "03334c93d841eba073757e5b24b42607726eb429b0d59cdd781ebbaa459e93fb"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\manual-start.cfg": {
+          "name": "manual-start.cfg",
+          "bytes": 25,
+          "sha256": "db8fc410afb5071121007eed57832e2e4730a7da5c57618b2138e298bca2c75b"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\saves\\mdr_scene.sav": {
+          "name": "mdr_scene.sav",
+          "bytes": 517020,
+          "sha256": "d51894ac5b58ff7fbd213f17012bc8512cfbff07935ad9f774bfa5c35d9ad59f"
+        }
+      },
+      "compressionMethodSourceFiles": [
+        {
+          "path": "code/renderer/tr_init.c",
+          "sha256": "ef43b77073ddafc30260b500405aac160ed8eb383fd3ee9251b11ea3db0b20ac"
+        },
+        {
+          "path": "code/renderervk/tr_init.c",
+          "sha256": "2c6632e85889ad901c19314e19904e7370368bb250e6d51d327f11e02764e255"
+        },
+        {
+          "path": "code/rendererrtx/tr_init.c",
+          "sha256": "a415b866a5ea5e87ec9fe321b78cef54fff5f28739d003e7a0d4db434604acdf"
+        },
+        {
+          "path": "code/renderercommon/tr_stvef_cvars.h",
+          "sha256": "4a84ff895324c272e489011c4421b7410f51476745786d7518fcff72d54441dd"
+        },
+        {
+          "path": "code/renderercommon/tr_stvef_compression.h",
+          "sha256": "ebd6dc2a394aabb59643bffe703484f514822c430acab55596e338920c627d82"
+        }
+      ],
+      "compressionMethodUpdate": "Renderer artifacts refreshed after native SP/Holomatch method observations, seven-profile Windows/Linux method and cvar checks, and video restarts. Existing manual homes, saves, settings and launchers preserved.",
+      "compressionMethodRetainedFiles": {
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\Launch-Holomatch.cmd": {
+          "name": "Launch-Holomatch.cmd",
+          "bytes": 457,
+          "sha256": "2ccb5a4a2bd4fb2940dd355d0d8d916c3998cae98df0633ab3f7137648edde50"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\Launch-SP.cmd": {
+          "name": "Launch-SP.cmd",
+          "bytes": 471,
+          "sha256": "dc34bddd53c6dd77cef7a3455c967a25e46a21fd7851f3cc77ab73d1f0c33864"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\README.md": {
+          "name": "README.md",
+          "bytes": 3752,
+          "sha256": "9ea288a321da8ee1697e434914a1645c31b9f78b18fba86bb42a6bb686de58c3"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-mp\\baseEF\\hmconfig.cfg": {
+          "name": "hmconfig.cfg",
+          "bytes": 628,
+          "sha256": "03334c93d841eba073757e5b24b42607726eb429b0d59cdd781ebbaa459e93fb"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-mp\\baseEF\\manual-start.cfg": {
+          "name": "manual-start.cfg",
+          "bytes": 103,
+          "sha256": "f42f1f3796522b934899a83e3a23598fe5afd7c24e334992f7daaba207857a14"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\efconfig.cfg": {
+          "name": "efconfig.cfg",
+          "bytes": 628,
+          "sha256": "03334c93d841eba073757e5b24b42607726eb429b0d59cdd781ebbaa459e93fb"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\manual-start.cfg": {
+          "name": "manual-start.cfg",
+          "bytes": 25,
+          "sha256": "db8fc410afb5071121007eed57832e2e4730a7da5c57618b2138e298bca2c75b"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\saves\\mdr_scene.sav": {
+          "name": "mdr_scene.sav",
+          "bytes": 517020,
+          "sha256": "d51894ac5b58ff7fbd213f17012bc8512cfbff07935ad9f774bfa5c35d9ad59f"
+        }
+      }
+    },
+    "preflight": [
+      {
+        "case": "method-manual-preflight-stvef-sp",
+        "profile": "stvef-sp",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 14.797,
+        "privateDesktop": true,
+        "command": [
+          "E:\\Games\\fnTech3-tests\\stvef-manual\\engine\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\method-manual-preflight-stvef-sp",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-sp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\method-manual-preflight-stvef-sp",
+          "cl_renderer": "glx",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "use_ff": 0,
+          "s_initsound": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_zoneMegs": 128,
+          "com_hunkMegs": 256
+        },
+        "script": "wait 60\nload mdr_scene\nwait 180\nrenderer_switch\nscreenshot preflight\nwait 3\necho METHOD_PREFLIGHT_COMPLETE\nquit\n",
+        "executable": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-manual\\engine\\fntech3.exe",
+          "bytes": 8522240,
+          "sha256": "9ff8014d323e881de4db19d740733af41ae7335354977b6ef85cdfe489e94b78"
+        },
+        "rendererBinary": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-manual\\engine\\fnql_glx_x86.dll",
+          "bytes": 2442240,
+          "sha256": "18afbceecb57352cfcb0737f0fcd841c793a7da58b671688c6eda177c337d6d7"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\method-manual-preflight-stvef-sp\\baseEF\\qconsole.log",
+          "bytes": 6708,
+          "sha256": "0f55dda2a454cf61778b17692c57848e69f1ad9b5daf87ceeb67a55e4357cd20"
+        },
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\method-manual-preflight-stvef-sp\\baseEF\\screenshots\\preflight.png",
+            "bytes": 922218,
+            "sha256": "b60c3f165224b049cbc03501653822082dd9f78d8c85bb6027ef07bb60cb500c"
+          }
+        ],
+        "completed": true,
+        "verifiedRenderer": true,
+        "graphics": [
+          "GL_VENDOR: NVIDIA Corporation",
+          "GL_RENDERER: NVIDIA GeForce RTX 4060 Laptop GPU/PCIe/SSE2",
+          "GL_VERSION: 4.6.0 NVIDIA 591.74"
+        ]
+      },
+      {
+        "case": "method-manual-preflight-stvef-mp",
+        "profile": "stvef-mp",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 14.234,
+        "privateDesktop": true,
+        "command": [
+          "E:\\Games\\fnTech3-tests\\stvef-manual\\engine\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-mp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\method-manual-preflight-stvef-mp",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-mp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\method-manual-preflight-stvef-mp",
+          "cl_renderer": "glx",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "use_ff": 0,
+          "s_initsound": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_zoneMegs": 128,
+          "com_hunkMegs": 256
+        },
+        "script": "wait 60\nset sv_pure 0\nset g_gametype 0\nset sv_maxclients 4\nmap hm_borg1\nwait 120\naddbot Munro 2\nwait 180\nrenderer_switch\nscreenshot preflight\nwait 3\necho METHOD_PREFLIGHT_COMPLETE\nquit\n",
+        "executable": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-manual\\engine\\fntech3.exe",
+          "bytes": 8522240,
+          "sha256": "9ff8014d323e881de4db19d740733af41ae7335354977b6ef85cdfe489e94b78"
+        },
+        "rendererBinary": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-manual\\engine\\fnql_glx_x86.dll",
+          "bytes": 2442240,
+          "sha256": "18afbceecb57352cfcb0737f0fcd841c793a7da58b671688c6eda177c337d6d7"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\method-manual-preflight-stvef-mp\\baseEF\\qconsole.log",
+          "bytes": 5841,
+          "sha256": "20958daf0c4a76111dcdca072e5e5b4ef9d23ebc7632c8df7cd686e1dc5253b3"
+        },
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\method-manual-preflight-stvef-mp\\baseEF\\screenshots\\preflight.png",
+            "bytes": 922218,
+            "sha256": "342f6ce3f909045a30fc25579cb6a987908bd71569593624d7d11237aeea4e7d"
+          }
+        ],
+        "completed": true,
+        "verifiedRenderer": true,
+        "graphics": [
+          "GL_VENDOR: NVIDIA Corporation",
+          "GL_RENDERER: NVIDIA GeForce RTX 4060 Laptop GPU/PCIe/SSE2",
+          "GL_VERSION: 4.6.0 NVIDIA 591.74"
+        ]
+      }
+    ],
+    "inputAcceptancePending": true
+  },
+  "evidenceFiles": [
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail_compression_policy_probe.c",
+      "bytes": 1605,
+      "sha256": "bea11756ae3162a4355f79f02d40df8554719624a9b99b2769af252d638fa5bb"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail_compression_policy_probe.exe",
+      "bytes": 138240,
+      "sha256": "5441a1e914323aaf1ed177af4f22812734d136b73fecab214b7d317ede5d5eb5"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail_math_probe.c",
+      "bytes": 9474,
+      "sha256": "106f7489a779da41074d83befa9d452e51a2d43be418decaadd1f321c703230c"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail-compression-policy-build.log",
+      "bytes": 35,
+      "sha256": "611351add7fdc002529c8f6348b9de475be886542a7341adb8a030ae88a69af6"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail-compression-policy-sp.json",
+      "bytes": 13405,
+      "sha256": "1d0cebb657c0177205baa5351f3f86656642a016be3dd5b0db9ecb6d6abe0ed0"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail-compression-policy-mp.json",
+      "bytes": 13405,
+      "sha256": "1d0cebb657c0177205baa5351f3f86656642a016be3dd5b0db9ecb6d6abe0ed0"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail-compression-policy-references.txt",
+      "bytes": 2360,
+      "sha256": "1260daff38528afb0ffbdbce78e197e2b459d85a31fa3a60b8d0cc2a0a622115"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail-compression-method-disassembly.txt",
+      "bytes": 5533,
+      "sha256": "a7a7f74a9691e33d53204fac095af271644bfae6adc061f0181c3a90a589e959"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail-compression-references.txt",
+      "bytes": 4931,
+      "sha256": "c3e5ac674af1d4a271d6b603c6e6311a08d71b3f96359a36ce7bab43ad69d713"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-method-test-before.log",
+      "bytes": 2894,
+      "sha256": "d087aa171a42debbf01df1495d2c41013f03060bb5c9d35b139115979df58470"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-method-test-after.log",
+      "bytes": 7477,
+      "sha256": "104cac28f40be774d9d19902950d495aebda19b9cfe3bbdbb411e3c4aa4f0b10"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-method-linux-test.log",
+      "bytes": 519,
+      "sha256": "ceba7276b4fe1fdb38caec7efefe186c994f3f9198718e2b62cd0c62a54f1c66"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-method-windows-build.log",
+      "bytes": 953,
+      "sha256": "9f15b5be056dad2ed098975cc498424a9c2fd79929e5931cd4422569f6f7d0c5"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-method-linux-build.log",
+      "bytes": 4530,
+      "sha256": "49b73d17f58fd1a28970bb67cbee711955cb3a5df7ca14213048e9f5a4292e03"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-method-windows-full.log",
+      "bytes": 9749,
+      "sha256": "1504330fbee4bb132c0c12a7f939f0278bca666a3636ff08cb1a57dca059f4ff"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-method-docs-check.log",
+      "bytes": 254,
+      "sha256": "284ea3faffc91dc6a0d049b4922d343b1366f01ce8121ab80a0efc0c2b861da4"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\probe_stvef_method_restart.py",
+      "bytes": 4211,
+      "sha256": "280052a9d609bdd4fa0bed5a996073fb00136bdd1d51536279da3ce361ba9c92"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\probe_linux_method.py",
+      "bytes": 3529,
+      "sha256": "d287bae630d44f0a4fa480b5d42a9c89cddf9ab59eb8b40a90edd4f7539f3471"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\refresh_stvef_method_manual.py",
+      "bytes": 2510,
+      "sha256": "175b389f1d81c3e274e1cb0cdbdc78820b5b83413e4518a61d53225e05c869cc"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\probe_method_manual_stage.py",
+      "bytes": 2801,
+      "sha256": "153a7cc11d72eb529e47c2f0b043c824fdf6682d9833bf5c4fcf4e24b4fc688b"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-method-contact.png",
+      "bytes": 598959,
+      "sha256": "bab12c2f17325c7fb3f1a48c24e6df0bb3c943b594fb668a13bd4e859aa29cef"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-method-manual-preflight.png",
+      "bytes": 256631,
+      "sha256": "4dd5c70f5ea8085deee18a6e8946d6f6412dc97d23b24922fa143239e3b30729"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\record_stvef_method.py",
+      "bytes": 8525,
+      "sha256": "7c882b55e6bea0ebdad92a95777bf85854d2438fccfa1c8e9d415517a2b2a5a7"
+    }
+  ],
+  "safety": {
+    "windowed": true,
+    "windowsPrivateDesktopNeverActivated": true,
+    "linuxPrivateXvfb": true,
+    "userInputControlled": false,
+    "mouseEnabled": false,
+    "joystickEnabled": false,
+    "forceFeedbackEnabled": false,
+    "engineScreenshotsOnly": true,
+    "realInstallationModified": false,
+    "proprietaryInputsCommitted": false
+  },
+  "limits": [
+    "Native fixtures cover valid extension tokens and the listed finite enable/preference values; they do not execute graphics startup.",
+    "The runtime scripts establish cvar latching, method and image-format selection, and restart recovery. They are not synchronized pixel comparisons.",
+    "Native SP uses NVIDIA RTX 4060/591.74; native Holomatch selects Intel Iris Xe/31.0.101.5590 and reports no supported compression method. Do not compare their pixels as equal-device captures.",
+    "Vulkan/RTX shipping upload paths remain uncompressed. Their retained OpenGL paths are compiled independently in the regression.",
+    "Native lightmap compression and texture-bit controls, localized image differences and broader renderer/campaign coverage remain open.",
+    "Physical input, menu save/load/rebinding, listening and force-feedback hardware remain unverified.",
+    "Existing asset defects, wider Linux-suite failures and Windows x86 RT-extension limits remain open."
+  ],
+  "cleanup": "Useful evidence remains in designated project/test directories. Earlier cleanup was rejected automatically as blocked by policy; no repeat cleanup attempted."
+}

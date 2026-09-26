@@ -1895,7 +1895,7 @@ void SV_AddOperatorCommands( void ) {
 	}
 	initialized = true;
 
-	static constexpr std::array<operatorCommand_t, 13> commands = {{
+	static constexpr std::array<operatorCommand_t, 12> commands = {{
 		{ "heartbeat", SV_Heartbeat_f },
 		{ "kick", SV_Kick_f },
 		{ "kickbots", SV_KickBots_f },
@@ -1904,7 +1904,6 @@ void SV_AddOperatorCommands( void ) {
 		{ "clientkick", SV_KickNum_f },
 		{ "status", SV_Status_f },
 		{ "dumpuser", SV_DumpUser_f },
-		{ "map_restart", SV_MapRestart_f },
 		{ "sectorlist", SV_SectorList_f },
 		{ "killserver", SV_KillServer_f },
 		{ "filter", SV_AddFilter_f },
@@ -1965,7 +1964,9 @@ void SV_AddOperatorCommands( void ) {
 #endif
 	if ( Com_GameIsSTVEFSP() ) {
 		// Elite Force SP's map, devmap, transitions and savegames take the
-		// place of the map commands, and it has no single-player aliases.
+		// place of the map commands. Retail has no map_restart or SP aliases
+		// (stvoy.exe 1.20 SV_AddOperatorCommands, 0x4240e0); the shared fast
+		// restart would detach its combined game/cgame without a client init.
 		SV_STVEFSPAddCommands();
 		Cmd_SetCommandCompletionFunc( "map", SV_CompleteMapName );
 		Cmd_SetCommandCompletionFunc( "devmap", SV_CompleteMapName );
@@ -1983,6 +1984,7 @@ void SV_AddOperatorCommands( void ) {
 		Cmd_SetCommandCompletionFunc( "gamemap", SV_CompleteMapName );
 		return;
 	}
+	Cmd_AddCommand( "map_restart", SV_MapRestart_f );
 	SV_AddCommandSet( mapCommands );
 	SV_SetMapCompletionForCommands( mapCommands );
 	if ( Com_GameIsMOHAA() ) {

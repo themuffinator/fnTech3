@@ -1,0 +1,3812 @@
+{
+  "dateUTC": "2026-09-21T07:17:38.203619+00:00",
+  "sourceCommit": "be1e595bcead34118b0f9b1f742004f6c2470884",
+  "baselineCommit": "392fecc3b44b0703afc92d9e3cc50d4dad290c0e",
+  "worktree": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3",
+  "branch": "codex/stvef-support",
+  "sources": [
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\renderer\\tr_image.c",
+      "bytes": 46598,
+      "sha256": "c75671b6a14a353f3f8557830a19ed36d46083100b1d6a2245604961ec3ec29f"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\renderervk\\tr_image.c",
+      "bytes": 52867,
+      "sha256": "e3cde57ba16c4d4398ff71e4e60eca68c8947fe2f0e66e7d674de5f15b460c17"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\code\\rendererrtx\\tr_image.c",
+      "bytes": 52536,
+      "sha256": "4b1ad88753e0edef3c4e3f28ceb6d2d0c7c3d1bc141b6d25e9645fb4771d7de3"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\tests\\stvef_texture_format_tests.py",
+      "bytes": 5540,
+      "sha256": "57d8f42da85b10b1a8471e9a5e83db9993b1f87c98177ba4fec15300122057da"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\tests\\fixtures\\stvef_texture_format_retail.json",
+      "bytes": 9394,
+      "sha256": "30e2e9674ae5c0535377e7af0ba09e846371a4c5518ca09ce22c3df9ddcfd38b"
+    }
+  ],
+  "sourceNote": "Renderer binaries were built from the exact production contents of be1e595 before committing them. Executables are unchanged from the startup-frame build.",
+  "nativeReferences": [
+    {
+      "path": "E:\\Games\\Star Trek Voyager Elite Force\\stvoy.exe",
+      "bytes": 675840,
+      "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74"
+    },
+    {
+      "path": "E:\\Games\\Star Trek Voyager Elite Force\\stvoyHM.exe",
+      "bytes": 925696,
+      "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff"
+    },
+    {
+      "path": "E:\\Games\\Star Trek Voyager Elite Force\\efuix86.dll",
+      "bytes": 458824,
+      "sha256": "35dfe9ca1a3ee20cc1d314013d1d5c281cd9ed2b68fc57b22af77bb2a0bedfb2"
+    },
+    {
+      "path": "E:\\Games\\Star Trek Voyager Elite Force\\efgamex86.dll",
+      "bytes": 999500,
+      "sha256": "c159cba671544ddcc8694887c21bbeba13fead35bbf4488c08914f66695105a9"
+    }
+  ],
+  "assets": [
+    {
+      "path": "E:\\Games\\fnTech3-tests\\efassets\\baseEF\\pak0.pk3",
+      "bytes": 566234769,
+      "sha256": "44feb77eeec4670975e3c9f6c09b930d73d12e5b586761107d20ec105c03c7ae"
+    },
+    {
+      "path": "E:\\Games\\fnTech3-tests\\efassets\\baseEF\\pak1.pk3",
+      "bytes": 6492912,
+      "sha256": "19412051c2e48d0f51c27127f38280d12401afaf53c38e3af4517768641600eb"
+    },
+    {
+      "path": "E:\\Games\\fnTech3-tests\\efassets\\baseEF\\pak2.pk3",
+      "bytes": 12408486,
+      "sha256": "8b573723b6827b38974d6da1619f485f4cd66a0ef26d06a3d0135b5e80988e39"
+    },
+    {
+      "path": "E:\\Games\\fnTech3-tests\\efassets\\baseEF\\pak3.pk3",
+      "bytes": 88885710,
+      "sha256": "6cdbbdd34276eb52f9a3d9b54a4ac95156f8abeced7eee05f26ffa85b538a175"
+    },
+    {
+      "path": "E:\\Games\\fnTech3-tests\\efassets\\baseEF\\zSTVEFtex.pk3",
+      "bytes": 839268276,
+      "sha256": "71f1c273accbcbdc5698128d99840b11505ffab9277444e82c51fb204ae31941"
+    }
+  ],
+  "nativeProbe": {
+    "method": "Execute only the native format-selection block with 3/4 components, no lightmap, owned cvars and a return before upload. No game or graphics startup.",
+    "references": [
+      {
+        "profile": "stvef-sp",
+        "executable": "stvoy.exe",
+        "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+        "formatStart": "0x44d7c2",
+        "formatEnd": "0x44d8ad",
+        "textureBitsPointer": "0xaa1a20",
+        "compressionValue": "0xaa1908"
+      },
+      {
+        "profile": "stvef-mp",
+        "executable": "stvoyHM.exe",
+        "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+        "formatStart": "0x460ba7",
+        "formatEnd": "0x460c92",
+        "textureBitsPointer": "0xad16bc",
+        "compressionValue": "0xad1620"
+      }
+    ],
+    "casesPerEngine": 36,
+    "total": 72,
+    "commands": [
+      [
+        ".tmp/stvef-gaps/retail_texture_format_probe.exe",
+        "E:/Games/Star Trek Voyager Elite Force/stvoy.exe",
+        "geometry",
+        "sp"
+      ],
+      [
+        ".tmp/stvef-gaps/retail_texture_format_probe.exe",
+        "E:/Games/Star Trek Voyager Elite Force/stvoyHM.exe",
+        "geometry",
+        "mp"
+      ]
+    ],
+    "compilerFlags": [
+      "/O2",
+      "/BASE:0x10000000",
+      "/FIXED",
+      "/DYNAMICBASE:NO"
+    ],
+    "graphicsStartup": false,
+    "gameStartup": false,
+    "userInputControlled": false
+  },
+  "baselineArtifacts": [
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-alpha-baseline-bin\\fntech3.exe",
+      "bytes": 8522240,
+      "sha256": "9ff8014d323e881de4db19d740733af41ae7335354977b6ef85cdfe489e94b78"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-alpha-baseline-bin\\fnql_glx_x86.dll",
+      "bytes": 2441728,
+      "sha256": "c8d83f8f64fcec52cee42cc4732c5327256957e8096816f2d2332141780ddeea"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-alpha-baseline-bin\\fnql_vk_x86.dll",
+      "bytes": 2611712,
+      "sha256": "30e864e9b9b3f3c74b4fc980600b58b01f46ec2e7675c9cee1c746d436c86f62"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-alpha-baseline-bin\\fnql_rtx_x86.dll",
+      "bytes": 2902016,
+      "sha256": "6e16792514383175c4c481ecb50b55ca01c3eb01e11ab228a021cd77a6189af0"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-alpha-baseline-bin\\fntech3-pkg.fnz",
+      "bytes": 2972513,
+      "sha256": "758ebd160bb8d8044ce513415f5972f5b48270beb1c9b77eb13ac456cf1d0cf7"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-alpha-baseline-bin\\fnql-web.pak",
+      "bytes": 59253,
+      "sha256": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382"
+    }
+  ],
+  "builds": {
+    "windows": {
+      "result": "pass",
+      "architecture": "x86",
+      "compiler": "MSVC 19.44.35222",
+      "command": [
+        "meson",
+        "compile",
+        "-C",
+        "meson/build/win32-dev"
+      ],
+      "artifacts": [
+        {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "bytes": 8522240,
+          "sha256": "9ff8014d323e881de4db19d740733af41ae7335354977b6ef85cdfe489e94b78"
+        },
+        {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.ded.exe",
+          "bytes": 2653184,
+          "sha256": "9454dd8ba50c14aa2ab3b8f89fe24fe83b40190d897361bda56050fb256b9361"
+        },
+        {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_glx_x86.dll",
+          "bytes": 2441728,
+          "sha256": "f4c51a41ad72a816b92505b8f627b75f08352c53e4ddc9a60d229e81adcb05ac"
+        },
+        {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_vk_x86.dll",
+          "bytes": 2611712,
+          "sha256": "50a91e067b5733908a569d1b9914fd6698f94c269308a2e7562d63354d34689b"
+        },
+        {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_rtx_x86.dll",
+          "bytes": 2902016,
+          "sha256": "23b659e0a9fec2ffdf9a721d42f91d59da5c0d57c68ad10c418a23b6f1f09a85"
+        },
+        {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3-pkg.fnz",
+          "bytes": 2972513,
+          "sha256": "758ebd160bb8d8044ce513415f5972f5b48270beb1c9b77eb13ac456cf1d0cf7"
+        },
+        {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql-web.pak",
+          "bytes": 59253,
+          "sha256": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382"
+        }
+      ]
+    },
+    "linux": {
+      "result": "pass",
+      "architecture": "i686",
+      "compiler": "GCC 13.3.0",
+      "command": [
+        "meson",
+        "compile",
+        "-C",
+        ".tmp/stvef-gaps/linux-client-i686"
+      ],
+      "artifacts": [
+        {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\linux-client-i686\\fntech3",
+          "bytes": 24060680,
+          "sha256": "09e30f07ee06dccdaa175f5ccbcec54ece224f0e1370e2975a6c727e4a3cb485"
+        },
+        {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\linux-client-i686\\fnql_glx_x86.so",
+          "bytes": 8197768,
+          "sha256": "17e79b6122751eeec6f888b9e95f1a6ce2ffcb8ceb71d654359954d918b6fc38"
+        },
+        {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\linux-client-i686\\fnql_vk_x86.so",
+          "bytes": 7409156,
+          "sha256": "82c840daec488e5aba79faef03352550dfd530d808e88f58fcf2f8f3c4f5ce20"
+        },
+        {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\linux-client-i686\\fnql_rtx_x86.so",
+          "bytes": 8124992,
+          "sha256": "76b3d8c7430e2ac9011c3627d4f148fc3878009e76259fe14d12b625c493c9b2"
+        }
+      ],
+      "unrelatedWarnings": [
+        "Existing signedness and unused FN_STVEFScissorRect warnings"
+      ]
+    }
+  },
+  "tests": {
+    "formatSelectionsPerPlatform": 16128,
+    "profiles": 7,
+    "glxSelections": 8064,
+    "openGLFallbackSelectionsEach": 4032,
+    "previousCodeFailsInAllThree": true,
+    "packagingRetry": {
+      "result": "pass",
+      "tests": 49,
+      "skipped": 1,
+      "seconds": 194.223
+    },
+    "windowsFocused": {
+      "result": "pass",
+      "seconds": 0.787
+    },
+    "linuxFocused": {
+      "result": "pass",
+      "seconds": 9.316,
+      "sanitizers": [
+        "address",
+        "undefined"
+      ]
+    },
+    "windowsFull": {
+      "status": "passed on retry after writing evidence",
+      "passed": 120,
+      "skipped": 2,
+      "failed": 0,
+      "pythonTests": 1856,
+      "pythonSkips": 72,
+      "pythonSeconds": 703.592,
+      "command": [
+        "meson",
+        "test",
+        "-C",
+        "meson/build/win32-dev",
+        "--no-rebuild",
+        "--print-errorlogs"
+      ],
+      "environment": "MSVC x86 wrapper; TEMP/TMP=.tmp/w",
+      "targets": [
+        {
+          "name": "zlib:example",
+          "result": "OK",
+          "duration": 0.1830425262451172
+        },
+        {
+          "name": "fnTech3:fnql_audio_zones",
+          "result": "OK",
+          "duration": 0.15305733680725098
+        },
+        {
+          "name": "fnTech3:fnql_audio_zone_authoring_audit",
+          "result": "OK",
+          "duration": 0.14705610275268555
+        },
+        {
+          "name": "fnTech3:fnql_audio_recovery",
+          "result": "OK",
+          "duration": 0.14305877685546875
+        },
+        {
+          "name": "fnTech3:fnql_audio_init_policy",
+          "result": "OK",
+          "duration": 0.13805675506591797
+        },
+        {
+          "name": "fnTech3:fnql_audio_occlusion",
+          "result": "OK",
+          "duration": 0.12201642990112305
+        },
+        {
+          "name": "fnTech3:fnql_audio_tone",
+          "result": "OK",
+          "duration": 0.11602950096130371
+        },
+        {
+          "name": "fnTech3:fnql_audio_voice_queue",
+          "result": "OK",
+          "duration": 0.10351991653442383
+        },
+        {
+          "name": "fnTech3:fnql_audio_loopback",
+          "result": "SKIP",
+          "duration": 0.06551957130432129
+        },
+        {
+          "name": "fnTech3:fntech3_game_profiles",
+          "result": "OK",
+          "duration": 0.0415189266204834
+        },
+        {
+          "name": "fnTech3:fntech3_game_abi_layouts",
+          "result": "OK",
+          "duration": 0.025513172149658203
+        },
+        {
+          "name": "ogg:bitwise",
+          "result": "OK",
+          "duration": 0.18003487586975098
+        },
+        {
+          "name": "ogg:framing",
+          "result": "OK",
+          "duration": 0.16904163360595703
+        },
+        {
+          "name": "fnTech3:fnql_retail_sound_compat_source",
+          "result": "OK",
+          "duration": 0.1515181064605713
+        },
+        {
+          "name": "fnTech3:fntech3_game_abi_adapters",
+          "result": "OK",
+          "duration": 0.1106576919555664
+        },
+        {
+          "name": "fnTech3:fnql_audio_init_source",
+          "result": "OK",
+          "duration": 0.19167542457580566
+        },
+        {
+          "name": "fnTech3:fnql_audio_impact_occlusion_source",
+          "result": "OK",
+          "duration": 0.19266390800476074
+        },
+        {
+          "name": "fnTech3:fnql_audio_zone_sweep_script",
+          "result": "OK",
+          "duration": 0.17866110801696777
+        },
+        {
+          "name": "fnTech3:fntech3_server_game_data",
+          "result": "OK",
+          "duration": 0.1371462345123291
+        },
+        {
+          "name": "fnTech3:fntech3_wolfet_contracts",
+          "result": "OK",
+          "duration": 0.13014769554138184
+        },
+        {
+          "name": "fnTech3:fntech3_stvef_mp3_frames",
+          "result": "OK",
+          "duration": 0.12114906311035156
+        },
+        {
+          "name": "fnTech3:fntech3_stvef_abi_layouts",
+          "result": "OK",
+          "duration": 0.11714625358581543
+        },
+        {
+          "name": "fnTech3:fntech3_stvef_vm_rounding",
+          "result": "OK",
+          "duration": 0.1071319580078125
+        },
+        {
+          "name": "fnTech3:fntech3_stvef_client_wire",
+          "result": "OK",
+          "duration": 0.10214591026306152
+        },
+        {
+          "name": "fnTech3:fntech3_stvef_render_records",
+          "result": "OK",
+          "duration": 0.09814906120300293
+        },
+        {
+          "name": "fnTech3:fntech3_wolfet_client_boundary",
+          "result": "OK",
+          "duration": 0.09414839744567871
+        },
+        {
+          "name": "fnTech3:fnql_netchan_profiles",
+          "result": "OK",
+          "duration": 0.08914494514465332
+        },
+        {
+          "name": "fnTech3:fnql_netchan_codec",
+          "result": "OK",
+          "duration": 0.08614158630371094
+        },
+        {
+          "name": "fnTech3:fnql_ql_font_text",
+          "result": "OK",
+          "duration": 0.08014297485351562
+        },
+        {
+          "name": "fnTech3:fnql_window_placement",
+          "result": "OK",
+          "duration": 0.07863426208496094
+        },
+        {
+          "name": "fnTech3:fnql_window_management_source",
+          "result": "OK",
+          "duration": 0.15538287162780762
+        },
+        {
+          "name": "fnTech3:fnql_global_fog",
+          "result": "OK",
+          "duration": 0.12841033935546875
+        },
+        {
+          "name": "fnTech3:fnql_ql_font_source",
+          "result": "OK",
+          "duration": 0.1754758358001709
+        },
+        {
+          "name": "fnTech3:fnql_map_overbright_cap_source",
+          "result": "OK",
+          "duration": 0.16540980339050293
+        },
+        {
+          "name": "fnTech3:fnql_macos_support_source",
+          "result": "OK",
+          "duration": 0.15092110633850098
+        },
+        {
+          "name": "fnTech3:fnql_menu_blur",
+          "result": "OK",
+          "duration": 0.14599132537841797
+        },
+        {
+          "name": "fnTech3:fnql_levelshot_validation",
+          "result": "OK",
+          "duration": 0.131988525390625
+        },
+        {
+          "name": "fnTech3:fnql_bmp_loader",
+          "result": "OK",
+          "duration": 0.09882855415344238
+        },
+        {
+          "name": "fnTech3:fnql_huffman_decoder",
+          "result": "OK",
+          "duration": 0.08882904052734375
+        },
+        {
+          "name": "fnTech3:fnql_qvm_header_bounds",
+          "result": "OK",
+          "duration": 0.07882905006408691
+        },
+        {
+          "name": "fnTech3:fnql_filesystem_write_bounds",
+          "result": "OK",
+          "duration": 0.07182717323303223
+        },
+        {
+          "name": "fnTech3:fnql_png_loader",
+          "result": "OK",
+          "duration": 0.18333840370178223
+        },
+        {
+          "name": "fnTech3:fnql_global_fog_source",
+          "result": "OK",
+          "duration": 0.29250383377075195
+        },
+        {
+          "name": "fnTech3:fnql_renderer_port_safety_source",
+          "result": "OK",
+          "duration": 0.2664976119995117
+        },
+        {
+          "name": "fnTech3:fnql_untrusted_asset_bounds_source",
+          "result": "OK",
+          "duration": 0.25634312629699707
+        },
+        {
+          "name": "fnTech3:fnql_surface_geometry_limits_source",
+          "result": "OK",
+          "duration": 0.24834370613098145
+        },
+        {
+          "name": "fnTech3:fnql_menu_blur_source",
+          "result": "OK",
+          "duration": 0.2815055847167969
+        },
+        {
+          "name": "fnTech3:fntech3_application_icons",
+          "result": "OK",
+          "duration": 0.38309669494628906
+        },
+        {
+          "name": "fnTech3:fntech3_unzip",
+          "result": "OK",
+          "duration": 0.2010953426361084
+        },
+        {
+          "name": "fnTech3:fnql_netchan_safety",
+          "result": "OK",
+          "duration": 0.19558358192443848
+        },
+        {
+          "name": "fnTech3:fnql_input_compat",
+          "result": "OK",
+          "duration": 0.18657755851745605
+        },
+        {
+          "name": "fnTech3:fnql_client_cvar_compat",
+          "result": "OK",
+          "duration": 0.17551589012145996
+        },
+        {
+          "name": "fnTech3:fnql_server_cvar_compat",
+          "result": "OK",
+          "duration": 0.18302178382873535
+        },
+        {
+          "name": "fnTech3:fnql_message_codec",
+          "result": "OK",
+          "duration": 0.15501928329467773
+        },
+        {
+          "name": "fnTech3:fnql_protocol_layout",
+          "result": "OK",
+          "duration": 0.1470191478729248
+        },
+        {
+          "name": "fnTech3:fnql_protocol_contract",
+          "result": "OK",
+          "duration": 0.1360180377960205
+        },
+        {
+          "name": "fnTech3:fnql_server_cvar_compat_source",
+          "result": "OK",
+          "duration": 0.18201565742492676
+        },
+        {
+          "name": "fnTech3:fnql_client_cvar_compat_source",
+          "result": "OK",
+          "duration": 0.23501896858215332
+        },
+        {
+          "name": "fnTech3:fnql_spawn_view_angle_source",
+          "result": "OK",
+          "duration": 0.20702004432678223
+        },
+        {
+          "name": "fnTech3:fnql_retail_auth_challenge",
+          "result": "OK",
+          "duration": 0.13450288772583008
+        },
+        {
+          "name": "fnTech3:fnql_factory_rotation",
+          "result": "OK",
+          "duration": 0.13650941848754883
+        },
+        {
+          "name": "fnTech3:fnql_stats_session",
+          "result": "OK",
+          "duration": 0.13850975036621094
+        },
+        {
+          "name": "fnTech3:fnql_json_document",
+          "result": "OK",
+          "duration": 0.13051080703735352
+        },
+        {
+          "name": "fnTech3:fnql_factory_catalog",
+          "result": "OK",
+          "duration": 0.1265103816986084
+        },
+        {
+          "name": "fnTech3:fnql_stats_event",
+          "result": "OK",
+          "duration": 0.11851167678833008
+        },
+        {
+          "name": "fnTech3:fnql_stats_report",
+          "result": "OK",
+          "duration": 0.13979125022888184
+        },
+        {
+          "name": "fnTech3:fnql_demo_stream",
+          "result": "OK",
+          "duration": 0.13445115089416504
+        },
+        {
+          "name": "fnTech3:fnql_ql_bsp_contract",
+          "result": "OK",
+          "duration": 0.12130522727966309
+        },
+        {
+          "name": "fnTech3:fnql_collision_model_parity",
+          "result": "OK",
+          "duration": 0.11730551719665527
+        },
+        {
+          "name": "fnTech3:fntech3_steam_paths",
+          "result": "OK",
+          "duration": 0.6635735034942627
+        },
+        {
+          "name": "fnTech3:fntech3_collision_game_contract",
+          "result": "OK",
+          "duration": 0.16390275955200195
+        },
+        {
+          "name": "fnTech3:fnql_collision_capsule_trace",
+          "result": "OK",
+          "duration": 0.15890192985534668
+        },
+        {
+          "name": "fnTech3:fntech3_stvef_server_policy",
+          "result": "OK",
+          "duration": 0.151902437210083
+        },
+        {
+          "name": "fnTech3:fnql_ql_demo_source",
+          "result": "OK",
+          "duration": 0.18804645538330078
+        },
+        {
+          "name": "fnTech3:fnql_collision_model_parity_source",
+          "result": "OK",
+          "duration": 0.19078946113586426
+        },
+        {
+          "name": "fnTech3:fnql_ql_services_source",
+          "result": "OK",
+          "duration": 0.19079041481018066
+        },
+        {
+          "name": "fnTech3:fnql_ql_cvar_configstring_source",
+          "result": "OK",
+          "duration": 0.18970489501953125
+        },
+        {
+          "name": "fnTech3:fnql_join_menu_source",
+          "result": "OK",
+          "duration": 0.17670536041259766
+        },
+        {
+          "name": "fnTech3:fnql_frame_clock_source",
+          "result": "OK",
+          "duration": 0.16239643096923828
+        },
+        {
+          "name": "fnTech3:fnql_lightmap_parity_source",
+          "result": "OK",
+          "duration": 0.14839649200439453
+        },
+        {
+          "name": "fnTech3:fntech3_rtx_mdr_geometry",
+          "result": "OK",
+          "duration": 0.04506492614746094
+        },
+        {
+          "name": "fnTech3:fntech3_rtx_scene_signature",
+          "result": "OK",
+          "duration": 0.0471651554107666
+        },
+        {
+          "name": "fnTech3:fnql_rtx_vulkan_safety_source",
+          "result": "OK",
+          "duration": 0.14848017692565918
+        },
+        {
+          "name": "fnTech3:fnql_steam_identity",
+          "result": "OK",
+          "duration": 0.034516334533691406
+        },
+        {
+          "name": "fnTech3:fnql_renderer_contract_source",
+          "result": "OK",
+          "duration": 0.2120835781097412
+        },
+        {
+          "name": "fnTech3:fnql_webpak_format",
+          "result": "OK",
+          "duration": 0.02221369743347168
+        },
+        {
+          "name": "fnTech3:fnql_cvar_factory_snapshot_source",
+          "result": "OK",
+          "duration": 0.16738152503967285
+        },
+        {
+          "name": "fnTech3:fnql_rtx_renderer_contract_source",
+          "result": "OK",
+          "duration": 0.2741885185241699
+        },
+        {
+          "name": "fnTech3:fnql_factory_runtime_source",
+          "result": "OK",
+          "duration": 0.17238807678222656
+        },
+        {
+          "name": "fnTech3:fnql_webui_backend",
+          "result": "OK",
+          "duration": 0.023522615432739258
+        },
+        {
+          "name": "fnTech3:fnql_retail_factory_probe",
+          "result": "SKIP",
+          "duration": 0.17923665046691895
+        },
+        {
+          "name": "fnTech3:fnql_webui_request_schedule",
+          "result": "OK",
+          "duration": 0.024857044219970703
+        },
+        {
+          "name": "fnTech3:fnql_zmq_endpoint",
+          "result": "OK",
+          "duration": 0.02710127830505371
+        },
+        {
+          "name": "fnTech3:fnql_webui_resource_queue",
+          "result": "OK",
+          "duration": 0.045617103576660156
+        },
+        {
+          "name": "fnTech3:fnql_glx_logic",
+          "result": "OK",
+          "duration": 0.03476738929748535
+        },
+        {
+          "name": "fnTech3:fnql_steam_identity_source",
+          "result": "OK",
+          "duration": 0.1783292293548584
+        },
+        {
+          "name": "fnTech3:fnql_steam_provider_source",
+          "result": "OK",
+          "duration": 0.24447202682495117
+        },
+        {
+          "name": "fnTech3:fnql_rtx_raster_feature_parity_source",
+          "result": "OK",
+          "duration": 0.38466763496398926
+        },
+        {
+          "name": "fnTech3:fnql_glx_spot_shadow_source",
+          "result": "OK",
+          "duration": 0.10787200927734375
+        },
+        {
+          "name": "fnTech3:fnql_surface_light_proxy_source",
+          "result": "OK",
+          "duration": 0.10087299346923828
+        },
+        {
+          "name": "fnTech3:fnql_static_map_lights_source",
+          "result": "OK",
+          "duration": 0.11839699745178223
+        },
+        {
+          "name": "fnTech3:fnql_windowed_mouse_source",
+          "result": "OK",
+          "duration": 0.5351030826568604
+        },
+        {
+          "name": "fnTech3:fnql_csm_plan_source",
+          "result": "OK",
+          "duration": 0.1367781162261963
+        },
+        {
+          "name": "fnTech3:fnql_shadow_manager_source",
+          "result": "OK",
+          "duration": 0.12253189086914062
+        },
+        {
+          "name": "fnTech3:fnql_csm_shadow_cache_source",
+          "result": "OK",
+          "duration": 0.17740201950073242
+        },
+        {
+          "name": "fnTech3:fnql_webpak_builder_source",
+          "result": "OK",
+          "duration": 0.33484888076782227
+        },
+        {
+          "name": "fnTech3:fnql_vid_restart_fast_source",
+          "result": "OK",
+          "duration": 0.15881562232971191
+        },
+        {
+          "name": "fnTech3:fnql_cgame_native_bridge_source",
+          "result": "OK",
+          "duration": 0.1858046054840088
+        },
+        {
+          "name": "fnTech3:fnql_ui_native_bridge_source",
+          "result": "OK",
+          "duration": 0.2055957317352295
+        },
+        {
+          "name": "fnTech3:fnql_glx_header_boundary",
+          "result": "OK",
+          "duration": 0.3625009059906006
+        },
+        {
+          "name": "fnTech3:fnql_platform_port_safety_source",
+          "result": "OK",
+          "duration": 0.817335844039917
+        },
+        {
+          "name": "fnTech3:fnql_rtx_runtime_smoke_source",
+          "result": "OK",
+          "duration": 0.7477412223815918
+        },
+        {
+          "name": "fnTech3:fnql_renderer_cvar_compat_source",
+          "result": "OK",
+          "duration": 0.8307380676269531
+        },
+        {
+          "name": "fnTech3:fnql_fnq3_bloom_parity_source",
+          "result": "OK",
+          "duration": 0.8848271369934082
+        },
+        {
+          "name": "fnTech3:fntech3_rtx_lightmap_execution",
+          "result": "OK",
+          "duration": 1.106137752532959
+        },
+        {
+          "name": "fnTech3:fntech3_rtx_raster_execution",
+          "result": "OK",
+          "duration": 1.3338820934295654
+        },
+        {
+          "name": "fnTech3:fntech3_rtx_lifecycle",
+          "result": "OK",
+          "duration": 1.6337952613830566
+        },
+        {
+          "name": "fnTech3:fnql_audio_zone_material_map",
+          "result": "OK",
+          "duration": 2.444854974746704
+        },
+        {
+          "name": "fnTech3:fnql_input_system_source",
+          "result": "OK",
+          "duration": 2.083848476409912
+        },
+        {
+          "name": "fnTech3:fntech3_rtx_transport",
+          "result": "OK",
+          "duration": 2.994821548461914
+        },
+        {
+          "name": "fnTech3:fnql_workshop_source",
+          "result": "OK",
+          "duration": 4.0389509201049805
+        },
+        {
+          "name": "fnTech3:fnql_python_source_regressions",
+          "result": "OK",
+          "duration": 704.57874584198
+        }
+      ]
+    },
+    "fullLinuxSuiteRerun": false
+  },
+  "scenes": {
+    "0": [
+      {
+        "case": "stvef-sp-alpha-fixed-0-glx-tutorial",
+        "renderer": "glx",
+        "level": "tutorial",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 8.422,
+        "privateDesktop": true,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-0-glx-tutorial",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-sp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-0-glx-tutorial",
+          "cl_renderer": "glx",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "s_initsound": 0,
+          "use_ff": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_zoneMegs": 128,
+          "com_hunkMegs": 256,
+          "cg_drawSnapshot": 0,
+          "fixedtime": 50,
+          "r_overBrightBits": 0,
+          "r_mapOverBrightBits": 1,
+          "g_ICARUSDebug": 4,
+          "com_maxfps": 60,
+          "com_maxfpsUnfocused": 60,
+          "com_maxfpsMinimized": 60,
+          "r_picmip": 1,
+          "r_picmipmin": 1,
+          "r_picmipFilter": 0,
+          "r_gamma": 1,
+          "r_bloom": 0,
+          "r_hdr": 0,
+          "r_lodscale": 4,
+          "r_lodbias": 0,
+          "r_dynamiclight": 1,
+          "r_dlightMode": 0,
+          "r_stencilbits": 8,
+          "r_ext_compressed_textures": 0,
+          "r_ext_compress_textures": 0,
+          "r_ext_compress_lightmaps": 0,
+          "r_ext_texture_filter_anisotropic": 0,
+          "r_textureMode": "GL_LINEAR_MIPMAP_NEAREST",
+          "cg_shadows": 1,
+          "cl_drawFPS": 0,
+          "cl_drawSpeed": 0,
+          "con_notifytime": 0,
+          "net_enabled": 0,
+          "cl_motd": 0
+        },
+        "script": "wait 60\nset fixedtime 50\nset activeAction \"exec capture.cfg\"\ndevmap tutorial\n",
+        "captureScript": "r_textureMode\nr_simpleMipMaps\nr_picmip\nr_gamma\nr_overBrightBits\nr_intensity\nr_lightmap\nr_fullbright\nr_ext_compressed_textures\nr_ext_compress_textures\nr_ext_compress_lightmaps\nr_ext_preferred_tc_method\nimagelist\nwait 19\nviewpos\nscreenshot frame_20\nwait 60\nviewpos\nscreenshot frame_80\nwait 80\nviewpos\nscreenshot frame_160\nwait 1\nrenderer_switch\necho SP_FRAME_COMPARE_COMPLETE\nquit\n",
+        "executable": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "bytes": 8522240,
+          "sha256": "9ff8014d323e881de4db19d740733af41ae7335354977b6ef85cdfe489e94b78"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-0-glx-tutorial\\baseEF\\qconsole.log",
+          "bytes": 45476,
+          "sha256": "7cfe84e72874db4fda59406046a338298b2684c83b9e7e10bc9fb270f175e9cd"
+        },
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-0-glx-tutorial\\baseEF\\screenshots\\frame_160.png",
+            "bytes": 922218,
+            "sha256": "27906a8ee7edba271482c09c31c83320e2fac361ba76917d236b5657b4400e54"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-0-glx-tutorial\\baseEF\\screenshots\\frame_20.png",
+            "bytes": 922218,
+            "sha256": "76a631455763816e2de79f4e8ff5a64b85a78e00e360fa268de9ff693724e5e8"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-0-glx-tutorial\\baseEF\\screenshots\\frame_80.png",
+            "bytes": 922218,
+            "sha256": "27906a8ee7edba271482c09c31c83320e2fac361ba76917d236b5657b4400e54"
+          }
+        ],
+        "rendererBinary": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_glx_x86.dll",
+          "bytes": 2441728,
+          "sha256": "f4c51a41ad72a816b92505b8f627b75f08352c53e4ddc9a60d229e81adcb05ac"
+        },
+        "completed": true,
+        "verifiedRenderer": true,
+        "events": [
+          "GL_RENDERER: NVIDIA GeForce RTX 4060 Laptop GPU/PCIe/SSE2",
+          "------ Server Initialization ------",
+          "Server: tutorial",
+          "Wrote screenshots/frame_20.png",
+          "Wrote screenshots/frame_80.png",
+          "Wrote screenshots/frame_160.png",
+          "current renderer: glx",
+          "SP_FRAME_COMPARE_COMPLETE"
+        ],
+        "graphics": [
+          "GL_VENDOR: NVIDIA Corporation",
+          "GL_RENDERER: NVIDIA GeForce RTX 4060 Laptop GPU/PCIe/SSE2",
+          "GL_VERSION: 4.6.0 NVIDIA 591.74"
+        ],
+        "imageFormatTotals": {
+          "RGB": 302,
+          "RGBA": 146,
+          "DXT1": 0,
+          "DXT5": 0
+        }
+      }
+    ],
+    "1": [
+      {
+        "case": "stvef-sp-alpha-fixed-1-glx-tutorial",
+        "renderer": "glx",
+        "level": "tutorial",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 10.25,
+        "privateDesktop": true,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-1-glx-tutorial",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-sp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-1-glx-tutorial",
+          "cl_renderer": "glx",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "s_initsound": 0,
+          "use_ff": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_zoneMegs": 128,
+          "com_hunkMegs": 256,
+          "cg_drawSnapshot": 0,
+          "fixedtime": 50,
+          "r_overBrightBits": 0,
+          "r_mapOverBrightBits": 1,
+          "g_ICARUSDebug": 4,
+          "com_maxfps": 60,
+          "com_maxfpsUnfocused": 60,
+          "com_maxfpsMinimized": 60,
+          "r_picmip": 1,
+          "r_picmipmin": 1,
+          "r_picmipFilter": 0,
+          "r_gamma": 1,
+          "r_bloom": 0,
+          "r_hdr": 0,
+          "r_lodscale": 4,
+          "r_lodbias": 0,
+          "r_dynamiclight": 1,
+          "r_dlightMode": 0,
+          "r_stencilbits": 8,
+          "r_ext_compressed_textures": 0,
+          "r_ext_compress_textures": 1,
+          "r_ext_compress_lightmaps": 0,
+          "r_ext_texture_filter_anisotropic": 0,
+          "r_textureMode": "GL_LINEAR_MIPMAP_NEAREST",
+          "cg_shadows": 1,
+          "cl_drawFPS": 0,
+          "cl_drawSpeed": 0,
+          "con_notifytime": 0,
+          "net_enabled": 0,
+          "cl_motd": 0
+        },
+        "script": "wait 60\nset fixedtime 50\nset activeAction \"exec capture.cfg\"\ndevmap tutorial\n",
+        "captureScript": "r_textureMode\nr_simpleMipMaps\nr_picmip\nr_gamma\nr_overBrightBits\nr_intensity\nr_lightmap\nr_fullbright\nr_ext_compressed_textures\nr_ext_compress_textures\nr_ext_compress_lightmaps\nr_ext_preferred_tc_method\nimagelist\nwait 19\nviewpos\nscreenshot frame_20\nwait 60\nviewpos\nscreenshot frame_80\nwait 80\nviewpos\nscreenshot frame_160\nwait 1\nrenderer_switch\necho SP_FRAME_COMPARE_COMPLETE\nquit\n",
+        "executable": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "bytes": 8522240,
+          "sha256": "9ff8014d323e881de4db19d740733af41ae7335354977b6ef85cdfe489e94b78"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-1-glx-tutorial\\baseEF\\qconsole.log",
+          "bytes": 45472,
+          "sha256": "1aba8a97c3d643724b39abdae3fd3789da07e25994fde9e9cfe3160cf9b9535c"
+        },
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-1-glx-tutorial\\baseEF\\screenshots\\frame_160.png",
+            "bytes": 922218,
+            "sha256": "aaffc77cf9dd6a47359f5bcfea8275c635828c78395b8ec29923881d87957564"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-1-glx-tutorial\\baseEF\\screenshots\\frame_20.png",
+            "bytes": 922218,
+            "sha256": "513c743541d52f5f6c1d1d485448e2fe13a2b71c9c88b2a4436e9245db76b924"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-1-glx-tutorial\\baseEF\\screenshots\\frame_80.png",
+            "bytes": 922218,
+            "sha256": "aaffc77cf9dd6a47359f5bcfea8275c635828c78395b8ec29923881d87957564"
+          }
+        ],
+        "rendererBinary": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_glx_x86.dll",
+          "bytes": 2441728,
+          "sha256": "f4c51a41ad72a816b92505b8f627b75f08352c53e4ddc9a60d229e81adcb05ac"
+        },
+        "completed": true,
+        "verifiedRenderer": true,
+        "events": [
+          "GL_RENDERER: NVIDIA GeForce RTX 4060 Laptop GPU/PCIe/SSE2",
+          "------ Server Initialization ------",
+          "Server: tutorial",
+          "Wrote screenshots/frame_20.png",
+          "Wrote screenshots/frame_80.png",
+          "Wrote screenshots/frame_160.png",
+          "current renderer: glx",
+          "SP_FRAME_COMPARE_COMPLETE"
+        ],
+        "graphics": [
+          "GL_VENDOR: NVIDIA Corporation",
+          "GL_RENDERER: NVIDIA GeForce RTX 4060 Laptop GPU/PCIe/SSE2",
+          "GL_VERSION: 4.6.0 NVIDIA 591.74"
+        ],
+        "imageFormatTotals": {
+          "RGB": 1,
+          "RGBA": 1,
+          "DXT1": 301,
+          "DXT5": 145
+        }
+      },
+      {
+        "case": "stvef-sp-alpha-fixed-1-vk-tutorial",
+        "renderer": "vk",
+        "level": "tutorial",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 10.015,
+        "privateDesktop": true,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-1-vk-tutorial",
+          "+set",
+          "cl_renderer",
+          "vk",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-sp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-1-vk-tutorial",
+          "cl_renderer": "vk",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "s_initsound": 0,
+          "use_ff": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_zoneMegs": 128,
+          "com_hunkMegs": 256,
+          "cg_drawSnapshot": 0,
+          "fixedtime": 50,
+          "r_overBrightBits": 0,
+          "r_mapOverBrightBits": 1,
+          "g_ICARUSDebug": 4,
+          "com_maxfps": 60,
+          "com_maxfpsUnfocused": 60,
+          "com_maxfpsMinimized": 60,
+          "r_picmip": 1,
+          "r_picmipmin": 1,
+          "r_picmipFilter": 0,
+          "r_gamma": 1,
+          "r_bloom": 0,
+          "r_hdr": 0,
+          "r_lodscale": 4,
+          "r_lodbias": 0,
+          "r_dynamiclight": 1,
+          "r_dlightMode": 0,
+          "r_stencilbits": 8,
+          "r_ext_compressed_textures": 0,
+          "r_ext_compress_textures": 1,
+          "r_ext_compress_lightmaps": 0,
+          "r_ext_texture_filter_anisotropic": 0,
+          "r_textureMode": "GL_LINEAR_MIPMAP_NEAREST",
+          "cg_shadows": 1,
+          "cl_drawFPS": 0,
+          "cl_drawSpeed": 0,
+          "con_notifytime": 0,
+          "net_enabled": 0,
+          "cl_motd": 0
+        },
+        "script": "wait 60\nset fixedtime 50\nset activeAction \"exec capture.cfg\"\ndevmap tutorial\n",
+        "captureScript": "r_textureMode\nr_simpleMipMaps\nr_picmip\nr_gamma\nr_overBrightBits\nr_intensity\nr_lightmap\nr_fullbright\nr_ext_compressed_textures\nr_ext_compress_textures\nr_ext_compress_lightmaps\nr_ext_preferred_tc_method\nimagelist\nwait 19\nviewpos\nscreenshot frame_20\nwait 60\nviewpos\nscreenshot frame_80\nwait 80\nviewpos\nscreenshot frame_160\nwait 1\nrenderer_switch\necho SP_FRAME_COMPARE_COMPLETE\nquit\n",
+        "executable": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "bytes": 8522240,
+          "sha256": "9ff8014d323e881de4db19d740733af41ae7335354977b6ef85cdfe489e94b78"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-1-vk-tutorial\\baseEF\\qconsole.log",
+          "bytes": 45077,
+          "sha256": "61d37846289ec0aaa97fbd0af1a428ba37c0407bc010d54851bb58844ce351c0"
+        },
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-1-vk-tutorial\\baseEF\\screenshots\\frame_160.png",
+            "bytes": 922218,
+            "sha256": "aeb5acaa902546dd072b52cf41e989d963436e7cae8d6928a72fc8c2132d04bf"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-1-vk-tutorial\\baseEF\\screenshots\\frame_20.png",
+            "bytes": 922218,
+            "sha256": "34b7d0fa81693541fd53c7bcf2a1deb3955e20a9745e09d26c438abfaaae4fe6"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-1-vk-tutorial\\baseEF\\screenshots\\frame_80.png",
+            "bytes": 922218,
+            "sha256": "aeb5acaa902546dd072b52cf41e989d963436e7cae8d6928a72fc8c2132d04bf"
+          }
+        ],
+        "rendererBinary": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_vk_x86.dll",
+          "bytes": 2611712,
+          "sha256": "50a91e067b5733908a569d1b9914fd6698f94c269308a2e7562d63354d34689b"
+        },
+        "completed": true,
+        "verifiedRenderer": true,
+        "events": [
+          "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+          "------ Server Initialization ------",
+          "Server: tutorial",
+          "Wrote screenshots/frame_20.png",
+          "Wrote screenshots/frame_80.png",
+          "Wrote screenshots/frame_160.png",
+          "current renderer: vk",
+          "SP_FRAME_COMPARE_COMPLETE"
+        ],
+        "graphics": [
+          "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0"
+        ],
+        "imageFormatTotals": {
+          "RGB": 0,
+          "RGBA": 449,
+          "DXT1": 0,
+          "DXT5": 0
+        }
+      },
+      {
+        "case": "stvef-sp-alpha-fixed-1-rtx-tutorial",
+        "renderer": "rtx",
+        "level": "tutorial",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 8.407,
+        "privateDesktop": true,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-1-rtx-tutorial",
+          "+set",
+          "cl_renderer",
+          "rtx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-sp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-1-rtx-tutorial",
+          "cl_renderer": "rtx",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "s_initsound": 0,
+          "use_ff": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_zoneMegs": 128,
+          "com_hunkMegs": 256,
+          "cg_drawSnapshot": 0,
+          "fixedtime": 50,
+          "r_overBrightBits": 0,
+          "r_mapOverBrightBits": 1,
+          "g_ICARUSDebug": 4,
+          "com_maxfps": 60,
+          "com_maxfpsUnfocused": 60,
+          "com_maxfpsMinimized": 60,
+          "r_picmip": 1,
+          "r_picmipmin": 1,
+          "r_picmipFilter": 0,
+          "r_gamma": 1,
+          "r_bloom": 0,
+          "r_hdr": 0,
+          "r_lodscale": 4,
+          "r_lodbias": 0,
+          "r_dynamiclight": 1,
+          "r_dlightMode": 0,
+          "r_stencilbits": 8,
+          "r_ext_compressed_textures": 0,
+          "r_ext_compress_textures": 1,
+          "r_ext_compress_lightmaps": 0,
+          "r_ext_texture_filter_anisotropic": 0,
+          "r_textureMode": "GL_LINEAR_MIPMAP_NEAREST",
+          "cg_shadows": 1,
+          "cl_drawFPS": 0,
+          "cl_drawSpeed": 0,
+          "con_notifytime": 0,
+          "net_enabled": 0,
+          "cl_motd": 0
+        },
+        "script": "wait 60\nset fixedtime 50\nset activeAction \"exec capture.cfg\"\ndevmap tutorial\n",
+        "captureScript": "r_textureMode\nr_simpleMipMaps\nr_picmip\nr_gamma\nr_overBrightBits\nr_intensity\nr_lightmap\nr_fullbright\nr_ext_compressed_textures\nr_ext_compress_textures\nr_ext_compress_lightmaps\nr_ext_preferred_tc_method\nimagelist\nwait 19\nviewpos\nscreenshot frame_20\nwait 60\nviewpos\nscreenshot frame_80\nwait 80\nviewpos\nscreenshot frame_160\nwait 1\nrenderer_switch\necho SP_FRAME_COMPARE_COMPLETE\nquit\n",
+        "executable": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "bytes": 8522240,
+          "sha256": "9ff8014d323e881de4db19d740733af41ae7335354977b6ef85cdfe489e94b78"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-1-rtx-tutorial\\baseEF\\qconsole.log",
+          "bytes": 45482,
+          "sha256": "c8a6da9a5c665541a52d97cc23b120a73c88b07b729f4224cbc1faa7d47dad43"
+        },
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-1-rtx-tutorial\\baseEF\\screenshots\\frame_160.png",
+            "bytes": 922218,
+            "sha256": "aeb5acaa902546dd072b52cf41e989d963436e7cae8d6928a72fc8c2132d04bf"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-1-rtx-tutorial\\baseEF\\screenshots\\frame_20.png",
+            "bytes": 922218,
+            "sha256": "34b7d0fa81693541fd53c7bcf2a1deb3955e20a9745e09d26c438abfaaae4fe6"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-sp-alpha-fixed-1-rtx-tutorial\\baseEF\\screenshots\\frame_80.png",
+            "bytes": 922218,
+            "sha256": "aeb5acaa902546dd072b52cf41e989d963436e7cae8d6928a72fc8c2132d04bf"
+          }
+        ],
+        "rendererBinary": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_rtx_x86.dll",
+          "bytes": 2902016,
+          "sha256": "23b659e0a9fec2ffdf9a721d42f91d59da5c0d57c68ad10c418a23b6f1f09a85"
+        },
+        "completed": true,
+        "verifiedRenderer": true,
+        "events": [
+          "RTX capability gate: requested=disabled (0), active=disabled (0), require=0",
+          "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0",
+          "------ Server Initialization ------",
+          "Server: tutorial",
+          "Wrote screenshots/frame_20.png",
+          "Wrote screenshots/frame_80.png",
+          "Wrote screenshots/frame_160.png",
+          "current renderer: rtx",
+          "SP_FRAME_COMPARE_COMPLETE"
+        ],
+        "graphics": [
+          "VK_RENDERER: Discrete NVIDIA GeForce RTX 4060 Laptop GPU, 0x28a0"
+        ],
+        "imageFormatTotals": {
+          "RGB": 0,
+          "RGBA": 449,
+          "DXT1": 0,
+          "DXT5": 0
+        }
+      }
+    ]
+  },
+  "restartCycles": {
+    "windows": [
+      {
+        "case": "stvef-alpha-restart-stvef-sp-glx",
+        "profile": "stvef-sp",
+        "renderer": "glx",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 24.641,
+        "privateDesktop": true,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-alpha-restart-stvef-sp-glx",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-sp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\stvef-alpha-restart-stvef-sp-glx",
+          "cl_renderer": "glx",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "s_initsound": 0,
+          "use_ff": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_hunkMegs": 256,
+          "com_zoneMegs": 128,
+          "r_ext_compressed_textures": 0,
+          "r_gamma": 1,
+          "r_picmip": 1,
+          "r_picmipmin": 1,
+          "r_picmipFilter": 0,
+          "r_bloom": 0,
+          "r_hdr": 0,
+          "r_ext_texture_filter_anisotropic": 0,
+          "r_textureMode": "GL_LINEAR_MIPMAP_NEAREST",
+          "com_maxfps": 60,
+          "com_maxfpsUnfocused": 60,
+          "com_maxfpsMinimized": 60,
+          "fs_debug": 0,
+          "net_enabled": 0,
+          "cl_motd": 0
+        },
+        "script": "wait 60\nset sv_pure 0\nset sv_maxclients 4\ndevmap tutorial\nwait 120\necho COMPRESSION_PHASE_default\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_default\nwait 3\nset r_ext_compress_textures 0\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_off\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_off\nwait 3\nset r_ext_compress_textures 1\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_on\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_on\nwait 3\nset r_ext_compress_textures 0\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_off_again\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_off_again\nwait 3\nrenderer_switch\necho COMPRESSION_RESTART_COMPLETE\nquit\n",
+        "executable": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "bytes": 8522240,
+          "sha256": "9ff8014d323e881de4db19d740733af41ae7335354977b6ef85cdfe489e94b78"
+        },
+        "rendererBinary": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_glx_x86.dll",
+          "bytes": 2441728,
+          "sha256": "f4c51a41ad72a816b92505b8f627b75f08352c53e4ddc9a60d229e81adcb05ac"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-alpha-restart-stvef-sp-glx\\baseEF\\qconsole.log",
+          "bytes": 155797,
+          "sha256": "18297bf4c618ca95e80ddad096057ba5009e4520ac23033695f0ab4b35867ff4"
+        },
+        "config": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-alpha-restart-stvef-sp-glx\\baseEF\\efconfig.cfg",
+          "bytes": 5372,
+          "sha256": "eeb87984d311af7827237406c279005f01ed7aef61ca9ac0358812cb337fa517"
+        },
+        "completed": true,
+        "verifiedRenderer": true,
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-alpha-restart-stvef-sp-glx\\baseEF\\screenshots\\compression_default.png",
+            "bytes": 922218,
+            "sha256": "8e524604957925bcd93bfb904c91535a05f00ff27fb904dcbb20e8ea6e7ee1d5"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-alpha-restart-stvef-sp-glx\\baseEF\\screenshots\\compression_off.png",
+            "bytes": 922218,
+            "sha256": "36cecd20fddd3b07feac04c9885107560e33bedf763c69efa6a01092d1256a4a"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-alpha-restart-stvef-sp-glx\\baseEF\\screenshots\\compression_off_again.png",
+            "bytes": 922218,
+            "sha256": "36cecd20fddd3b07feac04c9885107560e33bedf763c69efa6a01092d1256a4a"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-alpha-restart-stvef-sp-glx\\baseEF\\screenshots\\compression_on.png",
+            "bytes": 922218,
+            "sha256": "474f57b2e6d7d8e6582835c4055a9b5c2c1c74856bd4f089c04663b104b804cc"
+          }
+        ],
+        "events": [
+          "compressed textures: enabled",
+          "COMPRESSION_PHASE_default",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "Wrote screenshots/compression_default.png",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "COMPRESSION_PHASE_off",
+          "\"r_ext_compress_textures\" is:\"0^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "Wrote screenshots/compression_off.png",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_compress_textures\" is:\"0^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "COMPRESSION_PHASE_on",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "Wrote screenshots/compression_on.png",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "COMPRESSION_PHASE_off_again",
+          "\"r_ext_compress_textures\" is:\"0^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "Wrote screenshots/compression_off_again.png",
+          "COMPRESSION_RESTART_COMPLETE"
+        ],
+        "graphics": [
+          "GL_VENDOR: NVIDIA Corporation",
+          "GL_RENDERER: NVIDIA GeForce RTX 4060 Laptop GPU/PCIe/SSE2",
+          "GL_VERSION: 4.6.0 NVIDIA 591.74",
+          "GL_VENDOR: NVIDIA Corporation"
+        ],
+        "imageFormatTotals": {
+          "RGB": 606,
+          "RGBA": 294,
+          "DXT1": 602,
+          "DXT5": 290
+        }
+      },
+      {
+        "case": "stvef-alpha-restart-stvef-mp-glx",
+        "profile": "stvef-mp",
+        "renderer": "glx",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 17.641,
+        "privateDesktop": true,
+        "command": [
+          "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-mp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets-retail",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\stvef-alpha-restart-stvef-mp-glx",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-mp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets-retail",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\stvef-alpha-restart-stvef-mp-glx",
+          "cl_renderer": "glx",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "s_initsound": 0,
+          "use_ff": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_hunkMegs": 256,
+          "com_zoneMegs": 128,
+          "r_ext_compressed_textures": 0,
+          "r_gamma": 1,
+          "r_picmip": 1,
+          "r_picmipmin": 1,
+          "r_picmipFilter": 0,
+          "r_bloom": 0,
+          "r_hdr": 0,
+          "r_ext_texture_filter_anisotropic": 0,
+          "r_textureMode": "GL_LINEAR_MIPMAP_NEAREST",
+          "com_maxfps": 60,
+          "com_maxfpsUnfocused": 60,
+          "com_maxfpsMinimized": 60,
+          "fs_debug": 0,
+          "net_enabled": 0,
+          "cl_motd": 0
+        },
+        "script": "wait 60\nset sv_pure 0\nset sv_maxclients 4\ndevmap hm_borg1\nwait 120\necho COMPRESSION_PHASE_default\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_default\nwait 3\nset r_ext_compress_textures 0\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_off\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_off\nwait 3\nset r_ext_compress_textures 1\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_on\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_on\nwait 3\nset r_ext_compress_textures 0\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_off_again\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_off_again\nwait 3\nrenderer_switch\necho COMPRESSION_RESTART_COMPLETE\nquit\n",
+        "executable": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+          "bytes": 8522240,
+          "sha256": "9ff8014d323e881de4db19d740733af41ae7335354977b6ef85cdfe489e94b78"
+        },
+        "rendererBinary": {
+          "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\meson\\build\\win32-dev\\fnql_glx_x86.dll",
+          "bytes": 2441728,
+          "sha256": "f4c51a41ad72a816b92505b8f627b75f08352c53e4ddc9a60d229e81adcb05ac"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-alpha-restart-stvef-mp-glx\\baseEF\\qconsole.log",
+          "bytes": 145566,
+          "sha256": "e2be333e5bc87b63d5162bffd6eb3933fcff7f8219f1aa5014032fc236e1eb06"
+        },
+        "config": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-alpha-restart-stvef-mp-glx\\baseEF\\hmconfig.cfg",
+          "bytes": 7055,
+          "sha256": "1cb595d05c3d9145b212b033d3141dcaac36199001dd2159493f56b9359779e0"
+        },
+        "completed": true,
+        "verifiedRenderer": true,
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-alpha-restart-stvef-mp-glx\\baseEF\\screenshots\\compression_default.png",
+            "bytes": 922218,
+            "sha256": "fb1b94e0a172289101fb2d7034b35d400bd7876154ba5c7f420fd6fa4b3e3fb7"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-alpha-restart-stvef-mp-glx\\baseEF\\screenshots\\compression_off.png",
+            "bytes": 922218,
+            "sha256": "ac24240c36dc5eee6d46424fddf9cbc9c7ea31fdbb993fb4bea8a544a085be9c"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-alpha-restart-stvef-mp-glx\\baseEF\\screenshots\\compression_off_again.png",
+            "bytes": 922218,
+            "sha256": "688d3dcda3f49c67e3eae469c255bc9a4181307b400b727510c66457dd103bc6"
+          },
+          {
+            "path": "E:\\Games\\fnTech3-tests\\stvef-alpha-restart-stvef-mp-glx\\baseEF\\screenshots\\compression_on.png",
+            "bytes": 922218,
+            "sha256": "cbbc9507535ea7eb2b0b833a88bfd93f481b2103115523fab2254f4f09a9aa75"
+          }
+        ],
+        "events": [
+          "compressed textures: enabled",
+          "sv_pure will be changed upon restarting.",
+          "sv_maxclients will be changed upon restarting.",
+          "COMPRESSION_PHASE_default",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "Wrote screenshots/compression_default.png",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "COMPRESSION_PHASE_off",
+          "\"r_ext_compress_textures\" is:\"0^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "Wrote screenshots/compression_off.png",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_compress_textures\" is:\"0^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "COMPRESSION_PHASE_on",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: enabled",
+          "Wrote screenshots/compression_on.png",
+          "r_ext_compress_textures will be changed upon restarting.",
+          "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "COMPRESSION_PHASE_off_again",
+          "\"r_ext_compress_textures\" is:\"0^7\" default:\"1^7\"",
+          "compressed textures: disabled",
+          "Wrote screenshots/compression_off_again.png",
+          "COMPRESSION_RESTART_COMPLETE"
+        ],
+        "graphics": [
+          "GL_VENDOR: NVIDIA Corporation",
+          "GL_RENDERER: NVIDIA GeForce RTX 4060 Laptop GPU/PCIe/SSE2",
+          "GL_VERSION: 4.6.0 NVIDIA 591.74",
+          "GL_VENDOR: NVIDIA Corporation"
+        ],
+        "imageFormatTotals": {
+          "RGB": 562,
+          "RGBA": 362,
+          "DXT1": 558,
+          "DXT5": 358
+        }
+      }
+    ],
+    "linux": {
+      "case": "stvef-alpha-linux-holomatch",
+      "exit": 0,
+      "seconds": 35.281,
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu",
+        "--cd",
+        "/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/.tmp/stvef-gaps/linux-client-i686",
+        "--exec",
+        "env",
+        "TMPDIR=/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/.tmp/stvef-gaps/linux-display-tmp",
+        "LIBGL_ALWAYS_SOFTWARE=1",
+        "LP_NUM_THREADS=2",
+        "timeout",
+        "65",
+        "xvfb-run",
+        "-a",
+        "-e",
+        "/mnt/e/Games/fnTech3-tests/stvef-alpha-linux-holomatch/xvfb.log",
+        "-s",
+        "-screen 0 640x480x24 -nolisten tcp",
+        "/mnt/c/Users/djdac/.codex/worktrees/stvef-support/fnTech3/.tmp/stvef-gaps/linux-client-i686/fntech3",
+        "+set",
+        "com_gameProfile",
+        "stvef-mp",
+        "+set",
+        "fs_basepath",
+        "/mnt/e/Games/fnTech3-tests/efassets-retail",
+        "+set",
+        "fs_homepath",
+        "/mnt/e/Games/fnTech3-tests/stvef-alpha-linux-holomatch",
+        "+set",
+        "cl_renderer",
+        "glx",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "3",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "0",
+        "+set",
+        "r_ext_compressed_textures",
+        "0",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "cl_motd",
+        "0",
+        "+set",
+        "com_maxfps",
+        "60",
+        "+set",
+        "com_maxfpsUnfocused",
+        "60",
+        "+set",
+        "com_maxfpsMinimized",
+        "60",
+        "+set",
+        "net_enabled",
+        "0",
+        "+set",
+        "com_hunkMegs",
+        "256",
+        "+set",
+        "com_zoneMegs",
+        "128",
+        "+set",
+        "fs_debug",
+        "0",
+        "+exec",
+        "probe.cfg"
+      ],
+      "script": "wait 60\nset sv_pure 0\nset sv_maxclients 4\ndevmap hm_borg1\nwait 120\necho COMPRESSION_PHASE_default\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_default\nwait 3\nset r_ext_compress_textures 0\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_off\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_off\nwait 3\nset r_ext_compress_textures 1\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_on\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_on\nwait 3\nset r_ext_compress_textures 0\nr_ext_compress_textures\nvid_restart\nwait 120\necho COMPRESSION_PHASE_off_again\nr_ext_compress_textures\ngfxinfo\nimagelist\nscreenshot compression_off_again\nwait 3\nrenderer_switch\necho COMPRESSION_RESTART_COMPLETE\nquit\n",
+      "settings": {
+        "com_gameProfile": "stvef-mp",
+        "fs_basepath": "/mnt/e/Games/fnTech3-tests/efassets-retail",
+        "fs_homepath": "/mnt/e/Games/fnTech3-tests/stvef-alpha-linux-holomatch",
+        "cl_renderer": "glx",
+        "r_fullscreen": 0,
+        "r_mode": 3,
+        "in_mouse": 0,
+        "in_joystick": 0,
+        "in_nograb": 1,
+        "s_initsound": 0,
+        "logfile": 2,
+        "developer": 0,
+        "r_ext_compressed_textures": 0,
+        "com_introplayed": 1,
+        "cl_motd": 0,
+        "com_maxfps": 60,
+        "com_maxfpsUnfocused": 60,
+        "com_maxfpsMinimized": 60,
+        "net_enabled": 0,
+        "com_hunkMegs": 256,
+        "com_zoneMegs": 128,
+        "fs_debug": 0
+      },
+      "executable": {
+        "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\linux-client-i686\\fntech3",
+        "bytes": 24060680,
+        "sha256": "09e30f07ee06dccdaa175f5ccbcec54ece224f0e1370e2975a6c727e4a3cb485"
+      },
+      "log": {
+        "path": "E:\\Games\\fnTech3-tests\\stvef-alpha-linux-holomatch\\baseEF\\qconsole.log",
+        "bytes": 145717,
+        "sha256": "e08f9bca444a3eba602788596146e71e2ec56c8942de23d34de926918d977ba8"
+      },
+      "rendererBinary": {
+        "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\linux-client-i686\\fnql_glx_x86.so",
+        "bytes": 8197768,
+        "sha256": "17e79b6122751eeec6f888b9e95f1a6ce2ffcb8ceb71d654359954d918b6fc38"
+      },
+      "completed": true,
+      "verifiedRenderer": true,
+      "captures": [
+        {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-alpha-linux-holomatch\\baseEF\\screenshots\\compression_default.png",
+          "bytes": 922218,
+          "sha256": "d4148309a990a93e1b590bbfb72629f28c4f0fb7783be8feff2212e98305cd2f"
+        },
+        {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-alpha-linux-holomatch\\baseEF\\screenshots\\compression_off.png",
+          "bytes": 922218,
+          "sha256": "6722605d0672cd06a8ef27ce023022a883f83021b8d390aa62232bfd63c68ad6"
+        },
+        {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-alpha-linux-holomatch\\baseEF\\screenshots\\compression_off_again.png",
+          "bytes": 922218,
+          "sha256": "b1238bb287c8f7945f400a0d985f7f9cce87ce565328763aa0712c15600528fe"
+        },
+        {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-alpha-linux-holomatch\\baseEF\\screenshots\\compression_on.png",
+          "bytes": 922218,
+          "sha256": "16ecd04f70d35f4f0190a904bca3a20eb143e9d766c90731c6324047eab691ed"
+        }
+      ],
+      "events": [
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "compressed textures: enabled",
+        "Server: hm_borg1",
+        "COMPRESSION_PHASE_default",
+        "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "compressed textures: enabled",
+        "Wrote screenshots/compression_default.png",
+        "r_ext_compress_textures will be changed upon restarting.",
+        "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "compressed textures: disabled",
+        "COMPRESSION_PHASE_off",
+        "\"r_ext_compress_textures\" is:\"0^7\" default:\"1^7\"",
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "compressed textures: disabled",
+        "Wrote screenshots/compression_off.png",
+        "r_ext_compress_textures will be changed upon restarting.",
+        "\"r_ext_compress_textures\" is:\"0^7\" default:\"1^7\"",
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "compressed textures: enabled",
+        "COMPRESSION_PHASE_on",
+        "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "compressed textures: enabled",
+        "Wrote screenshots/compression_on.png",
+        "r_ext_compress_textures will be changed upon restarting.",
+        "\"r_ext_compress_textures\" is:\"1^7\" default:\"1^7\"",
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "compressed textures: disabled",
+        "COMPRESSION_PHASE_off_again",
+        "\"r_ext_compress_textures\" is:\"0^7\" default:\"1^7\"",
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "compressed textures: disabled",
+        "Wrote screenshots/compression_off_again.png",
+        "current renderer: glx",
+        "COMPRESSION_RESTART_COMPLETE"
+      ],
+      "graphics": [
+        "GL_VENDOR: Mesa",
+        "GL_RENDERER: llvmpipe (LLVM 20.1.2, 256 bits)",
+        "GL_VERSION: 4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.2",
+        "GL_VENDOR: Mesa"
+      ],
+      "imageFormatTotals": {
+        "RGB": 562,
+        "RGBA": 362,
+        "DXT1": 558,
+        "DXT5": 358
+      }
+    },
+    "observations": [
+      {
+        "case": "stvef-alpha-restart-stvef-sp-glx",
+        "phases": [
+          {
+            "phase": "default",
+            "value": "1",
+            "formats": {
+              "DXT1": 301,
+              "DXT5": 145,
+              "RGB": 1,
+              "RGBA": 1
+            }
+          },
+          {
+            "phase": "off",
+            "value": "0",
+            "formats": {
+              "DXT1": 0,
+              "DXT5": 0,
+              "RGB": 302,
+              "RGBA": 146
+            }
+          },
+          {
+            "phase": "on",
+            "value": "1",
+            "formats": {
+              "DXT1": 301,
+              "DXT5": 145,
+              "RGB": 1,
+              "RGBA": 1
+            }
+          },
+          {
+            "phase": "off_again",
+            "value": "0",
+            "formats": {
+              "DXT1": 0,
+              "DXT5": 0,
+              "RGB": 302,
+              "RGBA": 146
+            }
+          }
+        ]
+      },
+      {
+        "case": "stvef-alpha-restart-stvef-mp-glx",
+        "phases": [
+          {
+            "phase": "default",
+            "value": "1",
+            "formats": {
+              "DXT1": 279,
+              "DXT5": 179,
+              "RGB": 1,
+              "RGBA": 1
+            }
+          },
+          {
+            "phase": "off",
+            "value": "0",
+            "formats": {
+              "DXT1": 0,
+              "DXT5": 0,
+              "RGB": 280,
+              "RGBA": 180
+            }
+          },
+          {
+            "phase": "on",
+            "value": "1",
+            "formats": {
+              "DXT1": 279,
+              "DXT5": 179,
+              "RGB": 1,
+              "RGBA": 1
+            }
+          },
+          {
+            "phase": "off_again",
+            "value": "0",
+            "formats": {
+              "DXT1": 0,
+              "DXT5": 0,
+              "RGB": 280,
+              "RGBA": 180
+            }
+          }
+        ]
+      },
+      {
+        "case": "stvef-alpha-linux-holomatch",
+        "phases": [
+          {
+            "phase": "default",
+            "value": "1",
+            "formats": {
+              "DXT1": 279,
+              "DXT5": 179,
+              "RGB": 1,
+              "RGBA": 1
+            }
+          },
+          {
+            "phase": "off",
+            "value": "0",
+            "formats": {
+              "DXT1": 0,
+              "DXT5": 0,
+              "RGB": 280,
+              "RGBA": 180
+            }
+          },
+          {
+            "phase": "on",
+            "value": "1",
+            "formats": {
+              "DXT1": 279,
+              "DXT5": 179,
+              "RGB": 1,
+              "RGBA": 1
+            }
+          },
+          {
+            "phase": "off_again",
+            "value": "0",
+            "formats": {
+              "DXT1": 0,
+              "DXT5": 0,
+              "RGB": 280,
+              "RGBA": 180
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "measurements": {
+    "comparisons": [
+      {
+        "renderer": "glx",
+        "compression": 1,
+        "sample": 20,
+        "nativeMAE": 0.30486328125,
+        "nativeMaximum": 63,
+        "beforeAfterMAE": 0.3056293402777778,
+        "beforeAfterMaximum": 97,
+        "beforeAfterPixels": 27243
+      },
+      {
+        "renderer": "glx",
+        "compression": 1,
+        "sample": 80,
+        "nativeMAE": 0.16313151041666665,
+        "nativeMaximum": 125,
+        "beforeAfterMAE": 0.0017035590277777778,
+        "beforeAfterMaximum": 24,
+        "beforeAfterPixels": 513
+      },
+      {
+        "renderer": "glx",
+        "compression": 1,
+        "sample": 160,
+        "nativeMAE": 0.16313151041666665,
+        "nativeMaximum": 125,
+        "beforeAfterMAE": 0.0017035590277777778,
+        "beforeAfterMaximum": 24,
+        "beforeAfterPixels": 513
+      },
+      {
+        "renderer": "vk",
+        "compression": 1,
+        "sample": 20,
+        "nativeMAE": 2.2549761284722223,
+        "nativeMaximum": 95,
+        "beforeAfterMAE": 0.0,
+        "beforeAfterMaximum": 0,
+        "beforeAfterPixels": 0
+      },
+      {
+        "renderer": "vk",
+        "compression": 1,
+        "sample": 80,
+        "nativeMAE": 1.1477842881944444,
+        "nativeMaximum": 114,
+        "beforeAfterMAE": 0.0,
+        "beforeAfterMaximum": 0,
+        "beforeAfterPixels": 0
+      },
+      {
+        "renderer": "vk",
+        "compression": 1,
+        "sample": 160,
+        "nativeMAE": 1.1477842881944444,
+        "nativeMaximum": 114,
+        "beforeAfterMAE": 0.0,
+        "beforeAfterMaximum": 0,
+        "beforeAfterPixels": 0
+      },
+      {
+        "renderer": "rtx",
+        "compression": 1,
+        "sample": 20,
+        "nativeMAE": 2.2549761284722223,
+        "nativeMaximum": 95,
+        "beforeAfterMAE": 0.0,
+        "beforeAfterMaximum": 0,
+        "beforeAfterPixels": 0
+      },
+      {
+        "renderer": "rtx",
+        "compression": 1,
+        "sample": 80,
+        "nativeMAE": 1.1477842881944444,
+        "nativeMaximum": 114,
+        "beforeAfterMAE": 0.0,
+        "beforeAfterMaximum": 0,
+        "beforeAfterPixels": 0
+      },
+      {
+        "renderer": "rtx",
+        "compression": 1,
+        "sample": 160,
+        "nativeMAE": 1.1477842881944444,
+        "nativeMaximum": 114,
+        "beforeAfterMAE": 0.0,
+        "beforeAfterMaximum": 0,
+        "beforeAfterPixels": 0
+      },
+      {
+        "renderer": "glx",
+        "compression": 0,
+        "sample": 20,
+        "nativeMAE": 0.13911675347222222,
+        "nativeMaximum": 27,
+        "beforeAfterMAE": 0.0,
+        "beforeAfterMaximum": 0,
+        "beforeAfterPixels": 0
+      },
+      {
+        "renderer": "glx",
+        "compression": 0,
+        "sample": 80,
+        "nativeMAE": 0.07541558159722223,
+        "nativeMaximum": 117,
+        "beforeAfterMAE": 0.0,
+        "beforeAfterMaximum": 0,
+        "beforeAfterPixels": 0
+      },
+      {
+        "renderer": "glx",
+        "compression": 0,
+        "sample": 160,
+        "nativeMAE": 0.07541558159722223,
+        "nativeMaximum": 117,
+        "beforeAfterMAE": 0.0,
+        "beforeAfterMaximum": 0,
+        "beforeAfterPixels": 0
+      }
+    ],
+    "baselineRecord": "2026-09-21-stvef-texture-compression.json",
+    "controls": "All three disabled GLx captures and all six Vulkan/RTX captures are pixel-identical to their prior captures.",
+    "limit": "Only the first sampled native comparison meaningfully improves. Static means are largely unchanged and local maximum differences can increase."
+  },
+  "manualStage": {
+    "manifest": {
+      "destination": "E:\\Games\\fnTech3-tests\\stvef-manual",
+      "baseCommit": "365cad710530214636b96e2ee9f141a6e25e2629",
+      "files": [
+        {
+          "name": "fntech3.exe",
+          "bytes": 8522240,
+          "sha256": "9ff8014d323e881de4db19d740733af41ae7335354977b6ef85cdfe489e94b78"
+        },
+        {
+          "name": "fnql_glx_x86.dll",
+          "bytes": 2441728,
+          "sha256": "f4c51a41ad72a816b92505b8f627b75f08352c53e4ddc9a60d229e81adcb05ac"
+        },
+        {
+          "name": "fnql_vk_x86.dll",
+          "bytes": 2611712,
+          "sha256": "50a91e067b5733908a569d1b9914fd6698f94c269308a2e7562d63354d34689b"
+        },
+        {
+          "name": "fnql_rtx_x86.dll",
+          "bytes": 2902016,
+          "sha256": "23b659e0a9fec2ffdf9a721d42f91d59da5c0d57c68ad10c418a23b6f1f09a85"
+        },
+        {
+          "name": "fntech3-pkg.fnz",
+          "bytes": 2972513,
+          "sha256": "758ebd160bb8d8044ce513415f5972f5b48270beb1c9b77eb13ac456cf1d0cf7"
+        },
+        {
+          "name": "fnql-web.pak",
+          "bytes": 59253,
+          "sha256": "6c210165880fff668900fd3e4e3c90137623043e1b5315f24b693f367f756382"
+        },
+        {
+          "name": "OpenAL32.dll",
+          "bytes": 1588736,
+          "sha256": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+        },
+        {
+          "name": "COPYING.OpenAL.txt",
+          "bytes": 23330,
+          "sha256": "d808ce217e5b611854da622b57ec29fe545584c48bc5352fae72a4b6e5074a15"
+        }
+      ],
+      "inputEnabledOnlyOnManualLaunch": true,
+      "assets": "E:\\Games\\fnTech3-tests\\efassets",
+      "verifiedSourceCommit": "1feffe2227dd6a8175f82d552b3e0003cf45248c",
+      "verifiedSources": [
+        {
+          "path": "code/server/sv_init.cpp",
+          "sha256": "58a3a587f00e23a0efeebc4477c59a214253555f722f5be49f5bf84af96cc5ad"
+        },
+        {
+          "path": "code/renderer/tr_shade_calc.c",
+          "sha256": "a15929d3dfcbdf1e200353f90baacd5add9a3aa2ebb66b2a948b75adedd80e9d"
+        },
+        {
+          "path": "code/renderervk/tr_shade_calc.c",
+          "sha256": "4969494a90f31047b06b9c8258c8b63ac879b622ec0fa2ca73b7d2ae409f7550"
+        },
+        {
+          "path": "code/rendererrtx/tr_shade_calc.c",
+          "sha256": "4aa3bf64ad2d6e5aa408e6d83d3ed84cc5d149b7c21aff5e3587f7bbac142298"
+        },
+        {
+          "path": "code/renderercommon/tr_noise.c",
+          "sha256": "5ef88f48feece482efe3c96259b39e57bf6d5d40bd49d664559f2c9f64699736"
+        },
+        {
+          "path": "code/client/client_stvef_sp_cgame.hpp",
+          "sha256": "89efd1f6a372e802caccaaca88752b6b9d6209d8bc9e944b8e6b30e98a7b333a"
+        },
+        {
+          "path": "code/client/client_stvef_sp_feedback.hpp",
+          "sha256": "58a482c9a8790d33b79ba84196bc269af2f0cb3b0c6d3074dea3bd7099d17476"
+        },
+        {
+          "path": "code/client/stvef_force_feedback_native.hpp",
+          "sha256": "eaa0bf9af2b6c9d2476e1da9901b5d3aa614ba7fb62bb248a75630db47e76428"
+        },
+        {
+          "path": "code/compat/stvef_force_feedback.hpp",
+          "sha256": "6b55eb318ac790341073cd9a412b307c831a8a19f6f6e5503d690593fbc2d74e"
+        },
+        {
+          "path": "code/client/cl_main.cpp",
+          "sha256": "df0aa99e44764c424528a4901cfebc5997021bef0d1a0d0726ddcf4698aba432"
+        },
+        {
+          "path": "code/client/client.h",
+          "sha256": "c22715055c412432bc4eaffac94db62f104950a87ce0c497001944d520c576b4"
+        },
+        {
+          "path": "code/sdl/sdl_input.cpp",
+          "sha256": "1587119988af73562470056d5652da2ec2e610ba50cc6f2121a51963320707dc"
+        },
+        {
+          "path": "code/win32/win_input.cpp",
+          "sha256": "27a1bedc88f3af760ffc506923f96fdb627df7a3475767f05f538f41fc1794f4"
+        }
+      ],
+      "acceptance": "Physical input, menu save/load and rebinding, listening, force-feedback hardware and campaign-wide acceptance remain pending. The adjusted capture script aligns displayed snapshot times; packet identifiers differ and broader retail image parity remains open.",
+      "waveUpdate": "Updated engine artifacts only; existing manual profiles and launchers retained. Physical input and listening remain pending.",
+      "feedbackRuntime": {
+        "source": {
+          "path": "E:\\Games\\Star Trek Voyager Elite Force\\FFC10.dll",
+          "bytes": 126976,
+          "sha256": "d4e88d9028e86894be5c61c62c7a0f648a032032d545a37834813389d61354a3"
+        },
+        "copy": {
+          "path": "E:\\Games\\fnTech3-tests\\efassets\\FFC10.dll",
+          "bytes": 126976,
+          "sha256": "d4e88d9028e86894be5c61c62c7a0f648a032032d545a37834813389d61354a3"
+        },
+        "enabledByDefault": false
+      },
+      "feedbackUpdate": "Verified engine artifacts refreshed; homes preserved. Installed FFC10 copied to independent test assets. Launch-SP defaults use_ff to 0; optional user-operated checks documented.",
+      "sourceCommit": "be1e595bcead34118b0f9b1f742004f6c2470884",
+      "buildBaselineCommit": "73198b0979fcb38a5a5a61e9dfea8be7c41041d8",
+      "cadenceSourceFiles": [
+        {
+          "path": "code/server/sv_main.cpp",
+          "sha256": "cf03d77f11d6aad1961a042fae1ed00d8f498c262adb92f683643331c129b648"
+        },
+        {
+          "path": "code/server/sv_snapshot.cpp",
+          "sha256": "e0fce77e361275d4e149e15b586c87d39fc047951184430511f542316f91906c"
+        }
+      ],
+      "cadenceUpdate": "Engine artifacts refreshed after full Windows suite, focused Linux SP tests, production cadence and retail save round-trip checks. Existing manual homes, saves, launchers and settings preserved.",
+      "imageAssessmentCorrection": "Full-resolution corridor images agree across GLx/Vulkan/RTX within one channel value. The initial backend-specific contact-sheet assessment is retracted.",
+      "imageMipsSourceFiles": [
+        {
+          "path": "code/renderer/tr_image.c",
+          "sha256": "67190351ba97fe4eb9a8bf94743781320be1670eee811e6f9bb4d805890fbeca"
+        },
+        {
+          "path": "code/renderervk/tr_image.c",
+          "sha256": "4b13888874d33d78cee41918488c5386caef2a1f7b4132e5f0459fae7d8b0034"
+        },
+        {
+          "path": "code/rendererrtx/tr_image.c",
+          "sha256": "b1f3564647bc5bdc6ae942773d9408eac20ca1504e76379025c19fd13d99ed78"
+        }
+      ],
+      "imageMipsUpdate": "Engine artifacts refreshed after full Windows suite, Windows/Linux exact mip tests, six controlled GPU comparisons, and stock scene smoke checks. Existing manual homes, saves, settings and launchers preserved.",
+      "imageMipsRetainedFiles": {
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\Launch-Holomatch.cmd": {
+          "name": "Launch-Holomatch.cmd",
+          "bytes": 457,
+          "sha256": "2ccb5a4a2bd4fb2940dd355d0d8d916c3998cae98df0633ab3f7137648edde50"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\Launch-SP.cmd": {
+          "name": "Launch-SP.cmd",
+          "bytes": 471,
+          "sha256": "dc34bddd53c6dd77cef7a3455c967a25e46a21fd7851f3cc77ab73d1f0c33864"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\README.md": {
+          "name": "README.md",
+          "bytes": 3752,
+          "sha256": "9ea288a321da8ee1697e434914a1645c31b9f78b18fba86bb42a6bb686de58c3"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-mp\\baseEF\\hmconfig.cfg": {
+          "name": "hmconfig.cfg",
+          "bytes": 628,
+          "sha256": "03334c93d841eba073757e5b24b42607726eb429b0d59cdd781ebbaa459e93fb"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-mp\\baseEF\\manual-start.cfg": {
+          "name": "manual-start.cfg",
+          "bytes": 103,
+          "sha256": "f42f1f3796522b934899a83e3a23598fe5afd7c24e334992f7daaba207857a14"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\efconfig.cfg": {
+          "name": "efconfig.cfg",
+          "bytes": 628,
+          "sha256": "03334c93d841eba073757e5b24b42607726eb429b0d59cdd781ebbaa459e93fb"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\manual-start.cfg": {
+          "name": "manual-start.cfg",
+          "bytes": 25,
+          "sha256": "db8fc410afb5071121007eed57832e2e4730a7da5c57618b2138e298bca2c75b"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\saves\\mdr_scene.sav": {
+          "name": "mdr_scene.sav",
+          "bytes": 517020,
+          "sha256": "d51894ac5b58ff7fbd213f17012bc8512cfbff07935ad9f774bfa5c35d9ad59f"
+        }
+      },
+      "startupFrameSourceFiles": [
+        {
+          "path": "code/server/sv_init.cpp",
+          "sha256": "d28b2a0d55d223547f3bb40a4bbf4d7a1412ef01d9458907a29261aa2ef4608a"
+        }
+      ],
+      "startupFrameUpdate": "Engine artifacts refreshed after full Windows suite, native startup observations, seven-profile Windows/Linux checks, 66 map starts and retail save round trips. Existing manual homes, saves, settings and launchers preserved.",
+      "startupFrameRetainedFiles": {
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\Launch-Holomatch.cmd": {
+          "name": "Launch-Holomatch.cmd",
+          "bytes": 457,
+          "sha256": "2ccb5a4a2bd4fb2940dd355d0d8d916c3998cae98df0633ab3f7137648edde50"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\Launch-SP.cmd": {
+          "name": "Launch-SP.cmd",
+          "bytes": 471,
+          "sha256": "dc34bddd53c6dd77cef7a3455c967a25e46a21fd7851f3cc77ab73d1f0c33864"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\README.md": {
+          "name": "README.md",
+          "bytes": 3752,
+          "sha256": "9ea288a321da8ee1697e434914a1645c31b9f78b18fba86bb42a6bb686de58c3"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-mp\\baseEF\\hmconfig.cfg": {
+          "name": "hmconfig.cfg",
+          "bytes": 628,
+          "sha256": "03334c93d841eba073757e5b24b42607726eb429b0d59cdd781ebbaa459e93fb"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-mp\\baseEF\\manual-start.cfg": {
+          "name": "manual-start.cfg",
+          "bytes": 103,
+          "sha256": "f42f1f3796522b934899a83e3a23598fe5afd7c24e334992f7daaba207857a14"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\efconfig.cfg": {
+          "name": "efconfig.cfg",
+          "bytes": 628,
+          "sha256": "03334c93d841eba073757e5b24b42607726eb429b0d59cdd781ebbaa459e93fb"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\manual-start.cfg": {
+          "name": "manual-start.cfg",
+          "bytes": 25,
+          "sha256": "db8fc410afb5071121007eed57832e2e4730a7da5c57618b2138e298bca2c75b"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\saves\\mdr_scene.sav": {
+          "name": "mdr_scene.sav",
+          "bytes": 517020,
+          "sha256": "d51894ac5b58ff7fbd213f17012bc8512cfbff07935ad9f774bfa5c35d9ad59f"
+        }
+      },
+      "compressionControlSourceFiles": [
+        {
+          "path": "code/renderercommon/tr_stvef_cvars.h",
+          "sha256": "bcc3b47e04578938722d107597247d57ec29d1d9c5389041acaebb20bba92bc1"
+        },
+        {
+          "path": "code/renderer/tr_init.c",
+          "sha256": "ac6dd2d7551e8a6aba9a2aeceaed5ee67f6c7cca8d26818756d685970b3b4572"
+        },
+        {
+          "path": "code/renderervk/tr_init.c",
+          "sha256": "b125374a8c5390122acbdf888c6a52ee7e0f3c17694df11782815a5e024dfc55"
+        },
+        {
+          "path": "code/rendererrtx/tr_init.c",
+          "sha256": "9a0379336a64e7343e18e96f5d09cc20d3592604c51726456010fd534968565b"
+        }
+      ],
+      "compressionControlUpdate": "Renderer artifacts refreshed after full Windows suite, seven-profile Windows/Linux cvar checks, SP/Holomatch video restarts and controlled texture-format comparisons. Existing manual homes, saves, settings and launchers preserved.",
+      "compressionControlRetainedFiles": {
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\Launch-Holomatch.cmd": {
+          "name": "Launch-Holomatch.cmd",
+          "bytes": 457,
+          "sha256": "2ccb5a4a2bd4fb2940dd355d0d8d916c3998cae98df0633ab3f7137648edde50"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\Launch-SP.cmd": {
+          "name": "Launch-SP.cmd",
+          "bytes": 471,
+          "sha256": "dc34bddd53c6dd77cef7a3455c967a25e46a21fd7851f3cc77ab73d1f0c33864"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\README.md": {
+          "name": "README.md",
+          "bytes": 3752,
+          "sha256": "9ea288a321da8ee1697e434914a1645c31b9f78b18fba86bb42a6bb686de58c3"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-mp\\baseEF\\hmconfig.cfg": {
+          "name": "hmconfig.cfg",
+          "bytes": 628,
+          "sha256": "03334c93d841eba073757e5b24b42607726eb429b0d59cdd781ebbaa459e93fb"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-mp\\baseEF\\manual-start.cfg": {
+          "name": "manual-start.cfg",
+          "bytes": 103,
+          "sha256": "f42f1f3796522b934899a83e3a23598fe5afd7c24e334992f7daaba207857a14"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\efconfig.cfg": {
+          "name": "efconfig.cfg",
+          "bytes": 628,
+          "sha256": "03334c93d841eba073757e5b24b42607726eb429b0d59cdd781ebbaa459e93fb"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\manual-start.cfg": {
+          "name": "manual-start.cfg",
+          "bytes": 25,
+          "sha256": "db8fc410afb5071121007eed57832e2e4730a7da5c57618b2138e298bca2c75b"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\saves\\mdr_scene.sav": {
+          "name": "mdr_scene.sav",
+          "bytes": 517020,
+          "sha256": "d51894ac5b58ff7fbd213f17012bc8512cfbff07935ad9f774bfa5c35d9ad59f"
+        }
+      },
+      "alphaCompressionSourceFiles": [
+        {
+          "path": "code/renderer/tr_image.c",
+          "sha256": "c75671b6a14a353f3f8557830a19ed36d46083100b1d6a2245604961ec3ec29f"
+        },
+        {
+          "path": "code/renderervk/tr_image.c",
+          "sha256": "e3cde57ba16c4d4398ff71e4e60eca68c8947fe2f0e66e7d674de5f15b460c17"
+        },
+        {
+          "path": "code/rendererrtx/tr_image.c",
+          "sha256": "4b1ad88753e0edef3c4e3f28ceb6d2d0c7c3d1bc141b6d25e9645fb4771d7de3"
+        }
+      ],
+      "alphaCompressionUpdate": "Renderer artifacts refreshed after native SP/Holomatch format observations, seven-profile Windows/Linux format checks, video restarts and controlled texture comparisons. Existing manual homes, saves, settings and launchers preserved.",
+      "alphaCompressionRetainedFiles": {
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\Launch-Holomatch.cmd": {
+          "name": "Launch-Holomatch.cmd",
+          "bytes": 457,
+          "sha256": "2ccb5a4a2bd4fb2940dd355d0d8d916c3998cae98df0633ab3f7137648edde50"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\Launch-SP.cmd": {
+          "name": "Launch-SP.cmd",
+          "bytes": 471,
+          "sha256": "dc34bddd53c6dd77cef7a3455c967a25e46a21fd7851f3cc77ab73d1f0c33864"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\README.md": {
+          "name": "README.md",
+          "bytes": 3752,
+          "sha256": "9ea288a321da8ee1697e434914a1645c31b9f78b18fba86bb42a6bb686de58c3"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-mp\\baseEF\\hmconfig.cfg": {
+          "name": "hmconfig.cfg",
+          "bytes": 628,
+          "sha256": "03334c93d841eba073757e5b24b42607726eb429b0d59cdd781ebbaa459e93fb"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-mp\\baseEF\\manual-start.cfg": {
+          "name": "manual-start.cfg",
+          "bytes": 103,
+          "sha256": "f42f1f3796522b934899a83e3a23598fe5afd7c24e334992f7daaba207857a14"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\efconfig.cfg": {
+          "name": "efconfig.cfg",
+          "bytes": 628,
+          "sha256": "03334c93d841eba073757e5b24b42607726eb429b0d59cdd781ebbaa459e93fb"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\manual-start.cfg": {
+          "name": "manual-start.cfg",
+          "bytes": 25,
+          "sha256": "db8fc410afb5071121007eed57832e2e4730a7da5c57618b2138e298bca2c75b"
+        },
+        "E:\\Games\\fnTech3-tests\\stvef-manual\\home-stvef-sp\\baseEF\\saves\\mdr_scene.sav": {
+          "name": "mdr_scene.sav",
+          "bytes": 517020,
+          "sha256": "d51894ac5b58ff7fbd213f17012bc8512cfbff07935ad9f774bfa5c35d9ad59f"
+        }
+      }
+    },
+    "preflight": [
+      {
+        "case": "alpha-manual-preflight-stvef-sp",
+        "profile": "stvef-sp",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 13.219,
+        "privateDesktop": true,
+        "command": [
+          "E:\\Games\\fnTech3-tests\\stvef-manual\\engine\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-sp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\alpha-manual-preflight-stvef-sp",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-sp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\alpha-manual-preflight-stvef-sp",
+          "cl_renderer": "glx",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "use_ff": 0,
+          "s_initsound": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_zoneMegs": 128,
+          "com_hunkMegs": 256
+        },
+        "script": "wait 60\nload mdr_scene\nwait 180\nrenderer_switch\nscreenshot preflight\nwait 3\necho ALPHA_PREFLIGHT_COMPLETE\nquit\n",
+        "executable": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-manual\\engine\\fntech3.exe",
+          "bytes": 8522240,
+          "sha256": "9ff8014d323e881de4db19d740733af41ae7335354977b6ef85cdfe489e94b78"
+        },
+        "rendererBinary": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-manual\\engine\\fnql_glx_x86.dll",
+          "bytes": 2441728,
+          "sha256": "f4c51a41ad72a816b92505b8f627b75f08352c53e4ddc9a60d229e81adcb05ac"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\alpha-manual-preflight-stvef-sp\\baseEF\\qconsole.log",
+          "bytes": 6704,
+          "sha256": "ec70e40e38a40f62442bda379e55160828dcfdfa8c36b79c78205e6727571a6a"
+        },
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\alpha-manual-preflight-stvef-sp\\baseEF\\screenshots\\preflight.png",
+            "bytes": 922218,
+            "sha256": "b60c3f165224b049cbc03501653822082dd9f78d8c85bb6027ef07bb60cb500c"
+          }
+        ],
+        "completed": true,
+        "verifiedRenderer": true,
+        "graphics": [
+          "GL_VENDOR: NVIDIA Corporation",
+          "GL_RENDERER: NVIDIA GeForce RTX 4060 Laptop GPU/PCIe/SSE2",
+          "GL_VERSION: 4.6.0 NVIDIA 591.74"
+        ],
+        "imageFormatTotals": {
+          "RGB": 0,
+          "RGBA": 0,
+          "DXT1": 0,
+          "DXT5": 0
+        }
+      },
+      {
+        "case": "alpha-manual-preflight-stvef-mp",
+        "profile": "stvef-mp",
+        "exit": 0,
+        "terminated": null,
+        "seconds": 16.234,
+        "privateDesktop": true,
+        "command": [
+          "E:\\Games\\fnTech3-tests\\stvef-manual\\engine\\fntech3.exe",
+          "+set",
+          "com_gameProfile",
+          "stvef-mp",
+          "+set",
+          "fs_basepath",
+          "E:\\Games\\fnTech3-tests\\efassets",
+          "+set",
+          "fs_homepath",
+          "E:\\Games\\fnTech3-tests\\alpha-manual-preflight-stvef-mp",
+          "+set",
+          "cl_renderer",
+          "glx",
+          "+set",
+          "r_fullscreen",
+          "0",
+          "+set",
+          "r_mode",
+          "3",
+          "+set",
+          "in_mouse",
+          "0",
+          "+set",
+          "in_joystick",
+          "0",
+          "+set",
+          "in_nograb",
+          "1",
+          "+set",
+          "use_ff",
+          "0",
+          "+set",
+          "s_initsound",
+          "0",
+          "+set",
+          "developer",
+          "0",
+          "+set",
+          "logfile",
+          "2",
+          "+set",
+          "com_introplayed",
+          "1",
+          "+set",
+          "com_FirstTime",
+          "1",
+          "+set",
+          "com_zoneMegs",
+          "128",
+          "+set",
+          "com_hunkMegs",
+          "256",
+          "+exec",
+          "probe.cfg"
+        ],
+        "settings": {
+          "com_gameProfile": "stvef-mp",
+          "fs_basepath": "E:\\Games\\fnTech3-tests\\efassets",
+          "fs_homepath": "E:\\Games\\fnTech3-tests\\alpha-manual-preflight-stvef-mp",
+          "cl_renderer": "glx",
+          "r_fullscreen": 0,
+          "r_mode": 3,
+          "in_mouse": 0,
+          "in_joystick": 0,
+          "in_nograb": 1,
+          "use_ff": 0,
+          "s_initsound": 0,
+          "developer": 0,
+          "logfile": 2,
+          "com_introplayed": 1,
+          "com_FirstTime": 1,
+          "com_zoneMegs": 128,
+          "com_hunkMegs": 256
+        },
+        "script": "wait 60\nset sv_pure 0\nset g_gametype 0\nset sv_maxclients 4\nmap hm_borg1\nwait 120\naddbot Munro 2\nwait 180\nrenderer_switch\nscreenshot preflight\nwait 3\necho ALPHA_PREFLIGHT_COMPLETE\nquit\n",
+        "executable": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-manual\\engine\\fntech3.exe",
+          "bytes": 8522240,
+          "sha256": "9ff8014d323e881de4db19d740733af41ae7335354977b6ef85cdfe489e94b78"
+        },
+        "rendererBinary": {
+          "path": "E:\\Games\\fnTech3-tests\\stvef-manual\\engine\\fnql_glx_x86.dll",
+          "bytes": 2441728,
+          "sha256": "f4c51a41ad72a816b92505b8f627b75f08352c53e4ddc9a60d229e81adcb05ac"
+        },
+        "log": {
+          "path": "E:\\Games\\fnTech3-tests\\alpha-manual-preflight-stvef-mp\\baseEF\\qconsole.log",
+          "bytes": 5841,
+          "sha256": "8fc7692d86f8c3ffd535325de095bdc56cad14b43e99f730bfd14aa39a60e319"
+        },
+        "captures": [
+          {
+            "path": "E:\\Games\\fnTech3-tests\\alpha-manual-preflight-stvef-mp\\baseEF\\screenshots\\preflight.png",
+            "bytes": 922218,
+            "sha256": "304dd751315b9a5c11f37b45de6c5e3d5e528360ccc28d5e0463183b9466483d"
+          }
+        ],
+        "completed": true,
+        "verifiedRenderer": true,
+        "graphics": [
+          "GL_VENDOR: NVIDIA Corporation",
+          "GL_RENDERER: NVIDIA GeForce RTX 4060 Laptop GPU/PCIe/SSE2",
+          "GL_VERSION: 4.6.0 NVIDIA 591.74"
+        ],
+        "imageFormatTotals": {
+          "RGB": 0,
+          "RGBA": 0,
+          "DXT1": 0,
+          "DXT5": 0
+        }
+      }
+    ],
+    "inputAcceptancePending": true
+  },
+  "evidenceFiles": [
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail_texture_format_probe.c",
+      "bytes": 1876,
+      "sha256": "7ca06d453dfbefaa75940d3e7a27c9ae217cb981768ccaaacc6f04823299f34b"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail_texture_format_probe.exe",
+      "bytes": 137728,
+      "sha256": "d00d34abf39bc2e29801300aa4b1f2d10601158e28f53345b3b4504a56414076"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail_math_probe.c",
+      "bytes": 9474,
+      "sha256": "106f7489a779da41074d83befa9d452e51a2d43be418decaadd1f321c703230c"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail-texture-format-build.log",
+      "bytes": 31,
+      "sha256": "99755ae7e4a46a0ba97b9c1778dd810aab3ccc5a22a1b8bb4de0ca3a17c2a73c"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail-texture-format-sp.json",
+      "bytes": 2177,
+      "sha256": "e1daaf0936977f86738373af0ec5102d14b55b9c5291bc15b9e0fdd9716c1ae4"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail-texture-format-mp.json",
+      "bytes": 2177,
+      "sha256": "e1daaf0936977f86738373af0ec5102d14b55b9c5291bc15b9e0fdd9716c1ae4"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail-compression-format-references.txt",
+      "bytes": 3348,
+      "sha256": "fcafcd418f399a268e0dca386b348a06ee5653e7a6decfbe1001750e2793ecaf"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\retail-hm-compression-format-disassembly.txt",
+      "bytes": 2442,
+      "sha256": "466d91f369d52a9e60b09fd50ff6110feaf03d7bd6f83b03c1c94f127becb9c6"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-alpha-test-before.log",
+      "bytes": 2757,
+      "sha256": "c0a9c3e2fae53fd7254883a94a818144d3020375a0d33bf23c8833b876dc37ad"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-alpha-test-after.log",
+      "bytes": 239,
+      "sha256": "a5e1aaa68518d942b74715bba5366c9f6c1801c6a8b701dc70b6741e1c76326f"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-alpha-linux-test.log",
+      "bytes": 233,
+      "sha256": "29f4f28860952965f8057197d54543f48d32c77dff8e9fcfcca8d4a84d36c0e9"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-alpha-windows-build.log",
+      "bytes": 956,
+      "sha256": "4865df65b5edfcf57ce638c8ed925b66a2da0069acd332469b3b54f5561251ad"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-alpha-linux-build.log",
+      "bytes": 5855,
+      "sha256": "7c201daa3f0d9a8e0479d7cc8bceee730df2379ebbbda4d8639ef871a1b4c6e1"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-alpha-windows-full.log",
+      "bytes": 9749,
+      "sha256": "83c880324bb2cd6890fda2aae81dc7535f7514741ad4714a8636f85f7d49d27d"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-alpha-windows-full-initial.log",
+      "bytes": 16924,
+      "sha256": "71e3c7a3a2af16bec1269f8b5f2f00cc987d2a80326e57e2ec4dd1f2b8c485fe"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-alpha-initial-full.json",
+      "bytes": 16407,
+      "sha256": "8177f0bca2f526f44a332bdfface26e476c53e78962ef51762b21b47256ef0cc"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-alpha-packaging-retry.log",
+      "bytes": 8461,
+      "sha256": "598f394b3c98a93a18643068f43c2368b1564fe8b7efae69b35cd960b26f8910"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\probe_sp_alpha_fixed_0.py",
+      "bytes": 5423,
+      "sha256": "a31bd399471687d7091bdb8080928559f6b284567cca31856f6917a2d4208a4b"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\probe_sp_alpha_fixed_1.py",
+      "bytes": 5423,
+      "sha256": "45325492b3a57906a5140c83c1275f8b5a951f7ddcb2382e8e7a1848b5954093"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\probe_stvef_alpha_restart.py",
+      "bytes": 3973,
+      "sha256": "4313a8aa49c044bceba54df25b937f389f464087982f581c3e0c85867d32b861"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\probe_linux_alpha.py",
+      "bytes": 3293,
+      "sha256": "5fac391594d0d18cdc61a5db35a06dab7342821f69b936aaf43190ec4a0e17a7"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\probe_alpha_manual_stage.py",
+      "bytes": 2797,
+      "sha256": "2213ef36be4f15b9185ec149721d2e9b9337571101e524ee896fce7d40719bec"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\refresh_stvef_alpha_manual.py",
+      "bytes": 2446,
+      "sha256": "680130062e8a00784204b240b00aeeb99c4aedaa0492c04b81076852af340a5f"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\stvef-alpha-contact.png",
+      "bytes": 1160987,
+      "sha256": "34da9d7c6f1b0e6766527be7a34e5a8f461bf0208716e0af84ce655f360b3620"
+    },
+    {
+      "path": "C:\\Users\\djdac\\.codex\\worktrees\\stvef-support\\fnTech3\\.tmp\\stvef-gaps\\record_stvef_alpha.py",
+      "bytes": 8504,
+      "sha256": "9da50411c4b957a88eabc0a0f7b162789aca8c59c2b3debe9e54f27c2d310385"
+    }
+  ],
+  "safety": {
+    "windowed": true,
+    "windowsPrivateDesktopNeverActivated": true,
+    "linuxPrivateXvfb": true,
+    "userInputControlled": false,
+    "mouseEnabled": false,
+    "joystickEnabled": false,
+    "forceFeedbackEnabled": false,
+    "engineScreenshotsOnly": true,
+    "realInstallationModified": false,
+    "proprietaryInputsCommitted": false
+  },
+  "limits": [
+    "The native fixture covers format selection after component detection, with the lightmap argument off; it does not run the native decoder or alpha scan.",
+    "Vulkan/RTX shipping upload paths remain uncompressed. Their retained OpenGL paths are compiled independently in the regression.",
+    "Dynamic font atlases, compression opt-outs, lightmaps and explicit sRGB decode retain their previous formats.",
+    "Native lightmap and preferred-method controls, localized image differences and broader renderer/campaign coverage remain open.",
+    "Physical input, menu save/load/rebinding, listening and force-feedback hardware remain unverified.",
+    "Existing asset defects, wider Linux-suite failures and Windows x86 RT-extension limits remain open."
+  ],
+  "initialFullRun": {
+    "targets": [
+      {
+        "name": "zlib:example",
+        "result": "OK",
+        "duration": 0.21208834648132324
+      },
+      {
+        "name": "fnTech3:fnql_audio_zones",
+        "result": "OK",
+        "duration": 0.1795656681060791
+      },
+      {
+        "name": "fnTech3:fnql_audio_zone_authoring_audit",
+        "result": "OK",
+        "duration": 0.1705622673034668
+      },
+      {
+        "name": "fnTech3:fnql_audio_recovery",
+        "result": "OK",
+        "duration": 0.15706348419189453
+      },
+      {
+        "name": "fnTech3:fnql_audio_init_policy",
+        "result": "OK",
+        "duration": 0.1470632553100586
+      },
+      {
+        "name": "fnTech3:fnql_audio_occlusion",
+        "result": "OK",
+        "duration": 0.1350696086883545
+      },
+      {
+        "name": "fnTech3:fnql_audio_tone",
+        "result": "OK",
+        "duration": 0.1270747184753418
+      },
+      {
+        "name": "fnTech3:fnql_audio_voice_queue",
+        "result": "OK",
+        "duration": 0.11857461929321289
+      },
+      {
+        "name": "fnTech3:fnql_audio_loopback",
+        "result": "SKIP",
+        "duration": 0.08306169509887695
+      },
+      {
+        "name": "fnTech3:fntech3_game_profiles",
+        "result": "OK",
+        "duration": 0.055563926696777344
+      },
+      {
+        "name": "fnTech3:fntech3_game_abi_layouts",
+        "result": "OK",
+        "duration": 0.03456711769104004
+      },
+      {
+        "name": "ogg:bitwise",
+        "result": "OK",
+        "duration": 0.21259856224060059
+      },
+      {
+        "name": "ogg:framing",
+        "result": "OK",
+        "duration": 0.20309209823608398
+      },
+      {
+        "name": "fnTech3:fnql_retail_sound_compat_source",
+        "result": "OK",
+        "duration": 0.1965937614440918
+      },
+      {
+        "name": "fnTech3:fnql_audio_init_source",
+        "result": "OK",
+        "duration": 0.25809192657470703
+      },
+      {
+        "name": "fnTech3:fntech3_game_abi_adapters",
+        "result": "OK",
+        "duration": 0.18909192085266113
+      },
+      {
+        "name": "fnTech3:fnql_audio_impact_occlusion_source",
+        "result": "OK",
+        "duration": 0.26759910583496094
+      },
+      {
+        "name": "fnTech3:fnql_audio_zone_sweep_script",
+        "result": "OK",
+        "duration": 0.24609851837158203
+      },
+      {
+        "name": "fnTech3:fntech3_server_game_data",
+        "result": "OK",
+        "duration": 0.19354581832885742
+      },
+      {
+        "name": "fnTech3:fntech3_wolfet_contracts",
+        "result": "OK",
+        "duration": 0.18403911590576172
+      },
+      {
+        "name": "fnTech3:fntech3_stvef_mp3_frames",
+        "result": "OK",
+        "duration": 0.17403697967529297
+      },
+      {
+        "name": "fnTech3:fntech3_stvef_abi_layouts",
+        "result": "OK",
+        "duration": 0.1650373935699463
+      },
+      {
+        "name": "fnTech3:fntech3_stvef_vm_rounding",
+        "result": "OK",
+        "duration": 0.15353751182556152
+      },
+      {
+        "name": "fnTech3:fntech3_stvef_client_wire",
+        "result": "OK",
+        "duration": 0.14403557777404785
+      },
+      {
+        "name": "fnTech3:fntech3_stvef_render_records",
+        "result": "OK",
+        "duration": 0.13003969192504883
+      },
+      {
+        "name": "fnTech3:fntech3_wolfet_client_boundary",
+        "result": "OK",
+        "duration": 0.1205291748046875
+      },
+      {
+        "name": "fnTech3:fnql_netchan_profiles",
+        "result": "OK",
+        "duration": 0.11152291297912598
+      },
+      {
+        "name": "fnTech3:fnql_netchan_codec",
+        "result": "OK",
+        "duration": 0.10102224349975586
+      },
+      {
+        "name": "fnTech3:fnql_ql_font_text",
+        "result": "OK",
+        "duration": 0.09152340888977051
+      },
+      {
+        "name": "fnTech3:fnql_window_placement",
+        "result": "OK",
+        "duration": 0.0890359878540039
+      },
+      {
+        "name": "fnTech3:fnql_window_management_source",
+        "result": "OK",
+        "duration": 0.17555999755859375
+      },
+      {
+        "name": "fnTech3:fnql_global_fog",
+        "result": "OK",
+        "duration": 0.17305421829223633
+      },
+      {
+        "name": "fnTech3:fnql_ql_font_source",
+        "result": "OK",
+        "duration": 0.20806217193603516
+      },
+      {
+        "name": "fnTech3:fnql_map_overbright_cap_source",
+        "result": "OK",
+        "duration": 0.19955968856811523
+      },
+      {
+        "name": "fnTech3:fnql_macos_support_source",
+        "result": "OK",
+        "duration": 0.1845557689666748
+      },
+      {
+        "name": "fnTech3:fnql_menu_blur",
+        "result": "OK",
+        "duration": 0.18354463577270508
+      },
+      {
+        "name": "fnTech3:fnql_levelshot_validation",
+        "result": "OK",
+        "duration": 0.1640472412109375
+      },
+      {
+        "name": "fnTech3:fnql_bmp_loader",
+        "result": "OK",
+        "duration": 0.12554621696472168
+      },
+      {
+        "name": "fnTech3:fnql_huffman_decoder",
+        "result": "OK",
+        "duration": 0.11153960227966309
+      },
+      {
+        "name": "fnTech3:fnql_qvm_header_bounds",
+        "result": "OK",
+        "duration": 0.1005244255065918
+      },
+      {
+        "name": "fnTech3:fnql_filesystem_write_bounds",
+        "result": "OK",
+        "duration": 0.08752560615539551
+      },
+      {
+        "name": "fnTech3:fnql_png_loader",
+        "result": "OK",
+        "duration": 0.21705055236816406
+      },
+      {
+        "name": "fnTech3:fnql_global_fog_source",
+        "result": "OK",
+        "duration": 0.3525865077972412
+      },
+      {
+        "name": "fnTech3:fnql_renderer_port_safety_source",
+        "result": "OK",
+        "duration": 0.322070837020874
+      },
+      {
+        "name": "fnTech3:fnql_surface_geometry_limits_source",
+        "result": "OK",
+        "duration": 0.3050708770751953
+      },
+      {
+        "name": "fnTech3:fnql_untrusted_asset_bounds_source",
+        "result": "OK",
+        "duration": 0.3135707378387451
+      },
+      {
+        "name": "fnTech3:fntech3_unzip",
+        "result": "OK",
+        "duration": 0.22504782676696777
+      },
+      {
+        "name": "fnTech3:fnql_menu_blur_source",
+        "result": "OK",
+        "duration": 0.3460688591003418
+      },
+      {
+        "name": "fnTech3:fntech3_application_icons",
+        "result": "OK",
+        "duration": 0.46662354469299316
+      },
+      {
+        "name": "fnTech3:fntech3_steam_paths",
+        "result": "OK",
+        "duration": 0.6452169418334961
+      },
+      {
+        "name": "fnTech3:fnql_netchan_safety",
+        "result": "OK",
+        "duration": 0.25307583808898926
+      },
+      {
+        "name": "fnTech3:fnql_input_compat",
+        "result": "OK",
+        "duration": 0.24207735061645508
+      },
+      {
+        "name": "fnTech3:fnql_client_cvar_compat",
+        "result": "OK",
+        "duration": 0.23057293891906738
+      },
+      {
+        "name": "fnTech3:fnql_server_cvar_compat",
+        "result": "OK",
+        "duration": 0.2745497226715088
+      },
+      {
+        "name": "fnTech3:fnql_message_codec",
+        "result": "OK",
+        "duration": 0.24304986000061035
+      },
+      {
+        "name": "fnTech3:fnql_protocol_layout",
+        "result": "OK",
+        "duration": 0.23255014419555664
+      },
+      {
+        "name": "fnTech3:fnql_client_cvar_compat_source",
+        "result": "OK",
+        "duration": 0.28705739974975586
+      },
+      {
+        "name": "fnTech3:fnql_protocol_contract",
+        "result": "OK",
+        "duration": 0.16303396224975586
+      },
+      {
+        "name": "fnTech3:fnql_server_cvar_compat_source",
+        "result": "OK",
+        "duration": 0.27306437492370605
+      },
+      {
+        "name": "fnTech3:fnql_spawn_view_angle_source",
+        "result": "OK",
+        "duration": 0.3090670108795166
+      },
+      {
+        "name": "fnTech3:fnql_retail_auth_challenge",
+        "result": "OK",
+        "duration": 0.20757102966308594
+      },
+      {
+        "name": "fnTech3:fnql_factory_rotation",
+        "result": "OK",
+        "duration": 0.2050786018371582
+      },
+      {
+        "name": "fnTech3:fnql_stats_session",
+        "result": "OK",
+        "duration": 0.20058298110961914
+      },
+      {
+        "name": "fnTech3:fnql_json_document",
+        "result": "OK",
+        "duration": 0.19157958030700684
+      },
+      {
+        "name": "fnTech3:fnql_factory_catalog",
+        "result": "OK",
+        "duration": 0.18056750297546387
+      },
+      {
+        "name": "fnTech3:fnql_stats_event",
+        "result": "OK",
+        "duration": 0.1715710163116455
+      },
+      {
+        "name": "fnTech3:fnql_stats_report",
+        "result": "OK",
+        "duration": 0.16055917739868164
+      },
+      {
+        "name": "fnTech3:fnql_demo_stream",
+        "result": "OK",
+        "duration": 0.17357707023620605
+      },
+      {
+        "name": "fnTech3:fnql_ql_bsp_contract",
+        "result": "OK",
+        "duration": 0.158095121383667
+      },
+      {
+        "name": "fnTech3:fnql_collision_model_parity",
+        "result": "OK",
+        "duration": 0.14609360694885254
+      },
+      {
+        "name": "fnTech3:fntech3_collision_game_contract",
+        "result": "OK",
+        "duration": 0.13609051704406738
+      },
+      {
+        "name": "fnTech3:fnql_ql_demo_source",
+        "result": "OK",
+        "duration": 0.1900949478149414
+      },
+      {
+        "name": "fnTech3:fnql_collision_capsule_trace",
+        "result": "OK",
+        "duration": 0.1762087345123291
+      },
+      {
+        "name": "fnTech3:fntech3_stvef_server_policy",
+        "result": "OK",
+        "duration": 0.16770243644714355
+      },
+      {
+        "name": "fnTech3:fnql_collision_model_parity_source",
+        "result": "OK",
+        "duration": 0.17958569526672363
+      },
+      {
+        "name": "fnTech3:fnql_ql_services_source",
+        "result": "OK",
+        "duration": 0.17258787155151367
+      },
+      {
+        "name": "fnTech3:fnql_ql_cvar_configstring_source",
+        "result": "OK",
+        "duration": 0.19260621070861816
+      },
+      {
+        "name": "fnTech3:fnql_join_menu_source",
+        "result": "OK",
+        "duration": 0.18160319328308105
+      },
+      {
+        "name": "fnTech3:fnql_frame_clock_source",
+        "result": "OK",
+        "duration": 0.1500694751739502
+      },
+      {
+        "name": "fnTech3:fntech3_rtx_mdr_geometry",
+        "result": "OK",
+        "duration": 0.06154131889343262
+      },
+      {
+        "name": "fnTech3:fntech3_rtx_scene_signature",
+        "result": "OK",
+        "duration": 0.05553579330444336
+      },
+      {
+        "name": "fnTech3:fnql_lightmap_parity_source",
+        "result": "OK",
+        "duration": 0.18959426879882812
+      },
+      {
+        "name": "fnTech3:fnql_rtx_vulkan_safety_source",
+        "result": "OK",
+        "duration": 0.18810510635375977
+      },
+      {
+        "name": "fnTech3:fnql_steam_identity",
+        "result": "OK",
+        "duration": 0.05503249168395996
+      },
+      {
+        "name": "fnTech3:fnql_rtx_renderer_contract_source",
+        "result": "OK",
+        "duration": 0.22610187530517578
+      },
+      {
+        "name": "fnTech3:fnql_renderer_contract_source",
+        "result": "OK",
+        "duration": 0.2811455726623535
+      },
+      {
+        "name": "fnTech3:fnql_webpak_format",
+        "result": "OK",
+        "duration": 0.05552053451538086
+      },
+      {
+        "name": "fnTech3:fnql_factory_runtime_source",
+        "result": "OK",
+        "duration": 0.21456456184387207
+      },
+      {
+        "name": "fnTech3:fnql_cvar_factory_snapshot_source",
+        "result": "OK",
+        "duration": 0.23656392097473145
+      },
+      {
+        "name": "fnTech3:fnql_webui_backend",
+        "result": "OK",
+        "duration": 0.07600736618041992
+      },
+      {
+        "name": "fnTech3:fnql_webui_request_schedule",
+        "result": "OK",
+        "duration": 0.05293536186218262
+      },
+      {
+        "name": "fnTech3:fnql_steam_provider_source",
+        "result": "OK",
+        "duration": 0.2480161190032959
+      },
+      {
+        "name": "fnTech3:fnql_webui_resource_queue",
+        "result": "OK",
+        "duration": 0.054448843002319336
+      },
+      {
+        "name": "fnTech3:fnql_zmq_endpoint",
+        "result": "OK",
+        "duration": 0.05894613265991211
+      },
+      {
+        "name": "fnTech3:fnql_rtx_raster_feature_parity_source",
+        "result": "OK",
+        "duration": 0.4100804328918457
+      },
+      {
+        "name": "fnTech3:fnql_retail_factory_probe",
+        "result": "SKIP",
+        "duration": 0.2985689640045166
+      },
+      {
+        "name": "fnTech3:fnql_steam_identity_source",
+        "result": "OK",
+        "duration": 0.23203349113464355
+      },
+      {
+        "name": "fnTech3:fnql_glx_logic",
+        "result": "OK",
+        "duration": 0.05456972122192383
+      },
+      {
+        "name": "fnTech3:fnql_windowed_mouse_source",
+        "result": "OK",
+        "duration": 0.558722972869873
+      },
+      {
+        "name": "fnTech3:fnql_static_map_lights_source",
+        "result": "OK",
+        "duration": 0.10207343101501465
+      },
+      {
+        "name": "fnTech3:fnql_glx_spot_shadow_source",
+        "result": "OK",
+        "duration": 0.12257266044616699
+      },
+      {
+        "name": "fnTech3:fnql_webpak_builder_source",
+        "result": "OK",
+        "duration": 0.3125183582305908
+      },
+      {
+        "name": "fnTech3:fnql_shadow_manager_source",
+        "result": "OK",
+        "duration": 0.10898637771606445
+      },
+      {
+        "name": "fnTech3:fnql_surface_light_proxy_source",
+        "result": "OK",
+        "duration": 0.13849091529846191
+      },
+      {
+        "name": "fnTech3:fnql_csm_shadow_cache_source",
+        "result": "OK",
+        "duration": 0.13050627708435059
+      },
+      {
+        "name": "fnTech3:fnql_csm_plan_source",
+        "result": "OK",
+        "duration": 0.18249106407165527
+      },
+      {
+        "name": "fnTech3:fnql_rtx_runtime_smoke_source",
+        "result": "OK",
+        "duration": 0.6420111656188965
+      },
+      {
+        "name": "fnTech3:fnql_vid_restart_fast_source",
+        "result": "OK",
+        "duration": 0.21662378311157227
+      },
+      {
+        "name": "fnTech3:fnql_ui_native_bridge_source",
+        "result": "OK",
+        "duration": 0.19362664222717285
+      },
+      {
+        "name": "fnTech3:fnql_cgame_native_bridge_source",
+        "result": "OK",
+        "duration": 0.25464367866516113
+      },
+      {
+        "name": "fnTech3:fnql_glx_header_boundary",
+        "result": "OK",
+        "duration": 0.39722371101379395
+      },
+      {
+        "name": "fnTech3:fnql_platform_port_safety_source",
+        "result": "OK",
+        "duration": 0.9498703479766846
+      },
+      {
+        "name": "fnTech3:fnql_renderer_cvar_compat_source",
+        "result": "OK",
+        "duration": 0.9603536128997803
+      },
+      {
+        "name": "fnTech3:fnql_fnq3_bloom_parity_source",
+        "result": "OK",
+        "duration": 0.9618353843688965
+      },
+      {
+        "name": "fnTech3:fntech3_rtx_lightmap_execution",
+        "result": "OK",
+        "duration": 1.4363634586334229
+      },
+      {
+        "name": "fnTech3:fntech3_rtx_raster_execution",
+        "result": "OK",
+        "duration": 1.6424283981323242
+      },
+      {
+        "name": "fnTech3:fntech3_rtx_lifecycle",
+        "result": "OK",
+        "duration": 2.019610643386841
+      },
+      {
+        "name": "fnTech3:fnql_audio_zone_material_map",
+        "result": "OK",
+        "duration": 2.978938341140747
+      },
+      {
+        "name": "fnTech3:fnql_input_system_source",
+        "result": "OK",
+        "duration": 2.207660675048828
+      },
+      {
+        "name": "fnTech3:fntech3_rtx_transport",
+        "result": "OK",
+        "duration": 2.8672730922698975
+      },
+      {
+        "name": "fnTech3:fnql_workshop_source",
+        "result": "OK",
+        "duration": 4.387057304382324
+      },
+      {
+        "name": "fnTech3:fnql_python_source_regressions",
+        "result": "FAIL",
+        "duration": 707.9759316444397
+      }
+    ],
+    "pythonSummary": [
+      "ERROR: test_prebuilt_macos_payload_is_published_byte_for_byte (release_packaging_tests.ReleasePackagingTests.test_prebuilt_macos_payload_is_published_byte_for_byte)",
+      "ERROR: test_release_archive_keeps_game_dirs_at_archive_root (release_packaging_tests.ReleasePackagingTests.test_release_archive_keeps_game_dirs_at_archive_root)",
+      "FAIL: test_unsigned_prebuilt_macos_payload_requires_explicit_policy (release_packaging_tests.ReleasePackagingTests.test_unsigned_prebuilt_macos_payload_requires_explicit_policy)",
+      "Ran 1856 tests in 706.790s",
+      "FAILED (failures=1, errors=2, skipped=72)"
+    ],
+    "reason": "Documentation was written during the run before its linked evidence JSON existed. Three packaging checks fail for that same missing path; all other Python checks and Meson targets pass."
+  },
+  "cleanup": "Useful evidence remains in designated project/test directories. Earlier cleanup was rejected automatically as blocked by policy; no repeat cleanup attempted."
+}

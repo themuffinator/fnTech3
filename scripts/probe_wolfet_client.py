@@ -160,6 +160,11 @@ def main():
             destination = output / capture.name
             shutil.copy2(capture, destination)
             report['screenshots'].append(dict(path=str(destination), sha256=sha(destination)))
+        # cl_hudDump writes its groups into the home this run then removes.
+        dump = game / 'fntech3-hud-dump.json'
+        if dump.is_file():
+            shutil.copy2(dump, output / dump.name)
+            report['hudDump'] = dict(path=str(output / dump.name), sha256=sha(dump))
         report['modules'] = [line for line in text.splitlines() if re.search(
             r'_mp_x86|vm_loaddll|loading dll|Sys_LoadDll', line, re.I)]
         report['engineErrors'] = [line for line in text.splitlines() if re.search(
