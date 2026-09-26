@@ -21,6 +21,10 @@ from stock_alice_maps import STOCK_ALICE_MAPS
 FIXTURE_MAPS = ("garden1", "keep")
 
 
+def lf_sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+
+
 def write_pak(path: Path, entries: dict[str, bytes]) -> None:
     with zipfile.ZipFile(path, "w") as archive:
         for name, data in entries.items():
@@ -124,8 +128,7 @@ class AliceAudioZoneGenerationTests(unittest.TestCase):
         records = {run["map"]: run for run in zones["maps"]}
         self.assertEqual(len(STOCK_ALICE_MAPS), 36)
         self.assertEqual(set(records), set(STOCK_ALICE_MAPS))
-        self.assertEqual(zones["materialMapSha256"],
-                         hashlib.sha256((ROOT / "scripts/alice-audio-materials.txt").read_bytes()).hexdigest())
+        self.assertEqual(zones["materialMapSha256"], lf_sha256(ROOT / "scripts/alice-audio-materials.txt"))
         directory = ROOT / "pkg/games/alice/base/maps"
         self.assertEqual({p.stem for p in directory.glob("*.azb")}, set(STOCK_ALICE_MAPS))
         for name in STOCK_ALICE_MAPS:

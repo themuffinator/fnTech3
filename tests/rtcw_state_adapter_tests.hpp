@@ -145,13 +145,15 @@ template<class External> int Command() {
 
 int Run() {
 	gameState_t gameState{};
-	gameState.dataCount = MAX_GAMESTATE_CHARS;
-	std::memset( gameState.stringData + 1, 'x', MAX_GAMESTATE_CHARS - 2 );
+	// The engine's store holds the largest profile's gamestate; RTCW's record
+	// holds its own 16,000 bytes, and a larger one is refused below.
+	gameState.dataCount = FNTECH3_RTCW_MAX_GAMESTATE_CHARS;
+	std::memset( gameState.stringData + 1, 'x', FNTECH3_RTCW_MAX_GAMESTATE_CHARS - 2 );
 	for ( int index = 0; index < MAX_GAME_CONFIGSTRINGS; ++index ) gameState.stringOffsets[index] = index;
 	Guarded<fntech3_rtcw_gameState_t> gameOutput;
 	RTCW_STATE_CHECK(state::FromInternal(gameState, gameOutput.value) && gameOutput.Intact());
 	RTCW_STATE_CHECK(gameOutput.value.stringOffsets[2047] == 2047 && gameOutput.value.dataCount == 16000);
-	RTCW_STATE_CHECK(std::memcmp(gameOutput.value.stringData, gameState.stringData, MAX_GAMESTATE_CHARS) == 0);
+	RTCW_STATE_CHECK(std::memcmp(gameOutput.value.stringData, gameState.stringData, FNTECH3_RTCW_MAX_GAMESTATE_CHARS) == 0);
 	const auto savedGame = gameOutput;
 	gameState.stringOffsets[2047] = 16000;
 	RTCW_STATE_CHECK(!state::FromInternal(gameState, gameOutput.value));

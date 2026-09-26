@@ -19,10 +19,13 @@ extern "C" {
 
 template<typename External>
 static int TestGameStateTranslation( void (*convert)( External *, const gameState_t * ) ) {
+	// A full gamestate of the module's own size: the engine's store holds the
+	// largest profile's, and each profile's parser keeps to its module's.
+	constexpr int capacity = static_cast<int>( sizeof( External::stringData ) );
 	gameState_t source{};
-	for ( int i = 0; i < MAX_GAME_CONFIGSTRINGS; ++i ) source.stringOffsets[i] = (i * 13) % MAX_GAMESTATE_CHARS;
-	for ( int i = 0; i < MAX_GAMESTATE_CHARS; ++i ) source.stringData[i] = static_cast<char>( i % 127 );
-	source.dataCount = MAX_GAMESTATE_CHARS;
+	for ( int i = 0; i < MAX_GAME_CONFIGSTRINGS; ++i ) source.stringOffsets[i] = (i * 13) % capacity;
+	for ( int i = 0; i < capacity; ++i ) source.stringData[i] = static_cast<char>( i % 127 );
+	source.dataCount = capacity;
 	struct { unsigned before; External state; unsigned after; } guarded;
 	std::memset( &guarded, 0xcc, sizeof( guarded ) );
 	convert( &guarded.state, &source );

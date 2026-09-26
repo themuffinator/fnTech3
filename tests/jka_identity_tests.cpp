@@ -244,10 +244,10 @@ static void TestProtocolsAndModules()
 	// Jedi Academy shares both of its version numbers with Elite Force's
 	// families, so a version names every family and each profile admits one.
 	// Three single players speak 40: Elite Force's, Jedi Academy's and Jedi
-	// Outcast's.
+	// Outcast's. So does Q3Test 1.08.
 	CHECK( Com_ProtocolFamilyForVersion( 40 )
 		== ( COM_PROTOCOL_FAMILY_STVEF_SP | COM_PROTOCOL_FAMILY_JKA_SP
-			| COM_PROTOCOL_FAMILY_JK2_SP ) );
+			| COM_PROTOCOL_FAMILY_JK2_SP | COM_PROTOCOL_FAMILY_Q3TEST ) );
 	CHECK( Com_ProtocolFamilyForVersion( 26 )
 		== ( COM_PROTOCOL_FAMILY_IOEF | COM_PROTOCOL_FAMILY_JKA_MP ) );
 	CHECK( Com_GameProfileAllowsProtocol( sp, 40 ) );
