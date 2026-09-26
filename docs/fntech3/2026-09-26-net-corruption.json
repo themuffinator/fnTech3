@@ -1,0 +1,1681 @@
+{
+  "date": "2026-09-26",
+  "scope": "Live netchannel traffic between an fnTech3 client and dedicated server, corrupted by a loopback relay once the client is in the game: one sequenced datagram in eight, both directions, for 15 seconds per session, 20 sessions each under q3, ql and rtcw-mp.",
+  "probe": {
+    "path": "scripts/probe_net_corruption.py",
+    "sha256": "74cb8cf1a6e033a4cd03b35fcf4c9420e48aa05859426772283c7d071926360d",
+    "sha256Basis": "LF text, as committed",
+    "lastChangedBy": "the commit that adds this record"
+  },
+  "client": {
+    "path": "meson/build/win32-dev/fntech3.exe",
+    "sha256": "d3ff7129bccb2fdfa1c21540ec459181635fa4ada6c766bcbcddba23ca6b1bdc",
+    "platform": "Windows 11 x64 host, Windows x86 build: meson/build/win32-dev, MSVC 19.44, debugoptimized, strict warnings, renderers glx/vk/rtx as modules; RTCW, WolfET and Elite Force development gates on",
+    "source": "3089df2 with the grid guard of 5ba3561, built from the working tree"
+  },
+  "server": {
+    "path": "meson/build/win32-dev/fntech3.ded.exe",
+    "sha256": "f30fcaa78ad2a94397187d3352d75eba5e7601cc7f4fdf9fd988667ac745398f",
+    "platform": "Windows 11 x64 host, Windows x86 build: meson/build/win32-dev, MSVC 19.44, debugoptimized, strict warnings, renderers glx/vk/rtx as modules; RTCW, WolfET and Elite Force development gates on"
+  },
+  "environment": "Windowed on unswitched private desktops (tests/windows_private_process.py), one fresh process and isolated fs_homepath per run under .tmp/probe-records/, sound and mouse/joystick input disabled, Steam integration and the WebUI off, loopback UDP only, console commands only. Retail installations were read, never written. GLx renderer, pure off, bots off.",
+  "runs": {
+    "q3": {
+      "profile": "q3",
+      "map": "q3dm1",
+      "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+      "runsUtc": {
+        "start": "2026-09-26T21:50:02+00:00",
+        "end": "2026-09-26T21:51:48+00:00",
+        "basis": "modification times of the probe's output files"
+      },
+      "every": 8,
+      "seconds": 15,
+      "seed": 20260918,
+      "direction": "both",
+      "serverCommand": "+set com_gameProfile q3 +set fs_basepath C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena +set fs_homepath .tmp\\probe-records\\net-corruption-q3\\server-home +set dedicated 1 +set net_ip 127.0.0.1 +set net_port 59679 +set sv_pure 0 +set bot_enable 0 +set sv_punkbuster 0 +set logfile 2 +set sv_maxclients 24 +set sv_maxclientsPerIP 24 +set developer 1 +set sv_master1  +set sv_master2  +set sv_master3  +set sv_master4  +set sv_master5  +map q3dm1",
+      "serverReady": true,
+      "serverExitCode": null,
+      "serverDrops": 0,
+      "serverFaults": 0,
+      "outcomes": {
+        "connected": 0,
+        "dropped": 20,
+        "faulted": 0,
+        "crashed": 0,
+        "hung": 0,
+        "never-active": 0
+      },
+      "dropReasons": {
+        "CL_ValidateReliableAcknowledge: incorrect reliable sequence acknowledge number": 6,
+        "CL_ParseSnapshot: Invalid size N for areamask": 5,
+        "CL_ReadDeltaPlayerstate: invalid or truncated player-state delta": 3,
+        "CL_ParseServerMessage: Illegible server message": 2,
+        "server: Invalid or truncated user command": 2,
+        "cl.snap.serverTime < cl.oldFrameServerTime": 1,
+        "invalid playerState field count": 1
+      },
+      "traffic": {
+        "to_server.forwarded": 788,
+        "to_server.sequenced": 728,
+        "to_server.corrupted": 56,
+        "to_client.forwarded": 858,
+        "to_client.sequenced": 798,
+        "to_client.corrupted": 79
+      },
+      "passed": true,
+      "sessions": {
+        "0": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseSnapshot: Invalid size 133 for areamask"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.9,
+          "traffic": {
+            "to_server": {
+              "forwarded": 33,
+              "sequenced": 30,
+              "corrupted": 1
+            },
+            "to_client": {
+              "forwarded": 62,
+              "sequenced": 59,
+              "corrupted": 5
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "1": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseSnapshot: Invalid size 115 for areamask"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.3,
+          "traffic": {
+            "to_server": {
+              "forwarded": 21,
+              "sequenced": 18,
+              "corrupted": 0
+            },
+            "to_client": {
+              "forwarded": 51,
+              "sequenced": 48,
+              "corrupted": 8
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "2": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ValidateReliableAcknowledge: incorrect reliable sequence acknowledge number"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.7,
+          "traffic": {
+            "to_server": {
+              "forwarded": 21,
+              "sequenced": 18,
+              "corrupted": 0
+            },
+            "to_client": {
+              "forwarded": 48,
+              "sequenced": 45,
+              "corrupted": 3
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "3": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ValidateReliableAcknowledge: incorrect reliable sequence acknowledge number"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.5,
+          "traffic": {
+            "to_server": {
+              "forwarded": 28,
+              "sequenced": 25,
+              "corrupted": 1
+            },
+            "to_client": {
+              "forwarded": 33,
+              "sequenced": 30,
+              "corrupted": 5
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "4": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ValidateReliableAcknowledge: incorrect reliable sequence acknowledge number"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 3.0,
+          "traffic": {
+            "to_server": {
+              "forwarded": 36,
+              "sequenced": 33,
+              "corrupted": 1
+            },
+            "to_client": {
+              "forwarded": 33,
+              "sequenced": 30,
+              "corrupted": 3
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "5": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseSnapshot: Invalid size 53 for areamask"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.3,
+          "traffic": {
+            "to_server": {
+              "forwarded": 23,
+              "sequenced": 20,
+              "corrupted": 2
+            },
+            "to_client": {
+              "forwarded": 31,
+              "sequenced": 28,
+              "corrupted": 7
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "6": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: cl.snap.serverTime < cl.oldFrameServerTime"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.6,
+          "traffic": {
+            "to_server": {
+              "forwarded": 34,
+              "sequenced": 31,
+              "corrupted": 0
+            },
+            "to_client": {
+              "forwarded": 41,
+              "sequenced": 38,
+              "corrupted": 4
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "7": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseServerMessage: Illegible server message"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 3.8,
+          "traffic": {
+            "to_server": {
+              "forwarded": 92,
+              "sequenced": 89,
+              "corrupted": 9
+            },
+            "to_client": {
+              "forwarded": 61,
+              "sequenced": 58,
+              "corrupted": 4
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "8": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [],
+          "serverDrop": "Invalid or truncated user command",
+          "corruptedSeconds": 15.1,
+          "traffic": {
+            "to_server": {
+              "forwarded": 46,
+              "sequenced": 43,
+              "corrupted": 5
+            },
+            "to_client": {
+              "forwarded": 36,
+              "sequenced": 33,
+              "corrupted": 1
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "9": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [],
+          "serverDrop": "Invalid or truncated user command",
+          "corruptedSeconds": 15.1,
+          "traffic": {
+            "to_server": {
+              "forwarded": 21,
+              "sequenced": 18,
+              "corrupted": 3
+            },
+            "to_client": {
+              "forwarded": 33,
+              "sequenced": 30,
+              "corrupted": 5
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "10": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.7,
+          "traffic": {
+            "to_server": {
+              "forwarded": 40,
+              "sequenced": 37,
+              "corrupted": 6
+            },
+            "to_client": {
+              "forwarded": 44,
+              "sequenced": 41,
+              "corrupted": 5
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "11": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ValidateReliableAcknowledge: incorrect reliable sequence acknowledge number"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.2,
+          "traffic": {
+            "to_server": {
+              "forwarded": 20,
+              "sequenced": 17,
+              "corrupted": 1
+            },
+            "to_client": {
+              "forwarded": 39,
+              "sequenced": 36,
+              "corrupted": 2
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "12": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseSnapshot: Invalid size 240 for areamask"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 3.2,
+          "traffic": {
+            "to_server": {
+              "forwarded": 51,
+              "sequenced": 48,
+              "corrupted": 4
+            },
+            "to_client": {
+              "forwarded": 47,
+              "sequenced": 44,
+              "corrupted": 6
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "13": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 3.2,
+          "traffic": {
+            "to_server": {
+              "forwarded": 74,
+              "sequenced": 71,
+              "corrupted": 10
+            },
+            "to_client": {
+              "forwarded": 48,
+              "sequenced": 45,
+              "corrupted": 2
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "14": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ValidateReliableAcknowledge: incorrect reliable sequence acknowledge number"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.4,
+          "traffic": {
+            "to_server": {
+              "forwarded": 25,
+              "sequenced": 22,
+              "corrupted": 0
+            },
+            "to_client": {
+              "forwarded": 34,
+              "sequenced": 31,
+              "corrupted": 4
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "15": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseSnapshot: Invalid size 220 for areamask"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.7,
+          "traffic": {
+            "to_server": {
+              "forwarded": 49,
+              "sequenced": 46,
+              "corrupted": 4
+            },
+            "to_client": {
+              "forwarded": 46,
+              "sequenced": 43,
+              "corrupted": 5
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "16": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.8,
+          "traffic": {
+            "to_server": {
+              "forwarded": 49,
+              "sequenced": 46,
+              "corrupted": 2
+            },
+            "to_client": {
+              "forwarded": 40,
+              "sequenced": 37,
+              "corrupted": 2
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "17": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: invalid playerState field count"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.7,
+          "traffic": {
+            "to_server": {
+              "forwarded": 39,
+              "sequenced": 36,
+              "corrupted": 2
+            },
+            "to_client": {
+              "forwarded": 38,
+              "sequenced": 35,
+              "corrupted": 2
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "18": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseServerMessage: Illegible server message"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.5,
+          "traffic": {
+            "to_server": {
+              "forwarded": 35,
+              "sequenced": 32,
+              "corrupted": 1
+            },
+            "to_client": {
+              "forwarded": 38,
+              "sequenced": 35,
+              "corrupted": 2
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "19": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ValidateReliableAcknowledge: incorrect reliable sequence acknowledge number"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.8,
+          "traffic": {
+            "to_server": {
+              "forwarded": 51,
+              "sequenced": 48,
+              "corrupted": 4
+            },
+            "to_client": {
+              "forwarded": 55,
+              "sequenced": 52,
+              "corrupted": 4
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        }
+      },
+      "clientSha256": "d3ff7129bccb2fdfa1c21540ec459181635fa4ada6c766bcbcddba23ca6b1bdc",
+      "serverSha256": "f30fcaa78ad2a94397187d3352d75eba5e7601cc7f4fdf9fd988667ac745398f",
+      "sourceCommit": "ea5d25b1d5cca40a1b29af36466f2dc2ea9e1c98"
+    },
+    "ql": {
+      "profile": "ql",
+      "map": "campgrounds",
+      "installation": "E:\\SteamLibrary\\steamapps\\common\\Quake Live",
+      "runsUtc": {
+        "start": "2026-09-26T21:51:48+00:00",
+        "end": "2026-09-26T21:53:34+00:00",
+        "basis": "modification times of the probe's output files"
+      },
+      "every": 8,
+      "seconds": 15,
+      "seed": 20260918,
+      "direction": "both",
+      "serverCommand": "+set com_gameProfile ql +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Quake Live +set fs_homepath .tmp\\probe-records\\net-corruption-ql\\server-home +set dedicated 1 +set net_ip 127.0.0.1 +set net_port 63528 +set sv_pure 0 +set bot_enable 0 +set sv_punkbuster 0 +set logfile 2 +set sv_maxclients 24 +set sv_maxclientsPerIP 24 +set developer 1 +set sv_master1  +set sv_master2  +set sv_master3  +set sv_master4  +set sv_master5  +map campgrounds ffa",
+      "serverReady": true,
+      "serverExitCode": null,
+      "serverDrops": 0,
+      "serverFaults": 0,
+      "outcomes": {
+        "connected": 0,
+        "dropped": 20,
+        "faulted": 0,
+        "crashed": 0,
+        "hung": 0,
+        "never-active": 0
+      },
+      "dropReasons": {
+        "CL_ParseServerMessage: Illegible server message": 6,
+        "CL_ParseSnapshot: Invalid size N for areamask": 4,
+        "CL_ValidateReliableAcknowledge: incorrect reliable sequence acknowledge number": 3,
+        "invalid playerState field count": 2,
+        "CL_ReadDeltaPlayerstate: invalid or truncated player-state delta": 2,
+        "CL_ReadDeltaEntity: invalid or truncated entity delta": 1,
+        "server: Invalid or truncated user command": 1,
+        "invalid entityState field count": 1
+      },
+      "traffic": {
+        "to_server.forwarded": 582,
+        "to_server.sequenced": 542,
+        "to_server.corrupted": 53,
+        "to_client.forwarded": 1935,
+        "to_client.sequenced": 1895,
+        "to_client.corrupted": 162
+      },
+      "passed": true,
+      "sessions": {
+        "0": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseSnapshot: Invalid size 128 for areamask"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.7,
+          "traffic": {
+            "to_server": {
+              "forwarded": 23,
+              "sequenced": 21,
+              "corrupted": 1
+            },
+            "to_client": {
+              "forwarded": 136,
+              "sequenced": 134,
+              "corrupted": 5
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "1": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ValidateReliableAcknowledge: incorrect reliable sequence acknowledge number"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.8,
+          "traffic": {
+            "to_server": {
+              "forwarded": 42,
+              "sequenced": 40,
+              "corrupted": 8
+            },
+            "to_client": {
+              "forwarded": 116,
+              "sequenced": 114,
+              "corrupted": 11
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "2": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ValidateReliableAcknowledge: incorrect reliable sequence acknowledge number"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.4,
+          "traffic": {
+            "to_server": {
+              "forwarded": 18,
+              "sequenced": 16,
+              "corrupted": 0
+            },
+            "to_client": {
+              "forwarded": 99,
+              "sequenced": 97,
+              "corrupted": 10
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "3": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseSnapshot: Invalid size 50 for areamask"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.3,
+          "traffic": {
+            "to_server": {
+              "forwarded": 20,
+              "sequenced": 18,
+              "corrupted": 0
+            },
+            "to_client": {
+              "forwarded": 85,
+              "sequenced": 83,
+              "corrupted": 7
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "4": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseServerMessage: Illegible server message"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.3,
+          "traffic": {
+            "to_server": {
+              "forwarded": 23,
+              "sequenced": 21,
+              "corrupted": 0
+            },
+            "to_client": {
+              "forwarded": 81,
+              "sequenced": 79,
+              "corrupted": 4
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "5": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseSnapshot: Invalid size 232 for areamask"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.4,
+          "traffic": {
+            "to_server": {
+              "forwarded": 18,
+              "sequenced": 16,
+              "corrupted": 1
+            },
+            "to_client": {
+              "forwarded": 106,
+              "sequenced": 104,
+              "corrupted": 13
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "6": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseServerMessage: Illegible server message"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.7,
+          "traffic": {
+            "to_server": {
+              "forwarded": 31,
+              "sequenced": 29,
+              "corrupted": 2
+            },
+            "to_client": {
+              "forwarded": 98,
+              "sequenced": 96,
+              "corrupted": 8
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "7": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseSnapshot: Invalid size 228 for areamask"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.4,
+          "traffic": {
+            "to_server": {
+              "forwarded": 22,
+              "sequenced": 20,
+              "corrupted": 2
+            },
+            "to_client": {
+              "forwarded": 75,
+              "sequenced": 73,
+              "corrupted": 4
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "8": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: invalid playerState field count"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.3,
+          "traffic": {
+            "to_server": {
+              "forwarded": 15,
+              "sequenced": 13,
+              "corrupted": 1
+            },
+            "to_client": {
+              "forwarded": 88,
+              "sequenced": 86,
+              "corrupted": 9
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "9": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: invalid playerState field count"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 3.0,
+          "traffic": {
+            "to_server": {
+              "forwarded": 37,
+              "sequenced": 35,
+              "corrupted": 5
+            },
+            "to_client": {
+              "forwarded": 106,
+              "sequenced": 104,
+              "corrupted": 8
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "10": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.2,
+          "traffic": {
+            "to_server": {
+              "forwarded": 13,
+              "sequenced": 11,
+              "corrupted": 1
+            },
+            "to_client": {
+              "forwarded": 79,
+              "sequenced": 77,
+              "corrupted": 9
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "11": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseServerMessage: Illegible server message"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.3,
+          "traffic": {
+            "to_server": {
+              "forwarded": 12,
+              "sequenced": 10,
+              "corrupted": 1
+            },
+            "to_client": {
+              "forwarded": 93,
+              "sequenced": 91,
+              "corrupted": 6
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "12": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ValidateReliableAcknowledge: incorrect reliable sequence acknowledge number"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.8,
+          "traffic": {
+            "to_server": {
+              "forwarded": 46,
+              "sequenced": 44,
+              "corrupted": 3
+            },
+            "to_client": {
+              "forwarded": 100,
+              "sequenced": 98,
+              "corrupted": 12
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "13": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.7,
+          "traffic": {
+            "to_server": {
+              "forwarded": 23,
+              "sequenced": 21,
+              "corrupted": 2
+            },
+            "to_client": {
+              "forwarded": 97,
+              "sequenced": 95,
+              "corrupted": 6
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "14": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [],
+          "serverDrop": "Invalid or truncated user command",
+          "corruptedSeconds": 15.2,
+          "traffic": {
+            "to_server": {
+              "forwarded": 36,
+              "sequenced": 34,
+              "corrupted": 6
+            },
+            "to_client": {
+              "forwarded": 88,
+              "sequenced": 86,
+              "corrupted": 8
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "15": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseServerMessage: Illegible server message"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 3.0,
+          "traffic": {
+            "to_server": {
+              "forwarded": 29,
+              "sequenced": 27,
+              "corrupted": 1
+            },
+            "to_client": {
+              "forwarded": 95,
+              "sequenced": 93,
+              "corrupted": 12
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "16": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.3,
+          "traffic": {
+            "to_server": {
+              "forwarded": 17,
+              "sequenced": 15,
+              "corrupted": 0
+            },
+            "to_client": {
+              "forwarded": 66,
+              "sequenced": 64,
+              "corrupted": 2
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "17": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseServerMessage: Illegible server message"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.4,
+          "traffic": {
+            "to_server": {
+              "forwarded": 24,
+              "sequenced": 22,
+              "corrupted": 1
+            },
+            "to_client": {
+              "forwarded": 91,
+              "sequenced": 89,
+              "corrupted": 6
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "18": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseServerMessage: Illegible server message"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 3.8,
+          "traffic": {
+            "to_server": {
+              "forwarded": 97,
+              "sequenced": 95,
+              "corrupted": 16
+            },
+            "to_client": {
+              "forwarded": 133,
+              "sequenced": 131,
+              "corrupted": 9
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "19": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: invalid entityState field count"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.6,
+          "traffic": {
+            "to_server": {
+              "forwarded": 36,
+              "sequenced": 34,
+              "corrupted": 2
+            },
+            "to_client": {
+              "forwarded": 103,
+              "sequenced": 101,
+              "corrupted": 13
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        }
+      },
+      "clientSha256": "d3ff7129bccb2fdfa1c21540ec459181635fa4ada6c766bcbcddba23ca6b1bdc",
+      "serverSha256": "f30fcaa78ad2a94397187d3352d75eba5e7601cc7f4fdf9fd988667ac745398f",
+      "sourceCommit": "ea5d25b1d5cca40a1b29af36466f2dc2ea9e1c98"
+    },
+    "rtcw-mp": {
+      "profile": "rtcw-mp",
+      "map": "mp_beach",
+      "installation": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+      "runsUtc": {
+        "start": "2026-09-26T21:53:34+00:00",
+        "end": "2026-09-26T21:55:26+00:00",
+        "basis": "modification times of the probe's output files"
+      },
+      "every": 8,
+      "seconds": 15,
+      "seed": 20260918,
+      "direction": "both",
+      "serverCommand": "+set com_gameProfile rtcw-mp +set fs_basepath E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein +set fs_homepath .tmp\\probe-records\\net-corruption-rtcw-mp\\server-home +set dedicated 1 +set net_ip 127.0.0.1 +set net_port 60115 +set sv_pure 0 +set bot_enable 0 +set sv_punkbuster 0 +set logfile 2 +set sv_maxclients 24 +set sv_maxclientsPerIP 24 +set developer 1 +set sv_master1  +set sv_master2  +set sv_master3  +set sv_master4  +set sv_master5  +map mp_beach",
+      "serverReady": true,
+      "serverExitCode": null,
+      "serverDrops": 0,
+      "serverFaults": 0,
+      "outcomes": {
+        "connected": 0,
+        "dropped": 20,
+        "faulted": 0,
+        "crashed": 0,
+        "hung": 0,
+        "never-active": 0
+      },
+      "dropReasons": {
+        "CL_ValidateReliableAcknowledge: incorrect reliable sequence acknowledge number": 6,
+        "CL_ParseServerMessage: Illegible server message": 5,
+        "CL_ReadDeltaPlayerstate: invalid or truncated player-state delta": 3,
+        "CL_ParseSnapshot: Invalid size N for areamask": 2,
+        "CL_ReadDeltaEntity: invalid or truncated entity delta": 2,
+        "CL_ParsePacketEntities: end of message": 1,
+        "server: Invalid or truncated user command": 1
+      },
+      "traffic": {
+        "to_server.forwarded": 911,
+        "to_server.sequenced": 871,
+        "to_server.corrupted": 82,
+        "to_client.forwarded": 1132,
+        "to_client.sequenced": 1092,
+        "to_client.corrupted": 79
+      },
+      "passed": true,
+      "sessions": {
+        "0": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParsePacketEntities: end of message"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.8,
+          "traffic": {
+            "to_server": {
+              "forwarded": 47,
+              "sequenced": 45,
+              "corrupted": 3
+            },
+            "to_client": {
+              "forwarded": 76,
+              "sequenced": 74,
+              "corrupted": 3
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "1": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseSnapshot: Invalid size 124 for areamask"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.6,
+          "traffic": {
+            "to_server": {
+              "forwarded": 32,
+              "sequenced": 30,
+              "corrupted": 2
+            },
+            "to_client": {
+              "forwarded": 54,
+              "sequenced": 52,
+              "corrupted": 8
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "2": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseServerMessage: Illegible server message"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.8,
+          "traffic": {
+            "to_server": {
+              "forwarded": 48,
+              "sequenced": 46,
+              "corrupted": 3
+            },
+            "to_client": {
+              "forwarded": 60,
+              "sequenced": 58,
+              "corrupted": 6
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "3": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseSnapshot: Invalid size 214 for areamask"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.4,
+          "traffic": {
+            "to_server": {
+              "forwarded": 22,
+              "sequenced": 20,
+              "corrupted": 0
+            },
+            "to_client": {
+              "forwarded": 49,
+              "sequenced": 47,
+              "corrupted": 6
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "4": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ValidateReliableAcknowledge: incorrect reliable sequence acknowledge number"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 3.7,
+          "traffic": {
+            "to_server": {
+              "forwarded": 75,
+              "sequenced": 73,
+              "corrupted": 7
+            },
+            "to_client": {
+              "forwarded": 59,
+              "sequenced": 57,
+              "corrupted": 7
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "5": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseServerMessage: Illegible server message"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 3.0,
+          "traffic": {
+            "to_server": {
+              "forwarded": 62,
+              "sequenced": 60,
+              "corrupted": 11
+            },
+            "to_client": {
+              "forwarded": 63,
+              "sequenced": 61,
+              "corrupted": 2
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "6": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseServerMessage: Illegible server message"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.6,
+          "traffic": {
+            "to_server": {
+              "forwarded": 38,
+              "sequenced": 36,
+              "corrupted": 2
+            },
+            "to_client": {
+              "forwarded": 56,
+              "sequenced": 54,
+              "corrupted": 3
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "7": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 3.7,
+          "traffic": {
+            "to_server": {
+              "forwarded": 76,
+              "sequenced": 74,
+              "corrupted": 7
+            },
+            "to_client": {
+              "forwarded": 61,
+              "sequenced": 59,
+              "corrupted": 3
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "8": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.7,
+          "traffic": {
+            "to_server": {
+              "forwarded": 15,
+              "sequenced": 13,
+              "corrupted": 0
+            },
+            "to_client": {
+              "forwarded": 57,
+              "sequenced": 55,
+              "corrupted": 3
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "9": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.5,
+          "traffic": {
+            "to_server": {
+              "forwarded": 14,
+              "sequenced": 12,
+              "corrupted": 1
+            },
+            "to_client": {
+              "forwarded": 48,
+              "sequenced": 46,
+              "corrupted": 4
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "10": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ValidateReliableAcknowledge: incorrect reliable sequence acknowledge number"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 3.0,
+          "traffic": {
+            "to_server": {
+              "forwarded": 37,
+              "sequenced": 35,
+              "corrupted": 5
+            },
+            "to_client": {
+              "forwarded": 46,
+              "sequenced": 44,
+              "corrupted": 4
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "11": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ValidateReliableAcknowledge: incorrect reliable sequence acknowledge number"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.4,
+          "traffic": {
+            "to_server": {
+              "forwarded": 20,
+              "sequenced": 18,
+              "corrupted": 1
+            },
+            "to_client": {
+              "forwarded": 51,
+              "sequenced": 49,
+              "corrupted": 2
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "12": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseServerMessage: Illegible server message"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.9,
+          "traffic": {
+            "to_server": {
+              "forwarded": 45,
+              "sequenced": 43,
+              "corrupted": 2
+            },
+            "to_client": {
+              "forwarded": 60,
+              "sequenced": 58,
+              "corrupted": 5
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "13": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [],
+          "serverDrop": "Invalid or truncated user command",
+          "corruptedSeconds": 15.2,
+          "traffic": {
+            "to_server": {
+              "forwarded": 34,
+              "sequenced": 32,
+              "corrupted": 3
+            },
+            "to_client": {
+              "forwarded": 49,
+              "sequenced": 47,
+              "corrupted": 2
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true,
+          "printedServerDrop": "no reason printed",
+          "note": "reason re-read from the saved client log with the committed probe's pattern, which accepts RTCW's [skipnotify] prefix"
+        },
+        "14": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 3.2,
+          "traffic": {
+            "to_server": {
+              "forwarded": 48,
+              "sequenced": 46,
+              "corrupted": 9
+            },
+            "to_client": {
+              "forwarded": 48,
+              "sequenced": 46,
+              "corrupted": 4
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "15": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ValidateReliableAcknowledge: incorrect reliable sequence acknowledge number"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.6,
+          "traffic": {
+            "to_server": {
+              "forwarded": 33,
+              "sequenced": 31,
+              "corrupted": 1
+            },
+            "to_client": {
+              "forwarded": 49,
+              "sequenced": 47,
+              "corrupted": 5
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "16": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 3.6,
+          "traffic": {
+            "to_server": {
+              "forwarded": 99,
+              "sequenced": 97,
+              "corrupted": 9
+            },
+            "to_client": {
+              "forwarded": 66,
+              "sequenced": 64,
+              "corrupted": 3
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "17": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ValidateReliableAcknowledge: incorrect reliable sequence acknowledge number"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 4.6,
+          "traffic": {
+            "to_server": {
+              "forwarded": 108,
+              "sequenced": 106,
+              "corrupted": 15
+            },
+            "to_client": {
+              "forwarded": 73,
+              "sequenced": 71,
+              "corrupted": 4
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "18": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ParseServerMessage: Illegible server message"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 3.0,
+          "traffic": {
+            "to_server": {
+              "forwarded": 33,
+              "sequenced": 31,
+              "corrupted": 1
+            },
+            "to_client": {
+              "forwarded": 56,
+              "sequenced": 54,
+              "corrupted": 2
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        },
+        "19": {
+          "outcome": "dropped",
+          "exitCode": null,
+          "forcedTermination": true,
+          "errors": [
+            "ERROR: CL_ValidateReliableAcknowledge: incorrect reliable sequence acknowledge number"
+          ],
+          "serverDrop": null,
+          "corruptedSeconds": 2.4,
+          "traffic": {
+            "to_server": {
+              "forwarded": 25,
+              "sequenced": 23,
+              "corrupted": 0
+            },
+            "to_client": {
+              "forwarded": 51,
+              "sequenced": 49,
+              "corrupted": 3
+            }
+          },
+          "relayError": null,
+          "serverAnswersAfter": true,
+          "serverRunning": true
+        }
+      },
+      "clientSha256": "d3ff7129bccb2fdfa1c21540ec459181635fa4ada6c766bcbcddba23ca6b1bdc",
+      "serverSha256": "f30fcaa78ad2a94397187d3352d75eba5e7601cc7f4fdf9fd988667ac745398f",
+      "sourceCommit": "ea5d25b1d5cca40a1b29af36466f2dc2ea9e1c98"
+    }
+  },
+  "summary": {
+    "sessions": 60,
+    "outcomes": {
+      "connected": 0,
+      "dropped": 60,
+      "faulted": 0,
+      "crashed": 0,
+      "hung": 0,
+      "never-active": 0
+    },
+    "passed": true
+  }
+}

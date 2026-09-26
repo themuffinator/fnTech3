@@ -9,16 +9,27 @@ directions or only the one given by --direction. Each corrupted datagram gets 1-
 random bytes, after the sequence number in half of them and anywhere in the
 others. Each session ends in one of:
 
-  connected  the client stayed in the game: its console tick loop kept running
+  connected  the client stayed in the game: its console tick loop, started
+             from activeAction once it is in the game, kept running
   dropped    the client printed an engine error and was still running two
-             seconds later (an error clears the tick loop)
+             seconds later (an error clears the tick loop), or the server
+             disconnected it, which prints no error: the client unloads its
+             cgame after the server's broadcast of why
+  faulted    as dropped, but the error is the engine's report of a hardware
+             exception it caught, such as an access violation
   crashed    the client process died with a failure status
   hung       none of these
+  never-active  the client never entered the game, so nothing was corrupted
 
 After every session the server must answer a direct getstatus query, and at the
-end it must still be running with no crash. Windows only: windowed clients on
-unswitched private desktops with sound and mouse/joystick input disabled,
-loopback UDP only, console commands only.
+end it must still be running with no crash. A client that an error drops often
+cannot tell the server it left, since its disconnect crosses the same damaged
+channel, so its slot stays taken until the server times it out. The server
+therefore has a slot for every session, and admits that many connections from
+the one loopback address (`sv_maxclientsPerIP`, 3 by default).
+
+Windows only: windowed clients on unswitched private desktops with sound and
+mouse/joystick input disabled, loopback UDP only, console commands only.
 """
 from pathlib import Path
 import argparse
@@ -42,6 +53,10 @@ from windows_private_process import WindowsPrivateProcess
 GAMES = {'q3': 'baseq3', 'ql': 'baseq3', 'rtcw-mp': 'main'}
 TICK = 'NET_FAULT_TICK'
 ERROR = re.compile(r'^ERROR: .*$', re.M)
+# win_main.cpp's exception filter reports a caught hardware exception this way.
+FAULT = 'Unhandled exception caught'
+# vm.c prints this when an error or a server disconnect unloads the cgame.
+UNLOAD = 'forcefully unloading cgame vm'
 
 
 class CorruptingRelay:
@@ -162,9 +177,11 @@ def main():
     server_home = output / 'server-home'
     (server_home / game).mkdir(parents=True)
     command = [str(server)]
+    slots = str(min(64, args.sessions + 4))
     for key, value in dict(com_gameProfile=args.profile, fs_basepath=str(installation), fs_homepath=str(server_home),
                            dedicated='1', net_ip='127.0.0.1', net_port=str(port), sv_pure='0', bot_enable='0',
-                           sv_punkbuster='0', logfile='2', sv_maxclients='4', developer='1',
+                           sv_punkbuster='0', logfile='2', sv_maxclients=slots, sv_maxclientsPerIP=slots,
+                           developer='1',
                            **{f'sv_master{i}': '' for i in range(1, 6)}).items():
         command += ['+set', key, value]
     command += ['+map', args.map] + (['ffa'] if args.profile == 'ql' else [])
@@ -185,16 +202,17 @@ def main():
                                     ('to_server', 'to_client') if args.direction == 'both' else (args.direction,))
             home = output / f'client-{session:02d}'
             (home / game).mkdir(parents=True)
-            # Connect before the tick loop starts: the loop re-queues itself ahead of later commands.
-            (home / game / 'probe.cfg').write_text(f'connect 127.0.0.1:{relay.port}\n'
-                                                   f'set tick "echo {TICK}; wait 100; vstr tick"\nvstr tick\n',
-                                                   encoding='utf-8')
+            # The tick loop starts once the client is in the game: queued before
+            # the connection, it stops when the map loads.
+            (home / game / 'probe.cfg').write_text(f'set tick "echo {TICK}; wait 100; vstr tick"\n'
+                                                   f'connect 127.0.0.1:{relay.port}\n', encoding='utf-8')
             ccommand = [str(client)]
             for key, value in dict(com_gameProfile=args.profile, fs_basepath=str(installation), fs_homepath=str(home),
                                    fs_game='', r_fullscreen='0', r_mode='3', in_mouse='0', in_joystick='0',
                                    in_nograb='1', s_initsound='0', com_steamIntegration='0', fs_skipWorkshop='1',
                                    cl_webuiEnable='0', cl_renderer='glx', logfile='2', net_port='0',
-                                   com_introplayed='1', cl_allowDownload='0', name=f'netfault{session}').items():
+                                   com_introplayed='1', cl_allowDownload='0', name=f'netfault{session}',
+                                   activeAction='vstr tick').items():
                 ccommand += ['+set', key, value]
             ccommand += ['+exec', 'probe.cfg']
             log = home / game / 'qconsole.log'
@@ -221,6 +239,7 @@ def main():
                     time.sleep(0.1)
                 forced = process.poll() is None
                 code = process.poll()
+                process_alive_at_end = forced
             finally:
                 relay.armed.clear()
                 stop(process)
@@ -228,12 +247,22 @@ def main():
             text = read(log)
             (output / f'client-{session:02d}-console.log').write_text(text, encoding='utf-8')
             errors = ERROR.findall(text)
+            # A server-side drop reaches the client as the server's broadcast of
+            # the reason, then a disconnect that unloads the cgame silently.
+            server_drop = None
+            if not errors and armed_at is not None and UNLOAD in text:
+                before = text[:text.index(UNLOAD)]
+                # RTCW's cgame prefixes the broadcast with [skipnotify].
+                reasons = re.findall(rf'^(?:\[skipnotify\])?netfault{session}\^7 (.+)$', before, re.M)
+                server_drop = reasons[-1].strip() if reasons else 'no reason printed'
             final = text.count(TICK)
             last = ticks[-1][0] if ticks else 0
             earlier = max((count for at, count in ticks if at <= last - 3), default=final)
             if not forced and code != 0:
                 outcome = 'crashed'
             elif errors and alive_after:
+                outcome = 'faulted' if FAULT in errors[0] else 'dropped'
+            elif server_drop and process_alive_at_end:
                 outcome = 'dropped'
             elif armed_at is not None and not errors and forced and final > earlier:
                 outcome = 'connected'
@@ -241,10 +270,12 @@ def main():
                 outcome = 'hung' if armed_at is not None else 'never-active'
             report['sessions'][session] = dict(
                 outcome=outcome, exitCode=code, forcedTermination=forced, errors=errors[:3],
+                serverDrop=server_drop,
                 corruptedSeconds=round(time.monotonic() - armed_at, 1) if armed_at else None,
                 traffic=traffic, serverAnswersAfter=getstatus(port), serverRunning=host.poll() is None)
             row = report['sessions'][session]
-            print(session, outcome, row['errors'][:1], traffic['stats'], row['serverAnswersAfter'], flush=True)
+            print(session, outcome, row['errors'][:1] or ([f'server: {server_drop}'] if server_drop else []),
+                  traffic['stats'], row['serverAnswersAfter'], flush=True)
             if host.poll() is not None:
                 break
     finally:
@@ -254,10 +285,12 @@ def main():
     (output / 'server-console.log').write_text(server_log, encoding='utf-8')
     rows = report['sessions'].values()
     report['outcomes'] = {o: sum(r['outcome'] == o for r in rows)
-                          for o in ('connected', 'dropped', 'crashed', 'hung', 'never-active')}
+                          for o in ('connected', 'dropped', 'faulted', 'crashed', 'hung', 'never-active')}
     report['serverDrops'] = re.findall(r'^[^\r\n]*(?:Illegible|dropped|timed out)[^\r\n]*$', server_log, re.M)[:20]
+    report['serverFaults'] = server_log.count(FAULT)
     report['passed'] = (report.get('serverReady') and report['serverExitCode'] is None
                         and all(r['serverAnswersAfter'] for r in rows)
+                        and not report['serverFaults'] and not report['outcomes']['faulted']
                         and not report['outcomes']['crashed'] and not report['outcomes']['hung']
                         and not report['outcomes']['never-active'] and len(report['sessions']) == args.sessions)
     (output / 'result.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
