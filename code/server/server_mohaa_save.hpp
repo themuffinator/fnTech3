@@ -231,7 +231,9 @@ bool ReadServerFile( const char *name, ssv::Header &header, std::vector<std::int
 }
 
 /* CM_ReadPortalState: the areas must be the map's, and then they are flooded
- * again. */
+ * again. Each count goes back as it was saved, one below zero included: the
+ * engine leaves one when a level closes a portal nothing opened
+ * (CM_AdjustAreaPortalState), and OpenMoHAA reads the block back whole. */
 void RestorePortals( int numAreas, const std::vector<std::int32_t> &portals ) {
 	int count = 0;
 	int *counts = CM_AreaPortalCounts( &count );
@@ -240,7 +242,7 @@ void RestorePortals( int numAreas, const std::vector<std::int32_t> &portals ) {
 		return;
 	}
 	for ( int i = 0; i < count; i++ ) {
-		counts[i] = portals[i] < 0 ? 0 : portals[i];
+		counts[i] = portals[i];
 	}
 	CM_FloodAreaConnections();
 }

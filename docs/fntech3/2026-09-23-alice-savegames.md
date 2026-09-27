@@ -367,8 +367,10 @@ cinematic only while one plays, and a dedicated build compiles it out.
   answer of 2 MB refuses it, and retail's signed comparison, which refuses on
   a disk with more than 2 TiB free, is not reproduced.
 - A `.ssv` read for a load must be a whole header naming a map that exists,
-  with no `..`, `\`, `:` or `$`; a portal block cut short or holding a
-  negative count is refused. Retail reads on regardless.
+  with no `..`, `\`, `:` or `$`; a portal block cut short is refused.
+  Retail reads on regardless. A count below zero, which was refused too
+  until 2026-09-27, is put back as retail puts it back: the engine leaves
+  one when a level closes a portal nothing opened ([area portal record](2026-09-27-alice-area-portal-counts.md)).
 - `gamemap` refuses a map that does not exist before leaving the level;
   retail has no such test and would drop inside the spawn.
 - The `config` cvar is not kept in the registry. As in retail, it also names

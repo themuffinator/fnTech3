@@ -1,0 +1,2466 @@
+{
+  "record": "2026-09-27-alice-area-portal-counts.md",
+  "date": "2026-09-27",
+  "profiles": [
+    "alice",
+    "fakk2",
+    "mohaa"
+  ],
+  "unchangedProfiles": [
+    "q3",
+    "ql",
+    "rtcw-sp",
+    "rtcw-mp",
+    "wolfet",
+    "stvef-sp",
+    "stvef-mp",
+    "q3-ihv",
+    "jka-sp",
+    "jka-mp",
+    "jk2-sp",
+    "jk2-mp",
+    "q3test"
+  ],
+  "platform": "Windows 11 Home 10.0.26200, x86 client, NVIDIA GeForce RTX 4060 Laptop GPU (GL 4.6.0 NVIDIA 591.74)",
+  "baseCommit": "2d999a911d1815064167be39c521e2eadc1492cb",
+  "builds": {
+    "before": {
+      "folder": ".tmp/runtime/alice-portal-before",
+      "source": "git archive of HEAD 2d999a9 in .tmp/alice-wforest-portal/src, configured as win32-dev (meson-private/cmd_line.txt: strict warnings, debugoptimized, renderers glx,vk,rtx, all ten development options) with --wrap-mode=nodownload; all 1,430 targets built",
+      "fntech3.exe": "5c773d88a5788df49a0c7247f0bce8067d82661e97ac16ad997f0069625e37a5",
+      "fntech3.ded.exe": "2cb0133302a1d7931e0fc937f48ac099a7cf9649142603b9ffe332afd10b790c",
+      "fnql_glx_x86.dll": "99540746c6e21814029eb2d1f1a2c9ba877ab770a03e7c09ee0691398b20448a",
+      "fntech3-pkg.fnz": "a8cca7cd1fd152817ac49cf74241a1d0c00e3eb4c47f056c8500e36feb06a8ff"
+    },
+    "after": {
+      "folder": ".tmp/runtime/alice-portal-after",
+      "source": "the same build directory after this change was copied in; ninja rebuilt cm_test.c and sv_game.cpp for both executables and relinked them",
+      "fntech3.exe": "7ceeb65f5e4efbecf26f65b1a3167a0edd05a64ba76f253ba856653f0575f968",
+      "fntech3.ded.exe": "2f70ef23a343f17a7d59cdcc970fa0e17553a23a174f07534312882238e2fe94",
+      "fnql_glx_x86.dll": "99540746c6e21814029eb2d1f1a2c9ba877ab770a03e7c09ee0691398b20448a",
+      "fntech3-pkg.fnz": "a8cca7cd1fd152817ac49cf74241a1d0c00e3eb4c47f056c8500e36feb06a8ff"
+    }
+  },
+  "retail": {
+    "method": "static reading with capstone and pefile; addresses are virtual addresses in each image; no retail executable was run",
+    "alice.exe": {
+      "path": "E:\\Games\\Alice\\alice.exe (read only)",
+      "bytes": 2209835,
+      "sha256": "8aa22917b7707f0e1a7c4dbe9a3c38332b1873ae2059174ac5329de26921fc18",
+      "note": "SafeDisc-wrapped; cannot run here, but its code section reads",
+      "CM_AdjustAreaPortalState": "0x004361a0: area < 0 returns (0x004361a8, 0x004361b4); area >= cm.numAreas (0x00bd75e0) -> push \"CM_ChangeAreaPortalState: bad area number\" (0x00511340), push 1, call Com_Error 0x00438ae0 (0x004361c7..0x004361ce); open: ++counts[a1*n+a2], ++counts[a2*n+a1] (counts at 0x00bd75e8); close: --both, then cmp counts[a2*n+a1], 0; jge (0x00436254..0x00436258); below zero: push \"CM_AdjustAreaPortalState: negative reference count\\n\" (0x0051130c), call 0x00438a40 (0x0043625a..0x00436264); then call CM_FloodAreaConnections 0x00436150 (0x00436267; 0x0043620f after an open)",
+      "Com_DPrintf": "0x00438a40: returns unless the cvar at 0x00bd1c58 is set and its integer (+0x20) is nonzero; else formats and calls Com_Printf 0x00438850 with \"%s\" (0x0050db54)",
+      "developer": "0x004398c6..0x004398d7: push 1; push \"0\" (0x0050c064); push \"developer\" (0x005119d0); call Cvar_Get 0x0043a6c0; stored at 0x00bd1c58",
+      "Com_Error": "0x00438ae0 (two arguments at these sites: level, message)",
+      "CM_FloodArea_r": "0x004360d0: a pair is followed only when its count is above zero (cmp dword [edi], 0; jle at 0x00436126..0x00436129); \"FloodArea_r: reflooded\" drop at 0x004360f3",
+      "CM_FloodAreaConnections": "0x00436150",
+      "CM_WritePortalState": "0x004362a0: FS_Write of cm.numAreas, then of numAreas*numAreas*4 bytes of counts",
+      "CM_ReadPortalState": "0x004362e0: FS_Read of the area count; a different count -> Com_Error(1, \"numareaportals differs from save game\") (0x00436302); then FS_Read of the whole block over the counts, no test; then CM_FloodAreaConnections (0x0043632f)",
+      "game import 39": "0x004536d0: looks the entity up (0x004533d0), reads its second area at +0x254 and returns when it is -1, else its first area at +0x250, and calls CM_AdjustAreaPortalState(first, second, open) (0x004536f5)"
+    },
+    "fakk2.exe 1.02": {
+      "path": ".tmp/runtime/fakk2-retail/fakk2.exe (from the official 1.02 patch; read only)",
+      "bytes": 1318912,
+      "sha256": "681bc51c3343d01d772c5ae4aae7523ae4547350b243c875156e138043335785",
+      "note": "the disc's fakk2.exe is LaserLock-encrypted; the 1.02 patch's is plain",
+      "CM_AdjustAreaPortalState": "0x0042abb0: the same code as alice.exe's; bad area -> push 0x004e3fec, push 1, call Com_Error 0x0042d340 (0x0042abd7..0x0042abde); close below zero (cmp at 0x0042ac64) -> push \"CM_AdjustAreaPortalState: negative reference count\\n\" (0x004e3fb8), call 0x0042d2a0 (0x0042ac6a..0x0042ac74); then CM_FloodAreaConnections 0x0042ab60 (0x0042ac77)",
+      "Com_DPrintf": "0x0042d2a0: returns unless the cvar at 0x00ad6558 is set and nonzero; else Com_Printf 0x0042d110 with \"%s\" (0x004e0c6c)",
+      "developer": "0x0042e11c..0x0042e137: push 1; push \"0\" (0x004df958); push \"developer\" (0x004e4680); call Cvar_Get 0x0042ee00; stored at 0x00ad6558",
+      "CM_FloodArea_r": "0x0042aae0: follows a pair only above zero (cmp dword [edi], 0; jle at 0x0042ab36..0x0042ab39)",
+      "CM_WritePortalState": "0x0042acb0",
+      "CM_ReadPortalState": "0x0042acf0: different area count -> Com_Error(1, \"numareaportals differs from save game\") (0x0042ad12); then the whole block read over the counts, no test; then CM_FloodAreaConnections (0x0042ad3f)"
+    },
+    "alice fgamex86.dll": {
+      "path": "E:\\Games\\Alice\\base\\fgamex86.dll (read only)",
+      "bytes": 2084930,
+      "sha256": "ae5a572728fbb2cbf8935d633ef9e23f023edad986d7dd9ee506d589eb261aea",
+      "openportal": "Event 0x104296a0 built at 0x1012e750 (\"openportal\", \"Open the area portal enclosed in this object\"); response 0x101359e0: push 1; push edict ([ecx+0x10]); call [0x101e8dac]",
+      "closeportal": "Event 0x1042b0d8 built at 0x1012e7a0 (\"closeportal\", \"Close the area portal enclosed in this object\"); response 0x10135a00: push 0; push edict; call [0x101e8dac]",
+      "ScriptSlave": "ClassDef 0x1042a208 registered at 0x1012ecf0: name ScriptSlave, class ID script_object, superclass Mover, responses 0x101d2540 (holding the two pairs at 0x101d2788 and 0x101d2790), size 0x3b0",
+      "imports": "the game's import table copy at 0x101e8d10 (slot 0 is Printf: call [0x101e8d10] with \"Class ID   : %s\\n\"), so [0x101e8dac] is slot 39, AdjustAreaPortalState"
+    },
+    "openmohaa": {
+      "commit": "ab43a0def6c4feccedae36fdb58c2e007d7e4c35",
+      "use": "reference observation only [O]",
+      "CM_AdjustAreaPortalState": "code/qcommon/cm_test.c: a close below zero is Com_DPrintf(\"CM_AdjustAreaPortalState: negative reference count\\n\"), then CM_FloodAreaConnections",
+      "CM_ReadPortalState": "code/qcommon/cm_test.c: the area count must match (ERR_DROP \"numareaportals differs from save game\"), then FS_Read of the whole block over cm.areaPortals, then CM_FloodAreaConnections",
+      "doors": "code/fgame/doors.cpp: the master door opens its portal when it starts to open from STATE_CLOSED (Door::Open) or at spawn with DOOR_START_OPEN, and closes it in Door::CloseEnd; ScriptSlave::OpenPortal/ClosePortal pass the entity and 1 or 0",
+      "MOHAA.exe": "SafeDisc-encrypted; neither of its strings could be found in the image"
+    }
+  },
+  "otherEngines": {
+    "q3": {
+      "path": "C:/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena/quake3.exe",
+      "bytes": 909312,
+      "sha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+      "negative": {
+        "site": "0x00419475",
+        "level": 1,
+        "call": "0x41cd90"
+      },
+      "badArea": {
+        "site": "0x004193e9",
+        "level": 1,
+        "call": "0x41cd90"
+      }
+    },
+    "ql": {
+      "path": "E:/SteamLibrary/steamapps/common/Quake Live/quakelive_steam.exe",
+      "bytes": 2107904,
+      "sha256": "c926fe9f6c851e00b3b9332e88903ad01f28fdd60454873891c0158f5ded1299",
+      "negative": {
+        "site": "0x004c4f2f",
+        "level": 1,
+        "call": "0x4c9b60"
+      },
+      "badArea": {
+        "site": "0x004c4eb8",
+        "level": 1,
+        "call": "0x4c9b60"
+      }
+    },
+    "rtcw-sp": {
+      "path": "E:/SteamLibrary/steamapps/common/Return to Castle Wolfenstein/WolfSP.exe",
+      "bytes": 1286144,
+      "sha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+      "negative": {
+        "site": "0x004184d9",
+        "level": 1,
+        "call": "0x41b850"
+      },
+      "badArea": {
+        "site": "0x00418437",
+        "level": 1,
+        "call": "0x41b850"
+      }
+    },
+    "rtcw-mp": {
+      "path": "E:/SteamLibrary/steamapps/common/Return to Castle Wolfenstein/WolfMP.exe",
+      "bytes": 1081344,
+      "sha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+      "negative": {
+        "site": "0x0041aff9",
+        "level": 1,
+        "call": "0x41e420"
+      },
+      "badArea": {
+        "site": "0x0041af57",
+        "level": 1,
+        "call": "0x41e420"
+      }
+    },
+    "wolfet": {
+      "path": "E:/SteamLibrary/steamapps/common/Wolfenstein Enemy Territory/et.exe",
+      "bytes": 1667072,
+      "sha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+      "negative": {
+        "site": "0x00426c20",
+        "level": 2,
+        "call": "0x429cf0"
+      },
+      "badArea": {
+        "site": "0x00426b99",
+        "level": 2,
+        "call": "0x429cf0"
+      }
+    },
+    "stvef-sp": {
+      "path": "E:/Games/Star Trek Voyager Elite Force/stvoy.exe",
+      "bytes": 675840,
+      "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+      "negative": {
+        "site": "0x0040f2f4",
+        "level": 1,
+        "call": "0x411170"
+      },
+      "badArea": {
+        "site": "0x0040f267",
+        "level": 1,
+        "call": "0x411170"
+      }
+    },
+    "stvef-mp": {
+      "path": "E:/Games/Star Trek Voyager Elite Force/stvoyHM.exe",
+      "bytes": 925696,
+      "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "negative": {
+        "site": "0x00417da5",
+        "level": 1,
+        "call": "0x41a0a0"
+      },
+      "badArea": {
+        "site": "0x00417d19",
+        "level": 1,
+        "call": "0x41a0a0"
+      }
+    },
+    "q3-ihv": {
+      "path": "E:/Games/Quake 3 IHV/quake3.exe",
+      "bytes": 725042,
+      "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37",
+      "negative": {
+        "site": "0x0040aeba",
+        "level": 1,
+        "call": "0x40cca0"
+      },
+      "badArea": {
+        "site": "0x0040ae27",
+        "level": 1,
+        "call": "0x40cca0"
+      }
+    },
+    "jka-sp": {
+      "path": "E:/Games/Jedi Academy/jasp.exe",
+      "bytes": 1236992,
+      "sha256": "9351a8de230fcd577e2b474889d08f38982450306767a6823dd659482566d6ce",
+      "negative": {
+        "site": "0x00417921",
+        "level": 1,
+        "call": "0x41a440"
+      },
+      "badArea": {
+        "site": "0x0041789d",
+        "level": 1,
+        "call": "0x41a440"
+      }
+    },
+    "jka-mp": {
+      "path": "E:/Games/Jedi Academy/jamp.exe",
+      "bytes": 1527808,
+      "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+      "negative": {
+        "site": "0x004332d7",
+        "level": 1,
+        "call": "0x437290"
+      },
+      "badArea": {
+        "site": "0x00433250",
+        "level": 1,
+        "call": "0x437290"
+      }
+    },
+    "jk2-sp": {
+      "path": "E:/Games/Jedi Outcast/jk2sp.exe",
+      "bytes": 999482,
+      "sha256": "0d3c635ee5b20ac32fc957e00cf21e65ebc1584112b11f6ae026706dcc0d0e0c",
+      "negative": {
+        "site": "0x00412249",
+        "level": 1,
+        "call": "0x4142b0"
+      },
+      "badArea": {
+        "site": "0x004121c7",
+        "level": 1,
+        "call": "0x4142b0"
+      }
+    },
+    "jk2-mp": {
+      "path": "E:/Games/Jedi Outcast/jk2mp.exe",
+      "bytes": 1126400,
+      "sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a",
+      "negative": {
+        "site": "0x00424bc9",
+        "level": 1,
+        "call": "0x427ed0"
+      },
+      "badArea": {
+        "site": "0x00424b47",
+        "level": 1,
+        "call": "0x427ed0"
+      }
+    },
+    "q3test 1.02": {
+      "path": ".tmp/q3test/install/1.02/quake3.exe",
+      "bytes": 688180,
+      "sha256": "86da36081878d5586d5621709f48a7e621db3c24d33fa4b45838b08d01020d4a",
+      "negative": {
+        "site": "0x0040cdaa",
+        "level": 1,
+        "call": "0x40eac0"
+      },
+      "badArea": {
+        "site": "0x0040cd17",
+        "level": 1,
+        "call": "0x40eac0"
+      }
+    },
+    "q3test 1.03": {
+      "path": ".tmp/q3test/install/1.03/quake3.exe",
+      "bytes": 692276,
+      "sha256": "313ed8d1b71296b834b806b64c0f5929eb5bdd05eb7ce96b9c7fdb7369ecbf79",
+      "negative": {
+        "site": "0x0040d09a",
+        "level": 1,
+        "call": "0x40ee00"
+      },
+      "badArea": {
+        "site": "0x0040d007",
+        "level": 1,
+        "call": "0x40ee00"
+      }
+    },
+    "q3test 1.05": {
+      "path": ".tmp/q3test/install/1.05/quake3.exe",
+      "bytes": 696372,
+      "sha256": "05579377e09286d658aef430d6fb45dc6c4fc4578988cea83afa51459768fcf8",
+      "negative": {
+        "site": "0x0040d57a",
+        "level": 1,
+        "call": "0x40f2e0"
+      },
+      "badArea": {
+        "site": "0x0040d4e7",
+        "level": 1,
+        "call": "0x40f2e0"
+      }
+    },
+    "q3test 1.06": {
+      "path": ".tmp/q3test/install/1.06/quake3.exe",
+      "bytes": 651264,
+      "sha256": "a18c714fac103c4634fc08c88b2dd1c7b63720c8ddb8ec0f408e00d7ccb63db3",
+      "negative": {
+        "site": "0x0040ddfa",
+        "level": 1,
+        "call": "0x40fbc0"
+      },
+      "badArea": {
+        "site": "0x0040dd67",
+        "level": 1,
+        "call": "0x40fbc0"
+      }
+    },
+    "q3test 1.07": {
+      "path": ".tmp/q3test/install/1.07/quake3.exe",
+      "bytes": 651264,
+      "sha256": "a507b42aa346dd7c67f0fdd33c42e88c3ee144d91bce3dea0a3fb06aa7368962",
+      "negative": {
+        "site": "0x0040de3a",
+        "level": 1,
+        "call": "0x40fc00"
+      },
+      "badArea": {
+        "site": "0x0040dda7",
+        "level": 1,
+        "call": "0x40fc00"
+      }
+    },
+    "q3test 1.08": {
+      "path": ".tmp/q3test/install/1.08/quake3.exe",
+      "bytes": 655360,
+      "sha256": "89a7dfb431c6738a13e1e44d0c2d76d69107c6e0791a64f6a49830e1a51c547b",
+      "negative": {
+        "site": "0x0040e7aa",
+        "level": 1,
+        "call": "0x410580"
+      },
+      "badArea": {
+        "site": "0x0040e717",
+        "level": 1,
+        "call": "0x410580"
+      }
+    }
+  },
+  "scriptCalls": {
+    "alice": {
+      "count": 29,
+      "scripts": 10,
+      "calls": [
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/cinematics/funhouse_cinematics.scr",
+          "line": 451,
+          "function": "F2_End",
+          "target": "$end_door1",
+          "call": "closeportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/cinematics/funhouse_cinematics.scr",
+          "line": 485,
+          "function": "Funhouse_Tweedle_Cinema1",
+          "target": "$end_door1",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/cinematics/funhouse_cinematics.scr",
+          "line": 506,
+          "function": "Funhouse_Tweedle_Cinema1",
+          "target": "$end_door1",
+          "call": "closeportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/cinematics/hatter1_cinematics.scr",
+          "line": 218,
+          "function": "HG1_End",
+          "target": "$post_gryph_door",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/cinematics/hatter1_cinematics.scr",
+          "line": 316,
+          "function": "Hatter1_Cinema2",
+          "target": "$post_gryph_door",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/cinematics/skool1_cinematics.scr",
+          "line": 92,
+          "function": "Skool1_Setup_OLift",
+          "target": "$star_door1",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/cinematics/skool1_cinematics.scr",
+          "line": 140,
+          "function": "Skool1_OLift_Up",
+          "target": "$star_door1",
+          "call": "closeportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/cinematics/skool2_cinematics.scr",
+          "line": 287,
+          "function": "Unlock_End_Doors",
+          "target": "$t57",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/cinematics/wforest_cinematics.scr",
+          "line": 428,
+          "function": "Open_Humpty_Door",
+          "target": "$secretdoor",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/fortress2.scr",
+          "line": 1480,
+          "function": "Open_Doors",
+          "target": "$halldoor2",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/hatter1.scr",
+          "line": 484,
+          "function": "Open_ClockRoom_Door",
+          "target": "$ClockDoor_Left",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/hatter1.scr",
+          "line": 494,
+          "function": "Close_ClockRoom_Door",
+          "target": "$ClockDoor_Left",
+          "call": "closeportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/hatter1.scr",
+          "line": 509,
+          "function": "Gear_Bridge_One",
+          "target": "$no_return",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/hatter1.scr",
+          "line": 523,
+          "function": "NORETURN",
+          "target": "$no_return",
+          "call": "closeportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/hatter1.scr",
+          "line": 539,
+          "function": "Gear_Bridge_Two",
+          "target": "$no_return",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/pandemonium.scr",
+          "line": 354,
+          "function": "Setup_Triggers",
+          "target": "$mine_end_door",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/pandemonium.scr",
+          "line": 1658,
+          "function": "Minecart_Jump_Thread",
+          "target": "$mine_end_door",
+          "call": "closeportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/pandemonium.scr",
+          "line": 1728,
+          "function": "Minecart_Skipthread",
+          "target": "$mine_end_door",
+          "call": "closeportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/wchess1.scr",
+          "line": 136,
+          "function": "OpenFloatSecret",
+          "target": "$float_secret_wall",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/wchess1.scr",
+          "line": 314,
+          "function": "cwit_End",
+          "target": "$quad_gate_top",
+          "call": "closeportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/wchess1.scr",
+          "line": 369,
+          "function": "cinema_wchess1_intro_thread",
+          "target": "$quad_gate_top",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/wchess1.scr",
+          "line": 395,
+          "function": "cinema_wchess1_intro_thread",
+          "target": "$quad_gate_top",
+          "call": "closeportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/wchess1.scr",
+          "line": 1009,
+          "function": "crbt_End",
+          "target": "$quad_gate_top",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/wchess1.scr",
+          "line": 1010,
+          "function": "crbt_End",
+          "target": "$quad_gate_top",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/wchess1.scr",
+          "line": 1073,
+          "function": "cinema_ring_bell_thread",
+          "target": "$quad_gate_top",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/wchess1.scr",
+          "line": 1074,
+          "function": "cinema_ring_bell_thread",
+          "target": "$quad_gate_top",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/wchess1.scr",
+          "line": 1423,
+          "function": "cinema_red_rook1_attack_thread",
+          "target": "$rook_wall_area",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/wforest.scr",
+          "line": 40,
+          "function": "Setup_FirstPass",
+          "target": "$chesswall",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/wforest.scr",
+          "line": 134,
+          "function": "Setup_LastPass",
+          "target": "$chesswall",
+          "call": "closeportal"
+        }
+      ]
+    },
+    "fakk2": {
+      "count": 37,
+      "scripts": 14,
+      "calls": [
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/cemetery.scr",
+          "line": 820,
+          "function": null,
+          "target": "$oracle_door_portal",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/cemetery.scr",
+          "line": 895,
+          "function": null,
+          "target": "$library_entrance",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/cemetery.scr",
+          "line": 916,
+          "function": null,
+          "target": "$library_entrance",
+          "call": "closeportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/cemetery.scr",
+          "line": 928,
+          "function": null,
+          "target": "$library_trapdoor",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/cemetery.scr",
+          "line": 939,
+          "function": null,
+          "target": "$library_trapdoor",
+          "call": "closeportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/cemetery.scr",
+          "line": 948,
+          "function": null,
+          "target": "$library_exit",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/cemetery.scr",
+          "line": 975,
+          "function": null,
+          "target": "$library_exit",
+          "call": "closeportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/cemetery_cinemas.scr",
+          "line": 292,
+          "function": null,
+          "target": "$oracle_door_portal",
+          "call": "closeportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/cliff2.scr",
+          "line": 141,
+          "function": null,
+          "target": "$secret_area",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/cliff2.scr",
+          "line": 564,
+          "function": null,
+          "target": "$secret_area",
+          "call": "closeportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/cliff2.scr",
+          "line": 939,
+          "function": null,
+          "target": "$obadiah_portal",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/creeperpens.scr",
+          "line": 120,
+          "function": null,
+          "target": "$wack_portal",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/creeperpens.scr",
+          "line": 494,
+          "function": null,
+          "target": "$pensdoor1",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/creeperpens.scr",
+          "line": 543,
+          "function": null,
+          "target": "$pensdoor1",
+          "call": "closeportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/creeperpens.scr",
+          "line": 559,
+          "function": null,
+          "target": "$pensdoor2",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/creeperpens.scr",
+          "line": 608,
+          "function": null,
+          "target": "$pensdoor2",
+          "call": "closeportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/creeperpens.scr",
+          "line": 749,
+          "function": null,
+          "target": "$vmama_floor1_area",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/creeperpens.scr",
+          "line": 776,
+          "function": null,
+          "target": "$vmama_floor1_area",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/creeperpens_cinemas.scr",
+          "line": 276,
+          "function": null,
+          "target": "$pensdoor3",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/creeperpens_cinemas.scr",
+          "line": 497,
+          "function": null,
+          "target": "$pensdoor2",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/creeperpens_cinemas.scr",
+          "line": 931,
+          "function": null,
+          "target": "$pensdoor2",
+          "call": "closeportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/creeperpens_cinemas.scr",
+          "line": 941,
+          "function": null,
+          "target": "$wack_portal",
+          "call": "closeportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/fakkhouse.scr",
+          "line": 169,
+          "function": null,
+          "target": "local.doorarea",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/fakkhouse.scr",
+          "line": 223,
+          "function": null,
+          "target": "local.doorarea",
+          "call": "closeportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/gruff.scr",
+          "line": 160,
+          "function": null,
+          "target": "$wfall_area",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/homes1_cinemas.scr",
+          "line": 266,
+          "function": null,
+          "target": "$victim1_roofbreak_area",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/homes1_cinemas.scr",
+          "line": 423,
+          "function": null,
+          "target": "$victim1_roofbreak_area",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/homes2.scr",
+          "line": 188,
+          "function": null,
+          "target": "$vmama_floor1_area",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/homes2evil.scr",
+          "line": 1325,
+          "function": null,
+          "target": "$otto_maindoor_portal",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/otto.scr",
+          "line": 309,
+          "function": null,
+          "target": "$basement_area",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/otto.scr",
+          "line": 1305,
+          "function": null,
+          "target": "$basement_area",
+          "call": "closeportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/over.scr",
+          "line": 1682,
+          "function": null,
+          "target": "local.doorarea",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/over.scr",
+          "line": 1727,
+          "function": null,
+          "target": "local.doorarea",
+          "call": "closeportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/training.scr",
+          "line": 1284,
+          "function": null,
+          "target": "$pensdoor1",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/training.scr",
+          "line": 1334,
+          "function": null,
+          "target": "$pensdoor1",
+          "call": "closeportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/under.scr",
+          "line": 1118,
+          "function": null,
+          "target": "local.doorarea",
+          "call": "openportal"
+        },
+        {
+          "pak": "pak0.pk3",
+          "script": "maps/under.scr",
+          "line": 1163,
+          "function": null,
+          "target": "local.doorarea",
+          "call": "closeportal"
+        }
+      ]
+    },
+    "mohaa": {
+      "count": 0,
+      "scripts": 0,
+      "calls": []
+    }
+  },
+  "mapLoads": {
+    "command": "scripts/probe_retail_map_loads.py --installation alice=E:\\Games\\Alice --installation fakk2=.tmp/fakk2-install/game --profiles alice,fakk2 --jobs 3 (GLx; windowed, private desktop, isolated homes, developer 0, net_enabled 0)",
+    "before": {
+      "binaries": {
+        "fntech3.exe": "5c773d88a5788df49a0c7247f0bce8067d82661e97ac16ad997f0069625e37a5",
+        "fntech3.ded.exe": "2cb0133302a1d7931e0fc937f48ac099a7cf9649142603b9ffe332afd10b790c",
+        "fnql_glx_x86.dll": "99540746c6e21814029eb2d1f1a2c9ba877ab770a03e7c09ee0691398b20448a"
+      },
+      "binariesUnchanged": true,
+      "startedUtc": "2026-09-27T21:06:32Z",
+      "endedUtc": "2026-09-27T21:10:16Z",
+      "outcomes": {
+        "loaded": 65,
+        "rejected": 1,
+        "faulted": 0,
+        "fatal": 0,
+        "crashed": 0,
+        "hung": 0
+      },
+      "profiles": {
+        "alice": {
+          "loaded": 35,
+          "rejected": 1,
+          "faulted": 0,
+          "fatal": 0,
+          "crashed": 0,
+          "hung": 0
+        },
+        "fakk2": {
+          "loaded": 30,
+          "rejected": 0,
+          "faulted": 0,
+          "fatal": 0,
+          "crashed": 0,
+          "hung": 0
+        }
+      },
+      "notLoaded": {
+        "alice:wforest": {
+          "outcome": "rejected",
+          "errors": [
+            "CM_AdjustAreaPortalState: negative reference count"
+          ],
+          "worldSurfaces": null
+        }
+      },
+      "maps": {
+        "alice:centipede1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3483,
+            44,
+            6,
+            0
+          ]
+        },
+        "alice:centipede2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3116,
+            12,
+            0,
+            0
+          ]
+        },
+        "alice:facade": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            4211,
+            139,
+            0,
+            0
+          ]
+        },
+        "alice:fortress1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            5288,
+            60,
+            5,
+            0
+          ]
+        },
+        "alice:fortress2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            6901,
+            145,
+            10,
+            0
+          ]
+        },
+        "alice:funhouse": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            7501,
+            308,
+            0,
+            0
+          ]
+        },
+        "alice:garden1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3774,
+            20,
+            8,
+            0
+          ]
+        },
+        "alice:garden2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            6312,
+            37,
+            0,
+            0
+          ]
+        },
+        "alice:garden3": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            2354,
+            33,
+            13,
+            0
+          ]
+        },
+        "alice:garden4": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3408,
+            61,
+            0,
+            0
+          ]
+        },
+        "alice:grounds1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            1437,
+            163,
+            0,
+            0
+          ]
+        },
+        "alice:grounds2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            2888,
+            98,
+            0,
+            0
+          ]
+        },
+        "alice:gvillage": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3954,
+            77,
+            0,
+            0
+          ]
+        },
+        "alice:hatter1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            10413,
+            125,
+            0,
+            0
+          ]
+        },
+        "alice:hatter2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            2660,
+            141,
+            0,
+            0
+          ]
+        },
+        "alice:hedge1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            2159,
+            569,
+            0,
+            0
+          ]
+        },
+        "alice:hedge2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            5492,
+            614,
+            0,
+            0
+          ]
+        },
+        "alice:hedge3": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            8224,
+            1644,
+            0,
+            0
+          ]
+        },
+        "alice:jlair1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            7664,
+            2,
+            2,
+            0
+          ]
+        },
+        "alice:jlair2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3872,
+            0,
+            0,
+            0
+          ]
+        },
+        "alice:keep": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            4276,
+            380,
+            4,
+            0
+          ]
+        },
+        "alice:pandemonium": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            6203,
+            44,
+            6,
+            0
+          ]
+        },
+        "alice:potears1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            6190,
+            208,
+            0,
+            0
+          ]
+        },
+        "alice:potears2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            5060,
+            32,
+            0,
+            0
+          ]
+        },
+        "alice:potears3": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            1395,
+            8,
+            0,
+            0
+          ]
+        },
+        "alice:qlair": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            1686,
+            66,
+            24,
+            0
+          ]
+        },
+        "alice:rchess1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            5698,
+            132,
+            69,
+            0
+          ]
+        },
+        "alice:skool1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            6637,
+            42,
+            41,
+            0
+          ]
+        },
+        "alice:skool2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            6697,
+            34,
+            26,
+            0
+          ]
+        },
+        "alice:tower1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            2192,
+            150,
+            0,
+            0
+          ]
+        },
+        "alice:tower2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3472,
+            123,
+            0,
+            0
+          ]
+        },
+        "alice:tower3": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            4365,
+            32,
+            0,
+            0
+          ]
+        },
+        "alice:utemple": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            5591,
+            159,
+            917,
+            0
+          ]
+        },
+        "alice:wchess1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            7501,
+            123,
+            121,
+            0
+          ]
+        },
+        "alice:wchess2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            6151,
+            795,
+            40,
+            0
+          ]
+        },
+        "alice:wforest": {
+          "outcome": "rejected",
+          "errors": [
+            "CM_AdjustAreaPortalState: negative reference count"
+          ],
+          "worldSurfaces": null
+        },
+        "fakk2:blood": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            1369,
+            182,
+            0,
+            0
+          ]
+        },
+        "fakk2:cemetery": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            8322,
+            182,
+            36,
+            0
+          ]
+        },
+        "fakk2:cliff1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            5383,
+            49,
+            89,
+            0
+          ]
+        },
+        "fakk2:cliff2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3967,
+            33,
+            64,
+            0
+          ]
+        },
+        "fakk2:creeperpens": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            5148,
+            53,
+            22,
+            0
+          ]
+        },
+        "fakk2:end": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            1997,
+            10,
+            5,
+            0
+          ]
+        },
+        "fakk2:fakkhouse": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3526,
+            99,
+            141,
+            0
+          ]
+        },
+        "fakk2:fog": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            7386,
+            65,
+            44,
+            0
+          ]
+        },
+        "fakk2:gruff": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3957,
+            102,
+            129,
+            0
+          ]
+        },
+        "fakk2:gruff_cinema": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            2379,
+            87,
+            26,
+            0
+          ]
+        },
+        "fakk2:homes1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            4628,
+            120,
+            81,
+            0
+          ]
+        },
+        "fakk2:homes1_fullvis": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            4666,
+            129,
+            75,
+            0
+          ]
+        },
+        "fakk2:homes2evil": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            8266,
+            149,
+            31,
+            0
+          ]
+        },
+        "fakk2:homes2good": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            4450,
+            44,
+            48,
+            0
+          ]
+        },
+        "fakk2:intro": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            6,
+            0,
+            0,
+            0
+          ]
+        },
+        "fakk2:landersroost": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3744,
+            304,
+            68,
+            0
+          ]
+        },
+        "fakk2:oracle": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            8876,
+            154,
+            50,
+            0
+          ]
+        },
+        "fakk2:oracleway": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            2157,
+            86,
+            6,
+            0
+          ]
+        },
+        "fakk2:otto": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            5378,
+            83,
+            0,
+            0
+          ]
+        },
+        "fakk2:over": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            4196,
+            52,
+            0,
+            0
+          ]
+        },
+        "fakk2:shield": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            1142,
+            122,
+            16,
+            0
+          ]
+        },
+        "fakk2:swamp1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            2502,
+            75,
+            356,
+            0
+          ]
+        },
+        "fakk2:swamp2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            4722,
+            69,
+            247,
+            0
+          ]
+        },
+        "fakk2:swamp3": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            5670,
+            142,
+            215,
+            0
+          ]
+        },
+        "fakk2:towncenter_evil": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            5155,
+            37,
+            50,
+            0
+          ]
+        },
+        "fakk2:towncenter_good": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            6862,
+            35,
+            170,
+            0
+          ]
+        },
+        "fakk2:training": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            9490,
+            80,
+            85,
+            0
+          ]
+        },
+        "fakk2:under": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            5493,
+            25,
+            0,
+            0
+          ]
+        },
+        "fakk2:water": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3648,
+            248,
+            0,
+            0
+          ]
+        },
+        "fakk2:zoo": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            1824,
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "after": {
+      "binaries": {
+        "fntech3.exe": "7ceeb65f5e4efbecf26f65b1a3167a0edd05a64ba76f253ba856653f0575f968",
+        "fntech3.ded.exe": "2f70ef23a343f17a7d59cdcc970fa0e17553a23a174f07534312882238e2fe94",
+        "fnql_glx_x86.dll": "99540746c6e21814029eb2d1f1a2c9ba877ab770a03e7c09ee0691398b20448a"
+      },
+      "binariesUnchanged": true,
+      "startedUtc": "2026-09-27T21:10:16Z",
+      "endedUtc": "2026-09-27T21:13:59Z",
+      "outcomes": {
+        "loaded": 66,
+        "rejected": 0,
+        "faulted": 0,
+        "fatal": 0,
+        "crashed": 0,
+        "hung": 0
+      },
+      "profiles": {
+        "alice": {
+          "loaded": 36,
+          "rejected": 0,
+          "faulted": 0,
+          "fatal": 0,
+          "crashed": 0,
+          "hung": 0
+        },
+        "fakk2": {
+          "loaded": 30,
+          "rejected": 0,
+          "faulted": 0,
+          "fatal": 0,
+          "crashed": 0,
+          "hung": 0
+        }
+      },
+      "notLoaded": {},
+      "maps": {
+        "alice:centipede1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3483,
+            44,
+            6,
+            0
+          ]
+        },
+        "alice:centipede2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3116,
+            12,
+            0,
+            0
+          ]
+        },
+        "alice:facade": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            4211,
+            139,
+            0,
+            0
+          ]
+        },
+        "alice:fortress1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            5288,
+            60,
+            5,
+            0
+          ]
+        },
+        "alice:fortress2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            6901,
+            145,
+            10,
+            0
+          ]
+        },
+        "alice:funhouse": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            7501,
+            308,
+            0,
+            0
+          ]
+        },
+        "alice:garden1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3774,
+            20,
+            8,
+            0
+          ]
+        },
+        "alice:garden2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            6312,
+            37,
+            0,
+            0
+          ]
+        },
+        "alice:garden3": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            2354,
+            33,
+            13,
+            0
+          ]
+        },
+        "alice:garden4": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3408,
+            61,
+            0,
+            0
+          ]
+        },
+        "alice:grounds1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            1437,
+            163,
+            0,
+            0
+          ]
+        },
+        "alice:grounds2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            2888,
+            98,
+            0,
+            0
+          ]
+        },
+        "alice:gvillage": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3954,
+            77,
+            0,
+            0
+          ]
+        },
+        "alice:hatter1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            10413,
+            125,
+            0,
+            0
+          ]
+        },
+        "alice:hatter2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            2660,
+            141,
+            0,
+            0
+          ]
+        },
+        "alice:hedge1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            2159,
+            569,
+            0,
+            0
+          ]
+        },
+        "alice:hedge2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            5492,
+            614,
+            0,
+            0
+          ]
+        },
+        "alice:hedge3": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            8224,
+            1644,
+            0,
+            0
+          ]
+        },
+        "alice:jlair1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            7664,
+            2,
+            2,
+            0
+          ]
+        },
+        "alice:jlair2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3872,
+            0,
+            0,
+            0
+          ]
+        },
+        "alice:keep": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            4276,
+            380,
+            4,
+            0
+          ]
+        },
+        "alice:pandemonium": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            6203,
+            44,
+            6,
+            0
+          ]
+        },
+        "alice:potears1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            6190,
+            208,
+            0,
+            0
+          ]
+        },
+        "alice:potears2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            5060,
+            32,
+            0,
+            0
+          ]
+        },
+        "alice:potears3": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            1395,
+            8,
+            0,
+            0
+          ]
+        },
+        "alice:qlair": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            1686,
+            66,
+            24,
+            0
+          ]
+        },
+        "alice:rchess1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            5698,
+            132,
+            69,
+            0
+          ]
+        },
+        "alice:skool1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            6637,
+            42,
+            41,
+            0
+          ]
+        },
+        "alice:skool2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            6697,
+            34,
+            26,
+            0
+          ]
+        },
+        "alice:tower1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            2192,
+            150,
+            0,
+            0
+          ]
+        },
+        "alice:tower2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3472,
+            123,
+            0,
+            0
+          ]
+        },
+        "alice:tower3": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            4365,
+            32,
+            0,
+            0
+          ]
+        },
+        "alice:utemple": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            5591,
+            159,
+            917,
+            0
+          ]
+        },
+        "alice:wchess1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            7501,
+            123,
+            121,
+            0
+          ]
+        },
+        "alice:wchess2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            6151,
+            795,
+            40,
+            0
+          ]
+        },
+        "alice:wforest": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            7490,
+            46,
+            0,
+            0
+          ]
+        },
+        "fakk2:blood": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            1369,
+            182,
+            0,
+            0
+          ]
+        },
+        "fakk2:cemetery": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            8322,
+            182,
+            36,
+            0
+          ]
+        },
+        "fakk2:cliff1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            5383,
+            49,
+            89,
+            0
+          ]
+        },
+        "fakk2:cliff2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3967,
+            33,
+            64,
+            0
+          ]
+        },
+        "fakk2:creeperpens": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            5148,
+            53,
+            22,
+            0
+          ]
+        },
+        "fakk2:end": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            1997,
+            10,
+            5,
+            0
+          ]
+        },
+        "fakk2:fakkhouse": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3526,
+            99,
+            141,
+            0
+          ]
+        },
+        "fakk2:fog": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            7386,
+            65,
+            44,
+            0
+          ]
+        },
+        "fakk2:gruff": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3957,
+            102,
+            129,
+            0
+          ]
+        },
+        "fakk2:gruff_cinema": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            2379,
+            87,
+            26,
+            0
+          ]
+        },
+        "fakk2:homes1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            4628,
+            120,
+            81,
+            0
+          ]
+        },
+        "fakk2:homes1_fullvis": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            4666,
+            129,
+            75,
+            0
+          ]
+        },
+        "fakk2:homes2evil": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            8266,
+            149,
+            31,
+            0
+          ]
+        },
+        "fakk2:homes2good": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            4450,
+            44,
+            48,
+            0
+          ]
+        },
+        "fakk2:intro": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            6,
+            0,
+            0,
+            0
+          ]
+        },
+        "fakk2:landersroost": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3744,
+            304,
+            68,
+            0
+          ]
+        },
+        "fakk2:oracle": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            8876,
+            154,
+            50,
+            0
+          ]
+        },
+        "fakk2:oracleway": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            2157,
+            86,
+            6,
+            0
+          ]
+        },
+        "fakk2:otto": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            5378,
+            83,
+            0,
+            0
+          ]
+        },
+        "fakk2:over": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            4196,
+            52,
+            0,
+            0
+          ]
+        },
+        "fakk2:shield": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            1142,
+            122,
+            16,
+            0
+          ]
+        },
+        "fakk2:swamp1": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            2502,
+            75,
+            356,
+            0
+          ]
+        },
+        "fakk2:swamp2": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            4722,
+            69,
+            247,
+            0
+          ]
+        },
+        "fakk2:swamp3": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            5670,
+            142,
+            215,
+            0
+          ]
+        },
+        "fakk2:towncenter_evil": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            5155,
+            37,
+            50,
+            0
+          ]
+        },
+        "fakk2:towncenter_good": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            6862,
+            35,
+            170,
+            0
+          ]
+        },
+        "fakk2:training": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            9490,
+            80,
+            85,
+            0
+          ]
+        },
+        "fakk2:under": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            5493,
+            25,
+            0,
+            0
+          ]
+        },
+        "fakk2:water": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            3648,
+            248,
+            0,
+            0
+          ]
+        },
+        "fakk2:zoo": {
+          "outcome": "loaded",
+          "errors": [],
+          "worldSurfaces": [
+            1824,
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "compare": [
+      "alice:wforest before ('rejected', ['CM_AdjustAreaPortalState: negative reference count'], None) after ('loaded', [], [7490, 46, 0, 0])",
+      "1 of 66 maps changed"
+    ]
+  },
+  "clientProbes": {
+    "start1-before": {
+      "exitCode": 0,
+      "forcedStop": false,
+      "seconds": 17.0,
+      "screenshots": [
+        "wforest_start1.png"
+      ],
+      "installationUnchanged": true,
+      "exeSha256": "5c773d88a5788df49a0c7247f0bce8067d82661e97ac16ad997f0069625e37a5",
+      "steps": "devmap wforest$wforest_start1\nwait 10000\nscreenshotPNG wforest_start1\nwait 1500\nquit\n",
+      "drops": [],
+      "negativeReports": 0,
+      "threads": [],
+      "loadgame": [],
+      "playerBegins": 1
+    },
+    "start2-before": {
+      "exitCode": null,
+      "forcedStop": null,
+      "seconds": null,
+      "screenshots": null,
+      "installationUnchanged": null,
+      "exeSha256": null,
+      "steps": null,
+      "drops": [
+        "CM_AdjustAreaPortalState: negative reference count"
+      ],
+      "negativeReports": 0,
+      "threads": [],
+      "loadgame": [],
+      "playerBegins": 0
+    },
+    "wchess1-before": {
+      "exitCode": null,
+      "forcedStop": null,
+      "seconds": null,
+      "screenshots": null,
+      "installationUnchanged": null,
+      "exeSha256": null,
+      "steps": null,
+      "drops": [
+        "CM_AdjustAreaPortalState: negative reference count"
+      ],
+      "negativeReports": 0,
+      "threads": [],
+      "loadgame": [],
+      "playerBegins": 1
+    },
+    "saveload-after": {
+      "exitCode": 0,
+      "forcedStop": false,
+      "seconds": 37.0,
+      "screenshots": [
+        "wforest_loaded.png"
+      ],
+      "installationUnchanged": true,
+      "exeSha256": "7ceeb65f5e4efbecf26f65b1a3167a0edd05a64ba76f253ba856653f0575f968",
+      "steps": "devmap wforest$wforest_start2\nwait 10000\nsavegame portals\nwait 3000\nloadgame portals\nwait 10000\nscreenshotPNG wforest_loaded\nwait 1500\nquit\n",
+      "drops": [],
+      "negativeReports": 1,
+      "threads": [],
+      "loadgame": [
+        "Loading game...portals"
+      ],
+      "playerBegins": 2
+    },
+    "start1-after": {
+      "exitCode": 0,
+      "forcedStop": false,
+      "seconds": 18.0,
+      "screenshots": [
+        "wforest_start1.png"
+      ],
+      "installationUnchanged": true,
+      "exeSha256": "7ceeb65f5e4efbecf26f65b1a3167a0edd05a64ba76f253ba856653f0575f968",
+      "steps": "devmap wforest$wforest_start1\nwait 10000\nscreenshotPNG wforest_start1\nwait 1500\nquit\n",
+      "drops": [],
+      "negativeReports": 0,
+      "threads": [],
+      "loadgame": [],
+      "playerBegins": 1
+    },
+    "start2-after": {
+      "exitCode": 0,
+      "forcedStop": false,
+      "seconds": 17.3,
+      "screenshots": [
+        "wforest_start2.png"
+      ],
+      "installationUnchanged": true,
+      "exeSha256": "7ceeb65f5e4efbecf26f65b1a3167a0edd05a64ba76f253ba856653f0575f968",
+      "steps": "devmap wforest$wforest_start2\nwait 10000\nscreenshotPNG wforest_start2\nwait 1500\nquit\n",
+      "drops": [],
+      "negativeReports": 1,
+      "threads": [],
+      "loadgame": [],
+      "playerBegins": 1
+    },
+    "wchess1-after": {
+      "exitCode": 0,
+      "forcedStop": false,
+      "seconds": 18.5,
+      "screenshots": [
+        "wchess1_skipped.png"
+      ],
+      "installationUnchanged": true,
+      "exeSha256": "7ceeb65f5e4efbecf26f65b1a3167a0edd05a64ba76f253ba856653f0575f968",
+      "steps": "devmap wchess1\nwait 3000\nskipcinematic\nwait 8000\nscreenshotPNG wchess1_skipped\nwait 1500\nquit\n",
+      "drops": [],
+      "negativeReports": 1,
+      "threads": [],
+      "loadgame": [],
+      "playerBegins": 1
+    }
+  },
+  "savedPortals": {
+    "bytes": 460,
+    "areas": 8,
+    "nonZero": {
+      "0,4": -1,
+      "4,0": -1
+    }
+  },
+  "runtimesUnchangedDuringRuns": true,
+  "tests": {
+    "new": {
+      "file": "tests/area_portal_count_tests.py",
+      "profileFixture": "compiles CM_FloodArea_r, CM_FloodAreaConnections, CM_AdjustAreaPortalState and CM_AreasConnected sliced from code/qcommon/cm_test.c with the profile catalog and Com_GameIsAlice/FAKK2/Ritual/MOHAA sliced from code/qcommon/game_profile.cpp, and runs every catalog profile: balanced opens and closes are quiet; a close from zero is reported in retail's words with the count kept at -1 and the areas flooded, one open leaves the portal shut and a second opens it, for alice, fakk2 and mohaa, and is Quake III's drop with no report and no flood for the other thirteen; an area past the map drops and a negative one is ignored for all sixteen",
+      "restoreFixture": "compiles SV_AliceRestorePortalState and struct AliceServerFile (code/server/server_alice_save.hpp) and Medal of Honor's RestorePortals (code/server/server_mohaa_save.hpp): counts of -2 come back as saved and are flooded; another map's block and a block cut short are still refused (Alice) or left as spawned (Medal of Honor)",
+      "sourceTest": "CM_AdjustAreaPortalState asks the profile only once a close has gone past zero, names Medal of Honor beside the Ritual profiles, keeps the one drop, and reports before its flood",
+      "withChange": "3 passed",
+      "atHead": "run against a tree of HEAD's code: the profile fixture fails for alice, fakk2 and mohaa alone (each dropped) and passes the other thirteen profiles; the restore fixture and the source test fail"
+    },
+    "updatedFixture": {
+      "file": "tests/entity_box_contents_tests.py",
+      "why": "its real-trace fixture links the whole of code/qcommon/cm_test.c, which now calls Com_GameIsRitual and Com_GameIsMOHAA; its prelude defines both from its profile's title, as it defines Com_GameIsWolfET",
+      "result": "3 passed with this change and 3 passed against HEAD's code"
+    },
+    "suites": {
+      "tree": ".tmp/alice-wforest-portal/src: git archive of HEAD 2d999a9 with this change's code and tests, before the documents were written",
+      "meson": "177 fnTech3 tests other than fnql_python_source_regressions, one at a time: 175 passed, 2 skipped, 0 failed",
+      "pytest": "python -m pytest tests (below-normal priority, beside another session's sweeps): 2,321 passed, 128 skipped, 57,663 subtests passed, 1 failed in 1,418 s; the failure was tests/entity_box_contents_tests.py's link of cm_test.c, run before its prelude gained the two profile tests, and that file then passed alone",
+      "finalContent": "python -m pytest tests on .tmp/alice-wforest-portal/src with this commit's content, documents included, committed inside the export (below-normal priority): 2,322 passed, 128 skipped, 57,663 subtests passed, 0 failed in 1,268 s"
+    }
+  }
+}

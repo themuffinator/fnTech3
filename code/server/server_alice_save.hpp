@@ -196,8 +196,11 @@ bool SV_AliceReadServerFile( const char *path, AliceServerFile &file ) {
 }
 
 /* CM_ReadPortalState (0x004362e0): a different area count is retail's own
- * drop (0x00436302). A block cut short or a negative count is refused too,
- * where retail would read on regardless. Then the areas are flooded again. */
+ * drop (0x00436302). A block cut short is refused too, where retail would
+ * read on regardless. A count below zero goes back as saved, as retail's
+ * reader and fakk2.exe 1.02's (0x0042acf0) put it back: the engine leaves
+ * one when a level closes a portal nothing opened (CM_AdjustAreaPortalState),
+ * so a save can hold one. Then the areas are flooded again. */
 void SV_AliceRestorePortalState( const AliceServerFile &file ) {
 	int count = 0;
 	int *counts = CM_AreaPortalCounts( &count );
@@ -209,12 +212,6 @@ void SV_AliceRestorePortalState( const AliceServerFile &file ) {
 	if ( !counts || file.counts.size() != static_cast<std::size_t>( count ) ) {
 		Com_Error( ERR_DROP, "The save game's area portals are cut short" );
 		return;
-	}
-	for ( int i = 0; i < count; ++i ) {
-		if ( file.counts[i] < 0 ) {
-			Com_Error( ERR_DROP, "The save game holds a negative area portal count" );
-			return;
-		}
 	}
 	for ( int i = 0; i < count; ++i ) {
 		counts[i] = file.counts[i];

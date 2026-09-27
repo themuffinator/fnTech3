@@ -582,6 +582,15 @@ int CM_NumAreas( void ) {
 ====================
 CM_AdjustAreaPortalState
 
+A close that takes a count below zero means a level closed a portal nothing
+opened. Quake III drops the level. Ritual's engines only tell a developer
+(their Com_DPrintf reads developer) and go on: the count stays below zero,
+the areas are flooded as after any close, and the portal stays shut until
+the opens outnumber the closes (alice.exe 0x004361a0, printing through
+0x00438a40; F.A.K.K.2 1.02's fakk2.exe 0x0042abb0, through 0x0042d2a0).
+Medal of Honor's is OpenMoHAA's reading of 2015's engine. Alice's wforest
+does this when it is entered at its second start, as the campaign enters it
+from jlair2, and wchess1 when its intro is skipped early.
 ====================
 */
 void	CM_AdjustAreaPortalState( int area1, int area2, qboolean open ) {
@@ -600,7 +609,11 @@ void	CM_AdjustAreaPortalState( int area1, int area2, qboolean open ) {
 		cm.areaPortals[ area1 * cm.numAreas + area2 ]--;
 		cm.areaPortals[ area2 * cm.numAreas + area1 ]--;
 		if ( cm.areaPortals[ area2 * cm.numAreas + area1 ] < 0 ) {
-			Com_Error (ERR_DROP, "CM_AdjustAreaPortalState: negative reference count");
+			if ( Com_GameIsRitual() || Com_GameIsMOHAA() ) {
+				Com_DPrintf( "CM_AdjustAreaPortalState: negative reference count\n" );
+			} else {
+				Com_Error (ERR_DROP, "CM_AdjustAreaPortalState: negative reference count");
+			}
 		}
 	}
 
