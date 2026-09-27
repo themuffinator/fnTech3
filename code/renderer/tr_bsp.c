@@ -3362,6 +3362,9 @@ static void R_LoadNodesAndLeafs( const lump_t *nodeLump, const lump_t *leafLump 
 	dleaf_t		*inLeaf;
 	mnode_t 	*out;
 	int			numNodes, numLeafs;
+	int			node, child;
+	void		*scratch;
+	bspTreeFault_t	fault;
 
 	in = (void *)(fileBase + nodeLump->fileofs);
 	if (nodeLump->filelen % sizeof(dnode_t) ||
@@ -3437,6 +3440,16 @@ static void R_LoadNodesAndLeafs( const lump_t *nodeLump, const lump_t *leafLump 
 			LittleLong(inLeaf->firstLeafSurface);
 		out->nummarksurfaces = LittleLong(inLeaf->numLeafSurfaces);
 	}	
+
+	// every descent of the tree from node 0 must end, R_SetParent's first
+	scratch = ri.Hunk_AllocateTempMemory( BSP_NodeTreeScratchSize( numNodes ) );
+	fault = BSP_NodeTreeFault( (const dnode_t *)( fileBase + nodeLump->fileofs ), numNodes, numLeafs, scratch,
+		&node, &child );
+	ri.Hunk_FreeTempMemory( scratch );
+	if ( fault != BSP_TREE_VALID ) {
+		ri.Error( ERR_DROP, "%s(): child %i of node %i %s in %s", __func__, child, node,
+			BSP_NodeTreeFaultText( fault ), s_worldData.name );
+	}
 
 	// chain descendants
 	R_SetParent (s_worldData.nodes, NULL);

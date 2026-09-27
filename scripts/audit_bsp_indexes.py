@@ -11,8 +11,14 @@ measured against the table it names: the checks of
 code/qcommon/bsp_index_checks.h, and a few more the loaders deliberately leave
 alone, which show why (`informational`).
 
+The node tree is measured as every descent walks it, from node 0: how deep it
+goes, whether any node or leaf is reached twice or not at all, and whether a
+child leads back above itself (`tree`); and the loaders' own walk,
+BSP_NodeTreeFault, compiled into the shim, runs over it (`node.tree`).
+
 Nothing is run and nothing is written to an installation. The report is JSON:
-per map, the record counts and every check a record fails, with examples.
+per map, the record counts, the tree's shape and every check a record fails,
+with examples.
 
   --installation KEY=PATH  as for probe_retail_map_loads.py
 """
@@ -44,6 +50,7 @@ SHIM = r'''
 #include "code/qcommon/bsp_fakk.h"
 #include "code/qcommon/bsp_mohaa.h"
 #include "code/qcommon/bsp_q3test.h"
+#include "code/qcommon/bsp_index_checks.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -54,10 +61,32 @@ void Q_strncpyz( char *dest, const char *src, int destsize ) {
 }
 static void *Alloc( int size ) { return calloc( 1, size > 0 ? (size_t)size : 1 ); }
 static void Release( void *p ) { free( p ); }
+/* shim tree <in>: the loaders' walk of an IBSP 46 map's nodes, as
+ * "<fault> <node> <child>" */
+static int Tree( const char *name ) {
+	FILE *f = fopen( name, "rb" ); long length; unsigned char *data; dheader_t header;
+	dnode_t *nodes; void *scratch; int numNodes, numLeafs, node, child; bspTreeFault_t fault;
+	if ( !f ) return 2;
+	fseek( f, 0, SEEK_END ); length = ftell( f ); fseek( f, 0, SEEK_SET );
+	data = malloc( length ? length : 1 );
+	if ( length < (long)sizeof( header ) || fread( data, 1, length, f ) != (size_t)length ) return 2;
+	fclose( f );
+	memcpy( &header, data, sizeof( header ) );
+	if ( !BSP_RangeInside( header.lumps[LUMP_NODES].fileofs, header.lumps[LUMP_NODES].filelen, (int)length ) ) return 2;
+	numNodes = header.lumps[LUMP_NODES].filelen / (int)sizeof( dnode_t );
+	numLeafs = header.lumps[LUMP_LEAFS].filelen / (int)sizeof( dleaf_t );
+	nodes = malloc( numNodes ? numNodes * sizeof( dnode_t ) : 1 );
+	memcpy( nodes, data + header.lumps[LUMP_NODES].fileofs, numNodes * sizeof( dnode_t ) );
+	scratch = malloc( BSP_NodeTreeScratchSize( numNodes ) );
+	fault = BSP_NodeTreeFault( nodes, numNodes, numLeafs, scratch, &node, &child );
+	printf( "%d %d %d\n", (int)fault, node, child );
+	return 0;
+}
 /* shim <in> <out> <renderer 0|1> <fakk2 0|1>: the map as the loaders see it */
 int main( int argc, char **argv ) {
 	FILE *f; long length; unsigned char *data; void *out = NULL; int outLength = 0;
 	char error[256] = ""; unsigned ident, version; int renderer, fakk2;
+	if ( argc == 3 && !strcmp( argv[1], "tree" ) ) return Tree( argv[2] );
 	if ( argc != 5 || !( f = fopen( argv[1], "rb" ) ) ) return 2;
 	renderer = atoi( argv[3] ); fakk2 = atoi( argv[4] );
 	fseek( f, 0, SEEK_END ); length = ftell( f ); fseek( f, 0, SEEK_SET );
@@ -107,8 +136,10 @@ CHECKED = {
     'node.plane', 'node.child', 'leaf.area', 'leaf.cluster', 'leaf.surfaceRange', 'leaf.brushRange',
     'leafSurface.surface', 'model.surfaceRange', 'model.brushRange', 'brush.sideRange', 'brush.sixSides',
     'brushSide.plane', 'fog.sidePlane', 'face.vertRange', 'face.indexRange', 'face.index', 'tri.vertRange',
-    'tri.indexRange', 'tri.index', 'patch.size', 'patch.vertRange', 'vis.partialHeader',
+    'tri.indexRange', 'tri.index', 'patch.size', 'patch.vertRange', 'vis.partialHeader', 'node.tree',
 }
+# BSP_NodeTreeFault's results, in the order of bspTreeFault_t.
+TREE_FAULTS = ('valid', 'cycle', 'shared', 'tooDeep', 'outside')
 
 
 def build_shim(directory):
@@ -122,6 +153,15 @@ def build_shim(directory):
     subprocess.run([compiler, *target, *abi, '-std=c11', '-O1', '-D_CRT_SECURE_NO_WARNINGS', '-I', str(ROOT),
                     str(source), '-o', str(exe)], check=True, cwd=ROOT)
     return exe
+
+
+def engine_tree(shim, directory, data):
+    """The loaders' own walk of the map's nodes (BSP_NodeTreeFault)."""
+    path = directory / 'tree.bsp'
+    path.write_bytes(data)
+    run = subprocess.run([str(shim), 'tree', str(path)], capture_output=True, text=True, check=True)
+    fault, node, child = (int(value) for value in run.stdout.split())
+    return TREE_FAULTS[fault], node, child
 
 
 def translate(shim, directory, data, renderer, fakk2):
@@ -144,6 +184,63 @@ def lump(data, index, dtype):
 def outside(first, count, total):
     first, count = first.astype(np.int64), count.astype(np.int64)
     return (first < 0) | (count < 0) | (first > total) | (count > total - first)
+
+
+def node_tree(children, numLeafs):
+    """The shape of the tree every descent walks from node 0.
+
+    `depth` counts the nodes on the longest path from node 0 to a leaf, and
+    `descent` the nodes a walk of every branch visits, which is the number of
+    nodes reached only when none is reached twice. A node or leaf is `shared`
+    when two of the nodes reached name it; `cycle` names a node that leads back
+    to one of its ancestors. Children outside their table are left out: the
+    loaders refuse them before this.
+    """
+    numNodes = len(children)
+    kids = [[int(c) for c in pair if c < numNodes and -1 - c < numLeafs] for pair in children.tolist()]
+    if not numNodes:
+        return dict(nodes=0, reached=0, depth=0, descent=0, sharedNodes=0, sharedLeafs=0, unreachedNodes=0,
+                    unreachedLeafs=max(numLeafs - 1, 0), cycle=None, rootNamed=False)
+    seen = bytearray(numNodes)
+    seen[0] = 1
+    stack = [0]
+    while stack:
+        for child in kids[stack.pop()]:
+            if child >= 0 and not seen[child]:
+                seen[child] = 1
+                stack.append(child)
+    nodeRefs, leafRefs = Counter(), Counter()
+    for node in range(numNodes):
+        if seen[node]:
+            for child in kids[node]:
+                (nodeRefs if child >= 0 else leafRefs)[child if child >= 0 else -1 - child] += 1
+    # a cycle below node 0, by colouring each node while its branch is open
+    state, cycle, height, descent = bytearray(numNodes), None, [0] * numNodes, [0] * numNodes
+    state[0], path = 1, [[0, 0]]
+    while path and cycle is None:
+        node, side = path[-1]
+        if side == len(kids[node]):
+            below = [c for c in kids[node] if c >= 0]
+            height[node] = 1 + max((height[c] for c in below), default=0)
+            descent[node] = 1 + sum(descent[c] for c in below)
+            state[node] = 2
+            path.pop()
+            continue
+        path[-1][1] += 1
+        child = kids[node][side]
+        if child < 0:
+            continue
+        if state[child] == 1:
+            cycle = dict(node=node, child=child, depth=len(path))
+        elif not state[child]:
+            state[child] = 1
+            path.append([child, 0])
+    return dict(nodes=numNodes, reached=sum(seen), depth=None if cycle else height[0],
+                descent=None if cycle else descent[0],
+                sharedNodes=sum(1 for count in nodeRefs.values() if count > 1),
+                sharedLeafs=sum(1 for count in leafRefs.values() if count > 1),
+                unreachedNodes=numNodes - sum(seen), unreachedLeafs=numLeafs - len(leafRefs), cycle=cycle,
+                rootNamed=bool(nodeRefs[0]))
 
 
 def audit(data):
@@ -178,9 +275,9 @@ def audit(data):
     children = nodes['children'].astype(np.int64)
     check('node.child', ((children >= 0) & (children >= numNodes)) | ((children < 0) & (-1 - children >= numLeafs)),
           children)
-    # Loaders guard against none of these; a cycle would never end a descent.
     order = (children >= 0) & (children <= np.arange(numNodes)[:, None])
     check('node.childBeforeParent (informational)', order, children)
+    tree = node_tree(nodes['children'], numLeafs)
     check('leaf.area', (leafs['area'] < -1) | (leafs['area'] >= MAX_MAP_AREAS), leafs['area'])
     check('leaf.cluster', leafs['cluster'] < -1, leafs['cluster'])
     check('leaf.surfaceRange', outside(leafs['firstSurface'], leafs['numSurfaces'], len(leafSurfaces)),
@@ -251,7 +348,7 @@ def audit(data):
     counts = dict(planes=len(planes), nodes=numNodes, leafs=numLeafs, leafSurfaces=len(leafSurfaces),
                   leafBrushes=len(leafBrushes), models=len(models), brushes=len(brushes), brushSides=len(sides),
                   verts=numVerts, indexes=len(indexes), fogs=len(fogs), surfaces=len(surfaces))
-    return counts, found, notes
+    return counts, found, notes, tree
 
 
 def main():
@@ -266,7 +363,7 @@ def main():
             parser.error(f'unknown installation {item!r}')
         installations[key] = Path(path).resolve(strict=True)
     (ROOT / '.tmp').mkdir(exist_ok=True)
-    maps, totals = {}, defaultdict(Counter)
+    maps, totals, trees = {}, defaultdict(Counter), {}
     with tempfile.TemporaryDirectory(dir=ROOT / '.tmp') as scratch:
         scratch = Path(scratch)
         shim = build_shim(scratch)
@@ -288,15 +385,28 @@ def main():
                             maps[key] = dict(translationRefused=error)
                             totals[title]['translationRefused'] += 1
                             continue
-                        counts, found, notes = audit(translated)
-                        maps[key] = dict(source=source, counts=counts, fails=found, notes=notes)
+                        counts, found, notes, tree = audit(translated)
+                        fault, node, child = engine_tree(shim, scratch, translated)
+                        tree['loaderWalk'] = fault
+                        if fault != 'valid':
+                            found['node.tree'] = dict(count=1, first=node, examples=[[node, child, fault]])
+                        maps[key] = dict(source=source, counts=counts, fails=found, notes=notes, tree=tree)
                         totals[title]['maps'] += 1
                         for name_ in found:
                             totals[title][name_] += 1
-            print(title, dict(totals[title]), flush=True)
+                        shape = trees.setdefault(title, dict(deepest=None, depth=0, sharedNodes=0, sharedLeafs=0,
+                                                             unreachedNodes=0, unreachedLeafs=0, cycles=0,
+                                                             loaderWalkFaults=0))
+                        shape['loaderWalkFaults'] += fault != 'valid'
+                        if tree['depth'] is not None and tree['depth'] > shape['depth']:
+                            shape['depth'], shape['deepest'] = tree['depth'], key
+                        for name_ in ('sharedNodes', 'sharedLeafs', 'unreachedNodes', 'unreachedLeafs'):
+                            shape[name_] += bool(tree[name_])
+                        shape['cycles'] += tree['cycle'] is not None
+            print(title, dict(totals[title]), trees.get(title), flush=True)
     failures = sum(1 for row in maps.values() for name in row.get('fails', {}) if name in CHECKED)
     report = dict(checks=sorted(CHECKED), titles={k: dict(v) for k, v in sorted(totals.items())},
-                  loaderCheckFailures=failures, maps=maps)
+                  trees=dict(sorted(trees.items())), loaderCheckFailures=failures, maps=maps)
     args.output.write_text(json.dumps(report, indent=1) + '\n', encoding='utf-8')
     print('checks the loaders make that a map fails:', failures)
     return 1 if failures else 0

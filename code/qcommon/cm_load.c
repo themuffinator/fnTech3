@@ -198,9 +198,11 @@ CMod_LoadNodes
 */
 static void CMod_LoadNodes( const lump_t *l ) {
 	dnode_t	*in;
-	int		child;
+	int		child, node;
 	cNode_t	*out;
 	int		i, j, count;
+	void	*scratch;
+	bspTreeFault_t	fault;
 
 	in = (dnode_t *)(cmod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
@@ -232,6 +234,14 @@ static void CMod_LoadNodes( const lump_t *l ) {
 		}
 	}
 
+	// and every descent of them from node 0 must end
+	scratch = Hunk_AllocateTempMemory( BSP_NodeTreeScratchSize( count ) );
+	fault = BSP_NodeTreeFault( (const dnode_t *)( cmod_base + l->fileofs ), count, cm.numLeafs, scratch,
+		&node, &child );
+	Hunk_FreeTempMemory( scratch );
+	if ( fault != BSP_TREE_VALID ) {
+		Com_Error( ERR_DROP, "%s: child %i of node %i %s", __func__, child, node, BSP_NodeTreeFaultText( fault ) );
+	}
 }
 
 /*

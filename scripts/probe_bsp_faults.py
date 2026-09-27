@@ -14,6 +14,12 @@ for 120 frames before quitting:
   header-ident            the identifier is not IBSP
   truncated-half          the file ends halfway
   truncated-last-lump     the file ends inside the lump stored last
+  tree-cycle              the last node's front child is node 0, above it: every
+                          index stays inside its table
+  tree-self               the last node's front child is that node itself
+  tree-shared-path        down the deepest path from node 0, each node's other
+                          child is the one on the path, so each subtree below is
+                          shared and a walk of the whole tree doubles at every node
   fuzz-SEED-NNN-lumpN     (--fuzz) 1-64 seeded random bytes inside one lump, taking
                           the lumps in turn; never the entity string, which
                           native game modules parse
@@ -82,6 +88,33 @@ def with_lump(data, index, offset, length):
     return bytes(out)
 
 
+def with_children(data, table, changes):
+    """The map with the children of some nodes replaced: {node: (front, back)}."""
+    out = bytearray(data)
+    for node, children in changes.items():
+        struct.pack_into('<2i', out, table[3][0] + RECORDS[3] * node + 4, *children)
+    return bytes(out)
+
+
+def deepest_path(data, table):
+    """Each node's children, and the nodes down the longest path from node 0."""
+    offset, length = table[3]
+    children = [struct.unpack_from('<2i', data, offset + RECORDS[3] * node + 4) for node in range(length // RECORDS[3])]
+    height, stack = {}, [(0, False)]
+    while stack:
+        node, below = stack.pop()
+        if below:
+            height[node] = 1 + max((height[child] for child in children[node] if child >= 0), default=0)
+        else:
+            stack.append((node, True))
+            stack.extend((child, False) for child in children[node] if child >= 0)
+    path, node = [], 0
+    while node >= 0:
+        path.append(node)
+        node = max((child for child in children[node] if child >= 0), key=height.get, default=-1)
+    return children, path
+
+
 def variants(data, profile, fuzz, seed):
     version, table = lumps(data, profile)
     records = RECORDS + [128]
@@ -97,6 +130,13 @@ def variants(data, profile, fuzz, seed):
     out['truncated-half'] = data[:len(data) // 2]
     last_offset, last_length = max(table, key=lambda lump: lump[0])
     out['truncated-last-lump'] = data[:last_offset + max(1, last_length // 2)]
+    # Node trees whose every index stays inside its table: no descent of a
+    # cycle ends, and a share at every node doubles a walk of the whole tree.
+    children, path = deepest_path(data, table)
+    last = len(children) - 1
+    out['tree-cycle'] = with_children(data, table, {last: (0, children[last][1])})
+    out['tree-self'] = with_children(data, table, {last: (last, children[last][1])})
+    out['tree-shared-path'] = with_children(data, table, {node: (below, below) for node, below in zip(path, path[1:])})
     # Each fuzz variant damages one lump, in turn, so lumps the collision loader
     # checks first cannot hide the ones only the renderer reads.
     rng = random.Random(seed)

@@ -189,11 +189,14 @@ three, and the rebuild's -- fails the tests.
 
 ## What this does not show
 
-- A node whose child leads back to one of its ancestors is not refused: every
-  index is inside its table, and a descent never ends. No installed map has
-  one, nor any damaged variant that passes the checks; Quake III's point and
-  trace code would hang on it and the renderers' `R_SetParent` would overflow
-  its stack. The IHV profile's own translator already refuses cyclic trees.
+- A node whose child leads back to one of its ancestors is not refused by
+  these checks: every index is inside its table, and a descent never ends. No
+  installed map has one, nor any damaged variant that passes the checks;
+  Quake III's point and trace code would hang on it and the renderers'
+  `R_SetParent` would overflow its stack. The IHV profile's own translator
+  already refuses cyclic trees. The loaders now walk every tree before
+  following it and refuse such a node
+  ([node-tree record](2026-09-27-bsp-node-trees.md)).
 - Medal of Honor's rebuild met damaged leaf lists only in the unit test; the
   installed maps show it builds every map as before.
 - Fog numbers and lightmap numbers are not checked at load, for the reasons

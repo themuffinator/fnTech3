@@ -23,6 +23,17 @@ today's behaviour instead of refusing: a visibility table that does not cover
 the leafs' clusters leaves the map unvised, as a table that does not fit its
 payload already did, and a leaf brush naming no brush is still repaired.
 
+Indexes inside their tables can still make a tree no descent finishes: a child
+that leads back to its own node or one above it, which the collision traces
+would follow forever and each renderer's R_SetParent until its stack ran out,
+or a subtree two nodes share, which a descent of both walks twice, twice again
+for each share below. The collision loader and every renderer's loader now walk
+the nodes from node 0 once, without recursion, before anything else does
+(BSP_NodeTreeFault), and refuse a node reached twice or a path through more
+than 2048 nodes. Leafs two nodes name, and nodes node 0 does not reach, are left
+alone. Every installed tree is one, 137 nodes deep at most
+(docs/fntech3/2026-09-27-bsp-node-trees.md).
+
 The fixtures compile the engine's own loader functions and feed them a small
 synthetic map; no retail map is read.
 """
@@ -81,6 +92,154 @@ int main( void ) {
 '''
 
 
+TREE_CHECKS = r'''
+#include "code/qcommon/q_shared.h"
+#include "code/qcommon/qfiles.h"
+#include "code/qcommon/bsp_index_checks.h"
+#include <assert.h>
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+/* Nodes over four leafs, walked in scratch of exactly the size the helper asks
+ * for, filled with a pattern it must clear, with a guard after it. */
+enum { LEAFS = 4, GUARD = 64, FULL = 65535 };
+static dnode_t nodes[BSP_MAX_NODE_DEPTH + 2];
+static int faultNode, faultChild;
+
+static void Node( dnode_t *table, int n, int front, int back ) {
+	table[n].children[0] = front;
+	table[n].children[1] = back;
+}
+
+static bspTreeFault_t Walk( const dnode_t *table, int numNodes ) {
+	const int size = BSP_NodeTreeScratchSize( numNodes );
+	byte *scratch = (byte *)malloc( (size_t)size + GUARD );
+	bspTreeFault_t fault;
+	int i;
+	assert( scratch );
+	memset( scratch, 0xa5, (size_t)size + GUARD );
+	fault = BSP_NodeTreeFault( table, numNodes, LEAFS, scratch, &faultNode, &faultChild );
+	for ( i = 0; i < GUARD; i++ ) {
+		assert( scratch[size + i] == 0xa5 );
+	}
+	free( scratch );
+	return fault;
+}
+
+static void Expect( const dnode_t *table, int numNodes, bspTreeFault_t fault, int node, int child ) {
+	const bspTreeFault_t found = Walk( table, numNodes );
+	if ( found != fault || faultNode != node || faultChild != child ) {
+		fprintf( stderr, "expected fault %d at child %d of node %d, found %d at child %d of node %d\n",
+			fault, child, node, found, faultChild, faultNode );
+		abort();
+	}
+}
+
+/* Nodes 0 to length - 1 in a line, each over the next and leaf 0; the rest
+ * are left over two leafs, unreached. */
+static void Line( int length ) {
+	int i;
+	memset( nodes, 0, sizeof( nodes ) );
+	for ( i = 0; i < BSP_MAX_NODE_DEPTH + 2; i++ ) {
+		Node( nodes, i, i + 1 < length ? i + 1 : -2, -1 );
+	}
+}
+
+int main( void ) {
+	dnode_t *full = (dnode_t *)calloc( FULL, sizeof( dnode_t ) );
+	int i;
+
+#ifdef _MSC_VER
+	/* a failed check aborts without Windows fault reporting */
+	_set_abort_behavior( 0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT );
+#endif
+	assert( full );
+	/* The scratch holds the path and a bit for each node, and its size does
+	 * not wrap. */
+	assert( BSP_MAX_NODE_DEPTH == 2048 );
+	assert( BSP_NodeTreeScratchSize( 0 ) == (int)sizeof( bspTreeStep_t ) * 2048 + 4 );
+	assert( BSP_NodeTreeScratchSize( 31 ) == BSP_NodeTreeScratchSize( 0 ) );
+	assert( BSP_NodeTreeScratchSize( 32 ) == BSP_NodeTreeScratchSize( 0 ) + 4 );
+	assert( BSP_NodeTreeScratchSize( -5 ) == BSP_NodeTreeScratchSize( 0 ) );
+	assert( BSP_NodeTreeScratchSize( INT_MAX ) > BSP_NodeTreeScratchSize( 0 ) );
+
+	/* No nodes: node 0 is a leaf, and nothing is walked. */
+	Expect( nodes, 0, BSP_TREE_VALID, -1, -1 );
+
+	/* A tree: node 0 over node 1 and leaf 0, node 1 over leafs 1 and 2. */
+	Node( nodes, 0, 1, -1 ); Node( nodes, 1, -2, -3 );
+	Expect( nodes, 2, BSP_TREE_VALID, -1, -1 );
+
+	/* A child that is its own node, or a node above it, is a cycle no descent
+	 * leaves. */
+	Node( nodes, 1, 1, -3 ); Expect( nodes, 2, BSP_TREE_CYCLE, 1, 1 );
+	Node( nodes, 1, -2, 0 ); Expect( nodes, 2, BSP_TREE_CYCLE, 1, 0 );
+	Node( nodes, 0, 0, -1 ); Expect( nodes, 1, BSP_TREE_CYCLE, 0, 0 );
+	Node( nodes, 0, 1, -1 ); Node( nodes, 1, 2, -2 ); Node( nodes, 2, -3, 1 );
+	Expect( nodes, 3, BSP_TREE_CYCLE, 2, 1 );
+	Line( 1500 ); Node( nodes, 1499, 700, -1 ); Expect( nodes, 1500, BSP_TREE_CYCLE, 1499, 700 );
+
+	/* A subtree two nodes share, whether one node names it twice or two nodes
+	 * name it once each. */
+	Node( nodes, 0, 1, 1 ); Node( nodes, 1, -1, -2 ); Expect( nodes, 2, BSP_TREE_SHARED, 0, 1 );
+	Node( nodes, 0, 1, 2 ); Node( nodes, 1, 3, -1 ); Node( nodes, 2, -2, 3 ); Node( nodes, 3, -3, -4 );
+	Expect( nodes, 4, BSP_TREE_SHARED, 2, 3 );
+	/* A line whose nodes each name the next twice doubles a descent at every
+	 * node, 2^64 paths here; the walk stops at the first share. */
+	for ( i = 0; i < 64; i++ ) Node( nodes, i, i + 1, i + 1 );
+	Node( nodes, 64, -1, -2 );
+	Expect( nodes, 65, BSP_TREE_SHARED, 63, 64 );
+
+	/* Leafs end every descent, so two nodes may name one; nodes node 0 does
+	 * not reach are never walked, even one that names itself or node 0. */
+	Node( nodes, 0, 1, -1 ); Node( nodes, 1, -1, -1 ); Expect( nodes, 2, BSP_TREE_VALID, -1, -1 );
+	Node( nodes, 0, -1, -2 ); Node( nodes, 1, 1, 0 ); Node( nodes, 2, 2, 1 );
+	Expect( nodes, 3, BSP_TREE_VALID, -1, -1 );
+
+	/* Nor does the order the nodes are numbered in matter: children before
+	 * their parents, as no installed map numbers them, are walked the same. */
+	Node( nodes, 0, 3, 2 ); Node( nodes, 3, 1, -1 ); Node( nodes, 1, -2, -3 ); Node( nodes, 2, -4, -1 );
+	Expect( nodes, 4, BSP_TREE_VALID, -1, -1 );
+
+	/* A path may pass through BSP_MAX_NODE_DEPTH nodes and no more; a cycle
+	 * longer than that is refused as too deep before it closes. */
+	Line( BSP_MAX_NODE_DEPTH ); Expect( nodes, BSP_MAX_NODE_DEPTH + 2, BSP_TREE_VALID, -1, -1 );
+	Line( BSP_MAX_NODE_DEPTH + 1 );
+	Expect( nodes, BSP_MAX_NODE_DEPTH + 2, BSP_TREE_TOO_DEEP, BSP_MAX_NODE_DEPTH - 1, BSP_MAX_NODE_DEPTH );
+	Line( BSP_MAX_NODE_DEPTH + 1 ); Node( nodes, BSP_MAX_NODE_DEPTH, 0, -1 );
+	Expect( nodes, BSP_MAX_NODE_DEPTH + 1, BSP_TREE_TOO_DEEP, BSP_MAX_NODE_DEPTH - 1, BSP_MAX_NODE_DEPTH );
+	/* the second child of the deepest node is walked too */
+	Line( BSP_MAX_NODE_DEPTH ); Node( nodes, BSP_MAX_NODE_DEPTH - 1, -2, BSP_MAX_NODE_DEPTH );
+	Expect( nodes, BSP_MAX_NODE_DEPTH + 2, BSP_TREE_TOO_DEEP, BSP_MAX_NODE_DEPTH - 1, BSP_MAX_NODE_DEPTH );
+
+	/* A child outside the tables is refused too, though the loaders refuse it
+	 * first. */
+	Node( nodes, 0, 1, -1 ); Node( nodes, 1, 2, -2 ); Expect( nodes, 2, BSP_TREE_OUTSIDE, 1, 2 );
+	Node( nodes, 1, -2, -5 ); Expect( nodes, 2, BSP_TREE_OUTSIDE, 1, -5 );
+	Node( nodes, 1, INT_MIN, -2 ); Expect( nodes, 2, BSP_TREE_OUTSIDE, 1, INT_MIN );
+	Node( nodes, 1, INT_MAX, -2 ); Expect( nodes, 2, BSP_TREE_OUTSIDE, 1, INT_MAX );
+
+	/* A full tree of 65535 nodes, 16 deep, is walked whole, and a share or a
+	 * cycle at its far end is found, in the bits of the last node. */
+	for ( i = 0; i < FULL; i++ ) Node( full, i, 2 * i + 1 < FULL ? 2 * i + 1 : -1 - i % LEAFS, 2 * i + 2 < FULL ? 2 * i + 2 : -2 );
+	Expect( full, FULL, BSP_TREE_VALID, -1, -1 );
+	Node( full, FULL - 1, FULL - 2, -1 ); Expect( full, FULL, BSP_TREE_SHARED, FULL - 1, FULL - 2 );
+	Node( full, FULL - 1, ( FULL - 2 ) / 2, -1 ); Expect( full, FULL, BSP_TREE_CYCLE, FULL - 1, ( FULL - 2 ) / 2 );
+
+	/* How the loaders word each fault. */
+	assert( !strcmp( BSP_NodeTreeFaultText( BSP_TREE_CYCLE ), "leads back to that node or one above it" ) );
+	assert( !strcmp( BSP_NodeTreeFaultText( BSP_TREE_SHARED ), "is already below another node" ) );
+	assert( !strcmp( BSP_NodeTreeFaultText( BSP_TREE_TOO_DEEP ), "is more than 2048 nodes deep" ) );
+	assert( !strcmp( BSP_NodeTreeFaultText( BSP_TREE_OUTSIDE ), "is none of the map's nodes or leafs" ) );
+	free( full );
+	puts( "node trees ok" );
+	return 0;
+}
+'''
+
+
 COLLISION_PRELUDE = r'''
 #include "code/qcommon/cm_local.h"
 #include <assert.h>
@@ -123,12 +282,27 @@ void *Hunk_Alloc( int size, ha_pref preference ) {
 	allocations++;
 	return result;
 }
+/* Temporary memory is not cleared, and every block is freed before the next
+ * is taken, errors included. */
+static union { double alignment; byte bytes[1 << 16]; } temporary;
+static int temporaryBlocks;
+void *Hunk_AllocateTempMemory( int size ) {
+	assert( size >= 0 && size <= (int)sizeof( temporary ) && !temporaryBlocks );
+	temporaryBlocks++;
+	memset( temporary.bytes, 0xcd, size );
+	return temporary.bytes;
+}
+void Hunk_FreeTempMemory( void *block ) {
+	assert( block == temporary.bytes && temporaryBlocks == 1 );
+	temporaryBlocks--;
+}
 '''
 
 
 COLLISION_CHECKS = r'''
 /* A small map: two brushes of six axial sides, a node over a leaf and a node
- * over two more, two surfaces and a two-cluster visibility table. */
+ * over two more, two surfaces and a two-cluster visibility table; and a longer
+ * node lump the tree cases load in place of the two nodes. */
 typedef struct {
 	dshader_t shaders[2];
 	dplane_t planes[8];
@@ -141,12 +315,27 @@ typedef struct {
 	dbrushside_t sides[12];
 	dsurface_t surfaces[2];
 	byte vis[8 + 18];
+	dnode_t line[BSP_MAX_NODE_DEPTH + 1];
 } map_t;
 static map_t map;
+static int lined;
+
+/* The long lump's nodes 0 to length - 1 in a line, each over the next and
+ * leaf 0, the last over leafs 1 and 2; the rest unreached, over leaf 0. */
+static void Line( int length ) {
+	int i;
+	lined = 1;
+	for ( i = 0; i < BSP_MAX_NODE_DEPTH + 1; i++ ) {
+		map.line[i].planeNum = 6;
+		map.line[i].children[0] = i + 1 < length ? i + 1 : i + 1 == length ? -2 : -1;
+		map.line[i].children[1] = i + 1 == length ? -3 : -1;
+	}
+}
 
 static void Valid( void ) {
 	int i;
 	memset( &map, 0, sizeof( map ) );
+	lined = 0;
 	for ( i = 0; i < 2; i++ ) map.shaders[i].contentFlags = CONTENTS_SOLID;
 	for ( i = 0; i < 8; i++ ) {
 		map.planes[i].normal[i % 3] = i & 1 ? -1.0f : 1.0f;
@@ -179,7 +368,8 @@ static void Valid( void ) {
 
 /* As CM_LoadMap loads it; 1 if it loaded, 0 if it was refused. */
 static int Load( void ) {
-	const lump_t shaders = LUMP( shaders ), planes = LUMP( planes ), nodes = LUMP( nodes );
+	const lump_t shaders = LUMP( shaders ), planes = LUMP( planes );
+	const lump_t nodes = lined ? (lump_t)LUMP( line ) : (lump_t)LUMP( nodes );
 	const lump_t leafs = LUMP( leafs ), leafSurfaces = LUMP( leafSurfaces ), leafBrushes = LUMP( leafBrushes );
 	const lump_t models = LUMP( models ), brushes = LUMP( brushes ), sides = LUMP( sides );
 	const lump_t surfaces = LUMP( surfaces ), vis = LUMP( vis );
@@ -188,7 +378,7 @@ static int Load( void ) {
 	lastError[0] = 0;
 	cmod_base = (byte *)&map;
 	if ( setjmp( errors ) ) {
-		assert( lastLevel == ERR_DROP );
+		assert( lastLevel == ERR_DROP && !temporaryBlocks );
 		return 0;
 	}
 	CMod_LoadShaders( &shaders );
@@ -202,6 +392,7 @@ static int Load( void ) {
 	CMod_LoadNodes( &nodes );
 	CMod_LoadVisibility( &vis );
 	CMod_CheckLeafBrushes();
+	assert( !temporaryBlocks );
 	return 1;
 }
 
@@ -224,6 +415,10 @@ static void Loads( void ) {
 int main( void ) {
 	int i;
 
+#ifdef _MSC_VER
+	/* a failed check aborts without Windows fault reporting */
+	_set_abort_behavior( 0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT );
+#endif
 	profile.collisionModelHandleCount = 256;
 	Valid();
 	Loads();
@@ -240,6 +435,27 @@ int main( void ) {
 	map.nodes[1].children[1] = INT_MIN; Refused( "node 1 has a bad child" );
 	/* the last leaf is the map's own */
 	map.nodes[0].children[1] = -3; Loads();
+
+	/* The tree the nodes make, walked from node 0: a child that leads back to
+	 * its own node or one above it would never let a trace end, and one
+	 * already below another node doubles every descent of both; each is
+	 * refused, and so is a path through more than 2048 nodes. */
+	map.nodes[1].children[0] = 1; Refused( "child 1 of node 1 leads back to that node or one above it" );
+	map.nodes[1].children[1] = 0; Refused( "child 0 of node 1 leads back to that node or one above it" );
+	map.nodes[0].children[1] = 1; Refused( "child 1 of node 0 is already below another node" );
+	Line( BSP_MAX_NODE_DEPTH + 1 ); Refused( "child 2048 of node 2047 is more than 2048 nodes deep" );
+	/* A leaf two nodes name loads, and so do a path through 2048 nodes, a node
+	 * node 0 does not reach that names itself and node 0, and a tree whose
+	 * children come before their parents. */
+	map.nodes[0].children[1] = -2; Loads();
+	Line( BSP_MAX_NODE_DEPTH );
+	map.line[BSP_MAX_NODE_DEPTH].children[0] = BSP_MAX_NODE_DEPTH; map.line[BSP_MAX_NODE_DEPTH].children[1] = 0;
+	assert( Load() && cm.numNodes == BSP_MAX_NODE_DEPTH + 1 && cm.nodes[BSP_MAX_NODE_DEPTH - 1].children[0] == -2 );
+	Valid();
+	Line( 1 );
+	map.line[0].children[0] = 2; map.line[2].children[0] = 1; map.line[1].children[0] = -2; map.line[1].children[1] = -3;
+	assert( Load() && cm.nodes[0].children[0] == 2 && cm.nodes[2].children[0] == 1 );
+	Valid();
 
 	/* Lump 4, leafs: an area outside the 256 the area bits hold, such as the
 	 * seeded corruption's 0x12000000 that wrapped the portal table's size,
@@ -473,12 +689,28 @@ static void *HunkAlloc( int size, ha_pref preference ) {
 	memset( result, 0, size );
 	return result;
 }
+/* Temporary memory is not cleared, and every block is freed before the next
+ * is taken, errors included. */
+static union { double alignment; byte bytes[1 << 16]; } temporary;
+static int temporaryBlocks;
+static void *TempAlloc( int size ) {
+	assert( size >= 0 && size <= (int)sizeof( temporary ) && !temporaryBlocks );
+	temporaryBlocks++;
+	memset( temporary.bytes, 0xcd, size );
+	return temporary.bytes;
+}
+static void TempFree( void *block ) {
+	assert( block == temporary.bytes && temporaryBlocks == 1 );
+	temporaryBlocks--;
+}
 static struct {
 	void ( QDECL *Error )( errorParm_t, const char *, ... );
 	void ( QDECL *Printf )( int, const char *, ... );
 	void *( *Hunk_Alloc )( int, ha_pref );
+	void *( *Hunk_AllocateTempMemory )( int );
+	void ( *Hunk_FreeTempMemory )( void * );
 	comGameId_t gameId;
-} ri = { Error, Print, HunkAlloc, COM_GAME_QUAKE3 };
+} ri = { Error, Print, HunkAlloc, TempAlloc, TempFree, COM_GAME_QUAKE3 };
 static shader_t *ShaderForShaderNum( const int shaderNum, int lightmapNum ) {
 	(void)lightmapNum;
 	if ( shaderNum < 0 || shaderNum >= s_worldData.numShaders ) {
@@ -503,24 +735,40 @@ static srfGridMesh_t *R_SubdividePatchToGrid( int width, int height, drawVert_t 
 RENDERER_CHECKS = r'''
 /* Two nodes over three leafs, two surfaces each listed by a leaf, and a
  * two-cluster visibility table; the vertex and index lumps the surface
- * parsers read. */
+ * parsers read; and a longer node lump the tree cases load in place of the
+ * two nodes. */
 typedef struct {
 	dnode_t nodes[2];
 	dleaf_t leafs[3];
 	int leafSurfaces[2];
 	byte vis[8 + 18];
 	dmodel_t models[2];
+	dnode_t line[BSP_MAX_NODE_DEPTH + 1];
 } map_t;
 static map_t map;
+static int lined;
 static cplane_t planes[8];
 static msurface_t surfaces[4];
 static dshader_t shaders[2];
 static drawVert_t verts[1100];
 static int indexes[400];
 
+/* The long lump's nodes 0 to length - 1 in a line, each over the next and
+ * leaf 0, the last over leafs 1 and 2; the rest unreached, over leaf 0. */
+static void Line( int length ) {
+	int i;
+	lined = 1;
+	for ( i = 0; i < BSP_MAX_NODE_DEPTH + 1; i++ ) {
+		map.line[i].planeNum = 6;
+		map.line[i].children[0] = i + 1 < length ? i + 1 : i + 1 == length ? -2 : -1;
+		map.line[i].children[1] = i + 1 == length ? -3 : -1;
+	}
+}
+
 static void Valid( void ) {
 	int i;
 	memset( &map, 0, sizeof( map ) );
+	lined = 0;
 	map.nodes[0].planeNum = 6; map.nodes[0].children[0] = 1; map.nodes[0].children[1] = -1;
 	map.nodes[1].planeNum = 7; map.nodes[1].children[0] = -2; map.nodes[1].children[1] = -3;
 	map.leafs[0].cluster = -1; map.leafs[0].area = -1;
@@ -558,12 +806,17 @@ static int Models( void ) {
 
 /* The tree as RE_LoadWorldMap loads it; 1 if it loaded, 0 if it was refused. */
 static int Tree( void ) {
-	const lump_t nodes = LUMP( nodes ), leafs = LUMP( leafs ), leafSurfaces = LUMP( leafSurfaces ), vis = LUMP( vis );
+	const lump_t nodes = lined ? (lump_t)LUMP( line ) : (lump_t)LUMP( nodes );
+	const lump_t leafs = LUMP( leafs ), leafSurfaces = LUMP( leafSurfaces ), vis = LUMP( vis );
 	Reset();
-	if ( setjmp( errors ) ) return 0;
+	if ( setjmp( errors ) ) {
+		assert( !temporaryBlocks );
+		return 0;
+	}
 	R_LoadMarksurfaces( &leafSurfaces );
 	R_LoadNodesAndLeafs( &nodes, &leafs );
 	R_LoadVisibility( &vis );
+	assert( !temporaryBlocks );
 	return 1;
 }
 
@@ -610,6 +863,10 @@ int main( void ) {
 	dsurface_t ds;
 	int i;
 
+#ifdef _MSC_VER
+	/* a failed check aborts without Windows fault reporting */
+	_set_abort_behavior( 0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT );
+#endif
 	Valid();
 	assert( Tree() && s_worldData.numnodes == 5 && s_worldData.nodes[3].parent == &s_worldData.nodes[1] );
 	assert( s_worldData.nodes[4].firstmarksurface[0] == &surfaces[1] && s_worldData.vis );
@@ -623,6 +880,29 @@ int main( void ) {
 	map.nodes[1].children[1] = -4; Expect( Tree(), "node 1 has a bad child" );
 	map.nodes[1].children[0] = INT_MIN; Expect( Tree(), "node 1 has a bad child" );
 	map.nodes[0].children[1] = -3; assert( Tree() ); Valid();
+
+	/* The tree, walked from node 0 before R_SetParent recurses down it: a
+	 * child that leads back to its own node or one above it, one already
+	 * below another node, and a path through more than 2048 nodes. */
+	map.nodes[1].children[0] = 1; Expect( Tree(), "child 1 of node 1 leads back to that node or one above it" );
+	map.nodes[1].children[1] = 0; Expect( Tree(), "child 0 of node 1 leads back to that node or one above it" );
+	map.nodes[0].children[1] = 1; Expect( Tree(), "child 1 of node 0 is already below another node" );
+	Line( BSP_MAX_NODE_DEPTH + 1 ); Expect( Tree(), "child 2048 of node 2047 is more than 2048 nodes deep" );
+	/* A leaf two nodes name loads, and so do a path through 2048 nodes, a node
+	 * node 0 does not reach that names itself and node 0, which gets no
+	 * parent, and a tree whose children come before their parents. */
+	map.nodes[0].children[1] = -2; assert( Tree() ); Valid();
+	Line( BSP_MAX_NODE_DEPTH );
+	map.line[BSP_MAX_NODE_DEPTH].children[0] = BSP_MAX_NODE_DEPTH; map.line[BSP_MAX_NODE_DEPTH].children[1] = 0;
+	assert( Tree() && s_worldData.numDecisionNodes == BSP_MAX_NODE_DEPTH + 1 );
+	assert( s_worldData.nodes[BSP_MAX_NODE_DEPTH - 1].parent == &s_worldData.nodes[BSP_MAX_NODE_DEPTH - 2] );
+	assert( !s_worldData.nodes[BSP_MAX_NODE_DEPTH].parent );
+	Valid();
+	Line( 1 );
+	map.line[0].children[0] = 2; map.line[2].children[0] = 1; map.line[1].children[0] = -2; map.line[1].children[1] = -3;
+	assert( Tree() && s_worldData.nodes[1].parent == &s_worldData.nodes[2] );
+	assert( s_worldData.nodes[2].parent == &s_worldData.nodes[0] );
+	Valid();
 
 	/* Leafs: an area outside the area mask, a cluster below none, a surface
 	 * range outside the leaf surfaces; an empty range at the end loads. */
@@ -839,6 +1119,9 @@ class BspIndexHelperTests(unittest.TestCase):
     def test_the_shared_checks_bound_every_range_and_index(self):
         build_and_run(self, 'indexchecks', [HELPER_CHECKS])
 
+    def test_the_tree_walk_finds_cycles_shares_and_paths_too_deep(self):
+        build_and_run(self, 'nodetrees', [TREE_CHECKS])
+
 
 class CollisionLoaderIndexTests(unittest.TestCase):
     def test_the_collision_loader_refuses_indexes_outside_their_tables(self):
@@ -851,6 +1134,10 @@ class CollisionLoaderIndexTests(unittest.TestCase):
                         nodes.index('out->plane = cm.planes + LittleLong( in->planeNum );'))
         self.assertLess(nodes.index('BSP_ChildInside( child, count, cm.numLeafs )'),
                         nodes.index('out->children[j] = child;'))
+        # the tree is walked once every child is known to be the map's, and
+        # its scratch is released before a fault is reported
+        self.assertLess(nodes.index('out->children[j] = child;'), nodes.index('BSP_NodeTreeFault('))
+        self.assertLess(nodes.index('Hunk_FreeTempMemory( scratch );'), nodes.index('BSP_NodeTreeFaultText( fault )'))
         brushes = function(load, 'static void CMod_LoadBrushes(')
         self.assertLess(brushes.index('BSP_RangeInside( LittleLong( in->firstSide ), 6, cm.numBrushSides )'),
                         brushes.index('CM_BoundBrush( out );'))
@@ -896,6 +1183,17 @@ class RendererLoaderIndexTests(unittest.TestCase):
                              'ParseTriSurf( in, dv, lumpVerts, out, indexes, lumpIndexes );',
                              'ParseFace( in, dv, lumpVerts, out, indexes, lumpIndexes );'):
                     self.assertIn(call, surfaces)
+
+    def test_every_renderer_walks_the_tree_before_setting_its_parents(self):
+        for renderer in RENDERERS:
+            with self.subTest(renderer=renderer):
+                bsp = read(f'code/{renderer}/tr_bsp.c')
+                tree = function(bsp, 'static void R_LoadNodesAndLeafs(')
+                self.assertLess(tree.index('BSP_NodeTreeFault('), tree.index('R_SetParent (s_worldData.nodes, NULL);'))
+                self.assertLess(tree.index('ri.Hunk_FreeTempMemory( scratch );'),
+                                tree.index('BSP_NodeTreeFaultText( fault )'))
+                # R_SetParent recurses; the loader's is its only outside call
+                self.assertEqual(bsp.count('R_SetParent ('), 1)
 
 
 class HunkAllocationTests(unittest.TestCase):
