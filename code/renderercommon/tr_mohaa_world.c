@@ -81,6 +81,21 @@ static int R_MOHAALumpCount( const dheader_t *header, int lump, int size ) {
 	return LittleLong( R_MOHAALump( header, lump )->filelen ) / size;
 }
 
+/* The part of a leaf's surface list that lies inside the map's own, as
+ * [*lo, *hi), and its length: a damaged leaf's range may start or end
+ * outside it, and the sum that would find its end can overflow. */
+static int R_MOHAALeafSurfacesInside( const dleaf_t *leaf, int numLeafSurfaces, int *lo, int *hi ) {
+	const int first = LittleLong( leaf->firstLeafSurface );
+	const int count = LittleLong( leaf->numLeafSurfaces );
+
+	*lo = first < 0 ? 0 : first > numLeafSurfaces ? numLeafSurfaces : first;
+	*hi = count <= 0 ? *lo : first > numLeafSurfaces - count ? numLeafSurfaces : first + count;
+	if ( *hi < *lo ) {
+		*hi = *lo;
+	}
+	return *hi - *lo;
+}
+
 /* A shader appended for the static models, or the one already appended. */
 static int R_MOHAAStaticShader( shaderName_t *names, int *count, int max, int base, const char *name ) {
 	int i;
@@ -917,6 +932,25 @@ qboolean R_MOHAABuildWorld( const mohaa_translation_t *translation, const char *
 	}
 
 	in = (const dheader_t *)translation->data;
+	/* The leafs' own lists are copied into a list the size of the map's, so
+	 * together they must fit it; a damaged map's may overlap. That is known
+	 * before anything is allocated. */
+	{
+		const dleaf_t *leafs = (const dleaf_t *)R_MOHAALumpData( in, LUMP_LEAFS );
+		const int leafCount = R_MOHAALumpCount( in, LUMP_LEAFS, sizeof( dleaf_t ) );
+		const int listLength = R_MOHAALumpCount( in, LUMP_LEAFSURFACES, sizeof( int ) );
+		int listed = 0, lo, hi;
+
+		for ( i = 0; i < leafCount; i++ ) {
+			const int part = R_MOHAALeafSurfacesInside( &leafs[i], listLength, &lo, &hi );
+			if ( part > listLength - listed ) {
+				ri.Printf( PRINT_WARNING, "WARNING: %s's leafs list more surfaces than it has; its terrain, "
+					"static models and decals are not built\n", mapName ? mapName : "the map" );
+				return qfalse;
+			}
+			listed += part;
+		}
+	}
 	R_MOHAALoadDecals( in, mapName, &decals );
 	if ( translation->numTerrain <= 0 && translation->numStaticModels <= 0 && !translation->lightGridPalette
 		&& decals.numFragments <= 0 ) {
@@ -1304,14 +1338,13 @@ qboolean R_MOHAABuildWorld( const mohaa_translation_t *translation, const char *
 
 		for ( i = 0; i < numLeafs; i++ ) {
 			dleaf_t *leaf = &leafs[i];
-			const int first = LittleLong( leaf->firstLeafSurface );
-			const int count = LittleLong( leaf->numLeafSurfaces );
 			const int start = cursor;
+			int lo, hi;
 
-			for ( j = 0; j < count; j++ ) {
-				if ( first + j >= 0 && first + j < numLeafSurfaces ) {
-					leafSurfaces[cursor++] = oldLeafSurfaces[first + j];
-				}
+			/* the part of its own list inside the map's, which fits (above) */
+			R_MOHAALeafSurfacesInside( leaf, numLeafSurfaces, &lo, &hi );
+			for ( j = lo; j < hi; j++ ) {
+				leafSurfaces[cursor++] = oldLeafSurfaces[j];
 			}
 			if ( translation->leafTerrain ) {
 				const int firstTerrain = translation->leafTerrain[i * 2];

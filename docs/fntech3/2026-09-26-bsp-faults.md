@@ -5,7 +5,9 @@ record of a run. This record runs it under `q3`, `ql`, `rtcw-sp` and `rtcw-mp`,
 one stock map each. The first run found a crash in patch collision, fixed in
 `5ba3561`. The full set then ran again on the fixed build: 409 damaged maps, no
 crash and no hang, but 24 access violations that the engine caught and turned
-into errors. Those 24 remain open. The
+into errors. Those 24 stayed open until the loaders' index checks of
+2026-09-27, which refuse each of them
+([index-check record](2026-09-27-bsp-index-checks.md)). The
 [machine-readable record](2026-09-26-bsp-faults.json) holds every variant's
 input hash, outcome, first error and, for each fault, its site.
 
@@ -75,7 +77,12 @@ QL's and RTCW multiplayer's own draw-vertex corruptions (seeded variants 25
 and 24), which reach the same loop. `tests/patch_grid_bounds_tests.py` holds
 the case.
 
-### The caught faults, open
+### The caught faults, closed on 2026-09-27
+
+The collision loader and the renderers now check each index below before
+following it, and on the same variants all 24 are refused with the loader's
+own error ([index-check record](2026-09-27-bsp-index-checks.md)). As found on
+this build:
 
 Every fault reads through an index that no loader checks. Each address was
 symbolized against the build's own PDBs; reproductions under `cdb` also gave

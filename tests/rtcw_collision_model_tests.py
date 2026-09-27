@@ -45,6 +45,8 @@ void *Hunk_Alloc(int size, ha_pref preference) {
 
 
 CHECKS = r'''
+/* The models name no brushes or surfaces, so an empty surface lump is theirs. */
+static const lump_t noSurfaces = {0, 0};
 static void LoadCount(int count) {
     const int fits = count > 0 && count <= selected->collisionModelHandleCount - 2;
     const lump_t lump = {0, count * (int)sizeof(dmodel_t)};
@@ -53,7 +55,7 @@ static void LoadCount(int count) {
     cm.leafbrushes = (int *)arena.bytes; cm.leafsurfaces = (int *)arena.bytes;
     used = 16; allocations = 0;
     if (setjmp(errors) == 0) {
-        CMod_LoadSubmodels(&lump); assert(fits);
+        CMod_LoadSubmodels(&lump, &noSurfaces); assert(fits);
     } else {
         assert(!fits && !allocations && !cm.cmodels && !cm.numSubModels); return;
     }
@@ -84,7 +86,7 @@ void TestModelLimits(const comGameProfile_t *profile) {
     {
         const lump_t malformed = {0, sizeof(dmodel_t) - 1};
         allocations = 0;
-        if (setjmp(errors) == 0) { CMod_LoadSubmodels(&malformed); assert(0); }
+        if (setjmp(errors) == 0) { CMod_LoadSubmodels(&malformed, &noSurfaces); assert(0); }
         assert(!allocations);
     }
 }

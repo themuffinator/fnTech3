@@ -2493,6 +2493,13 @@ void *Hunk_Alloc( int size, ha_pref preference ) {
 		Com_Error( ERR_FATAL, "Hunk_Alloc: Hunk memory system not initialized" );
 	}
 
+	// A size computed from a damaged file can be negative or wrap; refuse it
+	// before the padding and the bank sum below wrap too, as
+	// Hunk_AllocateTempMemory does, rather than clearing memory off the hunk.
+	if ( size < 0 || size > INT_MAX - 64 - (int)sizeof( hunkblock_t ) ) {
+		Com_Error( ERR_DROP, "Hunk_Alloc: invalid size %i", size );
+	}
+
 	// can't do preference if there is any temp allocated
 	if (preference == h_dontcare || hunk_temp->temp != hunk_temp->permanent) {
 		Hunk_SwapBanks();
@@ -2511,7 +2518,8 @@ void *Hunk_Alloc( int size, ha_pref preference ) {
 	// round to cacheline
 	size = PAD( size, 64 );
 
-	if ( hunk_low.temp + hunk_high.temp + size > s_hunkTotal ) {
+	// the banks never hold more than the total, so this cannot wrap
+	if ( size > s_hunkTotal - hunk_low.temp - hunk_high.temp ) {
 #ifdef HUNK_DEBUG
 		Hunk_Log();
 		Hunk_SmallLog();

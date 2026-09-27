@@ -126,13 +126,16 @@ static void CMod_LoadShaders( const lump_t *l ) {
 /*
 =================
 CMod_LoadSubmodels
+
+`surfs` is the surface lump, whose records an inline model's surfaces number.
 =================
 */
-static void CMod_LoadSubmodels( const lump_t *l ) {
+static void CMod_LoadSubmodels( const lump_t *l, const lump_t *surfs ) {
 	dmodel_t	*in;
 	cmodel_t	*out;
 	int			i, j, count;
 	int			*indexes;
+	const int	numSurfaces = surfs->filelen / (int)sizeof( dsurface_t );
 
 	in = (void *)(cmod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
@@ -160,6 +163,13 @@ static void CMod_LoadSubmodels( const lump_t *l ) {
 
 		if ( i == 0 ) {
 			continue;	// world model doesn't need other info
+		}
+
+		// its brushes and surfaces must be the map's own, before their
+		// counts size the allocations below
+		if ( !BSP_RangeInside( LittleLong( in->firstBrush ), LittleLong( in->numBrushes ), cm.numBrushes )
+			|| !BSP_RangeInside( LittleLong( in->firstSurface ), LittleLong( in->numSurfaces ), numSurfaces ) ) {
+			Com_Error( ERR_DROP, "%s: model %i has a bad brush or surface range", __func__, i );
 		}
 
 		// make a "leaf" just to hold the model's brushes and surfaces
@@ -207,10 +217,17 @@ static void CMod_LoadNodes( const lump_t *l ) {
 
 	for ( i = 0; i < count; i++, out++, in++ )
 	{
+		// every trace and point test follows these without a check
+		if ( !BSP_IndexInside( LittleLong( in->planeNum ), cm.numPlanes ) ) {
+			Com_Error( ERR_DROP, "%s: node %i has a bad plane", __func__, i );
+		}
 		out->plane = cm.planes + LittleLong( in->planeNum );
 		for ( j = 0; j < 2; j++ )
 		{
 			child = LittleLong( in->children[j] );
+			if ( !BSP_ChildInside( child, count, cm.numLeafs ) ) {
+				Com_Error( ERR_DROP, "%s: node %i has a bad child", __func__, i );
+			}
 			out->children[j] = child;
 		}
 	}
@@ -258,6 +275,12 @@ static void CMod_LoadBrushes( const lump_t *l ) {
 	out = cm.brushes;
 
 	for ( i = 0; i < count; i++, out++, in++ ) {
+		// its sides must be the map's own, and so must the six axial ones
+		// CM_BoundBrush reads, even of a brush that claims fewer
+		if ( !BSP_RangeInside( LittleLong( in->firstSide ), LittleLong( in->numSides ), cm.numBrushSides )
+			|| !BSP_RangeInside( LittleLong( in->firstSide ), 6, cm.numBrushSides ) ) {
+			Com_Error( ERR_DROP, "%s: brush %i has a bad side range", __func__, i );
+		}
 		out->sides = cm.brushsides + LittleLong( in->firstSide );
 		out->numsides = LittleLong( in->numSides );
 
@@ -305,6 +328,12 @@ static void CMod_LoadLeafs( const lump_t *l )
 		out->numLeafBrushes = LittleLong( in->numLeafBrushes );
 		out->firstLeafSurface = LittleLong( in->firstLeafSurface );
 		out->numLeafSurfaces = LittleLong( in->numLeafSurfaces );
+
+		// the areas size the portal table below and the area bits a snapshot
+		// carries, and a snapshot reads its PVS row by an entity's cluster
+		if ( !BSP_LeafAreaValid( out->area ) || !BSP_LeafClusterValid( out->cluster ) ) {
+			Com_Error( ERR_DROP, "%s: leaf %i has a bad area or cluster", __func__, i );
+		}
 
 		if ( out->cluster >= cm.numClusters )
 			cm.numClusters = out->cluster + 1;
@@ -386,20 +415,31 @@ static void CMod_LoadLeafBrushes( const lump_t *l )
 	for ( i = 0; i < count; i++, in++, out++ ) {
 		*out = LittleLong( *in );
 	}
+
+	// each leaf's list must lie inside this one; the brushes the list names
+	// are checked once they are loaded (CMod_CheckLeafBrushes)
+	for ( i = 0; i < cm.numLeafs; i++ ) {
+		if ( !BSP_RangeInside( cm.leafs[i].firstLeafBrush, cm.leafs[i].numLeafBrushes, count ) ) {
+			Com_Error( ERR_DROP, "%s: leaf %i has a bad leaf brush range", __func__, i );
+		}
+	}
 }
 
 
 /*
 =================
 CMod_LoadLeafSurfaces
+
+`surfs` is the surface lump, whose records the leaf surfaces number.
 =================
 */
-static void CMod_LoadLeafSurfaces( const lump_t *l )
+static void CMod_LoadLeafSurfaces( const lump_t *l, const lump_t *surfs )
 {
 	int i;
 	int *out;
 	int *in;
 	int count;
+	const int numSurfaces = surfs->filelen / (int)sizeof( dsurface_t );
 
 	in = (void *)(cmod_base + l->fileofs);
 	if ( l->filelen % sizeof(*in) )
@@ -414,6 +454,16 @@ static void CMod_LoadLeafSurfaces( const lump_t *l )
 
 	for ( i = 0; i < count; i++, in++, out++ ) {
 		*out = LittleLong( *in );
+		// a trace takes each one as an index into cm.surfaces
+		if ( !BSP_IndexInside( *out, numSurfaces ) ) {
+			Com_Error( ERR_DROP, "%s: leaf surface %i names a bad surface", __func__, i );
+		}
+	}
+
+	for ( i = 0; i < cm.numLeafs; i++ ) {
+		if ( !BSP_RangeInside( cm.leafs[i].firstLeafSurface, cm.leafs[i].numLeafSurfaces, count ) ) {
+			Com_Error( ERR_DROP, "%s: leaf %i has a bad leaf surface range", __func__, i );
+		}
 	}
 }
 
@@ -462,6 +512,9 @@ static void CMod_LoadBrushSides( const lump_t *l )
 
 	for ( i= 0; i < count; i++, in++, out++ ) {
 		num = LittleLong( in->planeNum );
+		if ( !BSP_IndexInside( num, cm.numPlanes ) ) {
+			Com_Error( ERR_DROP, "%s: brush side %i has a bad plane", __func__, i );
+		}
 		out->plane = &cm.planes[num];
 		out->shaderNum = LittleLong( in->shaderNum );
 		if ( out->shaderNum < 0 || out->shaderNum >= cm.numShaders ) {
@@ -537,9 +590,13 @@ static void CMod_LoadVisibility( const lump_t *l ) {
 	// CM_ClusterPVS() hands out cm.visibility + cluster * cm.clusterBytes without
 	// consulting the allocation size, so the advertised table has to fit inside
 	// the payload. Compare by division: numClusters * clusterBytes would itself
-	// overflow on the 32-bit target and let the bad case through.
+	// overflow on the 32-bit target and let the bad case through. A snapshot
+	// then reads a row by each entity's leaf cluster, so the table must have a
+	// row for every cluster the leafs name and a bit in each row for each.
 	if ( numClusters < 0 || clusterBytes <= 0
-		|| numClusters > ( len - VIS_HEADER ) / clusterBytes ) {
+		|| numClusters > ( len - VIS_HEADER ) / clusterBytes
+		|| numClusters < cm.numClusters
+		|| clusterBytes < ( numClusters >> 3 ) + ( ( numClusters & 7 ) != 0 ) ) {
 		CMod_SetFullVisibility();
 		return;
 	}
@@ -996,11 +1053,11 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 #endif
 	CMod_LoadLeafs (&header.lumps[LUMP_LEAFS]);
 	CMod_LoadLeafBrushes (&header.lumps[LUMP_LEAFBRUSHES]);
-	CMod_LoadLeafSurfaces (&header.lumps[LUMP_LEAFSURFACES]);
+	CMod_LoadLeafSurfaces (&header.lumps[LUMP_LEAFSURFACES], &header.lumps[LUMP_SURFACES]);
 	CMod_LoadPlanes (&header.lumps[LUMP_PLANES]);
 	CMod_LoadBrushSides (&header.lumps[LUMP_BRUSHSIDES]);
 	CMod_LoadBrushes (&header.lumps[LUMP_BRUSHES]);
-	CMod_LoadSubmodels (&header.lumps[LUMP_MODELS]);
+	CMod_LoadSubmodels (&header.lumps[LUMP_MODELS], &header.lumps[LUMP_SURFACES]);
 	CMod_LoadNodes (&header.lumps[LUMP_NODES]);
 	CMod_LoadEntityString (&header.lumps[LUMP_ENTITIES]);
 	CMod_LoadVisibility( &header.lumps[LUMP_VISIBILITY] );

@@ -34,6 +34,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/bsp_mohaa.h"
 #include "../renderercommon/tr_mohaa_world.h"
 #include "../qcommon/ql_bsp.h"
+#include "../qcommon/bsp_index_checks.h"
 #ifdef USE_VULKAN
 #include "vk.h"
 #endif
@@ -2060,6 +2061,7 @@ R_LoadVisibility
 static void R_LoadVisibility( const lump_t *l ) {
 	int		len;
 	byte	*buf;
+	int		numClusters, clusterBytes;
 
 	len = PAD( s_worldData.numClusters, 64 );
 	s_worldData.novis = ri.Hunk_Alloc( len, h_low );
@@ -2069,10 +2071,26 @@ static void R_LoadVisibility( const lump_t *l ) {
 	if ( !len ) {
 		return;
 	}
+	// As the collision loader does, refuse a partial header, and draw a map
+	// unvised whose table does not fit its payload, has no row for a cluster
+	// the leafs name or no bit in a row for each: R_ClusterPVS and
+	// R_MarkLeaves read the rows by those clusters.
+	if ( len < 8 ) {
+		ri.Error( ERR_DROP, "%s(): truncated visibility lump (%i bytes) in %s", __func__, len, s_worldData.name );
+	}
 	buf = fileBase + l->fileofs;
 
-	s_worldData.numClusters = LittleLong( ((int *)buf)[0] );
-	s_worldData.clusterBytes = LittleLong( ((int *)buf)[1] );
+	numClusters = LittleLong( ((int *)buf)[0] );
+	clusterBytes = LittleLong( ((int *)buf)[1] );
+	if ( numClusters < 0 || clusterBytes <= 0
+		|| numClusters > ( len - 8 ) / clusterBytes
+		|| numClusters < s_worldData.numClusters
+		|| clusterBytes < ( numClusters >> 3 ) + ( ( numClusters & 7 ) != 0 ) ) {
+		return;
+	}
+
+	s_worldData.numClusters = numClusters;
+	s_worldData.clusterBytes = clusterBytes;
 
 	// CM_Load should have given us the vis data to share, so
 	// we don't need to allocate another copy
@@ -2225,9 +2243,12 @@ void qsort_idx( int32_t *a, const int n ) {
 /*
 ===============
 ParseFace
+
+`lumpVerts` and `lumpIndexes` are the map's vertex and index counts.
 ===============
 */
-static void ParseFace( const dsurface_t *ds, const drawVert_t *verts, msurface_t *surf, int *indexes ) {
+static void ParseFace( const dsurface_t *ds, const drawVert_t *verts, int lumpVerts, msurface_t *surf,
+	int *indexes, int lumpIndexes ) {
 	int			i, j;
 	srfSurfaceFace_t	*cv;
 	int			numPoints, numIndexes;
@@ -2267,6 +2288,15 @@ static void ParseFace( const dsurface_t *ds, const drawVert_t *verts, msurface_t
 
 	numIndexes = LittleLong( ds->numIndexes );
 
+	// Its vertices and indexes must lie inside their lumps before they size
+	// the face and are read. The vertices are all the face declares, of
+	// which one over the limit above keeps only the first.
+	if ( !BSP_RangeInside( LittleLong( ds->firstVert ), LittleLong( ds->numVerts ), lumpVerts )
+		|| !BSP_RangeInside( LittleLong( ds->firstIndex ), numIndexes, lumpIndexes ) ) {
+		ri.Error( ERR_DROP, "ParseFace: surface %i has a bad vertex or index range",
+			(int)( surf - s_worldData.surfaces ) );
+	}
+
 	// create the srfSurfaceFace_t
 	sfaceSize = sizeof( *cv ) - sizeof( cv->points ) + sizeof( cv->points[0] ) * numPoints;
 	ofsIndexes = sfaceSize;
@@ -2298,6 +2328,10 @@ static void ParseFace( const dsurface_t *ds, const drawVert_t *verts, msurface_t
 	indexes += LittleLong( ds->firstIndex );
 	for ( i = 0 ; i < numIndexes ; i++ ) {
 		((int *)((byte *)cv + cv->ofsIndices ))[i] = LittleLong( indexes[ i ] );
+		// as a triangle surface's, each names one of the face's vertices
+		if ( !BSP_IndexInside( LittleLong( indexes[ i ] ), LittleLong( ds->numVerts ) ) ) {
+			ri.Error( ERR_DROP, "Bad index in face surface" );
+		}
 	}
 
 	indexes = (int*)((byte *) cv + cv->ofsIndices);
@@ -2349,9 +2383,11 @@ static void ParseFace( const dsurface_t *ds, const drawVert_t *verts, msurface_t
 /*
 ===============
 ParseMesh
+
+`lumpVerts` is the map's vertex count.
 ===============
 */
-static void ParseMesh( const dsurface_t *ds, const drawVert_t *verts, msurface_t *surf ) {
+static void ParseMesh( const dsurface_t *ds, const drawVert_t *verts, int lumpVerts, msurface_t *surf ) {
 	srfGridMesh_t	*grid;
 	int				i, j;
 	int				width, height, numPoints;
@@ -2387,6 +2423,15 @@ static void ParseMesh( const dsurface_t *ds, const drawVert_t *verts, msurface_t
 
 	width = LittleLong( ds->patchWidth );
 	height = LittleLong( ds->patchHeight );
+
+	// Its control points must lie inside the vertex lump and fit the arrays
+	// they are copied to, here and in R_SubdividePatchToGrid.
+	if ( width < 1 || height < 1 || width > MAX_GRID_SIZE || height > MAX_GRID_SIZE
+		|| width * height > MAX_PATCH_SIZE * MAX_PATCH_SIZE
+		|| !BSP_RangeInside( LittleLong( ds->firstVert ), width * height, lumpVerts ) ) {
+		ri.Error( ERR_DROP, "ParseMesh: surface %i has a bad size or vertex range",
+			(int)( surf - s_worldData.surfaces ) );
+	}
 
 	verts += LittleLong( ds->firstVert );
 	numPoints = width * height;
@@ -2428,9 +2473,12 @@ static void ParseMesh( const dsurface_t *ds, const drawVert_t *verts, msurface_t
 /*
 ===============
 ParseTriSurf
+
+`lumpVerts` and `lumpIndexes` are the map's vertex and index counts.
 ===============
 */
-static void ParseTriSurf( const dsurface_t *ds, const drawVert_t *verts, msurface_t *surf, int *indexes ) {
+static void ParseTriSurf( const dsurface_t *ds, const drawVert_t *verts, int lumpVerts, msurface_t *surf,
+	int *indexes, int lumpIndexes ) {
 	srfTriangles_t	*tri;
 	int				i, j;
 	int				numVerts, numIndexes;
@@ -2460,6 +2508,14 @@ static void ParseTriSurf( const dsurface_t *ds, const drawVert_t *verts, msurfac
 
 	numVerts = LittleLong( ds->numVerts );
 	numIndexes = LittleLong( ds->numIndexes );
+
+	// its vertices and indexes must lie inside their lumps before they size
+	// the surface and are read
+	if ( !BSP_RangeInside( LittleLong( ds->firstVert ), numVerts, lumpVerts )
+		|| !BSP_RangeInside( LittleLong( ds->firstIndex ), numIndexes, lumpIndexes ) ) {
+		ri.Error( ERR_DROP, "ParseTriSurf: surface %i has a bad vertex or index range",
+			(int)( surf - s_worldData.surfaces ) );
+	}
 
 	tri = ri.Hunk_Alloc( sizeof( *tri ) + numVerts * sizeof( tri->verts[0] ) 
 		+ numIndexes * sizeof( tri->indexes[0] ), h_low );
@@ -3265,6 +3321,7 @@ static void R_LoadSurfaces( const lump_t *surfs, const lump_t *verts, const lump
 	int			count;
 	int			numFaces, numMeshes, numTriSurfs, numFlares, numFoliage;
 	int			i;
+	int			lumpVerts, lumpIndexes;
 
 	numFaces = 0;
 	numMeshes = 0;
@@ -3285,6 +3342,9 @@ static void R_LoadSurfaces( const lump_t *surfs, const lump_t *verts, const lump
 	if ( indexLump->filelen % sizeof(*indexes))
 		ri.Error( ERR_DROP, "%s(): funny lump size in %s", __func__, s_worldData.name );
 
+	lumpVerts = verts->filelen / (int)sizeof( *dv );
+	lumpIndexes = indexLump->filelen / (int)sizeof( *indexes );
+
 	out = ri.Hunk_Alloc( count * sizeof(*out), h_low );
 
 	s_worldData.surfaces = out;
@@ -3293,15 +3353,15 @@ static void R_LoadSurfaces( const lump_t *surfs, const lump_t *verts, const lump
 	for ( i = 0 ; i < count ; i++, in++, out++ ) {
 		switch ( LittleLong( in->surfaceType ) ) {
 		case MST_PATCH:
-			ParseMesh( in, dv, out );
+			ParseMesh( in, dv, lumpVerts, out );
 			numMeshes++;
 			break;
 		case MST_TRIANGLE_SOUP:
-			ParseTriSurf( in, dv, out, indexes );
+			ParseTriSurf( in, dv, lumpVerts, out, indexes, lumpIndexes );
 			numTriSurfs++;
 			break;
 		case MST_PLANAR:
-			ParseFace( in, dv, out, indexes );
+			ParseFace( in, dv, lumpVerts, out, indexes, lumpIndexes );
 			numFaces++;
 			break;
 		case MST_FLARE:
@@ -3360,6 +3420,10 @@ static void R_LoadSubmodels( const lump_t *l ) {
 
 	for ( i=0 ; i<count ; i++, in++, out++ ) {
 		model_t *model;
+
+		if ( !BSP_RangeInside( LittleLong( in->firstSurface ), LittleLong( in->numSurfaces ), s_worldData.numsurfaces ) ) {
+			ri.Error( ERR_DROP, "R_LoadSubmodels: model %i has a bad surface range", i );
+		}
 
 		model = R_AllocModel();
 
@@ -3529,6 +3593,9 @@ static void R_LoadNodesAndLeafs( const lump_t *nodeLump, const lump_t *leafLump 
 		}
 	
 		p = LittleLong(in->planeNum);
+		if ( !BSP_IndexInside( p, s_worldData.numplanes ) ) {
+			ri.Error( ERR_DROP, "%s(): node %i has a bad plane in %s", __func__, i, s_worldData.name );
+		}
 		out->plane = s_worldData.planes + p;
 
 		out->contents = CONTENTS_NODE;	// differentiate from leafs
@@ -3536,6 +3603,9 @@ static void R_LoadNodesAndLeafs( const lump_t *nodeLump, const lump_t *leafLump 
 		for (j=0 ; j<2 ; j++)
 		{
 			p = LittleLong (in->children[j]);
+			if ( !BSP_ChildInside( p, numNodes, numLeafs ) ) {
+				ri.Error( ERR_DROP, "%s(): node %i has a bad child in %s", __func__, i, s_worldData.name );
+			}
 			if (p >= 0)
 				out->children[j] = s_worldData.nodes + p;
 			else
@@ -3555,6 +3625,15 @@ static void R_LoadNodesAndLeafs( const lump_t *nodeLump, const lump_t *leafLump 
 
 		out->cluster = LittleLong(inLeaf->cluster);
 		out->area = LittleLong(inLeaf->area);
+
+		// the area picks a bit of the scene's area mask, and the surfaces are
+		// a range of the leaf surfaces
+		if ( !BSP_LeafAreaValid( out->area ) || !BSP_LeafClusterValid( out->cluster )
+			|| !BSP_RangeInside( LittleLong( inLeaf->firstLeafSurface ), LittleLong( inLeaf->numLeafSurfaces ),
+				s_worldData.nummarksurfaces ) ) {
+			ri.Error( ERR_DROP, "%s(): leaf %i has a bad area, cluster or surface range in %s",
+				__func__, i, s_worldData.name );
+		}
 
 		if ( out->cluster >= s_worldData.numClusters ) {
 			s_worldData.numClusters = out->cluster + 1;
@@ -3643,6 +3722,9 @@ static void R_LoadMarksurfaces( const lump_t *l )
 	for ( i=0 ; i<count ; i++)
 	{
 		j = LittleLong(in[i]);
+		if ( !BSP_IndexInside( j, s_worldData.numsurfaces ) ) {
+			ri.Error( ERR_DROP, "%s(): leaf surface %i names a bad surface in %s", __func__, i, s_worldData.name );
+		}
 		out[i] = s_worldData.surfaces + j;
 	}
 }
@@ -3763,8 +3845,14 @@ static void R_LoadFogs( const lump_t *l, const lump_t *brushesLump, const lump_t
 
 			firstSide = LittleLong( brush->firstSide );
 
-			if ( (unsigned)firstSide > sidesCount - 6 ) {
+			// the six axial sides, and the planes that give the bounds
+			if ( !BSP_RangeInside( firstSide, 6, sidesCount ) ) {
 				ri.Error( ERR_DROP, "fog brush sideNumber out of range" );
+			}
+			for ( sideNum = firstSide; sideNum < firstSide + 6; sideNum++ ) {
+				if ( !BSP_IndexInside( LittleLong( sides[ sideNum ].planeNum ), s_worldData.numplanes ) ) {
+					ri.Error( ERR_DROP, "fog brush side planeNum out of range" );
+				}
 			}
 
 			// brushes are always sorted with the axial sides first
@@ -3848,6 +3936,9 @@ static void R_LoadFogs( const lump_t *l, const lump_t *brushesLump, const lump_t
 			int sideOffset = firstSide + sideNum;
 			if ( (unsigned)sideOffset >= sidesCount ) {
 				ri.Printf( PRINT_WARNING, "bad fog side offset %i\n", sideOffset );
+				out->hasSurface = qfalse;
+			} else if ( !BSP_IndexInside( LittleLong( sides[ sideOffset ].planeNum ), s_worldData.numplanes ) ) {
+				ri.Printf( PRINT_WARNING, "bad fog side plane %i\n", LittleLong( sides[ sideOffset ].planeNum ) );
 				out->hasSurface = qfalse;
 			} else {
 				out->hasSurface = qtrue;
