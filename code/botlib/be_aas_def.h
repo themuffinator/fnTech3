@@ -304,6 +304,9 @@ struct aas_s
 	aas_reversedreachability_t *reversedreachability;
 	//travel times within the areas
 	unsigned short ***areatraveltimes;
+	//travel times within the goal area an area cache starts from: zero for
+	//every link into it, as many as the most links into any one area
+	unsigned short *startareatraveltimes;
 	//array of size numclusters with cluster cache
 	aas_routingcache_t ***clusterareacache;
 	aas_routingcache_t **portalcache;

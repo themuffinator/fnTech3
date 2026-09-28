@@ -429,7 +429,7 @@ static void AAS_InitAreaContentsTravelFlags(void)
 //===========================================================================
 static void AAS_CreateReversedReachability(void)
 {
-	int i, n;
+	int i, n, maxlinks;
 	aas_reversedlink_t *revlink;
 	aas_reachability_t *reach;
 	aas_areasettings_t *settings;
@@ -472,6 +472,19 @@ static void AAS_CreateReversedReachability(void)
 			aasworld.reversedreachability[reach->areanum].numlinks++;
 		} //end for
 	} //end for
+	//an area cache starts in its goal area, where no link into it costs any
+	//travel time: one zero for each link into the area. Only the first 128
+	//reachabilities of each area are reversed, but together they can enter
+	//one area more than 128 times
+	if (aasworld.startareatraveltimes) FreeMemory(aasworld.startareatraveltimes);
+	aasworld.startareatraveltimes = nullptr;
+	maxlinks = 1;
+	for (i = 0; i < aasworld.numareas; i++)
+	{
+		if (aasworld.reversedreachability[i].numlinks > maxlinks)
+			maxlinks = aasworld.reversedreachability[i].numlinks;
+	} //end for
+	aasworld.startareatraveltimes = botlib::ClearedAlloc<unsigned short>(maxlinks);
 #ifdef DEBUG
 	botimport.Print(PRT_MESSAGE, "reversed reachability %d msec\n", Sys_MilliSeconds() - starttime);
 #endif
@@ -1348,6 +1361,9 @@ void AAS_FreeRoutingCaches(void)
 	// free cached travel times within areas
 	if (aasworld.areatraveltimes) FreeMemory(aasworld.areatraveltimes);
 	aasworld.areatraveltimes = nullptr;
+	// free the travel times within a goal area
+	if (aasworld.startareatraveltimes) FreeMemory(aasworld.startareatraveltimes);
+	aasworld.startareatraveltimes = nullptr;
 	// free cached maximum travel time through cluster portals
 	if (aasworld.portalmaxtraveltimes) FreeMemory(aasworld.portalmaxtraveltimes);
 	aasworld.portalmaxtraveltimes = nullptr;
@@ -1382,7 +1398,6 @@ static void AAS_UpdateAreaRoutingCache(aas_routingcache_t *areacache)
 	int i, nextareanum, cluster, badtravelflags, clusterareanum, linknum;
 	int numreachabilityareas;
 	unsigned short int t;
-	unsigned short int startareatraveltimes[128] = {}; //NOTE: not more than 128 reachabilities per area allowed
 	aas_routingupdate_t *updateliststart, *updatelistend, *curupdate, *nextupdate;
 	aas_reachability_t *reach;
 	const aas_reversedreachability_t *revreach;
@@ -1410,7 +1425,10 @@ static void AAS_UpdateAreaRoutingCache(aas_routingcache_t *areacache)
 	curupdate = &aasworld.areaupdate[clusterareanum];
 	curupdate->areanum = areacache->areanum;
 	//VectorCopy(areacache->origin, curupdate->start);
-	curupdate->areatraveltimes = rtcw ? aasworld.areatraveltimes[areacache->areanum][0] : startareatraveltimes;
+	//RTCW starts from the goal area's own first row of travel times; Quake
+	//III from zeros, which quake3.exe 1.32 kept in a stack array of 128 and
+	//read past for an area entered by more links
+	curupdate->areatraveltimes = rtcw ? aasworld.areatraveltimes[areacache->areanum][0] : aasworld.startareatraveltimes;
 	curupdate->tmptraveltime = areacache->starttraveltime;
 	//
 	areacache->traveltimes[clusterareanum] = areacache->starttraveltime;

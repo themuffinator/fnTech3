@@ -1,0 +1,761 @@
+{
+  "date": "2026-09-28",
+  "scope": "Quake III routing started each area cache from a stack array of 128 zero travel times read by the index of each link into the goal area, which can be entered by more links; the row is now as long as the most links into any area. Retail disassembly of nine engines, an offline measurement of every installed Quake III, Quake Live and Elite Force navigation file, fixtures that fail before the change, and bot map loads before and after on the stable win32-dev binaries.",
+  "change": {
+    "files": [
+      "code/botlib/be_aas_route.cpp",
+      "code/botlib/be_aas_def.h"
+    ],
+    "tests": [
+      "tests/aas_goal_links_tests.py"
+    ],
+    "scripts": [
+      "scripts/measure_aas_goal_links.py"
+    ],
+    "rule": "AAS_CreateReversedReachability allocates aasworld.startareatraveltimes, zeroed, as long as the most reversed links into any area (at least 1); AAS_FreeRoutingCaches frees it; AAS_UpdateAreaRoutingCache starts a goal area there for every profile but RTCW, whose branch still starts from aasworld.areatraveltimes[goal][0] and never allocates the row.",
+    "profilesOnThisPath": [
+      "q3",
+      "ql",
+      "wolfet",
+      "stvef-sp",
+      "stvef-mp",
+      "jka-mp",
+      "jk2-mp"
+    ],
+    "identicalAtOrUnder128": "entries 0 to links-1 of the goal row are read, and are zero both in the old array and in the new row"
+  },
+  "retail": {
+    "method": "capstone disassembly of each installed executable; AAS_UpdateAreaRoutingCache found by the counter AAS_RoutingInfo prints (\"%d area cache updates\") and the function that increments it. Reference observation only; nothing from the binaries is reproduced.",
+    "engines": [
+      {
+        "engine": "quake3.exe 1.32",
+        "titles": [
+          "Quake III Arena",
+          "Team Arena"
+        ],
+        "path": "Quake 3 Arena/quake3.exe",
+        "sha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+        "bytes": 909312,
+        "function": "0x0049EC80",
+        "frame": "sub esp,0x120; ebx, ebp, esi, edi pushed",
+        "startRow": "128 zeros on the stack",
+        "zeroing": "Com_Memset(esp+0x30, 0, 0x100): push 0x100 at 0x0049ED11, call 0x00420650 at 0x0049ED1C",
+        "rowStore": "curupdate->areatraveltimes = esp+0x30 (mov [esi+0x18],edx at 0x0049ED36)",
+        "rowRead": "mov cx,[ecx+ebx] at 0x0049EE7A, byte offset +2 a link at 0x0049EF32, no bound; the loop ends at the last reversed link (0x0049EF41)",
+        "pastTheRow": "the array ends at the return address: entries 128 and 129 are 0xF066 and 0x0049 of 0x0049F066, after the only call (0x0049F061, in AAS_GetAreaRoutingCache); 130 and 131 the cache pointer argument; then the caller's frame",
+        "source": "string \"area %d has more than 128 reachabilities\" (0x004D6BC4) pushed at 0x0049DE06 in AAS_CreateReversedReachability; numareacacheupdates (0x00C68868) incremented at 0x0049EC86"
+      },
+      {
+        "engine": "quakelive_steam.exe",
+        "titles": [
+          "Quake Live"
+        ],
+        "path": "Quake Live/quakelive_steam.exe",
+        "sha256": "c926fe9f6c851e00b3b9332e88903ad01f28fdd60454873891c0158f5ded1299",
+        "bytes": 2107904,
+        "function": "0x00493BA0",
+        "frame": "push ebp; mov ebp,esp; sub esp,0x130; /GS cookie at ebp-4",
+        "startRow": "128 zeros on the stack",
+        "zeroing": "memset(ebp-0x104, 0, 0x100): push 0x100 at 0x00493C3F, call 0x004C95E0 at 0x00493C4D",
+        "rowStore": "curupdate->areatraveltimes = ebp-0x104 (mov [ecx+0x18],eax at 0x00493C6C)",
+        "rowRead": "mov si,[esi+ebx] at 0x00493E36, byte offset +2 a link at 0x00493EF8, no bound",
+        "pastTheRow": "entries 128 and 129 are the /GS cookie (__security_cookie xor ebp, drawn at each process start), 130 and 131 the saved ebp, 132 and 133 the return address, 134 and 135 the cache pointer, then the caller's frame"
+      },
+      {
+        "engine": "jamp.exe 1.01",
+        "titles": [
+          "Jedi Academy multiplayer"
+        ],
+        "path": "Jedi Academy/jamp.exe",
+        "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+        "bytes": 1527808,
+        "function": "0x0050CF50",
+        "frame": "sub esp,0x124",
+        "startRow": "128 zeros on the stack",
+        "zeroing": "push 0x100 at 0x0050CFEA, call 0x00439160 at 0x0050CFF5",
+        "rowStore": "mov [esi+0x18],edx at 0x0050D00F (edx = esp+0x40)",
+        "rowRead": "mov cx,[ecx+ebp] at 0x0050D164, +2 a link at 0x0050D217, no bound",
+        "pastTheRow": "not traced"
+      },
+      {
+        "engine": "jk2mp.exe 1.02a",
+        "titles": [
+          "Jedi Outcast multiplayer"
+        ],
+        "path": "Jedi Outcast/jk2mp.exe",
+        "sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a",
+        "bytes": 1126400,
+        "function": "0x004C55D0",
+        "frame": "sub esp,0x124",
+        "startRow": "128 zeros on the stack",
+        "zeroing": "push 0x100 at 0x004C566D, call 0x0042A5F0 at 0x004C5678",
+        "rowStore": "mov [esi+0x18],edx at 0x004C5692 (edx = esp+0x40)",
+        "rowRead": "mov cx,[ecx+ebp] at 0x004C57E2, +2 a link at 0x004C5891, no bound",
+        "pastTheRow": "not traced"
+      },
+      {
+        "engine": "stvoyHM.exe",
+        "titles": [
+          "Elite Force Holomatch"
+        ],
+        "path": "Star Trek Voyager Elite Force/stvoyHM.exe",
+        "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+        "bytes": 925696,
+        "function": "0x004992D0",
+        "frame": "sub esp,0x20: no array",
+        "startRow": "the goal area's own first row of travel times",
+        "rowStore": "areatraveltimes[areacache->areanum][0] (0x0049936A to 0x00499378)",
+        "rowRead": "mov cx,[ecx+edx] at 0x00499497, +2 a link at 0x0049953D",
+        "pastTheRow": "none: the row holds a time for each link into the area",
+        "source": "no \"more than 128 reachabilities\" string; numareacacheupdates (0x00AD57EC) from AAS_RoutingInfo (0x00498820), incremented at 0x004992E1"
+      },
+      {
+        "engine": "stvoy.exe",
+        "titles": [
+          "Elite Force single player"
+        ],
+        "path": "Star Trek Voyager Elite Force/stvoy.exe",
+        "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+        "bytes": 675840,
+        "function": null,
+        "startRow": "no bot library: no \"AAS_\", \"botlib\", \"reachabilit\" or \".aas\" string in the image",
+        "pastTheRow": "none"
+      },
+      {
+        "engine": "et.exe 2.60b",
+        "titles": [
+          "Enemy Territory"
+        ],
+        "path": "Wolfenstein Enemy Territory/et.exe",
+        "sha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+        "bytes": 1667072,
+        "function": "0x00481290",
+        "frame": "push ebp; mov ebp,esp; sub esp,0x28: no array",
+        "startRow": "the goal area's own first row of travel times",
+        "rowStore": "aasworld->areatraveltimes[areanum][0] (0x00481323 to 0x00481339)",
+        "pastTheRow": "none"
+      },
+      {
+        "engine": "etded.exe 2.60b",
+        "titles": [
+          "Enemy Territory"
+        ],
+        "path": "Wolfenstein Enemy Territory/etded.exe",
+        "sha256": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+        "bytes": 894464,
+        "function": "0x0044BBF0",
+        "frame": "sub esp,0x28: no array",
+        "startRow": "the goal area's own first row of travel times",
+        "rowStore": "0x0044BC83 to 0x0044BC99",
+        "pastTheRow": "none"
+      },
+      {
+        "engine": "WolfSP.exe",
+        "titles": [
+          "RTCW single player"
+        ],
+        "path": "Return to Castle Wolfenstein/WolfSP.exe",
+        "sha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+        "bytes": 1286144,
+        "function": "0x004A22B0",
+        "frame": "sub esp,0x20: no array",
+        "startRow": "the goal area's own first row of travel times",
+        "rowStore": "0x004A234B to 0x004A235E",
+        "pastTheRow": "none"
+      },
+      {
+        "engine": "WolfMP.exe",
+        "titles": [
+          "RTCW multiplayer"
+        ],
+        "path": "Return to Castle Wolfenstein/WolfMP.exe",
+        "sha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+        "bytes": 1081344,
+        "function": "0x004B5340",
+        "frame": "sub esp,0x20: no array",
+        "startRow": "the goal area's own first row of travel times",
+        "rowStore": "0x004B53DB to 0x004B53EE",
+        "pastTheRow": "none"
+      }
+    ],
+    "inference": "quake3.exe 1.32, quakelive_steam.exe, jamp.exe and jk2mp.exe route through links past the 128th with whatever their stacks hold there; stvoyHM.exe, et.exe, etded.exe, WolfSP.exe and WolfMP.exe cannot, since their goal row has an entry for each link, but they add travel times within the goal area that Quake III 1.32 made zero."
+  },
+  "installedFiles": {
+    "script": {
+      "path": "scripts/measure_aas_goal_links.py",
+      "sha256": "e824b4e09bd8fd8b4029eae5ead2da9f9e421eefbd7b96bf4ecb909d6106e5ce",
+      "sha256Basis": "LF text, as committed"
+    },
+    "command": "python scripts/measure_aas_goal_links.py --installation \"q3=C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\" --installation \"ql=E:\\SteamLibrary\\steamapps\\common\\Quake Live\" --installation \"stvef=E:\\Games\\Star Trek Voyager Elite Force\" --output .tmp/aas-goal-links/goal-links.json",
+    "filesScanned": 274,
+    "sourceCommit": "484d02dc0eae2a49a8343c2a3694306df97c5e50",
+    "limit": 128,
+    "pastCost": 16384,
+    "method": "each area routed to each goal entered by more than 128 links with TFL_DEFAULT and no origin, once with the goal row all zeros and once with its entries past the 128th costing 16384; a route whose travel time or first link differs ends through one of those links",
+    "files": {
+      "q3:missionpack/pak0.pk3:maps/mpq3tourney6.aas": {
+        "profile": "q3",
+        "version": 5,
+        "sha256": "2f9b74e7af07faaa9d3bf67d0d579eec1c23139e97258957f9e3efdd1ffcf929",
+        "areas": 3251,
+        "mostLinks": 134,
+        "areasOverLimit": 1,
+        "goals": [
+          {
+            "area": 1887,
+            "links": 134,
+            "linksPastLimit": 6,
+            "cluster": 1,
+            "reachabilities": 1,
+            "contents": 128,
+            "routedAreas": 781,
+            "travelTimeChanged": 6,
+            "firstLinkChanged": 0,
+            "routesLost": 0,
+            "changedInGoalCluster": 6
+          }
+        ]
+      },
+      "ql:baseq3/pak00.pk3:maps/blackcathedral.aas": {
+        "profile": "ql",
+        "version": 5,
+        "sha256": "b821954a3e34e507aa9d58f5850de39e9c2dc74e04f8ec87a44e964842989493",
+        "areas": 6008,
+        "mostLinks": 198,
+        "areasOverLimit": 3,
+        "goals": [
+          {
+            "area": 802,
+            "links": 190,
+            "linksPastLimit": 62,
+            "cluster": 4,
+            "reachabilities": 1,
+            "contents": 0,
+            "routedAreas": 1774,
+            "travelTimeChanged": 844,
+            "firstLinkChanged": 73,
+            "routesLost": 0,
+            "changedInGoalCluster": 126
+          },
+          {
+            "area": 3004,
+            "links": 144,
+            "linksPastLimit": 16,
+            "cluster": 8,
+            "reachabilities": 7,
+            "contents": 0,
+            "routedAreas": 1774,
+            "travelTimeChanged": 1163,
+            "firstLinkChanged": 88,
+            "routesLost": 0,
+            "changedInGoalCluster": 216
+          },
+          {
+            "area": 4300,
+            "links": 198,
+            "linksPastLimit": 70,
+            "cluster": 16,
+            "reachabilities": 7,
+            "contents": 0,
+            "routedAreas": 1774,
+            "travelTimeChanged": 618,
+            "firstLinkChanged": 12,
+            "routesLost": 0,
+            "changedInGoalCluster": 88
+          }
+        ]
+      },
+      "ql:baseq3/pak00.pk3:maps/reflux.aas": {
+        "profile": "ql",
+        "version": 5,
+        "sha256": "d7e048b5e05a8bf85710b93f0bb49c21ef6f9311ed565bffff61a8174b8db8c7",
+        "areas": 13371,
+        "mostLinks": 138,
+        "areasOverLimit": 2,
+        "goals": [
+          {
+            "area": 3297,
+            "links": 138,
+            "linksPastLimit": 10,
+            "cluster": 1,
+            "reachabilities": 3,
+            "contents": 0,
+            "routedAreas": 2848,
+            "travelTimeChanged": 10,
+            "firstLinkChanged": 3,
+            "routesLost": 0,
+            "changedInGoalCluster": 10
+          },
+          {
+            "area": 10172,
+            "links": 136,
+            "linksPastLimit": 8,
+            "cluster": 1,
+            "reachabilities": 3,
+            "contents": 0,
+            "routedAreas": 2848,
+            "travelTimeChanged": 2705,
+            "firstLinkChanged": 247,
+            "routesLost": 0,
+            "changedInGoalCluster": 2693
+          }
+        ]
+      },
+      "stvef:BaseEF/pak0.pk3:maps/hm_cam.aas": {
+        "profile": "stvef-hm",
+        "version": 5,
+        "sha256": "319ec31fe89d2d0ef5de3cf37d70b74836a0c95cee36ec9ee1725936071ecb82",
+        "areas": 4519,
+        "mostLinks": 355,
+        "areasOverLimit": 1,
+        "goals": [
+          {
+            "area": 3323,
+            "links": 355,
+            "linksPastLimit": 227,
+            "cluster": 1,
+            "reachabilities": 6,
+            "contents": 0,
+            "routedAreas": 1781,
+            "travelTimeChanged": 59,
+            "firstLinkChanged": 0,
+            "routesLost": 0,
+            "changedInGoalCluster": 59
+          }
+        ]
+      }
+    },
+    "note": "No goal entered by more than 128 links is a cluster portal, so no route to another goal starts from these rows; every link past the 128th comes from an area of the goal's own cluster. The other 270 files have no area entered more than 128 times."
+  },
+  "botLoads": {
+    "script": {
+      "path": "scripts/probe_retail_bot_loads.py",
+      "sha256": "9517382409b8df3db7470d2ee153f930cede24d9d02319022dfd707b74250d89",
+      "sha256Basis": "LF text of the working file at the runs, identical to the blob c8d3bbb committed"
+    },
+    "command": "python scripts/probe_retail_bot_loads.py --client meson/build/win32-dev/fntech3.exe --server meson/build/win32-dev/fntech3.ded.exe --installation \"q3=C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\" --installation \"ql=E:\\SteamLibrary\\steamapps\\common\\Quake Live\" --installation \"stvef=E:\\Games\\Star Trek Voyager Elite Force\" --only \"q3:missionpack/mpq3tourney6,ql:blackcathedral,ql:reflux,stvef-mp:hm_cam,q3:q3dm11,ql:terminus,stvef-mp:ctf_kln2\" --jobs 1 --timeout 150 --output .tmp/aas-goal-links/bots-{before,after}",
+    "before": {
+      "binaries": {
+        "fntech3.exe": "1d2e7729582da94409ae541b514d064f9b025328896248bab90e94f12a7ac5e3",
+        "fntech3.ded.exe": "308f01a710ef905d1a244f57aa7851d4428cbd2ff56206fddf12e19818f927d5",
+        "fnql_glx_x86.dll": "a066b95f2304f5a36e6a404c0f6f5ce3fb9fead420c44091923a73fe661ad57d"
+      },
+      "binariesUnchanged": true,
+      "startedUtc": "2026-09-28T06:21:41Z",
+      "endedUtc": "2026-09-28T06:23:35Z",
+      "sourceCommit": "8e8de10fd07e2f8953d4a0020c71c27e6884302d",
+      "build": "meson/build/win32-dev linked at 06:19:49 UTC by another session's meson compile of fntech3.ded, fntech3 and fnql_glx_x86 from 8e8de10 and the uncommitted work then in the tree, before this change was made (be_aas_route.cpp and be_aas_def.h matched HEAD)"
+    },
+    "after": {
+      "binaries": {
+        "fntech3.exe": "e4ff8ff75dedb7711f32346ef2be076e1e85a3a371a725a02870328b4a181ccb",
+        "fntech3.ded.exe": "0da08cdfe2aa2257070df9b83e6234288e4416593763c15e3eb7fdf2438acd1c",
+        "fnql_glx_x86.dll": "759c59bc7663a608c0f931b8c1cb5641602e471c9cfa97e6df94f8d4dc8dfee8"
+      },
+      "binariesUnchanged": true,
+      "startedUtc": "2026-09-28T06:49:58Z",
+      "endedUtc": "2026-09-28T06:51:53Z",
+      "sourceCommit": "484d02dc0eae2a49a8343c2a3694306df97c5e50",
+      "build": "meson/build/win32-dev rebuilt in place at 06:49 UTC (meson compile fntech3.ded fntech3 fnql_glx_x86) from 484d02d with this change and other sessions' uncommitted botlib work (navigation index checks in be_aas_file.cpp, be_aas_sample.cpp and rtcw_aas_loader.hpp, Quake III route cache validation in be_aas_route.cpp); the pair differs by more than this change, which the fixtures attribute alone"
+    },
+    "compare": "0 of 7 maps changed (outcome, first error, navigation files, botlib errors, routing initialised, bot listed)",
+    "maps": {
+      "q3:missionpack/mpq3tourney6": {
+        "profile": "q3",
+        "map": "mpq3tourney6",
+        "gameType": null,
+        "files": [
+          "maps/mpq3tourney6.aas"
+        ],
+        "before": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 20.89,
+          "errors": [],
+          "navigation": [
+            [
+              "maps/mpq3tourney6.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "xaero",
+          "botListed": true
+        },
+        "after": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 20.41,
+          "errors": [],
+          "navigation": [
+            [
+              "maps/mpq3tourney6.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "xaero",
+          "botListed": true
+        },
+        "recordUnchanged": true
+      },
+      "q3:q3dm11": {
+        "profile": "q3",
+        "map": "q3dm11",
+        "gameType": null,
+        "files": [
+          "maps/q3dm11.aas"
+        ],
+        "before": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 20.52,
+          "errors": [],
+          "navigation": [
+            [
+              "maps/q3dm11.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "sarge",
+          "botListed": true
+        },
+        "after": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 20.95,
+          "errors": [],
+          "navigation": [
+            [
+              "maps/q3dm11.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "sarge",
+          "botListed": true
+        },
+        "recordUnchanged": true
+      },
+      "ql:blackcathedral": {
+        "profile": "ql",
+        "map": "blackcathedral",
+        "gameType": "ffa",
+        "files": [
+          "maps/blackcathedral.aas"
+        ],
+        "before": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 10.45,
+          "errors": [],
+          "navigation": [
+            [
+              "maps/blackcathedral.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "anarki",
+          "botListed": true
+        },
+        "after": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 11.06,
+          "errors": [],
+          "navigation": [
+            [
+              "maps/blackcathedral.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "anarki",
+          "botListed": true
+        },
+        "recordUnchanged": true
+      },
+      "ql:reflux": {
+        "profile": "ql",
+        "map": "reflux",
+        "gameType": "ffa",
+        "files": [
+          "maps/reflux.aas"
+        ],
+        "before": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 10.66,
+          "errors": [],
+          "navigation": [
+            [
+              "maps/reflux.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "anarki",
+          "botListed": true
+        },
+        "after": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 10.55,
+          "errors": [],
+          "navigation": [
+            [
+              "maps/reflux.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "anarki",
+          "botListed": true
+        },
+        "recordUnchanged": true
+      },
+      "ql:terminus": {
+        "profile": "ql",
+        "map": "terminus",
+        "gameType": "ffa",
+        "files": [
+          "maps/terminus.aas"
+        ],
+        "before": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 10.67,
+          "errors": [],
+          "navigation": [
+            [
+              "maps/terminus.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "anarki",
+          "botListed": true
+        },
+        "after": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 10.86,
+          "errors": [],
+          "navigation": [
+            [
+              "maps/terminus.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "anarki",
+          "botListed": true
+        },
+        "recordUnchanged": true
+      },
+      "stvef-mp:ctf_kln2": {
+        "profile": "stvef-mp",
+        "map": "ctf_kln2",
+        "gameType": null,
+        "files": [
+          "maps/ctf_kln2.aas"
+        ],
+        "before": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 20.5,
+          "errors": [],
+          "navigation": [
+            [
+              "maps/ctf_kln2.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true
+        },
+        "after": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 20.39,
+          "errors": [],
+          "navigation": [
+            [
+              "maps/ctf_kln2.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true
+        },
+        "recordUnchanged": true
+      },
+      "stvef-mp:hm_cam": {
+        "profile": "stvef-mp",
+        "map": "hm_cam",
+        "gameType": null,
+        "files": [
+          "maps/hm_cam.aas"
+        ],
+        "before": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 20.5,
+          "errors": [],
+          "navigation": [
+            [
+              "maps/hm_cam.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true
+        },
+        "after": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 20.3,
+          "errors": [],
+          "navigation": [
+            [
+              "maps/hm_cam.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true
+        },
+        "recordUnchanged": true
+      }
+    }
+  },
+  "tests": {
+    "file": "tests/aas_goal_links_tests.py",
+    "cases": [
+      {
+        "name": "test_a_goal_entered_by_more_than_128_links_routes_as_one_entered_by_fewer",
+        "checks": "for each profile routing as Quake III does (7), worlds with the goal or a portal entered by more links (fillers making 128 and 129 links, 200 and 1,000 fillers), 3 or 6 core areas, seeds 1 to 4: every named area's route to the goal and the portal, with and without an origin, under three sets of travel flags, equals the same world without fillers; each filler's one link costs the cache's start plus its own time",
+        "routesCompared": 9240
+      },
+      {
+        "name": "test_links_past_the_128th_read_no_stack_under_a_guard",
+        "checks": "the same comparison with 300, 1,000 and 4,000 fillers, every query made below a noinline frame holding 8,192 words of 0x5A5A, so that a row read past its end reads that word"
+      }
+    ],
+    "results": [
+      {
+        "tree": "HEAD 484d02d with only the new test (the change absent)",
+        "platform": "Windows, clang 20.1.7 i686-pc-windows-msvc",
+        "outcome": "both fail",
+        "messages": [
+          "seed 1 core 3 portal 0 fillers 126: routes differ",
+          "seed 7 core 6 portal 0 fillers 300: routes differ"
+        ],
+        "diagnosis": [
+          "with 125 fillers (128 links) no route differs; with 126 (129 links) two named routes cost 1 more",
+          "unguarded, 1,000 fillers: 557 of 1,000 filler routes and 12 of 24 named routes wrong, by stack words such as 1,200, 1,184 and 1,168",
+          "guarded: every wrong route cost 23,130 (0x5A5A) more; 300 fillers: 14 of 42 named routes and 149 of 300 fillers wrong; 4,000 fillers: 3,849 of 4,000 fillers wrong; the other 23 filler links past the 128th read words that were zero, in the frames between the row and the guard",
+          "portal worlds, 4,000 fillers under the guard: 76 of 168 named routes and 3,848 fillers wrong"
+        ]
+      },
+      {
+        "tree": "HEAD 484d02d with the change (export built from HEAD plus only these hunks)",
+        "platform": "Windows, clang 20.1.7 i686-pc-windows-msvc",
+        "outcome": "both pass; no route differs in any diagnostic world"
+      },
+      {
+        "tree": "the shared working tree with the change",
+        "platform": "Windows, clang 20.1.7 i686-pc-windows-msvc",
+        "outcome": "both pass"
+      },
+      {
+        "tree": "HEAD 484d02d with the change",
+        "platform": "WSL Ubuntu 24.04, g++ 13.3.0 and clang++ 18.1.3, -m32 -O2 -ffast-math",
+        "outcome": "both pass under each compiler"
+      }
+    ],
+    "fixtures": [
+      {
+        "tree": "HEAD 484d02d with the change",
+        "files": 46,
+        "outcome": "146 passed, 12 subtests passed",
+        "selection": "every tests/*.py naming aasworld, AAS_FreeRoutingCaches or botlib that exists at HEAD"
+      },
+      {
+        "tree": "the shared working tree with the change and other sessions' uncommitted botlib work",
+        "files": 48,
+        "outcome": "153 passed, 12 subtests passed"
+      },
+      {
+        "tree": "a full export of c8d3bbb (the navigation checks, landed during this work) with the change",
+        "files": 49,
+        "selection": "the same selection as it exists at c8d3bbb (47 files, tests/aas_index_checks_tests.py among them), plus tests/release_packaging_tests.py and tests/generate_docs_tests.py",
+        "outcome": "204 passed, 1 skipped (symlink creation needs a privilege), 34 subtests passed in 530.59s"
+      }
+    ],
+    "slicingFixtures": {
+      "AAS_CreateReversedReachability": [
+        "tests/rtcw_route_query_tests.py",
+        "tests/rtcw_goal_route_tests.py"
+      ],
+      "AAS_CalculateAreaTravelTimes": [
+        "tests/rtcw_route_query_tests.py",
+        "tests/rtcw_goal_route_tests.py"
+      ],
+      "AAS_UpdateAreaRoutingCache": [
+        "tests/rtcw_route_query_tests.py",
+        "tests/rtcw_goal_route_tests.py"
+      ],
+      "AAS_FreeRoutingCaches": [
+        "tests/rtcw_navigation_tests.py and every fixture built on its navigation_source"
+      ],
+      "AAS_InitRouting": [
+        "tests/rtcw_routing_tests.py (a stub for the Quake III path)"
+      ],
+      "notRerun": [
+        "scripts/probe_rtcw_route_queries.py",
+        "scripts/probe_rtcw_routing.py: need the original RTCW and iortcw sources"
+      ]
+    },
+    "strictCompile": "code/botlib/be_aas_route.cpp, be_aas_main.cpp and be_aas_file.cpp compiled with win32-dev's compile_commands.json commands (MSVC 19.44.35222 x86, /W4 /WX) into a scratch folder: clean",
+    "suite": {
+      "tree": "a full git archive of 484d02d with the change, subprojects copied in, committed inside the export so the packaging tests resolve HEAD",
+      "command": "python -m pytest tests -q -p no:cacheprovider (Visual Studio x86 developer shell)",
+      "outcome": "2330 passed, 129 skipped, 57687 subtests passed in 1397.48s",
+      "exitCode": 0,
+      "started": "2026-09-28T08:02:21+01:00",
+      "ended": "2026-09-28T08:25:40+01:00",
+      "afterwards": "the test file's docstring and this record's text changed after the suite started; the run on c8d3bbb above covers the committed test file, and tests/release_packaging_tests.py and tests/generate_docs_tests.py were rerun on the committed record"
+    }
+  },
+  "environment": {
+    "host": "Windows 11 Home 10.0.26200 x64",
+    "build": "meson/build/win32-dev: MSVC 19.44.35222 x86, debugoptimized, strict warnings, renderers glx,vk,rtx, every development option on",
+    "fixtures": "clang 20.1.7, Python 3.11.3"
+  },
+  "note": [
+    "Retail travel times through links past the 128th are not reproduced: they came from stack words that differ by build, call and, in Quake Live, by process.",
+    "No bot was made to route to one of these areas at runtime; the loads show only that navigation, routing and the bot come up as before.",
+    "Elite Force Holomatch and Enemy Territory still start from zeros here, as Quake III 1.32 does, not from the goal area's first row as stvoyHM.exe, et.exe and etded.exe do; that difference applies to every goal and is left open. Elite Force's single-player engine has no bot library to compare."
+  ]
+}
