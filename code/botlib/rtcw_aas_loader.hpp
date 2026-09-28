@@ -128,6 +128,14 @@ static int AAS_LoadRTCWAASFile(const char *filename) {
 	std::memcpy(&aasworld.bspchecksum, &checksum, sizeof(checksum));
 	FreeMemory(aasworld.rtcwLoadBytes);
 	aasworld.rtcwLoadBytes = nullptr;
+	// The reader checked each record; these are the numbers the shared
+	// botlib follows from one record to another, dummies included.
+	char fault[128];
+	if (!AAS_IndexesInside(false, fault, sizeof(fault))) {
+		AAS_DumpAASData();
+		botimport.Print(PRT_ERROR, "Invalid RTCW AAS %s: %s\n", filename, fault);
+		return BLERR_CANNOTREADAASLUMP;
+	}
 	aasworld.loaded = qtrue;
 	return BLERR_NOERROR;
 }

@@ -351,6 +351,25 @@ static void AAS_DData(byte *data, int size)
 	} //end for
 } //end of the function AAS_DData
 //===========================================================================
+// checks every number the loaded tables give into one another, before
+// anything follows one (aas_index_checks.hpp)
+//
+// Parameter:			quakeRouting: add the limits of Quake III's routing
+//							fault: what is wrong, in words, when something is
+// Returns:				true when every number is inside its table
+// Changes Globals:		-
+//===========================================================================
+#include "aas_index_checks.hpp"
+
+static bool AAS_IndexesInside(bool quakeRouting, char *fault, size_t faultSize)
+{
+	void *scratch = botlib::Alloc<byte>(AAS_IndexScratchSize(aasworld));
+	const aasIndexFault_t found = AAS_IndexFault(aasworld, quakeRouting, scratch, fault, faultSize);
+
+	FreeMemory(scratch);
+	return found == AAS_INDEX_VALID;
+} //end of the function AAS_IndexesInside
+//===========================================================================
 // load an aas file
 //
 // Parameter:			-
@@ -363,14 +382,15 @@ int AAS_LoadAASFile(const char *filename)
 {
 	if (Com_GameIsRTCW()) return AAS_LoadRTCWAASFile(filename);
 	fileHandle_t fp;
-	aas_header_t header;
-	int offset, length, lastoffset;
+	aas_header_t header = {};
+	int offset, length, lastoffset, filelength, i;
+	char fault[128];
 
 	botimport.Print(PRT_MESSAGE, "trying to load %s\n", filename);
 	//dump current loaded aas file
 	AAS_DumpAASData();
 	//open the file
-	botimport.FS_FOpenFile( filename, &fp, FS_READ );
+	filelength = botimport.FS_FOpenFile( filename, &fp, FS_READ );
 	if (!fp)
 	{
 		AAS_Error("can't open %s\n", filename);
@@ -379,9 +399,9 @@ int AAS_LoadAASFile(const char *filename)
 	//read the header
 	botimport.FS_Read(&header, sizeof(aas_header_t), fp );
 	lastoffset = sizeof(aas_header_t);
-	//check header identification
+	//check header identification: a file shorter than its header is none
 	header.ident = LittleLong(header.ident);
-	if (header.ident != AASID)
+	if (header.ident != AASID || filelength < static_cast<int>(sizeof(aas_header_t)))
 	{
 		AAS_Error("%s is not an AAS file\n", filename);
 		botimport.FS_FCloseFile(fp);
@@ -409,6 +429,16 @@ int AAS_LoadAASFile(const char *filename)
 		botimport.FS_FCloseFile(fp);
 		return BLERR_WRONGAASFILEVERSION;
 	} //end if
+	//every lump must lie inside the file before any is allocated
+	for (i = 0; i < AAS_LUMPS; i++)
+	{
+		if (!AAS_RangeInside(LittleLong(header.lumps[i].fileofs), LittleLong(header.lumps[i].filelen), filelength))
+		{
+			AAS_Error("%s: lump %d is outside the file\n", filename, i);
+			botimport.FS_FCloseFile(fp);
+			return BLERR_CANNOTREADAASLUMP;
+		} //end if
+	} //end for
 	//load the lumps:
 	//bounding boxes
 	offset = LittleLong(header.lumps[AASLUMP_BBOXES].fileofs);
@@ -496,10 +526,17 @@ int AAS_LoadAASFile(const char *filename)
 	if (aasworld.numclusters && !aasworld.clusters) return BLERR_CANNOTREADAASLUMP;
 	//swap everything
 	AAS_SwapAASData();
-	//aas file is loaded
-	aasworld.loaded = qtrue;
 	//close the file
 	botimport.FS_FCloseFile(fp);
+	//refuse the file if its tables name records they do not hold
+	if (!AAS_IndexesInside(true, fault, sizeof(fault)))
+	{
+		AAS_Error("%s: %s\n", filename, fault);
+		AAS_DumpAASData();
+		return BLERR_CANNOTREADAASLUMP;
+	} //end if
+	//aas file is loaded
+	aasworld.loaded = qtrue;
 	//
 #ifdef AASFILEDEBUG
 	AAS_FileInfo();

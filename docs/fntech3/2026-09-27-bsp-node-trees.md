@@ -268,7 +268,8 @@ skipped, besides the wrapper that runs the Python suite).
   map is drawn correctly.
 - The walk covers the BSP's node tree. Bots' navigation files (`.aas`) carry
   trees of their own, loaded by the botlib from the server's own files; they
-  are not checked here.
+  are not checked here, but in the
+  [navigation record](2026-09-28-aas-index-checks.md).
 - Windows only for the runs; the header was also compiled with i686 GCC 13
   and Clang, as C and C++, under `-Wall -Wextra -Werror`.
 

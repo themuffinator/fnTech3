@@ -69,8 +69,9 @@ static int seekFile(fileHandle_t handle,long offset,fsOrigin_t origin){
 '''
     text = (ROOT / 'code/botlib/be_aas_file.cpp').read_text()
     source += text[text.index('static void AAS_SwapAASData('):text.index('static int AAS_WriteAASLump_offset;')]
-    # The production include is relative to be_aas_file.cpp.
-    source = source.replace('#include "rtcw_aas_loader.hpp"', '#include "code/botlib/rtcw_aas_loader.hpp"')
+    # The production includes are relative to be_aas_file.cpp.
+    for header in ('aas_index_checks.hpp', 'rtcw_aas_loader.hpp'):
+        source = source.replace(f'#include "{header}"', f'#include "code/botlib/{header}"')
     source += function((ROOT / 'code/botlib/be_aas_entity.cpp').read_text(), 'void AAS_ResetEntityLinks(')
     main = (ROOT / 'code/botlib/be_aas_main.cpp').read_text()
     for signature in ('static int AAS_LoadFiles(', 'static bool AAS_ValidRTCWMapName(',
