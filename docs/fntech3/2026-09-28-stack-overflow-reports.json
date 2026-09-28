@@ -1,0 +1,1201 @@
+{
+  "date": "2026-09-28",
+  "scope": "Windows' exception filter after a stack overflow on the main thread: the fault is noted, the frame left, and the fault reported from the frame's abort point as the ERR_DROP every other access violation gets, with the stack's guard page put back; checked by a harness test, on the stable win32-dev client and dedicated server, and on a build without the node-tree check against the damaged trees that crashed every profile in the node-tree record.",
+  "found": {
+    "record": "docs/fntech3/2026-09-27-bsp-node-trees.md",
+    "symptom": "eight crashes with 0xC0000005 at fntech3.exe _chkstk+0x27, below Com_sprintf in ExceptionFilter: the filter ran on the exhausted stack and its report faulted again"
+  },
+  "change": {
+    "files": [
+      "code/win32/win_main.cpp",
+      "code/qcommon/common.c",
+      "code/qcommon/qcommon.h"
+    ],
+    "tests": [
+      "tests/windows_stack_overflow_tests.py"
+    ],
+    "scripts": [
+      "scripts/probe_stack_overflow.py"
+    ],
+    "filter": "ExceptionFilter keeps a small frame; on EXCEPTION_STACK_OVERFLOW on the main thread it stores the address and calls Com_ErrorAfterUnwind(ReportStackOverflow); on another thread it restores the desktop and returns EXCEPTION_CONTINUE_SEARCH; every other code goes to ReportException, which is the old filter's body",
+    "unwind": "Com_ErrorAfterUnwind moves an active print redirect into a static buffer, unlinks native modules' exception registrations as Com_Error does, and longjmps to abortframe; Com_Init and Com_Frame call Com_RaiseUnwoundError first at their abort point",
+    "report": "ReportStackOverflow calls _resetstkoflw, then ReportException(EXCEPTION_STACK_OVERFLOW, address): the ERR_DROP 'Unhandled exception caught / Exception Code: STACK_OVERFLOW / Exception Address: module@offset'",
+    "reserve": "InstallExceptionFilter calls SetThreadStackGuarantee(32768) on the main thread before SetUnhandledExceptionFilter",
+    "harness": "developer-only 'crash stack' (Com_OverflowStack) beside the existing 'crash'"
+  },
+  "frames": {
+    "source": "llvm-pdbutil 20.1.7 dump -symbols, S_FRAMEPROC of each procedure, meson/build/win32-dev PDBs",
+    "client": {
+      "CM_TraceThroughTree": {
+        "frameBytes": 40,
+        "calleeSavedBytes": 8,
+        "codeBytes": 981
+      },
+      "Com_Crash_f": {
+        "frameBytes": 64,
+        "calleeSavedBytes": 0,
+        "codeBytes": 71
+      },
+      "Com_EndRedirect": {
+        "frameBytes": 0,
+        "calleeSavedBytes": 0,
+        "codeBytes": 71
+      },
+      "Com_Error": {
+        "frameBytes": 0,
+        "calleeSavedBytes": 4,
+        "codeBytes": 791
+      },
+      "Com_ErrorAfterUnwind": {
+        "frameBytes": 0,
+        "calleeSavedBytes": 0,
+        "codeBytes": 94
+      },
+      "Com_OverflowStack": {
+        "frameBytes": 64,
+        "calleeSavedBytes": 0,
+        "codeBytes": 48
+      },
+      "Com_Printf": {
+        "frameBytes": 8236,
+        "calleeSavedBytes": 12,
+        "codeBytes": 523
+      },
+      "Com_RaiseUnwoundError": {
+        "frameBytes": 0,
+        "calleeSavedBytes": 0,
+        "codeBytes": 22
+      },
+      "Com_sprintf": {
+        "frameBytes": 32004,
+        "calleeSavedBytes": 16,
+        "codeBytes": 311
+      },
+      "Conbuf_AppendText": {
+        "frameBytes": 16388,
+        "calleeSavedBytes": 8,
+        "codeBytes": 525
+      },
+      "ExceptionFilter": {
+        "frameBytes": 0,
+        "calleeSavedBytes": 4,
+        "codeBytes": 107
+      },
+      "GetExceptionName": {
+        "frameBytes": 0,
+        "calleeSavedBytes": 0,
+        "codeBytes": 417
+      },
+      "InstallExceptionFilter": {
+        "frameBytes": 4,
+        "calleeSavedBytes": 0,
+        "codeBytes": 42
+      },
+      "NET_OutOfBandPrint": {
+        "frameBytes": 1404,
+        "calleeSavedBytes": 12,
+        "codeBytes": 244
+      },
+      "NativeSEH_HandlerInModule": {
+        "frameBytes": 28,
+        "calleeSavedBytes": 8,
+        "codeBytes": 89
+      },
+      "NativeSEH_UnlinkOwned": {
+        "frameBytes": 0,
+        "calleeSavedBytes": 16,
+        "codeBytes": 135
+      },
+      "Q_strncpyz": {
+        "frameBytes": 0,
+        "calleeSavedBytes": 4,
+        "codeBytes": 89
+      },
+      "ReportException": {
+        "frameBytes": 392,
+        "calleeSavedBytes": 12,
+        "codeBytes": 343
+      },
+      "ReportStackOverflow": {
+        "frameBytes": 0,
+        "calleeSavedBytes": 0,
+        "codeBytes": 42
+      },
+      "RestoreDesktop": {
+        "frameBytes": 0,
+        "calleeSavedBytes": 0,
+        "codeBytes": 37
+      },
+      "Sys_CancelRelaunch": {
+        "frameBytes": 131072,
+        "calleeSavedBytes": 0,
+        "codeBytes": 61
+      },
+      "Sys_UnlinkModuleExceptionRecords": {
+        "frameBytes": 40,
+        "calleeSavedBytes": 16,
+        "codeBytes": 261
+      },
+      "VM_UnlinkNativeExceptionRecords": {
+        "frameBytes": 16,
+        "calleeSavedBytes": 0,
+        "codeBytes": 112
+      },
+      "__CxxFrameHandler3": {
+        "frameBytes": 8,
+        "calleeSavedBytes": 0,
+        "codeBytes": 54
+      },
+      "_except_handler4": {
+        "frameBytes": 28,
+        "calleeSavedBytes": 12,
+        "codeBytes": 350
+      },
+      "_resetstkoflw": {
+        "frameBytes": 84,
+        "calleeSavedBytes": 12,
+        "codeBytes": 205
+      },
+      "longjmp": {
+        "frameBytes": 0,
+        "calleeSavedBytes": 0,
+        "codeBytes": 18
+      }
+    },
+    "dedicated": {
+      "CM_TraceThroughTree": {
+        "frameBytes": 40,
+        "calleeSavedBytes": 8,
+        "codeBytes": 981
+      },
+      "Com_Crash_f": {
+        "frameBytes": 64,
+        "calleeSavedBytes": 0,
+        "codeBytes": 71
+      },
+      "Com_EndRedirect": {
+        "frameBytes": 0,
+        "calleeSavedBytes": 0,
+        "codeBytes": 71
+      },
+      "Com_Error": {
+        "frameBytes": 0,
+        "calleeSavedBytes": 4,
+        "codeBytes": 633
+      },
+      "Com_ErrorAfterUnwind": {
+        "frameBytes": 0,
+        "calleeSavedBytes": 0,
+        "codeBytes": 94
+      },
+      "Com_OverflowStack": {
+        "frameBytes": 64,
+        "calleeSavedBytes": 0,
+        "codeBytes": 48
+      },
+      "Com_Printf": {
+        "frameBytes": 8236,
+        "calleeSavedBytes": 12,
+        "codeBytes": 492
+      },
+      "Com_RaiseUnwoundError": {
+        "frameBytes": 0,
+        "calleeSavedBytes": 0,
+        "codeBytes": 22
+      },
+      "Com_sprintf": {
+        "frameBytes": 32004,
+        "calleeSavedBytes": 16,
+        "codeBytes": 311
+      },
+      "Conbuf_AppendText": {
+        "frameBytes": 16388,
+        "calleeSavedBytes": 8,
+        "codeBytes": 525
+      },
+      "ExceptionFilter": {
+        "frameBytes": 0,
+        "calleeSavedBytes": 4,
+        "codeBytes": 71
+      },
+      "GetExceptionName": {
+        "frameBytes": 0,
+        "calleeSavedBytes": 0,
+        "codeBytes": 417
+      },
+      "InstallExceptionFilter": {
+        "frameBytes": 4,
+        "calleeSavedBytes": 0,
+        "codeBytes": 42
+      },
+      "NET_OutOfBandPrint": {
+        "frameBytes": 1404,
+        "calleeSavedBytes": 16,
+        "codeBytes": 378
+      },
+      "NativeSEH_HandlerInModule": {
+        "frameBytes": 28,
+        "calleeSavedBytes": 8,
+        "codeBytes": 89
+      },
+      "NativeSEH_UnlinkOwned": {
+        "frameBytes": 0,
+        "calleeSavedBytes": 16,
+        "codeBytes": 135
+      },
+      "Q_strncpyz": {
+        "frameBytes": 0,
+        "calleeSavedBytes": 4,
+        "codeBytes": 89
+      },
+      "ReportException": {
+        "frameBytes": 392,
+        "calleeSavedBytes": 12,
+        "codeBytes": 307
+      },
+      "ReportStackOverflow": {
+        "frameBytes": 0,
+        "calleeSavedBytes": 0,
+        "codeBytes": 42
+      },
+      "RestoreDesktop": {
+        "frameBytes": 0,
+        "calleeSavedBytes": 0,
+        "codeBytes": 3
+      },
+      "Sys_CancelRelaunch": {
+        "frameBytes": 131072,
+        "calleeSavedBytes": 0,
+        "codeBytes": 61
+      },
+      "Sys_UnlinkModuleExceptionRecords": {
+        "frameBytes": 40,
+        "calleeSavedBytes": 16,
+        "codeBytes": 261
+      },
+      "VM_UnlinkNativeExceptionRecords": {
+        "frameBytes": 16,
+        "calleeSavedBytes": 0,
+        "codeBytes": 112
+      },
+      "__CxxFrameHandler3": {
+        "frameBytes": 8,
+        "calleeSavedBytes": 0,
+        "codeBytes": 54
+      },
+      "_except_handler4": {
+        "frameBytes": 28,
+        "calleeSavedBytes": 12,
+        "codeBytes": 350
+      },
+      "_resetstkoflw": {
+        "frameBytes": 84,
+        "calleeSavedBytes": 12,
+        "codeBytes": 205
+      },
+      "longjmp": {
+        "frameBytes": 0,
+        "calleeSavedBytes": 0,
+        "codeBytes": 18
+      }
+    },
+    "glxRenderer": {
+      "R_GridInsertRow": {
+        "frameBytes": 733276,
+        "calleeSavedBytes": 16,
+        "codeBytes": 834
+      },
+      "R_SetParent": {
+        "frameBytes": 0,
+        "calleeSavedBytes": 4,
+        "codeBytes": 44
+      },
+      "R_SubdividePatchToGrid": {
+        "frameBytes": 734532,
+        "calleeSavedBytes": 12,
+        "codeBytes": 3085
+      }
+    }
+  },
+  "reserveUse": {
+    "method": "the test's harness with instrumented recursions: after the report, the lowest non-zero dword of the committed stack is the deepest write of the dispatch, filter, unlink and unwind; fresh stack pages are zero",
+    "runs": {
+      "client measure": {
+        "exit": 0,
+        "lines": [
+          "MEASURE plain deepestFrameAboveBase 40980 deepestWriteAboveBase 37848 usedBelowDeepestFrame 3132 guarantee 32768 page 4096"
+        ]
+      },
+      "client measure-cleanup": {
+        "exit": 0,
+        "lines": [
+          "MEASURE cxx-frames deepestFrameAboveBase 41016 deepestWriteAboveBase 37808 usedBelowDeepestFrame 3208 guarantee 32768 page 4096"
+        ]
+      },
+      "client measure-native": {
+        "exit": 0,
+        "lines": [
+          "MEASURE native (deepest frame not instrumented) unlinked 19346",
+          "MEASURE native deepestFrameAboveBase 4286316543 deepestWriteAboveBase 37888 usedBelowDeepestFrame 4286278655 guarantee 32768 page 4096"
+        ]
+      },
+      "dedicated measure": {
+        "exit": 0,
+        "lines": [
+          "MEASURE plain deepestFrameAboveBase 41016 deepestWriteAboveBase 37880 usedBelowDeepestFrame 3136 guarantee 32768 page 4096"
+        ]
+      },
+      "dedicated measure-cleanup": {
+        "exit": 0,
+        "lines": [
+          "MEASURE cxx-frames deepestFrameAboveBase 41044 deepestWriteAboveBase 37832 usedBelowDeepestFrame 3212 guarantee 32768 page 4096"
+        ]
+      },
+      "dedicated measure-native": {
+        "exit": 0,
+        "lines": [
+          "MEASURE native (deepest frame not instrumented) unlinked 19358",
+          "MEASURE native deepestFrameAboveBase 4278190079 deepestWriteAboveBase 37896 usedBelowDeepestFrame 4278152183 guarantee 32768 page 4096"
+        ]
+      }
+    }
+  },
+  "stackHighWater": {
+    "method": "committed part of the main thread's stack reservation (TEB32 StackBase and DeallocationStack, VirtualQueryEx) read from outside after a map loaded and ran 120 frames; it includes the 36 KB of guard pages below the deepest page touched",
+    "client": "meson/build/win32-dev/fntech3.exe 865878308f6c54f40ff7a08d87d764e8a5c6b40715f9bffec5b7f587cfe1daa3",
+    "rows": [
+      {
+        "profile": "q3",
+        "map": "grabtex",
+        "ready": true,
+        "errors": [],
+        "thread": 41116,
+        "teb32Valid": true,
+        "reserved": 1048576,
+        "committed": 442368,
+        "guarantee": 32768
+      },
+      {
+        "profile": "q3",
+        "map": "q3dm1",
+        "ready": true,
+        "errors": [],
+        "thread": 26808,
+        "teb32Valid": true,
+        "reserved": 1048576,
+        "committed": 892928,
+        "guarantee": 32768
+      },
+      {
+        "profile": "ql",
+        "map": "ragnarok",
+        "ready": true,
+        "errors": [],
+        "thread": 37072,
+        "teb32Valid": true,
+        "reserved": 1048576,
+        "committed": 892928,
+        "guarantee": 32768
+      },
+      {
+        "profile": "rtcw-sp",
+        "map": "crypt2",
+        "ready": true,
+        "errors": [],
+        "thread": 40680,
+        "teb32Valid": true,
+        "reserved": 1048576,
+        "committed": 892928,
+        "guarantee": 32768
+      },
+      {
+        "profile": "rtcw-mp",
+        "map": "mp_destruction",
+        "ready": true,
+        "errors": [],
+        "thread": 31668,
+        "teb32Valid": true,
+        "reserved": 1048576,
+        "committed": 897024,
+        "guarantee": 32768
+      },
+      {
+        "profile": "wolfet",
+        "map": "radar",
+        "ready": true,
+        "errors": [],
+        "thread": 43064,
+        "teb32Valid": true,
+        "reserved": 1048576,
+        "committed": 909312,
+        "guarantee": 32768
+      },
+      {
+        "profile": "stvef-sp",
+        "map": "voy16",
+        "ready": true,
+        "errors": [],
+        "thread": 18584,
+        "teb32Valid": true,
+        "reserved": 1048576,
+        "committed": 892928,
+        "guarantee": 32768
+      },
+      {
+        "profile": "alice",
+        "map": "centipede1",
+        "ready": true,
+        "errors": [],
+        "thread": 31124,
+        "teb32Valid": true,
+        "reserved": 1048576,
+        "committed": 880640,
+        "guarantee": 32768
+      },
+      {
+        "profile": "fakk2",
+        "map": "swamp2",
+        "ready": true,
+        "errors": [],
+        "thread": 1936,
+        "teb32Valid": true,
+        "reserved": 1048576,
+        "committed": 880640,
+        "guarantee": 32768
+      },
+      {
+        "profile": "mohaa",
+        "map": "m4l1",
+        "ready": true,
+        "errors": [],
+        "thread": 4144,
+        "teb32Valid": true,
+        "reserved": 1048576,
+        "committed": 880640,
+        "guarantee": 32768
+      }
+    ]
+  },
+  "harnessTest": {
+    "file": "tests/windows_stack_overflow_tests.py",
+    "scenarios": [
+      "overflow",
+      "repeat",
+      "cleanup",
+      "redirect",
+      "native",
+      "access-violation",
+      "breakpoint",
+      "thread"
+    ],
+    "variants": [
+      "client",
+      "dedicated (-DDEDICATED)"
+    ],
+    "compiler": "MSVC 19.44 x86 /O2 /MT /EHsc; the stand-in module /LD with /SAFESEH:NO",
+    "result": "2 tests passed, 16 subtests",
+    "clangFallback": "the test's other branch, clang++ 20.1.7 --target=i686-pc-windows-msvc -O2, passes the same 16 runs"
+  },
+  "mutations": {
+    "method": "each mutation edits the sliced production text in memory before the harness is built; the repository files were not written",
+    "results": {
+      "before: old filter, default reserve": {
+        "failing": [
+          "client overflow",
+          "client repeat",
+          "client cleanup",
+          "client redirect",
+          "client native",
+          "client thread",
+          "dedicated overflow",
+          "dedicated repeat",
+          "dedicated cleanup",
+          "dedicated redirect",
+          "dedicated native",
+          "dedicated thread"
+        ]
+      },
+      "report on the faulting stack": {
+        "failing": [
+          "client overflow",
+          "client repeat",
+          "client cleanup",
+          "client redirect",
+          "client native",
+          "client thread",
+          "dedicated overflow",
+          "dedicated repeat",
+          "dedicated cleanup",
+          "dedicated redirect",
+          "dedicated native",
+          "dedicated thread"
+        ]
+      },
+      "guard page not restored": {
+        "failing": [
+          "client repeat",
+          "dedicated repeat"
+        ]
+      },
+      "no stack reserve": {
+        "failing": [
+          "client cleanup",
+          "dedicated cleanup"
+        ]
+      },
+      "reserve of 8 KB": {
+        "failing": [
+          "client cleanup",
+          "dedicated cleanup"
+        ]
+      },
+      "redirect left in the abandoned frame": {
+        "failing": [
+          "client redirect",
+          "dedicated redirect"
+        ]
+      },
+      "native records not unlinked": {
+        "failing": [
+          "client native",
+          "dedicated native"
+        ]
+      },
+      "deferred on every thread": {
+        "failing": [
+          "client thread",
+          "dedicated thread"
+        ]
+      },
+      "abort point without the hook": {
+        "failing": [
+          "client overflow",
+          "client repeat",
+          "client cleanup",
+          "client redirect",
+          "client native",
+          "dedicated overflow",
+          "dedicated repeat",
+          "dedicated cleanup",
+          "dedicated redirect",
+          "dedicated native"
+        ]
+      },
+      "unwound error never cleared": {
+        "failing": [
+          "client overflow",
+          "client repeat",
+          "client cleanup",
+          "client redirect",
+          "client native",
+          "dedicated overflow",
+          "dedicated repeat",
+          "dedicated cleanup",
+          "dedicated redirect",
+          "dedicated native"
+        ]
+      },
+      "report left to the worker thread": {
+        "failing": [
+          "client thread",
+          "dedicated thread"
+        ]
+      }
+    }
+  },
+  "stableBuild": {
+    "q3": {
+      "profile": "q3",
+      "map": "q3dm1",
+      "clientSha256": "2488edd565011399d60f93990e2271679c0a7adc860c1ae84a0f61ab77e6335e",
+      "serverSha256": "c2fac4e686f0bfa4a8f81af60e1701627ce4ede7e96e6f904114400ce25f1cc5",
+      "binariesUnchanged": true,
+      "outcomes": {
+        "reported": 7,
+        "crashed": 0,
+        "wrong-report": 0,
+        "unresponsive": 0,
+        "silent": 0
+      },
+      "passed": true,
+      "faults": [
+        {
+          "scenario": "client-menu-overflow",
+          "outcome": "reported",
+          "code": "STACK_OVERFLOW",
+          "address": "fntech3.exe@fec47",
+          "aliveAfterTwoSeconds": true,
+          "elapsedSeconds": 3.92
+        },
+        {
+          "scenario": "client-map-overflow",
+          "outcome": "reported",
+          "code": "STACK_OVERFLOW",
+          "address": "fntech3.exe@fec47",
+          "aliveAfterTwoSeconds": true,
+          "elapsedSeconds": 5.7
+        },
+        {
+          "scenario": "client-map-access-violation",
+          "outcome": "reported",
+          "code": "ACCESS_VIOLATION",
+          "address": "fntech3.exe@fb099",
+          "aliveAfterTwoSeconds": true,
+          "elapsedSeconds": 6.22
+        }
+      ],
+      "serverSequence": {
+        "steps": [
+          {
+            "step": "map running",
+            "ok": true
+          },
+          {
+            "step": "crash stack (map running)",
+            "outcome": "reported",
+            "code": "STACK_OVERFLOW",
+            "address": "fntech3.ded.exe@cb707",
+            "reportIn": "rcon reply",
+            "answersRconAfter": true
+          },
+          {
+            "step": "crash stack (no map)",
+            "outcome": "reported",
+            "code": "STACK_OVERFLOW",
+            "address": "fntech3.ded.exe@cb707",
+            "reportIn": "rcon reply",
+            "answersRconAfter": true
+          },
+          {
+            "step": "crash (no map)",
+            "outcome": "reported",
+            "code": "ACCESS_VIOLATION",
+            "address": "fntech3.ded.exe@c84a9",
+            "reportIn": "rcon reply",
+            "answersRconAfter": true
+          },
+          {
+            "step": "map again",
+            "ok": true
+          },
+          {
+            "step": "crash stack (map running)",
+            "outcome": "reported",
+            "code": "STACK_OVERFLOW",
+            "address": "fntech3.ded.exe@cb707",
+            "reportIn": "rcon reply",
+            "answersRconAfter": true
+          },
+          {
+            "step": "quit",
+            "ok": true,
+            "exitCode": 0
+          }
+        ],
+        "quitExitCode": 0,
+        "elapsedSeconds": 14.64
+      }
+    },
+    "ql": {
+      "profile": "ql",
+      "map": "campgrounds",
+      "clientSha256": "2488edd565011399d60f93990e2271679c0a7adc860c1ae84a0f61ab77e6335e",
+      "serverSha256": "c2fac4e686f0bfa4a8f81af60e1701627ce4ede7e96e6f904114400ce25f1cc5",
+      "binariesUnchanged": true,
+      "outcomes": {
+        "reported": 7,
+        "crashed": 0,
+        "wrong-report": 0,
+        "unresponsive": 0,
+        "silent": 0
+      },
+      "passed": true,
+      "faults": [
+        {
+          "scenario": "client-menu-overflow",
+          "outcome": "reported",
+          "code": "STACK_OVERFLOW",
+          "address": "fntech3.exe@fec47",
+          "aliveAfterTwoSeconds": true,
+          "elapsedSeconds": 3.95
+        },
+        {
+          "scenario": "client-map-overflow",
+          "outcome": "reported",
+          "code": "STACK_OVERFLOW",
+          "address": "fntech3.exe@fec47",
+          "aliveAfterTwoSeconds": true,
+          "elapsedSeconds": 6.44
+        },
+        {
+          "scenario": "client-map-access-violation",
+          "outcome": "reported",
+          "code": "ACCESS_VIOLATION",
+          "address": "fntech3.exe@fb099",
+          "aliveAfterTwoSeconds": true,
+          "elapsedSeconds": 6.25
+        }
+      ],
+      "serverSequence": {
+        "steps": [
+          {
+            "step": "map running",
+            "ok": true
+          },
+          {
+            "step": "crash stack (map running)",
+            "outcome": "reported",
+            "code": "STACK_OVERFLOW",
+            "address": "fntech3.ded.exe@cb707",
+            "reportIn": "rcon reply",
+            "answersRconAfter": true
+          },
+          {
+            "step": "crash stack (no map)",
+            "outcome": "reported",
+            "code": "STACK_OVERFLOW",
+            "address": "fntech3.ded.exe@cb707",
+            "reportIn": "rcon reply",
+            "answersRconAfter": true
+          },
+          {
+            "step": "crash (no map)",
+            "outcome": "reported",
+            "code": "ACCESS_VIOLATION",
+            "address": "fntech3.ded.exe@c84a9",
+            "reportIn": "rcon reply",
+            "answersRconAfter": true
+          },
+          {
+            "step": "map again",
+            "ok": true
+          },
+          {
+            "step": "crash stack (map running)",
+            "outcome": "reported",
+            "code": "STACK_OVERFLOW",
+            "address": "fntech3.ded.exe@cb707",
+            "reportIn": "rcon reply",
+            "answersRconAfter": true
+          },
+          {
+            "step": "quit",
+            "ok": true,
+            "exitCode": 0
+          }
+        ],
+        "quitExitCode": 0,
+        "elapsedSeconds": 13.11
+      }
+    },
+    "damagedTreesStillRefused": {
+      "q3": {
+        "profile": "q3",
+        "map": "pak0.pk3:maps/q3dm1.bsp",
+        "mapSha256": "3d2dad8e6ba05914fc90619a6517ecdee7e5eb50f86013a14a84bb3c61cd702e",
+        "clientSha256": "865878308f6c54f40ff7a08d87d764e8a5c6b40715f9bffec5b7f587cfe1daa3",
+        "outcomes": {
+          "loaded": 0,
+          "rejected": 2,
+          "faulted": 0,
+          "crashed": 0,
+          "hung": 0
+        },
+        "variants": {
+          "tree-cycle": {
+            "outcome": "rejected",
+            "exitCode": null,
+            "elapsedSeconds": 3.31,
+            "firstError": "ERROR: CMod_LoadNodes: child 0 of node 2106 leads back to that node or one above it",
+            "exceptionCode": null,
+            "exceptionAddress": null,
+            "inputSha256": "6e4f6b954bd779cc2bbb576c6801f77bf33f525cfac1b17b119e855d6a9d14c0"
+          },
+          "tree-self": {
+            "outcome": "rejected",
+            "exitCode": null,
+            "elapsedSeconds": 3.19,
+            "firstError": "ERROR: CMod_LoadNodes: child 2106 of node 2106 leads back to that node or one above it",
+            "exceptionCode": null,
+            "exceptionAddress": null,
+            "inputSha256": "30bd58ac85958b828f490f90b5b50fee1e3278677a6e0113306f60b9720b11a4"
+          }
+        }
+      },
+      "ql": {
+        "profile": "ql",
+        "map": "pak00.pk3:maps/campgrounds.bsp",
+        "mapSha256": "910c9aa7fdc07b7086583fca13e62da703346bc11799e9022ebf37e2b3026e74",
+        "clientSha256": "865878308f6c54f40ff7a08d87d764e8a5c6b40715f9bffec5b7f587cfe1daa3",
+        "outcomes": {
+          "loaded": 0,
+          "rejected": 2,
+          "faulted": 0,
+          "crashed": 0,
+          "hung": 0
+        },
+        "variants": {
+          "tree-cycle": {
+            "outcome": "rejected",
+            "exitCode": null,
+            "elapsedSeconds": 3.58,
+            "firstError": "ERROR: CMod_LoadNodes: child 0 of node 1471 leads back to that node or one above it",
+            "exceptionCode": null,
+            "exceptionAddress": null,
+            "inputSha256": "f68f8dc330a461c5945202489000b887a6eeb20bd9f66af67dffc20bfe0fbc37"
+          },
+          "tree-self": {
+            "outcome": "rejected",
+            "exitCode": null,
+            "elapsedSeconds": 3.38,
+            "firstError": "ERROR: CMod_LoadNodes: child 1471 of node 1471 leads back to that node or one above it",
+            "exceptionCode": null,
+            "exceptionAddress": null,
+            "inputSha256": "3b40c362c6ba65fe0891d1745b3d9f8f702188c6b26d86a5134301c9436cd010"
+          }
+        }
+      }
+    }
+  },
+  "preCheckBuild": {
+    "source": "HEAD 8e8de10f exported, with the five code files ab42450a changed (bsp_index_checks.h, cm_load.c and the three renderers' tr_bsp.c) taken from its parent, and this change's three files; the control swaps HEAD's win_main.cpp and common.c back in and relinks",
+    "withFix": {
+      "q3": {
+        "profile": "q3",
+        "map": "pak0.pk3:maps/q3dm1.bsp",
+        "mapSha256": "3d2dad8e6ba05914fc90619a6517ecdee7e5eb50f86013a14a84bb3c61cd702e",
+        "clientSha256": "4c3395af932bab15a5c8d01ee927b8137e0c5ef10191e02a414798685a3e3ccb",
+        "outcomes": {
+          "loaded": 0,
+          "rejected": 0,
+          "faulted": 2,
+          "crashed": 0,
+          "hung": 0
+        },
+        "variants": {
+          "tree-cycle": {
+            "outcome": "faulted",
+            "exitCode": null,
+            "elapsedSeconds": 3.86,
+            "firstError": "ERROR: Unhandled exception caught",
+            "exceptionCode": "STACK_OVERFLOW",
+            "exceptionAddress": "fntech3.exe@f707c",
+            "inputSha256": "6e4f6b954bd779cc2bbb576c6801f77bf33f525cfac1b17b119e855d6a9d14c0"
+          },
+          "tree-self": {
+            "outcome": "faulted",
+            "exitCode": null,
+            "elapsedSeconds": 3.17,
+            "firstError": "ERROR: Unhandled exception caught",
+            "exceptionCode": "STACK_OVERFLOW",
+            "exceptionAddress": "fntech3.exe@f707c",
+            "inputSha256": "30bd58ac85958b828f490f90b5b50fee1e3278677a6e0113306f60b9720b11a4"
+          }
+        }
+      },
+      "ql": {
+        "profile": "ql",
+        "map": "pak00.pk3:maps/campgrounds.bsp",
+        "mapSha256": "910c9aa7fdc07b7086583fca13e62da703346bc11799e9022ebf37e2b3026e74",
+        "clientSha256": "4c3395af932bab15a5c8d01ee927b8137e0c5ef10191e02a414798685a3e3ccb",
+        "outcomes": {
+          "loaded": 0,
+          "rejected": 0,
+          "faulted": 2,
+          "crashed": 0,
+          "hung": 0
+        },
+        "variants": {
+          "tree-cycle": {
+            "outcome": "faulted",
+            "exitCode": null,
+            "elapsedSeconds": 4.45,
+            "firstError": "ERROR: Unhandled exception caught",
+            "exceptionCode": "STACK_OVERFLOW",
+            "exceptionAddress": "fnql_glx_x86.dll@35f94",
+            "inputSha256": "f68f8dc330a461c5945202489000b887a6eeb20bd9f66af67dffc20bfe0fbc37"
+          },
+          "tree-self": {
+            "outcome": "faulted",
+            "exitCode": null,
+            "elapsedSeconds": 3.98,
+            "firstError": "ERROR: Unhandled exception caught",
+            "exceptionCode": "STACK_OVERFLOW",
+            "exceptionAddress": "fnql_glx_x86.dll@35f94",
+            "inputSha256": "3b40c362c6ba65fe0891d1745b3d9f8f702188c6b26d86a5134301c9436cd010"
+          }
+        }
+      },
+      "rtcw-sp": {
+        "profile": "rtcw-sp",
+        "map": "pak0.pk3:maps/escape1.bsp",
+        "mapSha256": "85c901378af6415ecbf854863cc904b3c7b886f103459f00057ad0d2ea55b8c7",
+        "clientSha256": "4c3395af932bab15a5c8d01ee927b8137e0c5ef10191e02a414798685a3e3ccb",
+        "outcomes": {
+          "loaded": 0,
+          "rejected": 0,
+          "faulted": 2,
+          "crashed": 0,
+          "hung": 0
+        },
+        "variants": {
+          "tree-cycle": {
+            "outcome": "faulted",
+            "exitCode": null,
+            "elapsedSeconds": 4.55,
+            "firstError": "ERROR: Unhandled exception caught",
+            "exceptionCode": "STACK_OVERFLOW",
+            "exceptionAddress": "fnql_glx_x86.dll@35fa1",
+            "inputSha256": "ce3431c5134c6f6eeb14886a9e940ac1e6e664262bfadd270ad7fd01caa95024"
+          },
+          "tree-self": {
+            "outcome": "faulted",
+            "exitCode": null,
+            "elapsedSeconds": 4.39,
+            "firstError": "ERROR: Unhandled exception caught",
+            "exceptionCode": "STACK_OVERFLOW",
+            "exceptionAddress": "fnql_glx_x86.dll@35fa1",
+            "inputSha256": "41cccaa5cd7de997b6a39d0440d354db5128ed4f22c1480356147c72833b9352"
+          }
+        }
+      },
+      "rtcw-mp": {
+        "profile": "rtcw-mp",
+        "map": "mp_pak0.pk3:maps/mp_beach.bsp",
+        "mapSha256": "253a3701665ba0589cb20373fa998278fa8f02ccae451ab754f9bd9a74c86c11",
+        "clientSha256": "4c3395af932bab15a5c8d01ee927b8137e0c5ef10191e02a414798685a3e3ccb",
+        "outcomes": {
+          "loaded": 0,
+          "rejected": 0,
+          "faulted": 2,
+          "crashed": 0,
+          "hung": 0
+        },
+        "variants": {
+          "tree-cycle": {
+            "outcome": "faulted",
+            "exitCode": null,
+            "elapsedSeconds": 4.11,
+            "firstError": "ERROR: Unhandled exception caught",
+            "exceptionCode": "STACK_OVERFLOW",
+            "exceptionAddress": "fnql_glx_x86.dll@35fa1",
+            "inputSha256": "250b3c65dc5970c2eb2abd34c04e4730e05dbd81c4d36e713d318933e6b10865"
+          },
+          "tree-self": {
+            "outcome": "faulted",
+            "exitCode": null,
+            "elapsedSeconds": 3.98,
+            "firstError": "ERROR: Unhandled exception caught",
+            "exceptionCode": "STACK_OVERFLOW",
+            "exceptionAddress": "fnql_glx_x86.dll@35fa1",
+            "inputSha256": "507434254d3a42d941d50cef5e91097dee36365997f6a9cd6a024c77d6baef42"
+          }
+        }
+      }
+    },
+    "control": {
+      "q3": {
+        "profile": "q3",
+        "map": "pak0.pk3:maps/q3dm1.bsp",
+        "mapSha256": "3d2dad8e6ba05914fc90619a6517ecdee7e5eb50f86013a14a84bb3c61cd702e",
+        "clientSha256": "e9509a145afd54dd9fbfeac870a7b33f3a74cf680bd7c84dd1225a2cf982b96e",
+        "outcomes": {
+          "loaded": 0,
+          "rejected": 0,
+          "faulted": 0,
+          "crashed": 2,
+          "hung": 0
+        },
+        "variants": {
+          "tree-cycle": {
+            "outcome": "crashed",
+            "exitCode": 3221225477,
+            "elapsedSeconds": 10.91,
+            "firstError": null,
+            "exceptionCode": null,
+            "exceptionAddress": null,
+            "inputSha256": "6e4f6b954bd779cc2bbb576c6801f77bf33f525cfac1b17b119e855d6a9d14c0"
+          },
+          "tree-self": {
+            "outcome": "crashed",
+            "exitCode": 3221225477,
+            "elapsedSeconds": 9.98,
+            "firstError": null,
+            "exceptionCode": null,
+            "exceptionAddress": null,
+            "inputSha256": "30bd58ac85958b828f490f90b5b50fee1e3278677a6e0113306f60b9720b11a4"
+          }
+        }
+      },
+      "ql": {
+        "profile": "ql",
+        "map": "pak00.pk3:maps/campgrounds.bsp",
+        "mapSha256": "910c9aa7fdc07b7086583fca13e62da703346bc11799e9022ebf37e2b3026e74",
+        "clientSha256": "e9509a145afd54dd9fbfeac870a7b33f3a74cf680bd7c84dd1225a2cf982b96e",
+        "outcomes": {
+          "loaded": 0,
+          "rejected": 0,
+          "faulted": 0,
+          "crashed": 2,
+          "hung": 0
+        },
+        "variants": {
+          "tree-cycle": {
+            "outcome": "crashed",
+            "exitCode": 3221225477,
+            "elapsedSeconds": 13.78,
+            "firstError": null,
+            "exceptionCode": null,
+            "exceptionAddress": null,
+            "inputSha256": "f68f8dc330a461c5945202489000b887a6eeb20bd9f66af67dffc20bfe0fbc37"
+          },
+          "tree-self": {
+            "outcome": "crashed",
+            "exitCode": 3221225477,
+            "elapsedSeconds": 14.86,
+            "firstError": null,
+            "exceptionCode": null,
+            "exceptionAddress": null,
+            "inputSha256": "3b40c362c6ba65fe0891d1745b3d9f8f702188c6b26d86a5134301c9436cd010"
+          }
+        }
+      },
+      "rtcw-sp": {
+        "profile": "rtcw-sp",
+        "map": "pak0.pk3:maps/escape1.bsp",
+        "mapSha256": "85c901378af6415ecbf854863cc904b3c7b886f103459f00057ad0d2ea55b8c7",
+        "clientSha256": "e9509a145afd54dd9fbfeac870a7b33f3a74cf680bd7c84dd1225a2cf982b96e",
+        "outcomes": {
+          "loaded": 0,
+          "rejected": 0,
+          "faulted": 0,
+          "crashed": 2,
+          "hung": 0
+        },
+        "variants": {
+          "tree-cycle": {
+            "outcome": "crashed",
+            "exitCode": 3221225477,
+            "elapsedSeconds": 12.76,
+            "firstError": null,
+            "exceptionCode": null,
+            "exceptionAddress": null,
+            "inputSha256": "ce3431c5134c6f6eeb14886a9e940ac1e6e664262bfadd270ad7fd01caa95024"
+          },
+          "tree-self": {
+            "outcome": "crashed",
+            "exitCode": 3221225477,
+            "elapsedSeconds": 13.36,
+            "firstError": null,
+            "exceptionCode": null,
+            "exceptionAddress": null,
+            "inputSha256": "41cccaa5cd7de997b6a39d0440d354db5128ed4f22c1480356147c72833b9352"
+          }
+        }
+      },
+      "rtcw-mp": {
+        "profile": "rtcw-mp",
+        "map": "mp_pak0.pk3:maps/mp_beach.bsp",
+        "mapSha256": "253a3701665ba0589cb20373fa998278fa8f02ccae451ab754f9bd9a74c86c11",
+        "clientSha256": "e9509a145afd54dd9fbfeac870a7b33f3a74cf680bd7c84dd1225a2cf982b96e",
+        "outcomes": {
+          "loaded": 0,
+          "rejected": 0,
+          "faulted": 0,
+          "crashed": 2,
+          "hung": 0
+        },
+        "variants": {
+          "tree-cycle": {
+            "outcome": "crashed",
+            "exitCode": 3221225477,
+            "elapsedSeconds": 14.72,
+            "firstError": null,
+            "exceptionCode": null,
+            "exceptionAddress": null,
+            "inputSha256": "250b3c65dc5970c2eb2abd34c04e4730e05dbd81c4d36e713d318933e6b10865"
+          },
+          "tree-self": {
+            "outcome": "crashed",
+            "exitCode": 3221225477,
+            "elapsedSeconds": 14.94,
+            "firstError": null,
+            "exceptionCode": null,
+            "exceptionAddress": null,
+            "inputSha256": "507434254d3a42d941d50cef5e91097dee36365997f6a9cd6a024c77d6baef42"
+          }
+        }
+      }
+    },
+    "controlDumps": {
+      "count": 8,
+      "fault": "c0000005 at fntech3!_chkstk+0x27 in every one (cdb .ecxr, .exr)",
+      "q3TreeCycle": "return addresses above the fault: Com_sprintf, ExceptionFilter; 1,322 CM_TraceThroughTree return addresses on the stack"
+    }
+  },
+  "builds": {
+    "stable": {
+      "path": "meson/build/win32-dev",
+      "source": "HEAD 8e8de10f and the working tree, which held this change and another session's uncommitted botlib AAS index checks (code/botlib/be_aas_file.cpp, rtcw_aas_loader.hpp, aas_index_checks.hpp)",
+      "builtUtc": "2026-09-28 05:47:38-05:48:49",
+      "fntech3.exe": "2488edd565011399d60f93990e2271679c0a7adc860c1ae84a0f61ab77e6335e",
+      "fntech3.ded.exe": "c2fac4e686f0bfa4a8f81af60e1701627ce4ede7e96e6f904114400ce25f1cc5",
+      "fnql_glx_x86.dll": "49a042021f9a51445d3028e092cab8b5dcd0a4851e07eb4fccfd2c066d9f0404",
+      "usedBy": "the stable-build probes of Q3 and QL (hashed unchanged at each run's start and end)"
+    },
+    "stableRebuilt": {
+      "builtUtc": "2026-09-28 05:52:31-05:52:37, by another session from the same working tree",
+      "fntech3.exe": "865878308f6c54f40ff7a08d87d764e8a5c6b40715f9bffec5b7f587cfe1daa3",
+      "fntech3.ded.exe": "a4a71fa17ca86220ca97e1356f0cc389c204b882e65c4590777cafca3a73549e",
+      "fnql_glx_x86.dll": "6782eed179ac6452fb2d76ee76ba862a84c37b860d96ce9de5ec8400343d086d",
+      "usedBy": "the damaged-tree refusal check, the stack high-water marks and the frame table; its TEBs show the 32 KB guarantee, so it holds this change"
+    },
+    "preCheckWithFix": {
+      "path": ".tmp/runtime/stack-overflow-precheck-after",
+      "fntech3.exe": "4c3395af932bab15a5c8d01ee927b8137e0c5ef10191e02a414798685a3e3ccb",
+      "fnql_glx_x86.dll": "fe3279edc12ff2b6c32f9d6c82b071e6530a2bda566cf202612e327e5f4329a8"
+    },
+    "preCheckControl": {
+      "path": ".tmp/runtime/stack-overflow-precheck-before",
+      "fntech3.exe": "e9509a145afd54dd9fbfeac870a7b33f3a74cf680bd7c84dd1225a2cf982b96e",
+      "fnql_glx_x86.dll": "fe3279edc12ff2b6c32f9d6c82b071e6530a2bda566cf202612e327e5f4329a8"
+    },
+    "toolchain": "MSVC 19.44 x86, debugoptimized, strict warnings, every development gate on",
+    "host": "Windows 11 Home 10.0.26200 x64 (WoW64 for the x86 builds)"
+  },
+  "installations": {
+    "q3": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+    "ql": "E:\\SteamLibrary\\steamapps\\common\\Quake Live",
+    "rtcw": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+    "wolfet": "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+    "stvef": "E:\\Games\\Star Trek Voyager Elite Force",
+    "alice": "E:\\Games\\Alice",
+    "fakk2": ".tmp/fakk2-install/game",
+    "mohaa": "E:\\Games\\Medal of Honor Allied Assault"
+  },
+  "scripts": {
+    "scripts/probe_stack_overflow.py": "26cea62f42cabf30bbbc5b5d6fd22c87762dd48082d3c2b990adea5745def19a",
+    "scripts/probe_bsp_faults.py": "6a94f913e04500ff2e27a2a4336db528bc5e24dc7a02b51ad715853c9fc67de5",
+    "sha256Basis": "LF text, as committed"
+  },
+  "environment": "Windowed on unswitched private desktops (tests/windows_private_process.py), sound, mouse and joystick off, isolated fs_homepath per run with empty configurations, console commands and loopback rcon only; no input was sent",
+  "suites": {
+    "tree": "HEAD 8e8de10 with this change, exported as its own repository (.tmp/stack-overflow/commit-export) and built whole with win32-dev's options (1,430 targets, strict warnings)",
+    "native": {
+      "selected": 177,
+      "result": {
+        "Ok": 175,
+        "Fail": 0,
+        "Skipped": 2
+      },
+      "note": "every fnTech3 meson test except the wrapper that runs the Python suite"
+    },
+    "python": {
+      "summary": "2329 passed, 128 skipped, 57687 subtests passed",
+      "failed": [],
+      "command": "python -m pytest tests -q -p no:cacheprovider, in the VS x86 developer shell"
+    },
+    "linux": "common.c compiled for i686 Linux with GCC 13 and Clang 18 (WSL), client and dedicated, with the same warnings as HEAD's",
+    "mingw": "win_main.cpp compiled with MSYS2 MinGW-w64 i686 GCC (dedicated variant) with the same warnings as HEAD's"
+  }
+}

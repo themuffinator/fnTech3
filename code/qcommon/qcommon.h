@@ -1168,6 +1168,9 @@ void		Com_EndRedirect( void );
 void 		QDECL Com_Printf( const char *fmt, ... ) __attribute__ ((format (printf, 1, 2)));
 void 		QDECL Com_DPrintf( const char *fmt, ... ) __attribute__ ((format (printf, 1, 2)));
 void 		Com_Quit_f( void );
+// Leaves the frame first and then calls report to raise the error, for an
+// error found where the stack cannot hold Com_Error's work (a stack overflow).
+void		NORETURN Com_ErrorAfterUnwind( void (*report)( void ) );
 void		Com_GameRestart( int checksumFeed, qboolean clientRestart );
 
 int			Com_EventLoop( void );

@@ -507,6 +507,65 @@ void NORETURN FORMAT_PRINTF(2, 3) QDECL Com_Error( errorParm_t code, const char 
 
 /*
 =============
+Com_ErrorAfterUnwind
+
+For an error found where the stack cannot hold Com_Error's own work: the
+platform's exception filter calls this for a stack overflow, when its thread
+has only a small reserve of stack left. Nothing is printed, shut down or
+formatted here. The frame is left at once, as Com_Error leaves it, and report
+is called from the frame's abort point, where the stack is whole again, to
+raise the error there.
+
+Com_Error does its work while the frames it leaves are still on the stack;
+here the report's own calls reuse their memory, so nothing it uses may point
+into them. The print redirect can: rcon's buffer is a local of the frame that
+ran the command. Its text moves to storage of its own first, so the report
+still reaches the rcon client, as an ERR_DROP's does.
+
+A native module's exception registrations are unlinked first, as Com_Error
+unlinks them, so its frames are abandoned as an ERR_DROP abandons them and no
+module code runs on what is left of the stack.
+=============
+*/
+static void (*com_unwoundError)( void );
+static char com_unwoundRedirect[ MAXPRINTMSG ];
+
+void NORETURN Com_ErrorAfterUnwind( void (*report)( void ) ) {
+	com_unwoundError = report;
+
+	if ( rd_buffer && rd_buffer != com_unwoundRedirect ) {
+		Q_strncpyz( com_unwoundRedirect, rd_buffer, sizeof( com_unwoundRedirect ) );
+		rd_buffer = com_unwoundRedirect;
+		if ( rd_buffersize > (int)sizeof( com_unwoundRedirect ) ) {
+			rd_buffersize = sizeof( com_unwoundRedirect );
+		}
+	}
+
+	VM_UnlinkNativeExceptionRecords();
+	Q_longjmp( abortframe, 1 );
+}
+
+
+/*
+=============
+Com_RaiseUnwoundError
+
+An abort point's first step: raise the error Com_ErrorAfterUnwind left
+behind, if any.
+=============
+*/
+static void Com_RaiseUnwoundError( void ) {
+	void (*report)( void ) = com_unwoundError;
+
+	if ( report ) {
+		com_unwoundError = NULL;
+		report();
+	}
+}
+
+
+/*
+=============
 Com_Quit_f
 
 Both client and server can use this, and it will
@@ -3237,12 +3296,37 @@ static void Com_Freeze_f( void ) {
 
 /*
 =================
+Com_OverflowStack
+
+Recurses until the stack runs out: the depth test never passes first, and
+each level keeps its frame until the one below it returns.
+=================
+*/
+static int Com_OverflowStack( int depth ) {
+	volatile byte frame[64];
+
+	frame[0] = (byte)depth;
+	if ( depth == INT_MAX ) {
+		return frame[0];
+	}
+	frame[1] = (byte)Com_OverflowStack( depth + 1 );
+	return frame[1];
+}
+
+
+/*
+=================
 Com_Crash_f
 
-A way to force a bus error for development reasons
+A way to force a bus error for development reasons; "crash stack" overflows
+the stack instead
 =================
 */
 static void Com_Crash_f( void ) {
+	if ( !Q_stricmp( Cmd_Argv( 1 ), "stack" ) ) {
+		Com_OverflowStack( 0 );
+		return;
+	}
 	* ( volatile int * ) 0 = 0x12345678;
 }
 
@@ -4359,6 +4443,7 @@ void Com_Init( char *commandLine ) {
 	Com_Printf( "%s %s %s\n", SVN_VERSION, PLATFORM_STRING, __DATE__ );
 
 	if ( Q_setjmp( abortframe ) ) {
+		Com_RaiseUnwoundError();
 		// A disconnect-class error jumps here without printing, so carry its
 		// message into the report rather than losing it.
 		Sys_Error( "Error during initialization%s%s", com_errorMessage[0] ? ": " : "", com_errorMessage );
@@ -4934,6 +5019,7 @@ void Com_Frame( qboolean noDelay ) {
 	int	timeAfter;
 
 	if ( Q_setjmp( abortframe ) ) {
+		Com_RaiseUnwoundError();
 		return;			// an ERR_DROP was thrown
 	}
 

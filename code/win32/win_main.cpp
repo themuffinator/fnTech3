@@ -42,6 +42,7 @@ extern "C" {
 #include <errno.h>
 #include <direct.h>
 #include <io.h>
+#include <malloc.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -958,12 +959,12 @@ static const char *GetExceptionName( DWORD code )
 
 /*
 ==================
-ExceptionFilter
+RestoreDesktop
 
 Restore gamma and hide fullscreen window in case of crash
 ==================
 */
-static LONG WINAPI ExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo )
+static void RestoreDesktop( void )
 {
 #ifndef DEDICATED
 	if ( com_dedicated->integer == 0 ) {
@@ -980,18 +981,38 @@ static LONG WINAPI ExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo )
 		}
 	}
 #endif
+}
 
-	if ( ExceptionInfo->ExceptionRecord->ExceptionCode != EXCEPTION_BREAKPOINT )
+
+// ReportException's locals must stay out of ExceptionFilter's frame, which a
+// stack overflow reaches on the last of the stack.
+#ifdef _MSC_VER
+#define SYS_NOINLINE __declspec(noinline)
+#else
+#define SYS_NOINLINE __attribute__((noinline))
+#endif
+
+/*
+==================
+ReportException
+
+Turn anything but a breakpoint into an ERR_DROP that names the fault and
+where it was raised.
+==================
+*/
+static SYS_NOINLINE LONG ReportException( DWORD code, byte *addr )
+{
+	RestoreDesktop();
+
+	if ( code != EXCEPTION_BREAKPOINT )
 	{
 		char msg[128], name[MAX_OSPATH];
 		const char *basename;
 		HMODULE hModule, hKernel32;
-		byte *addr;
 
 		hModule = NULL;
 		name[0] = '\0';
 		basename = name;
-		addr = (byte*)ExceptionInfo->ExceptionRecord->ExceptionAddress;
 
 		hKernel32 = GetModuleHandleA( "kernel32" );
 		if ( hKernel32 != NULL ) {
@@ -1020,18 +1041,97 @@ static LONG WINAPI ExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo )
 
 		if ( basename && *basename ) {
 			Com_sprintf( msg, sizeof( msg ), "Exception Code: %s\nException Address: %s@%x",
-				GetExceptionName( ExceptionInfo->ExceptionRecord->ExceptionCode ),
-				basename, (uint32_t)(addr - (byte*)hModule) );
+				GetExceptionName( code ), basename, (uint32_t)(addr - (byte*)hModule) );
 		} else {
 			Com_sprintf( msg, sizeof( msg ), "Exception Code: %s\nException Address: %p",
-				GetExceptionName( ExceptionInfo->ExceptionRecord->ExceptionCode ),
-				addr );
+				GetExceptionName( code ), addr );
 		}
 
 		Com_Error( ERR_DROP, "Unhandled exception caught\n%s", msg );
 	}
 
 	return EXCEPTION_EXECUTE_HANDLER;
+}
+
+
+// The stack the main thread keeps back for leaving the frame after a stack
+// overflow (see ExceptionFilter): that takes the exception's dispatch and the
+// unwind of every frame between the fault and the abort point, destructors of
+// C++ objects in them included. Windows keeps one page unless a thread asks
+// for more.
+#define SYS_OVERFLOW_RESERVE ( 32 * 1024 )
+
+static DWORD sys_mainThread;
+static byte *sys_overflowAddress;
+
+/*
+==================
+ReportStackOverflow
+
+Runs at the frame's abort point, once ExceptionFilter has left the frame of a
+stack overflow.
+==================
+*/
+static void ReportStackOverflow( void )
+{
+	// The overflow used up the stack's guard page. It can only go back now
+	// that the stack is unwound, and without it a later overflow would end
+	// the process.
+	if ( !_resetstkoflw() ) {
+		Com_Printf( S_COLOR_YELLOW "WARNING: the stack's guard page could not be restored, "
+			"so another stack overflow will end the process\n" );
+	}
+
+	ReportException( EXCEPTION_STACK_OVERFLOW, sys_overflowAddress );
+}
+
+
+/*
+==================
+ExceptionFilter
+
+A stack overflow leaves its thread only a small reserve of stack, and
+ReportException needs far more: Com_sprintf alone takes 32 KB, so the report
+used to fault again in its stack probe, and that second fault ended the
+process. On the main thread the filter therefore only notes where the
+overflow was raised and leaves the frame, and ReportStackOverflow reports it
+from the frame's abort point, where the stack is whole again. The filter's
+own frame is kept small for the same reason.
+==================
+*/
+static LONG WINAPI ExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo )
+{
+	const EXCEPTION_RECORD *record = ExceptionInfo->ExceptionRecord;
+
+	if ( record->ExceptionCode == EXCEPTION_STACK_OVERFLOW ) {
+		if ( GetCurrentThreadId() == sys_mainThread ) {
+			sys_overflowAddress = (byte *)record->ExceptionAddress;
+			Com_ErrorAfterUnwind( ReportStackOverflow );
+		}
+
+		// Another thread has no abort point to unwind to, and no stack for a
+		// report: put the desktop back and let Windows end the process with
+		// the overflow's own code.
+		RestoreDesktop();
+		return EXCEPTION_CONTINUE_SEARCH;
+	}
+
+	return ReportException( record->ExceptionCode, (byte *)record->ExceptionAddress );
+}
+
+
+/*
+==================
+InstallExceptionFilter
+==================
+*/
+static void InstallExceptionFilter( void )
+{
+	ULONG reserve = SYS_OVERFLOW_RESERVE;
+
+	sys_mainThread = GetCurrentThreadId();
+	SetThreadStackGuarantee( &reserve );
+	SetUnhandledExceptionFilter( ExceptionFilter );
 }
 
 
@@ -1079,7 +1179,7 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	// no abort/retry/fail errors
 	SetErrorMode( SEM_FAILCRITICALERRORS );
 
-	SetUnhandledExceptionFilter( ExceptionFilter );
+	InstallExceptionFilter();
 
 #ifndef DEDICATED
 	// before any startup sound can reach a device
