@@ -1,0 +1,1181 @@
+{
+ "record": "2026-09-28-aas-portal-reachability-index.md",
+ "date": "2026-09-28",
+ "change": {
+  "file": "code/botlib/be_aas_sample.cpp",
+  "function": "AAS_PointReachabilityAreaIndex",
+  "before": "cluster = aasworld.portals[-cluster].frontcluster; areanum = aasworld.portals[-cluster].clusterareanum[0]; -- the second read goes through the front cluster just assigned, portals[-frontcluster]",
+  "after": "const int portalnum = -cluster; cluster = aasworld.portals[portalnum].frontcluster; areanum = aasworld.portals[portalnum].clusterareanum[0];",
+  "foundBy": "the navigation loaders' index-check work of 2026-09-28 (2026-09-28-aas-index-checks.md, \"Found along the way\")",
+  "loaderChecks": "code/botlib/aas_index_checks.hpp (c8d3bbb, landed just before this change) refuses a file unless an area whose cluster is negative is the area of the portal it names (-cluster below numportals), every portal's clusters are inside the cluster table, and each portal's number in each cluster it joins is one of that cluster's numbers; with it, every read the portal branch makes for an accepted file is inside a table. This change adds no check."
+ },
+ "profilesReachingTheFunction": [
+  "q3",
+  "ql"
+ ],
+ "profilesRefusingTheImport": {
+  "rtcw-sp": "ordinal 578: SV_RTCWGameSharedCall has no mapping, ERR_DROP \"Unsupported rtcw-sp game import 578 (BOTLIB_AAS_POINT_REACHABILITY_AREA_INDEX)\"; RTCW's released sv_game.c has no case",
+  "rtcw-mp": "ordinal 578: as rtcw-sp",
+  "wolfet": "ordinal 578: SV_WolfETGameCall default, ERR_DROP \"Unsupported WolfET game import 578\"; ET's released sv_game.c has no case",
+  "stvef-mp": "no ordinal: Holomatch's game imports end at 572; SV_STVEFGameCall answers \"Bad game system trap\"",
+  "jka-mp": "ordinal 577: SV_JKAGameCall has no case, ERR_DROP \"Jedi Academy game import ... is not served yet\"",
+  "jk2-mp": "no table: SV_JK2GameCall serves only named numbers, ERR_DROP \"Jedi Outcast game import 577 is not served yet\""
+ },
+ "profilesWithoutTheImport": {
+  "q3-ihv": "GetGameAPI import table (SV_IHVGameEntry), no navigation query",
+  "q3test": "GetGameAPI import table (SV_Q3TestGameEntry), no navigation query",
+  "stvef-sp": "GetGameAPI import table (SV_STVEFSPGameEntry), no navigation query",
+  "alice": "GetGameAPI import table, no bot library",
+  "fakk2": "as alice",
+  "mohaa": "GetGameAPI import table, no bot library",
+  "jka-sp": "no game module runs (ERR_DROP \"jka-sp is not implemented\")",
+  "jk2-sp": "no game module runs (jk2gamex86.dll's GetGameAPI table is unwritten)"
+ },
+ "engineRoutes": {
+  "q3": "code/server/sv_game.cpp SV_GameSystemCalls case BOTLIB_AAS_POINT_REACHABILITY_AREA_INDEX (577) -> botlib_export->aas.AAS_PointReachabilityAreaIndex",
+  "ql": "native import slot 68 (QL_BIND G_QL_IMPORT_BOTLIB_AAS_POINT_REACHABILITY_AREA_INDEX) and fnTech3's compatibility slot G_QL_IMPORT_COMPAT_BASE + 577 (784), both QL_G_trap_AAS_PointReachabilityAreaIndex -> the same case",
+  "internalCallers": "none: the function is reached only through aas_export_t (be_interface.cpp Init_AAS_Export)"
+ },
+ "retailEngines": {
+  "observed": "both retail engines that export the function to modules carry id's read of portals[-frontcluster]",
+  "quake3.exe": {
+   "path": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\\quake3.exe",
+   "bytes": 909312,
+   "sha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+   "timeDateStamp": "0x3da1eb35 (2002-10-07)",
+   "GetBotLibAPI": "0x00487a80 (references \"Mismatched BOTLIB_API_VERSION\" at 0x004d4084)",
+   "Init_AAS_Export": "0x00487b70; slot +0x10 AAS_PointAreaNum 0x004a9470, slot +0x14 AAS_PointReachabilityAreaIndex 0x004a94f0",
+   "portalBranch": "0x004a955f lea ecx,[eax+eax*4]; shl ecx,2; mov ecx,[0x00c68e54] (portals); sub; mov eax,[eax+4] (frontcluster); 0x004a9574 lea edx,[eax+eax*4]; shl edx,2; sub ecx,edx; 0x004a957c mov esi,[ecx+0xc] (portals[-frontcluster].clusterareanum[0])"
+  },
+  "quakelive_steam.exe": {
+   "path": "E:\\SteamLibrary\\steamapps\\common\\Quake Live\\quakelive_steam.exe",
+   "bytes": 2107904,
+   "sha256": "c926fe9f6c851e00b3b9332e88903ad01f28fdd60454873891c0158f5ded1299",
+   "timeDateStamp": "0x5751f20b (2016-06-03)",
+   "GetBotLibAPI": "0x004a83c0 (references \"Mismatched BOTLIB_API_VERSION\" at 0x0053c2c4)",
+   "Init_AAS_Export": "0x004a7fc0; slot +0x10 0x004954b0, slot +0x14 0x00495540",
+   "portalBranch": "0x004955f1 mov eax,[0x016de974] (portals); edx = cluster*20; ecx = portals - edx; 0x00495601 mov edx,[ecx+4] (frontcluster); ecx = frontcluster*20; sub eax,ecx; 0x0049560d mov eax,[eax+0xc] (portals[-frontcluster].clusterareanum[0])"
+  },
+  "readOffset": "for front cluster k the old read is 20k - 12 bytes before the portal table",
+  "inferred": "each lump is a hunk block behind a four-byte tag (id's l_memory.c, kept in code/botlib/l_memory.cpp), so for k = 1 the word read is the one below the tag; what either retail engine returns for a portal area was not measured"
+ },
+ "idSource": {
+  "reference": "Quake III Arena GPL source, code/botlib/be_aas_sample.c AAS_PointReachabilityAreaIndex: the same two lines",
+  "gameUses": "all commented out in the 1.32 game source: g_cmds.c Cmd_Stats_f (level coverage, whole body), g_active.c ClientEndFrame (area bits), g_client.c ClientConnect (their allocation from the NULL count)"
+ },
+ "qlsrp": {
+  "commit": "13df7762",
+  "observation": "reconstructed ai_dmq3.c calls trap_AAS_PointReachabilityAreaIndex with a point at lines 3219 and 5713 and passes the result to trap_AAS_AreaTravelTimeToGoalArea as an area number; retail qagamex86.dll never reads import slot 68",
+  "use": "reference observation only"
+ },
+ "moduleScan": {
+  "script": "scripts/scan_game_import_calls.py",
+  "method": {
+   "qvm": "the code segment decoded from its first instruction; CONST -(N+1) followed by CALL is a call of import N; every CONST of -(N+1) counted besides",
+   "syscall": "Capstone over every executable section; each call through the pointer dllEntry stores ([esp+4]) or a register loaded from it, N from the push before it; every push N counted besides",
+   "table": "Capstone over every executable section; each load of the table pointer dllEntry stores ([esp+8]) followed through the slots it reads until the register changes (a direct jmp into a shared tail followed); every read of slot N's offset through any register traced to the instruction that last set that register"
+  },
+  "import": "BOTLIB_AAS_POINT_REACHABILITY_AREA_INDEX",
+  "ordinals": {
+   "q3": 577,
+   "ql": 68,
+   "rtcw-sp": 578,
+   "rtcw-mp": 578,
+   "stvef-sp": null,
+   "stvef-mp": null,
+   "wolfet": 578,
+   "jka-mp": 577,
+   "jk2-mp": 577
+  },
+  "jk2Ordinal": "Quake III's",
+  "modules": [
+   {
+    "profile": "q3",
+    "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+    "module": "baseq3/pak0.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 366480,
+    "sha256": "73d07e341bd21bff3e7ec2c961ea9cafe7ff9150e0ddcc5d8055757edece0f72",
+    "instructions": 115028,
+    "codeBytes": 342004,
+    "decodedBytes": 342002,
+    "ordinal": 577,
+    "callSites": 1122,
+    "distinctImports": 141,
+    "highestImport": 572,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "q3",
+    "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+    "module": "baseq3/pak1.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 390360,
+    "sha256": "b477f6e5a2bcd8d79287517749ca6931b1e87464c50c1737c0d840fa5168fc98",
+    "instructions": 122342,
+    "codeBytes": 364108,
+    "decodedBytes": 364105,
+    "ordinal": 577,
+    "callSites": 1196,
+    "distinctImports": 143,
+    "highestImport": 572,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "q3",
+    "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+    "module": "baseq3/pak2.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 392100,
+    "sha256": "afc82d750ab836a89233888abadf7663f9516093a679ba0decde6f996aafec1d",
+    "instructions": 122876,
+    "codeBytes": 365756,
+    "decodedBytes": 365753,
+    "ordinal": 577,
+    "callSites": 1197,
+    "distinctImports": 143,
+    "highestImport": 572,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "q3",
+    "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+    "module": "baseq3/pak3.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 392100,
+    "sha256": "76e79b92e6e42552c2dcf7b4282798b1f510cc224bfb5393f79ef4db45ae922a",
+    "instructions": 122876,
+    "codeBytes": 365756,
+    "decodedBytes": 365753,
+    "ordinal": 577,
+    "callSites": 1197,
+    "distinctImports": 143,
+    "highestImport": 572,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "q3",
+    "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+    "module": "baseq3/pak4.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 466364,
+    "sha256": "805ee6255382a7821c438aaa5a330ca88184ebcd44277629e6308d13a5e473e5",
+    "instructions": 146090,
+    "codeBytes": 435116,
+    "decodedBytes": 435115,
+    "ordinal": 577,
+    "callSites": 1172,
+    "distinctImports": 155,
+    "highestImport": 576,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "q3",
+    "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+    "module": "baseq3/pak6.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 469392,
+    "sha256": "961a2e2fa713c139f32de270dde81420cd33aa639d0eb79f41ec3b72ee52e82b",
+    "instructions": 146566,
+    "codeBytes": 436500,
+    "decodedBytes": 436497,
+    "ordinal": 577,
+    "callSites": 1175,
+    "distinctImports": 155,
+    "highestImport": 576,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "q3",
+    "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+    "module": "baseq3/pak7.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 469392,
+    "sha256": "407b8ec38e6347cf186d31a51629a9cd8da5d5c19bc4b5d1a489672e2a275666",
+    "instructions": 146566,
+    "codeBytes": 436500,
+    "decodedBytes": 436497,
+    "ordinal": 577,
+    "callSites": 1175,
+    "distinctImports": 155,
+    "highestImport": 576,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "q3",
+    "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+    "module": "baseq3/pak8.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 469796,
+    "sha256": "57c52bf22e4f528c064f8af1553a7103723bab0a02276bb11eed944bf829b219",
+    "instructions": 146672,
+    "codeBytes": 436836,
+    "decodedBytes": 436835,
+    "ordinal": 577,
+    "callSites": 1175,
+    "distinctImports": 155,
+    "highestImport": 576,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "q3",
+    "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+    "module": "missionpack/pak0.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 547700,
+    "sha256": "da041f17f296feeaf8269eabc9062cefdecddfd24ff4d84eb291902e527d1d8a",
+    "instructions": 171578,
+    "codeBytes": 511244,
+    "decodedBytes": 511241,
+    "ordinal": 577,
+    "callSites": 1282,
+    "distinctImports": 157,
+    "highestImport": 576,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "q3",
+    "installation": "E:\\Games\\Quake III Arena",
+    "module": "baseq3/pak0.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 366480,
+    "sha256": "73d07e341bd21bff3e7ec2c961ea9cafe7ff9150e0ddcc5d8055757edece0f72",
+    "instructions": 115028,
+    "codeBytes": 342004,
+    "decodedBytes": 342002,
+    "ordinal": 577,
+    "callSites": 1122,
+    "distinctImports": 141,
+    "highestImport": 572,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "q3",
+    "installation": "E:\\Games\\Quake III Arena",
+    "module": "baseq3/pak1.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 390360,
+    "sha256": "b477f6e5a2bcd8d79287517749ca6931b1e87464c50c1737c0d840fa5168fc98",
+    "instructions": 122342,
+    "codeBytes": 364108,
+    "decodedBytes": 364105,
+    "ordinal": 577,
+    "callSites": 1196,
+    "distinctImports": 143,
+    "highestImport": 572,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "q3",
+    "installation": "E:\\Games\\Quake III Arena",
+    "module": "baseq3/pak2.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 392100,
+    "sha256": "afc82d750ab836a89233888abadf7663f9516093a679ba0decde6f996aafec1d",
+    "instructions": 122876,
+    "codeBytes": 365756,
+    "decodedBytes": 365753,
+    "ordinal": 577,
+    "callSites": 1197,
+    "distinctImports": 143,
+    "highestImport": 572,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "q3",
+    "installation": "E:\\Games\\Quake III Arena",
+    "module": "baseq3/pak3.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 392100,
+    "sha256": "76e79b92e6e42552c2dcf7b4282798b1f510cc224bfb5393f79ef4db45ae922a",
+    "instructions": 122876,
+    "codeBytes": 365756,
+    "decodedBytes": 365753,
+    "ordinal": 577,
+    "callSites": 1197,
+    "distinctImports": 143,
+    "highestImport": 572,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "q3",
+    "installation": "E:\\Games\\Quake III Arena",
+    "module": "baseq3/pak4.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 466364,
+    "sha256": "805ee6255382a7821c438aaa5a330ca88184ebcd44277629e6308d13a5e473e5",
+    "instructions": 146090,
+    "codeBytes": 435116,
+    "decodedBytes": 435115,
+    "ordinal": 577,
+    "callSites": 1172,
+    "distinctImports": 155,
+    "highestImport": 576,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "q3",
+    "installation": "E:\\Games\\Quake III Arena",
+    "module": "baseq3/pak6.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 469392,
+    "sha256": "961a2e2fa713c139f32de270dde81420cd33aa639d0eb79f41ec3b72ee52e82b",
+    "instructions": 146566,
+    "codeBytes": 436500,
+    "decodedBytes": 436497,
+    "ordinal": 577,
+    "callSites": 1175,
+    "distinctImports": 155,
+    "highestImport": 576,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "q3",
+    "installation": "E:\\Games\\Quake III Arena",
+    "module": "baseq3/pak7.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 469392,
+    "sha256": "407b8ec38e6347cf186d31a51629a9cd8da5d5c19bc4b5d1a489672e2a275666",
+    "instructions": 146566,
+    "codeBytes": 436500,
+    "decodedBytes": 436497,
+    "ordinal": 577,
+    "callSites": 1175,
+    "distinctImports": 155,
+    "highestImport": 576,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "q3",
+    "installation": "E:\\Games\\Quake III Arena",
+    "module": "baseq3/pak8.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 469796,
+    "sha256": "57c52bf22e4f528c064f8af1553a7103723bab0a02276bb11eed944bf829b219",
+    "instructions": 146672,
+    "codeBytes": 436836,
+    "decodedBytes": 436835,
+    "ordinal": 577,
+    "callSites": 1175,
+    "distinctImports": 155,
+    "highestImport": 576,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "q3",
+    "installation": "E:\\Games\\Quake III Arena",
+    "module": "missionpack/pak0.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 547700,
+    "sha256": "da041f17f296feeaf8269eabc9062cefdecddfd24ff4d84eb291902e527d1d8a",
+    "instructions": 171578,
+    "codeBytes": 511244,
+    "decodedBytes": 511241,
+    "ordinal": 577,
+    "callSites": 1282,
+    "distinctImports": 157,
+    "highestImport": 576,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "q3",
+    "installation": "E:\\Games\\Quake III Arena",
+    "module": "missionpack/pak1.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 551340,
+    "sha256": "0fe0f3e30104a272a6d1771ea69120ddd225f238d36215541b3e15878a2b66e6",
+    "instructions": 172247,
+    "codeBytes": 513236,
+    "decodedBytes": 513236,
+    "ordinal": 577,
+    "callSites": 1285,
+    "distinctImports": 157,
+    "highestImport": 576,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "q3",
+    "installation": "E:\\Games\\Quake III Arena",
+    "module": "missionpack/pak2.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 551340,
+    "sha256": "f440e7014b3987c08cafa8435533f4b750c7274dbbc836f996a437a17a7dfff7",
+    "instructions": 172247,
+    "codeBytes": 513236,
+    "decodedBytes": 513236,
+    "ordinal": 577,
+    "callSites": 1285,
+    "distinctImports": 157,
+    "highestImport": 576,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "q3",
+    "installation": "E:\\Games\\Quake III Arena",
+    "module": "missionpack/pak3.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 551776,
+    "sha256": "48435ea5770eaee8457c1fa7057b6efdfd919aa7e66b05bb0657574467d4f183",
+    "instructions": 172353,
+    "codeBytes": 513576,
+    "decodedBytes": 513574,
+    "ordinal": 577,
+    "callSites": 1285,
+    "distinctImports": 157,
+    "highestImport": 576,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "ql",
+    "installation": "E:\\SteamLibrary\\steamapps\\common\\Quake Live",
+    "module": "baseq3/qagamex86.dll",
+    "kind": "table",
+    "bytes": 640512,
+    "sha256": "9bfad1b5df4cbbb3fcfb20781024fc5c0abe73ba8389c2f20be8c0a55552e83d",
+    "timeDateStamp": "0x5751f224",
+    "imageBase": "0x10000000",
+    "pointer": "[0x104b13ac]",
+    "pointerLoads": 2193,
+    "instructions": 144349,
+    "ordinal": 68,
+    "callSites": 2198,
+    "distinctImports": 165,
+    "highestImport": 206,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "slotOffsetReads": {
+     "fromTable": 0,
+     "other": 4
+    }
+   },
+   {
+    "profile": "rtcw-sp",
+    "installation": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+    "module": "qagamex86.dll",
+    "kind": "syscall",
+    "bytes": 704512,
+    "sha256": "085346769622cbf19c085accd055bf8b59f3c773aca503711ea0f95e5288e7d1",
+    "timeDateStamp": "0x3cd036b1",
+    "imageBase": "0x20000000",
+    "pointer": "[0x2009a340]",
+    "instructions": 157921,
+    "ordinal": 578,
+    "callSites": 185,
+    "distinctImports": 185,
+    "highestImport": 583,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "pushesOfImport": 0
+   },
+   {
+    "profile": "rtcw-mp",
+    "installation": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+    "module": "Main/qagame_mp_x86.dll",
+    "kind": "syscall",
+    "bytes": 700416,
+    "sha256": "d8975b5c4e14488283c5eca7d549005304b04f1690705c13c174a171cc24c387",
+    "timeDateStamp": "0x3dd2b4ce",
+    "imageBase": "0x20000000",
+    "pointer": "[0x20089500]",
+    "instructions": 144745,
+    "ordinal": 578,
+    "callSites": 143,
+    "distinctImports": 143,
+    "highestImport": 573,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "pushesOfImport": 0
+   },
+   {
+    "profile": "wolfet",
+    "installation": "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+    "module": "etmain/qagame_mp_x86.dll",
+    "kind": "syscall",
+    "bytes": 880640,
+    "sha256": "160a6218397865ad61071faa6316053713c03b9be80e5d05c7a5be2cab7f630b",
+    "timeDateStamp": "0x4230a420",
+    "imageBase": "0x20000000",
+    "pointer": "[0x200b4394]",
+    "instructions": 191310,
+    "ordinal": 578,
+    "callSites": 122,
+    "distinctImports": 120,
+    "highestImport": 584,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "pushesOfImport": 0
+   },
+   {
+    "profile": "stvef-mp",
+    "installation": "E:\\Games\\Star Trek Voyager Elite Force",
+    "module": "BaseEF/pak0.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 475516,
+    "sha256": "38b288fa0afe542d9f2f0e16b336ddbf44706d091febc38732df94f48be73098",
+    "instructions": 149568,
+    "codeBytes": 444000,
+    "decodedBytes": 443998,
+    "ordinal": null,
+    "callSites": 1306,
+    "distinctImports": 144,
+    "highestImport": 572,
+    "unresolved": [],
+    "callsToImport": null,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "stvef-mp",
+    "installation": "E:\\Games\\Star Trek Voyager Elite Force",
+    "module": "BaseEF/pak1.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 475516,
+    "sha256": "a3a9e0839e54ab346f12c2cd1d5369b69b162b2d45277adccb521795bb9342f3",
+    "instructions": 149568,
+    "codeBytes": 444000,
+    "decodedBytes": 443998,
+    "ordinal": null,
+    "callSites": 1306,
+    "distinctImports": 144,
+    "highestImport": 572,
+    "unresolved": [],
+    "callsToImport": null,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "stvef-mp",
+    "installation": "E:\\Games\\Star Trek Voyager Elite Force",
+    "module": "BaseEF/pak2.pk3:vm/qagame.qvm",
+    "kind": "qvm",
+    "bytes": 558968,
+    "sha256": "8e6b83ee28f461632358bed1988b05feedd2679d11027dd21c112060212685e5",
+    "instructions": 174204,
+    "codeBytes": 517268,
+    "decodedBytes": 517265,
+    "ordinal": null,
+    "callSites": 1439,
+    "distinctImports": 145,
+    "highestImport": 572,
+    "unresolved": [],
+    "callsToImport": null,
+    "sites": [],
+    "constantsOfImport": 0
+   },
+   {
+    "profile": "jka-mp",
+    "installation": "E:\\Games\\Jedi Academy",
+    "module": "base/assets2.pk3:jampgamex86.dll",
+    "kind": "syscall",
+    "bytes": 1171456,
+    "sha256": "ffbe443b0ac7c19d2c8c5fd8f4249d29fb5d765633892aa90c49a71a244e9822",
+    "timeDateStamp": "0x3f1d7c3a",
+    "imageBase": "0x20000000",
+    "pointer": "[0x20106a28]",
+    "instructions": 272812,
+    "ordinal": 577,
+    "callSites": 149,
+    "distinctImports": 149,
+    "highestImport": 633,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "pushesOfImport": 0
+   },
+   {
+    "profile": "jka-mp",
+    "installation": "E:\\Games\\Jedi Academy",
+    "module": "base/assets3.pk3:jampgamex86.dll",
+    "kind": "syscall",
+    "bytes": 1200128,
+    "sha256": "b9e5ad492d35a3ec2fc7f6933df42ce9d3b05d3ec437e3bf12243a5d0d690850",
+    "timeDateStamp": "0x3faa87cf",
+    "imageBase": "0x20000000",
+    "pointer": "[0x2010cbf0]",
+    "instructions": 278652,
+    "ordinal": 577,
+    "callSites": 150,
+    "distinctImports": 150,
+    "highestImport": 634,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "pushesOfImport": 0
+   },
+   {
+    "profile": "jk2-mp",
+    "installation": "E:\\Games\\Jedi Outcast",
+    "module": "base/assets0.pk3:vm/jk2mpgame.qvm",
+    "kind": "qvm",
+    "bytes": 826812,
+    "sha256": "4810670f4f6ec3890d510e294dfd9fd4fb7f692b8d415b496aa132a0a79dc105",
+    "instructions": 249138,
+    "codeBytes": 742648,
+    "decodedBytes": 742648,
+    "ordinal": 577,
+    "callSites": 917,
+    "distinctImports": 97,
+    "highestImport": 599,
+    "unresolved": [],
+    "callsToImport": 0,
+    "sites": [],
+    "constantsOfImport": 0
+   }
+  ],
+  "result": "no retail game module calls BOTLIB_AAS_POINT_REACHABILITY_AREA_INDEX; every call site found had a readable number"
+ },
+ "positiveControl": {
+  "import": "BOTLIB_AAS_POINT_AREA_NUM",
+  "ordinals": {
+   "q3": 307,
+   "ql": 67,
+   "rtcw-sp": 308,
+   "rtcw-mp": 308,
+   "stvef-sp": null,
+   "stvef-mp": 307,
+   "wolfet": 308,
+   "jka-mp": 307,
+   "jk2-mp": 307
+  },
+  "modules": [
+   {
+    "profile": "q3",
+    "module": "baseq3/pak0.pk3:vm/qagame.qvm",
+    "sha256": "73d07e341bd21bff3e7ec2c961ea9cafe7ff9150e0ddcc5d8055757edece0f72",
+    "callsToImport": 1,
+    "sites": [
+     37288
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "q3",
+    "module": "baseq3/pak1.pk3:vm/qagame.qvm",
+    "sha256": "b477f6e5a2bcd8d79287517749ca6931b1e87464c50c1737c0d840fa5168fc98",
+    "callsToImport": 1,
+    "sites": [
+     38038
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "q3",
+    "module": "baseq3/pak2.pk3:vm/qagame.qvm",
+    "sha256": "afc82d750ab836a89233888abadf7663f9516093a679ba0decde6f996aafec1d",
+    "callsToImport": 1,
+    "sites": [
+     38446
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "q3",
+    "module": "baseq3/pak3.pk3:vm/qagame.qvm",
+    "sha256": "76e79b92e6e42552c2dcf7b4282798b1f510cc224bfb5393f79ef4db45ae922a",
+    "callsToImport": 1,
+    "sites": [
+     38446
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "q3",
+    "module": "baseq3/pak4.pk3:vm/qagame.qvm",
+    "sha256": "805ee6255382a7821c438aaa5a330ca88184ebcd44277629e6308d13a5e473e5",
+    "callsToImport": 1,
+    "sites": [
+     44168
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "q3",
+    "module": "baseq3/pak6.pk3:vm/qagame.qvm",
+    "sha256": "961a2e2fa713c139f32de270dde81420cd33aa639d0eb79f41ec3b72ee52e82b",
+    "callsToImport": 1,
+    "sites": [
+     44310
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "q3",
+    "module": "baseq3/pak7.pk3:vm/qagame.qvm",
+    "sha256": "407b8ec38e6347cf186d31a51629a9cd8da5d5c19bc4b5d1a489672e2a275666",
+    "callsToImport": 1,
+    "sites": [
+     44310
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "q3",
+    "module": "baseq3/pak8.pk3:vm/qagame.qvm",
+    "sha256": "57c52bf22e4f528c064f8af1553a7103723bab0a02276bb11eed944bf829b219",
+    "callsToImport": 1,
+    "sites": [
+     33653
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "q3",
+    "module": "missionpack/pak0.pk3:vm/qagame.qvm",
+    "sha256": "da041f17f296feeaf8269eabc9062cefdecddfd24ff4d84eb291902e527d1d8a",
+    "callsToImport": 1,
+    "sites": [
+     49054
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "q3",
+    "module": "baseq3/pak0.pk3:vm/qagame.qvm",
+    "sha256": "73d07e341bd21bff3e7ec2c961ea9cafe7ff9150e0ddcc5d8055757edece0f72",
+    "callsToImport": 1,
+    "sites": [
+     37288
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "q3",
+    "module": "baseq3/pak1.pk3:vm/qagame.qvm",
+    "sha256": "b477f6e5a2bcd8d79287517749ca6931b1e87464c50c1737c0d840fa5168fc98",
+    "callsToImport": 1,
+    "sites": [
+     38038
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "q3",
+    "module": "baseq3/pak2.pk3:vm/qagame.qvm",
+    "sha256": "afc82d750ab836a89233888abadf7663f9516093a679ba0decde6f996aafec1d",
+    "callsToImport": 1,
+    "sites": [
+     38446
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "q3",
+    "module": "baseq3/pak3.pk3:vm/qagame.qvm",
+    "sha256": "76e79b92e6e42552c2dcf7b4282798b1f510cc224bfb5393f79ef4db45ae922a",
+    "callsToImport": 1,
+    "sites": [
+     38446
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "q3",
+    "module": "baseq3/pak4.pk3:vm/qagame.qvm",
+    "sha256": "805ee6255382a7821c438aaa5a330ca88184ebcd44277629e6308d13a5e473e5",
+    "callsToImport": 1,
+    "sites": [
+     44168
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "q3",
+    "module": "baseq3/pak6.pk3:vm/qagame.qvm",
+    "sha256": "961a2e2fa713c139f32de270dde81420cd33aa639d0eb79f41ec3b72ee52e82b",
+    "callsToImport": 1,
+    "sites": [
+     44310
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "q3",
+    "module": "baseq3/pak7.pk3:vm/qagame.qvm",
+    "sha256": "407b8ec38e6347cf186d31a51629a9cd8da5d5c19bc4b5d1a489672e2a275666",
+    "callsToImport": 1,
+    "sites": [
+     44310
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "q3",
+    "module": "baseq3/pak8.pk3:vm/qagame.qvm",
+    "sha256": "57c52bf22e4f528c064f8af1553a7103723bab0a02276bb11eed944bf829b219",
+    "callsToImport": 1,
+    "sites": [
+     33653
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "q3",
+    "module": "missionpack/pak0.pk3:vm/qagame.qvm",
+    "sha256": "da041f17f296feeaf8269eabc9062cefdecddfd24ff4d84eb291902e527d1d8a",
+    "callsToImport": 1,
+    "sites": [
+     49054
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "q3",
+    "module": "missionpack/pak1.pk3:vm/qagame.qvm",
+    "sha256": "0fe0f3e30104a272a6d1771ea69120ddd225f238d36215541b3e15878a2b66e6",
+    "callsToImport": 1,
+    "sites": [
+     49199
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "q3",
+    "module": "missionpack/pak2.pk3:vm/qagame.qvm",
+    "sha256": "f440e7014b3987c08cafa8435533f4b750c7274dbbc836f996a437a17a7dfff7",
+    "callsToImport": 1,
+    "sites": [
+     49199
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "q3",
+    "module": "missionpack/pak3.pk3:vm/qagame.qvm",
+    "sha256": "48435ea5770eaee8457c1fa7057b6efdfd919aa7e66b05bb0657574467d4f183",
+    "callsToImport": 1,
+    "sites": [
+     38647
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "ql",
+    "module": "baseq3/qagamex86.dll",
+    "sha256": "9bfad1b5df4cbbb3fcfb20781024fc5c0abe73ba8389c2f20be8c0a55552e83d",
+    "callsToImport": 5,
+    "sites": [
+     "0x10015a53",
+     "0x1001fcfe",
+     "0x1002050d",
+     "0x1002235a",
+     "0x100254ee"
+    ],
+    "slotOffsetReads": {
+     "fromTable": 5,
+     "other": 20
+    },
+    "pushesOfImport": null,
+    "constantsOfImport": null
+   },
+   {
+    "profile": "rtcw-sp",
+    "module": "qagamex86.dll",
+    "sha256": "085346769622cbf19c085accd055bf8b59f3c773aca503711ea0f95e5288e7d1",
+    "callsToImport": 1,
+    "sites": [
+     "0x20063d5a"
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": 1,
+    "constantsOfImport": null
+   },
+   {
+    "profile": "rtcw-mp",
+    "module": "Main/qagame_mp_x86.dll",
+    "sha256": "d8975b5c4e14488283c5eca7d549005304b04f1690705c13c174a171cc24c387",
+    "callsToImport": 1,
+    "sites": [
+     "0x2005b9ca"
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": 1,
+    "constantsOfImport": null
+   },
+   {
+    "profile": "wolfet",
+    "module": "etmain/qagame_mp_x86.dll",
+    "sha256": "160a6218397865ad61071faa6316053713c03b9be80e5d05c7a5be2cab7f630b",
+    "callsToImport": 1,
+    "sites": [
+     "0x200769ea"
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": 1,
+    "constantsOfImport": null
+   },
+   {
+    "profile": "stvef-mp",
+    "module": "BaseEF/pak0.pk3:vm/qagame.qvm",
+    "sha256": "38b288fa0afe542d9f2f0e16b336ddbf44706d091febc38732df94f48be73098",
+    "callsToImport": 1,
+    "sites": [
+     40644
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "stvef-mp",
+    "module": "BaseEF/pak1.pk3:vm/qagame.qvm",
+    "sha256": "a3a9e0839e54ab346f12c2cd1d5369b69b162b2d45277adccb521795bb9342f3",
+    "callsToImport": 1,
+    "sites": [
+     40644
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "stvef-mp",
+    "module": "BaseEF/pak2.pk3:vm/qagame.qvm",
+    "sha256": "8e6b83ee28f461632358bed1988b05feedd2679d11027dd21c112060212685e5",
+    "callsToImport": 1,
+    "sites": [
+     42593
+    ],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 1
+   },
+   {
+    "profile": "jka-mp",
+    "module": "base/assets2.pk3:jampgamex86.dll",
+    "sha256": "ffbe443b0ac7c19d2c8c5fd8f4249d29fb5d765633892aa90c49a71a244e9822",
+    "callsToImport": 0,
+    "sites": [],
+    "slotOffsetReads": null,
+    "pushesOfImport": 0,
+    "constantsOfImport": null
+   },
+   {
+    "profile": "jka-mp",
+    "module": "base/assets3.pk3:jampgamex86.dll",
+    "sha256": "b9e5ad492d35a3ec2fc7f6933df42ce9d3b05d3ec437e3bf12243a5d0d690850",
+    "callsToImport": 0,
+    "sites": [],
+    "slotOffsetReads": null,
+    "pushesOfImport": 0,
+    "constantsOfImport": null
+   },
+   {
+    "profile": "jk2-mp",
+    "module": "base/assets0.pk3:vm/jk2mpgame.qvm",
+    "sha256": "4810670f4f6ec3890d510e294dfd9fd4fb7f692b8d415b496aa132a0a79dc105",
+    "callsToImport": 0,
+    "sites": [],
+    "slotOffsetReads": null,
+    "pushesOfImport": null,
+    "constantsOfImport": 0
+   }
+  ],
+  "result": "found in every Quake III, Team Arena and Holomatch QVM, once in each RTCW and Enemy Territory module (the wrapper), five times in Quake Live's (each through the table); in neither Jedi module"
+ },
+ "tests": {
+  "new": {
+   "file": "tests/aas_reachability_index_tests.py",
+   "fixture": "AAS_PointAreaNum and AAS_PointReachabilityAreaIndex sliced from be_aas_sample.cpp and AAS_AreaReachability from be_aas_reach.cpp, compiled with Clang (i686-pc-windows-msvc in the x86 developer shell) against a world of six slabs: clusters 1 and 2 joined by portal 1 (front 1) and portal 2 (front 2), numbered as AAS_NumberClusterAreas numbers them, one area without reachabilities, four poisoned records before the portal table and a decoy number in each portal area's own settings",
+   "expected": {
+    "count": 7,
+    "area1": 0,
+    "area2": 1,
+    "portal1Area3": 2,
+    "area4": 4,
+    "area5NoReachabilities": 0,
+    "portal2Area6": 6,
+    "solid": 0,
+    "uninitialized": 0
+   },
+   "beforeChange": "fails at the first portal assertion; the old code numbers area 3 as 1003 and area 6 as 1006 (the poisoned records' numbers), past the count of 7",
+   "withChange": "passes"
+  },
+  "scanner": {
+   "file": "tests/scan_game_import_calls_tests.py",
+   "checks": "ordinals read from code/game/g_public.h and code/compat/*_module_calls.def (this import: q3 577, ql 68, rtcw-sp 578, rtcw-mp 578, wolfet 578, jka-mp 577, stvef none; BOTLIB_AAS_POINT_AREA_NUM: 307, 67, 308, 307, 308, 307; G_PRINT: q3 0, ql 2); enum rows with comments, explicit, implicit, aliased and unreadable values; a QVM written for the test with ENTER, two syscalls, a call of its own function 40, the import's address pushed without a call, LOCAL and ARG operands, a third syscall and LEAVE: calls {577: [2], 307: [4, 12]}, two constants of the import, the whole code segment decoded; a file that is not a QVM refused",
+   "dependencies": "none beyond Python: the scanner imports Capstone and pefile only to read a native module",
+   "result": "4 passed"
+  },
+  "fixturesSlicingTheFile": [
+   "tests/rtcw_visibility_tests.py",
+   "tests/rtcw_aas_query_tests.py",
+   "tests/rtcw_aas_trace_tests.py",
+   "tests/rtcw_bot_entity_tests.py",
+   "tests/rtcw_entity_collision_tests.py",
+   "tests/rtcw_move_goal_tests.py",
+   "tests/rtcw_navigation_tests.py",
+   "tests/rtcw_prediction_tests.py",
+   "tests/rtcw_routecache_build_tests.py",
+   "tests/rtcw_travel_tests.py"
+  ],
+  "fixturesResult": "none compiles AAS_PointReachabilityAreaIndex; with the new test, 26 passed in the shared tree",
+  "strictCompile": "code/botlib/be_aas_sample.cpp compiled with its meson/build/win32-dev compile_commands.json command (/W4 /WX /permissive- /std:c++17), objects redirected to a scratch folder: no warning",
+  "suite": {
+   "firstExport": {
+    "source": "git archive of 8e8de10 in .tmp/aas-reach-index/export with this change's files (documents in draft), git init and committed inside",
+    "configure": "meson setup meson/build/win32-dev --wrap-mode=nodownload with meson/build/win32-dev's options (debugoptimized, strict warnings, renderers glx,vk,rtx, all ten development options)",
+    "build": "all 1,430 targets built",
+    "mesonTest": "177 fnTech3 tests without fnql_python_source_regressions: 175 passed, 2 skipped, none failed",
+    "pytest": "python -m pytest tests -q: 2,328 passed, 128 skipped, 57,671 subtests passed, none failed (22 min 49 s)"
+   },
+   "secondExport": {
+    "source": "git archive of 484d02d (HEAD at the time) in .tmp/aas-reach-index/export2 with this commit's six files, documents included, git init and committed inside",
+    "configure": "as the first export",
+    "build": "all 1,430 targets built",
+    "mesonTest": "177 fnTech3 tests without fnql_python_source_regressions: 175 passed, 2 skipped, none failed",
+    "pytest": "python -m pytest tests -q: 2,334 passed, 128 skipped, 57,687 subtests passed, none failed (22 min 35 s)"
+   },
+   "thirdExport": {
+    "source": "git archive of c8d3bbb (the loaders' index checks, HEAD when committed) in .tmp/aas-reach-index/export3 with this commit's six files, git init and committed inside",
+    "why": "c8d3bbb touches none of this commit's files, nor q_shared.h, the botlib headers the fixture includes, be_aas_reach.cpp or be_aas_sample.cpp, nor g_public.h or the compat call tables the scanner reads",
+    "tests": "python -m pytest -q over tests/aas_reachability_index_tests.py, tests/scan_game_import_calls_tests.py, the ten fixtures slicing be_aas_sample.cpp, tests/aas_index_checks_tests.py, tests/rtcw_aas_load_tests.py, tests/release_packaging_tests.py, tests/release_workflow_tests.py and tests/generate_docs_tests.py: 112 passed, 1 skipped (release_packaging_tests.py:889, symlink creation needs a privilege this account lacks), 40 subtests passed, none failed; the documents' final wording was then copied in and the two new tests and the three release and docs files passed again"
+   },
+   "fourthExport": {
+    "source": "git archive of 8359956 (the route caches' goal links, HEAD when last verified) in .tmp/aas-reach-index/export4 with this commit's six files, final documents included, git init and committed inside",
+    "why": "8359956 adds three lines to code/botlib/be_aas_def.h, which the fixture includes; it touches none of this commit's files, be_aas_reach.cpp, g_public.h or the compat call tables",
+    "tests": "python -m pytest -q over the third export's set plus tests/aas_goal_links_tests.py, on the final documents: none failed; release_packaging_tests.py:889 skipped as before (symlink privilege)"
+   },
+   "linuxFixture": "the fixture's probe built with -m32 -std=c++17 -O2 -Wall -Wextra by GCC 13.3.0 and Clang 18.1.3 (WSL Ubuntu 24.04): no warning, prints ok, exit 0",
+   "windows64": "tests/aas_reachability_index_tests.py outside the x86 developer shell (default x86_64 target with -DFNTECH3_Q3_ONLY): passed"
+  }
+ },
+ "notEstablished": [
+  "no module that asks about a point was run; the changed numbers are shown by the fixture alone",
+  "what quake3.exe and quakelive_steam.exe return for a portal area was not measured",
+  "the scan reads call sites from code; a run-time import number or a call through a copy of the pointer or table the scan does not follow would be missed",
+  "Jedi Outcast's number for the import is taken to be Quake III's 577",
+  "installed maps were not measured for how many portal areas they hold"
+ ],
+ "identity": {
+  "writtenOn": "8e8de10fd07e2f8953d4a0020c71c27e6884302d",
+  "lastVerifiedOn": "83599566b3b6ea343b940395b9d6958626188ceb",
+  "platform": "Windows 11 Home 10.0.26200, x86; MSVC 14.44 via the Visual Studio 2022 x86 developer shell; Clang 20.1.7 for fixtures; Python 3.11.3 with Capstone 5.0.6 and pefile 2024.8.26; WSL Ubuntu 24.04 GCC 13.3.0 and Clang 18.1.3 for the i686 Linux fixture check",
+  "installations": {
+   "q3": [
+    "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+    "E:\\Games\\Quake III Arena (Team Arena pak1-pak3; its baseq3 and missionpack/pak0 QVMs are byte-identical to Steam's)"
+   ],
+   "ql": "E:\\SteamLibrary\\steamapps\\common\\Quake Live",
+   "rtcw": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+   "wolfet": "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+   "stvef": "E:\\Games\\Star Trek Voyager Elite Force",
+   "jka": "E:\\Games\\Jedi Academy",
+   "jk2": "E:\\Games\\Jedi Outcast"
+  },
+  "commands": [
+   "python scripts/scan_game_import_calls.py --installation \"q3=<Steam Quake 3 Arena>\" --installation \"q3=E:/Games/Quake III Arena\" --installation \"ql=...\" --installation \"rtcw=...\" --installation \"wolfet=...\" --installation \"stvef=...\" --installation \"jka=...\" --installation \"jk2=...\" --output <file>",
+   "the same with --import BOTLIB_AAS_POINT_AREA_NUM",
+   "python -m pytest -q tests/aas_reachability_index_tests.py and the ten fixtures above"
+  ],
+  "installationsWritten": false
+ }
+}
