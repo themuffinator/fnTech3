@@ -8,7 +8,9 @@ platform input is injected and the user's desktop is never switched. The
 probe's console steps are written into a cfg in the isolated home and executed
 with +exec, so the startup command line stays short; captures use the engine's
 own screenshotPNG command. The installation is only read, and the manifest
-records whether it is unchanged.
+records whether it is unchanged. A client still running at --timeout is
+stopped. The manifest is written however the client ends; if it could not be
+stopped, `stopError` says why and the probe exits with status 1.
 
 Under the Ritual profiles `wait N` counts milliseconds, as retail's does, so
 steps wait in time rather than in frames. A screenshot is written at the end
@@ -39,6 +41,7 @@ import argparse
 import hashlib
 import json
 import shutil
+import subprocess
 import sys
 import time
 
@@ -184,16 +187,22 @@ def main():
     stdout = output / 'stdout.log'
     started = time.monotonic()
     process = WindowsPrivateProcess(command, args.executable.resolve().parent, stdout)
-    forced = False
+    forced, code, stop_error = False, None, None
     try:
         while process.poll() is None and time.monotonic() - started < args.timeout:
             time.sleep(0.25)
         if process.poll() is None:
-            forced = True
-            process.terminate()
-        code = process.poll()
+            # False when the client began to exit on its own at the deadline.
+            forced = process.terminate()
+        # A stopped client's teardown can take seconds on a loaded machine.
+        code = process.wait(60)
+    except (OSError, subprocess.TimeoutExpired) as error:
+        stop_error = f'{type(error).__name__}: {error}'
     finally:
-        process.close()
+        try:
+            process.close()
+        except (OSError, subprocess.TimeoutExpired) as error:
+            stop_error = stop_error or f'{type(error).__name__}: {error}'
 
     shots_dir = home / game / 'screenshots'
     shots = sorted(p.name for p in shots_dir.glob('*')) if shots_dir.is_dir() else []
@@ -205,6 +214,7 @@ def main():
         'phases': len(phases),
         'exitCode': code,
         'forcedStop': forced,
+        'stopError': stop_error,
         'seconds': round(time.monotonic() - started, 1),
         'screenshots': shots,
         'exeSha256': sha(args.executable.resolve()),
@@ -212,9 +222,14 @@ def main():
         'installationUnchanged': inventory(args.installation) == before,
     }
     (output / 'manifest.json').write_text(json.dumps(manifest, indent=2))
-    print(json.dumps({k: manifest[k] for k in ('exitCode', 'forcedStop', 'seconds', 'screenshots',
+    print(json.dumps({k: manifest[k] for k in ('exitCode', 'forcedStop', 'stopError', 'seconds', 'screenshots',
                                                 'installationUnchanged')}, indent=2))
+    if stop_error:
+        print(f'Stopping the client failed; if it still runs, find it by its home {home} and stop that PID.',
+              file=sys.stderr)
+        return 1
+    return 0
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())

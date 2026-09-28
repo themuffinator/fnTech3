@@ -33,6 +33,9 @@ if os.name == "nt":
     kernel.CloseHandle.argtypes = (W.HANDLE,)
 
 class WindowsPrivateProcess:
+    # Seconds a stopped or exiting child is given to finish tearing down.
+    EXIT_GRACE = 5
+
     def __init__(self, command, cwd, output):
         if os.name != "nt":
             raise OSError("private desktop probes require Windows")
@@ -85,14 +88,22 @@ class WindowsPrivateProcess:
         return self.poll()
 
     def terminate(self):
-        if self.poll() is None and not kernel.TerminateProcess(self.handle, 1):
-            if self.poll() is None: raise C.WinError(C.get_last_error())
+        # True if this call stopped the child, False if it had already exited or begun to.
+        if self.poll() is not None: return False
+        if kernel.TerminateProcess(self.handle, 1): return True
+        error = C.get_last_error()
+        # Windows refuses a child whose exit has begun, on its own or from an
+        # earlier call, with ERROR_ACCESS_DENIED, but signals its handle only
+        # when teardown ends: wait for that, and fail only if it still runs.
+        if kernel.WaitForSingleObject(self.handle, int(self.EXIT_GRACE * 1000)) != 0:
+            raise C.WinError(error)
+        return False
 
     def close(self):
         if self.handle:
             if self.poll() is None:
                 self.terminate()
-                self.wait(5)
+                self.wait(self.EXIT_GRACE)
             kernel.CloseHandle(self.handle)
             self.handle = None
         for stream in self.streams: stream.close()

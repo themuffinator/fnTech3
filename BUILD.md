@@ -352,6 +352,12 @@ captures engine screenshots:
 python scripts/probe_ritual_client.py --executable meson/build/win32-dev/fntech3.exe --installation "E:\Games\Alice" --profile alice --renderer glx --map garden1 --output .tmp/alice/garden1
 ```
 
+The run's `manifest.json` records the client's exit code, whether the probe
+had to stop it at `--timeout` (a level that drops loses the steps' queued
+`quit`) and whether the installation is unchanged. It is written even when
+stopping the client fails: `stopError` then says why, and the probe exits
+with status 1.
+
 Under these profiles `wait N` counts milliseconds, as the retail engine's does.
 With `--actions <file>` the probe drives the menus and play with keys, clicks
 and mouse motion queued inside the engine (`in_synthesize`, enabled only by

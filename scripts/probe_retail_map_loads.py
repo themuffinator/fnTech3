@@ -154,8 +154,9 @@ def sha256(path):
 
 
 def stop(process):
-    # close() races a child that exits between its poll and its terminate
-    # (PermissionError); by the next attempt the child has gone.
+    # close() waits out a child already exiting, but on a loaded machine a
+    # teardown can outlast its grace: TimeoutExpired for a child close()
+    # stopped, PermissionError for one already exiting. The retry finds it gone.
     for attempt in range(3):
         try:
             process.close()

@@ -2088,6 +2088,16 @@ historical upstream records, not fnTech3 release history. See the
   `scripts/probe_win32_keypad_star.py`, and the cost of the alternative.
   Two commented-out fragments that read as unfinished work now carry that
   reason, and regression tests hold all three producers to it.
+- Keep a probe's record when it has to stop its client. Windows refuses
+  `TerminateProcess` for a process whose exit has begun but signals the
+  process only once its teardown ends, so the private-desktop helper
+  (`tests/windows_private_process.py`) raised `PermissionError` whenever it
+  met a client already exiting. `scripts/probe_ritual_client.py` met one
+  every time it stopped a client at `--timeout`, since it stopped it twice,
+  and lost that run's `manifest.json`. The helper now waits out the teardown
+  and fails only if the client is still running, and the probe writes its
+  manifest however the client ends, with `stopError` if it could not be
+  stopped.
 
 ### Known limitations
 
