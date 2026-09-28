@@ -1,0 +1,1740 @@
+{
+  "record": "2026-09-28-route-cache-checks.md",
+  "date": "2026-09-28",
+  "change": {
+    "files": [
+      "code/botlib/be_aas_route.cpp",
+      "tests/aas_route_cache_tests.py",
+      "scripts/probe_route_cache_loads.py",
+      "docs/fntech3/COMPATIBILITY.md",
+      "CHANGELOG.md"
+    ],
+    "reader": "AAS_ReadRouteCache with AAS_RoutingCacheBytes, AAS_RouteCacheAreaInCluster, AAS_RouteCacheCountsFit, AAS_RouteCacheRecordSize and AAS_RouteCacheRecordsFit",
+    "profiles": [
+      "quake3",
+      "quakelive",
+      "wolfet",
+      "stvef-sp",
+      "stvef-mp",
+      "jka-mp",
+      "jk2-mp"
+    ],
+    "unchanged": [
+      "rtcw-sp and rtcw-mp read their own dumps (rtcw_routecache_loader.hpp)",
+      "AAS_WriteRouteCache",
+      "AAS_AllocRoutingCache"
+    ]
+  },
+  "layout": {
+    "pointerBytes": 4,
+    "cacheBytes": 64,
+    "travelTimesAt": 60,
+    "reachabilitiesAt": "64 + 2n",
+    "sizeAt": 8,
+    "typeAt": 0,
+    "clusterAt": 12,
+    "areaAt": 16,
+    "travelFlagsAt": 36,
+    "pointersAt": "40 to 60",
+    "note": "a cache of n travel times is 64 + 3n bytes with 32-bit pointers, 88 + 3n with 64-bit ones"
+  },
+  "maxCacheBytes": 268435456,
+  "oldReader": {
+    "sizeFrom": "the first four bytes of a cache: its type (0 portal, 1 area) and three bytes of padding",
+    "references": [
+      "E:/_SOURCE/_CODE/Quake-III-Arena-master/code/botlib/be_aas_route.c AAS_ReadCache",
+      "Quake3e-master",
+      "spearmint-master",
+      "lilium-voyager",
+      "CPMADevs-cnq3",
+      "wolfcamql-master",
+      "mint-arena-master",
+      "OpenJK/codemp"
+    ],
+    "sizeFirst": [
+      "RTCW-SP-master",
+      "RTCW-MP-master",
+      "Enemy-Territory-original"
+    ],
+    "reachabilityFormula": "sizeof - 2 + (size - sizeof + 2) / 3 * 2, two bytes before AAS_AllocRoutingCache's sizeof + 2n; RTCW-SP-master carries the corrected formula"
+  },
+  "builds": {
+    "sourceCommit": "484d02dc0eae2a49a8343c2a3694306df97c5e50",
+    "export": "git archive of the source commit, with the extracted subprojects, in .tmp/route-cache/export",
+    "configure": "meson setup --wrap-mode=nodownload -Db_vscrt=static_from_buildtype -Dstrict-warnings=true -Dbuildtype=debugoptimized -Dbuild-client=false -Dbuild-server=true and the ten development gates of win32-dev, -Dzlib:default_library=static -Dogg:default_library=static",
+    "before": {
+      "path": ".tmp/runtime/routecache-before/fntech3.ded.exe",
+      "sha256": "d815272f87314dc1f718e0dec168166a0704a4b2b978601b18fe8471a6d63790",
+      "source": "the source commit"
+    },
+    "after": {
+      "path": ".tmp/runtime/routecache-after/fntech3.ded.exe",
+      "sha256": "ccd51684d4f7ebcb428de5421aa1bd753405527156cd6e3bbeb8551b17e41bdb",
+      "source": "the source commit with only the reader region of be_aas_route.cpp replaced"
+    },
+    "binariesUnchanged": true
+  },
+  "probe": {
+    "script": "scripts/probe_route_cache_loads.py",
+    "startedUtc": "2026-09-28T06:59:21Z",
+    "endedUtc": "2026-09-28T07:11:30Z",
+    "installations": {
+      "q3": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+      "ql": "E:\\SteamLibrary\\steamapps\\common\\Quake Live",
+      "stvef": "E:\\Games\\Star Trek Voyager Elite Force"
+    },
+    "command": "python scripts/probe_route_cache_loads.py --before .tmp/runtime/routecache-before/fntech3.ded.exe --after .tmp/runtime/routecache-after/fntech3.ded.exe --installation q3=... --installation ql=... --installation stvef=... --output .tmp/route-cache/sweep",
+    "platform": "Windows 11 Home 10.0.26200, x86 dedicated server, private desktops, net_enabled 0",
+    "maps": {
+      "q3:q3dm7": {
+        "profile": "q3",
+        "map": "q3dm7",
+        "folder": "baseq3",
+        "write": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 47.4,
+          "errors": [],
+          "read": [],
+          "refused": [],
+          "written": [
+            "maps/q3dm7.rcd"
+          ],
+          "writtenBytes": [
+            98653
+          ],
+          "routingInitialized": 1,
+          "botsListed": 4
+        },
+        "cache": {
+          "bytes": 98685,
+          "sha256": "2d0660ec1950dadfd7edaa10ded043dd9e83ca67c1a1f4b4a4c0508b16f50402",
+          "fault": null,
+          "header": [
+            1129465165,
+            2,
+            3599,
+            14,
+            2007,
+            2453,
+            64,
+            147
+          ],
+          "aasVersion": 5,
+          "numareas": 3599,
+          "numportals": 61,
+          "numclusters": 14,
+          "portalCaches": 64,
+          "areaCaches": 147,
+          "cacheBytes": 98653,
+          "portalCacheBytes": 247,
+          "areaCacheBytes": [
+            79,
+            97,
+            136,
+            142,
+            151,
+            256,
+            673,
+            772,
+            796,
+            823
+          ],
+          "travelFlags": [
+            18616254,
+            18620350
+          ],
+          "clusters": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            10,
+            12,
+            13
+          ],
+          "largestReachability": 19,
+          "nonzeroPortalReachabilities": 0,
+          "portalAreaCaches": 72,
+          "reachabilitiesChecked": 28383
+        },
+        "loads": {
+          "intact/before": {
+            "outcome": "crashed",
+            "exitCode": 1,
+            "forcedTermination": false,
+            "elapsedSeconds": 0.5,
+            "errors": [
+              "Unhandled exception caught\nException Code: ACCESS_VIOLATION\nException Address: fntech3.ded.exe@cd53c"
+            ],
+            "read": [],
+            "refused": [],
+            "written": [],
+            "writtenBytes": [],
+            "routingInitialized": 0,
+            "botsListed": 0,
+            "expectedRefusal": null,
+            "faultSymbol": {
+              "offset": "cd53c",
+              "function": "Z_TagMalloc",
+              "source": "code/qcommon/common.c:1666:0"
+            }
+          },
+          "intact/after": {
+            "outcome": "loaded",
+            "exitCode": 0,
+            "forcedTermination": false,
+            "elapsedSeconds": 28.0,
+            "errors": [],
+            "read": [
+              [
+                "maps/q3dm7.rcd",
+                "64",
+                "147",
+                "98653"
+              ]
+            ],
+            "refused": [],
+            "written": [
+              "maps/q3dm7.rcd"
+            ],
+            "writtenBytes": [
+              114551
+            ],
+            "routingInitialized": 1,
+            "botsListed": 4,
+            "expectedRefusal": null,
+            "rewritten": {
+              "caches": 242,
+              "readCachesKept": 211,
+              "readCaches": 211,
+              "bytes": 114583
+            }
+          },
+          "area-outside-cluster/before": {
+            "outcome": "faulted",
+            "exitCode": null,
+            "forcedTermination": true,
+            "elapsedSeconds": 2.3,
+            "errors": [
+              "Unhandled exception caught\nException Code: ACCESS_VIOLATION\nException Address: fntech3.ded.exe@cd53c"
+            ],
+            "read": [],
+            "refused": [],
+            "written": [],
+            "writtenBytes": [],
+            "routingInitialized": 0,
+            "botsListed": 0,
+            "expectedRefusal": "area cache 0 is for area 29, which is not in cluster 2",
+            "faultSymbol": {
+              "offset": "cd53c",
+              "function": "Z_TagMalloc",
+              "source": "code/qcommon/common.c:1666:0"
+            }
+          },
+          "area-outside-cluster/after": {
+            "outcome": "loaded",
+            "exitCode": 0,
+            "forcedTermination": false,
+            "elapsedSeconds": 27.8,
+            "errors": [],
+            "read": [],
+            "refused": [
+              "maps/q3dm7.rcd: area cache 0 is for area 29, which is not in cluster 2"
+            ],
+            "written": [
+              "maps/q3dm7.rcd"
+            ],
+            "writtenBytes": [
+              96386
+            ],
+            "routingInitialized": 1,
+            "botsListed": 4,
+            "expectedRefusal": "area cache 0 is for area 29, which is not in cluster 2"
+          },
+          "reachability-past-area/before": {
+            "outcome": "crashed",
+            "exitCode": 1,
+            "forcedTermination": false,
+            "elapsedSeconds": 0.4,
+            "errors": [
+              "Unhandled exception caught\nException Code: ACCESS_VIOLATION\nException Address: fntech3.ded.exe@cd53c"
+            ],
+            "read": [],
+            "refused": [],
+            "written": [],
+            "writtenBytes": [],
+            "routingInitialized": 0,
+            "botsListed": 0,
+            "expectedRefusal": "area cache 0 gives number 0 of cluster 1 reachability 4, which its area lacks",
+            "faultSymbol": {
+              "offset": "cd53c",
+              "function": "Z_TagMalloc",
+              "source": "code/qcommon/common.c:1666:0"
+            }
+          },
+          "reachability-past-area/after": {
+            "outcome": "loaded",
+            "exitCode": 0,
+            "forcedTermination": false,
+            "elapsedSeconds": 28.6,
+            "errors": [],
+            "read": [],
+            "refused": [
+              "maps/q3dm7.rcd: area cache 0 gives number 0 of cluster 1 reachability 4, which its area lacks"
+            ],
+            "written": [
+              "maps/q3dm7.rcd"
+            ],
+            "writtenBytes": [
+              95750
+            ],
+            "routingInitialized": 1,
+            "botsListed": 4,
+            "expectedRefusal": "area cache 0 gives number 0 of cluster 1 reachability 4, which its area lacks"
+          },
+          "size-plus-one/before": {
+            "outcome": "faulted",
+            "exitCode": null,
+            "forcedTermination": true,
+            "elapsedSeconds": 2.5,
+            "errors": [
+              "Unhandled exception caught\nException Code: ACCESS_VIOLATION\nException Address: fntech3.ded.exe@cd53c"
+            ],
+            "read": [],
+            "refused": [],
+            "written": [],
+            "writtenBytes": [],
+            "routingInitialized": 0,
+            "botsListed": 0,
+            "expectedRefusal": "portal cache 0 is 248 bytes, not the size of a cache of 61 travel times",
+            "faultSymbol": {
+              "offset": "cd53c",
+              "function": "Z_TagMalloc",
+              "source": "code/qcommon/common.c:1666:0"
+            }
+          },
+          "size-plus-one/after": {
+            "outcome": "loaded",
+            "exitCode": 0,
+            "forcedTermination": false,
+            "elapsedSeconds": 28.1,
+            "errors": [],
+            "read": [],
+            "refused": [
+              "maps/q3dm7.rcd: portal cache 0 is 248 bytes, not the size of a cache of 61 travel times"
+            ],
+            "written": [
+              "maps/q3dm7.rcd"
+            ],
+            "writtenBytes": [
+              62351
+            ],
+            "routingInitialized": 1,
+            "botsListed": 4,
+            "expectedRefusal": "portal cache 0 is 248 bytes, not the size of a cache of 61 travel times"
+          },
+          "type-swapped/before": {
+            "outcome": "crashed",
+            "exitCode": 1,
+            "forcedTermination": false,
+            "elapsedSeconds": 0.4,
+            "errors": [
+              "Unhandled exception caught\nException Code: ACCESS_VIOLATION\nException Address: fntech3.ded.exe@cd53c"
+            ],
+            "read": [],
+            "refused": [],
+            "written": [],
+            "writtenBytes": [],
+            "routingInitialized": 0,
+            "botsListed": 0,
+            "expectedRefusal": "area cache 0 has type 0",
+            "faultSymbol": {
+              "offset": "cd53c",
+              "function": "Z_TagMalloc",
+              "source": "code/qcommon/common.c:1666:0"
+            }
+          },
+          "type-swapped/after": {
+            "outcome": "loaded",
+            "exitCode": 0,
+            "forcedTermination": false,
+            "elapsedSeconds": 28.1,
+            "errors": [],
+            "read": [],
+            "refused": [
+              "maps/q3dm7.rcd: area cache 0 has type 0"
+            ],
+            "written": [
+              "maps/q3dm7.rcd"
+            ],
+            "writtenBytes": [
+              137425
+            ],
+            "routingInitialized": 1,
+            "botsListed": 4,
+            "expectedRefusal": "area cache 0 has type 0"
+          },
+          "truncated/before": {
+            "outcome": "faulted",
+            "exitCode": null,
+            "forcedTermination": true,
+            "elapsedSeconds": 2.3,
+            "errors": [
+              "Unhandled exception caught\nException Code: ACCESS_VIOLATION\nException Address: fntech3.ded.exe@cd53c"
+            ],
+            "read": [],
+            "refused": [],
+            "written": [],
+            "writtenBytes": [],
+            "routingInitialized": 0,
+            "botsListed": 0,
+            "expectedRefusal": "area cache 146 is 142 bytes, more than the 141 left in the file",
+            "faultSymbol": {
+              "offset": "cd53c",
+              "function": "Z_TagMalloc",
+              "source": "code/qcommon/common.c:1666:0"
+            }
+          },
+          "truncated/after": {
+            "outcome": "loaded",
+            "exitCode": 0,
+            "forcedTermination": false,
+            "elapsedSeconds": 28.2,
+            "errors": [],
+            "read": [],
+            "refused": [
+              "maps/q3dm7.rcd: area cache 146 is 142 bytes, more than the 141 left in the file"
+            ],
+            "written": [
+              "maps/q3dm7.rcd"
+            ],
+            "writtenBytes": [
+              157498
+            ],
+            "routingInitialized": 1,
+            "botsListed": 4,
+            "expectedRefusal": "area cache 146 is 142 bytes, more than the 141 left in the file"
+          },
+          "counts-past-file/before": {
+            "outcome": "crashed",
+            "exitCode": 1,
+            "forcedTermination": false,
+            "elapsedSeconds": 0.4,
+            "errors": [
+              "Unhandled exception caught\nException Code: ACCESS_VIOLATION\nException Address: fntech3.ded.exe@cd53c"
+            ],
+            "read": [],
+            "refused": [],
+            "written": [],
+            "writtenBytes": [],
+            "routingInitialized": 0,
+            "botsListed": 0,
+            "expectedRefusal": "cannot hold 64 portal and 1000147 area caches in 98653 bytes",
+            "faultSymbol": {
+              "offset": "cd53c",
+              "function": "Z_TagMalloc",
+              "source": "code/qcommon/common.c:1666:0"
+            }
+          },
+          "counts-past-file/after": {
+            "outcome": "loaded",
+            "exitCode": 0,
+            "forcedTermination": false,
+            "elapsedSeconds": 28.2,
+            "errors": [],
+            "read": [],
+            "refused": [
+              "maps/q3dm7.rcd: cannot hold 64 portal and 1000147 area caches in 98653 bytes"
+            ],
+            "written": [
+              "maps/q3dm7.rcd"
+            ],
+            "writtenBytes": [
+              134440
+            ],
+            "routingInitialized": 1,
+            "botsListed": 4,
+            "expectedRefusal": "cannot hold 64 portal and 1000147 area caches in 98653 bytes"
+          },
+          "trailing-bytes/before": {
+            "outcome": "crashed",
+            "exitCode": 1,
+            "forcedTermination": false,
+            "elapsedSeconds": 0.4,
+            "errors": [
+              "Unhandled exception caught\nException Code: ACCESS_VIOLATION\nException Address: fntech3.ded.exe@cd53c"
+            ],
+            "read": [],
+            "refused": [],
+            "written": [],
+            "writtenBytes": [],
+            "routingInitialized": 0,
+            "botsListed": 0,
+            "expectedRefusal": "has 3 bytes after its last cache",
+            "faultSymbol": {
+              "offset": "cd53c",
+              "function": "Z_TagMalloc",
+              "source": "code/qcommon/common.c:1666:0"
+            }
+          },
+          "trailing-bytes/after": {
+            "outcome": "loaded",
+            "exitCode": 0,
+            "forcedTermination": false,
+            "elapsedSeconds": 27.6,
+            "errors": [],
+            "read": [],
+            "refused": [
+              "maps/q3dm7.rcd: has 3 bytes after its last cache"
+            ],
+            "written": [
+              "maps/q3dm7.rcd"
+            ],
+            "writtenBytes": [
+              109140
+            ],
+            "routingInitialized": 1,
+            "botsListed": 4,
+            "expectedRefusal": "has 3 bytes after its last cache"
+          }
+        }
+      },
+      "q3:q3dm1": {
+        "profile": "q3",
+        "map": "q3dm1",
+        "folder": "baseq3",
+        "write": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 47.7,
+          "errors": [],
+          "read": [],
+          "refused": [],
+          "written": [
+            "maps/q3dm1.rcd"
+          ],
+          "writtenBytes": [
+            82680
+          ],
+          "routingInitialized": 1,
+          "botsListed": 4
+        },
+        "cache": {
+          "bytes": 82712,
+          "sha256": "b288223a2f951a3b8af9ca118e2b4e6c62e4dfa35091d10efc0fd7fcba9a57ba",
+          "fault": null,
+          "header": [
+            1129465165,
+            2,
+            1715,
+            3,
+            44857,
+            11393,
+            0,
+            60
+          ],
+          "aasVersion": 5,
+          "numareas": 1715,
+          "numportals": 1,
+          "numclusters": 3,
+          "portalCaches": 0,
+          "areaCaches": 60,
+          "cacheBytes": 82680,
+          "portalCacheBytes": 67,
+          "areaCacheBytes": [
+            1378
+          ],
+          "travelFlags": [
+            18616254,
+            18620350,
+            27004862
+          ],
+          "clusters": [
+            1
+          ],
+          "largestReachability": 11,
+          "nonzeroPortalReachabilities": 0,
+          "portalAreaCaches": 0,
+          "reachabilitiesChecked": 26280
+        },
+        "loads": {
+          "intact/before": {
+            "outcome": "crashed",
+            "exitCode": 1,
+            "forcedTermination": false,
+            "elapsedSeconds": 0.8,
+            "errors": [
+              "Unhandled exception caught\nException Code: ACCESS_VIOLATION\nException Address: fntech3.ded.exe@cd53c"
+            ],
+            "read": [],
+            "refused": [],
+            "written": [],
+            "writtenBytes": [],
+            "routingInitialized": 0,
+            "botsListed": 0,
+            "expectedRefusal": null,
+            "faultSymbol": {
+              "offset": "cd53c",
+              "function": "Z_TagMalloc",
+              "source": "code/qcommon/common.c:1666:0"
+            }
+          },
+          "intact/after": {
+            "outcome": "loaded",
+            "exitCode": 0,
+            "forcedTermination": false,
+            "elapsedSeconds": 28.2,
+            "errors": [],
+            "read": [
+              [
+                "maps/q3dm1.rcd",
+                "0",
+                "60",
+                "82680"
+              ]
+            ],
+            "refused": [],
+            "written": [
+              "maps/q3dm1.rcd"
+            ],
+            "writtenBytes": [
+              92326
+            ],
+            "routingInitialized": 1,
+            "botsListed": 4,
+            "expectedRefusal": null,
+            "rewritten": {
+              "caches": 67,
+              "readCachesKept": 60,
+              "readCaches": 60,
+              "bytes": 92358
+            }
+          }
+        }
+      },
+      "q3:q3dm17": {
+        "profile": "q3",
+        "map": "q3dm17",
+        "folder": "baseq3",
+        "write": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 47.5,
+          "errors": [],
+          "read": [],
+          "refused": [],
+          "written": [
+            "maps/q3dm17.rcd"
+          ],
+          "writtenBytes": [
+            76320
+          ],
+          "routingInitialized": 1,
+          "botsListed": 2
+        },
+        "cache": {
+          "bytes": 76352,
+          "sha256": "ead3b33d1af351491b1ecd8459fb87b089fb3a46b6924ed67fd102be239cd4bd",
+          "fault": null,
+          "header": [
+            1129465165,
+            2,
+            2621,
+            2,
+            48618,
+            41354,
+            0,
+            45
+          ],
+          "aasVersion": 5,
+          "numareas": 2621,
+          "numportals": 1,
+          "numclusters": 2,
+          "portalCaches": 0,
+          "areaCaches": 45,
+          "cacheBytes": 76320,
+          "portalCacheBytes": 67,
+          "areaCacheBytes": [
+            1696
+          ],
+          "travelFlags": [
+            18616254,
+            18620350
+          ],
+          "clusters": [
+            1
+          ],
+          "largestReachability": 20,
+          "nonzeroPortalReachabilities": 0,
+          "portalAreaCaches": 0,
+          "reachabilitiesChecked": 24480
+        },
+        "loads": {
+          "intact/before": {
+            "outcome": "crashed",
+            "exitCode": 1,
+            "forcedTermination": false,
+            "elapsedSeconds": 0.4,
+            "errors": [
+              "Unhandled exception caught\nException Code: ACCESS_VIOLATION\nException Address: fntech3.ded.exe@cd53c"
+            ],
+            "read": [],
+            "refused": [],
+            "written": [],
+            "writtenBytes": [],
+            "routingInitialized": 0,
+            "botsListed": 0,
+            "expectedRefusal": null,
+            "faultSymbol": {
+              "offset": "cd53c",
+              "function": "Z_TagMalloc",
+              "source": "code/qcommon/common.c:1666:0"
+            }
+          },
+          "intact/after": {
+            "outcome": "loaded",
+            "exitCode": 0,
+            "forcedTermination": false,
+            "elapsedSeconds": 28.0,
+            "errors": [],
+            "read": [
+              [
+                "maps/q3dm17.rcd",
+                "0",
+                "45",
+                "76320"
+              ]
+            ],
+            "refused": [],
+            "written": [
+              "maps/q3dm17.rcd"
+            ],
+            "writtenBytes": [
+              86496
+            ],
+            "routingInitialized": 1,
+            "botsListed": 2,
+            "expectedRefusal": null,
+            "rewritten": {
+              "caches": 51,
+              "readCachesKept": 45,
+              "readCaches": 45,
+              "bytes": 86528
+            }
+          }
+        }
+      },
+      "q3:q3ctf2": {
+        "profile": "q3",
+        "map": "q3ctf2",
+        "folder": "baseq3",
+        "write": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 48.3,
+          "errors": [],
+          "read": [],
+          "refused": [],
+          "written": [
+            "maps/q3ctf2.rcd"
+          ],
+          "writtenBytes": [
+            339612
+          ],
+          "routingInitialized": 1,
+          "botsListed": 4
+        },
+        "cache": {
+          "bytes": 339644,
+          "sha256": "218b4447d60f479973fa7cbbac1bdcc253702e9b13bcaac0967656f5521ead78",
+          "fault": null,
+          "header": [
+            1129465165,
+            2,
+            9962,
+            34,
+            56973,
+            27733,
+            77,
+            178
+          ],
+          "aasVersion": 5,
+          "numareas": 9962,
+          "numportals": 234,
+          "numclusters": 34,
+          "portalCaches": 77,
+          "areaCaches": 178,
+          "cacheBytes": 339612,
+          "portalCacheBytes": 766,
+          "areaCacheBytes": [
+            73,
+            79,
+            85,
+            88,
+            118,
+            127,
+            130,
+            133,
+            139,
+            142,
+            148,
+            151,
+            154,
+            160,
+            166,
+            211,
+            967,
+            970,
+            2944,
+            3040,
+            6049
+          ],
+          "travelFlags": [
+            18616254
+          ],
+          "clusters": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            9,
+            10,
+            11,
+            12,
+            13,
+            18,
+            20,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            32,
+            33
+          ],
+          "largestReachability": 49,
+          "nonzeroPortalReachabilities": 0,
+          "portalAreaCaches": 102,
+          "reachabilitiesChecked": 107764
+        },
+        "loads": {
+          "intact/before": {
+            "outcome": "crashed",
+            "exitCode": 1,
+            "forcedTermination": false,
+            "elapsedSeconds": 1.2,
+            "errors": [
+              "Unhandled exception caught\nException Code: ACCESS_VIOLATION\nException Address: fntech3.ded.exe@cd54e"
+            ],
+            "read": [],
+            "refused": [],
+            "written": [],
+            "writtenBytes": [],
+            "routingInitialized": 0,
+            "botsListed": 0,
+            "expectedRefusal": null,
+            "faultSymbol": {
+              "offset": "cd54e",
+              "function": "Z_TagMalloc",
+              "source": "code/qcommon/common.c:1668:0"
+            }
+          },
+          "intact/after": {
+            "outcome": "loaded",
+            "exitCode": 0,
+            "forcedTermination": false,
+            "elapsedSeconds": 28.4,
+            "errors": [],
+            "read": [
+              [
+                "maps/q3ctf2.rcd",
+                "77",
+                "178",
+                "339612"
+              ]
+            ],
+            "refused": [],
+            "written": [
+              "maps/q3ctf2.rcd"
+            ],
+            "writtenBytes": [
+              339612
+            ],
+            "routingInitialized": 1,
+            "botsListed": 4,
+            "expectedRefusal": null,
+            "rewritten": {
+              "caches": 255,
+              "readCachesKept": 255,
+              "readCaches": 255,
+              "bytes": 339644
+            }
+          }
+        }
+      },
+      "q3:missionpack/mpteam1": {
+        "profile": "q3",
+        "map": "mpteam1",
+        "folder": "missionpack",
+        "write": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 56.2,
+          "errors": [],
+          "read": [],
+          "refused": [],
+          "written": [
+            "maps/mpteam1.rcd"
+          ],
+          "writtenBytes": [
+            127073
+          ],
+          "routingInitialized": 1,
+          "botsListed": 1
+        },
+        "cache": {
+          "bytes": 127105,
+          "sha256": "fe4e43e233d413101c14b3455676b773f6c235caf43ffcaeea3d2c0dfc5d3a0e",
+          "fault": null,
+          "header": [
+            1129465165,
+            2,
+            7421,
+            23,
+            62102,
+            471,
+            44,
+            144
+          ],
+          "aasVersion": 5,
+          "numareas": 7421,
+          "numportals": 215,
+          "numclusters": 23,
+          "portalCaches": 44,
+          "areaCaches": 144,
+          "cacheBytes": 127073,
+          "portalCacheBytes": 709,
+          "areaCacheBytes": [
+            73,
+            88,
+            94,
+            106,
+            118,
+            157,
+            160,
+            196,
+            199,
+            220,
+            229,
+            463,
+            505,
+            802,
+            817,
+            1018,
+            1117,
+            1141
+          ],
+          "travelFlags": [
+            18616254
+          ],
+          "clusters": [
+            1,
+            2,
+            3,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            20,
+            21
+          ],
+          "largestReachability": 25,
+          "nonzeroPortalReachabilities": 0,
+          "portalAreaCaches": 100,
+          "reachabilitiesChecked": 38347
+        },
+        "loads": {
+          "intact/before": {
+            "outcome": "crashed",
+            "exitCode": 1,
+            "forcedTermination": false,
+            "elapsedSeconds": 0.5,
+            "errors": [
+              "Unhandled exception caught\nException Code: ACCESS_VIOLATION\nException Address: fntech3.ded.exe@cd54e"
+            ],
+            "read": [],
+            "refused": [],
+            "written": [],
+            "writtenBytes": [],
+            "routingInitialized": 0,
+            "botsListed": 0,
+            "expectedRefusal": null,
+            "faultSymbol": {
+              "offset": "cd54e",
+              "function": "Z_TagMalloc",
+              "source": "code/qcommon/common.c:1668:0"
+            }
+          },
+          "intact/after": {
+            "outcome": "loaded",
+            "exitCode": 0,
+            "forcedTermination": false,
+            "elapsedSeconds": 28.3,
+            "errors": [],
+            "read": [
+              [
+                "maps/mpteam1.rcd",
+                "44",
+                "144",
+                "127073"
+              ]
+            ],
+            "refused": [],
+            "written": [
+              "maps/mpteam1.rcd"
+            ],
+            "writtenBytes": [
+              127073
+            ],
+            "routingInitialized": 1,
+            "botsListed": 1,
+            "expectedRefusal": null,
+            "rewritten": {
+              "caches": 188,
+              "readCachesKept": 188,
+              "readCaches": 188,
+              "bytes": 127105
+            }
+          }
+        }
+      },
+      "ql:falloutbunker": {
+        "profile": "ql",
+        "map": "falloutbunker",
+        "folder": "baseq3",
+        "write": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 24.7,
+          "errors": [],
+          "read": [],
+          "refused": [],
+          "written": [
+            "maps/falloutbunker.rcd"
+          ],
+          "writtenBytes": [
+            83611
+          ],
+          "routingInitialized": 1,
+          "botsListed": 2
+        },
+        "cache": {
+          "bytes": 83643,
+          "sha256": "b0667895190c2a777e625c75452c39f247964e6ceaafb9a438d5f4a2b6fd8694",
+          "fault": null,
+          "header": [
+            1129465165,
+            2,
+            7175,
+            26,
+            50006,
+            11825,
+            14,
+            203
+          ],
+          "aasVersion": 5,
+          "numareas": 7175,
+          "numportals": 97,
+          "numclusters": 26,
+          "portalCaches": 14,
+          "areaCaches": 203,
+          "cacheBytes": 83611,
+          "portalCacheBytes": 355,
+          "areaCacheBytes": [
+            73,
+            103,
+            115,
+            121,
+            124,
+            127,
+            130,
+            157,
+            160,
+            169,
+            196,
+            217,
+            229,
+            235,
+            283,
+            319,
+            340,
+            370,
+            385,
+            469,
+            643,
+            907,
+            910
+          ],
+          "travelFlags": [
+            18636734
+          ],
+          "clusters": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25
+          ],
+          "largestReachability": 23,
+          "nonzeroPortalReachabilities": 0,
+          "portalAreaCaches": 189,
+          "reachabilitiesChecked": 23241
+        },
+        "loads": {
+          "intact/before": {
+            "outcome": "crashed",
+            "exitCode": 1,
+            "forcedTermination": false,
+            "elapsedSeconds": 1.4,
+            "errors": [
+              "Unhandled exception caught\nException Code: ACCESS_VIOLATION\nException Address: fntech3.ded.exe@cd53c"
+            ],
+            "read": [],
+            "refused": [],
+            "written": [],
+            "writtenBytes": [],
+            "routingInitialized": 0,
+            "botsListed": 0,
+            "expectedRefusal": null,
+            "faultSymbol": {
+              "offset": "cd53c",
+              "function": "Z_TagMalloc",
+              "source": "code/qcommon/common.c:1666:0"
+            }
+          },
+          "intact/after": {
+            "outcome": "loaded",
+            "exitCode": 0,
+            "forcedTermination": false,
+            "elapsedSeconds": 14.2,
+            "errors": [],
+            "read": [
+              [
+                "maps/falloutbunker.rcd",
+                "14",
+                "203",
+                "83611"
+              ]
+            ],
+            "refused": [],
+            "written": [
+              "maps/falloutbunker.rcd"
+            ],
+            "writtenBytes": [
+              83611
+            ],
+            "routingInitialized": 1,
+            "botsListed": 2,
+            "expectedRefusal": null,
+            "rewritten": {
+              "caches": 217,
+              "readCachesKept": 217,
+              "readCaches": 217,
+              "bytes": 83643
+            }
+          }
+        }
+      },
+      "ql:campgrounds": {
+        "profile": "ql",
+        "map": "campgrounds",
+        "folder": "baseq3",
+        "write": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 24.1,
+          "errors": [],
+          "read": [],
+          "refused": [],
+          "written": [
+            "maps/campgrounds.rcd"
+          ],
+          "writtenBytes": [
+            78414
+          ],
+          "routingInitialized": 1,
+          "botsListed": 2
+        },
+        "cache": {
+          "bytes": 78446,
+          "sha256": "823b2e26f04a60c81ee0616a590d7e5adb3b936166799ef327c924e6a95f569f",
+          "fault": null,
+          "header": [
+            1129465165,
+            2,
+            1907,
+            2,
+            47702,
+            63592,
+            0,
+            42
+          ],
+          "aasVersion": 5,
+          "numareas": 1907,
+          "numportals": 1,
+          "numclusters": 2,
+          "portalCaches": 0,
+          "areaCaches": 42,
+          "cacheBytes": 78414,
+          "portalCacheBytes": 67,
+          "areaCacheBytes": [
+            1867
+          ],
+          "travelFlags": [
+            18616254,
+            18632638,
+            18636734
+          ],
+          "clusters": [
+            1
+          ],
+          "largestReachability": 28,
+          "nonzeroPortalReachabilities": 0,
+          "portalAreaCaches": 0,
+          "reachabilitiesChecked": 25242
+        },
+        "loads": {
+          "intact/before": {
+            "outcome": "crashed",
+            "exitCode": 1,
+            "forcedTermination": false,
+            "elapsedSeconds": 0.4,
+            "errors": [
+              "Unhandled exception caught\nException Code: ACCESS_VIOLATION\nException Address: fntech3.ded.exe@cd53c"
+            ],
+            "read": [],
+            "refused": [],
+            "written": [],
+            "writtenBytes": [],
+            "routingInitialized": 0,
+            "botsListed": 0,
+            "expectedRefusal": null,
+            "faultSymbol": {
+              "offset": "cd53c",
+              "function": "Z_TagMalloc",
+              "source": "code/qcommon/common.c:1666:0"
+            }
+          },
+          "intact/after": {
+            "outcome": "loaded",
+            "exitCode": 0,
+            "forcedTermination": false,
+            "elapsedSeconds": 14.3,
+            "errors": [],
+            "read": [
+              [
+                "maps/campgrounds.rcd",
+                "0",
+                "42",
+                "78414"
+              ]
+            ],
+            "refused": [],
+            "written": [
+              "maps/campgrounds.rcd"
+            ],
+            "writtenBytes": [
+              91483
+            ],
+            "routingInitialized": 1,
+            "botsListed": 2,
+            "expectedRefusal": null,
+            "rewritten": {
+              "caches": 49,
+              "readCachesKept": 42,
+              "readCaches": 42,
+              "bytes": 91515
+            }
+          }
+        }
+      },
+      "stvef-mp:hm_borg1": {
+        "profile": "stvef-mp",
+        "map": "hm_borg1",
+        "folder": "baseEF",
+        "write": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "forcedTermination": false,
+          "elapsedSeconds": 47.4,
+          "errors": [],
+          "read": [],
+          "refused": [],
+          "written": [],
+          "writtenBytes": [],
+          "routingInitialized": 1,
+          "botsListed": 1
+        },
+        "synthetic": {
+          "empty/before": {
+            "outcome": "loaded",
+            "exitCode": 0,
+            "forcedTermination": false,
+            "elapsedSeconds": 26.0,
+            "errors": [],
+            "read": [],
+            "refused": [],
+            "written": [],
+            "writtenBytes": [],
+            "routingInitialized": 1,
+            "botsListed": 1,
+            "expectedRefusal": null
+          },
+          "empty/after": {
+            "outcome": "loaded",
+            "exitCode": 0,
+            "forcedTermination": false,
+            "elapsedSeconds": 25.4,
+            "errors": [],
+            "read": [
+              [
+                "maps/hm_borg1.rcd",
+                "0",
+                "0",
+                "0"
+              ]
+            ],
+            "refused": [],
+            "written": [],
+            "writtenBytes": [],
+            "routingInitialized": 1,
+            "botsListed": 1,
+            "expectedRefusal": null
+          },
+          "area-zero/before": {
+            "outcome": "crashed",
+            "exitCode": 1,
+            "forcedTermination": false,
+            "elapsedSeconds": 5.5,
+            "errors": [
+              "Unhandled exception caught\nException Code: ACCESS_VIOLATION\nException Address: fntech3.ded.exe@cd53c"
+            ],
+            "read": [],
+            "refused": [],
+            "written": [],
+            "writtenBytes": [],
+            "routingInitialized": 1,
+            "botsListed": 0,
+            "expectedRefusal": "area cache 0 is for area 0, which the map lacks",
+            "faultSymbol": {
+              "offset": "cd53c",
+              "function": "Z_TagMalloc",
+              "source": "code/qcommon/common.c:1666:0"
+            }
+          },
+          "area-zero/after": {
+            "outcome": "loaded",
+            "exitCode": 0,
+            "forcedTermination": false,
+            "elapsedSeconds": 25.7,
+            "errors": [],
+            "read": [],
+            "refused": [
+              "maps/hm_borg1.rcd: area cache 0 is for area 0, which the map lacks"
+            ],
+            "written": [],
+            "writtenBytes": [],
+            "routingInitialized": 1,
+            "botsListed": 1,
+            "expectedRefusal": "area cache 0 is for area 0, which the map lacks"
+          }
+        },
+        "run": {
+          "startedUtc": "2026-09-28T07:12:34Z",
+          "endedUtc": "2026-09-28T07:14:44Z",
+          "output": ".tmp/route-cache/sweep-ef"
+        }
+      }
+    }
+  },
+  "suite": {
+    "export": "git archive of 83599566 with the seven files this change commits, in .tmp/route-cache/final",
+    "build": {
+      "targets": 1430,
+      "options": "win32-dev's: renderers glx,vk,rtx, client and server, the ten development gates",
+      "result": "all built"
+    },
+    "mesonTest": {
+      "ok": 175,
+      "fail": 0,
+      "skipped": 2,
+      "excluded": "fnql_python_source_regressions, the pytest wrapper",
+      "skips": [
+        "OpenAL loopback tests: ALC_SOFT_loopback unavailable",
+        "retail Quake Live not found (FNQL_RETAIL_QL_PATH unset)"
+      ]
+    },
+    "committedTree": {
+      "tree": "b2cbf98e with the seven files (the shared checkout, nothing else changed)",
+      "files": 54,
+      "passed": 515,
+      "skipped": 1,
+      "subtestsPassed": 796,
+      "skip": "release_packaging_tests.py symlink case: no symlink privilege",
+      "scope": "tests reading CHANGELOG, COMPATIBILITY.md or docs/fntech3, the RTCW route/routing/cache-load/AAS-load/navigation fixtures, aas_reachability_index_tests, scan_game_import_calls_tests, release_packaging_tests"
+    },
+    "pythonSuite": {
+      "passed": 2338,
+      "skipped": 128,
+      "subtestsPassed": 57776,
+      "seconds": 1497.28,
+      "skipReasons": {
+        "fnql-audiozonesc is not built; pass its path or set FNQL_AUDIOZONESC": 114,
+        "retail Quake Live not found; set FNQL_RETAIL_QL_PATH to enable the read-only factory compatibility probe": 5,
+        "fakk2.exe 1.02 not present (set FNTECH3_FAKK2_EXE)": 2,
+        "set FNTECH3_Q3_CGAME_RUNTIME_EXE for Windows x86 runtime check": 2,
+        "no Heavy Metal: F.A.K.K.2 installation at <temp>": 1,
+        "set FNQL_CGAME_RUNTIME_EXE to an x86 FnQL executable to enable the windowed native cgame ABI probe": 1,
+        "set FNTECH3_Q3_QAGAME_RUNTIME_EXE for Windows x86 dedicated probe": 1,
+        "symlink creation is unavailable: [WinError 1314] A required privilege is not held by the client:": 1,
+        "set FNQL_CGAME_RUNTIME_EXE to an x86 FnQL executable to enable the windowed retail cgame module probe": 1
+      }
+    }
+  },
+  "fixture": {
+    "test": "tests/aas_route_cache_tests.py",
+    "worlds": [
+      "graph(7, 3, 3)",
+      "graph(3, 4, 1)",
+      "graph(11, 2, 5)"
+    ],
+    "profiles": [
+      "quake3",
+      "quakelive",
+      "wolfet",
+      "stvef-sp",
+      "stvef-mp",
+      "jka-mp",
+      "jk2-mp"
+    ],
+    "mutations": [
+      {
+        "mutation": "a file shorter than its header is read",
+        "replaced": "length < static_cast<int>(sizeof(routecacheheader_t))\n\t\t|| ",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd is not a route cache dump; got 0, 1 errors: maps/probe.rcd: cannot hold 41 portal and 58 area caches in -1 bytes",
+        "readable": "refuses with `cannot hold 41 portal and 58 area caches in -1 bytes` where the production reader says `is not a route cache dump`"
+      },
+      {
+        "mutation": "a header read short is trusted",
+        "replaced": "fp ) != static_cast<int>(sizeof(routecacheheader_t))",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd is not a route cache dump; got 0, 0 errors:",
+        "readable": "refuses silently where the production reader says `is not a route cache dump`"
+      },
+      {
+        "mutation": "a file that is no dump stays open",
+        "replaced": "AAS_Error(\"%s is not a route cache dump\\n\", filename);\n\t\tbotimport.FS_FCloseFile(fp);",
+        "exitCode": 3,
+        "caughtBy": "assertion !fileOpen&&allocations==live&&emptyRouting()",
+        "readable": "fails the assertion `!fileOpen&&allocations==live&&emptyRouting()`"
+      },
+      {
+        "mutation": "a dump of another version stays open",
+        "replaced": "should be %d\\n\", routecacheheader.version, RCVERSION);\n\t\tbotimport.FS_FCloseFile(fp);",
+        "exitCode": 3,
+        "caughtBy": "assertion !fileOpen&&allocations==live&&emptyRouting()",
+        "readable": "fails the assertion `!fileOpen&&allocations==live&&emptyRouting()`"
+      },
+      {
+        "mutation": "a dump of another AAS file stays open",
+        "replaced": "aasworld.numclusters))\n\t{\n\t\tbotimport.FS_FCloseFile(fp);\n\t\treturn qfalse;",
+        "exitCode": 3,
+        "caughtBy": "assertion !fileOpen&&allocations==live&&emptyRouting()",
+        "readable": "fails the assertion `!fileOpen&&allocations==live&&emptyRouting()`"
+      },
+      {
+        "mutation": "counts that cannot fit leave the file open",
+        "replaced": "AAS_Error(\"%s: %s\\n\", filename, fault);\n\t\tbotimport.FS_FCloseFile(fp);",
+        "exitCode": 3,
+        "caughtBy": "assertion !fileOpen&&allocations==live&&emptyRouting()",
+        "readable": "fails the assertion `!fileOpen&&allocations==live&&emptyRouting()`"
+      },
+      {
+        "mutation": "a file of any length is read whole",
+        "replaced": "if (length > MAX_ROUTECACHE_BYTES)",
+        "exitCode": 3,
+        "caughtBy": "assertion p",
+        "readable": "asks for the 2 GB the file claims, which the fixture cannot allocate"
+      },
+      {
+        "mutation": "a negative count of portal caches is taken",
+        "replaced": "routecacheheader.numportalcache < 0 || ",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd: cannot hold -1 portal and 58 area caches in 7698 bytes; got 0, 1 errors: maps/probe.rcd: area cache 1 has type 0",
+        "readable": "refuses with `area cache 1 has type 0` where the production reader says `cannot hold -1 portal and 58 area caches in 7698 bytes`"
+      },
+      {
+        "mutation": "a negative count of area caches is taken",
+        "replaced": "routecacheheader.numareacache < 0\n\t\t|| ",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd: cannot hold 41 portal and -1 area caches in 7698 bytes; got 0, 1 errors: maps/probe.rcd: has 4658 bytes after its last cache",
+        "readable": "refuses with `has 4658 bytes after its last cache` where the production reader says `cannot hold 41 portal and -1 area caches in 7698 bytes`"
+      },
+      {
+        "mutation": "more portal caches than the file holds are read",
+        "replaced": "|| routecacheheader.numportalcache > length / portalbytes\n\t\t",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd: cannot hold 1 portal and 0 area caches in 71 bytes; got 0, 1 errors: maps/probe.rcd: portal cache 0 is for area 0, which the map lacks",
+        "readable": "refuses with `portal cache 0 is for area 0, which the map lacks` where the production reader says `cannot hold 1 portal and 0 area caches in 71 bytes`"
+      },
+      {
+        "mutation": "more area caches than the file holds are read",
+        "replaced": "\n\t\t|| routecacheheader.numareacache > (length - routecacheheader.numportalcache * portalbytes) / AAS_RoutingCacheBytes(0)",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd: cannot hold 41 portal and 2147483647 area caches in 7698 bytes; got 0, 1 errors: maps/probe.rcd: has 7698 bytes after its last cache",
+        "readable": "refuses with `has 7698 bytes after its last cache` where the production reader says `cannot hold 41 portal and 2147483647 area caches in 7698 bytes`"
+      },
+      {
+        "mutation": "a file read short is checked as though whole",
+        "replaced": "if (numread != length || !AAS_RouteCacheRecordsFit(",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd: could read 7698 of its 268435456 bytes of caches; got 0, 1 errors: maps/probe.rcd: has 268427758 bytes after its last cache",
+        "readable": "refuses with `has 268427758 bytes after its last cache` where the production reader says `could read 7698 of its 268435456 bytes of caches`"
+      },
+      {
+        "mutation": "the file is read without its checks",
+        "replaced": "if (numread != length || !AAS_RouteCacheRecordsFit(routecacheheader, caches, length, fault, sizeof(fault)))",
+        "exitCode": 3221225477,
+        "caughtBy": "exit 0xC0000005",
+        "readable": "an access violation"
+      },
+      {
+        "mutation": "a refused file keeps its bytes",
+        "replaced": "AAS_Error(\"%s: %s\\n\", filename, fault);\n\t\tif (caches) FreeMemory(caches);",
+        "exitCode": 3,
+        "caughtBy": "assertion !fileOpen&&allocations==live&&emptyRouting()",
+        "readable": "fails the assertion `!fileOpen&&allocations==live&&emptyRouting()`"
+      },
+      {
+        "mutation": "a read file keeps its bytes",
+        "replaced": "\tif (caches) FreeMemory(caches);\n\tbotimport.Print(",
+        "exitCode": 3,
+        "caughtBy": "assertion allocations.empty()&&!fileOpen",
+        "readable": "fails the assertion `allocations.empty()&&!fileOpen`"
+      },
+      {
+        "mutation": "a cache too short for its members is copied",
+        "replaced": "if (remaining < static_cast<int>(sizeof(aas_routingcache_t)))",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd: area cache 58 starts 0 bytes from the end of the file, too few for a cache; got 0, 1 errors: maps/probe.rcd: area cache 58 has type 0",
+        "readable": "refuses with `area cache 58 has type 0` where the production reader says `area cache 58 starts 0 bytes from the end of the file, too few for a cache`"
+      },
+      {
+        "mutation": "a cache of the wrong kind is listed",
+        "replaced": "if (stored.type != (portal ? CACHETYPE_PORTAL : CACHETYPE_AREA))",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd: portal cache 41 has type 1; got 0, 1 errors: maps/probe.rcd: portal cache 41 is 79 bytes, not the size of a cache of 4 travel times",
+        "readable": "refuses with `portal cache 41 is 79 bytes, not the size of a cache of 4 travel times` where the production reader says `portal cache 41 has type 1`"
+      },
+      {
+        "mutation": "area 0 and below are taken",
+        "replaced": "stored.areanum <= 0 || stored.areanum >= aasworld.numareas",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd: portal cache 0 is for area 0, which the map lacks; got 0, 1 errors: maps/probe.rcd: portal cache 0 is for area 0, which is not in cluster 1",
+        "readable": "refuses with `portal cache 0 is for area 0, which is not in cluster 1` where the production reader says `portal cache 0 is for area 0, which the map lacks`"
+      },
+      {
+        "mutation": "areas past the map are taken",
+        "replaced": "stored.areanum <= 0 || stored.areanum >= aasworld.numareas",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd: portal cache 0 is for area 13, which the map lacks; got 0, 1 errors: maps/probe.rcd: portal cache 0 is for area 13, which is not in cluster 1",
+        "readable": "refuses with `portal cache 0 is for area 13, which is not in cluster 1` where the production reader says `portal cache 0 is for area 13, which the map lacks`"
+      },
+      {
+        "mutation": "cluster 0 and below are taken",
+        "replaced": "stored.cluster <= 0 || stored.cluster >= aasworld.numclusters",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd: portal cache 0 is for cluster 0, which the map lacks; got 0, 1 errors: maps/probe.rcd: portal cache 0 is for area 1, which is not in cluster 0",
+        "readable": "refuses with `portal cache 0 is for area 1, which is not in cluster 0` where the production reader says `portal cache 0 is for cluster 0, which the map lacks`"
+      },
+      {
+        "mutation": "clusters past the map are taken",
+        "replaced": "stored.cluster <= 0 || stored.cluster >= aasworld.numclusters",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd: portal cache 0 is for cluster 4, which the map lacks; got 0, 1 errors: maps/probe.rcd: portal cache 0 is for area 1, which is not in cluster 4",
+        "readable": "refuses with `portal cache 0 is for area 1, which is not in cluster 4` where the production reader says `portal cache 0 is for cluster 4, which the map lacks`"
+      },
+      {
+        "mutation": "an area outside the cache's cluster is taken",
+        "replaced": "if (!AAS_RouteCacheAreaInCluster(stored.areanum, stored.cluster))",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd: portal cache 0 is for area 1, which is not in cluster 2; got 1, 0 errors:",
+        "readable": "reads the file the production reader refuses with `portal cache 0 is for area 1, which is not in cluster 2`"
+      },
+      {
+        "mutation": "a portal past the map's portals is followed",
+        "replaced": "if (areacluster <= -aasworld.numportals) return false;",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd: portal cache 0 is for area 1, which is not in cluster 1; got 0, 1 errors: maps/probe.rcd: area cache 4 gives number 0 of cluster 1 reachability 1, which its area lacks",
+        "readable": "refuses with `area cache 4 gives number 0 of cluster 1 reachability 1, which its area lacks` where the production reader says `portal cache 0 is for area 1, which is not in cluster 1`"
+      },
+      {
+        "mutation": "a number past the cluster is linked",
+        "replaced": "if (number < 0 || number >= aasworld.clusters[stored.cluster].numareas)",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd: area cache 0 is for area 10, whose number 5 in cluster 1 is outside its 5 areas; got 0, 1 errors: maps/probe.rcd: area cache 5 gives number 3 of cluster 1 reachability 1, which its area lacks",
+        "readable": "refuses with `area cache 5 gives number 3 of cluster 1 reachability 1, which its area lacks` where the production reader says `area cache 0 is for area 10, whose number 5 in cluster 1 is outside its 5 areas`"
+      },
+      {
+        "mutation": "a negative number is linked",
+        "replaced": "if (number < 0 || number >= aasworld.clusters[stored.cluster].numareas)",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd: area cache 0 is for area 10, whose number -1 in cluster 1 is outside its 5 areas; got 0, 1 errors: maps/probe.rcd: area cache 5 gives number 3 of cluster 1 reachability 1, which its area lacks",
+        "readable": "refuses with `area cache 5 gives number 3 of cluster 1 reachability 1, which its area lacks` where the production reader says `area cache 0 is for area 10, whose number -1 in cluster 1 is outside its 5 areas`"
+      },
+      {
+        "mutation": "a cache of any size is taken",
+        "replaced": "if (numtraveltimes < 0 || stored.size != AAS_RoutingCacheBytes(numtraveltimes))",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd: portal cache 0 is 77 bytes, not the size of a cache of 4 travel times; got 0, 1 errors: maps/probe.rcd: portal cache 1 is for area 0, which the map lacks",
+        "readable": "refuses with `portal cache 1 is for area 0, which the map lacks` where the production reader says `portal cache 0 is 77 bytes, not the size of a cache of 4 travel times`"
+      },
+      {
+        "mutation": "a cluster of negative reachability areas takes a cache smaller than any",
+        "replaced": "if (numtraveltimes < 0 || stored.size",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd: area cache 0 is 61 bytes, not the size of a cache of -1 travel times; got 0, 1 errors: maps/probe.rcd: area cache 1 has type 0",
+        "readable": "refuses with `area cache 1 has type 0` where the production reader says `area cache 0 is 61 bytes, not the size of a cache of -1 travel times`"
+      },
+      {
+        "mutation": "a cache past the end of the file is taken",
+        "replaced": "if (stored.size > remaining)",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd: area cache 57 is 79 bytes, more than the 78 left in the file; got 0, 1 errors: maps/probe.rcd: has -1 bytes after its last cache",
+        "readable": "refuses with `has -1 bytes after its last cache` where the production reader says `area cache 57 is 79 bytes, more than the 78 left in the file`"
+      },
+      {
+        "mutation": "any reachability is taken",
+        "replaced": "if (reachabilities[i] < bound) continue;",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd: area cache 4 gives number 0 of cluster 1 reachability 4, which its area lacks; got 1, 0 errors:",
+        "readable": "reads the file the production reader refuses with `area cache 4 gives number 0 of cluster 1 reachability 4, which its area lacks`"
+      },
+      {
+        "mutation": "a portal's area gives no bound",
+        "replaced": "\t\t\tfewer(-settings->cluster, reachabilities);\n",
+        "exitCode": 5,
+        "caughtBy": "expected a load, got 0: maps/probe.rcd: portal cache 0 gives portal 1 reachability 7, which its area lacks",
+        "readable": "refuses a file the production reader reads, with `portal cache 0 gives portal 1 reachability 7, which its area lacks`"
+      },
+      {
+        "mutation": "a cluster's areas give no bound",
+        "replaced": "\t\t\t\tfewer(start[joined[side]] + number, reachabilities);",
+        "exitCode": 5,
+        "caughtBy": "expected a load, got 0: maps/probe.rcd: area cache 4 gives number 0 of cluster 1 reachability 1, which its area lacks",
+        "readable": "refuses a file the production reader reads, with `area cache 4 gives number 0 of cluster 1 reachability 1, which its area lacks`"
+      },
+      {
+        "mutation": "a portal bounds only its front cluster",
+        "replaced": "joined[1] = aasworld.portals[-settings->cluster].backcluster;",
+        "exitCode": 5,
+        "caughtBy": "expected a load, got 0: maps/probe.rcd: area cache 4 gives number 4 of cluster 1 reachability 1, which its area lacks",
+        "readable": "refuses a file the production reader reads, with `area cache 4 gives number 4 of cluster 1 reachability 1, which its area lacks`"
+      },
+      {
+        "mutation": "the last of the areas sharing a number bounds it",
+        "replaced": "if (fewest[slot] < 0 || count < fewest[slot]) fewest[slot] = count;",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd: area cache 0 gives number 0 of cluster 1 reachability 4, which its area lacks; got 0, 1 errors: maps/probe.rcd: area cache 4 gives number 3 of cluster 1 reachability 1, which its area lacks",
+        "readable": "refuses with `area cache 4 gives number 3 of cluster 1 reachability 1, which its area lacks` where the production reader says `area cache 0 gives number 0 of cluster 1 reachability 4, which its area lacks`"
+      },
+      {
+        "mutation": "numbers past a cluster are bounded by the next",
+        "replaced": "else if (i < aasworld.clusters[stored.cluster].numareas) bound",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd: area cache 0 gives number 5 of cluster 1 reachability 1, which its area lacks; got 0, 1 errors: maps/probe.rcd: area cache 1 is 79 bytes, not the size of a cache of 6 travel times",
+        "readable": "refuses with `area cache 1 is 79 bytes, not the size of a cache of 6 travel times` where the production reader says `area cache 0 gives number 5 of cluster 1 reachability 1, which its area lacks`"
+      },
+      {
+        "mutation": "bytes after the last cache are ignored",
+        "replaced": "if (size && at != length)",
+        "exitCode": 4,
+        "caughtBy": "expected maps/probe.rcd: has 79 bytes after its last cache; got 1, 0 errors:",
+        "readable": "reads the file the production reader refuses with `has 79 bytes after its last cache`"
+      },
+      {
+        "mutation": "the scratch of the checks is kept",
+        "replaced": "\tFreeMemory(fewest);\n",
+        "exitCode": 3,
+        "caughtBy": "assertion !fileOpen&&allocations==live&&emptyRouting()",
+        "readable": "fails the assertion `!fileOpen&&allocations==live&&emptyRouting()`"
+      },
+      {
+        "mutation": "a read cache is not in the least-recently-used list",
+        "replaced": "\t\tAAS_LinkCache(cache);\n",
+        "exitCode": 3,
+        "caughtBy": "assertion previous==aasworld.newestcache&&bytes==aasworld.routingcachesize",
+        "readable": "fails the assertion `previous==aasworld.newestcache&&bytes==aasworld.routingcachesize`"
+      }
+    ],
+    "windows": "clang++ --target=i686-pc-windows-msvc -O2 -ffast-math: production passes, 37 of 37 mutations fail",
+    "linux": {
+      "compilers": [
+        "g++ 13 -m32",
+        "clang++ 18 -m32"
+      ],
+      "fixture": "both build it; the production reader passes under the seven profiles and all 37 mutated readers fail",
+      "reader": "be_aas_route.cpp (source commit plus the reader) with -std=c++17 -Wall -Wextra -fsyntax-only: no warning in the reader; two pre-existing unused-parameter warnings at line 2673 (srcnum, enemynum)"
+    }
+  }
+}

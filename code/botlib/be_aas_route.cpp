@@ -980,7 +980,9 @@ void AAS_CreateAllRoutingCache(void)
 
 //the route cache header
 //this header is followed by numportalcache + numareacache aas_routingcache_t
-//structures that store routing cache
+//structures that store routing cache: each cache as the routing holds it,
+//cache->size bytes from its first member, so its pointers are stale and its
+//layout is this build's (a cache's size differs with the size of a pointer)
 struct routecacheheader_t
 {
 	int ident;
@@ -995,6 +997,10 @@ struct routecacheheader_t
 
 static constexpr int RCID = ('C' << 24) + ('R' << 16) + ('E' << 8) + 'M';
 static constexpr int RCVERSION = 2;
+//the most bytes of caches a dump is read with, the bound RTCW's reader keeps
+//(rtcw_routecache_format.hpp): far more than the routing keeps, and far
+//enough below 2 GB that no allocation size in the botlib's int arithmetic wraps
+static constexpr int MAX_ROUTECACHE_BYTES = 256 * 1024 * 1024;
 
 //void AAS_DecompressVis(byte *in, int numareas, byte *decompressed);
 //int AAS_CompressVis(byte *vis, int numareas, byte *dest);
@@ -1097,24 +1103,247 @@ void AAS_WriteRouteCache(void)
 	botimport.Print(PRT_MESSAGE, "written %d bytes of routing cache\n", totalsize);
 } //end of the function AAS_WriteRouteCache
 //===========================================================================
+// the size AAS_AllocRoutingCache gives a cache of the given travel times
 //
-// Parameter:			-
-// Returns:				-
+// Parameter:			numtraveltimes: not negative
+// Returns:				the cache's bytes, which may be more than an int holds
 // Changes Globals:		-
 //===========================================================================
-static aas_routingcache_t *AAS_ReadCache(fileHandle_t fp)
+static long long AAS_RoutingCacheBytes(int numtraveltimes)
 {
-	int size;
-	aas_routingcache_t *cache;
+	return static_cast<long long>(sizeof(aas_routingcache_t))
+		+ static_cast<long long>(numtraveltimes) * static_cast<long long>(sizeof(unsigned short int) + sizeof(unsigned char));
+} //end of the function AAS_RoutingCacheBytes
+//===========================================================================
+// whether routing may number an area in a cluster: the area is in the
+// cluster, or is a portal on its border
+//
+// Parameter:			areanum: an area of the map
+//						cluster: a cluster of the map
+// Returns:				true when the area is in the cluster or on its border
+// Changes Globals:		-
+//===========================================================================
+static bool AAS_RouteCacheAreaInCluster(int areanum, int cluster)
+{
+	const int areacluster = aasworld.areasettings[areanum].cluster;
+	const aas_portal_t *portal;
 
-	botimport.FS_Read(&size, sizeof(size), fp);
-	cache = botlib::AllocBytes<aas_routingcache_t>(size);
-	cache->size = size;
-	botimport.FS_Read(reinterpret_cast<unsigned char *>(cache) + sizeof(size), size - sizeof(size), fp);
-	cache->reachabilities = reinterpret_cast<unsigned char *>(cache) + sizeof(aas_routingcache_t) - sizeof(unsigned short) +
-		(size - sizeof(aas_routingcache_t) + sizeof(unsigned short)) / 3 * 2;
-	return cache;
-} //end of the function AAS_ReadCache
+	if (areacluster >= 0) return areacluster == cluster;
+	//a portal's number is not negated before it is known to be one
+	if (areacluster <= -aasworld.numportals) return false;
+	portal = &aasworld.portals[-areacluster];
+	return portal->frontcluster == cluster || portal->backcluster == cluster;
+} //end of the function AAS_RouteCacheAreaInCluster
+//===========================================================================
+// checks a route cache dump's counts of caches against its length before
+// any byte of the caches is read: every portal cache takes the size of a
+// cache of every portal, and an area cache at least the size of a cache
+// without travel times, whatever its cluster
+//
+// Parameter:			routecacheheader: the dump's header, matched to the map
+//						length: the bytes after the header
+//						fault: what is wrong, in words, when something is
+// Returns:				true when the caches the header counts can fit
+// Changes Globals:		-
+//===========================================================================
+static bool AAS_RouteCacheCountsFit(const routecacheheader_t &routecacheheader, int length, char *fault, int faultsize)
+{
+	const long long portalbytes = AAS_RoutingCacheBytes(std::max(aasworld.numportals, 0));
+
+	if (length > MAX_ROUTECACHE_BYTES)
+	{
+		Com_sprintf(fault, faultsize, "has %d bytes of caches, more than the %d read", length, MAX_ROUTECACHE_BYTES);
+		return false;
+	} //end if
+	if (routecacheheader.numportalcache < 0 || routecacheheader.numareacache < 0
+		|| routecacheheader.numportalcache > length / portalbytes
+		|| routecacheheader.numareacache > (length - routecacheheader.numportalcache * portalbytes) / AAS_RoutingCacheBytes(0))
+	{
+		Com_sprintf(fault, faultsize, "cannot hold %d portal and %d area caches in %d bytes",
+			routecacheheader.numportalcache, routecacheheader.numareacache, length);
+		return false;
+	} //end if
+	return true;
+} //end of the function AAS_RouteCacheCountsFit
+//===========================================================================
+// checks one cache of a route cache dump against the map before routing
+// reads it: routing takes a cache for the kind its list holds, keeps it in
+// the list of its area (an area cache under the area's number in its
+// cluster), indexes a portal cache's travel times by portal and an area
+// cache's by the numbers its cluster gives, and a route query from an area
+// takes the cache's reachability there as an offset into that area's own
+//
+// Parameter:			index: the cache's number among those of its kind
+//						portal: whether it is a portal cache
+//						record: its bytes, remaining of them to the file's end
+//						start, fewest: the bounds AAS_RouteCacheRecordsFit gathers
+//						fault: what is wrong, in words, when something is
+// Returns:				the cache's size when routing may read it, else 0
+// Changes Globals:		-
+//===========================================================================
+static int AAS_RouteCacheRecordSize(int index, bool portal, const byte *record, int remaining,
+	const int *start, const int *fewest, char *fault, int faultsize)
+{
+	const char *kind = portal ? "portal" : "area";
+	aas_routingcache_t stored;
+	int i, number, numtraveltimes, bound;
+	const byte *reachabilities;
+
+	if (remaining < static_cast<int>(sizeof(aas_routingcache_t)))
+	{
+		Com_sprintf(fault, faultsize, "%s cache %d starts %d bytes from the end of the file, too few for a cache",
+			kind, index, remaining);
+		return 0;
+	} //end if
+	//its pointers are the writer's, and only its numbers are read
+	memcpy(&stored, record, sizeof(stored));
+	if (stored.type != (portal ? CACHETYPE_PORTAL : CACHETYPE_AREA))
+	{
+		Com_sprintf(fault, faultsize, "%s cache %d has type %d", kind, index, stored.type);
+		return 0;
+	} //end if
+	if (stored.areanum <= 0 || stored.areanum >= aasworld.numareas)
+	{
+		Com_sprintf(fault, faultsize, "%s cache %d is for area %d, which the map lacks", kind, index, stored.areanum);
+		return 0;
+	} //end if
+	if (stored.cluster <= 0 || stored.cluster >= aasworld.numclusters)
+	{
+		Com_sprintf(fault, faultsize, "%s cache %d is for cluster %d, which the map lacks", kind, index, stored.cluster);
+		return 0;
+	} //end if
+	if (!AAS_RouteCacheAreaInCluster(stored.areanum, stored.cluster))
+	{
+		Com_sprintf(fault, faultsize, "%s cache %d is for area %d, which is not in cluster %d",
+			kind, index, stored.areanum, stored.cluster);
+		return 0;
+	} //end if
+	if (!portal)
+	{
+		number = AAS_ClusterAreaNum(stored.cluster, stored.areanum);
+		if (number < 0 || number >= aasworld.clusters[stored.cluster].numareas)
+		{
+			Com_sprintf(fault, faultsize, "area cache %d is for area %d, whose number %d in cluster %d is outside its %d areas",
+				index, stored.areanum, number, stored.cluster, aasworld.clusters[stored.cluster].numareas);
+			return 0;
+		} //end if
+	} //end if
+	numtraveltimes = portal ? aasworld.numportals : aasworld.clusters[stored.cluster].numreachabilityareas;
+	if (numtraveltimes < 0 || stored.size != AAS_RoutingCacheBytes(numtraveltimes))
+	{
+		Com_sprintf(fault, faultsize, "%s cache %d is %d bytes, not the size of a cache of %d travel times",
+			kind, index, stored.size, numtraveltimes);
+		return 0;
+	} //end if
+	if (stored.size > remaining)
+	{
+		Com_sprintf(fault, faultsize, "%s cache %d is %d bytes, more than the %d left in the file",
+			kind, index, stored.size, remaining);
+		return 0;
+	} //end if
+	//each reachability a route query can take must be one of its area's
+	reachabilities = record + sizeof(aas_routingcache_t) + numtraveltimes * sizeof(unsigned short int);
+	for (i = 0; i < numtraveltimes; i++)
+	{
+		if (!reachabilities[i]) continue;
+		if (portal) bound = fewest[i];
+		else if (i < aasworld.clusters[stored.cluster].numareas) bound = fewest[start[stored.cluster] + i];
+		else bound = -1;
+		if (reachabilities[i] < bound) continue;
+		if (portal)
+		{
+			Com_sprintf(fault, faultsize, "portal cache %d gives portal %d reachability %d, which its area lacks",
+				index, i, reachabilities[i]);
+		} //end if
+		else
+		{
+			Com_sprintf(fault, faultsize, "area cache %d gives number %d of cluster %d reachability %d, which its area lacks",
+				index, i, stored.cluster, reachabilities[i]);
+		} //end else
+		return 0;
+	} //end for
+	return stored.size;
+} //end of the function AAS_RouteCacheRecordSize
+//===========================================================================
+// checks every cache of a route cache dump against the map, in the order
+// the file holds them, before any is read into the routing
+//
+// Parameter:			routecacheheader: the dump's header, with counts that fit
+//						caches: the length bytes after the header
+//						fault: what is wrong, in words, when something is
+// Returns:				true when routing may read every cache
+// Changes Globals:		-
+//===========================================================================
+static bool AAS_RouteCacheRecordsFit(const routecacheheader_t &routecacheheader, const byte *caches, int length,
+	char *fault, int faultsize)
+{
+	const int numcaches = routecacheheader.numportalcache + routecacheheader.numareacache;
+	int i, side, joined[2], number, reachabilities, size, at, *start, *fewest;
+	const aas_areasettings_t *settings;
+
+	//for each portal, then each number each cluster gives, the fewest
+	//reachabilities of the areas a route query reads a cache there for, or
+	//-1 where no area has the number: a query from an area in a cluster, or
+	//from a portal on its border, reads an area cache at the number the
+	//cluster gives the area, and one from a portal reads a portal cache at
+	//its portal; where areas share a number, each reads the fewest
+	start = botlib::Alloc<int>(aasworld.numclusters + 1);
+	start[0] = std::max(aasworld.numportals, 0);
+	for (i = 0; i < aasworld.numclusters; i++)
+	{
+		start[i + 1] = start[i] + std::max(aasworld.clusters[i].numareas, 0);
+	} //end for
+	fewest = botlib::Alloc<int>(std::max(start[aasworld.numclusters], 1));
+	for (i = 0; i < start[aasworld.numclusters]; i++)
+	{
+		fewest[i] = -1;
+	} //end for
+	const auto fewer = [fewest](int slot, int count) {
+		if (fewest[slot] < 0 || count < fewest[slot]) fewest[slot] = count;
+	};
+	for (i = 1; i < aasworld.numareas; i++)
+	{
+		settings = &aasworld.areasettings[i];
+		reachabilities = std::max(settings->numreachableareas, 0);
+		//an area is numbered in its cluster, a portal in each cluster it joins
+		if (settings->cluster > 0)
+		{
+			joined[0] = settings->cluster;
+			joined[1] = 0;
+		} //end if
+		else if (settings->cluster < 0 && settings->cluster > -aasworld.numportals)
+		{
+			fewer(-settings->cluster, reachabilities);
+			joined[0] = aasworld.portals[-settings->cluster].frontcluster;
+			joined[1] = aasworld.portals[-settings->cluster].backcluster;
+		} //end else if
+		else continue;
+		for (side = 0; side < 2; side++)
+		{
+			if (joined[side] <= 0 || joined[side] >= aasworld.numclusters) continue;
+			number = AAS_ClusterAreaNum(joined[side], i);
+			if (number >= 0 && number < aasworld.clusters[joined[side]].numareas)
+				fewer(start[joined[side]] + number, reachabilities);
+		} //end for
+	} //end for
+	size = 1;
+	for (i = 0, at = 0; size && i < numcaches; i++, at += size)
+	{
+		if (i < routecacheheader.numportalcache)
+			size = AAS_RouteCacheRecordSize(i, true, caches + at, length - at, start, fewest, fault, faultsize);
+		else
+			size = AAS_RouteCacheRecordSize(i - routecacheheader.numportalcache, false, caches + at, length - at,
+				start, fewest, fault, faultsize);
+	} //end for
+	if (size && at != length)
+	{
+		Com_sprintf(fault, faultsize, "has %d bytes after its last cache", length - at);
+		size = 0;
+	} //end if
+	FreeMemory(fewest);
+	FreeMemory(start);
+	return size != 0;
+} //end of the function AAS_RouteCacheRecordsFit
 //===========================================================================
 //
 // Parameter:			-
@@ -1131,73 +1360,107 @@ static aas_routingcache_t *AAS_ReadCache(fileHandle_t fp)
 static int AAS_ReadRouteCache(void)
 {
 	if (Com_GameIsRTCW()) return AAS_ReadRTCWRouteCache();
-	int i, clusterareanum;//, size;
+	int i, length, numread, numtraveltimes, clusterareanum;
 	fileHandle_t fp;
-	char filename[MAX_QPATH];
+	char filename[MAX_QPATH], fault[256];
 	routecacheheader_t routecacheheader;
-	aas_routingcache_t *cache;
+	aas_routingcache_t stored, *cache, **head;
+	byte *caches;
+	const byte *record;
 
 	Com_sprintf(filename, MAX_QPATH, "maps/%s.rcd", aasworld.mapname);
-	botimport.FS_FOpenFile( filename, &fp, FS_READ );
+	length = botimport.FS_FOpenFile( filename, &fp, FS_READ );
 	if (!fp)
 	{
 		return qfalse;
 	} //end if
-	botimport.FS_Read(&routecacheheader, sizeof(routecacheheader_t), fp );
-	if (routecacheheader.ident != RCID)
+	//a file shorter than the header is not a dump either
+	if (length < static_cast<int>(sizeof(routecacheheader_t))
+		|| botimport.FS_Read(&routecacheheader, sizeof(routecacheheader_t), fp ) != static_cast<int>(sizeof(routecacheheader_t))
+		|| routecacheheader.ident != RCID)
 	{
 		AAS_Error("%s is not a route cache dump\n", filename);
+		botimport.FS_FCloseFile(fp);
 		return qfalse;
 	} //end if
 	if (routecacheheader.version != RCVERSION)
 	{
 		AAS_Error("route cache dump has wrong version %d, should be %d\n", routecacheheader.version, RCVERSION);
+		botimport.FS_FCloseFile(fp);
 		return qfalse;
 	} //end if
-	if (routecacheheader.numareas != aasworld.numareas)
+	//a dump made for another AAS file is left alone
+	if (routecacheheader.numareas != aasworld.numareas
+		|| routecacheheader.numclusters != aasworld.numclusters
+		|| routecacheheader.areacrc != CRC_ProcessArray(aasworld.areas, aasworld.numareas)
+		|| routecacheheader.clustercrc != CRC_ProcessArray(aasworld.clusters, aasworld.numclusters))
 	{
-		//AAS_Error("route cache dump has wrong number of areas\n");
+		botimport.FS_FCloseFile(fp);
 		return qfalse;
 	} //end if
-	if (routecacheheader.numclusters != aasworld.numclusters)
+	//the counts must fit the file before any of it is read
+	length -= static_cast<int>(sizeof(routecacheheader_t));
+	if (!AAS_RouteCacheCountsFit(routecacheheader, length, fault, sizeof(fault)))
 	{
-		//AAS_Error("route cache dump has wrong number of clusters\n");
+		AAS_Error("%s: %s\n", filename, fault);
+		botimport.FS_FCloseFile(fp);
 		return qfalse;
 	} //end if
-	if (routecacheheader.areacrc != CRC_ProcessArray(aasworld.areas, aasworld.numareas))
+	caches = length > 0 ? botlib::AllocBytes<byte>(length) : nullptr;
+	numread = length > 0 ? botimport.FS_Read(caches, length, fp) : 0;
+	botimport.FS_FCloseFile(fp);
+	//every cache is checked against the map before any is read into the routing
+	if (numread != length)
 	{
-		//AAS_Error("route cache dump area CRC incorrect\n");
+		Com_sprintf(fault, sizeof(fault), "could read %d of its %d bytes of caches", std::max(numread, 0), length);
+	} //end if
+	if (numread != length || !AAS_RouteCacheRecordsFit(routecacheheader, caches, length, fault, sizeof(fault)))
+	{
+		AAS_Error("%s: %s\n", filename, fault);
+		if (caches) FreeMemory(caches);
 		return qfalse;
 	} //end if
-	if (routecacheheader.clustercrc != CRC_ProcessArray(aasworld.clusters, aasworld.numclusters))
+	//read each cache into one the routing allocates, as it allocates its own,
+	//and link it where routing looks for it, as the newest cache
+	record = caches;
+	for (i = 0; i < routecacheheader.numportalcache + routecacheheader.numareacache; i++)
 	{
-		//AAS_Error("route cache dump cluster CRC incorrect\n");
-		return qfalse;
-	} //end if
-	//read all the portal cache
-	for (i = 0; i < routecacheheader.numportalcache; i++)
-	{
-		cache = AAS_ReadCache(fp);
-		cache->next = aasworld.portalcache[cache->areanum];
+		memcpy(&stored, record, sizeof(stored));
+		numtraveltimes = i < routecacheheader.numportalcache ? aasworld.numportals
+			: aasworld.clusters[stored.cluster].numreachabilityareas;
+		cache = AAS_AllocRoutingCache(numtraveltimes);
+		cache->type = stored.type;
+		cache->time = stored.time;
+		cache->cluster = stored.cluster;
+		cache->areanum = stored.areanum;
+		VectorCopy(stored.origin, cache->origin);
+		cache->starttraveltime = stored.starttraveltime;
+		cache->travelflags = stored.travelflags;
+		memcpy(reinterpret_cast<byte *>(cache) + offsetof(aas_routingcache_t, traveltimes),
+			record + offsetof(aas_routingcache_t, traveltimes), numtraveltimes * sizeof(unsigned short int));
+		memcpy(cache->reachabilities, record + sizeof(aas_routingcache_t) + numtraveltimes * sizeof(unsigned short int),
+			numtraveltimes * sizeof(unsigned char));
+		if (i < routecacheheader.numportalcache)
+		{
+			head = &aasworld.portalcache[cache->areanum];
+		} //end if
+		else
+		{
+			clusterareanum = AAS_ClusterAreaNum(cache->cluster, cache->areanum);
+			head = &aasworld.clusterareacache[cache->cluster][clusterareanum];
+		} //end else
 		cache->prev = nullptr;
-		if (aasworld.portalcache[cache->areanum])
-			aasworld.portalcache[cache->areanum]->prev = cache;
-		aasworld.portalcache[cache->areanum] = cache;
-	} //end for
-	//read all the cluster area cache
-	for (i = 0; i < routecacheheader.numareacache; i++)
-	{
-		cache = AAS_ReadCache(fp);
-		clusterareanum = AAS_ClusterAreaNum(cache->cluster, cache->areanum);
-		cache->next = aasworld.clusterareacache[cache->cluster][clusterareanum];
-		cache->prev = nullptr;
-		if (aasworld.clusterareacache[cache->cluster][clusterareanum])
-			aasworld.clusterareacache[cache->cluster][clusterareanum]->prev = cache;
-		aasworld.clusterareacache[cache->cluster][clusterareanum] = cache;
+		cache->next = *head;
+		if (*head) (*head)->prev = cache;
+		*head = cache;
+		AAS_LinkCache(cache);
+		record += stored.size;
 	} //end for
 	// legacy visareas are intentionally not loaded from route cache dumps
 	//
-	botimport.FS_FCloseFile(fp);
+	if (caches) FreeMemory(caches);
+	botimport.Print(PRT_MESSAGE, "route cache read from %s: %d portal and %d area caches, %d bytes\n",
+		filename, routecacheheader.numportalcache, routecacheheader.numareacache, length);
 	return qtrue;
 } //end of the function AAS_ReadRouteCache
 //===========================================================================

@@ -53,6 +53,15 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Read back the bot route caches a server saves. With `bot_saveroutingcache 1`
+  (a cheat in Quake III's game) the bot library writes the routes it has
+  worked out to `maps/NAME.rcd`, and reads them when the map next loads, but
+  the reader took each cache's size from its type byte and the server
+  faulted on the next allocation. The dumps Quake III, Team Arena and Quake
+  Live servers write now load and stay in use, and every cache is first
+  checked against the map: a damaged dump, in the home or a pak, is refused
+  whole and routing builds its caches as it goes
+  ([record](docs/fntech3/2026-09-28-route-cache-checks.md)).
 - Scale the light grid's ambient on models by each game's own
   `r_ambientScale`. fnTech3 used Quake III's `0.6` for every profile.
   American McGee's Alice and Heavy Metal: F.A.K.K.2 register `0.5`, so the
