@@ -1,0 +1,1687 @@
+{
+  "utc": "2026-09-29T07:27:37+00:00",
+  "testedSourceCommit": "8e345c8f05bf66b748e85cbe3686cde78f4f3a05",
+  "sourceChanges": [
+    "code/botlib/be_aas_route.cpp"
+  ],
+  "platform": "Windows 11; Windows x86 MSVC debugoptimized, strict warnings, every development option, from a git archive export of the tested commit; fixtures and measurement with clang++ -O2",
+  "builds": {
+    "before": {
+      "tree": "8e345c8 with docs/fntech3/2026-09-29-route-cache-before-routing.md's change",
+      "server": "359f5b853e87cdf33603b1e3158ac6100702fa40dca8e28070beb0f18ff0cf0a"
+    },
+    "after": {
+      "tree": "the same plus this change",
+      "server": "693f533f4199c3cf3419808710cb1d6495299765a68d3befbd7cdde21db5dc2c"
+    }
+  },
+  "retail": {
+    "stvoyHM.exe": {
+      "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "AAS_UpdateAreaRoutingCache": "0x004992d0",
+      "returnsPastReachabilityAreas": "0x00499352 (cmp edi, numreachabilityareas; jge)",
+      "seed": "0x0049936d..0x00499378: [areatraveltimes 0x00ad6e40][goal] -> [..][0] into update+0x18; no zeroed array",
+      "loopTests": [
+        "travel type flags 0x00499406",
+        "contents flags of the entered area: call 0x00499290, test 0x00499422",
+        "cluster 0x0049943f..0x0049944a"
+      ],
+      "noAreaDisabledTest": "the loop never reads the entered area's areaflags (0x004993e9..0x0049954a)",
+      "nextRow": "0x004994ee..0x00499503: areatraveltimes[next][linknum - firstreachablearea]",
+      "AAS_AreaContentsTravelFlags": {
+        "function": "0x00499290",
+        "rule": "contents 1 -> 0x100000, else 4 -> 0x200000, else 2 -> 0x400000, else ((contents & 0x100) | 0x10) << 15, i.e. TFL_AIR plus TFL_DONOTENTER for 256"
+      },
+      "gameImports300to302": "Holomatch's own visibility queries, refused by retail's dispatcher (code/server/server_stvef_game.hpp); no import enables or disables an area"
+    },
+    "et.exe": {
+      "sha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+      "AAS_UpdateAreaRoutingCache": "0x00481290",
+      "seed": "0x0048132e..0x00481339: areatraveltimes[goal][0]",
+      "areaDisabled": "0x004813dc..0x004813e3: test areaflags, 8",
+      "areaAvoid": "0x00481483..0x0048148c: areaflags & 0x10 adds 1000 (0x3e8) to the time",
+      "emptyRows": "0x004814a4..0x004814ae: an area without travel times is skipped"
+    }
+  },
+  "installedData": {
+    "files": 33,
+    "areas": 193498,
+    "areasWithAreaDisabled": 0,
+    "areasWhoseContentsFlagsDiffer": 0,
+    "scannedFiles": {
+      "stvef": 33,
+      "q3": 62,
+      "ql": 149
+    },
+    "areasWithAreaDisabledAnyInstallation": 0
+  },
+  "measurement": {
+    "scope": "Measure how Elite Force Holomatch's routes change when an area cache starts from the goal's own row.",
+    "goalsPerFile": 128,
+    "installation": "E:\\Games\\Star Trek Voyager Elite Force",
+    "sourceCommit": "8e345c8f05bf66b748e85cbe3686cde78f4f3a05",
+    "files": {
+      "BaseEF/pak0.pk3:maps/ctf_and1.aas": {
+        "loaded": true,
+        "areas": 7346,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 1268,
+        "routesCompared": 940160,
+        "routedFromZeros": 122888,
+        "routedFromRow": 122888,
+        "travelTimeChanged": 121892,
+        "firstLinkChanged": 444,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 127,
+        "goalRowsNotAllZero": 127,
+        "goalRowEntriesSum": 10257,
+        "goalRowEntryMax": 304,
+        "version": 5,
+        "sha256": "afb697299f03e3876ec4f6efdff58e53a2692c0147ebb858e04e231514abdcf9"
+      },
+      "BaseEF/pak3.pk3:maps/ctf_breach.aas": {
+        "loaded": true,
+        "areas": 8673,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 3039,
+        "routesCompared": 1110016,
+        "routedFromZeros": 169847,
+        "routedFromRow": 169847,
+        "travelTimeChanged": 167869,
+        "firstLinkChanged": 636,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 127,
+        "goalRowsNotAllZero": 127,
+        "goalRowEntriesSum": 5577,
+        "goalRowEntryMax": 95,
+        "version": 5,
+        "sha256": "10e2c6986ef246a4089005556ded08c7e74cdf21743c68bbfaad220a4622a8e4"
+      },
+      "BaseEF/pak3.pk3:maps/ctf_dn1.aas": {
+        "loaded": true,
+        "areas": 8856,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 2603,
+        "routesCompared": 1133440,
+        "routedFromZeros": 211372,
+        "routedFromRow": 211372,
+        "travelTimeChanged": 208351,
+        "firstLinkChanged": 1221,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 125,
+        "goalRowsNotAllZero": 125,
+        "goalRowEntriesSum": 9522,
+        "goalRowEntryMax": 336,
+        "version": 5,
+        "sha256": "d4ae46fdf29593d80d7924c85dbbc346e06cbd83595be82810cb84f2030c4b9e"
+      },
+      "BaseEF/pak3.pk3:maps/ctf_for1.aas": {
+        "loaded": true,
+        "areas": 18723,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 1580,
+        "routesCompared": 2396416,
+        "routedFromZeros": 106817,
+        "routedFromRow": 106817,
+        "travelTimeChanged": 106144,
+        "firstLinkChanged": 449,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 125,
+        "goalRowsNotAllZero": 125,
+        "goalRowEntriesSum": 7140,
+        "goalRowEntryMax": 145,
+        "version": 5,
+        "sha256": "5b3dee20a3d1e91a0363077e96a676f8210351550f37e8b011476de96f9f1764"
+      },
+      "BaseEF/pak0.pk3:maps/ctf_kln1.aas": {
+        "loaded": true,
+        "areas": 5514,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 1644,
+        "routesCompared": 705664,
+        "routedFromZeros": 152305,
+        "routedFromRow": 152305,
+        "travelTimeChanged": 151534,
+        "firstLinkChanged": 810,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 122,
+        "goalRowsNotAllZero": 124,
+        "goalRowEntriesSum": 11509,
+        "goalRowEntryMax": 261,
+        "version": 5,
+        "sha256": "2c6d6b5a8e83f5603738a38be9b46d1bb98012060d3cdf4e8e49a5e5463ff188"
+      },
+      "BaseEF/pak0.pk3:maps/ctf_kln2.aas": {
+        "loaded": true,
+        "areas": 7746,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 1988,
+        "routesCompared": 991360,
+        "routedFromZeros": 116711,
+        "routedFromRow": 116711,
+        "travelTimeChanged": 113865,
+        "firstLinkChanged": 494,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 116,
+        "goalRowsNotAllZero": 116,
+        "goalRowEntriesSum": 5707,
+        "goalRowEntryMax": 109,
+        "version": 5,
+        "sha256": "c6d8e647c8bc23e2ca69801a12445632ab985e8553509ce4d5d628bff83a4bfe"
+      },
+      "BaseEF/pak3.pk3:maps/ctf_neptune.aas": {
+        "loaded": true,
+        "areas": 6166,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 2085,
+        "routesCompared": 789120,
+        "routedFromZeros": 170729,
+        "routedFromRow": 170729,
+        "travelTimeChanged": 169670,
+        "firstLinkChanged": 1389,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 123,
+        "goalRowsNotAllZero": 123,
+        "goalRowEntriesSum": 30925,
+        "goalRowEntryMax": 744,
+        "version": 5,
+        "sha256": "9e083a79bbe9636e2475965fcc2797dc6b04b0555faed2079dcebbc433a0a0bf"
+      },
+      "BaseEF/pak3.pk3:maps/ctf_oldwest.aas": {
+        "loaded": true,
+        "areas": 4732,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 2190,
+        "routesCompared": 605568,
+        "routedFromZeros": 198638,
+        "routedFromRow": 198638,
+        "travelTimeChanged": 195769,
+        "firstLinkChanged": 565,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 125,
+        "goalRowsNotAllZero": 125,
+        "goalRowEntriesSum": 8795,
+        "goalRowEntryMax": 218,
+        "version": 5,
+        "sha256": "1ca5f0e0fe8d737b400f9fb081791723abc0f3807d956ba764a88f2639b5d0bd"
+      },
+      "BaseEF/pak3.pk3:maps/ctf_reservoir.aas": {
+        "loaded": true,
+        "areas": 1755,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 634,
+        "routesCompared": 224512,
+        "routedFromZeros": 63214,
+        "routedFromRow": 63214,
+        "travelTimeChanged": 62380,
+        "firstLinkChanged": 299,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 120,
+        "goalRowsNotAllZero": 120,
+        "goalRowEntriesSum": 21370,
+        "goalRowEntryMax": 627,
+        "version": 5,
+        "sha256": "49b030d860e80d306606d8211c14c30d142889f1a7329094ef96547a83284900"
+      },
+      "BaseEF/pak3.pk3:maps/ctf_singularity.aas": {
+        "loaded": true,
+        "areas": 6834,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 1771,
+        "routesCompared": 874624,
+        "routedFromZeros": 182017,
+        "routedFromRow": 182017,
+        "travelTimeChanged": 180818,
+        "firstLinkChanged": 3650,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 124,
+        "goalRowsNotAllZero": 124,
+        "goalRowEntriesSum": 20086,
+        "goalRowEntryMax": 163,
+        "version": 5,
+        "sha256": "eb1cbfc32a7a810906426f00c7e0d678f659c1cf6c8f30ba0d5bfc2465cbd779"
+      },
+      "BaseEF/pak3.pk3:maps/ctf_spyglass2.aas": {
+        "loaded": true,
+        "areas": 863,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 307,
+        "routesCompared": 110336,
+        "routedFromZeros": 35656,
+        "routedFromRow": 35656,
+        "travelTimeChanged": 35499,
+        "firstLinkChanged": 714,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 124,
+        "goalRowsNotAllZero": 124,
+        "goalRowEntriesSum": 24253,
+        "goalRowEntryMax": 289,
+        "version": 5,
+        "sha256": "2a343896d2f69d848cd2d709cb7175a6145183ace443eb3c153d5e22ba5486a7"
+      },
+      "BaseEF/pak3.pk3:maps/ctf_stasis.aas": {
+        "loaded": true,
+        "areas": 18626,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 2072,
+        "routesCompared": 2384000,
+        "routedFromZeros": 155721,
+        "routedFromRow": 155721,
+        "travelTimeChanged": 155452,
+        "firstLinkChanged": 930,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 127,
+        "goalRowsNotAllZero": 127,
+        "goalRowEntriesSum": 15646,
+        "goalRowEntryMax": 468,
+        "version": 5,
+        "sha256": "9a52d1b5c63ce2db1e87dff21150254c32d395d4520fd5da087caadbd9cc9678"
+      },
+      "BaseEF/pak0.pk3:maps/ctf_voy1.aas": {
+        "loaded": true,
+        "areas": 2383,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 1283,
+        "routesCompared": 304896,
+        "routedFromZeros": 116519,
+        "routedFromRow": 116519,
+        "travelTimeChanged": 116090,
+        "firstLinkChanged": 801,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 115,
+        "goalRowsNotAllZero": 115,
+        "goalRowEntriesSum": 10058,
+        "goalRowEntryMax": 262,
+        "version": 5,
+        "sha256": "512e6e0a50dd1871169581fb07e4c8415568ca2814270876e7d3bf094f4df90d"
+      },
+      "BaseEF/pak0.pk3:maps/ctf_voy2.aas": {
+        "loaded": true,
+        "areas": 1552,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 853,
+        "routesCompared": 198528,
+        "routedFromZeros": 76578,
+        "routedFromRow": 76578,
+        "travelTimeChanged": 76090,
+        "firstLinkChanged": 429,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 107,
+        "goalRowsNotAllZero": 107,
+        "goalRowEntriesSum": 11027,
+        "goalRowEntryMax": 835,
+        "version": 5,
+        "sha256": "8b3b24e1908b8b56ed1958a397beca6d0a947a60a9f3e8c860b7e925b724cfff"
+      },
+      "BaseEF/pak3.pk3:maps/hm_altar.aas": {
+        "loaded": true,
+        "areas": 8836,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 2278,
+        "routesCompared": 1130880,
+        "routedFromZeros": 224357,
+        "routedFromRow": 224357,
+        "travelTimeChanged": 223937,
+        "firstLinkChanged": 2053,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 124,
+        "goalRowsNotAllZero": 125,
+        "goalRowEntriesSum": 14206,
+        "goalRowEntryMax": 210,
+        "version": 5,
+        "sha256": "ff101443798ecdf3d1c70975495d7e54a87de6034ee30af5114aed77e9f21f07"
+      },
+      "BaseEF/pak3.pk3:maps/hm_blastradius.aas": {
+        "loaded": true,
+        "areas": 1511,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 472,
+        "routesCompared": 193280,
+        "routedFromZeros": 51286,
+        "routedFromRow": 51286,
+        "travelTimeChanged": 50538,
+        "firstLinkChanged": 776,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 124,
+        "goalRowsNotAllZero": 124,
+        "goalRowEntriesSum": 13252,
+        "goalRowEntryMax": 224,
+        "version": 5,
+        "sha256": "8cb60f8f8920baa8cbb40b6e1b934c8e9125feabb8583b3963f91bf75d4ba528"
+      },
+      "BaseEF/pak0.pk3:maps/hm_borg1.aas": {
+        "loaded": true,
+        "areas": 1372,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 484,
+        "routesCompared": 175488,
+        "routedFromZeros": 46712,
+        "routedFromRow": 46712,
+        "travelTimeChanged": 46496,
+        "firstLinkChanged": 496,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 109,
+        "goalRowsNotAllZero": 113,
+        "goalRowEntriesSum": 8464,
+        "goalRowEntryMax": 145,
+        "version": 5,
+        "sha256": "79b9cff0f0b2d88d370ef5ac7d6e23a60744b91d58b30f8b212bdbf01618d35e"
+      },
+      "BaseEF/pak0.pk3:maps/hm_borg2.aas": {
+        "loaded": true,
+        "areas": 4274,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 1420,
+        "routesCompared": 546944,
+        "routedFromZeros": 150266,
+        "routedFromRow": 150266,
+        "travelTimeChanged": 149594,
+        "firstLinkChanged": 1623,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 124,
+        "goalRowsNotAllZero": 124,
+        "goalRowEntriesSum": 11236,
+        "goalRowEntryMax": 152,
+        "version": 5,
+        "sha256": "b176b7910df8d695179fae928537c1388c3400a41d5efc34e59117b937ffa86e"
+      },
+      "BaseEF/pak0.pk3:maps/hm_borg3.aas": {
+        "loaded": true,
+        "areas": 6200,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 1457,
+        "routesCompared": 793472,
+        "routedFromZeros": 141063,
+        "routedFromRow": 141063,
+        "travelTimeChanged": 140653,
+        "firstLinkChanged": 693,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 119,
+        "goalRowsNotAllZero": 127,
+        "goalRowEntriesSum": 11328,
+        "goalRowEntryMax": 337,
+        "version": 5,
+        "sha256": "e2906ee413df8c21f1eeb8c37f76e2f56cff2a3c0da306c2fa1df97c0f582d88"
+      },
+      "BaseEF/pak3.pk3:maps/hm_borgattack.aas": {
+        "loaded": true,
+        "areas": 8165,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 2898,
+        "routesCompared": 1044992,
+        "routedFromZeros": 237513,
+        "routedFromRow": 237513,
+        "travelTimeChanged": 233141,
+        "firstLinkChanged": 1408,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 124,
+        "goalRowsNotAllZero": 124,
+        "goalRowEntriesSum": 7099,
+        "goalRowEntryMax": 112,
+        "version": 5,
+        "sha256": "db215f6154d6db2b6e4b42b7921a222a43660cff046142220a8e3d8d1abb9405"
+      },
+      "BaseEF/pak0.pk3:maps/hm_cam.aas": {
+        "loaded": true,
+        "areas": 4519,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 1876,
+        "routesCompared": 578304,
+        "routedFromZeros": 125340,
+        "routedFromRow": 125340,
+        "travelTimeChanged": 123348,
+        "firstLinkChanged": 1359,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 120,
+        "goalRowsNotAllZero": 120,
+        "goalRowEntriesSum": 8891,
+        "goalRowEntryMax": 330,
+        "version": 5,
+        "sha256": "319ec31fe89d2d0ef5de3cf37d70b74836a0c95cee36ec9ee1725936071ecb82"
+      },
+      "BaseEF/pak0.pk3:maps/hm_dn1.aas": {
+        "loaded": true,
+        "areas": 2892,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 822,
+        "routesCompared": 370048,
+        "routedFromZeros": 96678,
+        "routedFromRow": 96678,
+        "travelTimeChanged": 95585,
+        "firstLinkChanged": 1263,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 127,
+        "goalRowsNotAllZero": 127,
+        "goalRowEntriesSum": 9399,
+        "goalRowEntryMax": 222,
+        "version": 5,
+        "sha256": "1526e4bc199b337aad789c481a348a98a4cf88467a095be40ec9e08586ff676d"
+      },
+      "BaseEF/pak0.pk3:maps/hm_dn2.aas": {
+        "loaded": true,
+        "areas": 5382,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 1807,
+        "routesCompared": 688768,
+        "routedFromZeros": 175706,
+        "routedFromRow": 175706,
+        "travelTimeChanged": 175439,
+        "firstLinkChanged": 1324,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 128,
+        "goalRowsNotAllZero": 128,
+        "goalRowEntriesSum": 8462,
+        "goalRowEntryMax": 318,
+        "version": 5,
+        "sha256": "16ab1f2587b2f1e581c82abd04fc97fe92f400a55d57ff9d6364bdf8606f163d"
+      },
+      "BaseEF/pak0.pk3:maps/hm_for1.aas": {
+        "loaded": true,
+        "areas": 10067,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 1472,
+        "routesCompared": 1288448,
+        "routedFromZeros": 112418,
+        "routedFromRow": 112418,
+        "travelTimeChanged": 112016,
+        "firstLinkChanged": 688,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 119,
+        "goalRowsNotAllZero": 123,
+        "goalRowEntriesSum": 8704,
+        "goalRowEntryMax": 355,
+        "version": 5,
+        "sha256": "b5c5f62ebfe2f91fc3c5d49280f838cb9c2ce005761e22c0b7cfc1b4ec611030"
+      },
+      "BaseEF/pak3.pk3:maps/hm_for2.aas": {
+        "loaded": true,
+        "areas": 7982,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 2279,
+        "routesCompared": 1021568,
+        "routedFromZeros": 262168,
+        "routedFromRow": 262168,
+        "travelTimeChanged": 260680,
+        "firstLinkChanged": 1828,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 125,
+        "goalRowsNotAllZero": 125,
+        "goalRowEntriesSum": 11797,
+        "goalRowEntryMax": 430,
+        "version": 5,
+        "sha256": "12452506ec1ecc145b31ae71c23f053c55d8e6010b2bd298347bb29bdede062b"
+      },
+      "BaseEF/pak0.pk3:maps/hm_kln1.aas": {
+        "loaded": true,
+        "areas": 2057,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 683,
+        "routesCompared": 263168,
+        "routedFromZeros": 42770,
+        "routedFromRow": 42770,
+        "travelTimeChanged": 42069,
+        "firstLinkChanged": 516,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 124,
+        "goalRowsNotAllZero": 124,
+        "goalRowEntriesSum": 9774,
+        "goalRowEntryMax": 199,
+        "version": 5,
+        "sha256": "f9ed08d813467413244a132ef8da63959dcdf62f813d64a475d25609d33f1f9b"
+      },
+      "BaseEF/pak0.pk3:maps/hm_noon.aas": {
+        "loaded": true,
+        "areas": 2302,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 961,
+        "routesCompared": 294528,
+        "routedFromZeros": 110750,
+        "routedFromRow": 110750,
+        "travelTimeChanged": 109345,
+        "firstLinkChanged": 2087,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 128,
+        "goalRowsNotAllZero": 128,
+        "goalRowEntriesSum": 7329,
+        "goalRowEntryMax": 231,
+        "version": 5,
+        "sha256": "f4aa1766a08145625805be7ead2dc90925edabe7e0f1622a7883fd9708e864c6"
+      },
+      "BaseEF/pak3.pk3:maps/hm_raven.aas": {
+        "loaded": true,
+        "areas": 2490,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 692,
+        "routesCompared": 318592,
+        "routedFromZeros": 84586,
+        "routedFromRow": 84586,
+        "travelTimeChanged": 84062,
+        "firstLinkChanged": 418,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 124,
+        "goalRowsNotAllZero": 124,
+        "goalRowEntriesSum": 5834,
+        "goalRowEntryMax": 159,
+        "version": 5,
+        "sha256": "9261272baef666be894356d294218b3f55c1fed29aad663a17b6dbae35c11d7a"
+      },
+      "BaseEF/pak0.pk3:maps/hm_scav1.aas": {
+        "loaded": true,
+        "areas": 2722,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 732,
+        "routesCompared": 348288,
+        "routedFromZeros": 85937,
+        "routedFromRow": 85937,
+        "travelTimeChanged": 84678,
+        "firstLinkChanged": 751,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 121,
+        "goalRowsNotAllZero": 124,
+        "goalRowEntriesSum": 9205,
+        "goalRowEntryMax": 129,
+        "version": 5,
+        "sha256": "14d41aeb84d82ca10984cab601b016b4aa72d99ae6f2a13f56601840930d5f37"
+      },
+      "BaseEF/pak3.pk3:maps/hm_temple.aas": {
+        "loaded": true,
+        "areas": 9660,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 3270,
+        "routesCompared": 1236352,
+        "routedFromZeros": 273382,
+        "routedFromRow": 273382,
+        "travelTimeChanged": 270285,
+        "firstLinkChanged": 1996,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 125,
+        "goalRowsNotAllZero": 125,
+        "goalRowEntriesSum": 10032,
+        "goalRowEntryMax": 431,
+        "version": 5,
+        "sha256": "2675f867e06f54abc8bfe3d0e1beeaa56407adca2bd86267567e6c0f8913d303"
+      },
+      "BaseEF/pak0.pk3:maps/hm_voy1.aas": {
+        "loaded": true,
+        "areas": 4241,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 1136,
+        "routesCompared": 542720,
+        "routedFromZeros": 140975,
+        "routedFromRow": 140975,
+        "travelTimeChanged": 140269,
+        "firstLinkChanged": 940,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 127,
+        "goalRowsNotAllZero": 127,
+        "goalRowEntriesSum": 8919,
+        "goalRowEntryMax": 134,
+        "version": 5,
+        "sha256": "b205592311dae434233d1c914cba406b09ff219e0e8e5b38551e0eab9ae85b03"
+      },
+      "BaseEF/pak0.pk3:maps/hm_voy2.aas": {
+        "loaded": true,
+        "areas": 4911,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 1751,
+        "routesCompared": 628480,
+        "routedFromZeros": 198790,
+        "routedFromRow": 198790,
+        "travelTimeChanged": 198054,
+        "firstLinkChanged": 1176,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 127,
+        "goalRowsNotAllZero": 127,
+        "goalRowEntriesSum": 10300,
+        "goalRowEntryMax": 133,
+        "version": 5,
+        "sha256": "29baf4ee1037890b862295bc929f20ac3967a3f99a578e8df93b11585ade8f41"
+      },
+      "BaseEF/pak3.pk3:maps/hm_voy3.aas": {
+        "loaded": true,
+        "areas": 4146,
+        "goalsSampled": 128,
+        "goalsWithReachabilities": 1222,
+        "routesCompared": 530560,
+        "routedFromZeros": 119978,
+        "routedFromRow": 119978,
+        "travelTimeChanged": 118880,
+        "firstLinkChanged": 497,
+        "routesLost": 0,
+        "routesGained": 0,
+        "goalsWithAChange": 115,
+        "goalRowsNotAllZero": 115,
+        "goalRowEntriesSum": 7813,
+        "goalRowEntryMax": 125,
+        "version": 5,
+        "sha256": "2ecfd814c2d9e63eaee399536feaf29d815ba18569b9186b099ae8b8179dd718"
+      }
+    },
+    "totals": {
+      "areas": 193498,
+      "goalsSampled": 4224,
+      "goalsWithReachabilities": 51029,
+      "routesCompared": 24763520,
+      "routedFromZeros": 4559687,
+      "routedFromRow": 4559687,
+      "travelTimeChanged": 4520492,
+      "firstLinkChanged": 34723,
+      "routesLost": 0,
+      "routesGained": 0,
+      "goalsWithAChange": 4041,
+      "goalRowsNotAllZero": 4063,
+      "goalRowEntriesSum": 373916
+    }
+  },
+  "measurementCompile": [
+    "C:\\Program Files\\LLVM\\bin\\clang++.EXE",
+    "--target=i686-pc-windows-msvc",
+    "-O2",
+    "-std=c++17",
+    "-D_CRT_SECURE_NO_WARNINGS",
+    "-I",
+    "E:\\Repositories\\fnTech3",
+    "E:\\Repositories\\fnTech3\\.tmp\\tmp7kvxei7h\\measure.cpp",
+    "E:\\Repositories\\fnTech3\\code\\server\\server_game_data.cpp",
+    "-x",
+    "c++",
+    "E:\\Repositories\\fnTech3\\code\\compat\\game_abi_adapter.c",
+    "-o",
+    "E:\\Repositories\\fnTech3\\.tmp\\tmp7kvxei7h\\measure.exe"
+  ],
+  "botLoads": {
+    "before": {
+      "outcomes": {
+        "loaded": 33,
+        "rejected": 0,
+        "faulted": 0,
+        "fatal": 0,
+        "crashed": 0,
+        "hung": 0
+      },
+      "binaries": {
+        "fntech3.exe": "60c1cddead07416bfda63f1302688b6c055b1300cfb06144b23070488692cb4b",
+        "fntech3.ded.exe": "359f5b853e87cdf33603b1e3158ac6100702fa40dca8e28070beb0f18ff0cf0a",
+        "fnql_glx_x86.dll": "2a904f6494b128a116cdcc652beb95dc83b2bad0563e13ce947cdfd0362058f2"
+      },
+      "binariesUnchanged": true,
+      "maps": {
+        "stvef-mp:ctf_and1": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_and1.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.48
+        },
+        "stvef-mp:ctf_breach": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_breach.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.55
+        },
+        "stvef-mp:ctf_dn1": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_dn1.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.5
+        },
+        "stvef-mp:ctf_for1": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_for1.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.48
+        },
+        "stvef-mp:ctf_kln1": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_kln1.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.42
+        },
+        "stvef-mp:ctf_kln2": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_kln2.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.45
+        },
+        "stvef-mp:ctf_neptune": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_neptune.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.47
+        },
+        "stvef-mp:ctf_oldwest": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_oldwest.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.47
+        },
+        "stvef-mp:ctf_reservoir": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_reservoir.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.44
+        },
+        "stvef-mp:ctf_singularity": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_singularity.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.48
+        },
+        "stvef-mp:ctf_spyglass2": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_spyglass2.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.5
+        },
+        "stvef-mp:ctf_stasis": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_stasis.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.52
+        },
+        "stvef-mp:ctf_voy1": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_voy1.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.47
+        },
+        "stvef-mp:ctf_voy2": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_voy2.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.44
+        },
+        "stvef-mp:hm_altar": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_altar.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.45
+        },
+        "stvef-mp:hm_blastradius": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_blastradius.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.39
+        },
+        "stvef-mp:hm_borg1": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_borg1.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.47
+        },
+        "stvef-mp:hm_borg2": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_borg2.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.45
+        },
+        "stvef-mp:hm_borg3": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_borg3.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.38
+        },
+        "stvef-mp:hm_borgattack": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_borgattack.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.42
+        },
+        "stvef-mp:hm_cam": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_cam.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.44
+        },
+        "stvef-mp:hm_dn1": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_dn1.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.42
+        },
+        "stvef-mp:hm_dn2": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_dn2.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.36
+        },
+        "stvef-mp:hm_for1": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_for1.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.42
+        },
+        "stvef-mp:hm_for2": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_for2.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.39
+        },
+        "stvef-mp:hm_kln1": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_kln1.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.41
+        },
+        "stvef-mp:hm_noon": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_noon.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.33
+        },
+        "stvef-mp:hm_raven": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_raven.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.44
+        },
+        "stvef-mp:hm_scav1": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_scav1.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.42
+        },
+        "stvef-mp:hm_temple": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_temple.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.61
+        },
+        "stvef-mp:hm_voy1": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_voy1.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.39
+        },
+        "stvef-mp:hm_voy2": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_voy2.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.42
+        },
+        "stvef-mp:hm_voy3": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_voy3.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.36
+        }
+      }
+    },
+    "after": {
+      "outcomes": {
+        "loaded": 33,
+        "rejected": 0,
+        "faulted": 0,
+        "fatal": 0,
+        "crashed": 0,
+        "hung": 0
+      },
+      "binaries": {
+        "fntech3.exe": "55b80bdf92eb0b67b16debec3774b1fe1da6f5e65be649094a20eca493226db0",
+        "fntech3.ded.exe": "693f533f4199c3cf3419808710cb1d6495299765a68d3befbd7cdde21db5dc2c",
+        "fnql_glx_x86.dll": "2a904f6494b128a116cdcc652beb95dc83b2bad0563e13ce947cdfd0362058f2"
+      },
+      "binariesUnchanged": true,
+      "maps": {
+        "stvef-mp:ctf_and1": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_and1.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.73
+        },
+        "stvef-mp:ctf_breach": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_breach.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.7
+        },
+        "stvef-mp:ctf_dn1": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_dn1.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.73
+        },
+        "stvef-mp:ctf_for1": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_for1.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.58
+        },
+        "stvef-mp:ctf_kln1": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_kln1.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.53
+        },
+        "stvef-mp:ctf_kln2": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_kln2.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.5
+        },
+        "stvef-mp:ctf_neptune": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_neptune.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.48
+        },
+        "stvef-mp:ctf_oldwest": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_oldwest.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.45
+        },
+        "stvef-mp:ctf_reservoir": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_reservoir.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.36
+        },
+        "stvef-mp:ctf_singularity": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_singularity.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.47
+        },
+        "stvef-mp:ctf_spyglass2": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_spyglass2.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.45
+        },
+        "stvef-mp:ctf_stasis": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_stasis.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.49
+        },
+        "stvef-mp:ctf_voy1": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_voy1.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.41
+        },
+        "stvef-mp:ctf_voy2": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/ctf_voy2.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.38
+        },
+        "stvef-mp:hm_altar": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_altar.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.41
+        },
+        "stvef-mp:hm_blastradius": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_blastradius.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.5
+        },
+        "stvef-mp:hm_borg1": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_borg1.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.48
+        },
+        "stvef-mp:hm_borg2": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_borg2.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.45
+        },
+        "stvef-mp:hm_borg3": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_borg3.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.47
+        },
+        "stvef-mp:hm_borgattack": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_borgattack.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.55
+        },
+        "stvef-mp:hm_cam": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_cam.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.44
+        },
+        "stvef-mp:hm_dn1": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_dn1.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.52
+        },
+        "stvef-mp:hm_dn2": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_dn2.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.44
+        },
+        "stvef-mp:hm_for1": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_for1.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.38
+        },
+        "stvef-mp:hm_for2": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_for2.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.45
+        },
+        "stvef-mp:hm_kln1": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_kln1.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.48
+        },
+        "stvef-mp:hm_noon": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_noon.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.42
+        },
+        "stvef-mp:hm_raven": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_raven.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.51
+        },
+        "stvef-mp:hm_scav1": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_scav1.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.49
+        },
+        "stvef-mp:hm_temple": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_temple.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.58
+        },
+        "stvef-mp:hm_voy1": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_voy1.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.41
+        },
+        "stvef-mp:hm_voy2": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_voy2.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.45
+        },
+        "stvef-mp:hm_voy3": {
+          "outcome": "loaded",
+          "exitCode": 0,
+          "navigation": [
+            [
+              "maps/hm_voy3.aas"
+            ]
+          ],
+          "botlibErrors": [],
+          "routingInitialized": 1,
+          "bot": "alexandria",
+          "botListed": true,
+          "elapsedSeconds": 20.39
+        }
+      }
+    }
+  },
+  "botLoadsChanged": 0
+}

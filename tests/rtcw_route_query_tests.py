@@ -118,7 +118,9 @@ class RTCWRouteQueryTests(unittest.TestCase):
 int main(){
  const int flags=TFL_WALK|TFL_AIR;
  for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;initialize();graph(0,2,1);
-  assert(AAS_AreaTravelTimeToGoalArea(1,nullptr,2,flags)==(Com_GameIsRTCW()?12:11));
+  // RTCW and Elite Force Holomatch start from the goal's own row, which
+  // costs the time inside it; Quake III 1.32 starts from zeros.
+  assert(AAS_AreaTravelTimeToGoalArea(1,nullptr,2,flags)==(Com_GameIsRTCW()||Com_GameIsSTVEFMP()?12:11));
   assert(aasworld.frameroutingupdates==(Com_GameIsRTCW()?2:1));cacheLinks();
   aasworld.frameroutingupdates=101;auto *hit=AAS_GetAreaRoutingCache(1,2,flags);
   assert(hit&&aasworld.frameroutingupdates==101);
@@ -144,10 +146,16 @@ int main(){
    cacheLinks();
   }
   // Blocking a portal invalidates routes, not the selected other world.
+  // Elite Force Holomatch's engine never tests the flag (stvoyHM.exe
+  // 0x004992d0), so its route stays as it was.
+  aasworld.frameroutingupdates=0;int open=0,openFirst=0;
+  assert(AAS_AreaRouteToGoalArea(1,aasworld.areas[1].center,4,flags,&open,&openFirst));
   AAS_EnableRoutingArea(10,0);assert(aasworld.areasettings[10].areaflags&AREA_DISABLED);
   aasworld.frameroutingupdates=0;int time=0,first=0;
   assert(AAS_AreaRouteToGoalArea(1,aasworld.areas[1].center,4,flags,&time,&first));
-  assert(aasworld.reachability[first].areanum!=10);cacheLinks();
+  if(Com_GameIsSTVEFMP())assert(time==open&&first==openFirst&&aasworld.reachability[first].areanum==10);
+  else assert(aasworld.reachability[first].areanum!=10);
+  cacheLinks();
   // RTCW's expiry pass removes one ordinary cache plus one portal cache.
   routingTables();auto *ordinary=AAS_GetAreaRoutingCache(1,1,flags,true);
   auto *portalArea=AAS_GetAreaRoutingCache(1,10,flags,true);

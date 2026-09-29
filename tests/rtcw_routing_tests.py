@@ -114,10 +114,14 @@ int main(){
   aasworld.rtcwGroundSteepness=botlib::ClearedAlloc<float>(3);AAS_InitTravelFlagFromType();
   auto &settings=aasworld.areasettings[1];settings.presencetype=PRESENCE_NORMAL;
   float a[3]={},b[3]={3,4,0};assert(AAS_AreaTravelTime(1,a,b)==(Com_GameIsRTCWSP()?2:1));
+  // Holomatch's engine has neither RTCW's bit for 1024 nor Quake III 1.32's
+  // team and bridge flags, and a liquid takes its own flag alone
+  // (stvoyHM.exe 0x00499290).
   settings.contents=1024|2048|4096|256;settings.areaflags=AREA_BRIDGE;
   assert(AAS_GetAreaContentsTravelFlags(1)==(Com_GameIsRTCW()?
-   (0x00080000|0x00800000|0x02000000):(TFL_AIR|TFL_DONOTENTER|TFL_NOTTEAM1|TFL_NOTTEAM2|TFL_BRIDGE)));
-  settings.contents|=1;assert(AAS_GetAreaContentsTravelFlags(1)==(Com_GameIsRTCW()?TFL_WATER:
+   (0x00080000|0x00800000|0x02000000):Com_GameIsSTVEFMP()?(TFL_AIR|TFL_DONOTENTER):
+   (TFL_AIR|TFL_DONOTENTER|TFL_NOTTEAM1|TFL_NOTTEAM2|TFL_BRIDGE)));
+  settings.contents|=1;assert(AAS_GetAreaContentsTravelFlags(1)==(Com_GameIsRTCW()||Com_GameIsSTVEFMP()?TFL_WATER:
    (TFL_WATER|TFL_DONOTENTER|TFL_NOTTEAM1|TFL_NOTTEAM2|TFL_BRIDGE)));
   assert(AAS_TravelFlagForType(TRAVEL_WALK|TRAVELFLAG_NOTTEAM1)==(Com_GameIsRTCW()?TFL_INVALID:TFL_WALK|TFL_NOTTEAM1));
   assert(AAS_TravelFlagForType(-1)==TFL_INVALID&&AAS_TravelFlagForType(32)==TFL_INVALID);

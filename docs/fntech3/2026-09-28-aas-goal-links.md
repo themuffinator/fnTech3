@@ -201,7 +201,10 @@ the packaging and documentation tests and `aas_goal_links_tests.py` pass:
   only Quake III 1.32's line made them zero. fnTech3 routes `stvef-mp` and
   `wolfet` as Quake III 1.32 does, so their travel time to a goal differs
   from their retail engines' by that term, and so can the link a route enters
-  it by. This is not changed here and remains open. (`stvoy.exe`, Elite
+  it by. This is not changed here. (`stvoy.exe`, Elite
   Force's single-player engine, has no bot library to compare with.)
+  Holomatch starts from the goal's row since 2026-09-29
+  ([route seed record](2026-09-29-stvef-route-seed.md)); Enemy Territory
+  remains open.
 - `jamp.exe` and `jk2mp.exe` carry the same 128-entry array. Their profiles
   route this way too, but neither game installs navigation files.

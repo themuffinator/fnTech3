@@ -365,6 +365,16 @@ static int AAS_GetAreaContentsTravelFlags(int areanum)
 	int contents, tfl;
 
 	contents = aasworld.areasettings[areanum].contents;
+	//Elite Force Holomatch's engine gives a liquid area its liquid's flag
+	//alone, and any other area TFL_AIR with TFL_DONOTENTER; it has no team or
+	//bridge flags (stvoyHM.exe 0x00499290)
+	if (Com_GameIsSTVEFMP())
+	{
+		if (contents & AREACONTENTS_WATER) return TFL_WATER;
+		if (contents & AREACONTENTS_SLIME) return TFL_SLIME;
+		if (contents & AREACONTENTS_LAVA) return TFL_LAVA;
+		return TFL_AIR | ((contents & AREACONTENTS_DONOTENTER) ? TFL_DONOTENTER : 0);
+	} //end if
 	tfl = 0;
 	if (contents & AREACONTENTS_WATER)
 		tfl |= TFL_WATER;
@@ -1668,6 +1678,11 @@ void AAS_FreeRoutingCaches(void)
 static void AAS_UpdateAreaRoutingCache(aas_routingcache_t *areacache)
 {
 	const bool rtcw = Com_GameIsRTCW() != 0;
+	//Elite Force Holomatch's engine starts from the goal area's first row of
+	//travel times, as RTCW does, and enters any area whatever its
+	//AREA_DISABLED flag (stvoyHM.exe 0x004992d0)
+	const bool holomatch = Com_GameIsSTVEFMP() != 0;
+	const bool goalrow = rtcw || holomatch;
 	int i, nextareanum, cluster, badtravelflags, clusterareanum, linknum;
 	int numreachabilityareas;
 	unsigned short int t;
@@ -1690,18 +1705,21 @@ static void AAS_UpdateAreaRoutingCache(aas_routingcache_t *areacache)
 	clusterareanum = AAS_ClusterAreaNum(areacache->cluster, areacache->areanum);
 	if (clusterareanum >= numreachabilityareas) return;
 	// RTCW starts at its goal area's first outgoing cost row. A missing row
-	// cannot supply that contract; leave the new cache unreachable.
-	if (rtcw && (!aasworld.areasettings[areacache->areanum].numreachableareas
+	// cannot supply that contract; leave the new cache unreachable. Neither
+	// retail engine gets here for an area without reachabilities: clustering
+	// numbers those past a cluster's reachability areas, returned for above.
+	if (goalrow && (!aasworld.areasettings[areacache->areanum].numreachableareas
 		|| !aasworld.areatraveltimes || !aasworld.areatraveltimes[areacache->areanum]
 		|| !aasworld.areatraveltimes[areacache->areanum][0])) return;
 	//
 	curupdate = &aasworld.areaupdate[clusterareanum];
 	curupdate->areanum = areacache->areanum;
 	//VectorCopy(areacache->origin, curupdate->start);
-	//RTCW starts from the goal area's own first row of travel times; Quake
-	//III from zeros, which quake3.exe 1.32 kept in a stack array of 128 and
-	//read past for an area entered by more links
-	curupdate->areatraveltimes = rtcw ? aasworld.areatraveltimes[areacache->areanum][0] : aasworld.startareatraveltimes;
+	//RTCW and Holomatch start from the goal area's own first row of travel
+	//times, the times within it from each link's end to its first
+	//reachability; Quake III from zeros, which quake3.exe 1.32 kept in a stack
+	//array of 128 and read past for an area entered by more links
+	curupdate->areatraveltimes = goalrow ? aasworld.areatraveltimes[areacache->areanum][0] : aasworld.startareatraveltimes;
 	curupdate->tmptraveltime = areacache->starttraveltime;
 	//
 	areacache->traveltimes[clusterareanum] = areacache->starttraveltime;
@@ -1729,8 +1747,8 @@ static void AAS_UpdateAreaRoutingCache(aas_routingcache_t *areacache)
 			reach = &aasworld.reachability[linknum];
 			//if there is used an undesired travel type
 			if (AAS_TravelFlagForType_inline(reach->traveltype) & badtravelflags) continue;
-			//if not allowed to enter the next area
-			if (aasworld.areasettings[reach->areanum].areaflags & AREA_DISABLED) continue;
+			//if not allowed to enter the next area; Holomatch's engine does not ask
+			if (!holomatch && (aasworld.areasettings[reach->areanum].areaflags & AREA_DISABLED)) continue;
 			//if the next area has a not allowed travel flag
 			if (AAS_AreaContentsTravelFlags_inline(reach->areanum) & badtravelflags) continue;
 			//number of the area the reversed reachability leads to

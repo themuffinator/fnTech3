@@ -53,6 +53,14 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Route Elite Force Holomatch bots as the retail engine does. Its routes
+  count the time a bot needs to cross the area it is heading for, which
+  fnTech3 left out as Quake III 1.32 does, so almost every route's travel
+  time and, where two ways were close, the way a bot took differed from
+  retail's on every map. On maps whose bot navigation Quake III's later
+  compiler built, team-only and do-not-enter liquid areas are no longer
+  avoided either, as retail does not avoid them
+  ([record](docs/fntech3/2026-09-29-stvef-route-seed.md)).
 - Stop a server faulting when `bot_saveroutingcache 1` is set while its bots'
   navigation is still being prepared, as it is for a while after a map loads
   with `bot_forcereachability 1`. There are no routes to save yet: the server

@@ -10,7 +10,10 @@ times. Installed files have such areas (Team Arena's mpq3tourney6 134 links,
 Quake Live's blackcathedral 198 and reflux 138, Elite Force's hm_cam 355).
 The row is now allocated with the reversed links, as long as the most links
 into any area. RTCW's routing starts from the goal area's own travel times
-and is unchanged (docs/fntech3/2026-09-28-aas-goal-links.md).
+and is unchanged (docs/fntech3/2026-09-28-aas-goal-links.md), and so, since
+docs/fntech3/2026-09-29-stvef-route-seed.md, does Elite Force Holomatch's,
+whose links into a goal pay the time inside it; its routes must still match
+the same world without the fillers.
 
 The fixtures compile the routing from its source over worlds whose goal, or
 the portal between two clusters, is entered by up to 4,013 links: filler
@@ -118,13 +121,21 @@ static std::vector<Route> namedRoutes(const GoalWorld &w){
  return out;
 }
 // A filler's one link into the goal, or into the portal, costs what the
-// cache starts at plus its own time: none inside the area it enters.
+// cache starts at plus its own time: none inside the area it enters, where
+// Quake III starts from zeros. Elite Force Holomatch's engine starts from the
+// goal's own first row (stvoyHM.exe 0x004992d0), so there the link also pays
+// the time inside the goal from its end to the start of the goal's first
+// reachability.
 static void fillerRoutes(const GoalWorld &w){
+ const int firstOut=aasworld.areasettings[w.into].firstreachablearea;
  for(int flags:FLAGS){int across=-1;
   for(int a=w.firstFiller;a<w.firstFiller+w.fillers;++a){const auto &s=aasworld.areasettings[a];
    const int link=aasworld.reachability[s.firstreachablearea].traveltime;int time=-1,reach=-1;
+   vec3_t end,out;VectorCopy(aasworld.reachability[s.firstreachablearea].end,end);
+   VectorCopy(aasworld.reachability[firstOut].start,out);
+   const int inside=Com_GameIsSTVEFMP()?AAS_AreaTravelTime(w.into,end,out):0;
    aasworld.frameroutingupdates=0;assert(query(a,nullptr,w.into,flags,&time,&reach));
-   assert(reach==s.firstreachablearea&&time==1+link);
+   assert(reach==s.firstreachablearea&&time==1+inside+link);
    // on to the goal beyond the portal, from the filler's centre, every
    // filler pays the same besides its link
    if(w.portal){vec3_t at;VectorCopy(aasworld.areas[a].center,at);reach=-1;
