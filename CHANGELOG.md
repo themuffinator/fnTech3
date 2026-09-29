@@ -53,6 +53,12 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Announce a Quake Live rage quit as the retail engine does. A player who
+  leaves with `ragequit` was announced as `<name> disconnected`; everyone now
+  sees `<name> rage quits`, with "rage" in red, as on retail servers. The
+  retail game marks the player through an engine import that fnTech3 had
+  taken for the pure check's own mark
+  ([record](docs/fntech3/2026-09-29-ql-rage-quit.md)).
 - Read back the bot route caches a server saves. With `bot_saveroutingcache 1`
   (a cheat in Quake III's game) the bot library writes the routes it has
   worked out to `maps/NAME.rcd`, and reads them when the map next loads, but

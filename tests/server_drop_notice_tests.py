@@ -11,11 +11,15 @@ and F.A.K.K.2's engines print `print "%s %s\n"`, with no colour reset, and
 send the client that left a bare `disconnect` (alice.exe 0x004529fb and
 0x00452a6b, fakk2.exe 1.02 0x00443abb and 0x00443b2b). Quake III 1.32 and
 every other profile keep `print "%s^7 %s\n"` and address `disconnect "%s"`.
+Quake Live names a client its game marked with `ragequit` as
+`print "%s ^1rage^7quits\n"` instead, without the reason
+(quakelive_steam.exe 0x4df716, the format at 0x5452ac): game import 192
+(0x4e26e0) sets that mark for a valid client and nothing else.
 
 This compiles the production SV_AnnouncesDrop and SV_DropClient with the real
-game-data view, entity readers and ET game-type rules, binds frozen module
-records and runs every profile in the catalog. Each mutation below must make
-the checks fail.
+game-data view, entity readers and ET game-type rules, and Quake Live's game
+import 192, binds frozen module records and runs every profile in the
+catalog. Each mutation below must make the checks fail.
 """
 from pathlib import Path
 import os
@@ -41,6 +45,7 @@ serverStatic_t svs{};
 int Com_GameIsRTCWSP(){return profile.id==COM_GAME_RTCW_SP;}
 int Com_GameIsRTCWMP(){return profile.id==COM_GAME_RTCW_MP;}
 int Com_GameIsRitual(){return profile.id==COM_GAME_ALICE||profile.id==COM_GAME_FAKK2;}
+int Com_GameIsQuakeLive(){return profile.id==COM_GAME_QUAKELIVE;}
 // Q3Test drops a client each release's way (server_q3test_net.hpp); the
 // shared path stands in for its catalog entry here.
 int Com_GameIsQ3Test(){return 0;}
@@ -115,10 +120,12 @@ static std::vector<client_t> clients(2);
 static sharedEntity_t *const unreadable=reinterpret_cast<sharedEntity_t*>(1);
 
 // Drops client 0, a network player or a bot, while client 1 plays on.
-static void drop(bool bot,sharedEntity_t *gentity,const char *reason,const char *name="Player"){
+static void drop(bool bot,sharedEntity_t *gentity,const char *reason,const char *name="Player",
+                 bool rageQuit=false){
  for(client_t &c:clients)c={};
  client_t &c=clients[0];c.state=CS_ACTIVE;c.netchan.remoteAddress.type=bot?NA_BOT:NA_IP;
  c.gentity=gentity;Q_strncpyz(c.name,name,sizeof c.name);clients[1].state=CS_ACTIVE;
+ c.rageQuit=rageQuit?qtrue:qfalse;
  events.clear();SV_DropClient(&c,reason);
  assert(c.state==(bot?CS_FREE:CS_ZOMBIE));
 }
@@ -249,9 +256,54 @@ template<class Entity,class Player> static void rtcwCast(comGameId_t id){
  serverGameData.Invalidate();
 }
 
+// Game import 192 marks a valid client, below sv_maxclients, and nothing
+// else, and hands back the client's address or the bad number, as
+// quakelive_steam.exe 0x4e26e0 does.
+static void markRageQuit(){
+ for(client_t &c:clients)c={};
+ sv.maxclients=1;
+ for(int n:{1,-1,2,std::numeric_limits<int>::min(),std::numeric_limits<int>::max()})
+  assert(QL_G_trap_MarkClientRageQuit(n)==reinterpret_cast<void*>(static_cast<intptr_t>(n)));
+ assert(!clients[0].rageQuit&&!clients[1].rageQuit);
+ assert(QL_G_trap_MarkClientRageQuit(0)==&clients[0]);
+ assert(clients[0].rageQuit&&!clients[1].rageQuit);
+ // It is not the pure check's mark, which only a cp command sets.
+ assert(!clients[0].gotCP&&!clients[0].pureAuthentic&&clients[0].state==CS_FREE);
+ // Marking twice keeps the mark.
+ assert(QL_G_trap_MarkClientRageQuit(0)==&clients[0]&&clients[0].rageQuit);
+ sv.maxclients=int(clients.size());
+}
+
+// Quake Live names a marked client without the reason; the client that left
+// is still told why. No other profile has the mark, and each ignores it.
+static void rageQuits(){
+ serverGameData.Invalidate();
+ for(unsigned id=COM_GAME_QUAKE3;id<COM_GAME_COUNT;++id){
+  profile.id=comGameId_t(id);useGameinfo(retailGameinfo);gametype.integer=2;
+  for(bool bot:{false,true}){
+   drop(bot,nullptr,"disconnected","Player",true);
+   if(id==COM_GAME_QUAKELIVE){
+    const std::string rage="print \"Player ^1rage^7quits\n\"";
+    assert(events==sequence(bot,&rage,"disconnected"));
+   }else expect(bot,true,"disconnected");
+   // An unmarked client is announced with its reason.
+   drop(bot,nullptr,"disconnected");expect(bot,true,"disconnected");
+   // A drop without a reason stays silent, marked or not.
+   drop(bot,nullptr,nullptr,"Player",true);expect(bot,false,nullptr);
+  }
+ }
+ // The name is text, never a format, and the reason is never read.
+ profile.id=COM_GAME_QUAKELIVE;
+ drop(false,nullptr,"%s %d","50%s^3x",true);
+ const std::string rage="print \"50%s^3x ^1rage^7quits\n\"";
+ assert(events==sequence(false,&rage,"%s %d"));
+}
+
 int main(){
  svs.clients=clients.data();sv.maxclients=int(clients.size());svs.time=4321;
  formats();
+ markRageQuit();
+ rageQuits();
  everyProfile();
  wolfETBots();
  wolfETGameTypes();
@@ -261,7 +313,8 @@ int main(){
 }
 '''
 
-GAME_FUNCTIONS = ('qboolean SV_ReadGameEntity(', 'qboolean SV_ClientIsRTCWCastAI(')
+GAME_FUNCTIONS = ('qboolean SV_ReadGameEntity(', 'qboolean SV_ClientIsRTCWCastAI(',
+                  'static void *QDECL QL_G_trap_MarkClientRageQuit(')
 MAIN_FUNCTIONS = ('void SV_WolfETLoadGameInfo( void ) {',
                   'static const fntech3::wolfet::gameinfo::GameInfo &SV_WolfETGameInfo( void ) {',
                   'qboolean SV_GameTypeIsSinglePlayer( int gameType ) {',
@@ -316,6 +369,23 @@ MUTATIONS = {
     "the Ritual profiles give the reason to the client": (
         'void SV_DropClient(', 'SV_SendServerCommand( drop, "disconnect" );',
         'SV_SendServerCommand( drop, "disconnect \\"%s\\"", reason );'),
+    "game import 192 marks the pure check's cp instead, as before": (
+        'static void *QDECL QL_G_trap_MarkClientRageQuit(', 'client.rageQuit = qtrue;', 'client.gotCP = qtrue;'),
+    'game import 192 marks a number past sv_maxclients': (
+        'static void *QDECL QL_G_trap_MarkClientRageQuit(', 'if ( !SV_IsClientIndex( clientNum ) ) {',
+        'if ( clientNum < 0 ) {'),
+    'game import 192 returns nothing': (
+        'static void *QDECL QL_G_trap_MarkClientRageQuit(', 'return &client;', 'return nullptr;'),
+    'Quake Live ignores the mark': (
+        'void SV_DropClient(', 'Com_GameIsQuakeLive() && drop->rageQuit', 'false'),
+    'every profile announces a rage quit': (
+        'void SV_DropClient(', 'Com_GameIsQuakeLive() && drop->rageQuit', 'drop->rageQuit'),
+    'a rage quit is announced with its reason': (
+        'void SV_DropClient(', '"quits\\n\\"", name.data() );',
+        '"quits %s\\n\\"", name.data(), reason );'),
+    "a rage quit resets the name's colour": (
+        'void SV_DropClient(', '"print \\"%s " S_COLOR_RED "rage"',
+        '"print \\"%s" S_COLOR_WHITE " " S_COLOR_RED "rage"'),
 }
 
 

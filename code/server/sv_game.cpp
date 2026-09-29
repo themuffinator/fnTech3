@@ -1911,7 +1911,7 @@ typedef void (QDECL *ql_import_f)( void );
 static ql_import_f ql_game_imports[GAME_NATIVE_IMPORT_COUNT];
 static_assert( G_QL_IMPORT_SUBMIT_MATCH_REPORT == 185, "QL qagame direct import slot 185 must remain MATCH_REPORT" );
 static_assert( G_QL_IMPORT_REPORT_PLAYER_EVENT == 186, "QL qagame direct import slot 186 must remain PLAYER_EVENT" );
-static_assert( G_QL_IMPORT_MARK_CLIENT_GOT_CP == 192, "QL qagame direct import slot 192 must remain MARK_CLIENT_GOT_CP" );
+static_assert( G_QL_IMPORT_MARK_CLIENT_RAGE_QUIT == 192, "QL qagame direct import slot 192 must remain MARK_CLIENT_RAGE_QUIT" );
 static_assert( G_QL_IMPORT_RETURN_ZERO_198 == 198, "QL qagame direct import slot 198 must remain an explicit zero stub" );
 static_assert( G_QL_IMPORT_RETURN_ZERO_199 == 199, "QL qagame direct import slot 199 must remain an explicit zero stub" );
 static_assert( G_QL_IMPORT_STEAMID_QUERY == 200, "QL qagame direct import slot 200 must remain STEAMID_QUERY" );
@@ -2322,13 +2322,18 @@ static void QDECL QL_G_trap_ResendConfigstring( int index ) {
 	SV_GameResendConfigstring( index );
 }
 
-static void *QDECL QL_G_trap_MarkClientGotCP( int clientNum ) {
+// The retail game's ragequit command marks its client this way, and nothing
+// else (qagamex86.dll 0x10046015). quakelive_steam.exe's import (0x4e26e0)
+// sets a flag of a valid client's (0x4df830) that only SV_DropClient reads
+// (0x4df716), and returns the client's address or, for a bad number, the
+// number; the game ignores both.
+static void *QDECL QL_G_trap_MarkClientRageQuit( int clientNum ) {
 	if ( !SV_IsClientIndex( clientNum ) ) {
 		return reinterpret_cast<void *>( static_cast<intptr_t>( clientNum ) );
 	}
 
 	client_t &client = SV_ClientForIndex( clientNum );
-	client.gotCP = qtrue;
+	client.rageQuit = qtrue;
 	return &client;
 }
 
@@ -2887,7 +2892,7 @@ static void SV_InitGameImports( void ) {
 	QL_BIND( G_QL_IMPORT_BOTLIB_AI_GENETIC_PARENTS_AND_CHILD_SELECTION, QL_G_trap_GeneticParentsAndChildSelection );
 	QL_BIND( G_QL_IMPORT_SUBMIT_MATCH_REPORT, QL_G_trap_SubmitMatchReport );
 	QL_BIND( G_QL_IMPORT_REPORT_PLAYER_EVENT, QL_G_trap_ReportPlayerEvent );
-	QL_BIND( G_QL_IMPORT_MARK_CLIENT_GOT_CP, QL_G_trap_MarkClientGotCP );
+	QL_BIND( G_QL_IMPORT_MARK_CLIENT_RAGE_QUIT, QL_G_trap_MarkClientRageQuit );
 	QL_BIND( G_QL_IMPORT_RETURN_ZERO_198, QL_G_trap_ReturnZero );
 	QL_BIND( G_QL_IMPORT_RETURN_ZERO_199, QL_G_trap_ReturnZero );
 	QL_BIND( G_QL_IMPORT_STEAMID_QUERY, QL_G_trap_GetSteamIdLow );

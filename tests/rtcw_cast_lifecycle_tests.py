@@ -21,6 +21,8 @@ int Com_GameIsRTCWSP(){return profile.id==COM_GAME_RTCW_SP;}
 int Com_GameIsRTCWMP(){return profile.id==COM_GAME_RTCW_MP;}
 int Com_GameIsMOHAA(){return profile.id==COM_GAME_MOHAA;}
 int Com_GameIsRitual(){return profile.id==COM_GAME_ALICE||profile.id==COM_GAME_FAKK2;}
+// Quake Live announces a client its game marked with ragequit its own way.
+int Com_GameIsQuakeLive(){return profile.id==COM_GAME_QUAKELIVE;}
 // Q3Test drops a client each release's way (server_q3test_net.hpp); the
 // shared path stands in for its catalog entry here.
 int Com_GameIsQ3Test(){return 0;}

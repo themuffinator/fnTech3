@@ -269,8 +269,10 @@ runs above show both on the baseline as well.
   `disconnect "%s"` in all of them.
 - Quake Live's `ragequit`: retail announces the client as
   `print "%s ^1rage^7quits\n"` once its game has called import 192. fnTech3
-  binds that import as `MarkClientGotCP`, which sets `gotCP` instead, so a
-  rage quit is announced with its reason like any other drop.
+  bound that import as `MarkClientGotCP`, which set `gotCP` instead, so a
+  rage quit was announced with its reason like any other drop. Since
+  2026-09-29 the import sets a rage-quit mark and the drop is announced as
+  retail does ([rage quit record](2026-09-29-ql-rage-quit.md)).
 - ET's single-player bot rule rests on unit tests and the disassembly. No
   ET bot survives `spawnbot` under fnTech3 yet
   (`2026-09-24-wolfet-bot-broadcasts.md`, uncommitted when this was

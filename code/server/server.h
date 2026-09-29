@@ -258,6 +258,12 @@ typedef struct client_s {
 
 	qboolean		justConnected;
 
+	// Quake Live: the game's ragequit command marked this client (game import
+	// 192), so its drop is announced as a rage quit. Only a new connection
+	// clears it; a bot keeps what its slot held, as retail's allocator does
+	// (quakelive_steam.exe 0x4dcd30).
+	qboolean		rageQuit;
+
 	char			tld[3]; // "XX\0"
 	const char		*country;
 

@@ -2128,6 +2128,11 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 			// with no colour reset between them (alice.exe 0x004529fb,
 			// fakk2.exe 1.02 0x00443abb).
 			SV_SendServerCommand( nullptr, "print \"%s %s\n\"", name.data(), reason );
+		} else if ( Com_GameIsQuakeLive() && drop->rageQuit ) {
+			// Quake Live names a client its game marked with ragequit this
+			// way instead, without the reason (quakelive_steam.exe 0x4df716,
+			// the format at 0x5452ac).
+			SV_SendServerCommand( nullptr, "print \"%s " S_COLOR_RED "rage" S_COLOR_WHITE "quits\n\"", name.data() );
 		} else {
 			SV_SendServerCommand( nullptr, "print \"%s" S_COLOR_WHITE " %s\n\"", name.data(), reason );
 		}
