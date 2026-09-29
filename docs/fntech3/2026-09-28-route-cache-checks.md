@@ -333,7 +333,9 @@ These are outside the reader and unchanged here:
   it has checked that routing is initialized: while a map's reachability is
   still being computed, over several frames (a navigation file without it,
   or `forcereachability`), `AAS_WriteRouteCache` walks
-  `aasworld.portalcache` while it is still null.
+  `aasworld.portalcache` while it is still null. Since 2026-09-29 the writer
+  writes nothing until routing is initialized
+  ([record](2026-09-29-route-cache-before-routing.md)).
 
 ## Identity
 

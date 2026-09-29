@@ -13,6 +13,11 @@ query can take -- and the whole file must be refused with its message, with
 the file closed, nothing linked and nothing left allocated, before routing
 builds its caches as it goes. The binary also holds each reader of MUTATIONS,
 each missing one check or obligation, and each of those must fail.
+
+The writer writes nothing until routing is initialized: AAS_StartFrame asks
+for a dump whenever saveroutingcache is set, and while a map's reachability is
+still computed the areas are counted but the cache tables the writer walks do
+not exist yet. Each writer of WRITER_MUTATIONS must fail that check too.
 """
 from pathlib import Path
 import os
@@ -110,6 +115,13 @@ MUTATIONS = {
     'bytes after the last cache are ignored': ('if (size && at != length)', 'if (false)'),
     'the scratch of the checks is kept': ('\tFreeMemory(fewest);\n', ''),
     'a read cache is not in the least-recently-used list': ('\t\tAAS_LinkCache(cache);\n', ''),
+}
+
+# Each mutation replaces text in the writer and must make its checks fail.
+WRITER_MUTATIONS = {
+    'a dump is written before routing is initialized': ('if (!aasworld.initialized)', 'if (false)'),
+    'a dump is written only while no navigation is loaded': (
+        'if (!aasworld.initialized)', 'if (!aasworld.loaded)'),
 }
 
 CHECKS = r'''
@@ -449,6 +461,28 @@ static void damaged(){
   cluster.numreachabilityareas=n;}
 }
 
+// Nothing is written until routing is initialized. The tables are checked in
+// the order that keeps a writer without the check from faulting: first routing
+// that is merely not marked initialized, then a map whose reachability is
+// still computed (AAS_LoadMap freed the old tables and AAS_InitRouting has not
+// made the new ones), then a map without navigation.
+static void unready(void (*write)()){
+ graph(7,3,3);Q_strncpyz(aasworld.mapname,"probe",sizeof(aasworld.mapname));
+ files.erase("maps/probe.rcd");
+ aasworld.initialized=qfalse;
+ write();assert(!writing&&!files.count("maps/probe.rcd"));
+ AAS_FreeRoutingCaches();
+ assert(aasworld.loaded&&aasworld.numareas>1&&aasworld.numclusters>1);
+ assert(!aasworld.portalcache&&!aasworld.clusterareacache);
+ write();assert(!writing&&!files.count("maps/probe.rcd"));
+ aasworld.loaded=qfalse;
+ write();assert(!writing&&!files.count("maps/probe.rcd"));
+ // routing made again: the dump is written, header and all
+ routingTables();write();assert(!writing);
+ const auto &dump=files.at("maps/probe.rcd");
+ assert(dump.size()==sizeof(routecacheheader_t)&&field(dump,offsetof(routecacheheader_t,ident))==RCID);
+}
+
 int main(int argc,char **argv){
 #ifdef _MSC_VER
  _set_abort_behavior(0,_WRITE_ABORT_MSG|_CALL_REPORTFAULT);
@@ -459,8 +493,11 @@ int main(int argc,char **argv){
  const int variant=argc>1?std::atoi(argv[1]):0;
  assert(variant>=0&&variant<(int)(sizeof(readers)/sizeof(readers[0])));
  reader=readers[variant];
+ const int writerVariant=argc>2?std::atoi(argv[2]):0;
+ assert(writerVariant>=0&&writerVariant<(int)(sizeof(writers)/sizeof(writers[0])));
  int checked=0;
  for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds||Com_GameIsRTCW())continue;
+  if(!variant){initialize();useFiles();unready(writers[writerVariant]);shutdown();}
   initialize();useFiles();roundTrip(7,3,3);damaged();shutdown();
   initialize();useFiles();roundTrip(3,4,1);shutdown();
   initialize();useFiles();roundTrip(11,2,5);shutdown();
@@ -472,8 +509,9 @@ int main(int argc,char **argv){
 '''
 
 
-def fixture_source(readers):
-    """The route query fixture with the real writer, and each of `readers` in a namespace of its own."""
+def fixture_source(readers, writers=()):
+    """The route query fixture with the real writer, each of `readers` in a namespace of its own, and
+    each of `writers` in one of its own after it."""
     source = rtcw_route_query_tests.route_source() + rtcw_route_query_tests.GRAPH
     replacements = (
         ('static int failAllocation=-1;', 'static int failAllocation=-1,allocationCount;'),
@@ -498,6 +536,10 @@ def fixture_source(readers):
         source += f'\nnamespace reader{index} {{\n{text}\n}}\n'
     source += '\nstatic int (*const readers[])()={' + ','.join(
         f'reader{index}::AAS_ReadRouteCache' for index in range(len(readers))) + '};\n'
+    for index, text in enumerate(writers, 1):
+        source += f'\nnamespace writer{index} {{\n{text}\n}}\n'
+    source += '\nstatic void (*const writers[])()={AAS_WriteRouteCache' + ''.join(
+        f',writer{index}::AAS_WriteRouteCache' for index in range(1, len(writers) + 1)) + '};\n'
     return source + CHECKS
 
 
@@ -529,11 +571,17 @@ class RouteCacheReadTests(unittest.TestCase):
         for description, (old, new) in MUTATIONS.items():
             self.assertEqual(production.count(old), 1, description)
             readers.append(production.replace(old, new))
+        route = (ROOT / 'code/botlib/be_aas_route.cpp').read_text()
+        writer = function(route, 'void AAS_WriteRouteCache(void)')
+        writers = []
+        for description, (old, new) in WRITER_MUTATIONS.items():
+            self.assertEqual(writer.count(old), 1, description)
+            writers.append(writer.replace(old, new))
         (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
         folder = Path(tempfile.mkdtemp(prefix='route-cache-', dir=ROOT / '.tmp'))
         self.addCleanup(remove_folder, folder)
         cpp, exe = folder / 'probe.cpp', folder / 'probe.exe'
-        cpp.write_text(fixture_source(readers), encoding='utf-8')
+        cpp.write_text(fixture_source(readers, writers), encoding='utf-8')
         target = compiler_target_args(compiler)
         if os.name == 'nt' and not target:
             target = ['-DFNTECH3_Q3_ONLY']
@@ -555,6 +603,14 @@ class RouteCacheReadTests(unittest.TestCase):
                 except subprocess.TimeoutExpired:
                     continue  # a reader that never returns fails too
                 self.assertNotEqual(mutated.returncode, 0, description)
+        for index, description in enumerate(WRITER_MUTATIONS, 1):
+            with self.subTest(writer_mutation=description):
+                mutated = subprocess.run([str(exe), '0', str(index)], cwd=ROOT, capture_output=True, text=True,
+                                         timeout=120)
+                # A failed check, never a fault: the checks stop such a writer before it would read the
+                # tables that are not there.
+                self.assertNotEqual(mutated.returncode, 0, description)
+                self.assertIn('ssertion', mutated.stderr, description + mutated.stdout + mutated.stderr)
 
 
 if __name__ == '__main__':

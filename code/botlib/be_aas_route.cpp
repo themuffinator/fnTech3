@@ -1020,6 +1020,16 @@ void AAS_WriteRouteCache(void)
 	char filename[MAX_QPATH];
 	routecacheheader_t routecacheheader;
 
+	//AAS_StartFrame asks for a dump whenever saveroutingcache is set. Until
+	//AAS_InitRouting has run there is none to write: while a map's reachability
+	//is still computed, over several frames, the areas are counted but the
+	//cache tables walked below are not made yet, and a map without navigation
+	//has no routing at all
+	if (!aasworld.initialized)
+	{
+		botimport.Print(PRT_WARNING, "no route cache written: routing is not initialized\n");
+		return;
+	} //end if
 	numportalcache = 0;
 	for (i = 0; i < aasworld.numareas; i++)
 	{

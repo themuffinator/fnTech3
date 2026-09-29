@@ -53,6 +53,11 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Stop a server faulting when `bot_saveroutingcache 1` is set while its bots'
+  navigation is still being prepared, as it is for a while after a map loads
+  with `bot_forcereachability 1`. There are no routes to save yet: the server
+  now says so and plays on, and saves them when asked again later
+  ([record](docs/fntech3/2026-09-29-route-cache-before-routing.md)).
 - Announce a Quake Live rage quit as the retail engine does. A player who
   leaves with `ragequit` was announced as `<name> disconnected`; everyone now
   sees `<name> rage quits`, with "rage" in red, as on retail servers. The

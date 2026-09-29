@@ -1,0 +1,147 @@
+{
+  "utc": "2026-09-29T07:00:10+00:00",
+  "testedSourceCommit": "8e345c8f05bf66b748e85cbe3686cde78f4f3a05",
+  "sourceChanges": [
+    "code/botlib/be_aas_route.cpp"
+  ],
+  "platform": "Windows 11; Windows x86 MSVC debugoptimized, strict warnings, every development option, from a git archive export of the tested commit",
+  "builds": {
+    "before": {
+      "tree": "8e345c8 alone",
+      "server": "53e269ac165ecd1415651d33d483d8994e8372bf35b1ebf4b045bf36d476b15e"
+    },
+    "after": {
+      "tree": "8e345c8 plus this change alone",
+      "server": "359f5b853e87cdf33603b1e3158ac6100702fa40dca8e28070beb0f18ff0cf0a"
+    }
+  },
+  "faultSymbol": {
+    "address": "fntech3.ded.exe@2fc80",
+    "build": "before",
+    "symbol": "fntech3_ded!AAS_WriteRouteCache+0x50",
+    "how": "cdb -y <before runtime> -z fntech3.ded.exe -c \"ln fntech3_ded+0x2fc80\""
+  },
+  "installations": {
+    "q3": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+    "ql": "E:\\SteamLibrary\\steamapps\\common\\Quake Live"
+  },
+  "assets": {
+    "q3 baseq3/pak4.pk3": "af5f6d5c82fe4440ae0bb660f0648d1fa1731a9e8305a9eb652aa243428697f1",
+    "q3 baseq3/pak4.pk3 maps/q3dm7.aas": "a9a5a264c465e32365c9805d8fcf29399f8535dbdceea9a1752e1631ebd4e1cf",
+    "ql baseq3/pak00.pk3": "7d5fd8d4786f9e140804b7279ce2589c8a7babdcf2886763a63a992ad9ef634b",
+    "ql baseq3/pak00.pk3 maps/campgrounds.aas": "95275b0f39709de013d62b75c2100be932ae2d86dcc898a5ef1565448e9271f2",
+    "ql baseq3/bin.pk3 qagamex86.dll": "9bfad1b5df4cbbb3fcfb20781024fc5c0abe73ba8389c2f20be8c0a55552e83d"
+  },
+  "probe": "scripts/probe_route_cache_unready.py",
+  "waits": 40,
+  "runs": {
+    "before-q3-q3dm7": {
+      "outcome": "faulted",
+      "exitCode": null,
+      "forcedTermination": true,
+      "elapsedSeconds": 30.1,
+      "errors": [
+        "Unhandled exception caught: ACCESS_VIOLATION at fntech3.ded.exe@2fc80"
+      ],
+      "written": [],
+      "writtenBytes": [],
+      "routingInitialized": 0,
+      "botsListed": 0,
+      "script": [
+        "set bot_forcereachability 1",
+        "devmap q3dm7",
+        "wait 40",
+        "set bot_saveroutingcache 1",
+        "wait 40",
+        "status",
+        "echo ROUTE_CACHE_PROBE_DONE",
+        "quit"
+      ],
+      "calculating": true,
+      "reachabilityPercentReached": 2.4,
+      "notWritten": 0,
+      "dumpInHome": null,
+      "exeUnchanged": true
+    },
+    "after-q3-q3dm7": {
+      "outcome": "loaded",
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 4.4,
+      "errors": [],
+      "written": [],
+      "writtenBytes": [],
+      "routingInitialized": 0,
+      "botsListed": 0,
+      "script": [
+        "set bot_forcereachability 1",
+        "devmap q3dm7",
+        "wait 40",
+        "set bot_saveroutingcache 1",
+        "wait 40",
+        "status",
+        "echo ROUTE_CACHE_PROBE_DONE",
+        "quit"
+      ],
+      "calculating": true,
+      "reachabilityPercentReached": 4.3,
+      "notWritten": 1,
+      "dumpInHome": null,
+      "exeUnchanged": true
+    },
+    "before-ql-campgrounds": {
+      "outcome": "faulted",
+      "exitCode": null,
+      "forcedTermination": true,
+      "elapsedSeconds": 30.0,
+      "errors": [
+        "Unhandled exception caught: ACCESS_VIOLATION at fntech3.ded.exe@2fc80"
+      ],
+      "written": [],
+      "writtenBytes": [],
+      "routingInitialized": 0,
+      "botsListed": 0,
+      "script": [
+        "set bot_forcereachability 1",
+        "devmap campgrounds ffa",
+        "wait 40",
+        "set bot_saveroutingcache 1",
+        "wait 40",
+        "status",
+        "echo ROUTE_CACHE_PROBE_DONE",
+        "quit"
+      ],
+      "calculating": true,
+      "reachabilityPercentReached": 1.4,
+      "notWritten": 0,
+      "dumpInHome": null,
+      "exeUnchanged": true
+    },
+    "after-ql-campgrounds": {
+      "outcome": "loaded",
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 2.4,
+      "errors": [],
+      "written": [],
+      "writtenBytes": [],
+      "routingInitialized": 0,
+      "botsListed": 0,
+      "script": [
+        "set bot_forcereachability 1",
+        "devmap campgrounds ffa",
+        "wait 40",
+        "set bot_saveroutingcache 1",
+        "wait 40",
+        "status",
+        "echo ROUTE_CACHE_PROBE_DONE",
+        "quit"
+      ],
+      "calculating": true,
+      "reachabilityPercentReached": 2.3,
+      "notWritten": 1,
+      "dumpInHome": null,
+      "exeUnchanged": true
+    }
+  }
+}
