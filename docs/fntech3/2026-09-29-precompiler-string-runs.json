@@ -1,0 +1,417 @@
+{
+  "utc": "2026-09-29T08:07:17+00:00",
+  "testedSourceCommit": "8e345c8f05bf66b748e85cbe3686cde78f4f3a05",
+  "sourceChanges": [
+    "code/botlib/l_precomp.cpp"
+  ],
+  "platform": "Windows 11; Windows x86 MSVC debugoptimized, strict warnings, every development option, from a git archive export of the tested commit; precompiler hosts with clang++ -O2 for the MSVC x86 target",
+  "builds": {
+    "before": {
+      "tree": "8e345c8 alone",
+      "server": "53e269ac165ecd1415651d33d483d8994e8372bf35b1ebf4b045bf36d476b15e"
+    },
+    "after": {
+      "tree": "8e345c8 plus this change alone",
+      "server": "82d228b20a9ba2ecb682c4d7bf23c1e7772c8731a4ce7e0766f0a47a81f0e7af"
+    },
+    "hosts": {
+      "before": "2d14465003a8de03679a2402b2ba2fd9f67bbe9c86ee95d5133b2ddfec5d3b94",
+      "after": "509c7fd3828f6664a8e7c508743c45d5050e984ac0d8e3ddf547f2490d2e8a76",
+      "source": "tests/fixtures/precompiler_host.cpp with l_precomp.cpp, l_script.cpp, l_memory.cpp"
+    }
+  },
+  "hostRuns": {
+    "plain quoted strings, 100,000": {
+      "host-head wolfet=0": {
+        "exit": "0x00000000",
+        "tokens": [
+          "start",
+          "end"
+        ],
+        "summary": "tokens=3 errors=0 warnings=0"
+      },
+      "host-head wolfet=1": {
+        "exit": "0x00000000",
+        "tokens": [
+          "start",
+          "end"
+        ],
+        "summary": "tokens=3 errors=0 warnings=0"
+      },
+      "host-new wolfet=0": {
+        "exit": "0x00000000",
+        "tokens": [
+          "start",
+          "end"
+        ],
+        "summary": "tokens=3 errors=0 warnings=0"
+      },
+      "host-new wolfet=1": {
+        "exit": "0x00000000",
+        "tokens": [
+          "start",
+          "end"
+        ],
+        "summary": "tokens=3 errors=0 warnings=0"
+      }
+    },
+    "define-expanded strings, 500": {
+      "host-head wolfet=0": {
+        "exit": "0x00000000",
+        "tokens": [
+          "start",
+          "end"
+        ],
+        "summary": "tokens=3 errors=0 warnings=0"
+      },
+      "host-head wolfet=1": {
+        "exit": "0x00000000",
+        "tokens": [
+          "start",
+          "end"
+        ],
+        "summary": "tokens=3 errors=0 warnings=0"
+      },
+      "host-new wolfet=0": {
+        "exit": "0x00000000",
+        "tokens": [
+          "start",
+          "end"
+        ],
+        "summary": "tokens=3 errors=0 warnings=0"
+      },
+      "host-new wolfet=1": {
+        "exit": "0x00000000",
+        "tokens": [
+          "start",
+          "end"
+        ],
+        "summary": "tokens=3 errors=0 warnings=0"
+      }
+    },
+    "define-expanded strings, 1,000": {
+      "host-head wolfet=0": {
+        "exit": "0xc00000fd",
+        "tokens": [],
+        "summary": ""
+      },
+      "host-head wolfet=1": {
+        "exit": "0xc00000fd",
+        "tokens": [],
+        "summary": ""
+      },
+      "host-new wolfet=0": {
+        "exit": "0x00000000",
+        "tokens": [
+          "start",
+          "end"
+        ],
+        "summary": "tokens=3 errors=0 warnings=0"
+      },
+      "host-new wolfet=1": {
+        "exit": "0x00000000",
+        "tokens": [
+          "start",
+          "end"
+        ],
+        "summary": "tokens=3 errors=0 warnings=0"
+      }
+    },
+    "define-expanded strings, 20,000": {
+      "host-head wolfet=0": {
+        "exit": "0xc00000fd",
+        "tokens": [],
+        "summary": ""
+      },
+      "host-head wolfet=1": {
+        "exit": "0xc00000fd",
+        "tokens": [],
+        "summary": ""
+      },
+      "host-new wolfet=0": {
+        "exit": "0x00000000",
+        "tokens": [
+          "start",
+          "end"
+        ],
+        "summary": "tokens=3 errors=0 warnings=0"
+      },
+      "host-new wolfet=1": {
+        "exit": "0x00000000",
+        "tokens": [
+          "start",
+          "end"
+        ],
+        "summary": "tokens=3 errors=0 warnings=0"
+      }
+    },
+    "test case run1000 (then \"tail\")": {
+      "host-head wolfet=0": {
+        "exit": "0xc00000fd",
+        "tokens": [],
+        "summary": ""
+      },
+      "host-head wolfet=1": {
+        "exit": "0xc00000fd",
+        "tokens": [],
+        "summary": ""
+      },
+      "host-new wolfet=0": {
+        "exit": "0x00000000",
+        "tokens": [
+          "start",
+          "tail",
+          "end"
+        ],
+        "summary": "tokens=3 errors=0 warnings=0"
+      },
+      "host-new wolfet=1": {
+        "exit": "0x00000000",
+        "tokens": [
+          "start",
+          "tail",
+          "end"
+        ],
+        "summary": "tokens=3 errors=0 warnings=0"
+      }
+    },
+    "test case run20000 (then \"tail\")": {
+      "host-head wolfet=0": {
+        "exit": "0xc00000fd",
+        "tokens": [],
+        "summary": ""
+      },
+      "host-head wolfet=1": {
+        "exit": "0xc00000fd",
+        "tokens": [],
+        "summary": ""
+      },
+      "host-new wolfet=0": {
+        "exit": "0x00000000",
+        "tokens": [
+          "start",
+          "tail",
+          "end"
+        ],
+        "summary": "tokens=3 errors=0 warnings=0"
+      },
+      "host-new wolfet=1": {
+        "exit": "0x00000000",
+        "tokens": [
+          "start",
+          "tail",
+          "end"
+        ],
+        "summary": "tokens=3 errors=0 warnings=0"
+      }
+    },
+    "test case across": {
+      "host-head wolfet=0": {
+        "exit": "0x00000000",
+        "tokens": [
+          "start",
+          "acbd",
+          "x",
+          "bb",
+          "end"
+        ],
+        "summary": "tokens=5 errors=0 warnings=0"
+      },
+      "host-head wolfet=1": {
+        "exit": "0x00000000",
+        "tokens": [
+          "start",
+          "acbd",
+          "x",
+          "bb",
+          "end"
+        ],
+        "summary": "tokens=5 errors=0 warnings=0"
+      },
+      "host-new wolfet=0": {
+        "exit": "0x00000000",
+        "tokens": [
+          "start",
+          "acbd",
+          "x",
+          "bb",
+          "end"
+        ],
+        "summary": "tokens=5 errors=0 warnings=0"
+      },
+      "host-new wolfet=1": {
+        "exit": "0x00000000",
+        "tokens": [
+          "start",
+          "acbd",
+          "x",
+          "bb",
+          "end"
+        ],
+        "summary": "tokens=5 errors=0 warnings=0"
+      }
+    },
+    "test case limit": {
+      "host-head wolfet=0": {
+        "exit": "0x00000001",
+        "tokens": [
+          "start"
+        ],
+        "summary": "tokens=1 errors=1 warnings=0"
+      },
+      "host-head wolfet=1": {
+        "exit": "0x00000001",
+        "tokens": [
+          "start"
+        ],
+        "summary": "tokens=1 errors=1 warnings=0"
+      },
+      "host-new wolfet=0": {
+        "exit": "0x00000001",
+        "tokens": [
+          "start"
+        ],
+        "summary": "tokens=1 errors=1 warnings=0"
+      },
+      "host-new wolfet=1": {
+        "exit": "0x00000001",
+        "tokens": [
+          "start"
+        ],
+        "summary": "tokens=1 errors=1 warnings=0"
+      }
+    }
+  },
+  "engineProbe": {
+    "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+    "characterPak": "pak4.pk3",
+    "characterSha256": "841b7092795a21c981bd1395919254c4ea1e86c50350ce21e1f1841245059381",
+    "run": 20000,
+    "changedBytes": 285680,
+    "servers": {
+      "before": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\ragequit-before\\fntech3.ded.exe",
+        "sha256": "53e269ac165ecd1415651d33d483d8994e8372bf35b1ebf4b045bf36d476b15e"
+      },
+      "after": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\precomp-after\\fntech3.ded.exe",
+        "sha256": "82d228b20a9ba2ecb682c4d7bf23c1e7772c8731a4ce7e0766f0a47a81f0e7af"
+      }
+    },
+    "runs": {
+      "before-retail": {
+        "outcome": "loaded",
+        "exitCode": 0,
+        "forcedTermination": false,
+        "errors": [],
+        "exception": [],
+        "botsListed": [
+          "Sarge"
+        ],
+        "elapsedSeconds": 8.5
+      },
+      "before-run": {
+        "outcome": "faulted",
+        "exitCode": null,
+        "forcedTermination": true,
+        "errors": [
+          "Unhandled exception caught"
+        ],
+        "exception": [
+          "STACK_OVERFLOW",
+          "fntech3.ded.exe@5624b"
+        ],
+        "botsListed": [],
+        "elapsedSeconds": 5.0
+      },
+      "after-retail": {
+        "outcome": "loaded",
+        "exitCode": 0,
+        "forcedTermination": false,
+        "errors": [],
+        "exception": [],
+        "botsListed": [
+          "Sarge"
+        ],
+        "elapsedSeconds": 8.4
+      },
+      "after-run": {
+        "outcome": "loaded",
+        "exitCode": 0,
+        "forcedTermination": false,
+        "errors": [],
+        "exception": [],
+        "botsListed": [
+          "Sarge"
+        ],
+        "elapsedSeconds": 7.8
+      }
+    }
+  },
+  "overflowSymbol": {
+    "address": "fntech3.ded.exe@5624b",
+    "build": "before",
+    "symbol": "fntech3_ded!PC_ExpandDefine+0x1b",
+    "how": "cdb -y <before runtime> -z fntech3.ded.exe -c \"ln fntech3_ded+0x5624b\""
+  },
+  "installedStreams": {
+    "base": "8e345c8f05bf66b748e85cbe3686cde78f4f3a05",
+    "baseSha256": "0396df7af0ab3ef33e21687feaa2eb1acbed3d30a2b757b96577bc3c624d3a7f",
+    "workSha256": "b888353926e64fe0e246c19e6905dea46d41732dcbcff3ce96561b19c757236e",
+    "installations": {
+      "q3": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+      "ql": "E:\\SteamLibrary\\steamapps\\common\\Quake Live",
+      "rtcw": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+      "wolfet": "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+      "stvef": "E:\\Games\\Star Trek Voyager Elite Force",
+      "jka": "E:\\Games\\Jedi Academy",
+      "jk2": "E:\\Games\\Jedi Outcast"
+    },
+    "games": {
+      "jk2": {
+        "files": 63,
+        "identical": 63,
+        "tokens": 11913,
+        "filesWithErrors": 55
+      },
+      "jka": {
+        "files": 96,
+        "identical": 96,
+        "tokens": 18857,
+        "filesWithErrors": 83
+      },
+      "q3": {
+        "files": 245,
+        "identical": 245,
+        "tokens": 401405,
+        "filesWithErrors": 3
+      },
+      "ql": {
+        "files": 212,
+        "identical": 212,
+        "tokens": 484205,
+        "filesWithErrors": 2
+      },
+      "rtcw": {
+        "files": 243,
+        "identical": 243,
+        "tokens": 313527,
+        "filesWithErrors": 0
+      },
+      "stvef": {
+        "files": 243,
+        "identical": 243,
+        "tokens": 250325,
+        "filesWithErrors": 1
+      },
+      "wolfet": {
+        "files": 81,
+        "identical": 81,
+        "tokens": 100446,
+        "filesWithErrors": 8
+      }
+    },
+    "differences": [],
+    "passed": true
+  }
+}

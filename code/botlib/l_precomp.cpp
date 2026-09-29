@@ -2738,7 +2738,7 @@ static int QuakeCMacro(source_t *source)
 // Returns:					-
 // Changes Globals:		-
 //============================================================================
-int PC_ReadToken(source_t *source, token_t *token)
+static int PC_ReadExpandedToken(source_t *source, token_t *token)
 {
 	define_t *define;
 
@@ -2769,33 +2769,11 @@ int PC_ReadToken(source_t *source, token_t *token)
 			} //end if
 		} //end if
 		//if skipping source because of conditional compilation. This must come
-		//before the string concatenation below: that looks ahead for another
-		//string, and a look-ahead from inside a skipped branch reads straight
-		//through the #else or #endif that ends it, after which the skipped
-		//string would be returned as though it had never been skipped.
+		//before the string concatenation in PC_ReadToken: that looks ahead for
+		//another string, and a look-ahead from inside a skipped branch reads
+		//straight through the #else or #endif that ends it, after which the
+		//skipped string would be returned as though it had never been skipped.
 		if (source->skip) continue;
-		// recursively concatenate strings that are behind each other still resolving defines
-		if (token->type == TT_STRING)
-		{
-			token_t newtoken;
-			if (PC_ReadToken(source, &newtoken))
-			{
-				if (newtoken.type == TT_STRING)
-				{
-					token->string[strlen(token->string)-1] = '\0';
-					if (strlen(token->string) + strlen(newtoken.string+1) + 1 >= MAX_TOKEN)
-					{
-						SourceError(source, "string longer than MAX_TOKEN %d", MAX_TOKEN);
-						return qfalse;
-					}
-					strcat(token->string, newtoken.string+1);
-				}
-				else
-				{
-					PC_UnreadToken(source, &newtoken);
-				}
-			}
-		} //end if
 		//if the token is a name
 		if (token->type == TT_NAME)
 		{
@@ -2813,11 +2791,48 @@ int PC_ReadToken(source_t *source, token_t *token)
 				continue;
 			} //end if
 		} //end if
-		//copy token for unreading
-		source->token = *token;
 		//found a token
 		return qtrue;
 	} //end while
+} //end of the function PC_ReadExpandedToken
+//============================================================================
+//
+// Parameter:				-
+// Returns:					-
+// Changes Globals:		-
+//============================================================================
+int PC_ReadToken(source_t *source, token_t *token)
+{
+	if (!PC_ReadExpandedToken(source, token)) return qfalse;
+	// concatenate strings that are behind each other still resolving defines.
+	// The script reader already joins adjacent quoted strings; these are the
+	// ones it cannot see together, such as strings defines expand to. Each is
+	// read in turn here: reading them by recursion took a frame, and a token,
+	// per string, and a run of a thousand strings a define expands to
+	// overflowed the stack.
+	if (token->type == TT_STRING)
+	{
+		token_t newtoken;
+		while (PC_ReadExpandedToken(source, &newtoken))
+		{
+			if (newtoken.type != TT_STRING)
+			{
+				PC_UnreadToken(source, &newtoken);
+				break;
+			} //end if
+			token->string[strlen(token->string)-1] = '\0';
+			if (strlen(token->string) + strlen(newtoken.string+1) + 1 >= MAX_TOKEN)
+			{
+				SourceError(source, "string longer than MAX_TOKEN %d", MAX_TOKEN);
+				return qfalse;
+			} //end if
+			strcat(token->string, newtoken.string+1);
+		} //end while
+	} //end if
+	//copy token for unreading
+	source->token = *token;
+	//found a token
+	return qtrue;
 } //end of the function PC_ReadToken
 //============================================================================
 //

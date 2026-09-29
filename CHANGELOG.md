@@ -53,6 +53,12 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Stop a long run of strings in a menu or bot file from crashing the game.
+  Strings that a `#define` expands to, written side by side, are joined into
+  one; the engine joined each by calling itself again, so about a thousand in
+  a row ran it out of stack. They are now joined one after another, and every
+  installed menu and bot file reads exactly as before
+  ([record](docs/fntech3/2026-09-29-precompiler-string-runs.md)).
 - Route Elite Force Holomatch bots as the retail engine does. Its routes
   count the time a bot needs to cross the area it is heading for, which
   fnTech3 left out as Quake III 1.32 does, so almost every route's travel
