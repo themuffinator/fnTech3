@@ -1,0 +1,23 @@
+{
+  "record": "2026-09-22-jka-pose.md",
+  "kind": "Historical source, format and synthetic unit observations",
+  "companionAdded": "2026-10-02",
+  "originalCorpusReverified": false,
+  "correction": {
+    "evidence": "Live engine-query comparison",
+    "record": "2026-10-02-jka-compatibility.json",
+    "queriesCompared": 18,
+    "exactMatches": 0,
+    "supersededInferences": [
+      "independent bone composition establishes correct posing",
+      "rest fallback establishes retail initial bone state",
+      "stored angle overrides establish their gameplay effect"
+    ],
+    "stillOpen": [
+      "hierarchy and inherited animation",
+      "bone-angle application",
+      "coordinate and scale treatment",
+      "client skinning and rendered geometry"
+    ]
+  }
+}

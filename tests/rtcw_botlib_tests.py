@@ -31,6 +31,7 @@ const comGameProfile_t *Com_GameProfile(){return profile;}
 int Com_GameIsRTCW(){return profile->id==COM_GAME_RTCW_SP||profile->id==COM_GAME_RTCW_MP;}
 int Com_GameIsSTVEF(){return profile->titleId==COM_GAME_TITLE_STVEF;}
 int Com_GameIsSTVEFMP(){return profile->id==COM_GAME_STVEF_MP;}
+int Com_GameIsWolfET(){return profile->id==COM_GAME_WOLFET;}
 // The visibility fixture replaces this stand-in with the actual route query.
 bool AAS_RTCWRouteFirstVisiblePosition(const float*,const float*,int,float*){assert(false);return false;}
 bool AAS_RTCWHidePosition(const float*,int,int,const float*,int,int,float*){assert(false);return false;}

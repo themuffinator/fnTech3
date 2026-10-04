@@ -256,6 +256,31 @@ def compare(before_path, after_path):
     return 1 if changed else 0
 
 
+def select_cases(available, profiles=None, labels=None):
+    """Resolve explicit selections before creating output or launching games."""
+    selected = list(available)
+    if profiles:
+        wanted = {name.strip().casefold() for name in profiles.split(',')}
+        present = {name.casefold() for case in selected
+                   for name in (case['profile'], case['label'].split(':')[0])}
+        missing = wanted - present
+        if missing:
+            raise ValueError('profiles have no installed maps: ' + ', '.join(sorted(missing)))
+        selected = [case for case in selected if
+                    case['profile'].casefold() in wanted or
+                    case['label'].split(':')[0].casefold() in wanted]
+    if labels:
+        wanted = {name.strip().casefold() for name in labels.split(',')}
+        present = {case['label'].casefold() for case in selected}
+        missing = wanted - present
+        if missing:
+            raise ValueError('requested map labels not found: ' + ', '.join(sorted(missing)))
+        selected = [case for case in selected if case['label'].casefold() in wanted]
+    if not selected:
+        raise ValueError('no installed maps selected')
+    return selected
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--client', type=Path)
@@ -283,13 +308,10 @@ def main():
             parser.error(f'unknown installation {item!r}')
         installations[key] = Path(path).resolve(strict=True)
     client, server = args.client.resolve(strict=True), args.server.resolve(strict=True)
-    todo = cases(installations)
-    if args.profiles:
-        wanted = set(args.profiles.split(','))
-        todo = [c for c in todo if c['profile'] in wanted or c['label'].split(':')[0] in wanted]
-    if args.only:
-        wanted = set(args.only.split(','))
-        todo = [c for c in todo if c['label'] in wanted]
+    try:
+        todo = select_cases(cases(installations), args.profiles, args.only)
+    except ValueError as error:
+        parser.error(str(error))
     output = args.output.resolve()
     (output / 'logs').mkdir(parents=True, exist_ok=args.resume)
     binaries = {p.name: sha256(p) for p in (client, server, client.parent / f'fnql_{args.renderer}_x86.dll')

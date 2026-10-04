@@ -15,13 +15,25 @@ applies a second correction.
 | Alice | `r_fovCorrection` | `cl_hudAspect`, HUD rules for its 3D HUD | the engine's own `.urc` menus | `cl_cinematicAspect` |
 | F.A.K.K.2 | `r_fovCorrection` | `cl_hudAspect`, HUD rules for its HUD menus | the engine's own `.urc` menus | `cl_cinematicAspect` |
 | Medal of Honor | `r_fovCorrection` | owned by the retail modules, which place it for any screen | the engine's own `.urc` menus | `cl_cinematicAspect` |
+| Jedi Academy, experimental adapters | `r_fovCorrection`; source/unit evidence | existing HUD transforms for supported records | existing menu transforms; authored menu FOV | existing RoQ presentation; default `.roq` path |
 
-The IHV Test has no client, and Jedi Academy and Jedi Outcast have none yet;
+The IHV Test has no client. Jedi Academy and Jedi Outcast have partial
+developer client adapters, with no complete rendered-client evidence yet;
 the Q3Test releases have neither correction. The correction cvars exist only
 in the games that use them: `r_fovCorrection` is registered in every game in
 the table, and `cl_hudAspect`, `cl_hudDump` and `hud_reload`
 in every one except Quake Live and Medal of Honor. Setting them in a config
 for another game changes nothing.
+
+Academy's experimental multiplayer adapters submit font glyphs and supported
+static UI/cgame views through the existing HUD/menu transforms. Cgame menu
+requests use the same profile UI dispatcher; player-configuration selection
+has module-call evidence, with its visual layout still unverified. These paths
+have unit evidence. Both Academy profiles use the existing 4:3-authored world
+FOV policy, with `r_fovCorrection 0` available when a mod supplies its own
+correction. Ghoul2 views and Raven's additional render flags remain
+open, and no live screenshot establishes their aspect behavior yet. See the
+[Academy boundary record](fntech3/2026-10-02-jka-compatibility.md).
 
 ## World FOV and HUD
 
@@ -210,6 +222,14 @@ same authored 16:9 crop for its smoke and map-levelshot loading backgrounds.
 fnTech3 recognizes only that full-frame loading draw signature during
 `CA_LOADING` and `CA_PRIMED`, and applies the same centered cover crop. HUD and
 other cgame draws are not modified.
+
+## Jedi Outcast developer fonts
+
+The partial `jk2-mp` client adapters draw the shipped `.fontdat` glyphs through
+the engine's HUD and menu layout helpers. They therefore use the existing
+aspect settings when those paths run. Parser and transfer tests pass, but no
+Outcast font or map has been visually verified; the renderer gate remains open
+([evidence](fntech3/2026-10-02-jk2-client-boundary.md)).
 
 ## Cinematics
 

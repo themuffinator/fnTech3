@@ -1,0 +1,602 @@
+{
+  "date": "2026-10-01",
+  "commit": "a1251ede2c382190b18c154b45357f6979d8171c",
+  "worktreeDirty": true,
+  "status": "partial: disk adapter corrected; retail navigation and gameplay remain unverified",
+  "evidenceLevels": [
+    "Source",
+    "Unit"
+  ],
+  "sourceFiles": [
+    {
+      "path": "code/botlib/be_aas_file.cpp",
+      "bytes": 27829,
+      "sha256": "3b8c64ad6afbeb860053bb74264e7d2466738a2a5b3b7f75918955e3ee6c470a"
+    },
+    {
+      "path": "code/botlib/rtcw_aas_loader.hpp",
+      "bytes": 7386,
+      "sha256": "59e4638fd754af09e8abdf2ae4cfe45f5770f5e135bf72316e2a83cf519e977f"
+    },
+    {
+      "path": "code/compat/rtcw_aas_format.hpp",
+      "bytes": 10347,
+      "sha256": "74ab12ddc6e74a95be6d343b72d9fc2d9e43510e6b5021c58d34edb1f6ab2492"
+    },
+    {
+      "path": "tests/wolfet_aas_load_tests.py",
+      "bytes": 5195,
+      "sha256": "34257b7273660d22f7cfab96e7e6ceebbe0fcc1fb8a7381395becdcb48d6c407"
+    },
+    {
+      "path": "tests/rtcw_aas_load_tests.py",
+      "bytes": 12757,
+      "sha256": "3dfbabd4800c64798efd301b3ccd319831c088aa802c7c640417cc3f01c32f7c"
+    },
+    {
+      "path": "tests/rtcw_routing_tests.py",
+      "bytes": 14221,
+      "sha256": "7bbe88f8a812323dda82e6049997df30fbba3d3c65d33b6f17eccdb297e2b665"
+    }
+  ],
+  "references": [
+    {
+      "path": "E:/_SOURCE/_CODE/Enemy-Territory-original/src/botlib/aasfile.h",
+      "sha256": "6a91e18a9b3e0b8b426fb10eebd425ba21596d48807023c63d088dcc63c3443a",
+      "use": "source observation only; GPLv3 text not incorporated"
+    },
+    {
+      "path": "E:/_SOURCE/_CODE/Enemy-Territory-original/src/botlib/be_aas_file.c",
+      "sha256": "5a595d5688c19ec3709b201ec57b89db5a4845278759d74c1ae8ee7987e1cd2f",
+      "use": "source observation only; GPLv3 text not incorporated"
+    }
+  ],
+  "originalLayout": {
+    "identity": 1396785477,
+    "version": 8,
+    "headerBytes": 124,
+    "strides": [
+      32,
+      12,
+      20,
+      8,
+      4,
+      24,
+      4,
+      48,
+      32,
+      44,
+      12,
+      20,
+      4,
+      16
+    ],
+    "groundSteepnessOffset": 28,
+    "travelTimeOffset": 40,
+    "lumpsOffset": 12
+  },
+  "checksumMarker": {
+    "value": "0xffffffff",
+    "position": "encoded header before XOR",
+    "authority": "original ET file-reader source",
+    "runtimeComparison": false,
+    "scope": "ET checksum equality only; other structural validation and RTCW checks remain strict"
+  },
+  "baseline": {
+    "result": "expected failure of generated ET AAS8 map load before correction",
+    "log": {
+      "path": ".tmp/wolfet-routing/aas-before.log",
+      "bytes": 1150,
+      "sha256": "1c7ea654d43b982ad6405fd94f2d5d4875e0569ef582d3925138a7591a17ccb2"
+    }
+  },
+  "targetedValidation": {
+    "tests": 13,
+    "elapsedSeconds": 34.525,
+    "passed": true,
+    "log": {
+      "path": ".tmp/wolfet-routing/aas-and-routing-after.log",
+      "bytes": 2307,
+      "sha256": "b1529659e10aaa144bf8bd1b152eee0e1e54791604796dd14cda6e5d7f60ba60"
+    }
+  },
+  "buildIdentity": {
+    "fntech3.exe": "3a204ff59c18a8535606f06406512d3392489eda18590d9346c8e8dd8aacbfb3",
+    "fntech3.ded.exe": "0bd1bda1016347c90e7c040110a450b78cb80772a120ef5864107ce5b4551cf0",
+    "fnql_glx_x86.dll": "2d584042bebd0ad403cccc1bf79da4a35a8b04dfc24dba490058225a4cea8225",
+    "fnql_vk_x86.dll": "87977b2c26e4cef709c3044b4f409cdcc2f19de8e5e79a4ecbab44f1e7b78c29",
+    "fnql_rtx_x86.dll": "a3c7ad1f44c98fe95f62c27309838a72be7e5fdeaaaa07f156845c5e97f4f4f6"
+  },
+  "fullSuite": {
+    "passed": true,
+    "meson": {
+      "total": 181,
+      "passed": 179,
+      "skipped": 2,
+      "failed": 0
+    },
+    "python": {
+      "tests": 2374,
+      "elapsedSeconds": 1733.527,
+      "skipped": 121,
+      "passed": true
+    },
+    "command": [
+      "python",
+      "-m",
+      "mesonbuild.mesonmain",
+      "test",
+      "-C",
+      "meson/build/win32-dev",
+      "--print-errorlogs"
+    ],
+    "logs": [
+      {
+        "path": ".tmp/stvef-hunk-sweep/meson-testlog-final.json",
+        "bytes": 3507802,
+        "sha256": "513c4c64f1978e5af80b773a9e02c793c503fd60dbd925e6cc532515d81ff36f"
+      },
+      {
+        "path": ".tmp/stvef-hunk-sweep/meson-testlog-final.txt",
+        "bytes": 178729,
+        "sha256": "9145ffea133ce7688f8f48cfeb4e242fea7a810ccef7c150bbbc719130a90450"
+      },
+      {
+        "path": ".tmp/stvef-hunk-sweep/full-suite-corrected.log",
+        "bytes": 39733,
+        "sha256": "e03b80cfeaff6198bdc1c4d40241c554c8e1ce272a2940888a8f28b5cd168257"
+      }
+    ]
+  },
+  "remaining": [
+    "No navigation in the installed stock ET corpus",
+    "Loaded retail ET navigation",
+    "Geometry-to-cost generation and complete routing-cache queries/budgets",
+    "Live bot gameplay",
+    "ET AAS8 writing"
+  ],
+  "intermediateBuildIdentity": {
+    "fnql_glx_x86.dll": "0622cd75d925f497117de358812529bef5d5ffe98e8dfdd89f733318dba10df1",
+    "fnql_rtx_x86.dll": "27d5e7ea49cfb42ab7238530bf949418862dd226b4162045005cb255d7aaa5f3",
+    "fnql_vk_x86.dll": "e7afeb772dd60090bf69d7bd50196d21b5f49aff0e7874c3df54f513d3439355",
+    "fntech3.ded.exe": "0d93d6aa8f3ab836c68db6938688154dbf7c7c6fc044de15c920ac6e28be5909",
+    "fntech3.exe": "7f075314f2d3abf2233292e1ffae0b772b630a89b44536c15f8aada11bb3b247"
+  },
+  "runtimeNonRegression": {
+    "buildIdentity": {
+      "fntech3.exe": "3a204ff59c18a8535606f06406512d3392489eda18590d9346c8e8dd8aacbfb3",
+      "fntech3.ded.exe": "0bd1bda1016347c90e7c040110a450b78cb80772a120ef5864107ce5b4551cf0",
+      "fnql_glx_x86.dll": "2d584042bebd0ad403cccc1bf79da4a35a8b04dfc24dba490058225a4cea8225",
+      "fnql_vk_x86.dll": "87977b2c26e4cef709c3044b4f409cdcc2f19de8e5e79a4ecbab44f1e7b78c29",
+      "fnql_rtx_x86.dll": "a3c7ad1f44c98fe95f62c27309838a72be7e5fdeaaaa07f156845c5e97f4f4f6"
+    },
+    "binariesUnchanged": true,
+    "bots": [
+      {
+        "case": "q3-after-profile-zone",
+        "report": {
+          "profile": "q3",
+          "map": "q3dm1",
+          "command": [
+            "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.ded.exe",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "fs_basepath",
+            "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\wolfet-routing\\q3-after-profile-zone\\home",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "com_introplayed",
+            "1",
+            "+set",
+            "cl_renderer",
+            "glx",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "r_mode",
+            "-1",
+            "+set",
+            "r_customWidth",
+            "800",
+            "+set",
+            "r_customHeight",
+            "600",
+            "+set",
+            "dedicated",
+            "1",
+            "+set",
+            "s_initsound",
+            "0",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "set r_fullscreen \"0\"\nset r_mode \"-1\"\nset r_customWidth \"800\"\nset r_customHeight \"600\"\nset in_mouse \"0\"\nset in_joystick \"0\"\nset in_nograb \"1\"\nset cl_renderer \"glx\"\nset com_steamIntegration \"0\"\nset cl_webuiEnable \"0\"\nset com_introplayed \"1\"\nset logfile \"4\"\nset developer \"1\"\nset net_ip \"127.0.0.1\"\nset net_enabled \"0\"\nset net_port \"0\"\nset s_alDriver \"OpenAL32.dll\"\nset cl_allowDownload \"0\"\nset sv_punkbuster \"0\"\nset cl_punkbuster \"0\"\nset s_initsound \"0\"\nset bot_enable \"1\"\ndevmap q3dm1\nwait 100\naddbot sarge 1\nwait 300\nstatus\necho ROUTING_REGRESSION_DONE\nquit\n",
+          "exitCode": 0,
+          "forced": false,
+          "introReadyClick": false,
+          "seconds": 21.42,
+          "installationUnchanged": true,
+          "executableSha256": "0bd1bda1016347c90e7c040110a450b78cb80772a120ef5864107ce5b4551cf0",
+          "commit": "a1251ede2c382190b18c154b45357f6979d8171c"
+        },
+        "log": ".tmp\\wolfet-routing\\q3-after-profile-zone\\home\\baseq3\\qconsole.log",
+        "logSha256": "d961cf0bcc0c0c61b52d0f7ac52a1b8bf5563a16e7ef33ee57ee02df95fb4a64",
+        "passed": true
+      },
+      {
+        "case": "ql-after-profile-zone",
+        "report": {
+          "profile": "ql",
+          "map": "campgrounds",
+          "command": [
+            "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.ded.exe",
+            "+set",
+            "com_gameProfile",
+            "ql",
+            "+set",
+            "fs_basepath",
+            "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\wolfet-routing\\ql-after-profile-zone\\home",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "com_introplayed",
+            "1",
+            "+set",
+            "cl_renderer",
+            "glx",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "r_mode",
+            "-1",
+            "+set",
+            "r_customWidth",
+            "800",
+            "+set",
+            "r_customHeight",
+            "600",
+            "+set",
+            "dedicated",
+            "1",
+            "+set",
+            "s_initsound",
+            "0",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "set r_fullscreen \"0\"\nset r_mode \"-1\"\nset r_customWidth \"800\"\nset r_customHeight \"600\"\nset in_mouse \"0\"\nset in_joystick \"0\"\nset in_nograb \"1\"\nset cl_renderer \"glx\"\nset com_steamIntegration \"0\"\nset cl_webuiEnable \"0\"\nset com_introplayed \"1\"\nset logfile \"4\"\nset developer \"1\"\nset net_ip \"127.0.0.1\"\nset net_enabled \"0\"\nset net_port \"0\"\nset s_alDriver \"OpenAL32.dll\"\nset cl_allowDownload \"0\"\nset sv_punkbuster \"0\"\nset cl_punkbuster \"0\"\nset s_initsound \"0\"\nset bot_enable \"1\"\ndevmap campgrounds ffa\nwait 100\naddbot anarki 1\nwait 300\nstatus\necho ROUTING_REGRESSION_DONE\nquit\n",
+          "exitCode": 0,
+          "forced": false,
+          "introReadyClick": false,
+          "seconds": 10.59,
+          "installationUnchanged": true,
+          "executableSha256": "0bd1bda1016347c90e7c040110a450b78cb80772a120ef5864107ce5b4551cf0",
+          "commit": "a1251ede2c382190b18c154b45357f6979d8171c"
+        },
+        "log": ".tmp\\wolfet-routing\\ql-after-profile-zone\\home\\baseq3\\qconsole.log",
+        "logSha256": "ab2660c3dafcf3a341fcbda3a48ce9d0d26cef5a0ae2d04e6f670a185bf62f4b",
+        "passed": true
+      },
+      {
+        "case": "ef-after-profile-zone",
+        "report": {
+          "profile": "stvef-mp",
+          "map": "hm_borg1",
+          "command": [
+            "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.ded.exe",
+            "+set",
+            "com_gameProfile",
+            "stvef-mp",
+            "+set",
+            "fs_basepath",
+            "E:\\Games\\Star Trek Voyager Elite Force",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\wolfet-routing\\ef-after-profile-zone\\home",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "com_introplayed",
+            "1",
+            "+set",
+            "cl_renderer",
+            "glx",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "r_mode",
+            "-1",
+            "+set",
+            "r_customWidth",
+            "800",
+            "+set",
+            "r_customHeight",
+            "600",
+            "+set",
+            "dedicated",
+            "1",
+            "+set",
+            "s_initsound",
+            "0",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "set r_fullscreen \"0\"\nset r_mode \"-1\"\nset r_customWidth \"800\"\nset r_customHeight \"600\"\nset in_mouse \"0\"\nset in_joystick \"0\"\nset in_nograb \"1\"\nset cl_renderer \"glx\"\nset com_steamIntegration \"0\"\nset cl_webuiEnable \"0\"\nset com_introplayed \"1\"\nset logfile \"4\"\nset developer \"1\"\nset net_ip \"127.0.0.1\"\nset net_enabled \"0\"\nset net_port \"0\"\nset s_alDriver \"OpenAL32.dll\"\nset cl_allowDownload \"0\"\nset sv_punkbuster \"0\"\nset cl_punkbuster \"0\"\nset s_initsound \"0\"\nset bot_enable \"1\"\ndevmap hm_borg1\nwait 100\naddbot alexandria 1\nwait 300\nstatus\necho ROUTING_REGRESSION_DONE\nquit\n",
+          "exitCode": 0,
+          "forced": false,
+          "introReadyClick": false,
+          "seconds": 20.48,
+          "installationUnchanged": true,
+          "executableSha256": "0bd1bda1016347c90e7c040110a450b78cb80772a120ef5864107ce5b4551cf0",
+          "commit": "a1251ede2c382190b18c154b45357f6979d8171c"
+        },
+        "log": ".tmp\\wolfet-routing\\ef-after-profile-zone\\home\\baseEF\\qconsole.log",
+        "logSha256": "b599379c02a74be97002286dbddd750840e263688be3715db4589cc1982848ec",
+        "passed": true
+      }
+    ],
+    "et": {
+      "evidence": "Interop: outbound to retail, pure, team admission, sv_onlyVisibleClients 1",
+      "profile": "wolfet",
+      "map": "railgun",
+      "pure": true,
+      "retailServer": true,
+      "serverCommand": [
+        "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory\\etded.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\wolfet-routing\\et-after-aas8\\server-home",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "56117",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "sv_pure",
+        "1",
+        "+set",
+        "sv_master1",
+        "",
+        "+set",
+        "sv_master2",
+        "",
+        "+set",
+        "sv_master3",
+        "",
+        "+set",
+        "sv_master4",
+        "",
+        "+set",
+        "sv_master5",
+        "",
+        "+set",
+        "g_gametype",
+        "2",
+        "+set",
+        "bot_enable",
+        "0",
+        "+set",
+        "sv_punkbuster",
+        "0",
+        "+set",
+        "sv_onlyVisibleClients",
+        "1",
+        "+map",
+        "railgun"
+      ],
+      "clientCommand": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "wolfet",
+        "+set",
+        "fs_basepath",
+        "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\wolfet-routing\\et-after-aas8\\client-home",
+        "+set",
+        "fs_game",
+        "",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customWidth",
+        "800",
+        "+set",
+        "r_customHeight",
+        "600",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "cl_renderer",
+        "glx",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "net_ip6",
+        "::1",
+        "+set",
+        "net_port6",
+        "0",
+        "+connect",
+        "127.0.0.1:56117"
+      ],
+      "clientAction": "wait 200; team r; wait 240; CloseLimboMenu; -scores; wait 60; screenshotPNG handshake-axis; team b; wait 240; CloseLimboMenu; -scores; wait 60; screenshotPNG handshake-allies; wait 30; quit",
+      "clientSha256": "3a204ff59c18a8535606f06406512d3392489eda18590d9346c8e8dd8aacbfb3",
+      "serverSha256": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+      "moduleSha256": "160a6218397865ad61071faa6316053713c03b9be80e5d05c7a5be2cab7f630b",
+      "passed": true,
+      "serverReadySeconds": 5.047,
+      "clientExit": 0,
+      "clientForced": false,
+      "installationUnchanged": true,
+      "elapsedSeconds": 23.281,
+      "handshakeReplies": [
+        "challengeResponse 1110658515 1",
+        "connectResponse"
+      ],
+      "serverActive": true,
+      "serverBegin": true,
+      "unpureDrop": false,
+      "rejectedConnect": [],
+      "clientErrors": [],
+      "clientSawPureServer": true,
+      "clientHidesUnseenPlayers": true,
+      "screenshots": [
+        {
+          "name": "handshake-allies.png",
+          "sha256": "774d6b7d53d7321d7de35510a76089ee38a552150b7a32fd3cc576d2cd877573"
+        },
+        {
+          "name": "handshake-axis.png",
+          "sha256": "4ea1d98346a826fb7413056162171c0735748b190fcb0bf881a6f34c21708464"
+        }
+      ],
+      "teamAdmission": {
+        "axis": true,
+        "allies": true
+      },
+      "sourceCommit": "a1251ede2c382190b18c154b45357f6979d8171c"
+    },
+    "retainedReport": {
+      "path": ".tmp/wolfet-routing/runtime-after-aas8.json",
+      "bytes": 12378,
+      "sha256": "f3d2e6a659eca062a356e2814ffdac11e4c3d6cc4637b2e96b1286bfe5924a52"
+    }
+  },
+  "correctedRoutingControl": {
+    "reason": "ET now supplies its AAS8 fixture; Q3, QL and Holomatch keep AAS5.",
+    "fixture": {
+      "path": "tests/rtcw_routing_tests.py",
+      "bytes": 14221,
+      "sha256": "7bbe88f8a812323dda82e6049997df30fbba3d3c65d33b6f17eccdb297e2b665"
+    },
+    "tests": 10,
+    "elapsedSeconds": 41.817,
+    "passed": true,
+    "log": {
+      "path": ".tmp/stvef-hunk-sweep/et-aas8-routing-fixture-tests.log",
+      "bytes": 1800,
+      "sha256": "96e8ec84d4eb0c74582bbfd48f4937b16a3cdad0862c64dbc1c13e02f510a177"
+    }
+  },
+  "cleanup": [
+    {
+      "path": ".tmp/wolfet-routing/cleanup-manifest.json",
+      "bytes": 39137,
+      "sha256": "9ab682f44e58456daa551518bab2d6c4b09f662ec775c4fdba39666bb63d1d50"
+    },
+    {
+      "path": ".tmp/stvef-hunk-sweep/cleanup-manifest.json",
+      "bytes": 128769,
+      "sha256": "17b7a11913caf203b91c95bd0bfcd6f768200db4c2a2b01835135e41eac5ff8a"
+    }
+  ],
+  "unrelatedIssues": [
+    {
+      "kind": "pre-existing missing JSON companions",
+      "datedRecords": 155,
+      "audit": {
+        "path": ".tmp/stvef-hunk-sweep/historical-companion-audit.json",
+        "bytes": 6358,
+        "sha256": "83c91d2d53ea25184bee3b568049853eeff5aca53dc5b69022670a235d3bb3ff"
+      },
+      "scope": "Historical documentation debt; no past runtime evidence regenerated or relabeled."
+    }
+  ]
+}

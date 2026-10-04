@@ -1,0 +1,5020 @@
+{
+  "evidence": "Fixture: bounded original x86 math on generated inputs",
+  "floatingPoint": {
+    "x87ControlWord": "0x037f",
+    "mxcsr": "0x1f80",
+    "rounding": "nearest-even"
+  },
+  "cases": [
+    {
+      "name": "vector-0-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        0,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 1
+    },
+    {
+      "name": "vector-0-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        0,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 1
+    },
+    {
+      "name": "vector-0-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        0,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 1
+    },
+    {
+      "name": "vector-0-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        0,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 1
+    },
+    {
+      "name": "vector-1-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        1,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 1
+    },
+    {
+      "name": "vector-1-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        1,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 1
+    },
+    {
+      "name": "vector-1-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        1,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 1
+    },
+    {
+      "name": "vector-1-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        1,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 1
+    },
+    {
+      "name": "vector-2-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        3,
+        4,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 2
+    },
+    {
+      "name": "vector-2-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        3,
+        4,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 6
+    },
+    {
+      "name": "vector-2-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        3,
+        4,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 2
+    },
+    {
+      "name": "vector-2-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        3,
+        4,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 6
+    },
+    {
+      "name": "vector-3-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        3,
+        4,
+        12
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 4
+    },
+    {
+      "name": "vector-3-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        3,
+        4,
+        12
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 17
+    },
+    {
+      "name": "vector-3-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        3,
+        4,
+        12
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 4
+    },
+    {
+      "name": "vector-3-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        3,
+        4,
+        12
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 17
+    },
+    {
+      "name": "vector-4-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        15,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 5
+    },
+    {
+      "name": "vector-4-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        15,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 20
+    },
+    {
+      "name": "vector-4-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        15,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 5
+    },
+    {
+      "name": "vector-4-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        15,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 20
+    },
+    {
+      "name": "vector-5-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        50,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 16
+    },
+    {
+      "name": "vector-5-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        50,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 65
+    },
+    {
+      "name": "vector-5-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        50,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 16
+    },
+    {
+      "name": "vector-5-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        50,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 65
+    },
+    {
+      "name": "vector-6-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        100,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 33
+    },
+    {
+      "name": "vector-6-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        100,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 130
+    },
+    {
+      "name": "vector-6-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        100,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 33
+    },
+    {
+      "name": "vector-6-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        100,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 130
+    },
+    {
+      "name": "vector-7-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        150,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 50
+    },
+    {
+      "name": "vector-7-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        150,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 195
+    },
+    {
+      "name": "vector-7-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        150,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 50
+    },
+    {
+      "name": "vector-7-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        150,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 195
+    },
+    {
+      "name": "vector-8-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        250,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 82
+    },
+    {
+      "name": "vector-8-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        250,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 325
+    },
+    {
+      "name": "vector-8-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        250,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 82
+    },
+    {
+      "name": "vector-8-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        250,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 325
+    },
+    {
+      "name": "vector-9-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        149.99998474121094,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 49
+    },
+    {
+      "name": "vector-9-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        149.99998474121094,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 195
+    },
+    {
+      "name": "vector-9-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        149.99998474121094,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 49
+    },
+    {
+      "name": "vector-9-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        149.99998474121094,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 195
+    },
+    {
+      "name": "vector-10-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        150.00001525878906,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 50
+    },
+    {
+      "name": "vector-10-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        150.00001525878906,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 195
+    },
+    {
+      "name": "vector-10-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        150.00001525878906,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 50
+    },
+    {
+      "name": "vector-10-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        150.00001525878906,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 195
+    },
+    {
+      "name": "vector-11-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        50412.30859375,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 16636
+    },
+    {
+      "name": "vector-11-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        50412.30859375,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 0
+    },
+    {
+      "name": "vector-11-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        50412.30859375,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 16636
+    },
+    {
+      "name": "vector-11-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        50412.30859375,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 0
+    },
+    {
+      "name": "vector-12-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        65536,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 21627
+    },
+    {
+      "name": "vector-12-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        65536,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 19661
+    },
+    {
+      "name": "vector-12-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        65536,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 21627
+    },
+    {
+      "name": "vector-12-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        65536,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 19661
+    },
+    {
+      "name": "vector-13-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        131072,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 43254
+    },
+    {
+      "name": "vector-13-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        131072,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 39322
+    },
+    {
+      "name": "vector-13-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        131072,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 43254
+    },
+    {
+      "name": "vector-13-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        131072,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 39322
+    },
+    {
+      "name": "vector-14-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -131072,
+        131072,
+        -131072
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 9382
+    },
+    {
+      "name": "vector-14-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -131072,
+        131072,
+        -131072
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 32986
+    },
+    {
+      "name": "vector-14-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -131072,
+        131072,
+        -131072
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 9382
+    },
+    {
+      "name": "vector-14-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -131072,
+        131072,
+        -131072
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 32986
+    },
+    {
+      "name": "vector-15-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        4396.5,
+        -6272.0,
+        2463.5
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 2655
+    },
+    {
+      "name": "vector-15-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        4396.5,
+        -6272.0,
+        2463.5
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 10460
+    },
+    {
+      "name": "vector-15-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        4396.5,
+        -6272.0,
+        2463.5
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 2655
+    },
+    {
+      "name": "vector-15-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        4396.5,
+        -6272.0,
+        2463.5
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 10460
+    },
+    {
+      "name": "vector-16-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        3042.125,
+        -5423.25,
+        -2056.625
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 2161
+    },
+    {
+      "name": "vector-16-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        3042.125,
+        -5423.25,
+        -2056.625
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 8514
+    },
+    {
+      "name": "vector-16-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        3042.125,
+        -5423.25,
+        -2056.625
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 2161
+    },
+    {
+      "name": "vector-16-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        3042.125,
+        -5423.25,
+        -2056.625
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 8514
+    },
+    {
+      "name": "vector-17-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6365.625,
+        -957.625,
+        5121.25
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 2715
+    },
+    {
+      "name": "vector-17-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6365.625,
+        -957.625,
+        5121.25
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 10694
+    },
+    {
+      "name": "vector-17-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6365.625,
+        -957.625,
+        5121.25
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 2715
+    },
+    {
+      "name": "vector-17-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6365.625,
+        -957.625,
+        5121.25
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 10694
+    },
+    {
+      "name": "vector-18-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7687.125,
+        -1311.375,
+        3016.625
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 2759
+    },
+    {
+      "name": "vector-18-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7687.125,
+        -1311.375,
+        3016.625
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 10870
+    },
+    {
+      "name": "vector-18-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7687.125,
+        -1311.375,
+        3016.625
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 2759
+    },
+    {
+      "name": "vector-18-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7687.125,
+        -1311.375,
+        3016.625
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 10870
+    },
+    {
+      "name": "vector-19-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6974.0,
+        -2911.25,
+        -5798.25
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 3143
+    },
+    {
+      "name": "vector-19-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6974.0,
+        -2911.25,
+        -5798.25
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 12383
+    },
+    {
+      "name": "vector-19-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6974.0,
+        -2911.25,
+        -5798.25
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 3143
+    },
+    {
+      "name": "vector-19-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6974.0,
+        -2911.25,
+        -5798.25
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 12383
+    },
+    {
+      "name": "vector-20-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6206.875,
+        -6139.0,
+        7311.5
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 3758
+    },
+    {
+      "name": "vector-20-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6206.875,
+        -6139.0,
+        7311.5
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 14803
+    },
+    {
+      "name": "vector-20-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6206.875,
+        -6139.0,
+        7311.5
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 3758
+    },
+    {
+      "name": "vector-20-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6206.875,
+        -6139.0,
+        7311.5
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 14803
+    },
+    {
+      "name": "vector-21-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7894.75,
+        -6898.25,
+        -5089.625
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 3846
+    },
+    {
+      "name": "vector-21-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7894.75,
+        -6898.25,
+        -5089.625
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 15150
+    },
+    {
+      "name": "vector-21-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7894.75,
+        -6898.25,
+        -5089.625
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 3846
+    },
+    {
+      "name": "vector-21-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7894.75,
+        -6898.25,
+        -5089.625
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 15150
+    },
+    {
+      "name": "vector-22-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        759.25,
+        -1971.0,
+        -1775.5
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 911
+    },
+    {
+      "name": "vector-22-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        759.25,
+        -1971.0,
+        -1775.5
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 3587
+    },
+    {
+      "name": "vector-22-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        759.25,
+        -1971.0,
+        -1775.5
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 911
+    },
+    {
+      "name": "vector-22-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        759.25,
+        -1971.0,
+        -1775.5
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 3587
+    },
+    {
+      "name": "vector-23-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        2254.125,
+        -2778.875,
+        -5888.5
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 2274
+    },
+    {
+      "name": "vector-23-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        2254.125,
+        -2778.875,
+        -5888.5
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 8958
+    },
+    {
+      "name": "vector-23-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        2254.125,
+        -2778.875,
+        -5888.5
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 2274
+    },
+    {
+      "name": "vector-23-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        2254.125,
+        -2778.875,
+        -5888.5
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 8958
+    },
+    {
+      "name": "vector-24-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -3233.0,
+        1385.75,
+        5378.875
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 2121
+    },
+    {
+      "name": "vector-24-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -3233.0,
+        1385.75,
+        5378.875
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 8355
+    },
+    {
+      "name": "vector-24-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -3233.0,
+        1385.75,
+        5378.875
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 2121
+    },
+    {
+      "name": "vector-24-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -3233.0,
+        1385.75,
+        5378.875
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 8355
+    },
+    {
+      "name": "vector-25-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -2836.875,
+        -2320.5,
+        -4655.375
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 1955
+    },
+    {
+      "name": "vector-25-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -2836.875,
+        -2320.5,
+        -4655.375
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 7702
+    },
+    {
+      "name": "vector-25-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -2836.875,
+        -2320.5,
+        -4655.375
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 1955
+    },
+    {
+      "name": "vector-25-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -2836.875,
+        -2320.5,
+        -4655.375
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 7702
+    },
+    {
+      "name": "vector-26-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -19.0,
+        -4959.875,
+        4731.5
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 2262
+    },
+    {
+      "name": "vector-26-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -19.0,
+        -4959.875,
+        4731.5
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 8911
+    },
+    {
+      "name": "vector-26-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -19.0,
+        -4959.875,
+        4731.5
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 2262
+    },
+    {
+      "name": "vector-26-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -19.0,
+        -4959.875,
+        4731.5
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 8911
+    },
+    {
+      "name": "vector-27-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7946.625,
+        -8108.5,
+        -7216.875
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 4439
+    },
+    {
+      "name": "vector-27-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7946.625,
+        -8108.5,
+        -7216.875
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 17489
+    },
+    {
+      "name": "vector-27-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7946.625,
+        -8108.5,
+        -7216.875
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 4439
+    },
+    {
+      "name": "vector-27-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7946.625,
+        -8108.5,
+        -7216.875
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 17489
+    },
+    {
+      "name": "vector-28-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        1031.625,
+        1492.75,
+        -892.75
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 667
+    },
+    {
+      "name": "vector-28-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        1031.625,
+        1492.75,
+        -892.75
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 2629
+    },
+    {
+      "name": "vector-28-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        1031.625,
+        1492.75,
+        -892.75
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 667
+    },
+    {
+      "name": "vector-28-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        1031.625,
+        1492.75,
+        -892.75
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 2629
+    },
+    {
+      "name": "vector-29-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        4577.0,
+        2246.875,
+        -4715.25
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 2292
+    },
+    {
+      "name": "vector-29-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        4577.0,
+        2246.875,
+        -4715.25
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 9028
+    },
+    {
+      "name": "vector-29-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        4577.0,
+        2246.875,
+        -4715.25
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 2292
+    },
+    {
+      "name": "vector-29-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        4577.0,
+        2246.875,
+        -4715.25
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 9028
+    },
+    {
+      "name": "vector-30-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        3965.375,
+        5064.75,
+        -7951.0
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 3375
+    },
+    {
+      "name": "vector-30-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        3965.375,
+        5064.75,
+        -7951.0
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 13295
+    },
+    {
+      "name": "vector-30-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        3965.375,
+        5064.75,
+        -7951.0
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 3375
+    },
+    {
+      "name": "vector-30-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        3965.375,
+        5064.75,
+        -7951.0
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 13295
+    },
+    {
+      "name": "vector-31-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -5915.25,
+        -1681.5,
+        6681.625
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 2997
+    },
+    {
+      "name": "vector-31-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -5915.25,
+        -1681.5,
+        6681.625
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 11805
+    },
+    {
+      "name": "vector-31-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -5915.25,
+        -1681.5,
+        6681.625
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 2997
+    },
+    {
+      "name": "vector-31-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -5915.25,
+        -1681.5,
+        6681.625
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 11805
+    },
+    {
+      "name": "vector-32-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -808.625,
+        -5376.5,
+        -3418.75
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 2119
+    },
+    {
+      "name": "vector-32-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -808.625,
+        -5376.5,
+        -3418.75
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 8349
+    },
+    {
+      "name": "vector-32-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -808.625,
+        -5376.5,
+        -3418.75
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 2119
+    },
+    {
+      "name": "vector-32-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -808.625,
+        -5376.5,
+        -3418.75
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 8349
+    },
+    {
+      "name": "vector-33-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        6020.875,
+        -539.25,
+        5149.375
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 2620
+    },
+    {
+      "name": "vector-33-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        6020.875,
+        -539.25,
+        5149.375
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 10323
+    },
+    {
+      "name": "vector-33-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        6020.875,
+        -539.25,
+        5149.375
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 2620
+    },
+    {
+      "name": "vector-33-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        6020.875,
+        -539.25,
+        5149.375
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 10323
+    },
+    {
+      "name": "vector-34-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6915.625,
+        -4785.5,
+        3459.75
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 3001
+    },
+    {
+      "name": "vector-34-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6915.625,
+        -4785.5,
+        3459.75
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 11822
+    },
+    {
+      "name": "vector-34-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6915.625,
+        -4785.5,
+        3459.75
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 3001
+    },
+    {
+      "name": "vector-34-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6915.625,
+        -4785.5,
+        3459.75
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 11822
+    },
+    {
+      "name": "vector-35-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        6295.625,
+        -5190.625,
+        -5213.5
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 3195
+    },
+    {
+      "name": "vector-35-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        6295.625,
+        -5190.625,
+        -5213.5
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 12588
+    },
+    {
+      "name": "vector-35-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        6295.625,
+        -5190.625,
+        -5213.5
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 3195
+    },
+    {
+      "name": "vector-35-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        6295.625,
+        -5190.625,
+        -5213.5
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 12588
+    },
+    {
+      "name": "vector-36-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        3301.25,
+        5715.0,
+        4876.5
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 2708
+    },
+    {
+      "name": "vector-36-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        3301.25,
+        5715.0,
+        4876.5
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 10668
+    },
+    {
+      "name": "vector-36-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        3301.25,
+        5715.0,
+        4876.5
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 2708
+    },
+    {
+      "name": "vector-36-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        3301.25,
+        5715.0,
+        4876.5
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 10668
+    },
+    {
+      "name": "vector-37-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -2817.75,
+        7778.625,
+        3965.5
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 3028
+    },
+    {
+      "name": "vector-37-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -2817.75,
+        7778.625,
+        3965.5
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 11927
+    },
+    {
+      "name": "vector-37-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -2817.75,
+        7778.625,
+        3965.5
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 3028
+    },
+    {
+      "name": "vector-37-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -2817.75,
+        7778.625,
+        3965.5
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 11927
+    },
+    {
+      "name": "vector-38-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        2219.625,
+        1038.0,
+        -2118.75
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 1069
+    },
+    {
+      "name": "vector-38-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        2219.625,
+        1038.0,
+        -2118.75
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 4211
+    },
+    {
+      "name": "vector-38-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        2219.625,
+        1038.0,
+        -2118.75
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 1069
+    },
+    {
+      "name": "vector-38-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        2219.625,
+        1038.0,
+        -2118.75
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 4211
+    },
+    {
+      "name": "vector-39-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        5746.25,
+        -4294.75,
+        -1478.625
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 2417
+    },
+    {
+      "name": "vector-39-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        5746.25,
+        -4294.75,
+        -1478.625
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 9522
+    },
+    {
+      "name": "vector-39-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        5746.25,
+        -4294.75,
+        -1478.625
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 2417
+    },
+    {
+      "name": "vector-39-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        5746.25,
+        -4294.75,
+        -1478.625
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 9522
+    },
+    {
+      "name": "vector-40-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -5552.625,
+        -3205.0,
+        -4538.875
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 2592
+    },
+    {
+      "name": "vector-40-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -5552.625,
+        -3205.0,
+        -4538.875
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 10212
+    },
+    {
+      "name": "vector-40-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -5552.625,
+        -3205.0,
+        -4538.875
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 2592
+    },
+    {
+      "name": "vector-40-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -5552.625,
+        -3205.0,
+        -4538.875
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 10212
+    },
+    {
+      "name": "vector-41-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7.625,
+        4753.0,
+        -5291.125
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 2347
+    },
+    {
+      "name": "vector-41-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7.625,
+        4753.0,
+        -5291.125
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 9246
+    },
+    {
+      "name": "vector-41-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7.625,
+        4753.0,
+        -5291.125
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 2347
+    },
+    {
+      "name": "vector-41-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7.625,
+        4753.0,
+        -5291.125
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 9246
+    },
+    {
+      "name": "vector-42-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7351.75,
+        -71.5,
+        -5192.25
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 2970
+    },
+    {
+      "name": "vector-42-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7351.75,
+        -71.5,
+        -5192.25
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 11701
+    },
+    {
+      "name": "vector-42-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7351.75,
+        -71.5,
+        -5192.25
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 2970
+    },
+    {
+      "name": "vector-42-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7351.75,
+        -71.5,
+        -5192.25
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 11701
+    },
+    {
+      "name": "vector-43-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6285.375,
+        -3725.125,
+        1363.625
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 2453
+    },
+    {
+      "name": "vector-43-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6285.375,
+        -3725.125,
+        1363.625
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 9662
+    },
+    {
+      "name": "vector-43-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6285.375,
+        -3725.125,
+        1363.625
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 2453
+    },
+    {
+      "name": "vector-43-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6285.375,
+        -3725.125,
+        1363.625
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 9662
+    },
+    {
+      "name": "vector-44-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -7442.625,
+        3286.0,
+        -739.0
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 2696
+    },
+    {
+      "name": "vector-44-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -7442.625,
+        3286.0,
+        -739.0
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 10620
+    },
+    {
+      "name": "vector-44-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -7442.625,
+        3286.0,
+        -739.0
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 2696
+    },
+    {
+      "name": "vector-44-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -7442.625,
+        3286.0,
+        -739.0
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 10620
+    },
+    {
+      "name": "vector-45-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7821.0,
+        7674.125,
+        -1942.875
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 3672
+    },
+    {
+      "name": "vector-45-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7821.0,
+        7674.125,
+        -1942.875
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 14467
+    },
+    {
+      "name": "vector-45-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7821.0,
+        7674.125,
+        -1942.875
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 3672
+    },
+    {
+      "name": "vector-45-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        7821.0,
+        7674.125,
+        -1942.875
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 14467
+    },
+    {
+      "name": "vector-46-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        1605.5,
+        4751.625,
+        -7821.375
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 3066
+    },
+    {
+      "name": "vector-46-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        1605.5,
+        4751.625,
+        -7821.375
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 12079
+    },
+    {
+      "name": "vector-46-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        1605.5,
+        4751.625,
+        -7821.375
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 3066
+    },
+    {
+      "name": "vector-46-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        1605.5,
+        4751.625,
+        -7821.375
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 12079
+    },
+    {
+      "name": "vector-47-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -883.75,
+        -882.625,
+        4241.375
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 1459
+    },
+    {
+      "name": "vector-47-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -883.75,
+        -882.625,
+        4241.375
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 5748
+    },
+    {
+      "name": "vector-47-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -883.75,
+        -882.625,
+        4241.375
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 1459
+    },
+    {
+      "name": "vector-47-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -883.75,
+        -882.625,
+        4241.375
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 5748
+    },
+    {
+      "name": "vector-48-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -3316.0,
+        6051.625,
+        -7598.0
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 3387
+    },
+    {
+      "name": "vector-48-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -3316.0,
+        6051.625,
+        -7598.0
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 13343
+    },
+    {
+      "name": "vector-48-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -3316.0,
+        6051.625,
+        -7598.0
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 3387
+    },
+    {
+      "name": "vector-48-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -3316.0,
+        6051.625,
+        -7598.0
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 13343
+    },
+    {
+      "name": "vector-49-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        5480.625,
+        3327.375,
+        -5516.25
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 2791
+    },
+    {
+      "name": "vector-49-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        5480.625,
+        3327.375,
+        -5516.25
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 10995
+    },
+    {
+      "name": "vector-49-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        5480.625,
+        3327.375,
+        -5516.25
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 2791
+    },
+    {
+      "name": "vector-49-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        5480.625,
+        3327.375,
+        -5516.25
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 10995
+    },
+    {
+      "name": "vector-50-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -1279.25,
+        2836.625,
+        5273.75
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 2021
+    },
+    {
+      "name": "vector-50-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -1279.25,
+        2836.625,
+        5273.75
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 7960
+    },
+    {
+      "name": "vector-50-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -1279.25,
+        2836.625,
+        5273.75
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 2021
+    },
+    {
+      "name": "vector-50-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -1279.25,
+        2836.625,
+        5273.75
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 7960
+    },
+    {
+      "name": "vector-51-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        35.625,
+        -2003.125,
+        1370.25
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 801
+    },
+    {
+      "name": "vector-51-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        35.625,
+        -2003.125,
+        1370.25
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 3155
+    },
+    {
+      "name": "vector-51-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        35.625,
+        -2003.125,
+        1370.25
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 801
+    },
+    {
+      "name": "vector-51-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        35.625,
+        -2003.125,
+        1370.25
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 3155
+    },
+    {
+      "name": "vector-52-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -7786.625,
+        5105.25,
+        2503.625
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 3182
+    },
+    {
+      "name": "vector-52-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -7786.625,
+        5105.25,
+        2503.625
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 12534
+    },
+    {
+      "name": "vector-52-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -7786.625,
+        5105.25,
+        2503.625
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 3182
+    },
+    {
+      "name": "vector-52-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -7786.625,
+        5105.25,
+        2503.625
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 12534
+    },
+    {
+      "name": "vector-53-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6432.0,
+        -2086.25,
+        962.625
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 2254
+    },
+    {
+      "name": "vector-53-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6432.0,
+        -2086.25,
+        962.625
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 8879
+    },
+    {
+      "name": "vector-53-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6432.0,
+        -2086.25,
+        962.625
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 2254
+    },
+    {
+      "name": "vector-53-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6432.0,
+        -2086.25,
+        962.625
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 8879
+    },
+    {
+      "name": "vector-54-presence-2-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6541.875,
+        6034.625,
+        -2135.5
+      ],
+      "presence": 2,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 3020
+    },
+    {
+      "name": "vector-54-presence-4-liquid-False",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6541.875,
+        6034.625,
+        -2135.5
+      ],
+      "presence": 4,
+      "areaFlags": 0,
+      "contents": 0,
+      "steepness": 0,
+      "expected": 11899
+    },
+    {
+      "name": "vector-54-presence-2-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6541.875,
+        6034.625,
+        -2135.5
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 1,
+      "expected": 3020
+    },
+    {
+      "name": "vector-54-presence-4-liquid-True",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        -6541.875,
+        6034.625,
+        -2135.5
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 1,
+      "steepness": 0.5,
+      "expected": 11899
+    },
+    {
+      "name": "presence-0-slope-0-220",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        150,
+        0,
+        0
+      ],
+      "presence": 0,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0,
+      "expected": 195
+    },
+    {
+      "name": "presence-0-slope-0-221",
+      "start": [
+        150,
+        0,
+        0
+      ],
+      "end": [
+        0,
+        0,
+        0
+      ],
+      "presence": 0,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0,
+      "expected": 195
+    },
+    {
+      "name": "presence-0-slope-0-222",
+      "start": [
+        -100,
+        200,
+        -300
+      ],
+      "end": [
+        50,
+        200,
+        -300
+      ],
+      "presence": 0,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0,
+      "expected": 195
+    },
+    {
+      "name": "presence-0-slope-0.5-223",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        150,
+        0,
+        0
+      ],
+      "presence": 0,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0.5,
+      "expected": 195
+    },
+    {
+      "name": "presence-0-slope-0.5-224",
+      "start": [
+        150,
+        0,
+        0
+      ],
+      "end": [
+        0,
+        0,
+        0
+      ],
+      "presence": 0,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0.5,
+      "expected": 195
+    },
+    {
+      "name": "presence-0-slope-0.5-225",
+      "start": [
+        -100,
+        200,
+        -300
+      ],
+      "end": [
+        50,
+        200,
+        -300
+      ],
+      "presence": 0,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0.5,
+      "expected": 195
+    },
+    {
+      "name": "presence-0-slope-1-226",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        150,
+        0,
+        0
+      ],
+      "presence": 0,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 1,
+      "expected": 195
+    },
+    {
+      "name": "presence-0-slope-1-227",
+      "start": [
+        150,
+        0,
+        0
+      ],
+      "end": [
+        0,
+        0,
+        0
+      ],
+      "presence": 0,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 1,
+      "expected": 195
+    },
+    {
+      "name": "presence-0-slope-1-228",
+      "start": [
+        -100,
+        200,
+        -300
+      ],
+      "end": [
+        50,
+        200,
+        -300
+      ],
+      "presence": 0,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 1,
+      "expected": 195
+    },
+    {
+      "name": "presence-2-slope-0-229",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        150,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0,
+      "expected": 50
+    },
+    {
+      "name": "presence-2-slope-0-230",
+      "start": [
+        150,
+        0,
+        0
+      ],
+      "end": [
+        0,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0,
+      "expected": 50
+    },
+    {
+      "name": "presence-2-slope-0-231",
+      "start": [
+        -100,
+        200,
+        -300
+      ],
+      "end": [
+        50,
+        200,
+        -300
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0,
+      "expected": 50
+    },
+    {
+      "name": "presence-2-slope-0.5-232",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        150,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0.5,
+      "expected": 50
+    },
+    {
+      "name": "presence-2-slope-0.5-233",
+      "start": [
+        150,
+        0,
+        0
+      ],
+      "end": [
+        0,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0.5,
+      "expected": 50
+    },
+    {
+      "name": "presence-2-slope-0.5-234",
+      "start": [
+        -100,
+        200,
+        -300
+      ],
+      "end": [
+        50,
+        200,
+        -300
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0.5,
+      "expected": 50
+    },
+    {
+      "name": "presence-2-slope-1-235",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        150,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 1,
+      "expected": 50
+    },
+    {
+      "name": "presence-2-slope-1-236",
+      "start": [
+        150,
+        0,
+        0
+      ],
+      "end": [
+        0,
+        0,
+        0
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 1,
+      "expected": 50
+    },
+    {
+      "name": "presence-2-slope-1-237",
+      "start": [
+        -100,
+        200,
+        -300
+      ],
+      "end": [
+        50,
+        200,
+        -300
+      ],
+      "presence": 2,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 1,
+      "expected": 50
+    },
+    {
+      "name": "presence-4-slope-0-238",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        150,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0,
+      "expected": 195
+    },
+    {
+      "name": "presence-4-slope-0-239",
+      "start": [
+        150,
+        0,
+        0
+      ],
+      "end": [
+        0,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0,
+      "expected": 195
+    },
+    {
+      "name": "presence-4-slope-0-240",
+      "start": [
+        -100,
+        200,
+        -300
+      ],
+      "end": [
+        50,
+        200,
+        -300
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0,
+      "expected": 195
+    },
+    {
+      "name": "presence-4-slope-0.5-241",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        150,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0.5,
+      "expected": 195
+    },
+    {
+      "name": "presence-4-slope-0.5-242",
+      "start": [
+        150,
+        0,
+        0
+      ],
+      "end": [
+        0,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0.5,
+      "expected": 195
+    },
+    {
+      "name": "presence-4-slope-0.5-243",
+      "start": [
+        -100,
+        200,
+        -300
+      ],
+      "end": [
+        50,
+        200,
+        -300
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0.5,
+      "expected": 195
+    },
+    {
+      "name": "presence-4-slope-1-244",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        150,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 1,
+      "expected": 195
+    },
+    {
+      "name": "presence-4-slope-1-245",
+      "start": [
+        150,
+        0,
+        0
+      ],
+      "end": [
+        0,
+        0,
+        0
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 1,
+      "expected": 195
+    },
+    {
+      "name": "presence-4-slope-1-246",
+      "start": [
+        -100,
+        200,
+        -300
+      ],
+      "end": [
+        50,
+        200,
+        -300
+      ],
+      "presence": 4,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 1,
+      "expected": 195
+    },
+    {
+      "name": "presence-6-slope-0-247",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        150,
+        0,
+        0
+      ],
+      "presence": 6,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0,
+      "expected": 50
+    },
+    {
+      "name": "presence-6-slope-0-248",
+      "start": [
+        150,
+        0,
+        0
+      ],
+      "end": [
+        0,
+        0,
+        0
+      ],
+      "presence": 6,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0,
+      "expected": 50
+    },
+    {
+      "name": "presence-6-slope-0-249",
+      "start": [
+        -100,
+        200,
+        -300
+      ],
+      "end": [
+        50,
+        200,
+        -300
+      ],
+      "presence": 6,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0,
+      "expected": 50
+    },
+    {
+      "name": "presence-6-slope-0.5-250",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        150,
+        0,
+        0
+      ],
+      "presence": 6,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0.5,
+      "expected": 50
+    },
+    {
+      "name": "presence-6-slope-0.5-251",
+      "start": [
+        150,
+        0,
+        0
+      ],
+      "end": [
+        0,
+        0,
+        0
+      ],
+      "presence": 6,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0.5,
+      "expected": 50
+    },
+    {
+      "name": "presence-6-slope-0.5-252",
+      "start": [
+        -100,
+        200,
+        -300
+      ],
+      "end": [
+        50,
+        200,
+        -300
+      ],
+      "presence": 6,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0.5,
+      "expected": 50
+    },
+    {
+      "name": "presence-6-slope-1-253",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        150,
+        0,
+        0
+      ],
+      "presence": 6,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 1,
+      "expected": 50
+    },
+    {
+      "name": "presence-6-slope-1-254",
+      "start": [
+        150,
+        0,
+        0
+      ],
+      "end": [
+        0,
+        0,
+        0
+      ],
+      "presence": 6,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 1,
+      "expected": 50
+    },
+    {
+      "name": "presence-6-slope-1-255",
+      "start": [
+        -100,
+        200,
+        -300
+      ],
+      "end": [
+        50,
+        200,
+        -300
+      ],
+      "presence": 6,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 1,
+      "expected": 50
+    },
+    {
+      "name": "presence-8-slope-0-256",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        150,
+        0,
+        0
+      ],
+      "presence": 8,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0,
+      "expected": 195
+    },
+    {
+      "name": "presence-8-slope-0-257",
+      "start": [
+        150,
+        0,
+        0
+      ],
+      "end": [
+        0,
+        0,
+        0
+      ],
+      "presence": 8,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0,
+      "expected": 195
+    },
+    {
+      "name": "presence-8-slope-0-258",
+      "start": [
+        -100,
+        200,
+        -300
+      ],
+      "end": [
+        50,
+        200,
+        -300
+      ],
+      "presence": 8,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0,
+      "expected": 195
+    },
+    {
+      "name": "presence-8-slope-0.5-259",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        150,
+        0,
+        0
+      ],
+      "presence": 8,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0.5,
+      "expected": 195
+    },
+    {
+      "name": "presence-8-slope-0.5-260",
+      "start": [
+        150,
+        0,
+        0
+      ],
+      "end": [
+        0,
+        0,
+        0
+      ],
+      "presence": 8,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0.5,
+      "expected": 195
+    },
+    {
+      "name": "presence-8-slope-0.5-261",
+      "start": [
+        -100,
+        200,
+        -300
+      ],
+      "end": [
+        50,
+        200,
+        -300
+      ],
+      "presence": 8,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 0.5,
+      "expected": 195
+    },
+    {
+      "name": "presence-8-slope-1-262",
+      "start": [
+        0,
+        0,
+        0
+      ],
+      "end": [
+        150,
+        0,
+        0
+      ],
+      "presence": 8,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 1,
+      "expected": 195
+    },
+    {
+      "name": "presence-8-slope-1-263",
+      "start": [
+        150,
+        0,
+        0
+      ],
+      "end": [
+        0,
+        0,
+        0
+      ],
+      "presence": 8,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 1,
+      "expected": 195
+    },
+    {
+      "name": "presence-8-slope-1-264",
+      "start": [
+        -100,
+        200,
+        -300
+      ],
+      "end": [
+        50,
+        200,
+        -300
+      ],
+      "presence": 8,
+      "areaFlags": 4,
+      "contents": 7,
+      "steepness": 1,
+      "expected": 195
+    }
+  ],
+  "travelTypes": [
+    {
+      "type": 0,
+      "expected": 1
+    },
+    {
+      "type": 1,
+      "expected": 1
+    },
+    {
+      "type": 2,
+      "expected": 2
+    },
+    {
+      "type": 3,
+      "expected": 4
+    },
+    {
+      "type": 4,
+      "expected": 8
+    },
+    {
+      "type": 5,
+      "expected": 16
+    },
+    {
+      "type": 6,
+      "expected": 32
+    },
+    {
+      "type": 7,
+      "expected": 128
+    },
+    {
+      "type": 8,
+      "expected": 256
+    },
+    {
+      "type": 9,
+      "expected": 512
+    },
+    {
+      "type": 10,
+      "expected": 1024
+    },
+    {
+      "type": 11,
+      "expected": 2048
+    },
+    {
+      "type": 12,
+      "expected": 4096
+    },
+    {
+      "type": 13,
+      "expected": 8192
+    },
+    {
+      "type": 14,
+      "expected": 16384
+    },
+    {
+      "type": 15,
+      "expected": 32768
+    },
+    {
+      "type": 16,
+      "expected": 65536
+    },
+    {
+      "type": 17,
+      "expected": 131072
+    },
+    {
+      "type": 18,
+      "expected": 262144
+    },
+    {
+      "type": 19,
+      "expected": 16777216
+    },
+    {
+      "type": 20,
+      "expected": 1
+    },
+    {
+      "type": 21,
+      "expected": 1
+    },
+    {
+      "type": 22,
+      "expected": 1
+    },
+    {
+      "type": 23,
+      "expected": 1
+    },
+    {
+      "type": 24,
+      "expected": 1
+    },
+    {
+      "type": 25,
+      "expected": 1
+    },
+    {
+      "type": 26,
+      "expected": 1
+    },
+    {
+      "type": 27,
+      "expected": 1
+    },
+    {
+      "type": 28,
+      "expected": 1
+    },
+    {
+      "type": 29,
+      "expected": 1
+    },
+    {
+      "type": 30,
+      "expected": 1
+    },
+    {
+      "type": 31,
+      "expected": 1
+    },
+    {
+      "type": -1,
+      "expected": 1
+    },
+    {
+      "type": 32,
+      "expected": 1
+    },
+    {
+      "type": 33,
+      "expected": 1
+    },
+    {
+      "type": 16777218,
+      "expected": 1
+    },
+    {
+      "type": 33554434,
+      "expected": 1
+    },
+    {
+      "type": 50331650,
+      "expected": 1
+    },
+    {
+      "type": 67108866,
+      "expected": 1
+    },
+    {
+      "type": 134217730,
+      "expected": 1
+    },
+    {
+      "type": 2147483647,
+      "expected": 1
+    },
+    {
+      "type": 4294967295,
+      "expected": 1
+    }
+  ],
+  "retailIdentities": [
+    {
+      "sha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+      "functions": {
+        "cost": [
+          "0x47d470",
+          "0x47d4de"
+        ],
+        "distance": [
+          "0x41de70",
+          "0x41deb6"
+        ],
+        "length": [
+          "0x41df50",
+          "0x41df97"
+        ],
+        "integer": [
+          "0x41e3b0",
+          "0x41e3c2"
+        ],
+        "sqrt": [
+          "0x507420",
+          "0x507472"
+        ],
+        "types": [
+          "0x481270",
+          "0x48128f"
+        ],
+        "initTypes": [
+          "0x47f9a0",
+          "0x47fae4"
+        ]
+      },
+      "installationUnchanged": true
+    },
+    {
+      "sha256": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+      "functions": {
+        "cost": [
+          "0x447dd0",
+          "0x447e3e"
+        ],
+        "distance": [
+          "0x402db0",
+          "0x402df6"
+        ],
+        "length": [
+          "0x402e90",
+          "0x402ed7"
+        ],
+        "integer": [
+          "0x4032f0",
+          "0x403302"
+        ],
+        "sqrt": [
+          "0x471910",
+          "0x471962"
+        ],
+        "types": [
+          "0x44bbd0",
+          "0x44bbef"
+        ],
+        "initTypes": [
+          "0x44a300",
+          "0x44a444"
+        ]
+      },
+      "installationUnchanged": true
+    }
+  ]
+}

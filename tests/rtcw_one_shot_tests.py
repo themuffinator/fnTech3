@@ -157,7 +157,13 @@ static void S_Update_(int){++mixes;}
         'static void S_Base_Update( int msec ) {')) + r'''
 int main(){
  for(bool single:{false,true}){
-  sp=single;S_ChannelSetup();samples[1].inMemory=false;const int before=loads;
+  sp=single;S_ChannelSetup();
+  // A snapshot can submit many null effects before the mixer releases them.
+  // SP must ignore those requests so an enemy's fire still gets a channel.
+  for(int i=0;i<200;++i)S_Base_StartRTCWSound(nullptr,200+i,0,0,0);
+  assert((s_channels[95].thesfx==nullptr)==single);
+  if(single){S_Base_StartRTCWSound(nullptr,17,2,1,0);assert(s_channels[95].thesfx==samples+1);}
+  S_ChannelSetup();samples[1].inMemory=false;const int before=loads;
   const float point[]={0,100,0};S_Base_StartRTCWSound(point,-1,2,1,0);
   auto &first=s_channels[95];assert(first.thesfx==samples+1&&first.allocTime==now&&first.startSample==-1&&first.leftvol==124&&first.rightvol==0);
   assert(first.fixed_origin&&!memcmp(first.origin,point,12)&&loads==before+1);
@@ -186,6 +192,7 @@ def openal():
     return COMMON + r'''
 using sfxHandle_t=int;using ALint=int;constexpr int kMaxVoices=96,AL_NO_ERROR=0,AL_SOURCE_STATE=1,AL_PLAYING=2,AL_PAUSED=3;static bool sp;static int Sys_Milliseconds(){return 100;}static bool Com_GameIsRTCWSP(){return sp;}static bool Com_GameIsWolfET(){return false;}
 struct SoundSample{};
+struct cvar_t {int integer=0;};static cvar_t *s_alSoundStartDebug=nullptr;static void Com_Printf(const char *,...){}
 struct Device {unsigned next=1;bool fail=false;int state=AL_PLAYING;unsigned AcquireVoiceSource(){return fail?0:next++;}void CreateVoiceFilters(unsigned &,unsigned &){};
  Device &AL(){return *this;}int alGetError(){return 0;}void alGetSourcei(unsigned,int,int *out){*out=state;}};
 struct SoundVoice{unsigned source=0,directFilter=0,sendFilter=0;bool rtcwOneShot=false,active=false,alice=false;int releaseCount=0;void Release(Device &){source=0;active=false;rtcwOneShot=false;++releaseCount;}};
@@ -297,6 +304,39 @@ class RTCWOneShotTests(unittest.TestCase):
 
     def test_actual_openal_start_and_source_failure(self):
         self.compile_run(openal())
+
+    def test_openal_sp_ignores_null_effects_but_preserves_weapon_cutoff(self):
+        source = (ROOT / 'code/client/audio/openal/AudioSystemBackend.inl').read_text()
+        fixture = COMMON + r'''
+#include <string>
+using sfxHandle_t=int;
+constexpr int MAX_GENTITIES=1024,ERR_DROP=1;
+#define S_COLOR_YELLOW ""
+static bool sp=true;static bool Com_GameIsRTCWSP(){return sp;}
+static void Com_Printf(const char *,...){}static void Com_Error(int,const char *,...){throw 1;}
+struct cvar_t{int integer=0;};static cvar_t *s_alSoundStartDebug=nullptr;
+struct Sample{bool EnsureLoaded(int,bool){return true;}std::string Name(){return "test";}} sample;
+struct AudioSystem {
+ bool started_=true,hardMuted_=false;int device_=0;
+ struct {int calls=0,handle=-1,flags=0;void StartRTCWSound(int,int,int h,Sample *,const float *,int f){++calls;handle=h;flags=f;}}world_;
+ struct {struct {int calls=0;void StopChannel(int,int){++calls;}}policy;}entityStreams_;
+ Sample *GetSample(int){return &sample;}
+ void StartRTCWSound(const float *,int,int,int,int);
+};
+''' + function(source, 'void AudioSystem::StartRTCWSound(') + r'''
+int main(){
+ for(bool single:{true,false}){
+  sp=single;AudioSystem audio;
+  for(int i=0;i<200;++i)audio.StartRTCWSound(nullptr,200+i,0,0,0);
+  assert(audio.world_.calls==(single?0:200));
+  assert(audio.entityStreams_.policy.calls==audio.world_.calls);
+  audio.StartRTCWSound(nullptr,17,2,1,0);assert(audio.world_.handle==1);
+  audio.StartRTCWSound(nullptr,17,2,0,OneShots::CutOffAll);
+  assert(audio.world_.handle==0&&audio.world_.flags==OneShots::CutOffAll);
+ }
+}
+'''
+        self.compile_run(fixture)
 
     def test_facade_profile_and_disabled_backend(self):
         self.compile_run(facade())

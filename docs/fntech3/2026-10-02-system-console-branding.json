@@ -1,0 +1,382 @@
+{
+  "profiles": [
+    {
+      "profile": "quake3",
+      "title": 1,
+      "colors": {
+        "window": "#151011",
+        "panel": "#241b1d",
+        "input": "#2c2224",
+        "footer": "#1e1618",
+        "border": "#504647",
+        "text": "#eee2de",
+        "muted": "#bbb0ad",
+        "accent": "#cc9e98",
+        "button": "#302628",
+        "buttonHover": "#382e30",
+        "buttonDown": "#403638",
+        "buttonOff": "#1e1618"
+      },
+      "minimum_text_contrast": 9.19,
+      "minimum_secondary_contrast": 6.55
+    },
+    {
+      "profile": "quakelive",
+      "title": 2,
+      "colors": {
+        "window": "#151110",
+        "panel": "#231d1c",
+        "input": "#2b2523",
+        "footer": "#1d1817",
+        "border": "#4f4947",
+        "text": "#efe8e1",
+        "muted": "#bcb5af",
+        "accent": "#d3a79d",
+        "button": "#2f2927",
+        "buttonHover": "#37312f",
+        "buttonDown": "#3f3937",
+        "buttonOff": "#1d1817"
+      },
+      "minimum_text_contrast": 9.34,
+      "minimum_secondary_contrast": 7.03
+    },
+    {
+      "profile": "rtcw-sp",
+      "title": 3,
+      "colors": {
+        "window": "#161113",
+        "panel": "#251d20",
+        "input": "#2d2427",
+        "footer": "#1f181b",
+        "border": "#51484a",
+        "text": "#eee4e1",
+        "muted": "#bbb2b0",
+        "accent": "#c59b9a",
+        "button": "#31282b",
+        "buttonHover": "#393033",
+        "buttonDown": "#41383b",
+        "buttonOff": "#1f181b"
+      },
+      "minimum_text_contrast": 9.07,
+      "minimum_secondary_contrast": 6.12
+    },
+    {
+      "profile": "rtcw-mp",
+      "title": 3,
+      "colors": {
+        "window": "#161113",
+        "panel": "#251d20",
+        "input": "#2d2427",
+        "footer": "#1f181b",
+        "border": "#51484a",
+        "text": "#eee4e1",
+        "muted": "#bbb2b0",
+        "accent": "#c59b9a",
+        "button": "#31282b",
+        "buttonHover": "#393033",
+        "buttonDown": "#41383b",
+        "buttonOff": "#1f181b"
+      },
+      "minimum_text_contrast": 9.07,
+      "minimum_secondary_contrast": 6.12
+    },
+    {
+      "profile": "wolfet",
+      "title": 4,
+      "colors": {
+        "window": "#131412",
+        "panel": "#20221e",
+        "input": "#272925",
+        "footer": "#1b1c19",
+        "border": "#4b4d47",
+        "text": "#e6e7db",
+        "muted": "#b4b5ab",
+        "accent": "#b4b9a3",
+        "button": "#2b2d29",
+        "buttonHover": "#333530",
+        "buttonDown": "#3b3d38",
+        "buttonOff": "#1b1c19"
+      },
+      "minimum_text_contrast": 8.8,
+      "minimum_secondary_contrast": 7.28
+    },
+    {
+      "profile": "stvef-sp",
+      "title": 5,
+      "colors": {
+        "window": "#101419",
+        "panel": "#1c222a",
+        "input": "#242931",
+        "footer": "#171c23",
+        "border": "#484d53",
+        "text": "#e7e8e5",
+        "muted": "#b4b6b6",
+        "accent": "#c8b58a",
+        "button": "#282d35",
+        "buttonHover": "#30353c",
+        "buttonDown": "#383d44",
+        "buttonOff": "#171c23"
+      },
+      "minimum_text_contrast": 8.9,
+      "minimum_secondary_contrast": 7.26
+    },
+    {
+      "profile": "stvef-mp",
+      "title": 5,
+      "colors": {
+        "window": "#101419",
+        "panel": "#1c222a",
+        "input": "#242931",
+        "footer": "#171c23",
+        "border": "#484d53",
+        "text": "#e7e8e5",
+        "muted": "#b4b6b6",
+        "accent": "#c8b58a",
+        "button": "#282d35",
+        "buttonHover": "#30353c",
+        "buttonDown": "#383d44",
+        "buttonOff": "#171c23"
+      },
+      "minimum_text_contrast": 8.9,
+      "minimum_secondary_contrast": 7.26
+    },
+    {
+      "profile": "q3-ihv",
+      "title": 1,
+      "colors": {
+        "window": "#151011",
+        "panel": "#241b1d",
+        "input": "#2c2224",
+        "footer": "#1e1618",
+        "border": "#504647",
+        "text": "#eee2de",
+        "muted": "#bbb0ad",
+        "accent": "#cc9e98",
+        "button": "#302628",
+        "buttonHover": "#382e30",
+        "buttonDown": "#403638",
+        "buttonOff": "#1e1618"
+      },
+      "minimum_text_contrast": 9.19,
+      "minimum_secondary_contrast": 6.55
+    },
+    {
+      "profile": "jka-sp",
+      "title": 6,
+      "colors": {
+        "window": "#111519",
+        "panel": "#1d242b",
+        "input": "#242b32",
+        "footer": "#181e24",
+        "border": "#474f56",
+        "text": "#e0e8ef",
+        "muted": "#afb7be",
+        "accent": "#a0b9d0",
+        "button": "#282f36",
+        "buttonHover": "#30373e",
+        "buttonDown": "#383f46",
+        "buttonOff": "#181e24"
+      },
+      "minimum_text_contrast": 8.62,
+      "minimum_secondary_contrast": 7.05
+    },
+    {
+      "profile": "jka-mp",
+      "title": 6,
+      "colors": {
+        "window": "#111519",
+        "panel": "#1d242b",
+        "input": "#242b32",
+        "footer": "#181e24",
+        "border": "#474f56",
+        "text": "#e0e8ef",
+        "muted": "#afb7be",
+        "accent": "#a0b9d0",
+        "button": "#282f36",
+        "buttonHover": "#30373e",
+        "buttonDown": "#383f46",
+        "buttonOff": "#181e24"
+      },
+      "minimum_text_contrast": 8.62,
+      "minimum_secondary_contrast": 7.05
+    },
+    {
+      "profile": "jk2-sp",
+      "title": 7,
+      "colors": {
+        "window": "#101617",
+        "panel": "#1b2527",
+        "input": "#222c2e",
+        "footer": "#161f21",
+        "border": "#465052",
+        "text": "#e0eaeb",
+        "muted": "#aeb8ba",
+        "accent": "#9bc1c8",
+        "button": "#263032",
+        "buttonHover": "#2e383a",
+        "buttonDown": "#364042",
+        "buttonOff": "#161f21"
+      },
+      "minimum_text_contrast": 8.7,
+      "minimum_secondary_contrast": 7.4
+    },
+    {
+      "profile": "jk2-mp",
+      "title": 7,
+      "colors": {
+        "window": "#101617",
+        "panel": "#1b2527",
+        "input": "#222c2e",
+        "footer": "#161f21",
+        "border": "#465052",
+        "text": "#e0eaeb",
+        "muted": "#aeb8ba",
+        "accent": "#9bc1c8",
+        "button": "#263032",
+        "buttonHover": "#2e383a",
+        "buttonDown": "#364042",
+        "buttonOff": "#161f21"
+      },
+      "minimum_text_contrast": 8.7,
+      "minimum_secondary_contrast": 7.4
+    },
+    {
+      "profile": "alice",
+      "title": 8,
+      "colors": {
+        "window": "#151115",
+        "panel": "#241d23",
+        "input": "#2b242a",
+        "footer": "#1e181d",
+        "border": "#4f474d",
+        "text": "#eadfe5",
+        "muted": "#b8aeb4",
+        "accent": "#c09ead",
+        "button": "#2f282e",
+        "buttonHover": "#373036",
+        "buttonDown": "#3f383e",
+        "buttonOff": "#1e181d"
+      },
+      "minimum_text_contrast": 8.76,
+      "minimum_secondary_contrast": 6.29
+    },
+    {
+      "profile": "fakk2",
+      "title": 9,
+      "colors": {
+        "window": "#181310",
+        "panel": "#28201c",
+        "input": "#2f2723",
+        "footer": "#221b17",
+        "border": "#534a45",
+        "text": "#eee3d8",
+        "muted": "#bcb2a9",
+        "accent": "#c7a68f",
+        "button": "#332b27",
+        "buttonHover": "#3b332e",
+        "buttonDown": "#433b36",
+        "buttonOff": "#221b17"
+      },
+      "minimum_text_contrast": 8.66,
+      "minimum_secondary_contrast": 6.47
+    },
+    {
+      "profile": "mohaa",
+      "title": 10,
+      "colors": {
+        "window": "#131411",
+        "panel": "#21221d",
+        "input": "#292924",
+        "footer": "#1c1c18",
+        "border": "#4d4d45",
+        "text": "#e9e6d7",
+        "muted": "#b7b5a8",
+        "accent": "#bcb18e",
+        "button": "#2d2d28",
+        "buttonHover": "#35352f",
+        "buttonDown": "#3d3d37",
+        "buttonOff": "#1c1c18"
+      },
+      "minimum_text_contrast": 8.73,
+      "minimum_secondary_contrast": 6.83
+    },
+    {
+      "profile": "q3test",
+      "title": 1,
+      "colors": {
+        "window": "#151011",
+        "panel": "#241b1d",
+        "input": "#2c2224",
+        "footer": "#1e1618",
+        "border": "#504647",
+        "text": "#eee2de",
+        "muted": "#bbb0ad",
+        "accent": "#cc9e98",
+        "button": "#302628",
+        "buttonHover": "#382e30",
+        "buttonDown": "#403638",
+        "buttonOff": "#1e1618"
+      },
+      "minimum_text_contrast": 9.19,
+      "minimum_secondary_contrast": 6.55
+    }
+  ],
+  "titles": 10,
+  "minimum_primary_contrast": 8.62,
+  "minimum_secondary_contrast": 6.12,
+  "executables": [
+    {
+      "executable": "fntech3.exe",
+      "sha256": "3d7aedaa04008f0a2ca6b313cc35846e9b87e5f0edf3a5d7c97721e21b87a659",
+      "groups_verified": 17
+    },
+    {
+      "executable": "fntech3.ded.exe",
+      "sha256": "60f410132617ea484a03df2801663ad362c78671e1b2ebeb4ebd1ffb2fb60bba",
+      "groups_verified": 17
+    }
+  ],
+  "date": "2026-10-02",
+  "evidence_levels": [
+    "Source",
+    "Unit",
+    "Build"
+  ],
+  "commit": "a1251ede2c382190b18c154b45357f6979d8171c",
+  "working_tree": "dirty; existing and concurrent unrelated work preserved",
+  "platform": "Windows x86",
+  "build_directory": "meson/build/win32-dev",
+  "build_type": "debugoptimized; incremental MSVC",
+  "python_tests": {
+    "passed": 41,
+    "subtests_passed": 287
+  },
+  "native_icon_tests": "passed; hidden Win32/SDL windows; host symlink cases skipped",
+  "sdl_console_compile": "passed; Windows x86 Clang, SDL 3.4.0 headers; no Linux runtime claim",
+  "gameplay_gate_changes": false,
+  "input_control": false,
+  "screen_capture": false,
+  "master_files": [
+    "assets/icons/games/sources/stvef-sp.png",
+    "assets/icons/games/sources/stvef-mp.png"
+  ],
+  "image_tool": "built-in imagegen",
+  "prompts": "assets/icons/games/PROMPTS.md",
+  "holomatch_export": {
+    "opaque_interior": true,
+    "rounded_corners": true,
+    "outer_corner_cutouts": "transparent",
+    "grid": "subtle thin lines",
+    "alpha_normalization": "generated master alpha >=250 exported as 255; master preserved"
+  },
+  "logs": ".tmp/console-branding/",
+  "unrelated_observations": [
+    "Transient missing server_jka_actions.hpp and shadowed JK2 challenge were corrected in concurrent work before final rebuild.",
+    "Existing Ninja recovery, CMake generator-expression and FreeType wrap-revision warnings."
+  ],
+  "cleanup": {
+    "status": "disposable probe files retained",
+    "reason": "Automatic approval review rejected explicit cleanup with blocked by policy; no deletion performed.",
+    "directory": ".tmp/console-branding/"
+  }
+}

@@ -1743,6 +1743,16 @@ int CIN_PlayCinematic( const char *arg, int x, int y, int w, int h, int systemBi
 	const bool bink = Com_GameIsSTVEFSP() && ( !*COM_GetExtension( name.data() ) ||
 		!Q_stricmp( COM_GetExtension( name.data() ), "bik" ) );
 	if ( bink ) COM_DefaultExtension( name.data(), static_cast<int>( name.size() ), ".bik" );
+	if ( Com_GameIsJKA() ) {
+		// Academy's extensionless shader videoMap names select RoQ before
+		// cache lookup (OpenJK pin1a6a643427aa347553e9073dac5570b33337c4d9).
+		const std::size_t prefixBytes = strchr( arg, '/' ) || strchr( arg, '\\' ) ? 0 : 6;
+		if ( strlen( arg ) >= name.size() - prefixBytes ) return -1;
+		const char *dot = strrchr( name.data(), '.' ), *slash = strrchr( name.data(), '/' );
+		const bool hasExtension = dot && ( !slash || slash < dot );
+		if ( !hasExtension && strlen( name.data() ) >= name.size() - 4 ) return -1;
+		COM_DefaultExtension( name.data(), static_cast<int>( name.size() ), ".roq" );
+	}
 
 	if (!(systemBits & CIN_system)) {
 		for ( i = 0 ; i < MAX_VIDEO_HANDLES ; i++ ) {

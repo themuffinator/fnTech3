@@ -49,6 +49,8 @@ and one exported function: Perform
 #include "../compat/rtcw_key_adapter.h"
 #include "../compat/wolfet_key_adapter.h"
 #include "../compat/wolfet_menu_adapter.h"
+#include "../compat/jka_ui_exports.h"
+#include "../compat/jka_cgame_exports.h"
 #endif
 
 opcode_info_t ops[ OP_MAX ] =
@@ -2100,10 +2102,13 @@ static void *VM_LoadPinnedDll( vmIndex_t index, const char *filename ) {
 		return NULL;
 	}
 #ifndef USE_DEDICATED
-	if ( Com_GameProfile()->pureProof == COM_PURE_PROOF_RTCW_NATIVE &&
+	if ( ( Com_GameProfile()->pureProof == COM_PURE_PROOF_RTCW_NATIVE ||
+		Com_GameProfile()->pureProof == COM_PURE_PROOF_WOLFET_NATIVE ||
+		Com_GameProfile()->pureProof == COM_PURE_PROOF_JKA_NATIVE ) &&
 		( index == VM_UI || index == VM_CGAME ) &&
 		!FS_VerifyNativeModulePak( filename, pinned->bytes, pinned->length ) ) {
-		Com_Printf( "VM_LoadDll: pinned RTCW module does not match an allowed pak: %s\n", filename );
+		Com_Printf( "VM_LoadDll: pinned %s module does not match an allowed pak: %s\n",
+			Com_GameProfile()->key, filename );
 		return NULL;
 	}
 #endif
@@ -3371,6 +3376,16 @@ intptr_t QDECL VM_Call( vm_t *vm, int nargs, int callnum, ... )
 		Com_Error( ERR_DROP, "VM_Call: invalid argument count %d", nargs );
 		return 0;
 	}
+	/* The API-8 game host calls its own dispatcher, never retail vmMain.
+	 * SP cgame is still gated. In particular, retail exports7..11 resize old
+	 * STL vectors using the DLL's private CRT heap; they must not receive the
+	 * engine-owned SP Ghoul2 metadata buffers. Refuse before any module entry. */
+#ifndef USE_DEDICATED
+	if ( Com_GameIsJKASP() && vm->index == VM_CGAME ) {
+		Com_Error( ERR_DROP, "Jedi Academy single-player cgame export %d is not served yet", callnum );
+		return 0;
+	}
+#endif
 	if ( callnum == GAME_SNAPSHOT_CALLBACK && ( vm->index != VM_GAME || !Com_GameIsWolfET() ) ) {
 		Com_Error( ERR_DROP, "ET snapshot callback requires an ET game module" );
 		return 0;
@@ -3385,6 +3400,63 @@ intptr_t QDECL VM_Call( vm_t *vm, int nargs, int callnum, ... )
 	if ( vm->index == VM_CGAME && callnum == CG_GET_TAG && !Com_GameIsRTCW() ) {
 		Com_Error( ERR_DROP, "RTCW tag export requires an RTCW profile" );
 		return 0;
+	}
+#endif
+
+	/* Academy's native UI has its own legacy export and menu contract. */
+#ifndef USE_DEDICATED
+	if ( Com_GameIsJKAMP() && vm->index == VM_CGAME ) {
+		int32_t args[MAX_VMMAIN_CALL_ARGS - 1] = { 0 };
+		const int external = FNTech3_JKACgameExportOrdinal( callnum );
+		va_list ap;
+		if ( !vm->entryPoint || vm->dllExports || external < 0 ||
+			nargs != FNTech3_JKACgameExportArgumentCount( callnum ) ) {
+			Com_Error( ERR_DROP, "Unsupported Jedi Academy native cgame export %d with %d arguments", callnum, nargs );
+			return 0;
+		}
+		va_start( ap, callnum );
+		for ( i = 0; i < nargs; ++i ) args[i] = va_arg( ap, int32_t );
+		va_end( ap );
+		if ( callnum == CG_EVENT_HANDLING ) {
+			args[0] = FNTech3_JKACgameEventToExternal( args[0] );
+			if ( args[0] < 0 ) {
+				Com_Error( ERR_DROP, "Unsupported Jedi Academy cgame event mode" );
+				return 0;
+			}
+		}
+		if ( vm->callLevel == 0 ) vm->syscallCount = 0;
+		++vm->callLevel;
+		r = vm->entryPoint( external, args[0], args[1], args[2], args[3], args[4],
+			args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12], args[13], args[14] );
+		--vm->callLevel;
+		return r;
+	}
+
+	if ( Com_GameIsJKAMP() && vm->index == VM_UI ) {
+		int32_t args[MAX_VMMAIN_CALL_ARGS - 1] = { 0 };
+		const int external = FNTech3_JKAUIExportOrdinal( callnum );
+		va_list ap;
+		if ( !vm->entryPoint || vm->dllExports || external < 0 ||
+			nargs != FNTech3_JKAUIExportArgumentCount( callnum ) ) {
+			Com_Error( ERR_DROP, "Unsupported Jedi Academy native UI export %d with %d arguments", callnum, nargs );
+			return 0;
+		}
+		va_start( ap, callnum );
+		for ( i = 0; i < nargs; ++i ) args[i] = va_arg( ap, int32_t );
+		va_end( ap );
+		if ( callnum == UI_SET_ACTIVE_MENU ) {
+			args[0] = FNTech3_JKAUIMenuToExternal( args[0] );
+			if ( args[0] < 0 ) {
+				Com_Error( ERR_DROP, "Unsupported Jedi Academy UI menu" );
+				return 0;
+			}
+		}
+		if ( vm->callLevel == 0 ) vm->syscallCount = 0;
+		++vm->callLevel;
+		r = vm->entryPoint( external, args[0], args[1], args[2], args[3], args[4],
+			args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12], args[13], args[14] );
+		--vm->callLevel;
+		return r;
 	}
 #endif
 

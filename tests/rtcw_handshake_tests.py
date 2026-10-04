@@ -76,6 +76,28 @@ int main() {
     assert(Connect({"connectResponse", "1234", "60"}, 1234, 60));
     assert(!Connect({"connectResponse", "1234", "68"}, 1234, 60));
     assert(!AcceptConnectReply(1, nullptr, 1234, 60));
+    // ET's original reply has MP's token positions and selects its own 84.
+    const char *et[] = {"challengeResponse", "1234", "1"};
+    reply = ParseChallengeReply(true, 3, et, 777, 84, true);
+    assert(reply.accepted && reply.protocol == 84 && reply.onlyVisibleClients == 1);
+    assert(!ParseChallengeReply(true, 3, et, 777, 84, false).accepted);
+    assert(Connect({"connectResponse"}, 1234, 84));
+    assert(Connect({"connectResponse", "1234", "84"}, 1234, 84));
+    assert(!Connect({"connectResponse", "1234", "68"}, 1234, 84));
+    for(const char *bad:{"", "12x", "2147483648", "-2147483649", "999999999999999999999"}) {
+        const char *broken[]={"challengeResponse",bad};
+        assert(!ParseChallengeReply(true,2,broken,777,84,true).accepted);
+        assert(!Connect({"connectResponse",bad},1234,84));
+        assert(!Connect({"connectResponse","1234",bad},1234,84));
+    }
+    const char *missing[]={"challengeResponse",nullptr};
+    assert(!ParseChallengeReply(true,2,missing,777,84,true).accepted);
+    const char *badVisibility[]={"challengeResponse","1234","x"};
+    assert(!ParseChallengeReply(true,3,badVisibility,777,84,true).accepted);
+    const char *badNonce[]={"challengeResponse","1234","0",nullptr};
+    assert(!ParseChallengeReply(true,4,badNonce,777,84,true).accepted);
+    const char *badProtocol[]={"challengeResponse","1234","0","777","84x"};
+    assert(!ParseChallengeReply(true,5,badProtocol,777,84,true).accepted);
 
     // Server MP replies follow the asking client's layout.
     assert(Format(0, false, nullptr) == "challengeResponse 1234");
@@ -103,19 +125,22 @@ CULLING = r'''
 #include <array>
 #include <cassert>
 #include <vector>
-enum { COM_GAME_QUAKE3, COM_GAME_RTCW_MP };
+enum { COM_GAME_QUAKE3, COM_GAME_RTCW_MP, COM_GAME_WOLFET };
 static int game = COM_GAME_RTCW_MP;
 static struct { int maxClients; } profile = { 64 };
 static const decltype(profile) *Com_GameProfile() { return &profile; }
 static int Com_GameIsRTCWMP() { return game == COM_GAME_RTCW_MP; }
+static int Com_GameIsWolfET() { return game == COM_GAME_WOLFET; }
 static struct { int rtcwOnlyVisibleClients; } clc;
-static struct { vec3_t cgameRTCWLerpOrigin;
+static struct { vec3_t cgameRTCWLerpOrigin, cgameWolfETLerpOrigin;
     struct { struct { int viewheight; vec3_t viewangles; struct { float leanf; } rtcw; } ps; } snap; } cl;
 static int clearAt, traced;
+static vec3_t traceEye;
 static std::vector<int> masks;
-static void CM_BoxTrace(trace_t *tr, const vec3_t, const vec3_t, const vec3_t mins, const vec3_t maxs,
+static void CM_BoxTrace(trace_t *tr, const vec3_t start, const vec3_t, const vec3_t mins, const vec3_t maxs,
     clipHandle_t model, int mask, int capsule) {
     assert(!mins && !maxs && model == 0 && capsule == 0);
+    for(int i=0;i<3;++i) traceEye[i]=start[i];
     masks.push_back(mask);
     tr->fraction = traced++ == clearAt ? 1.0f : 0.25f;
 }
@@ -153,6 +178,16 @@ int main() {
     // Times are kept per player.
     entityState_t second = player; second.number = 4; second.eFlags = 0;
     Apply(second, 2607, 7); assert(second.eFlags == 0x80);
+    // ET asks for the same seven traces and 600 ms grace period.
+    game = COM_GAME_WOLFET; second.number = 5; second.eFlags = 0;
+    cl.cgameRTCWLerpOrigin[0]=10;
+    cl.cgameWolfETLerpOrigin[0]=128; cl.cgameWolfETLerpOrigin[1]=256;
+    cl.cgameWolfETLerpOrigin[2]=512; cl.snap.ps.viewheight=64;
+    Apply(second, 3000, 7); assert(traced == 7 && second.eFlags == 0x80);
+    assert(traceEye[0]==128&&traceEye[1]==256&&traceEye[2]==575);
+    Apply(second, 3001, 2); assert(traced == 3 && second.eFlags == 0);
+    Apply(second, 3601, 7); assert(second.eFlags == 0);
+    Apply(second, 3602, 7); assert(second.eFlags == 0x80);
 }
 '''
 
@@ -204,7 +239,7 @@ class RTCWHandshakeTests(unittest.TestCase):
         self.assertLess(connect.index('fntech3::rtcw::handshake::AcceptConnectReply('),
                         connect.index('Bad connectResponse received.'))
         challenge = server[server.index('void SV_GetChallenge('):]
-        self.assertLess(challenge.index('if ( Com_GameIsRTCWMP() ) {'),
+        self.assertLess(challenge.index('if ( Com_GameIsRTCWMP() || Com_GameIsWolfET() ) {'),
                         challenge.index('// legacy client query, don\'t send unneeded information'))
         self.assertIn('FormatMultiplayerChallengeReply(', challenge[:challenge.index('SV_IsBanned')])
     def test_original_and_iortcw_layouts_for_both_modes(self):

@@ -30,6 +30,9 @@ std::vector<std::string> commands;
 int Q_stricmp(const char*a,const char*b){return strcmp(a,b);}
 void Q_strncpyz(char*d,const char*s,int n){snprintf(d,n,"%s",s);}
 bool Com_GameIsQuakeLive(){return !q3 && !rtcw;}
+bool Com_GameIsJKAMP(){return false;}
+bool MSG_SetJKAFieldOverrides(const void*,int,const void*,int){assert(false);return false;}
+void FS_FreeFile(void*){assert(false);}
 const char *Com_GameConfigFile(){return rtcw==1?"wolfconfig.cfg":rtcw==2?"wolfconfig_mp.cfg":"q3config.cfg";}
 // Only a Ritual profile names another file; none is run here.
 const char *Com_ConfigFile(){return Com_GameConfigFile();}

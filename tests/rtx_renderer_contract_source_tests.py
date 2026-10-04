@@ -116,7 +116,7 @@ class RtxRendererContractSourceTests(unittest.TestCase):
 
         # 30: Medal of Honor's model registration joined the table; 31: Elite
         # Force single player's scissor and raw-image members after it.
-        self.assertIn("#define\tREF_API_VERSION\t\t31", public)
+        self.assertIn("#define\tREF_API_VERSION\t\t34", public)
         self.assertIn("Com_Memset( &re, 0, sizeof( re ) );", init)
         exports = (
             "re.RegisterMOHAATiki = RE_RegisterMOHAATiki;",
@@ -197,7 +197,9 @@ class RtxRendererContractSourceTests(unittest.TestCase):
             "r_hdr": "1",
             "r_liquid": "0",
             "r_surfaceLightProxies": "0",
-            "rtx_rt_mode": "0",
+            # the RTX renderer path traces unless asked not to; a device that
+            # cannot falls back to its raster path (rtx_rt_require 0)
+            "rtx_rt_mode": "2",
             "rtx_rt_require": "0",
             "rtx_rt_async_overlap": "0",
         }
@@ -885,7 +887,7 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         self.assertIn("!( shader.rtSkyLightValue > 0.0f )", emit)
         lights = read("code/rendererrtx/rt/rt_lights.c")
         build = source_section(lights, "static qboolean RT_BuildLights( void )", "\n}\n")
-        compilers = build[build.index("} else {"):]
+        compilers = build[build.index("\n\t} else {"):]
         self.assertLess(compilers.index("RT_FindSun();"), compilers.index("RT_FindSkyLight();"))
         self.assertIn("shader->rtSkyLightValue > 0.0f", source_section(lights, "static qboolean RT_WorldUsesQ3map2Shaders( void )", "\n}\n"))
         # the light samples reach the sky, not the diffuse bounces
@@ -984,13 +986,13 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         self.assertIn("light->color[3] = (float)( RT_LIGHT_DLIGHT | RT_LIGHT_DYNAMIC );", upload)
 
         # rtx_rt_lighting 1 traces the dynamic lights over a lightmapped
-        # surface's lightmap, and only them
-        baked = direct[direct.index("if (baked_light(material, surf, bakedLighting)) {"):direct.index("} else {")]
+        # surface's lightmap, and only them (dynamicOnly is `baked`)
+        baked = direct[direct.index("if (baked) {"):direct.index("} else if (oneSample) {")]
         self.assertIn("r.irradiance = surf.baked;", baked)
-        self.assertIn("rt_sample_lights(P, N, Ng, candidates, exclude, true, seed, L, found, choice);", baked)
+        self.assertIn("pick = (u_frame.flags.w > 0u && (exclude & RT_LIGHT_DYNAMIC) == 0u) ? 1u : 0u;", baked)
         sample = source_section(lighting, "vec3 rt_sample_lights(", "\n}\n")
         self.assertIn("uvec2 cell = dynamicOnly ? uvec2(0u) : rt_light_cell(P + Ng);", sample)
-        self.assertIn("rt_sample_lights(P, N, Ng, candidates, exclude, false, seed, L, found, choice) * share",
+        self.assertIn("rt_sample_lights(P, N, Ng, candidates, exclude, baked, seed, L, found, choice) * share",
                       direct)
 
         # raster's stand-ins for surface lights are lights the trace casts
@@ -1025,21 +1027,25 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         self.assertLess(gpu.index("float		dlightShape[4];"), gpu.index("uint32_t	materialLights[4];"))
 
     def test_the_lightmaps_light_the_world_only_when_asked(self) -> None:
-        # The default lights every map as Q2RTX lights Quake II: its sky and
-        # the surfaces that emit, nothing baked and no light entity. The
-        # lightmaps (1) and the compilers' own lights (2) stay for comparison;
-        # q3map2 left the light entities of every Quake Live and Enemy
-        # Territory retail map out of its BSP, which the load reports there.
+        # The default lights every map with its own lights, traced: the light
+        # entities it keeps, its sky and the surfaces that emit, nothing
+        # baked. The lightmaps (1), the compilers' own lights and models (2)
+        # and the emitters alone (3, as Q2RTX) stay for comparison; q3map2
+        # left the light entities of every Quake Live and Enemy Territory
+        # retail map out of its BSP, which the load reports there.
         lights = read("code/rendererrtx/rt/rt_lights.c")
         backend = read("code/rendererrtx/rt/rt_backend.c")
         build = source_section(lights, "static qboolean RT_BuildLights( void )", "\n}\n")
-        emitters = build[build.index("if ( s_rtLights.mode == RT_LIGHTING_EMITTERS ) {"):build.index("} else {")]
-        self.assertNotIn("RT_AddEntityLights();", emitters)
-        self.assertNotIn("RT_FindSkyLight();", emitters)
+        emitters = build[build.index("if ( RT_LightingEmits( s_rtLights.mode ) ) {"):build.index("\n\t} else {")]
+        level = emitters[emitters.index("if ( s_rtLights.mode == RT_LIGHTING_LEVEL ) {"):]
+        self.assertIn("RT_AddEntityLights();", level[:level.index("}")])
+        # the level's sky is the compilers' own; the emitters' an even one
+        self.assertIn("RT_FindSkyLight();", emitters)
+        self.assertIn("RT_FindSkyLightColor( s_rtLights.skyColor );", emitters)
         for call in ("RT_AddSurfaceLights();", "RT_AddEmissiveSurfaces();", "RT_FindSun();",
                      "RT_FindSkyLightColor( s_rtLights.skyColor );"):
             self.assertIn(call, emitters)
-        compilers = build[build.index("} else {"):]
+        compilers = build[build.index("\n\t} else {"):]
         self.assertLess(compilers.index("RT_AddEntityLights();"),
                         compilers.index("s_rtLights.lightsStripped = ( s_rtLights.q3map2 && s_rtLights.entityLights == 0 ) ? qtrue : qfalse;"))
         entities = source_section(lights, "static void RT_AddEntityLights( void )", "\n}\n")
@@ -1048,12 +1054,13 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         uniforms = source_section(backend, "static void RT_WriteFrameUniforms(", "\n}\n")
         self.assertIn("const qboolean bakedLighting = s_rtLights.mode == RT_LIGHTING_LIGHTMAPS ? qtrue : qfalse;", uniforms)
         init = read("code/rendererrtx/tr_init.c")
-        self.assertIn('ri.Cvar_CheckRange( rtx_rt_lighting, "0", "2", CV_INTEGER );', init)
+        self.assertIn('ri.Cvar_CheckRange( rtx_rt_lighting, "0", "3", CV_INTEGER );', init)
         self.assertEqual(cvar_default(init, "rtx_rt_lighting"), "0")
         material = read("code/rendererrtx/rt/rt_material.c")
-        self.assertIn("#define RT_LIGHTING_EMITTERS\t0", material)
+        self.assertIn("#define RT_LIGHTING_LEVEL\t\t0", material)
         self.assertIn("#define RT_LIGHTING_LIGHTMAPS\t1", material)
         self.assertIn("#define RT_LIGHTING_COMPILERS\t2", material)
+        self.assertIn("#define RT_LIGHTING_EMITTERS\t3", material)
         # the load says which way the world is lit
         self.assertIn("q3map2 kept none of the map's light entities", build)
         self.assertIn("RTX RT: lit by an even sky of", build)

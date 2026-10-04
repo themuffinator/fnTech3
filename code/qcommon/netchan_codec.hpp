@@ -36,7 +36,8 @@ inline std::string_view NetchanCommandView( const char *command,
 }
 
 inline void ApplyNetchanXor( std::uint8_t *data, std::size_t size,
-	std::size_t begin, std::uint8_t key, std::string_view command ) noexcept {
+	std::size_t begin, std::uint8_t key, std::string_view command,
+	bool filterHighBytes = true ) noexcept {
 	std::size_t commandIndex = 0;
 
 	if ( !data || begin >= size ) {
@@ -53,7 +54,7 @@ inline void ApplyNetchanXor( std::uint8_t *data, std::size_t size,
 			}
 		}
 
-		if ( mixer > 127u || mixer == static_cast<std::uint8_t>( '%' ) ) {
+		if ( ( filterHighBytes && mixer > 127u ) || mixer == static_cast<std::uint8_t>( '%' ) ) {
 			mixer = static_cast<std::uint8_t>( '.' );
 		}
 

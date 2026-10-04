@@ -234,6 +234,7 @@ void QDECL ScriptError(script_t *script, const char *fmt, ...)
 	char text[1024];
 	va_list ap;
 
+	script->hadError = 1;
 	if (script->flags & SCFL_NOERRORS) return;
 
 	va_start(ap, fmt);
@@ -909,7 +910,7 @@ int PS_ReadToken(script_t *script, token_t *token)
 	//if there is a name
 	else if ((*script->script_p >= 'a' && *script->script_p <= 'z') ||
 		(*script->script_p >= 'A' && *script->script_p <= 'Z') ||
-		*script->script_p == '_')
+		*script->script_p == '_' || ( ( script->flags & SCFL_JKA_NAMES ) && *script->script_p == '@' ) )
 	{
 		if (!PS_ReadName(script, token)) return 0;
 	} //end if
@@ -1356,7 +1357,7 @@ static int FileLength(FILE *fp)
 // Returns:					-
 // Changes Globals:		-
 //============================================================================
-script_t *LoadScriptFile(const char *filename)
+script_t *LoadScriptFile(const char *filename, int maximumBytes)
 {
 #ifdef BOTLIB
 	fileHandle_t fp;
@@ -1368,6 +1369,16 @@ script_t *LoadScriptFile(const char *filename)
 	script_t *script;
 
 #ifdef BOTLIB
+	if ( maximumBytes > 0 && ( !filename || strlen( filename ) + strlen( basefolder ) + 1 >= sizeof( pathname ) ) ) return nullptr;
+	if ( maximumBytes > 0 ) {
+		if ( !*filename || *filename == '/' || *filename == '\\' || strchr( filename, ':' ) ) return nullptr;
+		for ( const char *part = filename; *part; ) {
+			const char *end = part;
+			while ( *end && *end != '/' && *end != '\\' ) ++end;
+			if ( end - part == 2 && part[0] == '.' && part[1] == '.' ) return nullptr;
+			part = *end ? end + 1 : end;
+		}
+	}
 	if ( basefolder[0] != '\0' )
 		Com_sprintf( pathname, sizeof( pathname ), "%s/%s", basefolder, filename );
 	else
@@ -1381,6 +1392,14 @@ script_t *LoadScriptFile(const char *filename)
 
 	length = FileLength(fp);
 #endif
+	if ( maximumBytes > 0 && ( length < 0 || length > maximumBytes ) ) {
+#ifdef BOTLIB
+		botimport.FS_FCloseFile( fp );
+#else
+		fclose( fp );
+#endif
+		return nullptr;
+	}
 
 	script = botlib::ClearedAllocBytes<script_t>(sizeof(script_t) + length + 1);
 	*script = {};
@@ -1403,8 +1422,12 @@ script_t *LoadScriptFile(const char *filename)
 	SetScriptPunctuations(script, nullptr);
 	//
 #ifdef BOTLIB
-	botimport.FS_Read(script->buffer, length, fp);
+	const int read = botimport.FS_Read(script->buffer, length, fp);
 	botimport.FS_FCloseFile(fp);
+	if ( maximumBytes > 0 && read != length ) {
+		FreeScript( script );
+		return nullptr;
+	}
 #else
 	if (fread(script->buffer, length, 1, fp) != 1)
 	{

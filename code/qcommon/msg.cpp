@@ -24,9 +24,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "netchan_safety.hpp"
 #include "protocol_contract.hpp"
 #include "q3_demo_protocol.hpp"
+#include "../compat/ieee_delta_float.hpp"
 #include "../compat/rtcw_message_codec.hpp"
 #include "../compat/wolfet_message_codec.hpp"
 #include "../compat/wolfet_state_adapter.hpp"
+#include "../compat/jka_message_codec.hpp"
+#include "../compat/jka_state_adapter.hpp"
+#include "../compat/jk2_message_codec.hpp"
+#include "../compat/jk2_state_adapter.hpp"
 #include "../compat/rtcw_state_adapter.hpp"
 #include "../compat/stvef_message_codec.hpp"
 #include "../compat/alice_message_codec.hpp"
@@ -208,8 +213,11 @@ bool MSG_LayoutIsServed( fnql::protocol::GameMessageLayout layout ) {
 	case Layout::RtcwSinglePlayer:
 	case Layout::RtcwMultiplayer:
 	case Layout::WolfET:
+	case Layout::JediAcademyMultiplayer:
+	case Layout::JK2Multiplayer:
 	case Layout::STVEFHolomatch:
 	case Layout::STVEFSinglePlayer:
+	case Layout::IoEF:
 	case Layout::Alice:
 		return true;
 	/* Medal of Honor's records never reach these canonical codecs: its
@@ -352,6 +360,58 @@ qboolean MSG_ReadWolfETCanonical( msg_t *msg, const Internal *from, Internal *to
 	if ( !to || ( from && !fntech3::wolfet::state::FromInternal( *from, baseline ) ) ||
 		!read( from ? &baseline : nullptr, &decoded ) ||
 		!fntech3::wolfet::state::ToInternal( decoded, *to ) ) {
+		MSG_SetReadPastEnd( msg );
+		return qfalse;
+	}
+	return qtrue;
+}
+
+fntech3::jka::message::Tables msg_jkaTables;
+
+template<class External, class Internal, class Write>
+qboolean MSG_WriteJK2Canonical( msg_t *msg, const Internal *from,
+	const Internal *to, Write write ) {
+	External baseline{}, sent{};
+	if ( ( from && !fntech3::jk2::state::FromInternal( *from, baseline ) ) ||
+		( to && !fntech3::jk2::state::FromInternal( *to, sent ) ) ) {
+		MSG_SetOverflow( msg );
+		return qfalse;
+	}
+	return write( from ? &baseline : nullptr, to ? &sent : nullptr );
+}
+
+template<class External, class Internal, class Read>
+qboolean MSG_ReadJK2Canonical( msg_t *msg, const Internal *from,
+	Internal *to, Read read ) {
+	External baseline{}, decoded{};
+	if ( !to || ( from && !fntech3::jk2::state::FromInternal( *from, baseline ) ) ||
+		!read( from ? &baseline : nullptr, &decoded ) ||
+		!fntech3::jk2::state::ToInternal( decoded, *to ) ) {
+		MSG_SetReadPastEnd( msg );
+		return qfalse;
+	}
+	return qtrue;
+}
+
+template<class External, class Internal, class Write>
+qboolean MSG_WriteJKACanonical( msg_t *msg, const Internal *from,
+	const Internal *to, Write write ) {
+	External baseline{}, sent{};
+	if ( ( from && !fntech3::jka::state::FromInternal( *from, baseline ) ) ||
+		( to && !fntech3::jka::state::FromInternal( *to, sent ) ) ) {
+		MSG_SetOverflow( msg );
+		return qfalse;
+	}
+	return write( from ? &baseline : nullptr, to ? &sent : nullptr );
+}
+
+template<class External, class Internal, class Read>
+qboolean MSG_ReadJKACanonical( msg_t *msg, const Internal *from,
+	Internal *to, Read read ) {
+	External baseline{}, decoded{};
+	if ( !to || ( from && !fntech3::jka::state::FromInternal( *from, baseline ) ) ||
+		!read( from ? &baseline : nullptr, &decoded ) ||
+		!fntech3::jka::state::ToInternal( decoded, *to ) ) {
 		MSG_SetReadPastEnd( msg );
 		return qfalse;
 	}
@@ -515,6 +575,102 @@ qboolean MSG_ReadDeltaWolfETEntity(msg_t *msg, const fntech3_wolfet_entityState_
     fntech3_wolfet_entityState_t *to, int number) {
     RTCWMessageReader io(msg);
     return fntech3::wolfet::message::ReadEntity(io, from, to, number) ? qtrue : qfalse;
+}
+
+qboolean MSG_WriteDeltaJK2UsercmdKey( msg_t *msg, int key,
+	const fntech3_jk2_usercmd_t *from, const fntech3_jk2_usercmd_t *to ) {
+	RTCWMessageWriter io( msg );
+	return fntech3::jk2::message::WriteCommand( io, static_cast<std::uint32_t>( key ), from, to ) ? qtrue : qfalse;
+}
+
+qboolean MSG_ReadDeltaJK2UsercmdKey( msg_t *msg, int key,
+	const fntech3_jk2_usercmd_t *from, fntech3_jk2_usercmd_t *to ) {
+	RTCWMessageReader io( msg );
+	return fntech3::jk2::message::ReadCommand( io, static_cast<std::uint32_t>( key ), from, to ) ? qtrue : qfalse;
+}
+
+qboolean MSG_WriteDeltaJK2Entity( msg_t *msg, const fntech3_jk2_entityState_t *from,
+	const fntech3_jk2_entityState_t *to, qboolean force ) {
+	RTCWMessageWriter io( msg );
+	return fntech3::jk2::message::WriteEntity( io, from, to, force != qfalse ) ? qtrue : qfalse;
+}
+
+qboolean MSG_ReadDeltaJK2Entity( msg_t *msg, const fntech3_jk2_entityState_t *from,
+	fntech3_jk2_entityState_t *to, int number ) {
+	RTCWMessageReader io( msg );
+	return fntech3::jk2::message::ReadEntity( io, from, to, number ) ? qtrue : qfalse;
+}
+
+qboolean MSG_WriteDeltaJK2Playerstate( msg_t *msg, const fntech3_jk2_playerState_t *from,
+	const fntech3_jk2_playerState_t *to ) {
+	RTCWMessageWriter io( msg );
+	return fntech3::jk2::message::WritePlayer( io, from, to ) ? qtrue : qfalse;
+}
+
+qboolean MSG_ReadDeltaJK2Playerstate( msg_t *msg, const fntech3_jk2_playerState_t *from,
+	fntech3_jk2_playerState_t *to ) {
+	RTCWMessageReader io( msg );
+	return fntech3::jk2::message::ReadPlayer( io, from, to ) ? qtrue : qfalse;
+}
+
+qboolean MSG_SetJKAFieldOverrides( const char *entityText, size_t entityBytes,
+	const char *playerText, size_t playerBytes ) {
+	if ( ( !entityText && entityBytes ) || ( !playerText && playerBytes ) ) return qfalse;
+	return fntech3::jka::message::Configure( msg_jkaTables,
+		std::string_view( entityText ? entityText : "", entityBytes ),
+		std::string_view( playerText ? playerText : "", playerBytes ) ) ? qtrue : qfalse;
+}
+
+qboolean MSG_WriteDeltaJKAUsercmdKey( msg_t *msg, int key,
+	const fntech3_jka_usercmd_t *from, const fntech3_jka_usercmd_t *to ) {
+	RTCWMessageWriter io( msg );
+	return fntech3::jka::message::WriteCommand( io, key, from, to ) ? qtrue : qfalse;
+}
+
+qboolean MSG_ReadDeltaJKAUsercmdKey( msg_t *msg, int key,
+	const fntech3_jka_usercmd_t *from, fntech3_jka_usercmd_t *to ) {
+	RTCWMessageReader io( msg );
+	return fntech3::jka::message::ReadCommand( io, key, from, to ) ? qtrue : qfalse;
+}
+
+qboolean MSG_WriteDeltaJKAEntity( msg_t *msg, const fntech3_jka_entityState_t *from,
+	const fntech3_jka_entityState_t *to, qboolean force ) {
+	RTCWMessageWriter io( msg );
+	return fntech3::jka::message::WriteEntity( io, from, to, force != qfalse, msg_jkaTables ) ? qtrue : qfalse;
+}
+
+qboolean MSG_ReadDeltaJKAEntity( msg_t *msg, const fntech3_jka_entityState_t *from,
+	fntech3_jka_entityState_t *to, int number ) {
+	RTCWMessageReader io( msg );
+	return fntech3::jka::message::ReadEntity( io, from, to, number, msg_jkaTables ) ? qtrue : qfalse;
+}
+
+qboolean MSG_WriteDeltaJKAPlayerstate( msg_t *msg, const fntech3_jka_playerState_t *from,
+	const fntech3_jka_playerState_t *to, qboolean vehicle ) {
+	RTCWMessageWriter io( msg );
+	return fntech3::jka::message::WritePlayer( io, from, to, vehicle != qfalse, msg_jkaTables ) ? qtrue : qfalse;
+}
+
+qboolean MSG_ReadDeltaJKAPlayerstate( msg_t *msg, const fntech3_jka_playerState_t *from,
+	fntech3_jka_playerState_t *to, qboolean vehicle ) {
+	RTCWMessageReader io( msg );
+	return fntech3::jka::message::ReadPlayer( io, from, to, vehicle != qfalse, msg_jkaTables ) ? qtrue : qfalse;
+}
+
+qboolean MSG_WriteDeltaJKAVehiclePlayerstate( msg_t *msg, const playerState_t *from,
+	const playerState_t *to ) {
+	return MSG_WriteJKACanonical<fntech3_jka_playerState_t>( msg, from, to,
+		[&]( const auto *base, const auto *sent ) {
+			return MSG_WriteDeltaJKAPlayerstate( msg, base, sent, qtrue );
+		} );
+}
+
+qboolean MSG_ReadDeltaJKAVehiclePlayerstate( msg_t *msg, const playerState_t *from,
+	playerState_t *to ) {
+	return MSG_ReadJKACanonical<fntech3_jka_playerState_t>( msg, from, to,
+		[&]( const auto *base, auto *decoded ) {
+			return MSG_ReadDeltaJKAPlayerstate( msg, base, decoded, qtrue );
+		} );
 }
 
 /*
@@ -1043,11 +1199,11 @@ void MSG_WriteStringForWireProfile( msg_t *sb, const char *s,
 			"MSG_WriteString: MAX_STRING_CHARS" );
 		return;
 	}
-	if ( MSG_IsRTCWWireProfile( profile ) ) {
+	if ( MSG_IsRTCWWireProfile( profile ) || profile == NETCHAN_WIRE_JK2_MP ) {
 		MSG_WriteRTCWString( sb, s, MAX_STRING_CHARS );
 		return;
 	}
-	if ( profile != NETCHAN_WIRE_QL_RETAIL ) {
+	if ( profile != NETCHAN_WIRE_QL_RETAIL && profile != NETCHAN_WIRE_JKA_MP ) {
 		MSG_WriteString( sb, s );
 		return;
 	}
@@ -1063,11 +1219,11 @@ void MSG_WriteBigStringForWireProfile( msg_t *sb, const char *s,
 			"MSG_WriteString: BIG_INFO_STRING" );
 		return;
 	}
-	if ( MSG_IsRTCWWireProfile( profile ) ) {
+	if ( MSG_IsRTCWWireProfile( profile ) || profile == NETCHAN_WIRE_JK2_MP ) {
 		MSG_WriteRTCWString( sb, s, BIG_INFO_STRING );
 		return;
 	}
-	if ( profile != NETCHAN_WIRE_QL_RETAIL ) {
+	if ( profile != NETCHAN_WIRE_QL_RETAIL && profile != NETCHAN_WIRE_JKA_MP ) {
 		MSG_WriteBigString( sb, s );
 		return;
 	}
@@ -1200,7 +1356,8 @@ const char *MSG_ReadStringForWireProfile( msg_t *msg,
 	// MSG_ReadString): its localised text reaches the client that way.
 	return MSG_ReadStringInto( msg, string, sizeof( string ),
 		profile == NETCHAN_WIRE_QL_RETAIL || MSG_IsSTVEFWireProfile( profile )
-			|| profile == NETCHAN_WIRE_MOHAA,
+			|| profile == NETCHAN_WIRE_MOHAA || profile == NETCHAN_WIRE_JKA_MP ||
+			profile == NETCHAN_WIRE_JK2_MP,
 		true, false );
 }
 
@@ -1211,7 +1368,8 @@ const char *MSG_ReadCommandStringForWireProfile( msg_t *msg,
 	const bool retail = profile == NETCHAN_WIRE_QL_RETAIL;
 	// Retail Elite Force keeps high bytes but still turns '%' into '.'.
 	return MSG_ReadStringInto( msg, string, sizeof( string ),
-		retail || MSG_IsSTVEFWireProfile( profile ), !retail, false );
+		retail || MSG_IsSTVEFWireProfile( profile ) || profile == NETCHAN_WIRE_JKA_MP ||
+			profile == NETCHAN_WIRE_JK2_MP, !retail, false );
 }
 
 
@@ -1227,7 +1385,8 @@ const char *MSG_ReadBigStringForWireProfile( msg_t *msg,
 	static char string[BIG_INFO_STRING];
 	return MSG_ReadStringInto( msg, string, sizeof( string ),
 		profile == NETCHAN_WIRE_QL_RETAIL || MSG_IsRTCWWireProfile( profile ) ||
-		MSG_IsSTVEFWireProfile( profile ) || profile == NETCHAN_WIRE_MOHAA, true, false );
+		MSG_IsSTVEFWireProfile( profile ) || profile == NETCHAN_WIRE_MOHAA ||
+		profile == NETCHAN_WIRE_JKA_MP || profile == NETCHAN_WIRE_JK2_MP, true, false );
 }
 
 
@@ -1304,7 +1463,8 @@ choice explicit at the wire-profile boundary.
 */
 int MSG_HashKeyForWireProfile( netchanWireProfile_t profile,
 	const char *string, int maxlen ) {
-	if ( profile != NETCHAN_WIRE_QL_RETAIL && !MSG_IsRTCWWireProfile( profile ) ) {
+	if ( profile != NETCHAN_WIRE_QL_RETAIL && !MSG_IsRTCWWireProfile( profile ) &&
+		profile != NETCHAN_WIRE_JKA_MP && profile != NETCHAN_WIRE_JK2_MP ) {
 		return MSG_HashKey( string, maxlen );
 	}
 	if ( !string || maxlen <= 0 ) {
@@ -1397,6 +1557,18 @@ MSG_WriteDeltaUsercmdKeyForWireProfile
 qboolean MSG_WriteDeltaUsercmdKeyForWireProfile( msg_t *msg, int key,
 	const usercmd_t *from, const usercmd_t *to,
 	netchanWireProfile_t profile ) {
+	if ( profile == NETCHAN_WIRE_JK2_MP ) {
+		return MSG_WriteJK2Canonical<fntech3_jk2_usercmd_t>( msg, from, to,
+			[&]( const auto *base, const auto *sent ) {
+				return MSG_WriteDeltaJK2UsercmdKey( msg, key, base, sent );
+			} );
+	}
+	if ( profile == NETCHAN_WIRE_JKA_MP ) {
+		return MSG_WriteJKACanonical<fntech3_jka_usercmd_t>( msg, from, to,
+			[&]( const auto *base, const auto *sent ) {
+				return MSG_WriteDeltaJKAUsercmdKey( msg, key, base, sent );
+			} );
+	}
 	if ( profile == NETCHAN_WIRE_STVEF_HM ) {
 		// Holomatch commands carry no key.
 		return MSG_WriteSTVEFCanonical<fntech3_stvef_mp_usercmd_t>( msg, from, to,
@@ -1501,6 +1673,18 @@ MSG_ReadDeltaUsercmdKeyForWireProfile
 */
 qboolean MSG_ReadDeltaUsercmdKeyForWireProfile( msg_t *msg, int key,
 	const usercmd_t *from, usercmd_t *to, netchanWireProfile_t profile ) {
+	if ( profile == NETCHAN_WIRE_JK2_MP ) {
+		return MSG_ReadJK2Canonical<fntech3_jk2_usercmd_t>( msg, from, to,
+			[&]( const auto *base, auto *decoded ) {
+				return MSG_ReadDeltaJK2UsercmdKey( msg, key, base, decoded );
+			} );
+	}
+	if ( profile == NETCHAN_WIRE_JKA_MP ) {
+		return MSG_ReadJKACanonical<fntech3_jka_usercmd_t>( msg, from, to,
+			[&]( const auto *base, auto *decoded ) {
+				return MSG_ReadDeltaJKAUsercmdKey( msg, key, base, decoded );
+			} );
+	}
 	if ( profile == NETCHAN_WIRE_STVEF_HM ) {
 		return MSG_ReadSTVEFCanonical<fntech3_stvef_mp_usercmd_t>( msg, from, to,
 			[&]( const auto *base, auto *decoded ) {
@@ -2031,16 +2215,10 @@ static void MSG_GetLegacyEntityFields( int protocol, const netField_t **field, i
 #define	FLOAT_INT_BITS	13
 #define	FLOAT_INT_BIAS	(1<<(FLOAT_INT_BITS-1))
 
-static bool MSG_FloatAsSmallInteger( float value, int *integer ) {
-	// Range-test before conversion: NaNs, infinities and large finite values
-	// use the existing full-float representation, retaining their source bits.
-	// Every value reaching the cast is representable as an int, and adding
-	// FLOAT_INT_BIAS cannot overflow.
-	if ( !( value >= -FLOAT_INT_BIAS && value < FLOAT_INT_BIAS ) ) {
-		return false;
-	}
-	*integer = static_cast<int>( value );
-	return *integer == value;
+static bool MSG_FloatAsSmallInteger( std::uint32_t word, int *integer ) {
+	// Decide from the binary32 encoding so fast-math cannot discard NaN,
+	// infinity or subnormal payloads before their full-word fallback.
+	return fntech3::delta::CompactFloatInteger( word, *integer );
 }
 
 /*
@@ -2057,6 +2235,18 @@ identical, under the assumption that the in-order delta code will catch it.
 qboolean MSG_WriteDeltaEntityForWireProfile( msg_t *msg,
 	const entityState_t *from, const entityState_t *to, qboolean force,
 	netchanWireProfile_t profile ) {
+	if ( profile == NETCHAN_WIRE_JK2_MP ) {
+		return MSG_WriteJK2Canonical<fntech3_jk2_entityState_t>( msg, from, to,
+			[&]( const auto *base, const auto *sent ) {
+				return MSG_WriteDeltaJK2Entity( msg, base, sent, force );
+			} );
+	}
+	if ( profile == NETCHAN_WIRE_JKA_MP ) {
+		return MSG_WriteJKACanonical<fntech3_jka_entityState_t>( msg, from, to,
+			[&]( const auto *base, const auto *sent ) {
+				return MSG_WriteDeltaJKAEntity( msg, base, sent, force );
+			} );
+	}
 	if ( profile == NETCHAN_WIRE_STVEF_HM ) {
 		return MSG_WriteSTVEFCanonical<fntech3_stvef_mp_entityState_t>( msg, from, to,
 			[&]( const auto *base, const auto *sent ) {
@@ -2107,7 +2297,6 @@ qboolean MSG_WriteDeltaEntityForWireProfile( msg_t *msg,
 	int			numFields;
 	const netField_t *field;
 	int			trunc;
-	float		fullFloat;
 	const int	*fromF, *toF;
 	size_t		serializedBytes;
 
@@ -2186,13 +2375,11 @@ qboolean MSG_WriteDeltaEntityForWireProfile( msg_t *msg,
 
 		if ( field->bits == 0 ) {
 			// float
-			fullFloat = *(const float *)toF;
-
-			if (fullFloat == 0.0f) {
+			if ( ( static_cast<std::uint32_t>( *toF ) & 0x7fffffffu ) == 0 ) {
 				MSG_WriteBits( msg, 0, 1 );
 			} else {
 				MSG_WriteBits( msg, 1, 1 );
-				if ( MSG_FloatAsSmallInteger( fullFloat, &trunc ) ) {
+				if ( MSG_FloatAsSmallInteger( static_cast<std::uint32_t>( *toF ), &trunc ) ) {
 					// send as small integer
 					MSG_WriteBits( msg, 0, 1 );
 					MSG_WriteBits( msg, trunc + FLOAT_INT_BIAS, FLOAT_INT_BITS );
@@ -2230,6 +2417,18 @@ Can go from either a baseline or a previous packet_entity
 qboolean MSG_ReadDeltaEntityForWireProfile( msg_t *msg,
 	const entityState_t *from, entityState_t *to, int number,
 	netchanWireProfile_t profile ) {
+	if ( profile == NETCHAN_WIRE_JK2_MP ) {
+		return MSG_ReadJK2Canonical<fntech3_jk2_entityState_t>( msg, from, to,
+			[&]( const auto *base, auto *decoded ) {
+				return MSG_ReadDeltaJK2Entity( msg, base, decoded, number );
+			} );
+	}
+	if ( profile == NETCHAN_WIRE_JKA_MP ) {
+		return MSG_ReadJKACanonical<fntech3_jka_entityState_t>( msg, from, to,
+			[&]( const auto *base, auto *decoded ) {
+				return MSG_ReadDeltaJKAEntity( msg, base, decoded, number );
+			} );
+	}
 	if ( profile == NETCHAN_WIRE_STVEF_HM ) {
 		return MSG_ReadSTVEFCanonical<fntech3_stvef_mp_entityState_t>( msg, from, to,
 			[&]( const auto *base, auto *decoded ) {
@@ -2933,6 +3132,18 @@ MSG_WriteDeltaPlayerstate
 qboolean MSG_WriteDeltaPlayerstateForWireProfile( msg_t *msg,
 	const playerState_t *from, const playerState_t *to,
 	netchanWireProfile_t profile ) {
+	if ( profile == NETCHAN_WIRE_JK2_MP ) {
+		return MSG_WriteJK2Canonical<fntech3_jk2_playerState_t>( msg, from, to,
+			[&]( const auto *base, const auto *sent ) {
+				return MSG_WriteDeltaJK2Playerstate( msg, base, sent );
+			} );
+	}
+	if ( profile == NETCHAN_WIRE_JKA_MP ) {
+		return MSG_WriteJKACanonical<fntech3_jka_playerState_t>( msg, from, to,
+			[&]( const auto *base, const auto *sent ) {
+				return MSG_WriteDeltaJKAPlayerstate( msg, base, sent, qfalse );
+			} );
+	}
 	if ( profile == NETCHAN_WIRE_STVEF_HM ) {
 		return MSG_WriteSTVEFCanonical<fntech3_stvef_mp_playerState_t>( msg, from, to,
 			[&]( const auto *base, const auto *sent ) {
@@ -2991,7 +3202,6 @@ qboolean MSG_WriteDeltaPlayerstateForWireProfile( msg_t *msg,
 	const netField_t *field;
 	const int		*toF;
 	int				fromValue, toValue;
-	float			fullFloat;
 	int				trunc, lc;
 	const fnql::protocol::Contract *contract =
 		fnql::protocol::TryForWireProfile( profile );
@@ -3038,9 +3248,7 @@ qboolean MSG_WriteDeltaPlayerstateForWireProfile( msg_t *msg,
 		if ( field->bits == 0 ) {
 			// float
 			toF = (const int *)( (byte *)to + field->offset );
-			fullFloat = *(const float *)toF;
-
-			if ( MSG_FloatAsSmallInteger( fullFloat, &trunc ) ) {
+			if ( MSG_FloatAsSmallInteger( static_cast<std::uint32_t>( *toF ), &trunc ) ) {
 				// send as small integer
 				MSG_WriteBits( msg, 0, 1 );
 				MSG_WriteBits( msg, trunc + FLOAT_INT_BIAS, FLOAT_INT_BITS );
@@ -3144,6 +3352,18 @@ MSG_ReadDeltaPlayerstate
 qboolean MSG_ReadDeltaPlayerstateForWireProfile( msg_t *msg,
 	const playerState_t *from, playerState_t *to,
 	netchanWireProfile_t profile ) {
+	if ( profile == NETCHAN_WIRE_JK2_MP ) {
+		return MSG_ReadJK2Canonical<fntech3_jk2_playerState_t>( msg, from, to,
+			[&]( const auto *base, auto *decoded ) {
+				return MSG_ReadDeltaJK2Playerstate( msg, base, decoded );
+			} );
+	}
+	if ( profile == NETCHAN_WIRE_JKA_MP ) {
+		return MSG_ReadJKACanonical<fntech3_jka_playerState_t>( msg, from, to,
+			[&]( const auto *base, auto *decoded ) {
+				return MSG_ReadDeltaJKAPlayerstate( msg, base, decoded, qfalse );
+			} );
+	}
 	if ( profile == NETCHAN_WIRE_STVEF_HM ) {
 		return MSG_ReadSTVEFCanonical<fntech3_stvef_mp_playerState_t>( msg, from, to,
 			[&]( const auto *base, auto *decoded ) {

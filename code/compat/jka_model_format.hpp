@@ -11,12 +11,13 @@
  * Layout and traversal facts come from Raven's released sources as carried by
  * OpenJK: codemp/rd-common/mdx_format.h:42-441 for the records, and
  * codemp/rd-vanilla/tr_model.cpp:740-1030 for how the retail renderer walks
- * them. No implementation text is incorporated, and nothing here decodes a
- * pose or draws anything. See docs/fntech3/2026-09-21-jka-models.md. */
+ * them. No implementation text is incorporated, and nothing here draws
+ * anything. See docs/fntech3/2026-09-21-jka-models.md. */
 
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <limits>
 
 namespace fntech3 {
 namespace jka {
@@ -41,82 +42,19 @@ inline constexpr std::size_t BoneBytes = 172;            /* before children */
 inline constexpr std::size_t FrameIndexBytes = 3;
 inline constexpr std::size_t CompressedBoneBytes = 14;
 
-/* What those fourteen bytes hold, measured from the shipped skeletons of both
- * titles rather than assumed.
+/* A compressed record contains seven little-endian words: quaternion w,x,y,z
+ * and three translation components. Retail jamp.exe's decompressor at
+ * RVA0x86d30 uses word/16383-2 for rotation and word/64-512 for translation.
+ * The three-byte pool index and fourteen-byte stride are confirmed at
+ * VA0x497a19/0x497a23. Do not normalize away the encoded quaternion residual.
  *
- * The stride first. For every skeleton read -- nine from Jedi Academy's
- * base/assets1.pk3 and nine from Jedi Outcast's base/assets0.pk3 -- the
- * highest index any frame reaches, plus one, times fourteen, equals the pool
- * exactly, with nothing left over. Seven divides those pools too, but it
- * leaves the top half of every one of them unreachable. Fourteen is the
- * stride. The frame block agrees: its indices are three bytes each, and the
- * block is the bone count times the frame count times three, rounded up to a
- * multiple of four (a nine-bone eleven-frame skeleton spends 300 bytes on 297
- * bytes of index).
- *
- * The fourteen are seven sixteen-bit fields, and the first four are a
- * rotation. Read as words biased about 0x8000 and scaled by 1/16384, their
- * length is one: over Academy's 599,570 distinct poses the mean raw length is
- * 16,380.97, and over Outcast's 445,610 it is 16,382.40, both within two parts
- * in ten thousand of 16,384. Over the whole of both pools the length stays
- * between 0.998 and 1.003, varying by 0.382% end to end in Academy and 0.362%
- * in Outcast. Nothing but a unit quaternion behaves that way. The
- * first word is the scalar: where the other three sit at the bias point, it
- * sits near the top of the scale.
- *
- * The last three words are how far the bone has moved from where it was
- * modelled.
- *
- * That they are a deviation rather than a position is settled by a model that
- * does not move. Academy's map_objects/imp_mine/turret_cannon.gla has four
- * bones, three identical frames, and real geometry -- one bone sits 6.68 units
- * from its parent and another 28.86 from its -- and every translation in it is
- * zero. A number that is zero while its bone is twenty-nine units from its
- * parent is neither that bone's position nor its offset from its parent.
- * Academy's items/psgun.gla agrees from the other side: three of its bones
- * hold the same non-zero value in all eleven frames, which is what a fixed
- * displacement looks like and not what a position looks like.
- *
- * Their scale is 1/64, and the displacement is in the model's own space. Two
- * measurements say so independently.
- *
- * First, whole units. Across all 87 skeletons of both titles, model_root's
- * deviation lies on the z axis alone -- x and y are zero in every single one
- * -- and takes seven values: 0, -768, -1216, -1536, -4096, -7680 and -9856.
- * Every non-zero one is an exact multiple of 64, which at 1/64 reads as a drop
- * from the model's origin to the ground of 12, 19, 24, 64, 120 or 154 whole
- * units. Six values landing on a multiple of 64 by chance is about one in
- * 10^11.
- *
- * Second, rigidity. Bones do not stretch, so the right rule and the right
- * scale keep every bone the same distance from its parent in every frame, and
- * the wrong ones do not. Composing a pose as the decoded transform applied to
- * the bone's own rest matrix -- and nothing else, no walk up the hierarchy --
- * holds Academy's humanoid to a median error of 0.076 units across its bones
- * of five units or more. The same measure at 1/32 is 26 units out, at 1/128
- * six and a half, and with the displacement dropped entirely nineteen. The
- * error has a sharp floor at 1/64 and climbs away either side of it.
- *
- * That the rule needs no hierarchy is the surprise, and it explains the rest.
- * The pose already carries where the bone ended up, so a face bone that never
- * animates is exactly zero while a hand, which travels fifty units when an arm
- * goes up, is fifty. Under a parent-relative reading those two would both be
- * small, because neither moves much relative to what it hangs off.
- *
- * So a pose decodes to a rotation and a displacement in game units, and
- * BoneMatrix below answers where a named bone is in a given frame, in the
- * model's own space. There is still no bolt matrix, and that is now waiting on
- * one thing rather than on this: which frame a bone is on at a given moment,
- * which is engine behaviour rather than file format and cannot be measured the
- * way all of the above was, out of files that state their own answer. See
- * docs/fntech3/2026-09-22-jka-pose.md. */
-/* The engine's own constants, read out of its decompressor at RVA 0x86d30 of
- * jamp.exe rather than fitted to the data. It divides and then subtracts, and
- * the two halves of a pose do not agree with each other: a rotation component
- * is word / 16383 - 2, and a displacement is word / 64 - 512. So the rotation
- * sits about 32,766 and the displacement about 32,768, which is not a mistake
- * in the reading -- it is what the retail engine does. The forms below are the
- * engine's, divide then subtract, so that nothing drifts from it. */
+ * Each decoded matrix is a parent-relative deformation, not an independent
+ * model-global displacement. Retail engine-query observations supersede the
+ * earlier rigidity-based inference: frame-zero defaults, inherited timing,
+ * parent composition and bolt extraction are implemented in ghoul2_pose.hpp.
+ * A bone's base pose is applied for raw bone bolts; weighted vertices use the
+ * deformation palette directly. See tests/jka_pose_retail_cases.hpp for the
+ * ninety recorded engine queries, with installed assets supplied separately. */
 inline constexpr float PoseRotationDivisor = 16383.0f;
 inline constexpr float PoseRotationOffset = 2.0f;
 inline constexpr float PoseTranslationDivisor = 64.0f;
@@ -125,7 +63,7 @@ inline constexpr float PoseTranslationOffset = 512.0f;
 struct CompressedPose {
 	/* w, x, y, z, decoded. */
 	float rotation[4];
-	/* Where the bone went, in the model's own space and in game units. */
+	/* Translation in the parent-relative deformation, in game units. */
 	float translation[3];
 };
 
@@ -460,6 +398,10 @@ inline Error ParseMesh( const void *data, std::size_t bytes, int skeletonBones, 
 					}
 				}
 			}
+			if ( record2.numVerts > std::numeric_limits<int>::max() - out.totalVerts
+				|| record2.numTriangles > std::numeric_limits<int>::max() - out.totalTriangles ) {
+				return Error::Counts;
+			}
 			out.totalVerts += record2.numVerts;
 			out.totalTriangles += record2.numTriangles;
 
@@ -649,12 +591,9 @@ inline bool BonePose( const void *data, std::size_t bytes, const Skeleton &skele
 	return true;
 }
 
-/* Where a bone is in one frame, in the model's own space.
- *
- * The pose applied to the bone's rest matrix, and nothing else -- no walk up
- * the hierarchy, because the pose already carries where the bone ended up.
- * See the note on the pose encoding above for how that was measured and what
- * it was measured against. */
+/* One compressed storage transform composed with its base pose. This local
+ * arithmetic helper does not evaluate parents or animation inheritance and
+ * cannot establish a complete model-space bone pose; use ghoul2_pose.hpp. */
 inline bool BoneMatrix( const void *data, std::size_t bytes, const Skeleton &skeleton,
 	int frame, int index, float out[12] )
 {
@@ -769,6 +708,14 @@ inline bool VertexAt( const void *data, std::size_t bytes, const MeshSurface &su
 	for ( int i = 0; i < MaxWeightsPerVertex; ++i ) bytesOfWeight[i] = raw[i];
 	out.count = WeightCount( packed );
 	if ( out.count < 1 || out.count > MaxWeightsPerVertex ) return false;
+	/* The final weight is implicit. Reject a negative remainder using the
+	 * encoded integer units, so float accumulation cannot conceal it. */
+	unsigned int encodedTotal = 0;
+	for ( int weight = 0; weight + 1 < out.count; ++weight ) {
+		encodedTotal += bytesOfWeight[weight]
+			| ( ( packed >> ( WeightTopBitsShift + weight * 2 ) ) & WeightTopBitsMask );
+	}
+	if ( encodedTotal > 1023 ) return false;
 	float running = 0.0f;
 	for ( int weight = 0; weight < out.count; ++weight ) {
 		const int reference = WeightBoneReference( packed, weight );
@@ -778,7 +725,6 @@ inline bool VertexAt( const void *data, std::size_t bytes, const MeshSurface &su
 		if ( !reader.Fits( slot, sizeof( std::int32_t ) ) ) return false;
 		out.bone[weight] = int( reader.Int( slot ) );
 		out.weight[weight] = WeightValue( packed, bytesOfWeight, weight, out.count, running );
-		running += out.weight[weight];
 	}
 	return true;
 }

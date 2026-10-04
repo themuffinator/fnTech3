@@ -6,7 +6,8 @@ variant at its output safety check on three attempts, including the requested
 retry; its replacement remains outstanding. There is one icon per game profile,
 plus a standalone imagegen remake of Medal of Honor: Allied Assault.
 The running client shows the active game's remake as its
-window, taskbar and Dock icon on every platform; see
+window, taskbar and Dock icon on every platform. Windows client and dedicated
+system console windows also use the active profile's remake; see
 [active-game icon](../README.md#active-game-icon) for the `cl_gameIcon` setting.
 
 ![The fourteen profile icons and standalone MOHAA remake](preview.png)
@@ -58,12 +59,13 @@ included in the asset set.
 
 ## Platform support
 
-**Windows.** The client executable embeds every game's ICO as the resource
-ids above, through `code/win32/win_client_resource.rc`; the dedicated server
-links only the engine resources. The window's caption and taskbar icons are
+**Windows.** Both client and dedicated executables embed every game's ICO as
+the resource ids above, through `code/win32/win_client_resource.rc`. Their
+system console windows select the active profile's remake once startup selects
+the game, including when a custom console title is used. Caption and taskbar icons are
 loaded at the exact sizes for the window's DPI, so Windows picks a matching
-frame instead of rescaling one bitmap. The executable's own icon in Explorer
-stays fnTech3's. For a per-game shortcut, target `fntech3.exe` with
+frame instead of rescaling one bitmap. The executables' own icons in Explorer
+stay fnTech3's. For a per-game shortcut, target `fntech3.exe` with
 `+set com_gameProfile <key> +set fs_basepath "<game folder>"`, then pick the
 game's icon under *Change Icon* (shown when browsing `fntech3.exe`), or set
 the shortcut's icon location to `fntech3.exe,-<resource id>`. Pinning that
@@ -114,6 +116,16 @@ character and material detail. Those resources were read from legitimate local
 installations; those source images are generated outputs, not extracted
 retail artwork. The RTCW single-player fallback is the previous procedural
 artwork, retained because its imagegen replacement was blocked.
+On 2026-10-02, both Elite Force masters were redone against a larger reference
+supplied by the user, restoring the striped trapezoidal plaque, silver rods,
+and rounded delta opening. The single-player icon keeps its black square;
+Holomatch uses an opaque blue tile with subtle grid lines and rounded corners.
+A mistaken solid half-circle above the plaque was removed from both masters.
+The correction prompts and
+source hashes are recorded alongside the masters.
+Exports normalize Holomatch's near-opaque generated alpha to full opacity
+inside the tile while retaining its antialiased rounded-corner cutouts. The
+generated master is preserved unchanged.
 Game names, character designs, logos and symbols belong to
 their respective owners. Prompts preserve those designs for game identification.
 

@@ -10,6 +10,7 @@ import contextlib
 import importlib.util
 import io
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -50,7 +51,7 @@ def client(ending):
 
 class RitualClientProbeStopTests(unittest.TestCase):
     def run_probe(self, ending):
-        with tempfile.TemporaryDirectory() as folder:
+        with tempfile.TemporaryDirectory(prefix='ritual-probe-tests-', dir=ROOT / '.tmp') as folder:
             folder = Path(folder)
             executable = folder / 'runtime' / 'fntech3.exe'
             executable.parent.mkdir()
@@ -82,6 +83,135 @@ class RitualClientProbeStopTests(unittest.TestCase):
                 else:
                     self.assertIsNone(manifest['stopError'])
                 self.assertTrue(manifest['installationUnchanged'])
+
+
+class RitualClientOutputTests(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory(prefix='ritual-output-tests-', dir=ROOT / '.tmp')
+        self.addCleanup(self.temporary.cleanup)
+        self.folder = Path(self.temporary.name)
+        self.installation = self.folder / 'installation'
+        self.installation.mkdir()
+        self.executable = self.folder / 'runtime' / 'fntech3.exe'
+        self.executable.parent.mkdir()
+        self.executable.write_bytes(b'engine')
+        self.output = self.folder / 'output'
+
+    def test_existing_ordinary_output_is_retained_until_validation_completes(self):
+        data = self.output / 'home' / 'base' / 'config.cfg'
+        data.parent.mkdir(parents=True)
+        data.write_bytes(b'configuration')
+        self.assertEqual(probe.validate_output(self.output, self.installation, self.executable), self.output.resolve())
+        self.assertEqual(data.read_bytes(), b'configuration')
+
+    def test_rejects_project_root_scratch_root_and_installation_runtime_overlap(self):
+        for target in (ROOT, ROOT / '.tmp', self.installation, self.installation / 'probe',
+                       self.executable.parent, self.folder):
+            with self.subTest(target=target), self.assertRaises(ValueError):
+                probe.validate_output(target, self.installation, self.executable)
+
+    def test_rejects_linked_output_before_mutating_protected_files(self):
+        data = self.installation / 'protected.cfg'
+        data.write_bytes(b'protected')
+        self.output.mkdir()
+        link = self.output / 'manifest.json'
+        try:
+            os.link(data, link)
+        except OSError as error:
+            self.skipTest(f'Hard links unavailable: {error}')
+        with self.assertRaisesRegex(ValueError, 'linked data'):
+            probe.validate_output(self.output, self.installation, self.executable)
+        self.assertEqual(data.read_bytes(), b'protected')
+
+    def test_rejects_junction_metadata_in_output_ancestors(self):
+        self.output.mkdir()
+        original = Path.lstat
+
+        def linked_metadata(path, *args, **kwargs):
+            metadata = original(path, *args, **kwargs)
+            if path == self.output:
+                return mock.Mock(st_mode=metadata.st_mode, st_file_attributes=probe.REPARSE_POINT)
+            return metadata
+
+        with mock.patch.object(Path, 'lstat', linked_metadata), self.assertRaisesRegex(ValueError, 'ancestor'):
+            probe.validate_output(self.output, self.installation, self.executable)
+
+    def test_rejects_dangling_junction_before_resolving_or_writing_output(self):
+        # On Windows a dangling junction can report exists() == False and
+        # is_symlink() == False while lstat still identifies its reparse point.
+        self.output.mkdir()
+        original = Path.lstat
+
+        def dangling_metadata(path, *args, **kwargs):
+            metadata = original(path, *args, **kwargs)
+            if path == self.output:
+                return mock.Mock(st_mode=metadata.st_mode, st_file_attributes=probe.REPARSE_POINT)
+            return metadata
+
+        with mock.patch.object(Path, 'exists', return_value=False), \
+                mock.patch.object(Path, 'is_symlink', return_value=False), \
+                mock.patch.object(Path, 'lstat', dangling_metadata), \
+                self.assertRaisesRegex(ValueError, 'ancestor'):
+            probe.validate_output(self.output, self.installation, self.executable)
+
+    def test_extra_ownership_is_checked_before_mutation_and_preserves_feature_values(self):
+        authored = self.installation / 'base' / 'pak0.pk3'
+        authored.parent.mkdir()
+        authored.write_bytes(b'authored fixture')
+        existing = self.output / 'home' / 'base' / 'config.cfg'
+        existing.parent.mkdir(parents=True)
+        existing.write_bytes(b'previous configuration')
+        (self.output / 'manifest.json').write_bytes(b'previous manifest')
+
+        def snapshot():
+            return {str(path.relative_to(self.folder)): path.read_bytes() if path.is_file() else None
+                    for path in self.folder.rglob('*')}
+
+        before = snapshot()
+        argv = ['probe_ritual_client.py', '--executable', str(self.executable),
+                '--installation', str(self.installation), '--output', str(self.output),
+                '--profile', 'alice', '--timeout', '0']
+        owned = (
+            f'FS_HOMEPATH={self.installation}', f'fs_basepath={self.executable.parent}',
+            'fs_basegame=..', 'fs_game=alternate', 'fs_cdpath=other', 'fs_filedir=other',
+            'mapdir=other', 'fs_steampath=other', 'fs_apppath=other',
+            'Com_GameProfile=fakk2', 'cl_renderer=vk', 'r_fullscreen=1', 'r_mode=3',
+            'r_customWidth=1024', 'r_customHeight=768', 'r_windowedMode=3',
+            'r_windowedWidth=1024', 'r_windowedHeight=768',
+            'in_mouse=1', 'in_joystick=1', 'in_nograb=0', 'in_synthetic=1',
+        )
+        malformed = ('s_volume', '=1', '"fs_homepath"=other', 'fs_homepath =other',
+                     ' fs_homepath=other', 'fs_homepath\t=other',
+                     'fs_homepath\n=other', 'fs_homepath\x00=other')
+        for pair in (*owned, *malformed):
+            with self.subTest(pair=pair), \
+                    mock.patch.object(sys, 'argv', argv + ['--extra', 's_volume=0.25', '--extra', pair]), \
+                    mock.patch.object(probe, 'WindowsPrivateProcess') as launch, \
+                    mock.patch.object(probe, 'validate_output', wraps=probe.validate_output) as validate, \
+                    contextlib.redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit) as error:
+                    probe.main()
+                self.assertEqual(error.exception.code, 2)
+                launch.assert_not_called()
+                validate.assert_not_called()
+                self.assertEqual(snapshot(), before)
+
+        allowed = ('s_volume=0.25', 'm_pitch=0.022', 's_alDopplerFactor=0.5',
+                   's_backend=openal', 's_musicVolume=0.5', 'r_dynamiclight=1',
+                   'rtx_rt_mode=0', 'developer=2', 'probe_note=left=right', 'probe_empty=')
+        extra_argv = [token for pair in allowed for token in ('--extra', pair)]
+        with mock.patch.object(sys, 'argv', argv + extra_argv), \
+                mock.patch.object(probe, 'WindowsPrivateProcess', side_effect=client('quits')) as launch, \
+                contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(probe.main(), 0)
+        command = launch.call_args.args[0]
+        assignments = [tuple(command[index + 1:index + 3]) for index, token in enumerate(command)
+                       if token == '+set']
+        for pair in allowed:
+            name, _, value = pair.partition('=')
+            self.assertIn((name, value), assignments)
+        self.assertEqual(authored.read_bytes(), b'authored fixture')
+        self.assertEqual(self.executable.read_bytes(), b'engine')
 
 
 if __name__ == '__main__':

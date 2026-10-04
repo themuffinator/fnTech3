@@ -3,7 +3,7 @@
 
 namespace fntech3::icon {
 // One row per profile key; `resource` is the RT_GROUP_ICON id linked
-// into Windows clients by code/win32/win_client_resource.rc.
+// into both Windows executables by code/win32/win_client_resource.rc.
 struct BuiltinIcon {
     const char *profile;
     unsigned resource;

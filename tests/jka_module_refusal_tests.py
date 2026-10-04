@@ -6,8 +6,11 @@ say what it does not implement rather than invent an answer:
 
 - the server's game dispatcher serves what it has built and stops at every
   other import by its own name and number;
-- single player, whose module hands over a function table nothing reads yet,
-  and both client modules, are refused before anything is loaded.
+- single player's measured retail API-8 table is loaded through an isolated
+  developer host, whose unavailable imports stop by name; its client/snapshot
+  boundary remains refused even if Init returns;
+- single-player client game and its engine-owned menu remain refused while
+  multiplayer loads its measured cgame and UI through bounded adapters.
 
 Returning a made-up value to an unimplemented import is what turned this
 boundary into an access violation before these guards existed.
@@ -20,16 +23,27 @@ ROOT = Path(__file__).resolve().parents[1]
 
 # Entry points that refuse a Jedi Academy profile before loading a module.
 REFUSED_BEFORE_LOADING = (
-    ('code/server/sv_game.cpp', 'void SV_InitGameProgs( void ) {', 'Com_GameIsJKASP()',
-     ('SV_LoadGameModule', 'SV_STVEFSPLoadGame', 'SV_IHVLoadGame')),
-    ('code/client/cl_cgame.cpp', 'void CL_InitCGame( void ) {', 'Com_GameIsJKA()',
+    ('code/client/cl_cgame.cpp', 'void CL_InitCGame( void ) {', 'Com_GameIsJKASP()',
      ('VM_Create', 'CL_InitCGameVM')),
-    ('code/client/cl_ui.cpp', 'void CL_InitUI( void ) {', 'Com_GameIsJKA()',
+    ('code/client/cl_ui.cpp', 'void CL_InitUI( void ) {', 'Com_GameIsJKASP()',
      ('VM_Create', 'CL_InitUIVM')),
 )
 
 
 class JKAModuleRefusalTests(unittest.TestCase):
+    def test_single_player_routes_only_to_its_isolated_table_host(self):
+        source = (ROOT / 'code/server/sv_game.cpp').read_text(encoding='utf-8')
+        start = source.index('void SV_InitGameProgs( void ) {')
+        body = source[start:source.index('\n}', start)]
+        self.assertRegex(body, r'Com_GameIsJKASP\(\)\s*\?\s*SV_JKASPLoadGame\(\)')
+        self.assertIn('#include "server_jka_sp_game.hpp"', source)
+        host = (ROOT / 'code/server/server_jka_sp_game.hpp').read_text(encoding='utf-8')
+        self.assertIn('VM_CreateTable(VM_GAME, "GetGameAPI"', host)
+        self.assertLess(host.index('gvm = vm;'), host.index('getter(&jkaSpImports)'))
+        self.assertIn('ImportName(Slot)', host)
+        self.assertIn('client and snapshot adapters are not served yet', host)
+        self.assertRegex(host, r'if \(initialized && jkaSpGame && !com_errorEntered\)')
+
     def test_every_gated_entry_point_refuses_before_loading(self):
         for path, signature, guard, loaders in REFUSED_BEFORE_LOADING:
             with self.subTest(path=path):
@@ -42,7 +56,23 @@ class JKAModuleRefusalTests(unittest.TestCase):
                 self.assertIn('Com_Error', body[where:where + 400],
                               f'{path} must report the open boundary')
                 self.assertIn('is not implemented', body[where:where + 400])
-                self.assertIn('Com_GameProfile()->key', body[where:where + 400])
+                if path.endswith('cl_ui.cpp'):
+                    self.assertIn('jka-sp is not implemented', body[where:where + 400])
+                    self.assertIn('single-player engine menu boundary', body[where:where + 400])
+                    self.assertIn('#include "client_jka_ui_host.hpp"', source)
+                    self.assertIn('CL_JKAUICall(', source)
+                    mp_start = body.index('if ( Com_GameIsJKAMP() )')
+                    mp_end = body.index('else if', mp_start)
+                    self.assertIn('VM_Create( VM_UI, CL_UISystemCalls, UI_DllSyscall,', body[mp_start:mp_end])
+                    self.assertIn('VMI_PINNED_NATIVE : VMI_NATIVE', body[mp_start:mp_end])
+                else:
+                    self.assertIn('single-player client module boundary', body[where:where + 400])
+                    self.assertIn('#include "client_jka_cgame_host.hpp"', source)
+                    self.assertIn('CL_JKACgameCall(', source)
+                    load_start = source.index('static vm_t *CL_LoadCGameVM(')
+                    load_body = source[load_start:source.index('\n}', load_start)]
+                    self.assertIn('VM_Create( VM_CGAME, CL_CgameSystemCalls, CL_DllSyscall,', load_body)
+                    self.assertIn('VMI_PINNED_NATIVE : VMI_NATIVE', load_body)
 
                 for loader in loaders:
                     found = body.find(loader)
@@ -65,7 +95,7 @@ class JKAModuleRefusalTests(unittest.TestCase):
 
         # Every served case returns; none may fall through to another call.
         served = re.findall(r'case Call::(\w+):', source)
-        self.assertEqual(len(served), 153, 'the imports served so far, counted')
+        self.assertEqual(len(served), 156, 'the imports served so far, counted')
         self.assertEqual(len(served), len(set(served)), 'no import is served twice')
 
     def test_navigation_is_answered_only_out_of_the_graph_the_engine_holds(self):
@@ -127,17 +157,27 @@ class JKAModuleRefusalTests(unittest.TestCase):
         self.assertIn('G_NAV_LOAD', navigation)
         self.assertGreater(len(navigation), 20, 'the game imports far more navigation than this')
 
-    def test_starting_a_motion_path_stays_refused(self):
-        # The engine caches a recorded motion path and forgets one, and holds
-        # what is playing -- but how it should move an entity along a path is
-        # not measured. So starting one is refused, and the per-frame update
-        # can be a no-op honestly, because nothing can be playing.
+    def test_motion_paths_use_the_measured_profile_player(self):
+        # Play and purge now have a retail-evidenced trajectory and callback
+        # implementation. They must never slip back to success without motion.
         source = (ROOT / 'code/server/server_jka_game.hpp').read_text(encoding='utf-8')
         served = set(re.findall(r'case Call::(\w+):', source))
-        self.assertIn('G_ROFF_CACHE', served)
-        self.assertIn('G_ROFF_UPDATE_ENTITIES', served)
-        self.assertNotIn('G_ROFF_PLAY', served,
-                         'a path is started while the motion it would follow is unmeasured')
+        for name, implementation in (('G_ROFF_CLEAN', 'jkaRoffPlayer.Clear'),
+                                     ('G_ROFF_CACHE', 'ravenRoff.Cache'),
+                                     ('G_ROFF_UPDATE_ENTITIES', 'jkaRoffPlayer.Update'),
+                                     ('G_ROFF_PLAY', 'jkaRoffPlayer.Play'),
+                                     ('G_ROFF_PURGE_ENT', 'jkaRoffPlayer.Stop')):
+            self.assertIn(name, served)
+            body = source.split('case Call::' + name + ':', 1)[1].split('case Call::', 1)[0]
+            self.assertIn(implementation, body)
+        self.assertIn('GAME_ROFF_NOTETRACK_CALLBACK', source)
+        self.assertIn('VM_Call( gvm, 2, callback->ordinal, entity, text )', source)
+        player = (ROOT / 'code/server/server_jka_roff.hpp').read_text(encoding='utf-8')
+        self.assertIn('record->next_roff_time', player)
+        self.assertIn('record->s.pos.trDelta', player)
+        self.assertIn('record->s.apos.trDelta', player)
+        self.assertIn('record.r.mIsRoffing = 0', player)
+        self.assertIn('line is too long', player)
 
     def test_cleaning_ghoul2_attachments_really_cleans(self):
         # This replaces a check that no attachment import was served while the

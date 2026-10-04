@@ -46,8 +46,10 @@ The remakes ship inside the client: Windows clients carry each game's ICO as a
 resource, other clients link its 16 to 128 px frames. Every backend therefore
 shows them without installed files or a retail executable. Windows binds exact
 caption and taskbar frames for the window's DPI; SDL passes every frame to
-Wayland and Cocoa; the native X11 backend publishes every size. The dedicated
-server and the executables' own icons in Explorer keep fnTech3's.
+Wayland and Cocoa; the native X11 backend publishes every size. Client and
+dedicated system console windows also show the selected profile's built-in
+remake, independently of `cl_gameIcon`. The executables' own icons in Explorer
+keep fnTech3's.
 
 For `cl_gameIcon 2` the lookup uses only canonical paths within the selected
 `fs_basepath`, never mods, paks, downloads, `PATH`, or another installed game.

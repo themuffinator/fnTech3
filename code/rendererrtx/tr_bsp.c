@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdlib.h>
 
 #include "tr_local.h"
+#include "../renderercommon/tr_jka_distance_cull.h"
 #include "../renderercommon/tr_patch_bounds.h"
 #include "../qcommon/bsp_v43.h"
 #include "../qcommon/bsp_fakk.h"
@@ -50,6 +51,9 @@ void RE_LoadWorldMap( const char *name );
 */
 
 static	world_t		s_worldData;
+/* Published only after this module completes the world load. */
+static float s_jkaDistanceCull;
+static qboolean s_jkaDistanceCullReady;
 static	byte		*fileBase;
 
 static int c_gridVerts;
@@ -4031,6 +4035,7 @@ static void R_LoadEntities( const lump_t *l ) {
 	world_t	*w;
 
 	w = &s_worldData;
+	s_jkaDistanceCull = ri.gameId == COM_GAME_JKA_MP ? FN_JKA_DEFAULT_DISTANCE_CULL : 0.0f;
 	w->lightGridSize[0] = 64;
 	w->lightGridSize[1] = 64;
 	w->lightGridSize[2] = 128;
@@ -4068,6 +4073,12 @@ static void R_LoadEntities( const lump_t *l ) {
 
 		// parse value
 		token = COM_ParseExt( &p, qtrue );
+
+		if ( ri.gameId == COM_GAME_JKA_MP && !Q_stricmp( keyname, "distanceCull" ) ) {
+			if ( !FnJKA_ParseDistanceCull( token, &s_jkaDistanceCull ) )
+				ri.Error( ERR_DROP, "Jedi Academy worldspawn has invalid distanceCull '%s'", token );
+			continue;
+		}
 
 		if ( !*token || *token == '}' ) {
 			break;
@@ -4135,6 +4146,15 @@ static void R_LoadEntities( const lump_t *l ) {
 }
 
 
+/* Actual limit of the completed Academy MP world. */
+qboolean RE_GetJKADistanceCull( float *distance ) {
+	if ( !distance || ri.gameId != COM_GAME_JKA_MP || !tr.registered
+		|| !s_jkaDistanceCullReady || tr.world != &s_worldData
+		|| !FnJKA_DistanceCullValid( s_jkaDistanceCull ) ) return qfalse;
+	*distance = s_jkaDistanceCull;
+	return qtrue;
+}
+
 /*
 =================
 RE_GetEntityToken
@@ -4142,6 +4162,22 @@ RE_GetEntityToken
 */
 qboolean RE_GetEntityToken( char *buffer, int size ) {
 	const char	*s;
+
+	/* Retail 0x490f30 resets on -1 without touching the buffer; at EOF
+	 * it returns false without Quake III's automatic iterator rewind. */
+	if ( ri.gameId == COM_GAME_JKA_MP ) {
+		if ( !tr.registered || !s_jkaDistanceCullReady || tr.world != &s_worldData )
+			ri.Error( ERR_DROP, "Academy entity tokens require a completed Fn world" );
+		if ( size == -1 ) {
+			s_worldData.entityParsePoint = s_worldData.entityString;
+			return qtrue;
+		}
+		if ( !buffer || size <= 0 )
+			ri.Error( ERR_DROP, "Invalid Academy entity token buffer" );
+		s = COM_Parse( &s_worldData.entityParsePoint );
+		Q_strncpyz( buffer, s, size );
+		return s_worldData.entityParsePoint && s[0] ? qtrue : qfalse;
+	}
 
 	s = COM_Parse( &s_worldData.entityParsePoint );
 	Q_strncpyz( buffer, s, size );
@@ -4163,6 +4199,7 @@ Called directly from cgame
 */
 #include "../renderercommon/tr_q3_ihv_model_light_bsp.h"
 #include "../renderercommon/tr_ritual_model_light_bsp.h"
+#include "../renderercommon/tr_raven_bsp_load.h"
 
 void RE_LoadWorldMap( const char *name ) {
 	int			i;
@@ -4178,6 +4215,7 @@ void RE_LoadWorldMap( const char *name ) {
 	lump_t		qlAdvertisementsLump = { 0, 0 };
 	comGameBspFormat_t bspFormat;
 	mohaaBuiltSurfaces_t	mohaaBuilt = { 0, 0, 0, 0 };
+	fnRavenBspView_t ravenOriginal = { 0 };
 
 	// American McGee's Alice's loading screen follows the world load: its
 	// stage setter (alice.exe 0x0040b590) takes 7 as the load starts
@@ -4204,6 +4242,8 @@ void RE_LoadWorldMap( const char *name ) {
 	if ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP || ri.gameId == COM_GAME_WOLFET ) tr.sunShader = NULL;
 
 	tr.worldMapLoaded = qtrue;
+	s_jkaDistanceCullReady = qfalse;
+	s_jkaDistanceCull = 0.0f;
 
 	// load it
 	size = ri.FS_ReadFile( name, &buffer.v );
@@ -4238,6 +4278,13 @@ void RE_LoadWorldMap( const char *name ) {
 			size = translated.length;
 			translatedMap = qtrue;
 		}
+	}
+
+	/* Raven records project into the Fn geometry pipeline while the complete
+	 * original map and compressed light-grid indices remain world-owned. */
+	if ( bspFormat == COM_GAME_BSP_RBSP ) {
+		R_RavenPrepareWorldBuffer( &buffer.v, &size, &ravenOriginal, name );
+		translatedMap = qtrue;
 	}
 
 	/* Alice's maps are Ritual's FAKK 42. Its records are Quake III's apart
@@ -4334,6 +4381,9 @@ void RE_LoadWorldMap( const char *name ) {
 	COM_StripExtension(s_worldData.baseName, s_worldData.baseName, sizeof(s_worldData.baseName));
 
 	startMarker = ri.Hunk_Alloc(0, h_low);
+	if ( ravenOriginal.bytes ) {
+		R_RavenKeepWorldRecords( &ravenOriginal );
+	}
 	c_gridVerts = 0;
 
 	header = (dheader_t *)buffer.b;
@@ -4404,7 +4454,11 @@ void RE_LoadWorldMap( const char *name ) {
 		s_worldData.lightGridSize[1] = FAKK_LIGHTGRID_SIZE_Y;
 		s_worldData.lightGridSize[2] = FAKK_LIGHTGRID_SIZE_Z;
 	}
-	R_LoadLightGrid( &header->lumps[LUMP_LIGHTGRID] );
+	if ( ravenOriginal.bytes ) {
+		R_LoadRavenLightGrid( &header->lumps[LUMP_LIGHTGRID] );
+	} else {
+		R_LoadLightGrid( &header->lumps[LUMP_LIGHTGRID] );
+	}
 	if ( bspFormat == COM_GAME_BSP_FAKK ) {
 		R_RitualModelLightsKeep();
 	}
@@ -4422,6 +4476,9 @@ void RE_LoadWorldMap( const char *name ) {
 
 	// only set tr.world now that we know the entire level has loaded properly
 	tr.world = &s_worldData;
+	s_jkaDistanceCullReady = ri.gameId == COM_GAME_JKA_MP && FnJKA_DistanceCullValid( s_jkaDistanceCull ) ? qtrue : qfalse;
+	if ( s_jkaDistanceCullReady )
+		ri.Printf( PRINT_DEVELOPER, "Academy distanceCull: %g (Fn world)\n", s_jkaDistanceCull );
 	R_LoadGlobalFogForWorld();
 	R_LoadStaticMapLightsForWorld();
 	R_BuildSurfaceLightProxiesForWorld();

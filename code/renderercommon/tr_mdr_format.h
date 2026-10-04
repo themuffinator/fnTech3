@@ -54,7 +54,10 @@ static inline int FnMdr_AddSize( uint32_t *size, size_t count, size_t stride ) {
 }
 static inline int FnMdr_Finite( const unsigned char *p, size_t count ) {
 	size_t i;
-	for ( i = 0; i < count; ++i ) if ( !isfinite( FnMdr_Float( p + i * 4 ) ) ) return 0;
+	/* Check the encoded exponent before creating a float. Renderer builds use
+	 * finite-math optimizations, which can fold isfinite(float) to true. */
+	for ( i = 0; i < count; ++i )
+		if ( ( FnMdr_U32( p + i * 4 ) & UINT32_C(0x7f800000) ) == UINT32_C(0x7f800000) ) return 0;
 	return 1;
 }
 

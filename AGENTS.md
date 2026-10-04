@@ -47,10 +47,13 @@ for isolated probes; release builds still refuse both. Elite Force is gated too;
 IHV remains gated by default; `-Dq3-ihv-development=true` permits Windows x86
 dedicated native-game probes only. Its client and network paths remain blocked.
 Jedi Academy is gated too: `-Djka-development=true` enables its isolated
-probes, as `-Djk2-development=true` enables Jedi Outcast's. For each of these,
-a developer server activates the profile on a legitimate installation, mounts
-its paks and loads a retail map's collision, then refuses the module boundary
-by name. Neither has a module, wire, savegame or renderer boundary yet.
+probes, as `-Djk2-development=true` enables Jedi Outcast's. Both developer
+multiplayer servers load retail game modules through their own adapters.
+Academy's protocol-26 codec, client records and static rendering have source
+and unit evidence; live interoperability and complete client rendering remain
+open. Its SP API-8 bootstrap serves measured callbacks and refuses remaining
+ones by name; campaign, client admission and saves remain open. Outcast's own
+profile ledger describes its distinct protocol and partial client/SP boundaries.
 Alice is gated as well: developer builds (`-Dalice-development=true`) run its
 retail game and client modules, wire, demos, savegames, audio and renderers
 for isolated probes, while its compatibility gates remain open and default

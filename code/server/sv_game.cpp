@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "server.h"
 #include "server_cvar_compat.hpp"
 #include "server_game_data.h"
+#include "server_jka_snapshot.hpp"
 
 #include "../botlib/botlib.h"
 #include "../compat/alice_module_abi.h"
@@ -32,6 +33,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../compat/rtcw_state_adapter.hpp"
 #include "../compat/rtcw_savegame.hpp"
 #include "../compat/stvef_game_abi.h"
+#include "../compat/jka_state_adapter.hpp"
 #include "../compat/q3test_game_abi.h"
 #include "../qcommon/vm_rtcw_filesystem.hpp"
 #define JSON_IMPLEMENTATION
@@ -402,6 +404,29 @@ qboolean SV_ReadGameEntity( const void *entity,
 		&& serverGameData.GetOwnerNum( reference, destination->r.ownerNum )
 		&& serverGameData.GetSharedStateOrigin2( reference,
 			destination->r.s.origin2 ) ? qtrue : qfalse;
+}
+
+qboolean SV_ReadJKAVehicleState( int entityNum, playerState_t *destination ) {
+	if ( !Com_GameIsJKAMP() || !destination || entityNum < 0 || entityNum >= sv.num_entities )
+		return qfalse;
+	const auto *vehicle = reinterpret_cast<const fntech3_jka_sharedEntity_t *>(
+		SV_GentityNum( entityNum ) );
+	// This profile admits native modules only; the pointer is the frozen
+	// shared record's native player-state pointer, not a QVM byte offset.
+	const auto *state = vehicle ? vehicle->playerState : nullptr;
+	return state && fntech3::jka::state::ToInternal( *state, *destination ) ? qtrue : qfalse;
+}
+
+qboolean SV_JKASnapshotBroadcast( int entityNum, int viewer, qboolean *forced ) {
+	if ( !Com_GameIsJKAMP() || !forced || entityNum < 0 || entityNum >= sv.num_entities )
+		return qfalse;
+	const auto *entity = reinterpret_cast<const fntech3_jka_sharedEntity_t *>(
+		SV_GentityNum( entityNum ) );
+	if ( !entity ) return qfalse;
+	const auto decision = fntech3::jka::snapshot::Broadcast( entityNum, viewer,
+		static_cast<uint32_t>( entity->r.svFlags ), entity->r.broadcastClients );
+	*forced = decision.forced ? qtrue : qfalse;
+	return decision.admitted ? qtrue : qfalse;
 }
 
 
@@ -1118,8 +1143,10 @@ static intptr_t SV_RTCWGameSharedCall( fntech3::rtcw::module::Call call ) {
 #include "server_wolfet_game.hpp"
 #include "server_jk2_game.hpp"
 #include "server_jka_game.hpp"
+#include "server_jka_sp_game.hpp"
 #include "server_stvef_game.hpp"
 #include "server_stvef_sp_game.hpp"
+#include "server_jk2_sp_game.hpp"
 #include "server_stvef_sp_save.hpp"
 #include "server_q3_ihv_game.hpp"
 #include "server_alice_game.hpp"
@@ -3128,6 +3155,7 @@ Called every time a map changes
 void SV_ShutdownGameProgs( void ) {
 	SV_JKAClearGame();
 	if ( !gvm ) {
+		SV_JKASPClearGame();
 		if ( Com_GameIsQuake3IHV() ) SV_IHVClearGame();
 		wolfETTagFiles.clear();
 		InvalidateServerGameData();
@@ -3241,12 +3269,14 @@ void SV_RestartGameProgs( void ) {
 	InvalidateServerGameData();
 	SV_ResetGameCvarRegistration();
 
-	if ( Com_GameIsSTVEFSP() || Com_GameIsQ3Test() ) {
+	if ( Com_GameIsSTVEFSP() || Com_GameIsQ3Test() || Com_GameIsJK2SP() || Com_GameIsJKASP() ) {
 		// The function-table game reloads through GetGameAPI. Every Q3Test
 		// engine unloads its library for a restart too, so its static data
 		// starts afresh (1.02 restart 0x419e50, 1.06 map_restart 0x41add0).
 		VM_Free( gvm );
-		gvm = Com_GameIsQ3Test() ? SV_Q3TestLoadGame() : SV_STVEFSPLoadGame();
+		gvm = Com_GameIsQ3Test() ? SV_Q3TestLoadGame()
+			: Com_GameIsJKASP() ? SV_JKASPLoadGame()
+			: Com_GameIsJK2SP() ? SV_JK2SPLoadGame() : SV_STVEFSPLoadGame();
 		if ( !gvm ) {
 			Com_Error( ERR_DROP, "VM_Restart on game failed" );
 		}
@@ -3372,23 +3402,14 @@ void SV_InitGameProgs( void ) {
 		bot_enable = 0;
 	}
 
-	/* Jedi Academy's single player hands the engine a function table rather
-	 * than numbering its calls, and no side of that boundary exists yet.
-	 * Multiplayer's numbered boundary is served as far as it reaches, and
-	 * refuses the first import it has not built by name; see
-	 * docs/fntech3/COMPATIBILITY.md#jedi-academy-gate-matrix. */
-	if ( Com_GameIsJKASP() ) {
-		Com_Error( ERR_DROP, "%s is not implemented: Jedi Academy's single-player module "
-			"boundary is open. The profile loads its installation and maps, but no module runs yet.",
-			Com_GameProfile()->key );
-	}
-
 	// load the dll or bytecode; Elite Force SP's and Alice's games are
 	// function tables rather than a vmMain
 	if ( Com_GameIsQuake3IHV() ) {
 		if ( !gvm ) gvm = SV_IHVLoadGame();
 	} else {
 		gvm = Com_GameIsSTVEFSP() ? SV_STVEFSPLoadGame()
+			: Com_GameIsJKASP() ? SV_JKASPLoadGame()
+			: Com_GameIsJK2SP() ? SV_JK2SPLoadGame()
 			: Com_GameIsQ3Test() ? SV_Q3TestLoadGame()
 			: Com_GameIsRitual() ? SV_AliceLoadGame()
 			: Com_GameIsMOHAA() ? SV_MOHAALoadGame()

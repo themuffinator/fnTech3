@@ -467,6 +467,9 @@ struct botlib_export_s
 	int (*PC_UnreadTokenHandle)(int handle);
 	// ET's UI clears the parser's global defines between menu loads.
 	void (*PC_RemoveAllGlobalDefines)(void);
+	// Internal appended extension; JKA's native imports use explicit adapters.
+	int (*PC_LoadGlobalDefines)(const char *filename);
+	int (*PC_LoadJKASourceHandle)(const char *filename);
 };
 using botlib_export_t = botlib_export_s;
 

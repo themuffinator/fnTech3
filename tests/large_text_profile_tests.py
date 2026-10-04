@@ -70,6 +70,10 @@ def fixture():
         function(keys, 'static void Field_VariableSizeDraw('),
         function(keys, 'void Field_BigDraw('),
     ))
+    graphics = read('code/client/cl_main.cpp')
+    first = graphics.index('\tcls.charSetShader = Com_GameIsSTVEF()')
+    last = graphics.index('\n\tcls.recordShader', first)
+    code += 'static void RegisterCharset() {\nconst bool wolfet=Com_GameIsWolfET();\nconst bool rtcwMP=Com_GameIsRTCWMP();\n' + graphics[first:last] + '\n}\n'
     return HARNESS.replace('@FIELD@', field) + code + CHECKS
 
 
@@ -98,6 +102,9 @@ int Com_GameIsSTVEF( void ) {
 	return profileSelected && ( profile.id == COM_GAME_STVEF_SP || profile.id == COM_GAME_STVEF_MP );
 }
 
+int Com_GameIsJKA( void ) { return profileSelected && ( profile.id == COM_GAME_JKA_SP || profile.id == COM_GAME_JKA_MP ); }
+int Com_GameIsWolfET( void ) { return profileSelected && profile.id == COM_GAME_WOLFET; }
+int Com_GameIsRTCWMP( void ) { return profileSelected && profile.id == COM_GAME_RTCW_MP; }
 enum { kCharset = 7, kRecordIcon = 9 };
 struct Quad { float x, y, w, h, s0, t0, s1, t1; qhandle_t shader; float rgba[4]; };
 struct HostText { int x, y; std::string text; int font; float scale; int limit; bool clipped;
@@ -116,10 +123,16 @@ static void HarnessDrawStretchPic( float x, float y, float w, float h, float s0,
 	quads.push_back( { x, y, w, h, s0, t0, s1, t1, shader,
 		{ drawColor[0], drawColor[1], drawColor[2], drawColor[3] } } );
 }
+static std::string registeredCharset;
+static bool charsetNoMip;
+static qhandle_t RegisterShader(const char *name){registeredCharset=name;charsetNoMip=false;return kCharset;}
+static qhandle_t RegisterShaderNoMip(const char *name){registeredCharset=name;charsetNoMip=true;return kCharset;}
 static struct {
 	void ( *SetColor )( const float *rgba );
 	void ( *DrawStretchPic )( float, float, float, float, float, float, float, float, qhandle_t );
-} re = { HarnessSetColor, HarnessDrawStretchPic };
+	qhandle_t (*RegisterShader)(const char *);
+	qhandle_t (*RegisterShaderNoMip)(const char *);
+} re = { HarnessSetColor, HarnessDrawStretchPic, RegisterShader, RegisterShaderNoMip };
 
 static struct {
 	struct { int vidWidth, vidHeight; } glconfig;
@@ -187,12 +200,13 @@ static void Reset( void ) {
 	HarnessSetColor( nullptr );
 }
 
-// One charset cell at 1600x900. stvoyHM.exe's SCR_DrawStringExt samples the
-// left half of each charsgrid_med cell (s1 = s0 + 0.03125); every other engine
-// samples the whole 1/16 cell.
+// One Fn charset cell at 1600x900. Elite Force and Academy's installed
+// charsgrid_med sample the left half of each cell; other profile atlases
+// sample the whole 1/16 cell. Placement, colors and shadows remain Fn-owned.
 static bool Glyph( const Quad &quad, int x, int y, float size, int ch, const float *rgba ) {
-	const bool eliteForce = current == COM_GAME_STVEF_SP || current == COM_GAME_STVEF_MP;
-	const float cell = eliteForce ? 0.03125f : 0.0625f;
+	const bool halfCell = current == COM_GAME_STVEF_SP || current == COM_GAME_STVEF_MP ||
+		current == COM_GAME_JKA_SP || current == COM_GAME_JKA_MP;
+	const float cell = halfCell ? 0.03125f : 0.0625f;
 	const float s = ( ch & 15 ) * 0.0625f;
 	const float t = ( ch >> 4 ) * 0.0625f;
 	return quad.shader == kCharset && quad.x == x * 2.5f && quad.y == y * 1.875f
@@ -396,6 +410,11 @@ int main() {
 	int quakeLive = 0;
 	for ( unsigned id = COM_GAME_QUAKE3; id < COM_GAME_COUNT; ++id ) {
 		Select( static_cast<comGameId_t>( id ) );
+		RegisterCharset();
+		const bool halfCell = id == COM_GAME_STVEF_SP || id == COM_GAME_STVEF_MP || id == COM_GAME_JKA_SP || id == COM_GAME_JKA_MP;
+		const char *expectedCharset = halfCell ? "gfx/2d/charsgrid_med" : id == COM_GAME_WOLFET ? "gfx/2d/consolechars" :
+			id == COM_GAME_RTCW_MP ? "gfx/2d/hudchars" : "gfx/2d/bigchars";
+		CHECK( registeredCharset == expectedCharset && charsetNoMip == halfCell && cls.charSetShader == kCharset );
 		if ( id == COM_GAME_QUAKELIVE ) {
 			CheckHostString();
 			++quakeLive;
@@ -415,6 +434,8 @@ int main() {
 	CHECK( quads.empty() && hostTexts.empty() );
 	// Before a profile is active the client draws Quake III's text and notice.
 	Select( COM_GAME_AUTO, false );
+	RegisterCharset();
+	CHECK( registeredCharset == "gfx/2d/bigchars" && !charsetNoMip );
 	CheckCharsetString();
 	clc.demorecording = qtrue;
 	Notice( 1 );

@@ -2,8 +2,9 @@
 #extension GL_GOOGLE_include_directive : require
 
 // Path tracer composite, at display resolution: reflectance times filtered
-// diffuse irradiance, plus filtered specular and emission, exposed and tone
-// mapped where the sky and emitters light the scene (rt_tonemap.glsl), then
+// diffuse irradiance, plus filtered specular and emission, shown as it was
+// traced, in the map compiler's light units, or exposed and tone mapped in
+// linear light (rt_tonemap.glsl), then
 // fogged as the raster pass fogs a surface, wherever the trace owns the
 // pixel; the raster frame elsewhere (sky, portal views, anything the trace
 // did not reach). The result is copied into the scene colour before the
@@ -25,6 +26,10 @@ const uint RT_VIEW_EMISSION = 6u;
 const uint RT_VIEW_HISTORY = 7u;
 const uint RT_VIEW_DEPTH = 8u;
 const uint RT_VIEW_MOTION = 9u;
+const uint RT_VIEW_LIGHTING = 10u;
+// the lighting view's surfaces: a light stone's reflectance, below the tone
+// mapper's mid-grey so that both light and shade show
+const float RT_VIEW_CLAY = 0.10;
 
 // q3map clamped a lightmap texel at 255, so the raster renderer's lighting
 // never exceeds one lightmap unit. Traced light has no such ceiling; near a
@@ -113,6 +118,25 @@ void main()
 			color = vec3(imageLoad(u_histDiffuse[cur], tp).a / float(max(pc.extra.x, 1u)));
 		} else if (view == RT_VIEW_DEPTH) {
 			color = vec3(fract(imageLoad(u_normalDepth[cur], tp).z / 256.0));
+		} else if (view == RT_VIEW_LIGHTING) {
+			// the light alone: what a plain grey surface would return there,
+			// plus the specular light and emission, through the same camera
+			uint mode = uint(pc.exposure.x + 0.5);
+			if (mode == RT_EXPOSURE_AUTO) {
+				vec3 light = E * RT_VIEW_CLAY + S + Em;
+				color = (pc.extra.w & RT_COMPOSITE_LINEAR) != 0u ? light * tone_exposure(pc.exposure.y) :
+					tone_encode(tone_map(max(light, vec3(0.0)), tone_base(tp, final), pc.exposure.y, pc.exposure.z));
+			} else if (mode == RT_EXPOSURE_FIXED) {
+				color = E * RT_VIEW_CLAY + S + Em;
+				color *= pc.exposure.y;
+				if ((pc.extra.w & RT_COMPOSITE_KNEE) != 0u) {
+					color = tone_encode(tone_knee(color));
+				}
+			} else {
+				// the lightmap's units: a surface of half intensity
+				color = E * 0.5 + S + Em;
+			}
+			color = mix(pc.fog.rgb, color, clamp(emissionFog.a, 0.0, 1.0));
 		} else if (view == RT_VIEW_MOTION) {
 			color = vec3(imageLoad(u_motion, tp).xy * 32.0 + 0.5, 0.5);
 		}

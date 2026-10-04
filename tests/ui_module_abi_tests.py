@@ -35,11 +35,15 @@ static bool q3;
 static bool rtcw;
 static bool stvef;
 static bool stvefSp;
+static bool jka;
+static bool jk2;
 enum { FNTECH3_RTCW_UI_API_VERSION = 4, FNTECH3_STVEF_MP_UI_API_VERSION = 4, FNTECH3_STVEF_SP_UI_API_VERSION = 2 };
 static bool Com_GameIsQuake3() { return q3; }
 static bool Com_GameIsRTCW() { return rtcw; }
 static bool Com_GameIsSTVEFMP() { return stvef; }
 static bool Com_GameIsSTVEFSP() { return stvefSp; }
+static bool Com_GameIsJKAMP() { return jka; }
+static bool Com_GameIsJK2MP() { return jk2; }
 static bool alice;
 static bool aliceMenus;
 // Alice or F.A.K.K.2: the menus Ritual's engine UI keeps.
@@ -146,6 +150,23 @@ int main() {
     assert(!std::strstr(CL_UIModuleLoadFailureMessage(), "Quake Live"));
     stvefSp = false;
 
+    // JKA's legacy native DLL reports 7; its separate modern table is not
+    // admitted through the vmMain host. Test the real adapter's function.
+    jka = true;
+    for (int version = -1; version <= 10; ++version) {
+        assert(CL_UIApiVersionSupported(version, false) == (version == 7));
+        assert(!CL_UIApiVersionSupported(version, true));
+    }
+    assert(std::strstr(CL_UIModuleLoadFailureMessage(), "Jedi Academy multiplayer"));
+    assert(std::strstr(CL_UIModuleLoadFailureMessage(), "uix86.dll"));
+    assert(!std::strstr(CL_UIModuleLoadFailureMessage(), "Quake Live"));
+    jka = false;
+    jk2 = true;
+    assert(std::strstr(CL_UIModuleLoadFailureMessage(), "Jedi Outcast multiplayer"));
+    assert(std::strstr(CL_UIModuleLoadFailureMessage(), "vm/ui.qvm"));
+    assert(!std::strstr(CL_UIModuleLoadFailureMessage(), "Quake Live"));
+    jk2 = false;
+
     char buffer[4]{};
     intptr_t args[] = {0, 0x2000, reinterpret_cast<intptr_t>(buffer), sizeof(buffer)};
     uivm = &legacy;
@@ -167,10 +188,16 @@ class UiModuleAbiTests(unittest.TestCase):
         source = (ROOT / "code/client/cl_ui.cpp").read_text(encoding="utf-8")
         public = (ROOT / "code/ui/ui_public.h").read_text(encoding="utf-8")
         shared = (ROOT / "code/qcommon/q_shared.h").read_text(encoding="utf-8")
+        jka_ui = (ROOT / "code/client/client_jka_ui.hpp").read_text(encoding="utf-8")
+        jka_module = (ROOT / "code/compat/jka_module_abi.h").read_text(encoding="utf-8")
         constants = "\n".join(re.findall(
             r"^#define\s+UI_(?:Q3_|QL_|OLD_)?API_VERSION\s+\d+", public + source, re.M))
         constants += "\n" + re.search(r"^#define\s+KEYCATCH_UI\s+\S+", shared, re.M)[0]
         constants += "\n" + re.search(r"typedef enum\s*{[^{}]*}\s*uiExport_t;", public, re.S)[0]
+        constants += "\nenum { " + re.search(
+            r"FNTECH3_JKA_MP_UI_LEGACY_API_VERSION\s*=\s*\d+", jka_module)[0] + " };\n"
+        jka_version = "namespace fntech3::jka::ui {\n" + function(
+            jka_ui, "inline constexpr bool VersionSupported") + "\n}\n"
         extracted = "\n".join(function(source, signature) for signature in (
             "qboolean CL_UIMenusAreVisible",
             "static bool CL_UIApiVersionSupported",
@@ -181,13 +208,18 @@ class UiModuleAbiTests(unittest.TestCase):
         init = function(source, "void CL_InitUI( void )")
         self.assertIn("CL_UIApiVersionSupported( v, uivm->dllExports != nullptr )", init)
         self.assertIn("CL_UIModuleLoadFailureMessage()", init)
+        jka_startup = init.split("if ( Com_GameIsJKAMP() ) {", 1)[1].split(
+            "else if ( Com_GameIsJK2MP() )", 1)[0]
+        self.assertIn("VM_Create( VM_UI", jka_startup)
+        self.assertIn("VMI_PINNED_NATIVE : VMI_NATIVE", jka_startup)
+        self.assertNotIn("VM_CreateNative", jka_startup)
         scratch = ROOT / ".tmp"
         scratch.mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(prefix="ui-module-abi-", dir=scratch) as folder:
             path = Path(folder)
             fixture = path / "ui.cpp"
             executable = path / ("ui.exe" if os.name == "nt" else "ui")
-            fixture.write_text(constants + PRELUDE + extracted + CHECKS, encoding="utf-8")
+            fixture.write_text(constants + PRELUDE + jka_version + extracted + CHECKS, encoding="utf-8")
             build = subprocess.run([compiler, *compiler_target_args(compiler), "-std=c++17", "-Wall", "-Wextra",
                 "-Werror", str(fixture), "-o", str(executable)],
                 text=True, capture_output=True, timeout=60)

@@ -27,6 +27,8 @@ PRELUDE = r'''
 #include "code/qcommon/ql_bsp.h"
 #include "code/qcommon/game_manager.h"
 #include "code/renderercommon/tr_rtcw_world_shader.h"
+#include "code/renderercommon/tr_raven_bsp_format.h"
+#include "code/renderercommon/tr_jka_distance_cull.h"
 #include <algorithm>
 #include <cassert>
 #include <climits>
@@ -56,6 +58,11 @@ void QDECL Com_Error(errorParm_t, const char *format, ...) {
     diagnostic = message; throw 7;
 }
 static void Com_DPrintf(const char *, ...) {}
+static void QDECL Print(printParm_t, const char *, ...) {}
+// The real entity reader and owned distance getter are covered separately
+// by jka_distance_cull_tests. This fixture stubs downstream lump readers.
+static float s_jkaDistanceCull;
+static qboolean s_jkaDistanceCullReady;
 static unsigned Com_BlockChecksum(const void *data, int length) {
     // An IHV conversion changes both the header and length; peers identify
     // the original installed bytes, never the transient retail layout.
@@ -246,6 +253,11 @@ static void R_LoadGlobalFogForWorld() {}
 static void R_BuildSurfaceLightProxiesForWorld() {}
 static void R_LoadStaticMapLightsForWorld() {}
 static void R_LoadWolfETExternalLightmaps(const lump_t *) {}
+// These fixtures select other profiles. The real Raven reader/grid boundary
+// is executed by raven_bsp_render_tests; accidental cross-profile calls fail.
+static void R_RavenPrepareWorldBuffer(void **, int *, fnRavenBspView_t *, const char *) { assert(false); }
+static void R_RavenKeepWorldRecords(const fnRavenBspView_t *) { assert(false); }
+static void R_LoadRavenLightGrid(const lump_t *) { assert(false); }
 static cvar_t vertexLight;
 static cvar_t *r_vertexLight = &vertexLight;
 constexpr int GLHW_PERMEDIA2 = 4;
@@ -259,6 +271,7 @@ static byte arena[16];
 static byte *HunkAlloc(int size, int) { assert(size == 0); return arena; }
 static struct {
     decltype(&Com_Error) Error;
+    decltype(&Print) Printf;
     decltype(&::FS_ReadFile) FS_ReadFile;
     decltype(&::FS_FreeFile) FS_FreeFile;
     decltype(&Allocate) Malloc;
@@ -267,7 +280,7 @@ static struct {
     decltype(&Format) GameBspFormat;
     comGameId_t gameId;
     decltype(&Com_AliceLoadingStage) AliceLoadingStage;
-} ri{Com_Error, FS_ReadFile, FS_FreeFile, Allocate, Z_Free, HunkAlloc, Format};
+} ri{Com_Error, Print, FS_ReadFile, FS_FreeFile, Allocate, Z_Free, HunkAlloc, Format};
 static struct World { char name[MAX_QPATH], baseName[MAX_QPATH]; int dataSize; float lightGridSize[3];
     int mohaaFirstDecal, mohaaNumDecals, mohaaFirstTerrain, mohaaNumTerrain; } s_worldData;
 static struct { qboolean worldMapLoaded, mapLoading; World *world;
@@ -288,6 +301,10 @@ static void Reset() {
     fileReleases = allocationReleases = checksumCalls = 0;
     missing = failTranslation = rebuildWorld = false; lengthOverride = INT_MAX;
     cm = {}; tr = {}; s_worldData = {}; ri.GameBspFormat = Format;
+    ri.gameId = profile ? profile->id : COM_GAME_AUTO;
+    // Seed a stale Academy value: every non-Academy or failed world load
+    // must clear it before publishing a different world.
+    s_jkaDistanceCull = 6000.0f; s_jkaDistanceCullReady = qtrue;
 }
 static void Word(std::size_t offset, uint32_t value) {
     assert(offset + 4 <= input.size());
@@ -315,6 +332,7 @@ static void Load(Loader loader, bool success, const char *error = nullptr) {
     try { loader("maps/fixture.bsp"); } catch(int code) { assert(code == 7); passed = false; }
     assert(passed == success);
     if (error) assert(diagnostic.find(error) != std::string::npos);
+    if (loader != Collision) assert(!s_jkaDistanceCullReady && s_jkaDistanceCull == 0.0f);
     if (success) {
         assert(formatCalls == 1 && lumpLoads > 0 && fileReleases == 1);
         assert(files.empty() && allocations.empty());

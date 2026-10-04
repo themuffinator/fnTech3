@@ -1,0 +1,137 @@
+/* Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later. */
+#ifndef FNTECH3_CLIENT_JKA_FONT_HPP
+#define FNTECH3_CLIENT_JKA_FONT_HPP
+#include "../compat/jka_font_format.hpp"
+#include <array>
+#include <utility>
+#include <vector>
+
+/* Each including module host owns its font handles. Glyphs from Raven's data
+ * use fnTech3's active renderer, colour pipeline and caller's HUD/menu
+ * transform. This initial path covers the font's single-byte atlas; Asian
+ * multi-page language substitutions remain a separate localization boundary. */
+namespace {
+struct JKAFont {
+    std::string path;
+    fntech3::jka::font::Font metrics;
+    qhandle_t shader = 0;
+};
+std::vector<JKAFont> jkaFonts;
+
+void CL_JKAFontReset() { jkaFonts.clear(); }
+
+const char *CL_JKAFontText(vm_t *vm, intptr_t address, unsigned limit = 16384) {
+    if (!address) Com_Error(ERR_DROP, "Missing Jedi Academy font string");
+    const auto *text = static_cast<const char *>(VM_ExplicitArgPtr(vm, address));
+    for (unsigned n = 0; n < limit; ++n) {
+        VM_CHECKBOUNDS(vm, address+n, 1);
+        if (!text[n]) return text;
+    }
+    Com_Error(ERR_DROP, "Unterminated Jedi Academy font string");
+    return "";
+}
+
+int CL_JKARegisterFont(const char *name) {
+    std::string path;
+    if (!fntech3::jka::font::Path(name, path))
+        Com_Error(ERR_DROP, "Invalid Jedi Academy font path");
+    for (std::size_t n = 0; n < jkaFonts.size(); ++n) {
+        if (!Q_stricmp(jkaFonts[n].path.c_str(), path.c_str())) {
+            jkaFonts[n].shader = re.RegisterShaderNoMip(path.c_str());
+            return jkaFonts[n].shader ? static_cast<int>(n+1) : 0;
+        }
+    }
+    if (jkaFonts.size() >= 32) Com_Error(ERR_DROP, "Jedi Academy font limit exceeded");
+    void *bytes = nullptr;
+    const int length = FS_ReadFile((path+".fontdat").c_str(), &bytes);
+    JKAFont font;
+    const bool valid = length >= 0 && fntech3::jka::font::Read(bytes, static_cast<std::size_t>(length), font.metrics);
+    if (bytes) FS_FreeFile(bytes);
+    if (!valid) {
+        Com_Printf(S_COLOR_YELLOW "Jedi Academy font %s is missing or invalid\n", path.c_str());
+        return 0;
+    }
+    font.path = path;
+    font.shader = re.RegisterShaderNoMip(path.c_str());
+    if (!font.shader) return 0;
+    jkaFonts.push_back(std::move(font));
+    return static_cast<int>(jkaFonts.size());
+}
+
+const JKAFont *CL_JKAFindFont(intptr_t handle) {
+    const auto index = static_cast<std::uint32_t>(handle) & 0x00ffffffu;
+    return index && index <= jkaFonts.size() ? &jkaFonts[index-1] : nullptr;
+}
+
+void CL_JKAFontScale(float scale) {
+    if (!fntech3::jka::font::Finite(scale) || scale < 0 || scale > 128)
+        Com_Error(ERR_DROP, "Invalid Jedi Academy font scale");
+}
+
+template<class Draw>
+void CL_JKADrawFont(const JKAFont &font, const char *text, float x, float y,
+    const float *rgba, std::uint32_t style, int limit, float scale, Draw draw) {
+    CL_JKAFontScale(scale);
+    if (limit < -1 || (style & 0x3f000000u))
+        Com_Error(ERR_DROP, "Invalid Jedi Academy font drawing arguments");
+    if ((style & 0x40000000u) && ((Sys_Milliseconds() >> 7) & 1)) return;
+    std::array<float, 4> color{1, 1, 1, 1};
+    if (rgba) {
+        for (unsigned n = 0; n < 4; ++n) {
+            if (!fntech3::jka::font::Finite(rgba[n])) Com_Error(ERR_DROP, "Invalid Jedi Academy font color");
+            color[n] = rgba[n];
+        }
+    }
+    const float start = x;
+    y += (font.metrics.height-font.metrics.descender/2)*scale;
+    re.SetColor(color.data());
+    for (; *text; ++text) {
+        if (fntech3::jka::font::ColorEscape(text)) {
+            std::copy_n(g_color_table[ColorIndex(*++text)], 3, color.begin());
+            re.SetColor(color.data());
+            continue;
+        }
+        if (*text == '\r') continue;
+        if (*text == '\n') { x = start; y += font.metrics.pointSize*scale; continue; }
+        const auto &glyph = font.metrics.glyphs[static_cast<unsigned char>(*text)];
+        const float advance = glyph.advance*scale;
+        if (limit >= 0 && x+advance-start > limit) break;
+        if (glyph.width && glyph.height) {
+            const float left = x+glyph.offset*scale, top = y-glyph.baseline*scale;
+            if (style & 0x80000000u) {
+                const float shadow[]{0, 0, 0, color[3]};
+                re.SetColor(shadow);
+                draw(left+scale, top+scale, glyph.width*scale, glyph.height*scale, glyph, font.shader);
+                re.SetColor(color.data());
+            }
+            draw(left, top, glyph.width*scale, glyph.height*scale, glyph, font.shader);
+        }
+        x += advance;
+    }
+    re.SetColor(nullptr);
+}
+
+template<class Draw>
+bool CL_JKAFontCall(vm_t *vm, intptr_t *args, intptr_t &result, int first, Draw draw) {
+    const auto ordinal = args[0]-first;
+    if (ordinal < 0 || ordinal > 4) return false;
+    result = 0;
+    if (ordinal == 0) { result = CL_JKARegisterFont(CL_JKAFontText(vm, args[1], 64)); return true; }
+    if (ordinal == 2) { result = fntech3::jka::font::Characters(CL_JKAFontText(vm, args[1])); return true; }
+    const auto *font = CL_JKAFindFont(ordinal == 3 ? args[1] : ordinal == 4 ? args[5] : args[2]);
+    if (!font) return true;
+    const float scale = ordinal == 4 ? VMF(7) : ordinal == 3 ? VMF(2) : VMF(3);
+    CL_JKAFontScale(scale);
+    if (ordinal == 1) { result = fntech3::jka::font::Width(font->metrics, CL_JKAFontText(vm, args[1]), scale); return true; }
+    if (ordinal == 3) { result = static_cast<int>(font->metrics.pointSize*scale); return true; }
+    const float *rgba = nullptr;
+    if (args[4]) {
+        VM_CHECKBOUNDS(vm, args[4], sizeof(float)*4);
+        rgba = static_cast<const float *>(VM_ExplicitArgPtr(vm, args[4]));
+    }
+    CL_JKADrawFont(*font, CL_JKAFontText(vm, args[3]), static_cast<float>(args[1]), static_cast<float>(args[2]),
+        rgba, static_cast<std::uint32_t>(args[5]) & 0xff000000u, static_cast<int>(args[6]), scale, draw);
+    return true;
+}
+} // namespace
+#endif

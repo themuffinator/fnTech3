@@ -27,12 +27,16 @@ PRELUDE = r'''
 #include "code/compat/rtcw_key_adapter.h"
 #include "code/compat/wolfet_key_adapter.h"
 #include "code/compat/wolfet_menu_adapter.h"
+#include "code/compat/jka_cgame_exports.h"
+#include "code/compat/jka_ui_exports.h"
 #include "code/server/server_rtcw_args.hpp"
 #include <cassert>
 #include <cstdio>
 static comGameProfile_t profile;
 const comGameProfile_t *Com_GameProfile() { return &profile; }
 int Com_GameIsWolfET(void) { return profile.id == COM_GAME_WOLFET; }
+int Com_GameIsJKAMP(void) { return profile.id == COM_GAME_JKA_MP; }
+int Com_GameIsJKASP(void) { return profile.id == COM_GAME_JKA_SP; }
 int Com_GameIsRTCW() { return profile.id == COM_GAME_RTCW_SP || profile.id == COM_GAME_RTCW_MP; }
 void QDECL Com_Error(errorParm_t, const char *, ...) { throw 7; }
 static vm_t game, client;

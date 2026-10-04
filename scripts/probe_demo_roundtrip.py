@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Record and play demos through fnTech3, and exchange RTCW MP demos with retail.
+"""Record and play demos through fnTech3, and exchange Wolfenstein demos with retail.
 
 Windows only. Every process runs windowed on an unswitched private desktop with
 an isolated writable home and mouse/joystick input disabled. Console commands
@@ -8,12 +8,15 @@ is injected and no operating-system capture is taken. Screenshots come from the
 engine's own screenshot commands.
 
 Scenarios:
-  self               fnTech3 records a local --profile session (q3, ql or
-                     rtcw-mp), then plays it back normally and as a timedemo in
+  self               fnTech3 records a local --profile session (q3, ql,
+                     rtcw-mp or wolfet), then plays it normally and as a timedemo in
                      fresh processes.
   rtcw-mp-retail-in  retail WolfMP.exe records while connected to the fnTech3
                      dedicated server; fnTech3 then plays the retail-written demo.
   rtcw-mp-retail-out retail WolfMP.exe plays a demo fnTech3 recorded (--demo).
+  wolfet-retail-in   retail et.exe records against the fnTech3 dedicated server;
+                     fnTech3 plays the retail-written .dm_84 normally and timed.
+  wolfet-retail-out  retail et.exe plays a .dm_84 fnTech3 recorded (--demo).
   rtcw-sp            fnTech3 loads an SP save (--save) and records once
                      synchronous clients are set; replay must then be refused
                      cleanly, because original SP cannot replay SP demos.
@@ -22,6 +25,8 @@ A pass means the file was written with the owning profile's extension, has a
 well-formed envelope, and the player reached its completion marker, captured
 its screenshots and exited normally without an engine error. It is not a
 visual-parity or sustained-gameplay claim.
+--team-check records Axis and Allies admissions for a Wolfenstein self or
+retail-in session; the playback then carries those player-state changes.
 """
 from pathlib import Path
 import argparse
@@ -54,6 +59,14 @@ SESSIONS = {
                clear=''),
     'rtcw-mp': dict(game='main', start=['+devmap', 'mp_beach'], settings=['set g_gametype 5'],
                     extension='dm_60', clear='CloseLimboMenu; -scores; '),
+    'wolfet': dict(game='etmain', start=['+devmap', 'goldrush'],
+                   settings=['set g_gametype 2', 'set sv_punkbuster 0', 'set bot_enable 0'],
+                   extension='dm_84', clear='CloseLimboMenu; -scores; '),
+}
+
+RETAIL_MODES = {
+    'rtcw-mp': dict(executable='WolfMP.exe', log='rtcwconsole.log', gametype='5'),
+    'wolfet': dict(executable='et.exe', log='etconsole.log', gametype='2'),
 }
 
 
@@ -178,16 +191,22 @@ def fntech3_playback(client, installation, output, profile, demo_file, timedemo,
 
 def self_session(args, output):
     session = SESSIONS[args.profile]
+    start = list(session['start'])
+    if args.map:
+        start[1] = args.map
     home = output / 'record-home'
     game = home / session['game']
     stem = f'fntech3-{args.profile}-probe'
     settings = ['set com_introplayed 1', 'set com_maxfps 60', 'set com_maxfpsUnfocused 60',
                 'set com_maxfpsMinimized 60', 'set cl_allowDownload 0', 'set cl_motd 0',
                 'set developer 0'] + session['settings'] + [f'set sv_master{i} ""' for i in range(1, 6)]
+    recording = ('wait 120; team r; wait 240; CloseLimboMenu; -scores; screenshotPNG record-axis; '
+                 'team b; wait 240; CloseLimboMenu; -scores; screenshotPNG record-allies; wait 120; '
+                 if args.team_check else 'wait 360; screenshotPNG record-a; wait 120; ')
     settings.append(f'set activeAction "wait 180; {session["clear"]}wait 60; '
-                    f'record {stem}; wait 360; screenshotPNG record-a; wait 120; stoprecord; wait 10; quit"')
+                    f'record {stem}; {recording}stoprecord; wait 10; quit"')
     write_config(game, 'autoexec.cfg', settings)
-    command = fntech3_command(args.client, args.installation, home, args.profile, session['start'])
+    command = fntech3_command(args.client, args.installation, home, args.profile, start)
     code, forced, elapsed, text = run(command, args.client.parent, output / 'record-stdout.log',
                                       game / 'qconsole.log', 150)
     (output / 'record-console.log').write_text(text, encoding='utf-8')
@@ -199,7 +218,8 @@ def self_session(args, output):
     # Exactly one file, named with the extension the profile owns.
     record['passed'] = (code == 0 and not forced and written == [demo.name]
                         and not record['engineErrors'])
-    result = dict(scenario='self', profile=args.profile, start=session['start'], record=record)
+    result = dict(scenario='self', profile=args.profile, start=start, record=record,
+                  teamCheck=args.team_check)
     if demo.exists():
         kept = output / demo.name
         shutil.copy2(demo, kept)
@@ -214,32 +234,40 @@ def self_session(args, output):
 
 
 def mp_retail_in(args, output):
-    retail = args.installation / 'WolfMP.exe'
+    profile = 'wolfet' if args.scenario.startswith('wolfet-') else 'rtcw-mp'
+    session, mode = SESSIONS[profile], RETAIL_MODES[profile]
+    game = session['game']
+    retail = args.installation / mode['executable']
     server_home, client_home = output / 'server-home', output / 'retail-home'
     server_home.mkdir(); client_home.mkdir()
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as reservation:
         reservation.bind(('127.0.0.1', 0))
         port = reservation.getsockname()[1]
     server_command = [str(args.server)]
-    for name, value in dict(com_gameProfile='rtcw-mp', fs_basepath=str(args.installation),
+    for name, value in dict(com_gameProfile=profile, fs_basepath=str(args.installation),
                             fs_homepath=str(server_home), dedicated='1', developer='1', net_ip='127.0.0.1',
                             net_port=str(port), sv_pure='1' if args.pure else '0',
-                            sv_punkbuster='0', bot_enable='0', g_gametype='5', logfile='2',
+                            sv_punkbuster='0', bot_enable='0', g_gametype=mode['gametype'], logfile='2',
                             sv_master1='', sv_master2='', sv_master3='', sv_master4='',
                             sv_master5='').items():
         server_command += ['+set', name, value]
-    server_command += ['+map', args.map, '+wait', '100', '+echo', 'RTCW_SERVER_READY',
+    mapname = args.map or session['start'][1]
+    server_command += ['+map', mapname, '+wait', '100', '+echo', 'RTCW_SERVER_READY',
                        '+wait', '2400', '+quit']
-    stem = 'retail-mp-probe'
+    stem = 'retail-et-probe' if profile == 'wolfet' else 'retail-mp-probe'
     # WolfMP.exe's main menu checks for an update unless cl_autoupdate is off.
+    recording = ('wait 90; team axis 0 3 2; wait 240; CloseLimboMenu; -scores; screenshot; '
+                 'team allies 0 8 7; wait 240; CloseLimboMenu; -scores; screenshot; wait 120; '
+                 if args.team_check else 'wait 450; ')
     client_command = retail_command(retail, args.installation, client_home, dict(
         com_maxfps='30', name='fntech3-demo-probe', cl_autoupdate='0',
-        activeAction=f'wait 150; record {stem}; wait 450; stoprecord; wait 10; quit;'),
+        activeAction=f'wait 150; record {stem}; {recording}stoprecord; wait 10; quit;'),
         ['+connect', f'127.0.0.1:{port}'])
-    server_log = server_home / 'main' / 'qconsole.log'
+    server_log = server_home / game / 'qconsole.log'
     host = WindowsPrivateProcess(server_command, args.server.parent, output / 'server-stdout.log')
     begin = time.monotonic()
-    result = dict(scenario='rtcw-mp-retail-in', profile='rtcw-mp', map=args.map, pure=args.pure,
+    result = dict(scenario=args.scenario, profile=profile, map=mapname, pure=args.pure,
+                  teamCheck=args.team_check,
                   serverCommand=server_command, clientCommand=client_command,
                   retailSha256=sha(retail))
     try:
@@ -248,47 +276,54 @@ def mp_retail_in(args, output):
                 break
             time.sleep(0.1)
         code, forced, elapsed, text = run(client_command, retail.parent, output / 'retail-stdout.log',
-                                          client_home / 'main' / 'rtcwconsole.log', 90)
+                                          client_home / game / mode['log'], 90)
         result.update(retailExit=code, retailForced=forced, retailElapsedSeconds=elapsed)
         (output / 'retail-console.log').write_text(text, encoding='utf-8')
     finally:
         host.close()
     server_text = server_log.read_text(errors='replace') if server_log.exists() else ''
     (output / 'server-console.log').write_text(server_text, encoding='utf-8')
-    demo = client_home / 'main' / 'demos' / f'{stem}.dm_60'
+    demo = client_home / game / 'demos' / f'{stem}.{session["extension"]}'
     result['serverActive'] = ('Going from CS_PRIMED to CS_ACTIVE for fntech3-demo-probe' in server_text
                               and 'ClientBegin: 0' in server_text)
+    if args.team_check:
+        result['teamAdmission'] = {name: f'\\t\\{number}\\c\\0' in server_text
+                                   for name, number in (('axis', 1), ('allies', 2))}
     if args.pure:
         result['pureAdmission'] = result['serverActive'] and 'Unpure client detected' not in server_text
     if demo.exists():
         kept = output / demo.name
         shutil.copy2(demo, kept)
         result['demo'] = dict(file=kept.name, **envelope(kept))
-        result['playback'] = fntech3_playback(args.client, args.installation, output, 'rtcw-mp', kept, False)
-        result['timedemoRun'] = fntech3_playback(args.client, args.installation, output, 'rtcw-mp', kept, True)
+        result['playback'] = fntech3_playback(args.client, args.installation, output, profile, kept, False, game)
+        result['timedemoRun'] = fntech3_playback(args.client, args.installation, output, profile, kept, True, game)
     result['passed'] = bool(result.get('retailExit') == 0 and not result.get('retailForced')
                             and result['serverActive'] and result.get('pureAdmission', True) and result.get('demo', {}).get('terminated')
+                            and all(result.get('teamAdmission', {}).values())
                             and result.get('playback', {}).get('passed')
                             and result.get('timedemoRun', {}).get('passed'))
     return result
 
 
 def mp_retail_out(args, output):
-    retail = args.installation / 'WolfMP.exe'
+    profile = 'wolfet' if args.scenario.startswith('wolfet-') else 'rtcw-mp'
+    session, mode = SESSIONS[profile], RETAIL_MODES[profile]
+    game = session['game']
+    retail = args.installation / mode['executable']
     demo = args.demo.resolve(strict=True)
-    if demo.suffix.lower() != '.dm_60':
-        raise SystemExit('--demo must be an RTCW MP .dm_60 file')
+    if demo.suffix.lower() != '.' + session['extension']:
+        raise SystemExit(f'--demo must be a {profile} .{session["extension"]} file')
     home = output / 'retail-home'
-    (home / 'main' / 'demos').mkdir(parents=True)
-    shutil.copy2(demo, home / 'main' / 'demos' / demo.name)
+    (home / game / 'demos').mkdir(parents=True)
+    shutil.copy2(demo, home / game / 'demos' / demo.name)
     command = retail_command(retail, args.installation, home, dict(
         com_maxfps='30', nextdemo='quit', cl_autoupdate='0',
         activeAction='wait 30; screenshot; wait 90; screenshot;'), ['+demo', demo.stem])
     code, forced, elapsed, text = run(command, retail.parent, output / 'retail-stdout.log',
-                                      home / 'main' / 'rtcwconsole.log', 120)
+                                      home / game / mode['log'], 120)
     (output / 'retail-console.log').write_text(text, encoding='utf-8')
     shots = collect(home, output, 'shot*.*')
-    result = dict(scenario='rtcw-mp-retail-out', profile='rtcw-mp', command=command,
+    result = dict(scenario=args.scenario, profile=profile, command=command,
                   retailSha256=sha(retail), demo=dict(file=demo.name, **envelope(demo)),
                   exitCode=code, forcedTermination=forced, elapsedSeconds=elapsed,
                   screenshots=shots, engineErrors=ERRORS.findall(text)[:10])
@@ -364,7 +399,8 @@ def sp_self(args, output):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--scenario', required=True,
-                        choices=('self', 'rtcw-mp-retail-in', 'rtcw-mp-retail-out', 'rtcw-sp'))
+                        choices=('self', 'rtcw-mp-retail-in', 'rtcw-mp-retail-out',
+                                 'wolfet-retail-in', 'wolfet-retail-out', 'rtcw-sp'))
     parser.add_argument('--profile', choices=tuple(SESSIONS), default='rtcw-mp',
                         help='self: the profile whose local session is recorded')
     parser.add_argument('--client', type=Path, help='fnTech3 client executable')
@@ -372,19 +408,23 @@ def main():
     parser.add_argument('--installation', type=Path, required=True,
                         help='legitimate installation root for the selected game')
     parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--map', default='mp_beach', help='rtcw-mp-retail-in: server map')
-    parser.add_argument('--pure', action='store_true', help='rtcw-mp-retail-in: run the server with sv_pure 1')
-    parser.add_argument('--demo', type=Path, help='rtcw-mp-retail-out: fnTech3-written .dm_60 to play')
+    parser.add_argument('--map', help='self or retail-in: map (default follows the profile)')
+    parser.add_argument('--pure', action='store_true', help='retail-in: run the server with sv_pure 1')
+    parser.add_argument('--team-check', action='store_true', help='Wolfenstein self or retail-in: record both team admissions')
+    parser.add_argument('--demo', type=Path, help='retail-out: fnTech3-written demo to play')
     parser.add_argument('--save', type=Path, help='rtcw-sp: SP .svg to load before recording')
     args = parser.parse_args()
     if os.name != 'nt':
         parser.error('This probe requires the Windows private-desktop harness')
-    if args.scenario != 'rtcw-mp-retail-out' and not args.client:
+    if args.team_check and not (args.scenario.endswith('-retail-in') or
+                               args.scenario == 'self' and args.profile in RETAIL_MODES):
+        parser.error('--team-check requires a Wolfenstein self or retail-in session')
+    if not args.scenario.endswith('-retail-out') and not args.client:
         parser.error('--client is required for this scenario')
-    if args.scenario == 'rtcw-mp-retail-in' and not args.server:
-        parser.error('--server is required for rtcw-mp-retail-in')
-    if args.scenario == 'rtcw-mp-retail-out' and not args.demo:
-        parser.error('--demo is required for rtcw-mp-retail-out')
+    if args.scenario.endswith('-retail-in') and not args.server:
+        parser.error('--server is required for retail-in')
+    if args.scenario.endswith('-retail-out') and not args.demo:
+        parser.error('--demo is required for retail-out')
     if args.scenario == 'rtcw-sp' and not args.save:
         parser.error('--save is required for rtcw-sp')
     args.installation = args.installation.resolve(strict=True)
@@ -394,8 +434,9 @@ def main():
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     before = inventory(args.installation)
-    scenario = dict(zip(('self', 'rtcw-mp-retail-in', 'rtcw-mp-retail-out', 'rtcw-sp'),
-                        (self_session, mp_retail_in, mp_retail_out, sp_self)))[args.scenario]
+    scenario = {'self': self_session, 'rtcw-sp': sp_self,
+                'rtcw-mp-retail-in': mp_retail_in, 'wolfet-retail-in': mp_retail_in,
+                'rtcw-mp-retail-out': mp_retail_out, 'wolfet-retail-out': mp_retail_out}[args.scenario]
     result = scenario(args, output)
     result['installationUnchanged'] = before == inventory(args.installation)
     result['passed'] = bool(result['passed'] and result['installationUnchanged'])

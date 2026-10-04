@@ -1,4 +1,4 @@
-"""Execute RTCW pak/byte verification before a pinned native module is loaded."""
+"""Execute RTCW, ET and Academy pak/byte verification before pinned native reload."""
 from pathlib import Path
 import os
 import shutil
@@ -37,10 +37,12 @@ using vmIndex_t = int;
 #define FS_INVALID_HANDLE 0
 static comGameProfile_t profile;
 const comGameProfile_t *Com_GameProfile() { return &profile; }
-static int Com_GameManagerPureModuleFilename(const comGameProfile_t *, unsigned slot,
+static int Com_GameManagerPureModuleFilename(const comGameProfile_t *selected, unsigned slot,
     const char *, const char *, char *out, unsigned bytes) {
     assert(slot < 2 && bytes >= 17);
-    const char *name = slot ? "ui_mp_x86.dll" : "cgame_mp_x86.dll";
+    const char *name = selected->pureProof == COM_PURE_PROOF_JKA_NATIVE
+        ? (slot ? "uix86.dll" : "cgamex86.dll")
+        : (slot ? "ui_mp_x86.dll" : "cgame_mp_x86.dll");
     std::memcpy(out, name, std::strlen(name) + 1); return 1;
 }
 static int FS_FilenameCompare(const char *a, const char *b) {
@@ -91,11 +93,14 @@ static int Q_stricmp(const char *a, const char *b) { return FS_FilenameCompare(a
 '''
 
 CHECKS = r'''
+static comGamePureProof_t selectedProof = COM_PURE_PROOF_RTCW_NATIVE;
+static const char *CgameName() { return selectedProof == COM_PURE_PROOF_JKA_NATIVE ? "cgamex86.dll" : "cgame_mp_x86.dll"; }
+static const char *UIName() { return selectedProof == COM_PURE_PROOF_JKA_NATIVE ? "uix86.dll" : "ui_mp_x86.dll"; }
 static void Reset() {
-    profile.pureProof = COM_PURE_PROOF_RTCW_NATIVE;
+    profile.pureProof = selectedProof;
     for (unsigned i = 0; i < sizeof(payload); ++i) payload[i] = byte(i * 37);
     std::memcpy(pinnedBytes, payload, sizeof(payload));
-    entry = {"cgame_mp_x86.dll", sizeof(payload), payload, nullptr};
+    entry = {CgameName(), sizeof(payload), payload, nullptr};
     other = entry;
     pak = {}; pak.hashSize = 1; pak.pure = true; pak.hashTable[0] = &entry;
     lower = pak; lower.hashTable[0] = &other;
@@ -105,16 +110,18 @@ static void Reset() {
     opens = closes = reads = crcChecks = caches = writes = loads = 0;
     failOpen = failRead = failCrc = false;
 }
-static qboolean Verify(const char *name = "cgame_mp_x86.dll") {
-    return FS_VerifyNativeModulePak(name, pinnedBytes, sizeof(pinnedBytes));
+static qboolean Verify(const char *name = nullptr) {
+    return FS_VerifyNativeModulePak(name ? name : CgameName(), pinnedBytes, sizeof(pinnedBytes));
 }
 int main() {
+  for (auto proof : {COM_PURE_PROOF_RTCW_NATIVE, COM_PURE_PROOF_WOLFET_NATIVE, COM_PURE_PROOF_JKA_NATIVE}) {
+    selectedProof = proof;
     Reset();
     assert(Verify() && opens == 1 && closes == 1 && reads == 3 && crcChecks == 1);
     assert(pak.referenced == (FS_GENERAL_REF | FS_CGAME_REF) && lower.referenced == 0);
     for (int slot : {VM_CGAME, VM_UI}) {
         Reset();
-        entry.name = slot == VM_CGAME ? "cgame_mp_x86.dll" : "ui_mp_x86.dll";
+        entry.name = slot == VM_CGAME ? CgameName() : UIName();
         vmPinnedNative[slot].filename = entry.name;
         assert(VM_LoadPinnedDll(slot, entry.name) == &pak);
         assert(opens == 1 && closes == 1 && caches == 1 && writes == 1 && loads == 1);
@@ -122,7 +129,7 @@ int main() {
         pak.referenced = 0;
         assert(VM_LoadPinnedDll(slot, entry.name) == &pak && pak.referenced != 0);
     }
-    Reset(); assert(Verify("CGAME_MP_X86.DLL"));
+    Reset(); assert(Verify(selectedProof == COM_PURE_PROOF_JKA_NATIVE ? "CGAMEX86.DLL" : "CGAME_MP_X86.DLL"));
     for (int fault = 0; fault < 9; ++fault) {
         Reset(); pak.referenced = 0x80;
         if (fault == 0) failOpen = true;
@@ -134,10 +141,27 @@ int main() {
         if (fault == 6) { pak.exclude = lower.exclude = true; }
         if (fault == 7) { pak.hashTable[0] = lower.hashTable[0] = nullptr; }
         if (fault == 8) entry.size = ~0UL;
-        assert(!VM_LoadPinnedDll(VM_CGAME, "cgame_mp_x86.dll"));
+        assert(!VM_LoadPinnedDll(VM_CGAME, CgameName()));
         assert(!caches && !writes && !loads && pak.referenced == 0x80 && lower.referenced == 0);
         assert(closes == (fault == 1 || fault == 2 || fault == 4 ? 1 : 0));
     }
+    // The highest allowed matching filename owns selection: different bytes
+    // must not silently fall through to a matching lower-priority pak.
+    Reset();
+    byte different[sizeof(payload)]; std::memcpy(different,payload,sizeof(payload));
+    different[4096] ^= 1; entry.bytes = different; pak.referenced = 0x80;
+    assert(!VM_LoadPinnedDll(VM_CGAME,CgameName()));
+    assert(opens == 1 && closes == 1 && reads == 2 && !crcChecks);
+    assert(pak.referenced == 0x80 && !lower.referenced && !caches && !writes && !loads);
+    entry.bytes = payload;
+    assert(VM_LoadPinnedDll(VM_CGAME,CgameName()) == &pak);
+    assert(pak.referenced == (0x80 | FS_GENERAL_REF | FS_CGAME_REF) && !lower.referenced);
+    pak.referenced = 0;
+    assert(VM_LoadPinnedDll(VM_CGAME,CgameName()) == &pak);
+    assert(pak.referenced == (FS_GENERAL_REF | FS_CGAME_REF));
+    // The verifier applies to the two pure-proof module slots only.
+    Reset(); failRead = true;
+    assert(VM_LoadPinnedDll(VM_GAME,CgameName()) == &pak && !opens && loads == 1);
     Reset(); pak.pure = false; assert(Verify() && !pak.referenced && lower.referenced);
     Reset(); pak.exclude = true; assert(Verify() && !pak.referenced && lower.referenced);
     Reset();
@@ -149,7 +173,7 @@ int main() {
     assert(!FS_VerifyNativeModulePak(entry.name,pinnedBytes,0));
     assert(!FS_VerifyNativeModulePak(entry.name,pinnedBytes,-1));
     assert(!FS_VerifyNativeModulePak(entry.name,reinterpret_cast<void *>(UINTPTR_MAX),9));
-    for (const char *name : {"vm/cgame.qvm", "cgamex86.dll", "qagame_mp_x86.dll", "other/cgame_mp_x86.dll", "../cgame_mp_x86.dll"})
+    for (const char *name : {"vm/cgame.qvm", selectedProof == COM_PURE_PROOF_JKA_NATIVE ? "cgame_mp_x86.dll" : "cgamex86.dll", "qagame_mp_x86.dll", "other/cgame_mp_x86.dll", "../cgame_mp_x86.dll", "other/cgamex86.dll", "../cgamex86.dll"})
         assert(!Verify(name));
     assert(!opens && !pak.referenced);
     assert(!VM_LoadPinnedDll(VM_CGAME, "different.dll") && !caches);
@@ -164,6 +188,7 @@ int main() {
         assert(FS_ModuleReferenceFlag("vm/ui.qvm") == FS_UI_REF);
         assert(FS_ModuleReferenceFlag("cgame_mp_x86.dll") == 0);
     }
+  }
 }
 '''
 

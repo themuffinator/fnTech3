@@ -34,6 +34,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/q_shared.h"
 #include "../qcommon/game_profile.h"
 #include "../compat/rtcw_routing.hpp"
+#include "../compat/wolfet_navigation.hpp"
 #include "l_utils.h"
 #include "l_memory.h"
 #include "l_log.h"
@@ -174,6 +175,9 @@ static void AAS_InitTravelFlagFromType(void)
 static ID_INLINE int AAS_TravelFlagForType_inline(unsigned int traveltype)
 {
 	if (Com_GameIsRTCW()) return fntech3::rtcw::routing::TravelFlag(traveltype);
+	// ET indexes its own bounded type table; Quake's high team annotations
+	// are invalid ET types (et.exe 0x00481270, etded.exe 0x0044bbd0).
+	if (Com_GameIsWolfET()) return traveltype < MAX_TRAVELTYPES ? aasworld.travelflagfortype[traveltype] : TFL_INVALID;
 	int tfl;
 
 	tfl = 0;
@@ -361,7 +365,10 @@ static ID_INLINE float AAS_RoutingTime(void)
 //===========================================================================
 static int AAS_GetAreaContentsTravelFlags(int areanum)
 {
-	if (Com_GameIsRTCW()) return fntech3::rtcw::routing::ContentsFlags(aasworld.areasettings[areanum].contents);
+	// ET's contents query (et.exe 0x0047cf00) has the same numeric liquid and
+	// entry-restriction rules as RTCW, including bit 1024 and no bridge bit.
+	if (Com_GameIsRTCW() || Com_GameIsWolfET())
+		return fntech3::rtcw::routing::ContentsFlags(aasworld.areasettings[areanum].contents);
 	int contents, tfl;
 
 	contents = aasworld.areasettings[areanum].contents;
@@ -507,6 +514,17 @@ static void AAS_CreateReversedReachability(void)
 //===========================================================================
 unsigned short int AAS_AreaTravelTime(int areanum, vec3_t start, vec3_t end)
 {
+	if (Com_GameIsWolfET()) {
+		std::uint16_t cost = 0;
+		if (!aasworld.areasettings || aasworld.numareasettings != aasworld.numareas
+			|| areanum <= 0 || areanum >= aasworld.numareas
+			|| !fntech3::wolfet::navigation::AreaTravelTime(start, end,
+				AAS_AreaCrouch(areanum) != 0, cost)) {
+			botimport.Print(PRT_ERROR, "Invalid ET area travel cost\n");
+			return 0;
+		}
+		return cost;
+	}
 	if (Com_GameIsRTCW()) {
 		std::uint16_t cost = 0;
 		if (areanum <= 0 || areanum >= aasworld.numareas || !aasworld.rtcwGroundSteepness
@@ -744,8 +762,8 @@ static int AAS_FreeOldestCache(void)
 	int clusterareanum;
 	aas_routingcache_t *cache;
 
-	if (Com_GameIsRTCW()) {
-		// RTCW expires one ordinary area cache and one portal cache per pass.
+	if (Com_GameIsRTCW() || Com_GameIsWolfET()) {
+		// RTCW and ET expire one ordinary area cache and one portal cache per pass.
 		// Equal access times are resolved by table order, not LRU link order.
 		bool freed = false;
 		for (int kind : {CACHETYPE_AREA, CACHETYPE_PORTAL}) {
@@ -1564,6 +1582,20 @@ static void AAS_InitReachabilityAreas(void)
 #include "rtcw_routecache_build.hpp"
 #include "rtcw_routing_init.hpp"
 
+static void AAS_InitRoutingLimits(void)
+{
+	if (Com_GameIsWolfET()) {
+		// ET source observations: be_aas_route.c snapshots both limits at map
+		// initialization. The server supplies the game-type-specific frame limit.
+		aasworld.max_routingcachesize = fntech3::wolfet::navigation::CacheBudget(
+			LibVarValue("max_routingcache", "16384"));
+		aasworld.wolfetMaxFrameRoutingUpdates = fntech3::wolfet::navigation::FrameRoutingUpdates(
+			LibVarValue("bot_frameroutingupdates", "1000"));
+	} else {
+		aasworld.max_routingcachesize = 1024 * (int) LibVarValue("max_routingcache", "12288");
+	}
+}
+
 void AAS_InitRouting(void)
 {
 	if (Com_GameIsRTCW()) {
@@ -1594,7 +1626,7 @@ void AAS_InitRouting(void)
 #endif //ROUTING_DEBUG
 	//
 	aasworld.routingcachesize = 0;
-	aasworld.max_routingcachesize = 1024 * (int) LibVarValue("max_routingcache", "12288");
+	AAS_InitRoutingLimits();
 	// read any routing cache if available
 	AAS_ReadRouteCache();
 	// ET derives waypoints and visibility itself; it has no cache to read.
@@ -1678,11 +1710,12 @@ void AAS_FreeRoutingCaches(void)
 static void AAS_UpdateAreaRoutingCache(aas_routingcache_t *areacache)
 {
 	const bool rtcw = Com_GameIsRTCW() != 0;
+	const bool wolfet = Com_GameIsWolfET() != 0;
 	//Elite Force Holomatch's engine starts from the goal area's first row of
 	//travel times, as RTCW does, and enters any area whatever its
 	//AREA_DISABLED flag (stvoyHM.exe 0x004992d0)
 	const bool holomatch = Com_GameIsSTVEFMP() != 0;
-	const bool goalrow = rtcw || holomatch;
+	const bool goalrow = rtcw || wolfet || holomatch;
 	int i, nextareanum, cluster, badtravelflags, clusterareanum, linknum;
 	int numreachabilityareas;
 	unsigned short int t;
@@ -1697,16 +1730,16 @@ static void AAS_UpdateAreaRoutingCache(aas_routingcache_t *areacache)
 	//number of reachability areas within this cluster
 	numreachabilityareas = aasworld.clusters[areacache->cluster].numreachabilityareas;
 	//
-	if (!rtcw) aasworld.frameroutingupdates++;
+	if (!rtcw && !wolfet) aasworld.frameroutingupdates++;
 	//clear the routing update fields
 	//
 	badtravelflags = ~areacache->travelflags;
 	//
 	clusterareanum = AAS_ClusterAreaNum(areacache->cluster, areacache->areanum);
-	if (clusterareanum >= numreachabilityareas) return;
-	// RTCW starts at its goal area's first outgoing cost row. A missing row
-	// cannot supply that contract; leave the new cache unreachable. Neither
-	// retail engine gets here for an area without reachabilities: clustering
+	if (clusterareanum < 0 || clusterareanum >= numreachabilityareas) return;
+	// RTCW, ET and Holomatch start at the goal's first outgoing cost row. A
+	// missing row leaves the new cache unreachable. The corresponding retail
+	// engines exclude areas without reachabilities before reading their rows:
 	// numbers those past a cluster's reachability areas, returned for above.
 	if (goalrow && (!aasworld.areasettings[areacache->areanum].numreachableareas
 		|| !aasworld.areatraveltimes || !aasworld.areatraveltimes[areacache->areanum]
@@ -1715,8 +1748,8 @@ static void AAS_UpdateAreaRoutingCache(aas_routingcache_t *areacache)
 	curupdate = &aasworld.areaupdate[clusterareanum];
 	curupdate->areanum = areacache->areanum;
 	//VectorCopy(areacache->origin, curupdate->start);
-	//RTCW and Holomatch start from the goal area's own first row of travel
-	//times, the times within it from each link's end to its first
+	//RTCW, ET (et.exe 0x0048132e) and Holomatch start from the goal's first
+	//row of travel times, the times within it from each link's end to its first
 	//reachability; Quake III from zeros, which quake3.exe 1.32 kept in a stack
 	//array of 128 and read past for an area entered by more links
 	curupdate->areatraveltimes = goalrow ? aasworld.areatraveltimes[areacache->areanum][0] : aasworld.startareatraveltimes;
@@ -1759,14 +1792,22 @@ static void AAS_UpdateAreaRoutingCache(aas_routingcache_t *areacache)
 			if (cluster > 0 && cluster != areacache->cluster) continue;
 			//get the number of the area in the cluster
 			clusterareanum = AAS_ClusterAreaNum(areacache->cluster, nextareanum);
-			if (clusterareanum >= numreachabilityareas) continue;
+			if (clusterareanum < 0 || clusterareanum >= numreachabilityareas) continue;
 			//time already travelled plus the traveltime through
 			//the current area plus the travel time from the reachability
 			t = curupdate->tmptraveltime +
 						//AAS_AreaTravelTime(curupdate->areanum, curupdate->start, reach->end) +
 						curupdate->areatraveltimes[i] +
 							reach->traveltime;
-			if (rtcw && aasworld.frameroutingupdates < INT_MAX) ++aasworld.frameroutingupdates;
+			if (wolfet) t = fntech3::wolfet::navigation::AvoidTime(t,
+				aasworld.areasettings[reach->areanum].areaflags, areacache->travelflags);
+			if ((rtcw || wolfet) && aasworld.frameroutingupdates < INT_MAX) ++aasworld.frameroutingupdates;
+			// ET does not publish a path into an area without its cost rows
+			// (et.exe 0x004814a4). Also reject a missing individual row safely.
+			const int nextrow = linknum - aasworld.areasettings[nextareanum].firstreachablearea;
+			if (wolfet && (!aasworld.areatraveltimes[nextareanum]
+				|| nextrow < 0 || nextrow >= aasworld.areasettings[nextareanum].numreachableareas
+				|| !aasworld.areatraveltimes[nextareanum][nextrow])) continue;
 			//
 			if (!areacache->traveltimes[clusterareanum] ||
 					areacache->traveltimes[clusterareanum] > t)
@@ -1777,8 +1818,7 @@ static void AAS_UpdateAreaRoutingCache(aas_routingcache_t *areacache)
 				nextupdate->areanum = nextareanum;
 				nextupdate->tmptraveltime = t;
 				//VectorCopy(reach->start, nextupdate->start);
-				nextupdate->areatraveltimes = aasworld.areatraveltimes[nextareanum][linknum -
-													aasworld.areasettings[nextareanum].firstreachablearea];
+				nextupdate->areatraveltimes = aasworld.areatraveltimes[nextareanum][nextrow];
 				if (!nextupdate->inlist)
 				{
 					// we add the update to the end of the list
@@ -1820,8 +1860,11 @@ static aas_routingcache_t *AAS_GetAreaRoutingCache(int clusternum, int areanum, 
 	if (!cache)
 	{
 		// Published RTCW defers new ordinary area caches after 100 eligible
-		// link updates. Portal construction can finish its dependent caches.
+		// link updates; ET uses its configured map-initialization limit.
+		// Portal construction can finish its dependent caches.
 		if (Com_GameIsRTCW() && !forceUpdate && aasworld.frameroutingupdates > 100) return nullptr;
+		if (Com_GameIsWolfET() && !forceUpdate
+			&& aasworld.frameroutingupdates > aasworld.wolfetMaxFrameRoutingUpdates) return nullptr;
 		cache = AAS_AllocRoutingCache(aasworld.clusters[clusternum].numreachabilityareas);
 		cache->cluster = clusternum;
 		cache->areanum = areanum;
@@ -2045,7 +2088,7 @@ static int AAS_AreaRouteToGoalArea(int areanum, vec3_t origin, int goalareanum, 
 	{
 		travelflags |= TFL_DONOTENTER;
 	} //end if
-	if (Com_GameIsRTCW() && ((aasworld.areasettings[areanum].contents
+	if ((Com_GameIsRTCW() || Com_GameIsWolfET()) && ((aasworld.areasettings[areanum].contents
 		| aasworld.areasettings[goalareanum].contents) & 1024)) {
 		travelflags |= fntech3::rtcw::routing::DoNotEnterLarge;
 	}

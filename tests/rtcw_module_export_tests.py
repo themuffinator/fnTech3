@@ -22,6 +22,8 @@ PRELUDE = r'''
 #include "code/compat/rtcw_key_adapter.h"
 #include "code/compat/wolfet_key_adapter.h"
 #include "code/compat/wolfet_menu_adapter.h"
+#include "code/compat/jka_cgame_exports.h"
+#include "code/compat/jka_ui_exports.h"
 #endif
 #include <assert.h>
 #include <limits.h>
@@ -29,6 +31,8 @@ PRELUDE = r'''
 static comGameProfile_t profile;
 const comGameProfile_t *Com_GameProfile(void) { return &profile; }
 int Com_GameIsWolfET(void) { return profile.id == COM_GAME_WOLFET; }
+int Com_GameIsJKAMP(void) { return profile.id == COM_GAME_JKA_MP; }
+int Com_GameIsJKASP(void) { return profile.id == COM_GAME_JKA_SP; }
 int Com_GameIsRTCW(void) { return profile.id == COM_GAME_RTCW_SP || profile.id == COM_GAME_RTCW_MP; }
 int Com_GameIsRTCWSP(void) { return profile.id == COM_GAME_RTCW_SP; }
 static jmp_buf errorJump;
@@ -199,9 +203,9 @@ static void RTCW(comGameId_t id) {
             assert(observedArgs[0] == (n | 1024));
         }
         { // All original menu returns cross back to the canonical vocabulary.
-            /* The last five are Enemy Territory's menus, which neither RTCW mode has. */
-            static const int spAll[] = {0,1,2,3,5,6,8,4,7,9,10,11,12,13,14,15,16,17,-1,18,-1,19,-1,-1,-1,-1,-1};
-            static const int mpAll[] = {0,1,2,3,4,5,6,-1,-1,7,8,9,10,11,12,13,14,15,16,17,18,-1,-1,-1,-1,-1,-1};
+            /* The last five ET menus and Academy's appended player menu are absent in both RTCW modes. */
+            static const int spAll[] = {0,1,2,3,5,6,8,4,7,9,10,11,12,13,14,15,16,17,-1,18,-1,19,-1,-1,-1,-1,-1,-1};
+            static const int mpAll[] = {0,1,2,3,4,5,6,-1,-1,7,8,9,10,11,12,13,14,15,16,17,18,-1,-1,-1,-1,-1,-1,-1};
             _Static_assert(sizeof(spAll)/sizeof(spAll[0]) == UIMENU_COUNT, "one SP entry per menu");
             _Static_assert(sizeof(mpAll)/sizeof(mpAll[0]) == UIMENU_COUNT, "one MP entry per menu");
             for (n = 0; n < UIMENU_COUNT; ++n) {

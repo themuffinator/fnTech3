@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def routing_source():
     source = rtcw_routecache_load_tests.loader_source()
     source += '\n#include "code/compat/rtcw_routing.hpp"\n'
+    source += '\n#include "code/compat/wolfet_navigation.hpp"\n'
     reach = (ROOT / 'code/botlib/be_aas_reach.cpp').read_text()
     for signature in ('int AAS_AreaCrouch(', 'int AAS_AreaSwim('):
         source += function(reach, signature) + '\n'
@@ -23,7 +24,8 @@ def routing_source():
                       'int AAS_TravelFlagForType(', 'static int AAS_GetAreaContentsTravelFlags(',
                       'static ID_INLINE int AAS_AreaContentsTravelFlags_inline(', 'int AAS_AreaContentsTravelFlags(',
                       'static void AAS_InitAreaContentsTravelFlags(', 'unsigned short int AAS_AreaTravelTime(',
-                      'static int AAS_PortalMaxTravelTime(', 'static void AAS_InitPortalMaxTravelTimes('):
+                      'static int AAS_PortalMaxTravelTime(', 'static void AAS_InitPortalMaxTravelTimes(',
+                      'static void AAS_InitRoutingLimits('):
         source += function(route, signature) + '\n'
     source += r'''
 #include "code/botlib/rtcw_routing_init.hpp"
@@ -113,17 +115,17 @@ int main(){
   aasworld.areasettings=botlib::ClearedAlloc<aas_areasettings_t>(3);
   aasworld.rtcwGroundSteepness=botlib::ClearedAlloc<float>(3);AAS_InitTravelFlagFromType();
   auto &settings=aasworld.areasettings[1];settings.presencetype=PRESENCE_NORMAL;
-  float a[3]={},b[3]={3,4,0};assert(AAS_AreaTravelTime(1,a,b)==(Com_GameIsRTCWSP()?2:1));
+  float a[3]={},b[3]={3,4,0};assert(AAS_AreaTravelTime(1,a,b)==(Com_GameIsRTCWSP()||Com_GameIsWolfET()?2:1));
   // Holomatch's engine has neither RTCW's bit for 1024 nor Quake III 1.32's
   // team and bridge flags, and a liquid takes its own flag alone
   // (stvoyHM.exe 0x00499290).
   settings.contents=1024|2048|4096|256;settings.areaflags=AREA_BRIDGE;
-  assert(AAS_GetAreaContentsTravelFlags(1)==(Com_GameIsRTCW()?
+  assert(AAS_GetAreaContentsTravelFlags(1)==((Com_GameIsRTCW()||Com_GameIsWolfET())?
    (0x00080000|0x00800000|0x02000000):Com_GameIsSTVEFMP()?(TFL_AIR|TFL_DONOTENTER):
    (TFL_AIR|TFL_DONOTENTER|TFL_NOTTEAM1|TFL_NOTTEAM2|TFL_BRIDGE)));
-  settings.contents|=1;assert(AAS_GetAreaContentsTravelFlags(1)==(Com_GameIsRTCW()||Com_GameIsSTVEFMP()?TFL_WATER:
+  settings.contents|=1;assert(AAS_GetAreaContentsTravelFlags(1)==(Com_GameIsRTCW()||Com_GameIsWolfET()||Com_GameIsSTVEFMP()?TFL_WATER:
    (TFL_WATER|TFL_DONOTENTER|TFL_NOTTEAM1|TFL_NOTTEAM2|TFL_BRIDGE)));
-  assert(AAS_TravelFlagForType(TRAVEL_WALK|TRAVELFLAG_NOTTEAM1)==(Com_GameIsRTCW()?TFL_INVALID:TFL_WALK|TFL_NOTTEAM1));
+  assert(AAS_TravelFlagForType(TRAVEL_WALK|TRAVELFLAG_NOTTEAM1)==(Com_GameIsRTCW()||Com_GameIsWolfET()?TFL_INVALID:TFL_WALK|TFL_NOTTEAM1));
   assert(AAS_TravelFlagForType(-1)==TFL_INVALID&&AAS_TravelFlagForType(32)==TFL_INVALID);
   shutdown();
  }
@@ -162,7 +164,12 @@ static void checkTables(){
 int main(){
  for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;initialize();botimport.Print=checkedPrint;
   if(!Com_GameIsRTCW()){
-   files["maps/q3.aas"]={std::begin(quakeMap),std::end(quakeMap)};assert(AAS_LoadAASFile("maps/q3.aas")==0);
+   // ET owns AAS8; the other single-world profiles retain their Q3 AAS5 control.
+   const char *map=Com_GameIsWolfET()?"maps/et.aas":"maps/q3.aas";
+   if(Com_GameIsWolfET())files[map]={std::begin(initialMap),std::end(initialMap)};
+   else files[map]={std::begin(quakeMap),std::end(quakeMap)};
+   assert(AAS_LoadAASFile(map)==0);
+   assert((aasworld.rtcwGroundSteepness!=nullptr)==Com_GameIsWolfET());
    const int before=legacyRouting;assert(AAS_StartFrame(3)==0&&aasworld.initialized&&aasworld.numframes==1);
    assert(legacyRouting==before+1&&legacyUnlinks>0&&!aasworld.rtcwRouteCacheLoaded);shutdown();continue;
   }

@@ -178,6 +178,42 @@ void MSG_ReadDeltaPlayerstateLegacy( msg_t *msg, const playerState_t *from, play
 void MSG_ReportChangeVectors_f( void );
 
 #include "../compat/rtcw_game_abi.h"
+#include "../compat/jka_game_abi.h"
+#include "../compat/jk2_game_abi.h"
+
+// Jedi Outcast protocol 15 carries its own frozen records.
+qboolean MSG_WriteDeltaJK2UsercmdKey( msg_t *msg, int key,
+	const fntech3_jk2_usercmd_t *from, const fntech3_jk2_usercmd_t *to );
+qboolean MSG_ReadDeltaJK2UsercmdKey( msg_t *msg, int key,
+	const fntech3_jk2_usercmd_t *from, fntech3_jk2_usercmd_t *to );
+qboolean MSG_WriteDeltaJK2Entity( msg_t *msg,
+	const fntech3_jk2_entityState_t *from, const fntech3_jk2_entityState_t *to, qboolean force );
+qboolean MSG_ReadDeltaJK2Entity( msg_t *msg,
+	const fntech3_jk2_entityState_t *from, fntech3_jk2_entityState_t *to, int number );
+qboolean MSG_WriteDeltaJK2Playerstate( msg_t *msg,
+	const fntech3_jk2_playerState_t *from, const fntech3_jk2_playerState_t *to );
+qboolean MSG_ReadDeltaJK2Playerstate( msg_t *msg,
+	const fntech3_jk2_playerState_t *from, fntech3_jk2_playerState_t *to );
+
+// Raven's protocol 26 bodies and transactional mod field-width overrides.
+qboolean MSG_SetJKAFieldOverrides( const char *entityText, size_t entityBytes,
+	const char *playerText, size_t playerBytes );
+qboolean MSG_WriteDeltaJKAUsercmdKey( msg_t *msg, int key,
+	const fntech3_jka_usercmd_t *from, const fntech3_jka_usercmd_t *to );
+qboolean MSG_ReadDeltaJKAUsercmdKey( msg_t *msg, int key,
+	const fntech3_jka_usercmd_t *from, fntech3_jka_usercmd_t *to );
+qboolean MSG_WriteDeltaJKAEntity( msg_t *msg,
+	const fntech3_jka_entityState_t *from, const fntech3_jka_entityState_t *to, qboolean force );
+qboolean MSG_ReadDeltaJKAEntity( msg_t *msg,
+	const fntech3_jka_entityState_t *from, fntech3_jka_entityState_t *to, int number );
+qboolean MSG_WriteDeltaJKAPlayerstate( msg_t *msg,
+	const fntech3_jka_playerState_t *from, const fntech3_jka_playerState_t *to, qboolean vehicle );
+qboolean MSG_ReadDeltaJKAPlayerstate( msg_t *msg,
+	const fntech3_jka_playerState_t *from, fntech3_jka_playerState_t *to, qboolean vehicle );
+qboolean MSG_WriteDeltaJKAVehiclePlayerstate( msg_t *msg,
+	const playerState_t *from, const playerState_t *to );
+qboolean MSG_ReadDeltaJKAVehiclePlayerstate( msg_t *msg,
+	const playerState_t *from, playerState_t *to );
 
 // RTCW message bodies have explicit frozen boundaries. False means overflow,
 // invalid input or truncation; failed reads leave the destination unchanged.
@@ -1602,6 +1638,7 @@ void	Sys_DisplaySystemConsole( qboolean show );
 
 void	Sys_ShowConsole( int level, qboolean quitOnClose );
 void	Sys_SetConsoleTitle( const char *title );
+void	Sys_UpdateConsolePresentation( void );
 void	Sys_SetErrorText( const char *text );
 
 // Startup conditions that are recoverable but need a human decision before the

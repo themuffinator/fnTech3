@@ -133,7 +133,7 @@ static void fillerRoutes(const GoalWorld &w){
    const int link=aasworld.reachability[s.firstreachablearea].traveltime;int time=-1,reach=-1;
    vec3_t end,out;VectorCopy(aasworld.reachability[s.firstreachablearea].end,end);
    VectorCopy(aasworld.reachability[firstOut].start,out);
-   const int inside=Com_GameIsSTVEFMP()?AAS_AreaTravelTime(w.into,end,out):0;
+   const int inside=(Com_GameIsSTVEFMP()||Com_GameIsWolfET())?AAS_AreaTravelTime(w.into,end,out):0;
    aasworld.frameroutingupdates=0;assert(query(a,nullptr,w.into,flags,&time,&reach));
    assert(reach==s.firstreachablearea&&time==1+inside+link);
    // on to the goal beyond the portal, from the filler's centre, every

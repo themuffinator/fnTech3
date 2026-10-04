@@ -14,23 +14,28 @@
  * the same bounded readers that swept both installations, so a model that
  * would not read there does not load here either.
  *
- * The module keeps a pointer to an instance in its own entity record. That
- * pointer is never trusted on the way back: an instance is owned here, kept in
- * a table, and a pointer that is not in that table is refused rather than
- * followed. A module that hands back a stale or forged pointer gets a refusal,
- * not a jump into whatever it points at.
+ * Multiplayer modules keep an opaque void* handle in their entity records.
+ * The engine owns the instance separately: no module handle is dereferenced,
+ * and a retired identity never becomes a new instance, even if its old heap
+ * address is reused. The single-player STL container contract is separate.
  *
  * See docs/fntech3/2026-09-22-raven-ghoul2-server.md. */
 
 #include "../compat/jka_model_format.hpp"
+#include "ghoul2_pose.hpp"
+#include "ghoul2_default.hpp"
 
 #include <cmath>
+#include <algorithm>
+#include <atomic>
+#include <climits>
+#include <cstdint>
 #include <cstring>
 #include <iterator>
+#include <limits>
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 namespace fntech3 {
@@ -59,6 +64,7 @@ enum class LoadError {
 	Skeleton,      /* the skeleton does not read */
 	Bones,         /* the mesh wants a bone the skeleton does not have */
 	Full,          /* this instance holds as many models as it may */
+	HandleExhausted, /* no never-used opaque identity remains */
 };
 
 inline const char *LoadErrorName( LoadError error ) {
@@ -72,6 +78,7 @@ inline const char *LoadErrorName( LoadError error ) {
 	case LoadError::Skeleton: return "the skeleton does not read";
 	case LoadError::Bones: return "the mesh wants a bone its skeleton lacks";
 	case LoadError::Full: return "the instance holds as many models as it may";
+	case LoadError::HandleExhausted: return "opaque model identities exhausted";
 	}
 	return "unknown";
 }
@@ -96,6 +103,31 @@ inline constexpr int MaxBoneAnimations = MaxNamedBones;
  * generous rather than tight. */
 inline constexpr std::size_t MaxKeptFiles = 64;
 
+/* MP Ghoul2 handles are compared and passed back, never followed by the game.
+ * Use the pointer-sized ABI slot as an identity rather than a heap address.
+ * All Stores share one sequence, so a handle from another Store cannot resolve
+ * here. Allocation is atomic across Stores; each Store's model operations are
+ * serialized by its owning server frame. Zero permanently marks exhaustion,
+ * rather than wrapping to an identity a stale module record could still hold. */
+class OpaqueHandleSequence {
+public:
+	explicit OpaqueHandleSequence( std::uintptr_t first = 1 ) : next_( first ) {}
+	void *Allocate() {
+		std::uintptr_t candidate = next_.load( std::memory_order_relaxed );
+		while ( candidate ) {
+			const std::uintptr_t next = candidate == std::numeric_limits<std::uintptr_t>::max()
+				? 0 : candidate + 1;
+			if ( next_.compare_exchange_weak( candidate, next, std::memory_order_relaxed ) ) {
+				return reinterpret_cast<void *>( candidate );
+			}
+		}
+		return nullptr;
+	}
+private:
+	std::atomic<std::uintptr_t> next_;
+};
+inline OpaqueHandleSequence ModelHandleIdentities;
+
 /* A named place on a model that the game can ask the engine about later: a
  * surface of the mesh, or a bone of the skeleton. Which of the two it is
  * matters, because they are numbered separately. */
@@ -105,10 +137,8 @@ struct Bolt {
 	int bone = -1;
 };
 
-/* What the game set one bone playing: the range of frames, how fast, how it
- * blends, and when it started. The engine holds this and does not interpret
- * it -- working out which frame a bone is on at a given moment is arithmetic
- * that has not been measured, and this does not pretend to know it. */
+/* What the game set one bone playing: its frame range, speed, blend and clock.
+ * The timing model below turns this into a pose frame when a bolt is asked for. */
 struct BoneAnimation {
 	int bone = -1;
 	int startFrame = 0;
@@ -116,8 +146,13 @@ struct BoneAnimation {
 	int flags = 0;
 	float speed = 0.0f;
 	int startTime = 0;
-	int setFrame = 0;
+	float setFrame = -1.0f;
 	int blendTime = 0;
+	/* Owned transition sample, separate from the new clip's seeded clock.
+	 * No external bone record or module pointer enters this representation. */
+	pose::Frame previous{};
+	int blendStart = 0;
+	bool previousKnown = false;
 };
 
 /* Where a bone's animation has got to at a given moment.
@@ -148,6 +183,16 @@ struct BoneAnimation {
 inline constexpr float FrameMilliseconds = 50.0f;
 inline constexpr int LoopFlag = 0x10;
 
+inline bool FiniteScalar( float value )
+{
+	std::uint32_t bits;
+	std::memcpy( &bits, &value, sizeof( bits ) );
+	/* A scalar parameter may carry compiler finite-only assumptions under
+	 * fast math; retain an integer memory read for this contract check. */
+	volatile std::uint32_t encoded = bits;
+	return ( encoded & 0x7f800000u ) != 0x7f800000u;
+}
+
 struct Playhead {
 	int currentFrame = 0;
 	int newFrame = 0;
@@ -157,9 +202,9 @@ struct Playhead {
 inline Playhead PlayheadAt( const BoneAnimation &playing, int numFrames, int now )
 {
 	Playhead out;
-	if ( numFrames <= 0 ) return out;
+	if ( numFrames <= 0 || !FiniteScalar( playing.speed ) ) return out;
 
-	float elapsed = float( now - playing.startTime ) / FrameMilliseconds;
+	float elapsed = float( std::int64_t( now ) - playing.startTime ) / FrameMilliseconds;
 	if ( elapsed < 0.0f ) elapsed = 0.0f;
 	float frame = float( playing.startFrame ) + elapsed * playing.speed;
 
@@ -170,8 +215,10 @@ inline Playhead PlayheadAt( const BoneAnimation &playing, int numFrames, int now
 	int first = playing.startFrame;
 	int last = playing.endFrame;
 	if ( first < 0 ) first = 0;
+	if ( first >= numFrames ) first = numFrames - 1;
 	if ( last > numFrames ) last = numFrames;
 	if ( last <= first ) { out.currentFrame = out.newFrame = first; return out; }
+	if ( !FiniteScalar( frame ) ) { out.currentFrame = out.newFrame = first; return out; }
 
 	const float span = float( last - first );
 	if ( playing.flags & LoopFlag ) {
@@ -190,6 +237,23 @@ inline Playhead PlayheadAt( const BoneAnimation &playing, int numFrames, int now
 	if ( out.currentFrame < first ) out.currentFrame = first;
 	if ( out.newFrame < first ) out.newFrame = first;
 	return out;
+}
+
+/* The currently served forward timing subset, shared by palette evaluation
+ * and the transition setter. Unfrozen terminal state is still unmeasured. */
+inline bool ForwardPlayhead( const BoneAnimation &playing, int numFrames, int now,
+	Playhead &out )
+{
+	if ( playing.flags & ~0xd8 || !(playing.flags & 0x18)
+		|| !FiniteScalar(playing.speed) || playing.speed < 0.0f
+		|| playing.startFrame < 0 || playing.endFrame > numFrames
+		|| playing.endFrame <= playing.startFrame ) return false;
+	const double elapsed = std::max(0.0, double(std::int64_t(now) - playing.startTime));
+	const double frame = playing.startFrame + elapsed / 50.0 * playing.speed;
+	if ( !(playing.flags & 0x10) && !(playing.flags & 0x40)
+		&& frame > playing.endFrame - 1 ) return false;
+	out = PlayheadAt(playing, numFrames, now);
+	return true;
 }
 
 /* The angles the game bends one bone to, and which way round it means them.
@@ -214,8 +278,8 @@ struct Model {
 	model::Skeleton skeleton;
 	/* The two files themselves, owned by the store and shared between every
 	 * model that names them, so that a bolt matrix can reach the vertices and
-	 * the poses. Null for a mesh that carries its own bones and names no
-	 * skeleton file. */
+	 * the poses. A star selector is metadata-only unless this store enables
+	 * its engine-provided skeleton representation. */
 	const std::vector<unsigned char> *meshBytes = nullptr;
 	const std::vector<unsigned char> *skeletonBytes = nullptr;
 	/* The names the files carry, read once when the model loads, so that a
@@ -264,20 +328,24 @@ private:
 	friend class Store;
 	std::vector<Model> models_;
 	bool serverOnly_ = false;
+	void *handle_ = nullptr;
 };
 
 class Store {
 public:
-	explicit Store( Files &files ) : files_( &files ) {}
+	explicit Store( Files &files, bool serveDefaultSkeleton = false,
+		bool serveAnimationBlends = false ) : files_( &files ), serveAnimationBlends_(serveAnimationBlends) {
+		if ( serveDefaultSkeleton ) Keep( "*default", builtin::DefaultSkeleton() );
+	}
 
-	void Clear() { instances_.clear(); live_.clear(); attached_.clear(); }
+	void Clear() { attached_.clear(); live_.clear(); instances_.clear(); }
 	std::size_t InstanceCount() const { return instances_.size(); }
 
 	/* An instance this store owns, or null. Never follow a module's pointer
 	 * without asking this first. */
 	Instance *Resolve( void *pointer ) {
-		if ( !pointer || !live_.count( pointer ) ) return nullptr;
-		return static_cast<Instance *>( pointer );
+		const auto found = live_.find( pointer );
+		return found == live_.end() ? nullptr : found->second;
 	}
 
 	/* Add a model to the instance at `slot`, making one if there is none.
@@ -299,6 +367,9 @@ public:
 	/* Every bone of one model, posed for one moment, twelve floats each in
 	 * bone order. */
 	bool BoneMatrices( const Model &model, int now, std::vector<float> &out ) const;
+	/* The same owned animation/angle state as a full palette. Weighted mesh
+	 * geometry uses deformation; raw bone bolts use bones. */
+	bool DeformationPalette( const Model &model, int now, pose::Palette &out ) const;
 	/* Where one of a model's bolts is, in the model's own space, at one
 	 * moment. False if the model cannot answer -- no skeleton kept, a bolt
 	 * that names nothing, a surface this engine cannot reach -- and in that
@@ -340,7 +411,7 @@ public:
 	 * against nothing. A bone set twice keeps one record, the later one. */
 	bool SetBoneAnim( void *pointer, int modelIndex, const char *boneName,
 		int startFrame, int endFrame, int flags, float speed, int currentTime,
-		int setFrame, int blendTime );
+		float setFrame, int blendTime );
 	/* What a bone was set playing, or null. */
 	const struct BoneAnimation *BoneAnimation( void *pointer, int modelIndex,
 		const char *boneName );
@@ -371,6 +442,10 @@ public:
 
 	/* Forget an instance the module is finished with. */
 	bool Release( void *pointer );
+	/* Release an owned handle and clear exactly the module's pointer slot.
+	 * An already-null handle is a no-op; stale/foreign handles are refused and
+	 * leave the slot unchanged. Slots may be unaligned in module memory. */
+	bool Clean( void **slot );
 
 private:
 	bool ReadFile( const std::string &path, std::vector<unsigned char> &into );
@@ -396,8 +471,9 @@ private:
 	const std::vector<unsigned char> *Kept_( const std::string &name ) const;
 
 	Files *files_ = nullptr;
+	bool serveAnimationBlends_ = false;
 	std::vector<std::unique_ptr<Instance>> instances_;
-	std::unordered_set<void *> live_;
+	std::unordered_map<void *, Instance *> live_;
 	std::unordered_map<int, void *> attached_;
 };
 
@@ -454,15 +530,17 @@ inline LoadError Store::Load( const char *name, Model &out )
 	named[model::NameBytes] = 0;
 	if ( !named[0] ) return LoadError::SkeletonName;
 
-	/* A name beginning with a star is not a file. The mesh carries its own
-	 * bones and there is nothing to open, so opening it would be the mistake.
+	/* A name beginning with a star is an internal engine selector, not a file.
+	 * An explicitly enabled store owns the measured *default skeleton. Other
+	 * stores retain their previous metadata-only behavior for star selectors.
 	 *
 	 * Measured, not assumed: across both retail installations `*default` is
 	 * the only such name there is -- 41 of Jedi Academy's 127 meshes and 23 of
 	 * Jedi Outcast's 71 carry it, including every lightsaber -- and every name
 	 * that does not begin with a star resolves to a `.gla` that is present, in
 	 * both. So the star is the rule and not an exception to chase. */
-	if ( named[0] == '*' ) {
+	const auto *provided = named[0] == '*' ? Kept_( named ) : nullptr;
+	if ( named[0] == '*' && !provided ) {
 		out.skeletonName = named;
 		out.skeleton = model::Skeleton{};
 		out.skeleton.numBones = out.mesh.numBones;
@@ -470,10 +548,11 @@ inline LoadError Store::Load( const char *name, Model &out )
 			== model::Error::None ? LoadError::None : LoadError::Bones;
 	}
 
-	out.skeletonName = std::string( named ) + ".gla";
+	out.skeletonName = provided ? std::string( named ) : std::string( named ) + ".gla";
 
 	std::vector<unsigned char> skeleton;
-	if ( !ReadFile( out.skeletonName, skeleton ) ) return LoadError::SkeletonFile;
+	if ( provided ) skeleton = *provided;
+	else if ( !ReadFile( out.skeletonName, skeleton ) ) return LoadError::SkeletonFile;
 	if ( model::ParseSkeleton( skeleton.data(), skeleton.size(), out.skeleton )
 		!= model::Error::None ) {
 		return LoadError::Skeleton;
@@ -514,7 +593,9 @@ inline LoadError Store::Load( const char *name, Model &out )
 inline int Store::AddModel( void **slot, const char *name, LoadError &error )
 {
 	error = LoadError::None;
-	Instance *instance = slot ? Resolve( *slot ) : nullptr;
+	void *handle = nullptr;
+	if ( slot ) std::memcpy( &handle, slot, sizeof( handle ) );
+	Instance *instance = Resolve( handle );
 
 	Model loaded;
 	error = Load( name, loaded );
@@ -526,12 +607,15 @@ inline int Store::AddModel( void **slot, const char *name, LoadError &error )
 	}
 
 	if ( !instance ) {
+		handle = ModelHandleIdentities.Allocate();
+		if ( !handle ) { error = LoadError::HandleExhausted; return -1; }
 		instances_.push_back( std::make_unique<Instance>() );
 		instance = instances_.back().get();
-		live_.insert( instance );
+		instance->handle_ = handle;
+		live_.emplace( handle, instance );
 	}
 	instance->models_.push_back( std::move( loaded ) );
-	if ( slot ) *slot = instance;
+	if ( slot ) std::memcpy( slot, &instance->handle_, sizeof( instance->handle_ ) );
 	return instance->Count() - 1;
 }
 
@@ -561,56 +645,59 @@ inline bool Store::CopyModel( void *from, int modelFrom, void *to, int modelTo )
 	return true;
 }
 
-/* Every bone of a model, posed for one moment.
- *
- * A bone the game has set playing is posed at the frame its playhead has
- * reached, blended towards the next by the fraction between them, element by
- * element across the whole matrix -- which is what the retail engine does, and
- * not a quaternion slerp. A bone the game has never touched stays where it was
- * modelled. */
-inline bool Store::BoneMatrices( const Model &model, int now,
-	std::vector<float> &out ) const
+/* Every bone's raw model-space transform, with frame-zero defaults and
+ * inherited animation. Unsupported controls cause query failure; stored
+ * metadata alone does not establish that its pose effect is implemented. */
+inline bool Store::DeformationPalette( const Model &model, int now,
+	pose::Palette &out ) const
 {
-	out.clear();
 	if ( !model.skeletonBytes || model.skeleton.numBones <= 0 ) return false;
 	const void *data = model.skeletonBytes->data();
 	const std::size_t size = model.skeletonBytes->size();
-	out.assign( std::size_t( model.skeleton.numBones ) * 12, 0.0f );
-
-	for ( int bone = 0; bone < model.skeleton.numBones; ++bone ) {
-		float *slot = &out[std::size_t( bone ) * 12];
-		const fntech3::ghoul2::BoneAnimation *playing = nullptr;
-		for ( const fntech3::ghoul2::BoneAnimation &entry : model.animations ) {
-			if ( entry.bone == bone ) { playing = &entry; break; }
-		}
-
-		float current[12];
-		if ( !playing ) {
-			if ( !model::BoneRestMatrix( data, size, model.skeleton, bone, slot ) ) {
-				return false;
-			}
+	std::vector<pose::Animation> animations;
+	for ( const auto &playing : model.animations ) {
+		/* Only the Academy owned cgame store opts into the measured active
+		 * transition. Other consumers retain their existing refusal. */
+		if ( playing.flags & ~(serveAnimationBlends_ ? 0xd8 : 0x58)
+			|| !FiniteScalar( playing.speed ) || playing.speed < 0.0f ) return false;
+		if ( !(playing.flags & 0x18) ) {
+			if ( playing.flags & 0x80 ) return false;
 			continue;
 		}
-		const Playhead at = PlayheadAt( *playing, model.skeleton.numFrames, now );
-		if ( !model::BoneMatrix( data, size, model.skeleton, at.currentFrame,
-			bone, current ) ) {
-			if ( !model::BoneRestMatrix( data, size, model.skeleton, bone, slot ) ) {
-				return false;
-			}
-			continue;
+		Playhead at;
+		if ( !ForwardPlayhead(playing, model.skeleton.numFrames, now, at) ) return false;
+		pose::Animation control{playing.bone, {at.currentFrame, at.newFrame, at.lerp}};
+		const std::int64_t age = std::int64_t(now) - playing.blendStart;
+		if ( (playing.flags & 0x80) && age >= 0 && age < playing.blendTime ) {
+			if ( !playing.previousKnown ) return false;
+			control.previous = playing.previous;
+			control.transition = float(age) / float(playing.blendTime);
+			control.blending = true;
 		}
-		float next[12];
-		if ( at.lerp <= 0.0f || at.newFrame == at.currentFrame
-			|| !model::BoneMatrix( data, size, model.skeleton, at.newFrame,
-				bone, next ) ) {
-			for ( int i = 0; i < 12; ++i ) slot[i] = current[i];
-			continue;
-		}
-		const float toward = at.lerp;
-		for ( int i = 0; i < 12; ++i ) {
-			slot[i] = current[i] * ( 1.0f - toward ) + next[i] * toward;
-		}
+		animations.push_back(control);
 	}
+	std::vector<pose::Angle> angles;
+	for ( const auto &bent : model.angles ) {
+		if ( !bent.flags ) continue;
+		if ( (bent.flags != 1 && bent.flags != 2 && bent.flags != 4) || bent.blendTime != 0 ) return false;
+		pose::Matrix base, inverse, post;
+		if ( !model::BoneRestMatrix(data, size, model.skeleton, bent.bone, base.data())
+			|| !model::BoneRestMatrixInverse(data, size, model.skeleton, bent.bone, inverse.data())
+			|| !pose::AngleMatrix(base, inverse, bent.angles, bent.flags, bent.up, bent.right, bent.forward, post) ) return false;
+		angles.push_back({bent.bone, post, bent.flags});
+	}
+	return pose::Evaluate(data, size, model.skeleton, animations, angles, out);
+}
+
+inline bool Store::BoneMatrices( const Model &model, int now,
+	std::vector<float> &out ) const
+{
+	pose::Palette palette;
+	if ( !DeformationPalette(model, now, palette) ) return false;
+	std::vector<float> staged;
+	staged.reserve(palette.bones.size()*12);
+	for ( const auto &bone : palette.bones ) staged.insert(staged.end(), bone.begin(), bone.end());
+	out.swap(staged);
 	return true;
 }
 
@@ -625,8 +712,9 @@ inline void Cross( const float a[3], const float b[3], float out[3] )
 
 inline bool Normalise( float v[3] )
 {
+	for ( int axis = 0; axis < 3; ++axis ) if ( !FiniteScalar(v[axis]) ) return false;
 	const float length = std::sqrt( v[0] * v[0] + v[1] * v[1] + v[2] * v[2] );
-	if ( !( length > 1e-6f ) ) return false;
+	if ( !FiniteScalar(length) || !( length > 1e-6f ) ) return false;
 	v[0] /= length; v[1] /= length; v[2] /= length;
 	return true;
 }
@@ -655,12 +743,12 @@ inline bool Store::BoltMatrix( void *pointer, int modelIndex, int boltIndex,
 	if ( boltIndex < 0 || boltIndex >= int( model->bolts.size() ) ) return false;
 	const Bolt &bolt = model->bolts[std::size_t( boltIndex )];
 
-	std::vector<float> bones;
-	if ( !BoneMatrices( *model, now, bones ) ) return false;
+	pose::Palette palette;
+	if ( !DeformationPalette( *model, now, palette ) ) return false;
 
 	if ( bolt.bone >= 0 ) {
 		if ( bolt.bone >= model->skeleton.numBones ) return false;
-		const float *found = &bones[std::size_t( bolt.bone ) * 12];
+		const float *found = palette.bones[std::size_t( bolt.bone )].data();
 		for ( int i = 0; i < 12; ++i ) out[i] = found[i];
 		return true;
 	}
@@ -675,13 +763,8 @@ inline bool Store::BoltMatrix( void *pointer, int modelIndex, int boltIndex,
 	int corner[3];
 	if ( !model::TriangleCorners( mesh, meshSize, surface, 0, corner ) ) return false;
 
-	/* A vertex is modelled where it belongs in the whole model, not relative
-	 * to the bone that carries it, so moving it means undoing where that bone
-	 * rests before applying where it is now. With nothing animated the two
-	 * cancel and the vertex stays exactly where it was modelled, which is the
-	 * property this was checked against. */
-	const void *skeletonData = model->skeletonBytes->data();
-	const std::size_t skeletonSize = model->skeletonBytes->size();
+	/* Use the same deformation palette as weighted geometry. BasePose is
+	 * already absent here; applying its inverse again would deform twice. */
 	float point[3][3];
 	for ( int which = 0; which < 3; ++which ) {
 		model::SkinnedVertex vertex;
@@ -692,10 +775,7 @@ inline bool Store::BoltMatrix( void *pointer, int modelIndex, int boltIndex,
 		for ( int weight = 0; weight < vertex.count; ++weight ) {
 			const int bone = vertex.bone[weight];
 			if ( bone < 0 || bone >= model->skeleton.numBones ) return false;
-			float undo[12], carry[12];
-			if ( !model::BoneRestMatrixInverse( skeletonData, skeletonSize,
-				model->skeleton, bone, undo ) ) return false;
-			model::ComposeMatrix( &bones[std::size_t( bone ) * 12], undo, carry );
+			const float *carry = palette.deformation[std::size_t(bone)].data();
 			for ( int axis = 0; axis < 3; ++axis ) {
 				at[axis] += vertex.weight[weight]
 					* ( carry[axis * 4 + 0] * vertex.position[0]
@@ -704,7 +784,10 @@ inline bool Store::BoltMatrix( void *pointer, int modelIndex, int boltIndex,
 						+ carry[axis * 4 + 3] );
 			}
 		}
-		for ( int axis = 0; axis < 3; ++axis ) point[which][axis] = at[axis];
+		for ( int axis = 0; axis < 3; ++axis ) {
+			if ( !FiniteScalar(at[axis]) ) return false;
+			point[which][axis] = at[axis];
+		}
 	}
 
 	/* Two edges of the tag, their normal, and a third axis square to both. A
@@ -756,11 +839,14 @@ inline bool Store::Duplicate( void *pointer, void **slot )
 {
 	Instance *source = Resolve( pointer );
 	if ( !source || !slot ) return false;
+	void *handle = ModelHandleIdentities.Allocate();
+	if ( !handle ) return false;
 	instances_.push_back( std::make_unique<Instance>() );
 	Instance *copy = instances_.back().get();
-	live_.insert( copy );
+	copy->handle_ = handle;
+	live_.emplace( handle, copy );
 	copy->models_ = source->models_;
-	*slot = copy;
+	std::memcpy( slot, &handle, sizeof( handle ) );
 	return true;
 }
 
@@ -778,8 +864,21 @@ inline int BoneNamed( const Model &model, const char *name )
 
 inline bool Store::SetBoneAnim( void *pointer, int modelIndex, const char *boneName,
 	int startFrame, int endFrame, int flags, float speed, int currentTime,
-	int setFrame, int blendTime )
+	float setFrame, int blendTime )
 {
+	if ( !FiniteScalar( speed ) || !FiniteScalar( setFrame ) ) return false;
+	int startTime = currentTime;
+	if ( setFrame != -1.0f ) {
+		if ( setFrame < float( startFrame ) || setFrame > float( endFrame ) || speed == 0.0f ) return false;
+		/* Retail jamp.exe VA 0x4e3505 compares the -1.0f sentinel; the path at
+		 * 0x4e3523-0x4e353e shifts the clock by a fractional frame and truncates
+		 * the resulting milliseconds. The import's ninth argument is a float,
+		 * even though the start and end frame arguments are integers. */
+		const double shifted = double( currentTime )
+			- ( double( setFrame - float( startFrame ) ) * 50.0 ) / speed;
+		if ( shifted < INT_MIN || shifted > INT_MAX ) return false;
+		startTime = static_cast<int>( shifted );
+	}
 	Instance *instance = Resolve( pointer );
 	if ( !instance || modelIndex < 0 || modelIndex >= instance->Count() ) return false;
 	Model &model = instance->models_[std::size_t( modelIndex )];
@@ -793,9 +892,34 @@ inline bool Store::SetBoneAnim( void *pointer, int modelIndex, const char *boneN
 	playing.endFrame = endFrame;
 	playing.flags = flags;
 	playing.speed = speed;
-	playing.startTime = currentTime;
+	playing.startTime = startTime;
 	playing.setFrame = setFrame;
 	playing.blendTime = blendTime;
+	if ( serveAnimationBlends_ && (flags & 0x80) ) {
+		const auto *prior = BoneAnimation(pointer, modelIndex, boneName);
+		if ( !prior || !(prior->flags & 0x18) ) {
+			playing.flags &= ~0x80;
+			playing.blendTime = 0;
+		} else {
+			playing.blendStart = currentTime;
+			/* Primary0x4e339e preserves the frozen prior sample when another
+			 * replacement arrives at the same blend clock, changing duration.
+			 * A plain prior clip has cleared its sample and blendStart to0. */
+			if ( prior->blendStart == currentTime ) {
+				playing.previous = prior->previous;
+				playing.previousKnown = !(prior->flags & 0x80) || prior->previousKnown;
+			} else {
+				Playhead sampled;
+				if ( ForwardPlayhead(*prior, model.skeleton.numFrames, currentTime, sampled) ) {
+					/* Primary0x497a80 weights the frozen current frame by its
+					 * fraction and its successor by1-fraction, unlike the new
+					 * clip. Retain this data contract in the Fn pose kernel. */
+					playing.previous = {sampled.currentFrame, sampled.newFrame, 1-sampled.lerp};
+					playing.previousKnown = true;
+				}
+			}
+		}
+	}
 
 	for ( auto &existing : model.animations ) {
 		if ( existing.bone == bone ) { existing = playing; return true; }
@@ -826,6 +950,7 @@ inline bool Store::SetBoneAngles( void *pointer, int modelIndex, const char *bon
 {
 	Instance *instance = Resolve( pointer );
 	if ( !instance || !angles ) return false;
+	for ( int axis = 0; axis < 3; ++axis ) if ( !FiniteScalar(angles[axis]) ) return false;
 	if ( modelIndex < 0 || modelIndex >= instance->Count() ) return false;
 	Model &model = instance->models_[std::size_t( modelIndex )];
 	if ( !model.present ) return false;
@@ -937,6 +1062,18 @@ inline bool Store::Release( void *pointer )
 		if ( it->get() == instance ) { instances_.erase( it ); return true; }
 	}
 	return false;
+}
+
+inline bool Store::Clean( void **slot )
+{
+	if ( !slot ) return false;
+	void *handle = nullptr;
+	std::memcpy( &handle, slot, sizeof( handle ) );
+	if ( !handle ) return true;
+	if ( !Release( handle ) ) return false;
+	handle = nullptr;
+	std::memcpy( slot, &handle, sizeof( handle ) );
+	return true;
 }
 
 /* Skins, as a server knows them.

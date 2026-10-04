@@ -574,6 +574,11 @@ ADD_EXECUTABLE(fnql_ql_font_text_tests tests/ql_font_text_tests.cpp)
 target_compile_features(fnql_ql_font_text_tests PRIVATE cxx_std_17)
 add_test(NAME fnql_ql_font_text COMMAND fnql_ql_font_text_tests)
 
+foreach(jk2_test handshake client_adapter font message_codec)
+	ADD_EXECUTABLE(fntech3_jk2_${jk2_test}_tests tests/jk2_${jk2_test}_tests.cpp)
+	add_test(NAME fntech3_jk2_${jk2_test} COMMAND fntech3_jk2_${jk2_test}_tests)
+endforeach()
+
 ADD_EXECUTABLE(fnql_ql_bsp_contract_tests tests/ql_bsp_contract_tests.cpp)
 target_compile_features(fnql_ql_bsp_contract_tests PRIVATE cxx_std_17)
 target_include_directories(fnql_ql_bsp_contract_tests PRIVATE code/qcommon)
@@ -602,6 +607,28 @@ target_compile_features(fnql_message_codec_tests PRIVATE cxx_std_17)
 target_compile_definitions(fnql_message_codec_tests PRIVATE DEDICATED)
 target_include_directories(fnql_message_codec_tests PRIVATE code/qcommon)
 add_test(NAME fnql_message_codec COMMAND fnql_message_codec_tests)
+
+foreach(jka_test sp_abi sp_game_bridge sp_ghoul2 wire snapshot ui font font_host client string_package string_host render sp_player_abi sp_model_precache sp_animation_cfg)
+	ADD_EXECUTABLE(fntech3_jka_${jka_test}_tests tests/jka_${jka_test}_tests.cpp)
+	target_compile_features(fntech3_jka_${jka_test}_tests PRIVATE cxx_std_17)
+	target_include_directories(fntech3_jka_${jka_test}_tests PRIVATE code/compat)
+	add_test(NAME fntech3_jka_${jka_test} COMMAND fntech3_jka_${jka_test}_tests)
+endforeach()
+target_sources(fntech3_jka_sp_game_bridge_tests PRIVATE
+	code/server/server_game_data.cpp code/compat/game_abi_adapter.c tests/message_drop_trap.c)
+ADD_EXECUTABLE(fntech3_demo_wire_profile_tests tests/demo_wire_profile_tests.cpp)
+target_compile_features(fntech3_demo_wire_profile_tests PRIVATE cxx_std_17)
+add_test(NAME fntech3_demo_wire_profile COMMAND fntech3_demo_wire_profile_tests)
+ADD_EXECUTABLE(fntech3_jka_sp_state_tests tests/jka_sp_state_tests.cpp
+	code/server/server_game_data.cpp code/compat/game_abi_adapter.c)
+target_compile_features(fntech3_jka_sp_state_tests PRIVATE cxx_std_17)
+add_test(NAME fntech3_jka_sp_state COMMAND fntech3_jka_sp_state_tests)
+ADD_EXECUTABLE(fntech3_jka_netchan_tests tests/jka_netchan_tests.cpp
+	code/qcommon/net_chan.cpp code/qcommon/msg.cpp code/qcommon/huffman_static.c)
+target_compile_features(fntech3_jka_netchan_tests PRIVATE cxx_std_17)
+target_compile_definitions(fntech3_jka_netchan_tests PRIVATE DEDICATED)
+target_include_directories(fntech3_jka_netchan_tests PRIVATE code/qcommon)
+add_test(NAME fntech3_jka_netchan COMMAND fntech3_jka_netchan_tests)
 
 ADD_EXECUTABLE(fnql_demo_stream_tests tests/demo_stream_tests.cpp)
 target_compile_features(fnql_demo_stream_tests PRIVATE cxx_std_17)
@@ -675,6 +702,8 @@ IF(Python3_Interpreter_FOUND)
 		COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tests/webpak_builder_tests.py")
 	add_test(NAME fnql_ql_font_source
 		COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tests/ql_font_source_tests.py")
+	add_test(NAME fntech3_jk2_sp_host
+		COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tests/jk2_sp_host_tests.py")
 	add_test(NAME fnql_window_management_source
 		COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tests/window_management_source_tests.py")
 	add_test(NAME fnql_macos_support_source
@@ -922,9 +951,9 @@ ELSEIF(WIN32)
 		code/win32/win_main.cpp
 		code/win32/win_shared.cpp
 		code/win32/win_syscon.cpp)
-	# The client's script wraps win_resource.rc and adds every game's icon.
+	# Both Windows executables embed the engine icon and every game's remake.
 	SET(Q3_CLIENT_RESOURCES code/win32/win_client_resource.rc)
-	SET(Q3_SERVER_RESOURCES code/win32/win_resource.rc)
+	SET(Q3_SERVER_RESOURCES code/win32/win_client_resource.rc)
 
 	SET(Q3_UI_SRCS
 		code/win32/win_gamma.cpp

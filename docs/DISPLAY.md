@@ -18,6 +18,33 @@ For FOV, HUD, menu and cinematic layout on widescreen displays, see the
 capture options, see the [Screenshot Guide](SCREENSHOTS.md). Which game runs
 at all is described in the [Games Guide](GAMES.md).
 
+
+Jedi Academy's developer MP adapter feeds ordinary-sky views, map distance
+data, HUD/menu transforms and single-polygon submissions into these renderers.
+Owned single-model geometry and forward-animation transitions use Fn CPU
+poses, weighted geometry, runtime MDR, materials, entity lighting, fog and
+shadows. The ordinary sky hint uses Fn sky/cloud drawing. An isolated OpenGL
+probe now captures the player-configuration menu over the world; complete
+gameplay, complete all-backend cgame drawing and active RTX tracing remain unverified.
+Owned remote bone/bolt queries retain measured frame clocks and no-rotation
+selector behavior. Initial and active forward-animation blends are served;
+angle blends, attachments, reverse clips, unfrozen completion and local-server
+clock sharing remain open. All 41 installed engine-default GLMs pass geometry
+checks across their 65 LODs. Missing ambient sets return without audio; present
+sets still refuse active playback. The limited effect lifetimes stage Fn
+sprite/polygon packets; light/sound primitives, motion and active curve
+controls remain unserved. The maintained forward probe now completes empty
+ROFF/weather cleanup and disconnects cleanly. Ordinary/additive module scene
+lights now use Fn's light, color and shadow controls; Academy's half-cell atlas
+supplies readable Fn diagnostic/console text. A bounded demo control reaches
+EOF with spectator-world captures in candidate GLx, Vulkan and RTX raster.
+This slice's production relink/runtime checks are pending after a concurrent
+renderer sweep blocks the shared client linker. The longer native-server stream
+passes the light import, then refuses Raven's saber-glow entity (type 5). Complete gameplay,
+all maps/materials/effects and the newer shared RTX implementation remain
+unverified. See the
+[Academy gate matrix](fntech3/COMPATIBILITY.md#jedi-academy-gate-matrix).
+
 ## Renderer Choice
 
 `cl_renderer` selects the rendering backend and requires `vid_restart`. All
@@ -25,7 +52,7 @@ three renderers are available in every game with a client.
 
 - `cl_renderer glx`: Canonical OpenGL-lineage renderer and client default, with compatibility tiers, streaming, static-world, material, postprocess, output, and profiling paths.
 - `cl_renderer vk`: Vulkan raster renderer with FBO rendering, HDR, multisampling, supersampling, render scaling, shader-based SDR gamma/overbright, greyscale, and bloom.
-- `cl_renderer rtx`: Vulkan ray-tracing renderer. It draws a complete raster frame by default and path traces the main view with `rtx_rt_mode 2`; see the [RTX Renderer Guide](RTX.md).
+- `cl_renderer rtx`: Vulkan ray-tracing renderer. It path traces the main view by default (`rtx_rt_mode 2`) and draws a complete raster frame with `rtx_rt_mode 0` or where the GPU can trace neither way; see the [RTX Renderer Guide](RTX.md).
 
 Only `glx`, `vk`, and `rtx` are valid renderer selectors. See [GLX.md](GLX.md) for GLx diagnostics and troubleshooting.
 

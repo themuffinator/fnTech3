@@ -3397,10 +3397,13 @@ class AliceInputSourceTests(unittest.TestCase):
             (entry,) = bindings[sign + "cameralook"]
             self.assertIn("COM_GAME_ALICE", entry)
             self.assertIn("IN_CameraLook", entry)
-            # Elite Force's +use is button 6, Alice's button 5 and Medal of
-            # Honor's button 3; each is gated.
+            # Elite Force SP uses button 5 and Holomatch uses button 6;
+            # Alice uses button 5 and Medal of Honor button 3. Each is gated.
             uses = bindings[sign + "use"]
-            self.assertEqual(len(uses), 3)
+            self.assertEqual(len(uses), 4)
+            self.assertTrue(
+                any("<5>" in u and "COM_GAME_STVEF_SP" in u for u in uses)
+            )
             self.assertTrue(
                 any("<6>" in u and "COM_GAME_STVEF_MP" in u for u in uses)
             )

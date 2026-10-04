@@ -4,13 +4,13 @@ RTX is fnTech3's Vulkan ray-tracing renderer. It is one of the three renderer
 modules shipped with fnTech3 and does not change networking, demos, game logic, or
 the retail module ABI.
 
-The module has two ways to draw a frame. By default (`rtx_rt_mode 0`) it is a
-complete Vulkan raster renderer. With `rtx_rt_mode 2` it path traces the main
-view: the world and models are traced, lit by the sky and by the surfaces
-that give off light as Q2RTX lights Quake II, and drawn with their shader
-materials. Loading the module never turns ray tracing on by
-itself, and hardware that can trace neither way keeps the complete raster
-frame unless you ask for strict ray tracing.
+The module has two ways to draw a frame. By default (`rtx_rt_mode 2`) it path
+traces the main view: the world and models are traced, lit by the map's own
+light sources - its light entities, the surfaces that give off light, its sky
+and sun - with nothing baked, and drawn with their shader materials. With
+`rtx_rt_mode 0` it is a complete Vulkan raster renderer. Hardware that can
+trace neither way keeps the complete raster frame unless you ask for strict
+ray tracing.
 
 ## Requirements
 
@@ -53,18 +53,18 @@ Use a build that includes the `fnql_rtx_<arch>` renderer module, then enter:
 
 ```cfg
 seta cl_renderer "rtx"
-seta rtx_rt_mode "2"
-seta rtx_rt_require "0"
 vid_restart
 ```
 
 `rtx_rt_mode` controls the requested path:
 
-- `0` loads the RTX module but uses its complete raster renderer. This is the
-  safe default.
+- `0` loads the RTX module but uses its complete raster renderer.
 - `1` requests ray-query capabilities while retaining raster output. This is a
   development mode rather than normal play.
-- `2` path traces the main view.
+- `2` path traces the main view. This is the default.
+
+A configuration written before the default changed can still hold
+`seta rtx_rt_mode "0"`; set `rtx_rt_mode 2` and `vid_restart` to trace.
 
 Keep `rtx_rt_require 0` for normal use. If native RT cannot initialize or
 complete a frame, the renderer reports the reason and keeps the raster result.
@@ -131,13 +131,21 @@ Quake Live, RTCW or Enemy Territory pak pairs a texture with an image under
 these names. Only the path tracer uses the maps; set
 `rtx_rt_material_maps 0` and `vid_restart` to ignore them.
 
-**Lighting.** By default the tracer lights every map the way Q2RTX lights
-Quake II: from the sky and from the surfaces that give off light, with traced
-shadows and bounce light, and nothing baked. No lightmap and no light entity
-takes part. Light is traced in linear units, as Q2RTX traces it: the colours
-the shaders and the sky show are decoded from the display's gamma (2.2), so a
-surface reflects and gives off light in proportion to what it shows, and the
-view is encoded for the display once, after the camera.
+**Lighting.** By default the tracer lights every map with the lights the map
+itself defines, in place of its lightmaps and with no setting of its own: the
+light entities it keeps, the surfaces that give off light, and its sky and
+sun, with traced shadows and bounce light. Nothing baked takes part: no
+lightmap, vertex light or light grid is read, not even to set an exposure.
+Quake III's and RTCW's maps keep the light entities their designers placed,
+the lights their compilers baked into the lightmaps, so their rooms are lit
+where the designer lit them; q3map2 left none in Quake Live's and Enemy
+Territory's maps, which their glowing fixtures, sky and sun light instead.
+The compilers' ambient and `_minlight` floors and q3map's backsplash stood in
+for bounced light, which is traced instead. The light is shown as it was
+traced, in the units the map compiler gave its lights: the light a surface
+receives multiplies its colour as the engine multiplies a surface by its
+light, with the engine's overbright and no exposure, so a map is as bright
+or as dark as its own light sources make it.
 
 - **Surfaces that give off light.** A shader with `q3map_surfacelight` is a
   light of the strength its author gave it, in the colour of its light image,
@@ -150,14 +158,18 @@ view is encoded for the display once, after the camera.
   shaders give off, as a multiple of what they show. Each emitting triangle
   of the world is sampled as an area light, so a lamp lights a room with
   soft, correctly shaped shadows.
-- **The sky.** Where the sky shader asks for light (`q3map_surfacelight`, or
-  q3map2's `q3map_skyLight`), the sky lights the scene evenly in that light's
-  colour, as the compilers did, at no more than a lightmap could hold; a sky
-  that asks for nothing lights with its own images. The sky shader's
-  `q3map_sun` is the sun, softened over q3map2's `q3map_sunExt` deviance.
-- **The camera.** Light is traced in physical proportion, so a room lit
-  through its window is far darker than the sunlit snow outside it. Each view
-  is tone mapped as Q2RTX maps its own: a histogram of the view's light gives
+- **The sky.** The sky lights the scene as its compiler lit it: id's q3map
+  from the sky's own triangles, each a light of the sky shader's
+  `q3map_surfacelight`, and q3map2 also from a dome of suns of its
+  `q3map_skyLight`. The sky shader's `q3map_sun` is the sun, softened over
+  q3map2's `q3map_sunExt` deviance. A sky that asks for no light gives none.
+- **The camera.** `rtx_rt_camera 1` sees the light through a camera instead,
+  as Q2RTX sees its own. Light is then traced in linear units: the colours
+  the shaders and the sky show are decoded from the display's gamma (2.2), so
+  a surface reflects and gives off light in proportion to what it shows, and
+  the view is encoded for the display once, after the camera. In physical
+  proportion a room lit through its window is far darker than the sunlit snow
+  outside it, so each view is tone mapped as Q2RTX maps its own: a histogram of the view's light gives
   a curve, after Eilertsen, Mantiuk and Unger's noise-aware tone mapping, that
   keeps the contrast of each range of brightness the view holds and
   compresses the ranges it does not, within `rtx_rt_tonemap_range` stops; it
@@ -170,17 +182,18 @@ view is encoded for the display once, after the camera.
   left it. `rtx_rt_exposure_bias` brightens or darkens it; `rtx_rt_exposure`
   fixes the exposure instead, with an ACES filmic curve.
 
-A map whose light came from light entities with no visible fixture (many of
-RTCW's rooms) is lit only by what reaches it from the sky and the emitters
-around it: a room with windows by the daylight they let in and its bounce,
-a windowless cell dimly. `rtx_rt_lighting 1` lights the world from its
-lightmaps instead and traces only dynamic lights over them, with models lit
-from the light grid as the raster pass lights them; `rtx_rt_lighting 2`
-traces the map compilers' own lights with their light models: the light
-entities (point, linear and spot, with id's q3map, q3map2's or the Wolfenstein
-compilers' falloff, angle and spawnflag rules), surface lights with their
-backsplash, the sun, q3map2's sky-light dome and the worldspawn ambient. A
-change of mode rebuilds the lights at once.
+A light entity keeps its compiler's light model (point, linear and spot,
+with id's q3map, q3map2's or the Wolfenstein compilers' falloff, angle and
+spawnflag rules). `rtx_rt_lighting 3` leaves the light entities out and
+lights a map from its sky and emitters alone, as Q2RTX lights Quake II, with
+an even sky in its light colour and the linear camera: a room lit by light
+entities with no visible fixture is then lit only by what reaches it from
+outside. Two modes remain only to compare against the baked result:
+`rtx_rt_lighting 1` lights the world from its lightmaps and traces only
+dynamic lights over them, with models lit from the light grid as the raster
+pass lights them; `rtx_rt_lighting 2` traces the map compilers' own lights as
+they baked them, with surface lights' backsplash and the worldspawn ambient.
+A change of mode or camera rebuilds the lights at once.
 
 Direct light is shadowed. World surfaces cast solid shadows, alpha-tested
 holes included (a grate or a lamp's cage); `surfaceparm trans` surfaces cast
@@ -237,13 +250,14 @@ afresh.
 
 | Cvar | Default | Effect |
 | --- | --- | --- |
-| `rtx_rt_mode` | `0` | `2` path traces the main view. Latched: `vid_restart`. |
+| `rtx_rt_mode` | `2` | `2` path traces the main view; `0` draws the raster frame. Latched: `vid_restart`. |
 | `rtx_rt_require` | `0` | `1` fails instead of falling back to raster. Latched. |
 | `rtx_rt_backend` | `0` | `0` the ray-tracing pipeline where available, else compute; `1` pipeline only; `2` compute only. Latched. |
 | `rtx_rt_material_maps` | `1` | Use a texture pack's normal and material maps. Latched. |
-| `rtx_rt_lighting` | `0` | `0` lights the scene from the sky and the surfaces that give off light, as Q2RTX does; `1` uses the lightmaps for static light and traces dynamic lights over them; `2` traces the map compilers' own lights and light models. |
+| `rtx_rt_lighting` | `0` | `0` lights the scene with the level's own lights, traced, with nothing baked: the light entities its map keeps, the surfaces that give off light, its sky and sun; `3` the sky and emitting surfaces alone, as Q2RTX does. For comparison only: `1` uses the lightmaps for static light and traces dynamic lights over them; `2` traces the map compilers' own lights and light models as they baked them. |
+| `rtx_rt_camera` | `0` | `0` shows the level's traced light as it is, in its compiler's units, with no exposure; `1` sees it through a camera in linear light, with automatic exposure and Q2RTX's tone mapper. `rtx_rt_lighting 3` always takes `1`. |
 | `rtx_rt_emissive_light` | `2.0` | Light a glowing shader without `q3map_surfacelight` gives off, as a multiple of what it shows; `0` lights nothing with them. |
-| `rtx_rt_exposure` | `0` | `0` exposes and tone maps each view as Q2RTX does; any other value is a fixed exposure, with an ACES filmic curve. |
+| `rtx_rt_exposure` | `0` | The linear camera's exposure: `0` exposes and tone maps each view as Q2RTX does; any other value is a fixed exposure, with an ACES filmic curve. |
 | `rtx_rt_exposure_bias` | `0` | Stops added to the automatic exposure and tone curve. |
 | `rtx_rt_exposure_speed` | `1` | How fast exposure and curve adapt: toward a darker view at this rate a second, a brighter one at twice it, as Q2RTX's; `0` at once. |
 | `rtx_rt_tonemap_range` | `7` | The display's range, in stops, that the tone curve fits a view's light into (Q2RTX's `tm_dyn_range_stops`). |
@@ -289,7 +303,9 @@ maps.
 For developers, `rtx_rt_debug_visualizer` shows the tracer's intermediate
 images: `1` reflectance, `2` shading normal, `3` denoised light, `4` raw
 light, `5` specular, `6` emission, `7` temporal history, `8` view depth and
-`9` motion. `rtx_rt_perf_timing 1` prints GPU and CPU timings every
+`9` motion; `10` shows the light alone, on plain grey surfaces seen through
+the same camera, which makes shadows, light pools and bounce light easy to
+see. `rtx_rt_perf_timing 1` prints GPU and CPU timings every
 `rtx_rt_perf_interval` frames, with the number of still frames averaged so
 far. With a map loaded, `rtx_rt_pick` names the
 traced surface at the centre of the view (or along `rtx_rt_pick x y z dx dy

@@ -320,6 +320,7 @@ struct aas_s
 	aas_reachabilityareas_t *reachabilityareas;
 	// Scratch and accounting belong to a map/world, including map transitions.
 	int routingcachesize, max_routingcachesize;
+	int wolfetMaxFrameRoutingUpdates;
 	// RTCW visibility and waypoints are independent of Q3 routing structures.
 	aas_rtcw_visibility_t *rtcwVisibility;
 	byte *rtcwVisibilityData, *rtcwDecodedVisibility;

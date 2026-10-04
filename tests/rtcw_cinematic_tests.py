@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PRELUDE = r'''
 #include "code/qcommon/q_shared.h"
 #include "code/compat/rtcw_module_abi.h"
+#include <array>
 #include <cassert>
 #include <climits>
 #include <limits>
@@ -19,6 +20,13 @@ PRELUDE = r'''
 #include <vector>
 using namespace fntech3::rtcw::module;
 static comGameProfile_t profile;
+// Other profiles must never enter their module dispatch in this RTCW fixture.
+int Com_GameIsJK2MP(void) { return profile.id == COM_GAME_JK2_MP; }
+static bool CL_JK2CgameCall(intptr_t *, intptr_t &, intptr_t &) { assert(false); return false; }
+static bool CL_JKACgameCall(intptr_t *, intptr_t &, intptr_t &) { assert(false); return false; }
+static bool CL_JK2UICall(intptr_t *, intptr_t &, intptr_t &) { assert(false); return false; }
+int Com_GameIsJKAMP(void) { return profile.id == COM_GAME_JKA_MP; }
+static bool CL_JKAUICall(intptr_t *, intptr_t &, intptr_t &, std::array<intptr_t, 6> &, intptr_t *&) { assert(false); return false; }
 const comGameProfile_t *Com_GameProfile(){return &profile;}
 int Com_GameIsRTCW(){return profile.id==COM_GAME_RTCW_SP||profile.id==COM_GAME_RTCW_MP;}
 int Com_GameIsRTCWSP(){return profile.id==COM_GAME_RTCW_SP;}

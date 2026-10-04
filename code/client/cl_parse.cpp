@@ -447,18 +447,19 @@ reply, to stop drawing players they cannot see. Original RTCW MP (and iortcw)
 decide in the client parser: seven solid-only lines from the eye to points on
 the player, and a player unseen for more than 600 ms gets EF_NODRAW. Both run
 on the parsed state, so the result also becomes the next delta's base, and
-the per-player times are never reset. Behaviour observed in RTCW-MP
-src/client/cl_parse.c (isEntVisible, CL_DeltaEntity); independently written.
+the per-player times are never reset. ET uses the same rule and geometry.
+Behaviour observed in RTCW-MP and Enemy-Territory src/client/cl_parse.c
+(isEntVisible, CL_DeltaEntity); independently written.
 ==================
 */
-static constexpr int RTCW_EF_NODRAW = 0x00000080;	// RTCW MP bg_public.h
+static constexpr int RTCW_EF_NODRAW = 0x00000080;	// RTCW MP and ET bg_public.h
 static std::array<int, MAX_CLIENTS> clRTCWLastVisible{};
 
 static bool CL_RTCWPlayerVisible( const entityState_t *ent ) {
 	vec3_t eye, target, toward, side, farSide, nearSide, up = { 0.0f, 0.0f, 1.0f };
 	trace_t trace;
 
-	VectorCopy( cl.cgameRTCWLerpOrigin, eye );
+	VectorCopy( Com_GameIsWolfET() ? cl.cgameWolfETLerpOrigin : cl.cgameRTCWLerpOrigin, eye );
 	eye[2] += ( cl.snap.ps.viewheight - 1 );
 	if ( cl.snap.ps.rtcw.leanf != 0 ) {
 		vec3_t angles, leanRight;
@@ -510,7 +511,7 @@ static bool CL_RTCWPlayerVisible( const entityState_t *ent ) {
 }
 
 static void CL_RTCWApplyOnlyVisibleClients( entityState_t *state, int serverTime ) {
-	if ( !clc.rtcwOnlyVisibleClients || !Com_GameIsRTCWMP() ||
+	if ( !clc.rtcwOnlyVisibleClients || ( !Com_GameIsRTCWMP() && !Com_GameIsWolfET() ) ||
 		state->number < 0 || state->number >= Com_GameProfile()->maxClients ||
 		state->number >= static_cast<int>( clRTCWLastVisible.size() ) ) {
 		return;
@@ -859,6 +860,11 @@ static void CL_ParseSnapshot( msg_t *msg ) {
 		}
 		newSnap.psRaw = newSnap.ps;
 	}
+	if ( CL_ActiveWireProfile() == NETCHAN_WIRE_JKA_MP && newSnap.ps.raven.m_iVehicleNum ) {
+		const playerState_t *vehicleBase = old && old->ps.raven.m_iVehicleNum
+			? &old->jkaVehiclePs : nullptr;
+		MSG_ReadDeltaJKAVehiclePlayerstate( msg, vehicleBase, &newSnap.jkaVehiclePs );
+	}
 	// read packet entities
 	SHOWNET( msg, "packet entities" );
 	CL_ParsePacketEntities( msg, old, &newSnap );
@@ -1098,6 +1104,21 @@ static void CL_ParseServerInfo( void )
 CL_ParseGamestate
 ==================
 */
+static void CL_JKAParseRMGTrailer( msg_t *msg ) {
+	// Retail jamp.exe 0x421f10 reads an unsigned length after the checksum
+	// feed. Zero returns immediately; nonzero starts its terrain payload.
+	const int length = MSG_ReadShort( msg );
+	if ( msg->readcount > msg->cursize ) {
+		Com_Error( ERR_DROP, "Jedi Academy random terrain gamestate trailer is truncated" );
+		return;
+	}
+	if ( length != 0 ) {
+		Com_Error( ERR_DROP, "Jedi Academy random terrain gamestate payload is not served yet "
+			"(length %i)", static_cast<int>( static_cast<unsigned short>( length ) ) );
+	}
+}
+
+
 static void CL_ParseGamestate( msg_t *msg ) {
 	int				i;
 	entityState_t	*es;
@@ -1225,6 +1246,9 @@ static void CL_ParseGamestate( msg_t *msg ) {
 		// read the checksum feed
 		clc.checksumFeed = MSG_ReadLong( msg );
 	}
+	if ( CL_ActiveWireProfile() == NETCHAN_WIRE_JKA_MP ) {
+		CL_JKAParseRMGTrailer( msg );
+	}
 
 	// save old gamedir
 	Cvar_VariableStringBuffer( "fs_game", oldGame.data(), static_cast<int>( oldGame.size() ) );
@@ -1331,6 +1355,21 @@ static void CL_ParseDownload( msg_t *msg ) {
 
 	// read the data
 	block = MSG_ReadShort ( msg );
+	if ( msg->readcount > msg->cursize ) {
+		Com_Error( ERR_DROP, "CL_ParseDownload: Truncated download block header" );
+		return;
+	}
+
+	// ET reserves -1 for URL/size/flags, including a fallback URL sent even
+	// to clients which did not advertise www capability. Until its redirect
+	// protocol is implemented, refuse it before URL bytes become a chunk size.
+	if ( Com_GameIsWolfET() && block == 0xffff ) {
+		Com_Error( ERR_DROP, "Enemy Territory server redirected the download; "
+			"fnTech3 currently supports ET UDP downloads only. "
+			"Install the required pak manually, or ask the server operator to "
+			"disable sv_wwwDownload and sv_wwwFallbackURL." );
+		return;
+	}
 
 	if(!block && !clc.downloadBlock)
 	{
@@ -1557,6 +1596,34 @@ static void CL_WolfETParseBinaryMessage( msg_t *msg ) {
 		reinterpret_cast<intptr_t>( &msg->data[msg->readcount] ), size, cl.snap.serverTime );
 }
 
+/* Raven sends its game directory before decoding mod-specific state tables.
+ * The profile remains immutable; only its validated mod search path changes.
+ * Retail jamp.exe service table 0x5707c8 identifies this as opcode eight. */
+static void CL_JKAParseSetGame( msg_t *msg ) {
+	char directory[MAX_QPATH]{};
+	std::size_t length = 0;
+	for ( ;; ) {
+		const int value = MSG_ReadByte( msg );
+		if ( value < 0 || msg->readcount > msg->cursize ) {
+			Com_Error( ERR_DROP, "Truncated Jedi Academy game directory" );
+		}
+		if ( value == 0 ) break;
+		if ( length + 1 >= sizeof( directory ) ) {
+			Com_Error( ERR_DROP, "Jedi Academy game directory exceeds MAX_QPATH" );
+		}
+		directory[length++] = static_cast<char>( value );
+	}
+	if ( FS_InvalidGameDir( directory ) ) {
+		Com_Printf( S_COLOR_YELLOW "WARNING: Server sent invalid fs_game value %s\n", directory );
+		return;
+	}
+	const char *game = !Q_stricmp( directory, FS_GetBaseGameDir() ) ? "" : directory;
+	if ( !Q_stricmp( game, Cvar_VariableString( "fs_game" ) ) ) return;
+	Cvar_Set( "fs_game", game );
+	CL_JKAStringCacheReset();
+	FS_Restart( clc.checksumFeed );
+}
+
 void CL_ParseServerMessage( msg_t *msg ) {
 	int cmd;
 
@@ -1601,6 +1668,26 @@ void CL_ParseServerMessage( msg_t *msg ) {
 		if ( stvef ? cmd == -1 : cmd == Netchan_ServerEOFOpcode( CL_ActiveWireProfile() ) ) {
 			SHOWNET( msg, "END OF MESSAGE" );
 			break;
+		}
+
+		/* Retail jk2mp.exe CL_ParseServerMessage 0x40edd7: opcode eight
+		 * notifies cgame export 24 with no payload, then parses the next
+		 * opcode. Its message ends at nine. */
+		if ( CL_ActiveWireProfile() == NETCHAN_WIRE_JK2_MP && cmd == 8 ) {
+			SHOWNET( msg, "svc_mapchange" );
+			if ( cgvm ) VM_Call( cgvm, 0, 24 );
+			continue;
+		}
+
+		if ( CL_ActiveWireProfile() == NETCHAN_WIRE_JKA_MP && ( cmd == 8 || cmd == 9 ) ) {
+			if ( cmd == 8 ) {
+				SHOWNET( msg, "svc_setgame" );
+				CL_JKAParseSetGame( msg );
+			} else {
+				SHOWNET( msg, "svc_mapchange" );
+				if ( cgvm ) VM_Call( cgvm, 0, CG_RAVEN_MAP_CHANGE );
+			}
+			continue;
 		}
 
 		// Medal of Honor sends its own snapshot, and three opcodes past it

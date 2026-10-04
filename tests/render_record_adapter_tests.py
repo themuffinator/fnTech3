@@ -30,6 +30,7 @@ static comGameProfile_t profile;
 static bool missingProfile;
 const comGameProfile_t *Com_GameProfile() { return missingProfile ? nullptr : &profile; }
 int Com_GameIsQuake3() { return profile.id == COM_GAME_QUAKE3; }
+int Com_GameIsJKA() { return profile.id == COM_GAME_JKA_SP || profile.id == COM_GAME_JKA_MP; }
 int Com_GameIsSTVEF() { return profile.id == COM_GAME_STVEF_SP || profile.id == COM_GAME_STVEF_MP; }
 void QDECL Com_Error(errorParm_t, const char *, ...) { throw 7; }
 static void *VM_ArgPtr(intptr_t address) { return reinterpret_cast<void *>(address); }
@@ -44,6 +45,11 @@ static void CheckBounds(const vm_t *, intptr_t address, std::size_t bytes) {
 #undef VM_CHECKBOUNDS
 #define VM_CHECKBOUNDS CheckBounds
 #include "code/client/client_render_compat.hpp"
+#include "code/client/client_jka_cgame_render_state.hpp"
+int Com_GameIsJKAMP() { return profile.id == COM_GAME_JKA_MP; }
+// Owned skeletal submission runs in jka_cgame_render_tests; this fixture
+// preserves every static record and canonical renderer-dispatch assertion.
+static void CL_JKACgameRenderFlush() { assert(fntech3::jka::cgame::scene::state.pending.empty()); }
 static vm_t *cgvm = reinterpret_cast<vm_t *>(1), *uivm = reinterpret_cast<vm_t *>(2);
 static bool hideHud;
 static int cl_enemyHighlightNumPending, entityCalls, sceneCalls, liquidCalls, underwaterCalls, flushCalls;

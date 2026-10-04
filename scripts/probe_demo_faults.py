@@ -53,8 +53,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tests'))
 from windows_private_process import WindowsPrivateProcess
 
-GAMES = {'q3': 'baseq3', 'ql': 'baseq3', 'rtcw-sp': 'main', 'rtcw-mp': 'main'}
-LIMITS = {'q3': 16384, 'ql': 16384, 'rtcw-sp': 32768, 'rtcw-mp': 32768}
+GAMES = {'q3': 'baseq3', 'ql': 'baseq3', 'rtcw-sp': 'main', 'rtcw-mp': 'main', 'wolfet': 'etmain'}
+LIMITS = {'q3': 16384, 'ql': 16384, 'rtcw-sp': 32768, 'rtcw-mp': 32768, 'wolfet': 32768}
 TICK = 'FAULT_DEMO_TICK'
 STATS = re.compile(r'^\d+ frames, [\d.]+ seconds: [\d.]+ fps', re.M)
 BODY_DAMAGE = 'completed-or-rejected-or-stalled'
@@ -132,7 +132,7 @@ def play(client, installation, profile, name, payload, output, retail=False):
     home = output / f'{name}-home'
     game = home / GAMES[profile]
     (game / 'demos').mkdir(parents=True)
-    extension = {'q3': 'dm_68', 'ql': 'dm_91', 'rtcw-sp': 'dm_49', 'rtcw-mp': 'dm_60'}[profile]
+    extension = {'q3': 'dm_68', 'ql': 'dm_91', 'rtcw-sp': 'dm_49', 'rtcw-mp': 'dm_60', 'wolfet': 'dm_84'}[profile]
     (game / 'demos' / f'fault.{extension}').write_bytes(payload)
     (game / 'probe.cfg').write_text('set cl_allowDownload 0\nset cl_motd 0\nset com_introplayed 1\nset timedemo 1\n'
                                     f'set fault_tick "echo {TICK}; wait 100; vstr fault_tick"\n'
@@ -141,7 +141,7 @@ def play(client, installation, profile, name, payload, output, retail=False):
                     in_mouse='0', in_joystick='0', in_nograb='1', s_initsound='0', logfile='2')
     if not retail:
         settings.update(com_gameProfile=profile, com_steamIntegration='0', fs_skipWorkshop='1', cl_webuiEnable='0',
-                        cl_renderer='glx', net_port='0')
+                        cl_renderer='glx', net_ip='127.0.0.1', net_port='0', net_ip6='::1', net_port6='0')
     command = [str(client)]
     for key, value in settings.items():
         command += ['+set', key, value]
@@ -187,7 +187,7 @@ def play(client, installation, profile, name, payload, output, retail=False):
         outcome = 'stalled'
     else:
         outcome = 'hung'
-    return dict(exitCode=code, forcedTermination=forced, elapsedSeconds=round(time.monotonic() - begin, 3),
+    return dict(command=command, exitCode=code, forcedTermination=forced, elapsedSeconds=round(time.monotonic() - begin, 3),
                 outcome=outcome, errors=errors[:5], truncatedNotices=text.count('Demo file was truncated'),
                 timedemoLine=(STATS.findall(text) or [None])[0], ticks=final, inputBytes=len(payload),
                 inputSha256=hashlib.sha256(payload).hexdigest())
@@ -214,6 +214,9 @@ def main():
     if not args.retail and not args.client:
         parser.error('--client is required unless --retail is given')
     installation = args.installation.resolve(strict=True)
+    inventory = lambda: {str(p.relative_to(installation)): (p.stat().st_size, p.stat().st_mtime_ns)
+                         for p in installation.rglob('*') if p.is_file()}
+    before = inventory()
     client = (installation / 'quake3.exe' if args.retail else args.client).resolve(strict=True)
     source = args.demo.resolve(strict=True).read_bytes()
     output = args.output.resolve()
@@ -229,11 +232,12 @@ def main():
         rows[name] = row
         print(name, row['outcome'], '' if args.retail else f'expected {expected}', row['errors'][:1], flush=True)
     report = dict(profile=args.profile, engine='retail quake3.exe' if args.retail else 'fnTech3',
+                  installation=str(installation), installationUnchanged=before == inventory(),
                   sourceDemo=str(args.demo), sourceSha256=hashlib.sha256(source).hexdigest(),
                   sourceRecords=len(records(source)[0]), clientSha256=hashlib.sha256(client.read_bytes()).hexdigest(),
                   messageLimit=LIMITS[args.profile], fuzz=dict(count=args.fuzz, seed=args.seed),
                   outcomes={o: sum(r['outcome'] == o for r in rows.values()) for o in OUTCOMES},
-                  variants=rows, passed=None if args.retail else all(r['passed'] for r in rows.values()),
+                  variants=rows, passed=None if args.retail else all(r['passed'] for r in rows.values()) and before == inventory(),
                   sourceCommit=subprocess.run(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True,
                                               capture_output=True).stdout.strip())
     (output / 'result.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')

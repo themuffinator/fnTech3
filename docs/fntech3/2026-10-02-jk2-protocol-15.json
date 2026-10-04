@@ -1,0 +1,581 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-02",
+  "profile": "jk2-mp",
+  "protocol": 15,
+  "platform": "Windows x86",
+  "repositoryCommit": "a1251ede2c382190b18c154b45357f6979d8171c",
+  "workingTree": "modified; source hashes below, concurrent Jedi Academy integration preserved",
+  "compiler": "clang20.1.7, explicit --target=i686-pc-windows-msvc",
+  "installation": {
+    "engine": "E:/Games/Jedi Outcast/jk2mp.exe",
+    "bytes": 1126400,
+    "sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a",
+    "readOnly": true,
+    "retailProcessLaunched": false
+  },
+  "observedFacts": [
+    {
+      "contract": "entity-fields",
+      "fileOffset": "0xf5ab0",
+      "count": 73,
+      "recordBytes": 296
+    },
+    {
+      "contract": "player-fields",
+      "fileOffset": "0xf5e20",
+      "count": 105,
+      "recordBytes": 1368
+    },
+    {
+      "contract": "entity-delta",
+      "writer": "0x431aa0",
+      "reader": "0x431cd0",
+      "entityNumberBits": 10,
+      "lastChangedFieldCountBits": 8,
+      "zeroShortcut": true,
+      "floatIntBits": 13,
+      "floatIntBias": 4096
+    },
+    {
+      "contract": "player-delta",
+      "writer": "0x431f60",
+      "reader": "0x432340",
+      "lastChangedFieldCountBits": 8,
+      "arrayOrder": [
+        "stats",
+        "persistant",
+        "ammo",
+        "powerups"
+      ],
+      "arrayEntries": 16,
+      "arrayWidths": [
+        -16,
+        -16,
+        -16,
+        32
+      ],
+      "zeroShortcut": false
+    },
+    {
+      "contract": "keyed-usercmd",
+      "writer": "0x431750",
+      "reader": "0x431900",
+      "keyMaskAddress": "0x431730",
+      "recordBytes": 28,
+      "extraReadKeyBit": true,
+      "clampMinus128": false,
+      "ravenBytes": [
+        "forcesel",
+        "invensel",
+        "generic_cmd"
+      ]
+    },
+    {
+      "contract": "command-clock",
+      "compareAddress": "0x431764",
+      "shortTimeCondition": "signed modular delta < 256, without lower-bound check",
+      "baseline": 1000,
+      "sent": 999,
+      "decoded": 1255
+    },
+    {
+      "contract": "strings",
+      "writerRange": [
+        "0x4313ef",
+        "0x431428"
+      ],
+      "readers": [
+        "0x4315d0",
+        "0x431630"
+      ],
+      "writerHighBytes": "dot",
+      "writerPercent": "preserved",
+      "readerHighBytes": "preserved",
+      "readerPercent": "dot"
+    },
+    {
+      "contract": "command-hash",
+      "address": "0x428710",
+      "chars": "signed raw bytes",
+      "weight": "119+i",
+      "foldArithmeticShifts": [
+        10,
+        20
+      ],
+      "percentSanitized": false
+    },
+    {
+      "contract": "huffman-seed",
+      "fileOffset": "0xf6310",
+      "entries": 256,
+      "sum": 1053340,
+      "packedLittleEndianSHA256": "1cbdca8d6c9bb22247525a4807c5e18cec9b87336c56016424eecd879b505abf",
+      "equalsOpenJKActiveQ3TATable": true,
+      "retailBitWriter": "0x431010"
+    },
+    {
+      "contract": "download",
+      "outstandingLimitComparisons": [
+        "0x4499a9",
+        "0x449a3a"
+      ],
+      "window": 8,
+      "ringMask": 7,
+      "ringMaskAddresses": [
+        "0x4499ca",
+        "0x449cb2"
+      ],
+      "blockBytes": 2048,
+      "allocationAddress": "0x4499e6",
+      "fileReadAddress": "0x449a04",
+      "writeRange": [
+        "0x449cbf",
+        "0x449d17"
+      ],
+      "svcOpcode": 6,
+      "framing": [
+        "short block",
+        "long file size only block0",
+        "short payload length",
+        "payload"
+      ]
+    }
+  ],
+  "referenceObservation": {
+    "source": "OpenJK",
+    "commit": "1a6a643427aa347553e9073dac5570b33337c4d9",
+    "path": "codemp/qcommon/msg.cpp",
+    "url": "https://github.com/JACoders/OpenJK/blob/1a6a643427aa347553e9073dac5570b33337c4d9/codemp/qcommon/msg.cpp",
+    "use": "active Huffman table equality only",
+    "externalImplementationTextIncorporated": false
+  },
+  "emulator": {
+    "tool": "Unicorn2.1.4",
+    "bodyInstructions": "actual retail x86 instructions",
+    "hooks": [
+      "MSG_WriteBits bounded raw sink",
+      "MSG_ReadBits bounded raw source",
+      "memset"
+    ],
+    "fixtureCount": 9,
+    "vectors": [
+      "entity-zero",
+      "entity-integral-floats",
+      "entity-binary32",
+      "player-arrays",
+      "player-force",
+      "command-raven",
+      "command-no-change",
+      "command-long-time",
+      "command-backwards-time"
+    ],
+    "evidenceLevel": "retail binary body observations, not game runtime or packet capture"
+  },
+  "commands": [
+    [
+      "python",
+      "-m",
+      "pip",
+      "install",
+      "--target",
+      "E:\\Repositories\\fnTech3\\.tmp\\jk2-wire\\python",
+      "unicorn"
+    ],
+    [
+      "python",
+      "tests/jk2_retail_wire_oracle.py",
+      "--engine",
+      "E:/Games/Jedi Outcast/jk2mp.exe",
+      "--output",
+      ".tmp/jk2-wire/oracle.json"
+    ],
+    [
+      "clang++",
+      "--target=i686-pc-windows-msvc",
+      "-std=c++17",
+      "-O2",
+      "-Icode/qcommon",
+      "-Icode/compat",
+      "tests/jk2_message_codec_tests.cpp",
+      "-o",
+      ".tmp/jk2-wire/jk2_message_codec_tests.exe"
+    ],
+    [
+      ".tmp/jk2-wire/jk2_message_codec_tests.exe"
+    ],
+    [
+      "clang",
+      "--target=i686-pc-windows-msvc",
+      "-DDEDICATED",
+      "-Icode/qcommon",
+      "-c",
+      "tests/message_drop_trap.c",
+      "-o",
+      ".tmp/jk2-wire/message_drop_trap.obj"
+    ],
+    [
+      "clang",
+      "--target=i686-pc-windows-msvc",
+      "-DDEDICATED",
+      "-Icode/qcommon",
+      "-c",
+      "code/qcommon/huffman_static.c",
+      "-o",
+      ".tmp/jk2-wire/huffman_static.obj"
+    ],
+    [
+      "clang++",
+      "--target=i686-pc-windows-msvc",
+      "-std=c++17",
+      "-DDEDICATED",
+      "-O2",
+      "-Icode/qcommon",
+      "tests/message_codec_tests.cpp",
+      "code/qcommon/msg.cpp",
+      ".tmp/jk2-wire/message_drop_trap.obj",
+      ".tmp/jk2-wire/huffman_static.obj",
+      "-o",
+      ".tmp/jk2-wire/message_codec_tests.exe"
+    ],
+    [
+      ".tmp/jk2-wire/message_codec_tests.exe"
+    ]
+  ],
+  "commandEnvironment": {
+    "workingDirectory": "E:\\Repositories\\fnTech3",
+    "oraclePythonPath": "E:\\Repositories\\fnTech3\\.tmp\\jk2-wire\\python"
+  },
+  "tests": [
+    {
+      "name": "jk2_message_codec_tests",
+      "exit": 0,
+      "retailFixtures": 9,
+      "allEntityFields": 73,
+      "allPlayerFields": 105,
+      "allIncompleteBitPrefixes": true,
+      "malformedFieldCounts": true,
+      "entityBounds": true,
+      "writerOverflow": true,
+      "floatBoundsNaNInfinity": true,
+      "opaquePlayerRoundtripBytes": 1368
+    },
+    {
+      "name": "message_codec_tests",
+      "exit": 0,
+      "jk2Fixtures": 9,
+      "bitAlignments": 8,
+      "IO": [
+        "raw",
+        "engine Huffman"
+      ],
+      "canonicalEqualsFrozenWrites": true,
+      "allShorterHuffmanBytePrefixes": true,
+      "destinationCases": [
+        "distinct guarded",
+        "aliased guarded"
+      ],
+      "crossProfileSuite": [
+        "Q3",
+        "QL",
+        "RTCW SP/MP",
+        "Elite Force",
+        "Jedi Academy"
+      ],
+      "JK2HashAndStrings": true
+    }
+  ],
+  "artifacts": [
+    {
+      "path": ".tmp/jk2-wire/oracle.json",
+      "bytes": 24639,
+      "sha256": "a02bdaaf68fcd3bd1de6d1cb282c8abb231de061edd8e2fcde1b1635d11f7009",
+      "retained": true
+    },
+    {
+      "path": ".tmp/jk2-wire/jk2_message_codec_tests.exe",
+      "bytes": 147456,
+      "sha256": "2785baacb5a9288a746a3ccd77676ee7b2aeae20e1b83991845421c2d4cbf564",
+      "retained": true
+    },
+    {
+      "path": ".tmp/jk2-wire/message_codec_tests.exe",
+      "bytes": 489984,
+      "sha256": "cccc6e5c23d1c1cb899595dd89e23b8d900498ac101ce4921eecfe7665f2b55c",
+      "retained": true
+    },
+    {
+      "path": "tests/fixtures/jk2_wire_vectors.h",
+      "bytes": 6097,
+      "sha256": "0290675cce01ea4bd4872990002c614de9dd18cbc243ee17de6c6f77e3937e8d",
+      "retained": true
+    },
+    {
+      "path": "code/compat/jk2_wire_fields.def",
+      "bytes": 9466,
+      "sha256": "b6d4a7b497b3deaf72f3bdc0750e0c37adfc87b41da29b39d8a81b5c5397c1e8",
+      "retained": true
+    },
+    {
+      "path": "code/compat/jk2_message_codec.hpp",
+      "bytes": 11335,
+      "sha256": "9ab68b8898ec14d9f4916762e3e83f056ae88bccade5bb78b2f06ae4f1724152",
+      "retained": true
+    },
+    {
+      "path": "code/compat/jk2_state_adapter.hpp",
+      "bytes": 16438,
+      "sha256": "ff01ed28f8ce9be27b9c67a852804f3bbde1e74f52e6368eddd92bfc8f833ab7",
+      "retained": true
+    },
+    {
+      "path": "code/qcommon/raven_state.h",
+      "bytes": 8110,
+      "sha256": "6dc0d5f85a41f17c0d03426ff95e38f45b690df33d657a9b5dd021d4ec63cb73",
+      "retained": true
+    },
+    {
+      "path": "code/qcommon/msg.cpp",
+      "bytes": 115257,
+      "sha256": "00175d3fa39db37a04a0694e40753462dc42fcc6a1b6cb9bd165edfe8d0a8714",
+      "retained": true
+    },
+    {
+      "path": "tests/jk2_retail_wire_oracle.py",
+      "bytes": 8422,
+      "sha256": "85fcd287a64d9ee7e8a7e690dc748933f7eed4e961a7a47eaf7788e94e6d82d2",
+      "retained": true
+    },
+    {
+      "path": "tests/jk2_message_codec_tests.cpp",
+      "bytes": 9599,
+      "sha256": "8cc1031991e940cb48c937367ae3d699d80cd451de8ad00ca6ec63f152d371f3",
+      "retained": true
+    },
+    {
+      "path": "tests/jk2_engine_message_tests.hpp",
+      "bytes": 7292,
+      "sha256": "38af2ef43af21133858201768d2ed56beccb9d8c2eee3ceaaa27ccfc02834c65",
+      "retained": true
+    },
+    {
+      "path": "tests/message_codec_tests.cpp",
+      "bytes": 51181,
+      "sha256": "5ca5970c82c39cc3e66996417f7f95920f5e3e878f21242998a66ef4ee2aeeff",
+      "retained": true
+    }
+  ],
+  "cleanup": {
+    "removed": [],
+    "status": "automatic command policy rejected verified native PowerShell cleanup; no more specific reason returned",
+    "retained": [
+      ".tmp/jk2-wire/oracle.json",
+      ".tmp/jk2-wire/python/",
+      ".tmp/jk2-wire/__pycache__/",
+      ".tmp/jk2-wire/*.exe",
+      ".tmp/jk2-wire/*.obj",
+      ".tmp/jk2-wire/measure.py",
+      ".tmp/jk2-wire/make_*.py"
+    ],
+    "verifiedAbsoluteTaskRoot": "E:\\Repositories\\fnTech3\\.tmp\\jk2-wire",
+    "linksCheckedBeforeRecursiveCleanup": true
+  },
+  "gateStatus": {
+    "messageBodyImplementation": "implemented; fixture and engine bit-IO evidence",
+    "liveBidirectionalInterop": "open",
+    "networkGate": "open",
+    "demoGate": "open",
+    "singlePlayer": "outside this codec slice",
+    "fullCompatibilityClaim": false
+  },
+  "unrelatedFindings": [
+    {
+      "path": "C:/Python311/Lib/site-packages",
+      "finding": "pip invalid-distribution warnings for ~, ~ip, ~~p",
+      "globalChangesMade": false
+    }
+  ],
+  "reviewNotes": [
+    "Existing standalone and full engine message suites rerun after concurrent SP storage was added to ravenEntityStateExtension_t; both exit0. Unknown player backing remains profile-local and every failed read remains transactional."
+  ],
+  "transportAndHandshake": {
+    "evidence": "retail disassembly and source/unit tests; no live connection",
+    "wireProfile": "NETCHAN_WIRE_JK2_MP",
+    "protocol": 15,
+    "messageBytes": 16384,
+    "fragmentBytes": 1300,
+    "reliableCommands": 128,
+    "qport": true,
+    "reliableXor": true,
+    "checksumWord": false,
+    "serverEOF": 9,
+    "clientEOF": 5,
+    "getchallenge": "bare",
+    "challengeResponse": "one integer",
+    "connectResponse": "bare",
+    "addresses": {
+      "netchanTransmit": "0x432960",
+      "messageBound": "0x43296f",
+      "qportWrite": "0x432a3b",
+      "serverReliableEncoder": "0x44f400",
+      "serverEOF": "0x44f3c6",
+      "clientWrapper": "0x40e090",
+      "getchallenge": "0x40b507",
+      "challengeResponse": "0x448887",
+      "connectResponse": "0x4491b6"
+    },
+    "tests": [
+      "tests/jk2_handshake_tests.cpp",
+      "tests/protocol_contract_tests.cpp",
+      "tests/netchan_profile_tests.cpp"
+    ]
+  },
+  "finalIntegrationChecks": {
+    "dateUTC": "2026-10-02T17:03:19.482176+00:00",
+    "platform": "Windows x86",
+    "build": "meson/build/win32-dev, MSVC /W4 /WX /O2",
+    "buildSucceeded": true,
+    "buildLogs": [
+      ".tmp/jk2-compat-2026-10-02/final-build-retry.log",
+      ".tmp/jk2-compat-2026-10-02/final-build-font-bounds.log"
+    ],
+    "selectedMesonTests": {
+      "passed": 13,
+      "failed": 0,
+      "log": ".tmp/jk2-compat-2026-10-02/final-tests.log",
+      "includes": "JK2 ABI, handshake, client transfer, font, message codec, SP host/state, shared game profiles, netchan profiles/codec/safety, message codec, protocol layout/contract"
+    },
+    "binaries": [
+      {
+        "path": "meson/build/win32-dev/fntech3.exe",
+        "bytes": 13140992,
+        "sha256": "e0f0861b26f3c06c27ba5dbf41a0bb9bb52b7be98000ba51279a9b590f6ab3d5"
+      },
+      {
+        "path": "meson/build/win32-dev/fntech3.ded.exe",
+        "bytes": 5630976,
+        "sha256": "de1cba754ca251f216db077a2d7c2af417cae784a39ec06457b87ba5617229f6"
+      }
+    ],
+    "runtimeEvidence": "No runtime probe used these final binaries. Earlier SP bootstrap binary/outcome is recorded separately.",
+    "concurrentWork": "Academy and other chats have uncommitted changes in this checkout; the final build includes shared changes present at its compile time.",
+    "fullPythonSuite": {
+      "command": "python -m pytest tests -q",
+      "passed": 2402,
+      "failed": 49,
+      "skipped": 128,
+      "subtestsPassed": 58620,
+      "seconds": 1806.03,
+      "exitCode": 1,
+      "log": ".tmp\\jk2-compat-2026-10-02\\pytest-full.txt",
+      "logSha256": "0838040e6ee6a58726cf56dfc21f8af91722cc5ee0759f0507eef147dc97b4d5",
+      "failureList": [
+        "SUBFAILED(renderer='renderer') tests/ambient_scale_defaults_tests.py::AmbientScaleDefaultsTests::test_every_renderer_registers_each_engines_ambient_scale",
+        "SUBFAILED(renderer='renderervk') tests/ambient_scale_defaults_tests.py::AmbientScaleDefaultsTests::test_every_renderer_registers_each_engines_ambient_scale",
+        "SUBFAILED(renderer='rendererrtx') tests/ambient_scale_defaults_tests.py::AmbientScaleDefaultsTests::test_every_renderer_registers_each_engines_ambient_scale",
+        "FAILED tests/console_notify_profile_tests.py::ConsoleNotifyProfileTests::test_each_profile_draws_its_own_engines_notify_lines_and_chat_line",
+        "FAILED tests/engine_input_capture_tests.py::ScreenshotRequestTests::test_reports_compile_and_name_each_lost_request",
+        "FAILED tests/filesystem_recovery_tests.py::FilesystemRecoveryTests::test_recursive_recovery_and_initial_failure",
+        "FAILED tests/jka_module_refusal_tests.py::JKAModuleRefusalTests::test_starting_a_motion_path_stays_refused",
+        "FAILED tests/jka_module_refusal_tests.py::JKAModuleRefusalTests::test_the_game_dispatcher_names_every_import_it_does_not_serve",
+        "FAILED tests/large_text_profile_tests.py::LargeTextProfileTests::test_only_quake_live_draws_large_text_in_host_text",
+        "SUBFAILED(language='c') tests/mdr_format_tests.py::MdrFormatTests::test_bounded_loader_c_and_cpp",
+        "SUBFAILED(language='c++') tests/mdr_format_tests.py::MdrFormatTests::test_bounded_loader_c_and_cpp",
+        "FAILED tests/profile_state_limits_tests.py::ProfileStateLimitsTests::test_client_uses_selected_profile_before_connection_and_negotiated_profile_after",
+        "FAILED tests/q3_ihv_game_lifecycle_tests.py::IhvGameLifecycleTests::test_hunk_map_preservation_and_full_shutdown",
+        "FAILED tests/q3_ihv_game_lifecycle_tests.py::IhvGameLifecycleTests::test_native_write_path_preserves_failure_and_does_not_open_file",
+        "FAILED tests/q3_ihv_game_lifecycle_tests.py::IhvGameLifecycleTests::test_systeminfo_keys_and_other_profile_isolation",
+        "FAILED tests/ritual_configstring_bounds_tests.py::RitualConfigstringBoundsTests::test_production_imports_keep_each_titles_bounds_and_reject_overflow",
+        "FAILED tests/ritual_handshake_tests.py::RitualHandshakeTests::test_the_server_reads_a_plain_connect_and_answers_bare",
+        "SUBFAILED(renderer='renderer') tests/ritual_model_lights_tests.py::RitualModelLightTests::test_renderers_light_flagged_models_from_compiled_lights",
+        "SUBFAILED(renderer='renderervk') tests/ritual_model_lights_tests.py::RitualModelLightTests::test_renderers_light_flagged_models_from_compiled_lights",
+        "SUBFAILED(renderer='rendererrtx') tests/ritual_model_lights_tests.py::RitualModelLightTests::test_renderers_light_flagged_models_from_compiled_lights",
+        "FAILED tests/rtcw_camera_tests.py::RTCWCameraTests::test_native_qvm_camera_dispatch_and_owned_outputs",
+        "FAILED tests/rtcw_cinematic_tests.py::RTCWCinematicTests::test_native_qvm_dispatch_and_checked_cinematic_arguments",
+        "FAILED tests/rtcw_client_state_tests.py::RTCWClientStateTests::test_snapshot_usercmd_gamestate_and_native_dispatch",
+        "FAILED tests/rtcw_gamestate_budget_tests.py::RTCWGamestateBudgetTests::test_rtcw_uses_its_own_wire_and_message_limit",
+        "FAILED tests/rtcw_module_cvar_tests.py::RTCWModuleCvarTests::test_cvar_records_dispatch_and_mp_info_channel",
+        "SUBFAILED(backend='openal') tests/rtcw_music_tests.py::RTCWMusicTests::test_actual_backend_music_entrypoints",
+        "FAILED tests/rtcw_render_import_tests.py::RTCWRenderImportTests::test_resource_scene_and_scalar_imports_preserve_each_mode_contract",
+        "FAILED tests/server_zombie_snapshot_tests.py::ServerZombieSnapshotTests::test_each_profile_reads_a_zombies_snapshot",
+        "FAILED tests/server_zombie_snapshot_tests.py::ServerZombieSnapshotTests::test_every_registered_profile_pins_its_empty_delta",
+        "FAILED tests/stream_resampler_tests.py::StreamResamplerTests::test_queue_transactions_format_changes_and_stereo_fallback",
+        "SUBFAILED(renderer='renderer') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_light_grid_matches_retail",
+        "SUBFAILED(renderer='renderervk') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_light_grid_matches_retail",
+        "SUBFAILED(renderer='rendererrtx') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_light_grid_matches_retail",
+        "SUBFAILED(renderer='renderer') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_profile_lighting_defaults",
+        "SUBFAILED(renderer='renderervk') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_profile_lighting_defaults",
+        "SUBFAILED(renderer='rendererrtx') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_profile_lighting_defaults",
+        "SUBFAILED(renderer='renderer') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_skinning_in_each_renderer",
+        "SUBFAILED(renderer='renderervk') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_skinning_in_each_renderer",
+        "SUBFAILED(renderer='rendererrtx') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_skinning_in_each_renderer",
+        "FAILED tests/stvef_sp_snapshot_tests.py::STVEFSPSnapshotTests::test_visible_player_and_other_profile_filters",
+        "FAILED tests/stvef_sp_user_move_tests.py::STVEFSPUserMoveTests::test_game_adjusts_the_supplied_command",
+        "FAILED tests/stvef_sp_user_move_tests.py::STVEFSPUserMoveTests::test_snapshot_acknowledgement_header_round_trip",
+        "SUBFAILED(renderer='renderer') tests/stvef_surface_tests.py::STVEFSurfaceTests::test_retail_geometry_appending_flush_and_invalid_numeric_inputs",
+        "SUBFAILED(renderer='renderervk') tests/stvef_surface_tests.py::STVEFSurfaceTests::test_retail_geometry_appending_flush_and_invalid_numeric_inputs",
+        "SUBFAILED(renderer='rendererrtx') tests/stvef_surface_tests.py::STVEFSurfaceTests::test_retail_geometry_appending_flush_and_invalid_numeric_inputs",
+        "FAILED tests/ui_module_abi_tests.py::UiModuleAbiTests::test_profile_and_legacy_ui_boundaries",
+        "FAILED tests/wolfet_snapshot_tests.py::WolfETSnapshotTests::test_visibility_proxies_callbacks_and_other_profiles",
+        "FAILED tests/wolfet_viewpoint_tests.py::WolfETViewpointTests::test_dense_snapshot_preserves_the_separate_cgame_capacity",
+        "FAILED tests/wolfet_viewpoint_tests.py::WolfETViewpointTests::test_origin_visibility_cameras_lean_and_portal_cycles"
+      ],
+      "limitations": [
+        "Default host compiler uses x64 in several legacy fixtures despite engine x86 guard.",
+        "Shared checkout changed during run because Academy and other work remained active.",
+        "Full suite not rerun after focused repairs; no complete automated-suite gate claim."
+      ]
+    },
+    "goalStatus": "paused at user request after current tasks finish; complete compatibility not established",
+    "cleanup": {
+      "status": "automatic approval review rejected verified native PowerShell cleanup",
+      "reason": "blocked by policy; no detailed reason returned",
+      "linksChecked": true,
+      "absoluteTaskRoot": "E:\\Repositories\\fnTech3\\.tmp\\jk2-compat-2026-10-02",
+      "retainedDisposable": [
+        "runtime-sp/home/",
+        "*.exe",
+        "measure_transport*.py",
+        "run_bootstrap.py"
+      ],
+      "retainedEvidence": [
+        "runtime-sp/console.log",
+        "runtime-sp/result.json",
+        "transport-*.txt",
+        "final-*.log",
+        "pytest-full.txt",
+        "final-validation.json"
+      ],
+      "note": "Cleanup rejected before deletion; scratch files and runtime-sp/home native module cache retained. No alternate deletion attempted. Full suite finished; any remaining temp/ contents retained."
+    },
+    "fixtureRepairChecks": {
+      "command": "python -m pytest selected RTCW dispatch tests, ritual_handshake_tests.py and server_zombie_snapshot_tests.py -q",
+      "passed": 11,
+      "subtestsPassed": 9,
+      "failed": 0,
+      "seconds": 31.56,
+      "log": ".tmp\\jk2-compat-2026-10-02\\fixture-repair-tests.log",
+      "files": [
+        "tests/rtcw_camera_tests.py",
+        "tests/rtcw_cinematic_tests.py",
+        "tests/rtcw_client_state_tests.py",
+        "tests/rtcw_module_cvar_tests.py",
+        "tests/rtcw_render_import_tests.py",
+        "tests/ritual_handshake_tests.py",
+        "tests/server_zombie_snapshot_tests.py"
+      ],
+      "scope": "Only missing profile-isolation scaffolding, bare-reply assertion and registered empty-delta cases; no engine source/build/runtime changes."
+    },
+    "generatedDocumentTests": {
+      "passed": 4,
+      "failed": 0,
+      "command": "python -m pytest tests/generate_docs_tests.py -q"
+    },
+    "remainingKnownJK2Gap": "SV_RemainingGameState still uses conservative QL estimate for JK2; its own pure-gamestate budget is unadapted.",
+    "unrelatedFindings": [
+      "Preexisting pip invalid distributions ~, ~ip, ~~p in C:/Python311/Lib/site-packages.",
+      "Older 2026-09-22-jk2-contracts and 2026-09-22-jk2-records lack required JSON companions.",
+      "SP collision probe emitted invalid-bevel warnings; cause not investigated."
+    ]
+  }
+}

@@ -7,9 +7,10 @@
 #include <cstring>
 #include <vector>
 
-// Independent reader for RTCW's EAAS version 8. The input remains immutable;
+// Independent reader for RTCW/ET's EAAS version 8. The input remains immutable;
 // no disk POD aliases an engine navigation object. The original SP/MP
-// aasfile.h layouts are pinned by rtcw_aas_layout.def reference probes.
+// aasfile.h layouts are pinned by rtcw_aas_layout.def reference probes. ET has
+// the same disk strides, with an optional encoded-header checksum marker.
 namespace fntech3::rtcw::aas {
 enum Lump : unsigned {
 	Boxes, Vertices, Planes, Edges, EdgeIndices, Faces, FaceIndices,
@@ -60,7 +61,7 @@ class View {
 	const unsigned char *data_ = nullptr;
 	std::array<Span, LumpCount> lumps_{};
 	std::uint32_t checksum_ = 0;
-	friend Error Parse( const void *, std::size_t, std::uint32_t, View & );
+	friend Error Parse( const void *, std::size_t, std::uint32_t, View &, bool );
 public:
 	std::size_t Count( Lump lump ) const { return lump < LumpCount ? lumps_[lump].count : 0; }
 	std::uint32_t Checksum() const { return checksum_; }
@@ -70,7 +71,8 @@ public:
 	}
 };
 
-inline Error Parse( const void *input, std::size_t bytes, std::uint32_t checksum, View &destination ) {
+inline Error Parse( const void *input, std::size_t bytes, std::uint32_t checksum, View &destination,
+	bool encodedChecksumMarker = false ) {
 	if ( !input || bytes < HeaderBytes ) return Error::Header;
 	const auto *data = static_cast<const unsigned char *>( input );
 	if ( U32(data) != 0x53414145u ) return Error::Identity;
@@ -78,7 +80,10 @@ inline Error Parse( const void *input, std::size_t bytes, std::uint32_t checksum
 	std::array<unsigned char, HeaderBytes> header;
 	std::memcpy( header.data(), data, HeaderBytes );
 	for ( std::size_t i = 8; i < HeaderBytes; ++i ) header[i] ^= static_cast<unsigned char>((i - 8) * 119);
-	if ( U32(header.data() + 8) != checksum ) return Error::Checksum;
+	// Original ET observes this marker before deobfuscating the header. Keep
+	// its opt-in at the profile boundary; normal files and RTCW stay strict.
+	if ( !(encodedChecksumMarker && U32(data + 8) == UINT32_MAX)
+		&& U32(header.data() + 8) != checksum ) return Error::Checksum;
 	View view;
 	view.data_ = data; view.checksum_ = checksum;
 	for ( unsigned i = 0; i < LumpCount; ++i ) {

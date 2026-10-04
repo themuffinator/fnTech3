@@ -30,6 +30,7 @@ extern "C" {
 #include "canvas_geometry.hpp"
 #include "client_cvar_compat.hpp"
 #include "client_alice_demo.hpp"
+#include "client_demo_profile.hpp"
 #include "demo_auto_record.hpp"
 #include "demo_stream.hpp"
 #include "retail_challenge.hpp"
@@ -40,6 +41,8 @@ extern "C" {
 #include "../qcommon/ritual_handshake.hpp"
 #include "../qcommon/rtcw_handshake.hpp"
 #include "../qcommon/stvef_handshake.hpp"
+#include "../qcommon/jk2_handshake.hpp"
+#include "../qcommon/jka_handshake.hpp"
 #include "../qcommon/steam_identity.hpp"
 #include "../platform/fnql_steam.h"
 #include "../compat/rtcw_translation.hpp"
@@ -654,6 +657,8 @@ static bool CL_DemoProtocolSupported( int protocol )
 		return protocol == NETCHAN_MOHAA_PROTOCOL_VERSION;
 	case COM_GAME_STVEF_MP:
 		return protocol == NETCHAN_IOEF_PROTOCOL_VERSION;
+	case COM_GAME_JKA_MP:
+		return protocol == NETCHAN_JKA_MP_PROTOCOL_VERSION;
 	default:
 		return false;
 	}
@@ -661,31 +666,13 @@ static bool CL_DemoProtocolSupported( int protocol )
 
 static netchanWireProfile_t CL_DemoWireProfileForProtocol( int protocol )
 {
-	if ( protocol == 66 ) return NETCHAN_WIRE_Q3_66;
-	if ( protocol == NETCHAN_MOHAA_PROTOCOL_VERSION ) return NETCHAN_WIRE_MOHAA;
-	if ( protocol == 67 ) return NETCHAN_WIRE_Q3_67;
-	if ( protocol == QL_RETAIL_PROTOCOL_VERSION ) {
-		return NETCHAN_WIRE_QL_RETAIL;
+	netchanWireProfile_t result;
+	if ( !fntech3::demo::Wire( Com_GameProfile()->allowedProtocolFamilies, protocol, result ) ) {
+		Com_Error( ERR_DROP, "Demo protocol %d has no wire contract for profile %s",
+			protocol, Com_GameProfile()->key );
+		return NETCHAN_WIRE_LEGACY_Q3;
 	}
-	if ( protocol == NETCHAN_RTCW_SP_PROTOCOL_VERSION ) {
-		return NETCHAN_WIRE_RTCW_SP;
-	}
-	if ( protocol == NETCHAN_RTCW_MP_PROTOCOL_VERSION ) {
-		return NETCHAN_WIRE_RTCW_MP;
-	}
-	if ( protocol == NETCHAN_WOLFET_PROTOCOL_VERSION ) {
-		return NETCHAN_WIRE_WOLFET;
-	}
-	if ( protocol == NETCHAN_STVEF_HM_PROTOCOL_VERSION ) {
-		return NETCHAN_WIRE_STVEF_HM;
-	}
-	if ( protocol == NETCHAN_IOEF_PROTOCOL_VERSION ) {
-		return NETCHAN_WIRE_IOEF;
-	}
-	if ( protocol == NEW_PROTOCOL_VERSION ) {
-		return NETCHAN_WIRE_IOQ3;
-	}
-	return NETCHAN_WIRE_LEGACY_Q3;
+	return result;
 }
 
 // Only Q3 message bodies can be relabelled dm_68 until an ioq3 extension
@@ -704,7 +691,10 @@ netchanWireProfile_t CL_ActiveWireProfile( void )
 	// selected game. A zeroed netchan must not impose Q3's window on RTCW.
 	if ( cls.state < CA_CONNECTED ) {
 		const comGameProfile_t *profile = Com_GameProfile();
-		if ( profile ) return Netchan_SelectWireProfile( profile->preferredProtocol, 0 );
+		if ( profile ) {
+			const auto *contract = fnql::protocol::FindForProfile( profile->preferredProtocol, profile );
+			if ( contract ) return contract->wireProfile;
+		}
 	}
 	return clc.netchan.wireProfile;
 }
@@ -1185,6 +1175,9 @@ static void CL_WriteGamestate( qboolean initial )
 
 		// write the checksum feed
 		MSG_WriteLong( &msg, clc.checksumFeed );
+		if ( CL_ActiveWireProfile() == NETCHAN_WIRE_JKA_MP ) {
+			MSG_WriteShort( &msg, 0 ); // The supported static-map RMG trailer.
+		}
 
 		// finished writing the client packet
 		MSG_WriteByte( &msg, endOfMessage );
@@ -1330,12 +1323,17 @@ static void CL_WriteSnapshot( void ) {
 	else
 		CL_WriteDeltaPlayerstateForActiveProfile(
 			&msg, nullptr, &snap->ps );
+	if ( CL_ActiveWireProfile() == NETCHAN_WIRE_JKA_MP && snap->ps.raven.m_iVehicleNum ) {
+		const playerState_t *vehicleBase = oldSnap && oldSnap->ps.raven.m_iVehicleNum
+			? &oldSnap->jkaVehiclePs : nullptr;
+		MSG_WriteDeltaJKAVehiclePlayerstate( &msg, vehicleBase, &snap->jkaVehiclePs );
+	}
 
 	CL_EmitPacketEntities( oldSnap, snap, &msg, saved_ents );
 
 	// finished writing the client packet
 	if ( !stvef ) {
-		MSG_WriteByte( &msg, svc_EOF );
+		MSG_WriteByte( &msg, Netchan_ServerEOFOpcode( CL_ActiveWireProfile() ) );
 	}
 
 	// write it to the demo file
@@ -1999,8 +1997,8 @@ static void CL_PlayDemo_f( void ) {
 		Com_Printf( "RTCW single-player demos cannot be replayed: its cgame needs animation data from a running game module.\n" );
 		return;
 	}
-	const bool legacyFormat = !alice && ( CL_IsLegacyDemoExt( COM_GetExtension( name.data() ) ) ||
-		fntech3::q3::RawDemoProtocol( protocol ) );
+	const bool legacyFormat = Com_GameProfile()->id == COM_GAME_QUAKE3 &&
+		( CL_IsLegacyDemoExt( COM_GetExtension( name.data() ) ) || fntech3::q3::RawDemoProtocol( protocol ) );
 	const int legacyProtocol = legacyFormat ? CL_DetectLegacyDemoProtocol( hFile.get() ) : 0;
 	if ( legacyFormat && !fntech3::q3::RawDemoContainer(
 		CL_IsLegacyDemoExt( COM_GetExtension( name.data() ) ) ? 0 : protocol, legacyProtocol ) ) {
@@ -2670,7 +2668,7 @@ static void CL_RestoreMainMenuAfterDisconnect( void ) {
 		return;
 	}
 
-	if ( uivm ) {
+	if ( CL_UIModuleReady() ) {
 		S_StopAllSounds();
 		VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, UIMENU_MAIN );
 		Key_SetCatcher( ( Key_GetCatcher() & ~KEYCATCH_BROWSER ) | KEYCATCH_UI );
@@ -2768,7 +2766,7 @@ qboolean CL_Disconnect( qboolean showMainMenu ) {
 	// but disconnect is a session boundary and must stop it unconditionally.
 	CL_ResetVoiceInputState();
 
-	if ( uivm && showMainMenu ) {
+	if ( CL_UIModuleReady() && showMainMenu ) {
 		VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, UIMENU_NONE );
 	}
 
@@ -3304,9 +3302,10 @@ static void CL_SendPureChecksums( void ) {
 
 	// Q3, RTCW and ET have distinct cgame/UI slots in the filesystem proof.
 	// Retail QL prefixes one native-module pak before its general references.
+	// JKA's cp starts with its module checksums (jamp.exe 0x41dd50..0x41dda4).
 	// Elite Force Holomatch names no server id (stvoyHM.exe 0x40df30), and
 	// Medal of Honor neither a server id nor a module (OpenMoHAA).
-	if ( CL_LegacyFraming() ||
+	if ( Com_GameIsJKAMP() || CL_LegacyFraming() ||
 		fnql::protocol::Q3PureChecksumsOmitServerId( CL_ActiveWireProfile() ) ||
 		Com_GameProfile()->pureProof == COM_PURE_PROOF_MOHAA_REFERENCES ) {
 		len = Com_sprintf( cMsg.data(), static_cast<int>( cMsg.size() ), "cp " );
@@ -4149,6 +4148,11 @@ static void CL_CheckForResend( void ) {
 					fnql::client::auth::ChallengeRequestMode::RetailWithoutSteam;
 				Com_DPrintf( "Steam challenge ticket unavailable; sent protocol-91 no-Steam fallback.\n" );
 			}
+		} else if (Com_GameIsJKAMP()) {
+			NET_OutOfBandPrint(NS_CLIENT, &clc.serverAddress, "getchallenge %d", clc.challenge);
+			steamChallengeTicket.requestMode = fnql::client::auth::ChallengeRequestMode::LegacyNonce;
+		} else if ( Com_GameIsJK2MP() ) {
+			NET_OutOfBandPrint( NS_CLIENT, &clc.serverAddress, "getchallenge" );
 		} else {
 			// Legacy/ioq3 peers echo this nonce, preventing an unrelated server
 			// from redirecting the connection. iortcw servers also refuse any
@@ -4522,10 +4526,48 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 			return false;
 		}
 
-		// RTCW servers use their own token layouts: MP's second token is
+		if ( Com_GameIsJKAMP() ) {
+			std::array<const char *, 5> tokens{};
+			const int count = Cmd_Argc();
+			for (int i = 0; i < std::min(count, static_cast<int>(tokens.size())); ++i)
+				tokens[i] = Cmd_Argv(i);
+			int jkaChallenge = 0;
+			if (!fntech3::jka::handshake::ParseChallengeReply(count, tokens.data(),
+				clc.challenge, NET_CompareAdr(from, &clc.serverAddress) != qfalse, jkaChallenge)) {
+				Com_DPrintf("Invalid Jedi Academy challenge response. Ignored.\n");
+				return false;
+			}
+			clc.challenge = jkaChallenge;
+			clc.handshakeProtocol = NETCHAN_JKA_MP_PROTOCOL_VERSION;
+			clc.compat = qfalse;
+			cls.state = CA_CHALLENGING;
+			clc.connectPacketCount = 0;
+			clc.connectTime = -99999;
+			clc.serverAddress = *from;
+			return true;
+		}
+
+		if ( Com_GameIsJK2MP() ) {
+			std::array<const char *, 2> tokens{ Cmd_Argv( 0 ), Cmd_Argv( 1 ) };
+			int jk2Challenge = 0;
+			if ( !fntech3::jk2::handshake::ParseChallengeReply( Cmd_Argc(), tokens.data(),
+				NET_CompareAdr( from, &clc.serverAddress ) != qfalse, jk2Challenge ) ) {
+				Com_DPrintf( "Invalid Jedi Outcast challenge response. Ignored.\n" );
+				return false;
+			}
+			clc.challenge = jk2Challenge;
+			clc.handshakeProtocol = NETCHAN_JK2_MP_PROTOCOL_VERSION;
+			clc.compat = qfalse;
+			cls.state = CA_CHALLENGING;
+			clc.connectPacketCount = 0;
+			clc.connectTime = -99999;
+			return true;
+		}
+
+		// RTCW and ET servers use their own token layouts: MP's second token is
 		// sv_onlyVisibleClients, not a nonce echo, and original servers of
 		// both modes name no protocol because they speak only their own.
-		if ( Com_GameIsRTCW() ) {
+		if ( Com_GameIsRTCW() || Com_GameIsWolfET() ) {
 			std::array<const char *, 6> tokens{};
 			const int count = std::min( Cmd_Argc(), static_cast<int>( tokens.size() ) );
 			for ( int i = 0; i < count; ++i ) {
@@ -4533,7 +4575,7 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 			}
 			const int ownProtocol = Com_GameProfile()->preferredProtocol;
 			const auto reply = fntech3::rtcw::handshake::ParseChallengeReply(
-				Com_GameIsRTCWMP() != 0, count, tokens.data(), clc.challenge, ownProtocol,
+				Com_GameIsRTCWMP() || Com_GameIsWolfET(), count, tokens.data(), clc.challenge, ownProtocol,
 				NET_CompareAdr( from, &clc.serverAddress ) != qfalse );
 			if ( !reply.accepted ) {
 				Com_DPrintf( "Challenge response did not prove its source. Ignored.\n" );
@@ -4546,7 +4588,7 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 			}
 			clc.compat = qfalse;
 			clc.handshakeProtocol = ownProtocol;
-			clc.rtcwOnlyVisibleClients = Com_GameIsRTCWMP() ? reply.onlyVisibleClients : 0;
+			clc.rtcwOnlyVisibleClients = ( Com_GameIsRTCWMP() || Com_GameIsWolfET() ) ? reply.onlyVisibleClients : 0;
 			if ( clc.rtcwOnlyVisibleClients ) {
 				Com_DPrintf( "Server hides players this client cannot see (sv_onlyVisibleClients %d).\n",
 					clc.rtcwOnlyVisibleClients );
@@ -4764,6 +4806,18 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 			Com_Printf( "connectResponse packet while not connecting. Ignored.\n" );
 			return false;
 		}
+		if (Com_GameIsJKAMP()) {
+			std::array<const char *, 3> tokens{};
+			const int count = Cmd_Argc();
+			for (int i = 0; i < std::min(count, static_cast<int>(tokens.size())); ++i)
+				tokens[i] = Cmd_Argv(i);
+			// Check the port before the generic proxy handoff changes the address.
+			if (!NET_CompareAdr(from, &clc.serverAddress) ||
+				!fntech3::jka::handshake::AcceptConnectReply(count, tokens.data(), clc.challenge)) {
+				Com_Printf("Invalid Jedi Academy connect response. Ignored.\n");
+				return false;
+			}
+		}
 		if ( !NET_CompareBaseAdr( from, &clc.serverAddress ) ) {
 			Com_Printf( "connectResponse from wrong host. Ignored.\n" );
 			return false;
@@ -4779,10 +4833,10 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 				com_protocol->integer );
 
 		const fnql::protocol::Contract *contract =
-			fnql::protocol::Find( negotiatedProtocol, clc.compat != qfalse );
+			fnql::protocol::FindForProfile( negotiatedProtocol, Com_GameProfile(), clc.compat != qfalse );
 
-		if ( Com_GameIsRTCW() ) {
-			// Original RTCW servers answer with a bare connectResponse and
+		if ( Com_GameIsRTCW() || Com_GameIsWolfET() ) {
+			// Original RTCW and ET servers answer with a bare connectResponse and
 			// ioquake3-lineage ones echo the challenge, which must then match.
 			std::array<const char *, 3> tokens{};
 			const int count = std::min( Cmd_Argc(), static_cast<int>( tokens.size() ) );
@@ -4795,6 +4849,17 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 				Com_Printf( "ConnectResponse with bad challenge received. Ignored.\n" );
 				return false;
 			}
+			clc.compat = qfalse;
+		} else if (Com_GameIsJKAMP()) {
+			negotiatedProtocol = NETCHAN_JKA_MP_PROTOCOL_VERSION;
+			clc.compat = qfalse;
+		} else if ( Com_GameIsJK2MP() ) {
+			const char *token[] = { Cmd_Argv( 0 ) };
+			if ( !fntech3::jk2::handshake::AcceptConnectReply( Cmd_Argc(), token ) ) {
+				Com_Printf( "Invalid Jedi Outcast connect response. Ignored.\n" );
+				return false;
+			}
+			negotiatedProtocol = NETCHAN_JK2_MP_PROTOCOL_VERSION;
 			clc.compat = qfalse;
 		} else if ( Com_GameIsSTVEFMP() ) {
 			// Retail answers with the bare keyword; protocol 26 echoes the challenge.
@@ -4890,8 +4955,8 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 			}
 		}
 
-		contract = fnql::protocol::Find(
-			negotiatedProtocol, clc.compat != qfalse );
+		contract = fnql::protocol::FindForProfile(
+			negotiatedProtocol, Com_GameProfile(), clc.compat != qfalse );
 		if ( !contract || !Com_GameProfileAllowsProtocol(
 			Com_GameProfile(), negotiatedProtocol )
 			|| !fnql::protocol::ServesProfile( *contract, Com_GameProfile() ) ) {
@@ -4903,7 +4968,7 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 
 		Netchan_Setup( NS_CLIENT, &clc.netchan, from,
 			Cvar_VariableIntegerValue( "net_qport" ), clc.challenge,
-			Netchan_SelectWireProfile( negotiatedProtocol, clc.compat ) );
+			contract->wireProfile );
 		// Loopback skips challenge negotiation. Derive the legacy policy from
 		// the accepted framing contract instead of its zero-initialized flag.
 		clc.compat = ToQboolean( contract->family == fnql::protocol::Family::LegacyQuake3 );
@@ -5740,7 +5805,8 @@ static void CL_InitRenderer( void ) {
 		cls.consoleShader = re.RegisterShaderNoMip( "gfx/2d/conback" );
 		cls.cursorShader = re.RegisterShaderNoMip( "menu/arena/3_cursor2" );
 	} else {
-	cls.charSetShader = Com_GameIsSTVEF() ? re.RegisterShaderNoMip( "gfx/2d/charsgrid_med" )
+	// Academy supplies this same half-cell atlas; retain Fn HUD and console placement.
+	cls.charSetShader = Com_GameIsSTVEF() || Com_GameIsJKA() ? re.RegisterShaderNoMip( "gfx/2d/charsgrid_med" )
 		: re.RegisterShader( wolfet ? "gfx/2d/consolechars" : rtcwMP ? "gfx/2d/hudchars" : "gfx/2d/bigchars" );
 	cls.recordShader = wolfet || Com_GameIsSTVEF() ? 0 : re.RegisterShaderNoMip( "icons/record" );
 	// Medal of Honor's "white" is an additive sprite (scripts/sprites.shader),
@@ -5787,6 +5853,9 @@ void CL_StartHunkUsers( void ) {
 	if ( !com_cl_running || !com_cl_running->integer ) {
 		return;
 	}
+	// Com_Error flushes the hunk before abandoning the failed native call.
+	// Reload Academy's client modules only once that recovery has completed.
+	if ( Com_GameIsJKAMP() && com_errorEntered ) return;
 
 	if ( cls.state >= CA_LOADING ) {
 		// try to apply map-depending configuration from cvar cl_mapConfig_<mapname> cvars

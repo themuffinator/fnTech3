@@ -304,6 +304,8 @@ typedef enum {
 	UIMENU_WM_TAPOUT,
 	UIMENU_WM_TAPOUT_LMS,
 	UIMENU_INGAME_MESSAGEMODE,
+	/* Engine-owned selector, translated to Academy menu 3 at its boundary. */
+	UIMENU_JKA_PLAYERCONFIG,
 	UIMENU_COUNT
 } uiMenuCommand_t;
 

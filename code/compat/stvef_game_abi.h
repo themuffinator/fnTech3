@@ -71,6 +71,10 @@ enum {
 	FNTECH3_STVEF_SP_SAVE_MAGIC = 0x1234ABCD,
 	FNTECH3_STVEF_SP_SCREENSHOT_SIZE = 256,
 	FNTECH3_STVEF_SP_LIPSYNC_ENTITIES = 1024,
+	/* stvoy.exe: eight action buttons (0x405948..0x405972), followed by
+	 * any-key at 0x100 (0x40599a). Use is bit 5; alternate attack is bit 7. */
+	FNTECH3_STVEF_SP_BUTTON_COUNT = 8,
+	FNTECH3_STVEF_SP_BUTTON_ANY = 0x100,
 
 	/* Holomatch: 64 clients, four player events, 16 weapons. */
 	FNTECH3_STVEF_MP_MAX_CLIENTS = 64,

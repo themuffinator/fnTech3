@@ -39,7 +39,7 @@ static void routingTables(){
   assert(fntech3::rtcw::navigation::RoutingCosts(links));
  }else{AAS_CreateReversedReachability();AAS_CalculateAreaTravelTimes();}
  AAS_InitPortalMaxTravelTimes();AAS_InitClusterAreaCache();AAS_InitPortalCache();
- aasworld.max_routingcachesize=4096*1024;aasworld.frameroutingupdates=0;
+ AAS_InitRoutingLimits();aasworld.max_routingcachesize=4096*1024;aasworld.frameroutingupdates=0;
  aasworld.loaded=aasworld.initialized=qtrue;
 }
 // A ring of clusters. Each has ordinary areas and two shared portal areas.
@@ -118,10 +118,10 @@ class RTCWRouteQueryTests(unittest.TestCase):
 int main(){
  const int flags=TFL_WALK|TFL_AIR;
  for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;initialize();graph(0,2,1);
-  // RTCW and Elite Force Holomatch start from the goal's own row, which
+  // RTCW, ET and Elite Force Holomatch start from the goal's own row, which
   // costs the time inside it; Quake III 1.32 starts from zeros.
-  assert(AAS_AreaTravelTimeToGoalArea(1,nullptr,2,flags)==(Com_GameIsRTCW()||Com_GameIsSTVEFMP()?12:11));
-  assert(aasworld.frameroutingupdates==(Com_GameIsRTCW()?2:1));cacheLinks();
+  assert(AAS_AreaTravelTimeToGoalArea(1,nullptr,2,flags)==(Com_GameIsRTCW()||Com_GameIsWolfET()||Com_GameIsSTVEFMP()?12:11));
+  assert(aasworld.frameroutingupdates==(Com_GameIsRTCW()||Com_GameIsWolfET()?2:1));cacheLinks();
   aasworld.frameroutingupdates=101;auto *hit=AAS_GetAreaRoutingCache(1,2,flags);
   assert(hit&&aasworld.frameroutingupdates==101);
   auto *miss=AAS_GetAreaRoutingCache(1,1,flags);assert((miss==nullptr)==bool(Com_GameIsRTCW()));
@@ -156,11 +156,11 @@ int main(){
   if(Com_GameIsSTVEFMP())assert(time==open&&first==openFirst&&aasworld.reachability[first].areanum==10);
   else assert(aasworld.reachability[first].areanum!=10);
   cacheLinks();
-  // RTCW's expiry pass removes one ordinary cache plus one portal cache.
+  // RTCW and ET expire one ordinary cache plus one portal cache per pass.
   routingTables();auto *ordinary=AAS_GetAreaRoutingCache(1,1,flags,true);
   auto *portalArea=AAS_GetAreaRoutingCache(1,10,flags,true);
   auto *portal=AAS_GetPortalRoutingCache(2,4,flags);int before=aasworld.routingcachesize;
-  const int expected=ordinary->size+(Com_GameIsRTCW()?portal->size:0);
+  const int expected=ordinary->size+(Com_GameIsRTCW()||Com_GameIsWolfET()?portal->size:0);
   assert(AAS_FreeOldestCache());assert(aasworld.routingcachesize==before-expected);
   assert(aasworld.clusterareacache[1][3]==portalArea);cacheLinks();
   while(AAS_FreeOldestCache())cacheLinks();

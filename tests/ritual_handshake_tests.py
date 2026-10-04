@@ -89,7 +89,8 @@ class RitualHandshakeTests(unittest.TestCase):
         self.assertIn('if ( !Com_GameIsSTVEFMP() && !Com_GameIsRitual() ) {', packet)
         self.assertLess(packet.index('!Com_GameIsRitual()'), packet.index('Huff_Decompress( msg, header + 8 )'))
         client = read('code/server/sv_client.cpp')
-        self.assertIn('if ( ( cl_proto == QL_RETAIL_PROTOCOL_VERSION && !longstr ) || Com_GameIsRitual() ) {\n'
+        self.assertIn('if ( ( cl_proto == QL_RETAIL_PROTOCOL_VERSION && !longstr ) || Com_GameIsRitual()\n'
+                      '\t\t|| Com_GameIsJK2MP() ) {\n'
                       '\t\tNET_OutOfBandPrint( NS_SERVER, from, "connectResponse" );', client)
 
     def test_the_client_prints_its_connect_with_its_own_protocol(self):

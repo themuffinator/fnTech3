@@ -48,6 +48,9 @@ template<class VM> static intptr_t SV_RTCWGetTag(VM *, intptr_t, intptr_t, intpt
 // Checked file writes and rename dispatch execute in rtcw_file_write_tests.
 template<class VM> static void VM_RTCWRenameFile(VM *, intptr_t, intptr_t) { assert(false); }
 static comGameProfile_t profile;
+// Other profiles must never enter their module dispatch in this RTCW fixture.
+static bool CL_JK2UICall(intptr_t *, intptr_t &, intptr_t &) { assert(false); return false; }
+static bool CL_JKAUICall(intptr_t *, intptr_t &, intptr_t &, std::array<intptr_t, 6> &, intptr_t *&) { assert(false); return false; }
 const comGameProfile_t *Com_GameProfile(void) { return &profile; }
 int Com_GameIsRTCW(void) { return profile.id == COM_GAME_RTCW_SP || profile.id == COM_GAME_RTCW_MP; }
 int Com_GameIsRTCWSP(void) { return profile.id == COM_GAME_RTCW_SP; }

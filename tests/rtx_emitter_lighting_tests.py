@@ -1,8 +1,11 @@
-"""The path tracer's default lighting: the sky and the surfaces that emit.
+"""The path tracer's default lighting: the level's own lights, traced.
 
-rtx_rt_lighting 0 lights a scene as Q2RTX lights Quake II: from the sky, its
-q3map_sun and the surfaces that give off light, with traced bounces, no
-lightmap and no light entity. A surface gives off what its shader draws with
+rtx_rt_lighting 0 lights a scene with the lights the level defines - the
+light entities its map keeps, its q3map_surfacelight shaders, its sky and
+q3map_sun - and the surfaces that give off light, with traced bounces in
+place of the compilers' ambient and _minlight floors and nothing baked;
+rtx_rt_lighting 3 leaves the light entities out, as Q2RTX lights Quake II
+from its sky and emitters alone. A surface gives off what its shader draws with
 the lighting term black (a glow stage over a lightmapped base, an additive
 flame); a shader drawn fullbright is lit by the scene all the same, and only
 its bright texels glow, as Q2RTX synthesizes emissive masks from a texture's
@@ -159,7 +162,7 @@ class RtxEmitterLightingTests(unittest.TestCase):
         material = read('code/rendererrtx/rt/rt_material.c')
         lit = function(material, 'static qboolean RT_ShaderFullbrightLit(')
         # the default lighting only, never a q3map surface light, sky or portal
-        self.assertIn('RT_LightingMode() != RT_LIGHTING_EMITTERS', lit)
+        self.assertIn('!RT_LightingEmits( RT_LightingMode() )', lit)
         self.assertIn('( shader->surfaceLightValid && shader->surfaceLight > 0.0f )', lit)
         self.assertIn('RT_ShaderIsSky( shader )', lit)
         self.assertIn('shader->sort == SS_PORTAL', lit)
@@ -191,7 +194,7 @@ class RtxEmitterLightingTests(unittest.TestCase):
         self.assertIn('VectorScale( emissions[shader->index], boost / M_PI, radiance );', add)
         self.assertIn('RT_AddTriangleLight( a->xyz, b->xyz, c->xyz, n, radiance, value, twoSided, 0u );', add)
         material = read('code/rendererrtx/rt/rt_material.c')
-        flag = material[material.index('} else if ( RT_LightingMode() == RT_LIGHTING_EMITTERS ) {'):]
+        flag = material[material.index('} else if ( RT_LightingEmits( RT_LightingMode() ) ) {'):]
         flag = flag[:flag.index('// Quake III materials carry no reflectance model')]
         self.assertIn('out->flags |= RT_MF_SURFACE_LIGHT;', flag)
         path = read('code/rendererrtx/shaders/rt_path.glsl')
@@ -200,7 +203,7 @@ class RtxEmitterLightingTests(unittest.TestCase):
         self.assertIn('rtx_rt_emissive_light = ri.Cvar_Get( "rtx_rt_emissive_light", "2.0", CVAR_ARCHIVE_ND );', init)
         # the compilers' stand-in for a fixture's bounced light is not added
         surface = function(lights, 'static void RT_AddSurfaceLights(')
-        self.assertIn('if ( s_rtLights.mode != RT_LIGHTING_EMITTERS ) {', surface)
+        self.assertIn('if ( !RT_LightingEmits( s_rtLights.mode ) ) {', surface)
 
     def test_the_sky_lights_with_its_own_colour_or_as_its_shaders_ask(self):
         lights = read('code/rendererrtx/rt/rt_lights.c')
@@ -303,9 +306,10 @@ class RtxEmitterLightingTests(unittest.TestCase):
         self.assertEqual(re.search(r'#define RT_FRAME_LINEAR_LIGHT\s+\(\s*1u << (\d+)\s*\)', gpu).group(1),
                          re.search(r'const uint RT_FRAME_LINEAR_LIGHT = 1u << (\d+);', common).group(1))
         self.assertIn('return pow(max(c, vec3(0.0)), vec3(2.2));', function(common, 'vec3 rt_linear(vec3 c)'))
-        # the default lighting decodes, unless the textures are decoded already
+        # the linear camera decodes, unless the textures are decoded already
         backend = read('code/rendererrtx/rt/rt_backend.c')
-        self.assertIn('( ( emitters && !vk_scene_linear_enabled() ) ? RT_FRAME_LINEAR_LIGHT : 0u ) |', backend)
+        self.assertIn('( ( RT_LightingCamera( s_rtLights.mode ) == RT_CAMERA_LINEAR && !vk_scene_linear_enabled() ) ?\n'
+                      '\t\t\tRT_FRAME_LINEAR_LIGHT : 0u ) |', backend)
         # what a surface reflects and gives off, after the fold of its stages
         material = function(read('code/rendererrtx/shaders/rt_material.glsl'), 'RtSurface rt_evaluate_material(')
         decode = material[material.index('if ((u_frame.flags.x & RT_FRAME_LINEAR_LIGHT) != 0u) {'):]
@@ -320,16 +324,151 @@ class RtxEmitterLightingTests(unittest.TestCase):
         radiance = function(sky, 'vec3 rt_sky_radiance(vec3 d)')
         self.assertEqual(radiance.count('rt_sky_color(textureLod('), 2)
         # an emitter's light is what it shows, decoded as the trace decodes it
+        # where the camera takes linear light
         lights = read('code/rendererrtx/rt/rt_lights.c')
         self.assertIn("c[i] = c[i] > 0.0f ? powf( c[i], 2.2f ) : 0.0f;", function(lights, 'static void RT_LinearColor('))
         add = function(lights, 'static void RT_AddEmissiveSurfaces(')
         self.assertLess(add.index('RT_ShaderEmission( shader, emissions[shader->index] )'),
                         add.index('RT_LinearColor( emissions[shader->index] );'))
+        self.assertIn('if ( RT_LightingCamera( s_rtLights.mode ) == RT_CAMERA_LINEAR ) {\n'
+                      '\t\t\t\t\tRT_LinearColor( emissions[shader->index] );', add)
         # encoded once, by the composite
         glsl = read('code/rendererrtx/shaders/rt_tonemap.glsl')
         self.assertIn('return pow(clamp(c, 0.0, 1.0), vec3(1.0 / 2.2));', function(glsl, 'vec3 tone_encode(vec3 c)'))
         self.assertNotIn('tone_decode', glsl + read('code/rendererrtx/shaders/rt_composite.comp') +
                          read('code/rendererrtx/shaders/rt_tonemap.comp'))
+
+    def test_the_level_is_lit_by_its_own_lights(self):
+        # the default traces the light entities the map keeps (Quake III's
+        # and RTCW's do; q3map2 left none in Quake Live's and Enemy
+        # Territory's) with the emitters, sky and sun, and leaves the
+        # compilers' floors to traced bounces; 3 is the emitters alone
+        material = read('code/rendererrtx/rt/rt_material.c')
+        for define in ('#define RT_LIGHTING_LEVEL\t\t0', '#define RT_LIGHTING_LIGHTMAPS\t1',
+                       '#define RT_LIGHTING_COMPILERS\t2', '#define RT_LIGHTING_EMITTERS\t3'):
+            self.assertIn(define, material)
+        emits = function(material, 'static qboolean RT_LightingEmits( int mode )')
+        self.assertIn('return ( mode == RT_LIGHTING_LEVEL || mode == RT_LIGHTING_EMITTERS ) ? qtrue : qfalse;', emits)
+        self.assertIn('return rtx_rt_lighting ? (int)Com_Clamp( 0, 3, rtx_rt_lighting->integer ) : RT_LIGHTING_LEVEL;',
+                      function(material, 'static int RT_LightingMode( void )'))
+        lights = read('code/rendererrtx/rt/rt_lights.c')
+        build = function(lights, 'static qboolean RT_BuildLights( void )')
+        emitting = build[build.index('if ( RT_LightingEmits( s_rtLights.mode ) ) {'):build.index('\n\t} else {')]
+        level = emitting[emitting.index('if ( s_rtLights.mode == RT_LIGHTING_LEVEL ) {'):]
+        level = level[:level.index('}')]
+        for line in ('RT_AddEntityLights();', 'VectorClear( s_rtLights.ambient );', 'VectorClear( s_rtLights.minLight );',
+                     'VectorClear( s_rtLights.minVertexLight );', 'VectorClear( s_rtLights.minGridLight );'):
+            self.assertIn(line, level)
+        for call in ('RT_AddSurfaceLights();', 'RT_AddEmissiveSurfaces();', 'RT_FindSun();',
+                     'RT_FindSkyLightColor( s_rtLights.skyColor );'):
+            self.assertLess(emitting.index('RT_AddEntityLights();'), emitting.index(call))
+        # the level's sky is its compiler's (q3map's sky surface lights,
+        # q3map2's dome), the emitters' an even one in its light colour
+        sky = emitting[emitting.index('RT_FindSun();'):]
+        self.assertIn('if ( s_rtLights.mode == RT_LIGHTING_LEVEL ) {\n\t\t\tRT_FindSkyLight();\n\t\t} else {', sky)
+        uniforms = function(read('code/rendererrtx/rt/rt_backend.c'), 'static void RT_WriteFrameUniforms(')
+        self.assertIn('if ( s_rtLights.mode == RT_LIGHTING_EMITTERS ) {', uniforms[uniforms.index('Com_Memcpy( u->skyImages'):])
+        # the level's lights are shown in their units, the emitters' alone
+        # through the linear camera (test_the_traced_light_is_shown_as_it_is)
+        backend = read('code/rendererrtx/rt/rt_backend.c')
+        self.assertNotIn('const qboolean emitters = RT_LightingEmits( s_rtLights.mode );', backend)
+        self.assertIn('const int camera = RT_LightingCamera( s_rtLights.mode );', backend)
+        init = read('code/rendererrtx/tr_init.c')
+        self.assertIn('ri.Cvar_CheckRange( rtx_rt_lighting, "0", "3", CV_INTEGER );', init)
+        self.assertIn('rtx_rt_lighting = ri.Cvar_Get( "rtx_rt_lighting", "0", CVAR_ARCHIVE_ND );', init)
+
+    def test_the_traced_light_is_shown_as_it_is(self):
+        # nothing baked takes part: the level's own lights are traced and the
+        # light a surface receives, in its compiler's units, multiplies its
+        # colour with no exposure; the linear camera is the other choice, and
+        # the emitters alone always take it
+        material = read('code/rendererrtx/rt/rt_material.c')
+        for define in ('#define RT_CAMERA_UNITS\t\t0', '#define RT_CAMERA_LINEAR\t1'):
+            self.assertIn(define, material)
+        camera = function(material, 'static int RT_LightingCamera( int mode )')
+        self.assertLess(camera.index('if ( mode == RT_LIGHTING_EMITTERS ) {\n\t\treturn RT_CAMERA_LINEAR;'),
+                        camera.index('if ( mode != RT_LIGHTING_LEVEL ) {\n\t\treturn RT_CAMERA_UNITS;'))
+        self.assertIn('return ( rtx_rt_camera && rtx_rt_camera->integer ) ? RT_CAMERA_LINEAR : RT_CAMERA_UNITS;', camera)
+        init = read('code/rendererrtx/tr_init.c')
+        self.assertIn('rtx_rt_camera = ri.Cvar_Get( "rtx_rt_camera", "0", CVAR_ARCHIVE_ND );', init)
+        self.assertIn('ri.Cvar_CheckRange( rtx_rt_camera, "0", "1", CV_INTEGER );', init)
+        # the composite: the engine's lightmap ceiling unless the camera is
+        # linear, which alone exposes and tone maps
+        backend = read('code/rendererrtx/rt/rt_backend.c')
+        setup = backend[backend.index('const int camera = RT_LightingCamera( s_rtLights.mode );'):]
+        setup = setup[:setup.index('push.view[0] = (uint32_t)view.offset.x;')]
+        self.assertIn('push.extra[3] = ( !sceneLinear && camera != RT_CAMERA_LINEAR ) ? RT_COMPOSITE_SHOULDER : 0u;', setup)
+        self.assertIn('if ( camera == RT_CAMERA_LINEAR ) {', setup)
+        self.assertLess(setup.index('if ( camera == RT_CAMERA_LINEAR ) {'), setup.index('tonemap = qtrue;'))
+        # a change of camera rebuilds the lights (a glowing shader's light is
+        # in its camera's units) and starts the history over
+        self.assertIn('( rtx_rt_camera && rtx_rt_camera->modified ) ) {', backend)
+        self.assertIn('rtx_rt_emissive_light, rtx_rt_checkerboard, rtx_rt_camera',
+                      function(backend, 'static int RT_TraceSettingsCount( void )'))
+        # the lightmaps, vertex light and model light are read only by the
+        # lightmap comparison (rtx_rt_lighting 1); the trace never fetches a
+        # lightmap texel otherwise, and stores nothing of them
+        self.assertIn('const qboolean bakedLighting = s_rtLights.mode == RT_LIGHTING_LIGHTMAPS ? qtrue : qfalse;', backend)
+        evaluate = function(read('code/rendererrtx/shaders/rt_material.glsl'), 'RtSurface rt_evaluate_material(')
+        self.assertIn('vec4 texel = (!lightmap || bakedLighting) ? rt_stage_texel(s, h, time, lodBias) : vec4(1.0);', evaluate)
+        self.assertEqual(evaluate.count('rt_stage_texel('), 1)
+        self.assertIn('if (bakedLighting) {\n\t\t\t\tsurf.baked = (texel * rt_stage_generator(s, h, time, -1.0)).rgb;', evaluate)
+        self.assertIn('if (bakedLighting && (s.state.z & RT_SF_VERTEX_IS_LIGHT) != 0u) {', evaluate)
+        self.assertIn('if (bakedLighting && ((s.state.y >> 8u) & 0xFFu) == CGEN_LIGHTING_DIFFUSE && h.entityLight.w > 0.5) {',
+                      evaluate)
+        path = read('code/rendererrtx/shaders/rt_path.glsl')
+        self.assertIn('return bakedLighting && ((material.flags & (RT_MF_LIGHTMAPPED | RT_MF_VERTEX_LIT)) != 0u || '
+                      'surf.bakedEntity != 0u);', function(path, 'bool baked_light('))
+        self.assertIn('imageStore(u_outReflectance, pixel, vec4(reflectance, 1.0));', path)
+        self.assertNotIn('baked_light(material, surf, true)', path)
+
+    def test_a_dynamic_light_casts_a_soft_shadow(self):
+        # its shadow ray aims at a point on a sphere a twentieth of its
+        # reach; its brightness stays raster's, from the centre
+        lighting = read('code/rendererrtx/shaders/rt_lighting.glsl')
+        evaluate = function(lighting, 'bool rt_light_eval(')
+        dlight = evaluate[evaluate.index('if (type == RT_LIGHT_DLIGHT) {'):]
+        dlight = dlight[:dlight.index('return true;')]
+        self.assertIn('s.E = light.color.rgb * (falloff * cosR);', dlight)
+        self.assertIn('float body = clamp(0.05 * r, 2.0, 12.0);', dlight)
+        self.assertIn('vec3 q = light.position.xyz + body * rand_sphere(seed) - P;', dlight)
+        self.assertIn('if (qd > body && dot(N, q) > 0.0) {', dlight)
+        self.assertLess(dlight.index('s.E ='), dlight.index('float body'))
+        sphere = function(read('code/rendererrtx/shaders/rt_common.glsl'), 'vec3 rand_sphere(inout uint state)')
+        self.assertIn('float z = 2.0 * rand01(state) - 1.0;', sphere)
+
+    def test_the_light_sampler_has_one_call_site(self):
+        # inlined at each call site, a second copy of the light sampler made
+        # the compute backend's trace too large for the 32-bit NVIDIA driver
+        # to compile ("LLVM ERROR: out of memory" creating the pipeline)
+        path = read('code/rendererrtx/shaders/rt_path.glsl')
+        direct = function(path, 'ShadeResult shade_direct(')
+        self.assertEqual(direct.count('rt_sample_lights('), 1)
+        self.assertIn('rt_sample_lights(P, N, Ng, candidates, exclude, baked, seed, L, found, choice) * share', direct)
+        baked = direct[direct.index('if (baked) {'):direct.index('} else if (oneSample) {')]
+        self.assertIn('r.irradiance = surf.baked;', baked)
+        self.assertIn('pick = (u_frame.flags.w > 0u && (exclude & RT_LIGHT_DYNAMIC) == 0u) ? 1u : 0u;', baked)
+        # a lightmapped surface takes no sun or sky sample of its own
+        self.assertLess(direct.index('if (baked) {\n\t\treturn r;\n\t}'),
+                        direct.index('rt_sample_sun(P, N, Ng, seed, Lsun)'))
+        self.assertIn('float weight = (reflections && !baked) ? rt_light_weight(choice, N, Ng, V, L, roughness * roughness) : 1.0;',
+                      direct)
+
+    def test_the_light_can_be_seen_alone(self):
+        # rtx_rt_debug_visualizer 10: the light on plain grey surfaces,
+        # through the same camera
+        composite = read('code/rendererrtx/shaders/rt_composite.comp')
+        self.assertIn('const uint RT_VIEW_LIGHTING = 10u;', composite)
+        self.assertIn('const float RT_VIEW_CLAY = 0.10;', composite)
+        main = function(composite, 'void main()')
+        view = main[main.index('} else if (view == RT_VIEW_LIGHTING) {'):main.index('} else if (view == RT_VIEW_MOTION) {')]
+        self.assertIn('vec3 light = E * RT_VIEW_CLAY + S + Em;', view)
+        self.assertIn('tone_encode(tone_map(max(light, vec3(0.0)), tone_base(tp, final), pc.exposure.y, pc.exposure.z));',
+                      view)
+        self.assertIn('color = mix(pc.fog.rgb, color, clamp(emissionFog.a, 0.0, 1.0));', view)
+        self.assertIn('Com_Clamp( 0, 10, rtx_rt_debug_visualizer->integer )', read('code/rendererrtx/rt/rt_backend.c'))
+        self.assertIn('ri.Cvar_CheckRange( rtx_rt_debug_visualizer, "0", "10", CV_INTEGER );',
+                      read('code/rendererrtx/tr_init.c'))
 
     def test_quake_live_advertisements_are_traced_in_place(self):
         # the renderer draws a retail QL advertisement's brush model as world

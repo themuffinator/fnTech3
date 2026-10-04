@@ -994,8 +994,9 @@ static uint32_t RT_HashWords( uint32_t hash, const void *data, uint32_t count )
 }
 
 // The same over the words of each vertex a still frame can show changed:
-// position, texture coordinates, colour, material, and the entity's shader
-// coordinates and time (its normal and tangent follow its position). Four
+// position, normal, tangent/handedness, texture coordinates, colour, material,
+// and the entity's shader coordinates and time. A pose can change lighting
+// while vertex positions stay fixed. Four
 // lanes keep the multiplies from waiting on one another.
 static uint32_t RT_HashVertices( uint32_t hash, const rtxRtPackedVertex_t *vertices, uint32_t count )
 {
@@ -1013,6 +1014,10 @@ static uint32_t RT_HashVertices( uint32_t hash, const rtxRtPackedVertex_t *verti
 		lanes[1] = ( ( ( lanes[1] ^ w[1] ) * 16777619u ) ^ w[13] ) * 16777619u;
 		lanes[2] = ( ( ( lanes[2] ^ w[2] ) * 16777619u ) ^ w[14] ) * 16777619u;
 		lanes[3] = ( ( ( lanes[3] ^ w[15] ) * 16777619u ) ^ w[16] ) * 16777619u;
+		lanes[0] = ( ( ( lanes[0] ^ w[4] ) * 16777619u ) ^ w[8] ) * 16777619u;
+		lanes[1] = ( ( ( lanes[1] ^ w[5] ) * 16777619u ) ^ w[9] ) * 16777619u;
+		lanes[2] = ( ( ( lanes[2] ^ w[6] ) * 16777619u ) ^ w[10] ) * 16777619u;
+		lanes[3] = ( ( ( lanes[3] ^ w[7] ) * 16777619u ) ^ w[11] ) * 16777619u;
 		lanes[0] = ( lanes[0] ^ w[17] ) * 16777619u;
 		lanes[1] = ( lanes[1] ^ w[18] ) * 16777619u;
 		lanes[2] = ( lanes[2] ^ w[19] ) * 16777619u;
@@ -2568,7 +2573,7 @@ static int RT_TraceSettingsCount( void )
 		rtx_rt_lighting, rtx_rt_bounces, rtx_rt_indirect_strength, rtx_rt_emissive_scale, rtx_rt_sky_intensity,
 		rtx_rt_sun_intensity, rtx_rt_specular, rtx_rt_mis, rtx_rt_dlight_scale, rtx_rt_iqm_skinning,
 		rtx_rt_patch_shadows, r_dlightFalloff, r_dlightScale, rtx_rt_debug_light, rtx_rt_debug_light_mode,
-		rtx_rt_emissive_light, rtx_rt_checkerboard
+		rtx_rt_emissive_light, rtx_rt_checkerboard, rtx_rt_camera
 	};
 	int count = 0;
 	int i;
@@ -2614,10 +2619,9 @@ static void RT_WriteFrameUniforms( rtFrame_t *frame, uint32_t classPrims[RT_CLAS
 	rtFrameUniforms_t *u = (rtFrameUniforms_t *)frame->frame.mapped;
 	const float tanX = tanf( DEG2RAD( backEnd.viewParms.fovX * 0.5f ) );
 	const float tanY = tanf( DEG2RAD( backEnd.viewParms.fovY * 0.5f ) );
-	// the lightmaps light the world only when asked (1); by default the sky
-	// and the emitters do (RT_BuildLights)
+	// the lightmaps light the world only when asked (1); by default the
+	// level's own lights do (RT_BuildLights)
 	const qboolean bakedLighting = s_rtLights.mode == RT_LIGHTING_LIGHTMAPS ? qtrue : qfalse;
-	const qboolean emitters = s_rtLights.mode == RT_LIGHTING_EMITTERS ? qtrue : qfalse;
 	const int settings = RT_TraceSettingsCount();
 	qboolean still;
 	int c;
@@ -2718,7 +2722,8 @@ static void RT_WriteFrameUniforms( rtFrame_t *frame, uint32_t classPrims[RT_CLAS
 		( s_rt.worldTriangles[RT_PART_FILTER] ? RT_FRAME_FILTERS : 0u ) |
 		( s_rtLights.q3map2 ? RT_FRAME_Q3MAP2 : 0u ) |
 		( vk_scene_linear_enabled() ? RT_FRAME_SCENE_LINEAR : 0u ) |
-		( ( emitters && !vk_scene_linear_enabled() ) ? RT_FRAME_LINEAR_LIGHT : 0u ) |
+		( ( RT_LightingCamera( s_rtLights.mode ) == RT_CAMERA_LINEAR && !vk_scene_linear_enabled() ) ?
+			RT_FRAME_LINEAR_LIGHT : 0u ) |
 		( ( !rtx_rt_specular || rtx_rt_specular->integer ) ? RT_FRAME_SPECULAR : 0u ) |
 		( ( !rtx_rt_mis || rtx_rt_mis->integer ) ? RT_FRAME_MIS : 0u ) |
 		( s_rt.accumulated > 0 ? RT_FRAME_ACCUMULATE : 0u );
@@ -2748,7 +2753,7 @@ static void RT_WriteFrameUniforms( rtFrame_t *frame, uint32_t classPrims[RT_CLAS
 	Com_Memcpy( u->skyImages, s_rt.skyImages, sizeof( u->skyImages ) );
 	// q3map2's sky light, or the sky's own colour: the light samples reach
 	// the sky, not the bounces
-	if ( emitters ) {
+	if ( s_rtLights.mode == RT_LIGHTING_EMITTERS ) {
 		// an even sky's colour, or the gain on the sky's images
 		// (RT_FindSkyLightColor)
 		if ( s_rtLights.skyColor[3] > 0.5f ) {
@@ -3014,13 +3019,18 @@ static qboolean RT_TraceFrame( void )
 		rtx_rt_patch_shadows->modified = qfalse;
 		s_rt.worldReady = qfalse;
 	}
-	if ( ( rtx_rt_lighting && rtx_rt_lighting->modified ) || ( rtx_rt_emissive_light && rtx_rt_emissive_light->modified ) ) {
-		// the lights, and which shaders are lights, are built for one mode
+	if ( ( rtx_rt_lighting && rtx_rt_lighting->modified ) || ( rtx_rt_emissive_light && rtx_rt_emissive_light->modified ) ||
+		( rtx_rt_camera && rtx_rt_camera->modified ) ) {
+		// the lights, and which shaders are lights, are built for one mode,
+		// and a glowing shader's light for one camera's units
 		if ( rtx_rt_lighting ) {
 			rtx_rt_lighting->modified = qfalse;
 		}
 		if ( rtx_rt_emissive_light ) {
 			rtx_rt_emissive_light->modified = qfalse;
+		}
+		if ( rtx_rt_camera ) {
+			rtx_rt_camera->modified = qfalse;
 		}
 		if ( s_rt.worldReady && vk_rt_wait_for_inflight_frames( "RT lighting change" ) ) {
 			RT_MaterialsFree();
@@ -3141,18 +3151,19 @@ static qboolean RT_TraceFrame( void )
 	push.state[0] = s_rt.parity;
 	push.state[3] = ( s_rt.historyValid && denoise ) ? 1u : 0u;
 	push.extra[0] = s_rt.accumulated > 0 ? 4096u : 32u;
-	push.extra[1] = rtx_rt_debug_visualizer ? (uint32_t)Com_Clamp( 0, 9, rtx_rt_debug_visualizer->integer ) : 0u;
+	push.extra[1] = rtx_rt_debug_visualizer ? (uint32_t)Com_Clamp( 0, 10, rtx_rt_debug_visualizer->integer ) : 0u;
 	push.extra[2] = iterations;
-	// an SDR scene keeps raster's lightmap ceiling on its light when the
-	// lightmaps or the compilers' lights light it. One the sky and emitters
-	// light is seen through a camera, as Q2RTX's is: its tone mapper, or
-	// rtx_rt_exposure's fixed exposure and a filmic knee, unless a tone mapper
-	// follows this pass
+	// Light in a map compiler's units is shown as it was traced: the light a
+	// surface receives times its colour, as the engine shows a surface's
+	// light, an SDR scene keeping the engine's lightmap ceiling on it.
+	// Linear light is seen through a camera, as Q2RTX's is: its tone mapper,
+	// or rtx_rt_exposure's fixed exposure and a filmic knee, unless a tone
+	// mapper follows this pass
 	tonemap = qfalse;
 	{
-		const qboolean emitters = s_rtLights.mode == RT_LIGHTING_EMITTERS ? qtrue : qfalse;
+		const int camera = RT_LightingCamera( s_rtLights.mode );
 		const qboolean sceneLinear = vk_scene_linear_enabled();
-		push.extra[3] = ( !sceneLinear && !emitters ) ? RT_COMPOSITE_SHOULDER : 0u;
+		push.extra[3] = ( !sceneLinear && camera != RT_CAMERA_LINEAR ) ? RT_COMPOSITE_SHOULDER : 0u;
 		if ( sceneLinear ) {
 			push.extra[3] |= RT_COMPOSITE_LINEAR;
 		}
@@ -3160,7 +3171,7 @@ static qboolean RT_TraceFrame( void )
 		push.exposure[1] = 1.0f;
 		push.exposure[2] = 1.0f;
 		push.exposure[3] = 0.0f;
-		if ( emitters ) {
+		if ( camera == RT_CAMERA_LINEAR ) {
 			const float fixed = rtx_rt_exposure ? rtx_rt_exposure->value : 0.0f;
 			if ( fixed > 0.0f ) {
 				push.exposure[0] = (float)RT_EXPOSURE_FIXED;

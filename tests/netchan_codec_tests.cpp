@@ -74,6 +74,17 @@ int CheckSTVEFScramble() {
 } // namespace
 
 int main() {
+	// Raven's European-language fix keeps high bytes in the XOR key while
+	// still replacing percent. Independent vector: key 0x53, mixer '.',
+	// then 0x80 shifted once, then 'z', then the repeating '.'.
+	std::array<std::uint8_t, 4> raven{};
+	const char ravenCommand[]{ '%', static_cast<char>( 0x80 ), 'z' };
+	fnql::ApplyNetchanXor( raven.data(), raven.size(), 0, 0x53,
+		std::string_view( ravenCommand, sizeof( ravenCommand ) ), false );
+	if ( raven != std::array<std::uint8_t, 4>{ 0x7d, 0x7d, 0x07, 0x5b } ) return 30;
+	fnql::ApplyNetchanXor( raven.data(), raven.size(), 0, 0x53,
+		std::string_view( ravenCommand, sizeof( ravenCommand ) ), false );
+	if ( raven != std::array<std::uint8_t, 4>{} ) return 31;
 	constexpr std::array<std::uint8_t, 16> clientClear = {
 		0x04, 0x03, 0x02, 0x01, 0x0d, 0x0c, 0x0b, 0x0a,
 		0x02, 0x00, 0x00, 0x00, 0x77, 0x02, 0x01, 0x05

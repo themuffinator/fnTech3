@@ -58,6 +58,12 @@ Start with the [README](../README.md) for an overview, then the
 
 ### Game-specific ledgers and records
 
+- [October 2 all-game compatibility round](fntech3/2026-10-02-all-games-round.md)
+  -- all-profile file-list boundaries, stricter identity probes and shared-binary startup checks.
+- [October 2 input and launch fixes](fntech3/2026-10-02-input-launch-fixes.md)
+  -- ET's jump-sound placeholder, Elite Force input contracts and all-profile VS Code coverage.
+- [October 2 UberTools compatibility round](fntech3/2026-10-02-ubertools-round.md)
+  -- Alice, F.A.K.K.2 and MOHAA module, wire, lighting and runtime checks.
 - [Quake III point releases, Q3Test and demos](fntech3/Q3_POINT_RELEASES.md)
 - [Quake III IHV Test](fntech3/Q3_IHV.md)
 - [Quake III Q3Test 1.02 to 1.08](fntech3/Q3TEST.md)
@@ -69,7 +75,11 @@ Start with the [README](../README.md) for an overview, then the
   [ET contracts](fntech3/2026-09-17-wolfet-contracts.md),
   [Elite Force contracts](fntech3/2026-09-18-stvef-contracts.md),
   [Jedi Academy contracts](fntech3/2026-09-21-jka-contracts.md),
+  [Academy protocol and SP bootstrap](fntech3/2026-10-02-jka-compatibility.md),
   [Jedi Outcast contracts](fntech3/2026-09-22-jk2-contracts.md),
+  [Outcast protocol 15](fntech3/2026-10-02-jk2-protocol-15.md),
+  [Outcast client and fonts](fntech3/2026-10-02-jk2-client-boundary.md),
+  [Outcast SP bootstrap](fntech3/2026-10-02-jk2-sp-bootstrap.md),
   [Alice contracts](fntech3/2026-09-22-alice-contracts.md),
   [F.A.K.K.2 contracts](fntech3/2026-09-24-fakk2-contracts.md) and
   [Medal of Honor contracts](fntech3/2026-09-24-mohaa-contracts.md).

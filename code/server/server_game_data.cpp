@@ -19,6 +19,7 @@ General Public License, version 2 or (at your option) any later version.
 #include "../compat/jka_game_abi.h"
 #include "../compat/mohaa_game_abi.h"
 #include "../compat/jka_state_adapter.hpp"
+#include "../compat/jka_sp_state_adapter.hpp"
 #include "../compat/jk2_state_adapter.hpp"
 #include "../compat/q3_ihv_state_adapter.hpp"
 #include "../compat/q3test_state_adapter.hpp"
@@ -425,6 +426,19 @@ const ServerGameDataView::Layout *ServerGameDataView::FindLayout(
 		offsetof(fntech3_jka_playerState_t, ping), FNTECH3_JKA_MAX_CLIENTS
 	};
 #undef JKA_R
+	/* API-8 single player publishes a fixed 1252 * 1024 arena. It has a
+	 * 272-byte state, pointer owners, and no module linkcount. Player-state
+	 * size and ping are deliberately absent until independently frozen. */
+#define JKASP(member) offsetof(fntech3_jka_sp_gentity_prefix_t, member)
+	static const Layout jkaSpLayout{
+		COM_GAME_JKA_SP, sizeof(fntech3_jka_sp_gentity_prefix_t),
+		sizeof(fntech3_jka_sp_entityState_t), 0,
+		JKASP(linked), kNoField, JKASP(svFlags), kNoField,
+		JKASP(bmodel), JKASP(mins), JKASP(maxs), JKASP(contents), JKASP(absmin), JKASP(absmax),
+		JKASP(currentOrigin), JKASP(currentAngles), JKASP(owner_address), JKASP(s.origin2),
+		kNoField, 1, true, JKASP(client_address)
+	};
+#undef JKASP
 
 	// Jedi Outcast's records were measured rather than read: no multiplayer
 	// source was released for it. Its entity carries the engine's hundred-byte
@@ -579,6 +593,8 @@ const ServerGameDataView::Layout *ServerGameDataView::FindLayout(
 		return &ihvLayout;
 	case COM_GAME_JKA_MP:
 		return &jkaLayout;
+	case COM_GAME_JKA_SP:
+		return &jkaSpLayout;
 	case COM_GAME_JK2_MP:
 		return &jk2Layout;
 	default:
@@ -618,7 +634,8 @@ GameDataBindError ServerGameDataView::BindNative( comGameId_t profile,
 	AdvanceGeneration();
 	ClearBinding();
 	const Layout *candidateLayout = FindLayout( profile );
-	if ( !candidateLayout || ((profile == COM_GAME_QUAKE3_IHV || profile == COM_GAME_Q3TEST) && sizeof(void *) != 4) ) {
+	if ( !candidateLayout || ((profile == COM_GAME_QUAKE3_IHV || profile == COM_GAME_Q3TEST
+		|| profile == COM_GAME_JKA_SP) && sizeof(void *) != 4) ) {
 		return GameDataBindError::UnsupportedProfile;
 	}
 	if ( binding.entityCount <= 0
@@ -636,7 +653,7 @@ GameDataBindError ServerGameDataView::BindNative( comGameId_t profile,
 		|| ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_RTCW_MP && profile != COM_GAME_WOLFET
 			&& profile != COM_GAME_STVEF_SP && profile != COM_GAME_QUAKE3_IHV
 			&& profile != COM_GAME_ALICE && profile != COM_GAME_FAKK2 && profile != COM_GAME_MOHAA
-			&& profile != COM_GAME_Q3TEST && entityCapacity != binding.entityCount ) )
+			&& profile != COM_GAME_Q3TEST && profile != COM_GAME_JKA_SP && entityCapacity != binding.entityCount ) )
 		return GameDataBindError::InvalidEntityCount;
 	if ( !binding.entityBase ) {
 		return GameDataBindError::NullEntityBase;
@@ -844,7 +861,7 @@ const void *ServerGameDataView::EntityPointer(
 
 unsigned char *ServerGameDataView::ClientRecord( std::int32_t clientIndex ) const
 {
-	if ( !layout_ || clientIndex < 0 || clientIndex >= clientCount_ ) {
+	if ( !layout_ || !layout_->playerStateBytes || clientIndex < 0 || clientIndex >= clientCount_ ) {
 		return nullptr;
 	}
 	if ( layout_->clientPointerOffset == kNoField ) {
@@ -985,6 +1002,11 @@ bool ServerGameDataView::ReadEntityState( const GameEntityRef &reference,
 		return ReadEntityBytes( reference, 0, &external, sizeof( external ) ) &&
 			jka::state::ToInternal( external, destination );
 	}
+	if ( layout_->profile == COM_GAME_JKA_SP ) {
+		fntech3_jka_sp_entityState_t external{};
+		return ReadEntityBytes(reference, 0, &external, sizeof(external))
+			&& jka::sp::state::ToInternal(external, destination);
+	}
 	if ( layout_->profile == COM_GAME_STVEF_MP ) {
 		fntech3_stvef_mp_entityState_t external{};
 		return ReadEntityBytes( reference, 0, &external, sizeof( external ) ) &&
@@ -1063,6 +1085,11 @@ bool ServerGameDataView::WriteEntityState( const GameEntityRef &reference,
 		return jka::state::FromInternal( source, external ) &&
 			WriteEntityBytes( reference, 0, &external, sizeof( external ) );
 	}
+	if ( layout_->profile == COM_GAME_JKA_SP ) {
+		fntech3_jka_sp_entityState_t external{};
+		return jka::sp::state::FromInternal(source, external)
+			&& WriteEntityBytes(reference, 0, &external, sizeof(external));
+	}
 	if ( layout_->profile == COM_GAME_STVEF_MP ) {
 		fntech3_stvef_mp_entityState_t external{};
 		return stvef::state::FromInternal( source, external ) &&
@@ -1104,6 +1131,8 @@ bool ServerGameDataView::WriteEntityState(const GameEntityRef &reference,
 		&& WriteEntityBytes(reference, 0, &source, sizeof(source));
 }
 bool ServerGameDataView::GetInuse(const GameEntityRef &reference, std::int32_t &destination) const {
+	if (layout_ && layout_->profile == COM_GAME_JKA_SP)
+		return ReadEntityBytes(reference, offsetof(fntech3_jka_sp_gentity_prefix_t,inuse), &destination, sizeof(destination));
 	if (layout_ && layout_->profile == COM_GAME_Q3TEST)
 		return ReadEntityBytes(reference, offsetof(fntech3_q3test_entity_t,inuse), &destination, sizeof(destination));
 	return layout_ && layout_->profile == COM_GAME_QUAKE3_IHV
@@ -1125,11 +1154,28 @@ bool ServerGameDataView::GetInuse(const GameEntityRef &reference, std::int32_t &
 	}
 
 DEFINE_SCALAR_ACCESSORS( Linked, linkedOffset )
-DEFINE_SCALAR_ACCESSORS( SvFlags, svFlagsOffset )
 DEFINE_SCALAR_ACCESSORS( Bmodel, bmodelOffset )
 DEFINE_SCALAR_ACCESSORS( Contents, contentsOffset )
 
 #undef DEFINE_SCALAR_ACCESSORS
+
+bool ServerGameDataView::GetSvFlags(const GameEntityRef &reference, std::int32_t &destination) const {
+	if (!layout_ || !ReadEntityBytes(reference, layout_->svFlagsOffset, &destination, sizeof(destination))) return false;
+	/* SP's other bits mean NPC, script and gameplay flags, not Q3's client
+	 * masks/capsules. Only shared meanings enter the engine world view. */
+	if (layout_->profile == COM_GAME_JKA_SP) destination &= 1|8|32|64|128;
+	return true;
+}
+bool ServerGameDataView::SetSvFlags(const GameEntityRef &reference, std::int32_t value) {
+	if (!layout_) return false;
+	if (layout_->profile == COM_GAME_JKA_SP) {
+		std::int32_t original;
+		if (!ReadEntityBytes(reference, layout_->svFlagsOffset, &original, sizeof(original))) return false;
+		constexpr int shared = 1|8|32|64|128;
+		value = (original & ~shared) | (value & shared);
+	}
+	return WriteEntityBytes(reference, layout_->svFlagsOffset, &value, sizeof(value));
+}
 
 bool ServerGameDataView::GetLinkcount( const GameEntityRef &reference,
 	std::int32_t &destination ) const
@@ -1197,7 +1243,7 @@ bool ServerGameDataView::GetOwnerNum( const GameEntityRef &reference,
 	GameEntityRef target;
 	// Q3Test's owner is a pointer too, and its A/B entity 1023 is valid.
 	const bool nativeOwner = layout_->profile == COM_GAME_QUAKE3_IHV || layout_->profile == COM_GAME_Q3TEST;
-	if (nativeOwner && owner && !EntityRefForPointer(owner,target)) return false;
+	if ((nativeOwner || layout_->profile == COM_GAME_JKA_SP) && owner && !EntityRefForPointer(owner,target)) return false;
 	const int noOwner = nativeOwner ? -1 : ENTITYNUM_NONE;
 	destination = owner && EntityRefForPointer( owner, target ) ? target.index : noOwner;
 	return true;

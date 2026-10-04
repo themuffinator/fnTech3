@@ -505,6 +505,10 @@ qboolean Netchan_Process( netchan_t *chan, msg_t *msg ) {
 	if ( fragmented ) {
 		fragmentStart = Netchan_WireHasFeature( chan->wireProfile, NETCHAN_FEATURE_LONG_FRAGMENT_START )
 			? MSG_ReadLong( msg ) : MSG_ReadShort( msg );
+		// Raven reassembles up to 48 KB through an unsigned 16-bit offset.
+		// Preserve read failure before interpreting that signed reader result.
+		if ( chan->wireProfile == NETCHAN_WIRE_JKA_MP && msg->readcount <= msg->cursize )
+			fragmentStart = static_cast<unsigned short>( fragmentStart );
 		fragmentLength = MSG_ReadShort( msg );
 		if ( msg->readcount > msg->cursize ) {
 			return qfalse;

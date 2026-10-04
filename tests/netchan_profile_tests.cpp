@@ -11,6 +11,14 @@ static_assert( !fnql::net::ParsePackedIpv4Host( "-1" ).valid );
 static_assert( !fnql::net::ParsePackedIpv4Host( "" ).valid );
 
 static_assert( Netchan_SelectWireProfile( 68, 1 ) == NETCHAN_WIRE_LEGACY_Q3 );
+static_assert( Netchan_SelectWireProfile( 15, 0 ) == NETCHAN_WIRE_JK2_MP );
+static_assert( Netchan_SelectWireProfile( 15, 1 ) == NETCHAN_WIRE_JK2_MP );
+static_assert( Netchan_WireFeatures( NETCHAN_WIRE_JK2_MP ) ==
+	( NETCHAN_FEATURE_CLIENT_QPORT | NETCHAN_FEATURE_RELIABLE_XOR ) );
+static_assert( Netchan_ReliableCommandLimit( NETCHAN_WIRE_JK2_MP ) == 128 );
+static_assert( Netchan_MessageLimit( NETCHAN_WIRE_JK2_MP ) == 16384 );
+static_assert( Netchan_ServerEOFOpcode( NETCHAN_WIRE_JK2_MP ) == 9 );
+static_assert( Netchan_ServerEOFOpcode( NETCHAN_WIRE_JKA_MP ) == 10 );
 static_assert( Netchan_SelectWireProfile( 66, 0 ) == NETCHAN_WIRE_Q3_66 );
 static_assert( Netchan_SelectWireProfile( 67, 1 ) == NETCHAN_WIRE_Q3_67 );
 static_assert( Netchan_WireFeatures( NETCHAN_WIRE_Q3_66 ) == Netchan_WireFeatures( NETCHAN_WIRE_LEGACY_Q3 ) );

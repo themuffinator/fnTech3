@@ -434,7 +434,7 @@ std::vector<short> SoundSample::ConvertToPCM16( const snd_info_t &info, const Au
 			const size_t sourceIndex = static_cast<size_t>( i ) * static_cast<size_t>( info.channels ) + static_cast<size_t>( c );
 			short sample = 0;
 			if ( info.width == 2 ) {
-				sample = ReadLittlePCM16( pcmData + sourceIndex * sizeof( short ) );
+				sample = ReadNativePCM16( pcmData + sourceIndex * sizeof( short ) );
 			} else {
 				sample = ConvertUnsignedPCM8ToPCM16( pcmData[sourceIndex] );
 			}
@@ -488,11 +488,13 @@ bool SoundSample::UploadPCM( OpenALDevice &device, const std::vector<short> &pcm
 }
 
 bool SoundSample::GenerateFallbackTone( OpenALDevice &device ) {
-	const bool rtcw = Com_GameIsRTCW() != 0;
-	std::vector<short> pcm = rtcw ? fntech3::audio::rtcw::DefaultSoundPCM(Com_GameIsRTCWSP() != 0,
+	const bool wolfenstein = Com_GameIsRTCW() || Com_GameIsWolfET();
+	// ET's CG_CustomSound returns zero for player aliases such as *jump1.wav.
+	// Its handle-zero placeholder is silent unless s_defaultsound is enabled.
+	std::vector<short> pcm = wolfenstein ? fntech3::audio::rtcw::DefaultSoundPCM(Com_GameIsRTCWSP() || Com_GameIsWolfET(),
 		Cvar_VariableIntegerValue("s_defaultsound") != 0) : std::vector<short>(22050 / 4);
 
-	for ( int i = 0; !rtcw && i < static_cast<int>(pcm.size()); ++i ) {
+	for ( int i = 0; !wolfenstein && i < static_cast<int>(pcm.size()); ++i ) {
 		const float phase = static_cast<float>( i ) * 440.0f * 6.2831853071795864769f / 22050.0f;
 		pcm[static_cast<size_t>( i )] = static_cast<short>( std::sin( phase ) * 12000.0f );
 	}
@@ -501,7 +503,7 @@ bool SoundSample::GenerateFallbackTone( OpenALDevice &device ) {
 	missing_ = false;
 	loaded_ = UploadPCM( device, pcm, { AudioSampleEncoding::PCM, 1 }, 22050 );
 	if ( loaded_ ) {
-		if ( !rtcw ) durationMs_ = 250;
+		if ( !wolfenstein ) durationMs_ = 250;
 	} else {
 		defaultSample_ = false;
 		missing_ = true;
@@ -519,7 +521,8 @@ bool SoundSample::EnsureLoaded( OpenALDevice &device, bool allowToneFallback ) {
 	}
 
 	loadAttempted_ = true;
-	if ( Com_GameIsRTCW() && allowToneFallback && name_ == fntech3::audio::rtcw::DefaultSoundName )
+	if ( ( Com_GameIsRTCW() || Com_GameIsWolfET() ) && allowToneFallback &&
+		name_ == fntech3::audio::rtcw::DefaultSoundName )
 		return GenerateFallbackTone(device);
 
 	snd_info_t info = {};
@@ -1620,13 +1623,19 @@ void Q3SoundWorld::StartRTCWSound( int entity, int channel, sfxHandle_t handle,
 	if ( !sample ) return;
 	const int slot = rtcwOneShots_.Start(Com_GameIsRTCWSP(), 128, listenerNumber_, Sys_Milliseconds(),
 		{entity, channel, handle, flags}, [&](int index) { oneShots_[index].Release(*device_); });
-	if ( slot < 0 ) return;
+	if ( slot < 0 ) {
+		if ( s_alSoundStartDebug && s_alSoundStartDebug->integer )
+			Com_Printf("sound-start: ent=%d channel=%d handle=%d rejected=channel-capacity\n", entity, channel, handle);
+		return;
+	}
 	auto &voice = oneShots_[slot];
 	if ( !voice.source ) {
 		voice.source = device_->AcquireVoiceSource();
 		if ( !voice.source ) {
 			rtcwOneShots_.Release(slot);
 			voice.Release(*device_);
+			if ( s_alSoundStartDebug && s_alSoundStartDebug->integer )
+				Com_Printf("sound-start: ent=%d channel=%d handle=%d rejected=source-capacity\n", entity, channel, handle);
 			return;
 		}
 		device_->CreateVoiceFilters(voice.directFilter, voice.sendFilter);
@@ -1667,6 +1676,14 @@ void Q3SoundWorld::PlayOneShot( SoundVoice *voice, int entityNum, int entchannel
 	device_->AL().alSourcei( voice->source, AL_LOOPING, AL_FALSE );
 	ApplyVoice( *voice, qfalse );
 	device_->AL().alSourcePlay( voice->source );
+	if ( voice->rtcwOneShot && s_alSoundStartDebug && s_alSoundStartDebug->integer ) {
+		const ALenum error = device_->AL().alGetError();
+		ALint state = 0;
+		device_->AL().alGetSourcei(voice->source, AL_SOURCE_STATE, &state);
+		Com_Printf("sound-start: ent=%d channel=%d handle=%d sample=%s source=%u state=%d error=0x%x gain=%.3f distance=%.1f free=%d\n",
+			entityNum, entchannel, handle, sample->Name().c_str(), voice->source, state, error,
+			voice->debugGain, voice->debugDistance, device_->FreeVoiceCount());
+	}
 }
 
 void Q3SoundWorld::UpdateEntityPosition( int entityNum, const float *origin ) {

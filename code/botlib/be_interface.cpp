@@ -985,6 +985,8 @@ botlib_export_t *GetBotLibAPI(int apiVersion, botlib_import_t *import) {
 	be_botlib_export.PC_ReadTokenWithLocation = PC_ReadTokenWithLocation;
 	be_botlib_export.PC_UnreadTokenHandle = PC_UnreadTokenHandle;
 	be_botlib_export.PC_RemoveAllGlobalDefines = PC_RemoveAllGlobalDefines;
+	be_botlib_export.PC_LoadGlobalDefines = PC_LoadGlobalDefines;
+	be_botlib_export.PC_LoadJKASourceHandle = PC_LoadJKASourceHandle;
 	be_botlib_export.PC_SourceFileAndLine = PC_SourceFileAndLine;
 
 	be_botlib_export.BotLibStartFrame = Export_BotLibStartFrame;

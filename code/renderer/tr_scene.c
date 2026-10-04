@@ -43,6 +43,16 @@ int			r_numModuleDlights;	// this frame's RTCW or ET module lights, among r_numd
 static int			r_numentities;
 static int			r_firstSceneEntity;
 
+/* Frontend scene references survive a render-command flush. */
+qboolean R_RuntimeMDRSceneUsesModel( qhandle_t handle ) {
+	int i;
+	if ( !backEndData || r_firstSceneEntity < 0 || r_numentities < r_firstSceneEntity ||
+		r_numentities > MAX_REFENTITIES ) return qtrue;
+	for ( i = r_firstSceneEntity; i < r_numentities; ++i )
+		if ( backEndData->entities[i].e.hModel == handle ) return qtrue;
+	return qfalse;
+}
+
 static int			r_numpolys;
 static int			r_firstScenePoly;
 

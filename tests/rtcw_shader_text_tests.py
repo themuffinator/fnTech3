@@ -67,7 +67,7 @@ static std::vector<std::string> Names(const char *text) {
 }
 static std::vector<std::string> Load(const std::string &input) {
     files["scripts/test.shader"]=input;char name[]="test.shader";char *names[]{name};char *buffers[]{nullptr};
-    int length=loadShaderBuffers(names,1,buffers);
+    int length=loadShaderBuffers(names,1,buffers,"scripts");
     assert(length>=0 && length<=int(input.size()));
     std::vector<std::string> result;
     if(buffers[0]) {assert(int(std::strlen(buffers[0]))==length);result=Names(buffers[0]);Free(buffers[0]);}

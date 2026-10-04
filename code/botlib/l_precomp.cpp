@@ -118,6 +118,7 @@ token_t *freetokens;					//free tokens from the heap
 
 //list with global defines added to every source loaded
 static define_t *globaldefines;
+static constexpr int DEFINE_PENDING_GLOBAL = 0x40000000;
 
 //============================================================================
 //
@@ -129,6 +130,7 @@ void QDECL SourceError(source_t *source, const char *fmt, ...)
 {
 	char text[1024];
 	va_list ap;
+	if ( source->globalDefineLoader ) source->globalDefineFailed = 1;
 
 	va_start(ap, fmt);
 	Q_vsnprintf(text, sizeof(text), fmt, ap);
@@ -306,12 +308,20 @@ static int PC_ReadSourceToken(source_t *source, token_t *token)
 	token_t *t;
 	script_t *script;
 	int type, skip;
+	if ( source->globalDefineLoader && ( source->globalDefineFailed || --source->globalDefineReadBudget < 0 ) ) {
+		if ( !source->globalDefineFailed ) SourceError( source, "global-definition token budget exceeded" );
+		return qfalse;
+	}
 
 	//if there's no token already available
 	while(!source->tokens)
 	{
 		//if there's a token to read from the script
 		if (PS_ReadToken(source->scriptstack, token)) return qtrue;
+		if ( source->globalDefineLoader && ( source->scriptstack->hadError || !EndOfScript( source->scriptstack ) ) ) {
+			SourceError( source, "invalid global-definition script" );
+			return qfalse;
+		}
 		//if at the end of the script
 		if (EndOfScript(source->scriptstack))
 		{
@@ -320,6 +330,10 @@ static int PC_ReadSourceToken(source_t *source, token_t *token)
 					source->indentstack->script == source->scriptstack)
 			{
 				SourceWarning(source, "missing #endif");
+				if ( source->globalDefineLoader ) {
+					SourceError( source, "global-definition script missing #endif" );
+					return qfalse;
+				}
 				PC_PopIndent(source, &type, &skip);
 			} //end if
 		} //end if
@@ -1012,6 +1026,16 @@ static int PC_Directive_include(source_t *source)
 #endif //QUAKE
 
 	if (source->skip > 0) return qtrue;
+	int maximumBytes = 0;
+	if ( source->globalDefineLoader ) {
+		int depth = 0;
+		for ( auto *entry = source->scriptstack; entry; entry = entry->next ) ++depth;
+		if ( depth >= 32 || source->globalDefineByteBudget < 1 ) {
+			SourceError( source, "global-definition include budget exceeded" );
+			return qfalse;
+		}
+		maximumBytes = source->globalDefineByteBudget < ( 1 << 20 ) ? source->globalDefineByteBudget : ( 1 << 20 );
+	}
 	//
 	if (!PC_ReadSourceToken(source, &token))
 	{
@@ -1027,12 +1051,12 @@ static int PC_Directive_include(source_t *source)
 	{
 		StripDoubleQuotes(token.string);
 		PC_ConvertPath(token.string);
-		script = LoadScriptFile(token.string);
+		script = LoadScriptFile(token.string, maximumBytes);
 		if (!script)
 		{
 			Q_strncpyz(path, source->includepath, sizeof(path));
 			Q_strcat(path, sizeof(path), token.string);
-			script = LoadScriptFile(path);
+			script = LoadScriptFile(path, maximumBytes);
 		} //end if
 	} //end if
 	else if (token.type == TT_PUNCTUATION && *token.string == '<')
@@ -1050,6 +1074,10 @@ static int PC_Directive_include(source_t *source)
 		} //end while
 		if (*token.string != '>')
 		{
+			if ( source->globalDefineLoader ) {
+				SourceError( source, "global-definition #include missing trailing >" );
+				return qfalse;
+			}
 			SourceWarning(source, "#include missing trailing >");
 		} //end if
 		if (!strlen(path))
@@ -1058,7 +1086,7 @@ static int PC_Directive_include(source_t *source)
 			return qfalse;
 		} //end if
 		PC_ConvertPath(path);
-		script = LoadScriptFile(path);
+		script = LoadScriptFile(path, maximumBytes);
 	} //end if
 	else
 	{
@@ -1069,7 +1097,7 @@ static int PC_Directive_include(source_t *source)
 	if (!script)
 	{
 		file = {};
-		script = LoadScriptFile(path);
+		script = LoadScriptFile(path, maximumBytes);
 		if (script) Q_strncpyz(script->filename, path, sizeof(script->filename));
 	} //end if
 #endif //QUAKE
@@ -1083,6 +1111,17 @@ static int PC_Directive_include(source_t *source)
 		return qfalse;
 #endif //SCREWUP
 	} //end if
+	if ( source->globalDefineLoader ) {
+		for ( auto *entry = source->scriptstack; entry; entry = entry->next ) {
+			if ( !Q_stricmp( entry->filename, script->filename ) ) {
+				FreeScript( script );
+				SourceError( source, "recursive global-definition include" );
+				return qfalse;
+			}
+		}
+		source->globalDefineByteBudget -= script->length;
+	}
+	if ( source->scriptstack->flags & SCFL_JKA_NAMES ) script->flags |= SCFL_JKA_NAMES;
 	PC_PushScript(source, script);
 	return qtrue;
 } //end of the function PC_Directive_include
@@ -1248,6 +1287,7 @@ static int PC_Directive_define(source_t *source)
 	define = botlib::Alloc<define_t>();
 	*define = {};
 	define->name = botlib::CopyString(token.string);
+	if ( source->globalDefineLoader ) define->flags |= DEFINE_PENDING_GLOBAL;
 	//add the define to the source
 #if DEFINEHASHING
 	PC_AddDefineToHash(define, source->definehash);
@@ -1317,6 +1357,7 @@ static int PC_Directive_define(source_t *source)
 		if (t->type == TT_NAME && !strcmp(t->string, define->name))
 		{
 			SourceError(source, "recursive define (removed recursion)");
+			if ( source->globalDefineLoader ) PC_FreeToken( t );
 			continue;
 		} //end if
 		PC_ClearTokenWhiteSpace(t);
@@ -2556,6 +2597,10 @@ static int PC_ReadDirective(source_t *source)
 	//if if is a name
 	if (token.type == TT_NAME)
 	{
+		if ( source->globalDefineLoader && ( !strcmp( token.string, "pragma" ) || !strcmp( token.string, "line" ) ) ) {
+			SourceError( source, "unsupported global-definition directive %s", token.string );
+			return qfalse;
+		}
 		//find the precompiler directive
 		for (i = 0; directives[i].name; i++)
 		{
@@ -3056,14 +3101,14 @@ void PC_SetPunctuations(source_t *source, punctuation_t *p)
 // Returns:				-
 // Changes Globals:		-
 //============================================================================
-source_t *LoadSourceFile(const char *filename)
+source_t *LoadSourceFile(const char *filename, int maximumBytes)
 {
 	source_t *source;
 	script_t *script;
 
 	PC_InitTokenHeap();
 
-	script = LoadScriptFile(filename);
+	script = LoadScriptFile(filename, maximumBytes);
 	if (!script) return nullptr;
 
 	script->next = nullptr;
@@ -3181,6 +3226,42 @@ void FreeSource(source_t *source)
 	//free the source itself
 	FreeMemory(source);
 } //end of the function FreeSource
+
+/* JKA UI import71 loads definitions inherited by future parser sources
+ * (OpenJK pin1a6a643427aa347553e9073dac5570b33337c4d9, PC_LoadGlobalDefines
+ * and UI trap signature). Independent implementation: ordinary sources keep
+ * their behavior; the bounded load commits only after a complete valid parse. */
+int PC_LoadGlobalDefines( const char *filename ) {
+	static bool active = false;
+	if ( active || !filename || !*filename || strlen( filename ) >= MAX_QPATH ) return qfalse;
+	struct Scope { bool &value; explicit Scope( bool &v ) : value( v ) { value = true; } ~Scope() { value = false; } } scope( active );
+	PS_SetBaseFolder( "" );
+	source_t *source = LoadSourceFile( filename, 1 << 20 );
+	if ( !source ) return qfalse;
+	source->globalDefineLoader = 1;
+	source->globalDefineReadBudget = 1 << 20;
+	source->globalDefineByteBudget = ( 4 << 20 ) - source->scriptstack->length;
+	token_t token{};
+	while ( PC_ReadToken( source, &token ) ) {}
+	const bool valid = !source->globalDefineFailed && !source->scriptstack->hadError
+		&& EndOfScript( source->scriptstack ) && !source->scriptstack->next && !source->indentstack;
+	if ( valid ) {
+		for ( int bucket = 0; bucket < DEFINEHASHSIZE; ++bucket ) {
+			for ( auto *definition = source->definehash[bucket]; definition; definition = definition->hashnext ) {
+				if ( !( definition->flags & DEFINE_PENDING_GLOBAL ) ) continue;
+				auto *copy = PC_CopyDefine( source, definition );
+				copy->flags &= ~DEFINE_PENDING_GLOBAL;
+				for ( auto **link = &globaldefines; *link; ) {
+					if ( strcmp( ( *link )->name, copy->name ) ) { link = &( *link )->next; continue; }
+					auto *old = *link; *link = old->next; PC_FreeDefine( old );
+				}
+				copy->next = globaldefines; globaldefines = copy;
+			}
+		}
+	}
+	FreeSource( source );
+	return valid ? qtrue : qfalse;
+}
 //============================================================================
 //
 // Parameter:			-
@@ -3192,7 +3273,7 @@ static constexpr int MAX_SOURCEFILES = 64;
 
 source_t *sourceFiles[MAX_SOURCEFILES];
 
-static int PC_LoadSourceHandleRules(const char *filename, int wolfet)
+static int PC_LoadSourceHandleRules(const char *filename, int wolfet, int jka = 0)
 {
 	source_t *source;
 	int i;
@@ -3209,6 +3290,7 @@ static int PC_LoadSourceHandleRules(const char *filename, int wolfet)
 	if (!source)
 		return 0;
 	source->wolfetDefineParms = wolfet;
+	if ( jka ) source->scriptstack->flags |= SCFL_JKA_NAMES;
 	sourceFiles[i] = source;
 	return i;
 } //end of the function PC_LoadSourceHandleRules
@@ -3222,6 +3304,10 @@ int PC_LoadWolfETSourceHandle(const char *filename)
 {
 	return PC_LoadSourceHandleRules(filename, 1);
 } //end of the function PC_LoadWolfETSourceHandle
+
+int PC_LoadJKASourceHandle( const char *filename ) {
+	return PC_LoadSourceHandleRules( filename, 0, 1 );
+}
 //============================================================================
 //
 // Parameter:			-

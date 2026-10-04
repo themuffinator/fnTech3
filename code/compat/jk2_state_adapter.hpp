@@ -183,125 +183,136 @@ inline bool ToInternal( const fntech3_jk2_usercmd_t &source,
 	return true;
 }
 
-/* One client, as this title records one.
- *
- * Read only, and deliberately so. The record is 1,368 bytes and 688 of them
- * have no name in any table this engine has read, so they are not carried.
- * That is why there is no way to write one: a write would put zeroes over
- * half a record it cannot name. Nothing in the engine writes a player state
- * for this title -- the ping is written at its own measured offset, not
- * through here -- and if something ever needs to, the rest of the record
- * has to be measured first.
- *
- * Jedi Academy's player state is carried whole, all 168 fields of it. The
- * difference between the two is the difference between what has been
- * measured for each, and is said here rather than smoothed over. */
+/* The measured fields cross individually. Unknown members are carried in a
+ * private backing record so a module -> snapshot -> module round trip cannot
+ * replace its untransmitted state with zeros. Writing overlays the named
+ * members on that backing record; it does not assign meaning to unknown bytes. */
+namespace detail {
+template<bool Out, class External, class Internal>
+bool Player( External &external, Internal &internal ) noexcept {
+	/* Quake III's fields, with Quake III's meanings. */
+	Field<Out>( external.commandTime, internal.commandTime );
+	Field<Out>( external.pm_type, internal.pm_type );
+	Field<Out>( external.bobCycle, internal.bobCycle );
+	Field<Out>( external.pm_flags, internal.pm_flags );
+	Field<Out>( external.pm_time, internal.pm_time );
+	Field<Out>( external.origin, internal.origin );
+	Field<Out>( external.velocity, internal.velocity );
+	Field<Out>( external.weaponTime, internal.weaponTime );
+	Field<Out>( external.gravity, internal.gravity );
+	Field<Out>( external.speed, internal.speed );
+	Field<Out>( external.delta_angles, internal.delta_angles );
+	Field<Out>( external.groundEntityNum, internal.groundEntityNum );
+	Field<Out>( external.legsTimer, internal.legsTimer );
+	Field<Out>( external.legsAnim, internal.legsAnim );
+	Field<Out>( external.torsoTimer, internal.torsoTimer );
+	Field<Out>( external.torsoAnim, internal.torsoAnim );
+	Field<Out>( external.movementDir, internal.movementDir );
+	Field<Out>( external.eFlags, internal.eFlags );
+	Field<Out>( external.eventSequence, internal.eventSequence );
+	Field<Out>( external.events, internal.events );
+	Field<Out>( external.eventParms, internal.eventParms );
+	Field<Out>( external.externalEvent, internal.externalEvent );
+	Field<Out>( external.externalEventParm, internal.externalEventParm );
+	Field<Out>( external.clientNum, internal.clientNum );
+	Field<Out>( external.weapon, internal.weapon );
+	Field<Out>( external.weaponstate, internal.weaponstate );
+	Field<Out>( external.viewangles, internal.viewangles );
+	Field<Out>( external.viewheight, internal.viewheight );
+	Field<Out>( external.damageEvent, internal.damageEvent );
+	Field<Out>( external.damageYaw, internal.damageYaw );
+	Field<Out>( external.damagePitch, internal.damagePitch );
+	Field<Out>( external.damageCount, internal.damageCount );
+	Field<Out>( external.stats, internal.stats );
+	Field<Out>( external.persistant, internal.persistant );
+	Field<Out>( external.powerups, internal.powerups );
+	Field<Out>( external.ammo, internal.ammo );
+	Field<Out>( external.generic1, internal.generic1 );
+	Field<Out>( external.loopSound, internal.loopSound );
+	Field<Out>( external.jumppad_ent, internal.jumppad_ent );
+	Field<Out>( external.ping, internal.ping );
+
+	/* Raven's own. */
+	Field<Out>( external.weaponChargeTime, internal.raven.weaponChargeTime );
+	Field<Out>( external.weaponChargeSubtractTime, internal.raven.weaponChargeSubtractTime );
+	Field<Out>( external.basespeed, internal.raven.basespeed );
+	Field<Out>( external.damageType, internal.raven.damageType );
+	Field<Out>( external.saberInFlight, internal.raven.saberInFlight );
+	Field<Out>( external.saberActive, internal.raven.saberActive );
+	Field<Out>( external.saberMove, internal.raven.saberMove );
+	Field<Out>( external.saberBlocked, internal.raven.saberBlocked );
+	Field<Out>( external.saberLockTime, internal.raven.saberLockTime );
+	Field<Out>( external.saberLockEnemy, internal.raven.saberLockEnemy );
+	Field<Out>( external.saberLockFrame, internal.raven.saberLockFrame );
+	Field<Out>( external.saberLockAdvance, internal.raven.saberLockAdvance );
+	Field<Out>( external.saberEntityNum, internal.raven.saberEntityNum );
+	Field<Out>( external.saberCanThrow, internal.raven.saberCanThrow );
+	Field<Out>( external.rocketLockIndex, internal.raven.rocketLockIndex );
+	Field<Out>( external.rocketLockTime, internal.raven.rocketLockTime );
+	Field<Out>( external.rocketTargetTime, internal.raven.rocketTargetTime );
+	Field<Out>( external.emplacedIndex, internal.raven.emplacedIndex );
+	Field<Out>( external.isJediMaster, internal.raven.isJediMaster );
+	Field<Out>( external.genericEnemyIndex, internal.raven.genericEnemyIndex );
+	Field<Out>( external.activeForcePass, internal.raven.activeForcePass );
+	Field<Out>( external.hasDetPackPlanted, internal.raven.hasDetPackPlanted );
+	Field<Out>( external.holocronBits, internal.raven.holocronBits );
+	Field<Out>( external.electrifyTime, internal.raven.electrifyTime );
+	Field<Out>( external.fd_forcePowerDebounce_FP_LEVITATION, internal.raven.fd_forcePowerDebounce_FP_LEVITATION );
+	Field<Out>( external.fd_forcePowersKnown, internal.raven.fd_forcePowersKnown );
+	Field<Out>( external.fd_forcePowersActive, internal.raven.fd_forcePowersActive );
+	Field<Out>( external.fd_forcePowerSelected, internal.raven.fd_forcePowerSelected );
+	Field<Out>( external.fd_forcePower, internal.raven.fd_forcePower );
+	Field<Out>( external.fd_forcePowerLevel_FP_LEVITATION, internal.raven.fd_forcePowerLevel_FP_LEVITATION );
+	Field<Out>( external.fd_forcePowerLevel_FP_SEE, internal.raven.fd_forcePowerLevel_FP_SEE );
+	Field<Out>( external.fd_forceJumpZStart, internal.raven.fd_forceJumpZStart );
+	Field<Out>( external.fd_forceMindtrickTargetIndex, internal.raven.fd_forceMindtrickTargetIndex );
+	Field<Out>( external.fd_forceMindtrickTargetIndex2, internal.raven.fd_forceMindtrickTargetIndex2 );
+	Field<Out>( external.fd_forceMindtrickTargetIndex3, internal.raven.fd_forceMindtrickTargetIndex3 );
+	Field<Out>( external.fd_forceMindtrickTargetIndex4, internal.raven.fd_forceMindtrickTargetIndex4 );
+	Field<Out>( external.fd_forceRageRecoveryTime, internal.raven.fd_forceRageRecoveryTime );
+	Field<Out>( external.fd_forceSide, internal.raven.fd_forceSide );
+	Field<Out>( external.fd_sentryDeployed, internal.raven.fd_sentryDeployed );
+	Field<Out>( external.fd_saberAnimLevel, internal.raven.fd_saberAnimLevel );
+	Field<Out>( external.fd_saberDrawAnimLevel, internal.raven.fd_saberDrawAnimLevel );
+	Field<Out>( external.forceHandExtend, internal.raven.forceHandExtend );
+	Field<Out>( external.forceDodgeAnim, internal.raven.forceDodgeAnim );
+	Field<Out>( external.duelIndex, internal.raven.duelIndex );
+	Field<Out>( external.duelTime, internal.raven.duelTime );
+	Field<Out>( external.duelInProgress, internal.raven.duelInProgress );
+	Field<Out>( external.saberAttackChainCount, internal.raven.saberAttackChainCount );
+	Field<Out>( external.saberHolstered, internal.raven.saberHolstered );
+	Field<Out>( external.usingATST, internal.raven.usingATST );
+	Field<Out>( external.atstAltFire, internal.raven.atstAltFire );
+	Field<Out>( external.zoomMode, internal.raven.zoomMode );
+	Field<Out>( external.zoomTime, internal.raven.zoomTime );
+	Field<Out>( external.zoomLocked, internal.raven.zoomLocked );
+	Field<Out>( external.zoomFov, internal.raven.zoomFov );
+	Field<Out>( external.fallingToDeath, internal.raven.fallingToDeath );
+	Field<Out>( external.inAirAnim, internal.raven.inAirAnim );
+	Field<Out>( external.dualBlade, internal.raven.dualBlade );
+	Field<Out>( external.lastHitLoc, internal.raven.lastHitLoc );
+	return true;
+}
+} // namespace detail
+
+inline bool FromInternal( const playerState_t &source,
+	fntech3_jk2_playerState_t &destination ) noexcept
+{
+	fntech3_jk2_playerState_t temporary{};
+	static_assert( sizeof( source.raven.jk2Player ) == sizeof( temporary ) );
+	std::memcpy( &temporary, source.raven.jk2Player, sizeof( temporary ) );
+	if ( !detail::Player<true>( temporary, source ) ) return false;
+	destination = temporary;
+	return true;
+}
+
 inline bool ToInternal( const fntech3_jk2_playerState_t &source,
 	playerState_t &destination ) noexcept
 {
-	playerState_t out{};
-	/* Quake III's fields, with Quake III's meanings. */
-	detail::Field<false>( source.commandTime, out.commandTime );
-	detail::Field<false>( source.pm_type, out.pm_type );
-	detail::Field<false>( source.bobCycle, out.bobCycle );
-	detail::Field<false>( source.pm_flags, out.pm_flags );
-	detail::Field<false>( source.pm_time, out.pm_time );
-	detail::Field<false>( source.origin, out.origin );
-	detail::Field<false>( source.velocity, out.velocity );
-	detail::Field<false>( source.weaponTime, out.weaponTime );
-	detail::Field<false>( source.gravity, out.gravity );
-	detail::Field<false>( source.speed, out.speed );
-	detail::Field<false>( source.delta_angles, out.delta_angles );
-	detail::Field<false>( source.groundEntityNum, out.groundEntityNum );
-	detail::Field<false>( source.legsTimer, out.legsTimer );
-	detail::Field<false>( source.legsAnim, out.legsAnim );
-	detail::Field<false>( source.torsoTimer, out.torsoTimer );
-	detail::Field<false>( source.torsoAnim, out.torsoAnim );
-	detail::Field<false>( source.movementDir, out.movementDir );
-	detail::Field<false>( source.eFlags, out.eFlags );
-	detail::Field<false>( source.eventSequence, out.eventSequence );
-	detail::Field<false>( source.events, out.events );
-	detail::Field<false>( source.eventParms, out.eventParms );
-	detail::Field<false>( source.externalEvent, out.externalEvent );
-	detail::Field<false>( source.externalEventParm, out.externalEventParm );
-	detail::Field<false>( source.clientNum, out.clientNum );
-	detail::Field<false>( source.weapon, out.weapon );
-	detail::Field<false>( source.weaponstate, out.weaponstate );
-	detail::Field<false>( source.viewangles, out.viewangles );
-	detail::Field<false>( source.viewheight, out.viewheight );
-	detail::Field<false>( source.damageEvent, out.damageEvent );
-	detail::Field<false>( source.damageYaw, out.damageYaw );
-	detail::Field<false>( source.damagePitch, out.damagePitch );
-	detail::Field<false>( source.damageCount, out.damageCount );
-	detail::Field<false>( source.stats, out.stats );
-	detail::Field<false>( source.persistant, out.persistant );
-	detail::Field<false>( source.powerups, out.powerups );
-	detail::Field<false>( source.ammo, out.ammo );
-	detail::Field<false>( source.generic1, out.generic1 );
-	detail::Field<false>( source.loopSound, out.loopSound );
-	detail::Field<false>( source.jumppad_ent, out.jumppad_ent );
-	detail::Field<false>( source.ping, out.ping );
-
-	/* Raven's own. */
-	detail::Field<false>( source.weaponChargeTime, out.raven.weaponChargeTime );
-	detail::Field<false>( source.weaponChargeSubtractTime, out.raven.weaponChargeSubtractTime );
-	detail::Field<false>( source.basespeed, out.raven.basespeed );
-	detail::Field<false>( source.damageType, out.raven.damageType );
-	detail::Field<false>( source.saberInFlight, out.raven.saberInFlight );
-	detail::Field<false>( source.saberActive, out.raven.saberActive );
-	detail::Field<false>( source.saberMove, out.raven.saberMove );
-	detail::Field<false>( source.saberBlocked, out.raven.saberBlocked );
-	detail::Field<false>( source.saberLockTime, out.raven.saberLockTime );
-	detail::Field<false>( source.saberLockEnemy, out.raven.saberLockEnemy );
-	detail::Field<false>( source.saberLockFrame, out.raven.saberLockFrame );
-	detail::Field<false>( source.saberLockAdvance, out.raven.saberLockAdvance );
-	detail::Field<false>( source.saberEntityNum, out.raven.saberEntityNum );
-	detail::Field<false>( source.saberCanThrow, out.raven.saberCanThrow );
-	detail::Field<false>( source.rocketLockIndex, out.raven.rocketLockIndex );
-	detail::Field<false>( source.rocketLockTime, out.raven.rocketLockTime );
-	detail::Field<false>( source.rocketTargetTime, out.raven.rocketTargetTime );
-	detail::Field<false>( source.emplacedIndex, out.raven.emplacedIndex );
-	detail::Field<false>( source.isJediMaster, out.raven.isJediMaster );
-	detail::Field<false>( source.genericEnemyIndex, out.raven.genericEnemyIndex );
-	detail::Field<false>( source.activeForcePass, out.raven.activeForcePass );
-	detail::Field<false>( source.hasDetPackPlanted, out.raven.hasDetPackPlanted );
-	detail::Field<false>( source.holocronBits, out.raven.holocronBits );
-	detail::Field<false>( source.electrifyTime, out.raven.electrifyTime );
-	detail::Field<false>( source.fd_forcePowerDebounce_FP_LEVITATION, out.raven.fd_forcePowerDebounce_FP_LEVITATION );
-	detail::Field<false>( source.fd_forcePowersKnown, out.raven.fd_forcePowersKnown );
-	detail::Field<false>( source.fd_forcePowersActive, out.raven.fd_forcePowersActive );
-	detail::Field<false>( source.fd_forcePowerSelected, out.raven.fd_forcePowerSelected );
-	detail::Field<false>( source.fd_forcePower, out.raven.fd_forcePower );
-	detail::Field<false>( source.fd_forcePowerLevel_FP_LEVITATION, out.raven.fd_forcePowerLevel_FP_LEVITATION );
-	detail::Field<false>( source.fd_forcePowerLevel_FP_SEE, out.raven.fd_forcePowerLevel_FP_SEE );
-	detail::Field<false>( source.fd_forceJumpZStart, out.raven.fd_forceJumpZStart );
-	detail::Field<false>( source.fd_forceMindtrickTargetIndex, out.raven.fd_forceMindtrickTargetIndex );
-	detail::Field<false>( source.fd_forceMindtrickTargetIndex2, out.raven.fd_forceMindtrickTargetIndex2 );
-	detail::Field<false>( source.fd_forceMindtrickTargetIndex3, out.raven.fd_forceMindtrickTargetIndex3 );
-	detail::Field<false>( source.fd_forceMindtrickTargetIndex4, out.raven.fd_forceMindtrickTargetIndex4 );
-	detail::Field<false>( source.fd_forceRageRecoveryTime, out.raven.fd_forceRageRecoveryTime );
-	detail::Field<false>( source.fd_forceSide, out.raven.fd_forceSide );
-	detail::Field<false>( source.fd_sentryDeployed, out.raven.fd_sentryDeployed );
-	detail::Field<false>( source.fd_saberAnimLevel, out.raven.fd_saberAnimLevel );
-	detail::Field<false>( source.fd_saberDrawAnimLevel, out.raven.fd_saberDrawAnimLevel );
-	detail::Field<false>( source.forceHandExtend, out.raven.forceHandExtend );
-	detail::Field<false>( source.forceDodgeAnim, out.raven.forceDodgeAnim );
-	detail::Field<false>( source.duelIndex, out.raven.duelIndex );
-	detail::Field<false>( source.duelTime, out.raven.duelTime );
-	detail::Field<false>( source.duelInProgress, out.raven.duelInProgress );
-	detail::Field<false>( source.saberAttackChainCount, out.raven.saberAttackChainCount );
-	detail::Field<false>( source.saberHolstered, out.raven.saberHolstered );
-	detail::Field<false>( source.usingATST, out.raven.usingATST );
-	detail::Field<false>( source.atstAltFire, out.raven.atstAltFire );
-	detail::Field<false>( source.zoomMode, out.raven.zoomMode );
-	detail::Field<false>( source.zoomTime, out.raven.zoomTime );
-	detail::Field<false>( source.zoomLocked, out.raven.zoomLocked );
-	detail::Field<false>( source.zoomFov, out.raven.zoomFov );
-	detail::Field<false>( source.fallingToDeath, out.raven.fallingToDeath );
-	detail::Field<false>( source.inAirAnim, out.raven.inAirAnim );
-	detail::Field<false>( source.dualBlade, out.raven.dualBlade );
-	detail::Field<false>( source.lastHitLoc, out.raven.lastHitLoc );
-	destination = out;
+	playerState_t temporary{};
+	std::memcpy( temporary.raven.jk2Player, &source, sizeof( source ) );
+	if ( !detail::Player<false>( source, temporary ) ) return false;
+	destination = temporary;
 	return true;
 }
 

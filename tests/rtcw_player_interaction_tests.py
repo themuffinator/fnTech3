@@ -18,6 +18,7 @@ def input_fixture(client):
 #include "code/client/input_compat.hpp"
 #include "code/compat/rtcw_state_adapter.hpp"
 #include "code/compat/stvef_game_abi.h"
+#include "code/compat/wolfet_game_abi.h"
 #include "code/qcommon/game_profile.h"
 #include <cassert>
 #include <map>
@@ -29,6 +30,8 @@ int Com_GameIsRTCW() { return profile==COM_GAME_RTCW_SP || profile==COM_GAME_RTC
 int Com_GameIsRTCWSP() { return profile==COM_GAME_RTCW_SP; }
 int Com_GameIsRTCWMP() { return profile==COM_GAME_RTCW_MP; }
 int Com_GameIsSTVEFMP() { return profile==COM_GAME_STVEF_MP; }
+int Com_GameIsSTVEFSP() { return profile==COM_GAME_STVEF_SP; }
+int Com_GameIsWolfET() { return profile==COM_GAME_WOLFET; }
 int Com_GameIsAlice() { return profile==COM_GAME_ALICE; }
 int Com_GameIsRitual() { return profile==COM_GAME_ALICE || profile==COM_GAME_FAKK2; }
 int Com_GameIsMOHAA() { return profile==COM_GAME_MOHAA; }
@@ -66,23 +69,31 @@ signed char ClampCharMove(int value) { return value < -127 ? -127 : value > 127 
 
 
 INPUT_CHECKS = r'''
-static void Invoke(const char *command, const char *key="42", const char *tag="fnql-gen:1") {
- arguments[1]=key; arguments[2]="100"; arguments[3]=tag; commands.at(command)();
+static void Invoke(const char *command, const char *key="42", const char *tag="fnql-gen:1", const char *time="100") {
+ arguments[1]=key; arguments[2]=time; arguments[3]=tag; commands.at(command)();
 }
 static usercmd_t Sample() { usercmd_t cmd{}; CL_CmdButtons(&cmd); return cmd; }
 int main() {
  run.integer=freelook.integer=1;
- for(auto id:{COM_GAME_QUAKE3,COM_GAME_QUAKELIVE,COM_GAME_RTCW_SP,COM_GAME_RTCW_MP,COM_GAME_STVEF_MP}) {
-  profile=id; bool rtcw=Com_GameIsRTCW(), ef=Com_GameIsSTVEFMP();
+ for(auto id:{COM_GAME_QUAKE3,COM_GAME_QUAKELIVE,COM_GAME_RTCW_SP,COM_GAME_RTCW_MP,COM_GAME_STVEF_MP,COM_GAME_STVEF_SP}) {
+  profile=id; bool rtcw=Com_GameIsRTCW(), ef=Com_GameIsSTVEFMP(), efsp=Com_GameIsSTVEFSP();
   IN_ClearCommandInputState(); IN_AddCommandBindings();
   assert(commands.count("+activate")==rtcw && commands.count("-activate")==rtcw);
-  assert(commands.count("+altattack")==ef && commands.count("-use")==ef);
+  assert(commands.count("+altattack")==(ef||efsp) && commands.count("-use")==(ef||efsp));
   assert(bool(CL_IsEngineStatefulInputCommand("+activate"))==rtcw);
   assert(!CL_IsEngineStatefulInputCommand("+activate_more"));
   assert(CL_IsEngineStatefulInputCommand("+attack"));
-  anykeydown=1; catcher=0; assert(Sample().buttons==(rtcw?128:ef?FNTECH3_STVEF_MP_BUTTON_ANY:BUTTON_ANY));
+  anykeydown=1; catcher=0; assert(Sample().buttons==(rtcw?128:ef?FNTECH3_STVEF_MP_BUTTON_ANY:efsp?FNTECH3_STVEF_SP_BUTTON_ANY:BUTTON_ANY));
   catcher=2; assert(Sample().buttons==BUTTON_TALK);
   catcher=0; anykeydown=0;
+  if(efsp) {
+   Invoke("+altattack"); assert(Sample().buttons==128); Invoke("-altattack");
+   Invoke("+use"); assert(Sample().buttons==32); Invoke("-use");
+   Invoke("+button8"); assert(!Sample().buttons); Invoke("-button8");
+   Invoke("+moveup","42","fnql-gen:1","84");
+   usercmd_t jump{}; CL_KeyMove(&jump); assert(jump.upmove==127); Invoke("-moveup");
+   assert(!Sample().buttons);
+  }
   if(ef) {
    // Elite Force's one-byte buttons: alternate attack 5, use 6, and nothing
    // beyond its seven buttons reaches the command.

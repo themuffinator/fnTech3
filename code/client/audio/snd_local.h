@@ -313,6 +313,7 @@ extern cvar_t *s_alHrtfId;
 extern cvar_t *s_alOutputMode;
 extern cvar_t *s_alDistanceModel;
 extern cvar_t *s_alFrequency;
+extern cvar_t *s_alSourceResampler;
 extern cvar_t *s_alRefresh;
 extern cvar_t *s_alMonoSources;
 extern cvar_t *s_alStereoSources;

@@ -21,6 +21,7 @@ public:
 	X(alDeleteSources) \
 	X(alSourcePlay) \
 	X(alSourceStop) \
+	X(alSourceRewind) \
 	X(alSourcePause) \
 	X(alSourcei) \
 	X(alSource3i) \
@@ -439,10 +440,12 @@ public:
 private:
 	bool CreateSource( ALuint &sourceOut );
 	void ResetSource( ALuint source ) const;
+	void SetSourceResampler( ALuint source ) const;
 	bool InitEFX();
 	void ShutdownEFX();
 	void DiscoverALCCapabilities();
 	void DiscoverALCapabilities();
+	void DiscoverSourceResamplers();
 	void DiscoverHrtfSpecifiers();
 	bool ApplyDistanceModel();
 	bool QueryDistanceModel();
@@ -1195,7 +1198,87 @@ void OpenALDevice::DiscoverALCapabilities() {
 		capabilities_.outputModeValue = value;
 	}
 
+	DiscoverSourceResamplers();
 	RefreshTimingDiagnostics();
+}
+
+void OpenALDevice::DiscoverSourceResamplers() {
+	capabilities_.sourceResampler = HasALExtension( "AL_SOFT_source_resampler" );
+	capabilities_.sourceResamplerIndex = -1;
+	capabilities_.defaultSourceResamplerIndex = -1;
+	capabilities_.sourceResamplerName.clear();
+	capabilities_.defaultSourceResamplerName.clear();
+	capabilities_.alGetStringiSOFT = nullptr;
+	if ( !capabilities_.sourceResampler ) {
+		return;
+	}
+	capabilities_.alGetStringiSOFT = reinterpret_cast<LPALGETSTRINGISOFT>( GetALProcAddress( "alGetStringiSOFT" ) );
+	if ( capabilities_.alGetStringiSOFT == nullptr ) {
+		return;
+	}
+	ALint count = 0, defaultIndex = -1;
+	loader_.alGetError();
+	loader_.alGetIntegerv( AL_NUM_RESAMPLERS_SOFT, &count );
+	loader_.alGetIntegerv( AL_DEFAULT_RESAMPLER_SOFT, &defaultIndex );
+	if ( loader_.alGetError() != AL_NO_ERROR || count <= 0 || count > 128 || defaultIndex < 0 || defaultIndex >= count ) {
+		return;
+	}
+	std::vector<std::string> names;
+	names.reserve( static_cast<size_t>( count ) );
+	for ( ALint index = 0; index < count; ++index ) {
+		const ALchar *name = capabilities_.alGetStringiSOFT( AL_RESAMPLER_NAME_SOFT, index );
+		if ( loader_.alGetError() != AL_NO_ERROR || name == nullptr || std::strlen( name ) > 256 ) {
+			return;
+		}
+		names.emplace_back( name );
+	}
+	capabilities_.defaultSourceResamplerIndex = defaultIndex;
+	capabilities_.defaultSourceResamplerName = names[static_cast<size_t>( defaultIndex )];
+	const char *request = CvarStringOrDefault( s_alSourceResampler, "balanced" );
+	const int selected = fntech3::audio::SelectSourceResampler( names, request );
+	if ( selected < 0 ) {
+		if ( Q_stricmp( request, "library" ) != 0 ) {
+			Com_Printf( S_COLOR_YELLOW "WARNING: source resampler '%s' could not be resolved; retaining library default\n", request );
+		}
+		return;
+	}
+	// Verify the optional API before applying the choice to pooled sources.
+	ALuint probe = 0;
+	loader_.alGetError();
+	loader_.alGenSources( 1, &probe );
+	const bool allocated = loader_.alGetError() == AL_NO_ERROR && probe != 0;
+	ALint active = -1;
+	if ( allocated ) {
+		loader_.alSourcei( probe, AL_SOURCE_RESAMPLER_SOFT, selected );
+		loader_.alGetSourcei( probe, AL_SOURCE_RESAMPLER_SOFT, &active );
+		if ( loader_.alGetError() != AL_NO_ERROR ) {
+			active = -1;
+		}
+	}
+	if ( probe != 0 ) {
+		loader_.alDeleteSources( 1, &probe );
+		loader_.alGetError();
+	}
+	if ( active != selected ) {
+		Com_Printf( S_COLOR_YELLOW "WARNING: OpenAL source resampler request failed; retaining library default\n" );
+		return;
+	}
+	capabilities_.sourceResamplerIndex = selected;
+	capabilities_.sourceResamplerName = names[static_cast<size_t>( selected )];
+}
+
+void OpenALDevice::SetSourceResampler( ALuint source ) const {
+	// Reused sources can still carry an earlier choice after device reopening.
+	// Restore the queried library default when selection falls back.
+	const ALint index = capabilities_.sourceResamplerIndex >= 0 ? capabilities_.sourceResamplerIndex :
+		capabilities_.defaultSourceResamplerIndex;
+	if ( !loader_.Ready() || source == 0 || !capabilities_.sourceResampler || index < 0 ) {
+		return;
+	}
+	loader_.alSourcei( source, AL_SOURCE_RESAMPLER_SOFT, index );
+	if ( loader_.alGetError() != AL_NO_ERROR ) {
+		Com_DPrintf( S_COLOR_YELLOW "WARNING: OpenAL rejected the requested source resampler\n" );
+	}
 }
 
 void OpenALDevice::PrintCapabilityMatrix() const {
@@ -1208,6 +1291,10 @@ void OpenALDevice::PrintCapabilityMatrix() const {
 	Com_Printf( "  ALC version: %d.%d\n", caps.alcMajor, caps.alcMinor );
 	Com_Printf( "  Mixer: %d Hz refresh %d Hz, mono sources %d, stereo sources %d\n",
 		caps.mixerFrequency, caps.refreshRate, caps.monoSources, caps.stereoSources );
+	Com_Printf( "  AL_SOFT_source_resampler: %s; policy %s; selected %s; library default %s\n",
+		AvailableUnavailable( caps.sourceResampler ), CvarStringOrDefault( s_alSourceResampler, "balanced" ),
+		caps.sourceResamplerIndex >= 0 ? caps.sourceResamplerName.c_str() : "library fallback",
+		caps.defaultSourceResamplerName.empty() ? "not-queried" : caps.defaultSourceResamplerName.c_str() );
 	Com_Printf( "  Device enumeration: %s\n", AvailableUnavailable( caps.enumerateAll ) );
 	Com_Printf( "  ALC_EXT_disconnect: %s (state %s)\n",
 		AvailableUnavailable( caps.disconnect ),
@@ -1352,13 +1439,16 @@ void OpenALDevice::PrintOpenALSoftConfigHints() const {
 		caps.connectedQuery ? ALCConnectedName( caps.connectedState ) : "not-queried",
 		AvailableUnavailable( caps.reopenDevice && caps.alcReopenDeviceSOFT != nullptr ),
 		AvailableUnavailable( caps.systemEvents ) );
-	Com_Printf( "Live render support: HRTF %s (status %s), output mode %s (active %s), limiter %s (state %s), resampler controlled by OpenAL Soft.\n",
+	Com_Printf( "Live render support: HRTF %s (status %s), output mode %s (active %s), limiter %s (state %s).\n",
 		AvailableUnavailable( caps.hrtf ),
 		( caps.hrtfStatus >= 0 ) ? HrtfStatusName( caps.hrtfStatus ) : "not-queried",
 		AvailableUnavailable( caps.outputMode ),
 		( caps.outputModeValue >= 0 ) ? ALCOutputModeName( caps.outputModeValue ) : "not-queried",
 		AvailableUnavailable( caps.outputLimiter ),
 		( caps.outputLimiterState >= 0 ) ? ALCBooleanName( caps.outputLimiterState ) : "not-queried" );
+	Com_Printf( "Source conversion: s_alSourceResampler %s selects %s. Use library to retain the OpenAL Soft resampler config.\n",
+		CvarStringOrDefault( s_alSourceResampler, "balanced" ),
+		caps.sourceResamplerIndex >= 0 ? caps.sourceResamplerName.c_str() : "the library default" );
 	Com_Printf( "Immersive asset support: %s\n", PCMChannelSupportDescription() );
 	Com_Printf( "-------------------------------------------\n" );
 }
@@ -1387,6 +1477,7 @@ void OpenALDevice::ResetSource( ALuint source ) const {
 	loader_.alSourceStop( source );
 	loader_.alSourcei( source, AL_BUFFER, 0 );
 	loader_.alSourcei( source, AL_LOOPING, AL_FALSE );
+	SetSourceResampler( source );
 	if ( efxAvailable_ ) {
 		loader_.alSourcei( source, AL_DIRECT_FILTER, AL_FILTER_NULL );
 		loader_.alSource3i( source, AL_AUXILIARY_SEND_FILTER, AL_EFFECTSLOT_NULL, 0, AL_FILTER_NULL );

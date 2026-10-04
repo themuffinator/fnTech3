@@ -62,6 +62,7 @@ cvar_t *s_alDebugOverlay = nullptr;
 cvar_t *s_alDebugVoice = nullptr;
 cvar_t *s_alAudioZones = nullptr;
 cvar_t *s_alSourceClassDebug = nullptr;
+cvar_t *s_alSoundStartDebug = nullptr;
 cvar_t *s_alAutoRecover = nullptr;
 
 struct Vec3f {
@@ -98,7 +99,7 @@ static int ClampInt( int value, int minimum, int maximum ) {
 }
 
 static float ClampFloat( float value, float minimum, float maximum ) {
-	if ( value < minimum ) {
+	if ( !std::isfinite( value ) || value < minimum ) {
 		return minimum;
 	}
 	if ( value > maximum ) {
@@ -107,9 +108,9 @@ static float ClampFloat( float value, float minimum, float maximum ) {
 	return value;
 }
 
-static short ReadLittlePCM16( const byte *data ) {
+static short ReadNativePCM16( const byte *data ) {
 	if ( data != nullptr ) {
-		return LittleShort( fnql::ReadUnaligned<short>( data ) );
+		return fnql::ReadUnaligned<short>( data );
 	}
 	return 0;
 }
@@ -140,12 +141,12 @@ static bool PCMFrameByteCount( int frames, int channels, int width, size_t &byte
 }
 
 static short ConvertUnsignedPCM8ToPCM16( byte sample ) {
-	return static_cast<short>( ( static_cast<int>( sample ) - 128 ) << 8 );
+	return static_cast<short>( ( static_cast<int>( sample ) - 128 ) * 256 );
 }
 
 static short ConvertSignedPCM8ToPCM16( byte sample ) {
 	const int signedSample = ( sample < 128 ) ? static_cast<int>( sample ) : static_cast<int>( sample ) - 256;
-	return static_cast<short>( signedSample << 8 );
+	return static_cast<short>( signedSample * 256 );
 }
 
 static bool PCMChannelCountCanBeRepresented( int channels ) {
@@ -320,8 +321,10 @@ static AudioSampleFormat DetectAudioSampleFormatFromName( const std::string &nam
 }
 
 static short ClampPCM16FromFloat( float sample ) {
-	const int value = static_cast<int>( sample );
-	return static_cast<short>( ClampInt( value, -32768, 32767 ) );
+	// Clamp before narrowing: out-of-range float-to-int conversion is undefined,
+	// and a malformed gain must not publish NaNs to the PCM or OpenAL paths.
+	if ( !std::isfinite( sample ) ) return 0;
+	return static_cast<short>( ClampFloat( sample, -32768.0f, 32767.0f ) );
 }
 
 template<typename SampleType>
@@ -893,6 +896,11 @@ struct ModernOpenALCapabilities {
 	bool sourceSpatialize = false;
 	bool sourceRadius = false;
 	bool sourceLatency = false;
+	bool sourceResampler = false;
+	ALint sourceResamplerIndex = -1;
+	ALint defaultSourceResamplerIndex = -1;
+	std::string sourceResamplerName;
+	std::string defaultSourceResamplerName;
 	ALCint hrtfStatus = -1;
 	ALCint hrtfCount = 0;
 	ALCint outputLimiterState = -1;
@@ -931,6 +939,7 @@ struct ModernOpenALCapabilities {
 	LPALEVENTCONTROLSOFT alEventControlSOFT = nullptr;
 	LPALEVENTCALLBACKSOFT alEventCallbackSOFT = nullptr;
 	LPALGETSOURCEDVSOFT alGetSourcedvSOFT = nullptr;
+	LPALGETSTRINGISOFT alGetStringiSOFT = nullptr;
 	std::vector<std::string> hrtfSpecifiers;
 };
 

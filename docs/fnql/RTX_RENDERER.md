@@ -103,7 +103,7 @@ against the existing renderers.
 
 | Cvar | Default | Contract |
 | --- | ---: | --- |
-| `rtx_rt_mode` | `0` | Load the module in raster fallback; native RT requires an explicit request and `vid_restart`. |
+| `rtx_rt_mode` | `2` | Path trace the main view; `0` keeps the module's raster path. Latched: `vid_restart`. |
 | `rtx_rt_require` | `0` | Permit honest fallback unless the operator explicitly asks to fail closed. |
 | `rtx_rt_backend` | `0` | Trace with the ray-tracing pipeline where the device offers it, else with compute; forcing either is explicit. |
 | `rtx_rt_material_maps` | `1` | Traced materials take a texture pack's companion normal and material maps when one supplies them; retail paks carry none, so retail appearance is unchanged. |

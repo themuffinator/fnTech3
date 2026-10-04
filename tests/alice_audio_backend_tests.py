@@ -130,6 +130,7 @@ int main(){
 PLAYER_PRELUDE = r'''
 #define USE_CODEC_MP3 1
 #include "code/client/audio/shared/AliceMusic.h"
+#include "code/client/audio/shared/AudioStreamResampler.h"
 #include <array>
 #include <cassert>
 #include <cstdint>
@@ -216,6 +217,8 @@ class AliceAudioBackendTests(unittest.TestCase):
             options = {'creationflags': subprocess.CREATE_NO_WINDOW} if os.name == 'nt' else {}
             run = subprocess.run([str(exe)], cwd=ROOT, capture_output=True, text=True, timeout=30, **options)
             self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+            if run.stdout:
+                print(run.stdout, end='')
 
     def test_legacy_painter_repeats_the_loop_block(self):
         painters = '\n'.join(function(self.mix, name) for name in (
@@ -242,11 +245,196 @@ class AliceAudioBackendTests(unittest.TestCase):
         player = between(self.alice, '/* ---- one decoded track', 'struct ConsoleLog final')
         self.compile_run(PLAYER_PRELUDE + player + PLAYER_MAIN)
 
+    def test_score_track_keeps_last_frame_across_mix_calls(self):
+        track = between(self.alice, 'struct Track {', '/* ---- the soundtrack')
+        prelude = PLAYER_PRELUDE.replace(
+            'info->rate=44100;', 'info->rate=fixtureRate;')
+        prelude = prelude.replace('static int opened=0,closed=0;', r'''
+static int opened=0,closed=0,fixtureRate=44100;
+static size_t fixtureAt=0;
+static std::vector<short> fixturePCM;
+''')
+        prelude = prelude.replace(
+            'static int S_MP3_ReadMemory(snd_mp3_memory_t *,int bytes,void *pcm){std::memset(pcm,0,size_t(bytes));return bytes;}',
+            r'''static int S_MP3_ReadMemory(snd_mp3_memory_t *,int bytes,void *pcm){
+ const size_t count=(std::min)(size_t(bytes)/sizeof(short),fixturePCM.size()-fixtureAt);
+ if(count)std::memcpy(pcm,fixturePCM.data()+fixtureAt,count*sizeof(short));
+ fixtureAt+=count;return int(count*sizeof(short));
+}''')
+        self.compile_run('#include <cmath>\n' + prelude + track + r'''
+int main(){
+ for(int rate:{22050,44100,48000})for(int count:{0,1,2,3,5,100})for(int block:{1,2,3,256}){
+  fixtureRate=rate;fixtureAt=0;fixturePCM.resize(size_t(count)*2);
+  for(int i=0;i<count;++i){const int value=rate==44100?1000+100*i:1000;fixturePCM[2*i]=short(value);fixturePCM[2*i+1]=short(-value);}
+  Track track;Image image(64,1);assert(track.Begin(image,false,[](int,int){return 0;}));
+  const int outputFrames=(count*44100+rate-1)/rate;
+  std::vector<float> mixed(size_t(outputFrames+4)*2);
+  for(int i=0;i<outputFrames+4;i+=block){
+   const int n=(std::min)(block,outputFrames+4-i);
+   track.Mix(1.0f,mixed.data()+size_t(i)*2,n);
+  }
+  assert(!track.Playing());
+  for(int i=0;i<outputFrames;++i){
+   const double position=double(i)*rate/44100;
+   const int left=int(position),right=(std::min)(left+1,count-1);
+   const float expected=rate==44100?float(1000+100*left+100*(right-left)*(position-left)):1000;
+   assert(std::fabs(mixed[2*i]-expected)<.01f&&std::fabs(mixed[2*i+1]+expected)<.01f);
+  }
+  for(size_t i=size_t(outputFrames)*2;i<mixed.size();++i)assert(mixed[i]==0);
+ }
+}
+''')
+
+    def test_non_native_score_rates_preserve_tones_and_reject_images_and_aliases(self):
+        track = between(self.alice, 'struct Track {', '/* ---- the soundtrack')
+        prelude = PLAYER_PRELUDE.replace('info->rate=44100;', 'info->rate=fixtureRate;')
+        prelude = prelude.replace('static int opened=0,closed=0;', r'''
+static int opened=0,closed=0,fixtureRate=44100;
+static size_t fixtureAt=0;
+static std::vector<short> fixturePCM;
+''')
+        prelude = prelude.replace(
+            'static int S_MP3_ReadMemory(snd_mp3_memory_t *,int bytes,void *pcm){std::memset(pcm,0,size_t(bytes));return bytes;}',
+            r'''static int S_MP3_ReadMemory(snd_mp3_memory_t *,int bytes,void *pcm){
+ const size_t count=(std::min)(size_t(bytes)/sizeof(short),fixturePCM.size()-fixtureAt);
+ if(count)std::memcpy(pcm,fixturePCM.data()+fixtureAt,count*sizeof(short));
+ fixtureAt+=count;return int(count*sizeof(short));
+}''')
+        self.compile_run('#include <cmath>\n#include <cstdio>\n' + prelude + track + r'''
+constexpr double pi=3.14159265358979323846;
+std::vector<float> tone(int rate,double frequency){
+ fixtureRate=rate;fixtureAt=0;const int count=rate/2;
+ fixturePCM.resize(size_t(count)*2);
+ for(int i=0;i<count;++i)fixturePCM[2*i]=fixturePCM[2*i+1]=short(10000*std::sin(2*pi*frequency*i/rate));
+ Track track;Image image(64,1);assert(track.Begin(image,false,[](int,int){return 0;}));
+ const int outputFrames=(count*44100+rate-1)/rate;
+ std::vector<float> mixed(size_t(outputFrames+4)*2);
+ for(int at=0;at<outputFrames+4;at+=257)track.Mix(1,mixed.data()+size_t(at)*2,(std::min)(257,outputFrames+4-at));
+ assert(!track.Playing());mixed.resize(size_t(outputFrames)*2);return mixed;
+}
+int main(){
+ for(int rate:{8000,16000,22050}){
+  const double wanted=.35*rate,image=rate-wanted;const auto output=tone(rate,wanted);
+  double system[4][5]{};
+  for(size_t i=512;i<output.size()/2-512;++i){
+   const double a=2*pi*wanted*i/44100,b=2*pi*image*i/44100;
+   const double basis[]={std::sin(a),std::cos(a),std::sin(b),std::cos(b)};
+   for(int row=0;row<4;++row){for(int col=0;col<4;++col)system[row][col]+=basis[row]*basis[col];system[row][4]+=basis[row]*output[2*i]/10000;}
+  }
+  for(int col=0;col<4;++col){
+   const double divisor=system[col][col];assert(std::fabs(divisor)>1);
+   for(int i=col;i<5;++i)system[col][i]/=divisor;
+   for(int row=0;row<4;++row)if(row!=col){const double factor=system[row][col];for(int i=col;i<5;++i)system[row][i]-=factor*system[col][i];}
+  }
+  const double gain=std::hypot(system[0][4],system[1][4]),unwanted=std::hypot(system[2][4],system[3][4]);
+  std::printf("Ritual %d -> 44100 gain %.9f image %.2f dB\n",rate,gain,20*std::log10(unwanted));std::fflush(stdout);
+  assert(std::fabs(gain-1)<.001&&unwanted<.001);
+ }
+ const auto output=tone(48000,44100*.51);double power=0;
+ for(size_t i=512;i<output.size()/2-512;++i)power+=double(output[2*i])*output[2*i];
+ const double alias=std::sqrt(2*power/(output.size()/2-1024))/10000;
+ std::printf("Ritual 48000 -> 44100 alias %.2f dB\n",20*std::log10(alias));std::fflush(stdout);assert(alias<.001);
+}
+''')
+
+    def test_non_native_score_preserves_position_parking_loops_and_gain_ramps(self):
+        track = between(self.alice, 'struct Track {', '/* ---- the soundtrack')
+        prelude = PLAYER_PRELUDE.replace('info->rate=44100;', 'info->rate=fixtureRate;')
+        prelude = prelude.replace('info->samples=44100*60;', 'info->samples=int(fixturePCM.size()/2);')
+        prelude = prelude.replace('static int opened=0,closed=0;', r'''
+static int opened=0,closed=0,fixtureRate=22050;
+static size_t fixtureAt=0;
+static std::vector<short> fixturePCM;
+''')
+        prelude = prelude.replace(
+            'static int S_MP3_SeekFileOffset(snd_mp3_memory_t *,int){return 0;}',
+            'static int S_MP3_SeekFileOffset(snd_mp3_memory_t *,int){fixtureAt=0;return 0;}')
+        prelude = prelude.replace(
+            'static int S_MP3_ReadMemory(snd_mp3_memory_t *,int bytes,void *pcm){std::memset(pcm,0,size_t(bytes));return bytes;}',
+            r'''static int S_MP3_ReadMemory(snd_mp3_memory_t *,int bytes,void *pcm){
+ const size_t count=(std::min)(size_t(bytes)/sizeof(short),fixturePCM.size()-fixtureAt);
+ if(count)std::memcpy(pcm,fixturePCM.data()+fixtureAt,count*sizeof(short));
+ fixtureAt+=count;return int(count*sizeof(short));
+}''')
+        self.compile_run('#include <cmath>\n' + prelude + track + r'''
+std::vector<float> render(int block,bool move,bool loop){
+ Track track;Image image(64,1);assert(track.Begin(image,loop,[](int,int){return 0;}));
+ std::vector<float> output(88208);
+ for(int at=0;at<44104;at+=block){
+  const int count=(std::min)(block,44104-at);track.Mix(1,output.data()+size_t(at)*2,count);
+  if(move){Track parked=std::move(track);assert(!track.Playing());track=std::move(parked);assert(!parked.Playing());}
+ }
+ assert(track.Playing()==loop);return output;
+}
+int main(){
+ for(int rate:{8000,22050,48000}){
+  fixtureRate=rate;fixturePCM.resize(size_t(rate)*2);
+  for(int i=0;i<rate;++i)fixturePCM[2*i]=fixturePCM[2*i+1]=short(8192*std::sin(i*.043));
+  const auto whole=render(44104,false,false);
+  for(int block:{1,7,257})assert(render(block,true,false)==whole);
+  Track track;Image image(64,1);assert(track.Begin(image,false,[](int,int){return 0;}));
+  assert(track.Remaining()==1000);float frame[2]{};
+  for(int i=1;i<=200;++i){track.Mix(1,frame,1);assert(track.Remaining()==int((int64_t(rate)-int64_t(i)*rate/44100)*1000/rate));}
+ }
+ // DC survives the filter, so each sample identifies the applied output ramp.
+ fixtureRate=22050;fixturePCM.assign(22050*2,3000);
+ Track track;Image image(64,1);assert(track.Begin(image,false,[](int,int){return 0;}));
+ std::vector<float> output(200);track.Mix(1,output.data(),100);std::fill(output.begin(),output.end(),0);track.Mix(0,output.data(),100);
+ for(int i=0;i<100;++i)for(int c=0;c<2;++c)assert(std::fabs(output[2*i+c]-3000*(1.0f-float(i+1)/100))<.001f);
+ std::fill(output.begin(),output.end(),0);track.Mix(std::nanf(""),output.data(),100);
+ for(float value:output)assert(value==0);
+ std::fill(output.begin(),output.end(),0);track.Mix(1,output.data(),100);
+ for(int i=0;i<100;++i)for(int c=0;c<2;++c)assert(std::fabs(output[2*i+c]-3000*float(i+1)/100)<.001f);
+ fixturePCM.resize(128);for(size_t i=0;i<fixturePCM.size();++i)fixturePCM[i]=short(8192*std::sin((i/2)*.098174770424681));
+ assert(render(1,true,true)==render(44104,false,true));
+ fixturePCM.clear();Track empty;assert(empty.Begin(image,true,[](int,int){return 0;}));
+ empty.Mix(1,output.data(),100);assert(!empty.Playing());
+}
+''')
+
     def test_shutdown_and_song_changes_use_their_own_release(self):
         shutdown = function(self.alice, 'extern "C" void S_AliceSoundShutdown( void ) {')
         self.assertIn('player.CloseLive();', shutdown)
         self.assertNotIn('player.Clear();', shutdown)
         self.assertIn('player.Clear();', function(self.alice, 'void ClearSongs( const std::vector<Song> &old ) {'))
+
+    def test_score_pcm_conversion_rejects_invalid_values_and_buffers(self):
+        conversion = function(self.alice, 'int MixRead( snd_stream_t *, int bytes, void *buffer ) {')
+        self.compile_run(r'''
+#include <cassert>
+#include <cmath>
+#include <cstdint>
+#include <cstring>
+#include <limits>
+#include <vector>
+constexpr int kMixChannels=2;
+using byte=unsigned char;
+struct snd_stream_t{};
+std::vector<float> mixScratch;
+int music=0;
+const float input[]={std::numeric_limits<float>::quiet_NaN(),
+ std::numeric_limits<float>::infinity(),-std::numeric_limits<float>::infinity(),
+ 32767.9f,-32768.9f,1e30f,-1e30f,123.75f};
+struct Player {void Mix(int,float*out,int frames){for(int i=0;i<frames*2;++i)out[i]=input[i];}}player;
+struct Cinematic {void Mix(float,float*,int){}}mp3Track;
+static bool tracksActive=true;
+static bool AnythingSounds(){return tracksActive;}
+''' + conversion + r'''
+int main(){
+ short output[8]{};
+ assert(MixRead(nullptr,0,nullptr)==0&&MixRead(nullptr,-4,nullptr)==0);
+ assert(MixRead(nullptr,sizeof(output)+1,output)==sizeof(output));
+ const short expected[]={0,0,0,32767,-32768,32767,-32768,123};
+ for(int i=0;i<8;++i)assert(output[i]==expected[i]);
+ assert(MixRead(nullptr,4,nullptr)==0);
+ alignas(short) unsigned char unaligned[sizeof(output)+1]{};
+ assert(MixRead(nullptr,sizeof(output),unaligned+1)==sizeof(output));
+ for(int i=0;i<8;++i){short value;std::memcpy(&value,unaligned+1+i*sizeof(value),sizeof(value));assert(value==expected[i]);}
+ tracksActive=false;std::memset(unaligned,0x4f,sizeof(unaligned));
+ assert(MixRead(nullptr,sizeof(output),unaligned+1)==0);
+ for(unsigned char value:unaligned)assert(value==0x4f);
+}
+''')
 
     def test_update_asks_the_music_before_the_music_update(self):
         update = function(self.alice, 'extern "C" void S_AliceSoundUpdate( void ) {')

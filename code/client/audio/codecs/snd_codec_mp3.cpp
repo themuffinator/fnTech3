@@ -7,15 +7,15 @@ General Public License, version 2 or (at your option) any later version.
 ===========================================================================
 */
 
-// MPEG-1/2 Layer III sound and music for Star Trek Voyager: Elite Force.
+// MPEG-1/2 Layer III sound and music through the shared Fn audio pipeline.
 // Retail Elite Force stores its effects, speech and music as MP3 frames with a
 // trailing Raven ID3v1 tag ("#UNCOMP", "#MAXVOL"); see
 // docs/fntech3/2026-09-18-stvef-contracts.md. Raven's "#UNCOMP" byte count
 // includes every MPEG frame, so this codec decodes frame by frame with
 // minimp3 (CC0) and never drops a leading Xing/Info frame as tag metadata.
-// The codec is registered only for Elite Force profiles and American McGee's
-// Alice, whose music and cinematic tracks are MP3, so other games keep their
-// retail extension fallback behaviour.
+// The codec joins Elite Force, Alice, F.A.K.K.2, Medal of Honor and Jedi
+// Academy profiles, which supply MP3 assets; other profiles keep their
+// existing extension fallback behaviour.
 
 #ifdef USE_CODEC_MP3
 
@@ -211,12 +211,7 @@ int S_MP3_CodecReadStream( snd_stream_t *stream, int bytes, void *buffer )
 	const int read = state->frames.Read( &state->codec, &MiniMp3::Decode,
 		stream->info.channels, stream->info.rate, stream->info.channels,
 		static_cast<short *>( buffer ), bytes );
-#ifdef Q3_BIG_ENDIAN
-	auto *samples = static_cast<short *>( buffer );
-	for ( int i = 0; i < read / 2; ++i ) {
-		samples[i] = LittleShort( samples[i] );
-	}
-#endif
+	// minimp3 writes native short values, as the WAV/Vorbis codecs do.
 	return read;
 }
 
@@ -275,12 +270,6 @@ void *S_MP3_CodecLoad( const char *filename, snd_info_t *info )
 	if ( bytesRead <= 0 || bytesRead != decodedInfo.size ) {
 		return nullptr;
 	}
-#ifdef Q3_BIG_ENDIAN
-	auto *samples = buffer.as<short>();
-	for ( int i = 0; i < bytesRead / 2; ++i ) {
-		samples[i] = LittleShort( samples[i] );
-	}
-#endif
 	decodedInfo.peak = Mp3RavenPeak( compressed.as<std::uint8_t>(), length );
 	*info = decodedInfo;
 	return buffer.release();
@@ -354,12 +343,6 @@ int S_MP3_ReadMemory( snd_mp3_memory_t *memory, int bytes, void *pcm )
 	const int read = memory->frames.Read( &memory->codec, &MiniMp3::Decode,
 		memory->info.channels, memory->info.rate, memory->info.channels,
 		static_cast<short *>( pcm ), bytes );
-#ifdef Q3_BIG_ENDIAN
-	auto *samples = static_cast<short *>( pcm );
-	for ( int i = 0; i < read / 2; ++i ) {
-		samples[i] = LittleShort( samples[i] );
-	}
-#endif
 	return read;
 }
 

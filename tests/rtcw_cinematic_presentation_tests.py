@@ -35,6 +35,7 @@ qboolean S_AliceMP3Preload(const char *){return qfalse;}
 qboolean S_AliceMP3PlayPreloaded(qboolean){return qfalse;}
 void CL_AliceCinematicPlay(const char *,const char *){assert(false);}
 int Com_GameIsSTVEFSP(){return 0;}
+int Com_GameIsJKA(){return 0;}
 const char *COM_GetExtension(const char *){assert(false);return "";}
 void COM_DefaultExtension(char *,int,const char *){assert(false);}
 static int CIN_PlayBink(const char *,int,int,int,int,int){assert(false);return -1;}

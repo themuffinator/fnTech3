@@ -19,6 +19,9 @@ static comGameId_t profile;
 int Com_GameIsWolfET(){return profile==COM_GAME_WOLFET;}
 // Elite Force SP's camera scenes are not driven here.
 int Com_GameIsSTVEFSP(){return profile==COM_GAME_STVEF_SP;}
+int Com_GameIsJKAMP(){return profile==COM_GAME_JKA_MP;}
+qboolean SV_JKASnapshotBroadcast(int,int,qboolean*){assert(!"JKA uses its own snapshot fixture");return qfalse;}
+qboolean SV_ReadJKAVehicleState(int,playerState_t*){assert(!"JKA uses its own vehicle fixture");return qfalse;}
 qboolean SV_STVEFSPCameraOrigin(vec3_t){return qfalse;}
 server_t sv{};
 serverStatic_t svs{};

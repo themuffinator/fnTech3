@@ -22,7 +22,7 @@ class ProfileStateLimitsTests(unittest.TestCase):
         compiler = shutil.which("clang++") or shutil.which("g++")
         if not compiler:
             self.skipTest("C++ compiler unavailable")
-        with tempfile.TemporaryDirectory(prefix="fntech3-state-limits-") as directory:
+        with tempfile.TemporaryDirectory(prefix="fntech3-state-limits-", dir=ROOT / '.tmp') as directory:
             cpp = Path(directory) / "probe.cpp"
             exe = Path(directory) / "probe.exe"
             cpp.write_text(source, encoding="utf-8")
@@ -42,6 +42,7 @@ class ProfileStateLimitsTests(unittest.TestCase):
         self.compile_and_run(r'''
 #include "q_shared.h"
 #include "qcommon.h"
+#include "protocol_contract_profile.hpp"
 #include <cassert>
 #include <initializer_list>
 struct {bool demoplaying;netchanWireProfile_t demoWireProfile;struct{netchanWireProfile_t wireProfile;}netchan;}clc;
@@ -53,11 +54,15 @@ int Com_GameIsQ3Test(){return 0;}
 netchanWireProfile_t CL_Q3TestWireProfile(){assert(false);return NETCHAN_WIRE_Q3TEST_B;}
 ''' + implementation + r'''
 int main(){
- struct Mode{int protocol;netchanWireProfile_t wire;int commands;};
- for(Mode mode:{Mode{68,NETCHAN_WIRE_LEGACY_Q3,64},Mode{71,NETCHAN_WIRE_IOQ3,64},
-               Mode{91,NETCHAN_WIRE_QL_RETAIL,64},Mode{49,NETCHAN_WIRE_RTCW_SP,256},
-               Mode{60,NETCHAN_WIRE_RTCW_MP,256}}){
-  selected.preferredProtocol=mode.protocol;clc={};
+ struct Mode{int protocol;netchanWireProfile_t wire;int commands;unsigned families;};
+ for(Mode mode:{Mode{68,NETCHAN_WIRE_LEGACY_Q3,64,COM_PROTOCOL_FAMILY_LEGACY_QUAKE3},
+               Mode{71,NETCHAN_WIRE_IOQ3,64,COM_PROTOCOL_FAMILY_IOQUAKE3},
+               Mode{91,NETCHAN_WIRE_QL_RETAIL,64,COM_PROTOCOL_FAMILY_QUAKELIVE},
+               Mode{49,NETCHAN_WIRE_RTCW_SP,256,COM_PROTOCOL_FAMILY_RTCW_SP},
+               Mode{60,NETCHAN_WIRE_RTCW_MP,256,COM_PROTOCOL_FAMILY_RTCW_MP},
+               Mode{26,NETCHAN_WIRE_JKA_MP,128,COM_PROTOCOL_FAMILY_JKA_MP},
+               Mode{26,NETCHAN_WIRE_IOEF,64,COM_PROTOCOL_FAMILY_IOEF}}){
+  selected.preferredProtocol=mode.protocol;selected.allowedProtocolFamilies=mode.families;clc={};
   for(auto state:{CA_DISCONNECTED,CA_CHALLENGING}){
    cls.state=state;assert(CL_ActiveWireProfile()==mode.wire);
    assert(Netchan_ReliableCommandLimit(CL_ActiveWireProfile())==mode.commands);

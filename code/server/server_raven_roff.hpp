@@ -19,6 +19,8 @@
 #include "../compat/jka_roff_format.hpp"
 
 #include <cstring>
+#include <cstdint>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -52,8 +54,10 @@ struct Playing {
 	int entity = -1;
 	int handle = 0;          /* one-based, into the cache */
 	int step = 0;            /* the next step to take */
-	int nextStepTime = 0;    /* when to take it */
-	bool translate = true;   /* whether the move part is applied */
+	std::int64_t nextStepTime = 0; /* when to take it, without signed overflow */
+	bool translate = true;   /* rotate motion into the entity's starting axes */
+	float startAngles[3] = {};
+	std::uint64_t generation = 0;
 };
 
 class Store {
@@ -73,7 +77,7 @@ public:
 	const Cached *At( int handle ) const
 	{
 		return handle >= 1 && handle <= CachedCount()
-			? &cached_[std::size_t( handle - 1 )] : nullptr;
+			? cached_[std::size_t( handle - 1 )].get() : nullptr;
 	}
 
 	/* Read a path and remember it by name, returning its handle or 0. A name
@@ -83,7 +87,8 @@ public:
 
 	/* Start a path on an entity. False when there is no such path; an entity
 	 * already walking one is moved onto the new one rather than doubled. */
-	bool Play( int entity, int handle, bool translate, int now );
+	bool Play( int entity, int handle, bool translate, int now,
+		const float startAngles[3] = nullptr );
 
 	/* Stop whatever this entity was walking. */
 	bool Stop( int entity );
@@ -93,42 +98,61 @@ public:
 		for ( const Playing &one : playing_ ) if ( one.entity == entity ) return &one;
 		return nullptr;
 	}
+	const Playing *PlayingAt( int index ) const
+	{
+		return index >= 0 && index < PlayingCount() ? &playing_[std::size_t( index )] : nullptr;
+	}
 
-	/* Take every step that is due. `step` is handed each one in turn, with the
-	 * entity it belongs to and whether the move part applies; a path that has
-	 * run out is dropped. Returns how many steps were taken. */
+	/* Retail takes one due sample per update, then schedules the next from the
+	 * current server time. It does not catch up by taking all overdue samples.
+	 * After the final sample's interval, finish freezes its entity's trajectory.
+	 * Callbacks may stop or replace playback, clear the cache or start another
+	 * entity; snapshot generations and retained paths protect that reentrancy. */
 	template<class Step>
 	int Advance( int now, Step step );
+	template<class Step, class Finish>
+	int Advance( int now, Step step, Finish finish );
 
 private:
 	Files *files_ = nullptr;
-	std::vector<Cached> cached_;
+	std::vector<std::shared_ptr<Cached>> cached_;
 	std::vector<Playing> playing_;
+	std::uint64_t generation_ = 0;
 };
 
 inline int Store::Cache( const char *name )
 {
 	if ( !name || !name[0] ) return 0;
 	for ( int handle = 1; handle <= CachedCount(); ++handle ) {
-		if ( cached_[std::size_t( handle - 1 )].name == name ) return handle;
+		if ( cached_[std::size_t( handle - 1 )]->name == name ) return handle;
 	}
 	if ( CachedCount() >= MaxCachedPaths ) return 0;
 
-	const std::size_t size = files_->Read( name, nullptr, 0 );
+	std::string readName( name );
+	std::size_t size = files_->Read( readName.c_str(), nullptr, 0 );
+	/* Retail tries the literal path, then scripts/<name without extension>.rof
+	 * (jamp.exe VA 0x4265a8-0x4265fb). Keep the caller's name as the cache key. */
+	if ( size == 0 ) {
+		const auto extension = readName.find( '.' );
+		if ( extension != std::string::npos ) readName.resize( extension );
+		readName = "scripts/" + readName + ".rof";
+		size = files_->Read( readName.c_str(), nullptr, 0 );
+	}
 	if ( size == 0 || size > MaxPathBytes ) return 0;
 	Cached entry;
 	entry.bytes.assign( size, 0 );
-	if ( files_->Read( name, entry.bytes.data(), entry.bytes.size() ) != size ) return 0;
+	if ( files_->Read( readName.c_str(), entry.bytes.data(), entry.bytes.size() ) != size ) return 0;
 	if ( format::Parse( entry.bytes.data(), entry.bytes.size(), entry.path )
 		!= format::Error::None ) {
 		return 0;
 	}
 	entry.name = name;
-	cached_.push_back( std::move( entry ) );
+	cached_.push_back( std::make_shared<Cached>( std::move( entry ) ) );
 	return CachedCount();
 }
 
-inline bool Store::Play( int entity, int handle, bool translate, int now )
+inline bool Store::Play( int entity, int handle, bool translate, int now,
+	const float startAngles[3] )
 {
 	const Cached *entry = At( handle );
 	if ( !entry || entity < 0 ) return false;
@@ -138,6 +162,8 @@ inline bool Store::Play( int entity, int handle, bool translate, int now )
 	one.handle = handle;
 	one.step = 0;
 	one.translate = translate;
+	if ( startAngles ) std::memcpy( one.startAngles, startAngles, sizeof( one.startAngles ) );
+	one.generation = ++generation_;
 	/* Version 2 carries its own rate; version 1 runs at Raven's base rate. */
 	one.nextStepTime = now;
 	playing_.push_back( one );
@@ -155,33 +181,35 @@ inline bool Store::Stop( int entity )
 template<class Step>
 int Store::Advance( int now, Step step )
 {
-	int taken = 0;
-	for ( std::size_t at = 0; at < playing_.size(); ) {
-		Playing &one = playing_[at];
-		const Cached *entry = At( one.handle );
-		if ( !entry ) { playing_.erase( playing_.begin() + at ); continue; }
-		const int rate = entry->path.frameRate > 0
-			? entry->path.frameRate : format::SampleRate;
-		const int interval = rate > 0 ? 1000 / rate : 100;
+	return Advance( now, step, []( const Playing &, const Cached & ) {} );
+}
 
-		bool finished = false;
-		/* A frame may cover more than one step when the server is behind, and
-		 * every step is taken rather than skipped: a path that skipped steps
-		 * would land its object somewhere it never passed through. */
-		while ( !finished && now >= one.nextStepTime ) {
-			format::Sample sample;
-			if ( !format::ReadSample( entry->bytes.data(), entry->bytes.size(),
-				entry->path, one.step, sample ) ) {
-				finished = true;
-				break;
-			}
-			step( one, sample, *entry );
-			++taken;
-			++one.step;
-			one.nextStepTime += interval > 0 ? interval : 1;
+template<class Step, class Finish>
+int Store::Advance( int now, Step step, Finish finish )
+{
+	int taken = 0;
+	const std::vector<Playing> pending = playing_;
+	for ( const Playing &previous : pending ) {
+		auto current = playing_.begin();
+		for ( ; current != playing_.end(); ++current ) {
+			if ( current->entity == previous.entity
+				&& current->generation == previous.generation ) break;
 		}
-		if ( finished ) playing_.erase( playing_.begin() + at );
-		else ++at;
+		if ( current == playing_.end() || now < current->nextStepTime ) continue;
+		const Playing one = *current;
+		if ( !At( one.handle ) ) { playing_.erase( current ); continue; }
+		const auto entry = cached_[std::size_t( one.handle - 1 )];
+		format::Sample sample;
+		if ( !format::ReadSample( entry->bytes.data(), entry->bytes.size(),
+			entry->path, one.step, sample ) ) {
+			playing_.erase( current );
+			finish( one, *entry );
+			continue;
+		}
+		++current->step;
+		current->nextStepTime = std::int64_t( now ) + format::FrameMilliseconds( entry->path );
+		step( one, sample, *entry );
+		++taken;
 	}
 	return taken;
 }

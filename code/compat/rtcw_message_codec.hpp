@@ -3,6 +3,7 @@
 #define FNTECH3_RTCW_MESSAGE_CODEC_HPP
 
 #include "rtcw_game_abi.h"
+#include "ieee_delta_float.hpp"
 
 #include <array>
 #include <cstddef>
@@ -154,10 +155,8 @@ inline std::uint32_t FloatWord( float value ) noexcept {
 
 template<class Writer> void WriteScalar( Writer &io, std::uint32_t value,
 	int width, bool entity ) {
-	float real = 0;
-	if ( width == 0 ) std::memcpy( &real, &value, 4 );
 	if ( entity ) {
-		const bool nonzero = width ? value != 0 : real != 0.0f;
+		const bool nonzero = width ? value != 0 : ( value & 0x7fffffffu ) != 0;
 		io.Write( nonzero, 1 );
 		if ( !nonzero ) return;
 	}
@@ -165,11 +164,10 @@ template<class Writer> void WriteScalar( Writer &io, std::uint32_t value,
 		io.Write( value, width );
 		return;
 	}
-	// Range-check before conversion: NaN, infinity and out-of-range binary32
-	// values must never reach an undefined float-to-int cast.
-	if ( real >= -4096.0f && real < 4096.0f && static_cast<int>( real ) == real ) {
+	int integer;
+	if ( delta::CompactFloatInteger( value, integer ) ) {
 		io.Write( 0, 1 );
-		io.Write( static_cast<std::uint32_t>( static_cast<int>( real ) + 4096 ), 13 );
+		io.Write( static_cast<std::uint32_t>( integer + 4096 ), 13 );
 	} else {
 		io.Write( 1, 1 );
 		io.Write( value, 32 );

@@ -40,7 +40,7 @@ static const char *Profile(const char *name) {
 }
 static int Corrected(void) {
     static const char *const corrected[] = {"quake3", "rtcw-sp", "rtcw-mp", "wolfet", "stvef-sp", "stvef-mp",
-        "alice", "fakk2", "mohaa"};
+        "alice", "fakk2", "mohaa", "jka-sp", "jka-mp"};
     for (size_t i = 0; i < sizeof(corrected) / sizeof(corrected[0]); ++i)
         if (!strcmp(profile, corrected[i])) return 1;
     return 0;
@@ -229,7 +229,7 @@ class Q3FovProfileTests(unittest.TestCase):
                     build = subprocess.run(command, text=True, capture_output=True, timeout=60)
                     self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
                     for profile in ("quake3", "quakelive", "rtcw-sp", "rtcw-mp", "wolfet", "stvef-sp", "stvef-mp",
-                                    "alice", "fakk2", "mohaa", "q3-ihv", "unknown"):
+                                    "alice", "fakk2", "mohaa", "jka-sp", "jka-mp", "q3-ihv", "unknown"):
                         result = subprocess.run([str(executable), profile],
                             text=True, capture_output=True, timeout=15)
                         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -252,7 +252,7 @@ class Q3FovProfileTests(unittest.TestCase):
                       foliage)
         ui = (ROOT / "code/client/cl_ui.cpp").read_text(encoding="utf-8")
         render = ui.split("case UI_R_RENDERSCENE:", 1)[1].split("case UI_R_SETCOLOR:", 1)[0]
-        self.assertRegex(render, r"if \( Com_GameIsQuake3\(\) \|\| Com_GameIsSTVEF\(\) \)\s*\{\s*"
+        self.assertRegex(render, r"if \( Com_GameIsQuake3\(\) \|\| Com_GameIsSTVEF\(\) \|\| Com_GameIsJKA\(\) \)\s*\{\s*"
                                  r"refdef.rdflags \|= RDF_NOFOVCORRECTION;")
         # Elite Force single player's menus reach the renderer by their own table.
         sp_ui = (ROOT / "code/client/client_stvef_sp_ui.hpp").read_text(encoding="utf-8")

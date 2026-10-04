@@ -17,6 +17,10 @@ the Free Software Foundation; either version 2 of the License, or
 #include <AL/efx.h>
 
 #include "../../code/client/audio/openal/OpenALCompat.h"
+#include "../../code/client/audio/shared/AudioStreamResampler.h"
+#include "../../code/client/audio/shared/AudioSourceResampler.h"
+#include "../../code/client/audio/shared/AudioVoiceQueue.h"
+#include "../../code/client/audio/shared/RTCWSpeech.h"
 
 #include <algorithm>
 #include <array>
@@ -24,6 +28,9 @@ the Free Software Foundation; either version 2 of the License, or
 #include <cstdio>
 #include <cstring>
 #include <iterator>
+#include <cstdint>
+#include <deque>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -146,6 +153,10 @@ struct OpenALSymbols {
 	decltype(&::alSource3i) alSource3i = nullptr;
 	decltype(&::alSourcePlay) alSourcePlay = nullptr;
 	decltype(&::alSourceStop) alSourceStop = nullptr;
+	decltype(&::alSourceRewind) alSourceRewind = nullptr;
+	decltype(&::alSourceQueueBuffers) alSourceQueueBuffers = nullptr;
+	decltype(&::alSourceUnqueueBuffers) alSourceUnqueueBuffers = nullptr;
+	decltype(&::alGetSourcei) alGetSourcei = nullptr;
 	decltype(&::alListenerf) alListenerf = nullptr;
 	decltype(&::alListener3f) alListener3f = nullptr;
 	decltype(&::alListenerfv) alListenerfv = nullptr;
@@ -225,6 +236,10 @@ bool LoadBaseSymbols( const DynamicLibrary &library, OpenALSymbols &al ) {
 	ok = LoadSymbol( library, al.alSource3i, "alSource3i" ) && ok;
 	ok = LoadSymbol( library, al.alSourcePlay, "alSourcePlay" ) && ok;
 	ok = LoadSymbol( library, al.alSourceStop, "alSourceStop" ) && ok;
+	ok = LoadSymbol( library, al.alSourceRewind, "alSourceRewind" ) && ok;
+	ok = LoadSymbol( library, al.alSourceQueueBuffers, "alSourceQueueBuffers" ) && ok;
+	ok = LoadSymbol( library, al.alSourceUnqueueBuffers, "alSourceUnqueueBuffers" ) && ok;
+	ok = LoadSymbol( library, al.alGetSourcei, "alGetSourcei" ) && ok;
 	ok = LoadSymbol( library, al.alListenerf, "alListenerf" ) && ok;
 	ok = LoadSymbol( library, al.alListener3f, "alListener3f" ) && ok;
 	ok = LoadSymbol( library, al.alListenerfv, "alListenerfv" ) && ok;
@@ -712,6 +727,9 @@ std::array<double, 2> RenderStereoLeftOnly( const OpenALSymbols &al, ALCdevice *
 
 	return { Rms( rendered, 0 ), Rms( rendered, 1 ) };
 }
+
+#include "stream_player_loopback.inl"
+#include "source_resampler_loopback.inl"
 
 void RenderSilenceTest( const OpenALSymbols &al, ALCdevice *device, TestRunner &runner ) {
 	std::vector<float> rendered( 1024u * 2u, 0.0f );
@@ -1278,6 +1296,7 @@ int main() {
 	}
 
 	RenderSilenceTest( al, device, runner );
+	StreamPlayerLoopbackTest( al, device, runner );
 	HrtfStatusTest( al, device, hrtfAvailable, runner );
 	DistanceModelTest( al, device, runner );
 	StereoDirectTest( al, device, directChannelsAvailable, directChannelsRemixAvailable, runner );
@@ -1291,6 +1310,7 @@ int main() {
 	DestroyLoopbackContext( al, context );
 	HrtfModeSwitchTest( al, device, hrtfAvailable, runner );
 	SpeakerLayoutValidationSuite( al, device, multiChannelFormatsAvailable, directChannelsAvailable, directChannelsRemixAvailable, runner );
+	SourceResamplerLoopbackTest( library, al, device, runner );
 	al.alcCloseDevice( device );
 
 	if ( runner.Failures() != 0 ) {

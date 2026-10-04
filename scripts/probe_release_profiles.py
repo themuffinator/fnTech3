@@ -5,7 +5,8 @@ The same client executable loads a stock map under each profile, against that
 profile's own installation and a fresh isolated home, and takes the engine's own
 screenshot once the level is running (RTCW SP stops at its mission briefing,
 since no input is given). The same dedicated-server executable then starts each
-multiplayer profile on a stock map and must answer a direct getstatus query
+multiplayer profile on a stock map and must answer direct, challenged getinfo
+and getstatus queries with the profile's protocol and expected map
 before quitting. Windowed on unswitched private desktops with sound and
 mouse/joystick input disabled; console commands only; loopback only.
 """
@@ -19,10 +20,12 @@ import socket
 import subprocess
 import sys
 import time
+import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tests'))
 from windows_private_process import WindowsPrivateProcess
+from server_query_evidence import observed_port, server_info
 
 RUNS = {
     # profile: (installation argument, game dir, client map command, server map command, extra client cvars)
@@ -34,20 +37,34 @@ RUNS = {
 ACTION = {'rtcw-mp': 'wait 180; CloseLimboMenu; wait 120; screenshotPNG release-{p}; wait 5; quit',
           'rtcw-sp': 'wait 300; screenshotPNG release-{p}; wait 5; quit'}
 DEFAULT_ACTION = 'wait 200; screenshotPNG release-{p}; wait 5; quit'
+PROTOCOLS = {'q3': 68, 'ql': 91, 'rtcw-sp': 49, 'rtcw-mp': 60}
 
 
 def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def getstatus(port):
+def getstatus(port, protocol, mapname):
+    challenge = 'fntech3-' + uuid.uuid4().hex
+    observed = {}
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
         probe.settimeout(1.0)
-        probe.sendto(b'\xff\xff\xff\xffgetstatus', ('127.0.0.1', port))
+        # Connected UDP rejects datagrams from another source address/port.
+        # The echoed nonce and identity reject stale and foreign-map replies.
+        probe.connect(('127.0.0.1', port))
         try:
-            return probe.recvfrom(65535)[0].startswith(b'\xff\xff\xff\xffstatusResponse')
+            # SVC_Info publishes protocol explicitly. SVC_Status publishes
+            # serverinfo, whose protocol key is not required by Q3/QL/RTCW.
+            for command, response_name, expected_protocol in (
+                    ('getinfo', 'infoResponse', protocol), ('getstatus', 'statusResponse', None)):
+                probe.send(b'\xff\xff\xff\xff' + command.encode('ascii') + b' ' + challenge.encode('ascii') + b'\n')
+                reply = server_info(probe.recv(65535), response_name, mapname, challenge, expected_protocol)
+                if reply is None:
+                    return None
+                observed[command] = reply
+            return observed
         except (socket.timeout, ConnectionResetError):
-            return False
+            return None
 
 
 def run(command, cwd, stdout, seconds, poll=None):
@@ -67,7 +84,9 @@ def run(command, cwd, stdout, seconds, poll=None):
             process.wait(60)
             process.close()
     return dict(exitCode=code, forcedTermination=forced, elapsedSeconds=round(time.monotonic() - begin, 1),
-                answeredGetstatus=answered if poll else None)
+                answeredGetstatus=bool(answered) if poll else None,
+                serverInfo=answered.get('getinfo') if isinstance(answered, dict) else None,
+                statusInfo=answered.get('getstatus') if isinstance(answered, dict) else None)
 
 
 def main():
@@ -95,7 +114,8 @@ def main():
         values = dict(com_gameProfile=profile, fs_basepath=str(roots[root]), fs_homepath=str(home), fs_game='',
                       r_fullscreen='0', r_mode='3', in_mouse='0', in_joystick='0', in_nograb='1', s_initsound='0',
                       com_steamIntegration='0', fs_skipWorkshop='1', cl_webuiEnable='0', cl_renderer='glx',
-                      logfile='2', net_port='0', com_introplayed='1', cl_allowDownload='0', bot_enable='0',
+                      logfile='2', net_port='0', net_ip='127.0.0.1', net_ip6='::1',
+                      com_introplayed='1', cl_allowDownload='0', bot_enable='0',
                       sv_pure='0', con_notifytime='0',
                       activeAction=ACTION.get(profile, DEFAULT_ACTION).format(p=profile), **extra,
                       **{f'sv_master{i}': '' for i in range(1, 6)})
@@ -127,18 +147,22 @@ def main():
         (home / game / 'release.cfg').write_text('wait 400\nquit\n', encoding='utf-8')
         command = [str(server)]
         for key, value in dict(com_gameProfile=profile, fs_basepath=str(roots[root]), fs_homepath=str(home),
-                               dedicated='1', net_ip='127.0.0.1', net_port=str(port), sv_pure='0', bot_enable='0',
+                               dedicated='1', net_enabled='1', net_ip='127.0.0.1', net_ip6='::1',
+                               net_port=str(port), sv_pure='0', bot_enable='0',
                                logfile='2', sv_punkbuster='0', **extra,
                                **{f'sv_master{i}': '' for i in range(1, 6)}).items():
             command += ['+set', key, value]
-        command += server_map + ['+exec', 'release.cfg']
-        row = run(command, server.parent, output / f'{profile}-server-stdout.log', 120, lambda: getstatus(port))
+        command += server_map + ['+net_port', '+exec', 'release.cfg']
+        row = run(command, server.parent, output / f'{profile}-server-stdout.log', 120,
+                  lambda: getstatus(port, PROTOCOLS[profile], server_map[1]))
         log = home / game / 'qconsole.log'
         text = log.read_text(encoding='utf-8', errors='replace') if log.exists() else ''
         (output / f'{profile}-server-console.log').write_text(text, encoding='utf-8')
-        row.update(command=' '.join(command[1:]), errors=re.findall(r'^ERROR: [^\r\n]*', text, re.M)[:3])
+        row.update(command=' '.join(command[1:]), expectedPort=port, observedPort=observed_port(text),
+                   errors=re.findall(r'^ERROR: [^\r\n]*', text, re.M)[:3])
         report['servers'][profile] = row
-        if row['exitCode'] != 0 or not row['answeredGetstatus'] or row['errors']:
+        if (row['exitCode'] != 0 or not row['answeredGetstatus'] or row['errors']
+                or row['observedPort'] != port):
             report['failures'].append(f'{profile} server')
         print(profile, 'server', row['exitCode'], row['answeredGetstatus'], row['errors'][:1], flush=True)
     report['passed'] = not report['failures']

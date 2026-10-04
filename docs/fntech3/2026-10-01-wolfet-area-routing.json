@@ -1,0 +1,3150 @@
+{
+  "date": "2026-10-01",
+  "commit": "a1251ede2c382190b18c154b45357f6979d8171c",
+  "worktreeDirty": true,
+  "status": "partial: corrected area-cache contract; loaded navigation and complete bot routing remain open",
+  "scope": "ET area-cache seed, avoidance, contents flags and eligible-link count; generated original-function observations",
+  "evidenceLevels": [
+    "Source",
+    "Unit",
+    "Fixture"
+  ],
+  "sourceFiles": [
+    {
+      "path": "code\\botlib\\be_aas_route.cpp",
+      "bytes": 108270,
+      "sha256": "8fa964d3aa0fe2f4b4c48a9d19da68b398a4b12077efdb198a62194865ec38bf"
+    },
+    {
+      "path": "code\\compat\\wolfet_navigation.hpp",
+      "bytes": 1109,
+      "sha256": "ce1dd4c2aeca59eaa52f512e1a55c0c02fb8772435e70e1b81104063e5c0657b"
+    },
+    {
+      "path": "scripts\\probe_wolfet_area_routing.py",
+      "bytes": 12209,
+      "sha256": "2accbb6b5cccf064584ab2ae90531edfb91213545af7553d5078af09d802cb79"
+    },
+    {
+      "path": "scripts\\measure_stvef_route_seed.py",
+      "bytes": 9418,
+      "sha256": "34b5f016b4da440eccfe68f52cacb0007db2c7a28baaaca1c563d8e8415ec719"
+    },
+    {
+      "path": "tests\\wolfet_area_routing_tests.py",
+      "bytes": 8045,
+      "sha256": "4be0a255283964f350eafb787fc40de5715e56c90d8becf528b6e0aa8d7b7814"
+    },
+    {
+      "path": "tests\\fixtures\\wolfet-area-routing.json",
+      "bytes": 6327,
+      "sha256": "cbb3ef4614596e9fb23dd37c3b9f2f6b4437108ff26b71e50224dc13b2ccb5b6"
+    },
+    {
+      "path": "tests\\rtcw_botlib_tests.py",
+      "bytes": 20983,
+      "sha256": "23e1d5b442d84f24af4c16e2beea4a2c0f9ba1e88029662d1da4c5ce2c794ed7"
+    },
+    {
+      "path": "tests\\rtcw_routing_tests.py",
+      "bytes": 13930,
+      "sha256": "817ed41bab1993df4274c8f6f7f9c73a0bdcaefa46158e131485d6361f26a4da"
+    },
+    {
+      "path": "tests\\rtcw_route_query_tests.py",
+      "bytes": 14205,
+      "sha256": "09ced43911e09a502a174e3f57b7fbdf32dccf6c94ab2f531716fb285ee48cdc"
+    },
+    {
+      "path": "tests\\aas_goal_links_tests.py",
+      "bytes": 12497,
+      "sha256": "4ed8ee5d6886ed45c5f76d4b1dd21f820690c327769c5e3fa27100660386a048"
+    },
+    {
+      "path": "tests\\stvef_route_seed_tests.py",
+      "bytes": 9771,
+      "sha256": "853c972addbb6b4241ce74dbe16c1befafac8161b6b20bab956b7669300cc85c"
+    }
+  ],
+  "retail": {
+    "evidence": "Fixture: emulated original x86 functions on generated records",
+    "executable": "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory\\et.exe",
+    "sha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+    "functions": {
+      "update": "0x481290",
+      "contents": "0x47cf00"
+    },
+    "contentsBits": [
+      1,
+      2,
+      4,
+      256,
+      1024,
+      2048,
+      4096
+    ],
+    "contentsFlags": [
+      524288,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      8912896,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      34078720,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      42467328,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      524288,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      8912896,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      34078720,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      42467328,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      524288,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      8912896,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      34078720,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      42467328,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      524288,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      8912896,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      34078720,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      42467328,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576
+    ],
+    "cases": [
+      {
+        "name": "ordinary",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "disabled",
+        "areaFlags": 8,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            0,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 0
+        }
+      },
+      {
+        "name": "avoid",
+        "areaFlags": 16,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            1028,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "avoid-axis-unselected",
+        "areaFlags": 2048,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "avoid-axis",
+        "areaFlags": 2048,
+        "travelFlags": 67633154,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            228,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "avoid-allies-unselected",
+        "areaFlags": 4096,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "avoid-allies",
+        "areaFlags": 4096,
+        "travelFlags": 134742018,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            228,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "both-avoid-flags-axis",
+        "areaFlags": 6144,
+        "travelFlags": 67633154,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            228,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "both-avoid-flags-allies",
+        "areaFlags": 6144,
+        "travelFlags": 134742018,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            228,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "both-teams",
+        "areaFlags": 6144,
+        "travelFlags": 201850882,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            228,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "general-avoid-precedes-team",
+        "areaFlags": 6160,
+        "travelFlags": 201850882,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            1028,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "disabled-precedes-avoid",
+        "areaFlags": 24,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            0,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 0
+        }
+      },
+      {
+        "name": "other-area-bit-32",
+        "areaFlags": 32,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "other-area-bit-64",
+        "areaFlags": 64,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "other-area-bit-128",
+        "areaFlags": 128,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "other-area-bit-256",
+        "areaFlags": 256,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "other-area-bit-1024",
+        "areaFlags": 1024,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "water-rejected",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 1,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            0,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 0
+        }
+      },
+      {
+        "name": "water-allowed",
+        "areaFlags": 0,
+        "travelFlags": 1572866,
+        "contents": 1,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "liquid-do-not-enter-ignored",
+        "areaFlags": 0,
+        "travelFlags": 1572866,
+        "contents": 1281,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "do-not-enter-rejected",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 256,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            0,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 0
+        }
+      },
+      {
+        "name": "do-not-enter-allowed",
+        "areaFlags": 0,
+        "travelFlags": 8912898,
+        "contents": 256,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "large-rejected",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 1024,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            0,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 0
+        }
+      },
+      {
+        "name": "large-allowed",
+        "areaFlags": 0,
+        "travelFlags": 34078722,
+        "contents": 1024,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "quake-team-contents-ignored",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 6144,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "missing-source-row",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": true,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            0,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "other-cluster",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 2,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            0,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 0
+        }
+      },
+      {
+        "name": "source-past-reachability-areas",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 2,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            0,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 0
+        }
+      },
+      {
+        "name": "goal-past-reachability-areas",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 2,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            0,
+            0
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 0
+        }
+      },
+      {
+        "name": "travel-type-rejected",
+        "areaFlags": 0,
+        "travelFlags": 524288,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            0,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 0
+        }
+      },
+      {
+        "name": "sum-wrap",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 65535,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            10,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "avoid-wrap",
+        "areaFlags": 16,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 64990,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            465,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "team-wrap",
+        "areaFlags": 2048,
+        "travelFlags": 67633154,
+        "contents": 0,
+        "inside": 65450,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            125,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "zero-cache-cost",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 65525,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            0,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "branch-first-link",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": true,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            29,
+            1,
+            12,
+            66
+          ],
+          "choices": [
+            1,
+            0,
+            0,
+            0
+          ],
+          "updates": 4
+        }
+      },
+      {
+        "name": "branch-avoid-intermediate",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": true,
+        "intermediateFlags": 16,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            105,
+            1,
+            12,
+            66
+          ],
+          "choices": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "updates": 4
+        }
+      },
+      {
+        "name": "branch-axis-unselected",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": true,
+        "intermediateFlags": 2048,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            29,
+            1,
+            12,
+            66
+          ],
+          "choices": [
+            1,
+            0,
+            0,
+            0
+          ],
+          "updates": 4
+        }
+      },
+      {
+        "name": "branch-axis-selected",
+        "areaFlags": 0,
+        "travelFlags": 67633154,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": true,
+        "intermediateFlags": 2048,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            105,
+            1,
+            12,
+            66
+          ],
+          "choices": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "updates": 4
+        }
+      },
+      {
+        "name": "branch-allies-selected",
+        "areaFlags": 0,
+        "travelFlags": 134742018,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": true,
+        "intermediateFlags": 4096,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            105,
+            1,
+            12,
+            66
+          ],
+          "choices": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "updates": 4
+        }
+      },
+      {
+        "name": "branch-general-avoid",
+        "areaFlags": 0,
+        "travelFlags": 201850882,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": true,
+        "intermediateFlags": 6160,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            105,
+            1,
+            12,
+            66
+          ],
+          "choices": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "updates": 4
+        }
+      },
+      {
+        "name": "branch-disabled-intermediate",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": true,
+        "intermediateFlags": 8,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            105,
+            1,
+            12,
+            66
+          ],
+          "choices": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "updates": 3
+        }
+      },
+      {
+        "name": "branch-missing-intermediate-row",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": true,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": true,
+        "expected": {
+          "times": [
+            105,
+            1,
+            0,
+            66
+          ],
+          "choices": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "updates": 3
+        }
+      }
+    ],
+    "installationUnchanged": true
+  },
+  "retailNavigationInventory": {
+    "installation": "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+    "archives": [
+      {
+        "path": "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory\\etmain\\mp_bin.pk3",
+        "sha256": "cf0a7ce662421c766f93cc196841849eb66905b047d209dd5f3ed0b1396cd42e",
+        "navigation": []
+      },
+      {
+        "path": "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory\\etmain\\pak0.pk3",
+        "sha256": "712966b20e06523fe81419516500e499c86b2b4fec823856ddbd333fcb3d26e5",
+        "navigation": []
+      },
+      {
+        "path": "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory\\etmain\\pak1.pk3",
+        "sha256": "5610fd749024405b4425a7ce6397e58187b941d22092ef11d4844b427df53e5d",
+        "navigation": []
+      },
+      {
+        "path": "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory\\etmain\\pak2.pk3",
+        "sha256": "a48ab749a1a12ab4d9137286b1f23d642c29da59845b2bafc8f64e052cf06f3e",
+        "navigation": []
+      }
+    ],
+    "looseNavigation": []
+  },
+  "observations": {
+    "areaCaches": 42,
+    "contentMasks": 128,
+    "compiledAreaFlagVariants": 6,
+    "compiledContentsCombinations": 768,
+    "fixture": {
+      "path": "tests\\fixtures\\wolfet-area-routing.json",
+      "bytes": 6327,
+      "sha256": "cbb3ef4614596e9fb23dd37c3b9f2f6b4437108ff26b71e50224dc13b2ccb5b6"
+    }
+  },
+  "logs": [
+    {
+      "path": ".tmp\\wolfet-routing\\production-before.log",
+      "bytes": 1117,
+      "sha256": "d5e9706cbfe0ecba81f575137577403e507bc68c167ef9cd202428d713c63b70"
+    },
+    {
+      "path": ".tmp\\wolfet-routing\\targeted-tests.log",
+      "bytes": 3904,
+      "sha256": "2da431ebf5dc3049bd063f822f833e5ffde9bb1353b1c9e2d08245b936a84fd0"
+    },
+    {
+      "path": ".tmp\\wolfet-routing\\targeted-corrected-tests.log",
+      "bytes": 809,
+      "sha256": "2acc749f456335f4f3054986fec21d2f19bac7690da15979b5c0b96cd3309086"
+    }
+  ],
+  "remaining": [
+    "ET geometry-to-cost generation; the AAS8 disk adapter is covered by the loading follow-up",
+    "ET cache-query and budget contract",
+    "Live ET navigation and bot gameplay",
+    "Broader compatibility ledger gates",
+    "RTCW escape1 interactive listening; Alice deferred"
+  ],
+  "retailDedicated": {
+    "evidence": "Fixture: emulated original x86 functions on generated records",
+    "executable": "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory\\etded.exe",
+    "sha256": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+    "functions": {
+      "update": "0x44bbf0",
+      "contents": "0x447860"
+    },
+    "contentsBits": [
+      1,
+      2,
+      4,
+      256,
+      1024,
+      2048,
+      4096
+    ],
+    "contentsFlags": [
+      524288,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      8912896,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      34078720,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      42467328,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      524288,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      8912896,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      34078720,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      42467328,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      524288,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      8912896,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      34078720,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      42467328,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      524288,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      8912896,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      34078720,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576,
+      42467328,
+      1048576,
+      4194304,
+      1048576,
+      2097152,
+      1048576,
+      2097152,
+      1048576
+    ],
+    "cases": [
+      {
+        "name": "ordinary",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "disabled",
+        "areaFlags": 8,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            0,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 0
+        }
+      },
+      {
+        "name": "avoid",
+        "areaFlags": 16,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            1028,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "avoid-axis-unselected",
+        "areaFlags": 2048,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "avoid-axis",
+        "areaFlags": 2048,
+        "travelFlags": 67633154,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            228,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "avoid-allies-unselected",
+        "areaFlags": 4096,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "avoid-allies",
+        "areaFlags": 4096,
+        "travelFlags": 134742018,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            228,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "both-avoid-flags-axis",
+        "areaFlags": 6144,
+        "travelFlags": 67633154,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            228,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "both-avoid-flags-allies",
+        "areaFlags": 6144,
+        "travelFlags": 134742018,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            228,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "both-teams",
+        "areaFlags": 6144,
+        "travelFlags": 201850882,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            228,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "general-avoid-precedes-team",
+        "areaFlags": 6160,
+        "travelFlags": 201850882,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            1028,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "disabled-precedes-avoid",
+        "areaFlags": 24,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            0,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 0
+        }
+      },
+      {
+        "name": "other-area-bit-32",
+        "areaFlags": 32,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "other-area-bit-64",
+        "areaFlags": 64,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "other-area-bit-128",
+        "areaFlags": 128,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "other-area-bit-256",
+        "areaFlags": 256,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "other-area-bit-1024",
+        "areaFlags": 1024,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "water-rejected",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 1,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            0,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 0
+        }
+      },
+      {
+        "name": "water-allowed",
+        "areaFlags": 0,
+        "travelFlags": 1572866,
+        "contents": 1,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "liquid-do-not-enter-ignored",
+        "areaFlags": 0,
+        "travelFlags": 1572866,
+        "contents": 1281,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "do-not-enter-rejected",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 256,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            0,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 0
+        }
+      },
+      {
+        "name": "do-not-enter-allowed",
+        "areaFlags": 0,
+        "travelFlags": 8912898,
+        "contents": 256,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "large-rejected",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 1024,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            0,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 0
+        }
+      },
+      {
+        "name": "large-allowed",
+        "areaFlags": 0,
+        "travelFlags": 34078722,
+        "contents": 1024,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "quake-team-contents-ignored",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 6144,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            28,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "missing-source-row",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": true,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            0,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "other-cluster",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 2,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            0,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 0
+        }
+      },
+      {
+        "name": "source-past-reachability-areas",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 2,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            0,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 0
+        }
+      },
+      {
+        "name": "goal-past-reachability-areas",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 2,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            0,
+            0
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 0
+        }
+      },
+      {
+        "name": "travel-type-rejected",
+        "areaFlags": 0,
+        "travelFlags": 524288,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            0,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 0
+        }
+      },
+      {
+        "name": "sum-wrap",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 65535,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            10,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "avoid-wrap",
+        "areaFlags": 16,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 64990,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            465,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "team-wrap",
+        "areaFlags": 2048,
+        "travelFlags": 67633154,
+        "contents": 0,
+        "inside": 65450,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            125,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "zero-cache-cost",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 65525,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": false,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            0,
+            1
+          ],
+          "choices": [
+            0,
+            0
+          ],
+          "updates": 1
+        }
+      },
+      {
+        "name": "branch-first-link",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": true,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            29,
+            1,
+            12,
+            66
+          ],
+          "choices": [
+            1,
+            0,
+            0,
+            0
+          ],
+          "updates": 4
+        }
+      },
+      {
+        "name": "branch-avoid-intermediate",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": true,
+        "intermediateFlags": 16,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            105,
+            1,
+            12,
+            66
+          ],
+          "choices": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "updates": 4
+        }
+      },
+      {
+        "name": "branch-axis-unselected",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": true,
+        "intermediateFlags": 2048,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            29,
+            1,
+            12,
+            66
+          ],
+          "choices": [
+            1,
+            0,
+            0,
+            0
+          ],
+          "updates": 4
+        }
+      },
+      {
+        "name": "branch-axis-selected",
+        "areaFlags": 0,
+        "travelFlags": 67633154,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": true,
+        "intermediateFlags": 2048,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            105,
+            1,
+            12,
+            66
+          ],
+          "choices": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "updates": 4
+        }
+      },
+      {
+        "name": "branch-allies-selected",
+        "areaFlags": 0,
+        "travelFlags": 134742018,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": true,
+        "intermediateFlags": 4096,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            105,
+            1,
+            12,
+            66
+          ],
+          "choices": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "updates": 4
+        }
+      },
+      {
+        "name": "branch-general-avoid",
+        "areaFlags": 0,
+        "travelFlags": 201850882,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": true,
+        "intermediateFlags": 6160,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            105,
+            1,
+            12,
+            66
+          ],
+          "choices": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "updates": 4
+        }
+      },
+      {
+        "name": "branch-disabled-intermediate",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": true,
+        "intermediateFlags": 8,
+        "missingIntermediateRow": false,
+        "expected": {
+          "times": [
+            105,
+            1,
+            12,
+            66
+          ],
+          "choices": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "updates": 3
+        }
+      },
+      {
+        "name": "branch-missing-intermediate-row",
+        "areaFlags": 0,
+        "travelFlags": 524290,
+        "contents": 0,
+        "inside": 17,
+        "link": 10,
+        "missingSourceRow": false,
+        "sourceCluster": 1,
+        "sourceIndex": 0,
+        "goalIndex": 1,
+        "branch": true,
+        "intermediateFlags": 0,
+        "missingIntermediateRow": true,
+        "expected": {
+          "times": [
+            105,
+            1,
+            0,
+            66
+          ],
+          "choices": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "updates": 3
+        }
+      }
+    ],
+    "installationUnchanged": true
+  },
+  "originalFunctionsAgree": true,
+  "runtime": {
+    "binaries": {
+      "fntech3.exe": "76bb98457a6dfa001895305ef16b9cc51cf99c8e586a8d703051b4a9f8fb4aa2",
+      "fntech3.ded.exe": "8a5e134581d1fde22951e27a2d65ac0252866d1f301bb7502775c0ae216abe41",
+      "fnql_glx_x86.dll": "41663be013195349691d5938994cc3cef6f4591598b08670fd0769ff8fcbe030",
+      "fnql_vk_x86.dll": "726ca145b85d3dc2018b8a3f9086b0a7c71687f080f8b18b43aacd9cd74ace58",
+      "fnql_rtx_x86.dll": "0641b81f7fa646f090eeaf8558f573a03edf1ee26962cfba83293a8e0dab8dc4"
+    },
+    "binariesUnchanged": true,
+    "bots": [
+      {
+        "case": "q3-bot-regression-corrected",
+        "passed": true,
+        "report": {
+          "profile": "q3",
+          "map": "q3dm1",
+          "command": [
+            "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.ded.exe",
+            "+set",
+            "com_gameProfile",
+            "q3",
+            "+set",
+            "fs_basepath",
+            "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\wolfet-routing\\q3-bot-regression-corrected\\home",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "com_introplayed",
+            "1",
+            "+set",
+            "cl_renderer",
+            "glx",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "r_mode",
+            "-1",
+            "+set",
+            "r_customWidth",
+            "800",
+            "+set",
+            "r_customHeight",
+            "600",
+            "+set",
+            "dedicated",
+            "1",
+            "+set",
+            "s_initsound",
+            "0",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "set r_fullscreen \"0\"\nset r_mode \"-1\"\nset r_customWidth \"800\"\nset r_customHeight \"600\"\nset in_mouse \"0\"\nset in_joystick \"0\"\nset in_nograb \"1\"\nset cl_renderer \"glx\"\nset com_steamIntegration \"0\"\nset cl_webuiEnable \"0\"\nset com_introplayed \"1\"\nset logfile \"4\"\nset developer \"1\"\nset net_ip \"127.0.0.1\"\nset net_enabled \"0\"\nset net_port \"0\"\nset s_alDriver \"OpenAL32.dll\"\nset cl_allowDownload \"0\"\nset sv_punkbuster \"0\"\nset cl_punkbuster \"0\"\nset s_initsound \"0\"\nset bot_enable \"1\"\ndevmap q3dm1\nwait 100\naddbot sarge 1\nwait 300\nstatus\necho ROUTING_REGRESSION_DONE\nquit\n",
+          "exitCode": 0,
+          "forced": false,
+          "introReadyClick": false,
+          "seconds": 22.44,
+          "installationUnchanged": true,
+          "executableSha256": "8a5e134581d1fde22951e27a2d65ac0252866d1f301bb7502775c0ae216abe41",
+          "commit": "a1251ede2c382190b18c154b45357f6979d8171c"
+        },
+        "log": "E:\\Repositories\\fnTech3\\.tmp\\wolfet-routing\\q3-bot-regression-corrected\\home\\baseq3\\qconsole.log",
+        "logSha256": "90d93f95bacdcbeb3064060483414d940e50e20b727360abdc23ef880d701de0"
+      },
+      {
+        "case": "ql-bot-regression-corrected",
+        "passed": true,
+        "report": {
+          "profile": "ql",
+          "map": "campgrounds",
+          "command": [
+            "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.ded.exe",
+            "+set",
+            "com_gameProfile",
+            "ql",
+            "+set",
+            "fs_basepath",
+            "E:\\SteamLibrary\\steamapps\\common\\Quake Live",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\wolfet-routing\\ql-bot-regression-corrected\\home",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "com_introplayed",
+            "1",
+            "+set",
+            "cl_renderer",
+            "glx",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "r_mode",
+            "-1",
+            "+set",
+            "r_customWidth",
+            "800",
+            "+set",
+            "r_customHeight",
+            "600",
+            "+set",
+            "dedicated",
+            "1",
+            "+set",
+            "s_initsound",
+            "0",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "set r_fullscreen \"0\"\nset r_mode \"-1\"\nset r_customWidth \"800\"\nset r_customHeight \"600\"\nset in_mouse \"0\"\nset in_joystick \"0\"\nset in_nograb \"1\"\nset cl_renderer \"glx\"\nset com_steamIntegration \"0\"\nset cl_webuiEnable \"0\"\nset com_introplayed \"1\"\nset logfile \"4\"\nset developer \"1\"\nset net_ip \"127.0.0.1\"\nset net_enabled \"0\"\nset net_port \"0\"\nset s_alDriver \"OpenAL32.dll\"\nset cl_allowDownload \"0\"\nset sv_punkbuster \"0\"\nset cl_punkbuster \"0\"\nset s_initsound \"0\"\nset bot_enable \"1\"\ndevmap campgrounds ffa\nwait 100\naddbot anarki 1\nwait 300\nstatus\necho ROUTING_REGRESSION_DONE\nquit\n",
+          "exitCode": 0,
+          "forced": false,
+          "introReadyClick": false,
+          "seconds": 10.77,
+          "installationUnchanged": true,
+          "executableSha256": "8a5e134581d1fde22951e27a2d65ac0252866d1f301bb7502775c0ae216abe41",
+          "commit": "a1251ede2c382190b18c154b45357f6979d8171c"
+        },
+        "log": "E:\\Repositories\\fnTech3\\.tmp\\wolfet-routing\\ql-bot-regression-corrected\\home\\baseq3\\qconsole.log",
+        "logSha256": "4a5f77047ca585a83e1706bca0f5a50d096ff396f1c5b36161fea4238a8895c9"
+      },
+      {
+        "case": "ef-bot-regression-corrected",
+        "passed": true,
+        "report": {
+          "profile": "stvef-mp",
+          "map": "hm_borg1",
+          "command": [
+            "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.ded.exe",
+            "+set",
+            "com_gameProfile",
+            "stvef-mp",
+            "+set",
+            "fs_basepath",
+            "E:\\Games\\Star Trek Voyager Elite Force",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\wolfet-routing\\ef-bot-regression-corrected\\home",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "com_introplayed",
+            "1",
+            "+set",
+            "cl_renderer",
+            "glx",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "cl_webuiEnable",
+            "0",
+            "+set",
+            "fs_skipWorkshop",
+            "1",
+            "+set",
+            "r_mode",
+            "-1",
+            "+set",
+            "r_customWidth",
+            "800",
+            "+set",
+            "r_customHeight",
+            "600",
+            "+set",
+            "dedicated",
+            "1",
+            "+set",
+            "s_initsound",
+            "0",
+            "+exec",
+            "probe.cfg"
+          ],
+          "config": "set r_fullscreen \"0\"\nset r_mode \"-1\"\nset r_customWidth \"800\"\nset r_customHeight \"600\"\nset in_mouse \"0\"\nset in_joystick \"0\"\nset in_nograb \"1\"\nset cl_renderer \"glx\"\nset com_steamIntegration \"0\"\nset cl_webuiEnable \"0\"\nset com_introplayed \"1\"\nset logfile \"4\"\nset developer \"1\"\nset net_ip \"127.0.0.1\"\nset net_enabled \"0\"\nset net_port \"0\"\nset s_alDriver \"OpenAL32.dll\"\nset cl_allowDownload \"0\"\nset sv_punkbuster \"0\"\nset cl_punkbuster \"0\"\nset s_initsound \"0\"\nset bot_enable \"1\"\ndevmap hm_borg1\nwait 100\naddbot alexandria 1\nwait 300\nstatus\necho ROUTING_REGRESSION_DONE\nquit\n",
+          "exitCode": 0,
+          "forced": false,
+          "introReadyClick": false,
+          "seconds": 20.8,
+          "installationUnchanged": true,
+          "executableSha256": "8a5e134581d1fde22951e27a2d65ac0252866d1f301bb7502775c0ae216abe41",
+          "commit": "a1251ede2c382190b18c154b45357f6979d8171c"
+        },
+        "log": "E:\\Repositories\\fnTech3\\.tmp\\wolfet-routing\\ef-bot-regression-corrected\\home\\baseEF\\qconsole.log",
+        "logSha256": "08744d2d7620b3ad0110274a817ce11e7916d9cdc824e0f1fb976a8542ebff71"
+      }
+    ],
+    "etAdmission": {
+      "evidence": "Interop: outbound to retail, pure, team admission, sv_onlyVisibleClients 1",
+      "profile": "wolfet",
+      "map": "railgun",
+      "pure": true,
+      "retailServer": true,
+      "serverCommand": [
+        "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory\\etded.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\wolfet-routing\\et-retail-admission-regression\\server-home",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "58356",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "sv_pure",
+        "1",
+        "+set",
+        "sv_master1",
+        "",
+        "+set",
+        "sv_master2",
+        "",
+        "+set",
+        "sv_master3",
+        "",
+        "+set",
+        "sv_master4",
+        "",
+        "+set",
+        "sv_master5",
+        "",
+        "+set",
+        "g_gametype",
+        "2",
+        "+set",
+        "bot_enable",
+        "0",
+        "+set",
+        "sv_punkbuster",
+        "0",
+        "+set",
+        "sv_onlyVisibleClients",
+        "1",
+        "+map",
+        "railgun"
+      ],
+      "clientCommand": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "wolfet",
+        "+set",
+        "fs_basepath",
+        "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\wolfet-routing\\et-retail-admission-regression\\client-home",
+        "+set",
+        "fs_game",
+        "",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customWidth",
+        "800",
+        "+set",
+        "r_customHeight",
+        "600",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "cl_renderer",
+        "glx",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "net_ip6",
+        "::1",
+        "+set",
+        "net_port6",
+        "0",
+        "+connect",
+        "127.0.0.1:58356"
+      ],
+      "clientAction": "wait 200; team r; wait 240; CloseLimboMenu; -scores; wait 60; screenshotPNG handshake-axis; team b; wait 240; CloseLimboMenu; -scores; wait 60; screenshotPNG handshake-allies; wait 30; quit",
+      "clientSha256": "76bb98457a6dfa001895305ef16b9cc51cf99c8e586a8d703051b4a9f8fb4aa2",
+      "serverSha256": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+      "moduleSha256": "160a6218397865ad61071faa6316053713c03b9be80e5d05c7a5be2cab7f630b",
+      "passed": true,
+      "serverReadySeconds": 7.359,
+      "clientExit": 0,
+      "clientForced": false,
+      "installationUnchanged": true,
+      "elapsedSeconds": 27.562,
+      "handshakeReplies": [
+        "challengeResponse 220753224 1",
+        "connectResponse"
+      ],
+      "serverActive": true,
+      "serverBegin": true,
+      "unpureDrop": false,
+      "rejectedConnect": [],
+      "clientErrors": [],
+      "clientSawPureServer": true,
+      "clientHidesUnseenPlayers": true,
+      "screenshots": [
+        {
+          "name": "handshake-allies.png",
+          "sha256": "b9e32df9ff4d4f1b44ac55881faf24283c5dd7c1dd8523411491eca6f00b7c0f"
+        },
+        {
+          "name": "handshake-axis.png",
+          "sha256": "fc5f4ae2f959532b7a4eadd87a0c49afb8494974b61cdc4d01fd94257532c113"
+        }
+      ],
+      "teamAdmission": {
+        "axis": true,
+        "allies": true
+      },
+      "sourceCommit": "a1251ede2c382190b18c154b45357f6979d8171c"
+    },
+    "invalidSetupCases": [
+      "q3-bot-regression",
+      "ql-bot-regression",
+      "ef-bot-regression"
+    ],
+    "invalidSetupReason": "Dedicated completion commands were placed in client-only activeAction; routing initialized, but the intended sequence did not run."
+  },
+  "runtimeEvidenceScope": "Live non-regression only; installed ET has no navigation to exercise the corrected cache rules",
+  "baseline": {
+    "sourceCommit": "a1251ede2c382190b18c154b45357f6979d8171c",
+    "file": "code/botlib/be_aas_route.cpp",
+    "behavior": "Generated ordinary cache returns 11; original returns 28",
+    "result": "expected failure before engine correction",
+    "log": {
+      "path": ".tmp\\wolfet-routing\\production-before.log",
+      "bytes": 1117,
+      "sha256": "d5e9706cbfe0ecba81f575137577403e507bc68c167ef9cd202428d713c63b70"
+    }
+  },
+  "unrelatedIssues": [
+    {
+      "kind": "pre-existing missing JSON companion",
+      "record": "docs/fntech3/2026-09-24-engine-input-capture-fixes.md"
+    },
+    {
+      "kind": "pre-existing missing JSON companion",
+      "record": "docs/fntech3/2026-09-17-wolfet-pure.md"
+    },
+    {
+      "kind": "pre-existing missing JSON companion",
+      "record": "docs/fntech3/2026-09-25-wolfet-demo-playback.md"
+    }
+  ],
+  "buildIdentity": {
+    "fntech3.exe": "76bb98457a6dfa001895305ef16b9cc51cf99c8e586a8d703051b4a9f8fb4aa2",
+    "fntech3.ded.exe": "8a5e134581d1fde22951e27a2d65ac0252866d1f301bb7502775c0ae216abe41",
+    "fnql_glx_x86.dll": "41663be013195349691d5938994cc3cef6f4591598b08670fd0769ff8fcbe030",
+    "fnql_vk_x86.dll": "726ca145b85d3dc2018b8a3f9086b0a7c71687f080f8b18b43aacd9cd74ace58",
+    "fnql_rtx_x86.dll": "0641b81f7fa646f090eeaf8558f573a03edf1ee26962cfba83293a8e0dab8dc4"
+  },
+  "validation": {
+    "command": "& .vscode/build-release.ps1 -Configuration RelWithDebInfo -Platform Win32 -BuildDir meson/build/win32-dev -Target both -Renderers glx,vk,rtx -RTCWDevelopment -WolfETDevelopment -STVEFDevelopment -JKADevelopment -JK2Development -Q3IHVDevelopment -AliceDevelopment -FAKK2Development -MOHAADevelopment -Q3TestDevelopment -Archive -RunTests",
+    "exitCode": 0,
+    "meson": {
+      "passed": 179,
+      "failed": 0,
+      "skipped": 2
+    },
+    "recursivePython": {
+      "testsRun": 2371,
+      "skipped": 121,
+      "elapsedSeconds": 1553.056,
+      "result": "OK"
+    },
+    "package": {
+      "audioZones": 456,
+      "fogSidecars": 203,
+      "soundShaders": 3
+    },
+    "logs": [
+      {
+        "path": ".tmp\\wolfet-routing\\build-and-suite.log",
+        "bytes": 148224,
+        "sha256": "40ef9fa569a932b5bb3200fe8456eb5cb35e82a42bacec09ba2e140951c02dd9"
+      },
+      {
+        "path": ".tmp\\wolfet-routing\\meson-testlog.txt",
+        "bytes": 178720,
+        "sha256": "4626869a71e49e72d866d1e8407f3c26442c0a32a5cbd9a2730d1eb57f7fbd9c"
+      },
+      {
+        "path": ".tmp\\wolfet-routing\\meson-testlog.json",
+        "bytes": 3507055,
+        "sha256": "e2e084c4c2693ea5c62edfc26740c652ef354a117cd5858a5096e6c999a8cc1f"
+      }
+    ]
+  },
+  "followup": "2026-10-01-wolfet-aas8-loading.md"
+}

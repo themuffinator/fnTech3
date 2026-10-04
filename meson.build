@@ -20,6 +20,14 @@ project('fnTech3', 'c', 'cpp',
 )
 
 python = find_program('python3', 'python', required: true)
+
+# Native fixture compilers must follow the configured proof architecture,
+# including when tests run from a shell without the Visual Studio environment.
+if host_machine.system() == 'windows' and host_machine.cpu_family() == 'x86'
+  native_fixture_env = environment()
+  native_fixture_env.set('VSCMD_ARG_TGT_ARCH', 'x86')
+  add_test_setup('configurednativearchitecture', env: native_fixture_env, is_default: true)
+endif
 fs = import('fs')
 cc = meson.get_compiler('c')
 cpp = meson.get_compiler('cpp')
@@ -818,10 +826,10 @@ if win32
     'code/win32/win_shared.cpp',
     'code/win32/win_syscon.cpp',
   ]
-  # Only the client carries the game icons; the dedicated server keeps the
-  # engine resources alone.
+  # Both console executables carry the active game's remade icon. The engine
+  # icon remains first, preserving their on-disk identity in Explorer.
   client_resource_src = win_client_resource
-  server_resource_src = win_resource
+  server_resource_src = win_client_resource
   if build_client and use_sdl
     q3_ui_src = [
       'code/sdl/sdl_gamma.cpp',
@@ -1383,6 +1391,119 @@ jka_abi_layout_tests = executable('fntech3_jka_abi_layout_tests',
 )
 test('fntech3_jka_abi_layouts', jka_abi_layout_tests)
 
+jka_sp_abi_tests = executable('fntech3_jka_sp_abi_tests',
+  'tests/jka_sp_abi_tests.cpp', cpp_args: common_cpp_args)
+test('fntech3_jka_sp_abi', jka_sp_abi_tests)
+jka_sp_bridge_tests = executable('fntech3_jka_sp_game_bridge_tests',
+  ['tests/jka_sp_game_bridge_tests.cpp', 'code/server/server_game_data.cpp',
+   'code/compat/game_abi_adapter.c', 'tests/message_drop_trap.c'],
+  c_args: common_c_args, cpp_args: common_cpp_args)
+test('fntech3_jka_sp_game_bridge', jka_sp_bridge_tests)
+jka_sp_state_tests = executable('fntech3_jka_sp_state_tests',
+  ['tests/jka_sp_state_tests.cpp', 'code/server/server_game_data.cpp',
+   'code/compat/game_abi_adapter.c'], c_args: common_c_args, cpp_args: common_cpp_args)
+test('fntech3_jka_sp_state', jka_sp_state_tests)
+jka_wire_tests = executable('fntech3_jka_wire_tests',
+  'tests/jka_wire_tests.cpp', include_directories: include_directories('code/compat'),
+  cpp_args: common_cpp_args)
+test('fntech3_jka_wire', jka_wire_tests)
+jka_snapshot_tests = executable('fntech3_jka_snapshot_tests',
+  'tests/jka_snapshot_tests.cpp', cpp_args: common_cpp_args)
+test('fntech3_jka_snapshot', jka_snapshot_tests)
+jka_ui_tests = executable('fntech3_jka_ui_tests',
+  'tests/jka_ui_tests.cpp', cpp_args: common_cpp_args)
+test('fntech3_jka_ui', jka_ui_tests)
+jka_font_tests = executable('fntech3_jka_font_tests',
+  'tests/jka_font_tests.cpp', cpp_args: common_cpp_args)
+test('fntech3_jka_font', jka_font_tests)
+jka_font_host_tests = executable('fntech3_jka_font_host_tests',
+  'tests/jka_font_host_tests.cpp', cpp_args: common_cpp_args)
+test('fntech3_jka_font_host', jka_font_host_tests)
+foreach jka_test : ['client', 'string_package', 'string_host', 'render', 'sp_player_abi', 'sp_model_precache', 'sp_animation_cfg']
+  jka_executable = executable('fntech3_jka_' + jka_test + '_tests',
+    'tests/jka_' + jka_test + '_tests.cpp', cpp_args: common_cpp_args)
+  test('fntech3_jka_' + jka_test, jka_executable)
+endforeach
+test('fntech3_jka_cgame_host', python, args: files('tests/jka_cgame_host_tests.py'))
+test('fntech3_jka_cgame_ghoul2', python, args: files('tests/jka_cgame_ghoul2_tests.py'))
+test('fntech3_jka_cgame_render', python, args: files('tests/jka_cgame_render_tests.py'))
+test('fntech3_jka_default_skeleton', python, args: files('tests/jka_default_skeleton_tests.py'))
+test('fntech3_jka_cgame_tag', python, args: files('tests/jka_cgame_tag_tests.py'))
+jka_skin_tests = executable('fntech3_jka_skin_tests',
+  'tests/jka_skin_tests.cpp', cpp_args: common_cpp_args)
+test('fntech3_jka_skin', jka_skin_tests)
+jka_lightstyle_tests = executable('fntech3_jka_lightstyle_tests',
+  'tests/jka_lightstyle_tests.cpp', cpp_args: common_cpp_args)
+test('fntech3_jka_lightstyle', jka_lightstyle_tests)
+test('fntech3_jka_music_host', python, args: files('tests/jka_music_host_tests.py'))
+jka_music_preload_tests = executable('fntech3_jka_music_preload_tests',
+  'tests/jka_music_preload_tests.cpp', cpp_args: common_cpp_args)
+test('fntech3_jka_music_preload', jka_music_preload_tests)
+jka_ambient_tests = executable('fntech3_jka_ambient_sets_tests',
+  'tests/jka_ambient_sets_tests.cpp', cpp_args: common_cpp_args)
+test('fntech3_jka_ambient_sets', jka_ambient_tests)
+test('fntech3_jka_cgame_ambient', python, args: files('tests/jka_cgame_ambient_tests.py'))
+jka_effects_tests = executable('fntech3_jka_effects_tests',
+  'tests/jka_effects_tests.cpp', include_directories: include_directories('.'), cpp_args: common_cpp_args)
+test('fntech3_jka_effects', jka_effects_tests)
+test('fntech3_jka_cgame_effects', python, args: files('tests/jka_cgame_effects_tests.py'))
+test('fntech3_jka_effect_play', python, args: files('tests/jka_effect_play_tests.py'))
+test('fntech3_audio_codec_profile', python, args: files('tests/audio_codec_profile_tests.py'))
+test('fntech3_jka_render_host', python, args: files('tests/jka_render_host_tests.py'))
+test('fntech3_jka_ui_binding', python, args: files('tests/jka_ui_binding_tests.py'))
+test('fntech3_jka_ui_metadata', python, args: files('tests/jka_ui_metadata_tests.py'))
+test('fntech3_jka_ui_ghoul2', python, args: files('tests/jka_ui_ghoul2_tests.py'))
+test('fntech3_jka_sp_vm_export', python, args: files('tests/jka_sp_vm_export_tests.py'))
+test('fntech3_common_recursive_error', python, args: files('tests/common_recursive_error_tests.py'))
+test('fntech3_jka_ui_lifecycle', python, args: files('tests/jka_ui_lifecycle_tests.py'))
+test('fntech3_jka_shader_files', python, args: files('tests/jka_shader_files_tests.py'))
+test('fntech3_jka_shader_notc', python, args: files('tests/jka_shader_notc_tests.py'))
+test('fntech3_jka_tga_origin', python, args: files('tests/jka_tga_origin_tests.py'))
+test('fntech3_jka_cinematic_path', python, args: files('tests/jka_cinematic_path_tests.py'))
+test('fntech3_jka_ghoul2_cleanup', python, args: files('tests/jka_ghoul2_cleanup_tests.py'))
+test('fntech3_jka_pose_host', python, args: files('tests/jka_pose_tests.py'))
+test('fntech3_jka_geometry_host', python, args: files('tests/jka_geometry_tests.py'))
+test('fntech3_jka_mdr_host', python, args: files('tests/jka_mdr_tests.py'))
+test('fntech3_jka_ui_render', python, args: files('tests/jka_ui_render_tests.py'))
+test('fntech3_jka_ui_cvar', python, args: files('tests/jka_ui_cvar_tests.py'))
+test('fntech3_jka_handshake', python, args: files('tests/jka_handshake_tests.py'))
+test('fntech3_jka_cgame_lifecycle', python, args: files('tests/jka_cgame_lifecycle_tests.py'))
+test('fntech3_runtime_mdr', python, args: files('tests/runtime_mdr_tests.py'))
+test('fntech3_jka_parser_global', python, args: files('tests/jka_parser_global_tests.py'))
+test('fntech3_probe_jka_openjk_peer', python, args: files('tests/probe_jka_openjk_peer_tests.py'))
+test('fntech3_probe_jka_openjk_demo', python, args: files('tests/probe_jka_openjk_demo_tests.py'))
+test('fntech3_probe_jka_client', python, args: files('tests/probe_jka_client_tests.py'))
+test('fntech3_jka_framing', python, args: files('tests/jka_framing_tests.py'))
+test('fntech3_jka_demo_snapshot', python, args: files('tests/jka_demo_snapshot_tests.py'))
+demo_wire_profile_tests = executable('fntech3_demo_wire_profile_tests',
+  'tests/demo_wire_profile_tests.cpp', cpp_args: common_cpp_args)
+test('fntech3_demo_wire_profile', demo_wire_profile_tests)
+jka_sp_ghoul2_tests = executable('fntech3_jka_sp_ghoul2_tests',
+  'tests/jka_sp_ghoul2_tests.cpp', cpp_args: common_cpp_args)
+test('fntech3_jka_sp_ghoul2', jka_sp_ghoul2_tests)
+jka_pose_tests = executable('fntech3_jka_pose_tests',
+  'tests/jka_pose_tests.cpp', cpp_args: common_cpp_args)
+test('fntech3_jka_pose', jka_pose_tests)
+jka_geometry_tests = executable('fntech3_jka_geometry_tests',
+  'tests/jka_geometry_tests.cpp', cpp_args: common_cpp_args)
+test('fntech3_jka_geometry', jka_geometry_tests)
+jka_mdr_tests = executable('fntech3_jka_mdr_tests',
+  'tests/jka_mdr_tests.cpp', cpp_args: common_cpp_args)
+test('fntech3_jka_mdr', jka_mdr_tests)
+raven_bsp_render_tests = executable('fntech3_raven_bsp_render_tests',
+  'tests/raven_bsp_render_tests.cpp', cpp_args: common_cpp_args)
+test('fntech3_raven_bsp_render', raven_bsp_render_tests)
+test('fntech3_jka_distance_cull', python, args: files('tests/jka_distance_cull_tests.py'))
+test('fntech3_raven_bsp_renderer_dispatch', python, args: files('tests/raven_bsp_renderer_dispatch_tests.py'))
+jka_netchan_tests = executable('fntech3_jka_netchan_tests',
+  ['tests/jka_netchan_tests.cpp', 'code/qcommon/net_chan.cpp',
+   'code/qcommon/msg.cpp', 'code/qcommon/huffman_static.c'],
+  include_directories: include_directories('code/qcommon'),
+  c_args: common_c_args + ['-DDEDICATED'],
+  cpp_args: common_cpp_args + ['-DDEDICATED'])
+test('fntech3_jka_netchan', jka_netchan_tests)
+test('fntech3_jka_actions', python, args: files('tests/jka_actions_tests.py'))
+
 jka_roff_tests = executable('fntech3_jka_roff_tests',
   'tests/jka_roff_tests.cpp',
   cpp_args: common_cpp_args,
@@ -1406,6 +1527,16 @@ jk2_abi_layout_tests = executable('fntech3_jk2_abi_layout_tests',
   cpp_args: common_cpp_args,
 )
 test('fntech3_jk2_abi_layouts', jk2_abi_layout_tests)
+
+foreach jk2_test : ['handshake', 'client_adapter', 'font', 'message_codec']
+  jk2_test_exe = executable('fntech3_jk2_' + jk2_test + '_tests',
+    'tests/jk2_' + jk2_test + '_tests.cpp',
+    cpp_args: common_cpp_args,
+  )
+  test('fntech3_jk2_' + jk2_test, jk2_test_exe)
+endforeach
+
+test('jk2-sp-host', python, args: files('tests/jk2_sp_host_tests.py'))
 
 nav_graph_tests = executable('fntech3_nav_graph_tests',
   'tests/nav_graph_tests.cpp',
@@ -2425,9 +2556,10 @@ test('fnql_python_source_regressions', python,
     '-p', '*_tests.py',
   ],
   workdir: meson.current_source_dir(),
-  # Discovery includes over 1,500 checks and compiles native fixtures. A clean
-  # Windows run can exceed ten minutes; retain a bounded fifteen-minute gate.
-  timeout: 900,
+  # Discovery covers every profile and compiles hundreds of native fixtures.
+  # The complete Windows x86 run exceeds thirty minutes; keep a bounded
+  # one-hour gate so it can finish and report every failure.
+  timeout: 3600,
 )
 
 curl_summary = 'disabled'

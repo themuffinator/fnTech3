@@ -190,6 +190,18 @@ remain authoritative.
   engine implementation is incorporated by the
   [contract foundation](docs/fntech3/2026-09-14-rtcw-contracts.md).
 
+- RTCW SP's [sound entry point](https://github.com/id-Software/RTCW-SP/blob/master/src/client/snd_dma.c)
+  supplies the null-effect request rule, and Enemy Territory's
+  [input entry point](https://github.com/id-Software/Enemy-Territory/blob/master/src/client/cl_input.c)
+  supplies its command-button facts. ET's
+  [client handshake](https://github.com/id-Software/Enemy-Territory/blob/master/src/client/cl_main.c),
+  [server handshake](https://github.com/id-Software/Enemy-Territory/blob/master/src/server/sv_client.c)
+  and [client parser](https://github.com/id-Software/Enemy-Territory/blob/master/src/client/cl_parse.c)
+  supply its reply positions and visibility rule for the independently authored
+  [reported-fault corrections](docs/fntech3/2026-10-01-observed-compatibility-fixes.md).
+  These GPLv3 sources were used as reference observations only; no implementation
+  text was incorporated.
+
 - Xiph's [Vorbis output-channel documentation](https://xiph.org/vorbis/doc/vorbisfile/ov_read.html)
   supplies channel-order facts for the independently implemented Ogg-to-speaker
   permutation. No Xiph implementation text was incorporated for that mapping.
@@ -766,6 +778,29 @@ is matched against fnTech3's own inherited renderer code.
   [ET evidence record](docs/fntech3/2026-09-17-wolfet-contracts.md) and
   [snapshot callback/visibility follow-up](docs/fntech3/2026-09-17-wolfet-snapshots.md)
   and [viewpoint/capacity record](docs/fntech3/2026-09-17-wolfet-viewpoints.md).
+  The [area-routing correction](docs/fntech3/2026-10-01-wolfet-area-routing.md)
+  follows numeric observations of the installed executable's cache-update and
+  contents functions, checked against that same source as a reference. Its
+  penalty helper, generated worlds and bounded x86 comparison harness are
+  independently authored; no original implementation text is incorporated.
+
+  The [ET AAS8 loading follow-up](docs/fntech3/2026-10-01-wolfet-aas8-loading.md)
+  checks the original format header's numeric layout and reader's checksum
+  marker, then selects the engine's existing independent field decoder. These
+  are reference observations; no GPLv3 implementation text is incorporated.
+
+  The [ET travel-cost correction](docs/fntech3/2026-10-01-wolfet-travel-costs.md)
+  measures the installed client and dedicated binary's scalar math and type
+  lookup, and observes their endpoint-entry exception. Its cost helper, generated fixture and
+  bounded emulator are independently authored; the source release is used
+  only to corroborate contract facts, with no GPLv3 text incorporated.
+
+  The [2026-10-02 compatibility round](docs/fntech3/2026-10-02-compatibility-round.md)
+  observes ET's exclusion of world-model entities, routing-cache settings,
+  update limits, eviction rules and download/binary-message framing in the
+  original source release. The
+  corrections and generated regressions are independently authored;
+  the GPLv3 source supplies contract observations only.
 
 - The Star Trek Voyager: Elite Force profiles use interoperability facts from
   the user's legitimate installation, observations of its retail `stvoy.exe`,
@@ -834,7 +869,10 @@ is matched against fnTech3's own inherited renderer code.
   scripts first and read from those sources afterwards; the two agree. No Jedi Academy module or asset
   is redistributed or shipped, and none is needed to build fnTech3: the
   installed evidence comes from the user's own copy. See the
-  [Jedi Academy foundation record](docs/fntech3/2026-09-21-jka-contracts.md).
+  [Jedi Academy foundation record](docs/fntech3/2026-09-21-jka-contracts.md)
+  and [protocol and SP bootstrap record](docs/fntech3/2026-10-02-jka-compatibility.md).
+  The latter records independent protocol encoders and the measured retail
+  API-8 table, ROFF timing and Ghoul2 animation seed behavior.
 
 - The American McGee's Alice profile uses facts from the user's legitimate
   retail installation -- its pak identity, its module export tables, and every
@@ -860,6 +898,12 @@ is matched against fnTech3's own inherited renderer code.
   [module record](docs/fntech3/2026-09-22-alice-module-abi.md),
   [model record](docs/fntech3/2026-09-22-alice-models.md) and
   [wire record](docs/fntech3/2026-09-22-alice-wire.md).
+
+  The [October 2 UberTools round](docs/fntech3/2026-10-02-ubertools-round.md)
+  directly pins configstring bounds to Alice's executable and the official
+  F.A.K.K.2 1.02 patch. OpenAlice's corpus only helped locate Alice's accessors;
+  the implementation corrections and malformed-lighting checks are independently
+  authored, with no external implementation text incorporated.
 
 - The Medal of Honor: Allied Assault profile uses facts from the user's
   legitimate retail 1.00 installation -- its pak identity, every map it ships,
@@ -890,6 +934,11 @@ is matched against fnTech3's own inherited renderer code.
   [contracts record](docs/fntech3/2026-09-24-mohaa-contracts.md) and
   [map record](docs/fntech3/2026-09-24-mohaa-maps.md).
 
+  The [October 2 framing correction](docs/fntech3/2026-10-02-ubertools-round.md)
+  pins continuation-bit parsing to the retail 1.00 client module and separates
+  that observation from OpenMoHAA's queue-capacity reconstruction. The change
+  is independently written in the already attributed adapter.
+
 - Elite Force's MP3 sounds and music are decoded by
   [minimp3](https://github.com/lieff/minimp3/tree/ea99364f61c14656440e8d77e9c233ccf3124633)
   by Lion (lieff), released under CC0 1.0 and consumed through
@@ -912,6 +961,15 @@ is matched against fnTech3's own inherited renderer code.
   the reference binaries, native observations and device-test limits.
 
 ## Retail-content boundary
+
+The [ET/Elite Force input follow-up](docs/fntech3/2026-10-02-input-launch-fixes.md)
+uses ET's player-alias and placeholder facts observed in the original
+[client game](https://github.com/id-Software/Enemy-Territory/blob/40342a9e3690cb5b627a433d4d5cbf30e3c57698/src/cgame/cg_players.c)
+and [sound engine](https://github.com/id-Software/Enemy-Territory/blob/40342a9e3690cb5b627a433d4d5cbf30e3c57698/src/client/snd_dma.c),
+and independently observed Elite Force retail input registration and button
+constants. These are reference observations only; no GPLv3 source text,
+proprietary executable code or retail asset is incorporated. The placeholder
+adaptation extends fnTech3's existing independently authored RTCW PCM helper.
 
 The RTCW audio-zone authoring mode uses material-flag facts observed in the
 original [SP surface flags](https://github.com/id-Software/RTCW-SP/blob/master/src/game/surfaceflags.h)

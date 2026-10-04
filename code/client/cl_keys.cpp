@@ -1853,7 +1853,7 @@ void CL_AliceUnctrlBind_f( void ) { CL_AliceUnbindCommand( aliceCtrlKeys, "unctr
 void CL_AliceAltBindList_f( void ) { CL_AliceBindListCommand( aliceAltKeys ); }
 void CL_AliceCtrlBindList_f( void ) { CL_AliceBindListCommand( aliceCtrlKeys ); }
 
-/* A probe's synthetic input, for exercising the Ritual and Medal of Honor UIs
+/* A probe's synthetic input, for exercising the Ritual, Medal of Honor and Wolfenstein UIs
  * and play where no keyboard or mouse may be used: a key, typed characters or
  * relative motion goes into the engine's own event queue, where the platform
  * layer puts real input, so the client takes it as it takes that. A window on
@@ -1926,8 +1926,8 @@ void CL_AliceInitKeyCommands( void ) {
 ===================
 CL_InitSyntheticInput
 
-in_synthesize and its switch, registered beside bind for the Ritual profiles
-and Medal of Honor, whose probes play without a keyboard or mouse.
+in_synthesize and its switch, registered beside bind for Ritual, Medal of Honor,
+Wolfenstein and Elite Force profiles, whose probes run without physical input.
 ===================
 */
 void CL_InitSyntheticInput( void ) {

@@ -62,6 +62,7 @@ struct clSnapshot_t {
 	int				cmdNum;			// the next cmdNum the server is expecting
 	playerState_t	ps;						// complete information about the current player at this time
 	playerState_t	psRaw;					// raw protocol-specific playerstate for legacy demo delta bases
+	playerState_t	jkaVehiclePs;			// separate protocol-26 vehicle delta base
 
 	int				numEntities;			// all of the entities that need to be presented
 	int				parseEntitiesNum;		// at the time of this snapshot
@@ -525,6 +526,7 @@ void CL_AddReliableCommand( const char *cmd, qboolean isDisconnectCmd );
 // cl_alice.cpp: American McGee's Alice's engine-owned client state
 void CL_AliceCenterPrint( const char *text, int x, int y, qboolean located );
 void CL_AliceClearState( void );
+void CL_JKAStringCacheReset( void );
 void CL_AliceLoadingScreenRefresh( void );
 void CL_AliceRegisterClientArt( void );
 void CL_AliceMapLoading( void );
@@ -559,10 +561,12 @@ void CL_StopRecord_f( void );
 netchanWireProfile_t CL_ActiveWireProfile( void );
 // Elite Force Holomatch's retail protocol-24 framing, live or from a demo.
 qboolean CL_LegacyFraming( void );
-// The texture width of one character in the console font. Elite Force's
-// charsgrid_med draws each glyph in the left half of its cell.
+// Elite Force and Academy's charsgrid_med uses the left half of a cell.
+// The installed atlas is adapted into Fn's diagnostic and console text paths.
 static inline float CL_CharsetCellWidth( void ) {
-	return Com_GameIsSTVEF() ? 0.03125f : 0.0625f;
+	const comGameProfile_t *profile = Com_GameProfile();
+	const bool academy = profile && ( profile->id == COM_GAME_JKA_SP || profile->id == COM_GAME_JKA_MP );
+	return Com_GameIsSTVEF() || academy ? 0.03125f : 0.0625f;
 }
 // Ritual's protocol 1 is one wire for Alice and F.A.K.K.2, whose engines ring
 // 128 and 64 commands (alice.exe 0x0042a220, fakk2.exe 1.02 0x0041ffaf); the
@@ -991,6 +995,7 @@ const char *CL_Awesomium_LastError( void );
 //
 void CL_InitUI( void );
 void CL_ShutdownUI( void );
+qboolean CL_UIModuleReady( void );
 void CL_STVEFSPConnectionText( const char *text, qboolean message );
 int Key_GetCatcher( void );
 void Key_SetCatcher( int catcher );

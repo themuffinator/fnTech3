@@ -31,6 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 static qboolean R_LoadMD3(model_t *mod, int lod, void *buffer, int fileSize, const char *name );
 static qboolean R_LoadMDR(model_t *mod, void *buffer, int filesize, const char *name );
+static qboolean R_IsRuntimeMDR( qhandle_t handle );
 
 /*
 ====================
@@ -289,10 +290,14 @@ qhandle_t RE_RegisterModel( const char *name ) {
 		return 0;
 	}
 
+	/* Engine-owned model keys cannot be requested through filesystem registration. */
+	if ( !Q_stricmpn( name, "@runtime/", 9 ) ) return 0;
+
 	//
 	// search the currently loaded models
 	//
 	for ( hModel = 1 ; hModel < tr.numModels; hModel++ ) {
+		if ( R_IsRuntimeMDR( hModel ) ) continue;
 		mod = tr.models[hModel];
 		if ( !strcmp( mod->name, name ) ) {
 			if( mod->type == MOD_BAD ) {
@@ -657,6 +662,7 @@ R_LoadMDR
 =================
 */
 #include "../renderercommon/tr_mdr_model.h"
+#include "../renderercommon/tr_runtime_mdr.h"
 
 
 //=============================================================================
@@ -688,6 +694,7 @@ R_ModelInit
 */
 void R_ModelInit( void ) {
 	model_t		*mod;
+	R_RuntimeMDRReset();
 
 	FnMdc_InitNormals( &r_mdcNormals );
 

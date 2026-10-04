@@ -18,7 +18,7 @@ HOST = r'''
 static cvar_t compression{};static cvar_t *r_ext_compressed_textures=&compression;
 static cvar_t picmip{},characterMip{},filter{};
 static cvar_t *r_picmip=&picmip,*r_picmip2=&characterMip,*r_picmipFilter=&filter;
-static struct{int rtcwCompression;char name[MAX_QPATH];
+static struct{int rtcwCompression;qboolean jkaNoTC;char name[MAX_QPATH];
  unsigned noPicMip:1,noMipMaps:1,rtcwCharacterMip:1,rtcwPicMipFiltered:1;}shader;
 static imgFlags_t received;
 static image_t image{"synthetic",nullptr,IMGFLAG_NONE};
@@ -34,6 +34,7 @@ int QDECL Com_sprintf(char *out,int size,const char *format,...) {
 }
 #include "code/renderercommon/tr_rtcw_image_mip.h"
 #include "code/renderercommon/tr_rtcw_shader_material.h"
+#include "code/renderercommon/tr_jka_shader.h"
 '''
 
 CHECKS = r'''

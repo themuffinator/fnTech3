@@ -133,8 +133,8 @@ closes no gate, and release builds never enable it.
 | `-Drtcw-development=true` | `-RTCWDevelopment` | `rtcw-sp`, `rtcw-mp` | Client and server, both modes. |
 | `-Dwolfet-development=true` | `-WolfETDevelopment` | `wolfet` | Client and server. |
 | `-Dstvef-development=true` | `-STVEFDevelopment` | `stvef-sp`, `stvef-mp` | Client and server, both modes; single player on Windows x86 only. |
-| `-Djka-development=true` | `-JKADevelopment` | `jka-sp`, `jka-mp` | Dedicated server only. |
-| `-Djk2-development=true` | `-JK2Development` | `jk2-sp`, `jk2-mp` | Dedicated server only. |
+| `-Djka-development=true` | `-JKADevelopment` | `jka-sp`, `jka-mp` | Experimental server and partial client probes. |
+| `-Djk2-development=true` | `-JK2Development` | `jk2-sp`, `jk2-mp` | Partial Windows x86 developer probes; client and SP gameplay remain incomplete. |
 | `-Dq3-ihv-development=true` | `-Q3IHVDevelopment` | `q3-ihv` | Windows x86 dedicated server only. |
 | `-Dq3test-development=true` | `-Q3TestDevelopment` | `q3test` | Windows x86 client and server, every release from 1.02 to 1.08. |
 | `-Dalice-development=true` | `-AliceDevelopment` | `alice` | Windows x86 client and server. |
@@ -277,14 +277,19 @@ engine's message layer and re-encodes each delta. See the
 
 `-Djka-development=true` (helper: `-JKADevelopment`) enables Jedi Academy's
 `jka-sp` and `jka-mp`, and `-Djk2-development=true` (helper:
-`-JK2Development`) enables Jedi Outcast's `jk2-sp` and `jk2-mp`. Only the
-dedicated server runs them. A multiplayer server runs the retail multiplayer
-module with bots on a retail map, but no network client connects and no
-snapshot is built. A single-player server loads the map's collision and then
-refuses the single-player module by name, leaving the server idle until it is
-stopped. No wire, savegame, client or renderer boundary exists yet for either
-game. To read every Jedi Academy map, model and skeleton with the engine's own
-readers:
+`-JK2Development`) enables Jedi Outcast's `jk2-sp` and `jk2-mp`.
+Jedi Academy's multiplayer server runs the retail module with bots; its
+protocol-26 codecs now have reference and fragmentation tests. Retail peer
+admission remains under investigation. Its measured API-8 SP bootstrap and
+separate world adapters are experimental; campaign, saves and client rendering
+remain open.
+Jedi Outcast's earlier multiplayer-server evidence runs the retail QVM with
+bots; protocol 15 codecs and partial client/UI/font adapters now have
+automated evidence. Its native SP module loads, but the integrated engine
+probe stops at unsupported client import 3 before gameplay. Client rendering,
+campaign, saves, demos and live interoperability remain incomplete; see the
+game's gate matrix for the exact scope. To read every Jedi Academy map, model
+and skeleton with the engine's own readers:
 
 ```powershell
 python scripts/probe_jka_assets.py --installation "E:/Games/Jedi Academy" --output .tmp/jka/assets
@@ -400,24 +405,26 @@ gated.
 All launch configurations use the already-built `win32-dev` binaries and have
 no `preLaunchTask`. Build with Ctrl+Shift+B, then select a launch in Run and
 Debug (Microsoft C/C++ extension, Windows). Launches are grouped by game and
-mode, one group per profile. Normal startup entries are named `Q3 glx`,
-`QL vk`, `RTCW SP rtx`, `EF MP glx` or `Alice vk`, with all three renderers
-for Q3, QL, RTCW SP and MP, ET, Elite Force SP (`EF SP`) and Holomatch
-(`EF MP`), and Alice. They use normal game startup
+mode, one group per profile. All sixteen profiles have a dedicated launch;
+all except the dedicated-only IHV Test have menu, starter-map and map-picker
+client entries with GLx, Vulkan and RTX. Normal startup entries are named
+`Q3 glx`, `QL vk`, `RTCW SP rtx`, `EF MP glx`, `FAKK2 vk` or `MOHAA rtx`.
+They use normal game startup
 without a map command or forced intro skipping. Map launch names follow
 `SP/MP bspname Map Title glx/vk/rtx`. The starter maps are Q3's `q3dm1`
 (Arena Gate), QL's `campgrounds` (Campgrounds), RTCW SP's `escape1` (Escape),
 RTCW MP's `mp_beach` (Beach Invasion), Elite Force SP's `borg1` (The Rescue),
-Holomatch's `hm_borg1` (Assimilation) and Alice's `garden1` (Dry Landing),
-each with GLx, Vulkan and RTX entries.
+Holomatch's `hm_borg1` (Assimilation), Alice's `garden1` (Dry Landing),
+F.A.K.K.2's `fakkhouse`, MOHAA's `m1l1` and Q3Test's `q3test1`, each with
+GLx, Vulkan and RTX entries.
 
 The **Wolfenstein: Enemy Territory** group has dedicated launches for all six
 stock maps, with an installation-path prompt, loopback binding and a separate
 writable home per map. PunkBuster is disabled and the launches keep
 `sv_pure 0`; ET itself defaults to retail's `sv_pure 1`. `ET glx`, `ET vk`
-and `ET rtx` open ET's menu, and one client launch per stock map loads that
+and `ET rtx` open ET's menu, and three client launches per stock map load that
 map with `devmap` in a listen server, keeping `sv_pure 0` as well. Each uses
-the same installation prompt, opens a 1024x768 window with the GL renderer,
+the same installation prompt, opens a 1024x768 window with its chosen renderer,
 binds IPv4 and IPv6 to loopback, turns off Steam integration and the WebUI, and
 keeps its own writable home under `.tmp/vscode/wolfet/client/`. `ET pick map`
 and `ET pick map ded` do the same for a map and, for the client, a renderer
@@ -426,10 +433,14 @@ chosen at launch.
 Each of those profiles also has a dedicated-server launch of a starter map, named
 `SP/MP bspname Map Title ded`: those above, plus the IHV Test's `ihv_test1`,
 Jedi Academy's `t1_sour` and `mp/ffa1`, and Jedi Outcast's `kejim_post` and
-`ffa_bespin`. Those five profiles have dedicated launches only: the IHV
-client is blocked, Jedi Academy's client refuses its modules by name, and
-nothing is wired for Jedi Outcast's. F.A.K.K.2, Medal of Honor and Q3Test have
-no launches yet; start them from the command line or with their probe scripts.
+`ffa_bespin`. The Jedi groups also have SP and listen-client entries, explicitly
+labelled boundary probes: their client, single-player module and network
+boundaries remain open. Their multiplayer dedicated servers can run the
+retail game modules; client launch entries do not establish playable support.
+The IHV Test stays dedicated-only. F.A.K.K.2 defaults to the locally prepared
+disc layout under `.tmp/fakk2-install/game`; Q3Test defaults to the isolated
+1.08 layout under `.tmp/q3test/install/1.08`. Point its installation prompt at
+exactly one release, never a merged set.
 
 `<name> pick map` launches, such as `Q3 pick map` or `JKA MP pick map ded`,
 ask for any of the profile's stock maps, labelled with the game's own titles
@@ -442,6 +453,45 @@ homes under `.tmp/vscode/<profile>/<renderer>`, or
 per launch. Every dedicated launch but QL's binds IPv4 loopback, and IHV's
 runs with networking off. The Elite Force and Alice clients open a 1024x768
 window and bind IPv4 and IPv6 to loopback, as ET's do.
+
+All client entries explicitly select `dedicated 0`, raw mouse input
+(`in_mouse 2`) and free-look by default, overriding saved disabled-mouse
+settings. The mouse and look prompts also offer Windows messages, DirectInput,
+disabled mouse and held `+mlook`. Existing bindings are preserved. Elite Force's
+retail defaults bind X and `/` to jump and Space to Use; inspect your saved
+bindings if those differ. `inputstatus` prints the profile, input owner, mouse
+mode, pause state and latest generated command without injecting input.
+
+The map pickers also offer windowed resolution, OpenAL or the legacy audio
+backend, a fresh or appended console log, and developer diagnostics. RTCW SP
+adds difficulty; Q3 and Holomatch add arena game type; RTCW MP and ET offer
+their own game types. Settings are applied before loading the map. ET's picker
+defaults to pure pak verification, with an unrestricted local development
+option. Named starter-map and menu launches
+remain quick presets without these extra prompts. Logs are written in each
+launch's isolated game home, alongside its config and saves.
+
+MOHAA separates SP's 43 maps from its eleven multiplayer maps. SP entries
+select `g_gametype 0` and one client slot; multiplayer listen and dedicated
+entries offer free-for-all, team, round and objective modes with sixteen slots.
+Choose an `obj/` map for objective mode. Its named multiplayer starter is
+`dm/mohdm1` (South France), with all three renderers, and multiplayer uses
+an independent home so its settings do not affect SP.
+
+Terminal > Run Task exposes 32 `run:` entries: one SP/listen map-picker per
+client profile and one dedicated map-picker for each of the sixteen profiles.
+MOHAA has separate SP and listen Run Tasks.
+They use the same arguments as the F5 pickers and do not build implicitly.
+The complete launch matrix has 162 configurations; its structure and input
+references are checked by `tests/launch_and_transition_source_tests.py`.
+
+`meson: verify all games` explicitly builds the development preset and runs
+the complete automated suite. Normal build tasks and launches still do not
+run tests implicitly. Elite Force's client enforces a 160 MiB SP and 128 MiB
+Holomatch hunk minimum,
+including when a saved retail config requests less; no launch-only memory
+workaround is needed. SP reserves a 96 MiB initial main zone before renderer
+startup so large temporary allocations have contiguous space.
 
 These entries do not establish runtime compatibility; every profile but Q3 and
 QL remains experimental, and RTX requires suitable driver and device

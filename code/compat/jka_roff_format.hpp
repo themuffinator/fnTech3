@@ -6,7 +6,7 @@
  * and rotations a scripted object follows, and the note track that fires
  * callbacks along the way. Cameras, lifts and cut-scene props move on these.
  *
- * Two versions are defined. Version 2 carries a frame rate and a note track;
+ * Two versions are defined. Version 2 carries a frame interval and a note track;
  * version 1 carries neither, and its entries are six floats with no note
  * fields. A legitimate installation ships version 2 only, so version 1 here is
  * read from the format definition rather than observed.
@@ -33,7 +33,7 @@ inline constexpr std::size_t Version1EntryBytes = 24;
 inline constexpr std::size_t Version2HeaderBytes = 20;
 inline constexpr std::size_t Version2EntryBytes = 32;
 
-enum class Error { None, Size, Ident, Version, Counts, Extent, Note, Trailing };
+enum class Error { None, Size, Ident, Version, Counts, Extent, Note, Trailing, Value };
 
 inline const char *ErrorName( Error error ) {
 	switch ( error ) {
@@ -45,6 +45,7 @@ inline const char *ErrorName( Error error ) {
 	case Error::Extent: return "record past end of file";
 	case Error::Note: return "note index out of range";
 	case Error::Trailing: return "note track does not fill the file";
+	case Error::Value: return "non-finite motion offset";
 	}
 	return "unknown";
 }
@@ -52,6 +53,9 @@ inline const char *ErrorName( Error error ) {
 struct Path {
 	int version = 0;
 	int entries = 0;
+	/* Historical source/member spelling; the value is milliseconds per frame,
+	 * not frames per second. Retail jamp.exe VA 0x42633b reads header+12 as
+	 * frame time and VA 0x426341 divides 1000 by it for the velocity scale. */
 	int frameRate = 0;
 	int notes = 0;
 	int maxNoteIndex = -1;
@@ -59,9 +63,24 @@ struct Path {
 	std::size_t noteOffset = 0;
 };
 
+inline int FrameMilliseconds( const Path &path )
+{
+	return path.version == Version2 ? path.frameRate : 1000 / SampleRate;
+}
+
+inline int VelocityScale( const Path &path )
+{
+	const int interval = FrameMilliseconds( path );
+	return interval > 0 ? 1000 / interval : 0;
+}
+
 /* Version 1 stores its entry count as a float, which the exporter wrote; a
  * value that is not a whole, representable count is a malformed file. */
 inline bool WholeCount( float value, int &count ) {
+	std::uint32_t bits;
+	std::memcpy( &bits, &value, sizeof( bits ) );
+	volatile std::uint32_t encoded = bits;
+	if ( ( encoded & 0x7f800000u ) == 0x7f800000u ) return false;
 	if ( !( value >= 0.0f ) || value > 1024.0f * 1024.0f ) return false;
 	const int whole = int( value );
 	if ( float( whole ) != value ) return false;
@@ -159,6 +178,16 @@ inline Error Parse( const void *data, std::size_t bytes, Path &out ) {
 	const std::size_t available = bytes - out.entryOffset;
 	if ( std::size_t( out.entries ) > available / stride ) return Error::Extent;
 	out.noteOffset = out.entryOffset + std::size_t( out.entries ) * stride;
+	/* Motion must not put an entity's origin, angles or collision bounds at a
+	 * NaN or infinity. Test float encodings so this remains true under fast math. */
+	for ( int entry = 0; entry < out.entries; ++entry ) {
+		const std::size_t at = out.entryOffset + std::size_t( entry ) * stride;
+		for ( int scalar = 0; scalar < 6; ++scalar ) {
+			if ( ( word( at + std::size_t( scalar ) * 4 ) & 0x7f800000u ) == 0x7f800000u ) {
+				return Error::Value;
+			}
+		}
+	}
 
 	if ( out.version == Version1 ) {
 		/* Version 1 has no note track, so the entries end the file. */

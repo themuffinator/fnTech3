@@ -107,6 +107,7 @@ static void R_ApplyProfileFovCorrection( const refdef_t *fd,
 			|| !Q_stricmp( profile, "rtcw-sp" ) || !Q_stricmp( profile, "rtcw-mp" )
 			|| !Q_stricmp( profile, "wolfet" )
 			|| !Q_stricmp( profile, "stvef-sp" ) || !Q_stricmp( profile, "stvef-mp" )
+			|| !Q_stricmp( profile, "jka-sp" ) || !Q_stricmp( profile, "jka-mp" )
 			|| !Q_stricmp( profile, "alice" ) || !Q_stricmp( profile, "fakk2" )
 			|| !Q_stricmp( profile, "mohaa" ) || quakeLive ) {
 			correction = ri.Cvar_Get( "r_fovCorrection", "1", CVAR_ARCHIVE_ND );

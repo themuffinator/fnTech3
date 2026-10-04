@@ -42,6 +42,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qfiles.h"
+#include "../renderercommon/tr_raven_bsp_format.h"
 #include "../qcommon/qcommon.h"
 #include "../renderercommon/tr_public.h"
 #include "../renderercommon/tr_q3_ihv_fog.h"
@@ -595,6 +596,7 @@ typedef struct shader_s {
 	unsigned	noPicMip:1;				// for images that must always be full resolution
 	unsigned	noLightScale:1;
 	unsigned	noVLcollapse:1;			// ignore vertexlight mode
+	qboolean	jkaNoTC;				// Raven noTC uses the shared image compression opt-out.
 	qboolean	rtcwNoFog;
 	float		wolfetDistanceCull[4];	// ET: opaque, transparent, alpha, 1 / (transparent - opaque)
 	unsigned	rtcwCharacterMip:1; // SP character textures use r_picmip2.
@@ -1776,6 +1778,7 @@ typedef struct {
 	vec3_t		lightGridInverseSize;
 	int			lightGridBounds[3];
 	byte		*lightGridData;
+	fnRavenBspView_t ravenBsp; // Original RBSP records and light-array mapping.
 
 
 	int			numClusters;
@@ -2719,6 +2722,7 @@ qhandle_t	RE_RegisterSkin( const char *name );
 qboolean RE_GetSkinModel( qhandle_t skin, const char *type, char *name );
 qhandle_t RE_GetShaderFromModel( qhandle_t model, int surface, int withLightmap );
 
+qboolean	RE_GetJKADistanceCull( float *distance );
 qboolean	RE_GetEntityToken( char *buffer, int size );
 
 model_t		*R_AllocModel( void );

@@ -954,7 +954,7 @@ static void RT_AddSurfaceLights( void )
 
 		// q3map's backsplash stood in for the light an emitter's own fixture
 		// bounces back; traced bounces carry it
-		if ( s_rtLights.mode != RT_LIGHTING_EMITTERS ) {
+		if ( !RT_LightingEmits( s_rtLights.mode ) ) {
 			RT_AddBacksplash( shader, *surface->data == SF_FACE ? qtrue : qfalse, &geometry, normal, color, value );
 		}
 		vk_rt_cpu_geometry_free( &geometry );
@@ -1008,9 +1008,12 @@ static void RT_AddEmissiveSurfaces( void )
 		if ( !known[shader->index] ) {
 			known[shader->index] = RT_ShaderEmission( shader, emissions[shader->index] ) ? 2 : 1;
 			if ( known[shader->index] == 2 ) {
-				// the light it gives off is what it shows, in linear units (the
-				// images' pixels are display colours, as the trace decodes them)
-				RT_LinearColor( emissions[shader->index] );
+				// the light it gives off is what it shows: a display colour, as
+				// a lightmap's light is, or in linear units where the camera
+				// takes linear light (the trace decodes the images' pixels)
+				if ( RT_LightingCamera( s_rtLights.mode ) == RT_CAMERA_LINEAR ) {
+					RT_LinearColor( emissions[shader->index] );
+				}
 				s_rtLights.emissiveShaders++;
 				ri.Printf( PRINT_DEVELOPER, "RTX RT: %s glows %.3f %.3f %.3f\n", shader->name,
 					emissions[shader->index][0], emissions[shader->index][1], emissions[shader->index][2] );
@@ -1777,13 +1780,33 @@ static qboolean RT_BuildLights( void )
 	s_rtLights.mode = RT_LightingMode();
 	RT_ResetImageAverages();
 
-	if ( s_rtLights.mode == RT_LIGHTING_EMITTERS ) {
-		// Q2RTX's way: the sky, its sun and the surfaces that give off light;
-		// no light entities, no compiler floors, nothing baked
+	if ( RT_LightingEmits( s_rtLights.mode ) ) {
+		// The sky, its sun and the surfaces that give off light, nothing
+		// baked. The level's lights add the light entities the map keeps, the
+		// lights its designer placed and its compiler baked into the
+		// lightmaps (Quake III's and RTCW's maps keep them; q3map2 left none
+		// in Quake Live's and Enemy Territory's, which their glowing fixtures
+		// light instead). The compilers' floors (ambient, _minlight) stood in
+		// for bounced light, which is traced here.
+		// The level's sky is its compiler's - q3map's sky surface lights,
+		// q3map2's dome of suns - as bright as its lightmaps hold it; the
+		// emitters alone light from an even sky in its light colour
+		if ( s_rtLights.mode == RT_LIGHTING_LEVEL ) {
+			RT_AddEntityLights();
+			s_rtLights.lightsStripped = ( s_rtLights.q3map2 && s_rtLights.entityLights == 0 ) ? qtrue : qfalse;
+			VectorClear( s_rtLights.ambient );
+			VectorClear( s_rtLights.minLight );
+			VectorClear( s_rtLights.minVertexLight );
+			VectorClear( s_rtLights.minGridLight );
+		}
 		RT_AddSurfaceLights();
 		RT_AddEmissiveSurfaces();
 		RT_FindSun();
-		RT_FindSkyLightColor( s_rtLights.skyColor );
+		if ( s_rtLights.mode == RT_LIGHTING_LEVEL ) {
+			RT_FindSkyLight();
+		} else {
+			RT_FindSkyLightColor( s_rtLights.skyColor );
+		}
 	} else {
 		RT_AddEntityLights();
 		s_rtLights.lightsStripped = ( s_rtLights.q3map2 && s_rtLights.entityLights == 0 ) ? qtrue : qfalse;
@@ -1801,7 +1824,10 @@ static qboolean RT_BuildLights( void )
 		s_rtLights.wolf ? "Wolfenstein" : s_rtLights.q3map2 ? "q3map2" : "q3map",
 		s_rtLights.dims[0], s_rtLights.dims[1], s_rtLights.dims[2], s_rtLights.cellSize, s_rtLights.numIndices,
 		vk_rt_elapsed_ms( start, vk_rt_now_microseconds() ) );
-	if ( s_rtLights.mode == RT_LIGHTING_EMITTERS ) {
+	if ( s_rtLights.mode == RT_LIGHTING_LEVEL ) {
+		ri.Printf( PRINT_ALL, "RTX RT: the level's own lights: %u light entities and %u glowing shaders over %u triangles\n",
+			s_rtLights.entityLights, s_rtLights.emissiveShaders, s_rtLights.emissiveTriangles );
+	} else if ( s_rtLights.mode == RT_LIGHTING_EMITTERS ) {
 		if ( s_rtLights.skyColor[3] > 0.5f ) {
 			ri.Printf( PRINT_ALL, "RTX RT: lit by an even sky of %.2f %.2f %.2f and %u glowing shaders over %u triangles\n",
 				s_rtLights.skyColor[0], s_rtLights.skyColor[1], s_rtLights.skyColor[2],
@@ -1818,6 +1844,7 @@ static qboolean RT_BuildLights( void )
 	if ( s_rtLights.lightsStripped ) {
 		ri.Printf( PRINT_ALL, "RTX RT: q3map2 kept none of the map's light entities; %s\n",
 			s_rtLights.mode == RT_LIGHTING_COMPILERS ? "tracing the lights that remain" :
+			s_rtLights.mode == RT_LIGHTING_LEVEL ? "its sky, sun and glowing surfaces light it" :
 			"its lightmaps light the world" );
 	}
 	if ( s_rtLights.sunValid ) {

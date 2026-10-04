@@ -204,7 +204,9 @@ static void R_SetupEntityLightingGrid( trRefEntity_t *ent ) {
 			continue;
 		}
 
-		if ( !(data[0]+data[1]+data[2]) ) {
+		if ( tr.world->ravenBsp.bytes
+			? !FN_RavenBspGridCellValid( &tr.world->ravenBsp, (size_t)( data - tr.world->lightGridData ) / 8 )
+			: !(data[0]+data[1]+data[2]) ) {
 			continue;	// ignore samples in walls
 		}
 		totalFactor += factor;

@@ -76,8 +76,9 @@ inline bool Checksum(const char *text, std::uint32_t &out) {
 }
 } // namespace fntech3::rtcw::navigation
 
-static int AAS_LoadRTCWAASFile(const char *filename) {
+static int AAS_LoadRTCWAASFile(const char *filename, bool wolfet = false) {
 	using namespace fntech3::rtcw;
+	const char *profileName = wolfet ? "ET" : "RTCW";
 	AAS_DumpAASData();
 	botimport.Print(PRT_MESSAGE, "trying to load %s\n", filename);
 	const int bytes = botimport.FS_FOpenFile(filename, &aasworld.rtcwLoadFile, FS_READ);
@@ -87,7 +88,7 @@ static int AAS_LoadRTCWAASFile(const char *filename) {
 	constexpr int MaxFileBytes = 256 * 1024 * 1024;
 	if (bytes < static_cast<int>(aas::HeaderBytes) || bytes > MaxFileBytes) {
 		AAS_DumpAASData();
-		botimport.Print(PRT_ERROR, "Invalid RTCW AAS file size: %s\n", filename);
+		botimport.Print(PRT_ERROR, "Invalid %s AAS file size: %s\n", profileName, filename);
 		return BLERR_CANNOTREADAASLUMP;
 	}
 	aasworld.rtcwLoadBytes = botlib::Alloc<byte>(bytes);
@@ -98,10 +99,10 @@ static int AAS_LoadRTCWAASFile(const char *filename) {
 	aas::View view;
 	const auto error = read != bytes ? aas::Error::Extent
 		: !navigation::Checksum(LibVarGetString("sv_mapChecksum"), checksum) ? aas::Error::Checksum
-		: aas::Parse(aasworld.rtcwLoadBytes, bytes, checksum, view);
+		: aas::Parse(aasworld.rtcwLoadBytes, bytes, checksum, view, wolfet);
 	if (error != aas::Error::None) {
 		AAS_DumpAASData();
-		botimport.Print(PRT_ERROR, "Invalid RTCW AAS %s: %s\n", filename, aas::ErrorName(error));
+		botimport.Print(PRT_ERROR, "Invalid %s AAS %s: %s\n", profileName, filename, aas::ErrorName(error));
 		return error == aas::Error::Identity ? BLERR_WRONGAASFILEID
 			: error == aas::Error::Version || error == aas::Error::Checksum ? BLERR_WRONGAASFILEVERSION
 			: BLERR_CANNOTREADAASLUMP;
@@ -133,7 +134,7 @@ static int AAS_LoadRTCWAASFile(const char *filename) {
 	char fault[128];
 	if (!AAS_IndexesInside(false, fault, sizeof(fault))) {
 		AAS_DumpAASData();
-		botimport.Print(PRT_ERROR, "Invalid RTCW AAS %s: %s\n", filename, fault);
+		botimport.Print(PRT_ERROR, "Invalid %s AAS %s: %s\n", profileName, filename, fault);
 		return BLERR_CANNOTREADAASLUMP;
 	}
 	aasworld.loaded = qtrue;

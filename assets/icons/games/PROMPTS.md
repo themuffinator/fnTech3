@@ -106,6 +106,46 @@ Use case: precise-object-edit. Image 1 is the generated stvef-sp application ico
 Use case: logo-brand. Asset type: production game application icon, square 1024 x 1024 RGBA PNG. Input image 1: original Star Trek Voyager Elite Force executable icon, authoritative visual reference. Rebuild this exact icon as beautifully finished high-resolution game emblem art, not a redesign or a blown-up pixel image. Preserve the original tall slender Starfleet delta with a rich aged gold outline and softly shaded silver face; its lower opening is an inverted V, and the elongated top point is above center. Behind the delta, preserve the red horizontal segmented bridge/bar with golden trim running left and right across the middle; follow the irregular red-and-gold silhouette in the reference rather than introducing new wings or lettering. Exact front view and original proportions. Polished metal, restrained bevels, crisp silhouette, smoothly resolved original shading. Do not add a star inside the delta, text, characters, spacecraft or decoration. Holomatch design from stvoyHM.exe: preserve its distinctive electric royal BLUE holodeck background with DARK BLUE fine tiled grid/checker pattern. Keep the SAME silver-and-gold delta and red horizontal bridge as the single-player original. Follow the reference's blue field exactly, no futuristic scenery or starfield. Background is a square with straight square corners, centered filling 92% of the canvas, with a thin genuinely transparent margin outside the square. Keep the emblem fully visible within it. No rounded tile, cast shadow, labels, lens flare or extra symbols. Deliver only the single icon.
 ```
 
+## Elite Force correction — 2026-10-02
+
+The user supplied a larger emblem reference. The previous remakes replaced its
+trapezoidal diagonal-striped plaque with stepped solid-red wings, omitted its
+horizontal silver rods, and sharpened the delta's rounded lower opening.
+The first correction below mistakenly interpreted a highlight as a physical
+gold cap. That pass was superseded by the final corrections below. Both
+masters were replaced using the built-in imagegen tool.
+
+### Single player
+
+```text
+Use case: logo-brand. Create the replacement production application icon for Star Trek Voyager: Elite Force single player. Image 1 is the user's authoritative emblem reference. Remaster THIS emblem accurately at 1024 x 1024 or higher square resolution on a fully opaque pure BLACK square canvas, with small safe margins (emblem about 92% canvas height). Preserve the exact silhouette and proportions in the reference: tall narrow curved Starfleet delta with a broad aged GOLD border, sharp top and two long pointed lower tips; the lower negative-space opening is a smooth ROUNDED ARCH, not a sharp inverted V. The center face is fine-grained textured SILVER, not smooth plastic. Behind it is a wide shallow TRAPEZOIDAL plaque, almost the full emblem width, with rounded beveled GOLD trim, BLACK interior and alternating vivid RED DIAGONAL slashes. Crucially preserve the visible horizontal rounded SILVER ROD running through the middle of that plaque on both sides of the delta and the small gold circular cap above its left side. The back plaque is a simple trapezoid with sloping ends, no stepped wing or cross shape. Follow the reference faithfully: no solid red wing fills, no extra star, no letters, no new motifs. Clean front-view remastered metal game emblem; restrained bevel and lighting, no bright flare, no giant embossing or bloom. Resolve clean edges and surface texture, preserve the reference geometry and original red/black segmentation. Canvas black to all four corners and edges; no transparent frame, no rounded tile. Deliver one finished icon only.
+```
+
+### Holomatch
+
+```text
+Use case: precise-object-edit. Create the replacement Star Trek Voyager Elite Force Holomatch application icon. Image 1 is the newly corrected single-player icon: its emblem is the authoritative edit target. Image 2 is the previous Holomatch icon, use ONLY its blue grid backdrop as a background reference. Change ONLY image 1's black background to a fully opaque electric royal BLUE and DARK BLUE fine square checker/grid field, like image 2, filling the ENTIRE straight square canvas to all four corners with no transparent margin or black frame. Preserve image 1's emblem exactly, including size, placement, silhouette, textured silver face, tall narrow gold delta, ROUNDED lower arch opening, red and black DIAGONAL stripe trapezoid behind it, horizontal silver rods on both sides, small gold round cap above the left end, bevels and lighting. Every black negative-space background area outside and within the delta becomes this same coherent blue grid; black areas INSIDE the red-striped gold-edged plaque remain black. No recreation of image 2's incorrect stepped solid-red wings or sharp lower V. No glow, blur, flare, lettering, stars, extra motifs or changed proportions. Square 1024 x 1024 or higher high-resolution finished icon, opaque blue background, only one icon.
+```
+
+### Final Elite Force corrections — 2026-10-02
+
+The user rejected the cap and requested subtle Holomatch grid lines, an opaque
+blue background and rounded corners. These final edit prompts supersede the
+first correction pass. The blue tile is opaque; only the outer corner cutouts
+are transparent.
+
+#### Single player
+
+```text
+Use case: precise-object-edit. Image 1 is the current Star Trek Voyager Elite Force single-player icon to correct. Make ONE correction: REMOVE the silly solid GOLD HALF-CIRCLE / semicircular cap sticking up above the LEFT end of the horizontal plaque. It was a mistaken physical object: remove it completely, restoring uninterrupted black background above the plaque's clean straight upper gold border. Do NOT replace it with any circle, knob, disk, ring, badge or other object. At most the upper-left plaque trim may have a tiny ordinary metallic highlight, with NO silhouette beyond the existing border. Preserve EVERYTHING ELSE exactly: tall tapered gold delta, rounded lower arch opening, silver textured inner face, trapezoidal gold-edged plaque, red and black diagonal stripes, horizontal silver rods, dimensions, placement and lighting. Keep the solid pure black square background fully opaque to every corner. High-resolution square production icon, one finished icon only.
+```
+
+#### Holomatch
+
+```text
+Use case: precise-object-edit. Image 1 is the corrected single-player Elite Force emblem. Use its emblem exactly, unchanged, for the replacement Holomatch application icon. Change the background to a rounded-square BLUE tile. The tile interior must be completely OPAQUE (alpha 255), with clean softly rounded corners, radius about 7% of tile width, filling the square canvas with only tiny corner cutouts. Outside the rounded corners only, leave actual transparency; the entire blue tile, emblem and all interior negative spaces stay fully opaque. Use a rich moderately dark royal/navy BLUE background and a regular holodeck square GRID OF SUBTLE THIN LINES, about 18-22 cells across; blue lines only slightly lighter than the blue surface, quiet low contrast, no alternating checkerboard squares. The grid is visible but does not compete with the emblem. Preserve the tall gold delta, rounded lower arch, textured silver face, gold-edged trapezoidal back plaque with red and black diagonal stripes and horizontal silver rods from image 1, including composition, size and metals. NO HALF-CIRCLE or other solid object above the left plaque edge; it was removed and must remain removed. Inside the delta's lower negative-space arch, continue the opaque blue thin-line grid. Black parts INSIDE the plaque remain black. Keep emblem well inside the rounded tile and nothing cropped. No black outside frame, text, extra motifs, glows, shadows outside the tile, rings or disks. Produce one high-resolution square RGBA icon with true transparent outer corners and an otherwise fully opaque background.
+```
+
 ## q3-ihv
 
 ### Generation

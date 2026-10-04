@@ -61,10 +61,10 @@ id Software's source release.
 | Quake III Arena | `quake3` (`q3`) | **Enabled** in every build: 1.32 (protocol 68) and ioquake3 (71), 1.29 to 1.31 servers and clients (66, 67), and recordings from 1.11 on ([versions](docs/GAMES.md#quake-iii-arena-quake3)). |
 | Quake Live | `quakelive` (`ql`) | **Enabled** in every build; the client runs on Windows x86, where the retail client modules run. |
 | Return to Castle Wolfenstein | `rtcw-sp`, `rtcw-mp` | Experimental: developer builds with `-Drtcw-development=true`. |
-| Wolfenstein: Enemy Territory | `wolfet` (`et`) | Experimental: `-Dwolfet-development=true`. |
-| Star Trek Voyager: Elite Force | `stvef-sp`, `stvef-mp` | Experimental: `-Dstvef-development=true`; single player on Windows x86 only. |
-| Star Wars Jedi Knight: Jedi Academy | `jka-sp`, `jka-mp` | Experimental, dedicated server only: `-Djka-development=true`. |
-| Star Wars Jedi Knight II: Jedi Outcast | `jk2-sp`, `jk2-mp` | Experimental, dedicated server only: `-Djk2-development=true`. |
+| Wolfenstein: Enemy Territory | `wolfet` (`et`) | Experimental: `-Dwolfet-development=true`; [jump-sound correction and validation limits](docs/fntech3/2026-10-02-input-launch-fixes.md). |
+| Star Trek Voyager: Elite Force | `stvef-sp`, `stvef-mp` | Experimental: `-Dstvef-development=true`; single player on Windows x86 only. [Input corrections and diagnostics](docs/fntech3/2026-10-02-input-launch-fixes.md); live gameplay input remains under validation. |
+| Star Wars Jedi Knight: Jedi Academy | `jka-sp`, `jka-mp` | Experimental developer probes: `-Djka-development=true`; retail MP menu startup, limited animated UI geometry, client skin/animation and copy metadata, neutral light-style and map distance metadata, cgame menu relay, neutral command values, polygon submission, remote bone/tag queries, owned skeletal scene staging, engine-default models, ordinary-sky views, forward-animation transitions, no-rotation bolts, a captured player-configuration menu, absent ambient-set returns and limited shader-effect lifetimes, empty cleanup and maintained pure admission with clean disconnects in both directions, ordinary/additive scene lights, the Academy text atlas and bounded GLx/Vulkan/RTX demo captures, explicit music preloading, ambient/effect definitions and retail SP Init return. Campaign, complete client rendering and bidirectional retail compatibility remain incomplete. |
+| Star Wars Jedi Knight II: Jedi Outcast | `jk2-sp`, `jk2-mp` | Experimental developer probes: `-Djk2-development=true`; client, campaign and live compatibility remain incomplete. |
 | American McGee's Alice | `alice` | Experimental, Windows x86: `-Dalice-development=true`. |
 | Heavy Metal: F.A.K.K.2 | `fakk2` | Experimental, Windows x86: `-Dfakk2-development=true`. |
 | Medal of Honor: Allied Assault | `mohaa` | Experimental, Windows x86: `-Dmohaa-development=true`. |

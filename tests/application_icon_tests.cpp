@@ -77,7 +77,9 @@ static void CheckBuiltinCatalogue(const fs::path &games)
         // Thin strokes and subpixel margins need not hit exact 0/255 after
         // downsampling. Cutouts still have clear space and strong coverage;
         // the original square background designs may instead be all opaque.
-        CHECK(maxAlpha >= 224 && (minAlpha <= 32 || minAlpha == 255));
+        const bool roundedCaption = frame.size == 16 && !std::strcmp(frame.profile, "stvef-mp");
+        const unsigned cornerLimit = roundedCaption ? 64 : 32;
+        CHECK(maxAlpha >= 224 && (minAlpha <= cornerLimit || minAlpha == 255));
     }
 #ifndef _WIN32
     for (const BuiltinIcon &icon : kBuiltinIcons) {

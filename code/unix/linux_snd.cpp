@@ -1030,9 +1030,11 @@ static void thread_proc_direct( void )
 				x = size - pos;
 			}
 			err = _snd_pcm_writei( handle, dma.buffer + pos * frame_sz, x );
-			if ( err >= 0 ) {
-				pos = (pos + x) % size;
-				avail -= x;
+			if ( err > 0 ) {
+				// ALSA may accept fewer frames than requested. Advance only by
+				// the frames actually written, retaining the rest in the ring.
+				pos = (pos + err) % size;
+				avail -= err;
 			} else {
 				avail = 0;
 			}
@@ -1091,14 +1093,14 @@ static void async_proc( snd_async_handler_t *ahandler )
 				x = size - pos;
 
 			err = _snd_pcm_writei( handle, dma.buffer + pos * frame_sz, x );
-			if ( err >= 0 )
+			if ( err > 0 )
 			{
-				pos = (pos + x) % size;
-				avail -= x;
+				pos = (pos + err) % size;
+				avail -= err;
 			}
 			else
 			{
-				fprintf( stderr, "ALSA write error: %s\n", _snd_strerror( err ) );
+				if ( err < 0 ) fprintf( stderr, "ALSA write error: %s\n", _snd_strerror( err ) );
 				break;
 			}
 		}
@@ -1110,6 +1112,9 @@ static void async_proc( snd_async_handler_t *ahandler )
 #else
 		_pthread_mutex_unlock( &mutex );
 #endif
+		// Yield on no progress or error. Rechecking an unchanged availability
+		// in this callback would otherwise spin without writing any samples.
+		if ( err <= 0 ) return;
 	}
 }
 

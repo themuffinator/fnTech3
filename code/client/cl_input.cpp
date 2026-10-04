@@ -28,9 +28,11 @@ extern "C" {
 #include "client_cpp.h"
 #include "client_q3test.h"
 #include "input_compat.hpp"
+#include "client_jka_command_values.hpp"
 #include "alice_input.hpp"
 #include "../compat/rtcw_game_abi.h"
 #include "../compat/stvef_game_abi.h"
+#include "../compat/wolfet_game_abi.h"
 #include "../qcommon/netchan_safety.hpp"
 #include "cl_mohaa.h"
 
@@ -46,7 +48,7 @@ constexpr std::size_t kInputButtonCount = 16;
 struct InputCommandBinding {
 	const char *name;
 	xcommand_t handler;
-	bool rtcwOnly = false;
+	bool wolfensteinOnly = false;
 	comGameId_t profile = COM_GAME_AUTO;
 	// Alice registers a narrower set than Quake III (alice.exe CL_InitInput
 	// 0x00428d60): no +attack and nothing past +button6.
@@ -546,11 +548,13 @@ static void IN_RTCWButtonUp( void ) {
 }
 
 static bool IN_CommandBindingEnabled( const InputCommandBinding& binding ) {
-	if ( binding.rtcwOnly && !Com_GameIsRTCW() ) return false;
+	if ( binding.wolfensteinOnly && !Com_GameIsRTCW() && !Com_GameIsWolfET() ) return false;
 	if ( binding.notAlice && Com_GameIsRitual() ) return false;
 	if ( binding.profile == COM_GAME_RTCW_SP ) return Com_GameIsRTCWSP();
 	if ( binding.profile == COM_GAME_RTCW_MP ) return Com_GameIsRTCWMP();
 	if ( binding.profile == COM_GAME_STVEF_MP ) return Com_GameIsSTVEFMP();
+	if ( binding.profile == COM_GAME_STVEF_SP ) return Com_GameIsSTVEFSP();
+	if ( binding.profile == COM_GAME_WOLFET ) return Com_GameIsWolfET();
 	// F.A.K.K.2 shares these buttons at the same bits: its SDK header
 	// numbers attackright 0, attackleft 1, sneak 2, holster 4 and use 5.
 	if ( binding.profile == COM_GAME_ALICE ) return Com_GameIsRitual();
@@ -626,6 +630,9 @@ static constexpr std::array kInputCommandBindings{
 	InputCommandBinding{ "-salute", IN_ButtonUp<3>, true },
 	InputCommandBinding{ "+sprint", IN_ButtonDown<5>, true },
 	InputCommandBinding{ "-sprint", IN_ButtonUp<5>, true },
+	// Original ET cl_input.c places prone at bit 7 of the secondary byte.
+	InputCommandBinding{ "+prone", IN_RTCWButtonDown<7>, false, COM_GAME_WOLFET },
+	InputCommandBinding{ "-prone", IN_RTCWButtonUp<7>, false, COM_GAME_WOLFET },
 	InputCommandBinding{ "+attack2", IN_RTCWButtonDown<0>, true },
 	InputCommandBinding{ "-attack2", IN_RTCWButtonUp<0>, true },
 	InputCommandBinding{ "+zoom", IN_RTCWButtonDown<1>, true },
@@ -652,6 +659,12 @@ static constexpr std::array kInputCommandBindings{
 	InputCommandBinding{ "-altattack", IN_ButtonUp<5>, false, COM_GAME_STVEF_MP },
 	InputCommandBinding{ "+use", IN_ButtonDown<6>, false, COM_GAME_STVEF_MP },
 	InputCommandBinding{ "-use", IN_ButtonUp<6>, false, COM_GAME_STVEF_MP },
+	// SP's retail callbacks: +use 0x4052f0 is +button5, and +altattack
+	// 0x405330 is button7. Holomatch owns different bits for these aliases.
+	InputCommandBinding{ "+altattack", IN_ButtonDown<7>, false, COM_GAME_STVEF_SP },
+	InputCommandBinding{ "-altattack", IN_ButtonUp<7>, false, COM_GAME_STVEF_SP },
+	InputCommandBinding{ "+use", IN_ButtonDown<5>, false, COM_GAME_STVEF_SP },
+	InputCommandBinding{ "-use", IN_ButtonUp<5>, false, COM_GAME_STVEF_SP },
 	// Alice's own buttons (alice.exe CL_InitInput 0x00428d60), each a two-line
 	// stub around IN_KeyDown or IN_KeyUp: attackright and attackleft on buttons
 	// 0 and 1 (0x00427e80..0x00427eb0), sneak on 2 (0x00427f00), holster on 4
@@ -792,7 +805,7 @@ static void CL_KeyMove( usercmd_t *cmd ) {
 		side, -movespeed * CL_KeyState( &in_moveleft ) );
 
 	// RTCW uses activate + keyboard strafe to lean without moving sideways.
-	if ( Com_GameIsRTCW() && ( cmd->buttons & FNTECH3_RTCW_BUTTON_ACTIVATE ) ) {
+	if ( ( Com_GameIsRTCW() || Com_GameIsWolfET() ) && ( cmd->buttons & FNTECH3_RTCW_BUTTON_ACTIVATE ) ) {
 		if ( side > 0 ) cmd->rtcw.wbuttons |= FNTECH3_RTCW_WBUTTON_LEANRIGHT;
 		if ( side < 0 ) cmd->rtcw.wbuttons |= FNTECH3_RTCW_WBUTTON_LEANLEFT;
 		side = 0;
@@ -1399,20 +1412,21 @@ static void CL_CmdButtons( usercmd_t *cmd ) {
 	// send a button bit even if the key was pressed and released in
 	// less than a frame
 	//
-	// Elite Force's command has one button byte: seven buttons, then "any key".
-	const std::size_t buttonCount = Com_GameIsSTVEFMP()
-		? FNTECH3_STVEF_MP_BUTTON_COUNT : in_buttons.size();
+	// Holomatch and ET have seven action buttons; Elite Force SP has eight.
+	const std::size_t buttonCount = Com_GameIsWolfET() ? FNTECH3_WOLFET_BUTTON_COUNT :
+		Com_GameIsSTVEFMP() ? FNTECH3_STVEF_MP_BUTTON_COUNT :
+		Com_GameIsSTVEFSP() ? FNTECH3_STVEF_SP_BUTTON_COUNT : in_buttons.size();
 	for ( std::size_t i = 0; i < in_buttons.size(); i++ ) {
 		if ( i < buttonCount && ( in_buttons[i].active || in_buttons[i].wasPressed ) ) {
 			cmd->buttons |= 1 << static_cast<int>( i );
 		}
 		in_buttons[i].wasPressed = false;
 	}
-	if ( Com_GameIsRTCW() ) {
+	if ( Com_GameIsRTCW() || Com_GameIsWolfET() ) {
 		for ( std::size_t i = 0; i < in_rtcwButtons.size(); ++i ) {
 			const bool pressed = in_rtcwButtons[i].active || in_rtcwButtons[i].wasPressed;
 			if ( i < 8 && pressed ) cmd->rtcw.wbuttons |= 1u << i;
-			if ( i == 8 ) cmd->rtcw.wolfkick = pressed ? 1 : 0;
+			if ( i == 8 && Com_GameIsRTCW() ) cmd->rtcw.wolfkick = pressed ? 1 : 0;
 			in_rtcwButtons[i].wasPressed = false;
 		}
 	}
@@ -1426,8 +1440,10 @@ static void CL_CmdButtons( usercmd_t *cmd ) {
 	// allow the game to know if any key at all is
 	// currently pressed, even if it isn't bound to anything
 	if ( anykeydown && !gameplayInputCaptured ) {
-		cmd->buttons |= Com_GameIsRTCW() ? FNTECH3_RTCW_BUTTON_ANY :
-			Com_GameIsSTVEFMP() ? FNTECH3_STVEF_MP_BUTTON_ANY : BUTTON_ANY;
+		cmd->buttons |= Com_GameIsWolfET() ? FNTECH3_WOLFET_BUTTON_ANY :
+			Com_GameIsRTCW() ? FNTECH3_RTCW_BUTTON_ANY :
+			Com_GameIsSTVEFMP() ? FNTECH3_STVEF_MP_BUTTON_ANY :
+			Com_GameIsSTVEFSP() ? FNTECH3_STVEF_SP_BUTTON_ANY : BUTTON_ANY;
 	}
 }
 
@@ -1766,6 +1782,8 @@ static void CL_FinishMove( usercmd_t *cmd ) {
 		// to whatever this frame's movement decided.
 		cmd->wolfet.flags = cl.cgameWolfETCommand.flags;
 		cmd->wolfet.identClient = cl.cgameWolfETCommand.identClient;
+	} else if ( Com_GameIsJKAMP() ) {
+		fntech3::jka::command::selections.Publish( *cmd );
 	}
 
 	// send the current server time so the amount of movement
@@ -2230,7 +2248,21 @@ void CL_SendCmd( void ) {
 CL_InitInput
 ============
 */
+static void CL_InputStatus_f( void ) {
+	const usercmd_t &cmd = cl.cmds[cl.cmdNumber & CMD_MASK];
+	Com_Printf( "input-status: profile=%s state=%d catcher=%d mouse=%d freelook=%d "
+		"paused=%d/%d cmd=%d time=%d buttons=%d move=%d,%d,%d "
+		"view=%.3f,%.3f,%.3f origin=%.3f,%.3f,%.3f\n",
+		Com_GameProfile()->key, cls.state, Key_GetCatcher(), Cvar_VariableIntegerValue( "in_mouse" ),
+		cl_freelook ? cl_freelook->integer : 0,
+		cl_paused ? cl_paused->integer : 0, sv_paused ? sv_paused->integer : 0,
+		cl.cmdNumber, cmd.serverTime, cmd.buttons, cmd.forwardmove, cmd.rightmove, cmd.upmove,
+		cl.viewangles[0], cl.viewangles[1], cl.viewangles[2],
+		cl.snap.ps.origin[0], cl.snap.ps.origin[1], cl.snap.ps.origin[2] );
+}
+
 void CL_InitInput( void ) {
+	Cmd_AddCommand( "inputstatus", CL_InputStatus_f );
 	// American McGee's Alice registers its input cvars under its own names,
 	// defaults and flags (alice.exe CL_Init 0x0042c8a5..0x0042ca99); every
 	// other profile keeps the registrations below unchanged.
@@ -2371,6 +2403,7 @@ CL_ClearInput
 ============
 */
 void CL_ClearInput( void ) {
+	Cmd_RemoveCommand( "inputstatus" );
 	mouseAccelDebugLog.reset();
 	mouseAccelDebugOpenFailed = false;
 	retailMouseFilter.Reset();

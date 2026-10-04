@@ -34,6 +34,7 @@ extern "C" {
 #include "../../qcommon/alice_tiki.h"
 #include "shared/AliceMusic.h"
 #include "shared/AliceSound.h"
+#include "shared/AudioStreamResampler.h"
 
 #include <array>
 #include <cmath>
@@ -83,8 +84,8 @@ bool ReadImage( const char *name, Image &image ) {
 
 /* ---- one decoded track ------------------------------------------------ */
 
-/* An MP3 image being decoded, and the linear resampler that brings it to the
- * mix rate. `position` counts the file's frames from its start, so a song
+/* An MP3 image being decoded, brought to the mix rate by the shared filter
+ * when needed. `position` counts the file's frames from its start, so a song
  * started 2,778 bytes in has already passed the frames before them. */
 struct Track {
 #ifdef USE_CODEC_MP3
@@ -94,6 +95,7 @@ struct Track {
 	int loopOffset = 0;
 	bool loop = false;
 	bool ended = false;
+	bool inputEnded = false;
 	std::int64_t position = 0;
 	double phase = 0.0;
 	float previous[2] = { 0.0f, 0.0f };
@@ -101,6 +103,10 @@ struct Track {
 	bool primed = false;
 	std::vector<std::int16_t> raw;
 	std::size_t rawAt = 0;
+	fntech3::audio::CubicStreamResampler converter;
+	std::vector<float> converted;
+	std::size_t convertedAt = 0;
+	std::int64_t convertedInputFrames = 0, mixedOutputFrames = 0;
 	/* The gain the last mix ended on, or negative before the first. */
 	float applied = -1.0f;
 
@@ -119,6 +125,7 @@ struct Track {
 		loopOffset = other.loopOffset;
 		loop = other.loop;
 		ended = other.ended;
+		inputEnded = other.inputEnded;
 		position = other.position;
 		phase = other.phase;
 		previous[0] = other.previous[0];
@@ -128,6 +135,11 @@ struct Track {
 		primed = other.primed;
 		raw = std::move( other.raw );
 		rawAt = other.rawAt;
+		converter = std::move( other.converter );
+		converted = std::move( other.converted );
+		convertedAt = other.convertedAt;
+		convertedInputFrames = other.convertedInputFrames;
+		mixedOutputFrames = other.mixedOutputFrames;
 		applied = other.applied;
 		other.Reset();
 		return *this;
@@ -164,6 +176,10 @@ struct Track {
 			Close();
 			return false;
 		}
+		if ( info.rate != kMixRate && !converter.Configure( info.rate, kMixRate, kMixChannels ) ) {
+			Close();
+			return false;
+		}
 		loop = looping;
 		loopOffset = startOffset( info.rate, S_MP3_MemoryStartOffset( decoder ) );
 		position = S_MP3_SeekFileOffset( decoder, loopOffset );
@@ -181,7 +197,11 @@ struct Track {
 	/* Milliseconds of the file left, or -1 where that is not measured. */
 	int Remaining() const {
 		if ( !Open() || loop || info.samples <= 0 || info.rate <= 0 ) return -1;
-		const std::int64_t left = info.samples - position;
+		// Non-native tracks decode filter lookahead and a small output chunk.
+		// Remaining time follows mixed frames, not this read-ahead cursor.
+		const std::int64_t ahead = info.rate == kMixRate ? 0 : convertedInputFrames -
+			(std::min)( convertedInputFrames, mixedOutputFrames * info.rate / kMixRate );
+		const std::int64_t left = info.samples - position + ahead;
 		return left <= 0 ? 0 : static_cast<int>( left * 1000 / info.rate );
 	}
 
@@ -212,19 +232,30 @@ struct Track {
 #else
 		(void)out;
 #endif
-		ended = true;
+		inputEnded = true;
 		return false;
 	}
 
 	/* Adds `frames` mix frames times a gain moving from where the last call
 	 * left it to `gain`, so a fade is heard as a ramp and not as steps. */
 	void Mix( float gain, float *mix, int frames ) {
-		if ( !Playing() || frames <= 0 ) return;
+		if ( !Playing() || frames <= 0 || mix == nullptr ) return;
+		if ( !std::isfinite( gain ) ) gain = 0.0f;
 		const float from = applied < 0.0f ? gain : applied;
 		applied = gain;
+		if ( info.rate != kMixRate ) {
+			for ( int i = 0; i < frames; ++i ) {
+				if ( convertedAt >= converted.size() && !FillConverted() ) return;
+				const float g = from + ( gain - from ) * static_cast<float>( i + 1 ) / static_cast<float>( frames );
+				for ( int c = 0; c < kMixChannels; ++c ) mix[2 * i + c] += g * converted[convertedAt + c];
+				convertedAt += kMixChannels;
+				++mixedOutputFrames;
+			}
+			return;
+		}
 		const double step = static_cast<double>( info.rate ) / kMixRate;
 		if ( !primed ) {
-			if ( !Pull( previous ) ) return;
+			if ( !Pull( previous ) ) { ended = true; return; }
 			if ( !Pull( next ) ) {
 				next[0] = previous[0];
 				next[1] = previous[1];
@@ -241,25 +272,61 @@ struct Track {
 			phase += step;
 			while ( phase >= 1.0 ) {
 				phase -= 1.0;
+				// Decoder exhaustion leaves the last frame in the interpolator.
+				// Drain its full output duration, including across Mix calls.
+				if ( inputEnded ) { ended = true; return; }
 				previous[0] = next[0];
 				previous[1] = next[1];
-				if ( !Pull( next ) ) return;
+				if ( !Pull( next ) ) {
+					next[0] = previous[0];
+					next[1] = previous[1];
+				}
 			}
 		}
 	}
 
 private:
+	bool FillConverted() {
+		converted.clear();
+		convertedAt = 0;
+		while ( converted.empty() && !inputEnded ) {
+			std::array<float, 64 * kMixChannels> input;
+			int count = 0;
+			for ( ; count < 64; ++count ) {
+				if ( !Pull( input.data() + count * kMixChannels ) ) break;
+				++convertedInputFrames;
+			}
+			if ( count && !converter.Push( input.data(), count, converted ) ) {
+				ended = true;
+				return false;
+			}
+			if ( inputEnded ) {
+				std::vector<float> tail;
+				if ( !converter.Finish( tail ) ) { ended = true; return false; }
+				converted.insert( converted.end(), tail.begin(), tail.end() );
+			}
+		}
+		// Exhaustion is final only after converted PCM and the filter tail drain.
+		ended = converted.empty();
+		return !ended;
+	}
+
 	void Reset() {
 		info = snd_info_t{};
 		loopOffset = 0;
 		loop = false;
 		ended = false;
+		inputEnded = false;
 		position = 0;
 		phase = 0.0;
 		previous[0] = previous[1] = next[0] = next[1] = 0.0f;
 		primed = false;
 		raw.clear();
 		rawAt = 0;
+		converter = {};
+		converted.clear();
+		convertedAt = 0;
+		convertedInputFrames = mixedOutputFrames = 0;
 		applied = -1.0f;
 	}
 };
@@ -369,19 +436,26 @@ Track mp3Track;
  * drops its track, and the next update hands it back. */
 bool mixAttached = false;
 std::vector<float> mixScratch;
+bool AnythingSounds();
 
 int MixRead( snd_stream_t *, int bytes, void *buffer ) {
 	const int frames = bytes / static_cast<int>( sizeof( std::int16_t ) * kMixChannels );
-	if ( frames <= 0 ) return 0;
+	if ( frames <= 0 || buffer == nullptr ) return 0;
+	// EOF lets the backend drain its accepted PCM and stop the idle stream.
+	// A later song/movie reattaches through the ordinary update path.
+	if ( !AnythingSounds() ) return 0;
 	mixScratch.assign( static_cast<std::size_t>( frames ) * kMixChannels, 0.0f );
 	player.Mix( music, mixScratch.data(), frames );
 	/* No volume is ever set on the cinematic handle (0x0046ee75), so it
 	 * plays at Miles's full scale. */
 	mp3Track.Mix( 1.0f, mixScratch.data(), frames );
-	auto *out = static_cast<std::int16_t *>( buffer );
+	auto *out = static_cast<byte *>( buffer );
 	for ( std::size_t i = 0; i < mixScratch.size(); ++i ) {
 		const float v = mixScratch[i];
-		out[i] = static_cast<std::int16_t>( v > 32767.0f ? 32767 : v < -32768.0f ? -32768 : static_cast<int>( v ) );
+		const auto sample = !std::isfinite( v ) ? std::int16_t{0} :
+			static_cast<std::int16_t>( v > 32767.0f ? 32767 : v < -32768.0f ? -32768 : static_cast<int>( v ) );
+		// Codec output is native PCM, but its byte buffer need not be aligned.
+		std::memcpy( out + i * sizeof( sample ), &sample, sizeof( sample ) );
 	}
 	return frames * static_cast<int>( sizeof( std::int16_t ) ) * kMixChannels;
 }

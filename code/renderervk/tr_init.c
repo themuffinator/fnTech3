@@ -22,6 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_init.c -- functions that are not called every frame
 
 #include "tr_local.h"
+
+qhandle_t RE_RegisterRuntimeMDR( uint64_t ownerNonce, const void *data, int bytes );
+qboolean RE_UpdateRuntimeMDRPose( qhandle_t handle, uint64_t ownerNonce,
+	const float *matrices, int boneCount, const vec3_t mins, const vec3_t maxs );
 #include "../renderercommon/tr_q3_ihv_model.h"
 #include "../renderercommon/tr_stvef_cvars.h"
 #include "../renderercommon/tr_fnq3_bloom_config.h"
@@ -3944,6 +3948,16 @@ static qhandle_t RE_RegisterShaderFromRGBA( const char *name, byte *rgba,
 GetRefAPI
 @@@@@@@@@@@@@@@@@@@@@
 */
+static void RE_GetTextureCapabilities( float *anisotropy, qboolean *clamp ) {
+#ifdef USE_VULKAN_API
+	if ( anisotropy ) *anisotropy = vk.samplerAnisotropy ? vk.maxAnisotropy : 0.0f;
+	if ( clamp ) *clamp = qtrue;
+#else
+	if ( anisotropy ) *anisotropy = (float)maxAnisotropy;
+	if ( clamp ) *clamp = gl_clamp_mode == GL_CLAMP_TO_EDGE ? qtrue : qfalse;
+#endif
+}
+
 static void RE_TransformModelToClip( const vec3_t point, vec4_t eye, vec4_t clip ) {
 	R_TransformModelToClip( point, tr.viewParms.world.modelMatrix,
 		tr.viewParms.projectionMatrix, eye, clip );
@@ -4074,6 +4088,10 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.DrawMenuBlur = RE_DrawMenuBlur;
 	re.CanMinimize = RE_CanMinimize;
 	re.GetConfig = RE_GetConfig;
+	re.GetTextureCapabilities = RE_GetTextureCapabilities;
+	re.RegisterRuntimeMDR = RE_RegisterRuntimeMDR;
+	re.UpdateRuntimeMDRPose = RE_UpdateRuntimeMDRPose;
+	re.GetJKADistanceCull = RE_GetJKADistanceCull;
 	re.VertexLighting = RE_VertexLighting;
 	re.SyncRender = RE_SyncRender;
 	re.TransformModelToClip = RE_TransformModelToClip;

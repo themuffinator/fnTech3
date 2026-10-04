@@ -15,6 +15,8 @@ extern "C" {
 #include "rtcw_message_codec_tests.hpp"
 #include "stvef_message_codec_tests.hpp"
 #include "stvef_ioef_message_tests.hpp"
+#include "jka_message_codec_tests.hpp"
+#include "jk2_engine_message_tests.hpp"
 
 extern "C" int Test_CatchMessageDrop( void (*callback)( void * ), void *context );
 extern "C" void Test_RaiseExpectedMessageDrop( void );
@@ -784,6 +786,8 @@ int TestFloatDeltaBitPatterns() {
 		{ 0xc5800000u, true, -4096 },   // compact lower integer
 		{ 0x45800000u, false, 0 },      // +4096
 		{ 0xc5800800u, false, 0 },      // -4097
+		{ 0x46000000u, false, 0 },      // +8192
+		{ 0xc6000000u, false, 0 },      // -8192
 		{ 0x457ff800u, false, 0 },      // +4095.5
 		{ 0xc5800200u, false, 0 },      // -4096.25
 		{ 0x3fa00000u, false, 0 },      // +1.25
@@ -1295,6 +1299,8 @@ int TestRetailMovementBytePayloads() {
 } // namespace
 
 int main() {
+	if ( const int result = TestJK2MessageCodecs() ) return 40000 + result;
+	if ( const int result = TestJKAMessageCodecs() ) return 30000 + result;
 	if ( const int result = TestRTCWMessageCodecs() ) return result;
 	if ( const int result = TestSTVEFMessageCodecs() ) return 10000 + result;
 	if ( const int result = TestIOEFMessageCodecs() ) return 20000 + result;

@@ -5,6 +5,7 @@
 #if defined(USE_SDL_SYSCON) && !defined(DEDICATED)
 
 #include "../sdl/sdl_icon.h"
+#include "../platform/system_console_theme.hpp"
 
 // SDL's accelerated console renderer makes its own context current. Console
 // output can run in the middle of engine texture uploads or frame rendering.
@@ -101,16 +102,24 @@ typedef struct {
 static sysconData_t s_syscon;
 static sysconLine_t s_wrappedLines[SYSCON_MAX_SIZE];
 
-static const SDL_Color SYSCON_WINDOW_BG      = { 0x05, 0x0A, 0x12, 0xFF };
-static const SDL_Color SYSCON_HEADER_BG      = { 0x0B, 0x14, 0x21, 0xFF };
-static const SDL_Color SYSCON_PANEL_BG       = { 0x0D, 0x16, 0x24, 0xFF };
-static const SDL_Color SYSCON_INPUT_BG       = { 0x10, 0x1B, 0x2B, 0xFF };
-static const SDL_Color SYSCON_BORDER         = { 0x21, 0x34, 0x49, 0xFF };
-static const SDL_Color SYSCON_TEXT           = { 0xDE, 0xE7, 0xF1, 0xFF };
-static const SDL_Color SYSCON_MUTED          = { 0x93, 0xA4, 0xBA, 0xFF };
-static const SDL_Color SYSCON_ACCENT         = { 0x57, 0xBC, 0xFF, 0xFF };
-static const SDL_Color SYSCON_BUTTON_BG      = { 0x14, 0x22, 0x33, 0xFF };
-static const SDL_Color SYSCON_BUTTON_HOVER   = { 0x1A, 0x2C, 0x44, 0xFF };
+static fntech3::syscon::Palette s_consolePalette =
+	fntech3::syscon::ForTitle( static_cast<comGameTitleId_t>( 0 ) );
+
+static SDL_Color SysCon_Color( fntech3::syscon::Color color )
+{
+	return { color.r, color.g, color.b, 0xFF };
+}
+
+#define SYSCON_WINDOW_BG    SysCon_Color(s_consolePalette.window)
+#define SYSCON_HEADER_BG    SysCon_Color(s_consolePalette.footer)
+#define SYSCON_PANEL_BG     SysCon_Color(s_consolePalette.panel)
+#define SYSCON_INPUT_BG     SysCon_Color(s_consolePalette.input)
+#define SYSCON_BORDER       SysCon_Color(s_consolePalette.border)
+#define SYSCON_TEXT         SysCon_Color(s_consolePalette.text)
+#define SYSCON_MUTED        SysCon_Color(s_consolePalette.muted)
+#define SYSCON_ACCENT       SysCon_Color(s_consolePalette.accent)
+#define SYSCON_BUTTON_BG    SysCon_Color(s_consolePalette.button)
+#define SYSCON_BUTTON_HOVER SysCon_Color(s_consolePalette.buttonHover)
 static const SDL_Color SYSCON_ERROR_BG       = { 0x38, 0x12, 0x18, 0xFF };
 static const SDL_Color SYSCON_ERROR_TEXT     = { 0xFF, 0xC9, 0x73, 0xFF };
 
@@ -963,15 +972,7 @@ static qboolean SysCon_EnsureCreated( void )
 	SDL_SetWindowMinimumSize( s_syscon.window, SYSCON_MIN_WIDTH, SYSCON_MIN_HEIGHT );
 	SDL_StartTextInput( s_syscon.window );
 
-	// Match the game window: the active game's built-in icon once a profile is
-	// selected (unless cl_gameIcon is 0), the fnTech3 icon before that.
-	{
-		const comGameProfile_t *profile = Com_GameProfile();
-		const char *gameIcon = profile ? Cvar_VariableString( "cl_gameIcon" ) : "0";
-		const fntech3::icon::Mode mode = fntech3::icon::ModeFromCvar( *gameIcon ? atoi( gameIcon ) : 1 );
-		fntech3::icon::SetWindowIcon( s_syscon.window, NULL, COM_GAME_AUTO, profile ? profile->key : NULL,
-			mode == fntech3::icon::Mode::Engine ? mode : fntech3::icon::Mode::BuiltIn );
-	}
+	Sys_UpdateConsolePresentation();
 
 	s_syscon.windowID = SDL_GetWindowID( s_syscon.window );
 	s_syscon.videoStarted = startVideo ? qtrue : qfalse;
@@ -1007,6 +1008,20 @@ void Sys_SetConsoleTitle( const char *title )
 	if ( s_syscon.window ) {
 		SDL_SetWindowTitle( s_syscon.window, s_syscon.title );
 	}
+	s_syscon.dirty = qtrue;
+}
+
+void Sys_UpdateConsolePresentation( void )
+{
+	const comGameProfile_t *profile = Com_GameProfile();
+	s_consolePalette = fntech3::syscon::ForTitle( profile
+		? profile->titleId : static_cast<comGameTitleId_t>( 0 ) );
+	if ( s_syscon.window ) {
+		fntech3::icon::SetWindowIcon( s_syscon.window, NULL, COM_GAME_AUTO,
+			profile ? profile->key : NULL, profile
+				? fntech3::icon::Mode::BuiltIn : fntech3::icon::Mode::Engine );
+	}
+	s_syscon.dirty = qtrue;
 }
 
 void Sys_DestroyConsole( void )
@@ -1300,6 +1315,10 @@ void Sys_CreateConsole( const char *title, int xPos, int yPos, qboolean useXYpos
 }
 
 void Sys_SetConsoleTitle( const char *title )
+{
+}
+
+void Sys_UpdateConsolePresentation( void )
 {
 }
 

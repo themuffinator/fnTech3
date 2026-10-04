@@ -45,7 +45,8 @@ static void SV_Netchan_Encode(client_t *client, msg_t *msg, const char *clientCo
 	key = client->challenge ^ client->netchan.outgoingSequence;
 	fnql::ApplyNetchanXor( msg->data, static_cast<std::size_t>( msg->cursize ),
 		SV_ENCODE_START, key,
-		fnql::NetchanCommandView( clientCommandString, MAX_STRING_CHARS ) );
+		fnql::NetchanCommandView( clientCommandString, MAX_STRING_CHARS ),
+		client->netchan.wireProfile != NETCHAN_WIRE_JKA_MP );
 }
 
 /*
@@ -84,7 +85,8 @@ static void SV_Netchan_Decode( client_t *client, msg_t *msg ) {
 	key = client->challenge ^ serverId ^ messageAcknowledge;
 	fnql::ApplyNetchanXor( msg->data, static_cast<std::size_t>( msg->cursize ),
 		static_cast<std::size_t>( msg->readcount + SV_DECODE_START ), key,
-		fnql::NetchanCommandView( command, MAX_STRING_CHARS ) );
+		fnql::NetchanCommandView( command, MAX_STRING_CHARS ),
+		client->netchan.wireProfile != NETCHAN_WIRE_JKA_MP );
 }
 
 

@@ -69,6 +69,8 @@ vm_t *uivm = nullptr;
 
 namespace {
 
+bool cl_jkaUIInitialized = false;
+
 struct LANServerList {
 	serverInfo_t *servers;
 	int *count;
@@ -1329,9 +1331,22 @@ static bool CL_WolfETUICall( intptr_t *args, intptr_t &operation, intptr_t &resu
 	return false;
 }
 
+#include "client_jk2_ui.hpp"
+#include "client_jka_ui_host.hpp"
+
 static intptr_t CL_UISystemCalls( intptr_t *args ) {
 	intptr_t operation = args[0];
+	if ( Com_GameIsJK2MP() ) {
+		intptr_t jk2Result = 0;
+		if ( CL_JK2UICall( args, operation, jk2Result ) ) return jk2Result;
+	}
 	std::array<intptr_t, 6> browserArguments{};
+	if ( Com_GameIsJKAMP() ) {
+		intptr_t result = 0;
+		intptr_t *sharedArguments = args;
+		if ( CL_JKAUICall( args, operation, result, browserArguments, sharedArguments ) ) return result;
+		args = sharedArguments;
+	}
 	if ( Com_GameIsRTCW() ) {
 		using namespace fntech3::rtcw::module;
 		const auto call = Lookup( Com_GameProfile()->id, Module::UI, Direction::IMPORT, args[0] );
@@ -1608,7 +1623,7 @@ static intptr_t CL_UISystemCalls( intptr_t *args ) {
 	case UI_R_RENDERSCENE: {
 		refdef_t refdef = CL_ModuleRefdef( uivm, args[1] );
 		// Menu scenes keep their authored FOV in every game the renderer corrects.
-		if ( Com_GameIsQuake3() || Com_GameIsSTVEF() ) {
+		if ( Com_GameIsQuake3() || Com_GameIsSTVEF() || Com_GameIsJKA() ) {
 			refdef.rdflags |= RDF_NOFOVCORRECTION;
 		}
 		CL_UIAdjustRefdef( &refdef );
@@ -2709,20 +2724,47 @@ void CL_STVEFSPConnectionText( const char *text, qboolean message ) {
 CL_ShutdownUI
 ====================
 */
+void CL_JKAStringCacheReset( void ) {
+	CL_JKAStringReset();
+}
+
+qboolean CL_UIModuleReady( void ) {
+	return uivm && ( !Com_GameIsJKAMP()
+		|| ( cl_jkaUIInitialized && !com_errorEntered ) ) ? qtrue : qfalse;
+}
+
 void CL_ShutdownUI( void ) {
 	Key_SetCatcher( Key_GetCatcher() & ~KEYCATCH_UI );
 	cls.uiStarted = qfalse;
+	const bool callShutdown = !Com_GameIsJKAMP()
+		|| ( cl_jkaUIInitialized && !com_errorEntered );
+	cl_jkaUIInitialized = false;
 	if ( !uivm ) {
+		if ( Com_GameIsJKAMP() ) {
+			CL_JKAFontReset();
+			CL_JKAStringReset();
+			CL_JKAUIRenderClear();
+			CL_JKAUIGhoul2Clear();
+			FS_VM_CloseFiles( H_Q3UI );
+		}
 		return;
 	}
 	if ( Com_GameIsSTVEFSP() ) {
 		Cmd_RemoveCommand( "genericmenu" );
 		Cmd_RemoveCommand( "endholodeckmenu" );
 	}
-	VM_Call( uivm, 0, UI_SHUTDOWN );
+	// An abandoned native UI_INIT/export may leave the retail module's state
+	// incomplete. Release engine-owned resources without reentering that image.
+	if ( callShutdown ) VM_Call( uivm, 0, UI_SHUTDOWN );
 	VM_Free( uivm );
 	uivm = nullptr;
 	FS_VM_CloseFiles( H_Q3UI );
+	if ( Com_GameIsJKAMP() ) {
+		CL_JKAFontReset();
+		CL_JKAStringReset();
+		CL_JKAUIRenderClear();
+		CL_JKAUIGhoul2Clear();
+	}
 	if ( Com_GameIsQ3Test() ) {
 		CL_Q3TestShutdownUI();
 	}
@@ -2737,6 +2779,7 @@ CL_InitUI
 #define UI_OLD_API_VERSION	4
 
 static bool CL_UIApiVersionSupported( int version, bool structured ) {
+	if ( Com_GameIsJKAMP() ) return fntech3::jka::ui::VersionSupported( version, structured );
 	if ( Com_GameIsRTCW() ) {
 		return !structured && version == FNTECH3_RTCW_UI_API_VERSION;
 	}
@@ -2762,6 +2805,12 @@ static bool CL_UIApiVersionSupported( int version, bool structured ) {
 }
 
 static const char *CL_UIModuleLoadFailureMessage( void ) {
+	if ( Com_GameIsJKAMP() ) {
+		return "VM_Create on Jedi Academy multiplayer UI failed; verify base/assets2.pk3 and assets3.pk3 contain uix86.dll";
+	}
+	if ( Com_GameIsJK2MP() ) {
+		return "VM_Create on Jedi Outcast multiplayer UI failed; verify base/assets0.pk3 contains vm/ui.qvm";
+	}
 	if ( Com_GameIsRTCW() ) {
 		return "VM_Create on RTCW UI failed; verify the UI module matches the "
 			"selected SP/MP mode and fnTech3 architecture in the main/mod directory "
@@ -2786,13 +2835,12 @@ static const char *CL_UIModuleLoadFailureMessage( void ) {
 void CL_InitUI( void ) {
 	int		v;
 	vmInterpret_t		interpret;
+	if ( Com_GameProfile()->id == COM_GAME_JK2_SP ) {
+		Com_Error( ERR_DROP, "jk2-sp is not implemented: Jedi Outcast's single-player menu boundary is open." );
+	}
 
-	/* As with the client game, Jedi Academy's menus speak Raven's own numbers
-	 * and nothing serves them yet. Refuse by name rather than load a retail
-	 * module against an import table it cannot use. */
-	if ( Com_GameIsJKA() ) {
-		Com_Error( ERR_DROP, "%s is not implemented: Jedi Academy's menu module boundary is open.",
-			Com_GameProfile()->key );
+	if ( Com_GameIsJKASP() ) {
+		Com_Error( ERR_DROP, "jka-sp is not implemented: Jedi Academy's single-player engine menu boundary is open." );
 	}
 
 	/* Alice has no menu module to load, which is a contract no other profile
@@ -2847,7 +2895,20 @@ void CL_InitUI( void ) {
 		}
 	}
 
-	if ( Com_GameIsSTVEFSP() ) {
+	if ( Com_GameIsJKAMP() ) {
+		// Retail's pak-borne legacy native UI never receives a Quake Live table.
+		cl_jkaUIInitialized = false;
+		uivm = VM_Create( VM_UI, CL_UISystemCalls, UI_DllSyscall,
+			interpret == VMI_PINNED_NATIVE ? VMI_PINNED_NATIVE : VMI_NATIVE );
+		if ( !uivm ) Com_Error( ERR_FATAL, "%s", CL_UIModuleLoadFailureMessage() );
+	}
+	else if ( Com_GameIsJK2MP() ) {
+		// Retail ships a QVM and cannot receive a native Quake Live table.
+		uivm = VM_Create( VM_UI, CL_UISystemCalls, UI_DllSyscall,
+			interpret == VMI_BYTECODE ? VMI_BYTECODE : VMI_COMPILED );
+		if ( !uivm ) Com_Error( ERR_FATAL, "%s", CL_UIModuleLoadFailureMessage() );
+	}
+	else if ( Com_GameIsSTVEFSP() ) {
 		// Elite Force SP's menus are a function table.
 		uivm = CL_STVEFSPLoadUI();
 		if ( !uivm ) {
@@ -2880,7 +2941,8 @@ void CL_InitUI( void ) {
 	// sanity check
 	v = VM_Call( uivm, 0, UI_GETAPIVERSION );
 	if ( !CL_UIApiVersionSupported( v, uivm->dllExports != nullptr ) ) {
-		const char *expected = Com_GameIsRTCW() || Com_GameIsSTVEFMP() ? "4" : Com_GameIsSTVEFSP() ? "2"
+		const char *expected = Com_GameIsJKAMP() ? "7"
+			: Com_GameIsRTCW() || Com_GameIsSTVEFMP() ? "4" : Com_GameIsSTVEFSP() ? "2"
 			: Com_GameIsQuake3() ? "4 or 6"
 			: uivm->dllExports ? "8" : "4, 6, 7 or 8";
 		// Free uivm now, so UI_SHUTDOWN doesn't get called later.
@@ -2895,6 +2957,7 @@ void CL_InitUI( void ) {
 
 	// init for this gamestate
 	VM_Call( uivm, 1, UI_INIT, (cls.state >= CA_AUTHORIZING && cls.state < CA_ACTIVE) );
+	cl_jkaUIInitialized = Com_GameIsJKAMP();
 
 	// Holomatch's UI asks for a CD key until these are set. Raven's key check
 	// and authorize service are not part of this engine, so it never asks.

@@ -1,0 +1,337 @@
+{
+  "date": "2026-10-02",
+  "profile": "jk2-mp",
+  "sourceCommit": "a1251ede2c382190b18c154b45357f6979d8171c",
+  "sourceIncludesUncommittedWork": true,
+  "platform": "Windows x86",
+  "evidenceLevels": [
+    "Source",
+    "Unit",
+    "Asset"
+  ],
+  "fullCompatibilityEstablished": false,
+  "installation": "E:/Games/Jedi Outcast",
+  "installationWritten": false,
+  "installationVersion": "1.02a",
+  "retailSha256": {
+    "jk2mp.exe": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a",
+    "vm/cgame.qvm": "82c6543ad48508e153672673b02f94a7e264a91a8be9e01e83c46687a0033466",
+    "vm/ui.qvm": "19e372d0381b8b53965bd0fc38cae0eef266b3aab68e9088f915894fadca3a4f"
+  },
+  "dispatchers": {
+    "cgame": {
+      "entry": "0x4017a0",
+      "maximumOrdinal": 300,
+      "indexTable": "0x4031a0",
+      "jumpTable": "0x402f14",
+      "distinctQvmImports": 133
+    },
+    "ui": {
+      "entry": "0x40fb70",
+      "maximumOrdinal": 202,
+      "indexTable": "0x410894",
+      "jumpTable": "0x4106fc",
+      "distinctQvmImports": 69
+    }
+  },
+  "records": {
+    "gamestate": {
+      "bytes": 21604,
+      "offsets": 1400,
+      "stringBytes": 16000,
+      "copy": "0x401000"
+    },
+    "glconfig": {
+      "bytes": 11332,
+      "copies": [
+        "0x401020",
+        "0x4114d0"
+      ],
+      "fieldMeanings": "Quake III equality inferred; whole size observed"
+    },
+    "uiClientState": {
+      "bytes": 3084,
+      "stringOffsets": [
+        12,
+        1036,
+        2060
+      ],
+      "writer": "0x410960"
+    },
+    "snapshot": {
+      "bytes": 77200,
+      "playerOffset": 44,
+      "playerBytes": 1368,
+      "entityCountOffset": 1412,
+      "entityOffset": 1416,
+      "entityBytes": 296,
+      "maximumEntities": 256,
+      "serverCommandSequenceOffset": 77196,
+      "writer": "0x4010c0"
+    },
+    "usercmd": {
+      "bytes": 28,
+      "copy": "0x401040"
+    }
+  },
+  "mapChange": {
+    "svcOpcode": 8,
+    "svcEof": 9,
+    "dispatchTable": "0x40ee2c",
+    "handler": "0x40edd7",
+    "cgameExport": 24,
+    "arguments": 0,
+    "payloadBytes": 0,
+    "name": "CG_MAP_CHANGE",
+    "nameEvidence": "later OpenJK contract; invocation observed in retail"
+  },
+  "fontAdapter": {
+    "formatBytes": 7180,
+    "glyphs": 256,
+    "glyphBytes": 28,
+    "retailAssetsAccepted": [
+      {
+        "path": "fonts/anewhope.fontdat",
+        "pointSize": 17,
+        "height": 20
+      },
+      {
+        "path": "fonts/ergoec.fontdat",
+        "pointSize": 20,
+        "height": 22
+      },
+      {
+        "path": "fonts/ocr_a.fontdat",
+        "pointSize": 18,
+        "height": 21
+      }
+    ],
+    "cgameImports": [
+      47,
+      48,
+      49,
+      50,
+      51
+    ],
+    "uiImports": [
+      56,
+      57,
+      58,
+      59,
+      60
+    ],
+    "pipeline": [
+      "RegisterShaderNoMip",
+      "CL_HudDrawStretchPic",
+      "CL_UIAdjustStretchPic",
+      "DrawStretchPic"
+    ],
+    "reference": "https://github.com/JACoders/OpenJK/blob/1a6a643427aa347553e9073dac5570b33337c4d9/codemp/qcommon/qfiles.h",
+    "referenceLicence": "GPL-2.0",
+    "incorporatedImplementationText": false,
+    "runtimeVisualVerification": false,
+    "retailExactOptionAdded": false,
+    "pending": [
+      "Asian services",
+      "localized atlas overrides",
+      "String Package service",
+      "retail metric comparison"
+    ]
+  },
+  "tests": [
+    {
+      "source": "tests/jk2_client_adapter_tests.cpp",
+      "outcome": "passed",
+      "target": "i686-pc-windows-msvc"
+    },
+    {
+      "source": "tests/jk2_font_tests.cpp",
+      "outcome": "passed",
+      "target": "i686-pc-windows-msvc",
+      "assetProbe": "3/3 accepted"
+    },
+    {
+      "source": "code/client/cl_cgame.cpp",
+      "check": "MSVC /Zs with win32-dev definitions",
+      "outcome": "passed"
+    },
+    {
+      "source": "code/client/cl_ui.cpp",
+      "check": "MSVC /Zs with win32-dev definitions",
+      "outcome": "passed"
+    }
+  ],
+  "evidenceRoot": ".tmp/jk2-client-audit",
+  "extractedProprietaryInputsRetained": false,
+  "runtimeBinaryReplaced": false,
+  "presentationFeaturesNotExercised": [
+    "world lighting",
+    "shadows",
+    "static lighting",
+    "engine sidecars",
+    "spatial audio",
+    "occlusion",
+    "EFX",
+    "zones",
+    "HRTF"
+  ],
+  "remainingBoundaries": [
+    "menu/key services",
+    "localization",
+    "RBSP renderer with four light styles and light-array indexing",
+    "Raven render records",
+    "Ghoul2 client model submission",
+    "effects",
+    "ambient sets",
+    "audio channels",
+    "single-player client/campaign/save boundary"
+  ],
+  "finalIntegrationChecks": {
+    "dateUTC": "2026-10-02T17:03:19.482176+00:00",
+    "platform": "Windows x86",
+    "build": "meson/build/win32-dev, MSVC /W4 /WX /O2",
+    "buildSucceeded": true,
+    "buildLogs": [
+      ".tmp/jk2-compat-2026-10-02/final-build-retry.log",
+      ".tmp/jk2-compat-2026-10-02/final-build-font-bounds.log"
+    ],
+    "selectedMesonTests": {
+      "passed": 13,
+      "failed": 0,
+      "log": ".tmp/jk2-compat-2026-10-02/final-tests.log",
+      "includes": "JK2 ABI, handshake, client transfer, font, message codec, SP host/state, shared game profiles, netchan profiles/codec/safety, message codec, protocol layout/contract"
+    },
+    "binaries": [
+      {
+        "path": "meson/build/win32-dev/fntech3.exe",
+        "bytes": 13140992,
+        "sha256": "e0f0861b26f3c06c27ba5dbf41a0bb9bb52b7be98000ba51279a9b590f6ab3d5"
+      },
+      {
+        "path": "meson/build/win32-dev/fntech3.ded.exe",
+        "bytes": 5630976,
+        "sha256": "de1cba754ca251f216db077a2d7c2af417cae784a39ec06457b87ba5617229f6"
+      }
+    ],
+    "runtimeEvidence": "No runtime probe used these final binaries. Earlier SP bootstrap binary/outcome is recorded separately.",
+    "concurrentWork": "Academy and other chats have uncommitted changes in this checkout; the final build includes shared changes present at its compile time.",
+    "fullPythonSuite": {
+      "command": "python -m pytest tests -q",
+      "passed": 2402,
+      "failed": 49,
+      "skipped": 128,
+      "subtestsPassed": 58620,
+      "seconds": 1806.03,
+      "exitCode": 1,
+      "log": ".tmp\\jk2-compat-2026-10-02\\pytest-full.txt",
+      "logSha256": "0838040e6ee6a58726cf56dfc21f8af91722cc5ee0759f0507eef147dc97b4d5",
+      "failureList": [
+        "SUBFAILED(renderer='renderer') tests/ambient_scale_defaults_tests.py::AmbientScaleDefaultsTests::test_every_renderer_registers_each_engines_ambient_scale",
+        "SUBFAILED(renderer='renderervk') tests/ambient_scale_defaults_tests.py::AmbientScaleDefaultsTests::test_every_renderer_registers_each_engines_ambient_scale",
+        "SUBFAILED(renderer='rendererrtx') tests/ambient_scale_defaults_tests.py::AmbientScaleDefaultsTests::test_every_renderer_registers_each_engines_ambient_scale",
+        "FAILED tests/console_notify_profile_tests.py::ConsoleNotifyProfileTests::test_each_profile_draws_its_own_engines_notify_lines_and_chat_line",
+        "FAILED tests/engine_input_capture_tests.py::ScreenshotRequestTests::test_reports_compile_and_name_each_lost_request",
+        "FAILED tests/filesystem_recovery_tests.py::FilesystemRecoveryTests::test_recursive_recovery_and_initial_failure",
+        "FAILED tests/jka_module_refusal_tests.py::JKAModuleRefusalTests::test_starting_a_motion_path_stays_refused",
+        "FAILED tests/jka_module_refusal_tests.py::JKAModuleRefusalTests::test_the_game_dispatcher_names_every_import_it_does_not_serve",
+        "FAILED tests/large_text_profile_tests.py::LargeTextProfileTests::test_only_quake_live_draws_large_text_in_host_text",
+        "SUBFAILED(language='c') tests/mdr_format_tests.py::MdrFormatTests::test_bounded_loader_c_and_cpp",
+        "SUBFAILED(language='c++') tests/mdr_format_tests.py::MdrFormatTests::test_bounded_loader_c_and_cpp",
+        "FAILED tests/profile_state_limits_tests.py::ProfileStateLimitsTests::test_client_uses_selected_profile_before_connection_and_negotiated_profile_after",
+        "FAILED tests/q3_ihv_game_lifecycle_tests.py::IhvGameLifecycleTests::test_hunk_map_preservation_and_full_shutdown",
+        "FAILED tests/q3_ihv_game_lifecycle_tests.py::IhvGameLifecycleTests::test_native_write_path_preserves_failure_and_does_not_open_file",
+        "FAILED tests/q3_ihv_game_lifecycle_tests.py::IhvGameLifecycleTests::test_systeminfo_keys_and_other_profile_isolation",
+        "FAILED tests/ritual_configstring_bounds_tests.py::RitualConfigstringBoundsTests::test_production_imports_keep_each_titles_bounds_and_reject_overflow",
+        "FAILED tests/ritual_handshake_tests.py::RitualHandshakeTests::test_the_server_reads_a_plain_connect_and_answers_bare",
+        "SUBFAILED(renderer='renderer') tests/ritual_model_lights_tests.py::RitualModelLightTests::test_renderers_light_flagged_models_from_compiled_lights",
+        "SUBFAILED(renderer='renderervk') tests/ritual_model_lights_tests.py::RitualModelLightTests::test_renderers_light_flagged_models_from_compiled_lights",
+        "SUBFAILED(renderer='rendererrtx') tests/ritual_model_lights_tests.py::RitualModelLightTests::test_renderers_light_flagged_models_from_compiled_lights",
+        "FAILED tests/rtcw_camera_tests.py::RTCWCameraTests::test_native_qvm_camera_dispatch_and_owned_outputs",
+        "FAILED tests/rtcw_cinematic_tests.py::RTCWCinematicTests::test_native_qvm_dispatch_and_checked_cinematic_arguments",
+        "FAILED tests/rtcw_client_state_tests.py::RTCWClientStateTests::test_snapshot_usercmd_gamestate_and_native_dispatch",
+        "FAILED tests/rtcw_gamestate_budget_tests.py::RTCWGamestateBudgetTests::test_rtcw_uses_its_own_wire_and_message_limit",
+        "FAILED tests/rtcw_module_cvar_tests.py::RTCWModuleCvarTests::test_cvar_records_dispatch_and_mp_info_channel",
+        "SUBFAILED(backend='openal') tests/rtcw_music_tests.py::RTCWMusicTests::test_actual_backend_music_entrypoints",
+        "FAILED tests/rtcw_render_import_tests.py::RTCWRenderImportTests::test_resource_scene_and_scalar_imports_preserve_each_mode_contract",
+        "FAILED tests/server_zombie_snapshot_tests.py::ServerZombieSnapshotTests::test_each_profile_reads_a_zombies_snapshot",
+        "FAILED tests/server_zombie_snapshot_tests.py::ServerZombieSnapshotTests::test_every_registered_profile_pins_its_empty_delta",
+        "FAILED tests/stream_resampler_tests.py::StreamResamplerTests::test_queue_transactions_format_changes_and_stereo_fallback",
+        "SUBFAILED(renderer='renderer') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_light_grid_matches_retail",
+        "SUBFAILED(renderer='renderervk') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_light_grid_matches_retail",
+        "SUBFAILED(renderer='rendererrtx') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_light_grid_matches_retail",
+        "SUBFAILED(renderer='renderer') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_profile_lighting_defaults",
+        "SUBFAILED(renderer='renderervk') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_profile_lighting_defaults",
+        "SUBFAILED(renderer='rendererrtx') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_profile_lighting_defaults",
+        "SUBFAILED(renderer='renderer') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_skinning_in_each_renderer",
+        "SUBFAILED(renderer='renderervk') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_skinning_in_each_renderer",
+        "SUBFAILED(renderer='rendererrtx') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_skinning_in_each_renderer",
+        "FAILED tests/stvef_sp_snapshot_tests.py::STVEFSPSnapshotTests::test_visible_player_and_other_profile_filters",
+        "FAILED tests/stvef_sp_user_move_tests.py::STVEFSPUserMoveTests::test_game_adjusts_the_supplied_command",
+        "FAILED tests/stvef_sp_user_move_tests.py::STVEFSPUserMoveTests::test_snapshot_acknowledgement_header_round_trip",
+        "SUBFAILED(renderer='renderer') tests/stvef_surface_tests.py::STVEFSurfaceTests::test_retail_geometry_appending_flush_and_invalid_numeric_inputs",
+        "SUBFAILED(renderer='renderervk') tests/stvef_surface_tests.py::STVEFSurfaceTests::test_retail_geometry_appending_flush_and_invalid_numeric_inputs",
+        "SUBFAILED(renderer='rendererrtx') tests/stvef_surface_tests.py::STVEFSurfaceTests::test_retail_geometry_appending_flush_and_invalid_numeric_inputs",
+        "FAILED tests/ui_module_abi_tests.py::UiModuleAbiTests::test_profile_and_legacy_ui_boundaries",
+        "FAILED tests/wolfet_snapshot_tests.py::WolfETSnapshotTests::test_visibility_proxies_callbacks_and_other_profiles",
+        "FAILED tests/wolfet_viewpoint_tests.py::WolfETViewpointTests::test_dense_snapshot_preserves_the_separate_cgame_capacity",
+        "FAILED tests/wolfet_viewpoint_tests.py::WolfETViewpointTests::test_origin_visibility_cameras_lean_and_portal_cycles"
+      ],
+      "limitations": [
+        "Default host compiler uses x64 in several legacy fixtures despite engine x86 guard.",
+        "Shared checkout changed during run because Academy and other work remained active.",
+        "Full suite not rerun after focused repairs; no complete automated-suite gate claim."
+      ]
+    },
+    "goalStatus": "paused at user request after current tasks finish; complete compatibility not established",
+    "cleanup": {
+      "status": "automatic approval review rejected verified native PowerShell cleanup",
+      "reason": "blocked by policy; no detailed reason returned",
+      "linksChecked": true,
+      "absoluteTaskRoot": "E:\\Repositories\\fnTech3\\.tmp\\jk2-compat-2026-10-02",
+      "retainedDisposable": [
+        "runtime-sp/home/",
+        "*.exe",
+        "measure_transport*.py",
+        "run_bootstrap.py"
+      ],
+      "retainedEvidence": [
+        "runtime-sp/console.log",
+        "runtime-sp/result.json",
+        "transport-*.txt",
+        "final-*.log",
+        "pytest-full.txt",
+        "final-validation.json"
+      ],
+      "note": "Cleanup rejected before deletion; scratch files and runtime-sp/home native module cache retained. No alternate deletion attempted. Full suite finished; any remaining temp/ contents retained."
+    },
+    "fixtureRepairChecks": {
+      "command": "python -m pytest selected RTCW dispatch tests, ritual_handshake_tests.py and server_zombie_snapshot_tests.py -q",
+      "passed": 11,
+      "subtestsPassed": 9,
+      "failed": 0,
+      "seconds": 31.56,
+      "log": ".tmp\\jk2-compat-2026-10-02\\fixture-repair-tests.log",
+      "files": [
+        "tests/rtcw_camera_tests.py",
+        "tests/rtcw_cinematic_tests.py",
+        "tests/rtcw_client_state_tests.py",
+        "tests/rtcw_module_cvar_tests.py",
+        "tests/rtcw_render_import_tests.py",
+        "tests/ritual_handshake_tests.py",
+        "tests/server_zombie_snapshot_tests.py"
+      ],
+      "scope": "Only missing profile-isolation scaffolding, bare-reply assertion and registered empty-delta cases; no engine source/build/runtime changes."
+    },
+    "generatedDocumentTests": {
+      "passed": 4,
+      "failed": 0,
+      "command": "python -m pytest tests/generate_docs_tests.py -q"
+    },
+    "remainingKnownJK2Gap": "SV_RemainingGameState still uses conservative QL estimate for JK2; its own pure-gamestate budget is unadapted.",
+    "unrelatedFindings": [
+      "Preexisting pip invalid distributions ~, ~ip, ~~p in C:/Python311/Lib/site-packages.",
+      "Older 2026-09-22-jk2-contracts and 2026-09-22-jk2-records lack required JSON companions.",
+      "SP collision probe emitted invalid-bevel warnings; cause not investigated."
+    ]
+  }
+}

@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_main.c -- main control flow for each frame
 
 #include "tr_local.h"
+#include "../renderercommon/tr_jka_distance_cull.h"
 #include "../renderercommon/tr_q3_ihv_entity_view.h"
 
 #include <string.h> // memcpy
@@ -515,6 +516,11 @@ static void R_SetFarClip( void )
 	}
 
 	tr.viewParms.zFar = sqrt( farthestCornerDistance );
+	if ( ri.gameId == COM_GAME_JKA_MP ) {
+		float distance;
+		if ( RE_GetJKADistanceCull( &distance ) )
+			tr.viewParms.zFar = FnJKA_FarClip( tr.viewParms.zFar, distance, r_znear->value );
+	}
 	if ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ) {
 		const float fogFar = tr.refdef.rtcwFog.farClip;
 		if ( fogFar > r_znear->value && fogFar < tr.viewParms.zFar )

@@ -27,10 +27,10 @@ has been shown to work; this guide summarizes it.
 | Wolfenstein: Enemy Territory | | `wolfet` | `et`, `enemy-territory`, `enemyterritory` | `etmain` | `etconfig.cfg` | `-Dwolfet-development=true` |
 | Star Trek Voyager: Elite Force | single player | `stvef-sp` | `efsp`, `stvoy`, `eliteforce-sp` | `baseEF` | `efconfig.cfg` | `-Dstvef-development=true` |
 | | Holomatch | `stvef-mp` | `stvef-hm`, `holomatch`, `efhm`, `stvoyhm` | `baseEF` | `hmconfig.cfg` | `-Dstvef-development=true` |
-| Star Wars Jedi Knight: Jedi Academy | single player | `jka-sp` | `jasp`, `jediacademy-sp`, `jedi-academy-sp` | `base` | `jaconfig.cfg` | `-Djka-development=true`, dedicated server only |
-| | multiplayer | `jka-mp` | `jamp`, `jediacademy-mp`, `jedi-academy-mp` | `base` | `jampconfig.cfg` | `-Djka-development=true`, dedicated server only |
-| Star Wars Jedi Knight II: Jedi Outcast | single player | `jk2-sp` | `jk2sp`, `jedioutcast-sp`, `jedi-outcast-sp` | `base` | `jk2config.cfg` | `-Djk2-development=true`, dedicated server only |
-| | multiplayer | `jk2-mp` | `jk2mp`, `jedioutcast-mp`, `jedi-outcast-mp` | `base` | `jk2mpconfig.cfg` | `-Djk2-development=true`, dedicated server only |
+| Star Wars Jedi Knight: Jedi Academy | single player | `jka-sp` | `jasp`, `jediacademy-sp`, `jedi-academy-sp` | `base` | `jaconfig.cfg` | `-Djka-development=true`, incomplete SP bootstrap |
+| | multiplayer | `jka-mp` | `jamp`, `jediacademy-mp`, `jedi-academy-mp` | `base` | `jampconfig.cfg` | `-Djka-development=true`, experimental server and partial client probes |
+| Star Wars Jedi Knight II: Jedi Outcast | single player | `jk2-sp` | `jk2sp`, `jedioutcast-sp`, `jedi-outcast-sp` | `base` | `jk2config.cfg` | `-Djk2-development=true`, isolated developer probes |
+| | multiplayer | `jk2-mp` | `jk2mp`, `jedioutcast-mp`, `jedi-outcast-mp` | `base` | `jk2mpconfig.cfg` | `-Djk2-development=true`, isolated developer probes |
 | American McGee's Alice | | `alice` | `americanmcgeesalice`, `mcgee-alice`, `alice2000` | `base` | `config.cfg` | `-Dalice-development=true` |
 | Heavy Metal: F.A.K.K.2 | | `fakk2` | `heavymetal-fakk2`, `heavymetalfakk2`, `hmfakk2` | `fakk` | `config.cfg` | `-Dfakk2-development=true` |
 | Medal of Honor: Allied Assault | | `mohaa` | `medalofhonor`, `moh-aa`, `alliedassault` | `main` | `configs/unnamedsoldier.cfg` | `-Dmohaa-development=true` |
@@ -338,15 +338,43 @@ Steam release.
 
 **Status:** experimental; developer builds with `-Dwolfet-development=true`
 run the client and the dedicated server. The retail modules draw ET's menus
-and limbo panel and load all six stock maps on each renderer, and retail ET
-clients have joined fnTech3 servers, pure or not, on all six maps. Demo
-playback is not implemented, and play from fnTech3's client on a retail
-server remains open. See the
+and limbo panel and load all six stock maps on each renderer. Pure admission
+and both teams have been checked on all six maps in both directions with
+original ET peers. Short `goldrush` demos replay normally and as timedemos,
+including recordings exchanged with retail ET and both teams' player states.
+Whole matches and sustained gameplay remain open. See the
 [ET gate matrix](fntech3/COMPATIBILITY.md#wolfet-gate-matrix).
 
 **Notes:**
 
 - Protocol 84. ET defaults to `sv_pure 1`, as retail does.
+- ET's activate, sprint, reload, zoom, lean and prone bindings use its own
+  command bits. Native UI and cgame checksums are included when this client
+  joins a pure server, including after a renderer restart.
+- ET's silent player-sound aliases, including jumping, use its silent handle
+  zero on both audio backends. `s_defaultsound 1` enables the diagnostic sound;
+  the default is 0. See the [input and launch fixes](fntech3/2026-10-02-input-launch-fixes.md).
+- The developer client joins original ET servers using protocol 84, including
+  pure servers and their `sv_onlyVisibleClients` setting. Admission to both
+  teams has been checked on the six stock maps; sustained gameplay is open.
+- Recordings use `.dm_84`. Normal/timedemo playback and damaged inputs have
+  limited runtime evidence; `.dm_83` and broader match/demo coverage remain
+  open ([demo follow-up](fntech3/2026-10-01-wolfet-demo-regressions.md)).
+- The stock installation carries no bot navigation. Generated routing
+  comparisons cover ET's area-cache rules, generated AAS8 loads and measured
+  area travel costs, its 16 MiB routing cache budget, configured per-map
+  frame limits and two-cache eviction, while
+  loaded retail navigation and live bot support remain open
+  ([routing](fntech3/2026-10-01-wolfet-area-routing.md),
+  [loading](fntech3/2026-10-01-wolfet-aas8-loading.md),
+  [travel costs](fntech3/2026-10-01-wolfet-travel-costs.md),
+  [cache limits](fntech3/2026-10-02-wolfet-routing-limits.md)).
+- ET downloads support UDP. A server's URL redirect is refused with an
+  explanation before any redirected bytes are written; disable `sv_wwwDownload`
+  and clear `sv_wwwFallbackURL` to an empty string for this client. HTTP redirects
+  remain unavailable ([compatibility round](fntech3/2026-10-02-compatibility-round.md)).
+  A generated pak transfers in both retail directions with pure admission;
+  larger files, loss/retransmit and broader mods remain open.
 - PunkBuster is not available: an ET server reports it unavailable and keeps
   `sv_punkbuster 0`.
 - The engine package carries audio zones for the six stock maps, and HUD
@@ -383,11 +411,24 @@ See the [Elite Force gate matrix](fntech3/COMPATIBILITY.md#elite-force-gate-matr
 - Single player uses protocol 40 and the `efgamex86.dll` and `efuix86.dll`
   libraries in the installation folder. Holomatch uses protocol 24, and also
   accepts ioEF's and Lilium Voyager's protocol 26.
+- The client enforces a 160 MiB SP and 128 MiB Holomatch hunk minimum when an
+  older config asks for less. This leaves room for the shared renderer's
+  larger allocations, including Vulkan's upload scratch; dedicated-server
+  memory is unchanged. SP also reserves a 96 MiB initial main zone for large
+  temporary allocations before renderer startup. See the
+  [installed-map sweep](fntech3/2026-10-01-stvef-hunk-map-sweep.md).
 - Elite Force's sounds and music are MP3. The MP3 decoder is built by default
   (`-Dmp3=true`) and registered only for the games that need it: Elite Force,
   Alice and F.A.K.K.2.
 - German installations play their own voices, and the menus use the key names
   of the installation's language.
+- SP's `+use`, `+altattack` and any-key flag now use its own command bits,
+  separate from Holomatch's. Retail default bindings use X or `/` to jump and
+  Space to Use. VS Code launches default to raw mouse input and free-look,
+  overriding a saved `in_mouse 0` without resetting bindings. `inputstatus`
+  reports the current input owner and command. See the
+  [input and launch fixes](fntech3/2026-10-02-input-launch-fixes.md) for evidence
+  and the remaining gameplay-input checks.
 - On a widescreen display the LCARS gauges keep their shape in the lower
   corners and the world view widens. Single player's client game is given the
   4:3 frame, so the brackets it draws around a target stay on it
@@ -397,25 +438,77 @@ See the [Elite Force gate matrix](fntech3/COMPATIBILITY.md#elite-force-gate-matr
 
 **Installation:** a Jedi Academy 1.01 installation with `base/`.
 
-**Status:** experimental and **dedicated server only**; developer builds with
+**Status:** experimental; developer builds with
 `-Djka-development=true`. A multiplayer server runs the retail module on a
-retail map with bots. No client can connect yet, nothing is drawn, and the
-network protocol has no message bodies. A single-player server loads a map's
-collision and then stops at the single-player module, which is not
-implemented. See the
+retail map with bots. Its protocol-26 message bodies now pass reference and
+fragmentation tests; retail client admission remains under investigation.
+Its experimental UI and client-game record adapters include fonts, StringEd,
+static rendering and the existing Fn FOV/HUD/menu transforms, with automated
+evidence. An OpenJK client now joins fnTech3 with pure admission, receives
+delta snapshots and disconnects cleanly. The reverse direction now passes
+maintained pure admission and active state after pinned native pak proofs are
+restored; it receives delta snapshots and passes neutral command values and
+single-polygon submission, the measured audio-absent voice query and owned
+remote-client bolt and bone-frame queries. Owned skeletal scene queueing and
+static tag queries, limited shader-effect lifetimes and owned engine-default
+skeletal models and the measured absent-ambient return now pass ordinary-sky
+views, owned forward-animation transitions and no-rotation bolt queries.
+The maintained forward pair now captures the player-configuration menu over
+the world and disconnects cleanly after measured empty ROFF/weather cleanup.
+Ordinary/additive module scene lights now feed Fn's light and shadow controls,
+and Academy's own half-cell atlas supplies readable Fn diagnostic/console text.
+A bounded demo control reaches EOF with spectator-world captures in candidate
+GLx, Vulkan and RTX raster. This slice's production relink/runtime checks are
+pending after a concurrent renderer sweep blocks the shared client linker.
+The longer
+native-server demo passes the light import, then refuses the Raven saber-glow
+entity (type 5). All 41 installed `*default` models pass pose/geometry checks
+across their 65 LODs. Present
+ambient definitions still refuse active playback.
+The effects subset uses Fn sprite/polygon queues; light/sound, motion and
+active curve controls remain named refusals. Registered skins and visibility
+feed Fn geometry and forward blends in unit fixtures; complete gameplay,
+complete all-backend cgame drawing, angle blends and attachments remain unproven. Owned Ghoul2 copy/duplication, player-configuration menu
+relay and the read-only engine routing getter pass their boundaries. Renderer-owned map distance culling, entity-token reset/EOF,
+neutral light-style metadata, the empty client ROFF update, explicit music
+preloading and the effects clock/context,
+ambient/effect definitions and Ghoul2 skin/animation setup pass their earlier
+boundaries. Original retail admission and rendered gameplay remain open. Academy's MP3 assets use the
+existing Fn decoder; muted probes preload a real map track through the default
+OpenAL backend. Dynamic music, audible music, ambient playback and active voice tracking
+remain open. The new voice-volume query serves only the actual disabled-audio
+state; enabled audio remains an explicit refusal.
+The optional wireframe automap serves its retail default-disabled mode and
+refuses an enabled request.
+Retail MP menu startup and a
+limited animated UI model scene run through fnTech3's renderers. Owned cgame
+geometry retains Fn materials, lighting and shadows; complete world rendering
+and client gameplay remain open.
+A retail peer currently requires
+Disc 1 before its connect command can run.
+Single player's measured API-8 module bridge now returns from retail Init;
+its first frame stops at the remaining weather callback. Client rendering,
+campaign play and save/load remain open. See the
 [Jedi Academy gate matrix](fntech3/COMPATIBILITY.md#jedi-academy-gate-matrix).
 
 ## Star Wars Jedi Knight II: Jedi Outcast (`jk2-sp`, `jk2-mp`)
 
 **Installation:** a Jedi Outcast 1.02a installation with `base/`.
 
-**Status:** experimental and **dedicated server only**; developer builds with
-`-Djk2-development=true`. A multiplayer server runs the retail
-`jk2mpgame.qvm` with bots. No client connects and no packet is encoded yet,
-and no single-player module runs. See the
+**Status:** experimental; isolated Windows x86 developer probes with
+`-Djk2-development=true`. Earlier multiplayer-server evidence runs the retail
+`jk2mpgame.qvm` with bots. Protocol 15 codecs and partial cgame/UI and font
+adapters now have automated evidence; they do not establish a working client
+or live interoperability. The SP native module loads, but an engine map probe
+stops at unsupported client import 3 before gameplay. Campaign, saves, demos,
+rendering, audio and input remain open. See the
 [Jedi Outcast gate matrix](fntech3/COMPATIBILITY.md#jedi-outcast-gate-matrix).
 
 ## American McGee's Alice (`alice`)
+
+The [October 2 compatibility round](fntech3/2026-10-02-ubertools-round.md)
+corrects module bounds and malformed lighting handling. Alice remains
+experimental; the checks do not establish retail interoperability.
 
 Alice does not run a Quake III engine: it runs Ritual Entertainment's
 Heavy Metal: F.A.K.K.2 engine, so its maps, models, menus, network messages,
@@ -452,6 +545,10 @@ no frame has been compared with its own. See the
   fnTech3 keeps it for the launch that names it.
 
 ## Heavy Metal: F.A.K.K.2 (`fakk2`)
+
+The [October 2 compatibility round](fntech3/2026-10-02-ubertools-round.md)
+corrects this game's own module bounds and shared Ritual lighting validation.
+Its previously recorded retail interop remains limited to the cases below.
 
 F.A.K.K.2 runs Ritual's own engine, the one Alice's descends from. fnTech3
 serves it through Alice's adapters, with F.A.K.K.2's own records where the two
@@ -491,6 +588,14 @@ retail. See the
   fnTech3 keeps it for the launch that names it.
 
 ## Medal of Honor: Allied Assault (`mohaa`)
+
+The [October 2 compatibility round](fntech3/2026-10-02-ubertools-round.md)
+corrects full-buffer client-game message framing. Use the default OpenAL
+backend for MOHAA alias distances, pitch and channel behavior; the
+[Audio Guide](AUDIO.md) lists the legacy fallback's limits. The profile remains
+experimental and has no retail-engine interoperability proof.
+Server-driven `fadesound` commands are currently unhandled; campaign audio
+fade behavior remains an open compatibility requirement.
 
 Medal of Honor runs 2015's engine, which grew from Ritual's and from Quake
 III's. fnTech3 serves it with adapters of its own.

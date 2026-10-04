@@ -12,6 +12,12 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class MdrFormatTests(unittest.TestCase):
     def test_bounded_loader_c_and_cpp(self):
+        self.run_loader([])
+
+    def test_bounded_loader_release_finite_math(self):
+        self.run_loader(['-O2', '-ffast-math'])
+
+    def run_loader(self, optimization):
         for language in ('c', 'c++'):
             compiler = shutil.which('clang' if language == 'c' else 'clang++')
             if not compiler:
@@ -19,7 +25,7 @@ class MdrFormatTests(unittest.TestCase):
             with self.subTest(language=language), tempfile.TemporaryDirectory(prefix='mdr-format-', dir=ROOT / '.tmp') as temp:
                 executable = Path(temp) / ('probe.exe' if os.name == 'nt' else 'probe')
                 target = compiler_target_args(compiler) if os.name == 'nt' else ['-m32']
-                args = [compiler, *target, '-x', language,
+                args = [compiler, *target, *optimization, '-x', language,
                         '-std=' + ('c11' if language == 'c' else 'c++17'),
                         str(ROOT / 'tests/mdr_format_tests.c'), '-o', str(executable)]
                 if os.name != 'nt':

@@ -429,22 +429,26 @@ RtSurface rt_evaluate_material(RtMaterial m, RtHitAttribs h, bool bakedLighting,
 			continue;
 		}
 
-		vec4 texel = rt_stage_texel(s, h, time, lodBias);
+		// a lightmap's texels are the light itself: only the lightmap
+		// comparison (bakedLighting) reads them; traced light takes their place
+		bool lightmap = role == RT_ROLE_LIGHTMAP;
+		vec4 texel = (!lightmap || bakedLighting) ? rt_stage_texel(s, h, time, lodBias) : vec4(1.0);
 		vec4 srcLit, srcDark;
-		if (role == RT_ROLE_LIGHTMAP) {
-			// its texels are the light itself; baked lighting keeps them
-			surf.baked = (texel * rt_stage_generator(s, h, time, -1.0)).rgb;
+		if (lightmap) {
+			if (bakedLighting) {
+				surf.baked = (texel * rt_stage_generator(s, h, time, -1.0)).rgb;
+			}
 			srcLit = vec4(1.0);
 			srcDark = vec4(0.0, 0.0, 0.0, 1.0);
 		} else {
 			srcLit = texel * rt_stage_generator(s, h, time, 1.0);
 			srcDark = texel * rt_stage_generator(s, h, time, 0.0);
 		}
-		if ((s.state.z & RT_SF_VERTEX_IS_LIGHT) != 0u) {
+		if (bakedLighting && (s.state.z & RT_SF_VERTEX_IS_LIGHT) != 0u) {
 			uint rgbGen = (s.state.y >> 8u) & 0xFFu;
 			surf.baked = h.color.rgb * (rgbGen == CGEN_VERTEX ? u_frame.params1.x : 1.0);
 		}
-		if (((s.state.y >> 8u) & 0xFFu) == CGEN_LIGHTING_DIFFUSE && h.entityLight.w > 0.5) {
+		if (bakedLighting && ((s.state.y >> 8u) & 0xFFu) == CGEN_LIGHTING_DIFFUSE && h.entityLight.w > 0.5) {
 			// a model's lighting term is its raster light (RB_CalcDiffuseColor)
 			surf.baked = h.entityLight.rgb;
 			surf.bakedEntity = h.entityLight.w > 1.5 ? 2u : 1u;

@@ -64,6 +64,7 @@ LIGHT = r'''
 #include <cstring>
 #include <cmath>
 #include "code/renderercommon/tr_stvef_light.h"
+#include "code/renderercommon/tr_raven_bsp_format.h"
 #define qboolean int
 enum { RF_LIGHTING_ORIGIN = 0x80, RF_MINLIGHT = 1, RDF_NOWORLDMODEL = 1,
     FUNCTABLE_SIZE = 1024, FUNCTABLE_MASK = 1023, COM_GAME_STVEF_SP = 5, COM_GAME_STVEF_MP = 6,
@@ -80,7 +81,7 @@ struct trRefEntity_t {
 };
 struct dlight_t { vec3_t origin, color; float radius; int rtcwShader; };
 struct trRefdef_t { int rdflags, num_dlights; dlight_t *dlights; struct { int snooperView; } rtcw; };
-struct world_t { vec3_t lightGridOrigin, lightGridInverseSize; int lightGridBounds[3]; byte *lightGridData; } world;
+struct world_t { vec3_t lightGridOrigin, lightGridInverseSize; int lightGridBounds[3]; byte *lightGridData; fnRavenBspView_t ravenBsp; } world;
 static struct { world_t *world; float sinTable[1024]; int rtcwWorld;
     float identityLight; int identityLightByte; vec3_t sunDirection; } tr;
 static struct { int gameId; } ri;

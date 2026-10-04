@@ -875,27 +875,25 @@ int main()
 		Com_GameProfileById( COM_GAME_QUAKELIVE ), 91 ) );
 	assert( !Com_GameProfileAllowsProtocol( nullptr, 68 ) );
 	// Admitting a number is not enough: a connection also needs the contract
-	// Find() picks for it to serve the profile, as SV_DirectConnect and the
-	// client's connectResponse require. The Jedi titles have no wire of their
-	// own yet, and IHV and Q3Test answer through their own packet paths, so
-	// none of those is served by any contract.
+	// Profile-aware lookup must distinguish Academy's protocol 26 from ioEF.
+	// Jedi SP, IHV and Q3Test still use separate or unresolved packet paths.
 	for ( unsigned p = 0; p < Com_GameManagerProfileCount(); ++p ) {
 		const auto *profile = Com_GameManagerProfileAt( p );
 		const bool ownWire = !( profile->allowedProtocolFamilies
-			& ( COM_PROTOCOL_FAMILY_JKA_SP | COM_PROTOCOL_FAMILY_JKA_MP
-				| COM_PROTOCOL_FAMILY_JK2_SP | COM_PROTOCOL_FAMILY_JK2_MP
+			& ( COM_PROTOCOL_FAMILY_JKA_SP
+				| COM_PROTOCOL_FAMILY_JK2_SP
 				| COM_PROTOCOL_FAMILY_QUAKE3_IHV | COM_PROTOCOL_FAMILY_Q3TEST ) );
 		bool served = false;
 		for ( int protocol = -1; protocol < 100; ++protocol ) {
 			if ( !Com_GameProfileAllowsProtocol( profile, protocol ) ) continue;
 			for ( bool compat : { false, true } ) {
-				const auto *contract = fnql::protocol::Find( protocol, compat );
+				const auto *contract = fnql::protocol::FindForProfile( protocol, profile, compat );
 				served = served || ( contract && fnql::protocol::ServesProfile( *contract, profile ) );
 			}
 		}
 		assert( served == ownWire );
 		if ( ownWire ) {
-			const auto *preferred = fnql::protocol::Find( profile->preferredProtocol );
+			const auto *preferred = fnql::protocol::FindForProfile( profile->preferredProtocol, profile );
 			assert( preferred && fnql::protocol::ServesProfile( *preferred, profile ) );
 		}
 	}

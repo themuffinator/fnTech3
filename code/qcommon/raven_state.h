@@ -57,6 +57,14 @@ typedef struct {
 	int userInt1, userInt2, userInt3;
 	float userFloat1, userFloat2, userFloat3;
 	float userVec1[3], userVec2[3];
+	/* The SP titles carry several different presentation fields. These are
+	 * engine storage, never an external structure or a packet layout. */
+	struct {
+		int modelindex3, legsAnimTimer, torsoAnimTimer, scale, saberActive;
+		int vehicleModel, vehicleArmor;
+		float vehicleAngles[3], modelScale[3];
+		int radius, boltInfo;
+	} sp;
 } ravenEntityStateExtension_t;
 
 /* And what Raven's player state carries that the canonical one has no field
@@ -226,6 +234,10 @@ typedef struct {
 	int fd_sentryDeployed;
 	int fd_saberAnimLevel;
 	int fd_saberDrawAnimLevel;
+	/* Outcast's untransmitted members have no measured names. Carry its whole
+	 * module record unchanged here, then overlay named fields at its adapter;
+	 * this is storage owned by the engine, never an exposed external layout. */
+	unsigned char jk2Player[1368];
 } ravenPlayerStateExtension_t;
 
 #endif

@@ -46,7 +46,8 @@ enum {qfalse, qtrue, ERR_FATAL, ERR_DROP, CS_ZOMBIE, CS_ACTIVE};
 #define S_COLOR_YELLOW ""
 #define QL_NATIVE_CGAME_DLL "cgamex86.dll"
 #define Com_sprintf snprintf
-static bool q3, mp, unavailable, missingUi, mohaa;
+static bool q3, mp, unavailable, missingUi, mohaa, jka;
+static comGamePureProof_t nativeProof = COM_PURE_PROOF_RTCW_NATIVE;
 static int uiChecksum = 22;
 static bool cl_connectedToPureServer = true;
 static struct { int serverId; } cl = {17};
@@ -65,21 +66,25 @@ static int drops, snapshots, binaryLookups, reliableCommands;
 static std::string sent;
 static std::vector<std::string> arguments;
 int Com_GameIsQuake3() { return q3; }
+int Com_GameIsJKAMP() { return jka; }
 const comGameProfile_t *Com_GameProfile() {
     static comGameProfile_t profile{};
     profile.pureProof = unavailable ? COM_PURE_PROOF_UNAVAILABLE : q3 ? COM_PURE_PROOF_QVM :
-        mp ? COM_PURE_PROOF_RTCW_NATIVE : mohaa ? COM_PURE_PROOF_MOHAA_REFERENCES : COM_PURE_PROOF_QL_NATIVE;
+        jka ? COM_PURE_PROOF_JKA_NATIVE : mp ? nativeProof :
+        mohaa ? COM_PURE_PROOF_MOHAA_REFERENCES : COM_PURE_PROOF_QL_NATIVE;
     profile.key = "fixture";
     return &profile;
 }
 int Com_PureProofIsNativeModulePair(const comGameProfile_t *profile) {
     return profile && (profile->pureProof == COM_PURE_PROOF_RTCW_NATIVE
-        || profile->pureProof == COM_PURE_PROOF_WOLFET_NATIVE);
+        || profile->pureProof == COM_PURE_PROOF_WOLFET_NATIVE
+        || profile->pureProof == COM_PURE_PROOF_JKA_NATIVE);
 }
 static int Com_GameManagerPureModuleFilename(const comGameProfile_t *, unsigned slot,
     const char *, const char *, char *destination, unsigned capacity) {
-    assert(mp && slot < 2);
-    const char *name = slot ? "ui_mp_x86.dll" : "cgame_mp_x86.dll";
+    assert((mp || jka) && slot < 2);
+    const char *name = jka ? slot ? "uix86.dll" : "cgamex86.dll"
+        : slot ? "ui_mp_x86.dll" : "cgame_mp_x86.dll";
     const auto length = std::strlen(name);
     assert(length < capacity); std::memcpy(destination, name, length + 1); return 1;
 }
@@ -98,6 +103,10 @@ static const char *va(const char *format, ...) {
     return text;
 }
 static bool FS_FileIsInPAK(const char *name,int *checksum,void *) {
+    if (jka) {
+        if (!std::strcmp(name,"cgamex86.dll")) { *checksum = 11; return true; }
+        assert(!std::strcmp(name,"uix86.dll")); *checksum = uiChecksum; return !missingUi;
+    }
     if (mp) {
         if (!std::strcmp(name,"cgame_mp_x86.dll")) { *checksum = 11; return true; }
         assert(!std::strcmp(name,"ui_mp_x86.dll")); *checksum = uiChecksum; return !missingUi;
@@ -236,7 +245,40 @@ int main() {
     CL_SendPureChecksums();
     assert(sent == "cp 17 11 11 @ 11 99 109 " && Verify(sent).pureAuthentic);
     packs[0].referenced &= ~FS_UI_REF; packs[1].referenced = FS_UI_REF | FS_GENERAL_REF; uiChecksum = 22;
-    mp = false; mohaa = true; /* Medal of Honor: cp refs... mixed, no server id, module or @. */
+    // ET retains its existing native-pair serverId framing.
+    nativeProof = COM_PURE_PROOF_WOLFET_NATIVE;
+    CL_SendPureChecksums();
+    assert(sent == "cp 17 11 22 @ 11 22 99 122 " && Verify(sent).pureAuthentic);
+    assert(!Verify("cp 11 22 @ 11 22 99 122").gotCP && !drops && !snapshots);
+    nativeProof = COM_PURE_PROOF_RTCW_NATIVE;
+    mp = false; jka = true; wireProfile = NETCHAN_WIRE_JKA_MP;
+    CL_SendPureChecksums();
+    assert(sent == "cp 11 22 @ 11 22 99 122 " && Verify(sent).pureAuthentic);
+    cl.serverId = sv.serverId = INT32_MAX; // The CP body contains no serverId.
+    CL_SendPureChecksums();
+    assert(sent == "cp 11 22 @ 11 22 99 122 " && Verify(sent).pureAuthentic);
+    cl.serverId = sv.serverId = 17;
+    for (const char *bad : {"cp 17 11 22 @ 11 22 99 122", "cp 11 22 @ 7",
+        "cp 11 23 @ 11 22 99 122", "cp 12 22 @ 11 22 99 122", "cp 11 22 @",
+        "cp 11 22 @ 11 11 5", "cp 11 22 @ 55 49", "cp 11 22 @ 11 22 99 123",
+        "cp 11 22 @ 2147483648 122", "cp 11 22 @ -2147483649 122",
+        "cp 11x 22 @ 11 22 99 122", "cp 11 22 @ 11junk 22 99 122"}) Reject(bad);
+    missingUi = true; Reject(sent); missingUi = false;
+    packs[0].referenced |= FS_UI_REF; packs[1].referenced = 0; uiChecksum = 11;
+    CL_SendPureChecksums();
+    assert(sent == "cp 11 11 @ 11 99 109 " && Verify(sent).pureAuthentic);
+    packs[0].referenced &= ~FS_UI_REF; packs[1].referenced = FS_UI_REF | FS_GENERAL_REF; uiChecksum = 22;
+    jka = false; q3 = true;
+    // JK2 uses QVM proof; its existing framing is unchanged. IoEF shares
+    // raw protocol26 with JKA and also retains its selected profile's proof.
+    for (auto selected : {NETCHAN_WIRE_JK2_MP,NETCHAN_WIRE_IOEF}) {
+        wireProfile = selected;
+        CL_SendPureChecksums();
+        assert(sent == "cp 17 11 22 @ 11 22 99 122 " && Verify(sent).pureAuthentic);
+        assert(!Verify("cp 11 22 @ 11 22 99 122").gotCP && !drops);
+    }
+    q3 = false; wireProfile = NETCHAN_WIRE_LEGACY_Q3;
+    mohaa = true; /* Medal of Honor: cp refs... mixed, no server id, module or @. */
     const int mohaaLookups = binaryLookups;
     assert(std::string(FS_ReferencedPakPureChecksums(1023)) == "11 22 99 122 ");
     CL_SendPureChecksums();

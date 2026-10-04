@@ -42,8 +42,8 @@ from compiler_support import compiler_target_args  # noqa: E402
 
 GOALS = 128
 # The production switch between the two starts, and the one the measurement flips.
-SEED = 'const bool goalrow = rtcw || holomatch;'
-MEASURED = 'const bool goalrow = rtcw || (holomatch && measureGoalRow);'
+SEED = 'const bool goalrow = rtcw || wolfet || holomatch;'
+MEASURED = 'const bool goalrow = rtcw || wolfet || (holomatch && measureGoalRow);'
 
 HARNESS = r'''
 #include <cstdio>

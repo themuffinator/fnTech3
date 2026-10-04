@@ -590,7 +590,8 @@ static sfxHandle_t S_Base_RegisterSound( const char *name, qboolean compressed )
 
 	if ( sfx->soundData ) {
 		if ( sfx->defaultSound ) {
-			Com_DPrintf( S_COLOR_YELLOW "WARNING: could not find %s - using default\n", sfx->soundName );
+			if ( S_SoundRegistrationWarningsEnabled() )
+				Com_DPrintf( S_COLOR_YELLOW "WARNING: could not find %s - using default\n", sfx->soundName );
 			return 0;
 		}
 		return S_HandleForKnownSfx( sfx );
@@ -620,7 +621,8 @@ static sfxHandle_t S_Base_RegisterSound( const char *name, qboolean compressed )
 	}
 
 	if ( sfx->defaultSound ) {
-		Com_DPrintf( S_COLOR_YELLOW "WARNING: could not find %s - using default\n", sfx->soundName );
+		if ( S_SoundRegistrationWarningsEnabled() )
+			Com_DPrintf( S_COLOR_YELLOW "WARNING: could not find %s - using default\n", sfx->soundName );
 		return 0;
 	}
 
@@ -634,7 +636,7 @@ S_BeginRegistration
 =====================
 */
 static void S_Base_LoadRTCWDefaultSound( sfx_t *sample ) {
-	const auto pcm = fntech3::audio::rtcw::DefaultSoundPCM(Com_GameIsRTCWSP() != 0,
+	const auto pcm = fntech3::audio::rtcw::DefaultSoundPCM(Com_GameIsRTCWSP() || Com_GameIsWolfET(),
 		Cvar_VariableIntegerValue("s_defaultsound") != 0);
 	sample->soundData = SND_malloc();
 	*sample->soundData = {};
@@ -657,7 +659,7 @@ static void S_Base_BeginRegistration( void ) {
 	s_knownSfx.fill( sfx_t{} );
 	sfxHash.fill( nullptr );
 
-	if ( Com_GameIsRTCW() ) {
+	if ( Com_GameIsRTCW() || Com_GameIsWolfET() ) {
 		// Reserve handle zero directly: the public name lookup rejects '*'
 		// player aliases and must never try to load this internal placeholder.
 		auto *sample = S_KnownSfxAt(s_numSfx++);
@@ -681,7 +683,7 @@ static void S_Base_BeginRegistration( void ) {
 
 
 static void S_memoryLoad( sfx_t *sfx ) {
-	if ( Com_GameIsRTCW() && !Q_stricmp(sfx->soundName, fntech3::audio::rtcw::DefaultSoundName) ) {
+	if ( ( Com_GameIsRTCW() || Com_GameIsWolfET() ) && !Q_stricmp(sfx->soundName, fntech3::audio::rtcw::DefaultSoundName) ) {
 		S_Base_LoadRTCWDefaultSound(sfx);
 		return;
 	}
@@ -799,6 +801,7 @@ static void S_SpatializeRTCWOneShot( channel_t &voice ) {
 
 static void S_Base_StartRTCWSound( const vec3_t origin, int entity, int channel, sfxHandle_t handle, int flags ) {
 	if ( !s_soundStarted || s_soundMuted ) return;
+	if ( Com_GameIsRTCWSP() && handle == 0 && channel != fntech3::audio::rtcw::OneShots::Weapon ) return;
 	if ( !origin && (entity < 0 || entity >= MAX_GENTITIES) )
 		Com_Error(ERR_DROP, "S_StartRTCWSound: bad entitynum %i", entity);
 	if ( handle < 0 || handle >= s_numSfx ) {

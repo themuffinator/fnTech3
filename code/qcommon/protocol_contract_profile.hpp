@@ -22,8 +22,8 @@ namespace fnql::protocol {
  * and Q3Test 1.08's, and Find() takes any other legacy number as Quake III's.
  * Com_GameProfileAllowsProtocol() admits a number for every family that
  * speaks it, so a connection also needs the contract Find() chose to belong
- * to the active profile. A profile with no wire of its own -- the Jedi
- * titles' -- is served by none of them. Kept apart from protocol_contract.hpp,
+	* to the active profile. Profiles with no wire of their own are served by
+	* none of them. Kept apart from protocol_contract.hpp,
  * which test fixtures include beside game declarations of their own. */
 [[nodiscard]] constexpr unsigned ProfileFamilies( const Contract &contract ) noexcept {
 	switch ( contract.family ) {
@@ -48,8 +48,12 @@ namespace fnql::protocol {
 	case Family::Alice:
 		/* F.A.K.K.2 crosses Alice's wire, with its own records. */
 		return COM_PROTOCOL_FAMILY_ALICE | COM_PROTOCOL_FAMILY_FAKK2;
+	case Family::JediAcademyMultiplayer:
+		return COM_PROTOCOL_FAMILY_JKA_MP;
 	case Family::MOHAA:
 		return COM_PROTOCOL_FAMILY_MOHAA;
+	case Family::JK2Multiplayer:
+		return COM_PROTOCOL_FAMILY_JK2_MP;
 	}
 	return 0;
 }
@@ -62,6 +66,25 @@ namespace fnql::protocol {
 [[nodiscard]] inline bool ServesProfile( const Contract &contract,
 	const comGameProfile_t *profile ) noexcept {
 	return profile && ServesProfileFamilies( contract, profile->allowedProtocolFamilies );
+}
+
+/* Exact profile selection precedes any fallback. Two games sharing a
+ * protocol number do not share their transport or their message bodies. */
+[[nodiscard]] constexpr const Contract *FindForProfile( int protocol,
+	unsigned allowedFamilies, bool legacyCompatibility = false ) noexcept {
+	if ( ( allowedFamilies & COM_PROTOCOL_FAMILY_JKA_MP ) != 0 ) {
+		return protocol == JediAcademyMultiplayer.protocol
+			? &JediAcademyMultiplayer : nullptr;
+	}
+	const Contract *contract = Find( protocol, legacyCompatibility );
+	return contract && ServesProfileFamilies( *contract, allowedFamilies )
+		? contract : nullptr;
+}
+
+[[nodiscard]] inline const Contract *FindForProfile( int protocol,
+	const comGameProfile_t *profile, bool legacyCompatibility = false ) noexcept {
+	return profile ? FindForProfile( protocol, profile->allowedProtocolFamilies,
+		legacyCompatibility ) : nullptr;
 }
 
 } // namespace fnql::protocol

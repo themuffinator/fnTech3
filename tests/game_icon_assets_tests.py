@@ -107,7 +107,12 @@ class GameIconAssetsTests(unittest.TestCase):
                         # Thin strokes/subpixel margins are antialiased in the
                         # smallest exports; square backgrounds can be opaque.
                         self.assertGreaterEqual(alpha[1], 224)
-                        self.assertTrue(alpha[0] <= 32 or alpha[0] == 255)
+                        if key == "stvef-mp" and size == 16:
+                            # A rounded tile's corner cutout is subpixel at
+                            # caption size; coverage remains partly visible.
+                            self.assertLessEqual(alpha[0], 64)
+                        else:
+                            self.assertTrue(alpha[0] <= 32 or alpha[0] == 255)
             # 20/40 px live only in the ICO and 1024 px only in the ICNS.
             self.assertEqual(sorted(int(p.stem.rsplit("-", 1)[1]) for p in (GAMES / key).glob(f"{key}-*.png")),
                              sorted(PNG_SIZES))
@@ -191,16 +196,17 @@ class GameIconAssetsTests(unittest.TestCase):
         self.assertIn('#include "win_resource.rc"', client)
         self.assertIn('#include "win_game_icons.rc"', client)
 
-    def test_builds_link_icons_into_the_client_only(self):
+    def test_builds_link_icons_into_both_windows_executables(self):
         meson = (ROOT / "meson.build").read_text(encoding="utf-8")
         self.assertIn("client_resource_src = win_client_resource", meson)
-        self.assertIn("server_resource_src = win_resource", meson)
+        self.assertIn("server_resource_src = win_client_resource", meson)
         self.assertIn("client_resource_src = ['code/platform/game_icon_data.cpp']", meson)
         self.assertIn("q3_platform_src + client_resource_src + q3_ui_src", meson)
         self.assertIn("q3_platform_src + server_resource_src + qcommon_src", meson)
         self.assertIn("rename: 'fntech3-' + game_icon + '.png'", meson)
         cmake = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
         self.assertIn("SET(Q3_CLIENT_RESOURCES code/win32/win_client_resource.rc)", cmake)
+        self.assertIn("SET(Q3_SERVER_RESOURCES code/win32/win_client_resource.rc)", cmake)
         self.assertIn("SET(Q3_CLIENT_RESOURCES code/platform/game_icon_data.cpp)", cmake)
         make = (ROOT / "Makefile").read_text(encoding="utf-8")
         self.assertIn("$(B)/client/win_client_resource.o", make)

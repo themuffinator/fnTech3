@@ -119,6 +119,7 @@ public:
     bool started_=true,hardMuted_=false;Device device_;World world_;
     StreamPlayer musicPlayer_,rawPlayer_,voicePlayer_;
     snd_stream_t *backgroundStream_=nullptr;
+    std::vector<byte> backgroundPendingPCM_;
     std::string backgroundIntro_,backgroundLoop_;
     int backgroundStereoFallbackChannels_=0,queuedCalls=0;
     fntech3::audio::rtcw::SampleClock rtcwClock_;
@@ -136,7 +137,7 @@ public:
     void ClearRTCWEntityStreams(){} void ServiceRTCWEntityStreams(){}
     bool IsSoftMuted()const{return softMuted;}
     int StreamOutputRate()const{return 48000;}
-    bool FlushStream(StreamPlayer &){return true;}
+    bool FlushStream(StreamPlayer &,bool=false){return true;}
     bool QueueStreamChunk(StreamPlayer &player,int samples,int rate,int width,int channels,const byte *data,float volume,int outputChannels,bool logFallback) {
         assert(samples>0 && rate>0 && width==2 && channels==2 && data && outputChannels==2 && logFallback);
         assert(volume==1);++queuedCalls;++player.queued;return true;

@@ -36,6 +36,8 @@ void		CM_ModelBounds( clipHandle_t model, vec3_t mins, vec3_t maxs );
 int			CM_NumClusters (void);
 int			CM_NumInlineModels( void );
 int			CM_NumLeafs( void );
+/* Raven SP asks which contents kinds occur anywhere in the current map. */
+int			CM_TotalMapContents( void );
 char		*CM_EntityString (void);
 
 // returns an ORed contents mask

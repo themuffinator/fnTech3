@@ -5,7 +5,6 @@ struct StreamConversionState {
 	fntech3::audio::CubicStreamResampler resampler;
 	int rate = 0, width = 0, inputChannels = 0, outputRate = 0;
 	int requestedChannels = 0, outputChannels = 0;
-	float gain = 1.0f;
 };
 
 class StreamPlayer {
@@ -24,7 +23,7 @@ public:
 	int RTCWSpeechAmplitude();
 
 private:
-	void ReclaimProcessedBuffers();
+	void ReclaimProcessedBuffers( int maximum = std::numeric_limits<int>::max() );
 
 	OpenALDevice *device_ = nullptr;
 	ALuint source_ = 0;
@@ -40,7 +39,7 @@ void StreamPlayer::Init( OpenALDevice *device, ALuint source ) {
 	Clear();
 }
 
-void StreamPlayer::ReclaimProcessedBuffers() {
+void StreamPlayer::ReclaimProcessedBuffers( int maximum ) {
 	if ( device_ == nullptr || source_ == 0 ) {
 		return;
 	}
@@ -51,6 +50,7 @@ void StreamPlayer::ReclaimProcessedBuffers() {
 	if ( device_->AL().alGetError() != AL_NO_ERROR ) {
 		return;
 	}
+	processed = ( std::min )( processed, maximum );
 	while ( processed-- > 0 ) {
 		ALuint buffer = 0;
 		device_->AL().alSourceUnqueueBuffers( source_, 1, &buffer );
@@ -73,6 +73,8 @@ void StreamPlayer::Clear() {
 	speech_.Clear();
 	speechRate_ = 0;
 	if ( device_ == nullptr || source_ == 0 ) {
+		queuedBuffers_ = 0;
+		queuedDurations_.clear();
 		return;
 	}
 
@@ -84,6 +86,7 @@ void StreamPlayer::Clear() {
 	device_->AL().alGetSourcei( source_, AL_BUFFERS_QUEUED, &queued );
 	if ( device_->AL().alGetError() != AL_NO_ERROR ) {
 		queuedBuffers_ = 0;
+		queuedDurations_.clear();
 		return;
 	}
 	while ( queued-- > 0 ) {
@@ -100,6 +103,10 @@ void StreamPlayer::Clear() {
 	queuedBuffers_ = 0;
 	queuedDurations_.clear();
 	device_->AL().alSourcei( source_, AL_BUFFER, 0 );
+	// A stopped source reports every queued buffer as processed, including
+	// new buffers that have never played. Deferred voice/paired-stream starts
+	// need an initial source so the next refill cannot reclaim their PCM.
+	device_->AL().alSourceRewind( source_ );
 	device_->SetSourceSpatialize( source_, false );
 	device_->SetSourceDirectChannels( source_, true );
 	device_->AL().alSourcei( source_, AL_SOURCE_RELATIVE, AL_TRUE );
@@ -166,6 +173,13 @@ bool StreamPlayer::QueuePCM16( const short *samples, int frameCount, int channel
 	if ( device_->AL().alGetError() != AL_NO_ERROR ) {
 		return true;
 	}
+	if ( state == AL_STOPPED ) {
+		// Playback can drain between the first reclaim and this upload. Only
+		// the older buffers have played; retain the one just submitted, then
+		// rewind before a deferred start or the next reclamation.
+		ReclaimProcessedBuffers( queuedBuffers_ - 1 );
+		device_->AL().alSourceRewind( source_ );
+	}
 	if ( startPlayback && !deferStart && state != AL_PLAYING ) {
 		device_->AL().alSourcePlay( source_ );
 	}
@@ -188,6 +202,7 @@ void StreamPlayer::Update( float gain, bool allowStart ) {
 	if ( device_ == nullptr || source_ == 0 ) {
 		return;
 	}
+	if ( !std::isfinite(gain) || gain < 0.0f ) gain = 0.0f;
 
 	if ( Com_GameIsRTCWSP() ) {
 		// A volume of 2 and two independent fades of 16 can amplify streams.

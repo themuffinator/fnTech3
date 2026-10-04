@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "server_world_bounds.hpp"
 #include "server_alice_snapshot.hpp"
 #include "../qcommon/netchan_safety.hpp"
+#include "../compat/jka_state_adapter.hpp"
 
 #include <algorithm>
 #include <array>
@@ -310,6 +311,18 @@ static void SV_WriteSnapshotToClient( const client_t *client, msg_t *msg ) {
 		SV_ErrorForWireProfile( __func__, client->netchan.wireProfile );
 		return;
 	}
+	if ( client->netchan.wireProfile == NETCHAN_WIRE_JKA_MP
+		&& frame->ps.raven.m_iVehicleNum ) {
+		fntech3_jka_playerState_t vehicle{}, oldVehicle{};
+		const bool hasBase = oldframe && oldframe->ps.raven.m_iVehicleNum != 0;
+		if ( !fntech3::jka::state::FromInternal( frame->jkaVehiclePs, vehicle )
+			|| ( hasBase && !fntech3::jka::state::FromInternal( oldframe->jkaVehiclePs, oldVehicle ) )
+			|| !MSG_WriteDeltaJKAPlayerstate( msg, hasBase ? &oldVehicle : nullptr,
+				&vehicle, qtrue ) ) {
+			SV_ErrorForWireProfile( __func__, client->netchan.wireProfile );
+			return;
+		}
+	}
 
 	// delta encode the entities
 	SV_EmitPacketEntities(
@@ -514,7 +527,7 @@ static bool SV_EntityPassesSnapshotClientFlags( const sharedEntity_t &entity, in
 		}
 	}
 	// entities can be flagged to be sent to a given mask of clients
-	if ( entity.r.svFlags & SVF_CLIENTMASK ) {
+	if ( !Com_GameIsJKAMP() && ( entity.r.svFlags & SVF_CLIENTMASK ) ) {
 		if ( clientNum >= 32 ) {
 			Com_Error( ERR_DROP, "SVF_CLIENTMASK: clientNum >= 32" );
 		}
@@ -674,6 +687,9 @@ static void SV_AddAudioReachableEntities( const vec3_t origin, int clientarea, c
 		if ( !SV_EntityPassesSnapshotClientFlags( entity, frame->ps.clientNum ) ) {
 			continue;
 		}
+		qboolean jkaBroadcast = qfalse;
+		if ( Com_GameIsJKAMP() && !SV_JKASnapshotBroadcast( es->number,
+			frame->ps.clientNum, &jkaBroadcast ) ) continue;
 
 		svEnt = &sv.svEntities[ es->number ];
 		if ( svEnt->snapshotCounter == sv.snapshotCounter ) {
@@ -760,12 +776,15 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 		svEnt = &sv.svEntities[ es->number ];
 
 		// don't double add an entity through portals
+		qboolean jkaBroadcast = qfalse;
+		if ( Com_GameIsJKAMP() && !SV_JKASnapshotBroadcast( es->number,
+			frame->ps.clientNum, &jkaBroadcast ) ) continue;
 		if ( svEnt->snapshotCounter == sv.snapshotCounter ) {
 			continue;
 		}
 
 		// broadcast entities are always sent
-		if ( entity.r.svFlags & SVF_BROADCAST ) {
+		if ( ( entity.r.svFlags & SVF_BROADCAST ) || jkaBroadcast ) {
 			eNums.Add( *svEnt, e );
 			continue;
 		}
@@ -1254,6 +1273,18 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 		return;
 	}
 	frame->ps = playerState;
+	frame->jkaVehiclePs = playerState_t{};
+	if ( Com_GameIsJKAMP() && playerState.raven.m_iVehicleNum ) {
+		const int vehicleNum = playerState.raven.m_iVehicleNum;
+		if ( vehicleNum < 0 || vehicleNum >= sv.num_entities ) {
+			Com_Error( ERR_DROP, "Jedi Academy snapshot vehicle %d is out of range", vehicleNum );
+			return;
+		}
+		if ( !SV_ReadJKAVehicleState( vehicleNum, &frame->jkaVehiclePs ) ) {
+			Com_Error( ERR_DROP, "Jedi Academy snapshot vehicle %d has no valid player state", vehicleNum );
+			return;
+		}
+	}
 
 	clientNum = frame->ps.clientNum;
 	entityNumbers.clientNum = clientNum;

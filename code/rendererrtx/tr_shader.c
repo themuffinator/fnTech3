@@ -130,8 +130,10 @@ static void R_RtSnapshotStages( int numStages )
 #endif
 
 #include "../renderercommon/tr_wolfet_shader.h"
+#include "../renderercommon/tr_jka_shader.h"
 
 static image_t *R_FindShaderImage( const char *name, imgFlags_t flags ) {
+	flags = R_JKAShaderImageFlags( flags, shader.jkaNoTC );
 	return R_FindImageFile( name, R_RTCWShaderImageFlags( name, flags, shader.rtcwCompression, shader.rtcwCharacterMip ? qtrue : qfalse ) );
 }
 
@@ -2543,6 +2545,7 @@ static qboolean ParseShader( const char **text )
 		}
 		if ( rtcwFogDirective ) continue;
 		// American McGee's Alice's general keywords and `if`/`endif`
+		if ( R_JKAShaderNoTCDirective( token, &shader.jkaNoTC ) ) continue;
 		rtcwFogDirective = R_AliceShaderDirective( token, text, &aliceIfDepth, s_extendedShader ? qtrue : qfalse );
 		if ( rtcwFogDirective < 0 ) {
 			return qfalse;
@@ -5387,7 +5390,7 @@ void	R_ShaderList_f (void) {
 
 #define	MAX_SHADER_FILES 16384
 
-static int loadShaderBuffers( char **shaderFiles, const int numShaderFiles, char **buffers )
+static int loadShaderBuffers( char **shaderFiles, const int numShaderFiles, char **buffers, const char *directory )
 {
 	char filename[MAX_QPATH+8];
 	char shaderName[MAX_QPATH];
@@ -5401,7 +5404,7 @@ static int loadShaderBuffers( char **shaderFiles, const int numShaderFiles, char
 	// load and parse shader files
 	for ( i = 0; i < numShaderFiles; i++ )
 	{
-		Com_sprintf( filename, sizeof( filename ), "scripts/%s", shaderFiles[i] );
+		Com_sprintf( filename, sizeof( filename ), "%s/%s", directory, shaderFiles[i] );
 		//ri.Printf( PRINT_DEVELOPER, "...loading '%s'\n", filename );
 		summand = ri.FS_ReadFile( filename, (void **)&buffers[i] );
 
@@ -5514,7 +5517,9 @@ a single large text block that can be scanned for shader names
 */
 static void ScanAndLoadShaderFiles( void )
 {
-	char **shaderFiles, **shaderxFiles;
+	char **shaderFiles, **shaderxFiles, **profileShaderFiles = NULL;
+	char **profileBuffers = NULL;
+	int numProfileShaderFiles = 0;
 	char *buffers[MAX_SHADER_FILES];
 	char *xbuffers[MAX_SHADER_FILES];
 	int numShaderFiles, numShaderxFiles;
@@ -5525,6 +5530,12 @@ static void ScanAndLoadShaderFiles( void )
 	int shaderTextHashTableSizes[MAX_SHADERTEXT_HASH], hash, size;
 
 	long sum = 0;
+
+	// Academy authors its shaders in a different directory. Keep the engine
+	// scripts and extended shaders available as supplements to the same parser.
+	if ( ri.gameId == COM_GAME_JKA_SP || ri.gameId == COM_GAME_JKA_MP ) {
+		profileShaderFiles = ri.FS_ListFiles( "shaders", ".shader", &numProfileShaderFiles );
+	}
 
 	// scan for legacy shader files
 	shaderFiles = ri.FS_ListFiles( "scripts", ".shader", &numShaderFiles );
@@ -5537,7 +5548,8 @@ static void ScanAndLoadShaderFiles( void )
 		numShaderxFiles = 0;
 	}
 
-	if ( (!shaderFiles || !numShaderFiles) && (!shaderxFiles || !numShaderxFiles) ) {
+	if ( (!shaderFiles || !numShaderFiles) && (!shaderxFiles || !numShaderxFiles)
+		&& (!profileShaderFiles || !numProfileShaderFiles) ) {
 		ri.Printf( PRINT_WARNING, "WARNING: no shader files found\n" );
 		return;
 	}
@@ -5549,15 +5561,33 @@ static void ScanAndLoadShaderFiles( void )
 		numShaderxFiles = MAX_SHADER_FILES;
 	}
 
+	if ( numProfileShaderFiles > MAX_SHADER_FILES ) numProfileShaderFiles = MAX_SHADER_FILES;
+	if ( numProfileShaderFiles ) {
+		profileBuffers = (char **)ri.Malloc( numProfileShaderFiles * sizeof( profileBuffers[0] ) );
+	}
+
 	sum = 0;
-	sum += loadShaderBuffers( shaderxFiles, numShaderxFiles, xbuffers );
-	sum += loadShaderBuffers( shaderFiles, numShaderFiles, buffers );
+	sum += loadShaderBuffers( profileShaderFiles, numProfileShaderFiles, profileBuffers, "shaders" );
+	sum += loadShaderBuffers( shaderxFiles, numShaderxFiles, xbuffers, "scripts" );
+	sum += loadShaderBuffers( shaderFiles, numShaderFiles, buffers, "scripts" );
 
 	// build single large buffer
-	s_shaderText = ri.Hunk_Alloc( sum + numShaderxFiles*2 + numShaderFiles*2 + 1, h_low );
-	s_shaderText[ 0 ] = s_shaderText[ sum + numShaderxFiles*2 + numShaderFiles*2 ] = '\0';
+	s_shaderText = ri.Hunk_Alloc( sum + (numShaderxFiles + numShaderFiles + numProfileShaderFiles)*2 + 1, h_low );
+	s_shaderText[ 0 ] = s_shaderText[ sum + (numShaderxFiles + numShaderFiles + numProfileShaderFiles)*2 ] = '\0';
 
 	textEnd = s_shaderText;
+
+	// Authored profile shaders precede supplements; the existing hash builder
+	// searches later definitions first, preserving engine and user overrides.
+	for ( i = numProfileShaderFiles - 1; i >= 0; i-- ) {
+		if ( profileBuffers[i] ) {
+			textEnd = Q_stradd( textEnd, profileBuffers[i] );
+			textEnd = Q_stradd( textEnd, "\n" );
+			ri.FS_FreeFile( profileBuffers[i] );
+		}
+	}
+	if ( profileBuffers ) ri.Free( profileBuffers );
+	if ( profileShaderFiles ) ri.FS_FreeFileList( profileShaderFiles );
 
 	// free in reverse order, so the temp files are all dumped
 	// legacy shaders

@@ -114,6 +114,12 @@ static void checkMaps(){
    assert(opened.empty()&&allocations.empty()&&!fileOpen);continue;
   }
   initialize();
+  if(Com_GameIsWolfET()){
+   files["maps/test.aas"]={std::begin(initial),std::end(initial)};
+   assert(AAS_LoadMap("test")==0&&legacyReachability==1&&bspLoads==1);
+   assert(opened==std::vector<std::string>{"maps/test.aas"});checkDecoded();
+   shutdown();continue;
+  }
   if(!Com_GameIsRTCW()){
    files["maps/test.aas"]={std::begin(quake),std::end(quake)};
    assert(AAS_LoadMap("test")==0&&aasworld.loaded&&legacyReachability==1&&bspLoads==1);

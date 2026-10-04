@@ -414,9 +414,7 @@ static void CheckBoltsAreLookedUpByName()
 	CHECK( store.BoltAt( copy, 0, surfaceBolt )->name == "root" );
 }
 
-/* A bone can be set playing, and the engine holds what it was told and
- * nothing more: it does not work out which frame a bone is on, because that
- * arithmetic has not been measured. */
+/* A bone animation keeps its contract fields and the measured initial clock. */
 static void CheckBoneAnimationsAreHeld()
 {
 	TestFiles files = Installed();
@@ -446,6 +444,27 @@ static void CheckBoneAnimationsAreHeld()
 	CHECK( store.Resolve( slot )->At( 0 )->animations.size() == 2 );
 	playing = store.BoneAnimation( slot, 0, "model_root" );
 	CHECK( playing->startFrame == 7 && playing->startTime == 1500 );
+	CHECK( store.SetBoneAnim( slot, 0, "model_root", 4, 19, 0x20, 1.0f, 1000, 5.5f, 0 ) );
+	playing = store.BoneAnimation( slot, 0, "model_root" );
+	CHECK( playing->setFrame == 5.5f && playing->startTime == 925 );
+	const auto seeded = ghoul2::PlayheadAt( *playing, 64, 1000 );
+	CHECK( seeded.currentFrame == 5 && seeded.newFrame == 6 && std::fabs( seeded.lerp - .5f ) < .001f );
+	const auto afterSeed = ghoul2::PlayheadAt( *playing, 64, 1025 );
+	CHECK( afterSeed.currentFrame == 6 && afterSeed.newFrame == 7 );
+	CHECK( store.SetBoneAnim( slot, 0, "model_root", 4, 19, 0x20, 1.0f, 1000, -1.0f, 0 ) );
+	CHECK( store.BoneAnimation( slot, 0, "model_root" )->startTime == 1000 );
+	const auto beforeMalformed = *store.BoneAnimation( slot, 0, "model_root" );
+	for ( std::uint32_t bits : { 0x7f800000u, 0xff800000u, 0x7fc00001u } ) {
+		float bad; std::memcpy( &bad, &bits, sizeof( bad ) );
+		CHECK( !store.SetBoneAnim( slot, 0, "model_root", 4, 19, 0, bad, 1000, -1.0f, 0 ) );
+		CHECK( !store.SetBoneAnim( slot, 0, "model_root", 4, 19, 0, 1.0f, 1000, bad, 0 ) );
+	}
+	CHECK( !store.SetBoneAnim( slot, 0, "model_root", 4, 19, 0, 0.0f, 1000, 5.5f, 0 ) );
+	CHECK( !store.SetBoneAnim( slot, 0, "model_root", 4, 19, 0, 1.0f, 1000, 3.5f, 0 ) );
+	CHECK( !store.SetBoneAnim( slot, 0, "model_root", 4, 19, 0, 1.0f, 1000, 20.0f, 0 ) );
+	CHECK( !store.SetBoneAnim( slot, 0, "model_root", 0, 2, 0, 1.0f, INT_MIN, 2.0f, 0 ) );
+	CHECK( !std::memcmp( &beforeMalformed, store.BoneAnimation( slot, 0, "model_root" ), sizeof( beforeMalformed ) ) );
+	CHECK( store.SetBoneAnim( slot, 0, "model_root", 7, 9, 1, 2.0f, 1500, 7, 0 ) );
 
 	/* A bone the skeleton does not carry is refused, and a surface is not a
 	 * bone: an animation goes on a bone or nowhere. */
@@ -604,6 +623,7 @@ static void CheckAPointerIsNeverTrusted()
 	void *reused = stale;
 	CHECK( store.AddModel( &reused, "models/players/test/model.glm", error ) == 0 );
 	CHECK( reused != nullptr && store.Resolve( reused ) != nullptr );
+	CHECK( reused != stale && store.Resolve( stale ) == nullptr );
 }
 
 static void CheckRefusals()
@@ -670,7 +690,8 @@ static void CheckRefusals()
 
 	for ( LoadError value : { LoadError::None, LoadError::NoName, LoadError::Missing,
 		LoadError::Mesh, LoadError::SkeletonName, LoadError::SkeletonFile,
-		LoadError::Skeleton, LoadError::Bones, LoadError::Full } ) {
+		LoadError::Skeleton, LoadError::Bones, LoadError::Full,
+		LoadError::HandleExhausted } ) {
 		const char *name = ghoul2::LoadErrorName( value );
 		CHECK( name && name[0] && std::strcmp( name, "unknown" ) );
 	}
@@ -689,6 +710,77 @@ static void CheckClearing()
 	store.Clear();
 	CHECK( store.InstanceCount() == 0 );
 	CHECK( store.Resolve( first ) == nullptr && store.Resolve( second ) == nullptr );
+}
+
+static void CheckOwnedCleanupAndIdentityLifetime()
+{
+	TestFiles files = Installed();
+	ghoul2::Store store( files ), other( files );
+	void *first = nullptr, *sibling = nullptr, *foreign = nullptr;
+	LoadError error = LoadError::None;
+	CHECK( store.AddModel( &first, "models/players/test/model.glm", error ) == 0 );
+	CHECK( other.AddModel( &foreign, "models/players/test/model.glm", error ) == 0 );
+	CHECK( first != foreign && !store.Resolve( foreign ) && !other.Resolve( first ) );
+	CHECK( first != static_cast<void *>( store.Resolve( first ) ) );
+	CHECK( store.SetSkin( first, 0, 17 ) && store.SetBoltInfo( first, 0, 23 ) );
+	CHECK( store.AddBolt( first, 0, "model_root" ) == 0 );
+	CHECK( store.Duplicate( first, &sibling ) && first != sibling );
+	const ghoul2::Model *held = store.Resolve( sibling )->At( 0 );
+	CHECK( held && held->meshBytes && held->skeletonBytes );
+	const auto *meshBytes = held->meshBytes;
+	const auto *skeletonBytes = held->skeletonBytes;
+	const Bytes meshCopy = *meshBytes, skeletonCopy = *skeletonBytes;
+	CHECK( store.Attach( first, 0 ) && store.Attach( first, 1023 ) );
+	CHECK( store.Attach( sibling, 3 ) );
+	void *stale = first;
+	CHECK( store.Clean( &first ) && !first && store.InstanceCount() == 1 );
+	CHECK( !store.Resolve( stale ) && store.AttachmentCount() == 1 );
+	CHECK( !store.Attached( 0 ) && !store.Attached( 1023 ) );
+	CHECK( store.Attached( 3 ) == store.Resolve( sibling ) );
+	CHECK( held == store.Resolve( sibling )->At( 0 ) && held->customSkin == 17 );
+	CHECK( held->boltInfo == 23 && held->bolts.size() == 1 );
+	CHECK( *meshBytes == meshCopy && *skeletonBytes == skeletonCopy );
+	CHECK( store.Clean( &first ) && !store.Clean( nullptr ) );
+	CHECK( !store.Clean( &stale ) && !store.Clean( &foreign ) );
+	CHECK( foreign && other.Resolve( foreign ) && store.InstanceCount() == 1 );
+
+	std::set<void *> retired{ stale, sibling, foreign };
+	for ( int iteration = 0; iteration < 256; ++iteration ) {
+		void *fresh = nullptr;
+		CHECK( store.AddModel( &fresh, "models/players/test/model.glm", error ) == 0 );
+		CHECK( retired.insert( fresh ).second && !store.Resolve( stale ) );
+		CHECK( store.Release( fresh ) && !store.Release( fresh ) );
+	}
+	store.Clear();
+	store.Clear();
+	CHECK( !store.InstanceCount() && !store.AttachmentCount() );
+	CHECK( !store.Clean( &sibling ) && !store.Clean( &stale ) );
+	void *fresh = nullptr;
+	CHECK( store.AddModel( &fresh, "models/players/test/model.glm", error ) == 0 );
+	CHECK( retired.insert( fresh ).second && !store.Resolve( sibling ) );
+	CHECK( *meshBytes == meshCopy && *skeletonBytes == skeletonCopy );
+	CHECK( other.Clean( &foreign ) && !foreign );
+
+	/* Slot writes are exactly pointer-sized, including an unaligned VM slot. */
+	unsigned char bytes[sizeof( void * ) + 2];
+	std::memset( bytes, 0xa5, sizeof( bytes ) );
+	std::memcpy( bytes + 1, &fresh, sizeof( fresh ) );
+	CHECK( store.Clean( reinterpret_cast<void **>( bytes + 1 ) ) );
+	void *cleared = fresh;
+	std::memcpy( &cleared, bytes + 1, sizeof( cleared ) );
+	CHECK( !cleared && bytes[0] == 0xa5 && bytes[sizeof( bytes ) - 1] == 0xa5 );
+	CHECK( !store.Resolve( fresh ) && store.InstanceCount() == 0 );
+}
+
+static void CheckIdentityExhaustion()
+{
+	const std::uintptr_t last = std::numeric_limits<std::uintptr_t>::max();
+	ghoul2::OpaqueHandleSequence sequence( last - 1 );
+	CHECK( reinterpret_cast<std::uintptr_t>( sequence.Allocate() ) == last - 1 );
+	CHECK( reinterpret_cast<std::uintptr_t>( sequence.Allocate() ) == last );
+	for ( int iteration = 0; iteration < 10; ++iteration ) CHECK( !sequence.Allocate() );
+	ghoul2::OpaqueHandleSequence exhausted( 0 );
+	CHECK( !exhausted.Allocate() && !exhausted.Allocate() );
 }
 
 /* A skin is registered for its handle and its surface names, not for how any
@@ -811,6 +903,13 @@ static void CheckTheTimingModel()
 	playing.endFrame = 10;
 	at = fntech3::ghoul2::PlayheadAt( playing, 64, 5000 );
 	CHECK( at.currentFrame == 20 && at.newFrame == 20 );
+	playing.startFrame = 1000;
+	at = fntech3::ghoul2::PlayheadAt( playing, 64, 5000 );
+	CHECK( at.currentFrame == 63 && at.newFrame == 63 );
+	playing.startFrame = 0; playing.endFrame = 64; playing.startTime = INT_MIN;
+	at = fntech3::ghoul2::PlayheadAt( playing, 64, INT_MAX );
+	CHECK( at.currentFrame >= 0 && at.currentFrame < 64 );
+	CHECK( at.newFrame >= 0 && at.newFrame < 64 );
 }
 
 /* A skeleton of one bone that rests at the origin, with the undo of that rest
@@ -942,14 +1041,7 @@ static Bytes TagMesh( const std::string &skeleton )
 	return file;
 }
 
-/* Where a bolt is.
- *
- * With nothing animated the bones stand where they were modelled, and undoing
- * a bone's rest before applying it cancels, so a tag's corners have to come
- * back exactly where the mesh put them. That is the property this checks: a
- * bolt matrix that came out anywhere else would mean the two halves had not
- * cancelled, which is the mistake that is easy to make here and impossible to
- * see by eye. */
+/* A tag's corners are carried by frame zero and the fixed Ghoul2 root basis. */
 static void CheckABoltMatrix()
 {
 	struct TagFiles final : public ghoul2::Files {
@@ -984,9 +1076,9 @@ static void CheckABoltMatrix()
 	float matrix[12];
 	CHECK( store.BoltMatrix( slot, 0, bolt, 0, matrix ) );
 
-	/* The origin is the tag's first corner, where the mesh put it. */
-	CHECK( matrix[3] > 9.999f && matrix[3] < 10.001f );
-	CHECK( matrix[7] > 19.999f && matrix[7] < 20.001f );
+	/* Frame zero is identity; the root basis rotates (10,20,30) by +90 Z. */
+	CHECK( matrix[3] > -20.001f && matrix[3] < -19.999f );
+	CHECK( matrix[7] > 9.999f && matrix[7] < 10.001f );
 	CHECK( matrix[11] > 29.999f && matrix[11] < 30.001f );
 
 	/* Its axes are a set: each a unit, each square to the others. They are
@@ -1033,6 +1125,8 @@ int main()
 	CheckAPointerIsNeverTrusted();
 	CheckRefusals();
 	CheckClearing();
+	CheckOwnedCleanupAndIdentityLifetime();
+	CheckIdentityExhaustion();
 	CheckTheTimingModel();
 	CheckABoltMatrix();
 	std::cout << "Raven server-side Ghoul2 model store tests passed\n";

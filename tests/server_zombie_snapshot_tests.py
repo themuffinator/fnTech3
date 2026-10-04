@@ -66,6 +66,10 @@ EMPTY = {
     'NETCHAN_WIRE_LEGACY_Q3': QUAKE3,
     'NETCHAN_WIRE_IOQ3': QUAKE3,
     'NETCHAN_WIRE_QL_RETAIL': QUAKE3,
+    # Retail JK2 player reader0x432340: count plus all-arrays presence.
+    'NETCHAN_WIRE_JK2_MP': QUAKE3,
+    # Academy adds its pilot-table flag before count and arrays presence.
+    'NETCHAN_WIRE_JKA_MP': (1, 8, 1),
     'NETCHAN_WIRE_Q3_66': QUAKE3,
     'NETCHAN_WIRE_Q3_67': QUAKE3,
     'NETCHAN_WIRE_RTCW_SP': RTCW_SP,
@@ -102,6 +106,7 @@ def wire_profiles():
 PRELUDE = r'''
 #include "code/server/server.h"
 #include "code/qcommon/netchan_safety.hpp"
+#include "code/compat/jka_state_adapter.hpp"
 #include <algorithm>
 #include <cstdio>
 #include <cstring>

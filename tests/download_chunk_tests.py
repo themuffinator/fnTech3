@@ -40,6 +40,7 @@ int MSG_ReadLong(msg_t*m){return read(m,4);}
 void MSG_ReadData(msg_t*m,void*d,int n){auto*b=static_cast<byte*>(d);for(int i=0;i<n;++i){int v=read(m,1);if(v<0){memset(b+i,0,n-i);return;}b[i]=byte(v);}}
 int profile;
 int CL_ActiveWireProfile(){return profile;}
+qboolean Com_GameIsWolfET(){return profile==84;}
 bool stvef;
 qboolean CL_LegacyFraming(){return stvef;}
 const char* MSG_ReadStringForWireProfile(msg_t*,int){return "server refusal";}
@@ -47,9 +48,10 @@ struct Connection{char downloadTempName[64]="baseq3/test.pk3.tmp",downloadName[6
 std::vector<std::string> commands;
 std::vector<byte> written;
 int opens,closes,renames,packets,next,writeLimit=16384;
+std::string error;
 void Com_Printf(const char*,...){}
 void Com_DPrintf(const char*,...){}
-[[noreturn]] void Com_Error(int,const char*,...){throw 1;}
+[[noreturn]] void Com_Error(int,const char*text,...){error=text;throw 1;}
 void CL_StopRecord_f(){}
 void Cvar_SetIntegerValue(const char*,int){}
 void CL_AddReliableCommand(const char*c,bool){commands.emplace_back(c);}
@@ -67,10 +69,18 @@ msg_t chunk(int block,bool initial,int declared,std::vector<byte> body){
  put(block,2);if(initial)put(8,4);put(declared,2);
  m.data.insert(m.data.end(),body.begin(),body.end());m.cursize=int(m.data.size());return m;
 }
-void reset(int block,int handle){clc=Connection{};clc.downloadBlock=block;clc.download=handle;clc.downloadSize=8;clc.downloadCount=handle?4:0;commands.clear();written.clear();opens=closes=renames=packets=next=0;}
+void reset(int block,int handle){clc=Connection{};clc.downloadBlock=block;clc.download=handle;clc.downloadSize=8;clc.downloadCount=handle?4:0;commands.clear();written.clear();error.clear();opens=closes=renames=packets=next=0;}
 void unchanged(int block,int count){assert(commands.empty()&&written.empty()&&!opens&&!closes&&!renames&&!packets&&!next);assert(clc.downloadBlock==block&&clc.downloadCount==count);}
 int main(){
- for(int selected:{68,91}){profile=selected;
+ for(int selected:{49,60,68,71,84,91}){profile=selected;
+  // A short block header is diagnosed before its -1 overread sentinel can
+  // masquerade as ET's reserved redirect marker.
+  for(int length:{0,1}){
+   reset(0,0);msg_t m;m.data.resize(length,0xff);m.cursize=length;
+   bool dropped=false;try{CL_ParseDownload(&m);}catch(int){dropped=true;}
+   assert(dropped&&error.find("Truncated download block header")!=std::string::npos);
+   unchanged(0,0);
+  }
   for(bool initial:{false,true}){
    for(int length=0;length<4;++length){
     int block=initial?0:1;reset(block,initial?0:1);
@@ -89,6 +99,16 @@ int main(){
   reset(4,1);auto stale=chunk(3,false,4,{'a','b','c','d'});CL_ParseDownload(&stale);unchanged(4,4);
   reset(65536,1);auto wrap=chunk(0,false,4,{'a','b','c','d'});CL_ParseDownload(&wrap);
   assert(clc.downloadBlock==65537&&commands.back()=="nextdl 65536");
+  // ET's -1 marker is a redirect, including a fallback URL sent without www
+  // capability. Other profiles retain their unsigned block-number semantics.
+  reset(65535,1);auto reserved=chunk(65535,false,4,{'a','b','c','d'});
+  if(selected==84){
+   bool dropped=false;try{CL_ParseDownload(&reserved);}catch(int){dropped=true;}
+   assert(dropped&&error.find("ET UDP downloads only")!=std::string::npos);
+   assert(reserved.readcount==2);unchanged(65535,4);
+  }else{
+   CL_ParseDownload(&reserved);assert(written.size()==4&&commands.back()=="nextdl 65535");
+  }
   for(writeLimit=0;writeLimit<4;++writeLimit){
    reset(1,1);auto failed=chunk(1,false,4,{'a','b','c','d'});bool dropped=false;
    try{CL_ParseDownload(&failed);}catch(int){dropped=true;}

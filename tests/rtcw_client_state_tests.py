@@ -19,6 +19,7 @@ def function(source, signature):
 
 PRELUDE = r'''
 #include "code/qcommon/q_shared.h"
+#include "code/client/client_jka_command_values.hpp"
 #include "code/qcommon/qcommon.h"
 #include "code/cgame/cg_public.h"
 #include "code/compat/rtcw_state_adapter.hpp"
@@ -98,6 +99,11 @@ void CL_RTCWPopup(const char *name, qboolean close) {
 }
 void QDECL Com_Error(errorParm_t, const char *, ...) { throw 7; }
 static comGameProfile_t profile;
+// Other profiles must never enter their module dispatch in this RTCW fixture.
+int Com_GameIsJK2MP(void) { return profile.id == COM_GAME_JK2_MP; }
+int Com_GameIsJKAMP(void) { return profile.id == COM_GAME_JKA_MP; }
+static bool CL_JK2CgameCall(intptr_t *, intptr_t &, intptr_t &) { assert(false); return false; }
+static bool CL_JKACgameCall(intptr_t *, intptr_t &, intptr_t &) { assert(false); return false; }
 const comGameProfile_t *Com_GameProfile(void) { return &profile; }
 int Com_GameIsRTCW(void) { return profile.id == COM_GAME_RTCW_SP || profile.id == COM_GAME_RTCW_MP; }
 int Com_GameIsWolfET(void) { return profile.id == COM_GAME_WOLFET; }
@@ -329,7 +335,9 @@ template<class Snapshot, class Command> static void Mode(comGameId_t id) {
     usercmd_t finished{};
     finished.rtcw.wbuttons = 0x91; finished.rtcw.wolfkick = -3;
     cl.serverTime = INT_MIN; cl.viewangles[0] = 90; cl.viewangles[1] = -180;
+    fntech3::jka::command::selections.Set(255,257);
     CL_FinishMove(&finished);
+    assert(finished.raven.forcesel == 0 && finished.raven.invensel == 0);
     assert(finished.serverTime == INT_MIN && finished.weapon == 255);
     assert(finished.angles[0] == 16384 && finished.angles[1] == 32768);
     assert(finished.weaponPrimary == 0 && finished.fov == 0 && finished.rtcw.holdable == 255);
@@ -404,7 +412,9 @@ int main() {
         usercmd_t cmd{};
         cl.cgameUserCmdValue = 17; cl.cgameUserCmdPrimary = 19; cl.cgameUserCmdFov = 110;
         cl.cgameRTCWCommand.holdable = 222;
+        fntech3::jka::command::selections.Set(255,257);
         CL_FinishMove(&cmd);
+        assert(cmd.raven.forcesel == 0 && cmd.raven.invensel == 0);
         assert(cmd.weapon == 17 && cmd.weaponPrimary == 19 && cmd.fov == 110);
         assert(cmd.rtcw.holdable == 0 && cmd.rtcw.mpSetup == 0 && cmd.rtcw.cld == 0);
     }

@@ -111,10 +111,30 @@ static_assert( TryForWireProfile( static_cast<netchanWireProfile_t>( 99 ) ) == n
 // fallback that takes 15 and 33 is Quake III's, not Jedi Outcast's or IHV's.
 static_assert( ServesProfileFamilies( *Find( 26 ), COM_PROTOCOL_FAMILY_IOEF ) );
 static_assert( !ServesProfileFamilies( *Find( 26, true ), COM_PROTOCOL_FAMILY_JKA_MP ) );
+static_assert( FindForProfile( 26, COM_PROTOCOL_FAMILY_JKA_MP ) == &JediAcademyMultiplayer );
+static_assert( FindForProfile( 26, COM_PROTOCOL_FAMILY_IOEF ) == &IoEF );
+static_assert( FindForProfile( 68, COM_PROTOCOL_FAMILY_JKA_MP, true ) == nullptr );
+static_assert( FindForProfile( 26, COM_PROTOCOL_FAMILY_LEGACY_QUAKE3, true ) == nullptr );
+static_assert( TryForWireProfile( NETCHAN_WIRE_JKA_MP ) == &JediAcademyMultiplayer );
+static_assert( JediAcademyMultiplayer.limits.messageBytes == 49152 );
+static_assert( JediAcademyMultiplayer.limits.reliableCommands == 128 );
+static_assert( JediAcademyMultiplayer.Has( Capability::ReliableXor )
+	&& JediAcademyMultiplayer.Has( Capability::CompressedConnect )
+	&& !JediAcademyMultiplayer.Has( Capability::SequenceChecksum ) );
 static_assert( ServesProfileFamilies( *Find( 40 ), COM_PROTOCOL_FAMILY_STVEF_SP ) );
 static_assert( !ServesProfileFamilies( *Find( 40, true ), COM_PROTOCOL_FAMILY_JKA_SP
 	| COM_PROTOCOL_FAMILY_JK2_SP | COM_PROTOCOL_FAMILY_Q3TEST ) );
-static_assert( !ServesProfileFamilies( *Find( 15, true ), COM_PROTOCOL_FAMILY_JK2_MP ) );
+static_assert( Find( 15 ) == &JK2Multiplayer && Find( 15, true ) == &JK2Multiplayer );
+static_assert( ServesProfileFamilies( *Find( 15, true ), COM_PROTOCOL_FAMILY_JK2_MP ) );
+static_assert( !ServesProfileFamilies( *Find( 15, true ), COM_PROTOCOL_FAMILY_LEGACY_QUAKE3
+	| COM_PROTOCOL_FAMILY_JKA_MP | COM_PROTOCOL_FAMILY_JK2_SP ) );
+static_assert( TryForWireProfile( NETCHAN_WIRE_JK2_MP ) == &JK2Multiplayer );
+static_assert( JK2Multiplayer.gameMessageLayout == GameMessageLayout::JK2Multiplayer );
+static_assert( JK2Multiplayer.Has( Capability::ReliableXor )
+	&& JK2Multiplayer.Has( Capability::CompressedConnect )
+	&& !JK2Multiplayer.Has( Capability::SequenceChecksum ) );
+static_assert( JK2Multiplayer.limits.reliableCommands == 128
+	&& JK2Multiplayer.limits.messageBytes == 16384 );
 static_assert( !ServesProfileFamilies( *Find( 33, true ), COM_PROTOCOL_FAMILY_QUAKE3_IHV ) );
 static_assert( ServesProfileFamilies( *Find( 24 ), COM_PROTOCOL_FAMILY_STVEF_HM )
 	&& !ServesProfileFamilies( *Find( 24 ), COM_PROTOCOL_FAMILY_IOEF ) );

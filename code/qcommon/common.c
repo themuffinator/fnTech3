@@ -82,6 +82,9 @@ qboolean Com_DemoProtocolSupported( int protocol ) {
 #define MIN_COMHUNKMEGS		64
 #define DEF_COMHUNKMEGS		256
 #define MIN_WOLFET_COMHUNKMEGS	128
+#define MIN_STVEF_SP_COMHUNKMEGS	160
+#define MIN_STVEF_MP_COMHUNKMEGS	128
+#define MIN_STVEF_SP_COMZONEMEGS	96
 #endif
 
 #define DEF_COMZONEMEGS		64
@@ -342,8 +345,14 @@ void NORETURN FORMAT_PRINTF(2, 3) QDECL Com_Error( errorParm_t code, const char 
 
 	if ( com_errorEntered ) {
 		if ( !calledSysError ) {
+			char recursiveMessage[sizeof(com_errorMessage)];
 			calledSysError = qtrue;
-			Sys_Error( "recursive error after: %s", com_errorMessage );
+			/* Preserve the original error, but also report what failed while
+			 * unwinding it. Previously the recursive fmt/args were discarded. */
+			va_start( argptr, fmt );
+			Q_vsnprintf( recursiveMessage, sizeof(recursiveMessage), fmt, argptr );
+			va_end( argptr );
+			Sys_Error( "recursive error after: %s\nrecursive cause: %s", com_errorMessage, recursiveMessage );
 		}
 	}
 
@@ -2253,6 +2262,19 @@ static void Com_InitZoneMemory( void ) {
 	// allocate the random block zone
 	cv = Cvar_Get( "com_zoneMegs", XSTRING( DEF_COMZONEMEGS ), CVAR_LATCH | CVAR_ARCHIVE );
 	Cvar_CheckRange( cv, "1", NULL, CV_INTEGER );
+#ifndef DEDICATED
+	if ( Com_GameIsSTVEFSP() ) {
+		// Large SP loads need a contiguous allocation beyond the 64 MiB zone.
+		// Reserve that room before the x86 renderer fragments address space;
+		// a late 66 MiB segment can fail despite ample total free memory.
+		if ( cv->integer < MIN_STVEF_SP_COMZONEMEGS ) {
+			Com_Printf( "com_zoneMegs %i is below what Elite Force SP needs here; using %i.\n",
+				cv->integer, MIN_STVEF_SP_COMZONEMEGS );
+			cv = Cvar_Set2( "com_zoneMegs", XSTRING( MIN_STVEF_SP_COMZONEMEGS ), qtrue );
+		}
+		Cvar_CheckRange( cv, XSTRING( MIN_STVEF_SP_COMZONEMEGS ), NULL, CV_INTEGER );
+	}
+#endif
 	Cvar_SetDescription( cv, "Initial amount of memory (RAM) allocated for the main block zone (in MB)." );
 
 #ifndef USE_MULTI_SEGMENT
@@ -2384,6 +2406,20 @@ static void Com_InitHunkMemory( void ) {
 			cv = Cvar_Set2( "com_hunkMegs", XSTRING( MIN_WOLFET_COMHUNKMEGS ), qtrue );
 		}
 		Cvar_CheckRange( cv, XSTRING( MIN_WOLFET_COMHUNKMEGS ), NULL, CV_INTEGER );
+	} else
+	if ( Com_GameIsSTVEF() ) {
+		// Retail's 36/47 MiB settings predate the shared engine's larger
+		// records, renderer allocations and Vulkan's 32 MiB upload scratch.
+		// SP's borg6/stasis2 also exceed 128 MiB during temporary allocations;
+		// Holomatch's complete installed inventory fits its smaller floor.
+		const int minimumMegs = Com_GameIsSTVEFSP() ? MIN_STVEF_SP_COMHUNKMEGS : MIN_STVEF_MP_COMHUNKMEGS;
+		const char *minimumText = Com_GameIsSTVEFSP() ? XSTRING( MIN_STVEF_SP_COMHUNKMEGS ) : XSTRING( MIN_STVEF_MP_COMHUNKMEGS );
+		if ( cv->integer < minimumMegs ) {
+			Com_Printf( "com_hunkMegs %i is below what Elite Force's maps need here; using %i.\n",
+				cv->integer, minimumMegs );
+			cv = Cvar_Set2( "com_hunkMegs", minimumText, qtrue );
+		}
+		Cvar_CheckRange( cv, minimumText, NULL, CV_INTEGER );
 	} else
 #endif
 	Cvar_CheckRange( cv, XSTRING( MIN_COMHUNKMEGS ), NULL, CV_INTEGER );
@@ -4352,6 +4388,9 @@ static void Com_InitGameProfile( void ) {
 	if ( !Com_ActivateGameProfile( detection.profile->id ) ) {
 		Com_Error( ERR_FATAL, "fnTech3 attempted to change an active game profile" );
 	}
+	// The early console now has an immutable title identity, even when its
+	// caption was overridden. Apply its palette and built-in game icon.
+	Sys_UpdateConsolePresentation();
 	if ( Com_GameIsQ3Test() ) {
 		/* Q3Test's releases do not share a protocol, a map format or a module
 		 * table, so one is pinned here, from the installation, before any of
@@ -4400,6 +4439,11 @@ static void Com_InitGameProfile( void ) {
 			: "EXPERIMENTAL RTCW DEVELOPMENT BUILD: %s. Compatibility gates remain open.\n",
 			detection.profile->runtimeBlocker );
 	}
+}
+
+static void Com_InitGameCommands( void ) {
+	// Command entries use the main zone; profile selection itself uses only
+	// the already initialized cvar/small-zone and installation-probe services.
 	Cmd_AddCommand( "gameList", Com_GameList_f );
 #ifndef DEDICATED
 	Cmd_AddCommand( "gameMode", Com_GameMode_f );
@@ -4473,8 +4517,12 @@ void Com_Init( char *commandLine ) {
 	// override anything from the config files with command line args
 	Com_StartupVariable( NULL );
 
+	// The profile owns the initial memory policy too. Freeze it before the
+	// main zone is allocated, then register commands once that zone exists.
+	Com_InitGameProfile();
 	Com_InitZoneMemory();
 	Cmd_Init();
+	Com_InitGameCommands();
 
 	// get the developer cvar set as early as possible
 	Com_StartupVariable( "developer" );
@@ -4492,8 +4540,6 @@ void Com_Init( char *commandLine ) {
 	com_journal = Cvar_Get( "journal", "0", CVAR_INIT | CVAR_PROTECTED );
 	Cvar_CheckRange( com_journal, "0", "2", CV_INTEGER );
 	Cvar_SetDescription( com_journal, "When enabled, writes events and its data to 'journal.dat' and 'journaldata.dat'.");
-
-	Com_InitGameProfile();
 
 	com_protocol = Cvar_Get( "protocol", va( "%i", Com_GamePreferredProtocol() ), 0 );
 	Cvar_SetDescription( com_protocol,

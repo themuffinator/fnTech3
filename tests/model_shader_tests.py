@@ -130,7 +130,7 @@ enum { CGEN_IDENTITY, CGEN_LIGHTING_DIFFUSE, FILE_HASH_SIZE = 1 };
 struct shaderStage_t { int rgbGen; struct { int rgbGen; } bundle[1]; };
 struct shader_t {
     char name[MAX_QPATH]; int lightmapSearchIndex, lightmapIndex, index, rtcwCompression;
-    qboolean rtcwModelDiffuse, rtcwLightMaterial, defaultShader, needsNormal, noPicMip, noMipMaps, rtcwCharacterMip;
+    qboolean rtcwModelDiffuse, rtcwLightMaterial, defaultShader, needsNormal, noPicMip, noMipMaps, rtcwCharacterMip, jkaNoTC;
     shader_t *next; shaderStage_t first;
 };
 static shader_t defaultShader{}, shader;
@@ -148,6 +148,7 @@ static image_t rawImage{"textures/fixture", nullptr, IMGFLAG_NONE};
 static cvar_t printShaders{}; static cvar_t *r_printShaders = &printShaders;
 static cvar_t compression{};static cvar_t *r_ext_compressed_textures=&compression;
 #include "code/renderercommon/tr_rtcw_shader_material.h"
+#include "code/renderercommon/tr_jka_shader.h"
 static unsigned long generateHashValue(const char *, int) { return 0; }
 static imgFlags_t &operator|=(imgFlags_t &a, imgFlags_t b) { a = static_cast<imgFlags_t>((int)a | (int)b); return a; }
 static void InitShader(const char *name, int lightmap) {

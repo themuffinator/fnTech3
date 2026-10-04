@@ -45,6 +45,7 @@ extern "C" {
 
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <map>
@@ -72,14 +73,15 @@ public:
 	/* Opens `path`; `start` is where to begin in the file's own frames, or
 	 * negative for the song start offset every soundtrack song and loop
 	 * begins at. */
-	bool Open( const std::string &path, bool loop, std::int64_t start ) {
+	bool Open( const std::string &path, bool loop, std::int64_t start, bool soundtrackSong = false ) {
 		Close();
 		path_ = path;
 		loop_ = loop;
 		if ( !Reopen() ) {
 			return false;
 		}
-		skip_ = start >= 0 ? start : startOffset_;
+		loopStart_ = soundtrackSong ? startOffset_ : 0;
+		skip_ = start >= 0 ? start : loopStart_;
 		return true;
 	}
 
@@ -91,26 +93,40 @@ public:
 		pending_.clear();
 		pendingAt_ = 0;
 		ended_ = true;
+		inputEnded_ = true;
+		resampler_ = {};
 	}
 
-	bool Playing() const { return stream_ != nullptr && !ended_; }
+	bool Playing() const { return !ended_ && ( stream_ != nullptr || pendingAt_ < pending_.size() ); }
 	const std::string &Path() const { return path_; }
 	bool Loops() const { return loop_; }
 
 	/* Where the file is, in its own frames, for a song resumed later. */
-	std::int64_t Position() const { return position_; }
+	std::int64_t Position() const {
+		if ( rate_ <= 0 ) return position_;
+		const auto completed = (std::min)( acceptedInputFrames_, mixedOutputFrames_ * rate_ / kMixRate );
+		std::int64_t position = position_ - ( acceptedInputFrames_ - completed );
+		const auto period = totalFrames_ - loopStart_;
+		if ( loop_ && period > 0 && position < loopStart_ ) {
+			const auto remainder = ( position - loopStart_ ) % period;
+			position = loopStart_ + ( remainder < 0 ? remainder + period : remainder );
+		}
+		return position;
+	}
 
 	/* Milliseconds left, or -1 when the file's length is unknown. */
 	int RemainingMs() const {
-		if ( !stream_ || rate_ <= 0 || totalFrames_ <= 0 ) {
+		if ( rate_ <= 0 || totalFrames_ <= 0 ) {
 			return -1;
 		}
-		const std::int64_t left = totalFrames_ - position_;
+		const std::int64_t left = totalFrames_ - Position();
 		return left > 0 ? static_cast<int>( left * 1000 / rate_ ) : 0;
 	}
 
 	/* Adds up to `frames` frames of this track at `gain` into `out`. */
 	void Mix( float gain, float *out, int frames ) {
+		if ( out == nullptr || frames <= 0 ) return;
+		if ( !std::isfinite( gain ) ) gain = 0.0f;
 		int done = 0;
 		while ( done < frames && Playing() ) {
 			if ( pendingAt_ >= pending_.size() && !Refill() ) {
@@ -124,18 +140,27 @@ public:
 				to[i] += from[i] * gain;
 			}
 			pendingAt_ += static_cast<std::size_t>( take ) * kMixChannels;
+			mixedOutputFrames_ += take;
 			done += take;
+			if ( inputEnded_ && pendingAt_ >= pending_.size() ) ended_ = true;
 		}
 	}
 
 private:
-	bool Reopen() {
+	bool Reopen( bool keepTimeline = false ) {
 		if ( stream_ ) {
 			S_CodecCloseStream( stream_ );
 		}
 		stream_ = S_CodecOpenStream( path_.c_str() );
 		if ( !stream_ ) {
-			ended_ = true;
+			return false;
+		}
+		const auto &info = stream_->info;
+		if ( info.rate <= 0 || info.rate > 192000 || info.channels <= 0 || info.channels > 32 ||
+			( info.width != 1 && info.width != 2 ) || ( keepTimeline &&
+			( info.rate != rate_ || info.channels != channels_ || info.width != width_ ) ) ) {
+			S_CodecCloseStream( stream_ );
+			stream_ = nullptr;
 			return false;
 		}
 		rate_ = stream_->info.rate;
@@ -144,10 +169,15 @@ private:
 		totalFrames_ = stream_->info.samples;
 		startOffset_ = static_cast<std::int64_t>( static_cast<double>( rate_ ) * music::StartOffsetSeconds );
 		position_ = 0;
-		ended_ = rate_ <= 0 || channels_ <= 0 || ( width_ != 1 && width_ != 2 )
-			|| !resampler_.Configure( rate_, kMixRate, kMixChannels );
-		pending_.clear();
-		pendingAt_ = 0;
+		cycleHasInput_ = false;
+		inputEnded_ = false;
+		ended_ = false;
+		if ( !keepTimeline ) {
+			acceptedInputFrames_ = mixedOutputFrames_ = 0;
+			ended_ = !resampler_.Configure( rate_, kMixRate, kMixChannels );
+			pending_.clear();
+			pendingAt_ = 0;
+		}
 		return !ended_;
 	}
 
@@ -161,15 +191,17 @@ private:
 			const int bytes = S_CodecReadStream( stream_, static_cast<int>( raw_.size() ), raw_.data() );
 			const int frames = bytes > 0 ? bytes / ( channels_ * width_ ) : 0;
 			if ( frames <= 0 ) {
-				resampler_.Finish( pending_ );
-				if ( loop_ && Reopen() ) {
-					skip_ = startOffset_;
+				// Keep the filter and fractional phase across a real loop. A
+				// file yielding no unskipped PCM cannot make a playable loop.
+				if ( loop_ && cycleHasInput_ && Reopen( true ) ) {
+					skip_ = loopStart_;
 					continue;
 				}
+				inputEnded_ = true;
+				if ( !resampler_.Finish( pending_ ) ) pending_.clear();
+				if ( stream_ ) S_CodecCloseStream( stream_ );
+				stream_ = nullptr;
 				ended_ = pending_.empty();
-				if ( ended_ ) {
-					Close();
-				}
 				return !pending_.empty();
 			}
 			position_ += frames;
@@ -194,7 +226,13 @@ private:
 				}
 			}
 			if ( !samples_.empty() ) {
-				resampler_.Push( samples_.data(), static_cast<int>( samples_.size() / kMixChannels ), pending_ );
+				const auto count = samples_.size() / kMixChannels;
+				if ( !resampler_.Push( samples_.data(), static_cast<int>( count ), pending_ ) ) {
+					Close();
+					return false;
+				}
+				acceptedInputFrames_ += static_cast<std::int64_t>( count );
+				cycleHasInput_ = true;
 			}
 		}
 		return !pending_.empty();
@@ -203,8 +241,10 @@ private:
 	std::string path_;
 	snd_stream_t *stream_ = nullptr;
 	bool loop_ = false, ended_ = true;
+	bool inputEnded_ = true, cycleHasInput_ = false;
 	int rate_ = 0, channels_ = 0, width_ = 0;
 	std::int64_t totalFrames_ = 0, position_ = 0, skip_ = 0, startOffset_ = 0;
+	std::int64_t loopStart_ = 0, acceptedInputFrames_ = 0, mixedOutputFrames_ = 0;
 	fntech3::audio::CubicStreamResampler resampler_;
 	std::vector<std::uint8_t> raw_;
 	std::vector<float> samples_;
@@ -223,7 +263,7 @@ struct SongPlayer final : music::Player {
 	bool Start( int player, const music::Song &song, int songIndex, bool loop ) override {
 		const auto at = places.find( songIndex );
 		const std::int64_t start = at != places.end() ? at->second : -1;
-		if ( !tracks[player].Open( song.file, loop, start ) ) {
+		if ( !tracks[player].Open( song.file, loop, start, true ) ) {
 			Com_DPrintf( "Could not start music file '%s'!\n", song.file.c_str() );
 			return false;
 		}
@@ -260,12 +300,14 @@ Track triggered;
 
 bool mixAttached = false;
 std::vector<float> mixScratch;
+bool AnythingPlays();
 
 int MixRead( snd_stream_t *, int bytes, void *buffer ) {
 	const int frames = bytes / static_cast<int>( sizeof( std::int16_t ) * kMixChannels );
-	if ( frames <= 0 ) {
+	if ( frames <= 0 || buffer == nullptr ) {
 		return 0;
 	}
+	if ( !AnythingPlays() ) return 0;
 	mixScratch.assign( static_cast<std::size_t>( frames ) * kMixChannels, 0.0f );
 	for ( int i = 0; i < music::NumPlayers; i++ ) {
 		if ( songs.tracks[i].Playing() ) {
@@ -273,10 +315,12 @@ int MixRead( snd_stream_t *, int bytes, void *buffer ) {
 		}
 	}
 	triggered.Mix( 1.0f, mixScratch.data(), frames );
-	auto *out = static_cast<std::int16_t *>( buffer );
+	auto *out = static_cast<byte *>( buffer );
 	for ( std::size_t i = 0; i < mixScratch.size(); i++ ) {
 		const float v = mixScratch[i];
-		out[i] = static_cast<std::int16_t>( v > 32767.0f ? 32767 : ( v < -32768.0f ? -32768 : static_cast<int>( v ) ) );
+		const auto sample = !std::isfinite( v ) ? std::int16_t{0} :
+			static_cast<std::int16_t>( v > 32767.0f ? 32767 : v < -32768.0f ? -32768 : static_cast<int>( v ) );
+		std::memcpy( out + i * sizeof( sample ), &sample, sizeof( sample ) );
 	}
 	return frames * static_cast<int>( sizeof( std::int16_t ) ) * kMixChannels;
 }

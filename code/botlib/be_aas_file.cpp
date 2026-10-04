@@ -380,7 +380,10 @@ static bool AAS_IndexesInside(bool quakeRouting, char *fault, size_t faultSize)
 
 int AAS_LoadAASFile(const char *filename)
 {
-	if (Com_GameIsRTCW()) return AAS_LoadRTCWAASFile(filename);
+	// ET also uses AAS8's 32-byte settings, preserving ground steepness in
+	// the internal sidecar. Its checksum marker belongs only to that profile.
+	if (Com_GameIsRTCW() || Com_GameIsWolfET())
+		return AAS_LoadRTCWAASFile(filename, Com_GameIsWolfET());
 	fileHandle_t fp;
 	aas_header_t header = {};
 	int offset, length, lastoffset, filelength, i;
@@ -588,8 +591,9 @@ static int AAS_WriteAASLumpArray(fileHandle_t fp, aas_header_t *h, int lumpnum, 
 //===========================================================================
 qboolean AAS_WriteAASFile(const char *filename)
 {
-	if (Com_GameIsRTCW()) {
-		botimport.Print(PRT_ERROR, "Writing RTCW AAS8 files is not implemented\n");
+	if (Com_GameIsRTCW() || Com_GameIsWolfET()) {
+		botimport.Print(PRT_ERROR, "Writing %s AAS8 files is not implemented\n",
+			Com_GameIsWolfET() ? "ET" : "RTCW");
 		return qfalse;
 	}
 	aas_header_t header = {};

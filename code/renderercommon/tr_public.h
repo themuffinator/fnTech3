@@ -34,7 +34,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // 30: Medal of Honor's model registration and the engine's TIKI table.
 // 31: that branch's Elite Force SP scissor and raw-image members, merged after
 // all of the above.
-#define	REF_API_VERSION		31
+// 32: texture capabilities for profiles' frozen renderer records.
+/* Version 33 appends engine-owned mutable MDR registration and pose updates. */
+/* Version 34 appends the renderer-owned Academy world distance query. */
+#define	REF_API_VERSION		34
 
 //
 // these are the functions exported by the refresh module
@@ -243,7 +246,17 @@ typedef struct {
 	// Opaque SP UI image, modulated by its own brightness rather than the UI color.
 	void (*DrawSTVEFRaw)( int x, int y, int w, int h, int cols, int rows,
 		const byte *data, float lightValue );
+	// Active backend capabilities for profiles whose frozen renderer record
+	// includes these fields. No external module receives this engine table.
+	void (*GetTextureCapabilities)( float *maximumAnisotropy, qboolean *clampToEdgeAvailable );
 
+	/* Engine-only models: fresh ownerNonce for each registration lifetime. */
+	qhandle_t (*RegisterRuntimeMDR)( uint64_t ownerNonce, const void *bytes, int length );
+	qboolean (*UpdateRuntimeMDRPose)( qhandle_t handle, uint64_t ownerNonce,
+		const float *matrices, int boneCount, const vec3_t mins, const vec3_t maxs );
+
+	/* MP world visibility limit; false before load or after shutdown. */
+	qboolean (*GetJKADistanceCull)( float *distance );
 
 } refexport_t;
 

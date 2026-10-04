@@ -52,6 +52,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define SCFL_PRIMITIVE				0x0010
 #define SCFL_NOBINARYNUMBERS		0x0020
 #define SCFL_NONUMBERVALUES		0x0040
+#define SCFL_JKA_NAMES           0x0080 // Raven's unquoted @STRINGED names
 
 //token types
 #define TT_STRING						1			// string
@@ -187,6 +188,7 @@ struct script_s
 	int lastline;					//line before reading token
 	int tokenavailable;				//set by UnreadLastToken
 	int flags;						//several script flags
+	int hadError;					//internal diagnostic state, independent of logging flags
 	punctuation_t *punctuations;	//the punctuations used in the script
 	punctuation_t **punctuationtable;
 	token_t token;					//available token
@@ -235,7 +237,7 @@ int EndOfScript(script_t *script);
 //returns a pointer to the punctuation with the given number
 const char *PunctuationFromNum(script_t *script, int num);
 //load a script from the given file at the given offset with the given length
-script_t *LoadScriptFile(const char *filename);
+script_t *LoadScriptFile(const char *filename, int maximumBytes = 0);
 //load a script from the given memory with the given length
 script_t *LoadScriptMemory(const char *ptr, int length, const char *name);
 //free a script

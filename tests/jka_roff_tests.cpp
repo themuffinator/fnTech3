@@ -49,7 +49,7 @@ static void AppendString( Bytes &file, const std::string &text )
 	file.push_back( 0 );
 }
 
-/* Retail ships version 2 only: a frame rate, entries with note ranges, and a
+/* Retail ships version 2 only: a frame interval, entries with note ranges, and a
  * note track of terminated strings. */
 static Bytes Version2( int entries, int notes, bool useNotes = true )
 {
@@ -57,7 +57,7 @@ static Bytes Version2( int entries, int notes, bool useNotes = true )
 	AppendInt( file, std::int32_t( roff::Ident ) );
 	AppendInt( file, roff::Version2 );
 	AppendInt( file, entries );
-	AppendInt( file, 50 );                     // frame rate, as every retail path uses
+	AppendInt( file, 50 );                     // 50 milliseconds, as every retail path uses
 	AppendInt( file, notes );
 	for ( int entry = 0; entry < entries; ++entry ) {
 		for ( int axis = 0; axis < 3; ++axis ) AppendFloat( file, float( entry * 4 + axis ) );
@@ -127,6 +127,12 @@ static void CheckVersion1()
 		PutInt( damaged, 8, std::int32_t( word ) );
 		CHECK( roff::Parse( damaged.data(), damaged.size(), path ) != Error::None );
 	}
+	for ( std::int32_t bits : { std::int32_t( 0x7f800000u ), std::int32_t( 0xff800000u ),
+		std::int32_t( 0x7fc00001u ) } ) {
+		Bytes damaged = file;
+		PutInt( damaged, 8, bits );
+		CHECK( roff::Parse( damaged.data(), damaged.size(), path ) == Error::Counts );
+	}
 
 	// Anything after the entries does not belong to a version 1 path.
 	Bytes trailing = file;
@@ -148,7 +154,7 @@ static void CheckRejections()
 	for ( auto damage : { Damage{ 0, 0x46464f52 + 1, Error::Ident },
 		{ 4, 0, Error::Version }, { 4, 3, Error::Version },
 		{ 8, -1, Error::Counts },                    // entries
-		{ 12, 0, Error::Counts },                    // frame rate
+		{ 12, 0, Error::Counts },                    // frame interval
 		{ 12, -50, Error::Counts },
 		{ 16, -1, Error::Counts },                   // notes
 		{ 8, 1 << 24, Error::Extent },               // entries past the end
@@ -182,11 +188,28 @@ static void CheckRejections()
 	}
 
 	for ( auto error : { Error::None, Error::Size, Error::Ident, Error::Version,
-		Error::Counts, Error::Extent, Error::Note, Error::Trailing } ) {
+		Error::Counts, Error::Extent, Error::Note, Error::Trailing, Error::Value } ) {
 		const char *name = roff::ErrorName( error );
 		CHECK( name && name[0] && std::strcmp( name, "unknown" ) );
 	}
 	CHECK( !std::strcmp( roff::ErrorName( (Error)42 ), "unknown" ) );
+}
+
+void CheckNonFiniteOffsets()
+{
+	roff::Path path;
+	for ( int version : { roff::Version1, roff::Version2 } ) {
+		const Bytes file = version == roff::Version1 ? Version1( 1 ) : Version2( 1, 0 );
+		const std::size_t header = version == roff::Version1 ? roff::Version1HeaderBytes : roff::Version2HeaderBytes;
+		for ( int scalar = 0; scalar < 6; ++scalar ) {
+			for ( std::int32_t bits : { std::int32_t( 0x7f800000u ), std::int32_t( 0xff800000u ),
+				std::int32_t( 0x7fc00001u ) } ) {
+				Bytes damaged = file;
+				PutInt( damaged, header + std::size_t( scalar ) * 4, bits );
+				CHECK( roff::Parse( damaged.data(), damaged.size(), path ) == Error::Value );
+			}
+		}
+	}
 }
 
 int main()
@@ -194,6 +217,7 @@ int main()
 	CheckVersion2();
 	CheckVersion1();
 	CheckRejections();
+	CheckNonFiniteOffsets();
 	std::cout << "Jedi Academy ROFF motion path and malformed-path tests passed\n";
 	return 0;
 }

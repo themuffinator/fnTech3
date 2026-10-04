@@ -598,6 +598,11 @@ R_GetCommandBufferReserved
 make sure there is enough command space
 ============
 */
+/* Immediate OpenGL draws retain no CPU MDR pose after this drain. */
+void R_IssueRuntimeMDRCommands( void ) {
+	R_IssuePendingRenderCommands();
+}
+
 static void *R_GetCommandBufferReserved( int bytes, int reservedBytes ) {
 	renderCommandList_t	*cmdList;
 

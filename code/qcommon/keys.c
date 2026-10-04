@@ -821,8 +821,9 @@ void Com_InitKeyCommands( void )
 	if ( Com_GameIsRitual() ) {
 		CL_AliceInitKeyCommands();
 	}
-	// The profiles whose probes play without a keyboard or mouse.
-	if ( Com_GameIsRitual() || Com_GameIsMOHAA() ) {
+	// Isolated probes also need to dismiss Wolfenstein's retail briefings.
+	// The init-only switch still requires explicit startup opt-in.
+	if ( Com_GameIsRitual() || Com_GameIsMOHAA() || Com_GameIsRTCW() || Com_GameIsWolfET() || Com_GameIsSTVEF() ) {
 		CL_InitSyntheticInput();
 	}
 #endif

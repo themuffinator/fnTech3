@@ -4490,7 +4490,7 @@ const void *RB_AliceDebugLines( const void *data ) {
 RB_ExecuteRenderCommands
 ====================
 */
-void RB_ExecuteRenderCommands( const void *data ) {
+static void RB_ExecuteRenderCommandsInternal( const void *data, qboolean finishFrame ) {
 
 	backEnd.pc.msec = ri.Milliseconds();
 
@@ -4547,7 +4547,8 @@ void RB_ExecuteRenderCommands( const void *data ) {
 		default:
 			// stop rendering
 #ifdef USE_VULKAN
-			vk_end_frame();
+			if ( finishFrame ) vk_end_frame();
+			else RB_EndSurface();
 //			if (com_errorEntered && (begin_frame_called && !end_frame_called)) {
 //				vk_end_frame();
 //			}
@@ -4557,4 +4558,12 @@ void RB_ExecuteRenderCommands( const void *data ) {
 			return;
 		}
 	}
+}
+
+void RB_ExecuteRenderCommands( const void *data ) {
+	RB_ExecuteRenderCommandsInternal( data, qtrue );
+}
+
+void RB_ExecuteRuntimeMDRCommands( const void *data ) {
+	RB_ExecuteRenderCommandsInternal( data, qfalse );
 }

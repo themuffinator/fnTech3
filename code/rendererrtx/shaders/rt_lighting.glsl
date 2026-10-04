@@ -99,6 +99,17 @@ bool rt_light_eval(uint index, vec3 P, vec3 N, uint exclude, inout uint seed, ou
 		}
 		falloff = mix(falloff, falloff * falloff * (3.0 - 2.0 * falloff), clamp(u_frame.dlightShape.x, 0.0, 1.0));
 		s.E = light.color.rgb * (falloff * cosR);
+		// Its shadow is cast from a point on the light's body, a sphere a
+		// twentieth of its reach (2 to 12 units: a muzzle flash, a torch's
+		// flame, a fireball), so it has the penumbra a light that size casts;
+		// its brightness stays raster's, from the centre
+		float body = clamp(0.05 * r, 2.0, 12.0);
+		vec3 q = light.position.xyz + body * rand_sphere(seed) - P;
+		float qd = length(q);
+		if (qd > body && dot(N, q) > 0.0) {
+			s.L = q / qd;
+			s.dist = qd;
+		}
 		return true;
 	}
 

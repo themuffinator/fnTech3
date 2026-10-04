@@ -133,11 +133,13 @@ def default_sound():
     backend = (ROOT / 'code/client/audio/openal/AudioSystemBackend.inl').read_text()
     return COMMON + r'''
 #include "code/client/audio/shared/RTCWDefaultSound.h"
+#include "code/client/audio/shared/AudioSpeakerLayout.h"
 #include <cmath>
 #include <string>
 #include <map>
-static bool sp=true,rtcw=true,stvef=false;static int audible=0;
+static bool sp=true,rtcw=true,stvef=false,wolfet=false;static int audible=0;
 static bool Com_GameIsRTCWSP(){return sp;}static bool Com_GameIsRTCW(){return rtcw;}
+static bool Com_GameIsWolfET(){return wolfet;}
 static bool Com_GameIsSTVEF(){return stvef;}static bool Com_GameIsAlice(){return false;}
 static bool Com_GameIsRitual(){return false;}
 static bool Com_GameIsMOHAA(){return false;}
@@ -148,7 +150,7 @@ struct sfx_t{sndBuffer *soundData=nullptr;int soundLength=0,soundChannels=0,soun
  bool defaultSound=false,inMemory=false;char soundName[64]{};};
 static std::array<sfx_t,2>s_knownSfx;static std::array<sfx_t *,2>sfxHash;
 static int s_numSfx=0,allocated=0,ordinaryRegistrations=0,codecLoads=0;static bool s_soundMuted=true;
-static sndBuffer chunks[8];static sndBuffer *SND_malloc(){return &chunks[allocated++];}
+static sndBuffer chunks[16];static sndBuffer *SND_malloc(){assert(allocated<16);return &chunks[allocated++];}
 static void SND_setup(){}
 static sfx_t *S_KnownSfxAt(int index){assert(index==0);return &s_knownSfx[0];}
 static void Q_strncpyz(char *out,const char *in,size_t size){assert(std::strlen(in)<size);std::strcpy(out,in);}
@@ -161,16 +163,33 @@ static void Com_DPrintf(const char *,...){}
         'static void S_Base_LoadRTCWDefaultSound(', 'static void S_Base_BeginRegistration(',
         'static void S_memoryLoad( sfx_t *sfx ) {')) + r'''
 namespace openal {
-struct OpenALDevice{};enum class AudioSampleEncoding{PCM};struct AudioSampleFormat{AudioSampleEncoding encoding;int channels;};
+using byte=unsigned char;
+enum class AudioSampleEncoding{PCM};struct AudioSampleFormat{AudioSampleEncoding encoding;int channels;};
+struct OpenALDevice{bool SupportsSampleFormat(AudioSampleFormat){return true;}};
+struct snd_info_t{int width=2,channels=1,size=0,dataofs=0,samples=0,rate=22050;unsigned speakerMask=0;float peak=0;};
+static int openalCodecLoads=0;
+static void *S_CodecLoad(const char *,snd_info_t *){++openalCodecLoads;return nullptr;}
+namespace fnql {
+struct ScopedTempMemory{void *value;explicit ScopedTempMemory(void *p):value(p){}void *get(){return value;}};
+}
+static AudioSampleFormat DetectAudioSampleFormatFromName(const std::string &,int channels){return {AudioSampleEncoding::PCM,channels};}
+static bool AudioSampleFormatIsEncodedSoundField(AudioSampleFormat){return false;}
+static bool AudioSampleFormatCanBeRepresented(AudioSampleFormat){return true;}
+static const char *AudioSampleFormatName(AudioSampleFormat){return "PCM";}
+static std::vector<short> ConvertToPCM16(snd_info_t,AudioSampleFormat,const byte *){return {};}
+static std::vector<short> DownmixEncodedSoundFieldToStereo(const std::vector<short> &,AudioSampleFormat){return {};}
+static std::vector<short> DownmixPCM16ToStereo(const std::vector<short> &,int){return {};}
+constexpr int kDefaultStreamChannels=2;
 struct SoundSample{
- std::string name_;bool defaultSample_=false,missing_=false,loaded_=false,fail=false;int durationMs_=0;
+ std::string name_;bool defaultSample_=false,missing_=false,loaded_=false,fail=false,loadAttempted_=false;
+ int durationMs_=0,sourceFrameBytes_=0;float peak_=0;
  std::vector<short> uploaded;
  SoundSample(std::string name,int):name_(name){}
  bool UploadPCM(OpenALDevice &,const std::vector<short> &pcm,AudioSampleFormat f,int rate){assert(f.channels==1&&rate==22050);uploaded=pcm;durationMs_=int(pcm.size())*1000/rate;return !fail;}
  bool GenerateFallbackTone(OpenALDevice &);
- bool EnsureLoaded(OpenALDevice &d,bool fallback){assert(fallback);return GenerateFallbackTone(d);}
+ bool EnsureLoaded(OpenALDevice &,bool);
 };
-''' + function(world, 'bool SoundSample::GenerateFallbackTone(') + r'''
+''' + function(world, 'bool SoundSample::GenerateFallbackTone(') + '\n' + function(world, 'bool SoundSample::EnsureLoaded(') + r'''
 static std::string NormalizeSoundName(const char *name){return name;}
 struct AudioSystem{
  bool hardMuted_=true;std::deque<SoundSample>samples_;std::map<std::string,int>sampleLookup_;OpenALDevice device_;
@@ -180,9 +199,9 @@ struct AudioSystem{
 ''' + function(backend, 'void AudioSystem::BeginRegistration()') + r'''
 }
 int main(){
- for(bool mode:{false,true})for(int signal:{0,1}){
-  sp=mode;audible=signal;s_numSfx=0;S_Base_BeginRegistration();
-  auto &sample=s_knownSfx[0];const int frames=sp&&!audible?8:512;
+ for(int title:{0,1,2})for(int signal:{0,1}){
+  rtcw=title!=2;sp=title==1;wolfet=title==2;audible=signal;s_numSfx=0;S_Base_BeginRegistration();
+  auto &sample=s_knownSfx[0];const int frames=(sp||wolfet)&&!audible?8:512;
   assert(!s_soundMuted&&sample.soundLength==frames&&sample.soundChannels==1&&sample.soundCompressionMethod==0);
   assert(sample.defaultSound&&sample.inMemory&&!sample.soundData->next);
   for(int i=0;i<1024;++i)assert(sample.soundData->sndChunk[i]==(audible&&i<frames?i:0));
@@ -192,10 +211,10 @@ int main(){
   openal::AudioSystem s;s.BeginRegistration();assert(!s.hardMuted_&&s.samples_.size()==1&&s.sampleLookup_.at(DefaultSoundName)==0);
   const auto &loaded=s.samples_[0];assert(loaded.loaded_&&loaded.defaultSample_&&!loaded.missing_&&int(loaded.uploaded.size())==frames);
   for(int i=0;i<frames;++i)assert(loaded.uploaded[i]==(audible?i:0));
-  s.BeginRegistration();assert(s.samples_.size()==1);
+  s.BeginRegistration();assert(s.samples_.size()==1&&openal::openalCodecLoads==0);
   s.samples_[0].fail=true;assert(!s.samples_[0].GenerateFallbackTone(s.device_)&&s.samples_[0].missing_&&!s.samples_[0].defaultSample_);
  }
- rtcw=false;s_numSfx=0;S_Base_BeginRegistration();assert(ordinaryRegistrations==1&&codecLoads==0);
+ rtcw=false;wolfet=false;s_numSfx=0;S_Base_BeginRegistration();assert(ordinaryRegistrations==1&&codecLoads==0);
  openal::AudioSystem s;s.BeginRegistration();assert(s.sampleLookup_.at("sound/feedback/hit.wav")==0);
  assert(s.samples_[0].uploaded.size()==5512&&s.samples_[0].durationMs_==250&&s.samples_[0].uploaded[1]!=0);
  // Elite Force keeps handle 0 for its own silent sound.
@@ -215,14 +234,14 @@ def openal():
 using ALuint=unsigned;using ALint=int;using ALsizei=int;using ALenum=int;
 constexpr int AL_NO_ERROR=0,AL_BUFFERS_PROCESSED=1,AL_BUFFERS_QUEUED=2,AL_BUFFER=3,
  AL_SOURCE_RELATIVE=4,AL_TRUE=1,AL_POSITION=5,AL_VELOCITY=6,AL_GAIN=7,AL_SOURCE_STATE=8,
- AL_PLAYING=9,AL_SAMPLE_OFFSET=10,AL_MAX_GAIN=11,AL_STOPPED=12;
+ AL_PLAYING=9,AL_SAMPLE_OFFSET=10,AL_MAX_GAIN=11,AL_STOPPED=12,AL_INITIAL=13;
 namespace fntech3::audio{struct CubicStreamResampler{};}
 static bool sp=true;
 static bool Com_GameIsRTCWSP(){return sp;}
 static float ClampFloat(float value,float low,float high){return std::clamp(value,low,high);}
 static bool PCMByteCountFitsALsizei(size_t count){return count<=size_t(INT_MAX)/2;}
 struct OpenALDevice {
- struct Source{int state=AL_STOPPED,offset=0,processed=0;std::deque<unsigned>queue;};
+ struct Source{int state=AL_INITIAL,offset=0,processed=0;std::deque<unsigned>queue;};
  struct Pool{unsigned next=0;int acquired=0,released=0;bool fail=false;
   unsigned Acquire(){if(fail)return 0;++acquired;return ++next;}void Release(unsigned b){assert(b);++released;}}pool;
  std::map<unsigned,Source> sources;std::map<unsigned,int>frames;
@@ -244,6 +263,7 @@ struct OpenALDevice {
  void alSourceQueueBuffers(unsigned s,int n,const unsigned *b){assert(n==1);if(failQueue){error=1;return;}sources[s].queue.push_back(*b);}
  void alBufferData(unsigned b,int format,const short *,int bytes,int){if(failUpload){error=1;return;}frames[b]=bytes/(2*format);}
  void alSourceStop(unsigned s){auto &a=sources[s];a.state=AL_STOPPED;a.processed=int(a.queue.size());a.offset=0;}
+ void alSourceRewind(unsigned s){auto &a=sources[s];a.state=AL_INITIAL;a.processed=0;a.offset=0;}
  void alSourcePlay(unsigned s){sources[s].state=AL_PLAYING;}
  void alSourcei(unsigned s,int p,int){if(p==AL_BUFFER)sources[s].queue.clear();}
  void alSourcef(unsigned,int,float){}void alSource3f(unsigned,int,float,float,float){}
@@ -287,6 +307,7 @@ int main(){
  d.sources[1].offset=210;d.sources[1].processed=1;
  assert(!p.RTCWSpeechAmplitude()&&p.QueuedBufferCount()==1&&d.sources[1].offset==10);
  p.Clear();assert(!p.RTCWSpeechAmplitude()&&p.Idle()&&d.pool.acquired==d.pool.released);
+ assert(d.sources[1].state==AL_INITIAL&&d.sources[1].processed==0&&d.sources[1].offset==0);
  assert(p.QueuePCM16(tone,400,2,1000)&&p.RTCWSpeechAmplitude()==32);
  d.failQueue=true;assert(!p.QueuePCM16(quiet,400,2,1000));d.failQueue=false;
  d.failUpload=true;assert(!p.QueuePCM16(quiet,400,2,1000));d.failUpload=false;

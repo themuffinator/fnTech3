@@ -8,6 +8,10 @@
  * Layout/encoding observations: docs/fntech3/2026-09-17-wolfet-contracts.md.
  * The ET GPLv3 implementation is a reference, not incorporated code. */
 enum {
+	/* Original ET q_shared.h: seven action bits and the any-key bit in one byte. */
+	FNTECH3_WOLFET_BUTTON_COUNT = 7,
+	FNTECH3_WOLFET_BUTTON_ANY = 128,
+	FNTECH3_WOLFET_BUTTON_ACTIVATE = 64,
 	FNTECH3_WOLFET_PROTOCOL = 84,
 	FNTECH3_WOLFET_MAX_CLIENTS = 64,
 	FNTECH3_WOLFET_MAX_CONFIGSTRINGS = 1024,

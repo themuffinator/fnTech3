@@ -554,6 +554,15 @@ int SV_BotLibSetup( void ) {
 		return -1;
 	}
 
+	if (Com_GameIsWolfET()) {
+		// The ET source registers these defaults during setup, preserving an
+		// existing cvar. Co-op uses the multiplayer limit, unlike single player.
+		const char *defaultLimit = SV_GameTypeIsSinglePlayer(Cvar_VariableIntegerValue("g_gametype"))
+			? "9999999" : "1000";
+		const auto *limit = Cvar_Get("bot_frameroutingupdates", defaultLimit, 0);
+		botlib_export->BotLibVarSet("bot_frameroutingupdates", limit->string);
+	}
+
 	return botlib_export->BotLibSetup();
 }
 

@@ -1,0 +1,96 @@
+{
+  "date": "2026-10-02",
+  "profile": "wolfet",
+  "evidenceLevels": ["Source", "Unit"],
+  "gateClosure": false,
+  "source": {
+    "url": "https://github.com/id-Software/Enemy-Territory/tree/40342a9e3690cb5b627a433d4d5cbf30e3c57698",
+    "commit": "40342a9e3690cb5b627a433d4d5cbf30e3c57698",
+    "license": "GPL-3.0-or-later with additional terms; reference observation only",
+    "implementationTextIncorporated": false,
+    "files": [
+      {
+        "path": "src/botlib/be_aas_route.c",
+        "sha256": "865c8d5d2a54581e8e2939d6bf591820b957dec8e92a532ffaa55b9f04c36af5",
+        "observations": {
+          "defaultCacheBudgetKiB": 16384,
+          "frameLimitCapturedAtMapInitialization": true,
+          "missDeferralComparison": "eligible link updates > configured limit",
+          "hitsRemainAvailable": true,
+          "portalDependenciesForced": true,
+          "eviction": "oldest ordinary area cache and oldest portal cache, ties in table order, retain portal-target area caches"
+        }
+      },
+      {
+        "path": "src/server/sv_bot.c",
+        "sha256": "e1346bc1155d40be1902922ccff22ee84f9f90fcb0fe99d0871339399e1c7aa6",
+        "observations": {
+          "frameLimitCvar": "bot_frameroutingupdates",
+          "singlePlayerDefault": 9999999,
+          "otherGameTypeDefault": 1000,
+          "existingCvarPreserved": true
+        }
+      }
+    ]
+  },
+  "enginePolicies": {
+    "settingConversion": "finite nonnegative binary32 values truncated without unsafe float-to-int cast; zero accepted",
+    "invalidCacheBudgetFallbackKiB": 16384,
+    "invalidFrameLimitFallback": 1000,
+    "fallbackIsRetailObservation": false,
+    "stateOwnership": "internal map/world state; external POD unchanged"
+  },
+  "validation": [
+    {
+      "command": "python -m unittest discover -s tests -p wolfet_routing_limits_tests.py -v",
+      "tests": 4,
+      "seconds": 12.56,
+      "outcome": "pass",
+      "compilationFlags": ["-O2", "-ffast-math"]
+    },
+    {
+      "command": "python -m unittest discover -s tests -p rtcw_route_query_tests.py -v",
+      "tests": 2,
+      "seconds": 23.363,
+      "outcome": "pass",
+      "compilationFlags": ["-O2", "-ffast-math"]
+    },
+    {
+      "command": "python -m unittest discover -s tests -p wolfet_area_routing_tests.py -v",
+      "tests": 2,
+      "seconds": 19.313,
+      "outcome": "pass",
+      "compilationFlags": ["-O2", "-ffast-math"]
+    },
+    {
+      "command": "python -m unittest discover -s tests -p rtcw_routing_tests.py -v",
+      "tests": 3,
+      "seconds": 7.245,
+      "outcome": "pass",
+      "compilationFlags": ["-O2", "-ffast-math"]
+    },
+    {
+      "command": "python -m unittest discover -s tests -p wolfet_travel_cost_tests.py -v",
+      "tests": 5,
+      "seconds": 11.951,
+      "outcome": "pass",
+      "compilationFlags": ["-O2", "-ffast-math"]
+    }
+  ],
+  "scratch": ".tmp/wolfet-routing-limits-tests",
+  "runtime": {
+    "performedByThisSlice": false,
+    "roundRecord": "2026-10-02-compatibility-round.json",
+    "liveNavigationClaim": false
+  },
+  "remainingGaps": [
+    "Tactical avoidance and retreat use an inlist check that original ET omits; possible stale markers can exclude areas. Source-only finding, not resolved in this slice.",
+    "Loaded ET navigation and retail cache-query/eviction comparisons",
+    "Live ET bot navigation and gameplay"
+  ],
+  "presentation": {
+    "pathChanged": false,
+    "retailExactOptionAdded": false,
+    "existingFnTech3RenderingAudioInputInterfaceScopePreserved": true
+  }
+}

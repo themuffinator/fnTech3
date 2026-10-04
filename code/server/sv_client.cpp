@@ -254,10 +254,13 @@ void SV_GetChallenge( const netadr_t *from, const msg_t *msg ) {
 		return;
 	}
 
-	if ( Com_GameIsRTCWMP() ) {
-		// RTCW MP's second token is sv_onlyVisibleClients: original servers send
+	if ( Com_GameIsJK2MP() ) {
+		// jk2mp.exe 1.02a sends only this value, with no nonce or protocol.
+		NET_OutOfBandPrint( NS_SERVER, from, "challengeResponse %i", challenge );
+	} else if ( Com_GameIsRTCWMP() || Com_GameIsWolfET() ) {
+		// RTCW MP's and ET's second token is sv_onlyVisibleClients: original servers send
 		// it only when set, and iortcw follows it with the nonce and protocol.
-		// Quake III's layout would hand an RTCW client the nonce as that value.
+		// Quake III's layout would hand these clients the nonce as that value.
 		std::array<char, 128> reply{};
 		const bool sentNonce = Cmd_Argc() >= 2;
 		fntech3::rtcw::handshake::FormatMultiplayerChallengeReply( reply.data(), reply.size(),
@@ -810,6 +813,9 @@ static void SV_WriteDemoGamestate( client_t *client )
 	MSG_WriteByte( &msg, Netchan_ServerEOFOpcode( client->netchan.wireProfile ) );
 	MSG_WriteLong( &msg, SV_ClientIndex( client ) );
 	MSG_WriteLong( &msg, sv.checksumFeed );
+	if ( client->netchan.wireProfile == NETCHAN_WIRE_JKA_MP ) {
+		MSG_WriteShort( &msg, 0 ); // Static-map RMG trailer; jamp.exe 0x458760.
+	}
 
 	if ( msg.overflowed ) {
 		Com_Printf( S_COLOR_YELLOW "WARNING: couldn't write server demo gamestate for %s\n", client->name );
@@ -1692,7 +1698,7 @@ void SV_DirectConnect( const netadr_t *from ) {
 			compat = true;
 		}
 	}
-	protocolContract = fnql::protocol::Find( cl_proto, compat );
+	protocolContract = fnql::protocol::FindForProfile( cl_proto, Com_GameProfile(), compat );
 	// A number several games speak (26, 40) keeps only this profile's contract.
 	if ( !protocolContract
 		|| !fnql::protocol::ServesProfile( *protocolContract, Com_GameProfile() ) ) {
@@ -1932,7 +1938,7 @@ gotnewcl:
 	// save the address
 	newcl->compat = SV_QBool( compat );
 	Netchan_Setup( NS_SERVER, &newcl->netchan, from, qport, challenge,
-		Netchan_SelectWireProfile( cl_proto, compat ) );
+		protocolContract->wireProfile );
 
 	// init the netchan queue
 	newcl->netchan_end_queue = &newcl->netchan_start_queue;
@@ -1982,7 +1988,8 @@ gotnewcl:
 
 	// send the connect packet to the client; Ritual's servers send the bare
 	// keyword too (fakk2.exe 1.02 0x004439fd, alice.exe 0x0045293f)
-	if ( ( cl_proto == QL_RETAIL_PROTOCOL_VERSION && !longstr ) || Com_GameIsRitual() ) {
+	if ( ( cl_proto == QL_RETAIL_PROTOCOL_VERSION && !longstr ) || Com_GameIsRitual()
+		|| Com_GameIsJK2MP() ) {
 		NET_OutOfBandPrint( NS_SERVER, from, "connectResponse" );
 	} else if ( longstr ) {
 		NET_OutOfBandPrint( NS_SERVER, from, "connectResponse %d %d", challenge, sv_proto );
@@ -2202,6 +2209,17 @@ SV_RemainingGameState
 estimates free space available for additional systeminfo keys
 ================
 */
+static void SV_WriteJKAGameDirectory( msg_t *msg, netchanWireProfile_t wire ) {
+	if ( wire != NETCHAN_WIRE_JKA_MP ) return;
+	const char *directory = FS_GetCurrentGameDir();
+	const std::size_t length = strlen( directory );
+	if ( length >= MAX_QPATH || FS_InvalidGameDir( directory ) ) {
+		Com_Error( ERR_DROP, "Invalid Jedi Academy server game directory" );
+	}
+	MSG_WriteByte( msg, 8 ); // svc_setgame: before mod-specific baseline decoding
+	for ( std::size_t i = 0; i <= length; ++i ) MSG_WriteByte( msg, static_cast<byte>( directory[i] ) );
+}
+
 int SV_RemainingGameState( void )
 {
 	int			len;
@@ -2214,9 +2232,11 @@ int SV_RemainingGameState( void )
 	// so estimating it as Q3 wrongly dropped big maps to degraded pure.
 	// Alice's gamestate is its own encoding too, with baselines from its own
 	// null entity.
-	const bool ownWire = Com_GameIsRTCW() || Com_GameIsSTVEFMP() || Com_GameIsRitual();
+	const bool ownWire = Com_GameIsRTCW() || Com_GameIsSTVEFMP() || Com_GameIsRitual()
+		|| Com_GameIsJKAMP();
 	const netchanWireProfile_t wire = ownWire
-		? Netchan_SelectWireProfile( Com_GameProfile()->preferredProtocol, 0 )
+		? fnql::protocol::FindForProfile( Com_GameProfile()->preferredProtocol,
+			Com_GameProfile() )->wireProfile
 		: NETCHAN_WIRE_QL_RETAIL;
 	const int limit = ownWire ? Netchan_MessageLimit( wire ) : MAX_MSGLEN;
 	MSG_NullEntityStateForWireProfile( &nullstate, wire );
@@ -2231,6 +2251,7 @@ int SV_RemainingGameState( void )
 	for ( int i : SV_Indices( 256 ) ) { // simulate dummy client commands
 		MSG_WriteByte( &msg, i & 127 );
 	}
+	SV_WriteJKAGameDirectory( &msg, wire );
 
 	// send the gamestate
 	MSG_WriteByte( &msg, svc_gamestate );
@@ -2263,15 +2284,18 @@ int SV_RemainingGameState( void )
 			wire );
 	}
 
-	MSG_WriteByte( &msg, svc_EOF );
+	MSG_WriteByte( &msg, Netchan_ServerEOFOpcode( wire ) );
 
 	MSG_WriteLong( &msg, 7 ); // client num
 
 	// write the checksum feed
 	MSG_WriteLong( &msg, sv.checksumFeed );
+	if ( wire == NETCHAN_WIRE_JKA_MP ) {
+		MSG_WriteShort( &msg, 0 );
+	}
 
 	// finalize packet
-	MSG_WriteByte( &msg, svc_EOF );
+	MSG_WriteByte( &msg, Netchan_ServerEOFOpcode( wire ) );
 
 	len = PAD( msg.bit, 8 ) / 8;
 
@@ -2346,6 +2370,7 @@ static void SV_SendClientGameState( client_t *client ) {
 	// with a gamestate and it sets the clc.serverCommandSequence at
 	// the client side
 	SV_UpdateServerCommandsToClient( client, &msg );
+	SV_WriteJKAGameDirectory( &msg, client->netchan.wireProfile );
 
 	// send the gamestate
 	MSG_WriteByte( &msg, svc_gamestate );
@@ -2404,6 +2429,11 @@ static void SV_SendClientGameState( client_t *client ) {
 	// 0x00452bbd), and its client reads nothing more (0x0042e0e2).
 	if ( client->netchan.wireProfile != NETCHAN_WIRE_ALICE ) {
 		MSG_WriteLong( &msg, sv.checksumFeed );
+	}
+	if ( client->netchan.wireProfile == NETCHAN_WIRE_JKA_MP ) {
+		// Retail reads this unsigned length after the checksum feed, even
+		// for static maps (jamp.exe 0x4222e6 -> 0x421f10). Zero means no RMG.
+		MSG_WriteShort( &msg, 0 );
 	}
 
 	// it is important to handle gamestate overflow
@@ -2754,6 +2784,16 @@ Fill up msg with data, returning the profile-sized byte charge used by the
 global download throttle (zero when no packet was sent).
 ==================
 */
+static void SV_WriteDownloadEOF( client_t *cl, msg_t *msg )
+{
+	// SV_Netchan_Transmit owns ET's terminator. A second EOF is interpreted
+	// by its client as a binary cgame payload, including before cgame loads.
+	// Keep the existing extra terminator for the other compressed profiles.
+	if ( !SV_LegacyFraming( cl ) && !Com_GameIsWolfET() ) {
+		MSG_WriteByte( msg, Netchan_ServerEOFOpcode( cl->netchan.wireProfile ) );
+	}
+}
+
 static int SV_WriteDownloadToClient( client_t *cl )
 {
 	int curindex;
@@ -2894,7 +2934,7 @@ static int SV_WriteDownloadToClient( client_t *cl )
 			} else {
 				MSG_WriteStringForWireProfile(
 					&msg, errorMessage.data(), cl->netchan.wireProfile );
-				MSG_WriteByte( &msg, Netchan_ServerEOFOpcode( cl->netchan.wireProfile ) );
+				SV_WriteDownloadEOF( cl, &msg );
 			}
 			SV_Netchan_Transmit( cl, &msg );
 
@@ -2989,9 +3029,7 @@ static int SV_WriteDownloadToClient( client_t *cl )
 	if ( cl->downloadBlockSize[curindex] > 0 )
 		MSG_WriteData( &msg, cl->downloadBlocks[curindex], cl->downloadBlockSize[curindex] );
 
-	if ( !SV_LegacyFraming( cl ) ) {
-		MSG_WriteByte( &msg, Netchan_ServerEOFOpcode( cl->netchan.wireProfile ) );
-	}
+	SV_WriteDownloadEOF( cl, &msg );
 	SV_Netchan_Transmit( cl, &msg );
 
 	Com_DPrintf( "clientDownload: %d : writing block %d\n", SV_ClientIndex( cl ), cl->downloadXmitBlock );
@@ -3189,8 +3227,10 @@ static void SV_VerifyPaks_f( client_t *cl ) {
 		// start at arg 2 ( skip serverId cl_paks )
 		nCurArg = 1;
 
-		// Q3 66/67 and Holomatch omit serverId: cp cgame ui @ refs... mixed.
-		const bool noServerId = referencesOnly || SV_LegacyFraming( cl ) ||
+		// JKA retail argv1/2 are the module checksums, argv3 is '@'
+		// (jamp.exe 0x45915e..0x4591d2). Q3 66/67 and Holomatch also omit serverId.
+		const bool academyProof = Com_GameIsJKAMP();
+		const bool noServerId = academyProof || referencesOnly || SV_LegacyFraming( cl ) ||
 			fnql::protocol::Q3PureChecksumsOmitServerId( cl->netchan.wireProfile );
 		int incomingServerId = sv.serverId;
 		if ( noServerId ) {
@@ -3215,9 +3255,10 @@ static void SV_VerifyPaks_f( client_t *cl ) {
 
 			// Q3/RTCW MP: cp serverId cgame ui @ refs... mixedChecksum (zero refs allowed).
 			// QL: cp serverId bin @ firstref refs... mixedChecksum.
-			// Holomatch: cp cgame ui @ refs... mixedChecksum.
+			// JKA/Holomatch: cp cgame ui @ refs... mixedChecksum.
 			// Medal of Honor: cp refs... mixedChecksum.
-			if (nClientPaks < ( referencesOnly ? 2 : noServerId ? 5 : 6 )) {
+			// Retail JKA requires one general reference (argc >= 6 at 0x459155).
+			if (nClientPaks < ( referencesOnly ? 2 : academyProof ? 6 : noServerId ? 5 : 6 )) {
 				bGood = false;
 				break;
 			}

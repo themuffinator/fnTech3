@@ -22,6 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_init.c -- functions that are not called every frame
 
 #include "tr_local.h"
+
+qhandle_t RE_RegisterRuntimeMDR( uint64_t ownerNonce, const void *data, int bytes );
+qboolean RE_UpdateRuntimeMDRPose( qhandle_t handle, uint64_t ownerNonce,
+	const float *matrices, int boneCount, const vec3_t mins, const vec3_t maxs );
 #include "../renderercommon/tr_q3_ihv_model.h"
 #include "../renderercommon/tr_stvef_cvars.h"
 #include "../renderercommon/tr_fnq3_bloom_config.h"
@@ -338,6 +342,7 @@ cvar_t	*rtx_rt_ui_passthrough;
 cvar_t	*rtx_rt_iqm_skinning;
 cvar_t	*rtx_rt_emissive_scale;
 cvar_t	*rtx_rt_emissive_light;
+cvar_t	*rtx_rt_camera;
 cvar_t	*rtx_rt_exposure;
 cvar_t	*rtx_rt_exposure_bias;
 cvar_t	*rtx_rt_exposure_speed;
@@ -2680,9 +2685,9 @@ static void R_Register( void )
 	ri.Cvar_CheckRange( rtx_caps_report, "0", "2", CV_INTEGER );
 	ri.Cvar_SetDescription( rtx_caps_report, "rendererrtx device capability report verbosity:\n 0: disabled\n 1: compact startup capability summary\n 2: verbose startup summary + vkinfo detail" );
 	ri.Cvar_SetGroup( rtx_caps_report, CVG_RENDERER );
-	rtx_rt_mode = ri.Cvar_Get( "rtx_rt_mode", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	rtx_rt_mode = ri.Cvar_Get( "rtx_rt_mode", "2", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_CheckRange( rtx_rt_mode, "0", "2", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_mode, "Requested rendererrtx ray tracing capability mode (requires vid_restart):\n 0: raster fallback (default)\n 1: request ray-query capabilities while retaining raster output\n 2: the path tracer, tracing as rtx_rt_backend chooses; safely falls back when rtx_rt_require is 0" );
+	ri.Cvar_SetDescription( rtx_rt_mode, "Requested rendererrtx ray tracing capability mode (requires vid_restart):\n 0: raster\n 1: request ray-query capabilities while retaining raster output\n 2: the path tracer (default), tracing as rtx_rt_backend chooses; safely falls back to raster when rtx_rt_require is 0" );
 	ri.Cvar_SetGroup( rtx_rt_mode, CVG_RENDERER );
 	rtx_rt_require = ri.Cvar_Get( "rtx_rt_require", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	ri.Cvar_CheckRange( rtx_rt_require, "0", "1", CV_INTEGER );
@@ -2693,8 +2698,8 @@ static void R_Register( void )
 	ri.Cvar_SetDescription( rtx_rt_backend, "How the path tracer (rtx_rt_mode 2) traces rays (requires vid_restart):\n 0: the ray-tracing pipeline where the device offers it, else compute shaders (default)\n 1: the ray-tracing pipeline only\n 2: compute shaders over the renderer's own BVHs only" );
 	ri.Cvar_SetGroup( rtx_rt_backend, CVG_RENDERER );
 	rtx_rt_debug_visualizer = ri.Cvar_Get( "rtx_rt_debug_visualizer", "0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_debug_visualizer, "0", "9", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_debug_visualizer, "Path tracer debug view (rtx_rt_mode 2):\n 0: final image\n 1: reflectance\n 2: shading normal\n 3: denoised irradiance\n 4: noisy irradiance\n 5: specular\n 6: emission\n 7: temporal history length\n 8: view depth\n 9: motion vectors" );
+	ri.Cvar_CheckRange( rtx_rt_debug_visualizer, "0", "10", CV_INTEGER );
+	ri.Cvar_SetDescription( rtx_rt_debug_visualizer, "Path tracer debug view (rtx_rt_mode 2):\n 0: final image\n 1: reflectance\n 2: shading normal\n 3: denoised irradiance\n 4: noisy irradiance\n 5: specular\n 6: emission\n 7: temporal history length\n 8: view depth\n 9: motion vectors\n 10: the light alone, on mid-grey surfaces, through the camera" );
 	ri.Cvar_SetGroup( rtx_rt_debug_visualizer, CVG_RENDERER );
 	rtx_rt_debug_light = ri.Cvar_Get( "rtx_rt_debug_light", "-1", CVAR_TEMP );
 	ri.Cvar_CheckRange( rtx_rt_debug_light, "-1", NULL, CV_INTEGER );
@@ -2740,9 +2745,13 @@ static void R_Register( void )
 	ri.Cvar_CheckRange( rtx_rt_emissive_light, "0", "1000", CV_FLOAT );
 	ri.Cvar_SetDescription( rtx_rt_emissive_light, "Light a glowing shader without q3map_surfacelight gives off (rtx_rt_lighting 0), as a multiple of the radiance it shows: fullbright surfaces, glow stages and additive flames. 0 lights nothing with them." );
 	ri.Cvar_SetGroup( rtx_rt_emissive_light, CVG_RENDERER );
+	rtx_rt_camera = ri.Cvar_Get( "rtx_rt_camera", "0", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( rtx_rt_camera, "0", "1", CV_INTEGER );
+	ri.Cvar_SetDescription( rtx_rt_camera, "How the path tracer shows the level's own lights (rtx_rt_lighting 0):\n 0: the traced light as it is, in the map compiler's light units: the light a surface receives times its colour, with the engine's overbright and no exposure, so a map is as bright or as dark as its light sources make it\n 1: through a camera in linear light, with automatic exposure and Q2RTX's tone mapper (rtx_rt_exposure)\nThe sky and emitters alone (rtx_rt_lighting 3) always take 1." );
+	ri.Cvar_SetGroup( rtx_rt_camera, CVG_RENDERER );
 	rtx_rt_exposure = ri.Cvar_Get( "rtx_rt_exposure", "0", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( rtx_rt_exposure, "0", "64", CV_FLOAT );
-	ri.Cvar_SetDescription( rtx_rt_exposure, "Path tracer camera exposure where the sky and emitters light the scene (rtx_rt_lighting 0): 0 exposes and tone maps each view as Q2RTX does, with a curve fitted to its histogram; any other value multiplies the light by it, before a filmic curve." );
+	ri.Cvar_SetDescription( rtx_rt_exposure, "Path tracer camera exposure in linear light (rtx_rt_camera 1, and rtx_rt_lighting 3): 0 exposes and tone maps each view as Q2RTX does, with a curve fitted to its histogram; any other value multiplies the light by it, before a filmic curve." );
 	ri.Cvar_SetGroup( rtx_rt_exposure, CVG_RENDERER );
 	rtx_rt_exposure_bias = ri.Cvar_Get( "rtx_rt_exposure_bias", "0", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( rtx_rt_exposure_bias, "-8", "8", CV_FLOAT );
@@ -2765,8 +2774,8 @@ static void R_Register( void )
 	ri.Cvar_SetDescription( rtx_rt_checkerboard, "Path tracer diffuse bounce, traced as Q2RTX traces its indirect light: half the pixels a frame in a checkerboard that alternates, filtered together.\n 0: on the compute backend only\n 1: always\n 2: never" );
 	ri.Cvar_SetGroup( rtx_rt_checkerboard, CVG_RENDERER );
 	rtx_rt_lighting = ri.Cvar_Get( "rtx_rt_lighting", "0", CVAR_ARCHIVE_ND );
-	ri.Cvar_CheckRange( rtx_rt_lighting, "0", "2", CV_INTEGER );
-	ri.Cvar_SetDescription( rtx_rt_lighting, "Path tracer light sources:\n 0: the sky (its own colour and q3map_sun) and the surfaces that give off light, q3map_surfacelight shaders and glowing ones (rtx_rt_emissive_light), with traced bounces and nothing baked, as Q2RTX lights\n 1: the lightmaps and light grid, with traced dynamic lights over them\n 2: the map compilers' own lights and light models" );
+	ri.Cvar_CheckRange( rtx_rt_lighting, "0", "3", CV_INTEGER );
+	ri.Cvar_SetDescription( rtx_rt_lighting, "Path tracer light sources:\n 0: the level's own lights, traced: the light entities the map keeps, its q3map_surfacelight and glowing shaders (rtx_rt_emissive_light), its sky and q3map_sun, with traced bounces in place of the compilers' ambient and _minlight; nothing baked\n 1: the lightmaps and light grid, with traced dynamic lights over them\n 2: the map compilers' own lights and light models, as they baked them\n 3: the sky and the surfaces that give off light alone, as Q2RTX lights" );
 	ri.Cvar_SetGroup( rtx_rt_lighting, CVG_RENDERER );
 	rtx_rt_bounces = ri.Cvar_Get( "rtx_rt_bounces", "1", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( rtx_rt_bounces, "0", "4", CV_INTEGER );
@@ -3904,6 +3913,16 @@ static qhandle_t RE_RegisterShaderFromRGBA( const char *name, byte *rgba,
 GetRefAPI
 @@@@@@@@@@@@@@@@@@@@@
 */
+static void RE_GetTextureCapabilities( float *anisotropy, qboolean *clamp ) {
+#ifdef USE_VULKAN_API
+	if ( anisotropy ) *anisotropy = vk.samplerAnisotropy ? vk.maxAnisotropy : 0.0f;
+	if ( clamp ) *clamp = qtrue;
+#else
+	if ( anisotropy ) *anisotropy = (float)maxAnisotropy;
+	if ( clamp ) *clamp = gl_clamp_mode == GL_CLAMP_TO_EDGE ? qtrue : qfalse;
+#endif
+}
+
 static void RE_TransformModelToClip( const vec3_t point, vec4_t eye, vec4_t clip ) {
 	R_TransformModelToClip( point, tr.viewParms.world.modelMatrix,
 		tr.viewParms.projectionMatrix, eye, clip );
@@ -4034,6 +4053,10 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.DrawMenuBlur = RE_DrawMenuBlur;
 	re.CanMinimize = RE_CanMinimize;
 	re.GetConfig = RE_GetConfig;
+	re.GetTextureCapabilities = RE_GetTextureCapabilities;
+	re.RegisterRuntimeMDR = RE_RegisterRuntimeMDR;
+	re.UpdateRuntimeMDRPose = RE_UpdateRuntimeMDRPose;
+	re.GetJKADistanceCull = RE_GetJKADistanceCull;
 	re.VertexLighting = RE_VertexLighting;
 	re.SyncRender = RE_SyncRender;
 	re.TransformModelToClip = RE_TransformModelToClip;

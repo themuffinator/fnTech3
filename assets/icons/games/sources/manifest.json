@@ -80,33 +80,40 @@
     },
     "stvef-sp": {
       "source": "stvef-sp.png",
-      "sha256": "77a216645b9b3fa60dc00eadabcb6f081844d3d8286626691d72080ddaf4e505",
+      "sha256": "0539fdf6073e952f074c2597f8fd9a0fbe672359b7c874fcdc0fac4ec63583c2",
       "size": [
         1254,
         1254
       ],
       "mode": "RGB",
       "status": "imagegen",
-      "generated_file": "exec-438e00b4-794b-41fb-995f-f792515a7c2a.png",
+      "generated_file": "exec-224e15a9-db97-4c0d-91e1-59206def6c85.png",
       "reference_executable": "E:\\Games\\Star Trek Voyager Elite Force\\stvoy.exe",
       "reference_sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
       "reference_group": "1",
-      "reference_size": 32
+      "reference_size": 32,
+      "revision_date": "2026-10-02",
+      "revision": "Corrected from user reference: striped trapezoidal plaque, silver rods and rounded lower arch; mistaken half-circle removed. SP opaque black; MP opaque blue tile with subtle grid lines, rounded corners and transparent outer cutouts.",
+      "user_reference_sha256": "16d2ff27d59fe77cd9a1e39a88aa291d41d64ade4be5da58a8494e879ce75248"
     },
     "stvef-mp": {
       "source": "stvef-mp.png",
-      "sha256": "42174957f7322e8fe5d6d6ba3a2895d08aafb0db1dce70cf224163886275e0bf",
+      "sha256": "e43e840e59fcc954e3ab7866bd0a15deda6186835d5fd53e23c26e8c048b14aa",
       "size": [
         1254,
         1254
       ],
       "mode": "RGBA",
       "status": "imagegen",
-      "generated_file": "exec-049485c9-3878-4e9d-a4a2-10d6196f11d0.png",
+      "generated_file": "exec-3afebc3f-c72f-41cd-838e-ce07ed6f0394.png",
       "reference_executable": "E:\\Games\\Star Trek Voyager Elite Force\\stvoyHM.exe",
       "reference_sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
       "reference_group": "1",
-      "reference_size": 32
+      "reference_size": 32,
+      "revision_date": "2026-10-02",
+      "revision": "Corrected from user reference: striped trapezoidal plaque, silver rods and rounded lower arch; mistaken half-circle removed. SP opaque black; MP opaque blue tile with subtle grid lines, rounded corners and transparent outer cutouts.",
+      "user_reference_sha256": "16d2ff27d59fe77cd9a1e39a88aa291d41d64ade4be5da58a8494e879ce75248",
+      "export_alpha_normalization": "Near-opaque generated alpha >=250 exported as 255; rounded-corner mask and original master preserved."
     },
     "q3-ihv": {
       "source": "q3-ihv.png",

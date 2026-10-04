@@ -18,19 +18,23 @@ class RTCWGamestateBudgetTests(unittest.TestCase):
         # message rather than Quake III's 16 KiB one (mp_sub fell to degraded
         # pure under the Q3 estimate).
         # Elite Force Holomatch measures its own raw-bit wire the same way, and
-        # so does Alice, whose baselines start from its own null entity.
-        self.assertIn(
-            'const bool ownWire = Com_GameIsRTCW() || Com_GameIsSTVEFMP() || Com_GameIsRitual();',
-            self.body)
+        # so does Alice, whose baselines start from its own null entity. JKA
+        # multiplayer also estimates its own wire and game-directory prefix.
+        own_wire = re.search(r'const bool ownWire = ([^;]+);', self.body).group(1)
+        self.assertEqual(re.findall(r'Com_GameIs\w+\(\)', own_wire),
+                         ['Com_GameIsRTCW()', 'Com_GameIsSTVEFMP()',
+                          'Com_GameIsRitual()', 'Com_GameIsJKAMP()'])
         self.assertIn('MSG_NullEntityStateForWireProfile( &nullstate, wire );', self.body)
         self.assertIn('const netchanWireProfile_t wire = ownWire', self.body)
-        self.assertIn('Netchan_SelectWireProfile( Com_GameProfile()->preferredProtocol, 0 )', self.body)
+        self.assertIn('fnql::protocol::FindForProfile( Com_GameProfile()->preferredProtocol,', self.body)
+        self.assertIn('Com_GameProfile() )->wireProfile', self.body)
         self.assertIn('const int limit = ownWire ? Netchan_MessageLimit( wire ) : MAX_MSGLEN;', self.body)
         self.assertIn('MSG_Init( &msg, msgBuffer.data(), limit );', self.body)
         self.assertIn('return limit - len;', self.body)
         # Every configstring and baseline is measured with the selected wire,
         # from that wire's null entity.
-        self.assertEqual(self.body.count('wire );'), 5)
+        self.assertIn('SV_WriteJKAGameDirectory( &msg, wire );', self.body)
+        self.assertEqual(self.body.count('wire );'), 6)
         self.assertEqual(self.body.count('NETCHAN_WIRE_QL_RETAIL'), 1)
 
     def test_quake_profiles_keep_their_conservative_estimate(self):

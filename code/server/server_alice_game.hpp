@@ -581,25 +581,25 @@ void QDECL SV_AliceLocateGameData( void *entities, int entityCount,
 	SV_AliceBindEntities();
 }
 
-/* Slots 29 and 30, at two and one argument. Both bound their index by 0x530 --
- * 1,328 -- in the module's own body, which is the configstring count this
- * profile already carries and a different number from Quake III's 1,024. The
- * bound is checked here too rather than trusted, because the module and the
- * engine have to agree on it for an index to mean the same thing on both
- * sides. */
+/* Slots 29 and 30, at two and one argument. Alice's retail accessors bound
+ * the index by 0x530 (set 0x00454a5b, get 0x00454b09); F.A.K.K.2 1.02's by
+ * 0x4b0 (set 0x004458cb, get 0x00445979). The shared engine's larger storage
+ * is not a module contract: use the selected title's limit for both calls. */
 void QDECL SV_AliceSetConfigstring( int index, const char *value ) {
-	if ( index < 0 || index >= MAX_GAME_CONFIGSTRINGS ) {
+	const int limit = SV_RitualLayout().maxConfigstrings;
+	if ( index < 0 || index >= limit ) {
 		Com_Error( ERR_DROP, "%s game module set configstring %i, outside "
-			"the %i this engine carries", SV_RitualTitle(), index, MAX_GAME_CONFIGSTRINGS );
+			"the %i this title carries", SV_RitualTitle(), index, limit );
 		return;
 	}
 	SV_SetConfigstring( index, value ? value : "" );
 }
 
 const char *QDECL SV_AliceGetConfigstring( int index ) {
-	if ( index < 0 || index >= MAX_GAME_CONFIGSTRINGS ) {
+	const int limit = SV_RitualLayout().maxConfigstrings;
+	if ( index < 0 || index >= limit ) {
 		Com_Error( ERR_DROP, "%s game module read configstring %i, outside "
-			"the %i this engine carries", SV_RitualTitle(), index, MAX_GAME_CONFIGSTRINGS );
+			"the %i this title carries", SV_RitualTitle(), index, limit );
 		return "";
 	}
 	/* The module takes a pointer rather than filling a buffer, so it gets the
@@ -1103,10 +1103,15 @@ const char *QDECL SV_AliceNameForNum( int index ) {
 /* Slot 49, which is not an index call at all: its body writes a configstring
  * at base 0x360 directly, which is where the block after the image one starts.
  * F.A.K.K.2's client game reads its light styles from 736, the same block after
- * its own image block. */
+ * its own image block. Both retail wrappers pass the sum to their bounded
+ * configstring setter (alice.exe 0x00454c88..0x00454c90, fakk2.exe 1.02
+ * 0x00445af8..0x00445b00). Check the title's remaining range before adding
+ * the offset, so a malformed module argument cannot overflow a signed int.
+ * The existing refusal of negative style numbers is fnTech3's policy. */
 void QDECL SV_AliceSetLightStyle( int style, const char *value ) {
 	const int base = SV_RitualLayout().csLightStyles;
-	if ( style < 0 || base + style >= MAX_GAME_CONFIGSTRINGS ) {
+	const int limit = SV_RitualLayout().maxConfigstrings;
+	if ( style < 0 || style >= limit - base ) {
 		Com_Error( ERR_DROP, "%s game module set light style %i", SV_RitualTitle(), style );
 		return;
 	}

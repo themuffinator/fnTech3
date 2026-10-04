@@ -32,6 +32,8 @@ extern "C" {
 #include "../game/bg_public.h"
 
 bool SV_RTCWRestoreSaveTime();
+qboolean SV_ReadJKAVehicleState( int entityNum, playerState_t *destination );
+qboolean SV_JKASnapshotBroadcast( int entityNum, int viewer, qboolean *forced );
 
 //=============================================================================
 
@@ -118,6 +120,8 @@ typedef struct {
 	int				areabytes;
 	byte			areabits[MAX_MAP_AREA_BYTES];		// portalarea visibility bits
 	playerState_t	ps;
+	// Canonical vehicle state accompanying Raven's rider state on protocol 26.
+	playerState_t	jkaVehiclePs;
 	int				num_entities;
 #if 0
 	int				first_entity;		// into the circular sv_packet_entities[]

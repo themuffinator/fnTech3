@@ -88,9 +88,9 @@ int ResampleSfx( sfx_t *sfx, int channels, int inrate, int inwidth, int samples,
 		for ( int j = 0; j < channels; j++ ) {
 			int sample;
 			if ( inwidth == 2 ) {
-				sample = reinterpret_cast<const short *>( data )[srcsample + j];
+				sample = ReadUnaligned<short>( data + static_cast<size_t>( srcsample + j ) * sizeof( short ) );
 			} else {
-				sample = ( static_cast<int>( static_cast<unsigned char>( data[srcsample + j] ) ) - 128 ) << 8;
+				sample = ( static_cast<int>( static_cast<unsigned char>( data[srcsample + j] ) ) - 128 ) * 256;
 			}
 
 			const int part = ( i * channels + j ) & ( SND_CHUNK_SIZE - 1 );
@@ -132,9 +132,9 @@ int ResampleSfxRaw( short *sfx, int channels, int inrate, int inwidth, int sampl
 		for ( int j = 0; j < channels; j++ ) {
 			int sample;
 			if ( inwidth == 2 ) {
-				sample = LittleShort( reinterpret_cast<const short *>( data )[srcsample + j] );
+				sample = ReadUnaligned<short>( data + static_cast<size_t>( srcsample + j ) * sizeof( short ) );
 			} else {
-				sample = ( static_cast<int>( static_cast<unsigned char>( data[srcsample + j] ) ) - 128 ) << 8;
+				sample = ( static_cast<int>( static_cast<unsigned char>( data[srcsample + j] ) ) - 128 ) * 256;
 			}
 			sfx[i * channels + j] = static_cast<short>( sample );
 		}

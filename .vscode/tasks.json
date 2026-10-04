@@ -8,161 +8,62 @@
       "label": "meson: setup all games",
       "type": "process",
       "command": "powershell",
-      "args": [
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "${workspaceFolder}\\.vscode\\build-release.ps1",
-        "-Configuration",
-        "RelWithDebInfo",
-        "-Platform",
-        "Win32",
-        "-BuildDir",
-        "meson\\build\\win32-dev",
-        "-Target",
-        "both",
-        "-Renderers",
-        "glx,vk,rtx",
-        "-RTCWDevelopment",
-        "-WolfETDevelopment",
-        "-STVEFDevelopment",
-        "-JKADevelopment",
-        "-JK2Development",
-        "-Q3IHVDevelopment",
-        "-AliceDevelopment",
-        "-FAKK2Development",
-        "-MOHAADevelopment",
-        "-Q3TestDevelopment",
-        "-Archive",
-        "-SetupOnly"
-      ],
+      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\.vscode\\build-release.ps1", "-Configuration", "RelWithDebInfo", "-Platform", "Win32", "-BuildDir", "meson\\build\\win32-dev", "-Target", "both", "-Renderers", "glx,vk,rtx", "-RTCWDevelopment", "-WolfETDevelopment", "-STVEFDevelopment", "-JKADevelopment", "-JK2Development", "-Q3IHVDevelopment", "-AliceDevelopment", "-FAKK2Development", "-MOHAADevelopment", "-Q3TestDevelopment", "-Archive", "-SetupOnly"],
       "problemMatcher": [
         "$gcc",
         "$msCompile"
       ],
-      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP, Enemy Territory, Elite Force SP/Holomatch, Jedi Academy SP/MP, Jedi Outcast SP/MP, Alice, F.A.K.K.2, Medal of Honor, the Q3 IHV Test (dedicated only) and GLx/Vulkan/RTX. Every profile but Q3 and QL remains experimental."
+      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP, Enemy Territory, Elite Force SP/Holomatch, Jedi Academy SP/MP, Jedi Outcast SP/MP, Alice, F.A.K.K.2, Medal of Honor, Q3Test 1.02â€“1.08, the Q3 IHV Test (dedicated only) and GLx/Vulkan/RTX. Every profile but Q3 and QL remains experimental."
     },
     {
       "label": "meson: build all games",
       "type": "process",
       "command": "powershell",
-      "args": [
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "${workspaceFolder}\\.vscode\\build-release.ps1",
-        "-Configuration",
-        "RelWithDebInfo",
-        "-Platform",
-        "Win32",
-        "-BuildDir",
-        "meson\\build\\win32-dev",
-        "-Target",
-        "both",
-        "-Renderers",
-        "glx,vk,rtx",
-        "-RTCWDevelopment",
-        "-WolfETDevelopment",
-        "-STVEFDevelopment",
-        "-JKADevelopment",
-        "-JK2Development",
-        "-Q3IHVDevelopment",
-        "-AliceDevelopment",
-        "-FAKK2Development",
-        "-MOHAADevelopment",
-        "-Q3TestDevelopment",
-        "-Archive"
-      ],
+      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\.vscode\\build-release.ps1", "-Configuration", "RelWithDebInfo", "-Platform", "Win32", "-BuildDir", "meson\\build\\win32-dev", "-Target", "both", "-Renderers", "glx,vk,rtx", "-RTCWDevelopment", "-WolfETDevelopment", "-STVEFDevelopment", "-JKADevelopment", "-JK2Development", "-Q3IHVDevelopment", "-AliceDevelopment", "-FAKK2Development", "-MOHAADevelopment", "-Q3TestDevelopment", "-Archive"],
       "problemMatcher": [
         "$gcc",
         "$msCompile"
       ],
-      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP, Enemy Territory, Elite Force SP/Holomatch, Jedi Academy SP/MP, Jedi Outcast SP/MP, Alice, F.A.K.K.2, Medal of Honor, the Q3 IHV Test (dedicated only) and GLx/Vulkan/RTX. Every profile but Q3 and QL remains experimental.",
+      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP, Enemy Territory, Elite Force SP/Holomatch, Jedi Academy SP/MP, Jedi Outcast SP/MP, Alice, F.A.K.K.2, Medal of Honor, Q3Test 1.02â€“1.08, the Q3 IHV Test (dedicated only) and GLx/Vulkan/RTX. Every profile but Q3 and QL remains experimental.",
       "group": {
         "kind": "build",
         "isDefault": true
       }
     },
     {
-      "label": "meson: build all games (Steam)",
+      "label": "meson: verify all games",
       "type": "process",
       "command": "powershell",
-      "args": [
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "${workspaceFolder}\\.vscode\\build-release.ps1",
-        "-Configuration",
-        "RelWithDebInfo",
-        "-Platform",
-        "Win32",
-        "-BuildDir",
-        "meson\\build\\win32-dev",
-        "-Target",
-        "both",
-        "-Renderers",
-        "glx,vk,rtx",
-        "-RTCWDevelopment",
-        "-WolfETDevelopment",
-        "-STVEFDevelopment",
-        "-JKADevelopment",
-        "-JK2Development",
-        "-Q3IHVDevelopment",
-        "-AliceDevelopment",
-        "-FAKK2Development",
-        "-MOHAADevelopment",
-        "-Q3TestDevelopment",
-        "-Archive",
-        "-WithSteam"
-      ],
+      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\.vscode\\build-release.ps1", "-Configuration", "RelWithDebInfo", "-Platform", "Win32", "-BuildDir", "meson\\build\\win32-dev", "-Target", "both", "-Renderers", "glx,vk,rtx", "-RTCWDevelopment", "-WolfETDevelopment", "-STVEFDevelopment", "-JKADevelopment", "-JK2Development", "-Q3IHVDevelopment", "-AliceDevelopment", "-FAKK2Development", "-MOHAADevelopment", "-Q3TestDevelopment", "-Archive", "-RunTests"],
       "problemMatcher": [
         "$gcc",
         "$msCompile"
       ],
-      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP, Enemy Territory, Elite Force SP/Holomatch, Jedi Academy SP/MP, Jedi Outcast SP/MP, Alice, F.A.K.K.2, Medal of Honor, the Q3 IHV Test (dedicated only) and GLx/Vulkan/RTX. Every profile but Q3 and QL remains experimental."
+      "detail": "Build all development profiles and run the complete automated suite. Launches still use the already-built binaries."
+    },
+    {
+      "label": "meson: build all games (Steam)",
+      "type": "process",
+      "command": "powershell",
+      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\.vscode\\build-release.ps1", "-Configuration", "RelWithDebInfo", "-Platform", "Win32", "-BuildDir", "meson\\build\\win32-dev", "-Target", "both", "-Renderers", "glx,vk,rtx", "-RTCWDevelopment", "-WolfETDevelopment", "-STVEFDevelopment", "-JKADevelopment", "-JK2Development", "-Q3IHVDevelopment", "-AliceDevelopment", "-FAKK2Development", "-MOHAADevelopment", "-Q3TestDevelopment", "-Archive", "-WithSteam"],
+      "problemMatcher": [
+        "$gcc",
+        "$msCompile"
+      ],
+      "detail": "Windows x86 development build for Q3, QL, RTCW SP/MP, Enemy Territory, Elite Force SP/Holomatch, Jedi Academy SP/MP, Jedi Outcast SP/MP, Alice, F.A.K.K.2, Medal of Honor, Q3Test 1.02â€“1.08, the Q3 IHV Test (dedicated only) and GLx/Vulkan/RTX. Every profile but Q3 and QL remains experimental."
     },
     {
       "label": "meson: setup",
       "type": "shell",
       "command": "powershell",
-      "args": [
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "${workspaceFolder}\\.vscode\\build-release.ps1",
-        "-SetupOnly",
-        "-Platform",
-        "Win32",
-        "-BuildDir",
-        "meson\\build\\win32"
-      ],
+      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\.vscode\\build-release.ps1", "-SetupOnly", "-Platform", "Win32", "-BuildDir", "meson\\build\\win32"],
       "problemMatcher": []
     },
     {
       "label": "meson: build (Steam)",
       "type": "shell",
       "command": "powershell",
-      "args": [
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "${workspaceFolder}\\.vscode\\build-release.ps1",
-        "-Platform",
-        "Win32",
-        "-BuildDir",
-        "meson\\build\\win32",
-        "-Target",
-        "both",
-        "-Renderers",
-        "glx,vk,rtx",
-        "-Archive",
-        "-WithSteam"
-      ],
+      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\.vscode\\build-release.ps1", "-Platform", "Win32", "-BuildDir", "meson\\build\\win32", "-Target", "both", "-Renderers", "glx,vk,rtx", "-Archive", "-WithSteam"],
       "problemMatcher": [
         "$gcc",
         "$msCompile"
@@ -176,25 +77,7 @@
       "label": "meson: build Win32 debug (Steam)",
       "type": "shell",
       "command": "powershell",
-      "args": [
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "${workspaceFolder}\\.vscode\\build-release.ps1",
-        "-Configuration",
-        "Debug",
-        "-Platform",
-        "Win32",
-        "-BuildDir",
-        "meson\\build\\win32-debug",
-        "-Target",
-        "both",
-        "-Renderers",
-        "glx,vk,rtx",
-        "-Archive",
-        "-WithSteam"
-      ],
+      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\.vscode\\build-release.ps1", "-Configuration", "Debug", "-Platform", "Win32", "-BuildDir", "meson\\build\\win32-debug", "-Target", "both", "-Renderers", "glx,vk,rtx", "-Archive", "-WithSteam"],
       "problemMatcher": [
         "$gcc",
         "$msCompile"
@@ -204,22 +87,7 @@
       "label": "meson: build RTX (Steam)",
       "type": "shell",
       "command": "powershell",
-      "args": [
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "${workspaceFolder}\\.vscode\\build-release.ps1",
-        "-Platform",
-        "Win32",
-        "-BuildDir",
-        "meson\\build\\win32-rtx",
-        "-Target",
-        "client",
-        "-Renderer",
-        "rtx",
-        "-WithSteam"
-      ],
+      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\.vscode\\build-release.ps1", "-Platform", "Win32", "-BuildDir", "meson\\build\\win32-rtx", "-Target", "client", "-Renderer", "rtx", "-WithSteam"],
       "problemMatcher": [
         "$gcc",
         "$msCompile"
@@ -237,23 +105,2733 @@
       "label": "Release: Runtime Sweep Win32 GLx",
       "type": "shell",
       "command": "python",
-      "args": [
-        "${workspaceFolder}\\scripts\\glx_runtime_sweep.py",
-        "--exe",
-        "${workspaceFolder}\\meson\\build\\win32\\fntech3.exe",
-        "--renderers",
-        "glx,vk",
-        "--switch-sequence",
-        "glx,vk,glx,vk",
-        "--maps",
-        "q3dm1",
-        "--profile",
-        "glx-parity"
-      ],
+      "args": ["${workspaceFolder}\\scripts\\glx_runtime_sweep.py", "--exe", "${workspaceFolder}\\meson\\build\\win32\\fntech3.exe", "--renderers", "glx,vk", "--switch-sequence", "glx,vk,glx,vk", "--maps", "q3dm1", "--profile", "glx-parity"],
       "dependsOn": [
         "meson: build (Steam)"
       ],
       "problemMatcher": []
+    },
+    {
+      "label": "run: q3 listen",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "cl_freelook", "${input:freeLook}", "+set", "in_nograb", "0", "+set", "in_mouse", "${input:mouseInput}", "+set", "dedicated", "0", "+set", "com_gameProfile", "q3", "+set", "fs_basepath", "${input:q3InstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/q3/${input:renderer}", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "${input:renderer}", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "com_introplayed", "1", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+set", "r_mode", "${input:windowMode}", "+set", "s_backend", "${input:audioBackend}", "+set", "g_gametype", "${input:arenaGameType}", "+map", "${input:q3Map}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: q3 dedicated",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "args": ["+set", "com_gameProfile", "q3", "+set", "fs_basepath", "${input:q3InstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/q3/dedicated", "+set", "com_steamIntegration", "0", "+set", "dedicated", "1", "+set", "net_ip", "127.0.0.1", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+set", "g_gametype", "${input:arenaGameType}", "+map", "${input:q3Map}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: ql listen",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "cl_freelook", "${input:freeLook}", "+set", "in_nograb", "0", "+set", "in_mouse", "${input:mouseInput}", "+set", "dedicated", "0", "+set", "com_gameProfile", "ql", "+set", "fs_basepath", "${input:qlInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/ql/${input:renderer}", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "${input:renderer}", "+set", "com_steamIntegration", "1", "+set", "cl_webuiEnable", "1", "+set", "com_introplayed", "1", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+set", "r_mode", "${input:windowMode}", "+set", "s_backend", "${input:audioBackend}", "+map", "${input:qlMap}", "${input:qlFactory}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: ql dedicated",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "args": ["+set", "com_gameProfile", "ql", "+set", "fs_basepath", "${input:qlInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/ql/dedicated", "+set", "com_steamIntegration", "1", "+set", "dedicated", "1", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+map", "${input:qlMap}", "${input:qlFactory}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: rtcw-sp SP",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "cl_freelook", "${input:freeLook}", "+set", "in_nograb", "0", "+set", "in_mouse", "${input:mouseInput}", "+set", "dedicated", "0", "+set", "com_gameProfile", "rtcw-sp", "+set", "fs_basepath", "${input:rtcwInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/rtcw-sp/${input:renderer}", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "${input:renderer}", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "com_introplayed", "1", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+set", "r_mode", "${input:windowMode}", "+set", "s_backend", "${input:audioBackend}", "+set", "g_gameskill", "${input:rtcwSkill}", "+spmap", "${input:rtcwSpMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: rtcw-sp dedicated",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "args": ["+set", "com_gameProfile", "rtcw-sp", "+set", "fs_basepath", "${input:rtcwInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/rtcw-sp/dedicated", "+set", "com_steamIntegration", "0", "+set", "dedicated", "1", "+set", "net_ip", "127.0.0.1", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+set", "g_gameskill", "${input:rtcwSkill}", "+spmap", "${input:rtcwSpMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: rtcw-mp listen",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "cl_freelook", "${input:freeLook}", "+set", "in_nograb", "0", "+set", "in_mouse", "${input:mouseInput}", "+set", "dedicated", "0", "+set", "com_gameProfile", "rtcw-mp", "+set", "fs_basepath", "${input:rtcwInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/rtcw-mp/${input:renderer}", "+set", "r_fullscreen", "0", "+set", "cl_renderer", "${input:renderer}", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "com_introplayed", "1", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+set", "r_mode", "${input:windowMode}", "+set", "s_backend", "${input:audioBackend}", "+set", "g_gametype", "${input:rtcwMpGameType}", "+map", "${input:rtcwMpMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: rtcw-mp dedicated",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "args": ["+set", "com_gameProfile", "rtcw-mp", "+set", "fs_basepath", "${input:rtcwInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/rtcw-mp/dedicated", "+set", "com_steamIntegration", "0", "+set", "dedicated", "1", "+set", "net_ip", "127.0.0.1", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+set", "g_gametype", "${input:rtcwMpGameType}", "+map", "${input:rtcwMpMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: wolfet listen",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "cl_freelook", "${input:freeLook}", "+set", "in_nograb", "0", "+set", "in_mouse", "${input:mouseInput}", "+set", "dedicated", "0", "+set", "com_gameProfile", "wolfet", "+set", "fs_basepath", "${input:wolfetInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/wolfet/client/${input:wolfetMap}", "+set", "r_fullscreen", "0", "+set", "r_mode", "${input:windowMode}", "+set", "r_customWidth", "1024", "+set", "r_customHeight", "768", "+set", "cl_renderer", "${input:renderer}", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "net_ip", "127.0.0.1", "+set", "net_ip6", "::1", "+set", "sv_pure", "${input:etPure}", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+set", "s_backend", "${input:audioBackend}", "+set", "g_gametype", "${input:etGameType}", "+devmap", "${input:wolfetMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: wolfet dedicated",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "args": ["+set", "com_gameProfile", "wolfet", "+set", "fs_basepath", "${input:wolfetInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/wolfet/${input:wolfetMap}", "+set", "r_fullscreen", "0", "+set", "com_steamIntegration", "0", "+set", "dedicated", "1", "+set", "net_ip", "127.0.0.1", "+set", "sv_pure", "${input:etPure}", "+set", "sv_punkbuster", "0", "+set", "bot_enable", "0", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+set", "g_gametype", "${input:etGameType}", "+map", "${input:wolfetMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: stvef-sp SP",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "cl_freelook", "${input:freeLook}", "+set", "in_nograb", "0", "+set", "in_mouse", "${input:mouseInput}", "+set", "dedicated", "0", "+set", "com_gameProfile", "stvef-sp", "+set", "fs_basepath", "${input:stvefInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/stvef-sp/${input:renderer}", "+set", "r_fullscreen", "0", "+set", "r_mode", "${input:windowMode}", "+set", "r_customWidth", "1024", "+set", "r_customHeight", "768", "+set", "cl_renderer", "${input:renderer}", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "net_ip", "127.0.0.1", "+set", "net_ip6", "::1", "+set", "com_introplayed", "1", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+set", "s_backend", "${input:audioBackend}", "+map", "${input:stvefSpMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: stvef-sp dedicated",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "args": ["+set", "com_gameProfile", "stvef-sp", "+set", "fs_basepath", "${input:stvefInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/stvef-sp/dedicated", "+set", "com_steamIntegration", "0", "+set", "dedicated", "1", "+set", "net_ip", "127.0.0.1", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+map", "${input:stvefSpMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: stvef-mp listen",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "cl_freelook", "${input:freeLook}", "+set", "in_nograb", "0", "+set", "in_mouse", "${input:mouseInput}", "+set", "dedicated", "0", "+set", "com_gameProfile", "stvef-mp", "+set", "fs_basepath", "${input:stvefInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/stvef-mp/${input:renderer}", "+set", "r_fullscreen", "0", "+set", "r_mode", "${input:windowMode}", "+set", "r_customWidth", "1024", "+set", "r_customHeight", "768", "+set", "cl_renderer", "${input:renderer}", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "net_ip", "127.0.0.1", "+set", "net_ip6", "::1", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+set", "s_backend", "${input:audioBackend}", "+set", "g_gametype", "${input:arenaGameType}", "+map", "${input:stvefMpMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: stvef-mp dedicated",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "args": ["+set", "com_gameProfile", "stvef-mp", "+set", "fs_basepath", "${input:stvefInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/stvef-mp/dedicated", "+set", "com_steamIntegration", "0", "+set", "dedicated", "1", "+set", "net_ip", "127.0.0.1", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+set", "g_gametype", "${input:arenaGameType}", "+map", "${input:stvefMpMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: q3-ihv dedicated",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "args": ["+set", "com_gameProfile", "q3-ihv", "+set", "fs_basepath", "${input:q3IhvInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/q3-ihv/dedicated", "+set", "com_steamIntegration", "0", "+set", "dedicated", "1", "+set", "net_enabled", "0", "+set", "sv_pure", "0", "+set", "bot_enable", "0", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+map", "${input:q3IhvMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: jka-sp dedicated",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "args": ["+set", "com_gameProfile", "jka-sp", "+set", "fs_basepath", "${input:jkaInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/jka-sp/dedicated", "+set", "com_steamIntegration", "0", "+set", "dedicated", "1", "+set", "net_ip", "127.0.0.1", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+map", "${input:jkaSpMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map. Jedi client and single-player boundaries remain open; this entry is a boundary probe, not playable support.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: jka-mp dedicated",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "args": ["+set", "com_gameProfile", "jka-mp", "+set", "fs_basepath", "${input:jkaInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/jka-mp/dedicated", "+set", "com_steamIntegration", "0", "+set", "dedicated", "1", "+set", "net_ip", "127.0.0.1", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+map", "${input:jkaMpMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch the retail multiplayer server module in an isolated home. Jedi client and network boundaries remain open; not playable support.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: jk2-sp dedicated",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "args": ["+set", "com_gameProfile", "jk2-sp", "+set", "fs_basepath", "${input:jk2InstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/jk2-sp/dedicated", "+set", "com_steamIntegration", "0", "+set", "dedicated", "1", "+set", "net_ip", "127.0.0.1", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+map", "${input:jk2SpMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map. Jedi client and single-player boundaries remain open; this entry is a boundary probe, not playable support.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: jk2-mp dedicated",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "args": ["+set", "com_gameProfile", "jk2-mp", "+set", "fs_basepath", "${input:jk2InstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/jk2-mp/dedicated", "+set", "com_steamIntegration", "0", "+set", "dedicated", "1", "+set", "net_ip", "127.0.0.1", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+map", "${input:jk2MpMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch the retail multiplayer server module in an isolated home. Jedi client and network boundaries remain open; not playable support.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: alice SP",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "freelook", "${input:freeLook}", "+set", "in_nograb", "0", "+set", "in_mouse", "${input:mouseInput}", "+set", "dedicated", "0", "+set", "com_gameProfile", "alice", "+set", "fs_basepath", "${input:aliceInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/alice/${input:renderer}", "+set", "r_fullscreen", "0", "+set", "r_mode", "-1", "+set", "r_customWidth", "1024", "+set", "r_customHeight", "768", "+set", "cl_renderer", "${input:renderer}", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "net_ip", "127.0.0.1", "+set", "net_ip6", "::1", "+map", "${input:aliceMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: alice dedicated",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "args": ["+set", "com_gameProfile", "alice", "+set", "fs_basepath", "${input:aliceInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/alice/dedicated", "+set", "com_steamIntegration", "0", "+set", "dedicated", "1", "+set", "net_ip", "127.0.0.1", "+map", "${input:aliceMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: jka-sp SP",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "jka-sp", "+set", "fs_basepath", "${input:jkaInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/jka-sp/${input:renderer}", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "net_ip", "127.0.0.1", "+set", "r_fullscreen", "0", "+set", "dedicated", "0", "+set", "net_ip6", "::1", "+set", "cl_renderer", "${input:renderer}", "+set", "r_mode", "${input:windowMode}", "+set", "r_customWidth", "1024", "+set", "r_customHeight", "768", "+set", "in_mouse", "${input:mouseInput}", "+set", "in_nograb", "0", "+set", "cl_freelook", "${input:freeLook}", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+set", "s_backend", "${input:audioBackend}", "+map", "${input:jkaSpMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map. Jedi client and single-player boundaries remain open; this entry is a boundary probe, not playable support.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: jka-mp listen",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "jka-mp", "+set", "fs_basepath", "${input:jkaInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/jka-mp/${input:renderer}", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "net_ip", "127.0.0.1", "+set", "r_fullscreen", "0", "+set", "dedicated", "0", "+set", "net_ip6", "::1", "+set", "cl_renderer", "${input:renderer}", "+set", "r_mode", "${input:windowMode}", "+set", "r_customWidth", "1024", "+set", "r_customHeight", "768", "+set", "in_mouse", "${input:mouseInput}", "+set", "in_nograb", "0", "+set", "cl_freelook", "${input:freeLook}", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+set", "s_backend", "${input:audioBackend}", "+map", "${input:jkaMpMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map. Jedi client and single-player boundaries remain open; this entry is a boundary probe, not playable support.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: jk2-sp SP",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "jk2-sp", "+set", "fs_basepath", "${input:jk2InstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/jk2-sp/${input:renderer}", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "net_ip", "127.0.0.1", "+set", "r_fullscreen", "0", "+set", "dedicated", "0", "+set", "net_ip6", "::1", "+set", "cl_renderer", "${input:renderer}", "+set", "r_mode", "${input:windowMode}", "+set", "r_customWidth", "1024", "+set", "r_customHeight", "768", "+set", "in_mouse", "${input:mouseInput}", "+set", "in_nograb", "0", "+set", "cl_freelook", "${input:freeLook}", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+set", "s_backend", "${input:audioBackend}", "+map", "${input:jk2SpMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map. Jedi client and single-player boundaries remain open; this entry is a boundary probe, not playable support.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: jk2-mp listen",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "jk2-mp", "+set", "fs_basepath", "${input:jk2InstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/jk2-mp/${input:renderer}", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "net_ip", "127.0.0.1", "+set", "r_fullscreen", "0", "+set", "dedicated", "0", "+set", "net_ip6", "::1", "+set", "cl_renderer", "${input:renderer}", "+set", "r_mode", "${input:windowMode}", "+set", "r_customWidth", "1024", "+set", "r_customHeight", "768", "+set", "in_mouse", "${input:mouseInput}", "+set", "in_nograb", "0", "+set", "cl_freelook", "${input:freeLook}", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+set", "s_backend", "${input:audioBackend}", "+map", "${input:jk2MpMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map. Jedi client and single-player boundaries remain open; this entry is a boundary probe, not playable support.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: fakk2 SP",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "fakk2", "+set", "fs_basepath", "${input:fakk2InstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/fakk2/${input:renderer}", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "net_ip", "127.0.0.1", "+set", "r_fullscreen", "0", "+set", "dedicated", "0", "+set", "net_ip6", "::1", "+set", "cl_renderer", "${input:renderer}", "+set", "r_mode", "${input:windowMode}", "+set", "r_customWidth", "1024", "+set", "r_customHeight", "768", "+set", "in_mouse", "${input:mouseInput}", "+set", "in_nograb", "0", "+set", "freelook", "${input:freeLook}", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+set", "s_backend", "${input:audioBackend}", "+map", "${input:fakk2Map}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: fakk2 dedicated",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "args": ["+set", "com_gameProfile", "fakk2", "+set", "fs_basepath", "${input:fakk2InstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/fakk2/dedicated", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "net_ip", "127.0.0.1", "+set", "r_fullscreen", "0", "+set", "dedicated", "1", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+map", "${input:fakk2Map}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: mohaa SP",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "mohaa", "+set", "fs_basepath", "${input:mohaaInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/mohaa/${input:renderer}", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "net_ip", "127.0.0.1", "+set", "r_fullscreen", "0", "+set", "dedicated", "0", "+set", "net_ip6", "::1", "+set", "cl_renderer", "${input:renderer}", "+set", "r_mode", "${input:windowMode}", "+set", "r_customWidth", "1024", "+set", "r_customHeight", "768", "+set", "in_mouse", "${input:mouseInput}", "+set", "in_nograb", "0", "+set", "cl_freelook", "${input:freeLook}", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+set", "s_backend", "${input:audioBackend}", "+set", "g_gametype", "0", "+set", "sv_maxclients", "1", "+map", "${input:mohaaMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: mohaa dedicated",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "args": ["+set", "com_gameProfile", "mohaa", "+set", "fs_basepath", "${input:mohaaInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/mohaa/dedicated", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "net_ip", "127.0.0.1", "+set", "r_fullscreen", "0", "+set", "dedicated", "1", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+set", "g_gametype", "${input:mohaaMpGameType}", "+set", "sv_maxclients", "16", "+map", "${input:mohaaMpMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: q3test listen",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "q3test", "+set", "fs_basepath", "${input:q3testInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/q3test/${input:renderer}", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "net_ip", "127.0.0.1", "+set", "r_fullscreen", "0", "+set", "dedicated", "0", "+set", "net_ip6", "::1", "+set", "cl_renderer", "${input:renderer}", "+set", "r_mode", "${input:windowMode}", "+set", "r_customWidth", "1024", "+set", "r_customHeight", "768", "+set", "in_mouse", "${input:mouseInput}", "+set", "in_nograb", "0", "+set", "cl_freelook", "${input:freeLook}", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+set", "s_backend", "${input:audioBackend}", "+map", "${input:q3testMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: q3test dedicated",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "args": ["+set", "com_gameProfile", "q3test", "+set", "fs_basepath", "${input:q3testInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/q3test/dedicated", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "net_ip", "127.0.0.1", "+set", "r_fullscreen", "0", "+set", "dedicated", "1", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+map", "${input:q3testMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built Windows x86 development binary with an isolated home and selected map.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: mohaa listen",
+      "type": "process",
+      "command": "${workspaceFolder}\\meson\\build\\win32-dev\\fntech3.exe",
+      "args": ["+set", "com_gameProfile", "mohaa", "+set", "fs_basepath", "${input:mohaaInstallPath}", "+set", "fs_homepath", "${workspaceFolder}/.tmp/vscode/mohaa/mp/${input:renderer}", "+set", "com_steamIntegration", "0", "+set", "cl_webuiEnable", "0", "+set", "net_ip", "127.0.0.1", "+set", "r_fullscreen", "0", "+set", "dedicated", "0", "+set", "net_ip6", "::1", "+set", "cl_renderer", "${input:renderer}", "+set", "r_mode", "${input:windowMode}", "+set", "r_customWidth", "1024", "+set", "r_customHeight", "768", "+set", "in_mouse", "${input:mouseInput}", "+set", "in_nograb", "0", "+set", "cl_freelook", "${input:freeLook}", "+set", "logfile", "${input:launchLog}", "+set", "developer", "${input:launchDeveloper}", "+set", "s_backend", "${input:audioBackend}", "+set", "g_gametype", "${input:mohaaMpGameType}", "+set", "sv_maxclients", "16", "+map", "${input:mohaaMpMap}"],
+      "options": {
+        "cwd": "${workspaceFolder}\\meson\\build\\win32-dev"
+      },
+      "problemMatcher": [],
+      "detail": "Launch already-built MOHAA multiplayer listen server with an isolated home, map and game type.",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "q3InstallPath",
+      "type": "promptString",
+      "description": "Quake III Arena installation folder containing baseq3 (without quotes)",
+      "default": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena"
+    },
+    {
+      "id": "qlInstallPath",
+      "type": "promptString",
+      "description": "Quake Live installation folder containing baseq3 (without quotes)",
+      "default": "E:\\SteamLibrary\\steamapps\\common\\Quake Live"
+    },
+    {
+      "id": "rtcwInstallPath",
+      "type": "promptString",
+      "description": "Return to Castle Wolfenstein installation folder containing Main (without quotes)",
+      "default": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein"
+    },
+    {
+      "id": "wolfetInstallPath",
+      "type": "promptString",
+      "description": "Wolfenstein: Enemy Territory installation folder containing etmain (without quotes)",
+      "default": "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory"
+    },
+    {
+      "id": "q3IhvInstallPath",
+      "type": "promptString",
+      "description": "Quake III Arena IHV Test (February 1999) installation folder containing baseq3 (without quotes)",
+      "default": "E:\\Games\\Quake 3 IHV"
+    },
+    {
+      "id": "stvefInstallPath",
+      "type": "promptString",
+      "description": "Star Trek Voyager: Elite Force installation folder containing BaseEF (without quotes)",
+      "default": "E:\\Games\\Star Trek Voyager Elite Force"
+    },
+    {
+      "id": "jkaInstallPath",
+      "type": "promptString",
+      "description": "Star Wars Jedi Knight: Jedi Academy installation folder containing base (without quotes)",
+      "default": "E:\\Games\\Jedi Academy"
+    },
+    {
+      "id": "jk2InstallPath",
+      "type": "promptString",
+      "description": "Star Wars Jedi Knight II: Jedi Outcast installation folder containing base (without quotes)",
+      "default": "E:\\Games\\Jedi Outcast"
+    },
+    {
+      "id": "aliceInstallPath",
+      "type": "promptString",
+      "description": "American McGee's Alice installation folder containing base (without quotes)",
+      "default": "E:\\Games\\Alice"
+    },
+    {
+      "id": "renderer",
+      "type": "pickString",
+      "description": "Renderer module",
+      "options": [
+        "glx",
+        "vk",
+        "rtx"
+      ],
+      "default": "glx"
+    },
+    {
+      "id": "qlFactory",
+      "type": "pickString",
+      "description": "Quake Live factory (game type) for the map",
+      "options": [
+        {
+          "label": "Training",
+          "value": "_training"
+        },
+        {
+          "label": "RJ Practice",
+          "value": "_rj"
+        },
+        {
+          "label": "SJ Practice",
+          "value": "_sj"
+        },
+        {
+          "label": "Arena CTF",
+          "value": "actf"
+        },
+        {
+          "label": "Attack & Defend",
+          "value": "ad"
+        },
+        {
+          "label": "Clan Arena",
+          "value": "ca"
+        },
+        {
+          "label": "Capture The Flag",
+          "value": "ctf"
+        },
+        {
+          "label": "Domination",
+          "value": "dom"
+        },
+        {
+          "label": "Duel",
+          "value": "duel"
+        },
+        {
+          "label": "1-Flag CTF",
+          "value": "oneflag"
+        },
+        {
+          "label": "Free For All",
+          "value": "ffa"
+        },
+        {
+          "label": "Freeze Tag",
+          "value": "ft"
+        },
+        {
+          "label": "Harvester",
+          "value": "har"
+        },
+        {
+          "label": "Instagib CTF",
+          "value": "ictf"
+        },
+        {
+          "label": "Instagib FFA",
+          "value": "iffa"
+        },
+        {
+          "label": "Instagib Freeze Tag",
+          "value": "ift"
+        },
+        {
+          "label": "Infected",
+          "value": "infected"
+        },
+        {
+          "label": "Quad Hog",
+          "value": "quadhog"
+        },
+        {
+          "label": "Race",
+          "value": "race"
+        },
+        {
+          "label": "Red Rover",
+          "value": "rr"
+        },
+        {
+          "label": "Team Deathmatch",
+          "value": "tdm"
+        },
+        {
+          "label": "Vampiric CA",
+          "value": "vca"
+        }
+      ],
+      "default": "ffa"
+    },
+    {
+      "id": "q3Map",
+      "type": "pickString",
+      "description": "Quake III Arena map to load",
+      "options": [
+        {
+          "label": "Lost World II",
+          "value": "pro-q3dm13"
+        },
+        {
+          "label": "The Campgrounds II",
+          "value": "pro-q3dm6"
+        },
+        {
+          "label": "The Proving Grounds II",
+          "value": "pro-q3tourney2"
+        },
+        {
+          "label": "Vertical Vengeance II",
+          "value": "pro-q3tourney4"
+        },
+        {
+          "label": "Dueling Keeps",
+          "value": "q3ctf1"
+        },
+        {
+          "label": "Troubled Waters",
+          "value": "q3ctf2"
+        },
+        {
+          "label": "The Stronghold",
+          "value": "q3ctf3"
+        },
+        {
+          "label": "Space CTF",
+          "value": "q3ctf4"
+        },
+        {
+          "label": "Introduction",
+          "value": "q3dm0"
+        },
+        {
+          "label": "Arena Gate",
+          "value": "q3dm1"
+        },
+        {
+          "label": "The Nameless Place",
+          "value": "q3dm10"
+        },
+        {
+          "label": "Deva Station",
+          "value": "q3dm11"
+        },
+        {
+          "label": "The Dredwerkz",
+          "value": "q3dm12"
+        },
+        {
+          "label": "Lost World",
+          "value": "q3dm13"
+        },
+        {
+          "label": "Grim Dungeons",
+          "value": "q3dm14"
+        },
+        {
+          "label": "Demon Keep",
+          "value": "q3dm15"
+        },
+        {
+          "label": "The Bouncy Map",
+          "value": "q3dm16"
+        },
+        {
+          "label": "The Longest Yard",
+          "value": "q3dm17"
+        },
+        {
+          "label": "Space Chamber",
+          "value": "q3dm18"
+        },
+        {
+          "label": "Apocalypse Void",
+          "value": "q3dm19"
+        },
+        {
+          "label": "House Of Pain",
+          "value": "q3dm2"
+        },
+        {
+          "label": "Arena Of Death",
+          "value": "q3dm3"
+        },
+        {
+          "label": "The Place Of Many Deaths",
+          "value": "q3dm4"
+        },
+        {
+          "label": "The Forgotten Place",
+          "value": "q3dm5"
+        },
+        {
+          "label": "The Camping Grounds",
+          "value": "q3dm6"
+        },
+        {
+          "label": "Temple of Retribution",
+          "value": "q3dm7"
+        },
+        {
+          "label": "Brimstone Abbey",
+          "value": "q3dm8"
+        },
+        {
+          "label": "Hero's Keep",
+          "value": "q3dm9"
+        },
+        {
+          "label": "Powerstation 0218",
+          "value": "q3tourney1"
+        },
+        {
+          "label": "The Proving Grounds",
+          "value": "q3tourney2"
+        },
+        {
+          "label": "Hell's Gate",
+          "value": "q3tourney3"
+        },
+        {
+          "label": "Vertical Vengeance",
+          "value": "q3tourney4"
+        },
+        {
+          "label": "Fatal Instinct",
+          "value": "q3tourney5"
+        },
+        {
+          "label": "The Very End Of You",
+          "value": "q3tourney6"
+        },
+        {
+          "label": "Across Space",
+          "value": "q3tourney6_ctf"
+        }
+      ],
+      "default": "q3dm1"
+    },
+    {
+      "id": "qlMap",
+      "type": "pickString",
+      "description": "Quake Live map to load",
+      "options": [
+        {
+          "label": "Aerowalk",
+          "value": "aerowalk"
+        },
+        {
+          "label": "Almost Lost",
+          "value": "almostlost"
+        },
+        {
+          "label": "Arcane Citadel",
+          "value": "arcanecitadel"
+        },
+        {
+          "label": "Arkinholm",
+          "value": "arkinholm"
+        },
+        {
+          "label": "Asylum",
+          "value": "asylum"
+        },
+        {
+          "label": "Base Siege",
+          "value": "basesiege"
+        },
+        {
+          "label": "Battleforged",
+          "value": "battleforged"
+        },
+        {
+          "label": "Beyond Reality",
+          "value": "beyondreality"
+        },
+        {
+          "label": "Bitter Embrace",
+          "value": "bitterembrace"
+        },
+        {
+          "label": "Black Cathedral",
+          "value": "blackcathedral"
+        },
+        {
+          "label": "Bloodlust",
+          "value": "bloodlust"
+        },
+        {
+          "label": "Blood Run",
+          "value": "bloodrun"
+        },
+        {
+          "label": "Brimstone Abbey",
+          "value": "brimstoneabbey"
+        },
+        {
+          "label": "Camper Crossings",
+          "value": "campercrossings"
+        },
+        {
+          "label": "Campgrounds",
+          "value": "campgrounds"
+        },
+        {
+          "label": "Canned Heat",
+          "value": "cannedheat"
+        },
+        {
+          "label": "Castle Deathstalker",
+          "value": "castledeathstalker"
+        },
+        {
+          "label": "Chemical Reaction",
+          "value": "chemicalreaction"
+        },
+        {
+          "label": "City Crossings",
+          "value": "citycrossings"
+        },
+        {
+          "label": "Cliffside",
+          "value": "cliffside"
+        },
+        {
+          "label": "Cold Cathode",
+          "value": "coldcathode"
+        },
+        {
+          "label": "Cold War",
+          "value": "coldwar"
+        },
+        {
+          "label": "Concrete Palace",
+          "value": "concretepalace"
+        },
+        {
+          "label": "Corrosion",
+          "value": "corrosion"
+        },
+        {
+          "label": "Courtyard",
+          "value": "courtyard"
+        },
+        {
+          "label": "Cure",
+          "value": "cure"
+        },
+        {
+          "label": "Cursed",
+          "value": "cursed"
+        },
+        {
+          "label": "Dead and Gone",
+          "value": "deadandgone"
+        },
+        {
+          "label": "Death or Glory",
+          "value": "deathorglory"
+        },
+        {
+          "label": "Deep Inside",
+          "value": "deepinside"
+        },
+        {
+          "label": "Delirium",
+          "value": "delirium"
+        },
+        {
+          "label": "Demon Keep",
+          "value": "demonkeep"
+        },
+        {
+          "label": "Devilish",
+          "value": "devilish"
+        },
+        {
+          "label": "Dies Irae",
+          "value": "diesirae"
+        },
+        {
+          "label": "Dismemberment",
+          "value": "dismemberment"
+        },
+        {
+          "label": "Divided Crossings",
+          "value": "dividedcrossings"
+        },
+        {
+          "label": "Divine Intermission",
+          "value": "divineintermission"
+        },
+        {
+          "label": "Double Impact",
+          "value": "doubleimpact"
+        },
+        {
+          "label": "Dreadful Place",
+          "value": "dreadfulplace"
+        },
+        {
+          "label": "Dredwerkz",
+          "value": "dredwerkz"
+        },
+        {
+          "label": "Drunken Mummy",
+          "value": "drunkenmummy"
+        },
+        {
+          "label": "Dueling Keeps",
+          "value": "duelingkeeps"
+        },
+        {
+          "label": "Elder",
+          "value": "elder"
+        },
+        {
+          "label": "Electric Head",
+          "value": "electrichead"
+        },
+        {
+          "label": "Electrocution",
+          "value": "electrocution"
+        },
+        {
+          "label": "Eviscerated",
+          "value": "eviscerated"
+        },
+        {
+          "label": "Evolution",
+          "value": "evolution"
+        },
+        {
+          "label": "Eye to Eye",
+          "value": "eyetoeye"
+        },
+        {
+          "label": "Fallout Bunker",
+          "value": "falloutbunker"
+        },
+        {
+          "label": "Fatal Instinct",
+          "value": "fatalinstinct"
+        },
+        {
+          "label": "Finnegan's",
+          "value": "finnegans"
+        },
+        {
+          "label": "Fluorescent",
+          "value": "fluorescent"
+        },
+        {
+          "label": "Foolish Legacy",
+          "value": "foolishlegacy"
+        },
+        {
+          "label": "Furious Heights",
+          "value": "furiousheights"
+        },
+        {
+          "label": "Fuse",
+          "value": "fuse"
+        },
+        {
+          "label": "Future Crossings",
+          "value": "futurecrossings"
+        },
+        {
+          "label": "Gospel Crossings",
+          "value": "gospelcrossings"
+        },
+        {
+          "label": "Gothic Rage",
+          "value": "gothicrage"
+        },
+        {
+          "label": "Grim Dungeons",
+          "value": "grimdungeons"
+        },
+        {
+          "label": "Hearth",
+          "value": "hearth"
+        },
+        {
+          "label": "Hektik",
+          "value": "hektik"
+        },
+        {
+          "label": "Hell's Gate",
+          "value": "hellsgate"
+        },
+        {
+          "label": "Hen House",
+          "value": "henhouse"
+        },
+        {
+          "label": "Hero's Keep",
+          "value": "heroskeep"
+        },
+        {
+          "label": "Hidden Fortress",
+          "value": "hiddenfortress"
+        },
+        {
+          "label": "House of Decay",
+          "value": "houseofdecay"
+        },
+        {
+          "label": "Industrial Revolution",
+          "value": "industrialrevolution"
+        },
+        {
+          "label": "Infinity",
+          "value": "infinity"
+        },
+        {
+          "label": "Inner Sanctums",
+          "value": "innersanctums"
+        },
+        {
+          "label": "Intervention",
+          "value": "intervention"
+        },
+        {
+          "label": "Ironworks",
+          "value": "ironworks"
+        },
+        {
+          "label": "Japanese Castles",
+          "value": "japanesecastles"
+        },
+        {
+          "label": "Jumpwerkz",
+          "value": "jumpwerkz"
+        },
+        {
+          "label": "Left Behind",
+          "value": "leftbehind"
+        },
+        {
+          "label": "Leviathan",
+          "value": "leviathan"
+        },
+        {
+          "label": "Limbus",
+          "value": "limbus"
+        },
+        {
+          "label": "Longest Yard",
+          "value": "longestyard"
+        },
+        {
+          "label": "Lost Paradise",
+          "value": "lostparadise"
+        },
+        {
+          "label": "Lost World",
+          "value": "lostworld"
+        },
+        {
+          "label": "McSarge's",
+          "value": "mcsarges"
+        },
+        {
+          "label": "Mid-Life Crisis",
+          "value": "midlifecrisis"
+        },
+        {
+          "label": "Monastery",
+          "value": "monastery"
+        },
+        {
+          "label": "Nameless Place",
+          "value": "namelessplace"
+        },
+        {
+          "label": "New Cerberon",
+          "value": "newcerberon"
+        },
+        {
+          "label": "Overgrowth",
+          "value": "overgrowth"
+        },
+        {
+          "label": "Overkill",
+          "value": "overkill"
+        },
+        {
+          "label": "Overlord",
+          "value": "overlord"
+        },
+        {
+          "label": "Phrantic",
+          "value": "phrantic"
+        },
+        {
+          "label": "Pillbox",
+          "value": "pillbox"
+        },
+        {
+          "label": "Proving Grounds",
+          "value": "provinggrounds"
+        },
+        {
+          "label": "Pulp Friction",
+          "value": "pulpfriction"
+        },
+        {
+          "label": "Purgatory",
+          "value": "purgatory"
+        },
+        {
+          "label": "Quarantine",
+          "value": "quarantine"
+        },
+        {
+          "label": "Elevate",
+          "value": "qzpractice1"
+        },
+        {
+          "label": "Accelerate",
+          "value": "qzpractice2"
+        },
+        "qztraining",
+        {
+          "label": "Ragnarok",
+          "value": "ragnarok"
+        },
+        {
+          "label": "Railyard",
+          "value": "railyard"
+        },
+        {
+          "label": "Realm of Steel Rats",
+          "value": "realmofsteelrats"
+        },
+        {
+          "label": "Rebound",
+          "value": "rebound"
+        },
+        {
+          "label": "Refinery",
+          "value": "refinery"
+        },
+        {
+          "label": "Reflux",
+          "value": "reflux"
+        },
+        {
+          "label": "Repent",
+          "value": "repent"
+        },
+        {
+          "label": "Retribution",
+          "value": "retribution"
+        },
+        {
+          "label": "Revolver",
+          "value": "revolver"
+        },
+        {
+          "label": "Satanic",
+          "value": "satanic"
+        },
+        {
+          "label": "Scornforge",
+          "value": "scornforge"
+        },
+        {
+          "label": "Seams and Bolts",
+          "value": "seamsandbolts"
+        },
+        {
+          "label": "Servitude",
+          "value": "servitude"
+        },
+        {
+          "label": "Shaken Not Stirred",
+          "value": "shakennotstirred"
+        },
+        {
+          "label": "Shining Forces",
+          "value": "shiningforces"
+        },
+        {
+          "label": "Siberia",
+          "value": "siberia"
+        },
+        {
+          "label": "Silence",
+          "value": "silence"
+        },
+        {
+          "label": "Sinister",
+          "value": "sinister"
+        },
+        {
+          "label": "Skyward",
+          "value": "skyward"
+        },
+        {
+          "label": "Smash",
+          "value": "smash"
+        },
+        {
+          "label": "Solarium",
+          "value": "solarium"
+        },
+        {
+          "label": "Solid",
+          "value": "solid"
+        },
+        {
+          "label": "Somewhat Damaged",
+          "value": "somewhatdamaged"
+        },
+        {
+          "label": "Sorrow",
+          "value": "sorrow"
+        },
+        {
+          "label": "Space Chamber",
+          "value": "spacechamber"
+        },
+        {
+          "label": "Space CTF",
+          "value": "spacectf"
+        },
+        {
+          "label": "Spider Crossings",
+          "value": "spidercrossings"
+        },
+        {
+          "label": "Spillway",
+          "value": "spillway"
+        },
+        {
+          "label": "Stonekeep",
+          "value": "stonekeep"
+        },
+        {
+          "label": "Stronghold",
+          "value": "stronghold"
+        },
+        {
+          "label": "Terminal Heights",
+          "value": "terminalheights"
+        },
+        {
+          "label": "Terminatria",
+          "value": "terminatria"
+        },
+        {
+          "label": "Terminus",
+          "value": "terminus"
+        },
+        {
+          "label": "Theatre of Pain",
+          "value": "theatreofpain"
+        },
+        {
+          "label": "The Duke's Garden",
+          "value": "thedukesgarden"
+        },
+        {
+          "label": "The Edge",
+          "value": "theedge"
+        },
+        {
+          "label": "The Epicenter",
+          "value": "theepicenter"
+        },
+        {
+          "label": "The Olden Domain",
+          "value": "theoldendomain"
+        },
+        {
+          "label": "Three Story",
+          "value": "threestory"
+        },
+        {
+          "label": "Thunderstruck",
+          "value": "thunderstruck"
+        },
+        {
+          "label": "Tornado",
+          "value": "tornado"
+        },
+        {
+          "label": "Toxicity",
+          "value": "toxicity"
+        },
+        {
+          "label": "Trinity",
+          "value": "trinity"
+        },
+        {
+          "label": "Troubled Waters",
+          "value": "troubledwaters"
+        },
+        {
+          "label": "Use and Abuse",
+          "value": "useandabuse"
+        },
+        {
+          "label": "Vertical Vengeance",
+          "value": "verticalvengeance"
+        },
+        {
+          "label": "Vortex Portal",
+          "value": "vortexportal"
+        },
+        {
+          "label": "Warehouse",
+          "value": "warehouse"
+        },
+        {
+          "label": "Wargrounds",
+          "value": "wargrounds"
+        },
+        {
+          "label": "Wicked",
+          "value": "wicked"
+        },
+        {
+          "label": "Window Pain",
+          "value": "windowpain"
+        },
+        {
+          "label": "Windsong Keep",
+          "value": "windsongkeep"
+        },
+        {
+          "label": "Zen",
+          "value": "zen"
+        }
+      ],
+      "default": "campgrounds"
+    },
+    {
+      "id": "rtcwSpMap",
+      "type": "pickString",
+      "description": "Return to Castle Wolfenstein single-player map to load",
+      "options": [
+        "assault",
+        "baseout",
+        "boss1",
+        "boss2",
+        "castle",
+        "chateau",
+        "church",
+        "crypt1",
+        "crypt2",
+        "cutscene1",
+        "cutscene11",
+        "cutscene14",
+        "cutscene19",
+        "cutscene6",
+        "cutscene9",
+        "dam",
+        "dark",
+        "dig",
+        "end",
+        "escape1",
+        "escape2",
+        "factory",
+        "forest",
+        "norway",
+        "rocket",
+        "sfm",
+        "swf",
+        "trainyard",
+        "tram",
+        "village1",
+        "village2",
+        "xlabs"
+      ],
+      "default": "escape1"
+    },
+    {
+      "id": "rtcwMpMap",
+      "type": "pickString",
+      "description": "Return to Castle Wolfenstein multiplayer map to load",
+      "options": [
+        {
+          "label": "Assault",
+          "value": "mp_assault"
+        },
+        {
+          "label": "Communique",
+          "value": "mp_base"
+        },
+        {
+          "label": "Beach Invasion",
+          "value": "mp_beach"
+        },
+        {
+          "label": "Castle",
+          "value": "mp_castle"
+        },
+        {
+          "label": "Chateau",
+          "value": "mp_chateau"
+        },
+        {
+          "label": "The Damned",
+          "value": "mp_dam"
+        },
+        {
+          "label": "Depot",
+          "value": "mp_depot"
+        },
+        {
+          "label": "Destruction",
+          "value": "mp_destruction"
+        },
+        {
+          "label": "Ice",
+          "value": "mp_ice"
+        },
+        {
+          "label": "Keep",
+          "value": "mp_keep"
+        },
+        {
+          "label": "Rocket",
+          "value": "mp_rocket"
+        },
+        {
+          "label": "Das Boot",
+          "value": "mp_sub"
+        },
+        {
+          "label": "Tram Siege",
+          "value": "mp_tram"
+        },
+        {
+          "label": "Trench Toast",
+          "value": "mp_trenchtoast"
+        },
+        {
+          "label": "Village",
+          "value": "mp_village"
+        }
+      ],
+      "default": "mp_beach"
+    },
+    {
+      "id": "wolfetMap",
+      "type": "pickString",
+      "description": "Enemy Territory map to load",
+      "options": [
+        {
+          "label": "Seawall Battery",
+          "value": "battery"
+        },
+        {
+          "label": "Fuel Dump",
+          "value": "fueldump"
+        },
+        {
+          "label": "Gold Rush",
+          "value": "goldrush"
+        },
+        {
+          "label": "Siwa Oasis",
+          "value": "oasis"
+        },
+        {
+          "label": "WÃ¼rzburg Radar",
+          "value": "radar"
+        },
+        {
+          "label": "Rail Gun",
+          "value": "railgun"
+        }
+      ],
+      "default": "goldrush"
+    },
+    {
+      "id": "stvefSpMap",
+      "type": "pickString",
+      "description": "Elite Force single-player map to load",
+      "options": [
+        "_brig",
+        "_holodeck_camelot",
+        "_holodeck_firingrange",
+        "_holodeck_garden",
+        "_holodeck_highnoon",
+        "_holodeck_minigame",
+        "_holodeck_proton",
+        "_holodeck_proton2",
+        "_holodeck_temple",
+        "_holodeck_warlord",
+        {
+          "label": "The Rescue",
+          "value": "borg1"
+        },
+        {
+          "label": "Incursion",
+          "value": "borg2"
+        },
+        {
+          "label": "Proving Ground",
+          "value": "borg3"
+        },
+        {
+          "label": "Information",
+          "value": "borg4"
+        },
+        {
+          "label": "Covenant",
+          "value": "borg5"
+        },
+        {
+          "label": "Infestation",
+          "value": "borg6"
+        },
+        {
+          "label": "The Breach",
+          "value": "dn1"
+        },
+        {
+          "label": "Command",
+          "value": "dn2"
+        },
+        {
+          "label": "Primary Encounter",
+          "value": "dn3"
+        },
+        {
+          "label": "The Skirmish",
+          "value": "dn4"
+        },
+        {
+          "label": "Defensive Measures",
+          "value": "dn5"
+        },
+        {
+          "label": "Attunement",
+          "value": "dn6"
+        },
+        {
+          "label": "Array",
+          "value": "dn8"
+        },
+        {
+          "label": "External Stimuli",
+          "value": "forge1"
+        },
+        {
+          "label": "Matrix",
+          "value": "forge2"
+        },
+        {
+          "label": "Onslaught",
+          "value": "forge3"
+        },
+        {
+          "label": "Visual Magnitude",
+          "value": "forge4"
+        },
+        {
+          "label": "Dissolution",
+          "value": "forge5"
+        },
+        {
+          "label": "Command Decision",
+          "value": "forgeboss"
+        },
+        {
+          "label": "Tactical Decision",
+          "value": "holodeck"
+        },
+        {
+          "label": "The Visit",
+          "value": "scav1"
+        },
+        {
+          "label": "Dangerous Ground",
+          "value": "scav2"
+        },
+        {
+          "label": "Conflicting Views",
+          "value": "scav3"
+        },
+        {
+          "label": "Conflicting Views (pt 2)",
+          "value": "scav3b"
+        },
+        {
+          "label": "Disorder",
+          "value": "scav4"
+        },
+        {
+          "label": "Infiltration",
+          "value": "scav5"
+        },
+        {
+          "label": "The Hunter",
+          "value": "scavboss"
+        },
+        {
+          "label": "Data Retrieval",
+          "value": "stasis1"
+        },
+        {
+          "label": "Deep Echoes",
+          "value": "stasis2"
+        },
+        {
+          "label": "Encounters",
+          "value": "stasis3"
+        },
+        "tour/deck01",
+        "tour/deck02",
+        "tour/deck03",
+        "tour/deck04",
+        "tour/deck05",
+        "tour/deck08",
+        "tour/deck09",
+        "tour/deck10",
+        "tour/deck11",
+        "tour/deck15",
+        {
+          "label": "Tutorial",
+          "value": "tutorial"
+        },
+        {
+          "label": "Condition",
+          "value": "voy1"
+        },
+        {
+          "label": "R & R",
+          "value": "voy13"
+        },
+        {
+          "label": "Visual Confirmation",
+          "value": "voy14"
+        },
+        {
+          "label": "Offense",
+          "value": "voy15"
+        },
+        {
+          "label": "Invasion",
+          "value": "voy16"
+        },
+        {
+          "label": "Decisions",
+          "value": "voy17"
+        },
+        {
+          "label": "Unavoidable Delays",
+          "value": "voy2"
+        },
+        {
+          "label": "Epilogue",
+          "value": "voy20"
+        },
+        {
+          "label": "Hazard Duty",
+          "value": "voy3"
+        },
+        {
+          "label": "Defense",
+          "value": "voy4"
+        },
+        {
+          "label": "Hazard Ops",
+          "value": "voy5"
+        },
+        {
+          "label": "Renewal",
+          "value": "voy6"
+        },
+        {
+          "label": "Union",
+          "value": "voy7"
+        },
+        {
+          "label": "Departure",
+          "value": "voy8"
+        },
+        {
+          "label": "Fallout",
+          "value": "voy9"
+        }
+      ],
+      "default": "borg1"
+    },
+    {
+      "id": "stvefMpMap",
+      "type": "pickString",
+      "description": "Elite Force Holomatch map to load",
+      "options": [
+        {
+          "label": "Sea Temple",
+          "value": "ctf_and1"
+        },
+        {
+          "label": "Breach",
+          "value": "ctf_breach"
+        },
+        {
+          "label": "Processor",
+          "value": "ctf_dn1"
+        },
+        {
+          "label": "Forge1",
+          "value": "ctf_for1"
+        },
+        {
+          "label": "Honor",
+          "value": "ctf_kln1"
+        },
+        {
+          "label": "Boarding Party",
+          "value": "ctf_kln2"
+        },
+        {
+          "label": "Neptune",
+          "value": "ctf_neptune"
+        },
+        {
+          "label": "Judgement Day",
+          "value": "ctf_oldwest"
+        },
+        {
+          "label": "Reservoir",
+          "value": "ctf_reservoir"
+        },
+        {
+          "label": "Singularity",
+          "value": "ctf_singularity"
+        },
+        {
+          "label": "Spyglass2",
+          "value": "ctf_spyglass2"
+        },
+        {
+          "label": "Stasis",
+          "value": "ctf_stasis"
+        },
+        {
+          "label": "Delta Station",
+          "value": "ctf_voy1"
+        },
+        {
+          "label": "BETA Station",
+          "value": "ctf_voy2"
+        },
+        {
+          "label": "Altar",
+          "value": "hm_altar"
+        },
+        {
+          "label": "Blast Radius",
+          "value": "hm_blastradius"
+        },
+        {
+          "label": "Assimilation",
+          "value": "hm_borg1"
+        },
+        {
+          "label": "Resistance",
+          "value": "hm_borg2"
+        },
+        {
+          "label": "Data Matrix",
+          "value": "hm_borg3"
+        },
+        {
+          "label": "Borg Attack",
+          "value": "hm_borgattack"
+        },
+        {
+          "label": "Siege",
+          "value": "hm_cam"
+        },
+        {
+          "label": "The Machine",
+          "value": "hm_dn1"
+        },
+        {
+          "label": "Hangar",
+          "value": "hm_dn2"
+        },
+        {
+          "label": "Mutiny",
+          "value": "hm_for1"
+        },
+        {
+          "label": "Forge2",
+          "value": "hm_for2"
+        },
+        {
+          "label": "Bravery",
+          "value": "hm_kln1"
+        },
+        {
+          "label": "Showdown",
+          "value": "hm_noon"
+        },
+        {
+          "label": "USS Raven",
+          "value": "hm_raven"
+        },
+        {
+          "label": "Waste Disposal",
+          "value": "hm_scav1"
+        },
+        {
+          "label": "Temple",
+          "value": "hm_temple"
+        },
+        {
+          "label": "Isolation",
+          "value": "hm_voy1"
+        },
+        {
+          "label": "Dangerous Cargo",
+          "value": "hm_voy2"
+        },
+        {
+          "label": "Voy3",
+          "value": "hm_voy3"
+        }
+      ],
+      "default": "hm_borg1"
+    },
+    {
+      "id": "q3IhvMap",
+      "type": "pickString",
+      "description": "Quake III IHV Test map to load",
+      "options": [
+        "ihv_test1",
+        "km_portal",
+        "test_fog2",
+        "tim_dm1"
+      ],
+      "default": "ihv_test1"
+    },
+    {
+      "id": "jkaSpMap",
+      "type": "pickString",
+      "description": "Jedi Academy single-player map to load",
+      "options": [
+        "academy1",
+        "academy2",
+        "academy3",
+        "academy4",
+        "academy5",
+        "academy6",
+        "hoth2",
+        "hoth3",
+        "kor1",
+        "kor2",
+        {
+          "label": "Merchant Rescue - Blenjeel",
+          "value": "t1_danger"
+        },
+        {
+          "label": "Emergency Assistance - Bakura",
+          "value": "t1_fatal"
+        },
+        "t1_inter",
+        {
+          "label": "Cult Investigation - Corellia",
+          "value": "t1_rail"
+        },
+        {
+          "label": "Mercenary Activity - Tatooine",
+          "value": "t1_sour"
+        },
+        {
+          "label": "Droid Recovery - Tatooine",
+          "value": "t1_surprise"
+        },
+        {
+          "label": "Cult Investigation - Dosuun",
+          "value": "t2_dpred"
+        },
+        {
+          "label": "Rescue Mission - Nar Kreeta",
+          "value": "t2_rancor"
+        },
+        {
+          "label": "Capture Crime Lord - Coruscant",
+          "value": "t2_rogue"
+        },
+        {
+          "label": "Meet Contact - Zonju V",
+          "value": "t2_trip"
+        },
+        {
+          "label": "Covert Operation - Kril'dor",
+          "value": "t2_wedge"
+        },
+        {
+          "label": "Weapon Destruction - Ord Mantell",
+          "value": "t3_bounty"
+        },
+        {
+          "label": "Force Theft Investigation - Byss",
+          "value": "t3_byss"
+        },
+        {
+          "label": "Dismantle Device - Yalara",
+          "value": "t3_hevil"
+        },
+        {
+          "label": "Cult Sighting - Chandrila",
+          "value": "t3_rift"
+        },
+        {
+          "label": "Cult Investigation - Tanaab",
+          "value": "t3_stamp"
+        },
+        "taspir1",
+        "taspir2",
+        "vjun1",
+        "vjun2",
+        "vjun3",
+        "yavin1",
+        "yavin1b",
+        "yavin2"
+      ],
+      "default": "t1_sour"
+    },
+    {
+      "id": "jkaMpMap",
+      "type": "pickString",
+      "description": "Jedi Academy multiplayer map to load",
+      "options": [
+        {
+          "label": "Imperial Drop Zone",
+          "value": "mp/ctf1"
+        },
+        {
+          "label": "Hoth Wasteland",
+          "value": "mp/ctf2"
+        },
+        {
+          "label": "Yavin Hilltops",
+          "value": "mp/ctf3"
+        },
+        {
+          "label": "Coruscant Streets",
+          "value": "mp/ctf4"
+        },
+        {
+          "label": "Factory",
+          "value": "mp/ctf5"
+        },
+        {
+          "label": "Bespin Courtyard",
+          "value": "mp/duel1"
+        },
+        {
+          "label": "Vjun Fuel Processing",
+          "value": "mp/duel10"
+        },
+        {
+          "label": "Generator Room",
+          "value": "mp/duel2"
+        },
+        {
+          "label": "Imperial Shaft",
+          "value": "mp/duel3"
+        },
+        {
+          "label": "Imperial Control Room",
+          "value": "mp/duel4"
+        },
+        {
+          "label": "Taspir Landing",
+          "value": "mp/duel5"
+        },
+        {
+          "label": "Yavin Training Area",
+          "value": "mp/duel6"
+        },
+        {
+          "label": "Rancor Pit",
+          "value": "mp/duel7"
+        },
+        {
+          "label": "Abandoned City",
+          "value": "mp/duel8"
+        },
+        {
+          "label": "Hoth Canyon",
+          "value": "mp/duel9"
+        },
+        {
+          "label": "Vjun Sentinel",
+          "value": "mp/ffa1"
+        },
+        {
+          "label": "Korriban Tombs",
+          "value": "mp/ffa2"
+        },
+        {
+          "label": "Tatooine City",
+          "value": "mp/ffa3"
+        },
+        {
+          "label": "Rift Sanctuary",
+          "value": "mp/ffa4"
+        },
+        {
+          "label": "Taspir",
+          "value": "mp/ffa5"
+        },
+        {
+          "label": "Desert Rescue",
+          "value": "mp/siege_desert"
+        },
+        {
+          "label": "Hoth Attack",
+          "value": "mp/siege_hoth"
+        },
+        {
+          "label": "Korriban Valley",
+          "value": "mp/siege_korriban"
+        }
+      ],
+      "default": "mp/ffa1"
+    },
+    {
+      "id": "jk2SpMap",
+      "type": "pickString",
+      "description": "Jedi Outcast single-player map to load",
+      "options": [
+        "artus_detention",
+        "artus_mine",
+        "artus_topside",
+        "bespin_platform",
+        "bespin_streets",
+        "bespin_undercity",
+        "cairn_assembly",
+        "cairn_bay",
+        "cairn_dock1",
+        "cairn_reactor",
+        "doom_comm",
+        "doom_detention",
+        "doom_shields",
+        "kejim_base",
+        "kejim_post",
+        "ns_hideout",
+        "ns_starpad",
+        "ns_streets",
+        "pit",
+        "valley",
+        "yavin_canyon",
+        "yavin_courtyard",
+        "yavin_final",
+        "yavin_swamp",
+        "yavin_temple",
+        "yavin_trial"
+      ],
+      "default": "kejim_post"
+    },
+    {
+      "id": "jk2MpMap",
+      "type": "pickString",
+      "description": "Jedi Outcast multiplayer map to load",
+      "options": [
+        {
+          "label": "Bespin Exhaust Shafts",
+          "value": "ctf_bespin"
+        },
+        {
+          "label": "Garrison 27-D",
+          "value": "ctf_imperial"
+        },
+        {
+          "label": "Warring Factions",
+          "value": "ctf_ns_streets"
+        },
+        {
+          "label": "Temple Tournament",
+          "value": "ctf_yavin"
+        },
+        {
+          "label": "Imperial Shuttle Bay",
+          "value": "duel_bay"
+        },
+        {
+          "label": "Carbon Chamber",
+          "value": "duel_carbon"
+        },
+        {
+          "label": "Battleground Jedi 2.0",
+          "value": "duel_jedi"
+        },
+        {
+          "label": "Trial Pit",
+          "value": "duel_pit"
+        },
+        {
+          "label": "Bespin Streets",
+          "value": "ffa_bespin"
+        },
+        {
+          "label": "Death Star",
+          "value": "ffa_deathstar"
+        },
+        {
+          "label": "Star Destroyer",
+          "value": "ffa_imperial"
+        },
+        {
+          "label": "Garbage Facility",
+          "value": "ffa_ns_hideout"
+        },
+        {
+          "label": "Nar Shaddaa Streets",
+          "value": "ffa_ns_streets"
+        },
+        {
+          "label": "Imperial Labs: Raven",
+          "value": "ffa_raven"
+        },
+        {
+          "label": "Massassi Temple",
+          "value": "ffa_yavin"
+        }
+      ],
+      "default": "ffa_bespin"
+    },
+    {
+      "id": "aliceMap",
+      "type": "pickString",
+      "description": "American McGee's Alice map to load",
+      "options": [
+        {
+          "label": "Fungiferous Flora",
+          "value": "centipede1"
+        },
+        {
+          "label": "Centipede's Sanctum",
+          "value": "centipede2"
+        },
+        {
+          "label": "Ascension",
+          "value": "facade"
+        },
+        {
+          "label": "Fortress of Doors",
+          "value": "fortress1"
+        },
+        {
+          "label": "Beyond the Wall",
+          "value": "fortress2"
+        },
+        {
+          "label": "Mirror Image",
+          "value": "funhouse"
+        },
+        {
+          "label": "Dry Landing",
+          "value": "garden1"
+        },
+        {
+          "label": "Herbaceous Border",
+          "value": "garden2"
+        },
+        {
+          "label": "Rolling Stones",
+          "value": "garden3"
+        },
+        {
+          "label": "Icy Reception",
+          "value": "garden4"
+        },
+        {
+          "label": "Royal Rage",
+          "value": "grounds1"
+        },
+        {
+          "label": "Battle Royale",
+          "value": "grounds2"
+        },
+        {
+          "label": "Dementia",
+          "value": "gvillage"
+        },
+        {
+          "label": "Crazed Clockwork",
+          "value": "hatter1"
+        },
+        {
+          "label": "About Face",
+          "value": "hatter2"
+        },
+        {
+          "label": "Majestic Maze",
+          "value": "hedge1"
+        },
+        {
+          "label": "Mystifying Madness",
+          "value": "hedge2"
+        },
+        {
+          "label": "Labyrinthine Revenge",
+          "value": "hedge3"
+        },
+        {
+          "label": "Burning Curiosity",
+          "value": "jlair1"
+        },
+        {
+          "label": "Jabberwock's Lair",
+          "value": "jlair2"
+        },
+        {
+          "label": "Castle Keep",
+          "value": "keep"
+        },
+        {
+          "label": "Pandemonium",
+          "value": "pandemonium"
+        },
+        {
+          "label": "Pool of Tears",
+          "value": "potears1"
+        },
+        {
+          "label": "Hollow Hideaway",
+          "value": "potears2"
+        },
+        {
+          "label": "Just Desserts",
+          "value": "potears3"
+        },
+        {
+          "label": "Heart of Darkness",
+          "value": "qlair"
+        },
+        {
+          "label": "Checkmate in Red",
+          "value": "rchess1"
+        },
+        {
+          "label": "Skool Daze",
+          "value": "skool1"
+        },
+        {
+          "label": "Skool's Out",
+          "value": "skool2"
+        },
+        {
+          "label": "Airborne Terror",
+          "value": "tower1"
+        },
+        {
+          "label": "Water Logged",
+          "value": "tower2"
+        },
+        {
+          "label": "Machinations",
+          "value": "tower3"
+        },
+        {
+          "label": "Wholly Morel Ground",
+          "value": "utemple"
+        },
+        {
+          "label": "Pale Realm",
+          "value": "wchess1"
+        },
+        {
+          "label": "Castling",
+          "value": "wchess2"
+        },
+        {
+          "label": "Caterpillar's Plot",
+          "value": "wforest"
+        }
+      ],
+      "default": "garden1"
+    },
+    {
+      "id": "windowMode",
+      "type": "pickString",
+      "description": "Windowed resolution",
+      "options": [
+        {
+          "label": "800 Ã— 600",
+          "value": "4"
+        },
+        {
+          "label": "1024 Ã— 768",
+          "value": "6"
+        },
+        {
+          "label": "1280 Ã— 720",
+          "value": "13"
+        },
+        {
+          "label": "1920 Ã— 1080",
+          "value": "19"
+        }
+      ],
+      "default": "6"
+    },
+    {
+      "id": "audioBackend",
+      "type": "pickString",
+      "description": "Audio backend",
+      "options": [
+        {
+          "label": "OpenAL spatial audio",
+          "value": "openal"
+        },
+        {
+          "label": "Legacy compatibility mixer",
+          "value": "legacy"
+        }
+      ],
+      "default": "openal"
+    },
+    {
+      "id": "launchLog",
+      "type": "pickString",
+      "description": "Console log in the isolated game home",
+      "options": [
+        {
+          "label": "Off",
+          "value": "0"
+        },
+        {
+          "label": "Fresh log, flush each write",
+          "value": "2"
+        },
+        {
+          "label": "Append and flush",
+          "value": "4"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "id": "launchDeveloper",
+      "type": "pickString",
+      "description": "Engine diagnostic output",
+      "options": [
+        {
+          "label": "Normal",
+          "value": "0"
+        },
+        {
+          "label": "Developer diagnostics",
+          "value": "1"
+        }
+      ],
+      "default": "0"
+    },
+    {
+      "id": "rtcwSkill",
+      "type": "pickString",
+      "description": "RTCW single-player difficulty",
+      "options": [
+        {
+          "label": "Can I play, Daddy?",
+          "value": "0"
+        },
+        {
+          "label": "Don't hurt me.",
+          "value": "1"
+        },
+        {
+          "label": "Bring it on!",
+          "value": "2"
+        },
+        {
+          "label": "I am Death incarnate!",
+          "value": "3"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "id": "arenaGameType",
+      "type": "pickString",
+      "description": "Arena / Holomatch game type",
+      "options": [
+        {
+          "label": "Free for all",
+          "value": "0"
+        },
+        {
+          "label": "Tournament",
+          "value": "1"
+        },
+        {
+          "label": "Team deathmatch",
+          "value": "3"
+        },
+        {
+          "label": "Capture the flag",
+          "value": "4"
+        }
+      ],
+      "default": "0"
+    },
+    {
+      "id": "rtcwMpGameType",
+      "type": "pickString",
+      "description": "RTCW multiplayer game type",
+      "options": [
+        {
+          "label": "Objective",
+          "value": "5"
+        },
+        {
+          "label": "Stopwatch",
+          "value": "6"
+        },
+        {
+          "label": "Checkpoint",
+          "value": "7"
+        },
+        {
+          "label": "Capture and hold",
+          "value": "8"
+        }
+      ],
+      "default": "5"
+    },
+    {
+      "id": "etGameType",
+      "type": "pickString",
+      "description": "Enemy Territory game type",
+      "options": [
+        {
+          "label": "Objective",
+          "value": "2"
+        },
+        {
+          "label": "Stopwatch",
+          "value": "3"
+        },
+        {
+          "label": "Last man standing",
+          "value": "5"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "id": "etPure",
+      "type": "pickString",
+      "description": "Enemy Territory server pak verification",
+      "options": [
+        {
+          "label": "Pure server",
+          "value": "1"
+        },
+        {
+          "label": "Unrestricted local development server",
+          "value": "0"
+        }
+      ],
+      "default": "1"
+    },
+    {
+      "id": "mouseInput",
+      "type": "pickString",
+      "description": "Gameplay mouse input (overrides a saved disabled mouse)",
+      "options": [
+        {
+          "label": "Raw input",
+          "value": "2"
+        },
+        {
+          "label": "Windows messages",
+          "value": "-1"
+        },
+        {
+          "label": "DirectInput",
+          "value": "1"
+        },
+        {
+          "label": "Disabled",
+          "value": "0"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "id": "freeLook",
+      "type": "pickString",
+      "description": "Gameplay mouse look",
+      "options": [
+        {
+          "label": "Free look",
+          "value": "1"
+        },
+        {
+          "label": "Hold +mlook",
+          "value": "0"
+        }
+      ],
+      "default": "1"
+    },
+    {
+      "id": "fakk2InstallPath",
+      "type": "promptString",
+      "description": "Read-only F.A.K.K.2 installation containing fakk",
+      "default": "E:\\Repositories\\fnTech3\\.tmp\\fakk2-install\\game"
+    },
+    {
+      "id": "fakk2Map",
+      "type": "pickString",
+      "description": "FAKK2 installed map",
+      "options": [
+        "blood",
+        "cemetery",
+        "cliff1",
+        "cliff2",
+        "creeperpens",
+        "end",
+        "fakkhouse",
+        "fog",
+        "gruff",
+        "gruff_cinema",
+        "homes1",
+        "homes1_fullvis",
+        "homes2evil",
+        "homes2good",
+        "intro",
+        "landersroost",
+        "oracle",
+        "oracleway",
+        "otto",
+        "over",
+        "shield",
+        "swamp1",
+        "swamp2",
+        "swamp3",
+        "towncenter_evil",
+        "towncenter_good",
+        "training",
+        "under",
+        "water",
+        "zoo"
+      ],
+      "default": "fakkhouse"
+    },
+    {
+      "id": "mohaaInstallPath",
+      "type": "promptString",
+      "description": "Read-only MOHAA installation containing main",
+      "default": "E:\\Games\\Medal of Honor Allied Assault"
+    },
+    {
+      "id": "mohaaMap",
+      "type": "pickString",
+      "description": "MOHAA single-player map",
+      "options": [
+        "briefing/briefing1",
+        "briefing/briefing2",
+        "briefing/briefing3",
+        "briefing/briefing4",
+        "briefing/briefing5",
+        "briefing/briefing6",
+        "credits",
+        "m1l1",
+        "m1l2a",
+        "m1l2b",
+        "m1l3a",
+        "m1l3b",
+        "m1l3c",
+        "m2l1",
+        "m2l2a",
+        "m2l2b",
+        "m2l2c",
+        "m2l3",
+        "m3l1a",
+        "m3l1b",
+        "m3l2",
+        "m3l3",
+        "m4l0",
+        "m4l1",
+        "m4l2",
+        "m4l3",
+        "m5l1a",
+        "m5l1b",
+        "m5l2a",
+        "m5l2b",
+        "m5l3",
+        "m6l1a",
+        "m6l1b",
+        "m6l1c",
+        "m6l2a",
+        "m6l2b",
+        "m6l3a",
+        "m6l3b",
+        "m6l3c",
+        "m6l3d",
+        "m6l3e",
+        "training",
+        "void"
+      ],
+      "default": "m1l1"
+    },
+    {
+      "id": "q3testInstallPath",
+      "type": "promptString",
+      "description": "Exactly one Q3Test release installation containing demoq3",
+      "default": "E:\\Repositories\\fnTech3\\.tmp\\q3test\\install\\1.08"
+    },
+    {
+      "id": "q3testMap",
+      "type": "pickString",
+      "description": "Q3Test installed map",
+      "options": [
+        "q3test1",
+        "q3test2",
+        "q3tourney"
+      ],
+      "default": "q3test1"
+    },
+    {
+      "id": "mohaaMpMap",
+      "type": "pickString",
+      "description": "MOHAA multiplayer map (objective modes need obj maps)",
+      "options": [
+        "dm/mohdm1",
+        "dm/mohdm2",
+        "dm/mohdm3",
+        "dm/mohdm4",
+        "dm/mohdm5",
+        "dm/mohdm6",
+        "dm/mohdm7",
+        "obj/obj_team1",
+        "obj/obj_team2",
+        "obj/obj_team3",
+        "obj/obj_team4"
+      ],
+      "default": "dm/mohdm1"
+    },
+    {
+      "id": "mohaaMpGameType",
+      "type": "pickString",
+      "description": "MOHAA multiplayer game type",
+      "options": [
+        {
+          "label": "Free for all",
+          "value": "1"
+        },
+        {
+          "label": "Team deathmatch",
+          "value": "2"
+        },
+        {
+          "label": "Round based",
+          "value": "3"
+        },
+        {
+          "label": "Objective",
+          "value": "4"
+        }
+      ],
+      "default": "1"
     }
   ]
 }

@@ -40,7 +40,10 @@ from pathlib import Path
 import argparse
 import hashlib
 import json
+import os
+import re
 import shutil
+import stat
 import subprocess
 import sys
 import time
@@ -50,6 +53,63 @@ sys.path.insert(0, str(ROOT / 'tests'))
 from windows_private_process import WindowsPrivateProcess  # noqa: E402
 
 GAME_DIRS = {'fakk2': 'fakk', 'alice': 'base'}
+REPARSE_POINT = getattr(stat, 'FILE_ATTRIBUTE_REPARSE_POINT', 0x400)
+# Keep profile/path identity and renderer, window and input setup owned by
+# the probe. Rendering features, audio settings and diagnostics remain extras.
+PROBE_OWNED_CVARS = {
+    'com_gameprofile', 'fs_basepath', 'fs_homepath', 'fs_basegame', 'fs_game',
+    'fs_cdpath', 'fs_filedir', 'mapdir', 'fs_steampath', 'fs_apppath',
+    'cl_renderer', 'r_fullscreen', 'r_mode', 'r_customwidth', 'r_customheight',
+    'r_windowedmode', 'r_windowedwidth', 'r_windowedheight',
+    'in_mouse', 'in_joystick', 'in_nograb', 'in_synthetic',
+}
+
+
+def validate_output(output, installation, executable):
+    """Validate every existing write/cleanup path before touching probe data."""
+    project = ROOT.resolve(strict=True)
+    scratch = project / '.tmp'
+    output = Path(os.path.abspath(output))
+    try:
+        relative = output.relative_to(scratch)
+    except ValueError as error:
+        raise ValueError('Ritual probe output must be below the project .tmp directory') from error
+    if not relative.parts:
+        raise ValueError('Ritual probe output needs its own directory below .tmp')
+
+    current = project
+    for part in ('.tmp', *relative.parts):
+        current /= part
+        try:
+            metadata = current.lstat()
+        except FileNotFoundError:
+            continue
+        if (stat.S_ISLNK(metadata.st_mode)
+                or getattr(metadata, 'st_file_attributes', 0) & REPARSE_POINT
+                or not stat.S_ISDIR(metadata.st_mode)):
+            raise ValueError(f'Ritual probe output has a linked or non-directory ancestor: {current}')
+
+    output = output.resolve()
+    if not output.is_relative_to(scratch):
+        raise ValueError('Ritual probe output resolves outside the project .tmp directory')
+    for protected in (installation.resolve(strict=True), executable.resolve(strict=True).parent):
+        if output.is_relative_to(protected) or protected.is_relative_to(output):
+            raise ValueError(f'Ritual probe output overlaps a read-only installation/runtime: {protected}')
+
+    pending = [output] if output.exists() else []
+    while pending:
+        directory = pending.pop()
+        for entry in directory.iterdir():
+            metadata = entry.lstat()
+            if (stat.S_ISLNK(metadata.st_mode)
+                    or getattr(metadata, 'st_file_attributes', 0) & REPARSE_POINT
+                    or (stat.S_ISREG(metadata.st_mode) and metadata.st_nlink > 1)):
+                raise ValueError(f'Ritual probe output contains linked data: {entry}')
+            if stat.S_ISDIR(metadata.st_mode):
+                pending.append(entry)
+            elif not stat.S_ISREG(metadata.st_mode):
+                raise ValueError(f'Ritual probe output contains unsupported data: {entry}')
+    return output
 
 
 def sha(path):
@@ -133,8 +193,21 @@ def main():
     parser.add_argument('--overlay', type=Path, help='a folder copied into the fresh home, such as test scripts')
     args = parser.parse_args()
 
+    # Validate all overrides before output validation, cleanup or any writes.
+    extra = []
+    for pair in args.extra:
+        name, separator, value = pair.partition('=')
+        if not separator or not re.fullmatch(r'[A-Za-z0-9_]+', name):
+            parser.error(f'--extra expects a cvar name and value as name=value: {pair!r}')
+        if name.casefold() in PROBE_OWNED_CVARS:
+            parser.error(f'--extra cannot override probe-owned cvar {name!r}; remove this override')
+        extra.append((name, value))
+
     game = GAME_DIRS[args.profile]
-    output = args.output.resolve()
+    try:
+        output = validate_output(args.output, args.installation, args.executable)
+    except (OSError, ValueError) as error:
+        parser.error(str(error))
     home = output / 'home'
     if home.exists():
         for path in sorted(home.rglob('*'), reverse=True):
@@ -179,8 +252,7 @@ def main():
                '+set', 'developer', '1']
     if args.actions:
         command += ['+set', 'in_synthetic', '1']
-    for pair in args.extra:
-        name, _, value = pair.partition('=')
+    for name, value in extra:
         command += ['+set', name, value]
     command += ['+exec', 'ritual-probe.cfg']
 

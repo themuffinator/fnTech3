@@ -3,7 +3,7 @@
 
 This fixture gate verifies module/map startup and connectionless protocol
 identity. It is not a gameplay, renderer, authentication, or interop sign-off.
-All writable game data goes to temporary homes outside the repository.
+All writable game data goes to disposable homes under the project's .tmp.
 """
 
 from __future__ import annotations
@@ -15,12 +15,19 @@ import os
 import re
 from pathlib import Path
 import socket
+import stat
 import subprocess
+import sys
 import tempfile
 import time
+import uuid
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'tests'))
+from server_query_evidence import observed_port, server_info
+
+REPARSE_POINT = getattr(stat, 'FILE_ATTRIBUTE_REPARSE_POINT', 0x400)
 
 
 def sha256(path: Path) -> str:
@@ -34,6 +41,19 @@ def installation_observed(log: str, marker: Path) -> bool:
                for match in re.finditer(r"^(.+) \(\d+ files\)\r?$", log, re.MULTILINE))
 
 
+def temporary_home_root() -> Path:
+    """Keep writable probe homes inside the project, without following links."""
+    project = ROOT.resolve(strict=True)
+    scratch = project / '.tmp'
+    scratch.mkdir(exist_ok=True)
+    metadata = scratch.lstat()
+    if (stat.S_ISLNK(metadata.st_mode)
+            or getattr(metadata, 'st_file_attributes', 0) & REPARSE_POINT
+            or scratch.resolve(strict=True).parent != project):
+        raise ValueError('Profile probe .tmp must be a real directory inside the project')
+    return scratch
+
+
 def probe(executable: Path, install: Path, profile: str, selection: str,
           output: Path, timeout: float, steam_discovery: bool = False) -> dict:
     protocol, mapname = (68, "q3dm6") if profile == "q3" else (91, "campgrounds")
@@ -44,15 +64,17 @@ def probe(executable: Path, install: Path, profile: str, selection: str,
         port = reservation.getsockname()[1]
     result = {"profile": profile, "selection": selection, "map": mapname,
               "protocol": protocol, "installation": str(install), "passed": False,
-              "steamDiscovery": steam_discovery}
+              "steamDiscovery": steam_discovery, "requestedPort": port}
+    challenge = 'fntech3-' + uuid.uuid4().hex
     marker = install / "baseq3" / ("pak0.pk3" if profile == "q3" else "pak00.pk3")
     result["basePakSha256"] = sha256(marker)
-    with tempfile.TemporaryDirectory(prefix="fntech3-profile-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="fntech3-profile-", dir=temporary_home_root()) as temporary:
         home = Path(temporary)
         command = [str(executable)]
         for name, value in {
             "com_gameProfile": selection, "fs_basepath": str(install),
-            "fs_homepath": str(home), "dedicated": "1", "net_ip": "127.0.0.1",
+            "fs_homepath": str(home), "dedicated": "1", "net_enabled": "1",
+            "net_ip": "127.0.0.1", "net_ip6": "::1",
             "net_port": str(port), "sv_pure": "1", "logfile": "2",
             "com_steamIntegration": "0", "fs_skipWorkshop": "1",
             "sv_autoRecordDemos": "0", "r_fullscreen": "0",
@@ -65,7 +87,7 @@ def probe(executable: Path, install: Path, profile: str, selection: str,
         command.extend(["+path", "+map", mapname])
         if profile == "ql":
             command.append("ffa")
-        command.extend(["+wait", "300", "+quit"])
+        command.extend(["+net_port", "+wait", "300", "+quit"])
         result["command"] = command
         options = {"creationflags": subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {}
         start = time.monotonic()
@@ -78,7 +100,8 @@ def probe(executable: Path, install: Path, profile: str, selection: str,
                 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
                     sock.settimeout(0.3)
                     while process.poll() is None and time.monotonic() - start < timeout:
-                        sock.sendto(b"\xff\xff\xff\xffgetinfo fntech3probe\n", ("127.0.0.1", port))
+                        sock.sendto(b"\xff\xff\xff\xffgetinfo " + challenge.encode('ascii') + b"\n",
+                                    ("127.0.0.1", port))
                         try:
                             payload, address = sock.recvfrom(65535)
                         except (socket.timeout, ConnectionResetError):
@@ -88,14 +111,10 @@ def probe(executable: Path, install: Path, profile: str, selection: str,
                         reply = payload.decode("latin1").rstrip("\x00")
                         if reply not in replies:
                             replies.append(reply)
-                        if reply.startswith("\xff\xff\xff\xffinfoResponse\n"):
-                            fields = reply.split("\n", 1)[1].strip().split("\\")[1:]
-                            info = dict(zip(fields[::2], fields[1::2]))
-                            if (info.get("protocol") == str(protocol)
-                                    and info.get("mapname") == mapname
-                                    and info.get("challenge") == "fntech3probe"):
-                                result["serverInfo"] = info
-                                break
+                        info = server_info(payload, 'infoResponse', mapname, challenge, protocol)
+                        if info is not None:
+                            result["serverInfo"] = info
+                            break
                 process.wait(timeout=max(0.1, timeout - (time.monotonic() - start)))
             except subprocess.TimeoutExpired:
                 result["error"] = "server did not quit before timeout"
@@ -116,8 +135,10 @@ def probe(executable: Path, install: Path, profile: str, selection: str,
                 module = "VM_LoadDll(qagame) found native exports" if profile == "ql" else "qagame loaded in"
                 result["moduleObserved"] = module in log
                 result["installationObserved"] = installation_observed(log, marker)
+                result["observedPort"] = observed_port(log)
                 result["passed"] = bool(result.get("serverInfo") and result["moduleObserved"]
                                         and result["installationObserved"]
+                                        and result["observedPort"] == port
                                         and process.returncode == 0 and "error" not in result)
     return result
 

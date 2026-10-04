@@ -158,6 +158,11 @@ BOUNDARY = r'''
 #include <vector>
 using fntech3::rtcw::module::Call;
 static comGameProfile_t profile;
+// Other profiles must never enter their module dispatch in this RTCW fixture.
+int Com_GameIsJK2MP(void) { return profile.id == COM_GAME_JK2_MP; }
+int Com_GameIsJKAMP(void) { return profile.id == COM_GAME_JKA_MP; }
+static bool CL_JK2CgameCall(intptr_t *, intptr_t &, intptr_t &) { assert(false); return false; }
+static bool CL_JKACgameCall(intptr_t *, intptr_t &, intptr_t &) { assert(false); return false; }
 int Com_GameIsRTCW(){return profile.id==COM_GAME_RTCW_SP||profile.id==COM_GAME_RTCW_MP;}
 int Com_GameIsRTCWSP(){return profile.id==COM_GAME_RTCW_SP;}
 const comGameProfile_t *Com_GameProfile(){return &profile;}

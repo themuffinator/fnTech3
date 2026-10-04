@@ -6,16 +6,28 @@ what volume -- exactly as its original engine let them. fnTech3 decides how it
 sounds: the default OpenAL backend renders every game with positional sources,
 distance falloff, geometry occlusion, environmental reverb, audio zones and
 HRTF, fed with that game's own sound distances, channels and loops. The
-original software mixer remains available as a deterministic fallback and as
-the retail-exact option.
+original software mixer remains available as a deterministic fallback, with
+each profile's comparison options and limits described below.
 
 This guide covers the player-facing audio controls: backend selection, device
 choice, volume and focus muting, spatial audio, how each game's sound is
 rendered, codecs and music, legacy mixer tuning, and the commands that show
 what the engine actually started. It applies to every game with a client:
 Quake III Arena, Quake Live, Return to Castle Wolfenstein, Enemy Territory,
-Elite Force, Alice and F.A.K.K.2. Jedi Academy, Jedi Outcast and the IHV Test
-run only as dedicated servers, which play no sound.
+Elite Force, Alice, F.A.K.K.2 and Medal of Honor: Allied Assault. Jedi Academy
+and Jedi Outcast have partial developer client adapters; supported calls use
+the existing audio services, but their complete spatial audio contracts remain
+unverified. Academy's ambient definitions and mover-stage handle queries are
+served, and its MP3 assets use the existing Fn decoder. Its optional-sound
+registration control suppresses missing-sample warnings while preserving
+registration results and playback. Explicit music preloading owns actual Fn
+decoder streams for later transfer to the normal intro/loop player; muted
+OpenAL probes preload an installed map track. Dynamic music, audible output,
+ambient playback and active voice tracking remain open. The measured
+Academy voice-volume query returns zero only when the actual audio backend
+is absent; an enabled backend refuses until its speech amplitude is adapted
+into these same Fn audio services. The IHV Test runs only as a
+dedicated server, which plays no sound.
 
 ## Overview
 
@@ -48,6 +60,9 @@ If you want the short version first:
 - `s_alAudioZones 1`: Use `maps/<map>.azb` audio-zone sidecars when present.
 - `s_doppler 1`: Enable doppler shift on moving projectiles.
 - `s_info`: Print the active backend, device, and runtime audio state.
+- `s_alSoundStartDebug 1`: Trace RTCW OpenAL sound requests, rejected starts,
+  source state and errors. Use with `logfile 2` for an intermittent sound issue;
+  return it to `0` after collecting the log.
 - `s_alListDevices`: List OpenAL playback devices, marking the default, requested, and active devices when known.
 - `s_alListHrtfs`: List OpenAL Soft HRTF specifiers for the active or requested device.
 - `s_alRecoverDevice`: Manually ask OpenAL Soft to reopen or reset the active playback device.
@@ -61,7 +76,7 @@ Some games add settings of their own; see [Each Game's Sound](#each-games-sound)
 fnTech3 exposes two audio paths on the client side.
 
 - `openal`: The default backend. This is the modern path and the only one that provides the current spatial audio controls such as reverb, occlusion, audio zones, device selection, and the spatial debug tools.
-- `legacy`: The original id Tech 3 software mixer and output-device path, extended with each game's own gain and pan rules and with the retail Quake Live controls described below. Use it when OpenAL is unavailable, when you need the classic fallback, or when you want a game's retail mix exactly.
+- `legacy`: The original id Tech 3 software mixer and output-device path, extended with profile-specific gain and pan rules and with the retail Quake Live controls described below. Use it when OpenAL is unavailable or when you need the classic fallback. Check [Each Game's Sound](#each-games-sound) for the supported comparison options and remaining limits.
 
 Behavior notes:
 
@@ -158,6 +173,11 @@ Distance and context hints:
 
 - `s_alDistanceModel`: Defaults to `inverse_clamped`. Accepted names are `none`, `inverse`, `inverse_clamped`, `linear`, `linear_clamped`, `exponent`, and `exponent_clamped`. Some games give `linear_clamped` and `none` a retail-exact meaning; see [Each Game's Sound](#each-games-sound).
 - `s_alFrequency`: Requested mix frequency in Hz. Default `48000`.
+- `s_alSourceResampler`: Source conversion quality. Default `balanced` selects
+  the widest advertised sinc filter up to 24 taps; `fast` selects the smallest,
+  and `best` selects the largest. `library` retains OpenAL's configured default.
+  Requires `snd_restart`. Missing or rejected optional support retains the
+  library default, which `s_info` reports.
 - `s_alRefresh`: Requested context refresh rate in Hz. Default `100`.
 - `s_alMonoSources`: Requested mono/3D source count. Default `64`.
 - `s_alStereoSources`: Requested stereo source count. Default `8`.
@@ -185,6 +205,12 @@ output-limiter = true
 ```
 
 OpenAL Soft options worth knowing about include `stereo-mode`, `stereo-encoding`, `hrtf-mode`, `hrtf-size`, `default-hrtf`, `resampler`, `channels`, `sample-type`, and decoder options such as `hq-mode`, `distance-comp`, `nfc`, and `speaker-dist`. fnTech3 does not need to own every one of those settings; it reports the active HRTF/output/limiter/device state and leaves advanced library-global policy in the OpenAL Soft config.
+
+Static sounds and pitch-shifted voices use OpenAL's per-source converter.
+`s_alSourceResampler balanced` requests band-limited conversion for this path
+when `AL_SOFT_source_resampler` is available. Higher quality takes more CPU,
+particularly with many active voices. Use `s_alSourceResampler library` to let
+the OpenAL Soft `resampler` config option choose that filter.
 
 ## Volume, Music, And Focus Muting
 
@@ -234,20 +260,26 @@ Use `s_alDistanceModel inverse_clamped` for the default modern falloff. `linear_
 
 ### Each Game's Sound
 
-Every game's sounds go through the same OpenAL pipeline -- positional sources, the distance model, traced occlusion, zone or traced room reverb, tone classes and HRTF -- but each game supplies its own data to it. The legacy mixer keeps each game's retail mix.
+Every game's sounds go through the same OpenAL pipeline -- positional sources, the distance model, traced occlusion, zone or traced room reverb, tone classes and HRTF -- but each game supplies its own data to it. The legacy mixer's comparison behavior and omissions differ by profile.
 
-| Game | How OpenAL places its sounds | Retail-exact option |
+| Game | How OpenAL places its sounds | Comparison option and fallback limits |
 | --- | --- | --- |
 | Quake III Arena, Quake Live, Elite Force Holomatch | Quake III's law: full volume to 80 units, silent by 1,330. | `s_backend legacy` |
 | Return to Castle Wolfenstein, Enemy Territory | Retail's straight-line law, full volume to 6.4% of a sound's range and silent at its end, carried by the distance model with a fade toward the horizon. One-shots span 80 to 1,330 units; loops use the range the game gives them. | `s_alDistanceModel linear_clamped` plays retail's law exactly and `none` plays its gain without its pan; `s_backend legacy` keeps retail's gain and pan. |
 | Elite Force single player | Retail's span for each channel: most sounds full volume to 256 units and silent by 1,506, a voice 1,024 to 2,274, an attenuated voice 38.4 to 288.4. Your own sounds play at three quarters. Ambient sets become loops placed at their own points, and the room tone plays at the listener. | `s_alDistanceModel linear_clamped` plays retail's law exactly; `s_backend legacy` keeps retail's gain and pan. |
 | Alice, F.A.K.K.2 | Each sound's own minimum distance is the reference distance, and the far end is 64 times that, under the default inverse model. That this matches the original engine is an inference. | `s_backend legacy` keeps retail's gain and obstruction; its left-right spread is even, because the original pan law was never read. |
+| Medal of Honor: Allied Assault | Sound aliases supply volume, minimum and maximum distances, and pitch to the OpenAL pipeline. An entity's one-shot replaces its previous sound on the same channel except on the automatic channel; the game's stop request ends it. | No retail-exact mode is established. The legacy fallback ignores alias distances and pitch, loop volume, and the game's entity-channel replacement and stop behavior. |
+
+MOHAA's server-driven `fadesound` commands are currently unhandled, including
+on the OpenAL path. Campaign audio-fade behavior remains an open requirement;
+see the [October 2 warning audit](fntech3/2026-10-02-ubertools-round.md).
 
 Game-specific settings and commands:
 
 - **RTCW:** `s_defaultsound 1` plays RTCW's placeholder sound for a missing sample instead of silence (requires `snd_restart`). Single player keeps retail's speech amplitude for lip movement, its music controller (see [Codecs And Music](#codecs-and-music)) and its entity streams: `streamingsound` and `stopstreamingsound` start and stop a stream. `s_volume` and the master fade are quantized as retail quantizes them. Loops carry no Doppler.
 - **Enemy Territory:** each one-shot's own volume, loop start times, stop-after-fade and ET's master fade are kept. Loop Doppler and ET's "no attenuation" flag are not carried yet.
 - **Elite Force:** `s_separation` (default `0.5`) is the original engine's channel spread. On OpenAL, values above the default spread placed voices through OpenAL Soft's source radius; on the legacy mixer, and in Holomatch, it sets the pan as retail did. `s_language DEUTSCH` plays the German voices where the installation has them. Single player adds lip-sync, tuned by `s_threshold1` to `s_threshold4`, the loudness steps at which a speaker's mouth opens wider.
+- **Enemy Territory:** the player aliases which its module returns as sound handle zero, including jumping, stay silent on OpenAL and the legacy mixer. `s_defaultsound` defaults to 0; setting it to 1 enables the diagnostic placeholder ([input and launch fixes](fntech3/2026-10-02-input-launch-fixes.md)). Spatial sounds continue through the shared distance, occlusion, EFX and zone systems.
 - **Alice and F.A.K.K.2:** `s_separation` (default `0.3`) spreads only the two-dimensional dialog voices. `s_reverb 1` (the default) lets a room the game names -- a map's reverb trigger -- replace the zone or traced room; no shipped map names one. `s_show_sounds 1` prints every sound as it starts and stops. Stereo WAV files are refused, as the original engine refused them. The commands are the original engine's: `play`, `sounddump`, `playsong`, `loadsoundtrack`, `playmp3` and `stopmp3`; there is no `music` or `stopmusic`.
 
 ### HRTF And Output Mode
@@ -345,7 +377,7 @@ These are generated acoustic estimates, pending listening checks; the generation
 - fnTech3 checks `fntech3-pkg.fnz` next to the executable before normal game data, using `games/<profile>/<gamedir>/maps/<mapname>.azb`; for example, `games/quakelive/baseq3/maps/campgrounds.azb` is available only to Quake Live. The active profile's mod directories precede its base directory. No game ever reads another game's sidecars.
 - Only the OpenAL backend reads sidecars; the legacy mixer never does.
 
-Sidecars are compiled with the repo tool target `fnql-audiozonesc`. Maintainers can write `maps/<mapname>.audiozones` by hand or generate a first-pass sidecar from an existing `.bsp` -- Quake III's and Quake Live's, RTCW's and ET's, or Ritual's FAKK maps -- then layer small overrides on top. Current sidecars can carry material metadata, portal hints, and optional per-portal blend tuning while older version 1 and version 2 sidecars remain readable. The compiler workflow, authoring syntax and each game's generation script are documented in [`code/tools/audiozones/README.md`](../code/tools/audiozones/README.md).
+Sidecars are compiled with the repo tool target `fnql-audiozonesc`. Maintainers can write `maps/<mapname>.audiozones` by hand or generate a first-pass sidecar from an existing `.bsp` -- Quake III's and Quake Live's, RTCW's and ET's, Ritual's FAKK maps, or Medal of Honor's 2015 maps -- then layer small overrides on top. Current sidecars can carry material metadata, portal hints, and optional per-portal blend tuning while older version 1 and version 2 sidecars remain readable. The compiler workflow, authoring syntax and each game's generation script are documented in [`code/tools/audiozones/README.md`](../code/tools/audiozones/README.md).
 
 Generated zones are built by merging BSP leaves back into room-scale volumes along their real open contact area, so a zone corresponds to a place in the map rather than to whichever leaves happened to share a bounding box. Environment presets follow the merged volume's size and shape, `underwater` is only set for volumes actually inside a liquid brush, `outdoor` follows how much sky the volume can see, and portal hints and their blend tuning are derived from the size and openness of the real connection between two zones.
 
@@ -399,6 +431,20 @@ Sound formats:
 - **Ogg Vorbis** in every game, when built with `-Dogg-vorbis=true` (the default).
 - **MP3** for the games whose data is MP3: Elite Force, whose MP3s carry Raven's size and lip-sync tags, and Alice and F.A.K.K.2, whose songs are decoded in memory with their own start and loop points. It is built by default with `-Dmp3=true`.
 
+OpenAL's shared stream converter keeps resampling continuous across decoded chunks.
+Upsampling and downsampling use a band-limited filter to suppress unwanted images
+and aliasing; equal-rate PCM stays unchanged. Ritual tracks with non-native rates
+use the same filter before their 44.1 kHz score mix.
+Streamed volume changes preserve the resampler's timing and interpolation history.
+Raw-stream idle drains also retain phase across short bursts; explicit clearing
+or a format change starts a fresh stream.
+Music drains its buffered ending when a file finishes, and retries a decoded
+chunk when the stream buffer pool is temporarily full. Explicit stop commands
+still cancel playback immediately. The [audio system audit](fntech3/2026-10-02-audio-system-audit.md)
+records the playback, quality and allocation checks.
+Alice and F.A.K.K.2's score mixer also drains its last decoded frame, including
+when the tail spans more than one mixing update.
+
 Music follows each game's own engine:
 
 - **Quake III Arena, Quake Live, RTCW multiplayer and Elite Force** use `music <intro> [loop]` and `stopmusic`. In RTCW a one-argument `music` loops the same file.
@@ -408,7 +454,9 @@ Music follows each game's own engine:
 
 ## Legacy Backend Tuning
 
-The legacy mixer remains available when you want the original software path, a game's retail mix, or when OpenAL is not appropriate for a given machine. It keeps each game's own gain and pan rules, has no distance model, occlusion, reverb or audio zones, and ignores weapon sound shaders.
+The legacy mixer remains available when you want the original software path or when OpenAL is not appropriate for a given machine. It keeps the implemented profile-specific gain and pan rules, has no distance model, occlusion, reverb or audio zones, and ignores weapon sound shaders. Its profile-specific comparison limits are listed in [Each Game's Sound](#each-games-sound).
+
+For Medal of Honor: Allied Assault, legacy one-shots keep their requested volume, but the fallback ignores alias distances and pitch, loop volume, and the game's entity-channel replacement and stop requests. Keep OpenAL active when those sound contracts are needed; an automatic fallback to legacy carries the same limits. See the [Medal of Honor audio evidence](fntech3/2026-09-24-mohaa-contracts.md#client).
 
 The main legacy-specific controls are:
 
@@ -509,6 +557,7 @@ Some audio cvars are latched. If you change any of the following, run `snd_resta
 - `s_alOutputMode`
 - `s_alDistanceModel`
 - `s_alFrequency`
+- `s_alSourceResampler`
 - `s_alRefresh`
 - `s_alMonoSources`
 - `s_alStereoSources`
@@ -576,7 +625,7 @@ That usually means OpenAL accepted the context but adjusted one or more requeste
 - If a sidecar is loaded, use `s_alDebugOverlay 2` or `s_alDebugDump` to see the active zone name, material, portal blend target, and tuned environment values.
 - Set `s_alAudioZones 0` to compare the same location against the generic environment heuristics.
 - Invalid `.azb` files are ignored with a console warning; missing files are harmless.
-- To hear a game's retail mix for comparison, use its retail-exact option from [Each Game's Sound](#each-games-sound).
+- To compare the supported classic gain and pan behavior, use the option and check the limits for that profile in [Each Game's Sound](#each-games-sound).
 
 ### The game goes silent after alt-tabbing
 
@@ -626,7 +675,7 @@ Use this if you want less ambience and more direct positional cues:
 
 ### Conservative Compatibility
 
-Use this if you want the original mixer path and each game's retail mix:
+Use this if you need the original software mixer path. Check the profile's limits in [Each Game's Sound](#each-games-sound) before using it for a retail comparison:
 
 - `s_backend legacy`
 - `s_khz 22`

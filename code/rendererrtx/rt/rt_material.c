@@ -241,9 +241,10 @@ static qboolean RT_ShaderIsSky( const shader_t *shader )
 ==================
 Emitters
 
-rtx_rt_lighting 0 lights a scene as Q2RTX does: from the sky and from the
-surfaces that give off light, with nothing baked. A surface gives off what
-its shader draws where the lighting term is black. rt_material.glsl splits
+rtx_rt_lighting 0 and 3 light a scene from the sky and from the surfaces
+that give off light, as Q2RTX does, with nothing baked; 0 adds the light
+entities the map keeps. A surface gives off what its shader draws where the
+lighting term is black. rt_material.glsl splits
 every hit that way, texel by texel; the light builder needs one colour per
 shader, so its stages are folded here as the GPU folds them, each with its
 image's average colour and alpha, once with the lighting term at zero
@@ -253,14 +254,44 @@ keeps none.
 ==================
 */
 
-#define RT_LIGHTING_EMITTERS	0	// the sky and emitting surfaces (Q2RTX)
+#define RT_LIGHTING_LEVEL		0	// the level's own lights and its emitting surfaces
 #define RT_LIGHTING_LIGHTMAPS	1	// the lightmaps, with traced dynamic lights
 #define RT_LIGHTING_COMPILERS	2	// the map compilers' own lights and models
+#define RT_LIGHTING_EMITTERS	3	// the sky and emitting surfaces alone (Q2RTX)
 #define RT_EMISSION_MIN			0.03f	// dimmer shaders are not emitters
 
 static int RT_LightingMode( void )
 {
-	return rtx_rt_lighting ? (int)Com_Clamp( 0, 2, rtx_rt_lighting->integer ) : RT_LIGHTING_EMITTERS;
+	return rtx_rt_lighting ? (int)Com_Clamp( 0, 3, rtx_rt_lighting->integer ) : RT_LIGHTING_LEVEL;
+}
+
+// Whether a mode lights with the sky and the surfaces that give off light:
+// the level's own lights, and the emitters alone
+static qboolean RT_LightingEmits( int mode )
+{
+	return ( mode == RT_LIGHTING_LEVEL || mode == RT_LIGHTING_EMITTERS ) ? qtrue : qfalse;
+}
+
+#define RT_CAMERA_UNITS		0	// the traced light as it is, in the map compiler's light units
+#define RT_CAMERA_LINEAR	1	// linear light, automatic exposure and the tone mapper (Q2RTX)
+
+// How a mode's light is shown (rtx_rt_camera). The level's own lights are
+// in their map compiler's units, the units its designer set them in: by
+// default the traced light a surface receives multiplies its colour as the
+// engine multiplies a surface by its light, with no exposure, so a map is as
+// bright or as dark as its own light sources make it; they can instead take
+// the linear camera. The sky and emitters alone have no compiler's units to
+// keep: they always take it. The lightmaps and the compilers' models, kept
+// for comparison, are shown in their units.
+static int RT_LightingCamera( int mode )
+{
+	if ( mode == RT_LIGHTING_EMITTERS ) {
+		return RT_CAMERA_LINEAR;
+	}
+	if ( mode != RT_LIGHTING_LEVEL ) {
+		return RT_CAMERA_UNITS;
+	}
+	return ( rtx_rt_camera && rtx_rt_camera->integer ) ? RT_CAMERA_LINEAR : RT_CAMERA_UNITS;
 }
 
 #define RT_IMAGE_AVERAGES	1024
@@ -555,7 +586,7 @@ static qboolean RT_ShaderFullbrightLit( const shader_t *shader )
 {
 	int i;
 
-	if ( RT_LightingMode() != RT_LIGHTING_EMITTERS || !shader || shader->rtNumStages <= 0 || !shader->rtStages ||
+	if ( !RT_LightingEmits( RT_LightingMode() ) || !shader || shader->rtNumStages <= 0 || !shader->rtStages ||
 		RT_ShaderIsSky( shader ) || shader->sort == SS_PORTAL || ( shader->surfaceLightValid && shader->surfaceLight > 0.0f ) ) {
 		return qfalse;
 	}
@@ -918,7 +949,7 @@ static qboolean RT_TranslateMaterial( const shader_t *shader, rtGpuMaterial_t *o
 		out->emit[1] = shader->rtEmitColorValid ? shader->rtEmitColor[1] : 1.0f;
 		out->emit[2] = shader->rtEmitColorValid ? shader->rtEmitColor[2] : 1.0f;
 		out->emit[3] = shader->surfaceLight;
-	} else if ( RT_LightingMode() == RT_LIGHTING_EMITTERS ) {
+	} else if ( RT_LightingEmits( RT_LightingMode() ) ) {
 		// a glowing shader is sampled as a light (rt_lights.c
 		// RT_AddEmissiveSurfaces): a bounce that meets it must not count it again
 		vec3_t emission;

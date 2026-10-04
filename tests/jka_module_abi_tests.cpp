@@ -133,7 +133,7 @@ int main()
 	static_assert( FNTECH3_JKA_MP_GAME_API_VERSION == 1, "game API version" );
 	static_assert( FNTECH3_JKA_MP_CGAME_API_VERSION == 2, "client game API version" );
 	static_assert( FNTECH3_JKA_MP_UI_API_VERSION == 3, "menu API version" );
-	static_assert( FNTECH3_JKA_SP_GAME_API_VERSION == 10, "single-player game API version" );
+	static_assert( FNTECH3_JKA_SP_GAME_API_VERSION == 8, "retail single-player game API version" );
 	static_assert( FNTECH3_JKA_G_PRINT == 0 && FNTECH3_JKA_G_MEMSET == 100,
 		"the plain enumeration carries the same numbers" );
 

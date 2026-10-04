@@ -326,6 +326,15 @@ float rand01(inout uint state)
 	return float(state >> 8) * (1.0 / 16777216.0);
 }
 
+// A direction drawn uniformly over the unit sphere
+vec3 rand_sphere(inout uint state)
+{
+	float z = 2.0 * rand01(state) - 1.0;
+	float phi = 6.28318530718 * rand01(state);
+	float r = sqrt(max(0.0, 1.0 - z * z));
+	return vec3(r * cos(phi), r * sin(phi), z);
+}
+
 vec3 srgb_to_linear(vec3 c)
 {
 	c = max(c, vec3(0.0));

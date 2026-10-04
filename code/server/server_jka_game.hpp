@@ -6,6 +6,8 @@
 #include "../compat/jka_module_abi.h"
 #include "../compat/jka_state_adapter.hpp"
 #include "server_jka_icarus.hpp"
+#include "server_jka_actions.hpp"
+#include "server_jka_roff.hpp"
 #include "server_world_bounds.hpp"
 #include "../nav/nav_graph.hpp"
 
@@ -38,6 +40,7 @@ static void SV_JKAClearGame( void )
 	jkaServerCullDistance = 0.0f;
 	jkaNavigation.Clear();
 	SV_JKAIcarusClear();
+	SV_RavenAssetsClear();
 }
 
 /* Raven kept Quake III's cvar flags up to 0x400 and gave 0x800 and 0x1000
@@ -181,6 +184,35 @@ static const float *SV_JKAWorldVector( void *address, const char *where,
 	}
 	return value;
 }
+
+class ServerJKARoffHost final : public fntech3::jka::roff::MotionHost {
+public:
+	fntech3_jka_sharedEntity_t *Entity( int number ) override
+	{
+		if ( !sv.gentities || number < 0 || number >= sv.num_entities
+			|| sv.gentitySize < int( sizeof( fntech3_jka_sharedEntity_t ) ) ) return nullptr;
+		return reinterpret_cast<fntech3_jka_sharedEntity_t *>( SV_GentityNum( number ) );
+	}
+	void Basis( const float angles[3], float columns[3][3] ) override
+	{
+		vec3_t mutableAngles;
+		VectorCopy( angles, mutableAngles );
+		AnglesToAxis( mutableAngles, columns );
+	}
+	void Note( int entity, const char *text ) override
+	{
+		const auto *callback = fntech3::jka::module::Describe(
+			fntech3::jka::module::Call::GAME_ROFF_NOTETRACK_CALLBACK );
+		if ( !gvm || !callback ) Com_Error( ERR_DROP, "Jedi Academy ROFF callback is unavailable" );
+		/* Retail ProcessNote VA 0x426d74-0x426d84 calls export 11 with two
+		 * arguments, the entity number and the line; no shared scratch buffer. */
+		VM_Call( gvm, 2, callback->ordinal, entity, text );
+	}
+	void Fail( const char *reason ) override { Com_Error( ERR_DROP, "%s", reason ); }
+};
+
+static ServerJKARoffHost jkaRoffHost;
+static fntech3::jka::roff::ServerPlayer jkaRoffPlayer( ravenRoff, jkaRoffHost );
 
 static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t &result )
 {
@@ -580,13 +612,13 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		 *     ghoul2, modelIndex, boneName, startFrame, endFrame, flags,
 		 *     animSpeed, currentTime, setFrame, blendTime
 		 *
-		 * The engine holds what it is told and interprets none of it. Which
-		 * frame a bone is on at a given moment is arithmetic this engine has
-		 * not measured, so nothing here computes one. */
+		 * The ninth argument is a floating frame seed, with -1.0f meaning the
+		 * animation starts at its first frame. Retail's bone setup shifts the
+		 * start clock for another seed, including a fractional one. */
 		result = ravenGhoul2.SetBoneAnim( pointer( 1 ), static_cast<int>( args[2] ),
 			text( 3 ), static_cast<int>( args[4] ), static_cast<int>( args[5] ),
 			static_cast<int>( args[6] ), VMF( 7 ), static_cast<int>( args[8] ),
-			static_cast<int>( args[9] ), static_cast<int>( args[10] ) ) ? 1 : 0;
+			VMF( 9 ), static_cast<int>( args[10] ) ) ? 1 : 0;
 		return true;
 
 	case Call::G_G2_SETBOLTINFO:
@@ -615,20 +647,15 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		 * names a bone is that bone posed for the moment asked about, and one
 		 * that names a surface is a tag, three corners carried by the bones
 		 * they are weighted to, which give an origin and a set of axes. This
-		 * then does what the engine does with it -- turns it by the entity's
-		 * angles, moves it to the entity's position, and scales the result
-		 * where a scale was given.
+		 * then scales its model-space translation, normalizes the rotation
+		 * rows and applies the entity's angles and position.
 		 *
 		 * A bolt the store cannot answer writes nothing and reports failure,
 		 * which is what the game checks for. Handing back an identity matrix
 		 * would put the thing somewhere definite and wrong.
 		 *
-		 * The three numbers are served alike. Retail separates them by how
-		 * much of the skeleton it is willing to rebuild on the way -- one
-		 * recurses, one will not, one neither recurses nor re-rotates -- and
-		 * those are the engine's own caching decisions about work it has
-		 * already done. This engine rebuilds nothing and caches nothing, so
-		 * all three ask the same question and get the same answer. */
+		 * The first two imports share placement; NOREC_NOROT additionally
+		 * skips the MP API's rotation-only -90 degree correction. */
 		{
 			VM_CHECKBOUNDS( gvm, args[4], sizeof( float ) * 12 );
 			VM_CHECKBOUNDS( gvm, args[5], sizeof( vec3_t ) );
@@ -636,6 +663,10 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 			float *destination = static_cast<float *>( pointer( 4 ) );
 			const float *angles = static_cast<const float *>( pointer( 5 ) );
 			const float *position = static_cast<const float *>( pointer( 6 ) );
+			if ( !destination || !angles || !position ) {
+				result = 0;
+				return true;
+			}
 
 			float bolt[12];
 			if ( !ravenGhoul2.BoltMatrix( pointer( 1 ), static_cast<int>( args[2] ),
@@ -644,31 +675,20 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 				return true;
 			}
 
-			/* The entity's own placing, as a matrix of the same shape. */
-			vec3_t axis[3];
-			vec3_t turned;
-			VectorCopy( angles, turned );
-			AnglesToAxis( turned, axis );
-			float entity[12];
-			for ( int row = 0; row < 3; ++row ) {
-				entity[row * 4 + 0] = axis[0][row];
-				entity[row * 4 + 1] = axis[1][row];
-				entity[row * 4 + 2] = axis[2][row];
-				entity[row * 4 + 3] = position[row];
-			}
-			float world[12];
-			fntech3::jka::model::ComposeMatrix( entity, bolt, world );
-
-			/* A scale of nothing on an axis means that axis is not scaled,
-			 * which is how the engine reads it. */
+			const float *scale = nullptr;
 			if ( args[9] ) {
 				VM_CHECKBOUNDS( gvm, args[9], sizeof( vec3_t ) );
-				const float *scale = static_cast<const float *>( pointer( 9 ) );
-				for ( int row = 0; row < 3; ++row ) {
-					if ( scale[row] != 0.0f ) world[row * 4 + 3] *= scale[row];
-				}
+				scale = static_cast<const float *>( pointer( 9 ) );
 			}
-			for ( int i = 0; i < 12; ++i ) destination[i] = world[i];
+			/* Retail core0x4dfa00 scales the model-space translation before
+			 * placement, normalizes rows and retains589's rotation distinction. */
+			float world[12];
+			if ( !fntech3::ghoul2::pose::PlaceBolt(bolt, angles, position, scale,
+				call == Call::G_G2_GETBOLT_NOREC_NOROT, world) ) {
+				result = 0;
+				return true;
+			}
+			std::memcpy(destination, world, sizeof(world));
 			result = 1;
 		}
 		return true;
@@ -757,6 +777,21 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 				fntech3::ghoul2::LoadErrorName( error ) );
 		}
 		result = index;
+		return true;
+	}
+
+	case Call::G_G2_CLEANMODELS: {
+		/* Retail jampgamex86.dll 1.01 wrapper 0x200a6fb0 passes one argument:
+		 * the address of its opaque pointer slot. Cleanup frees the instance
+		 * and nulls that slot; an already-null handle is a genuine no-op. */
+		if ( !args[1] ) {
+			Com_Error( ERR_DROP, "Jedi Academy G_G2_CLEANMODELS: null model pointer slot" );
+			return true;
+		}
+		VM_CHECKBOUNDS( gvm, args[1], sizeof( void * ) );
+		if ( !ravenGhoul2.Clean( static_cast<void **>( pointer( 1 ) ) ) ) {
+			Com_Error( ERR_DROP, "Jedi Academy G_G2_CLEANMODELS: stale or foreign model handle" );
+		}
 		return true;
 	}
 
@@ -976,86 +1011,89 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 	 * the delayed jump, and this title's is the input reset. Each is served by
 	 * name for that reason.
 	 *
-	 * The two Raven inserted have no counterpart in the library this engine
-	 * carries, which is Quake III's. They are answered without doing anything,
-	 * and that is a stated gap rather than a hidden one: a bot here will move,
-	 * turn, jump, crouch, fire and change weapon, and will not alt-fire or use
-	 * a force power until the library has an action for them. */
+	 * Raven's alternate attack and force power use two otherwise unrelated
+	 * Quake III action bits. Only this profile passes those bits on with their
+	 * Raven meaning; the previous-jump marker is translated on the way out. */
 	case Call::BOTLIB_EA_SAY:
-		botlib_export->ea.EA_Say( static_cast<int>( args[1] ), text( 2 ) );
+		SV_JKABotActionInterface( args[1] ).EA_Say( SV_JKABotActionClient( args[1] ), text( 2 ) );
 		return true;
 	case Call::BOTLIB_EA_SAY_TEAM:
-		botlib_export->ea.EA_SayTeam( static_cast<int>( args[1] ), text( 2 ) );
+		SV_JKABotActionInterface( args[1] ).EA_SayTeam( SV_JKABotActionClient( args[1] ), text( 2 ) );
 		return true;
 	case Call::BOTLIB_EA_ATTACK:
-		botlib_export->ea.EA_Attack( static_cast<int>( args[1] ) );
+		SV_JKABotActionInterface( args[1] ).EA_Attack( SV_JKABotActionClient( args[1] ) );
 		return true;
 	case Call::BOTLIB_EA_ALT_ATTACK:
+		SV_JKABotActionInterface( args[1] ).EA_Action( SV_JKABotActionClient( args[1] ), JKAActionAltAttack );
+		return true;
 	case Call::BOTLIB_EA_FORCEPOWER:
-		/* Raven's own two. Nothing is pressed, and nothing pretends to be. */
+		SV_JKABotActionInterface( args[1] ).EA_Action( SV_JKABotActionClient( args[1] ), JKAActionForcePower );
 		return true;
 	case Call::BOTLIB_EA_USE:
-		botlib_export->ea.EA_Use( static_cast<int>( args[1] ) );
+		SV_JKABotActionInterface( args[1] ).EA_Use( SV_JKABotActionClient( args[1] ) );
 		return true;
 	case Call::BOTLIB_EA_CROUCH:
-		botlib_export->ea.EA_Crouch( static_cast<int>( args[1] ) );
+		SV_JKABotActionInterface( args[1] ).EA_Crouch( SV_JKABotActionClient( args[1] ) );
 		return true;
 	case Call::BOTLIB_EA_MOVE_UP:
-		botlib_export->ea.EA_MoveUp( static_cast<int>( args[1] ) );
+		SV_JKABotActionInterface( args[1] ).EA_MoveUp( SV_JKABotActionClient( args[1] ) );
 		return true;
 	case Call::BOTLIB_EA_MOVE_DOWN:
-		botlib_export->ea.EA_MoveDown( static_cast<int>( args[1] ) );
+		SV_JKABotActionInterface( args[1] ).EA_MoveDown( SV_JKABotActionClient( args[1] ) );
 		return true;
 	case Call::BOTLIB_EA_MOVE_FORWARD:
-		botlib_export->ea.EA_MoveForward( static_cast<int>( args[1] ) );
+		SV_JKABotActionInterface( args[1] ).EA_MoveForward( SV_JKABotActionClient( args[1] ) );
 		return true;
 	case Call::BOTLIB_EA_MOVE_BACK:
-		botlib_export->ea.EA_MoveBack( static_cast<int>( args[1] ) );
+		SV_JKABotActionInterface( args[1] ).EA_MoveBack( SV_JKABotActionClient( args[1] ) );
 		return true;
 	case Call::BOTLIB_EA_MOVE_LEFT:
-		botlib_export->ea.EA_MoveLeft( static_cast<int>( args[1] ) );
+		SV_JKABotActionInterface( args[1] ).EA_MoveLeft( SV_JKABotActionClient( args[1] ) );
 		return true;
 	case Call::BOTLIB_EA_MOVE_RIGHT:
-		botlib_export->ea.EA_MoveRight( static_cast<int>( args[1] ) );
+		SV_JKABotActionInterface( args[1] ).EA_MoveRight( SV_JKABotActionClient( args[1] ) );
 		return true;
 	case Call::BOTLIB_EA_SELECT_WEAPON:
-		botlib_export->ea.EA_SelectWeapon( static_cast<int>( args[1] ),
+		SV_JKABotActionInterface( args[1] ).EA_SelectWeapon( SV_JKABotActionClient( args[1] ),
 			static_cast<int>( args[2] ) );
 		return true;
 	case Call::BOTLIB_EA_JUMP:
-		botlib_export->ea.EA_Jump( static_cast<int>( args[1] ) );
+		SV_JKABotActionInterface( args[1] ).EA_Jump( SV_JKABotActionClient( args[1] ) );
 		return true;
 	case Call::BOTLIB_EA_DELAYED_JUMP:
-		botlib_export->ea.EA_DelayedJump( static_cast<int>( args[1] ) );
+		SV_JKABotActionInterface( args[1] ).EA_DelayedJump( SV_JKABotActionClient( args[1] ) );
 		return true;
 	case Call::BOTLIB_EA_MOVE:
 		VM_CHECKBOUNDS( gvm, args[2], sizeof( vec3_t ) );
-		botlib_export->ea.EA_Move( static_cast<int>( args[1] ),
+		SV_JKABotActionInterface( args[1] ).EA_Move( SV_JKABotActionClient( args[1] ),
 			static_cast<float *>( pointer( 2 ) ), VMF( 3 ) );
 		return true;
 	case Call::BOTLIB_EA_VIEW:
 		VM_CHECKBOUNDS( gvm, args[2], sizeof( vec3_t ) );
-		botlib_export->ea.EA_View( static_cast<int>( args[1] ),
+		SV_JKABotActionInterface( args[1] ).EA_View( SV_JKABotActionClient( args[1] ),
 			static_cast<float *>( pointer( 2 ) ) );
 		return true;
 	case Call::BOTLIB_EA_END_REGULAR:
-		botlib_export->ea.EA_EndRegular( static_cast<int>( args[1] ), VMF( 2 ) );
+		SV_JKABotActionInterface( args[1] ).EA_EndRegular( SV_JKABotActionClient( args[1] ), VMF( 2 ) );
 		return true;
-	case Call::BOTLIB_EA_GET_INPUT:
+	case Call::BOTLIB_EA_GET_INPUT: {
 		/* The input frame the library built, read back into the module's own
 		 * record. This one carries a record, so the record was measured
 		 * rather than assumed: the module's single call site reads its action
 		 * flags at offset 32, once as a byte and once as a word it clears
 		 * bits in, which is where Quake III keeps them and is not where they
-		 * would be had Raven moved anything before them. So this title's
-		 * input frame is the library's own, and the library may write it. */
-		VM_CHECKBOUNDS( gvm, args[3], sizeof( bot_input_t ) );
-		botlib_export->ea.EA_GetInput( static_cast<int>( args[1] ), VMF( 2 ),
-			static_cast<bot_input_t *>( pointer( 3 ) ) );
+		 * would be had Raven moved anything before them. The layout matches,
+		 * but Raven's previous-jump flag has a different value. */
+		void *destination = SV_JKABotInputDestination( gvm, args[3] );
+		bot_input_t input{};
+		SV_JKABotActionInterface( args[1] ).EA_GetInput( SV_JKABotActionClient( args[1] ), VMF( 2 ), &input );
+		const bot_input_t output = SV_JKABotActionOutput( input );
+		std::memcpy( destination, &output, sizeof( output ) );
 		return true;
+	}
 
 	case Call::BOTLIB_EA_RESET_INPUT:
-		botlib_export->ea.EA_ResetInput( static_cast<int>( args[1] ) );
+		SV_JKABotActionInterface( args[1] ).EA_ResetInput( SV_JKABotActionClient( args[1] ) );
 		return true;
 
 	/* --- the state a bot keeps, at Raven's numbers ----------------------
@@ -1124,15 +1162,13 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 	/* --- recorded motion paths -----------------------------------------
 	 *
 	 * A `.rof` is a list of steps: how far an object moves and turns during
-	 * each one. Caching one and forgetting them all are answered here. What
-	 * is not answered is starting one: how this engine should move an entity
-	 * along a path -- whether it sets the origin outright or lays a
-	 * trajectory between steps -- is not measured, and a guess would move
-	 * every scripted lift and camera in the game the wrong way. So
-	 * `G_ROFF_PLAY` stays refused by name, and nothing can be playing. */
+	 * each one. Retail jamp.exe's measured trajectory updates, millisecond
+	 * scheduling, starting-angle translation and export-11 note callbacks are
+	 * implemented by this profile's player. The game still evaluates and
+	 * links those trajectories in its own frame loop. */
 
 	case Call::G_ROFF_CLEAN:
-		ravenRoff.Clear();
+		jkaRoffPlayer.Clear( sv.time );
 		result = 1;
 		return true;
 	case Call::G_ROFF_CACHE:
@@ -1140,12 +1176,17 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		 * reported as not cached, not remembered as an empty one. */
 		result = ravenRoff.Cache( text( 1 ) );
 		return true;
+	case Call::G_ROFF_PLAY:
+		if ( args[1] < 0 || args[1] > INT_MAX || args[2] < 1 || args[2] > INT_MAX ) return true;
+		result = jkaRoffPlayer.Play( static_cast<int>( args[1] ), static_cast<int>( args[2] ),
+			args[3] != 0, sv.time ) ? 1 : 0;
+		return true;
+	case Call::G_ROFF_PURGE_ENT:
+		if ( args[1] < 0 || args[1] > INT_MAX ) return true;
+		result = jkaRoffPlayer.Stop( static_cast<int>( args[1] ), sv.time ) ? 1 : 0;
+		return true;
 	case Call::G_ROFF_UPDATE_ENTITIES:
-		ravenRoff.Advance( sv.time, []( const fntech3::roff::Playing &,
-			const fntech3::jka::roff::Sample &, const fntech3::roff::Cached & ) {
-			/* Where the motion goes, once it is measured. Nothing reaches
-			 * here while starting a path is refused. */
-		} );
+		jkaRoffPlayer.Update( sv.time );
 		return true;
 
 	/* --- ICARUS: the script interpreter the game asks the engine for ---- */

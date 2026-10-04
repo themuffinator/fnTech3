@@ -31,6 +31,8 @@ extern "C" {
 
 #include "../client_cpp.h"
 #include "snd_rtcw.h"
+#include "shared/JKAMusicPreload.h"
+#include "../../compat/jka_game_abi.h"
 
 #include <cstdlib>
 #include <cerrno>
@@ -60,6 +62,7 @@ cvar_t *s_alHrtfId;
 cvar_t *s_alOutputMode;
 cvar_t *s_alDistanceModel;
 cvar_t *s_alFrequency;
+cvar_t *s_alSourceResampler;
 cvar_t *s_alRefresh;
 cvar_t *s_alMonoSources;
 cvar_t *s_alStereoSources;
@@ -69,6 +72,7 @@ cvar_t *s_alSpatializeStereo;
 
 namespace {
 static soundInterface_t si;
+bool jkaQuietSoundRegistration = false;
 fntech3::audio::rtcw::Music rtcwMusic;
 fntech3::audio::rtcw::MasterFade rtcwMasterFade;
 struct DisabledRTCWMusicOutput {
@@ -83,10 +87,31 @@ struct DisabledRTCWMusicOutput {
 fntech3::audio::rtcw::Music &S_RTCWMusic() { return rtcwMusic; }
 fntech3::audio::rtcw::MasterFade &S_RTCWMasterFade() { return rtcwMasterFade; }
 
+extern "C" void S_JKASetSoundRegistrationQuiet( qboolean quiet ) {
+	if ( !Com_GameIsJKAMP() )
+		Com_Error( ERR_DROP, "Jedi Academy MP sound registration control requires its selected profile" );
+	jkaQuietSoundRegistration = quiet != qfalse;
+}
+
+extern "C" qboolean S_SoundRegistrationWarningsEnabled( void ) {
+	return !Com_GameIsJKAMP() || !jkaQuietSoundRegistration ? qtrue : qfalse;
+}
+
 // ET's master fade is its own: the other Wolfenstein profile's fade belongs to
 // single player and neither may see the other's level.
 static fntech3::audio::rtcw::MasterFade wolfetMasterFade;
 fntech3::audio::rtcw::MasterFade &S_WolfETMasterFade() { return wolfetMasterFade; }
+
+extern "C" int S_JKAVoiceVolume( intptr_t entity ) {
+    if ( !Com_GameIsJKAMP() || entity < 0 || entity >= FNTECH3_JKA_MAX_GENTITIES )
+        Com_Error( ERR_DROP, "Invalid Academy voice-volume entity/profile" );
+    // Retail0x4128ea reads a zero-initialized entity table. An absent audio
+    // interface owns no active voice; never manufacture zero for an enabled
+    // backend whose PCM-derived mouth-level contract is still unserved.
+    if ( si.Shutdown )
+        Com_Error( ERR_DROP, "Academy voice volume with an enabled audio backend is not served yet" );
+    return 0;
+}
 
 extern "C" int S_RTCWVoiceAmplitude( intptr_t entity ) {
 	if ( !Com_GameIsRTCW() || entity < INT_MIN || entity > INT_MAX )
@@ -376,6 +401,27 @@ extern "C" void S_StartBackgroundTrack( const char *intro, const char *loop )
 	}
 	if( si.StartBackgroundTrack ) {
 		si.StartBackgroundTrack( intro, loop );
+	}
+}
+
+extern "C" void S_JKAStartBackgroundTrack( const char *intro, const char *loop, qboolean preloadOnly ) {
+	if ( !Com_GameIsJKAMP() ) Com_Error( ERR_DROP, "Academy music requires its selected MP profile" );
+	// Retail0x46ec9f returns before reading names when sound is disabled.
+	if ( !si.Shutdown || !si.StartBackgroundTrack ) { S_ClearJKAMusicPreload(); return; }
+	fntech3::audio::jka::music::Names names;
+	const auto error=fntech3::audio::jka::music::PrepareNames(intro,loop,names);
+	if ( error==fntech3::audio::jka::music::Error::DynamicSet )
+		Com_Error( ERR_DROP, "Academy dynamic music sets are not served yet" );
+	if ( error!=fntech3::audio::jka::music::Error::None )
+		Com_Error( ERR_DROP, "Invalid Academy music filename" );
+	if ( !names.intro[0] ) { S_StopBackgroundTrack(); S_ClearJKAMusicPreload(); return; }
+	if ( preloadOnly ) {
+		// Retail0x46f020 ends preloading with StopBackgroundTrack. Warm the
+		// real Fn decoder owners without queuing them for playback.
+		S_StopBackgroundTrack();
+		S_CodecPreloadJKAMusic(names.intro.data(),names.loop.data());
+	} else {
+		S_StartBackgroundTrack(names.intro.data(),names.loop.data());
 	}
 }
 
@@ -997,6 +1043,7 @@ extern "C" void S_Init( void )
 		CL_STVEFSPClearAmbientSets();
 	}
 	si = {};
+	jkaQuietSoundRegistration = false;
 	rtcwMusic = {};
 	rtcwMasterFade = {};
 	wolfetMasterFade = {};
@@ -1035,9 +1082,9 @@ extern "C" void S_Init( void )
 		"  " S_COLOR_CYAN "legacy" S_COLOR_WHITE " - original software mixer and platform device fallback\n" );
 	s_backendActive = Cvar_Get( "s_backendActive", "none", CVAR_ROM );
 	Cvar_SetDescription( s_backendActive, "Reports the currently active sound backend." );
-	if ( Com_GameIsRTCW() ) {
+	if ( Com_GameIsRTCW() || Com_GameIsWolfET() ) {
 		cv = Cvar_Get( "s_defaultsound", "0", CVAR_ARCHIVE );
-		Cvar_SetDescription( cv, "Play RTCW's diagnostic placeholder for missing sounds; otherwise keep it silent. Requires snd_restart." );
+		Cvar_SetDescription( cv, "Play the Wolfenstein diagnostic placeholder for missing sounds; otherwise keep it silent. Requires snd_restart." );
 	}
 	if ( Com_GameIsSTVEF() ) {
 		// Registered as retail S_Init registers it (stvoyHM.exe 0x429b46).
@@ -1101,6 +1148,10 @@ extern "C" void S_Init( void )
 	s_alFrequency = Cvar_Get( "s_alFrequency", "48000", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	Cvar_CheckRange( s_alFrequency, "8000", "192000", CV_INTEGER );
 	Cvar_SetDescription( s_alFrequency, "Requests the OpenAL mix frequency in Hz. Requires snd_restart." );
+	s_alSourceResampler = Cvar_Get( "s_alSourceResampler", "balanced", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	Cvar_SetDescription( s_alSourceResampler, "Selects band-limited OpenAL source conversion when supported. Requires snd_restart.\n"
+		"Available values: fast (smallest sinc), balanced (up to 24 taps), best (largest sinc), library (OpenAL default).\n"
+		"s_info reports the selected filter or library fallback." );
 	s_alRefresh = Cvar_Get( "s_alRefresh", "100", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	Cvar_CheckRange( s_alRefresh, "20", "1000", CV_INTEGER );
 	Cvar_SetDescription( s_alRefresh, "Requests the OpenAL context refresh rate in Hz. Requires snd_restart." );
@@ -1199,6 +1250,7 @@ S_Shutdown
 */
 extern "C" void S_Shutdown( void )
 {
+	jkaQuietSoundRegistration = false;
 	Cmd_RemoveCommand( "streamingsound" );
 	Cmd_RemoveCommand( "queuemusic" );
 	Cmd_RemoveCommand( "stopstreamingsound" );

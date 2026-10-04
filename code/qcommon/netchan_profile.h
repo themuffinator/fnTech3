@@ -28,6 +28,7 @@ version.
 #define NETCHAN_WOLFET_PROTOCOL_VERSION 84
 #define NETCHAN_STVEF_HM_PROTOCOL_VERSION 24
 #define NETCHAN_IOEF_PROTOCOL_VERSION 26
+#define NETCHAN_JKA_MP_PROTOCOL_VERSION 26
 #define NETCHAN_STVEF_SP_PROTOCOL_VERSION 40
 #define NETCHAN_Q3_IHV_PROTOCOL_VERSION 33
 /* American McGee's Alice announces protocol 1. Retail alice.exe reads it
@@ -37,6 +38,8 @@ version.
 /* Medal of Honor: Allied Assault 1.00 speaks protocol 6 (OpenMoHAA: "MoHAA
  * v 1.00 uses protocol version 6"); 1.11 is 8 and the expansions 15 and up. */
 #define NETCHAN_MOHAA_PROTOCOL_VERSION 6
+/* Retail Jedi Outcast 1.02a's multiplayer protocol registration. */
+#define NETCHAN_JK2_MP_PROTOCOL_VERSION 15
 
 /* Parsers deliberately pass unknown numeric profiles to the rejecting lookup.
  * A fixed C++ underlying type makes that validation defined for every unsigned
@@ -90,7 +93,13 @@ typedef enum
 	 * carry both (code/compat/q3test_netchan.hpp,
 	 * code/server/server_q3test_net.hpp). */
 	NETCHAN_WIRE_Q3TEST_A,
-	NETCHAN_WIRE_Q3TEST_B
+	NETCHAN_WIRE_Q3TEST_B,
+	/* Raven's protocol 26 is distinct from ioEF's protocol 26. Select it
+	 * through the active game contract, never through the number alone. */
+	NETCHAN_WIRE_JKA_MP,
+	/* Retail jk2mp.exe 1.02a: Quake III netchan and reliable XOR over
+	 * Raven's own entity/player/input deltas, 128 reliable commands. */
+	NETCHAN_WIRE_JK2_MP
 } netchanWireProfile_t;
 
 typedef enum {
@@ -142,6 +151,9 @@ NETCHAN_PROFILE_INLINE netchanWireProfile_t Netchan_SelectWireProfile(
 	}
 	if ( protocol == NETCHAN_MOHAA_PROTOCOL_VERSION ) {
 		return NETCHAN_WIRE_MOHAA;
+	}
+	if ( protocol == NETCHAN_JK2_MP_PROTOCOL_VERSION ) {
+		return NETCHAN_WIRE_JK2_MP;
 	}
 	// Protocol 68 is always the Q3 framing contract. A loopback connection
 	// can skip the challenge exchange that normally sets legacyCompat.
@@ -198,6 +210,8 @@ NETCHAN_PROFILE_INLINE unsigned int Netchan_WireFeatures(
 			NETCHAN_FEATURE_RELIABLE_XOR |
 			NETCHAN_FEATURE_LONG_FRAGMENT_START;
 	case NETCHAN_WIRE_QL_RETAIL:
+	case NETCHAN_WIRE_JKA_MP:
+	case NETCHAN_WIRE_JK2_MP:
 	case NETCHAN_WIRE_RTCW_MP:
 	case NETCHAN_WIRE_WOLFET:
 	case NETCHAN_WIRE_LEGACY_Q3:
@@ -231,7 +245,10 @@ NETCHAN_PROFILE_INLINE int Netchan_ReliableCommandLimit( netchanWireProfile_t pr
 	/* Retail alice.exe rings 128 commands of 1,024 bytes: the client's
 	 * adder at 0x0042a220 errors past 128 outstanding and indexes with
 	 * `and 0x7f`, and the server's at 0x00455a10 does the same. */
-	case NETCHAN_WIRE_ALICE: return 128;
+	case NETCHAN_WIRE_ALICE:
+	case NETCHAN_WIRE_JKA_MP: return 128;
+	/* jk2mp.exe SV_AddServerCommand 0x44e2e0: cmp 0x81, and 0x7f. */
+	case NETCHAN_WIRE_JK2_MP: return 128;
 	/* OpenMoHAA rings 512; this engine's storage holds 256, which only
 	 * changes when a client with that many unacknowledged commands is
 	 * dropped, not which command a sequence number keys. */
@@ -258,13 +275,16 @@ NETCHAN_PROFILE_INLINE int Netchan_MessageLimit( netchanWireProfile_t profile ) 
 	case NETCHAN_WIRE_STVEF_HM:
 	case NETCHAN_WIRE_IOEF:
 	case NETCHAN_WIRE_STVEF_SP: return 16384;
+	/* jk2mp.exe Netchan_Transmit 0x43296f bounds a message at 0x4000. */
+	case NETCHAN_WIRE_JK2_MP: return 16384;
 	case NETCHAN_WIRE_RTCW_SP:
 	case NETCHAN_WIRE_RTCW_MP:
 	case NETCHAN_WIRE_WOLFET: return 32768;
 	/* Three times Quake III's. Every retail alice.exe call site that
 	 * starts a game message gives MSG_Init 0xc000 bytes, in a frame sized
 	 * 0xc030 -- the buffer plus its locals, with no slack. */
-	case NETCHAN_WIRE_ALICE: return 49152;
+	case NETCHAN_WIRE_ALICE:
+	case NETCHAN_WIRE_JKA_MP: return 49152;
 	/* OpenMoHAA's MAX_MSGLEN, as Alice's. */
 	case NETCHAN_WIRE_MOHAA: return 49152;
 	case NETCHAN_WIRE_Q3_IHV:
@@ -278,7 +298,10 @@ NETCHAN_PROFILE_INLINE int Netchan_MessageLimit( netchanWireProfile_t profile ) 
 /* The byte that ends a server message: Quake III's svc_EOF, except where a
  * profile numbers opcodes of its own before it. */
 NETCHAN_PROFILE_INLINE int Netchan_ServerEOFOpcode( netchanWireProfile_t profile ) {
-	return profile == NETCHAN_WIRE_MOHAA ? 11 : 8;
+	/* jk2mp.exe SV_Netchan_Transmit 0x44f3c6 writes opcode nine. */
+	return profile == NETCHAN_WIRE_MOHAA ? 11 :
+		profile == NETCHAN_WIRE_JKA_MP ? 10 :
+		profile == NETCHAN_WIRE_JK2_MP ? 9 : 8;
 }
 
 /* Medal of Honor's out-of-band direction byte: 1 from a server, 2 from a

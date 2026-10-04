@@ -756,8 +756,9 @@ void TestJKARecords()
 	Expect( ServerGameDataView::EntityPrefixBytesForProfile( COM_GAME_JKA_MP ) == 864 &&
 		ServerGameDataView::PlayerStateBytesForProfile( COM_GAME_JKA_MP ) == 1552,
 		"Jedi Academy exposes its exact record prefixes" );
-	Expect( ServerGameDataView::EntityPrefixBytesForProfile( COM_GAME_JKA_SP ) == 0,
-		"Jedi Academy single player has no game-data layout yet" );
+	Expect( ServerGameDataView::EntityPrefixBytesForProfile( COM_GAME_JKA_SP ) == 376
+		&& ServerGameDataView::PlayerStateBytesForProfile(COM_GAME_JKA_SP) == 0,
+		"Jedi Academy single player exposes only its frozen entity prefix" );
 
 	Storage storage( sizeof( fntech3_jka_sharedEntity_t ) + 16,
 		sizeof( fntech3_jka_playerState_t ) + 24 );

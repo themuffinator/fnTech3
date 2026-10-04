@@ -2222,7 +2222,8 @@ static int FS_ModuleReferenceFlag( const char *filename ) {
 	/* Jedi Academy proves admission with the same native pair, and its own
 	 * rule marks both those names and Quake's QVM names, so it falls through
 	 * to the QVM comparison below instead of returning here. */
-	if ( proof == COM_PURE_PROOF_RTCW_NATIVE || proof == COM_PURE_PROOF_JKA_NATIVE ) {
+	if ( proof == COM_PURE_PROOF_RTCW_NATIVE || proof == COM_PURE_PROOF_WOLFET_NATIVE ||
+		proof == COM_PURE_PROOF_JKA_NATIVE ) {
 		unsigned slot;
 		char name[MAX_QPATH];
 		for ( slot = 0; slot < 2; ++slot ) {
@@ -2230,7 +2231,7 @@ static int FS_ModuleReferenceFlag( const char *filename ) {
 				DLL_EXT, name, sizeof( name ) ) && !FS_FilenameCompare( name, filename ) )
 				return slot ? FS_UI_REF : FS_CGAME_REF;
 		}
-		if ( proof == COM_PURE_PROOF_RTCW_NATIVE ) return 0;
+		if ( proof != COM_PURE_PROOF_JKA_NATIVE ) return 0;
 	}
 	if ( !strcmp( filename, "vm/cgame.qvm" ) ) return FS_CGAME_REF;
 	if ( !strcmp( filename, "vm/ui.qvm" ) ) return FS_UI_REF;
@@ -3628,7 +3629,7 @@ int FS_ReadNativeModuleFile( const char *filename, void **buffer, qboolean insta
 	return (int)length;
 }
 
-/* Bind RTCW MP's proof slots to the bytes actually pinned for execution.
+/* Bind RTCW MP, ET and Academy proof slots to the bytes pinned for execution.
  * Read only the selected allowed pak, never a loose DLL or a lower-priority
  * replacement. Successful reads restore references cleared by a restart. */
 qboolean FS_VerifyNativeModulePak( const char *filename, const void *bytes, int length ) {
@@ -3636,7 +3637,9 @@ qboolean FS_VerifyNativeModulePak( const char *filename, const void *bytes, int 
 	long fullHash;
 	if ( !filename || !bytes || length <= 0 ||
 		(size_t)length > UINTPTR_MAX - (uintptr_t)bytes ||
-		Com_GameProfile()->pureProof != COM_PURE_PROOF_RTCW_NATIVE ||
+		( Com_GameProfile()->pureProof != COM_PURE_PROOF_RTCW_NATIVE &&
+			Com_GameProfile()->pureProof != COM_PURE_PROOF_WOLFET_NATIVE &&
+			Com_GameProfile()->pureProof != COM_PURE_PROOF_JKA_NATIVE ) ||
 		!FS_ModuleReferenceFlag( filename ) ) return qfalse;
 	fullHash = FS_HashFileName( filename, 0U );
 	for ( search = fs_searchpaths; search; search = search->next ) {
@@ -5341,6 +5344,9 @@ char **FS_ListFiles( const char *path, const char *extension, int *numfiles )
 	int count;
 	int i;
 
+	if ( !numfiles ) {
+		return NULL;
+	}
 	files = FS_ListFilteredFiles( path, extension, NULL, numfiles, FS_MATCH_ANY );
 	count = *numfiles;
 
@@ -5403,6 +5409,10 @@ int	FS_GetFileList( const char *path, const char *extension, char *listbuf, int 
 	int		nFiles, i, nTotal, nLen;
 	char **pFiles = NULL;
 
+	// A zero-length module buffer owns no byte, including the terminator.
+	if ( !listbuf || bufsize <= 0 ) {
+		return 0;
+	}
 	*listbuf = '\0';
 	nFiles = 0;
 	nTotal = 0;
@@ -5651,6 +5661,9 @@ static int FS_GetModList( char *listbuf, int bufsize ) {
 	// paths to search for mods
 	cvar_t *const *paths[] = { &fs_basepath, &fs_homepath, &fs_steampath };
 
+	if ( !listbuf || bufsize <= 0 ) {
+		return 0;
+	}
 	*listbuf = '\0';
 	nMods = nTotal = 0;
 
@@ -7817,6 +7830,20 @@ void FS_Restart( int checksumFeed ) {
 
 	// try to start up normally
 	FS_Startup();
+
+	// A mod owns its delta widths. Reload both tables on every search-path
+	// transition, including removal of an override when returning to base.
+	if ( Com_GameIsJKAMP() ) {
+		void *entityFields = NULL, *playerFields = NULL;
+		const int entityBytes = FS_ReadFile( "ext_data/MP/netf_overrides.txt", &entityFields );
+		const int playerBytes = FS_ReadFile( "ext_data/MP/psf_overrides.txt", &playerFields );
+		const qboolean valid = MSG_SetJKAFieldOverrides(
+			(const char *)entityFields, entityBytes > 0 ? (size_t)entityBytes : 0,
+			(const char *)playerFields, playerBytes > 0 ? (size_t)playerBytes : 0 );
+		if ( entityFields ) FS_FreeFile( entityFields );
+		if ( playerFields ) FS_FreeFile( playerFields );
+		if ( !valid ) Com_Error( ERR_DROP, "Invalid Jedi Academy delta field override file" );
+	}
 
 	// if we can't find default.cfg, assume that the paths are
 	// busted and error out now, rather than getting an unreadable

@@ -29,6 +29,7 @@ extern "C" {
 #include "../../client_cpp.h"
 
 #include <array>
+#include "../shared/JKAMusicPreload.h"
 
 using fnql::CloseFile;
 using fnql::AllocateZoneMemory;
@@ -116,12 +117,26 @@ void *S_CodecGetSound( const char *filename, snd_info_t *info, bool quiet = fals
 		}
 	}
 
-	if ( !quiet ) {
+	if ( !quiet && ( !info || S_SoundRegistrationWarningsEnabled() ) ) {
 		Com_DPrintf( S_COLOR_YELLOW "WARNING: Failed to %s sound %s!\n", info ? "load" : "open", filename );
 	}
 
 	return nullptr;
 }
+
+fntech3::audio::jka::music::Cache<snd_stream_t> jkaMusicPreload;
+bool jkaMusicOpening=false;
+struct JKAMusicIO {
+	snd_stream_t *Open(const char *name) {
+		jkaMusicOpening=true;
+		try {
+			auto *stream=static_cast<snd_stream_t *>(S_CodecGetSound(name,nullptr));
+			jkaMusicOpening=false;
+			return stream;
+		} catch (...) { jkaMusicOpening=false; throw; }
+	}
+    void Close(snd_stream_t *stream) { S_CodecCloseStream(stream); }
+};
 
 /*
 =================
@@ -155,7 +170,27 @@ bool S_STVEFGermanVoice( const char *filename, std::array<char, MAX_QPATH> &germ
 S_CodecInit
 =================
 */
+extern "C" void S_ClearJKAMusicPreload( void ) {
+	jkaMusicOpening=false;
+	JKAMusicIO io;jkaMusicPreload.Clear(io);
+}
+
+extern "C" void S_CodecPreloadJKAMusic( const char *intro, const char *loop ) {
+	if ( !Com_GameIsJKAMP() ) Com_Error(ERR_DROP,"Academy music preload requires its MP profile");
+	fntech3::audio::jka::music::Names names;
+	if ( fntech3::audio::jka::music::PrepareNames(intro,loop,names)!=fntech3::audio::jka::music::Error::None )
+		Com_Error(ERR_DROP,"Invalid Academy explicit music preload");
+	JKAMusicIO io;
+	try { jkaMusicPreload.Prepare(io,names); }
+	catch (...) {
+		S_ClearJKAMusicPreload();
+		Com_Error(ERR_DROP,"Academy decoder exception during music preload");
+	}
+	Com_DPrintf("Academy music preloaded: %d decoder(s)\n",jkaMusicPreload.Count());
+}
+
 extern "C" void S_CodecInit( void ) {
+	S_ClearJKAMusicPreload();
 	codecs = nullptr;
 
 #ifdef USE_OGG_VORBIS
@@ -165,10 +200,12 @@ extern "C" void S_CodecInit( void ) {
 #ifdef USE_CODEC_MP3
 	// Elite Force stores most sounds and all music as MP3, and American
 	// McGee's Alice all of its music; Medal of Honor its music, stereo
-	// ambience and briefings. Retail Quake and Wolfenstein engines never
+	// ambience and briefings. Academy also stores ambient waves, speech
+	// and music as MP3. Retail Quake and Wolfenstein engines never
 	// decode MP3, so their extension fallback must not start finding .mp3
 	// files; the codec joins only those titles.
-	if ( Com_GameIsSTVEF() || Com_GameIsRitual() || Com_GameIsMOHAA() ) {
+	if ( Com_GameIsSTVEF() || Com_GameIsRitual() || Com_GameIsMOHAA() ||
+		Com_GameIsJKASP() || Com_GameIsJKAMP() ) {
 		S_CodecRegister( &mp3_codec );
 	}
 #endif
@@ -183,6 +220,7 @@ S_CodecShutdown
 =================
 */
 extern "C" void S_CodecShutdown( void ) {
+	S_ClearJKAMusicPreload();
 	codecs = nullptr;
 }
 
@@ -209,6 +247,9 @@ S_CodecOpenStream
 =================
 */
 extern "C" snd_stream_t *S_CodecOpenStream( const char *filename ) {
+	if ( Com_GameIsJKAMP() ) {
+		if ( auto *stream=jkaMusicPreload.Take(filename) ) return stream;
+	}
 	return static_cast<snd_stream_t *>( S_CodecGetSound( filename, nullptr ) );
 }
 
@@ -241,6 +282,10 @@ S_CodecUtilOpen
 extern "C" snd_stream_t *S_CodecUtilOpen( const char *filename, snd_codec_t *codec ) {
 	ScopedFileHandle file;
 	const int length = OpenFileRead( filename, file, qtrue );
+	if ( jkaMusicOpening && length>64*1024*1024 ) {
+		Com_DPrintf("Academy music preload exceeds the 64 MiB file bound: %s\n",filename);
+		return nullptr;
+	}
 	if ( !file ) {
 		return nullptr;
 	}

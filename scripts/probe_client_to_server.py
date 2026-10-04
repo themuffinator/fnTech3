@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Bounded client-to-server admission: an fnTech3 client joins a dedicated server.
 
-The server is either retail RTCW WolfMP.exe (--retail-server) or an fnTech3
-dedicated executable (--server), for the rtcw-mp or q3 profile. Windows only:
+The server is retail RTCW WolfMP.exe or ET etded.exe (--retail-server), or an
+fnTech3 dedicated executable (--server), for rtcw-mp, wolfet or q3. Windows only:
 both processes run windowed on unswitched private desktops with isolated homes,
 loopback only, with sound and mouse/joystick input disabled. The client acts
 through console commands in its activeAction; no mouse or keyboard input is
@@ -13,8 +13,8 @@ The connection uses 127.0.0.1 over UDP, so the full getchallenge /
 challengeResponse / connect / connectResponse exchange runs; a loopback
 listen-server session would skip it. --pure runs the server with sv_pure 1, so
 the client enters the world only after its checksum proof is accepted.
---team-check (rtcw-mp) joins Axis then Allies with the game's team command, and
---only-visible (rtcw-mp) sets sv_onlyVisibleClients 1 on the server. This is
+--team-check (rtcw-mp or wolfet) joins Axis then Allies with the game's team
+command, and --only-visible sets sv_onlyVisibleClients 1 on the server. This is
 not a sustained-gameplay or rendering-parity claim.
 """
 from pathlib import Path
@@ -37,7 +37,11 @@ ENGINE_ERRORS = re.compile(r'^(?:ERROR:|.*Illegible server message|.*read past e
                            r'.*Server fatal crashed|.*recursive error after)', re.M)
 PROFILES = {
     'rtcw-mp': dict(game='main', map='mp_beach', module='Main/qagame_mp_x86.dll',
+                    retailExecutable='WolfMP.exe', retailLog='rtcwconsole.log',
                     settings=dict(g_gametype='5', bot_enable='0', sv_punkbuster='0')),
+    'wolfet': dict(game='etmain', map='railgun', module='etmain/qagame_mp_x86.dll',
+                   retailExecutable='etded.exe', retailLog='etconsole.log',
+                   settings=dict(g_gametype='2', bot_enable='0', sv_punkbuster='0')),
     'q3': dict(game='baseq3', map='q3dm17', module='baseq3/pak0.pk3',
                settings=dict(g_gametype='0', bot_enable='0')),
 }
@@ -62,13 +66,13 @@ def probe(args, output):
     server_home, client_home = output / 'server-home', output / 'client-home'
     server_home.mkdir(); client_home.mkdir()
     retail = args.retail_server
-    server = args.installation / 'WolfMP.exe' if retail else args.server
+    server = args.installation / profile['retailExecutable'] if retail else args.server
     before = inventory(args.installation)
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as reservation:
         reservation.bind(('127.0.0.1', 0))
         port = reservation.getsockname()[1]
     values = dict(fs_basepath=str(args.installation), fs_homepath=str(server_home), dedicated='1',
-                  developer='1', logfile='2', net_ip='127.0.0.1', net_port=str(port),
+                  developer='1', logfile='2', net_ip='127.0.0.1', net_port=str(port), r_fullscreen='0',
                   sv_pure='1' if args.pure else '0',
                   **{f'sv_master{i}': '' for i in range(1, 6)}, **profile['settings'])
     if not retail:
@@ -85,7 +89,7 @@ def probe(args, output):
     if args.team_check:
         action = ('wait 200; team r; wait 240; CloseLimboMenu; -scores; ' + shots.format('axis') +
                   'team b; wait 240; CloseLimboMenu; -scores; ' + shots.format('allies') + 'wait 30; quit')
-    elif args.profile == 'rtcw-mp':
+    elif args.profile in ('rtcw-mp', 'wolfet'):
         action = 'wait 200; CloseLimboMenu; -scores; ' + shots.format('world') + 'wait 30; quit'
     else:
         action = 'wait 200; ' + shots.format('world') + 'wait 30; quit'
@@ -112,7 +116,7 @@ def probe(args, output):
                   retailServer=retail, serverCommand=server_command, clientCommand=client_command,
                   clientAction=action, clientSha256=sha(args.client), serverSha256=sha(server),
                   moduleSha256=sha(args.installation / profile['module']), passed=False)
-    server_log = server_home / profile['game'] / ('rtcwconsole.log' if retail else 'qconsole.log')
+    server_log = server_home / profile['game'] / (profile['retailLog'] if retail else 'qconsole.log')
     host = peer = None
     begin = time.monotonic()
     try:
@@ -120,8 +124,9 @@ def probe(args, output):
         # Retail applies its settings and restarts once before its items settle.
         while time.monotonic() - begin < 60 and host.poll() is None:
             text = read(server_log)
-            if re.search(r'^\d+ items registered', text, re.M) and \
-                    (not retail or 'sv_serverRestarting 0' in text):
+            ready = ('sv_serverRestarting 0' in text if args.profile == 'wolfet' and retail
+                     else bool(re.search(r'^\d+ items registered', text, re.M)))
+            if ready and (not retail or 'sv_serverRestarting 0' in text):
                 break
             time.sleep(0.2)
         time.sleep(2)
@@ -184,21 +189,21 @@ def main():
     parser.add_argument('--client', type=Path, required=True, help='fnTech3 client executable')
     servers = parser.add_mutually_exclusive_group(required=True)
     servers.add_argument('--server', type=Path, help='fnTech3 dedicated executable')
-    servers.add_argument('--retail-server', action='store_true', help='run retail RTCW WolfMP.exe as the server')
+    servers.add_argument('--retail-server', action='store_true', help='run retail RTCW WolfMP.exe or ET etded.exe as the server')
     parser.add_argument('--profile', choices=tuple(PROFILES), default='rtcw-mp')
     parser.add_argument('--installation', type=Path, required=True,
                         help='legitimate installation root for the profile')
     parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--map', help='server map; defaults to mp_beach or q3dm17')
+    parser.add_argument('--map', help='server map; defaults to mp_beach, railgun or q3dm17 by profile')
     parser.add_argument('--pure', action='store_true', help='run the server with sv_pure 1')
     parser.add_argument('--gametype', type=int, help='server g_gametype; defaults to the profile probe mode')
-    parser.add_argument('--team-check', action='store_true', help='rtcw-mp: join Axis then Allies')
-    parser.add_argument('--only-visible', action='store_true', help='rtcw-mp: server sets sv_onlyVisibleClients 1')
+    parser.add_argument('--team-check', action='store_true', help='rtcw-mp or wolfet: join Axis then Allies')
+    parser.add_argument('--only-visible', action='store_true', help='rtcw-mp or wolfet: server sets sv_onlyVisibleClients 1')
     args = parser.parse_args()
     if os.name != 'nt':
         parser.error('This probe requires the Windows private-desktop harness')
-    if args.profile != 'rtcw-mp' and (args.retail_server or args.team_check or args.only_visible):
-        parser.error('--retail-server, --team-check and --only-visible are rtcw-mp options')
+    if args.profile not in ('rtcw-mp', 'wolfet') and (args.retail_server or args.team_check or args.only_visible):
+        parser.error('--retail-server, --team-check and --only-visible require rtcw-mp or wolfet')
     args.client = args.client.resolve(strict=True)
     args.installation = args.installation.resolve(strict=True)
     if args.server:

@@ -254,7 +254,6 @@ void SV_JKAIcarusClear()
 {
 	jkaIcarus.Shutdown();
 	jkaIcarusNames.clear();
-	SV_RavenAssetsClear();
 }
 
 } // namespace

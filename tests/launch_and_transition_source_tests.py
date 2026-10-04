@@ -36,14 +36,14 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
             "q3": "Q3", "ql": "QL", "rtcw-sp": "RTCW SP", "rtcw-mp": "RTCW MP", "wolfet": "ET",
             "stvef-sp": "EF SP", "stvef-mp": "EF MP", "q3-ihv": "Q3 IHV", "jka-sp": "JKA SP",
             "jka-mp": "JKA MP", "jk2-sp": "JK2 SP", "jk2-mp": "JK2 MP", "alice": "Alice",
+            "fakk2": "FAKK2", "mohaa": "MOHAA", "q3test": "Q3Test",
         }
-        single_player = ("rtcw-sp", "stvef-sp", "jka-sp", "jk2-sp", "alice")
-        # IHV's client is blocked, Jedi Academy's client refuses its modules by
-        # name and nothing is wired for Jedi Outcast's, so each launches only
-        # its dedicated server.
-        client_profiles = ("q3", "ql", "rtcw-sp", "rtcw-mp", "wolfet", "stvef-sp", "stvef-mp", "alice")
+        single_player = ("rtcw-sp", "stvef-sp", "jka-sp", "jk2-sp", "alice", "fakk2", "mohaa")
+        # IHV's client is blocked. Jedi client entries are explicit module
+        # boundary probes, matching their still-open development contracts.
+        client_profiles = tuple(profile for profile in titles if profile != "q3-ihv")
         # Profiles added after ET bind loopback as ET's launches do.
-        loopback_profiles = ("wolfet", "stvef-sp", "stvef-mp", "jka-sp", "jka-mp", "jk2-sp", "jk2-mp", "alice")
+        loopback_profiles = ("wolfet", "stvef-sp", "stvef-mp", "jka-sp", "jka-mp", "jk2-sp", "jk2-mp", "alice", "fakk2", "mohaa", "q3test")
 
         def input_values(value: str) -> list[str]:
             entry = inputs[value[len("${input:") : -1]]
@@ -81,6 +81,11 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
             client = configuration["program"].endswith("\\fntech3.exe")
             if client:
                 self.assertIn(profile, client_profiles, name)
+                self.assertEqual(args[args.index("dedicated") + 1], "0", name)
+                self.assertEqual(args[args.index("in_mouse") + 1], "${input:mouseInput}", name)
+                self.assertEqual(inputs["mouseInput"]["default"], "2")
+                look = "freelook" if profile in ("alice", "fakk2") else "cl_freelook"
+                self.assertEqual(args[args.index(look) + 1], "${input:freeLook}", name)
             else:
                 self.assertTrue(configuration["program"].endswith("\\fntech3.ded.exe"), name)
                 self.assertEqual(args[args.index("dedicated") + 1], "1", name)
@@ -93,7 +98,17 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
             if picker:
                 input_values(map_name)
                 pickers.add((profile, client))
-                self.assertEqual(name, f"{titles[profile]} pick map" + ("" if client else " ded"))
+                title = "MOHAA MP" if name == "MOHAA MP pick map" else titles[profile]
+                self.assertEqual(name, f"{title} pick map" + ("" if client else " ded"))
+                if profile != "alice":
+                    self.assertEqual(args[args.index("logfile") + 1], "${input:launchLog}")
+                    self.assertEqual(args[args.index("developer") + 1], "${input:launchDeveloper}")
+                    if client:
+                        self.assertEqual(args[args.index("r_mode") + 1], "${input:windowMode}")
+                        self.assertEqual(args[args.index("s_backend") + 1], "${input:audioBackend}")
+                    for setting in ("g_gameskill", "g_gametype", "sv_pure", "logfile", "developer", "s_backend", "r_mode"):
+                        if setting in args:
+                            self.assertLess(args.index(setting), args.index(command), name)
             if profile == "ql" and map_name:
                 factory = args[args.index(command) + 2]
                 if picker:
@@ -115,6 +130,8 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
                 # IHV's server drops every packet, so its probes run offline.
                 self.assertEqual(args[args.index("net_enabled") + 1], "0", name)
             mode = "SP" if profile in single_player else "ET" if profile == "wolfet" else "MP"
+            if profile == "mohaa" and "g_gametype" in args and args[args.index("g_gametype") + 1] != "0":
+                mode = "MP"
             if not client:
                 self.assertNotIn("cl_renderer", args, name)
                 if map_name and not picker:
@@ -140,11 +157,60 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
             for profile in client_profiles
             for renderer in renderers
             for map_launch in (False, True)
-            if profile != "wolfet" or renderer == "glx" or not map_launch
         })
         self.assertEqual(pickers, {(profile, True) for profile in client_profiles}
                          | {(profile, False) for profile in titles})
         self.assertEqual(named_dedicated, set(titles))
+
+        tasks = json.loads(read_source(".vscode/tasks.json"))
+        run_tasks = [task for task in tasks["tasks"] if task["label"].startswith("run:")]
+        self.assertEqual(len(run_tasks), 32)
+        task_inputs = {item["id"] for item in tasks["inputs"]}
+        task_modes = set()
+        picker_configs = {item["name"]: item for item in launch["configurations"] if " pick map" in item["name"]}
+        for task in run_tasks:
+            args = task["args"]
+            profile = args[args.index("com_gameProfile") + 1]
+            client = task["command"].endswith("\\fntech3.exe")
+            task_modes.add((profile, client))
+            key = f"{titles[profile]} pick map" + ("" if client else " ded")
+            if task["label"] == "run: mohaa listen":
+                key = "MOHAA MP pick map"
+            self.assertEqual(args, picker_configs[key]["args"])
+            self.assertNotIn("dependsOn", task)
+            for token in args:
+                for identifier in re.findall(r"\$\{input:([^}]+)\}", token):
+                    self.assertIn(identifier, task_inputs, task["label"])
+            if profile.startswith(("jka", "jk2")):
+                self.assertIn("not playable support", task["detail"])
+        self.assertEqual(task_modes, {(profile, True) for profile in client_profiles}
+                         | {(profile, False) for profile in titles})
+
+    def test_mohaa_launches_separate_campaign_and_multiplayer_modes(self) -> None:
+        launch = json.loads(read_source(".vscode/launch.json"))
+        inputs = {entry["id"]: entry for entry in launch["inputs"]}
+        configs = {entry["name"]: entry for entry in launch["configurations"]}
+        campaign = set(inputs["mohaaMap"]["options"])
+        multiplayer = set(inputs["mohaaMpMap"]["options"])
+        self.assertFalse(campaign & multiplayer)
+        self.assertEqual(len(campaign | multiplayer), 54)
+        self.assertIn("m1l1", campaign)
+        self.assertIn("dm/mohdm1", multiplayer)
+        self.assertTrue(all(name.startswith(("dm/", "obj/")) for name in multiplayer))
+        self.assertEqual({item["value"] for item in inputs["mohaaMpGameType"]["options"]}, {"1", "2", "3", "4"})
+        for renderer in ("glx", "vk", "rtx"):
+            sp = configs[f"SP m1l1 Rangers Lead the Way {renderer}"]["args"]
+            mp = configs[f"MP dm/mohdm1 South France {renderer}"]["args"]
+            self.assertEqual(sp[sp.index("g_gametype")+1], "0")
+            self.assertEqual(mp[mp.index("g_gametype")+1], "1")
+            self.assertEqual(sp[sp.index("sv_maxclients")+1], "1")
+            self.assertEqual(mp[mp.index("sv_maxclients")+1], "16")
+            self.assertNotEqual(sp[sp.index("fs_homepath")+1], mp[mp.index("fs_homepath")+1])
+        for name in ("MOHAA MP pick map", "MOHAA pick map ded"):
+            args = configs[name]["args"]
+            self.assertEqual(args[args.index("+map")+1], "${input:mohaaMpMap}")
+            self.assertEqual(args[args.index("g_gametype")+1], "${input:mohaaMpGameType}")
+        self.assertEqual(configs["MOHAA pick map"]["args"][-1], "${input:mohaaMap}")
 
     def test_vscode_build_tasks_stage_the_steam_provider(self) -> None:
         tasks = json.loads(read_source(".vscode/tasks.json"))["tasks"]
@@ -158,6 +224,10 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
             self.assertNotIn("-RunTests", task["args"])
 
         self.assertNotIn("meson: test", {task.get("label") for task in tasks})
+        verify = next(task for task in tasks if task.get("label") == "meson: verify all games")
+        self.assertIn("-RunTests", verify["args"])
+        self.assertIn("-WolfETDevelopment", verify["args"])
+        self.assertIn("-STVEFDevelopment", verify["args"])
 
     def test_game_transitions_release_the_browser_without_shutting_down_the_host(self) -> None:
         main = read_source("code/client/cl_main.cpp")

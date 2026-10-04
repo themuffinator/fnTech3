@@ -108,6 +108,10 @@ struct source_s
 	indent_t *indentstack;					//stack with indents
 	int skip;								// > 0 if skipping conditional code
 	int wolfetDefineParms;					// read macro arguments by Enemy Territory's rules
+	int globalDefineLoader; // internal transactional global-definition load
+	int globalDefineFailed;
+	int globalDefineReadBudget;
+	int globalDefineByteBudget;
 	token_t token;							//last read token
 };
 using source_t = source_s;
@@ -129,6 +133,8 @@ void PC_UnreadLastToken(source_t *source);
 void PC_UnreadToken(source_t *source, token_t *token);
 //add a globals define that will be added to all opened sources
 int PC_AddGlobalDefine(const char *string);
+int PC_LoadGlobalDefines(const char *filename);
+int PC_LoadJKASourceHandle(const char *filename);
 //remove all globals defines
 void PC_RemoveAllGlobalDefines(void);
 #if 0
@@ -152,7 +158,7 @@ source_t *LoadSourceMemory(const char *ptr, int length, const char *name);
 //set the base folder to load files from
 void PC_SetBaseFolder(const char *path);
 //load a source file
-source_t *LoadSourceFile(const char *filename);
+source_t *LoadSourceFile(const char *filename, int maximumBytes = 0);
 //free the given source
 void FreeSource(source_t *source);
 //print a source error

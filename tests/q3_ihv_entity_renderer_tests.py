@@ -124,6 +124,11 @@ static const struct {const char *ext;qhandle_t (*ModelLoader)(const char*,model_
 static const int numModelLoaders=1;
 void Q_strncpyz(char *out,const char *in,int bytes){assert(bytes>0);strncpy(out,in,bytes-1);out[bytes-1]=0;}
 int Q_stricmp(const char*a,const char*b){while(*a&&*b&&tolower(*a)==tolower(*b)){++a;++b;}return tolower(*a)-tolower(*b);}
+int Q_stricmpn(const char*a,const char*b,int n){
+ while(n-- > 0){const int first=tolower(static_cast<unsigned char>(*a++));
+  const int second=tolower(static_cast<unsigned char>(*b++));
+  if(first!=second)return first-second;if(!first)return 0;}return 0;
+}
 void Q_strcat(char *out,int bytes,const char *in){assert(strlen(out)+strlen(in)<(size_t)bytes);strcat(out,in);}
 const char *COM_GetExtension(const char *name){const auto *dot=strrchr(name,'.');return dot?dot+1:"";}
 void COM_StripExtension(const char *in,char *out,int bytes){Q_strncpyz(out,in,bytes);if(auto *dot=strrchr(out,'.'))*dot=0;}
@@ -147,6 +152,8 @@ static surfaceType_t entitySurface=SF_ENTITY;
 static int meshSubmissions,fogQueries;
 static int R_SpriteFogNum(const trRefEntity_t*){++fogQueries;return 0;}
 static model_t *R_GetModelByHandle(int h){return tr.models[h];}
+// This fixture owns native IHV models; none of its handles owns runtime MDR.
+static qboolean R_IsRuntimeMDR(qhandle_t){return qfalse;}
 static void R_AddMD3Surfaces(trRefEntity_t*,void*){++meshSubmissions;}
 static void R_AddWolfETSurfaces(trRefEntity_t*){assert(0);}
 static void R_MDRAddAnimSurfaces(trRefEntity_t*,void*){assert(0);}

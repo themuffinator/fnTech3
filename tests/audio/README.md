@@ -37,6 +37,11 @@ The harness currently checks:
 - Stereo, quad, 5.1, 6.1, and 7.1 direct-channel routing when the runtime supports those layouts.
 - Optional UHJ and B-Format buffer acceptance when the runtime exposes those extensions.
 - Idle loopback silence.
+- The production `StreamPlayer` retaining PCM through deferred starts and
+  underruns, producing nonzero loopback output, and recycling buffers over
+  200 restart cycles.
+- Runtime-selected source sinc conversion, with wanted-tone preservation and
+  at least 60 dB image/alias rejection when the optional API is available.
 - EFX low-pass, high-pass, and band-pass filter behavior when `ALC_EXT_EFX` is present.
 
 Build and run it with Meson:
@@ -49,3 +54,28 @@ python tests/audio/audio_zone_material_map_tests.py meson/build/fnql-audiozonesc
 ```
 
 The loopback test exits with code `77` when OpenAL or `ALC_SOFT_loopback` is unavailable. CTest treats that as a skip. The zone runtime, tone policy, and recovery policy tests do not require OpenAL.
+
+The recursive Python suite also executes `audio_stream_lifecycle_tests.py`,
+`stream_resampler_tests.py`, `mohaa_audio_stream_tests.py` and `alsa_transfer_tests.py`. They compile production
+code with fault fixtures for queue exhaustion, decoder endings, byte order,
+numeric saturation, partial writes and bounded conversion allocations. The
+resampler checks chunk-independent output, exact counts and endpoints, and gain
+changes against the same envelope in a continuous buffer. It also requires at
+least 60 dB of rejection just above the output Nyquist limit during downsampling
+and for upsampling images, with less than 0.1% amplitude error at 90% of the lower
+Nyquist limit and at 20 kHz for 44.1 → 48 kHz. Ritual fixtures also check non-native
+score rates, moved/parked converter state, gain ramps and recovery from NaN gain.
+MOHAA fixtures bound empty/skipped loops, preserve playable loops and EOF tails,
+drain failed/incompatible reopen tails, and check playback positions and PCM safety.
+`audio_source_resampler_tests.py` checks runtime-defined index ordering, quality
+tiers, malformed inventories, optional API failures, cleanup, and source reuse.
+
+`resampler_allocation_benchmark.cpp` and `resampler_downsample_benchmark.cpp`
+are standalone performance witnesses, outside the timing-sensitive test gate.
+Compile them with C++17, optimization enabled and
+`-I code/client/audio/shared`; write executables under a project-local temporary
+directory. The allocation witness can use a saved baseline header through a
+different include directory. It counts 1,000 transactional upsampling chunks
+including EOF flush. The rate-conversion witness counts 100 chunks including flush
+and checks the exact final sample count; elapsed time is reported without a
+machine-specific pass/fail threshold.

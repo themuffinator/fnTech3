@@ -102,7 +102,8 @@ void CL_Netchan_Encode( msg_t *msg ) {
 	key = static_cast<byte>( clc.challenge ^ serverId ^ messageAcknowledge );
 	fnql::ApplyNetchanXor( msg->data, static_cast<std::size_t>( msg->cursize ),
 		CL_ENCODE_START, key,
-		fnql::NetchanCommandView( command, MAX_STRING_CHARS ) );
+		fnql::NetchanCommandView( command, MAX_STRING_CHARS ),
+		clc.netchan.wireProfile != NETCHAN_WIRE_JKA_MP );
 }
 
 
@@ -131,7 +132,8 @@ void CL_Netchan_Decode( msg_t *msg ) {
 	key = CL_NetchanSequenceKey( msg );
 	fnql::ApplyNetchanXor( msg->data, static_cast<std::size_t>( msg->cursize ),
 		static_cast<std::size_t>( msg->readcount + CL_DECODE_START ), key,
-		fnql::NetchanCommandView( command, MAX_STRING_CHARS ) );
+		fnql::NetchanCommandView( command, MAX_STRING_CHARS ),
+		clc.netchan.wireProfile != NETCHAN_WIRE_JKA_MP );
 }
 
 

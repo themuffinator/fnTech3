@@ -67,9 +67,14 @@ struct snd_codec_t {
 	snd_codec_t *next;
 };
 
+// Decoded PCM16 is native-endian, for both whole sounds and streams. File
+// codecs own byte-order conversion; mixers and OpenAL must not swap it again.
+// PCM8 WAV output remains unsigned (converted multichannel WAV is PCM16).
 // Codec management
 void S_CodecInit( void );
 void S_CodecShutdown( void );
+void S_CodecPreloadJKAMusic( const char *intro, const char *loop );
+void S_ClearJKAMusicPreload( void );
 void *S_CodecLoad(const char *filename, snd_info_t *info);
 snd_stream_t *S_CodecOpenStream(const char *filename);
 void S_CodecCloseStream(snd_stream_t *stream);

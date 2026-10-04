@@ -41,6 +41,7 @@ server_t sv{};
 static comGameProfile_t profile{};
 const comGameProfile_t *Com_GameProfile(){return &profile;}
 int Com_GameIsWolfET(){return profile.id==COM_GAME_WOLFET;}
+int Com_GameIsJKASP(){return profile.id==COM_GAME_JKA_SP;}
 // cm_test.c's area portals ask these; no trace here reaches them.
 int Com_GameIsRitual(){return profile.titleId==COM_GAME_TITLE_ALICE||profile.titleId==COM_GAME_TITLE_FAKK2;}
 int Com_GameIsMOHAA(){return profile.titleId==COM_GAME_TITLE_MOHAA;}

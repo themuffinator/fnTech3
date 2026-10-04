@@ -38,7 +38,9 @@ enum class Family : std::uint8_t {
 	STVEFSinglePlayer,
 	IoEF,
 	Alice,
-	MOHAA
+	MOHAA,
+	JediAcademyMultiplayer,
+	JK2Multiplayer
 };
 
 /*
@@ -66,7 +68,9 @@ enum class GameMessageLayout : std::uint8_t {
 	 * player records under their own field tables, a sound block after each
 	 * snapshot's entities, and three opcodes past svc_snapshot
 	 * (code/compat/mohaa_message_codec.hpp). */
-	MOHAA
+	MOHAA,
+	JediAcademyMultiplayer,
+	JK2Multiplayer
 };
 
 enum class Capability : std::uint32_t {
@@ -343,6 +347,35 @@ inline constexpr Contract IoEF{
 		Netchan_ReliableCommandLimit( NETCHAN_WIRE_IOEF ), 32u }
 };
 
+/* Retail jk2mp.exe 1.02a: 16 KB message bound at 0x43296f,
+ * reliable ring at 0x44e2e0, and Q3-style XOR at 0x44f400. Its
+ * delta records and EOF opcode are its own, not Quake III's. */
+inline constexpr Contract JK2Multiplayer{
+	Family::JK2Multiplayer, NETCHAN_JK2_MP_PROTOCOL_VERSION,
+	NETCHAN_JK2_MP_PROTOCOL_VERSION, NETCHAN_WIRE_JK2_MP,
+	GameMessageLayout::JK2Multiplayer,
+	Bit( Capability::ClientQport ) | Bit( Capability::ReliableXor ) |
+		Bit( Capability::CompressedConnect ),
+	QuakeCommands, QuakeInfoKeys,
+	{ 1'400u, Netchan_MessageLimit( NETCHAN_WIRE_JK2_MP ), 8u, 2'048u,
+		Netchan_ReliableCommandLimit( NETCHAN_WIRE_JK2_MP ), 32u }
+};
+
+/* Raven's multiplayer contract (OpenJK pinned qcommon.h, net_chan.cpp and
+ * sv_net_chan.cpp): 48 KB messages, 128 reliable commands and Q3 reliable
+ * XOR framing, with its own usercmd and entity/player delta bodies. The
+ * number 26 also names ioEF; FindForProfile disambiguates them. */
+inline constexpr Contract JediAcademyMultiplayer{
+	Family::JediAcademyMultiplayer, NETCHAN_JKA_MP_PROTOCOL_VERSION,
+	NETCHAN_JKA_MP_PROTOCOL_VERSION, NETCHAN_WIRE_JKA_MP,
+	GameMessageLayout::JediAcademyMultiplayer,
+	Bit( Capability::ClientQport ) | Bit( Capability::ReliableXor ) |
+		Bit( Capability::CompressedConnect ),
+	QuakeCommands, QuakeInfoKeys,
+	{ 1'400u, Netchan_MessageLimit( NETCHAN_WIRE_JKA_MP ), 8u, 2'048u,
+		Netchan_ReliableCommandLimit( NETCHAN_WIRE_JKA_MP ), 32u }
+};
+
 // Single player never leaves the loopback channel.
 inline constexpr Contract STVEFSinglePlayer{
 	Family::STVEFSinglePlayer, NETCHAN_STVEF_SP_PROTOCOL_VERSION,
@@ -363,6 +396,7 @@ inline constexpr Contract STVEFSinglePlayer{
 	if ( protocol == STVEFSinglePlayer.protocol ) return &STVEFSinglePlayer;
 	if ( protocol == Alice.protocol ) return &Alice;
 	if ( protocol == MOHAA.protocol ) return &MOHAA;
+	if ( protocol == JK2Multiplayer.protocol ) return &JK2Multiplayer;
 	if ( protocol == RtcwSinglePlayer.protocol ) return &RtcwSinglePlayer;
 	if ( protocol == RtcwMultiplayer.protocol ) return &RtcwMultiplayer;
 	if ( protocol == WolfET.protocol ) return &WolfET;
@@ -384,6 +418,10 @@ inline constexpr Contract STVEFSinglePlayer{
 [[nodiscard]] constexpr const Contract *TryForWireProfile(
 	netchanWireProfile_t profile ) noexcept {
 	switch ( profile ) {
+	case NETCHAN_WIRE_JKA_MP:
+		return &JediAcademyMultiplayer;
+	case NETCHAN_WIRE_JK2_MP:
+		return &JK2Multiplayer;
 	case NETCHAN_WIRE_Q3_66:
 		return &Quake3_66;
 	case NETCHAN_WIRE_Q3_67:

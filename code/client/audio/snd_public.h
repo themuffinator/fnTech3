@@ -28,6 +28,11 @@ extern "C" {
 void S_Init( void );
 void S_Shutdown( void );
 
+// Academy's optional-sound registration window suppresses only missing-load
+// diagnostics. Voice playback, resource handles and codec fallbacks continue.
+void S_JKASetSoundRegistrationQuiet( qboolean quiet );
+qboolean S_SoundRegistrationWarningsEnabled( void );
+
 // if origin is NULL, the sound will be dynamically sourced from the entity
 void S_StartSound( vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx );
 void S_StartSoundVolume( vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx, float volume );
@@ -58,8 +63,12 @@ void S_StartRTCWLocalSound( sfxHandle_t handle, int channel );
 void S_StartRTCWEntityStream( const char *intro, const char *loop, int entity, int channel, int attenuation );
 void S_StopRTCWEntityStream( int entity );
 int S_RTCWVoiceAmplitude( intptr_t entity );
+/* Academy volume is served only while the actual audio backend is absent. */
+int S_JKAVoiceVolume( intptr_t entity );
 
 void S_StartBackgroundTrack( const char *intro, const char *loop );
+void S_JKAStartBackgroundTrack( const char *intro, const char *loop, qboolean preloadOnly );
+void S_ClearJKAMusicPreload( void );
 void S_StartRTCWBackgroundTrack( const char *intro, const char *loop, int fadeTime );
 void S_FadeRTCWStreamingSound( float volume, int time, int stream );
 void S_FadeRTCWAllSounds( float volume, int time );

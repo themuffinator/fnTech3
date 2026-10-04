@@ -225,16 +225,19 @@ void ReportCGMOverflow( ClientState &state, int clientNum, bool datum ) {
 }
 
 void WriteCGMBits( ClientState &state, int clientNum, int value, int bits ) {
+	/* CGM stores signed widths as their absolute width before replay. Keep
+	 * -32 valid here, and reject invalid module input before negating it or
+	 * changing the queue (including when the buffer is already full). */
+	if ( bits == 0 || bits < -32 || bits > 32 ) {
+		Com_Error( ERR_DROP, "PF_MSG_WriteBits: bad bits %i", bits );
+		return;
+	}
 	if ( kCgmDataSize - state.cgmSize < 4 ) {
 		ReportCGMOverflow( state, clientNum, false );
 		return;
 	}
 	if ( kCgmDatatypesSize - state.cgmTypesUsed < 1 ) {
 		ReportCGMOverflow( state, clientNum, true );
-		return;
-	}
-	if ( bits > 32 ) {
-		Com_Error( ERR_DROP, "PF_MSG_WriteBits: bad bits %i", bits );
 		return;
 	}
 	if ( bits < 0 ) {
@@ -369,12 +372,10 @@ void CGMBroadcastVisible( const float *pos, const float *posB ) {
 
 /* Replayed into the client's message after its snapshot, closed by a zero
  * bit (OpenMoHAA SV_WriteCGMToClient). */
-void WriteCGMToClient( ClientState &state, int clientNum, msg_t *msg ) {
+void WriteCGMToClient( ClientState &state, int /*clientNum*/, msg_t *msg ) {
 	if ( state.cgmSize <= 0 ) {
 		return;
 	}
-	WriteCGMBits( state, clientNum, 0, 1 );
-
 	const byte *data = state.cgmData;
 	for ( int i = 0; i < state.cgmTypesUsed; i++ ) {
 		const int bits = state.cgmTypes[i];
@@ -393,6 +394,11 @@ void WriteCGMToClient( ClientState &state, int clientNum, msg_t *msg ) {
 			data += 4;
 		}
 	}
+	/* The closing false bit is framing, not another queued game datum.
+	 * The last accepted four-byte datum can fill the queue completely, so
+	 * queueing this bit would silently lose it at that boundary. Retail
+	 * 1.00's cgame reads it at 0x30030836 before returning from export 10. */
+	MSG_WriteBits( msg, 0, 1 );
 	state.cgmSize = 0;
 	state.cgmTypesUsed = 0;
 }

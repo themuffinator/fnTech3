@@ -108,7 +108,7 @@ private:
 	void ServiceRTCWEntityStreams();
 	fntech3::audio::rtcw::SampleTime RTCWClock();
 	void ClearRTCWMusic();
-	bool FlushStream( StreamPlayer &player );
+	bool FlushStream( StreamPlayer &player, bool keepTimeline = false );
 	bool QueueStreamChunk( StreamPlayer &player, int samples, int rate, int width, int channels, const byte *data, float volume, int outputChannels, bool logFallback );
 	int StreamOutputRate() const;
 	void ServiceBackgroundTrack();
@@ -132,6 +132,7 @@ private:
 	std::unordered_map<std::string, sfxHandle_t> sampleLookup_;
 	SoundShaderLibrary weaponSoundShaders_;
 	snd_stream_t *backgroundStream_ = nullptr;
+	std::vector<byte> backgroundPendingPCM_;
 	std::string backgroundIntro_;
 	std::string backgroundLoop_;
 	int backgroundStereoFallbackChannels_ = 0;
@@ -176,7 +177,7 @@ static float ReadStreamPCM16Sample( const byte *data, size_t sampleIndex, int wi
 		return 0.0f;
 	}
 	if ( width == 2 ) {
-		return static_cast<float>( ReadLittlePCM16( data + sampleIndex * sizeof( short ) ) );
+		return static_cast<float>( ReadNativePCM16( data + sampleIndex * sizeof( short ) ) );
 	}
 	if ( channels == 1 ) {
 		return static_cast<float>( ConvertUnsignedPCM8ToPCM16( data[sampleIndex] ) );
@@ -240,28 +241,30 @@ static std::vector<short> ConvertResampledFrames( const std::vector<float> &fram
 	std::vector<short> pcm( count * static_cast<size_t>( outputChannels ) );
 	for ( size_t i = 0; i < count; ++i ) {
 		WriteConvertedStreamFrame( frames.data() + i * state.inputChannels, state.inputChannels,
-			pcm.data() + i * outputChannels, outputChannels, state.gain );
+			pcm.data() + i * outputChannels, outputChannels, 1.0f );
 	}
 	return pcm;
 }
 
-bool AudioSystem::FlushStream( StreamPlayer &player ) {
+bool AudioSystem::FlushStream( StreamPlayer &player, bool keepTimeline ) {
 	if ( player.conversion.rate == 0 ) return true;
+	if ( keepTimeline && !player.conversion.resampler.HasPendingOutput() ) return true;
 	auto next = player.conversion;
 	std::vector<float> frames;
-	if ( !next.resampler.Finish( frames ) ) return false;
+	if ( !( keepTimeline ? next.resampler.Drain( frames ) : next.resampler.Finish( frames ) ) ) return false;
 	if ( !frames.empty() ) {
 		const auto pcm = ConvertResampledFrames( frames, next, next.outputChannels );
 		if ( pcm.empty() || !player.QueuePCM16( pcm.data(), static_cast<int>( pcm.size() / next.outputChannels ),
 			next.outputChannels, next.outputRate ) ) return false;
 	}
-	player.conversion = {};
+	player.conversion = keepTimeline ? std::move( next ) : StreamConversionState{};
 	return true;
 }
 
 bool AudioSystem::QueueStreamChunk( StreamPlayer &player, int samples, int rate, int width, int channels, const byte *data, float volume, int outputChannels, bool logFallback ) {
 	if ( samples <= 0 || rate <= 0 || data == nullptr || ( width != 1 && width != 2 ) ||
-		!PCMChannelCountCanBeRepresented( channels ) || !PCMChannelCountCanBeRepresented( outputChannels ) ) return false;
+		!PCMChannelCountCanBeRepresented( channels ) || !PCMChannelCountCanBeRepresented( outputChannels ) ||
+		!fntech3::audio::CubicStreamResampler::ChunkSizeFits( samples, channels ) ) return false;
 	size_t sourceBytes = 0;
 	if ( !PCMFrameByteCount( samples, channels, width, sourceBytes ) ||
 		static_cast<size_t>( samples ) > std::numeric_limits<size_t>::max() / sizeof( float ) / channels ) return false;
@@ -274,16 +277,19 @@ bool AudioSystem::QueueStreamChunk( StreamPlayer &player, int samples, int rate,
 		// its previous sample rate. Recovery starts a fresh conversion timeline.
 		player.Clear();
 	} else if ( old.rate && ( old.rate != rate || old.width != width || old.inputChannels != channels ||
-		old.requestedChannels != outputChannels || old.gain != gain ) && !FlushStream( player ) ) return false;
+		old.requestedChannels != outputChannels ) && !FlushStream( player ) ) return false;
 	auto next = player.conversion;
 	if ( !next.rate ) {
 		if ( !next.resampler.Configure( rate, outputRate, channels ) ) return false;
 		next.rate = rate; next.width = width; next.inputChannels = channels;
 		next.outputRate = outputRate; next.requestedChannels = outputChannels;
-		next.outputChannels = outputChannels; next.gain = gain;
+		next.outputChannels = outputChannels;
 	}
 	std::vector<float> input( static_cast<size_t>( samples ) * channels );
-	for ( size_t i = 0; i < input.size(); ++i ) input[i] = ReadStreamPCM16Sample( data, i, width, channels );
+	// Gain belongs to these input frames. Scaling before interpolation keeps
+	// fades continuous without flushing/restarting the sample-rate phase on
+	// every volume change, which would add rounded-up frames and audible steps.
+	for ( size_t i = 0; i < input.size(); ++i ) input[i] = ReadStreamPCM16Sample( data, i, width, channels ) * gain;
 	std::vector<float> frames;
 	if ( !next.resampler.Push( input.data(), samples, frames ) ) return false;
 	if ( frames.empty() ) {
@@ -296,11 +302,20 @@ bool AudioSystem::QueueStreamChunk( StreamPlayer &player, int samples, int rate,
 		player.conversion = std::move( next );
 		return true;
 	}
-	if ( next.outputChannels <= kDefaultStreamChannels ) return false;
+	// A queue failure can mean temporary pool exhaustion or an incompatible
+	// format while the preceding segment drains. Preserve its buffered audio;
+	// stereo fallback is safe only before any buffers have been accepted.
+	if ( next.outputChannels <= kDefaultStreamChannels || player.QueuedBufferCount() > 0 ) return false;
+	// An empty AL queue can still have accepted samples in the resampler's
+	// lookahead. Restore that history if the stereo upload also fails.
+	auto previous = std::move( player.conversion );
 	player.Clear();
 	pcm = ConvertResampledFrames( frames, next, kDefaultStreamChannels );
 	if ( pcm.empty() || !player.QueuePCM16( pcm.data(), static_cast<int>( pcm.size() / kDefaultStreamChannels ),
-		kDefaultStreamChannels, outputRate ) ) return false;
+		kDefaultStreamChannels, outputRate ) ) {
+		player.conversion = std::move( previous );
+		return false;
+	}
 	next.outputChannels = kDefaultStreamChannels;
 	player.conversion = std::move( next );
 	if ( logFallback && backgroundStereoFallbackChannels_ != outputChannels ) {
@@ -351,6 +366,9 @@ bool AudioSystem::Init( soundInterface_t *si ) {
 	s_alSourceClassDebug = Cvar_Get( "s_alSourceClassDebug", "0", CVAR_DEVELOPER );
 	Cvar_CheckRange( s_alSourceClassDebug, "0", "1", CV_INTEGER );
 	Cvar_SetDescription( s_alSourceClassDebug, "Adds per-source-class aggregate routing and gain summaries to s_alDebugDump." );
+	s_alSoundStartDebug = Cvar_Get( "s_alSoundStartDebug", "0", CVAR_DEVELOPER );
+	Cvar_CheckRange( s_alSoundStartDebug, "0", "1", CV_INTEGER );
+	Cvar_SetDescription( s_alSoundStartDebug, "Logs Wolfenstein sound starts, rejected requests and OpenAL playback state." );
 	s_alAudioZones = Cvar_Get( "s_alAudioZones", "1", CVAR_ARCHIVE_ND );
 	Cvar_CheckRange( s_alAudioZones, "0", "1", CV_INTEGER );
 	Cvar_SetDescription( s_alAudioZones, "Enables optional maps/<map>.azb OpenAL audio-zone sidecars when present." );
@@ -534,7 +552,7 @@ void AudioSystem::BeginRegistration() {
 		return;
 	}
 	// Elite Force reserves its silent sound/null.wav as handle 0 (stvoyHM.exe 0x42a296).
-	const std::string feedbackSample = Com_GameIsRTCW() ? fntech3::audio::rtcw::DefaultSoundName
+	const std::string feedbackSample = Com_GameIsRTCW() || Com_GameIsWolfET() ? fntech3::audio::rtcw::DefaultSoundName
 		: NormalizeSoundName( Com_GameIsSTVEF() ? "sound/null.wav" : "sound/feedback/hit.wav" );
 	samples_.emplace_back( feedbackSample, weaponSoundShaders_.Find( feedbackSample ) );
 	sampleLookup_.emplace( feedbackSample, 0 );
@@ -634,7 +652,14 @@ void AudioSystem::StartWolfETSound( const float *origin, int entity, int channel
 }
 
 void AudioSystem::StartRTCWSound( const float *origin, int entity, int channel, sfxHandle_t handle, int flags ) {
-	if ( !started_ || hardMuted_ ) return;
+	const bool trace = s_alSoundStartDebug && s_alSoundStartDebug->integer;
+	if ( !started_ || hardMuted_ ) {
+		if ( trace ) Com_Printf("sound-start: ent=%d channel=%d handle=%d rejected=backend-muted\n", entity, channel, handle);
+		return;
+	}
+	// SP emits null effects that must not occupy a channel. Null weapon
+	// requests remain meaningful: their cutoff flags stop a dead actor's fire.
+	if ( Com_GameIsRTCWSP() && handle == 0 && channel != fntech3::audio::rtcw::OneShots::Weapon ) return;
 	if ( !origin && (entity < 0 || entity >= MAX_GENTITIES) )
 		Com_Error(ERR_DROP, "S_StartRTCWSound: bad entitynum %i", entity);
 	auto *sample = GetSample(handle);
@@ -645,6 +670,8 @@ void AudioSystem::StartRTCWSound( const float *origin, int entity, int channel, 
 	entityStreams_.policy.StopChannel( entity, channel );
 	if ( sample->EnsureLoaded(device_, handle == 0) )
 		world_.StartRTCWSound(entity, channel, handle, sample, origin, flags);
+	else if ( trace ) Com_Printf("sound-start: ent=%d channel=%d handle=%d sample=%s rejected=sample-load\n",
+		entity, channel, handle, sample->Name().c_str());
 }
 
 void AudioSystem::StartLocalSound( sfxHandle_t sfxHandle, int channelNum, float volume ) {
@@ -659,6 +686,7 @@ void AudioSystem::StartLocalSound( sfxHandle_t sfxHandle, int channelNum, float 
 }
 
 void AudioSystem::CloseBackgroundStream() {
+	backgroundPendingPCM_.clear();
 	if ( backgroundStream_ != nullptr ) {
 		S_CodecCloseStream( backgroundStream_ );
 		backgroundStream_ = nullptr;
@@ -832,30 +860,46 @@ void AudioSystem::ServiceBackgroundTrack() {
 		const int readBytes = fntech3::audio::WholeFrameReadBytes( static_cast<int>( raw.size() ),
 			backgroundStream_->info.width, backgroundStream_->info.channels );
 		if ( !readBytes ) { StopBackgroundTrack(); break; }
-		const int bytesRead = S_CodecReadStream( backgroundStream_, readBytes, raw.data() );
+		int bytesRead;
+		if ( backgroundPendingPCM_.empty() ) {
+			bytesRead = S_CodecReadStream( backgroundStream_, readBytes, raw.data() );
+		} else {
+			bytesRead = static_cast<int>( backgroundPendingPCM_.size() );
+			std::memcpy( raw.data(), backgroundPendingPCM_.data(), backgroundPendingPCM_.size() );
+		}
 		if ( bytesRead <= 0 ) {
+			// Finish the interpolation tail exactly once before changing files.
+			// A full buffer pool can delay the flush; retry without closing the
+			// decoder or dropping audio that is still queued for playback.
+			if ( !FlushStream( musicPlayer_ ) ) break;
 			if ( Com_GameIsRTCWSP() ) {
-				FlushStream( musicPlayer_ );
 				S_RTCWMusic().EndOfTrack( rtcwOutput );
 				break;
 			}
 			if ( !backgroundLoop_.empty() ) {
 				if ( emptyRestarts > 0 ) {
 					Com_Printf( S_COLOR_YELLOW "WARNING: music loop %s produced no audio\n", backgroundLoop_.c_str() );
-					StopBackgroundTrack();
+					CloseBackgroundStream();
+					backgroundIntro_.clear();
+					backgroundLoop_.clear();
 					break;
 				}
 				CloseBackgroundStream();
 				backgroundStream_ = S_CodecOpenStream( backgroundLoop_.c_str() );
 				if ( backgroundStream_ == nullptr ) {
 					Com_Printf( S_COLOR_YELLOW "WARNING: couldn't open music file %s\n", backgroundLoop_.c_str() );
-					StopBackgroundTrack();
+					backgroundIntro_.clear();
+					backgroundLoop_.clear();
 					break;
 				}
 				++emptyRestarts;
 				continue;
 			}
-			StopBackgroundTrack();
+			// Natural EOF closes the file but lets the source drain. Explicit
+			// StopBackgroundTrack still cancels the queued audio immediately.
+			CloseBackgroundStream();
+			backgroundIntro_.clear();
+			backgroundLoop_.clear();
 			break;
 		}
 
@@ -887,8 +931,12 @@ void AudioSystem::ServiceBackgroundTrack() {
 		const int outputChannels = SelectStreamOutputChannels( device_, channels );
 		if ( !QueueStreamChunk( musicPlayer_, inputSamples, info.rate, route ? 2 : info.width,
 			channels, route ? reinterpret_cast<const byte *>( routed.data() ) : raw.data(), 1.0f, outputChannels, true ) ) {
+			// The decoder has already advanced. Keep this bounded chunk until
+			// the pool/source accepts it, instead of skipping ahead on retry.
+			if ( backgroundPendingPCM_.empty() ) backgroundPendingPCM_.assign( raw.data(), raw.data() + bytesRead );
 			break;
 		}
+		backgroundPendingPCM_.clear();
 		emptyRestarts = 0;
 		++chunksQueuedThisCall;
 	}
@@ -1124,8 +1172,9 @@ void AudioSystem::Update( int msec ) {
 		device_.EndDeferredUpdates();
 	}
 	// RawSamples has no end-of-stream callback. Drain its small interpolation
-	// tail once the submitted buffers have played out; explicit clears discard it.
-	if ( rawPlayer_.Idle() ) FlushStream( rawPlayer_ );
+	// tail once the submitted buffers have played out. Keep its phase/history
+	// for later chunks; explicit clears and format changes finish that timeline.
+	if ( rawPlayer_.Idle() ) FlushStream( rawPlayer_, true );
 	rawPlayer_.Update( softMuted ? 0.0f : streamGain );
 	const float voiceVolume = ( s_voiceVolume != nullptr ) ? ClampFloat( s_voiceVolume->value, 0.0f, 2.0f ) : 1.0f;
 	voicePlayer_.Update( softMuted ? 0.0f : voiceVolume * streamGain );
@@ -1222,7 +1271,7 @@ void AudioSystem::SoundInfo() {
 	Com_Printf( "OpenAL active context: frequency %d Hz, refresh %d Hz, mono sources %d, stereo sources %d\n",
 		caps.mixerFrequency, caps.refreshRate, caps.monoSources, caps.stereoSources );
 	Com_Printf( "OpenAL PCM layouts: %s\n", device_.PCMChannelSupportDescription() );
-	Com_Printf( "OpenAL stream output: %d Hz cubic SRC\n", StreamOutputRate() );
+	Com_Printf( "OpenAL stream output: %d Hz (band-limited sample-rate conversion)\n", StreamOutputRate() );
 	if ( caps.deviceClockValuesValid ) {
 		Com_Printf( "OpenAL timing: device clock %.3f s, device latency %.2f ms\n",
 			NanosecondsToSeconds( caps.deviceClockValue ),

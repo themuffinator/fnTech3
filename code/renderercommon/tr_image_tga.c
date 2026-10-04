@@ -109,6 +109,14 @@ void R_LoadTGA ( const char *name, byte **pic, int *width, int *height)
 		ri.Error( ERR_DROP, "LoadTGA: colormaps not supported" );
 	}
 
+	/* Retail Academy rejects oriented RLE (jamp.exe 0x49dd4a..0x49dd61).
+	 * Its uncompressed font atlases do use top-down rows; decode those into
+	 * the same engine image storage rather than treating the flag as advisory. */
+	if ( ( ri.gameId == COM_GAME_JKA_SP || ri.gameId == COM_GAME_JKA_MP )
+		&& targa_header.image_type == 10 && ( targa_header.attributes & 0x30 ) ) {
+		ri.Error( ERR_DROP, "LoadTGA: Academy RLE images require bottom-to-top rows (%s)", name );
+	}
+
 	if ( ( targa_header.pixel_size != 32 && targa_header.pixel_size != 24 ) && targa_header.image_type != 3 )
 	{
 		ri.Error (ERR_DROP, "LoadTGA: Only 32 or 24 bit images supported (no colormaps)");
@@ -124,7 +132,7 @@ void R_LoadTGA ( const char *name, byte **pic, int *width, int *height)
 	}
 
 
-	targa_rgba = ri.Malloc (numPixels);
+	targa_rgba = (byte *)ri.Malloc (numPixels);
 
 	if (targa_header.id_length != 0)
 	{
@@ -284,27 +292,25 @@ void R_LoadTGA ( const char *name, byte **pic, int *width, int *height)
 		}
 	}
 
-#if 0
-  // TTimo: this is the chunk of code to ensure a behavior that meets TGA specs
-  // bit 5 set => top-down
-  if (targa_header.attributes & 0x20) {
-    unsigned char *flip = (unsigned char*)malloc (columns*4);
-    unsigned char *src, *dst;
-
-    for (row = 0; row < rows/2; row++) {
-      src = targa_rgba + row * 4 * columns;
-      dst = targa_rgba + (rows - row - 1) * 4 * columns;
-
-      memcpy (flip, src, columns*4);
-      memcpy (src, dst, columns*4);
-      memcpy (dst, flip, columns*4);
+  if ( ( ri.gameId == COM_GAME_JKA_SP || ri.gameId == COM_GAME_JKA_MP )
+       && (targa_header.attributes & 0x20) ) {
+    /* Primary row selection: jamp.exe 0x49dd7b..0x49dda5. The unpacker
+     * above always starts at the last row, so reverse the completed image.
+     * Swapping bytes avoids an additional allocation during partial init. */
+    for (row = 0; row < (int)rows / 2; row++) {
+      byte *first = targa_rgba + row * columns * 4;
+      byte *last = targa_rgba + (rows - row - 1) * columns * 4;
+      for (column = 0; column < (int)columns * 4; column++) {
+        byte value = first[column];
+        first[column] = last[column];
+        last[column] = value;
+      }
     }
-    free (flip);
   }
-#endif
   // instead we just print a warning; Enemy Territory ignores the flag
   // silently, and its own images carry it
-  if ((targa_header.attributes & 0x20) && ri.gameId != COM_GAME_WOLFET) {
+  if ((targa_header.attributes & 0x20) && ri.gameId != COM_GAME_WOLFET
+      && ri.gameId != COM_GAME_JKA_SP && ri.gameId != COM_GAME_JKA_MP) {
     ri.Printf( PRINT_WARNING, "WARNING: '%s' TGA file header declares top-down image, ignoring\n", name);
   }
 

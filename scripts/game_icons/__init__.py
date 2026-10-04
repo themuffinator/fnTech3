@@ -77,7 +77,15 @@ def source(key: str):
             raise ValueError(f"{path}: expected RGB or RGBA artwork")
         # Several originals intentionally have an opaque square field. Preserve
         # that background, and preserve generated alpha on the cutout designs.
-        return image.convert("RGBA")
+        result = image.convert("RGBA")
+        if key == "stvef-mp":
+            # This rounded tile is specified as fully opaque inside. Imagegen's
+            # cutout master has a near-opaque (251-254) alpha ceiling; normalize
+            # that ceiling during export, keeping the antialiased corner mask
+            # and the unmodified generated master/provenance intact.
+            alpha = result.getchannel("A")
+            result.putalpha(alpha.point([255 if value >= 250 else value for value in range(256)]))
+        return result
 
 
 def render(key: str, size: int):

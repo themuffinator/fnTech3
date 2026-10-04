@@ -307,7 +307,13 @@ ShadeResult shade_direct(RtMaterial material, RtSurface surf, RtShading sh, vec3
 		exclude |= RT_LIGHT_DYNAMIC;
 	}
 
-	if (baked_light(material, surf, bakedLighting)) {
+	// One call site samples the lights for both kinds of surface, so the
+	// sampler is compiled once: inlined twice, it made the compute backend's
+	// trace too large for the 32-bit driver to compile
+	bool baked = baked_light(material, surf, bakedLighting);
+	uint pick = 7u;
+	float share = 1.0;
+	if (baked) {
 		// the lightmap already holds this surface's static light; the dynamic
 		// lights are traced on top of it, unless a model's raster light holds
 		// them too (the legacy dynamic-light modes)
@@ -315,75 +321,66 @@ ShadeResult shade_direct(RtMaterial material, RtSurface surf, RtShading sh, vec3
 		if (surf.bakedEntity == 2u) {
 			exclude |= RT_LIGHT_DYNAMIC;
 		}
-		if (u_frame.flags.w > 0u && (exclude & RT_LIGHT_DYNAMIC) == 0u) {
-			vec3 L;
-			bool found;
-			RtLightChoice choice;
-			vec3 E = rt_sample_lights(P, N, Ng, candidates, exclude, true, seed, L, found, choice);
-			r.irradiance += E;
-			if (found && (u_frame.flags.x & RT_FRAME_SPECULAR) != 0u) {
-				r.specular += E * specular_weight(N, V, L, roughness, F0);
-			}
-		}
-	} else {
+		pick = (u_frame.flags.w > 0u && (exclude & RT_LIGHT_DYNAMIC) == 0u) ? 1u : 0u;
+	} else if (oneSample) {
 		// One sample, where oneSample asks (a bounce's point, as Q2RTX samples
 		// one light there): the emitters, the sun or the sky, drawn evenly
 		// among those that can light it, the one drawn counted for all; each
 		// sampler keeps its own shadow ray. Otherwise all three.
-		uint pick = 7u;
-		float share = 1.0;
-		if (oneSample) {
-			bool emitters = u_frame.counts.z > 0u;
-			bool sun = (u_frame.flags.x & RT_FRAME_SUN) != 0u && dot(N, u_frame.sunDirection.xyz) > 0.0;
-			bool sky = (u_frame.flags.x & RT_FRAME_SKY_RADIANCE) != 0u || u_frame.skyLight.w >= 2.0;
-			uint count = (emitters ? 1u : 0u) + (sun ? 1u : 0u) + (sky ? 1u : 0u);
-			if (count == 0u) {
-				r.irradiance += u_frame.ambient.rgb;
-				return r;
-			}
-			uint k = min(uint(rand01(seed) * float(count)), count - 1u);
-			uint options = (emitters ? 1u : 0u) | (sun ? 2u : 0u) | (sky ? 4u : 0u);
-			for (pick = options & (~options + 1u); k > 0u; k--) {
-				options &= ~pick;
-				pick = options & (~options + 1u);
-			}
-			share = float(count);
+		bool emitters = u_frame.counts.z > 0u;
+		bool sun = (u_frame.flags.x & RT_FRAME_SUN) != 0u && dot(N, u_frame.sunDirection.xyz) > 0.0;
+		bool sky = (u_frame.flags.x & RT_FRAME_SKY_RADIANCE) != 0u || u_frame.skyLight.w >= 2.0;
+		uint count = (emitters ? 1u : 0u) + (sun ? 1u : 0u) + (sky ? 1u : 0u);
+		if (count == 0u) {
+			r.irradiance += u_frame.ambient.rgb;
+			return r;
 		}
-		vec3 L = vec3(0.0, 0.0, 1.0);
-		bool found = false;
-		RtLightChoice choice;
-		choice.index = ~0u;
-		vec3 E = (pick & 1u) != 0u ?
-			rt_sample_lights(P, N, Ng, candidates, exclude, false, seed, L, found, choice) * share : vec3(0.0);
-		r.irradiance += E;
-		if (found && (u_frame.flags.x & RT_FRAME_SPECULAR) != 0u) {
-			float share = reflections ? rt_light_weight(choice, N, Ng, V, L, roughness * roughness) : 1.0;
-			r.specular += E * specular_weight(N, V, L, roughness, F0) * share;
+		uint k = min(uint(rand01(seed) * float(count)), count - 1u);
+		uint options = (emitters ? 1u : 0u) | (sun ? 2u : 0u) | (sky ? 4u : 0u);
+		for (pick = options & (~options + 1u); k > 0u; k--) {
+			options &= ~pick;
+			pick = options & (~options + 1u);
 		}
-		if (reflections) {
-			g_misLights = true;
-			g_misChoice = choice;
-			g_misP = P;
-			g_misN = N;
-			g_misNg = Ng;
-			g_misV = V;
-			g_misAlpha = roughness * roughness;
-		}
-		vec3 Lsun = u_frame.sunDirection.xyz;
-		vec3 Esun = (pick & 2u) != 0u ? rt_sample_sun(P, N, Ng, seed, Lsun) * share : vec3(0.0);
-		r.irradiance += Esun;
-		if ((u_frame.flags.x & RT_FRAME_SPECULAR) != 0u) {
-			r.specular += Esun * specular_weight(N, V, Lsun, roughness, F0);
-		}
-		vec3 Lsky = vec3(0.0, 0.0, 1.0);
-		vec3 Esky = (pick & 4u) != 0u ? rt_sample_sky_light(P, N, Ng, seed, Lsky) * share : vec3(0.0);
-		r.irradiance += Esky;
-		// like a sky's emitters, left to a traced reflection
-		if ((u_frame.flags.x & RT_FRAME_SPECULAR) != 0u && !reflections) {
-			r.specular += Esky * specular_weight(N, V, Lsky, roughness, F0);
-		}
-		r.irradiance += u_frame.ambient.rgb;
+		share = float(count);
 	}
+	vec3 L = vec3(0.0, 0.0, 1.0);
+	bool found = false;
+	RtLightChoice choice;
+	choice.index = ~0u;
+	// over a lightmap the dynamic lights alone
+	vec3 E = (pick & 1u) != 0u ?
+		rt_sample_lights(P, N, Ng, candidates, exclude, baked, seed, L, found, choice) * share : vec3(0.0);
+	r.irradiance += E;
+	if (found && (u_frame.flags.x & RT_FRAME_SPECULAR) != 0u) {
+		float weight = (reflections && !baked) ? rt_light_weight(choice, N, Ng, V, L, roughness * roughness) : 1.0;
+		r.specular += E * specular_weight(N, V, L, roughness, F0) * weight;
+	}
+	if (baked) {
+		return r;
+	}
+	if (reflections) {
+		g_misLights = true;
+		g_misChoice = choice;
+		g_misP = P;
+		g_misN = N;
+		g_misNg = Ng;
+		g_misV = V;
+		g_misAlpha = roughness * roughness;
+	}
+	vec3 Lsun = u_frame.sunDirection.xyz;
+	vec3 Esun = (pick & 2u) != 0u ? rt_sample_sun(P, N, Ng, seed, Lsun) * share : vec3(0.0);
+	r.irradiance += Esun;
+	if ((u_frame.flags.x & RT_FRAME_SPECULAR) != 0u) {
+		r.specular += Esun * specular_weight(N, V, Lsun, roughness, F0);
+	}
+	vec3 Lsky = vec3(0.0, 0.0, 1.0);
+	vec3 Esky = (pick & 4u) != 0u ? rt_sample_sky_light(P, N, Ng, seed, Lsky) * share : vec3(0.0);
+	r.irradiance += Esky;
+	// like a sky's emitters, left to a traced reflection
+	if ((u_frame.flags.x & RT_FRAME_SPECULAR) != 0u && !reflections) {
+		r.specular += Esky * specular_weight(N, V, Lsky, roughness, F0);
+	}
+	r.irradiance += u_frame.ambient.rgb;
 	return r;
 }
 

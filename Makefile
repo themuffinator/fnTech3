@@ -1623,7 +1623,7 @@ Q3DOBJ = \
 ifdef MINGW
   Q3DOBJ += \
   $(B)/ded/win_main.o \
-  $(B)/client/win_resource.o \
+  $(B)/client/win_client_resource.o \
   $(B)/ded/win_shared.o \
   $(B)/ded/win_syscon.o
 else
@@ -1792,7 +1792,7 @@ $(B)/client/%.o: $(W32DIR)/%.cpp
 	$(DO_CXX)
 
 $(B)/client/win_resource.o $(B)/ded/win_resource.o: assets/icons/fntech3.ico
-# The client's script includes win_resource.rc and every game's icon.
+# The shared client/server script includes win_resource.rc and every game's icon.
 $(B)/client/win_client_resource.o: assets/icons/fntech3.ico $(W32DIR)/win_resource.rc \
     $(W32DIR)/win_game_icons.rc $(wildcard assets/icons/games/*/*.ico)
 

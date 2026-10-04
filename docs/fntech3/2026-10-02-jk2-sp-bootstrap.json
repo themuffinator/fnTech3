@@ -1,0 +1,1274 @@
+{
+  "schema": 1,
+  "edition": "Jedi Outcast 1.02a",
+  "platform": "windows-x86",
+  "source": "retail disassembly, not execution",
+  "binaries": [
+    {
+      "name": "jk2sp.exe",
+      "sha256": "0d3c635ee5b20ac32fc957e00cf21e65ebc1584112b11f6ae026706dcc0d0e0c",
+      "bytes": 999482
+    },
+    {
+      "name": "jk2gamex86.dll",
+      "sha256": "8cc1c15f462b15bcb9dc9840a2b9ccc18e57e17f7292d8080a77625a34a27e18",
+      "bytes": 1318912
+    }
+  ],
+  "game_api_version": 6,
+  "import_bytes": 412,
+  "export_bytes": 76,
+  "gentity_stride": 1288,
+  "gclient_stride": 3188,
+  "entity_client_pointer_offset": 252,
+  "imports": [
+    {
+      "slot": 0,
+      "offset": 0,
+      "constructor_instruction": "0x4368e3",
+      "retail_address": "0x4140d0"
+    },
+    {
+      "slot": 1,
+      "offset": 4,
+      "constructor_instruction": "0x4368eb",
+      "retail_address": "0x414250"
+    },
+    {
+      "slot": 2,
+      "offset": 8,
+      "constructor_instruction": "0x4368f3",
+      "retail_address": "0x4142b0"
+    },
+    {
+      "slot": 3,
+      "offset": 12,
+      "constructor_instruction": "0x4368fb",
+      "retail_address": "0x440fa0"
+    },
+    {
+      "slot": 4,
+      "offset": 16,
+      "constructor_instruction": "0x436992",
+      "retail_address": "0x416260"
+    },
+    {
+      "slot": 5,
+      "offset": 20,
+      "constructor_instruction": "0x43699a",
+      "retail_address": "0x4166d0"
+    },
+    {
+      "slot": 6,
+      "offset": 24,
+      "constructor_instruction": "0x4369a2",
+      "retail_address": "0x4160f0"
+    },
+    {
+      "slot": 7,
+      "offset": 28,
+      "constructor_instruction": "0x4369aa",
+      "retail_address": "0x416130"
+    },
+    {
+      "slot": 8,
+      "offset": 32,
+      "constructor_instruction": "0x4369b2",
+      "retail_address": "0x413a20"
+    },
+    {
+      "slot": 9,
+      "offset": 36,
+      "constructor_instruction": "0x4369ba",
+      "retail_address": "0x413a30"
+    },
+    {
+      "slot": 10,
+      "offset": 40,
+      "constructor_instruction": "0x4369ca",
+      "retail_address": "0x419440"
+    },
+    {
+      "slot": 11,
+      "offset": 44,
+      "constructor_instruction": "0x4369d2",
+      "retail_address": "0x417ae0"
+    },
+    {
+      "slot": 12,
+      "offset": 48,
+      "constructor_instruction": "0x4369da",
+      "retail_address": "0x417bd0"
+    },
+    {
+      "slot": 13,
+      "offset": 52,
+      "constructor_instruction": "0x4369e2",
+      "retail_address": "0x417080"
+    },
+    {
+      "slot": 14,
+      "offset": 56,
+      "constructor_instruction": "0x4369ea",
+      "retail_address": "0x417f10"
+    },
+    {
+      "slot": 15,
+      "offset": 60,
+      "constructor_instruction": "0x4369f2",
+      "retail_address": "0x418120"
+    },
+    {
+      "slot": 16,
+      "offset": 64,
+      "constructor_instruction": "0x4369fa",
+      "retail_address": "0x418550"
+    },
+    {
+      "slot": 17,
+      "offset": 68,
+      "constructor_instruction": "0x436a02",
+      "retail_address": "0x4394e0"
+    },
+    {
+      "slot": 18,
+      "offset": 72,
+      "constructor_instruction": "0x436a0a",
+      "retail_address": "0x4396b0"
+    },
+    {
+      "slot": 19,
+      "offset": 76,
+      "constructor_instruction": "0x436a12",
+      "retail_address": "0x439a10"
+    },
+    {
+      "slot": 20,
+      "offset": 80,
+      "constructor_instruction": "0x4369c2",
+      "retail_address": "0x4136f0"
+    },
+    {
+      "slot": 21,
+      "offset": 84,
+      "constructor_instruction": "0x436903",
+      "retail_address": "0x4364c0"
+    },
+    {
+      "slot": 22,
+      "offset": 88,
+      "constructor_instruction": "0x43690b",
+      "retail_address": "0x436440"
+    },
+    {
+      "slot": 23,
+      "offset": 92,
+      "constructor_instruction": "0x43696a",
+      "retail_address": "0x436e20"
+    },
+    {
+      "slot": 24,
+      "offset": 96,
+      "constructor_instruction": "0x436972",
+      "retail_address": "0x436ed0"
+    },
+    {
+      "slot": 25,
+      "offset": 100,
+      "constructor_instruction": "0x436982",
+      "retail_address": "0x436f90"
+    },
+    {
+      "slot": 26,
+      "offset": 104,
+      "constructor_instruction": "0x43697a",
+      "retail_address": "0x436f40"
+    },
+    {
+      "slot": 27,
+      "offset": 108,
+      "constructor_instruction": "0x43698a",
+      "retail_address": "0x436820"
+    },
+    {
+      "slot": 28,
+      "offset": 112,
+      "constructor_instruction": "0x43694f",
+      "retail_address": "0x4364f0"
+    },
+    {
+      "slot": 29,
+      "offset": 116,
+      "constructor_instruction": "0x43693f",
+      "retail_address": "0x43af90"
+    },
+    {
+      "slot": 30,
+      "offset": 120,
+      "constructor_instruction": "0x436947",
+      "retail_address": "0x43b160"
+    },
+    {
+      "slot": 31,
+      "offset": 124,
+      "constructor_instruction": "0x436957",
+      "retail_address": "0x4365b0"
+    },
+    {
+      "slot": 32,
+      "offset": 128,
+      "constructor_instruction": "0x43695f",
+      "retail_address": "0x4366a0"
+    },
+    {
+      "slot": 33,
+      "offset": 132,
+      "constructor_instruction": "0x436a1a",
+      "retail_address": "0x436770"
+    },
+    {
+      "slot": 34,
+      "offset": 136,
+      "constructor_instruction": "0x436a25",
+      "retail_address": "0x412270"
+    },
+    {
+      "slot": 35,
+      "offset": 140,
+      "constructor_instruction": "0x436913",
+      "retail_address": "0x43a620"
+    },
+    {
+      "slot": 36,
+      "offset": 144,
+      "constructor_instruction": "0x43691e",
+      "retail_address": "0x43a5b0"
+    },
+    {
+      "slot": 37,
+      "offset": 148,
+      "constructor_instruction": "0x436929",
+      "retail_address": "0x43ab30"
+    },
+    {
+      "slot": 38,
+      "offset": 152,
+      "constructor_instruction": "0x436934",
+      "retail_address": "0x4367a0"
+    },
+    {
+      "slot": 39,
+      "offset": 156,
+      "constructor_instruction": "0x436a30",
+      "retail_address": "0xd14408"
+    },
+    {
+      "slot": 40,
+      "offset": 160,
+      "constructor_instruction": "0x436a3b",
+      "retail_address": "0x436df0"
+    },
+    {
+      "slot": 41,
+      "offset": 164,
+      "constructor_instruction": "0x436a46",
+      "retail_address": "0x414b60"
+    },
+    {
+      "slot": 42,
+      "offset": 168,
+      "constructor_instruction": "0x436b17",
+      "retail_address": "0x451450"
+    },
+    {
+      "slot": 43,
+      "offset": 172,
+      "constructor_instruction": "0x436ad5",
+      "retail_address": "0x451460"
+    },
+    {
+      "slot": 44,
+      "offset": 176,
+      "constructor_instruction": "0x436b64",
+      "retail_address": "0x451d40"
+    },
+    {
+      "slot": 45,
+      "offset": 180,
+      "constructor_instruction": "0x436b85",
+      "retail_address": "0x451d60"
+    },
+    {
+      "slot": 46,
+      "offset": 184,
+      "constructor_instruction": "0x436b7a",
+      "retail_address": "0x451d80"
+    },
+    {
+      "slot": 47,
+      "offset": 188,
+      "constructor_instruction": "0x436b38",
+      "retail_address": "0x451f40"
+    },
+    {
+      "slot": 48,
+      "offset": 192,
+      "constructor_instruction": "0x436b90",
+      "retail_address": "0x451da0"
+    },
+    {
+      "slot": 49,
+      "offset": 196,
+      "constructor_instruction": "0x436b6f",
+      "retail_address": "0x451de0"
+    },
+    {
+      "slot": 50,
+      "offset": 200,
+      "constructor_instruction": "0x436bc7",
+      "retail_address": "0x451eb0"
+    },
+    {
+      "slot": 51,
+      "offset": 204,
+      "constructor_instruction": "0x436abf",
+      "retail_address": "0x451e60"
+    },
+    {
+      "slot": 52,
+      "offset": 208,
+      "constructor_instruction": "0x436b59",
+      "retail_address": "0x452420"
+    },
+    {
+      "slot": 53,
+      "offset": 212,
+      "constructor_instruction": "0x436aa9",
+      "retail_address": "0x452500"
+    },
+    {
+      "slot": 54,
+      "offset": 216,
+      "constructor_instruction": "0x436ab4",
+      "retail_address": "0x452560"
+    },
+    {
+      "slot": 55,
+      "offset": 220,
+      "constructor_instruction": "0x436bd2",
+      "retail_address": "0x452660"
+    },
+    {
+      "slot": 56,
+      "offset": 224,
+      "constructor_instruction": "0x436bdd",
+      "retail_address": "0x4526a0"
+    },
+    {
+      "slot": 57,
+      "offset": 228,
+      "constructor_instruction": "0x436b01",
+      "retail_address": "0x452710"
+    },
+    {
+      "slot": 58,
+      "offset": 232,
+      "constructor_instruction": "0x436b0c",
+      "retail_address": "0x452760"
+    },
+    {
+      "slot": 59,
+      "offset": 236,
+      "constructor_instruction": "0x436ae0",
+      "retail_address": "0x4527e0"
+    },
+    {
+      "slot": 60,
+      "offset": 240,
+      "constructor_instruction": "0x436ba6",
+      "retail_address": "0x452880"
+    },
+    {
+      "slot": 61,
+      "offset": 244,
+      "constructor_instruction": "0x436b43",
+      "retail_address": "0x452a10"
+    },
+    {
+      "slot": 62,
+      "offset": 248,
+      "constructor_instruction": "0x436b4e",
+      "retail_address": "0x452b00"
+    },
+    {
+      "slot": 63,
+      "offset": 252,
+      "constructor_instruction": "0x436b9b",
+      "retail_address": "0x452bc0"
+    },
+    {
+      "slot": 64,
+      "offset": 256,
+      "constructor_instruction": "0x436b2d",
+      "retail_address": "0x452c00"
+    },
+    {
+      "slot": 65,
+      "offset": 260,
+      "constructor_instruction": "0x436b22",
+      "retail_address": "0x452c50"
+    },
+    {
+      "slot": 66,
+      "offset": 264,
+      "constructor_instruction": "0x436a51",
+      "retail_address": "0x452c80"
+    },
+    {
+      "slot": 67,
+      "offset": 268,
+      "constructor_instruction": "0x436bbc",
+      "retail_address": "0x452cc0"
+    },
+    {
+      "slot": 68,
+      "offset": 272,
+      "constructor_instruction": "0x436a67",
+      "retail_address": "0x452d00"
+    },
+    {
+      "slot": 69,
+      "offset": 276,
+      "constructor_instruction": "0x436a88",
+      "retail_address": "0x452dc0"
+    },
+    {
+      "slot": 70,
+      "offset": 280,
+      "constructor_instruction": "0x436a5c",
+      "retail_address": "0x452df0"
+    },
+    {
+      "slot": 71,
+      "offset": 284,
+      "constructor_instruction": "0x436a7d",
+      "retail_address": "0x452e60"
+    },
+    {
+      "slot": 72,
+      "offset": 288,
+      "constructor_instruction": "0x436a9e",
+      "retail_address": "0x452e70"
+    },
+    {
+      "slot": 73,
+      "offset": 292,
+      "constructor_instruction": "0x436af6",
+      "retail_address": "0x453110"
+    },
+    {
+      "slot": 74,
+      "offset": 296,
+      "constructor_instruction": "0x436aeb",
+      "retail_address": "0x453130"
+    },
+    {
+      "slot": 75,
+      "offset": 300,
+      "constructor_instruction": "0x436aca",
+      "retail_address": "0x453160"
+    },
+    {
+      "slot": 76,
+      "offset": 304,
+      "constructor_instruction": "0x436bb1",
+      "retail_address": "0x4533d0"
+    },
+    {
+      "slot": 77,
+      "offset": 308,
+      "constructor_instruction": "0x436c03",
+      "retail_address": "0x453410"
+    },
+    {
+      "slot": 78,
+      "offset": 312,
+      "constructor_instruction": "0x436a93",
+      "retail_address": "0x453270"
+    },
+    {
+      "slot": 79,
+      "offset": 316,
+      "constructor_instruction": "0x436a72",
+      "retail_address": "0x4532a0"
+    },
+    {
+      "slot": 80,
+      "offset": 320,
+      "constructor_instruction": "0x436be8",
+      "retail_address": "0x453440"
+    },
+    {
+      "slot": 81,
+      "offset": 324,
+      "constructor_instruction": "0x436bf3",
+      "retail_address": "0x453540"
+    },
+    {
+      "slot": 82,
+      "offset": 328,
+      "constructor_instruction": "0x436c0e",
+      "retail_address": "0x451420"
+    },
+    {
+      "slot": 83,
+      "offset": 332,
+      "constructor_instruction": "0x436c19",
+      "retail_address": "0x450eb0"
+    },
+    {
+      "slot": 84,
+      "offset": 336,
+      "constructor_instruction": "0x436c24",
+      "retail_address": "0x451ee0"
+    },
+    {
+      "slot": 85,
+      "offset": 340,
+      "constructor_instruction": "0x436c2f",
+      "retail_address": "0x4537d0"
+    },
+    {
+      "slot": 86,
+      "offset": 344,
+      "constructor_instruction": "0x436c3a",
+      "retail_address": "0x453780"
+    },
+    {
+      "slot": 87,
+      "offset": 348,
+      "constructor_instruction": "0x436c45",
+      "retail_address": "0x453810"
+    },
+    {
+      "slot": 88,
+      "offset": 352,
+      "constructor_instruction": "0x436c50",
+      "retail_address": "0x453840"
+    },
+    {
+      "slot": 89,
+      "offset": 356,
+      "constructor_instruction": "0x436c5b",
+      "retail_address": "0x453890"
+    },
+    {
+      "slot": 90,
+      "offset": 360,
+      "constructor_instruction": "0x436c66",
+      "retail_address": "0x452b60"
+    },
+    {
+      "slot": 91,
+      "offset": 364,
+      "constructor_instruction": "0x436c71",
+      "retail_address": "0x452820"
+    },
+    {
+      "slot": 92,
+      "offset": 368,
+      "constructor_instruction": "0x436c7c",
+      "retail_address": "0x4528c0"
+    },
+    {
+      "slot": 93,
+      "offset": 372,
+      "constructor_instruction": "0x436c87",
+      "retail_address": "0x452a80"
+    },
+    {
+      "slot": 94,
+      "offset": 376,
+      "constructor_instruction": "0x436c92",
+      "retail_address": "0x452310"
+    },
+    {
+      "slot": 95,
+      "offset": 380,
+      "constructor_instruction": "0x436c9d",
+      "retail_address": "0x4538d0"
+    },
+    {
+      "slot": 96,
+      "offset": 384,
+      "constructor_instruction": "0x436ca8",
+      "retail_address": "0x4538e0"
+    },
+    {
+      "slot": 97,
+      "offset": 388,
+      "constructor_instruction": "0x436cbe",
+      "retail_address": "0x453900"
+    },
+    {
+      "slot": 98,
+      "offset": 392,
+      "constructor_instruction": "0x436cb3",
+      "retail_address": "0x4538f0"
+    },
+    {
+      "slot": 99,
+      "offset": 396,
+      "constructor_instruction": "0x436cc9",
+      "retail_address": "0x453240"
+    },
+    {
+      "slot": 100,
+      "offset": 400,
+      "constructor_instruction": "0x436cd4",
+      "retail_address": "0x451f10"
+    },
+    {
+      "slot": 101,
+      "offset": 404,
+      "constructor_instruction": "0x436cdf",
+      "retail_address": "0x46c000"
+    },
+    {
+      "slot": 102,
+      "offset": 408,
+      "constructor_instruction": "0x436cea",
+      "retail_address": "0x46bda0"
+    }
+  ],
+  "native_probe": {
+    "outcome": "GetGameAPI validation passed",
+    "game_init_called": false,
+    "input": "missing optional ext_data/weapons.dat / null buffer",
+    "log": ".tmp/jk2-sp-boundary/getgameapi.log",
+    "command": ".tmp/runtime/jk2-sp-api/probe.exe \"E:\\Games\\Jedi Outcast\\jk2gamex86.dll\"",
+    "output": "GetGameAPI validation=0 api=6 imports=412 exports=76 entity_stride=1288 count=0"
+  },
+  "record": "2026-10-02-jk2-sp-bootstrap",
+  "date": "2026-10-02",
+  "commit": "a1251ede2c382190b18c154b45357f6979d8171c",
+  "evidence": {
+    "retail_table": "native GetGameAPI probe passed",
+    "game_init": "not reached: bundled client entry point refused client import 3",
+    "table_layout": "retail disassembly + Windows x86 compile assertions",
+    "memory_and_partial_init": "standalone executable tests passed",
+    "full_compatibility": false,
+    "entity_state": "retail delta offsets + byte-exact standalone roundtrips"
+  },
+  "tests": [
+    {
+      "command": "python tests/jk2_sp_host_tests.py -v",
+      "environment": "default host compiler",
+      "passed": 3
+    },
+    {
+      "command": "python tests/jk2_sp_host_tests.py -v",
+      "environment": "Windows x86 vcvars32 / clang i686-pc-windows-msvc",
+      "passed": 3
+    }
+  ],
+  "reference": {
+    "source": "OpenJK",
+    "commit": "1a6a643427aa347553e9073dac5570b33337c4d9",
+    "license_verified": "GPLv2",
+    "use": "reference observation only; no implementation text incorporated",
+    "difference": "current codeJK2 API 10 is not retail 1.02a API 6"
+  },
+  "limits": [
+    "Windows x86 retail module only",
+    "Default release gate retained",
+    "Unknown imports remain explicit refusals",
+    "SP entity and player records not bound",
+    "Native probe does not call game Init",
+    "No client/frame/save/campaign/wire/render/audio compatibility claim",
+    "Actual map-load probe refuses client import 3 before game Init"
+  ],
+  "entity_state": {
+    "bytes": 252,
+    "delta_table": "0x4c8688",
+    "network_fields": [
+      {
+        "name": "eType",
+        "offset": 4,
+        "bits": 8
+      },
+      {
+        "name": "eFlags",
+        "offset": 8,
+        "bits": 32
+      },
+      {
+        "name": "pos.trType",
+        "offset": 12,
+        "bits": 8
+      },
+      {
+        "name": "pos.trTime",
+        "offset": 16,
+        "bits": 32
+      },
+      {
+        "name": "pos.trDuration",
+        "offset": 20,
+        "bits": 32
+      },
+      {
+        "name": "pos.trBase[0]",
+        "offset": 24,
+        "bits": 0
+      },
+      {
+        "name": "pos.trBase[1]",
+        "offset": 28,
+        "bits": 0
+      },
+      {
+        "name": "pos.trBase[2]",
+        "offset": 32,
+        "bits": 0
+      },
+      {
+        "name": "pos.trDelta[0]",
+        "offset": 36,
+        "bits": 0
+      },
+      {
+        "name": "pos.trDelta[1]",
+        "offset": 40,
+        "bits": 0
+      },
+      {
+        "name": "pos.trDelta[2]",
+        "offset": 44,
+        "bits": 0
+      },
+      {
+        "name": "apos.trType",
+        "offset": 48,
+        "bits": 8
+      },
+      {
+        "name": "apos.trTime",
+        "offset": 52,
+        "bits": 32
+      },
+      {
+        "name": "apos.trDuration",
+        "offset": 56,
+        "bits": 32
+      },
+      {
+        "name": "apos.trBase[0]",
+        "offset": 60,
+        "bits": 0
+      },
+      {
+        "name": "apos.trBase[1]",
+        "offset": 64,
+        "bits": 0
+      },
+      {
+        "name": "apos.trBase[2]",
+        "offset": 68,
+        "bits": 0
+      },
+      {
+        "name": "apos.trDelta[0]",
+        "offset": 72,
+        "bits": 0
+      },
+      {
+        "name": "apos.trDelta[1]",
+        "offset": 76,
+        "bits": 0
+      },
+      {
+        "name": "apos.trDelta[2]",
+        "offset": 80,
+        "bits": 0
+      },
+      {
+        "name": "time",
+        "offset": 84,
+        "bits": 32
+      },
+      {
+        "name": "time2",
+        "offset": 88,
+        "bits": 32
+      },
+      {
+        "name": "origin[0]",
+        "offset": 92,
+        "bits": 0
+      },
+      {
+        "name": "origin[1]",
+        "offset": 96,
+        "bits": 0
+      },
+      {
+        "name": "origin[2]",
+        "offset": 100,
+        "bits": 0
+      },
+      {
+        "name": "origin2[0]",
+        "offset": 104,
+        "bits": 0
+      },
+      {
+        "name": "origin2[1]",
+        "offset": 108,
+        "bits": 0
+      },
+      {
+        "name": "origin2[2]",
+        "offset": 112,
+        "bits": 0
+      },
+      {
+        "name": "angles[0]",
+        "offset": 116,
+        "bits": 0
+      },
+      {
+        "name": "angles[1]",
+        "offset": 120,
+        "bits": 0
+      },
+      {
+        "name": "angles[2]",
+        "offset": 124,
+        "bits": 0
+      },
+      {
+        "name": "angles2[0]",
+        "offset": 128,
+        "bits": 0
+      },
+      {
+        "name": "angles2[1]",
+        "offset": 132,
+        "bits": 0
+      },
+      {
+        "name": "angles2[2]",
+        "offset": 136,
+        "bits": 0
+      },
+      {
+        "name": "otherEntityNum",
+        "offset": 140,
+        "bits": 10
+      },
+      {
+        "name": "otherEntityNum2",
+        "offset": 144,
+        "bits": 10
+      },
+      {
+        "name": "groundEntityNum",
+        "offset": 148,
+        "bits": 10
+      },
+      {
+        "name": "constantLight",
+        "offset": 152,
+        "bits": 32
+      },
+      {
+        "name": "loopSound",
+        "offset": 156,
+        "bits": 16
+      },
+      {
+        "name": "modelindex",
+        "offset": 160,
+        "bits": 9
+      },
+      {
+        "name": "modelindex2",
+        "offset": 164,
+        "bits": 8
+      },
+      {
+        "name": "modelindex3",
+        "offset": 168,
+        "bits": 8
+      },
+      {
+        "name": "clientNum",
+        "offset": 172,
+        "bits": 32
+      },
+      {
+        "name": "frame",
+        "offset": 176,
+        "bits": 16
+      },
+      {
+        "name": "solid",
+        "offset": 180,
+        "bits": 24
+      },
+      {
+        "name": "event",
+        "offset": 184,
+        "bits": 10
+      },
+      {
+        "name": "eventParm",
+        "offset": 188,
+        "bits": 16
+      },
+      {
+        "name": "powerups",
+        "offset": 192,
+        "bits": 16
+      },
+      {
+        "name": "weapon",
+        "offset": 196,
+        "bits": 8
+      },
+      {
+        "name": "legsAnim",
+        "offset": 200,
+        "bits": 16
+      },
+      {
+        "name": "legsAnimTimer",
+        "offset": 204,
+        "bits": 8
+      },
+      {
+        "name": "torsoAnim",
+        "offset": 208,
+        "bits": 16
+      },
+      {
+        "name": "torsoAnimTimer",
+        "offset": 212,
+        "bits": 8
+      },
+      {
+        "name": "scale",
+        "offset": 216,
+        "bits": 8
+      },
+      {
+        "name": "saberInFlight",
+        "offset": 220,
+        "bits": 4
+      },
+      {
+        "name": "saberActive",
+        "offset": 224,
+        "bits": 4
+      },
+      {
+        "name": "vehicleModel",
+        "offset": 228,
+        "bits": 32
+      },
+      {
+        "name": "modelScale[0]",
+        "offset": 232,
+        "bits": 0
+      },
+      {
+        "name": "modelScale[1]",
+        "offset": 236,
+        "bits": 0
+      },
+      {
+        "name": "modelScale[2]",
+        "offset": 240,
+        "bits": 0
+      },
+      {
+        "name": "radius",
+        "offset": 244,
+        "bits": 16
+      },
+      {
+        "name": "boltInfo",
+        "offset": 248,
+        "bits": 32
+      }
+    ],
+    "number_offset": 0,
+    "native_prefix_bytes": 352,
+    "native_owner_pointer_offset": 348,
+    "adapter": "code/compat/jk2_sp_state_adapter.hpp",
+    "server_world_view_connected": false
+  },
+  "trajectory": {
+    "evaluator": "0x2000ccc0",
+    "jump_table": "0x2000ce5c",
+    "ordinals": [
+      "stationary",
+      "interpolated",
+      "linear",
+      "linear_stop",
+      "raven_nonlinear_stop",
+      "sine",
+      "gravity"
+    ],
+    "case_addresses": [
+      "0x2000ccd8",
+      "0x2000ccd8",
+      "0x2000ccf0",
+      "0x2000cd23",
+      "0x2000cd7f",
+      "0x2000cd07",
+      "0x2000cddf"
+    ]
+  },
+  "integrated_engine_probe": {
+    "case": "sp",
+    "profile": "jk2-sp",
+    "platform": "Windows x86",
+    "command": [
+      "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.ded.exe",
+      "+set",
+      "com_gameProfile",
+      "jk2-sp",
+      "+set",
+      "fs_basepath",
+      "E:\\Games\\Jedi Outcast",
+      "+set",
+      "fs_homepath",
+      "E:\\Repositories\\fnTech3\\.tmp\\jk2-compat-2026-10-02\\runtime-sp\\home",
+      "+set",
+      "fs_game",
+      "",
+      "+set",
+      "fs_cdpath",
+      "",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "developer",
+      "1",
+      "+set",
+      "sv_errorExit",
+      "0",
+      "+set",
+      "net_enabled",
+      "0",
+      "+set",
+      "sv_pure",
+      "0",
+      "+set",
+      "bot_enable",
+      "0",
+      "+set",
+      "com_steamIntegration",
+      "0",
+      "+set",
+      "fs_skipWorkshop",
+      "1",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_joystick",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "s_initsound",
+      "0",
+      "+set",
+      "cl_webuiEnable",
+      "0",
+      "+set",
+      "com_introplayed",
+      "1",
+      "+set",
+      "cl_motd",
+      "0",
+      "+set",
+      "dedicated",
+      "1",
+      "+exec",
+      "jk2probe.cfg"
+    ],
+    "config": "map kejim_post\nwait 60\necho JK2_SP_PROBE_DONE\nquit\n",
+    "engineSha256": "4c66d195c4f0528997b081fa3f2bc5f8738038c8261203f741b56c09e082df29",
+    "retailModuleSha256": "8cc1c15f462b15bcb9dc9840a2b9ccc18e57e17f7292d8080a77625a34a27e18",
+    "retailPakSha256": "e8e466f219bb2faed536021bb0d10aa6b7f5cd687302aa43080da2debdae307c",
+    "commit": "a1251ede2c382190b18c154b45357f6979d8171c",
+    "exitCode": null,
+    "forced": true,
+    "elapsedSeconds": 15.891,
+    "installationUnchanged": true,
+    "engineUnchanged": true,
+    "console": "E:\\Repositories\\fnTech3\\.tmp\\jk2-compat-2026-10-02\\runtime-sp\\console.log",
+    "outcome": "native table loaded; bundled client entry point refused client import 3",
+    "game_init_reached": false
+  },
+  "unrelated_observations": [
+    "Retail kejim_post collision load emits invalid-bevel warnings; cause not investigated"
+  ],
+  "finalIntegrationChecks": {
+    "dateUTC": "2026-10-02T17:03:19.482176+00:00",
+    "platform": "Windows x86",
+    "build": "meson/build/win32-dev, MSVC /W4 /WX /O2",
+    "buildSucceeded": true,
+    "buildLogs": [
+      ".tmp/jk2-compat-2026-10-02/final-build-retry.log",
+      ".tmp/jk2-compat-2026-10-02/final-build-font-bounds.log"
+    ],
+    "selectedMesonTests": {
+      "passed": 13,
+      "failed": 0,
+      "log": ".tmp/jk2-compat-2026-10-02/final-tests.log",
+      "includes": "JK2 ABI, handshake, client transfer, font, message codec, SP host/state, shared game profiles, netchan profiles/codec/safety, message codec, protocol layout/contract"
+    },
+    "binaries": [
+      {
+        "path": "meson/build/win32-dev/fntech3.exe",
+        "bytes": 13140992,
+        "sha256": "e0f0861b26f3c06c27ba5dbf41a0bb9bb52b7be98000ba51279a9b590f6ab3d5"
+      },
+      {
+        "path": "meson/build/win32-dev/fntech3.ded.exe",
+        "bytes": 5630976,
+        "sha256": "de1cba754ca251f216db077a2d7c2af417cae784a39ec06457b87ba5617229f6"
+      }
+    ],
+    "runtimeEvidence": "No runtime probe used these final binaries. Earlier SP bootstrap binary/outcome is recorded separately.",
+    "concurrentWork": "Academy and other chats have uncommitted changes in this checkout; the final build includes shared changes present at its compile time.",
+    "fullPythonSuite": {
+      "command": "python -m pytest tests -q",
+      "passed": 2402,
+      "failed": 49,
+      "skipped": 128,
+      "subtestsPassed": 58620,
+      "seconds": 1806.03,
+      "exitCode": 1,
+      "log": ".tmp\\jk2-compat-2026-10-02\\pytest-full.txt",
+      "logSha256": "0838040e6ee6a58726cf56dfc21f8af91722cc5ee0759f0507eef147dc97b4d5",
+      "failureList": [
+        "SUBFAILED(renderer='renderer') tests/ambient_scale_defaults_tests.py::AmbientScaleDefaultsTests::test_every_renderer_registers_each_engines_ambient_scale",
+        "SUBFAILED(renderer='renderervk') tests/ambient_scale_defaults_tests.py::AmbientScaleDefaultsTests::test_every_renderer_registers_each_engines_ambient_scale",
+        "SUBFAILED(renderer='rendererrtx') tests/ambient_scale_defaults_tests.py::AmbientScaleDefaultsTests::test_every_renderer_registers_each_engines_ambient_scale",
+        "FAILED tests/console_notify_profile_tests.py::ConsoleNotifyProfileTests::test_each_profile_draws_its_own_engines_notify_lines_and_chat_line",
+        "FAILED tests/engine_input_capture_tests.py::ScreenshotRequestTests::test_reports_compile_and_name_each_lost_request",
+        "FAILED tests/filesystem_recovery_tests.py::FilesystemRecoveryTests::test_recursive_recovery_and_initial_failure",
+        "FAILED tests/jka_module_refusal_tests.py::JKAModuleRefusalTests::test_starting_a_motion_path_stays_refused",
+        "FAILED tests/jka_module_refusal_tests.py::JKAModuleRefusalTests::test_the_game_dispatcher_names_every_import_it_does_not_serve",
+        "FAILED tests/large_text_profile_tests.py::LargeTextProfileTests::test_only_quake_live_draws_large_text_in_host_text",
+        "SUBFAILED(language='c') tests/mdr_format_tests.py::MdrFormatTests::test_bounded_loader_c_and_cpp",
+        "SUBFAILED(language='c++') tests/mdr_format_tests.py::MdrFormatTests::test_bounded_loader_c_and_cpp",
+        "FAILED tests/profile_state_limits_tests.py::ProfileStateLimitsTests::test_client_uses_selected_profile_before_connection_and_negotiated_profile_after",
+        "FAILED tests/q3_ihv_game_lifecycle_tests.py::IhvGameLifecycleTests::test_hunk_map_preservation_and_full_shutdown",
+        "FAILED tests/q3_ihv_game_lifecycle_tests.py::IhvGameLifecycleTests::test_native_write_path_preserves_failure_and_does_not_open_file",
+        "FAILED tests/q3_ihv_game_lifecycle_tests.py::IhvGameLifecycleTests::test_systeminfo_keys_and_other_profile_isolation",
+        "FAILED tests/ritual_configstring_bounds_tests.py::RitualConfigstringBoundsTests::test_production_imports_keep_each_titles_bounds_and_reject_overflow",
+        "FAILED tests/ritual_handshake_tests.py::RitualHandshakeTests::test_the_server_reads_a_plain_connect_and_answers_bare",
+        "SUBFAILED(renderer='renderer') tests/ritual_model_lights_tests.py::RitualModelLightTests::test_renderers_light_flagged_models_from_compiled_lights",
+        "SUBFAILED(renderer='renderervk') tests/ritual_model_lights_tests.py::RitualModelLightTests::test_renderers_light_flagged_models_from_compiled_lights",
+        "SUBFAILED(renderer='rendererrtx') tests/ritual_model_lights_tests.py::RitualModelLightTests::test_renderers_light_flagged_models_from_compiled_lights",
+        "FAILED tests/rtcw_camera_tests.py::RTCWCameraTests::test_native_qvm_camera_dispatch_and_owned_outputs",
+        "FAILED tests/rtcw_cinematic_tests.py::RTCWCinematicTests::test_native_qvm_dispatch_and_checked_cinematic_arguments",
+        "FAILED tests/rtcw_client_state_tests.py::RTCWClientStateTests::test_snapshot_usercmd_gamestate_and_native_dispatch",
+        "FAILED tests/rtcw_gamestate_budget_tests.py::RTCWGamestateBudgetTests::test_rtcw_uses_its_own_wire_and_message_limit",
+        "FAILED tests/rtcw_module_cvar_tests.py::RTCWModuleCvarTests::test_cvar_records_dispatch_and_mp_info_channel",
+        "SUBFAILED(backend='openal') tests/rtcw_music_tests.py::RTCWMusicTests::test_actual_backend_music_entrypoints",
+        "FAILED tests/rtcw_render_import_tests.py::RTCWRenderImportTests::test_resource_scene_and_scalar_imports_preserve_each_mode_contract",
+        "FAILED tests/server_zombie_snapshot_tests.py::ServerZombieSnapshotTests::test_each_profile_reads_a_zombies_snapshot",
+        "FAILED tests/server_zombie_snapshot_tests.py::ServerZombieSnapshotTests::test_every_registered_profile_pins_its_empty_delta",
+        "FAILED tests/stream_resampler_tests.py::StreamResamplerTests::test_queue_transactions_format_changes_and_stereo_fallback",
+        "SUBFAILED(renderer='renderer') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_light_grid_matches_retail",
+        "SUBFAILED(renderer='renderervk') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_light_grid_matches_retail",
+        "SUBFAILED(renderer='rendererrtx') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_light_grid_matches_retail",
+        "SUBFAILED(renderer='renderer') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_profile_lighting_defaults",
+        "SUBFAILED(renderer='renderervk') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_profile_lighting_defaults",
+        "SUBFAILED(renderer='rendererrtx') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_profile_lighting_defaults",
+        "SUBFAILED(renderer='renderer') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_skinning_in_each_renderer",
+        "SUBFAILED(renderer='renderervk') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_skinning_in_each_renderer",
+        "SUBFAILED(renderer='rendererrtx') tests/stvef_mdr_render_tests.py::StvefMdrRenderTests::test_skinning_in_each_renderer",
+        "FAILED tests/stvef_sp_snapshot_tests.py::STVEFSPSnapshotTests::test_visible_player_and_other_profile_filters",
+        "FAILED tests/stvef_sp_user_move_tests.py::STVEFSPUserMoveTests::test_game_adjusts_the_supplied_command",
+        "FAILED tests/stvef_sp_user_move_tests.py::STVEFSPUserMoveTests::test_snapshot_acknowledgement_header_round_trip",
+        "SUBFAILED(renderer='renderer') tests/stvef_surface_tests.py::STVEFSurfaceTests::test_retail_geometry_appending_flush_and_invalid_numeric_inputs",
+        "SUBFAILED(renderer='renderervk') tests/stvef_surface_tests.py::STVEFSurfaceTests::test_retail_geometry_appending_flush_and_invalid_numeric_inputs",
+        "SUBFAILED(renderer='rendererrtx') tests/stvef_surface_tests.py::STVEFSurfaceTests::test_retail_geometry_appending_flush_and_invalid_numeric_inputs",
+        "FAILED tests/ui_module_abi_tests.py::UiModuleAbiTests::test_profile_and_legacy_ui_boundaries",
+        "FAILED tests/wolfet_snapshot_tests.py::WolfETSnapshotTests::test_visibility_proxies_callbacks_and_other_profiles",
+        "FAILED tests/wolfet_viewpoint_tests.py::WolfETViewpointTests::test_dense_snapshot_preserves_the_separate_cgame_capacity",
+        "FAILED tests/wolfet_viewpoint_tests.py::WolfETViewpointTests::test_origin_visibility_cameras_lean_and_portal_cycles"
+      ],
+      "limitations": [
+        "Default host compiler uses x64 in several legacy fixtures despite engine x86 guard.",
+        "Shared checkout changed during run because Academy and other work remained active.",
+        "Full suite not rerun after focused repairs; no complete automated-suite gate claim."
+      ]
+    },
+    "goalStatus": "paused at user request after current tasks finish; complete compatibility not established",
+    "cleanup": {
+      "status": "automatic approval review rejected verified native PowerShell cleanup",
+      "reason": "blocked by policy; no detailed reason returned",
+      "linksChecked": true,
+      "absoluteTaskRoot": "E:\\Repositories\\fnTech3\\.tmp\\jk2-compat-2026-10-02",
+      "retainedDisposable": [
+        "runtime-sp/home/",
+        "*.exe",
+        "measure_transport*.py",
+        "run_bootstrap.py"
+      ],
+      "retainedEvidence": [
+        "runtime-sp/console.log",
+        "runtime-sp/result.json",
+        "transport-*.txt",
+        "final-*.log",
+        "pytest-full.txt",
+        "final-validation.json"
+      ],
+      "note": "Cleanup rejected before deletion; scratch files and runtime-sp/home native module cache retained. No alternate deletion attempted. Full suite finished; any remaining temp/ contents retained."
+    },
+    "fixtureRepairChecks": {
+      "command": "python -m pytest selected RTCW dispatch tests, ritual_handshake_tests.py and server_zombie_snapshot_tests.py -q",
+      "passed": 11,
+      "subtestsPassed": 9,
+      "failed": 0,
+      "seconds": 31.56,
+      "log": ".tmp\\jk2-compat-2026-10-02\\fixture-repair-tests.log",
+      "files": [
+        "tests/rtcw_camera_tests.py",
+        "tests/rtcw_cinematic_tests.py",
+        "tests/rtcw_client_state_tests.py",
+        "tests/rtcw_module_cvar_tests.py",
+        "tests/rtcw_render_import_tests.py",
+        "tests/ritual_handshake_tests.py",
+        "tests/server_zombie_snapshot_tests.py"
+      ],
+      "scope": "Only missing profile-isolation scaffolding, bare-reply assertion and registered empty-delta cases; no engine source/build/runtime changes."
+    },
+    "generatedDocumentTests": {
+      "passed": 4,
+      "failed": 0,
+      "command": "python -m pytest tests/generate_docs_tests.py -q"
+    },
+    "remainingKnownJK2Gap": "SV_RemainingGameState still uses conservative QL estimate for JK2; its own pure-gamestate budget is unadapted.",
+    "unrelatedFindings": [
+      "Preexisting pip invalid distributions ~, ~ip, ~~p in C:/Python311/Lib/site-packages.",
+      "Older 2026-09-22-jk2-contracts and 2026-09-22-jk2-records lack required JSON companions.",
+      "SP collision probe emitted invalid-bevel warnings; cause not investigated."
+    ]
+  }
+}

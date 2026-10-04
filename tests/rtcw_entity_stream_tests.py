@@ -268,7 +268,7 @@ public:
  std::array<EntityStreamLane,24>entityStreamLanes_;fntech3::audio::rtcw::EntityStreamFiles entityStreams_;
  Device device_;World world_;bool started_=true,hardMuted_=false,queueFail=false;
  std::int64_t RTCWClock(){return now;}bool IsSoftMuted(){return muted;}
- bool FlushStream(StreamPlayer &){return true;}
+ bool FlushStream(StreamPlayer &,bool=false){return true;}
  bool QueueStreamChunk(StreamPlayer &p,int frames,int rate,int width,int channels,const byte *data,float gain,int out,bool){
   assert(p.source&&p.deferStart&&frames>0&&rate==22050&&width==2&&channels==2&&out==2&&gain==1);
   if(queueFail)return false;++p.queued;const auto before=p.pcm.size();p.pcm.resize(before+frames*2);memcpy(p.pcm.data()+before,data,frames*4);return true;

@@ -1,0 +1,1105 @@
+{
+  "date": "2026-10-02",
+  "scope": "Shared audio subsystem audit and corrections; synthetic output and profile regressions, not complete profile acceptance.",
+  "commit": "a1251ede2c382190b18c154b45357f6979d8171c",
+  "worktree": "Dirty before the audit; pre-existing edits preserved. Source fingerprints include the complete tested files, not only this task's hunks.",
+  "implementations": {
+    "stream_lifecycle": "Rewind cleared/stopped sources, retain newly submitted PCM during underrun, preserve deferred queues.",
+    "music": "Drain natural EOF; retry interpolation tails and one bounded decoded chunk; bound empty loops; clear pending data on replacement/stop.",
+    "surround_fallback": "Fall back only with an empty queue; preserve accepted audio and conversion state on transient rejection, including unsubmitted interpolation lookahead if both uploads fail.",
+    "pcm": "Native-endian decoded PCM16; unaligned reads; finite saturation; multiply signed PCM8 instead of shifting.",
+    "stream_gain": "Keep integer phase and interpolation history through gain changes by scaling input samples; sanitize invalid OpenAL gain; reset cleared queue duration metadata on query failure.",
+    "raw_idle": "Drain raw-stream lookahead while retaining phase/left support across bursts; skip conversion-state copies when no PCM remains. The production update fixture verifies 100 short bursts and zero allocations over 10,000 subsequent idle updates.",
+    "source_quality": "Runtime-named AL_SOFT_source_resampler selection: balanced sinc up to 24 taps by default, smallest sinc for fast, largest for best, explicit library default; validate optional APIs and restore the queried default on reused sources when falling back.",
+    "ritual_score": "Separate decoder exhaustion from playback completion; native 44.1-kHz PCM preserved, shared band-limited converter for other rates; retain converted PCM/filter state through moves/parking, loops and EOF; playback-based remaining time; finite gains, null/unaligned PCM safety.",
+    "mohaa_score": "Bound empty/skipped loops; preserve filter/phase across playable loops; retain EOF and failed/incompatible reopen tails; subtract decode/converter read-ahead from playback positions/remaining time; triggered whole-file loops distinct from existing soundtrack offset; finite gain and null/unaligned PCM safety.",
+    "score_idle_stream": "Ritual/MOHAA mix codecs report EOF when no tracks are playing, letting the backend drain accepted PCM and stop silent-stream processing. Later active tracks use the existing reattachment path.",
+    "alsa": "Advance direct/async ring cursors by frames actually accepted; stop zero/error transfers.",
+    "resampling": "Exact identity PCM; independently written Blackman-windowed sinc in both directions, 95%-of-lower-Nyquist cutoff/64 lobes, immutable shared phase tables, single output reserve and specialized contiguous mono/stereo/six-channel loops."
+  },
+  "limits": {
+    "max_chunk_float_samples": 4194304,
+    "max_chunk_bytes": 16777216,
+    "max_filter_radius_frames": 2048,
+    "filter_phases": 128,
+    "max_coefficient_bytes": 2113536,
+    "music_pending_bytes": 32768
+  },
+  "spectral_fixture": {
+    "input": "Half-second synthetic sine; compare 1 kHz and 0.45 * output-rate passband against 0.51 * output-rate stopband; trim 512 output frames at each endpoint.",
+    "required_passband_amplitude_error": 0.001,
+    "required_alias_rejection_db": 60,
+    "baseline_96000_to_48000_30000_hz_alias_db": 0,
+    "results": [
+      {
+        "input_rate": 96000,
+        "output_rate": 48000,
+        "passband_gain": 1.000143339,
+        "alias_db": -90.77,
+        "high_band_gain": 0.999952017
+      },
+      {
+        "input_rate": 48000,
+        "output_rate": 24000,
+        "passband_gain": 0.999852917,
+        "alias_db": -90.77,
+        "high_band_gain": 1.000021643
+      },
+      {
+        "input_rate": 48000,
+        "output_rate": 8000,
+        "passband_gain": 0.999999919,
+        "alias_db": -90.76,
+        "high_band_gain": 1.000379986
+      },
+      {
+        "input_rate": 44100,
+        "output_rate": 22050,
+        "passband_gain": 1.000062918,
+        "alias_db": -90.78,
+        "high_band_gain": 0.99987288
+      },
+      {
+        "input_rate": 48000,
+        "output_rate": 44100,
+        "passband_gain": 1.000163022,
+        "alias_db": -94.08,
+        "high_band_gain": 0.999926425
+      },
+      {
+        "input_rate": 192000,
+        "output_rate": 8000,
+        "passband_gain": 0.999999919,
+        "alias_db": -90.76,
+        "high_band_gain": 1.00037994
+      }
+    ]
+  },
+  "upsampling_fixture": {
+    "input_rates": [
+      8000,
+      16000,
+      22050,
+      44100
+    ],
+    "output_rate": 48000,
+    "tones": [
+      "0.35 * input rate",
+      "0.45 * input rate",
+      "20 kHz at 44.1-kHz input"
+    ],
+    "measurement": "Joint least-squares fit of wanted sinusoid and interpolation image; trim 512 endpoint frames.",
+    "required_amplitude_error": 0.001,
+    "required_image_rejection_db": 60,
+    "before": {
+      "8000_to_48000_2800_hz_gain": 0.810458401,
+      "image_db": -14.7
+    },
+    "results": [
+      {
+        "input_rate": 8000,
+        "output_rate": 48000,
+        "tone_hz": 2800.0,
+        "gain": 0.999982623,
+        "image_hz": 5200.0,
+        "image_db": -124.52
+      },
+      {
+        "input_rate": 8000,
+        "output_rate": 48000,
+        "tone_hz": 3600.0,
+        "gain": 0.999852203,
+        "image_hz": 4400.0,
+        "image_db": -107.35
+      },
+      {
+        "input_rate": 16000,
+        "output_rate": 48000,
+        "tone_hz": 5600.0,
+        "gain": 0.999982632,
+        "image_hz": 10400.0,
+        "image_db": -99.73
+      },
+      {
+        "input_rate": 16000,
+        "output_rate": 48000,
+        "tone_hz": 7200.0,
+        "gain": 0.999852224,
+        "image_hz": 8800.0,
+        "image_db": -97.26
+      },
+      {
+        "input_rate": 22050,
+        "output_rate": 48000,
+        "tone_hz": 7717.5,
+        "gain": 0.999980883,
+        "image_hz": 14332.5,
+        "image_db": -124.41
+      },
+      {
+        "input_rate": 22050,
+        "output_rate": 48000,
+        "tone_hz": 9922.5,
+        "gain": 0.999849323,
+        "image_hz": 12127.5,
+        "image_db": -107.34
+      },
+      {
+        "input_rate": 44100,
+        "output_rate": 48000,
+        "tone_hz": 15435.0,
+        "gain": 0.999980886,
+        "image_hz": 19335.0,
+        "image_db": -124.41
+      },
+      {
+        "input_rate": 44100,
+        "output_rate": 48000,
+        "tone_hz": 19845.0,
+        "gain": 0.999849324,
+        "image_hz": 23745.0,
+        "image_db": -107.34
+      },
+      {
+        "input_rate": 44100,
+        "output_rate": 48000,
+        "tone_hz": 20000.0,
+        "gain": 0.999748793,
+        "image_hz": 23900.0,
+        "image_db": -93.67
+      }
+    ]
+  },
+  "ritual_score_quality_fixture": {
+    "input": "Quantized PCM16 fake MP3 decoder, production Track mixer at 44.1 kHz.",
+    "upsample_results": [
+      {
+        "input_rate": 8000,
+        "gain": 0.999930735,
+        "image_db": -124.57
+      },
+      {
+        "input_rate": 16000,
+        "gain": 0.999930733,
+        "image_db": -124.5
+      },
+      {
+        "input_rate": 22050,
+        "gain": 0.999955307,
+        "image_db": -123.68
+      }
+    ],
+    "downsample_alias_db": -85.59,
+    "before_8000_to_44100": {
+      "gain": 0.656597805,
+      "image_db": -14.41
+    }
+  },
+  "allocation_fixture": {
+    "frames_per_chunk": 8192,
+    "chunks": 1000,
+    "input_rate": 44100,
+    "output_rate": 48000,
+    "transactional_resampler_copy": true,
+    "new_output_vector_each_chunk": true,
+    "includes_final_flush": true,
+    "before": [
+      {
+        "channels": 2,
+        "samples": 17832926,
+        "allocations": 27003,
+        "elapsed_ms": 242.777
+      },
+      {
+        "channels": 6,
+        "samples": 53498778,
+        "allocations": 30006,
+        "elapsed_ms": 269.798
+      }
+    ],
+    "after": [
+      {
+        "channels": 2,
+        "samples": 17832926,
+        "allocations": 3000,
+        "elapsed_ms": 1952.857
+      },
+      {
+        "channels": 6,
+        "samples": 53498778,
+        "allocations": 3000,
+        "elapsed_ms": 12374.607
+      }
+    ]
+  },
+  "rate_conversion_timing_fixture": {
+    "frames_per_chunk": 8192,
+    "chunks": 100,
+    "transactional_resampler_copy": true,
+    "includes_final_flush": true,
+    "timing_limitations": "Single-run wall-clock observations under concurrent workload, not a general CPU or latency guarantee.",
+    "results": [
+      {
+        "input": 8000,
+        "output": 48000,
+        "channels": 2,
+        "init_ms": 0.915,
+        "elapsed_ms": 1056.058,
+        "audio_ms": 102400.0,
+        "elapsed_ratio_percent": 1.031,
+        "samples": 9830400
+      },
+      {
+        "input": 8000,
+        "output": 48000,
+        "channels": 6,
+        "init_ms": 0.906,
+        "elapsed_ms": 3976.601,
+        "audio_ms": 102400.0,
+        "elapsed_ratio_percent": 3.883,
+        "samples": 29491200
+      },
+      {
+        "input": 22050,
+        "output": 48000,
+        "channels": 2,
+        "init_ms": 1.953,
+        "elapsed_ms": 542.092,
+        "audio_ms": 37151.927,
+        "elapsed_ratio_percent": 1.459,
+        "samples": 3566586
+      },
+      {
+        "input": 22050,
+        "output": 48000,
+        "channels": 6,
+        "init_ms": 2.611,
+        "elapsed_ms": 2190.663,
+        "audio_ms": 37151.927,
+        "elapsed_ratio_percent": 5.896,
+        "samples": 10699758
+      },
+      {
+        "input": 44100,
+        "output": 48000,
+        "channels": 2,
+        "init_ms": 2.809,
+        "elapsed_ms": 367.428,
+        "audio_ms": 18575.964,
+        "elapsed_ratio_percent": 1.978,
+        "samples": 1783294
+      },
+      {
+        "input": 44100,
+        "output": 48000,
+        "channels": 6,
+        "init_ms": 2.593,
+        "elapsed_ms": 940.146,
+        "audio_ms": 18575.964,
+        "elapsed_ratio_percent": 5.061,
+        "samples": 5349882
+      },
+      {
+        "input": 96000,
+        "output": 48000,
+        "channels": 2,
+        "init_ms": 3.43,
+        "elapsed_ms": 261.283,
+        "audio_ms": 8533.333,
+        "elapsed_ratio_percent": 3.062,
+        "samples": 819200
+      },
+      {
+        "input": 96000,
+        "output": 48000,
+        "channels": 6,
+        "init_ms": 5.285,
+        "elapsed_ms": 917.488,
+        "audio_ms": 8533.333,
+        "elapsed_ratio_percent": 10.752,
+        "samples": 2457600
+      },
+      {
+        "input": 48000,
+        "output": 44100,
+        "channels": 2,
+        "init_ms": 2.949,
+        "elapsed_ms": 234.967,
+        "audio_ms": 17066.667,
+        "elapsed_ratio_percent": 1.377,
+        "samples": 1505280
+      },
+      {
+        "input": 48000,
+        "output": 44100,
+        "channels": 6,
+        "init_ms": 1.629,
+        "elapsed_ms": 766.13,
+        "audio_ms": 17066.667,
+        "elapsed_ratio_percent": 4.489,
+        "samples": 4515840
+      }
+    ]
+  },
+  "validation": {
+    "windows_x86_profile_audio": {
+      "command": "python -m unittest audio_stream_lifecycle_tests alsa_transfer_tests stream_resampler_tests audio_source_resampler_tests rtcw_entity_stream_tests rtcw_speech_tests rtcw_music_tests audio_speaker_layout_tests audio_direct_channel_fallback_tests rtcw_voice_tests wolfet_audio_tests wolfenstein_openal_voice_tests alice_audio_backend_tests mohaa_audio_stream_tests mohaa_waited_sound_tests stvef_sp_openal_voice_tests stvef_sp_sound_distance_tests rtcw_loop_audio_tests rtcw_spatial_audio_tests -v",
+      "architecture": "i686-pc-windows-msvc (VS x86 environment)",
+      "tests": 83,
+      "outcome": "pass"
+    },
+    "windows_x86_build": {
+      "command": "meson compile -C meson/build/win32-dev fntech3 fnql_audio_loopback_tests",
+      "configuration": "Existing debugoptimized preset; all development profiles enabled; /W4 /WX /O2 /std:c++17 for engine C++.",
+      "outcome": "pass"
+    },
+    "windows_x86_all_targets": {
+      "command": "meson compile -C meson/build/win32-dev --ninja-args=-k0",
+      "outcome": "pass",
+      "timing": "All targets rebuilt after raw-idle allocation guard; the subsequent source-default restoration has a final client/loopback build and focused regression rerun."
+    },
+    "windows_x86_openal_loopback": {
+      "outcome": "pass",
+      "assertions_passed": 47,
+      "checks_skipped": [],
+      "runtime": "vendor=OpenAL Community renderer=OpenAL Soft version=1.1 ALSOFT 1.25.2\r",
+      "restart_cycles": 200,
+      "max_stream_buffer_objects": 2,
+      "source_conversion": {
+        "name": "23rd order Sinc",
+        "gain": 0.989241632,
+        "image_db": -70.3,
+        "alias_db": -67.27
+      }
+    },
+    "linux_x64_openal_loopback": {
+      "outcome": "pass",
+      "assertions_passed": 47,
+      "checks_skipped": [],
+      "runtime": "vendor=OpenAL Community renderer=OpenAL Soft version=1.1 ALSOFT 1.23.1",
+      "restart_cycles": 200,
+      "max_stream_buffer_objects": 2,
+      "source_conversion": {
+        "name": "23rd order Sinc",
+        "gain": 0.98908154,
+        "image_db": -70.52,
+        "alias_db": -63.65
+      }
+    },
+    "linux_x86_previous": {
+      "commands": [
+        "g++ -m32 -std=c++17 -fsyntax-only -DUSE_LOCAL_HEADERS -DNOMINMAX code/client/audio/openal/AudioSystem.cpp",
+        "g++ -m32 -std=c++17 -fsyntax-only -DUSE_LOCAL_HEADERS -DNOMINMAX code/unix/linux_snd.cpp",
+        "TMPDIR=.tmp/audio-review python3 -m unittest discover -s tests -p stream_resampler_tests.py -v"
+      ],
+      "outcome": "pass",
+      "resampler_tests": 3,
+      "resampler_architecture": "Linux x86 (-m32 through compiler_support)",
+      "resampler_outcome": "pass",
+      "final_transaction_retry": "pass",
+      "openal_loopback": "skip: x86 OpenAL runtime not installed",
+      "final_syntax_retry": {
+        "outcome": "pass",
+        "earlier_environment_error": "Wsl/Service/CreateInstance/E_FAIL; recovered without service/distribution changes."
+      }
+    },
+    "linux_x86_ritual_syntax": {
+      "command": "g++ -m32 -std=c++17 -fsyntax-only -DUSE_LOCAL_HEADERS -DNOMINMAX -DUSE_CODEC_MP3 -DFNTECH3_ALICE_DEVELOPMENT=1 -DFNTECH3_FAKK2_DEVELOPMENT=1 -Icode code/client/audio/snd_alice.cpp",
+      "outcome": "pass"
+    },
+    "final_linux_x86_sources": {
+      "command": "g++ -m32 -std=c++17 -fsyntax-only -DUSE_LOCAL_HEADERS -DNOMINMAX -DUSE_CODEC_MP3 -DFNTECH3_ALICE_DEVELOPMENT=1 -DFNTECH3_FAKK2_DEVELOPMENT=1 -DFNTECH3_MOHAA_DEVELOPMENT=1 -Icode code/client/audio/openal/AudioSystem.cpp code/unix/linux_snd.cpp code/client/audio/snd_alice.cpp code/client/cl_mohaa_sound.cpp code/client/audio/snd_main.cpp",
+      "outcome": "pass"
+    },
+    "final_linux_x86_resampler_and_mohaa": {
+      "command": "TMPDIR=.tmp/audio-review PYTHONPATH=tests python3 -m unittest stream_resampler_tests mohaa_audio_stream_tests -v",
+      "tests": 9,
+      "resampler_tests": 4,
+      "outcome": "pass",
+      "timing": "Before the final score-idle guard; that guard is covered by the final Windows x86 regression and separate PCM/idle sanitizer rerun."
+    },
+    "final_linux_x64_conversion_and_scores_sanitized": {
+      "command": "TMPDIR=.tmp/audio-review AUDIO_FIXTURE_CXX=g++ ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1 python3 .tmp/audio-review/sanitized-audio.py stream_resampler_tests mohaa_audio_stream_tests alice_audio_backend_tests.AliceAudioBackendTests.test_non_native_score_rates_preserve_tones_and_reject_images_and_aliases alice_audio_backend_tests.AliceAudioBackendTests.test_non_native_score_preserves_position_parking_loops_and_gain_ramps alice_audio_backend_tests.AliceAudioBackendTests.test_score_track_keeps_last_frame_across_mix_calls",
+      "tests": 12,
+      "compiler_flags": [
+        "-O1",
+        "-g",
+        "-fsanitize=address,undefined,float-cast-overflow",
+        "-fno-omit-frame-pointer"
+      ],
+      "outcome": "pass",
+      "timing": "Before the final score-idle guard, tested separately below."
+    },
+    "final_linux_x64_score_idle_and_pcm_sanitized": {
+      "tests": 2,
+      "compiler_flags": [
+        "-O1",
+        "-g",
+        "-fsanitize=address,undefined,float-cast-overflow",
+        "-fno-omit-frame-pointer"
+      ],
+      "tests_selected": [
+        "alice_audio_backend_tests.AliceAudioBackendTests.test_score_pcm_conversion_rejects_invalid_values_and_buffers",
+        "mohaa_audio_stream_tests.MOHAAAudioStreamTests.test_mix_pcm_rejects_null_saturates_finite_values_and_handles_unaligned_output"
+      ],
+      "outcome": "pass",
+      "before_log": "score-idle-before.log"
+    },
+    "final_linux_x64_raw_idle_sanitized": {
+      "tests": 1,
+      "test": "stream_resampler_tests.StreamResamplerTests.test_queue_transactions_format_changes_and_stereo_fallback",
+      "checks": "Production queue/flush/update transactions; burst counts, gain/format changes, fallback retries and allocation-free idle updates.",
+      "outcome": "pass"
+    },
+    "final_linux_x64_source_policy_sanitized": {
+      "tests": 2,
+      "module": "audio_source_resampler_tests",
+      "outcome": "pass"
+    },
+    "linux_x64_sanitizers": {
+      "command": "TMPDIR=.tmp/audio-review ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1 python3 .tmp/audio-review/sanitized-audio.py",
+      "architecture": "Linux x64; isolated production fragments without module ABIs",
+      "reproduction_modules": [
+        "audio_stream_lifecycle_tests",
+        "alsa_transfer_tests",
+        "stream_resampler_tests"
+      ],
+      "compiler_flags": [
+        "-O1",
+        "-g",
+        "-fsanitize=address,undefined",
+        "-fno-omit-frame-pointer"
+      ],
+      "tests": 9,
+      "outcome": "pass",
+      "final_surround_retry_test": {
+        "tests": 1,
+        "outcome": "pass",
+        "test": "stream_resampler_tests.StreamResamplerTests.test_queue_transactions_format_changes_and_stereo_fallback"
+      },
+      "notes": "Earlier common-path sanitizer run; subsequent surround-history and conversion/score changes have separately recorded sanitizer reruns."
+    },
+    "windows_x86_physical_driver": {
+      "command": "powershell .tmp/audio-review/physical-device-smoke.ps1",
+      "outcome": "pass",
+      "runtime": "OpenAL Soft 1.25.2",
+      "driver": "WASAPI",
+      "device": "Headphones (Realtek(R) Audio)",
+      "frequency": 48000,
+      "cycles": 100,
+      "max_buffer_objects": 2,
+      "checks": [
+        "Deferred PCM retention",
+        "Start after explicit clear",
+        "Start after natural drain",
+        "Buffer reclamation/reuse",
+        "AL errors",
+        "Device shutdown"
+      ],
+      "pcm": "Silence",
+      "limitations": "No subjective listening, end-to-end latency, disconnect or suspend proof",
+      "source_sha256": "38a272532cac55ce4e43a70bb27100ae7634b3612b2f70dde2059236ff0e209d",
+      "driver_log": ".tmp/audio-review/physical-device-runtime.log"
+    },
+    "previous_complete_meson_suite": {
+      "command": "meson test -C meson/build/win32-dev --no-rebuild --print-errorlogs --timeout-multiplier 3 --logbase audio-review-final",
+      "registered_tests": 181,
+      "summary": {
+        "ok": 180,
+        "fail": 0,
+        "skipped": 1
+      },
+      "outcome": "pass",
+      "timing": "Earlier complete suite; preceded final surround-history, Ritual/MOHAA score and wideband conversion corrections, which have separately recorded focused and complete reruns.",
+      "failure_headers": [],
+      "recursive_source_suite": {
+        "tests": 2422,
+        "elapsed_seconds": 3067.483,
+        "skipped": 121,
+        "outcome": "pass"
+      }
+    },
+    "initial_meson_attempt": {
+      "summary": {
+        "ok": 178,
+        "fail": 1,
+        "skipped": 1,
+        "timeout": 1
+      },
+      "outcome": "completed_with_failures",
+      "recursive_timeout_seconds": 3600.86,
+      "timing": "Started before final audio fixture changes; superseded by separately recorded final checks."
+    },
+    "complete_meson_suite": {
+      "command": "meson test -C meson/build/win32-dev --no-rebuild --print-errorlogs --timeout-multiplier 3 --logbase audio-review-wideband",
+      "registered_tests": 181,
+      "summary": {
+        "ok": 178,
+        "fail": 2,
+        "skipped": 1
+      },
+      "outcome": "interrupted_by_agent_for_raw_idle_phase_fix",
+      "completed": false,
+      "timing": "Started after score-idle EOF; stopped before the raw-idle phase/allocation and static-source policy corrections. It is not a passing gate. Those changes have separate final focused, sanitizer, runtime and non-recursive registered checks."
+    },
+    "interrupted_wideband_suite_attempts": [
+      {
+        "outcome": "interrupted_by_agent_for_final_idle_score_fix",
+        "elapsed_seconds": 494.95,
+        "log": "full-tests-wideband-interrupted.log"
+      },
+      {
+        "outcome": "interrupted_by_agent_for_raw_idle_phase_fix",
+        "elapsed_seconds": 1359.53,
+        "log": "full-tests-wideband-interrupted2.log"
+      }
+    ],
+    "interrupted_wideband_suite_process_scope": "Only verified task-owned wrapper/descendant processes were stopped.",
+    "final_registered_tests": {
+      "command": "meson test -C meson/build/win32-dev --no-rebuild --print-errorlogs <registered names except fnql_python_source_regressions>",
+      "summary": {
+        "ok": 202,
+        "fail": 0,
+        "skipped": 1
+      },
+      "registered_tests_run": 203,
+      "unavailable_tests": [],
+      "recursive_suite_excluded": "fnql_python_source_regressions; earlier complete run and final audio fixtures are recorded separately.",
+      "outcome": "pass"
+    },
+    "ritual_final_sanitizers": {
+      "architecture": "Linux x64 GCC",
+      "tests": 2,
+      "compiler_flags": [
+        "-O1",
+        "-g",
+        "-fsanitize=address,undefined,float-cast-overflow",
+        "-fno-omit-frame-pointer"
+      ],
+      "outcome": "pass",
+      "checks": [
+        "EOF exact frames/endpoints across mix requests",
+        "Null PCM output",
+        "NaN/infinity and finite saturation",
+        "Unaligned native PCM output"
+      ],
+      "before_logs": [
+        "ritual-tail-before.log",
+        "ritual-pcm-before-gcc.log",
+        "ritual-nan-before-gcc.log"
+      ]
+    }
+  },
+  "profile_scope": {
+    "fixtures": [
+      "rtcw-sp",
+      "rtcw-mp",
+      "wolfet",
+      "stvef-sp",
+      "alice/shared Ritual path",
+      "mohaa score streams",
+      "common decoded PCM and speaker routing"
+    ],
+    "common_paths": "Corrections apply to all profiles using the shared backend; shared tests do not prove individual retail acceptance.",
+    "compatibility_gates_closed": []
+  },
+  "features_preserved": [
+    "HRTF/output negotiation",
+    "authored stereo/multichannel routing",
+    "UHJ/B-Format",
+    "source pooling and budgets",
+    "distance attenuation",
+    "occlusion",
+    "per-voice tone shaping",
+    "EFX filters and reverb",
+    "audio zones and portal blending",
+    "limiter",
+    "deferred updates",
+    "timing diagnostics",
+    "device-reopen policy"
+  ],
+  "features_omitted_by_this_change": [],
+  "legacy": "Retains the feature/profile limitations documented in docs/AUDIO.md; no new retail-exact presentation mode.",
+  "gain_continuity_fixture": {
+    "input_rate": 44100,
+    "output_rates": [
+      48000,
+      24000
+    ],
+    "frames_per_chunk": 17,
+    "chunks": 100,
+    "channels": 2,
+    "gain": "Alternating 1.0 and 0.5; same envelope pre-scaled in a single input chunk.",
+    "checks": [
+      "Exact total frame count",
+      "Byte-identical PCM against whole input"
+    ],
+    "before": "Production converter assertion fails",
+    "after": "Pass"
+  },
+  "remaining_acceptance": [
+    "Physical-device disconnect/reconnect and suspend/resume",
+    "Long-running physical output stress",
+    "Subjective speaker/headset listening",
+    "All-profile retail gameplay/cinematic synchronization",
+    "Actual big-endian hardware"
+  ],
+  "external_implementation_incorporated": false,
+  "reference_observations": [
+    "https://www.openal.org/documentation/OpenAL_Programmers_Guide.pdf",
+    "https://openal.org/pipermail/openal/2016-March/000485.html",
+    "https://github.com/openmoh/openmohaa/blob/ab43a0def6c4feccedae36fdb58c2e007d7e4c35/code/client/snd_openal_new.cpp",
+    "https://github.com/kcat/openal-soft/blob/1.25.2/core/voice.h",
+    "https://github.com/kcat/openal-soft/blob/1.25.2/al/state.cpp"
+  ],
+  "mohaa_loop_reference": "Pinned OpenMoHAA reconstruction, not a retail runtime observation; observed whole-file triggered-stream loop semantics. No implementation text incorporated.",
+  "proprietary_inputs": [],
+  "retail_installations_modified": false,
+  "game_launched": false,
+  "input_control_used": false,
+  "logs": ".tmp/audio-review/",
+  "cleanup": {
+    "outcome": "blocked_by_command_policy",
+    "consecutive_goal_turns_with_rejection": 1,
+    "verified_root": "E:/Repositories/fnTech3/.tmp/audio-review",
+    "reparse_points": 0,
+    "remaining_task_processes": 0,
+    "reason": "blocked by policy",
+    "smallest_rejected_action": "Remove-Item -LiteralPath E:/Repositories/fnTech3/.tmp/audio-review/downsample-bench.exe -Force",
+    "remaining_work": "Remove verified disposable probe binaries, duplicate temporary source files, helper scripts and the timed-out test temporary directory.",
+    "verified_at_utc": "2026-10-03T04:59:33.2509486Z",
+    "previous_run_consecutive_goal_turns_with_rejection": 3,
+    "resumed_goal_turns_with_rejection": 1,
+    "last_rejected_action_date": "2026-10-03",
+    "reviewer_cause": "undetermined; the tool error did not identify Auto-review",
+    "policy_diagnostics": {
+      "date": "2026-10-03",
+      "configuration": {
+        "approval_policy": "never",
+        "sandbox_mode": "danger-full-access",
+        "approvals_reviewer": "user"
+      },
+      "user_rule_decisions": {
+        "allow": 35
+      },
+      "app_and_cli_matching_user_rules_for_rejected_command": [],
+      "official_documentation": "https://learn.chatgpt.com/docs/sandboxing/auto-review",
+      "documented_auto_review_behavior": "Inactive with approval_policy never.",
+      "settings_changed": false,
+      "exact_block_source": "undetermined"
+    }
+  },
+  "source_resampler_fixture": {
+    "runtime": "OpenAL Soft 1.25.2, Windows x86",
+    "mixer_rate": 48000,
+    "default": "Cubic Spline",
+    "default_index": 2,
+    "measurement": "One-second quantized PCM16 loop; mono float loopback, distance disabled; orthogonal sinusoid fits over frames 6000..41999 against native-rate reference.",
+    "up_tone": {
+      "input_rate": 8000,
+      "tone_hz": 2800,
+      "image_hz": 5200
+    },
+    "down_tone": {
+      "input_rate": 96000,
+      "tone_hz": 30000,
+      "alias_hz": 18000
+    },
+    "quality": [
+      {
+        "index": 0,
+        "name": "Nearest",
+        "up_gain": 0.804452963,
+        "up_image_db": -5.53,
+        "down_alias_db": -0.0
+      },
+      {
+        "index": 1,
+        "name": "Linear",
+        "up_gain": 0.652146463,
+        "up_image_db": -10.9,
+        "down_alias_db": -0.0
+      },
+      {
+        "index": 2,
+        "name": "Cubic Spline",
+        "up_gain": 0.773244854,
+        "up_image_db": -15.24,
+        "down_alias_db": -0.0
+      },
+      {
+        "index": 3,
+        "name": "4-point Gaussian",
+        "up_gain": 0.397202533,
+        "up_image_db": -24.11,
+        "down_alias_db": -6.02
+      },
+      {
+        "index": 4,
+        "name": "11th order Sinc (fast)",
+        "up_gain": 0.406226466,
+        "up_image_db": -60.46,
+        "down_alias_db": -66.53
+      },
+      {
+        "index": 5,
+        "name": "11th order Sinc",
+        "up_gain": 0.406226466,
+        "up_image_db": -60.46,
+        "down_alias_db": -67.82
+      },
+      {
+        "index": 6,
+        "name": "23rd order Sinc (fast)",
+        "up_gain": 0.989248497,
+        "up_image_db": -70.3,
+        "down_alias_db": -67.55
+      },
+      {
+        "index": 7,
+        "name": "23rd order Sinc",
+        "up_gain": 0.989248497,
+        "up_image_db": -70.3,
+        "down_alias_db": -67.67
+      },
+      {
+        "index": 8,
+        "name": "47th order Sinc (fast)",
+        "up_gain": 0.992788577,
+        "up_image_db": -87.67,
+        "down_alias_db": -94.76
+      },
+      {
+        "index": 9,
+        "name": "47th order Sinc",
+        "up_gain": 0.992788577,
+        "up_image_db": -87.67,
+        "down_alias_db": -104.55
+      }
+    ],
+    "cost": [
+      {
+        "index": 2,
+        "voices": 32,
+        "elapsed_ms": 51.13,
+        "audio_seconds": 10,
+        "cpu_percent": 0.511
+      },
+      {
+        "index": 2,
+        "voices": 128,
+        "elapsed_ms": 202.337,
+        "audio_seconds": 10,
+        "cpu_percent": 2.023
+      },
+      {
+        "index": 4,
+        "voices": 32,
+        "elapsed_ms": 265.402,
+        "audio_seconds": 10,
+        "cpu_percent": 2.654
+      },
+      {
+        "index": 4,
+        "voices": 128,
+        "elapsed_ms": 1257.049,
+        "audio_seconds": 10,
+        "cpu_percent": 12.57
+      },
+      {
+        "index": 5,
+        "voices": 32,
+        "elapsed_ms": 266.155,
+        "audio_seconds": 10,
+        "cpu_percent": 2.662
+      },
+      {
+        "index": 5,
+        "voices": 128,
+        "elapsed_ms": 1078.796,
+        "audio_seconds": 10,
+        "cpu_percent": 10.788
+      },
+      {
+        "index": 6,
+        "voices": 32,
+        "elapsed_ms": 307.65,
+        "audio_seconds": 10,
+        "cpu_percent": 3.076
+      },
+      {
+        "index": 6,
+        "voices": 128,
+        "elapsed_ms": 1280.311,
+        "audio_seconds": 10,
+        "cpu_percent": 12.803
+      },
+      {
+        "index": 7,
+        "voices": 32,
+        "elapsed_ms": 325.027,
+        "audio_seconds": 10,
+        "cpu_percent": 3.25
+      },
+      {
+        "index": 7,
+        "voices": 128,
+        "elapsed_ms": 1271.922,
+        "audio_seconds": 10,
+        "cpu_percent": 12.719
+      },
+      {
+        "index": 8,
+        "voices": 32,
+        "elapsed_ms": 478.443,
+        "audio_seconds": 10,
+        "cpu_percent": 4.784
+      },
+      {
+        "index": 8,
+        "voices": 128,
+        "elapsed_ms": 1921.756,
+        "audio_seconds": 10,
+        "cpu_percent": 19.218
+      },
+      {
+        "index": 9,
+        "voices": 32,
+        "elapsed_ms": 470.789,
+        "audio_seconds": 10,
+        "cpu_percent": 4.708
+      },
+      {
+        "index": 9,
+        "voices": 128,
+        "elapsed_ms": 1788.339,
+        "audio_seconds": 10,
+        "cpu_percent": 17.883
+      }
+    ],
+    "cost_scope": "32/128 mono voices at 22050 Hz mixed to 48000 Hz for ten seconds; conversion/mixing wall time on one machine, not a hardware latency or general CPU guarantee.",
+    "default_policy": "balanced",
+    "library_policy": "Restore the queried runtime default; older/malformed/unavailable optional support falls back with diagnostics."
+  },
+  "raw_idle_fixture": {
+    "input_rate": 44100,
+    "output_rates": [
+      48000,
+      24000
+    ],
+    "frames_per_chunk": 17,
+    "chunks": 100,
+    "input": "Stereo DC PCM16; queues exhaust between ticks.",
+    "checks": [
+      "Exact PCM/frame count against one input buffer",
+      "Repeated idle drains emit no extra PCM",
+      "Zero allocations over 10000 idle updates after retained-history drain"
+    ],
+    "before_log": "raw-idle-before.log",
+    "final_sanitizer_log": "raw-idle-final-sanitized.log"
+  },
+  "unrelated_issues": [
+    {
+      "test": "input_system_source_tests.AliceInputSourceTests.test_alice_commands_are_registered_only_for_alice",
+      "observation": "Existing source assertion expects three +use registrations, while the workspace has four (4 != 3).",
+      "action": "Reported; the input source/test changed independently during the audit. Final registered input source check passed."
+    },
+    {
+      "component": "Ninja dependency cache",
+      "observation": "Build emitted ninja: warning: premature end of file; recovering and rebuilt 766 targets.",
+      "action": "Recovery/full rebuild succeeded. No build-cache behavior changed by this task."
+    },
+    {
+      "component": "WSL environment",
+      "observation": "A final repeated syntax probe could not start Ubuntu: Wsl/Service/CreateInstance/E_FAIL.",
+      "action": "Recovered without service/distribution changes; final syntax, loopback and resampler checks passed."
+    },
+    {
+      "component": "Clang sanitizer fixture compilation",
+      "observation": "One isolated Ritual PCM fixture compile exceeded its 120-second bound.",
+      "action": "Equivalent GCC sanitizer fixtures reproduced null/NaN failures and passed after correction. No compiler/system settings changed."
+    },
+    {
+      "component": "WSL OpenAL runtime initialization",
+      "observation": "The Linux runtime reported missing PipeWire client-rt.conf during initialization.",
+      "action": "Synthetic loopback remained available and all 45 assertions passed. No host audio configuration changed."
+    },
+    {
+      "component": "JKA tests under concurrent development",
+      "observation": "Earlier all-target builds failed /WX: jka_sp_game_bridge C4211/C4611, jka_font_host C4702 and jka_string_host C4459.",
+      "action": "Unrelated files preserved; subsequent all-target build passed after independent corrections. Audio client targets and final regressions were also rebuilt separately."
+    },
+    {
+      "test": "fntech3_application_icons",
+      "observation": "Interrupted wideband suite failed committed PNG/embedded frame equality at tests/application_icon_tests.cpp:67.",
+      "action": "Unrelated icon sources were changing; final registered rerun is recorded separately."
+    }
+  ],
+  "artifacts": [
+    {
+      "Path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+      "Hash": "299C2B02FDFDCCAD3F4BF8DE2A558E79F1D692E935723585E7AC240D06BB39E7"
+    },
+    {
+      "Path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fnql_audio_loopback_tests.exe",
+      "Hash": "4C5844470C1BD282A9045C945056572B9DEF2DD0B911D1D132E8DCD256568742"
+    },
+    {
+      "Path": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\stvef-audio\\soft_oal.dll",
+      "Hash": "011D2CDB7CDC2A97858F414956955DF5A2514FECEFE1982928C4CD2B1A2E0C8A"
+    }
+  ],
+  "source_fingerprints": [
+    {
+      "path": "code/client/audio/shared/AudioStreamResampler.h",
+      "sha256": "4a1276aa197afd714abe13440a2c12098e530ae8c5dd704c62bec189fc0317e1"
+    },
+    {
+      "path": "code/client/audio/openal/AudioSystemBackend.inl",
+      "sha256": "b5d446056e7da89566c953cf6f73af05d52cc528943fb8828c6273e5620a34c2"
+    },
+    {
+      "path": "code/client/audio/shared/AudioSourceResampler.h",
+      "sha256": "6c25614d33938ca0d96cb63d207499741332b80b16e67cb1425b6fca5bd76b7d"
+    },
+    {
+      "path": "tests/audio_source_resampler_tests.py",
+      "sha256": "1b2f60a376580989995f30fe164d89c15b166cbff8d11eb2e7e8b1b03d6fe3b6"
+    },
+    {
+      "path": "tests/audio/source_resampler_loopback.inl",
+      "sha256": "0f8d2a5fe2ef3b07eb127661835f639c68c627866dd8217a7dfc06928ef373f0"
+    },
+    {
+      "path": "code/client/audio/openal/AudioSystem.cpp",
+      "sha256": "22975002b52c22fc39a14464f2f7dbb2000c77743099bde00a7623de7a249890"
+    },
+    {
+      "path": "code/client/audio/openal/OpenALCompat.h",
+      "sha256": "93b10f05e1c7f0f1ffd2294a5eb6b733eb83ab8eb881f49fd06b552efa4fb757"
+    },
+    {
+      "path": "code/client/audio/snd_main.cpp",
+      "sha256": "b64dce283767991142fc26f8d0e2650858f2d3be096253878381e9e7a0bbb06f"
+    },
+    {
+      "path": "code/client/audio/snd_local.h",
+      "sha256": "0e0d83b4b0cd47818d7f5e03b41675cde12b67308272b3b9db9e3d806978e80f"
+    },
+    {
+      "path": "code/client/audio/snd_alice.cpp",
+      "sha256": "5b3929c7c2634539a9d52d96259cf09b640d95c76630e27057f8f1d69032d86b"
+    },
+    {
+      "path": "tests/alice_audio_backend_tests.py",
+      "sha256": "60187baf9dd990fde0bd2ded51f63f95d7966f35fe825ab274e21c5260a395ec"
+    },
+    {
+      "path": "code/client/cl_mohaa_sound.cpp",
+      "sha256": "859c8de2960511e8b702f23bca30079a687ab5ff7c90e770419baf12883b85d5"
+    },
+    {
+      "path": "tests/mohaa_audio_stream_tests.py",
+      "sha256": "d02e0094a827a647d0eff35d041c5cd8c06ce05504278cddb996c944fdf55ab8"
+    },
+    {
+      "path": "code/client/audio/openal/AudioSystemStreams.inl",
+      "sha256": "533892af1ca52058b9073537d686a0af30ae67978325ceb6a7a4320a997d1097"
+    },
+    {
+      "path": "code/client/audio/openal/AudioSystemShared.inl",
+      "sha256": "b89d9182ea47274e0f668f46af3ef4466e0d6c8132938f82db74ee3b817cb1f3"
+    },
+    {
+      "path": "code/client/audio/openal/AudioSystemOpenAL.inl",
+      "sha256": "3073d9116adc689ebc8c84fccb0f1e6f5be945638fa3031f466e433d1311d6c2"
+    },
+    {
+      "path": "code/client/audio/openal/AudioSystemWorld.inl",
+      "sha256": "c7aad9ac7c5ed3ac4b5a59418c4a9bb30b771485002fbc7a6eecd8a2fd683359"
+    },
+    {
+      "path": "code/client/audio/openal/AudioSystemRTCWStreams.inl",
+      "sha256": "32663fcab250787d68756c30f08d4dc3a9529291969a54c3c42e0c26a2d6cceb"
+    },
+    {
+      "path": "code/client/audio/codecs/snd_codec.h",
+      "sha256": "9e3193db340eff72da4e6ecafdf080a694eb1fb44903aff974490458515e076d"
+    },
+    {
+      "path": "code/client/audio/codecs/snd_codec_mp3.cpp",
+      "sha256": "14d84864d577306a34485957998363309e92ea94e95db4ae59bc42ffb8a1a0dc"
+    },
+    {
+      "path": "code/client/audio/legacy/snd_mem.cpp",
+      "sha256": "b83c3454d8f2a52c1314e1884e09a9abb6108e6a6c16a8d3834386c300c6d3d1"
+    },
+    {
+      "path": "code/unix/linux_snd.cpp",
+      "sha256": "517711b32530c2c8aa1b4b6b3c9271baaaa0dd5d92543de4102500152392e53f"
+    },
+    {
+      "path": "tests/audio_stream_lifecycle_tests.py",
+      "sha256": "588132602fe5c697030077542a9109e3c1973ceee3f8a0ad60da4291de922e75"
+    },
+    {
+      "path": "tests/alsa_transfer_tests.py",
+      "sha256": "68f7803f70e1f169af744ef10ee8df591f5c450d12d85bd25ccfc75528b5c71d"
+    },
+    {
+      "path": "tests/stream_resampler_tests.py",
+      "sha256": "59cafa92e35bfbbad540ae354de951a5e0f734ee9851bddbb762f0fc98c71a00"
+    },
+    {
+      "path": "tests/rtcw_music_fixture.py",
+      "sha256": "a09846ebfdfdc25ed5729fd7d87285559c740b3cdc7f567e355460d519c66a64"
+    },
+    {
+      "path": "tests/rtcw_entity_stream_tests.py",
+      "sha256": "9b2a48a0f081c7b79b6d5f85cc8a41b9042f590db046e08f29ab14c7eb12fbea"
+    },
+    {
+      "path": "tests/audio/openal_loopback_tests.cpp",
+      "sha256": "a8701f9a74a0a3a9e16f24452b504c683d470bd8bc1e76bc35c337768ba5263c"
+    },
+    {
+      "path": "tests/audio/stream_player_loopback.inl",
+      "sha256": "37e609f3768d35b6e7252a5679943d8b55fc420981d1c5ffe69d702749e56b8e"
+    },
+    {
+      "path": "tests/audio/resampler_allocation_benchmark.cpp",
+      "sha256": "d8e65f0c953f6adab6a467806cb3e9375c73aa409920e456145a09fd220b1dcd"
+    },
+    {
+      "path": "tests/audio/resampler_downsample_benchmark.cpp",
+      "sha256": "5ce55f272b87e99671b9eca1ca64f24af7784058ecfbe25db8cf4fa4b191e794"
+    }
+  ],
+  "completion": {
+    "audio_changes": "implemented_and_validated",
+    "required_remaining_work": [
+      "Remove verified disposable temporary probe/helper files when the command-policy block is resolved."
+    ],
+    "acceptance_limits": "Hardware and profile acceptance limitations remain explicit; no full compatibility claim is made."
+  },
+  "resumed_review": {
+    "date": "2026-10-03",
+    "source_fingerprints_checked": 31,
+    "source_fingerprints_matching": 31,
+    "audio_source_changes_since_previous_validation": [],
+    "windows_x86_openal_loopback": {
+      "outcome": "pass",
+      "assertions_passed": 47,
+      "runtime": "OpenAL Soft 1.25.2",
+      "binary": "meson/build/win32-dev/fnql_audio_loopback_tests.exe",
+      "sha256": "650af4c01cd25e2373938c6cef80c6dbf234df1648f956551efb6da1dc7b6d4b",
+      "stable_during_run": true,
+      "verified_at_utc": "2026-10-03T05:00:57.3536914Z",
+      "log": ".tmp/audio-review/windows-loopback-resumed-2026-10-03.log"
+    },
+    "artifact_scope": "Both shared Windows binaries were rebuilt by unrelated work. Earlier artifact hashes and test runs remain historical; only the resumed loopback binary has a fresh runtime check.",
+    "client_sha256_observed": "a9fb391ece9e9a054c2761524ec85691b4355de1b00d2af5558da63b834e3451",
+    "cleanup_outcome": "blocked_by_command_policy",
+    "new_audio_or_unrelated_source_defects_found": []
+  }
+}

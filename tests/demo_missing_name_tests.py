@@ -46,12 +46,13 @@ class DemoMissingNameTests(unittest.TestCase):
 #include "code/client/client_alice_demo.hpp"
 enum { COM_GAME_QUAKE3 = 1, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP,
        COM_GAME_WOLFET, COM_GAME_STVEF_SP, COM_GAME_STVEF_MP, COM_GAME_ALICE, COM_GAME_FAKK2,
-       COM_GAME_MOHAA,
+       COM_GAME_MOHAA, COM_GAME_JKA_MP,
        OLD_PROTOCOL_VERSION = 68, NEW_PROTOCOL_VERSION = 71,
        QL_RETAIL_PROTOCOL_VERSION = 91, NETCHAN_RTCW_SP_PROTOCOL_VERSION = 49,
        NETCHAN_RTCW_MP_PROTOCOL_VERSION = 60, NETCHAN_STVEF_HM_PROTOCOL_VERSION = 24,
        NETCHAN_ALICE_PROTOCOL_VERSION = 1, NETCHAN_MOHAA_PROTOCOL_VERSION = 6,
-       NETCHAN_WOLFET_PROTOCOL_VERSION = 84, NETCHAN_IOEF_PROTOCOL_VERSION = 26 };
+       NETCHAN_WOLFET_PROTOCOL_VERSION = 84, NETCHAN_IOEF_PROTOCOL_VERSION = 26,
+       NETCHAN_JKA_MP_PROTOCOL_VERSION = 26 };
 struct Profile { int id; const char *displayName; } profile;
 Profile *Com_GameProfile() { return &profile; }
 int Com_GameIsRTCWSP() { return profile.id == COM_GAME_RTCW_SP; }
@@ -237,7 +238,9 @@ int main() {
     return 0;
 }
 '''
-        with tempfile.TemporaryDirectory() as tmp:
+        scratch = ROOT / ".tmp"
+        scratch.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="demo-missing-name-", dir=scratch) as tmp:
             cpp, exe = Path(tmp)/"probe.cpp", Path(tmp)/"probe.exe"
             cpp.write_text(harness, encoding="utf-8")
             subprocess.run([compiler, *compiler_target_args(compiler), "-std=c++17",

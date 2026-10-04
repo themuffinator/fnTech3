@@ -17,6 +17,7 @@ PRELUDE = r'''
 #include "code/compat/rtcw_module_abi.h"
 #include "code/renderercommon/tr_rtcw_marks.h"
 #include "code/renderercommon/tr_rtcw_corona.h"
+#include "code/client/client_jka_cgame_render_state.hpp"
 #include <array>
 #include <cassert>
 #include <climits>
@@ -29,6 +30,14 @@ template<class VM> static bool CL_RTCWCinematicCall(VM *, fntech3::rtcw::module:
 template<class VM> static bool CL_RTCWCameraCall(VM *, fntech3::rtcw::module::Call, intptr_t *, intptr_t &) { return false; }
 using namespace fntech3::rtcw::module;
 static comGameProfile_t profile;
+// Other profiles must never enter their module dispatch in this RTCW fixture.
+int Com_GameIsJK2MP(void) { return profile.id == COM_GAME_JK2_MP; }
+static bool CL_JK2CgameCall(intptr_t *, intptr_t &, intptr_t &) { assert(false); return false; }
+static bool CL_JKACgameCall(intptr_t *, intptr_t &, intptr_t &) { assert(false); return false; }
+static bool CL_JK2UICall(intptr_t *, intptr_t &, intptr_t &) { assert(false); return false; }
+int Com_GameIsJKAMP(void) { return profile.id == COM_GAME_JKA_MP; }
+static void CL_JKACgameRenderFlush() { assert(false); }
+static bool CL_JKAUICall(intptr_t *, intptr_t &, intptr_t &, std::array<intptr_t, 6> &, intptr_t *&) { assert(false); return false; }
 const comGameProfile_t *Com_GameProfile() { return &profile; }
 int Com_GameIsRTCW() { return profile.id == COM_GAME_RTCW_SP || profile.id == COM_GAME_RTCW_MP; }
 static intptr_t CL_CGameTrapForProfile(intptr_t operation) { return operation; }

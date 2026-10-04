@@ -45,11 +45,12 @@ int SV_AreaEntities(const vec3_t,const vec3_t,int *out,int maximum){
  Check(maximum==MAX_GENTITIES,"Contact limit");
  for(std::size_t i=0;i<touching.size();++i)out[i]=touching[i];return static_cast<int>(touching.size());
 }
-clipHandle_t SV_ClipHandleForEntity(const sharedEntity_t *e,qboolean){return SV_NumForGentity(const_cast<sharedEntity_t*>(e));}
+// Entity zero is a client, not collision model zero (the world).
+clipHandle_t SV_ClipHandleForEntity(const sharedEntity_t *e,qboolean){return 64+SV_NumForGentity(const_cast<sharedEntity_t*>(e));}
 void CM_BoxTrace(trace_t *out,const vec3_t,const vec3_t,const vec3_t,const vec3_t,int,int,qboolean){*out={};out->fraction=1;}
 void CM_SetTempBoxModelContents(int){}
 void CM_TransformedBoxTrace(trace_t *out,const vec3_t,const vec3_t,const vec3_t,const vec3_t,int model,int,const vec3_t,const vec3_t,qboolean){
- traced.push_back(model);*out={};out->fraction=1;
+ traced.push_back(model-64);*out={};out->fraction=1;
 }
 static fntech3::server::ServerGameDataView serverGameData;
 '''

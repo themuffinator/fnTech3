@@ -49,23 +49,19 @@ struct AudioSystem::RTCWEntityOutput {
 	}
 	bool Submit( int index, int frames, int rate, int width, int channels, const byte *data ) {
 		auto &lane = system.entityStreamLanes_[index];
-		std::vector<byte> pcm( static_cast<size_t>( frames ) * 4 );
+		std::vector<short> pcm( static_cast<size_t>( frames ) * 2 );
 		for ( int side = 0; side < 2; ++side ) {
 			std::fill( pcm.begin(), pcm.end(), 0 );
 			for ( int frame = 0; frame < frames; ++frame ) {
 				const size_t sample = static_cast<size_t>(frame) * channels + ( channels == 2 ? side : 0 );
-				// Codecs return native-endian PCM16; the generic stream converter
-				// consumes little-endian bytes. Encode explicitly for big-endian hosts.
+				// Keep the codec's native-endian PCM16 through the stream converter.
 				short value;
 				if ( width == 2 ) std::memcpy( &value, data + sample * 2, 2 );
 				else value = static_cast<short>( ( channels == 1 ? int(data[sample]) - 128 : int(static_cast<signed char>(data[sample])) ) * 256 );
-				const auto encoded = static_cast<std::uint16_t>( value );
-				const size_t offset = ( static_cast<size_t>(frame) * 2 + side ) * 2;
-				pcm[offset] = static_cast<byte>( encoded );
-				pcm[offset + 1] = static_cast<byte>( encoded >> 8 );
+				pcm[static_cast<size_t>(frame) * 2 + side] = value;
 			}
 			if ( !system.QueueStreamChunk( lane.players[side], frames, rate, 2, 2,
-				pcm.data(), 1.0f, 2, false ) ) {
+				reinterpret_cast<const byte *>( pcm.data() ), 1.0f, 2, false ) ) {
 				Clear( index ); // Never leave half a stereo pair playing after failure.
 				return false;
 			}

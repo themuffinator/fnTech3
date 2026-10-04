@@ -89,7 +89,8 @@ static void contentsFlags(){
   int contents=0;for(int b=0;b<7;++b)if(mask&(1<<b))contents|=bits[b];
   aasworld.areasettings[1].contents=contents;aasworld.areasettings[1].areaflags=areaflags;
   AAS_InitAreaContentsTravelFlags();
-  const int expected=holomatch()?holomatchFlags(contents):quake3Flags(contents,areaflags);
+  const int expected=Com_GameIsWolfET()?fntech3::rtcw::routing::ContentsFlags(contents):
+   holomatch()?holomatchFlags(contents):quake3Flags(contents,areaflags);
   assert(AAS_GetAreaContentsTravelFlags(1)==expected&&AAS_AreaContentsTravelFlags(1)==expected);
  }
  shutdown();
@@ -117,9 +118,9 @@ int main(){
 # Each mutation replaces text in be_aas_route.cpp and must make the checks fail.
 MUTATIONS = {
     'Holomatch starts from zeros': (
-        'const bool goalrow = rtcw || holomatch;', 'const bool goalrow = rtcw;'),
+        'const bool goalrow = rtcw || wolfet || holomatch;', 'const bool goalrow = rtcw || wolfet;'),
     'every profile starts from the goal row': (
-        'const bool goalrow = rtcw || holomatch;', 'const bool goalrow = true;'),
+        'const bool goalrow = rtcw || wolfet || holomatch;', 'const bool goalrow = true;'),
     "Elite Force's single player routes as Holomatch": (
         'const bool holomatch = Com_GameIsSTVEFMP() != 0;', 'const bool holomatch = Com_GameIsSTVEF() != 0;'),
     'Holomatch skips a disabled area': (

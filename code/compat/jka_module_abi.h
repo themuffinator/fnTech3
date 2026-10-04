@@ -10,7 +10,12 @@ enum {
 	FNTECH3_JKA_MP_GAME_API_VERSION = 1,
 	FNTECH3_JKA_MP_CGAME_API_VERSION = 2,
 	FNTECH3_JKA_MP_UI_API_VERSION = 3,
-	FNTECH3_JKA_SP_GAME_API_VERSION = 10,
+	/* OpenJK's modern GetUIAPI table is version 3. Retail's vmMain/QVM
+	 * export UI_GETAPIVERSION is the separate legacy version 7. */
+	FNTECH3_JKA_MP_UI_LEGACY_API_VERSION = 7,
+	/* Retail jagamex86.dll 1.01 writes 8 at GetGameAPI 0x20073472;
+	 * OpenJK's API 10 has a different savegame import boundary. */
+	FNTECH3_JKA_SP_GAME_API_VERSION = 8,
 #define FNTECH3_JKA_MODULE_CALL( module, direction, name, ordinal ) \
 	FNTECH3_JKA_##name = ordinal,
 #include "jka_module_calls.def"

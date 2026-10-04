@@ -22,19 +22,27 @@ historical upstream records, not fnTech3 release history. See the
   ([Games Guide](docs/GAMES.md)).
 - Path trace the main view with the RTX renderer's `rtx_rt_mode 2`. The world,
   posed models and the first-person weapon are traced with their shader
-  stages as authored and lit as Q2RTX lights Quake II: from the sky, its
-  `q3map_sun` and the surfaces that give off light -- `q3map_surfacelight`
+  stages as authored and lit by the level's own lights in place of its
+  lightmaps, with no per-map setting: the light entities its map keeps
+  (Quake III's and RTCW's maps keep the lights their designers placed;
+  q3map2 left none in Quake Live's and Enemy Territory's), its sky and
+  `q3map_sun`, and the surfaces that give off light -- `q3map_surfacelight`
   shaders, glow stages, additive flames, and the bright texels of shaders
   drawn fullbright, which the scene now lights as it lights any surface --
-  with nothing baked, in linear light, and seen through Q2RTX's tone mapper:
-  a curve fitted to each view's histogram, as Eilertsen, Mantiuk and Unger
-  fit theirs, to the light a surface receives so that textures keep their
-  detail, blended with Reinhard's curve behind an exposure metered on the
-  view's 70th to 90th brightness percentiles (`rtx_rt_lighting 1` lights the
-  world from its lightmaps instead, `2` from the map compilers' own lights
-  and light models; `alphashadow` and `lightfilter` surfaces filter the light
-  as the compilers read them), and by the
-  game's dynamic lights, shadowed and reaching what the raster light pass
+  with traced bounces in place of the compilers' ambient and `_minlight`
+  and nothing baked -- no lightmap, vertex light or light grid is read --
+  shown as traced, in the units the map compiler gave its lights, with no
+  exposure (`rtx_rt_camera 1` sees it in linear light through Q2RTX's tone
+  mapper: a curve fitted to each view's histogram, as Eilertsen, Mantiuk and
+  Unger fit theirs, to the light a surface receives so that textures keep
+  their detail, blended with Reinhard's curve behind an exposure metered on
+  the view's 70th to 90th brightness percentiles; `rtx_rt_lighting 3` lights
+  from the sky and emitters alone, as Q2RTX lights Quake II, and `1` and `2`
+  from the lightmaps and the map compilers' baked light models, for
+  comparison; `alphashadow` and `lightfilter` surfaces filter the light as
+  the compilers read them), and by the
+  game's dynamic lights, shadowed with a penumbra from a body a twentieth of
+  their reach and reaching what the raster light pass
   reaches (RTCW's darkening and flame light materials multiply what they
   reach, as its renderer drew them), plus up to four
   diffuse bounces (`rtx_rt_bounces`) and glossy reflections that share the
@@ -122,6 +130,21 @@ historical upstream records, not fnTech3 release history. See the
   no retail client, and checks the sound a demo replay mixes
   ([Q3Test ledger](docs/fntech3/Q3TEST.md)).
 
+- Keep the Win32 client's path tracer compiling. The 32-bit NVIDIA driver
+  compiles the compute backend's trace inside the client's 2 GB address
+  space, and the trace had grown to the edge of what it can compile there:
+  a few more instructions ended its pipeline creation with "LLVM ERROR: out
+  of memory", which aborted the client. Direct shading now samples the
+  lights from one call site, so the sampler is compiled once instead of
+  twice, and the inlined trace is about 15% smaller at the same speed.
+- Path trace by default with the RTX renderer: `cl_renderer rtx` now starts
+  in `rtx_rt_mode 2`, the path tracer, instead of its raster path, which
+  `rtx_rt_mode 0` keeps. A GPU that can trace neither way still falls back
+  to the raster frame (`rtx_rt_require 0`). A configuration saved before
+  can hold `seta rtx_rt_mode "0"`, which keeps raster until changed.
+- Show the path tracer's light alone: `rtx_rt_debug_visualizer 10` draws
+  what the view's light does to plain grey surfaces, through the same
+  camera, so its shadows, light pools and bounce light are easy to see.
 - Trace Quake Live's advertisements. The renderer draws a map's
   advertisement brush models as world surfaces, which the path tracer left
   out, so a traced view showed the wall behind each billboard instead of its

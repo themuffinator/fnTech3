@@ -420,7 +420,7 @@ static struct {
         public = read('code/renderercommon/tr_public.h')
         # 28 when this member was added; 31 once the tables it shares grew
         # the IHV, Alice and Medal of Honor members first.
-        self.assertIn('#define\tREF_API_VERSION\t\t31', public)
+        self.assertIn('#define\tREF_API_VERSION\t\t34', public)
         self.assertIn('void (*DrawSTVEFRaw)( int x, int y, int w, int h, int cols, int rows,\n'
                       '\t\tconst byte *data, float lightValue );', public)
         shared = read('code/renderercommon/tr_stvef_raw.h')

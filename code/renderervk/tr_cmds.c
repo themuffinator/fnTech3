@@ -542,7 +542,7 @@ static void R_PerformanceCounters( void ) {
 R_IssueRenderCommands
 ====================
 */
-static void R_IssueRenderCommands( void ) {
+static void R_IssueRenderCommands( qboolean finishFrame ) {
 	renderCommandList_t	*cmdList;
 
 	cmdList = &backEndData->commands;
@@ -582,7 +582,8 @@ static void R_IssueRenderCommands( void ) {
 	// actually start the commands going
 	if ( !r_skipBackEnd->integer ) {
 		// let it start on the new batch
-		RB_ExecuteRenderCommands( cmdList->cmds );
+		if ( finishFrame ) RB_ExecuteRenderCommands( cmdList->cmds );
+		else RB_ExecuteRuntimeMDRCommands( cmdList->cmds );
 	}
 }
 
@@ -598,7 +599,7 @@ void R_IssuePendingRenderCommands( void ) {
 	if ( !tr.registered ) {
 		return;
 	}
-	R_IssueRenderCommands();
+	R_IssueRenderCommands( qtrue );
 #ifdef USE_VULKAN
 	vk_wait_idle();
 #endif
@@ -612,6 +613,12 @@ R_GetCommandBufferReserved
 make sure there is enough command space
 ============
 */
+/* MDR skinning copies its pose into GPU geometry while processing draw
+ * commands. Drain that CPU use while keeping the frame open for later scenes. */
+void R_IssueRuntimeMDRCommands( void ) {
+	if ( tr.registered ) R_IssueRenderCommands( qfalse );
+}
+
 static void *R_GetCommandBufferReserved( int bytes, int reservedBytes ) {
 	renderCommandList_t	*cmdList;
 
@@ -951,7 +958,7 @@ void RE_EndFrame( int *frontEndMsec, int *backEndMsec ) {
 	}
 	cmd->commandId = RC_SWAP_BUFFERS;
 
-	R_IssueRenderCommands();
+	R_IssueRenderCommands( qtrue );
 
 	R_PerformanceCounters();
 

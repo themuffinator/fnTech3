@@ -34,6 +34,16 @@ extern "C" {
 #include "../client/client.h"
 #endif
 #include "win_raii.h"
+#include "win_game_icon.h"
+#include "../platform/system_console_theme.hpp"
+
+static fntech3::syscon::Palette s_consolePalette =
+	fntech3::syscon::ForTitle( static_cast<comGameTitleId_t>( 0 ) );
+
+static COLORREF ConsoleColor( fntech3::syscon::Color color )
+{
+	return RGB( color.r, color.g, color.b );
+}
 
 #ifdef __cplusplus
 extern "C" {
@@ -76,18 +86,17 @@ extern "C" {
 
 #define T TEXT
 
-#define WINDOW_BG_COLOR RGB(0x08,0x0D,0x13)
-#define EDIT_COLOR		RGB(0x22,0x10,0x14)
-#define INPUT_BG_COLOR  RGB(0x2B,0x14,0x19)
-#define FOOTER_BG_COLOR RGB(0x0D,0x15,0x21)
-#define BORDER_COLOR    RGB(0x25,0x38,0x4D)
-#define TEXT_COLOR		RGB(0xDE,0xE8,0xF2)
-#define MUTED_COLOR     RGB(0x8F,0xA2,0xB8)
-#define ACCENT_COLOR    RGB(0x58,0xBC,0xFF)
-#define BUTTON_BG_COLOR RGB(0x16,0x22,0x32)
-#define BUTTON_HOVER_BG RGB(0x1C,0x2C,0x42)
-#define BUTTON_DOWN_BG  RGB(0x24,0x38,0x54)
-#define BUTTON_OFF_BG   RGB(0x0F,0x17,0x22)
+#define WINDOW_BG_COLOR ConsoleColor(s_consolePalette.window)
+#define EDIT_COLOR      ConsoleColor(s_consolePalette.panel)
+#define INPUT_BG_COLOR  ConsoleColor(s_consolePalette.input)
+#define FOOTER_BG_COLOR ConsoleColor(s_consolePalette.footer)
+#define BORDER_COLOR    ConsoleColor(s_consolePalette.border)
+#define TEXT_COLOR      ConsoleColor(s_consolePalette.text)
+#define MUTED_COLOR     ConsoleColor(s_consolePalette.muted)
+#define ACCENT_COLOR    ConsoleColor(s_consolePalette.accent)
+#define BUTTON_BG_COLOR ConsoleColor(s_consolePalette.button)
+#define BUTTON_DOWN_BG  ConsoleColor(s_consolePalette.buttonDown)
+#define BUTTON_OFF_BG   ConsoleColor(s_consolePalette.buttonOff)
 
 #define ERROR_BG_COLOR	RGB(0x4A,0x1B,0x24)
 
@@ -1056,6 +1065,7 @@ void Sys_CreateConsole( const char *title, int xPos, int yPos, qboolean useXYpos
 	if ( title && *title ) {
 		SetWindowText( s_wcd.hWnd, AtoW( title ) );
 	}
+	Sys_UpdateConsolePresentation();
 
 	ShowWindow( s_wcd.hWnd, SW_SHOWDEFAULT );
 	UpdateWindow( s_wcd.hWnd );
@@ -1083,6 +1093,49 @@ void Sys_SetConsoleTitle( const char *title )
 	}
 }
 
+void Sys_UpdateConsolePresentation( void )
+{
+	const comGameProfile_t *profile = Com_GameProfile();
+	const auto palette = fntech3::syscon::ForTitle( profile
+		? profile->titleId : static_cast<comGameTitleId_t>( 0 ) );
+	if ( !s_wcd.hWnd ) {
+		s_consolePalette = palette;
+		return;
+	}
+
+	// Replace the complete brush set before repainting; retain the previous
+	// palette if allocation fails so edit-control text and fills still agree.
+	const COLORREF colors[] = { ConsoleColor( palette.panel ), ConsoleColor( palette.input ),
+		ConsoleColor( palette.footer ), ConsoleColor( palette.window ) };
+	HBRUSH brushes[4] = {};
+	qboolean complete = qtrue;
+	for ( int i = 0; i < 4; ++i ) {
+		brushes[i] = CreateSolidBrush( colors[i] );
+		if ( !brushes[i] ) complete = qfalse;
+	}
+	if ( complete ) {
+		HBRUSH *targets[] = { &s_wcd.hbrEditBackground, &s_wcd.hbrInputBackground,
+			&s_wcd.hbrFooterBackground, &s_wcd.hbrWindowBackground };
+		for ( int i = 0; i < 4; ++i ) {
+			if ( *targets[i] ) DeleteObject( *targets[i] );
+			*targets[i] = brushes[i];
+		}
+		s_consolePalette = palette;
+		RedrawWindow( s_wcd.hWnd, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN );
+	} else {
+		for ( HBRUSH brush : brushes ) {
+			if ( brush ) DeleteObject( brush );
+		}
+	}
+
+	// Both client and dedicated consoles use the remade icon for this profile.
+	// Shared resource handles need no ownership or retail installation lookup.
+	const auto *icon = fntech3::icon::FindBuiltinIcon( profile ? profile->key : NULL );
+	if ( !icon || !fntech3::icon::BindResourceIcons( s_wcd.hWnd, icon->resource ) ) {
+		fntech3::icon::BindResourceIcons( s_wcd.hWnd, IDI_ICON1 );
+	}
+}
+
 
 /*
 ** Sys_DestroyConsole
@@ -1095,6 +1148,12 @@ void Sys_DestroyConsole( void )
 		CloseWindow( s_wcd.hWnd );
 		DestroyWindow( s_wcd.hWnd );
 		s_wcd.hWnd = NULL;
+	}
+	HBRUSH *brushes[] = { &s_wcd.hbrEditBackground, &s_wcd.hbrInputBackground,
+		&s_wcd.hbrFooterBackground, &s_wcd.hbrWindowBackground, &s_wcd.hbrErrorBackground };
+	for ( HBRUSH *brush : brushes ) {
+		if ( *brush ) DeleteObject( *brush );
+		*brush = NULL;
 	}
 }
 

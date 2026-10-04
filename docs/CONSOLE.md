@@ -6,6 +6,12 @@ For FOV, HUD, menu, and cinematic presentation controls, see the [Aspect Handlin
 
 ## Overview
 
+`inputstatus` reports the selected profile, key catcher, mouse mode, pause flags
+and latest generated movement command, view and player origin. It reads the
+engine's state without injecting input. It is useful when a menu owns controls
+or a saved configuration disables the mouse; see the
+[Elite Force input follow-up](fntech3/2026-10-02-input-launch-fixes.md).
+
 If you just want the short version: you can choose whether the console stays full-width or centered, whether it scrolls instantly or smoothly, how it looks, and how much modern input help you want while typing.
 
 Under the Quake Live profile, console-owned text uses Quake Live's bundled `fonts/droidsansmono.ttf` through the renderer's retail-compatible FontStash/STB path. This covers scrollback, input, completion results, notify lines, live chat, and the clock/version labels. Every other profile draws the console with its own bitmap charset, as its original engine does: Quake III Arena, RTCW single player and F.A.K.K.2 use `gfx/2d/bigchars`, RTCW multiplayer its HUD font `gfx/2d/hudchars`, Enemy Territory `gfx/2d/consolechars`, Elite Force its `gfx/2d/charsgrid_med` grid, and Alice a sheet built from `courier-14`, the font its console window used. The renderer does not load Quake Live's faces, or a system substitute for them, outside Quake Live. The character cell belongs to the profile too. Quake Live uses retail QL's 12×24 base cell and half-size default geometry, exposed as the normalized `con_scale 1`; at the observed 768-pixel retail reference height this is a 6×12 cell. Quake III, RTCW, Enemy Territory and Elite Force use their original 8×16 small character, which `con_scaleUniform 1` scales with the 640×480 virtual screen as FnQuake3 does: 8×16 at 640×480, 12×24 at 1280×720. Font sizes, baselines, glyph bounds, mono advances, kerning, and ascender/descender handling come from the same historical rasterizer family as retail. If the host TTF lane is unavailable or no retail TTF can be mounted, the Quake Live console falls back to the legacy bitmap charset so it remains usable.
@@ -152,6 +158,21 @@ Legacy compatibility notes:
 - `cl_conColor` is still honored as a legacy fallback for background tinting.
 - If `con_backgroundColor` is empty, the console uses the legacy `cl_conColor` value when one is set.
 - If neither override is set, textured mode uses its default look and flat mode uses a plain black background.
+
+## System Console
+
+The separate desktop system console uses a subdued palette for the active game
+title on Windows and in the SDL console on Linux. Dark tinted backgrounds and
+pale text carry the game's colors through the log, input, status area and
+buttons. Single-player and multiplayer modes share a title's palette; Q3Test
+and the IHV test use Quake III's. Startup uses a neutral palette until a profile
+is selected. Custom window titles do not affect this selection.
+
+Windows client and dedicated console windows show the active profile's built-in
+remade game icon in their caption and taskbar. The SDL console uses the same
+remake. Before profile selection they show fnTech3's icon. The executables keep
+fnTech3's icon in Explorer. Terminal-only dedicated servers use their terminal's
+appearance. The `con_*` appearance settings above control the in-game console.
 
 ## Recommended Starting Point
 

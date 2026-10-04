@@ -21,6 +21,22 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "cm_local.h"
 
+/* A map-wide query, distinct from point contents. Raven's retail import
+ * includes the temporary BODY hull along with every loaded brush and patch.
+ * Derive it from this engine's collision records, with no parallel cache. */
+int CM_TotalMapContents( void ) {
+	/* Retail JKA SP CM_ClearMap0x40d7d3 seeds BODY0x100. Only the
+	 * synthetic hull seed changes; loaded brush/patch flags stay native. */
+	int contents = Com_GameIsJKASP() ? 0x100 : CONTENTS_BODY;
+	for ( int index = 0; index < cm.numBrushes; ++index ) {
+		contents |= cm.brushes[index].contents;
+	}
+	for ( int index = 0; index < cm.numSurfaces; ++index ) {
+		if ( cm.surfaces[index] ) contents |= cm.surfaces[index]->contents;
+	}
+	return contents;
+}
+
 
 /*
 ==================

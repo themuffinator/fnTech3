@@ -11,11 +11,12 @@ General Public License, version 2 or (at your option) any later version.
 #define FNTECH3_RTCW_HANDSHAKE_HPP
 
 #include <cstddef>
+#include <charconv>
 #include <cstdio>
-#include <cstdlib>
+#include <cstring>
 
 /*
- * RTCW's connectionless handshake does not use Quake III's token layout.
+ * RTCW's and ET's connectionless handshake does not use Quake III's token layout.
  *
  * Original RTCW MP answers getchallenge with "challengeResponse <challenge>",
  * adding sv_onlyVisibleClients as a second token whenever it is set, and its
@@ -28,6 +29,9 @@ General Public License, version 2 or (at your option) any later version.
  * challenge. Observed in RTCW-MP/RTCW-SP src/server/sv_client.c
  * (SV_GetChallenge, SV_DirectConnect) and src/client/cl_main.c
  * (CL_ConnectionlessPacket), and iortcw MP/SP code/server/sv_client.c.
+ * Enemy Territory's original server and client use the same MP token layout,
+ * including the optional onlyVisibleClients value, with protocol 84. The
+ * shared helper is given that profile's protocol; it never selects Q3's 68.
  */
 namespace fntech3::rtcw::handshake {
 
@@ -48,6 +52,13 @@ struct ChallengeReply {
 	bool echoedNonce = false;
 };
 
+[[nodiscard]] inline bool ParseInteger( const char *text, int &value ) noexcept {
+	if ( !text || !*text ) return false;
+	const char *end = text + std::strlen( text );
+	const auto parsed = std::from_chars( text, end, value );
+	return parsed.ec == std::errc{} && parsed.ptr == end;
+}
+
 /* argv[0] is "challengeResponse". A reply that echoes the client's nonce must
  * echo the one sent. One that echoes nothing cannot prove where it came from,
  * so it is only taken from the address the request went to, which is all an
@@ -61,18 +72,17 @@ struct ChallengeReply {
 	}
 	const int nonceIndex = multiplayer ? 3 : 2;
 	const int protocolIndex = nonceIndex + 1;
-	reply.challenge = std::atoi( argv[1] );
-	if ( multiplayer && argc > 2 ) {
-		reply.onlyVisibleClients = std::atoi( argv[2] );
-	}
+	if ( !ParseInteger( argv[1], reply.challenge ) ) return reply;
+	if ( multiplayer && argc > 2 && !ParseInteger( argv[2], reply.onlyVisibleClients ) ) return reply;
 	reply.echoedNonce = argc > nonceIndex;
-	if ( reply.echoedNonce ? std::atoi( argv[nonceIndex] ) != clientNonce
+	int nonce = 0;
+	if ( reply.echoedNonce ? !ParseInteger( argv[nonceIndex], nonce ) || nonce != clientNonce
 		: !fromExpectedAddress ) {
 		return reply;
 	}
 	reply.advertisedProtocol = argc > protocolIndex;
-	reply.protocol = reply.advertisedProtocol ? std::atoi( argv[protocolIndex] )
-		: profileProtocol;
+	reply.protocol = profileProtocol;
+	if ( reply.advertisedProtocol && !ParseInteger( argv[protocolIndex], reply.protocol ) ) return reply;
 	reply.accepted = true;
 	return reply;
 }
@@ -85,10 +95,11 @@ struct ChallengeReply {
 	if ( argc < 1 || !argv ) {
 		return false;
 	}
-	if ( argc > 1 && std::atoi( argv[1] ) != challenge ) {
+	int echoed = 0;
+	if ( argc > 1 && ( !ParseInteger( argv[1], echoed ) || echoed != challenge ) ) {
 		return false;
 	}
-	return argc <= 2 || std::atoi( argv[2] ) == profileProtocol;
+	return argc <= 2 || ( ParseInteger( argv[2], echoed ) && echoed == profileProtocol );
 }
 
 /* The server's MP reply, in the layout of the client that asked: nothing but

@@ -61,6 +61,9 @@ using fnql::ToQboolean;
 
 namespace {
 
+static void CL_JKACgameClear();
+static bool cl_jkaCgameInitialized = false;
+
 static const char *SkipPath( const char *path )
 {
 	return COM_SkipPath( const_cast<char *>( path ) );
@@ -1890,6 +1893,9 @@ CL_ShutdonwCGame
 ====================
 */
 void CL_ShutdownCGame( void ) {
+	const bool callShutdown = !Com_GameIsJKAMP()
+		|| (cl_jkaCgameInitialized && !com_errorEntered);
+	cl_jkaCgameInitialized = false;
 
 	Key_SetCatcher( Key_GetCatcher( ) & ~KEYCATCH_CGAME );
 	cls.cgameStarted = qfalse;
@@ -1900,15 +1906,21 @@ void CL_ShutdownCGame( void ) {
 	CL_HudResetCGame();
 
 	if ( !cgvm ) {
+		if (Com_GameIsJKAMP()) {
+			CL_JKACgameClear();
+			FS_VM_CloseFiles(H_CGAME);
+		}
 		return;
 	}
 
 	re.VertexLighting( qfalse );
 
-	VM_Call( cgvm, 0, CG_SHUTDOWN );
+	// An interrupted native export must not be reentered during error recovery.
+	if (callShutdown) VM_Call( cgvm, 0, CG_SHUTDOWN );
 	VM_Free( cgvm );
 	cgvm = nullptr;
 	FS_VM_CloseFiles( H_CGAME );
+	if (Com_GameIsJKAMP()) CL_JKACgameClear();
 	if ( Com_GameIsQ3Test() ) {
 		CL_Q3TestShutdownCGame();
 	}
@@ -1986,6 +1998,8 @@ private:
 #include "client_wolfet_audio_compat.hpp"
 #include "client_stvef_cgame.hpp"
 #include "client_stvef_sp_cgame.hpp"
+#include "client_jk2_cgame.hpp"
+#include "client_jka_cgame_host.hpp"
 #include "client_alice_cgame.hpp"
 
 static intptr_t CL_CGameTrapForProfile( intptr_t trap ) {
@@ -2469,6 +2483,14 @@ static bool CL_WolfETCgameCall( intptr_t *args, intptr_t &operation, intptr_t &r
 
 static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 	intptr_t operation = CL_CGameTrapForProfile( args[0] );
+	if ( Com_GameIsJKAMP() ) {
+		intptr_t result = 0;
+		if ( CL_JKACgameCall( args, operation, result ) ) return result;
+	}
+	if ( Com_GameIsJK2MP() ) {
+		intptr_t jk2Result = 0;
+		if ( CL_JK2CgameCall( args, operation, jk2Result ) ) return jk2Result;
+	}
 	if ( Com_GameIsRTCW() ) {
 		using namespace fntech3::rtcw::module;
 		const auto call = Lookup( Com_GameProfile()->id, Module::CGAME, Direction::IMPORT, args[0] );
@@ -2840,6 +2862,7 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		 * primary world scene or carrying deferred highlight entities forward. */
 		if ( refdef && CL_CaptureHidesHud() &&
 			( refdef->rdflags & RDF_NOWORLDMODEL ) ) {
+			if ( Com_GameIsJKAMP() ) fntech3::jka::cgame::scene::state.ClearScene();
 			cl_enemyHighlightNumPending = 0;
 			return 0;
 		}
@@ -2852,6 +2875,7 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 			adjustedRefdef.rdflags |= RDF_NOFIRSTPERSON;
 		}
 
+		if ( Com_GameIsJKAMP() ) CL_JKACgameRenderFlush();
 		CL_UpdateLocalViewLiquidInteraction( refdef );
 		CL_UpdateUnderwaterView( refdef );
 		CL_FlushEnemyHighlightRefEntities( refdef );
@@ -3772,6 +3796,16 @@ that path is allowed, while preserving explicit bytecode/compiled fallback.
 */
 static vm_t *CL_LoadCGameVM( vmInterpret_t interpret ) {
 	vm_t	*vm;
+	if ( Com_GameIsJKAMP() ) {
+		// Raven's legacy dllEntry receives a syscall, not QL's import slab.
+		return VM_Create( VM_CGAME, CL_CgameSystemCalls, CL_DllSyscall,
+			interpret == VMI_PINNED_NATIVE ? VMI_PINNED_NATIVE : VMI_NATIVE );
+	}
+	if ( Com_GameIsJK2MP() ) {
+		// Retail ships a QVM; never hand it Quake Live's native import slab.
+		return VM_Create( VM_CGAME, CL_CgameSystemCalls, CL_DllSyscall,
+			interpret == VMI_BYTECODE ? VMI_BYTECODE : VMI_COMPILED );
+	}
 
 	if ( !CL_InitCGameImports() ) {
 		Com_Printf( S_COLOR_RED "Native cgame import table validation failed.\\n" );
@@ -3820,7 +3854,7 @@ void CL_RegisterCGameCvars( void ) {
 	// Ritual's client game is a function table without a cvar-registration
 	// entry; the generic loader only loads and refuses it. So are Medal of
 	// Honor's and Q3Test's.
-	if ( Com_GameIsRitual() || Com_GameIsMOHAA() || Com_GameIsQ3Test() ) {
+	if ( Com_GameIsRitual() || Com_GameIsMOHAA() || Com_GameIsQ3Test() || Com_GameIsJKA() ) {
 		return;
 	}
 
@@ -3851,19 +3885,19 @@ static int cl_cgameLoadFinished;
 static int cl_cgameLoadDuration;
 
 void CL_InitCGame( void ) {
+	cl_jkaCgameInitialized = false;
 	const char			*info;
 	const char			*mapname;
 	int					t1, t2;
 	vmInterpret_t		interpret;
-
-	/* Jedi Academy's client modules speak Raven's own numbers, and no engine
-	 * side of that boundary exists yet, so refuse rather than hand a retail
-	 * module an import table it cannot use. The server refuses its own module
-	 * the same way; see docs/fntech3/COMPATIBILITY.md#jedi-academy-gate-matrix. */
-	if ( Com_GameIsJKA() ) {
-		Com_Error( ERR_DROP, "%s is not implemented: Jedi Academy's client module boundary is open.",
-			Com_GameProfile()->key );
+	if ( Com_GameProfile()->id == COM_GAME_JK2_SP ) {
+		Com_Error( ERR_DROP, "jk2-sp is not implemented: Jedi Outcast's single-player client module boundary is open." );
 	}
+
+	if ( Com_GameIsJKASP() ) {
+		Com_Error( ERR_DROP, "jka-sp is not implemented: Jedi Academy's single-player client module boundary is open." );
+	}
+	if ( Com_GameIsJKAMP() ) CL_JKACgameClear();
 
 	Cbuf_NestedReset();
 	CL_ClearEnemyHighlightState();
@@ -3933,6 +3967,7 @@ void CL_InitCGame( void ) {
 	} else {
 		VM_Call( cgvm, 3, CG_INIT, clc.serverMessageSequence, clc.lastExecutedServerCommand, clc.clientNum );
 	}
+	cl_jkaCgameInitialized = Com_GameIsJKAMP();
 
 	// reset any CVAR_CHEAT cvars registered by cgame. Q3Test resets them only
 	// when its systeminfo turns cheats off (CL_Q3TestSystemInfoChanged): no
@@ -4047,6 +4082,8 @@ CL_CGameRendering
 =====================
 */
 void CL_CGameRendering( stereoFrame_t stereo ) {
+    if (Com_GameIsJKAMP())
+        CL_JKACgameGhoul2BeginFrame(cl.serverTime, com_sv_running && com_sv_running->integer);
 	CL_HudSetGamePanel( Com_GameIsWolfET() ? CL_WolfETHudPanel() : HUD_PANEL_NONE );
 	CL_HudBeginFrame();
 	VM_Call( cgvm, 3, CG_DRAW_ACTIVE_FRAME, cl.serverTime, stereo, clc.demoplaying );

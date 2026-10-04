@@ -758,6 +758,9 @@ static void SV_ClipMoveToEntities( moveclip_t &clip ) {
 
 		// might intersect, so do an exact clip
 		clipHandle = SV_ClipHandleForEntity( touch, SV_QBool( clip.capsule ) );
+		// ET samples the world separately; an entity naming that model must
+		// not turn a second, transformed world trace into an entity collision.
+		if ( !clipHandle && Com_GameIsWolfET() ) continue;
 
 		// RTCW MP and ET sweep a box entity as its own contents. The box gets
 		// CONTENTS_BODY back once this entity's result is merged, as in retail,
@@ -931,6 +934,7 @@ int SV_PointContents( const vec3_t p, int passEntityNum ) {
 		}
 		// might intersect, so do an exact clip
 		clipHandle = SV_ClipHandleForEntity( hit, qfalse );
+		if ( !clipHandle && Com_GameIsWolfET() ) continue;
 
 		c2 = CM_TransformedPointContents (p, clipHandle,
 			origin, angles);

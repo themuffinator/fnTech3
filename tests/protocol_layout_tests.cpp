@@ -26,8 +26,8 @@ static_assert( offsetof( usercmd_t, upmove ) == 25 );
 static_assert( sizeof( trajectory_t ) == 40 );
 static_assert( offsetof( trajectory_t, gravity ) == 36 );
 
-static_assert( sizeof( entityState_t ) == 876 );
-static_assert( offsetof( entityState_t, alice ) == 672 );
+static_assert( sizeof( entityState_t ) == 936 );
+static_assert( offsetof( entityState_t, alice ) == 732 );
 static_assert( offsetof( entityState_t, raven ) == 352 );
 static_assert( offsetof( entityState_t, wolfet ) == 320 );
 static_assert( offsetof( entityState_t, stvef ) == 324 );
@@ -40,8 +40,8 @@ static_assert( offsetof( entityState_t, doubleJumped ) == 232 );
 
 // The reconstructed QL prefix remains at its original offsets. Its retail
 // module reservation is independent of these engine-owned RTCW extensions.
-static_assert( sizeof( playerState_t ) == 3788 );
-static_assert( offsetof( playerState_t, alice ) == 2912 );
+static_assert( sizeof( playerState_t ) == 5156 );
+static_assert( offsetof( playerState_t, alice ) == 4280 );
 static_assert( offsetof( playerState_t, raven ) == 1732 );
 static_assert( offsetof( playerState_t, wolfet ) == 1536 );
 static_assert( offsetof( playerState_t, stvef ) == 1544 );

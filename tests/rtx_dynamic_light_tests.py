@@ -200,7 +200,9 @@ int main() {
     assert( RT_HashVertices( 2166136261u, vertices, 3 ) == base );
     assert( RT_HashVertices( 2166136261u, vertices, 2 ) != base );
     assert( RT_HashVertices( 12345u, vertices, 3 ) != base );
-    const int hashed[] = { 0, 1, 2, 12, 13, 14, 15, 16, 17, 18, 19 };
+    // A stationary pose may change its shading normal or tangent alone.
+    // Each packed normal/tangent lane therefore restarts accumulation too.
+    const int hashed[] = { 0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 };
     for ( int v = 0; v < 3; ++v ) {
         for ( int word : hashed ) {
             rtxRtPackedVertex_t copy[3];
@@ -208,7 +210,8 @@ int main() {
             Flip( &copy[v], word );
             assert( RT_HashVertices( 2166136261u, copy, 3 ) != base );
         }
-        for ( int word = 3; word < 12; ++word ) {
+        // The fourth position lane is unused padding.
+        for ( int word = 3; word < 4; ++word ) {
             rtxRtPackedVertex_t copy[3];
             memcpy( copy, vertices, sizeof( copy ) );
             Flip( &copy[v], word );
@@ -372,7 +375,8 @@ class RtxDynamicLightTests(unittest.TestCase):
         self.assertIn("h.entityLight.w = marker == RT_ENTITY_LIGHT_ALL ? 2.0 : 1.0;", attribs)
         material = read("code/rendererrtx/shaders/rt_material.glsl")
         evaluate = section(material, "RtSurface rt_evaluate_material(")
-        self.assertIn("if (((s.state.y >> 8u) & 0xFFu) == CGEN_LIGHTING_DIFFUSE && h.entityLight.w > 0.5) {", evaluate)
+        self.assertIn("if (bakedLighting && ((s.state.y >> 8u) & 0xFFu) == CGEN_LIGHTING_DIFFUSE && h.entityLight.w > 0.5) {",
+                      evaluate)
         self.assertIn("surf.baked = h.entityLight.rgb;", evaluate)
         path = read("code/rendererrtx/shaders/rt_path.glsl")
         self.assertIn("return bakedLighting && ((material.flags & (RT_MF_LIGHTMAPPED | RT_MF_VERTEX_LIT)) != 0u || "

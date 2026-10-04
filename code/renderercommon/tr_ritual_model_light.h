@@ -232,8 +232,20 @@ static inline float RitualModelLight_ReadFloat( const unsigned char *p ) {
 	return value;
 }
 
-static inline int RitualModelLight_Finite( float value ) {
-	return value == value && value <= 3.4e38f && value >= -3.4e38f;
+static inline int RitualModelLight_FiniteBits( unsigned int bits ) {
+	unsigned int limitBits;
+	const float limit = 3.4e38f;
+	/* These values originate in map bytes and entity text. Floating-point
+	 * self-comparisons can disappear under a renderer's fast-math options.
+	 * Inspect binary32 before applying the reader's existing finite bounds. */
+	memcpy( &limitBits, &limit, sizeof( limitBits ) );
+	return ( bits & 0x7fffffffU ) <= limitBits;
+}
+
+static inline int RitualModelLight_Finite( const float *input ) {
+	unsigned int bits;
+	memcpy( &bits, input, sizeof( bits ) );
+	return RitualModelLight_FiniteBits( bits );
 }
 
 static inline void RitualModelLight_SetError( char *error, int errorSize, const char *text ) {
@@ -295,8 +307,11 @@ static inline void RitualModelLight_Floats( const char *text, float out[3] ) {
 	for ( i = 0; i < 3; i++ ) {
 		char *next;
 		const double value = strtod( text, &next );
+		const float component = (float)value;
 		if ( next == text ) break;
-		out[i] = (float)value;
+		/* Malformed numeric components keep the last valid value. This is an
+		 * engine input-validation policy, not a retail presentation rule. */
+		if ( RitualModelLight_Finite( &component ) ) out[i] = component;
 		text = next;
 	}
 }
@@ -484,13 +499,18 @@ static inline ritualModelLights_t *RitualModelLights_Parse( const unsigned char 
 		/* A light naming no leaf is never hidden by the area mask. */
 		light->area = leaf >= 0 && leaf < numLeafs ? leafArea[leaf] : -1;
 		for ( k = 0; k < 3; k++ ) {
-			if ( !RitualModelLight_Finite( light->origin[k] ) || !RitualModelLight_Finite( light->color[k] )
-				|| !RitualModelLight_Finite( light->spotDirection[k] ) ) {
+			/* Check the file bytes, before a floating-point return or
+			 * assignment can carry finite-only compiler assumptions. */
+			if ( !RitualModelLight_FiniteBits( (unsigned int)RitualModelLight_ReadInt( r + 4 * k ) )
+				|| !RitualModelLight_FiniteBits( (unsigned int)RitualModelLight_ReadInt( r + 12 + 4 * k ) )
+				|| !RitualModelLight_FiniteBits( (unsigned int)RitualModelLight_ReadInt( r + 40 + 4 * k ) ) ) {
 				light->intensity = 0.0f;
 			}
 		}
-		if ( !RitualModelLight_Finite( light->intensity ) || !RitualModelLight_Finite( light->spotRadiusByDistance )
-			|| !RitualModelLight_Finite( light->cap ) ) {
+		if ( !RitualModelLight_FiniteBits( (unsigned int)RitualModelLight_ReadInt( r + 24 ) )
+			|| !RitualModelLight_FiniteBits( (unsigned int)RitualModelLight_ReadInt( r + 52 ) )
+			|| ( record == RITUAL_ML_RECORD_ALICE
+				&& !RitualModelLight_FiniteBits( (unsigned int)RitualModelLight_ReadInt( r + 56 ) ) ) ) {
 			light->intensity = 0.0f;
 		}
 	}
