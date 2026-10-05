@@ -63,6 +63,8 @@ void CloseFile(int&f){++closes;f=0;}
 void FS_SV_Rename(const char*,const char*){++renames;}
 void CL_WritePacket(int){++packets;}
 void CL_NextDownload(){++next;}
+int redirects;
+void CL_WolfETDownloadRedirect(msg_t*){++redirects;}
 '''+parser+r'''
 msg_t chunk(int block,bool initial,int declared,std::vector<byte> body){
  msg_t m;auto put=[&](int v,int n){for(int i=0;i<n;++i)m.data.push_back(byte(unsigned(v)>>(8*i)));};
@@ -100,12 +102,13 @@ int main(){
   reset(65536,1);auto wrap=chunk(0,false,4,{'a','b','c','d'});CL_ParseDownload(&wrap);
   assert(clc.downloadBlock==65537&&commands.back()=="nextdl 65536");
   // ET's -1 marker is a redirect, including a fallback URL sent without www
-  // capability. Other profiles retain their unsigned block-number semantics.
+  // capability: its own reader takes the rest of the message (the web
+  // download tests run it). Other profiles retain their unsigned block-number
+  // semantics.
   reset(65535,1);auto reserved=chunk(65535,false,4,{'a','b','c','d'});
   if(selected==84){
-   bool dropped=false;try{CL_ParseDownload(&reserved);}catch(int){dropped=true;}
-   assert(dropped&&error.find("ET UDP downloads only")!=std::string::npos);
-   assert(reserved.readcount==2);unchanged(65535,4);
+   redirects=0;CL_ParseDownload(&reserved);
+   assert(redirects==1&&reserved.readcount==2);unchanged(65535,4);
   }else{
    CL_ParseDownload(&reserved);assert(written.size()==4&&commands.back()=="nextdl 65535");
   }

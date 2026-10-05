@@ -455,6 +455,16 @@ void SV_AddOperatorCommands( void );
 void SV_RemoveOperatorCommands( void );
 
 void SV_MasterShutdown( void );
+void SV_MasterGameCompleteStatus( void );
+
+// The profiles whose retail engines admit clients only between sv_minPing and
+// sv_maxPing; the two cvars are null in every other profile.
+extern cvar_t *sv_minPing;
+extern cvar_t *sv_maxPing;
+bool SV_ProfileHasPingLimits( void );
+// 0 admits a client whose challenge took ping msec, 1 refuses too low a ping
+// and 2 too high; a limit of zero is off.
+int SV_PingLimitVerdict( int ping, int minPing, int maxPing );
 int SV_RateMsec( const client_t *client );
 qboolean SV_HandleQuitOnExitLevel( const char *context );
 void SV_ResetServerCvarRuntime( void );

@@ -452,6 +452,14 @@ int Com_GamePreferredProtocol( void );
 int Com_GamePreferredDemoProtocol( void );
 /* The server port a profile listens on when net_port is not set. */
 int Com_GameDefaultServerPort( void );
+/* The master a profile's retail server publishes to and its browser asks
+ * (sv_master1's default), or NULL where the profile has none of this kind. */
+const char *Com_GameDefaultMasterServer( void );
+/* The port a master address is sent to when it names none. */
+int Com_GameMasterPort( void );
+/* The game a "heartbeat" names, and the one it names at shutdown. */
+const char *Com_GameHeartbeatName( void );
+const char *Com_GameFlatlineName( void );
 /* How much configstring text a profile's gamestate may hold. */
 int Com_GameStateCharLimit( void );
 /* The same test on a profile id, for code that holds its own copy of the

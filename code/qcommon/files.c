@@ -7668,6 +7668,7 @@ exception of .cfg and .dat files.
 =====================
 */
 void FS_PureServerSetLoadedPaks( const char *pakSums, const char *pakNames ) {
+	searchpath_t	*search;
 	int		i, c, d;
 
 	Cmd_TokenizeString( pakSums );
@@ -7687,6 +7688,16 @@ void FS_PureServerSetLoadedPaks( const char *pakSums, const char *pakNames ) {
 
 	if ( fs_numServerPaks ) {
 		Com_DPrintf( "Connected to a pure server.\n" );
+		// Nothing is read from a pak the server does not list while its list
+		// is in force, so such a pak's references were made before the list
+		// arrived -- by the menus between two connections, say, when the new
+		// gamestate needs no filesystem restart. Naming that pak in the pure
+		// proof would have the client dropped as unpure.
+		for ( search = fs_searchpaths ; search ; search = search->next ) {
+			if ( search->pack && !FS_PakIsPure( search->pack ) ) {
+				search->pack->referenced = 0;
+			}
+		}
 	}
 	else
 	{

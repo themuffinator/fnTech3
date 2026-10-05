@@ -61,6 +61,22 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Host and join each game's original servers as its own engine does. A
+  public server reports to the game's own master with its own heartbeat --
+  Quake III's, RTCW's, Enemy Territory's, Elite Force's, Jedi Academy's and
+  Jedi Outcast's -- and the server browser asks the same master; Jedi Academy
+  and Jedi Outcast use their own ports, 29070 and 28070. Retail RTCW's browser
+  now lists fnTech3's servers, which it had dropped for a missing game name,
+  and fnTech3's Elite Force browser lists Holomatch servers. A game started
+  from the client's menu now admits remote players, joining a server that
+  runs a mod keeps the console log, Enemy Territory fetches a server's files
+  from its web address (`cl_wwwDownload`), Elite Force and Jedi Knight
+  servers take `svsay`, their own console chat, a client that connects again
+  to a pure server is no longer dropped for a pak only it has, a server's own
+  `sv_maxclients` sizes its first client array, so that RTCW's and Enemy
+  Territory's first warm-up no longer reloads the map for every player, and
+  `sv_minPing` and `sv_maxPing` work as in the original games
+  ([record](docs/fntech3/2026-10-05-legacy-server-hosting.md)).
 - Stop a long run of strings in a menu or bot file from crashing the game.
   Strings that a `#define` expands to, written side by side, are joined into
   one; the engine joined each by calling itself again, so about a thousand in

@@ -3531,6 +3531,14 @@ void Com_GameRestart( int checksumFeed, qboolean clientRestart )
 		// Reset console command history
 		Con_ResetHistory();
 
+		// The console log is one of the handles FS_Shutdown closes: close it
+		// here, so that the next print opens it again under the new game
+		// directory instead of writing to a closed handle.
+		if ( logfile != FS_INVALID_HANDLE ) {
+			FS_FCloseFile( logfile );
+			logfile = FS_INVALID_HANDLE;
+		}
+
 		// Shutdown FS early so Cvar_Restart will not reset old game cvars
 		FS_Shutdown( qtrue );
 
@@ -4526,7 +4534,10 @@ void Com_Init( char *commandLine ) {
 
 	// get the developer cvar set as early as possible
 	Com_StartupVariable( "developer" );
-	com_developer = Cvar_Get( "developer", "0", CVAR_TEMP );
+	// It and logfile outlive the cvar reset of a game directory change, as
+	// they do in a retail engine, which only restarts its filesystem when a
+	// server names another mod (FS_ConditionalRestart).
+	com_developer = Cvar_Get( "developer", "0", CVAR_TEMP | CVAR_NORESTART );
 	Cvar_CheckRange( com_developer, NULL, NULL, CV_INTEGER );
 
 	Com_StartupVariable( "vm_rtChecks" );
@@ -4568,7 +4579,7 @@ void Com_Init( char *commandLine ) {
 
 	FS_InitFilesystem();
 
-	com_logfile = Cvar_Get( "logfile", "0", CVAR_TEMP );
+	com_logfile = Cvar_Get( "logfile", "0", CVAR_TEMP | CVAR_NORESTART );
 	Cvar_CheckRange( com_logfile, "0", "4", CV_INTEGER );
 	Cvar_SetDescription( com_logfile, "System console logging:\n"
 		" 0 - disabled\n"

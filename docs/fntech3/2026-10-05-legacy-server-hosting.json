@@ -1,0 +1,5760 @@
+{
+ "record": "2026-10-05-legacy-server-hosting.md",
+ "sourceCommit": "8cf605c72d7cf238376baf567f43e247b12e863a",
+ "build": {
+  "platform": "Windows 11 x86 (MSVC 2022, meson debugoptimized, strict warnings)",
+  "source": "HEAD plus this round's patch, exported clean; every development gate on"
+ },
+ "patches": {
+  "legacy-interop-final": "ece98d932cc6f378e51151c653fb708ae96c43869280091d6ba8705ff8e52f0f",
+  "legacy-interop-final2": "039d4bb3d3ed2c8c0ff695478f4922a31ad8d13da3516cb54976844c17ba12a4",
+  "legacy-interop-final3": "1cebc9a02f55f0d28ab8400c7f33a8f1ba39798c9ce8194a56e7302d83f29a81"
+ },
+ "runtimeNotes": {
+  "legacy-interop-before": "HEAD",
+  "legacy-interop-final": "HEAD plus the patch before svsay and the pure-proof change",
+  "legacy-interop-final2": "adds svsay and the pure-proof change",
+  "legacy-interop-final3": "adds the start-up client count; its engine source is the commit's"
+ },
+ "runtimes": {
+  "legacy-interop-before": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "dd4e9b26d562181e1f61f12489bfa68f4b03ca8b296f4da7212f3223d21dc29c",
+   "fnql_rtx_x86.dll": "dbadcc6aef700f59e41e1923d70f51e915801b5ce45cf4e99c8493650130ce09",
+   "fnql_vk_x86.dll": "ffb484109688f5737fb348fbdbe822e16638bfcf07dcb845b2e1379923c9cdab",
+   "fntech3-pkg.fnz": "a8cca7cd1fd152817ac49cf74241a1d0c00e3eb4c47f056c8500e36feb06a8ff",
+   "fntech3.ded.exe": "4c43b5acf760d7f54209041f5eca560d4ad59e8b304699b61aeb510a8dacab82",
+   "fntech3.exe": "b64ae63aea047ecda8febb45ec8bac89834c6ac7994f8501f4a8d20f8712739c"
+  },
+  "legacy-interop-final": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "dd4e9b26d562181e1f61f12489bfa68f4b03ca8b296f4da7212f3223d21dc29c",
+   "fnql_rtx_x86.dll": "dbadcc6aef700f59e41e1923d70f51e915801b5ce45cf4e99c8493650130ce09",
+   "fnql_vk_x86.dll": "ffb484109688f5737fb348fbdbe822e16638bfcf07dcb845b2e1379923c9cdab",
+   "fntech3-pkg.fnz": "a8cca7cd1fd152817ac49cf74241a1d0c00e3eb4c47f056c8500e36feb06a8ff",
+   "fntech3.ded.exe": "bf49aceaeb8ea553f9bf4b917ce6e62deb69d4c58fa441ebb357a37dbf5ea796",
+   "fntech3.exe": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc"
+  },
+  "legacy-interop-final2": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "dd4e9b26d562181e1f61f12489bfa68f4b03ca8b296f4da7212f3223d21dc29c",
+   "fnql_rtx_x86.dll": "dbadcc6aef700f59e41e1923d70f51e915801b5ce45cf4e99c8493650130ce09",
+   "fnql_vk_x86.dll": "ffb484109688f5737fb348fbdbe822e16638bfcf07dcb845b2e1379923c9cdab",
+   "fntech3-pkg.fnz": "a8cca7cd1fd152817ac49cf74241a1d0c00e3eb4c47f056c8500e36feb06a8ff",
+   "fntech3.ded.exe": "5ec12aa9e8e04ae6a6e021e03131056119d465fa458153c058196bd16c993be5",
+   "fntech3.exe": "bc85d984dfe66360a9f46ab07aa12ea8383607251747075b0e63ee53bc41f286"
+  },
+  "legacy-interop-final3": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "dd4e9b26d562181e1f61f12489bfa68f4b03ca8b296f4da7212f3223d21dc29c",
+   "fnql_rtx_x86.dll": "dbadcc6aef700f59e41e1923d70f51e915801b5ce45cf4e99c8493650130ce09",
+   "fnql_vk_x86.dll": "ffb484109688f5737fb348fbdbe822e16638bfcf07dcb845b2e1379923c9cdab",
+   "fntech3-pkg.fnz": "a8cca7cd1fd152817ac49cf74241a1d0c00e3eb4c47f056c8500e36feb06a8ff",
+   "fntech3.ded.exe": "ffcbc49cfb6c22df6793a250bfb9e99778a92312e7e6bf0051a5ed60957f22ca",
+   "fntech3.exe": "5a35958e8d59c340f812d7c87903930ccc64b1a4f6d2d4c53345280c39d173ac"
+  }
+ },
+ "retailExecutables": {
+  "quake3.exe 1.32 (Steam)": {
+   "path": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\\quake3.exe",
+   "sha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4"
+  },
+  "WolfMP.exe 1.4": {
+   "path": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\WolfMP.exe",
+   "sha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5"
+  },
+  "et.exe 2.60b": {
+   "path": "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory\\et.exe",
+   "sha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e"
+  },
+  "etded.exe 2.60b": {
+   "path": "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory\\etded.exe",
+   "sha256": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf"
+  },
+  "stvoyHM.exe 1.20": {
+   "path": "E:\\Games\\Star Trek Voyager Elite Force\\stvoyHM.exe",
+   "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff"
+  },
+  "jamp.exe 1.01": {
+   "path": "E:\\Games\\Jedi Academy\\jamp.exe",
+   "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b"
+  },
+  "jk2mp.exe 1.02a": {
+   "path": "E:\\Games\\Jedi Outcast\\jk2mp.exe",
+   "sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a"
+  }
+ },
+ "discovery": [
+  {
+   "case": "jk2-mp-before",
+   "profile": "jk2-mp",
+   "serverKind": "fntech3",
+   "serverSha256": "4c43b5acf760d7f54209041f5eca560d4ad59e8b304699b61aeb510a8dacab82",
+   "expected": {
+    "protocol": 15,
+    "serverPort": 28070,
+    "masterPort": 28060,
+    "heartbeat": "QuakeArena-1",
+    "flatline": "QuakeArena-1",
+    "flatlines": 2
+   },
+   "masterOnProfilePort": true,
+   "masterPort": 28060,
+   "serverPortsOpened": [
+    27960
+   ],
+   "serverPort": 27960,
+   "heartbeats": [],
+   "heartbeatsOnQuakePort": [
+    "heartbeat QuakeArena-1\n",
+    "heartbeat QuakeArena-1\n",
+    "heartbeat QuakeArena-1\n"
+   ],
+   "otherMasterPackets": [],
+   "infoKeys": null,
+   "statusKeys": null,
+   "retailClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "retailClientExit": 0,
+   "fntech3ClientPing": {
+    "accepted": false,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "fntech3ClientExit": null,
+   "fntech3ClientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+   "fntech3ClientListParsed": [],
+   "masterRequests": [],
+   "gameCompleteStatus": null,
+   "rconCompleteReply": null,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "output": ".tmp/legacy-interop/disc-final/jk2-mp-before"
+  },
+  {
+   "case": "jk2-mp-final",
+   "profile": "jk2-mp",
+   "serverKind": "fntech3",
+   "serverSha256": "bf49aceaeb8ea553f9bf4b917ce6e62deb69d4c58fa441ebb357a37dbf5ea796",
+   "expected": {
+    "protocol": 15,
+    "serverPort": 28070,
+    "masterPort": 28060,
+    "heartbeat": "QuakeArena-1",
+    "flatline": "QuakeArena-1",
+    "flatlines": 2
+   },
+   "masterOnProfilePort": true,
+   "masterPort": 28060,
+   "serverPortsOpened": [
+    28070
+   ],
+   "serverPort": 28070,
+   "heartbeats": [
+    "heartbeat QuakeArena-1\n",
+    "heartbeat QuakeArena-1\n",
+    "heartbeat QuakeArena-1\n"
+   ],
+   "heartbeatsOnQuakePort": [],
+   "otherMasterPackets": [],
+   "infoKeys": [
+    "challenge",
+    "protocol",
+    "hostname",
+    "mapname",
+    "clients",
+    "g_humanplayers",
+    "sv_maxclients",
+    "gametype",
+    "pure",
+    "g_needpass",
+    "sv_allowAnonymous"
+   ],
+   "statusKeys": [
+    "dmflags",
+    "fraglimit",
+    "g_gametype",
+    "mapname",
+    "protocol",
+    "sv_allowAnonymous",
+    "sv_allowDownload",
+    "sv_dlRate",
+    "sv_floodProtect",
+    "sv_hostname",
+    "sv_maxPing",
+    "sv_maxRate",
+    "sv_maxclients",
+    "sv_minPing",
+    "sv_minRate",
+    "sv_playingDemo",
+    "sv_privateClients",
+    "timelimit",
+    "version",
+    "capturelimit",
+    "duel_fraglimit",
+    "g_MaxHolocronCarry",
+    "g_blueteam",
+    "g_duelWeaponDisable",
+    "g_forceBasedTeams",
+    "g_forcePowerDisable",
+    "g_forceRegenTime",
+    "g_maxForceRank",
+    "g_maxGameClients",
+    "g_needpass",
+    "g_privateDuel",
+    "g_redteam",
+    "g_saberLocking",
+    "g_weaponDisable",
+    "gamename",
+    "challenge"
+   ],
+   "retailClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "retailClientExit": 0,
+   "fntech3ClientPing": {
+    "accepted": false,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "fntech3ClientExit": null,
+   "fntech3ClientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+   "fntech3ClientListParsed": [],
+   "masterRequests": [],
+   "gameCompleteStatus": null,
+   "rconCompleteReply": null,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "output": ".tmp/legacy-interop/disc-final/jk2-mp-final"
+  },
+  {
+   "case": "jka-mp-before",
+   "profile": "jka-mp",
+   "serverKind": "fntech3",
+   "serverSha256": "4c43b5acf760d7f54209041f5eca560d4ad59e8b304699b61aeb510a8dacab82",
+   "expected": {
+    "protocol": 26,
+    "serverPort": 29070,
+    "masterPort": 29060,
+    "heartbeat": "QuakeArena-1",
+    "flatline": "QuakeArena-1",
+    "flatlines": 2
+   },
+   "masterOnProfilePort": true,
+   "masterPort": 29060,
+   "serverPortsOpened": [
+    27960
+   ],
+   "serverPort": 27960,
+   "heartbeats": [],
+   "heartbeatsOnQuakePort": [
+    "heartbeat QuakeArena-1\n",
+    "heartbeat QuakeArena-1\n",
+    "heartbeat QuakeArena-1\n"
+   ],
+   "otherMasterPackets": [],
+   "infoKeys": null,
+   "statusKeys": null,
+   "retailClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "retailClientExit": 0,
+   "fntech3ClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "fntech3ClientExit": 0,
+   "fntech3ClientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+   "fntech3ClientListParsed": [
+    1
+   ],
+   "masterRequests": [
+    "getservers 26 full empty"
+   ],
+   "gameCompleteStatus": null,
+   "rconCompleteReply": null,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "output": ".tmp/legacy-interop/disc-final/jka-mp-before"
+  },
+  {
+   "case": "jka-mp-final",
+   "profile": "jka-mp",
+   "serverKind": "fntech3",
+   "serverSha256": "bf49aceaeb8ea553f9bf4b917ce6e62deb69d4c58fa441ebb357a37dbf5ea796",
+   "expected": {
+    "protocol": 26,
+    "serverPort": 29070,
+    "masterPort": 29060,
+    "heartbeat": "QuakeArena-1",
+    "flatline": "QuakeArena-1",
+    "flatlines": 2
+   },
+   "masterOnProfilePort": true,
+   "masterPort": 29060,
+   "serverPortsOpened": [
+    29070
+   ],
+   "serverPort": 29070,
+   "heartbeats": [
+    "heartbeat QuakeArena-1\n",
+    "heartbeat QuakeArena-1\n",
+    "heartbeat QuakeArena-1\n"
+   ],
+   "heartbeatsOnQuakePort": [],
+   "otherMasterPackets": [],
+   "infoKeys": [
+    "challenge",
+    "protocol",
+    "hostname",
+    "mapname",
+    "clients",
+    "g_humanplayers",
+    "sv_maxclients",
+    "gametype",
+    "pure",
+    "g_needpass",
+    "needpass",
+    "truejedi",
+    "wdisable",
+    "fdisable"
+   ],
+   "statusKeys": [
+    "dmflags",
+    "fraglimit",
+    "g_gametype",
+    "mapname",
+    "protocol",
+    "sv_allowDownload",
+    "sv_dlRate",
+    "sv_floodProtect",
+    "sv_hostname",
+    "sv_maxPing",
+    "sv_maxRate",
+    "sv_maxclients",
+    "sv_minPing",
+    "sv_minRate",
+    "sv_playingDemo",
+    "sv_privateClients",
+    "timelimit",
+    "version",
+    "bg_fighterAltControl",
+    "capturelimit",
+    "duel_fraglimit",
+    "g_MaxHolocronCarry",
+    "g_allowNPC",
+    "g_debugMelee",
+    "g_duelWeaponDisable",
+    "g_forceBasedTeams",
+    "g_forcePowerDisable",
+    "g_forceRegenTime",
+    "g_jediVmerc",
+    "g_maxForceRank",
+    "g_maxGameClients",
+    "g_needpass",
+    "g_noSpecMove",
+    "g_privateDuel",
+    "g_saberLocking",
+    "g_saberWallDamageScale",
+    "g_showDuelHealths",
+    "g_siegeRespawn",
+    "g_siegeTeam1",
+    "g_siegeTeam2",
+    "g_siegeTeamSwitch",
+    "g_stepSlideFix",
+    "g_weaponDisable",
+    "gamename",
+    "challenge"
+   ],
+   "retailClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "retailClientExit": 0,
+   "fntech3ClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "fntech3ClientExit": 0,
+   "fntech3ClientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+   "fntech3ClientListParsed": [
+    1
+   ],
+   "masterRequests": [
+    "getservers 26 full empty"
+   ],
+   "gameCompleteStatus": null,
+   "rconCompleteReply": null,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "output": ".tmp/legacy-interop/disc-final/jka-mp-final"
+  },
+  {
+   "case": "jka-mp-retail",
+   "profile": "jka-mp",
+   "serverKind": "retail",
+   "serverSha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+   "expected": {
+    "protocol": 26,
+    "serverPort": 29070,
+    "masterPort": 29060,
+    "heartbeat": "QuakeArena-1",
+    "flatline": "QuakeArena-1",
+    "flatlines": 2
+   },
+   "masterOnProfilePort": true,
+   "masterPort": 29060,
+   "serverPortsOpened": [
+    29070
+   ],
+   "serverPort": 29070,
+   "heartbeats": [
+    "heartbeat QuakeArena-1\n",
+    "heartbeat QuakeArena-1\n",
+    "heartbeat QuakeArena-1\n"
+   ],
+   "heartbeatsOnQuakePort": [],
+   "otherMasterPackets": [],
+   "infoKeys": [
+    "fdisable",
+    "wdisable",
+    "truejedi",
+    "needpass",
+    "gametype",
+    "sv_maxclients",
+    "clients",
+    "mapname",
+    "hostname",
+    "protocol",
+    "challenge"
+   ],
+   "statusKeys": [
+    "challenge",
+    "sv_hostname",
+    "g_gametype",
+    "version",
+    "dmflags",
+    "fraglimit",
+    "timelimit",
+    "capturelimit",
+    "g_maxHolocronCarry",
+    "g_privateDuel",
+    "g_saberLocking",
+    "g_maxForceRank",
+    "duel_fraglimit",
+    "g_forceBasedTeams",
+    "g_duelWeaponDisable",
+    "g_needpass",
+    "protocol",
+    "mapname",
+    "sv_privateClients",
+    "sv_maxclients",
+    "sv_maxRate",
+    "sv_minPing",
+    "sv_maxPing",
+    "sv_floodProtect",
+    "sv_allowDownload",
+    "g_debugMelee",
+    "g_stepSlideFix",
+    "g_noSpecMove",
+    "gamename",
+    "g_maxGameClients",
+    "g_jediVmerc",
+    "g_allowNPC",
+    "g_forceRegenTime",
+    "g_forcePowerDisable",
+    "g_weaponDisable",
+    "g_siegeRespawn",
+    "g_saberWallDamageScale",
+    "g_siegeTeamSwitch",
+    "bg_fighterAltControl",
+    "g_siegeTeam1",
+    "g_siegeTeam2",
+    "g_showDuelHealths"
+   ],
+   "retailClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "retailClientExit": 0,
+   "fntech3ClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "fntech3ClientExit": 0,
+   "fntech3ClientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+   "fntech3ClientListParsed": [
+    1
+   ],
+   "masterRequests": [
+    "getservers 26 full empty"
+   ],
+   "gameCompleteStatus": null,
+   "rconCompleteReply": null,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "output": ".tmp/legacy-interop/disc-final/jka-mp-retail"
+  },
+  {
+   "case": "q3-before",
+   "profile": "q3",
+   "serverKind": "fntech3",
+   "serverSha256": "4c43b5acf760d7f54209041f5eca560d4ad59e8b304699b61aeb510a8dacab82",
+   "expected": {
+    "protocol": 68,
+    "serverPort": 27960,
+    "masterPort": 27950,
+    "heartbeat": "QuakeArena-1",
+    "flatline": "QuakeArena-1",
+    "flatlines": 2
+   },
+   "masterOnProfilePort": true,
+   "masterPort": 27950,
+   "serverPortsOpened": [
+    27960
+   ],
+   "serverPort": 27960,
+   "heartbeats": [
+    "heartbeat QuakeArena-1\n",
+    "heartbeat QuakeArena-1\n",
+    "heartbeat QuakeArena-1\n"
+   ],
+   "heartbeatsOnQuakePort": [],
+   "otherMasterPackets": [],
+   "infoKeys": [
+    "challenge",
+    "protocol",
+    "hostname",
+    "mapname",
+    "clients",
+    "g_humanplayers",
+    "sv_maxclients",
+    "gametype",
+    "pure",
+    "g_needpass"
+   ],
+   "statusKeys": [
+    "dmflags",
+    "fraglimit",
+    "g_gametype",
+    "mapname",
+    "protocol",
+    "sv_allowDownload",
+    "sv_dlRate",
+    "sv_floodProtect",
+    "sv_hostname",
+    "sv_maxRate",
+    "sv_maxclients",
+    "sv_minRate",
+    "sv_playingDemo",
+    "sv_privateClients",
+    "timelimit",
+    "version",
+    "capturelimit",
+    "g_maxGameClients",
+    "g_needpass",
+    "gamename",
+    "challenge"
+   ],
+   "retailClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "retailClientExit": 0,
+   "fntech3ClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "fntech3ClientExit": 0,
+   "fntech3ClientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+   "fntech3ClientListParsed": [
+    1
+   ],
+   "masterRequests": [
+    "getservers 68 full empty"
+   ],
+   "gameCompleteStatus": null,
+   "rconCompleteReply": null,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "output": ".tmp/legacy-interop/disc-final/q3-before"
+  },
+  {
+   "case": "q3-final",
+   "profile": "q3",
+   "serverKind": "fntech3",
+   "serverSha256": "bf49aceaeb8ea553f9bf4b917ce6e62deb69d4c58fa441ebb357a37dbf5ea796",
+   "expected": {
+    "protocol": 68,
+    "serverPort": 27960,
+    "masterPort": 27950,
+    "heartbeat": "QuakeArena-1",
+    "flatline": "QuakeArena-1",
+    "flatlines": 2
+   },
+   "masterOnProfilePort": true,
+   "masterPort": 27950,
+   "serverPortsOpened": [
+    27960
+   ],
+   "serverPort": 27960,
+   "heartbeats": [
+    "heartbeat QuakeArena-1\n",
+    "heartbeat QuakeArena-1\n",
+    "heartbeat QuakeArena-1\n"
+   ],
+   "heartbeatsOnQuakePort": [],
+   "otherMasterPackets": [],
+   "infoKeys": [
+    "challenge",
+    "protocol",
+    "hostname",
+    "mapname",
+    "clients",
+    "g_humanplayers",
+    "sv_maxclients",
+    "gametype",
+    "pure",
+    "g_needpass",
+    "punkbuster"
+   ],
+   "statusKeys": [
+    "dmflags",
+    "fraglimit",
+    "g_gametype",
+    "mapname",
+    "protocol",
+    "sv_allowDownload",
+    "sv_dlRate",
+    "sv_floodProtect",
+    "sv_hostname",
+    "sv_maxPing",
+    "sv_maxRate",
+    "sv_maxclients",
+    "sv_minPing",
+    "sv_minRate",
+    "sv_playingDemo",
+    "sv_privateClients",
+    "timelimit",
+    "version",
+    "capturelimit",
+    "g_maxGameClients",
+    "g_needpass",
+    "gamename",
+    "challenge"
+   ],
+   "retailClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "retailClientExit": 0,
+   "fntech3ClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "fntech3ClientExit": 0,
+   "fntech3ClientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+   "fntech3ClientListParsed": [
+    1
+   ],
+   "masterRequests": [
+    "getservers 68 full empty"
+   ],
+   "gameCompleteStatus": null,
+   "rconCompleteReply": null,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "output": ".tmp/legacy-interop/disc-final/q3-final"
+  },
+  {
+   "case": "q3-retail",
+   "profile": "q3",
+   "serverKind": "retail",
+   "serverSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+   "expected": {
+    "protocol": 68,
+    "serverPort": 27960,
+    "masterPort": 27950,
+    "heartbeat": "QuakeArena-1",
+    "flatline": "QuakeArena-1",
+    "flatlines": 2
+   },
+   "masterOnProfilePort": true,
+   "masterPort": 27950,
+   "serverPortsOpened": [
+    27960
+   ],
+   "serverPort": 27960,
+   "heartbeats": [
+    "heartbeat QuakeArena-1\n",
+    "heartbeat QuakeArena-1\n",
+    "heartbeat QuakeArena-1\n"
+   ],
+   "heartbeatsOnQuakePort": [],
+   "otherMasterPackets": [],
+   "infoKeys": [
+    "punkbuster",
+    "pure",
+    "gametype",
+    "sv_maxclients",
+    "clients",
+    "mapname",
+    "hostname",
+    "protocol",
+    "challenge"
+   ],
+   "statusKeys": [
+    "challenge",
+    "sv_hostname",
+    "capturelimit",
+    "dmflags",
+    "fraglimit",
+    "g_maxGameClients",
+    "sv_floodProtect",
+    "sv_maxPing",
+    "sv_maxclients",
+    "sv_minPing",
+    "timelimit",
+    "version",
+    "g_gametype",
+    "protocol",
+    "mapname",
+    "sv_privateClients",
+    "sv_punkbuster",
+    "sv_maxRate",
+    "sv_allowDownload",
+    "gamename",
+    "g_needpass"
+   ],
+   "retailClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "retailClientExit": 0,
+   "fntech3ClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "fntech3ClientExit": 0,
+   "fntech3ClientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+   "fntech3ClientListParsed": [
+    1
+   ],
+   "masterRequests": [
+    "getservers 68 full empty"
+   ],
+   "gameCompleteStatus": null,
+   "rconCompleteReply": null,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "output": ".tmp/legacy-interop/disc-final/q3-retail"
+  },
+  {
+   "case": "rtcw-mp-before",
+   "profile": "rtcw-mp",
+   "serverKind": "fntech3",
+   "serverSha256": "4c43b5acf760d7f54209041f5eca560d4ad59e8b304699b61aeb510a8dacab82",
+   "expected": {
+    "protocol": 60,
+    "serverPort": 27960,
+    "masterPort": 27950,
+    "heartbeat": "Wolfenstein-1",
+    "flatline": "WolfFlatline-1",
+    "flatlines": 1
+   },
+   "masterOnProfilePort": true,
+   "masterPort": 27950,
+   "serverPortsOpened": [
+    27960
+   ],
+   "serverPort": 27960,
+   "heartbeats": [
+    "heartbeat QuakeArena-1\n",
+    "heartbeat QuakeArena-1\n",
+    "heartbeat QuakeArena-1\n"
+   ],
+   "heartbeatsOnQuakePort": [],
+   "otherMasterPackets": [],
+   "infoKeys": [
+    "challenge",
+    "protocol",
+    "hostname",
+    "mapname",
+    "clients",
+    "g_humanplayers",
+    "sv_maxclients",
+    "gametype",
+    "pure",
+    "g_needpass"
+   ],
+   "statusKeys": [
+    "dmflags",
+    "g_gameskill",
+    "g_gametype",
+    "mapname",
+    "protocol",
+    "sv_allowDownload",
+    "sv_dlRate",
+    "sv_floodProtect",
+    "sv_hostname",
+    "sv_maxRate",
+    "sv_maxclients",
+    "sv_minRate",
+    "sv_playingDemo",
+    "sv_privateClients",
+    "timelimit",
+    "version",
+    "g_LTChargeTime",
+    "g_alliedmaxlives",
+    "g_antilag",
+    "g_axismaxlives",
+    "g_bluelimbotime",
+    "g_enableBreath",
+    "g_engineerChargeTime",
+    "g_friendlyFire",
+    "g_maxGameClients",
+    "g_maxlives",
+    "g_medicChargeTime",
+    "g_minGameClients",
+    "g_redlimbotime",
+    "g_soldierChargeTime",
+    "g_voteFlags",
+    "gamename",
+    "challenge"
+   ],
+   "retailClientPing": {
+    "accepted": false,
+    "differentGame": true,
+    "differentProtocol": false
+   },
+   "retailClientExit": 0,
+   "fntech3ClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "fntech3ClientExit": 0,
+   "fntech3ClientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+   "fntech3ClientListParsed": [
+    1
+   ],
+   "masterRequests": [
+    "getservers 60 full empty"
+   ],
+   "gameCompleteStatus": null,
+   "rconCompleteReply": "\u00ff\u00ff\u00ff\u00ffprint\nRTCW match-completion reporting is unavailable; no report sent.\n",
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "output": ".tmp/legacy-interop/disc-final/rtcw-mp-before"
+  },
+  {
+   "case": "rtcw-mp-final",
+   "profile": "rtcw-mp",
+   "serverKind": "fntech3",
+   "serverSha256": "bf49aceaeb8ea553f9bf4b917ce6e62deb69d4c58fa441ebb357a37dbf5ea796",
+   "expected": {
+    "protocol": 60,
+    "serverPort": 27960,
+    "masterPort": 27950,
+    "heartbeat": "Wolfenstein-1",
+    "flatline": "WolfFlatline-1",
+    "flatlines": 1
+   },
+   "masterOnProfilePort": true,
+   "masterPort": 27950,
+   "serverPortsOpened": [
+    27960
+   ],
+   "serverPort": 27960,
+   "heartbeats": [
+    "heartbeat Wolfenstein-1\n",
+    "heartbeat WolfFlatline-1\n"
+   ],
+   "heartbeatsOnQuakePort": [],
+   "otherMasterPackets": [],
+   "infoKeys": [
+    "challenge",
+    "protocol",
+    "hostname",
+    "mapname",
+    "clients",
+    "g_humanplayers",
+    "sv_maxclients",
+    "gametype",
+    "pure",
+    "g_needpass",
+    "sv_allowAnonymous",
+    "gameskill",
+    "friendlyFire",
+    "maxlives",
+    "tourney",
+    "punkbuster",
+    "gamename",
+    "g_antilag"
+   ],
+   "statusKeys": [
+    "dmflags",
+    "g_gameskill",
+    "g_gametype",
+    "mapname",
+    "protocol",
+    "sv_allowAnonymous",
+    "sv_allowDownload",
+    "sv_dlRate",
+    "sv_floodProtect",
+    "sv_hostname",
+    "sv_maxPing",
+    "sv_maxRate",
+    "sv_maxclients",
+    "sv_minPing",
+    "sv_minRate",
+    "sv_playingDemo",
+    "sv_privateClients",
+    "timelimit",
+    "version",
+    "g_LTChargeTime",
+    "g_alliedmaxlives",
+    "g_antilag",
+    "g_axismaxlives",
+    "g_bluelimbotime",
+    "g_enableBreath",
+    "g_engineerChargeTime",
+    "g_friendlyFire",
+    "g_maxGameClients",
+    "g_maxlives",
+    "g_medicChargeTime",
+    "g_minGameClients",
+    "g_redlimbotime",
+    "g_soldierChargeTime",
+    "g_voteFlags",
+    "gamename",
+    "challenge"
+   ],
+   "retailClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "retailClientExit": 0,
+   "fntech3ClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "fntech3ClientExit": 0,
+   "fntech3ClientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+   "fntech3ClientListParsed": [
+    1
+   ],
+   "masterRequests": [
+    "getservers 60 full empty"
+   ],
+   "gameCompleteStatus": {
+    "kind": "gameCompleteStatus",
+    "source": "127.0.0.1:27960",
+    "seconds": 10.265,
+    "info": [
+     [
+      "dmflags",
+      "0"
+     ],
+     [
+      "g_gameskill",
+      "3"
+     ],
+     [
+      "g_gametype",
+      "5"
+     ],
+     [
+      "mapname",
+      "mp_beach"
+     ],
+     [
+      "protocol",
+      "60"
+     ],
+     [
+      "sv_allowAnonymous",
+      "0"
+     ],
+     [
+      "sv_allowDownload",
+      "1"
+     ],
+     [
+      "sv_dlRate",
+      "100"
+     ],
+     [
+      "sv_floodProtect",
+      "1"
+     ],
+     [
+      "sv_hostname",
+      "legacy-discovery-fntech3"
+     ],
+     [
+      "sv_maxPing",
+      "0"
+     ],
+     [
+      "sv_maxRate",
+      "0"
+     ],
+     [
+      "sv_maxclients",
+      "20"
+     ],
+     [
+      "sv_minPing",
+      "0"
+     ],
+     [
+      "sv_minRate",
+      "0"
+     ],
+     [
+      "sv_playingDemo",
+      "0"
+     ],
+     [
+      "sv_privateClients",
+      "0"
+     ],
+     [
+      "timelimit",
+      "8"
+     ],
+     [
+      "version",
+      "fnTech3 0.1.0 win_msvc-x86-debug Oct  5 2026"
+     ],
+     [
+      "g_LTChargeTime",
+      "40000"
+     ],
+     [
+      "g_alliedmaxlives",
+      "0"
+     ],
+     [
+      "g_antilag",
+      "0"
+     ],
+     [
+      "g_axismaxlives",
+      "0"
+     ],
+     [
+      "g_bluelimbotime",
+      "30000"
+     ],
+     [
+      "g_enableBreath",
+      "1"
+     ],
+     [
+      "g_engineerChargeTime",
+      "30000"
+     ],
+     [
+      "g_friendlyFire",
+      "1"
+     ],
+     [
+      "g_maxGameClients",
+      "0"
+     ],
+     [
+      "g_maxlives",
+      "0"
+     ],
+     [
+      "g_medicChargeTime",
+      "45000"
+     ],
+     [
+      "g_minGameClients",
+      "8"
+     ],
+     [
+      "g_redlimbotime",
+      "40000"
+     ],
+     [
+      "g_soldierChargeTime",
+      "20000"
+     ],
+     [
+      "g_voteFlags",
+      "255"
+     ],
+     [
+      "gamename",
+      "main"
+     ]
+    ],
+    "players": []
+   },
+   "rconCompleteReply": "\u00ff\u00ff\u00ff\u00ffprint\nSending gameCompleteStatus to 127.0.0.1\n",
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "output": ".tmp/legacy-interop/disc-final/rtcw-mp-final"
+  },
+  {
+   "case": "rtcw-mp-retail",
+   "profile": "rtcw-mp",
+   "serverKind": "retail",
+   "serverSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+   "expected": {
+    "protocol": 60,
+    "serverPort": 27960,
+    "masterPort": 27950,
+    "heartbeat": "Wolfenstein-1",
+    "flatline": "WolfFlatline-1",
+    "flatlines": 1
+   },
+   "masterOnProfilePort": true,
+   "masterPort": 27950,
+   "serverPortsOpened": [
+    27960
+   ],
+   "serverPort": 27960,
+   "heartbeats": [
+    "heartbeat Wolfenstein-1\n",
+    "heartbeat WolfFlatline-1\n"
+   ],
+   "heartbeatsOnQuakePort": [],
+   "otherMasterPackets": [],
+   "infoKeys": [
+    "challenge",
+    "protocol",
+    "hostname",
+    "mapname",
+    "clients",
+    "sv_maxclients",
+    "gametype",
+    "pure",
+    "sv_allowAnonymous",
+    "gameskill",
+    "friendlyFire",
+    "maxlives",
+    "tourney",
+    "punkbuster",
+    "gamename",
+    "g_antilag"
+   ],
+   "statusKeys": [
+    "g_enableBreath",
+    "g_maxGameClients",
+    "g_soldierChargeTime",
+    "g_LTChargeTime",
+    "g_engineerChargeTime",
+    "g_medicChargeTime",
+    "g_bluelimbotime",
+    "g_redlimbotime",
+    "gamename",
+    "g_antilag",
+    "g_voteFlags",
+    "g_alliedmaxlives",
+    "g_axismaxlives",
+    "g_minGameClients",
+    "g_maxlives",
+    "g_friendlyFire",
+    "sv_allowAnonymous",
+    "sv_floodProtect",
+    "sv_maxPing",
+    "sv_minPing",
+    "sv_maxRate",
+    "sv_maxclients",
+    "sv_privateClients",
+    "mapname",
+    "protocol",
+    "g_gameskill",
+    "timelimit",
+    "version",
+    "g_gametype",
+    "sv_punkbuster",
+    "sv_hostname",
+    "challenge"
+   ],
+   "retailClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "retailClientExit": 0,
+   "fntech3ClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "fntech3ClientExit": 0,
+   "fntech3ClientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+   "fntech3ClientListParsed": [
+    1
+   ],
+   "masterRequests": [
+    "getservers 60 full empty"
+   ],
+   "gameCompleteStatus": null,
+   "rconCompleteReply": "\u00ff\u00ff\u00ff\u00ffprint\nSending gameCompleteStatus to 127.0.0.1\n",
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "output": ".tmp/legacy-interop/disc-final/rtcw-mp-retail"
+  },
+  {
+   "case": "stvef-mp-before",
+   "profile": "stvef-mp",
+   "serverKind": "fntech3",
+   "serverSha256": "4c43b5acf760d7f54209041f5eca560d4ad59e8b304699b61aeb510a8dacab82",
+   "expected": {
+    "protocol": 24,
+    "serverPort": 27960,
+    "masterPort": 27953,
+    "heartbeat": "STEF1",
+    "flatline": "STEF1",
+    "flatlines": 2
+   },
+   "masterOnProfilePort": true,
+   "masterPort": 27953,
+   "serverPortsOpened": [
+    27960
+   ],
+   "serverPort": 27960,
+   "heartbeats": [
+    "\\heartbeat\\27960\\gamename\\STEF1\\",
+    "\\heartbeat\\27960\\gamename\\STEF1\\",
+    "\\heartbeat\\27960\\gamename\\STEF1\\"
+   ],
+   "heartbeatsOnQuakePort": [],
+   "otherMasterPackets": [],
+   "infoKeys": [
+    "challenge",
+    "protocol",
+    "hostname",
+    "mapname",
+    "clients",
+    "g_humanplayers",
+    "sv_maxclients",
+    "gametype",
+    "pure",
+    "g_needpass"
+   ],
+   "statusKeys": [
+    "dmflags",
+    "fraglimit",
+    "g_gametype",
+    "g_pModActionHero",
+    "g_pModAssimilation",
+    "g_pModDisintegration",
+    "g_pModElimination",
+    "g_pModSpecialties",
+    "mapname",
+    "sv_allowDownload",
+    "sv_dlRate",
+    "sv_floodProtect",
+    "sv_hostname",
+    "sv_maxRate",
+    "sv_maxclients",
+    "sv_minRate",
+    "sv_playingDemo",
+    "sv_privateClients",
+    "timelimit",
+    "version",
+    "capturelimit",
+    "g_allowVote",
+    "g_friendlyFire",
+    "g_gravity",
+    "g_maxGameClients",
+    "g_needpass",
+    "g_speed",
+    "gamename",
+    "challenge",
+    "protocol"
+   ],
+   "retailClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "retailClientExit": 0,
+   "fntech3ClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "fntech3ClientExit": 0,
+   "fntech3ClientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+   "fntech3ClientListParsed": [
+    1
+   ],
+   "masterRequests": [
+    "getservers 24 full empty"
+   ],
+   "gameCompleteStatus": null,
+   "rconCompleteReply": null,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "output": ".tmp/legacy-interop/disc-final/stvef-mp-before"
+  },
+  {
+   "case": "stvef-mp-final",
+   "profile": "stvef-mp",
+   "serverKind": "fntech3",
+   "serverSha256": "bf49aceaeb8ea553f9bf4b917ce6e62deb69d4c58fa441ebb357a37dbf5ea796",
+   "expected": {
+    "protocol": 24,
+    "serverPort": 27960,
+    "masterPort": 27953,
+    "heartbeat": "STEF1",
+    "flatline": "STEF1",
+    "flatlines": 2
+   },
+   "masterOnProfilePort": true,
+   "masterPort": 27953,
+   "serverPortsOpened": [
+    27960
+   ],
+   "serverPort": 27960,
+   "heartbeats": [
+    "\\heartbeat\\27960\\gamename\\STEF1\\",
+    "\\heartbeat\\27960\\gamename\\STEF1\\"
+   ],
+   "heartbeatsOnQuakePort": [],
+   "otherMasterPackets": [
+    "\\heartstop\\27960\\gamename\\STEF1\\"
+   ],
+   "infoKeys": [
+    "challenge",
+    "protocol",
+    "hostname",
+    "mapname",
+    "clients",
+    "g_humanplayers",
+    "sv_maxclients",
+    "gametype",
+    "pure",
+    "g_needpass"
+   ],
+   "statusKeys": [
+    "dmflags",
+    "fraglimit",
+    "g_gametype",
+    "g_pModActionHero",
+    "g_pModAssimilation",
+    "g_pModDisintegration",
+    "g_pModElimination",
+    "g_pModSpecialties",
+    "mapname",
+    "sv_allowDownload",
+    "sv_dlRate",
+    "sv_floodProtect",
+    "sv_hostname",
+    "sv_maxPing",
+    "sv_maxRate",
+    "sv_maxclients",
+    "sv_minPing",
+    "sv_minRate",
+    "sv_playingDemo",
+    "sv_privateClients",
+    "timelimit",
+    "version",
+    "capturelimit",
+    "g_allowVote",
+    "g_friendlyFire",
+    "g_gravity",
+    "g_maxGameClients",
+    "g_needpass",
+    "g_speed",
+    "gamename",
+    "challenge",
+    "protocol"
+   ],
+   "retailClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "retailClientExit": 0,
+   "fntech3ClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "fntech3ClientExit": 0,
+   "fntech3ClientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+   "fntech3ClientListParsed": [
+    1
+   ],
+   "masterRequests": [
+    "getservers 24 full empty"
+   ],
+   "gameCompleteStatus": null,
+   "rconCompleteReply": null,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "output": ".tmp/legacy-interop/disc-final/stvef-mp-final"
+  },
+  {
+   "case": "stvef-mp-retail",
+   "profile": "stvef-mp",
+   "serverKind": "retail",
+   "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+   "expected": {
+    "protocol": 24,
+    "serverPort": 27960,
+    "masterPort": 27953,
+    "heartbeat": "STEF1",
+    "flatline": "STEF1",
+    "flatlines": 2
+   },
+   "masterOnProfilePort": true,
+   "masterPort": 27953,
+   "serverPortsOpened": [
+    27960
+   ],
+   "serverPort": 27960,
+   "heartbeats": [
+    "\\heartbeat\\27960\\gamename\\STEF1\\",
+    "\\heartbeat\\27960\\gamename\\STEF1\\"
+   ],
+   "heartbeatsOnQuakePort": [],
+   "otherMasterPackets": [
+    "\\heartstop\\27960\\gamename\\STEF1\\"
+   ],
+   "infoKeys": [
+    "challenge",
+    "protocol",
+    "hostname",
+    "mapname",
+    "clients",
+    "sv_maxclients",
+    "gametype",
+    "pure"
+   ],
+   "statusKeys": [
+    "challenge",
+    "g_allowVote",
+    "g_gravity",
+    "g_speed",
+    "g_needpass",
+    "g_friendlyFire",
+    "capturelimit",
+    "g_maxGameClients",
+    "gamename",
+    "sv_allowDownload",
+    "sv_pure",
+    "sv_floodProtect",
+    "sv_maxPing",
+    "sv_minPing",
+    "sv_maxRate",
+    "sv_maxclients",
+    "sv_privateClients",
+    "mapname",
+    "protocol",
+    "g_pModElimination",
+    "g_pModActionHero",
+    "g_pModDisintegration",
+    "g_pModAssimilation",
+    "g_pModSpecialties",
+    "g_gametype",
+    "timelimit",
+    "fraglimit",
+    "dmflags",
+    "version",
+    "sv_hostname"
+   ],
+   "retailClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "retailClientExit": 0,
+   "fntech3ClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "fntech3ClientExit": 0,
+   "fntech3ClientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+   "fntech3ClientListParsed": [
+    1
+   ],
+   "masterRequests": [
+    "getservers 24 full empty"
+   ],
+   "gameCompleteStatus": null,
+   "rconCompleteReply": null,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "output": ".tmp/legacy-interop/disc-final/stvef-mp-retail"
+  },
+  {
+   "case": "wolfet-before",
+   "profile": "wolfet",
+   "serverKind": "fntech3",
+   "serverSha256": "4c43b5acf760d7f54209041f5eca560d4ad59e8b304699b61aeb510a8dacab82",
+   "expected": {
+    "protocol": 84,
+    "serverPort": 27960,
+    "masterPort": 27950,
+    "heartbeat": "EnemyTerritory-1",
+    "flatline": "ETFlatline-1",
+    "flatlines": 1
+   },
+   "masterOnProfilePort": true,
+   "masterPort": 27950,
+   "serverPortsOpened": [
+    27960
+   ],
+   "serverPort": 27960,
+   "heartbeats": [
+    "heartbeat QuakeArena-1\n",
+    "heartbeat QuakeArena-1\n",
+    "heartbeat QuakeArena-1\n"
+   ],
+   "heartbeatsOnQuakePort": [],
+   "otherMasterPackets": [],
+   "infoKeys": [
+    "challenge",
+    "protocol",
+    "hostname",
+    "mapname",
+    "clients",
+    "g_humanplayers",
+    "sv_maxclients",
+    "gametype",
+    "pure",
+    "g_needpass",
+    "gamename",
+    "serverload",
+    "sv_allowAnonymous",
+    "friendlyFire",
+    "g_antilag",
+    "weaprestrict",
+    "balancedteams",
+    "maxlives",
+    "needpass"
+   ],
+   "statusKeys": [
+    "dmflags",
+    "g_gametype",
+    "mapname",
+    "protocol",
+    "sv_allowDownload",
+    "sv_dlRate",
+    "sv_floodProtect",
+    "sv_hostname",
+    "sv_maxRate",
+    "sv_maxclients",
+    "sv_minRate",
+    "sv_playingDemo",
+    "sv_privateClients",
+    "timelimit",
+    "version",
+    "g_LTChargeTime",
+    "g_alliedmaxlives",
+    "g_antilag",
+    "g_axismaxlives",
+    "g_balancedteams",
+    "g_bluelimbotime",
+    "g_covertopsChargeTime",
+    "g_engineerChargeTime",
+    "g_friendlyFire",
+    "g_heavyWeaponRestriction",
+    "g_maxGameClients",
+    "g_maxlives",
+    "g_maxlivesRespawnPenalty",
+    "g_medicChargeTime",
+    "g_minGameClients",
+    "g_needpass",
+    "g_redlimbotime",
+    "g_soldierChargeTime",
+    "gamename",
+    "voteFlags",
+    "challenge"
+   ],
+   "retailClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "retailClientExit": 0,
+   "fntech3ClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "fntech3ClientExit": 0,
+   "fntech3ClientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+   "fntech3ClientListParsed": [
+    1
+   ],
+   "masterRequests": [
+    "getservers 84 full empty"
+   ],
+   "gameCompleteStatus": null,
+   "rconCompleteReply": null,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "output": ".tmp/legacy-interop/disc-final/wolfet-before"
+  },
+  {
+   "case": "wolfet-final",
+   "profile": "wolfet",
+   "serverKind": "fntech3",
+   "serverSha256": "bf49aceaeb8ea553f9bf4b917ce6e62deb69d4c58fa441ebb357a37dbf5ea796",
+   "expected": {
+    "protocol": 84,
+    "serverPort": 27960,
+    "masterPort": 27950,
+    "heartbeat": "EnemyTerritory-1",
+    "flatline": "ETFlatline-1",
+    "flatlines": 1
+   },
+   "masterOnProfilePort": true,
+   "masterPort": 27950,
+   "serverPortsOpened": [
+    27960
+   ],
+   "serverPort": 27960,
+   "heartbeats": [
+    "heartbeat EnemyTerritory-1\n",
+    "heartbeat ETFlatline-1\n"
+   ],
+   "heartbeatsOnQuakePort": [],
+   "otherMasterPackets": [],
+   "infoKeys": [
+    "challenge",
+    "protocol",
+    "hostname",
+    "mapname",
+    "clients",
+    "g_humanplayers",
+    "sv_maxclients",
+    "gametype",
+    "pure",
+    "g_needpass",
+    "gamename",
+    "serverload",
+    "sv_allowAnonymous",
+    "friendlyFire",
+    "g_antilag",
+    "weaprestrict",
+    "balancedteams",
+    "maxlives",
+    "needpass"
+   ],
+   "statusKeys": [
+    "dmflags",
+    "g_gametype",
+    "mapname",
+    "protocol",
+    "sv_allowAnonymous",
+    "sv_allowDownload",
+    "sv_dlRate",
+    "sv_floodProtect",
+    "sv_hostname",
+    "sv_maxPing",
+    "sv_maxRate",
+    "sv_maxclients",
+    "sv_minPing",
+    "sv_minRate",
+    "sv_playingDemo",
+    "sv_privateClients",
+    "timelimit",
+    "version",
+    "g_LTChargeTime",
+    "g_alliedmaxlives",
+    "g_antilag",
+    "g_axismaxlives",
+    "g_balancedteams",
+    "g_bluelimbotime",
+    "g_covertopsChargeTime",
+    "g_engineerChargeTime",
+    "g_friendlyFire",
+    "g_heavyWeaponRestriction",
+    "g_maxGameClients",
+    "g_maxlives",
+    "g_maxlivesRespawnPenalty",
+    "g_medicChargeTime",
+    "g_minGameClients",
+    "g_needpass",
+    "g_redlimbotime",
+    "g_soldierChargeTime",
+    "gamename",
+    "voteFlags",
+    "challenge"
+   ],
+   "retailClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "retailClientExit": 0,
+   "fntech3ClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "fntech3ClientExit": 0,
+   "fntech3ClientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+   "fntech3ClientListParsed": [
+    1
+   ],
+   "masterRequests": [
+    "getservers 84 full empty"
+   ],
+   "gameCompleteStatus": {
+    "kind": "gameCompleteStatus",
+    "source": "127.0.0.1:27960",
+    "seconds": 10.422,
+    "info": [
+     [
+      "dmflags",
+      "0"
+     ],
+     [
+      "g_gametype",
+      "2"
+     ],
+     [
+      "mapname",
+      "railgun"
+     ],
+     [
+      "protocol",
+      "84"
+     ],
+     [
+      "sv_allowAnonymous",
+      "0"
+     ],
+     [
+      "sv_allowDownload",
+      "1"
+     ],
+     [
+      "sv_dlRate",
+      "100"
+     ],
+     [
+      "sv_floodProtect",
+      "1"
+     ],
+     [
+      "sv_hostname",
+      "legacy-discovery-fntech3"
+     ],
+     [
+      "sv_maxPing",
+      "0"
+     ],
+     [
+      "sv_maxRate",
+      "0"
+     ],
+     [
+      "sv_maxclients",
+      "20"
+     ],
+     [
+      "sv_minPing",
+      "0"
+     ],
+     [
+      "sv_minRate",
+      "0"
+     ],
+     [
+      "sv_playingDemo",
+      "0"
+     ],
+     [
+      "sv_privateClients",
+      "0"
+     ],
+     [
+      "timelimit",
+      "30"
+     ],
+     [
+      "version",
+      "fnTech3 0.1.0 win_msvc-x86-debug Oct  5 2026"
+     ],
+     [
+      "g_LTChargeTime",
+      "40000"
+     ],
+     [
+      "g_alliedmaxlives",
+      "0"
+     ],
+     [
+      "g_antilag",
+      "1"
+     ],
+     [
+      "g_axismaxlives",
+      "0"
+     ],
+     [
+      "g_balancedteams",
+      "0"
+     ],
+     [
+      "g_bluelimbotime",
+      "20000"
+     ],
+     [
+      "g_covertopsChargeTime",
+      "30000"
+     ],
+     [
+      "g_engineerChargeTime",
+      "30000"
+     ],
+     [
+      "g_friendlyFire",
+      "1"
+     ],
+     [
+      "g_heavyWeaponRestriction",
+      "100"
+     ],
+     [
+      "g_maxGameClients",
+      "0"
+     ],
+     [
+      "g_maxlives",
+      "0"
+     ],
+     [
+      "g_maxlivesRespawnPenalty",
+      "0"
+     ],
+     [
+      "g_medicChargeTime",
+      "45000"
+     ],
+     [
+      "g_minGameClients",
+      "8"
+     ],
+     [
+      "g_needpass",
+      "0"
+     ],
+     [
+      "g_redlimbotime",
+      "20000"
+     ],
+     [
+      "g_soldierChargeTime",
+      "20000"
+     ],
+     [
+      "gamename",
+      "etmain"
+     ],
+     [
+      "voteFlags",
+      "4352"
+     ]
+    ],
+    "players": []
+   },
+   "rconCompleteReply": "\u00ff\u00ff\u00ff\u00ffprint\nSending gameCompleteStatus to 127.0.0.1\n",
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "output": ".tmp/legacy-interop/disc-final/wolfet-final"
+  },
+  {
+   "case": "wolfet-retail",
+   "profile": "wolfet",
+   "serverKind": "retail",
+   "serverSha256": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+   "expected": {
+    "protocol": 84,
+    "serverPort": 27960,
+    "masterPort": 27950,
+    "heartbeat": "EnemyTerritory-1",
+    "flatline": "ETFlatline-1",
+    "flatlines": 1
+   },
+   "masterOnProfilePort": true,
+   "masterPort": 27950,
+   "serverPortsOpened": [
+    27960
+   ],
+   "serverPort": 27960,
+   "heartbeats": [
+    "heartbeat EnemyTerritory-1\n",
+    "heartbeat ETFlatline-1\n"
+   ],
+   "heartbeatsOnQuakePort": [],
+   "otherMasterPackets": [],
+   "infoKeys": [
+    "challenge",
+    "protocol",
+    "hostname",
+    "serverload",
+    "mapname",
+    "clients",
+    "sv_maxclients",
+    "gametype",
+    "pure",
+    "sv_allowAnonymous",
+    "friendlyFire",
+    "maxlives",
+    "needpass",
+    "gamename",
+    "g_antilag",
+    "weaprestrict",
+    "balancedteams"
+   ],
+   "statusKeys": [
+    "g_heavyWeaponRestriction",
+    "g_maxlivesRespawnPenalty",
+    "voteFlags",
+    "g_balancedteams",
+    "g_maxGameClients",
+    "g_covertopsChargeTime",
+    "g_soldierChargeTime",
+    "g_LTChargeTime",
+    "g_engineerChargeTime",
+    "g_medicChargeTime",
+    "g_bluelimbotime",
+    "g_redlimbotime",
+    "gamename",
+    "g_antilag",
+    "g_voteFlags",
+    "g_alliedmaxlives",
+    "g_axismaxlives",
+    "g_minGameClients",
+    "g_needpass",
+    "g_maxlives",
+    "g_friendlyFire",
+    "sv_allowAnonymous",
+    "sv_floodProtect",
+    "sv_maxPing",
+    "sv_minPing",
+    "sv_maxRate",
+    "sv_maxclients",
+    "sv_privateClients",
+    "mapname",
+    "protocol",
+    "timelimit",
+    "version",
+    "g_gametype",
+    "sv_hostname",
+    "challenge"
+   ],
+   "retailClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "retailClientExit": 0,
+   "fntech3ClientPing": {
+    "accepted": true,
+    "differentGame": false,
+    "differentProtocol": false
+   },
+   "fntech3ClientExit": 0,
+   "fntech3ClientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+   "fntech3ClientListParsed": [
+    1
+   ],
+   "masterRequests": [
+    "getservers 84 full empty"
+   ],
+   "gameCompleteStatus": null,
+   "rconCompleteReply": "\u00ff\u00ff\u00ff\u00ffprint\nSending gameCompleteStatus to 127.0.0.1\n",
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "output": ".tmp/legacy-interop/disc-final/wolfet-retail"
+  }
+ ],
+ "headClientDiscovery": [
+  {
+   "case": "stvef-mp-final",
+   "profile": "stvef-mp",
+   "serverKind": "fntech3",
+   "serverSha256": "bf49aceaeb8ea553f9bf4b917ce6e62deb69d4c58fa441ebb357a37dbf5ea796",
+   "expected": {
+    "protocol": 24,
+    "serverPort": 27960,
+    "masterPort": 27953,
+    "heartbeat": "STEF1",
+    "flatline": "STEF1",
+    "flatlines": 2
+   },
+   "masterOnProfilePort": true,
+   "masterPort": 27953,
+   "serverPortsOpened": [
+    27960
+   ],
+   "serverPort": 27960,
+   "heartbeats": [
+    "\\heartbeat\\27960\\gamename\\STEF1\\",
+    "\\heartbeat\\27960\\gamename\\STEF1\\"
+   ],
+   "heartbeatsOnQuakePort": [],
+   "otherMasterPackets": [
+    "\\heartstop\\27960\\gamename\\STEF1\\"
+   ],
+   "infoKeys": [
+    "challenge",
+    "protocol",
+    "hostname",
+    "mapname",
+    "clients",
+    "g_humanplayers",
+    "sv_maxclients",
+    "gametype",
+    "pure",
+    "g_needpass"
+   ],
+   "statusKeys": [
+    "dmflags",
+    "fraglimit",
+    "g_gametype",
+    "g_pModActionHero",
+    "g_pModAssimilation",
+    "g_pModDisintegration",
+    "g_pModElimination",
+    "g_pModSpecialties",
+    "mapname",
+    "sv_allowDownload",
+    "sv_dlRate",
+    "sv_floodProtect",
+    "sv_hostname",
+    "sv_maxPing",
+    "sv_maxRate",
+    "sv_maxclients",
+    "sv_minPing",
+    "sv_minRate",
+    "sv_playingDemo",
+    "sv_privateClients",
+    "timelimit",
+    "version",
+    "capturelimit",
+    "g_allowVote",
+    "g_friendlyFire",
+    "g_gravity",
+    "g_maxGameClients",
+    "g_needpass",
+    "g_speed",
+    "gamename",
+    "challenge",
+    "protocol"
+   ],
+   "retailClientPing": null,
+   "retailClientExit": null,
+   "fntech3ClientPing": {
+    "accepted": false,
+    "differentGame": false,
+    "differentProtocol": true
+   },
+   "fntech3ClientExit": 0,
+   "fntech3ClientSha256": "b64ae63aea047ecda8febb45ec8bac89834c6ac7994f8501f4a8d20f8712739c",
+   "fntech3ClientListParsed": [
+    0
+   ],
+   "masterRequests": [],
+   "gameCompleteStatus": null,
+   "rconCompleteReply": null,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "output": ".tmp/legacy-interop/disc-head-client/stvef-mp-final"
+  },
+  {
+   "case": "stvef-mp-retail",
+   "profile": "stvef-mp",
+   "serverKind": "retail",
+   "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+   "expected": {
+    "protocol": 24,
+    "serverPort": 27960,
+    "masterPort": 27953,
+    "heartbeat": "STEF1",
+    "flatline": "STEF1",
+    "flatlines": 2
+   },
+   "masterOnProfilePort": true,
+   "masterPort": 27953,
+   "serverPortsOpened": [
+    27960
+   ],
+   "serverPort": 27960,
+   "heartbeats": [
+    "\\heartbeat\\27960\\gamename\\STEF1\\",
+    "\\heartbeat\\27960\\gamename\\STEF1\\"
+   ],
+   "heartbeatsOnQuakePort": [],
+   "otherMasterPackets": [
+    "\\heartstop\\27960\\gamename\\STEF1\\"
+   ],
+   "infoKeys": [
+    "challenge",
+    "protocol",
+    "hostname",
+    "mapname",
+    "clients",
+    "sv_maxclients",
+    "gametype",
+    "pure"
+   ],
+   "statusKeys": [
+    "challenge",
+    "g_allowVote",
+    "g_gravity",
+    "g_speed",
+    "g_needpass",
+    "g_friendlyFire",
+    "capturelimit",
+    "g_maxGameClients",
+    "gamename",
+    "sv_allowDownload",
+    "sv_pure",
+    "sv_floodProtect",
+    "sv_maxPing",
+    "sv_minPing",
+    "sv_maxRate",
+    "sv_maxclients",
+    "sv_privateClients",
+    "mapname",
+    "protocol",
+    "g_pModElimination",
+    "g_pModActionHero",
+    "g_pModDisintegration",
+    "g_pModAssimilation",
+    "g_pModSpecialties",
+    "g_gametype",
+    "timelimit",
+    "fraglimit",
+    "dmflags",
+    "version",
+    "sv_hostname"
+   ],
+   "retailClientPing": null,
+   "retailClientExit": null,
+   "fntech3ClientPing": {
+    "accepted": false,
+    "differentGame": false,
+    "differentProtocol": true
+   },
+   "fntech3ClientExit": 0,
+   "fntech3ClientSha256": "b64ae63aea047ecda8febb45ec8bac89834c6ac7994f8501f4a8d20f8712739c",
+   "fntech3ClientListParsed": [
+    0
+   ],
+   "masterRequests": [],
+   "gameCompleteStatus": null,
+   "rconCompleteReply": null,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "output": ".tmp/legacy-interop/disc-head-client/stvef-mp-retail"
+  }
+ ],
+ "sessions": [
+  {
+   "profile": "jka-mp",
+   "direction": "join",
+   "serverKind": "retail",
+   "clientKind": "fntech3",
+   "maps": [
+    "mp/ffa1",
+    "mp/ffa3"
+   ],
+   "pure": true,
+   "passed": false,
+   "installationUnchanged": true,
+   "sessions": [
+    {
+     "session": "main",
+     "serverSha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+     "clientSha256": "bc85d984dfe66360a9f46ab07aa12ea8383607251747075b0e63ee53bc41f286",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 2.98
+      },
+      {
+       "step": "join",
+       "passed": true,
+       "seconds": 43.06,
+       "slot": 0
+      },
+      {
+       "step": "client-chat",
+       "passed": true,
+       "seconds": 43.5
+      },
+      {
+       "step": "server-chat",
+       "passed": false,
+       "seconds": 59.67
+      },
+      {
+       "step": "map-change",
+       "passed": false,
+       "seconds": 120.98,
+       "map": "mp/ffa3"
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 1,
+     "clientForced": true,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "kick",
+     "serverSha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+     "clientSha256": "bc85d984dfe66360a9f46ab07aa12ea8383607251747075b0e63ee53bc41f286",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 1.47
+      },
+      {
+       "step": "kick-join",
+       "passed": true,
+       "seconds": 41.55,
+       "slot": 0
+      },
+      {
+       "step": "kick",
+       "passed": true,
+       "seconds": 45.72,
+       "answered": true,
+       "clientError": "disconnect \"@@@WAS_KICKED\"",
+       "printed": "fnprobe^7 @@@WAS_KICKED",
+       "survived": true
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 1,
+     "clientForced": true,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "download",
+     "serverSha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+     "clientSha256": null,
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": false,
+       "seconds": 60.56
+      }
+     ],
+     "serverExit": 1,
+     "clientExit": null,
+     "clientForced": null,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": {
+      "seed": 20261005,
+      "payloadBytes": 32768,
+      "bytes": 32916,
+      "sha256": "1608c45a7deb85d7b6e3aa681d4e614e96de3182e33a3089ac8c6b4a42f6db56"
+     },
+     "error": null
+    }
+   ],
+   "output": ".tmp/legacy-interop/sess-final2",
+   "runtime": "legacy-interop-final2"
+  },
+  {
+   "profile": "q3",
+   "direction": "control",
+   "serverKind": "retail",
+   "clientKind": "retail",
+   "maps": [
+    "q3dm17",
+    "q3dm6"
+   ],
+   "pure": true,
+   "passed": true,
+   "installationUnchanged": true,
+   "sessions": [
+    {
+     "session": "main",
+     "serverSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+     "clientSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 0.78
+      },
+      {
+       "step": "join",
+       "passed": true,
+       "seconds": 40.98,
+       "slot": 0
+      },
+      {
+       "step": "client-chat",
+       "passed": true,
+       "seconds": 41.23
+      },
+      {
+       "step": "server-chat",
+       "passed": true,
+       "seconds": 42.38
+      },
+      {
+       "step": "map-change",
+       "passed": true,
+       "seconds": 44.58,
+       "map": "q3dm6"
+      },
+      {
+       "step": "map-restart",
+       "passed": true,
+       "seconds": 45.72
+      },
+      {
+       "step": "reconnect",
+       "passed": true,
+       "seconds": 47.62,
+       "slot": 0
+      },
+      {
+       "step": "server-quit",
+       "passed": true,
+       "seconds": 48.89,
+       "answered": true,
+       "clientError": "Server disconnected\n^7"
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "kick",
+     "serverSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+     "clientSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 1.44
+      },
+      {
+       "step": "kick-join",
+       "passed": true,
+       "seconds": 41.52,
+       "slot": 0
+      },
+      {
+       "step": "kick",
+       "passed": true,
+       "seconds": 42.7,
+       "answered": true,
+       "clientError": "Server Disconnected - was kicked^7"
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "download",
+     "serverSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+     "clientSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 1.19
+      },
+      {
+       "step": "download",
+       "passed": true,
+       "seconds": 101.25,
+       "slot": 0,
+       "files": [
+        "fntech3probe\\fntech3probe.pk3"
+       ],
+       "leftovers": [],
+       "serverLoggedTransfer": true,
+       "unpure": false
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": {
+      "seed": 20261005,
+      "payloadBytes": 32768,
+      "bytes": 32916,
+      "sha256": "1608c45a7deb85d7b6e3aa681d4e614e96de3182e33a3089ac8c6b4a42f6db56"
+     },
+     "error": null
+    }
+   ],
+   "output": ".tmp/legacy-interop/sess-final",
+   "runtime": "legacy-interop-final"
+  },
+  {
+   "profile": "q3",
+   "direction": "host",
+   "serverKind": "fntech3",
+   "clientKind": "retail",
+   "maps": [
+    "q3dm17",
+    "q3dm6"
+   ],
+   "pure": true,
+   "passed": true,
+   "installationUnchanged": true,
+   "sessions": [
+    {
+     "session": "main",
+     "serverSha256": "bf49aceaeb8ea553f9bf4b917ce6e62deb69d4c58fa441ebb357a37dbf5ea796",
+     "clientSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 0.88
+      },
+      {
+       "step": "join",
+       "passed": true,
+       "seconds": 41.06,
+       "slot": 0
+      },
+      {
+       "step": "client-chat",
+       "passed": true,
+       "seconds": 41.34
+      },
+      {
+       "step": "server-chat",
+       "passed": true,
+       "seconds": 42.48
+      },
+      {
+       "step": "map-change",
+       "passed": true,
+       "seconds": 45.08,
+       "map": "q3dm6"
+      },
+      {
+       "step": "map-restart",
+       "passed": true,
+       "seconds": 46.22
+      },
+      {
+       "step": "reconnect",
+       "passed": true,
+       "seconds": 48.95,
+       "slot": 0
+      },
+      {
+       "step": "server-quit",
+       "passed": true,
+       "seconds": 50.3,
+       "answered": true,
+       "clientError": "Server Disconnected - Server quit^7"
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "kick",
+     "serverSha256": "bf49aceaeb8ea553f9bf4b917ce6e62deb69d4c58fa441ebb357a37dbf5ea796",
+     "clientSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 0.55
+      },
+      {
+       "step": "kick-join",
+       "passed": true,
+       "seconds": 40.66,
+       "slot": 0
+      },
+      {
+       "step": "kick",
+       "passed": true,
+       "seconds": 42.05,
+       "answered": true,
+       "clientError": "Server Disconnected - was kicked^7"
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "download",
+     "serverSha256": "bf49aceaeb8ea553f9bf4b917ce6e62deb69d4c58fa441ebb357a37dbf5ea796",
+     "clientSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 0.55
+      },
+      {
+       "step": "download",
+       "passed": true,
+       "seconds": 100.7,
+       "slot": 0,
+       "files": [
+        "fntech3probe\\fntech3probe.pk3"
+       ],
+       "leftovers": [],
+       "serverLoggedTransfer": true,
+       "unpure": false
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": {
+      "seed": 20261005,
+      "payloadBytes": 32768,
+      "bytes": 32916,
+      "sha256": "1608c45a7deb85d7b6e3aa681d4e614e96de3182e33a3089ac8c6b4a42f6db56"
+     },
+     "error": null
+    },
+    {
+     "session": "mixed",
+     "serverSha256": "bf49aceaeb8ea553f9bf4b917ce6e62deb69d4c58fa441ebb357a37dbf5ea796",
+     "clientSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+     "secondClientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 0.53
+      },
+      {
+       "step": "mixed-join",
+       "passed": true,
+       "seconds": 40.75,
+       "slots": [
+        0,
+        1
+       ]
+      },
+      {
+       "step": "mixed-chat",
+       "passed": true,
+       "seconds": 41.0
+      },
+      {
+       "step": "mixed-map-change",
+       "passed": true,
+       "seconds": 42.59
+      },
+      {
+       "step": "mixed-chat-after-change",
+       "passed": true,
+       "seconds": 45.58
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": 0,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    }
+   ],
+   "output": ".tmp/legacy-interop/sess-final",
+   "runtime": "legacy-interop-final"
+  },
+  {
+   "profile": "q3",
+   "direction": "join",
+   "serverKind": "retail",
+   "clientKind": "fntech3",
+   "maps": [
+    "q3dm17",
+    "q3dm6"
+   ],
+   "pure": true,
+   "passed": true,
+   "installationUnchanged": true,
+   "sessions": [
+    {
+     "session": "main",
+     "serverSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+     "clientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 1.53
+      },
+      {
+       "step": "join",
+       "passed": true,
+       "seconds": 41.86,
+       "slot": 0
+      },
+      {
+       "step": "client-chat",
+       "passed": true,
+       "seconds": 42.09
+      },
+      {
+       "step": "server-chat",
+       "passed": true,
+       "seconds": 43.22
+      },
+      {
+       "step": "map-change",
+       "passed": true,
+       "seconds": 44.38,
+       "map": "q3dm6"
+      },
+      {
+       "step": "map-restart",
+       "passed": true,
+       "seconds": 45.53
+      },
+      {
+       "step": "reconnect",
+       "passed": true,
+       "seconds": 46.41,
+       "slot": 0
+      },
+      {
+       "step": "server-quit",
+       "passed": true,
+       "seconds": 50.44,
+       "answered": true,
+       "clientError": "disconnect",
+       "printed": "Server quit",
+       "survived": true
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 1,
+     "clientForced": true,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "kick",
+     "serverSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+     "clientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 1.09
+      },
+      {
+       "step": "kick-join",
+       "passed": true,
+       "seconds": 41.23,
+       "slot": 0
+      },
+      {
+       "step": "kick",
+       "passed": true,
+       "seconds": 45.64,
+       "answered": true,
+       "clientError": "disconnect \"was kicked\"",
+       "printed": "fnprobe^7 was kicked",
+       "survived": true
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 1,
+     "clientForced": true,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "download",
+     "serverSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+     "clientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 1.55
+      },
+      {
+       "step": "download",
+       "passed": true,
+       "seconds": 101.81,
+       "slot": 0,
+       "files": [
+        "fntech3probe\\fntech3probe.pk3"
+       ],
+       "leftovers": [],
+       "serverLoggedTransfer": true,
+       "unpure": false
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 1,
+     "clientForced": true,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": {
+      "seed": 20261005,
+      "payloadBytes": 32768,
+      "bytes": 32916,
+      "sha256": "1608c45a7deb85d7b6e3aa681d4e614e96de3182e33a3089ac8c6b4a42f6db56"
+     },
+     "error": null
+    },
+    {
+     "session": "mixed",
+     "serverSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+     "clientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+     "secondClientSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 1.08
+      },
+      {
+       "step": "mixed-join",
+       "passed": true,
+       "seconds": 42.88,
+       "slots": [
+        1,
+        0
+       ]
+      },
+      {
+       "step": "mixed-chat",
+       "passed": true,
+       "seconds": 43.14
+      },
+      {
+       "step": "mixed-map-change",
+       "passed": true,
+       "seconds": 46.05
+      },
+      {
+       "step": "mixed-chat-after-change",
+       "passed": true,
+       "seconds": 48.81
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": 0,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    }
+   ],
+   "output": ".tmp/legacy-interop/sess-final",
+   "runtime": "legacy-interop-final"
+  },
+  {
+   "profile": "q3",
+   "direction": "listen",
+   "serverKind": "listen",
+   "clientKind": "retail",
+   "maps": [
+    "q3dm17",
+    "q3dm6"
+   ],
+   "pure": true,
+   "passed": true,
+   "installationUnchanged": true,
+   "sessions": [
+    {
+     "session": "main",
+     "serverSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+     "clientSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 2.06
+      },
+      {
+       "step": "join",
+       "passed": true,
+       "seconds": 5.69,
+       "slot": 1
+      },
+      {
+       "step": "client-chat",
+       "passed": true,
+       "seconds": 5.97
+      },
+      {
+       "step": "server-chat",
+       "passed": true,
+       "seconds": 7.09
+      },
+      {
+       "step": "map-change",
+       "passed": true,
+       "seconds": 9.31,
+       "map": "q3dm6"
+      },
+      {
+       "step": "map-restart",
+       "passed": true,
+       "seconds": 10.44
+      },
+      {
+       "step": "reconnect",
+       "passed": true,
+       "seconds": 12.41,
+       "slot": 1
+      },
+      {
+       "step": "server-quit",
+       "passed": true,
+       "seconds": 13.67,
+       "answered": true,
+       "clientError": "Server Disconnected - Server quit^7"
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "kick",
+     "serverSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+     "clientSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 1.64
+      },
+      {
+       "step": "kick-join",
+       "passed": true,
+       "seconds": 4.56,
+       "slot": 1
+      },
+      {
+       "step": "kick",
+       "passed": true,
+       "seconds": 5.97,
+       "answered": true,
+       "clientError": "Server Disconnected - was kicked^7"
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "download",
+     "serverSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+     "clientSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 1.78
+      },
+      {
+       "step": "download",
+       "passed": true,
+       "seconds": 5.94,
+       "slot": 1,
+       "files": [
+        "fntech3probe\\fntech3probe.pk3"
+       ],
+       "leftovers": [],
+       "serverLoggedTransfer": true,
+       "unpure": false
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": {
+      "seed": 20261005,
+      "payloadBytes": 32768,
+      "bytes": 32916,
+      "sha256": "1608c45a7deb85d7b6e3aa681d4e614e96de3182e33a3089ac8c6b4a42f6db56"
+     },
+     "error": null
+    }
+   ],
+   "output": ".tmp/legacy-interop/sess-final",
+   "runtime": "legacy-interop-final"
+  },
+  {
+   "profile": "rtcw-mp",
+   "direction": "control",
+   "serverKind": "retail",
+   "clientKind": "retail",
+   "maps": [
+    "mp_beach",
+    "mp_ice"
+   ],
+   "pure": true,
+   "passed": true,
+   "installationUnchanged": true,
+   "sessions": [
+    {
+     "session": "main",
+     "serverSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+     "clientSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 2.09
+      },
+      {
+       "step": "join",
+       "passed": true,
+       "seconds": 42.34,
+       "slot": 0
+      },
+      {
+       "step": "client-chat",
+       "passed": true,
+       "seconds": 42.62
+      },
+      {
+       "step": "server-chat",
+       "passed": true,
+       "seconds": 43.78
+      },
+      {
+       "step": "map-change",
+       "passed": true,
+       "seconds": 48.09,
+       "map": "mp_ice"
+      },
+      {
+       "step": "map-restart",
+       "passed": true,
+       "seconds": 49.27
+      },
+      {
+       "step": "reconnect",
+       "passed": true,
+       "seconds": 52.89,
+       "slot": 0
+      },
+      {
+       "step": "server-quit",
+       "passed": true,
+       "seconds": 54.2,
+       "answered": true,
+       "clientError": "Server disconnected\n^7"
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "kick",
+     "serverSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+     "clientSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 1.56
+      },
+      {
+       "step": "kick-join",
+       "passed": true,
+       "seconds": 41.75,
+       "slot": 0
+      },
+      {
+       "step": "kick",
+       "passed": true,
+       "seconds": 43.11,
+       "answered": true,
+       "clientError": "Server Disconnected - player kicked^7"
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "download",
+     "serverSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+     "clientSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 1.44
+      },
+      {
+       "step": "download",
+       "passed": true,
+       "seconds": 101.61,
+       "slot": 0,
+       "files": [
+        "fntech3probe\\fntech3probe.pk3"
+       ],
+       "leftovers": [],
+       "serverLoggedTransfer": true,
+       "unpure": false
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": {
+      "seed": 20261005,
+      "payloadBytes": 32768,
+      "bytes": 32916,
+      "sha256": "1608c45a7deb85d7b6e3aa681d4e614e96de3182e33a3089ac8c6b4a42f6db56"
+     },
+     "error": null
+    }
+   ],
+   "output": ".tmp/legacy-interop/sess-final",
+   "runtime": "legacy-interop-final"
+  },
+  {
+   "profile": "rtcw-mp",
+   "direction": "host",
+   "serverKind": "fntech3",
+   "clientKind": "retail",
+   "maps": [
+    "mp_beach",
+    "mp_ice"
+   ],
+   "pure": true,
+   "passed": true,
+   "installationUnchanged": true,
+   "sessions": [
+    {
+     "session": "main",
+     "serverSha256": "ffcbc49cfb6c22df6793a250bfb9e99778a92312e7e6bf0051a5ed60957f22ca",
+     "clientSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 1.14
+      },
+      {
+       "step": "join",
+       "passed": true,
+       "seconds": 41.23,
+       "slot": 0
+      },
+      {
+       "step": "client-chat",
+       "passed": true,
+       "seconds": 41.5
+      },
+      {
+       "step": "server-chat",
+       "passed": true,
+       "seconds": 42.62
+      },
+      {
+       "step": "map-change",
+       "passed": true,
+       "seconds": 48.53,
+       "map": "mp_ice"
+      },
+      {
+       "step": "map-restart",
+       "passed": true,
+       "seconds": 49.67
+      },
+      {
+       "step": "reconnect",
+       "passed": true,
+       "seconds": 53.42,
+       "slot": 0
+      },
+      {
+       "step": "server-quit",
+       "passed": true,
+       "seconds": 54.69,
+       "answered": true,
+       "clientError": "Server Disconnected - Server quit^7"
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "kick",
+     "serverSha256": "ffcbc49cfb6c22df6793a250bfb9e99778a92312e7e6bf0051a5ed60957f22ca",
+     "clientSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 0.67
+      },
+      {
+       "step": "kick-join",
+       "passed": true,
+       "seconds": 40.69,
+       "slot": 0
+      },
+      {
+       "step": "kick",
+       "passed": true,
+       "seconds": 42.05,
+       "answered": true,
+       "clientError": "Server Disconnected - was kicked^7"
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "download",
+     "serverSha256": "ffcbc49cfb6c22df6793a250bfb9e99778a92312e7e6bf0051a5ed60957f22ca",
+     "clientSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 0.81
+      },
+      {
+       "step": "download",
+       "passed": true,
+       "seconds": 100.95,
+       "slot": 0,
+       "files": [
+        "fntech3probe\\fntech3probe.pk3"
+       ],
+       "leftovers": [],
+       "serverLoggedTransfer": true,
+       "unpure": false
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": {
+      "seed": 20261005,
+      "payloadBytes": 32768,
+      "bytes": 32916,
+      "sha256": "1608c45a7deb85d7b6e3aa681d4e614e96de3182e33a3089ac8c6b4a42f6db56"
+     },
+     "error": null
+    },
+    {
+     "session": "mixed",
+     "serverSha256": "ffcbc49cfb6c22df6793a250bfb9e99778a92312e7e6bf0051a5ed60957f22ca",
+     "clientSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+     "secondClientSha256": "5a35958e8d59c340f812d7c87903930ccc64b1a4f6d2d4c53345280c39d173ac",
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 0.91
+      },
+      {
+       "step": "mixed-join",
+       "passed": true,
+       "seconds": 41.59,
+       "slots": [
+        0,
+        1
+       ]
+      },
+      {
+       "step": "mixed-chat",
+       "passed": true,
+       "seconds": 42.05
+      },
+      {
+       "step": "mixed-map-change",
+       "passed": true,
+       "seconds": 45.89
+      },
+      {
+       "step": "mixed-chat-after-change",
+       "passed": true,
+       "seconds": 48.66
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": 0,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    }
+   ],
+   "output": ".tmp/legacy-interop/sess-final3",
+   "runtime": "legacy-interop-final3"
+  },
+  {
+   "profile": "rtcw-mp",
+   "direction": "join",
+   "serverKind": "retail",
+   "clientKind": "fntech3",
+   "maps": [
+    "mp_beach",
+    "mp_ice"
+   ],
+   "pure": true,
+   "passed": true,
+   "installationUnchanged": true,
+   "sessions": [
+    {
+     "session": "main",
+     "serverSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+     "clientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 2.41
+      },
+      {
+       "step": "join",
+       "passed": true,
+       "seconds": 42.53,
+       "slot": 0
+      },
+      {
+       "step": "client-chat",
+       "passed": true,
+       "seconds": 42.77
+      },
+      {
+       "step": "server-chat",
+       "passed": true,
+       "seconds": 43.89
+      },
+      {
+       "step": "map-change",
+       "passed": true,
+       "seconds": 46.3,
+       "map": "mp_ice"
+      },
+      {
+       "step": "map-restart",
+       "passed": true,
+       "seconds": 47.44
+      },
+      {
+       "step": "reconnect",
+       "passed": true,
+       "seconds": 49.31,
+       "slot": 0
+      },
+      {
+       "step": "server-quit",
+       "passed": true,
+       "seconds": 53.34,
+       "answered": true,
+       "clientError": "disconnect",
+       "printed": "Server quit",
+       "survived": true
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 1,
+     "clientForced": true,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "kick",
+     "serverSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+     "clientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 2.08
+      },
+      {
+       "step": "kick-join",
+       "passed": true,
+       "seconds": 42.19,
+       "slot": 0
+      },
+      {
+       "step": "kick",
+       "passed": true,
+       "seconds": 46.34,
+       "answered": true,
+       "clientError": "disconnect \"player kicked\"",
+       "printed": "fnprobe^7 player kicked",
+       "survived": true
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 1,
+     "clientForced": true,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "download",
+     "serverSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+     "clientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 2.14
+      },
+      {
+       "step": "download",
+       "passed": true,
+       "seconds": 102.39,
+       "slot": 0,
+       "files": [
+        "fntech3probe\\fntech3probe.pk3"
+       ],
+       "leftovers": [],
+       "serverLoggedTransfer": true,
+       "unpure": false
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 1,
+     "clientForced": true,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": {
+      "seed": 20261005,
+      "payloadBytes": 32768,
+      "bytes": 32916,
+      "sha256": "1608c45a7deb85d7b6e3aa681d4e614e96de3182e33a3089ac8c6b4a42f6db56"
+     },
+     "error": null
+    },
+    {
+     "session": "mixed",
+     "serverSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+     "clientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+     "secondClientSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 2.03
+      },
+      {
+       "step": "mixed-join",
+       "passed": true,
+       "seconds": 42.22,
+       "slots": [
+        0,
+        1
+       ]
+      },
+      {
+       "step": "mixed-chat",
+       "passed": true,
+       "seconds": 42.47
+      },
+      {
+       "step": "mixed-map-change",
+       "passed": true,
+       "seconds": 47.84
+      },
+      {
+       "step": "mixed-chat-after-change",
+       "passed": true,
+       "seconds": 50.66
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": 0,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    }
+   ],
+   "output": ".tmp/legacy-interop/sess-final",
+   "runtime": "legacy-interop-final"
+  },
+  {
+   "profile": "rtcw-mp",
+   "direction": "listen",
+   "serverKind": "listen",
+   "clientKind": "retail",
+   "maps": [
+    "mp_beach",
+    "mp_ice"
+   ],
+   "pure": true,
+   "passed": true,
+   "installationUnchanged": true,
+   "sessions": [
+    {
+     "session": "main",
+     "serverSha256": "5a35958e8d59c340f812d7c87903930ccc64b1a4f6d2d4c53345280c39d173ac",
+     "clientSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 2.11
+      },
+      {
+       "step": "join",
+       "passed": true,
+       "seconds": 7.42,
+       "slot": 1
+      },
+      {
+       "step": "client-chat",
+       "passed": true,
+       "seconds": 7.69
+      },
+      {
+       "step": "server-chat",
+       "passed": true,
+       "seconds": 8.81
+      },
+      {
+       "step": "map-change",
+       "passed": true,
+       "seconds": 15.98,
+       "map": "mp_ice"
+      },
+      {
+       "step": "map-restart",
+       "passed": true,
+       "seconds": 17.11
+      },
+      {
+       "step": "reconnect",
+       "passed": true,
+       "seconds": 20.03,
+       "slot": 1
+      },
+      {
+       "step": "server-quit",
+       "passed": true,
+       "seconds": 21.3,
+       "answered": true,
+       "clientError": "Server Disconnected - Server quit^7"
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "kick",
+     "serverSha256": "5a35958e8d59c340f812d7c87903930ccc64b1a4f6d2d4c53345280c39d173ac",
+     "clientSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 2.53
+      },
+      {
+       "step": "kick-join",
+       "passed": true,
+       "seconds": 7.09,
+       "slot": 1
+      },
+      {
+       "step": "kick",
+       "passed": true,
+       "seconds": 8.44,
+       "answered": true,
+       "clientError": "Server Disconnected - was kicked^7"
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "download",
+     "serverSha256": "5a35958e8d59c340f812d7c87903930ccc64b1a4f6d2d4c53345280c39d173ac",
+     "clientSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 2.06
+      },
+      {
+       "step": "download",
+       "passed": true,
+       "seconds": 8.25,
+       "slot": 1,
+       "files": [
+        "fntech3probe\\fntech3probe.pk3"
+       ],
+       "leftovers": [],
+       "serverLoggedTransfer": true,
+       "unpure": false
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": {
+      "seed": 20261005,
+      "payloadBytes": 32768,
+      "bytes": 32916,
+      "sha256": "1608c45a7deb85d7b6e3aa681d4e614e96de3182e33a3089ac8c6b4a42f6db56"
+     },
+     "error": null
+    }
+   ],
+   "output": ".tmp/legacy-interop/sess-final3",
+   "runtime": "legacy-interop-final3"
+  },
+  {
+   "profile": "stvef-mp",
+   "direction": "control",
+   "serverKind": "retail",
+   "clientKind": "retail",
+   "maps": [
+    "hm_borg1",
+    "hm_voy1"
+   ],
+   "pure": true,
+   "passed": true,
+   "installationUnchanged": true,
+   "sessions": [
+    {
+     "session": "main",
+     "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "clientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 1.53
+      },
+      {
+       "step": "join",
+       "passed": true,
+       "seconds": 61.69,
+       "slot": 0
+      },
+      {
+       "step": "client-chat",
+       "passed": true,
+       "seconds": 61.95
+      },
+      {
+       "step": "server-chat",
+       "passed": true,
+       "seconds": 63.11
+      },
+      {
+       "step": "map-change",
+       "passed": true,
+       "seconds": 65.72,
+       "map": "hm_voy1"
+      },
+      {
+       "step": "map-restart",
+       "passed": true,
+       "seconds": 66.86
+      },
+      {
+       "step": "reconnect",
+       "passed": true,
+       "seconds": 69.5,
+       "slot": 0
+      },
+      {
+       "step": "server-quit",
+       "passed": true,
+       "seconds": 70.78,
+       "answered": true,
+       "clientError": null
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "kick",
+     "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "clientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 0.92
+      },
+      {
+       "step": "kick-join",
+       "passed": true,
+       "seconds": 60.98,
+       "slot": 0
+      },
+      {
+       "step": "kick",
+       "passed": true,
+       "seconds": 62.39,
+       "answered": true,
+       "clientError": null
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "download",
+     "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "clientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 2.06
+      },
+      {
+       "step": "download",
+       "passed": true,
+       "seconds": 122.22,
+       "slot": 0,
+       "files": [
+        "fntech3probe\\fntech3probe.pk3"
+       ],
+       "leftovers": [],
+       "serverLoggedTransfer": true,
+       "unpure": false
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": {
+      "seed": 20261005,
+      "payloadBytes": 32768,
+      "bytes": 32916,
+      "sha256": "1608c45a7deb85d7b6e3aa681d4e614e96de3182e33a3089ac8c6b4a42f6db56"
+     },
+     "error": null
+    }
+   ],
+   "output": ".tmp/legacy-interop/sess-final2",
+   "runtime": "legacy-interop-final2"
+  },
+  {
+   "profile": "stvef-mp",
+   "direction": "host",
+   "serverKind": "fntech3",
+   "clientKind": "retail",
+   "maps": [
+    "hm_borg1",
+    "hm_voy1"
+   ],
+   "pure": true,
+   "passed": true,
+   "installationUnchanged": true,
+   "sessions": [
+    {
+     "session": "main",
+     "serverSha256": "5ec12aa9e8e04ae6a6e021e03131056119d465fa458153c058196bd16c993be5",
+     "clientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 1.06
+      },
+      {
+       "step": "join",
+       "passed": true,
+       "seconds": 61.3,
+       "slot": 0
+      },
+      {
+       "step": "client-chat",
+       "passed": true,
+       "seconds": 61.61
+      },
+      {
+       "step": "server-chat",
+       "passed": true,
+       "seconds": 62.75
+      },
+      {
+       "step": "map-change",
+       "passed": true,
+       "seconds": 64.88,
+       "map": "hm_voy1"
+      },
+      {
+       "step": "map-restart",
+       "passed": true,
+       "seconds": 66.02
+      },
+      {
+       "step": "reconnect",
+       "passed": true,
+       "seconds": 67.59,
+       "slot": 0
+      },
+      {
+       "step": "server-quit",
+       "passed": true,
+       "seconds": 68.84,
+       "answered": true,
+       "clientError": null
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "kick",
+     "serverSha256": "5ec12aa9e8e04ae6a6e021e03131056119d465fa458153c058196bd16c993be5",
+     "clientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 0.53
+      },
+      {
+       "step": "kick-join",
+       "passed": true,
+       "seconds": 60.73,
+       "slot": 0
+      },
+      {
+       "step": "kick",
+       "passed": true,
+       "seconds": 62.09,
+       "answered": true,
+       "clientError": null
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "download",
+     "serverSha256": "5ec12aa9e8e04ae6a6e021e03131056119d465fa458153c058196bd16c993be5",
+     "clientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 0.55
+      },
+      {
+       "step": "download",
+       "passed": true,
+       "seconds": 120.75,
+       "slot": 0,
+       "files": [
+        "fntech3probe\\fntech3probe.pk3"
+       ],
+       "leftovers": [],
+       "serverLoggedTransfer": true,
+       "unpure": false
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": {
+      "seed": 20261005,
+      "payloadBytes": 32768,
+      "bytes": 32916,
+      "sha256": "1608c45a7deb85d7b6e3aa681d4e614e96de3182e33a3089ac8c6b4a42f6db56"
+     },
+     "error": null
+    },
+    {
+     "session": "mixed",
+     "serverSha256": "5ec12aa9e8e04ae6a6e021e03131056119d465fa458153c058196bd16c993be5",
+     "clientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "secondClientSha256": "bc85d984dfe66360a9f46ab07aa12ea8383607251747075b0e63ee53bc41f286",
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 0.56
+      },
+      {
+       "step": "mixed-join",
+       "passed": true,
+       "seconds": 60.66,
+       "slots": [
+        0,
+        1
+       ]
+      },
+      {
+       "step": "mixed-chat",
+       "passed": true,
+       "seconds": 61.11
+      },
+      {
+       "step": "mixed-map-change",
+       "passed": true,
+       "seconds": 66.42
+      },
+      {
+       "step": "mixed-chat-after-change",
+       "passed": true,
+       "seconds": 69.25
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": 0,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    }
+   ],
+   "output": ".tmp/legacy-interop/sess-final2",
+   "runtime": "legacy-interop-final2"
+  },
+  {
+   "profile": "stvef-mp",
+   "direction": "join",
+   "serverKind": "retail",
+   "clientKind": "fntech3",
+   "maps": [
+    "hm_borg1",
+    "hm_voy1"
+   ],
+   "pure": true,
+   "passed": true,
+   "installationUnchanged": true,
+   "sessions": [
+    {
+     "session": "main",
+     "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "clientSha256": "bc85d984dfe66360a9f46ab07aa12ea8383607251747075b0e63ee53bc41f286",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 1.28
+      },
+      {
+       "step": "join",
+       "passed": true,
+       "seconds": 61.8,
+       "slot": 0
+      },
+      {
+       "step": "client-chat",
+       "passed": true,
+       "seconds": 62.05
+      },
+      {
+       "step": "server-chat",
+       "passed": true,
+       "seconds": 63.19
+      },
+      {
+       "step": "map-change",
+       "passed": true,
+       "seconds": 65.19,
+       "map": "hm_voy1"
+      },
+      {
+       "step": "map-restart",
+       "passed": true,
+       "seconds": 66.33
+      },
+      {
+       "step": "reconnect",
+       "passed": true,
+       "seconds": 68.81,
+       "slot": 0
+      },
+      {
+       "step": "server-quit",
+       "passed": true,
+       "seconds": 72.88,
+       "answered": true,
+       "clientError": "disconnect server shut down",
+       "printed": "Server quit",
+       "survived": true
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 1,
+     "clientForced": true,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "kick",
+     "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "clientSha256": "bc85d984dfe66360a9f46ab07aa12ea8383607251747075b0e63ee53bc41f286",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 0.88
+      },
+      {
+       "step": "kick-join",
+       "passed": true,
+       "seconds": 60.98,
+       "slot": 0
+      },
+      {
+       "step": "kick",
+       "passed": true,
+       "seconds": 65.2,
+       "answered": true,
+       "clientError": "disconnect kicked",
+       "printed": "fnprobe^7 kicked",
+       "survived": true
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 1,
+     "clientForced": true,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "download",
+     "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "clientSha256": "bc85d984dfe66360a9f46ab07aa12ea8383607251747075b0e63ee53bc41f286",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 0.98
+      },
+      {
+       "step": "download",
+       "passed": true,
+       "seconds": 121.03,
+       "slot": 0,
+       "files": [
+        "fntech3probe\\fntech3probe.pk3"
+       ],
+       "leftovers": [],
+       "serverLoggedTransfer": true,
+       "unpure": false
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 1,
+     "clientForced": true,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": {
+      "seed": 20261005,
+      "payloadBytes": 32768,
+      "bytes": 32916,
+      "sha256": "1608c45a7deb85d7b6e3aa681d4e614e96de3182e33a3089ac8c6b4a42f6db56"
+     },
+     "error": null
+    },
+    {
+     "session": "mixed",
+     "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "clientSha256": "bc85d984dfe66360a9f46ab07aa12ea8383607251747075b0e63ee53bc41f286",
+     "secondClientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 0.75
+      },
+      {
+       "step": "mixed-join",
+       "passed": true,
+       "seconds": 83.83,
+       "slots": [
+        1,
+        0
+       ]
+      },
+      {
+       "step": "mixed-chat",
+       "passed": true,
+       "seconds": 84.11
+      },
+      {
+       "step": "mixed-map-change",
+       "passed": true,
+       "seconds": 86.97
+      },
+      {
+       "step": "mixed-chat-after-change",
+       "passed": true,
+       "seconds": 89.75
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": 0,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    }
+   ],
+   "output": ".tmp/legacy-interop/sess-final2",
+   "runtime": "legacy-interop-final2"
+  },
+  {
+   "profile": "stvef-mp",
+   "direction": "listen",
+   "serverKind": "listen",
+   "clientKind": "retail",
+   "maps": [
+    "hm_borg1",
+    "hm_voy1"
+   ],
+   "pure": true,
+   "passed": true,
+   "installationUnchanged": true,
+   "sessions": [
+    {
+     "session": "main",
+     "serverSha256": "bc85d984dfe66360a9f46ab07aa12ea8383607251747075b0e63ee53bc41f286",
+     "clientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 2.92
+      },
+      {
+       "step": "join",
+       "passed": true,
+       "seconds": 9.72,
+       "slot": 1
+      },
+      {
+       "step": "client-chat",
+       "passed": true,
+       "seconds": 10.08
+      },
+      {
+       "step": "server-chat",
+       "passed": true,
+       "seconds": 11.2
+      },
+      {
+       "step": "map-change",
+       "passed": true,
+       "seconds": 16.59,
+       "map": "hm_voy1"
+      },
+      {
+       "step": "map-restart",
+       "passed": true,
+       "seconds": 17.73
+      },
+      {
+       "step": "reconnect",
+       "passed": true,
+       "seconds": 20.23,
+       "slot": 1
+      },
+      {
+       "step": "server-quit",
+       "passed": true,
+       "seconds": 22.38,
+       "answered": true,
+       "clientError": null
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "kick",
+     "serverSha256": "bc85d984dfe66360a9f46ab07aa12ea8383607251747075b0e63ee53bc41f286",
+     "clientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 2.59
+      },
+      {
+       "step": "kick-join",
+       "passed": true,
+       "seconds": 9.03,
+       "slot": 1
+      },
+      {
+       "step": "kick",
+       "passed": true,
+       "seconds": 10.45,
+       "answered": true,
+       "clientError": null
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "download",
+     "serverSha256": "bc85d984dfe66360a9f46ab07aa12ea8383607251747075b0e63ee53bc41f286",
+     "clientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 6.7
+      },
+      {
+       "step": "download",
+       "passed": true,
+       "seconds": 12.44,
+       "slot": 1,
+       "files": [
+        "fntech3probe\\fntech3probe.pk3"
+       ],
+       "leftovers": [],
+       "serverLoggedTransfer": true,
+       "unpure": false
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": {
+      "seed": 20261005,
+      "payloadBytes": 32768,
+      "bytes": 32916,
+      "sha256": "1608c45a7deb85d7b6e3aa681d4e614e96de3182e33a3089ac8c6b4a42f6db56"
+     },
+     "error": null
+    }
+   ],
+   "output": ".tmp/legacy-interop/sess-final2",
+   "runtime": "legacy-interop-final2"
+  },
+  {
+   "profile": "wolfet",
+   "direction": "control",
+   "serverKind": "retail",
+   "clientKind": "retail",
+   "maps": [
+    "railgun",
+    "battery"
+   ],
+   "pure": true,
+   "passed": true,
+   "installationUnchanged": true,
+   "sessions": [
+    {
+     "session": "main",
+     "serverSha256": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+     "clientSha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 2.92
+      },
+      {
+       "step": "server-playing",
+       "passed": true,
+       "seconds": 6.72
+      },
+      {
+       "step": "join",
+       "passed": true,
+       "seconds": 46.83,
+       "slot": 0
+      },
+      {
+       "step": "client-chat",
+       "passed": true,
+       "seconds": 47.09
+      },
+      {
+       "step": "server-chat",
+       "passed": true,
+       "seconds": 48.27
+      },
+      {
+       "step": "map-change",
+       "passed": true,
+       "seconds": 54.14,
+       "map": "battery"
+      },
+      {
+       "step": "map-restart",
+       "passed": true,
+       "seconds": 55.3
+      },
+      {
+       "step": "reconnect",
+       "passed": true,
+       "seconds": 58.42,
+       "slot": 0
+      },
+      {
+       "step": "server-quit",
+       "passed": true,
+       "seconds": 59.58,
+       "answered": true,
+       "clientError": "Server disconnected\n^7"
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "kick",
+     "serverSha256": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+     "clientSha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 2.55
+      },
+      {
+       "step": "server-playing",
+       "passed": true,
+       "seconds": 6.2
+      },
+      {
+       "step": "kick-join",
+       "passed": true,
+       "seconds": 46.27,
+       "slot": 0
+      },
+      {
+       "step": "kick",
+       "passed": true,
+       "seconds": 47.7,
+       "answered": true,
+       "clientError": "Server Disconnected - player kicked^7"
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "download",
+     "serverSha256": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+     "clientSha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 2.02
+      },
+      {
+       "step": "server-playing",
+       "passed": true,
+       "seconds": 6.88
+      },
+      {
+       "step": "download",
+       "passed": true,
+       "seconds": 107.03,
+       "slot": 0,
+       "files": [
+        "fntech3probe\\fntech3probe.pk3"
+       ],
+       "leftovers": [],
+       "serverLoggedTransfer": true,
+       "unpure": false
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": {
+      "seed": 20261005,
+      "payloadBytes": 32768,
+      "bytes": 32916,
+      "sha256": "1608c45a7deb85d7b6e3aa681d4e614e96de3182e33a3089ac8c6b4a42f6db56"
+     },
+     "error": null
+    }
+   ],
+   "output": ".tmp/legacy-interop/sess-final2",
+   "runtime": "legacy-interop-final2"
+  },
+  {
+   "profile": "wolfet",
+   "direction": "host",
+   "serverKind": "fntech3",
+   "clientKind": "retail",
+   "maps": [
+    "railgun",
+    "battery"
+   ],
+   "pure": true,
+   "passed": true,
+   "installationUnchanged": true,
+   "sessions": [
+    {
+     "session": "main",
+     "serverSha256": "ffcbc49cfb6c22df6793a250bfb9e99778a92312e7e6bf0051a5ed60957f22ca",
+     "clientSha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 0.52
+      },
+      {
+       "step": "server-playing",
+       "passed": true,
+       "seconds": 11.33
+      },
+      {
+       "step": "join",
+       "passed": true,
+       "seconds": 51.64,
+       "slot": 0
+      },
+      {
+       "step": "client-chat",
+       "passed": true,
+       "seconds": 51.88
+      },
+      {
+       "step": "server-chat",
+       "passed": true,
+       "seconds": 53.0
+      },
+      {
+       "step": "map-change",
+       "passed": true,
+       "seconds": 54.97,
+       "map": "battery"
+      },
+      {
+       "step": "map-restart",
+       "passed": true,
+       "seconds": 56.11
+      },
+      {
+       "step": "reconnect",
+       "passed": true,
+       "seconds": 59.23,
+       "slot": 0
+      },
+      {
+       "step": "server-quit",
+       "passed": true,
+       "seconds": 60.52,
+       "answered": true,
+       "clientError": "Server Disconnected - Server quit^7"
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "kick",
+     "serverSha256": "ffcbc49cfb6c22df6793a250bfb9e99778a92312e7e6bf0051a5ed60957f22ca",
+     "clientSha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 0.64
+      },
+      {
+       "step": "server-playing",
+       "passed": true,
+       "seconds": 11.45
+      },
+      {
+       "step": "kick-join",
+       "passed": true,
+       "seconds": 51.48,
+       "slot": 0
+      },
+      {
+       "step": "kick",
+       "passed": true,
+       "seconds": 52.83,
+       "answered": true,
+       "clientError": "Server Disconnected - was kicked^7"
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "download",
+     "serverSha256": "ffcbc49cfb6c22df6793a250bfb9e99778a92312e7e6bf0051a5ed60957f22ca",
+     "clientSha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 0.53
+      },
+      {
+       "step": "server-playing",
+       "passed": true,
+       "seconds": 11.34
+      },
+      {
+       "step": "download",
+       "passed": true,
+       "seconds": 111.48,
+       "slot": 0,
+       "files": [
+        "fntech3probe\\fntech3probe.pk3"
+       ],
+       "leftovers": [],
+       "serverLoggedTransfer": true,
+       "unpure": false
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": {
+      "seed": 20261005,
+      "payloadBytes": 32768,
+      "bytes": 32916,
+      "sha256": "1608c45a7deb85d7b6e3aa681d4e614e96de3182e33a3089ac8c6b4a42f6db56"
+     },
+     "error": null
+    },
+    {
+     "session": "mixed",
+     "serverSha256": "ffcbc49cfb6c22df6793a250bfb9e99778a92312e7e6bf0051a5ed60957f22ca",
+     "clientSha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+     "secondClientSha256": "5a35958e8d59c340f812d7c87903930ccc64b1a4f6d2d4c53345280c39d173ac",
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 0.52
+      },
+      {
+       "step": "server-playing",
+       "passed": true,
+       "seconds": 11.34
+      },
+      {
+       "step": "mixed-join",
+       "passed": true,
+       "seconds": 51.52,
+       "slots": [
+        0,
+        1
+       ]
+      },
+      {
+       "step": "mixed-chat",
+       "passed": true,
+       "seconds": 52.0
+      },
+      {
+       "step": "mixed-map-change",
+       "passed": true,
+       "seconds": 54.42
+      },
+      {
+       "step": "mixed-chat-after-change",
+       "passed": true,
+       "seconds": 57.41
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": 0,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    }
+   ],
+   "output": ".tmp/legacy-interop/sess-final3",
+   "runtime": "legacy-interop-final3"
+  },
+  {
+   "profile": "wolfet",
+   "direction": "join",
+   "serverKind": "retail",
+   "clientKind": "fntech3",
+   "maps": [
+    "railgun",
+    "battery"
+   ],
+   "pure": true,
+   "passed": true,
+   "installationUnchanged": true,
+   "sessions": [
+    {
+     "session": "main",
+     "serverSha256": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+     "clientSha256": "bc85d984dfe66360a9f46ab07aa12ea8383607251747075b0e63ee53bc41f286",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 1.55
+      },
+      {
+       "step": "server-playing",
+       "passed": true,
+       "seconds": 6.41
+      },
+      {
+       "step": "join",
+       "passed": true,
+       "seconds": 47.12,
+       "slot": 0
+      },
+      {
+       "step": "client-chat",
+       "passed": true,
+       "seconds": 47.36
+      },
+      {
+       "step": "server-chat",
+       "passed": true,
+       "seconds": 48.5
+      },
+      {
+       "step": "map-change",
+       "passed": true,
+       "seconds": 53.7,
+       "map": "battery"
+      },
+      {
+       "step": "map-restart",
+       "passed": true,
+       "seconds": 54.88
+      },
+      {
+       "step": "reconnect",
+       "passed": true,
+       "seconds": 57.8,
+       "slot": 0
+      },
+      {
+       "step": "server-quit",
+       "passed": true,
+       "seconds": 61.08,
+       "answered": true,
+       "clientError": null,
+       "printed": "Server quit",
+       "survived": true
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 1,
+     "clientForced": true,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "kick",
+     "serverSha256": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+     "clientSha256": "bc85d984dfe66360a9f46ab07aa12ea8383607251747075b0e63ee53bc41f286",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 1.97
+      },
+      {
+       "step": "server-playing",
+       "passed": true,
+       "seconds": 6.83
+      },
+      {
+       "step": "kick-join",
+       "passed": true,
+       "seconds": 46.97,
+       "slot": 0
+      },
+      {
+       "step": "kick",
+       "passed": true,
+       "seconds": 51.22,
+       "answered": true,
+       "clientError": null,
+       "printed": null,
+       "survived": true
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 1,
+     "clientForced": true,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "download",
+     "serverSha256": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+     "clientSha256": "bc85d984dfe66360a9f46ab07aa12ea8383607251747075b0e63ee53bc41f286",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 1.59
+      },
+      {
+       "step": "server-playing",
+       "passed": true,
+       "seconds": 6.44
+      },
+      {
+       "step": "download",
+       "passed": true,
+       "seconds": 106.59,
+       "slot": 0,
+       "files": [
+        "fntech3probe\\fntech3probe.pk3"
+       ],
+       "leftovers": [],
+       "serverLoggedTransfer": true,
+       "unpure": false
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 1,
+     "clientForced": true,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": {
+      "seed": 20261005,
+      "payloadBytes": 32768,
+      "bytes": 32916,
+      "sha256": "1608c45a7deb85d7b6e3aa681d4e614e96de3182e33a3089ac8c6b4a42f6db56"
+     },
+     "error": null
+    },
+    {
+     "session": "mixed",
+     "serverSha256": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+     "clientSha256": "bc85d984dfe66360a9f46ab07aa12ea8383607251747075b0e63ee53bc41f286",
+     "secondClientSha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 2.52
+      },
+      {
+       "step": "server-playing",
+       "passed": true,
+       "seconds": 6.33
+      },
+      {
+       "step": "mixed-join",
+       "passed": true,
+       "seconds": 49.17,
+       "slots": [
+        1,
+        0
+       ]
+      },
+      {
+       "step": "mixed-chat",
+       "passed": true,
+       "seconds": 49.45
+      },
+      {
+       "step": "mixed-map-change",
+       "passed": true,
+       "seconds": 56.52
+      },
+      {
+       "step": "mixed-chat-after-change",
+       "passed": true,
+       "seconds": 59.3
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": 0,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    }
+   ],
+   "output": ".tmp/legacy-interop/sess-final2",
+   "runtime": "legacy-interop-final2"
+  },
+  {
+   "profile": "wolfet",
+   "direction": "listen",
+   "serverKind": "listen",
+   "clientKind": "retail",
+   "maps": [
+    "railgun",
+    "battery"
+   ],
+   "pure": true,
+   "passed": true,
+   "installationUnchanged": true,
+   "sessions": [
+    {
+     "session": "main",
+     "serverSha256": "5a35958e8d59c340f812d7c87903930ccc64b1a4f6d2d4c53345280c39d173ac",
+     "clientSha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 2.39
+      },
+      {
+       "step": "server-playing",
+       "passed": true,
+       "seconds": 14.78
+      },
+      {
+       "step": "join",
+       "passed": true,
+       "seconds": 21.75,
+       "slot": 1
+      },
+      {
+       "step": "client-chat",
+       "passed": true,
+       "seconds": 21.97
+      },
+      {
+       "step": "server-chat",
+       "passed": true,
+       "seconds": 23.08
+      },
+      {
+       "step": "map-change",
+       "passed": true,
+       "seconds": 25.11,
+       "map": "battery"
+      },
+      {
+       "step": "map-restart",
+       "passed": true,
+       "seconds": 26.25
+      },
+      {
+       "step": "reconnect",
+       "passed": true,
+       "seconds": 28.77,
+       "slot": 1
+      },
+      {
+       "step": "server-quit",
+       "passed": true,
+       "seconds": 30.02,
+       "answered": true,
+       "clientError": "Server Disconnected - Server quit^7"
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "kick",
+     "serverSha256": "5a35958e8d59c340f812d7c87903930ccc64b1a4f6d2d4c53345280c39d173ac",
+     "clientSha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 1.83
+      },
+      {
+       "step": "server-playing",
+       "passed": true,
+       "seconds": 14.0
+      },
+      {
+       "step": "kick-join",
+       "passed": true,
+       "seconds": 20.8,
+       "slot": 1
+      },
+      {
+       "step": "kick",
+       "passed": true,
+       "seconds": 22.39,
+       "answered": true,
+       "clientError": "Server Disconnected - was kicked^7"
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    },
+    {
+     "session": "download",
+     "serverSha256": "5a35958e8d59c340f812d7c87903930ccc64b1a4f6d2d4c53345280c39d173ac",
+     "clientSha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 1.83
+      },
+      {
+       "step": "server-playing",
+       "passed": true,
+       "seconds": 14.19
+      },
+      {
+       "step": "download",
+       "passed": true,
+       "seconds": 23.0,
+       "slot": 1,
+       "files": [
+        "fntech3probe\\fntech3probe.pk3"
+       ],
+       "leftovers": [],
+       "serverLoggedTransfer": true,
+       "unpure": false
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": {
+      "seed": 20261005,
+      "payloadBytes": 32768,
+      "bytes": 32916,
+      "sha256": "1608c45a7deb85d7b6e3aa681d4e614e96de3182e33a3089ac8c6b4a42f6db56"
+     },
+     "error": null
+    }
+   ],
+   "output": ".tmp/legacy-interop/sess-final3",
+   "runtime": "legacy-interop-final3"
+  }
+ ],
+ "pureProofCheck": [
+  {
+   "profile": "q3",
+   "direction": "join",
+   "serverKind": "retail",
+   "clientKind": "fntech3",
+   "maps": [
+    "q3dm17",
+    "q3dm6"
+   ],
+   "pure": true,
+   "passed": true,
+   "installationUnchanged": true,
+   "sessions": [
+    {
+     "session": "main",
+     "serverSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+     "clientSha256": "bc85d984dfe66360a9f46ab07aa12ea8383607251747075b0e63ee53bc41f286",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 1.41
+      },
+      {
+       "step": "join",
+       "passed": true,
+       "seconds": 41.47,
+       "slot": 0
+      },
+      {
+       "step": "client-chat",
+       "passed": true,
+       "seconds": 41.72
+      },
+      {
+       "step": "server-chat",
+       "passed": true,
+       "seconds": 42.86
+      },
+      {
+       "step": "map-change",
+       "passed": true,
+       "seconds": 44.27,
+       "map": "q3dm6"
+      },
+      {
+       "step": "map-restart",
+       "passed": true,
+       "seconds": 45.42
+      },
+      {
+       "step": "reconnect",
+       "passed": true,
+       "seconds": 46.56,
+       "slot": 0
+      },
+      {
+       "step": "server-quit",
+       "passed": true,
+       "seconds": 50.59,
+       "answered": true,
+       "clientError": "disconnect",
+       "printed": "Server quit",
+       "survived": true
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 1,
+     "clientForced": true,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    }
+   ],
+   "output": ".tmp/legacy-interop/sess-final2-check"
+  },
+  {
+   "profile": "rtcw-mp",
+   "direction": "join",
+   "serverKind": "retail",
+   "clientKind": "fntech3",
+   "maps": [
+    "mp_beach",
+    "mp_ice"
+   ],
+   "pure": true,
+   "passed": false,
+   "installationUnchanged": true,
+   "sessions": [
+    {
+     "session": "main",
+     "serverSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+     "clientSha256": "bc85d984dfe66360a9f46ab07aa12ea8383607251747075b0e63ee53bc41f286",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 2.56
+      },
+      {
+       "step": "join",
+       "passed": true,
+       "seconds": 42.77,
+       "slot": 0
+      },
+      {
+       "step": "client-chat",
+       "passed": true,
+       "seconds": 43.25
+      },
+      {
+       "step": "server-chat",
+       "passed": true,
+       "seconds": 44.39
+      },
+      {
+       "step": "map-change",
+       "passed": true,
+       "seconds": 47.48,
+       "map": "mp_ice"
+      },
+      {
+       "step": "map-restart",
+       "passed": true,
+       "seconds": 48.62
+      },
+      {
+       "step": "reconnect",
+       "passed": true,
+       "seconds": 51.16,
+       "slot": 0
+      },
+      {
+       "step": "server-quit",
+       "passed": true,
+       "seconds": 55.2,
+       "answered": true,
+       "clientError": "disconnect",
+       "printed": "Server quit",
+       "survived": true
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": null,
+     "clientForced": true,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    }
+   ],
+   "output": ".tmp/legacy-interop/sess-final2-check"
+  }
+ ],
+ "startupCheck": [
+  {
+   "profile": "q3",
+   "direction": "host",
+   "serverKind": "fntech3",
+   "clientKind": "retail",
+   "maps": [
+    "q3dm17",
+    "q3dm6"
+   ],
+   "pure": true,
+   "passed": true,
+   "installationUnchanged": true,
+   "sessions": [
+    {
+     "session": "main",
+     "serverSha256": "ffcbc49cfb6c22df6793a250bfb9e99778a92312e7e6bf0051a5ed60957f22ca",
+     "clientSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+     "secondClientSha256": null,
+     "steps": [
+      {
+       "step": "server-ready",
+       "passed": true,
+       "seconds": 0.52
+      },
+      {
+       "step": "join",
+       "passed": true,
+       "seconds": 40.61,
+       "slot": 0
+      },
+      {
+       "step": "client-chat",
+       "passed": true,
+       "seconds": 40.84
+      },
+      {
+       "step": "server-chat",
+       "passed": true,
+       "seconds": 41.97
+      },
+      {
+       "step": "map-change",
+       "passed": true,
+       "seconds": 43.12,
+       "map": "q3dm6"
+      },
+      {
+       "step": "map-restart",
+       "passed": true,
+       "seconds": 44.25
+      },
+      {
+       "step": "reconnect",
+       "passed": true,
+       "seconds": 45.53,
+       "slot": 0
+      },
+      {
+       "step": "server-quit",
+       "passed": true,
+       "seconds": 46.84,
+       "answered": true,
+       "clientError": "Server Disconnected - Server quit^7"
+      }
+     ],
+     "serverExit": 0,
+     "clientExit": 0,
+     "clientForced": false,
+     "secondClientExit": null,
+     "serverStopError": null,
+     "clientStopError": null,
+     "fixture": null,
+     "error": null
+    }
+   ],
+   "output": ".tmp/legacy-interop/sess-final3-q3"
+  }
+ ],
+ "wolfetDownloads": [
+  {
+   "mode": "redirect-refusal",
+   "retailClient": false,
+   "retailServer": false,
+   "passed": true,
+   "clientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+   "serverSha256": "bf49aceaeb8ea553f9bf4b917ce6e62deb69d4c58fa441ebb357a37dbf5ea796",
+   "fixtureRecipe": {
+    "seed": 20261002,
+    "payloadBytes": 32768,
+    "zipTimestamp": "2026-01-01T00:00:00",
+    "payloadSha256": "cbe8ea3544e14e050c663e450bdcd4ec41de36281a815cad2d4056be77609a2e",
+    "bytes": 32916,
+    "sha256": "b99e8815002ca9df313d84f73286ac20a2b606f6dab39ce2b8c6c50b14c13726"
+   },
+   "fixtureMatches": false,
+   "downloadBegan": false,
+   "downloadCompleted": false,
+   "serverBegin": false,
+   "unpureDrop": false,
+   "httpRequests": null,
+   "serverRedirected": null,
+   "redirectRefused": true,
+   "clientErrors": [
+    "ERROR: This server asks for its files to be fetched from https://example.invalid/fntech3-download-probe; download them there, then connect again."
+   ],
+   "serverErrors": [],
+   "clientExit": null,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "wwwDisconnected": false,
+   "clientLeftToFetch": null,
+   "case": "fn-fn-fallback-url",
+   "output": ".tmp/legacy-interop/et-www-final/fn-fn-fallback-url"
+  },
+  {
+   "mode": "www",
+   "retailClient": false,
+   "retailServer": false,
+   "passed": true,
+   "clientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+   "serverSha256": "bf49aceaeb8ea553f9bf4b917ce6e62deb69d4c58fa441ebb357a37dbf5ea796",
+   "fixtureRecipe": {
+    "seed": 20261002,
+    "payloadBytes": 32768,
+    "zipTimestamp": "2026-01-01T00:00:00",
+    "payloadSha256": "cbe8ea3544e14e050c663e450bdcd4ec41de36281a815cad2d4056be77609a2e",
+    "bytes": 32916,
+    "sha256": "b99e8815002ca9df313d84f73286ac20a2b606f6dab39ce2b8c6c50b14c13726"
+   },
+   "fixtureMatches": true,
+   "downloadBegan": false,
+   "downloadCompleted": false,
+   "serverBegin": true,
+   "unpureDrop": false,
+   "httpRequests": [
+    {
+     "path": "/fntech3_download_probe/fntech3-fixture.pk3",
+     "status": 200
+    }
+   ],
+   "serverRedirected": true,
+   "redirectRefused": false,
+   "clientErrors": [],
+   "serverErrors": [],
+   "clientExit": 0,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "wwwDisconnected": false,
+   "clientLeftToFetch": false,
+   "case": "fn-fn-www",
+   "output": ".tmp/legacy-interop/et-www-final/fn-fn-www"
+  },
+  {
+   "mode": "www-missing",
+   "retailClient": false,
+   "retailServer": true,
+   "passed": true,
+   "clientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+   "serverSha256": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+   "fixtureRecipe": {
+    "seed": 20261002,
+    "payloadBytes": 32768,
+    "zipTimestamp": "2026-01-01T00:00:00",
+    "payloadSha256": "cbe8ea3544e14e050c663e450bdcd4ec41de36281a815cad2d4056be77609a2e",
+    "bytes": 32916,
+    "sha256": "b99e8815002ca9df313d84f73286ac20a2b606f6dab39ce2b8c6c50b14c13726"
+   },
+   "fixtureMatches": true,
+   "downloadBegan": true,
+   "downloadCompleted": true,
+   "serverBegin": true,
+   "unpureDrop": false,
+   "httpRequests": [
+    {
+     "path": "/fntech3_download_probe/fntech3-fixture.pk3",
+     "status": 404
+    }
+   ],
+   "serverRedirected": true,
+   "redirectRefused": false,
+   "clientErrors": [],
+   "serverErrors": [],
+   "clientExit": 0,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "wwwDisconnected": false,
+   "clientLeftToFetch": false,
+   "case": "fn-retail-missing",
+   "output": ".tmp/legacy-interop/et-www-final/fn-retail-missing"
+  },
+  {
+   "mode": "udp-transfer",
+   "retailClient": false,
+   "retailServer": true,
+   "passed": true,
+   "clientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+   "serverSha256": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+   "fixtureRecipe": {
+    "seed": 20261002,
+    "payloadBytes": 32768,
+    "zipTimestamp": "2026-01-01T00:00:00",
+    "payloadSha256": "cbe8ea3544e14e050c663e450bdcd4ec41de36281a815cad2d4056be77609a2e",
+    "bytes": 32916,
+    "sha256": "b99e8815002ca9df313d84f73286ac20a2b606f6dab39ce2b8c6c50b14c13726"
+   },
+   "fixtureMatches": true,
+   "downloadBegan": true,
+   "downloadCompleted": true,
+   "serverBegin": true,
+   "unpureDrop": false,
+   "httpRequests": null,
+   "serverRedirected": null,
+   "redirectRefused": false,
+   "clientErrors": [],
+   "serverErrors": [],
+   "clientExit": 0,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "wwwDisconnected": false,
+   "clientLeftToFetch": null,
+   "case": "fn-retail-udp",
+   "output": ".tmp/legacy-interop/et-www-final/fn-retail-udp"
+  },
+  {
+   "mode": "www",
+   "retailClient": false,
+   "retailServer": true,
+   "passed": true,
+   "clientSha256": "dbdea0a242b80175bdf00e9888131d64dc16639925f0a607a4a587ad15a7aefc",
+   "serverSha256": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+   "fixtureRecipe": {
+    "seed": 20261002,
+    "payloadBytes": 32768,
+    "zipTimestamp": "2026-01-01T00:00:00",
+    "payloadSha256": "cbe8ea3544e14e050c663e450bdcd4ec41de36281a815cad2d4056be77609a2e",
+    "bytes": 32916,
+    "sha256": "b99e8815002ca9df313d84f73286ac20a2b606f6dab39ce2b8c6c50b14c13726"
+   },
+   "fixtureMatches": true,
+   "downloadBegan": true,
+   "downloadCompleted": false,
+   "serverBegin": true,
+   "unpureDrop": false,
+   "httpRequests": [
+    {
+     "path": "/fntech3_download_probe/fntech3-fixture.pk3",
+     "status": 200
+    }
+   ],
+   "serverRedirected": true,
+   "redirectRefused": false,
+   "clientErrors": [],
+   "serverErrors": [],
+   "clientExit": 0,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "wwwDisconnected": false,
+   "clientLeftToFetch": false,
+   "case": "fn-retail-www",
+   "output": ".tmp/legacy-interop/et-www-final/fn-retail-www"
+  },
+  {
+   "mode": "www",
+   "retailClient": false,
+   "retailServer": true,
+   "passed": true,
+   "clientSha256": "bc85d984dfe66360a9f46ab07aa12ea8383607251747075b0e63ee53bc41f286",
+   "serverSha256": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+   "fixtureRecipe": {
+    "seed": 20261002,
+    "payloadBytes": 32768,
+    "zipTimestamp": "2026-01-01T00:00:00",
+    "payloadSha256": "cbe8ea3544e14e050c663e450bdcd4ec41de36281a815cad2d4056be77609a2e",
+    "bytes": 32916,
+    "sha256": "b99e8815002ca9df313d84f73286ac20a2b606f6dab39ce2b8c6c50b14c13726"
+   },
+   "fixtureMatches": true,
+   "downloadBegan": true,
+   "downloadCompleted": false,
+   "serverBegin": true,
+   "unpureDrop": false,
+   "httpRequests": [
+    {
+     "path": "/fntech3_download_probe/fntech3-fixture.pk3",
+     "status": 200
+    }
+   ],
+   "serverRedirected": true,
+   "redirectRefused": false,
+   "clientErrors": [],
+   "serverErrors": [],
+   "clientExit": 0,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "wwwDisconnected": true,
+   "clientLeftToFetch": false,
+   "case": "fn-retail-www-disconnected",
+   "output": ".tmp/legacy-interop/et-www-final/fn-retail-www-disconnected"
+  },
+  {
+   "mode": "www-missing",
+   "retailClient": true,
+   "retailServer": false,
+   "passed": true,
+   "clientSha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+   "serverSha256": "bf49aceaeb8ea553f9bf4b917ce6e62deb69d4c58fa441ebb357a37dbf5ea796",
+   "fixtureRecipe": {
+    "seed": 20261002,
+    "payloadBytes": 32768,
+    "zipTimestamp": "2026-01-01T00:00:00",
+    "payloadSha256": "cbe8ea3544e14e050c663e450bdcd4ec41de36281a815cad2d4056be77609a2e",
+    "bytes": 32916,
+    "sha256": "b99e8815002ca9df313d84f73286ac20a2b606f6dab39ce2b8c6c50b14c13726"
+   },
+   "fixtureMatches": true,
+   "downloadBegan": true,
+   "downloadCompleted": true,
+   "serverBegin": true,
+   "unpureDrop": false,
+   "httpRequests": [
+    {
+     "path": "/fntech3_download_probe/fntech3-fixture.pk3",
+     "status": 404
+    }
+   ],
+   "serverRedirected": true,
+   "redirectRefused": false,
+   "clientErrors": [],
+   "serverErrors": [],
+   "clientExit": 0,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "wwwDisconnected": false,
+   "clientLeftToFetch": false,
+   "case": "retail-fn-missing",
+   "output": ".tmp/legacy-interop/et-www-final/retail-fn-missing"
+  },
+  {
+   "mode": "udp-transfer",
+   "retailClient": true,
+   "retailServer": false,
+   "passed": true,
+   "clientSha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+   "serverSha256": "bf49aceaeb8ea553f9bf4b917ce6e62deb69d4c58fa441ebb357a37dbf5ea796",
+   "fixtureRecipe": {
+    "seed": 20261002,
+    "payloadBytes": 32768,
+    "zipTimestamp": "2026-01-01T00:00:00",
+    "payloadSha256": "cbe8ea3544e14e050c663e450bdcd4ec41de36281a815cad2d4056be77609a2e",
+    "bytes": 32916,
+    "sha256": "b99e8815002ca9df313d84f73286ac20a2b606f6dab39ce2b8c6c50b14c13726"
+   },
+   "fixtureMatches": true,
+   "downloadBegan": true,
+   "downloadCompleted": true,
+   "serverBegin": true,
+   "unpureDrop": false,
+   "httpRequests": null,
+   "serverRedirected": null,
+   "redirectRefused": false,
+   "clientErrors": [],
+   "serverErrors": [],
+   "clientExit": 0,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "wwwDisconnected": false,
+   "clientLeftToFetch": null,
+   "case": "retail-fn-udp",
+   "output": ".tmp/legacy-interop/et-www-final/retail-fn-udp"
+  },
+  {
+   "mode": "www",
+   "retailClient": true,
+   "retailServer": false,
+   "passed": true,
+   "clientSha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+   "serverSha256": "bf49aceaeb8ea553f9bf4b917ce6e62deb69d4c58fa441ebb357a37dbf5ea796",
+   "fixtureRecipe": {
+    "seed": 20261002,
+    "payloadBytes": 32768,
+    "zipTimestamp": "2026-01-01T00:00:00",
+    "payloadSha256": "cbe8ea3544e14e050c663e450bdcd4ec41de36281a815cad2d4056be77609a2e",
+    "bytes": 32916,
+    "sha256": "b99e8815002ca9df313d84f73286ac20a2b606f6dab39ce2b8c6c50b14c13726"
+   },
+   "fixtureMatches": true,
+   "downloadBegan": false,
+   "downloadCompleted": false,
+   "serverBegin": true,
+   "unpureDrop": false,
+   "httpRequests": [
+    {
+     "path": "/fntech3_download_probe/fntech3-fixture.pk3",
+     "status": 200
+    }
+   ],
+   "serverRedirected": true,
+   "redirectRefused": false,
+   "clientErrors": [],
+   "serverErrors": [],
+   "clientExit": 0,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "wwwDisconnected": false,
+   "clientLeftToFetch": false,
+   "case": "retail-fn-www",
+   "output": ".tmp/legacy-interop/et-www-final/retail-fn-www"
+  },
+  {
+   "mode": "www",
+   "retailClient": true,
+   "retailServer": false,
+   "passed": true,
+   "clientSha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+   "serverSha256": "5ec12aa9e8e04ae6a6e021e03131056119d465fa458153c058196bd16c993be5",
+   "fixtureRecipe": {
+    "seed": 20261002,
+    "payloadBytes": 32768,
+    "zipTimestamp": "2026-01-01T00:00:00",
+    "payloadSha256": "cbe8ea3544e14e050c663e450bdcd4ec41de36281a815cad2d4056be77609a2e",
+    "bytes": 32916,
+    "sha256": "b99e8815002ca9df313d84f73286ac20a2b606f6dab39ce2b8c6c50b14c13726"
+   },
+   "fixtureMatches": true,
+   "downloadBegan": false,
+   "downloadCompleted": false,
+   "serverBegin": true,
+   "unpureDrop": false,
+   "httpRequests": [
+    {
+     "path": "/fntech3_download_probe/fntech3-fixture.pk3",
+     "status": 200
+    }
+   ],
+   "serverRedirected": true,
+   "redirectRefused": false,
+   "clientErrors": [],
+   "serverErrors": [],
+   "clientExit": 0,
+   "serverExit": 0,
+   "installationUnchanged": true,
+   "wwwDisconnected": true,
+   "clientLeftToFetch": true,
+   "case": "retail-fn-www-disconnected",
+   "output": ".tmp/legacy-interop/et-www-final/retail-fn-www-disconnected"
+  }
+ ]
+}

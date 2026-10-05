@@ -96,7 +96,9 @@ constexpr bool qtrue=true,qfalse=false;
 constexpr int CURLMSG_DONE=1,CURLE_OK=0,CURLE_WRITE_ERROR=23,FS_INVALID_HANDLE=0,ERR_DROP=1;
 #define S_COLOR_YELLOW ""
 struct Header{byte data[22];size_t used;};
-struct {Header downloadPakHeader;char downloadTempName[16],downloadName[16];}clc;
+struct {Header downloadPakHeader;char downloadTempName[16],downloadName[16];int wolfetWebDownload;}clc;
+// No ET redirect is in hand here; the web download tests run that branch.
+void CL_WolfETFinishWebDownload(bool){assert(false);}
 struct download_t{Header pakHeader;int fHandle;char Name[16];};
 struct Message{int msg;struct{int result;}data;};
 int renames,drops;

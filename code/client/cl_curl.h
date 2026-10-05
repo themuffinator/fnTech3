@@ -97,6 +97,8 @@ extern const char *(*qcurl_multi_strerror)(CURLMcode);
 qboolean CL_cURL_Init( void );
 void CL_cURL_Shutdown( void );
 void CL_cURL_BeginDownload( const char *localName, const char *remoteURL );
+// An Enemy Territory server's redirect: fetch while staying connected.
+void CL_WolfETBeginWebDownload( const char *localName, const char *remoteURL );
 void CL_cURL_PerformDownload( void );
 void CL_cURL_Cleanup( void );
 

@@ -50,6 +50,10 @@ static int standalone;
 int Com_GameIsSTVEFSP() { return profile.id==COM_GAME_STVEF_SP; }
 int Com_GameIsRTCWSP() { return profile.id==COM_GAME_RTCW_SP; }
 int Com_GameIsRTCWMP() { return profile.id==COM_GAME_RTCW_MP; }
+int Com_GameIsWolfET() { return profile.id==COM_GAME_WOLFET; }
+int Com_GameIsSTVEFMP() { return profile.id==COM_GAME_STVEF_MP; }
+int Com_GameIsJKAMP() { return profile.id==COM_GAME_JKA_MP; }
+int Com_GameIsJK2MP() { return profile.id==COM_GAME_JK2_MP; }
 int Com_GameIsQuakeLive() { return profile.id==COM_GAME_QUAKELIVE; }
 int Com_GameIsRitual() { return profile.id==COM_GAME_ALICE || profile.id==COM_GAME_FAKK2; }
 int Com_GameIsMOHAA() { return profile.id==COM_GAME_MOHAA; }
@@ -114,7 +118,8 @@ int main(int argc,char **argv) {
     }
     for(const auto &entry:completions) assert(entry.second==SV_CompleteMapName);
     Expect("loadgame",SV_LoadGame_f,Com_GameIsRTCWSP()!=0);
-    Expect("gameCompleteStatus",SV_RTCWGameCompleteStatus_f,Com_GameIsRTCWMP()!=0);
+    Expect("gameCompleteStatus",SV_GameCompleteStatus_f,Com_GameIsRTCWMP()||Com_GameIsWolfET());
+    Expect("svsay",SV_ConSvSay_f,Com_GameIsSTVEFMP()!=0);
     Expect("steam_downloadugc",SV_SteamDownloadUGC_f,Com_GameIsQuakeLive()!=0);
     Expect("steam_subscribeugc",SV_SteamSubscribeUGC_f,Com_GameIsQuakeLive()!=0);
     Expect("steam_unsubscribeugc",SV_SteamUnsubscribeUGC_f,Com_GameIsQuakeLive()!=0);

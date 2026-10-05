@@ -174,6 +174,41 @@ explicit option, never as the default -- for example the legacy software
 mixer (`s_backend legacy`) for retail sound. Which features apply to which
 game is noted in each guide.
 
+## Hosting and joining multiplayer games
+
+Each multiplayer game hosts and joins its original game's servers over its
+own protocol: fnTech3's client joins the original servers, and the original
+game's clients join fnTech3's, dedicated or started from the client's menu.
+Short sessions -- joining, chat, map changes and restarts, reconnecting, a
+kick, a server quitting, downloads, and a retail and an fnTech3 player on one
+server -- have been checked against the retail Quake III, RTCW, ET and
+Elite Force executables ([record](fntech3/2026-10-05-legacy-server-hosting.md)).
+
+- **Ports.** Each game listens where its original engine did: 27960 for
+  Quake III, Quake Live, RTCW, Enemy Territory and Elite Force, 29070 for
+  Jedi Academy, 28070 for Jedi Outcast and 12203 for Medal of Honor.
+  `net_port` changes it. `connect` without a port and the LAN browser use the
+  game's own port.
+- **Master servers.** A public server (`+set dedicated 2`) reports itself to
+  `sv_master1`, which defaults to the original game's master:
+  `master.quake3arena.com`, `wolfmaster.idsoftware.com`,
+  `etmaster.idsoftware.com`, `master.stef1.ravensoft.com:27953`,
+  `masterjk3.ravensoft.com` and `masterjk2.ravensoft.com`, with each game's
+  own heartbeat. The Internet browser asks the same masters. Many of them no
+  longer answer: add a community master as `sv_master2` to `sv_master5`, on
+  the server and the client alike. `sv_master 0` stops a server reporting.
+  Quake Live lists servers through Steam, and Medal of Honor's and the Quake
+  III test releases' masters are gone, so those games set none.
+- **Ping limits.** `sv_minPing` and `sv_maxPing` turn away internet players
+  whose ping lies outside them, as the original games did; LAN players are
+  never turned away. Quake Live's engine has neither.
+- **Server console chat** is `say` in id's games and `svsay` in Elite Force
+  and both Jedi Knight games, as in their original engines; `say` also works
+  in every game.
+- **Mods.** Joining a server that runs a mod switches to its game directory
+  and back, keeping the console log, `developer` and `logfile`.
+- PunkBuster is not available in any game.
+
 ## Quake III Arena (`quake3`)
 
 **Installation:** a Quake III Arena installation with `baseq3/pak0.pk3`, such
@@ -369,12 +404,14 @@ Whole matches and sustained gameplay remain open. See the
   [loading](fntech3/2026-10-01-wolfet-aas8-loading.md),
   [travel costs](fntech3/2026-10-01-wolfet-travel-costs.md),
   [cache limits](fntech3/2026-10-02-wolfet-routing-limits.md)).
-- ET downloads support UDP. A server's URL redirect is refused with an
-  explanation before any redirected bytes are written; disable `sv_wwwDownload`
-  and clear `sv_wwwFallbackURL` to an empty string for this client. HTTP redirects
-  remain unavailable ([compatibility round](fntech3/2026-10-02-compatibility-round.md)).
-  A generated pak transfers in both retail directions with pure admission;
-  larger files, loss/retransmit and broader mods remain open.
+- ET downloads use UDP, or the server's web address when it offers one: the
+  client sets `cl_wwwDownload 1`, as retail does, fetches the file over HTTP
+  while it stays connected and falls back to UDP when the fetch fails. A
+  server's fallback page (`sv_wwwFallbackURL`) ends the connection with its
+  address, where retail opened a browser. A generated pak transfers both ways
+  with retail ET, over UDP and HTTP, with pure admission; larger files,
+  loss/retransmit and broader mods remain open
+  ([record](fntech3/2026-10-05-legacy-server-hosting.md)).
 - PunkBuster is not available: an ET server reports it unavailable and keeps
   `sv_punkbuster 0`.
 - The engine package carries audio zones for the six stock maps, and HUD
@@ -473,7 +510,10 @@ relay and the read-only engine routing getter pass their boundaries. Renderer-ow
 neutral light-style metadata, the empty client ROFF update, explicit music
 preloading and the effects clock/context,
 ambient/effect definitions and Ghoul2 skin/animation setup pass their earlier
-boundaries. Original retail admission and rendered gameplay remain open. Academy's MP3 assets use the
+boundaries. fnTech3's client joins the retail `jamp.exe` server with pure
+admission and plays until the server's first chat line, whose sound reaches
+a client-game import not yet served ([record](fntech3/2026-10-05-legacy-server-hosting.md)); a retail
+client on fnTech3's server and rendered gameplay remain open. Academy's MP3 assets use the
 existing Fn decoder; muted probes preload a real map track through the default
 OpenAL backend. Dynamic music, audible music, ambient playback and active voice tracking
 remain open. The new voice-volume query serves only the actual disabled-audio

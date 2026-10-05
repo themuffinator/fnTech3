@@ -48,6 +48,23 @@ class WolfETDownloadProbeTests(unittest.TestCase):
             self.assertFalse(PROBE.passed(dict(valid, **{field: True})), field)
         for field in ('clientExit', 'serverExit'):
             self.assertFalse(PROBE.passed(dict(valid, **{field: 1})), field)
+
+    def test_web_redirect_modes_need_their_own_evidence(self):
+        valid = dict(clientExit=0, serverExit=0, clientForced=False, serverForced=False,
+                     installationUnchanged=True, fixtureInitiallyAbsent=True, fixtureMatches=True,
+                     temporaryPakRemains=False, downloadBegan=True, downloadCompleted=True,
+                     serverBegin=True, unpureDrop=False, clientErrors=[], serverErrors=[])
+        path = '/' + PROBE.MOD + '/' + PROBE.PAK
+        fetched = dict(valid, mode='www', downloadBegan=False, downloadCompleted=False,
+                       httpRequests=[dict(path=path, status=200)])
+        self.assertTrue(PROBE.passed(fetched))
+        self.assertFalse(PROBE.passed(dict(fetched, httpRequests=[])))
+        self.assertFalse(PROBE.passed(dict(fetched, httpRequests=[dict(path=path, status=404)])))
+        self.assertFalse(PROBE.passed(dict(fetched, fixtureMatches=False)))
+        declined = dict(valid, mode='www-missing', httpRequests=[dict(path=path, status=404)])
+        self.assertTrue(PROBE.passed(declined))
+        self.assertFalse(PROBE.passed(dict(declined, downloadCompleted=False)))
+        self.assertFalse(PROBE.passed(dict(declined, httpRequests=[dict(path=path, status=200)])))
         for field in ('clientErrors', 'serverErrors'):
             self.assertFalse(PROBE.passed(dict(valid, **{field: ['decoder failed']})), field)
 

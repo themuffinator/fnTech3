@@ -348,7 +348,7 @@ static void CL_cURL_CloseDownload( void )
 	CloseFile( clc.download );
 }
 
-void CL_cURL_BeginDownload( const char *localName, const char *remoteURL )
+static void CL_cURL_StartTransfer( const char *localName, const char *remoteURL )
 {
 	CURLMcode result;
 
@@ -428,10 +428,15 @@ void CL_cURL_BeginDownload( const char *localName, const char *remoteURL )
 	if ( result != CURLM_OK ) {
 		qcurl_easy_cleanup( clc.downloadCURL );
 		clc.downloadCURL = nullptr;
-		Com_Error( ERR_DROP, "CL_cURL_BeginDownload: qcurl_multi_add_handle() failed: %s",	
+		Com_Error( ERR_DROP, "CL_cURL_BeginDownload: qcurl_multi_add_handle() failed: %s",
 			qcurl_multi_strerror( result ) );
 		return;
 	}
+}
+
+void CL_cURL_BeginDownload( const char *localName, const char *remoteURL )
+{
+	CL_cURL_StartTransfer( localName, remoteURL );
 
 	if(!(clc.sv_allowDownload & DLF_NO_DISCONNECT) &&
 		!clc.cURLDisconnected) {
@@ -440,6 +445,53 @@ void CL_cURL_BeginDownload( const char *localName, const char *remoteURL )
 		CL_WritePacket( 2 );
 		clc.cURLDisconnected = qtrue;
 	}
+}
+
+/*
+=================
+CL_WolfETBeginWebDownload
+
+An Enemy Territory server can send a client that advertises cl_wwwDownload
+to a web server for a file. The client fetches it there while it stays
+connected, then reports the outcome with wwwdl (CL_cURL_PerformDownload).
+=================
+*/
+void CL_WolfETBeginWebDownload( const char *localName, const char *remoteURL )
+{
+	CL_cURL_StartTransfer( localName, remoteURL );
+	clc.wolfetWebDownload = 1;
+}
+
+/*
+=================
+CL_WolfETFinishWebDownload
+
+A fetched file joins the downloads as a block transfer's would; the server
+hears "wwwdl done". A failed one is removed and the server hears "wwwdl
+fail": it then sends the gamestate again and gives this client the file in
+blocks (retail et.exe 2.60b answers its redirects so).
+=================
+*/
+static void CL_WolfETFinishWebDownload( bool fetched )
+{
+	clc.wolfetWebDownload = 0;
+	if ( fetched ) {
+		FS_SV_Rename( clc.downloadTempName, clc.downloadName );
+		clc.downloadRestart = qtrue;
+		CL_AddReliableCommand( "wwwdl done", qfalse );
+		CL_cURL_Cleanup();
+		CL_NextDownload();
+		return;
+	}
+
+	Com_Printf( "Download failure while getting '%s'\n", clc.downloadURL );
+	CL_cURL_Cleanup();
+	FS_SV_HomeRemove( clc.downloadTempName );
+	// The names stay until the new gamestate, so that repeats of the
+	// redirect still meet a requested download and are set aside.
+	Cvar_Set( "cl_downloadName", "" );
+	clc.wolfetWebDownload = 2;
+	CL_AddReliableCommand( "wwwdl fail", qfalse );
 }
 
 
@@ -460,6 +512,10 @@ void CL_cURL_PerformDownload( void )
 	if ( res != CURLM_OK ) {
 		// A failed multi stack cannot be continued or treated as pending.
 		CL_cURL_CloseDownload();
+		if ( clc.wolfetWebDownload == 1 ) {
+			CL_WolfETFinishWebDownload( false );
+			return;
+		}
 		CL_cURL_Cleanup();
 		Com_Error( ERR_DROP, "Download transport error: %s",
 			qcurl_multi_strerror( res ) );
@@ -470,6 +526,12 @@ void CL_cURL_PerformDownload( void )
 		return;
 	}
 	CL_cURL_CloseDownload();
+	if ( clc.wolfetWebDownload == 1 ) {
+		CL_WolfETFinishWebDownload( msg->msg == CURLMSG_DONE && msg->data.result == CURLE_OK
+			&& CL_ValidPakSignature( clc.downloadPakHeader.data,
+				static_cast<int>( clc.downloadPakHeader.used ) ) );
+		return;
+	}
 	if ( msg->msg == CURLMSG_DONE && msg->data.result == CURLE_OK ) {
 		if ( !CL_ValidPakSignature( clc.downloadPakHeader.data,
 			static_cast<int>( clc.downloadPakHeader.used ) ) ) {

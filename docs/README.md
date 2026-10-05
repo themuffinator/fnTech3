@@ -58,6 +58,9 @@ Start with the [README](../README.md) for an overview, then the
 
 ### Game-specific ledgers and records
 
+- [October 5 legacy-server hosting](fntech3/2026-10-05-legacy-server-hosting.md)
+  -- masters, ports, info replies, listen servers, ET web downloads and live
+  sessions with each multiplayer game's retail peers.
 - [October 2 all-game compatibility round](fntech3/2026-10-02-all-games-round.md)
   -- all-profile file-list boundaries, stricter identity probes and shared-binary startup checks.
 - [October 2 input and launch fixes](fntech3/2026-10-02-input-launch-fixes.md)

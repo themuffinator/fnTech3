@@ -27,11 +27,13 @@ constexpr bool qtrue=true,qfalse=false;
 constexpr int CURLM_OK=0,CURLM_CALL_MULTI_PERFORM=-1,ERR_DROP=1,CA_CONNECTED=3;
 #define S_COLOR_RED ""
 struct CURLMsg{};
-int resultCode,retries,performed,readCount,cleaned,closed,removed,dropped;
+int resultCode,retries,performed,readCount,cleaned,closed,removed,dropped,declined;
 int perform(void*,int*){++performed;if(retries-->0)return CURLM_CALL_MULTI_PERFORM;return resultCode;}
 CURLMsg* info(void*,int*){++readCount;return nullptr;}
 const char* error(int){return "controlled multi failure";}
-struct {void* downloadCURLM;}clc;
+struct {void* downloadCURLM;int wolfetWebDownload;}clc;
+// An Enemy Territory redirect's failed transfer is declined, not dropped.
+void CL_WolfETFinishWebDownload(bool fetched){assert(!fetched);++declined;}
 struct {int state;}cls;
 struct download_t {
  char TempName[64]="probe.tmp"; void*cURLM=nullptr; bool mapAutoDownload=false;
@@ -62,6 +64,8 @@ int main(){
   reset(CURLM_OK,retry);CL_cURL_PerformDownload();assert(readCount==1&&!cleaned&&!closed&&!dropped);
   download_t dl;reset(CURLM_OK,retry);assert(Com_DL_Perform(&dl));assert(readCount==1&&!cleaned&&!removed&&!dropped);
  }
+ clc.wolfetWebDownload=1;reset(4);declined=0;CL_cURL_PerformDownload();
+ assert(declined==1&&!dropped&&closed==1&&!cleaned&&readCount==0);clc.wolfetWebDownload=0;
  reset(CURLM_OK,1000);CL_cURL_PerformDownload();assert(performed==101&&!readCount&&!dropped);
  download_t dl;reset(CURLM_OK,1000);assert(Com_DL_Perform(&dl));assert(performed==129&&!readCount&&!cleaned);
 }

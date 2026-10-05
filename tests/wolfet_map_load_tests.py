@@ -419,7 +419,8 @@ class WolfETEngineWiringTests(unittest.TestCase):
 
     def test_et_game_types_follow_its_gameinfo(self):
         main = read('code/server/sv_main.cpp')
-        self.assertEqual(main.count('SV_GameTypeIsSinglePlayer( Cvar_VariableIntegerValue( "g_gametype" ) )'), 2)
+        # The status and info replies and the masters' match report.
+        self.assertEqual(main.count('SV_GameTypeIsSinglePlayer( Cvar_VariableIntegerValue( "g_gametype" ) )'), 3)
         self.assertIn('SV_GameTypeIsSinglePlayer( Cvar_VariableIntegerValue( "g_gametype" ) )',
                       read('code/server/sv_client.cpp'))
         commands = read('code/server/sv_ccmds.cpp')

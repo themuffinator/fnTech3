@@ -374,28 +374,95 @@ but not on every player enter or exit.
 */
 static constexpr int HEARTBEAT_MSEC = 300 * 1000;
 static constexpr int MASTERDNS_MSEC = 24 * 60 * 60 * 1000;
-// Raven's Elite Force masters listen on 27953 and read a key-value heartbeat.
-static constexpr int STVEF_PORT_MASTER = 27953;
-static constexpr char STVEF_HEARTBEAT_GAME[] = "STEF1";
 
-static int SV_MasterPort()
+// [2] for v4 and v6 address for the same address string.
+static std::array<std::array<netadr_t, 2>, MAX_MASTER_SERVERS> sv_masterAddresses{};
+
+/*
+================
+SV_MasterPublishing
+
+Masters hear only from a public dedicated server ("dedicated 2"; "dedicated 1"
+is for LAN play) with a network open, and only while the sv_master gate is on.
+================
+*/
+static bool SV_MasterPublishing( int netenabled )
 {
-	return Com_GameIsSTVEFMP() ? STVEF_PORT_MASTER : PORT_MASTER;
+	if ( !com_dedicated || com_dedicated->integer != 2 || !( netenabled & ( NET_ENABLEV4 | NET_ENABLEV6 ) ) )
+		return false;
+	if ( sv_masterAdvertise && !sv_masterAdvertise->integer )
+		return false;	// retail sv_master is the publication gate
+	return true;
 }
-static void SV_MasterHeartbeat( const char *message )
+
+/*
+================
+SV_ResolveMaster
+
+Resolves sv_master<i + 1> when it changed or when its last answer is over a
+day old -- resolving usually causes hitches on win95, so only do it when
+needed -- and reports whether either family has an address to send to.
+================
+*/
+static bool SV_ResolveMaster( int i, int netenabled )
 {
-	static std::array<std::array<netadr_t, 2>, MAX_MASTER_SERVERS> adr{}; // [2] for v4 and v6 address for the same address string.
+	auto &adr = sv_masterAddresses[i];
+	int res;
+
+	if ( sv_master[i]->modified || svs.time - svs.masterResolveTime[i] > 0 )
+	{
+		sv_master[i]->modified = qfalse;
+		svs.masterResolveTime[i] = svs.time + MASTERDNS_MSEC;
+
+		if(netenabled & NET_ENABLEV4)
+		{
+			Com_Printf("Resolving %s (IPv4)\n", sv_master[i]->string);
+			res = NET_StringToAdr(sv_master[i]->string, &adr[0], NA_IP);
+
+			if(res == 2)
+			{
+				// if no port was specified, use the profile's master port
+				adr[0].port = BigShort(Com_GameMasterPort());
+			}
+
+			if(res)
+				Com_Printf( "%s resolved to %s\n", sv_master[i]->string, NET_AdrToStringwPort( &adr[0] ) );
+			else
+				Com_Printf( "%s has no IPv4 address.\n", sv_master[i]->string );
+		}
+#ifdef USE_IPV6
+		if(netenabled & NET_ENABLEV6)
+		{
+			Com_Printf("Resolving %s (IPv6)\n", sv_master[i]->string);
+			res = NET_StringToAdr(sv_master[i]->string, &adr[1], NA_IP6);
+
+			if(res == 2)
+			{
+				// if no port was specified, use the profile's master port
+				adr[1].port = BigShort(Com_GameMasterPort());
+			}
+
+			if(res)
+				Com_Printf( "%s resolved to %s\n", sv_master[i]->string, NET_AdrToStringwPort( &adr[1] ) );
+			else
+				Com_Printf( "%s has no IPv6 address.\n", sv_master[i]->string );
+		}
+#endif
+	}
+
+	return adr[0].type != NA_BAD || adr[1].type != NA_BAD;
+}
+
+static void SV_MasterHeartbeat( const char *message, bool stopping = false )
+{
+	const auto &adr = sv_masterAddresses;
 	int			i;
-	int			res;
 	int			netenabled;
 
 	netenabled = Cvar_VariableIntegerValue("net_enabled");
 
-	// "dedicated 1" is for lan play, "dedicated 2" is for inet public play
-	if (!com_dedicated || com_dedicated->integer != 2 || !(netenabled & (NET_ENABLEV4 | NET_ENABLEV6)))
-		return;		// only dedicated servers send heartbeats
-	if ( sv_masterAdvertise && !sv_masterAdvertise->integer )
-		return;		// retail sv_master is the publication gate
+	if ( !SV_MasterPublishing( netenabled ) )
+		return;		// only public dedicated servers send heartbeats
 
 	// if not time yet, don't send anything
 	if ( svs.nextHeartbeatTime - svs.time > 0 )
@@ -409,50 +476,7 @@ static void SV_MasterHeartbeat( const char *message )
 		if(!sv_master[i]->string[0])
 			continue;
 
-		// see if we haven't already resolved the name or if it's been over 24 hours
-		// resolving usually causes hitches on win95, so only do it when needed
-		if ( sv_master[i]->modified || svs.time - svs.masterResolveTime[i] > 0 )
-		{
-			sv_master[i]->modified = qfalse;
-			svs.masterResolveTime[i] = svs.time + MASTERDNS_MSEC;
-			
-			if(netenabled & NET_ENABLEV4)
-			{
-				Com_Printf("Resolving %s (IPv4)\n", sv_master[i]->string);
-				res = NET_StringToAdr(sv_master[i]->string, &adr[i][0], NA_IP);
-
-				if(res == 2)
-				{
-					// if no port was specified, use the default master port
-					adr[i][0].port = BigShort(SV_MasterPort());
-				}
-				
-				if(res)
-					Com_Printf( "%s resolved to %s\n", sv_master[i]->string, NET_AdrToStringwPort( &adr[i][0] ) );
-				else
-					Com_Printf( "%s has no IPv4 address.\n", sv_master[i]->string );
-			}
-#ifdef USE_IPV6
-			if(netenabled & NET_ENABLEV6)
-			{
-				Com_Printf("Resolving %s (IPv6)\n", sv_master[i]->string);
-				res = NET_StringToAdr(sv_master[i]->string, &adr[i][1], NA_IP6);
-
-				if(res == 2)
-				{
-					// if no port was specified, use the default master port
-					adr[i][1].port = BigShort(SV_MasterPort());
-				}
-				
-				if(res)
-					Com_Printf( "%s resolved to %s\n", sv_master[i]->string, NET_AdrToStringwPort( &adr[i][1] ) );
-				else
-					Com_Printf( "%s has no IPv6 address.\n", sv_master[i]->string );
-			}
-#endif
-		}
-
-		if( adr[i][0].type == NA_BAD && adr[i][1].type == NA_BAD )
+		if ( !SV_ResolveMaster( i, netenabled ) )
 		{
 			continue;
 		}
@@ -464,14 +488,17 @@ static void SV_MasterHeartbeat( const char *message )
 		// ever changes incompatibly
 
 		if ( Com_GameIsSTVEFMP() ) {
-			// retail stvoyHM.exe: \heartbeat\<port>\gamename\STEF1\ ; the
-			// master then polls getstatus.
+			// Raven's Elite Force masters read key-value heartbeats and then
+			// poll getstatus: retail stvoyHM.exe 1.20 sends
+			// \heartbeat\<port>\gamename\STEF1\, and \heartstop\ in the same
+			// shape as it shuts down (0x434604).
+			const char *kind = stopping ? "heartstop" : "heartbeat";
 			if(adr[i][0].type != NA_BAD)
-				NET_OutOfBandPrint( NS_SERVER, &adr[i][0], "\\heartbeat\\%d\\gamename\\%s\\",
-					Cvar_VariableIntegerValue( "net_port" ), STVEF_HEARTBEAT_GAME );
+				NET_OutOfBandPrint( NS_SERVER, &adr[i][0], "\\%s\\%d\\gamename\\%s\\",
+					kind, Cvar_VariableIntegerValue( "net_port" ), message );
 			if(adr[i][1].type != NA_BAD)
-				NET_OutOfBandPrint( NS_SERVER, &adr[i][1], "\\heartbeat\\%d\\gamename\\%s\\",
-					Cvar_VariableIntegerValue( "net_port6" ), STVEF_HEARTBEAT_GAME );
+				NET_OutOfBandPrint( NS_SERVER, &adr[i][1], "\\%s\\%d\\gamename\\%s\\",
+					kind, Cvar_VariableIntegerValue( "net_port6" ), message );
 			continue;
 		}
 		if(adr[i][0].type != NA_BAD)
@@ -493,11 +520,16 @@ void SV_MasterShutdown( void )
 {
 	// send a heartbeat right now
 	svs.nextHeartbeatTime = svs.time;
-	SV_MasterHeartbeat(HEARTBEAT_FOR_MASTER);
+	SV_MasterHeartbeat( Com_GameFlatlineName() );
 
-	// send it again to minimize chance of drops
+	// Wolfenstein's engines name a dead game and send it once (WolfMP.exe
+	// 1.4 0x43a2e0, etded.exe 2.60b 0x42eec0); Quake III's send it again
+	// to minimize the chance of a drop, and Elite Force's second says it
+	// stops (stvoyHM.exe 1.20 0x4345f0).
+	if ( Com_GameIsRTCWMP() || Com_GameIsWolfET() )
+		return;
 	svs.nextHeartbeatTime = svs.time;
-	SV_MasterHeartbeat(HEARTBEAT_FOR_MASTER);
+	SV_MasterHeartbeat( Com_GameFlatlineName(), Com_GameIsSTVEFMP() != 0 );
 
 	// when the master tries to poll the server, it won't respond, so
 	// it will be removed from the list
@@ -862,6 +894,96 @@ void SVC_RateDropAddress( const netadr_t *from, int burst, int period ) {
 }
 
 
+cvar_t *sv_minPing;
+cvar_t *sv_maxPing;
+
+/*
+================
+SV_ProfileHasPingLimits
+
+quake3.exe 1.32 registers sv_minPing and sv_maxPing archived and in its
+serverinfo (0x4391d8), publishes each once it is set and refuses a client
+whose challenge round trip falls outside them; WolfMP.exe 1.4, etded.exe
+2.60b, stvoyHM.exe 1.20, jamp.exe 1.01 and jk2mp.exe 1.02a do the same.
+Quake Live's retail engine has neither, nor do the other profiles.
+================
+*/
+bool SV_ProfileHasPingLimits( void ) {
+	return Com_GameIsQuake3() || Com_GameIsRTCWMP() || Com_GameIsWolfET() ||
+		Com_GameIsSTVEFMP() || Com_GameIsJKAMP() || Com_GameIsJK2MP();
+}
+
+int SV_PingLimitVerdict( int ping, int minPing, int maxPing ) {
+	if ( minPing && ping < minPing ) {
+		return 1;
+	}
+	if ( maxPing && ping > maxPing ) {
+		return 2;
+	}
+	return 0;
+}
+
+/*
+================
+SV_MasterGameCompleteStatus
+
+Wolfenstein's game modules end a match with the console command
+gameCompleteStatus, and their engines then send every master the server's
+status under that name (WolfMP.exe 1.4 0x43a2a2, etded.exe 2.60b 0x42ed17):
+the serverinfo and one "score ping name" line per connected client, as a
+status reply has, without a challenge to echo. Only a public dedicated
+server publishes, as it does its heartbeats.
+================
+*/
+void SV_MasterGameCompleteStatus( void ) {
+	std::array<char, MAX_NAME_LENGTH + 32> player{}; // score + ping + name
+	std::array<char, MAX_PACKETLEN> status{};
+	std::array<char, MAX_INFO_STRING + 160> infostring{};
+	playerState_t	ps;
+	char	*s;
+	int		statusLength;
+	int		playerLength;
+	const int	netenabled = Cvar_VariableIntegerValue( "net_enabled" );
+
+	if ( !SV_MasterPublishing( netenabled ) ) {
+		return;
+	}
+	if ( SV_GameTypeIsSinglePlayer( Cvar_VariableIntegerValue( "g_gametype" ) ) ) {
+		return;
+	}
+
+	Q_strncpyz( infostring.data(), Cvar_InfoString( CVAR_SERVERINFO, nullptr ), SV_ArraySize( infostring ) );
+
+	s = status.data();
+	statusLength = strlen( infostring.data() ) + 20; // strlen( "gameCompleteStatus\n\n" )
+	for ( SV_ClientSlot slot : SV_ClientSlots() ) {
+		if ( slot.client.state < CS_CONNECTED || !SV_ReadGameClient( slot.index, &ps ) ) {
+			continue;
+		}
+		playerLength = Com_sprintf( player.data(), SV_ArraySize( player ), "%i %i \"%s\"\n",
+			ps.persistant[ PERS_SCORE ], slot.client.ping, slot.client.name );
+		if ( statusLength + playerLength >= MAX_PACKETLEN - 4 ) {
+			break; // can't hold any more
+		}
+		s = Q_stradd( s, player.data() );
+		statusLength += playerLength;
+	}
+
+	for ( int i = 0; i < MAX_MASTER_SERVERS; i++ ) {
+		if ( !sv_master[i]->string[0] || !SV_ResolveMaster( i, netenabled ) ) {
+			continue;
+		}
+		Com_Printf( "Sending gameCompleteStatus to %s\n", sv_master[i]->string );
+		for ( const auto &address : sv_masterAddresses[i] ) {
+			if ( address.type != NA_BAD ) {
+				NET_OutOfBandPrint( NS_SERVER, &address, "gameCompleteStatus\n%s\n%s",
+					infostring.data(), status.data() );
+			}
+		}
+	}
+}
+
+
 /*
 ================
 SVC_Status
@@ -942,6 +1064,47 @@ static void SVC_Status( const netadr_t *from ) {
 	NET_OutOfBandPrint( NS_SERVER, from, "statusResponse\n%s\n%s", infostring.data(), status.data() );
 }
 
+
+/*
+================
+SV_RetailInfoKeys
+
+The keys a profile's retail engine adds to its info reply beyond Quake III's,
+which that game's own browser shows and filters on. A retail RTCW client
+drops any reply without gamename "wolfmp" (WolfMP.exe 1.4
+CL_ServerInfoPacket 0x40ee19), so for that game they decide whether the
+server is listed at all. Enemy Territory's are written with its others.
+================
+*/
+static void SV_RetailInfoKeys( char *info ) {
+	if ( Com_GameIsRTCWMP() ) {
+		// WolfMP.exe 1.4 SVC_Info 0x43a878-0x43a994, in its order.
+		Info_SetValueForKey( info, "sv_allowAnonymous", va( "%i", Cvar_VariableIntegerValue( "sv_allowAnonymous" ) ) );
+		Info_SetValueForKey( info, "gameskill", va( "%i", Cvar_VariableIntegerValue( "g_gameskill" ) ) );
+		Info_SetValueForKey( info, "friendlyFire", va( "%i", Cvar_VariableIntegerValue( "g_friendlyFire" ) ) );
+		Info_SetValueForKey( info, "maxlives", Cvar_VariableIntegerValue( "g_maxlives" ) ? "1" : "0" );
+		Info_SetValueForKey( info, "tourney", va( "%i", Cvar_VariableIntegerValue( "g_noTeamSwitching" ) ) );
+		// No anti-cheat service runs in this engine.
+		Info_SetValueForKey( info, "punkbuster", "0" );
+		Info_SetValueForKey( info, "gamename", "wolfmp" );
+		Info_SetValueForKey( info, "g_antilag", Cvar_VariableString( "g_antilag" ) );
+	} else if ( Com_GameIsJKAMP() ) {
+		// jamp.exe 1.01 SVC_Info 0x45fb57-0x45fc1e: a duel (3) or power
+		// duel (4) publishes its own weapon set.
+		const int gametype = sv_gametype->integer;
+		Info_SetValueForKey( info, "needpass", va( "%i", Cvar_VariableIntegerValue( "g_needpass" ) ) );
+		Info_SetValueForKey( info, "truejedi", va( "%i", Cvar_VariableIntegerValue( "g_jediVmerc" ) ) );
+		Info_SetValueForKey( info, "wdisable", va( "%i", Cvar_VariableIntegerValue(
+			gametype == 3 || gametype == 4 ? "g_duelWeaponDisable" : "g_weaponDisable" ) ) );
+		Info_SetValueForKey( info, "fdisable", va( "%i", Cvar_VariableIntegerValue( "g_forcePowerDisable" ) ) );
+	} else if ( Com_GameIsJK2MP() ) {
+		// jk2mp.exe 1.02a SVC_Info 0x44e9a7.
+		Info_SetValueForKey( info, "sv_allowAnonymous", va( "%i", Cvar_VariableIntegerValue( "sv_allowAnonymous" ) ) );
+	} else if ( Com_GameIsQuake3() ) {
+		// quake3.exe 1.32 SVC_Info 0x439dad; no anti-cheat service runs here.
+		Info_SetValueForKey( info, "punkbuster", "0" );
+	}
+}
 
 /*
 ================
@@ -1028,6 +1191,13 @@ static void SVC_Info( const netadr_t *from ) {
 		Info_SetValueForKey(infostring.data(), "maxlives", Cvar_VariableIntegerValue("g_maxlives") ? "1" : "0");
 		Info_SetValueForKey(infostring.data(), "needpass", Cvar_VariableIntegerValue("g_needpass") ? "1" : "0");
 	}
+	if ( sv_minPing && sv_minPing->integer ) {
+		Info_SetValueForKey( infostring.data(), "minPing", va( "%i", sv_minPing->integer ) );
+	}
+	if ( sv_maxPing && sv_maxPing->integer ) {
+		Info_SetValueForKey( infostring.data(), "maxPing", va( "%i", sv_maxPing->integer ) );
+	}
+	SV_RetailInfoKeys( infostring.data() );
 	gamedir = Cvar_VariableString( "fs_game" );
 	if ( *gamedir != '\0' ) {
 		Info_SetValueForKey( infostring.data(), "game", gamedir );
@@ -1782,7 +1952,7 @@ void SV_Frame( int msec, int realMsec ) {
 	SV_SendClientMessages();
 
 	// send a heartbeat to the master if needed
-	SV_MasterHeartbeat(HEARTBEAT_FOR_MASTER);
+	SV_MasterHeartbeat( Com_GameHeartbeatName() );
 }
 
 

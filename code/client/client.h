@@ -244,6 +244,10 @@ struct clientConnection_t {
 	int			downloadSize;	// how many bytes we got
 	char		downloadList[BIG_INFO_STRING]; // list of paks we need to download
 	qboolean	downloadRestart;	// if true, we need to do another FS_Restart because we downloaded a pak
+	// Enemy Territory's download redirect (svc_download block -1): 0 with
+	// none in hand, 1 while its web transfer runs, 2 once it is declined or
+	// has failed, until the server's next gamestate.
+	int			wolfetWebDownload;
 
 #ifdef USE_CLIENT_CURL
 	qboolean	cURLEnabled;

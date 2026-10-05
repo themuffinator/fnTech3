@@ -1135,6 +1135,23 @@ static void CL_ParseGamestate( msg_t *msg ) {
 	clc.connectPacketCount = 0;
 	CL_STVEFSPConnectionText( "", qfalse );
 
+	// A new gamestate ends any ET download redirect: a declined one is over,
+	// and a transfer still running is for the list this replaces.
+	if ( clc.wolfetWebDownload == 1 ) {
+#ifdef USE_CLIENT_CURL
+		CL_cURL_Cleanup();
+#endif
+		if ( clc.download != FS_INVALID_HANDLE ) {
+			FS_FCloseFile( clc.download );
+			clc.download = FS_INVALID_HANDLE;
+		}
+		FS_SV_HomeRemove( clc.downloadTempName );
+	}
+	if ( clc.wolfetWebDownload ) {
+		*clc.downloadTempName = *clc.downloadName = '\0';
+	}
+	clc.wolfetWebDownload = 0;
+
 	// clear old error message
 	Cvar_Set( "com_errorMessage", "" );
 
@@ -1333,6 +1350,59 @@ qboolean CL_ValidPakSignature( const byte *data, int len )
 
 /*
 =====================
+CL_WolfETDownloadRedirect
+
+Enemy Territory reserves download block -1 for a redirect: the URL to fetch
+the file from, its size and flags (retail et.exe 2.60b CL_ParseDownload).
+Flag bit zero lets the client leave while it fetches; this client stays,
+which the server allows. Bit one marks a plain web page the server sends every
+client to (sv_wwwFallbackURL) instead of the file. The server repeats the
+redirect until it is answered, so a repeat is read and set aside.
+
+A client that cannot fetch it acknowledges and declines it ("wwwdl fail"),
+and the server then sends the gamestate again and the file in blocks.
+=====================
+*/
+static void CL_WolfETDownloadRedirect( msg_t *msg ) {
+	std::array<char, MAX_STRING_CHARS> url;
+	Q_strncpyz( url.data(), MSG_ReadString( msg ), static_cast<int>( url.size() ) );
+	const int size = MSG_ReadLong( msg );
+	const int flags = MSG_ReadLong( msg );
+	if ( msg->readcount > msg->cursize ) {
+		Com_Error( ERR_DROP, "CL_ParseDownload: Truncated download redirect" );
+		return;
+	}
+	if ( clc.wolfetWebDownload ) {
+		return;
+	}
+	if ( flags & ( 1 << 1 ) ) {
+		Com_Error( ERR_DROP, "This server asks for its files to be fetched from %s; "
+			"download them there, then connect again.", url.data() );
+		return;
+	}
+
+	Com_DPrintf( "Server redirected download: %s\n", url.data() );
+	CL_AddReliableCommand( "wwwdl ack", qfalse );
+#ifdef USE_CLIENT_CURL
+	if ( size > 0 && url[0] && CL_cURL_Init() ) {
+		// The transfer keeps its own copy of the name this request stored.
+		std::array<char, sizeof( clc.downloadName )> name;
+		Q_strncpyz( name.data(), clc.downloadName, static_cast<int>( name.size() ) );
+		CL_WolfETBeginWebDownload( name.data(), url.data() );
+		Cvar_SetIntegerValue( "cl_downloadSize", size );
+		return;
+	}
+#else
+	(void)size;
+#endif
+	Com_Printf( "Not fetching %s from %s; asking the server for it instead\n", clc.downloadName, url.data() );
+	clc.wolfetWebDownload = 2;
+	CL_AddReliableCommand( "wwwdl fail", qfalse );
+}
+
+
+/*
+=====================
 CL_ParseDownload
 
 A download message has been received from the server
@@ -1360,14 +1430,9 @@ static void CL_ParseDownload( msg_t *msg ) {
 		return;
 	}
 
-	// ET reserves -1 for URL/size/flags, including a fallback URL sent even
-	// to clients which did not advertise www capability. Until its redirect
-	// protocol is implemented, refuse it before URL bytes become a chunk size.
+	// ET reserves -1 for a redirect, which must not reach the block reader.
 	if ( Com_GameIsWolfET() && block == 0xffff ) {
-		Com_Error( ERR_DROP, "Enemy Territory server redirected the download; "
-			"fnTech3 currently supports ET UDP downloads only. "
-			"Install the required pak manually, or ask the server operator to "
-			"disable sv_wwwDownload and sv_wwwFallbackURL." );
+		CL_WolfETDownloadRedirect( msg );
 		return;
 	}
 

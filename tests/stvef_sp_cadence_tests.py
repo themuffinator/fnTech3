@@ -63,6 +63,7 @@ static comGameId_t profile;
 static int wallTime, time_game, cvar_modifiedFlags, gvm, issued, saves, sent;
 static std::vector<int> ticks;
 static constexpr const char *HEARTBEAT_FOR_MASTER = "test";
+const char *Com_GameHeartbeatName() { return HEARTBEAT_FOR_MASTER; }
 int Com_GameIsSTVEFSP() { return profile == COM_GAME_STVEF_SP; }
 // Q3Test and the IHV test send and simulate through their own paths, which
 // their own tests cover; no profile here reaches them.

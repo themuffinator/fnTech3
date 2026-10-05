@@ -1801,9 +1801,65 @@ q3testReleaseId_t Com_Q3TestDetectRelease( const char *rootPath )
 int Com_GameDefaultServerPort( void )
 {
 	/* Medal of Honor's engine listens on 12203 (OpenMoHAA's PORT_SERVER, and
-	 * the port its retail servers are known by); every other profile keeps
-	 * Quake III's 27960 (qcommon.h PORT_SERVER). */
-	return Com_GameIsMOHAA() ? 12203 : 27960;
+	 * the port its retail servers are known by). Raven moved both Jedi
+	 * multiplayer engines off Quake III's port: jamp.exe 1.01 registers
+	 * net_port as va("%i", 29070) (0x4526db) and jk2mp.exe 1.02a as 28070
+	 * (0x44414a), and their clients connect and scan there. Every other
+	 * profile keeps Quake III's 27960 (qcommon.h PORT_SERVER). */
+	if ( Com_GameIsMOHAA() ) return 12203;
+	if ( Com_GameIsJKAMP() ) return 29070;
+	if ( Com_GameIsJK2MP() ) return 28070;
+	return 27960;
+}
+
+const char *Com_GameDefaultMasterServer( void )
+{
+	/* sv_master1's default in each retail engine's SV_Init, which its client
+	 * also asks for servers: quake3.exe 1.32 0x439345, WolfMP.exe 1.4
+	 * 0x439a53, etded.exe 2.60b 0x42c856, stvoyHM.exe 1.20 0x434091 (with
+	 * the port written in), jamp.exe 1.01 0x45f1b0, jk2mp.exe 1.02a 0x44dff3.
+	 * Quake Live lists servers through Steam, Medal of Honor through GameSpy,
+	 * and the single-player and test profiles publish nowhere. */
+	if ( Com_GameIsQuake3() ) return "master.quake3arena.com";
+	if ( Com_GameIsRTCWMP() ) return "wolfmaster.idsoftware.com";
+	if ( Com_GameIsWolfET() ) return "etmaster.idsoftware.com";
+	if ( Com_GameIsSTVEFMP() ) return "master.stef1.ravensoft.com:27953";
+	if ( Com_GameIsJKAMP() ) return "masterjk3.ravensoft.com";
+	if ( Com_GameIsJK2MP() ) return "masterjk2.ravensoft.com";
+	return NULL;
+}
+
+int Com_GameMasterPort( void )
+{
+	/* Where a master address names no port. Raven gave each title its own:
+	 * stvoyHM.exe's masters listen on 27953, jamp.exe sends to 29060
+	 * (0x45f77a, and its browser at 0x420bb3) and jk2mp.exe to 28060
+	 * (0x44e52c, 0x40d975). id's titles keep Quake III's 27950. */
+	if ( Com_GameIsSTVEFMP() ) return 27953;
+	if ( Com_GameIsJKAMP() ) return 29060;
+	if ( Com_GameIsJK2MP() ) return 28060;
+	return 27950;
+}
+
+const char *Com_GameHeartbeatName( void )
+{
+	/* The game a heartbeat names: WolfMP.exe 1.4 and etded.exe 2.60b carry
+	 * their own; quake3.exe, jamp.exe and jk2mp.exe all send Quake III's;
+	 * stvoyHM.exe 1.20 names STEF1 in its key-value heartbeat. */
+	if ( Com_GameIsRTCWMP() ) return "Wolfenstein-1";
+	if ( Com_GameIsWolfET() ) return "EnemyTerritory-1";
+	if ( Com_GameIsSTVEFMP() ) return "STEF1";
+	return "QuakeArena-1";
+}
+
+const char *Com_GameFlatlineName( void )
+{
+	/* Wolfenstein's shutdown names a dead game so the master drops the server
+	 * at once ("WolfFlatline-1", "ETFlatline-1"); Quake III's engines repeat
+	 * the ordinary heartbeat and wait for the master's query to go unanswered. */
+	if ( Com_GameIsRTCWMP() ) return "WolfFlatline-1";
+	if ( Com_GameIsWolfET() ) return "ETFlatline-1";
+	return Com_GameHeartbeatName();
 }
 
 int Com_GameStateCharLimit( void )

@@ -6910,6 +6910,16 @@ void CL_Init( void ) {
 
 	cl_allowDownload = Cvar_Get( "cl_allowDownload", "1", CVAR_ARCHIVE_ND );
 	Cvar_SetDescription( cl_allowDownload, "Enables downloading of content needed in server. Valid bitmask flags:\n 1: Downloading enabled\n 2: Do not use HTTP/FTP downloads\n 4: Do not use UDP downloads" );
+	if ( Com_GameIsWolfET() ) {
+		// Retail et.exe 2.60b tells servers in its userinfo that it can fetch a
+		// redirected download from a web server itself (0x40d652).
+#ifdef USE_CURL
+		Cvar_SetDescription( Cvar_Get( "cl_wwwDownload", "1", CVAR_USERINFO | CVAR_ARCHIVE ),
+			"Lets an Enemy Territory server send downloads through its web server." );
+#else
+		Cvar_Get( "cl_wwwDownload", "0", CVAR_USERINFO | CVAR_ROM );
+#endif
+	}
 #ifdef USE_CURL
 	cl_mapAutoDownload = Cvar_Get( "cl_mapAutoDownload", "0", CVAR_ARCHIVE_ND );
 	Cvar_SetDescription( cl_mapAutoDownload, "Automatic map download for play and demo playback (via automatic \\dlmap call)." );
@@ -7338,6 +7348,11 @@ static void CL_ServerInfoPacket( const netadr_t *from, msg_t *msg ) {
 	int		prot;
 
 	infoString = MSG_ReadString( msg );
+	// A Holomatch server answers on one line, `infoResponse "<info>"`, and
+	// stvoyHM.exe 1.20 hands its reader Cmd_Argv( 1 ) (0x40ef10).
+	if ( Com_GameIsSTVEFMP() && !*infoString ) {
+		infoString = Cmd_Argv( 1 );
+	}
 	CL_Q3ProtocolInfo( from, infoString );
 
 	// if this isn't the correct protocol version, ignore it
@@ -7765,7 +7780,7 @@ static void CL_GlobalServers_f( void ) {
 		return;
 	}
 	else if ( i == 2 )
-		to.port = BigShort( PORT_MASTER );
+		to.port = BigShort( static_cast<short>( Com_GameMasterPort() ) );
 
 	Com_Printf( "Requesting servers from %s (%s)...\n", masteraddress, NET_AdrToStringwPort( &to ) );
 

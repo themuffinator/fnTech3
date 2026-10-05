@@ -340,7 +340,11 @@ static void SV_Map_f( void ) {
 	}
 
 #ifndef DEDICATED
-	if ( !com_dedicated->integer && !singlePlayerCommand ) {
+	// Quake Live's local match runs as single player (the FnQL baseline). In
+	// the other profiles a client's map is a listen server that answers info
+	// and challenge queries, as retail's SV_Map_f leaves it: setting this
+	// flag would turn away every remote client.
+	if ( quakeLive && !com_dedicated->integer && !singlePlayerCommand ) {
 		Cvar_Set( "ui_singlePlayerActive", "1" );
 		Cvar_Set( "ui_priv", "3" );
 	}
@@ -1613,6 +1617,53 @@ static void SV_ConSay_f( void ) {
 
 /*
 ==================
+SV_ConSvSay_f
+
+Raven's engines name their console chat svsay and have no say:
+stvoyHM.exe 1.20 and jk2mp.exe 1.02a send every client chat
+"console: <text>\n" (0x42ecc0, 0x448580), jamp.exe 1.01 chat
+"Server: <text>\n" (0x456c80). Each refuses on a server that is not
+dedicated or not running.
+==================
+*/
+static void SV_ConSvSay_f( void ) {
+	char	*p;
+	std::array<char, MAX_STRING_CHARS> text{};
+	int		len;
+
+	if ( !com_dedicated->integer ) {
+		Com_Printf( "Server is not dedicated.\n" );
+		return;
+	}
+	if ( !com_sv_running->integer ) {
+		Com_Printf( "Server is not running.\n" );
+		return;
+	}
+
+	if ( Cmd_Argc () < 2 ) {
+		return;
+	}
+
+	p = Cmd_ArgsFrom( 1 );
+	len = static_cast<int>( strlen( p ) );
+
+	if ( len > 1000 ) {
+		return;
+	}
+
+	if ( *p == '"' ) {
+		p[len-1] = '\0';
+		p++;
+	}
+
+	Com_sprintf( text.data(), SV_ArraySize(text), "%s%s", Com_GameIsJKAMP() ? "Server: " : "console: ", p );
+
+	SV_SendServerCommand( nullptr, "chat \"%s\n\"", text.data() );
+}
+
+
+/*
+==================
 SV_ConTell_f
 ==================
 */
@@ -1881,10 +1932,10 @@ static void SV_SetMapCompletionForCommands( const std::array<operatorCommand_t, 
 SV_AddOperatorCommands
 ==================
 */
-static void SV_RTCWGameCompleteStatus_f( void ) {
-	// Retail MP emits this at match completion. Legacy master reporting is
-	// not integrated; consuming the command must not imply service success.
-	Com_Printf( "RTCW match-completion reporting is unavailable; no report sent.\n" );
+static void SV_GameCompleteStatus_f( void ) {
+	// The RTCW MP and ET game modules end a match with this console command;
+	// their engines then report the final status to every master.
+	SV_MasterGameCompleteStatus();
 }
 
 void SV_AddOperatorCommands( void ) {
@@ -1950,7 +2001,8 @@ void SV_AddOperatorCommands( void ) {
 
 	SV_AddCommandSet( commands );
 	if ( Com_GameIsRTCWSP() ) Cmd_AddCommand("loadgame", SV_LoadGame_f);
-	if ( Com_GameIsRTCWMP() ) Cmd_AddCommand("gameCompleteStatus", SV_RTCWGameCompleteStatus_f);
+	if ( Com_GameIsRTCWMP() || Com_GameIsWolfET() ) Cmd_AddCommand("gameCompleteStatus", SV_GameCompleteStatus_f);
+	if ( Com_GameIsSTVEFMP() || Com_GameIsJKAMP() || Com_GameIsJK2MP() ) Cmd_AddCommand("svsay", SV_ConSvSay_f);
 	if ( Com_GameProfile()->supportsWorkshop ) {
 		SV_AddCommandSet( workshopCommands );
 	}

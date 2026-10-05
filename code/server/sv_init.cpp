@@ -452,7 +452,13 @@ static void SV_Startup( void ) {
 		Com_Error( ERR_FATAL, "SV_Startup: svs.initialized" );
 	}
 
-	SV_AllocClients( sv_maxclients->integer );
+	// A sv_maxclients set since the cvar was registered, by a server's own
+	// cfg say, is latched: take it before the client array is sized, as each
+	// retail engine's SV_Startup does (quake3.exe 1.32 0x438b5f, WolfMP.exe
+	// 1.4 0x438e98, etded.exe 2.60b 0x42d398). Left latched, the game
+	// module's registration applied it later, and the first map_restart --
+	// RTCW's and ET's at the end of their warm-up -- reloaded the map for it.
+	SV_AllocClients( SV_BoundMaxClients( 1 ) );
 	SV_ResetServerCvarRuntime();
 
 	sv_maxclients->modified = qfalse;
@@ -1364,8 +1370,12 @@ void SV_Init( void )
 	//sv_master[1] = Cvar_Get( "sv_master2", "master.ioquake3.org", CVAR_INIT | CVAR_ARCHIVE_ND );
 	//sv_master[2] = Cvar_Get( "sv_master3", "master.maverickservers.com", CVAR_INIT | CVAR_ARCHIVE_ND );
 
+	// Each retail engine publishes to its own master as sv_master1 and leaves
+	// the other four to the operator; its browser asks the same master.
+	const char *defaultMaster = Com_GameDefaultMasterServer();
 	for ( int index : SV_Indices( MAX_MASTER_SERVERS ) ) {
-		sv_master[ index ] = Cvar_Get( va( "sv_master%d", index + 1 ), "", CVAR_ARCHIVE_ND );
+		sv_master[ index ] = Cvar_Get( va( "sv_master%d", index + 1 ),
+			index == 0 && defaultMaster ? defaultMaster : "", CVAR_ARCHIVE_ND );
 	}
 	sv_masterAdvertise = Cvar_Get( "sv_master", "1", CVAR_ARCHIVE );
 	Cvar_CheckRange( sv_masterAdvertise, "0", "1", CV_INTEGER );
@@ -1389,6 +1399,20 @@ void SV_Init( void )
 		// Original MP sends this in its challenge reply; a set value asks each
 		// client to stop drawing players it cannot see (sv_init.c, sv_client.c).
 		(void)Cvar_Get( "sv_onlyVisibleClients", "0", 0 );
+	}
+	if ( Com_GameIsRTCWMP() || Com_GameIsWolfET() || Com_GameIsJK2MP() ) {
+		// Their engines register it as serverinfo and publish it in the info
+		// reply (WolfMP.exe 1.4 0x4398cf, etded.exe 2.60b 0x42c6cd, jk2mp.exe
+		// 1.02a 0x44deb1); nothing in this engine reads it.
+		(void)Cvar_Get( "sv_allowAnonymous", "0", CVAR_SERVERINFO );
+	}
+	if ( SV_ProfileHasPingLimits() ) {
+		sv_minPing = Cvar_Get( "sv_minPing", "0", CVAR_ARCHIVE | CVAR_SERVERINFO );
+		Cvar_SetDescription( sv_minPing, "Refuse internet clients whose challenge round trip is shorter, in msec (0 is off)." );
+		sv_maxPing = Cvar_Get( "sv_maxPing", "0", CVAR_ARCHIVE | CVAR_SERVERINFO );
+		Cvar_SetDescription( sv_maxPing, "Refuse internet clients whose challenge round trip is longer, in msec (0 is off)." );
+	} else {
+		sv_minPing = sv_maxPing = nullptr;
 	}
 
 	sv_wwwDownload = Cvar_Get( "sv_wwwDownload", "0", CVAR_ARCHIVE );

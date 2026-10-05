@@ -137,6 +137,82 @@ static int SV_CreateChallenge( int timestamp, const netadr_t *from )
 
 /*
 =================
+Challenge round trips
+
+The challenge itself keeps no state. The ping limits are measured, as in a
+retail engine, from the challenge reply to the connect that follows it, so the
+time of the latest reply to each of the most recent addresses is kept here.
+=================
+*/
+struct SV_ChallengeTime {
+	netadr_t	adr;
+	int			time;
+	bool		used;
+};
+static std::array<SV_ChallengeTime, 64> sv_challengeTimes{};
+static std::size_t sv_challengeTimeNext;
+
+static SV_ChallengeTime *SV_FindChallengeTime( const netadr_t *from )
+{
+	for ( auto &entry : sv_challengeTimes ) {
+		if ( entry.used && NET_CompareAdr( from, &entry.adr ) ) {
+			return &entry;
+		}
+	}
+	return nullptr;
+}
+
+static void SV_RecordChallengeTime( const netadr_t *from )
+{
+	SV_ChallengeTime *entry = SV_FindChallengeTime( from );
+	if ( !entry ) {
+		entry = &sv_challengeTimes[ sv_challengeTimeNext ];
+		sv_challengeTimeNext = ( sv_challengeTimeNext + 1 ) % sv_challengeTimes.size();
+		entry->adr = *from;
+		entry->used = true;
+	}
+	entry->time = svs.time;
+}
+
+/*
+=================
+SV_PingLimitsRefuse
+
+A retail engine of these profiles turns away an internet client whose
+challenge round trip is outside sv_minPing..sv_maxPing, and never a LAN one
+(quake3.exe 1.32 SV_DirectConnect). Too low a ping also forgets the
+challenge, or the ping would grow with each retry until it passed.
+=================
+*/
+static bool SV_PingLimitsRefuse( const netadr_t *from )
+{
+	if ( !sv_minPing || !sv_maxPing || Sys_IsLANAddress( from ) ) {
+		return false;
+	}
+	SV_ChallengeTime *entry = SV_FindChallengeTime( from );
+	if ( !entry ) {
+		return false;
+	}
+	const int ping = svs.time - entry->time;
+	Com_Printf( "Client connecting with %i challenge ping\n", ping );
+	switch ( SV_PingLimitVerdict( ping, sv_minPing->integer, sv_maxPing->integer ) ) {
+	case 1:
+		NET_OutOfBandPrint( NS_SERVER, from, "print\nServer is for high pings only\n" );
+		Com_DPrintf( "Client rejected on a too low ping\n" );
+		entry->used = false;
+		return true;
+	case 2:
+		NET_OutOfBandPrint( NS_SERVER, from, "print\nServer is for low pings only\n" );
+		Com_DPrintf( "Client rejected on a too high ping: %i\n", ping );
+		return true;
+	default:
+		return false;
+	}
+}
+
+
+/*
+=================
 SV_CreateChallenge
 
 Verify a challenge received by the client matches the expected challenge
@@ -225,6 +301,9 @@ void SV_GetChallenge( const netadr_t *from, const msg_t *msg ) {
 
 	// Create a unique challenge for this client without storing state on the server
 	challenge = SV_CreateChallenge( svs.time >> TS_SHIFT, from );
+	if ( sv_minPing && sv_maxPing ) {
+		SV_RecordChallengeTime( from );
+	}
 
 	const fnql::server::auth::ParsedChallenge retail =
 		fnql::server::auth::ParseChallengePayload(
@@ -1627,6 +1706,9 @@ void SV_DirectConnect( const netadr_t *from ) {
 			{
 				NET_OutOfBandPrint( NS_SERVER, from, "print\nIncorrect challenge, please reconnect.\n" );
 			}
+			return;
+		}
+		if ( SV_PingLimitsRefuse( from ) ) {
 			return;
 		}
 	}

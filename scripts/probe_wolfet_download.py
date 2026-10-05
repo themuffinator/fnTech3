@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""Transfer an authored ET fixture pak over UDP, then enter a pure session.
+"""Transfer an authored ET fixture pak, then enter a pure session.
+
+The pak travels over UDP blocks, or with --www through the server's web
+redirect: a loopback HTTP server serves the server's home, the server sets
+sv_wwwDownload, and the client fetches the file there. --www-missing serves
+nothing, so the client must decline the redirect and get the file in blocks.
+--www-disconnected adds sv_wwwDlDisconnected, which lets a client leave while
+it fetches: retail et.exe then leaves and comes back, and fnTech3's client
+stays connected, as the server allows either.
 
 Windows only. The fixed engine or retail executable runs on an unswitched
 private desktop, windowed, with input disabled. Writable state and the generated
@@ -8,7 +16,9 @@ No input is injected and no operating-system screenshot is taken.
 """
 from pathlib import Path
 import argparse
+import functools
 import hashlib
+import http.server
 import json
 import os
 import random
@@ -16,6 +26,7 @@ import re
 import socket
 import subprocess
 import sys
+import threading
 import time
 import zipfile
 
@@ -27,7 +38,8 @@ MOD = 'fntech3_download_probe'
 PAK = 'fntech3-fixture.pk3'
 NAME = 'fntech3-download-probe'
 SEED = 20261002
-REDIRECT_REFUSAL = 'Enemy Territory server redirected the download; fnTech3 currently supports ET UDP downloads only.'
+# A fallback URL names a web page, not the file: the client stops with it.
+REDIRECT_REFUSAL = 'This server asks for its files to be fetched from '
 ERRORS = re.compile(r'^(?:ERROR:.*|.*Illegible server message.*|'
                     r'.*read past end of server message.*|.*recursive error after.*|'
                     r'.*Server fatal crashed.*|.*com_errorMessage VM_Call with NULL vm.*)$', re.M)
@@ -84,13 +96,50 @@ def settings(installation, home, retail):
     return result
 
 
+class RecordingHandler(http.server.SimpleHTTPRequestHandler):
+    """Serves one folder over loopback and records every request."""
+    requests = None
+
+    def log_message(self, format, *args):
+        pass
+
+    def log_request(self, code='-', size='-'):
+        self.requests.append(dict(path=self.path, status=int(code) if str(code).isdigit() else code))
+
+
+def start_web(folder):
+    requests = []
+    handler = type('Handler', (RecordingHandler,), dict(requests=requests))
+    server = http.server.ThreadingHTTPServer(('127.0.0.1', 0),
+                                             functools.partial(handler, directory=str(folder)))
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    return server, requests
+
+
+def web_fetched(result):
+    """The pak came through the web redirect: a 200 for it and no block transfer."""
+    return any(r['path'].endswith('/' + MOD + '/' + PAK) and r['status'] == 200
+               for r in result.get('httpRequests', []))
+
+
+def web_declined(result):
+    """The client asked the web server, was refused, and took the blocks instead."""
+    return any(r['path'].endswith('/' + MOD + '/' + PAK) and r['status'] == 404
+               for r in result.get('httpRequests', [])) and result.get('downloadCompleted')
+
+
 def passed(result):
     """A finalized file alone does not establish download/pure admission."""
+    if result.get('mode') == 'www' and not web_fetched(result):
+        return False
+    if result.get('mode') == 'www-missing' and not web_declined(result):
+        return False
+    udp = result.get('mode', 'udp-transfer') in ('udp-transfer', 'www-missing')
     return bool(result.get('clientExit') == 0 and not result.get('clientForced')
                 and result.get('serverExit') == 0 and not result.get('serverForced')
                 and result.get('installationUnchanged') and result.get('fixtureInitiallyAbsent')
                 and result.get('fixtureMatches') and not result.get('temporaryPakRemains')
-                and result.get('downloadBegan') and result.get('downloadCompleted')
+                and (not udp or (result.get('downloadBegan') and result.get('downloadCompleted')))
                 and result.get('serverBegin') and not result.get('unpureDrop')
                 and not result.get('clientErrors') and not result.get('serverErrors'))
 
@@ -126,10 +175,21 @@ def probe(args, output):
     if args.expect_redirect_refusal:
         server_values.update(sv_wwwDownload='1',
                              sv_wwwFallbackURL='https://example.invalid/fntech3-download-probe')
+    web = requests = None
+    if args.www or args.www_missing:
+        # Only loopback: the server's own home, or an empty folder that 404s.
+        served = server_home if args.www else output / 'web-empty'
+        served.mkdir(exist_ok=True)
+        web, requests = start_web(served)
+        server_values.update(sv_wwwDownload='1', sv_wwwFallbackURL='',
+                             sv_wwwBaseURL=f'http://127.0.0.1:{web.server_address[1]}')
+        if args.www_disconnected:
+            server_values['sv_wwwDlDisconnected'] = '1'
     client_values = settings(args.installation, client_home, args.retail_client)
     client_values.update(r_mode='-1', r_customWidth='800', r_customHeight='600', in_mouse='0',
                          in_joystick='0', in_nograb='1', s_initsound='0', cl_allowDownload='1',
-                         cl_wwwDownload='0', cl_motd='0', cl_autoupdate='0', com_introplayed='1',
+                         cl_wwwDownload='1' if args.www or args.www_missing else '0',
+                         cl_motd='0', cl_autoupdate='0', com_introplayed='1',
                          com_maxfps='60', com_maxfpsUnfocused='60', com_maxfpsMinimized='60',
                          name=NAME, rate='25000', net_port='0')
     if not args.retail_client:
@@ -157,8 +217,10 @@ def probe(args, output):
     level = ('Reference comparison' if args.retail_client and args.retail_server else
              'Interop' if args.retail_client or args.retail_server else 'Live')
     result = dict(profile='wolfet', evidence=level,
-                  mode='redirect-refusal' if args.expect_redirect_refusal else 'udp-transfer',
+                  mode=('redirect-refusal' if args.expect_redirect_refusal else 'www' if args.www
+                        else 'www-missing' if args.www_missing else 'udp-transfer'),
                   map=args.map, pure=True, transport='UDP', retailClient=args.retail_client,
+                  wwwDisconnected=bool(args.www_disconnected),
                   connectDelayFrames=args.connect_delay_frames,
                   retailServer=args.retail_server, fixtureRecipe=recipe,
                   fixtureInitiallyAbsent=not downloaded.exists(),
@@ -227,6 +289,13 @@ def probe(args, output):
                   clientErrors=ERRORS.findall(client_text), serverErrors=ERRORS.findall(server_text),
                   sourceCommit=subprocess.run(['git', 'rev-parse', 'HEAD'], cwd=ROOT,
                                               capture_output=True, text=True).stdout.strip())
+    if web:
+        web.shutdown()
+        web.server_close()
+        result['httpRequests'] = list(requests)
+        result['serverRedirected'] = 'Redirecting client' in server_text
+        # The client's own word that it leaves to fetch; servers log its commands.
+        result['clientLeftToFetch'] = 'wwwdl bbl8r' in server_text
     result['passed'] = redirect_refused(result) if args.expect_redirect_refusal else passed(result)
     (output / 'result.json').write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
     print(json.dumps({k: v for k, v in result.items() if not k.endswith('Command')}, indent=2))
@@ -243,6 +312,12 @@ def main():
     parser.add_argument('--retail-server', action='store_true')
     parser.add_argument('--expect-redirect-refusal', action='store_true',
                         help='send ET fallback URL to a non-www client; require actionable refusal')
+    parser.add_argument('--www', action='store_true',
+                        help='serve the server home over loopback HTTP and redirect the download there')
+    parser.add_argument('--www-missing', action='store_true',
+                        help='redirect to a loopback HTTP server that has no such file')
+    parser.add_argument('--www-disconnected', action='store_true',
+                        help='with --www, let clients leave while they fetch (sv_wwwDlDisconnected 1)')
     parser.add_argument('--map', default='railgun')
     parser.add_argument('--timeout', type=float, default=120)
     parser.add_argument('--connect-delay-frames', type=int, default=0,
@@ -258,6 +333,10 @@ def main():
         parser.error('output and installation must be separate')
     if args.expect_redirect_refusal and args.retail_client:
         parser.error('redirect refusal tests require an fnTech3 client')
+    if sum(map(bool, (args.www, args.www_missing, args.expect_redirect_refusal))) > 1:
+        parser.error('choose one of --www, --www-missing and --expect-redirect-refusal')
+    if args.www_disconnected and not args.www:
+        parser.error('--www-disconnected needs --www')
     if args.connect_delay_frames < 0:
         parser.error('connect delay must be nonnegative')
     return 0 if probe(args, args.output) else 1
