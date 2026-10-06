@@ -58,12 +58,32 @@ ServerRoffFiles ravenRoffFiles;
 fntech3::roff::Store ravenRoff( ravenRoffFiles );
 
 ServerGhoul2Files ravenGhoul2Files;
-fntech3::ghoul2::Store ravenGhoul2( ravenGhoul2Files );
+/* Each title's server keeps its models in a store of its own, because each
+ * store serves only what its own retail engine was measured to do and the
+ * two engines were not measured alike. Each dispatcher binds the name
+ * `ravenGhoul2` to its title's store.
+ *
+ * Jedi Academy's: retail jamp.exe 1.01's game imports reach the same Ghoul2
+ * cores as its client game's -- 587 to 589 the bolt query 0x4dfa00, 594 the
+ * link store 0x4df940, 600 the model copy 0x4e04b0 -- so the server answers a
+ * bolt query as the client game does: the engine-provided `*default`
+ * skeleton every weapon and saber names, models attached to another posed
+ * from its parent's bolt, and retail's tag frame. Its own synthetic game
+ * module, run inside retail jamp.exe's dedicated server, gives the answers
+ * this store matches. Animation blends stay off: they were measured through
+ * the client game only. See docs/fntech3/2026-10-06-jedi-server-attachments.md.
+ *
+ * Jedi Outcast's keeps the earlier behaviour. Its engine builds and caches
+ * bolts differently (jk2mp.exe 1.02a 0x4790f0), and no retail answer was
+ * observed for it. */
+fntech3::ghoul2::Store ravenGhoul2Academy( ravenGhoul2Files, true, false, true );
+fntech3::ghoul2::Store ravenGhoul2Outcast( ravenGhoul2Files );
 fntech3::ghoul2::SkinRegistry ravenSkins( ravenGhoul2Files );
 
 static void SV_RavenAssetsClear()
 {
-	ravenGhoul2.Clear();
+	ravenGhoul2Academy.Clear();
+	ravenGhoul2Outcast.Clear();
 	ravenSkins.Clear();
 	ravenRoff.Clear();
 }

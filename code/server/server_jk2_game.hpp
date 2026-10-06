@@ -53,6 +53,9 @@ static bool SV_JK2GameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 {
 	(void)operation;
 	result = 0;
+	/* This title's own model store, which keeps the earlier behaviour
+	 * (server_raven_assets.hpp). */
+	fntech3::ghoul2::Store &ravenGhoul2 = ravenGhoul2Outcast;
 
 	const int trap = static_cast<int>( args[0] );
 

@@ -1041,26 +1041,35 @@ static Bytes TagMesh( const std::string &skeleton )
 	return file;
 }
 
-/* A tag's corners are carried by frame zero and the fixed Ghoul2 root basis. */
+struct TagFiles final : public ghoul2::Files {
+	std::map<std::string, Bytes> held;
+	TagFiles()
+	{
+		held["models/players/tagtest/model.glm"] = TagMesh( "models/players/tagtest/skeleton" );
+		held["models/players/tagtest/skeleton.gla"] = TagSkeleton( "models/players/tagtest/skeleton" );
+	}
+	std::size_t Read( const char *path, void *destination, std::size_t capacity ) override
+	{
+		auto found = held.find( path ? path : "" );
+		if ( found == held.end() ) return 0;
+		if ( destination && capacity >= found->second.size() ) {
+			std::memcpy( destination, found->second.data(), found->second.size() );
+		}
+		return found->second.size();
+	}
+};
+
+/* A tag's corners are carried by frame zero and the fixed Ghoul2 root basis.
+ *
+ * This is the earlier frame -- origin at the first triangle's first corner,
+ * columns along its first edge, square to it, and its normal -- which retail
+ * does not use. It is pinned deliberately: the stores that do not serve
+ * attachments keep it (Jedi Outcast's server, the UI's and single player's).
+ * Retail's frame, served by Jedi Academy's server and client game, is checked
+ * below. */
 static void CheckABoltMatrix()
 {
-	struct TagFiles final : public ghoul2::Files {
-		std::map<std::string, Bytes> held;
-		std::size_t Read( const char *path, void *destination, std::size_t capacity ) override
-		{
-			auto found = held.find( path ? path : "" );
-			if ( found == held.end() ) return 0;
-			if ( destination && capacity >= found->second.size() ) {
-				std::memcpy( destination, found->second.data(), found->second.size() );
-			}
-			return found->second.size();
-		}
-	} files;
-	files.held["models/players/tagtest/model.glm"] =
-		TagMesh( "models/players/tagtest/skeleton" );
-	files.held["models/players/tagtest/skeleton.gla"] =
-		TagSkeleton( "models/players/tagtest/skeleton" );
-
+	TagFiles files;
 	ghoul2::Store store( files );
 	void *slot = nullptr;
 	LoadError error = LoadError::None;
@@ -1080,6 +1089,11 @@ static void CheckABoltMatrix()
 	CHECK( matrix[3] > -20.001f && matrix[3] < -19.999f );
 	CHECK( matrix[7] > 9.999f && matrix[7] < 10.001f );
 	CHECK( matrix[11] > 29.999f && matrix[11] < 30.001f );
+	/* Along the first edge, square to it, and the normal, as columns. */
+	const float earlier[12] = { 0, -1, 0, -20,  1, 0, 0, 10,  0, 0, 1, 30 };
+	for ( int i = 0; i < 12; ++i ) {
+		CHECK( matrix[i] > earlier[i] - 0.0001f && matrix[i] < earlier[i] + 0.0001f );
+	}
 
 	/* Its axes are a set: each a unit, each square to the others. They are
 	 * held as columns, which is how the retail engine writes them. */
@@ -1110,6 +1124,30 @@ static void CheckABoltMatrix()
 	CHECK( !store.BoltMatrix( slot, 0, bolt, 0, nullptr ) );
 }
 
+/* Retail's tag frame (jamp.exe 1.01 0x499476..0x499848), which a store
+ * serving attachments gives: Jedi Academy's server and client game. From the
+ * tag's first three vertices -- here p0 (10,20,30), p1 (11,20,30) and
+ * p2 (10,21,30), carried by the +90 Z root basis -- its columns are
+ * |p0 - p2|, |p1 - p0| made square to it and -|(p1 - p0) x (p0 - p2)|, and
+ * its origin is p2. That is no turn at all at (-21,10,30), where the earlier
+ * frame above turns a quarter and sits at p0. */
+static void CheckAServedTagFrame()
+{
+	TagFiles files;
+	ghoul2::Store store( files, false, false, true );
+	void *slot = nullptr;
+	LoadError error = LoadError::None;
+	CHECK( store.AddModel( &slot, "models/players/tagtest/model.glm", error ) == 0 );
+	const int bolt = store.AddBolt( slot, 0, "*tag" );
+	CHECK( bolt == 0 );
+	float matrix[12];
+	CHECK( store.BoltMatrix( slot, 0, bolt, 0, matrix ) );
+	const float retail[12] = { 1, 0, 0, -21,  0, 1, 0, 10,  0, 0, 1, 30 };
+	for ( int i = 0; i < 12; ++i ) {
+		CHECK( matrix[i] > retail[i] - 0.0001f && matrix[i] < retail[i] + 0.0001f );
+	}
+}
+
 int main()
 {
 	CheckAModelLoads();
@@ -1129,6 +1167,7 @@ int main()
 	CheckIdentityExhaustion();
 	CheckTheTimingModel();
 	CheckABoltMatrix();
+	CheckAServedTagFrame();
 	std::cout << "Raven server-side Ghoul2 model store tests passed\n";
 	return 0;
 }

@@ -146,6 +146,12 @@ gameplay gate, against `jampded.exe` and Outcast's engine, and is not made
 here. The UI serves neither `UI_G2_ADDBOLT` nor `UI_G2_SETBOLTON`, so no UI
 model carries a link and its renderer keeps its one-model limit.
 
+**Later the same day** Academy's server was given a store of its own with
+these semantics, measured through retail `jamp.exe`'s game imports. Its
+queries on attached models had in fact been refused, the shared server store
+lacking the `*default` skeleton, not answered 56 units off; Outcast's store
+is unchanged ([server attachments record](2026-10-06-jedi-server-attachments.md)).
+
 ## Presentation (invariant 11)
 
 Every model, attached or not, is drawn through the existing Fn skeletal
@@ -247,8 +253,8 @@ parallel run; alone it passes in 19.3 s, as the previous slice's export does in
   refusal in this direction; after them, `ffa3`'s active ambient set and
   import 201. `map_restart`, reconnect and server quit stay unobserved with
   the committed build.
-- The server's stores' links and tag frame (see above), and multi-model UI
-  instances.
+- The server's stores' links and tag frame (see above; Academy's since
+  served), and multi-model UI instances.
 - A capture of an attached model in view; which entity carries the live
   instance.
 - Retail's frame-to-frame bone smoothing is not reproduced (see

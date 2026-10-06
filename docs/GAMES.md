@@ -490,7 +490,10 @@ See the [Elite Force gate matrix](fntech3/COMPATIBILITY.md#elite-force-gate-matr
 
 **Status:** experimental; developer builds with
 `-Djka-development=true`. A multiplayer server runs the retail module on a
-retail map with bots. Its protocol-26 message bodies now pass reference and
+retail map with bots, and answers the game's questions about where a held
+saber or weapon is as the retail server does, outside the short blends
+between animations ([record](fntech3/2026-10-06-jedi-server-attachments.md)).
+Its protocol-26 message bodies now pass reference and
 fragmentation tests; retail client admission remains under investigation.
 Its experimental UI and client-game record adapters include fonts, StringEd,
 static rendering and the existing Fn FOV/HUD/menu transforms, with automated

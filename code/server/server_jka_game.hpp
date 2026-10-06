@@ -219,6 +219,9 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 	using namespace fntech3::jka::module;
 	(void)operation;
 	result = 0;
+	/* This title's own model store: it serves the `*default` skeleton,
+	 * attached models and retail's tag frame (server_raven_assets.hpp). */
+	fntech3::ghoul2::Store &ravenGhoul2 = ravenGhoul2Academy;
 
 	/* The arithmetic and memory block at 100-113 is Quake III's own, in the
 	 * same order, and Jedi Academy kept it; the shared dispatcher serves it. */
@@ -624,7 +627,8 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 	case Call::G_G2_SETBOLTINFO:
 		/* Which bolt a model is using. Retail jamp.exe's handler reads three
 		 * arguments and converts none of them, so all three are numbers and
-		 * the engine keeps the last one. */
+		 * the engine keeps the last one (0x4df940 stores it in the model's
+		 * record). The model is then posed from that bolt of its parent. */
 		result = ravenGhoul2.SetBoltInfo( pointer( 1 ), static_cast<int>( args[2] ),
 			static_cast<int>( args[3] ) ) ? 1 : 0;
 		return true;
@@ -645,14 +649,20 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		 *
 		 * The store works the bolt out in the model's own space: a bolt that
 		 * names a bone is that bone posed for the moment asked about, and one
-		 * that names a surface is a tag, three corners carried by the bones
-		 * they are weighted to, which give an origin and a set of axes. This
-		 * then scales its model-space translation, normalizes the rotation
-		 * rows and applies the entity's angles and position.
+		 * that names a surface is a tag, whose first three vertices, carried
+		 * by the bones they are weighted to, give retail's frame. Retail's
+		 * query builds the whole instance's skeleton first (jamp.exe 0x4dfa00
+		 * into 0x49a050, the same core its client game reaches), so a saber or
+		 * weapon attached to the body answers from where the body's bolt has
+		 * put it. This then scales its model-space translation, normalizes the
+		 * rotation rows and applies the entity's angles and position.
 		 *
 		 * A bolt the store cannot answer writes nothing and reports failure,
 		 * which is what the game checks for. Handing back an identity matrix
-		 * would put the thing somewhere definite and wrong.
+		 * would put the thing somewhere definite and wrong. That includes a
+		 * model retail's model sort never reaches, which retail answers from
+		 * whatever pose it last had, and a link to a bolt its parent lacks,
+		 * where retail reads past its list.
 		 *
 		 * The first two imports share placement; NOREC_NOROT additionally
 		 * skips the MP API's rotation-only -90 degree correction. */

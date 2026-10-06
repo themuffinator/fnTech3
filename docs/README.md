@@ -73,6 +73,9 @@ Start with the [README](../README.md) for an overview, then the
 - [October 6 Jedi Academy Ghoul2 attachments](fntech3/2026-10-06-jka-attachments.md)
   -- models posed from another model's bolt in the client game, retail's tag
   frame, and the next boundary against retail `jamp.exe`.
+- [October 6 Jedi server Ghoul2 attachments](fntech3/2026-10-06-jedi-server-attachments.md)
+  -- Jedi Academy's server answering bolt queries on held sabers and weapons
+  as retail's server does, and what Jedi Outcast's engine does instead.
 - [October 6 Jedi Academy live join](fntech3/2026-10-06-jka-live-join.md)
   -- client-game local sounds, the map-change export and the next boundary
   against retail `jamp.exe`.
