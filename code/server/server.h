@@ -457,6 +457,11 @@ void SV_RemoveOperatorCommands( void );
 void SV_MasterShutdown( void );
 void SV_MasterGameCompleteStatus( void );
 
+// Medal of Honor's GameSpy query port (server_mohaa_gamespy.hpp): opened
+// each frame while a multiplayer game wants it, closed as the server stops.
+void SV_MOHAAGameSpyFrame( void );
+void SV_MOHAAGameSpyStop( void );
+
 // The profiles whose retail engines admit clients only between sv_minPing and
 // sv_maxPing; the two cvars are null in every other profile.
 extern cvar_t *sv_minPing;

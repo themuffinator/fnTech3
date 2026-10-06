@@ -4789,8 +4789,9 @@ int ClampedCvar( const char *name, int low, int high ) {
 /* ui_startdmmap [gametype [name [maplist cvar]]]: a multiplayer server from
  * the Start New Server menu's settings, on its chosen map (UI_StartDMMap_f).
  * The client cannot become a dedicated server here, as fntech3.ded is its own
- * program, so the Dedicated box starts a listen server and says so; nor is
- * there GameSpy to announce to. */
+ * program, so the Dedicated box starts a listen server and says so. The
+ * GameSpy box sets sv_gamespy, as OpenMoHAA's does **[O]**: whether the
+ * server answers GameSpy's LAN queries, there being no master to tell. */
 void StartDMMap_f() {
 	const int gameType = Cmd_Argc() > 1 ? std::atoi( Cmd_Argv( 1 ) ) : 1;
 	const std::string gameTypeName = Cmd_Argc() > 2 ? Cmd_Argv( 2 ) : "Free-For-All";
@@ -4802,7 +4803,7 @@ void StartDMMap_f() {
 	if ( ClampedCvar( "ui_dedicated", 0, 1 ) ) {
 		Com_Printf( "This client starts a listen server; run fntech3.ded for a dedicated one.\n" );
 	}
-	ClampedCvar( "ui_gamespy", 0, 1 );
+	const int gameSpy = ClampedCvar( "ui_gamespy", 0, 1 );
 	const int maxClients = ClampedCvar( "ui_maxclients", 1, FNTECH3_MOHAA_MAX_CLIENTS );
 	const int fragLimit = ClampedCvar( "ui_fraglimit", 0, 0x7fffffff );
 	const int timeLimit = ClampedCvar( "ui_timelimit", 0, 0x7fffffff );
@@ -4820,10 +4821,10 @@ void StartDMMap_f() {
 	if ( hostName.empty() ) hostName = "Nameless Battle";
 	hostName = safe( hostName, 31 );
 	Cvar_Set( "ui_hostname", hostName.c_str() );
-	Stuff( va( "set sv_maxclients %i; set g_gametype %i; set g_gametypestring \"%s\"; set fraglimit %i; "
-		"set timelimit %i; set g_teamdamage %i; set g_inactivespectate %i; set g_inactivekick %i; "
+	Stuff( va( "set sv_maxclients %i; set sv_gamespy %i; set g_gametype %i; set g_gametypestring \"%s\"; "
+		"set fraglimit %i; set timelimit %i; set g_teamdamage %i; set g_inactivespectate %i; set g_inactivekick %i; "
 		"set sv_maplist \"%s\"; set sv_hostname \"%s\"; set cheats 0; wait; map \"%s\"",
-		maxClients, gameType, safe( gameTypeName, 63 ).c_str(), fragLimit, timeLimit, teamDamage, inactiveSpectate,
+		maxClients, gameSpy, gameType, safe( gameTypeName, 63 ).c_str(), fragLimit, timeLimit, teamDamage, inactiveSpectate,
 		inactiveKick, safe( CvarString( mapListCvar ), 255 ).c_str(), hostName.c_str(), safe( map, 63 ).c_str() ) );
 }
 

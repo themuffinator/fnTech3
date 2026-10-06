@@ -85,6 +85,16 @@ historical upstream records, not fnTech3 release history. See the
   Academy's map-change call as Enemy Territory's snapshot query, which shares
   its number. On the new map the client still stops where its game draws a
   player carrying a weapon ([record](docs/fntech3/2026-10-06-jka-live-join.md)).
+- Answer GameSpy's LAN queries from Medal of Honor servers. A multiplayer
+  server, dedicated or started from Start New Server, answers GameSpy's
+  status queries on UDP 12300 or the next free port (`net_gamespy_port`,
+  `sv_gamespy`, the menu's GameSpy box) with its name, map, game type,
+  players and rules, so GameSpy's browsers and the tools that speak its
+  protocol find it on a LAN; GameSpy's masters are gone, and none is told
+  of it. A team match started from the client no longer passes for single
+  player, which had hidden it from the Join LAN Game list and turned away
+  every remote player
+  ([record](docs/fntech3/2026-10-06-mohaa-gamespy-lan-queries.md)).
 - Stop a long run of strings in a menu or bot file from crashing the game.
   Strings that a `#define` expands to, written side by side, are joined into
   one; the engine joined each by calling itself again, so about a thousand in

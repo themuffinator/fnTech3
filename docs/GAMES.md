@@ -188,7 +188,10 @@ Elite Force executables ([record](fntech3/2026-10-05-legacy-server-hosting.md)).
   Quake III, Quake Live, RTCW, Enemy Territory and Elite Force, 29070 for
   Jedi Academy, 28070 for Jedi Outcast and 12203 for Medal of Honor.
   `net_port` changes it. `connect` without a port and the LAN browser use the
-  game's own port.
+  game's own port. A Medal of Honor multiplayer server also answers GameSpy's
+  LAN status queries on a port of its own, the first free one from 12300
+  (`net_gamespy_port`; `sv_gamespy 0` turns it off), where GameSpy's browsers
+  and the tools that speak its protocol look for servers.
 - **Master servers.** A public server (`+set dedicated 2`) reports itself to
   `sv_master1`, which defaults to the original game's master:
   `master.quake3arena.com`, `wolfmaster.idsoftware.com`,
@@ -684,6 +687,14 @@ exchanged with or compared against the retail game. See the
   do; `ter_minMarkRadius 0` lets every decal mark it.
 - In multiplayer, the game's `say` and `sayteam` (`y` and `t`) open fnTech3's
   chat line; the chat itself appears in the box at the top of the screen.
+- A multiplayer server, dedicated or started from Start New Server, answers
+  GameSpy's LAN queries on UDP 12300, or the next free port, with its name,
+  map, game type, players and rules; the menu's GameSpy box turns that off.
+  GameSpy's masters are gone, so no server is listed on the Internet, and the
+  game's own Join LAN Game list finds servers on their game port as before
+  ([record](fntech3/2026-10-06-mohaa-gamespy-lan-queries.md)). A team match
+  started from the client is listed and admits remote players; the engine had
+  taken the game type for single player, which is 0 in Medal of Honor.
 - Savegames are fnTech3's own header beside the game's level file, so they
   cannot be exchanged with retail's; the
   [Medal of Honor contracts record](fntech3/2026-09-24-mohaa-contracts.md)

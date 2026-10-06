@@ -406,7 +406,10 @@ peer here is local.
 - **Medal of Honor**: no retail peer runs here. Its LAN browser asks GameSpy
   query ports 12300 to 12316 (OpenMoHAA **[O]**), which fnTech3's server does
   not answer, so a retail client could reach an fnTech3 server only by
-  address; GameSpy's internet list is gone.
+  address; GameSpy's internet list is gone. (Corrected by the
+  [GameSpy record](2026-10-06-mohaa-gamespy-lan-queries.md): 1.00's own LAN
+  list asks the game port with `getinfo`, which was answered; the GameSpy
+  ports serve GameSpy's browsers, and fnTech3's server now answers them.)
 - Q3Test and the IHV test were not part of this round: Q3Test still
   publishes to no master by default (its releases' own masters were not
   examined), and the IHV test's network path stays blocked.

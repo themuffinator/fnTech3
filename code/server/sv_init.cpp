@@ -1541,6 +1541,7 @@ void SV_Shutdown( const char *finalmsg ) {
 
 	SV_RemoveOperatorCommands();
 	SV_MasterShutdown();
+	SV_MOHAAGameSpyStop();
 	if ( Com_GameIsQuakeLive() ) {
 		SV_FlushAllSteamStats();
 		SV_SteamGameServerStop();

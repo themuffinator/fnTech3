@@ -277,9 +277,11 @@ constexpr int kStatAddFade = 14;
 constexpr int kStatLetterbox = 15;
 constexpr int kLetterboxScale = 32767;
 /* The team (stats[20], which the client game compares with 3) and, after it
- * in OpenMoHAA's order, the kills a status reports as a score. */
+ * in OpenMoHAA's order, the kills a status reports as a score and the deaths
+ * GameSpy's player list reports beside them. */
 constexpr int kStatTeam = 20;
 constexpr int kStatKills = 21;
+constexpr int kStatDeaths = 22;
 static_assert( offsetof( PlayerState, stats ) + kStatLetterbox * 4 == 0xfc );
 
 /* The engine's half of the game's entity record, which follows the entity

@@ -1411,8 +1411,11 @@ bool ServerGameDataView::ReadPlayerState( std::int32_t clientIndex,
 			destination.stats[i] = external.stats[i];
 		}
 		/* persistant[0] is PERS_SCORE, which the engine's status and
-		 * getstatus read (game/bg_public.h: it must not change). */
+		 * getstatus read (game/bg_public.h: it must not change), and
+		 * persistant[8] PERS_KILLED, the times the player died, which the
+		 * GameSpy player list reports. */
 		destination.persistant[0] = external.stats[fntech3::mohaa::kStatKills];
+		destination.persistant[8] = external.stats[fntech3::mohaa::kStatDeaths];
 		return true;
 	}
 	if ( layout_->profile != COM_GAME_QUAKELIVE ) return false;

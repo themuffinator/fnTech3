@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon.h"
+#include "../qcommon/net_query.h"
 
 #ifdef _WIN32
 #	include <winsock2.h>
@@ -180,6 +181,11 @@ static sockaddr_t socksRelayAddr;
 
 static SOCKET	ip_socket = INVALID_SOCKET;
 static SOCKET	socks_socket = INVALID_SOCKET;
+
+// a profile's own query port beside the game's (net_query.h)
+static SOCKET	query_socket = INVALID_SOCKET;
+static int		query_port;
+static netQueryHandler_t	query_handler;
 
 #ifdef USE_IPV6
 static SOCKET	ip6_socket = INVALID_SOCKET;
@@ -1576,6 +1582,158 @@ static void NET_OpenIP( void ) {
 }
 
 
+/*
+====================
+NET_CloseQuerySocket
+====================
+*/
+void NET_CloseQuerySocket( void ) {
+	if ( query_socket != INVALID_SOCKET ) {
+		closesocket( query_socket );
+		query_socket = INVALID_SOCKET;
+	}
+	query_port = 0;
+	query_handler = NULL;
+}
+
+
+/*
+====================
+NET_QueryIPSocket
+
+A non-blocking IPv4 socket on net_ip's interface and `port`, or
+INVALID_SOCKET. Quiet, as it is tried port after port.
+====================
+*/
+static SOCKET NET_QueryIPSocket( int port ) {
+	SOCKET				newsocket;
+	struct sockaddr_in	address;
+	ioctlarg_t			_true = 1;
+
+	memset( &address, 0, sizeof( address ) );
+	if ( !net_ip->string[0] ) {
+		address.sin_family = AF_INET;
+		address.sin_addr.s_addr = INADDR_ANY;
+	} else if ( !Sys_StringToSockaddr( net_ip->string, (sockaddr_t *)&address, sizeof( address ), AF_INET, SOCK_DGRAM ) ) {
+		return INVALID_SOCKET;
+	}
+	address.sin_port = htons( (unsigned short)port );
+
+	if ( ( newsocket = socket( PF_INET, SOCK_DGRAM, IPPROTO_UDP ) ) == INVALID_SOCKET ) {
+		return INVALID_SOCKET;
+	}
+	if ( ioctlsocket( newsocket, FIONBIO, &_true ) == SOCKET_ERROR
+		|| bind( newsocket, (void *)&address, sizeof( address ) ) == SOCKET_ERROR ) {
+		closesocket( newsocket );
+		return INVALID_SOCKET;
+	}
+	return newsocket;
+}
+
+
+/*
+====================
+NET_OpenQuerySocket
+====================
+*/
+int NET_OpenQuerySocket( int firstPort, int count, netQueryHandler_t handler ) {
+	int		i;
+
+	NET_CloseQuerySocket();
+
+	// the SOCKS relay carries the game's socket alone
+	if ( !handler || firstPort <= 0 || count <= 0 || !networkingEnabled || !net_enabled
+		|| !( net_enabled->integer & NET_ENABLEV4 ) || ip_socket == INVALID_SOCKET || usingSocks ) {
+		return 0;
+	}
+
+	for ( i = 0; i < count && firstPort + i <= 65535; i++ ) {
+		const SOCKET s = NET_QueryIPSocket( firstPort + i );
+		if ( s != INVALID_SOCKET ) {
+			query_socket = s;
+			query_port = firstPort + i;
+			query_handler = handler;
+			return query_port;
+		}
+	}
+	return 0;
+}
+
+
+/*
+====================
+NET_QuerySocketPort
+====================
+*/
+int NET_QuerySocketPort( void ) {
+	return query_socket != INVALID_SOCKET ? query_port : 0;
+}
+
+
+/*
+====================
+NET_SendQueryPacket
+====================
+*/
+void NET_SendQueryPacket( int length, const void *data, const netadr_t *to ) {
+	sockaddr_t	addr;
+
+	if ( query_socket == INVALID_SOCKET || !to || to->type != NA_IP || !data || length <= 0 ) {
+		return;
+	}
+	NetadrToSockadr( to, &addr );
+	if ( sendto( query_socket, data, length, 0, (struct sockaddr *) &addr, sizeof( struct sockaddr_in ) ) == SOCKET_ERROR
+		&& socketError != EAGAIN ) {
+		Com_DPrintf( "NET_SendQueryPacket: %s\n", NET_ErrorString() );
+	}
+}
+
+
+/*
+====================
+NET_QueryEvent
+
+Hands each datagram waiting on the query socket to its handler; a bounded
+number at a time, so a flood cannot hold up the frame.
+====================
+*/
+static void NET_QueryEvent( const fd_set *fdr ) {
+	byte		data[ MAX_PACKETLEN ];
+	sockaddr_t	from;
+	socklen_t	fromlen;
+	netadr_t	adr;
+	int			ret, err, i;
+
+	if ( query_socket == INVALID_SOCKET || !FD_ISSET( query_socket, fdr ) ) {
+		return;
+	}
+	for ( i = 0; i < 64 && query_socket != INVALID_SOCKET && query_handler; i++ ) {
+		fromlen = sizeof( from );
+		ret = recvfrom( query_socket, (void *)data, sizeof( data ), 0, (struct sockaddr *) &from, &fromlen );
+		if ( ret == SOCKET_ERROR ) {
+			err = socketError;
+			// Windows reports an earlier answer's unreachable address, and
+			// a datagram too large for the buffer, on the next read
+			if ( err == ECONNRESET ) {
+				continue;
+			}
+#ifdef _WIN32
+			if ( err == WSAEMSGSIZE ) {
+				continue;
+			}
+#endif
+			break;
+		}
+		if ( from.ss.ss_family != AF_INET ) {
+			continue;
+		}
+		memset( &from.v4.sin_zero, 0, sizeof( from.v4.sin_zero ) );
+		SockadrToNetadr( &from, &adr );
+		query_handler( &adr, data, ret );
+	}
+}
+
+
 //===================================================================
 
 
@@ -1727,6 +1885,9 @@ static void NET_Config( qboolean enableNetworking ) {
 	}
 
 	if( stop ) {
+		// its owner opens it again on the network that replaces this one
+		NET_CloseQuerySocket();
+
 		if ( ip_socket != INVALID_SOCKET ) {
 			closesocket( ip_socket );
 			ip_socket = INVALID_SOCKET;
@@ -1888,6 +2049,14 @@ qboolean NET_Sleep( int timeout )
 	}
 #endif
 
+	if ( query_socket != INVALID_SOCKET )
+	{
+		FD_SET( query_socket, &fdr );
+
+		if ( highestfd == INVALID_SOCKET || query_socket > highestfd )
+			highestfd = query_socket;
+	}
+
 	if ( highestfd == INVALID_SOCKET )
 	{
 #ifdef _WIN32
@@ -1910,6 +2079,7 @@ qboolean NET_Sleep( int timeout )
 
 	if ( retval > 0 ) {
 		NET_Event( &fdr );
+		NET_QueryEvent( &fdr );
 		return qfalse;
 	}
 

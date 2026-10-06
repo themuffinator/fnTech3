@@ -92,6 +92,7 @@ static void Cbuf_AddText(const char *) { assert(false); }
 static void SV_TrackCvarChanges() {}
 static void Zmq_UpdatePasswords() {}
 static void Zmq_PumpRcon() {}
+static void SV_MOHAAGameSpyFrame() {}
 static void SV_SteamP2PFrame() {}
 static void SV_BotFrame(int) {}
 static void SV_SetConfigstring(int, const char *) {}

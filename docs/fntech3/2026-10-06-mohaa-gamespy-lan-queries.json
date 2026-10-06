@@ -1,0 +1,804 @@
+{
+ "record": "2026-10-06-mohaa-gamespy-lan-queries.md",
+ "sourceCommit": "5a05abe90c20f57962a4285e8265f44d99ac8868",
+ "build": {
+  "platform": "Windows 11 x86 (MSVC 2022, meson debugoptimized, strict warnings)",
+  "source": "One clean export of HEAD with every development gate on (win32-dev's options): \"before\" is HEAD, \"after\" HEAD plus this change's engine source",
+  "enginePatchSha256": "7f5dd800c99398755a73fd7fc864ca0c0d5660bc838c716c2562a17705532da5",
+  "enginePatchFiles": [
+   "code/client/cl_mohaa_ui.cpp",
+   "code/compat/gamespy_query.hpp",
+   "code/compat/mohaa_game_abi.h",
+   "code/qcommon/net_ip.c",
+   "code/qcommon/net_query.h",
+   "code/server/server.h",
+   "code/server/server_game_data.cpp",
+   "code/server/server_mohaa_gamespy.hpp",
+   "code/server/sv_init.cpp",
+   "code/server/sv_main.cpp"
+  ]
+ },
+ "runtimes": {
+  ".tmp/runtime/mohaa-gamespy-before": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "d2498bb4d844b40d249b463d8368c4699b3d25ea6ac9dec215be94bef9e06dcf",
+   "fnql_rtx_x86.dll": "6bd05c676896917d567c72568520d1bc7b938f97524b83d5f5338df405f17bfd",
+   "fnql_vk_x86.dll": "574414965a80f3fc224acbb68492aff8bea74992c1fcb2d762d129487163c7a3",
+   "fntech3-pkg.fnz": "a8cca7cd1fd152817ac49cf74241a1d0c00e3eb4c47f056c8500e36feb06a8ff",
+   "fntech3.ded.exe": "8b33083afed237a53be1f5a2efcebe837f6bfba349be489666d6651620e04f87",
+   "fntech3.exe": "5ab7b09ec843916bf8bf6babb94a6d155ea3cc8b174a8549075d729193fc4639"
+  },
+  ".tmp/runtime/mohaa-gamespy-after": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "d2498bb4d844b40d249b463d8368c4699b3d25ea6ac9dec215be94bef9e06dcf",
+   "fnql_rtx_x86.dll": "6bd05c676896917d567c72568520d1bc7b938f97524b83d5f5338df405f17bfd",
+   "fnql_vk_x86.dll": "574414965a80f3fc224acbb68492aff8bea74992c1fcb2d762d129487163c7a3",
+   "fntech3-pkg.fnz": "a8cca7cd1fd152817ac49cf74241a1d0c00e3eb4c47f056c8500e36feb06a8ff",
+   "fntech3.ded.exe": "612dd9d47d3faef8c0562eb075e51919187b1c900cd5519496360f939bd04686",
+   "fntech3.exe": "06f407b6fbe45f04467e7b49b84fd6b4c705cf9c5a3c7f4609d42f44b04c031a"
+  }
+ },
+ "installation": {
+  "path": "E:\\Games\\Medal of Honor Allied Assault",
+  "version": "Medal of Honor: Allied Assault 1.00 US",
+  "gamex86": "2f37ead1a91aae850dd8cdb29c6b5774864f6ae8654fb79d3593e45d9d3fc55c",
+  "pak0": "6caf6d93cc996b6895d5015f1be153724e5369b8c063c73e1609578323261df6",
+  "unchanged": true
+ },
+ "retailEvidence": {
+  "joinLanGameMenu": "Pak0.pk3 ui/joinlangame.urc: LANGameClass \"langamelist\", Refresh runs \"localservers\"",
+  "joinInternetGameMenu": "Pak0.pk3 ui/joininternetgame.urc: \"menuconnect ui_connectip\", \"launchgamespy\"",
+  "fakkServerList": "no .urc in Pak0.pk3 to Pak5.pk3 names FAKKServerList",
+  "gameSpyBox": "ui/multiplayerstart_*.urc check box linked to ui_gamespy; MENU.CFG \"seta ui_gamespy 1\"",
+  "gameTypeNames": "gamex86.dll 0x310e5a50: switch on g_gametype through the table at 0x310e5f74 sets g_gametypestring: 0 Single-Player, 1 Free-For-All, 2 Team-Match, 3 Round-Based-Match, 4 Objective-Match, else Multiplayer",
+  "gameCvars": "gamex86.dll registers g_rankedserver, g_gametypestring, timelimit, fraglimit, dmflags; no sv_sprinton or g_realismmode string",
+  "killEvent": "gamex86.dll \"kill\": \"console based command to kill yourself\""
+ },
+ "reference": {
+  "openmohaa": "ab43a0def6c4feccedae36fdb58c2e007d7e4c35",
+  "observed": [
+   "code/gamespy/sv_gamespy.c",
+   "code/gamespy/sv_gqueryreporting.c",
+   "code/gamespy/gserverlist.c",
+   "code/gamespy/gserver.c",
+   "code/client/cl_uiserverlist.cpp",
+   "code/client/cl_uilangame.cpp",
+   "code/client/cl_ui.cpp (UI_StartDMMap_f)",
+   "code/server/sv_init.c"
+  ],
+  "use": "reference observation only; GameSpy SDK files not incorporated"
+ },
+ "loopbackBroadcast": "a limited broadcast (255.255.255.255) from a socket bound to 127.0.0.1 reached a socket bound to 127.0.0.1 on this machine",
+ "command": "python scripts/probe_mohaa_gamespy.py --runtime before=.tmp/runtime/mohaa-gamespy-before --runtime after=.tmp/runtime/mohaa-gamespy-after",
+ "runStarted": "20261006-075926",
+ "runs": {
+  "before-dedicated": {
+   "passed": true,
+   "checks": [
+    {
+     "name": "first server answers getinfo on 12203",
+     "ok": true
+    },
+    {
+     "name": "HEAD: the LAN search finds nothing",
+     "ok": true
+    },
+    {
+     "name": "HEAD: nothing answers \\status\\ on 12300",
+     "ok": true
+    },
+    {
+     "name": "the server quits",
+     "ok": true
+    }
+   ],
+   "processes": {
+    "dedicated-a": {
+     "command": [
+      ".tmp\\runtime\\mohaa-gamespy-before\\fntech3.ded.exe",
+      "+set",
+      "com_gameProfile",
+      "mohaa",
+      "+set",
+      "fs_basepath",
+      "E:\\Games\\Medal of Honor Allied Assault",
+      "+set",
+      "fs_homepath",
+      ".tmp\\mohaa-gamespy\\live\\20261006-075926\\before-dedicated\\dedicated-a-home",
+      "+set",
+      "dedicated",
+      "1",
+      "+set",
+      "developer",
+      "1",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "net_ip",
+      "127.0.0.1",
+      "+set",
+      "net_enabled",
+      "1",
+      "+set",
+      "rconPassword",
+      "<rcon>",
+      "+set",
+      "g_gametype",
+      "1",
+      "+set",
+      "sv_maxclients",
+      "8",
+      "+set",
+      "timelimit",
+      "20",
+      "+set",
+      "fraglimit",
+      "0",
+      "+set",
+      "sv_hostname",
+      "GameSpy probe A",
+      "+map",
+      "dm/mohdm1"
+     ],
+     "sha256": "8b33083afed237a53be1f5a2efcebe837f6bfba349be489666d6651620e04f87"
+    }
+   },
+   "lanSearch": []
+  },
+  "before-listen": {
+   "passed": true,
+   "checks": [
+    {
+     "name": "the listen server starts and its client plays",
+     "ok": true
+    },
+    {
+     "name": "HEAD: a team match listen server ignores getinfo",
+     "ok": true
+    },
+    {
+     "name": "HEAD: the LAN search finds nothing",
+     "ok": true
+    },
+    {
+     "name": "HEAD: a remote client cannot join it",
+     "ok": true
+    },
+    {
+     "name": "the client quits",
+     "ok": true
+    }
+   ],
+   "processes": {
+    "listen": {
+     "command": [
+      ".tmp\\runtime\\mohaa-gamespy-before\\fntech3.exe",
+      "+set",
+      "com_gameProfile",
+      "mohaa",
+      "+set",
+      "fs_basepath",
+      "E:\\Games\\Medal of Honor Allied Assault",
+      "+set",
+      "fs_homepath",
+      ".tmp\\mohaa-gamespy\\live\\20261006-075926\\before-listen\\listen-home",
+      "+set",
+      "developer",
+      "1",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "net_ip",
+      "127.0.0.1",
+      "+set",
+      "net_enabled",
+      "1",
+      "+set",
+      "net_port",
+      "12223",
+      "+set",
+      "rconPassword",
+      "<rcon>",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "r_mode",
+      "-1",
+      "+set",
+      "r_customwidth",
+      "800",
+      "+set",
+      "r_customheight",
+      "600",
+      "+set",
+      "s_volume",
+      "0",
+      "+set",
+      "s_musicvolume",
+      "0",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "name",
+      "ProbeHost",
+      "+set",
+      "g_gametype",
+      "2",
+      "+set",
+      "sv_hostname",
+      "GameSpy listen probe",
+      "+set",
+      "sv_maxclients",
+      "8",
+      "+set",
+      "sv_gamespy",
+      "1",
+      "+map",
+      "dm/mohdm2"
+     ],
+     "sha256": "5ab7b09ec843916bf8bf6babb94a6d155ea3cc8b174a8549075d729193fc4639"
+    },
+    "guest": {
+     "command": [
+      ".tmp\\runtime\\mohaa-gamespy-before\\fntech3.exe",
+      "+set",
+      "com_gameProfile",
+      "mohaa",
+      "+set",
+      "fs_basepath",
+      "E:\\Games\\Medal of Honor Allied Assault",
+      "+set",
+      "fs_homepath",
+      ".tmp\\mohaa-gamespy\\live\\20261006-075926\\before-listen\\guest-home",
+      "+set",
+      "developer",
+      "1",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "net_ip",
+      "127.0.0.1",
+      "+set",
+      "net_enabled",
+      "1",
+      "+set",
+      "net_port",
+      "12233",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "r_mode",
+      "-1",
+      "+set",
+      "r_customwidth",
+      "640",
+      "+set",
+      "r_customheight",
+      "480",
+      "+set",
+      "s_volume",
+      "0",
+      "+set",
+      "s_musicvolume",
+      "0",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "name",
+      "ProbeGuest",
+      "+connect",
+      "127.0.0.1:12223"
+     ],
+     "sha256": "5ab7b09ec843916bf8bf6babb94a6d155ea3cc8b174a8549075d729193fc4639"
+    }
+   },
+   "lanSearch": [],
+   "getinfo": null,
+   "guestLogTail": [
+    "Opening IP socket: 127.0.0.1:12233",
+    "Working directory: E:\\Repositories\\fnTech3\\.tmp\\runtime\\mohaa-gamespy-before",
+    "127.0.0.1:12223 resolved to 127.0.0.1:12223"
+   ]
+  },
+  "after-dedicated": {
+   "passed": true,
+   "checks": [
+    {
+     "name": "first server answers getinfo on 12203",
+     "ok": true
+    },
+    {
+     "name": "second server finds 12204 and answers getinfo there",
+     "ok": true
+    },
+    {
+     "name": "the LAN search finds both, at 12300 and 12301",
+     "ok": true
+    },
+    {
+     "name": "12300 \\status\\: one well-formed answer",
+     "ok": true
+    },
+    {
+     "name": "12300 \\status\\: the basic, info and rules keys and no others",
+     "ok": true
+    },
+    {
+     "name": "12300 \\status\\: basic, info, rules in order",
+     "ok": true
+    },
+    {
+     "name": "12300 \\status\\: the values",
+     "ok": true
+    },
+    {
+     "name": "12301 \\status\\: one well-formed answer",
+     "ok": true
+    },
+    {
+     "name": "12301 \\status\\: the basic, info and rules keys and no others",
+     "ok": true
+    },
+    {
+     "name": "12301 \\status\\: basic, info, rules in order",
+     "ok": true
+    },
+    {
+     "name": "12301 \\status\\: the values",
+     "ok": true
+    },
+    {
+     "name": "\\basic\\ answers its keys",
+     "ok": true
+    },
+    {
+     "name": "\\info\\ answers its keys",
+     "ok": true
+    },
+    {
+     "name": "\\rules\\ answers its keys",
+     "ok": true
+    },
+    {
+     "name": "\\players\\ answers its keys",
+     "ok": true
+    },
+    {
+     "name": "\\info,basic\\ answers its keys",
+     "ok": true
+    },
+    {
+     "name": "\\echo\\ comes back",
+     "ok": true
+    },
+    {
+     "name": "cdkey query goes unanswered",
+     "ok": true
+    },
+    {
+     "name": "secure query goes unanswered",
+     "ok": true
+    },
+    {
+     "name": "garbage query goes unanswered",
+     "ok": true
+    },
+    {
+     "name": "oversize query goes unanswered",
+     "ok": true
+    },
+    {
+     "name": "demonstration query goes unanswered",
+     "ok": true
+    },
+    {
+     "name": "fifteen queries at once from one address: ten answered",
+     "ok": true
+    },
+    {
+     "name": "getinfo on the game port still answered",
+     "ok": true
+    },
+    {
+     "name": "sv_gamespy 0 closes the port",
+     "ok": true
+    },
+    {
+     "name": "sv_gamespy 1 opens it again",
+     "ok": true
+    },
+    {
+     "name": "net_gamespy_port 12350 moves it",
+     "ok": true
+    },
+    {
+     "name": "single player (g_gametype 0) answers nothing",
+     "ok": true
+    },
+    {
+     "name": "both servers quit and their ports close",
+     "ok": true
+    }
+   ],
+   "processes": {
+    "dedicated-a": {
+     "command": [
+      ".tmp\\runtime\\mohaa-gamespy-after\\fntech3.ded.exe",
+      "+set",
+      "com_gameProfile",
+      "mohaa",
+      "+set",
+      "fs_basepath",
+      "E:\\Games\\Medal of Honor Allied Assault",
+      "+set",
+      "fs_homepath",
+      ".tmp\\mohaa-gamespy\\live\\20261006-075926\\after-dedicated\\dedicated-a-home",
+      "+set",
+      "dedicated",
+      "1",
+      "+set",
+      "developer",
+      "1",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "net_ip",
+      "127.0.0.1",
+      "+set",
+      "net_enabled",
+      "1",
+      "+set",
+      "rconPassword",
+      "<rcon>",
+      "+set",
+      "g_gametype",
+      "1",
+      "+set",
+      "sv_maxclients",
+      "8",
+      "+set",
+      "timelimit",
+      "20",
+      "+set",
+      "fraglimit",
+      "0",
+      "+set",
+      "sv_hostname",
+      "GameSpy probe A",
+      "+map",
+      "dm/mohdm1"
+     ],
+     "sha256": "612dd9d47d3faef8c0562eb075e51919187b1c900cd5519496360f939bd04686"
+    },
+    "dedicated-b": {
+     "command": [
+      ".tmp\\runtime\\mohaa-gamespy-after\\fntech3.ded.exe",
+      "+set",
+      "com_gameProfile",
+      "mohaa",
+      "+set",
+      "fs_basepath",
+      "E:\\Games\\Medal of Honor Allied Assault",
+      "+set",
+      "fs_homepath",
+      ".tmp\\mohaa-gamespy\\live\\20261006-075926\\after-dedicated\\dedicated-b-home",
+      "+set",
+      "dedicated",
+      "1",
+      "+set",
+      "developer",
+      "1",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "net_ip",
+      "127.0.0.1",
+      "+set",
+      "net_enabled",
+      "1",
+      "+set",
+      "rconPassword",
+      "<rcon>",
+      "+set",
+      "g_gametype",
+      "1",
+      "+set",
+      "sv_maxclients",
+      "8",
+      "+set",
+      "timelimit",
+      "20",
+      "+set",
+      "fraglimit",
+      "0",
+      "+set",
+      "sv_hostname",
+      "GameSpy probe B",
+      "+map",
+      "dm/mohdm1"
+     ],
+     "sha256": "612dd9d47d3faef8c0562eb075e51919187b1c900cd5519496360f939bd04686"
+    }
+   },
+   "lanSearch": [
+    [
+     "127.0.0.1",
+     12300
+    ],
+    [
+     "127.0.0.1",
+     12301
+    ]
+   ],
+   "answeredPorts": {
+    "a": [
+     12300
+    ],
+    "b": [
+     12301
+    ]
+   },
+   "rateLimit": {
+    "sent": 15,
+    "answered": 10
+   },
+   "unanswered": {
+    "cdkey": 0,
+    "secure": 0,
+    "garbage": 0,
+    "oversize": 0,
+    "demonstration": 0
+   },
+   "statusReplies": {
+    "12300": [
+     "\\gamename\\mohaa\\gamever\\1.00\\location\\1\\hostname\\GameSpy probe A\\hostport\\12203\\mapname\\mohdm1\\gametype\\Free-For-All\\numplayers\\0\\maxplayers\\8\\gamemode\\openplaying\\gametype_i\\1\\dedicated\\1\\pure\\0\\timelimit\\20\\fraglimit\\0\\rankedserver\\0\\final\\\\queryid\\3.1"
+    ],
+    "12301": [
+     "\\gamename\\mohaa\\gamever\\1.00\\location\\1\\hostname\\GameSpy probe B\\hostport\\12204\\mapname\\mohdm1\\gametype\\Free-For-All\\numplayers\\0\\maxplayers\\8\\gamemode\\openplaying\\gametype_i\\1\\dedicated\\1\\pure\\0\\timelimit\\20\\fraglimit\\0\\rankedserver\\0\\final\\\\queryid\\3.1"
+    ]
+   },
+   "queryKinds": {
+    "basic": [
+     "\\gamename\\mohaa\\gamever\\1.00\\location\\1\\final\\\\queryid\\4.1"
+    ],
+    "info": [
+     "\\hostname\\GameSpy probe A\\hostport\\12203\\mapname\\mohdm1\\gametype\\Free-For-All\\numplayers\\0\\maxplayers\\8\\gamemode\\openplaying\\gametype_i\\1\\dedicated\\1\\pure\\0\\final\\\\queryid\\5.1"
+    ],
+    "rules": [
+     "\\timelimit\\20\\fraglimit\\0\\rankedserver\\0\\final\\\\queryid\\6.1"
+    ],
+    "players": [
+     "\\final\\\\queryid\\7.1"
+    ],
+    "info,basic": [
+     "\\gamename\\mohaa\\gamever\\1.00\\location\\1\\hostname\\GameSpy probe A\\hostport\\12203\\mapname\\mohdm1\\gametype\\Free-For-All\\numplayers\\0\\maxplayers\\8\\gamemode\\openplaying\\gametype_i\\1\\dedicated\\1\\pure\\0\\final\\\\queryid\\8.1"
+    ],
+    "echo": [
+     "\\echo\\fnTech3probe\\final\\\\queryid\\9.1"
+    ]
+   }
+  },
+  "after-listen": {
+   "passed": true,
+   "checks": [
+    {
+     "name": "the listen server starts and its client plays",
+     "ok": true
+    },
+    {
+     "name": "a team match listen server answers getinfo",
+     "ok": true
+    },
+    {
+     "name": "the LAN search finds it at 12300",
+     "ok": true
+    },
+    {
+     "name": "its \\status\\: a listen team match with its player",
+     "ok": true
+    },
+    {
+     "name": "a remote client joins it",
+     "ok": true
+    },
+    {
+     "name": "its player list names both",
+     "ok": true
+    },
+    {
+     "name": "after its kill the player list counts a death",
+     "ok": true
+    },
+    {
+     "name": "the client quits",
+     "ok": true
+    }
+   ],
+   "processes": {
+    "listen": {
+     "command": [
+      ".tmp\\runtime\\mohaa-gamespy-after\\fntech3.exe",
+      "+set",
+      "com_gameProfile",
+      "mohaa",
+      "+set",
+      "fs_basepath",
+      "E:\\Games\\Medal of Honor Allied Assault",
+      "+set",
+      "fs_homepath",
+      ".tmp\\mohaa-gamespy\\live\\20261006-075926\\after-listen\\listen-home",
+      "+set",
+      "developer",
+      "1",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "net_ip",
+      "127.0.0.1",
+      "+set",
+      "net_enabled",
+      "1",
+      "+set",
+      "net_port",
+      "12223",
+      "+set",
+      "rconPassword",
+      "<rcon>",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "r_mode",
+      "-1",
+      "+set",
+      "r_customwidth",
+      "800",
+      "+set",
+      "r_customheight",
+      "600",
+      "+set",
+      "s_volume",
+      "0",
+      "+set",
+      "s_musicvolume",
+      "0",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "name",
+      "ProbeHost",
+      "+set",
+      "g_gametype",
+      "2",
+      "+set",
+      "sv_hostname",
+      "GameSpy listen probe",
+      "+set",
+      "sv_maxclients",
+      "8",
+      "+set",
+      "sv_gamespy",
+      "1",
+      "+map",
+      "dm/mohdm2"
+     ],
+     "sha256": "06f407b6fbe45f04467e7b49b84fd6b4c705cf9c5a3c7f4609d42f44b04c031a"
+    },
+    "guest": {
+     "command": [
+      ".tmp\\runtime\\mohaa-gamespy-after\\fntech3.exe",
+      "+set",
+      "com_gameProfile",
+      "mohaa",
+      "+set",
+      "fs_basepath",
+      "E:\\Games\\Medal of Honor Allied Assault",
+      "+set",
+      "fs_homepath",
+      ".tmp\\mohaa-gamespy\\live\\20261006-075926\\after-listen\\guest-home",
+      "+set",
+      "developer",
+      "1",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "net_ip",
+      "127.0.0.1",
+      "+set",
+      "net_enabled",
+      "1",
+      "+set",
+      "net_port",
+      "12233",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "r_mode",
+      "-1",
+      "+set",
+      "r_customwidth",
+      "640",
+      "+set",
+      "r_customheight",
+      "480",
+      "+set",
+      "s_volume",
+      "0",
+      "+set",
+      "s_musicvolume",
+      "0",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "name",
+      "ProbeGuest",
+      "+connect",
+      "127.0.0.1:12223"
+     ],
+     "sha256": "06f407b6fbe45f04467e7b49b84fd6b4c705cf9c5a3c7f4609d42f44b04c031a"
+    }
+   },
+   "lanSearch": [
+    [
+     "127.0.0.1",
+     12300
+    ]
+   ],
+   "getinfo": {
+    "challenge": "probe",
+    "protocol": "6",
+    "hostname": "GameSpy listen probe",
+    "mapname": "dm/mohdm2",
+    "clients": "1",
+    "g_humanplayers": "1",
+    "sv_maxclients": "8",
+    "gametype": "2",
+    "pure": "0",
+    "g_needpass": "0"
+   },
+   "status": [
+    "\\gamename\\mohaa\\gamever\\1.00\\location\\1\\hostname\\GameSpy listen probe\\hostport\\12223\\mapname\\mohdm2\\gametype\\Team-Match\\numplayers\\1\\maxplayers\\8\\gamemode\\openplaying\\gametype_i\\2\\dedicated\\0\\pure\\0\\timelimit\\0\\fraglimit\\20\\rankedserver\\0\\player_0\\ProbeHost\\frags_0\\0\\deaths_0\\0\\ping_0\\2\\final\\\\queryid\\3.1"
+   ],
+   "playersWithGuest": [
+    "\\player_0\\ProbeHost\\frags_0\\0\\deaths_0\\0\\ping_0\\3\\player_1\\ProbeGuest\\frags_1\\0\\deaths_1\\0\\ping_1\\5\\final\\\\queryid\\4.1"
+   ],
+   "playersAfterKill": [
+    "\\player_0\\ProbeHost\\frags_0\\-1\\deaths_0\\1\\ping_0\\1\\player_1\\ProbeGuest\\frags_1\\0\\deaths_1\\0\\ping_1\\999\\final\\\\queryid\\5.1"
+   ],
+   "guestLogTail": [
+    "CL_FirstSnapshot: maps/dm/mohdm2.bsp, cgame 1780 ms, snapshot wait 19 ms",
+    "^5serverCommand: 1 : stopwatch 0 0",
+    "^5serverCommand: 2 : print \"\u0003ProbeGuest has entered the battle",
+    "\"",
+    "ProbeGuest has entered the battle",
+    "^5Warning: cvar \"viewmodelanimslot\" given initial values: \"0\" and \"1\""
+   ]
+  }
+ }
+}

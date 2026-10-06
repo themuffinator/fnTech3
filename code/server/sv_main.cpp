@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "server_cvar_compat.hpp"
 #include "../qcommon/netchan_safety.hpp"
 #include "../compat/wolfet_gameinfo.hpp"
+#include "server_mohaa_gamespy.hpp"
 
 #include <algorithm>
 #include <array>
@@ -828,9 +829,16 @@ static const fntech3::wolfet::gameinfo::GameInfo &SV_WolfETGameInfo( void ) {
 
 // Quake 3's engine knows one single-player game type; Enemy Territory's
 // numbers its game types differently and lists its single-player ones.
+// Medal of Honor's single player is 0, where Quake III's 2 is its team
+// match (1.00's gamex86.dll names g_gametype 0 "Single-Player" and 2
+// "Team-Match" at 0x310e5a50); a listen server hosting a team match had
+// refused every remote query and connection.
 qboolean SV_GameTypeIsSinglePlayer( int gameType ) {
 	if ( Com_GameIsWolfET() ) {
 		return fntech3::wolfet::gameinfo::IsSinglePlayer( SV_WolfETGameInfo(), gameType ) ? qtrue : qfalse;
+	}
+	if ( Com_GameIsMOHAA() ) {
+		return gameType == 0 ? qtrue : qfalse;
 	}
 	return gameType == GT_SINGLE_PLAYER ? qtrue : qfalse;
 }
@@ -1806,6 +1814,9 @@ void SV_Frame( int msec, int realMsec ) {
 		return;
 	}
 	idleExitTimer.Reset();
+
+	// Medal of Honor answers GameSpy's queries on a port of its own.
+	SV_MOHAAGameSpyFrame();
 
 	Zmq_UpdatePasswords();
 	Zmq_PumpRcon();
