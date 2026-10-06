@@ -1424,13 +1424,21 @@ foreach jka_test : ['client', 'string_package', 'string_host', 'render', 'sp_pla
     'tests/jka_' + jka_test + '_tests.cpp', cpp_args: common_cpp_args)
   test('fntech3_jka_' + jka_test, jka_executable)
 endforeach
+# The Jedi Academy tests given jka_test_timeout, most of which compile native
+# fixtures, ran past Meson's 30 s default in a full run beside other builds;
+# fntech3_jka_pose_host took 85 s there and 24 s alone.
+jka_test_timeout = 180
 test('fntech3_jka_cgame_host', python, args: files('tests/jka_cgame_host_tests.py'))
 test('fntech3_jka_cgame_ghoul2', python, args: files('tests/jka_cgame_ghoul2_tests.py'))
-test('fntech3_jka_cgame_render', python, args: files('tests/jka_cgame_render_tests.py'))
-test('fntech3_jka_cgame_attachment', python, args: files('tests/jka_cgame_attachment_tests.py'))
+test('fntech3_jka_cgame_render', python, args: files('tests/jka_cgame_render_tests.py'),
+  timeout: jka_test_timeout)
+test('fntech3_jka_cgame_attachment', python, args: files('tests/jka_cgame_attachment_tests.py'),
+  timeout: jka_test_timeout)
 test('fntech3_jka_server_attachment', python, args: files('tests/jka_server_attachment_tests.py'))
-test('fntech3_jka_default_skeleton', python, args: files('tests/jka_default_skeleton_tests.py'))
-test('fntech3_jka_cgame_tag', python, args: files('tests/jka_cgame_tag_tests.py'))
+test('fntech3_jka_default_skeleton', python, args: files('tests/jka_default_skeleton_tests.py'),
+  timeout: jka_test_timeout)
+test('fntech3_jka_cgame_tag', python, args: files('tests/jka_cgame_tag_tests.py'),
+  timeout: jka_test_timeout)
 jka_skin_tests = executable('fntech3_jka_skin_tests',
   'tests/jka_skin_tests.cpp', cpp_args: common_cpp_args)
 test('fntech3_jka_skin', jka_skin_tests)
@@ -1449,7 +1457,8 @@ jka_effects_tests = executable('fntech3_jka_effects_tests',
   'tests/jka_effects_tests.cpp', include_directories: include_directories('.'), cpp_args: common_cpp_args)
 test('fntech3_jka_effects', jka_effects_tests)
 test('fntech3_jka_cgame_effects', python, args: files('tests/jka_cgame_effects_tests.py'))
-test('fntech3_jka_effect_play', python, args: files('tests/jka_effect_play_tests.py'))
+test('fntech3_jka_effect_play', python, args: files('tests/jka_effect_play_tests.py'),
+  timeout: jka_test_timeout)
 test('fntech3_audio_codec_profile', python, args: files('tests/audio_codec_profile_tests.py'))
 test('fntech3_jka_render_host', python, args: files('tests/jka_render_host_tests.py'))
 test('fntech3_jka_ui_binding', python, args: files('tests/jka_ui_binding_tests.py'))
@@ -1459,26 +1468,34 @@ test('fntech3_jka_sp_vm_export', python, args: files('tests/jka_sp_vm_export_tes
 test('fntech3_common_recursive_error', python, args: files('tests/common_recursive_error_tests.py'))
 test('fntech3_jka_ui_lifecycle', python, args: files('tests/jka_ui_lifecycle_tests.py'))
 test('fntech3_jka_shader_files', python, args: files('tests/jka_shader_files_tests.py'))
-test('fntech3_jka_shader_notc', python, args: files('tests/jka_shader_notc_tests.py'))
+test('fntech3_jka_shader_notc', python, args: files('tests/jka_shader_notc_tests.py'),
+  timeout: jka_test_timeout)
 test('fntech3_jka_tga_origin', python, args: files('tests/jka_tga_origin_tests.py'))
 test('fntech3_jka_cinematic_path', python, args: files('tests/jka_cinematic_path_tests.py'))
-test('fntech3_jka_ghoul2_cleanup', python, args: files('tests/jka_ghoul2_cleanup_tests.py'))
-# Compiles three native fixtures: about 24 s alone and 85 s beside other
-# builds, past Meson's 30 s default.
-test('fntech3_jka_pose_host', python, args: files('tests/jka_pose_tests.py'), timeout: 180)
-test('fntech3_jka_geometry_host', python, args: files('tests/jka_geometry_tests.py'))
-test('fntech3_jka_mdr_host', python, args: files('tests/jka_mdr_tests.py'))
+test('fntech3_jka_ghoul2_cleanup', python, args: files('tests/jka_ghoul2_cleanup_tests.py'),
+  timeout: jka_test_timeout)
+test('fntech3_jka_pose_host', python, args: files('tests/jka_pose_tests.py'),
+  timeout: jka_test_timeout)
+test('fntech3_jka_geometry_host', python, args: files('tests/jka_geometry_tests.py'),
+  timeout: jka_test_timeout)
+test('fntech3_jka_mdr_host', python, args: files('tests/jka_mdr_tests.py'),
+  timeout: jka_test_timeout)
 test('fntech3_jka_ui_render', python, args: files('tests/jka_ui_render_tests.py'))
 test('fntech3_jka_ui_cvar', python, args: files('tests/jka_ui_cvar_tests.py'))
 test('fntech3_jka_handshake', python, args: files('tests/jka_handshake_tests.py'))
 test('fntech3_jka_cgame_lifecycle', python, args: files('tests/jka_cgame_lifecycle_tests.py'))
-test('fntech3_runtime_mdr', python, args: files('tests/runtime_mdr_tests.py'))
-test('fntech3_jka_parser_global', python, args: files('tests/jka_parser_global_tests.py'))
-test('fntech3_probe_jka_openjk_peer', python, args: files('tests/probe_jka_openjk_peer_tests.py'))
-test('fntech3_probe_jka_openjk_demo', python, args: files('tests/probe_jka_openjk_demo_tests.py'))
+test('fntech3_runtime_mdr', python, args: files('tests/runtime_mdr_tests.py'),
+  timeout: jka_test_timeout)
+test('fntech3_jka_parser_global', python, args: files('tests/jka_parser_global_tests.py'),
+  timeout: jka_test_timeout)
+test('fntech3_probe_jka_openjk_peer', python, args: files('tests/probe_jka_openjk_peer_tests.py'),
+  timeout: jka_test_timeout)
+test('fntech3_probe_jka_openjk_demo', python, args: files('tests/probe_jka_openjk_demo_tests.py'),
+  timeout: jka_test_timeout)
 test('fntech3_probe_jka_client', python, args: files('tests/probe_jka_client_tests.py'))
 test('fntech3_jka_framing', python, args: files('tests/jka_framing_tests.py'))
-test('fntech3_jka_demo_snapshot', python, args: files('tests/jka_demo_snapshot_tests.py'))
+test('fntech3_jka_demo_snapshot', python, args: files('tests/jka_demo_snapshot_tests.py'),
+  timeout: jka_test_timeout)
 demo_wire_profile_tests = executable('fntech3_demo_wire_profile_tests',
   'tests/demo_wire_profile_tests.cpp', cpp_args: common_cpp_args)
 test('fntech3_demo_wire_profile', demo_wire_profile_tests)
