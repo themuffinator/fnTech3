@@ -6,6 +6,7 @@
 #include "client_jka_glconfig.hpp"
 #include "client_jka_font.hpp"
 #include "client_jka_strings.hpp"
+#include "client_jka_sound.hpp"
 #include "../compat/jka_render_adapter.hpp"
 #include "../compat/jka_lightstyle.hpp"
 #include "../compat/jka_ui_exports.h"
@@ -209,6 +210,17 @@ static bool CL_JKACgameCall(intptr_t *args, intptr_t &operation, intptr_t &resul
         result = FS_GetFileList(VMA(1), VMA(2),
             static_cast<char *>(CL_JKACgameSpan(args[3], std::size_t(args[4]))), static_cast<int>(args[4]));
         return true;
+    case Call::CG_S_STARTLOCALSOUND: {
+        // Retail 0x412934 passes the handle and channel to S_StartLocalSound
+        // 0x46aed0, which plays it on the listener's own entity, and returns
+        // zero. Fn's local-sound path plays it with the channel translated.
+        if (args[1] < INT_MIN || args[1] > INT_MAX || args[2] < INT_MIN || args[2] > INT_MAX)
+            Com_Error(ERR_DROP, "Invalid Academy local sound handle or channel");
+        const int channel = static_cast<int>(args[2]);
+        S_StartLocalSoundVolume(static_cast<sfxHandle_t>(args[1]), sound::EngineChannel(channel),
+            sound::ListenerVolume(channel));
+        return true;
+    }
     case Call::CG_S_GETVOICEVOLUME:
         if (sizeof(void *) != sizeof(std::uint32_t) || cgvm->index != VM_CGAME)
             Com_Error(ERR_DROP, "Academy voice volume requires its x86 native cgame");

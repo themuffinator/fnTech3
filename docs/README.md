@@ -58,6 +58,9 @@ Start with the [README](../README.md) for an overview, then the
 
 ### Game-specific ledgers and records
 
+- [October 6 Jedi Academy live join](fntech3/2026-10-06-jka-live-join.md)
+  -- client-game local sounds, the map-change export and the next boundary
+  against retail `jamp.exe`.
 - [October 5 legacy-server hosting](fntech3/2026-10-05-legacy-server-hosting.md)
   -- masters, ports, info replies, listen servers, ET web downloads and live
   sessions with each multiplayer game's retail peers.

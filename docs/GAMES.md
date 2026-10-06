@@ -511,9 +511,13 @@ neutral light-style metadata, the empty client ROFF update, explicit music
 preloading and the effects clock/context,
 ambient/effect definitions and Ghoul2 skin/animation setup pass their earlier
 boundaries. fnTech3's client joins the retail `jamp.exe` server with pure
-admission and plays until the server's first chat line, whose sound reaches
-a client-game import not yet served ([record](fntech3/2026-10-05-legacy-server-hosting.md)); a retail
-client on fnTech3's server and rendered gameplay remain open. Academy's MP3 assets use the
+admission ([record](fntech3/2026-10-05-legacy-server-hosting.md)), chats both
+ways and follows a map change; chat sounds play through fnTech3's own sound
+system, with Academy's channels mapped to the engine's. On the new map the
+client game stops at a player model carrying an attached weapon, which its
+Ghoul2 rendering does not serve yet, so a `map_restart` is not reached
+([record](fntech3/2026-10-06-jka-live-join.md)); a retail client on
+fnTech3's server and rendered gameplay remain open. Academy's MP3 assets use the
 existing Fn decoder; muted probes preload a real map track through the default
 OpenAL backend. Dynamic music, audible music, ambient playback and active voice tracking
 remain open. The new voice-volume query serves only the actual disabled-audio

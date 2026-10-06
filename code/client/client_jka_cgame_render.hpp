@@ -13,8 +13,14 @@
 namespace {
 static const fntech3::ghoul2::Model &CL_JKACgameRenderModel(std::uint32_t identity) {
     const auto *instance=CL_JKACgameGhoul2Resolve(identity);
-    if (!instance || instance->ServerOnly() || instance->Count()!=1)
-        Com_Error(ERR_DROP,"Academy cgame Ghoul2 renderer requires one owned client model; attachments remain open");
+    if (!instance || instance->ServerOnly() || instance->Count()!=1) {
+        // Name what the refused instance holds, so a live run says which
+        // attachment it met.
+        const auto *first=instance?instance->At(0):nullptr, *second=instance?instance->At(1):nullptr;
+        Com_Error(ERR_DROP,"Academy cgame Ghoul2 renderer requires one owned client model; attachments remain open"
+            " (models=%d, serverOnly=%d: %s, %s)",instance?instance->Count():-1,instance&&instance->ServerOnly(),
+            first?first->name.c_str():"<none>",second?second->name.c_str():"<none>");
+    }
     const auto *model=instance->At(0);
     if (!model || !model->meshBytes || !model->skeletonBytes || model->boltInfo)
         Com_Error(ERR_DROP,"Academy cgame Ghoul2 renderer requires an unbolted paired-GLA model (mesh=%s, skeleton=%s, meshBytes=%d, skeletonBytes=%d, boltInfo=%d)",

@@ -77,6 +77,14 @@ historical upstream records, not fnTech3 release history. See the
   Territory's first warm-up no longer reloads the map for every player, and
   `sv_minPing` and `sv_maxPing` work as in the original games
   ([record](docs/fntech3/2026-10-05-legacy-server-hosting.md)).
+- Keep Jedi Academy's multiplayer client on a retail server through chat and
+  a map change. The client game's local sounds, each chat line's among them,
+  play through fnTech3's own sound system with Academy's sound channels
+  mapped to the engine's, where the client had stopped at the first one, and
+  a server's map change no longer ends the session: the engine had refused
+  Academy's map-change call as Enemy Territory's snapshot query, which shares
+  its number. On the new map the client still stops where its game draws a
+  player carrying a weapon ([record](docs/fntech3/2026-10-06-jka-live-join.md)).
 - Stop a long run of strings in a menu or bot file from crashing the game.
   Strings that a `#define` expands to, written side by side, are joined into
   one; the engine joined each by calling itself again, so about a thousand in

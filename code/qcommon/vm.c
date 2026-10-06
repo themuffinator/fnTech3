@@ -3386,7 +3386,10 @@ intptr_t QDECL VM_Call( vm_t *vm, int nargs, int callnum, ... )
 		return 0;
 	}
 #endif
-	if ( callnum == GAME_SNAPSHOT_CALLBACK && ( vm->index != VM_GAME || !Com_GameIsWolfET() ) ) {
+	/* The game's and the client game's semantic exports are numbered apart
+	 * and overlap: ET's snapshot callback is Academy's map change. Each is
+	 * refused only where its own module is called. */
+	if ( vm->index == VM_GAME && callnum == GAME_SNAPSHOT_CALLBACK && !Com_GameIsWolfET() ) {
 		Com_Error( ERR_DROP, "ET snapshot callback requires an ET game module" );
 		return 0;
 	}
@@ -3399,6 +3402,10 @@ intptr_t QDECL VM_Call( vm_t *vm, int nargs, int callnum, ... )
 #ifndef USE_DEDICATED
 	if ( vm->index == VM_CGAME && callnum == CG_GET_TAG && !Com_GameIsRTCW() ) {
 		Com_Error( ERR_DROP, "RTCW tag export requires an RTCW profile" );
+		return 0;
+	}
+	if ( vm->index == VM_CGAME && callnum == CG_RAVEN_MAP_CHANGE && !Com_GameIsJKAMP() ) {
+		Com_Error( ERR_DROP, "Academy map-change export requires the Jedi Academy multiplayer profile" );
 		return 0;
 	}
 #endif
