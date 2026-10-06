@@ -1380,8 +1380,11 @@ if get_option('audio-tests')
   test('fnql_audio_zone_sweep_script', python,
     args: files('tests/audio/audio_zone_sweep_tests.py'),
   )
+  # 2 to 15 s in earlier runs, past Meson's 30 s default in a full run
+  # beside other builds.
   test('fnql_audio_zone_material_map', python,
     args: [files('tests/audio/audio_zone_material_map_tests.py'), audiozonesc],
+    timeout: 120,
   )
 endif
 
