@@ -64,6 +64,7 @@ Start with the [README](../README.md) for an overview, then the
   -- each Jedi game's single-player number, `spmap` and `map`, and which
   game types keep a listen server from remote players.
 - [October 6 Jedi Academy live join](fntech3/2026-10-06-jka-live-join.md)
+- [October 6 Jedi Academy Ghoul2 attachments](fntech3/2026-10-06-jka-attachments.md)
   -- client-game local sounds, the map-change export and the next boundary
   against retail `jamp.exe`.
 - [October 5 legacy-server hosting](fntech3/2026-10-05-legacy-server-hosting.md)

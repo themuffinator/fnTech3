@@ -17,12 +17,14 @@ struct Runtime {
     qhandle_t handle = 0;
     std::uint64_t owner = 0;
 };
+// One owned registration per model of an instance: its identity and index.
+using Key = std::pair<std::uint32_t, int>;
 struct State {
-    std::map<std::uint32_t, Runtime> models;
+    std::map<Key, Runtime> models;
     std::vector<fntech3_jka_mp_refEntity_t> pending;
     std::vector<refEntity_t> prepared;
-    std::vector<int> visible, traversal;
-    fntech3::ghoul2::pose::Palette pose;
+    std::vector<int> visible, traversal, order;
+    std::vector<fntech3::ghoul2::pose::Palette> palettes;
     std::vector<unsigned char> bytes;
     std::vector<float> bones;
     void ClearScene() { pending.clear(); prepared.clear(); }

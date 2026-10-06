@@ -63,7 +63,7 @@ static void CL_JKACgameGhoul2Clear() {
 
 static fntech3::ghoul2::Store &CL_JKACgameGhoul2Store() {
     if (!jkaCgameGhoul2Store)
-        jkaCgameGhoul2Store = std::make_unique<fntech3::ghoul2::Store>(jkaCgameGhoul2Files,true,true);
+        jkaCgameGhoul2Store = std::make_unique<fntech3::ghoul2::Store>(jkaCgameGhoul2Files,true,true,true);
     return *jkaCgameGhoul2Store;
 }
 
@@ -123,8 +123,8 @@ static bool CL_JKACgameGhoul2Call(intptr_t *args, fntech3::jka::module::Call cal
         if (result >= 0) {
             // Retail 0x4de8ce..0x4de8d5 retains args[4] at model +0x38.
             // This is the client's actual renderer handle, never the server's
-            // separate skin registry. Geometry/material consumption stays at
-            // the cgame renderer boundary, which still refuses Ghoul2 poses.
+            // separate skin registry. The cgame renderer consumes it per
+            // model through Fn's skeletal material path.
             if (!store.SetSkin(handle, static_cast<int>(result), static_cast<int>(args[4])))
                 Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 cannot bind the loaded model's skin");
             identity = static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(handle));
@@ -191,6 +191,8 @@ static bool CL_JKACgameGhoul2Call(intptr_t *args, fntech3::jka::module::Call cal
     case Call::CG_G2_SETBOLTON: {
         CL_JKACgameGhoul2Native();
         const auto identity = static_cast<std::uint32_t>(args[1]);
+        // Retail 0x4df940 stores the word as the model's link (+0x3c). The
+        // owned Store poses and draws a linked model from its parent's bolt.
         if (CL_JKACgameGhoul2Resolve(identity))
             CL_JKACgameGhoul2Store().SetBoltInfo(reinterpret_cast<void *>(std::uintptr_t(identity)),
                 static_cast<int>(args[2]), static_cast<int>(args[3]));
@@ -204,8 +206,8 @@ static bool CL_JKACgameGhoul2Call(intptr_t *args, fntech3::jka::module::Call cal
         CL_JKACgameGhoul2Native();
         // Retail 339..341 all dispatch to0x4142b3: return zero without
         // reading another word or maintaining a listen-server pose cache.
-        // Fn keeps each module's poses owned; actual bolt attachments remain
-        // a separate renderer boundary, never a borrowed server pose here.
+        // Fn keeps each module's poses owned. Models linked within one
+        // instance are posed by its own Store, never a borrowed server pose.
         result=0;
         return true;
     case Call::CG_G2_GETBONEFRAME: {
@@ -311,10 +313,18 @@ static bool CL_JKACgameGhoul2Call(intptr_t *args, fntech3::jka::module::Call cal
             if (!pose::Finite(component)) Com_Error(ERR_DROP, "Invalid Academy cgame bolt scale");
         pose::Matrix raw;
         // The complete primary core0x4dfa00..0x4dfc3a reads its clocks,
-        // not native time word7, and never consumes model-list word8.
-        if (!CL_JKACgameGhoul2Store().BoltMatrix(reinterpret_cast<void *>(std::uintptr_t(identity)),
-                static_cast<int>(args[2]), static_cast<int>(args[3]), jkaCgameBoneClocks.Time(), raw.data()))
+        // not native time word7, and never consumes model-list word8. It
+        // builds the instance's whole skeleton first (0x49a050), so a linked
+        // model answers from its parent's bolt. A model retail's sort never
+        // reaches would answer from whatever bone cache it last had; that
+        // stale state is not reproduced and refuses by name.
+        const auto posing = CL_JKACgameGhoul2Store().LinkedBolt(reinterpret_cast<void *>(std::uintptr_t(identity)),
+            static_cast<int>(args[2]), static_cast<int>(args[3]), jkaCgameBoneClocks.Time(), raw.data());
+        if (posing == fntech3::ghoul2::Posing::Unserved)
             Com_Error(ERR_DROP, "Academy cgame bolt pose is outside its served hierarchy/animation boundary");
+        if (posing != fntech3::ghoul2::Posing::Served)
+            Com_Error(ERR_DROP, "Academy cgame bolt query on model %d is %s (link=%d)", static_cast<int>(args[2]),
+                fntech3::ghoul2::PosingName(posing), model->boltInfo);
         if (!pose::PlaceBolt(raw.data(), angles.data(), position.data(), scale.data(), jkaCgameNoRotationPending, world.data()))
             Com_Error(ERR_DROP, "Invalid Academy cgame bolt result");
         // Primary0x4dfc07 clears its no-rotation selector on success only.
@@ -331,8 +341,8 @@ static bool CL_JKACgameGhoul2Call(intptr_t *args, fntech3::jka::module::Call cal
         if (!instance || !instance->At(static_cast<int>(args[2]))) return true;
         const auto name = CL_JKACgameGhoul2Text(args[3]);
         // Retail0x413cf5 maps only the name; the model identity is direct.
-        // Store records a real bone/surface lookup. Attachment rendering is
-        // still refused by the cgame renderer boundary.
+        // Store records a real bone/surface lookup; a model linked to it is
+        // posed and drawn from that bolt.
         result = CL_JKACgameGhoul2Store().AddBolt(reinterpret_cast<void *>(std::uintptr_t(identity)),
             static_cast<int>(args[2]), name.data());
         return true;

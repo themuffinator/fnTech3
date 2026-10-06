@@ -33,12 +33,15 @@ static void CL_JKAUIRenderClear() {
 
 static void CL_JKAUIRenderClearScene() { jkaUIPendingModels.clear(); }
 
+// The UI serves neither UI_G2_ADDBOLT nor UI_G2_SETBOLTON, so no UI model can
+// carry a link; multi-model UI instances stay a named boundary.
 static const fntech3::ghoul2::Model &CL_JKAUIRenderModel(std::uint32_t identity) {
 	const auto *instance = CL_JKAUIGhoul2Resolve(identity);
 	if (!instance || instance->ServerOnly() || instance->Count() != 1)
 		Com_Error(ERR_DROP, "Jedi Academy UI Ghoul2 renderer requires one owned client model; attachments remain open");
 	const auto *model = instance->At(0);
-	if (!model || !model->meshBytes || !model->skeletonBytes || model->boltInfo || model->customSkin)
+	if (!model || !model->meshBytes || !model->skeletonBytes
+		|| model->boltInfo != fntech3::ghoul2::link::None || model->customSkin)
 		Com_Error(ERR_DROP, "Jedi Academy UI Ghoul2 renderer requires an unbolted paired-GLA model with default visibility");
 	return *model;
 }

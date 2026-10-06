@@ -1427,6 +1427,7 @@ endforeach
 test('fntech3_jka_cgame_host', python, args: files('tests/jka_cgame_host_tests.py'))
 test('fntech3_jka_cgame_ghoul2', python, args: files('tests/jka_cgame_ghoul2_tests.py'))
 test('fntech3_jka_cgame_render', python, args: files('tests/jka_cgame_render_tests.py'))
+test('fntech3_jka_cgame_attachment', python, args: files('tests/jka_cgame_attachment_tests.py'))
 test('fntech3_jka_default_skeleton', python, args: files('tests/jka_default_skeleton_tests.py'))
 test('fntech3_jka_cgame_tag', python, args: files('tests/jka_cgame_tag_tests.py'))
 jka_skin_tests = executable('fntech3_jka_skin_tests',

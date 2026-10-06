@@ -514,7 +514,7 @@ ambient definitions still refuse active playback.
 The effects subset uses Fn sprite/polygon queues; light/sound, motion and
 active curve controls remain named refusals. Registered skins and visibility
 feed Fn geometry and forward blends in unit fixtures; complete gameplay,
-complete all-backend cgame drawing, angle blends and attachments remain unproven. Owned Ghoul2 copy/duplication, player-configuration menu
+complete all-backend cgame drawing, angle blends and a capture of an attached weapon remain unproven. Owned Ghoul2 copy/duplication, player-configuration menu
 relay and the read-only engine routing getter pass their boundaries. Renderer-owned map distance culling, entity-token reset/EOF,
 neutral light-style metadata, the empty client ROFF update, explicit music
 preloading and the effects clock/context,
@@ -523,8 +523,11 @@ boundaries. fnTech3's client joins the retail `jamp.exe` server with pure
 admission ([record](fntech3/2026-10-05-legacy-server-hosting.md)), chats both
 ways and follows a map change; chat sounds play through fnTech3's own sound
 system, with Academy's channels mapped to the engine's. On the new map the
-client game stops at a player model carrying an attached weapon, which its
-Ghoul2 rendering does not serve yet, so a `map_restart` is not reached
+client game's player model with an attached weapon is now posed, the weapon
+in the hand as retail poses it, and drawn through fnTech3's own skeletal
+path ([record](fntech3/2026-10-06-jka-attachments.md)); the client stops
+next at items that fade in with a colour tint the renderers do not serve
+yet, so a `map_restart` is not reached
 ([record](fntech3/2026-10-06-jka-live-join.md)); a retail client on
 fnTech3's server and rendered gameplay remain open. Academy's MP3 assets use the
 existing Fn decoder; muted probes preload a real map track through the default

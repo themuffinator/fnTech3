@@ -103,6 +103,23 @@ inline constexpr int MaxBoneAnimations = MaxNamedBones;
  * generous rather than tight. */
 inline constexpr std::size_t MaxKeptFiles = 64;
 
+/* How one model of an instance names the bolt it hangs from: its link.
+ *
+ * Measured in retail jamp.exe 1.01. The word lives at +0x3c of each 0xc8-byte
+ * model record. InitGhoul2Model stores -1 there (0x4de93e), meaning a model of
+ * its own; SetBoltInfo stores whatever word the module passes (0x4df96f), and
+ * CopySpecificGhoul2Model's record assignment carries it to the copy
+ * (0x4dea73). The model sort (0x498be0), the skeleton build (0x49a050) and
+ * the renderer (0x499bf0) all read any other value as the parent model
+ * `(link >> 10) & 0x3ff` and that model's bolt `link & 0x3ff`. The pinned
+ * OpenJK G2.h names the same widths (MODEL_SHIFT 10, BOLT_SHIFT 0, 10 bits
+ * each). Only the masked bits are read, so the shift's sign does not matter. */
+namespace link {
+inline constexpr int None = -1;
+inline int ParentModel( int value ) { return int( ( std::uint32_t( value ) >> 10 ) & 0x3ffu ); }
+inline int ParentBolt( int value ) { return int( std::uint32_t( value ) & 0x3ffu ); }
+} // namespace link
+
 /* MP Ghoul2 handles are compared and passed back, never followed by the game.
  * Use the pointer-sized ABI slot as an identity rather than a heap address.
  * All Stores share one sequence, so a handle from another Store cannot resolve
@@ -295,9 +312,10 @@ struct Model {
 	/* The skin the game put on this model, as a handle from the registry
 	 * below, or zero for none. A server keeps the handle and nothing else. */
 	int customSkin = 0;
-	/* The bolt the game last told this model to use. The engine keeps the
-	 * number; what it selects is the game's business. */
-	int boltInfo = 0;
+	/* The bolt the game last told this model to hang from, as a link (see
+	 * `link` above): retail's -1 until SetBoltInfo says otherwise. Only a
+	 * store that serves attachments poses through it; the others keep it. */
+	int boltInfo = link::None;
 };
 
 /* One entity's models. The module holds a pointer to this and nothing else. */
@@ -331,12 +349,63 @@ private:
 	void *handle_ = nullptr;
 };
 
+/* Retail's pose and draw order for an instance's models (jamp.exe 1.01
+ * 0x498be0, the pinned OpenJK G2_Sort_Models): every present model with no
+ * link, by index, then repeatedly every linked model whose parent is in the
+ * previous round, by index. A model whose chain of parents does not reach an
+ * unlinked present model -- a missing parent, or a cycle -- is never posed or
+ * drawn. A weapon instance whose only model links to itself is one. */
+inline void PoseOrder( const Instance &instance, std::vector<int> &order )
+{
+	order.clear();
+	for ( int index = 0; index < instance.Count(); ++index ) {
+		const Model *model = instance.At( index );
+		if ( model && model->boltInfo == link::None ) order.push_back( index );
+	}
+	for ( std::size_t start = 0, end = order.size(); start != end;
+		start = end, end = order.size() ) {
+		for ( int index = 0; index < instance.Count(); ++index ) {
+			const Model *model = instance.At( index );
+			if ( !model || model->boltInfo == link::None ) continue;
+			const int parent = link::ParentModel( model->boltInfo );
+			for ( std::size_t at = start; at < end; ++at ) {
+				if ( order[at] == parent ) { order.push_back( index ); break; }
+			}
+		}
+	}
+}
+
+/* Why a model of an instance could not be posed through its links. */
+enum class Posing {
+	Served,
+	Unposed,      /* retail's sort never reaches it (see PoseOrder) */
+	MissingBolt,  /* its link names a bolt its parent does not have */
+	Unserved,     /* a pose or tag this engine does not serve */
+};
+
+inline const char *PosingName( Posing posing ) {
+	switch ( posing ) {
+	case Posing::Served: return "served";
+	case Posing::Unposed: return "never posed by retail's model sort";
+	case Posing::MissingBolt: return "linked to a bolt its parent lacks";
+	case Posing::Unserved: return "outside the served pose or tag boundary";
+	}
+	return "unknown";
+}
+
 class Store {
 public:
+	/* Each capability is opted into by the consumer whose retail contract was
+	 * measured for it; every other store keeps its earlier behavior.
+	 * serveAttachments poses linked models from their parent's bolt and
+	 * gives surface bolts retail's tag frame (see TagFrame). */
 	explicit Store( Files &files, bool serveDefaultSkeleton = false,
-		bool serveAnimationBlends = false ) : files_( &files ), serveAnimationBlends_(serveAnimationBlends) {
+		bool serveAnimationBlends = false, bool serveAttachments = false )
+		: files_( &files ), serveAnimationBlends_(serveAnimationBlends),
+		serveAttachments_(serveAttachments) {
 		if ( serveDefaultSkeleton ) Keep( "*default", builtin::DefaultSkeleton() );
 	}
+	bool ServesAttachments() const { return serveAttachments_; }
 
 	void Clear() { attached_.clear(); live_.clear(); instances_.clear(); }
 	std::size_t InstanceCount() const { return instances_.size(); }
@@ -368,8 +437,24 @@ public:
 	 * bone order. */
 	bool BoneMatrices( const Model &model, int now, std::vector<float> &out ) const;
 	/* The same owned animation/angle state as a full palette. Weighted mesh
-	 * geometry uses deformation; raw bone bolts use bones. */
-	bool DeformationPalette( const Model &model, int now, pose::Palette &out ) const;
+	 * geometry uses deformation; raw bone bolts use bones. `root`, when
+	 * given, replaces the fixed root basis: the parent's bolt for an
+	 * attached model. */
+	bool DeformationPalette( const Model &model, int now, pose::Palette &out,
+		const pose::Matrix *root = nullptr ) const;
+	/* Retail's skeleton build (jamp.exe 0x49a050), for a store serving
+	 * attachments: a model with no link is posed from the root basis, and a
+	 * linked one from its parent's bolt (0x499850), its own skeleton composed
+	 * onto that matrix. One model and the parents it needs. */
+	Posing LinkedPalette( const Instance &instance, int modelIndex, int now,
+		pose::Palette &out ) const;
+	/* Every model retail would pose, in PoseOrder, each with its palette.
+	 * On failure `failed` names the model and nothing is published. */
+	Posing InstancePalettes( const Instance &instance, int now, std::vector<int> &order,
+		std::vector<pose::Palette> &palettes, int &failed ) const;
+	/* BoltMatrix with the reason a linked model could not answer. */
+	Posing LinkedBolt( void *pointer, int modelIndex, int boltIndex, int now,
+		float out[12] );
 	/* Where one of a model's bolts is, in the model's own space, at one
 	 * moment. False if the model cannot answer -- no skeleton kept, a bolt
 	 * that names nothing, a surface this engine cannot reach -- and in that
@@ -451,6 +536,19 @@ private:
 	bool ReadFile( const std::string &path, std::vector<unsigned char> &into );
 	LoadError Load( const char *name, Model &out );
 
+	/* One model's bolt from a palette already posed for it. */
+	bool BoltFromPalette( const Model &model, const pose::Palette &palette,
+		int boltIndex, float out[12] ) const;
+	/* Palettes computed so far for one instance, so a parent shared by
+	 * several attachments is posed once. */
+	struct Posed {
+		pose::Palette palette;
+		Posing posing = Posing::Unposed;
+		unsigned char state = 0; /* 0 not asked, 1 being posed, 2 answered */
+	};
+	Posing Pose( const Instance &instance, int index, int now,
+		std::vector<Posed> &posed ) const;
+
 	/* The mesh and skeleton files themselves, kept once each and shared by
 	 * every model that names them.
 	 *
@@ -472,6 +570,7 @@ private:
 
 	Files *files_ = nullptr;
 	bool serveAnimationBlends_ = false;
+	bool serveAttachments_ = false;
 	std::vector<std::unique_ptr<Instance>> instances_;
 	std::unordered_map<void *, Instance *> live_;
 	std::unordered_map<int, void *> attached_;
@@ -649,7 +748,7 @@ inline bool Store::CopyModel( void *from, int modelFrom, void *to, int modelTo )
  * inherited animation. Unsupported controls cause query failure; stored
  * metadata alone does not establish that its pose effect is implemented. */
 inline bool Store::DeformationPalette( const Model &model, int now,
-	pose::Palette &out ) const
+	pose::Palette &out, const pose::Matrix *root ) const
 {
 	if ( !model.skeletonBytes || model.skeleton.numBones <= 0 ) return false;
 	const void *data = model.skeletonBytes->data();
@@ -686,7 +785,8 @@ inline bool Store::DeformationPalette( const Model &model, int now,
 			|| !pose::AngleMatrix(base, inverse, bent.angles, bent.flags, bent.up, bent.right, bent.forward, post) ) return false;
 		angles.push_back({bent.bone, post, bent.flags});
 	}
-	return pose::Evaluate(data, size, model.skeleton, animations, angles, out);
+	return pose::Evaluate(data, size, model.skeleton, animations, angles, out,
+		root ? *root : pose::RootBasis);
 }
 
 inline bool Store::BoneMatrices( const Model &model, int now,
@@ -721,6 +821,42 @@ inline bool Normalise( float v[3] )
 
 }  /* namespace detail */
 
+/* Retail's tag frame (jamp.exe 1.01 0x499476..0x499848, reached from
+ * G2_GetBoltMatrixLow 0x499850 through 0x498df0; the pinned OpenJK
+ * G2_ProcessSurfaceBolt2 reads the same). From the tag's first three
+ * vertices p0, p1, p2 in their stored order (not a triangle's corners):
+ *
+ *     a = |p1 - p0|, b = |p0 - p2|, a = |a - (a.b) b|, c = |(p1 - p0) x (p0 - p2)|
+ *     columns b, a, -c; origin p2
+ *
+ * A collapsed tag has no frame. Retail would carry zero vectors on; this
+ * engine refuses it instead. */
+inline bool TagFrame( const float point[3][3], float out[12] )
+{
+	float sides[3][3];
+	for ( int side = 0; side < 3; ++side ) {
+		for ( int axis = 0; axis < 3; ++axis ) {
+			sides[side][axis] = point[( side + 1 ) % 3][axis] - point[side][axis];
+		}
+	}
+	float first[3] = { sides[0][0], sides[0][1], sides[0][2] };
+	float second[3] = { sides[2][0], sides[2][1], sides[2][2] };
+	if ( !detail::Normalise( first ) || !detail::Normalise( second ) ) return false;
+	const float along = first[0] * second[0] + first[1] * second[1] + first[2] * second[2];
+	for ( int axis = 0; axis < 3; ++axis ) first[axis] -= along * second[axis];
+	if ( !detail::Normalise( first ) ) return false;
+	float normal[3];
+	detail::Cross( sides[0], sides[2], normal );
+	if ( !detail::Normalise( normal ) ) return false;
+	for ( int row = 0; row < 3; ++row ) {
+		out[row * 4 + 0] = second[row];
+		out[row * 4 + 1] = first[row];
+		out[row * 4 + 2] = -normal[row];
+		out[row * 4 + 3] = point[2][row];
+	}
+	return true;
+}
+
 /* Where a bolt is.
  *
  * A bolt that names a bone is that bone's matrix. A bolt that names a surface
@@ -731,37 +867,34 @@ inline bool Normalise( float v[3] )
  * give an origin and a set of axes.
  *
  * The axes go in as columns, not rows, which is how the retail engine writes
- * them: its element 0, element 4 and element 8 are one axis. */
-inline bool Store::BoltMatrix( void *pointer, int modelIndex, int boltIndex,
-	int now, float out[12] )
+ * them: its element 0, element 4 and element 8 are one axis. A store serving
+ * attachments uses retail's tag frame above; the others keep this engine's
+ * earlier frame, which is not retail's (first triangle's corners, origin at
+ * the first, columns along, side, normal). */
+inline bool Store::BoltFromPalette( const Model &model, const pose::Palette &palette,
+	int boltIndex, float out[12] ) const
 {
-	if ( !out ) return false;
-	Instance *instance = Resolve( pointer );
-	if ( !instance ) return false;
-	const Model *model = instance->At( modelIndex );
-	if ( !model ) return false;
-	if ( boltIndex < 0 || boltIndex >= int( model->bolts.size() ) ) return false;
-	const Bolt &bolt = model->bolts[std::size_t( boltIndex )];
-
-	pose::Palette palette;
-	if ( !DeformationPalette( *model, now, palette ) ) return false;
-
+	if ( !out || boltIndex < 0 || boltIndex >= int( model.bolts.size() ) ) return false;
+	const Bolt &bolt = model.bolts[std::size_t( boltIndex )];
 	if ( bolt.bone >= 0 ) {
-		if ( bolt.bone >= model->skeleton.numBones ) return false;
+		if ( bolt.bone >= model.skeleton.numBones
+			|| std::size_t( bolt.bone ) >= palette.bones.size() ) return false;
 		const float *found = palette.bones[std::size_t( bolt.bone )].data();
 		for ( int i = 0; i < 12; ++i ) out[i] = found[i];
 		return true;
 	}
-	if ( bolt.surface < 0 || !model->meshBytes ) return false;
+	if ( bolt.surface < 0 || !model.meshBytes ) return false;
 
-	const void *mesh = model->meshBytes->data();
-	const std::size_t meshSize = model->meshBytes->size();
+	const void *mesh = model.meshBytes->data();
+	const std::size_t meshSize = model.meshBytes->size();
 	model::MeshSurface surface;
-	if ( !model::SurfaceAt( mesh, meshSize, model->mesh, 0, bolt.surface, surface ) ) {
+	if ( !model::SurfaceAt( mesh, meshSize, model.mesh, 0, bolt.surface, surface ) ) {
 		return false;
 	}
-	int corner[3];
-	if ( !model::TriangleCorners( mesh, meshSize, surface, 0, corner ) ) return false;
+	int corner[3] = { 0, 1, 2 };
+	if ( !serveAttachments_ && !model::TriangleCorners( mesh, meshSize, surface, 0, corner ) ) {
+		return false;
+	}
 
 	/* Use the same deformation palette as weighted geometry. BasePose is
 	 * already absent here; applying its inverse again would deform twice. */
@@ -774,7 +907,8 @@ inline bool Store::BoltMatrix( void *pointer, int modelIndex, int boltIndex,
 		float at[3] = { 0.0f, 0.0f, 0.0f };
 		for ( int weight = 0; weight < vertex.count; ++weight ) {
 			const int bone = vertex.bone[weight];
-			if ( bone < 0 || bone >= model->skeleton.numBones ) return false;
+			if ( bone < 0 || bone >= model.skeleton.numBones
+				|| std::size_t( bone ) >= palette.deformation.size() ) return false;
 			const float *carry = palette.deformation[std::size_t(bone)].data();
 			for ( int axis = 0; axis < 3; ++axis ) {
 				at[axis] += vertex.weight[weight]
@@ -788,6 +922,12 @@ inline bool Store::BoltMatrix( void *pointer, int modelIndex, int boltIndex,
 			if ( !FiniteScalar(at[axis]) ) return false;
 			point[which][axis] = at[axis];
 		}
+	}
+	if ( serveAttachments_ ) {
+		float staged[12];
+		if ( !TagFrame( point, staged ) ) return false;
+		std::memcpy( out, staged, sizeof( staged ) );
+		return true;
 	}
 
 	/* Two edges of the tag, their normal, and a third axis square to both. A
@@ -812,6 +952,103 @@ inline bool Store::BoltMatrix( void *pointer, int modelIndex, int boltIndex,
 		out[row * 4 + 3] = point[0][row];
 	}
 	return true;
+}
+
+inline Posing Store::Pose( const Instance &instance, int index, int now,
+	std::vector<Posed> &posed ) const
+{
+	if ( index < 0 || index >= instance.Count()
+		|| std::size_t( index ) >= posed.size() ) return Posing::Unposed;
+	Posed &entry = posed[std::size_t( index )];
+	if ( entry.state == 2 ) return entry.posing;
+	/* A link cycle never reaches a model of its own, so retail never poses
+	 * any model on it. */
+	if ( entry.state == 1 ) return Posing::Unposed;
+	entry.state = 1;
+	Posing result = Posing::Unposed;
+	const Model *model = instance.At( index );
+	if ( model && model->boltInfo == link::None ) {
+		result = DeformationPalette( *model, now, entry.palette )
+			? Posing::Served : Posing::Unserved;
+	} else if ( model ) {
+		const int parentIndex = link::ParentModel( model->boltInfo );
+		result = Pose( instance, parentIndex, now, posed );
+		if ( result == Posing::Served ) {
+			const Model &parent = *instance.At( parentIndex );
+			const int boltIndex = link::ParentBolt( model->boltInfo );
+			pose::Matrix root;
+			/* Retail reads the parent's bolt without a bound (0x49986b);
+			 * one that is not there is refused here rather than read. */
+			if ( boltIndex >= int( parent.bolts.size() ) ) result = Posing::MissingBolt;
+			else if ( !BoltFromPalette( parent, posed[std::size_t( parentIndex )].palette,
+				boltIndex, root.data() ) ) result = Posing::Unserved;
+			else result = DeformationPalette( *model, now, entry.palette, &root )
+				? Posing::Served : Posing::Unserved;
+		}
+	}
+	entry.posing = result;
+	entry.state = 2;
+	return result;
+}
+
+inline Posing Store::LinkedPalette( const Instance &instance, int modelIndex, int now,
+	pose::Palette &out ) const
+{
+	if ( !serveAttachments_ ) return Posing::Unserved;
+	std::vector<Posed> posed( std::size_t( instance.Count() ) );
+	const Posing result = Pose( instance, modelIndex, now, posed );
+	if ( result == Posing::Served ) out = std::move( posed[std::size_t( modelIndex )].palette );
+	return result;
+}
+
+inline Posing Store::InstancePalettes( const Instance &instance, int now,
+	std::vector<int> &order, std::vector<pose::Palette> &palettes, int &failed ) const
+{
+	failed = -1;
+	std::vector<int> staged;
+	PoseOrder( instance, staged );
+	if ( !serveAttachments_ ) {
+		failed = staged.empty() ? -1 : staged.front();
+		return Posing::Unserved;
+	}
+	std::vector<Posed> posed( std::size_t( instance.Count() ) );
+	for ( int index : staged ) {
+		const Posing result = Pose( instance, index, now, posed );
+		if ( result != Posing::Served ) { failed = index; return result; }
+	}
+	std::vector<pose::Palette> ready( staged.size() );
+	for ( std::size_t at = 0; at < staged.size(); ++at ) {
+		ready[at] = std::move( posed[std::size_t( staged[at] )].palette );
+	}
+	order.swap( staged );
+	palettes.swap( ready );
+	return Posing::Served;
+}
+
+inline Posing Store::LinkedBolt( void *pointer, int modelIndex, int boltIndex,
+	int now, float out[12] )
+{
+	if ( !out ) return Posing::Unserved;
+	Instance *instance = Resolve( pointer );
+	if ( !instance ) return Posing::Unserved;
+	const Model *model = instance->At( modelIndex );
+	if ( !model ) return Posing::Unposed;
+	if ( boltIndex < 0 || boltIndex >= int( model->bolts.size() ) ) return Posing::MissingBolt;
+	pose::Palette palette;
+	Posing result = Posing::Served;
+	/* Retail's bolt query builds the whole instance's skeleton first
+	 * (0x4dfa00 calls 0x49a050), so an attached model answers from where
+	 * its parent's bolt has put it. */
+	if ( serveAttachments_ ) result = LinkedPalette( *instance, modelIndex, now, palette );
+	else if ( !DeformationPalette( *model, now, palette ) ) result = Posing::Unserved;
+	if ( result != Posing::Served ) return result;
+	return BoltFromPalette( *model, palette, boltIndex, out ) ? Posing::Served : Posing::Unserved;
+}
+
+inline bool Store::BoltMatrix( void *pointer, int modelIndex, int boltIndex,
+	int now, float out[12] )
+{
+	return LinkedBolt( pointer, modelIndex, boltIndex, now, out ) == Posing::Served;
 }
 
 inline bool Store::SetBoltInfo( void *pointer, int modelIndex, int boltInfo )

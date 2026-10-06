@@ -173,9 +173,15 @@ inline bool AngleMatrix(const Matrix &base, const Matrix &inverse,
 	return true;
 }
 
+/* `root` is the matrix the root bone is composed onto: RootBasis for a model
+ * of its own, or the parent's bolt for a model attached to another. Retail
+ * jamp.exe 1.01 stores either in the bone cache (0x498240) and its bone
+ * transform composes root x local for bone 0 (0x497c02..0x497c10). */
 inline bool Evaluate(const void *data, std::size_t bytes, const model::Skeleton &skeleton,
-	const std::vector<Animation> &animations, const std::vector<Angle> &angles, Palette &out)
+	const std::vector<Animation> &animations, const std::vector<Angle> &angles, Palette &out,
+	const Matrix &root = RootBasis)
 {
+	if (!Finite(root)) return false;
 	std::vector<int> parents;
 	std::vector<Matrix> base, inverse;
 	if (!Hierarchy(data, bytes, skeleton, parents, base, inverse)) return false;
@@ -227,7 +233,7 @@ inline bool Evaluate(const void *data, std::size_t bytes, const model::Skeleton 
 				}
 			}
 			if (!Finite(local)) return false;
-			const Matrix &basis = parent < 0 ? RootBasis : staged.deformation[parent];
+			const Matrix &basis = parent < 0 ? root : staged.deformation[parent];
 			staged.deformation[bone] = Compose(basis, local);
 			if (posts[bone]) {
 				const Angle &angle = *posts[bone];

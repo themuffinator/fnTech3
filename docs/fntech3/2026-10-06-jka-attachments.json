@@ -1,0 +1,581 @@
+{
+  "record": "2026-10-06-jka-attachments.md",
+  "sourceCommit": "192c321f3a7817d91b39699853c55879a2512879",
+  "build": {
+    "platform": "Windows 11 x86 (MSVC 2022, meson debugoptimized, strict warnings)",
+    "source": "HEAD plus this slice, exported clean; every development gate on; 1,499 targets, no warnings",
+    "runtimeFolder": ".tmp/runtime/jka-live-join (rebuilt in place)"
+  },
+  "runtime": {
+    "fnql_glx_x86.dll": "d29eb58aa185f08f5d89f5a08a503dc0e43ad090c70faa2ff5006c8e1c21d117",
+    "fnql_rtx_x86.dll": "e3e55be77d86edc8d6c1fc0400cd8a35654f4b160967aa56ca8699a4ab4d874a",
+    "fnql_vk_x86.dll": "306d2f86fdd25b32dcff82385d465ac3a416e483b3c639035c30c11c5ef3eef1",
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fntech3-pkg.fnz": "a8cca7cd1fd152817ac49cf74241a1d0c00e3eb4c47f056c8500e36feb06a8ff",
+    "fntech3.ded.exe": "0ca2b3f662652b3ba0399d2f21f095b683785e78e38b8ccb79bf1877b81ebe70",
+    "fntech3.ded.pdb": "58deb08379de9ec4fff2f2c9d41e910273a295c13ba79534989a2282ad112aa6",
+    "fntech3.exe": "0c68056b09e5e7084029ee4d82b288e8e490269d45e230208188b0f4458b3614",
+    "fntech3.pdb": "790e8cb78ce73f6a38dd3fea8c276a0846e9e281999eeaf419eeb457779fc7e2"
+  },
+  "retail": {
+    "jamp.exe 1.01": {
+      "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+      "tool": "Capstone x86-32 over the PE image"
+    },
+    "assets (read-only extractions for the offline replay)": {
+      "base/assets1.pk3:models/players/kyle/model.glm": "3c02518cb8920ec6205b9f3981f70204f7d6588f8753e6887bc67647029cfa28",
+      "base/assets1.pk3:models/players/_humanoid/_humanoid.gla": "7c9c6ee6a37848623563b2c0156d080f65c87cfce196bae78e81163b2f6fbad6",
+      "base/assets1.pk3:models/weapons2/blaster_pistol/blaster_pistol_w.glm": "74474f37dbde7dfa5f37e9b75a0ca840f8126f0ee6196cfbf05b652a47f66cd9"
+    }
+  },
+  "observed": {
+    "modelRecord": {
+      "stride": "0xc8",
+      "link": "+0x3c",
+      "modelIndex": "+0x30",
+      "customShader": "+0x34",
+      "customSkin": "+0x38",
+      "lodBias": "+0x44",
+      "valid": "+0xb0 (byte)",
+      "boneCache": "+0xa8"
+    },
+    "initLinkMinusOne": "0x4de93e",
+    "setBoltInfo": {
+      "dispatch": "0x413d44 (cgame import 319)",
+      "core": "0x4df940",
+      "store": "0x4df96f",
+      "bound": "index < model count only; no lower bound"
+    },
+    "copySpecificGhoul2Model": {
+      "dispatch": "0x413c13 (cgame import 308)",
+      "core": "0x4e04b0",
+      "assignmentCopiesLink": "0x4dea73"
+    },
+    "sort": {
+      "function": "0x498be0",
+      "unlinkedFirst": "0x498c85",
+      "parent": "(link >> 10) & 0x3ff (0x498d78..0x498d7f)"
+    },
+    "skeletonBuild": {
+      "function": "0x49a050",
+      "rootMatrix": "0x4999d0 returns 0x547d5c without a new origin",
+      "linked": "j > 0 and link != -1 (0x49a0fc..0x49a11c)",
+      "parentBolt": "G2_GetBoltMatrixLow 0x499850 with bolt link & 0x3ff (0x49a155..0x49a187)"
+    },
+    "renderer": {
+      "function": "0x499bf0",
+      "sort": "0x499cee",
+      "parentBolt": "0x499e3e..0x499e7f",
+      "transform": "0x499ea9 (0x498240 with &bolt)"
+    },
+    "boneCacheRoot": {
+      "store": "0x498461..0x498473 (cache +0x40)",
+      "rootComposition": "0x497c02..0x497c10",
+      "multiply": "0x497160 computes out = A x B"
+    },
+    "fixedAxes": {
+      "address": "0x547d5c",
+      "value": [
+        0,
+        -1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ]
+    },
+    "getBoltMatrixLow": {
+      "function": "0x499850",
+      "unboundedBoltRead": "0x49986b..0x499878",
+      "bone": "final (or smoothed) bone x base pose at skel+0x48 (0x4998ce..0x4998e6)",
+      "surface": "0x498df0",
+      "noBoneCache": "fixed axes (0x4999b1)"
+    },
+    "tagFrame": {
+      "range": "0x499476..0x499848",
+      "vertices": "first three of the LOD-0 surface, in order",
+      "normalize": "0x443dd0",
+      "columns": [
+        "|p0 - p2|",
+        "|p1 - p0| squared to the first",
+        "-|(p1 - p0) x (p0 - p2)|"
+      ],
+      "origin": "p2"
+    },
+    "boltQueryCore": {
+      "function": "0x4dfa00",
+      "buildsInstanceSkeleton": "0x4dfae2",
+      "readsBolt": "0x4dfaf9"
+    },
+    "clearDecals": {
+      "dispatch": "0x412c71 (cgame import 201)",
+      "body": "calls re.ClearDecals, returns 0"
+    }
+  },
+  "reference": "OpenJK 1a6a643427aa347553e9073dac5570b33337c4d9: codemp/ghoul2/G2.h widths; codemp/rd-vanilla/tr_ghoul2.cpp G2_Sort_Models, G2_ConstructGhoulSkeleton, R_AddGHOULSurfaces, G2_GetBoltMatrixLow, G2_ProcessSurfaceBolt2; codemp/rd-vanilla/G2_API.cpp G2API_InitGhoul2Model; codemp/rd-common/tr_types.h renderfx; codemp/cgame/cg_ents.c CG_Item. Format facts only.",
+  "retailAnswers": {
+    "fixture": ".tmp/jka-attach/attach-probe.cpp (not committed; synthetic game module, no game logic)",
+    "fixtureSourceSha256": "61ebe8e2c2ae13f619733091f556bdcf611dbe9242702bebc8ebf1b5566b39b7",
+    "moduleSha256": {
+      "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail\\jamp.exe": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+      "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail\\attach-probe\\jampgamex86.dll": "32ca83acd7d1a7f49b24db5c6081fea6e955d1937c2370ea5f9461c4c3d3df4a"
+    },
+    "command": [
+      "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail\\jamp.exe",
+      "+set",
+      "fs_basepath",
+      "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail",
+      "+set",
+      "fs_homepath",
+      "E:\\Repositories\\fnTech3\\.tmp\\jka-attach\\retail-1\\home",
+      "+set",
+      "fs_cdpath",
+      "E:\\Games\\Jedi Academy",
+      "+set",
+      "fs_game",
+      "attach-probe",
+      "+set",
+      "dedicated",
+      "1",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_joystick",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "s_initsound",
+      "0",
+      "+set",
+      "logfile",
+      "4",
+      "+set",
+      "developer",
+      "1",
+      "+set",
+      "net_enabled",
+      "1",
+      "+set",
+      "net_ip",
+      "127.0.0.1",
+      "+set",
+      "net_port",
+      "0",
+      "+set",
+      "sv_pure",
+      "0",
+      "+set",
+      "bot_enable",
+      "0",
+      "+map",
+      "mp/ffa1"
+    ],
+    "observedAtUTC": "2026-10-06T17:17:03.100455+00:00",
+    "queries": 60,
+    "passed": true,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "homeRemoved": true,
+    "identities": [
+      "attached root == parent bolt bit for bit (m1_root == body_r_hand, m2_root == body_rhand_bone, m3_root == m1_flash) in every phase",
+      "self-linked, never-posed model answers the fixed axes with result 1"
+    ],
+    "markers": [
+      "JKA_ATTACH init=0",
+      "JKA_ATTACH bolt_r_hand=0",
+      "JKA_ATTACH bolt_l_hand=1",
+      "JKA_ATTACH bolt_rhand=2",
+      "JKA_ATTACH weapon_init=0",
+      "JKA_ATTACH weapon_flash=0",
+      "JKA_ATTACH weapon_root=1",
+      "JKA_ATTACH phase=initial query=body_r_hand model=0 bolt=0 op=587 result=1 bits=3d6de678,3e2738eb,3f7c201a,bf645e51,bf735595,3e9f090c,3b95281f,c1e3dba9,be9c3f6b,bf6fb815,3e316c41,41d16a5e",
+      "JKA_ATTACH phase=initial query=body_l_hand model=0 bolt=1 op=587 result=1 bits=3d6f71ad,be26e7e6,3f7c21ff,bf656a4f,3f73641b,3e9eaed9,bba86db6,41e3a9ac,be9bdb60,3f6fca8e,3e313cdd,41d23976",
+      "JKA_ATTACH phase=initial query=body_rhand_bone model=0 bolt=2 op=587 result=1 bits=bc0e44bb,3dbf89b1,bf7ede46,bf8f01c7,3dbfd1a4,bf7dbce1,bdc05e0c,c1cc88c0,bf7edd6e,bdc0a3fa,b9270179,41daff0e",
+      "JKA_ATTACH phase=initial query=m1_flash model=1 bolt=0 op=587 result=1 bits=3d4a2bdc,3e1e6dbb,3f7c9a08,406c3ce7,bf738a5a,3e9dc8fc,ba402aff,c225ba3f,be9bbfa7,bf704c5a,3e264b3c,41af0d30",
+      "JKA_ATTACH phase=initial query=m1_root model=1 bolt=1 op=587 result=1 bits=3d6de678,3e2738eb,3f7c201a,bf645e51,bf735595,3e9f090c,3b95281f,c1e3dba9,be9c3f6b,bf6fb815,3e316c41,41d16a5e",
+      "JKA_ATTACH phase=initial query=m2_flash model=2 bolt=0 op=587 result=1 bits=ba0cc82e,3dd192e7,bf7ea7f5,c060e4e2,3dc6afe6,bf7d741a,bdd0b102,c1cb7539,bf7ecada,bdc5c193,bc19f184,4193dbfb",
+      "JKA_ATTACH phase=initial query=m2_root model=2 bolt=1 op=587 result=1 bits=bc0e44bb,3dbf89b1,bf7ede46,bf8f01c7,3dbfd1a4,bf7dbce1,bdc05e0c,c1cc88c0,bf7edd6e,bdc0a3fa,b9270179,41daff0e",
+      "JKA_ATTACH phase=initial query=m3_flash model=3 bolt=0 op=587 result=1 bits=3d267871,3e159889,3f7d0a28,4102762b,bf73bbd1,3e9c8e8a,bbc61a88,c259a810,be9b32d4,bf70da2f,3e1b274e,418c75ab",
+      "JKA_ATTACH phase=initial query=m3_root model=3 bolt=1 op=587 result=1 bits=3d4a2bdc,3e1e6dbb,3f7c9a08,406c3ce7,bf738a5a,3e9dc8fc,ba402aff,c225ba3f,be9bbfa7,bf704c5a,3e264b3c,41af0d30",
+      "JKA_ATTACH phase=initial query=unposed_flash model=0 bolt=0 op=587 result=1 bits=3f800000,b24cde2e,00000000,00000000,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,00000000",
+      "JKA_ATTACH bend=thoracic model=0 result=1",
+      "JKA_ATTACH phase=body_bend query=body_r_hand model=0 bolt=0 op=587 result=1 bits=3eda8f34,3e574d74,3f6128cf,4106b50c,3f5fa209,3e1f4f16,beec1e9a,41aceec5,be6f6875,3f771698,bdf02702,41037435",
+      "JKA_ATTACH phase=body_bend query=body_l_hand model=0 bolt=1 op=587 result=1 bits=be59ae28,bed66c8a,3f62024b,c12c2624,bf1e26fd,bf2474de,bee83053,c1b8a335,3f41cf5a,bf244db5,bdfa30b3,42174b4a",
+      "JKA_ATTACH phase=body_bend query=body_rhand_bone model=0 bolt=2 op=587 result=1 bits=3e09a7aa,3edf7287,bf63bfb0,40e0a922,3ed6f2b3,3f49c1e6,3ee678b4,41969c0d,3f65c890,bede3588,bd9e4287,410b564a",
+      "JKA_ATTACH phase=body_bend query=m1_flash model=1 bolt=0 op=587 result=1 bits=3ed67a5a,3e506985,3f628aa4,418e2478,3f608414,3e25bc03,bee79e7e,42009bbe,be70f1de,3f77317c,bde2b552,40a83625",
+      "JKA_ATTACH phase=body_bend query=m1_root model=1 bolt=1 op=587 result=1 bits=3eda8f34,3e574d74,3f6128cf,4106b50c,3f5fa209,3e1f4f16,beec1e9a,41aceec5,be6f6875,3f771698,bdf02702,41037435",
+      "JKA_ATTACH phase=body_bend query=m2_flash model=2 bolt=0 op=587 result=1 bits=3e102e57,3ee3aac8,bf6272ab,40c9f89c,3ed3f4d2,3f490062,3eebd27b,41c00694,3f663a9d,bedcb157,bd9695c8,418258aa",
+      "JKA_ATTACH phase=body_bend query=m2_root model=2 bolt=1 op=587 result=1 bits=3e09a7aa,3edf7287,bf63bfb0,40e0a922,3ed6f2b3,3f49c1e6,3ee678b4,41969c0d,3f65c890,bede3588,bd9e4287,410b564a",
+      "JKA_ATTACH phase=body_bend query=m3_flash model=3 bolt=0 op=587 result=1 bits=3ed261f2,3e497385,3f63e423,41d82a6f,3f61602d,3e2c1703,bee3136e,422b175a,be728a24,3f774854,bdd547b2,4013466f",
+      "JKA_ATTACH phase=body_bend query=m3_root model=3 bolt=1 op=587 result=1 bits=3ed67a5a,3e506985,3f628aa4,418e2478,3f608414,3e25bc03,bee79e7e,42009bbe,be70f1de,3f77317c,bde2b552,40a83625",
+      "JKA_ATTACH phase=body_bend query=unposed_flash model=0 bolt=0 op=587 result=1 bits=3f800000,b24cde2e,00000000,00000000,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,00000000",
+      "JKA_ATTACH phase=spatial_op587 query=body_r_hand model=0 bolt=0 op=587 result=1 bits=3db29d0d,3f12105a,3f510d65,41b83016,3f7a6ab8,be5111a1,3d1c6423,3f854597,3e41091f,3f4ba3ff,bf136fce,41a90bd2",
+      "JKA_ATTACH phase=spatial_op587 query=body_l_hand model=0 bolt=1 op=587 result=1 bits=3e8c1a96,bf0272c0,3f50d5b8,40e14d42,bf68ef3e,bed2f98d,3d43e55c,c23564f0,3e9fa09b,bf415e89,bf138f7f,422869f4",
+      "JKA_ATTACH phase=spatial_op587 query=body_rhand_bone model=0 bolt=2 op=587 result=1 bits=3ed6776b,3cda5f84,bf685ce1,41a8ac73,3bdc0750,3f7fda33,3d0523be,bfb7cd3c,3f687377,bca17caa,3ed64654,41abc5c9",
+      "JKA_ATTACH phase=spatial_op587 query=m1_flash model=1 bolt=0 op=587 result=1 bits=3da17da6,3f1042f4,3f52842e,4213f66f,3f7a75c4,be4ee394,3d36d69b,416302db,3e43e3a3,3f4d0f3e,bf1137d5,4186f2e2",
+      "JKA_ATTACH phase=spatial_op587 query=m1_root model=1 bolt=1 op=587 result=1 bits=3db29d0d,3f12105a,3f510d65,41b83016,3f7a6ab8,be5111a1,3d1c6423,3f854597,3e41091f,3f4ba3ff,bf136fce,41a90bd2",
+      "JKA_ATTACH phase=spatial_op587 query=m2_flash model=2 bolt=0 op=587 result=1 bits=3eda57e9,3d12920a,bf675f93,41b4ba20,3b7d2ad9,3f7fc760,3d297f2c,c04c69b6,3f678d72,bcad2a83,3eda157d,41ea3147",
+      "JKA_ATTACH phase=spatial_op587 query=m2_root model=2 bolt=1 op=587 result=1 bits=3ed6776b,3cda5f84,bf685ce1,41a8ac73,3bdc0750,3f7fda33,3d0523be,bfb7cd3c,3f687377,bca17caa,3ed64654,41abc5c9",
+      "JKA_ATTACH phase=spatial_op587 query=m3_flash model=3 bolt=0 op=587 result=1 bits=3d904ef2,3f0e70ca,3f53f249,424b21bb,3f7a7ce6,be4cc45e,3d515cac,41da5162,3e46a70e,3f4e75fa,bf0efb11,414aebdf",
+      "JKA_ATTACH phase=spatial_op587 query=m3_root model=3 bolt=1 op=587 result=1 bits=3da17da6,3f1042f4,3f52842e,4213f66f,3f7a75c4,be4ee394,3d36d69b,416302db,3e43e3a3,3f4d0f3e,bf1137d5,4186f2e2",
+      "JKA_ATTACH phase=spatial_op587 query=unposed_flash model=0 bolt=0 op=587 result=1 bits=3f601bec,be58b976,3ede7d9f,40e00000,3ed101f0,3f4e1dd3,bedc47f8,c1300000,be8483ee,3f0dd510,3f4a8eb6,41500000",
+      "JKA_ATTACH phase=spatial_op588 query=body_r_hand model=0 bolt=0 op=588 result=1 bits=3db29d0d,3f12105a,3f510d65,41b83016,3f7a6ab8,be5111a1,3d1c6423,3f854597,3e41091f,3f4ba3ff,bf136fce,41a90bd2",
+      "JKA_ATTACH phase=spatial_op588 query=body_l_hand model=0 bolt=1 op=588 result=1 bits=3e8c1a96,bf0272c0,3f50d5b8,40e14d42,bf68ef3e,bed2f98d,3d43e55c,c23564f0,3e9fa09b,bf415e89,bf138f7f,422869f4",
+      "JKA_ATTACH phase=spatial_op588 query=body_rhand_bone model=0 bolt=2 op=588 result=1 bits=3ed6776b,3cda5f84,bf685ce1,41a8ac73,3bdc0750,3f7fda33,3d0523be,bfb7cd3c,3f687377,bca17caa,3ed64654,41abc5c9",
+      "JKA_ATTACH phase=spatial_op588 query=m1_flash model=1 bolt=0 op=588 result=1 bits=3da17da6,3f1042f4,3f52842e,4213f66f,3f7a75c4,be4ee394,3d36d69b,416302db,3e43e3a3,3f4d0f3e,bf1137d5,4186f2e2",
+      "JKA_ATTACH phase=spatial_op588 query=m1_root model=1 bolt=1 op=588 result=1 bits=3db29d0d,3f12105a,3f510d65,41b83016,3f7a6ab8,be5111a1,3d1c6423,3f854597,3e41091f,3f4ba3ff,bf136fce,41a90bd2",
+      "JKA_ATTACH phase=spatial_op588 query=m2_flash model=2 bolt=0 op=588 result=1 bits=3eda57e9,3d12920a,bf675f93,41b4ba20,3b7d2ad9,3f7fc760,3d297f2c,c04c69b6,3f678d72,bcad2a83,3eda157d,41ea3147",
+      "JKA_ATTACH phase=spatial_op588 query=m2_root model=2 bolt=1 op=588 result=1 bits=3ed6776b,3cda5f84,bf685ce1,41a8ac73,3bdc0750,3f7fda33,3d0523be,bfb7cd3c,3f687377,bca17caa,3ed64654,41abc5c9",
+      "JKA_ATTACH phase=spatial_op588 query=m3_flash model=3 bolt=0 op=588 result=1 bits=3d904ef2,3f0e70ca,3f53f249,424b21bb,3f7a7ce6,be4cc45e,3d515cac,41da5162,3e46a70e,3f4e75fa,bf0efb11,414aebdf",
+      "JKA_ATTACH phase=spatial_op588 query=m3_root model=3 bolt=1 op=588 result=1 bits=3da17da6,3f1042f4,3f52842e,4213f66f,3f7a75c4,be4ee394,3d36d69b,416302db,3e43e3a3,3f4d0f3e,bf1137d5,4186f2e2",
+      "JKA_ATTACH phase=spatial_op588 query=unposed_flash model=0 bolt=0 op=588 result=1 bits=3f601bec,be58b976,3ede7d9f,40e00000,3ed101f0,3f4e1dd3,bedc47f8,c1300000,be8483ee,3f0dd510,3f4a8eb6,41500000",
+      "JKA_ATTACH phase=spatial_op589 query=body_r_hand model=0 bolt=0 op=589 result=1 bits=3f12105a,bdb29d0c,3f510d65,41b83016,be5111a0,bf7a6ab8,3d1c6423,3f854597,3f4ba3ff,be41091e,bf136fce,41a90bd2",
+      "JKA_ATTACH phase=spatial_op589 query=body_l_hand model=0 bolt=1 op=589 result=1 bits=bf0272c0,be8c1a96,3f50d5b8,40e14d42,bed2f98d,3f68ef3e,3d43e55c,c23564f0,bf415e89,be9fa09b,bf138f7f,422869f4",
+      "JKA_ATTACH phase=spatial_op589 query=body_rhand_bone model=0 bolt=2 op=589 result=1 bits=3cda5f87,bed6776b,bf685ce1,41a8ac73,3f7fda33,bbdc0736,3d0523be,bfb7cd3c,bca17ca4,bf687377,3ed64654,41abc5c9",
+      "JKA_ATTACH phase=spatial_op589 query=m1_flash model=1 bolt=0 op=589 result=1 bits=3f1042f4,bda17da5,3f52842e,4213f66f,be4ee393,bf7a75c4,3d36d69b,416302db,3f4d0f3e,be43e3a2,bf1137d5,4186f2e2",
+      "JKA_ATTACH phase=spatial_op589 query=m1_root model=1 bolt=1 op=589 result=1 bits=3f12105a,bdb29d0c,3f510d65,41b83016,be5111a0,bf7a6ab8,3d1c6423,3f854597,3f4ba3ff,be41091e,bf136fce,41a90bd2",
+      "JKA_ATTACH phase=spatial_op589 query=m2_flash model=2 bolt=0 op=589 result=1 bits=3d12920b,beda57e9,bf675f93,41b4ba20,3f7fc760,bb7d2aa6,3d297f2c,c04c69b6,bcad2a7d,bf678d72,3eda157d,41ea3147",
+      "JKA_ATTACH phase=spatial_op589 query=m2_root model=2 bolt=1 op=589 result=1 bits=3cda5f87,bed6776b,bf685ce1,41a8ac73,3f7fda33,bbdc0736,3d0523be,bfb7cd3c,bca17ca4,bf687377,3ed64654,41abc5c9",
+      "JKA_ATTACH phase=spatial_op589 query=m3_flash model=3 bolt=0 op=589 result=1 bits=3f0e70ca,bd904ef1,3f53f249,424b21bb,be4cc45d,bf7a7ce6,3d515cac,41da5162,3f4e75fa,be46a70d,bf0efb11,414aebdf",
+      "JKA_ATTACH phase=spatial_op589 query=m3_root model=3 bolt=1 op=589 result=1 bits=3f1042f4,bda17da5,3f52842e,4213f66f,be4ee393,bf7a75c4,3d36d69b,416302db,3f4d0f3e,be43e3a2,bf1137d5,4186f2e2",
+      "JKA_ATTACH phase=spatial_op589 query=unposed_flash model=0 bolt=0 op=589 result=1 bits=be58b975,bf601bec,3ede7d9f,40e00000,3f4e1dd3,bed101f0,bedc47f8,c1300000,3f0dd510,3e8483ee,3f4a8eb6,41500000",
+      "JKA_ATTACH bend=ModView internal default model=1 result=1",
+      "JKA_ATTACH phase=weapon_bend query=body_r_hand model=0 bolt=0 op=587 result=1 bits=3eda8f34,3e574d74,3f6128cf,4106b50c,3f5fa209,3e1f4f16,beec1e9a,41aceec5,be6f6875,3f771698,bdf02702,41037435",
+      "JKA_ATTACH phase=weapon_bend query=body_l_hand model=0 bolt=1 op=587 result=1 bits=be59ae28,bed66c8a,3f62024b,c12c2624,bf1e26fd,bf2474de,bee83053,c1b8a335,3f41cf5a,bf244db5,bdfa30b3,42174b4a",
+      "JKA_ATTACH phase=weapon_bend query=body_rhand_bone model=0 bolt=2 op=587 result=1 bits=3e09a7aa,3edf7287,bf63bfb0,40e0a922,3ed6f2b3,3f49c1e6,3ee678b4,41969c0d,3f65c890,bede3588,bd9e4287,410b564a",
+      "JKA_ATTACH phase=weapon_bend query=m1_flash model=1 bolt=0 op=587 result=1 bits=bf2fab27,bf0c2072,3ef548b6,3eae03a0,bf3a2d4d,3f07a202,bedf68aa,4124457e,bc756050,bf25d813,bf42faca,40934278",
+      "JKA_ATTACH phase=weapon_bend query=m1_root model=1 bolt=1 op=587 result=1 bits=bf2efa62,bf0a94f1,3efab58a,4106b50c,bf3ac5b6,3f071f2e,bedea89a,41aceec5,bcbcbd89,bf278cf2,bf417698,41037435",
+      "JKA_ATTACH phase=weapon_bend query=m2_flash model=2 bolt=0 op=587 result=1 bits=3e102e57,3ee3aac8,bf6272ab,40c9f89c,3ed3f4d2,3f490062,3eebd27b,41c00694,3f663a9d,bedcb157,bd9695c8,418258aa",
+      "JKA_ATTACH phase=weapon_bend query=m2_root model=2 bolt=1 op=587 result=1 bits=3e09a7aa,3edf7287,bf63bfb0,40e0a922,3ed6f2b3,3f49c1e6,3ee678b4,41969c0d,3f65c890,bede3588,bd9e4287,410b564a",
+      "JKA_ATTACH phase=weapon_bend query=m3_flash model=3 bolt=0 op=587 result=1 bits=bf30550c,bf0da637,3eefd1fc,c0fa4391,bf39946c,3f08260f,bee023db,bf86f37f,bbe17b7b,bf241e73,bf4476a2,3f8a9a22",
+      "JKA_ATTACH phase=weapon_bend query=m3_root model=3 bolt=1 op=587 result=1 bits=bf2fab27,bf0c2072,3ef548b6,3eae03a0,bf3a2d4d,3f07a202,bedf68aa,4124457e,bc756050,bf25d813,bf42faca,40934278",
+      "JKA_ATTACH phase=weapon_bend query=unposed_flash model=0 bolt=0 op=587 result=1 bits=3f800000,b24cde2e,00000000,00000000,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,00000000",
+      "JKA_ATTACH cleaned=1",
+      "JKA_ATTACH COMPLETE"
+    ]
+  },
+  "comparison": {
+    "host": ".tmp/jka-attach/compare-host.cpp (not committed), the probe sequence through fntech3::ghoul2::Store",
+    "engines": {
+      "fntech3": {
+        "retailQueries": 60,
+        "compared": 54,
+        "maximumRotationDifference": 7.510185241699219e-06,
+        "maximumTranslationDifference": 0.0001068115234375,
+        "rotationTolerance": 5e-05,
+        "translationToleranceUnits": 0.0002,
+        "withinTolerance": 54,
+        "mismatched": [],
+        "mismatchedCount": 0,
+        "notAnswered": [
+          "initial/unposed_flash (never posed by retail's model sort)",
+          "body_bend/unposed_flash (never posed by retail's model sort)",
+          "spatial_op587/unposed_flash (never posed by retail's model sort)",
+          "spatial_op588/unposed_flash (never posed by retail's model sort)",
+          "spatial_op589/unposed_flash (never posed by retail's model sort)",
+          "weapon_bend/unposed_flash (never posed by retail's model sort)"
+        ]
+      },
+      "fntech3-earlier": {
+        "retailQueries": 60,
+        "compared": 60,
+        "maximumRotationDifference": 1.9911633133888245,
+        "maximumTranslationDifference": 56.16250205039978,
+        "rotationTolerance": 5e-05,
+        "translationToleranceUnits": 0.0002,
+        "withinTolerance": 6,
+        "mismatched": [
+          {
+            "query": "initial/body_r_hand",
+            "rotation": 1.6266332864761353,
+            "translation": 0.5709114074707031
+          },
+          {
+            "query": "initial/body_l_hand",
+            "rotation": 1.3037032783031464,
+            "translation": 0.5710926055908203
+          },
+          {
+            "query": "initial/m1_flash",
+            "rotation": 1.846877098083496,
+            "translation": 43.180259466171265
+          },
+          {
+            "query": "initial/m1_root",
+            "rotation": 0.9848648309707642,
+            "translation": 28.482255935668945
+          },
+          {
+            "query": "initial/m2_flash",
+            "rotation": 1.009321216493845,
+            "translation": 27.1806161403656
+          },
+          {
+            "query": "initial/m2_root",
+            "rotation": 1.9911633133888245,
+            "translation": 27.37453842163086
+          },
+          {
+            "query": "initial/m3_flash",
+            "rotation": 1.8476318717002869,
+            "translation": 56.16250205039978
+          },
+          {
+            "query": "initial/m3_root",
+            "rotation": 0.9867253303527832,
+            "translation": 41.431880950927734
+          },
+          {
+            "query": "initial/unposed_flash",
+            "rotation": 1.4449469447135925,
+            "translation": 13.88851547241211
+          },
+          {
+            "query": "body_bend/body_r_hand",
+            "rotation": 1.2092157751321793,
+            "translation": 0.5884637832641602
+          },
+          {
+            "query": "body_bend/body_l_hand",
+            "rotation": 1.6546340584754944,
+            "translation": 0.3916759490966797
+          },
+          {
+            "query": "body_bend/m1_flash",
+            "rotation": 1.1106226593255997,
+            "translation": 30.40371346473694
+          }
+        ],
+        "mismatchedCount": 54,
+        "notAnswered": []
+      }
+    }
+  },
+  "liveSessions": {
+    "command": "python scripts/probe_legacy_sessions.py --profiles jka-mp --directions join --runtime .tmp/runtime/jka-live-join --sessions main kick",
+    "runs": {
+      "sess-1": {
+        "note": "this slice",
+        "maps": [
+          "mp/ffa1",
+          "mp/ffa3"
+        ],
+        "pure": true,
+        "installationUnchanged": true,
+        "sessions": [
+          {
+            "session": "main",
+            "steps": {
+              "server-ready": true,
+              "join": true,
+              "client-chat": true,
+              "server-chat": true,
+              "map-change": true,
+              "map-restart": false,
+              "reconnect": false,
+              "server-quit": false
+            },
+            "clientSha256": "0c68056b09e5e7084029ee4d82b288e8e490269d45e230208188b0f4458b3614",
+            "serverSha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+            "clientExit": 1,
+            "clientForced": true,
+            "serverExit": 0
+          },
+          {
+            "session": "kick",
+            "steps": {
+              "server-ready": true,
+              "kick-join": true,
+              "kick": true
+            },
+            "clientSha256": "0c68056b09e5e7084029ee4d82b288e8e490269d45e230208188b0f4458b3614",
+            "serverSha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+            "clientExit": 1,
+            "clientForced": true,
+            "serverExit": 0
+          }
+        ],
+        "nextRefusal": "Jedi Academy cgame unsupported Raven renderer entity flags (type=0, flags=0x800)"
+      }
+    },
+    "diagnostic": {
+      "note": "temporary changes in the export only, not committed; committed fntech3.exe restored bit for bit",
+      "sess-2-diag": {
+        "change": "0x800 ignored on plain entities",
+        "maps": [
+          "mp/ffa1",
+          "mp/ffa3"
+        ],
+        "pure": true,
+        "installationUnchanged": true,
+        "sessions": [
+          {
+            "session": "main",
+            "steps": {
+              "server-ready": true,
+              "join": true,
+              "client-chat": true,
+              "server-chat": true,
+              "map-change": true,
+              "map-restart": false,
+              "reconnect": false,
+              "server-quit": false
+            },
+            "clientSha256": "617c5b6760d7842d5dd515bbaaa01bd95d4eafa48c2d97aa0c573bd097039451",
+            "serverSha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+            "clientExit": 1,
+            "clientForced": true,
+            "serverExit": 0
+          }
+        ],
+        "stop": "unsupported Raven renderer entity flags (type=0, flags=0xc00)",
+        "clientSha256": "617c5b6760d7842d5dd515bbaaa01bd95d4eafa48c2d97aa0c573bd097039451"
+      },
+      "sess-3-diag": {
+        "change": "0x400 and 0x800 ignored",
+        "maps": [
+          "mp/ffa1",
+          "mp/ffa3"
+        ],
+        "pure": true,
+        "installationUnchanged": true,
+        "sessions": [
+          {
+            "session": "main",
+            "steps": {
+              "server-ready": true,
+              "join": true,
+              "client-chat": true,
+              "server-chat": true,
+              "map-change": true,
+              "map-restart": false,
+              "reconnect": false,
+              "server-quit": false
+            },
+            "clientSha256": "95cc7b9805d9b22d4af9a3a54a692f5b8a186994c5a4148099ecc6f6abae935f",
+            "serverSha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+            "clientExit": 1,
+            "clientForced": true,
+            "serverExit": 0
+          }
+        ],
+        "stop": "Jedi Academy cgame active ambient playback is not served (name=city_outdoor)"
+      },
+      "sess-4-diag-ffa1": {
+        "change": "0x400 and 0x800 ignored; second map mp/ffa1",
+        "maps": [
+          "mp/ffa1",
+          "mp/ffa1"
+        ],
+        "pure": true,
+        "installationUnchanged": true,
+        "sessions": [
+          {
+            "session": "main",
+            "steps": {
+              "server-ready": true,
+              "join": true,
+              "client-chat": true,
+              "server-chat": true,
+              "map-change": true,
+              "map-restart": true,
+              "reconnect": false,
+              "server-quit": false
+            },
+            "clientSha256": "95cc7b9805d9b22d4af9a3a54a692f5b8a186994c5a4148099ecc6f6abae935f",
+            "serverSha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+            "clientExit": 1,
+            "clientForced": true,
+            "serverExit": 0
+          }
+        ],
+        "flushes": 6,
+        "firstFlush": "[0 models/players/kyle/model.glm link=-1 root=(0.00 0.00 -24.00)] [1 models/weapons2/blaster_pistol/blaster_pistol_w.glm link=0 root=(-0.34 -29.20 26.52)]",
+        "stop": "Unsupported jka-mp cgame import 201 (CG_R_CLEARDECALS)"
+      },
+      "sess-5-diag-capture": {
+        "change": "as sess-4; join, map change, third-person screenshots",
+        "maps": [
+          "mp/ffa1",
+          "mp/ffa1"
+        ],
+        "pure": true,
+        "installationUnchanged": true,
+        "sessions": [
+          {
+            "session": "main",
+            "steps": {
+              "server-ready": true,
+              "join": true,
+              "map-change": true,
+              "capture": true
+            },
+            "clientSha256": "95cc7b9805d9b22d4af9a3a54a692f5b8a186994c5a4148099ecc6f6abae935f",
+            "serverSha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+            "clientExit": 0,
+            "clientForced": false,
+            "serverExit": 0
+          }
+        ],
+        "finding": "client is a spectator; no attached model in view"
+      }
+    }
+  },
+  "presentation": "Each model its own Fn runtime-MDR entity with the instance placement: Fn materials and skins, entity lighting, dynamic lights, shadows, FOV/HUD/capture/liquid/highlight hooks; LOD 0; retail bone smoothing not reproduced and no retail-exact option added",
+  "otherProfiles": "Server (Academy and Outcast MP), UI and SP stores keep links unposed and the earlier tag frame; retail difference measured above; correction left to the server gameplay gate",
+  "mutations": {
+    "tag-origin-p0": "killed",
+    "tag-columns-swapped": "killed",
+    "tag-no-orthogonalize": "killed",
+    "tag-normal-sign": "killed",
+    "tag-triangle-corners": "killed",
+    "link-ignored": "killed",
+    "order-keeps-cycles": "killed",
+    "default-link-zero": "killed",
+    "model-shift-9": "killed",
+    "unmutated": "passed"
+  },
+  "tests": [
+    "tests/jka_cgame_attachment_tests.py (new; ordinary and fast-math)",
+    "tests/jka_cgame_render_tests.py (per-model key; self link not drawn; two unlinked models drawn)",
+    "tests/raven_ghoul2_server_tests.cpp (retail -1 default)"
+  ],
+  "suite": {
+    "export": "HEAD 192c321f plus this slice",
+    "meson": {
+      "tests": 249,
+      "passed": 246,
+      "skipped": 2,
+      "timedOut": [
+        "fntech3_jka_pose_host (35.8 s in the parallel run; 19.3 s alone, previous export 18.4 s)"
+      ],
+      "excluded": "fnql_python_source_regressions (the pytest wrapper)"
+    },
+    "pytest": {
+      "passed": 2539,
+      "skipped": 129,
+      "failed": 0
+    }
+  },
+  "open": [
+    "RF_RGB_TINT (0x800) and RF_FORCE_ENT_ALPHA (0x400) on plain entities",
+    "active ambient set city_outdoor (import 48) on mp/ffa3",
+    "import 201 CG_R_CLEARDECALS",
+    "map_restart, reconnect and server quit with the committed build",
+    "server, UI and SP stores: links and tag frame",
+    "capture of an attached model; owning entity",
+    "bone smoothing, LODs above 0, model scale, embedded skeletons"
+  ]
+}

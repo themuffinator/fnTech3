@@ -153,7 +153,7 @@ int main(){
  assert(captured.renderfx==(RF_THIRD_PERSON|RF_LIGHTING_ORIGIN));
  record.origin[0]=19;ClearScene();jkaCgameBoneClocks.BeginFrame(100,false);Queue(record);Queue(record);Render(view);
  assert(registrations==1&&updates==2&&draws==3&&renders==2);
- pose::Palette expected;const auto &model=CL_JKACgameRenderModel(identity);
+ pose::Palette expected;const auto &model=*CL_JKACgameGhoul2Resolve(identity)->At(0);
  assert(CL_JKACgameGhoul2Store().DeformationPalette(model,100,expected));
  for(std::size_t n=0;n<matrices.size();++n)assert(matrices[n]==expected.deformation[n/12][n%12]);
  for(int axis=0;axis<3;++axis)assert(capturedMins[axis]<=capturedMaxs[axis]);
@@ -184,8 +184,8 @@ int main(){
  setSkin[4]=skin;assert(Invoke(setSkin)==1);Queue(record);Render(view);assert(draws==4&&registrations==2);
  assert(owners.at(submitted.back().hModel)>firstOwner);ClearScene();
  // Unknown topology flags and stale skin declarations refuse before drawing.
- scene::state.models.at(identity).geometry.surfaces[0].metadata.flags=0x80000000;
- Queue(record);Reject([&]{Render(view);});ClearScene();scene::state.models.at(identity).geometry.surfaces[0].metadata.flags=0;
+ scene::state.models.at({identity,0}).geometry.surfaces[0].metadata.flags=0x80000000;
+ Queue(record);Reject([&]{Render(view);});ClearScene();scene::state.models.at({identity,0}).geometry.surfaces[0].metadata.flags=0;
  jkaCgameSkins->bindings[bindingKey].overrides[32]=0;Queue(record);Reject([&]{Render(view);});ClearScene();
  jkaCgameSkins->bindings[bindingKey].overrides.erase(32);
  const auto renderSkin=jkaCgameSkins->bindings[bindingKey].renderSkin;jkaCgameSkins->bindings[bindingKey].renderSkin=999;
@@ -207,7 +207,7 @@ int main(){
  if(!setjmp(recovery)){Render(view);assert(false);}
  jumpRecovery=false;registerFailure=false;
  assert(!jkaCgameGhoul2Store&&!jkaCgameSkins&&scene::state.models.empty()&&scene::state.pending.empty());
- assert(scene::state.bytes.empty()&&scene::state.pose.deformation.empty()&&!jkaCgameBoneClocks.FrameReady());
+ assert(scene::state.bytes.empty()&&scene::state.palettes.empty()&&!jkaCgameBoneClocks.FrameReady());
  // A real two-surface hierarchy exercises default flags, overrides and
  // descendant suppression through the same owned registration/flush path.
  auto weighted=GeometryFixture();model::Reader reader(weighted.data(),weighted.size());
@@ -223,7 +223,7 @@ int main(){
  skinArgs[1]=reinterpret_cast<intptr_t>("models/players/weighted/all.skin");const auto allSkin=Invoke(skinArgs);
  setSkin[1]=identity;setSkin[3]=setSkin[4]=allSkin;assert(Invoke(setSkin)==1);
  jkaCgameBoneClocks.BeginFrame(100,false);Queue(record);Render(view);ClearScene();
- auto &runtime=scene::state.models.at(identity);assert(runtime.visible==std::vector<int>({0,1}));
+ auto &runtime=scene::state.models.at({identity,0});assert(runtime.visible==std::vector<int>({0,1}));
  auto &visibility=jkaCgameSkins->bindings.at({identity,0}).overrides;
  for(std::uint32_t flags:{1u,2u,0x102u}){
   visibility[0]=flags;Queue(record);Render(view);ClearScene();
@@ -233,13 +233,18 @@ int main(){
  visibility.clear();
  auto *owned=const_cast<fntech3::ghoul2::Model *>(CL_JKACgameGhoul2Resolve(identity)->At(0));
  const auto skeleton=owned->skeletonBytes;owned->skeletonBytes=nullptr;Reject([&]{Queue(record);});owned->skeletonBytes=skeleton;
- owned->boltInfo=1;Reject([&]{Queue(record);});owned->boltInfo=0;
+ // A model linked to its own bolt is never reached by retail's sort: no draw.
+ owned->boltInfo=1;{const int before=draws;Queue(record);Render(view);ClearScene();assert(draws==before);}
+ owned->boltInfo=fntech3::ghoul2::link::None;
  const auto customSkin=owned->customSkin;owned->customSkin=999;Reject([&]{Queue(record);});owned->customSkin=customSkin;
  // Cleanup after queueing invalidates the copied identity before any draw.
  Queue(record);const int beforeStale=draws;
  CL_JKACgameGhoul2Store().Clear();Reject([&]{Render(view);});assert(draws==beforeStale);ClearScene();
  identity=0;assert(Invoke(init)==0&&identity);record.ghoul2=identity;
- assert(Invoke(init)==1&&CL_JKACgameGhoul2Resolve(identity)->Count()==2);Reject([&]{Queue(record);});
+ // Two unlinked models are both drawn from the root basis, one Fn entity each.
+ assert(Invoke(init)==1&&CL_JKACgameGhoul2Resolve(identity)->Count()==2);
+ {const int before=draws;Queue(record);Render(view);assert(draws==before+2);
+  assert(submitted.size()==2&&submitted[0].hModel!=submitted[1].hModel);ClearScene();}
  CL_JKACgameClear();
  assert(opens==closes);
 }

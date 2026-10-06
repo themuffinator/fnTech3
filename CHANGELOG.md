@@ -85,6 +85,14 @@ historical upstream records, not fnTech3 release history. See the
   Academy's map-change call as Enemy Territory's snapshot query, which shares
   its number. On the new map the client still stops where its game draws a
   player carrying a weapon ([record](docs/fntech3/2026-10-06-jka-live-join.md)).
+- Draw Jedi Academy's multiplayer models that hang from another, such as the
+  weapon in a player's hand. A model the client game links to another's bolt
+  is posed from that bolt with its own skeleton, in the original engine's
+  order and with its frame for tag surfaces, and drawn through fnTech3's own
+  skeletal path with its materials, lighting and shadows; the client game's
+  bolt queries, such as a weapon's muzzle, answer from the same pose. On a
+  retail server the client now passes the weapon and stops next at items
+  fading in with a colour tint ([record](docs/fntech3/2026-10-06-jka-attachments.md)).
 - Answer GameSpy's LAN queries from Medal of Honor servers. A multiplayer
   server, dedicated or started from Start New Server, answers GameSpy's
   status queries on UDP 12300 or the next free port (`net_gamespy_port`,

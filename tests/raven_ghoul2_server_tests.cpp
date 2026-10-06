@@ -259,7 +259,7 @@ static void CheckSkinsGoOnModels()
 	CHECK( !store.OverrideServer( nullptr ) && !store.OverrideServer( &notOurs ) );
 
 	/* Which bolt a model uses is kept the same way and is its own value. */
-	CHECK( store.Resolve( slot )->At( 0 )->boltInfo == 0 );
+	CHECK( store.Resolve( slot )->At( 0 )->boltInfo == ghoul2::link::None );
 	CHECK( store.SetBoltInfo( slot, 0, 0x1234 ) );
 	CHECK( store.Resolve( slot )->At( 0 )->boltInfo == 0x1234 );
 	CHECK( store.Resolve( slot )->At( 0 )->customSkin == 7 );   /* untouched */
