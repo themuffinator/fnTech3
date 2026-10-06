@@ -1463,7 +1463,9 @@ test('fntech3_jka_shader_notc', python, args: files('tests/jka_shader_notc_tests
 test('fntech3_jka_tga_origin', python, args: files('tests/jka_tga_origin_tests.py'))
 test('fntech3_jka_cinematic_path', python, args: files('tests/jka_cinematic_path_tests.py'))
 test('fntech3_jka_ghoul2_cleanup', python, args: files('tests/jka_ghoul2_cleanup_tests.py'))
-test('fntech3_jka_pose_host', python, args: files('tests/jka_pose_tests.py'))
+# Compiles three native fixtures: about 24 s alone and 85 s beside other
+# builds, past Meson's 30 s default.
+test('fntech3_jka_pose_host', python, args: files('tests/jka_pose_tests.py'), timeout: 180)
 test('fntech3_jka_geometry_host', python, args: files('tests/jka_geometry_tests.py'))
 test('fntech3_jka_mdr_host', python, args: files('tests/jka_mdr_tests.py'))
 test('fntech3_jka_ui_render', python, args: files('tests/jka_ui_render_tests.py'))
