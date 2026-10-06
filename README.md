@@ -22,6 +22,18 @@
 
 </div>
 
+> [!IMPORTANT]
+> **Start with a clean game folder.** We recommend running
+> fnTech3 without other asset packages, or custom game code
+> (QVMs), in the game's base folder, such as Quake III Arena's `baseq3`. They
+> can replace files fnTech3 relies on and clash with its
+> features. For example, the baseq3a package brings its own QVMs for Quake III
+> Arena, which may interfere with fnTech3's widescreen
+> correction. To keep using packages like these, turn the corrections off:
+> `r_fovCorrection 0` for the view, `cl_hudAspect 0` for the HUD and
+> `cl_menuAspect 0` for menus. The
+> [Aspect Handling Guide](docs/ASPECT_CORRECTION.md) explains each setting.
+
 ## 1. Introduction
 
 **fnTech3** is a unified source port for id Tech 3 games and for

@@ -299,6 +299,7 @@
       <div class="section-header">
         <h2>1. Introduction</h2>
         <p class="lead"><strong>fnTech3</strong> selects one immutable <strong>game profile</strong> -- the contracts of one game or game mode -- before the filesystem, network, game modules, renderer or any optional service starts. Each game keeps its own module interfaces, protocol, demos, saves, file formats and gameplay. How the engine presents it -- renderers, spatial audio, input, console and screenshots -- is fnTech3's own, fed with that game's data.</p>
+        <p class="lead"><strong>Start with a clean game folder.</strong> We recommend running fnTech3 without other asset packages, or custom game code (QVMs), in the game's base folder, such as Quake III Arena's <code>baseq3</code>. They can replace files fnTech3 relies on and clash with its features. For example, the baseq3a package brings its own QVMs for Quake III Arena, which may interfere with fnTech3's widescreen correction. To keep using packages like these, turn the corrections off: <code>r_fovCorrection 0</code> for the view, <code>cl_hudAspect 0</code> for the HUD and <code>cl_menuAspect 0</code> for menus. The <a href="https://github.com/themuffinator/fnTech3/blob/main/docs/ASPECT_CORRECTION.md">Aspect Handling Guide</a> explains each setting.</p>
       </div>
       <div class="feature-grid">
         <article class="feature-group">
