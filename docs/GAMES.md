@@ -205,6 +205,12 @@ Elite Force executables ([record](fntech3/2026-10-05-legacy-server-hosting.md)).
 - **Ping limits.** `sv_minPing` and `sv_maxPing` turn away internet players
   whose ping lies outside them, as the original games did; LAN players are
   never turned away. Quake Live's engine has neither.
+- **Single-player game types.** A server started from the client answers no
+  LAN browser or remote player while it runs a single-player game type, as
+  Quake III's engine does; Jedi Academy's engine answered in every game type,
+  and so does fnTech3's. `spmap` starts each game's own single-player type,
+  5 in Jedi Academy and 4 in Jedi Outcast
+  ([record](fntech3/2026-10-06-jedi-listen-server-game-types.md)).
 - **Server console chat** is `say` in id's games and `svsay` in Elite Force
   and both Jedi Knight games, as in their original engines; `say` also works
   in every game.

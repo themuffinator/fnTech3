@@ -60,6 +60,9 @@ Start with the [README](../README.md) for an overview, then the
 
 - [October 6 Medal of Honor GameSpy LAN queries](fntech3/2026-10-06-mohaa-gamespy-lan-queries.md)
   -- the GameSpy query port beside the game's, and listen servers' team matches.
+- [October 6 Jedi listen servers and game types](fntech3/2026-10-06-jedi-listen-server-game-types.md)
+  -- each Jedi game's single-player number, `spmap` and `map`, and which
+  game types keep a listen server from remote players.
 - [October 6 Jedi Academy live join](fntech3/2026-10-06-jka-live-join.md)
   -- client-game local sounds, the map-change export and the next boundary
   against retail `jamp.exe`.

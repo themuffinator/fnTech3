@@ -170,7 +170,10 @@ some of them; each says exactly how far it goes.
   fnTech3's inherited `spmap` command sets Quake III's single-player number,
   which under a Jedi Academy profile would select Jedi Master. Retail
   multiplayer has no `spmap` command at all. The server slice owns this; the
-  profile stays runtime-blocked until then.
+  profile stays runtime-blocked until then. (Corrected by the
+  [Jedi listen-server record](2026-10-06-jedi-listen-server-game-types.md):
+  retail `jamp.exe` 1.01 registers `spmap`, which selects 5, and fnTech3's
+  now does the same.)
 - `sv_pure`, `sv_maxclients`, `fraglimit` and the userinfo defaults are
   OpenJK-sourced engine defaults, listed above with their lines, and remain
   open until a retail observation confirms each one.

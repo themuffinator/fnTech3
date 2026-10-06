@@ -47,6 +47,8 @@ int Com_GameIsRTCWMP(){return profile.id==COM_GAME_RTCW_MP;}
 int Com_GameIsRitual(){return profile.id==COM_GAME_ALICE||profile.id==COM_GAME_FAKK2;}
 int Com_GameIsQuakeLive(){return profile.id==COM_GAME_QUAKELIVE;}
 int Com_GameIsMOHAA(){return profile.id==COM_GAME_MOHAA;}
+int Com_GameIsJKAMP(){return profile.id==COM_GAME_JKA_MP;}
+int Com_GameIsJK2MP(){return profile.id==COM_GAME_JK2_MP;}
 // Q3Test drops a client each release's way (server_q3test_net.hpp); the
 // shared path stands in for its catalog entry here.
 int Com_GameIsQ3Test(){return 0;}

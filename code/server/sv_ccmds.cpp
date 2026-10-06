@@ -243,6 +243,12 @@ static void SV_Map_f( void ) {
 			// maps start the campaign with `spmap`); Quake III's 2 is its
 			// team match.
 			Cvar_Set( "g_gametype", serverPolicy.gameType );
+		} else if ( Com_GameIsJKAMP() ) {
+			// Raven's Jedi games number single player after their own modes,
+			// where Quake III's 2 is Jedi Master (SV_GameTypeIsSinglePlayer).
+			Cvar_SetIntegerValue( "g_gametype", SV_JKA_GT_SINGLE_PLAYER );
+		} else if ( Com_GameIsJK2MP() ) {
+			Cvar_SetIntegerValue( "g_gametype", SV_JK2_GT_SINGLE_PLAYER );
 		} else {
 			Cvar_SetIntegerValue( "g_gametype", GT_SINGLE_PLAYER );
 		}
@@ -270,8 +276,13 @@ static void SV_Map_f( void ) {
 		// types differently and changes none of them here: its game reloads
 		// a map in Objective, type 2, by this very command.
 		// Medal of Honor's 2 is team match and its `map` keeps whatever
-		// game type is set, single player included.
-		if( !Com_GameIsWolfET() && !Com_GameIsMOHAA() && sv_gametype->integer == GT_SINGLE_PLAYER ) {
+		// game type is set, single player included. Jedi Outcast turns its
+		// own single player, 4, into a free-for-all (jk2mp.exe 1.02a
+		// 0x447a2c); Jedi Academy's `map` keeps every game type (jamp.exe
+		// 1.01 SV_Map_f, 0x4560b0), where this had made Jedi Master, 2,
+		// into a free-for-all.
+		if( !Com_GameIsWolfET() && !Com_GameIsMOHAA() && !Com_GameIsJKAMP()
+			&& SV_GameTypeIsSinglePlayer( sv_gametype->integer ) ) {
 			Cvar_SetIntegerValue( "g_gametype", GT_FFA );
 			killBots = true;
 		} else {

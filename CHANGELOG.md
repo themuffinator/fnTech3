@@ -95,6 +95,15 @@ historical upstream records, not fnTech3 release history. See the
   player, which had hidden it from the Join LAN Game list and turned away
   every remote player
   ([record](docs/fntech3/2026-10-06-mohaa-gamespy-lan-queries.md)).
+- Give Jedi Academy and Jedi Outcast multiplayer their own single-player game
+  types. `spmap` starts Jedi Academy's single player, 5, and Jedi Outcast's,
+  4, where it had started Jedi Master; `map` keeps every Jedi Academy game
+  type, and in Jedi Outcast turns only single player into a free-for-all, where
+  it had turned Jedi Master into one. A server started from the client hides
+  from LAN browsers and remote players only in Jedi Outcast's single player,
+  and never by game type in Jedi Academy, as each original engine does; a
+  Jedi Master game had been hidden in both
+  ([record](docs/fntech3/2026-10-06-jedi-listen-server-game-types.md)).
 - Stop a long run of strings in a menu or bot file from crashing the game.
   Strings that a `#define` expands to, written side by side, are joined into
   one; the engine joined each by calling itself again, so about a thousand in

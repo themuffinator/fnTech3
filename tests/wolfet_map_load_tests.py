@@ -419,15 +419,19 @@ class WolfETEngineWiringTests(unittest.TestCase):
 
     def test_et_game_types_follow_its_gameinfo(self):
         main = read('code/server/sv_main.cpp')
-        # The status and info replies and the masters' match report.
-        self.assertEqual(main.count('SV_GameTypeIsSinglePlayer( Cvar_VariableIntegerValue( "g_gametype" ) )'), 3)
-        self.assertIn('SV_GameTypeIsSinglePlayer( Cvar_VariableIntegerValue( "g_gametype" ) )',
+        # The status and info replies, through the listen-server rule, and
+        # the masters' match report.
+        self.assertEqual(main.count('SV_GameTypeHidesListenServer( Cvar_VariableIntegerValue( "g_gametype" ) )'), 2)
+        self.assertEqual(main.count('SV_GameTypeIsSinglePlayer( Cvar_VariableIntegerValue( "g_gametype" ) )'), 1)
+        self.assertIn('\treturn SV_GameTypeIsSinglePlayer( gameType );\n}', main)
+        self.assertIn('SV_GameTypeHidesListenServer( Cvar_VariableIntegerValue( "g_gametype" ) )',
                       read('code/server/sv_client.cpp'))
         commands = read('code/server/sv_ccmds.cpp')
-        # Neither ET nor Medal of Honor, whose game type 2 is team match, has
-        # its game type turned into a free-for-all by an ordinary map command.
-        self.assertIn('if( !Com_GameIsWolfET() && !Com_GameIsMOHAA() && sv_gametype->integer == GT_SINGLE_PLAYER ) {',
-                      commands)
+        # Neither ET, nor Medal of Honor, whose game type 2 is team match,
+        # nor Jedi Academy has its game type turned into a free-for-all by an
+        # ordinary map command.
+        self.assertIn('if( !Com_GameIsWolfET() && !Com_GameIsMOHAA() && !Com_GameIsJKAMP()\n'
+                      '\t\t\t&& SV_GameTypeIsSinglePlayer( sv_gametype->integer ) ) {', commands)
         self.assertIn('singlePlayerCommand && Com_GameIsWolfET() && !SV_WolfETSinglePlayerEnabled()', commands)
         self.assertIn('Cvar_Set("g_currentRound", "0");', commands)
         self.assertIn('Cvar_Set("g_nextTimeLimit", "0");', commands)

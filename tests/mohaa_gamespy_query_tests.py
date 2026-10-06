@@ -263,9 +263,14 @@ SINGLE_PLAYER = r'''
 typedef int qboolean;
 enum { qfalse, qtrue };
 enum { GT_FFA, GT_TOURNAMENT, GT_SINGLE_PLAYER };
-static int game; /* 0 Quake III, 1 Enemy Territory, 2 Medal of Honor */
+enum { SV_JKA_GT_SINGLE_PLAYER = 5, SV_JK2_GT_SINGLE_PLAYER = 4 };
+/* 0 Quake III, 1 Enemy Territory, 2 Medal of Honor, 3 Jedi Academy MP,
+ * 4 Jedi Outcast MP */
+static int game;
 static int Com_GameIsWolfET() { return game == 1; }
 static int Com_GameIsMOHAA() { return game == 2; }
+static int Com_GameIsJKAMP() { return game == 3; }
+static int Com_GameIsJK2MP() { return game == 4; }
 static fntech3::wolfet::gameinfo::GameInfo etInfo;
 static const fntech3::wolfet::gameinfo::GameInfo &SV_WolfETGameInfo() { return etInfo; }
 '''
@@ -280,6 +285,12 @@ int main() {
 	assert( SV_GameTypeIsSinglePlayer( 0 ) );
 	for ( int type = 1; type <= 4; type++ ) {
 		assert( !SV_GameTypeIsSinglePlayer( type ) );
+	}
+	/* Jedi Academy's is 5 and Jedi Outcast's 4; 2 is Jedi Master in both */
+	for ( game = 3; game <= 4; game++ ) {
+		for ( int type = 0; type <= 9; type++ ) {
+			assert( !SV_GameTypeIsSinglePlayer( type ) == ( type != ( game == 3 ? 5 : 4 ) ) );
+		}
 	}
 	std::puts( "single-player rule checks passed" );
 	return 0;

@@ -833,6 +833,10 @@ static const fntech3::wolfet::gameinfo::GameInfo &SV_WolfETGameInfo( void ) {
 // match (1.00's gamex86.dll names g_gametype 0 "Single-Player" and 2
 // "Team-Match" at 0x310e5a50); a listen server hosting a team match had
 // refused every remote query and connection.
+// Raven's Jedi games count single player after their own modes, where
+// Quake III's 2 is Jedi Master: each engine's spmap sets Jedi Academy's 5
+// (jamp.exe 1.01 SV_Map_f, 0x45617f) and Jedi Outcast's 4 (jk2mp.exe 1.02a,
+// 0x4479c0).
 qboolean SV_GameTypeIsSinglePlayer( int gameType ) {
 	if ( Com_GameIsWolfET() ) {
 		return fntech3::wolfet::gameinfo::IsSinglePlayer( SV_WolfETGameInfo(), gameType ) ? qtrue : qfalse;
@@ -840,7 +844,34 @@ qboolean SV_GameTypeIsSinglePlayer( int gameType ) {
 	if ( Com_GameIsMOHAA() ) {
 		return gameType == 0 ? qtrue : qfalse;
 	}
+	if ( Com_GameIsJKAMP() ) {
+		return gameType == SV_JKA_GT_SINGLE_PLAYER ? qtrue : qfalse;
+	}
+	if ( Com_GameIsJK2MP() ) {
+		return gameType == SV_JK2_GT_SINGLE_PLAYER ? qtrue : qfalse;
+	}
 	return gameType == GT_SINGLE_PLAYER ? qtrue : qfalse;
+}
+
+/*
+==================
+SV_GameTypeHidesListenServer
+
+Whether a listen server running this game type answers no remote getinfo,
+getstatus or getchallenge. Quake III's engine keeps its single-player game
+to itself, and Jedi Outcast's does too, by its own number: jk2mp.exe 1.02a's
+SVC_Info (0x44e7b0), SVC_Status (0x44e5f0) and SV_GetChallenge (0x448750)
+each return at g_gametype 4. Jedi Academy's never asks the game type:
+jamp.exe 1.01's SVC_Info (0x45fa10) and SV_GetChallenge (0x457080) read
+ui_singlePlayerActive alone and its SVC_Status (0x45f830) reads neither, so
+its single-player game answers as any other does.
+==================
+*/
+qboolean SV_GameTypeHidesListenServer( int gameType ) {
+	if ( Com_GameIsJKAMP() ) {
+		return qfalse;
+	}
+	return SV_GameTypeIsSinglePlayer( gameType );
 }
 
 qboolean SV_WolfETGameTypeIsCoop( int gameType ) {
@@ -1012,7 +1043,7 @@ static void SVC_Status( const netadr_t *from ) {
 
 	// ignore if we are in single player
 #ifndef DEDICATED
-	if ( SV_GameTypeIsSinglePlayer( Cvar_VariableIntegerValue( "g_gametype" ) ) || Cvar_VariableIntegerValue("ui_singlePlayerActive")) {
+	if ( SV_GameTypeHidesListenServer( Cvar_VariableIntegerValue( "g_gametype" ) ) || Cvar_VariableIntegerValue("ui_singlePlayerActive")) {
 		return;
 	}
 #endif
@@ -1129,7 +1160,7 @@ static void SVC_Info( const netadr_t *from ) {
 
 	// ignore if we are in single player
 #ifndef DEDICATED
-	if ( SV_GameTypeIsSinglePlayer( Cvar_VariableIntegerValue( "g_gametype" ) ) || Cvar_VariableIntegerValue("ui_singlePlayerActive")) {
+	if ( SV_GameTypeHidesListenServer( Cvar_VariableIntegerValue( "g_gametype" ) ) || Cvar_VariableIntegerValue("ui_singlePlayerActive")) {
 		return;
 	}
 #endif

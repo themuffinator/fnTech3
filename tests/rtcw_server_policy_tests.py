@@ -14,6 +14,7 @@ PRELUDE = r'''
 #include "code/server/server.h"
 #include "code/compat/rtcw_savegame.hpp"
 #include "code/compat/rtcw_match_state.hpp"
+#include "code/compat/wolfet_gameinfo.hpp"
 #include <cassert>
 #include <cstdarg>
 #include <cstring>
@@ -27,6 +28,12 @@ int Com_GameIsWolfET(){return profile->id==COM_GAME_WOLFET;}
 int Com_GameIsMOHAA(){return profile->titleId==COM_GAME_TITLE_MOHAA;}
 void QDECL Com_Error(errorParm_t,const char*,...){throw 7;}
 int Com_GameIsQuakeLive(){return profile->id==COM_GAME_QUAKELIVE;}
+int Com_GameIsJKAMP(){return profile->id==COM_GAME_JKA_MP;}
+int Com_GameIsJK2MP(){return profile->id==COM_GAME_JK2_MP;}
+// The map command asks the real single-player rule, but never ET's, whose
+// gameinfo.dat has its own fixtures.
+static const fntech3::wolfet::gameinfo::GameInfo &SV_WolfETGameInfo(){
+ assert(false);static fntech3::wolfet::gameinfo::GameInfo info;return info;}
 struct Value {cvar_t cvar{};std::string value,latched;};
 static std::map<std::string,Value> values;
 static void update(Value &v,const char *value){v.value=value;v.cvar.string=v.value.data();v.cvar.integer=atoi(value);}
@@ -120,7 +127,8 @@ int main(){
   }
   if(p.titleId==COM_GAME_TITLE_JKA||p.titleId==COM_GAME_TITLE_JK2){
    // Raven's own defaults, shared by both titles: no mode starts pure or
-   // latches the cvar, and none owns a skill cvar. Map startup stays gated.
+   // latches the cvar, and none owns a skill cvar. Single player's map
+   // startup stays gated.
    const bool single=p.id==COM_GAME_JKA_SP||p.id==COM_GAME_JK2_SP;
    values.clear();auto *mode=SV_RegisterPureMode();
    assert(mode->integer==0&&!(mode->flags&CVAR_LATCH)&&(mode->flags&CVAR_SYSTEMINFO));
@@ -131,6 +139,22 @@ int main(){
    assert(bool(values["fraglimit"].cvar.flags&CVAR_SERVERINFO)==!single);
    assert(values["timelimit"].cvar.flags&CVAR_SERVERINFO);
    assert(!values.count("g_gameskill"));
+   // Each multiplayer engine's spmap selects its own single-player type,
+   // Academy's 5 and Outcast's 4, where Quake III's 2 is Jedi Master. An
+   // ordinary map keeps every Academy game type and turns Outcast's single
+   // player alone into a free-for-all (jamp.exe 1.01 0x4560b0, jk2mp.exe
+   // 1.02a 0x447910).
+   if(!single){
+    const bool academy=p.id==COM_GAME_JKA_MP;const int solo=academy?5:4;
+    for(const char *cmd:{"spmap","spdevmap","map","devmap"})for(int type:{0,1,2,3,4,5,6}){
+     command=cmd;map="synthetic";values.clear();SV_TestServerDefaults();
+     Cvar_Set("g_gametype",std::to_string(type).c_str());
+     spawns=pure=probes=0;available=true;argc=2;SV_Map_f();
+     assert(spawns==1&&probes==1&&pure==0);
+     assert(sv_gametype->integer==(cmd[0]=='s'?solo:!academy&&type==solo?0:type));
+     assert(sv_maxclients->integer==8&&!values.count("gamestate"));
+    }
+   }
    continue;
   }
   if(p.titleId==COM_GAME_TITLE_ALICE||p.titleId==COM_GAME_TITLE_FAKK2){
@@ -261,6 +285,8 @@ void SV_SpawnServer(const char*,qboolean){++spawns;SV_PrepareRTCWCampaign();Cvar
 // Elite Force mode rules have their own fixture; spmap only asks for them.
 static int modeClears;void SV_STVEFClearModes(){++modeClears;}
 '''
+        main = (ROOT / 'code/server/sv_main.cpp').read_text()
+        source += function(main, 'qboolean SV_GameTypeIsSinglePlayer( int gameType ) {') + '\n'
         source += function(commands, 'static void SV_Map_f(') + CHECKS
         spawn = function(init, 'void SV_SpawnServer(')
         self.assertLess(spawn.index('SV_PrepareRTCWCampaign();'), spawn.index('SV_ShutdownGameProgs();'))
