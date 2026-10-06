@@ -14,29 +14,39 @@ developer build and remain experimental. **No profile has full compatibility
 sign-off.** The [compatibility ledger](fntech3/COMPATIBILITY.md) records what
 has been shown to work and what has not.
 
-Start with the [README](../README.md) for an overview, then the
-[Games Guide](GAMES.md) for your game.
+Start with the [README](../README.md) for an overview, then
+[Getting Started](GETTING_STARTED.md) and the [Games Guide](GAMES.md) for your
+game.
 
 ## Player guides
 
-- [Games](GAMES.md) -- the supported games and modes, choosing a profile,
-  installations, where files are written, and each game's current status.
-- [Display](DISPLAY.md) -- renderers, video modes, HDR, render scaling,
-  anti-aliasing, dynamic and static lighting, shadows, fog, liquids, bloom and
-  other post-processing.
-- [RTX Renderer](RTX.md) -- requirements, path tracing, fallback policy and
-  troubleshooting for the Vulkan ray-tracing renderer.
-- [GLx Renderer](GLX.md) -- the default OpenGL-lineage renderer, its
-  diagnostics and troubleshooting.
-- [Visuals](VISUALS.md) -- player highlighting, colours and outlines.
-- [Aspect Handling](ASPECT_CORRECTION.md) -- widescreen FOV, HUD layout rules,
-  menus and cinematics.
-- [Audio](AUDIO.md) -- OpenAL, HRTF, surround, spatial effects, audio zones,
-  each game's sound data, device selection and fallback.
-- [Console](CONSOLE.md) -- console layout and fonts per game, completion,
-  clipboard, mouse use, notify and chat lines.
-- [Screenshots](SCREENSHOTS.md) -- capture formats, filenames, metadata,
-  levelshots, watermarks and cube maps.
+The player guides are written for players, in plain language: what a feature
+does, how to turn it on and what to try when something goes wrong. Technical
+evidence belongs in the ledger and the records below, not in these guides.
+Release packages include them as web pages in their `manual` folder, built by
+[`scripts/player_manual.py`](../scripts/player_manual.py) with the theme in
+[`docs/manual`](manual/README.md).
+
+- [Getting Started](GETTING_STARTED.md) -- installing fnTech3, starting your
+  first game, the console, settings files and where your files are saved.
+- [Games](GAMES.md) -- every game and mode, what you need, choosing a game,
+  playing online, and what works in each game today.
+- [Graphics](DISPLAY.md) -- renderers, window and fullscreen, smoother edges,
+  brightness, HDR, lighting, shadows, water, fog, glow and motion blur.
+- [Widescreen](ASPECT_CORRECTION.md) -- field of view, the HUD, menus and
+  movies on wide screens, and HUD layout rules for mod makers.
+- [Player highlights](VISUALS.md) -- glows and outlines that make other
+  players stand out.
+- [Sound](AUDIO.md) -- headphones and surround, 3D sound, sound zones, each
+  game's sound, devices and troubleshooting.
+- [Console](CONSOLE.md) -- commands, suggestions, copy and paste, on-screen
+  messages and chat, and the console's look.
+- [Screenshots](SCREENSHOTS.md) -- formats, file names, camera notes,
+  watermarks, map previews and cube maps.
+- [GLx Renderer](GLX.md) -- the default renderer, fixing picture problems and
+  what to include in a report.
+- [RTX Renderer](RTX.md) -- ray tracing: what you need, turning it on, tuning
+  it and troubleshooting.
 
 ## Building, releasing and maintaining
 

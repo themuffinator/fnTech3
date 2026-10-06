@@ -2136,7 +2136,7 @@ class GlxRendererSourceCoverageTests(unittest.TestCase):
         vulkan_init = (ROOT / "code" / "renderervk" / "tr_init.c").read_text(encoding="utf-8")
         glx_ir = (ROOT / "code" / "rendererglx" / "glx_render_ir.h").read_text(encoding="utf-8")
 
-        self.assertIn("`r_hdr`: Selects the HDR-capable FBO render pipeline.", display_doc)
+        self.assertIn("`r_hdr`: Selects the HDR render pipeline.", display_doc)
         self.assertIn("`r_hdrPrecision`", display_doc)
         self.assertIn("legacy tone mapping preserves Quake III display-referred lighting", glx_doc)
         self.assertNotIn("`r_hdr`: Controls framebuffer precision.", display_doc)
@@ -2222,9 +2222,9 @@ class GlxRendererSourceCoverageTests(unittest.TestCase):
         self.assertIn("OutputTransfer::ScreenshotSrgb", glx_render_ir)
         self.assertIn("capture-request", glx_module)
         self.assertIn("capture policy", glx_postprocess)
-        self.assertIn("default to SDR sRGB byte output", screenshots_doc)
-        self.assertIn("`r_screenshotCaptureMode` records the explicit capture policy", screenshots_doc)
-        self.assertIn("Reserved scene-linear HDR export request", screenshots_doc)
+        self.assertIn("always saved as ordinary (SDR) pictures", screenshots_doc)
+        self.assertIn("`r_screenshotCaptureMode`, in GLx and RTX, records", screenshots_doc)
+        self.assertIn("reserved for saving real HDR pictures", screenshots_doc)
         self.assertIn("reserved HDR-output request", renderer_init)
         self.assertIn("Screenshot capture/export", audit_doc)
         self.assertIn("capture-request", audit_doc)
@@ -2884,12 +2884,12 @@ class GlxRendererSourceCoverageTests(unittest.TestCase):
         self.assertIn("renderer_gl_src + renderer_glx_src", meson_build)
         self.assertIn("single client executable", build_doc)
         for text in (
-            "canonical OpenGL-lineage renderer",
+            "fnTech3's main OpenGL renderer",
             "GLx Renderer Guide",
         ):
             self.assertIn(text, glx_doc)
         self.assertIn("troubleshooting", glx_doc.lower())
-        self.assertIn("Canonical OpenGL-lineage renderer", display_doc)
+        self.assertIn("fnTech3's main OpenGL renderer", display_doc)
         self.assertIn("canonical OpenGL-lineage renderer", renderer_doc)
         for path in ("docs/DISPLAY.md", "docs/GLX.md"):
             self.assertEqual(2, workflow.count(f"- '{path}'"))

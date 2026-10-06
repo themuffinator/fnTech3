@@ -283,6 +283,10 @@ its documents resolves.
   source of the version and of the supported-game line.
 - `README.md` and `.install/README.html` are generated from
   `docs/templates/` by `python scripts/generate_docs.py`; edit the templates.
+- The player guides in `docs/` are written for players. The packager renders
+  them into web pages in each package's `manual/` folder with
+  [`scripts/player_manual.py`](../../scripts/player_manual.py) and the theme
+  in [`docs/manual/`](../manual/README.md).
 - User-visible changes go under Unreleased in the root
   [CHANGELOG.md](../../CHANGELOG.md). [RELEASING.md](RELEASING.md) describes
   preparing a version and the draft prerelease workflow.

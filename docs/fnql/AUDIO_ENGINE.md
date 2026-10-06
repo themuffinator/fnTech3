@@ -247,6 +247,34 @@ reinterpretations of ordinary WAV files. If the runtime does not accept the
 encoded OpenAL format, the backend falls back to a safe stereo-compatible path
 instead of failing the sound.
 
+## Audio Visibility And Culling
+
+fnTech3 plays the transient and looping sounds requested by the client module, then applies source budgets, distance attenuation, and optional trace-based occlusion. `s_pvs 1`, from retail Quake Live, additionally mutes positional sounds whose origins are outside the listener's current BSP PVS. It is off by default, available in every game on the OpenAL backend, and fails open when no valid collision world is loaded; it does not affect local/UI audio, music, raw/cinematic PCM, or remote voice chat. The legacy mixer applies it everywhere except in RTCW, Alice and F.A.K.K.2.
+
+- Snapshot visibility is handled before audio sees most world entities. The server builds snapshots from `CM_ClusterPVS`, area-portal connectivity, broadcast/single-client flags, and the portal-style second-view PVS paths (`SVF_PORTAL` and `SVF_SELF_PORTAL2`).
+- There is no engine-wide `CM_ClusterPHS` sound visibility path in this tree. The only PHS reference is in bot AAS helpers, not in client sound dispatch.
+- One-shot sounds are limited by duplicate suppression, per-entity concurrency caps, and voice-source eviction. Looping sounds must be refreshed by the client game each frame; unrefreshed transient loops are stopped.
+- Once a voice reaches OpenAL, audibility is mainly distance gain and source availability. Occlusion is a separate `CM_BoxTrace` test against solid/slime/lava contents between listener and source, with a small source-side probe fan so narrow or edge obstructions become partial occlusion instead of a binary on/off gate.
+
+The player-facing server switch for sound-only emitters, `sv_audioPVS`, is
+described in the [Audio Guide](../AUDIO.md#hearing-through-walls-on-servers).
+
+## Stream Conversion
+
+OpenAL's shared stream converter keeps resampling continuous across decoded chunks.
+Upsampling and downsampling use a band-limited filter to suppress unwanted images
+and aliasing; equal-rate PCM stays unchanged. Ritual tracks with non-native rates
+use the same filter before their 44.1 kHz score mix.
+Streamed volume changes preserve the resampler's timing and interpolation history.
+Raw-stream idle drains also retain phase across short bursts; explicit clearing
+or a format change starts a fresh stream.
+Music drains its buffered ending when a file finishes, and retries a decoded
+chunk when the stream buffer pool is temporarily full. Explicit stop commands
+still cancel playback immediately. The [audio system audit](../fntech3/2026-10-02-audio-system-audit.md)
+records the playback, quality and allocation checks.
+Alice and F.A.K.K.2's score mixer also drains its last decoded frame, including
+when the tail spans more than one mixing update.
+
 ## Environment Layer
 
 The OpenAL backend adds an environmental layer on top of the normal source

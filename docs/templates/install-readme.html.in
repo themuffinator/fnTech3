@@ -3,20 +3,57 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>${project_name} Distribution Notes</title>
+  <meta name="color-scheme" content="dark light">
+  <title>${project_name_short} &ndash; Read Me First</title>
+  <link rel="icon" type="image/png" href="manual/assets/favicon.png">
   <style>
+    /* The fnTech3 flame: orange #fc5c00 on black, with the banner's ember red.
+       The same colours as the Player Guide in manual/. */
     :root {
-      --bg: #0b1020;
-      --panel: rgba(10, 16, 32, 0.88);
-      --panel-alt: rgba(15, 23, 42, 0.78);
-      --line: rgba(148, 163, 184, 0.22);
-      --text: #e5edf7;
-      --muted: #9db0ca;
-      --accent: #4ade80;
-      --accent-2: #38bdf8;
-      --accent-3: #a78bfa;
-      --accent-4: #f59e0b;
-      --shadow: 0 24px 60px rgba(2, 6, 23, 0.45);
+      --bg: #0b0806;
+      --surface: #15100c;
+      --surface-2: #1d1510;
+      --line: #34261c;
+      --line-strong: #4b3627;
+      --text: #f7efe8;
+      --text-soft: #dccdc1;
+      --muted: #b29f90;
+      --accent: #fc5c00;
+      --accent-strong: #ff8038;
+      --accent-ink: #160800;
+      --accent-soft: rgba(252, 92, 0, 0.14);
+      --accent-line: rgba(252, 92, 0, 0.5);
+      --ember: #e02000;
+      --code-bg: rgba(252, 92, 0, 0.13);
+      --code-text: #ffc7a1;
+      --glow-1: rgba(252, 92, 0, 0.18);
+      --glow-2: rgba(224, 32, 0, 0.11);
+      --shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
+      --font: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+      --font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+      --mono: "Cascadia Code", "Cascadia Mono", Consolas, "SFMono-Regular", Menlo, monospace;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #fdf8f4;
+        --surface: #ffffff;
+        --surface-2: #fff3ea;
+        --line: #f0dccd;
+        --line-strong: #e2c2aa;
+        --text: #1d130c;
+        --text-soft: #3d2c20;
+        --muted: #6f5848;
+        --accent-strong: #b53e00;
+        --accent-ink: #1a0900;
+        --accent-soft: rgba(252, 92, 0, 0.1);
+        --accent-line: rgba(181, 62, 0, 0.45);
+        --code-bg: #fff0e4;
+        --code-text: #a33900;
+        --glow-1: rgba(252, 92, 0, 0.12);
+        --glow-2: rgba(224, 32, 0, 0.06);
+        --shadow: 0 18px 40px rgba(94, 45, 10, 0.14);
+      }
     }
 
     * {
@@ -30,108 +67,139 @@
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: "Segoe UI Variable Display", "Aptos", "Trebuchet MS", sans-serif;
-      color: var(--text);
       background:
-        radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 28%),
-        radial-gradient(circle at top right, rgba(74, 222, 128, 0.12), transparent 24%),
-        linear-gradient(160deg, #060913 0%, #0b1020 48%, #121a30 100%);
+        radial-gradient(60rem 30rem at 10% -6rem, var(--glow-1), transparent 70%),
+        radial-gradient(48rem 26rem at 95% -8rem, var(--glow-2), transparent 70%),
+        var(--bg);
+      color: var(--text);
+      font: 16px/1.68 var(--font);
     }
 
     main {
-      width: min(1040px, calc(100% - 32px));
+      width: min(1060px, calc(100% - 32px));
       margin: 0 auto;
       padding: 40px 0 56px;
     }
 
+    a {
+      color: var(--accent-strong);
+      text-decoration-color: var(--accent-line);
+      text-underline-offset: 3px;
+    }
+
+    a:hover {
+      text-decoration-color: currentColor;
+    }
+
+    a:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    code {
+      padding: 0.12em 0.42em;
+      border-radius: 6px;
+      background: var(--code-bg);
+      color: var(--code-text);
+      font-family: var(--mono);
+      font-size: 0.87em;
+      overflow-wrap: anywhere;
+    }
+
     .hero,
     .section {
-      background: var(--panel);
       border: 1px solid var(--line);
       border-radius: 24px;
+      background: var(--surface);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(14px);
     }
 
     .hero {
-      padding: 36px;
       position: relative;
+      display: flex;
+      align-items: center;
+      gap: 36px;
+      padding: 42px 44px;
       overflow: hidden;
+      background:
+        radial-gradient(120% 150% at 0% 0%, rgba(252, 92, 0, 0.3), transparent 55%),
+        radial-gradient(90% 130% at 100% 0%, rgba(224, 32, 0, 0.22), transparent 60%),
+        var(--surface);
     }
 
-    .hero::after {
-      content: "";
-      position: absolute;
-      inset: auto -120px -120px auto;
-      width: 280px;
-      height: 280px;
-      border-radius: 999px;
-      background: radial-gradient(circle, rgba(245, 158, 11, 0.24), rgba(245, 158, 11, 0));
-      pointer-events: none;
+    .hero-logo {
+      width: 150px;
+      height: 150px;
+      flex: none;
+      filter: drop-shadow(0 12px 30px rgba(252, 92, 0, 0.45));
     }
 
     .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 14px;
-      border-radius: 999px;
-      background: rgba(56, 189, 248, 0.12);
-      border: 1px solid rgba(56, 189, 248, 0.2);
-      color: var(--accent-2);
-      font-size: 0.82rem;
-      letter-spacing: 0.12em;
+      margin: 0 0 8px;
+      color: var(--accent-strong);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
       text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-family: var(--font-display);
+      color: var(--text);
     }
 
     h1 {
-      margin: 18px 0 8px;
-      font-size: clamp(2.4rem, 5vw, 4.2rem);
-      line-height: 0.95;
+      margin: 0;
+      font-size: clamp(2.6rem, 6vw, 4.2rem);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.025em;
     }
 
     .tagline {
-      margin: 0 0 14px;
-      color: #f8fafc;
-      font-size: 1.05rem;
+      margin: 10px 0 0;
+      color: var(--text);
+      font-size: 0.98rem;
       font-weight: 700;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
     }
 
-    .subtitle,
-    .lead,
-    li,
-    .card p,
-    .footer {
-      color: var(--muted);
-      line-height: 1.72;
+    .tagline::after {
+      content: "";
+      display: block;
+      width: 76px;
+      height: 4px;
+      margin-top: 16px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--accent), var(--ember));
     }
 
     .subtitle {
-      max-width: 780px;
-      margin: 0;
-      font-size: 1.06rem;
+      max-width: 660px;
+      margin: 16px 0 0;
+      color: var(--text-soft);
+      font-size: 1.1rem;
     }
 
     .buttons {
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
-      margin-top: 28px;
+      margin-top: 26px;
     }
 
     .button {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-width: 170px;
-      padding: 12px 18px;
+      padding: 11px 22px;
       border-radius: 999px;
-      text-decoration: none;
       font-weight: 700;
-      letter-spacing: 0.02em;
-      transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+      text-decoration: none;
+      transition: transform 0.15s ease, border-color 0.15s ease;
     }
 
     .button:hover {
@@ -139,122 +207,201 @@
     }
 
     .button-primary {
-      color: #07111f;
-      background: linear-gradient(135deg, var(--accent), #86efac);
-      box-shadow: 0 12px 28px rgba(74, 222, 128, 0.18);
+      background: linear-gradient(135deg, #ff8a2e, var(--accent) 45%, #e8430a);
+      box-shadow: 0 10px 26px rgba(252, 92, 0, 0.35);
+      color: var(--accent-ink);
     }
 
     .button-secondary {
+      border: 1px solid var(--line-strong);
+      background: var(--surface-2);
       color: var(--text);
-      background: rgba(15, 23, 42, 0.72);
-      border: 1px solid rgba(148, 163, 184, 0.24);
+    }
+
+    .button-secondary:hover {
+      border-color: var(--accent-line);
     }
 
     .stats,
     .feature-grid,
-    .doc-grid {
+    .doc-grid,
+    .steps {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
+      gap: 14px;
     }
 
     .stats {
-      margin-top: 22px;
-    }
-
-    .section {
-      margin-top: 22px;
-      padding: 28px 30px;
-    }
-
-    .section-header {
-      margin-bottom: 16px;
-    }
-
-    h2 {
-      margin: 0;
-      font-size: 1.2rem;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: var(--accent-4);
-    }
-
-    h3 {
-      margin: 0 0 10px;
-      color: #f8fafc;
-      font-size: 1.02rem;
-    }
-
-    .lead {
-      margin: 10px 0 0;
-      max-width: 820px;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      margin-top: 18px;
     }
 
     .card,
     .feature-group,
-    .doc-column {
-      padding: 18px;
-      border-radius: 18px;
-      background: var(--panel-alt);
-      border: 1px solid rgba(148, 163, 184, 0.16);
+    .doc-column,
+    .step {
+      padding: 18px 20px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--surface-2);
     }
 
-    .card strong,
-    .feature-group strong,
-    .doc-column strong {
+    .card strong {
       display: block;
-      margin-bottom: 8px;
-      color: #f8fafc;
-      font-size: 1rem;
+      margin-bottom: 4px;
+      color: var(--muted);
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
     }
 
-    ol,
-    ul {
-      margin: 14px 0 0;
-      padding-left: 22px;
+    .card p {
+      margin: 0;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .section {
+      margin-top: 22px;
+      padding: 30px 32px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.6rem;
+      font-weight: 750;
+      letter-spacing: -0.01em;
+    }
+
+    h2 span {
+      color: var(--accent);
+    }
+
+    h3 {
+      margin: 0 0 6px;
+      font-size: 1.05rem;
+    }
+
+    .lead {
+      max-width: 820px;
+      margin: 10px 0 0;
+      color: var(--text-soft);
     }
 
     .feature-grid,
     .doc-grid {
-      margin-top: 18px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      margin-top: 20px;
     }
 
-    .doc-column ul,
-    .feature-group ul {
-      margin-top: 10px;
+    .feature-group p,
+    .step p,
+    li {
+      color: var(--text-soft);
     }
 
-    a {
-      color: var(--accent-2);
+    .feature-group p,
+    .step p {
+      margin: 0;
+      font-size: 0.95rem;
+      line-height: 1.6;
     }
 
-    code {
-      padding: 0.15rem 0.45rem;
-      border-radius: 8px;
-      background: rgba(15, 23, 42, 0.82);
-      color: #dbeafe;
-      font-family: "Cascadia Code", "Consolas", monospace;
+    .steps {
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      margin-top: 20px;
+      counter-reset: step;
+    }
+
+    .step {
+      position: relative;
+      padding-top: 52px;
+    }
+
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      top: 16px;
+      left: 20px;
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--ember));
+      color: var(--accent-ink);
+      font-weight: 800;
+      font-size: 0.9rem;
+    }
+
+    .note {
+      margin: 18px 0 0;
+      padding: 14px 18px;
+      border: 1px solid var(--accent-line);
+      border-left-width: 4px;
+      border-radius: 12px;
+      background: var(--accent-soft);
+      color: var(--text-soft);
+    }
+
+    ul {
+      margin: 10px 0 0;
+      padding-left: 1.3em;
+    }
+
+    li {
+      margin: 0.35em 0;
+    }
+
+    li::marker {
+      color: var(--accent);
     }
 
     .footer {
-      margin-top: 18px;
-      font-size: 0.95rem;
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 0.93rem;
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: 720px) {
       main {
-        width: min(100% - 20px, 1040px);
+        width: calc(100% - 32px);
         padding-top: 18px;
       }
 
-      .hero,
+      .hero {
+        flex-direction: column;
+        padding: 28px 22px;
+        text-align: center;
+      }
+
+      .hero-logo {
+        width: 112px;
+        height: 112px;
+      }
+
+      .tagline::after {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .buttons {
+        justify-content: center;
+      }
+
       .section {
-        border-radius: 18px;
         padding: 24px 20px;
+        border-radius: 18px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
       }
 
       .button {
-        width: 100%;
+        transition: none;
       }
     }
   </style>
@@ -262,210 +409,146 @@
 <body>
   <main>
     <section class="hero">
-      <div class="eyebrow">${project_name_short} distribution notes</div>
-      <h1>${project_name_short}</h1>
-      <p class="tagline">Unified source port for id Tech 3</p>
-      <p class="subtitle">
-        <strong>${project_name_short}</strong> is one engine distribution -- one client, one dedicated server and three renderer modules -- for <em>Quake III Arena</em>, <em>Quake Live</em>, <em>Return to Castle Wolfenstein</em>, <em>Wolfenstein: Enemy Territory</em>, <em>Star Trek Voyager: Elite Force</em>, <em>Star Wars Jedi Knight: Jedi Academy</em>, <em>Star Wars Jedi Knight II: Jedi Outcast</em>, <em>American McGee's Alice</em>, <em>Heavy Metal: F.A.K.K.2</em> and <em>Medal of Honor: Allied Assault</em>.
-      </p>
-      <div class="buttons">
-        <a class="button button-primary" href="docs/fntech3/COMPATIBILITY.md">Compatibility status</a>
-        <a class="button button-secondary" href="#getting-started">Getting started</a>
-        <a class="button button-secondary" href="#documentation">Documentation</a>
-        <a class="button button-secondary" href="https://github.com/themuffinator/fnTech3/blob/main/BUILD.md">Build guide</a>
-        <a class="button button-secondary" href="LICENSE">License</a>
-      </div>
-      <div class="stats">
-        <article class="card">
-          <strong>Compatibility targets</strong>
-          <p>${compatibility_target}</p>
-        </article>
-        <article class="card">
-          <strong>Base version</strong>
-          <p>${base_version}</p>
-        </article>
-        <article class="card">
-          <strong>Current build</strong>
-          <p>${version}</p>
-        </article>
-        <article class="card">
-          <strong>Tagged release format</strong>
-          <p><code>${release_tag_example}</code></p>
-        </article>
+      <img class="hero-logo" src="manual/assets/fntech3-256.png" width="150" height="150" alt="The ${project_name_short} flame">
+      <div>
+        <p class="eyebrow">Read me first &middot; version ${version}</p>
+        <h1>${project_name_short}</h1>
+        <p class="tagline">Unified source port for id Tech 3</p>
+        <p class="subtitle"><strong>${project_name_short}</strong> is a free, modern engine for the classic games of the Quake III era: <em>Quake III Arena</em>, <em>Quake Live</em>, <em>Return to Castle Wolfenstein</em>, <em>Wolfenstein: Enemy Territory</em>, <em>Star Trek Voyager: Elite Force</em>, <em>Star Wars Jedi Knight: Jedi Academy</em>, <em>Star Wars Jedi Knight II: Jedi Outcast</em>, <em>American McGee's Alice</em>, <em>Heavy Metal: F.A.K.K.2</em> and <em>Medal of Honor: Allied Assault</em>. It plays the copies you already own, with sharper graphics, 3D sound and widescreen support.</p>
+        <div class="buttons">
+          <a class="button button-primary" href="manual/index.html">Open the Player Guide</a>
+          <a class="button button-secondary" href="#getting-started">Getting started</a>
+          <a class="button button-secondary" href="manual/games.html">The games</a>
+        </div>
       </div>
     </section>
 
-    <section class="section" id="introduction">
-      <div class="section-header">
-        <h2>1. Introduction</h2>
-        <p class="lead"><strong>${project_name_short}</strong> selects one immutable <strong>game profile</strong> -- the contracts of one game or game mode -- before the filesystem, network, game modules, renderer or any optional service starts. Each game keeps its own module interfaces, protocol, demos, saves, file formats and gameplay. How the engine presents it -- renderers, spatial audio, input, console and screenshots -- is ${project_name_short}'s own, fed with that game's data.</p>
-        <p class="lead"><strong>Start with a clean game folder.</strong> We recommend running ${project_name_short} without other asset packages, or custom game code (QVMs), in the game's base folder, such as Quake III Arena's <code>baseq3</code>. They can replace files ${project_name_short} relies on and clash with its features. For example, the baseq3a package brings its own QVMs for Quake III Arena, which may interfere with ${project_name_short}'s widescreen correction. To keep using packages like these, turn the corrections off: <code>r_fovCorrection 0</code> for the view, <code>cl_hudAspect 0</code> for the HUD and <code>cl_menuAspect 0</code> for menus. The <a href="https://github.com/themuffinator/fnTech3/blob/main/docs/ASPECT_CORRECTION.md">Aspect Handling Guide</a> explains each setting.</p>
-      </div>
-      <div class="feature-grid">
-        <article class="feature-group">
-          <h3>Quake III Arena</h3>
-          <p><code>quake3</code> (<code>q3</code>): enabled in every build. One profile spans the releases: 1.32 (protocol 68) and ioquake3 (71) play, host and record; original 1.29 to 1.31 servers and clients (66, 67) connect in both directions; recordings from 1.11 on play back. The February 1999 IHV Test is a separate <code>q3-ihv</code> profile for Windows x86 dedicated-server probes in builds with <code>-Dq3-ihv-development=true</code>, and the public Q3Test releases of 1999, 1.02 to 1.08, are the <code>q3test</code> profile for Windows x86 developer builds with <code>-Dq3test-development=true</code>.</p>
+    <div class="stats">
+      <article class="card">
+        <strong>Plays</strong>
+        <p>${compatibility_target}</p>
+      </article>
+      <article class="card">
+        <strong>Version</strong>
+        <p>${version}</p>
+      </article>
+      <article class="card">
+        <strong>Licence</strong>
+        <p><a href="LICENSE">GPL version 2</a></p>
+      </article>
+    </div>
+
+    <section class="section" id="getting-started">
+      <h2><span>1.</span> Getting Started</h2>
+      <p class="lead">fnTech3 contains no game files. You need your own installed copy of a game; fnTech3 plays it without changing it.</p>
+      <p class="note"><strong>Start with a clean game folder.</strong> We recommend running ${project_name_short} without other asset packages, or custom game code (QVMs), in the game's base folder, such as Quake III Arena's <code>baseq3</code>. They can replace files ${project_name_short} relies on and clash with its features. For example, the baseq3a package brings its own QVMs for Quake III Arena, which may interfere with ${project_name_short}'s widescreen correction. To keep using packages like these, turn the corrections off: <code>r_fovCorrection 0</code> for the view, <code>cl_hudAspect 0</code> for the HUD and <code>cl_menuAspect 0</code> for menus. The <a href="manual/widescreen.html#the-four-settings">Widescreen guide</a> explains each setting.</p>
+      <div class="steps">
+        <article class="step">
+          <h3>Keep the files together</h3>
+          <p>You have already unpacked this download into a folder. Keep everything in it beside <code>${executable_basename}.exe</code>: the engine looks there for <code>fntech3-pkg.fnz</code>, <code>fnql-web.pak</code>, its three renderer files and the libraries.</p>
         </article>
-        <article class="feature-group">
-          <h3>Quake Live</h3>
-          <p><code>quakelive</code> (<code>ql</code>): enabled in every build. The retail client modules are 32-bit Windows libraries, so the client runs on Windows x86.</p>
+        <article class="step">
+          <h3>Start your game</h3>
+          <p>If exactly one of Quake III Arena, Quake Live, Return to Castle Wolfenstein or Enemy Territory is installed through Steam, just run <code>${executable_basename}.exe</code>. Otherwise name the game, and its folder, in a shortcut: <code>+set com_gameProfile quake3 +set fs_basepath "&lt;your Quake III folder&gt;"</code>.</p>
         </article>
-        <article class="feature-group">
-          <h3>Return to Castle Wolfenstein</h3>
-          <p><code>rtcw-sp</code> and <code>rtcw-mp</code>: experimental; developer builds with <code>-Drtcw-development=true</code>. Both modes share one installation and one executable.</p>
-        </article>
-        <article class="feature-group">
-          <h3>Wolfenstein: Enemy Territory</h3>
-          <p><code>wolfet</code> (<code>et</code>): experimental; developer builds with <code>-Dwolfet-development=true</code> run its client and server. See the <a href="https://github.com/themuffinator/fnTech3/blob/main/docs/fntech3/2026-10-02-input-launch-fixes.md">jump-sound correction and validation limits</a>.</p>
-        </article>
-        <article class="feature-group">
-          <h3>Star Trek Voyager: Elite Force</h3>
-          <p><code>stvef-sp</code> and <code>stvef-mp</code> (Holomatch): experimental; developer builds with <code>-Dstvef-development=true</code>. Single player needs Windows x86. <a href="https://github.com/themuffinator/fnTech3/blob/main/docs/fntech3/2026-10-02-input-launch-fixes.md">Input corrections and diagnostics</a> are available; live gameplay input remains under validation.</p>
-        </article>
-        <article class="feature-group">
-          <h3>Jedi Academy and Jedi Outcast</h3>
-          <p><code>jka-sp</code> and <code>jka-mp</code>: experimental developer probes with <code>-Djka-development=true</code>; retail MP menu startup, limited animated UI geometry, client skin/animation and copy metadata, neutral light-style and map distance metadata, cgame menu relay, neutral command values, polygon submission, remote bone/tag queries, owned skeletal scene staging, engine-default models, ordinary-sky views, forward-animation transitions, no-rotation bolts, a captured player-configuration menu, absent ambient-set returns and limited shader-effect lifetimes, empty cleanup and maintained pure admission with clean disconnects in both directions, ordinary/additive scene lights, the Academy text atlas and bounded GLx/Vulkan/RTX demo captures, explicit music preloading, ambient/effect definitions and retail SP Init return. Campaign, complete client rendering and bidirectional retail compatibility remain incomplete.</p>
-          <p><code>jk2-sp</code> and <code>jk2-mp</code>: experimental developer probes with <code>-Djk2-development=true</code>; client, campaign and live compatibility remain incomplete.</p>
-        </article>
-        <article class="feature-group">
-          <h3>American McGee's Alice</h3>
-          <p><code>alice</code>: experimental; Windows x86 developer builds with <code>-Dalice-development=true</code>. Alice runs Ritual's engine rather than a Quake III one.</p>
-        </article>
-        <article class="feature-group">
-          <h3>Heavy Metal: F.A.K.K.2</h3>
-          <p><code>fakk2</code>: experimental; Windows x86 developer builds with <code>-Dfakk2-development=true</code>. Point <code>fs_basepath</code> at an installed game, not a copy of the disc.</p>
-        </article>
-        <article class="feature-group">
-          <h3>Medal of Honor: Allied Assault</h3>
-          <p><code>mohaa</code>: experimental; Windows x86 developer builds with <code>-Dmohaa-development=true</code>. Version 1.00, with <code>system86.dll</code> beside <code>MOHAA.exe</code>; fnTech3 loads the installation's copy.</p>
+        <article class="step">
+          <h3>Play, then tune</h3>
+          <p>Press the key below <strong>Esc</strong> (or <strong>Shift+Esc</strong>) to open the console, where every setting can be changed. <strong>Alt+Enter</strong> switches between a window and fullscreen.</p>
         </article>
       </div>
-      <p class="lead">These ten games and sixteen profiles define the project scope. <strong>Full compatibility is not yet established for any profile.</strong> Build and unit results do not replace runtime and retail-interoperability evidence. The <a href="docs/fntech3/COMPATIBILITY.md">compatibility ledger</a> records the observed results and open gates, and the <a href="https://github.com/themuffinator/fnTech3/blob/main/docs/GAMES.md">Games Guide</a> summarizes what each game does today.</p>
-      <p class="footer">This package is engine-only and starts Quake III Arena and Quake Live; the experimental games need a developer build. Supply your own legitimate installation. Retail modules, assets and proprietary runtimes remain there. Release packages exclude the optional proprietary Steam provider and Valve Steam runtimes. Steam services require a separately supplied compatible provider; unavailable services are reported honestly.</p>
+      <p class="note"><strong>Which games start?</strong> This download plays <strong>Quake III Arena</strong> and <strong>Quake Live</strong>; Quake Live's client needs Windows. The other games are still experimental: they only start in a development build that you compile yourself, as the <a href="https://github.com/themuffinator/fnTech3/blob/main/BUILD.md#game-development-builds">build guide</a> explains, and this download refuses them with a message. No game is finished yet; the <a href="manual/games.html">Games guide</a> says plainly what works in each.</p>
+      <p class="footer">The <a href="manual/getting-started.html">Getting Started guide</a> walks through shortcuts, the console, settings files and where your saves and screenshots go. Steam features in Quake Live need a separately supplied Steam add-on, which this download does not include; without it they say they are unavailable rather than pretending to work.</p>
     </section>
 
     <section class="section" id="features">
-      <div class="section-header">
-        <h2>2. Features</h2>
-        <p class="lead">Capabilities from the engine baselines and ${project_name_short}'s own work apply to a game where its guide says so, and must be validated for each profile. Quake Live's WebUI, Steam and Workshop services belong to the Quake Live profile alone.</p>
-      </div>
+      <h2><span>2.</span> Features</h2>
+      <p class="lead">What fnTech3 adds to the games it plays. Each guide says which games a feature works in; Quake Live's own menus, Steam and Workshop features belong to Quake Live alone.</p>
       <div class="feature-grid">
         <article class="feature-group">
           <h3>Unified game compatibility</h3>
-          <p>One immutable profile per process owns the game's installation rules, module interfaces, protocol, demos, saves, file formats and optional services. Adapters convert at every boundary, so one game's structures never reach another's modules or packets.</p>
+          <p>One engine for many games. fnTech3 starts one game at a time and follows that game's own rules &ndash; its game code, online play, demos and saved games &ndash; so every game plays like itself.</p>
         </article>
         <article class="feature-group">
           <h3>Fast, modern hardware rendering</h3>
-          <p>Choose between optimized <strong>GLx</strong>, <strong>Vulkan raster</strong> and <strong>Vulkan RTX</strong> renderers in every game with a client, with GPU-cached world geometry, merged lightmaps, reduced rendering overhead and improved depth precision. RTX path traces each map with its own lights.</p>
+          <p>Three renderers in every game &ndash; GLx, Vulkan and RTX &ndash; built to make the most of today's graphics cards. RTX ray traces each map with light from its own lamps, sky and sun.</p>
         </article>
         <article class="feature-group">
           <h3>Modern visual upgrades</h3>
-          <p>Optional HDR rendering and output, MSAA, supersampling, render scaling, anisotropic filtering, bloom, tone mapping, colour grading, per-pixel and shadowed dynamic lights, static map lights, motion blur, lens flares, soft particles, enhanced liquids, an underwater view and per-map fog.</p>
+          <p>Optional HDR, smoother edges, sharper textures, glow, smooth lights with real shadows, lights for each map's own lamps, motion blur, lens flares, softer smoke, livelier water, an underwater view and atmospheric fog.</p>
         </article>
         <article class="feature-group">
           <h3>Improved player visibility</h3>
-          <p>Optional player rim lighting, stencil outlines or both in Quake III Arena and Quake Live, with configurable enemy, teammate, team and free-for-all colours, intensity and outline thickness. Cel shading, model outlines and world-edge outlines are also available.</p>
+          <p>An optional glow and outline on other players in Quake III Arena and Quake Live, in team or enemy colours of your choice, and a cartoon cel-shaded look for every game.</p>
         </article>
         <article class="feature-group">
           <h3>Better modern hardware and OS support</h3>
-          <p>SDL3 video, input and audio, OpenAL, modern graphics APIs, high-resolution and high-refresh displays, borderless/windowed/fullscreen modes, fast Alt+Enter switching, controller hotplugging and each game's own application icon.</p>
+          <p>High resolutions and refresh rates, borderless windows, instant Alt+Enter, controllers you can plug in at any time, and each game's own icon, remade in high resolution.</p>
         </article>
         <article class="feature-group">
           <h3>Low-latency, configurable controls</h3>
-          <p>Raw mouse input, Quake Live-accurate CPI scaling, signed acceleration, sensitivity caps and angle-history filtering, while retaining classic Quake3e/ioquake3 mouse styles. Modern gamepads and Unicode text input are also supported.</p>
+          <p>Raw mouse input, Quake Live's exact mouse sensitivity and acceleration, the classic mouse styles, gamepads, and typing in any language.</p>
         </article>
         <article class="feature-group">
           <h3>Modern spatial audio</h3>
-          <p>OpenAL and HRTF headphone positioning, surround output, reverb, geometry-based occlusion, shipped audio zones, output-device selection, live device recovery and fallback to the classic software mixer, fed with each game's own sound data.</p>
+          <p>3D sound: headphone surround, surround speakers, room echo, sounds muffled by walls and sound zones for the maps of seven games &ndash; with the original sound mixer still there if you want it.</p>
         </article>
         <article class="feature-group">
           <h3>Major quality-of-life improvements</h3>
-          <p>A scalable console in each game's own font, smooth scrolling, mouse selection, clipboard support, drag-and-drop editing, live command/cvar/map completion, widescreen FOV and HUD correction for every game written for 4:3 screens, minimize hotkeys, focus muting and lower background CPU usage.</p>
+          <p>A console that scales, scrolls smoothly, suggests commands and copies and pastes; widescreen view and HUD for every game made for 4:3 screens; silence when you switch away; and less work for your computer in the background.</p>
         </article>
         <article class="feature-group">
           <h3>Better screenshots, video and streaming tools</h3>
-          <p>PNG, TGA, JPEG and BMP capture, clipboard screenshots, custom filenames, camera metadata, configurable levelshots, watermarks, cube-map capture, arbitrary-resolution output and FFmpeg video piping.</p>
+          <p>PNG, JPEG, TGA and BMP screenshots, copying to the clipboard, your own file names, camera notes, map previews, watermarks, cube maps, any resolution, and video recording through FFmpeg.</p>
         </article>
         <article class="feature-group">
           <h3>Faster content handling</h3>
-          <p>Quicker startup and map restarts with large PK3 libraries, raised filesystem and map limits, fast redirected downloads and, in Quake Live, automatic handling of server-required Workshop content.</p>
+          <p>Quicker starts and map changes with big collections of mods and maps, higher limits, fast downloads and, in Quake Live, the Workshop items a server needs, fetched for you.</p>
         </article>
         <article class="feature-group">
           <h3>Greater stability and security</h3>
-          <p>Extensive Quake3e and FnQuake3 fixes, bounded parsing of every game's files, demos and packets, lower memory usage, stronger network protection and graceful fallbacks when optional rendering, audio, WebUI or Steam functionality is unavailable.</p>
+          <p>Many fixes from Quake3e and FnQuake3, careful checking of every game file, demo and network message, less memory, better protection online, and graceful fallbacks when an optional feature is missing.</p>
         </article>
       </div>
-    </section>
-
-    <section class="section" id="getting-started">
-      <div class="section-header">
-        <h2>3. Getting Started</h2>
-        <p class="lead">Unpack this package into a folder of its own and point it at your legitimate installation of the game you want to run.</p>
-      </div>
-      <p>Keep <code>fntech3-pkg.fnz</code>, <code>fnql-web.pak</code>, the <code>fnql_&lt;renderer&gt;_x86</code> modules and the redistributable libraries beside <code>${executable_basename}.exe</code> and <code>${executable_basename}.ded.exe</code>. The engine package keeps each game's data under its own <code>games/&lt;profile&gt;/&lt;gamedir&gt;/</code> folder. Upgrade it with the executable; the old <code>FnQL-pkg.fnz</code> layout is no longer read.</p>
-      <div class="feature-grid">
-        <article class="feature-group">
-          <h3>Choose the game</h3>
-          <p>Start with <code>+set com_gameProfile quake3</code> or <code>+set com_gameProfile quakelive</code>, <code>+set fs_basepath "&lt;game installation&gt;"</code> and a separate writable <code>fs_homepath</code> for each game. Add <code>+set r_fullscreen 0</code> to start windowed. <code>gameList</code> in the console lists every profile and whether this build can start it.</p>
-        </article>
-        <article class="feature-group">
-          <h3>Automatic detection</h3>
-          <p>Without a profile, the engine looks for exactly one recognized installation in <code>fs_basepath</code>, beside the executable, then in the Steam libraries. Two games in one place, or a game whose modes share one installation, need the profile named.</p>
-        </article>
-        <article class="feature-group">
-          <h3>Dedicated servers</h3>
-          <p>Run <code>${executable_basename}.ded</code> with the same explicit profile and a separate home. On Linux the Quake Live server loads the retail <code>qagamei386.so</code>; native Linux clients cannot load Quake Live's Win32-only client and UI modules.</p>
-        </article>
-        <article class="feature-group">
-          <h3>Experimental games</h3>
-          <p>RTCW, Enemy Territory, Elite Force, Jedi Academy, Jedi Outcast, Alice, F.A.K.K.2, Medal of Honor, the IHV Test and Q3Test need a developer build with their option, as the <a href="https://github.com/themuffinator/fnTech3/blob/main/BUILD.md#game-development-builds">build guide</a> describes. This package refuses them with an explanation.</p>
-        </article>
-      </div>
-      <p class="footer">The selected profile cannot change while the process runs; a mode change relaunches the executable. Startup, module loading, demos, play and retail interoperability must pass each profile's gates before compatibility is claimed.</p>
     </section>
 
     <section class="section" id="documentation">
-      <div class="section-header">
-        <h2>4. Documentation</h2>
-        <p class="lead">Start with the player guides for setup and tuning. Build, compatibility and implementation details live in the technical references; the ones marked as included ship in this package.</p>
-      </div>
+      <h2><span>3.</span> Documentation</h2>
+      <p class="lead">The Player Guide in the <code>manual</code> folder covers everything, in plain language, and works offline in any web browser.</p>
       <div class="doc-grid">
         <article class="doc-column">
           <h3>Player guides</h3>
           <ul>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/GAMES.md">Games Guide</a> for the supported games and modes, profiles, installations, writable homes and each game's status.</li>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/DISPLAY.md">Display Guide</a> for renderers, display modes, HDR, scaling, anti-aliasing, bloom, lighting, shadows, fog, liquids, lens flares and motion blur.</li>
-            <li><a href="docs/RTX.md">RTX Renderer Guide</a> (included) for requirements, path tracing, fallback behavior, safe settings and troubleshooting.</li>
-            <li><a href="docs/GLX.md">GLx Renderer Guide</a> (included) for the default OpenGL-lineage renderer, diagnostics and troubleshooting.</li>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/VISUALS.md">Visuals Guide</a> for player highlighting, colours and outlines.</li>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/ASPECT_CORRECTION.md">Aspect Handling Guide</a> for widescreen FOV, HUD layout, menus and cinematics.</li>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/AUDIO.md">Audio Guide</a> for devices, HRTF, spatial effects, audio zones, each game's sound and troubleshooting.</li>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/CONSOLE.md">Console Guide</a> for layout, fonts, completion, clipboard use and mouse interaction.</li>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/SCREENSHOTS.md">Screenshot Guide</a> for formats, filenames, metadata, levelshots, watermarks and cube maps.</li>
+            <li><a href="manual/getting-started.html">Getting started</a>: set up, start a game, use the console and settings.</li>
+            <li><a href="manual/games.html">Games</a>: every game, what you need, playing online, and what works today.</li>
+            <li><a href="manual/display.html">Graphics</a>: window and fullscreen, smoother edges, lighting, shadows, water, fog and glow.</li>
+            <li><a href="manual/widescreen.html">Widescreen</a>: field of view, HUD, menus and movies on wide screens.</li>
+            <li><a href="manual/player-highlights.html">Player highlights</a>: making other players stand out.</li>
+            <li><a href="manual/audio.html">Sound</a>: headphones, surround, 3D sound and fixing sound problems.</li>
+            <li><a href="manual/console.html">Console</a>: commands, suggestions, copy and paste, and its look.</li>
+            <li><a href="manual/screenshots.html">Screenshots</a>: formats, names, watermarks, map previews and cube maps.</li>
+            <li><a href="manual/glx.html">GLx renderer</a> and <a href="manual/rtx.html">RTX ray tracing</a>: the default renderer and the ray tracer.</li>
           </ul>
         </article>
         <article class="doc-column">
-          <h3>Technical and build docs</h3>
+          <h3>For the technically minded</h3>
           <ul>
-            <li><a href="docs/fntech3/COMPATIBILITY.md">Compatibility ledger</a> (included) for all sixteen profiles, observed evidence, open gates and unified release sign-off.</li>
-            <li><a href="docs/fntech3/ARCHITECTURE.md">Architecture overview</a> (included) for how profiles, adapters and the shared subsystems fit together.</li>
-            <li><a href="docs/fntech3/PACKAGES.md">Engine package</a> (included) for <code>fntech3-pkg.fnz</code> and its per-game sidecars.</li>
-            <li><a href="CHANGELOG.md">Changelog</a> (included) and <a href="docs/fntech3/RELEASING.md">release guide</a> (included).</li>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/BUILD.md">Build Guide</a> for compiling ${project_name_short} and enabling each game's development option.</li>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/fnql/RTX_RENDERER.md">RTX Renderer Contract</a> for the renderer's module boundary, conservative defaults and runtime validation.</li>
-            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/fnql/README.md">FnQL baseline documents</a> for the Quake Live profile's WebUI, Steam provider, input and font contracts, and the inherited renderer and audio design notes.</li>
+            <li><a href="docs/fntech3/COMPATIBILITY.md">Compatibility ledger</a> (included): every game's test results and what is still open.</li>
+            <li><a href="CHANGELOG.md">Changelog</a> (included): what changed in each release, and the <a href="docs/fntech3/RELEASING.md">release guide</a>.</li>
+            <li><a href="docs/fnql/RTX_RENDERER.md">RTX Renderer Contract</a> (included): how the ray tracer works and its limits.</li>
+            <li><a href="docs/fnql/TECHNICAL.md">Technical notes</a> (included): the engine's design, inherited from FnQL.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/BUILD.md">Build guide</a>: compiling fnTech3, including the experimental games.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/blob/main/docs/fntech3/ARCHITECTURE.md">Architecture overview</a>: how the engine fits together.</li>
+            <li><a href="https://github.com/themuffinator/fnTech3/issues">Report a problem</a> on GitHub.</li>
           </ul>
         </article>
       </div>
     </section>
 
     <section class="section" id="credits">
-      <div class="section-header">
-        <h2>5. Credits</h2>
-        <p class="lead">${project_name_short} combines FnQuake3 and FnQL with the id Software, ioquake3 and Quake3e engine lineage. QLSRP, OpenJK, OpenAlice, iortcw, Lilium Voyager and other projects supply behavioral and format evidence for independently written implementation work.</p>
-      </div>
-      <p class="lead">Additional compatibility and feature work draws from projects and references such as <a href="https://bitbucket.org/CPMADevs/cnq3">CNQ3</a>, <a href="https://github.com/zturtleman/spearmint">Spearmint</a>, <a href="https://github.com/brugal/wolfcamql">WolfcamQL</a>, Luigi Auriemma's <a href="https://aluigi.altervista.org/papers.htm#qldec">qldec</a>, and <a href="https://github.com/Paril/DarkMatter-Q2">DarkMatter-Q2</a>.</p>
-      <p class="footer">See the full upstream chain, acknowledgements and trademark notices in <a href="CREDITS.md">CREDITS.md</a> and <a href="THIRD_PARTY_NOTICES.md">THIRD_PARTY_NOTICES.md</a>.</p>
+      <h2><span>4.</span> Credits</h2>
+      <p class="lead">${project_name_short} combines FnQuake3 and FnQL with the engine line of id Software, ioquake3 and Quake3e. QLSRP, OpenJK, OpenAlice, iortcw, Lilium Voyager and other projects helped document how the games behave, for work written independently for ${project_name_short}.</p>
+      <p class="lead">Other compatibility and feature work draws on projects such as <a href="https://bitbucket.org/CPMADevs/cnq3">CNQ3</a>, <a href="https://github.com/zturtleman/spearmint">Spearmint</a>, <a href="https://github.com/brugal/wolfcamql">WolfcamQL</a>, Luigi Auriemma's <a href="https://aluigi.altervista.org/papers.htm#qldec">qldec</a> and <a href="https://github.com/Paril/DarkMatter-Q2">DarkMatter-Q2</a>.</p>
+      <p class="footer">The full history, thanks and trademark notices are in <a href="CREDITS.md">CREDITS.md</a> and <a href="THIRD_PARTY_NOTICES.md">THIRD_PARTY_NOTICES.md</a>. All game names and trademarks belong to their owners; fnTech3 is not made or endorsed by them.</p>
     </section>
   </main>
 </body>

@@ -1,150 +1,59 @@
 # Screenshot Guide
 
-fnTech3 keeps the classic screenshot commands in every game, then extends them into a more flexible capture system for organized shot libraries, reproducible camera setups, and cube-map extraction. This guide covers the screenshot commands, naming rules, metadata sidecars, watermark options, and cube-map capture behavior.
+fnTech3 keeps every game's familiar screenshot commands and adds more: your
+own file names, a choice of formats, camera notes for retaking a shot, a
+watermark, map preview pictures and six-sided cube maps. Bind `screenshot` to
+a key, or type it in the console.
 
-All screenshot output is written under the writable home, in the running game's directory: `<fs_homepath>/<game directory>/screenshots/`, for example `baseq3/screenshots/` for Quake III Arena and Quake Live, `main/screenshots/` for RTCW, `etmain/` for Enemy Territory, `baseEF/` for Elite Force, `base/` for Alice and `fakk/` for F.A.K.K.2 -- or the `fs_game` mod's directory when one is active. See the [Games Guide](GAMES.md#where-files-are-read-and-written) for where the home is.
+## Where screenshots go
 
-## Color Capture Policy
+Pictures are saved in the `screenshots` folder of the game's folder in your
+home folder -- for example `baseq3\screenshots` for Quake III Arena and Quake
+Live, `main\screenshots` for Return to Castle Wolfenstein, and `etmain`,
+`baseEF`, `base` or `fakk` for Enemy Territory, Elite Force, Alice and
+F.A.K.K.2 -- or in the mod's folder when you play a mod. The
+[Games guide](GAMES.md#where-files-are-read-and-written) says where your home
+folder is.
 
-Screenshots, levelshots, cube-map faces, clipboard BMP captures, and AVI frame capture default to SDR sRGB byte output. This remains true even when the renderer is using the scene-linear HDR pipeline internally: the final output transform is captured after tone mapping so existing PNG, TGA, JPG, BMP, baselines, and scripts keep their historical expectations.
+## Taking screenshots
 
-`r_screenshotCaptureMode` records the explicit capture policy on the GLx and RTX renderers (Vulkan does not have it):
+- `screenshot`: saves a PNG picture.
+- `screenshotJPEG`, `screenshotTGA` or `screenshotBMP`: saves a JPEG, TGA or
+  BMP picture instead. `screenshotPNG` is the same as `screenshot`.
+  `r_screenshotJpegQuality` sets the JPEG quality, from `1` to `100`
+  (default `90`).
+- `screenshot <name>`: saves as `screenshots/<name>.png` instead of a
+  name chosen for you.
+- `screenshot silent`: saves without the message on screen.
+- `screenshotBMP clipboard`: copies the picture to the clipboard instead of
+  saving a file, ready to paste into another program.
+- `screenshot levelshot`: saves a map preview picture (see
+  [Levelshots](#levelshots)).
+- `screenshot cubemap`: saves a cube map (see [Cube Maps](#cube-maps)).
 
-- `0`: SDR sRGB byte capture. This is the default.
-- `1`: Reserved scene-linear HDR export request. It currently falls back to SDR sRGB byte output and prints a warning; use it only when a capture run needs to prove that an HDR-aware request was made explicitly.
-- `2`: Reserved HDR-output export request. It currently falls back to SDR sRGB byte output and prints a warning; it is a forward-compatible slot for future output-encoded HDR screenshots.
+To take a screenshot with a key, bind it in the console, for example
+`bind F12 screenshot`.
 
-GLx diagnostics report both the requested policy and the selected capture policy. Until float/HDR image export is implemented, HDR-aware requests are recorded as explicit but unsupported and the selected capture remains `sdr-srgb`.
+## Choosing file names
 
-When `r_screenshotWriteViewpos 1` is enabled, sidecars include `captureMode` and `captureColorSpace` lines so proof artifacts identify the capture policy without changing the image format.
+Without a name of your own, fnTech3 names each picture from
+`r_screenshotNameFormat`. The default, `"shot-{date}-{time}"`, gives names
+like `shot-20261006-213045.png`. The file's ending always matches the command
+you used, and if a name is already taken fnTech3 adds a number.
 
-## Overview
+You can build names from these pieces:
 
-The standard commands remain familiar:
+- `{map}`: the map's name.
+- `{date}`: today's date, as `YYYYMMDD`.
+- `{time}`: the time, as `HHMMSS`.
+- `{datetime}`: both, as `YYYYMMDD-HHMMSS`.
+- `{iter}`: a counting number, starting at `0`; `{iter:4}` pads it to four
+  digits, like `0007`.
+- `{cmd}`: the command used, such as `screenshot` or `screenshotJPEG`.
+- `{face}`: the side of a cube map, for cube map pictures.
+- `{type}`: the file type, such as `png` or `jpg`.
 
-- `screenshot`: Save a PNG screenshot.
-- `screenshotPNG`: Explicit PNG screenshot command.
-- `screenshotTGA`: Save a TGA screenshot.
-- `screenshotJPEG`: Save a JPG screenshot.
-- `screenshotBMP`: Save a BMP screenshot.
-- `screenshot levelshot`: Save a levelshot to `levelshots/<map>.tga` using the current levelshot sizing and crop settings.
-- `screenshot cubemap`: Save a six-face PNG cube map on the OpenGL-lineage and Vulkan renderers. The RTX renderer refuses cube-map capture and writes no files.
-- `screenshotPNG cubemap`: Explicit PNG cube-map command.
-- `screenshotTGA cubemap`: Save a six-face TGA cube map.
-- `screenshotJPEG cubemap`: Save a six-face JPG cube map.
-- `screenshotBMP cubemap`: Save a six-face BMP cube map.
-- `screenshot silent`: Save a screenshot without the normal confirmation message.
-- `screenshot <name>`: Save to `screenshots/<name>.<ext>` instead of using the automatic naming pattern.
-- `screenshotBMP clipboard`: Copy a BMP screenshot to the system clipboard.
-- `screenshot cubemap silent`: Save the cube map without the normal confirmation message.
-- `screenshot cubemap <basename>`: Save faces as `screenshots/<basename>-front.<ext>` and so on.
-
-Cube-map face names are `front`, `back`, `left`, `right`, `top`, and `bottom`.
-
-## Levelshots
-
-`screenshot levelshot` still writes a map preview image under `levelshots/`, but it is no longer locked to a fixed `128x128` thumbnail.
-
-Default behavior:
-
-- The source is the current captured viewport.
-- The output keeps that resolved source size by default.
-- The file path remains `levelshots/<map>.tga`.
-
-Levelshot control cvars:
-
-- `r_levelshotSize`: Explicit output size. Leave it blank to keep the resolved source size. Use a single integer such as `512` for a square image, or use `WxH` such as `1024x512` for an explicit rectangle.
-- `r_levelshotDownscale`: Downscale factor used only when `r_levelshotSize` is blank. `1` keeps full size, `2` halves the output dimensions, `4` quarters them, and so on.
-- `r_levelshotSourceAspect`: Optional centered source crop aspect. Examples: `4:3`, `16:9`, `1:1`. Leave it blank to use the full viewport.
-- `r_levelshotHideHud`: Hide the HUD during levelshot and cube-map capture frames. `1` hides it, `0` keeps it.
-- `r_levelshotHideViewWeapon`: Hide first-person weapon models during levelshot and cube-map capture frames. `1` hides them, `0` keeps them.
-
-This gives you three useful modes without changing the command itself:
-
-- Full viewport export: leave all levelshot cvars at default values.
-- Centered aspect crop: set `r_levelshotSourceAspect` and leave the size blank.
-- Squashed or reshaped output: set `r_levelshotSize` to a square or custom rectangle.
-
-Capture visibility rules:
-
-- Levelshots are rendered on a dedicated capture frame so the hide settings above can take effect reliably.
-- If `r_levelshotHideHud 0`, the levelshot includes the current HUD.
-- If `r_levelshotHideViewWeapon 0`, the levelshot includes the current first-person weapon model.
-- Hiding needs the game's HUD and weapon to pass through the engine where it can leave them out. That holds in Quake III Arena, Quake Live and Elite Force, and for RTCW's HUD. Enemy Territory, Alice and F.A.K.K.2 keep both in the shot, and RTCW keeps its weapon.
-- Elite Force single player's loading screen shows `levelshots/<map>.tga` when the game finds one, and otherwise a picture kept from the last frame.
-
-Examples:
-
-Keep the full viewport at its current capture size:
-
-```cfg
-seta r_levelshotSourceAspect ""
-seta r_levelshotSize ""
-seta r_levelshotDownscale "1"
-screenshot levelshot
-```
-
-Crop a centered `4:3` block and keep it at native cropped size:
-
-```cfg
-seta r_levelshotSourceAspect "4:3"
-seta r_levelshotSize ""
-seta r_levelshotDownscale "1"
-screenshot levelshot
-```
-
-Crop a centered `4:3` block and downscale it by half:
-
-```cfg
-seta r_levelshotSourceAspect "4:3"
-seta r_levelshotSize ""
-seta r_levelshotDownscale "2"
-screenshot levelshot
-```
-
-Squash the full viewport into a square image:
-
-```cfg
-seta r_levelshotSourceAspect ""
-seta r_levelshotSize "512"
-screenshot levelshot
-```
-
-Crop a centered square block and keep it square:
-
-```cfg
-seta r_levelshotSourceAspect "1:1"
-seta r_levelshotSize "512"
-screenshot levelshot
-```
-
-## Game-Specific Captures
-
-- Alice and F.A.K.K.2 also have their original engine's `saveshot <name> <width> <height>`, which writes a reduced greyscale `screenshots/<name>.tga`; the games use it for their save pictures.
-- Every game's captures follow the same naming, metadata and watermark rules below.
-
-## Automatic Naming
-
-When you do not pass an explicit filename, fnTech3 builds one from `r_screenshotNameFormat`.
-
-- `r_screenshotNameFormat "shot-{date}-{time}"`: Default pattern.
-- File extensions still come from the command you used, so the pattern only controls the base name.
-- Tokens are sanitized automatically so map names and command names stay filesystem-safe.
-- If a generated name already exists, fnTech3 appends an iterator automatically unless your pattern already uses one.
-
-Supported tokens:
-
-- `{map}`: Current map name, sanitized for filenames.
-- `{date}`: Current local date as `YYYYMMDD`.
-- `{time}`: Current local time as `HHMMSS`.
-- `{datetime}`: Combined local date and time as `YYYYMMDD-HHMMSS`.
-- `{iter}`: Numeric collision iterator starting at `0`.
-- `{iter:4}`: Iterator padded to a fixed width, such as `0007`.
-- `{cmd}`: The capture command name, such as `screenshot`, `screenshotJPEG`, or `screenshot-cubemap`.
-- `{face}`: Cube-map face name when a cube-map capture is generating the file.
-- `{type}`: Output type, such as `tga`, `jpg`, or `bmp`.
-
-Examples:
+For example:
 
 ```cfg
 seta r_screenshotNameFormat "shot-{map}-{datetime}"
@@ -154,21 +63,14 @@ seta r_screenshotNameFormat "shot-{map}-{datetime}"
 seta r_screenshotNameFormat "{map}-{cmd}-{iter:4}"
 ```
 
-```cfg
-seta r_screenshotNameFormat "{map}-{datetime}-{face}"
-```
+Characters that file names cannot hold are replaced for you.
 
-If a cube-map pattern does not include `{face}`, fnTech3 appends the face name automatically so the six outputs stay distinct.
+## Notes for retaking a shot
 
-## View Metadata Sidecars
-
-Set `r_screenshotWriteViewpos 1` to make fnTech3 write a plain-text sidecar next to each saved screenshot.
-
-- The sidecar uses the same base filename as the image and ends in `.txt`.
-- Each file stores the current map name, view origin, view angles, and a ready-to-paste `setviewpos` command.
-- This works for normal screenshots and for each cube-map face image.
-
-Example output:
+With `r_screenshotWriteViewpos 1`, fnTech3 saves a small text file beside
+each picture, with the same name ending in `.txt`. It records the map, where
+the camera stood and which way it looked, and a `setviewpos` command that
+puts you back in exactly the same spot:
 
 ```text
 map q3dm17
@@ -179,38 +81,28 @@ captureColorSpace sdr-srgb
 setviewpos 128.000 -64.000 512.000 -10.000 90.000 0.000
 ```
 
-This is useful when you want to recreate a shot later, compare captures across builds, or keep precise camera notes alongside exported images.
+That makes it easy to retake a shot later, or to compare the same view in
+different renderers.
 
 ## Watermarks
 
-fnTech3 can composite an image watermark directly into saved screenshots.
+fnTech3 can stamp your own logo onto every screenshot.
 
-- `r_screenshotWatermark`: Path to the watermark image, which you supply in the game's filesystem (loose or in a pak). No watermark image ships with fnTech3. Supported formats are `png`, `tga`, `jpg`, `jpeg`, and `bmp`.
-- `r_screenshotWatermarkAlignment`: Alignment of the watermark inside the 4:3 safe area.
-- `r_screenshotWatermarkScreenAlignment`: Alignment of that 4:3 safe area inside the full screenshot.
-- `r_screenshotWatermarkMargin`: Margin in pixels from the aligned edges.
+- `r_screenshotWatermark`: the picture to use -- PNG, TGA, JPEG or BMP --
+  given as a path inside the game's files, loose or in a `.pk3`. fnTech3
+  does not come with one.
+- `r_screenshotWatermarkAlignment`: where it goes inside a centred 4:3 area of
+  the screenshot.
+- `r_screenshotWatermarkScreenAlignment`: where that 4:3 area sits in the
+  whole screenshot.
+- `r_screenshotWatermarkMargin`: the gap from the edge, in pixels.
 
-Supported alignment values for both alignment cvars:
-
-- `top-left`
-- `top`
-- `top-right`
-- `left`
-- `center`
-- `right`
-- `bottom-left`
-- `bottom`
-- `bottom-right`
-
-Behavior notes:
-
-- The watermark image is not rescaled by the engine. fnTech3 draws it at its source size.
-- Placement is computed against a 4:3 safe area first, then that safe area is placed inside the actual screenshot using `r_screenshotWatermarkScreenAlignment`.
-- This makes it practical to keep watermark placement stable across 4:3 and widescreen captures.
-- If the watermark image cannot be loaded, the screenshot is still saved and fnTech3 prints a warning.
-- Watermarks are disabled for cube-map capture so every face remains a clean 1:1 tile.
-
-Example:
+Both alignments take `top-left`, `top`, `top-right`, `left`, `center`,
+`right`, `bottom-left`, `bottom` or `bottom-right`. Using the 4:3 area keeps
+the watermark in the same place on 4:3 and widescreen screenshots. The
+watermark is drawn at its own size, never stretched. If it cannot be loaded,
+the screenshot is still saved and the console warns you. Cube maps never get
+a watermark.
 
 ```cfg
 seta r_screenshotWatermark "gfx/watermarks/my-mark.png"
@@ -219,52 +111,105 @@ seta r_screenshotWatermarkScreenAlignment "center"
 seta r_screenshotWatermarkMargin "24"
 ```
 
+## Levelshots
+
+A *levelshot* is a map's preview picture, the one a game shows while the map
+loads or in its map list. `screenshot levelshot` saves one as
+`levelshots/<map>.tga`. Unlike the originals' small fixed size, it keeps the
+full picture unless you ask otherwise:
+
+- `r_levelshotSize`: the size to save. Leave it empty to keep the picture's
+  size; `512` makes a 512x512 square, and `1024x512` any shape you like.
+- `r_levelshotDownscale`: shrinks the picture when `r_levelshotSize` is
+  empty: `1` full size, `2` half, `4` a quarter.
+- `r_levelshotSourceAspect`: crops the middle of the screen to a shape first,
+  such as `4:3`, `16:9` or `1:1`. Leave it empty to keep the whole screen.
+- `r_levelshotHideHud`: `1` (the default) leaves the HUD out of the picture;
+  `0` keeps it.
+- `r_levelshotHideViewWeapon`: `1` (the default) leaves your weapon out; `0`
+  keeps it.
+
+The HUD and weapon can be left out in Quake III Arena, Quake Live and Elite
+Force, and the HUD in Return to Castle Wolfenstein. Enemy Territory, Alice
+and F.A.K.K.2 always include both, and Return to Castle Wolfenstein its
+weapon. Elite Force single player's loading screen shows the levelshot when
+it finds one, and otherwise a picture of the last frame.
+
+For example, a 4:3 crop at half size:
+
+```cfg
+seta r_levelshotSourceAspect "4:3"
+seta r_levelshotSize ""
+seta r_levelshotDownscale "2"
+screenshot levelshot
+```
+
+Or a 512x512 square from the middle of the screen:
+
+```cfg
+seta r_levelshotSourceAspect "1:1"
+seta r_levelshotSize "512"
+screenshot levelshot
+```
+
+Alice and F.A.K.K.2 also have their original command
+`saveshot <name> <width> <height>`, which saves a small greyscale
+`screenshots/<name>.tga`; the games use it for their saved-game pictures.
+
 ## Cube Maps
 
-The `glx` and `vk` renderers can capture a six-face cube map from the current camera position through the `screenshot ... cubemap` subcommand.
-
-- Each face is saved as a square image.
-- The renderer captures the five non-front faces from one frozen scene state inside the same scene submission.
-- The front face is taken from that same capture frame after the normal front view finishes drawing.
-- That keeps world time, entity state, and shader animation state aligned across the set instead of advancing between faces.
-- Every face uses an exact square 90-degree projection and the same camera-relative face orientation on GLx and Vulkan.
-- Faces receive the SDR output transform and color grading, while view-dependent screen effects such as bloom, CRT distortion, and camera motion blur are excluded to keep cube edges consistent.
-- Cube-map watermarks are always disabled.
-- If `r_levelshotHideHud 0`, the HUD appears only on the `front` face.
-- If `r_levelshotHideViewWeapon 0`, the first-person weapon appears only on the `front` face.
-- Vulkan batches all six GPU face copies into one host readback after the frame instead of stalling once per face.
-
-Example:
+A *cube map* is six square pictures that together show everything around
+you -- front, back, left, right, up and down -- as used for skyboxes and
+reflections. Stand where you want the centre to be and type
+`screenshot cubemap`; add a name to choose the files' names:
 
 ```cfg
 screenshot cubemap env/q3dm1-sky
 ```
 
-That produces:
+That saves `screenshots/env/q3dm1-sky-front.png`, and the same with `back`,
+`left`, `right`, `top` and `bottom`. `screenshotJPEG cubemap`,
+`screenshotTGA cubemap` and `screenshotBMP cubemap` save other formats, and
+`screenshot cubemap silent` saves without the message.
 
-- `screenshots/env/q3dm1-sky-front.png`
-- `screenshots/env/q3dm1-sky-back.png`
-- `screenshots/env/q3dm1-sky-left.png`
-- `screenshots/env/q3dm1-sky-right.png`
-- `screenshots/env/q3dm1-sky-top.png`
-- `screenshots/env/q3dm1-sky-bottom.png`
+All six pictures are taken from the same moment, so nothing moves between
+them, and each is an exact 90-degree square view, so their edges meet.
+Effects that depend on the view -- glow, motion blur and screen distortion --
+are left out so the edges match; brightness and colour grading are kept. The
+HUD and your weapon are left out too, as `r_levelshotHideHud` and
+`r_levelshotHideViewWeapon` say; set either to `0` and it appears in the
+`front` picture only. If
+your naming pattern has no `{face}`, the side's name is added for you.
 
-Renderer status:
+Cube maps work in the GLx and Vulkan renderers. RTX cannot take them yet; it
+says so and saves nothing, though ordinary screenshots and levelshots work.
 
-- GLx renderer: full cube-map capture support.
-- Vulkan renderer: full cube-map capture support with the same face names, orientation, visibility controls, and SDR output contract.
-- RTX renderer: no cube-map capture yet; the command reports that and writes nothing. Ordinary screenshots and levelshots work.
+## Colour and HDR
 
-## Recommended Starting Points
+Screenshots, levelshots, cube maps, clipboard pictures and video frames are
+always saved as ordinary (SDR) pictures, even when you play with HDR, so they
+look right everywhere and match earlier fnTech3 pictures.
 
-For an organized screenshot archive:
+`r_screenshotCaptureMode`, in GLx and RTX, records which kind of picture you
+asked for:
+
+- `0`: an ordinary picture. This is the default.
+- `1` and `2`: reserved for saving real HDR pictures in a future version. For
+  now they save an ordinary picture and print a warning.
+
+With `r_screenshotWriteViewpos 1`, the text file beside each picture also
+records which kind was asked for and saved.
+
+## Recommended starting points
+
+An organised screenshot collection:
 
 ```cfg
 seta r_screenshotNameFormat "{map}-{datetime}-{iter:3}"
 seta r_screenshotWriteViewpos "1"
 ```
 
-For a capture setup with a logo watermark:
+Screenshots with your logo:
 
 ```cfg
 seta r_screenshotNameFormat "{map}-{datetime}"
@@ -274,7 +219,7 @@ seta r_screenshotWatermarkScreenAlignment "center"
 seta r_screenshotWatermarkMargin "16"
 ```
 
-For cube-map export on an OpenGL-lineage renderer:
+Cube maps with clear names:
 
 ```cfg
 seta r_screenshotNameFormat "{map}-{datetime}-{face}"

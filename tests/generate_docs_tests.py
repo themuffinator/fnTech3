@@ -27,6 +27,7 @@ FEATURE_HEADINGS = (
 )
 
 USER_GUIDES = (
+    "docs/GETTING_STARTED.md",
     "docs/GAMES.md",
     "docs/DISPLAY.md",
     "docs/RTX.md",

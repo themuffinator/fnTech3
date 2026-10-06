@@ -249,6 +249,14 @@ as part of that commit.
   [`BUILD.md`](BUILD.md)'s development options and
   [`docs/fntech3/ARCHITECTURE.md`](docs/fntech3/ARCHITECTURE.md)'s profile
   table. [`docs/README.md`](docs/README.md) indexes the documentation.
+- Write the player guides for players, not maintainers: what a feature does,
+  how to turn it on and what to try when it goes wrong, in plain words, with
+  each setting explained where it first appears. Record evidence, offsets,
+  adapters and gate detail in the ledger and its records, and give the guide
+  one plain sentence and a link. Release packages carry the guides as web
+  pages built by `scripts/player_manual.py`; a new guide joins its `GUIDES`
+  list, and every link between guides, and the section it names, must
+  resolve or packaging stops.
 
 ## Stable test executable paths
 

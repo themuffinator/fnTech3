@@ -1,59 +1,57 @@
 # GLx Renderer Guide
 
-GLx is fnTech3's canonical OpenGL-lineage renderer and the client default in every game. It is the renderer path where OpenGL-family work lands: capability tiers, static-world acceleration, dynamic streaming, material execution, postprocess, output transforms, and GLx-specific diagnostics. Each game's own formats -- RTCW's and Enemy Territory's models, fog and coronas, Elite Force's effects, and the TIKI models, shaders and far plane of Alice and F.A.K.K.2 -- are drawn through it as through the other two renderers.
+GLx is fnTech3's main OpenGL renderer, and the one every game uses unless you
+choose another. Most of fnTech3's graphics features arrive in GLx first, and
+it draws each game's own models, effects, fog and lights -- including those of
+Return to Castle Wolfenstein, Enemy Territory, Elite Force, Alice and
+F.A.K.K.2. The settings it shares with the other renderers are in the
+[Graphics guide](DISPLAY.md).
 
-GLx is built in normal modular builds and can be selected explicitly with:
+## Selecting GLx
+
+GLx is the default. If you switched to another renderer, come back with:
 
 ```cfg
 seta cl_renderer "glx"
 vid_restart
 ```
 
-## Renderer Selection
-
-`cl_renderer` is latched, so changing it requires `vid_restart`.
-
-- `cl_renderer glx`: default OpenGL-lineage renderer module.
-- `cl_renderer vk`: Vulkan raster renderer.
-- `cl_renderer rtx`: Vulkan ray-tracing renderer.
-
-Dynamic renderer builds can also use:
+The other choices are `cl_renderer vk` (Vulkan) and `cl_renderer rtx`
+(ray tracing). `renderer_switch` changes renderer in one step, which is handy
+for comparing them:
 
 ```cfg
 renderer_switch glx fast
 renderer_switch vk fast
 ```
 
-That command exercises the same shutdown/startup surface used by `vid_restart`, which makes it useful for quick comparison runs.
+## Troubleshooting
 
-## Build Availability
+**GLx does not start.** Check that `fnql_glx_x86` is beside `fntech3.exe`; it
+comes in the download. GLx never quietly swaps itself for another renderer,
+so a missing file is a problem with the files, not with your settings:
+unpack the download again.
 
-Normal Meson and Make modular builds include GLx by default alongside VK and RTX. GLx is the client default.
+**The screen is black, or the picture looks wrong.** Switch to Vulkan with
+`cl_renderer vk` and `vid_restart`. If Vulkan looks right, the problem is in
+GLx: please report it, with the details below.
 
-Useful build selections:
+**It runs slower than expected.** Compare with Vulkan in the same place. Turn
+`r_speeds 7` on to see how hard the renderer is working, and include it in a
+report.
 
-```sh
-meson setup meson/build -Drenderer-dlopen=true -Drenderers=glx,vk,rtx
-make BUILD_SERVER=0 USE_GLX=1
-```
+**GLx crashes or misbehaves with your graphics driver.** Use Vulkan
+(`cl_renderer vk`, then `vid_restart`) until a fix arrives, and update your
+driver.
 
-For single-renderer static test builds, select GLx explicitly:
+**A problem only happens in one game.** Say which game and map, and attach a
+screenshot taken with the `screenshot` command in both `glx` and `vk`.
 
-```sh
-meson setup meson/build-glx-static -Drenderer-dlopen=false -Drenderer-default=glx
-make BUILD_SERVER=0 USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=glx
-```
+## What to include in a report
 
-## Proof And Diagnostics
-
-Use the runtime sweep for structured evidence:
-
-```sh
-python scripts/glx_runtime_sweep.py --gate rc-parity --exe path/to/fntech3 --basepath path/to/game
-python scripts/glx_runtime_sweep.py --gate rc-proof --exe path/to/fntech3 --basepath path/to/game --proof-dir .tmp/glx-proof/windows-x86
-```
-
-Inside the game, these commands are the first things to capture in a renderer bug report:
+Type these in the console where the problem shows, then `condump report.txt`
+to save their messages into `report.txt`, in the game's folder in your home
+folder, ready to attach:
 
 ```cfg
 glxinfo
@@ -63,16 +61,21 @@ glxstaticworld 8
 seta r_speeds "7"
 ```
 
-`glxinfo` identifies the active product tier and ownership counters. `glxmaterial` reports material compiler and bind state. `glxpostprocess` records FBO, bloom, tone/output, screenshot, and capture state. `glxstaticworld 8` prints static packet, arena, draw, and MDI evidence.
+- `glxinfo` names what your graphics card supports and which GLx features are
+  in use.
+- `glxmaterial` reports how surfaces are being drawn.
+- `glxpostprocess` reports the brightness, glow, HDR and screenshot settings
+  in use.
+- `glxstaticworld 8` reports how the map itself is being drawn.
+- `r_speeds 7` shows, on screen, how much drawing each frame takes. Its
+  numbers are not in the console, so take a `screenshot` of them.
 
-## Troubleshooting
+[Getting Started](GETTING_STARTED.md#getting-help) says where to send it.
 
-If GLx does not load, confirm the build produced the GLx module for your platform and architecture. A requested GLx load fails closed, so a missing GLx library should be fixed as a packaging/build issue instead of silently falling back to legacy OpenGL.
+## For developers
 
-If the screen is black or the image differs from `vk`, collect `glxinfo`, `glxpostprocess`, `r_speeds 7`, and matching `glx`/`vk` screenshots. Check whether FBO output is ready, whether bloom/output transforms match, and whether the active tier is lower than expected.
-
-If performance regresses, run `rc-parity` or `rc-proof` and compare the generated performance aggregate. Useful counters include draw count, stream upload volume, material binds, static packet misses, same-frame stream wrap rejects, and GPU frame time.
-
-If a driver-specific GLx issue blocks play, set `cl_renderer vk` and run `vid_restart` to use the Vulkan raster renderer.
-
-The runtime sweep's proof corpus uses stock `baseq3` scenes such as `q3dm1` and `q3dm17`; see the [GLx proof corpus](fnql/GLX_PROOF_CORPUS.md). A problem that appears in only one game is best reported with that game's profile, map and an engine `screenshot` from both `glx` and `vk`.
+GLx is built with the other renderers by default; the
+[Build Guide](../BUILD.md) has the options. Its design, its diagnostics in
+depth and the automated runtime sweeps that check it against Vulkan are in the
+[GLx renderer notes](fnql/GLX_RENDERER.md), and the scenes those sweeps use
+are listed in the [GLx proof corpus](fnql/GLX_PROOF_CORPUS.md).

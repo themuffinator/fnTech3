@@ -2186,6 +2186,19 @@ historical upstream records, not fnTech3 release history. See the
   indexed as the Quake Live profile's reference, upstream history moved to
   `docs/archive/`, and the issue-triage script reads documents that exist.
 
+- Write the player guides for players. A new
+  [Getting Started](docs/GETTING_STARTED.md) guide covers installing,
+  starting a first game, the console and settings files, and every guide now
+  leads with what a feature does and how to use it, explains each setting in
+  everyday words, and keeps its technical detail in the technical notes and
+  the compatibility ledger. Release packages now include the guides as web
+  pages, `manual/index.html`, in the fnTech3 flame's orange and black, with
+  search, light and dark themes and copy buttons on every example; they open
+  offline in any browser, and `README.html` is redesigned to match and links
+  into them. `scripts/player_manual.py` builds the pages from the same
+  Markdown, and packaging stops if a guide links to a page or section that
+  does not exist ([theme notes](docs/manual/README.md)).
+
 - Generate F.A.K.K.2's delta tables and dictionary from the official 1.02
   patch's `fakk2.exe`, with `scripts/generate_fakk2_wire_tables.py`. Its
   `--check` mode, run by `tests/fakk2_wire_tests.py` when that executable is

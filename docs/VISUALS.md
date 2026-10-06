@@ -1,98 +1,93 @@
-# Visuals Guide
+# Player Highlights Guide
 
-fnTech3 keeps each game's own visuals as the baseline, then adds a few optional engine-side presentation controls on top. This guide covers the player highlight controls and points to the more focused guides for renderer display effects, menu/cinematic aspect handling, and console presentation.
+Player highlighting makes other players easier to spot by giving them a soft
+coloured glow round their edges (a *rim light*), a solid coloured outline, or
+both. It is off by default, and only changes the picture: it changes nothing
+in the game itself, and other players cannot see it.
 
-## Cel Shading
+For the cartoon-style cel shading and outlines on every model, see
+[Cel Shading](DISPLAY.md#cel-shading) in the Graphics guide.
 
-Cel-shaded model lighting, model outlines, first-person weapon outline tuning, model shadow banding, and BSP world depth-edge outlines are renderer display effects. Their full cvar reference lives in the [Display Guide](DISPLAY.md#cel-shading).
+## Which games it works in
 
-## Player Highlighting
+Highlighting works in **Quake III Arena** and **Quake Live**, where fnTech3
+can tell players apart from every other model. Elite Force draws its players
+the same way, but whether highlighting finds them has not been checked yet.
+Return to Castle Wolfenstein, Enemy Territory, Alice and F.A.K.K.2 draw their
+models differently, so highlighting has no effect there.
 
-Player highlighting is off by default. When enabled, it draws an extra pass on player models using a rimlight, a stencil outline, or both.
+fnTech3 recognises a player by the model it wears -- a `lower`, `upper` or
+`head` model or skin under `models/players/` -- and the teams of a team game
+by the game type (`g_gametype`) and the red or blue skin each player wears.
+Custom or forced player models kept in other folders are not highlighted.
 
-It works where the game's player models reach the renderer through the engine's Quake III-style entity path, which is where the engine can tell a player from any other model: Quake III Arena and Quake Live. Elite Force's models take the same path, but whether its player models are recognized has not been checked. RTCW, Enemy Territory, Alice and F.A.K.K.2 submit their models another way, so highlighting has no effect there.
+## Turning it on
 
-A model counts as a player when it is a `lower`, `upper` or `head` model (or skin) under `models/players/`, and it is matched to a player in the current snapshot. Team modes are recognized from `g_gametype` and the red or blue skin the player wears.
+- `cl_playerHighlight 0`: off. This is the default.
+- `cl_playerHighlight 1`: the glow only.
+- `cl_playerHighlight 2`: the outline only.
+- `cl_playerHighlight 3`: both.
 
-- `cl_playerHighlight 0`: Disable player highlighting.
-- `cl_playerHighlight 1`: Enable rimlight only.
-- `cl_playerHighlight 2`: Enable stencil border only.
-- `cl_playerHighlight 3`: Enable both rimlight and stencil border.
-
-Behavior notes:
-
-- Your own player model is excluded.
-- HUD-head and other `RDF_NOWORLDMODEL` scenes are excluded.
-- Corpses are excluded.
-- In team modes, both teams can be highlighted.
-- In non-team modes, highlighted players use the free-for-all color path.
-- The stencil border only appears when the active renderer has stencil support.
-
-## Highlight Colors
-
-fnTech3 uses separate base colors for red team, blue team, and non-team modes.
-
-- `cl_playerHighlightRedColor`: Base color for red-team players.
-- `cl_playerHighlightBlueColor`: Base color for blue-team players.
-- `cl_playerHighlightFreeColor`: Base color for non-team modes.
-
-Each color cvar accepts `R G B` or `R G B A` values in `0-255` space.
-
-Default values:
-
-- `cl_playerHighlightRedColor "255 32 0"`
-- `cl_playerHighlightBlueColor "0 32 255"`
-- `cl_playerHighlightFreeColor "255 32 0"`
-
-The same base color drives both passes. The rimlight and outline use different internal alpha strengths so they read as separate effects instead of the same shell drawn twice.
-
-Overall pass intensity:
-
-- `cl_playerHighlightRimIntensity`: Multiplies rimlight opacity.
-- `cl_playerHighlightOutlineIntensity`: Multiplies stencil border opacity.
-
-Defaults:
-
-- `cl_playerHighlightRimIntensity "2.0"`
-- `cl_playerHighlightOutlineIntensity "2.0"`
-
-Both accept `0` through `2`. Use `0` to suppress that pass without changing the `cl_playerHighlight` bitmask. Values above `1` strengthen the pass until the final alpha reaches full opacity.
-
-## Enemy And Teammate Overrides
-
-If you want relationship-based coloring instead of fixed red/blue team colors, use the override cvars:
-
-- `cl_playerHighlightEnemyColor`
-- `cl_playerHighlightTeammateColor`
-
-These are blank by default. When blank, fnTech3 uses the base red, blue, or free color cvars.
-
-Override behavior:
-
-- In team modes, `cl_playerHighlightEnemyColor` replaces the color on players who are not on your team.
-- In team modes, `cl_playerHighlightTeammateColor` replaces the color on players who are on your team.
-- In non-team modes, `cl_playerHighlightEnemyColor` replaces `cl_playerHighlightFreeColor`.
-- In non-team modes, `cl_playerHighlightTeammateColor` is unused.
-
-## Outline Thickness
-
-- `cl_playerHighlightOutlineScale`: Controls stencil shell thickness.
-
-Default:
-
-- `cl_playerHighlightOutlineScale "1.01"`
-
-Keep this close to `1.0` unless you intentionally want a thicker border. Small changes are usually enough.
-
-## Examples
-
-Use both effects with default team colors:
+For example:
 
 ```cfg
 seta cl_playerHighlight "3"
 ```
 
-Use a single enemy override color in team games:
+What gets highlighted:
+
+- Every other player, in team games both teams. Your own player is never
+  highlighted, nor are bodies after a death or the heads drawn on the HUD.
+- In team games each team gets its team's colour; in free-for-all games
+  every player gets the free-for-all colour.
+- The outline needs a *stencil buffer*, a drawing feature fnTech3 turns on by
+  default (`r_stencilbits 8`).
+
+## Colours
+
+Each colour is three numbers, red, green and blue, from `0` to `255`, with an
+optional fourth for opacity.
+
+- `cl_playerHighlightRedColor`: the red team's colour. Default `"255 32 0"`.
+- `cl_playerHighlightBlueColor`: the blue team's colour. Default `"0 32 255"`.
+- `cl_playerHighlightFreeColor`: the colour in free-for-all games. Default
+  `"255 32 0"`.
+
+The glow and the outline use the same colour, at different strengths so they
+look like two separate effects.
+
+### Enemies and teammates instead of team colours
+
+If you would rather colour players by whose side they are on than by team,
+set either or both of these. They are empty by default, which uses the team
+colours above.
+
+- `cl_playerHighlightEnemyColor`: replaces the colour of players on the other
+  team, and the free-for-all colour.
+- `cl_playerHighlightTeammateColor`: replaces the colour of players on your
+  team. It does nothing in free-for-all games.
+
+## Strength and thickness
+
+- `cl_playerHighlightRimIntensity`: how strong the glow is, from `0` to `2`.
+  Default `2.0`.
+- `cl_playerHighlightOutlineIntensity`: how strong the outline is, from `0`
+  to `2`. Default `2.0`.
+- `cl_playerHighlightOutlineScale`: how thick the outline is. Default `1.01`;
+  small changes go a long way, so stay close to `1.0`.
+
+`0` hides one effect without changing `cl_playerHighlight`; values above `1`
+strengthen it until it is fully solid.
+
+## Examples
+
+Both effects in the team colours:
+
+```cfg
+seta cl_playerHighlight "3"
+```
+
+One colour for every enemy in team games:
 
 ```cfg
 seta cl_playerHighlight "3"
@@ -100,7 +95,7 @@ seta cl_playerHighlightEnemyColor "255 128 96"
 seta cl_playerHighlightTeammateColor ""
 ```
 
-Use flat relationship colors in team games:
+Outlines in enemy and teammate colours:
 
 ```cfg
 seta cl_playerHighlight "2"
@@ -108,7 +103,7 @@ seta cl_playerHighlightEnemyColor "224 96 96"
 seta cl_playerHighlightTeammateColor "96 208 160"
 ```
 
-Use a custom free-for-all color:
+A glow in a colour of your own for free-for-all:
 
 ```cfg
 seta cl_playerHighlight "1"
@@ -116,25 +111,23 @@ seta cl_playerHighlightFreeColor "224 112 112"
 seta cl_playerHighlightEnemyColor ""
 ```
 
-## Legacy Names
+## In the menu
 
-The old `cl_enemyHighlight*` names have been replaced by `cl_playerHighlight*`.
+In Quake Live, fnTech3's own settings pages carry these options in the
+**Team** section: the teammate and opponent colours at the bottom of the
+teammate and enemy columns, and a **Player Highlighting** block below them
+with the mode, both strengths, the outline thickness and the red, blue and
+free-for-all colours. The other games have no menu for them; set them in the
+console or a settings file.
 
-- Existing archived `cl_enemyHighlight*` values are migrated forward when the new cvars are still at default values.
-- Use the `cl_playerHighlight*` names for new configs and documentation.
+## Older setting names
 
-## In The Menu
+The old `cl_enemyHighlight*` settings are now called `cl_playerHighlight*`.
+Values saved under the old names are carried over the first time, as long as
+the new settings are still at their defaults.
 
-In Quake Live, fnTech3's WebUI settings pages (`fnql-web.pak`) carry these
-controls in the **Team** section. The teammate and opponent overrides sit at
-the bottom of the retail teammate and enemy columns, next to the force-model
-and screen-damage rows they belong with, and a **Player Highlighting** block
-below holds the mode, both pass intensities, the outline thickness, and the
-red, blue, and free-for-all colors. The other games have no menu entry for
-them; set the cvars in the console or a config.
+## Related guides
 
-## Related Guides
-
-- [Display Guide](DISPLAY.md) for renderer display effects such as cel shading, HDR, bloom, and render scaling.
-- [Aspect Handling Guide](ASPECT_CORRECTION.md) for menu and cinematic layout.
-- [Console Guide](CONSOLE.md) for console scaling, interaction, and appearance.
+- [Graphics guide](DISPLAY.md) for cel shading, HDR, bloom and render scaling.
+- [Widescreen guide](ASPECT_CORRECTION.md) for menus and movies.
+- [Console guide](CONSOLE.md) for the console's size, look and controls.

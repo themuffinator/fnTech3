@@ -35,6 +35,7 @@ from glx_promotion import (
     check_rollback_package_metadata,
     promotion_report,
 )
+from player_manual import MANUAL_DIR_NAME, build_manual, manual_entries
 from root_archive import (
     DEFAULT_ROOT_ARCHIVE_REQUIRED_ASSETS,
     ROOT_ARCHIVE_NAME,
@@ -82,6 +83,8 @@ REQUIRED_RELEASE_ARCHIVE_ENTRIES = [
     ROOT_ARCHIVE_NAME,
     FNQL_WEBPAK_NAME,
     *(destination.as_posix() for _source, destination in DEFAULT_DOCS),
+    # The player guides' HTML edition, which README.html links into.
+    *manual_entries(),
 ]
 
 LINUX_RELEASE_EXECUTABLES = ("fntech3", "fntech3.ded")
@@ -516,6 +519,10 @@ def copy_docs(stage_root: Path) -> None:
             destination = stage_root / "docs" / "fntech3" / source.relative_to(evidence_root)
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, destination)
+
+    # Render the player guides beside README.html; a broken link between
+    # guides stops the package here rather than shipping a dead page.
+    build_manual(stage_root / MANUAL_DIR_NAME)
 
 
 def validate_evidence_document_links(files: dict[str, bytes]) -> None:

@@ -1,729 +1,639 @@
 # Games Guide
 
-fnTech3 runs one game per process. At startup it selects a **game profile**:
-the set of contracts one game, or one mode of a game, needs from the engine --
-its installation layout, config file names, module interface, network and demo
-protocol, asset formats and optional services. The profile is chosen before
-the filesystem, network, modules or renderer start, and it cannot change while
-the process runs.
+fnTech3 runs one game at a time. When it starts, it picks the game -- and, for
+games with separate single-player and multiplayer programs, the mode -- and
+keeps it until you quit. This guide lists the games, shows how to start each
+one, explains playing online, and says plainly what works in each game today.
 
-This guide lists the games, how fnTech3 chooses between them, where it reads
-and writes files, and what each game can do today. fnTech3 is engine-only:
-every game needs your own legitimate installation, and its modules, assets and
-proprietary runtimes stay there. **No profile has full compatibility yet.**
-The [compatibility ledger](fntech3/COMPATIBILITY.md) is the authority on what
-has been shown to work; this guide summarizes it.
+fnTech3 contains no game files: every game needs your own installed copy, and
+fnTech3 plays it without changing it. For setting fnTech3 up the first time,
+start with [Getting Started](GETTING_STARTED.md).
+
+## Games at a glance
+
+| Game | Status | What you need |
+| --- | --- | --- |
+| Quake III Arena | **Playable** | A Steam or GOG copy, or a CD copy with the 1.32 patch |
+| Quake Live | **Playable** on Windows | The Steam copy |
+| Return to Castle Wolfenstein | Experimental | An installed copy |
+| Wolfenstein: Enemy Territory | Experimental | An installed copy, such as Steam's |
+| Star Trek Voyager: Elite Force | Experimental | Version 1.20 |
+| Star Wars Jedi Knight: Jedi Academy | Experimental, early | Version 1.01 |
+| Star Wars Jedi Knight II: Jedi Outcast | Experimental, early | Version 1.02a |
+| American McGee's Alice | Experimental | An installed copy |
+| Heavy Metal: F.A.K.K.2 | Experimental | An *installed* copy, not just the disc |
+| Medal of Honor: Allied Assault | Experimental | Version 1.00 |
+
+Two early test versions of Quake III Arena from 1999 are also supported for
+testing: the IHV Test and the public Q3Test releases.
+
+**Playable** games start from the normal download. **No game is finished
+yet**, though: fnTech3 is still being checked against the original releases,
+and the
+[compatibility ledger](fntech3/COMPATIBILITY.md) records what has been tested
+so far.
+
+**Experimental** games only start in a *development build* of fnTech3, which
+you compile yourself with that game's option turned on, as the
+[Build Guide](../BUILD.md#game-development-builds) describes. The normal
+download refuses them with a message. They are for testing: expect missing
+features and crashes, and read the game's section below for what works.
 
 ## Games and profiles
 
-| Game | Mode | Profile | Also accepted | Game directory | Config file | Available in |
+Each game, or each mode of a game, has a short name -- its **profile** -- that
+you use to start it. Several other spellings are accepted too.
+
+| Game | Mode | Name to use | Also accepted | Game folder | Settings file | Starts in |
 | --- | --- | --- | --- | --- | --- | --- |
-| Quake III Arena | | `quake3` | `q3`, `quake3arena` | `baseq3` | `q3config.cfg` | every build |
-| Quake III Arena IHV Test (February 1999) | | `q3-ihv` | `quake3-ihv`, `q3ihv`, `ihv` | `baseq3` | `q3config.cfg` | `-Dq3-ihv-development=true`, dedicated server only |
-| Quake III Arena Q3Test 1.02 to 1.08 (1999) | | `q3test` | `q3t`, `quake3-test` | `demoq3` | `q3config.cfg` | `-Dq3test-development=true`, Windows x86 |
-| Quake Live | | `quakelive` | `ql` | `baseq3` | `qzconfig.cfg` | every build |
-| Return to Castle Wolfenstein | single player | `rtcw-sp` | `rtcwsp`, `wolfsp` | `main` | `wolfconfig.cfg` | `-Drtcw-development=true` |
-| | multiplayer | `rtcw-mp` | `rtcwmp`, `wolfmp` | `main` | `wolfconfig_mp.cfg` | `-Drtcw-development=true` |
-| Wolfenstein: Enemy Territory | | `wolfet` | `et`, `enemy-territory`, `enemyterritory` | `etmain` | `etconfig.cfg` | `-Dwolfet-development=true` |
-| Star Trek Voyager: Elite Force | single player | `stvef-sp` | `efsp`, `stvoy`, `eliteforce-sp` | `baseEF` | `efconfig.cfg` | `-Dstvef-development=true` |
-| | Holomatch | `stvef-mp` | `stvef-hm`, `holomatch`, `efhm`, `stvoyhm` | `baseEF` | `hmconfig.cfg` | `-Dstvef-development=true` |
-| Star Wars Jedi Knight: Jedi Academy | single player | `jka-sp` | `jasp`, `jediacademy-sp`, `jedi-academy-sp` | `base` | `jaconfig.cfg` | `-Djka-development=true`, incomplete SP bootstrap |
-| | multiplayer | `jka-mp` | `jamp`, `jediacademy-mp`, `jedi-academy-mp` | `base` | `jampconfig.cfg` | `-Djka-development=true`, experimental server and partial client probes |
-| Star Wars Jedi Knight II: Jedi Outcast | single player | `jk2-sp` | `jk2sp`, `jedioutcast-sp`, `jedi-outcast-sp` | `base` | `jk2config.cfg` | `-Djk2-development=true`, isolated developer probes |
-| | multiplayer | `jk2-mp` | `jk2mp`, `jedioutcast-mp`, `jedi-outcast-mp` | `base` | `jk2mpconfig.cfg` | `-Djk2-development=true`, isolated developer probes |
-| American McGee's Alice | | `alice` | `americanmcgeesalice`, `mcgee-alice`, `alice2000` | `base` | `config.cfg` | `-Dalice-development=true` |
-| Heavy Metal: F.A.K.K.2 | | `fakk2` | `heavymetal-fakk2`, `heavymetalfakk2`, `hmfakk2` | `fakk` | `config.cfg` | `-Dfakk2-development=true` |
-| Medal of Honor: Allied Assault | | `mohaa` | `medalofhonor`, `moh-aa`, `alliedassault` | `main` | `configs/unnamedsoldier.cfg` | `-Dmohaa-development=true` |
+| Quake III Arena | | `quake3` | `q3`, `quake3arena` | `baseq3` | `q3config.cfg` | the normal download |
+| Quake III Arena IHV Test (February 1999) | | `q3-ihv` | `quake3-ihv`, `q3ihv`, `ihv` | `baseq3` | `q3config.cfg` | a development build, as a server only |
+| Quake III Arena Q3Test 1.02 to 1.08 (1999) | | `q3test` | `q3t`, `quake3-test` | `demoq3` | `q3config.cfg` | a Windows development build |
+| Quake Live | | `quakelive` | `ql` | `baseq3` | `qzconfig.cfg` | the normal download |
+| Return to Castle Wolfenstein | single player | `rtcw-sp` | `rtcwsp`, `wolfsp` | `main` | `wolfconfig.cfg` | a development build |
+| | multiplayer | `rtcw-mp` | `rtcwmp`, `wolfmp` | `main` | `wolfconfig_mp.cfg` | a development build |
+| Wolfenstein: Enemy Territory | | `wolfet` | `et`, `enemy-territory`, `enemyterritory` | `etmain` | `etconfig.cfg` | a development build |
+| Star Trek Voyager: Elite Force | single player | `stvef-sp` | `efsp`, `stvoy`, `eliteforce-sp` | `baseEF` | `efconfig.cfg` | a development build |
+| | Holomatch | `stvef-mp` | `stvef-hm`, `holomatch`, `efhm`, `stvoyhm` | `baseEF` | `hmconfig.cfg` | a development build |
+| Star Wars Jedi Knight: Jedi Academy | single player | `jka-sp` | `jasp`, `jediacademy-sp`, `jedi-academy-sp` | `base` | `jaconfig.cfg` | a development build |
+| | multiplayer | `jka-mp` | `jamp`, `jediacademy-mp`, `jedi-academy-mp` | `base` | `jampconfig.cfg` | a development build |
+| Star Wars Jedi Knight II: Jedi Outcast | single player | `jk2-sp` | `jk2sp`, `jedioutcast-sp`, `jedi-outcast-sp` | `base` | `jk2config.cfg` | a development build |
+| | multiplayer | `jk2-mp` | `jk2mp`, `jedioutcast-mp`, `jedi-outcast-mp` | `base` | `jk2mpconfig.cfg` | a development build |
+| American McGee's Alice | | `alice` | `americanmcgeesalice`, `mcgee-alice`, `alice2000` | `base` | `config.cfg` | a Windows development build |
+| Heavy Metal: F.A.K.K.2 | | `fakk2` | `heavymetal-fakk2`, `heavymetalfakk2`, `hmfakk2` | `fakk` | `config.cfg` | a Windows development build |
+| Medal of Honor: Allied Assault | | `mohaa` | `medalofhonor`, `moh-aa`, `alliedassault` | `main` | `configs/unnamedsoldier.cfg` | a Windows development build |
 
-Quake III Arena and Quake Live start in every build. Every other game, and
-each Quake III test build, is
-**experimental**: it starts only in a developer build made with the option
-shown, which the [Build Guide](../BUILD.md#game-development-builds) describes.
-Release packages are built without those options and refuse those games with an
-explanation. A developer build is for testing; it does not claim that the game
-is compatible.
+The **game folder** is the folder inside the game's installation that holds
+its data, and the **settings file** is where your settings are saved, inside
+that folder (Quake Live keeps `qzconfig.cfg` in its profile folder instead).
 
-Return to Castle Wolfenstein, Elite Force, Jedi Academy and Jedi Outcast are
-each one game with two modes. Both modes of a game share one installation and
-the same `fntech3.exe`, but each mode is its own profile with its own config,
-modules and protocol. Changing mode starts the executable again with the other
-profile.
-
-A dedicated server keeps its own config apart from the client's, such as
-`q3config_server.cfg` for Quake III Arena and Quake Live,
-`wolfconfig_server.cfg` for both RTCW modes and `etconfig_server.cfg` for
-Enemy Territory.
+Return to Castle Wolfenstein, Elite Force, Jedi Academy and Jedi Outcast each
+have two modes that share one installation. Each mode is started on its own,
+with its own settings file. A dedicated server also keeps its own settings
+file, such as `q3config_server.cfg` for Quake III Arena and Quake Live,
+`wolfconfig_server.cfg` for both Return to Castle Wolfenstein modes and
+`etconfig_server.cfg` for Enemy Territory.
 
 ## Choosing the game
 
 ### Naming the profile
 
-Name the profile on the command line:
+Name the game with `com_gameProfile`, and its installation folder with
+`fs_basepath`, when you start fnTech3:
 
 ```powershell
 .\fntech3.exe +set com_gameProfile quake3 +set fs_basepath "C:\Games\Quake III Arena"
 ```
 
-`com_gameProfile` accepts the profile names and the other accepted names in the
-table above. It is read once, at startup; setting it later, or in a config,
-changes nothing. A game's own name without its mode, such as `rtcw`, is refused
-with a request to choose the mode.
+[Getting Started](GETTING_STARTED.md#choosing-the-game-yourself) shows how to
+put this in a Windows shortcut. The game is chosen once, when fnTech3 starts;
+changing `com_gameProfile` later, or in a settings file, does nothing. A game's
+name without its mode, such as `rtcw`, is refused with a request to pick the
+mode.
 
 ### Automatic detection
 
-The default, `com_gameProfile auto`, looks for exactly one installed game, in
-this order, and stops at the first place that has one:
+Without `com_gameProfile`, fnTech3 looks for exactly one installed game, in
+this order, and stops at the first place where it finds one:
 
 1. the folder named by `+set fs_basepath`;
-2. the folder that holds the executable;
-3. the Steam libraries of the games Steam sells: Quake III Arena, Quake Live,
-   Return to Castle Wolfenstein and Enemy Territory.
+2. the folder `fntech3.exe` is in;
+3. Steam's copies of Quake III Arena, Quake Live, Return to Castle Wolfenstein
+   and Enemy Territory.
 
-A game is recognized by its own base archive, such as `baseq3/pak0.pk3` for
-Quake III Arena or `etmain/pak0.pk3` for Enemy Territory. fnTech3 reads a known
-file inside it rather than trusting the file name. Startup stops with an error
-naming the reason when:
-
-- two different games are found in the same place (`ambiguous`);
-- one installation holds both modes of a game (`mode required`): Return to
-  Castle Wolfenstein, Elite Force, Jedi Academy and Jedi Outcast always need
-  the mode named;
-- a base archive has the right name but not the right contents
-  (`unrecognized pak`);
-- the game found needs a development option this build does not have
-  (`incomplete engine`);
-- nothing is found (`not found`).
-
-The error names the profiles this build can start. Naming the profile always
-avoids detection, and is the recommended way to launch.
+It recognises a game by its main data file, such as `baseq3/pak0.pk3` for
+Quake III Arena, and checks the file's contents rather than trusting its name.
+Detection stops with a message when it finds two different games in one
+place, a game whose two modes share an installation (Return to Castle
+Wolfenstein, Elite Force and both Jedi Knight games always need the mode
+named), a main file with the wrong contents, an experimental game in the
+normal download, or nothing at all. The message lists the games this build of
+fnTech3 can start. Naming the game skips detection altogether.
 
 ### Checking and switching
 
-- `gameList` prints every game and mode, marks the running one with `*`, and
-  says whether this build can start each.
-- The console title and window title name the running game.
-- `gameMode <profile>` switches to another mode of the same game, such as
-  `gameMode rtcw-mp` from RTCW single player. It saves the current mode's
-  config, closes the game, and starts the same executable again with the
-  other profile, keeping `fs_basepath`, `fs_homepath` and `r_fullscreen`. It
-  does not carry `fs_game` across. RTCW's own menu buttons
-  (`startSingleplayer`, `startMultiplayer`) use the same path.
+- `gameList` in the console lists every game and mode, marks the running one
+  with `*`, and says whether this build of fnTech3 can start each one.
+- The window's title names the game that is running.
+- `gameMode <profile>` switches to the other mode of the same game, such as
+  `gameMode rtcw-mp` from Return to Castle Wolfenstein's single player. It
+  saves your settings, closes the game and starts fnTech3 again in the other
+  mode, keeping the installation folder, the home folder and the
+  fullscreen setting. A mod (`fs_game`) is not carried across. Return to
+  Castle Wolfenstein's own menu buttons for switching mode do the same.
 
-Switching to a different game is done by quitting and starting again with a
-different profile.
+To play a different game, quit and start fnTech3 again with that game named.
 
 ## Where files are read and written
 
-- `fs_basepath` is the game's installation. fnTech3 reads it and never needs
-  to write there if `fs_homepath` points elsewhere. When it is not set, it
-  defaults to the executable's folder when that folder holds the selected game,
-  and otherwise to the game's Steam installation where Steam sells it.
-- `fs_homepath` receives configs, saves, screenshots, demos and downloads,
-  inside the profile's game directory (or `fs_game`'s). Its default depends on
-  the platform:
-  - Windows: Quake Live uses its retail profile folder,
-    `<Quake Live>\<SteamID64>`, as the retail game does. Every other game uses
-    the installation itself, as its original executable did.
-  - Linux: `~/.q3a` for every game. Because several games share game directory
-    names (`baseq3`, `main`, `base`), give each game its own home.
-  - Both: `+set fs_homepath <folder>` on the command line overrides the default.
-- `fs_game` selects a mod directory inside the selected game, as in the
-  original engines.
+- **`fs_basepath`** is the game's installation. fnTech3 only reads it, as long
+  as `fs_homepath` points somewhere else. If you leave it out, fnTech3 uses
+  its own folder when the game is installed there, and otherwise the game's
+  Steam installation where Steam sells it.
+- **`fs_homepath`** is your home folder, which receives settings, saved
+  games, screenshots, demos and downloads, inside the game's folder (or the
+  mod's). Where it is by default:
+  - **Windows:** Quake Live uses its usual profile folder,
+    `<Quake Live>\<SteamID64>` -- the one named with your Steam account's long
+    number -- as the original does; every other game uses its installation,
+    as the original game did.
+  - **Linux:** `~/.q3a` for every game. Several games use the same game
+    folder names (`baseq3`, `main`, `base`), so give each one a home of its
+    own.
+  - Anywhere: `+set fs_homepath <folder>` when you start fnTech3 chooses
+    another.
+- **`fs_game`** starts a mod: a folder inside the game's installation, as in
+  the original games.
 
-Use a separate `fs_homepath` for each game when you test, and keep the retail
-installation read-only:
+Give each game its own home folder, and the original installation stays
+exactly as it was:
 
 ```powershell
 .\fntech3.exe +set com_gameProfile rtcw-sp +set fs_basepath "D:\Games\RTCW" +set fs_homepath "D:\fnTech3-homes\rtcw-sp"
 ```
 
-Keep these files beside the executable; fnTech3 looks for them there:
+These files from the download stay beside `fntech3.exe`:
 
-- `fntech3-pkg.fnz`, the engine package. It holds fnTech3's own data for each
-  game -- audio zones, static light files, fog presets, HUD layouts, sound
-  tuning -- under a separate `games/<profile>/<game directory>/` folder per
-  game, so one game's files are never seen by another. It never holds retail
-  content. See the [package layout](fntech3/PACKAGES.md).
-- `fnql-web.pak`, fnTech3's settings overlay for Quake Live's WebUI.
-- The renderer modules `fnql_glx_x86`, `fnql_vk_x86` and `fnql_rtx_x86`.
+- `fntech3-pkg.fnz`, fnTech3's own data for each game -- sound zones, map
+  lights, fog, widescreen HUD layouts and sound tuning -- kept apart per game
+  so no game sees another's. It never holds any game's original files. Its
+  layout is described in the [package reference](fntech3/PACKAGES.md).
+- `fnql-web.pak`, fnTech3's extra settings pages for Quake Live's menus.
+- The renderers `fnql_glx_x86`, `fnql_vk_x86` and `fnql_rtx_x86`.
 
 ## What fnTech3 adds to every game
 
-Each game keeps its own contracts: its modules, network protocol, demos,
-saves, file formats and gameplay behave as its original engine requires.
-How the engine *presents* that game is fnTech3's own. The same renderer,
-audio, input, console and screenshot systems serve every game, fed with that
-game's own data:
+Each game keeps its own rules: fnTech3 follows its game code, online play,
+demos, saved games and gameplay as the original did, as far as that game's
+support has come (its section below says how far). How the game *looks and
+sounds* is
+fnTech3's own, and every game gets the same features, using that game's own
+maps, models and sounds:
 
-- three renderers, GLx, Vulkan and RTX, with HDR, anti-aliasing, render
-  scaling, bloom, per-pixel and shadowed dynamic lights, static map lights and
-  post-processing ([Display Guide](DISPLAY.md), [RTX Renderer Guide](RTX.md));
-- spatial audio through OpenAL -- distance falloff, occlusion, environmental
-  reverb, audio zones and HRTF -- fed with each game's own sound distances,
-  channels and loops ([Audio Guide](AUDIO.md));
-- the scalable console, completion and clipboard ([Console Guide](CONSOLE.md));
-- engine screenshots, levelshots and cube maps
-  ([Screenshot Guide](SCREENSHOTS.md));
-- widescreen FOV and HUD correction for every game whose modules assume a
-  4:3 screen -- all of them but Quake Live, whose modules fit both themselves,
-  and Medal of Honor's HUD, which its modules place
-  ([Aspect Handling Guide](ASPECT_CORRECTION.md)).
+- three renderers -- GLx, Vulkan and RTX -- with HDR, anti-aliasing, render
+  scaling, glow, smooth per-pixel lights with shadows, lights for each map's
+  own lamps, and more ([Graphics guide](DISPLAY.md),
+  [RTX guide](RTX.md));
+- 3D sound, with distance, sounds muffled by walls, room echo, sound zones
+  and headphone surround, tuned to each game's own sound ranges
+  ([Sound guide](AUDIO.md));
+- a scalable console with suggestions, copy and paste
+  ([Console guide](CONSOLE.md));
+- better screenshots, map previews and cube maps
+  ([Screenshots guide](SCREENSHOTS.md));
+- widescreen field of view and HUD correction for every game made for 4:3
+  screens -- all of them except Quake Live, which handles widescreen itself,
+  and Medal of Honor's HUD, which places itself
+  ([Widescreen guide](ASPECT_CORRECTION.md)).
 
-Where a game's original presentation differs, the original is kept only as an
-explicit option, never as the default -- for example the legacy software
-mixer (`s_backend legacy`) for retail sound. Which features apply to which
-game is noted in each guide.
+Where a game's original look or sound differs, the original is kept as an
+option you can choose, never as the default -- for example the original
+software sound mixer, `s_backend legacy`. Each guide notes which features
+apply to which game.
 
-## Hosting and joining multiplayer games
+## Playing online
 
-Each multiplayer game hosts and joins its original game's servers over its
-own protocol: fnTech3's client joins the original servers, and the original
-game's clients join fnTech3's, dedicated or started from the client's menu.
-Short sessions -- joining, chat, map changes and restarts, reconnecting, a
-kick, a server quitting, downloads, and a retail and an fnTech3 player on one
-server -- have been checked against the retail Quake III, RTCW, ET and
-Elite Force executables ([record](fntech3/2026-10-05-legacy-server-hosting.md)).
+Multiplayer games play online the way the originals did: fnTech3 joins
+servers running the original game, and players with the original game can
+join fnTech3's servers, whether dedicated or started from the menu -- as far
+as each game's section below says. Short sessions -- joining, chatting, map
+changes, reconnecting, being kicked, a server shutting down, downloads, and
+original and fnTech3 players on one server -- have been tried with the
+original Quake III, Return to Castle Wolfenstein, Enemy Territory and Elite
+Force ([details](fntech3/2026-10-05-legacy-server-hosting.md)).
 
-- **Ports.** Each game listens where its original engine did: 27960 for
-  Quake III, Quake Live, RTCW, Enemy Territory and Elite Force, 29070 for
-  Jedi Academy, 28070 for Jedi Outcast and 12203 for Medal of Honor.
-  `net_port` changes it. `connect` without a port and the LAN browser use the
-  game's own port. A Medal of Honor multiplayer server also answers GameSpy's
-  LAN status queries on a port of its own, the first free one from 12300
-  (`net_gamespy_port`; `sv_gamespy 0` turns it off), where GameSpy's browsers
-  and the tools that speak its protocol look for servers.
-- **Master servers.** A public server (`+set dedicated 2`) reports itself to
-  `sv_master1`, which defaults to the original game's master:
-  `master.quake3arena.com`, `wolfmaster.idsoftware.com`,
-  `etmaster.idsoftware.com`, `master.stef1.ravensoft.com:27953`,
-  `masterjk3.ravensoft.com` and `masterjk2.ravensoft.com`, with each game's
-  own heartbeat. The Internet browser asks the same masters. Many of them no
-  longer answer: add a community master as `sv_master2` to `sv_master5`, on
-  the server and the client alike. `sv_master 0` stops a server reporting.
-  Quake Live lists servers through Steam, and Medal of Honor's and the Quake
-  III test releases' masters are gone, so those games set none.
+- **Ports.** Each game uses its original port: 27960 for Quake III, Quake
+  Live, Return to Castle Wolfenstein, Enemy Territory and Elite Force, 29070
+  for Jedi Academy, 28070 for Jedi Outcast and 12203 for Medal of Honor.
+  `net_port` changes it. `connect` without a port, and the LAN server list,
+  use the game's own port. A Medal of Honor server also answers GameSpy's LAN
+  queries on a second port, the first free one from 12300
+  (`net_gamespy_port`; `sv_gamespy 0` turns it off), where GameSpy's server
+  browsers and tools look.
+- **Server lists.** A public server (`+set dedicated 2`) announces itself to
+  the original game's master server list, and the in-game browser asks the
+  same lists. Many of those lists have shut down: add a community list as
+  `sv_master2` to `sv_master5`, on the server and on your own copy alike.
+  `sv_master 0` keeps a server off every list. Quake Live finds servers
+  through Steam, and the lists for Medal of Honor and the Quake III test
+  versions are gone, so those games use none.
 - **Ping limits.** `sv_minPing` and `sv_maxPing` turn away internet players
-  whose ping lies outside them, as the original games did; LAN players are
-  never turned away. Quake Live's engine has neither.
-- **Single-player game types.** A server started from the client answers no
-  LAN browser or remote player while it runs a single-player game type, as
-  Quake III's engine does; Jedi Academy's engine answered in every game type,
-  and so does fnTech3's. `spmap` starts each game's own single-player type,
-  5 in Jedi Academy and 4 in Jedi Outcast
-  ([record](fntech3/2026-10-06-jedi-listen-server-game-types.md)). A Quake Live
-  match started from the client follows its server type instead, as the
-  original does: offline (`sv_serverType 0`, the default) keeps it to its own
-  player, LAN (1) lets in players on the local network, and Internet (2)
-  anyone ([record](fntech3/2026-10-06-ql-listen-server-type.md)).
-- **Server console chat** is `say` in id's games and `svsay` in Elite Force
-  and both Jedi Knight games, as in their original engines; `say` also works
-  in every game.
-- **Mods.** Joining a server that runs a mod switches to its game directory
-  and back, keeping the console log, `developer` and `logfile`.
-- PunkBuster is not available in any game.
+  whose ping is outside them, as the original games did; LAN players are never
+  turned away. Quake Live has neither.
+- **Single-player game types.** A server started from the menu answers no
+  LAN list and lets no other player in while it runs a single-player game
+  type, as Quake III's engine does. Jedi Academy's original engine answered
+  in every game type, and fnTech3 does the same for it. `spmap` starts each
+  game's own single-player type, 5 in Jedi Academy and 4 in Jedi Outcast
+  ([details](fntech3/2026-10-06-jedi-listen-server-game-types.md)).
+  A Quake Live match started from the menu follows its server type
+  instead, as the original does: offline (`sv_serverType 0`, the default)
+  keeps it to you alone, LAN (`1`) lets in players on your local network,
+  and Internet (`2`) anyone
+  ([details](fntech3/2026-10-06-ql-listen-server-type.md)).
+- **Server chat.** Type `say` on a server's console to talk to its players --
+  or `svsay` in Elite Force and both Jedi Knight games, as in the originals;
+  `say` works in every game.
+- **Mods.** Joining a server that runs a mod switches to that mod and back
+  again afterwards, keeping the console's log file and the `developer` and
+  `logfile` settings.
+- PunkBuster anti-cheat is not available in any game.
 
 ## Quake III Arena (`quake3`)
 
-**Installation:** a Quake III Arena installation with `baseq3/pak0.pk3`, such
-as the Steam or GOG release. Team Arena runs as the `missionpack` mod
-(`+set fs_game missionpack`).
+**What you need:** an installed Quake III Arena with `baseq3/pak0.pk3`, such
+as the Steam or GOG release. Team Arena runs as a mod:
+`+set fs_game missionpack`.
 
-**Status:** enabled in every build, client and dedicated server, on Windows
-and Linux. The retail QVM modules run, the shipped demos play, and short pure
-sessions with the retail Steam executable pass in both directions: fnTech3's
-client on a retail server and a retail client on fnTech3's server. Sustained
-play, downloads and remote networks are among the gates still open in the
-[ledger](fntech3/COMPATIBILITY.md#compatibility-and-gate-matrix).
+**Status:** playable in the normal download, on Windows and Linux, including
+the dedicated server. The original game code runs, the demos that came with
+the game play, and short online sessions with the original Steam release work
+both ways: fnTech3 on original servers, and the original game on fnTech3's
+servers. Long sessions, downloads and play across the internet are still
+being checked ([details](fntech3/COMPATIBILITY.md#compatibility-and-gate-matrix)).
 
-**Versions:** one `quake3` profile spans Quake III's releases, from the 1.11
-retail game to 1.32c, by protocol:
+### Older versions of Quake III Arena
 
-| Release | Protocol | What fnTech3 does |
-| --- | --- | --- |
-| 1.32, 1.32b, 1.32c (Steam, GOG) | 68 | The default: plays, hosts and records `.dm_68`, with the retail QVMs, shipped demos and pure sessions against the retail executable. |
-| ioquake3 and compatible ports | 71 | Plays, hosts and records `.dm_71`. Not an id release. |
-| 1.31 | 67 | Joins original 1.31 servers, pure or not, and serves original 1.31 clients; recordings play in both engines. |
-| 1.29f, 1.29g, 1.29h, 1.30 | 66 | The same for these releases, including 1.29's own `pak6.pk3` variants. |
-| 1.27g, 1.27h | 48 | Plays their recordings (`.dm_48`) with the 1.32 modules. |
-| 1.25p, 1.25y | 46 | Plays their recordings (`.dm3`, and those 1.27 reshipped as `.dm_48`). |
-| 1.17 | 45 | Plays its recordings. |
-| 1.11 retail and demo, Demo Test 1.09, 1.14 to 1.16n | 43 | Plays protocol-43 recordings (`.dm3`), the 1.11 demo's own among them. |
-| Q3Test 1.02 to 1.08 | 35 to 40 | A profile of its own, [below](#quake-iii-arena-q3test-q3test). |
-| IHV Test, February 1999 | 33 | A profile of its own, [below](#quake-iii-arena-ihv-test-q3-ihv). |
+One `quake3` profile covers Quake III's releases from 1.11 to 1.32c:
 
-A 1.32 client asks an older server for its protocol and joins it as it is.
-To run from a complete 1.29 to 1.31 installation, or to serve those releases'
-clients, pick the protocol at startup; it sets the paks the installation must
-hold (`pak0` to `pak6` for 66, to `pak7` for 67):
+| Version | What fnTech3 does |
+| --- | --- |
+| 1.32, 1.32b and 1.32c (Steam, GOG) | Plays, hosts and records demos (`.dm_68`), with the game's own code and demos, and plays online with the original release. This is the default. |
+| ioquake3 and similar engines | Plays, hosts and records demos (`.dm_71`). Not an id release. |
+| 1.31 | Joins original 1.31 servers and hosts 1.31 players; demos play in both engines. |
+| 1.29f to 1.30 | The same as 1.31, including 1.29's own `pak6.pk3`. |
+| 1.27g and 1.27h | Plays their demos (`.dm_48`). |
+| 1.25 and 1.17 | Plays their demos. |
+| 1.09 Demo Test, 1.11 and its demo, and 1.14 to 1.16 | Plays their demos (`.dm3`). |
+| Q3Test 1.02 to 1.08 | Has a profile of its own, [below](#quake-iii-arena-q3test-q3test). |
+| IHV Test, February 1999 | Has a profile of its own, [below](#quake-iii-arena-ihv-test-q3-ihv). |
+
+You do not need to do anything to join an older server: fnTech3 asks the
+server which version it runs and joins it as that version. To play from a
+complete 1.29 to 1.31 installation, or to host for players of those versions,
+choose the version's network protocol when you start: `66` for 1.29 to 1.30,
+or `67` for 1.31. The installation must then hold that version's data files:
+`pak0` to `pak6` for 66, and up to `pak7` for 67.
 
 ```powershell
 .\fntech3.exe +set com_gameProfile quake3 +set protocol 66 +set fs_basepath "C:\Games\Quake III Arena 1.30"
 .\fntech3.ded.exe +set com_gameProfile quake3 +set protocol 67 +set fs_basepath "C:\Games\Quake III Arena 1.31" +map q3dm1
 ```
 
-Sessions with 1.29 to 1.31 engines are short tested ones in both directions,
-not sustained play. Releases before 1.29 play back but cannot go online:
-their network protocols and older game modules are not implemented. The
-[point-release ledger](fntech3/Q3_POINT_RELEASES.md) records every release's
-evidence and remaining gates.
+Play with versions 1.29 to 1.31 has been tried in short sessions both ways.
+Versions before 1.29 play their demos but cannot go online. The
+[point-release record](fntech3/Q3_POINT_RELEASES.md) has every version's
+details.
 
-**Notes:**
-
-- The engine package carries Quake III audio zones, fog presets for Quake III
-  and Team Arena maps, weapon sound tuning and a widescreen HUD layout, all from
-  FnQuake3.
+**Good to know:** fnTech3 brings sound zones, fog for Quake III and Team Arena
+maps, weapon sound tuning and a widescreen HUD layout for Quake III Arena.
 
 ## Quake III Arena IHV Test (`q3-ihv`)
 
-The February 1999 test build given to hardware vendors has its own modules,
-protocol 33 and BSP version 43, none of which is retail Quake III.
+The test version id Software gave graphics-card makers in February 1999 is
+different enough from the released game -- its own game code, network
+protocol and map format -- to need its own profile.
 
-**Status:** developer builds with `-Dq3-ihv-development=true` run the original
-game DLL on a Windows x86 dedicated server with its four maps. Its client, its
-network play and its demo playback are not implemented; the server drops
-every packet, so run it with networking off. See the [IHV ledger](fntech3/Q3_IHV.md).
+**Status:** experimental, and only as a Windows dedicated server in a
+development build (`-Dq3-ihv-development=true`), which runs the original game
+code on its four maps. Its client, online play and demos are not done; the
+server ignores all network traffic, so run it with networking turned off
+(`+set net_enabled 0`). The
+[IHV record](fntech3/Q3_IHV.md) has the details.
 
 ## Quake III Arena Q3Test (`q3test`)
 
-The public tests of 1999 -- 1.02 and 1.03 as dedicated servers, 1.05 to 1.08
-with a client -- each have their own protocol (35 to 40), map version (IBSP 44
-or 45) and module tables. One `q3test` profile serves them all and pins one
-release at startup from the installation's own modules and pak, so a game
-directory holds one release.
+The public test versions of 1999 -- 1.02 and 1.03 as servers only, and 1.05
+to 1.08 with a client -- each differ from the others and from the released
+game. One `q3test` profile serves them all, and recognises which version is
+installed when it starts, so keep each version in a folder of its own.
 
-**Installation:** a Q3Test release laid out as its installer did: `quake3.exe`
-and the `*x86.dll` modules in the root and the paks in `demoq3/`. fnTech3 runs
-the release's own modules; it reads the installation and never writes to it.
+**What you need:** a Q3Test version laid out as its installer left it, with
+`quake3.exe` and its `*x86.dll` files in the main folder and its data in
+`demoq3/`. fnTech3 runs the version's own game code and never writes to its
+folder.
 
-**Status:** developer builds with `-Dq3test-development=true`, Windows x86
-only, run every release's dedicated server and, from 1.05, its client, with
-the retail modules: the server hosts every map for up to 128 of the release's
-retail clients, the client joins fnTech3's and the retail servers, draws the
-release's menus (1.06 to 1.08's own, and 1.05's as engine menus, since 1.05
-shipped none) in every renderer, and records and plays `.dm3` demos, the
-shipped ones included, with their sound. 1.02 and 1.03 have no retail client;
-their servers are exercised with a protocol probe that joins retail and
-fnTech3 servers alike. Input, live gameplay and sessions with several players
-are not yet verified. See the [Q3Test ledger](fntech3/Q3TEST.md) for the
-evidence and what remains open.
+**Status:** experimental, in a Windows development build
+(`-Dq3test-development=true`). Every version's server runs every map, for up
+to 128 players. From 1.05 on, the client joins fnTech3's and the original
+servers, draws the version's menus in every renderer -- 1.05, which shipped
+none, gets fnTech3's own -- and
+records and plays demos -- the ones that came with it too -- with their
+sound. Controls, real matches and games with several players are not yet
+checked. The [Q3Test record](fntech3/Q3TEST.md) has the details.
 
-**Notes:**
-
-- The retail engines themselves ran in a restricted demo mode that reads only
-  their own paks, so a retail client cannot load a recording or a map made
-  elsewhere; fnTech3's recordings are checked by replaying them in fnTech3 and
-  with an independent decoder instead.
-- Menus, HUD and world are drawn with fnTech3's renderers and features, with
-  each release's shader dialect (`fogParms` with five values, `fogonly`,
-  `clampTexCoords`) read as that release read it.
+**Good to know:** the original Q3Test programs only read their own data, so
+they cannot play a demo or a map made elsewhere; fnTech3's own demos are
+checked by playing them back in fnTech3 and with a separate demo reader
+instead.
 
 ## Quake Live (`quakelive`)
 
-**Installation:** the Steam release, normally
+**What you need:** the Steam release, normally in
 `C:\Program Files (x86)\Steam\steamapps\common\Quake Live`. fnTech3 finds it
-through Steam when it is not beside the executable. `+set fs_steampath` names
-an extra Steam copy to search.
+through Steam. `+set fs_steampath` adds another Steam copy to look in.
 
-**Status:** enabled in every build. The retail client modules in `bin.pk3`
-are 32-bit Windows DLLs, so the Quake Live client runs only in the Windows x86
-build. The Linux i686 dedicated server loads the retail `qagamei386.so`.
-Short authenticated sessions with retail Quake Live pass in both directions;
-the remaining gates are in the
-[ledger](fntech3/COMPATIBILITY.md#compatibility-and-gate-matrix).
+**Status:** playable in the normal download. Quake Live's client game code
+and menus only exist for Windows, so its client runs on Windows; on Linux,
+fnTech3 runs a Quake Live dedicated server with Quake Live's own Linux server
+code. Short signed-in sessions with the original Quake
+Live work both ways ([details](fntech3/COMPATIBILITY.md#compatibility-and-gate-matrix)).
 
-**Notes:**
+**Good to know:**
 
-- Protocol 91. The engine services only Quake Live has -- factories, the
-  WebUI, Steam, host-drawn fonts and map advertisements -- are described in
-  the [FnQL baseline documents](fnql/README.md), which remain the reference
-  for this profile.
-- The retail WebUI menus run through the Awesomium runtime in your
-  installation, on Windows x86 only. `fnql-web.pak` adds fnTech3's settings
-  pages; retail `web.pak` is still required. Elsewhere the engine's own menus
-  are used.
-- Steam services need a separately supplied Steam provider, which fnTech3
-  packages do not include. Without it they report themselves unavailable
-  rather than pretending to succeed. See the
-  [Steam provider notes](fnql/STEAM_PROVIDER.md).
-- Settings live in `qzconfig.cfg` and `repconfig.cfg` at the root of the
-  profile folder, as in retail. The first start in a home without
-  `qzconfig.cfg` imports an existing `baseq3/q3config.cfg` once.
-- The engine package carries an audio-zone and fog preset for every one of the
-  149 maps in the retail package, plus weapon sound tuning.
+- Quake Live's own menus run, using the web runtime in your installation, on
+  Windows; they need Quake Live's own `web.pak`. fnTech3 adds pages of its
+  own settings to them; elsewhere the engine's own menus are used.
+- Steam features need a separately supplied Steam add-on that fnTech3's
+  download does not include. Without it they say they are unavailable rather
+  than pretending to work; the [Steam notes](fnql/STEAM_PROVIDER.md) explain.
+- Settings are kept in `qzconfig.cfg` and `repconfig.cfg` in your Quake Live
+  profile folder, as in the original. The first time fnTech3 starts without a
+  `qzconfig.cfg`, it brings over the settings from an existing
+  `baseq3/q3config.cfg` once.
+- fnTech3 brings a sound zone and a fog setting for each of the 149 maps that
+  come with Quake Live, and weapon sound tuning.
+- Quake Live's engine services -- its menus, Steam, fonts and more -- are
+  described for the technically minded in the
+  [FnQL documents](fnql/README.md).
 
 ## Return to Castle Wolfenstein (`rtcw-sp`, `rtcw-mp`)
 
-**Installation:** one Return to Castle Wolfenstein installation with `main/`.
-Single player and multiplayer share it; always name the mode.
+**What you need:** one installed Return to Castle Wolfenstein, with its
+`main` folder. Single player and multiplayer share it, so always name the
+mode.
 
-**Status:** experimental; developer builds with `-Drtcw-development=true`.
-The retail modules run in both modes in the Windows x86 client with all three
-renderers. Single player starts each of its 32 maps from its menus and
-cinematics, and saves and loads, including saves exchanged with the retail
-game. Multiplayer starts each of its 15 maps, admits retail clients to
-fnTech3's servers, and exchanges demos with the retail game in both
-directions. The campaign as a whole, sustained AI and combat, and play from
-fnTech3's client on retail servers are still open; see the
-[RTCW gate matrix](fntech3/COMPATIBILITY.md#rtcw-gate-matrix).
+**Status:** experimental, in a development build (`-Drtcw-development=true`).
+Both modes run the original game code in the Windows client, with all three
+renderers.
 
-**Notes:**
+- **Single player** starts each of its 32 maps, with their menus and
+  cutscenes, and saves and loads games -- including saves made with the
+  original game, and the other way round.
+- **Multiplayer** starts each of its 15 maps, joins original servers and lets
+  players with the original game join fnTech3's in short sessions, and plays
+  demos recorded by the original game, which also plays fnTech3's.
 
-- Single player uses protocol 49 and loads levels with `spmap`; multiplayer
-  uses protocol 60. Each mode loads only its own archives: single player skips
-  `mp_*` paks and multiplayer skips `sp_*` paks.
-- Changing mode from the main menu restarts the executable in the other mode
+Not done yet: the whole campaign from start to finish, long fights against
+the computer's soldiers, and long online matches. See the
+[RTCW details](fntech3/COMPATIBILITY.md#rtcw-gate-matrix).
+
+**Good to know:**
+
+- Each mode only loads its own data: single player skips the `mp_` files and
+  multiplayer the `sp_` files. Single-player levels are started with `spmap`.
+- Choosing the other mode in the main menu restarts fnTech3 in that mode
   (see [Checking and switching](#checking-and-switching)).
-- The engine package carries audio zones and static light files for all 32
-  single-player and 15 multiplayer maps, and a widescreen HUD layout for each
-  mode.
-- The profile rules and mode switch are recorded in the
-  [RTCW contracts](fntech3/2026-09-14-rtcw-contracts.md).
+- fnTech3 brings sound zones and map lights for every map in both modes, and
+  a widescreen HUD layout for each.
 
 ## Wolfenstein: Enemy Territory (`wolfet`)
 
-**Installation:** an Enemy Territory installation with `etmain/`, such as the
-Steam release.
+**What you need:** an installed Enemy Territory with its `etmain` folder, such
+as the Steam release.
 
-**Status:** experimental; developer builds with `-Dwolfet-development=true`
-run the client and the dedicated server. The retail modules draw ET's menus
-and limbo panel and load all six stock maps on each renderer. Pure admission
-and both teams have been checked on all six maps in both directions with
-original ET peers. Short `goldrush` demos replay normally and as timedemos,
-including recordings exchanged with retail ET and both teams' player states.
-Whole matches and sustained gameplay remain open. See the
-[ET gate matrix](fntech3/COMPATIBILITY.md#wolfet-gate-matrix).
+**Status:** experimental, in a development build
+(`-Dwolfet-development=true`), which runs both the client and the dedicated
+server. The original game code draws Enemy Territory's menus and the limbo
+screen, and loads all six maps in every renderer. Joining with both teams
+works on all six maps, in both directions with the original game, including
+servers that check players' files. Short demos play back normally and as
+benchmarks, including demos swapped with the original game. Whole matches and
+long play are still to be checked. See the
+[Enemy Territory details](fntech3/COMPATIBILITY.md#wolfet-gate-matrix).
 
-**Notes:**
+**Good to know:**
 
-- Protocol 84. ET defaults to `sv_pure 1`, as retail does.
-- ET's activate, sprint, reload, zoom, lean and prone bindings use its own
-  command bits. Native UI and cgame checksums are included when this client
-  joins a pure server, including after a renderer restart.
-- ET's silent player-sound aliases, including jumping, use its silent handle
-  zero on both audio backends. `s_defaultsound 1` enables the diagnostic sound;
-  the default is 0. See the [input and launch fixes](fntech3/2026-10-02-input-launch-fixes.md).
-- The developer client joins original ET servers using protocol 84, including
-  pure servers and their `sv_onlyVisibleClients` setting. Admission to both
-  teams has been checked on the six stock maps; sustained gameplay is open.
-- Recordings use `.dm_84`. Normal/timedemo playback and damaged inputs have
-  limited runtime evidence; `.dm_83` and broader match/demo coverage remain
-  open ([demo follow-up](fntech3/2026-10-01-wolfet-demo-regressions.md)).
-- The stock installation carries no bot navigation. Generated routing
-  comparisons cover ET's area-cache rules, generated AAS8 loads and measured
-  area travel costs, its 16 MiB routing cache budget, configured per-map
-  frame limits and two-cache eviction, while
-  loaded retail navigation and live bot support remain open
-  ([routing](fntech3/2026-10-01-wolfet-area-routing.md),
-  [loading](fntech3/2026-10-01-wolfet-aas8-loading.md),
-  [travel costs](fntech3/2026-10-01-wolfet-travel-costs.md),
-  [cache limits](fntech3/2026-10-02-wolfet-routing-limits.md)).
-- ET downloads use UDP, or the server's web address when it offers one: the
-  client sets `cl_wwwDownload 1`, as retail does, fetches the file over HTTP
-  while it stays connected and falls back to UDP when the fetch fails. A
-  server's fallback page (`sv_wwwFallbackURL`) ends the connection with its
-  address, where retail opened a browser. A generated pak transfers both ways
-  with retail ET, over UDP and HTTP, with pure admission; larger files,
-  loss/retransmit and broader mods remain open
-  ([record](fntech3/2026-10-05-legacy-server-hosting.md)).
-- PunkBuster is not available: an ET server reports it unavailable and keeps
-  `sv_punkbuster 0`.
-- The engine package carries audio zones for the six stock maps, and HUD
-  rules: on a widescreen display the HUD keeps its 4:3 proportions at the
-  screen's corners and the world view widens. The scoreboard and the
-  expanded command map are centered 4:3 screens, and the limbo panel is drawn
-  stretched, as retail drew it ([Aspect Handling Guide](ASPECT_CORRECTION.md)).
-- The [ET implementation record](fntech3/2026-09-17-wolfet-contracts.md)
-  describes the profile's contracts.
+- Servers check players' files by default (`sv_pure 1`), as the original's
+  do.
+- Enemy Territory's own keys for activate, sprint, reload, zoom, lean and
+  prone work as in the original.
+- Sounds the game leaves silent, such as jumping, stay silent.
+  `s_defaultsound 1` plays a placeholder sound for them instead, for testing.
+- Demos are saved as `.dm_84`. Older `.dm_83` demos have not been checked
+  yet.
+- Enemy Territory comes without bot navigation files, and bots are not
+  supported yet.
+- **Downloads** use the server's web address when it has one, as the original
+  does (`cl_wwwDownload 1`), and fall back to the normal download when that
+  fails. Where the original opened your web browser for a server's download
+  page (`sv_wwwFallbackURL`), fnTech3 disconnects and shows the address.
+  Downloads have been tried both ways with the original game using a small
+  file; large files and busy connections are still to be checked.
+- PunkBuster is not available, and a server reports `sv_punkbuster 0`.
+- fnTech3 brings sound zones for the six maps. On a widescreen display the HUD
+  keeps its shape in the corners of the screen and the view widens; the
+  scoreboard and the large command map stay as centred 4:3 screens, and the
+  limbo screen is stretched, as the original drew it
+  ([Widescreen guide](ASPECT_CORRECTION.md)).
 
 ## Star Trek Voyager: Elite Force (`stvef-sp`, `stvef-mp`)
 
-**Installation:** an Elite Force 1.20 installation with `baseEF/`. Single
-player and Holomatch share it; always name the mode.
+**What you need:** Elite Force version 1.20, with its `baseEF` folder. Single
+player and Holomatch share it, so always name the mode.
 
-**Status:** experimental; developer builds with `-Dstvef-development=true`.
-Single player needs Windows x86.
+**Status:** experimental, in a development build (`-Dstvef-development=true`).
+Single player needs Windows.
 
-- Single player: the retail game module runs every single-player map, and the
-  retail menus and client game run in the client, which plays the levels with
-  their ambient sound, saves them and moves between them. Speakers' mouths
-  move with their voices, and the Bink movies play through the installation's
-  own Windows x86 Bink runtime. Image parity with retail and whole-campaign
-  play remain open.
-- Holomatch: the retail QVMs run and the retail demos play. fnTech3 has played
-  with, and downloaded from, Lilium Voyager and the retail game, as client and
-  as server, including pure servers, and with Lilium Voyager also over its
-  protocol 26. The dedicated server also runs on Linux i686.
+- **Single player** runs every level with the original game code, menus and
+  sound, saves games and moves from level to level. Characters' mouths move
+  as they speak, and the movies play using the movie player in your
+  installation. Matching the original's picture exactly, and playing the whole
+  campaign through, are still to be checked.
+- **Holomatch** runs the original game code and plays the original demos.
+  fnTech3 has played with the original game and with Lilium Voyager, joining
+  and hosting, including servers that check players' files, and downloaded
+  from both. The dedicated server also runs on Linux.
 
-See the [Elite Force gate matrix](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
+See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
 
-**Notes:**
+**Good to know:**
 
-- Single player uses protocol 40 and the `efgamex86.dll` and `efuix86.dll`
-  libraries in the installation folder. Holomatch uses protocol 24, and also
-  accepts ioEF's and Lilium Voyager's protocol 26.
-- The client enforces a 160 MiB SP and 128 MiB Holomatch hunk minimum when an
-  older config asks for less. This leaves room for the shared renderer's
-  larger allocations, including Vulkan's upload scratch; dedicated-server
-  memory is unchanged. SP also reserves a 96 MiB initial main zone for large
-  temporary allocations before renderer startup. See the
-  [installed-map sweep](fntech3/2026-10-01-stvef-hunk-map-sweep.md).
-- Elite Force's sounds and music are MP3. The MP3 decoder is built by default
-  (`-Dmp3=true`) and registered only for the games that need it: Elite Force,
-  Alice and F.A.K.K.2.
-- German installations play their own voices, and the menus use the key names
-  of the installation's language.
-- SP's `+use`, `+altattack` and any-key flag now use its own command bits,
-  separate from Holomatch's. Retail default bindings use X or `/` to jump and
-  Space to Use. VS Code launches default to raw mouse input and free-look,
-  overriding a saved `in_mouse 0` without resetting bindings. `inputstatus`
-  reports the current input owner and command. See the
-  [input and launch fixes](fntech3/2026-10-02-input-launch-fixes.md) for evidence
-  and the remaining gameplay-input checks.
+- Holomatch also understands the newer network protocol of ioEF and Lilium
+  Voyager; play over it has been tried with Lilium Voyager.
+- fnTech3 gives the game more memory than older settings files ask for, as
+  its renderers need it.
+- Elite Force's sound and music are MP3 files, which fnTech3 plays itself.
+- German copies play their own voices, and the menus show key names in the
+  installation's language.
+- The original's default keys are X or `/` to jump and Space to Use.
+  `inputstatus` in the console shows what currently has control of the mouse
+  and keys, if they stop responding.
 - On a widescreen display the LCARS gauges keep their shape in the lower
-  corners and the world view widens. Single player's client game is given the
-  4:3 frame, so the brackets it draws around a target stay on it
-  ([Aspect Handling Guide](ASPECT_CORRECTION.md)).
+  corners and the view widens, and the brackets single player draws around a
+  target stay on it ([Widescreen guide](ASPECT_CORRECTION.md)).
 
 ## Star Wars Jedi Knight: Jedi Academy (`jka-sp`, `jka-mp`)
 
-**Installation:** a Jedi Academy 1.01 installation with `base/`.
+**What you need:** Jedi Academy version 1.01, with its `base` folder.
 
-**Status:** experimental; developer builds with
-`-Djka-development=true`. A multiplayer server runs the retail module on a
-retail map with bots, and answers the game's questions about where a held
-saber or weapon is as the retail server does, outside the short blends
-between animations ([record](fntech3/2026-10-06-jedi-server-attachments.md)).
-Its protocol-26 message bodies now pass reference and
-fragmentation tests; retail client admission remains under investigation.
-Its experimental UI and client-game record adapters include fonts, StringEd,
-static rendering and the existing Fn FOV/HUD/menu transforms, with automated
-evidence. An OpenJK client now joins fnTech3 with pure admission, receives
-delta snapshots and disconnects cleanly. The reverse direction now passes
-maintained pure admission and active state after pinned native pak proofs are
-restored; it receives delta snapshots and passes neutral command values and
-single-polygon submission, the measured audio-absent voice query and owned
-remote-client bolt and bone-frame queries. Owned skeletal scene queueing and
-static tag queries, limited shader-effect lifetimes and owned engine-default
-skeletal models and the measured absent-ambient return now pass ordinary-sky
-views, owned forward-animation transitions and no-rotation bolt queries.
-The maintained forward pair now captures the player-configuration menu over
-the world and disconnects cleanly after measured empty ROFF/weather cleanup.
-Ordinary/additive module scene lights now feed Fn's light and shadow controls,
-and Academy's own half-cell atlas supplies readable Fn diagnostic/console text.
-A bounded demo control reaches EOF with spectator-world captures in candidate
-GLx, Vulkan and RTX raster. This slice's production relink/runtime checks are
-pending after a concurrent renderer sweep blocks the shared client linker.
-The longer
-native-server demo passes the light import, then refuses the Raven saber-glow
-entity (type 5). All 41 installed `*default` models pass pose/geometry checks
-across their 65 LODs. Present
-ambient definitions still refuse active playback.
-The effects subset uses Fn sprite/polygon queues; light/sound, motion and
-active curve controls remain named refusals. Registered skins and visibility
-feed Fn geometry and forward blends in unit fixtures; complete gameplay,
-complete all-backend cgame drawing, angle blends and a capture of an attached weapon remain unproven. Owned Ghoul2 copy/duplication, player-configuration menu
-relay and the read-only engine routing getter pass their boundaries. Renderer-owned map distance culling, entity-token reset/EOF,
-neutral light-style metadata, the empty client ROFF update, explicit music
-preloading and the effects clock/context,
-ambient/effect definitions and Ghoul2 skin/animation setup pass their earlier
-boundaries. fnTech3's client joins the retail `jamp.exe` server with pure
-admission ([record](fntech3/2026-10-05-legacy-server-hosting.md)), chats both
-ways and follows a map change; chat sounds play through fnTech3's own sound
-system, with Academy's channels mapped to the engine's. On the new map the
-client game's player model with an attached weapon is now posed, the weapon
-in the hand as retail poses it, and drawn through fnTech3's own skeletal
-path ([record](fntech3/2026-10-06-jka-attachments.md)); items that fade in, greyed items
-and other entities the client game tints or fades are drawn by all three
-renderers ([record](fntech3/2026-10-06-jka-entity-tint.md)); the client
-stops next at `mp/ffa3`'s ambient sound set, which is not played yet,
-while on `mp/ffa1` a `map_restart`, a reconnect and the server quitting
-complete ([record](fntech3/2026-10-06-jka-live-join.md)); a retail client on
-fnTech3's server and rendered gameplay remain open. Academy's MP3 assets use the
-existing Fn decoder; muted probes preload a real map track through the default
-OpenAL backend. Dynamic music, audible music, ambient playback and active voice tracking
-remain open. The new voice-volume query serves only the actual disabled-audio
-state; enabled audio remains an explicit refusal.
-The optional wireframe automap serves its retail default-disabled mode and
-refuses an enabled request.
-Retail MP menu startup and a
-limited animated UI model scene run through fnTech3's renderers. Owned cgame
-geometry retains Fn materials, lighting and shadows; complete world rendering
-and client gameplay remain open.
-A retail peer currently requires
-Disc 1 before its connect command can run.
-Single player's measured API-8 module bridge now returns from retail Init;
-its first frame stops at the remaining weather callback. Client rendering,
-campaign play and save/load remain open. See the
-[Jedi Academy gate matrix](fntech3/COMPATIBILITY.md#jedi-academy-gate-matrix).
+**Status:** experimental and early, in a Windows development build
+(`-Djka-development=true`).
+
+- **Multiplayer:** a server runs the original game code on an original map,
+  with bots, and tells the game where a held saber or weapon is as the
+  original server does, except during the short blends between animations
+  ([details](fntech3/2026-10-06-jedi-server-attachments.md)). fnTech3 joins
+  an original Jedi Academy server, including servers that check players'
+  files, chats both ways and follows a map change. Its
+  menus, the main menu's animated scene, text, some of the world and the
+  player setup menu are drawn with fnTech3's renderers, and a short demo plays
+  in each of them. On the new map after a map change, a player holding a
+  weapon no longer stops it: the weapon is now placed in the hand as the
+  original places it, though no picture of it has been checked yet
+  ([details](fntech3/2026-10-06-jka-attachments.md)). Items that
+  fade in, or that the game draws in a single colour, now draw too
+  ([details](fntech3/2026-10-06-jka-entity-tint.md)). On some maps fnTech3
+  then stops at the map's background sounds, which it does not play yet; on
+  others a map restart, reconnecting and the server shutting down all work.
+  Joining the game as a player stops at its first sound. The
+  open-source OpenJK engine's client joins fnTech3's server.
+- **Single player:** the original game code starts, then stops on its first
+  frame.
+
+Not done yet: the campaign and saved games, the full game world and effects,
+music, and playing in both directions with the original game. The original
+Jedi Academy asks for disc 1 before it will connect to any server. See the
+[Jedi Academy details](fntech3/COMPATIBILITY.md#jedi-academy-gate-matrix).
 
 ## Star Wars Jedi Knight II: Jedi Outcast (`jk2-sp`, `jk2-mp`)
 
-**Installation:** a Jedi Outcast 1.02a installation with `base/`.
+**What you need:** Jedi Outcast version 1.02a, with its `base` folder.
 
-**Status:** experimental; isolated Windows x86 developer probes with
-`-Djk2-development=true`. Earlier multiplayer-server evidence runs the retail
-`jk2mpgame.qvm` with bots. Protocol 15 codecs and partial cgame/UI and font
-adapters now have automated evidence; they do not establish a working client
-or live interoperability. The SP native module loads, but an engine map probe
-stops at unsupported client import 3 before gameplay. Campaign, saves, demos,
-rendering, audio and input remain open. See the
-[Jedi Outcast gate matrix](fntech3/COMPATIBILITY.md#jedi-outcast-gate-matrix).
+**Status:** experimental and early, in a Windows development build
+(`-Djk2-development=true`). A multiplayer server runs the original game code
+with bots. Parts of the client -- its network messages, menus and fonts -- are
+being built and tested on their own, but there is no working client yet.
+Single player's game code loads, then stops before the game starts. The
+campaign, saves, demos, graphics, sound and controls are still to come. See
+the [Jedi Outcast details](fntech3/COMPATIBILITY.md#jedi-outcast-gate-matrix).
 
 ## American McGee's Alice (`alice`)
 
-The [October 2 compatibility round](fntech3/2026-10-02-ubertools-round.md)
-corrects module bounds and malformed lighting handling. Alice remains
-experimental; the checks do not establish retail interoperability.
+Alice does not run on a Quake III engine but on Ritual Entertainment's
+Heavy Metal: F.A.K.K.2 engine, so its maps, models, menus, saved games and
+sounds are all different. fnTech3 has separate support for them.
 
-Alice does not run a Quake III engine: it runs Ritual Entertainment's
-Heavy Metal: F.A.K.K.2 engine, so its maps, models, menus, network messages,
-saves and sounds are Ritual's formats, served by their own adapters in
-fnTech3.
+**What you need:** an installed Alice with `base/pak0.pk3`, `base/fgamex86.dll`
+and `base/cgamex86.dll`.
 
-**Installation:** a retail Alice installation with `base/pak0.pk3` and the
-game libraries `base/fgamex86.dll` and `base/cgamex86.dll`.
+**Status:** experimental, in a Windows development build
+(`-Dalice-development=true`). The original game code runs. The opening logos
+lead to the menus, New Game plays the opening movie into the first level, and
+the garden draws Alice and her HUD in all three renderers. Games save and
+load, and demos record and play back. Nothing has yet been swapped with the
+original game -- no saves, demos or online games -- and no picture has been
+compared with the original's. See the
+[Alice details](fntech3/COMPATIBILITY.md#alice-gate-matrix).
 
-**Status:** experimental; developer builds with `-Dalice-development=true`.
-In the Windows x86 developer client the retail game and client-game libraries
-run. The intro's logos lead to the menus, New Game plays the opening movie into
-the first level, and `garden1` draws Alice in third person with her HUD on all
-three renderers. Games save and load back, and demos record and play back. No
-client, server, save or demo has yet been exchanged with the retail game, and
-no frame has been compared with its own. See the
-[Alice gate matrix](fntech3/COMPATIBILITY.md#alice-gate-matrix).
+**Good to know:**
 
-**Notes:**
-
-- The menus are the engine's own `.urc` resources, as in retail; there is no
-  menu module.
-- The engine package carries an audio zone and a static light file for each of
-  the 36 maps, and HUD rules: on a widescreen display the gauges and cards keep
-  their 4:3 size at the screen's edges, and the world view widens
-  ([Aspect Handling Guide](ASPECT_CORRECTION.md)).
-- Alice draws with no overbright bits, as its own engine does:
-  `r_overBrightBits` and `r_mapOverBrightBits` default to `0`, so each map's
-  light is drawn as the map holds it. The other games' `1` over `2` draws
-  Alice's levels two to three times as bright
-  ([Display Guide](DISPLAY.md#game-specific-renderer-settings)).
-- As in retail, `+set config <name>` picks the configuration file and names
-  the saves. Retail kept that name in the registry for later launches;
-  fnTech3 keeps it for the launch that names it.
+- The menus are the game's own menu files, drawn by the engine, as in the
+  original.
+- fnTech3 brings a sound zone and map lights for each of the 36 maps. On a
+  widescreen display the gauges and cards keep their size at the edges of the
+  screen and the view widens ([Widescreen guide](ASPECT_CORRECTION.md)).
+- Alice draws each map at its own brightness, as its engine did:
+  `r_overBrightBits` and `r_mapOverBrightBits` start at `0` here, where the
+  other games' brighter values would make its levels two to three times too
+  bright ([Graphics guide](DISPLAY.md#game-specific-renderer-settings)).
+- As in the original, `+set config <name>` picks the settings file and names
+  your saved games. The original remembered the name for later; fnTech3 uses
+  it for the session you name it in.
 
 ## Heavy Metal: F.A.K.K.2 (`fakk2`)
 
-The [October 2 compatibility round](fntech3/2026-10-02-ubertools-round.md)
-corrects this game's own module bounds and shared Ritual lighting validation.
-Its previously recorded retail interop remains limited to the cases below.
+F.A.K.K.2 runs Ritual's own engine, the one Alice's grew from. fnTech3 serves
+both with the same support, with F.A.K.K.2's own rules where the two differ.
 
-F.A.K.K.2 runs Ritual's own engine, the one Alice's descends from. fnTech3
-serves it through Alice's adapters, with F.A.K.K.2's own records where the two
-differ.
+**What you need:** an *installed* game with `fakk/pak0.pk3`, `fakk/gamex86.dll`
+and `fakk/cgamex86.dll`. A copy of the disc is not enough: the disc keeps the
+game's program files packed inside its installer.
 
-**Installation:** an *installed* game with `fakk/pak0.pk3`,
-`fakk/gamex86.dll` and `fakk/cgamex86.dll`. A copy of the disc is not enough:
-the disc keeps the game libraries inside its InstallShield cabinets.
+**Status:** experimental, in a Windows development build
+(`-Dfakk2-development=true`). A server starts all thirty maps with the
+original game code. The client draws the menus, HUD and inventory, plays New
+Game and the level exits with your progress carried over, saves and loads,
+and records and plays demos. English and German copies both run. With the
+official 1.02 patch, the original game plays fnTech3's demos and
+joins fnTech3's server on all thirty levels; fnTech3 joins the original's
+server, and saves from the first level load in both. The original's server
+has only been run on that first level, and longer sessions and most of the
+game's pictures have not yet been compared with the original. See the
+[F.A.K.K.2 details](fntech3/COMPATIBILITY.md#fakk2-gate-matrix).
 
-**Status:** experimental; developer builds with `-Dfakk2-development=true`.
-A developer server spawns all thirty maps through the retail game module. The
-Windows x86 developer client runs the retail client game, draws the menus, HUD
-and inventory, follows New Game and the level exits with the player's state
-carried, saves and loads, and records and plays back demos. English and German
-installations both run. Against the official 1.02 patch's `fakk2.exe`, the
-retail game plays fnTech3's demos and joins fnTech3's server on all thirty
-levels. fnTech3's client joins the retail game's server, and saves made on the
-first level load in both. The retail server has run only that first level,
-and longer sessions and most of the game's frames have not been compared with
-retail. See the
-[F.A.K.K.2 gate matrix](fntech3/COMPATIBILITY.md#fakk2-gate-matrix).
+**Good to know:**
 
-**Notes:**
-
-- The engine package carries an audio zone and a static light file for each of
-  the 30 maps, and HUD rules that keep the health gauge, the weapon rings and
-  the boss's bar in shape and in their corners on a widescreen display, where
-  the world view also widens. `cl_hudAspect 0` stretches the HUD with the
-  screen instead ([Aspect Handling Guide](ASPECT_CORRECTION.md)).
-- The disc's `fakk2.exe` is encrypted on disk, but the official 1.02 patch's
-  is not, and fnTech3 follows it. The
-  [F.A.K.K.2 contracts record](fntech3/2026-09-24-fakk2-contracts.md) cites
-  what was read from it and marks the one question still taken from Alice's
-  engine.
-- As in retail, `+set config <name>` picks the configuration file and names
-  the saves. Retail kept that name in the registry for later launches;
-  fnTech3 keeps it for the launch that names it.
+- fnTech3 brings a sound zone and map lights for each of the 30 maps. On a
+  widescreen display the health gauge, the weapon rings and the boss's health
+  bar keep their shape in their corners, and the view widens;
+  `cl_hudAspect 0` stretches the HUD across the screen instead
+  ([Widescreen guide](ASPECT_CORRECTION.md)).
+- As in the original, `+set config <name>` picks the settings file and names
+  your saved games. The original remembered the name for later; fnTech3 uses
+  it for the session you name it in.
 
 ## Medal of Honor: Allied Assault (`mohaa`)
 
-The [October 2 compatibility round](fntech3/2026-10-02-ubertools-round.md)
-corrects full-buffer client-game message framing. Use the default OpenAL
-backend for MOHAA alias distances, pitch and channel behavior; the
-[Audio Guide](AUDIO.md) lists the legacy fallback's limits. The profile remains
-experimental and has no retail-engine interoperability proof.
-Server-driven `fadesound` commands are currently unhandled; campaign audio
-fade behavior remains an open compatibility requirement.
+Medal of Honor runs the engine of 2015, Inc., the studio that made it, which
+grew from both Ritual's and Quake III's. fnTech3 has separate support for it.
 
-Medal of Honor runs 2015's engine, which grew from Ritual's and from Quake
-III's. fnTech3 serves it with adapters of its own.
+**What you need:** version 1.00, with `main/Pak0.pk3` to `Pak5.pk3`,
+`main/gamex86.dll`, `main/cgamex86.dll`, and `system86.dll` beside
+`MOHAA.exe`. fnTech3 uses your installation's copy of that file and never
+includes it.
 
-**Installation:** version 1.00 with `main/Pak0.pk3` to `Pak5.pk3`,
-`main/gamex86.dll`, `main/cgamex86.dll` and, beside `MOHAA.exe`,
-`system86.dll`, the allocator both game libraries load. fnTech3 loads the
-installation's copy and never ships it.
+**Status:** experimental, in a Windows development build
+(`-Dmohaa-development=true`). A server starts all fifty-four maps with the
+original game code. The client plays every single-player level, briefing and
+the credits: the game's menus, HUD, loading screens, briefing slides,
+objectives, subtitles and fades, the music and speech, the sun's lens flare,
+moving from level to level with your progress, saves, loads and demos. Over a LAN,
+players find a dedicated server in the server list and play free-for-all,
+team and objective matches. The original `MOHAA.exe` is copy-protected and no
+longer runs on current Windows, so nothing has been compared with or played
+against the original game. See the
+[Medal of Honor details](fntech3/COMPATIBILITY.md#medal-of-honor-gate-matrix).
 
-**Status:** experimental; developer builds with `-Dmohaa-development=true`.
-A developer server spawns all fifty-four maps through the retail game module.
-The Windows x86 developer client runs the retail client game and plays every
-single-player map, briefing and the credits through their scripts: the
-engine's retail menus, HUD, loading screens with their bar, briefing slides,
-objectives, subtitles and fades, the levels' music and dialogue, the sun's
-lens flare, a level exit carrying the player's state, saves, loads and demos.
-Over UDP, clients find a dedicated server in the LAN list and play
-free-for-all, team and objective matches, fighting and scoring. The retail
-`MOHAA.exe` is encrypted and cannot run on current Windows, so nothing has been
-exchanged with or compared against the retail game. See the
-[Medal of Honor gate matrix](fntech3/COMPATIBILITY.md#medal-of-honor-gate-matrix).
+**Good to know:**
 
-**Notes:**
+- Keep the default sound system (OpenAL): the older software mixer ignores the
+  game's sound distances and pitch ([Sound guide](AUDIO.md)). Sound fades the
+  campaign asks for are not done yet.
+- The menus, HUD and loading screens are the game's own menu files, drawn by
+  the engine, as in the original.
+- fnTech3 brings a sound zone and map lights for each of the 54 maps.
+- The HUD grows with the screen's height; `ui_hudScale 0` draws it at the
+  original's pixel sizes. On a widescreen display the view widens and keeps
+  its 4:3 height ([Widescreen guide](ASPECT_CORRECTION.md)).
+- Cheats in the console need `+set thereisnomonkey 1` when you start, as in
+  the original.
+- Levels show their permanent decals, and models lose detail with distance,
+  as the game's own files describe; the advanced options' "Static Decals" box
+  and model detail choice control them. The game's developer tools -- the
+  decal editor (`dcl_editmode 1` before a level loads, then the F6 menu of
+  `development.cfg`) and the level-of-detail tool (`lod_spawn`, the `l` menu)
+  -- save the game's own `.dcl` and `.lod` files into your home folder.
+- Decals mark the ground and moving things such as doors, and move with them.
+  Bullet holes leave the ground alone, as in the original;
+  `ter_minMarkRadius 0` lets every decal mark it.
+- In multiplayer, the game's chat keys (`y` and `t`) open fnTech3's chat
+  line; the messages appear in the box at the top of the screen.
+- A multiplayer server, dedicated or started with Start New Server, answers
+  GameSpy's LAN queries with its name, map, game type, players and rules; the
+  menu's GameSpy box turns that off. GameSpy's internet lists are gone, so no
+  server appears there, and the game's own Join LAN Game list finds servers
+  as before ([details](fntech3/2026-10-06-mohaa-gamespy-lan-queries.md)). A
+  team match started from the menu is listed and lets other players join.
+- fnTech3's saved games use their own format, so they cannot be swapped with
+  the original's; the
+  [Medal of Honor record](fntech3/2026-09-24-mohaa-contracts.md) explains why.
 
-- The menus, HUD and loading screens are the engine's own, built from the
-  game's `ui/*.urc` files, as in retail; there is no menu module.
-- The engine package carries an audio zone and a static light file for each of
-  the 54 maps.
-- The HUD scales with the screen's height; `ui_hudScale 0` draws it at
-  retail's pixel sizes. On a widescreen display the world view widens to keep
-  its 4:3 vertical framing ([Aspect Handling Guide](ASPECT_CORRECTION.md)).
-- The game's console cheats need `+set thereisnomonkey 1`, as retail's did;
-  fnTech3 sets the game's `cheats` switch as 2015's engine does.
-- Levels draw their permanent decals, and models lose detail with distance
-  by the game's own level-of-detail records; the advanced options' "Static
-  Decals" box and model detail choice control them. The developer decal
-  editor (`dcl_editmode 1` before a level loads, then the F6 menu of
-  `development.cfg`) and level-of-detail tool (`lod_spawn`, the `l` menu)
-  write the game's own `.dcl` and `.lod` files into the home path.
-- Decals reach terrain and moving brushes such as doors, whose marks move
-  with them. Bullet holes leave terrain alone, as the original renderer's
-  do; `ter_minMarkRadius 0` lets every decal mark it.
-- In multiplayer, the game's `say` and `sayteam` (`y` and `t`) open fnTech3's
-  chat line; the chat itself appears in the box at the top of the screen.
-- A multiplayer server, dedicated or started from Start New Server, answers
-  GameSpy's LAN queries on UDP 12300, or the next free port, with its name,
-  map, game type, players and rules; the menu's GameSpy box turns that off.
-  GameSpy's masters are gone, so no server is listed on the Internet, and the
-  game's own Join LAN Game list finds servers on their game port as before
-  ([record](fntech3/2026-10-06-mohaa-gamespy-lan-queries.md)). A team match
-  started from the client is listed and admits remote players; the engine had
-  taken the game type for single player, which is 0 in Medal of Honor.
-- Savegames are fnTech3's own header beside the game's level file, so they
-  cannot be exchanged with retail's; the
-  [Medal of Honor contracts record](fntech3/2026-09-24-mohaa-contracts.md)
-  says why and lists every other case where the retail libraries or
-  OpenMoHAA's reconstruction stand in for the unreadable engine.
+## Related guides
 
-## Related documentation
-
-- [Build Guide](../BUILD.md) for developer builds and the Visual Studio Code
-  launches for each game.
-- [Compatibility ledger](fntech3/COMPATIBILITY.md) for the evidence and open
-  gates of every profile.
-- [Architecture overview](fntech3/ARCHITECTURE.md) for how profiles, adapters
-  and shared subsystems fit together.
+- [Getting Started](GETTING_STARTED.md) for setting fnTech3 up, the console
+  and settings files.
+- [Build Guide](../BUILD.md) for compiling a development build with the
+  experimental games.
+- [Compatibility ledger](fntech3/COMPATIBILITY.md) for every test and what is
+  still open, for each game.

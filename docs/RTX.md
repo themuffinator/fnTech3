@@ -1,330 +1,188 @@
 # RTX Renderer Guide
 
-RTX is fnTech3's Vulkan ray-tracing renderer. It is one of the three renderer
-modules shipped with fnTech3 and does not change networking, demos, game logic, or
-the retail module ABI.
+RTX is fnTech3's ray-tracing renderer. Instead of the lighting each map had
+painted onto its walls in advance, it works light out the way light really
+travels -- from each map's own lamps, glowing surfaces, sky and sun -- with
+true shadows, light that bounces off walls, and reflections. It only changes
+the picture: gameplay, online play and demos are exactly the same. Where your
+graphics card cannot ray trace, RTX draws the game the normal way instead.
 
-The module has two ways to draw a frame. By default (`rtx_rt_mode 2`) it path
-traces the main view: the world and models are traced, lit by the map's own
-light sources - its light entities, the surfaces that give off light, its sky
-and sun - with nothing baked, and drawn with their shader materials. With
-`rtx_rt_mode 0` it is a complete Vulkan raster renderer. Hardware that can
-trace neither way keeps the complete raster frame unless you ask for strict
-ray tracing.
+## What you need
 
-## Requirements
+- **A graphics card with Vulkan** and up-to-date drivers. RTX traces in one of
+  two ways, which give the same picture:
+  - with the card's **ray-tracing hardware**, on cards and drivers that offer
+    it to fnTech3;
+  - with **compute**, which works on any Vulkan card, but more slowly.
 
-The path tracer has two tracing backends that draw the same image:
+  fnTech3 picks the hardware way when it can and compute otherwise. fnTech3 is
+  a 32-bit program, and some drivers only offer ray-tracing hardware to 64-bit
+  programs -- the NVIDIA driver fnTech3 is developed on is one -- so even a
+  ray-tracing card may trace with compute.
+- **The RTX renderer file**, `fnql_rtx_x86`, beside `fntech3.exe`. It comes in
+  the download.
 
-- **Ray-tracing pipeline** (hardware): a Vulkan 1.2 GPU and driver with
-  `VK_KHR_acceleration_structure`, `VK_KHR_ray_tracing_pipeline`,
-  `VK_KHR_ray_query`, `VK_KHR_deferred_host_operations`, buffer device address
-  and descriptor indexing. The renderer also checks its descriptor limits
-  (2,048 sampled textures in a ray-tracing stage) and shader-binding-table
-  alignments.
-- **Compute** (software): any Vulkan GPU with descriptor indexing,
-  `VK_KHR_spirv_1_4` and `VK_KHR_shader_float_controls`. It traverses bounding
-  volume hierarchies the renderer builds itself, and is slower.
+Every game with a client can use RTX. It traces the model formats of Quake
+III Arena and its relatives; models it cannot trace -- those of Alice,
+F.A.K.K.2 and Medal of Honor, for example -- are drawn the normal way, without
+traced shadows or reflections. Return to Castle Wolfenstein and Enemy
+Territory have been drawn with it in testing, but, like those games
+themselves, that is still experimental.
 
-Both need the renderer's storage-image and sampled-texture limits and its
-output image formats. `rtx_rt_backend 0` picks the ray-tracing pipeline when
-the driver offers it and compute otherwise; the log says which one traces.
+## Turning RTX On
 
-Driver capabilities can differ between x86 and x64. On the development
-machine's NVIDIA driver, the 32-bit (x86) Vulkan driver offers no ray-tracing
-pipeline, so the shared Win32 client traces with compute; the 64-bit
-Q3-only diagnostic build ([BUILD.md](../BUILD.md)) traces with either. The
-[Q2RTX feature comparison](fntech3/RTX_Q2RTX_PARITY.md) records the verified
-scope and remaining gaps, and the [compatibility ledger](fntech3/COMPATIBILITY.md)
-the gate status.
-
-RTCW and Enemy Territory remain behind their development build options. The
-path tracer has drawn their retail maps in isolated development probes
-(`docs/fntech3/2026-09-24-rtx-path-tracer.md`); those probes do not make
-either game's renderer gate complete.
-
-The `vkinfo` command reports the selected device and capability result. Use
-`rtx_caps_report 1` for a compact RTX capability summary or `rtx_caps_report 2`
-for the detailed report.
-
-## Selecting RTX
-
-Use a build that includes the `fnql_rtx_<arch>` renderer module, then enter:
+Open the console and type:
 
 ```cfg
 seta cl_renderer "rtx"
 vid_restart
 ```
 
-`rtx_rt_mode` controls the requested path:
+To go back, use `cl_renderer glx` (the default) or `cl_renderer vk`, then
+`vid_restart`. `rtx_caps_report 1` shows what your graphics card can do, and
+the console says which way RTX is tracing when it starts.
 
-- `0` loads the RTX module but uses its complete raster renderer.
-- `1` requests ray-query capabilities while retaining raster output. This is a
-  development mode rather than normal play.
-- `2` path traces the main view. This is the default.
+### Ray tracing or normal drawing
 
-A configuration written before the default changed can still hold
+- `rtx_rt_mode 2` ray traces the view. This is the default.
+- `rtx_rt_mode 0` keeps the RTX renderer but draws normally, without ray
+  tracing.
+- `rtx_rt_mode 1` is a developer test mode, not for playing.
+
+A settings file saved before ray tracing became the default may still say
 `seta rtx_rt_mode "0"`; set `rtx_rt_mode 2` and `vid_restart` to trace.
 
-Keep `rtx_rt_require 0` for normal use. If native RT cannot initialize or
-complete a frame, the renderer reports the reason and keeps the raster result.
-Setting it to `1` is a strict validation mode: unsupported capabilities or a
-failed RT frame stop the renderer instead of silently falling back.
+If ray tracing cannot start, or a frame fails, RTX tells you why in the
+console and carries on drawing normally. Keep `rtx_rt_require 0` for play:
+`1` makes such a failure stop the renderer instead, which is only for
+testing.
 
-`rtx_rt_backend` chooses how the path tracer traces: `0` (the default) the
-ray-tracing pipeline where the driver has one and compute shaders otherwise,
-`1` only the ray-tracing pipeline, `2` only compute. It is latched; apply it
-with `vid_restart`.
+`rtx_rt_backend` chooses the way to trace: `0` (the default) the hardware
+where available and compute otherwise, `1` hardware only, `2` compute only.
+Use `vid_restart` after changing it.
 
-The RTX renderer defaults to the linear-light pipeline (`r_hdr 1`); use the
-SDR path (`r_hdr 0`) when comparing its images with a retail engine's.
+RTX uses fnTech3's HDR picture (`r_hdr 1`) by default; `r_hdr 0` gives the
+games' original colour handling, for comparing pictures with the original.
 
-## What the Path Tracer Draws
+## What You Will See
 
-Each main view is drawn in three steps. The raster renderer first draws the
-surfaces the tracer owns, for their depth. The tracer then shoots a ray per
-pixel, shades what it hits and writes those pixels over the raster frame.
-Finally the raster renderer draws everything the tracer does not own on top,
-in Quake III's usual order.
+- **Each map lit by its own lights.** Nothing painted in advance is used at
+  all. Rooms are lit by the lamps their designer placed and by surfaces that
+  glow -- lamps, windows, flames, screens -- and outdoors by the sky and sun.
+  Quake Live's and Enemy Territory's maps keep no placed lamps, so their rooms
+  are lit only by their glowing fixtures, the sky and the sun. A map is
+  exactly as bright or as dark as its own lights make it, so some places look
+  different from what you remember.
+- **Real shadows** from every light, soft where a light is large, and through
+  grates, fences and cages. Rockets, muzzle flashes and other moving lights
+  cast shadows too.
+- **Bounced light.** Light reflects off walls and floors, so a sunlit floor
+  lights the room around it. One bounce is the default.
+- **Reflections** on shiny surfaces, which show the lights around them.
+- **A clean picture.** Ray tracing starts out grainy, and fnTech3 smooths it
+  as you play. When everything stands still -- a paused demo, say -- it keeps
+  refining towards a perfectly clean image.
 
-The tracer owns:
+Some things are always drawn the normal way, on top of the traced picture:
+see-through and glowing effects, smoke and sparks, sprites, water, the sky,
+the HUD and menus. Mirrors, portals, small views and the distant sky that
+Return to Castle Wolfenstein and Enemy Territory draw are drawn normally too.
+Fog is drawn over the traced picture as usual. Your own body is not shown,
+but it casts a shadow and appears in reflections.
 
-- the world's opaque and alpha-tested surfaces, including curved patches;
-- models (MD3, MDR, IQM, and RTCW's and ET's MDC, MDS and skeletal meshes) and
-  brush models such as doors and platforms;
-- the first-person weapon. Your own third-person body is traced but never
-  seen directly: it casts shadows and shows in reflections.
+**Seeing it through a camera.** `rtx_rt_camera 1` shows the light as a camera
+would see it, with brightness that adapts as your eyes do when you move
+between dark rooms and sunlit places, much as the Quake II RTX remaster does.
+`rtx_rt_lighting 3` lights a map only from its sky and glowing surfaces, as
+Quake II RTX lights Quake II, and always uses the camera.
 
-The raster pass keeps everything else: blended, additive and decal surfaces,
-particles, beams, rails, sprites, flares, marks, liquids, deformed geometry,
-the sky box and portal surfaces, the HUD and menus. Portal and mirror views,
-stereo eyes, cube captures, views covering less than half the screen and the
-portal sky that RTCW and Enemy Territory draw behind a map's main view are
-rasterized completely. A main view smaller than the screen (Enemy Territory
-insets its view by a pixel) is traced into its own rectangle.
+The technical detail of what RTX traces and how it lights each map is in the
+[RTX Renderer Contract](fnql/RTX_RENDERER.md#path-tracer-scope-and-light-model).
 
-**Materials.** A traced surface uses its shader's stages as authored: the
-blend functions, `rgbGen` and `alphaGen` (including waveforms, entity colours,
-`lightingDiffuse` and `lightingSpecular`), `tcGen`, `tcMod` animation,
-`animMap` and alpha tests are evaluated for every hit. The tracer splits each
-material into the part its lighting term scales and the part it does not, so
-glowing stages stay glowing. Textures are filtered with the same anisotropic
-samplers as raster. An additive environment-mapped "shine" stage is replaced
-by traced reflections.
+## Texture Packs With Material Maps
 
-**Material maps.** No retail game ships normal, roughness or metalness maps,
-but a texture pack can add them beside a lit material's texture, under the
-names OpenJK's rend2 uses:
+No original game includes them, but a texture pack can add *material maps*
+beside a texture to give RTX bumps, shine and metal. RTX uses the same names
+as the OpenJK engine's rend2 renderer:
 
-| Image | Channels |
+| Image | What it holds |
 | --- | --- |
-| `<texture>_nh`, else `<texture>_n` | normal map: red leans the normal toward growing s, green toward growing t (rend2's convention); the `_nh` alpha (height) is unused |
-| `<texture>_specGloss` | specular colour, gloss in alpha (roughness is 1 - gloss) |
-| `<texture>_rmo`, else `<texture>_orm` | roughness, metalness, occlusion; or occlusion, roughness, metalness |
+| `<texture>_nh`, or else `<texture>_n` | A normal map, for bumps: red leans the surface along the texture's width, green along its height. The `_nh` alpha is unused. |
+| `<texture>_specGloss` | Shine colour, with glossiness in the alpha. |
+| `<texture>_rmo`, or else `<texture>_orm` | Roughness, metalness and occlusion, in that order or as occlusion, roughness, metalness. |
 
-`<texture>` is the image of the material's first stage that is not a lightmap
-or environment map, without its extension. Its `tcMod` and `tcGen` apply to
-the maps too. Roughness is perceptual: the GGX width is its square. A metal
-reflects in its texture's colour and loses its diffuse light; occlusion is
-not used, since the tracer finds occlusion itself. No retail Quake III,
-Quake Live, RTCW or Enemy Territory pak pairs a texture with an image under
-these names. Only the path tracer uses the maps; set
-`rtx_rt_material_maps 0` and `vid_restart` to ignore them.
-
-**Lighting.** By default the tracer lights every map with the lights the map
-itself defines, in place of its lightmaps and with no setting of its own: the
-light entities it keeps, the surfaces that give off light, and its sky and
-sun, with traced shadows and bounce light. Nothing baked takes part: no
-lightmap, vertex light or light grid is read, not even to set an exposure.
-Quake III's and RTCW's maps keep the light entities their designers placed,
-the lights their compilers baked into the lightmaps, so their rooms are lit
-where the designer lit them; q3map2 left none in Quake Live's and Enemy
-Territory's maps, which their glowing fixtures, sky and sun light instead.
-The compilers' ambient and `_minlight` floors and q3map's backsplash stood in
-for bounced light, which is traced instead. The light is shown as it was
-traced, in the units the map compiler gave its lights: the light a surface
-receives multiplies its colour as the engine multiplies a surface by its
-light, with the engine's overbright and no exposure, so a map is as bright
-or as dark as its own light sources make it.
-
-- **Surfaces that give off light.** A shader with `q3map_surfacelight` is a
-  light of the strength its author gave it, in the colour of its light image,
-  as the map compilers read it. Every other shader gives off what it draws
-  where its lighting term is black: a glow stage added over a lightmapped
-  base, an additive flame, a lit window. A shader drawn fullbright (no
-  lightmap, no vertex light) is lit by the scene like any other surface, and
-  only its bright texels glow, as Q2RTX synthesizes emissive masks from a
-  texture's bright pixels; `rtx_rt_emissive_light` sets how much light those
-  shaders give off, as a multiple of what they show. Each emitting triangle
-  of the world is sampled as an area light, so a lamp lights a room with
-  soft, correctly shaped shadows.
-- **The sky.** The sky lights the scene as its compiler lit it: id's q3map
-  from the sky's own triangles, each a light of the sky shader's
-  `q3map_surfacelight`, and q3map2 also from a dome of suns of its
-  `q3map_skyLight`. The sky shader's `q3map_sun` is the sun, softened over
-  q3map2's `q3map_sunExt` deviance. A sky that asks for no light gives none.
-- **The camera.** `rtx_rt_camera 1` sees the light through a camera instead,
-  as Q2RTX sees its own. Light is then traced in linear units: the colours
-  the shaders and the sky show are decoded from the display's gamma (2.2), so
-  a surface reflects and gives off light in proportion to what it shows, and
-  the view is encoded for the display once, after the camera. In physical
-  proportion a room lit through its window is far darker than the sunlit snow
-  outside it, so each view is tone mapped as Q2RTX maps its own: a histogram of the view's light gives
-  a curve, after Eilertsen, Mantiuk and Unger's noise-aware tone mapping, that
-  keeps the contrast of each range of brightness the view holds and
-  compresses the ranges it does not, within `rtx_rt_tonemap_range` stops; it
-  is blended (`rtx_rt_tonemap_curve`) with Reinhard's curve behind an
-  exposure metered on the view's 70th to 90th brightness percentiles. The
-  curve is fitted to the light a surface receives, not to the surface, so a
-  texture keeps its detail however hard the light is compressed. Exposure and
-  curve adapt over time as an eye does (`rtx_rt_exposure_speed`), over a
-  limited range: a view darker than a dim room stays darker, as its designer
-  left it. `rtx_rt_exposure_bias` brightens or darkens it; `rtx_rt_exposure`
-  fixes the exposure instead, with an ACES filmic curve.
-
-A light entity keeps its compiler's light model (point, linear and spot,
-with id's q3map, q3map2's or the Wolfenstein compilers' falloff, angle and
-spawnflag rules). `rtx_rt_lighting 3` leaves the light entities out and
-lights a map from its sky and emitters alone, as Q2RTX lights Quake II, with
-an even sky in its light colour and the linear camera: a room lit by light
-entities with no visible fixture is then lit only by what reaches it from
-outside. Two modes remain only to compare against the baked result:
-`rtx_rt_lighting 1` lights the world from its lightmaps and traces only
-dynamic lights over them, with models lit from the light grid as the raster
-pass lights them; `rtx_rt_lighting 2` traces the map compilers' own lights as
-they baked them, with surface lights' backsplash and the worldspawn ambient.
-A change of mode or camera rebuilds the lights at once.
-
-Direct light is shadowed. World surfaces cast solid shadows, alpha-tested
-holes included (a grate or a lamp's cage); `surfaceparm trans` surfaces cast
-none from the map's own lights unless they filter it. Models, doors and other
-movers shadow every light through their own alpha-tested holes. Filtering
-surfaces pass light as the compilers read their light image
-(`q3map_lightImage`, else `qer_editorimage`, else the image named like the
-shader): `alphashadow` surfaces where it is transparent, and q3map2's
-`lightfilter` surfaces tinted with its colour. Curved patches cast shadows, as
-they did for id's maps, which were compiled with `-patchshadows` (set
-`rtx_rt_patch_shadows 0` for a map compiled without it). Dynamic lights
-(rockets, muzzle flashes, powerups, RTCW's torches) are shadowed by
-everything, through alpha-tested holes. They fall off as the raster light
-pass draws them, eased toward a smoothstep by `r_dlightFalloff`, and reach
-only the surfaces that pass lights: a shader with `surfaceparm nodlight`, or no
-stage the pass can light, takes none. RTCW's two light materials are not
-lights: `negdlightshader` (its zombie spirits) darkens the world around it and
-`flamedlightshader` brightens it, each multiplying what a world surface or
-brush model shows by the `$dlight` blob projected down the world's vertical
-axis, as the original renderer drew them. Indirect light (one diffuse bounce
-by default, up to four with `rtx_rt_bounces`) and glossy reflections are
-traced on top.
-
-**Reflections.** A glossy surface (an environment-mapped shader, or a
-material map's low roughness) traces a reflection ray. Where that ray meets a
-surface light, it and the light sample share the light by multiple importance
-sampling (Veach's balance heuristic), so a mirror shows a lamp's shape and a
-rough surface a soft highlight, without the noise of either alone. A sky's
-light is left to the reflection, which sees the sky itself. Set `rtx_rt_mis 0`
-to leave surface lights to the light sample alone.
-
-**Fog.** Fog volumes are drawn by the raster fog pass over the traced colour,
-exactly as over raster surfaces. RTCW's and Enemy Territory's global fog, and
-Alice's far-plane fog, are part of each raster surface's own draw instead; the
-tracer applies the same fog to each pixel it owns, by the same equation at the
-traced surface's distance from the eye, after its light is resolved. A
-`nofog` material stays clear, as in raster.
-
-**Noise.** Each pixel takes one sample of each light source (the emitters,
-the sun and the sky) and one bounce ray a frame, and one light sample at the
-bounce. On the compute backend the bounce is traced in a checkerboard of 8 x 8
-tiles that alternates each frame, as Q2RTX traces its indirect light
-(`rtx_rt_checkerboard`). A temporal filter and an edge-aware spatial filter remove the noise;
-when the view and the game clock stand still (a paused demo, a photo) samples
-keep accumulating into a clean image. Changing a lighting setting, or a model
-or dynamic light changing while the clock stands still (a light switched off,
-a weapon hidden), starts the accumulation over; one that keeps changing (a
-flickering powerup glow) is filtered as a moving scene is. Moving models,
-players and brush models carry their own motion into the temporal filter, so
-their history follows them instead of smearing; a surface newly in view starts
-afresh.
+`<texture>` is the surface's main texture, without its extension; its
+scrolling and other animation apply to the maps too. A metal surface
+reflects in its texture's colour. The occlusion channel is unused, because
+RTX finds that itself. Only RTX uses these maps; `rtx_rt_material_maps 0` and
+`vid_restart` ignore them.
 
 ## Settings
 
-| Cvar | Default | Effect |
+| Setting | Default | What it does |
 | --- | --- | --- |
-| `rtx_rt_mode` | `2` | `2` path traces the main view; `0` draws the raster frame. Latched: `vid_restart`. |
-| `rtx_rt_require` | `0` | `1` fails instead of falling back to raster. Latched. |
-| `rtx_rt_backend` | `0` | `0` the ray-tracing pipeline where available, else compute; `1` pipeline only; `2` compute only. Latched. |
-| `rtx_rt_material_maps` | `1` | Use a texture pack's normal and material maps. Latched. |
-| `rtx_rt_lighting` | `0` | `0` lights the scene with the level's own lights, traced, with nothing baked: the light entities its map keeps, the surfaces that give off light, its sky and sun; `3` the sky and emitting surfaces alone, as Q2RTX does. For comparison only: `1` uses the lightmaps for static light and traces dynamic lights over them; `2` traces the map compilers' own lights and light models as they baked them. |
-| `rtx_rt_camera` | `0` | `0` shows the level's traced light as it is, in its compiler's units, with no exposure; `1` sees it through a camera in linear light, with automatic exposure and Q2RTX's tone mapper. `rtx_rt_lighting 3` always takes `1`. |
-| `rtx_rt_emissive_light` | `2.0` | Light a glowing shader without `q3map_surfacelight` gives off, as a multiple of what it shows; `0` lights nothing with them. |
-| `rtx_rt_exposure` | `0` | The linear camera's exposure: `0` exposes and tone maps each view as Q2RTX does; any other value is a fixed exposure, with an ACES filmic curve. |
-| `rtx_rt_exposure_bias` | `0` | Stops added to the automatic exposure and tone curve. |
-| `rtx_rt_exposure_speed` | `1` | How fast exposure and curve adapt: toward a darker view at this rate a second, a brighter one at twice it, as Q2RTX's; `0` at once. |
-| `rtx_rt_tonemap_range` | `7` | The display's range, in stops, that the tone curve fits a view's light into (Q2RTX's `tm_dyn_range_stops`). |
-| `rtx_rt_tonemap_curve` | `0.5` | The fitted curve's share; the rest is Reinhard's curve behind the metered exposure (Q2RTX's `tm_reinhard` is one minus this). |
-| `rtx_rt_checkerboard` | `0` | The diffuse bounce, traced as Q2RTX traces its indirect light: half the screen a frame in alternating 8 x 8 tiles. `0` on the compute backend only, `1` always, `2` never. |
-| `rtx_rt_bounces` | `1` | Diffuse bounces per path, `0` to `4`; a reflected surface takes one fewer. Maps whose q3map2 build baked radiosity (`-bounce`) come closer with `2` or more. |
-| `rtx_rt_indirect_strength` | `1.0` | Scale of bounce light; `0` keeps direct light only. |
-| `rtx_rt_specular` | `1` | Specular highlights and traced reflections. |
-| `rtx_rt_mis` | `1` | Glossy reflections share the map's surface lights with light sampling, so mirrors show the lights; `0` leaves them to light sampling. |
-| `rtx_rt_sun_intensity` | `1.0` | Scale of `q3map_sun`. |
-| `rtx_rt_patch_shadows` | `1` | Curved patches shadow the map's lights, as with `-patchshadows`; `0` for maps compiled without it. |
-| `rtx_rt_sky_intensity` | `1.0` | Scale of the sky's light and of the sky reflections and bounces see. |
-| `rtx_rt_emissive_scale` | `1.0` | Scale of glowing material stages. |
-| `rtx_rt_dlight_scale` | `1.0` | Scale of dynamic lights; `1` matches the raster light pass. |
-| `rtx_rt_denoise` | `1` | The temporal and spatial filters. |
-| `rtx_rt_denoise_iterations` | `4` | Spatial filter passes, `0` to `6`; each doubles the filter's reach. |
-| `rtx_rt_accumulate` | `1` | Keep averaging samples while the view, the game time and the scene's models and dynamic lights stand still. |
-| `rtx_rt_iqm_skinning` | `1` | IQM models: `0` bind pose, `1` interpolated skinning, `2` current frame only. |
+| `rtx_rt_mode` | `2` | `2` ray traces the view; `0` draws normally. Needs `vid_restart`. |
+| `rtx_rt_require` | `0` | `1` stops the renderer instead of drawing normally when tracing fails; for testing. Needs `vid_restart`. |
+| `rtx_rt_backend` | `0` | `0` hardware where available, else compute; `1` hardware only; `2` compute only. Needs `vid_restart`. |
+| `rtx_rt_material_maps` | `1` | Use a texture pack's material maps. Needs `vid_restart`. |
+| `rtx_rt_lighting` | `0` | `0` lights each map with its own lamps, glowing surfaces, sky and sun, with nothing painted in advance; `3` with the sky and glowing surfaces only, as Quake II RTX does. `1` and `2` are for comparing with the original lighting: `1` uses the painted lighting and traces only moving lights over it, `2` traces the lights as the map's tools painted them. |
+| `rtx_rt_camera` | `0` | `1` sees the light through a camera, with automatic brightness; `0` shows it exactly as traced. `rtx_rt_lighting 3` always uses the camera. |
+| `rtx_rt_emissive_light` | `2.0` | How much light glowing surfaces give off, as a multiple of how bright they look; `0` none. |
+| `rtx_rt_exposure` | `0` | With the camera on: its brightness. `0` adjusts automatically; any other value is fixed, with a film-like curve. |
+| `rtx_rt_exposure_bias` | `0` | With the camera on: makes the automatic brightness brighter (positive) or darker (negative), in stops -- each stop doubles or halves it. |
+| `rtx_rt_exposure_speed` | `1` | With the camera on: how quickly the automatic brightness adapts; `0` instantly. |
+| `rtx_rt_tonemap_range` | `7` | With the camera on: how wide a range of brightness it fits onto the screen, in stops. |
+| `rtx_rt_tonemap_curve` | `0.5` | With the camera on: how much of its adaptive curve to use; the rest is a simpler curve. |
+| `rtx_rt_checkerboard` | `0` | Traces bounced light for half the screen each frame, in a checkerboard, for speed: `0` only in compute mode, `1` always, `2` never. |
+| `rtx_rt_bounces` | `1` | How many times light bounces, `0` to `4`. More is brighter in enclosed rooms and slower. |
+| `rtx_rt_indirect_strength` | `1.0` | How strong bounced light is; `0` keeps only direct light. |
+| `rtx_rt_specular` | `1` | Shine and reflections. |
+| `rtx_rt_mis` | `1` | Lets mirrors and shiny surfaces show the shape of lamps; `0` turns that off. |
+| `rtx_rt_sun_intensity` | `1.0` | How strong the sun is. |
+| `rtx_rt_patch_shadows` | `1` | Curved surfaces cast shadows, as id's maps were built for; `0` for maps built without that. |
+| `rtx_rt_sky_intensity` | `1.0` | How much light the sky gives, and how bright it looks in reflections. |
+| `rtx_rt_emissive_scale` | `1.0` | How bright glowing surfaces look. |
+| `rtx_rt_dlight_scale` | `1.0` | How strong moving lights are; `1` matches normal drawing. |
+| `rtx_rt_denoise` | `1` | Smooths the grain out of the picture. |
+| `rtx_rt_denoise_iterations` | `4` | How strongly, `0` to `6`. |
+| `rtx_rt_accumulate` | `1` | Keeps refining the picture while nothing moves. |
+| `rtx_rt_iqm_skinning` | `1` | How IQM models are posed: `0` not at all, `1` smoothly animated, `2` without smoothing. |
 
 ## Troubleshooting
 
-If RTX cannot initialize:
+**RTX will not start.**
 
-1. Run `vkinfo` and `rtx_caps_report 2` and note the first failed capability.
-2. Update the Vulkan GPU driver and make sure the `fnql_rtx_<arch>` module is
-   beside the executable.
-3. Return to Vulkan raster with `cl_renderer vk` followed by `vid_restart`, or
-   to GLx with `cl_renderer glx` followed by `vid_restart`.
-4. Leave `rtx_rt_require 0` unless you are deliberately testing strict native
-   RT activation.
+1. Type `vkinfo` and `rtx_caps_report 2` in the console and note the first
+   thing reported missing.
+2. Update your graphics driver, and check `fnql_rtx_x86` is beside
+   `fntech3.exe`.
+3. Go back to another renderer with `cl_renderer vk` or `cl_renderer glx`,
+   then `vid_restart`.
+4. Keep `rtx_rt_require 0`, so a problem falls back to normal drawing.
 
-If the tracer runs but a view stays raster, the console says why once per
-session ("RTX RT: ... the frame is not traced"), and `rtx_rt_debug_as_stats 2`
-with `developer 1` names the state that left a view to raster (its render
-pass, viewport and flags).
+**Part of the picture is drawn normally.** The console says why, once per
+session, in a line starting `RTX RT:`. Mirrors, portals and small views are
+always drawn normally.
 
-The 32-bit Windows client has 2 GB of address space, and the path tracer adds
-about 200 MB to a large map's share of it. The engine keeps a native game
-module's address range reserved while a renderer restart allocates, so Enemy
-Territory's 57 MB client module loads back where it was even on its largest
-maps.
+**It is too slow.** Compute mode is slower than ray-tracing hardware. Render
+at a lower resolution with `r_renderScale` (see the
+[Graphics guide](DISPLAY.md#sharper-edges-and-render-resolution)), keep
+`rtx_rt_bounces 1` or try `0`, or use `rtx_rt_checkerboard 1`.
 
-For developers, `rtx_rt_debug_visualizer` shows the tracer's intermediate
-images: `1` reflectance, `2` shading normal, `3` denoised light, `4` raw
-light, `5` specular, `6` emission, `7` temporal history, `8` view depth and
-`9` motion; `10` shows the light alone, on plain grey surfaces seen through
-the same camera, which makes shadows, light pools and bounce light easy to
-see. `rtx_rt_perf_timing 1` prints GPU and CPU timings every
-`rtx_rt_perf_interval` frames, with the number of still frames averaged so
-far. With a map loaded, `rtx_rt_pick` names the
-traced surface at the centre of the view (or along `rtx_rt_pick x y z dx dy
-dz`) with its material flags, the directions its texture's s and t grow in
-(where a normal map leans), whether the map's lights pass it and the material
-maps it took, and `rtx_rt_lightinfo [x y z]` lists the lights the tracer
-samples at a point, numbered. `rtx_rt_debug_light <number>` then lights what
-the view sees with that light alone (best with `rtx_rt_debug_visualizer 4`),
-and `rtx_rt_debug_light_mode` shows it unshadowed (`1`), where its shadow rays
-get through (`2`: white; where they do not, the blocker's kind in colour:
-red the world, blue a model or mover, magenta the viewer's body), or what the
-compilers' light filters pass of it (`3`); `-1` returns to all lights. The
-developer log (`developer 1`) names every material that takes a material map.
-`rtx_debug_vk_validation 1` enables the Vulkan validation layers at the next
-`vid_restart`. Keep these off in normal play.
+**A large map fails to load.** fnTech3 is a 32-bit program with 2 GB to work
+in, and ray tracing adds about 200 MB on a large map. fnTech3 keeps room for
+the game's own code while the renderer restarts, so even Enemy Territory's
+largest maps load back; if a map still will not load with RTX, play it with
+GLx or Vulkan.
+
+Developer tools -- views of the tracer's inner workings, timings, and
+pointing at a surface or a light to see how it is traced -- are described in
+the [RTX Renderer Contract](fnql/RTX_RENDERER.md#developer-diagnostics).
+Keep them off for normal play.
 
 ## Related Documentation
 
-- [Display Guide](DISPLAY.md) for shared renderer and presentation settings.
-- [RTX Renderer Contract](fnql/RTX_RENDERER.md) for architecture, known limits,
-  build details, and maintainer validation.
-- [Build Guide](../BUILD.md) for modular and static renderer builds.
+- [Graphics guide](DISPLAY.md) for the settings every renderer shares.
+- [RTX Renderer Contract](fnql/RTX_RENDERER.md) for how RTX works, its known
+  limits, building it and testing it.
+- [Build Guide](../BUILD.md) for building the renderers.

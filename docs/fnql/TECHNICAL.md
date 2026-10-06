@@ -168,7 +168,8 @@ through `scripts/discord_release.py`. fnTech3 does none of that:
 - [`scripts/release.py`](../../scripts/release.py) packages deterministic
   Windows `.zip` and Linux `.tar.gz` archives. It includes this document, the
   changelog, the compatibility ledger with its evidence records, the legal
-  notices and the generated `README.html`; it excludes every retail and
+  notices, the generated `README.html` and the player guides as web pages in
+  `manual/`, built by `scripts/player_manual.py`; it excludes every retail and
   proprietary file, including the optional Steam provider; and it verifies
   executable identity, i386 architecture, file modes and archive paths. The
   Linux archive must contain `fntech3`, `fntech3.ded`, all three renderer

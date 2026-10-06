@@ -97,10 +97,11 @@ The draft contains exactly:
 - `SHA256SUMS.txt` (all three archives and the manifest)
 
 Downloads are also retained as the `release-v0.1.0` workflow artifact for 30
-days. The packager includes the changelog, compatibility ledger and legal
-notices. All packages are engine-only, and none enables a game development
-option: they start Quake III Arena and Quake Live and refuse the experimental
-games.
+days. The packager includes the changelog, compatibility ledger, legal
+notices, `README.html` and the player guides as web pages in `manual/`,
+built by `scripts/player_manual.py`; a broken link between guides stops it.
+All packages are engine-only, and none enables a game development option:
+they start Quake III Arena and Quake Live and refuse the experimental games.
 
 Verify the five uploaded assets and release notes, extract and test the target
 builds with legitimate installations and isolated writable home paths, and
