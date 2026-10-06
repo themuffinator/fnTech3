@@ -63,6 +63,9 @@ Start with the [README](../README.md) for an overview, then the
 - [October 6 Jedi listen servers and game types](fntech3/2026-10-06-jedi-listen-server-game-types.md)
   -- each Jedi game's single-player number, `spmap` and `map`, and which
   game types keep a listen server from remote players.
+- [October 6 Quake Live listen servers and their server type](fntech3/2026-10-06-ql-listen-server-type.md)
+  -- retail's offline, LAN and Internet admission, which replaces the game
+  type and the single-player flag for a match started from the client.
 - [October 6 Jedi Academy Ghoul2 attachments](fntech3/2026-10-06-jka-attachments.md)
   -- models posed from another model's bolt in the client game, retail's tag
   frame, and the next boundary against retail `jamp.exe`.

@@ -6,8 +6,12 @@ from code/server/sv_main.cpp and run for every profile over game types -1 to
 (docs/fntech3/2026-10-06-jedi-listen-server-game-types.md). Raven's Jedi
 games number single player after their own modes: Jedi Academy's is 5 and its
 engine never hides a listen server by game type (jamp.exe 1.01), Jedi
-Outcast's is 4 and its engine hides one there (jk2mp.exe 1.02a). Every other
-profile keeps the rule it had. Each mutation must change the table.
+Outcast's is 4 and its engine hides one there (jk2mp.exe 1.02a). Quake Live's
+engine never reads the game type for a query either: its server type decides
+(quakelive_steam.exe; tests/ql_server_type_tests.py and
+docs/fntech3/2026-10-06-ql-listen-server-type.md), so its Race, 2, hides
+nothing. Every other profile keeps the rule it had. Each mutation must change
+the table.
 """
 from pathlib import Path
 import os
@@ -30,6 +34,7 @@ int Com_GameIsWolfET(){return game==COM_GAME_WOLFET;}
 int Com_GameIsMOHAA(){return game==COM_GAME_MOHAA;}
 int Com_GameIsJKAMP(){return game==COM_GAME_JKA_MP;}
 int Com_GameIsJK2MP(){return game==COM_GAME_JK2_MP;}
+int Com_GameIsQuakeLive(){return game==COM_GAME_QUAKELIVE;}
 // Retail ET's gameinfo.dat lists game type 0 alone as single player.
 static fntech3::wolfet::gameinfo::GameInfo etInfo;
 static const fntech3::wolfet::gameinfo::GameInfo &SV_WolfETGameInfo(){return etInfo;}
@@ -38,8 +43,8 @@ static const fntech3::wolfet::gameinfo::GameInfo &SV_WolfETGameInfo(){return etI
 CHECKS = r'''
 int main(){
  etInfo.spGameTypes=1u<<0;
- std::printf("ids %d %d %d %d %d\n",int(COM_GAME_WOLFET),int(COM_GAME_MOHAA),int(COM_GAME_JKA_MP),
-  int(COM_GAME_JK2_MP),int(COM_GAME_COUNT)-int(COM_GAME_QUAKE3));
+ std::printf("ids %d %d %d %d %d %d\n",int(COM_GAME_WOLFET),int(COM_GAME_MOHAA),int(COM_GAME_JKA_MP),
+  int(COM_GAME_JK2_MP),int(COM_GAME_QUAKELIVE),int(COM_GAME_COUNT)-int(COM_GAME_QUAKE3));
  for(game=COM_GAME_QUAKE3;game<COM_GAME_COUNT;++game)for(int type=-1;type<=10;++type)
   std::printf("%d %d %d %d\n",game,type,int(SV_GameTypeIsSinglePlayer(type)),int(SV_GameTypeHidesListenServer(type)));
  return 0;
@@ -54,7 +59,10 @@ MUTATIONS = {
     "Jedi Academy hides its single-player game": (
         HIDES, '\t\treturn qfalse;', '\t\treturn SV_GameTypeIsSinglePlayer( gameType );'),
     "Jedi Outcast never hides": (
-        HIDES, 'if ( Com_GameIsJKAMP() ) {', 'if ( Com_GameIsJKAMP() || Com_GameIsJK2MP() ) {'),
+        HIDES, 'if ( Com_GameIsJKAMP() || Com_GameIsQuakeLive() ) {',
+        'if ( Com_GameIsJKAMP() || Com_GameIsQuakeLive() || Com_GameIsJK2MP() ) {'),
+    "Quake Live hides Race": (
+        HIDES, 'if ( Com_GameIsJKAMP() || Com_GameIsQuakeLive() ) {', 'if ( Com_GameIsJKAMP() ) {'),
     "Jedi Academy takes Quake III's number": (
         SINGLE, 'gameType == SV_JKA_GT_SINGLE_PLAYER', 'gameType == GT_SINGLE_PLAYER'),
     "Jedi Outcast takes Quake III's number": (
@@ -69,7 +77,7 @@ def read(path):
 
 
 def expected(ids, game, game_type):
-    wolfet, mohaa, jka_mp, jk2_mp = ids
+    wolfet, mohaa, jka_mp, jk2_mp, quakelive = ids
     if game == wolfet:
         single = game_type == 0
     elif game == mohaa:
@@ -78,6 +86,9 @@ def expected(ids, game, game_type):
         return game_type == 5, False
     elif game == jk2_mp:
         single = game_type == 4
+    elif game == quakelive:
+        # the single-player rule is unchanged; the listen rule never hides
+        return game_type == 2, False
     else:
         # Quake III's GT_SINGLE_PLAYER, unchanged for every other profile
         single = game_type == 2
@@ -111,9 +122,9 @@ class JediListenServerTests(unittest.TestCase):
         lines = run.stdout.splitlines()
         header = lines[0].split()
         self.assertEqual(header[0], 'ids')
-        ids = tuple(int(value) for value in header[1:5])
+        ids = tuple(int(value) for value in header[1:6])
         rows = [tuple(int(value) for value in line.split()) for line in lines[1:]]
-        return ids, int(header[5]), rows
+        return ids, int(header[6]), rows
 
     def mismatches(self, ids, rows):
         found = []
@@ -129,8 +140,10 @@ class JediListenServerTests(unittest.TestCase):
         self.assertEqual(count, 16)
         self.assertEqual(len(rows), count * 12)
         self.assertEqual(self.mismatches(ids, rows), [])
-        wolfet, mohaa, jka_mp, jk2_mp = ids
+        wolfet, mohaa, jka_mp, jk2_mp, quakelive = ids
         table = {(game, game_type): (single, hides) for game, game_type, single, hides in rows}
+        # Quake Live's Race, 2, hides no listen server
+        self.assertEqual(table[(quakelive, 2)][1], 0)
         # Jedi Master, 2, is no single player in either Jedi game, and a
         # listen server hosting it answers remote players in both.
         for game in (jka_mp, jk2_mp):
@@ -154,11 +167,16 @@ class JediListenServerTests(unittest.TestCase):
         main = read('code/server/sv_main.cpp')
         client = read('code/server/sv_client.cpp')
         for source, signature in ((main, 'static void SVC_Status( const netadr_t *from ) {'),
-                                  (main, 'static void SVC_Info( const netadr_t *from ) {'),
-                                  (client, 'void SV_GetChallenge( const netadr_t *from, const msg_t *msg ) {')):
+                                  (main, 'static void SVC_Info( const netadr_t *from ) {')):
             with self.subTest(signature):
                 body = function(source, signature)
                 self.assertIn('#ifndef DEDICATED\n\tif ( ' + call + ') {\n\t\treturn;\n\t}\n#endif', body)
+        # Quake Live's challenge reads its server type, not the flag its
+        # local match sets
+        challenge = function(client, 'void SV_GetChallenge( const netadr_t *from, const msg_t *msg ) {')
+        self.assertIn('#ifndef DEDICATED\n\tif ( SV_GameTypeHidesListenServer( Cvar_VariableIntegerValue( '
+                      '"g_gametype" ) )\n\t\t|| ( !Com_GameIsQuakeLive() && '
+                      'Cvar_VariableIntegerValue("ui_singlePlayerActive") ) ) {\n\t\treturn;\n\t}\n#endif', challenge)
         server = ''.join(read(f'code/server/{path.name}') for path in sorted((ROOT / 'code/server').iterdir())
                          if path.suffix in {'.cpp', '.h', '.hpp'})
         self.assertEqual(server.count('SV_GameTypeHidesListenServer( Cvar_VariableIntegerValue'), 3)

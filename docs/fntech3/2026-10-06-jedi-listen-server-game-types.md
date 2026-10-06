@@ -111,6 +111,9 @@ established **[I]**.
   game type. fnTech3's engine sets it only for Quake Live's local match
   ([legacy-server record](2026-10-05-legacy-server-hosting.md)); what the
   Jedi games' own modules do with it, all of which name it, was not examined.
+  (Since the [Quake Live server-type record](2026-10-06-ql-listen-server-type.md),
+  neither the flag nor Race hides a Quake Live server's challenge: its
+  `sv_serverType` does, as retail's.)
 - Unchanged: fnTech3's `spdevmap` turns cheats on in every profile
   (ioquake3's rule), where both Jedi engines leave them off, and Academy's
   `devmapmdl` and `devmapall` are not registered.

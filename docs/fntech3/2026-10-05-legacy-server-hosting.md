@@ -138,7 +138,10 @@ neither. Quake Live's retail engine has neither either.
 - **Client**: `globalservers` sends to the profile's master port; Holomatch
   info replies are read from the command line.
 - **Listen servers**: only Quake Live's local match sets the single-player
-  flag.
+  flag. (Corrected by the
+  [Quake Live server-type record](2026-10-06-ql-listen-server-type.md):
+  retail Quake Live's server never reads that flag; its `sv_serverType`
+  decides who may join, and fnTech3's Quake Live challenge now follows it.)
 - **Mod switch**: `Com_GameRestart` closes the log first, so it reopens in
   the new game directory; `developer` and `logfile` survive the switch.
 - **ET web downloads**: the client registers `cl_wwwDownload 1` (archived,

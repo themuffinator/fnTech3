@@ -277,12 +277,19 @@ void SV_GetChallenge( const netadr_t *from, const msg_t *msg ) {
 	int		challenge;
 	int		clientChallenge;
 
-	// ignore if we are in single player
+	// ignore if we are in single player; Quake Live's local match sets
+	// ui_singlePlayerActive, which its challenge never reads
 #ifndef DEDICATED
-	if ( SV_GameTypeHidesListenServer( Cvar_VariableIntegerValue( "g_gametype" ) ) || Cvar_VariableIntegerValue("ui_singlePlayerActive")) {
+	if ( SV_GameTypeHidesListenServer( Cvar_VariableIntegerValue( "g_gametype" ) )
+		|| ( !Com_GameIsQuakeLive() && Cvar_VariableIntegerValue("ui_singlePlayerActive") ) ) {
 		return;
 	}
 #endif
+
+	if ( SV_ServerTypeRefusesChallenge( from ) ) {
+		NET_OutOfBandPrint( NS_SERVER, from, "print\nServer is for LAN clients only.\n" );
+		return;
+	}
 
 	// ET rejects a temporarily banned address before any connection work.
 	if ( Com_GameIsWolfET() && fntech3::wolfet::server::TempBanIsBanned( *from ) ) {

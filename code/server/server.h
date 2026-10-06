@@ -447,6 +447,10 @@ enum {
 };
 // Whether a listen server running this game type ignores remote players.
 qboolean SV_GameTypeHidesListenServer( int gameType );
+// Quake Live's sv_serverType: an offline server drops remote packets, and a
+// LAN server refuses a challenge from outside the LAN.
+qboolean SV_ServerTypeDropsPacket( const netadr_t *from );
+qboolean SV_ServerTypeRefusesChallenge( const netadr_t *from );
 // Enemy Territory reads those rules from gameinfo.dat, again for each map.
 void SV_WolfETLoadGameInfo( void );
 qboolean SV_WolfETSinglePlayerEnabled( void );

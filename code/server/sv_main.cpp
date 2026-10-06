@@ -868,10 +868,46 @@ its single-player game answers as any other does.
 ==================
 */
 qboolean SV_GameTypeHidesListenServer( int gameType ) {
-	if ( Com_GameIsJKAMP() ) {
+	if ( Com_GameIsJKAMP() || Com_GameIsQuakeLive() ) {
 		return qfalse;
 	}
 	return SV_GameTypeIsSinglePlayer( gameType );
+}
+
+/*
+==================
+SV_ServerTypeDropsPacket
+
+Quake Live keeps a server to itself by its server type, not by its game type:
+quakelive_steam.exe's SV_PacketEvent (0x4e4500) drops every packet from
+anywhere but its own client while sv_serverType is 0, offline, the default and
+the Start Match menu's offline choice. Neither it nor SV_GetChallenge reads
+g_gametype or ui_singlePlayerActive, which its map command sets for a local
+match (0x4ddfff..0x4de00f), so Race, game type 2, hides nothing. Only the
+client executable was read, so a dedicated build keeps answering.
+==================
+*/
+qboolean SV_ServerTypeDropsPacket( const netadr_t *from ) {
+#ifdef DEDICATED
+	(void)from;
+	return qfalse;
+#else
+	return Com_GameIsQuakeLive() && from->type != NA_LOOPBACK
+		&& Cvar_VariableIntegerValue( "sv_serverType" ) == 0 ? qtrue : qfalse;
+#endif
+}
+
+/*
+==================
+SV_ServerTypeRefusesChallenge
+
+A Quake Live LAN server, sv_serverType 1, refuses a challenge from outside the
+LAN (quakelive_steam.exe SV_GetChallenge 0x4df430..0x4df4a7).
+==================
+*/
+qboolean SV_ServerTypeRefusesChallenge( const netadr_t *from ) {
+	return Com_GameIsQuakeLive() && Cvar_VariableIntegerValue( "sv_serverType" ) == 1
+		&& !Sys_IsLANAddress( from ) ? qtrue : qfalse;
 }
 
 qboolean SV_WolfETGameTypeIsCoop( int gameType ) {
@@ -1476,6 +1512,9 @@ void SV_PacketEvent( const netadr_t *from, msg_t *msg ) {
 	// Q3Test's packets are its own sessions' (server_q3test_net.hpp).
 	if ( Com_GameIsQ3Test() ) {
 		SV_Q3TestPacketEvent( from, msg );
+		return;
+	}
+	if ( SV_ServerTypeDropsPacket( from ) ) {
 		return;
 	}
 	int			qport;

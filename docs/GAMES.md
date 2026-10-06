@@ -210,7 +210,11 @@ Elite Force executables ([record](fntech3/2026-10-05-legacy-server-hosting.md)).
   Quake III's engine does; Jedi Academy's engine answered in every game type,
   and so does fnTech3's. `spmap` starts each game's own single-player type,
   5 in Jedi Academy and 4 in Jedi Outcast
-  ([record](fntech3/2026-10-06-jedi-listen-server-game-types.md)).
+  ([record](fntech3/2026-10-06-jedi-listen-server-game-types.md)). A Quake Live
+  match started from the client follows its server type instead, as the
+  original does: offline (`sv_serverType 0`, the default) keeps it to its own
+  player, LAN (1) lets in players on the local network, and Internet (2)
+  anyone ([record](fntech3/2026-10-06-ql-listen-server-type.md)).
 - **Server console chat** is `say` in id's games and `svsay` in Elite Force
   and both Jedi Knight games, as in their original engines; `say` also works
   in every game.

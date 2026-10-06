@@ -112,6 +112,13 @@ historical upstream records, not fnTech3 release history. See the
   and never by game type in Jedi Academy, as each original engine does; a
   Jedi Master game had been hidden in both
   ([record](docs/fntech3/2026-10-06-jedi-listen-server-game-types.md)).
+- Let other players into a Quake Live match started from the game, by its
+  server type as the original does. Offline (`sv_serverType 0`, the default)
+  keeps the match to its host; LAN (1) lets in players on the local network
+  and turns others away with "Server is for LAN clients only."; Internet (2)
+  lets in anyone. Such a match had turned every other player away, whatever
+  its server type, and a Race match was hidden as if it were single player
+  ([record](docs/fntech3/2026-10-06-ql-listen-server-type.md)).
 - Stop a long run of strings in a menu or bot file from crashing the game.
   Strings that a `#define` expands to, written side by side, are joined into
   one; the engine joined each by calling itself again, so about a thousand in
