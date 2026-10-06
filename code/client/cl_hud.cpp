@@ -78,6 +78,13 @@ enum class HudAlignY {
 	Bottom
 };
 
+// The point of a draw (or of its text line) that a rule's region must hold.
+enum class HudMatchEdge {
+	Left,
+	Center,
+	Right
+};
+
 struct HudShaderName {
 	qhandle_t handle = 0;
 	std::array<char, MAX_QPATH> name{};
@@ -96,6 +103,14 @@ struct HudRule {
 	float regionY = 0.0f;
 	float regionW = 0.0f;
 	float regionH = 0.0f;
+	HudMatchEdge edge = HudMatchEdge::Center;
+	bool hasMinHeight = false;
+	float minHeight = 0.0f;
+	bool hasMaxHeight = false;
+	float maxHeight = 0.0f;
+	// A screen of the game's own begins with this draw: the rules pause for
+	// the rest of the frame, as for HUD_PANEL_CENTERED.
+	bool panel = false;
 	bool hasAlignX = false;
 	HudAlignX alignX = HudAlignX::Center;
 	bool hasAlignY = false;
@@ -119,6 +134,31 @@ struct HudDrawCapture {
 	const char *moduleShaderName = "";
 	bool textLike = false;
 	bool refdef = false;
+	// The line of text this glyph belongs to, which the rules test in its
+	// place when they place text by line ("textRuns").
+	bool inLine = false;
+	float lineX1 = 0.0f;
+	float lineY1 = 0.0f;
+	float lineX2 = 0.0f;
+	float lineY2 = 0.0f;
+};
+
+// A client game's picture or colour change held back until the line of text
+// it belongs to is complete (CL_HudQueueStretchPic).
+struct HudQueuedOp {
+	bool color = false;
+	bool colorSet = false;
+	std::array<float, 4> rgba{};
+	float x = 0.0f;
+	float y = 0.0f;
+	float w = 0.0f;
+	float h = 0.0f;
+	float s1 = 0.0f;
+	float t1 = 0.0f;
+	float s2 = 0.0f;
+	float t2 = 0.0f;
+	qhandle_t shader = 0;
+	HudDrawCapture draw;
 };
 
 struct HudDumpGroup {
@@ -145,6 +185,29 @@ int hudNumRules = 0;
 bool hudScriptLoaded = false;
 bool hudScriptWarned = false;
 int hudLastAspectMode = 0;
+
+// Script options. With textRuns a glyph is matched by the line of text it
+// belongs to, so a line is never split between two placements. A shader in
+// widthScaledShaders was scaled vertically by the screen's width, not its
+// height, by the module (Quake III's proportional font), which is undone.
+bool hudTextRuns = false;
+constexpr int kHudMaxWidthScaled = 16;
+std::array<std::array<char, MAX_QPATH>, kHudMaxWidthScaled> hudWidthScaled{};
+int hudNumWidthScaled = 0;
+
+// Set by a rule's panel for the rest of the client's frame.
+bool hudFramePanel = false;
+
+// Glyphs of the current line, and the colour changes between them.
+constexpr int kHudMaxQueue = 512;
+std::array<HudQueuedOp, kHudMaxQueue> hudQueue{};
+int hudQueueCount = 0;
+// The line a flushed glyph belongs to, while CL_HudAdjustPic places it.
+bool hudLineActive = false;
+float hudLineX1 = 0.0f;
+float hudLineY1 = 0.0f;
+float hudLineX2 = 0.0f;
+float hudLineY2 = 0.0f;
 
 bool hudFrameActive = false;
 std::array<HudDrawCapture, kHudMaxFrameDraws> hudFrameDraws{};
@@ -269,6 +332,39 @@ qboolean CL_HudParseMode( const char *value, HudTransformMode *mode ) {
 	return qfalse;
 }
 
+qboolean CL_HudParseEdge( const char *value, HudMatchEdge *edge ) {
+	if ( !value || !*value ) {
+		return qfalse;
+	}
+
+	if ( !Q_stricmp( value, "left" ) ) {
+		*edge = HudMatchEdge::Left;
+		return qtrue;
+	}
+
+	if ( !Q_stricmp( value, "right" ) ) {
+		*edge = HudMatchEdge::Right;
+		return qtrue;
+	}
+
+	if ( !Q_stricmp( value, "center" ) || !Q_stricmp( value, "middle" ) ) {
+		*edge = HudMatchEdge::Center;
+		return qtrue;
+	}
+
+	return qfalse;
+}
+
+// A finite, non-negative JSON number, as the region's coordinates are read.
+bool CL_HudReadSize( const char *valueJson, const char *jsonEnd, float *size ) {
+	if ( !valueJson || JSON_ValueGetType( valueJson, jsonEnd ) != JSONTYPE_VALUE
+		|| !( *valueJson >= '0' && *valueJson <= '9' ) ) {
+		return false;
+	}
+	*size = JSON_ValueGetFloat( valueJson, jsonEnd );
+	return std::isfinite( *size ) && *size >= 0.0f;
+}
+
 qboolean CL_HudShaderMatches( const char *pattern, const char *shaderName ) {
 	if ( !pattern || !*pattern || !shaderName ) {
 		return qfalse;
@@ -316,6 +412,8 @@ void CL_HudJsonWriteString( fileHandle_t file, const char *text ) {
 void CL_HudClearRules() {
 	hudNumRules = 0;
 	hudScriptLoaded = false;
+	hudTextRuns = false;
+	hudNumWidthScaled = 0;
 }
 
 // json.h is a value lookup helper, not a validator. Bound nesting and validate
@@ -441,6 +539,26 @@ qboolean CL_HudLoadRules( qboolean verbose ) {
 		return qfalse;
 	}
 
+	// Options of the object form; a malformed one is ignored.
+	if ( rulesJson != json ) {
+		const char *optionJson = JSON_ObjectGetNamedValue( json, jsonEnd, "textRuns" );
+		hudTextRuns = optionJson && JSON_ValueGetType( optionJson, jsonEnd ) == JSONTYPE_VALUE
+			&& JSON_ValueGetDouble( optionJson, jsonEnd ) != 0;
+		optionJson = JSON_ObjectGetNamedValue( json, jsonEnd, "widthScaledShaders" );
+		if ( optionJson && JSON_ValueGetType( optionJson, jsonEnd ) == JSONTYPE_ARRAY ) {
+			for ( const char *patternJson = JSON_ArrayGetFirstValue( optionJson, jsonEnd );
+				patternJson && hudNumWidthScaled < kHudMaxWidthScaled;
+				patternJson = JSON_ArrayGetNextValue( patternJson, jsonEnd ) ) {
+				auto &pattern = hudWidthScaled[hudNumWidthScaled];
+				if ( JSON_ValueGetType( patternJson, jsonEnd ) == JSONTYPE_STRING
+					&& JSON_ValueGetString( patternJson, jsonEnd, pattern.data(), static_cast<int>( pattern.size() ) )
+					&& pattern[0] ) {
+					hudNumWidthScaled++;
+				}
+			}
+		}
+	}
+
 	for ( const char *ruleJson = JSON_ArrayGetFirstValue( rulesJson, jsonEnd );
 		ruleJson && hudNumRules < kHudMaxRules;
 		ruleJson = JSON_ArrayGetNextValue( ruleJson, jsonEnd ) ) {
@@ -466,6 +584,14 @@ qboolean CL_HudLoadRules( qboolean verbose ) {
 		if ( valueJson ) {
 			if ( !JSON_ValueGetString( valueJson, jsonEnd, text.data(), static_cast<int>( text.size() ) )
 				|| !CL_HudParseMode( text.data(), &rule->mode ) ) continue;
+		}
+
+		valueJson = JSON_ObjectGetNamedValue( ruleJson, jsonEnd, "panel" );
+		if ( valueJson ) {
+			if ( JSON_ValueGetType( valueJson, jsonEnd ) != JSONTYPE_STRING
+				|| !JSON_ValueGetString( valueJson, jsonEnd, text.data(), static_cast<int>( text.size() ) )
+				|| Q_stricmp( text.data(), "centered" ) ) continue;
+			rule->panel = true;
 		}
 
 		alignJson = JSON_ObjectGetNamedValue( ruleJson, jsonEnd, "align" );
@@ -505,6 +631,25 @@ qboolean CL_HudLoadRules( qboolean verbose ) {
 				rule->hasRefdef = true;
 				if ( JSON_ValueGetType( valueJson, jsonEnd ) != JSONTYPE_VALUE ) continue;
 				rule->refdef = JSON_ValueGetDouble( valueJson, jsonEnd ) != 0;
+			}
+
+			valueJson = JSON_ObjectGetNamedValue( matchJson, jsonEnd, "edge" );
+			if ( valueJson ) {
+				if ( JSON_ValueGetType( valueJson, jsonEnd ) != JSONTYPE_STRING
+					|| !JSON_ValueGetString( valueJson, jsonEnd, text.data(), static_cast<int>( text.size() ) )
+					|| !CL_HudParseEdge( text.data(), &rule->edge ) ) continue;
+			}
+
+			valueJson = JSON_ObjectGetNamedValue( matchJson, jsonEnd, "minHeight" );
+			if ( valueJson ) {
+				if ( !CL_HudReadSize( valueJson, jsonEnd, &rule->minHeight ) ) continue;
+				rule->hasMinHeight = true;
+			}
+
+			valueJson = JSON_ObjectGetNamedValue( matchJson, jsonEnd, "maxHeight" );
+			if ( valueJson ) {
+				if ( !CL_HudReadSize( valueJson, jsonEnd, &rule->maxHeight ) ) continue;
+				rule->hasMaxHeight = true;
 			}
 
 			regionJson = JSON_ObjectGetNamedValue( matchJson, jsonEnd, "region" );
@@ -626,10 +771,12 @@ void CL_HudApplyStretch( float *x, float *y, float *w, float *h ) {
 }
 
 // From the pixels of the screen the client game draws on to its 640x480 units.
-void CL_HudUnstretch( float x, float y, float w, float h, float *outX, float *outY, float *outW, float *outH ) {
+// widthScaled: the module scaled this draw vertically by the horizontal scale.
+void CL_HudUnstretch( float x, float y, float w, float h, float *outX, float *outY, float *outW, float *outH,
+	bool widthScaled = false ) {
 	const bool framed = CL_HudModuleFramed();
 	const float xscale = ( framed ? hudModuleWidth : cls.glconfig.vidWidth ) / 640.0f;
-	const float yscale = ( framed ? hudModuleHeight : cls.glconfig.vidHeight ) / 480.0f;
+	const float yscale = widthScaled ? xscale : ( framed ? hudModuleHeight : cls.glconfig.vidHeight ) / 480.0f;
 
 	if ( xscale == 0.0f || yscale == 0.0f ) {
 		*outX = x;
@@ -706,7 +853,7 @@ void CL_HudTransformRect( const HudDrawCapture *draw, float *x, float *y, float 
 	HudAlignX alignX = HudAlignX::Center;
 	HudAlignY alignY = HudAlignY::Middle;
 
-	if ( hudScriptLoaded && hudNumRules > 0 && hudGamePanel != HUD_PANEL_CENTERED ) {
+	if ( hudScriptLoaded && hudNumRules > 0 && hudGamePanel != HUD_PANEL_CENTERED && !hudFramePanel ) {
 		const HudRule *rule = CL_HudFindRule( draw );
 		if ( rule ) {
 			mode = rule->mode;
@@ -715,6 +862,10 @@ void CL_HudTransformRect( const HudDrawCapture *draw, float *x, float *y, float 
 			}
 			if ( rule->hasAlignY ) {
 				alignY = rule->alignY;
+			}
+			// The draws after this one belong to the game's screen.
+			if ( rule->panel && hudFrameActive ) {
+				hudFramePanel = true;
 			}
 		}
 	}
@@ -735,10 +886,24 @@ void CL_HudTransformRect( const HudDrawCapture *draw, float *x, float *y, float 
 }
 
 const HudRule *CL_HudFindRule( const HudDrawCapture *draw ) {
+	// The area the rules test: the draw's own, or its whole line of text.
+	float x1 = std::min( draw->x, draw->x + draw->w );
+	float x2 = std::max( draw->x, draw->x + draw->w );
+	float y1 = std::min( draw->y, draw->y + draw->h );
+	float y2 = std::max( draw->y, draw->y + draw->h );
+	if ( draw->inLine ) {
+		x1 = draw->lineX1;
+		x2 = draw->lineX2;
+		y1 = draw->lineY1;
+		y2 = draw->lineY2;
+	}
+	const float cy = ( y1 + y2 ) * 0.5f;
+	const float height = std::fabs( draw->h );
+
 	for ( int i = 0; i < hudNumRules; i++ ) {
 		const HudRule *rule = &hudRules[i];
-		const float cx = draw->x + draw->w * 0.5f;
-		const float cy = draw->y + draw->h * 0.5f;
+		const float cx = rule->edge == HudMatchEdge::Left ? x1
+			: rule->edge == HudMatchEdge::Right ? x2 : ( x1 + x2 ) * 0.5f;
 
 		if ( rule->hasShader && !CL_HudShaderMatches( rule->shader.data(), draw->shaderName.data() )
 			&& !CL_HudShaderMatches( rule->shader.data(), draw->moduleShaderName ) ) {
@@ -750,6 +915,10 @@ const HudRule *CL_HudFindRule( const HudDrawCapture *draw ) {
 		}
 
 		if ( rule->hasRefdef && rule->refdef != draw->refdef ) {
+			continue;
+		}
+
+		if ( ( rule->hasMinHeight && height < rule->minHeight ) || ( rule->hasMaxHeight && height > rule->maxHeight ) ) {
 			continue;
 		}
 
@@ -1055,6 +1224,60 @@ void CL_HudDumpFrame() {
 	CL_HudWriteDumpFile();
 }
 
+bool CL_HudWidthScaled( const char *shaderName ) {
+	for ( int i = 0; i < hudNumWidthScaled; i++ ) {
+		if ( CL_HudShaderMatches( hudWidthScaled[i].data(), shaderName ) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+// A module's picture in its 640x480 units, named and classified.
+void CL_HudDescribeDraw( float x, float y, float w, float h, qhandle_t shader, HudDrawCapture *draw ) {
+	const char *clientName = CL_HudClientShaderName( shader );
+	const char *moduleName = CL_HudModuleShaderName( shader );
+	const bool widthScaled = cl_hudAspect && cl_hudAspect->integer > 0 && CL_HudWidthScaled( moduleName );
+
+	CL_HudUnstretch( x, y, w, h, &draw->x, &draw->y, &draw->w, &draw->h, widthScaled );
+	draw->shader = shader;
+	Q_strncpyz( draw->shaderName.data(), *clientName ? clientName : moduleName, static_cast<int>( draw->shaderName.size() ) );
+	if ( *clientName ) {
+		draw->moduleShaderName = moduleName;
+	}
+	draw->textLike = CL_HudIsTextLike( shader, draw->shaderName.data(), std::fabs( draw->w ), std::fabs( draw->h ) );
+}
+
+// Whether a client game's glyphs may be held until their line is complete:
+// the rules place text by line and would place this frame's draws. A held
+// glyph is placed by CL_HudAdjustPic later, so whatever hides the HUD then
+// still hides it.
+bool CL_HudQueueing() {
+	return hudSupported && hudFrameActive && hudScriptLoaded && hudTextRuns && cl_hudAspect && cl_hudAspect->integer > 0
+		&& hudGamePanel == HUD_PANEL_NONE && !hudFramePanel
+		&& cls.glconfig.vidWidth > 0 && cls.glconfig.vidHeight > 0 && cls.scale > 0.0f;
+}
+
+// The next glyph of a line: the same font and size on the same baseline,
+// further right by at most four glyph heights of space.
+bool CL_HudContinuesLine( const HudDrawCapture &last, const HudDrawCapture &next ) {
+	if ( next.shader != last.shader || !( last.w > 0.0f ) || !( next.w > 0.0f ) || !( next.h > 0.0f )
+		|| std::fabs( next.h - last.h ) > 0.01f || std::fabs( next.y - last.y ) > 0.01f ) {
+		return false;
+	}
+	const float gap = next.x - ( last.x + last.w );
+	return gap >= -0.01f && gap <= last.h * 4.0f + 0.01f;
+}
+
+const HudQueuedOp *CL_HudLastQueuedGlyph() {
+	for ( int i = hudQueueCount - 1; i >= 0; i-- ) {
+		if ( !hudQueue[i].color ) {
+			return &hudQueue[i];
+		}
+	}
+	return nullptr;
+}
+
 } // namespace
 
 extern "C" void CL_HudReload_f( void ) {
@@ -1087,6 +1310,10 @@ extern "C" void CL_HudInit( void ) {
 	hudGamePanel = HUD_PANEL_NONE;
 	hudModuleWidth = 0;
 	hudModuleHeight = 0;
+	hudQueueCount = 0;
+	hudFramePanel = false;
+	hudTextRuns = false;
+	hudNumWidthScaled = 0;
 	Cmd_AddCommand( "hud_reload", CL_HudReload_f );
 }
 
@@ -1094,6 +1321,8 @@ extern "C" void CL_HudShutdown( void ) {
 	if ( !hudSupported ) return;
 	CL_HudWriteDumpFile();
 	Cmd_RemoveCommand( "hud_reload" );
+	hudQueueCount = 0;
+	hudFramePanel = false;
 	hudSupported = false;
 	cl_hudAspect = nullptr;
 	cl_hudDump = nullptr;
@@ -1111,11 +1340,15 @@ extern "C" void CL_HudResetCGame( void ) {
 	hudGamePanel = HUD_PANEL_NONE;
 	hudModuleWidth = 0;
 	hudModuleHeight = 0;
+	hudQueueCount = 0;
+	hudFramePanel = false;
 	CL_HudClearRules();
 }
 
 extern "C" void CL_HudBeginFrame( void ) {
 	if ( !hudSupported ) return;
+	CL_HudFlushQueue();
+	hudFramePanel = false;
 	if ( cl_hudDump && cl_hudDump->integer != hudDumpPrevValue ) {
 		if ( cl_hudDump->integer ) {
 			hudDumpGroupCount = 0;
@@ -1131,11 +1364,13 @@ extern "C" void CL_HudBeginFrame( void ) {
 
 extern "C" void CL_HudEndFrame( void ) {
 	if ( !hudSupported ) return;
+	CL_HudFlushQueue();
 	if ( hudFrameActive && cl_hudDump && cl_hudDump->integer ) {
 		CL_HudDumpFrame();
 	}
 
 	hudFrameActive = false;
+	hudFramePanel = false;
 	hudFrameDrawCount = 0;
 }
 
@@ -1256,16 +1491,15 @@ extern "C" qboolean CL_HudAdjustPic( float *x, float *y, float *w, float *h, qha
 		|| !std::isfinite( *w ) || !std::isfinite( *h ) ) return qfalse;
 	if ( cls.glconfig.vidWidth <= 0 || cls.glconfig.vidHeight <= 0 || cls.scale <= 0.0f ) return qtrue;
 
-	CL_HudUnstretch( *x, *y, *w, *h, &draw.x, &draw.y, &draw.w, &draw.h );
-	draw.shader = shader;
-	const char *clientName = CL_HudClientShaderName( shader );
-	const char *moduleName = CL_HudModuleShaderName( shader );
-	Q_strncpyz( draw.shaderName.data(), *clientName ? clientName : moduleName, static_cast<int>( draw.shaderName.size() ) );
-	if ( *clientName ) {
-		draw.moduleShaderName = moduleName;
+	CL_HudEnsureRules();
+	CL_HudDescribeDraw( *x, *y, *w, *h, shader, &draw );
+	if ( hudLineActive ) {
+		draw.inLine = true;
+		draw.lineX1 = hudLineX1;
+		draw.lineY1 = hudLineY1;
+		draw.lineX2 = hudLineX2;
+		draw.lineY2 = hudLineY2;
 	}
-	draw.textLike = CL_HudIsTextLike( shader, draw.shaderName.data(), std::fabs( draw.w ), std::fabs( draw.h ) );
-
 	CL_HudCaptureDraw( &draw );
 
 	if ( !cl_hudAspect || cl_hudAspect->integer <= 0 || hudGamePanel == HUD_PANEL_STRETCHED ) {
@@ -1286,5 +1520,89 @@ extern "C" qboolean CL_HudAdjustPic( float *x, float *y, float *w, float *h, qha
 extern "C" void CL_HudDrawStretchPic( float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t shader ) {
 	if ( CL_HudAdjustPic( &x, &y, &w, &h, shader ) ) {
 		re.DrawStretchPic( x, y, w, h, s1, t1, s2, t2, shader );
+	}
+}
+
+// Places the held line as one: each glyph is matched by the whole line.
+extern "C" void CL_HudFlushQueue( void ) {
+	if ( hudQueueCount <= 0 ) {
+		return;
+	}
+	float x1 = 0.0f, y1 = 0.0f, x2 = 0.0f, y2 = 0.0f;
+	bool first = true;
+	for ( int i = 0; i < hudQueueCount; i++ ) {
+		const HudDrawCapture &draw = hudQueue[i].draw;
+		if ( hudQueue[i].color ) {
+			continue;
+		}
+		x1 = first ? draw.x : std::min( x1, draw.x );
+		y1 = first ? draw.y : std::min( y1, draw.y );
+		x2 = first ? draw.x + draw.w : std::max( x2, draw.x + draw.w );
+		y2 = first ? draw.y + draw.h : std::max( y2, draw.y + draw.h );
+		first = false;
+	}
+	const int count = hudQueueCount;
+	hudQueueCount = 0;
+	for ( int i = 0; i < count; i++ ) {
+		const HudQueuedOp &op = hudQueue[i];
+		if ( op.color ) {
+			re.SetColor( op.colorSet ? op.rgba.data() : nullptr );
+			continue;
+		}
+		hudLineActive = true;
+		hudLineX1 = x1;
+		hudLineY1 = y1;
+		hudLineX2 = x2;
+		hudLineY2 = y2;
+		CL_HudDrawStretchPic( op.x, op.y, op.w, op.h, op.s1, op.t1, op.s2, op.t2, op.shader );
+		hudLineActive = false;
+	}
+}
+
+// The client game's own pictures. When the rules place text by line, a glyph
+// is held until its line is complete, with the colour changes between its
+// glyphs (CL_HudQueueColor); anything else first submits the held line.
+extern "C" void CL_HudQueueStretchPic( float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t shader ) {
+	if ( CL_HudQueueing() && std::isfinite( x ) && std::isfinite( y ) && std::isfinite( w ) && std::isfinite( h ) ) {
+		HudQueuedOp op;
+		CL_HudDescribeDraw( x, y, w, h, shader, &op.draw );
+		if ( op.draw.textLike && op.draw.w > 0.0f && op.draw.h > 0.0f ) {
+			const HudQueuedOp *last = CL_HudLastQueuedGlyph();
+			if ( hudQueueCount >= kHudMaxQueue || ( last && !CL_HudContinuesLine( last->draw, op.draw ) ) ) {
+				CL_HudFlushQueue();
+			}
+			op.x = x;
+			op.y = y;
+			op.w = w;
+			op.h = h;
+			op.s1 = s1;
+			op.t1 = t1;
+			op.s2 = s2;
+			op.t2 = t2;
+			op.shader = shader;
+			hudQueue[hudQueueCount++] = op;
+			return;
+		}
+	}
+	CL_HudFlushQueue();
+	CL_HudDrawStretchPic( x, y, w, h, s1, t1, s2, t2, shader );
+}
+
+extern "C" void CL_HudQueueColor( const float *rgba ) {
+	if ( hudQueueCount <= 0 ) {
+		re.SetColor( rgba );
+		return;
+	}
+	if ( hudQueueCount >= kHudMaxQueue ) {
+		CL_HudFlushQueue();
+		re.SetColor( rgba );
+		return;
+	}
+	HudQueuedOp &op = hudQueue[hudQueueCount++];
+	op = HudQueuedOp{};
+	op.color = true;
+	op.colorSet = rgba != nullptr;
+	if ( rgba ) {
+		std::copy( rgba, rgba + 4, op.rgba.begin() );
 	}
 }

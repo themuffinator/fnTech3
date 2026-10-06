@@ -420,6 +420,13 @@ SP/MP HUD presets ship in their profile namespaces. Executable layout/import
 tests and windowed engine captures add presentation evidence; they do not
 close the broader renderer, mod-layout, campaign, or multiplayer gates.
 
+The [Quake III HUD alignment record](2026-10-06-q3-hud-alignment.md) places
+each part of baseq3's HUD by its own layout on wide and tall screens: text is
+matched by the line, so no line splits, and the scoreboards and loading screen
+are centred 4:3 screens. Unit fixtures replay cg_draw.c's geometry, and
+windowed engine captures at four screen shapes, two clients voting and demo
+playback show every part placed; it is presentation evidence only.
+
 The [profile-scoped package update](2026-09-17-profile-packages.md) separates
 engine assets under `games/<profile>/<gamedir>/` in `fntech3-pkg.fnz` and
 incorporates the complete reviewed FnQuake3 package, including Team Arena.

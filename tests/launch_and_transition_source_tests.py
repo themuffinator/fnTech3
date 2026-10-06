@@ -306,7 +306,7 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
         )
         self.assertIn("re.DrawStretchPic( x, y, w, h, s0, t0, s1, t1, args[9] );", ui)
         self.assertIn("SCR_AdjustRetailCGameLoadingBackdropUV( x, y, w, h", cgame)
-        self.assertIn("CL_HudDrawStretchPic( x, y, w, h, s0, t0, s1, t1, args[9] );", cgame)
+        self.assertIn("CL_HudQueueStretchPic( x, y, w, h, s0, t0, s1, t1, args[9] );", cgame)
 
         self.assertIn("!uiMenuVisible", screen)
         self.assertIn("!browserOverlayRequested", screen)
@@ -414,7 +414,7 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
         self.assertEqual(supported, "Com_GameIsQuake3() || Com_GameIsRTCW() || Com_GameIsWolfET() "
                                     "|| Com_GameIsSTVEF() || Com_GameIsRitual()")
         self.assertIn("if ( !hudSupported ) return qtrue;", hud)
-        self.assertIn("CL_HudDrawStretchPic", cgame)
+        self.assertIn("CL_HudQueueStretchPic", cgame)
         self.assertNotIn("cl_hudAspect", main)
         self.assertNotIn("r_fovCorrection", main)
         self.assertIn("RDF_NOFOVCORRECTION 0x0002", public)

@@ -2000,6 +2000,16 @@ historical upstream records, not fnTech3 release history. See the
   fits only 4:3, 5:4, 16:10 and 16:9 screens and stretched the world sideways
   on any other, by a third at 21:9; `r_fovCorrection` now completes it,
   keeping its vertical view, and its markers follow.
+- Keep every part of Quake III Arena's HUD in its place on widescreen and
+  tall displays. Item pickup names, votes, team chat, the attacker's name and
+  centred lines such as the warmup, ammunition warnings and scoreboard titles
+  no longer split or drift from what they belong to; the no-ammo cross stays
+  on its weapon, the team overlay and lag meter reach the screen's corners, and
+  the status bar and team chat sit on its bottom edge. The scoreboards and the
+  loading screen draw as centred 4:3 screens, and the loading screen's
+  lettering keeps its shape. HUD rules can now place text by the line and
+  match by an edge or a height, and a rule can start a centred screen
+  ([Aspect Handling Guide](docs/ASPECT_CORRECTION.md)).
 - Draw the sprites of hidden F.A.K.K.2 emitters, as retail does: the smoke
   of `fakkhouse`'s chimneys, and blood splats.
 - Let traces hit Ritual entities as retail `alice.exe` does. Each clip now

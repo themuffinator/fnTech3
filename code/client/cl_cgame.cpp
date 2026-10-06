@@ -2852,6 +2852,8 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		re.AddAdditiveLightToScene( VMA(1), VMF(2), VMF(3), VMF(4), VMF(5) );
 		return 0;
 	case CG_R_RENDERSCENE: {
+		// Glyphs held for their line are drawn before the scene.
+		CL_HudFlushQueue();
 		refdef_t moduleRefdef = CL_ModuleRefdef( cgvm, args[1] );
 		CL_HudAdjustRefdef( &moduleRefdef );
 		const refdef_t *refdef = &moduleRefdef;
@@ -2883,7 +2885,7 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		return 0;
 	}
 	case CG_R_SETCOLOR:
-		re.SetColor( VMA(1) );
+		CL_HudQueueColor( VMA(1) );
 		return 0;
 	case CG_R_DRAWSTRETCHPIC: {
 		if ( !CL_CaptureHidesHud() ) {
@@ -2898,7 +2900,7 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 
 			SCR_AdjustRetailCGameLoadingBackdropUV( x, y, w, h,
 				&s0, &t0, &s1, &t1 );
-			CL_HudDrawStretchPic( x, y, w, h, s0, t0, s1, t1, args[9] );
+			CL_HudQueueStretchPic( x, y, w, h, s0, t0, s1, t1, args[9] );
 		}
 		return 0;
 	}

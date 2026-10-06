@@ -29,6 +29,10 @@ class FnQuake3PackageAssetsTests(unittest.TestCase):
                 if asset["hashEncoding"] == "LF-normalized UTF-8":
                     payload = payload.replace(b"\r\n", b"\n")
                 self.assertEqual(hashlib.sha256(payload).hexdigest(), asset["sha256"])
+                # A revised asset keeps FnQuake3's hash and names the record
+                # that changed it.
+                if asset["sha256"] != asset.get("sourceSha256", asset["sha256"]):
+                    self.assertTrue((ROOT / "docs/fntech3" / asset["revision"]).is_file())
 
     def test_game_and_missionpack_inventory_is_explicit(self):
         self.assertEqual(sum(name.endswith(".azb") for name in Q3_PACKAGE_ASSETS), 35)

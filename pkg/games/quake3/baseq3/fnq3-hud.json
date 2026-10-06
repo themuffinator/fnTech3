@@ -1,170 +1,146 @@
 {
-  "version": 1,
+  "version": 2,
+  "textRuns": 1,
+  "widthScaledShaders": [ "menu/art/font*" ],
   "rules": [
     {
+      "name": "scoreboard",
+      "match": { "shader": "menu/tab/*", "textLike": 0 },
+      "panel": "centered"
+    },
+    {
+      "name": "tourney_scoreboard",
+      "match": { "shader": "white", "textLike": 0, "minHeight": 470, "region": { "x": 319, "y": 239, "w": 2, "h": 2 } },
+      "mode": "stretch",
+      "panel": "centered"
+    },
+    {
+      "name": "loading_levelshot",
+      "match": { "shader": "levelshots/*", "textLike": 0 },
+      "mode": "stretch",
+      "panel": "centered"
+    },
+    {
+      "name": "loading_unknown_map",
+      "match": { "shader": "menu/art/unknownmap", "textLike": 0 },
+      "mode": "stretch",
+      "panel": "centered"
+    },
+    {
+      "name": "votes",
+      "match": { "textLike": 1, "edge": "left", "maxHeight": 20, "region": { "x": -1, "y": 50, "w": 4, "h": 60 } },
+      "align": { "x": "left", "y": "top" }
+    },
+    {
       "name": "upper_right_text",
-      "match": {
-        "textLike": 1,
-        "region": { "x": 112.000, "y": 2.000, "w": 526.000, "h": 76.000 }
-      },
-      "mode": "uniform",
-      "align": {
-        "x": "right",
-        "y": "top"
-      }
+      "match": { "textLike": 1, "region": { "x": 330, "y": 0, "w": 310, "h": 200 } },
+      "align": { "x": "right", "y": "top" }
     },
     {
-      "name": "weapon_bar",
-      "match": {
-        "shader": "icons/iconw_*",
-        "textLike": 0,
-        "region": { "x": 0.000, "y": 376.000, "w": 640.000, "h": 48.000 }
-      },
-      "mode": "uniform",
-      "align": {
-        "x": "center",
-        "y": "middle"
-      }
+      "name": "upper_right_team_overlay",
+      "match": { "shader": "gfx/2d/colorbar.tga", "textLike": 0, "region": { "x": 480, "y": 0, "w": 160, "h": 34 } },
+      "align": { "x": "right", "y": "top" }
     },
     {
-      "name": "mini_scores_flags",
-      "match": {
-        "shader": "icons/*",
-        "textLike": 0,
-        "region": { "x": 256.000, "y": 380.000, "w": 384.000, "h": 24.000 }
-      },
-      "mode": "uniform",
-      "align": {
-        "x": "right",
-        "y": "bottom"
-      }
-    },
-    {
-      "name": "mini_scores_backing",
-      "match": {
-        "textLike": 0,
-        "region": { "x": 256.000, "y": 404.000, "w": 384.000, "h": 24.000 }
-      },
-      "mode": "uniform",
-      "align": {
-        "x": "right",
-        "y": "bottom"
-      }
-    },
-    {
-      "name": "mini_scores_text",
-      "match": {
-        "textLike": 1,
-        "region": { "x": 80.000, "y": 408.000, "w": 558.000, "h": 18.000 }
-      },
-      "mode": "uniform",
-      "align": {
-        "x": "right",
-        "y": "bottom"
-      }
-    },
-    {
-      "name": "pickup_icon",
-      "match": {
-        "shader": "icons/*",
-        "textLike": 0,
-        "region": { "x": 8.000, "y": 384.000, "w": 48.000, "h": 48.000 }
-      },
-      "mode": "uniform",
-      "align": {
-        "x": "left",
-        "y": "bottom"
-      }
-    },
-    {
-      "name": "pickup_text",
-      "match": {
-        "textLike": 1,
-        "region": { "x": 64.000, "y": 400.000, "w": 384.000, "h": 18.000 }
-      },
-      "mode": "uniform",
-      "align": {
-        "x": "left",
-        "y": "bottom"
-      }
+      "name": "upper_right_team_overlay_icons",
+      "match": { "shader": "icons/*", "textLike": 0, "maxHeight": 12, "region": { "x": 270, "y": 0, "w": 370, "h": 70 } },
+      "align": { "x": "right", "y": "top" }
     },
     {
       "name": "attacker_head_3d",
-      "match": {
-        "refdef": 1,
-        "textLike": 0,
-        "region": { "x": 568.000, "y": 0.000, "w": 72.000, "h": 72.000 }
-      },
-      "mode": "uniform",
-      "align": {
-        "x": "right",
-        "y": "top"
-      }
+      "match": { "refdef": 1, "region": { "x": 568, "y": 0, "w": 72, "h": 160 } },
+      "align": { "x": "right", "y": "top" }
     },
     {
       "name": "attacker_head_icon",
-      "match": {
-        "shader": "models/players/*",
-        "textLike": 0,
-        "region": { "x": 568.000, "y": 0.000, "w": 72.000, "h": 72.000 }
-      },
-      "mode": "uniform",
-      "align": {
-        "x": "right",
-        "y": "top"
-      }
+      "match": { "shader": "models/players/*", "textLike": 0, "region": { "x": 568, "y": 0, "w": 72, "h": 160 } },
+      "align": { "x": "right", "y": "top" }
     },
     {
       "name": "attacker_head_deferred",
-      "match": {
-        "shader": "gfx/2d/defer.tga",
-        "textLike": 0,
-        "region": { "x": 568.000, "y": 0.000, "w": 72.000, "h": 72.000 }
-      },
-      "mode": "uniform",
-      "align": {
-        "x": "right",
-        "y": "top"
-      }
+      "match": { "shader": "gfx/2d/defer.tga", "textLike": 0, "region": { "x": 568, "y": 0, "w": 72, "h": 160 } },
+      "align": { "x": "right", "y": "top" }
     },
     {
-      "name": "right_item_icons",
-      "match": {
-        "shader": "icons/*",
-        "textLike": 0,
-        "region": { "x": 568.000, "y": 136.000, "w": 72.000, "h": 240.000 }
-      },
-      "mode": "uniform",
-      "align": {
-        "x": "right",
-        "y": "center"
-      }
+      "name": "holdable_teleporter",
+      "match": { "shader": "icons/teleporter", "textLike": 0, "region": { "x": 600, "y": 230, "w": 32, "h": 20 } },
+      "align": { "x": "right", "y": "middle" }
     },
     {
-      "name": "right_powerup_timer_digits",
-      "match": {
-        "shader": "gfx/2d/numbers/*",
-        "textLike": 0,
-        "region": { "x": 530.000, "y": 136.000, "w": 64.000, "h": 240.000 }
-      },
-      "mode": "uniform",
-      "align": {
-        "x": "right",
-        "y": "center"
-      }
+      "name": "holdable_medkit",
+      "match": { "shader": "icons/medkit", "textLike": 0, "region": { "x": 600, "y": 230, "w": 32, "h": 20 } },
+      "align": { "x": "right", "y": "middle" }
     },
     {
-      "name": "hud_team_background",
-      "match": {
-        "shader": "gfx/2d/colorbar.tga",
-        "textLike": 0,
-        "region": { "x": 0.000, "y": 420.000, "w": 640.000, "h": 60.000 }
-      },
-      "mode": "stretch",
-      "align": {
-        "x": "center",
-        "y": "center"
-      }
+      "name": "powerup_icons",
+      "match": { "shader": "icons/*", "textLike": 0, "minHeight": 24, "region": { "x": 590, "y": 40, "w": 50, "h": 360 } },
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "powerup_timers",
+      "match": { "shader": "gfx/2d/numbers/*", "textLike": 0, "region": { "x": 520, "y": 40, "w": 120, "h": 360 } },
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "status_bar_and_team_chat_background",
+      "match": { "shader": "gfx/2d/colorbar.tga", "textLike": 0, "region": { "x": 316, "y": 380, "w": 8, "h": 100 } },
+      "mode": "extend",
+      "align": { "x": "center", "y": "bottom" }
+    },
+    {
+      "name": "status_bar_numbers",
+      "match": { "shader": "gfx/2d/numbers/*", "textLike": 0, "region": { "x": 0, "y": 432, "w": 520, "h": 48 } },
+      "align": { "x": "center", "y": "bottom" }
+    },
+    {
+      "name": "status_bar_models",
+      "match": { "refdef": 1, "region": { "x": 0, "y": 380, "w": 560, "h": 100 } },
+      "align": { "x": "center", "y": "bottom" }
+    },
+    {
+      "name": "status_bar_icons",
+      "match": { "textLike": 0, "region": { "x": 0, "y": 432, "w": 560, "h": 48 } },
+      "align": { "x": "center", "y": "bottom" }
+    },
+    {
+      "name": "weapon_select_icons",
+      "match": { "shader": "icons/iconw_*", "textLike": 0, "minHeight": 24, "region": { "x": 100, "y": 380, "w": 420, "h": 32 } },
+      "align": { "x": "center", "y": "bottom" }
+    },
+    {
+      "name": "weapon_select_no_ammo",
+      "match": { "shader": "icons/noammo", "textLike": 0, "minHeight": 24, "region": { "x": 100, "y": 380, "w": 420, "h": 32 } },
+      "align": { "x": "center", "y": "bottom" }
+    },
+    {
+      "name": "weapon_select_marker",
+      "match": { "shader": "gfx/2d/select", "textLike": 0, "region": { "x": 100, "y": 380, "w": 420, "h": 32 } },
+      "align": { "x": "center", "y": "bottom" }
+    },
+    {
+      "name": "team_chat_text",
+      "match": { "textLike": 1, "edge": "left", "region": { "x": 6, "y": 340, "w": 4, "h": 84 } },
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "bottom_centre_text",
+      "match": { "textLike": 1, "region": { "x": 312, "y": 340, "w": 16, "h": 140 } },
+      "align": { "x": "center", "y": "bottom" }
+    },
+    {
+      "name": "lower_left",
+      "match": { "region": { "x": 0, "y": 280, "w": 318, "h": 152 } },
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "lower_right",
+      "match": { "region": { "x": 322, "y": 280, "w": 318, "h": 152 } },
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "lagometer",
+      "match": { "region": { "x": 590, "y": 430, "w": 50, "h": 50 } },
+      "align": { "x": "right", "y": "bottom" }
     }
   ]
 }

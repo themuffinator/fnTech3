@@ -93,9 +93,14 @@ void QDECL FS_Printf(fileHandle_t file, const char *format, ...) {
     assert(length >= 0 && length < static_cast<int>(sizeof(buffer))); FS_Write(buffer, length, file);
 }
 void FS_FCloseFile(fileHandle_t file) { assert(file == 1); }
+// Every renderer call in order: a colour change or a picture.
+struct Call { bool color; bool reset; float red, x, y, w, h; qhandle_t shader; };
+static std::vector<Call> calls;
 static void Draw(float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t shader) {
     ++draws; submitted = {x,y,w,h,s1,t1,s2,t2}; submittedShader = shader;
+    calls.push_back({false, false, 0.0f, x, y, w, h, shader});
 }
+static void Color(const float *rgba) { calls.push_back({true, rgba == nullptr, rgba ? rgba[0] : 0.0f, 0, 0, 0, 0, 0}); }
 static void Size(int w, int h) {
     cls.glconfig.vidWidth = w; cls.glconfig.vidHeight = h;
     cls.scale = std::min(w / 640.0f, h / 480.0f);
@@ -115,8 +120,90 @@ static void Picture(float x=300, float y=90, float w=120, float h=90) {
     CL_HudDrawStretchPic(x,y,w,h,0.1f,0.2f,0.8f,0.9f,pictureShader);
 }
 static void Rules(const std::string &json) { files["fntech3-hud.json"] = json; reload(); assert(liveFiles == 0); }
+// A client game drawing as Quake III's does: 640x480 units stretched to the
+// screen (CG_AdjustFrom640), its proportional font scaled vertically by the
+// width (UI_DrawProportionalString). issued keeps each picture's units.
+static std::vector<std::array<float, 4>> issued;
+static void QPic(float x, float y, float w, float h, qhandle_t shader, bool widthScaledY = false) {
+    const float xs = cls.glconfig.vidWidth / 640.0f, ys = widthScaledY ? xs : cls.glconfig.vidHeight / 480.0f;
+    issued.push_back({x, y, w, h});
+    CL_HudQueueStretchPic(x * xs, y * ys, w * xs, h * ys, 0, 0, 1, 1, shader);
+}
+// CG_DrawStringExt: a drop shadow two units down and right, then the text,
+// each pass in its own colour; spaces draw nothing.
+static void QText(float x, float y, const char *text, float cw, float ch, bool shadow) {
+    static const float black[4] = {0, 0, 0, 1}, white[4] = {1, 1, 1, 1};
+    for (int pass = shadow ? 0 : 1; pass < 2; ++pass) {
+        CL_HudQueueColor(pass ? white : black);
+        float xx = x;
+        for (const char *c = text; *c; ++c, xx += cw) {
+            if (*c != ' ') QPic(xx + (pass ? 0 : 2), y + (pass ? 0 : 2), cw, ch, cls.charSetShader);
+        }
+    }
+    CL_HudQueueColor(nullptr);
+}
+static void QBig(float x, float y, const char *text) { QText(x, y, text, 16, 16, true); }
+static float Centre(const char *text, float cw) { return 320 - static_cast<float>(std::strlen(text)) * cw / 2; }
+static std::vector<Call> Pictures() {
+    std::vector<Call> pictures;
+    for (const auto &call : calls) if (!call.color) pictures.push_back(call);
+    return pictures;
+}
+// Every picture since the last check moved and scaled as one part of the HUD
+// aligned ax ('l', 'c', 'r') and ay ('t', 'm', 'b').
+static void Placed(const char *what, char ax, char ay) {
+    CL_HudFlushQueue();
+    const auto pictures = Pictures();
+    if (pictures.empty() || pictures.size() != issued.size()) {
+        std::fprintf(stderr, "%s: %zu pictures for %zu draws\n", what, pictures.size(), issued.size()); std::abort();
+    }
+    const float ox = ax == 'l' ? 0 : ax == 'c' ? cls.biasX : 2 * cls.biasX;
+    const float oy = ay == 't' ? 0 : ay == 'm' ? cls.biasY : 2 * cls.biasY;
+    for (std::size_t i = 0; i < issued.size(); ++i) {
+        const auto &d = issued[i];
+        const float expected[] = {d[0] * cls.scale + ox, d[1] * cls.scale + oy, d[2] * cls.scale, d[3] * cls.scale};
+        const float got[] = {pictures[i].x, pictures[i].y, pictures[i].w, pictures[i].h};
+        for (int k = 0; k < 4; ++k) {
+            if (std::fabs(got[k] - expected[k]) > 0.01f) {
+                std::fprintf(stderr, "%s: picture %zu component %d: got %f expected %f\n", what, i, k, got[k], expected[k]);
+                std::abort();
+            }
+        }
+    }
+    calls.clear(); issued.clear();
+}
+// One picture placed at exactly this screen rectangle (stretched or extended).
+static void PlacedAt(const char *what, float x, float y, float w, float h) {
+    CL_HudFlushQueue();
+    const auto pictures = Pictures();
+    const float expected[] = {x, y, w, h};
+    if (pictures.size() != 1) { std::fprintf(stderr, "%s: %zu pictures\n", what, pictures.size()); std::abort(); }
+    const float got[] = {pictures[0].x, pictures[0].y, pictures[0].w, pictures[0].h};
+    for (int k = 0; k < 4; ++k) {
+        if (std::fabs(got[k] - expected[k]) > 0.01f) {
+            std::fprintf(stderr, "%s: component %d: got %f expected %f\n", what, k, got[k], expected[k]); std::abort();
+        }
+    }
+    calls.clear(); issued.clear();
+}
+// A HUD model's view, in the module's whole pixels, placed with the HUD part aligned ax/ay.
+static void ViewPlaced(const char *what, float x, float y, float w, float h, char ax, char ay) {
+    const float xs = cls.glconfig.vidWidth / 640.0f, ys = cls.glconfig.vidHeight / 480.0f;
+    refdef_t view{}; view.x = int(x * xs); view.y = int(y * ys); view.width = int(w * xs); view.height = int(h * ys);
+    view.fov_x = view.fov_y = 30; view.rdflags = RDF_NOWORLDMODEL;
+    CL_HudAdjustRefdef(&view);
+    const float ox = ax == 'l' ? 0 : ax == 'c' ? cls.biasX : 2 * cls.biasX;
+    const float oy = ay == 't' ? 0 : ay == 'm' ? cls.biasY : 2 * cls.biasY;
+    const float expected[] = {x * cls.scale + ox, y * cls.scale + oy, w * cls.scale, h * cls.scale};
+    const int got[] = {view.x, view.y, view.width, view.height};
+    for (int k = 0; k < 4; ++k) {
+        if (std::fabs(got[k] - expected[k]) > 2.5f) {
+            std::fprintf(stderr, "%s: view component %d: got %d expected %f\n", what, k, got[k], expected[k]); std::abort();
+        }
+    }
+}
 int main(int argc, char **argv) {
-    assert(argc == 3 || argc == 4); profile = std::atoi(argv[1]); re.DrawStretchPic = Draw;
+    assert(argc == 3 || argc == 4); profile = std::atoi(argv[1]); re.DrawStretchPic = Draw; re.SetColor = Color;
     cls.charSetShader = 1; cls.whiteShader = 2; cls.consoleShader = 3;
     Size(1920, 1080);
     // Even explicitly set legacy settings cannot opt QL or MoHAA into correction.
@@ -197,6 +284,92 @@ int main(int argc, char **argv) {
     capture.integer=hideHud.integer=1; const int before=draws; Picture(); assert(draws==before);
     capture.integer=0; float x=NAN,y=0,w=1,h=1; assert(!CL_HudAdjustPic(&x,&y,&w,&h,17));
     Size(0,0); Picture(); Expect(300,90,120,90);
+    {
+        // Text placed by line ("textRuns"), rules matched by an edge or by
+        // height, screens that pause the rules, and fonts scaled by width.
+        Size(2560,1080); calls.clear(); issued.clear();
+        CL_HudRegisterShaderName(cls.charSetShader, "gfx/2d/bigchars");
+        const char *right = R"("rules":[{"match":{"textLike":1,"region":{"x":300,"y":0,"w":340,"h":100}},"align":{"x":"right"}}])";
+        // Without the option each glyph is matched alone, so a line crossing
+        // the region's edge splits: its first glyph stays centred.
+        Rules(std::string("{") + right + "}");
+        CL_HudBeginFrame(); QText(280, 20, "ABCD", 16, 16, false);
+        auto pictures = Pictures();
+        assert(pictures.size() == 4 && std::fabs(pictures[0].x - (280 * 2.25f + 560)) < 0.01f
+            && std::fabs(pictures[1].x - (296 * 2.25f + 1120)) < 0.01f);
+        calls.clear(); issued.clear();
+        // With it the line is held and matched as one: centred at 282, then at 332.
+        Rules(std::string("{\"textRuns\":true,") + right + "}");
+        CL_HudBeginFrame(); QText(250, 20, "ABCD", 16, 16, false);
+        assert(Pictures().empty()); // held until the line is complete
+        Placed("line left of the region", 'c', 'm');
+        QText(250, 20, "ABCD", 16, 16, true); Placed("line and shadow left of the region", 'c', 'm');
+        QText(300, 20, "ABCD", 16, 16, true); Placed("line in the region", 'r', 'm');
+        // Colours keep their places between the glyphs.
+        QText(300, 20, "AB", 16, 16, true); CL_HudFlushQueue();
+        assert(calls.size() == 7 && calls[0].color && calls[0].red == 0 && !calls[1].color && !calls[2].color
+            && calls[3].color && calls[3].red == 1 && !calls[4].color && !calls[5].color && calls[6].reset);
+        calls.clear(); issued.clear();
+        // A space continues a line; another picture, a scene or the frame's end
+        // submits it first.
+        QText(280, 20, "A B C", 16, 16, false); Placed("spaced line", 'r', 'm');
+        QText(280, 20, "AB", 16, 16, false); QPic(0, 0, 640, 480, pictureShader);
+        pictures = Pictures(); assert(pictures.size() == 3 && pictures[2].w == 2560);
+        calls.clear(); issued.clear();
+        QText(300, 20, "AB", 16, 16, false); CL_HudEndFrame(); assert(Pictures().size() == 2);
+        calls.clear(); issued.clear();
+        // Outside the client's frame nothing is held.
+        QText(300, 20, "AB", 16, 16, false); assert(Pictures().size() == 2);
+        calls.clear(); issued.clear();
+        // A rule may test a line's left or right end, and a draw's height.
+        Rules(R"({"textRuns":1,"rules":[
+            {"match":{"edge":"left","region":{"x":-1,"y":0,"w":4,"h":480}},"align":{"x":"left"}},
+            {"match":{"edge":"right","region":{"x":636,"y":0,"w":8,"h":480}},"align":{"x":"right"}},
+            {"match":{"minHeight":24,"maxHeight":40},"align":{"y":"bottom"}}]})");
+        CL_HudBeginFrame();
+        QText(0, 50, "A long line from the left edge to the right of the centre", 8, 16, false);
+        Placed("left end", 'l', 'm');
+        QText(8, 50, "Not at the edge", 8, 16, false); Placed("near the left end", 'c', 'm');
+        QText(640 - 5 * 16, 50, "Right", 16, 16, true); Placed("right end with its shadow", 'r', 'm');
+        QPic(100, 200, 32, 32, pictureShader); Placed("tall enough", 'c', 'b');
+        QPic(100, 200, 48, 48, pictureShader); Placed("too tall", 'c', 'm');
+        QText(100, 200, "short", 16, 16, false); Placed("too short", 'c', 'm');
+        CL_HudEndFrame();
+        // A panel rule pauses the rules for the rest of the frame only.
+        CL_HudRegisterShaderName(30, "menu/tab/score.tga");
+        Rules(R"({"textRuns":1,"rules":[{"match":{"shader":"menu/tab/*"},"panel":"centered"},
+            {"match":{"region":{"x":0,"y":0,"w":640,"h":480}},"align":{"x":"left","y":"top"}}]})");
+        CL_HudBeginFrame();
+        QBig(100, 100, "before"); Placed("before the panel", 'l', 't');
+        QPic(160, 86, 64, 32, 30); Placed("panel", 'c', 'm');
+        QBig(100, 100, "after"); QPic(100, 200, 48, 48, pictureShader); Placed("after the panel", 'c', 'm');
+        CL_HudEndFrame(); CL_HudBeginFrame();
+        QBig(100, 100, "next"); Placed("next frame", 'l', 't');
+        CL_HudEndFrame();
+        // A font the module scaled vertically by the screen's width.
+        CL_HudRegisterShaderName(31, "font/prop_a");
+        Rules(R"({"widthScaledShaders":["font/prop*", 7],"rules":[]})");
+        CL_HudBeginFrame();
+        QPic(300, 96, 20, 27, 31, true); Placed("width-scaled font", 'c', 'm');
+        CL_HudEndFrame();
+        // Malformed options are ignored and malformed rules skipped.
+        for (const char *bad : {R"({"rules":[{"match":{"edge":"diagonal"},"align":{"x":"left"}}]})",
+            R"({"rules":[{"match":{"minHeight":-1},"align":{"x":"left"}}]})",
+            R"({"rules":[{"match":{"maxHeight":"tall"},"align":{"x":"left"}}]})",
+            R"({"rules":[{"match":{"edge":1},"align":{"x":"left"}}]})",
+            R"({"rules":[{"panel":"stretched","align":{"x":"left"}}]})",
+            R"({"rules":[{"panel":1,"align":{"x":"left"}}]})"}) {
+            Rules(bad); CL_HudBeginFrame(); QBig(100, 100, "skipped"); Placed(bad, 'c', 'm'); CL_HudEndFrame();
+        }
+        Rules(R"({"textRuns":"yes","widthScaledShaders":"font/prop*","rules":[]})");
+        CL_HudBeginFrame(); QBig(100, 100, "AB");
+        assert(Pictures().size() == 4); // not held
+        calls.clear(); issued.clear();
+        QPic(300, 96, 20, 27, 31, true); CL_HudFlushQueue();
+        assert(std::fabs(Pictures()[0].y - 96 * 4.0f) < 0.01f); // still scaled by the width
+        calls.clear(); issued.clear();
+        CL_HudEndFrame(); Rules("[]");
+    }
     if (argc == 4) {
         // Exercise the shipped rules with stock module and menu draw coordinates.
         std::ifstream preset(argv[3]); assert(preset);
@@ -220,6 +393,151 @@ int main(int argc, char **argv) {
             sample("icons/iconh_green",8,384,32,32,18);
             // Q3's cgame registers the client's own charset.
             sample("gfx/2d/bigchars",600,2,16,16,2470,cls.charSetShader);
+            // Quake III's whole HUD, as baseq3's cgame (cg_draw.c,
+            // cg_scoreboard.c, cg_info.c, cg_weapons.c) draws it: each part
+            // keeps its place and every line stays together, on a wide and a
+            // tall screen, and unchanged at 4:3.
+            const auto shader = [](const char *name) {
+                static qhandle_t next = 40; static std::map<std::string, qhandle_t> handles;
+                auto found = handles.find(name);
+                if (found != handles.end()) return found->second;
+                CL_HudRegisterShaderName(next, name); handles[name] = next; return next++;
+            };
+            CL_HudRegisterShaderName(cls.charSetShader, "gfx/2d/bigchars");
+            CL_HudRegisterShaderName(cls.whiteShader, "white");
+            const auto q3hud = [&]() {
+                calls.clear(); issued.clear();
+                CL_HudBeginFrame();
+                // Upper right: snapshot, FPS, timer, attacker, team overlay.
+                QBig(635 - 5 * 16, 2, "62fps"); Placed("fps", 'r', 't');
+                QBig(635 - 4 * 16, 22, "0:17"); Placed("timer", 'r', 't');
+                QBig(635 - 28 * 16, 42, "time:123456 snap:1234 cmd:56"); Placed("snapshot", 'r', 't');
+                ViewPlaced("attacker head", 580, 40, 60, 60, 'r', 't');
+                QPic(580, 40, 60, 60, shader("models/players/sarge/icon_default.tga")); Placed("attacker icon", 'r', 't');
+                QPic(580, 40, 60, 60, shader("gfx/2d/defer.tga")); Placed("attacker deferred", 'r', 't');
+                QText(640 - 31 * 16, 100, "AttackerNameThirtyOneCharacters", 16, 16, true); Placed("attacker name", 'r', 't');
+                QText(640 - 5 * 16, 184, "Sarge", 16, 16, true); Placed("attacker name under the overlay", 'r', 't');
+                QPic(440, 0, 200, 24, shader("gfx/2d/colorbar.tga")); Placed("upper overlay", 'r', 't');
+                QText(448, 0, "Sarge", 8, 8, false); QText(552, 0, "Red Armor", 8, 8, false);
+                QText(560, 8, "100  50", 8, 8, false); Placed("upper overlay text", 'r', 't');
+                QPic(600, 8, 8, 8, shader("icons/iconw_rocket")); QPic(432, 0, 8, 8, shader("icons/quad"));
+                QPic(600, 16, 8, 8, shader("gfx/2d/defer.tga")); Placed("upper overlay icons", 'r', 't');
+                // Centred lines, whatever their length.
+                QBig(Centre("Waiting for players", 16), 24, "Waiting for players"); Placed("warmup", 'c', 'm');
+                QBig(320 - 9 * 8, 24, "following"); Placed("following", 'c', 'm');
+                QText(0, 40, "TwentyCharacterName_", 32, 48, true); Placed("followed name", 'c', 'm');
+                QBig(Centre("Fragged by Sarge", 16), 40, "Fragged by Sarge"); Placed("fragged by", 'c', 'm');
+                QBig(Centre("1st place with 0", 16), 60, "1st place with 0"); Placed("place", 'c', 'm');
+                QBig(Centre("LOW AMMO WARNING", 16), 64, "LOW AMMO WARNING"); Placed("ammo warning", 'c', 'm');
+                QText(Centre("Capture the Flag", 32), 25, "Capture the Flag", 32, 35, true); Placed("game type", 'c', 'm');
+                QText(5, 20, "UnnamedPlayer vs AnotherPlayer", 21, 31, true); Placed("duel", 'c', 'm');
+                QText(Centre("Starts in: 9", 28), 70, "Starts in: 9", 28, 42, true); Placed("countdown", 'c', 'm');
+                QBig(Centre("Connection Interrupted", 16), 100, "Connection Interrupted"); Placed("interrupted", 'c', 'm');
+                QBig(Centre("Sarge", 16), 170, "Sarge"); Placed("crosshair name", 'c', 'm');
+                QBig(Centre("You fragged Sarge", 16), 136, "You fragged Sarge"); Placed("centre print", 'c', 'm');
+                QText(312, 104, "12", 8, 16, true); Placed("reward count", 'c', 'm');
+                QPic(272, 56, 44, 44, shader("medal_excellent")); QPic(320, 56, 44, 44, shader("medal_excellent"));
+                Placed("rewards", 'c', 'm');
+                QPic(308, 228, 24, 24, shader("gfx/2d/crosshairb")); Placed("crosshair", 'c', 'm');
+                // Votes at the left edge, however long.
+                QText(0, 58, "VOTE(28):fraglimit 30 yes:1 no:0", 8, 16, false); Placed("vote", 'l', 't');
+                QText(0, 58, "VOTE(28):kick SomeoneWithAVeryLongNameThatRunsOnAndOn yes:1 no:0 and on and on and on", 8, 16, false);
+                Placed("long vote", 'l', 't');
+                QText(0, 90, "TEAMVOTE(29):leader 0 yes:1 no:0", 8, 16, false); Placed("team vote", 'l', 't');
+                // Right middle: the holdable item.
+                QPic(592, 216, 48, 48, shader("icons/medkit")); Placed("medkit", 'r', 'm');
+                QPic(592, 216, 48, 48, shader("icons/teleporter")); Placed("teleporter", 'r', 'm');
+                // Lower right: powerups climbing from the score boxes.
+                QPic(592, 352, 48, 48, shader("icons/quad")); QPic(568, 292, 72, 72, shader("icons/haste"));
+                QPic(592, 64, 48, 48, shader("icons/flight")); Placed("powerups", 'r', 'b');
+                QPic(530, 352, 32, 48, shader("gfx/2d/numbers/two_32b")); QPic(562, 64, 32, 48, shader("gfx/2d/numbers/nine_32b"));
+                Placed("powerup timers", 'r', 'b');
+                // Score boxes, flags and limits; also raised by a lower right overlay.
+                for (float base : {432.0f, 408.0f}) {
+                    QPic(600, base - 28, 40, 24, cls.whiteShader); QPic(600, base - 28, 40, 24, shader("gfx/2d/select"));
+                    QPic(496, base - 28, 72, 24, cls.whiteShader); QPic(560, base - 52, 40, 24, shader("icons/iconf_red1"));
+                    QPic(600, base - 52, 40, 24, shader("icons/iconf_blu2")); Placed("score boxes", 'r', 'b');
+                    QBig(620, base - 24, "0"); QBig(500, base - 24, "1000"); QBig(460, base - 24, "20"); Placed("scores", 'r', 'b');
+                }
+                QPic(440, 408, 200, 24, shader("gfx/2d/colorbar.tga")); Placed("lower right overlay", 'r', 'b');
+                QText(448, 408, "Sarge", 8, 8, false); QText(552, 416, "Red Armor", 8, 8, false); Placed("lower right overlay text", 'r', 'b');
+                QPic(600, 408, 8, 8, shader("icons/iconw_rocket")); QPic(432, 408, 8, 8, shader("icons/quad"));
+                Placed("lower right overlay icons", 'r', 'b');
+                QPic(592, 432, 48, 48, shader("lagometer")); QPic(639.6f, 440, 0.4f, 12, cls.whiteShader);
+                QPic(592, 432, 48, 48, shader("gfx/2d/net.tga")); Placed("lagometer", 'r', 'b');
+                // The status bar, centred at the bottom.
+                for (float x : {2.0f, 34.0f, 187.0f, 372.0f, 434.0f}) QPic(x, 432, 32, 48, shader("gfx/2d/numbers/one_32b"));
+                QPic(100, 432, 48, 48, shader("icons/icona_machinegun")); QPic(285, 420, 60, 60, shader("models/players/sarge/icon_default.tga"));
+                QPic(255, 390, 90, 90, shader("models/players/sarge/icon_default.tga")); QPic(333, 432, 48, 48, shader("icons/iconf_red1"));
+                QPic(470, 432, 48, 48, shader("icons/iconr_yellow")); Placed("status bar", 'c', 'b');
+                ViewPlaced("ammo model", 100, 432, 48, 48, 'c', 'b'); ViewPlaced("head model", 270, 390, 90, 90, 'c', 'b');
+                ViewPlaced("flag model", 333, 432, 48, 48, 'c', 'b'); ViewPlaced("armor model", 470, 432, 48, 48, 'c', 'b');
+                QPic(0, 420, 640, 60, shader("gfx/2d/colorbar.tga"));
+                PlacedAt("team background", 0, 420 * cls.scale + 2 * cls.biasY, cls.glconfig.vidWidth,
+                    cls.glconfig.vidHeight - 420 * cls.scale - 2 * cls.biasY);
+                QPic(0, 404, 640, 16, shader("gfx/2d/colorbar.tga"));
+                PlacedAt("team chat background", 0, 404 * cls.scale + 2 * cls.biasY, cls.glconfig.vidWidth, 16 * cls.scale);
+                QText(8, 404, "(Sarge) (Lower Floor): hello", 8, 8, false); Placed("team chat", 'l', 'b');
+                QText(8, 412, "(Sarge) (Lower Floor): a team chat line long enough to run past the middle of the screen", 8, 8, false);
+                Placed("long team chat", 'l', 'b');
+                // The weapon bar, centred above the status bar.
+                for (int i = 0; i < 10; ++i) QPic(320 - 200 + 40 * i, 380, 32, 32, shader("icons/iconw_rocket"));
+                QPic(276, 376, 40, 40, shader("gfx/2d/select")); QPic(440, 380, 32, 32, shader("icons/noammo"));
+                Placed("weapon bar", 'c', 'b');
+                QBig(Centre("Rocket Launcher", 16), 358, "Rocket Launcher"); Placed("weapon name", 'c', 'b');
+                // Lower left: pickups, and the overlay that raises them.
+                for (float raise : {0.0f, 24.0f}) {
+                    QPic(8, 384 - raise, 48, 48, shader("icons/iconw_grenadel")); Placed("pickup icon", 'l', 'b');
+                    QBig(64, 400 - raise, "Personal Teleporter"); Placed("pickup name", 'l', 'b');
+                }
+                QPic(0, 408, 200, 24, shader("gfx/2d/colorbar.tga")); Placed("lower left overlay", 'l', 'b');
+                QText(8, 408, "Sarge", 8, 8, false); QText(112, 408, "Red Armor", 8, 8, false);
+                QText(216, 416, "100  50", 8, 8, false); Placed("lower left overlay text", 'l', 'b');
+                QPic(240, 408, 8, 8, shader("icons/iconw_rocket")); QPic(192, 416, 8, 8, shader("icons/quad"));
+                Placed("lower left overlay icons", 'l', 'b');
+                QBig(320 - 9 * 8, 440, "SPECTATOR"); QBig(8, 460, "press ESC and use the JOIN menu to play");
+                Placed("spectator", 'c', 'b');
+                CL_HudEndFrame();
+                // The scoreboard: the rules pause from its header on.
+                CL_HudBeginFrame();
+                QBig(635 - 5 * 16, 2, "62fps"); Placed("fps before the scoreboard", 'r', 't');
+                QBig(Centre("Fragged by Sarge", 16), 40, "Fragged by Sarge"); Placed("scoreboard title", 'c', 'm');
+                QPic(160, 86, 64, 32, shader("menu/tab/score.tga")); QPic(416, 86, 64, 32, shader("menu/tab/name.tga"));
+                QPic(0, 102, 640, 300, shader("gfx/2d/colorbar.tga")); QPic(176, 398, 512, 17, cls.whiteShader);
+                QPic(112, 382, 48, 48, shader("models/players/sarge/icon_default.tga"));
+                QPic(80, 390, 32, 32, shader("menu/art/skill5"));
+                QBig(160, 398, "    0    3    0 UnnamedPlayerWithALongName"); Placed("scoreboard", 'c', 'm');
+                ViewPlaced("scoreboard head", 112, 382, 48, 48, 'c', 'm');
+                CL_HudEndFrame(); CL_HudBeginFrame();
+                QBig(635 - 5 * 16, 2, "62fps"); Placed("fps after the scoreboard", 'r', 't');
+                CL_HudEndFrame();
+                // The tourney scoreboard: a black screen, then its own layout.
+                CL_HudBeginFrame();
+                QPic(0, 0, 640, 480, cls.whiteShader); PlacedAt("tourney background", 0, 0, cls.glconfig.vidWidth, cls.glconfig.vidHeight);
+                QText(Centre("Scoreboard", 32), 8, "Scoreboard", 32, 48, true); QText(8, 160, "Sarge", 32, 48, true);
+                QText(632 - 64, 160, "12", 32, 48, true); Placed("tourney scoreboard", 'c', 'm');
+                CL_HudEndFrame();
+                // The loading screen: its levelshot, then a 4:3 composite.
+                CL_HudBeginFrame();
+                QPic(0, 0, 640, 480, shader("levelshots/q3dm6.tga")); PlacedAt("levelshot", 0, 0, cls.glconfig.vidWidth, cls.glconfig.vidHeight);
+                QPic(250, 96, 20, 27, shader("menu/art/font1_prop.tga"), true); QPic(273, 96, 20, 27, shader("menu/art/font1_prop.tga"), true);
+                QPic(300, 400, 20, 27, shader("menu/art/font2_prop.tga"), true);
+                QPic(16, 284, 64, 64, shader("models/players/sarge/icon_default.tga")); QPic(16, 360, 32, 32, shader("icons/iconw_shotgun"));
+                QPic(592, 360, 32, 32, shader("icons/icona_rocket")); QPic(16, 400, 32, 32, shader("icons/iconh_green"));
+                Placed("loading screen", 'c', 'm');
+                CL_HudEndFrame();
+                CL_HudBeginFrame();
+                QPic(0, 0, 640, 480, shader("menu/art/unknownmap")); PlacedAt("unknown map", 0, 0, cls.glconfig.vidWidth, cls.glconfig.vidHeight);
+                QPic(16, 400, 32, 32, shader("icons/iconh_green")); Placed("loading icon", 'c', 'm');
+                CL_HudEndFrame();
+            };
+            Size(2560,1080); q3hud();
+            Size(1280,1024); q3hud();
+            Size(960,720); q3hud();
+            // With the correction off the module's own pixels are drawn, unheld.
+            Size(2560,1080); variables["cl_hudAspect"].integer = 0;
+            CL_HudBeginFrame(); QBig(64, 400, "Rocket"); assert(Pictures().size() == 12 && Pictures()[6].x == 256);
+            CL_HudEndFrame(); calls.clear(); issued.clear(); variables["cl_hudAspect"].integer = 1;
         } else if (profile == 2) {
             sample("white",10,400,10,70,22.5f);
             sample("font/health",39.5f,456,15,15,88.875f);

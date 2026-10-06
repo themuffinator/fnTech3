@@ -11,8 +11,10 @@
     {
       "source": "baseq3/fnq3-hud.json",
       "packagePath": "games/quake3/baseq3/fnq3-hud.json",
-      "sha256": "ef86cba9bca1cf5e22f090f1887c3eb8c84e356c2a78dd79d227a19c64653a13",
-      "hashEncoding": "LF-normalized UTF-8"
+      "sha256": "6e0d1664901761ae463ef59d03dc62235ca31487fb7638f2e4c8b242976b122f",
+      "hashEncoding": "LF-normalized UTF-8",
+      "sourceSha256": "ef86cba9bca1cf5e22f090f1887c3eb8c84e356c2a78dd79d227a19c64653a13",
+      "revision": "2026-10-06-q3-hud-alignment.md"
     },
     {
       "source": "baseq3/maps/pro-q3dm13.azb",

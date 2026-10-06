@@ -181,6 +181,7 @@ static int hudShaders, hudViews, hudPictures;
 static bool correctHud;
 static void CL_HudRegisterShaderName(qhandle_t, const char *) { ++hudShaders; }
 static void CL_HudAdjustRefdef(refdef_t *view) { ++hudViews; if (correctHud) view->x += 100; }
+static void CL_HudFlushQueue() {}
 static qboolean CL_HudAdjustPic(float *x, float *, float *w, float *, qhandle_t) {
     ++hudPictures; if (correctHud) { *x += 100; *w *= 0.75f; } return qtrue;
 }

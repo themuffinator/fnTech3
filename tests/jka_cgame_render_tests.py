@@ -98,6 +98,7 @@ static refdef_t CL_ModuleRefdef(vm_t *vm,intptr_t address){
  assert(fntech3::jka::render::ReadView(CL_JKACgameSpan(address,sizeof(fntech3_jka_mp_refdef_t)),view)==fntech3::jka::render::Status::Ok);return view;
 }
 static void CL_HudAdjustRefdef(refdef_t *){++hudAdjusts;}
+static void CL_HudFlushQueue(){}
 static void CL_UpdateLocalViewLiquidInteraction(const refdef_t *){++liquidUpdates;}
 static void CL_UpdateUnderwaterView(const refdef_t *){++underwaterUpdates;}
 static void CL_FlushEnemyHighlightRefEntities(const refdef_t *){++highlightFlushes;}

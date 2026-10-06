@@ -843,6 +843,13 @@ void CL_HudSetGamePanel( int panel );
 void CL_HudModuleScreen( int *width, int *height );
 void CL_HudDrawStretchPic( float x, float y, float w, float h,
 	float s1, float t1, float s2, float t2, qhandle_t shader );
+// The client game's own pictures and colour changes, in order. When the HUD
+// rules place text by line, a glyph is held until its line is complete, so
+// the line is placed as one; flush before anything else draws (a scene).
+void CL_HudQueueStretchPic( float x, float y, float w, float h,
+	float s1, float t1, float s2, float t2, qhandle_t shader );
+void CL_HudQueueColor( const float *rgba );
+void CL_HudFlushQueue( void );
 
 //
 // cl_cgame.cpp

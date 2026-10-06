@@ -100,8 +100,14 @@ title's evidence and what is not covered.
 compatible fallback if the preferred filename is absent. For each filename,
 the engine first checks `fntech3-pkg.fnz` in the selected profile's namespace,
 then the active game filesystem. Q3's bundled `games/quake3/baseq3/fnq3-hud.json`
-preset is enabled. Every other game with HUD correction ships its own stock
-preset:
+preset is enabled. It centres the status bar and weapon bar at the bottom; puts
+item pickups, team chat and the lower team overlay at the lower left, score
+boxes, flags, powerups, the lower team overlay and the lag meter at the lower
+right, FPS, timer, attacker and the upper team overlay at the upper right,
+votes at the left edge and the holdable item at the right. Lines of text are
+never split, and the scoreboards and loading screen are centred 4:3 screens
+([record](fntech3/2026-10-06-q3-hud-alignment.md)). Every other game with HUD
+correction ships its own stock preset:
 
 | Profile | Packaged rules | Placement |
 | --- | --- | --- |
@@ -141,6 +147,9 @@ The first matching rule wins. Supported fields are:
 | `match.textLike` | Boolean or 0/1; approximate glyph classification in 640x480 units. |
 | `match.refdef` | Boolean or 0/1; selects a 3D HUD viewport. |
 | `match.region` | `{ "x": ..., "y": ..., "w": ..., "h": ... }`; tests the draw's center in uncorrected 640x480 coordinates. |
+| `match.edge` | `left` or `right`: tests the draw's (or, with `textRuns`, its line's) left or right end instead of its center, for a line that starts at an edge however long it is. |
+| `match.minHeight`, `match.maxHeight` | Matches only draws at least, or at most, this tall in 640x480 units. |
+| `panel` | `centered`: from this draw on, the rules pause for the rest of the frame, so a game's scoreboard or loading screen is one centered 4:3 screen. |
 | `mode` | `uniform` (default), `stretch`, or `extend`: uniform, with each edge that touches the 640x480 frame carried out to the screen's edge, for a mask beside a centered picture such as a scope's. |
 | `align.x` | `left`, `center`/`middle`, or `right`. |
 | `align.y` | `top`, `center`/`middle`, or `bottom`. |
@@ -158,6 +167,13 @@ The first matching rule wins. Supported fields are:
   ]
 }
 ```
+
+The object form also takes two options. `"textRuns": true` places text by the
+line: the client game's glyphs are held until their line is complete and each
+is matched by the whole line, so a line is never split between two placements.
+`"widthScaledShaders"` lists shaders a module scaled vertically by the
+screen's width, as Quake III's proportional font is, so they keep their shape.
+Quake III's preset uses both.
 
 Set `cl_hudDump 1` to write grouped HUD draw metadata -- the cgame's, or
 F.A.K.K.2's HUD menus' -- to `fntech3-hud-dump.json` in the active writable

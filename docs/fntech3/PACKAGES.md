@@ -82,6 +82,9 @@ with Team Arena in `missionpack/`. Sound shader filenames map to the existing
 `fnql-weapon-sounds.sndshd` consumer path; authored contents and provenance
 comments are retained, with LF text normalization for reproducible packaging.
 The HUD preset is consumed by Q3's restored `cl_hudAspect` rules system.
+fnTech3 has since rewritten that preset for every part of baseq3's HUD; the
+inventory keeps FnQuake3's hash beside the new one
+([alignment record](2026-10-06-q3-hud-alignment.md)).
 The preferred custom filename is `fntech3-hud.json`, with `fnq3-hud.json` as
 the fallback. Both remain isolated to the selected profile; see
 [aspect correction](../ASPECT_CORRECTION.md).
