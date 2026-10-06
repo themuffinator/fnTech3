@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "tr_local.h"
 #include "../renderercommon/tr_jka_distance_cull.h"
+#include "../renderercommon/tr_jka_entity.h"
 #include "../renderercommon/tr_q3_ihv_entity_view.h"
 
 #include <string.h> // memcpy
@@ -3226,6 +3227,10 @@ static void R_SortDrawSurfs( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 		}
 	}
 #endif // USE_PMLIGHT
+
+	// Jedi Academy: a forced-alpha entity writes no depth, so its
+	// surfaces follow the rest of the view (renderercommon/tr_jka_entity.h).
+	R_JKADeferForcedAlphaSurfaces( drawSurfs, numDrawSurfs );
 
 	R_AddDrawSurfCmd( drawSurfs, numDrawSurfs );
 }

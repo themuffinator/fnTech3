@@ -93,6 +93,15 @@ historical upstream records, not fnTech3 release history. See the
   bolt queries, such as a weapon's muzzle, answer from the same pose. On a
   retail server the client now passes the weapon and stops next at items
   fading in with a colour tint ([record](docs/fntech3/2026-10-06-jka-attachments.md)).
+- Draw the items Jedi Academy's multiplayer client game tints or fades: its
+  colour (`RF_RGB_TINT`) replaces a stage's own, and its alpha
+  (`RF_FORCE_ENT_ALPHA`) blends single-texture stages, which then draw after
+  the rest of the view, as the original renderer does, in all three of
+  fnTech3's renderers; items fading in, greyed force items and simple-item
+  sprites are among them. The client game's decal clear is answered. On a
+  retail server the client now passes `map_restart`, a reconnect and the
+  server quitting on `mp/ffa1`, and stops on `mp/ffa3` at its ambient sound
+  set ([record](docs/fntech3/2026-10-06-jka-entity-tint.md)).
 - Answer GameSpy's LAN queries from Medal of Honor servers. A multiplayer
   server, dedicated or started from Start New Server, answers GameSpy's
   status queries on UDP 12300 or the next free port (`net_gamespy_port`,

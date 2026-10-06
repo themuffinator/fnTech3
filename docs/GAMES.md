@@ -529,10 +529,12 @@ ways and follows a map change; chat sounds play through fnTech3's own sound
 system, with Academy's channels mapped to the engine's. On the new map the
 client game's player model with an attached weapon is now posed, the weapon
 in the hand as retail poses it, and drawn through fnTech3's own skeletal
-path ([record](fntech3/2026-10-06-jka-attachments.md)); the client stops
-next at items that fade in with a colour tint the renderers do not serve
-yet, so a `map_restart` is not reached
-([record](fntech3/2026-10-06-jka-live-join.md)); a retail client on
+path ([record](fntech3/2026-10-06-jka-attachments.md)); items that fade in, greyed items
+and other entities the client game tints or fades are drawn by all three
+renderers ([record](fntech3/2026-10-06-jka-entity-tint.md)); the client
+stops next at `mp/ffa3`'s ambient sound set, which is not played yet,
+while on `mp/ffa1` a `map_restart`, a reconnect and the server quitting
+complete ([record](fntech3/2026-10-06-jka-live-join.md)); a retail client on
 fnTech3's server and rendered gameplay remain open. Academy's MP3 assets use the
 existing Fn decoder; muted probes preload a real map track through the default
 OpenAL backend. Dynamic music, audible music, ambient playback and active voice tracking

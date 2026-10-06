@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "tr_local.h"
 #include "../renderercommon/tr_stvef_alpha.h"
+#include "../renderercommon/tr_jka_entity.h"
 #include "../renderercommon/tr_rtcw_engine_lights.h"
 #include "tr_glx_compat.h"
 
@@ -1141,6 +1142,14 @@ static qboolean RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 
 			oldEntityNum = entityNum;
 		}
+
+#ifdef USE_VBO
+		// Jedi Academy's overrides colour this entity's stages as they draw,
+		// which the static world buffer's precomputed colours cannot
+		if ( tess.allowVBO && R_JKAEntityOverrides( backEnd.currentEntity ) ) {
+			tess.allowVBO = qfalse;
+		}
+#endif
 
 		// add the triangles for this surface
 		rb_surfaceTable[ *drawSurf->surface ]( drawSurf->surface );

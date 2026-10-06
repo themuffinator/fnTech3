@@ -1,0 +1,486 @@
+{
+  "record": "2026-10-06-jka-entity-tint.md",
+  "sourceCommit": "5603d2442cf77c1eb7747e1d114a655361abc865",
+  "build": {
+    "platform": "Windows 11 x86 (MSVC 2022, meson debugoptimized, strict warnings)",
+    "source": "HEAD plus this slice, exported clean; every development gate on; 1,499 targets, no warnings",
+    "runtimeFolder": ".tmp/runtime/jka-live-join (rebuilt in place)"
+  },
+  "runtime": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "f1a4d2b2fbad895f47f1af7bd565ffaf97ed657d73f68c4a8c1d710ef276ae56",
+    "fnql_rtx_x86.dll": "5fa42acc600da9fb058bfc9840dbbfa5358ba8015a8eca192840b4150e2ffb99",
+    "fnql_vk_x86.dll": "8ed401f60cba8c7b36e23b48995cdeaf271ef29c79c7597599a6d5f2532ba963",
+    "fntech3-pkg.fnz": "a8cca7cd1fd152817ac49cf74241a1d0c00e3eb4c47f056c8500e36feb06a8ff",
+    "fntech3.ded.exe": "78f8eb1c3f5ef6d5e8bc8127c51425674aea060d5bd06e2a162c0abb9623132b",
+    "fntech3.ded.pdb": "4c1b22118e63b7d70d86f8feb1c36e74b40dd8b9aee4ef9af2147a3d77ae9419",
+    "fntech3.exe": "69bec67629f480b21fb1d6bb776b792fa1df90e6e0a9ae0d1127c416e4f973c1",
+    "fntech3.pdb": "47ccd190042c8e529d69662bddd68394e2793132b084713ed4b5318c39b5e07b"
+  },
+  "runtimeBefore": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "d29eb58aa185f08f5d89f5a08a503dc0e43ad090c70faa2ff5006c8e1c21d117",
+    "fnql_rtx_x86.dll": "e3e55be77d86edc8d6c1fc0400cd8a35654f4b160967aa56ca8699a4ab4d874a",
+    "fnql_vk_x86.dll": "306d2f86fdd25b32dcff82385d465ac3a416e483b3c639035c30c11c5ef3eef1",
+    "fntech3-pkg.fnz": "a8cca7cd1fd152817ac49cf74241a1d0c00e3eb4c47f056c8500e36feb06a8ff",
+    "fntech3.ded.exe": "0ca2b3f662652b3ba0399d2f21f095b683785e78e38b8ccb79bf1877b81ebe70",
+    "fntech3.ded.pdb": "58deb08379de9ec4fff2f2c9d41e910273a295c13ba79534989a2282ad112aa6",
+    "fntech3.exe": "0c68056b09e5e7084029ee4d82b288e8e490269d45e230208188b0f4458b3614",
+    "fntech3.pdb": "790e8cb78ce73f6a38dd3fea8c276a0846e9e281999eeaf419eeb457779fc7e2"
+  },
+  "retail": {
+    "jamp.exe 1.01": {
+      "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+      "tool": "Capstone x86-32 over the PE image"
+    },
+    "base/assets3.pk3:cgamex86.dll": {
+      "sha256": "e5d5525829bfcaf3c0428d87fe804e5a46a75dcf0a141f8288061a3970ff140d",
+      "tool": "Capstone x86-32 over a read-only extraction"
+    }
+  },
+  "flags": {
+    "0x400": "RF_FORCE_ENT_ALPHA",
+    "0x800": "RF_RGB_TINT",
+    "source": "OpenJK 1a6a643 codemp/rd-common/tr_types.h; retail readings below"
+  },
+  "observed": {
+    "stageIterator": {
+      "function": "0x4af230 (log string 0x55630c referenced at 0x4af248)",
+      "stageLoop": "0x4aed70, called with tess 0x1053760 at 0x4af39a",
+      "stageStride": "0x8c",
+      "stateBits": "+0x78",
+      "currentEntity": "[0xfe2a64]",
+      "renderfx": "entity +4"
+    },
+    "tint": {
+      "test": "0x4aef7e test ah, 8 -> ebx = 3 (0x4aef83)",
+      "colourCall": "0x4aeff7 into 0x4ae280, forced source in eax",
+      "ownSourceWhenZero": "+0x58 (0x4ae2c8..0x4ae2cf)",
+      "colourTable": "0x4ae978, cases 2..13; case 3 -> 0x4ae689 -> 0x4b0ba0",
+      "entityColour": "0x4b0ba0 writes the dword at entity +0x50 to every vertex",
+      "alphaSource": "the stage's own, +0x70, table 0x4ae9a8",
+      "identityAlpha": "0x4ae70a: skipped for forced source 2, or 6 under identityLight 1.0 ([0xfe398c]); else 255",
+      "bothBranches": "colours computed before the multitexture test at 0x4af038"
+    },
+    "forcedAlpha": {
+      "branch": "single texture only, after distortion (0x4af06d..0x4af166)",
+      "test": "0x4af172 test ah, 4",
+      "vertexAlpha": "0x4aed40 writes entity +0x53 into every fourth byte; no range test",
+      "state": "0x65; 0x165 with 0x100000 (0x4af18f..0x4af19d)",
+      "draw": "GL_State 0x48a290 at 0x4af1a6, elements 0x4ac360",
+      "multitexture": "+0x24 set -> 0x4ac710 at 0x4af044, own state kept"
+    },
+    "drawOrder": {
+      "function": "0x48aab0 (RB_RenderDrawSurfList)",
+      "decode": "entity (sort >> 7) & 0x7ff, fog (sort >> 2) & 0x1f, dlight sort & 3, shader [0xff742c + (sort >> 18) * 4]",
+      "holdBack": "0x48ab7b..0x48ac14: entity != 0x7ff, held [0x10dfe24] < 0x80, flags & 0x202400",
+      "record": "0x1c bytes at 0xfe1828: fog, entity, dlight, depth range (0x10 -> 2, 0x8 -> 1), surface, shader, valid",
+      "drawn": "after the list flush (0x48ae06), last held first (0x48ae40..0x48b014), one batch each"
+    },
+    "stillRefused": {
+      "0x20": "volumetric colours, 0x4ae2d8",
+      "0x2000": "distortion, 0x4af083 and the post-render list",
+      "0x20000": "disintegration state 0x80000165, 0x4aef72",
+      "0x60000": "disintegration colours, 0x4ae2ab",
+      "0x100000": "alpha depth, 0x4af18f",
+      "0x200000": "forced post-render, 0x48aba6"
+    },
+    "clearDecals": {
+      "dispatch": "0x412c71 (client-game import 201)",
+      "body": "call [0x8af074] (renderer decal clear); xor eax, eax"
+    },
+    "clientGameItems": {
+      "addRefEntity": "0x3005e820 pushes 202 (CG_R_ADDREFENTITYTOSCENE)",
+      "fadeIn": "0x30033ff4..0x30034031: alpha msec/ITEM_SCALEUP_TIME*255, at least 1, | 0x400 unless powerup 14",
+      "fadeInOverlay": "0x3003404d..0x30034074: & ~0x400 | 0x800, colour 0/200/85",
+      "greyed": "0x30033eb5..0x30033ed7: | 0x800 | 0x400, colour 150/150/150/200",
+      "greyedHologram": "0x30033971: | 0x800",
+      "simpleItems": "0x300339c6..0x30033a5b: cg_simpleItems ([0x306f6bcc]) -> RT_SPRITE, radius 14, white, | 0x400 unless powerup 14"
+    }
+  },
+  "served": {
+    "fields": "refEntity_t.jka.rgbTint (0x800), refEntity_t.jka.forceAlpha (0x400); code/compat/jka_render_adapter.hpp",
+    "rules": "code/renderercommon/tr_jka_entity.h",
+    "renderers": [
+      "code/renderer",
+      "code/renderervk",
+      "code/rendererrtx"
+    ],
+    "pathTracer": "code/rendererrtx/rt/rt_backend.c RT_EntityClass leaves overridden entities to raster",
+    "import201": "code/client/client_jka_cgame_host.hpp returns 0"
+  },
+  "liveSessions": {
+    "command": "python scripts/probe_legacy_sessions.py --output .tmp/jka-tint/<run> --profiles jka-mp --directions join --runtime .tmp/runtime/jka-live-join --sessions main kick",
+    "runs": {
+      "sess-1": {
+        "maps": [
+          "mp/ffa1",
+          "mp/ffa3"
+        ],
+        "pure": true,
+        "installationUnchanged": true,
+        "passed": false,
+        "sessions": [
+          {
+            "session": "main",
+            "clientSha256": "69bec67629f480b21fb1d6bb776b792fa1df90e6e0a9ae0d1127c416e4f973c1",
+            "serverSha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+            "steps": [
+              {
+                "step": "server-ready",
+                "passed": true
+              },
+              {
+                "step": "join",
+                "passed": true,
+                "slot": 0
+              },
+              {
+                "step": "client-chat",
+                "passed": true
+              },
+              {
+                "step": "server-chat",
+                "passed": true
+              },
+              {
+                "step": "map-change",
+                "passed": true,
+                "map": "mp/ffa3"
+              },
+              {
+                "step": "map-restart",
+                "passed": false
+              },
+              {
+                "step": "reconnect",
+                "passed": false,
+                "slot": 0
+              },
+              {
+                "step": "server-quit",
+                "passed": false,
+                "answered": false,
+                "clientError": null,
+                "printed": null,
+                "survived": true
+              }
+            ]
+          },
+          {
+            "session": "kick",
+            "clientSha256": "69bec67629f480b21fb1d6bb776b792fa1df90e6e0a9ae0d1127c416e4f973c1",
+            "serverSha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+            "steps": [
+              {
+                "step": "server-ready",
+                "passed": true
+              },
+              {
+                "step": "kick-join",
+                "passed": true,
+                "slot": 0
+              },
+              {
+                "step": "kick",
+                "passed": true,
+                "answered": true,
+                "clientError": "disconnect \"@@@WAS_KICKED\"",
+                "printed": "fnprobe^7 @@@WAS_KICKED",
+                "survived": true
+              }
+            ]
+          }
+        ],
+        "stop": "Jedi Academy cgame active ambient playback is not served (name=city_outdoor), import 48, on mp/ffa3"
+      },
+      "sess-2-ffa1": {
+        "maps": [
+          "mp/ffa1",
+          "mp/ffa1"
+        ],
+        "pure": true,
+        "installationUnchanged": true,
+        "passed": true,
+        "sessions": [
+          {
+            "session": "main",
+            "clientSha256": "69bec67629f480b21fb1d6bb776b792fa1df90e6e0a9ae0d1127c416e4f973c1",
+            "serverSha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+            "steps": [
+              {
+                "step": "server-ready",
+                "passed": true
+              },
+              {
+                "step": "join",
+                "passed": true,
+                "slot": 0
+              },
+              {
+                "step": "client-chat",
+                "passed": true
+              },
+              {
+                "step": "server-chat",
+                "passed": true
+              },
+              {
+                "step": "map-change",
+                "passed": true,
+                "map": "mp/ffa1"
+              },
+              {
+                "step": "map-restart",
+                "passed": true
+              },
+              {
+                "step": "reconnect",
+                "passed": true,
+                "slot": 0
+              },
+              {
+                "step": "server-quit",
+                "passed": true,
+                "answered": true,
+                "clientError": "disconnect",
+                "printed": "Server quit",
+                "survived": true
+              }
+            ]
+          },
+          {
+            "session": "kick",
+            "clientSha256": "69bec67629f480b21fb1d6bb776b792fa1df90e6e0a9ae0d1127c416e4f973c1",
+            "serverSha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+            "steps": [
+              {
+                "step": "server-ready",
+                "passed": true
+              },
+              {
+                "step": "kick-join",
+                "passed": true,
+                "slot": 0
+              },
+              {
+                "step": "kick",
+                "passed": true,
+                "answered": true,
+                "clientError": "disconnect \"@@@WAS_KICKED\"",
+                "printed": "fnprobe^7 @@@WAS_KICKED",
+                "survived": true
+              }
+            ]
+          }
+        ],
+        "via": ".tmp/jka-live/probe_variant.py --maps mp/ffa1,mp/ffa1 (same binaries)"
+      }
+    },
+    "diagnostic": {
+      "note": "committed binaries; .tmp/jka-tint/capture_items.py loads the second map with devmap and places the spectator with setviewpos through the client console; no input injection",
+      "sess-5-capture": {
+        "maps": [
+          "mp/ffa1",
+          "mp/ffa1"
+        ],
+        "pure": true,
+        "installationUnchanged": true,
+        "passed": false,
+        "sessions": [
+          {
+            "session": "main",
+            "clientSha256": "69bec67629f480b21fb1d6bb776b792fa1df90e6e0a9ae0d1127c416e4f973c1",
+            "serverSha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+            "steps": [
+              {
+                "step": "server-ready",
+                "passed": true
+              },
+              {
+                "step": "join",
+                "passed": true,
+                "slot": 0
+              },
+              {
+                "step": "map-change",
+                "passed": true,
+                "map": "mp/ffa1"
+              },
+              {
+                "step": "capture-spectator",
+                "passed": true,
+                "files": [
+                  "jka_items_again.png",
+                  "jka_items_models.png",
+                  "jka_items_sprites.png"
+                ]
+              },
+              {
+                "step": "team-free",
+                "passed": true
+              },
+              {
+                "step": "capture-placeholder",
+                "passed": false,
+                "files": [
+                  "jka_items_again.png",
+                  "jka_items_models.png",
+                  "jka_items_sprites.png"
+                ]
+              }
+            ]
+          }
+        ],
+        "renderer": "glx",
+        "stop": "Unsupported jka-mp cgame import 37 (CG_S_STARTSOUND) after team free"
+      },
+      "sess-6-capture-vk": {
+        "maps": [
+          "mp/ffa1",
+          "mp/ffa1"
+        ],
+        "pure": true,
+        "installationUnchanged": true,
+        "passed": true,
+        "sessions": [
+          {
+            "session": "main",
+            "clientSha256": "69bec67629f480b21fb1d6bb776b792fa1df90e6e0a9ae0d1127c416e4f973c1",
+            "serverSha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+            "steps": [
+              {
+                "step": "server-ready",
+                "passed": true
+              },
+              {
+                "step": "join",
+                "passed": true,
+                "slot": 0
+              },
+              {
+                "step": "map-change",
+                "passed": true,
+                "map": "mp/ffa1"
+              },
+              {
+                "step": "capture-spectator",
+                "passed": true,
+                "files": [
+                  "jka_items_again.png",
+                  "jka_items_models.png",
+                  "jka_items_sprites.png"
+                ]
+              }
+            ]
+          }
+        ],
+        "renderer": "vk (renderer_switch)"
+      },
+      "sess-6-capture-rtx": {
+        "maps": [
+          "mp/ffa1",
+          "mp/ffa1"
+        ],
+        "pure": true,
+        "installationUnchanged": true,
+        "passed": true,
+        "sessions": [
+          {
+            "session": "main",
+            "clientSha256": "69bec67629f480b21fb1d6bb776b792fa1df90e6e0a9ae0d1127c416e4f973c1",
+            "serverSha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+            "steps": [
+              {
+                "step": "server-ready",
+                "passed": true
+              },
+              {
+                "step": "join",
+                "passed": true,
+                "slot": 0
+              },
+              {
+                "step": "map-change",
+                "passed": true,
+                "map": "mp/ffa1"
+              },
+              {
+                "step": "capture-spectator",
+                "passed": true,
+                "files": [
+                  "jka_items_again.png",
+                  "jka_items_models.png",
+                  "jka_items_sprites.png"
+                ]
+              }
+            ]
+          }
+        ],
+        "renderer": "rtx (renderer_switch)"
+      }
+    }
+  },
+  "mutations": {
+    "tint ignored": "killed",
+    "tint on every bundle": "killed",
+    "identity alpha reads the stage source (GL)": "killed",
+    "identity alpha reads the stage source (Vulkan)": "killed",
+    "tint in shadow passes": "killed",
+    "forced alpha on multitexture": "killed",
+    "forced alpha fixed at 255": "killed",
+    "forced alpha in shadow passes": "killed",
+    "no deferral": "killed",
+    "stale entity deferred": "killed",
+    "deferred in reverse": "killed",
+    "adapter swaps the flags": "killed",
+    "adapter accepts every flag": "killed",
+    "adapter aliases tint to a Q3 flag": "killed",
+    "add combines swapped (Vulkan)": "killed",
+    "entity colour type kept (RTX)": "killed",
+    "constant colour kept (Vulkan)": "killed",
+    "traced anyway": "killed",
+    "decal clear returns one": "killed"
+  },
+  "tests": [
+    "tests/jka_entity_override_tests.py",
+    "tests/jka_render_tests.cpp",
+    "tests/jka_cgame_render_tests.py",
+    "tests/stvef_forced_alpha_tests.py"
+  ],
+  "suite": {
+    "export": "HEAD 5603d244 plus this slice",
+    "meson": {
+      "tests": 249,
+      "passed": 244,
+      "skipped": 2,
+      "failedBeforeUpdate": [
+        "fntech3_jka_render",
+        "fntech3_jka_cgame_render"
+      ],
+      "passedAfterUpdate": [
+        "fntech3_jka_render",
+        "fntech3_jka_cgame_render"
+      ],
+      "timedOut": {
+        "fntech3_jka_pose_host": "parallel run; alone 27.05 s"
+      },
+      "excluded": "fnql_python_source_regressions (the pytest suite, run separately)"
+    },
+    "pytest": {
+      "export": "HEAD 2fcbcf3d plus this slice (committed inside the export)",
+      "passed": 2550,
+      "skipped": 130,
+      "failed": 0,
+      "seconds": 3021.85
+    }
+  },
+  "open": [
+    "present ambient sets (client-game import 48)",
+    "the first sound a joined player's client game starts (import 37)",
+    "decals (import 205)",
+    "flags 0x20, 0x2000, 0x20000, 0x40000, 0x100000, 0x200000",
+    "a capture of a tinted entity, and of an attached weapon",
+    "retail's reverse post-render order and 128-surface limit (presentation)"
+  ]
+}

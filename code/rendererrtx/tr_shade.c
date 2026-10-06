@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_ritual_far_fog_render.h"
 #include "../renderercommon/tr_rtcw_normal_fade.h"
 #include "../renderercommon/tr_stvef_alpha.h"
+#include "../renderercommon/tr_jka_entity.h"
 
 /*
 
@@ -810,7 +811,10 @@ void R_ComputeColors( const int b, color4ub_t *dest, const shaderStage_t *pStage
 	//
 	// rgbGen
 	//
-	switch ( pStage->bundle[b].rgbGen )
+	// Jedi Academy: a tinted entity's colour replaces the stage's source.
+	const colorGen_t rgbGen = RB_JKAStageRGBGen( pStage->bundle[b].rgbGen, b );
+
+	switch ( rgbGen )
 	{
 		case CGEN_IDENTITY:
 			Com_Memset( dest, 0xff, tess.numVertexes * 4 );
@@ -911,8 +915,8 @@ void R_ComputeColors( const int b, color4ub_t *dest, const shaderStage_t *pStage
 	case AGEN_SKIP:
 		break;
 	case AGEN_IDENTITY:
-		if ( ( pStage->bundle[b].rgbGen == CGEN_VERTEX && tr.identityLight != 1 ) ||
-			 pStage->bundle[b].rgbGen != CGEN_VERTEX ) {
+		if ( ( rgbGen == CGEN_VERTEX && tr.identityLight != 1 ) ||
+			 rgbGen != CGEN_VERTEX ) {
 			for ( i = 0; i < tess.numVertexes; i++ ) {
 				dest[i].rgba[3] = 255;
 			}
@@ -1333,6 +1337,53 @@ static qboolean VK_STVEFForcedAlphaPipeline( uint32_t pipeline, uint32_t *forced
 	return qtrue;
 }
 
+/* Jedi Academy's tint draws a stage with the vertex colours it computes, the
+ * entity's in place of the first bundle's own (renderercommon/tr_jka_entity.h):
+ * a pipeline that takes a constant colour or none takes them instead. Every
+ * other generic type already reads the first bundle's colours. */
+static qboolean VK_JKATintPipeline( uint32_t pipeline, const shaderStage_t *pStage, uint32_t *tinted )
+{
+	Vk_Pipeline_Def def;
+
+	vk_get_pipeline_def( pipeline, &def );
+	switch ( def.shader_type ) {
+	case TYPE_SIGNLE_TEXTURE_IDENTITY:
+	case TYPE_SIGNLE_TEXTURE_FIXED_COLOR:
+	case TYPE_SIGNLE_TEXTURE_ENT_COLOR:
+		def.shader_type = TYPE_SIGNLE_TEXTURE;
+		break;
+	case TYPE_SIGNLE_TEXTURE_IDENTITY_ENV:
+	case TYPE_SIGNLE_TEXTURE_FIXED_COLOR_ENV:
+	case TYPE_SIGNLE_TEXTURE_ENT_COLOR_ENV:
+		def.shader_type = TYPE_SIGNLE_TEXTURE_ENV;
+		break;
+	case TYPE_MULTI_TEXTURE_MUL2_IDENTITY:
+	case TYPE_MULTI_TEXTURE_MUL2_FIXED_COLOR:
+		def.shader_type = TYPE_MULTI_TEXTURE_MUL2;
+		break;
+	case TYPE_MULTI_TEXTURE_MUL2_IDENTITY_ENV:
+	case TYPE_MULTI_TEXTURE_MUL2_FIXED_COLOR_ENV:
+		def.shader_type = TYPE_MULTI_TEXTURE_MUL2_ENV;
+		break;
+	case TYPE_MULTI_TEXTURE_ADD2_IDENTITY:
+	case TYPE_MULTI_TEXTURE_ADD2_FIXED_COLOR:
+		def.shader_type = pStage->mtEnv == GL_ADD_NONIDENTITY ?
+			TYPE_MULTI_TEXTURE_ADD2 : TYPE_MULTI_TEXTURE_ADD2_1_1;
+		break;
+	case TYPE_MULTI_TEXTURE_ADD2_IDENTITY_ENV:
+	case TYPE_MULTI_TEXTURE_ADD2_FIXED_COLOR_ENV:
+		def.shader_type = pStage->mtEnv == GL_ADD_NONIDENTITY ?
+			TYPE_MULTI_TEXTURE_ADD2_ENV : TYPE_MULTI_TEXTURE_ADD2_1_1_ENV;
+		break;
+	default:
+		return qfalse;
+	}
+	def.color.rgb = 0;
+	def.color.alpha = 0;
+	*tinted = vk_find_pipeline_ext( 0, &def, qfalse );
+	return qtrue;
+}
+
 static void RB_IterateStagesGeneric( const shaderCommands_t *input, qboolean fogCollapse )
 #else
 static void RB_IterateStagesGeneric( const shaderCommands_t *input )
@@ -1347,8 +1398,8 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 	int fog_stage;
 	qboolean pushUniform;
 	int forcedAlpha;
-	uint32_t forcedPipeline;
-	qboolean forced;
+	uint32_t forcedPipeline, stagePipeline;
+	qboolean forced, tint, tinted;
 
 	vk_bind_index();
 
@@ -1389,13 +1440,24 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 #endif
 
 #ifdef USE_VULKAN
+		stagePipeline = backEnd.viewParms.portalView == PV_MIRROR
+			? pStage->vk_mirror_pipeline[fog_stage] : pStage->vk_pipeline[fog_stage];
 		// Elite Force: the batch's entity alpha replaces the stage's own.
 		forcedAlpha = RB_STVEFStageAlpha( pStage );
 		forcedPipeline = 0;
-		forced = forcedAlpha && VK_STVEFForcedAlphaPipeline( backEnd.viewParms.portalView == PV_MIRROR
-			? pStage->vk_mirror_pipeline[fog_stage] : pStage->vk_pipeline[fog_stage], &forcedPipeline );
+		forced = forcedAlpha && VK_STVEFForcedAlphaPipeline( stagePipeline, &forcedPipeline );
+		// Jedi Academy: so does the entity's own alpha when it asks, with the
+		// same state, and a tint gives the stage the entity's colour.
+		tint = RB_JKAStageTint();
+		tinted = qfalse;
+		if ( !forced && RB_JKAStageAlpha( pStage, &forcedAlpha ) ) {
+			forced = VK_STVEFForcedAlphaPipeline( stagePipeline, &forcedPipeline );
+		}
+		if ( !forced && tint ) {
+			tinted = VK_JKATintPipeline( stagePipeline, pStage, &forcedPipeline );
+		}
 		tess_flags |= pStage->tessFlags;
-		if ( forced ) {
+		if ( forced || tint ) {
 			tess_flags |= TESS_RGBA0;
 		}
 
@@ -1455,7 +1517,7 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 #ifdef USE_PMLIGHT
 			pipeline = VK_ShadowCasterPipeline( pipeline );
 #endif
-		if ( forced ) {
+		if ( forced || tinted ) {
 			pipeline = forcedPipeline;
 		}
 

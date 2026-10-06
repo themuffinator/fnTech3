@@ -66,6 +66,10 @@ Start with the [README](../README.md) for an overview, then the
 - [October 6 Quake Live listen servers and their server type](fntech3/2026-10-06-ql-listen-server-type.md)
   -- retail's offline, LAN and Internet admission, which replaces the game
   type and the single-player flag for a match started from the client.
+- [October 6 Jedi Academy entity tint and forced alpha](fntech3/2026-10-06-jka-entity-tint.md)
+  -- retail's stage colour, alpha and draw order for the client game's tinted
+  and fading entities in Fn's renderers, the decal clear, and `map_restart`,
+  reconnect and quit against retail `jamp.exe`.
 - [October 6 Jedi Academy Ghoul2 attachments](fntech3/2026-10-06-jka-attachments.md)
   -- models posed from another model's bolt in the client game, retail's tag
   frame, and the next boundary against retail `jamp.exe`.

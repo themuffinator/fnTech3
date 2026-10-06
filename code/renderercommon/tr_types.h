@@ -121,6 +121,15 @@ typedef struct {
 	qboolean forceAlpha;		// retail renderfx 0x800: shaderRGBA alpha on single-texture stages
 } stvefRenderEntity_t;
 
+// Engine-owned Jedi Academy multiplayer colour and alpha overrides. The client
+// adapter turns the module's render flags that have no shared meaning into
+// these (code/compat/jka_render_adapter.hpp); the renderers apply them as
+// code/renderercommon/tr_jka_entity.h describes.
+typedef struct {
+	qboolean rgbTint;			// retail renderfx 0x800: every stage takes the entity's colour
+	qboolean forceAlpha;		// retail renderfx 0x400: single-texture stages take its alpha, blended
+} jkaRenderEntity_t;
+
 // Engine-owned RTCW animation/effect state. Module records are frozen in
 // compat/ and translated before crossing the renderer API.
 typedef struct {
@@ -250,6 +259,7 @@ typedef struct {
 	rtcwRenderEntity_t rtcw;
 	wolfetRenderEntity_t wolfet;
 	stvefRenderEntity_t stvef;
+	jkaRenderEntity_t jka;
 	fnQ3IHVEntityState_t q3IHV;
 	aliceRenderEntity_t alice;
 	mohaaRenderEntity_t mohaa;

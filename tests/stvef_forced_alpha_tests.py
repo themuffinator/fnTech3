@@ -158,11 +158,14 @@ class STVEFForcedAlphaTests(unittest.TestCase):
         shade = read('code/renderer/tr_shade.c')
         self.assertIn('#include "../renderercommon/tr_stvef_alpha.h"', shade)
         generic = function_body(shade, 'static void RB_IterateStagesGeneric(')
-        self.assertIn('const int forcedAlpha = RB_STVEFStageAlpha( pStage );', generic)
+        # Jedi Academy's forced alpha shares the branch (jka_entity_override_tests.py).
+        self.assertIn('int forcedAlpha = RB_STVEFStageAlpha( pStage );', generic)
+        self.assertIn('unsigned forcedState = STVEF_FORCED_ALPHA_STATE;', generic)
+        self.assertIn('qboolean forced = forcedAlpha ? qtrue : qfalse;', generic)
         self.assertIn('RB_STVEFSetVertexAlpha( tess.svars.colors, tess.numVertexes, forcedAlpha );', generic)
-        self.assertIn('GL_State( forcedAlpha ? STVEF_FORCED_ALPHA_STATE : pStage->stateBits );', generic)
-        self.assertIn('if ( pStage->depthFragment && !forcedAlpha )', generic)
-        self.assertIn('if ( !depthFade && !forcedAlpha ) {', generic)
+        self.assertIn('GL_State( forced ? forcedState : pStage->stateBits );', generic)
+        self.assertIn('if ( pStage->depthFragment && !forced )', generic)
+        self.assertIn('if ( !depthFade && !forced ) {', generic)
         single = ['TYPE_SIGNLE_TEXTURE', 'TYPE_SIGNLE_TEXTURE_IDENTITY', 'TYPE_SIGNLE_TEXTURE_FIXED_COLOR',
                   'TYPE_SIGNLE_TEXTURE_ENT_COLOR', 'TYPE_SIGNLE_TEXTURE_DF', 'TYPE_SIGNLE_TEXTURE_ENV',
                   'TYPE_SIGNLE_TEXTURE_IDENTITY_ENV', 'TYPE_SIGNLE_TEXTURE_FIXED_COLOR_ENV',

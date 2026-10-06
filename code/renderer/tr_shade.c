@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_mohaa_shade.h"
 #include "../renderercommon/tr_rtcw_normal_fade.h"
 #include "../renderercommon/tr_stvef_alpha.h"
+#include "../renderercommon/tr_jka_entity.h"
 #include "tr_glx_compat.h"
 
 #ifndef GL_COMBINE
@@ -1526,7 +1527,10 @@ void R_ComputeColors( const shaderStage_t *pStage )
 	//
 	// rgbGen
 	//
-	switch ( pStage->rgbGen )
+	// Jedi Academy: a tinted entity's colour replaces the stage's source.
+	const colorGen_t rgbGen = RB_JKAStageRGBGen( pStage->rgbGen, 0 );
+
+	switch ( rgbGen )
 	{
 		case CGEN_IDENTITY:
 			Com_Memset( tess.svars.colors, 0xff, tess.numVertexes * 4 );
@@ -1631,8 +1635,8 @@ void R_ComputeColors( const shaderStage_t *pStage )
 	case AGEN_SKIP:
 		break;
 	case AGEN_IDENTITY:
-		if ( ( pStage->rgbGen == CGEN_VERTEX && tr.identityLight != 1 ) ||
-			 pStage->rgbGen != CGEN_VERTEX ) {
+		if ( ( rgbGen == CGEN_VERTEX && tr.identityLight != 1 ) ||
+			 rgbGen != CGEN_VERTEX ) {
 			for ( i = 0; i < tess.numVertexes; i++ ) {
 				tess.svars.colors[i].rgba[3] = 255;
 			}
@@ -1958,7 +1962,15 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 			qboolean glxStreamedDraw = qfalse;
 			qboolean depthFade = RB_DepthFadeActive( pStage );
 			// Elite Force: the batch's entity alpha replaces the stage's own.
-			const int forcedAlpha = RB_STVEFStageAlpha( pStage );
+			int forcedAlpha = RB_STVEFStageAlpha( pStage );
+			unsigned forcedState = STVEF_FORCED_ALPHA_STATE;
+			qboolean forced = forcedAlpha ? qtrue : qfalse;
+
+			// Jedi Academy: so does the entity's own alpha when it asks.
+			if ( !forced && RB_JKAStageAlpha( pStage, &forcedAlpha ) ) {
+				forced = qtrue;
+				forcedState = JKA_FORCED_ALPHA_STATE;
+			}
 
 #ifdef RENDERER_GLX
 			GLX_CompatRecordMaterialStage( pStage, GLX_STAGE_PATH_GENERIC, input->numVertexes, input->numIndexes );
@@ -1975,7 +1987,7 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 				qglTexCoordPointer( 2, GL_FLOAT, 0, input->svars.texcoordPtr[0] );
 				qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, input->svars.colors[0].rgba );
 			}
-			if ( forcedAlpha ) {
+			if ( forced ) {
 				RB_STVEFSetVertexAlpha( tess.svars.colors, tess.numVertexes, forcedAlpha );
 				depthFade = qfalse;
 			}
@@ -1992,13 +2004,13 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 				R_BindAnimatedImage( &pStage->bundle[0] );
 			}
 
-			GL_State( forcedAlpha ? STVEF_FORCED_ALPHA_STATE : pStage->stateBits );
+			GL_State( forced ? forcedState : pStage->stateBits );
 
 			//
 			// draw
 			//
 #ifdef RENDERER_GLX
-			if ( !depthFade && !forcedAlpha ) {
+			if ( !depthFade && !forced ) {
 				glxStreamedDraw = GLX_TryStreamDrawStage( input, pStage, qfalse, 0 );
 			}
 #endif
@@ -2008,7 +2020,7 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 					RB_DrawDepthFadeStage( input );
 				else
 					R_DrawElements( input->numIndexes, input->indexes );
-				if ( pStage->depthFragment && !forcedAlpha )
+				if ( pStage->depthFragment && !forced )
 				{
 					GL_State( pStage->stateBits | GLS_DEPTHMASK_TRUE );
 					GL_ProgramEnable();

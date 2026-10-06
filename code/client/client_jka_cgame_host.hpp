@@ -112,6 +112,12 @@ static bool CL_JKACgameCall(intptr_t *args, intptr_t &operation, intptr_t &resul
         fntech3::jka::cgame::scene::state.ClearScene();
         operation=CG_R_CLEARSCENE;
         return false;
+    case Call::CG_R_CLEARDECALS:
+        // Retail 0x412c71 calls only the renderer's decal clear and returns
+        // zero. No Academy decal reaches Fn (import 205 stays refused by
+        // name), so its pool is always empty and there is nothing to clear.
+        result = 0;
+        return true;
     case Call::CG_R_ADDREFENTITYTOSCENE: {
         fntech3_jka_mp_refEntity_t source;
         std::memcpy(&source,CL_JKACgameSpan(args[1],sizeof(source)),sizeof(source));

@@ -168,9 +168,13 @@ int main(){
   if(kind==0)bad.ghoul2=0x12345678;if(kind==1)bad.customSkin=1;if(kind==2)bad.skinNum=1;
   if(kind==3)bad.uRefEnt.miniCount=1;if(kind==4)bad.modelScale[1]=2;if(kind==5)bad.reType=2;
   if(kind==6){std::uint32_t nan=0x7fc00001;std::memcpy(&bad.angles[0],&nan,4);}
-  if(kind==7)bad.renderfx|=0x400;
+  if(kind==7)bad.renderfx|=0x1000;
   Reject([&]{Queue(bad);});assert(scene::state.pending.empty()&&draws==3);
  }
+ // Academy's tint and forced alpha (0x800, 0x400) are served as their own
+ // entity fields (jka_entity_override_tests.py), so the instance queues.
+ {auto faded=record;faded.renderfx|=0xc00;Queue(faded);
+  assert(scene::state.pending.size()==1&&scene::state.pending[0].renderfx==(0x82|0xc00)&&draws==3);ClearScene();}
  vm.index=VM_UI;Reject([&]{Queue(record);});vm.index=VM_CGAME;
  vm.entryPoint=nullptr;Reject([&]{Queue(record);});vm.entryPoint=reinterpret_cast<decltype(vm.entryPoint)>(1);
  vm.dllExports=reinterpret_cast<decltype(vm.dllExports)>(1);Reject([&]{Queue(record);});vm.dllExports=nullptr;
