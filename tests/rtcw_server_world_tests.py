@@ -19,6 +19,7 @@ PRELUDE = r'''
 #include "code/server/server.h"
 #include "code/server/server_game_data.h"
 #include "code/server/server_world_bounds.hpp"
+#include "code/qcommon/cm_model_handles.h"
 #include "code/compat/q3_ihv_collision.hpp"
 #include "code/server/sv_collision_model.hpp"
 #include "code/compat/game_abi_adapter.h"

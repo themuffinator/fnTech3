@@ -85,7 +85,10 @@ ServerGhoul2Files ravenGhoul2Files;
  * needs the game disc, so the answers are read, not observed. See
  * docs/fntech3/2026-10-06-jedi-server-attachments.md and
  * docs/fntech3/2026-10-07-jk2-server-clips.md. */
-fntech3::ghoul2::Store ravenGhoul2Academy( ravenGhoul2Files, true, true, true );
+/* Both setters and AddBolt fold ASCII case in Academy's shared retail core;
+ * measured through its server imports in 2026-10-07-jka-bone-names.md. */
+fntech3::ghoul2::Store ravenGhoul2Academy( ravenGhoul2Files, true, true, true,
+	false, fntech3::ghoul2::NameMatch::AsciiFolded );
 fntech3::ghoul2::Store ravenGhoul2Outcast( ravenGhoul2Files, true, false, true, true );
 fntech3::ghoul2::SkinRegistry ravenSkins( ravenGhoul2Files );
 

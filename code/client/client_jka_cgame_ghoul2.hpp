@@ -63,7 +63,10 @@ static void CL_JKACgameGhoul2Clear() {
 
 static fntech3::ghoul2::Store &CL_JKACgameGhoul2Store() {
     if (!jkaCgameGhoul2Store)
-        jkaCgameGhoul2Store = std::make_unique<fntech3::ghoul2::Store>(jkaCgameGhoul2Files,true,true,true);
+        // The same retail cores as the server: 0x4df310, 0x4df460, 0x4df820.
+        // docs/fntech3/2026-10-07-jka-bone-names.md pins their name matching.
+        jkaCgameGhoul2Store = std::make_unique<fntech3::ghoul2::Store>(jkaCgameGhoul2Files,true,true,true,
+            false,fntech3::ghoul2::NameMatch::AsciiFolded);
     return *jkaCgameGhoul2Store;
 }
 

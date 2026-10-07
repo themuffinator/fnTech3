@@ -68,7 +68,7 @@ server and three renderers -- aims to run ten games:
 | Wolfenstein: Enemy Territory | `wolfet` (`et`) | Experimental: `-Dwolfet-development=true`. |
 | Star Trek Voyager: Elite Force | `stvef-sp`, `stvef-mp` | Experimental: `-Dstvef-development=true`; single player on Windows only. |
 | Star Wars Jedi Knight: Jedi Academy | `jka-sp`, `jka-mp` | Experimental and early: `-Djka-development=true`. A multiplayer server runs, and the client joins original servers with parts of the game drawn; the campaign and full graphics are still to come. |
-| Star Wars Jedi Knight II: Jedi Outcast | `jk2-sp`, `jk2-mp` | Experimental and early: `-Djk2-development=true`. A multiplayer server runs; there is no working client yet. |
+| Star Wars Jedi Knight II: Jedi Outcast | `jk2-sp`, `jk2-mp` | Experimental and early: `-Djk2-development=true`. A multiplayer server runs with tested bot saber combat; there is no working client yet. |
 | American McGee's Alice | `alice` | Experimental, Windows: `-Dalice-development=true`. |
 | Heavy Metal: F.A.K.K.2 | `fakk2` | Experimental, Windows: `-Dfakk2-development=true`. |
 | Medal of Honor: Allied Assault | `mohaa` | Experimental, Windows: `-Dmohaa-development=true`. |

@@ -1672,6 +1672,8 @@ foreach jk2_test : ['handshake', 'client_adapter', 'font', 'message_codec']
 endforeach
 
 test('jk2-sp-host', python, args: files('tests/jk2_sp_host_tests.py'))
+test('fntech3_jk2_bot_collision', python, args: files('tests/jk2_bot_collision_tests.py'))
+test('fntech3_jk2_actions', python, args: files('tests/jk2_actions_tests.py'))
 
 nav_graph_tests = executable('fntech3_nav_graph_tests',
   'tests/nav_graph_tests.cpp',

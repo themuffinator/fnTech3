@@ -622,7 +622,9 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		 * The three orientations say which way round the angles are meant.
 		 * The engine records them; turning them into a matrix is a renderer's
 		 * business and is not measured here. The model list is a Ghoul2 handle
-		 * array the game passes for its own bookkeeping and is not read. */
+		 * array the game passes for its own bookkeeping and is not read.
+		 * Academy's store matches names without ASCII case, as this core's
+		 * find/add do (0x4e2be0/0x4e2c70); see the bone names record. */
 		VM_CHECKBOUNDS( gvm, args[4], sizeof( vec3_t ) );
 		result = ravenGhoul2.SetBoneAngles( pointer( 1 ), static_cast<int>( args[2] ),
 			text( 3 ), static_cast<const float *>( pointer( 4 ) ),
@@ -653,7 +655,9 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		 * The setter marks the bone's record with 0x8000 before it takes the
 		 * flags (0x4e334f), so that bit in the flags is no part of the clip:
 		 * the retail game hands import 597's answer, mark and all, straight
-		 * back here. The store keeps the mark in the bone's word itself. */
+		 * back here. The store keeps the mark in the bone's word itself.
+		 * Its Academy name policy also finds differently cased prior clips
+		 * for blending: docs/fntech3/2026-10-07-jka-bone-names.md. */
 		{
 			const int first = args[4] >= 0 && args[4] < 100000 ? static_cast<int>( args[4] ) : 0;
 			const int last = args[5] > 0 && args[5] < 100000 ? static_cast<int>( args[5] ) : 1;
@@ -772,7 +776,8 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		 * bone of the skeleton -- that the game asks about by index later.
 		 * Both files name their own, and the store read those names when the
 		 * model loaded, so this is a lookup and not an invention. A name the
-		 * model does not carry is reported as no bolt. */
+		 * model does not carry is reported as no bolt. Academy folds ASCII
+		 * case for surfaces, bones and duplicate additions, as 0x4e22d0 does. */
 		result = ravenGhoul2.AddBolt( pointer( 1 ), static_cast<int>( args[2] ), text( 3 ) );
 		return true;
 

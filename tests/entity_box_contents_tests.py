@@ -282,13 +282,14 @@ static void Sweep(){
 }
 int main(){
  const int contents[4]={0,CONTENTS_CORPSE,CONTENTS_TRIGGER,CONTENTS_SOLID};
- const Event restore{'S',CONTENTS_BODY,CONTENTS_BODY};
  int runs=0;
  try{
   // Forcing the policy runs each profile's own sweep loop with the box's
   // contents set, so every way out of that loop is covered.
   for(const auto &catalogProfile:profiles)for(bool forced:{false,true}){
    profile=catalogProfile;
+   const int body=profile.id==COM_GAME_JK2_MP?0x100:CONTENTS_BODY;
+   const Event restore{'S',body,body};
    if(forced)profile.entityBoxContentsPolicy=COM_ENTITY_BOX_CONTENTS_ENTITY;
    const bool own=profile.entityBoxContentsPolicy==COM_ENTITY_BOX_CONTENTS_ENTITY;
    owned={};
@@ -305,32 +306,32 @@ int main(){
    const auto swept=[&](clipHandle_t model,int entityContents){
     const bool set=own&&model==box;
     if(set)expected.push_back({'S',entityContents,entityContents});
-    expected.push_back({'T',model,set?entityContents:CONTENTS_BODY});
+    expected.push_back({'T',model,set?entityContents:body});
     if(set)expected.push_back(restore);
    };
    // Only the box's sweep carries the entity's contents, and only while it runs.
-   events.clear();boxContents=CONTENTS_BODY;throwAt=solidAt=-1;
+   events.clear();boxContents=body;throwAt=solidAt=-1;
    Sweep();swept(box,contents[1]);swept(flagged,contents[2]);swept(1,contents[3]);
    Check(events==expected,"Sweep order and contents");
-   Check(boxContents==CONTENTS_BODY,"Box restored after the sweep");
+   Check(boxContents==body,"Box restored after the sweep");
    // An all-solid result returns before the next entity.
    events.clear();expected.clear();solidAt=box;
    Sweep();swept(box,contents[1]);
    Check(events==expected,"All-solid return");
-   Check(boxContents==CONTENTS_BODY,"Box restored after an all-solid return");
+   Check(boxContents==body,"Box restored after an all-solid return");
    // An error thrown out of the box's sweep unwinds through the restore.
    events.clear();expected.clear();solidAt=-1;throwAt=box;bool dropped=false;
    try{Sweep();}catch(Drop&){dropped=true;}
    swept(box,contents[1]);
    Check(dropped&&events==expected,"Unwound sweep");
-   Check(boxContents==CONTENTS_BODY,"Box restored when a sweep throws");
+   Check(boxContents==body,"Box restored when a sweep throws");
    throwAt=-1;
    // Single-entity traces and point contents never change the box.
    events.clear();trace_t single;vec3_t start{0,0,0},end{512,0,0},lo{-1,-1,-1},hi{1,1,1};
    SV_ClipToEntity(&single,start,lo,hi,end,1,-1,qfalse);
-   Check((events==std::vector<Event>{{'T',box,CONTENTS_BODY}}),"SV_ClipToEntity keeps CONTENTS_BODY");
+   Check((events==std::vector<Event>{{'T',box,body}}),"SV_ClipToEntity keeps the profile's BODY bit");
    events.clear();SV_PointContents(start,ENTITYNUM_NONE);
-   Check((events==std::vector<Event>{{'P',box,CONTENTS_BODY},{'P',flagged,CONTENTS_BODY},{'P',1,CONTENTS_BODY}}),
+   Check((events==std::vector<Event>{{'P',box,body},{'P',flagged,body},{'P',1,body}}),
     "SV_PointContents keeps CONTENTS_BODY");
    ++runs;
   }
@@ -461,7 +462,7 @@ class EntityBoxContentsTests(unittest.TestCase):
         load = (ROOT/'code/qcommon/cm_load.c').read_text(encoding='utf-8')
         # The box is built as CONTENTS_BODY, and CM_TempBoxModel leaves the
         # contents alone, as the originals do.
-        self.assertIn('box_brush->contents = CONTENTS_BODY;', function(load, 'static void CM_InitBoxHull( void )'))
+        self.assertIn('box_brush->contents = CM_BodyContents();', function(load, 'static void CM_InitBoxHull( void )'))
         self.assertNotIn('contents', function(load, 'clipHandle_t CM_TempBoxModel('))
 
 

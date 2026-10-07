@@ -1,0 +1,1399 @@
+{
+  "date": "2026-10-07",
+  "profile": "jka-mp",
+  "evidence": [
+    "Source",
+    "Unit",
+    "Live subset: synthetic game imports against retail dedicated server"
+  ],
+  "gateClosed": false,
+  "scope": {
+    "enabled": [
+      "Academy MP server",
+      "Academy MP client game"
+    ],
+    "unchanged": [
+      "Jedi Outcast stores and clip timing",
+      "default store name policy",
+      "Academy SP/UI name policy"
+    ],
+    "clientEvidence": "Retail cgame handlers 303, 302 and 317 reach the same wrappers as server 596, 595 and 593. Client adapter unit tests pass; no client runtime/rendering measurement in this task.",
+    "names": "ASCII A-Z folding only; all other bytes exact; no locale-dependent non-ASCII claim"
+  },
+  "implementationOrigin": "Independently authored from retail observations; no retail or external implementation text incorporated.",
+  "sourceCommit": "59ca4826eaad7a49b760f917f2b27912c2c3c905",
+  "build": {
+    "configuration": "Windows x86 MSVC 19.44.35222, Meson debugoptimized, strict-warnings=true, static CRT, all development gates enabled",
+    "isolatedExport": ".tmp/jka-bone-names/src",
+    "isolatedBuild": ".tmp/jka-bone-names/build",
+    "targets": [
+      "fntech3",
+      "fntech3.ded",
+      "fntech3_raven_ghoul2_server_tests",
+      "fntech3_jka_pose_tests"
+    ],
+    "passed": true,
+    "warnings": 0,
+    "sourceOverlaySha256": {
+      "code/ghoul2/ghoul2_server.hpp": "c6350f31fedf6865cdf9126fd7f2a4720cae4d6546cae1e3fd93120090841f32",
+      "code/server/server_raven_assets.hpp": "c09c42a57fdefc068175bbb5b051b204eaf0179514fdf19652760f40e8f00641",
+      "code/server/server_jka_game.hpp": "dafa28ece52a3c25a010d8b0386e33b74c443110c3e1b044e3397e75cf72ad33",
+      "code/client/client_jka_cgame_ghoul2.hpp": "e7cbed0491cd3aefe222cabc90bfd9d1767718e48e3394f77c8221a5a982deaa",
+      "tests/jka_server_attachment_tests.py": "0a26b8b7737f21fc11dab55b43dc38215a190869904669a13b489f85d5920df1",
+      "tests/jka_cgame_ghoul2_tests.py": "66df4e375597286618c279d8560a2eb13dd9011c5922b9769387fd4687cbb300"
+    },
+    "binarySha256": {
+      "fntech3.exe": "e5203747c1923e782a446243837e1e146bd301f3384a6a56192f6e4af82f4ecd",
+      "fntech3.ded.exe": "203764bc254866dd7eb9b83fd9bb08d00f7e3069ef04e2707a737cd8b2ca74bf"
+    },
+    "compileLogSha256": "74661a1cd3865fbe49883e9d8f09b4b6bd508c9692916ab377046e0b6b96f438",
+    "setupNote": "Initial isolated dependency copy lacked imgui; copied the already present wrap-pinned dependency f1cc2ae15e53a861a874c3034aae6798fde194ab and configured/built successfully."
+  },
+  "fixture": {
+    "source": "tests/fixtures/jka_bone_names_probe.cpp",
+    "sourceSha256": "0b74a5acfcac0dd77990ab1d10c159919faad594c78cc0129edef340505269af",
+    "buildScript": ".tmp/jka-bone-names/build-probe.ps1",
+    "runner": ".tmp/jka-bone-names/run-probe.py",
+    "comparisonScript": ".tmp/jka-bone-names/compare.py",
+    "assets": {
+      "maps/mp/ffa1.bsp": {
+        "archive": "assets0.pk3",
+        "size": 4617652,
+        "sha256": "87c7732e8439ab01cc7b7d2bc17333133102a16d42b086636b4af0a7ed0d6f9a"
+      },
+      "models/players/kyle/model.glm": {
+        "archive": "assets1.pk3",
+        "size": 394276,
+        "sha256": "3c02518cb8920ec6205b9f3981f70204f7d6588f8753e6887bc67647029cfa28"
+      },
+      "models/players/_humanoid/_humanoid.gla": {
+        "archive": "assets1.pk3",
+        "size": 11802400,
+        "sha256": "7c9c6ee6a37848623563b2c0156d080f65c87cfce196bae78e81163b2f6fbad6"
+      },
+      "models/weapons2/blaster_pistol/blaster_pistol_w.glm": {
+        "archive": "assets1.pk3",
+        "size": 68244,
+        "sha256": "74474f37dbde7dfa5f37e9b75a0ca840f8126f0ee6196cfbf05b652a47f66cd9"
+      }
+    },
+    "canonicalFoldedPairs": {
+      "animationAnswers": 91,
+      "boltMatrices": 39,
+      "bitIdentical": true
+    },
+    "countNote": "Markers deduplicate identical log lines. Setter and AddBolt totals count distinct logged operations."
+  },
+  "retailStatic": {
+    "game-play": {
+      "start": "0x45cc63",
+      "endExclusive": "0x45cc9c",
+      "bytesSha256": "042524b6dd1d3f778063bac54940d762676d7cb9f42ef882ce57403d189b7d52",
+      "calls": [
+        {
+          "site": "0x45cc7a",
+          "target": "0x44adf0"
+        },
+        {
+          "site": "0x45cc8d",
+          "target": "0x4df310"
+        }
+      ]
+    },
+    "game-bend": {
+      "start": "0x45cc1b",
+      "endExclusive": "0x45cc63",
+      "bytesSha256": "065cea6f402fe7c2d53aa2478cc03dc30d2fc8b878991c888c98da63ab4d8455",
+      "calls": [
+        {
+          "site": "0x45cc26",
+          "target": "0x44adf0"
+        },
+        {
+          "site": "0x45cc3f",
+          "target": "0x44adf0"
+        },
+        {
+          "site": "0x45cc48",
+          "target": "0x44adf0"
+        },
+        {
+          "site": "0x45cc54",
+          "target": "0x4df460"
+        }
+      ]
+    },
+    "game-addbolt": {
+      "start": "0x45cbe2",
+      "endExclusive": "0x45cc00",
+      "bytesSha256": "aa02c07348946b16f4a144f51bda663543a55e9dce2d9709e93699df97e70e8b",
+      "calls": [
+        {
+          "site": "0x45cbe5",
+          "target": "0x44adf0"
+        },
+        {
+          "site": "0x45cbf1",
+          "target": "0x4df820"
+        }
+      ]
+    },
+    "cgame-play": {
+      "start": "0x413afc",
+      "endExclusive": "0x413b33",
+      "bytesSha256": "0407373e798bf0fd3145514f0fdd73b6b1cc3bfc3610302cc45887f24f69bab4",
+      "calls": [
+        {
+          "site": "0x413b13",
+          "target": "0x44adf0"
+        },
+        {
+          "site": "0x413b26",
+          "target": "0x4df310"
+        }
+      ]
+    },
+    "cgame-bend": {
+      "start": "0x413a9c",
+      "endExclusive": "0x413afc",
+      "bytesSha256": "ef9626936873f9f5beedfcb51f06b26f6f4ea4c4b2a20a57f0c7658b710506cf",
+      "calls": [
+        {
+          "site": "0x413aa7",
+          "target": "0x44adf0"
+        },
+        {
+          "site": "0x413ac0",
+          "target": "0x44adf0"
+        },
+        {
+          "site": "0x413ac9",
+          "target": "0x44adf0"
+        },
+        {
+          "site": "0x413ad5",
+          "target": "0x4df460"
+        },
+        {
+          "site": "0x413ae7",
+          "target": "0x44adf0"
+        },
+        {
+          "site": "0x413aee",
+          "target": "0x4de520"
+        }
+      ]
+    },
+    "cgame-addbolt": {
+      "start": "0x413cf5",
+      "endExclusive": "0x413d11",
+      "bytesSha256": "e16b5eaf85bd26fd0e4c730c9afa763778d29f56964fc90f9b4035a6db9554a7",
+      "calls": [
+        {
+          "site": "0x413cf8",
+          "target": "0x44adf0"
+        },
+        {
+          "site": "0x413d04",
+          "target": "0x4df820"
+        }
+      ]
+    },
+    "clip-wrapper": {
+      "start": "0x4df310",
+      "endExclusive": "0x4df400",
+      "bytesSha256": "ec6c4f0c5568633115b13d628bdab878dc2da5985e2bb448222ccfe042ec26e4",
+      "calls": [
+        {
+          "site": "0x4df375",
+          "target": "0x496650"
+        },
+        {
+          "site": "0x4df37e",
+          "target": "0x4de4b0"
+        },
+        {
+          "site": "0x4df38a",
+          "target": "dword ptr [edx + 0x10]"
+        },
+        {
+          "site": "0x4df39a",
+          "target": "0x4e0b10"
+        },
+        {
+          "site": "0x4df3b5",
+          "target": "0x4e0b10"
+        },
+        {
+          "site": "0x4df3eb",
+          "target": "0x4e35a0"
+        }
+      ]
+    },
+    "angle-wrapper": {
+      "start": "0x4df460",
+      "endExclusive": "0x4df500",
+      "bytesSha256": "6d86f21ae23c80fc59f9b52120d26bea3db259fe9be842f934314bf5fa02aa42",
+      "calls": [
+        {
+          "site": "0x4df46d",
+          "target": "0x496650"
+        },
+        {
+          "site": "0x4df476",
+          "target": "0x4de4b0"
+        },
+        {
+          "site": "0x4df482",
+          "target": "dword ptr [edx + 0x10]"
+        },
+        {
+          "site": "0x4df492",
+          "target": "0x4e0b10"
+        },
+        {
+          "site": "0x4df4aa",
+          "target": "0x4e0c50"
+        },
+        {
+          "site": "0x4df4f2",
+          "target": "0x4e3240"
+        }
+      ]
+    },
+    "clip-core": {
+      "start": "0x4e32f0",
+      "endExclusive": "0x4e35a0",
+      "bytesSha256": "8c6347252c4b1028a61708f5033cd68e0c7c81ad05fef888f9e7d41dc9e50c9c",
+      "calls": [
+        {
+          "site": "0x4e3387",
+          "target": "0x4e3640"
+        },
+        {
+          "site": "0x4e33cc",
+          "target": "0x52a210"
+        },
+        {
+          "site": "0x4e33df",
+          "target": "0x52a210"
+        },
+        {
+          "site": "0x4e33e7",
+          "target": "0x539584"
+        },
+        {
+          "site": "0x4e3407",
+          "target": "0x539584"
+        },
+        {
+          "site": "0x4e3539",
+          "target": "0x539584"
+        }
+      ]
+    },
+    "clip-find": {
+      "start": "0x4e35a0",
+      "endExclusive": "0x4e3640",
+      "bytesSha256": "ab8db70c2a0d3ea8e7a4764ee3513301cb6d385949ec2c52737bbe7ba5156a24",
+      "calls": [
+        {
+          "site": "0x4e35b5",
+          "target": "0x4e2be0"
+        },
+        {
+          "site": "0x4e35c6",
+          "target": "0x4e2c70"
+        },
+        {
+          "site": "0x4e3624",
+          "target": "0x4e32f0"
+        }
+      ]
+    },
+    "angle-core": {
+      "start": "0x4e3240",
+      "endExclusive": "0x4e32f0",
+      "bytesSha256": "16567bccf6cc22fd4471f1faea8b48554b651002feba42e9b4b12a277e197e11",
+      "calls": [
+        {
+          "site": "0x4e3256",
+          "target": "0x4e2be0"
+        },
+        {
+          "site": "0x4e3288",
+          "target": "0x4e2c70"
+        },
+        {
+          "site": "0x4e32d9",
+          "target": "0x4e2f20"
+        }
+      ]
+    },
+    "bone-find": {
+      "start": "0x4e2be0",
+      "endExclusive": "0x4e2c70",
+      "bytesSha256": "66679daca8ec98b4a2eebd1146e1703e3ac0eb42e9465a74dab1a5f89af20205",
+      "calls": [
+        {
+          "site": "0x4e2c39",
+          "target": "0x539336"
+        }
+      ]
+    },
+    "bone-add": {
+      "start": "0x4e2c70",
+      "endExclusive": "0x4e2e50",
+      "bytesSha256": "ec8eff2e14433adf90a1b94b7fcb91f63b3257f240c22b18375d24d46286dac6",
+      "calls": [
+        {
+          "site": "0x4e2cb1",
+          "target": "0x539336"
+        },
+        {
+          "site": "0x4e2d33",
+          "target": "0x539336"
+        },
+        {
+          "site": "0x4e2d8a",
+          "target": "0x4e89a0"
+        }
+      ]
+    },
+    "bolt-wrapper": {
+      "start": "0x4df820",
+      "endExclusive": "0x4df880",
+      "bytesSha256": "8400ecdaa844b38c94569ca88387365f178bbaebc92a8064a66098073c073b6d",
+      "calls": [
+        {
+          "site": "0x4df82a",
+          "target": "0x496650"
+        },
+        {
+          "site": "0x4df833",
+          "target": "0x4de4b0"
+        },
+        {
+          "site": "0x4df83f",
+          "target": "dword ptr [edx + 0x10]"
+        },
+        {
+          "site": "0x4df84d",
+          "target": "0x4e0b10"
+        },
+        {
+          "site": "0x4df861",
+          "target": "0x4e22d0"
+        }
+      ]
+    },
+    "bolt-core": {
+      "start": "0x4e22d0",
+      "endExclusive": "0x4e2560",
+      "bytesSha256": "2e59efe23738eab56eb80e2be30e01da50a004a67f3409b13e2e0e841aeffc7d",
+      "calls": [
+        {
+          "site": "0x4e2304",
+          "target": "0x4ee5b0"
+        },
+        {
+          "site": "0x4e23d3",
+          "target": "0x4e2b20"
+        },
+        {
+          "site": "0x4e23f2",
+          "target": "0x4e27e0"
+        },
+        {
+          "site": "0x4e242d",
+          "target": "0x539336"
+        },
+        {
+          "site": "0x4e2530",
+          "target": "0x4e2b20"
+        }
+      ]
+    },
+    "surface-find": {
+      "start": "0x4ee5b0",
+      "endExclusive": "0x4ee60f",
+      "bytesSha256": "6bd29939ceb19f8864e3f03de77ff54ee053ab7022709475623c8bf940f3bad9",
+      "calls": [
+        {
+          "site": "0x4ee5d2",
+          "target": "0x539336"
+        }
+      ]
+    }
+  },
+  "retailObservations": [
+    "JKA_BONEANIM retail_jamp=1",
+    "JKA_BONEANIM add owner=canonical name=*l_hand result=0",
+    "JKA_BONEANIM add owner=canonical name=pelvis result=1",
+    "JKA_BONEANIM add owner=canonical name=model_root result=2",
+    "JKA_BONEANIM add owner=canonical name=*L_HAND result=0",
+    "JKA_BONEANIM add owner=canonical name=*L_hAnD result=0",
+    "JKA_BONEANIM add owner=canonical name=PELVIS result=1",
+    "JKA_BONEANIM add owner=canonical name=PeLvIs result=1",
+    "JKA_BONEANIM add owner=canonical name=Model_Root result=2",
+    "JKA_BONEANIM add owner=canonical name=<empty> result=-1",
+    "JKA_BONEANIM add owner=canonical name=NO_SUCH_BONE result=-1",
+    "JKA_BONEANIM add owner=canonical name=PELV result=-1",
+    "JKA_BONEANIM add owner=canonical name=PELVIS_extra result=-1",
+    "JKA_BONEANIM add owner=canonical name=*L_HAN result=-1",
+    "JKA_BONEANIM add owner=canonical name=*L_HAND_extra result=-1",
+    "JKA_BONEANIM play owner=canonical model=0 bone=model_root first=10 end=20 flags=58 speed=3f800000 now=0 seed=bf800000 blend=0 result=1",
+    "JKA_BONEANIM bend owner=canonical bone=pelvis flags=2 result=1",
+    "JKA_BONEANIM play owner=canonical model=0 bone=pelvis first=60 end=80 flags=58 speed=3f000000 now=0 seed=bf800000 blend=0 result=1",
+    "JKA_BONEANIM bend owner=canonical bone=thoracic flags=2 result=1",
+    "JKA_BONEANIM play owner=canonical model=0 bone= first=100 end=120 flags=48 speed=3f800000 now=0 seed=bf800000 blend=0 result=0",
+    "JKA_BONEANIM bend owner=canonical bone= flags=4 result=0",
+    "JKA_BONEANIM play owner=canonical model=0 bone=NO_SUCH_BONE first=100 end=120 flags=48 speed=3f800000 now=0 seed=bf800000 blend=0 result=0",
+    "JKA_BONEANIM bend owner=canonical bone=NO_SUCH_BONE flags=4 result=0",
+    "JKA_BONEANIM play owner=canonical model=0 bone=PELV first=100 end=120 flags=48 speed=3f800000 now=0 seed=bf800000 blend=0 result=0",
+    "JKA_BONEANIM bend owner=canonical bone=PELV flags=4 result=0",
+    "JKA_BONEANIM play owner=canonical model=0 bone=PELVIS_extra first=100 end=120 flags=48 speed=3f800000 now=0 seed=bf800000 blend=0 result=0",
+    "JKA_BONEANIM bend owner=canonical bone=PELVIS_extra flags=4 result=0",
+    "JKA_BONEANIM add owner=folded name=*L_HAND result=0",
+    "JKA_BONEANIM add owner=folded name=PeLvIs result=1",
+    "JKA_BONEANIM add owner=folded name=MODEL_ROOT result=2",
+    "JKA_BONEANIM add owner=folded name=*l_hand result=0",
+    "JKA_BONEANIM add owner=folded name=*L_hAnD result=0",
+    "JKA_BONEANIM add owner=folded name=pelvis result=1",
+    "JKA_BONEANIM add owner=folded name=PELVIS result=1",
+    "JKA_BONEANIM add owner=folded name=model_root result=2",
+    "JKA_BONEANIM add owner=folded name=Model_Root result=2",
+    "JKA_BONEANIM add owner=folded name=<empty> result=-1",
+    "JKA_BONEANIM add owner=folded name=NO_SUCH_BONE result=-1",
+    "JKA_BONEANIM add owner=folded name=PELV result=-1",
+    "JKA_BONEANIM add owner=folded name=PELVIS_extra result=-1",
+    "JKA_BONEANIM add owner=folded name=*L_HAN result=-1",
+    "JKA_BONEANIM add owner=folded name=*L_HAND_extra result=-1",
+    "JKA_BONEANIM play owner=folded model=0 bone=MODEL_ROOT first=10 end=20 flags=58 speed=3f800000 now=0 seed=bf800000 blend=0 result=1",
+    "JKA_BONEANIM bend owner=folded bone=PELVIS flags=2 result=1",
+    "JKA_BONEANIM play owner=folded model=0 bone=PeLvIs first=60 end=80 flags=58 speed=3f000000 now=0 seed=bf800000 blend=0 result=1",
+    "JKA_BONEANIM bend owner=folded bone=ThOrAcIc flags=2 result=1",
+    "JKA_BONEANIM play owner=folded model=0 bone= first=100 end=120 flags=48 speed=3f800000 now=0 seed=bf800000 blend=0 result=0",
+    "JKA_BONEANIM bend owner=folded bone= flags=4 result=0",
+    "JKA_BONEANIM play owner=folded model=0 bone=NO_SUCH_BONE first=100 end=120 flags=48 speed=3f800000 now=0 seed=bf800000 blend=0 result=0",
+    "JKA_BONEANIM bend owner=folded bone=NO_SUCH_BONE flags=4 result=0",
+    "JKA_BONEANIM play owner=folded model=0 bone=PELV first=100 end=120 flags=48 speed=3f800000 now=0 seed=bf800000 blend=0 result=0",
+    "JKA_BONEANIM bend owner=folded bone=PELV flags=4 result=0",
+    "JKA_BONEANIM play owner=folded model=0 bone=PELVIS_extra first=100 end=120 flags=48 speed=3f800000 now=0 seed=bf800000 blend=0 result=0",
+    "JKA_BONEANIM bend owner=folded bone=PELVIS_extra flags=4 result=0",
+    "JKA_BONEANIM add owner=pistol name=MODVIEW INTERNAL DEFAULT result=0",
+    "JKA_BONEANIM add owner=pistol name=ModView internal default result=0",
+    "JKA_BONEANIM play owner=pistol model=0 bone=MODVIEW INTERNAL DEFAULT first=0 end=1 flags=48 speed=3f800000 now=0 seed=bf800000 blend=0 result=1",
+    "JKA_BONEANIM bend owner=pistol bone=modview internal default flags=2 result=1",
+    "JKA_BONEANIM get phase=init owner=canonical model=0 bone=model_root word=0 clock0=0 clock1=0 result=1 frame=41200000 start=0000000a end=00000014 flags=00008058 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=init owner=canonical model=0 bone=MODEL_ROOT word=0 clock0=0 clock1=0 result=1 frame=41200000 start=0000000a end=00000014 flags=00008058 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=init owner=canonical model=0 bone=Model_Root word=0 clock0=0 clock1=0 result=1 frame=41200000 start=0000000a end=00000014 flags=00008058 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=init owner=canonical model=0 bone=pelvis word=0 clock0=0 clock1=0 result=1 frame=42700000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=init owner=canonical model=0 bone=PELVIS word=0 clock0=0 clock1=0 result=1 frame=42700000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=init owner=canonical model=0 bone=PeLvIs word=0 clock0=0 clock1=0 result=1 frame=42700000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=init owner=canonical model=0 bone=thoracic word=0 clock0=0 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=init owner=canonical bolt=0 result=1 bits=bdff71d1,3ea9aa42,3f6f6a6c,c1628ea1,bf7db87f,3b2da26e,be08509f,c1bfabbf,bd3ed5e3,bf7188df,3ea7fc37,c1bf0b05",
+    "JKA_BONEANIM bolt phase=init owner=canonical bolt=1 result=1 bits=bd0c0c98,bf0f0b83,bf54204e,4010e4ac,3f517795,befbc48f,3e987ba6,be8d5760,bf12e7be,bf2af74a,3ef2b279,3fe906bc",
+    "JKA_BONEANIM bolt phase=init owner=canonical bolt=2 result=1 bits=3f800000,b24cde2e,00000000,00000000,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=init owner=folded model=0 bone=model_root word=0 clock0=0 clock1=0 result=1 frame=41200000 start=0000000a end=00000014 flags=00008058 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=init owner=folded model=0 bone=MODEL_ROOT word=0 clock0=0 clock1=0 result=1 frame=41200000 start=0000000a end=00000014 flags=00008058 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=init owner=folded model=0 bone=Model_Root word=0 clock0=0 clock1=0 result=1 frame=41200000 start=0000000a end=00000014 flags=00008058 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=init owner=folded model=0 bone=pelvis word=0 clock0=0 clock1=0 result=1 frame=42700000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=init owner=folded model=0 bone=PELVIS word=0 clock0=0 clock1=0 result=1 frame=42700000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=init owner=folded model=0 bone=PeLvIs word=0 clock0=0 clock1=0 result=1 frame=42700000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=init owner=folded model=0 bone=thoracic word=0 clock0=0 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=init owner=folded bolt=0 result=1 bits=bdff71d1,3ea9aa42,3f6f6a6c,c1628ea1,bf7db87f,3b2da26e,be08509f,c1bfabbf,bd3ed5e3,bf7188df,3ea7fc37,c1bf0b05",
+    "JKA_BONEANIM bolt phase=init owner=folded bolt=1 result=1 bits=bd0c0c98,bf0f0b83,bf54204e,4010e4ac,3f517795,befbc48f,3e987ba6,be8d5760,bf12e7be,bf2af74a,3ef2b279,3fe906bc",
+    "JKA_BONEANIM bolt phase=init owner=folded bolt=2 result=1 bits=3f800000,b24cde2e,00000000,00000000,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=init owner=pistol model=0 bone=ModView internal default word=0 clock0=0 clock1=0 result=1 frame=00000000 start=00000000 end=00000001 flags=0000804a speed=3f800000 list=66666666",
+    "JKA_BONEANIM bolt phase=init owner=pistol bolt=0 result=1 bits=bf3dd4a1,3ee803ca,befd51ad,00000000,bf185390,bf48ee43,3e3110cf,00000000,be9eb51d,3ed8616c,3f5a05c9,00000000",
+    "JKA_BONEANIM get phase=f01 owner=canonical model=0 bone=model_root word=0 clock0=0 clock1=0 result=1 frame=41200000 start=0000000a end=00000014 flags=00008058 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f01 owner=canonical model=0 bone=MODEL_ROOT word=0 clock0=0 clock1=0 result=1 frame=41200000 start=0000000a end=00000014 flags=00008058 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f01 owner=canonical model=0 bone=Model_Root word=0 clock0=0 clock1=0 result=1 frame=41200000 start=0000000a end=00000014 flags=00008058 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f01 owner=canonical model=0 bone=pelvis word=0 clock0=0 clock1=0 result=1 frame=42700000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f01 owner=canonical model=0 bone=PELVIS word=0 clock0=0 clock1=0 result=1 frame=42700000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f01 owner=canonical model=0 bone=PeLvIs word=0 clock0=0 clock1=0 result=1 frame=42700000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f01 owner=canonical model=0 bone=thoracic word=0 clock0=0 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f01 owner=canonical bolt=0 result=1 bits=bdff71d1,3ea9aa42,3f6f6a6c,c1628ea1,bf7db87f,3b2da26e,be08509f,c1bfabbf,bd3ed5e3,bf7188df,3ea7fc37,c1bf0b05",
+    "JKA_BONEANIM bolt phase=f01 owner=canonical bolt=1 result=1 bits=bd0c0c98,bf0f0b83,bf54204e,4010e4ac,3f517795,befbc48f,3e987ba6,be8d5760,bf12e7be,bf2af74a,3ef2b279,3fe906bc",
+    "JKA_BONEANIM bolt phase=f01 owner=canonical bolt=2 result=1 bits=3f800000,b24cde2e,00000000,00000000,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f01 owner=folded model=0 bone=model_root word=0 clock0=0 clock1=0 result=1 frame=41200000 start=0000000a end=00000014 flags=00008058 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f01 owner=folded model=0 bone=MODEL_ROOT word=0 clock0=0 clock1=0 result=1 frame=41200000 start=0000000a end=00000014 flags=00008058 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f01 owner=folded model=0 bone=Model_Root word=0 clock0=0 clock1=0 result=1 frame=41200000 start=0000000a end=00000014 flags=00008058 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f01 owner=folded model=0 bone=pelvis word=0 clock0=0 clock1=0 result=1 frame=42700000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f01 owner=folded model=0 bone=PELVIS word=0 clock0=0 clock1=0 result=1 frame=42700000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f01 owner=folded model=0 bone=PeLvIs word=0 clock0=0 clock1=0 result=1 frame=42700000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f01 owner=folded model=0 bone=thoracic word=0 clock0=0 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f01 owner=folded bolt=0 result=1 bits=bdff71d1,3ea9aa42,3f6f6a6c,c1628ea1,bf7db87f,3b2da26e,be08509f,c1bfabbf,bd3ed5e3,bf7188df,3ea7fc37,c1bf0b05",
+    "JKA_BONEANIM bolt phase=f01 owner=folded bolt=1 result=1 bits=bd0c0c98,bf0f0b83,bf54204e,4010e4ac,3f517795,befbc48f,3e987ba6,be8d5760,bf12e7be,bf2af74a,3ef2b279,3fe906bc",
+    "JKA_BONEANIM bolt phase=f01 owner=folded bolt=2 result=1 bits=3f800000,b24cde2e,00000000,00000000,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f01 owner=pistol model=0 bone=ModView internal default word=0 clock0=0 clock1=0 result=1 frame=00000000 start=00000000 end=00000001 flags=0000804a speed=3f800000 list=66666666",
+    "JKA_BONEANIM bolt phase=f01 owner=pistol bolt=0 result=1 bits=bf3dd4a1,3ee803ca,befd51ad,00000000,bf185390,bf48ee43,3e3110cf,00000000,be9eb51d,3ed8616c,3f5a05c9,00000000",
+    "JKA_BONEANIM get phase=f02 owner=canonical model=0 bone=model_root word=100 clock0=100 clock1=0 result=1 frame=41400000 start=0000000a end=00000014 flags=00008058 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f02 owner=canonical model=0 bone=MODEL_ROOT word=100 clock0=100 clock1=0 result=1 frame=41400000 start=0000000a end=00000014 flags=00008058 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f02 owner=canonical model=0 bone=Model_Root word=100 clock0=100 clock1=0 result=1 frame=41400000 start=0000000a end=00000014 flags=00008058 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f02 owner=canonical model=0 bone=pelvis word=100 clock0=100 clock1=0 result=1 frame=42740000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f02 owner=canonical model=0 bone=PELVIS word=100 clock0=100 clock1=0 result=1 frame=42740000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f02 owner=canonical model=0 bone=PeLvIs word=100 clock0=100 clock1=0 result=1 frame=42740000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f02 owner=canonical model=0 bone=thoracic word=100 clock0=100 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f02 owner=canonical bolt=0 result=1 bits=be23b50d,3e54831b,3f770f3d,c185ede8,bf7a36d7,3dd4666c,be3ca292,c1a1d245,be0da38a,bf7903dc,3e3ebb21,c1c38241",
+    "JKA_BONEANIM bolt phase=f02 owner=canonical bolt=1 result=1 bits=3c9c8ba1,bf09f81e,bf579590,40006b57,3f50d449,bef50d1f,3ea64c7b,be7646f8,bf13fd6d,bf317403,3edc696f,401646f2",
+    "JKA_BONEANIM bolt phase=f02 owner=canonical bolt=2 result=1 bits=3f800000,b24cde2e,00000000,00000000,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f02 owner=folded model=0 bone=model_root word=100 clock0=100 clock1=0 result=1 frame=41400000 start=0000000a end=00000014 flags=00008058 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f02 owner=folded model=0 bone=MODEL_ROOT word=100 clock0=100 clock1=0 result=1 frame=41400000 start=0000000a end=00000014 flags=00008058 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f02 owner=folded model=0 bone=Model_Root word=100 clock0=100 clock1=0 result=1 frame=41400000 start=0000000a end=00000014 flags=00008058 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f02 owner=folded model=0 bone=pelvis word=100 clock0=100 clock1=0 result=1 frame=42740000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f02 owner=folded model=0 bone=PELVIS word=100 clock0=100 clock1=0 result=1 frame=42740000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f02 owner=folded model=0 bone=PeLvIs word=100 clock0=100 clock1=0 result=1 frame=42740000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f02 owner=folded model=0 bone=thoracic word=100 clock0=100 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f02 owner=folded bolt=0 result=1 bits=be23b50d,3e54831b,3f770f3d,c185ede8,bf7a36d7,3dd4666c,be3ca292,c1a1d245,be0da38a,bf7903dc,3e3ebb21,c1c38241",
+    "JKA_BONEANIM bolt phase=f02 owner=folded bolt=1 result=1 bits=3c9c8ba1,bf09f81e,bf579590,40006b57,3f50d449,bef50d1f,3ea64c7b,be7646f8,bf13fd6d,bf317403,3edc696f,401646f2",
+    "JKA_BONEANIM bolt phase=f02 owner=folded bolt=2 result=1 bits=3f800000,b24cde2e,00000000,00000000,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f02 owner=pistol model=0 bone=ModView internal default word=100 clock0=100 clock1=0 result=1 frame=00000000 start=00000000 end=00000001 flags=0000804a speed=3f800000 list=66666666",
+    "JKA_BONEANIM bolt phase=f02 owner=pistol bolt=0 result=1 bits=bf3dd4a1,3ee803ca,befd51ad,00000000,bf185390,bf48ee43,3e3110cf,00000000,be9eb51d,3ed8616c,3f5a05c9,00000000",
+    "JKA_BONEANIM play owner=canonical model=0 bone=model_root first=100 end=120 flags=c8 speed=3f800000 now=200 seed=bf800000 blend=300 result=1",
+    "JKA_BONEANIM bend owner=canonical bone=pelvis flags=4 result=1",
+    "JKA_BONEANIM play owner=folded model=0 bone=Model_Root first=100 end=120 flags=c8 speed=3f800000 now=200 seed=bf800000 blend=300 result=1",
+    "JKA_BONEANIM bend owner=folded bone=pElViS flags=4 result=1",
+    "JKA_BONEANIM get phase=f03 owner=canonical model=0 bone=model_root word=200 clock0=200 clock1=0 result=1 frame=42c80000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f03 owner=canonical model=0 bone=MODEL_ROOT word=200 clock0=200 clock1=0 result=1 frame=42c80000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f03 owner=canonical model=0 bone=Model_Root word=200 clock0=200 clock1=0 result=1 frame=42c80000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f03 owner=canonical model=0 bone=pelvis word=200 clock0=200 clock1=0 result=1 frame=42780000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f03 owner=canonical model=0 bone=PELVIS word=200 clock0=200 clock1=0 result=1 frame=42780000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f03 owner=canonical model=0 bone=PeLvIs word=200 clock0=200 clock1=0 result=1 frame=42780000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f03 owner=canonical model=0 bone=thoracic word=200 clock0=200 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f03 owner=canonical bolt=0 result=1 bits=be1c8030,3f118661,bf4ef2d9,c093f2ce,3d5676f2,bf4fec19,bf14be61,c1c80685,bf7ca31f,be064644,3dc142f7,c1c8b584",
+    "JKA_BONEANIM bolt phase=f03 owner=canonical bolt=1 result=1 bits=3efd51ac,be3110cf,bf5a05c9,400987dc,bf3dd4a2,bf185390,be9eb51b,be8164ac,3ee803cb,bf48ee43,3ed8616d,40283d08",
+    "JKA_BONEANIM bolt phase=f03 owner=canonical bolt=2 result=1 bits=3f800000,b24cde2e,00000000,00000000,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f03 owner=folded model=0 bone=model_root word=200 clock0=200 clock1=0 result=1 frame=42c80000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f03 owner=folded model=0 bone=MODEL_ROOT word=200 clock0=200 clock1=0 result=1 frame=42c80000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f03 owner=folded model=0 bone=Model_Root word=200 clock0=200 clock1=0 result=1 frame=42c80000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f03 owner=folded model=0 bone=pelvis word=200 clock0=200 clock1=0 result=1 frame=42780000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f03 owner=folded model=0 bone=PELVIS word=200 clock0=200 clock1=0 result=1 frame=42780000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f03 owner=folded model=0 bone=PeLvIs word=200 clock0=200 clock1=0 result=1 frame=42780000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f03 owner=folded model=0 bone=thoracic word=200 clock0=200 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f03 owner=folded bolt=0 result=1 bits=be1c8030,3f118661,bf4ef2d9,c093f2ce,3d5676f2,bf4fec19,bf14be61,c1c80685,bf7ca31f,be064644,3dc142f7,c1c8b584",
+    "JKA_BONEANIM bolt phase=f03 owner=folded bolt=1 result=1 bits=3efd51ac,be3110cf,bf5a05c9,400987dc,bf3dd4a2,bf185390,be9eb51b,be8164ac,3ee803cb,bf48ee43,3ed8616d,40283d08",
+    "JKA_BONEANIM bolt phase=f03 owner=folded bolt=2 result=1 bits=3f800000,b24cde2e,00000000,00000000,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f03 owner=pistol model=0 bone=ModView internal default word=200 clock0=200 clock1=0 result=1 frame=00000000 start=00000000 end=00000001 flags=0000804a speed=3f800000 list=66666666",
+    "JKA_BONEANIM bolt phase=f03 owner=pistol bolt=0 result=1 bits=bf3dd4a1,3ee803ca,befd51ad,00000000,bf185390,bf48ee43,3e3110cf,00000000,be9eb51d,3ed8616c,3f5a05c9,00000000",
+    "JKA_BONEANIM get phase=f04 owner=canonical model=0 bone=model_root word=300 clock0=300 clock1=0 result=1 frame=42cc0000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f04 owner=canonical model=0 bone=MODEL_ROOT word=300 clock0=300 clock1=0 result=1 frame=42cc0000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f04 owner=canonical model=0 bone=Model_Root word=300 clock0=300 clock1=0 result=1 frame=42cc0000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f04 owner=canonical model=0 bone=pelvis word=300 clock0=300 clock1=0 result=1 frame=427c0000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f04 owner=canonical model=0 bone=PELVIS word=300 clock0=300 clock1=0 result=1 frame=427c0000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f04 owner=canonical model=0 bone=PeLvIs word=300 clock0=300 clock1=0 result=1 frame=427c0000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f04 owner=canonical model=0 bone=thoracic word=300 clock0=300 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f04 owner=canonical bolt=0 result=1 bits=be3ac03d,bdb3cbca,bf7ab38a,c1350516,bf2dfff6,bf355c95,3e42a612,c1efa63b,bf35e144,3f3345eb,3d8e666e,c1575022",
+    "JKA_BONEANIM bolt phase=f04 owner=canonical bolt=1 result=1 bits=3efd51ad,be3110d0,bf5a05ca,405928ba,bf3dd4a0,bf185391,be9eb51d,be754fea,3ee803ca,bf48ee43,3ed8616c,4008d5d0",
+    "JKA_BONEANIM bolt phase=f04 owner=canonical bolt=2 result=1 bits=3f800000,b24cde2e,00000000,be955556,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f04 owner=folded model=0 bone=model_root word=300 clock0=300 clock1=0 result=1 frame=42cc0000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f04 owner=folded model=0 bone=MODEL_ROOT word=300 clock0=300 clock1=0 result=1 frame=42cc0000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f04 owner=folded model=0 bone=Model_Root word=300 clock0=300 clock1=0 result=1 frame=42cc0000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f04 owner=folded model=0 bone=pelvis word=300 clock0=300 clock1=0 result=1 frame=427c0000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f04 owner=folded model=0 bone=PELVIS word=300 clock0=300 clock1=0 result=1 frame=427c0000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f04 owner=folded model=0 bone=PeLvIs word=300 clock0=300 clock1=0 result=1 frame=427c0000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f04 owner=folded model=0 bone=thoracic word=300 clock0=300 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f04 owner=folded bolt=0 result=1 bits=be3ac03d,bdb3cbca,bf7ab38a,c1350516,bf2dfff6,bf355c95,3e42a612,c1efa63b,bf35e144,3f3345eb,3d8e666e,c1575022",
+    "JKA_BONEANIM bolt phase=f04 owner=folded bolt=1 result=1 bits=3efd51ad,be3110d0,bf5a05ca,405928ba,bf3dd4a0,bf185391,be9eb51d,be754fea,3ee803ca,bf48ee43,3ed8616c,4008d5d0",
+    "JKA_BONEANIM bolt phase=f04 owner=folded bolt=2 result=1 bits=3f800000,b24cde2e,00000000,be955556,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f04 owner=pistol model=0 bone=ModView internal default word=300 clock0=300 clock1=0 result=1 frame=00000000 start=00000000 end=00000001 flags=0000804a speed=3f800000 list=66666666",
+    "JKA_BONEANIM bolt phase=f04 owner=pistol bolt=0 result=1 bits=bf3dd4a1,3ee803ca,befd51ad,00000000,bf185390,bf48ee43,3e3110cf,00000000,be9eb51d,3ed8616c,3f5a05c9,00000000",
+    "JKA_BONEANIM get phase=f05 owner=canonical model=0 bone=model_root word=450 clock0=400 clock1=0 result=1 frame=42d00000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f05 owner=canonical model=0 bone=MODEL_ROOT word=450 clock0=400 clock1=0 result=1 frame=42d00000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f05 owner=canonical model=0 bone=Model_Root word=450 clock0=400 clock1=0 result=1 frame=42d00000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f05 owner=canonical model=0 bone=pelvis word=450 clock0=400 clock1=0 result=1 frame=42800000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f05 owner=canonical model=0 bone=PELVIS word=450 clock0=400 clock1=0 result=1 frame=42800000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f05 owner=canonical model=0 bone=PeLvIs word=450 clock0=400 clock1=0 result=1 frame=42800000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f05 owner=canonical model=0 bone=thoracic word=450 clock0=400 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f05 owner=canonical bolt=0 result=1 bits=bf0ed4d8,bf10bd71,bf1b8458,c1a02171,bf4c3a6a,3e27a7a6,3f148f60,c1c15c48,be6a2127,3f4ef3fd,bf0ada94,c0ec7cd3",
+    "JKA_BONEANIM bolt phase=f05 owner=canonical bolt=1 result=1 bits=3efd51ac,be3110d1,bf5a05ca,40872324,bf3dd4a2,bf185391,be9eb51d,be7b9e72,3ee803cb,bf48ee43,3ed8616c,3fab67fd",
+    "JKA_BONEANIM bolt phase=f05 owner=canonical bolt=2 result=1 bits=3f800000,b24cde2e,00000000,bf7aaaab,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f05 owner=folded model=0 bone=model_root word=450 clock0=400 clock1=0 result=1 frame=42d00000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f05 owner=folded model=0 bone=MODEL_ROOT word=450 clock0=400 clock1=0 result=1 frame=42d00000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f05 owner=folded model=0 bone=Model_Root word=450 clock0=400 clock1=0 result=1 frame=42d00000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f05 owner=folded model=0 bone=pelvis word=450 clock0=400 clock1=0 result=1 frame=42800000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f05 owner=folded model=0 bone=PELVIS word=450 clock0=400 clock1=0 result=1 frame=42800000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f05 owner=folded model=0 bone=PeLvIs word=450 clock0=400 clock1=0 result=1 frame=42800000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f05 owner=folded model=0 bone=thoracic word=450 clock0=400 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f05 owner=folded bolt=0 result=1 bits=bf0ed4d8,bf10bd71,bf1b8458,c1a02171,bf4c3a6a,3e27a7a6,3f148f60,c1c15c48,be6a2127,3f4ef3fd,bf0ada94,c0ec7cd3",
+    "JKA_BONEANIM bolt phase=f05 owner=folded bolt=1 result=1 bits=3efd51ac,be3110d1,bf5a05ca,40872324,bf3dd4a2,bf185391,be9eb51d,be7b9e72,3ee803cb,bf48ee43,3ed8616c,3fab67fd",
+    "JKA_BONEANIM bolt phase=f05 owner=folded bolt=2 result=1 bits=3f800000,b24cde2e,00000000,bf7aaaab,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f05 owner=pistol model=0 bone=ModView internal default word=450 clock0=400 clock1=0 result=1 frame=00000000 start=00000000 end=00000001 flags=0000804a speed=3f800000 list=66666666",
+    "JKA_BONEANIM bolt phase=f05 owner=pistol bolt=0 result=1 bits=bf3dd4a1,3ee803ca,befd51ad,00000000,bf185390,bf48ee43,3e3110cf,00000000,be9eb51d,3ed8616c,3f5a05c9,00000000",
+    "JKA_BONEANIM get phase=f06 owner=canonical model=0 bone=model_root word=500 clock0=450 clock1=0 result=1 frame=42d20000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f06 owner=canonical model=0 bone=MODEL_ROOT word=500 clock0=450 clock1=0 result=1 frame=42d20000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f06 owner=canonical model=0 bone=Model_Root word=500 clock0=450 clock1=0 result=1 frame=42d20000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f06 owner=canonical model=0 bone=pelvis word=500 clock0=450 clock1=0 result=1 frame=42810000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f06 owner=canonical model=0 bone=PELVIS word=500 clock0=450 clock1=0 result=1 frame=42810000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f06 owner=canonical model=0 bone=PeLvIs word=500 clock0=450 clock1=0 result=1 frame=42810000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f06 owner=canonical model=0 bone=thoracic word=500 clock0=450 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f06 owner=canonical bolt=0 result=1 bits=be998dcf,bf2064b9,bf382931,c1854ca1,bf737485,3e0c2d6d,3e8df352,c1b8aae0,bd9a114e,3f446c30,bf230b35,c116b03d",
+    "JKA_BONEANIM bolt phase=f06 owner=canonical bolt=1 result=1 bits=3efd51aa,be3110d0,bf5a05c9,406e8e6a,bf3dd4a1,bf185390,be9eb51b,be666e9e,3ee803ca,bf48ee42,3ed8616b,3f875ac5",
+    "JKA_BONEANIM bolt phase=f06 owner=canonical bolt=2 result=1 bits=3f800000,b24cde2e,00000000,bfbc5555,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f06 owner=folded model=0 bone=model_root word=500 clock0=450 clock1=0 result=1 frame=42d20000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f06 owner=folded model=0 bone=MODEL_ROOT word=500 clock0=450 clock1=0 result=1 frame=42d20000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f06 owner=folded model=0 bone=Model_Root word=500 clock0=450 clock1=0 result=1 frame=42d20000 start=00000064 end=00000078 flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f06 owner=folded model=0 bone=pelvis word=500 clock0=450 clock1=0 result=1 frame=42810000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f06 owner=folded model=0 bone=PELVIS word=500 clock0=450 clock1=0 result=1 frame=42810000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f06 owner=folded model=0 bone=PeLvIs word=500 clock0=450 clock1=0 result=1 frame=42810000 start=0000003c end=00000050 flags=0000805c speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f06 owner=folded model=0 bone=thoracic word=500 clock0=450 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f06 owner=folded bolt=0 result=1 bits=be998dcf,bf2064b9,bf382931,c1854ca1,bf737485,3e0c2d6d,3e8df352,c1b8aae0,bd9a114e,3f446c30,bf230b35,c116b03d",
+    "JKA_BONEANIM bolt phase=f06 owner=folded bolt=1 result=1 bits=3efd51aa,be3110d0,bf5a05c9,406e8e6a,bf3dd4a1,bf185390,be9eb51b,be666e9e,3ee803ca,bf48ee42,3ed8616b,3f875ac5",
+    "JKA_BONEANIM bolt phase=f06 owner=folded bolt=2 result=1 bits=3f800000,b24cde2e,00000000,bfbc5555,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f06 owner=pistol model=0 bone=ModView internal default word=500 clock0=450 clock1=0 result=1 frame=00000000 start=00000000 end=00000001 flags=0000804a speed=3f800000 list=66666666",
+    "JKA_BONEANIM bolt phase=f06 owner=pistol bolt=0 result=1 bits=bf3dd4a1,3ee803ca,befd51ad,00000000,bf185390,bf48ee43,3e3110cf,00000000,be9eb51d,3ed8616c,3f5a05c9,00000000",
+    "JKA_BONEANIM play owner=canonical model=0 bone=model_root first=200 end=220 flags=c8 speed=3f800000 now=550 seed=bf800000 blend=300 result=1",
+    "JKA_BONEANIM play owner=folded model=0 bone=MODEL_ROOT first=200 end=220 flags=c8 speed=3f800000 now=550 seed=bf800000 blend=300 result=1",
+    "JKA_BONEANIM bend owner=folded bone=pElViS flags=2 result=1",
+    "JKA_BONEANIM get phase=f07 owner=canonical model=0 bone=model_root word=550 clock0=450 clock1=0 result=1 frame=43480000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f07 owner=canonical model=0 bone=MODEL_ROOT word=550 clock0=450 clock1=0 result=1 frame=43480000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f07 owner=canonical model=0 bone=Model_Root word=550 clock0=450 clock1=0 result=1 frame=43480000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f07 owner=canonical model=0 bone=pelvis word=550 clock0=450 clock1=0 result=1 frame=42810000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f07 owner=canonical model=0 bone=PELVIS word=550 clock0=450 clock1=0 result=1 frame=42810000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f07 owner=canonical model=0 bone=PeLvIs word=550 clock0=450 clock1=0 result=1 frame=42810000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f07 owner=canonical model=0 bone=thoracic word=550 clock0=450 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f07 owner=canonical bolt=0 result=1 bits=bf1d16a2,bde85257,3f480a2e,c1c52d9d,3f05c800,3f2efb9b,3f02758c,41030cf9,bf178814,3f389730,beb86579,c1159faf",
+    "JKA_BONEANIM bolt phase=f07 owner=canonical bolt=1 result=1 bits=3eb35ee6,bf358329,bf1cabc7,409adc88,3f29ad5c,be8c350e,3f3269ae,be666e8e,bf297bdb,bf265f37,3ebf1e78,3f875aab",
+    "JKA_BONEANIM bolt phase=f07 owner=canonical bolt=2 result=1 bits=3f800000,b24cde2e,00000000,beb80000,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f07 owner=folded model=0 bone=model_root word=550 clock0=450 clock1=0 result=1 frame=43480000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f07 owner=folded model=0 bone=MODEL_ROOT word=550 clock0=450 clock1=0 result=1 frame=43480000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f07 owner=folded model=0 bone=Model_Root word=550 clock0=450 clock1=0 result=1 frame=43480000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f07 owner=folded model=0 bone=pelvis word=550 clock0=450 clock1=0 result=1 frame=42810000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f07 owner=folded model=0 bone=PELVIS word=550 clock0=450 clock1=0 result=1 frame=42810000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f07 owner=folded model=0 bone=PeLvIs word=550 clock0=450 clock1=0 result=1 frame=42810000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f07 owner=folded model=0 bone=thoracic word=550 clock0=450 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f07 owner=folded bolt=0 result=1 bits=bf1d16a2,bde85257,3f480a2e,c1c52d9d,3f05c800,3f2efb9b,3f02758c,41030cf9,bf178814,3f389730,beb86579,c1159faf",
+    "JKA_BONEANIM bolt phase=f07 owner=folded bolt=1 result=1 bits=3eb35ee6,bf358329,bf1cabc7,409adc88,3f29ad5c,be8c350e,3f3269ae,be666e8e,bf297bdb,bf265f37,3ebf1e78,3f875aab",
+    "JKA_BONEANIM bolt phase=f07 owner=folded bolt=2 result=1 bits=3f800000,b24cde2e,00000000,beb80000,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f07 owner=pistol model=0 bone=ModView internal default word=550 clock0=450 clock1=0 result=1 frame=00000000 start=00000000 end=00000001 flags=0000804a speed=3f800000 list=66666666",
+    "JKA_BONEANIM bolt phase=f07 owner=pistol bolt=0 result=1 bits=bf3dd4a1,3ee803ca,befd51ad,00000000,bf185390,bf48ee43,3e3110cf,00000000,be9eb51d,3ed8616c,3f5a05c9,00000000",
+    "JKA_BONEANIM get phase=f08 owner=canonical model=0 bone=model_root word=600 clock0=550 clock1=0 result=1 frame=43480000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f08 owner=canonical model=0 bone=MODEL_ROOT word=600 clock0=550 clock1=0 result=1 frame=43480000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f08 owner=canonical model=0 bone=Model_Root word=600 clock0=550 clock1=0 result=1 frame=43480000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f08 owner=canonical model=0 bone=pelvis word=600 clock0=550 clock1=0 result=1 frame=42830000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f08 owner=canonical model=0 bone=PELVIS word=600 clock0=550 clock1=0 result=1 frame=42830000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f08 owner=canonical model=0 bone=PeLvIs word=600 clock0=550 clock1=0 result=1 frame=42830000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f08 owner=canonical model=0 bone=thoracic word=600 clock0=550 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f08 owner=canonical bolt=0 result=1 bits=3e58a03b,be8c5ec8,3f702920,c1930f2b,3f43306d,3f25957f,3c8c0279,41227328,bf1c89d5,3f362fcd,3eb115a1,c14167ac",
+    "JKA_BONEANIM bolt phase=f08 owner=canonical bolt=1 result=1 bits=3ebdedc0,bf3f752b,bf0cee7e,409e34d7,3f20a85f,be7096e1,3f3e04fe,be3c5f68,bf2f49c2,bf1eeec2,3ec373fe,3f07a76b",
+    "JKA_BONEANIM bolt phase=f08 owner=canonical bolt=2 result=1 bits=3f800000,b24cde2e,00000000,00000000,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f08 owner=folded model=0 bone=model_root word=600 clock0=550 clock1=0 result=1 frame=43480000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f08 owner=folded model=0 bone=MODEL_ROOT word=600 clock0=550 clock1=0 result=1 frame=43480000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f08 owner=folded model=0 bone=Model_Root word=600 clock0=550 clock1=0 result=1 frame=43480000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f08 owner=folded model=0 bone=pelvis word=600 clock0=550 clock1=0 result=1 frame=42830000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f08 owner=folded model=0 bone=PELVIS word=600 clock0=550 clock1=0 result=1 frame=42830000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f08 owner=folded model=0 bone=PeLvIs word=600 clock0=550 clock1=0 result=1 frame=42830000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f08 owner=folded model=0 bone=thoracic word=600 clock0=550 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f08 owner=folded bolt=0 result=1 bits=3e58a03b,be8c5ec8,3f702920,c1930f2b,3f43306d,3f25957f,3c8c0279,41227328,bf1c89d5,3f362fcd,3eb115a1,c14167ac",
+    "JKA_BONEANIM bolt phase=f08 owner=folded bolt=1 result=1 bits=3ebdedc0,bf3f752b,bf0cee7e,409e34d7,3f20a85f,be7096e1,3f3e04fe,be3c5f68,bf2f49c2,bf1eeec2,3ec373fe,3f07a76b",
+    "JKA_BONEANIM bolt phase=f08 owner=folded bolt=2 result=1 bits=3f800000,b24cde2e,00000000,00000000,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f08 owner=pistol model=0 bone=ModView internal default word=600 clock0=550 clock1=0 result=1 frame=00000000 start=00000000 end=00000001 flags=0000804a speed=3f800000 list=66666666",
+    "JKA_BONEANIM bolt phase=f08 owner=pistol bolt=0 result=1 bits=bf3dd4a1,3ee803ca,befd51ad,00000000,bf185390,bf48ee43,3e3110cf,00000000,be9eb51d,3ed8616c,3f5a05c9,00000000",
+    "JKA_BONEANIM get phase=f09 owner=canonical model=0 bone=model_root word=650 clock0=600 clock1=0 result=1 frame=43490000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f09 owner=canonical model=0 bone=MODEL_ROOT word=650 clock0=600 clock1=0 result=1 frame=43490000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f09 owner=canonical model=0 bone=Model_Root word=650 clock0=600 clock1=0 result=1 frame=43490000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f09 owner=canonical model=0 bone=pelvis word=650 clock0=600 clock1=0 result=1 frame=42840000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f09 owner=canonical model=0 bone=PELVIS word=650 clock0=600 clock1=0 result=1 frame=42840000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f09 owner=canonical model=0 bone=PeLvIs word=650 clock0=600 clock1=0 result=1 frame=42840000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f09 owner=canonical model=0 bone=thoracic word=650 clock0=600 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f09 owner=canonical bolt=0 result=1 bits=3f099c65,be02f767,3f555f00,c181d393,3f2f5080,3f249745,beaf9ef5,41573c79,befbe7c4,3f4152b8,3eddcb2a,c153f9ee",
+    "JKA_BONEANIM bolt phase=f09 owner=canonical bolt=1 result=1 bits=3ebf7468,bf43d45a,bf064006,40943e63,3f1d23a0,be6106cf,3f421c04,be277fff,bf31fd82,bf1afd43,3ec654ae,3e916756",
+    "JKA_BONEANIM bolt phase=f09 owner=canonical bolt=2 result=1 bits=3f800000,b24cde2e,00000000,bd755556,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f09 owner=folded model=0 bone=model_root word=650 clock0=600 clock1=0 result=1 frame=43490000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f09 owner=folded model=0 bone=MODEL_ROOT word=650 clock0=600 clock1=0 result=1 frame=43490000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f09 owner=folded model=0 bone=Model_Root word=650 clock0=600 clock1=0 result=1 frame=43490000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f09 owner=folded model=0 bone=pelvis word=650 clock0=600 clock1=0 result=1 frame=42840000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f09 owner=folded model=0 bone=PELVIS word=650 clock0=600 clock1=0 result=1 frame=42840000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f09 owner=folded model=0 bone=PeLvIs word=650 clock0=600 clock1=0 result=1 frame=42840000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f09 owner=folded model=0 bone=thoracic word=650 clock0=600 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f09 owner=folded bolt=0 result=1 bits=3f099c65,be02f767,3f555f00,c181d393,3f2f5080,3f249745,beaf9ef5,41573c79,befbe7c4,3f4152b8,3eddcb2a,c153f9ee",
+    "JKA_BONEANIM bolt phase=f09 owner=folded bolt=1 result=1 bits=3ebf7468,bf43d45a,bf064006,40943e63,3f1d23a0,be6106cf,3f421c04,be277fff,bf31fd82,bf1afd43,3ec654ae,3e916756",
+    "JKA_BONEANIM bolt phase=f09 owner=folded bolt=2 result=1 bits=3f800000,b24cde2e,00000000,bd755556,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f09 owner=pistol model=0 bone=ModView internal default word=650 clock0=600 clock1=0 result=1 frame=00000000 start=00000000 end=00000001 flags=0000804a speed=3f800000 list=66666666",
+    "JKA_BONEANIM bolt phase=f09 owner=pistol bolt=0 result=1 bits=bf3dd4a1,3ee803ca,befd51ad,00000000,bf185390,bf48ee43,3e3110cf,00000000,be9eb51d,3ed8616c,3f5a05c9,00000000",
+    "JKA_BONEANIM get phase=f10 owner=canonical model=0 bone=model_root word=700 clock0=600 clock1=0 result=1 frame=43490000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f10 owner=canonical model=0 bone=MODEL_ROOT word=700 clock0=600 clock1=0 result=1 frame=43490000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f10 owner=canonical model=0 bone=Model_Root word=700 clock0=600 clock1=0 result=1 frame=43490000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f10 owner=canonical model=0 bone=pelvis word=700 clock0=600 clock1=0 result=1 frame=42840000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f10 owner=canonical model=0 bone=PELVIS word=700 clock0=600 clock1=0 result=1 frame=42840000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f10 owner=canonical model=0 bone=PeLvIs word=700 clock0=600 clock1=0 result=1 frame=42840000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f10 owner=canonical model=0 bone=thoracic word=700 clock0=600 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f10 owner=canonical bolt=0 result=1 bits=3f099c65,be02f767,3f555f00,c181d393,3f2f5080,3f249745,beaf9ef5,41573c79,befbe7c4,3f4152b8,3eddcb2a,c153f9ee",
+    "JKA_BONEANIM bolt phase=f10 owner=canonical bolt=1 result=1 bits=3ebf7468,bf43d45a,bf064006,40943e63,3f1d23a0,be6106cf,3f421c04,be277fff,bf31fd82,bf1afd43,3ec654ae,3e916756",
+    "JKA_BONEANIM bolt phase=f10 owner=canonical bolt=2 result=1 bits=3f800000,b24cde2e,00000000,bd755556,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f10 owner=folded model=0 bone=model_root word=700 clock0=600 clock1=0 result=1 frame=43490000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f10 owner=folded model=0 bone=MODEL_ROOT word=700 clock0=600 clock1=0 result=1 frame=43490000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f10 owner=folded model=0 bone=Model_Root word=700 clock0=600 clock1=0 result=1 frame=43490000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f10 owner=folded model=0 bone=pelvis word=700 clock0=600 clock1=0 result=1 frame=42840000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f10 owner=folded model=0 bone=PELVIS word=700 clock0=600 clock1=0 result=1 frame=42840000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f10 owner=folded model=0 bone=PeLvIs word=700 clock0=600 clock1=0 result=1 frame=42840000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f10 owner=folded model=0 bone=thoracic word=700 clock0=600 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f10 owner=folded bolt=0 result=1 bits=3f099c65,be02f767,3f555f00,c181d393,3f2f5080,3f249745,beaf9ef5,41573c79,befbe7c4,3f4152b8,3eddcb2a,c153f9ee",
+    "JKA_BONEANIM bolt phase=f10 owner=folded bolt=1 result=1 bits=3ebf7468,bf43d45a,bf064006,40943e63,3f1d23a0,be6106cf,3f421c04,be277fff,bf31fd82,bf1afd43,3ec654ae,3e916756",
+    "JKA_BONEANIM bolt phase=f10 owner=folded bolt=2 result=1 bits=3f800000,b24cde2e,00000000,bd755556,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f10 owner=pistol model=0 bone=ModView internal default word=700 clock0=600 clock1=0 result=1 frame=00000000 start=00000000 end=00000001 flags=0000804a speed=3f800000 list=66666666",
+    "JKA_BONEANIM bolt phase=f10 owner=pistol bolt=0 result=1 bits=bf3dd4a1,3ee803ca,befd51ad,00000000,bf185390,bf48ee43,3e3110cf,00000000,be9eb51d,3ed8616c,3f5a05c9,00000000",
+    "JKA_BONEANIM get phase=f11 owner=canonical model=0 bone=model_root word=750 clock0=700 clock1=0 result=1 frame=434b0000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f11 owner=canonical model=0 bone=MODEL_ROOT word=750 clock0=700 clock1=0 result=1 frame=434b0000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f11 owner=canonical model=0 bone=Model_Root word=750 clock0=700 clock1=0 result=1 frame=434b0000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f11 owner=canonical model=0 bone=pelvis word=750 clock0=700 clock1=0 result=1 frame=42860000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f11 owner=canonical model=0 bone=PELVIS word=750 clock0=700 clock1=0 result=1 frame=42860000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f11 owner=canonical model=0 bone=PeLvIs word=750 clock0=700 clock1=0 result=1 frame=42860000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f11 owner=canonical model=0 bone=thoracic word=750 clock0=700 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f11 owner=canonical bolt=0 result=1 bits=3f009a8a,bef08e05,3f39d2de,c1777669,3f55b358,3ef6f795,be87f084,41946adf,be66cbcb,3f3d43ca,3f226fc8,c156e2b9",
+    "JKA_BONEANIM bolt phase=f11 owner=canonical bolt=1 result=1 bits=3eb992c4,bf483c1b,bf01bda2,407dd496,3f1af87e,be5d115c,3f44206b,be785eef,bf356c55,bf159f10,3eca5659,3e263252",
+    "JKA_BONEANIM bolt phase=f11 owner=canonical bolt=2 result=1 bits=3f800000,b24cde2e,00000000,be400000,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f11 owner=folded model=0 bone=model_root word=750 clock0=700 clock1=0 result=1 frame=434b0000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f11 owner=folded model=0 bone=MODEL_ROOT word=750 clock0=700 clock1=0 result=1 frame=434b0000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f11 owner=folded model=0 bone=Model_Root word=750 clock0=700 clock1=0 result=1 frame=434b0000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f11 owner=folded model=0 bone=pelvis word=750 clock0=700 clock1=0 result=1 frame=42860000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f11 owner=folded model=0 bone=PELVIS word=750 clock0=700 clock1=0 result=1 frame=42860000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f11 owner=folded model=0 bone=PeLvIs word=750 clock0=700 clock1=0 result=1 frame=42860000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f11 owner=folded model=0 bone=thoracic word=750 clock0=700 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f11 owner=folded bolt=0 result=1 bits=3f009a8a,bef08e05,3f39d2de,c1777669,3f55b358,3ef6f795,be87f084,41946adf,be66cbcb,3f3d43ca,3f226fc8,c156e2b9",
+    "JKA_BONEANIM bolt phase=f11 owner=folded bolt=1 result=1 bits=3eb992c4,bf483c1b,bf01bda2,407dd496,3f1af87e,be5d115c,3f44206b,be785eef,bf356c55,bf159f10,3eca5659,3e263252",
+    "JKA_BONEANIM bolt phase=f11 owner=folded bolt=2 result=1 bits=3f800000,b24cde2e,00000000,be400000,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f11 owner=pistol model=0 bone=ModView internal default word=750 clock0=700 clock1=0 result=1 frame=00000000 start=00000000 end=00000001 flags=0000804a speed=3f800000 list=66666666",
+    "JKA_BONEANIM bolt phase=f11 owner=pistol bolt=0 result=1 bits=bf3dd4a1,3ee803ca,befd51ad,00000000,bf185390,bf48ee43,3e3110cf,00000000,be9eb51d,3ed8616c,3f5a05c9,00000000",
+    "JKA_BONEANIM get phase=f12 owner=canonical model=0 bone=model_root word=800 clock0=750 clock1=0 result=1 frame=434c0000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f12 owner=canonical model=0 bone=MODEL_ROOT word=800 clock0=750 clock1=0 result=1 frame=434c0000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f12 owner=canonical model=0 bone=Model_Root word=800 clock0=750 clock1=0 result=1 frame=434c0000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f12 owner=canonical model=0 bone=pelvis word=800 clock0=750 clock1=0 result=1 frame=42870000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f12 owner=canonical model=0 bone=PELVIS word=800 clock0=750 clock1=0 result=1 frame=42870000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f12 owner=canonical model=0 bone=PeLvIs word=800 clock0=750 clock1=0 result=1 frame=42870000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f12 owner=canonical model=0 bone=thoracic word=800 clock0=750 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f12 owner=canonical bolt=0 result=1 bits=3efa718e,bf0f99c2,3f2afb0a,c1605b8c,3f5aa114,3eed582c,be71cc8c,4195d10a,be35681b,3f2f96fb,3f34afa3,c154a8c9",
+    "JKA_BONEANIM bolt phase=f12 owner=canonical bolt=1 result=1 bits=3eb12ba5,bf4774f1,bf05cfdc,406c5a0e,3f1d360a,be6eb4be,3f4106e3,beb2ab8a,bf359486,bf14f9a2,3ecbad3e,3ec27ad0",
+    "JKA_BONEANIM bolt phase=f12 owner=canonical bolt=2 result=1 bits=3f800000,b24cde2e,00000000,be855556,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f12 owner=folded model=0 bone=model_root word=800 clock0=750 clock1=0 result=1 frame=434c0000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f12 owner=folded model=0 bone=MODEL_ROOT word=800 clock0=750 clock1=0 result=1 frame=434c0000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f12 owner=folded model=0 bone=Model_Root word=800 clock0=750 clock1=0 result=1 frame=434c0000 start=000000c8 end=000000dc flags=000080c8 speed=3f800000 list=66666666",
+    "JKA_BONEANIM get phase=f12 owner=folded model=0 bone=pelvis word=800 clock0=750 clock1=0 result=1 frame=42870000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f12 owner=folded model=0 bone=PELVIS word=800 clock0=750 clock1=0 result=1 frame=42870000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f12 owner=folded model=0 bone=PeLvIs word=800 clock0=750 clock1=0 result=1 frame=42870000 start=0000003c end=00000050 flags=0000805a speed=3f000000 list=66666666",
+    "JKA_BONEANIM get phase=f12 owner=folded model=0 bone=thoracic word=800 clock0=750 clock1=0 result=0 frame=00000000 start=00000000 end=00000001 flags=00000000 speed=00000000 list=66666666",
+    "JKA_BONEANIM bolt phase=f12 owner=folded bolt=0 result=1 bits=3efa718e,bf0f99c2,3f2afb0a,c1605b8c,3f5aa114,3eed582c,be71cc8c,4195d10a,be35681b,3f2f96fb,3f34afa3,c154a8c9",
+    "JKA_BONEANIM bolt phase=f12 owner=folded bolt=1 result=1 bits=3eb12ba5,bf4774f1,bf05cfdc,406c5a0e,3f1d360a,be6eb4be,3f4106e3,beb2ab8a,bf359486,bf14f9a2,3ecbad3e,3ec27ad0",
+    "JKA_BONEANIM bolt phase=f12 owner=folded bolt=2 result=1 bits=3f800000,b24cde2e,00000000,be855556,324cde2e,3f800000,00000000,00000000,00000000,00000000,3f800000,c1c00000",
+    "JKA_BONEANIM get phase=f12 owner=pistol model=0 bone=ModView internal default word=800 clock0=750 clock1=0 result=1 frame=00000000 start=00000000 end=00000001 flags=0000804a speed=3f800000 list=66666666",
+    "JKA_BONEANIM bolt phase=f12 owner=pistol bolt=0 result=1 bits=bf3dd4a1,3ee803ca,befd51ad,00000000,bf185390,bf48ee43,3e3110cf,00000000,be9eb51d,3ed8616c,3f5a05c9,00000000",
+    "JKA_BONEANIM cleaned=1",
+    "JKA_BONEANIM COMPLETE"
+  ],
+  "runs": {
+    "retail-1": {
+      "game": "jka",
+      "engine": "retail",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail\\jamp.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\jka-bone-names\\retail-1\\home",
+        "+set",
+        "fs_cdpath",
+        "E:\\Games\\Jedi Academy",
+        "+set",
+        "fs_game",
+        "server-bonenames",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "logfile",
+        "4",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "0",
+        "+set",
+        "fixedtime",
+        "75",
+        "+set",
+        "sv_fps",
+        "20",
+        "+set",
+        "net_enabled",
+        "1",
+        "+map",
+        "mp/ffa1"
+      ],
+      "installation": "E:\\Games\\Jedi Academy",
+      "binarySha256": {
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail\\jamp.exe": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail\\server-bonenames\\jampgamex86.dll": "a9443b0a3225e237385c68f102bf5b3366d296468aa5bb8949f5b7a80bafd19c"
+      },
+      "observedAtUTC": "2026-10-07T10:17:03.066352+00:00",
+      "sourceCommit": "59ca4826eaad7a49b760f917f2b27912c2c3c905",
+      "platform": "Windows x86",
+      "profile": "jka-mp",
+      "syntheticFixtureSourceSha256": "0b74a5acfcac0dd77990ab1d10c159919faad594c78cc0129edef340505269af",
+      "desktopSwitched": false,
+      "scope": "Synthetic game fixture observing name matching through imports 595/596/597/593/587 through the game (server) imports; no retail gameplay implementation",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "elapsedSeconds": 21.094,
+      "homeRemoved": true,
+      "harnessCompleted": true,
+      "normalizedMarkersSha256": "8748d85231a0313e556b934f6d12365c7096dbdda4187c9e2f4cf8804b116e78",
+      "rawConsoleSha256": "f1733291b569f885b97498d6a8100fc5a635809e289175b271d1f729e13f3d8a",
+      "outputDirectory": ".tmp/jka-bone-names/retail-1"
+    },
+    "retail-2": {
+      "game": "jka",
+      "engine": "retail",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail\\jamp.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\jka-bone-names\\retail-2\\home",
+        "+set",
+        "fs_cdpath",
+        "E:\\Games\\Jedi Academy",
+        "+set",
+        "fs_game",
+        "server-bonenames",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "logfile",
+        "4",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "0",
+        "+set",
+        "fixedtime",
+        "75",
+        "+set",
+        "sv_fps",
+        "20",
+        "+set",
+        "net_enabled",
+        "1",
+        "+map",
+        "mp/ffa1"
+      ],
+      "installation": "E:\\Games\\Jedi Academy",
+      "binarySha256": {
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail\\jamp.exe": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail\\server-bonenames\\jampgamex86.dll": "a9443b0a3225e237385c68f102bf5b3366d296468aa5bb8949f5b7a80bafd19c"
+      },
+      "observedAtUTC": "2026-10-07T10:17:43.849658+00:00",
+      "sourceCommit": "59ca4826eaad7a49b760f917f2b27912c2c3c905",
+      "platform": "Windows x86",
+      "profile": "jka-mp",
+      "syntheticFixtureSourceSha256": "0b74a5acfcac0dd77990ab1d10c159919faad594c78cc0129edef340505269af",
+      "desktopSwitched": false,
+      "scope": "Synthetic game fixture observing name matching through imports 595/596/597/593/587 through the game (server) imports; no retail gameplay implementation",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "elapsedSeconds": 17.156,
+      "homeRemoved": true,
+      "harnessCompleted": true,
+      "normalizedMarkersSha256": "8748d85231a0313e556b934f6d12365c7096dbdda4187c9e2f4cf8804b116e78",
+      "rawConsoleSha256": "bbbf53dc8b56db4d0020c3f25c2ce34cabd9482fdcd8f97a96691c2ed08291f6",
+      "outputDirectory": ".tmp/jka-bone-names/retail-2",
+      "comparisonToRetail": {
+        "add": {
+          "total": 31,
+          "exactMatches": 31
+        },
+        "play": {
+          "total": 17,
+          "exactMatches": 17
+        },
+        "bend": {
+          "total": 16,
+          "exactMatches": 16
+        },
+        "get": {
+          "total": 195,
+          "exactMatches": 195
+        },
+        "bolt": {
+          "total": 91,
+          "exactMatches": 91,
+          "withinTolerance": 91,
+          "tolerance": 0.00015,
+          "maxAxisDifference": 0.0,
+          "maxOriginDifference": 0.0,
+          "resultMismatches": 0
+        },
+        "markersEqual": true
+      }
+    },
+    "before": {
+      "game": "jka",
+      "engine": "fntech3",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-boneanim-after\\fntech3.ded.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Jedi Academy",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\jka-bone-names\\before\\home",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "fs_game",
+        "server-bonenames",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "logfile",
+        "4",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "0",
+        "+set",
+        "fixedtime",
+        "75",
+        "+set",
+        "sv_fps",
+        "20",
+        "+set",
+        "com_gameProfile",
+        "jka-mp",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "net_enabled",
+        "0",
+        "+map",
+        "mp/ffa1"
+      ],
+      "installation": "E:\\Games\\Jedi Academy",
+      "binarySha256": {
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-boneanim-after\\fntech3.ded.exe": "377a263e0426a24a7716f33a8058d5e32926621cec4bb423c4d96a87dd0b3369",
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail\\server-bonenames\\jampgamex86.dll": "a9443b0a3225e237385c68f102bf5b3366d296468aa5bb8949f5b7a80bafd19c"
+      },
+      "observedAtUTC": "2026-10-07T10:17:42.917287+00:00",
+      "sourceCommit": "59ca4826eaad7a49b760f917f2b27912c2c3c905",
+      "platform": "Windows x86",
+      "profile": "jka-mp",
+      "syntheticFixtureSourceSha256": "0b74a5acfcac0dd77990ab1d10c159919faad594c78cc0129edef340505269af",
+      "desktopSwitched": false,
+      "scope": "Synthetic game fixture observing name matching through imports 595/596/597/593/587 through the game (server) imports; no retail gameplay implementation",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "elapsedSeconds": 2.265,
+      "homeRemoved": true,
+      "harnessCompleted": true,
+      "normalizedMarkersSha256": "2c1ce1d05a47958a399a3ea4521be23c47e754652d14d0607e84c9f6d6e9d5bb",
+      "rawConsoleSha256": "0fed799be49aba7c3cbed35ee910fe5bc4102766b9fd730fa2649788371f00d1",
+      "outputDirectory": ".tmp/jka-bone-names/before",
+      "comparisonToRetail": {
+        "add": {
+          "total": 31,
+          "exactMatches": 19
+        },
+        "play": {
+          "total": 17,
+          "exactMatches": 12
+        },
+        "bend": {
+          "total": 16,
+          "exactMatches": 11
+        },
+        "get": {
+          "total": 195,
+          "exactMatches": 104
+        },
+        "bolt": {
+          "total": 91,
+          "exactMatches": 0,
+          "withinTolerance": 44,
+          "tolerance": 0.00015,
+          "maxAxisDifference": 1.9641957879066467,
+          "maxOriginDifference": 58.41401672363281,
+          "resultMismatches": 0
+        },
+        "markersEqual": false
+      }
+    },
+    "after-1": {
+      "game": "jka",
+      "engine": "fntech3",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-boneanim-after\\fntech3.ded.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Jedi Academy",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\jka-bone-names\\after-1\\home",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "fs_game",
+        "server-bonenames",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "logfile",
+        "4",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "0",
+        "+set",
+        "fixedtime",
+        "75",
+        "+set",
+        "sv_fps",
+        "20",
+        "+set",
+        "com_gameProfile",
+        "jka-mp",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "net_enabled",
+        "0",
+        "+map",
+        "mp/ffa1"
+      ],
+      "installation": "E:\\Games\\Jedi Academy",
+      "binarySha256": {
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-boneanim-after\\fntech3.ded.exe": "203764bc254866dd7eb9b83fd9bb08d00f7e3069ef04e2707a737cd8b2ca74bf",
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail\\server-bonenames\\jampgamex86.dll": "a9443b0a3225e237385c68f102bf5b3366d296468aa5bb8949f5b7a80bafd19c"
+      },
+      "observedAtUTC": "2026-10-07T10:29:09.102733+00:00",
+      "sourceCommit": "59ca4826eaad7a49b760f917f2b27912c2c3c905",
+      "platform": "Windows x86",
+      "profile": "jka-mp",
+      "syntheticFixtureSourceSha256": "0b74a5acfcac0dd77990ab1d10c159919faad594c78cc0129edef340505269af",
+      "desktopSwitched": false,
+      "scope": "Synthetic game fixture observing name matching through imports 595/596/597/593/587 through the game (server) imports; no retail gameplay implementation",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "elapsedSeconds": 1.422,
+      "homeRemoved": true,
+      "harnessCompleted": true,
+      "normalizedMarkersSha256": "1be4214685fb62b9dcc6c8b0f0a5141fbd055e0639c982f6592bce71dd6d86d4",
+      "rawConsoleSha256": "13581b1942dc4fa99399f7e0562bf2573b983e882b7e3988990e8d65c5427641",
+      "outputDirectory": ".tmp/jka-bone-names/after-1",
+      "comparisonToRetail": {
+        "add": {
+          "total": 31,
+          "exactMatches": 31
+        },
+        "play": {
+          "total": 17,
+          "exactMatches": 17
+        },
+        "bend": {
+          "total": 16,
+          "exactMatches": 16
+        },
+        "get": {
+          "total": 195,
+          "exactMatches": 195
+        },
+        "bolt": {
+          "total": 91,
+          "exactMatches": 0,
+          "withinTolerance": 91,
+          "tolerance": 0.00015,
+          "maxAxisDifference": 6.260350346565247e-06,
+          "maxOriginDifference": 1.049041748046875e-05,
+          "resultMismatches": 0
+        },
+        "markersEqual": false
+      }
+    },
+    "after-2": {
+      "game": "jka",
+      "engine": "fntech3",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-boneanim-after\\fntech3.ded.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Jedi Academy",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\jka-bone-names\\after-2\\home",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "fs_game",
+        "server-bonenames",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "logfile",
+        "4",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "0",
+        "+set",
+        "fixedtime",
+        "75",
+        "+set",
+        "sv_fps",
+        "20",
+        "+set",
+        "com_gameProfile",
+        "jka-mp",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "net_enabled",
+        "0",
+        "+map",
+        "mp/ffa1"
+      ],
+      "installation": "E:\\Games\\Jedi Academy",
+      "binarySha256": {
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-boneanim-after\\fntech3.ded.exe": "203764bc254866dd7eb9b83fd9bb08d00f7e3069ef04e2707a737cd8b2ca74bf",
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail\\server-bonenames\\jampgamex86.dll": "a9443b0a3225e237385c68f102bf5b3366d296468aa5bb8949f5b7a80bafd19c"
+      },
+      "observedAtUTC": "2026-10-07T10:29:18.965701+00:00",
+      "sourceCommit": "59ca4826eaad7a49b760f917f2b27912c2c3c905",
+      "platform": "Windows x86",
+      "profile": "jka-mp",
+      "syntheticFixtureSourceSha256": "0b74a5acfcac0dd77990ab1d10c159919faad594c78cc0129edef340505269af",
+      "desktopSwitched": false,
+      "scope": "Synthetic game fixture observing name matching through imports 595/596/597/593/587 through the game (server) imports; no retail gameplay implementation",
+      "exitCode": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "elapsedSeconds": 1.235,
+      "homeRemoved": true,
+      "harnessCompleted": true,
+      "normalizedMarkersSha256": "1be4214685fb62b9dcc6c8b0f0a5141fbd055e0639c982f6592bce71dd6d86d4",
+      "rawConsoleSha256": "e6966056923c712e33d350f9fecd3d6562a520e19d8cb276477edc022d28bde8",
+      "outputDirectory": ".tmp/jka-bone-names/after-2",
+      "comparisonToRetail": {
+        "add": {
+          "total": 31,
+          "exactMatches": 31
+        },
+        "play": {
+          "total": 17,
+          "exactMatches": 17
+        },
+        "bend": {
+          "total": 16,
+          "exactMatches": 16
+        },
+        "get": {
+          "total": 195,
+          "exactMatches": 195
+        },
+        "bolt": {
+          "total": 91,
+          "exactMatches": 0,
+          "withinTolerance": 91,
+          "tolerance": 0.00015,
+          "maxAxisDifference": 6.260350346565247e-06,
+          "maxOriginDifference": 1.049041748046875e-05,
+          "resultMismatches": 0
+        },
+        "markersEqual": false
+      }
+    }
+  },
+  "tests": [
+    {
+      "command": "python -m pytest -q tests/jka_server_attachment_tests.py tests/jka_cgame_ghoul2_tests.py",
+      "passed": 6,
+      "subtestsPassed": 4,
+      "coverage": "Production Academy server/client dispatchers; server fixture normal and fast-math; exact default and Outcast isolation",
+      "log": ".tmp/jka-bone-names/targeted-tests.log"
+    },
+    {
+      "command": "meson test -C .tmp/jka-bone-names/build --no-rebuild --print-errorlogs fntech3_raven_ghoul2_server fntech3_jka_pose",
+      "passed": 2,
+      "log": ".tmp/jka-bone-names/native-tests.log"
+    },
+    {
+      "command": "python -m pytest -q -p no:cacheprovider tests/jka_cgame_attachment_tests.py tests/jka_cgame_bolt_tests.py tests/jka_cgame_render_tests.py tests/jka_pose_tests.py tests/jka_module_refusal_tests.py tests/jka_ui_ghoul2_tests.py tests/jka_ghoul2_cleanup_tests.py",
+      "cwd": ".tmp/jka-bone-names/src",
+      "passed": 15,
+      "subtestsPassed": 12,
+      "log": ".tmp/jka-bone-names/regression-tests.log"
+    }
+  ],
+  "remainingLimits": [
+    "No live client rendering or bidirectional interoperability proof",
+    "No new evidence for Outcast name matching",
+    "No non-ASCII locale claim",
+    "Pose reuse at one clock and listen-server shared clock remain as prior records describe",
+    "Clip refusals, collision-cache mark clearing, demos, SP campaign and saves remain open"
+  ],
+  "unrelatedIssuesDiscovered": [],
+  "temporaryCleanup": {
+    "status": "blocked_by_tool_policy",
+    "reason": "Recursive deletion was rejected with blocked by policy, including after separate absolute-path and link verification.",
+    "verifiedNoReparsePoints": true,
+    "retainedDisposableDirectories": [
+      ".tmp/jka-bone-names/src",
+      ".tmp/jka-bone-names/build",
+      ".tmp/jka-bone-names/obj",
+      ".tmp/jka-bone-names/__pycache__",
+      ".tmp/runtime/jka-retail/server-bonenames"
+    ],
+    "retainedEvidenceDirectory": ".tmp/jka-bone-names",
+    "retainedReusableRuntime": ".tmp/runtime/jka-boneanim-after/fntech3.ded.exe"
+  }
+}

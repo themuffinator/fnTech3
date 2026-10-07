@@ -171,7 +171,7 @@ int main(){
  registerSkin[1]=0;assert(!Invoke(registerSkin));
  // Bone animation owns the actual float words, requested range and timing.
  const auto FloatWord=[](float value){std::uint32_t word;std::memcpy(&word,&value,4);return static_cast<intptr_t>(word);};
- intptr_t play[]{303,static_cast<intptr_t>(identity),0,reinterpret_cast<intptr_t>("model_root"),4,19,0x20,FloatWord(1.5f),1000,FloatWord(4.5f),200};
+ intptr_t play[]{303,static_cast<intptr_t>(identity),0,reinterpret_cast<intptr_t>("MODEL_ROOT"),4,19,0x20,FloatWord(1.5f),1000,FloatWord(4.5f),200};
  assert(Invoke(play)==1);
  auto *animationHandle=reinterpret_cast<void *>(static_cast<std::uintptr_t>(identity));
  const auto *playing=CL_JKACgameGhoul2Store().BoneAnimation(animationHandle,0,"model_root");
@@ -203,10 +203,12 @@ int main(){
  const auto *childClip=CL_JKACgameGhoul2Store().BoneAnimation(animationHandle,0,"child");
  assert(childClip&&childClip->flags==0x48&&childClip->blendTime==0);
  // An actual active prior clip retains the frozen transition sample.
- play[3]=reinterpret_cast<intptr_t>("model_root");play[8]=50;assert(Invoke(play)==1);
+ play[3]=reinterpret_cast<intptr_t>("Model_Root");play[8]=50;assert(Invoke(play)==1);
  playing=CL_JKACgameGhoul2Store().BoneAnimation(animationHandle,0,"model_root");
  assert(playing->flags==0xc8&&playing->blendTime==100);
  assert(playing->previousKnown&&playing->blendStart==50);
+ assert(playing==CL_JKACgameGhoul2Store().BoneAnimation(animationHandle,0,"MODEL_ROOT"));
+ assert(CL_JKACgameGhoul2Resolve(identity)->At(0)->animations.size()==2);
  assert(CL_JKACgameGhoul2Store().DeformationPalette(*CL_JKACgameGhoul2Resolve(identity)->At(0),75,initialPose));
  // A valid loop record reaches the existing Fn Ghoul2 deformation evaluator.
  play[4]=0;play[5]=1;play[6]=0x18;play[8]=0;assert(Invoke(play)==1);
@@ -222,12 +224,15 @@ int main(){
  // fields. Retail's model-list word is forwarded but never consumed.
  std::array<byte,16> angleBytes;angleBytes.fill(0xa5);
  const float bends[]{10,20,30};std::memcpy(angleBytes.data()+1,bends,12);
- intptr_t angle[]{302,static_cast<intptr_t>(identity),0,reinterpret_cast<intptr_t>("model_root"),
+ intptr_t angle[]{302,static_cast<intptr_t>(identity),0,reinterpret_cast<intptr_t>("MODEL_ROOT"),
   reinterpret_cast<intptr_t>(angleBytes.data()+1),2,1,3,2,0,70,200};
  assert(Invoke(angle)==1&&angleBytes.front()==0xa5&&angleBytes[13]==0xa5);
  const auto angled=[&](){return CL_JKACgameGhoul2Store().BoneAngles(animationHandle,0,"model_root");};
  assert(angled()&&angled()->bone==0&&angled()->angles[0]==10&&angled()->angles[1]==20&&angled()->angles[2]==30);
  assert(angled()->flags==2&&angled()->up==1&&angled()->right==3&&angled()->forward==2&&angled()->blendTime==70&&angled()->startTime==200);
+ angle[3]=reinterpret_cast<intptr_t>("Model_Root");assert(Invoke(angle)==1);
+ assert(angled()==CL_JKACgameGhoul2Store().BoneAngles(animationHandle,0,"MODEL_ROOT"));
+ assert(CL_JKACgameGhoul2Resolve(identity)->At(0)->angles.size()==1);
  const auto beforeBadAngle=*angled();
  for(std::uint32_t word:{0x7f800000u,0xff800000u,0x7fc00001u}){
   std::memcpy(angleBytes.data()+1,&word,4);assert(!Invoke(angle));
@@ -263,12 +268,14 @@ int main(){
  info[1]=0;assert(!Invoke(info));info[1]=identity;
  // Bolt names resolve against this model's authored surface and bone tables.
  // Repetition keeps the same index; a missing name publishes no new bolt.
- intptr_t bolt[]{317,static_cast<intptr_t>(identity),0,reinterpret_cast<intptr_t>("root")};
+ intptr_t bolt[]{317,static_cast<intptr_t>(identity),0,reinterpret_cast<intptr_t>("ROOT")};
  assert(Invoke(bolt)==0&&Invoke(bolt)==0);
  auto *handle=reinterpret_cast<void *>(static_cast<std::uintptr_t>(identity));
  const auto *surface=CL_JKACgameGhoul2Store().BoltAt(handle,0,0);
  assert(surface&&surface->surface==0&&surface->bone==-1);
- bolt[3]=reinterpret_cast<intptr_t>("model_root");assert(Invoke(bolt)==1&&Invoke(bolt)==1);
+ bolt[3]=reinterpret_cast<intptr_t>("rOoT");assert(Invoke(bolt)==0);
+ bolt[3]=reinterpret_cast<intptr_t>("MODEL_ROOT");assert(Invoke(bolt)==1&&Invoke(bolt)==1);
+ bolt[3]=reinterpret_cast<intptr_t>("Model_Root");assert(Invoke(bolt)==1);
  const auto *bone=CL_JKACgameGhoul2Store().BoltAt(handle,0,1);
  assert(bone&&bone->surface==-1&&bone->bone==0);
  bolt[3]=reinterpret_cast<intptr_t>("absent");assert(Invoke(bolt)==-1);

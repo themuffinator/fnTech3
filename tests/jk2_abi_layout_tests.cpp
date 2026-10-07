@@ -69,6 +69,7 @@ static_assert( sizeof( usercmd_t ) == 28 );
 /* Quake III's input frame is 24 bytes. This title's is not it. */
 static_assert( sizeof( usercmd_t ) != 24 );
 static_assert( FNTECH3_JK2_ENTITY_SHARED_OFFSET == FNTECH3_JK2_ENTITY_STATE_BYTES );
+static_assert( FNTECH3_JK2_R_OWNERNUM == 396 ); // retail jk2mp.exe 0x45093d/0x4509cc
 static_assert( FNTECH3_JK2_SHARED_ENTITY_BYTES
 	== FNTECH3_JK2_ENTITY_STATE_BYTES + FNTECH3_JK2_ENTITY_SHARED_BYTES );
 

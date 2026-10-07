@@ -29,7 +29,7 @@ def binding(path, signature):
 def fixture():
     host = (ROOT / 'code/server/server_jka_game.hpp').read_text(encoding='utf-8')
     start = host.index('\tcase Call::G_G2_PLAYANIM:')
-    end = host.index('\n\tcase Call::G_G2_ADDBOLT:', start)
+    end = host.index('\n\tcase Call::G_G2_GETBONEANIM:', start)
     assert '\tcase Call::G_G2_SETBOLTINFO:' in host[start:end]
     # The server's pose clock, its no-rotation selector and the clock's setter.
     clock = host[host.index('static int jkaServerGhoul2Clock'):host.index('static void SV_JKAClearGame(')]
@@ -435,6 +435,91 @@ static void CheckAcademyBoneAnim(){
  CHECK(store.Clean(&weapon));
  for(void *&owner:made)CHECK(store.Clean(&owner)&&!owner);
 }
+// Retail's server imports 595/596/593 share names without ASCII case:
+// docs/fntech3/2026-10-07-jka-bone-names.md. Compare differently cased
+// setters with canonical setters through 597 and the actual bolt import.
+static void CheckAcademyBoneNames(){
+ auto &store=ravenGhoul2Academy;
+ const auto add=[](void *owner,const char *name,int model=0){
+  return Import({593,reinterpret_cast<intptr_t>(owner),model,reinterpret_cast<intptr_t>(name)});};
+ void *canonical=nullptr,*folded=nullptr;LoadError error;
+ for(void **owner:{&canonical,&folded})CHECK(store.AddModel(owner,Body,error)==0);
+ CHECK(add(canonical,"root")==0&&add(canonical,"child")==1);
+ CHECK(add(folded,"ROOT")==0&&add(folded,"ChIlD")==1);
+ for(const char *name:{"root","ROOT","RoOt"})CHECK(add(folded,name)==0);
+ for(const char *name:{"child","CHILD","ChIlD"})CHECK(add(folded,name)==1);
+ CHECK(store.BoltAt(folded,0,0)->surface==0&&store.BoltAt(folded,0,1)->bone==1);
+ CHECK(Play(canonical,"model_root",0,3,0x58,1,0,-1,0));
+ CHECK(Play(folded,"MODEL_ROOT",0,3,0x58,1,0,-1,0));
+ CHECK(Bend(canonical,"child",2)&&Bend(folded,"CHILD",2));
+ CHECK(Play(canonical,"child",0,3,0x48,.5f,0,-1,0));
+ CHECK(Play(folded,"ChIlD",0,3,0x48,.5f,0,-1,0));
+ const auto compare=[&](int clock){
+  SV_JKAGhoul2SetTime(clock);
+  for(const char *name:{"model_root","MODEL_ROOT","Model_Root","child","CHILD","ChIlD"}){
+   const auto a=BoneAnim(canonical,name),b=BoneAnim(folded,name);
+   CHECK(a.result==1&&b.result==1&&!std::memcmp(a.words,b.words,sizeof(a.words)));
+  }
+  for(int bolt:{0,1}){float a[12],b[12];CHECK(Bolt(canonical,0,bolt,a)&&Bolt(folded,0,bolt,b)&&Same(a,b));}
+ };
+ compare(25);
+ CHECK(Answers(BoneAnim(folded,"CHILD"),1,.25f,0,3,0x804a,.5f));
+ // Replacement under another spelling keeps one record and its prior blend.
+ CHECK(Play(canonical,"model_root",1,3,0xc8,1,50,-1,100));
+ CHECK(Play(folded,"Model_Root",1,3,0xc8,1,50,-1,100));
+ CHECK(Bend(canonical,"child",4)&&Bend(folded,"cHiLd",4));
+ compare(75);
+ const auto *clip=store.BoneAnimation(folded,0,"MODEL_ROOT");
+ CHECK(clip&&clip==store.BoneAnimation(folded,0,"model_root")&&clip->previousKnown&&clip->flags==0xc8);
+ const auto *bend=store.BoneAngles(folded,0,"CHILD");
+ CHECK(bend&&bend==store.BoneAngles(folded,0,"child")&&bend->flags==4);
+ const auto *model=store.Resolve(folded)->At(0);
+ CHECK(model->animations.size()==2&&model->angles.size()==1&&model->boneFlags.size()==2&&model->bolts.size()==2);
+ CHECK(Answers(BoneAnim(folded,"child"),1,.75f,0,3,0x804c,.5f));
+ // Missing, partial, non-ASCII and null names do not mutate any records.
+ for(const char *name:{"","CHIL","CHILD_extra","NO_SUCH_BONE","\xc0","\xe0",static_cast<const char*>(nullptr)}){
+  CHECK(!Play(folded,name,0,3,0x48,1,0,-1,0)&&!Bend(folded,name,2));
+  CHECK(add(folded,name)==-1&&!store.BoneAnimation(folded,0,name)&&!store.BoneAngles(folded,0,name));
+ }
+ for(int index:{-1,1,99})CHECK(add(folded,"ROOT",index)==-1);
+ CHECK(add(nullptr,"ROOT")==-1&&add(&error,"ROOT")==-1);
+ CHECK(!Play(&error,"MODEL_ROOT",0,3,0x48,1,0,-1,0)&&!Bend(nullptr,"CHILD",2));
+ CHECK(model->animations.size()==2&&model->angles.size()==1&&model->boneFlags.size()==2&&model->bolts.size()==2);
+ compare(75);
+ // Locale-independent byte matching, full lengths, and first match win.
+ fntech3::ghoul2::Model names;names.boneNames={"MiXeD","mixed","\xc0"};
+ CHECK(fntech3::ghoul2::detail::BoneNamedFolded(names,"MIXED")==0);
+ CHECK(fntech3::ghoul2::detail::BoneNamedFolded(names,"mixed")==0);
+ CHECK(fntech3::ghoul2::detail::BoneNamedFolded(names,"\xc0")==2);
+ CHECK(fntech3::ghoul2::detail::BoneNamedFolded(names,"\xe0")==-1);
+ // Surface lookup still precedes bone lookup even when their case differs.
+ auto collisionMesh=AuthoredTagMesh("models/players/test/skeleton",3,BodyTag);
+ std::memcpy(collisionMesh.data()+model::MeshHeaderBytes+4,"CHILD",6);
+ installed["models/players/test/collision.glm"]=collisionMesh;
+ void *collision=nullptr;CHECK(store.AddModel(&collision,"models/players/test/collision.glm",error)==0);
+ CHECK(add(collision,"child")==0&&add(collision,"CHILD")==0);
+ CHECK(store.BoltAt(collision,0,0)->surface==0&&store.BoltAt(collision,0,0)->bone==-1);
+ CHECK(store.Clean(&collision));
+ void *copy=nullptr;CHECK(store.Duplicate(folded,&copy));
+ CHECK(add(copy,"rOoT")==0&&store.BoneAnimation(copy,0,"MODEL_ROOT")->previousKnown);
+ void *stale=folded;CHECK(store.Clean(&folded)&&!folded);
+ CHECK(!Play(stale,"MODEL_ROOT",0,3,0x48,1,0,-1,0)&&!Bend(stale,"CHILD",2)&&add(stale,"ROOT")==-1);
+ CHECK(store.Clean(&copy)&&store.Clean(&canonical));
+ // The generic store and Outcast do not opt into this Academy observation.
+ fntech3::ghoul2::Store exact(ravenGhoul2Files,true,true,true);
+ for(auto *other:{&exact,&ravenGhoul2Outcast}){
+  void *owner=nullptr;CHECK(other->AddModel(&owner,Body,error)==0);
+  const float turn[3]{10,20,30};
+  CHECK(other->SetBoneAnim(owner,0,"model_root",0,3,0x48,1,0,-1,0));
+  CHECK(!other->SetBoneAnim(owner,0,"MODEL_ROOT",0,3,0x48,1,0,-1,0));
+  CHECK(other->SetBoneAngles(owner,0,"child",turn,2,1,3,2,0,0));
+  CHECK(!other->SetBoneAngles(owner,0,"CHILD",turn,2,1,3,2,0,0));
+  CHECK(!other->BoneAnimation(owner,0,"MODEL_ROOT")&&!other->BoneAngles(owner,0,"CHILD"));
+  CHECK(other->AddBolt(owner,0,"root")==0&&other->AddBolt(owner,0,"child")==1);
+  CHECK(other->AddBolt(owner,0,"ROOT")==-1&&other->AddBolt(owner,0,"CHILD")==-1);
+  CHECK(other->Clean(&owner));
+ }
+}
 // Outcast's server keeps builds as jk2mp.exe 1.02a does (0x4790f0, 0x4a7620):
 // one build per time, judged by model 0 alone; answers from what the build
 // kept in each bolt; 587 never building; and the engine `*default` skeleton,
@@ -616,7 +701,7 @@ int main(){
  installed[Body]=AuthoredTagMesh("models/players/test/skeleton",3,BodyTag);
  installed["models/players/test/skeleton.gla"]=PoseSkeleton();
  installed[Weapon]=AuthoredTagMesh("*default",1,WeaponTag);
- CheckAcademy();CheckAcademyBoneAnim();CheckOutcast();
+ CheckAcademy();CheckAcademyBoneAnim();CheckAcademyBoneNames();CheckOutcast();
  // A map change clears both titles' stores.
  void *a=nullptr,*b=nullptr;LoadError error;
  CHECK(ravenGhoul2Academy.AddModel(&a,Body,error)==0&&ravenGhoul2Outcast.AddModel(&b,Body,error)==0);

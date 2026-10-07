@@ -676,6 +676,8 @@ inline const char *PosingName( Posing posing ) {
 	return "unknown";
 }
 
+enum class NameMatch { Exact, AsciiFolded };
+
 class Store {
 public:
 	/* Each capability is opted into by the consumer whose retail contract was
@@ -690,9 +692,9 @@ public:
 	 * engine's clean reads them (CleanField). */
 	explicit Store( Files &files, bool serveDefaultSkeleton = false,
 		bool serveAnimationBlends = false, bool serveAttachments = false,
-		bool keepBuilds = false )
+		bool keepBuilds = false, NameMatch nameMatch = NameMatch::Exact )
 		: files_( &files ), serveAnimationBlends_(serveAnimationBlends),
-		serveAttachments_(serveAttachments), keepBuilds_(keepBuilds) {
+		serveAttachments_(serveAttachments), keepBuilds_(keepBuilds), nameMatch_(nameMatch) {
 		if ( serveDefaultSkeleton ) Keep( "*default", builtin::DefaultSkeleton() );
 	}
 	bool ServesAttachments() const { return serveAttachments_; }
@@ -899,6 +901,9 @@ private:
 	bool serveAnimationBlends_ = false;
 	bool serveAttachments_ = false;
 	bool keepBuilds_ = false;
+	/* Academy's shared retail setters and AddBolt use _stricmp. Other
+	 * consumers keep exact names until measured; see the bone names record. */
+	NameMatch nameMatch_ = NameMatch::Exact;
 	/* jk2mp.exe's global 0x1ae6634: set by import 587's handler (0x44c687),
 	 * cleared only by a bolt query whose indices check out (0x4a76c1). Like
 	 * the engine's, it outlives a map change. */
@@ -1523,31 +1528,33 @@ inline bool Store::Duplicate( void *pointer, void **slot )
 }
 
 namespace detail {
-/* Which bone of a model carries a name, or -1. */
-inline int BoneNamed( const Model &model, const char *name )
+/* Locale-independent ASCII folding for Academy's _stricmp name contract
+ * (jamp.exe 1.01 0x539336). Non-ASCII bytes remain exact. */
+inline bool NameEqual( const std::string &candidate, const char *name, NameMatch match )
+{
+	if ( !name ) return false;
+	if ( match == NameMatch::Exact ) return candidate == name;
+	const auto fold = []( char c ) {
+		return c >= 'A' && c <= 'Z' ? char( c - 'A' + 'a' ) : c;
+	};
+	std::size_t at = 0;
+	while ( at < candidate.size() && name[at] && fold( candidate[at] ) == fold( name[at] ) ) ++at;
+	return at == candidate.size() && !name[at];
+}
+
+/* The first bone carrying a name under this consumer's contract, or -1. */
+inline int BoneNamed( const Model &model, const char *name, NameMatch match = NameMatch::Exact )
 {
 	if ( !name || !name[0] ) return -1;
 	for ( int index = 0; index < int( model.boneNames.size() ); ++index ) {
-		if ( model.boneNames[std::size_t( index )] == name ) return index;
+		if ( NameEqual( model.boneNames[std::size_t( index )], name, match ) ) return index;
 	}
 	return -1;
 }
 
-/* The first bone whose name matches without regard to ASCII case, as the
- * C locale's _stricmp compares, or -1. */
 inline int BoneNamedFolded( const Model &model, const char *name )
 {
-	if ( !name || !name[0] ) return -1;
-	const auto fold = []( char c ) {
-		return c >= 'A' && c <= 'Z' ? char( c - 'A' + 'a' ) : c;
-	};
-	for ( int index = 0; index < int( model.boneNames.size() ); ++index ) {
-		const std::string &candidate = model.boneNames[std::size_t( index )];
-		std::size_t at = 0;
-		while ( at < candidate.size() && name[at] && fold( candidate[at] ) == fold( name[at] ) ) ++at;
-		if ( at == candidate.size() && !name[at] ) return index;
-	}
-	return -1;
+	return BoneNamed( model, name, NameMatch::AsciiFolded );
 }
 
 /* A bone's flags word (see BoneFlags), made empty the first time a setter
@@ -1613,7 +1620,7 @@ inline bool Store::SetBoneAnim( void *pointer, int modelIndex, const char *boneN
 	if ( !instance || modelIndex < 0 || modelIndex >= instance->Count() ) return false;
 	Model &model = instance->models_[std::size_t( modelIndex )];
 	if ( !model.present ) return false;
-	const int bone = detail::BoneNamed( model, boneName );
+	const int bone = detail::BoneNamed( model, boneName, nameMatch_ );
 	if ( bone < 0 ) return false;
 
 	fntech3::ghoul2::BoneAnimation playing;
@@ -1671,7 +1678,7 @@ inline const fntech3::ghoul2::BoneAnimation *Store::BoneAnimation( void *pointer
 	if ( !instance || modelIndex < 0 || modelIndex >= instance->Count() ) return nullptr;
 	const Model &model = instance->models_[std::size_t( modelIndex )];
 	if ( !model.present ) return nullptr;
-	const int bone = detail::BoneNamed( model, boneName );
+	const int bone = detail::BoneNamed( model, boneName, nameMatch_ );
 	if ( bone < 0 ) return nullptr;
 	for ( const auto &existing : model.animations ) {
 		if ( existing.bone == bone ) return &existing;
@@ -1739,7 +1746,7 @@ inline bool Store::SetBoneAngles( void *pointer, int modelIndex, const char *bon
 	if ( modelIndex < 0 || modelIndex >= instance->Count() ) return false;
 	Model &model = instance->models_[std::size_t( modelIndex )];
 	if ( !model.present ) return false;
-	const int bone = detail::BoneNamed( model, boneName );
+	const int bone = detail::BoneNamed( model, boneName, nameMatch_ );
 	if ( bone < 0 ) return false;
 
 	fntech3::ghoul2::BoneAngles bent;
@@ -1772,7 +1779,7 @@ inline const fntech3::ghoul2::BoneAngles *Store::BoneAngles( void *pointer,
 	if ( !instance || modelIndex < 0 || modelIndex >= instance->Count() ) return nullptr;
 	const Model &model = instance->models_[std::size_t( modelIndex )];
 	if ( !model.present ) return nullptr;
-	const int bone = detail::BoneNamed( model, boneName );
+	const int bone = detail::BoneNamed( model, boneName, nameMatch_ );
 	if ( bone < 0 ) return nullptr;
 	for ( const auto &existing : model.angles ) {
 		if ( existing.bone == bone ) return &existing;
@@ -1789,7 +1796,7 @@ inline int Store::AddBolt( void *pointer, int modelIndex, const char *name )
 	if ( !model.present ) return -1;
 
 	for ( int index = 0; index < int( model.bolts.size() ); ++index ) {
-		if ( model.bolts[std::size_t( index )].name == name ) return index;
+		if ( detail::NameEqual( model.bolts[std::size_t( index )].name, name, nameMatch_ ) ) return index;
 	}
 	if ( int( model.bolts.size() ) >= MaxBoltsPerModel ) return -1;
 
@@ -1798,12 +1805,10 @@ inline int Store::AddBolt( void *pointer, int modelIndex, const char *name )
 	/* A surface first, then a bone: the two are numbered separately, and a
 	 * name that is neither is not a bolt. */
 	for ( int index = 0; index < int( model.surfaceNames.size() ); ++index ) {
-		if ( model.surfaceNames[std::size_t( index )] == name ) { bolt.surface = index; break; }
+		if ( detail::NameEqual( model.surfaceNames[std::size_t( index )], name, nameMatch_ ) ) { bolt.surface = index; break; }
 	}
 	if ( bolt.surface < 0 ) {
-		for ( int index = 0; index < int( model.boneNames.size() ); ++index ) {
-			if ( model.boneNames[std::size_t( index )] == name ) { bolt.bone = index; break; }
-		}
+		bolt.bone = detail::BoneNamed( model, name, nameMatch_ );
 	}
 	if ( bolt.surface < 0 && bolt.bone < 0 ) return -1;
 	model.bolts.push_back( std::move( bolt ) );

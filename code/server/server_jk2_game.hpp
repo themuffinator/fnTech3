@@ -33,6 +33,7 @@
 #include "../qcommon/game_profile.h"
 #include "server_raven_assets.hpp"
 #include "../compat/jk2_state_adapter.hpp"
+#include "server_jk2_actions.hpp"
 
 /* Read from retail jk2mp.exe: the bound its dispatcher compares against. */
 inline constexpr int FNTECH3_JK2_GAME_IMPORT_HIGHEST = 599;
@@ -153,8 +154,11 @@ static bool SV_JK2GameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 	/* Two more of the bot-library run, named from their own handlers. 210
 	 * takes a client, a converted buffer and a length; 211 computes
 	 * `&clients[n]` by the client stride and hands it a converted pointer,
-	 * which is this engine's own client think. 209, the snapshot entity, is
-	 * left refused: there are no snapshots to read one out of. */
+	 * which is this engine's own client think. 209 stays refused, but is not
+	 * the retail bot's enemy-search path: its wrapper (QVM procedure 6819)
+	 * has no caller. Procedure 14027 walks the module's own entities, first
+	 * rejecting a zero s.solid, then checking PVS and a world trace. See
+	 * docs/fntech3/2026-10-07-jk2-bot-combat.md. */
 	if ( trap == 210 ) {
 		VM_CHECKBOUNDS( gvm, args[2], args[3] );
 		result = SV_BotGetConsoleMessage( static_cast<int>( args[1] ),
@@ -187,62 +191,62 @@ static bool SV_JK2GameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 	 * 422, 424 and 425 use exactly those four of them, in that order, with
 	 * exactly the arguments each takes.
 	 *
-	 * As in Academy, the two Raven inserted into the middle of Quake III's
-	 * block have no counterpart in the library this engine carries. They are
-	 * answered without doing anything, and that is a stated gap: a bot here
-	 * moves, turns, jumps, crouches, fires and changes weapon, and does not
-	 * alt-fire or use a force power. */
+	 * Retail's alternate attack and force power set 0x200000 and 0x100000.
+	 * This profile carries those bits with their Raven meanings; its previous
+	 * jump marker is translated at the output boundary (server_jk2_actions.hpp).
+	 * The two actions were no-ops before the bot-combat investigation. */
 	switch ( trap ) {
 	case 400:
-		botlib_export->ea.EA_Say( static_cast<int>( args[1] ),
+		SV_JK2BotActionInterface( args[1] ).EA_Say( static_cast<int>( args[1] ),
 			static_cast<const char *>( VM_ArgPtr( args[2] ) ) );
 		return true;
 	case 401:
-		botlib_export->ea.EA_SayTeam( static_cast<int>( args[1] ),
+		SV_JK2BotActionInterface( args[1] ).EA_SayTeam( static_cast<int>( args[1] ),
 			static_cast<const char *>( VM_ArgPtr( args[2] ) ) );
 		return true;
-	case 406: botlib_export->ea.EA_Attack( static_cast<int>( args[1] ) ); return true;
+	case 406: SV_JK2BotActionInterface( args[1] ).EA_Attack( static_cast<int>( args[1] ) ); return true;
 	case 407:
-	case 408:
-		/* Raven's own two. Nothing is pressed, and nothing pretends to be. */
+		SV_JK2BotActionInterface( args[1] ).EA_Action( static_cast<int>( args[1] ), JK2ActionAltAttack );
 		return true;
-	case 409: botlib_export->ea.EA_Use( static_cast<int>( args[1] ) ); return true;
-	case 411: botlib_export->ea.EA_Crouch( static_cast<int>( args[1] ) ); return true;
-	case 412: botlib_export->ea.EA_MoveUp( static_cast<int>( args[1] ) ); return true;
-	case 413: botlib_export->ea.EA_MoveDown( static_cast<int>( args[1] ) ); return true;
-	case 414: botlib_export->ea.EA_MoveForward( static_cast<int>( args[1] ) ); return true;
-	case 415: botlib_export->ea.EA_MoveBack( static_cast<int>( args[1] ) ); return true;
-	case 416: botlib_export->ea.EA_MoveLeft( static_cast<int>( args[1] ) ); return true;
-	case 417: botlib_export->ea.EA_MoveRight( static_cast<int>( args[1] ) ); return true;
+	case 408:
+		SV_JK2BotActionInterface( args[1] ).EA_Action( static_cast<int>( args[1] ), JK2ActionForcePower );
+		return true;
+	case 409: SV_JK2BotActionInterface( args[1] ).EA_Use( static_cast<int>( args[1] ) ); return true;
+	case 411: SV_JK2BotActionInterface( args[1] ).EA_Crouch( static_cast<int>( args[1] ) ); return true;
+	case 412: SV_JK2BotActionInterface( args[1] ).EA_MoveUp( static_cast<int>( args[1] ) ); return true;
+	case 413: SV_JK2BotActionInterface( args[1] ).EA_MoveDown( static_cast<int>( args[1] ) ); return true;
+	case 414: SV_JK2BotActionInterface( args[1] ).EA_MoveForward( static_cast<int>( args[1] ) ); return true;
+	case 415: SV_JK2BotActionInterface( args[1] ).EA_MoveBack( static_cast<int>( args[1] ) ); return true;
+	case 416: SV_JK2BotActionInterface( args[1] ).EA_MoveLeft( static_cast<int>( args[1] ) ); return true;
+	case 417: SV_JK2BotActionInterface( args[1] ).EA_MoveRight( static_cast<int>( args[1] ) ); return true;
 	case 418:
-		botlib_export->ea.EA_SelectWeapon( static_cast<int>( args[1] ),
+		SV_JK2BotActionInterface( args[1] ).EA_SelectWeapon( static_cast<int>( args[1] ),
 			static_cast<int>( args[2] ) );
 		return true;
-	case 419: botlib_export->ea.EA_Jump( static_cast<int>( args[1] ) ); return true;
-	case 420: botlib_export->ea.EA_DelayedJump( static_cast<int>( args[1] ) ); return true;
+	case 419: SV_JK2BotActionInterface( args[1] ).EA_Jump( static_cast<int>( args[1] ) ); return true;
+	case 420: SV_JK2BotActionInterface( args[1] ).EA_DelayedJump( static_cast<int>( args[1] ) ); return true;
 	case 421:
 		VM_CHECKBOUNDS( gvm, args[2], sizeof( vec3_t ) );
-		botlib_export->ea.EA_Move( static_cast<int>( args[1] ),
+		SV_JK2BotActionInterface( args[1] ).EA_Move( static_cast<int>( args[1] ),
 			static_cast<float *>( VM_ArgPtr( args[2] ) ), VMF( 3 ) );
 		return true;
 	case 422:
 		VM_CHECKBOUNDS( gvm, args[2], sizeof( vec3_t ) );
-		botlib_export->ea.EA_View( static_cast<int>( args[1] ),
+		SV_JK2BotActionInterface( args[1] ).EA_View( static_cast<int>( args[1] ),
 			static_cast<float *>( VM_ArgPtr( args[2] ) ) );
 		return true;
 	case 423:
-		botlib_export->ea.EA_EndRegular( static_cast<int>( args[1] ), VMF( 2 ) );
+		SV_JK2BotActionInterface( args[1] ).EA_EndRegular( static_cast<int>( args[1] ), VMF( 2 ) );
 		return true;
-	case 424:
-		/* The input frame the library built. It is the library's own record,
-		 * not this title's: the retail engine hands the module's pointer
-		 * straight to the library and lets it write, so the two must already
-		 * agree, and this engine's library writes the same one. */
-		VM_CHECKBOUNDS( gvm, args[3], sizeof( bot_input_t ) );
-		botlib_export->ea.EA_GetInput( static_cast<int>( args[1] ), VMF( 2 ),
-			static_cast<bot_input_t *>( VM_ArgPtr( args[3] ) ) );
+	case 424: {
+		void *destination = SV_JK2BotInputDestination( gvm, args[3] );
+		bot_input_t input{};
+		SV_JK2BotActionInterface( args[1] ).EA_GetInput( static_cast<int>( args[1] ), VMF( 2 ), &input );
+		const bot_input_t output = SV_JK2BotActionOutput( input );
+		std::memcpy( destination, &output, sizeof( output ) );
 		return true;
-	case 425: botlib_export->ea.EA_ResetInput( static_cast<int>( args[1] ) ); return true;
+	}
+	case 425: SV_JK2BotActionInterface( args[1] ).EA_ResetInput( static_cast<int>( args[1] ) ); return true;
 	default: break;
 	}
 

@@ -416,7 +416,7 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 		k = static_cast<int>( std::clamp( entity.r.maxs[2], 1.0f, 254.0f ) );
 		entity.s.eFlags |= alongY ? FNTECH3_STVEF_MP_EF_SHIELD_BOX_Y : FNTECH3_STVEF_MP_EF_SHIELD_BOX_X;
 		entity.s.solid = (k<<16) | (j<<8) | i;
-	} else if ( entity.r.contents & ( CONTENTS_SOLID | CONTENTS_BODY ) ) {
+	} else if ( entity.r.contents & ( CONTENTS_SOLID | CM_BodyContents() ) ) {
 		// assume that x/y are equal and symmetric
 		i = static_cast<int>( std::clamp( entity.r.maxs[0], 1.0f, 255.0f ) );
 		// z is not symmetric
@@ -773,7 +773,7 @@ static void SV_ClipMoveToEntities( moveclip_t &clip ) {
 		}
 		const auto restoreBoxContents = SV_MakeScopeExit( [entityBoxContents]() {
 			if ( entityBoxContents ) {
-				CM_SetTempBoxModelContents( CONTENTS_BODY );
+				CM_SetTempBoxModelContents( CM_BodyContents() );
 			}
 		} );
 

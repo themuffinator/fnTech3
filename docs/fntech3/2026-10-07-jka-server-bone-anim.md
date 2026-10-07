@@ -157,7 +157,9 @@ past its vector.
 
 - **Names in the setters.** Retail's setters match bone names without case
   too; the store's match them exactly, so a clip set as `PELVIS` is refused
-  where retail sets it. Only this import folds case.
+  where retail sets it. Only this import folds case in this slice. The
+  [subsequent bone names slice](2026-10-07-jka-bone-names.md) measures and
+  corrects Academy's setters and AddBolt, leaving Outcast unchanged.
 - **Clips the store's setter refuses**, such as a non-finite speed or a seed
   outside the clip, are kept by retail; the store keeps the previous clip and
   word, and answers for those.

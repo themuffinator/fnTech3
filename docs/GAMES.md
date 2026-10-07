@@ -515,9 +515,10 @@ Jedi Academy asks for disc 1 before it will connect to any server. See the
 **What you need:** Jedi Outcast version 1.02a, with its `base` folder.
 
 **Status:** experimental and early, in a Windows development build
-(`-Djk2-development=true`). A multiplayer server runs the original game code
-with bots. Parts of the client -- its network messages, menus and fonts -- are
-being built and tested on their own, but there is no working client yet.
+(`-Djk2-development=true`). A multiplayer server runs the original game code;
+bots find opponents and fight with sabers in tested matches. Parts of the
+client -- its network messages, menus and fonts -- are being built and tested
+on their own, but there is no working client yet.
 Single player's game code loads, then stops before the game starts. The
 campaign, saves, demos, graphics, sound and controls are still to come. See
 the [Jedi Outcast details](fntech3/COMPATIBILITY.md#jedi-outcast-gate-matrix).

@@ -18,6 +18,9 @@ PRELUDE = r'''
 #include "code/qcommon/game_profile.h"
 clipMap_t cm{};
 static comGameId_t selectedProfile = COM_GAME_QUAKE3;
+const comGameProfile_t *Com_GameProfile(void) {
+ static comGameProfile_t profile{};profile.id=selectedProfile;return &profile;
+}
 int Com_GameIsJKASP(void) { return selectedProfile == COM_GAME_JKA_SP; }
 '''
 CHECKS = r'''
@@ -27,7 +30,7 @@ int main(){
  for(unsigned profile=COM_GAME_AUTO;profile<COM_GAME_COUNT;++profile){
   selectedProfile=static_cast<comGameId_t>(profile);
   cm={};
-  const int body=selectedProfile==COM_GAME_JKA_SP ? 0x100 : CONTENTS_BODY;
+  const int body=selectedProfile==COM_GAME_JKA_SP||selectedProfile==COM_GAME_JK2_MP ? 0x100 : CONTENTS_BODY;
   assert(CM_TotalMapContents()==body);
   cbrush_t brushes[2]{};brushes[0].contents=CONTENTS_SOLID;brushes[1].contents=CONTENTS_WATER;
   cPatch_t patch{};patch.contents=0x40000000;

@@ -848,7 +848,7 @@ static void CM_TraceThroughSphere( traceWork_t *tw, const vec3_t origin, float r
 			VectorCopy(dir, tw->trace.plane.normal);
 			VectorAdd( tw->modelOrigin, intersection, intersection);
 			tw->trace.plane.dist = DotProduct(tw->trace.plane.normal, intersection);
-			tw->trace.contents = CONTENTS_BODY;
+			tw->trace.contents = CM_BodyContents();
 		}
 	}
 	else if (d == 0) {
@@ -963,7 +963,7 @@ static void CM_TraceThroughVerticalCylinder( traceWork_t *tw, const vec3_t origi
 				VectorCopy(dir, tw->trace.plane.normal);
 				VectorAdd( tw->modelOrigin, intersection, intersection);
 				tw->trace.plane.dist = DotProduct(tw->trace.plane.normal, intersection);
-				tw->trace.contents = CONTENTS_BODY;
+				tw->trace.contents = CM_BodyContents();
 			}
 		}
 	}

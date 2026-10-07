@@ -11,10 +11,10 @@
  *   entityState_t   296 bytes   its delta table's last member is `generic1`
  *                               at 292, and the engine's own SV_SetBrushModel
  *                               writes the entity's shared half from 296
- *   entityShared_t  100 bytes   SV_SetBrushModel writes a brush flag at +16,
+ *   shared prefix   104 bytes   SV_SetBrushModel writes a brush flag at +16,
  *                               two bounds vectors at +20 and +32 and a
  *                               contents mask at +44, which is Quake III's
- *                               spacing; the other nine members follow it
+ *                               spacing; ownerNum is +100 (see below)
  *   playerState_t  1368 bytes   its delta table's last member sits at 1364,
  *                               and the engine copies 1,368 bytes whole
  *   gentity_t       828 bytes   the module states it when it publishes its
@@ -33,11 +33,13 @@
  *   currentOrigin   `[esi+0x170..0x178]` and the bounds above
  *   currentAngles   read at 0x17c-0x184 to decide whether the box is turned
  *
- * That leaves svFlags, singleClient and ownerNum. Their offsets are not in
- * doubt -- 8 and 12 are the only slots between the evidenced linkcount at 4
- * and the evidenced bmodel at 16, and 96 is the only slot before the measured
- * hundred-byte end -- but which of the three sits where is read from Quake
- * III's order and is the one thing here not separately evidenced.
+ * ownerNum is +100, not the +96 previously inferred from Quake III.
+ * Retail's entity sweep reads it at entity +0x18c for both the pass entity
+ * (0x45093d) and a candidate (0x4509cc). The word at +96 stays unnamed and
+ * untouched. 104 is the minimum engine-accessed prefix, not a claim that
+ * the module's next private field immediately follows it. svFlags is +8,
+ * also read by that sweep at entity +0x130; singleClient at +12 remains placed.
+ * See docs/fntech3/2026-10-07-jk2-bot-combat.md.
  *
  * These are boundary records, not engine types. See
  * docs/fntech3/2026-09-22-jk2-contracts.md. */
@@ -48,9 +50,9 @@
 #define FNTECH3_JK2_MAX_GENTITIES        1024
 #define FNTECH3_JK2_MAX_CONFIGSTRINGS    1400
 #define FNTECH3_JK2_ENTITY_STATE_BYTES    296
-#define FNTECH3_JK2_ENTITY_SHARED_BYTES   100
+#define FNTECH3_JK2_ENTITY_SHARED_BYTES   104
 #define FNTECH3_JK2_ENTITY_SHARED_OFFSET  296
-#define FNTECH3_JK2_SHARED_ENTITY_BYTES   396
+#define FNTECH3_JK2_SHARED_ENTITY_BYTES   400
 #define FNTECH3_JK2_PLAYER_STATE_BYTES   1368
 
 /* Everything the server keeps about a player.
@@ -311,7 +313,7 @@ typedef struct {
 #define FNTECH3_JK2_R( member )  ( FNTECH3_JK2_ENTITY_SHARED_OFFSET + ( member ) )
 #define FNTECH3_JK2_R_LINKED           FNTECH3_JK2_R(  0 )   /* evidenced */
 #define FNTECH3_JK2_R_LINKCOUNT        FNTECH3_JK2_R(  4 )   /* evidenced */
-#define FNTECH3_JK2_R_SVFLAGS          FNTECH3_JK2_R(  8 )   /* placed */
+#define FNTECH3_JK2_R_SVFLAGS          FNTECH3_JK2_R(  8 )   /* evidenced */
 #define FNTECH3_JK2_R_SINGLECLIENT     FNTECH3_JK2_R( 12 )   /* placed */
 #define FNTECH3_JK2_R_BMODEL           FNTECH3_JK2_R( 16 )   /* evidenced */
 #define FNTECH3_JK2_R_MINS             FNTECH3_JK2_R( 20 )   /* evidenced */
@@ -321,7 +323,7 @@ typedef struct {
 #define FNTECH3_JK2_R_ABSMAX           FNTECH3_JK2_R( 60 )   /* evidenced */
 #define FNTECH3_JK2_R_CURRENTORIGIN    FNTECH3_JK2_R( 72 )   /* evidenced */
 #define FNTECH3_JK2_R_CURRENTANGLES    FNTECH3_JK2_R( 84 )   /* evidenced */
-#define FNTECH3_JK2_R_OWNERNUM         FNTECH3_JK2_R( 96 )   /* placed */
+#define FNTECH3_JK2_R_OWNERNUM         FNTECH3_JK2_R(100 )   /* evidenced */
 
 /* Members of the state at the front that the engine itself reads, each at the
  * offset its own delta table gives. */
