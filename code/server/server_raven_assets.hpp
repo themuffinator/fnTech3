@@ -80,9 +80,11 @@ ServerGhoul2Files ravenGhoul2Files;
  * skeleton, links, model order and tag frame, but builds once per time and
  * keeps every bolt's matrix in the bolt (0x4790f0), and its bolt queries 586
  * and 587 answer what the last build kept (0x4a7620), so this store keeps
- * builds too. No clip is posed: its timing was not read. Its dedicated
- * server needs the game disc, so the answers are read, not observed. See
- * docs/fntech3/2026-10-06-jedi-server-attachments.md. */
+ * builds too. Its clips are posed with its own timing, read from its clip
+ * setter and bone transform (0x4ab070, 0x476380). Its dedicated server
+ * needs the game disc, so the answers are read, not observed. See
+ * docs/fntech3/2026-10-06-jedi-server-attachments.md and
+ * docs/fntech3/2026-10-07-jk2-server-clips.md. */
 fntech3::ghoul2::Store ravenGhoul2Academy( ravenGhoul2Files, true, true, true );
 fntech3::ghoul2::Store ravenGhoul2Outcast( ravenGhoul2Files, true, false, true, true );
 fntech3::ghoul2::SkinRegistry ravenSkins( ravenGhoul2Files );

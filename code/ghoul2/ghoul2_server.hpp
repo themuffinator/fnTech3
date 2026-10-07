@@ -145,6 +145,34 @@ private:
 };
 inline OpaqueHandleSequence ModelHandleIdentities;
 
+/* The module's own field for an instance: pointer-sized in a native module,
+ * a 32-bit word in a bytecode module's data segment (`fieldBytes` 4), whose
+ * handles this store keeps below 2^32. The field may be unaligned. */
+inline void *ReadField( const void *field, std::size_t fieldBytes )
+{
+	if ( fieldBytes == 4 ) {
+		std::uint32_t word;
+		std::memcpy( &word, field, sizeof( word ) );
+		return reinterpret_cast<void *>( std::uintptr_t( word ) );
+	}
+	void *handle;
+	std::memcpy( &handle, field, sizeof( handle ) );
+	return handle;
+}
+inline bool FieldHolds( const void *handle, std::size_t fieldBytes )
+{
+	return fieldBytes != 4 || !( std::uint64_t( reinterpret_cast<std::uintptr_t>( handle ) ) >> 32 );
+}
+inline void WriteField( void *field, std::size_t fieldBytes, const void *handle )
+{
+	if ( fieldBytes == 4 ) {
+		const auto word = std::uint32_t( reinterpret_cast<std::uintptr_t>( handle ) );
+		std::memcpy( field, &word, sizeof( word ) );
+		return;
+	}
+	std::memcpy( field, &handle, sizeof( handle ) );
+}
+
 /* A named place on a model that the game can ask the engine about later: a
  * surface of the mesh, or a bone of the skeleton. Which of the two it is
  * matters, because they are numbered separately. */
@@ -177,6 +205,11 @@ struct BoneAnimation {
 	pose::Frame previous{};
 	int blendStart = 0;
 	bool previousKnown = false;
+	/* Jedi Outcast's own transition sample, as its bone record keeps it
+	 * (jk2mp.exe 1.02a +0x4c and +0x50): the frame the prior clip had
+	 * reached, and the whole frame to blend it with (see outcast::Control). */
+	float blendFrame = 0.0f;
+	int blendLerpFrame = 0;
 };
 
 /* Where a bone's animation has got to at a given moment.
@@ -280,6 +313,201 @@ inline bool ForwardPlayhead( const BoneAnimation &playing, int numFrames, int no
 	return true;
 }
 
+/* Jedi Outcast's clip timing, read from jk2mp.exe 1.02a with Capstone: the
+ * sample its clip setter takes of the clip it replaces (0x4ab420), and the
+ * frames and transition its bone transform poses (0x476380..0x476952). It
+ * is not Academy's (PlayheadAt). A clip's age is its milliseconds times the
+ * float 0.02 (0x4eaa44), not over fifty; a loop wraps with fmod; a reverse
+ * clip (negative speed) takes paths of its own; and a clip that ended
+ * without loop or freeze leaves its bone on its parent's frames.
+ *
+ * The engine runs its x87 at the C runtime's 53-bit precision (startup
+ * 0x4d4b51 sets _PC_53), so its arithmetic rounds as IEEE doubles do and its
+ * stores round to float; this does the same, step for step. A host whose
+ * doubles keep x87 extended intermediates (GCC i686 without SSE math) can
+ * differ from it in a last bit. */
+namespace outcast {
+inline constexpr int ClipBits = 0x18;       /* 0x08 or 0x10: a clip runs */
+inline constexpr int LoopFlag = 0x10;
+inline constexpr int FreezeFlags = 0x48;    /* 0x476770 wants both */
+inline constexpr int BlendFlag = 0x80;
+inline constexpr int AnimationBits = 0xd8;  /* the setter's mask, 0x4ab358 */
+/* The float at 0x4eaa44, written exactly. */
+inline constexpr float FrameScale = 0.0199999995529651641845703125f;
+
+inline bool FiniteDouble( double value )
+{
+	std::uint64_t bits;
+	std::memcpy( &bits, &value, sizeof( bits ) );
+	volatile std::uint64_t encoded = bits;
+	return ( encoded & 0x7ff0000000000000ull ) != 0x7ff0000000000000ull;
+}
+
+/* _ftol (0x4d4f00): a truncation to 64 bits, of which callers keep the low
+ * word. NaN, the infinities and anything past 64 bits store the integer
+ * indefinite, whose low word is 0. */
+inline int Truncate( double value )
+{
+	if ( !FiniteDouble( value )
+		|| !( value >= -9223372036854775808.0 && value < 9223372036854775808.0 ) ) return 0;
+	const auto whole = static_cast<std::uint64_t>( static_cast<std::int64_t>( value ) );
+	return static_cast<int>( static_cast<std::uint32_t>( whole ) );
+}
+
+/* A clip's age in frames (0x4764c8..0x4764fe, 0x4ab47c..0x4ab4fd): the time
+ * since its start as the engine's int subtraction wraps it, times 0.02,
+ * stored as a float and never below 0. The pause time it would use instead
+ * is set by no import either title serves, so it is always 0. */
+inline float Age( int now, int startTime )
+{
+	const auto elapsed = static_cast<std::int32_t>( std::uint32_t( now ) - std::uint32_t( startTime ) );
+	const float age = float( double( elapsed ) * double( FrameScale ) );
+	return age < 0.0f ? 0.0f : age;
+}
+
+/* The frame a clip has reached (0x4ab420), which the setter samples for a
+ * transition: false when the bone runs no clip. A clip past its end loops
+ * by fmod or, otherwise, stands one frame inside its end (outside it, for
+ * a reverse clip) whether or not it was frozen. */
+inline bool Sample( const BoneAnimation &clip, int now, float &frame )
+{
+	if ( !( clip.flags & ClipBits ) ) return false;
+	const double speed = clip.speed;
+	const double end = float( clip.endFrame );
+	float at = float( double( clip.startFrame ) + double( Age( now, clip.startTime ) ) * speed );
+	const int size = Truncate( end - double( float( clip.startFrame ) ) );
+	if ( !size ) { frame = float( clip.startFrame ); return true; }
+	const bool past = speed > 0.0 ? end - 1.0 < double( at ) : speed < 0.0 && !( end + 1.0 <= double( at ) );
+	if ( past && ( clip.flags & LoopFlag ) ) {
+		const bool kept = speed >= 0.0 ? double( at ) < end : double( at ) > end + 1.0;
+		if ( !kept ) at = float( std::fmod( double( at ) - end, double( size ) ) + end - double( size ) );
+	} else if ( past ) {
+		at = float( speed > 0.0 ? clip.endFrame - 1 : clip.endFrame + 1 );
+	}
+	frame = at;
+	return true;
+}
+
+/* One bone's frames and transition in a build (0x4763d3..0x476952), as a
+ * control for pose::Evaluate. `has` stays false for a bone that runs
+ * neither a clip nor a transition: it keeps its parent's frames and
+ * transition, as the transform keeps them. False refuses what retail would
+ * pose and this does not serve: flags it would read as angle controls or
+ * not read at all, a speed that is not finite, and a negative frame, for
+ * which retail abandons the bone and every bone below it with its last
+ * matrices. Frames past the file are refused by Evaluate; retail reads
+ * past its frame table. */
+inline bool Control( const BoneAnimation &clip, int now, pose::Animation &out, bool &has )
+{
+	has = false;
+	if ( clip.flags & ~0xf8 ) return false;
+	if ( !( clip.flags & ( ClipBits | BlendFlag ) ) ) return true;
+	pose::Animation staged;
+	staged.bone = clip.bone;
+	if ( clip.flags & BlendFlag ) {
+		/* 0x4763f7..0x476465: inside its time, the transition poses the
+		 * sample it took -- the whole frame it had reached weighted by its
+		 * fraction and the frame after weighted by the rest (0x476959) --
+		 * and blends to the clip by how far in it is. Outside, none. */
+		const float age = float( static_cast<std::int32_t>( std::uint32_t( now ) - std::uint32_t( clip.blendStart ) ) );
+		if ( !( age < 0.0f ) && double( clip.blendTime ) > double( age ) ) {
+			if ( !FiniteScalar( clip.blendFrame ) || clip.blendFrame < 0.0f || clip.blendLerpFrame < 0 ) return false;
+			const int whole = Truncate( clip.blendFrame );
+			staged.previous = { clip.blendLerpFrame, whole, float( double( clip.blendFrame ) - double( whole ) ) };
+			staged.transition = float( double( age ) / double( clip.blendTime ) );
+			staged.blending = true;
+		}
+	}
+	if ( !( clip.flags & ClipBits ) ) {
+		staged.inheritFrame = true;
+		out = staged;
+		has = true;
+		return true;
+	}
+	if ( !FiniteScalar( clip.speed ) ) return false;
+	const double speed = clip.speed;
+	const double end = float( clip.endFrame );
+	const float at = float( double( clip.startFrame ) + double( Age( now, clip.startTime ) ) * speed );
+	const int size = Truncate( end - double( float( clip.startFrame ) ) );
+	const bool loop = ( clip.flags & LoopFlag ) != 0;
+	int current = 0, next = 0;
+	float lerp = 0.0f;
+	bool own = true;
+	if ( !size ) {
+		/* 0x4768d3: a clip of no length. */
+		current = speed >= 0.0 ? clip.endFrame - 1 : clip.endFrame + 1;
+		if ( current < 0 ) current = 0;
+		next = current;
+	} else if ( speed > 0.0 ? end - 1.0 < double( at ) : speed < 0.0 && !( end + 1.0 <= double( at ) ) ) {
+		/* 0x47659c: past the end. */
+		if ( loop && speed >= 0.0 ) {
+			const float last = float( end - 1.0 );
+			if ( double( at ) > double( last ) && double( at ) < end ) {
+				current = Truncate( at );
+				lerp = float( double( at ) - double( current ) );
+				next = clip.startFrame;
+			} else {
+				double wrapped = at;
+				if ( !( double( at ) < end ) ) wrapped = std::fmod( double( at ) - end, double( size ) ) + end - double( size );
+				current = Truncate( wrapped );
+				lerp = float( wrapped - double( current ) );
+				next = wrapped < double( last ) ? current + 1 : clip.startFrame;
+			}
+		} else if ( loop ) {
+			const float first = float( end + 1.0 );
+			if ( !( double( at ) >= double( first ) ) && !( double( at ) < end ) ) {
+				lerp = float( double( first ) - double( at ) );
+				current = Truncate( end );
+				next = clip.startFrame;
+			} else {
+				float wrapped = at;
+				if ( !( double( at ) > double( first ) ) ) {
+					wrapped = float( std::fmod( double( at ) - end, double( size ) ) + end - double( size ) );
+				}
+				const double up = std::ceil( double( wrapped ) );
+				lerp = float( up - double( wrapped ) );
+				current = Truncate( up );
+				next = double( wrapped ) > double( first ) ? current - 1 : clip.startFrame;
+			}
+		} else if ( ( clip.flags & FreezeFlags ) == FreezeFlags ) {
+			current = next = speed > 0.0 ? clip.endFrame - 1 : clip.endFrame + 1;
+		} else {
+			own = false;
+		}
+	} else if ( speed > 0.0 ) {
+		/* 0x4767d0 */
+		current = Truncate( at );
+		next = current + 1;
+		lerp = float( double( at ) - double( current ) );
+		if ( next >= Truncate( end ) ) next = loop ? clip.startFrame : clip.endFrame;
+	} else {
+		/* 0x476830: still, or running backwards. */
+		const double up = std::ceil( double( at ) );
+		lerp = float( up - double( at ) );
+		current = Truncate( up );
+		if ( current > clip.startFrame ) {
+			current = next = clip.startFrame;
+			lerp = 0.0f;
+		} else {
+			next = current - 1;
+			if ( !( end + 1.0 <= double( next ) ) ) next = loop ? clip.startFrame : clip.endFrame + 1;
+		}
+	}
+	if ( own ) {
+		/* 0x476912: a negative frame abandons the bone. A zero fraction reads
+		 * the current frame alone (0x4769f7). */
+		if ( current < 0 || next < 0 ) return false;
+		if ( lerp == 0.0f ) next = current;
+		staged.frame = { current, next, lerp };
+	} else {
+		staged.inheritFrame = true;
+	}
+	out = staged;
+	has = true;
+	return true;
+}
+} // namespace outcast
+
 /* The angles the game bends one bone to, and which way round it means them.
  * The three orientations say which axis of the bone is up, right and forward;
  * the engine records the numbers and does not turn them into a matrix, which
@@ -336,6 +564,9 @@ enum class BoneClipAnswer {
 struct Model {
 	std::string name;           /* the mesh, as the module named it */
 	std::string skeletonName;   /* the `.gla` the mesh names */
+	/* That skeleton as the mesh header writes it, with no `.gla`: what Jedi
+	 * Outcast's import 593 hands back (jk2mp.exe 1.02a 0x4a7d80). */
+	std::string animName;
 	model::Mesh mesh;
 	model::Skeleton skeleton;
 	/* The two files themselves, owned by the store and shared between every
@@ -453,7 +684,10 @@ public:
 	 * gives surface bolts retail's tag frame (see TagFrame). keepBuilds
 	 * answers KeptBolt as Jedi Outcast's engine does: from the matrices one
 	 * build per time leaves in each bolt (see Build); it is meant with
-	 * serveAttachments, whose tag frame that engine shares. */
+	 * serveAttachments, whose tag frame that engine shares. It also sets and
+	 * poses clips with that engine's timing (SetBoneAnim, outcast::Control)
+	 * and registers the module fields its instances are made for, as that
+	 * engine's clean reads them (CleanField). */
 	explicit Store( Files &files, bool serveDefaultSkeleton = false,
 		bool serveAnimationBlends = false, bool serveAttachments = false,
 		bool keepBuilds = false )
@@ -464,7 +698,7 @@ public:
 	bool ServesAttachments() const { return serveAttachments_; }
 	bool KeepsBuilds() const { return keepBuilds_; }
 
-	void Clear() { attached_.clear(); live_.clear(); instances_.clear(); }
+	void Clear() { attached_.clear(); live_.clear(); instances_.clear(); fields_.clear(); }
 	std::size_t InstanceCount() const { return instances_.size(); }
 
 	/* An instance this store owns, or null. Never follow a module's pointer
@@ -477,8 +711,9 @@ public:
 	/* Add a model to the instance at `slot`, making one if there is none.
 	 * Returns the model's index within the instance, or -1 with `error` set.
 	 * `slot` is the module's own pointer field, which is written only when a
-	 * model actually loads. */
-	int AddModel( void **slot, const char *name, LoadError &error );
+	 * model actually loads; `slotBytes` is its width (see ReadField). */
+	int AddModel( void **slot, const char *name, LoadError &error,
+		std::size_t slotBytes = sizeof( void * ) );
 
 	/* Mark an instance as the server's own. */
 	bool OverrideServer( void *pointer );
@@ -546,6 +781,16 @@ public:
 	 * one of ours, which is a refusal rather than a copy of whatever was
 	 * handed in. */
 	bool Duplicate( void *pointer, void **slot );
+	/* Jedi Outcast's duplicate (import 596), into the module's field of
+	 * `fieldBytes` (see ReadField): nothing when the field already holds an
+	 * instance. False when nothing was made. */
+	bool DuplicateInto( void *pointer, void *field, std::size_t fieldBytes );
+	/* Jedi Outcast's clean (import 599): empties the module's field and frees
+	 * what it held only when the field is one this store registered. */
+	void CleanField( void *field, std::size_t fieldBytes );
+	/* Jedi Outcast's import 593: the skeleton name a model's mesh header
+	 * carries (Model::animName), or null. */
+	const char *GLAName( void *pointer, int modelIndex );
 
 	/* Bend one bone of one model. The bone is named, as an animation's is, and
 	 * a name the skeleton does not carry is refused. A bone bent twice keeps
@@ -613,6 +858,10 @@ public:
 private:
 	bool ReadFile( const std::string &path, std::vector<unsigned char> &into );
 	LoadError Load( const char *name, Model &out );
+	/* SetBoneAnim for a store keeping builds: Jedi Outcast's setter. */
+	bool SetOutcastBoneAnim( void *pointer, int modelIndex, const char *boneName,
+		int startFrame, int endFrame, int flags, float speed, int currentTime,
+		float setFrame, int blendTime );
 
 	/* One model's bolt from a palette already posed for it. */
 	bool BoltFromPalette( const Model &model, const pose::Palette &palette,
@@ -654,6 +903,11 @@ private:
 	 * cleared only by a bolt query whose indices check out (0x4a76c1). Like
 	 * the engine's, it outlives a map change. */
 	bool noRebuildPending_ = false;
+	/* For a store keeping builds, the module fields its instances were made
+	 * for, by address, as jk2mp.exe lists them (0x1ae664c, 0x1ae6638): 588
+	 * and 596 add one when they make an instance, and 599 frees only through
+	 * one. A field made for twice is listed twice. */
+	std::vector<const void *> fields_;
 	std::vector<std::unique_ptr<Instance>> instances_;
 	std::unordered_map<void *, Instance *> live_;
 	std::unordered_map<int, void *> attached_;
@@ -711,6 +965,7 @@ inline LoadError Store::Load( const char *name, Model &out )
 	std::memcpy( named, mesh.data() + out.mesh.animNameOffset, model::NameBytes );
 	named[model::NameBytes] = 0;
 	if ( !named[0] ) return LoadError::SkeletonName;
+	out.animName = named;
 
 	/* A name beginning with a star is an internal engine selector, not a file.
 	 * An explicitly enabled store owns the measured *default skeleton. Other
@@ -772,11 +1027,13 @@ inline LoadError Store::Load( const char *name, Model &out )
 	return LoadError::None;
 }
 
-inline int Store::AddModel( void **slot, const char *name, LoadError &error )
+inline int Store::AddModel( void **slot, const char *name, LoadError &error,
+	std::size_t slotBytes )
 {
 	error = LoadError::None;
-	void *handle = nullptr;
-	if ( slot ) std::memcpy( &handle, slot, sizeof( handle ) );
+	/* A bytecode module's field is a 32-bit word: reading or writing a
+	 * pointer's width there on a 64-bit host would run into the next field. */
+	void *handle = slot ? ReadField( slot, slotBytes ) : nullptr;
 	Instance *instance = Resolve( handle );
 
 	Model loaded;
@@ -790,14 +1047,20 @@ inline int Store::AddModel( void **slot, const char *name, LoadError &error )
 
 	if ( !instance ) {
 		handle = ModelHandleIdentities.Allocate();
-		if ( !handle ) { error = LoadError::HandleExhausted; return -1; }
+		if ( !handle || ( slot && !FieldHolds( handle, slotBytes ) ) ) {
+			error = LoadError::HandleExhausted;
+			return -1;
+		}
 		instances_.push_back( std::make_unique<Instance>() );
 		instance = instances_.back().get();
 		instance->handle_ = handle;
 		live_.emplace( handle, instance );
+		/* jk2mp.exe's 588 lists the field it makes an instance for
+		 * (0x4a6f29..0x4a6f51); its clean frees only through that list. */
+		if ( keepBuilds_ && slot ) fields_.push_back( slot );
 	}
 	instance->models_.push_back( std::move( loaded ) );
-	if ( slot ) std::memcpy( slot, &instance->handle_, sizeof( instance->handle_ ) );
+	if ( slot ) WriteField( slot, slotBytes, instance->handle_ );
 	return instance->Count() - 1;
 }
 
@@ -840,11 +1103,16 @@ inline bool Store::DeformationPalette( const Model &model, int now,
 	if ( !model.skeletonBytes || model.skeleton.numBones <= 0 ) return false;
 	const void *data = model.skeletonBytes->data();
 	const std::size_t size = model.skeletonBytes->size();
-	/* Jedi Outcast's clip timing was not read, and no import that would set
-	 * a clip is served for it, so a store keeping builds poses none. */
-	if ( keepBuilds_ && !model.animations.empty() ) return false;
 	std::vector<pose::Animation> animations;
 	for ( const auto &playing : model.animations ) {
+		if ( keepBuilds_ ) {
+			/* Jedi Outcast's own clip timing (outcast::Control). */
+			pose::Animation control;
+			bool has = false;
+			if ( !outcast::Control( playing, now, control, has ) ) return false;
+			if ( has ) animations.push_back( control );
+			continue;
+		}
 		/* Only the Academy owned cgame store opts into the measured active
 		 * transition. Other consumers retain their existing refusal. */
 		if ( playing.flags & ~(serveAnimationBlends_ ? 0xd8 : 0x58)
@@ -1327,6 +1595,7 @@ inline bool Store::SetBoneAnim( void *pointer, int modelIndex, const char *boneN
 	int startFrame, int endFrame, int flags, float speed, int currentTime,
 	float setFrame, int blendTime )
 {
+	if ( keepBuilds_ ) return SetOutcastBoneAnim( pointer, modelIndex, boneName, startFrame, endFrame, flags, speed, currentTime, setFrame, blendTime );
 	if ( !FiniteScalar( speed ) || !FiniteScalar( setFrame ) ) return false;
 	int startTime = currentTime;
 	if ( setFrame != -1.0f ) {
@@ -1595,6 +1864,157 @@ inline bool Store::Clean( void **slot )
 	handle = nullptr;
 	std::memcpy( slot, &handle, sizeof( handle ) );
 	return true;
+}
+
+/* Jedi Outcast's clip setter, read from jk2mp.exe 1.02a. Import 592's core
+ * (0x4a7440) holds an end frame outside 1..99999 at 1 and a start frame
+ * outside 0..99999 at 0, and keeps a set frame only when it is -1, within
+ * 0..100000 or not a number, else 0. It sets the model's build time to 0
+ * once the model index checks out, before the bone is looked up, and then
+ * reaches the bone's record through the setter (0x4ab390, 0x4ab070):
+ *
+ * - A transition (0x80), when the record runs a clip, samples it at the
+ *   time given (outcast::Sample): forwards, the frame reached and the whole
+ *   frame after it, moved inside that clip's range; backwards, its floor
+ *   twice. A record already sampled at that time keeps its sample and takes
+ *   the new duration. With no clip running the bit is dropped, the sample
+ *   and duration zeroed; without the bit, the start time too.
+ * - The new range and speed replace the old; the clip starts at the time
+ *   given, or earlier by the set frame's distance from the start at fifty
+ *   milliseconds a frame over the speed, truncated as _ftol truncates.
+ * - The record's animation bits 0xd8 are replaced by the flags given
+ *   (without 0x80 where dropped); any other bit given is added to it.
+ *
+ * Retail accepts any speed or set frame; what cannot be posed from them is
+ * refused when a build poses it (outcast::Control). A new record here is
+ * zeroed where retail's carries its stack's words, past its bone and
+ * flags (0x4aaa0c). */
+inline bool Store::SetOutcastBoneAnim( void *pointer, int modelIndex, const char *boneName,
+	int startFrame, int endFrame, int flags, float speed, int currentTime,
+	float setFrame, int blendTime )
+{
+	if ( endFrame <= 0 || endFrame >= 100000 ) endFrame = 1;
+	if ( startFrame < 0 || startFrame >= 100000 ) startFrame = 0;
+	std::uint32_t setBits;
+	std::memcpy( &setBits, &setFrame, sizeof( setBits ) );
+	const bool setNaN = ( setBits & 0x7f800000u ) == 0x7f800000u && ( setBits & 0x7fffffu ) != 0u;
+	if ( !setNaN && setFrame != -1.0f && !( setFrame >= 0.0f && setFrame <= 100000.0f ) ) setFrame = 0.0f;
+
+	Instance *instance = Resolve( pointer );
+	if ( !instance || modelIndex < 0 || modelIndex >= instance->Count() ) return false;
+	Model &model = instance->models_[std::size_t( modelIndex )];
+	model.builtAt = 0;
+	if ( !model.present ) return false;
+	const int bone = detail::BoneNamed( model, boneName );
+	if ( bone < 0 ) return false;
+	fntech3::ghoul2::BoneAnimation *record = nullptr;
+	for ( auto &existing : model.animations ) {
+		if ( existing.bone == bone ) record = &existing;
+	}
+	if ( !record && int( model.animations.size() ) >= MaxBoneAnimations ) return false;
+	fntech3::ghoul2::BoneAnimation clip = record ? *record : fntech3::ghoul2::BoneAnimation{};
+	clip.bone = bone;
+
+	int given = flags;
+	float reached = 0.0f;
+	if ( ( flags & outcast::BlendFlag ) && outcast::Sample( clip, currentTime, reached ) ) {
+		if ( clip.blendStart != currentTime ) {
+			if ( clip.speed < 0.0f ) {
+				clip.blendFrame = float( std::floor( double( reached ) ) );
+				clip.blendLerpFrame = outcast::Truncate( std::floor( double( reached ) ) );
+			} else {
+				clip.blendFrame = reached;
+				clip.blendLerpFrame = outcast::Truncate( double( reached ) + 1.0 );
+				const bool looped = ( clip.flags & outcast::LoopFlag ) != 0;
+				if ( !( double( clip.blendFrame ) < double( clip.endFrame ) ) ) {
+					if ( looped ) clip.blendFrame = float( clip.startFrame );
+					else if ( clip.endFrame <= 0 ) clip.blendLerpFrame = 0;
+					else clip.blendFrame = float( clip.endFrame - 1 );
+				}
+				if ( clip.blendLerpFrame >= clip.endFrame ) {
+					if ( looped ) clip.blendLerpFrame = clip.startFrame;
+					else clip.blendLerpFrame = clip.endFrame <= 0 ? 0 : clip.endFrame - 1;
+				}
+			}
+			clip.blendStart = currentTime;
+		}
+		clip.blendTime = blendTime;
+	} else {
+		if ( !( flags & outcast::BlendFlag ) ) clip.blendStart = 0;
+		clip.blendFrame = 0.0f;
+		clip.blendLerpFrame = 0;
+		clip.blendTime = 0;
+		given &= ~outcast::BlendFlag;
+	}
+
+	clip.startFrame = startFrame;
+	clip.endFrame = endFrame;
+	clip.speed = speed;
+	clip.setFrame = setFrame;
+	if ( !setNaN && setFrame == -1.0f ) clip.startTime = currentTime;
+	else if ( speed == 0.0f ) clip.startTime = 0;
+	else clip.startTime = outcast::Truncate( double( currentTime )
+		- ( double( setFrame ) - double( startFrame ) ) * 50.0 / double( speed ) );
+	clip.flags = ( clip.flags & ~outcast::AnimationBits ) | given;
+	if ( record ) *record = clip;
+	else model.animations.push_back( clip );
+	return true;
+}
+
+/* Jedi Outcast's duplicate (jk2mp.exe 1.02a 0x4a7ce0, handler 0x44c857): a
+ * field already holding an instance is left as it is and nothing is done.
+ * Otherwise a new instance goes into the field, which is listed as 588
+ * lists one, and the instance copy (0x4a79e0, every model) fills it with
+ * the source's records whole: removed models, links, bolts with their kept
+ * matrices, clips, bends and build times. Retail makes the new instance
+ * before it reads the source; a source this store does not hold is refused
+ * here and the field left empty. */
+inline bool Store::DuplicateInto( void *pointer, void *field, std::size_t fieldBytes )
+{
+	if ( !field || ReadField( field, fieldBytes ) ) return false;
+	Instance *source = Resolve( pointer );
+	if ( !source ) return false;
+	void *handle = ModelHandleIdentities.Allocate();
+	if ( !handle || !FieldHolds( handle, fieldBytes ) ) return false;
+	instances_.push_back( std::make_unique<Instance>() );
+	Instance *copy = instances_.back().get();
+	copy->handle_ = handle;
+	live_.emplace( handle, copy );
+	copy->models_ = source->models_;
+	WriteField( field, fieldBytes, handle );
+	fields_.push_back( field );
+	return true;
+}
+
+/* Jedi Outcast's clean (jk2mp.exe 1.02a 0x4a6e00, handler 0x44c8aa): a field
+ * holding nothing is left alone. Otherwise the field is emptied, and the
+ * instance it held is freed only if the field is listed (0x1ae664c, then
+ * 0x1ae6638), its listing going with it; an unlisted field holding another
+ * field's instance leaves that instance alive. Retail deletes whatever a
+ * listed field points at; an instance this store does not hold is not
+ * freed. */
+inline void Store::CleanField( void *field, std::size_t fieldBytes )
+{
+	if ( !field ) return;
+	void *handle = ReadField( field, fieldBytes );
+	if ( !handle ) return;
+	const auto listed = std::find( fields_.begin(), fields_.end(), static_cast<const void *>( field ) );
+	if ( listed != fields_.end() ) {
+		fields_.erase( listed );
+		Release( handle );
+	}
+	WriteField( field, fieldBytes, nullptr );
+}
+
+/* Jedi Outcast's GLA name (jk2mp.exe 1.02a 0x4a7d80): for an instance and a
+ * model index below its count, the skeleton name its mesh header carries
+ * (mdxm +0x48). Retail answers for a removed model's record too; this does
+ * not. */
+inline const char *Store::GLAName( void *pointer, int modelIndex )
+{
+	Instance *instance = Resolve( pointer );
+	const Model *model = instance ? instance->At( modelIndex ) : nullptr;
+	return model ? model->animName.c_str() : nullptr;
 }
 
 /* Skins, as a server knows them.

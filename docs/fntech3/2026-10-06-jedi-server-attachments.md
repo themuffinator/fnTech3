@@ -418,10 +418,11 @@ documentation, with the attachment tests, passed 460 tests with 2 skipped.
 
 - On Academy's server, what the [pose clock record](2026-10-07-jka-server-pose-clock.md)
   leaves open; it serves blends, the clock a query poses at and the fallback.
-- Jedi Outcast: a retail answer (its server needs the disc); 584's handle
-  conversion, which keeps the retail module from its client setup, to be
-  corrected together with 592, 593, 596 and 599 and Outcast's clip timing;
-  REPLACE bends; case-blind bolt names; a copy past an instance's end; and
-  the listen server's smoothing.
+- Jedi Outcast: a retail answer (its server needs the disc); REPLACE bends;
+  case-blind bolt names; a copy past an instance's end; and the listen
+  server's smoothing. 584's handle conversion, which kept the retail module
+  from its client setup, is corrected, and 592, 593, 596 and 599 are served
+  with Outcast's clip timing, in the
+  [server clips record](2026-10-07-jk2-server-clips.md).
 - Live play with sabers on fnTech3's Academy server, which no session here
   has exercised.

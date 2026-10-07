@@ -48,6 +48,11 @@ struct Animation {
 	Frame previous{};
 	float transition = 1;
 	bool blending = false;
+	/* The bone keeps the frames its parent poses (the root, frame 0) and
+	 * only its transition is its own: Jedi Outcast's transform sets no
+	 * frames for a clip that ended without loop or freeze, nor for a blend
+	 * bit with no clip (jk2mp.exe 1.02a 0x476476, 0x476762). */
+	bool inheritFrame = false;
 };
 struct Angle {
 	int bone = -1;
@@ -193,7 +198,8 @@ inline bool Evaluate(const void *data, std::size_t bytes, const model::Skeleton 
 	std::vector<const Animation *> controls(skeleton.numBones, nullptr);
 	for (const Animation &control : animations) {
 		if (control.bone < 0 || control.bone >= skeleton.numBones || controls[control.bone]
-			|| !validFrame(control.frame) || (control.blending && (!validFrame(control.previous)
+			|| (!control.inheritFrame && !validFrame(control.frame))
+			|| (control.blending && (!validFrame(control.previous)
 				|| !Finite(control.transition) || control.transition < 0 || control.transition > 1))) return false;
 		controls[control.bone] = &control;
 	}
@@ -212,6 +218,10 @@ inline bool Evaluate(const void *data, std::size_t bytes, const model::Skeleton 
 			const int parent = parents[bone];
 			if (done[bone] || (parent >= 0 && !done[parent])) continue;
 			active[bone] = controls[bone] ? *controls[bone] : parent >= 0 ? active[parent] : Animation{};
+			if (active[bone].inheritFrame) {
+				active[bone].frame = parent >= 0 ? active[parent].frame : Frame{};
+				active[bone].inheritFrame = false;
+			}
 			const Frame &frame = active[bone].frame;
 			model::CompressedPose current, next;
 			Matrix local, later;

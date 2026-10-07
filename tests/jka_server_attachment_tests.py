@@ -2,7 +2,8 @@
 `*default` skeleton, attached models and retail's tag frame through its real
 game imports; Jedi Outcast's serves the same posing through one build per time,
 answering its bolt queries 586 and 587 from what that build kept, as
-jk2mp.exe 1.02a does."""
+jk2mp.exe 1.02a does, and serves the client setup and clips its retail module
+asks for next (584, 592, 593, 596, 599) with that engine's clip timing."""
 from pathlib import Path
 import os
 import re
@@ -451,6 +452,100 @@ static void Rig(fntech3::ghoul2::Store &store,void *&body,void *&weapon){
  CHECK(store.AddBolt(weapon,0,"root")==0&&store.AddBolt(weapon,0,DefaultBone)==1);
  CHECK(store.CopyModel(weapon,0,body,1));
 }
+// Outcast's clip timing, read from jk2mp.exe 1.02a: the transform's frames
+// (0x476380), the setter's clamps and transition sample (0x4a7440, 0x4ab070,
+// 0x4ab420), and what its store poses from them.
+static void CheckOutcastClips(){
+ namespace outcast=fntech3::ghoul2::outcast;
+ using Clip=fntech3::ghoul2::BoneAnimation;
+ // A clip's age: milliseconds times the float .02, kept as a float, where
+ // Academy divides by fifty; the int subtraction wraps.
+ CHECK(outcast::Age(5,0)==0.099999994039535522f&&outcast::Age(5,0)!=5/50.0f&&outcast::Age(50,0)==1.0f);
+ CHECK(outcast::Age(0,50)==0.0f&&outcast::Age(INT_MIN+20,INT_MAX-29)==1.0f);
+ // _ftol: truncation, the low word of 64 bits, 0 for what it cannot store.
+ CHECK(outcast::Truncate(2.75)==2&&outcast::Truncate(-2.75)==-2&&outcast::Truncate(4294967298.0)==2);
+ const std::uint64_t notANumber=0x7ff8000000000000ull;double nan;std::memcpy(&nan,&notANumber,8);
+ CHECK(!outcast::Truncate(nan)&&!outcast::Truncate(1e30));
+ const auto control=[](int flags,int start,int end,float speed,int now,pose::Animation &out){
+  Clip clip;clip.bone=1;clip.flags=flags;clip.startFrame=start;clip.endFrame=end;clip.speed=speed;
+  bool has=false;return outcast::Control(clip,now,out,has)&&has;};
+ const auto frames=[&](int flags,int start,int end,float speed,int now,int current,int next,float lerp){
+  pose::Animation out;
+  return control(flags,start,end,speed,now,out)&&!out.inheritFrame&&!out.blending&&out.bone==1
+   &&out.frame.current==current&&out.frame.next==next&&out.frame.lerp==lerp;};
+ // Forwards; past the end looping (towards the start, then wrapped by
+ // fmod), frozen one frame inside, and neither: the parent's frames.
+ CHECK(frames(0x10,0,4,1,75,1,2,.5f)&&frames(0x10,0,4,1,175,3,0,.5f)&&frames(0x10,0,4,1,225,0,1,.5f));
+ CHECK(frames(0x48,0,4,1,1000,3,3,0)&&frames(0x10,2,2,1,500,1,1,0));
+ pose::Animation ended;CHECK(control(0x08,0,4,1,1000,ended)&&ended.inheritFrame&&!ended.blending);
+ // Evaluate keeps such a bone on its parent's frames, not on frame 0.
+ {
+  const Bytes file=PoseSkeleton();model::Skeleton skeleton;
+  CHECK(model::ParseSkeleton(file.data(),file.size(),skeleton)==model::Error::None);
+  const pose::Animation root{0,{1,2,.5f}},zero{1,{0,0,0}};
+  pose::Palette inherited,parentOnly,frameZero;
+  CHECK(pose::Evaluate(file.data(),file.size(),skeleton,{root,ended},{},inherited));
+  CHECK(pose::Evaluate(file.data(),file.size(),skeleton,{root},{},parentOnly));
+  CHECK(pose::Evaluate(file.data(),file.size(),skeleton,{root,zero},{},frameZero));
+  CHECK(inherited.deformation==parentOnly.deformation&&inherited.deformation!=frameZero.deformation);
+ }
+ // Backwards, from 3 down to 0: ceilings, then past the end looped back.
+ CHECK(frames(0x10,3,0,-1,25,3,2,.5f)&&frames(0x10,3,0,-1,100,1,1,0));
+ CHECK(frames(0x10,3,0,-1,125,0,3,.5f)&&frames(0x10,3,0,-1,175,3,2,.5f));
+ // A reverse clip whose start lies below its end, as the retail module runs
+ // one, is past its end at once: frozen one frame outside it.
+ CHECK(frames(0x48,1,3,-1,40,4,4,0));
+ // Refused: a frame below 0 (retail abandons the bone and those below it),
+ // angle bits given to a clip, and a speed that is not finite.
+ pose::Animation refused;
+ CHECK(!control(0x10,0,2,-1,50,refused)&&!control(0x11,0,2,1,50,refused));
+ const std::uint32_t infiniteBits=0x7f800000u;float infinite;std::memcpy(&infinite,&infiniteBits,4);
+ CHECK(!control(0x10,0,2,infinite,50,refused));
+ // No clip and no transition: no control at all.
+ {Clip none;none.bone=1;bool has=true;CHECK(outcast::Control(none,0,refused,has)&&!has);}
+
+ auto &store=ravenGhoul2Outcast;
+ void *body=nullptr;LoadError error;CHECK(store.AddModel(&body,Body,error)==0);
+ const auto clip=[&](const char *bone){return store.BoneAnimation(body,0,bone);};
+ // A transition with no clip running drops its bit and its sample.
+ CHECK(store.SetBoneAnim(body,0,"child",0,2,0x90,1,0,-1,100));
+ CHECK(clip("child")->flags==0x10&&!clip("child")->blendTime&&!clip("child")->blendStart);
+ // At 75 the loop has reached 1.5: the sample keeps it, and the frame after
+ // it, which the loop wraps to its start.
+ CHECK(store.SetBoneAnim(body,0,"child",1,3,0xc8,1,75,-1,100));
+ const Clip *child=clip("child");
+ CHECK(child->flags==0xc8&&child->blendFrame==1.5f&&child->blendLerpFrame==0&&child->blendStart==75);
+ CHECK(child->blendTime==100&&child->startTime==75&&child->startFrame==1&&child->endFrame==3);
+ // Set again at the same time: the sample stays and the duration is new.
+ CHECK(store.SetBoneAnim(body,0,"child",1,3,0xc8,1,75,-1,150)&&child->blendFrame==1.5f&&child->blendTime==150);
+ // Halfway through, the transition blends the sample -- frame 1 weighted
+ // .5, the frame after it .5 -- into the new clip's frame 2.
+ pose::Animation half;
+ {bool has=false;CHECK(outcast::Control(*child,150,half,has)&&has&&half.blending&&!half.inheritFrame);}
+ CHECK(half.previous.current==0&&half.previous.next==1&&half.previous.lerp==.5f&&half.transition==.5f);
+ CHECK(half.frame.current==2&&half.frame.next==2&&half.frame.lerp==0);
+ const fntech3::ghoul2::Model &model=*store.Resolve(body)->At(0);
+ pose::Palette palette,expect;CHECK(store.DeformationPalette(model,150,palette));
+ CHECK(pose::Evaluate(model.skeletonBytes->data(),model.skeletonBytes->size(),model.skeleton,{half},{},expect));
+ CHECK(palette.deformation==expect.deformation&&palette.bones==expect.bones);
+ // After it, none; without the bit, the sample and its start are zeroed.
+ {bool has=false;CHECK(outcast::Control(*child,225,half,has)&&has&&!half.blending);}
+ CHECK(store.SetBoneAnim(body,0,"child",0,2,0x48,1,300,-1,0)&&!child->blendStart&&!child->blendTime&&child->blendFrame==0);
+ // A reverse clip is sampled at its floor, twice.
+ CHECK(store.SetBoneAnim(body,0,"model_root",2,0,0x10,-1,0,-1,0)&&clip("model_root")->endFrame==1);
+ CHECK(store.SetBoneAnim(body,0,"model_root",0,2,0x90,1,25,-1,100));
+ CHECK(clip("model_root")->blendFrame==2.0f&&clip("model_root")->blendLerpFrame==2);
+ // The core's clamps, and a set frame moving the start back at fifty
+ // milliseconds a frame over the speed, truncated.
+ CHECK(store.SetBoneAnim(body,0,"model_root",-5,100000,0x10,2,1000,1.5f,0));
+ CHECK(clip("model_root")->startFrame==0&&clip("model_root")->endFrame==1&&clip("model_root")->startTime==962);
+ CHECK(store.SetBoneAnim(body,0,"model_root",1,2,0x10,1,1000,-3,0)&&clip("model_root")->setFrame==0&&clip("model_root")->startTime==1050);
+ CHECK(store.SetBoneAnim(body,0,"model_root",1,2,0x10,0,1000,1,0)&&!clip("model_root")->startTime);
+ // The model's build time goes to 0 before the bone is looked up.
+ float out[12];CHECK(store.AddBolt(body,0,"root")==0&&Kept(body,0,0,600,false,out));
+ CHECK(!store.SetBoneAnim(body,0,"no such bone",0,2,0x10,1,600,-1,0)&&!store.Resolve(body)->At(0)->builtAt);
+ CHECK(store.Clean(&body));
+}
 static void CheckOutcast(){
  auto &store=ravenGhoul2Outcast,&academy=ravenGhoul2Academy;
  CHECK(store.ServesAttachments()&&store.KeepsBuilds()&&!academy.KeepsBuilds());
@@ -498,16 +593,24 @@ static void CheckOutcast(){
  CHECK(!Kept(body,1,0,250,false,out)&&Untouched(out)&&Kept(body,1,0,300,false,out));
  // The weapon's own instance links its only model to itself: never built.
  CHECK(!Kept(weapon,0,0,300,false,out)&&Untouched(out));
- // Bends PREMULT and POSTMULT at any blend time; REPLACE and clips refuse.
+ // Bends PREMULT and POSTMULT at any blend time; REPLACE refuses.
  CHECK(store.SetBoneAngles(body,0,"model_root",bend,2,1,6,5,100,300)&&Kept(body,0,0,300,false,out));
  CHECK(!std::memcmp(out,bentTag,48));
  CHECK(store.SetBoneAngles(body,0,"model_root",bend,4,1,6,5,0,350)&&!Kept(body,0,0,350,false,out)&&Untouched(out));
  CHECK(store.SetBoneAngles(body,0,"model_root",bend,2,1,6,5,0,400)&&Kept(body,0,0,400,false,out));
- CHECK(store.SetBoneAnim(body,0,"child",0,2,0x10,1.0f,400,-1.0f,0)&&!Kept(body,0,0,450,false,out)&&Untouched(out));
+ // A clip on model 0 sets its build time to 0 at once (0x4a74f6). At 475 the
+ // loop has reached 1.5 under either timing, lerping towards its start, so
+ // Outcast's kept answers are Academy's bits.
+ CHECK(store.SetBoneAnim(body,0,"child",0,2,0x10,1.0f,400,-1.0f,0)&&builtAt(0)==0);
+ CHECK(academy.SetBoneAnim(twin,0,"child",0,2,0x10,1.0f,400,-1.0f,0)&&academy.AddBolt(twin,0,"child")==2);
+ for(int bolt=0;bolt<3;++bolt)CHECK(Kept(body,0,bolt,475,false,out)&&same(0,bolt,475,out));
+ float still[12];CHECK(Kept(body,0,2,400,false,still)&&std::memcmp(still,out,48));
+ for(float &value:out)value=-777.0f;
  // Academy's store answers on demand and keeps no build.
  CHECK(academy.KeptBolt(twin,0,0,100,false,out)==fntech3::ghoul2::Posing::Unserved&&Untouched(out));
  for(void **handle:{&body,&weapon})CHECK(store.Clean(handle));
  for(void **handle:{&twin,&twinWeapon})CHECK(academy.Clean(handle));
+ CheckOutcastClips();
 }
 int main(){
  installed[Body]=AuthoredTagMesh("models/players/test/skeleton",3,BodyTag);
@@ -526,7 +629,8 @@ int main(){
 
 def outcast_fixture():
     """Jedi Outcast's production Ghoul2 cases of SV_JK2GameCall, with its handle
-    reading, driven as the retail QVM drives them and as a native module would."""
+    and field reading, driven as the retail QVM drives them -- its bolt queries,
+    its client setup and its per-frame clips -- and as a native module would."""
     host = (ROOT / 'code/server/server_jk2_game.hpp').read_text(encoding='utf-8')
     numbers = '\n'.join(line for line in host.splitlines()
                         if line.startswith('inline constexpr int FNTECH3_JK2_G2_'))
@@ -558,7 +662,12 @@ static void FS_FreeFile(void *buffer){std::free(buffer);}
 #include "code/server/server_raven_assets.hpp"
 static vm_t *gvm=nullptr;
 static void *VM_ArgPtr(intptr_t value){return VM_ExplicitArgPtr(gvm,value);}
-''' + numbers + '\n' + function(host, 'static void *SV_JK2Ghoul2Handle(') + r'''
+// A float argument's word, as qcommon.h's VMF reads it.
+static float _vmf(intptr_t x){const std::int32_t word=std::int32_t(x);float value;std::memcpy(&value,&word,4);return value;}
+#define VMF(x) _vmf(args[x])
+''' + numbers + '\n' + '\n'.join(function(host, signature) for signature in (
+        'static bool SV_JK2ModuleIsBytecode(', 'static void *SV_JK2Ghoul2Handle(',
+        'static std::size_t SV_JK2Ghoul2FieldBytes(')) + r'''
 static bool DispatchJK2(const intptr_t *args,intptr_t &result){
  fntech3::ghoul2::Store &ravenGhoul2 = ''' + outcast + r''';
  const int trap=static_cast<int>(args[0]);
@@ -579,9 +688,13 @@ static const char DefaultBone[]="ModView internal default";
 static const float Angles[3]{15,25,35},Position[3]{7,-11,13},Zero[3]{},Bend[3]{10,20,30};
 enum : intptr_t { BodySlot=0x100,WeaponSlot=0x108,BodyName=0x200,WeaponName=0x280,TagName=0x300,
  RootName=0x310,ChildName=0x320,DefaultName=0x330,AnglesAt=0x400,PositionAt=0x410,ZeroAt=0x420,
- BendAt=0x440,MatrixAt=0x500 };
+ BendAt=0x440,MatrixAt=0x500,
+ // The retail module's own fields, a word each with a guard word after it,
+ // and a 64-byte buffer for 593.
+ KyleField=0x600,SaberField=0x608,ClientField=0x610,OtherField=0x618,GLABuffer=0x700 };
 static void Put(intptr_t at,const void *bytes,std::size_t size){std::memcpy(memory+at,bytes,size);}
 static intptr_t Word(intptr_t at){std::uint32_t word;std::memcpy(&word,memory+at,4);return intptr_t(word);}
+static intptr_t FloatWord(float value){std::uint32_t word;std::memcpy(&word,&value,4);return intptr_t(std::int32_t(word));}
 static bool Untouched(const float out[12]){for(int n=0;n<12;++n)if(out[n]!=-777.0f)return false;return true;}
 // A mesh whose tag has three usable first vertices; its first triangle starts
 // at vertex 1, since retail's frame reads the first three vertices.
@@ -635,17 +748,18 @@ static void CheckQVM(){
  const intptr_t body=Word(BodySlot),weapon=Word(WeaponSlot);
  CHECK(body&&weapon&&body!=weapon);
  // The word the module keeps is the handle. Converted as an address, as 584
- // still converts it, it names nothing: pinned on purpose until 592, 593,
- // 596 and 599 are served (docs/fntech3/COMPATIBILITY.md).
+ // once converted it, it names nothing, and the retail module's client setup
+ // stopped there; read as retail's handler reads it, 584 finds the models.
  CHECK(!ravenGhoul2Outcast.Resolve(VM_ArgPtr(body))&&ravenGhoul2Outcast.Resolve(SV_JK2Ghoul2Handle(body)));
- CHECK(Call({584,body})==0);
+ CHECK(Call({584,body})==1&&Call({584,0})==0);
  // 589 finds the body's tag and root bone and, on the engine skeleton, the
  // weapon's tag and bone; 590 links the weapon to the body's tag; 595 puts it
  // into the body's second place, as the retail module does its lightsaber.
+ // Both handlers return 0 whatever their cores did.
  CHECK(Call({589,body,0,TagName})==0&&Call({589,body,0,RootName})==1);
- CHECK(Call({590,weapon,0,0})==1);
+ CHECK(Call({590,weapon,0,0})==0&&ravenGhoul2Outcast.Resolve(SV_JK2Ghoul2Handle(weapon))->At(0)->boltInfo==0);
  CHECK(Call({589,weapon,0,TagName})==0&&Call({589,weapon,0,DefaultName})==1);
- CHECK(Call({595,weapon,0,body,1})==1);
+ CHECK(Call({595,weapon,0,body,1})==0&&ravenGhoul2Outcast.Resolve(SV_JK2Ghoul2Handle(body))->Count()==2);
  // 586 at 100: the weapon's root is placed exactly where the body's tag is.
  float tagAt[12],boneAt[12],rootAt[12];
  CHECK(Query(586,body,0,0,100,tagAt)&&Query(586,body,0,1,100,boneAt)&&Query(586,body,1,1,100,rootAt));
@@ -677,6 +791,76 @@ static void CheckQVM(){
  CHECK(Query(586,body,0,2,175,out)&&!Query(586,weapon,0,0,175,out)&&Untouched(out));
  for(intptr_t word:{body,weapon}){void *handle=SV_JK2Ghoul2Handle(word);CHECK(ravenGhoul2Outcast.Clean(&handle));}
 }
+// The retail module's client setup (QVM procedure 108882) and its per-frame
+// clips (procedure 235883), through the production cases. Its fields are
+// 32-bit words: on any host, the guard word after each must survive.
+static void CheckQVMClientSetup(){
+ gvm=&qvm;
+ auto &store=ravenGhoul2Outcast;
+ const std::uint32_t guard=0xa5a5a5a5u,empty=0;
+ const intptr_t fields[]{KyleField,SaberField,ClientField,OtherField};
+ for(intptr_t field:fields){Put(field,&empty,4);Put(field+4,&guard,4);}
+ const auto guarded=[&]{for(intptr_t field:fields)if(Word(field+4)!=intptr_t(guard))return false;return true;};
+ const auto instance=[&](intptr_t word){return store.Resolve(SV_JK2Ghoul2Handle(word));};
+ // worldspawn precaches the Kyle and the saber with 588.
+ CHECK(Call({588,KyleField,BodyName,0,0,-20,0,0})==0&&Call({588,SaberField,WeaponName,0,0,-20,0,0})==0&&guarded());
+ const intptr_t kyle=Word(KyleField),saber=Word(SaberField);
+ CHECK(kyle&&saber&&kyle!=saber);
+ // The setup: 599 leaves the client's empty field alone, 584 finds the
+ // Kyle's models, and 596 copies the Kyle, records whole, into the field.
+ CHECK(Call({599,ClientField})==0&&!Word(ClientField)&&Call({584,kyle})==1);
+ CHECK(Call({596,kyle,ClientField})==0&&guarded());
+ const intptr_t client=Word(ClientField);
+ CHECK(client&&client!=kyle&&client!=saber&&instance(client)->Count()==1&&instance(client)->At(0)->name==Body);
+ // A field already holding an instance is left as it is.
+ CHECK(Call({596,saber,ClientField})==0&&Word(ClientField)==client&&instance(client)->Count()==1);
+ // 593 copies the skeleton name the mesh header carries, and nothing for a
+ // model past the count or no instance.
+ const char *name=reinterpret_cast<const char *>(memory+GLABuffer);
+ CHECK(Call({593,client,0,GLABuffer})==0&&!std::strcmp(name,"models/players/test/skeleton"));
+ const char unchanged[]="unchanged";Put(GLABuffer,unchanged,sizeof(unchanged));
+ CHECK(Call({593,client,1,GLABuffer})==0&&Call({593,0,0,GLABuffer})==0&&!std::strcmp(name,unchanged));
+ // The hand bolt, model_root looping from frame 0 with no transition (blend
+ // time -1), a bend, and the saber linked to the hand and copied in.
+ CHECK(Call({589,client,0,TagName})==0&&Call({589,client,0,RootName})==1);
+ CHECK(Call({592,client,0,RootName,0,2,16,FloatWord(1),100,FloatWord(-1),-1})==1);
+ CHECK(Call({592,client,0,ChildName,0,2,16,FloatWord(1),100,FloatWord(-1),-1})==1);
+ CHECK(Call({592,client,0,ChildName+1,0,2,16,FloatWord(1),100,FloatWord(-1),-1})==0);
+ CHECK(Call({591,client,0,RootName,BendAt,2,1,6,5,0,0,100})==1);
+ CHECK(Call({590,saber,0,0})==0&&Call({589,saber,0,TagName})==0&&Call({595,saber,0,client,1})==0);
+ // The same calls made on the store directly keep the same bolts: 592's ten
+ // arguments reach it in retail's order.
+ void *twin=nullptr;LoadError error;
+ CHECK(store.AddModel(&twin,Body,error)==0&&store.AddBolt(twin,0,"root")==0&&store.AddBolt(twin,0,"model_root")==1);
+ CHECK(store.SetBoneAnim(twin,0,"model_root",0,2,16,1.0f,100,-1.0f,-1)&&store.SetBoneAnim(twin,0,"child",0,2,16,1.0f,100,-1.0f,-1));
+ CHECK(store.SetBoneAngles(twin,0,"model_root",Bend,2,1,6,5,0,100));
+ float out[12],direct[12],first[12];
+ const auto agree=[&](int bolt,int now){
+  return Query(586,client,0,bolt,now,out)&&store.KeptBolt(twin,0,bolt,now,false,direct)==fntech3::ghoul2::Posing::Served
+   &&!std::memcmp(store.BoltAt(SV_JK2Ghoul2Handle(client),0,bolt)->matrix.data(),store.BoltAt(twin,0,bolt)->matrix.data(),48);};
+ CHECK(agree(1,100)&&agree(0,100));std::memcpy(first,out,48);
+ CHECK(agree(1,175)&&agree(0,175)&&std::memcmp(first,out,48));
+ // Per frame, as procedure 235883 sets them: model_root one frame frozen
+ // with a 150 ms transition from where its loop had got to; child running
+ // backwards, frozen, its set frame its start. 586, 587 and the saber's
+ // bolt answer through them, refusing nothing.
+ CHECK(Call({592,client,0,RootName,1,2,200,FloatWord(1),300,FloatWord(-1),150})==1);
+ CHECK(Call({592,client,0,ChildName,0,1,200,FloatWord(-1),300,FloatWord(0),150})==1);
+ CHECK(store.SetBoneAnim(twin,0,"model_root",1,2,200,1.0f,300,-1.0f,150)&&store.SetBoneAnim(twin,0,"child",0,1,200,-1.0f,300,0.0f,150));
+ const fntech3::ghoul2::BoneAnimation *root=store.BoneAnimation(SV_JK2Ghoul2Handle(client),0,"model_root");
+ CHECK(root&&root->flags==200&&root->blendStart==300&&root->blendTime==150&&root->blendFrame==0&&root->blendLerpFrame==1);
+ for(int now:{300,375,450,500}){
+  CHECK(agree(0,now)&&agree(1,now)&&Query(587,client,0,1,now,out)&&Query(586,client,1,0,now,out));
+ }
+ // 599: the client's field was listed by 596, so its instance goes; a
+ // field holding the Kyle's word unlisted is only emptied; the Kyle's own,
+ // listed by 588, frees it.
+ CHECK(Call({599,ClientField})==0&&!Word(ClientField)&&!instance(client)&&guarded());
+ const std::uint32_t kyleWord=std::uint32_t(kyle);Put(OtherField,&kyleWord,4);
+ CHECK(Call({599,OtherField})==0&&!Word(OtherField)&&instance(kyle));
+ CHECK(Call({599,KyleField})==0&&!Word(KyleField)&&!instance(kyle));
+ CHECK(Call({599,SaberField})==0&&!instance(saber)&&guarded()&&store.Clean(&twin));
+}
 // A native module passes real pointers, and the same answers come back.
 static void CheckNative(){
  gvm=&native;
@@ -685,19 +869,24 @@ static void CheckNative(){
  CHECK(Call({588,at(&body),at(Body),0,0,-20,0,0})==0&&Call({588,at(&weapon),at(Weapon),0,0,-20,0,0})==0);
  CHECK(Call({584,at(body)})==1);
  CHECK(Call({589,at(body),0,at("root")})==0&&Call({589,at(weapon),0,at(DefaultBone)})==0);
- CHECK(Call({590,at(weapon),0,0})==1&&Call({595,at(weapon),0,at(body),1})==1);
+ CHECK(Call({590,at(weapon),0,0})==0&&Call({595,at(weapon),0,at(body),1})==0);
  float tagAt[12],rootAt[12];
  CHECK(Query(586,at(body),0,0,100,tagAt)&&Query(586,at(body),1,0,100,rootAt)&&!std::memcmp(tagAt,rootAt,48));
  CHECK(Call({591,at(body),0,at("model_root"),at(Bend),2,1,6,5,0,0,100})==1);
  float bent[12];CHECK(Query(587,at(body),0,0,100,bent)&&!std::memcmp(bent,tagAt,48));
  CHECK(Query(586,at(body),0,0,100,bent)&&std::memcmp(bent,tagAt,48));
+ // A pointer-sized field: duplicated into, clipped, named, cleaned.
+ void *copy=nullptr;CHECK(Call({596,at(body),at(&copy)})==0&&copy&&copy!=body);
+ CHECK(Call({592,at(copy),0,at("model_root"),0,2,0x10,FloatWord(1),100,FloatWord(-1),0})==1);
+ char skeleton[64]{};CHECK(Call({593,at(copy),0,at(skeleton)})==0&&!std::strcmp(skeleton,"models/players/test/skeleton"));
+ CHECK(Query(586,at(copy),0,0,175,bent)&&Call({599,at(&copy)})==0&&!copy);
  CHECK(ravenGhoul2Outcast.Clean(&body)&&ravenGhoul2Outcast.Clean(&weapon));
 }
 int main(){
  installed[Body]=AuthoredTagMesh("models/players/test/skeleton",3,BodyTag);
  installed["models/players/test/skeleton.gla"]=PoseSkeleton();
  installed[Weapon]=AuthoredTagMesh("*default",1,WeaponTag);
- CheckQVM();CheckNative();
+ CheckQVM();CheckQVMClientSetup();CheckNative();
  // A map change empties Outcast's store; nothing it held answers afterwards.
  void *left=nullptr;LoadError error;
  CHECK(ravenGhoul2Outcast.AddModel(&left,Body,error)==0&&ravenGhoul2Outcast.AddBolt(left,0,"root")==0);
@@ -744,7 +933,7 @@ class JKAServerAttachmentTests(unittest.TestCase):
                     self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
                     self.assertIn('Raven server attachment stores passed', run.stdout)
 
-    def test_outcast_serves_its_bolt_imports_from_kept_builds(self):
+    def test_outcast_serves_its_bolt_imports_setup_and_clips(self):
         compiler = shutil.which('clang++') or shutil.which('g++')
         if not compiler:
             self.skipTest('C++17 compiler unavailable')

@@ -55,17 +55,37 @@ inline constexpr int FNTECH3_JK2_G2_GET_BOLT = 586;
 inline constexpr int FNTECH3_JK2_G2_GET_BOLT_NOREC = 587;
 inline constexpr int FNTECH3_JK2_G2_ANGLE_OVERRIDE = 591;
 inline constexpr int FNTECH3_JK2_G2_COPY_SPECIFIC_MODEL = 595;
+/* And the four the retail module's client setup and its per-frame clips
+ * reach next (docs/fntech3/2026-10-07-jk2-server-clips.md). */
+inline constexpr int FNTECH3_JK2_G2_SET_BONE_ANIM = 592;
+inline constexpr int FNTECH3_JK2_G2_GET_GLA_NAME = 593;
+inline constexpr int FNTECH3_JK2_G2_DUPLICATE_INSTANCE = 596;
+inline constexpr int FNTECH3_JK2_G2_CLEAN_MODELS = 599;
+
+/* Whether the game module is bytecode, whose words are 32 bits. */
+static bool SV_JK2ModuleIsBytecode( void )
+{
+	return gvm && !gvm->entryPoint && !gvm->dllExports;
+}
 
 /* A Ghoul2 instance as the module passes it back. Retail jk2mp.exe converts
- * none: its handlers for 584 and 586 to 595 hand the word straight to their
- * cores (0x44c64e..0x44c83a), because the module only keeps and returns what
- * 588 wrote into its slot. A QVM's word is 32 bits. */
+ * none: its handlers for 584, 586 to 595 and the first of 596 hand the word
+ * straight to their cores (0x44c64e..0x44c857), because the module only
+ * keeps and returns what 588 or 596 wrote into its field. */
 static void *SV_JK2Ghoul2Handle( intptr_t word )
 {
-	if ( gvm && !gvm->entryPoint && !gvm->dllExports ) {
+	if ( SV_JK2ModuleIsBytecode() ) {
 		return reinterpret_cast<void *>( std::uintptr_t( std::uint32_t( word ) ) );
 	}
 	return reinterpret_cast<void *>( word );
+}
+
+/* The width of the module's own field for an instance, which 588, 596 and
+ * 599 are handed the address of: a pointer in a native module, a 32-bit
+ * word in the bytecode module's data segment. */
+static std::size_t SV_JK2Ghoul2FieldBytes( void )
+{
+	return SV_JK2ModuleIsBytecode() ? 4 : sizeof( void * );
 }
 
 static bool SV_JK2GameCall( const intptr_t *args, intptr_t &operation, intptr_t &result )
@@ -414,14 +434,86 @@ static bool SV_JK2GameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		 * model is still there, not how many places there are. Academy asks
 		 * the same question at 585.
 		 *
-		 * Unlike the calls below, this still converts the handle as a module
-		 * address, which retail does not. For the retail QVM that answers "no
-		 * models" for an instance it holds, so its client model setup stops
-		 * there and never reaches 586, 587, 591 or 595. It is left so on
-		 * purpose: read correctly, the module goes on to 592, 593, 596 and
-		 * 599, which are not served (docs/fntech3/COMPATIBILITY.md). */
-		const fntech3::ghoul2::Instance *instance = ravenGhoul2.Resolve( VM_ArgPtr( args[1] ) );
+		 * The handler passes the word unconverted, as the calls below do.
+		 * Converted as a module address, as this engine once read it, the
+		 * retail QVM's word named nothing, so 584 answered "no models" for
+		 * the precached Kyle and the module's client setup (QVM procedure
+		 * 108882) stopped before any other Ghoul2 import. */
+		const fntech3::ghoul2::Instance *instance = ravenGhoul2.Resolve( SV_JK2Ghoul2Handle( args[1] ) );
 		result = instance && instance->HoldsAny() ? 1 : 0;
+		return true;
+	}
+
+	if ( trap == FNTECH3_JK2_G2_CLEAN_MODELS ) {
+		/* Free the instance a module field holds. Handler 0x44c8aa converts
+		 * its one argument, the field's address, and returns 0; the core
+		 * 0x4a6e00 empties a field that holds anything, and frees what it
+		 * held only when the field is one 588 or 596 made an instance for
+		 * (Store::CleanField). The retail module cleans a client's old
+		 * instance this way at the start of its client setup. */
+		const std::size_t fieldBytes = SV_JK2Ghoul2FieldBytes();
+		if ( args[1] ) {
+			VM_CHECKBOUNDS( gvm, args[1], fieldBytes );
+			ravenGhoul2.CleanField( VM_ArgPtr( args[1] ), fieldBytes );
+		}
+		result = 0;
+		return true;
+	}
+
+	if ( trap == FNTECH3_JK2_G2_DUPLICATE_INSTANCE ) {
+		/* Copy an instance whole into a module field. Handler 0x44c857
+		 * passes the source word unconverted and converts the field's
+		 * address, and returns 0. The core 0x4a7ce0 does nothing at all when
+		 * the field already holds an instance; otherwise it makes one there
+		 * and copies every model of the source into it (0x4a79e0), records
+		 * whole (Store::DuplicateInto). The retail module gives each client
+		 * its own copy of the precached Kyle this way. */
+		const std::size_t fieldBytes = SV_JK2Ghoul2FieldBytes();
+		if ( args[2] ) {
+			VM_CHECKBOUNDS( gvm, args[2], fieldBytes );
+			ravenGhoul2.DuplicateInto( SV_JK2Ghoul2Handle( args[1] ), VM_ArgPtr( args[2] ), fieldBytes );
+		}
+		result = 0;
+		return true;
+	}
+
+	if ( trap == FNTECH3_JK2_G2_GET_GLA_NAME ) {
+		/* The skeleton a model names. Handler 0x44c7f1 converts the third
+		 * argument, a buffer; the core 0x4a7d80 takes the instance word and
+		 * a model index, checks the index against the count, and answers the
+		 * name in that model's mesh header (mdxm +0x48), which the handler
+		 * copies whole into the buffer, unbounded, and returns 0. Nothing is
+		 * copied for no answer. The retail module reads it to find its
+		 * `animation.cfg`; this copy is bounded by the module's memory. */
+		const char *name = ravenGhoul2.GLAName( SV_JK2Ghoul2Handle( args[1] ), static_cast<int>( args[2] ) );
+		if ( name && args[3] ) {
+			const std::size_t bytes = std::strlen( name ) + 1;
+			VM_CHECKBOUNDS( gvm, args[3], bytes );
+			std::memcpy( VM_ArgPtr( args[3] ), name, bytes );
+		}
+		result = 0;
+		return true;
+	}
+
+	if ( trap == FNTECH3_JK2_G2_SET_BONE_ANIM ) {
+		/* Play a clip on one bone. Handler 0x44c7b5 reads ten arguments and
+		 * converts only the third, the bone's name:
+		 *
+		 *     ghoul2, modelIndex, boneName, startFrame, endFrame, flags,
+		 *     animSpeed, currentTime, setFrame, blendTime
+		 *
+		 * The speed and set frame are floats, the rest ints. It returns the
+		 * core's answer: 0 for no instance, a model index at or past the
+		 * count or a bone the skeleton lacks, else 1. The core 0x4a7440
+		 * clamps the frames, sets the model's build time to 0 and sets the
+		 * clip through the bone's record (Store::SetBoneAnim, with Outcast's
+		 * own timing in outcast::Control). The retail module sets model_root
+		 * looping in its client setup and model_root, upper_lumbar and
+		 * Motion every frame, frozen or looping, with 150 ms transitions. */
+		result = ravenGhoul2.SetBoneAnim( SV_JK2Ghoul2Handle( args[1] ), static_cast<int>( args[2] ),
+			static_cast<const char *>( VM_ArgPtr( args[3] ) ), static_cast<int>( args[4] ),
+			static_cast<int>( args[5] ), static_cast<int>( args[6] ), VMF( 7 ),
+			static_cast<int>( args[8] ), VMF( 9 ), static_cast<int>( args[10] ) ) ? 1 : 0;
 		return true;
 	}
 
@@ -444,9 +536,11 @@ static bool SV_JK2GameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		/* Which bolt a model is using. Handler 0x44c74a converts nothing and
 		 * passes three numbers to 0x4a75f0, which bounds-checks the model
 		 * index the same way and stores the third as a single int inside the
-		 * model. Academy makes the same call at 594. */
-		result = ravenGhoul2.SetBoltInfo( SV_JK2Ghoul2Handle( args[1] ), static_cast<int>( args[2] ),
-			static_cast<int>( args[3] ) ) ? 1 : 0;
+		 * model. Academy makes the same call at 594. The handler returns 0
+		 * whatever the core did (0x44c75f). */
+		ravenGhoul2.SetBoltInfo( SV_JK2Ghoul2Handle( args[1] ), static_cast<int>( args[2] ),
+			static_cast<int>( args[3] ) );
+		result = 0;
 		return true;
 	}
 
@@ -461,13 +555,18 @@ static bool SV_JK2GameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		 * The model is really read, by the same bounded readers that swept
 		 * both installations. A model that does not load is reported as not
 		 * loaded, which is what this call returns for one, and the instance
-		 * pointer handed back is owned here and checked on the way in. */
+		 * pointer handed back is owned here and checked on the way in. The
+		 * module's field is read and written at its own width: a QVM's is a
+		 * 32-bit word even on a 64-bit host. Retail makes the instance before
+		 * it loads the model, leaving an empty one in the field when the load
+		 * fails; this store leaves the field as it was. */
 		if ( !args[1] ) { result = -1; return true; }
-		VM_CHECKBOUNDS( gvm, args[1], sizeof( void * ) );
+		const std::size_t fieldBytes = SV_JK2Ghoul2FieldBytes();
+		VM_CHECKBOUNDS( gvm, args[1], fieldBytes );
 		auto **slot = static_cast<void **>( VM_ArgPtr( args[1] ) );
 		const char *name = static_cast<const char *>( VM_ArgPtr( args[2] ) );
 		fntech3::ghoul2::LoadError error = fntech3::ghoul2::LoadError::None;
-		const int index = ravenGhoul2.AddModel( slot, name, error );
+		const int index = ravenGhoul2.AddModel( slot, name, error, fieldBytes );
 		if ( index < 0 ) {
 			Com_Printf( "Ghoul2: %s: %s\n", name ? name : "(no name)",
 				fntech3::ghoul2::LoadErrorName( error ) );
@@ -554,9 +653,11 @@ static bool SV_JK2GameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		 * copies the whole record, link, bolts and build time with it
 		 * (0x4a7b10), and a copy that grows the instance sets model 0's build
 		 * time to 0. Retail grows an instance past its end with empty
-		 * records; this store refuses a place beyond the one after its last. */
-		result = ravenGhoul2.CopyModel( SV_JK2Ghoul2Handle( args[1] ), static_cast<int>( args[2] ),
-			SV_JK2Ghoul2Handle( args[3] ), static_cast<int>( args[4] ) ) ? 1 : 0;
+		 * records; this store refuses a place beyond the one after its last.
+		 * The handler returns 0 whatever the core did (0x44c853). */
+		ravenGhoul2.CopyModel( SV_JK2Ghoul2Handle( args[1] ), static_cast<int>( args[2] ),
+			SV_JK2Ghoul2Handle( args[3] ), static_cast<int>( args[4] ) );
+		result = 0;
 		return true;
 	}
 

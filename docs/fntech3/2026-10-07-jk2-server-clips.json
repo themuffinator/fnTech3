@@ -1,0 +1,662 @@
+{
+  "record": "2026-10-07-jk2-server-clips.md",
+  "date": "2026-10-07",
+  "sourceCommit": "280adf57a1773eee1fdcd6b522b83a82437fd4b9",
+  "firstBuiltOn": "6c5c7ed91ec23d04cf38f555a5a25ccd640ff59a",
+  "identities": {
+    "jk2mp.exe 1.02a": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a",
+    "base/assets0.pk3": "e8e466f219bb2faed536021bb0d10aa6b7f5cd687302aa43080da2debdae307c",
+    "base/assets0.pk3:vm/jk2mpgame.qvm": "4810670f4f6ec3890d510e294dfd9fd4fb7f692b8d415b496aa132a0a79dc105",
+    "fntech3.ded.exe committed (HEAD 6c5c7ed9 plus this slice)": "e8e0dffd6f12d6f42bd359b78a49aacf1560b92c315491094b11beae2c456057",
+    "fntech3.ded.exe diagnostic (the same plus a trace wrapper, not committed)": "51a1d0516e41fd5cd64d12edf6278377d3927ee7369e5ed8b7ba3d4283d3184e",
+    "fntech3.ded.exe committed (HEAD 280adf57 plus this slice, the commit's tree)": "ee45fdb15b2f89c9b2164362400091c71d007318991be0360815e76d50764d22"
+  },
+  "build": "clean exports of HEAD 6c5c7ed9 and of HEAD 280adf57, each with this slice; MSVC 2022 x86, Meson debugoptimized, strict warnings, every development gate on; 1,499 targets, no warnings; runtimes .tmp/runtime/jk2-server-clips/committed, diagnostic (6c5c7ed9) and committed-280adf57",
+  "evidence": "Capstone over jk2mp.exe and a QVM decoder over vm/jk2mpgame.qvm (reference observation; no retail code incorporated); unit and production-case tests; runs of the retail QVM on fnTech3's developer dedicated server. No retail answer: the retail dedicated server needs the game disc and was not bypassed.",
+  "retail": {
+    "dispatch": "game import byte table 0x44cc50, jump table 0x44c8d8",
+    "handlers": {
+      "584": {
+        "handler": "0x44c64e",
+        "converts": [],
+        "core": "0x4a7890",
+        "returns": "the core's: 1 at the first model whose +0x30 is not -1, else 0"
+      },
+      "590": {
+        "handler": "0x44c74a",
+        "converts": [],
+        "core": "0x4a75f0",
+        "returns": "0 (xor eax, eax at 0x44c75f)"
+      },
+      "592": {
+        "handler": "0x44c7b5",
+        "converts": [
+          3
+        ],
+        "arguments": "ghoul2, modelIndex, boneName, startFrame, endFrame, flags, animSpeed (float), currentTime, setFrame (float), blendTime",
+        "core": "0x4a7440",
+        "returns": "the core's: 0 or 1"
+      },
+      "593": {
+        "handler": "0x44c7f1",
+        "converts": [
+          3
+        ],
+        "core": "0x4a7d80(ghoul2, modelIndex)",
+        "then": "unbounded strcpy of the answer into the buffer",
+        "returns": "0"
+      },
+      "595": {
+        "handler": "0x44c83a",
+        "converts": [],
+        "core": "0x4a7bf0",
+        "returns": "0 (0x44c853)"
+      },
+      "596": {
+        "handler": "0x44c857",
+        "converts": [
+          2
+        ],
+        "core": "0x4a7ce0(ghoul2From, &ghoul2To)",
+        "returns": "0"
+      },
+      "599": {
+        "handler": "0x44c8aa",
+        "converts": [
+          1
+        ],
+        "core": "0x4a6e00(&ghoul2)",
+        "returns": "0"
+      }
+    },
+    "cores": {
+      "592": "end outside 1..99999 -> 1, start outside 0..99999 -> 0; set frame kept if -1, 0..100000 or NaN, else 0 (0x4a7462..0x4a74a8); null instance or modelIndex >= count (unsigned) -> 0; model +0x98 = 0 (0x4a74f6); 0x4ab390 finds (0x4aa8d0) or adds (0x4aa940) the bone by name and calls the setter 0x4ab070",
+      "593": "null instance or modelIndex >= count -> null; else the mdxm header's animName (+0x48) of the model's file (0x485220, 0x484bf0)",
+      "596": "field non-null -> nothing (0x4a7cfd); else a new 16-byte vector stored in the field, the field's address pushed on the server (0x1ae664c) or client (0x1ae6638) list by 0x5084a0 (0x4a7d2e..0x4a7d56), then 0x4a79e0(from, new, -1): every source model, removed ones included, assigned whole by 0x4a7b10",
+      "599": "field null -> nothing (0x4a6e06); else the field's address is found in 0x1ae664c, then 0x1ae6638, erased from the first that holds it and *field deleted (0x4a6d90); the field is emptied either way (0x4a6e80)",
+      "588": "allocates and lists the field before loading (0x4a6ef9..0x4a6f51); a failed load leaves the empty instance (0x4a6fe9)",
+      "newBoneRecord": "0x4aaa0c: only the bone number and flags (0) are set; the rest is stack contents",
+      "angleSetter": "0x4aaf85: replaces only the low three bits of the shared record's flags",
+      "copyInstance": "0x4a79e0 returns -1; with -1 copies models 0..count-1, reusing destination places whose +0x30 is -1, else growing the destination"
+    },
+    "setter": {
+      "function": "0x4ab070(boneList, index, startFrame, endFrame, flags, animSpeed, currentTime, setFrame, blendTime)",
+      "blend": "flags & 0x80 and the getter 0x4ab420 succeeds: blendStart == currentTime -> blendTime only (0x4ab0ee); speed < 0 -> blendFrame = blendLerpFrame = floor(frame) (0x4ab108..0x4ab157); else blendFrame = frame, blendLerpFrame = trunc(frame + 1), each >= the old end -> the old start (loop) or the old end - 1 (0 for an end <= 0) (0x4ab15c..0x4ab23f); blendTime; blendStart = currentTime",
+      "noClip": "getter fails: blendLerpFrame = blendFrame = blendTime = 0, 0x80 dropped (0x4ab262)",
+      "noBlendBit": "blendLerpFrame = blendFrame = blendStart = blendTime = 0 (0x4ab277)",
+      "range": "endFrame, startFrame, animSpeed; pauseTime 0 (0x4ab2af..0x4ab2ee)",
+      "start": "setFrame == -1 -> currentTime; else trunc(currentTime - (setFrame - startFrame) * 50.0 / animSpeed) (0x4ab2fb..0x4ab32e; 50.0 double at 0x4e48a8)",
+      "flags": "(flags & ~0xd8) | the flags given, less 0x80 where dropped (0x4ab34a..0x4ab377)"
+    },
+    "getter": {
+      "function": "0x4ab420",
+      "fails": "index invalid, bone -1, or flags & 0x18 == 0",
+      "age": "max(0, float((pauseTime ? pauseTime : now) - startTime) * 0.02f), stored as a float (0x4ab47c..0x4ab4fd)",
+      "frame": "float(startFrame + age * speed); a clip of no length answers its start",
+      "pastEnd": "speed > 0: frame > end - 1; speed < 0: !(end + 1 <= frame)",
+      "loop": "forwards keep frame < end, backwards frame > end + 1, else fmod(frame - end, size) + end - size",
+      "otherwise": "end - 1 forwards, end + 1 backwards, frozen or not"
+    },
+    "transform": {
+      "function": "0x476380 (through 0x476f60 from the build 0x4790f0)",
+      "inheritance": "each child call restores this bone's newFrame, currentFrame, backlerp, blend frame, blend old frame, blend mode and blend lerp (0x476e2c..0x476eb7); the root starts at the model's default frame +0x94 (0 from 0x4a85a9 and 0x4a709a), fraction 0, no blend (0x477010)",
+      "blend": "flags & 0x80: age = float(now - blendStart); 0 <= age < blendTime -> blend mode with blendFrame, blendLerpFrame and lerp age / blendTime (0x4763f7..0x476465); else none; flags & 0x18 without 0x80 -> none; neither -> the parent's",
+      "blendPose": "(1 - f) * M(blendLerpFrame) + f * M(trunc(blendFrame)), f = blendFrame - trunc(blendFrame) (0x476959..0x4769d3)",
+      "zeroSize": "end - 1 (speed >= 0) or end + 1, not below 0, fraction 0 (0x4768d3..0x47690f)",
+      "forward": "current = trunc(frame), next = current + 1, fraction frame - current; next >= end -> start (loop) or end (0x4767d0..0x47682b)",
+      "backward": "speed <= 0: c = ceil(frame), fraction c - frame, current = c; c > start -> current = next = start, fraction 0; else next = c - 1, and !(end + 1 <= next) -> start (loop) or end + 1 (0x476830..0x4768d1)",
+      "pastEndLoopForward": "end - 1 < frame < end: current = trunc(frame), next = start; else w = fmod(frame - end, size) + end - size, current = trunc(w), next = w < end - 1 ? current + 1 : start (0x4766a7..0x47675d)",
+      "pastEndLoopBackward": "end <= frame < end + 1: fraction (end + 1) - frame, current = end, next = start; else the fmod wrap stored as a float, ceilings, next = wrapped > end + 1 ? current - 1 : start (0x4765c7..0x4766a2)",
+      "pastEndFreeze": "(flags & 0x48) == 0x48: current = next = end - 1 (speed > 0) or end + 1, fraction 0 (0x476762..0x4767ba)",
+      "pastEndOther": "nothing set: the bone keeps its parent's frames",
+      "abandon": "current < 0, next < 0, or in blend mode blendFrame < 0 or blendLerpFrame < 0: the bone and every bone below it are not transformed (0x476912..0x476951)",
+      "zeroFraction": "fraction 0 reads the current frame alone (0x4769f7)"
+    },
+    "precision": {
+      "controlWord": "_controlfp(_PC_53, _MCW_PC) from C runtime startup 0x4d4b51 (0x4d7cc5)",
+      "helpers": {
+        "ceil": "0x4d4c5f (control word 0x1b3f)",
+        "floor": "0x4d4d2e (0x173f)",
+        "_ftol": "0x4d4f00 (fistp qword with chop; low word returned)",
+        "fmod": "0x4d75fa (fprem)"
+      },
+      "constants": {
+        "0x4eaa44": "0.02f",
+        "0x4e48a8": "50.0 (double)",
+        "0x4e45a8": "0.0 (double)",
+        "0x4e4388": "1.0 (double)",
+        "0x4e4304": "0.0f",
+        "0x4e4340": "1.0f",
+        "0x4e4538": "-1.0f",
+        "0x4eb350": "100000.0f"
+      }
+    },
+    "againstAcademy": [
+      "age times 0.02f, not over 50: Age(5, 0) = 0.099999994 where 5 / 50.0f = 0.1",
+      "loops wrap by fmod, not by whole spans",
+      "reverse clips are posed; Academy's served timing refuses them",
+      "a clip ended without loop or freeze leaves the bone on its parent's frames; Academy's served timing refuses it",
+      "the transition sample's inverted weighting is the same"
+    ]
+  },
+  "module": {
+    "setup": {
+      "procedure": 108882,
+      "calledFrom": 110404,
+      "order": [
+        "584 on the client's field (+1716) and 599 on it, if it holds one",
+        "584 on the precached Kyle (data 25396)",
+        "596 Kyle -> the client's field",
+        "593 into a frame buffer unless data 16308 is set",
+        "589 *r_hand, *l_hand",
+        "592 model_root 0..12, flags 0x10, speed 1, set frame -1, blend time -1",
+        "591 upper_lumbar, cranium",
+        "588 models/weapons2/saber/saber_w.glm",
+        "590 the saber to model 0 bolt 0",
+        "589 *flash",
+        "595 the saber into place 1"
+      ],
+      "thenCaller": "589 cranium, thoracic, lradius, rradius, ltibia, rtibia, Motion"
+    },
+    "perFrame": {
+      "procedure": 235883,
+      "calledFrom": 5432,
+      "clips": "592 model_root, upper_lumbar (set frame its start), Motion; flags 0x90 or 0xc8 (loopFrames -1 -> 0x48, else 0x10, then | 0x80); speed 50 / frameLerp (+12 of the 28-byte animation record) times a multiplier; or one frame frozen; blend time 150",
+      "boltQuery": "586 model 1 bolt 0 (*flash)"
+    },
+    "motionQuery": {
+      "import": 587,
+      "procedure": 226088
+    },
+    "hitLocationQuery": {
+      "import": 586,
+      "site": 129659,
+      "procedure": 129321,
+      "path": "126435 -> 130381 -> 129321",
+      "bolts": "model 0's bone bolts from cranium"
+    },
+    "parser": "QVM 83669..83719: frameLerp = floor(1000 / fps) for fps >= 0, ceil(1000 / fps) below 0 (traps 110, 111); an fps of 0 is taken as 1",
+    "reverseClips": "129 of the 989 clips in models/players/_humanoid/animation.cfg have a negative fps",
+    "resultsRead": [
+      584
+    ],
+    "resultsDiscarded": [
+      590,
+      593,
+      595,
+      596,
+      599
+    ],
+    "neverCalled": [
+      585,
+      594,
+      597,
+      598
+    ]
+  },
+  "served": {
+    "584": "SV_JK2Ghoul2Handle: the word unconverted",
+    "592": "Store::SetBoneAnim -> Store::SetOutcastBoneAnim for a store keeping builds; posed by outcast::Control in DeformationPalette; pose::Animation::inheritFrame",
+    "593": "Store::GLAName (Model::animName), copied bounded by the module's memory; result 0",
+    "596": "Store::DuplicateInto; result 0",
+    "599": "Store::CleanField with the store's field list; result 0",
+    "588": "the field read and written at its own width (SV_JK2Ghoul2FieldBytes: 4 for a QVM)",
+    "590": "result 0",
+    "595": "result 0",
+    "academy": "unchanged: its stores never take the Outcast paths"
+  },
+  "notReproduced": [
+    "a bolt no build has reached: refused with nothing written; retail answers its record's uninitialized words",
+    "a new bone record is zeroed; retail's carries stack contents",
+    "a failed 588 leaves the field as it was; retail leaves an empty instance",
+    "a source 596 does not hold is refused before anything is made",
+    "593 answers nothing for a removed model's record",
+    "frames outside the skeleton are refused; retail reads past its frame table",
+    "592 flags outside 0xf8 are refused when posed",
+    "bone and bolt names compare by case",
+    "GCC i686 without SSE math keeps x87 extended intermediates and can differ in a last bit"
+  ],
+  "runner": ".tmp/jk2-g2-anims/run-bots.py (bots from an exec'd cfg: wait 40; addbot Reborn 3; wait 40; addbot Kyle 3)",
+  "runs": [
+    {
+      "name": "committed-1",
+      "build": "committed",
+      "command": [
+        ".tmp\\runtime\\jk2-server-clips\\committed\\fntech3.ded.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Jedi Outcast",
+        "+set",
+        "fs_homepath",
+        ".tmp\\jk2-g2-anims\\runs\\committed-1\\home",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_gameProfile",
+        "jk2-mp",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "net_enabled",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+map",
+        "ffa_bespin",
+        "+exec",
+        "jk2bots.cfg"
+      ],
+      "observedAtUTC": "2026-10-07T07:40:09.571720+00:00",
+      "seconds": 75.0,
+      "elapsedSeconds": 76.297,
+      "exitCode": null,
+      "stoppedAtDeadline": true,
+      "errors": [],
+      "kills": 0,
+      "importTotals": null,
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "homeRemoved": true,
+      "binarySha256": {
+        ".tmp\\runtime\\jk2-server-clips\\committed\\fntech3.ded.exe": "e8e0dffd6f12d6f42bd359b78a49aacf1560b92c315491094b11beae2c456057"
+      }
+    },
+    {
+      "name": "diagnostic-1",
+      "build": "diagnostic",
+      "command": [
+        ".tmp\\runtime\\jk2-server-clips\\diagnostic\\fntech3.ded.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Jedi Outcast",
+        "+set",
+        "fs_homepath",
+        ".tmp\\jk2-g2-anims\\runs\\diagnostic-1\\home",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_gameProfile",
+        "jk2-mp",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "net_enabled",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+map",
+        "ffa_bespin",
+        "+exec",
+        "jk2bots.cfg"
+      ],
+      "observedAtUTC": "2026-10-07T07:42:10.835602+00:00",
+      "seconds": 75.0,
+      "elapsedSeconds": 75.843,
+      "exitCode": null,
+      "stoppedAtDeadline": true,
+      "errors": [],
+      "kills": 0,
+      "importTotals": "584:2/0 586:1968/0 587:1903/20 588:2/0 589:19/0 590:1/0 591:5963/0 592:138/0 595:2/0 596:2/0",
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "homeRemoved": true,
+      "binarySha256": {
+        ".tmp\\runtime\\jk2-server-clips\\diagnostic\\fntech3.ded.exe": "51a1d0516e41fd5cd64d12edf6278377d3927ee7369e5ed8b7ba3d4283d3184e"
+      }
+    },
+    {
+      "name": "diagnostic-2",
+      "build": "diagnostic",
+      "command": [
+        ".tmp\\runtime\\jk2-server-clips\\diagnostic\\fntech3.ded.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Jedi Outcast",
+        "+set",
+        "fs_homepath",
+        ".tmp\\jk2-g2-anims\\runs\\diagnostic-2\\home",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_gameProfile",
+        "jk2-mp",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "net_enabled",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+map",
+        "ffa_bespin",
+        "+exec",
+        "jk2bots.cfg"
+      ],
+      "observedAtUTC": "2026-10-07T07:44:38.773682+00:00",
+      "seconds": 300.0,
+      "elapsedSeconds": 304.75,
+      "exitCode": null,
+      "stoppedAtDeadline": true,
+      "errors": [],
+      "kills": 0,
+      "importTotals": "584:2/0 586:6630/0 587:10314/20 588:2/0 589:19/0 590:1/0 591:32535/0 592:493/0 595:2/0 596:2/0",
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "homeRemoved": true,
+      "binarySha256": {
+        ".tmp\\runtime\\jk2-server-clips\\diagnostic\\fntech3.ded.exe": "51a1d0516e41fd5cd64d12edf6278377d3927ee7369e5ed8b7ba3d4283d3184e"
+      }
+    },
+    {
+      "name": "diagnostic-duel-1",
+      "build": "diagnostic",
+      "command": [
+        ".tmp\\runtime\\jk2-server-clips\\diagnostic\\fntech3.ded.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Jedi Outcast",
+        "+set",
+        "fs_homepath",
+        ".tmp\\jk2-g2-anims\\runs\\diagnostic-duel-1\\home",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_gameProfile",
+        "jk2-mp",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "net_enabled",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "g_gametype",
+        "3",
+        "+map",
+        "duel_pit",
+        "+exec",
+        "jk2bots.cfg"
+      ],
+      "observedAtUTC": "2026-10-07T07:51:03.774966+00:00",
+      "seconds": 180.0,
+      "elapsedSeconds": 180.89,
+      "exitCode": null,
+      "stoppedAtDeadline": true,
+      "errors": [],
+      "kills": 0,
+      "importTotals": "584:2/0 586:6967/0 587:6105/20 588:2/0 589:19/0 590:1/0 591:20959/0 592:941/0 595:2/0 596:2/0",
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "homeRemoved": true,
+      "binarySha256": {
+        ".tmp\\runtime\\jk2-server-clips\\diagnostic\\fntech3.ded.exe": "51a1d0516e41fd5cd64d12edf6278377d3927ee7369e5ed8b7ba3d4283d3184e"
+      }
+    },
+    {
+      "name": "committed-280adf57",
+      "build": "committed",
+      "command": [
+        ".tmp\\runtime\\jk2-server-clips\\committed-280adf57\\fntech3.ded.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Jedi Outcast",
+        "+set",
+        "fs_homepath",
+        ".tmp\\jk2-g2-anims\\runs\\committed-280adf57\\home",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_gameProfile",
+        "jk2-mp",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "net_enabled",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+map",
+        "ffa_bespin",
+        "+exec",
+        "jk2bots.cfg"
+      ],
+      "observedAtUTC": "2026-10-07T08:48:39.086501+00:00",
+      "seconds": 75.0,
+      "elapsedSeconds": 77.546,
+      "exitCode": null,
+      "stoppedAtDeadline": true,
+      "errors": [],
+      "kills": 0,
+      "importTotals": null,
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "homeRemoved": true,
+      "binarySha256": {
+        ".tmp\\runtime\\jk2-server-clips\\committed-280adf57\\fntech3.ded.exe": "ee45fdb15b2f89c9b2164362400091c71d007318991be0360815e76d50764d22"
+      }
+    }
+  ],
+  "observed": {
+    "setup": "completes for both bots in every run: 584 -> 1 for the Kyle, 596 gives each its own instance, 589 *r_hand 0, *l_hand 1, cranium..Motion 2..8, the saber's *flash 0; 592, 591, 590 and 595 served; 599 and 593 not reached (fields started empty; the animation table already loaded)",
+    "refusals": "none of 586, 591 or 592; 20 of 587 per run, the first ten of each bot, asking for the Motion bolt before any 586 had built",
+    "saber": "586 model 1 bolt 0: 10 to 38 units from the origin, z -9 to +31, unit rotation rows, axes turning frame to frame (58 answers logged)",
+    "motion": "587 model 0 bolt 8, no angles: 5.7 to 13.5 units above the origin, within 2.5 across, rotation rows 0.52 to 0.64 long (67 logged)",
+    "hitLocation": "not reached: no bot attacked another in 555 s; their AI never reached import 209",
+    "clipsLogged": "the first 60 592 calls per run: flags 0x10, 0x90 and 0xc8, speeds 1 to 17.3, none negative"
+  },
+  "tests": {
+    "file": "tests/jka_server_attachment_tests.py (Meson fntech3_jka_server_attachment)",
+    "store": "outcast::Age, Truncate and Control pinned frame for frame (loops, freezes, an ended clip, reverse clips, a clip of no length, refusals); Evaluate keeping a bone on its parent's frames; the setter's sample, same-time replacement, reverse sample, clamps and set frame; a clip on model 0 zeroing its build time; Outcast's kept answers for a clip equal to Academy's bits where both timings reach the same frame",
+    "dispatcher": "the production SV_JK2GameCall cases as the retail QVM drives them: 584 on the word, the client setup in order, guard words after 32-bit fields surviving 588 and 596, 596 leaving a held field alone, 593's name, 592's ten arguments reaching the store in retail's order, per-frame clips with transitions, 599 freeing through listed fields only; natively with pointer-sized fields",
+    "pinnedReplaced": "the check that 584 answers the QVM's word as no instance, pinned on purpose by the previous slice, now checks that it finds the models",
+    "builds": "ordinary and fast-math, clang++ (x86 under the VS x86 shell, x64 otherwise)",
+    "mutations": {
+      "harness": ".tmp/jk2-g2-anims/mutate.py, run on a 64-bit host",
+      "caught": 19,
+      "of": 19,
+      "list": [
+        {
+          "mutation": "584 converts the word as a module address",
+          "testFileFails": true
+        },
+        {
+          "mutation": "a field is a pointer wide in a QVM",
+          "testFileFails": true
+        },
+        {
+          "mutation": "590 answers the core",
+          "testFileFails": true
+        },
+        {
+          "mutation": "592's blend time read from its set frame",
+          "testFileFails": true
+        },
+        {
+          "mutation": "593 answers the skeleton file name",
+          "testFileFails": true
+        },
+        {
+          "mutation": "596 replaces a field already holding an instance",
+          "testFileFails": true
+        },
+        {
+          "mutation": "599 frees through an unlisted field",
+          "testFileFails": true
+        },
+        {
+          "mutation": "a clip's age divided by fifty",
+          "testFileFails": true
+        },
+        {
+          "mutation": "a loop in its last frame lerps to the frame after",
+          "testFileFails": true
+        },
+        {
+          "mutation": "an ended clip is refused, not inherited",
+          "testFileFails": true
+        },
+        {
+          "mutation": "reverse clips refused",
+          "testFileFails": true
+        },
+        {
+          "mutation": "a reverse freeze holds inside its end",
+          "testFileFails": true
+        },
+        {
+          "mutation": "the sample blends the frame reached with itself",
+          "testFileFails": true
+        },
+        {
+          "mutation": "a same-time replacement samples again",
+          "testFileFails": true
+        },
+        {
+          "mutation": "the sample weighted the other way round",
+          "testFileFails": true
+        },
+        {
+          "mutation": "592 keeps the build time",
+          "testFileFails": true
+        },
+        {
+          "mutation": "592's frame clamps dropped",
+          "testFileFails": true
+        },
+        {
+          "mutation": "Evaluate ignores an inherited frame",
+          "testFileFails": true
+        },
+        {
+          "mutation": "Outcast clips refused as before",
+          "testFileFails": true
+        }
+      ],
+      "note": "the age divided by fifty fails only the ordinary build: fast math rewrites the division as a multiplication by 0.02f"
+    }
+  },
+  "suites": {
+    "export 280adf57 plus this slice (the commit's tree)": {
+      "build": "1,499 targets, no warnings",
+      "meson": {
+        "tests": 250,
+        "ok": 248,
+        "skipped": 2,
+        "failed": 0,
+        "excluded": "fnql_python_source_regressions (the pytest wrapper)"
+      },
+      "python": {
+        "passed": 2577,
+        "skipped": 129,
+        "failed": 0,
+        "seconds": 2066.5
+      }
+    },
+    "export 6c5c7ed9 plus this slice": {
+      "build": "1,499 targets, no warnings",
+      "meson": {
+        "tests": 250,
+        "ok": 248,
+        "skipped": 2,
+        "failed": 0
+      },
+      "python": {
+        "passed": 2575,
+        "skipped": 129,
+        "failed": 0,
+        "seconds": 2031.9
+      }
+    }
+  }
+}
