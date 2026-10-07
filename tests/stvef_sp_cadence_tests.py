@@ -100,6 +100,7 @@ static void SV_UpdateQLCvarConfigstrings(bool) {}
 static void SV_UpdateRTCWCvarConfigstrings(bool) {}
 static void SV_CalcPings() {}
 static void VM_Call(int, int, int, int time) { ticks.push_back(time); }
+static void SV_JKAGhoul2SetTime(int) {}
 static void SV_STVEFSPTestSave() { ++saves; }
 static void SV_CheckTimeouts() {}
 static void SV_IssueNewSnapshot() { ++issued; }

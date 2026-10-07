@@ -13,6 +13,7 @@ ROOT=Path(__file__).resolve().parents[1]
 def dispatch_fixture():
     host=(ROOT/'code/server/server_jka_game.hpp').read_text()
     start=host.index('\tcase Call::G_G2_GETBOLT:');end=host.index('\n\tcase Call::G_G2_ADDBOLT:',start)
+    clock=host[host.index('static int jkaServerGhoul2Clock'):host.index('static void SV_JKAClearGame(')]
     vm=(ROOT/'code/qcommon/vm.c').read_text()
     tests=(ROOT/'tests/jka_pose_tests.cpp').read_text().replace('int main(int argc,char **argv)', 'int PoseUnitFixtureMain(int argc,char **argv)')
     return tests+r'''
@@ -25,6 +26,8 @@ static void Com_Error(int,const char*,...){throw std::runtime_error("bounds");}
 #define VM_CHECKBOUNDS VM_CheckBounds
 ''' + function(vm,'void *VM_ExplicitArgPtr(')+'\n'+function(vm,'void VM_CheckBounds(')+r'''
 static TestFiles storedFiles;static ghoul2::Store ravenGhoul2(storedFiles);static vm_t *gvm;
+int Com_GameIsJKAMP( void ){return 1;}
+''' + clock + r'''
 static bool Dispatch(comGameId_t profile,const intptr_t *args,intptr_t &result){
  using namespace fntech3::jka::module;
  const Call call=Lookup(profile,Module::GAME,Direction::IMPORT,args[0]);
@@ -41,6 +44,8 @@ int main(){
  const int bolt=ravenGhoul2.AddBolt(instance,0,"child");CHECK(bolt==0);
  const float angles[]{0,0,0},position[]{7,-11,13},scale[]{2,.5f,0};
  for(int mode=0;mode<2;++mode){
+  // The previous pass's failed 589 left the no-rotation selector set.
+  CHECK(jkaServerNoRotationPending==(mode==1));jkaServerNoRotationPending=false;
   std::array<unsigned char,512> memory;memory.fill(0xa5);
   vm_t vm{};if(mode)vm.dllExports=reinterpret_cast<void*>(1);else vm.entryPoint=reinterpret_cast<void*>(1);gvm=&vm;
   auto address=[&](int at){return reinterpret_cast<intptr_t>(memory.data()+at);};
@@ -53,7 +58,12 @@ int main(){
   args[0]=588;CHECK(Dispatch(COM_GAME_JKA_MP,args,result)&&result==1&&memory==original);
   args[0]=589;CHECK(Dispatch(COM_GAME_JKA_MP,args,result)&&result==1);std::memcpy(out,memory.data()+65,48);
   CHECK(NearPose(out[1],-1)&&NearPose(out[7],-6.5f));CHECK(memory[64]==0xa5&&memory[113]==0xa5);
-  const auto saved=memory;args[3]=-1;CHECK(Dispatch(COM_GAME_JKA_MP,args,result)&&result==0&&memory==saved);args[3]=bolt;
+  // A bolt the model lacks writes retail's fallback, the placement times the
+  // fixed axes, and answers 0 (jamp.exe 0x4dfc1d), leaving 589's selector set.
+  args[3]=-1;CHECK(Dispatch(COM_GAME_JKA_MP,args,result)&&result==0&&jkaServerNoRotationPending);
+  float fallback[12];CHECK(pose::FailureBolt(angles,position,fallback));
+  std::memcpy(out,memory.data()+65,48);CHECK(!std::memcmp(out,fallback,48)&&memory[64]==0xa5&&memory[113]==0xa5);
+  const auto saved=memory;args[3]=bolt;
   args[4]=0;CHECK(Dispatch(COM_GAME_JKA_MP,args,result)&&result==0&&memory==saved);args[4]=address(65);
   args[5]=0;CHECK(Dispatch(COM_GAME_JKA_MP,args,result)&&result==0&&memory==saved);args[5]=address(129);
   const std::uint32_t nan=0x7fc00001u;std::memcpy(memory.data()+161,&nan,4);const auto invalid=memory;

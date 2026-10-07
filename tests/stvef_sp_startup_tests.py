@@ -54,6 +54,7 @@ static int VM_Call(void *vm, int count, int ordinal, int time) {
     events.push_back({1,time,sv.time}); return 0;
 }
 static void SV_BotFrame(int time) { events.push_back({2,time,sv.time}); }
+static void SV_JKAGhoul2SetTime(int) {}
 static std::vector<int> SV_Indices(int count) {
     std::vector<int> result;
     for(int i=0;i<count;++i) result.push_back(i);

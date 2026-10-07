@@ -1231,7 +1231,7 @@
       "Academy dispatcher bound to Outcast store",
       "Academy without attachments",
       "Academy without the *default skeleton",
-      "Academy with animation blends",
+      "Academy without animation blends (since the pose clock record, 2026-10-07-jka-server-pose-clock.json)",
       "Outcast store without kept builds",
       "map change clearing one store"
     ],

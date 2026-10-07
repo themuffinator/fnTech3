@@ -65,13 +65,16 @@ ServerGhoul2Files ravenGhoul2Files;
  *
  * Jedi Academy's: retail jamp.exe 1.01's game imports reach the same Ghoul2
  * cores as its client game's -- 587 to 589 the bolt query 0x4dfa00, 594 the
- * link store 0x4df940, 600 the model copy 0x4e04b0 -- so the server answers a
- * bolt query as the client game does: the engine-provided `*default`
- * skeleton every weapon and saber names, models attached to another posed
- * from its parent's bolt, and retail's tag frame. Its own synthetic game
- * module, run inside retail jamp.exe's dedicated server, gives the answers
- * this store matches. Animation blends stay off: they were measured through
- * the client game only. See docs/fntech3/2026-10-06-jedi-server-attachments.md.
+ * link store 0x4df940, 600 the model copy 0x4e04b0, 596 the clip setter
+ * 0x4df310 -- so the server answers a bolt query as the client game does:
+ * the engine-provided `*default` skeleton every weapon and saber names,
+ * models attached to another posed from its parent's bolt, retail's tag
+ * frame, and active forward transitions between clips. Synthetic game
+ * modules, run inside retail jamp.exe's dedicated server, give the answers
+ * this store matches; the transitions were measured there, at the server's
+ * own pose clock (server_jka_game.hpp). See
+ * docs/fntech3/2026-10-06-jedi-server-attachments.md and
+ * docs/fntech3/2026-10-07-jka-server-pose-clock.md.
  *
  * Jedi Outcast's: retail jk2mp.exe 1.02a poses through the same `*default`
  * skeleton, links, model order and tag frame, but builds once per time and
@@ -80,7 +83,7 @@ ServerGhoul2Files ravenGhoul2Files;
  * builds too. No clip is posed: its timing was not read. Its dedicated
  * server needs the game disc, so the answers are read, not observed. See
  * docs/fntech3/2026-10-06-jedi-server-attachments.md. */
-fntech3::ghoul2::Store ravenGhoul2Academy( ravenGhoul2Files, true, false, true );
+fntech3::ghoul2::Store ravenGhoul2Academy( ravenGhoul2Files, true, true, true );
 fntech3::ghoul2::Store ravenGhoul2Outcast( ravenGhoul2Files, true, false, true, true );
 fntech3::ghoul2::SkinRegistry ravenSkins( ravenGhoul2Files );
 

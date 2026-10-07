@@ -34,6 +34,9 @@ extern "C" {
 bool SV_RTCWRestoreSaveTime();
 qboolean SV_ReadJKAVehicleState( int entityNum, playerState_t *destination );
 qboolean SV_JKASnapshotBroadcast( int entityNum, int viewer, qboolean *forced );
+// Jedi Academy's server poses Ghoul2 bolts at a clock of its own, set where
+// retail's is; a no-op for every other profile.
+void SV_JKAGhoul2SetTime( int time );
 
 //=============================================================================
 

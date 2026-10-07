@@ -803,6 +803,10 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	for ( int index : SV_Indices( Com_GameConfigstringLimit() ) ) {
 		sv.configstrings[index] = CopyString("");
 	}
+	// Jedi Academy's Ghoul2 clock takes the level's time here, before its game
+	// starts (jamp.exe 0x45e9e8), and again after each settling frame and the
+	// last frame below.
+	SV_JKAGhoul2SetTime( sv.time );
 	// Alice's load of the level it is running keeps that level's
 	// configstrings, as retail's spawn keeps its server state for one
 	// (server_alice_save.hpp).
@@ -947,6 +951,9 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 			VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
 			SV_BotFrame( sv.time );
 			sv.time += 100;
+			// jamp.exe sets it before each frame and after the last
+			// (0x45eb0e, 0x45eb6a): the same clock at every frame.
+			SV_JKAGhoul2SetTime( sv.time );
 		}
 	}
 
@@ -1036,6 +1043,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 		SV_BotFrame( sv.time );
 		sv.time += 100;
 		svs.time += 100;
+		SV_JKAGhoul2SetTime( sv.time );  // jamp.exe 0x45ecf0
 	}
 
 	// Publish the selected profile's native module paks for download/proof.

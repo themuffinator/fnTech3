@@ -472,8 +472,8 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
 
 - **Multiplayer:** a server runs the original game code on an original map,
   with bots, and tells the game where a held saber or weapon is as the
-  original server does, except during the short blends between animations
-  ([details](fntech3/2026-10-06-jedi-server-attachments.md)). fnTech3 joins
+  original server does, even while one animation blends into the next
+  ([details](fntech3/2026-10-07-jka-server-pose-clock.md)). fnTech3 joins
   an original Jedi Academy server, including servers that check players'
   files, chats both ways and follows a map change. Its
   menus, the main menu's animated scene, text, some of the world and the

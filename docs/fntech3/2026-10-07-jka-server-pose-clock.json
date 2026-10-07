@@ -1,0 +1,1299 @@
+{
+  "record": "2026-10-07-jka-server-pose-clock.md",
+  "sourceCommit": "6c5c7ed91ec23d04cf38f555a5a25ccd640ff59a",
+  "build": {
+    "platform": "Windows 11 x86 (MSVC 2022, meson debugoptimized, strict warnings)",
+    "source": "one clean export of HEAD 23ebc087; the after server with this slice laid over it; every development gate on; dedicated server only; no warnings",
+    "before": ".tmp/runtime/jka-server-clock-before/fntech3.ded.exe",
+    "after": ".tmp/runtime/jka-server-clock-after/fntech3.ded.exe",
+    "confirmation": ".tmp/runtime/jka-server-clock-head/fntech3.ded.exe, from a clean export of HEAD 6c5c7ed9 with this slice (full build); its 1,493 answers equal the after server answers bit for bit"
+  },
+  "runtime": {
+    "fntech3.ded.exe before (HEAD 23ebc087)": "fa8e07df5f731f199a41b56450c57aef8445633d5bd739679e83c832cefcb1b2",
+    "fntech3.ded.exe after (HEAD 23ebc087 plus this slice)": "6b336850524ead04b513865e21442059dbe80d57996f8062d480ab9972b36120",
+    "fntech3.ded.exe confirmation (HEAD 6c5c7ed9 plus this slice)": "e1a5b55eb72273717b7f6b5419e5435880be0feb52a3b0a1c501b802f31a7b8d"
+  },
+  "retail": {
+    "jamp.exe 1.01": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+    "peStamp": {
+      "TimeDateStamp": "0x3faa8a05",
+      "SizeOfImage": "0xf27000",
+      "CheckSum": "0x18273c",
+      "ImageBase": "0x400000"
+    },
+    "tool": "Capstone x86-32 over the PE image (linear sweep for every use of the clock and selector globals)",
+    "dedicated": "jamp.exe +set dedicated 1 (no jampded.exe on this machine)"
+  },
+  "observed": {
+    "clocks": {
+      "server": "0x10bcb74",
+      "client": "0x10bcb78",
+      "setter": "0x4de0d0 (eax index, ecx value; clears the client clock when it exceeds the server clock + 200, signed)",
+      "selection": "client clock when nonzero, else server clock (0x4dfa84..0x4dfa94, 0x4df40c..0x4df415)"
+    },
+    "boltCore": {
+      "address": "0x4dfa00..0x4dfc3a",
+      "imports": {
+        "587": "0x45ca6b",
+        "588": "0x45cabd",
+        "589": "0x45cb19"
+      },
+      "timeWordRead": false,
+      "rebuildTest": "0x49a010 (skips the build when the queried model's stamp +0x98 equals the clock and its bone cache is current)",
+      "skeletonBuild": "0x49a050"
+    },
+    "setters": {
+      "clip": "0x4df310 (import 596 at 0x45cc63, cgame 303 at 0x413afc): caller time; bounds 0x4df326..0x4df36f; resets the model stamp (0x4df3e1)",
+      "angles": "0x4df460 (import 595 at 0x45cc1b, cgame 302 at 0x413a9c): caller time; resets the model stamp (0x4df4e8)",
+      "boneAnimQuery": "import 597 at 0x45cc9c -> wrapper 0x4df400, which replaces its time word with the selected clock"
+    },
+    "serverClockWrites": {
+      "spawn 0x45e840": [
+        "0x45e9f3 before the game starts",
+        "0x45eb0e before each settling frame",
+        "0x45eb6a after them",
+        "0x45ecf0 after the frame that follows the baseline"
+      ],
+      "SV_Frame 0x460650": "0x460883 after its game frames (0x460850..0x460879)",
+      "map_restart 0x456396..0x4564cf": "none"
+    },
+    "clientClockWrites": [
+      "client frame 0x4148b0 (server clock only with no local server)",
+      "cgame import 326 (0x413e16)",
+      "UI import in 0x423f10 (0x425055)"
+    ],
+    "selectors": {
+      "noRotation": "0x10bcb6c, set by 589 (0x45cb27) and cgame 296; read 0x4dfb81; cleared only on success 0x4dfc07",
+      "noReconstruct": "0x10bcb70, set by 588 and 589 (0x45cac0, 0x45cb21) and cgame 295; never read"
+    },
+    "failure": {
+      "address": "0x4dfc1d..0x4dfc3a",
+      "output": "world placement (angles, position) times the fixed MP axes at 0x54e69c; answers 0; scale not applied",
+      "conditions": [
+        "model index out of range",
+        "bolt index out of range",
+        "instance check 0x4e0c50 false (it dereferences the instance)"
+      ],
+      "nullMatrix": "written through (would fault)"
+    }
+  },
+  "probe": {
+    "fixture": ".tmp/jka-server-clock/server-clock-probe.cpp (not committed; synthetic game module, no game logic)",
+    "fixtureSourceSha256": "e3bee6d1f4936a1949a1bf98940a1d0c0091059c7f19dce12ba6bf837d491520",
+    "module": "ed6a095e48a787a84736b61843fd8c379079f867c7cc429cf31ec13b620bf483",
+    "runner": "python .tmp/jka-server-clock/run-clock-probe.py --engine retail|fntech3 [--executable ...] --output ...",
+    "comparer": "python .tmp/jka-server-clock/compare-clock.py retail-3 retail-4 fntech3-before-2 fntech3-after-2 fntech3-head-1",
+    "conditions": "private desktop, isolated home, no input, sv_fps 20, fixedtime 75, mp/ffa1, map_restart 0 after frame 26",
+    "clockReadout": "read-only loads of 0x10bcb74/0x10bcb78 and import 597, only when the host matches retail's PE stamp",
+    "runs": {
+      "retail-3": {
+        "engine": "retail",
+        "passed": true,
+        "exitCode": 0,
+        "forcedStop": false,
+        "installationUnchanged": true,
+        "binariesUnchanged": true,
+        "homeRemoved": true,
+        "elapsedSeconds": 20.266,
+        "observedAtUTC": "2026-10-06T23:29:53.459969+00:00",
+        "sourceCommit": "23ebc087fb74c8ec78f84c218abb155d6a17cd68",
+        "platform": "Windows x86",
+        "profile": "jka-mp",
+        "syntheticFixtureSourceSha256": "e3bee6d1f4936a1949a1bf98940a1d0c0091059c7f19dce12ba6bf837d491520",
+        "command": ".tmp\\runtime\\jka-retail\\jamp.exe +set fs_basepath .tmp\\runtime\\jka-retail +set fs_homepath .tmp\\jka-server-clock\\retail-3\\home +set fs_cdpath E:\\Games\\Jedi Academy +set fs_game server-clock +set dedicated 1 +set r_fullscreen 0 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set logfile 4 +set developer 1 +set net_ip 127.0.0.1 +set net_port 0 +set sv_pure 0 +set bot_enable 0 +set fixedtime 75 +set sv_fps 20 +set net_enabled 1 +map mp/ffa1",
+        "binarySha256": {
+          ".tmp\\runtime\\jka-retail\\jamp.exe": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+          ".tmp\\runtime\\jka-retail\\server-clock\\jampgamex86.dll": "ed6a095e48a787a84736b61843fd8c379079f867c7cc429cf31ec13b620bf483"
+        },
+        "markers": 1558
+      },
+      "retail-4": {
+        "engine": "retail",
+        "passed": true,
+        "exitCode": 0,
+        "forcedStop": false,
+        "installationUnchanged": true,
+        "binariesUnchanged": true,
+        "homeRemoved": true,
+        "elapsedSeconds": 10.985,
+        "observedAtUTC": "2026-10-06T23:31:19.699625+00:00",
+        "sourceCommit": "23ebc087fb74c8ec78f84c218abb155d6a17cd68",
+        "platform": "Windows x86",
+        "profile": "jka-mp",
+        "syntheticFixtureSourceSha256": "e3bee6d1f4936a1949a1bf98940a1d0c0091059c7f19dce12ba6bf837d491520",
+        "command": ".tmp\\runtime\\jka-retail\\jamp.exe +set fs_basepath .tmp\\runtime\\jka-retail +set fs_homepath .tmp\\jka-server-clock\\retail-4\\home +set fs_cdpath E:\\Games\\Jedi Academy +set fs_game server-clock +set dedicated 1 +set r_fullscreen 0 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set logfile 4 +set developer 1 +set net_ip 127.0.0.1 +set net_port 0 +set sv_pure 0 +set bot_enable 0 +set fixedtime 75 +set sv_fps 20 +set net_enabled 1 +map mp/ffa1",
+        "binarySha256": {
+          ".tmp\\runtime\\jka-retail\\jamp.exe": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+          ".tmp\\runtime\\jka-retail\\server-clock\\jampgamex86.dll": "ed6a095e48a787a84736b61843fd8c379079f867c7cc429cf31ec13b620bf483"
+        },
+        "markers": 1558
+      },
+      "fntech3-before-2": {
+        "engine": "fntech3",
+        "passed": true,
+        "exitCode": 0,
+        "forcedStop": false,
+        "installationUnchanged": true,
+        "binariesUnchanged": true,
+        "homeRemoved": true,
+        "elapsedSeconds": 4.719,
+        "observedAtUTC": "2026-10-06T23:30:33.103804+00:00",
+        "sourceCommit": "23ebc087fb74c8ec78f84c218abb155d6a17cd68",
+        "platform": "Windows x86",
+        "profile": "jka-mp",
+        "syntheticFixtureSourceSha256": "e3bee6d1f4936a1949a1bf98940a1d0c0091059c7f19dce12ba6bf837d491520",
+        "command": ".tmp\\runtime\\jka-server-clock-before\\fntech3.ded.exe +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath .tmp\\jka-server-clock\\fntech3-before-2\\home +set fs_cdpath  +set fs_game server-clock +set dedicated 1 +set r_fullscreen 0 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set logfile 4 +set developer 1 +set net_ip 127.0.0.1 +set net_port 0 +set sv_pure 0 +set bot_enable 0 +set fixedtime 75 +set sv_fps 20 +set com_gameProfile jka-mp +set com_steamIntegration 0 +set net_enabled 0 +map mp/ffa1",
+        "binarySha256": {
+          "fntech3.ded.exe": "fa8e07df5f731f199a41b56450c57aef8445633d5bd739679e83c832cefcb1b2",
+          ".tmp\\runtime\\jka-retail\\server-clock\\jampgamex86.dll": "ed6a095e48a787a84736b61843fd8c379079f867c7cc429cf31ec13b620bf483"
+        },
+        "markers": 1558
+      },
+      "fntech3-after-2": {
+        "engine": "fntech3",
+        "passed": true,
+        "exitCode": 0,
+        "forcedStop": false,
+        "installationUnchanged": true,
+        "binariesUnchanged": true,
+        "homeRemoved": true,
+        "elapsedSeconds": 3.969,
+        "observedAtUTC": "2026-10-06T23:30:38.559674+00:00",
+        "sourceCommit": "23ebc087fb74c8ec78f84c218abb155d6a17cd68",
+        "platform": "Windows x86",
+        "profile": "jka-mp",
+        "syntheticFixtureSourceSha256": "e3bee6d1f4936a1949a1bf98940a1d0c0091059c7f19dce12ba6bf837d491520",
+        "command": ".tmp\\runtime\\jka-server-clock-after\\fntech3.ded.exe +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath .tmp\\jka-server-clock\\fntech3-after-2\\home +set fs_cdpath  +set fs_game server-clock +set dedicated 1 +set r_fullscreen 0 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set logfile 4 +set developer 1 +set net_ip 127.0.0.1 +set net_port 0 +set sv_pure 0 +set bot_enable 0 +set fixedtime 75 +set sv_fps 20 +set com_gameProfile jka-mp +set com_steamIntegration 0 +set net_enabled 0 +map mp/ffa1",
+        "binarySha256": {
+          "fntech3.ded.exe": "6b336850524ead04b513865e21442059dbe80d57996f8062d480ab9972b36120",
+          ".tmp\\runtime\\jka-retail\\server-clock\\jampgamex86.dll": "ed6a095e48a787a84736b61843fd8c379079f867c7cc429cf31ec13b620bf483"
+        },
+        "markers": 1558
+      },
+      "fntech3-head-1": {
+        "engine": "fntech3",
+        "passed": true,
+        "exitCode": 0,
+        "forcedStop": false,
+        "installationUnchanged": true,
+        "binariesUnchanged": true,
+        "homeRemoved": true,
+        "elapsedSeconds": 3.672,
+        "observedAtUTC": "2026-10-07T01:07:32.101548+00:00",
+        "sourceCommit": "6c5c7ed91ec23d04cf38f555a5a25ccd640ff59a",
+        "platform": "Windows x86",
+        "profile": "jka-mp",
+        "syntheticFixtureSourceSha256": "e3bee6d1f4936a1949a1bf98940a1d0c0091059c7f19dce12ba6bf837d491520",
+        "command": ".tmp\\runtime\\jka-server-clock-head\\fntech3.ded.exe +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath .tmp\\jka-server-clock\\fntech3-head-1\\home +set fs_cdpath  +set fs_game server-clock +set dedicated 1 +set r_fullscreen 0 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set logfile 4 +set developer 1 +set net_ip 127.0.0.1 +set net_port 0 +set sv_pure 0 +set bot_enable 0 +set fixedtime 75 +set sv_fps 20 +set com_gameProfile jka-mp +set com_steamIntegration 0 +set net_enabled 0 +map mp/ffa1",
+        "binarySha256": {
+          "fntech3.ded.exe": "e1a5b55eb72273717b7f6b5419e5435880be0feb52a3b0a1c501b802f31a7b8d",
+          ".tmp\\runtime\\jka-retail\\server-clock\\jampgamex86.dll": "ed6a095e48a787a84736b61843fd8c379079f867c7cc429cf31ec13b620bf483"
+        },
+        "markers": 1558
+      }
+    },
+    "earlierRuns": "retail-1, retail-2, fntech3-before-1, fntech3-after-1: the same module before its map_restart phase; same results for the queries they share"
+  },
+  "clockTable": [
+    {
+      "frame": 0,
+      "where": "init",
+      "levelTime": 0,
+      "clock0": 0,
+      "clock1": 0,
+      "import597Frame": 0.0
+    },
+    {
+      "frame": 1,
+      "where": "frame",
+      "levelTime": 0,
+      "clock0": 0,
+      "clock1": 0,
+      "import597Frame": 0.0
+    },
+    {
+      "frame": 2,
+      "where": "frame",
+      "levelTime": 100,
+      "clock0": 100,
+      "clock1": 0,
+      "import597Frame": 100.0
+    },
+    {
+      "frame": 3,
+      "where": "frame",
+      "levelTime": 200,
+      "clock0": 200,
+      "clock1": 0,
+      "import597Frame": 200.0
+    },
+    {
+      "frame": 4,
+      "where": "frame",
+      "levelTime": 300,
+      "clock0": 300,
+      "clock1": 0,
+      "import597Frame": 300.0
+    },
+    {
+      "frame": 5,
+      "where": "frame",
+      "levelTime": 450,
+      "clock0": 400,
+      "clock1": 0,
+      "import597Frame": 400.0
+    },
+    {
+      "frame": 6,
+      "where": "frame",
+      "levelTime": 500,
+      "clock0": 450,
+      "clock1": 0,
+      "import597Frame": 450.0
+    },
+    {
+      "frame": 7,
+      "where": "frame",
+      "levelTime": 550,
+      "clock0": 450,
+      "clock1": 0,
+      "import597Frame": 450.0
+    },
+    {
+      "frame": 8,
+      "where": "frame",
+      "levelTime": 600,
+      "clock0": 550,
+      "clock1": 0,
+      "import597Frame": 550.0
+    },
+    {
+      "frame": 9,
+      "where": "frame",
+      "levelTime": 650,
+      "clock0": 600,
+      "clock1": 0,
+      "import597Frame": 600.0
+    },
+    {
+      "frame": 10,
+      "where": "frame",
+      "levelTime": 700,
+      "clock0": 600,
+      "clock1": 0,
+      "import597Frame": 600.0
+    },
+    {
+      "frame": 11,
+      "where": "frame",
+      "levelTime": 750,
+      "clock0": 700,
+      "clock1": 0,
+      "import597Frame": 700.0
+    },
+    {
+      "frame": 12,
+      "where": "frame",
+      "levelTime": 800,
+      "clock0": 750,
+      "clock1": 0,
+      "import597Frame": 750.0
+    },
+    {
+      "frame": 13,
+      "where": "frame",
+      "levelTime": 850,
+      "clock0": 750,
+      "clock1": 0,
+      "import597Frame": 750.0
+    },
+    {
+      "frame": 14,
+      "where": "frame",
+      "levelTime": 900,
+      "clock0": 850,
+      "clock1": 0,
+      "import597Frame": 850.0
+    },
+    {
+      "frame": 15,
+      "where": "frame",
+      "levelTime": 950,
+      "clock0": 900,
+      "clock1": 0,
+      "import597Frame": 900.0
+    },
+    {
+      "frame": 16,
+      "where": "frame",
+      "levelTime": 1000,
+      "clock0": 900,
+      "clock1": 0,
+      "import597Frame": 900.0
+    },
+    {
+      "frame": 17,
+      "where": "frame",
+      "levelTime": 1050,
+      "clock0": 1000,
+      "clock1": 0,
+      "import597Frame": 1000.0
+    },
+    {
+      "frame": 18,
+      "where": "frame",
+      "levelTime": 1100,
+      "clock0": 1050,
+      "clock1": 0,
+      "import597Frame": 1050.0
+    },
+    {
+      "frame": 19,
+      "where": "frame",
+      "levelTime": 1150,
+      "clock0": 1050,
+      "clock1": 0,
+      "import597Frame": 1050.0
+    },
+    {
+      "frame": 20,
+      "where": "frame",
+      "levelTime": 1200,
+      "clock0": 1150,
+      "clock1": 0,
+      "import597Frame": 1150.0
+    },
+    {
+      "frame": 21,
+      "where": "frame",
+      "levelTime": 1250,
+      "clock0": 1200,
+      "clock1": 0,
+      "import597Frame": 1200.0
+    },
+    {
+      "frame": 22,
+      "where": "frame",
+      "levelTime": 1300,
+      "clock0": 1200,
+      "clock1": 0,
+      "import597Frame": 1200.0
+    },
+    {
+      "frame": 23,
+      "where": "frame",
+      "levelTime": 1350,
+      "clock0": 1300,
+      "clock1": 0,
+      "import597Frame": 1300.0
+    },
+    {
+      "frame": 24,
+      "where": "frame",
+      "levelTime": 1400,
+      "clock0": 1350,
+      "clock1": 0,
+      "import597Frame": 1350.0
+    },
+    {
+      "frame": 25,
+      "where": "frame",
+      "levelTime": 1450,
+      "clock0": 1350,
+      "clock1": 0,
+      "import597Frame": 1350.0
+    },
+    {
+      "frame": 26,
+      "where": "frame",
+      "levelTime": 1500,
+      "clock0": 1450,
+      "clock1": 0,
+      "import597Frame": 1450.0
+    },
+    {
+      "frame": 0,
+      "where": "restart_init",
+      "levelTime": 1500,
+      "clock0": 1500,
+      "clock1": 0,
+      "import597Frame": 1500.0
+    },
+    {
+      "frame": 1,
+      "where": "restart_frame",
+      "levelTime": 1500,
+      "clock0": 1500,
+      "clock1": 0,
+      "import597Frame": 1500.0
+    },
+    {
+      "frame": 2,
+      "where": "restart_frame",
+      "levelTime": 1600,
+      "clock0": 1500,
+      "clock1": 0,
+      "import597Frame": 1500.0
+    },
+    {
+      "frame": 3,
+      "where": "restart_frame",
+      "levelTime": 1700,
+      "clock0": 1500,
+      "clock1": 0,
+      "import597Frame": 1500.0
+    },
+    {
+      "frame": 4,
+      "where": "restart_frame",
+      "levelTime": 1800,
+      "clock0": 1500,
+      "clock1": 0,
+      "import597Frame": 1500.0
+    },
+    {
+      "frame": 5,
+      "where": "restart_frame",
+      "levelTime": 1950,
+      "clock0": 1500,
+      "clock1": 0,
+      "import597Frame": 1500.0
+    },
+    {
+      "frame": 6,
+      "where": "restart_frame",
+      "levelTime": 2000,
+      "clock0": 1500,
+      "clock1": 0,
+      "import597Frame": 1500.0
+    },
+    {
+      "frame": 7,
+      "where": "restart_frame",
+      "levelTime": 2050,
+      "clock0": 2000,
+      "clock1": 0,
+      "import597Frame": 2000.0
+    },
+    {
+      "frame": 8,
+      "where": "restart_frame",
+      "levelTime": 2100,
+      "clock0": 2050,
+      "clock1": 0,
+      "import597Frame": 2050.0
+    },
+    {
+      "frame": 9,
+      "where": "restart_frame",
+      "levelTime": 2150,
+      "clock0": 2050,
+      "clock1": 0,
+      "import597Frame": 2050.0
+    },
+    {
+      "frame": 10,
+      "where": "restart_frame",
+      "levelTime": 2200,
+      "clock0": 2150,
+      "clock1": 0,
+      "import597Frame": 2150.0
+    }
+  ],
+  "retailChecks": {
+    "import597EqualsClock": true,
+    "clientClockZero": true,
+    "fixedtime": [
+      "75"
+    ],
+    "timeWord": {
+      "otherWordsCompared": 48,
+      "answersThatDiffered": 0
+    },
+    "relations": {
+      "firstAfterFailed589IsUnrotated": true,
+      "secondAfterFailed589IsRotated": true,
+      "saberAfterBendIsPreBend": true,
+      "pistolAfterBendIsPreBend": true,
+      "bodyAfterBendChanged": true,
+      "saberAfterBodyChanged": true
+    }
+  },
+  "retailMidTransitionQueries": 231,
+  "retailFailureOutput": {
+    "fail_op587/0/no_model/587/900": [
+      "00000000",
+      "bf800000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000"
+    ],
+    "fail_op587/0/no_bolt/587/900": [
+      "00000000",
+      "bf800000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000"
+    ],
+    "fail_op587/0/negative_bolt/587/900": [
+      "00000000",
+      "bf800000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000"
+    ],
+    "fail_op587/0/weapon_no_bolt/587/900": [
+      "00000000",
+      "bf800000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000"
+    ],
+    "fail_op587_placed/0/no_model/587/900": [
+      "be58b975",
+      "bf601bec",
+      "3ede7d9f",
+      "40e00000",
+      "3f4e1dd3",
+      "bed101f0",
+      "bedc47f8",
+      "c1300000",
+      "3f0dd510",
+      "3e8483ee",
+      "3f4a8eb6",
+      "41500000"
+    ],
+    "fail_op587_placed/0/no_bolt/587/900": [
+      "be58b975",
+      "bf601bec",
+      "3ede7d9f",
+      "40e00000",
+      "3f4e1dd3",
+      "bed101f0",
+      "bedc47f8",
+      "c1300000",
+      "3f0dd510",
+      "3e8483ee",
+      "3f4a8eb6",
+      "41500000"
+    ],
+    "fail_op587_placed/0/negative_bolt/587/900": [
+      "be58b975",
+      "bf601bec",
+      "3ede7d9f",
+      "40e00000",
+      "3f4e1dd3",
+      "bed101f0",
+      "bedc47f8",
+      "c1300000",
+      "3f0dd510",
+      "3e8483ee",
+      "3f4a8eb6",
+      "41500000"
+    ],
+    "fail_op587_placed/0/weapon_no_bolt/587/900": [
+      "be58b975",
+      "bf601bec",
+      "3ede7d9f",
+      "40e00000",
+      "3f4e1dd3",
+      "bed101f0",
+      "bedc47f8",
+      "c1300000",
+      "3f0dd510",
+      "3e8483ee",
+      "3f4a8eb6",
+      "41500000"
+    ],
+    "fail_op588/0/no_model/588/900": [
+      "00000000",
+      "bf800000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000"
+    ],
+    "fail_op588/0/no_bolt/588/900": [
+      "00000000",
+      "bf800000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000"
+    ],
+    "fail_op588/0/negative_bolt/588/900": [
+      "00000000",
+      "bf800000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000"
+    ],
+    "fail_op588/0/weapon_no_bolt/588/900": [
+      "00000000",
+      "bf800000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000"
+    ],
+    "fail_op588_placed/0/no_model/588/900": [
+      "be58b975",
+      "bf601bec",
+      "3ede7d9f",
+      "40e00000",
+      "3f4e1dd3",
+      "bed101f0",
+      "bedc47f8",
+      "c1300000",
+      "3f0dd510",
+      "3e8483ee",
+      "3f4a8eb6",
+      "41500000"
+    ],
+    "fail_op588_placed/0/no_bolt/588/900": [
+      "be58b975",
+      "bf601bec",
+      "3ede7d9f",
+      "40e00000",
+      "3f4e1dd3",
+      "bed101f0",
+      "bedc47f8",
+      "c1300000",
+      "3f0dd510",
+      "3e8483ee",
+      "3f4a8eb6",
+      "41500000"
+    ],
+    "fail_op588_placed/0/negative_bolt/588/900": [
+      "be58b975",
+      "bf601bec",
+      "3ede7d9f",
+      "40e00000",
+      "3f4e1dd3",
+      "bed101f0",
+      "bedc47f8",
+      "c1300000",
+      "3f0dd510",
+      "3e8483ee",
+      "3f4a8eb6",
+      "41500000"
+    ],
+    "fail_op588_placed/0/weapon_no_bolt/588/900": [
+      "be58b975",
+      "bf601bec",
+      "3ede7d9f",
+      "40e00000",
+      "3f4e1dd3",
+      "bed101f0",
+      "bedc47f8",
+      "c1300000",
+      "3f0dd510",
+      "3e8483ee",
+      "3f4a8eb6",
+      "41500000"
+    ],
+    "fail_op589/0/no_model/589/900": [
+      "00000000",
+      "bf800000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000"
+    ],
+    "fail_op589/0/no_bolt/589/900": [
+      "00000000",
+      "bf800000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000"
+    ],
+    "fail_op589/0/negative_bolt/589/900": [
+      "00000000",
+      "bf800000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000"
+    ],
+    "fail_op589/0/weapon_no_bolt/589/900": [
+      "00000000",
+      "bf800000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "3f800000",
+      "00000000"
+    ],
+    "fail_op589_placed/0/no_model/589/900": [
+      "be58b975",
+      "bf601bec",
+      "3ede7d9f",
+      "40e00000",
+      "3f4e1dd3",
+      "bed101f0",
+      "bedc47f8",
+      "c1300000",
+      "3f0dd510",
+      "3e8483ee",
+      "3f4a8eb6",
+      "41500000"
+    ],
+    "fail_op589_placed/0/no_bolt/589/900": [
+      "be58b975",
+      "bf601bec",
+      "3ede7d9f",
+      "40e00000",
+      "3f4e1dd3",
+      "bed101f0",
+      "bedc47f8",
+      "c1300000",
+      "3f0dd510",
+      "3e8483ee",
+      "3f4a8eb6",
+      "41500000"
+    ],
+    "fail_op589_placed/0/negative_bolt/589/900": [
+      "be58b975",
+      "bf601bec",
+      "3ede7d9f",
+      "40e00000",
+      "3f4e1dd3",
+      "bed101f0",
+      "bedc47f8",
+      "c1300000",
+      "3f0dd510",
+      "3e8483ee",
+      "3f4a8eb6",
+      "41500000"
+    ],
+    "fail_op589_placed/0/weapon_no_bolt/589/900": [
+      "be58b975",
+      "bf601bec",
+      "3ede7d9f",
+      "40e00000",
+      "3f4e1dd3",
+      "bed101f0",
+      "bedc47f8",
+      "c1300000",
+      "3f0dd510",
+      "3e8483ee",
+      "3f4a8eb6",
+      "41500000"
+    ],
+    "selector/0/failed_589/589/900": [
+      "be58b975",
+      "bf601bec",
+      "3ede7d9f",
+      "40e00000",
+      "3f4e1dd3",
+      "bed101f0",
+      "bedc47f8",
+      "c1300000",
+      "3f0dd510",
+      "3e8483ee",
+      "3f4a8eb6",
+      "41500000"
+    ],
+    "selector/0/after_587_first/587/900": [
+      "be95bdff",
+      "3ecdd1cc",
+      "3f5e2039",
+      "41a98807",
+      "3f27eaa8",
+      "3f3e9d9c",
+      "bdfdb2b8",
+      "c2097437",
+      "bf32242d",
+      "3f086c4f",
+      "bef67fb9",
+      "41d031a1"
+    ],
+    "selector/0/after_587_second/587/900": [
+      "becdd1cc",
+      "be95bdff",
+      "3f5e2039",
+      "41a98807",
+      "bf3e9d9c",
+      "3f27eaa8",
+      "bdfdb2b8",
+      "c2097437",
+      "bf086c4f",
+      "bf32242d",
+      "bef67fb9",
+      "41d031a1"
+    ],
+    "selector/0/after_589_success/589/900": [
+      "be95bdff",
+      "3ecdd1cc",
+      "3f5e2039",
+      "41a98807",
+      "3f27eaa8",
+      "3f3e9d9c",
+      "bdfdb2b8",
+      "c2097437",
+      "bf32242d",
+      "3f086c4f",
+      "bef67fb9",
+      "41d031a1"
+    ],
+    "selector/0/after_587_third/587/900": [
+      "becdd1cc",
+      "be95bdff",
+      "3f5e2039",
+      "41a98807",
+      "bf3e9d9c",
+      "3f27eaa8",
+      "bdfdb2b8",
+      "c2097437",
+      "bf086c4f",
+      "bf32242d",
+      "bef67fb9",
+      "41d031a1"
+    ]
+  },
+  "comparison": {
+    "against": "retail-3",
+    "rotationTolerance": 5e-05,
+    "translationToleranceUnits": 0.0002,
+    "servers": {
+      "retail-4": {
+        "retailQueries": 1493,
+        "bothAnswered": 1468,
+        "withinTolerance": 1468,
+        "bitIdentical": 1468,
+        "maximumRotationDifference": 0.0,
+        "maximumTranslationDifference": 0.0,
+        "refusedCount": 0,
+        "mismatchedCount": 0,
+        "mismatchedPhases": [],
+        "failureOutputs": 25,
+        "failureOutputsBitIdentical": 25,
+        "failureOutputsWithinTolerance": 25,
+        "maximumFailureOutputDifference": 0.0,
+        "midBlend": {
+          "answered": 231,
+          "withinTolerance": 231,
+          "refusedNothingWritten": 0,
+          "other": 0
+        },
+        "relations": {
+          "firstAfterFailed589IsUnrotated": true,
+          "secondAfterFailed589IsRotated": true,
+          "saberAfterBendIsPreBend": true,
+          "pistolAfterBendIsPreBend": true,
+          "bodyAfterBendChanged": true,
+          "saberAfterBodyChanged": true
+        },
+        "mismatched": []
+      },
+      "fntech3-before-2": {
+        "retailQueries": 1493,
+        "bothAnswered": 615,
+        "withinTolerance": 375,
+        "bitIdentical": 0,
+        "maximumRotationDifference": 1.901973843574524,
+        "maximumTranslationDifference": 43.15342140197754,
+        "refusedCount": 853,
+        "mismatchedCount": 240,
+        "mismatchedPhases": [
+          "cache",
+          "f03_tw",
+          "f05",
+          "f06",
+          "f06_tw",
+          "f07",
+          "f07_tw",
+          "f08",
+          "f09",
+          "f10",
+          "f11",
+          "f14",
+          "f15",
+          "f15_tw",
+          "f16",
+          "f24",
+          "r02",
+          "r03",
+          "r04",
+          "r05",
+          "r06",
+          "r07",
+          "r08",
+          "r09",
+          "r10",
+          "selector"
+        ],
+        "failureOutputs": 25,
+        "failureOutputsBitIdentical": 0,
+        "failureOutputsWithinTolerance": 0,
+        "maximumFailureOutputDifference": 0.0,
+        "midBlend": {
+          "answered": 0,
+          "withinTolerance": 0,
+          "refusedNothingWritten": 231,
+          "other": 0
+        },
+        "relations": {
+          "firstAfterFailed589IsUnrotated": false,
+          "secondAfterFailed589IsRotated": false,
+          "saberAfterBendIsPreBend": false,
+          "pistolAfterBendIsPreBend": false,
+          "bodyAfterBendChanged": true,
+          "saberAfterBodyChanged": true
+        },
+        "mismatched": [
+          {
+            "query": "f06_tw/4/body_r_hand/587/1734",
+            "rotation": 1.4071432650089264,
+            "translation": 43.15342140197754
+          },
+          {
+            "query": "f14/0/pistol_flash/587/900",
+            "rotation": 1.076646864414215,
+            "translation": 41.2053656578064
+          },
+          {
+            "query": "f16/0/pistol_flash/587/1000",
+            "rotation": 1.076642632484436,
+            "translation": 41.20532011985779
+          },
+          {
+            "query": "f07_tw/4/body_r_hand/587/1784",
+            "rotation": 1.42099991440773,
+            "translation": 40.77981376647949
+          },
+          {
+            "query": "f06/0/pistol_flash/587/500",
+            "rotation": 0.6791049763560295,
+            "translation": 38.5155143737793
+          },
+          {
+            "query": "f06/5/pistol_flash/587/500",
+            "rotation": 0.6791049763560295,
+            "translation": 38.5155143737793
+          },
+          {
+            "query": "f07/0/pistol_flash/587/550",
+            "rotation": 0.6791049763560295,
+            "translation": 38.5155143737793
+          },
+          {
+            "query": "f07/5/pistol_flash/587/550",
+            "rotation": 0.6791049763560295,
+            "translation": 38.5155143737793
+          },
+          {
+            "query": "selector/0/after_587_first/587/900",
+            "rotation": 1.329867422580719,
+            "translation": 38.253050804138184
+          },
+          {
+            "query": "selector/0/after_587_second/587/900",
+            "rotation": 1.0249741673469543,
+            "translation": 38.253050804138184
+          },
+          {
+            "query": "selector/0/after_589_success/589/900",
+            "rotation": 1.0249741673469543,
+            "translation": 38.253050804138184
+          },
+          {
+            "query": "selector/0/after_587_third/587/900",
+            "rotation": 1.0249741673469543,
+            "translation": 38.253050804138184
+          }
+        ]
+      },
+      "fntech3-after-2": {
+        "retailQueries": 1493,
+        "bothAnswered": 1468,
+        "withinTolerance": 1466,
+        "bitIdentical": 0,
+        "maximumRotationDifference": 1.5664873123168945,
+        "maximumTranslationDifference": 11.38170838356018,
+        "refusedCount": 0,
+        "mismatchedCount": 2,
+        "mismatchedPhases": [
+          "cache"
+        ],
+        "failureOutputs": 25,
+        "failureOutputsBitIdentical": 12,
+        "failureOutputsWithinTolerance": 25,
+        "maximumFailureOutputDifference": 5.960464477539063e-08,
+        "midBlend": {
+          "answered": 231,
+          "withinTolerance": 231,
+          "refusedNothingWritten": 0,
+          "other": 0
+        },
+        "relations": {
+          "firstAfterFailed589IsUnrotated": true,
+          "secondAfterFailed589IsRotated": true,
+          "saberAfterBendIsPreBend": false,
+          "pistolAfterBendIsPreBend": false,
+          "bodyAfterBendChanged": true,
+          "saberAfterBodyChanged": true
+        },
+        "mismatched": [
+          {
+            "query": "cache/0/pistol_after_bend/587/1000",
+            "rotation": 1.5664873123168945,
+            "translation": 11.38170838356018
+          },
+          {
+            "query": "cache/0/saber_after_bend/587/1000",
+            "rotation": 1.4534873962402344,
+            "translation": 5.04493522644043
+          }
+        ]
+      },
+      "fntech3-head-1": {
+        "retailQueries": 1493,
+        "bothAnswered": 1468,
+        "withinTolerance": 1466,
+        "bitIdentical": 0,
+        "maximumRotationDifference": 1.5664873123168945,
+        "maximumTranslationDifference": 11.38170838356018,
+        "refusedCount": 0,
+        "mismatchedCount": 2,
+        "mismatchedPhases": [
+          "cache"
+        ],
+        "failureOutputs": 25,
+        "failureOutputsBitIdentical": 12,
+        "failureOutputsWithinTolerance": 25,
+        "maximumFailureOutputDifference": 5.960464477539063e-08,
+        "midBlend": {
+          "answered": 231,
+          "withinTolerance": 231,
+          "refusedNothingWritten": 0,
+          "other": 0
+        },
+        "relations": {
+          "firstAfterFailed589IsUnrotated": true,
+          "secondAfterFailed589IsRotated": true,
+          "saberAfterBendIsPreBend": false,
+          "pistolAfterBendIsPreBend": false,
+          "bodyAfterBendChanged": true,
+          "saberAfterBodyChanged": true
+        },
+        "mismatched": [
+          {
+            "query": "cache/0/pistol_after_bend/587/1000",
+            "rotation": 1.5664873123168945,
+            "translation": 11.38170838356018
+          },
+          {
+            "query": "cache/0/saber_after_bend/587/1000",
+            "rotation": 1.4534873962402344,
+            "translation": 5.04493522644043
+          }
+        ]
+      }
+    },
+    "afterExcludingPoseReuse": {
+      "answered": 1466,
+      "maximumRotationDifference": 1.33514404296875e-05,
+      "maximumTranslationDifference": 0.000125885009765625,
+      "midTransition": {
+        "answered": 231,
+        "maximumRotationDifference": 1.33514404296875e-05,
+        "maximumTranslationDifference": 0.000125885009765625
+      },
+      "afterRestart": {
+        "answered": 11,
+        "maximumRotationDifference": 4.688277840614319e-06,
+        "maximumTranslationDifference": 5.7220458984375e-06
+      }
+    }
+  },
+  "correction": {
+    "record": "2026-10-06-jedi-server-attachments.md",
+    "claim": "animation blends were measured through the client game only",
+    "fact": "the 2026-10-03 440-query measurement (.tmp/jka-compat/animation-blend-probe.cpp, run animation-blend-retail-02) ran as a game module in retail jamp.exe +set dedicated 1 through imports 596 and 587, reading 0x10bcb74; its transitions were set only where the clock equals the caller's time",
+    "run": {
+      "module": "93215d5cb65b8942f485e9d53b94311f60022a46db448fb9470ac672b0ec430b",
+      "fixtureSourceSha256": "5226f8bf6ef84bb604227616af6fdc6ebafd1f2a303b0d7886a46b708e608b21",
+      "clockPairs": [
+        [
+          0,
+          0
+        ],
+        [
+          100,
+          100
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          300,
+          300
+        ],
+        [
+          450,
+          400
+        ],
+        [
+          500,
+          400
+        ],
+        [
+          550,
+          400
+        ],
+        [
+          600,
+          400
+        ],
+        [
+          650,
+          400
+        ],
+        [
+          700,
+          400
+        ],
+        [
+          750,
+          400
+        ]
+      ]
+    }
+  },
+  "reference": "OpenJK 1a6a643427aa347553e9073dac5570b33337c4d9: codemp/server/sv_main.cpp 1225..1235 and sv_init.cpp 582..694 set the clock at the same points; codemp/rd-vanilla/tr_ghoul2.cpp 1494..1505 blends only for 0 <= age < duration; codemp/game/w_saber.c 8892 queries blade tags every frame. Reference observation only; retail outranks it.",
+  "tests": {
+    "tests/jka_server_attachment_tests.py": "production clip setter, bolt-query cases, pose clock, selector and clock setter with the production stores (ordinary and fast-math); SV_Frame's production run of game frames replayed against retail's 32 measured (level time, clock) pairs; the spawn's settings and map_restart's none against the source",
+    "tests/jka_pose_tests.py": "bolt-import fixture expects the fallback and the selector a failed 589 leaves",
+    "tests/wolfet_map_load_settle_tests.py": "stub for the clock setting in the settle block",
+    "tests/stvef_sp_cadence_tests.py": "stub for the clock setting in SV_Frame",
+    "tests/stvef_sp_startup_tests.py": "stub for the clock setting in the spawn frames it compiles",
+    "mutationsFailingThem": [
+      "academy without blends -> FAILS (caught): 529: Query(587,body,model,bolt,clock,out)&&Reference(reference,blended,twinModel,bolt,clock,want)&&Same(out,want)",
+      "bolt query poses at the time word -> FAILS (caught): 530: Query(587,body,model,bolt,other,word)&&Same(word,out)",
+      "no fallback on a missing model or bolt -> FAILS (caught): 547: !Query(op,body,model,bolt,100,out)&&IsFallback(out,RetailFallback,1e-6f)&&Same(out,fallback)",
+      "fallback for an instance the store never handed out -> FAILS (caught): 553: !Query(587,&out,0,0,100,out)&&Untouched(out)",
+      "selector not sticky (589 only) -> FAILS (caught): 561: Query(op,body,0,1,100,out)&&Same(out,unrotated)&&!jkaServerNoRotationPending",
+      "selector cleared by a failed query -> FAILS (caught): 561: !Query(589,body,9,0,100,out)&&jkaServerNoRotationPending",
+      "clock set for every profile -> FAILS (caught): 515: jkaServerGhoul2Clock==100",
+      "clip frames not bounded -> FAILS (caught): 567: clip&&clip->startFrame==0&&clip->endFrame==1&&clip->setFrame==0.0f&&clip->startTime==200",
+      "clip seed not bounded -> FAILS (caught): 565: Play(body,\"child\",-5,0,0x10,1.0f,200,-0.5f,0)",
+      "clock set before the run of frames -> FAILS (caught): Diff is 795 characters long. Set self.maxDiff to None to see it.",
+      "clock set before each frame -> FAILS (caught): Diff is 1530 characters long. Set self.maxDiff to None to see it.",
+      "no set after each settling frame -> FAILS (caught): AssertionError: 2 != 3",
+      "map_restart sets the clock -> FAILS (caught): AssertionError: 'SV_JKAGhoul2SetTime' unexpectedly found in 'static void SV_MapRestart_f( void ) {\\n\\tSV_JKAGhoul2SetTime( sv.time );\\n\\tint\\t\\t\\tdelay;\\n\\n\\t//"
+    ],
+    "suites": {
+      "export 3f694633 plus this slice": {
+        "build": "1,499 targets (client, dedicated server, every development gate), no warnings",
+        "meson": {
+          "tests": 250,
+          "ok": 248,
+          "skipped": 2,
+          "failed": 0,
+          "excluded": "fnql_python_source_regressions (the pytest wrapper)"
+        },
+        "pytest": {
+          "passed": 2571,
+          "skipped": 129,
+          "failed": 0,
+          "seconds": 3090.72
+        }
+      },
+      "export 6c5c7ed9 plus this slice": {
+        "meson": {
+          "tests": 250,
+          "ok": 248,
+          "skipped": 2,
+          "failed": 0,
+          "excluded": "fnql_python_source_regressions (the pytest wrapper)"
+        },
+        "pytest": {
+          "files": 28,
+          "passed": 194,
+          "skipped": 1,
+          "failed": 0
+        }
+      }
+    },
+    "mutationHarness": ".tmp/jka-server-clock/mutate.py (not committed)"
+  }
+}

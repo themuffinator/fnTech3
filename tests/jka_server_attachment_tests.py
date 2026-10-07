@@ -27,8 +27,11 @@ def binding(path, signature):
 
 def fixture():
     host = (ROOT / 'code/server/server_jka_game.hpp').read_text(encoding='utf-8')
-    start = host.index('\tcase Call::G_G2_SETBOLTINFO:')
+    start = host.index('\tcase Call::G_G2_PLAYANIM:')
     end = host.index('\n\tcase Call::G_G2_ADDBOLT:', start)
+    assert '\tcase Call::G_G2_SETBOLTINFO:' in host[start:end]
+    # The server's pose clock, its no-rotation selector and the clock's setter.
+    clock = host[host.index('static int jkaServerGhoul2Clock'):host.index('static void SV_JKAClearGame(')]
     academy = binding('code/server/server_jka_game.hpp', 'static bool SV_JKAGameCall(')
     vm = (ROOT / 'code/qcommon/vm.c').read_text(encoding='utf-8')
     tests = (ROOT / 'tests/jka_pose_tests.cpp').read_text(encoding='utf-8').replace(
@@ -38,6 +41,7 @@ def fixture():
 #include <cstdlib>
 #include <initializer_list>
 #include <stdexcept>
+#include <tuple>
 using vec3_t=float[3];
 struct vm_t { void *entryPoint; void *dllExports; unsigned char *dataBase; unsigned dataMask; };
 constexpr int ERR_DROP=1;
@@ -56,11 +60,16 @@ static void FS_FreeFile(void *buffer){std::free(buffer);}
 #include "code/server/server_raven_assets.hpp"
 static vm_t native{reinterpret_cast<void*>(1),nullptr,nullptr,0};
 static vm_t *gvm=&native;
+static bool academyProfile=true;
+int Com_GameIsJKAMP( void ){return academyProfile;}
+''' + clock + r'''
 static bool DispatchJKA(const intptr_t *args,intptr_t &result){
  using namespace fntech3::jka::module;
  fntech3::ghoul2::Store &ravenGhoul2 = ''' + academy + r''';
  const Call call=Lookup(COM_GAME_JKA_MP,Module::GAME,Direction::IMPORT,args[0]);
  const auto pointer=[args](int index){return VM_ExplicitArgPtr(gvm,args[index]);};
+ const auto text=[&pointer](int index){return static_cast<const char *>(pointer(index));};
+ const auto VMF=[args](int index){float value;const auto word=static_cast<std::uint32_t>(args[index]);std::memcpy(&value,&word,4);return value;};
  switch(call){
 ''' + host[start:end] + r'''
  default:return false;
@@ -115,6 +124,113 @@ static void *NewWeapon(fntech3::ghoul2::Store &store,int link,bool viaImport){
  else CHECK(store.SetBoltInfo(weapon,0,link));
  return weapon;
 }
+// One bolt query through the production case, with any of 587 to 589, time
+// word and placement; false leaves `out` as written first unless a fallback is.
+static const float Zero[3]{0,0,0};
+static bool Query(int op,void *owner,int model,int bolt,int word,float out[12],
+ const float *angles=Angles,const float *position=Position){
+ for(int n=0;n<12;++n)out[n]=-777.0f;
+ return Import({op,reinterpret_cast<intptr_t>(owner),model,bolt,reinterpret_cast<intptr_t>(out),
+  reinterpret_cast<intptr_t>(angles),reinterpret_cast<intptr_t>(position),word,0,reinterpret_cast<intptr_t>(Scale)})==1;
+}
+static intptr_t Word(float value){std::uint32_t word;std::memcpy(&word,&value,4);return intptr_t(word);}
+// Import 596, the clip setter.
+static bool Play(void *owner,const char *bone,int first,int last,int flags,float speed,int now,float seed,int blend){
+ return Import({596,reinterpret_cast<intptr_t>(owner),0,reinterpret_cast<intptr_t>(bone),first,last,flags,
+  Word(speed),now,Word(seed),blend})==1;
+}
+static bool Same(const float a[12],const float b[12]){return !std::memcmp(a,b,48);}
+// Retail jamp.exe 1.01's failed query, measured through its game imports with
+// the angles and position used here: the entity's placement times the fixed
+// MP axes (0x4dfc1d), scale not applied. Its x87 arithmetic and this engine's
+// float part in the last bit or two; unplaced, they are the same bits.
+static const std::uint32_t RetailFallback[12]{0xbe58b975,0xbf601bec,0x3ede7d9f,0x40e00000,0x3f4e1dd3,0xbed101f0,
+ 0xbedc47f8,0xc1300000,0x3f0dd510,0x3e8483ee,0x3f4a8eb6,0x41500000};
+static const std::uint32_t RetailUnplacedFallback[12]{0,0xbf800000,0,0,0x3f800000,0,0,0,0,0,0x3f800000,0};
+static bool IsFallback(const float out[12],const std::uint32_t (&retail)[12],float tolerance){
+ for(int n=0;n<12;++n){float want;std::memcpy(&want,&retail[n],4);if(!(std::fabs(out[n]-want)<=tolerance))return false;}
+ return true;
+}
+// The body as the client game's store would hold it (client_jka_cgame_ghoul2.hpp
+// builds that store `*default`, blends and attachments on): a clip at 60, a
+// transition at 90 lasting 50 -- or, `blend` false, the same clip change
+// without one -- on the animated bone, and a weapon on that bone.
+static void *Twin(fntech3::ghoul2::Store &reference,bool blend,void *&weapon){
+ void *twin=nullptr;LoadError error;
+ CHECK(reference.AddModel(&twin,Body,error)==0&&reference.AddBolt(twin,0,"root")==0&&reference.AddBolt(twin,0,"child")==1);
+ CHECK(reference.SetBoneAnim(twin,0,"child",0,2,0x10,1.0f,60,-1.0f,0));
+ CHECK(reference.SetBoneAnim(twin,0,"child",1,2,blend?0x10|0x80:0x10,1.0f,90,-1.0f,blend?50:0));
+ weapon=NewWeapon(reference,1,false);
+ CHECK(reference.AddBolt(weapon,0,"root")==0&&reference.CopyModel(weapon,0,twin,1));
+ return twin;
+}
+// What the reference answers at one clock, placed as 587 places it.
+static bool Reference(fntech3::ghoul2::Store &reference,void *owner,int model,int bolt,int clock,float out[12]){
+ float raw[12];
+ return reference.BoltMatrix(owner,model,bolt,clock,raw)&&pose::PlaceBolt(raw,Angles,Position,Scale,false,out);
+}
+// Academy's server poses at its own clock, through active transitions, and
+// writes retail's fallback for retail's own failures (server_jka_game.hpp).
+static void CheckAcademyClock(fntech3::ghoul2::Store &store,void *body){
+ // The clock is the server's own, and only Academy's server sets it.
+ SV_JKAGhoul2SetTime(100);CHECK(jkaServerGhoul2Clock==100);
+ academyProfile=false;SV_JKAGhoul2SetTime(5000);academyProfile=true;CHECK(jkaServerGhoul2Clock==100);
+ fntech3::ghoul2::Store reference(ravenGhoul2Files,true,true,true);
+ void *blendWeapon=nullptr,*instantWeapon=nullptr;
+ void *blended=Twin(reference,true,blendWeapon),*instant=Twin(reference,false,instantWeapon);
+ // The same clip and transition through import 596, at the caller's times,
+ // and the body's second weapon back on the animated bone (bolt 1).
+ CHECK(Play(body,"child",0,2,0x10,1.0f,60,-1.0f,0)&&Play(body,"child",1,2,0x10|0x80,1.0f,90,-1.0f,50));
+ CHECK(Import({594,reinterpret_cast<intptr_t>(body),2,1})==1);
+ float out[12],word[12],want[12],cut[12],bone[12];
+ for(int clock:{80,100,120,150}){
+  SV_JKAGhoul2SetTime(clock);
+  // The animated bone and the weapon it holds: the client game's answers at
+  // the server's clock, whatever time word the module passes.
+  for(auto [model,bolt,twinModel]:{std::tuple{0,1,0},std::tuple{2,0,1}}){
+   CHECK(Query(587,body,model,bolt,clock,out)&&Reference(reference,blended,twinModel,bolt,clock,want)&&Same(out,want));
+   for(int other:{0,clock+1234,99999})CHECK(Query(587,body,model,bolt,other,word)&&Same(word,out));
+   CHECK(Reference(reference,instant,twinModel,bolt,clock,cut));
+   // Inside the transition (90..140) the pose is a blend; before it starts
+   // -- a clip set at 90 asked about at 80, as a server frame asks one
+   // frame behind -- and after it ends it is the new clip alone.
+   CHECK((clock>=90&&clock<140)==!Same(out,cut));
+   if(clock==100&&!model)std::memcpy(bone,out,48);
+  }
+ }
+ // The answer follows the clock, not the word: at 150 the 100 answer is gone.
+ CHECK(Query(587,body,0,1,100,out)&&!Same(out,bone));
+ SV_JKAGhoul2SetTime(100);CHECK(Query(587,body,0,1,150,out)&&Same(out,bone));
+ // Retail's own failures write its fallback and answer 0: a model or bolt
+ // the instance lacks, through any of the three imports.
+ for(int op:{587,588,589}){
+  for(auto [model,bolt]:{std::pair{9,0},std::pair{0,99},std::pair{0,-1},std::pair{1,5}}){
+   float fallback[12];CHECK(pose::FailureBolt(Angles,Position,fallback));
+   CHECK(!Query(op,body,model,bolt,100,out)&&IsFallback(out,RetailFallback,1e-6f)&&Same(out,fallback));
+   CHECK(!Query(op,body,model,bolt,100,out,Zero,Zero)&&IsFallback(out,RetailUnplacedFallback,0));
+  }
+ }
+ jkaServerNoRotationPending=false;
+ // One this store never handed out has no retail answer: nothing written.
+ CHECK(!Query(587,&out,0,0,100,out)&&Untouched(out));
+ // A failed 589 leaves the no-rotation selector set: the next successful
+ // query, 587 or 588, answers as 589 does, and the one after it rotates.
+ float unrotated[12],rotated[12];
+ CHECK(Query(589,body,0,1,100,unrotated)&&Query(587,body,0,1,100,rotated)&&!Same(unrotated,rotated));
+ CHECK(!jkaServerNoRotationPending&&Same(rotated,bone));
+ for(int op:{587,588}){
+  CHECK(!Query(589,body,9,0,100,out)&&jkaServerNoRotationPending);
+  CHECK(Query(op,body,0,1,100,out)&&Same(out,unrotated)&&!jkaServerNoRotationPending);
+  CHECK(Query(op,body,0,1,100,out)&&Same(out,rotated));
+ }
+ // Import 596 bounds the clip as 0x4df326..0x4df36f does.
+ CHECK(Play(body,"child",-5,0,0x10,1.0f,200,-0.5f,0));
+ const auto *clip=store.BoneAnimation(body,0,"child");
+ CHECK(clip&&clip->startFrame==0&&clip->endFrame==1&&clip->setFrame==0.0f&&clip->startTime==200);
+ CHECK(Play(body,"child",100000,100000,0x10,1.0f,200,-1.0f,0));
+ clip=store.BoneAnimation(body,0,"child");CHECK(clip&&clip->startFrame==0&&clip->endFrame==1&&clip->setFrame==-1.0f);
+ for(void **handle:{&blended,&instant,&blendWeapon,&instantWeapon})CHECK(reference.Clean(handle));
+}
 // Academy's server: the engine `*default` skeleton, links and retail's frame.
 static void CheckAcademy(){
  auto &store=ravenGhoul2Academy;
@@ -156,11 +272,7 @@ static void CheckAcademy(){
  CHECK(Import({594,reinterpret_cast<intptr_t>(body),2,9})==1);
  CHECK(!Bolt(body,2,1,out)&&Untouched(out));
  CHECK(Bolt(body,1,1,out)&&!std::memcmp(out,bodyTag,48));
- // Animation blends stay a client-game capability: a measured forward
- // transition, which the client game's store serves, refuses here.
- CHECK(store.SetBoneAnim(body,0,"child",0,2,0x10,1.0f,60,-1.0f,0)&&Bolt(body,0,0,out));
- CHECK(store.SetBoneAnim(body,0,"child",1,2,0x10|0x80,1.0f,90,-1.0f,50));
- CHECK(!Bolt(body,0,0,out)&&Untouched(out));
+ CheckAcademyClock(store,body);
  for(void *&weapon:weapons)CHECK(store.Clean(&weapon)&&!weapon);
  CHECK(store.Clean(&body)&&!body);
 }
@@ -496,6 +608,106 @@ class JKAServerAttachmentTests(unittest.TestCase):
                     run = subprocess.run([str(executable)], cwd=ROOT, capture_output=True, text=True, timeout=30)
                     self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
                     self.assertIn('Jedi Outcast server bolt imports passed', run.stdout)
+
+
+# Retail jamp.exe 1.01's dedicated server under fixedtime 75 and sv_fps 20,
+# read from its Ghoul2 clock (0x10bcb74) by a synthetic game module in every
+# game frame after the level's spawn left the clock at 400: (level time the
+# frame was given, the clock its bolt queries pose at). One server frame runs
+# one game frame, the next two. Then a map_restart's four frames, which set no
+# clock, and four more server frames. docs/fntech3/2026-10-07-jka-server-pose-clock.json
+RETAIL_FRAME_CLOCKS = ((450, 400), (500, 450), (550, 450), (600, 550), (650, 600), (700, 600), (750, 700),
+                       (800, 750), (850, 750), (900, 850), (950, 900), (1000, 900), (1050, 1000), (1100, 1050),
+                       (1150, 1050), (1200, 1150), (1250, 1200), (1300, 1200), (1350, 1300), (1400, 1350),
+                       (1450, 1350), (1500, 1450),
+                       (1500, 1500), (1600, 1500), (1700, 1500), (1800, 1500),
+                       (1950, 1500), (2000, 1500), (2050, 2000), (2100, 2050), (2150, 2050), (2200, 2150))
+CLOCK_CALL = 'SV_JKAGhoul2SetTime( sv.time );'
+
+
+def read(relative):
+    return (ROOT / relative).read_text(encoding='utf-8').replace('\r\n', '\n')
+
+
+def frame_loop():
+    """SV_Frame's production run of game frames and the clock set after it."""
+    frame = function(read('code/server/sv_main.cpp'), 'void SV_Frame( int msec, int realMsec ) {')
+    start = frame.index('\t// run the game simulation in chunks\n')
+    end = frame.index(CLOCK_CALL, start) + len(CLOCK_CALL)
+    return frame[start:end]
+
+
+FRAME_HARNESS = r'''
+#include <cstdio>
+enum { GAME_RUN_FRAME = 8 };
+static struct { int time, timeResidual; } sv;
+static int *gvm, poseClock = -1;
+static void VM_Call(int *, int count, int call, int time) {
+ if (count == 1 && call == GAME_RUN_FRAME) std::printf("%d %d\n", time, poseClock);
+}
+static void SV_JKAGhoul2SetTime(int time) { poseClock = time; }
+static void Frame(int msec) {
+ const int frameMsec = 50;
+ sv.timeResidual += msec;
+LOOP
+}
+int main() {
+ sv.time = poseClock = 400;
+ for (int n = 0; n < 15; ++n) Frame(75);
+ // A map_restart's frames, 100 ms apart; neither engine's restart sets the
+ // clock (test_the_spawn_sets_the_clock_where_retail_does).
+ for (int n = 0; n < 4; ++n) { VM_Call(gvm, 1, GAME_RUN_FRAME, sv.time); sv.time += 100; }
+ for (int n = 0; n < 4; ++n) Frame(75);
+ return 0;
+}
+'''
+
+
+class JKAServerPoseClockTests(unittest.TestCase):
+    """The clock Academy's server poses bolts at is set where retail's is."""
+
+    def test_server_frames_pose_at_the_clock_retail_measured(self):
+        compiler = shutil.which('clang++') or shutil.which('g++')
+        if not compiler:
+            self.skipTest('C++17 compiler unavailable')
+        scratch = ROOT / '.tmp/tests/jka-server-attachment'
+        scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as folder:
+            source = Path(folder) / 'frames.cpp'
+            executable = Path(folder) / ('frames.exe' if os.name == 'nt' else 'frames')
+            source.write_text(FRAME_HARNESS.replace('LOOP', frame_loop()), encoding='utf-8')
+            built = subprocess.run([compiler, *compiler_target_args(compiler), '-std=c++17', '-Wall', '-Wextra',
+                                    '-Werror', str(source), '-o', str(executable)],
+                                   cwd=ROOT, capture_output=True, text=True, timeout=120)
+            self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
+            run = subprocess.run([str(executable)], cwd=ROOT, capture_output=True, text=True, timeout=30)
+            self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+            frames = tuple(tuple(int(word) for word in line.split()) for line in run.stdout.splitlines())
+            self.assertEqual(frames, RETAIL_FRAME_CLOCKS)
+
+    def test_the_spawn_sets_the_clock_where_retail_does(self):
+        spawn = function(read('code/server/sv_init.cpp'), 'void SV_SpawnServer( const char *mapname, qboolean killBots ) {')
+        self.assertEqual(spawn.count(CLOCK_CALL), 3)
+        # Before the game starts (jamp.exe 0x45e9e8), after the configstrings.
+        first = spawn.index(CLOCK_CALL)
+        self.assertLess(spawn.index('sv.configstrings[index] = CopyString("");'), first)
+        self.assertLess(first, spawn.index('SV_InitGameProgs();'))
+        # After each of the three settling frames' advance: the clock is the
+        # level time at every frame and after the last (0x45eb0e, 0x45eb6a).
+        loop = spawn[spawn.index('for ( int ignored : SV_Indices( 3 ) ) {'):]
+        loop = loop[:loop.index('\n\t\t}\n')]
+        self.assertLess(loop.index('sv.time += 100;'), loop.index(CLOCK_CALL))
+        # After the last frame's advance (0x45ecf0).
+        last = spawn[spawn.index('// 0x44db99..0x44dbc8).'):]
+        last = last[:last.index('\n\t}\n')]
+        self.assertLess(last.index('svs.time += 100;'), last.index(CLOCK_CALL))
+        # jamp.exe's map_restart sets no clock.
+        self.assertNotIn('SV_JKAGhoul2SetTime', function(read('code/server/sv_ccmds.cpp'),
+                                                         'static void SV_MapRestart_f( void ) {'))
+        # One definition, which sets nothing for another profile.
+        setter = function(read('code/server/server_jka_game.hpp'), 'void SV_JKAGhoul2SetTime( int time )')
+        self.assertIn('if ( Com_GameIsJKAMP() ) jkaServerGhoul2Clock = time;', setter)
+        self.assertIn('void SV_JKAGhoul2SetTime( int time );', read('code/server/server.h'))
 
 
 if __name__ == '__main__':

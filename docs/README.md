@@ -90,6 +90,10 @@ Release packages include them as web pages in their `manual` folder, built by
 - [October 6 Jedi server Ghoul2 attachments](fntech3/2026-10-06-jedi-server-attachments.md)
   -- Jedi Academy's server answering bolt queries on held sabers and weapons
   as retail's server does, and what Jedi Outcast's engine does instead.
+- [October 7 Jedi Academy server pose clock](fntech3/2026-10-07-jka-server-pose-clock.md)
+  -- the clock Jedi Academy's server poses bolt queries at, animation
+  transitions on held sabers and weapons, and the fallback a failed query
+  writes, measured in retail's server and served.
 - [October 6 Jedi Academy live join](fntech3/2026-10-06-jka-live-join.md)
   -- client-game local sounds, the map-change export and the next boundary
   against retail `jamp.exe`.

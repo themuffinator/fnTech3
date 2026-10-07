@@ -34,6 +34,30 @@ static fntech3::nav::Graph jkaNavigation;
  * number is the whole of that call; nothing reads it until snapshots do. */
 static float jkaServerCullDistance = 0.0f;
 
+/* The clock this title's server poses Ghoul2 bolts at. Retail jamp.exe 1.01's
+ * bolt core (0x4dfa00) never reads the time word a module passes: it poses at
+ * the engine's own Ghoul2 clock, the client's (0x10bcb78) when that is set
+ * and the server's (0x10bcb74) otherwise. A dedicated server has no client
+ * clock. The server sets its own to the level time before the game starts,
+ * before each settling frame and after them, after the frame that follows
+ * the baseline (0x45e9e8..0x45ecf0), and after each server frame's run of
+ * game frames (0x460883) -- so a query from inside a game frame poses one or
+ * more server frames behind the time that frame was given. The clip setter
+ * (0x4df310) and the angle setter (0x4df460) keep the caller's time. Neither
+ * global is reset with a level, here or in retail. A listen server's client
+ * clock is not shared with this one. See
+ * docs/fntech3/2026-10-07-jka-server-pose-clock.md. */
+static int jkaServerGhoul2Clock = 0;
+/* Import 589 sets the no-rotation selector before the shared core, which
+ * clears it only when a query succeeds (0x45cb27, 0x4dfc07): a failed 589
+ * leaves the next successful 587 or 588 unrotated. */
+static bool jkaServerNoRotationPending = false;
+
+void SV_JKAGhoul2SetTime( int time )
+{
+	if ( Com_GameIsJKAMP() ) jkaServerGhoul2Clock = time;
+}
+
 static void SV_JKAClearGame( void )
 {
 	jkaSharedBuffer = nullptr;
@@ -220,7 +244,8 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 	(void)operation;
 	result = 0;
 	/* This title's own model store: it serves the `*default` skeleton,
-	 * attached models and retail's tag frame (server_raven_assets.hpp). */
+	 * attached models, retail's tag frame and transitions between clips,
+	 * posed at this server's own clock (server_raven_assets.hpp). */
 	fntech3::ghoul2::Store &ravenGhoul2 = ravenGhoul2Academy;
 
 	/* The arithmetic and memory block at 100-113 is Quake III's own, in the
@@ -617,11 +642,22 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		 *
 		 * The ninth argument is a floating frame seed, with -1.0f meaning the
 		 * animation starts at its first frame. Retail's bone setup shifts the
-		 * start clock for another seed, including a fractional one. */
-		result = ravenGhoul2.SetBoneAnim( pointer( 1 ), static_cast<int>( args[2] ),
-			text( 3 ), static_cast<int>( args[4] ), static_cast<int>( args[5] ),
-			static_cast<int>( args[6] ), VMF( 7 ), static_cast<int>( args[8] ),
-			VMF( 9 ), static_cast<int>( args[10] ) ) ? 1 : 0;
+		 * start clock for another seed, including a fractional one.
+		 *
+		 * The setter is the client game's (0x4df310, which its import 303
+		 * reaches too), so its bounds are too: a first frame outside 0..99999
+		 * becomes 0, a last frame outside 1..99999 becomes 1, and a seed below
+		 * 0 other than -1, or above 100000, becomes 0 (0x4df326..0x4df36f). The
+		 * clip starts at the caller's time, which the setter keeps. */
+		{
+			const int first = args[4] >= 0 && args[4] < 100000 ? static_cast<int>( args[4] ) : 0;
+			const int last = args[5] > 0 && args[5] < 100000 ? static_cast<int>( args[5] ) : 1;
+			float seed = VMF( 9 );
+			if ( seed != -1.0f && ( seed < 0.0f || seed > 100000.0f ) ) seed = 0.0f;
+			result = ravenGhoul2.SetBoneAnim( pointer( 1 ), static_cast<int>( args[2] ),
+				text( 3 ), first, last, static_cast<int>( args[6] ), VMF( 7 ),
+				static_cast<int>( args[8] ), seed, static_cast<int>( args[10] ) ) ? 1 : 0;
+		}
 		return true;
 
 	case Call::G_G2_SETBOLTINFO:
@@ -647,6 +683,9 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		 *     ghoul2, modelIndex, boltIndex, matrix, angles, position,
 		 *     time, modelList, scale
 		 *
+		 * The time is not read: retail's core poses at the server's own clock
+		 * (jkaServerGhoul2Clock above), and so does this.
+		 *
 		 * The store works the bolt out in the model's own space: a bolt that
 		 * names a bone is that bone posed for the moment asked about, and one
 		 * that names a surface is a tag, whose first three vertices, carried
@@ -654,19 +693,29 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		 * query builds the whole instance's skeleton first (jamp.exe 0x4dfa00
 		 * into 0x49a050, the same core its client game reaches), so a saber or
 		 * weapon attached to the body answers from where the body's bolt has
-		 * put it. This then scales its model-space translation, normalizes the
-		 * rotation rows and applies the entity's angles and position.
+		 * put it, mid-transition included. This then scales its model-space
+		 * translation, normalizes the rotation rows and applies the entity's
+		 * angles and position.
 		 *
-		 * A bolt the store cannot answer writes nothing and reports failure,
-		 * which is what the game checks for. Handing back an identity matrix
-		 * would put the thing somewhere definite and wrong. That includes a
-		 * model retail's model sort never reaches, which retail answers from
-		 * whatever pose it last had, and a link to a bolt its parent lacks,
-		 * where retail reads past its list.
+		 * Retail's own failure -- a model or bolt the instance does not have
+		 * -- writes the entity's placement times the fixed axes and answers
+		 * 0 (0x4dfc1d), and so does this: the game reads the matrix whatever
+		 * the answer. A bolt the store cannot answer for a reason of its own
+		 * writes nothing and reports failure, because no retail answer is
+		 * known to hand back: a model retail's model sort never reaches,
+		 * which retail answers from whatever pose it last had; a link to a
+		 * bolt its parent lacks, where retail reads past its list; and a pose
+		 * outside the served clips. So does an instance this store never
+		 * handed out, which retail would dereference. Retail also reuses a
+		 * model's pose for a second query at the same clock even when another
+		 * model of its instance has been bent in between (0x49a010); this
+		 * poses afresh.
 		 *
 		 * The first two imports share placement; NOREC_NOROT additionally
-		 * skips the MP API's rotation-only -90 degree correction. */
+		 * skips the MP API's rotation-only -90 degree correction, by a
+		 * selector that only a successful query clears. */
 		{
+			if ( call == Call::G_G2_GETBOLT_NOREC_NOROT ) jkaServerNoRotationPending = true;
 			VM_CHECKBOUNDS( gvm, args[4], sizeof( float ) * 12 );
 			VM_CHECKBOUNDS( gvm, args[5], sizeof( vec3_t ) );
 			VM_CHECKBOUNDS( gvm, args[6], sizeof( vec3_t ) );
@@ -678,9 +727,17 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 				return true;
 			}
 
+			const int modelIndex = static_cast<int>( args[2] );
+			const int boltIndex = static_cast<int>( args[3] );
+			if ( ravenGhoul2.Resolve( pointer( 1 ) ) && !ravenGhoul2.BoltAt( pointer( 1 ), modelIndex, boltIndex ) ) {
+				float fallback[12];
+				if ( fntech3::ghoul2::pose::FailureBolt( angles, position, fallback ) )
+					std::memcpy( destination, fallback, sizeof( fallback ) );
+				result = 0;
+				return true;
+			}
 			float bolt[12];
-			if ( !ravenGhoul2.BoltMatrix( pointer( 1 ), static_cast<int>( args[2] ),
-				static_cast<int>( args[3] ), static_cast<int>( args[7] ), bolt ) ) {
+			if ( !ravenGhoul2.BoltMatrix( pointer( 1 ), modelIndex, boltIndex, jkaServerGhoul2Clock, bolt ) ) {
 				result = 0;
 				return true;
 			}
@@ -694,10 +751,11 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 			 * placement, normalizes rows and retains589's rotation distinction. */
 			float world[12];
 			if ( !fntech3::ghoul2::pose::PlaceBolt(bolt, angles, position, scale,
-				call == Call::G_G2_GETBOLT_NOREC_NOROT, world) ) {
+				jkaServerNoRotationPending, world) ) {
 				result = 0;
 				return true;
 			}
+			jkaServerNoRotationPending = false;
 			std::memcpy(destination, world, sizeof(world));
 			result = 1;
 		}

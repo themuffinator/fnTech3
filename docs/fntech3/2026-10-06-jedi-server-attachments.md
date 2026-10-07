@@ -299,10 +299,10 @@ Academy's measured posing for each pose it serves.
   posed from its parent's bolt in retail's model order, surface bolts take
   retail's tag frame, and a query on an attached saber or weapon answers
   where the hand has put it. `G2_ADDBOLT` on a weapon or saber now finds its
-  tag and bone, and a bend of its bone is served. Animation blends stay off
-  on the server: they were measured through the client game, whose pose
-  clock this server path does not share (see below), so a query during an
-  active blend still answers nothing.
+  tag and bone, and a bend of its bone is served. Animation blends stayed
+  off on the server in this slice, taken to have been measured through the
+  client game only; that measurement ran through this server path, and the
+  [pose clock record](2026-10-07-jka-server-pose-clock.md) serves them.
 - **Jedi Outcast's server store** was the earlier one on 2026-10-06; the
   second slice gives it kept builds and its four bolt imports (see
   [Jedi Outcast's server](#jedi-outcasts-server-2026-10-07)).
@@ -311,7 +311,8 @@ Academy's measured posing for each pose it serves.
 whatever the answer. On fnTech3's Academy server every such query on a
 weapon or saber was refused, leaving those sites with whatever their
 matrices held, and surface-tag answers on bodies were up to 0.59 units off.
-Both now match retail's server, outside active blends. Which game behaviour
+Both then matched retail's server outside active blends, and inside them
+since the [pose clock record](2026-10-07-jka-server-pose-clock.md). Which game behaviour
 each site drives is not measured here. In the pinned OpenJK game code (a
 maintained port of the same game), `WP_SaberPositionUpdate` asks every frame
 for each blade's tag on the saber model copied into the body's slot 1 or 2
@@ -324,10 +325,11 @@ the retail game.
 naming a bolt its parent lacks, and a model retail's order never reaches,
 are refused where retail reads past its list or answers a stale or fixed
 pose. Retail's failed query writes its fixed fallback placed at the entity;
-this server writes nothing. The server poses at the time word the module
-passes, where retail's core reads its own clocks; in this probe the two are
-the same level time. Those two remain the open server bolt failure-output
-and time items in the ledger.
+this server wrote nothing. The server posed at the time word the module
+passes, where retail's core reads its own clock; in this probe no pose moved
+between the two, so they could not be told apart. The
+[pose clock record](2026-10-07-jka-server-pose-clock.md) measures and serves
+both.
 
 ## Presentation (invariant 11)
 
@@ -348,7 +350,7 @@ a server's game module receives.
     vertices, and the weapon's tag is its own tag carried by that frame;
   - a self-linked instance and a link to a missing bolt are refused with
     nothing written;
-  - a measured forward transition refuses on the server store;
+  - a measured forward transition is served at the server's own clock ([pose clock record](2026-10-07-jka-server-pose-clock.md));
   - Outcast's store, set up alike, answers Academy's bits for every pose it
     builds, builds once per time judged by model 0, sees a bend of model 0
     at the same time and not one of model 1, answers the last build for
@@ -361,7 +363,7 @@ a server's game module receives.
 
   Six deliberate mutations fail it: Academy's dispatcher bound to Outcast's
   store; Academy's store without attachments, without the `*default`
-  skeleton, or with blends; Outcast's without kept builds; and a map change
+  skeleton, or without blends; Outcast's without kept builds; and a map change
   clearing one store.
 - `tests/raven_ghoul2_server_tests.cpp` keeps its tag test as the earlier
   frame on purpose, now pinned element by element, for the stores that keep
@@ -414,8 +416,8 @@ documentation, with the attachment tests, passed 460 tests with 2 skipped.
 
 ## What stays open
 
-- Animation blends, the time a server query poses at, and the fixed
-  fallback a failed query writes, on Academy's server.
+- On Academy's server, what the [pose clock record](2026-10-07-jka-server-pose-clock.md)
+  leaves open; it serves blends, the clock a query poses at and the fallback.
 - Jedi Outcast: a retail answer (its server needs the disc); 584's handle
   conversion, which keeps the retail module from its client setup, to be
   corrected together with 592, 593, 596 and 599 and Outcast's clip timing;

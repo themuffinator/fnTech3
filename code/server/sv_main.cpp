@@ -2006,6 +2006,9 @@ void SV_Frame( int msec, int realMsec ) {
 		// let everything in the world think and move
 		VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );
 	}
+	// Jedi Academy's Ghoul2 clock catches up after the frames, not before
+	// each (jamp.exe 0x460883): they pose one or more frames behind.
+	SV_JKAGhoul2SetTime( sv.time );
 
 	if ( com_speeds->integer ) {
 		time_game = Sys_Milliseconds () - startTime;

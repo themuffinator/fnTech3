@@ -78,6 +78,8 @@ struct Event {
 static std::vector<Event> events;
 static int initTime, lastFrame, waits;
 void SV_BotFrame(int time){events.push_back({"botframe",time,0,sv.time,""});}
+// Jedi Academy's Ghoul2 clock: jka_server_attachment_tests.py checks where it is set.
+void SV_JKAGhoul2SetTime(int){}
 void Cbuf_Wait(){++waits;}
 void SV_CreateBaseline(){events.push_back({"baseline",0,0,sv.time,""});}
 // Alice's own frames are its record's; here the call is all that counts.
