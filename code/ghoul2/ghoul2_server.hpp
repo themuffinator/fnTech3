@@ -152,6 +152,13 @@ struct Bolt {
 	std::string name;
 	int surface = -1;
 	int bone = -1;
+	/* What the last build of this bolt's model left for it, held only by a
+	 * store that keeps builds (see Store): jk2mp.exe 1.02a keeps it at +0x10
+	 * of the bolt's own 64-byte record. False until a build reaches it, where
+	 * retail appends the record with whatever its stack held there (its
+	 * constructor 0x4aa8b0 sets only the first four words). */
+	bool kept = false;
+	pose::Matrix matrix{};
 };
 
 /* What the game set one bone playing: its frame range, speed, blend and clock.
@@ -316,6 +323,11 @@ struct Model {
 	 * `link` above): retail's -1 until SetBoltInfo says otherwise. Only a
 	 * store that serves attachments poses through it; the others keep it. */
 	int boltInfo = link::None;
+	/* When a store that keeps builds last posed this model, as jk2mp.exe's
+	 * +0x98 of the 0xbc-byte record: -1 from its constructor (0x4a8578), the
+	 * build's time once posed (0x479450), 0 once a bone of it is bent
+	 * (0x4a7578). A copy carries it with the rest of the record (0x4a7b9a). */
+	int builtAt = -1;
 };
 
 /* One entity's models. The module holds a pointer to this and nothing else. */
@@ -398,14 +410,19 @@ public:
 	/* Each capability is opted into by the consumer whose retail contract was
 	 * measured for it; every other store keeps its earlier behavior.
 	 * serveAttachments poses linked models from their parent's bolt and
-	 * gives surface bolts retail's tag frame (see TagFrame). */
+	 * gives surface bolts retail's tag frame (see TagFrame). keepBuilds
+	 * answers KeptBolt as Jedi Outcast's engine does: from the matrices one
+	 * build per time leaves in each bolt (see Build); it is meant with
+	 * serveAttachments, whose tag frame that engine shares. */
 	explicit Store( Files &files, bool serveDefaultSkeleton = false,
-		bool serveAnimationBlends = false, bool serveAttachments = false )
+		bool serveAnimationBlends = false, bool serveAttachments = false,
+		bool keepBuilds = false )
 		: files_( &files ), serveAnimationBlends_(serveAnimationBlends),
-		serveAttachments_(serveAttachments) {
+		serveAttachments_(serveAttachments), keepBuilds_(keepBuilds) {
 		if ( serveDefaultSkeleton ) Keep( "*default", builtin::DefaultSkeleton() );
 	}
 	bool ServesAttachments() const { return serveAttachments_; }
+	bool KeepsBuilds() const { return keepBuilds_; }
 
 	void Clear() { attached_.clear(); live_.clear(); instances_.clear(); }
 	std::size_t InstanceCount() const { return instances_.size(); }
@@ -462,6 +479,16 @@ public:
 	 * is worse than none. */
 	bool BoltMatrix( void *pointer, int modelIndex, int boltIndex, int now,
 		float out[12] );
+
+	/* Jedi Outcast's skeleton build (jk2mp.exe 1.02a 0x4790f0), for a store
+	 * that keeps builds: one per time, judged by model 0 alone. */
+	void Build( Instance &instance, int now );
+	/* Jedi Outcast's bolt query (jk2mp.exe 1.02a 0x4a7620), for a store that
+	 * keeps builds: Build at `now` unless a no-rebuild query is pending, then
+	 * the bolt's kept matrix, in the model's own space. `noRebuild` is import
+	 * 587, whose handler sets that pending flag before the query runs. */
+	Posing KeptBolt( void *pointer, int modelIndex, int boltIndex, int now,
+		bool noRebuild, float out[12] );
 
 	/* Tell one of an instance's models which bolt it is using. The engine
 	 * keeps the number and reads nothing into it. */
@@ -571,6 +598,11 @@ private:
 	Files *files_ = nullptr;
 	bool serveAnimationBlends_ = false;
 	bool serveAttachments_ = false;
+	bool keepBuilds_ = false;
+	/* jk2mp.exe's global 0x1ae6634: set by import 587's handler (0x44c687),
+	 * cleared only by a bolt query whose indices check out (0x4a76c1). Like
+	 * the engine's, it outlives a map change. */
+	bool noRebuildPending_ = false;
 	std::vector<std::unique_ptr<Instance>> instances_;
 	std::unordered_map<void *, Instance *> live_;
 	std::unordered_map<int, void *> attached_;
@@ -738,6 +770,10 @@ inline bool Store::CopyModel( void *from, int modelFrom, void *to, int modelTo )
 	if ( modelTo == destination->Count() ) {
 		if ( destination->Count() >= MaxModelsPerInstance ) return false;
 		destination->models_.push_back( model );
+		/* jk2mp.exe 0x4a7caa: a copy that grows the instance sets model 0's
+		 * build time to 0, so the next query builds again. One that replaces
+		 * a model does not. */
+		if ( keepBuilds_ ) destination->models_.front().builtAt = 0;
 		return true;
 	}
 	destination->models_[std::size_t( modelTo )] = model;
@@ -753,6 +789,9 @@ inline bool Store::DeformationPalette( const Model &model, int now,
 	if ( !model.skeletonBytes || model.skeleton.numBones <= 0 ) return false;
 	const void *data = model.skeletonBytes->data();
 	const std::size_t size = model.skeletonBytes->size();
+	/* Jedi Outcast's clip timing was not read, and no import that would set
+	 * a clip is served for it, so a store keeping builds poses none. */
+	if ( keepBuilds_ && !model.animations.empty() ) return false;
 	std::vector<pose::Animation> animations;
 	for ( const auto &playing : model.animations ) {
 		/* Only the Academy owned cgame store opts into the measured active
@@ -778,7 +817,13 @@ inline bool Store::DeformationPalette( const Model &model, int now,
 	std::vector<pose::Angle> angles;
 	for ( const auto &bent : model.angles ) {
 		if ( !bent.flags ) continue;
-		if ( (bent.flags != 1 && bent.flags != 2 && bent.flags != 4) || bent.blendTime != 0 ) return false;
+		if ( bent.flags != 1 && bent.flags != 2 && bent.flags != 4 ) return false;
+		/* Jedi Outcast's transform reads an angle's blend time only where it
+		 * replaces the bone (jk2mp.exe 0x476b8b), and that path rescales the
+		 * stored matrix in place on every build (0x476c18) and was not
+		 * followed: a store keeping builds poses PREMULT and POSTMULT at any
+		 * blend time (0x476d39, 0x476d99) and refuses REPLACE. */
+		if ( keepBuilds_ ? bent.flags == 4 : bent.blendTime != 0 ) return false;
 		pose::Matrix base, inverse, post;
 		if ( !model::BoneRestMatrix(data, size, model.skeleton, bent.bone, base.data())
 			|| !model::BoneRestMatrixInverse(data, size, model.skeleton, bent.bone, inverse.data())
@@ -1051,6 +1096,77 @@ inline bool Store::BoltMatrix( void *pointer, int modelIndex, int boltIndex,
 	return LinkedBolt( pointer, modelIndex, boltIndex, now, out ) == Posing::Served;
 }
 
+/* Jedi Outcast's build (jk2mp.exe 1.02a 0x4790f0). Nothing is done when model
+ * 0 was last built at `now` (0x479148). Otherwise each model retail's sort
+ * reaches (0x479010, PoseOrder), in that order, is posed at `now` from the
+ * fixed root basis or, when linked, from its parent's kept bolt, which retail
+ * reads without a bound (0x479577..0x4795d4), and keeps the matrix of every
+ * bolt it has: a bone's at the end of the transform (0x476ee0), a tag's in
+ * retail's frame (0x4780b0). A model the sort does not reach keeps what it
+ * had. What this engine does not pose -- a pose or tag outside the served
+ * boundary, or a parent's bolt that is missing or was never kept -- leaves
+ * that model's bolts unkept rather than computed from what retail would read.
+ *
+ * Outcast's engine smooths bones over 200 ms (r_ghoul2animsmooth, 0x4795e8)
+ * and renormalizes them after (r_ghoul2unsqashaftersmooth, 0x4797b9) only
+ * when its renderer has registered those cvars (R_Register 0x47ed00), which a
+ * dedicated server never does (CL_Init is skipped, 0x429e29): this build is
+ * the dedicated server's. r_noserverghoul2 (cheat, default 0) is not read. */
+inline void Store::Build( Instance &instance, int now )
+{
+	if ( instance.models_.empty() || instance.models_.front().builtAt == now ) return;
+	std::vector<int> order;
+	PoseOrder( instance, order );
+	for ( int index : order ) {
+		Model &model = instance.models_[std::size_t( index )];
+		model.builtAt = now;
+		pose::Matrix root = pose::RootBasis;
+		bool rooted = true;
+		if ( model.boltInfo != link::None ) {
+			/* PoseOrder places a linked model only after its parent. */
+			const Model &parent = instance.models_[std::size_t( link::ParentModel( model.boltInfo ) )];
+			const std::size_t bolt = std::size_t( link::ParentBolt( model.boltInfo ) );
+			rooted = bolt < parent.bolts.size() && parent.bolts[bolt].kept;
+			if ( rooted ) root = parent.bolts[bolt].matrix;
+		}
+		pose::Palette palette;
+		const bool posed = rooted && DeformationPalette( model, now, palette, &root );
+		for ( std::size_t at = 0; at < model.bolts.size(); ++at ) {
+			Bolt &bolt = model.bolts[at];
+			float matrix[12];
+			bolt.kept = posed && BoltFromPalette( model, palette, int( at ), matrix );
+			if ( bolt.kept ) std::memcpy( bolt.matrix.data(), matrix, sizeof( matrix ) );
+		}
+	}
+}
+
+/* Jedi Outcast's bolt query (jk2mp.exe 1.02a 0x4a7620): an instance this
+ * store holds, a model index below its count and a bolt index inside that
+ * model's list (0x4a762f..0x4a7679), then the build, skipped while a
+ * no-rebuild query is pending, then the bolt's kept matrix (0x4a76cb). The
+ * pending flag is cleared only by a query that passed those checks, so a 587
+ * refused for its indices leaves the next query unbuilt as well. Retail
+ * answers a bolt no build has reached with what its record held; this store
+ * refuses it and writes nothing. */
+inline Posing Store::KeptBolt( void *pointer, int modelIndex, int boltIndex, int now,
+	bool noRebuild, float out[12] )
+{
+	if ( noRebuild ) noRebuildPending_ = true;
+	if ( !out || !keepBuilds_ ) return Posing::Unserved;
+	Instance *instance = Resolve( pointer );
+	if ( !instance ) return Posing::Unserved;
+	if ( modelIndex < 0 || modelIndex >= instance->Count() ) return Posing::Unposed;
+	const Model &model = instance->models_[std::size_t( modelIndex )];
+	if ( boltIndex < 0 || boltIndex >= int( model.bolts.size() ) ) return Posing::MissingBolt;
+	const bool build = !noRebuildPending_;
+	noRebuildPending_ = false;
+	if ( build ) Build( *instance, now );
+	const Bolt &bolt = model.bolts[std::size_t( boltIndex )];
+	if ( !bolt.kept ) return Posing::Unposed;
+	std::memcpy( out, bolt.matrix.data(), sizeof( float ) * 12 );
+	return Posing::Served;
+}
+
 inline bool Store::SetBoltInfo( void *pointer, int modelIndex, int boltInfo )
 {
 	Instance *instance = Resolve( pointer );
@@ -1186,6 +1302,12 @@ inline bool Store::SetBoneAngles( void *pointer, int modelIndex, const char *bon
 	int blendTime, int currentTime )
 {
 	Instance *instance = Resolve( pointer );
+	/* Jedi Outcast's core sets the model's build time to 0 once its index
+	 * checks out, before the bone is looked up (jk2mp.exe 0x4a7578), so the
+	 * next query of an instance whose model 0 was bent builds again. */
+	if ( keepBuilds_ && instance && modelIndex >= 0 && modelIndex < instance->Count() ) {
+		instance->models_[std::size_t( modelIndex )].builtAt = 0;
+	}
 	if ( !instance || !angles ) return false;
 	for ( int axis = 0; axis < 3; ++axis ) if ( !FiniteScalar(angles[axis]) ) return false;
 	if ( modelIndex < 0 || modelIndex >= instance->Count() ) return false;

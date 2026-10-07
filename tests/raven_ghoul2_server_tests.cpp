@@ -1064,9 +1064,8 @@ struct TagFiles final : public ghoul2::Files {
  * This is the earlier frame -- origin at the first triangle's first corner,
  * columns along its first edge, square to it, and its normal -- which retail
  * does not use. It is pinned deliberately: the stores that do not serve
- * attachments keep it (Jedi Outcast's server, the UI's and single player's).
- * Retail's frame, served by Jedi Academy's server and client game, is checked
- * below. */
+ * attachments keep it (the UI's and single player's). Retail's frame, served
+ * by both Jedi servers and Jedi Academy's client game, is checked below. */
 static void CheckABoltMatrix()
 {
 	TagFiles files;

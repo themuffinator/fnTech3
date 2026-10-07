@@ -1437,7 +1437,8 @@ test('fntech3_jka_cgame_render', python, args: files('tests/jka_cgame_render_tes
   timeout: jka_test_timeout)
 test('fntech3_jka_cgame_attachment', python, args: files('tests/jka_cgame_attachment_tests.py'),
   timeout: jka_test_timeout)
-test('fntech3_jka_server_attachment', python, args: files('tests/jka_server_attachment_tests.py'))
+test('fntech3_jka_server_attachment', python, args: files('tests/jka_server_attachment_tests.py'),
+  timeout: jka_test_timeout)
 test('fntech3_jka_default_skeleton', python, args: files('tests/jka_default_skeleton_tests.py'),
   timeout: jka_test_timeout)
 test('fntech3_jka_cgame_tag', python, args: files('tests/jka_cgame_tag_tests.py'),

@@ -16,7 +16,8 @@
     "jk2mp.exe 1.02a": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a",
     "base/assets3.pk3:jampgamex86.dll (Academy 1.01 game)": "b9e5ad492d35a3ec2fc7f6933df42ce9d3b05d3ec437e3bf12243a5d0d690850",
     "tool": "Capstone x86-32 over the PE images; scripts/scan_game_import_calls.py for module import counts",
-    "dedicatedBinaries": "no jampded.exe or Jedi Outcast dedicated binary on C: or E: (dir /s search); retail dedicated = jamp.exe +set dedicated 1"
+    "dedicatedBinaries": "no jampded.exe or Jedi Outcast dedicated binary on C: or E: (dir /s search); retail dedicated = jamp.exe +set dedicated 1",
+    "base/assets0.pk3:vm/jk2mpgame.qvm (Outcast 1.02a game)": "4810670f4f6ec3890d510e294dfd9fd4fb7f692b8d415b496aa132a0a79dc105"
   },
   "observed": {
     "academy": {
@@ -119,11 +120,13 @@
         "591": {
           "handler": "0x44c763",
           "core": "0x4a7520",
-          "converts": 3
+          "converts": 3,
+          "matrix": "read 2026-10-07: outcastBolts.engine.angleOverride"
         },
         "595": {
           "handler": "0x44c83a",
-          "core": "0x4a7bf0"
+          "core": "0x4a7bf0",
+          "body": "read 2026-10-07: outcastBolts.engine.copy"
         },
         "599": {
           "handler": "0x44c8aa",
@@ -138,8 +141,8 @@
       },
       "linkDefault": {
         "freeSlotInit": "0x4a70b6 stores -1",
-        "constructor": "0x4a8520 zeroes +0x3c",
-        "otherPaths": "not followed"
+        "appendInit": "0x4a7185 stores -1 in the record it appends",
+        "constructor": "0x4a8520 zeroes +0x3c; no init leaves it so"
       },
       "sort": {
         "function": "0x479010",
@@ -151,7 +154,7 @@
         "sameTimeReturn": "model 0 +0x98 == time",
         "fixedAxes": "0x4eaa14 (Academy values)",
         "linkedRoot": "parent's kept bolt matrix 0x479577..0x4795d4",
-        "smoothing": "cvar at 0x1a4fb80, 0.005..0.995, 200 ms window; not followed"
+        "smoothing": "r_ghoul2animsmooth (.3) and r_ghoul2unsqashaftersmooth (1) are registered only by R_Register, never on a dedicated server: outcastBolts.engine.smoothing"
       },
       "tagFrame": {
         "range": "0x4778ae..0x477ca8",
@@ -169,8 +172,8 @@
         "rebuild": "0x4790f0 only when [0x1ae6634] is clear",
         "answer": "the bolt's kept matrix"
       },
-      "optedIn": false,
-      "reason": "answers kept per build (and 587 never rebuilds), no retail answer observable, and fnTech3's Outcast server serves none of 586, 587, 591, 595"
+      "optedIn": true,
+      "reason": "2026-10-07: the store keeps builds as jk2mp.exe does and serves 586, 587, 591 and 595; see outcastBolts"
     }
   },
   "reference": "OpenJK 1a6a643427aa347553e9073dac5570b33337c4d9: codemp/game/w_saber.c 8892 (WP_SaberPositionUpdate blade query on model rSaberNum+1), 8882 and 6621 (thrown saber instance from InitGhoul2Model); codemp/game/g_client.c 1497..1532 (saber links and copy). Inference only.",
@@ -1229,7 +1232,7 @@
       "Academy without attachments",
       "Academy without the *default skeleton",
       "Academy with animation blends",
-      "Outcast with attachments",
+      "Outcast store without kept builds",
       "map change clearing one store"
     ],
     "tests/raven_ghoul2_server_tests.cpp": "earlier frame kept and pinned element by element; retail frame for a store serving attachments",
@@ -1290,6 +1293,225 @@
           "skipped": 129,
           "failed": 0
         }
+      }
+    },
+    "tests/jka_server_attachment_tests.py#outcast": "test_outcast_serves_its_bolt_imports_from_kept_builds: SV_JK2GameCall's production Ghoul2 cases and SV_JK2Ghoul2Handle, driven as the retail QVM (offsets into a data segment) and as a native module; ordinary and fast-math"
+  },
+  "outcastBolts": {
+    "date": "2026-10-07",
+    "slice": "Jedi Outcast's server bolt imports 586, 587, 591 and 595, answered from one build per time",
+    "sourceCommit": "b1db7a742df176a6fbd2fb90665943a06e99c7ca",
+    "evidence": "Static reading of jk2mp.exe 1.02a with Capstone and of vm/jk2mpgame.qvm by decoding; no retail Outcast answer could be observed (its dedicated server needs the disc) and none was; unit tests hold the store to Academy's measured posing for each pose it serves.",
+    "retailModule": {
+      "file": "base/assets0.pk3:vm/jk2mpgame.qvm",
+      "sha256": "4810670f4f6ec3890d510e294dfd9fd4fb7f692b8d415b496aa132a0a79dc105",
+      "instructions": 249138,
+      "method": "CONST -(N+1) followed by CALL, decoded instruction by instruction (.tmp/jk2-server-bolts/qvm.py, not committed)",
+      "ghoul2CallSites": {
+        "584": 2,
+        "586": 2,
+        "587": 1,
+        "588": 4,
+        "589": 11,
+        "590": 2,
+        "591": 5,
+        "592": 7,
+        "593": 1,
+        "595": 1,
+        "596": 1,
+        "599": 1
+      },
+      "notCalled": [
+        582,
+        583,
+        585,
+        594,
+        597,
+        598
+      ],
+      "boltQuerySites": {
+        "586 at 129659": "model 0, the bone bolts stored at entity +784 on (cranium first); result discarded",
+        "587 at 226382": "model 0, the Motion bolt at entity +808, client origin, angles vec3_origin; result discarded",
+        "586 at 236458": "model 1 bolt 0, the saber's *flash; result discarded"
+      },
+      "setupProcedure": "QVM instruction 108882, called from 110404 with the model userinfo key; 584 (client), 599, 584 (precached Kyle), 596, 593, 589 *r_hand/*l_hand, 592, 591 x2, 590 saber link 0, 589 *flash, 595 saber -> model 1",
+      "boltNames": [
+        "*r_hand",
+        "*l_hand",
+        "*flash",
+        "*flash",
+        "cranium",
+        "thoracic",
+        "lradius",
+        "rradius",
+        "ltibia",
+        "rtibia",
+        "Motion"
+      ],
+      "boltNameCase": "every name matches its file exactly (kyle/model.glm, _humanoid.gla, saber_w.glm)",
+      "angleOverrides": {
+        "upper_lumbar, lower_lumbar, thoracic": "POSTMULT (2), up +X (1), right -Y (6), forward -Z (5), blend 0",
+        "cranium": "POSTMULT (2), up +Z (2), right -Y (6), forward +X (1), blend 0"
+      },
+      "precache": "588 at worldspawn procedure 174595 and in the setup, Kyle and saber_w.glm, customShader -20 (server model)"
+    },
+    "handleFinding": {
+      "retail": "handlers 584 and 586-595 pass the instance word unconverted (0x44c64e..0x44c83a)",
+      "fntech3Before": "SV_JK2GameCall converted the 584, 589 and 590 words with VM_ArgPtr, dataBase + (word & dataMask) for a bytecode module",
+      "effect": "584 answers 0 for the precached Kyle (QVM 108977); the setup stops (108982); the client never gets an instance; the two-bot run therefore reached no other Ghoul2 import",
+      "thisSlice": "586, 587, 589, 590, 591 and 595 read the word as retail does (SV_JK2Ghoul2Handle, 32 bits for a QVM); 584 unchanged, documented at the call and pinned by the test",
+      "observableChangeForRetailModule": "none: no corrected import is reached with a held instance",
+      "cascadeIfCorrected": [
+        596,
+        593,
+        592,
+        599
+      ],
+      "decision": "the user chose, 2026-10-07, to serve the requested four imports and leave 584 for a follow-up slice with 592, 593, 596, 599 and Outcast clip timing"
+    },
+    "engine": {
+      "queryCore": {
+        "function": "0x4a7620",
+        "arguments": "ghoul2, modelIndex, boltIndex, matrix, angles, position, time, modelList, scale (586 handler 0x44c691 converts matrix, angles, position, modelList, scale)",
+        "checks": "instance, modelIndex < count, 0 <= boltIndex < bolts (0x4a762f..0x4a7679); no presence test",
+        "build": "0x4790f0(ghoul2, time, modelList, 1, angles, position, scale, 0) unless 0x1ae6634",
+        "flagCleared": "0x4a76c1, only past the checks",
+        "answer": "the bolt's kept matrix, +0x10 of its 64-byte record (0x479fc0)",
+        "returns": "1 whenever the checks pass"
+      },
+      "noRebuild": {
+        "587Handler": "0x44c687 sets 0x1ae6634 = 1 and falls into 586",
+        "alsoSetBy": "0x402b6d (the client game's dispatcher)"
+      },
+      "build": {
+        "earlyReturn": "model 0 +0x98 == time (0x479148)",
+        "stamp": "each posed model +0x98 = time (0x479450)",
+        "order": "0x479010",
+        "root": "fixed axes 0x4eaa14, or the parent's kept bolt (0x479577..0x4795d4), unbounded",
+        "boneBolts": "cache[bone] x BasePoseMat at the end of the transform (0x476ee0)",
+        "surfaceBolts": "surface walk 0x4780b0: surfaces flagged as bolts (0x1), not below a no-descendants surface (0x100), tag frame 0x4770b0",
+        "newOriginLoop": "models flagged 0xa0 & 8 rebuilt at time - 100 first (0x479165..0x47934f); no served import sets the flag",
+        "noModelFlag": "0xa0 & 4 skips a model (0x4793ab); no served import sets it",
+        "r_noserverghoul2": "cheat, default 0, registered lazily at 0x484fb0; when set, returns unless model 0 +0x44 & 2"
+      },
+      "recordDefaults": {
+        "ctorBuiltAt": "0x4a8578: +0x98 = -1",
+        "boltCtor": "0x4aa8b0 sets boneNumber, surfaceNumber -1, type and used 0; the matrix is whatever the appending stack held"
+      },
+      "placement": {
+        "scale": "nonzero components scale the kept translation (0x4a76d0..0x4a775e)",
+        "world": "0x4abdb0: Create_Matrix(angles) with the position",
+        "turn": "Create_Matrix(0, 270, 0) on the rotation, translation restored (0x4a7772..0x4a7827)",
+        "normalize": "none (Academy normalizes the rows first)",
+        "noRecNoRot": "no such import"
+      },
+      "angleOverride": {
+        "handler": "0x44c763: 11 arguments, converts boneName, angles, modelList",
+        "core": "0x4a7520: model +0x98 = 0 (0x4a7578), then 0x4aaf20",
+        "setAngles": "0x4aaf20: flags &= ~7, |= flags; blend time +0x5c, start time +0x60",
+        "matrix": "0x4aab40: remap tables 0x4aae8c (up->yaw), 0x4aaea4 (left->pitch), 0x4aaebc (forward->roll), entry for entry the store's PostAngle; Create_Matrix 0x4abcc0; BasePoseMat x R x BasePoseMatInv; copied to +0x68 (0x4aae62)",
+        "transform": "PREMULT parent x override (0x476d39), POSTMULT (parent x local) x override (0x476d99); blend time read only for REPLACE (0x476b8b), which rescales +0x68 in place each build (0x476c18)"
+      },
+      "copy": {
+        "handler": "0x44c83a, converts none of four",
+        "core": "0x4a7bf0: grows to modelTo + 1 with default records (0x4a8490) when shorter; record assignment 0x4a7b10 (link, bolts and kept matrices, bones, +0x98, bone cache); grown -> model 0 +0x98 = 0 (0x4a7caa)"
+      },
+      "init": {
+        "freeSlot": "0x4a70b6 link -1; +0x98 and the bone cache kept",
+        "append": "0x4a7185 link -1; constructor +0x98 -1",
+        "serverFlag": "handler 588 sets byte 0x5084a0 (server instance list 0x1ae664c)"
+      },
+      "addBolt": {
+        "core": "0x4aa210",
+        "surfaces": "0x4ac140, _stricmp",
+        "bones": "_stricmp 0x4e2480",
+        "order": "surface first, then bone; same number reuses its record, else a free one, else appends"
+      },
+      "smoothing": {
+        "blend": "bone += (last - bone) x r_ghoul2animsmooth when -200 < tr.refdef.time - stamp < 200 (0x4796fd..0x47979a), for 0.005 < value < 0.995",
+        "unsquash": "r_ghoul2unsqashaftersmooth > 0.5: rows of bone x BasePoseMat normalized and scaled by |BasePoseMat row 0| (0x481560), then x BasePoseMatInv (0x4797b9..0x479904)",
+        "registration": "R_Register 0x47ed00: r_ghoul2animsmooth \".3\" flags 0 (0x47f721), r_ghoul2unsqashaftersmooth \"1\" flags 0 (0x47f738)",
+        "reachedFrom": "R_Init 0x47fd70 <- RE_BeginRegistration 0x4858c0 (renderer export table)",
+        "dedicated": "cvar \"dedicated\" at 0xa9f368; Com_Init skips CL_Init when set (0x429e29); pointers stay null and both blocks are skipped (0x4795ee, 0x4797be)",
+        "clock": "tr.refdef.time 0x1a504e4, written only by RE_RenderScene (0x488035)",
+        "listenServer": "smooths; not reproduced"
+      }
+    },
+    "store": {
+      "binding": "ravenGhoul2Outcast( ravenGhoul2Files, true, false, true, true ): *default, no blends, attachments, kept builds",
+      "code": [
+        "code/ghoul2/ghoul2_server.hpp Store::Build, Store::KeptBolt, Bolt::kept/matrix, Model::builtAt",
+        "code/ghoul2/ghoul2_pose.hpp pose::PlaceOutcastBolt",
+        "code/server/server_jk2_game.hpp 586/587/591/595 cases, SV_JK2Ghoul2Handle"
+      ],
+      "refusedWritingNothing": [
+        "a bolt no build has reached (retail: stack contents, returns 1)",
+        "a model whose pose or tag is outside the served boundary, and the models linked to it",
+        "REPLACE bends (in-place rescaling not followed)",
+        "any clip (Outcast clip timing not read; 592 not served)",
+        "a link to a bolt the parent lacks (retail reads past its list)",
+        "a copy beyond the place after the last (retail grows with empty records)",
+        "non-finite angles, position or scale (retail computes)"
+      ],
+      "notReproduced": [
+        "case-blind bolt names",
+        "listen-server smoothing",
+        "new-origin and no-model flags",
+        "r_noserverghoul2"
+      ]
+    },
+    "tests": {
+      "file": "tests/jka_server_attachment_tests.py",
+      "methods": [
+        "test_academy_serves_attachments_and_outcast_keeps_builds (CheckOutcast, store level)",
+        "test_outcast_serves_its_bolt_imports_from_kept_builds (production dispatcher cases)"
+      ],
+      "mutationsFailingIt": [
+        "Outcast store without kept builds",
+        "Outcast store without the *default skeleton",
+        "Outcast store without attachments",
+        "build ignores model 0's build time",
+        "587 builds",
+        "no-rebuild flag cleared by a refused query",
+        "angle override leaves the build time",
+        "growing copy leaves model 0's build time",
+        "REPLACE bends posed",
+        "clips posed",
+        "Outcast placement normalizes rows",
+        "handles converted as module addresses (VM_ArgPtr)",
+        "587 dispatched as 586"
+      ]
+    },
+    "suites": {
+      "export 23ebc087 plus this slice": {
+        "build": "MSVC 2022 x86, meson debugoptimized, strict warnings, every development gate on; 1,499 targets, no warnings",
+        "meson": {
+          "tests": 250,
+          "ok": 247,
+          "skipped": 2,
+          "failed": 0,
+          "timedOut": [
+            "fntech3_jka_server_attachment (31.35 s; given jka_test_timeout)"
+          ],
+          "afterTimeLimit": "fntech3_jka_server_attachment passes in 36.00 s under jka_test_timeout (180 s); fntech3_raven_ghoul2_server 0.50 s"
+        },
+        "python": {
+          "passed": 2568,
+          "skipped": 129,
+          "failedUnderLoad": [
+            "release_packaging_tests::test_release_proof_runtime_identities_come_from_exact_archive_members (WinError 1450)",
+            "wolfet_bot_broadcast_tests (temporary folder held by Windows Error Reporting)"
+          ],
+          "aloneAfterwards": "both pass alone (2 passed, 8 subtests)"
+        }
+      },
+      "export of the commit tree": {
+        "head": "b1db7a742df176a6fbd2fb90665943a06e99c7ca",
+        "files": 23,
+        "scope": "the Python tests that read meson.build, the ledger, the records, release.py or the generated documentation, and the attachment tests",
+        "passed": 460,
+        "skipped": 2,
+        "failed": 0
       }
     }
   }

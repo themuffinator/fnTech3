@@ -262,11 +262,9 @@ inline bool Evaluate(const void *data, std::size_t bytes, const model::Skeleton 
 	return true;
 }
 
-/* The MP bolt API scales translation in model space, normalizes the three
- * rotation rows, applies entity placement, then rotates the rotation-only
- * part by -90 degrees unless the NOREC_NOROT import was used. */
-inline bool PlaceBolt(const float raw[12], const float angles[3], const float position[3],
-	const float scale[3], bool noRotation, float out[12])
+namespace detail {
+inline bool Place(const float raw[12], const float angles[3], const float position[3],
+	const float scale[3], bool noRotation, bool normalizeRows, float out[12])
 {
 	if (!raw || !angles || !position || !out) return false;
 	float suppliedAngles[3], suppliedPosition[3], suppliedScale[3]{};
@@ -279,6 +277,7 @@ inline bool PlaceBolt(const float raw[12], const float angles[3], const float po
 	for (int i = 0; i < 3; ++i) {
 		if (!Finite(suppliedAngles[i]) || !Finite(suppliedPosition[i]) || !Finite(suppliedScale[i])) return false;
 		if (suppliedScale[i] != 0) bolt[i*4+3] *= suppliedScale[i];
+		if (!normalizeRows) continue;
 		const double a = bolt[i*4], b = bolt[i*4+1], c = bolt[i*4+2];
 		const double length = std::sqrt(a*a+b*b+c*c);
 		if (!(length > 1e-12)) return false;
@@ -296,6 +295,25 @@ inline bool PlaceBolt(const float raw[12], const float angles[3], const float po
 	if (!Finite(staged)) return false;
 	std::memcpy(out, staged.data(), sizeof(staged));
 	return true;
+}
+} // namespace detail
+
+/* The MP bolt API scales translation in model space, normalizes the three
+ * rotation rows, applies entity placement, then rotates the rotation-only
+ * part by -90 degrees unless the NOREC_NOROT import was used. */
+inline bool PlaceBolt(const float raw[12], const float angles[3], const float position[3],
+	const float scale[3], bool noRotation, float out[12])
+{
+	return detail::Place(raw, angles, position, scale, noRotation, true, out);
+}
+/* Jedi Outcast's placement (jk2mp.exe 1.02a 0x4a76d0..0x4a7827): the same
+ * translation scale, world matrix (0x4abdb0) and yaw-270 turn of the rotation
+ * alone (0x4abcc0, translation restored after), but the kept matrix is used as
+ * it is: no row is normalized. Outcast has no NOREC_NOROT import. */
+inline bool PlaceOutcastBolt(const float raw[12], const float angles[3],
+	const float position[3], const float scale[3], float out[12])
+{
+	return detail::Place(raw, angles, position, scale, false, false, out);
 }
 /* Retail0x4dfc1d..0x4dfc3a publishes world*fixed-MP-axes on failure.
  * This helper reports publication validity; the module query still returns

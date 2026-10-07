@@ -73,11 +73,15 @@ ServerGhoul2Files ravenGhoul2Files;
  * this store matches. Animation blends stay off: they were measured through
  * the client game only. See docs/fntech3/2026-10-06-jedi-server-attachments.md.
  *
- * Jedi Outcast's keeps the earlier behaviour. Its engine builds and caches
- * bolts differently (jk2mp.exe 1.02a 0x4790f0), and no retail answer was
- * observed for it. */
+ * Jedi Outcast's: retail jk2mp.exe 1.02a poses through the same `*default`
+ * skeleton, links, model order and tag frame, but builds once per time and
+ * keeps every bolt's matrix in the bolt (0x4790f0), and its bolt queries 586
+ * and 587 answer what the last build kept (0x4a7620), so this store keeps
+ * builds too. No clip is posed: its timing was not read. Its dedicated
+ * server needs the game disc, so the answers are read, not observed. See
+ * docs/fntech3/2026-10-06-jedi-server-attachments.md. */
 fntech3::ghoul2::Store ravenGhoul2Academy( ravenGhoul2Files, true, false, true );
-fntech3::ghoul2::Store ravenGhoul2Outcast( ravenGhoul2Files );
+fntech3::ghoul2::Store ravenGhoul2Outcast( ravenGhoul2Files, true, false, true, true );
 fntech3::ghoul2::SkinRegistry ravenSkins( ravenGhoul2Files );
 
 static void SV_RavenAssetsClear()

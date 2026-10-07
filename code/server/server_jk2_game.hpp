@@ -48,13 +48,32 @@ inline constexpr int FNTECH3_JK2_G2_INIT_MODEL = 588;
 inline constexpr int FNTECH3_JK2_G2_HAVE_MODELS = 584;
 inline constexpr int FNTECH3_JK2_G2_ADD_BOLT = 589;
 inline constexpr int FNTECH3_JK2_G2_SET_BOLT_INFO = 590;
+/* The bolt queries and the two calls the retail module feeds them with, read
+ * from the same dispatcher (docs/fntech3/2026-10-06-jedi-server-attachments.md).
+ * 587's handler sets the no-rebuild flag and falls into 586's. */
+inline constexpr int FNTECH3_JK2_G2_GET_BOLT = 586;
+inline constexpr int FNTECH3_JK2_G2_GET_BOLT_NOREC = 587;
+inline constexpr int FNTECH3_JK2_G2_ANGLE_OVERRIDE = 591;
+inline constexpr int FNTECH3_JK2_G2_COPY_SPECIFIC_MODEL = 595;
+
+/* A Ghoul2 instance as the module passes it back. Retail jk2mp.exe converts
+ * none: its handlers for 584 and 586 to 595 hand the word straight to their
+ * cores (0x44c64e..0x44c83a), because the module only keeps and returns what
+ * 588 wrote into its slot. A QVM's word is 32 bits. */
+static void *SV_JK2Ghoul2Handle( intptr_t word )
+{
+	if ( gvm && !gvm->entryPoint && !gvm->dllExports ) {
+		return reinterpret_cast<void *>( std::uintptr_t( std::uint32_t( word ) ) );
+	}
+	return reinterpret_cast<void *>( word );
+}
 
 static bool SV_JK2GameCall( const intptr_t *args, intptr_t &operation, intptr_t &result )
 {
 	(void)operation;
 	result = 0;
-	/* This title's own model store, which keeps the earlier behaviour
-	 * (server_raven_assets.hpp). */
+	/* This title's own model store, which keeps one build per time as
+	 * jk2mp.exe does (server_raven_assets.hpp). */
 	fntech3::ghoul2::Store &ravenGhoul2 = ravenGhoul2Outcast;
 
 	const int trap = static_cast<int>( args[0] );
@@ -393,7 +412,14 @@ static bool SV_JK2GameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		 * into 0x4a7890, which walks the instance's models and stops at the
 		 * first whose handle is not -1 -- so the question is whether any
 		 * model is still there, not how many places there are. Academy asks
-		 * the same question at 585. */
+		 * the same question at 585.
+		 *
+		 * Unlike the calls below, this still converts the handle as a module
+		 * address, which retail does not. For the retail QVM that answers "no
+		 * models" for an instance it holds, so its client model setup stops
+		 * there and never reaches 586, 587, 591 or 595. It is left so on
+		 * purpose: read correctly, the module goes on to 592, 593, 596 and
+		 * 599, which are not served (docs/fntech3/COMPATIBILITY.md). */
 		const fntech3::ghoul2::Instance *instance = ravenGhoul2.Resolve( VM_ArgPtr( args[1] ) );
 		result = instance && instance->HoldsAny() ? 1 : 0;
 		return true;
@@ -405,8 +431,11 @@ static bool SV_JK2GameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		 * index against the instance's own count, takes that model, and hands
 		 * the name to a lookup over two lists inside it -- the two a bolt can
 		 * name, a surface and a bone. That is the call Jedi Academy makes at
-		 * 593, and the same store answers it. */
-		result = ravenGhoul2.AddBolt( VM_ArgPtr( args[1] ), static_cast<int>( args[2] ),
+		 * 593, and the same store answers it. Retail compares names without
+		 * regard to case (0x4e2480, from 0x4ac140 and 0x4aa317); this store
+		 * does not, and every name the retail module asks for matches its
+		 * file's case. */
+		result = ravenGhoul2.AddBolt( SV_JK2Ghoul2Handle( args[1] ), static_cast<int>( args[2] ),
 			static_cast<const char *>( VM_ArgPtr( args[3] ) ) );
 		return true;
 	}
@@ -416,7 +445,7 @@ static bool SV_JK2GameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		 * passes three numbers to 0x4a75f0, which bounds-checks the model
 		 * index the same way and stores the third as a single int inside the
 		 * model. Academy makes the same call at 594. */
-		result = ravenGhoul2.SetBoltInfo( VM_ArgPtr( args[1] ), static_cast<int>( args[2] ),
+		result = ravenGhoul2.SetBoltInfo( SV_JK2Ghoul2Handle( args[1] ), static_cast<int>( args[2] ),
 			static_cast<int>( args[3] ) ) ? 1 : 0;
 		return true;
 	}
@@ -444,6 +473,90 @@ static bool SV_JK2GameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 				fntech3::ghoul2::LoadErrorName( error ) );
 		}
 		result = index;
+		return true;
+	}
+
+	if ( trap == FNTECH3_JK2_G2_GET_BOLT || trap == FNTECH3_JK2_G2_GET_BOLT_NOREC ) {
+		/* Where a bolt is, in the world. Handler 0x44c691 reads nine and
+		 * converts five -- the matrix it writes, the angles, the position,
+		 * the model list and the scale -- which is Academy's order:
+		 *
+		 *     ghoul2, modelIndex, boltIndex, matrix, angles, position,
+		 *     time, modelList, scale
+		 *
+		 * 587's handler (0x44c687) only sets the no-rebuild flag first. The
+		 * core 0x4a7620 builds the instance at the time passed, once per time,
+		 * unless that flag is set, and answers what the build kept in the
+		 * bolt; the store does both (Store::KeptBolt). It then scales the
+		 * model-space translation, applies the entity's angles and position
+		 * and turns the rotation alone by yaw 270, without normalizing it
+		 * first as Academy's engine does (pose::PlaceOutcastBolt).
+		 *
+		 * A bolt the store cannot answer -- no build has reached it, or what
+		 * a build would have read is not there -- writes nothing and returns
+		 * 0. Retail writes what its record held and returns 1. The retail
+		 * module's three sites discard the result and read the matrix. */
+		VM_CHECKBOUNDS( gvm, args[4], sizeof( float ) * 12 );
+		VM_CHECKBOUNDS( gvm, args[5], sizeof( vec3_t ) );
+		VM_CHECKBOUNDS( gvm, args[6], sizeof( vec3_t ) );
+		float *destination = static_cast<float *>( VM_ArgPtr( args[4] ) );
+		const float *angles = static_cast<const float *>( VM_ArgPtr( args[5] ) );
+		const float *position = static_cast<const float *>( VM_ArgPtr( args[6] ) );
+		if ( !destination || !angles || !position ) { result = 0; return true; }
+		float kept[12];
+		if ( ravenGhoul2.KeptBolt( SV_JK2Ghoul2Handle( args[1] ), static_cast<int>( args[2] ),
+			static_cast<int>( args[3] ), static_cast<int>( args[7] ),
+			trap == FNTECH3_JK2_G2_GET_BOLT_NOREC, kept ) != fntech3::ghoul2::Posing::Served ) {
+			result = 0;
+			return true;
+		}
+		const float *scale = nullptr;
+		if ( args[9] ) {
+			VM_CHECKBOUNDS( gvm, args[9], sizeof( vec3_t ) );
+			scale = static_cast<const float *>( VM_ArgPtr( args[9] ) );
+		}
+		float world[12];
+		if ( !fntech3::ghoul2::pose::PlaceOutcastBolt( kept, angles, position, scale, world ) ) {
+			result = 0;
+			return true;
+		}
+		std::memcpy( destination, world, sizeof( world ) );
+		result = 1;
+		return true;
+	}
+
+	if ( trap == FNTECH3_JK2_G2_ANGLE_OVERRIDE ) {
+		/* Bend one bone. Handler 0x44c763 reads eleven and converts the
+		 * third, fourth and ninth -- the bone's name, the angles and the
+		 * model list -- Academy's order for the same call:
+		 *
+		 *     ghoul2, modelIndex, boneName, angles, flags, up, right,
+		 *     forward, modelList, blendTime, currentTime
+		 *
+		 * Its core 0x4a7520 sets that model's build time to 0 and hands the
+		 * rest to 0x4aaf20, whose matrix (0x4aab40) takes Academy's
+		 * orientation remap, angle matrix and conjugation by the base pose;
+		 * the transform applies PREMULT and POSTMULT as Academy's does. The
+		 * retail module bends four spine and head bones POSTMULT. */
+		VM_CHECKBOUNDS( gvm, args[4], sizeof( vec3_t ) );
+		result = ravenGhoul2.SetBoneAngles( SV_JK2Ghoul2Handle( args[1] ), static_cast<int>( args[2] ),
+			static_cast<const char *>( VM_ArgPtr( args[3] ) ),
+			static_cast<const float *>( VM_ArgPtr( args[4] ) ), static_cast<int>( args[5] ),
+			static_cast<int>( args[6] ), static_cast<int>( args[7] ), static_cast<int>( args[8] ),
+			static_cast<int>( args[10] ), static_cast<int>( args[11] ) ) ? 1 : 0;
+		return true;
+	}
+
+	if ( trap == FNTECH3_JK2_G2_COPY_SPECIFIC_MODEL ) {
+		/* One model of one instance into a place in another: the retail
+		 * module puts its lightsaber into the body's second place this way.
+		 * Handler 0x44c83a converts none of its four; the core 0x4a7bf0
+		 * copies the whole record, link, bolts and build time with it
+		 * (0x4a7b10), and a copy that grows the instance sets model 0's build
+		 * time to 0. Retail grows an instance past its end with empty
+		 * records; this store refuses a place beyond the one after its last. */
+		result = ravenGhoul2.CopyModel( SV_JK2Ghoul2Handle( args[1] ), static_cast<int>( args[2] ),
+			SV_JK2Ghoul2Handle( args[3] ), static_cast<int>( args[4] ) ) ? 1 : 0;
 		return true;
 	}
 
