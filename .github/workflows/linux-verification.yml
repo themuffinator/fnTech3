@@ -36,8 +36,9 @@ jobs:
 
       - name: Install i686 compiler support
         run: |
+          sudo dpkg --add-architecture i386
           sudo apt-get -qq update
-          sudo apt-get install -y file gcc-multilib g++-multilib make python3
+          sudo apt-get install -y file gcc-multilib g++-multilib make python3 zlib1g-dev:i386
 
       - name: Build retail-width Linux dedicated server
         run: |
@@ -102,7 +103,8 @@ jobs:
             ninja-build \
             pkg-config \
             python3 \
-            wayland-protocols
+            wayland-protocols \
+            zlib1g-dev:i386
 
       - name: Build dependency-isolated i686 dedicated server
         run: |
@@ -165,7 +167,10 @@ jobs:
           file .tmp/meson-linux-sdl/fntech3 | grep -F 'ELF 32-bit LSB'
           file .tmp/meson-linux-sdl/fntech3 | grep -F 'Intel 80386'
 
-      - name: Build CMake i686 dedicated server
+      # Every target, not the dedicated server alone: the client, the three
+      # renderer modules and the tests. CMakeLists.txt compiles the wrap
+      # checkouts the Meson client steps above downloaded into subprojects/.
+      - name: Build every CMake i686 target
         run: |
           cmake -S . -B .tmp/cmake-linux-server -G Ninja \
             -DCMAKE_BUILD_TYPE=Debug \
@@ -179,6 +184,12 @@ jobs:
             -DUSE_OGG_VORBIS=OFF \
             -DUSE_SDL=OFF \
             -DUSE_SYSTEM_JPEG=OFF
-          cmake --build .tmp/cmake-linux-server --parallel 2 --target fntech3.ded
-          file .tmp/cmake-linux-server/fntech3.ded | grep -F 'ELF 32-bit LSB'
-          file .tmp/cmake-linux-server/fntech3.ded | grep -F 'Intel 80386'
+          cmake --build .tmp/cmake-linux-server --parallel 2
+          for artifact in fntech3 fntech3.ded fnql_glx_x86.so fnql_vk_x86.so fnql_rtx_x86.so; do
+            test -f ".tmp/cmake-linux-server/${artifact}"
+            file ".tmp/cmake-linux-server/${artifact}" | grep -F 'ELF 32-bit LSB'
+            file ".tmp/cmake-linux-server/${artifact}" | grep -F 'Intel 80386'
+          done
+
+      - name: Run CMake i686 regression suite
+        run: ctest --test-dir .tmp/cmake-linux-server --output-on-failure --no-tests=error --parallel 2

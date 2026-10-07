@@ -627,6 +627,7 @@ int main(){
 }
 '''
 
+
 def outcast_fixture():
     """Jedi Outcast's production Ghoul2 cases of SV_JK2GameCall, with its handle
     and field reading, driven as the retail QVM drives them -- its bolt queries,
@@ -897,7 +898,6 @@ int main(){
  return 0;
 }
 '''
-
 
 
 class JKAServerAttachmentTests(unittest.TestCase):

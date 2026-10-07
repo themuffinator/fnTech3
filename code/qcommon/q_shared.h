@@ -1117,6 +1117,9 @@ typedef struct {
 #define KEYCATCH_CGAME      0x0008
 #define KEYCATCH_RETAIL_MOUSEPASS 0x0010
 #define KEYCATCH_BROWSER    0x0020
+// The engine's entity editor (cl_entity_editor.cpp). It is the editor's
+// alone: Key_SetCatcher keeps it as it stands for every other caller.
+#define KEYCATCH_ENTITYEDITOR 0x0040
 
 
 // sound channels

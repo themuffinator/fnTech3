@@ -104,6 +104,8 @@ static struct {decltype(&GetDistance) GetJKADistanceCull=GetDistance;decltype(&G
  decltype(&AddPoly) AddPolyToScene=AddPoly;
  decltype(&AddLight) AddLightToScene=AddLight;
  decltype(&AddAdditiveLight) AddAdditiveLightToScene=AddAdditiveLight;} re;
+// No local .ent override: the client game's entity tokens are the renderer's.
+static qboolean CL_GetEntityToken(char *out,int size){return re.GetEntityToken(out,size);}
 static int sounds,clears,music;
 static qboolean musicPreload;
 static qboolean registrationQuiet;

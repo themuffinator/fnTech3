@@ -173,7 +173,9 @@ class PlatformPortSafetyTests(unittest.TestCase):
             source.write_text(fixture, encoding="utf-8")
             for dedicated in (False, True):
                 with self.subTest(dedicated=dedicated):
-                    executable = Path(temporary) / ("banner.exe" if os.name == "nt" else "banner")
+                    # One executable per build: Windows can hold the last one run.
+                    name = "banner-dedicated" if dedicated else "banner"
+                    executable = Path(temporary) / (name + ".exe" if os.name == "nt" else name)
                     command = [compiler, "-std=c++17", "-Wall", "-Wextra", "-Werror",
                                "-I", str(ROOT), str(source), "-o", str(executable)]
                     if (os.name == "nt" and "clang" in Path(compiler).name.lower()
@@ -249,6 +251,71 @@ class PlatformPortSafetyTests(unittest.TestCase):
         self.assertIn("SUPPORTED_RENDERERS = DEFAULT_RENDERERS", msvc_driver)
         self.assertIn("'glx,vk,rtx'", vscode_build)
         self.assertIn("'glx', 'vk', 'rtx'", vscode_build)
+
+    def test_renderer_modules_select_their_backend_by_their_own_macros(self) -> None:
+        # Meson and Make define USE_OPENGL_API and USE_VULKAN_API for every
+        # object; CMake gives them to the client and window-system objects
+        # alone. The Vulkan and RTX modules' texture capabilities once tested
+        # USE_VULKAN_API, so CMake compiled their OpenGL branch, which cannot
+        # build there (GL_CLAMP_TO_EDGE undeclared). A module knows its own
+        # backend from its tr_common.h.
+        sources = [
+            path
+            for directory in ("renderer", "renderercommon", "rendererglx", "renderervk", "rendererrtx")
+            for path in sorted((ROOT / "code" / directory).rglob("*"))
+            if path.suffix in {".c", ".cpp", ".h", ".hpp"}
+        ]
+        self.assertTrue(sources)
+        offenders = []
+        for path in sources:
+            text = path.read_text(encoding="utf-8", errors="replace")
+            offenders += [
+                f"{path.relative_to(ROOT).as_posix()}: {macro}"
+                for macro in ("USE_OPENGL_API", "USE_VULKAN_API")
+                if macro in text
+            ]
+        self.assertEqual(offenders, [])
+        for renderer in ("renderervk", "rendererrtx"):
+            self.assertIn("#define USE_VULKAN\n", read(f"code/{renderer}/tr_common.h"))
+            source = read(f"code/{renderer}/tr_init.c")
+            start = source.index("static void RE_GetTextureCapabilities")
+            self.assertIn("#ifdef USE_VULKAN\n", source[start : source.index("\n}\n", start)])
+
+    def test_cmake_libjpeg_turbo_build_inherits_the_target_selection(self) -> None:
+        # ExternalProject configures libjpeg-turbo on its own. Without these
+        # inputs a CMake i686 build (-m32 in CMAKE_C_FLAGS, as Linux CI passes
+        # it) built a host x86-64 libjpeg.a and the client link failed.
+        cmake = read("CMakeLists.txt")
+        jpeg = cmake[
+            cmake.index("include(ExternalProject)") :
+            cmake.index("add_library(fnql_jpeg STATIC IMPORTED GLOBAL)")
+        ]
+        external = jpeg.index("ExternalProject_Add(fnql_libjpeg_turbo")
+        self.assertIn('"-DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}"', jpeg[:external])
+        for variable in (
+            "CMAKE_C_COMPILER_ARG1",
+            "CMAKE_C_COMPILER_TARGET",
+            "CMAKE_SYSROOT",
+            "CMAKE_TOOLCHAIN_FILE",
+        ):
+            self.assertIn(variable, jpeg[:external])
+        self.assertIn('"-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}"', jpeg[external:])
+        self.assertIn("${FNQL_LIBJPEG_TURBO_PLATFORM_ARGS}", jpeg[external:])
+
+    def test_cmake_jka_tests_find_source_root_includes(self) -> None:
+        # Meson's implicit include directories put the source root on every
+        # test's path, and jka_render_tests.cpp includes code/compat/ from it.
+        cmake = read("CMakeLists.txt")
+        start = cmake.index("foreach(jka_test ")
+        loop = cmake[start : cmake.index("endforeach()", start)]
+        self.assertIn(
+            'PRIVATE code/compat "${CMAKE_CURRENT_SOURCE_DIR}")',
+            loop,
+        )
+        for name in loop[len("foreach(jka_test ") : loop.index(")")].split():
+            for line in read(f"tests/jka_{name}_tests.cpp").splitlines():
+                if line.startswith('#include "code/'):
+                    self.assertTrue((ROOT / line.split('"')[1]).is_file(), line)
 
     def test_alsa_preserves_signed_error_results(self) -> None:
         alsa = read("code/unix/linux_snd.cpp")
@@ -334,6 +401,90 @@ class PlatformPortSafetyTests(unittest.TestCase):
             "TARGET_LINK_LIBRARIES(${FNQL_RENDERER_TARGET} PRIVATE m)", cmake
         )
 
+    def test_legacy_unix_builds_enable_large_file_support(self) -> None:
+        # Without it 32-bit glibc's readdir() and stat() fail with EOVERFLOW
+        # on inode numbers past 32 bits, and a Make-built server found no paks
+        # on a drvfs mount. Meson defines it outside MSVC and macOS.
+        makefile = read("Makefile")
+        mingw = makefile[
+            makefile.index("# SETUP AND BUILD -- MINGW32") :
+            makefile.index("# SETUP AND BUILD -- MACOS")
+        ]
+        macos = makefile[
+            makefile.index("# SETUP AND BUILD -- MACOS") :
+            makefile.index("# SETUP AND BUILD -- *NIX PLATFORMS")
+        ]
+        unix = makefile[
+            makefile.index("# SETUP AND BUILD -- *NIX PLATFORMS") :
+            makefile.index("endif # *NIX platforms")
+        ]
+        self.assertIn("BASE_CFLAGS += -D_FILE_OFFSET_BITS=64", unix)
+        self.assertNotIn("_FILE_OFFSET_BITS", mingw + macos)
+
+        cmake = read("CMakeLists.txt")
+        definition = cmake.index(
+            "IF(UNIX AND NOT APPLE)\n\tADD_COMPILE_DEFINITIONS(_FILE_OFFSET_BITS=64)\nENDIF()"
+        )
+        targets = [
+            cmake.find(command)
+            for command in ("ADD_LIBRARY(", "add_library(", "ADD_EXECUTABLE(", "add_executable(")
+        ]
+        self.assertLess(definition, min(index for index in targets if index >= 0))
+
+        make = shutil.which("make")
+        if make is None and (candidate := Path(r"C:\msys64\usr\bin\make.exe")).is_file():
+            make = str(candidate)
+        if make is None:
+            self.skipTest("GNU Make is unavailable")
+        # PLATFORM and COMPILE_PLATFORM choose the branch, so any host can
+        # evaluate each one without its toolchain; skipping pkg-config keeps
+        # each evaluation under a second on MSYS2.
+        flag_sets = ("RELEASE_CFLAGS", "RELEASE_CXXFLAGS", "DEBUG_CFLAGS", "DEBUG_CXXFLAGS")
+        recipe = "@echo" + "".join(f" FNQL_LFS_{name}= $({name})" for name in flag_sets)
+        for platform, expected in (("linux", True), ("mingw32", False), ("darwin", False)):
+            with self.subTest(platform=platform):
+                probe = subprocess.run(
+                    [
+                        make,
+                        "-n",
+                        "fnql-lfs-probe",
+                        f"PLATFORM={platform}",
+                        f"COMPILE_PLATFORM={platform}",
+                        "ARCH=x86",
+                        "COMPILE_ARCH=x86",
+                        "BUILD_CLIENT=0",
+                        "CC=gcc",
+                        "CXX=g++",
+                        "PKG_CONFIG=fnql-no-pkg-config",
+                        "ZLIB_CFLAGS=",
+                        "BUILD_DIR=.tmp/lfs-make-probe-nonexistent",
+                        f"--eval=fnql-lfs-probe: ; {recipe}",
+                    ],
+                    cwd=ROOT,
+                    text=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    check=False,
+                    timeout=120,
+                )
+                self.assertEqual(probe.returncode, 0, probe.stdout)
+                line = next(
+                    (line for line in probe.stdout.splitlines() if "FNQL_LFS_" in line), ""
+                )
+                flags: dict[str, list[str]] = {}
+                current = None
+                for token in line.split():
+                    if token.startswith("FNQL_LFS_") and token.endswith("="):
+                        current = token[len("FNQL_LFS_") : -1]
+                        flags[current] = []
+                    elif current is not None:
+                        flags[current].append(token)
+                self.assertEqual(sorted(flags), sorted(flag_sets), probe.stdout)
+                for name, values in flags.items():
+                    self.assertEqual(
+                        "-D_FILE_OFFSET_BITS=64" in values, expected, f"{platform} {name}"
+                    )
+
     def test_linux_ci_builds_and_verifies_only_i686_artifacts(self) -> None:
         workflow = read(".github/workflows/linux-verification.yml")
         cross_file = read("misc/meson/linux-x86.ini")
@@ -360,10 +511,32 @@ class PlatformPortSafetyTests(unittest.TestCase):
         self.assertIn("--force-fallback-for=sdl3,fontstash", workflow)
         self.assertIn("-Dsdl=enabled", workflow)
         self.assertIn("meson-linux-sdl fntech3", workflow)
-        self.assertIn("Build CMake i686 dedicated server", workflow)
+        # Both jobs link the target's zlib; the runner has its i386 runtime
+        # library alone unless a job installs the development package.
+        jobs = {
+            "make-server-i686": workflow.split("  make-server-i686:", 1)[1].split(
+                "  meson-x86:", 1
+            )[0],
+            "meson-x86": workflow.split("  meson-x86:", 1)[1],
+        }
+        for name, job in jobs.items():
+            with self.subTest(job=name):
+                self.assertIn("sudo dpkg --add-architecture i386", job)
+                self.assertIn("zlib1g-dev:i386", job)
+        self.assertIn("Build every CMake i686 target", workflow)
         self.assertIn("-DCMAKE_C_FLAGS=-m32", workflow)
         self.assertIn("-DCMAKE_CXX_FLAGS=-m32", workflow)
-        self.assertIn("cmake-linux-server --parallel 2 --target fntech3.ded", workflow)
+        self.assertIn("cmake --build .tmp/cmake-linux-server --parallel 2\n", workflow)
+        self.assertNotIn("--target fntech3.ded", workflow)
+        self.assertIn(
+            "for artifact in fntech3 fntech3.ded fnql_glx_x86.so fnql_vk_x86.so fnql_rtx_x86.so; do",
+            workflow,
+        )
+        self.assertIn('file ".tmp/cmake-linux-server/${artifact}"', workflow)
+        self.assertIn(
+            "ctest --test-dir .tmp/cmake-linux-server --output-on-failure",
+            workflow,
+        )
         self.assertIn("Intel 80386", workflow)
         self.assertNotIn("x86_64", workflow)
         self.assertNotIn("ELF 64-bit", workflow)

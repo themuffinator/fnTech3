@@ -1469,6 +1469,7 @@ void QDECL RenderScene( const mohaa::Refdef *fd ) {
 	for ( int i = 0; i < 3; i++ ) {
 		VectorCopy( fd->sky_axis[i], ritual.skyAxis[i] );
 	}
+	CL_EntityEditorAdjustView( &view );
 	/* 2015's renderer ran its level-of-detail tool and decal editor as it
 	 * drew the world (OpenMoHAA RE_RenderScene, reference only) */
 	if ( !( view.rdflags & RDF_NOWORLDMODEL ) ) {

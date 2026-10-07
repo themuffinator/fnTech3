@@ -5035,6 +5035,7 @@ static bool CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 			Q_strncpyz( clc.serverMessage, s, sizeof( clc.serverMessage ) );
 			CL_STVEFSPConnectionText( s, qtrue );
 			Com_Printf( "%s", s );
+			CL_EntityEditorServerPrint( s );
 		}
 		return fromserver;
 	}
@@ -5821,6 +5822,9 @@ static void CL_InitRenderer( void ) {
 		: Com_GameIsRTCWSP() ? re.RegisterShader( "console2" ) : 0;
 	cls.cursorShader = re.RegisterShaderNoMip( wolfet ? "ui/assets/3_cursor3" : "menu/art/3_cursor2" );
 	}
+
+	// The entity editor's pictures belonged to the renderer before this one.
+	CL_EntityEditorRendererStarted();
 
 	// Rebuild every client-owned canvas from the renderer's actual drawable
 	// dimensions. This must precede console reflow: centred console extents use
@@ -7087,6 +7091,7 @@ void CL_Init( void ) {
 	// register client commands
 	//
 	CL_HudInit();
+	CL_EntityEditorInit();
 	CL_AddRTCWCommands();
 	// ET reloads its localisation files from the same console command.
 	if ( Com_GameIsWolfET() ) Cmd_AddCommand( "LoadTranslations", CL_WolfETReloadTranslations );
@@ -7205,6 +7210,7 @@ void CL_Shutdown( const char *finalmsg, qboolean quit ) {
 	CL_ShutdownRef( quit ? REF_UNLOAD_DLL : REF_DESTROY_WINDOW );
 
 	CL_HudShutdown();
+	CL_EntityEditorShutdown();
 	Con_Shutdown();
 
 	Cmd_RemoveCommand ("cmd");

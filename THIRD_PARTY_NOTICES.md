@@ -168,3 +168,88 @@ SDK headers, runtime implementation or DLL is incorporated. The
 [feedback fixture and record](docs/fntech3/2026-09-21-stvef-force-feedback.md)
 contain numeric observations and owned test callbacks, not game assets or
 proprietary code.
+
+## Dear ImGui
+
+The entity editor builds [Dear ImGui](https://github.com/ocornut/imgui/tree/f1cc2ae15e53a861a874c3034aae6798fde194ab)
+1.92.9b (copyright Omar Cornut and the Dear ImGui contributors) from
+`subprojects/imgui.wrap`: its core (`imgui.cpp`, `imgui_draw.cpp`,
+`imgui_tables.cpp`, `imgui_widgets.cpp`) and `misc/cpp/imgui_stdlib.cpp`,
+with the `stb_truetype`, `stb_rect_pack` and `stb_textedit` headers it carries
+(Sean Barrett's, under the MIT License or in the public domain) and its
+embedded ProggyClean and ProggyForever fonts (Tristan Grimmer's and Disco
+Hello's, under the MIT License). The MIT License is compatible with this
+repository's GPL license. ImGui's `LICENSE.txt` stays with the fetched
+subproject, and no ImGui source is copied into the tree; the wrap's
+`meson.build` in `subprojects/packagefiles/imgui` is this project's own.
+
+Built copies of fnTech3 contain Dear ImGui, so its notice travels with them
+here, as its license asks:
+
+```text
+The MIT License (MIT)
+
+Copyright (c) 2014-2026 Omar Cornut
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+The two fonts it embeds are under the same MIT License, with these
+copyrights: ProggyClean, Copyright (c) 2004, 2005 Tristan Grimmer; and
+ProggyForever, Copyright (c) 2026 Disco Hello, Copyright (c) 2019, 2023
+Tristan Grimmer. The `stb` headers are used under their public-domain
+alternative.
+
+## SDL3 and the launcher
+
+`fntech3-launcher` links [SDL3](https://github.com/libsdl-org/SDL/tree/release-3.4.0)
+3.4.0 (copyright Sam Lantinga and the SDL contributors) from
+`subprojects/sdl3.wrap`, or a system SDL3, for its window, input, folder
+dialogs and drawing; client builds that enable `-Dsdl` use the same library
+for their window, input and audio. SDL3 is under the zlib License, which is
+compatible with this repository's GPL license. Its `LICENSE.txt` stays with
+the fetched subproject, and its notice is reproduced below.
+
+The launcher also builds Dear ImGui's core from `subprojects/imgui.wrap`,
+under ImGui's MIT notice in this file. Its SDL3 and SDL_Renderer glue for
+ImGui (`code/launcher/launcher_imgui_sdl.cpp`) is written for fnTech3 against
+the two libraries' public interfaces; ImGui's own SDL3 backends were read for
+reference only, and none of their text is incorporated. The launcher reads
+the system's own interface font at run time and ships no font beyond ImGui's
+embedded fallback.
+
+```text
+Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
+
+This software is provided 'as-is', without any express or implied
+warranty.  In no event will the authors be held liable for any damages
+arising from the use of this software.
+
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not
+   claim that you wrote the original software. If you use this software
+   in a product, an acknowledgment in the product documentation would be
+   appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be
+   misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
+```

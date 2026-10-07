@@ -1,0 +1,46 @@
+// fntech3-launcher's Windows resources: the fnTech3 icon Explorer shows, its
+// version information, and the manifest the engine uses (Common Controls 6,
+// per-monitor DPI awareness, no elevation).
+#include <winresrc.h>
+#include "../../version/fntech3_version.h"
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+#ifndef __MINGW32__
+1 ICON "../../assets/icons/fntech3.ico"
+#else
+1 ICON "assets/icons/fntech3.ico"
+#endif
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION FNTECH3_WINDOWS_FILE_VERSION
+ PRODUCTVERSION FNTECH3_WINDOWS_PRODUCT_VERSION
+ FILEFLAGSMASK 0x3fL
+ FILEFLAGS 0x0L
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "FileDescription", FNTECH3_PROJECT_NAME " launcher\0"
+            VALUE "FileVersion", FNTECH3_VERSION_STRING "\0"
+            VALUE "InternalName", "fntech3-launcher\0"
+            VALUE "OriginalFilename", "fntech3-launcher.exe\0"
+            VALUE "ProductName", FNTECH3_PROJECT_NAME "\0"
+            VALUE "ProductVersion", FNTECH3_VERSION_STRING "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+#ifndef __MINGW32__
+1 RT_MANIFEST "../win32/q3.manifest"
+#else
+1 RT_MANIFEST "code/win32/q3.manifest"
+#endif

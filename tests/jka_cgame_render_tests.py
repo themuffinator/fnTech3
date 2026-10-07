@@ -99,6 +99,7 @@ static refdef_t CL_ModuleRefdef(vm_t *vm,intptr_t address){
 }
 static void CL_HudAdjustRefdef(refdef_t *){++hudAdjusts;}
 static void CL_HudFlushQueue(){}
+static void CL_EntityEditorAdjustView(refdef_t *){} // the entity editor, closed
 static void CL_UpdateLocalViewLiquidInteraction(const refdef_t *){++liquidUpdates;}
 static void CL_UpdateUnderwaterView(const refdef_t *){++underwaterUpdates;}
 static void CL_FlushEnemyHighlightRefEntities(const refdef_t *){++highlightFlushes;}

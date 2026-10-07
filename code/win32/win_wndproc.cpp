@@ -226,6 +226,7 @@ static int WIN_PointerConsumerIdentity( void )
 	const int catcher = Key_GetCatcher();
 
 	if ( catcher & KEYCATCH_CONSOLE ) return KEYCATCH_CONSOLE;
+	if ( catcher & KEYCATCH_ENTITYEDITOR ) return KEYCATCH_ENTITYEDITOR;
 	if ( catcher & KEYCATCH_BROWSER ) return KEYCATCH_BROWSER;
 	if ( catcher & KEYCATCH_UI ) return KEYCATCH_UI;
 	if ( catcher & KEYCATCH_CGAME ) return KEYCATCH_CGAME;
@@ -1129,9 +1130,10 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM lParam 
 				SetCursor( browserCursor );
 				return TRUE;
 			}
-			if ( Key_GetCatcher() & ( KEYCATCH_UI | KEYCATCH_CGAME ) ) {
+			if ( ( Key_GetCatcher() & ( KEYCATCH_UI | KEYCATCH_CGAME ) ) || CL_EntityEditorPointerMask() ) {
 				// Retail retains the normal Win32 arrow while native UI or
-				// cgame overlays own absolute mouse input.
+				// cgame overlays own absolute mouse input; the entity editor
+				// shows it too.
 				SetCursor( LoadCursor( NULL, IDC_ARROW ) );
 				return TRUE;
 			}

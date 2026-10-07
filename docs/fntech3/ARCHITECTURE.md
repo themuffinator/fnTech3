@@ -104,6 +104,40 @@ through [`process_relaunch.cpp`](../../code/platform/process_relaunch.cpp).
 The [RTCW contracts record](2026-09-14-rtcw-contracts.md) describes the
 handoff and its failure handling.
 
+### Launcher
+
+`fntech3-launcher` ([`code/launcher`](../../code/launcher/launcher_main.cpp))
+is a separate program, built beside the client (Meson option `launcher`), that
+lists game installations and starts the client for one of them. It never
+activates a profile itself and never mixes contracts: every launch names
+exactly one profile and one installation on the command line -- `+set
+com_gameProfile <key> +set fs_basepath <root>`, and `fs_game` for a mod -- so
+the engine's explicit selection (step 1 above) decides before anything else
+starts, as it does for a shortcut.
+
+Discovery reuses the engine's evidence rather than a list of its own. The
+launcher links `game_profile.cpp`; Steam's library manifests, GOG's and disc
+installers' registrations, Heroic, Lutris, Wine prefixes and the usual game
+folders only nominate folders, and a folder is listed only where
+`Com_ProbeGameProfileMarkers` recognizes it (or its `GameData` or `game`
+subfolder). A folder the player adds without that evidence is listed as
+unverified under the profile they chose. Store names are labels and never
+decide a profile. Whether a profile can start follows the same compile-time
+gates (`Com_GameManagerCanActivate`) as the client built beside it, plus the
+host check `Com_GameManagerNativeModuleFilename` makes for games whose retail
+modules exist only as Windows x86 libraries.
+
+The command line is quoted exactly where `unix_main.cpp`'s
+`Sys_BuildCommandLine` quotes POSIX arguments, so Windows and POSIX hand the
+engine's tokenizer the same text, and it stays within the engine's 32 startup
+commands and its 1,023-character Windows command line. The launcher draws with
+SDL3 and Dear ImGui through its own small SDL_Renderer glue, reads the
+system's interface font at run time, and ships no artwork beyond the engine's
+own icons. Its settings are its own JSON file, which the engine never reads.
+`tests/launcher_core_tests.cpp` covers discovery over synthetic installations,
+Steam's files, settings and the command line; the [Launcher
+Guide](../LAUNCHER.md) is the player's view.
+
 ## Boundaries and adapters
 
 Retail modules, network peers, demos and saves see exact, frozen layouts --
@@ -187,7 +221,12 @@ The server hosts each profile's game module with its own policies: client
 and configstring limits, reliable-command windows, bot support (Quake III's
 AAS bot library where the game has one, RTCW's cast AI, none for Ritual's
 games or Medal of Honor), restarts and broadcasts. Quake Live adds its factories, statistics
-and ZMQ endpoints; these exist only in that profile.
+and ZMQ endpoints; these exist only in that profile. One selector chooses a
+level's entity text for every profile -- Quake Live's `sv_altEntDir` file,
+then a checked `maps/<map>.ent` override, then the BSP's lump -- and the game
+module, the bot library and a listen server's client game all read its
+choice (`SV_EntityText`); `code/qcommon/entity_text.hpp` reads and writes
+that text as the engine hands it to modules.
 
 ### Client
 
@@ -198,7 +237,12 @@ of Honor, which draws its HUD and saved-game list from them too. Console fonts a
 lines follow each profile, and each module sees its own game's key numbers;
 the key names used by binds and configs are shared. The HUD aspect system
 (`cl_hud.cpp`) applies FnQuake3's widescreen rules to Quake III Arena and
-RTCW, whose modules assume 4:3.
+RTCW, whose modules assume 4:3. The entity editor (`cl_entity_editor.cpp`)
+is engine-owned in every profile: it holds an input catcher bit modules
+cannot clear, takes each adapter's world view before the renderer draws it,
+holds the game's HUD and menus back while it is open, and draws its
+Dear ImGui interface (`entity_editor_ui.hpp` turns ImGui's draw lists into
+renderer commands) and its overlay through the renderers' shared 2D path.
 
 ### Renderers
 

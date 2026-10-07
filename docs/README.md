@@ -29,6 +29,8 @@ Release packages include them as web pages in their `manual` folder, built by
 
 - [Getting Started](GETTING_STARTED.md) -- installing fnTech3, starting your
   first game, the console, settings files and where your files are saved.
+- [Launcher](LAUNCHER.md) -- the window that finds your games and starts them:
+  the game list, adding folders, mods and options, and its settings.
 - [Games](GAMES.md) -- every game and mode, what you need, choosing a game,
   playing online, and what works in each game today.
 - [Graphics](DISPLAY.md) -- renderers, window and fullscreen, smoother edges,
@@ -47,6 +49,8 @@ Release packages include them as web pages in their `manual` folder, built by
   what to include in a report.
 - [RTX Renderer](RTX.md) -- ray tracing: what you need, turning it on, tuning
   it and troubleshooting.
+- [Entity Editor](ENTITY_EDITOR.md) -- the in-game editor of a map's
+  entities, and the `maps/<map>.ent` overrides it saves and every game loads.
 
 ## Building, releasing and maintaining
 

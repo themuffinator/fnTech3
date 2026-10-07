@@ -2094,7 +2094,8 @@ void SpawnLevel( const char *mapname ) {
 	CheckErrorMessage();
 
 	if ( !save::ReadSavedLevel() ) {
-		entityText = CM_EntityString() ? CM_EntityString() : "";
+		// The level's text: a .ent override's when the server loaded one.
+		entityText = SV_EntityText();
 		Export<SpawnEntities_t>( GE_SpawnEntities )( &entityText[0], sv.time );
 		CheckErrorMessage();
 		save::AfterSpawn();

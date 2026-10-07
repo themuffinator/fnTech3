@@ -45,6 +45,15 @@ its folder.
 
 ## Start your first game
 
+### The easiest way: the launcher
+
+Open `fntech3-launcher.exe` in your fnTech3 folder (`./fntech3-launcher` on
+Linux, when your download includes it). It finds the games on your computer --
+in Steam, GOG and the usual game folders -- and lists each one with its icon,
+where it came from and its folder. Click **Play** beside a game to start it.
+If your game is somewhere else, click **Add game** and choose its folder. The
+[Launcher Guide](LAUNCHER.md) explains the rest.
+
 ### The quick way
 
 fnTech3 looks in Steam for Quake III Arena, Quake Live, Return to Castle

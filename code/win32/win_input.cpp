@@ -79,6 +79,9 @@ static int IN_PointerConsumerIdentity( void )
 	if ( catcher & KEYCATCH_CONSOLE ) {
 		return KEYCATCH_CONSOLE;
 	}
+	if ( catcher & KEYCATCH_ENTITYEDITOR ) {
+		return KEYCATCH_ENTITYEDITOR;
+	}
 	if ( catcher & KEYCATCH_BROWSER ) {
 		return KEYCATCH_BROWSER;
 	}
@@ -109,8 +112,10 @@ fnql::input::PointerOwner WIN_ResolvePointerOwner( void )
 
 	inputs.catcher = Key_GetCatcher();
 	inputs.consoleMask = KEYCATCH_CONSOLE;
-	// Q3/RTCW modules share gameplay's relative pointer presentation.
+	// Q3/RTCW modules share gameplay's relative pointer presentation; the
+	// entity editor takes absolute positions while it shows its pointer.
 	inputs.menuMask = Com_GameIsQuakeLive() ? kPointerMenuMask : KEYCATCH_BROWSER;
+	inputs.menuMask |= CL_EntityEditorPointerMask();
 	inputs.consoleUsesAbsolutePointer = !glw_state.cdsFullscreen;
 
 	return fnql::input::ResolvePointerOwner( inputs );

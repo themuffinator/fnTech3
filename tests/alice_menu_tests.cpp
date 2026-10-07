@@ -51,7 +51,8 @@ void TestColours() {
 	// A saturation within 0.035 of zero counts as grey both ways.
 	CHECK( RgbToHsv( { 1.0f, 0.98f, 0.98f, 1.0f } ).h == -1.0f );
 	const Rgba flat = HsvToRgb( { 120.0f, 0.03f, 0.4f, 0.5f } );
-	CHECK( flat.r == 0.4f && flat.g == 0.4f && flat.b == 0.4f && flat.a == 0.5f );
+	// Cast inexact literals: GCC's i686 x87 C++ keeps a bare 0.4f at long double precision.
+	CHECK( flat.r == float( 0.4f ) && flat.g == float( 0.4f ) && flat.b == float( 0.4f ) && flat.a == 0.5f );
 
 	BoxEdge raised[6], indented[6];
 	Box3DEdges( 10.0f, 20.0f, 100.0f, 16.0f, false, raised );
@@ -303,7 +304,7 @@ void TestScroll() {
 	// The bottom's rule wins when both edges are near.
 	CHECK( Near( EdgeAlpha( 20.0f, 30.0f, 40.0f ), 0.25f ) );
 	CHECK( ResetScrollPosition( 161.0f, 22.0f ) == -3542.0f && ResetScrollPosition( 0.0f, 22.0f ) == -0.0f );
-	static_assert( DefaultScrollSpeed == 0.2f, "UIAutoScroll's default speed (0x004c0393)" );
+	static_assert( DefaultScrollSpeed == float( 0.2f ), "UIAutoScroll's default speed (0x004c0393)" );
 }
 
 /* The composite a set of kept shares draws back to, one grey value a layer. */
@@ -376,7 +377,7 @@ void TestRetailFiles() {
 	std::string error;
 	const std::vector<KeyAlias> aliases = ParseKeyAliases( keys.data(), keys.size(), &error );
 	CHECK( error.empty() && aliases.size() == 27 );
-	CHECK( FindKeyAlias( aliases, "MWHEELUP" )->name == "WHEEL UP" && FindKeyAlias( aliases, "CAPSLOCK" )->scale == 0.8f );
+	CHECK( FindKeyAlias( aliases, "MWHEELUP" )->name == "WHEEL UP" && FindKeyAlias( aliases, "CAPSLOCK" )->scale == float( 0.8f ) );
 	CHECK( FindKeyAlias( aliases, "UPARROW" )->scale == -1.0f );
 	std::cout << "alice_menu_tests: retail bind.scr and keybind.scr read\n";
 }

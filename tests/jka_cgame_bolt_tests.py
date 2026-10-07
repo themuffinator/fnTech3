@@ -225,9 +225,11 @@ class JKACgameBoltTests(unittest.TestCase):
         assert parent.resolve().is_relative_to(ROOT.resolve())
         with tempfile.TemporaryDirectory(dir=parent) as temporary:
             folder = Path(temporary)
-            source, executable = folder / 'bolt.cpp', folder / 'bolt.exe'
+            source = folder / 'bolt.cpp'
             source.write_text(fixture())
             for extra in ([], ['-O2', '-ffast-math']):
+                # One executable per build: Windows can hold the last one run.
+                executable = folder / ('bolt-fast.exe' if extra else 'bolt.exe')
                 built = subprocess.run([compiler, *compiler_target_args(compiler), '-std=c++17', *extra,
                     '-I', str(ROOT), str(source), '-o', str(executable)], cwd=ROOT,
                     capture_output=True, text=True, timeout=120)

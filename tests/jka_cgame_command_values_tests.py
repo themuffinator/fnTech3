@@ -83,9 +83,10 @@ int main(){
         self.assertTrue(parent.resolve().is_relative_to(ROOT.resolve()))
         with tempfile.TemporaryDirectory(dir=parent) as directory:
             cpp = Path(directory) / 'command.cpp'
-            exe = Path(directory) / 'command.exe'
             cpp.write_text(source)
             for flags in ([], ['-O2', '-ffast-math']):
+                # One executable per build: Windows can hold the last one run.
+                exe = Path(directory) / ('command-fast.exe' if flags else 'command.exe')
                 built = subprocess.run([compiler, *target, '-std=c++17', *flags, '-I', str(ROOT),
                     str(cpp), '-o', str(exe)], cwd=ROOT, capture_output=True, text=True, timeout=90)
                 self.assertEqual(built.returncode, 0, built.stdout + built.stderr)

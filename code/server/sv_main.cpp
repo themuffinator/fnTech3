@@ -84,6 +84,7 @@ cvar_t	*sv_quitOnEmpty;
 cvar_t	*sv_quitOnExitLevel;
 cvar_t	*sv_altEntDir;
 cvar_t	*sv_dumpEntities;
+cvar_t	*sv_entityOverrides;
 cvar_t	*sv_cylinderScale;
 cvar_t	*sv_vac;
 cvar_t	*sv_showloss;

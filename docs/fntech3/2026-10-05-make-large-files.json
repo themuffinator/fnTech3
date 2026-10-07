@@ -1,0 +1,162 @@
+{
+  "record": "2026-10-05-make-large-files",
+  "date": "2026-10-05",
+  "evidence": ["Source", "Build", "Unit", "Live"],
+  "change": {
+    "Makefile": "*NIX branch (Linux and the BSDs): BASE_CFLAGS += -D_FILE_OFFSET_BITS=64",
+    "CMakeLists.txt": "IF(UNIX AND NOT APPLE) ADD_COMPILE_DEFINITIONS(_FILE_OFFSET_BITS=64) ENDIF(), before the first target",
+    "unchanged": {
+      "meson": "adds -D_FILE_OFFSET_BITS=64 to every compile outside MSVC and macOS; Meson 1.10.2 configuring the control tree's i686 dedicated server with linux-verification.yml's options (--wrap-mode=nodownload with a local zlib subproject in place of nofallback) put it on 338 of 338 compile commands",
+      "mingw": "not defined by Make or CMake; Windows lists files with _wfindfirst64 and reads sizes with _wstat",
+      "macos": "not defined; off_t and ino_t are already 64-bit"
+    },
+    "test": "tests/platform_port_safety_tests.py::PlatformPortSafetyTests::test_legacy_unix_builds_enable_large_file_support"
+  },
+  "affectedBuilds": [
+    ".github/workflows/release.yml ubuntu-x86: make install ARCH=x86 COMPILE_ARCH=x86 ... in ubuntu:20.04, checked with --max-glibc 2.31",
+    ".github/workflows/linux-verification.yml make-server-i686 and the CMake i686 dedicated server"
+  ],
+  "host": {
+    "platform": "WSL 2, Ubuntu 24.04, Linux 6.6.87.2-microsoft-standard-WSL2 x86_64",
+    "gcc": "13.3.0 (Ubuntu 13.3.0-6ubuntu2~24.04.1)",
+    "glibc": "2.39 (Ubuntu GLIBC 2.39-0ubuntu8.9)",
+    "make": "GNU Make 4.3",
+    "cmake": "3.28.3",
+    "ninja": "1.13.0.git.kitware.jobserver-pipe-1",
+    "mount": "C:\\ on /mnt/c type 9p (aname=drvfs)"
+  },
+  "readdirProbe": {
+    "directory": "C:/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena/baseq3 through /mnt/c",
+    "build": "gcc -m32 -O2, with and without -D_FILE_OFFSET_BITS=64, one source",
+    "without": {
+      "sizes": {"off_t": 4, "ino_t": 4, "struct stat": 88, "struct dirent": 268},
+      "readdir": "NULL at the first entry, errno 75 (EOVERFLOW)",
+      "listed": 0
+    },
+    "with": {
+      "sizes": {"off_t": 8, "ino_t": 8, "struct stat": 96, "struct dirent": 276},
+      "listed": 29,
+      "statFailed": 0,
+      "inodeRange": [562949953521985, 158751886864819321],
+      "pak0.pk3": {"inode": 1125899906943293, "size": 479493658}
+    }
+  },
+  "inputs": {
+    "control": "git archive of HEAD 8cf605c72d7cf238376baf567f43e247b12e863a",
+    "candidate": "the same export with this change's Makefile and CMakeLists.txt hunks only",
+    "sha256LF": {
+      "control/Makefile": "fcb51797fd98b4344933ef3b3bf8f715070197db2e63b359fe82193cf3a1484b",
+      "candidate/Makefile": "91cb820182c1d777a2b2e28d0695fc2aedbd484b0c37c6dda46fe8fa360da365",
+      "control/CMakeLists.txt": "2620acf353ceab6a24966dd3e1da65757b79b8c4f62c18fe44a1f0b6ea31ea07",
+      "candidate/CMakeLists.txt": "ec3a858cf27e14776a352d021d00b1c5c7c7ecb3abfd6238909e30fe7c5da23a"
+    }
+  },
+  "compileCommandsWithDefine": {
+    "makeDryRunServer": {
+      "command": "make -n release BUILD_CLIENT=0 BUILD_SERVER=1 USE_CURL=0 ARCH=x86 ZLIB_LIBS=/usr/lib/i386-linux-gnu/libz.so.1",
+      "control": {"with": 0, "of": 118},
+      "candidate": {"with": 118, "of": 118, "groups": {"ded": 83, "ded/qvm": 3, "mohaa": 32}}
+    },
+    "makeDryRunRelease": {
+      "command": "make -n release ARCH=x86 COMPILE_ARCH=x86 USE_SDL=0 USE_RENDERER_DLOPEN=1 USE_GLX=1 USE_VK=1 USE_RTX=1",
+      "control": {"with": 0, "of": 397},
+      "candidate": {"with": 397, "of": 397, "groups": {"client": 142, "client/qvm": 3, "ded": 83, "ded/qvm": 3, "mohaa": 32, "rendx": 52, "rendv": 41, "rendrtx": 41}}
+    },
+    "cmakeConfigure": {
+      "flags": "-G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS=-m32 -DCMAKE_CXX_FLAGS=-m32 -DCMAKE_EXE_LINKER_FLAGS=-m32 -DCMAKE_SHARED_LINKER_FLAGS=-m32 -DFNQL_AUDIO_LOOPBACK_TESTS=OFF -DFNQL_GLX_LOGIC_TESTS=OFF -DUSE_CURL=OFF -DUSE_OGG_VORBIS=OFF -DUSE_SDL=OFF -DUSE_SYSTEM_JPEG=OFF -DZLIB_LIBRARY=/usr/lib/i386-linux-gnu/libz.so.1 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+      "control": {"with": 0, "of": 434},
+      "candidate": {"with": 434, "of": 434}
+    }
+  },
+  "builds": {
+    "makeServer": {
+      "command": "make -j20 release V=1 BUILD_CLIENT=0 BUILD_SERVER=1 USE_CURL=0 ARCH=x86 ZLIB_LIBS=/usr/lib/i386-linux-gnu/libz.so.1",
+      "control": {"exit": 0, "errors": 0, "warnings": 36, "sha256": "78d58407c1791f070aa44a27d4b3c48b84f6f63554e1fc7f693514d706e8fd86"},
+      "candidate": {"exit": 0, "errors": 0, "warnings": 36, "sha256": "19f2ba86d045830457339def9eacfefc3f91dfd52114ff79f2bffc7949ab39d5"},
+      "warningSetsIdentical": true,
+      "file": "ELF 32-bit LSB pie executable, Intel 80386, dynamically linked, interpreter /lib/ld-linux.so.2"
+    },
+    "importChanges": [
+      {"control": "fcntl@GLIBC_2.28", "candidate": "fcntl64@GLIBC_2.28"},
+      {"control": "fopen@GLIBC_2.1", "candidate": "fopen64@GLIBC_2.1"},
+      {"control": "mmap@GLIBC_2.0", "candidate": "mmap64@GLIBC_2.1"},
+      {"control": "open@GLIBC_2.0", "candidate": "open64@GLIBC_2.1"},
+      {"control": "readdir@GLIBC_2.0", "candidate": "readdir64@GLIBC_2.2"},
+      {"control": "stat@GLIBC_2.33", "candidate": "stat64@GLIBC_2.33"}
+    ],
+    "cmakeServer": {
+      "command": "cmake --build <candidate> --target fntech3.ded",
+      "exit": 0,
+      "sha256": "1486e5bb88612633a1dd254369ff09cc52fd9f9f456d7df05b7a03e5274df4d8"
+    }
+  },
+  "runs": {
+    "installation": "C:/Program Files (x86)/Steam/steamapps/common/Quake 3 Arena through /mnt/c, read only",
+    "arguments": "+set fs_basepath <installation> +set fs_homepath <own home with an empty baseq3/q3config_server.cfg> +set dedicated 1 +set net_enabled 0 +map q3dm17 +quit",
+    "profile": "Quake III Arena (quake3, detected from fs_basepath)",
+    "makeControl": {"exit": 1, "lines": ["0 files in 0 pk3 files", "Legacy Quake III Point Release files are missing.", "Sys_Error:", "*** you need a valid Quake III Arena installation in order to play ***"]},
+    "makeCandidate": {"exit": 0, "lines": ["4984 files in 15 pk3 files", "Server: q3dm17", "Loading vm file vm/qagame.qvm...", "loaded maps/q3dm17.aas", "----- Server Shutdown (Server quit) -----"]},
+    "cmakeCandidate": {"exit": 0, "lines": ["4984 files in 15 pk3 files", "Server: q3dm17", "loaded maps/q3dm17.aas", "----- Server Shutdown (Server quit) -----"]},
+    "pk3Count": "15, every .pk3 file in baseq3",
+    "installationInventorySha256": {
+      "before": "6a9a9a7eb72d4a25b74acb577be366e6dc1a97845e5d27cb4056d5ec530974a7",
+      "after": "6a9a9a7eb72d4a25b74acb577be366e6dc1a97845e5d27cb4056d5ec530974a7",
+      "method": "find -printf '%P\\t%s\\t%T@\\n' | LC_ALL=C sort | sha256sum"
+    }
+  },
+  "pk3Cache": {
+    "file": "<fs_homepath>/pk3cache.dat",
+    "headerByte3": "((sizeof(fileOffset_t) - 1) << 4) | (sizeof(fileTime_t) - 1)",
+    "values": {"withoutLargeFiles": "0x33", "withLargeFiles": "0x73"},
+    "current": {"header": "00 00 2f 73", "exit": 0, "line": "...found 15 cached paks"},
+    "old": {"header": "00 00 2f 33", "exit": 0, "line": "synced FS cache on startup", "headerAfter": "00 00 2f 73"}
+  },
+  "abiReview": {
+    "kind": "source inspection",
+    "widenedTypes": ["off_t", "ino_t", "blkcnt_t", "fsblkcnt_t", "fsfilcnt_t", "rlim_t", "fpos_t", "struct stat", "struct dirent", "struct statfs", "struct statvfs", "struct rlimit", "struct flock"],
+    "uses": {
+      "struct stat": "locals in code/unix/unix_shared.cpp",
+      "struct dirent": "locals in code/unix/unix_shared.cpp and code/platform/process_relaunch.cpp",
+      "fileOffset_t": "code/qcommon/files.c (pack_t, pk3cacheHeader_t), code/server/sv_filter.cpp, code/server/server_alice_game.hpp (local), Sys_GetFileStats"
+    },
+    "notUsed": ["fseeko", "ftello", "fgetpos", "fsetpos", "lseek", "rlimit", "statvfs", "flock", "glob", "__off_t", "__off64_t", "__ino_t", "loff_t"],
+    "moduleInterfaces": "none carries a widened type",
+    "layoutTestsWithDefine": ["fntech3_game_abi_layouts", "fntech3_game_abi_adapters", "fntech3_cgame_usercmd_abi", "fntech3_ui_module_abi", "fntech3_jka_sp_abi", "fntech3_jka_sp_player_abi"]
+  },
+  "tests": {
+    "ctest": {
+      "control": {"passed": 80, "of": 82},
+      "candidate": {"passed": 80, "of": 82},
+      "perTestResultsIdentical": true,
+      "failingInBoth": ["fntech3_jka_render (not built)", "fntech3_jka_sp_game_bridge (aborted at line 385)"]
+    },
+    "newTest": {
+      "windowsMsys2Make441": "pass",
+      "linuxMake43Candidate": "pass",
+      "linuxMake43Control": "fail"
+    },
+    "windowsPytest": {
+      "files": ["tests/platform_port_safety_tests.py", "tests/x86_build_constraints_tests.py", "tests/macos_support_source_tests.py"],
+      "passed": 42,
+      "skipped": 1,
+      "skip": "the accepted x86 Make path needs a MinGW cross compiler"
+    },
+    "headPlusChangeExport": {
+      "tree": "git archive of HEAD 8cf605c7 with only this change's files",
+      "sourceAndChangelogTests": {"files": ["tests/platform_port_safety_tests.py", "tests/x86_build_constraints_tests.py", "tests/macos_support_source_tests.py", "tests/changelog_tests.py", "tests/release_workflow_tests.py"], "passed": 69, "skipped": 1},
+      "releasePackaging": {"file": "tests/release_packaging_tests.py", "passed": 48, "skipped": 1, "skip": "symlink creation needs a privilege this host lacks"}
+    }
+  },
+  "notCovered": [
+    "no client run",
+    "no BSD, macOS or MinGW build",
+    "the ubuntu:20.04 release container (inference: a glibc 2.31 build references no version past 2.31)",
+    "files of 2 GiB or more stay unreadable through the engine's long ftell() lengths, as in Meson and Windows builds"
+  ],
+  "unrelatedAtHead": [
+    "CMake Linux: code/renderervk/tr_init.c:3957 and code/rendererrtx/tr_init.c:3922 GL_CLAMP_TO_EDGE undeclared (no USE_OPENGL_API on those renderer targets)",
+    "CMake: tests/jka_render_tests.cpp includes code/compat/render_record_adapter.hpp from the source root; the JKA test loop adds only code/compat",
+    "CMake Linux client link: USE_SYSTEM_JPEG=OFF libjpeg-turbo objects built x86-64 under CMAKE_C_FLAGS=-m32",
+    "fntech3_jka_sp_game_bridge aborts at line 385: candidateResult.trace.entityNum==2&&candidateResult.trace.fraction==0.025f"
+  ]
+}

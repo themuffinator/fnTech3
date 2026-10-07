@@ -188,6 +188,9 @@ static qboolean CL_HudAdjustPic(float *x, float *, float *w, float *, qhandle_t)
 static void CL_HudDrawStretchPic(float x,float y,float w,float h,float s1,float t1,float s2,float t2,qhandle_t shader) {
     CL_HudAdjustPic(&x,&y,&w,&h,shader); Quad(x,y,w,h,s1,t1,s2,t2,shader);
 }
+// The entity editor, closed: views pass unchanged and entity tokens are the renderer's.
+static void CL_EntityEditorAdjustView(refdef_t *) {}
+static qboolean CL_GetEntityToken(char *output, int capacity) { return re.GetEntityToken(output, capacity); }
 #include "code/client/client_rtcw_render_compat.hpp"
 '''
 

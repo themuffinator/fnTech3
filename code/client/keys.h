@@ -56,6 +56,8 @@ int Key_StringToKeynum( const char *str );
 
 qboolean Key_IsDown( int keynum );
 void Key_ClearStates( void );
+// The entity editor sets and clears KEYCATCH_ENTITYEDITOR here alone.
+void Key_SetEntityEditorCatcher( qboolean active );
 
 qboolean Key_GetOverstrikeMode( void );
 void Key_SetOverstrikeMode( qboolean state );

@@ -5252,6 +5252,11 @@ void CL_MOHAAUIDrawHud( void ) {
 	}
 	UpdateHud();
 	UpdatePause();
+	/* The engine's entity editor shows the view alone: the HUD, the menus
+	 * and the boxes wait until it closes, their timers kept above. */
+	if ( CL_EntityEditorActive() ) {
+		return;
+	}
 	/* The view's subtitles, after the prints and before the HUD. */
 	DrawSubtitles();
 	/* The client game draws the objectives overlay at a place of its own in

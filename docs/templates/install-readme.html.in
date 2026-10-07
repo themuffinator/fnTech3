@@ -449,7 +449,7 @@
         </article>
         <article class="step">
           <h3>Start your game</h3>
-          <p>If exactly one of Quake III Arena, Quake Live, Return to Castle Wolfenstein or Enemy Territory is installed through Steam, just run <code>${executable_basename}.exe</code>. Otherwise name the game, and its folder, in a shortcut: <code>+set com_gameProfile quake3 +set fs_basepath "&lt;your Quake III folder&gt;"</code>.</p>
+          <p>Open <code>${executable_basename}-launcher.exe</code>: it finds your games in Steam, GOG and the usual game folders and starts the one you click. You can also name the game, and its folder, in a shortcut: <code>+set com_gameProfile quake3 +set fs_basepath "&lt;your Quake III folder&gt;"</code>.</p>
         </article>
         <article class="step">
           <h3>Play, then tune</h3>
@@ -467,6 +467,10 @@
         <article class="feature-group">
           <h3>Unified game compatibility</h3>
           <p>One engine for many games. fnTech3 starts one game at a time and follows that game's own rules &ndash; its game code, online play, demos and saved games &ndash; so every game plays like itself.</p>
+        </article>
+        <article class="feature-group">
+          <h3>A launcher that finds your games</h3>
+          <p>It looks in Steam, GOG, disc installs and the usual game folders, lists every installation with its icon, store and folder, and starts the one you click &ndash; in the mode and with the mod you choose.</p>
         </article>
         <article class="feature-group">
           <h3>Fast, modern hardware rendering</h3>
@@ -497,6 +501,10 @@
           <p>A console that scales, scrolls smoothly, suggests commands and copies and pastes; widescreen view and HUD for every game made for 4:3 screens; silence when you switch away; and less work for your computer in the background.</p>
         </article>
         <article class="feature-group">
+          <h3>In-game entity editor</h3>
+          <p>Move, add, copy, delete and change a map's objects in the game, with undo, and save them as a <code>maps/&lt;map&gt;.ent</code> file that the server loads in place of the map's own &ndash; in every game.</p>
+        </article>
+        <article class="feature-group">
           <h3>Better screenshots, video and streaming tools</h3>
           <p>PNG, JPEG, TGA and BMP screenshots, copying to the clipboard, your own file names, camera notes, map previews, watermarks, cube maps, any resolution, and video recording through FFmpeg.</p>
         </article>
@@ -519,6 +527,7 @@
           <h3>Player guides</h3>
           <ul>
             <li><a href="manual/getting-started.html">Getting started</a>: set up, start a game, use the console and settings.</li>
+            <li><a href="manual/launcher.html">Launcher</a>: find the games on your computer and start one with a click.</li>
             <li><a href="manual/games.html">Games</a>: every game, what you need, playing online, and what works today.</li>
             <li><a href="manual/display.html">Graphics</a>: window and fullscreen, smoother edges, lighting, shadows, water, fog and glow.</li>
             <li><a href="manual/widescreen.html">Widescreen</a>: field of view, HUD, menus and movies on wide screens.</li>

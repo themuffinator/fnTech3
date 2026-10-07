@@ -49,7 +49,8 @@ void TestWidgets() {
 	CHECK( !std::strcmp( Widgets[2].model, "models/hud_foldout_knife.tik" ) );
 	CHECK( !std::strcmp( Widgets[4].model, "models/hud_itemfoldout.tik" ) );
 	CHECK( Widgets[0].offsetX == -312.0f && Widgets[7].offsetX == 312.0f && Widgets[7].offsetY == 42.0f );
-	CHECK( Widgets[5].scale == 2.45f && Widgets[7].scale == 1.2f );
+	// Cast inexact literals: GCC's i686 x87 C++ keeps a bare 2.45f at long double precision.
+	CHECK( Widgets[5].scale == float( 2.45f ) && Widgets[7].scale == float( 1.2f ) );
 	CHECK( BaseYaw == 180.0f );
 }
 

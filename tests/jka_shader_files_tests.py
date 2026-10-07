@@ -140,7 +140,9 @@ class JkaShaderFilesTests(unittest.TestCase):
                 with self.subTest(backend=backend):
                     source = (ROOT / "code" / backend / "tr_shader.c").read_text(encoding="utf-8")
                     fixture = Path(folder) / "collection.cpp"
-                    executable = Path(folder) / ("collection.exe" if os.name == "nt" else "collection")
+                    # One executable per build: Windows can hold the last one run.
+                    name = "collection-" + backend
+                    executable = Path(folder) / (name + ".exe" if os.name == "nt" else name)
                     body = function(source, "static int loadShaderBuffers(")
                     body += function(source, "static void ScanAndLoadShaderFiles(")
                     checks = CHECKS

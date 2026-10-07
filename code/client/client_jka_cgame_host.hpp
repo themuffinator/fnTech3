@@ -280,11 +280,11 @@ static bool CL_JKACgameCall(intptr_t *args, intptr_t &operation, intptr_t &resul
         if (args[2] == -1) {
             // The reset consumes no output buffer, including a null address.
             Com_DPrintf("Academy entity token reset requested (261)\n");
-            result = re.GetEntityToken(nullptr, -1);
+            result = CL_GetEntityToken(nullptr, -1);
         } else {
             if (args[2] < 1 || args[2] > INT_MAX)
                 Com_Error(ERR_DROP, "Invalid Academy entity token buffer size");
-            result = re.GetEntityToken(static_cast<char *>(CL_JKACgameSpan(args[1],
+            result = CL_GetEntityToken(static_cast<char *>(CL_JKACgameSpan(args[1],
                 static_cast<std::size_t>(args[2]))), static_cast<int>(args[2]));
         }
         return true;

@@ -186,9 +186,11 @@ class STVEFSPCommandsTests(unittest.TestCase):
         sanitizer = [] if os.name == 'nt' else ['-fsanitize=address,undefined', '-fno-sanitize-recover=all']
         with tempfile.TemporaryDirectory(prefix='stvef-commands-') as folder:
             cpp = Path(folder) / 'probe.cpp'
-            exe = Path(folder) / ('probe.exe' if os.name == 'nt' else 'probe')
             cpp.write_text(harness)
             for flags in itertools.product((False, True), repeat=3):
+                # One executable per build: Windows can hold the last one run.
+                name = 'probe-' + ''.join('1' if on else '0' for on in flags)
+                exe = Path(folder) / (name + '.exe' if os.name == 'nt' else name)
                 defines = ['-D' + name for name, on in zip(('PRE_RELEASE_DEMO', 'USE_BANS', 'STANDALONE'), flags) if on]
                 built = subprocess.run([compiler, *compiler_target_args(compiler), '-std=c++17', '-O1',
                     '-D_CRT_SECURE_NO_WARNINGS', *sanitizer, *defines, '-I', str(ROOT), str(cpp), '-o', str(exe)],

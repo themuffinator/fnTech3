@@ -48,6 +48,10 @@ void VM_Call(vm_t *vm,int count,int event,int x,int y) {
  assert((vm==uivm && event==UI_MOUSE_EVENT) || (vm==cgvm && event==CG_MOUSE_EVENT));
  Record(event,x,y);
 }
+// The entity editor, closed: it takes no event and wants no pointer.
+int CL_EntityEditorMouseEvent(int,int) { return 0; }
+int CL_EntityEditorMouseAbsoluteEvent(int,int) { return 0; }
+int CL_EntityEditorPointerMask() { return 0; }
 '''
 
 CHECKS = r'''

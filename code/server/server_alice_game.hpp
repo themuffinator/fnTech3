@@ -2161,7 +2161,8 @@ typedef void ( QDECL *AliceSpawnEntities_t )( const char *name,
 char *aliceEntityText;
 
 const char *SV_AliceEntityText() {
-	const char *source = CM_EntityString();
+	// The level's text: a .ent override's when the server loaded one.
+	const char *source = SV_EntityText();
 	std::size_t length;
 
 	if ( aliceEntityText ) {

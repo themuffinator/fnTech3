@@ -431,10 +431,19 @@ void QDECL Q3CG_RenderScene( const void *native ) {
 	} else {
 		std::memcpy( &fd, native, 368 );
 	}
+	/* the status bar's head is a scene without the world; the entity
+	 * editor's view hides it with the rest of the HUD */
+	if ( ( fd.rdflags & RDF_NOWORLDMODEL ) && CL_EntityEditorActive() ) {
+		return;
+	}
+	CL_EntityEditorAdjustView( &fd );
 	re.RenderScene( &fd );
 }
 void QDECL Q3CG_SetColor( const float *rgba ) { re.SetColor( rgba ); }
 void QDECL Q3CG_DrawStretchPic( float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t shader ) {
+	if ( CL_EntityEditorActive() ) {
+		return;
+	}
 	re.DrawStretchPic( x, y, w, h, s1, t1, s2, t2, shader );
 }
 
@@ -450,12 +459,18 @@ void QDECL Q3CG_AdjustFrom640( float *x, float *y, float *w, float *h ) {
 	if ( h ) *h *= scale;
 }
 void QDECL Q3CG_FillRect( float x, float y, float w, float h, const float *color ) {
+	if ( CL_EntityEditorActive() ) {
+		return;
+	}
 	re.SetColor( color );
 	Q3CG_AdjustFrom640( &x, &y, &w, &h );
 	re.DrawStretchPic( x, y, w, h, 0, 0, 0, 0, cls.whiteShader );
 	re.SetColor( nullptr );
 }
 void QDECL Q3CG_DrawPic( float x, float y, float w, float h, qhandle_t shader ) {
+	if ( CL_EntityEditorActive() ) {
+		return;
+	}
 	Q3CG_AdjustFrom640( &x, &y, &w, &h );
 	re.DrawStretchPic( x, y, w, h, 0, 0, 1, 1, shader );
 }
@@ -469,7 +484,7 @@ int QDECL Q3CG_BigStringWidth( const char *s ) {
 }
 void Q3TestDrawBigChar( float x, float y, int ch ) {
 	ch &= 255;
-	if ( ch == ' ' ) return;
+	if ( ch == ' ' || CL_EntityEditorActive() ) return;
 	float w = 16, h = 16;
 	Q3CG_AdjustFrom640( &x, &y, &w, &h );
 	const float row = ( ch >> 4 ) * 0.0625f, col = ( ch & 15 ) * 0.0625f;

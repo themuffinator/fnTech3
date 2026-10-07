@@ -380,9 +380,11 @@ static void TraceCandidateTests() {
 	traceSelector=0;CandidateTrace();CHECK(candidateResult.trace.fraction==0.125f&&candidateResult.trace.entityNum==1&&candidateResult.trace.endpos[0]==5);
 	for(int selector:{1,2}) { traceSelector=selector;Reject(CandidateTrace,"Ghoul2 trace geometry is not served yet");CHECK(std::strstr(errorText,"candidate=1")); }
 	/* A nearer ordinary entity excludes a later nonwinning model box. A
-	 * later startsolid model still needs geometry even without a closer hit. */
+	 * later startsolid model still needs geometry even without a closer hit.
+	 * The cast is load-bearing: GCC's i686 x87 C++ keeps a bare 0.025f at long
+	 * double precision (FLT_EVAL_METHOD 2), not the float 0.1f*0.25f stored. */
 	areaEntities={2,1};entityTraces[2].fraction=0.1f;entityTraces[2].endpos[0]=1;
-	CandidateTrace();CHECK(candidateResult.trace.entityNum==2&&candidateResult.trace.fraction==0.025f);
+	CandidateTrace();CHECK(candidateResult.trace.entityNum==2&&candidateResult.trace.fraction==float(0.025f));
 	entityTraces[1].startsolid=qtrue;Reject(CandidateTrace,"Ghoul2 trace geometry");entityTraces[1].startsolid=qfalse;
 	areaEntities={1};
 	Entity(1).contents=1|0x40000;CandidateTrace();CHECK(candidateResult.trace.entityNum==1&&candidateResult.trace.fraction==0.125f);Entity(1).contents=1;
@@ -410,7 +412,7 @@ static void TraceCandidateTests() {
 	worldTrace.fraction=std::numeric_limits<float>::quiet_NaN();Reject(CandidateTrace,"collision result");worldTrace.fraction=0.25f;
 	/* Merge ordinary startsolid/allsolid without pretending model success. */
 	Entity(1).ghoul2_handle=0;areaEntities={2,1};entityTraces[1].startsolid=qtrue;
-	CandidateTrace();CHECK(candidateResult.trace.startsolid&&candidateResult.trace.entityNum==1&&candidateResult.trace.fraction==0.025f);
+	CandidateTrace();CHECK(candidateResult.trace.startsolid&&candidateResult.trace.entityNum==1&&candidateResult.trace.fraction==float(0.025f));
 	entityTraces[1].allsolid=qtrue;CandidateTrace();CHECK(candidateResult.trace.allsolid&&candidateResult.trace.entityNum==1);
 	areaEntities={1};clipDrop=true;Reject(CandidateTrace,"partial entity collision");
 	CHECK(jkaSpTempBoxContentsActive&&tempBoxContents==0x100);

@@ -120,7 +120,8 @@ class RTCWShaderTextTests(unittest.TestCase):
                 with self.subTest(renderer=renderer):
                     source = (ROOT / 'code' / renderer / 'tr_shader.c').read_text()
                     cpp = Path(temporary) / 'test.cpp'
-                    executable = Path(temporary) / ('test.exe' if os.name == 'nt' else 'test')
+                    # One executable per build: Windows can hold the last one run.
+                    executable = Path(temporary) / (renderer + '.exe' if os.name == 'nt' else renderer)
                     cpp.write_text(base + function(source, 'static int loadShaderBuffers(') + CHECKS)
                     build = subprocess.run([compiler, *flags, '-std=c++17', '-I', str(ROOT), str(cpp), '-o', str(executable)],
                                            cwd=ROOT, capture_output=True, text=True, timeout=60)

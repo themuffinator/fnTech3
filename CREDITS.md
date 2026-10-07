@@ -4,6 +4,15 @@
   maintained DEFLATE decoder used to load pak assets and PNG images. The
   inherited minizip archive frontend retains Gilles Vollant's attribution
   in `unzip.c`.
+- [SDL3](https://github.com/libsdl-org/SDL/tree/release-3.4.0), by Sam
+  Lantinga and the SDL contributors, under the zlib License and consumed
+  through `subprojects/sdl3.wrap` or a system package, supplies the window,
+  input and audio backend of client builds that use it, and the launcher's
+  window, input, folder dialogs and drawing. The launcher's interface is
+  built with the same pinned [Dear ImGui](https://github.com/ocornut/imgui)
+  core as the entity editor; its ImGui glue, game discovery and look are
+  independently authored, and ImGui's own SDL3 backends were consulted as
+  reference only.
 
 ## Project lineage
 
@@ -944,6 +953,15 @@ is matched against fnTech3's own inherited renderer code.
   by Lion (lieff), released under CC0 1.0 and consumed through
   `subprojects/minimp3.wrap`. The frame walker that reproduces retail
   unpacking sizes is independently authored.
+
+- The entity editor's interface is
+  [Dear ImGui](https://github.com/ocornut/imgui/tree/f1cc2ae15e53a861a874c3034aae6798fde194ab)
+  by Omar Cornut and its contributors, released under the MIT License and
+  consumed through `subprojects/imgui.wrap`; only its core and its
+  `std::string` helpers are built. Its embedded ProggyClean and ProggyForever
+  fonts are Tristan Grimmer's and Disco Hello's, under the MIT License. The
+  bridge that draws ImGui's triangles through the engine's renderers, and the
+  editor's panels, are independently authored.
 
 - Elite Force single-player movies use the user's installed Bink 1 runtime
   through an independently declared interface observed in that installation.

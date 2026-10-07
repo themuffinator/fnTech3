@@ -57,10 +57,11 @@ class CiRegressionWorkflowTests(unittest.TestCase):
         self.assertIn("--force-fallback-for=sdl3,fontstash", workflow)
         self.assertIn("-Dsdl=enabled", workflow)
         self.assertIn("meson-linux-sdl fntech3", workflow)
-        self.assertIn("Build CMake i686 dedicated server", workflow)
+        self.assertIn("Build every CMake i686 target", workflow)
         self.assertIn("-DCMAKE_C_FLAGS=-m32", workflow)
         self.assertIn("-DCMAKE_CXX_FLAGS=-m32", workflow)
-        self.assertIn("--target fntech3.ded", workflow)
+        self.assertNotIn("--target fntech3.ded", workflow)
+        self.assertIn("Run CMake i686 regression suite", workflow)
         self.assertNotIn("x86_64", workflow)
 
     def test_release_source_validation_uses_recursive_pytest_discovery(self) -> None:

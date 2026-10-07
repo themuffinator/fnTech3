@@ -197,7 +197,7 @@ static int win_x, win_y;
 static constexpr int kPointerMenuMask = KEYCATCH_UI | KEYCATCH_CGAME | KEYCATCH_BROWSER;
 static constexpr int kTextInputCatcherMask =
 	KEYCATCH_CONSOLE | KEYCATCH_UI | KEYCATCH_MESSAGE |
-	KEYCATCH_BROWSER;
+	KEYCATCH_BROWSER | KEYCATCH_ENTITYEDITOR;
 
 using fnql::input::PointerMode;
 using fnql::input::PointerOwner;
@@ -772,6 +772,8 @@ static PointerOwner IN_AbsolutePointerOwnerKind( void )
 	inputs.consoleMask = KEYCATCH_CONSOLE;
 	// Q3/RTCW modules share gameplay's relative pointer presentation.
 	inputs.menuMask = Com_GameIsQuakeLive() ? kPointerMenuMask : KEYCATCH_BROWSER;
+	// The entity editor takes absolute positions while it shows its pointer.
+	inputs.menuMask |= CL_EntityEditorPointerMask();
 	inputs.consoleUsesAbsolutePointer = IN_ConsoleUsesAbsolutePointer() ? true : false;
 
 	return fnql::input::ResolvePointerOwner( inputs );

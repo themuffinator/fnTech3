@@ -368,6 +368,7 @@ client_src = [
   'code/client/cl_cgame.cpp',
   'code/client/cl_cin.cpp',
   'code/client/cl_console.cpp',
+  'code/client/cl_entity_editor.cpp',
   'code/client/cl_fakk2_inventory.cpp',
   'code/client/cl_hud.cpp',
   'code/client/cl_input.cpp',
@@ -559,6 +560,19 @@ if fontstash_dep.found()
   renderer_deps += fontstash_dep
   # Static-renderer builds extract renderer objects into the client target.
   client_deps += fontstash_dep
+endif
+
+imgui_dep = dependency('', required: false)
+if build_client
+  # The entity editor's interface is Dear ImGui (MIT). The engine draws its
+  # triangles through the renderers' 2D quads, so only ImGui's core is built
+  # (subprojects/packagefiles/imgui).
+  imgui_dep = dependency('imgui',
+    version: '>=1.92.9',
+    required: true,
+    fallback: 'imgui',
+  )
+  client_deps += imgui_dep
 endif
 
 freetype_dep = dependency('', required: false)
@@ -1133,6 +1147,9 @@ endif
 
 client_c_args = common_c_args
 client_cpp_args = engine_cpp_args
+if imgui_dep.found()
+  client_cpp_args += ['-DFNTECH3_ENTITY_EDITOR_UI']
+endif
 if linux and build_client and not use_sdl
   client_cpp_args += ['-DUSE_JOYSTICK']
 endif
@@ -1206,6 +1223,99 @@ audiozonesc = executable('fnql-audiozonesc',
   install_dir: '.',
 )
 runtime_build_targets += audiozonesc
+
+# The launcher (code/launcher, docs/LAUNCHER.md): a window that finds the
+# player's game installations and starts this build's client for one of them
+# with an explicit profile and installation. It draws with SDL3 and Dear
+# ImGui, so it looks SDL3 up for itself even when the client uses its native
+# window backend (-Dsdl=disabled). Its core -- discovery, settings and the
+# engine command line -- is tested without either library below.
+launcher_core_src = files(
+  'code/launcher/launcher_catalog.cpp',
+  'code/launcher/launcher_discovery.cpp',
+  'code/launcher/launcher_fs.cpp',
+  'code/launcher/launcher_json.cpp',
+  'code/launcher/launcher_launch.cpp',
+  'code/launcher/launcher_settings.cpp',
+  'code/launcher/launcher_vdf.cpp',
+)
+launcher_cpp_args = engine_cpp_args + [
+  '-DFNTECH3_LAUNCHER_CLIENT_NAME="' + client_binary_name + '"',
+  '-DFNTECH3_LAUNCHER_SERVER_NAME="' + server_binary_name + '"',
+]
+launcher_opt = get_option('launcher')
+build_launcher = false
+if build_client and not launcher_opt.disabled()
+  launcher_imgui_dep = dependency('imgui',
+    version: '>=1.92.9',
+    required: launcher_opt,
+    fallback: 'imgui',
+  )
+  launcher_sdl_dep = sdl_dep
+  if not launcher_sdl_dep.found()
+    launcher_sdl_dep = dependency('sdl3',
+      version: '>=3.2.0',
+      required: launcher_opt,
+      fallback: 'sdl3',
+      default_options: quiet_fallback_defaults,
+    )
+  endif
+  build_launcher = launcher_imgui_dep.found() and launcher_sdl_dep.found()
+elif launcher_opt.enabled()
+  error('The launcher starts the client, so it needs -Dbuild-client=true')
+endif
+if build_launcher
+  launcher_resource_src = []
+  if win32 and rc_prog.found()
+    launcher_resource_deps = files(
+      'code/launcher/launcher.rc',
+      'code/win32/q3.manifest',
+      'assets/icons/fntech3.ico',
+      'version/fntech3_version.h',
+    )
+    if rc_prog.full_path().to_lower().contains('windres')
+      launcher_resource_src = custom_target('launcher_resource',
+        input: 'code/launcher/launcher.rc',
+        output: 'launcher_resource.o',
+        depend_files: launcher_resource_deps,
+        command: [rc_prog, '-i', '@INPUT@', '-o', '@OUTPUT@', '--include-dir', meson.project_source_root()],
+      )
+    else
+      launcher_resource_src = custom_target('launcher_resource',
+        input: 'code/launcher/launcher.rc',
+        output: 'launcher_resource.res',
+        depend_files: launcher_resource_deps,
+        command: [rc_prog, '/fo', '@OUTPUT@', '/I', meson.project_source_root(), '@INPUT@'],
+      )
+    endif
+  endif
+  launcher_exe = executable('fntech3-launcher' + binary_suffix,
+    launcher_core_src + launcher_resource_src + files(
+      'code/launcher/launcher_app.cpp',
+      'code/launcher/launcher_fonts.cpp',
+      'code/launcher/launcher_imgui_sdl.cpp',
+      'code/launcher/launcher_main.cpp',
+      'code/launcher/launcher_widgets.cpp',
+      'code/platform/game_icon_data.cpp',
+      'code/qcommon/game_profile.cpp',
+      'code/qcommon/puff.c',
+    ),
+    include_directories: include_directories('code/qcommon'),
+    dependencies: [launcher_sdl_dep, launcher_imgui_dep, thread_dep],
+    c_args: common_c_args,
+    cpp_args: launcher_cpp_args,
+    link_args: link_args,
+    win_subsystem: win32 ? 'windows' : 'console',
+    install: true,
+    install_dir: '.',
+  )
+  runtime_build_targets += launcher_exe
+  if linux
+    install_data('assets/icons/fntech3-launcher.desktop', install_dir: get_option('datadir') / 'fntech3')
+  endif
+elif not launcher_opt.disabled() and build_client
+  message('The launcher is not built: it needs Dear ImGui (subprojects/imgui.wrap) and SDL3.')
+endif
 
 stock_ql_maps_result = run_command(
   python,
@@ -1995,6 +2105,17 @@ test('fntech3_application_icons', application_icon_tests,
     meson.current_source_dir() / 'assets/icons/games'],
 )
 
+# The launcher's core alone: settings, Steam's files, the engine probe over
+# synthetic installations and the command line it starts the client with.
+launcher_core_tests = executable('fntech3_launcher_core_tests',
+  'tests/launcher_core_tests.cpp',
+  launcher_core_src,
+  'code/qcommon/game_profile.cpp',
+  include_directories: include_directories('code/qcommon'),
+  cpp_args: launcher_cpp_args,
+)
+test('fntech3_launcher_core', launcher_core_tests)
+
 test('fnql_ql_font_source', python,
   args: files('tests/ql_font_source_tests.py'),
 )
@@ -2139,6 +2260,19 @@ test('fnql_server_cvar_compat', server_cvar_compat_tests)
 test('fnql_server_cvar_compat_source', python,
   args: files('tests/server_cvar_compat_source_tests.py'),
 )
+
+if imgui_dep.found()
+  entity_editor_tests = executable('fntech3_entity_editor_tests',
+    'tests/entity_editor_tests.cpp',
+    cpp_args: common_cpp_args,
+    dependencies: imgui_dep,
+  )
+  test('fntech3_entity_editor', entity_editor_tests)
+endif
+test('fntech3_entity_override', python,
+  args: files('tests/entity_override_tests.py'),
+)
+
 test('fnql_spawn_view_angle_source', python,
   args: files('tests/spawn_view_angle_source_tests.py'),
 )

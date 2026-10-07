@@ -81,7 +81,8 @@ meson test -C meson/build
 
 Meson uses system libraries first, then the wrap files under `subprojects/`
 for SDL3, OpenAL headers, libcurl, libjpeg-turbo, Ogg/Vorbis, FreeType, zlib,
-minimp3 and FontStash when fallback downloads are allowed. Use `--wrap-mode=nofallback` for
+minimp3, FontStash and Dear ImGui (the entity editor's interface) when fallback
+downloads are allowed. Use `--wrap-mode=nofallback` for
 a system-only build, or `--wrap-mode=forcefallback` to exercise the subproject
 path. Do not add private in-tree copies of third-party libraries; the wraps own
 the bundled fallbacks.
@@ -99,6 +100,7 @@ suite alone runs with `python -m pytest tests`.
 | `-Drenderers=glx,vk,rtx` | all three | Which renderer modules to build; valid entries are exactly `glx`, `vk` and `rtx`. |
 | `-Drenderer-default=glx\|vk\|rtx` | `glx` | The default `\cl_renderer`, or the linked renderer when `renderer-dlopen=false`. |
 | `-Dsdl=auto\|enabled\|disabled` | `auto` | Use SDL3 for video, input and audio output. |
+| `-Dlauncher=auto\|enabled\|disabled` | `auto` | Build `fntech3-launcher`, which finds game installations and starts the client (see the [Launcher Guide](docs/LAUNCHER.md)). It needs Dear ImGui and SDL3 and takes SDL3 from `subprojects/sdl3.wrap` even when `-Dsdl=disabled`; the client is unaffected. Requires `build-client`. |
 | `-Dcurl=auto\|enabled\|disabled` | `auto` | cURL download support. |
 | `-Dcurl-dlopen=auto\|true\|false` | `auto` | Resolve cURL at runtime; `auto` links it on Windows and loads it at runtime elsewhere. |
 | `-Dsystem-jpeg=true\|false` | `false` | Require the system JPEG library instead of allowing the libjpeg-turbo fallback. |
@@ -568,7 +570,7 @@ and Python. At run time the client loads OpenAL from `soft_oal.dll` or
 Copy the binaries from the `build` directory, or stage them with
 `make install DESTDIR=<output folder>`. Install into a folder of your own, not
 into a game installation. Before the first Make build from a clean checkout,
-run `meson subprojects download fontstash minimp3` (see
+run `meson subprojects download fontstash minimp3 imgui` (see
 [Make and CMake](#make-and-cmake)).
 
 ## Linux
@@ -679,7 +681,7 @@ sudo apt install gcc-multilib g++-multilib make python3 pkg-config \
   libogg-dev:i386 libopenal-dev:i386 libvorbis-dev:i386 libx11-dev:i386 \
   libxrandr-dev:i386 libxxf86dga-dev:i386 libxxf86vm-dev:i386 \
   mesa-common-dev:i386
-meson subprojects download fontstash minimp3
+meson subprojects download fontstash minimp3 imgui
 make -j"$(nproc)" release ARCH=x86 COMPILE_ARCH=x86 USE_SDL=0 \
   USE_RENDERER_DLOPEN=1 USE_GLX=1 USE_VK=1 USE_RTX=1
 make install ARCH=x86 COMPILE_ARCH=x86 USE_SDL=0 DESTDIR="$PWD/.tmp/linux-x86/"
@@ -698,13 +700,19 @@ The legacy Makefile and CMake inputs remain available while CI and packaging
 finish migrating; new local work should prefer Meson. The Visual Studio
 solution is a frontend for the Meson graph, not a separate source list.
 
-Make and CMake use the same pinned FontStash and minimp3 sources owned by
-`subprojects/fontstash.wrap` and `subprojects/minimp3.wrap`. Before the first
-Make or CMake build from a clean checkout, fetch them with
-`meson subprojects download fontstash minimp3`; CMake's default
+Make and CMake use the same pinned FontStash, minimp3 and Dear ImGui sources
+owned by `subprojects/fontstash.wrap`, `subprojects/minimp3.wrap` and
+`subprojects/imgui.wrap`. Before the first Make or CMake build from a clean
+checkout, fetch them with
+`meson subprojects download fontstash minimp3 imgui`; CMake's default
 `USE_SYSTEM_JPEG=OFF` also needs `meson subprojects download libjpeg-turbo`.
 Client builds fail at configuration time if a dependency is unavailable; they
 never substitute the incomplete host-font stubs.
+
+CMake also builds `fntech3-launcher` wherever it finds SDL3 (CMake uses SDL3
+on Linux and macOS); `-DBUILD_LAUNCHER=OFF` leaves it out, and
+`fntech3_launcher_core_tests` runs under `ctest` either way. The Makefile
+does not build the launcher.
 
 FreeType, which Meson requires for clients, is detected rather than required
 by Make and CMake: a client build rasterizes TrueType fonts and Quake Live's

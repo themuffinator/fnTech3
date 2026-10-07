@@ -184,7 +184,8 @@ remain for historical local snapshots only.
 ## CI Notes
 
 [`.github/workflows/linux-verification.yml`](../../.github/workflows/linux-verification.yml)
-runs the configured Meson regression suite for pull requests.
+runs the configured Meson regression suite for pull requests, then builds
+every CMake target for Linux i686 and runs its `ctest` suite.
 [`.github/workflows/release.yml`](../../.github/workflows/release.yml) validates
 `main` and builds tagged draft prereleases, running the Python source suite and
 the Meson suites for both Windows x86 builds and Linux i686.

@@ -3949,7 +3949,7 @@ GetRefAPI
 @@@@@@@@@@@@@@@@@@@@@
 */
 static void RE_GetTextureCapabilities( float *anisotropy, qboolean *clamp ) {
-#ifdef USE_VULKAN_API
+#ifdef USE_VULKAN
 	if ( anisotropy ) *anisotropy = vk.samplerAnisotropy ? vk.maxAnisotropy : 0.0f;
 	if ( clamp ) *clamp = qtrue;
 #else

@@ -321,9 +321,12 @@ class RuntimeMdrTests(unittest.TestCase):
             with tempfile.TemporaryDirectory(prefix='runtime-mdr-', dir=scratch) as folder:
                 path = Path(folder)
                 source = path / 'runtime.c'
-                executable = path / ('runtime.exe' if os.name == 'nt' else 'runtime')
                 source.write_text(fixture, encoding='utf-8')
                 for fast_math in (False, True):
+                    # Each build links its own executable: Windows can keep the
+                    # one just run locked, so relinking it fails with LNK1104.
+                    name = 'runtime-fast' if fast_math else 'runtime'
+                    executable = path / (name + '.exe' if os.name == 'nt' else name)
                     with self.subTest(backend=backend, fast_math=fast_math):
                         args = [compiler, '-std=c11', '-Wall', '-Wextra', '-Werror', '-O2',
                             *compiler_target_args(compiler), '-I', str(ROOT), str(source), '-o', str(executable)]

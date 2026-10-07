@@ -99,7 +99,7 @@ inline bool CL_RTCWRenderCall( vm_t *vm, fntech3::rtcw::module::Call call,
 		if ( !destination ) Com_Error( ERR_DROP, "Invalid RTCW entity token pointer" );
 		char token[MAX_TOKEN_CHARS]{};
 		const int capacity = args[2] < MAX_TOKEN_CHARS ? static_cast<int>( args[2] ) : MAX_TOKEN_CHARS;
-		result = re.GetEntityToken( token, capacity );
+		result = CL_GetEntityToken( token, capacity );
 		token[capacity - 1] = '\0';
 		std::memcpy( destination, token, std::strlen( token ) + 1 );
 		return true;
@@ -191,6 +191,7 @@ inline bool CL_RTCWRenderCall( vm_t *vm, fntech3::rtcw::module::Call call,
 		refdef_t view = CL_ModuleRefdef( vm, args[1] );
 		if ( call == Call::CG_R_RENDERSCENE ) {
 			CL_HudAdjustRefdef( &view );
+			CL_EntityEditorAdjustView( &view );
 		} else {
 			view.rdflags |= RDF_NOFOVCORRECTION;
 		}

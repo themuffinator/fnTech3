@@ -85,6 +85,11 @@ option('sdl',
   value: 'auto',
   description: 'SDL3 video, input, and audio backend')
 
+option('launcher',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build fntech3-launcher, which finds game installations and starts the client (needs SDL3 and Dear ImGui)')
+
 option('curl',
   type: 'feature',
   value: 'auto',

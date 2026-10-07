@@ -20,6 +20,17 @@ historical upstream records, not fnTech3 release history. See the
   IHV Test and the Q3Test releases are experimental profiles that start only
   in developer builds. Supply a legitimate installation of the selected game
   ([Games Guide](docs/GAMES.md)).
+- Find and start your games with `fntech3-launcher`. It looks in every Steam
+  library (Flatpak and Snap too), GOG Galaxy and GOG installers, Heroic and
+  Lutris, the registrations disc installers leave, Wine prefixes and the usual
+  game folders, and lists each installation the engine itself recognizes with
+  its game icon, its store and its folder; the player can add any other
+  folder, or drop it on the window. Play starts the client beside the
+  launcher with the installation's profile and folder named explicitly, in
+  the chosen single-player or multiplayer mode and with a mod and extra
+  command line if set. Games this build cannot start are listed apart with the
+  reason. Built with SDL3 and Dear ImGui (Meson option `launcher`, on by
+  default; CMake `BUILD_LAUNCHER`) ([guide](docs/LAUNCHER.md)).
 - Path trace the main view with the RTX renderer's `rtx_rt_mode 2`. The world,
   posed models and the first-person weapon are traced with their shader
   stages as authored and lit by the level's own lights in place of its
@@ -58,6 +69,28 @@ historical upstream records, not fnTech3 release history. See the
   experimental controls, among them `rtx_rt_dynamic_blas`,
   `rtx_rt_material_heuristics`, `rtx_rt_raster_reference` and the exposure,
   temporal and quality-preset cvars ([guide](docs/RTX.md)).
+- Edit a map's entities inside the game, in every game fnTech3 runs.
+  `entityeditor` opens a free camera over the running map with every entity
+  drawn where it stands -- the nearest as boxes coloured by kind, the rest as
+  dots, with classnames, facing arrows, brush-model bounds and lines to the
+  entities each targets -- under a [Dear ImGui](https://github.com/ocornut/imgui)
+  interface drawn by the game's own renderer: a menu bar, a filterable entity
+  list and a panel of the selected entity's keys. Entities are selected with
+  the mouse, several at once with Ctrl or Shift or by dragging a box over
+  them, then dragged or moved along axis handles, nudged, turned, dropped to
+  the floor, made, duplicated, deleted and re-keyed together, and copied and
+  pasted as text between maps, with undo and redo, and every action is also
+  a console command. Saving writes the map's entity override,
+  `maps/<map>.ent`; Apply saves and restarts the level so the game spawns the
+  edits, loading the map again when the entities to spawn changed. The
+  server now loads `maps/<map>.ent` in place of a
+  BSP's entities in every profile (`sv_entityOverrides`, on by default), after
+  checking it as the games read entity text and falling back to the BSP's with
+  the reason when a game would refuse it; the game module, its bots and, on a
+  listen server, the client game all read the same text. Quake Live's
+  `sv_altEntDir` still comes first. `sv_saveentfile` writes the running
+  level's entities as a starting file ([guide](docs/ENTITY_EDITOR.md),
+  [record](docs/fntech3/2026-10-05-entity-editor.md)).
 
 ### Compatibility
 
@@ -2178,6 +2211,27 @@ historical upstream records, not fnTech3 release history. See the
   navigation graph and the Ghoul2 server declarations had used constructs
   MSVC accepts and GCC refuses; the i686 client (meson) and dedicated
   server (make and CMake) now build from an unmodified tree.
+- Find game files on Linux file systems with 64-bit inode numbers, such as
+  WSL's drvfs mounts, XFS, btrfs and NFS. The Makefile, which builds the
+  Linux release, and CMake now enable large-file support as Meson always
+  has; without it the 32-bit engine's directory listing stopped with
+  `EOVERFLOW`, and a dedicated server reading the Steam Quake III
+  installation through `/mnt/c` found no paks
+  ([record](docs/fntech3/2026-10-05-make-large-files.md)).
+- Build every CMake target for Linux i686, not only the dedicated server
+  that CI built. Under CMake the Vulkan and RTX renderers no longer compile
+  code written for OpenGL, the bundled libjpeg-turbo takes the build's
+  `-m32` instead of coming out 64-bit and stopping the client's link, and a
+  Jedi Academy test finds its header; a test that compared a float with a
+  literal GCC keeps at x87 precision now passes
+  ([record](docs/fntech3/2026-10-05-cmake-i686-full-build.md)).
+- Build every CMake target in Linux CI and run its tests. The Linux
+  workflow's CMake step built the dedicated server alone; it now builds the
+  client, the server, the three renderer modules and the tests, checks that
+  each binary is 32-bit x86, and runs `ctest`. Both of the workflow's jobs,
+  Meson and Make, also install the i386 zlib development package, without
+  which each had stopped at its first build
+  ([record](docs/fntech3/2026-10-05-cmake-i686-full-build.md)).
 
 ### Documentation and Tooling
 

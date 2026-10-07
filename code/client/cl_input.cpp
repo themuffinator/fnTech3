@@ -885,6 +885,8 @@ CL_MouseEvent
 void CL_MouseEvent( int dx, int dy /*, int time*/ ) {
 	if ( Key_GetCatcher() & KEYCATCH_CONSOLE ) {
 		Con_MouseEvent( dx, dy );
+	} else if ( CL_EntityEditorMouseEvent( dx, dy ) ) {
+		return;
 	} else if ( Key_GetCatcher() & KEYCATCH_BROWSER ) {
 		// SE_MOUSE carries relative motion. An absolute owner may have been
 		// selected by an earlier queued key event (for example Escape) after the
@@ -969,6 +971,8 @@ before queueing this event.
 void CL_MouseAbsoluteEvent( int x, int y ) {
 	if ( Key_GetCatcher() & KEYCATCH_CONSOLE ) {
 		Con_SetMousePos( x, y );
+	} else if ( CL_EntityEditorMouseAbsoluteEvent( x, y ) ) {
+		return;
 	} else if ( Key_GetCatcher() & KEYCATCH_BROWSER ) {
 		CL_WebView_OnMouseMove( x, y );
 	} else if ( !Com_GameIsQuakeLive() ) {

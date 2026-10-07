@@ -743,6 +743,7 @@ void QDECL CL_AliceRenderScene( const fntech3_alice_refdef_t *fd ) {
 		VectorCopy( fd->sky_axis[i], alice.skyAxis[i] );
 	}
 	alice.keepDepth = fd->keepDepth ? qtrue : qfalse;
+	CL_EntityEditorAdjustView( &view );
 	re.RenderScene( &view );
 }
 

@@ -98,7 +98,9 @@ class JKAMapChangeExportTests(unittest.TestCase):
                 target = ['-m32']
             for dedicated in (False, True):
                 with self.subTest(dedicated=dedicated):
-                    executable = folder / ('probe.exe' if os.name == 'nt' else 'probe')
+                    # One executable per build: Windows can hold the last one run.
+                    name = 'probe-dedicated' if dedicated else 'probe'
+                    executable = folder / (name + '.exe' if os.name == 'nt' else name)
                     flags = ['-DUSE_DEDICATED'] if dedicated else []
                     build = subprocess.run([compiler, *target, *flags, '-std=c11', '-I', str(ROOT),
                                             '-I', str(ROOT / 'code/qcommon'), str(fixture), '-o', str(executable)],

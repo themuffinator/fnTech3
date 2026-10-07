@@ -5783,8 +5783,8 @@ void Con_DrawConsole( void ) {
 		Con_DrawSolidConsole( con.displayFrac );
 	} else {
 		// Draw the notify lines and chat line, or Quake Live's retail live
-		// chat-entry overlay.
-		if ( Con_NotifyDrawn() ) {
+		// chat-entry overlay; the entity editor shows its own status line.
+		if ( Con_NotifyDrawn() && !CL_EntityEditorActive() ) {
 			Con_DrawNotify();
 		}
 	}

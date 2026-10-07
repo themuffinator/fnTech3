@@ -76,6 +76,10 @@ file, such as `q3config_server.cfg` for Quake III Arena and Quake Live,
 
 ## Choosing the game
 
+The [launcher](LAUNCHER.md) does all of this for you: it finds each game you
+have installed and starts it with its profile and folder already named. This
+section explains what it passes, for shortcuts and the command line.
+
 ### Naming the profile
 
 Name the game with `com_gameProfile`, and its installation folder with
@@ -144,6 +148,9 @@ To play a different game, quit and start fnTech3 again with that game named.
     another.
 - **`fs_game`** starts a mod: a folder inside the game's installation, as in
   the original games.
+- **Entity overrides.** A map's `maps/<map>.ent` file is read like any other
+  game file -- from the home folder or a `.pk3` -- and the entity editor saves
+  it into your home folder ([Entity Editor Guide](ENTITY_EDITOR.md)).
 
 Give each game its own home folder, and the original installation stays
 exactly as it was:
@@ -181,6 +188,9 @@ maps, models and sounds:
   ([Console guide](CONSOLE.md));
 - better screenshots, map previews and cube maps
   ([Screenshots guide](SCREENSHOTS.md));
+- an in-game entity editor, and `maps/<map>.ent` entity overrides that every
+  game's server loads in place of the map's own entities
+  ([Entity Editor Guide](ENTITY_EDITOR.md));
 - widescreen field of view and HUD correction for every game made for 4:3
   screens -- all of them except Quake Live, which handles widescreen itself,
   and Medal of Honor's HUD, which places itself
@@ -637,6 +647,8 @@ against the original game. See the
 
 - [Getting Started](GETTING_STARTED.md) for setting fnTech3 up, the console
   and settings files.
+- [Launcher Guide](LAUNCHER.md) for finding your games and starting them with
+  a click.
 - [Build Guide](../BUILD.md) for compiling a development build with the
   experimental games.
 - [Compatibility ledger](fntech3/COMPATIBILITY.md) for every test and what is

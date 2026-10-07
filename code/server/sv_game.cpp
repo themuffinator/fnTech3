@@ -27,6 +27,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "server_jka_snapshot.hpp"
 
 #include "../botlib/botlib.h"
+#include "../qcommon/cm_game_contract.h"
+#include "../qcommon/entity_text.hpp"
 #include "../compat/alice_module_abi.h"
 #include "../compat/game_abi_adapter.h"
 #include "../compat/rtcw_module_abi.h"
@@ -57,6 +59,12 @@ botlib_export_t	*botlib_export;
 namespace {
 
 std::string serverEntityOverride;
+/* The override file serverEntityOverride came from; empty for the BSP's. */
+std::string serverEntityOverridePath;
+/* What SelectServerEntityString chose for the running level, until the game
+ * shuts down: serverEntityOverride's text, or the collision map's. */
+const char *serverEntityText = nullptr;
+int serverEntityTextGeneration = 0;
 fntech3::server::ServerGameDataView serverGameData;
 
 struct ServerFlagMapping { uint32_t external, internal; };
@@ -266,9 +274,107 @@ std::string CurrentEntityMapName()
 	return mapName.data();
 }
 
+/* The running map as its BSP is named under maps/, less the extension: the
+ * map command's name, without the spawn target Alice and F.A.K.K.2 name
+ * after a `$` (SV_SpawnServer). Directories stay, as Medal of Honor's
+ * multiplayer maps keep theirs. */
+std::string CurrentEntityMapPath()
+{
+	std::string map = sv_mapname ? sv_mapname->string : Cvar_VariableString( "mapname" );
+	if ( Com_GameIsRitual() ) {
+		const std::size_t target = map.find( '$' );
+		if ( target != std::string::npos ) {
+			map.resize( target );
+		}
+	}
+	for ( char &character : map ) {
+		if ( character == '\\' ) {
+			character = '/';
+		}
+	}
+	if ( map.size() > 4 && !Q_stricmp( map.c_str() + map.size() - 4, ".bsp" ) ) {
+		map.resize( map.size() - 4 );
+	}
+	return map;
+}
+
+/* maps/<map>.ent, beside the map's BSP, each part of the name checked as
+ * an sv_altEntDir path is. */
+std::optional<std::string> EntityOverrideFileFor( const std::string &map )
+{
+	std::string directory = "maps";
+	std::string base = map;
+	const std::size_t slash = map.find_last_of( '/' );
+	if ( slash != std::string::npos ) {
+		directory += '/';
+		directory.append( map, 0, slash );
+		base = map.substr( slash + 1 );
+	}
+	return fnql::server::cvars::BuildEntityFilePath( directory, base, MAX_QPATH );
+}
+
+/*
+sv_entityOverrides: a map's maps/<map>.ent in place of the entities its BSP
+holds. Unlike Quake Live's retail sv_altEntDir, which hands its file to the
+game module as it stands, this override is read first as a Quake III-line
+game module reads entity text (entity_text.hpp), and text the module would
+stop the level over is set aside for the BSP's, with the reason. Quake III's
+advertisement-to-func_static rewrite applies to it as to the BSP's text.
+*/
+bool LoadMapEntityOverride( const std::string &path )
+{
+	void *fileData = nullptr;
+	const int fileLength = FS_ReadFile( path.c_str(), &fileData );
+	if ( fileLength < 0 || !fileData ) {
+		Com_DPrintf( "No entity override found at %s; using BSP entities.\n", path.c_str() );
+		return false;
+	}
+	const auto release = SV_MakeScopeExit( [fileData]() { FS_FreeFile( fileData ); } );
+	const char *bytes = static_cast<const char *>( fileData );
+	const std::size_t length = static_cast<std::size_t>( fileLength );
+	if ( std::memchr( bytes, '\0', length ) ) {
+		Com_Printf( S_COLOR_YELLOW "Ignored %s because its entity text contains an embedded NUL.\n",
+			path.c_str() );
+		return false;
+	}
+	const fntech3::entities::ParseResult parsed =
+		fntech3::entities::Parse( std::string_view( bytes, length ) );
+	if ( !parsed.ok ) {
+		Com_Printf( S_COLOR_YELLOW "Ignored %s, line %d: %s. Using the BSP's entities.\n",
+			path.c_str(), parsed.errorLine, parsed.error.c_str() );
+		return false;
+	}
+	if ( parsed.entities.empty()
+		|| !fntech3::entities::EqualsNoCase( parsed.entities.front().Classname(), "worldspawn" ) ) {
+		Com_Printf( S_COLOR_YELLOW "Ignored %s because its first entity is not the worldspawn. "
+			"Using the BSP's entities.\n", path.c_str() );
+		return false;
+	}
+	serverEntityOverride.assign( length + 1, '\0' );
+	const int copied = CM_CopyEntityStringForGame( Com_GameProfile()->id, bytes, fileLength,
+		&serverEntityOverride[0] );
+	serverEntityOverride.resize( static_cast<std::size_t>( copied ) );
+	serverEntityOverridePath = path;
+	Com_Printf( "Loaded entity override %s (%d bytes, %d entities).\n", path.c_str(), fileLength,
+		static_cast<int>( parsed.entities.size() ) );
+	return true;
+}
+
+/* The level's entity text is gone with its game, and its collision map's
+ * with it. */
+void ForgetServerEntityText()
+{
+	serverEntityOverride.clear();
+	serverEntityOverridePath.clear();
+	serverEntityText = nullptr;
+	serverEntityTextGeneration++;
+}
+
 const char *SelectServerEntityString()
 {
 	serverEntityOverride.clear();
+	serverEntityOverridePath.clear();
+	serverEntityText = nullptr;
 	const char *selected = CM_EntityString();
 	if ( !selected ) selected = "";
 	const std::string mapName = CurrentEntityMapName();
@@ -294,6 +400,7 @@ const char *SelectServerEntityString()
 				else {
 					serverEntityOverride.assign( bytes,
 						static_cast<std::size_t>( fileLength ) );
+					serverEntityOverridePath = *overridePath;
 					selected = serverEntityOverride.c_str();
 					Com_Printf( "Loaded entity override %s (%d bytes).\n",
 						overridePath->c_str(), fileLength );
@@ -304,6 +411,18 @@ const char *SelectServerEntityString()
 				Com_DPrintf( "No entity override found at %s; using BSP entities.\n",
 					overridePath->c_str() );
 			}
+		}
+	}
+
+	// Quake Live's own directory, when it holds a file for the map, comes
+	// first, as retail reads nothing else.
+	if ( serverEntityOverridePath.empty() && sv_entityOverrides && sv_entityOverrides->integer ) {
+		const std::string mapPath = CurrentEntityMapPath();
+		const auto overridePath = EntityOverrideFileFor( mapPath );
+		if ( !overridePath ) {
+			Com_DPrintf( "No safe entity override path for map %s.\n", mapPath.c_str() );
+		} else if ( LoadMapEntityOverride( *overridePath ) ) {
+			selected = serverEntityOverride.c_str();
 		}
 	}
 
@@ -321,10 +440,45 @@ const char *SelectServerEntityString()
 		}
 	}
 
+	serverEntityText = selected;
+	serverEntityTextGeneration++;
 	return selected;
 }
 
 } // namespace
+
+const char *SV_EntityText( void ) {
+	if ( serverEntityText ) {
+		return serverEntityText;
+	}
+	// A level still loading has its BSP's text and no override yet.
+	const char *text = sv.state != SS_DEAD ? CM_EntityString() : nullptr;
+	return text ? text : "";
+}
+
+const char *SV_EntityOverridePath( void ) {
+	return serverEntityText ? serverEntityOverridePath.c_str() : "";
+}
+
+int SV_EntityTextGeneration( void ) {
+	return serverEntityTextGeneration;
+}
+
+qboolean SV_EntityOverrideFile( char *path, int size ) {
+	if ( !path || size <= 0 ) {
+		return qfalse;
+	}
+	path[0] = '\0';
+	if ( sv.state == SS_DEAD ) {
+		return qfalse;
+	}
+	const auto file = EntityOverrideFileFor( CurrentEntityMapPath() );
+	if ( !file || file->size() >= static_cast<std::size_t>( size ) ) {
+		return qfalse;
+	}
+	Q_strncpyz( path, file->c_str(), size );
+	return qtrue;
+}
 
 // these functions must be used instead of pointer arithmetic, because
 // the game allocates gentities with private information after the server shared part
@@ -3159,7 +3313,7 @@ void SV_ShutdownGameProgs( void ) {
 		if ( Com_GameIsQuake3IHV() ) SV_IHVClearGame();
 		wolfETTagFiles.clear();
 		InvalidateServerGameData();
-		serverEntityOverride.clear();
+		ForgetServerEntityText();
 		SV_ResetGameCvarRegistration();
 		return;
 	}
@@ -3168,7 +3322,7 @@ void SV_ShutdownGameProgs( void ) {
 	InvalidateServerGameData();
 	VM_Free( gvm );
 	gvm = nullptr;
-	serverEntityOverride.clear();
+	ForgetServerEntityText();
 	SV_ResetGameCvarRegistration();
 	FS_VM_CloseFiles( H_QAGAME );
 }

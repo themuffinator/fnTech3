@@ -102,6 +102,10 @@ Workshop features belong to Quake Live alone.
   game at a time and follows that game's own rules -- its game code, online
   play, demos and saved games -- so every game plays like itself. Games with
   separate single-player and multiplayer modes switch by restarting.
+- **A launcher that finds your games** -- it looks in Steam, GOG, Heroic,
+  Lutris, disc installs and the usual game folders, lists every installation
+  with its icon, store and folder, and starts the one you click, in the mode
+  and with the mod you choose.
 - **Fast, modern hardware rendering** -- three renderers in every game,
   **GLx**, **Vulkan** and **RTX**, built to make the most of today's graphics
   cards. RTX ray traces each map with light from its own lamps, sky and sun.
@@ -128,6 +132,9 @@ Workshop features belong to Quake Live alone.
   smoothly, suggests commands and copies and pastes; widescreen view and HUD
   for every game made for 4:3 screens; silence when you switch away; and less
   work for your computer in the background.
+- **In-game entity editor** -- move, add, copy, delete and change a map's
+  objects in the game, with undo, and save them as a `maps/<map>.ent` file
+  that the server loads in place of the map's own, in every game.
 - **Better screenshots, video and streaming tools** -- PNG, JPEG, TGA and BMP
   screenshots, copying to the clipboard, your own file names, camera notes,
   map previews, watermarks, cube maps, any resolution, and video recording
@@ -159,8 +166,14 @@ Upgrade the program and `fntech3-pkg.fnz` together.
 
 ### Starting a game
 
-If exactly one supported game is installed through Steam, just run
-`${executable_basename}.exe`. Otherwise name the game and its folder -- and,
+The simplest way is the launcher: run `${executable_basename}-launcher.exe`. It
+finds your games in Steam, GOG and the usual game folders, lists each with its
+icon, where it came from and its folder, and starts the one you click; the
+[Launcher Guide](docs/LAUNCHER.md) explains it.
+
+Without the launcher: if exactly one supported game is installed through
+Steam, just run `${executable_basename}.exe`. Otherwise name the game and its
+folder -- and,
 to keep its settings apart from the original game's, a home folder of its
 own. These examples start in a window:
 
@@ -209,6 +222,8 @@ The [documentation index](docs/README.md) lists everything. The main entries:
 
 - [Getting Started](docs/GETTING_STARTED.md) for installing, starting your
   first game, the console and settings files.
+- [Launcher Guide](docs/LAUNCHER.md) for the window that finds your games and
+  starts them.
 - [Games Guide](docs/GAMES.md) for every game, what you need, playing online
   and what works today.
 - [Graphics Guide](docs/DISPLAY.md) for window and fullscreen, smoother
@@ -227,6 +242,8 @@ The [documentation index](docs/README.md) lists everything. The main entries:
   picture problems.
 - [RTX Renderer Guide](docs/RTX.md) for ray tracing: what you need, turning it
   on and tuning it.
+- [Entity Editor Guide](docs/ENTITY_EDITOR.md) for editing a map's entities
+  in the game and the `.ent` overrides the server loads.
 
 Release packages include these guides as web pages in their `manual` folder,
 built from the same files by

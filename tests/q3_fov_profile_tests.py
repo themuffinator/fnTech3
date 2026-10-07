@@ -216,9 +216,11 @@ class Q3FovProfileTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="q3-fov-", dir=scratch) as folder:
             path = Path(folder)
             fixture = path / "fov.c"
-            executable = path / ("fov.exe" if os.name == "nt" else "fov")
             fixture.write_text(flags + "\n" + HARNESS, encoding="utf-8")
             for mode in (None, "USE_FBO", "USE_VULKAN"):
+                # One executable per build: Windows can hold the last one run.
+                name = "fov-" + (mode or "default").lower()
+                executable = path / (name + ".exe" if os.name == "nt" else name)
                 with self.subTest(mode=mode):
                     command = [compiler, *compiler_target_args(compiler), "-std=c11", "-Wall", "-Wextra", "-Werror",
                         "-I", str(ROOT), str(fixture), "-o", str(executable)]

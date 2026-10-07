@@ -71,6 +71,7 @@ static void CL_FlushEnemyHighlightRefEntities(const refdef_t *) { ++flushCalls; 
 static void CL_UIAdjustRefdef(refdef_t *) {}
 static void CL_HudAdjustRefdef(refdef_t *) {} // Layout runs in hud_aspect_tests.
 static void CL_HudFlushQueue() {}
+static void CL_EntityEditorAdjustView(refdef_t *) {} // The entity editor, closed.
 struct retailFramebufferScale_t { float x, y; };
 static retailFramebufferScale_t CL_GetRetailFramebufferScale() { return {1.5f, 2.0f}; }
 static int RoundToInt(float value) { return static_cast<int>(value + (value < 0 ? -0.5f : 0.5f)); }

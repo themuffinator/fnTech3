@@ -93,7 +93,9 @@ int main(void) {
             cfile.write_text(fixture, encoding="utf-8")
             for dedicated in (False, True):
                 with self.subTest(dedicated=dedicated):
-                    executable = Path(folder) / ("write-config.exe" if os.name == "nt" else "write-config")
+                    # One executable per build: Windows can hold the last one run.
+                    name = "write-config-dedicated" if dedicated else "write-config"
+                    executable = Path(folder) / (name + ".exe" if os.name == "nt" else name)
                     command = [compiler, *compiler_target_args(compiler), "-std=c11", "-Wall", "-Wextra", "-Werror"]
                     if dedicated:
                         command.append("-DDEDICATED")
@@ -290,7 +292,9 @@ int main(void) {
             cfile.write_text(fixture, encoding="utf-8")
             for dedicated in (False, True):
                 with self.subTest(dedicated=dedicated):
-                    executable = path / ("config.exe" if os.name == "nt" else "config")
+                    # One executable per build: Windows can hold the last one run.
+                    name = "config-dedicated" if dedicated else "config"
+                    executable = path / (name + ".exe" if os.name == "nt" else name)
                     command = [compiler, *compiler_target_args(compiler), "-std=c11", "-Wall", "-Wextra", "-Werror"]
                     if dedicated:
                         command.append("-DDEDICATED")

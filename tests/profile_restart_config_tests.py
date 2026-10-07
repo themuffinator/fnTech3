@@ -62,8 +62,10 @@ int main(){
 '''
         scratch=ROOT/'.tmp';scratch.mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='profile-restart-',dir=scratch) as d:
-            cpp=Path(d)/'test.cpp';exe=Path(d)/'test.exe';cpp.write_text(harness)
+            cpp=Path(d)/'test.cpp';cpp.write_text(harness)
             for dedicated in (False,True):
+                # One executable per build: Windows can hold the last one run.
+                exe=Path(d)/('test-dedicated.exe' if dedicated else 'test.exe')
                 subprocess.run([cc,*compiler_target_args(cc),'-std=c++17',*(['-DDEDICATED'] if dedicated else []),str(cpp),'-o',str(exe)],check=True,capture_output=True,text=True)
                 subprocess.run([str(exe)],check=True,capture_output=True,text=True)
 if __name__=='__main__':unittest.main()

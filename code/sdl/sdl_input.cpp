@@ -101,7 +101,7 @@ static PointerMode  s_pointerMode;
 static qboolean     s_pointerModeValid;
 static constexpr int kTextInputCatcherMask =
 	KEYCATCH_CONSOLE | KEYCATCH_UI | KEYCATCH_MESSAGE |
-	KEYCATCH_BROWSER;
+	KEYCATCH_BROWSER | KEYCATCH_ENTITYEDITOR;
 static qboolean     s_textInputActive;
 static qboolean     s_textInputFailureReported;
 
@@ -321,8 +321,10 @@ static PointerOwner IN_ResolvePointerOwner( void )
 	inputs.catcher = Key_GetCatcher();
 	inputs.consoleMask = KEYCATCH_CONSOLE;
 	// Q3/RTCW modules draw their own cursor and consume relative deltas.
-	// Only QL modules and the engine browser use absolute positions.
+	// Only QL modules, the engine browser and the entity editor use
+	// absolute positions.
 	inputs.menuMask = Com_GameIsQuakeLive() ? kPointerMenuMask : KEYCATCH_BROWSER;
+	inputs.menuMask |= CL_EntityEditorPointerMask();
 	// A fullscreen window exposes no desktop for the OS pointer to reach, so the
 	// fullscreen console keeps the established relative gameplay pointer.
 	inputs.consoleUsesAbsolutePointer = !glw_state.isFullscreen;
@@ -353,6 +355,7 @@ static int IN_PointerConsumerIdentity( void )
 	const int catcher = Key_GetCatcher();
 
 	if ( catcher & KEYCATCH_CONSOLE ) return KEYCATCH_CONSOLE;
+	if ( catcher & KEYCATCH_ENTITYEDITOR ) return KEYCATCH_ENTITYEDITOR;
 	if ( catcher & KEYCATCH_BROWSER ) return KEYCATCH_BROWSER;
 	if ( catcher & KEYCATCH_UI ) return KEYCATCH_UI;
 	if ( catcher & KEYCATCH_CGAME ) return KEYCATCH_CGAME;

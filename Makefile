@@ -291,6 +291,7 @@ RTXDIR=$(MOUNT_DIR)/rendererrtx
 SDLDIR=$(MOUNT_DIR)/sdl
 FONTSTASHDIR ?= subprojects/fontstash/src
 MINIMP3DIR ?= subprojects/minimp3
+IMGUIDIR ?= subprojects/imgui
 
 CMDIR=$(MOUNT_DIR)/qcommon
 COMPATDIR=$(MOUNT_DIR)/compat
@@ -452,6 +453,17 @@ ifeq ($(BUILD_CLIENT),1)
     USE_CODEC_MP3 = 1
   else ifeq ($(FNQL_REQUIRE_BUILD_INPUTS),1)
     $(error Elite Force and Alice audio require $(MINIMP3DIR)/minimp3.h; run 'meson subprojects download minimp3' before using Make)
+  endif
+  # The entity editor's interface is Dear ImGui, its core compiled into the
+  # client from the checkout 'meson subprojects download imgui' lays down;
+  # without it the client builds with overrides but no editor.
+  ifneq ($(wildcard $(IMGUIDIR)/imgui.h),)
+    BASE_CFLAGS += -DFNTECH3_ENTITY_EDITOR_UI -isystem $(IMGUIDIR) -isystem $(IMGUIDIR)/misc/cpp \
+      -DIMGUI_DISABLE_OBSOLETE_FUNCTIONS -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS \
+      -DIMGUI_DISABLE_WIN32_DEFAULT_CLIPBOARD_FUNCTIONS -DIMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS
+    USE_IMGUI = 1
+  else ifeq ($(FNQL_REQUIRE_BUILD_INPUTS),1)
+    $(error The entity editor requires $(IMGUIDIR)/imgui.h; run 'meson subprojects download imgui' before using Make)
   endif
   ifeq ($(FNQL_REQUIRE_BUILD_INPUTS),1)
     ifneq ($(USE_SYSTEM_JPEG),1)
@@ -681,6 +693,13 @@ else
   BASE_CFLAGS += -Wno-unused-result
 
   BASE_CFLAGS += -DUSE_ICON
+
+  # Large-file support, which Meson defines for every compile outside MSVC and
+  # macOS: without it 32-bit glibc's readdir() and stat() fail with EOVERFLOW
+  # on inode numbers past 32 bits (drvfs/9p, XFS, btrfs, NFS) and stat() on
+  # files of 2 GiB or more, and the engine finds no paks there. The wider
+  # off_t stays engine-internal; no module or renderer interface carries one.
+  BASE_CFLAGS += -D_FILE_OFFSET_BITS=64
 
   BASE_CFLAGS += -I/usr/include -I/usr/local/include
 
@@ -1235,6 +1254,7 @@ Q3OBJ = \
   $(B)/client/cl_hud.o \
   $(B)/client/cl_cin.o \
   $(B)/client/cl_console.o \
+  $(B)/client/cl_entity_editor.o \
   $(B)/client/cl_input.o \
   $(B)/client/cl_keys.o \
   $(B)/client/cl_main.o \
@@ -1372,6 +1392,15 @@ endif
 
 ifeq ($(USE_CODEC_MP3),1)
   Q3OBJ += $(B)/client/snd_codec_mp3.o
+endif
+
+ifeq ($(USE_IMGUI),1)
+  Q3OBJ += \
+    $(B)/client/imgui.o \
+    $(B)/client/imgui_draw.o \
+    $(B)/client/imgui_tables.o \
+    $(B)/client/imgui_widgets.o \
+    $(B)/client/imgui_stdlib.o
 endif
 
 ifneq ($(USE_RENDERER_DLOPEN),1)
@@ -1678,6 +1707,12 @@ $(B)/client/%.o: $(CDIR)/%.cpp
 	$(DO_CXX)
 
 $(B)/client/%.o: $(CLIENTAUDIODIR)/%.cpp
+	$(DO_CXX)
+
+$(B)/client/%.o: $(IMGUIDIR)/%.cpp
+	$(DO_CXX)
+
+$(B)/client/%.o: $(IMGUIDIR)/misc/cpp/%.cpp
 	$(DO_CXX)
 
 $(B)/client/%.o: $(CLIENTAUDIOCODECSDIR)/%.cpp

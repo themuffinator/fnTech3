@@ -96,6 +96,14 @@ OPTION(USE_RENDERER_DLOPEN "" ON)
 OPTION(FNQL_AUDIO_LOOPBACK_TESTS "Build deterministic audio runtime and OpenAL loopback tests" ON)
 OPTION(FNQL_GLX_LOGIC_TESTS "Build deterministic GLx renderer logic tests" ON)
 
+# Large-file support, as the Makefile and Meson define it: without it 32-bit
+# glibc's readdir() and stat() fail with EOVERFLOW on inode numbers past 32
+# bits and stat() on files of 2 GiB or more. macOS's off_t and ino_t are
+# already 64-bit, and Windows lists files through its own 64-bit calls.
+IF(UNIX AND NOT APPLE)
+	ADD_COMPILE_DEFINITIONS(_FILE_OFFSET_BITS=64)
+ENDIF()
+
 IF(APPLE)
 	ADD_COMPILE_DEFINITIONS(MACOS_X)
 	IF(NOT USE_SDL)
@@ -269,6 +277,23 @@ endif()
 list(APPEND CLIENT_SRCS code/client/audio/codecs/snd_codec_mp3.cpp)
 ADD_COMPILE_DEFINITIONS(USE_CODEC_MP3)
 INCLUDE_DIRECTORIES(SYSTEM "${FNQL_MINIMP3_INCLUDE_DIR}")
+# The entity editor's interface is Dear ImGui; its core is compiled into the
+# client from the pinned wrap's checkout.
+set(FNTECH3_IMGUI_DIR "${CMAKE_CURRENT_SOURCE_DIR}/subprojects/imgui")
+if(NOT EXISTS "${FNTECH3_IMGUI_DIR}/imgui.h")
+	message(FATAL_ERROR
+		"The entity editor requires the pinned Dear ImGui wrap. Run 'meson subprojects download imgui' before configuring CMake.")
+endif()
+list(APPEND CLIENT_SRCS
+	${FNTECH3_IMGUI_DIR}/imgui.cpp
+	${FNTECH3_IMGUI_DIR}/imgui_draw.cpp
+	${FNTECH3_IMGUI_DIR}/imgui_tables.cpp
+	${FNTECH3_IMGUI_DIR}/imgui_widgets.cpp
+	${FNTECH3_IMGUI_DIR}/misc/cpp/imgui_stdlib.cpp)
+ADD_COMPILE_DEFINITIONS(FNTECH3_ENTITY_EDITOR_UI IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+	IMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS IMGUI_DISABLE_WIN32_DEFAULT_CLIPBOARD_FUNCTIONS
+	IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS)
+INCLUDE_DIRECTORIES(SYSTEM "${FNTECH3_IMGUI_DIR}" "${FNTECH3_IMGUI_DIR}/misc/cpp")
 IF(NOT USE_CURL)
 	list(REMOVE_ITEM CLIENT_SRCS code/client/cl_curl.cpp)
 ENDIF()
@@ -350,6 +375,19 @@ ELSE()
 			"-DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}"
 			"-DCMAKE_OSX_SYSROOT=${CMAKE_OSX_SYSROOT}")
 	endif()
+	# The library is configured on its own and inherits none of this
+	# project's target selection. Hand it the inputs that choose the target:
+	# a Linux i686 build that passes -m32 in CMAKE_C_FLAGS (as Linux CI does)
+	# or in CC (CMAKE_C_COMPILER_ARG1) otherwise gets a host x86-64 libjpeg.a
+	# that the client cannot link.
+	list(APPEND FNQL_LIBJPEG_TURBO_PLATFORM_ARGS "-DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}")
+	foreach(FNQL_LIBJPEG_TURBO_TARGET_INPUT
+			CMAKE_C_COMPILER_ARG1 CMAKE_C_COMPILER_TARGET CMAKE_SYSROOT CMAKE_TOOLCHAIN_FILE)
+		if(NOT "${${FNQL_LIBJPEG_TURBO_TARGET_INPUT}}" STREQUAL "")
+			list(APPEND FNQL_LIBJPEG_TURBO_PLATFORM_ARGS
+				"-D${FNQL_LIBJPEG_TURBO_TARGET_INPUT}=${${FNQL_LIBJPEG_TURBO_TARGET_INPUT}}")
+		endif()
+	endforeach()
 	if(MSVC OR CMAKE_C_SIMULATE_ID STREQUAL "MSVC")
 		set(FNQL_LIBJPEG_TURBO_LIBRARY "${FNQL_LIBJPEG_TURBO_BINARY_DIR}/jpeg-static.lib")
 	else()
@@ -608,10 +646,12 @@ target_compile_definitions(fnql_message_codec_tests PRIVATE DEDICATED)
 target_include_directories(fnql_message_codec_tests PRIVATE code/qcommon)
 add_test(NAME fnql_message_codec COMMAND fnql_message_codec_tests)
 
+# Meson's implicit include directories put the source root on these tests'
+# path, and jka_render_tests.cpp includes code/compat/ from there.
 foreach(jka_test sp_abi sp_game_bridge sp_ghoul2 wire snapshot ui font font_host client string_package string_host render sp_player_abi sp_model_precache sp_animation_cfg)
 	ADD_EXECUTABLE(fntech3_jka_${jka_test}_tests tests/jka_${jka_test}_tests.cpp)
 	target_compile_features(fntech3_jka_${jka_test}_tests PRIVATE cxx_std_17)
-	target_include_directories(fntech3_jka_${jka_test}_tests PRIVATE code/compat)
+	target_include_directories(fntech3_jka_${jka_test}_tests PRIVATE code/compat "${CMAKE_CURRENT_SOURCE_DIR}")
 	add_test(NAME fntech3_jka_${jka_test} COMMAND fntech3_jka_${jka_test}_tests)
 endforeach()
 target_sources(fntech3_jka_sp_game_bridge_tests PRIVATE
@@ -1052,4 +1092,66 @@ IF(WIN32)
 ELSE()
 	TARGET_LINK_LIBRARIES(${CNAME}${BINEXT} m ${CMAKE_DL_LIBS})
 	TARGET_LINK_LIBRARIES(${DNAME}${BINEXT} m ${CMAKE_DL_LIBS})
+ENDIF()
+
+# fntech3-launcher (code/launcher, docs/LAUNCHER.md) finds the player's game
+# installations and starts this build's client for one of them. It draws with
+# SDL3 and Dear ImGui, so it is built wherever SDL3 is found; its core --
+# discovery, settings and the engine command line -- is tested without either.
+SET(FNTECH3_LAUNCHER_CORE_SRCS
+	code/launcher/launcher_catalog.cpp
+	code/launcher/launcher_discovery.cpp
+	code/launcher/launcher_fs.cpp
+	code/launcher/launcher_json.cpp
+	code/launcher/launcher_launch.cpp
+	code/launcher/launcher_settings.cpp
+	code/launcher/launcher_vdf.cpp)
+ADD_EXECUTABLE(fntech3_launcher_core_tests tests/launcher_core_tests.cpp ${FNTECH3_LAUNCHER_CORE_SRCS}
+	code/qcommon/game_profile.cpp)
+TARGET_INCLUDE_DIRECTORIES(fntech3_launcher_core_tests PRIVATE code/qcommon)
+add_test(NAME fntech3_launcher_core COMMAND fntech3_launcher_core_tests)
+
+OPTION(BUILD_LAUNCHER "Build fntech3-launcher where SDL3 is available" ON)
+IF(BUILD_LAUNCHER)
+	IF(Q3_SDL_TARGET)
+		SET(FNTECH3_LAUNCHER_SDL ${Q3_SDL_TARGET})
+	ELSE()
+		find_package(SDL3 3.2.0 CONFIG QUIET COMPONENTS SDL3)
+		IF(TARGET SDL3::SDL3)
+			SET(FNTECH3_LAUNCHER_SDL SDL3::SDL3)
+		ELSE()
+			find_package(PkgConfig QUIET)
+			IF(PKG_CONFIG_FOUND)
+				pkg_check_modules(FNTECH3_LAUNCHER_SDL3 QUIET IMPORTED_TARGET sdl3>=3.2.0)
+				IF(TARGET PkgConfig::FNTECH3_LAUNCHER_SDL3)
+					SET(FNTECH3_LAUNCHER_SDL PkgConfig::FNTECH3_LAUNCHER_SDL3)
+				ENDIF()
+			ENDIF()
+		ENDIF()
+	ENDIF()
+	IF(FNTECH3_LAUNCHER_SDL)
+		SET(FNTECH3_LAUNCHER_SRCS ${FNTECH3_LAUNCHER_CORE_SRCS}
+			code/launcher/launcher_app.cpp
+			code/launcher/launcher_fonts.cpp
+			code/launcher/launcher_imgui_sdl.cpp
+			code/launcher/launcher_main.cpp
+			code/launcher/launcher_widgets.cpp
+			code/platform/game_icon_data.cpp
+			code/qcommon/game_profile.cpp
+			code/qcommon/puff.c
+			${FNTECH3_IMGUI_DIR}/imgui.cpp
+			${FNTECH3_IMGUI_DIR}/imgui_draw.cpp
+			${FNTECH3_IMGUI_DIR}/imgui_tables.cpp
+			${FNTECH3_IMGUI_DIR}/imgui_widgets.cpp)
+		IF(WIN32)
+			LIST(APPEND FNTECH3_LAUNCHER_SRCS code/launcher/launcher.rc)
+		ENDIF()
+		ADD_EXECUTABLE(fntech3-launcher${BINEXT} WIN32 ${FNTECH3_LAUNCHER_SRCS})
+		TARGET_INCLUDE_DIRECTORIES(fntech3-launcher${BINEXT} PRIVATE code/qcommon)
+		TARGET_COMPILE_DEFINITIONS(fntech3-launcher${BINEXT} PRIVATE
+			FNTECH3_LAUNCHER_CLIENT_NAME="${CNAME}${BINEXT}" FNTECH3_LAUNCHER_SERVER_NAME="${DNAME}${BINEXT}")
+		TARGET_LINK_LIBRARIES(fntech3-launcher${BINEXT} ${FNTECH3_LAUNCHER_SDL} Threads::Threads)
+	ELSE()
+		MESSAGE(STATUS "fntech3-launcher is not built: SDL3 was not found")
+	ENDIF()
 ENDIF()

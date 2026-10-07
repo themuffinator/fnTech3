@@ -118,7 +118,9 @@ class SPExportTests(unittest.TestCase):
             fixture.write_text('#include <initializer_list>\n' + PRELUDE + body + CHECKS, encoding='utf-8')
             for dedicated in (False, True):
                 with self.subTest(dedicated=dedicated):
-                    executable = path / ('guard.exe' if os.name == 'nt' else 'guard')
+                    # One executable per build: Windows can hold the last one run.
+                    name = 'guard-dedicated' if dedicated else 'guard'
+                    executable = path / (name + '.exe' if os.name == 'nt' else name)
                     flags = compiler_target_args(compiler)
                     if dedicated:
                         flags.append('-DUSE_DEDICATED')

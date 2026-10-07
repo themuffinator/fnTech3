@@ -1225,6 +1225,11 @@ static void CL_KeyDownEvent( int key, unsigned time )
 		anykeydown++;
 	}
 
+	// The entity editor takes every key but the console's.
+	if ( CL_EntityEditorKeyEvent( key, qtrue, time ) ) {
+		return;
+	}
+
 	// Alice's modifiers, console keys and cursor-mode mouse buttons are
 	// settled before anything routes the key.
 	if ( Com_GameIsRitual() && CL_AliceKeyFilter( key, qtrue ) ) {
@@ -1337,6 +1342,15 @@ static void CL_KeyUpEvent( int key, unsigned time )
 		return;
 	}
 
+	// A release the entity editor takes still lets go of a + binding the key
+	// started before the editor opened.
+	if ( CL_EntityEditorKeyEvent( key, qfalse, time ) ) {
+		if ( bound && cls.state != CA_DISCONNECTED ) {
+			Key_ParseBinding( key, qfalse, time );
+		}
+		return;
+	}
+
 	if ( Com_GameIsRitual() && CL_AliceKeyFilter( key, qfalse ) ) {
 		return;
 	}
@@ -1434,6 +1448,10 @@ void CL_CharEvent( int key )
 	// Alice's two console keys never type (CL_CharEvent 0x0042a140 drops
 	// both before anything sees them).
 	if ( Com_GameIsRitual() && ( *codepoint == '`' || *codepoint == '~' ) ) {
+		return;
+	}
+
+	if ( CL_EntityEditorCharEvent( static_cast<int>( *codepoint ) ) ) {
 		return;
 	}
 
@@ -1540,6 +1558,10 @@ Key_SetCatcher
 */
 void Key_SetCatcher( int catcher )
 {
+	// The entity editor's bit is its own: modules and the engine setting the
+	// catcher whole leave it as it stands (Key_SetEntityEditorCatcher).
+	catcher = ( catcher & ~KEYCATCH_ENTITYEDITOR ) | ( keyCatchers & KEYCATCH_ENTITYEDITOR );
+
 	// Preserve the anti-stuck release for real input-ownership changes, but
 	// not when retail's gameplay-transparent HUD catcher is toggled.  Clearing
 	// there releases movement keys that are already held when +scores begins.
@@ -1548,6 +1570,23 @@ void Key_SetCatcher( int catcher )
 		Key_ClearStates();
 	}
 
+	keyCatchers = catcher;
+}
+
+
+/*
+====================
+Key_SetEntityEditorCatcher
+====================
+*/
+void Key_SetEntityEditorCatcher( qboolean active )
+{
+	const int catcher = active ? ( keyCatchers | KEYCATCH_ENTITYEDITOR )
+		: ( keyCatchers & ~KEYCATCH_ENTITYEDITOR );
+	if ( fnql::input::GameplayCatcherStateChanged(
+		keyCatchers, catcher, KEYCATCH_RETAIL_MOUSEPASS ) ) {
+		Key_ClearStates();
+	}
 	keyCatchers = catcher;
 }
 

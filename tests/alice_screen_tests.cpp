@@ -168,13 +168,14 @@ void TestIntro() {
 	CHECK( step.action == IntroAction::Skip && step.nextState == -1 && step.waitMs == 0 );
 	CHECK( Intro( -48 ).nextState == -47 );  // a bare "2" flag's state
 	CHECK( Intro( 2147483647 ).action == IntroAction::Skip );
-	CHECK( IntroPlateScale == 1.8f );
+	// Cast inexact literals: GCC's i686 x87 C++ keeps a bare 1.8f at long double precision.
+	CHECK( IntroPlateScale == float( 1.8f ) );
 
 	CHECK( Near( IntroPlateAlpha( 0, 1, 1000, 500 ), 0.5f ) );
 	CHECK( Near( IntroPlateAlpha( 0, 1, 1000, 1500 ), 1 ) );
 	CHECK( Near( IntroPlateAlpha( 1, 0, 1000, -10 ), 1 ) );
 	CHECK( Near( IntroPlateAlpha( 1, 0, 0, 5000 ), 1 ) );  // no length: full
-	CHECK( Intro( 1 ).plateScale == 1.8f && !std::strcmp( Intro( 2 ).plateImage, IntroPlateImage ) );
+	CHECK( Intro( 1 ).plateScale == float( 1.8f ) && !std::strcmp( Intro( 2 ).plateImage, IntroPlateImage ) );
 	CHECK( Intro( -1 ).soundtrack && Intro( 6 ).soundtrack && !Intro( 0 ).soundtrack );
 }
 

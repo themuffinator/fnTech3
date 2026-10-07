@@ -210,11 +210,14 @@ class JKACgameAmbientTests(unittest.TestCase):
         TASK.mkdir(parents=True,exist_ok=True)
         output=Path(tempfile.mkdtemp(dir=TASK,prefix='ambient-host-')).absolute()
         try:
-            src=output/'ambient-host.cpp';exe=output/('ambient-host.exe' if os.name=='nt' else 'ambient-host')
+            src=output/'ambient-host.cpp'
             src.write_text(fixture())
             target=compiler_target_args(compiler)
             if os.name=='nt' and not target:target=['-DFNTECH3_Q3_ONLY']
             for fast in (False,True):
+                # One executable per build: Windows can hold the last one run.
+                name='ambient-host-fast' if fast else 'ambient-host'
+                exe=output/(name+'.exe' if os.name=='nt' else name)
                 with self.subTest(fast_math=fast):
                     command=[compiler,*target,'-std=c++17','-O2','-Werror','-D_CRT_SECURE_NO_WARNINGS',
                              *(['-ffast-math'] if fast else []),'-I',str(ROOT),str(src),'-o',str(exe)]

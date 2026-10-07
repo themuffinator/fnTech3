@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=fnTech3 Launcher
+GenericName=Game launcher
+Comment=Find your id Tech 3 games and play them with fnTech3
+Exec=fntech3-launcher
+Icon=fntech3
+Terminal=false
+Categories=Game;ActionGame;
+StartupWMClass=fntech3-launcher

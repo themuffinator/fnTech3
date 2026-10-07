@@ -67,9 +67,10 @@ class JKAVoiceVolumeTests(unittest.TestCase):
         assert scratch.resolve().is_relative_to((ROOT / '.tmp').resolve())
         with tempfile.TemporaryDirectory(prefix='facade-', dir=scratch) as temporary:
             source = Path(temporary) / 'voice.cpp'
-            executable = Path(temporary) / 'voice.exe'
             source.write_text(HARNESS + body + CHECKS)
             for extra in ([], ['-O2', '-ffast-math']):
+                # One executable per build: Windows can hold the last one run.
+                executable = Path(temporary) / ('voice-fast.exe' if extra else 'voice.exe')
                 built = subprocess.run([compiler, *flags, '-std=c++17', *extra,
                     '-I', str(ROOT), str(source), '-o', str(executable)], cwd=ROOT,
                     capture_output=True, text=True, timeout=60)

@@ -39,8 +39,9 @@ bool Near( float a, float b, float epsilon = 1e-4f ) { return std::fabs( a - b )
 static_assert( hud::StatBossHealth == 13 && hud::StatCinematic == 14, "boss and cinematic stats" );
 static_assert( hud::StatAddFade == 15 && hud::StatLetterbox == 16, "fade and letterbox stats" );
 static_assert( hud::ItemWeaponLeft == 2 && hud::ItemWeaponRight == 3 && hud::ItemWeaponDual == 4, "weapon slots" );
-static_assert( hud::FlashRate == 0.00133333332f, "the flash fades over 750 ms (0x004ff964)" );
-static_assert( hud::MoveRate == 0.00300300308, "bob and spin run at 1/333 a ms (0x004ff468)" );
+// Cast inexact literals: GCC's i686 x87 C++ keeps bare float and double ones at long double precision.
+static_assert( hud::FlashRate == float( 0.00133333332f ), "the flash fades over 750 ms (0x004ff964)" );
+static_assert( hud::MoveRate == double( 0.00300300308 ), "bob and spin run at 1/333 a ms (0x004ff468)" );
 
 void TestSlots() {
 	int stats[32] = {};
@@ -98,7 +99,8 @@ void TestFlash() {
 	// The first bar flashes; the flash fades over 750 ms.
 	CHECK( hud::StepFlash( flash, 0.7f, 1000.0f ) == 1.0f );
 	CHECK( Near( hud::StepFlash( flash, 0.7f, 1375.0f ), 0.5f, 1e-3f ) );
-	CHECK( hud::StepFlash( flash, 0.7f, 1750.0f ) == 0.0f );
+	// SSE rounds 750 * FlashRate to 1.0f; x87 keeps the exact product and leaves 1.07e-8.
+	CHECK( Near( hud::StepFlash( flash, 0.7f, 1750.0f ), 0.0f, 1e-6f ) );
 	CHECK( hud::StepFlash( flash, 0.7f, 5000.0f ) == 0.0f );
 	// Any change starts it again, up or down.
 	CHECK( hud::StepFlash( flash, 0.6f, 6000.0f ) == 1.0f );

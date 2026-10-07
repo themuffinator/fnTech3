@@ -1482,6 +1482,8 @@ extern "C" void CL_HudAdjustRefdef( refdef_t *refdef ) {
 
 extern "C" qboolean CL_HudAdjustPic( float *x, float *y, float *w, float *h, qhandle_t shader ) {
 	HudDrawCapture draw;
+	// The entity editor's view has no HUD over it, in any profile.
+	if ( CL_EntityEditorActive() ) return qfalse;
 	if ( !hudSupported ) return qtrue;
 
 	if ( cl_captureActive && cl_captureActive->integer && r_levelshotHideHud && r_levelshotHideHud->integer ) {

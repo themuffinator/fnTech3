@@ -344,7 +344,10 @@ BotImport_BSPEntityData
 ==================
 */
 static char *BotImport_BSPEntityData(void) {
-	return CM_EntityString();
+	// The entities the game was handed, a .ent override's included, so that
+	// bots look for the items and goals the level spawned. The botlib copies
+	// the text before it parses it (AAS_LoadBSPFile).
+	return const_cast<char *>( SV_EntityText() );
 }
 
 /*

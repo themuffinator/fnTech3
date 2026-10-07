@@ -852,6 +852,39 @@ void CL_HudQueueColor( const float *rgba );
 void CL_HudFlushQueue( void );
 
 //
+// cl_entity_editor.cpp -- the in-game entity editor, every profile's
+//
+void CL_EntityEditorInit( void );
+void CL_EntityEditorShutdown( void );
+qboolean CL_EntityEditorActive( void );
+// Text the server printed back (rcon replies among it), for a reload the
+// editor asked of another server.
+void CL_EntityEditorServerPrint( const char *text );
+// Each takes its event while the editor holds the keys and the console does
+// not, and returns qfalse to leave it to the rest of the client.
+qboolean CL_EntityEditorKeyEvent( int key, qboolean down, unsigned time );
+qboolean CL_EntityEditorCharEvent( int ch );
+qboolean CL_EntityEditorMouseEvent( int dx, int dy );
+qboolean CL_EntityEditorMouseAbsoluteEvent( int x, int y );
+// KEYCATCH_ENTITYEDITOR while the editor wants an absolute pointer, 0 while it
+// turns its camera with relative motion: platform layers add it to the
+// catchers they present a menu pointer for.
+int CL_EntityEditorPointerMask( void );
+// Every profile's scene adapter calls this with a client game's view, just
+// before the renderer draws it: the editor's camera takes its place.
+void CL_EntityEditorAdjustView( refdef_t *refdef );
+// After the menus and before the console.
+void CL_EntityEditorDraw( void );
+// Each renderer start: the editor's pictures, uploaded under the last one, are
+// uploaded again.
+void CL_EntityEditorRendererStarted( void );
+// The client game's entity tokens: the local server's .ent override when it
+// runs this map with one, else the renderer's BSP text.
+void CL_EntityOverrideCGameInit( void );
+void CL_EntityOverrideCGameShutdown( void );
+qboolean CL_GetEntityToken( char *buffer, int size );
+
+//
 // cl_cgame.cpp
 //
 void CL_InitCGame( void );

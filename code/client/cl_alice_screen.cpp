@@ -337,7 +337,13 @@ void CL_AliceUpdateScreenField( stereoFrame_t stereo ) {
 	}
 
 	bool showView = false;
-	if ( CL_AliceUIFullscreenMenuUp() ) {
+	// The engine's entity editor shows the game's view alone, and holds the
+	// keys: the menus, F.A.K.K.2's HUD menus among them, wait until it closes.
+	const bool editorView = cls.state == CA_ACTIVE && CL_EntityEditorActive();
+	if ( editorView ) {
+		CL_RitualEndMenuCarry();
+		showView = true;
+	} else if ( CL_AliceUIFullscreenMenuUp() ) {
 		// The menu hides the view. This engine's frame begins uncleared, and
 		// retail's menus fill their own background, so black goes under them.
 		// With ui_menuDissolve, F.A.K.K.2's keep what the screen showed as
@@ -367,11 +373,20 @@ void CL_AliceUpdateScreenField( stereoFrame_t stereo ) {
 
 	// The desktop's z-order (0x004bf4e0): the view, the menus, then the
 	// console, the subtitles and the HUD, then the cursor.
-	CL_AliceUIDrawMenus();
+	if ( !editorView ) {
+		CL_AliceUIDrawMenus();
+	}
+	// The engine's entity editor goes over the menus and under the console,
+	// and its view needs no HUD over it.
+	CL_EntityEditorDraw();
 	if ( Key_GetCatcher() & KEYCATCH_CONSOLE ) {
 		Con_DrawConsole();
 	}
 	CL_AliceDialogDraw();
-	CL_AliceHudDraw();
-	CL_AliceUIDrawCursor();
+	if ( !CL_EntityEditorActive() ) {
+		CL_AliceHudDraw();
+	}
+	if ( !editorView ) {
+		CL_AliceUIDrawCursor();
+	}
 }

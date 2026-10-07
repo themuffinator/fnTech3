@@ -1530,6 +1530,23 @@ void SV_TrackCvarChanges( void );
 void SV_PacketEvent( const netadr_t *from, msg_t *msg );
 int SV_FrameMsec( void );
 qboolean SV_GameCommand( void );
+/* The map entity text the server handed its game module for the level it
+ * runs -- a .ent override's when one was loaded (sv_entityOverrides, or
+ * Quake Live's sv_altEntDir), else the BSP's -- and that override's path,
+ * "" while the BSP's is in use (sv_game.cpp). The entity editor reads both. */
+const char *SV_EntityText( void );
+const char *SV_EntityOverridePath( void );
+/* Bumped each time the server chooses a level's entity text and when its
+ * game shuts down, so the editor can tell that the level restarted. */
+int SV_EntityTextGeneration( void );
+/* Where sv_entityOverrides looks for the running map's override:
+ * maps/<map>.ent beside its BSP. False when no map runs or its name makes no
+ * safe path. */
+qboolean SV_EntityOverrideFile( char *path, int size );
+/* The map or devmap command, with its single-player alias where one is
+ * needed, that loads the running map again as it was started, newline ended
+ * (sv_ccmds.cpp). False when no map runs. */
+qboolean SV_ReloadMapCommand( char *command, int size );
 qboolean SV_STVEFSPGameAllowedToSaveHere( qboolean inCamera );
 /* Elite Force SP's savegames, saves/<name>.sav (sv_game.cpp). The menus read
  * a save's comment and picture, and store the comment a save is made with;

@@ -1316,6 +1316,12 @@ void SV_Init( void )
 		sv_cylinderScale = nullptr;
 		sv_vac = nullptr;
 	}
+	// Every profile's: the in-game entity editor saves these files, and
+	// Quake Live's sv_altEntDir, when it holds the map's, is read first.
+	sv_entityOverrides = Cvar_Get( "sv_entityOverrides", "1", CVAR_ARCHIVE_ND );
+	Cvar_CheckRange( sv_entityOverrides, "0", "1", CV_INTEGER );
+	Cvar_SetDescription( sv_entityOverrides,
+		"Load a map's entities from maps/<map>.ent beside its BSP when that file exists; 0 keeps the BSP's own." );
 
 	// systeminfo
 	sv_cheats = Cvar_Get( "sv_cheats", "1", CVAR_SYSTEMINFO | CVAR_ROM );

@@ -97,9 +97,11 @@ class RitualModelLightValidationTests(unittest.TestCase):
         temp_root = ROOT / '.tmp' / 'ritual-model-light-validation-tests'
         temp_root.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='model-light-validation-', dir=temp_root) as temp:
-            cpp, exe = Path(temp) / 'probe.cpp', Path(temp) / 'probe.exe'
+            cpp = Path(temp) / 'probe.cpp'
             cpp.write_text(source, encoding='utf-8')
             for math_mode in ('-fno-fast-math', '-ffast-math'):
+                # One executable per build: Windows can hold the last one run.
+                exe = Path(temp) / f'probe{math_mode}.exe'
                 with self.subTest(math_mode=math_mode):
                     built = subprocess.run([compiler, *compiler_target_args(compiler), '-std=c++17', '-O2',
                                             math_mode, '-I', str(ROOT), str(cpp), '-o', str(exe)],

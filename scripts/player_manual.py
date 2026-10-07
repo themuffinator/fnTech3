@@ -57,6 +57,8 @@ class Guide:
 GUIDES: tuple[Guide, ...] = (
     Guide("docs/GETTING_STARTED.md", "getting-started.html", "Getting started",
           "Set fnTech3 up, start your first game and learn the console.", "start"),
+    Guide("docs/LAUNCHER.md", "launcher.html", "Launcher",
+          "Find the games on your computer and start one with a click.", "launcher"),
     Guide("docs/GAMES.md", "games.html", "Games",
           "Which games run, choosing one, playing online and notes for each game.", "games"),
     Guide("docs/DISPLAY.md", "display.html", "Graphics",
@@ -129,6 +131,8 @@ ALERT_TITLES = {
 
 ICONS = {
     "start": '<path d="M8 5.5v13l10.5-6.5z"/>',
+    "launcher": ('<rect x="3" y="4" width="18" height="16" rx="2.5"/>'
+                 '<path d="M7 9h6M7 13h4M7 17h5"/><path d="M15.5 11v5l4-2.5z"/>'),
     "games": ('<rect x="2.5" y="7" width="19" height="11" rx="5.5"/>'
               '<path d="M7.5 10.5v4M5.5 12.5h4"/><circle cx="15.5" cy="11.5" r="1"/>'
               '<circle cx="18" cy="14" r="1"/>'),

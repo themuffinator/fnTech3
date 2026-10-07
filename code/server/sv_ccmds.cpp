@@ -1821,6 +1821,71 @@ static void SV_KillServer_f( void ) {
 
 /*
 =================
+SV_SaveEntFile_f
+
+The running level's entity text -- its .ent override's when one was
+loaded -- written where sv_entityOverrides reads the map's, maps/<map>.ent
+in the home directory: a start for an override, as DarkPlaces'
+sv_saveentfile makes one.
+=================
+*/
+static void SV_SaveEntFile_f( void ) {
+	char path[MAX_QPATH];
+
+	if ( !com_sv_running->integer || sv.state != SS_GAME ) {
+		Com_Printf( "Server is not running.\n" );
+		return;
+	}
+	if ( !SV_EntityOverrideFile( path, sizeof( path ) ) ) {
+		Com_Printf( "Map %s makes no safe entity file path.\n", sv_mapname->string );
+		return;
+	}
+	const char *text = SV_EntityText();
+	const int length = static_cast<int>( strlen( text ) );
+	// FS_WriteFile reports no failure, so the write is checked here
+	const fileHandle_t file = FS_FOpenFileWrite( path );
+	if ( file == FS_INVALID_HANDLE ) {
+		Com_Printf( "Could not open %s for writing.\n", path );
+		return;
+	}
+	const int written = length ? FS_Write( text, length, file ) : 0;
+	FS_FCloseFile( file );
+	if ( written != length ) {
+		Com_Printf( "Could not write %s: %d of %d bytes written.\n", path, written, length );
+		return;
+	}
+	Com_Printf( "Wrote %s (%d bytes).\n", path, length );
+}
+
+
+/*
+=================
+SV_ReloadMapCommand
+
+The command that loads the running map again from its start, as it was
+started: devmap while cheats are on, and in the games whose game type 2 is
+single player (Quake III, its tests, RTCW and Elite Force's Holomatch) the
+single-player alias while that type runs, since a plain map would turn it
+into a free-for-all (SV_Map_f). Quake Live's map reuses its active factory;
+Enemy Territory's and Medal of Honor's keep their game type themselves.
+=================
+*/
+qboolean SV_ReloadMapCommand( char *command, int size ) {
+	if ( !command || size <= 0 || !com_sv_running || !com_sv_running->integer || !sv_mapname
+		|| !sv_mapname->string[0] ) {
+		return qfalse;
+	}
+	const bool singlePlayerType = Com_GameIsQuake3() || Com_GameIsQ3Test() || Com_GameIsQuake3IHV()
+		|| Com_GameIsRTCW() || Com_GameIsSTVEFMP();
+	const bool singlePlayer = singlePlayerType && sv_gametype && sv_gametype->integer == GT_SINGLE_PLAYER;
+	const bool cheats = Cvar_VariableIntegerValue( "sv_cheats" ) != 0;
+	Com_sprintf( command, size, "%s%s %s\n", singlePlayer ? "sp" : "", cheats ? "devmap" : "map", sv_mapname->string );
+	return qtrue;
+}
+
+
+/*
+=================
 SV_Locations
 =================
 */
@@ -1957,7 +2022,7 @@ void SV_AddOperatorCommands( void ) {
 	}
 	initialized = true;
 
-	static constexpr std::array<operatorCommand_t, 12> commands = {{
+	static constexpr std::array<operatorCommand_t, 13> commands = {{
 		{ "heartbeat", SV_Heartbeat_f },
 		{ "kick", SV_Kick_f },
 		{ "kickbots", SV_KickBots_f },
@@ -1970,6 +2035,7 @@ void SV_AddOperatorCommands( void ) {
 		{ "killserver", SV_KillServer_f },
 		{ "filter", SV_AddFilter_f },
 		{ "filtercmd", SV_AddFilterCmd_f },
+		{ "sv_saveentfile", SV_SaveEntFile_f },
 	}};
 	static constexpr std::array<operatorCommand_t, 3> workshopCommands = {{
 		{ "steam_downloadugc", SV_SteamDownloadUGC_f },

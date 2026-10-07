@@ -1,0 +1,387 @@
+{
+  "record": "2026-10-05-cmake-i686-full-build",
+  "date": "2026-10-05",
+  "evidence": [
+    "Source",
+    "Build",
+    "Unit"
+  ],
+  "head": "8cf605c72d7cf238376baf567f43e247b12e863a",
+  "changes": {
+    "code/renderervk/tr_init.c": "RE_GetTextureCapabilities tests the module's own USE_VULKAN (tr_common.h) instead of the client's USE_VULKAN_API",
+    "code/rendererrtx/tr_init.c": "the same",
+    "CMakeLists.txt": [
+      "fnql_libjpeg_turbo ExternalProject receives -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS} always, and CMAKE_C_COMPILER_ARG1, CMAKE_C_COMPILER_TARGET, CMAKE_SYSROOT, CMAKE_TOOLCHAIN_FILE when non-empty",
+      "the Jedi Academy test loop adds ${CMAKE_CURRENT_SOURCE_DIR} to its include directories, as Meson's implicit include directories do"
+    ],
+    "tests/jka_sp_game_bridge_tests.cpp": "both fraction==0.025f checks (HEAD lines 385 and 415) compare with float(0.025f)",
+    "tests/platform_port_safety_tests.py": [
+      "test_renderer_modules_select_their_backend_by_their_own_macros",
+      "test_cmake_libjpeg_turbo_build_inherits_the_target_selection",
+      "test_cmake_jka_tests_find_source_root_includes"
+    ],
+    "unchanged": {
+      "meson": "defines USE_OPENGL_API/USE_VULKAN_API for every object and has the source root on every include path; the MSVC win32-dev preprocessed RE_GetTextureCapabilities is identical before and after",
+      "make": "BASE_CFLAGS defines both API macros for every object"
+    }
+  },
+  "host": {
+    "linux": {
+      "platform": "WSL 2, Ubuntu 24.04.3 LTS, Linux 6.6.87.2-microsoft-standard-WSL2 x86_64",
+      "gcc": "13.3.0 (Ubuntu 13.3.0-6ubuntu2~24.04.1)",
+      "clang": "18.1.3 (1ubuntu1)",
+      "glibc": "2.39 (Ubuntu GLIBC 2.39-0ubuntu8.9)",
+      "ld": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+      "cmake": "3.28.3",
+      "ninja": "1.13.0.git.kitware.jobserver-pipe-1",
+      "python": "3.12.3"
+    },
+    "windows": {
+      "platform": "Windows 11 Home 10.0.26200",
+      "msvc": "cl.exe 14.44.35222.0 (VC Tools 14.44.35207, HostX86/x86)",
+      "cmake": "4.2.0-rc2",
+      "python": "3.11.3"
+    }
+  },
+  "trees": {
+    "control": "git archive of 8cf605c72d7cf238376baf567f43e247b12e863a by WSL's git (LF), plus subprojects/fontstash, minimp3 and libjpeg-turbo-3.1.4.1 copied in",
+    "candidate": "the same export with this change's hunks alone, rebuilt from HEAD's text",
+    "sha256LF": {
+      "head/CMakeLists.txt": "2620acf353ceab6a24966dd3e1da65757b79b8c4f62c18fe44a1f0b6ea31ea07",
+      "candidate/CMakeLists.txt": "85b02818b872eb2bd5646f244dbaf6c467286ee85e927bbb314ed44f1f7566d8",
+      "head/code/renderervk/tr_init.c": "3de76af2d889d9b19c266cd87cc11295c9b0ecbaed6aa27dab1024e078714b90",
+      "candidate/code/renderervk/tr_init.c": "cae6939b76525d67d544c2aba857543f40edaf21f4bb968da9aeade7e4bf8089",
+      "head/code/rendererrtx/tr_init.c": "5c1eb23a1be9bf689bce206234a724e34faa35f6f0abecf30dac648387045004",
+      "candidate/code/rendererrtx/tr_init.c": "70e1a649ae2d59c0ac507b8774aa80f9ba48e8fe37d0c6bbfd7637516715bc67",
+      "head/tests/jka_sp_game_bridge_tests.cpp": "f63c91743d3228cf4d82b6f773c679358f7934e682faeb210b043ca81fb8747b",
+      "candidate/tests/jka_sp_game_bridge_tests.cpp": "414bfde8c294c8e68c39c71de2b7030128470403305f678d0e98abf098867c06",
+      "head/tests/platform_port_safety_tests.py": "3f9755cd495cfdb241f7afdbaf4122b0940a983913bea88a45132aa9056d4d03",
+      "candidate/tests/platform_port_safety_tests.py": "b845d30e4569afca1658cf31836207825b9a7bda41b528389657f2897ac8f7c6"
+    }
+  },
+  "configure": [
+    "cmake -S <src> -B <build> -G Ninja",
+    "-DCMAKE_BUILD_TYPE=Debug",
+    "-DCMAKE_C_FLAGS=-m32",
+    "-DCMAKE_CXX_FLAGS=-m32",
+    "-DCMAKE_EXE_LINKER_FLAGS=-m32",
+    "-DCMAKE_SHARED_LINKER_FLAGS=-m32",
+    "-DFNQL_AUDIO_LOOPBACK_TESTS=OFF",
+    "-DFNQL_GLX_LOGIC_TESTS=OFF",
+    "-DUSE_CURL=OFF",
+    "-DUSE_OGG_VORBIS=OFF",
+    "-DUSE_SDL=OFF",
+    "-DUSE_SYSTEM_JPEG=OFF",
+    "-DZLIB_LIBRARY=/usr/lib/i386-linux-gnu/libz.so.1"
+  ],
+  "build": "cmake --build <build> --parallel 20 -- -k 0; ctest --output-on-failure -j8",
+  "results": {
+    "control": {
+      "buildSteps": 497,
+      "failedSteps": [
+        {
+          "step": "CMakeFiles/fnql_vk_x86.dir/code/renderervk/tr_init.c.o",
+          "error": "code/renderervk/tr_init.c:3957:48: 'GL_CLAMP_TO_EDGE' undeclared"
+        },
+        {
+          "step": "CMakeFiles/fnql_rtx_x86.dir/code/rendererrtx/tr_init.c.o",
+          "error": "code/rendererrtx/tr_init.c:3922:48: 'GL_CLAMP_TO_EDGE' undeclared"
+        },
+        {
+          "step": "CMakeFiles/fntech3_jka_render_tests.dir/tests/jka_render_tests.cpp.o",
+          "error": "tests/jka_render_tests.cpp:2:10: fatal error: code/compat/render_record_adapter.hpp: No such file or directory"
+        },
+        {
+          "step": "fntech3",
+          "error": "/usr/bin/ld: i386:x86-64 architecture of input file `libjpeg-turbo/libjpeg.a(jcapimin.c.o)' is incompatible with i386 output (and every other member)"
+        }
+      ],
+      "artifacts": {
+        "fntech3": "not produced",
+        "fntech3.ded": "ELF 32-bit LSB pie executable, Intel 80386",
+        "fnql_glx_x86.so": "ELF 32-bit LSB shared object, Intel 80386",
+        "fnql_vk_x86.so": "not produced",
+        "fnql_rtx_x86.so": "not produced",
+        "libjpeg-turbo/libjpeg.a(jcapimin.c.o)": "ELF 64-bit LSB relocatable, x86-64"
+      },
+      "ctest": {
+        "total": 82,
+        "passed": 79,
+        "skipped": [
+          "fnql_retail_factory_probe"
+        ],
+        "failed": {
+          "fntech3_jka_render": "Not Run (did not build)",
+          "fntech3_jka_sp_game_bridge": "Subprocess aborted: line 385: candidateResult.trace.entityNum==2&&candidateResult.trace.fraction==0.025f"
+        }
+      },
+      "uniqueGccWarnings": 14
+    },
+    "candidate": {
+      "buildSteps": 497,
+      "failedSteps": [],
+      "artifacts": {
+        "fntech3": "ELF 32-bit LSB pie executable, Intel 80386",
+        "fntech3.ded": "ELF 32-bit LSB pie executable, Intel 80386",
+        "fnql_glx_x86.so": "ELF 32-bit LSB shared object, Intel 80386",
+        "fnql_vk_x86.so": "ELF 32-bit LSB shared object, Intel 80386",
+        "fnql_rtx_x86.so": "ELF 32-bit LSB shared object, Intel 80386",
+        "libjpeg-turbo/libjpeg.a(jcapimin.c.o)": "ELF 32-bit LSB relocatable, Intel 80386"
+      },
+      "ctest": {
+        "total": 82,
+        "passed": 81,
+        "skipped": [
+          "fnql_retail_factory_probe"
+        ],
+        "failed": {}
+      },
+      "uniqueGccWarnings": "14, identical to the control's"
+    },
+    "controlBuildDirRebuiltWithChange": {
+      "steps": [
+        "Re-running CMake...",
+        "Performing configure step for 'fnql_libjpeg_turbo'"
+      ],
+      "libjpeg.a(jcapimin.c.o)": {
+        "before": "ELF 64-bit LSB relocatable, x86-64",
+        "after": "ELF 32-bit LSB relocatable, Intel 80386"
+      },
+      "fntech3": "ELF 32-bit LSB pie executable, Intel 80386",
+      "note": "run before the second literal was cast, so the bridge test still aborted at line 415 there"
+    },
+    "candidateWithLargeFileHunk": {
+      "tree": "the candidate plus the large-file session's uncommitted CMakeLists.txt _FILE_OFFSET_BITS block",
+      "failedSteps": [],
+      "ctest": {
+        "total": 82,
+        "passed": 81,
+        "skipped": [
+          "fnql_retail_factory_probe"
+        ],
+        "failed": {}
+      },
+      "compileCommandsWithDefine": "434 of 434 (the external libjpeg-turbo build is configured separately and does not receive it)"
+    },
+    "candidateOnLaterHead": {
+      "head": "9f85e4abc3b848d1bdfc854ae62fc858d7dd386d",
+      "note": "HEAD moved during the work; 9f85e4ab (legacy-server hosting) touches none of this change's code, build or test files",
+      "failedSteps": [],
+      "artifacts": "the same five binaries and libjpeg.a member, each 32-bit Intel 80386",
+      "ctest": {
+        "total": 82,
+        "passed": 81,
+        "skipped": [
+          "fnql_retail_factory_probe"
+        ],
+        "failed": {}
+      },
+      "windowsCommitExportTests": {
+        "tree": "git archive of 9f85e4ab with this change's files (HEAD's text plus its hunks), committed inside the export",
+        "files": [
+          "release_packaging_tests.py",
+          "release_workflow_tests.py",
+          "version_metadata_tests.py",
+          "changelog_tests.py",
+          "steam_identity_source_tests.py",
+          "generate_docs_tests.py",
+          "platform_port_safety_tests.py",
+          "x86_build_constraints_tests.py"
+        ],
+        "result": "138 passed, 2 skipped (symlink privilege; accepted-x86 Make path needs subprojects/fontstash)"
+      }
+    }
+  },
+  "probes": {
+    "bridgeLine385Instrumented": {
+      "entityNum": 2,
+      "fraction": "0x1.99999ap-6 (0.0250000004), the float 0.1f*0.25f",
+      "literalCastToDouble": "0x1.999999999999ap-6",
+      "variants": {
+        "cmakeFlags(-m32 -g -std=c++17)": "fail",
+        "-msse2 -mfpmath=sse": "pass",
+        "-ffloat-store": "fail",
+        "-O2": "fail",
+        "clang++ -m32": "pass"
+      }
+    },
+    "excessPrecisionLiteral": {
+      "source": ".tmp probe: stored = volatile 0.1f * volatile 0.25f, compared with spellings of 0.025f",
+      "g++ -m32 -std=c++17": {
+        "FLT_EVAL_METHOD": 2,
+        "bare": false,
+        "cast": true,
+        "functionalCast": true,
+        "staticCast": true,
+        "namedFloat": true
+      },
+      "g++ -m32 -std=gnu++17": {
+        "FLT_EVAL_METHOD": 2,
+        "bare": true,
+        "cast": true
+      },
+      "g++ -m32 -std=c++17 -O2": {
+        "FLT_EVAL_METHOD": 2,
+        "bare": false,
+        "cast": true
+      },
+      "g++ -m32 -std=c++17 -msse2 -mfpmath=sse": {
+        "FLT_EVAL_METHOD": 0,
+        "bare": true,
+        "cast": true
+      },
+      "g++ -std=c++17 (x86-64)": {
+        "FLT_EVAL_METHOD": 0,
+        "bare": true,
+        "cast": true
+      },
+      "clang++ -m32 -std=c++17": {
+        "FLT_EVAL_METHOD": 2,
+        "bare": true,
+        "cast": true
+      }
+    },
+    "externalProjectInputs": {
+      "CC='gcc -m32'": {
+        "CMAKE_C_COMPILER_ARG1": " -m32",
+        "CMAKE_C_FLAGS": ""
+      },
+      "-DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_C_COMPILER_ARG1=' -m32'": {
+        "CMAKE_SIZEOF_VOID_P": 4
+      },
+      "-DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_C_FLAGS=' -m32 '": {
+        "CMAKE_SIZEOF_VOID_P": 4
+      },
+      "relative -DCMAKE_TOOLCHAIN_FILE": "held as an absolute path after project() (CMake 3.28.3)"
+    }
+  },
+  "windows": {
+    "msvcWin32DevCommands": {
+      "code/renderervk/tr_init.c": "compiles (/W4 /WX); RE_GetTextureCapabilities /EP text identical at HEAD and with the change",
+      "code/rendererrtx/tr_init.c": "the same",
+      "fntech3_jka_sp_game_bridge_tests": "four sources compiled with their win32-dev commands, linked, exit 0"
+    },
+    "cmakeLibjpegTurbo": {
+      "configure": "cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -DUSE_CURL=OFF -DUSE_OGG_VORBIS=OFF -DFNQL_AUDIO_LOOPBACK_TESTS=OFF -DFNQL_GLX_LOGIC_TESTS=OFF -DZLIB_LIBRARY=<win32-dev libz.a> -DZLIB_INCLUDE_DIR=subprojects/zlib-1.3.2; cmake --build --target fnql_libjpeg_turbo",
+      "control": {
+        "subBuildCFlags": "/DWIN32 /D_WINDOWS",
+        "jpeg-static.lib": "14C machine (x86)"
+      },
+      "candidate": {
+        "subBuildCFlags": "/DWIN32 /D_WINDOWS /W3",
+        "jpeg-static.lib": "14C machine (x86)"
+      }
+    },
+    "pythonTests": "platform_port_safety_tests.py and x86_build_constraints_tests.py: 35 passed in the shared working tree"
+  },
+  "pythonTestsLinux": {
+    "control": "the three new tests fail (unittest, HEAD export with only the new test file)",
+    "candidate": "platform_port_safety_tests.py and x86_build_constraints_tests.py: 34 tests OK, MSBuild probe skipped; one earlier run timed out in the 60 s CMake configure probe at load average above 10 and passed when repeated"
+  },
+  "unrelated": {
+    "mesonGccI686LiteralFailures": {
+      "build": "g++ -m32 -std=c++17 -O2 -I<src> -I<src>/code/qcommon tests/<t>_tests.cpp code/qcommon/puff.c (x87); control with -msse2 -mfpmath=sse passes all four",
+      "tests/alice_menu_tests.cpp": "static_assert at line 306 (DefaultScrollSpeed == 0.2f) fails to compile; lines 54 and 379 compare the same way",
+      "tests/fakk2_hud_tests.cpp": "static_assert at line 42 (FlashRate == 0.00133333332f) fails to compile",
+      "tests/alice_hud_tests.cpp": "exit 1 at line 52 (== 2.45f, == 1.2f)",
+      "tests/alice_screen_tests.cpp": "exit 1 at line 171 (== 1.8f); line 177 compares the same way",
+      "ci": "inference: linux-verification.yml's Meson job runs meson test with ubuntu-24.04's GCC and should stop on these; not run",
+      "engineScan": "no == or != against an inexact float literal under code/; ordering comparisons not examined"
+    },
+    "gccWarnings": [
+      "code/compat/jka_state_adapter.hpp:193: -Wmissing-template-keyword",
+      "code/compat/fakk2_convert.hpp:33: -Wenum-compare"
+    ]
+  },
+  "linuxCi": {
+    "date": "2026-10-06",
+    "workflow": ".github/workflows/linux-verification.yml",
+    "changes": [
+      "meson-x86 installs zlib1g-dev:i386",
+      "make-server-i686 runs sudo dpkg --add-architecture i386 and installs zlib1g-dev:i386",
+      "\"Build CMake i686 dedicated server\" became \"Build every CMake i686 target\": same configure flags; cmake --build .tmp/cmake-linux-server --parallel 2 with no --target; fntech3, fntech3.ded, fnql_glx_x86.so, fnql_vk_x86.so and fnql_rtx_x86.so each checked for 'ELF 32-bit LSB' and 'Intel 80386'",
+      "new step \"Run CMake i686 regression suite\": ctest --test-dir .tmp/cmake-linux-server --output-on-failure --no-tests=error --parallel 2",
+      "tests/platform_port_safety_tests.py pins sudo dpkg --add-architecture i386 and zlib1g-dev:i386 inside each job's block, and with tests/ci_regression_workflow_tests.py pins the new CMake steps and forbids --target fntech3.ded"
+    ],
+    "ciObserved": {
+      "lastStartedRun": {
+        "id": 37173959426,
+        "date": "2026-10-04",
+        "head": "8cf605c7",
+        "meson-x86": "Build dependency-isolated i686 dedicated server: Run-time dependency zlib found: NO (tried pkgconfig, cmake and system); later steps, the CMake step included, skipped",
+        "make-server-i686": "link: skipping incompatible /usr/lib/x86_64-linux-gnu/libz.so when searching for -lz; cannot find -lz",
+        "aptI386Zlib": "zlib1g:i386 only (runtime library; no headers, libz.so or zlib.pc)"
+      },
+      "earlierRuns": "59 listed back to 2026-09-08, all failed within 72 s; 34191357278, 34192571734, 35312413213 and 36774610896 inspected: no step started, refused for the account's billing"
+    },
+    "wslFindZlibProbe": {
+      "configure": "CI's flags, no zlib hint, --debug-find-pkg=ZLIB",
+      "CMAKE_LIBRARY_ARCHITECTURE": "i386-linux-gnu",
+      "hostZlib": "zlib1g-dev:amd64 (/usr/lib/x86_64-linux-gnu/libz.so) and zlib1g:i386 (libz.so.1 only)",
+      "searchedLibraryDirectories": "PATH-derived, then /usr/local/lib/i386-linux-gnu, /usr/local/lib, /usr/lib/i386-linux-gnu, /usr/lib, /lib/i386-linux-gnu, /lib, /usr/X11R6, /usr/pkg, /opt ...; never /usr/lib/x86_64-linux-gnu",
+      "result": "Could NOT find ZLIB (missing: ZLIB_LIBRARY); the 64-bit libz.so was not taken",
+      "inference": "on the runner, the CMake step stops at configuration without zlib1g-dev:i386 and takes /usr/lib/i386-linux-gnu/libz.so with it"
+    },
+    "wslVerbatimSteps": {
+      "method": "the two steps' run text extracted from the edited workflow with PyYAML and run with bash -e from the export's root",
+      "tree": "665d38a370d792e1ddd93b55eec04288cb95cdad: the shared working tree on 2026-10-06 over HEAD 9f85e4abc3b848d1bdfc854ae62fc858d7dd386d, every tracked and untracked file (other sessions' uncommitted work included), exported by WSL's git (LF), plus the ignored fontstash, imgui, libjpeg-turbo-3.1.4.1 and minimp3 checkouts",
+      "zlibStandIn": "CMAKE_PREFIX_PATH=<prefix> holding lib/libz.so -> /usr/lib/i386-linux-gnu/libz.so.1; ZLIB_LIBRARY_RELEASE=<prefix>/lib/libz.so",
+      "build": {
+        "steps": 503,
+        "failed": 0,
+        "parallel": 2,
+        "seconds": 152
+      },
+      "artifacts": {
+        "fntech3": "ELF 32-bit LSB pie executable, Intel 80386",
+        "fntech3.ded": "ELF 32-bit LSB pie executable, Intel 80386",
+        "fnql_glx_x86.so": "ELF 32-bit LSB shared object, Intel 80386",
+        "fnql_vk_x86.so": "ELF 32-bit LSB shared object, Intel 80386",
+        "fnql_rtx_x86.so": "ELF 32-bit LSB shared object, Intel 80386",
+        "libjpeg-turbo/libjpeg.a(jcapimin.c.o)": "ELF 32-bit LSB relocatable, Intel 80386"
+      },
+      "ctest": {
+        "total": 82,
+        "passed": 81,
+        "skipped": [
+          "fnql_retail_factory_probe"
+        ],
+        "failed": {},
+        "seconds": 8
+      }
+    },
+    "windowsPythonTests": {
+      "files": [
+        "tests/platform_port_safety_tests.py",
+        "tests/release_workflow_tests.py",
+        "tests/ci_regression_workflow_tests.py"
+      ],
+      "result": "51 passed (python -m pytest -q, Python 3.11.3)",
+      "pinsAgainstHeadWorkflow": "the new pins fail against HEAD's linux-verification.yml: 7 literal pins in platform_port_safety_tests.py, the zlib pins in both jobs (HEAD's make-server-i686 has neither the i386 architecture nor the package, its meson-x86 lacks the package), and 3 in ci_regression_workflow_tests.py"
+    },
+    "notCovered": [
+      "not run in CI",
+      "the runner's CMake version and processor count",
+      "zlib1g-dev:i386 itself (not installed in WSL; stand-ins for CMake and Make)",
+      "the Meson steps before the CMake steps in the same job, which must pass for the CMake steps to run"
+    ],
+    "dependsOn": "this record's CMakeLists.txt, renderer and test changes; HEAD's tree fails the new build step",
+    "gccM32LibrarySearch": "gcc -m32 -print-search-dirs includes /usr/lib/i386-linux-gnu and /usr/lib32; with zlib1g:i386 alone, ld --verbose tries /usr/lib/i386-linux-gnu/libz.so and libz.a and fails",
+    "wslMakeStep": {
+      "method": "the Make job's \"Build retail-width Linux dedicated server\" run text extracted from the edited workflow with PyYAML and run with bash -e from the same export's root",
+      "withoutPackage": {
+        "exit": 2,
+        "errors": [
+          "/usr/bin/ld: skipping incompatible /usr/lib/x86_64-linux-gnu/libz.so when searching for -lz",
+          "/usr/bin/ld: skipping incompatible /usr/lib/x86_64-linux-gnu/libz.a when searching for -lz",
+          "/usr/bin/ld: cannot find -lz: No such file or directory"
+        ]
+      },
+      "withStandIn": {
+        "zlib": "LIBRARY_PATH=<prefix>/lib holding libz.so -> /usr/lib/i386-linux-gnu/libz.so.1",
+        "exit": 0,
+        "fntech3.ded": "ELF 32-bit LSB pie executable, Intel 80386"
+      }
+    }
+  }
+}

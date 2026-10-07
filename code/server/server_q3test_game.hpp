@@ -633,7 +633,8 @@ intptr_t QDECL SV_Q3TestGameEntry( int command, ... ) {
 	case GAME_INIT: {
 		const int levelTime = va_arg( args, int );
 		const char *mapname = Cvar_VariableString( "mapname" );
-		const char *entities = CM_EntityString();
+		// The level's text: a .ent override's when the server loaded one.
+		const char *entities = SV_EntityText();
 		q3test.frameTime = levelTime; q3test.frameTimeKnown = true;
 		switch ( q3test.family ) {
 		case Q3TestFamily::A:

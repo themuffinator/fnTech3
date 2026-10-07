@@ -233,6 +233,8 @@ static void Cmd_RemoveCommand( const char *name ) { commands.erase( name ); }
 static int catcher;
 static int Key_GetCatcher( void ) { return catcher; }
 static void Key_SetCatcher( int value ) { catcher = value; }
+// The entity editor, closed: notify lines draw as they always have.
+static qboolean CL_EntityEditorActive( void ) { return qfalse; }
 enum { CG_CROSSHAIR_PLAYER = 1000, CG_LAST_ATTACKER, CG_CHAT_UP, CG_CHAT_DOWN,
 	CG_GET_CHAT_FIELD_Y, CG_GET_CHAT_FIELD_PIXEL_WIDTH, CG_GET_CHAT_FIELD_WIDTH_IN_CHARS };
 struct HarnessVM { bool dllExports; };

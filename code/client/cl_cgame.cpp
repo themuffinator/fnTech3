@@ -183,8 +183,9 @@ static qboolean cl_underwaterFeedEnabled;
 
 
 static qboolean CL_CaptureHidesHud( void ) {
-	return ( cl_captureActive && cl_captureActive->integer &&
-		r_levelshotHideHud && r_levelshotHideHud->integer ) ? qtrue : qfalse;
+	// The entity editor's view has no HUD over it either.
+	return ( ( cl_captureActive && cl_captureActive->integer &&
+		r_levelshotHideHud && r_levelshotHideHud->integer ) || CL_EntityEditorActive() ) ? qtrue : qfalse;
 }
 
 
@@ -1836,6 +1837,8 @@ static qboolean CL_GetServerCommand( int serverCommandNumber ) {
 		Cmd_TokenizeString( s );
 		std::fill_n( cl.cmds, CMD_BACKUP, usercmd_t{} );
 		cls.lastVidRestart = Sys_Milliseconds(); // hack for OSP mod
+		// The restarted level's entity text, which an override may now hold.
+		CL_EntityOverrideCGameInit();
 		return qtrue;
 	}
 
@@ -1904,6 +1907,7 @@ void CL_ShutdownCGame( void ) {
 	CL_ClearRTCWCameras();
 	CL_ClearWolfETCameras();
 	CL_HudResetCGame();
+	CL_EntityOverrideCGameShutdown();
 
 	if ( !cgvm ) {
 		if (Com_GameIsJKAMP()) {
@@ -2856,6 +2860,7 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		CL_HudFlushQueue();
 		refdef_t moduleRefdef = CL_ModuleRefdef( cgvm, args[1] );
 		CL_HudAdjustRefdef( &moduleRefdef );
+		CL_EntityEditorAdjustView( &moduleRefdef );
 		const refdef_t *refdef = &moduleRefdef;
 		refdef_t adjustedRefdef;
 
@@ -3086,7 +3091,7 @@ static intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 */
 	case CG_GET_ENTITY_TOKEN:
 		VM_CHECKBOUNDS( cgvm, args[1], args[2] );
-		return re.GetEntityToken( VMA(1), args[2] );
+		return CL_GetEntityToken( VMA(1), args[2] );
 
 	case CG_R_INPVS:
 		return re.inPVS( VMA(1), VMA(2) );
@@ -3915,6 +3920,8 @@ void CL_InitCGame( void ) {
 	info = cl.gameState.stringData + cl.gameState.stringOffsets[ CS_SERVERINFO ];
 	mapname = Info_ValueForKey( info, "mapname" );
 	Com_sprintf( cl.mapname, sizeof( cl.mapname ), "maps/%s.bsp", mapname );
+	// The local server's .ent override, when it runs this map with one.
+	CL_EntityOverrideCGameInit();
 
 	// allow vertex lighting for in-game elements
 	re.VertexLighting( qtrue );

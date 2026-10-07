@@ -55,7 +55,8 @@ int main() {
             for folder in ('renderer','renderervk','rendererrtx'):
                 with self.subTest(renderer=folder):
                     source=(ROOT/'code'/folder/'tr_shader.c').read_text()
-                    cpp=Path(d)/'test.cpp';exe=Path(d)/'test.exe'
+                    # One executable per build: Windows can hold the last one run.
+                    cpp=Path(d)/'test.cpp';exe=Path(d)/(folder+'.exe')
                     cpp.write_text(prelude+'\n'+extract(source,'static void ParseQ3MapLightRGB(')+'\n'+main)
                     subprocess.run([cc,*compiler_target_args(cc),'-std=c++17',str(cpp),'-o',str(exe)],check=True,capture_output=True,text=True)
                     subprocess.run([str(exe)],check=True,capture_output=True,text=True)

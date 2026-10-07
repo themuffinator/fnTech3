@@ -53,7 +53,7 @@ the live `sv_altEntDir` path against the retail module.
 
 | Contract | FnQL behavior |
 |---|---|
-| Entity text | BSP text reaches retail qagame unchanged, including QL `advertisement` classnames. `sv_altEntDir` loads `<dir>/<map>.ent` through the virtual filesystem and falls back to BSP text. Absolute paths, traversal, platform separators, embedded NULs, and overlong paths are rejected. `sv_dumpEntities` writes the selected text to `ents/<map>.ent`. |
+| Entity text | BSP text reaches retail qagame unchanged, including QL `advertisement` classnames. `sv_altEntDir` loads `<dir>/<map>.ent` through the virtual filesystem and falls back to BSP text. Absolute paths, traversal, platform separators, embedded NULs, and overlong paths are rejected. `sv_dumpEntities` writes the selected text to `ents/<map>.ent`. When `sv_altEntDir` names no file for the map, fnTech3's every-profile `maps/<map>.ent` override (`sv_entityOverrides`, checked before use) is read next; with neither file, or `sv_entityOverrides 0`, the BSP text reaches qagame as before ([record](../fntech3/2026-10-05-entity-editor.md)). |
 | Cylinder collision | `sv_cylinderScale=1.1f` scales only the vertical-cylinder radius at the collision owner. The value is bounded and has an early-tooling fallback. |
 | Process lifecycle | `sv_idleExit`, `sv_quitOnEmpty`, `sv_idleRestart`, and `sv_quitOnExitLevel` use wrap-safe/one-shot timing and ignore bots when retail defines human activity. Map, map-restart, scheduled restart, idle restart, and inherited safety restarts share one exit-level policy. |
 | Error lifecycle | `sv_errorExit=1` promotes recoverable server errors to fatal only while a server is running; mode `0` retains recovery and mode `2` always promotes. Common code still owns the unwind. |

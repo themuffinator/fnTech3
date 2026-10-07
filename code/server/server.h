@@ -404,6 +404,7 @@ extern	cvar_t	*sv_quitOnEmpty;
 extern	cvar_t	*sv_quitOnExitLevel;
 extern	cvar_t	*sv_altEntDir;
 extern	cvar_t	*sv_dumpEntities;
+extern	cvar_t	*sv_entityOverrides;
 extern	cvar_t	*sv_cylinderScale;
 extern	cvar_t	*sv_vac;
 extern	cvar_t	*sv_showloss;

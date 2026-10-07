@@ -35,6 +35,8 @@ static void (*reload)();
 static std::array<float, 8> submitted;
 static qhandle_t submittedShader, pictureShader = 17;
 // 0 Q3, 1 QL, 2 RTCW SP, 3 RTCW MP, 4 F.A.K.K.2, 5 ET, 6 EF SP, 7 EF MP, 8 Alice, 9 MoHAA
+// The entity editor, closed: the HUD draws as it always has.
+extern "C" qboolean CL_EntityEditorActive( void ) { return qfalse; }
 int Com_GameIsQuake3() { return profile == 0; }
 int Com_GameIsRTCW() { return profile == 2 || profile == 3; }
 int Com_GameIsWolfET() { return profile == 5; }

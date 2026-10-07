@@ -1308,14 +1308,24 @@ static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 	uiVisible = ( Key_GetCatcher() & KEYCATCH_UI ) && uivm;
 	drawConnectScreen = cls.state == CA_CONNECTING || cls.state == CA_CHALLENGING
 		|| cls.state == CA_CONNECTED;
+	// The engine's entity editor shows the game's view alone, and holds the
+	// keys: the game's menus and browser pages wait, undrawn and unsoftened,
+	// until it closes.
+	const bool editorView = cls.state == CA_ACTIVE && CL_EntityEditorActive();
 	browserOverlayAllowed = !drawConnectScreen && cls.state != CA_LOADING
 		&& cls.state != CA_PRIMED;
+	if ( editorView ) {
+		browserOverlayAllowed = false;
+	}
 	browserOverlayRequested = browserOverlayAllowed && ( ( Key_GetCatcher() & KEYCATCH_BROWSER )
 		|| Cvar_VariableIntegerValue( "web_browserActive" )
 		|| Cvar_VariableIntegerValue( "ui_browserAwesomiumPending" ) );
 	browserDrawableSurface = browserOverlayRequested && CL_WebHost_HasDrawableSurface();
 	browserPendingSurface = browserOverlayRequested && !browserDrawableSurface;
 	browserSuppressUiRefresh = browserDrawableSurface || ( Key_GetCatcher() & KEYCATCH_BROWSER );
+	if ( editorView ) {
+		browserSuppressUiRefresh = true;
+	}
 
 	if ( browserSuppressUiRefresh && cls.state == CA_DISCONNECTED ) {
 		uiFullscreen = true;
@@ -1440,6 +1450,8 @@ static void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 	// pass had bound - so it did not appear at all - or dimmed the live HUD
 	// underneath it while the request faded out.  See MENU_SOFT_FOCUS.md.
 	if ( !viewOnly ) {
+		// The engine's entity editor goes over the menus and under the console.
+		CL_EntityEditorDraw();
 		Con_DrawConsole ();
 	}
 
