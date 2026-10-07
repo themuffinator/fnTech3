@@ -43,6 +43,7 @@ extern "C" {
 #include "../snd_rtcw.h"
 #include "../shared/RTCWStreamFiles.h"
 #include "../shared/STVEFAmbient.h"
+#include "../shared/JKAAmbient.h"
 #include "../shared/STVEFLipSync.h"
 #include "../shared/AliceSound.h"
 
@@ -159,6 +160,8 @@ static std::array<loopSound_t, MAX_GENTITIES> loopSounds;
 static fntech3::audio::rtcw::LoopFrame rtcwLoops;
 // Elite Force single player's ambient loops, which carry their own volume.
 static fntech3::audio::stvef::AmbientLoopFrame stvefAmbientLoops;
+// Jedi Academy's ambient-set loops, which carry their own volume.
+static fntech3::audio::jka::AmbientLoops jkaAmbientLoops;
 // How wide a mouth each entity holds, which Elite Force SP's game reads.
 static fntech3::audio::stvef::lipsync::Mouths stvefMouths;
 static_assert( sizeof( int ) == sizeof( std::int32_t ),
@@ -1266,6 +1269,7 @@ static void S_Base_ClearSoundBuffer( void ) {
 	loopSounds.fill( loopSound_t{} );
 	rtcwLoops.Clear();
 	stvefAmbientLoops.Clear();
+	jkaAmbientLoops.Clear();
 	stvefMouths.Reset();
 	std::fill_n( loop_channels, MAX_CHANNELS, channel_t{} );
 	numLoopChannels = 0;
@@ -1319,6 +1323,7 @@ static void S_Base_ClearRTCWSounds( qboolean clearMusic ) {
 	loopSounds.fill(loopSound_t{});
 	rtcwLoops.Clear();
 	stvefAmbientLoops.Clear();
+	jkaAmbientLoops.Clear();
 	stvefMouths.Reset();
 	std::fill_n(loop_channels, MAX_CHANNELS, channel_t{});
 	numLoopChannels = 0;
@@ -1353,6 +1358,7 @@ S_ClearLoopingSoundsFrame
 static void S_Base_ClearLoopingSoundsFrame( void ) {
 	rtcwLoops.Clear();
 	stvefAmbientLoops.Clear();
+	jkaAmbientLoops.Clear();
 	for ( loopSound_t &loop : loopSounds ) {
 		loop.active = qfalse;
 	}
@@ -1369,6 +1375,7 @@ static void S_Base_ClearLoopingSounds( qboolean killall ) {
 	int i;
 	rtcwLoops.Clear();
 	stvefAmbientLoops.Clear();
+	jkaAmbientLoops.Clear();
 	for ( i = 0 ; i < MAX_GENTITIES ; i++) {
 		if (killall || loopSounds[i].kill == qtrue || (loopSounds[i].sfx && loopSounds[i].sfx->soundLength == 0)) {
 			S_Base_StopLoopingSound(i);
@@ -1429,6 +1436,25 @@ static void S_Base_AddSTVEFAmbientLoopingSound( const vec3_t origin, sfxHandle_t
 	if ( !sample->inMemory ) S_memoryLoad( sample );
 	if ( !sample->soundLength ) Com_Error( ERR_DROP, "%s has length 0", sample->soundName );
 	stvefAmbientLoops.Append( origin, handle, volume );
+}
+
+/*
+==================
+S_Base_AddJKAAmbientLoopingSound
+
+Jedi Academy's ambient-set loops belong to no entity and each plays at the
+volume its set has faded to, out of the 255 every retail loop is added at;
+those of one sound are merged (shared/JKAAmbient.h).
+==================
+*/
+static void S_Base_AddJKAAmbientLoopingSound( const vec3_t origin, sfxHandle_t handle, int volume ) {
+	if ( !s_soundStarted || s_soundMuted || volume <= 0 ) return;
+	if ( handle < 0 || handle >= s_numSfx )
+		Com_Error( ERR_DROP, "Jedi Academy ambient looping sound handle %d is invalid", handle );
+	sfx_t *sample = S_KnownSfxAt( handle );
+	if ( !sample->inMemory ) S_memoryLoad( sample );
+	if ( !sample->soundLength ) Com_Error( ERR_DROP, "%s has length 0", sample->soundName );
+	jkaAmbientLoops.Add( origin, handle, volume );
 }
 
 /*
@@ -1682,6 +1708,32 @@ static void S_AddSTVEFAmbientLoopSounds( void ) {
 	}
 }
 
+/*
+==================
+S_AddJKAAmbientLoopSounds
+
+Jedi Academy's ambient-set loops, each sound one channel spatialized as the
+engine's own loops are, at its merged volume scaled to their level.
+==================
+*/
+static void S_AddJKAAmbientLoopSounds( void ) {
+	for ( std::size_t i = 0; i < jkaAmbientLoops.Size() && numLoopChannels < MAX_CHANNELS; ++i ) {
+		const auto &loop = jkaAmbientLoops[i];
+		int left = 0, right = 0;
+		S_SpatializeOrigin( loop.origin.data(), loop.volume * kMasterVolume / fntech3::audio::jka::AmbientLoops::MaxVolume,
+			&left, &right, CHAN_AUTO );
+		if ( !left && !right ) continue;
+		sfx_t *sample = S_KnownSfxAt( loop.handle );
+		sample->lastTimeUsed = s_soundtime;
+		channel_t &channel = loop_channels[numLoopChannels++];
+		channel = channel_t{};
+		channel.master_vol = kMasterVolume;
+		channel.leftvol = left;
+		channel.rightvol = right;
+		channel.thesfx = sample;
+	}
+}
+
 static void S_AddLoopSounds( void ) {
 	if ( Com_GameIsRTCW() ) {
 		S_AddRTCWLoopSounds();
@@ -1759,6 +1811,9 @@ static void S_AddLoopSounds( void ) {
 
 	if ( Com_GameIsSTVEFSP() ) {
 		S_AddSTVEFAmbientLoopSounds();
+	}
+	if ( Com_GameIsJKAMP() ) {
+		S_AddJKAAmbientLoopSounds();
 	}
 }
 
@@ -2557,6 +2612,7 @@ extern "C" qboolean S_Base_Init( soundInterface_t *si ) {
 	si->AddLoopingSound = S_Base_AddLoopingSound;
 	si->AddRTCWLoopingSound = S_Base_AddRTCWLoopingSound;
 	si->AddSTVEFAmbientLoopingSound = S_Base_AddSTVEFAmbientLoopingSound;
+	si->AddJKAAmbientLoopingSound = S_Base_AddJKAAmbientLoopingSound;
 	si->StartMOHAASound = S_Base_StartMOHAASound;
 	si->AddMOHAALoopingSound = S_Base_AddMOHAALoopingSound;
 	si->STVEFSPMouths = S_Base_STVEFSPMouths;

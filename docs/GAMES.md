@@ -483,9 +483,13 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   original places it, though no picture of it has been checked yet
   ([details](fntech3/2026-10-06-jka-attachments.md)). Items that
   fade in, or that the game draws in a single colour, now draw too
-  ([details](fntech3/2026-10-06-jka-entity-tint.md)). On some maps fnTech3
-  then stops at the map's background sounds, which it does not play yet; on
-  others a map restart, reconnecting and the server shutting down all work.
+  ([details](fntech3/2026-10-06-jka-entity-tint.md)). Each map's
+  background sounds are now played as the original plays them, fading in
+  and from one map's sounds to the next
+  ([details](fntech3/2026-10-06-jka-ambient-sets.md)), and a map restart,
+  reconnecting and the server shutting down all work. With sound turned on,
+  though, the game still stops when it asks how loud a player's voice is,
+  so the background sounds were checked in a test build that answers it.
   Joining the game as a player stops at its first sound. The
   open-source OpenJK engine's client joins fnTech3's server.
 - **Single player:** the original game code starts, then stops on its first

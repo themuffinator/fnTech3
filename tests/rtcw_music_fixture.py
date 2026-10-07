@@ -14,6 +14,7 @@ COMMON = r'''
 #include "code/client/audio/shared/RTCWMusic.h"
 #include "code/client/audio/shared/RTCWLoops.h"
 #include "code/client/audio/shared/STVEFAmbient.h"
+#include "code/client/audio/shared/JKAAmbient.h"
 #include "code/client/audio/shared/STVEFLipSync.h"
 #include "code/client/audio/shared/AudioMix.h"
 #include "code/client/audio/shared/AudioSpeakerLayout.h"
@@ -239,6 +240,7 @@ constexpr int MAX_CHANNELS=96;
 struct loopSound_t{bool active=false;};static std::array<loopSound_t,1024> loopSounds;
 static fntech3::audio::rtcw::LoopFrame rtcwLoops;
 static fntech3::audio::stvef::AmbientLoopFrame stvefAmbientLoops;
+static fntech3::audio::jka::AmbientLoops jkaAmbientLoops;
 static fntech3::audio::stvef::lipsync::Mouths stvefMouths;
 struct channel_t{int active=0;};static channel_t loop_channels[MAX_CHANNELS];static int numLoopChannels;
 static int channels=0,voiceLanes=0,submits=0;

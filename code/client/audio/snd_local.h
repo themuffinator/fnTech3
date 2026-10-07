@@ -192,6 +192,9 @@ struct soundInterface_t {
 	void (*AddLoopingSound)( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx );
 	void (*AddRTCWLoopingSound)( const vec3_t origin, const vec3_t velocity, int range, sfxHandle_t sfx, int volume );
 	void (*AddSTVEFAmbientLoopingSound)( const vec3_t origin, sfxHandle_t sfx, int volume );
+	// Jedi Academy's ambient-set loops, each with the volume its set has
+	// faded to out of 255 (shared/JKAAmbient.h).
+	void (*AddJKAAmbientLoopingSound)( const vec3_t origin, sfxHandle_t sfx, int volume );
 	// Medal of Honor's sounds and loops with their alias's volume, distances
 	// (full volume inside minDist, silent past maxDist) and pitch.
 	void (*StartMOHAASound)( const vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx,

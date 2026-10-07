@@ -27,6 +27,7 @@ extern "C" {
 #include "../snd_rtcw.h"
 #include "../shared/RTCWStreamFiles.h"
 #include "../shared/STVEFAmbient.h"
+#include "../shared/JKAAmbient.h"
 #include "../shared/AliceSound.h"
 
 #include <AL/al.h>

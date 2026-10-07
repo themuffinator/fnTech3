@@ -98,6 +98,9 @@ void S_AddRTCWLoopingSound( const vec3_t origin, const vec3_t velocity, int rang
 // Elite Force single player's ambient loops carry the volume their set has
 // faded to, and no entity: at most 32 a frame, merged by sound.
 void S_AddSTVEFAmbientLoopingSound( const vec3_t origin, sfxHandle_t sfx, int volume );
+// Jedi Academy's ambient-set loops carry the volume their set has faded to,
+// out of 255, and no entity: at most 32 a frame, merged by sound.
+void S_AddJKAAmbientLoopingSound( const vec3_t origin, sfxHandle_t sfx, int volume );
 // Medal of Honor's sounds and loops, with their alias's volume, distances and
 // pitch; a loop's slot is its voice, as an entity number is. A sound names
 // 2015's own channel too: one on an entity's channel, but for the automatic

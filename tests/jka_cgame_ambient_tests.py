@@ -28,6 +28,8 @@ def fixture():
 #include <vector>
 #include <string>
 #include <cassert>
+#include <cmath>
+#include "code/compat/jka_client_adapter.hpp"
 static void CL_JKACgameClear();
 struct Drop{};static bool recover;
 void QDECL Com_Error(errorParm_t,const char *,...){if(recover)CL_JKACgameClear();throw Drop{};}
@@ -64,6 +66,15 @@ sfxHandle_t S_RegisterSound(const char *name,qboolean compression){
  if(soundDrop)Com_Error(ERR_DROP,"sound failure");
  return silent?0:static_cast<sfxHandle_t>(100+registered.size());
 }
+static struct { int realtime; } cls;
+struct Started { float origin[3]; int entity, channel, handle; float volume; };
+struct Looped { float origin[3]; int handle, volume; };
+static std::vector<Started> started;
+static std::vector<Looped> looped;
+void S_StartSoundVolume(vec3_t origin,int entity,int channel,sfxHandle_t sfx,float volume){
+ started.push_back({{origin[0],origin[1],origin[2]},entity,channel,sfx,volume});}
+void S_AddJKAAmbientLoopingSound(const vec3_t origin,sfxHandle_t sfx,int volume){
+ looped.push_back({{origin[0],origin[1],origin[2]},sfx,volume});}
 #include "code/client/client_jka_cgame_ambient.hpp"
 static fntech3::jka::lightstyle::Store jkaCgameLightStyles;
 static void *jkaCgameSharedBuffer;static std::vector<int> jkaFonts;
@@ -91,14 +102,15 @@ int main(){
  assert(!Invoke(parse)&&opens==1&&reads==1&&closes==1&&files.empty()&&parsedMessages==1);
  assert(jkaCgameAmbient->catalog.Definitions().size()==3&&registered.size()==6);
  // Missing/null/empty names return before touching any listener vector.
- // A present declaration remains a named active-playback refusal, even with
- // sound initialization disabled; absence cannot stand in for active audio.
+ // A present set reads the listener's view origin, which must be a valid
+ // address; playback itself is exercised below.
  const int registeredBeforeUpdate=static_cast<int>(registered.size());
  intptr_t update[]{48,reinterpret_cast<intptr_t>("missing"),-1};
  assert(Invoke(update)==0);update[1]=0;assert(Invoke(update)==0);
  update[1]=reinterpret_cast<intptr_t>("");assert(Invoke(update)==0);
  update[1]=reinterpret_cast<intptr_t>("SHARED");assert(Invoke(update)==0);
  update[1]=reinterpret_cast<intptr_t>("shared");Reject([&]{Invoke(update);});
+ assert(looped.empty()&&started.empty());
  assert(static_cast<int>(registered.size())==registeredBeforeUpdate&&files.empty());
 
  assert(registered[0]=="sound/wind/hum.wav"&&registered[5]=="sound/doors/close.wav");
@@ -156,7 +168,37 @@ assert(!jkaCgameAmbient&&!jkaCgameSharedBuffer&&jkaFonts.empty());
  absent[1]=reinterpret_cast<intptr_t>(invalidName.data());Reject([&]{Invoke(absent);});
  intptr_t unserved[]{51};intptr_t result=29;
  assert(!CL_JKACgameAmbientCall(unserved,fntech3::jka::module::Call::CG_S_ADDLOCALSET,result)&&result==29);
- assert(parsedMessages==3);recover=false;CL_JKACgameClear();assert(files.empty());
+ assert(parsedMessages==3);
+ // Import 48 plays a present set through the measured player
+ // (jka_ambient_playback_tests.py): its loop at the volume it has faded to,
+ // and once its time between waves has passed, a subwave on Academy's
+ // ambient channel from the world entity at the view origin.
+ reset();CL_JKAClearAmbientPlayer();data=source+"generalSet outdoor\nloopedWave city/hum\nsubWaves city horn\n";
+ add[1]=reinterpret_cast<intptr_t>("outdoor");assert(!Invoke(add));assert(!Invoke(parse));
+ const auto handle=[&](const char *name){for(std::size_t i=0;i<registered.size();++i)
+  if(registered[i]==name)return static_cast<int>(101+i);assert(false);return 0;};
+ const int hum=handle("sound/city/hum.wav"),horn=handle("sound/city/horn.wav");
+ float view[3]{10,20,30};
+ intptr_t play[]{48,reinterpret_cast<intptr_t>("outdoor"),reinterpret_cast<intptr_t>(view)};
+ looped.clear();started.clear();
+ for(const auto &step:{std::pair<int,int>{500,0},{1000,127},{1500,255},{2000,255}}){
+  cls.realtime=step.first;assert(Invoke(play)==0);
+  assert(looped.back().handle==hum&&looped.back().volume==step.second&&looped.back().origin[2]==30);
+ }
+ assert(looped.size()==4&&started.empty());
+ cls.realtime=26000;assert(Invoke(play)==0);
+ assert(started.size()==1&&started[0].handle==horn&&started[0].entity==ENTITYNUM_WORLD);
+ assert(started[0].channel==fntech3::jka::sound::EngineChannel(fntech3::jka::sound::ChanAmbient));
+ assert(started[0].volume==1.0f&&started[0].origin[0]==10&&started[0].origin[1]==20);
+ view[1]=std::nanf("");Reject([&]{Invoke(play);});view[1]=20;
+ // The player is the engine's: a client game's cleanup keeps it, a new parse
+ // numbers its sets anew and the set playing fades out as the new one fades in.
+ CL_JKACgameClear();assert(jkaAmbientPlayer.HasCurrent());
+ assert(!Invoke(add));assert(!Invoke(parse));looped.clear();
+ cls.realtime=27000;assert(Invoke(play)==0);
+ assert(looped.size()==2&&looped[0].volume==0&&looped[1].volume==255&&jkaAmbientPlayer.HasOld());
+ CL_JKAClearAmbientPlayer();assert(!jkaAmbientPlayer.HasCurrent()&&!jkaAmbientPlayer.HasOld());
+ recover=false;CL_JKACgameClear();assert(files.empty());
 }
 '''
 

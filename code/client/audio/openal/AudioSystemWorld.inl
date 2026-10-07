@@ -1057,6 +1057,7 @@ public:
 	bool AcceptsSTVEFAmbientLoop() const { return stvefAmbientLoops_.Accepts(); }
 	void AddRTCWLoopingSound( const float *origin, const float *velocity, int range, sfxHandle_t handle, int volume, SoundSample *sample, float master );
 	void AddSTVEFAmbientLoopingSound( const float *origin, sfxHandle_t handle, int volume, SoundSample *sample );
+	void AddJKAAmbientLoopingSound( const float *origin, sfxHandle_t handle, int volume, SoundSample *sample );
 	void AddWolfETLoopingSound( const float *origin, const float *velocity, int range, sfxHandle_t handle, int volume, SoundSample *sample, float master, int soundTime );
 	void StartSound( int entityNum, int entchannel, sfxHandle_t handle, SoundSample *sample, const float *origin, float volume );
 	// Medal of Honor's one-shots and loops, placed with their alias's
@@ -1131,6 +1132,9 @@ private:
 	std::array<SoundVoice, MAX_GENTITIES + fntech3::audio::stvef::AmbientLoopFrame::Capacity> loopVoices_;
 	fntech3::audio::rtcw::LoopFrame rtcwLoops_;
 	fntech3::audio::stvef::AmbientLoopFrame stvefAmbientLoops_;
+	// Jedi Academy's ambient-set loops this frame, merged by sound; they take
+	// the same voices after the entities', which no profile shares.
+	fntech3::audio::jka::AmbientLoops jkaAmbientLoops_;
 	fntech3::audio::rtcw::OneShots rtcwOneShots_;
 	std::array<Vec3f, MAX_GENTITIES> entityOrigins_;
 	int listenerNumber_ = 0;
@@ -1261,6 +1265,7 @@ void Q3SoundWorld::Reset( OpenALDevice *device ) {
 void Q3SoundWorld::StopAllSounds() {
 	rtcwLoops_.Clear();
 	stvefAmbientLoops_.Clear();
+	jkaAmbientLoops_.Clear();
 	rtcwOneShots_.Reset();
 	loopFrameClearPending_ = false;
 	for ( SoundVoice &voice : oneShots_ ) {
@@ -1279,6 +1284,7 @@ void Q3SoundWorld::ClearSoundBuffer() {
 void Q3SoundWorld::ClearLoopingSoundsFrame() {
 	rtcwLoops_.Clear();
 	stvefAmbientLoops_.Clear();
+	jkaAmbientLoops_.Clear();
 	loopFrameClearPending_ = true;
 	for ( SoundVoice &voice : loopVoices_ ) {
 		if ( voice.active ) {
@@ -1290,6 +1296,7 @@ void Q3SoundWorld::ClearLoopingSoundsFrame() {
 void Q3SoundWorld::ClearLoopingSounds( qboolean killall ) {
 	rtcwLoops_.Clear();
 	stvefAmbientLoops_.Clear();
+	jkaAmbientLoops_.Clear();
 	for ( SoundVoice &voice : loopVoices_ ) {
 		if ( !voice.active ) {
 			continue;
@@ -1422,6 +1429,46 @@ void Q3SoundWorld::AddSTVEFAmbientLoopingSound( const float *origin, sfxHandle_t
 	SoundVoice &voice = loopVoices_[slot];
 	voice.stvefAmbient = true;
 	voice.stvefVolume = stvefAmbientLoops_[appended].volume;
+	voice.entnum = ENTITYNUM_NONE; // Submission order is not a sound entity index.
+	voice.doppler = false;
+}
+
+/* Jedi Academy's ambient-set loops belong to no entity. A sound keeps the
+ * voice it already has, so a loop passing from one set to the next plays on
+ * from where it was, and the loops of one sound are one voice at their
+ * merged volume (shared/JKAAmbient.h). Everything else -- distance, room,
+ * occlusion, tone -- is the engine's own loop rendering. */
+void Q3SoundWorld::AddJKAAmbientLoopingSound( const float *origin, sfxHandle_t handle,
+	int volume, SoundSample *sample ) {
+	static_assert( fntech3::audio::jka::AmbientLoops::Capacity <= fntech3::audio::stvef::AmbientLoopFrame::Capacity,
+		"Academy's ambient loops use the voices after the entities'" );
+	if ( !sample ) return;
+	const int merged = jkaAmbientLoops_.Add( origin, handle, volume );
+	if ( merged < 0 ) return;
+	const auto &loop = jkaAmbientLoops_[merged];
+	// The voice already playing this sound; else an idle one; else one no
+	// loop has kept this frame. An idle voice comes first, so a set's loop
+	// still to be added this frame keeps its own.
+	int slot = -1, idle = -1, stale = -1;
+	for ( std::size_t i = 0; i < fntech3::audio::jka::AmbientLoops::Capacity; ++i ) {
+		const SoundVoice &candidate = loopVoices_[MAX_GENTITIES + i];
+		const int index = static_cast<int>( MAX_GENTITIES + i );
+		if ( candidate.active && candidate.handle == handle ) {
+			slot = index;
+			break;
+		}
+		if ( !candidate.active ) {
+			if ( idle < 0 ) idle = index;
+		} else if ( !candidate.refreshedThisFrame && stale < 0 ) {
+			stale = index;
+		}
+	}
+	if ( slot < 0 ) slot = idle >= 0 ? idle : stale;
+	if ( slot < 0 ) return;
+	const float velocity[3] = { 0.0f, 0.0f, 0.0f };
+	AddLoopingSound( slot, loop.origin.data(), velocity, handle, sample, qfalse );
+	SoundVoice &voice = loopVoices_[slot];
+	voice.volumeScale = fntech3::audio::jka::AmbientLoops::Scale( loop.volume );
 	voice.entnum = ENTITYNUM_NONE; // Submission order is not a sound entity index.
 	voice.doppler = false;
 }

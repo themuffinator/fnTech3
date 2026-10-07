@@ -76,6 +76,10 @@ Release packages include them as web pages in their `manual` folder, built by
 - [October 6 Quake Live listen servers and their server type](fntech3/2026-10-06-ql-listen-server-type.md)
   -- retail's offline, LAN and Internet admission, which replaces the game
   type and the single-player flag for a match started from the client.
+- [October 6 Jedi Academy ambient sets](fntech3/2026-10-06-jka-ambient-sets.md)
+  -- retail's ambient-set player, its fades, draws and loop mixing, through
+  Fn's loop voices and one-shots, and the full session against retail
+  `jamp.exe`.
 - [October 6 Jedi Academy entity tint and forced alpha](fntech3/2026-10-06-jka-entity-tint.md)
   -- retail's stage colour, alpha and draw order for the client game's tinted
   and fading entities in Fn's renderers, the decal clear, and `map_restart`,

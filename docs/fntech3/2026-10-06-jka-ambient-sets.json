@@ -1,0 +1,279 @@
+{
+  "record": "2026-10-06-jka-ambient-sets.md",
+  "sourceCommit": "23ebc087fb74c8ec78f84c218abb155d6a17cd68",
+  "build": {
+    "platform": "Windows 11 x86 (MSVC 2022, meson debugoptimized, strict warnings)",
+    "source": "HEAD plus this slice, exported clean; every development gate on; 1,499 targets, no warnings",
+    "runtimeFolder": ".tmp/runtime/jka-live-join (rebuilt in place)"
+  },
+  "runtime": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "14beb8b0e679c8b03aa32c3547adeb65ba75da468251dbd7ada95f05fbedd7da",
+    "fnql_rtx_x86.dll": "f7f4217ed3b04e7f30e9a55c60a9401cf0df62a28301ea8770e25e264ef8a2e3",
+    "fnql_vk_x86.dll": "2c23a1d231d52f7d83fc703f340f56b7379ce2d1a1530df1ccc2285dc83ef67c",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+    "fntech3.ded.exe": "1963f7dd2849092dc0b2d4a301c6094bf81e53a915dc99cca1ae9718af1a5cd7",
+    "fntech3.ded.pdb": "e7e7cbcca5a1188180ce240feec4e2a7d9311114b0b74b5639a80c416b1f192b",
+    "fntech3.exe": "314bed8f23eb2a1a7111285c8e8af7b1291bfb176e4aa7a27ffb78a040fbc242",
+    "fntech3.pdb": "8e1b1b9d3dea63242ca74a372e676a4c0c07da2e16f6576c7016c72ed4aadf7f"
+  },
+  "runtimeBefore": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "f1a4d2b2fbad895f47f1af7bd565ffaf97ed657d73f68c4a8c1d710ef276ae56",
+    "fnql_rtx_x86.dll": "5fa42acc600da9fb058bfc9840dbbfa5358ba8015a8eca192840b4150e2ffb99",
+    "fnql_vk_x86.dll": "8ed401f60cba8c7b36e23b48995cdeaf271ef29c79c7597599a6d5f2532ba963",
+    "fntech3-pkg.fnz": "a8cca7cd1fd152817ac49cf74241a1d0c00e3eb4c47f056c8500e36feb06a8ff",
+    "fntech3.ded.exe": "78f8eb1c3f5ef6d5e8bc8127c51425674aea060d5bd06e2a162c0abb9623132b",
+    "fntech3.ded.pdb": "4c1b22118e63b7d70d86f8feb1c36e74b40dd8b9aee4ef9af2147a3d77ae9419",
+    "fntech3.exe": "69bec67629f480b21fb1d6bb776b792fa1df90e6e0a9ae0d1127c416e4f973c1",
+    "fntech3.pdb": "47ccd190042c8e529d69662bddd68394e2793132b084713ed4b5318c39b5e07b"
+  },
+  "diagnosticRuntime": {
+    "folder": ".tmp/runtime/jka-ambient-diag",
+    "fntech3.exe": "6884b277bf4c9777394bfdf2cc0c9174373ccb87ac63b7e3cb9bbd64155f2c84",
+    "change": "S_JKAVoiceVolume answers 0 with an audio backend running instead of refusing; nothing else",
+    "committed": false
+  },
+  "retail": {
+    "jamp.exe 1.01": {
+      "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+      "tool": "Capstone x86-32 over the PE image"
+    }
+  },
+  "observed": {
+    "imports": {
+      "48 CG_S_UPDATEAMBIENTSET": "0x412a67 -> S_UpdateAmbientSet 0x468420 (name, listener origin)",
+      "49 CG_AS_PARSESETS": "0x412a8a -> 0x467db0",
+      "50 CG_AS_ADDPRECACHEENTRY": "0x412a98 -> 0x467d20",
+      "51 CG_S_ADDLOCALSET": "0x412aae; real time against the caller's client-game time; unserved",
+      "52 CG_AS_GETBMODELSOUND": "0x412ae0"
+    },
+    "update": {
+      "lookup": "0x467360; an absent name returns before anything else",
+      "choose": "0x468020: current [0x56d530], old [0x56d534]",
+      "volumes": "0x467ec0",
+      "play": "0x4682c0, current slot first with [0x12a4d0c], then old with [0x12a4d10]"
+    },
+    "newSet": {
+      "oldVolume": "255 at set +0x80 (0x468098)",
+      "newVolume": "0 (0x4680ae)",
+      "fadeTime": "cls.realtime [0x8af224] at +0x88 for both"
+    },
+    "fade": {
+      "milliseconds": "1000 at [0x56d538]",
+      "current": "while < 255: ftol(float(float(elapsed) / float(1000)) * 255), clamped at 255",
+      "old": "while > 0: 255 less the same; at 0 or below 0 and the slot let go (old = -1)",
+      "arithmetic": "x87 at double precision; whole numbers and the quotient stored as floats; _ftol 0x539584 truncates"
+    },
+    "setRecord": {
+      "minimumSeconds": "+0x44",
+      "maximumSeconds": "+0x48",
+      "minimumVolume": "+0x4c",
+      "maximumVolume": "+0x50",
+      "subWaveCount": "byte +0x54",
+      "subWaves": "+0x58",
+      "loopedWave": "+0x78",
+      "volume": "+0x80",
+      "fadeTime": "+0x88"
+    },
+    "playSet": {
+      "loop": "S_AddAmbientLoopingSound 0x46b270 with the byte volume",
+      "interval": "irand(+0x44, +0x48) * 1000 drawn every frame; a signed comparison with now - last",
+      "volume": "lo, hi = ftol(float(bound) * float(volume / 255.0f)); irand(lo, hi) as a byte, held at or below the set volume",
+      "wave": "(count * draw) >> 15, then S_StartAmbientSound at 0x468404"
+    },
+    "generator": {
+      "state": "0x56e760, starting at 0x89abcdef",
+      "step": "x = x * 0x343fd + 0x269ec3; draw = x >> 17",
+      "range": "lo + (((hi - lo + 1) * draw) >> 15), 32-bit"
+    },
+    "loops": {
+      "ambient": "0x46b270: at most 32 a frame (count 0xc717b0), its own volume",
+      "ordinary": "0x46b250: volume 255",
+      "mix": "0x46b350: loops of one sound one channel, volumes summed and clamped at 255"
+    },
+    "subWave": {
+      "function": "S_StartAmbientSound 0x46aaf0",
+      "entity": 0,
+      "channel": "7 (CHAN_AMBIENT), fixed origin, master volume as given",
+      "silent": "nothing started for volume 0 while the flag at 0x12a4c78 is set; its meaning not established"
+    },
+    "lifetimes": {
+      "parse": "0x467c50 adds a parse's sets under new numbers; a name finds its newest set",
+      "reset": "only at sound shutdown, 0x469c33..0x469c52 in 0x4699f0"
+    }
+  },
+  "data": {
+    "sound/sound.txt": "assets0.pk3",
+    "city_outdoor": "loopedWave ambience/outdoor/city_lp, volRange 250 255, timeBetweenWaves 0 0, no subWaves",
+    "mp/ffa3 worldspawn soundSet": "city_outdoor",
+    "mp/ffa1 worldspawn soundSet": "none (the client game asks for default, which is not declared)"
+  },
+  "live": {
+    "command": "python scripts/probe_legacy_sessions.py --profiles jka-mp --directions join --runtime .tmp/runtime/jka-live-join --sessions main kick",
+    "maps": [
+      "mp/ffa1",
+      "mp/ffa3"
+    ],
+    "sess-1": {
+      "steps": {
+        "main": {
+          "server-ready": true,
+          "join": true,
+          "client-chat": true,
+          "server-chat": true,
+          "map-change": true,
+          "map-restart": true,
+          "reconnect": true,
+          "server-quit": true
+        },
+        "kick": {
+          "server-ready": true,
+          "kick-join": true,
+          "kick": true
+        }
+      },
+      "installationUnchanged": true
+    }
+  },
+  "diagnostic": {
+    "command": "python .tmp/jka-ambient/probe_audio.py --profiles jka-mp --directions join --runtime .tmp/runtime/jka-ambient-diag --sessions main",
+    "sound": "OpenAL, system OpenAL32.dll Generic Software, offscreen-muted, s_alDebugDump three frames apart at 60 fps",
+    "voice": "loop ent=1023 sample=sound/ambience/outdoor/city_lp.wav mode=3d dist=0.0 occ=0.00 tone=world",
+    "reconnect": "diag-audio-3: absent for the six dumps while the client reloaded, then gain 1.00 from the first frames; the sound system was not restarted",
+    "runs": {
+      "diag-audio-2": {
+        "steps": {
+          "server-ready": true,
+          "join": true,
+          "map-change": true,
+          "reconnect": true
+        },
+        "installationUnchanged": true,
+        "ambientVoiceGainsUntilFull": [
+          0.05,
+          0.11,
+          0.15,
+          0.2,
+          0.25,
+          0.29,
+          0.35,
+          0.39,
+          0.44,
+          0.49,
+          0.54,
+          0.58,
+          0.63,
+          0.68,
+          0.73,
+          0.78,
+          0.82,
+          0.87,
+          0.92,
+          0.97,
+          1.0
+        ],
+        "dumpsWithTheVoiceAcrossTheMapChange": 129
+      },
+      "diag-audio-3": {
+        "steps": {
+          "server-ready": true,
+          "join": true,
+          "map-change": true,
+          "reconnect": true
+        },
+        "installationUnchanged": true,
+        "ambientVoiceGainsUntilFull": [
+          0.04,
+          0.07,
+          0.11,
+          0.16,
+          0.21,
+          0.26,
+          0.31,
+          0.36,
+          0.4,
+          0.45,
+          0.5,
+          0.55,
+          0.6,
+          0.64,
+          0.69,
+          0.74,
+          0.79,
+          0.84,
+          0.88,
+          0.93,
+          0.98,
+          1.0
+        ],
+        "dumpsWithTheVoiceAcrossTheMapChange": 133
+      }
+    }
+  },
+  "tests": {
+    "files": [
+      "tests/jka_ambient_playback_tests.py",
+      "tests/jka_cgame_ambient_tests.py",
+      "tests/rtcw_loop_audio_tests.py",
+      "tests/rtcw_music_fixture.py"
+    ],
+    "mutations": {
+      "applied": 33,
+      "killed": 33,
+      "survivors": [],
+      "names": [
+        "a client game clear resets the player",
+        "a new set starts at full volume",
+        "a parse keeps the old numbers",
+        "a stale voice taken before an idle one",
+        "a voice not kept for its sound",
+        "another generator increment",
+        "half-second fade",
+        "legacy loops at full volume",
+        "loops of one sound not merged",
+        "merged loops not clamped",
+        "more than 32 loops a frame",
+        "no cross-fade: the old set is dropped",
+        "silent loops kept",
+        "the drawn volume not a byte",
+        "the fade is not clamped",
+        "the generator starts at zero",
+        "the interval drawn as its maximum",
+        "the loop at full volume",
+        "the old set fades from where it was",
+        "the old set is never let go",
+        "the old slot plays first",
+        "the origin read before the lookup",
+        "the player not cleared at sound start",
+        "the quotient without float operands",
+        "the voice at full volume",
+        "the voice keeps doppler",
+        "the wave drawn before its volume",
+        "the wave from entity 0",
+        "the wave on the auto channel",
+        "the wave time is not kept",
+        "wave times move with the sets",
+        "wave volume not capped by the set",
+        "wave volume not scaled by the set"
+      ]
+    },
+    "suite": {
+      "meson": {
+        "tests": 250,
+        "passed": 248,
+        "skipped": 2,
+        "failed": 0,
+        "note": "project tests other than the pytest wrapper"
+      },
+      "pytest": {
+        "passed": 2573,
+        "skipped": 130,
+        "failed": 0,
+        "subtestsPassed": 63232,
+        "seconds": 3557.98
+      },
+      "exportOf": "23ebc087fb74c8ec78f84c218abb155d6a17cd68"
+    }
+  }
+}

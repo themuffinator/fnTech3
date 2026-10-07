@@ -15,6 +15,7 @@ COMMON = r'''
 #include "code/client/audio/shared/RTCWLoops.h"
 #include "code/client/audio/shared/RTCWMusic.h"
 #include "code/client/audio/shared/STVEFAmbient.h"
+#include "code/client/audio/shared/JKAAmbient.h"
 #include <cassert>
 #include <climits>
 #include <cfloat>
@@ -140,6 +141,8 @@ static void S_memoryLoad(sfx_t *sample){sample->inMemory=true;++loads;}
 static LoopFrame rtcwLoops;
 // Elite Force's ambient loops share the frame's clearing.
 static fntech3::audio::stvef::AmbientLoopFrame stvefAmbientLoops;
+// So do Jedi Academy's.
+static fntech3::audio::jka::AmbientLoops jkaAmbientLoops;
 struct loopSound_t {bool active=false;};static std::array<loopSound_t,1024> loopSounds;
 static float listener_origin[3]={0,0,0};static std::array<vec3_t,3> listener_axis{{{1,0,0},{0,1,0},{0,0,1}}};
 static struct {int channels=2;int speed=22050;} dma;
@@ -227,6 +230,7 @@ struct SoundVoice{
 struct Q3SoundWorld{
  Device device;Device *device_=&device;std::array<SoundVoice,1024> loopVoices_;std::array<SoundVoice,2> oneShots_;
  LoopFrame rtcwLoops_;fntech3::audio::stvef::AmbientLoopFrame stvefAmbientLoops_;
+ fntech3::audio::jka::AmbientLoops jkaAmbientLoops_;
  bool loopFrameClearPending_=false;std::array<Vec,1024> entityOrigins_;
  Vec listenerOrigin_;int listenerNumber_=0;float listenerAxis_[3][3]={{1,0,0},{0,1,0},{0,0,1}};
  unsigned nextSource=1;int applied=0;

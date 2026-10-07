@@ -2,13 +2,26 @@
 #ifndef FNTECH3_CLIENT_JKA_CGAME_AMBIENT_HPP
 #define FNTECH3_CLIENT_JKA_CGAME_AMBIENT_HPP
 #include "../compat/jka_ambient_sets.hpp"
+#include "../compat/jka_ambient_player.hpp"
+#include "client_jka_sound.hpp"
 #include <array>
 #include <memory>
 
 /* Retail MP 49/50 load selected definitions even with s_initsound 0. Keep
  * module names, bounded file bytes and registered handles in engine storage.
- * Registration uses Fn audio; unimplemented ambient playback remains named. */
+ * Registration uses Fn audio.
+ *
+ * Import 48 plays the set the client game names through the measured player
+ * (compat/jka_ambient_player.hpp, retail S_UpdateAmbientSet 0x468420). The
+ * player and the numbering of parsed sets belong to the engine, not to one
+ * client game, as retail's do: a map's sets get new numbers, and the set of
+ * the map before fades out on the next one. Both start over only when the
+ * sound system does (CL_JKAClearAmbientPlayer from S_Init), whose sound
+ * handles the player holds. The loop goes to Fn's ambient-loop path and the
+ * subwaves are Fn one-shots on Academy's ambient channel, so the engine's own
+ * room, tone and output features apply to both. */
 namespace {
+static_assert(fntech3::jka::ambient::MaxPlayWaves >= fntech3::jka::ambient::MaxWaves);
 struct JKACgameAmbientSounds {
     sfxHandle_t loop{};
     std::array<sfxHandle_t, fntech3::jka::ambient::MaxWaves> waves{};
@@ -17,9 +30,27 @@ struct JKACgameAmbientState {
     fntech3::jka::ambient::Catalog catalog;
     std::vector<char> text;
     std::vector<JKACgameAmbientSounds> sounds;
+    std::uint32_t firstId{};            // the number of this parse's first set
     fileHandle_t file{};
 };
 std::unique_ptr<JKACgameAmbientState> jkaCgameAmbient;
+fntech3::jka::ambient::Player jkaAmbientPlayer;
+std::uint32_t jkaAmbientNextId{};
+
+/* Where the player's loops and waves go. Retail starts a wave on entity 0
+ * (0x468402); the world entity keeps it from belonging to whichever player
+ * holds slot 0, and Fn's world sounds keep the one ambient channel. */
+struct JKAAmbientSink {
+    void Loop(const float *origin, int handle, int volume) {
+        S_AddJKAAmbientLoopingSound(origin, handle, volume);
+    }
+    void Wave(const float *origin, int handle, int volume) {
+        if (handle <= 0 || volume <= 0) return; // no registered sound, or silent
+        vec3_t at; VectorCopy(origin, at);
+        S_StartSoundVolume(at, ENTITYNUM_WORLD, fntech3::jka::sound::EngineChannel(fntech3::jka::sound::ChanAmbient),
+            handle, static_cast<float>(volume) / static_cast<float>(fntech3::jka::ambient::MaxSetVolume));
+    }
+};
 
 static void CL_JKACgameAmbientClose() {
     if (!jkaCgameAmbient || !jkaCgameAmbient->file) return;
@@ -80,6 +111,9 @@ static void CL_JKACgameAmbientParse() {
         for (std::size_t wave = 0; wave < definition.waves.size(); ++wave)
             sounds.waves[wave] = S_RegisterSound(definition.waves[wave].c_str(), qfalse);
     }
+    // Retail adds this parse's sets to the engine's under new numbers (0x467c50).
+    state.firstId = jkaAmbientNextId;
+    jkaAmbientNextId += static_cast<std::uint32_t>(state.sounds.size());
     Com_Printf("Jedi Academy cgame ambient definitions parsed: %u selected names, %u sets\n",
         static_cast<unsigned>(state.catalog.SelectedCount()), static_cast<unsigned>(state.sounds.size()));
 }
@@ -97,7 +131,26 @@ static bool CL_JKACgameAmbientCall(intptr_t *args, fntech3::jka::module::Call ca
             result = 0;
             return true;
         }
-        Com_Error(ERR_DROP, "Jedi Academy cgame active ambient playback is not served (name=%s)", name.data());
+        // Retail reads the listener's view origin only for a set it holds.
+        const auto *origin = static_cast<const float *>(CL_JKACgameSpan(args[2], sizeof(vec3_t)));
+        if (!fntech3::jka::client::FiniteVector(origin))
+            Com_Error(ERR_DROP, "Invalid Jedi Academy cgame ambient origin");
+        const auto &state = *jkaCgameAmbient;
+        const auto index = std::size_t(definition - state.catalog.Definitions().data());
+        if (index >= state.sounds.size())
+            Com_Error(ERR_DROP, "Jedi Academy cgame ambient handles are not ready");
+        fntech3::jka::ambient::PlaySet set;
+        set.id = state.firstId + static_cast<std::uint32_t>(index);
+        set.loop = state.sounds[index].loop;
+        set.waveCount = definition->waves.size();
+        for (std::size_t wave = 0; wave < set.waveCount; ++wave) set.waves[wave] = state.sounds[index].waves[wave];
+        set.minimumSeconds = definition->minimumSeconds;
+        set.maximumSeconds = definition->maximumSeconds;
+        set.minimumVolume = definition->minimumVolume;
+        set.maximumVolume = definition->maximumVolume;
+        JKAAmbientSink sink;
+        jkaAmbientPlayer.Update(set, origin, cls.realtime, sink);
+        result = 0;
         return true;
     }
     case Call::CG_AS_ADDPRECACHEENTRY: {
@@ -129,4 +182,12 @@ static bool CL_JKACgameAmbientCall(intptr_t *args, fntech3::jka::module::Call ca
     }
 }
 } // namespace
+
+/* The sound system is starting: the playing sets' handles belong to the one
+ * that has gone, so the player and the numbering start over, as retail's do
+ * when its sound system shuts down (0x469c33..0x469c52). */
+void CL_JKAClearAmbientPlayer(void) {
+    jkaAmbientPlayer.Reset();
+    jkaAmbientNextId = 0;
+}
 #endif

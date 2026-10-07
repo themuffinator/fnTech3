@@ -156,6 +156,7 @@ static bool S_ValidSoundInterface( const soundInterface_t *s )
 	if( !s->AddLoopingSound ) return false;
 	if( !s->AddRTCWLoopingSound ) return false;
 	if( !s->AddSTVEFAmbientLoopingSound ) return false;
+	if( !s->AddJKAAmbientLoopingSound ) return false;
 	if( !s->StartMOHAASound ) return false;
 	if( !s->AddMOHAALoopingSound ) return false;
 	if( !s->STVEFSPMouths ) return false;
@@ -632,6 +633,12 @@ extern "C" void S_AddSTVEFAmbientLoopingSound( const vec3_t origin, sfxHandle_t 
 	if ( si.AddSTVEFAmbientLoopingSound ) si.AddSTVEFAmbientLoopingSound( origin, sfx, volume );
 }
 
+extern "C" void S_AddJKAAmbientLoopingSound( const vec3_t origin, sfxHandle_t sfx, int volume )
+{
+	if ( !Com_GameIsJKAMP() ) Com_Error( ERR_DROP, "Academy ambient loops require the jka-mp profile" );
+	if ( si.AddJKAAmbientLoopingSound ) si.AddJKAAmbientLoopingSound( origin, sfx, volume );
+}
+
 
 extern "C" void S_AddRTCWLoopingSound( const vec3_t origin, const vec3_t velocity,
 	int range, sfxHandle_t sfx, int volume ) {
@@ -1041,6 +1048,10 @@ extern "C" void S_Init( void )
 	if ( Com_GameIsSTVEFSP() ) {
 		// Elite Force's ambient sets hold sounds of the system being started.
 		CL_STVEFSPClearAmbientSets();
+	}
+	if ( Com_GameIsJKAMP() ) {
+		// Academy's ambient player holds sounds of the system being started.
+		CL_JKAClearAmbientPlayer();
 	}
 	si = {};
 	jkaQuietSoundRegistration = false;

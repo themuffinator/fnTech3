@@ -36,6 +36,7 @@ public:
 	void AddLoopingSound( int entityNum, const float *origin, const float *velocity, sfxHandle_t sfxHandle );
 	void AddRTCWLoopingSound( const float *origin, const float *velocity, int range, sfxHandle_t handle, int volume );
 	void AddSTVEFAmbientLoopingSound( const float *origin, sfxHandle_t handle, int volume );
+	void AddJKAAmbientLoopingSound( const float *origin, sfxHandle_t handle, int volume );
 	void StartMOHAASound( const float *origin, int entnum, int entchannel, sfxHandle_t handle,
 		float volume, float minDist, float maxDist, float pitch, int mohaaChannel );
 	void StopMOHAASound( int entnum, int mohaaChannel );
@@ -436,6 +437,7 @@ bool AudioSystem::Init( soundInterface_t *si ) {
 	si->AddLoopingSound = []( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle ) { AudioSystem::Get().AddLoopingSound( entityNum, origin, velocity, sfxHandle ); };
 	si->AddRTCWLoopingSound = []( const vec3_t origin, const vec3_t velocity, int range, sfxHandle_t handle, int volume ) { AudioSystem::Get().AddRTCWLoopingSound( origin, velocity, range, handle, volume ); };
 	si->AddSTVEFAmbientLoopingSound = []( const vec3_t origin, sfxHandle_t handle, int volume ) { AudioSystem::Get().AddSTVEFAmbientLoopingSound( origin, handle, volume ); };
+	si->AddJKAAmbientLoopingSound = []( const vec3_t origin, sfxHandle_t handle, int volume ) { AudioSystem::Get().AddJKAAmbientLoopingSound( origin, handle, volume ); };
 	si->StartMOHAASound = []( const vec3_t origin, int entnum, int entchannel, sfxHandle_t handle,
 		float volume, float minDist, float maxDist, float pitch, int mohaaChannel ) {
 		AudioSystem::Get().StartMOHAASound( origin, entnum, entchannel, handle, volume, minDist, maxDist, pitch,
@@ -1084,6 +1086,14 @@ void AudioSystem::AddSTVEFAmbientLoopingSound( const float *origin, sfxHandle_t 
 	if ( !sample ) Com_Error( ERR_DROP, "Elite Force ambient looping sound handle %d is invalid", handle );
 	if ( !sample->EnsureLoaded( device_, handle == 0 ) ) return;
 	world_.AddSTVEFAmbientLoopingSound( origin, handle, volume, sample );
+}
+
+void AudioSystem::AddJKAAmbientLoopingSound( const float *origin, sfxHandle_t handle, int volume ) {
+	if ( !started_ || hardMuted_ || cls.state != CA_ACTIVE || volume <= 0 ) return;
+	SoundSample *sample = GetSample( handle );
+	if ( !sample ) Com_Error( ERR_DROP, "Jedi Academy ambient looping sound handle %d is invalid", handle );
+	if ( !sample->EnsureLoaded( device_, handle == 0 ) ) return;
+	world_.AddJKAAmbientLoopingSound( origin, handle, volume, sample );
 }
 
 void AudioSystem::AddRTCWLoopingSound( const float *origin, const float *velocity,

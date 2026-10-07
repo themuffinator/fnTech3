@@ -102,6 +102,14 @@ historical upstream records, not fnTech3 release history. See the
   retail server the client now passes `map_restart`, a reconnect and the
   server quitting on `mp/ffa1`, and stops on `mp/ffa3` at its ambient sound
   set ([record](docs/fntech3/2026-10-06-jka-entity-tint.md)).
+- Play Jedi Academy multiplayer's ambient sound sets, the background sounds
+  a map and its areas name: the set the client game names fades in over a
+  second as the one before fades out, and its loop and its occasional
+  sounds play at the volumes and intervals the original engine draws,
+  through fnTech3's own loop voices and one-shots, with their room reverb.
+  On a retail server the client now passes `mp/ffa3` and completes every
+  step of the standard session on both maps
+  ([record](docs/fntech3/2026-10-06-jka-ambient-sets.md)).
 - Answer GameSpy's LAN queries from Medal of Honor servers. A multiplayer
   server, dedicated or started from Start New Server, answers GameSpy's
   status queries on UDP 12300 or the next free port (`net_gamespy_port`,

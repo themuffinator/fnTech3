@@ -1501,6 +1501,7 @@ void S_ClearSoundBuffer( void );
 /* Elite Force single player's picture of the screen, which its savegames
  * keep, its menus show and its loading screen draws (cl_scrn.cpp). */
 void CL_STVEFSPClearAmbientSets( void );
+void CL_JKAClearAmbientPlayer( void );
 void CL_STVEFSPPrecacheScreenshot( void );
 void CL_STVEFSPUnprecacheScreenshot( void );
 const byte *CL_STVEFSPScreenshotPixels( void );
