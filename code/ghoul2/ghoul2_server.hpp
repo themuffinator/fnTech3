@@ -295,6 +295,44 @@ struct BoneAngles {
 	int startTime = 0;
 };
 
+/* The flags word jamp.exe 1.01 keeps in each bone record its setters reach
+ * (+0x34 of the 0x2e8-byte record), which Academy's import 597 hands back
+ * whole. The clip setter (0x4e32f0) first ORs in 0x8000, a mark only the
+ * collision cache clears, then replaces only the animation bits 0xd8 with
+ * the flags it was given -- the blend bit 0x80 dropped where the record had
+ * no clip running -- so any other bit it is given stays. The angle setter
+ * (0x4e3240) replaces only the low three bits with its flags, whole. Both
+ * leave a record carrying 0x2000 untouched. Kept for every store and read
+ * only by Academy's server; see
+ * docs/fntech3/2026-10-07-jka-server-bone-anim.md. */
+struct BoneFlags {
+	int bone = -1;
+	std::uint32_t word = 0;
+};
+inline constexpr std::uint32_t BoneMarkFlag = 0x8000u;
+inline constexpr std::uint32_t BoneLockFlag = 0x2000u;
+inline constexpr std::uint32_t BoneAnimationBits = 0xd8u;
+inline constexpr std::uint32_t BoneAngleBits = 0x7u;
+
+/* What Academy's import 597 reads for one bone (jamp.exe 1.01 0x4e3750 and
+ * 0x4e3640). A running clip answers its frame at the clock, the record's
+ * frame range, flags word and speed; a bone the skeleton has but no clip
+ * runs on answers 0, 0..1, no flags and no speed. */
+struct BoneClip {
+	float frame = 0.0f;
+	int startFrame = 0;
+	int endFrame = 1;
+	std::uint32_t flags = 0;
+	float speed = 0.0f;
+};
+enum class BoneClipAnswer {
+	NoModel,    /* no model there, or one removed */
+	NoBone,     /* the skeleton has no bone of that name */
+	Inactive,   /* a bone the skeleton has, with no clip running */
+	Active,     /* a running clip this store poses */
+	Unserved,   /* a running clip outside the served forward timing */
+};
+
 struct Model {
 	std::string name;           /* the mesh, as the module named it */
 	std::string skeletonName;   /* the `.gla` the mesh names */
@@ -315,6 +353,8 @@ struct Model {
 	/* One record per bone the game has set playing, and per bone it bends. */
 	std::vector<fntech3::ghoul2::BoneAnimation> animations;
 	std::vector<fntech3::ghoul2::BoneAngles> angles;
+	/* Retail's flags word for each bone either setter has reached. */
+	std::vector<fntech3::ghoul2::BoneFlags> boneFlags;
 	bool present = true;        /* false once the module removes it */
 	/* The skin the game put on this model, as a handle from the registry
 	 * below, or zero for none. A server keeps the handle and nothing else. */
@@ -527,6 +567,17 @@ public:
 	/* What a bone was set playing, or null. */
 	const struct BoneAnimation *BoneAnimation( void *pointer, int modelIndex,
 		const char *boneName );
+	/* Academy's import 597 for one bone at one clock (see BoneClip). Its
+	 * name is matched without regard to case, as retail's _stricmp
+	 * (0x539336) matches it in its bone find (0x4e2be0) and add (0x4e2c70).
+	 * Retail's add then gives a bone no setter reached an empty record of
+	 * its own, which no served import tells from none. `out` is written
+	 * only for Inactive and Active. */
+	BoneClipAnswer BoneClipAt( void *pointer, int modelIndex, const char *boneName,
+		int now, BoneClip &out );
+	/* Retail's flags word for a bone (see BoneFlags), or 0 for one neither
+	 * setter has reached. */
+	std::uint32_t BoneFlagsWord( void *pointer, int modelIndex, const char *boneName );
 
 	/* Add a bolt to one of an instance's models, by the name of a surface or
 	 * a bone. Returns the bolt's index, which is what the game keeps, or -1
@@ -1213,6 +1264,63 @@ inline int BoneNamed( const Model &model, const char *name )
 	}
 	return -1;
 }
+
+/* The first bone whose name matches without regard to ASCII case, as the
+ * C locale's _stricmp compares, or -1. */
+inline int BoneNamedFolded( const Model &model, const char *name )
+{
+	if ( !name || !name[0] ) return -1;
+	const auto fold = []( char c ) {
+		return c >= 'A' && c <= 'Z' ? char( c - 'A' + 'a' ) : c;
+	};
+	for ( int index = 0; index < int( model.boneNames.size() ); ++index ) {
+		const std::string &candidate = model.boneNames[std::size_t( index )];
+		std::size_t at = 0;
+		while ( at < candidate.size() && name[at] && fold( candidate[at] ) == fold( name[at] ) ) ++at;
+		if ( at == candidate.size() && !name[at] ) return index;
+	}
+	return -1;
+}
+
+/* A bone's flags word (see BoneFlags), made empty the first time a setter
+ * reaches the bone. */
+inline std::uint32_t &BoneFlagsOf( Model &model, int bone )
+{
+	for ( auto &record : model.boneFlags ) {
+		if ( record.bone == bone ) return record.word;
+	}
+	model.boneFlags.push_back( { bone, 0u } );
+	return model.boneFlags.back().word;
+}
+
+inline std::uint32_t BoneFlagsWord( const Model &model, int bone )
+{
+	for ( const auto &record : model.boneFlags ) {
+		if ( record.bone == bone ) return record.word;
+	}
+	return 0u;
+}
+
+/* The clip setter's word (jamp.exe 1.01 0x4e3340..0x4e3589). */
+inline void RecordClipFlags( Model &model, int bone, int flags )
+{
+	std::uint32_t &word = BoneFlagsOf( model, bone );
+	if ( word & BoneLockFlag ) return;
+	word |= BoneMarkFlag;
+	std::uint32_t given = std::uint32_t( flags );
+	if ( !( word & 0x18u ) ) given &= ~0x80u;
+	word &= ~BoneAnimationBits;
+	if ( word & 0x80000000u ) word = 0u;
+	word |= given;
+}
+
+/* The angle setter's word (jamp.exe 1.01 0x4e326e..0x4e32aa). */
+inline void RecordAngleFlags( Model &model, int bone, int flags )
+{
+	std::uint32_t &word = BoneFlagsOf( model, bone );
+	if ( word & BoneLockFlag ) return;
+	word = ( word & ~BoneAngleBits ) | std::uint32_t( flags );
+}
 } // namespace detail
 
 inline bool Store::SetBoneAnim( void *pointer, int modelIndex, const char *boneName,
@@ -1275,10 +1383,15 @@ inline bool Store::SetBoneAnim( void *pointer, int modelIndex, const char *boneN
 	}
 
 	for ( auto &existing : model.animations ) {
-		if ( existing.bone == bone ) { existing = playing; return true; }
+		if ( existing.bone == bone ) {
+			existing = playing;
+			detail::RecordClipFlags( model, bone, flags );
+			return true;
+		}
 	}
 	if ( int( model.animations.size() ) >= MaxBoneAnimations ) return false;
 	model.animations.push_back( playing );
+	detail::RecordClipFlags( model, bone, flags );
 	return true;
 }
 
@@ -1295,6 +1408,50 @@ inline const fntech3::ghoul2::BoneAnimation *Store::BoneAnimation( void *pointer
 		if ( existing.bone == bone ) return &existing;
 	}
 	return nullptr;
+}
+
+inline BoneClipAnswer Store::BoneClipAt( void *pointer, int modelIndex,
+	const char *boneName, int now, BoneClip &out )
+{
+	Instance *instance = Resolve( pointer );
+	const Model *model = instance ? instance->At( modelIndex ) : nullptr;
+	if ( !model ) return BoneClipAnswer::NoModel;
+	const int bone = detail::BoneNamedFolded( *model, boneName );
+	if ( bone < 0 ) return BoneClipAnswer::NoBone;
+	/* 0x4e368d: a record whose word has neither 0x08 nor 0x10 runs no clip,
+	 * whatever else the word carries. */
+	const std::uint32_t word = detail::BoneFlagsWord( *model, bone );
+	if ( !( word & 0x18u ) ) { out = BoneClip{}; return BoneClipAnswer::Inactive; }
+	const fntech3::ghoul2::BoneAnimation *playing = nullptr;
+	for ( const auto &existing : model->animations ) {
+		if ( existing.bone == bone ) playing = &existing;
+	}
+	/* The word's animation bits must be this clip's own: not given through
+	 * the angle setter, nor kept by a record whose 0x2000 refused the clip
+	 * since. And the clip must be one the forward timing (0x497290) is
+	 * served for: completing without loop or freeze, which retail's timing
+	 * answers by clearing the word's animation bits, a reverse clip and
+	 * other flag bits are not. */
+	Playhead head;
+	if ( !playing || ( word & BoneLockFlag )
+		|| ( word & BoneAnimationBits ) != ( std::uint32_t( playing->flags ) & BoneAnimationBits )
+		|| !ForwardPlayhead( *playing, model->skeleton.numFrames, now, head ) )
+		return BoneClipAnswer::Unserved;
+	/* 0x4e36af..0x4e36c8: the whole frame, then its fraction added. */
+	out.frame = float( head.currentFrame ) + head.lerp;
+	out.startFrame = playing->startFrame;
+	out.endFrame = playing->endFrame;
+	out.flags = word;
+	out.speed = playing->speed;
+	return BoneClipAnswer::Active;
+}
+
+inline std::uint32_t Store::BoneFlagsWord( void *pointer, int modelIndex, const char *boneName )
+{
+	Instance *instance = Resolve( pointer );
+	const Model *model = instance ? instance->At( modelIndex ) : nullptr;
+	const int bone = model ? detail::BoneNamedFolded( *model, boneName ) : -1;
+	return bone < 0 ? 0u : detail::BoneFlagsWord( *model, bone );
 }
 
 inline bool Store::SetBoneAngles( void *pointer, int modelIndex, const char *boneName,
@@ -1327,10 +1484,15 @@ inline bool Store::SetBoneAngles( void *pointer, int modelIndex, const char *bon
 	bent.startTime = currentTime;
 
 	for ( auto &existing : model.angles ) {
-		if ( existing.bone == bone ) { existing = bent; return true; }
+		if ( existing.bone == bone ) {
+			existing = bent;
+			detail::RecordAngleFlags( model, bone, flags );
+			return true;
+		}
 	}
 	if ( int( model.angles.size() ) >= MaxBoneAnimations ) return false;
 	model.angles.push_back( bent );
+	detail::RecordAngleFlags( model, bone, flags );
 	return true;
 }
 

@@ -648,14 +648,20 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		 * reaches too), so its bounds are too: a first frame outside 0..99999
 		 * becomes 0, a last frame outside 1..99999 becomes 1, and a seed below
 		 * 0 other than -1, or above 100000, becomes 0 (0x4df326..0x4df36f). The
-		 * clip starts at the caller's time, which the setter keeps. */
+		 * clip starts at the caller's time, which the setter keeps.
+		 *
+		 * The setter marks the bone's record with 0x8000 before it takes the
+		 * flags (0x4e334f), so that bit in the flags is no part of the clip:
+		 * the retail game hands import 597's answer, mark and all, straight
+		 * back here. The store keeps the mark in the bone's word itself. */
 		{
 			const int first = args[4] >= 0 && args[4] < 100000 ? static_cast<int>( args[4] ) : 0;
 			const int last = args[5] > 0 && args[5] < 100000 ? static_cast<int>( args[5] ) : 1;
 			float seed = VMF( 9 );
 			if ( seed != -1.0f && ( seed < 0.0f || seed > 100000.0f ) ) seed = 0.0f;
+			const int flags = static_cast<int>( args[6] & ~intptr_t( fntech3::ghoul2::BoneMarkFlag ) );
 			result = ravenGhoul2.SetBoneAnim( pointer( 1 ), static_cast<int>( args[2] ),
-				text( 3 ), first, last, static_cast<int>( args[6] ), VMF( 7 ),
+				text( 3 ), first, last, flags, VMF( 7 ),
 				static_cast<int>( args[8] ), seed, static_cast<int>( args[10] ) ) ? 1 : 0;
 		}
 		return true;
@@ -768,6 +774,82 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		 * model loaded, so this is a lookup and not an invention. A name the
 		 * model does not carry is reported as no bolt. */
 		result = ravenGhoul2.AddBolt( pointer( 1 ), static_cast<int>( args[2] ), text( 3 ) );
+		return true;
+
+	case Call::G_G2_GETBONEANIM:
+		/* What one bone is playing, and how far its clip has got. Retail
+		 * jamp.exe 1.01's handler (0x45cc9c) reads ten arguments, converts
+		 * the second and the fourth to ninth, and resolves the model itself:
+		 *
+		 *     ghoul2, boneName, time, currentFrame, startFrame, endFrame,
+		 *     flags, animSpeed, modelList, modelIndex
+		 *
+		 * Its wrapper (0x4df400) replaces the time with the Ghoul2 clock, the
+		 * one this server's bolts pose at (jkaServerGhoul2Clock above), and
+		 * the model list is never read. A bone the skeleton lacks answers 0
+		 * and writes nothing. A bone with no clip running answers 0 and
+		 * writes frame 0, frames 0..1, no flags and no speed (0x4e3709). A
+		 * running clip answers 1 with its frame at the clock, its range, its
+		 * record's flags word -- the 0x8000 its setter marks it with, a
+		 * blend's 0x80 for as long as the clip lasts, and any angle mode --
+		 * and its speed (0x4e36af). Each writes in retail's order.
+		 *
+		 * Retail resolves a model index past the instance's end without a
+		 * check (0x4116e0) and reads what lies beyond it; this answers 0 and
+		 * writes nothing for one, as for a model the instance has removed.
+		 * A clip the store does not time -- completing without loop or
+		 * freeze, which retail's timing answers by clearing the word's
+		 * animation bits, a reverse clip, or flag bits outside the clip's
+		 * own -- is refused by name, as are an instance this engine never
+		 * handed out and an output retail would write through null. See
+		 * docs/fntech3/2026-10-07-jka-server-bone-anim.md. */
+		{
+			if ( !ravenGhoul2.Resolve( pointer( 1 ) ) ) {
+				Com_Error( ERR_DROP, "Jedi Academy G_G2_GETBONEANIM: stale or foreign model handle" );
+				return true;
+			}
+			fntech3::ghoul2::BoneClip clip;
+			const auto answer = ravenGhoul2.BoneClipAt( pointer( 1 ), static_cast<int>( args[10] ),
+				text( 2 ), jkaServerGhoul2Clock, clip );
+			if ( answer == fntech3::ghoul2::BoneClipAnswer::Unserved ) {
+				Com_Error( ERR_DROP, "Jedi Academy G_G2_GETBONEANIM: bone %s of model %d plays a clip "
+					"outside the served forward timing (flags 0x%x)", text( 2 ),
+					static_cast<int>( args[10] ),
+					static_cast<unsigned>( ravenGhoul2.BoneFlagsWord( pointer( 1 ),
+						static_cast<int>( args[10] ), text( 2 ) ) ) );
+				return true;
+			}
+			if ( answer != fntech3::ghoul2::BoneClipAnswer::Inactive
+				&& answer != fntech3::ghoul2::BoneClipAnswer::Active ) {
+				result = 0;
+				return true;
+			}
+			void *outputs[5];
+			for ( int index = 0; index < 5; ++index ) {
+				VM_CHECKBOUNDS( gvm, args[4 + index], sizeof( float ) );
+				outputs[index] = pointer( 4 + index );
+				if ( !outputs[index] ) {
+					Com_Error( ERR_DROP, "Jedi Academy G_G2_GETBONEANIM: null output" );
+					return true;
+				}
+			}
+			const std::uint32_t flags = clip.flags;
+			if ( answer == fntech3::ghoul2::BoneClipAnswer::Inactive ) {
+				std::memcpy( outputs[1], &clip.startFrame, sizeof( int ) );
+				std::memcpy( outputs[2], &clip.endFrame, sizeof( int ) );
+				std::memcpy( outputs[0], &clip.frame, sizeof( float ) );
+				std::memcpy( outputs[3], &flags, sizeof( flags ) );
+				std::memcpy( outputs[4], &clip.speed, sizeof( float ) );
+				result = 0;
+				return true;
+			}
+			std::memcpy( outputs[0], &clip.frame, sizeof( float ) );
+			std::memcpy( outputs[1], &clip.startFrame, sizeof( int ) );
+			std::memcpy( outputs[2], &clip.endFrame, sizeof( int ) );
+			std::memcpy( outputs[3], &flags, sizeof( flags ) );
+			std::memcpy( outputs[4], &clip.speed, sizeof( float ) );
+			result = 1;
+		}
 		return true;
 
 	case Call::G_G2_GETGLANAME:

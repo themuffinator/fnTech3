@@ -33,6 +33,9 @@ def fixture():
     # The server's pose clock, its no-rotation selector and the clock's setter.
     clock = host[host.index('static int jkaServerGhoul2Clock'):host.index('static void SV_JKAClearGame(')]
     academy = binding('code/server/server_jka_game.hpp', 'static bool SV_JKAGameCall(')
+    # Import 597, and the angle setter whose bits its flags word carries.
+    bone_anim = host[host.index('\tcase Call::G_G2_GETBONEANIM:'):host.index('\n\tcase Call::G_G2_GETGLANAME:')]
+    bend = host[host.index('\tcase Call::G_G2_ANGLEOVERRIDE:'):host.index('\tcase Call::G_G2_PLAYANIM:')]
     vm = (ROOT / 'code/qcommon/vm.c').read_text(encoding='utf-8')
     tests = (ROOT / 'tests/jka_pose_tests.cpp').read_text(encoding='utf-8').replace(
         'int main(int argc,char **argv)', 'int PoseUnitFixtureMain(int argc,char **argv)')
@@ -71,7 +74,7 @@ static bool DispatchJKA(const intptr_t *args,intptr_t &result){
  const auto text=[&pointer](int index){return static_cast<const char *>(pointer(index));};
  const auto VMF=[args](int index){float value;const auto word=static_cast<std::uint32_t>(args[index]);std::memcpy(&value,&word,4);return value;};
  switch(call){
-''' + host[start:end] + r'''
+''' + host[start:end] + bone_anim + '\n' + bend + r'''
  default:return false;
  }
 }
@@ -276,6 +279,161 @@ static void CheckAcademy(){
  for(void *&weapon:weapons)CHECK(store.Clean(&weapon)&&!weapon);
  CHECK(store.Clean(&body)&&!body);
 }
+// Import 597 (G_G2_GETBONEANIM) through the production case, as retail
+// jamp.exe 1.01's server answers it (0x45cc9c, 0x4df400, 0x4e3750, 0x4e3640;
+// docs/fntech3/2026-10-07-jka-server-bone-anim.md). Every output starts as
+// its own sentinel, and the model-list word points at a canary never read.
+struct BoneAnswer{intptr_t result;std::uint32_t words[5];};
+static const std::uint32_t BoneSentinels[5]{0x11111111u,0x22222222u,0x33333333u,0x44444444u,0x55555555u};
+static void BoneArgs(intptr_t (&args)[16],void *owner,const char *bone,int model,int word,BoneAnswer &answer,int *list){
+ std::memcpy(answer.words,BoneSentinels,sizeof(BoneSentinels));
+ const intptr_t values[]{597,reinterpret_cast<intptr_t>(owner),reinterpret_cast<intptr_t>(bone),word,
+  reinterpret_cast<intptr_t>(&answer.words[0]),reinterpret_cast<intptr_t>(&answer.words[1]),
+  reinterpret_cast<intptr_t>(&answer.words[2]),reinterpret_cast<intptr_t>(&answer.words[3]),
+  reinterpret_cast<intptr_t>(&answer.words[4]),reinterpret_cast<intptr_t>(list),model};
+ for(int n=0;n<16;++n)args[n]=n<11?values[n]:0;
+}
+static BoneAnswer BoneAnim(void *owner,const char *bone,int model=0,int word=4321){
+ BoneAnswer answer{};int list[2]{0x66666666,0x66666666};intptr_t args[16];
+ BoneArgs(args,owner,bone,model,word,answer,list);
+ CHECK(DispatchJKA(args,answer.result));
+ CHECK(list[0]==0x66666666&&list[1]==0x66666666);
+ return answer;
+}
+// A refusal by name (Com_Error) that writes nothing.
+static bool BoneAnimRefused(void *owner,const char *bone,int model=0){
+ BoneAnswer answer{};int list[2]{0x66666666,0x66666666};intptr_t args[16];
+ BoneArgs(args,owner,bone,model,0,answer,list);
+ try{DispatchJKA(args,answer.result);}catch(const std::runtime_error &){
+  return !std::memcmp(answer.words,BoneSentinels,sizeof(BoneSentinels));
+ }
+ return false;
+}
+static bool Untouched(const BoneAnswer &answer){
+ return answer.result==0&&!std::memcmp(answer.words,BoneSentinels,sizeof(BoneSentinels));
+}
+static std::uint32_t Bits(float value){std::uint32_t word;std::memcpy(&word,&value,4);return word;}
+static bool Answers(const BoneAnswer &answer,intptr_t result,float frame,int start,int end,std::uint32_t flags,float speed){
+ const std::uint32_t want[5]{Bits(frame),std::uint32_t(start),std::uint32_t(end),flags,Bits(speed)};
+ return answer.result==result&&!std::memcmp(answer.words,want,sizeof(want));
+}
+// Import 595, the angle setter, with a blend time of 0.
+static bool Bend(void *owner,const char *bone,int flags){
+ static const float turn[3]{10,20,30};
+ return Import({595,reinterpret_cast<intptr_t>(owner),0,reinterpret_cast<intptr_t>(bone),
+  reinterpret_cast<intptr_t>(turn),flags,1,3,2,0,0,0})==1;
+}
+static void CheckAcademyBoneAnim(){
+ auto &store=ravenGhoul2Academy;
+ std::vector<void*> made;
+ const auto fresh=[&]{void *owner=nullptr;LoadError error;
+  CHECK(store.AddModel(&owner,Body,error)==0&&store.AddBolt(owner,0,"root")==0);made.push_back(owner);return owner;};
+ void *body=fresh(),*weapon=NewWeapon(store,0,true);
+ CHECK(store.CopyModel(weapon,0,body,1));
+ SV_JKAGhoul2SetTime(0);
+ // A name the skeleton lacks answers 0 and writes nothing (0x4e377e).
+ for(const char *bone:{"no_such_bone",""})CHECK(Untouched(BoneAnim(body,bone)));
+ // A bone it has, with no clip running, answers 0 and writes frame 0, frames
+ // 0..1, no flags and no speed (0x4e3709). Names match without case.
+ for(const char *bone:{"child","model_root","MODEL_ROOT"})CHECK(Answers(BoneAnim(body,bone),0,0.0f,0,1,0,0.0f));
+ // A loop from time 0, asked at the server's clock whatever the time word:
+ // the frame, the clip's range, its word with the setter's 0x8000, its speed.
+ CHECK(Play(body,"model_root",0,3,0x10,1.0f,0,-1.0f,0));
+ SV_JKAGhoul2SetTime(75);
+ for(int word:{0,75,99999,-5})CHECK(Answers(BoneAnim(body,"model_root",0,word),1,1.5f,0,3,0x8010,1.0f));
+ CHECK(Answers(BoneAnim(body,"Model_Root"),1,1.5f,0,3,0x8010,1.0f));
+ SV_JKAGhoul2SetTime(175);CHECK(Answers(BoneAnim(body,"model_root"),1,0.5f,0,3,0x8010,1.0f));
+ // A freeze holds its last frame.
+ CHECK(Play(body,"child",0,3,0x48,1.0f,0,-1.0f,0));
+ SV_JKAGhoul2SetTime(500);CHECK(Answers(BoneAnim(body,"child"),1,2.0f,0,3,0x8048,1.0f));
+ // A blend from a running clip keeps 0x80 in the word, after the blend too.
+ CHECK(Play(body,"model_root",1,3,0x90,1.0f,200,-1.0f,50));
+ SV_JKAGhoul2SetTime(250);CHECK(Answers(BoneAnim(body,"model_root"),1,2.0f,1,3,0x8090,1.0f));
+ SV_JKAGhoul2SetTime(1000);const BoneAnswer blended=BoneAnim(body,"model_root");
+ CHECK(Answers(blended,1,1.0f,1,3,0x8090,1.0f));
+ // One with no clip to leave drops it (0x4e34c7).
+ void *second=fresh();
+ CHECK(Play(second,"model_root",0,3,0xc8,1.0f,1000,-1.0f,50));
+ SV_JKAGhoul2SetTime(1025);CHECK(Answers(BoneAnim(second,"model_root"),1,0.5f,0,3,0x8048,1.0f));
+ // A bend alone runs no clip: the word's angle bit is not written. Played,
+ // the word carries the bend; bent again, its low three bits are replaced.
+ CHECK(Bend(second,"child",2)&&Answers(BoneAnim(second,"child"),0,0.0f,0,1,0,0.0f));
+ CHECK(Play(second,"child",0,3,0x48,1.0f,1000,-1.0f,0));
+ CHECK(Answers(BoneAnim(second,"child"),1,0.5f,0,3,0x804a,1.0f));
+ CHECK(Bend(second,"child",4)&&Answers(BoneAnim(second,"child"),1,0.5f,0,3,0x804c,1.0f));
+ // The retail game hands an answer straight back to the clip setter (its IK
+ // release): the mark is no part of the clip, which still poses, and a blend
+ // asked of a running clip is kept, of none dropped.
+ void *third=fresh();
+ int start,end,flags;float speed;
+ std::memcpy(&start,&blended.words[1],4);std::memcpy(&end,&blended.words[2],4);
+ std::memcpy(&flags,&blended.words[3],4);std::memcpy(&speed,&blended.words[4],4);
+ CHECK(Play(third,"model_root",start,end,flags,speed,1000,float(start),300));
+ CHECK(store.BoneAnimation(third,0,"model_root")->flags==0x10);
+ CHECK(Answers(BoneAnim(third,"model_root"),1,1.5f,1,3,0x8010,1.0f));
+ CHECK(Play(second,"child",start,end,flags,speed,1025,float(start),300));
+ CHECK(store.BoneAnimation(second,0,"child")->flags==0x90);
+ SV_JKAGhoul2SetTime(1050);CHECK(Answers(BoneAnim(second,"child"),1,1.5f,1,3,0x8094,1.0f));
+ float out[12];CHECK(Bolt(third,0,0,out)&&Bolt(second,0,0,out));
+ // A seed shifts the clip's start; a range outside the setter's bounds is
+ // bounded (0x4df326).
+ void *fourth=fresh();
+ CHECK(Play(fourth,"model_root",0,3,0x48,0.5f,100,1.5f,0));
+ SV_JKAGhoul2SetTime(100);CHECK(Answers(BoneAnim(fourth,"model_root"),1,1.5f,0,3,0x8048,0.5f));
+ CHECK(Play(fourth,"child",-5,200000,0x48,1.0f,0,-1.0f,0));
+ CHECK(Answers(BoneAnim(fourth,"child"),1,0.0f,0,1,0x8048,1.0f));
+ // A record carrying 0x2000 takes neither setter's flags: the clip set on it
+ // runs, as far as import 597 can tell, nowhere.
+ void *fifth=fresh();
+ CHECK(Bend(fifth,"child",0x2000)&&Play(fifth,"child",0,3,0x48,1.0f,0,-1.0f,0));
+ CHECK(store.BoneFlagsWord(fifth,0,"child")==0x2000&&Answers(BoneAnim(fifth,"child"),0,0.0f,0,1,0,0.0f));
+ // A word with bit 31 is cleared before the next clip's flags, mark and all
+ // (0x4e3566..0x4e3572, read rather than measured).
+ CHECK(Play(fifth,"model_root",0,3,static_cast<int>(0x80000048u),1.0f,0,-1.0f,0));
+ CHECK(store.BoneFlagsWord(fifth,0,"model_root")==0x80008048u);
+ CHECK(Play(fifth,"model_root",0,3,0x48,1.0f,0,-1.0f,0)&&store.BoneFlagsWord(fifth,0,"model_root")==0x48);
+ CHECK(Answers(BoneAnim(fifth,"model_root"),1,2.0f,0,3,0x48,1.0f));
+ // The weapon's engine skeleton, by model index; a model the instance lacks
+ // answers 0 and writes nothing, as does a bone that model lacks.
+ CHECK(Answers(BoneAnim(body,DefaultBone,1),0,0.0f,0,1,0,0.0f));
+ for(int model:{-1,2,9})CHECK(Untouched(BoneAnim(body,"model_root",model)));
+ CHECK(Untouched(BoneAnim(body,"model_root",1)));
+ CHECK(Import({596,reinterpret_cast<intptr_t>(body),1,reinterpret_cast<intptr_t>(DefaultBone),0,1,0x48,
+  Word(1.0f),1000,Word(-1.0f),0})==1);
+ CHECK(Answers(BoneAnim(body,DefaultBone,1),1,0.0f,0,1,0x8048,1.0f));
+ // A copy keeps its records' words.
+ void *copy=nullptr;CHECK(store.Duplicate(body,&copy));made.push_back(copy);
+ CHECK(Answers(BoneAnim(copy,"model_root"),1,1.0f,1,3,0x8090,1.0f));
+ // Refused by name, nothing written: a clip outside the served forward
+ // timing -- a plain clip past its end, which retail's timing answers by
+ // clearing the word's animation bits, a reverse clip, a flag bit outside
+ // the clip's own -- animation bits given through the angle setter, an
+ // instance this engine never handed out, and an output retail would write
+ // through null. A null output beside a name the skeleton lacks is never
+ // written, and answers 0.
+ void *sixth=fresh();
+ CHECK(Play(sixth,"model_root",0,3,0x08,1.0f,1000,-1.0f,0));
+ SV_JKAGhoul2SetTime(1050);CHECK(Answers(BoneAnim(sixth,"model_root"),1,1.0f,0,3,0x8008,1.0f));
+ SV_JKAGhoul2SetTime(1150);CHECK(BoneAnimRefused(sixth,"model_root"));
+ CHECK(Play(sixth,"child",0,3,0x48,-1.0f,1000,-1.0f,0)&&BoneAnimRefused(sixth,"child"));
+ void *seventh=fresh();
+ CHECK(Play(seventh,"model_root",0,3,0x1048,1.0f,1000,-1.0f,0)&&BoneAnimRefused(seventh,"model_root"));
+ CHECK(store.BoneFlagsWord(seventh,0,"model_root")==0x9048);
+ CHECK(Bend(seventh,"child",0x48)&&BoneAnimRefused(seventh,"child"));
+ // So is a running clip whose word the angle setter changed: its loop bit,
+ // or a 0x2000 after which retail keeps the old clip whatever is set.
+ CHECK(Bend(fourth,"model_root",0x10)&&BoneAnimRefused(fourth,"model_root"));
+ CHECK(Bend(fourth,"child",0x2000)&&BoneAnimRefused(fourth,"child"));
+ CHECK(BoneAnimRefused(&out,"model_root"));
+ for(const char *bone:{"model_root","no_such_bone"}){
+  intptr_t args[16];BoneAnswer answer{};int list[2]{};BoneArgs(args,body,bone,0,0,answer,list);args[6]=0;
+  bool refused=false;try{DispatchJKA(args,answer.result);}catch(const std::runtime_error &){refused=true;}
+  CHECK(refused==(bone[0]=='m'));
+  if(!refused)CHECK(answer.result==0&&!std::memcmp(answer.words,BoneSentinels,sizeof(BoneSentinels)));
+ }
+ CHECK(store.Clean(&weapon));
+ for(void *&owner:made)CHECK(store.Clean(&owner)&&!owner);
+}
 // Outcast's server keeps builds as jk2mp.exe 1.02a does (0x4790f0, 0x4a7620):
 // one build per time, judged by model 0 alone; answers from what the build
 // kept in each bolt; 587 never building; and the engine `*default` skeleton,
@@ -355,7 +513,7 @@ int main(){
  installed[Body]=AuthoredTagMesh("models/players/test/skeleton",3,BodyTag);
  installed["models/players/test/skeleton.gla"]=PoseSkeleton();
  installed[Weapon]=AuthoredTagMesh("*default",1,WeaponTag);
- CheckAcademy();CheckOutcast();
+ CheckAcademy();CheckAcademyBoneAnim();CheckOutcast();
  // A map change clears both titles' stores.
  void *a=nullptr,*b=nullptr;LoadError error;
  CHECK(ravenGhoul2Academy.AddModel(&a,Body,error)==0&&ravenGhoul2Outcast.AddModel(&b,Body,error)==0);
