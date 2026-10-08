@@ -7,7 +7,10 @@ on: alice.exe (0x004361a0) and F.A.K.K.2 1.02's fakk2.exe (0x0042abb0) print
 that reads developer (0x00438a40, 0x0042d2a0), leave the count below zero and
 flood the areas as after any close; their floods join two areas only over a
 count above zero (0x00436126, 0x0042ab36). Medal of Honor's engine is
-OpenMoHAA's reading of 2015's, which does the same. Both Ritual engines'
+OpenMoHAA's reading of 2015's, which does the same. Both RTCW engines skip a
+close of a portal whose count is zero and flood the areas as after any close
+(WolfSP.exe 0x418489..0x41849a, WolfMP.exe 0x41afa9..0x41afba;
+docs/fntech3/2026-10-08-rtcw-area-portals.md). Both Ritual engines'
 CM_ReadPortalState (0x004362e0, 0x0042acf0) put a saved block back whole, so
 a count below zero survives a save.
 
@@ -121,13 +124,15 @@ static void Check( bool yes, const char *what ) {
 
 int main() {
 	static const char negative[] = "CM_AdjustAreaPortalState: negative reference count";
-	int runs = 0, reporting = 0;
+	int runs = 0, reporting = 0, ignoring = 0;
 	for ( const auto &profile : profiles ) {
 		activeProfile = &profile;
 		/* Ritual's two engines, and Medal of Honor's as OpenMoHAA reads it,
-		 * report a close past zero; every other profile keeps the drop. */
+		 * report a close past zero; RTCW's two modes ignore it; every other
+		 * profile keeps the drop. */
 		const bool report = profile.id == COM_GAME_ALICE || profile.id == COM_GAME_FAKK2
 			|| profile.id == COM_GAME_MOHAA;
+		const bool ignore = profile.id == COM_GAME_RTCW_SP || profile.id == COM_GAME_RTCW_MP;
 
 		/* Three areas, portals between 0 and 1 and between 1 and 2. An open
 		 * joins two areas, and the close that answers it parts them. */
@@ -160,6 +165,18 @@ int main() {
 				"further closes go on" );
 			Check( FixtureCount( 1, 2 ) == -2 && FixtureReports() == 3 && !FixtureConnected( 1, 2 ),
 				"each close below zero is told" );
+		} else if ( ignore ) {
+			++ignoring;
+			Check( !drop, "the level goes on" );
+			Check( FixtureReports() == 0 && !FixtureDropped()[0], "nothing is told" );
+			Check( FixtureCount( 1, 2 ) == 0 && FixtureCount( 2, 1 ) == 0, "the count stays at zero" );
+			Check( FixtureFloods() == floods + 1, "the areas are flooded as after any close" );
+			Check( !FixtureConnected( 1, 2 ), "the portal is shut" );
+			/* So one open joins the areas, and its close parts them. */
+			Check( !FixtureAdjust( 1, 2, 1 ) && FixtureCount( 1, 2 ) == 1 && FixtureConnected( 2, 1 ),
+				"one open joins the areas" );
+			Check( !FixtureAdjust( 1, 2, 0 ) && !FixtureAdjust( 1, 2, 0 ) && FixtureCount( 1, 2 ) == 0
+				&& !FixtureConnected( 1, 2 ), "its close parts them, and another is ignored" );
 		} else {
 			Check( drop && !std::strcmp( FixtureDropped(), negative ), "Quake III's drop" );
 			Check( FixtureReports() == 0, "no report beside the drop" );
@@ -178,8 +195,8 @@ int main() {
 			"and changes nothing" );
 		++runs;
 	}
-	if ( runs != COM_GAME_COUNT - 1 || reporting != 3 ) {
-		std::fprintf( stderr, "%d profile runs, %d reporting\n", runs, reporting );
+	if ( runs != COM_GAME_COUNT - 1 || reporting != 3 || ignoring != 2 ) {
+		std::fprintf( stderr, "%d profile runs, %d reporting, %d ignoring\n", runs, reporting, ignoring );
 		return 1;
 	}
 	if ( failures ) {
@@ -294,7 +311,7 @@ def catalog_source():
     profiles = (ROOT / 'code/qcommon/game_profile.cpp').read_text(encoding='utf-8')
     source = CATALOG_PRELUDE + catalog()
     for signature in ['int Com_GameIsAlice( void )', 'int Com_GameIsFAKK2( void )',
-                      'int Com_GameIsRitual( void )', 'int Com_GameIsMOHAA( void )']:
+                      'int Com_GameIsRitual( void )', 'int Com_GameIsMOHAA( void )', 'int Com_GameIsRTCW( void )']:
         source += '\n' + function(profiles, signature)
     return source + CATALOG_CHECKS
 
@@ -367,6 +384,9 @@ class AreaPortalCountTests(unittest.TestCase):
         self.assertLess(adjust.index('< 0 ) {'), adjust.index('Com_GameIsRitual()'))
         self.assertEqual(adjust.count('Com_Error (ERR_DROP, "CM_AdjustAreaPortalState: negative reference count");'), 1)
         self.assertLess(adjust.index('Com_DPrintf'), adjust.index('CM_FloodAreaConnections ();'))
+        # RTCW's ignored close is decided before any count changes.
+        ignored = adjust.index('} else if ( Com_GameIsRTCW() && !cm.areaPortals[ area2 * cm.numAreas + area1 ] ) {')
+        self.assertLess(ignored, adjust.index('cm.areaPortals[ area1 * cm.numAreas + area2 ]--;'))
 
 
 if __name__ == '__main__':

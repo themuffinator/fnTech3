@@ -45,6 +45,7 @@ int Com_GameIsJKASP(){return profile.id==COM_GAME_JKA_SP;}
 // cm_test.c's area portals ask these; no trace here reaches them.
 int Com_GameIsRitual(){return profile.titleId==COM_GAME_TITLE_ALICE||profile.titleId==COM_GAME_TITLE_FAKK2;}
 int Com_GameIsMOHAA(){return profile.titleId==COM_GAME_TITLE_MOHAA;}
+int Com_GameIsRTCW(){return profile.titleId==COM_GAME_TITLE_RTCW;}
 struct Drop{};
 void QDECL Com_Error(errorParm_t,const char *,...){throw Drop{};}
 static void Check(bool yes,const char *why){if(!yes)throw std::runtime_error(why);}

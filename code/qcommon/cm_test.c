@@ -606,7 +606,8 @@ the opens outnumber the closes (alice.exe 0x004361a0, printing through
 0x00438a40; F.A.K.K.2 1.02's fakk2.exe 0x0042abb0, through 0x0042d2a0).
 Medal of Honor's is OpenMoHAA's reading of 2015's engine. Alice's wforest
 does this when it is entered at its second start, as the campaign enters it
-from jlair2, and wchess1 when its intro is skipped early.
+from jlair2, and wchess1 when its intro is skipped early. RTCW never lets the
+count go below zero: it ignores the close of a portal whose count is zero.
 ====================
 */
 void	CM_AdjustAreaPortalState( int area1, int area2, qboolean open ) {
@@ -621,6 +622,10 @@ void	CM_AdjustAreaPortalState( int area1, int area2, qboolean open ) {
 	if ( open ) {
 		cm.areaPortals[ area1 * cm.numAreas + area2 ]++;
 		cm.areaPortals[ area2 * cm.numAreas + area1 ]++;
+	} else if ( Com_GameIsRTCW() && !cm.areaPortals[ area2 * cm.numAreas + area1 ] ) {
+		// RTCW leaves a portal nothing holds open alone and floods the areas
+		// as after any close (WolfSP.exe 0x418489..0x41849a, WolfMP.exe
+		// 0x41afa9..0x41afba)
 	} else {
 		cm.areaPortals[ area1 * cm.numAreas + area2 ]--;
 		cm.areaPortals[ area2 * cm.numAreas + area1 ]--;

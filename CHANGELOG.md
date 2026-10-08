@@ -2232,6 +2232,10 @@ historical upstream records, not fnTech3 release history. See the
   now agree on every hit, flag and contents of 202,860 traces on fourteen
   maps but for nine that differ only in floating-point precision
   ([record](docs/fntech3/2026-10-08-rtcw-traces.md)).
+- Let a Return to Castle Wolfenstein level close a door's area portal that is
+  already shut, as both its engines do. fnTech3 stopped the level with
+  "negative reference count" where the original game went on
+  ([record](docs/fntech3/2026-10-08-rtcw-area-portals.md)).
 
 ### Builds and Packaging
 
