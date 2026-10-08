@@ -1,0 +1,890 @@
+{
+ "date": "2026-10-08",
+ "scope": "Quake III 1.32 world and entity collision: retail quake3.exe dedicated server against fnTech3, one synthetic native game module",
+ "baseCommit": "cac46a13af6d055aaf00d0d82e1e291692ffcb79",
+ "platform": "Windows 11, x86 MSVC builds; dedicated servers on loopback, private desktop",
+ "installation": "Steam Quake III Arena, quake3.exe \"Q3 1.32 win-x86 Oct  7 2002\", read only",
+ "module": {
+  "source": ".tmp/q3-trace/q3trace_module.c (not committed)",
+  "abi": "dllEntry/vmMain with Quake III syscall numbers (G_TRACE 24, G_POINT_CONTENTS 25, G_LINKENTITY 30, G_ENTITIES_IN_BOX 32, G_TRACECAPSULE 43); 516-byte sharedEntity_t (entityState_t, then entityShared_t's unused 208-byte entityState_t and its fields), 56-byte trace_t",
+  "loading": "retail: Sys_LoadDll (0x447170) tries fs_basepath then fs_cdpath, each with the game directory; the module sits in fs_cdpath/baseq3. fnTech3: fs_homepath/baseq3. Both vm_game 0, sv_pure 0, dedicated 1, developer 1, bot_enable 0",
+  "worldBattery": "seeded LCG; four hulls (point, player box, random box up to 32, player box as a capsule trace) x three masks (1, 0x2010001, -1) x three shapes (long, vertical drop, short <=48), 300 of each shape; 1,500 point contents; pass entity 1023",
+  "entityBattery": "every brush model *k (up to 32) on entity 300+k, contents 1, moved by (8k,-4k,2k), even k turned (pitch 5*(k%3), yaw 15k); link flags and bounds; 90 traces around each; 200 EntitiesInBox queries; then a player-sized box entity (contents body) traced 300 times with box and capsule hulls"
+ },
+ "retailFacts": {
+  "capsuleEntity": "a trace touching an entity flagged SVF_CAPSULE drops the level: ERROR: CM_ClipHandleToModel: bad handle 1 < 254 < 256; CM_ClipHandleToModel knows no capsule handle. No stock game flags an entity so. fnTech3 traces it as a capsule (inherited) and is not changed to drop.",
+  "bevels": "Quake III 1.32 GPL cm_patch.c builds edge bevels in float (VectorSubtract, CrossProduct, DotProduct); fnTech3, from Quake3e through FnQuake3, in double (VectorSubtractDP, CrossProductDP, DotProductDPf), and its brush sweeps use double dot products"
+ },
+ "runs": [
+  {
+   "map": "q3dm1",
+   "worldMins": [
+    -8.00048828125,
+    -220.0,
+    -140.0
+   ],
+   "worldMaxs": [
+    1352.00048828125,
+    2500.0,
+    960.0
+   ],
+   "brushModels": 0,
+   "seed": 20261008,
+   "perShapeCount": 300,
+   "traces": 11100,
+   "tally": {
+    "exact": 9135,
+    "within 0.01 unit": 1959,
+    "within 1 unit": 5,
+    "differ": 1
+   },
+   "worst": {
+    "fraction": 0.006838604807853699,
+    "endpos": 0.315185546875
+   },
+   "points": 1500,
+   "pointsSame": 1500,
+   "entityTraces": 0,
+   "entityTally": {},
+   "links": 0,
+   "linksBitExact": 0,
+   "linkFlagsSame": 0,
+   "linkWorst": 0.0,
+   "boxQueries": 0,
+   "boxesSameOrder": 0,
+   "invalidBevelWarnings": {
+    "retail": 9,
+    "fntech3": 10
+   },
+   "retailSeconds": 35.5,
+   "fntech3Seconds": 6.1,
+   "retailExecutableSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+   "fntech3ExecutableSha256": "bee9f0c68a39b8c0ea490971ed7cd0b5583ee5cb5b52037d78d20319b61bf9b0",
+   "moduleSha256": "5a3905237a39ee33bf133042d71558fec9682f06c402df9cf9c6ca3112fd4deb"
+  },
+  {
+   "map": "q3dm6",
+   "worldMins": [
+    -1680.0,
+    -1648.0,
+    -224.0
+   ],
+   "worldMaxs": [
+    1024.0,
+    1184.0,
+    976.0
+   ],
+   "brushModels": 3,
+   "seed": 20261008,
+   "perShapeCount": 300,
+   "traces": 11370,
+   "tally": {
+    "within 0.01 unit": 1916,
+    "exact": 9454
+   },
+   "worst": {
+    "fraction": 7.88271427154541e-06,
+    "endpos": 0.005767822265625
+   },
+   "points": 1500,
+   "pointsSame": 1500,
+   "entityTraces": 270,
+   "entityTally": {
+    "clear": 64,
+    "hit": 206,
+    "entity hit": 29
+   },
+   "links": 3,
+   "linksBitExact": 3,
+   "linkFlagsSame": 3,
+   "linkWorst": 0.0,
+   "boxQueries": 200,
+   "boxesSameOrder": 200,
+   "invalidBevelWarnings": {
+    "retail": 0,
+    "fntech3": 0
+   },
+   "retailSeconds": 31.6,
+   "fntech3Seconds": 5.7,
+   "retailExecutableSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+   "fntech3ExecutableSha256": "bee9f0c68a39b8c0ea490971ed7cd0b5583ee5cb5b52037d78d20319b61bf9b0",
+   "moduleSha256": "5a3905237a39ee33bf133042d71558fec9682f06c402df9cf9c6ca3112fd4deb"
+  },
+  {
+   "map": "q3dm17",
+   "worldMins": [
+    -1376.0,
+    -1552.0,
+    -2432.0
+   ],
+   "worldMaxs": [
+    3232.0,
+    1640.0,
+    2248.0
+   ],
+   "brushModels": 19,
+   "seed": 20261008,
+   "perShapeCount": 300,
+   "traces": 12810,
+   "tally": {
+    "exact": 10621,
+    "within 0.01 unit": 2189
+   },
+   "worst": {
+    "fraction": 1.0427087545394897e-05,
+    "endpos": 0.00244140625
+   },
+   "points": 1500,
+   "pointsSame": 1500,
+   "entityTraces": 1710,
+   "entityTally": {
+    "clear": 762,
+    "hit": 948,
+    "entity hit": 514
+   },
+   "links": 19,
+   "linksBitExact": 17,
+   "linkFlagsSame": 19,
+   "linkWorst": 0.00048828125,
+   "boxQueries": 200,
+   "boxesSameOrder": 200,
+   "invalidBevelWarnings": {
+    "retail": 0,
+    "fntech3": 0
+   },
+   "retailSeconds": 36.4,
+   "fntech3Seconds": 5.7,
+   "retailExecutableSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+   "fntech3ExecutableSha256": "bee9f0c68a39b8c0ea490971ed7cd0b5583ee5cb5b52037d78d20319b61bf9b0",
+   "moduleSha256": "5a3905237a39ee33bf133042d71558fec9682f06c402df9cf9c6ca3112fd4deb"
+  },
+  {
+   "map": "q3tourney2",
+   "worldMins": [
+    -1136.0,
+    -848.0,
+    -1152.0
+   ],
+   "worldMaxs": [
+    1000.0,
+    1848.0,
+    1040.0
+   ],
+   "brushModels": 10,
+   "seed": 20261008,
+   "perShapeCount": 300,
+   "traces": 12000,
+   "tally": {
+    "exact": 9726,
+    "within 0.01 unit": 2274
+   },
+   "worst": {
+    "fraction": 7.867813110351562e-06,
+    "endpos": 0.0011749267578125
+   },
+   "points": 1500,
+   "pointsSame": 1500,
+   "entityTraces": 900,
+   "entityTally": {
+    "clear": 372,
+    "hit": 528,
+    "entity hit": 148
+   },
+   "links": 10,
+   "linksBitExact": 9,
+   "linkFlagsSame": 10,
+   "linkWorst": 1.52587890625e-05,
+   "boxQueries": 200,
+   "boxesSameOrder": 200,
+   "invalidBevelWarnings": {
+    "retail": 0,
+    "fntech3": 0
+   },
+   "retailSeconds": 31.5,
+   "fntech3Seconds": 6.7,
+   "retailExecutableSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+   "fntech3ExecutableSha256": "bee9f0c68a39b8c0ea490971ed7cd0b5583ee5cb5b52037d78d20319b61bf9b0",
+   "moduleSha256": "5a3905237a39ee33bf133042d71558fec9682f06c402df9cf9c6ca3112fd4deb"
+  },
+  {
+   "map": "q3ctf2",
+   "worldMins": [
+    -2536.000244140625,
+    -1952.0,
+    -744.0
+   ],
+   "worldMaxs": [
+    2648.00048828125,
+    1392.0,
+    976.0
+   ],
+   "brushModels": 50,
+   "seed": 20261008,
+   "perShapeCount": 300,
+   "traces": 13980,
+   "tally": {
+    "within 0.01 unit": 2451,
+    "exact": 11526,
+    "within 1 unit": 3
+   },
+   "worst": {
+    "fraction": 5.272775888442993e-05,
+    "endpos": 0.0706787109375
+   },
+   "points": 1500,
+   "pointsSame": 1500,
+   "entityTraces": 2880,
+   "entityTally": {
+    "hit": 1821,
+    "clear": 1059,
+    "entity hit": 512
+   },
+   "links": 32,
+   "linksBitExact": 31,
+   "linkFlagsSame": 32,
+   "linkWorst": 0.0001220703125,
+   "boxQueries": 200,
+   "boxesSameOrder": 200,
+   "invalidBevelWarnings": {
+    "retail": 0,
+    "fntech3": 0
+   },
+   "retailSeconds": 43.8,
+   "fntech3Seconds": 7.1,
+   "retailExecutableSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+   "fntech3ExecutableSha256": "bee9f0c68a39b8c0ea490971ed7cd0b5583ee5cb5b52037d78d20319b61bf9b0",
+   "moduleSha256": "5a3905237a39ee33bf133042d71558fec9682f06c402df9cf9c6ca3112fd4deb"
+  },
+  {
+   "map": "q3dm12",
+   "worldMins": [
+    -1440.0,
+    -3288.00048828125,
+    -896.0
+   ],
+   "worldMaxs": [
+    1272.0,
+    1680.0,
+    896.0
+   ],
+   "brushModels": 63,
+   "seed": 20261008,
+   "perShapeCount": 300,
+   "traces": 13980,
+   "tally": {
+    "exact": 11470,
+    "within 0.01 unit": 2509,
+    "differ": 1
+   },
+   "worst": {
+    "fraction": 8.408725261688232e-05,
+    "endpos": 0.00390625
+   },
+   "points": 1500,
+   "pointsSame": 1500,
+   "entityTraces": 2880,
+   "entityTally": {
+    "hit": 1889,
+    "entity hit": 685,
+    "clear": 991
+   },
+   "links": 32,
+   "linksBitExact": 30,
+   "linkFlagsSame": 32,
+   "linkWorst": 3.0517578125e-05,
+   "boxQueries": 200,
+   "boxesSameOrder": 200,
+   "invalidBevelWarnings": {
+    "retail": 0,
+    "fntech3": 0
+   },
+   "retailSeconds": 48.3,
+   "fntech3Seconds": 7.1,
+   "retailExecutableSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+   "fntech3ExecutableSha256": "bee9f0c68a39b8c0ea490971ed7cd0b5583ee5cb5b52037d78d20319b61bf9b0",
+   "moduleSha256": "5a3905237a39ee33bf133042d71558fec9682f06c402df9cf9c6ca3112fd4deb"
+  }
+ ],
+ "differences": [
+  {
+   "map": "q3dm1",
+   "hull": "player box",
+   "maskIndex": 0,
+   "index": 158,
+   "shape": "short",
+   "endposDifference": 0.315185546875,
+   "fieldsDiffer": [],
+   "start": [
+    1125.4061279296875,
+    1801.31005859375,
+    483.84283447265625
+   ],
+   "end": [
+    1090.120849609375,
+    1755.224853515625,
+    448.25823974609375
+   ],
+   "retail": {
+    "allsolid": 0,
+    "startsolid": 0,
+    "fraction": 0.19642098248004913,
+    "endpos": [
+     1118.475341796875,
+     1792.2579345703125,
+     476.853271484375
+    ],
+    "normal": [
+     0.30205997824668884,
+     0.6645334959030151,
+     -0.6834873557090759
+    ],
+    "dist": 1200.0799560546875,
+    "surfaceFlags": 0,
+    "contents": 1,
+    "entityNum": 1022
+   },
+   "fntech3": {
+    "allsolid": 0,
+    "startsolid": 0,
+    "fraction": 0.20325958728790283,
+    "endpos": [
+     1118.2340087890625,
+     1791.9427490234375,
+     476.60992431640625
+    ],
+    "normal": [
+     0.7071067690849304,
+     0.7071067690849304,
+     0.0
+    ],
+    "dist": 2057.6806640625,
+    "surfaceFlags": 0,
+    "contents": 1,
+    "entityNum": 1022
+   }
+  },
+  {
+   "map": "q3dm1",
+   "hull": "player box",
+   "maskIndex": 0,
+   "index": 171,
+   "shape": "long",
+   "endposDifference": 0.01007080078125,
+   "fieldsDiffer": [
+    "contents",
+    "surfaceFlags"
+   ],
+   "start": [
+    773.8875122070312,
+    1652.4146728515625,
+    846.2964477539062
+   ],
+   "end": [
+    762.5687866210938,
+    1317.505126953125,
+    287.8735656738281
+   ],
+   "retail": {
+    "allsolid": 0,
+    "startsolid": 1,
+    "fraction": 0.09698989242315292,
+    "endpos": [
+     772.7897338867188,
+     1619.931884765625,
+     792.1350708007812
+    ],
+    "normal": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "dist": 796.0100708007812,
+    "surfaceFlags": 0,
+    "contents": 1,
+    "entityNum": 1022
+   },
+   "fntech3": {
+    "allsolid": 0,
+    "startsolid": 1,
+    "fraction": 0.09700793027877808,
+    "endpos": [
+     772.7894897460938,
+     1619.92578125,
+     792.125
+    ],
+    "normal": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "dist": 768.0,
+    "surfaceFlags": 160,
+    "contents": 536870913,
+    "entityNum": 1022
+   }
+  },
+  {
+   "map": "q3dm1",
+   "hull": "player box",
+   "maskIndex": 0,
+   "index": 714,
+   "shape": "long",
+   "endposDifference": 0.012451171875,
+   "fieldsDiffer": [],
+   "start": [
+    395.9676208496094,
+    2415.904296875,
+    126.51043701171875
+   ],
+   "end": [
+    89.17080688476562,
+    1590.2149658203125,
+    214.87384033203125
+   ],
+   "retail": {
+    "allsolid": 0,
+    "startsolid": 1,
+    "fraction": 0.015466456301510334,
+    "endpos": [
+     391.2225646972656,
+     2403.1337890625,
+     127.87710571289062
+    ],
+    "normal": [
+     0.0,
+     0.0,
+     -1.0
+    ],
+    "dist": -132.00210571289062,
+    "surfaceFlags": 0,
+    "contents": 1,
+    "entityNum": 1022
+   },
+   "fntech3": {
+    "allsolid": 0,
+    "startsolid": 1,
+    "fraction": 0.015451259911060333,
+    "endpos": [
+     391.22723388671875,
+     2403.146240234375,
+     127.87576293945312
+    ],
+    "normal": [
+     0.0,
+     0.0,
+     -1.0
+    ],
+    "dist": -132.00076293945312,
+    "surfaceFlags": 0,
+    "contents": 1,
+    "entityNum": 1022
+   }
+  },
+  {
+   "map": "q3dm1",
+   "hull": "random box",
+   "maskIndex": 0,
+   "index": 126,
+   "shape": "long",
+   "endposDifference": 0.0300140380859375,
+   "fieldsDiffer": [],
+   "start": [
+    718.636474609375,
+    82.834716796875,
+    221.95999145507812
+   ],
+   "end": [
+    1042.7242431640625,
+    2461.086181640625,
+    582.3575439453125
+   ],
+   "retail": {
+    "allsolid": 0,
+    "startsolid": 0,
+    "fraction": 0.003570147790014744,
+    "endpos": [
+     719.7935180664062,
+     91.32542419433594,
+     223.2466583251953
+    ],
+    "normal": [
+     0.28160378336906433,
+     -0.959530770778656,
+     0.0
+    ],
+    "dist": 110.37210083007812,
+    "surfaceFlags": 0,
+    "contents": 1,
+    "entityNum": 1022
+   },
+   "fntech3": {
+    "allsolid": 0,
+    "startsolid": 0,
+    "fraction": 0.003582768142223358,
+    "endpos": [
+     719.797607421875,
+     91.35543823242188,
+     223.25120544433594
+    ],
+    "normal": [
+     0.28160417079925537,
+     -0.9595306515693665,
+     0.0
+    ],
+    "dist": 110.34474182128906,
+    "surfaceFlags": 0,
+    "contents": 1,
+    "entityNum": 1022
+   }
+  },
+  {
+   "map": "q3dm1",
+   "hull": "random box",
+   "maskIndex": 0,
+   "index": 510,
+   "shape": "long",
+   "endposDifference": 0.0179443359375,
+   "fieldsDiffer": [],
+   "start": [
+    1061.3797607421875,
+    1937.2900390625,
+    448.38543701171875
+   ],
+   "end": [
+    1102.9302978515625,
+    411.91253662109375,
+    -69.53179931640625
+   ],
+   "retail": {
+    "allsolid": 0,
+    "startsolid": 0,
+    "fraction": 0.17357851564884186,
+    "endpos": [
+     1068.592041015625,
+     1672.517333984375,
+     358.48614501953125
+    ],
+    "normal": [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    "dist": -1071.4931640625,
+    "surfaceFlags": 0,
+    "contents": 1,
+    "entityNum": 1022
+   },
+   "fntech3": {
+    "allsolid": 0,
+    "startsolid": 0,
+    "fraction": 0.1735902577638626,
+    "endpos": [
+     1068.592529296875,
+     1672.4993896484375,
+     358.48004150390625
+    ],
+    "normal": [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    "dist": -1071.49365234375,
+    "surfaceFlags": 0,
+    "contents": 1,
+    "entityNum": 1022
+   }
+  },
+  {
+   "map": "q3dm1",
+   "hull": "player capsule",
+   "maskIndex": 0,
+   "index": 426,
+   "shape": "long",
+   "endposDifference": 0.014404296875,
+   "fieldsDiffer": [],
+   "start": [
+    558.1690673828125,
+    1629.791015625,
+    61.73152160644531
+   ],
+   "end": [
+    441.67236328125,
+    1606.1220703125,
+    694.9691772460938
+   ],
+   "retail": {
+    "allsolid": 0,
+    "startsolid": 1,
+    "fraction": 0.12969708442687988,
+    "endpos": [
+     543.059814453125,
+     1626.72119140625,
+     143.860595703125
+    ],
+    "normal": [
+     0.0,
+     0.0,
+     -1.0
+    ],
+    "dist": -160.985595703125,
+    "surfaceFlags": 0,
+    "contents": 1,
+    "entityNum": 1022
+   },
+   "fntech3": {
+    "allsolid": 0,
+    "startsolid": 1,
+    "fraction": 0.1297198235988617,
+    "endpos": [
+     543.05712890625,
+     1626.720703125,
+     143.875
+    ],
+    "normal": [
+     0.0,
+     0.0,
+     -1.0
+    ],
+    "dist": -176.0,
+    "surfaceFlags": 0,
+    "contents": 1,
+    "entityNum": 1022
+   }
+  },
+  {
+   "map": "q3ctf2",
+   "hull": "player box",
+   "maskIndex": 0,
+   "index": 816,
+   "shape": "long",
+   "endposDifference": 0.0706787109375,
+   "fieldsDiffer": [],
+   "start": [
+    -756.5679931640625,
+    -1151.617431640625,
+    -130.06243896484375
+   ],
+   "end": [
+    701.395751953125,
+    -1315.4599609375,
+    -120.721435546875
+   ],
+   "retail": {
+    "allsolid": 0,
+    "startsolid": 1,
+    "fraction": 0.11259705573320389,
+    "endpos": [
+     -592.4055786132812,
+     -1170.065673828125,
+     -129.0106658935547
+    ],
+    "normal": [
+     -0.7048721313476562,
+     0.7093343734741211,
+     -0.0
+    ],
+    "dist": -412.5225830078125,
+    "surfaceFlags": 0,
+    "contents": 1,
+    "entityNum": 1022
+   },
+   "fntech3": {
+    "allsolid": 0,
+    "startsolid": 1,
+    "fraction": 0.11254856735467911,
+    "endpos": [
+     -592.4762573242188,
+     -1170.0576171875,
+     -129.01112365722656
+    ],
+    "normal": [
+     -0.7048717737197876,
+     0.7093347311019897,
+     0.0
+    ],
+    "dist": -412.4677429199219,
+    "surfaceFlags": 0,
+    "contents": 1,
+    "entityNum": 1022
+   }
+  },
+  {
+   "map": "q3ctf2",
+   "hull": "random box",
+   "maskIndex": 0,
+   "index": 75,
+   "shape": "long",
+   "endposDifference": 0.01519775390625,
+   "fieldsDiffer": [],
+   "start": [
+    667.117431640625,
+    777.165283203125,
+    -262.3124084472656
+   ],
+   "end": [
+    -2401.23095703125,
+    -1512.916015625,
+    617.6312255859375
+   ],
+   "retail": {
+    "allsolid": 0,
+    "startsolid": 1,
+    "fraction": 0.02142990194261074,
+    "endpos": [
+     601.363037109375,
+     728.0890502929688,
+     -243.45530700683594
+    ],
+    "normal": [
+     -0.1936352401971817,
+     0.9810736179351807,
+     0.0
+    ],
+    "dist": 594.791259765625,
+    "surfaceFlags": 0,
+    "contents": 1,
+    "entityNum": 1022
+   },
+   "fntech3": {
+    "allsolid": 0,
+    "startsolid": 1,
+    "fraction": 0.021434858441352844,
+    "endpos": [
+     601.3478393554688,
+     728.0776977539062,
+     -243.45094299316406
+    ],
+    "normal": [
+     -0.1936318576335907,
+     0.9810742735862732,
+     0.0
+    ],
+    "dist": 594.7855834960938,
+    "surfaceFlags": 0,
+    "contents": 1,
+    "entityNum": 1022
+   }
+  },
+  {
+   "map": "q3ctf2",
+   "hull": "random box",
+   "maskIndex": 2,
+   "index": 804,
+   "shape": "long",
+   "endposDifference": 0.0274658203125,
+   "fieldsDiffer": [],
+   "start": [
+    1119.250732421875,
+    695.22705078125,
+    -208.96990966796875
+   ],
+   "end": [
+    -1923.28857421875,
+    -1487.849365234375,
+    -623.0345458984375
+   ],
+   "retail": {
+    "allsolid": 0,
+    "startsolid": 1,
+    "fraction": 0.007938875816762447,
+    "endpos": [
+     1095.096435546875,
+     677.8958740234375,
+     -212.25711059570312
+    ],
+    "normal": [
+     0.9512752294540405,
+     0.30834299325942993,
+     -0.0
+    ],
+    "dist": 1253.5345458984375,
+    "surfaceFlags": 0,
+    "contents": 1,
+    "entityNum": 1022
+   },
+   "fntech3": {
+    "allsolid": 0,
+    "startsolid": 1,
+    "fraction": 0.007947886362671852,
+    "endpos": [
+     1095.0689697265625,
+     677.876220703125,
+     -212.26084899902344
+    ],
+    "normal": [
+     0.9512752890586853,
+     0.3083428740501404,
+     -0.0
+    ],
+    "dist": 1253.50244140625,
+    "surfaceFlags": 0,
+    "contents": 1,
+    "entityNum": 1022
+   }
+  },
+  {
+   "map": "q3dm12",
+   "hull": "player box",
+   "maskIndex": 2,
+   "index": 195,
+   "shape": "long",
+   "endposDifference": 0.0,
+   "fieldsDiffer": [
+    "contents",
+    "surfaceFlags"
+   ],
+   "start": [
+    -734.3501586914062,
+    1490.92626953125,
+    -399.36346435546875
+   ],
+   "end": [
+    -707.2286987304688,
+    -2859.383544921875,
+    821.566162109375
+   ],
+   "retail": {
+    "allsolid": 0,
+    "startsolid": 1,
+    "fraction": 0.03029698319733143,
+    "endpos": [
+     -733.5284423828125,
+     1359.125,
+     -362.37298583984375
+    ],
+    "normal": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "dist": 1344.0,
+    "surfaceFlags": 17584,
+    "contents": 65536,
+    "entityNum": 1022
+   },
+   "fntech3": {
+    "allsolid": 0,
+    "startsolid": 1,
+    "fraction": 0.03029698319733143,
+    "endpos": [
+     -733.5284423828125,
+     1359.125,
+     -362.37298583984375
+    ],
+    "normal": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "dist": 1359.0,
+    "surfaceFlags": 0,
+    "contents": 1,
+    "entityNum": 1022
+   }
+  }
+ ],
+ "inferences": [
+  "Every difference beyond the last bits sits where double-precision arithmetic can decide differently: a curve bevel retail rejects or keeps (q3dm1 rejects 9 on retail, 10 on fnTech3), or two brushes entered at the same fraction (q3dm12), or a fraction near 1e-5 apart on a trace thousands of units long.",
+  "Matching retail exactly would mean float bevels and float brush dot products in every profile that shares the collision code, undoing a deliberate upstream precision change; that is left as a decision."
+ ]
+}
