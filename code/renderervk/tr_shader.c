@@ -5400,6 +5400,7 @@ CreateInternalShaders
 ====================
 */
 #include "../renderercommon/tr_q3_ihv_particle_shader.h"
+#include "../renderercommon/tr_q3_ihv_overlay_shader.h"
 #include "../renderercommon/tr_q3_ihv_beam_shader.h"
 
 static void CreateInternalShaders( void ) {

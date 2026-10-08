@@ -202,6 +202,8 @@ typedef struct {
 	// Points are copied synchronously; each rendered view constructs its own
 	// IHV triangles. A rejected batch leaves the pending scene unchanged.
 	qboolean (*AddIHVParticlesToScene)( int count, const fnQ3IHVParticle_t *particles );
+	// The IHV Test's overlay square: its shader's first image in the 2D colour.
+	qhandle_t (*RegisterIHVOverlayShader)( qhandle_t shader );
 	qboolean (*AddIHVEntitiesToScene)( int count, const fnQ3IHVEntity_t *entities );
 	// American McGee's Alice: the model definition a registered model draws,
 	// or -1 for a model that is not one; and the size of a shader's first

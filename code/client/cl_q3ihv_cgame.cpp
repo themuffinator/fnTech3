@@ -529,14 +529,16 @@ void QDECL IhvRenderScene( const void *native ) {
 	std::memcpy( view.areamask, blocked.data(), ( std::min )( sizeof( view.areamask ), blocked.size() ) );
 	re.RenderScene( &view );
 	// The original draws the overlay while gl_polyblend, its renderer's cvar,
-	// is set (0x442716); fnTech3 draws it as the 2D picture it covers.
+	// is set (0x442716); fnTech3 draws it as the 2D picture it covers, from
+	// the shader's first image in the overlay colour as R_BlendBlobs does.
 	static cvar_t *polyblend;
 	if ( !polyblend ) polyblend = Cvar_Get( "gl_polyblend", "1", 0 );
 	float left = 0, top = 0, width = 0, height = 0;
 	if ( polyblend->value != 0.0f && scene.view.OverlayRect( left, top, width, height ) ) {
 		re.SetColor( scene.view.overlayColor );
-		re.DrawStretchPic( left, top, width, height, 0, 0, 1, 1,
-			scene.view.overlayShader ? scene.view.overlayShader : cls.whiteShader );
+		const qhandle_t overlay = scene.view.overlayShader
+			? re.RegisterIHVOverlayShader( scene.view.overlayShader ) : cls.whiteShader;
+		if ( overlay ) re.DrawStretchPic( left, top, width, height, 0, 0, 1, 1, overlay );
 		re.SetColor( nullptr );
 	}
 }

@@ -1,0 +1,64 @@
+{
+  "record": "2026-10-08-q3-ihv-overlay-and-particles.md",
+  "profile": "q3-ihv",
+  "baseCommit": "6830eb1f95eec2b70ea38b5f96d6ebca58fc6022",
+  "platform": "Windows x86, MSVC 2022, meson debugoptimized export builds with strict warnings, loopback",
+  "binaries": {
+    "comparisonFntech3.exe": "b788de497e8dbcbb1f04d69883fb66c90062ff72147542f9b39d3543b4af6f15",
+    "comparisonFntech3.ded.exe": "a56a866d0977e143d16645ee78c510f89944f89627d88b1eca2467a5136c5975",
+    "afterFntech3.exe": "1e85a54167da530b658d01b6ffd6b0c519f58051a30dd483d7c4ea9531612d93",
+    "afterFntech3.ded.exe": "8e58c10c7ed19d6f6c7f630318a05ed4dcb9e2708b2e93eb5649a1c875dc8cbb",
+    "original quake3.exe": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37"
+  },
+  "cgame": {
+    "cg_testblend": "registered flags 0 default 0 (0x1000aaf0), pointer 0x100a107c; read 0x10010e65; set calls 0x1000fdb0: overlay geometry 0, 0, 0.5, rgba 1, 1, 1, 0.5, shader [0x100acb6c] = models/weaphits/blood201",
+    "cg_testparticles": "registered flags 0 default 0 (0x1000ab07), pointer 0x100a10a0; read 0x10010e08; set calls 0x1000fbe0: 4096 particles, rgba 255, grid from index (i & 7, i >> 3 & 7) and depth from i",
+    "cg_blend": "default 1, pointer 0x100c2530; 0 zeroes the 32-byte overlay block 0x100aadec (0x10010ed2)",
+    "damageSplat": "0x10010880: while damage is set and 0 < time since it < 500 ms, overlay centre = damage x, y, half-size = damage * k, rgba 1, 1, 1, alpha fading, capped at 0.5; shader [0x100acb6c]"
+  },
+  "original": {
+    "R_BlendBlobs": "0x442700: gl_polyblend ([0x4f03650], default 1 at 0x42a021) and overlay alpha (0x43d6aa4) not zero; GL_State 0x10065; inactive first stage reports 'R_BlendBlobs attempted to use inactive shader'; binds the first stage image, glLoadIdentity, glColor4fv(0x43d6a98), quad at eye z -10, glColor4f 1, 1, 1, 1",
+    "callSite": "0x42ce73, unconditionally after the view (0x42c9b0) and 0x43e5f0, which pushes and pops its own projection",
+    "cdbRun": "cg_testblend 1 on fnTech3's server: breakpoints 0x44271c and 0x442733 hit with 0x43d6a8c = 0, 0, 0.5, then 1, 1, 1, 0.5 and the shader",
+    "screenshots": "cg_testblend toggled 0/1 between consecutive shots: mean centre difference 0.02 to 0.37 of 255 across six pairs; no splat visible",
+    "unsettled": "why the issued draw leaves no mark in the original's frames"
+  },
+  "particles": {
+    "fntech3Capture": "0afb325479c57bca (800x600, scaled to 640x480 nearest)",
+    "originalCapture": "c1781cf62de67aea (640x480)",
+    "mask": "pixels with r, g and b above 235, rows 24 to 329, weapon corner excluded",
+    "originalPixels": 14753,
+    "alsoInFntech3": 14642,
+    "fntech3Pixels": 18400,
+    "fntech3ExtraNearOriginal": "3754 of 3758 within 3 pixels of an original particle pixel",
+    "iou": 0.791,
+    "stableAcrossOriginalFrames": "0.791 for shots 0010, 0012, 0014 and 0016"
+  },
+  "overlay": {
+    "beforeFntech3": "c1e1a6db16ae0bd6: an opaque black blot (blood201's rgbGen entity has no colour in 2D)",
+    "originalCapture": "415e35e5ed2868dc: no splat",
+    "after": {
+      "glx": "af6c2854f438a070",
+      "vk": "be542f56f46d014a",
+      "rtx": "86a047c44db0c630",
+      "appearance": "a translucent red-brown blood splat in the centre of the view",
+      "noTestBlend": "66a6856f430cfd19: no splat with gl_polyblend 1 or 0",
+      "originalRDrawEntities0": "centre difference 0.0 between cg_testblend 0 and 1 frames"
+    },
+    "change": "code/renderercommon/tr_q3_ihv_overlay_shader.h RE_RegisterIHVOverlayShader in all three renderers (refexport RegisterIHVOverlayShader); cl_q3ihv_cgame.cpp draws the overlay with it"
+  },
+  "commands": {
+    "fntech3": ".tmp/ihv-client/probe_serve.py <run> --server <export>/fntech3.ded.exe --map tim_dm1 --no-client --fn-client --fn-script \"set cg_testparticles 1|wait 300|screenshotPNG a|wait 30\"",
+    "original": ".tmp/ihv-client/probe_serve.py <run> --map tim_dm1 --frames \"\" --raw 'set cg_testparticles 1|set shotloop \"screenshot;vstr w1000000;vstr w1000000;vstr shotloop\"|vstr shotloop'",
+    "cdb": ".tmp/ihv-client/probe_serve.py blend-cdb ... --client-cdb .tmp/ihv-client/blend.cdb"
+  },
+  "tests": [
+    "tests/q3_ihv_overlay_shader_tests.py"
+  ],
+  "inputInjected": false,
+  "open": [
+    "why the original's splat leaves no mark",
+    "the build's menus",
+    "input-driven play"
+  ]
+}

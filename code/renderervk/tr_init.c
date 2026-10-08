@@ -4038,6 +4038,7 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.CaptureAliceSaveshot = RE_CaptureAliceSaveshot;
 	re.LoadImagePixels = R_LoadImagePixels;
 	re.AddIHVParticlesToScene = RE_AddIHVParticlesToScene;
+	re.RegisterIHVOverlayShader = RE_RegisterIHVOverlayShader;
 	re.AddIHVEntitiesToScene = RE_AddIHVEntitiesToScene;
 	re.GetAliceTikiHandle = RE_GetAliceTikiHandle;
 	re.RegisterMOHAATiki = RE_RegisterMOHAATiki;

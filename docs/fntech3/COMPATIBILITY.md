@@ -399,6 +399,17 @@ fnTech3's own serverinfo cvars, such as `sv_hostname` and
 a server browser reads the `hostname` an operator sets. Only the version stays
 fnTech3's. No profile gate closes.
 
+The [2026-10-08 IHV overlay and particles record](2026-10-08-q3-ihv-overlay-and-particles.md)
+sets the client game's particles beside the original's, through its own
+`cg_testparticles`. The 4,096-particle grids match, and 99.2% of the
+original's particle pixels are white in fnTech3's capture too, so the large
+white discs of `sli.dm3`'s opening are the original's own look. The overlay
+square is the client game's damage blood splat (`0x10010880`). It now draws
+its shader's first image in the overlay colour, as `R_BlendBlobs`
+(`0x442700`) does, not as an opaque black blot. The original issues that
+draw, as cdb shows, but its screenshots show no splat, for a reason not yet
+settled. No profile gate closes.
+
 The original client's parser treats the download message as illegible
 (`0x407188`), so no IHV peer can carry a download, and downloads are no
 longer counted as an IHV gap. No profile gate closes.

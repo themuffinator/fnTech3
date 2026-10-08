@@ -3170,6 +3170,7 @@ void RE_ClearScene( void );
 void RE_AddRefEntityToScene( const refEntity_t *ent, qboolean intShaderTime );
 void RE_AddPolyToScene( qhandle_t hShader , int numVerts, const polyVert_t *verts, int num );
 qboolean RE_AddIHVParticlesToScene( int count, const fnQ3IHVParticle_t *particles );
+qhandle_t RE_RegisterIHVOverlayShader( qhandle_t hShader );
 qboolean RE_AddIHVEntitiesToScene( int count, const fnQ3IHVEntity_t *entities );
 void RE_AddRTCWLightToScene( const vec3_t origin, float intensity, float r, float g, float b, int flags );
 void RE_ProjectWolfETDecal( qhandle_t hShader, int numPoints, const vec3_t *points,
