@@ -140,6 +140,11 @@ class CL_Q3IHVEvents final : public ihvcl::ClientEvents {
 public:
 	void GameState( const ihvcl::ClientData &data ) override {
 		CL_ClearState();
+		// The original's CL_ClearState (0x404ac0) clears its whole client
+		// record, the ring of sent packets (0x4369b5c, 0x4369bdc) with the
+		// command count, so the next level's moves count from zero again.
+		ihvLive.out = {};
+		ihvLive.engineCmd = cl.cmdNumber;
 		CL_Q3IHVMirrorGameState( data );
 		clc.clientNum = 0;
 		clc.eventMask |= EM_GAMESTATE;

@@ -1,0 +1,34 @@
+{
+  "record": "2026-10-08-q3-ihv-loss-and-level-change.md",
+  "profile": "q3-ihv",
+  "baseCommit": "884b79ad2eee309613d3233fc5972712b166c0bb",
+  "platform": "Windows x86, MSVC 2022, meson debugoptimized export builds with strict warnings, loopback",
+  "binaries": {
+    "beforeServerAndClient": {"fntech3.ded.exe": "8885ed8279efd4815c47f125832c2b74269d8dc35662b676bbdd30d2d612286b", "fntech3.exe": "26411f009c4320dd60128a143562dfda66518dfcb615e94cf2eeef71f0cbce4e", "content": "dc715a37"},
+    "beforeClientOnOriginalServer": {"fntech3.exe": "f16c7ee465803084bf947ddeab9456ba677bfaf6e499ad1469e17510309a9eb5", "content": "884b79ad"},
+    "after": {"fntech3.ded.exe": "1426246b27aff3228e11f56d57b36c34e2309456cbbfc516ec20bcf470c74943", "fntech3.exe": "b6f07775d0b5a61da2e25f732945eb966f8ee63d6a380a47f29824c1dcd84065", "content": "884b79ad plus this change"},
+    "original quake3.exe": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37"
+  },
+  "loss": "net_dropsim N: each fnTech3 process drops N% of the packets it receives (code/qcommon/net_ip.c NET_Event); the original client and server drop nothing",
+  "stall": {
+    "originalSendCmd": "0x403360: a move needs cmdNumber (0x4369b58) minus the command of an earlier packet (0x4369bdc ring, times 0x4369b5c) to be at least 2",
+    "originalClearState": "CL_ParseGamestate 0x406c40 calls CL_ClearState 0x404ac0: rep stosd of 0x16804 dwords from 0x430fc60 (to 0x4369c70), covering the command count and the packet ring",
+    "fntech3Before": "ClientData::BeginGameState cleared the command history (counter 0) but ihvLive.out kept the previous level's command numbers, so count < 2 until the new counter passed them",
+    "fix": "code/client/cl_q3ihv.cpp CL_Q3IHVEvents::GameState: ihvLive.out = {} and ihvLive.engineCmd = cl.cmdNumber after CL_ClearState",
+    "test": "tests/q3_ihv_client_tests.py test_gamestate_clears_sent_packets"
+  },
+  "runs": {
+    "loss2": {"server": "fnTech3 (before)", "clients": ["original", "fnTech3 (before)"], "map": "tim_dm1", "seconds": 85, "dropsim": {"server": 10, "fntech3Client": 10}, "status": ["35 s: Original ping 0, fnTech3 ping 4", "50 s: 0 and 6"], "kill": "reached the game: 'Only one kill every five seconds'"},
+    "loss3": {"server": "fnTech3 (before)", "clients": ["original", "fnTech3 (before)"], "seconds": 205, "dropsim": {"server": 25, "fntech3Client": 25}, "levelChange": "rcon map km_portal at 90 s", "result": "fnTech3 killed himself (score -1); after the change the original began at once, fnTech3's client loaded km_portal at once but status showed PRM at 150 s and Begin came after it; first km_portal snapshot after its 165 s capture"},
+    "loss4": {"server": "fnTech3 (after)", "dropsim": {"server": 25, "fntech3Client": 25}, "result": "the single rcon map was lost to the server's drop; no level change"},
+    "loss5": {"server": "fnTech3 (after)", "clients": ["original", "fnTech3 (after)"], "seconds": 205, "dropsim": {"server": 10, "fntech3Client": 25}, "levelChange": "rcon map km_portal at 90, 92, 94, 96 s; three arrived", "result": "after each change Begin from both clients followed at once; fnTech3 first snapshot right after each load; scores reached 3 and 4 through spawn telefrags ('tried to invade ... personal space')", "status": ["105 s: Original 999, fnTech3 26", "110 s: 999, 13", "120 s: 999, 13", "150 s: 750, 6", "175 s: 0, 26"]},
+    "livebefore1": {"server": "original", "client": "fnTech3 (before)", "dropsim": {"fntech3Client": 25}, "levelChange": "rcon map km_portal at 70 s", "result": "client loaded km_portal at once; entered the game only after its ~110 s capture and before its ~140 s capture; status ping held at 48"},
+    "livefix1": {"server": "original", "client": "fnTech3 (after)", "dropsim": {"fntech3Client": 25}, "levelChange": "rcon map km_portal at 70 s", "result": "entered the game and took its first snapshot at once", "status": ["76 s: 999", "82 s: 47", "90 s: 48", "120 s: 33", "150 s: 41"]},
+    "pair1": {"server": "original", "client": "original", "levelChange": "rcon map km_portal at 50 s", "status": ["20 s: 0", "40 s: 25", "56 s: 999", "62 s: 999", "70 s: 0", "80 s: 25", "95 s: 25", "110 s: 0"]}
+  },
+  "pingAfterLevelChange": "SV_CalcPings 0x41a910 averages acked minus sent over 32 frame records that outlive the level while sv.time restarts; both servers report 999 until fresh frames are acknowledged",
+  "statusLayout": {"original": "num score ping name lastmsg address qport", "fntech3": "cl score ping name address rate steamid (kept: console diagnostics)"},
+  "harnesses": [".tmp/ihv-client/probe_serve.py (--raw, --steps, --fn-script)", ".tmp/ihv-client/probe_orig_pair.py (original server with the original client from .tmp/q3-ihv/original-client, or --fn-client)"],
+  "inputInjected": false,
+  "open": ["fought play", "remote peers", "loss toward the original client"]
+}

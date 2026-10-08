@@ -212,6 +212,22 @@ int main(){
 }
 ''')
 
+    def test_gamestate_clears_sent_packets(self):
+        # CL_ParseGamestate (0x406c40) calls CL_ClearState (0x404ac0), which
+        # zeroes 0x430fc60..0x4369c70: the command count (0x4369b58) and the
+        # ring of sent packets (0x4369b5c, 0x4369bdc) with it. A move needs two
+        # commands newer than an earlier packet's, so a ring kept across a
+        # level change held every move back until the new count passed the old.
+        source = SESSION.read_text(encoding='utf-8')
+        start = source.index('void GameState( const ihvcl::ClientData &data ) override {')
+        body = source[start:source.index('\n\t}\n', start)]
+        clear = body.index('CL_ClearState();')
+        for reset in ('ihvLive.out = {};', 'ihvLive.engineCmd = cl.cmdNumber;'):
+            self.assertLess(clear, body.index(reset))
+            self.assertLess(body.index(reset), body.index('CL_Q3IHVStartCGame();'))
+        send = function(source, 'void CL_Q3IHVSendCmd( void )')
+        self.assertIn('int count = cmdNumber - ihvLive.out[( outgoing - 1 - packetdup ) & 31].cmdNumber;', send)
+
     def test_demo_records(self):
         # CL_ReadDemoMessage 0x4047e0: a length and a message, -1 or a short
         # read ending the demo; the original's recorder writes an empty

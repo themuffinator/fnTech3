@@ -371,6 +371,18 @@ Captures of the original client and fnTech3's at the same spawn showed both.
 
 No profile gate closes.
 
+The [2026-10-08 IHV loss and level change record](2026-10-08-q3-ihv-loss-and-level-change.md)
+keeps the original client and fnTech3's in one game on fnTech3's server for
+three minutes. fnTech3's processes drop 10 to 25% of the packets they receive,
+and the level changes under loss. Both clients play through it, and console
+commands reach the game. The runs found one fault in fnTech3's client, now
+fixed. After a level change it sent no move for about as long as it had
+played the level before, on either server: its ring of sent packets outlived
+the gamestate, which the original's `CL_ClearState` (`0x404ac0`) clears. Both
+servers report a ping of 999 for a while after a level change, as
+`SV_CalcPings` (`0x41a910`) averages frame records that outlive the level.
+No profile gate closes.
+
 The original client's parser treats the download message as illegible
 (`0x407188`), so no IHV peer can carry a download, and downloads are no
 longer counted as an IHV gap. No profile gate closes.
