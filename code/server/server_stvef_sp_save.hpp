@@ -224,18 +224,22 @@ const char *SV_STVEFSPMapName() {
 /* An autosave is labelled with the level it starts; any other save without a
  * comment of its own with the time, the date and the level (0x426f40). */
 void SV_STVEFSPWriteComment( qboolean autosave, const char *map ) {
-	char comment[savegame::CommentBytes];
+	// Retail clears the whole chunk before writing into it (0x426f72).
+	char comment[savegame::CommentBytes]{};
+	qtime_t now;
+	Com_RealTime( &now );
+	const int year = ( now.tm_year + 1900 ) % 100;
 	if ( autosave ) {
 		savegame::AutosaveComment( map, comment );
 	} else {
 		Q_strncpyz( comment, stvefSpSaveComment, sizeof( comment ) );
 		if ( !comment[0] ) {
-			qtime_t now;
-			Com_RealTime( &now );
 			savegame::DatedComment( now.tm_hour, now.tm_min, now.tm_sec, now.tm_mon + 1, now.tm_mday,
-				( now.tm_year + 1900 ) % 100, map, comment );
+				year, map, comment );
 		}
 	}
+	// The menus list a save by the time, the date and the level from byte 64.
+	savegame::CommentInfo( now.tm_hour, now.tm_min, now.tm_sec, now.tm_mon + 1, now.tm_mday, year, map, comment );
 	SV_STVEFSPAppendChunk( savegame::Comment, comment, sizeof( comment ) );
 	Com_DPrintf( "Saving: current (%s)\n", comment );
 }

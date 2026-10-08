@@ -82,11 +82,27 @@ inline void AutosaveComment( const char *map, char ( &comment )[CommentBytes] ) 
  * "  %s" with the map, within the 127 characters (0x426fd9). */
 inline void DatedComment( int hour, int minute, int second, int month, int day, int year, const char *map,
 	char ( &comment )[CommentBytes] ) {
-	char text[CommentBytes * 2];
+	char text[CommentBytes * 2]{};
 	std::snprintf( text, sizeof( text ), "%02d:%02d:%02d  %02d/%02d/%02d    %s", hour % 100, minute % 100,
 		second % 100, month % 100, day % 100, year % 100, map );
 	std::memcpy( comment, text, CommentBytes - 1 );
 	comment[CommentBytes - 1] = '\0';
+}
+
+/* From byte 64 a save's comment chunk also holds the line the load and save
+ * menus list beside the comment: _strtime, _strdate followed by two spaces
+ * and the level, as "%s %s %s" within 63 characters, copied without its
+ * terminator (0x427086..0x427115). The chunk is cleared before either is
+ * written (0x426f72..0x426f88), so the rest of it is zero, and a comment
+ * longer than 63 characters runs into the line. */
+inline constexpr std::size_t CommentInfoOffset = 0x40;
+
+inline void CommentInfo( int hour, int minute, int second, int month, int day, int year, const char *map,
+	char ( &comment )[CommentBytes] ) {
+	char text[CommentBytes - CommentInfoOffset]{};
+	std::snprintf( text, sizeof( text ), "%02d:%02d:%02d %02d/%02d/%02d   %s", hour % 100, minute % 100,
+		second % 100, month % 100, day % 100, year % 100, map ? map : "" );
+	std::memcpy( comment + CommentInfoOffset, text, std::strlen( text ) );
 }
 
 /* Little-endian words for the chunk frame. */

@@ -191,6 +191,12 @@ historical upstream records, not fnTech3 release history. See the
   server running a single-player game answers no browser or connection, as
   the original server does. Single player announces a player leaving in its
   own words ([record](docs/fntech3/2026-10-08-stvef-server-messages.md)).
+- List Elite Force single-player saves in the save and load menus with their
+  time, date and level beside their descriptions, as the original does. The
+  menus had shown stray characters there, because each save carried leftover
+  bytes from the engine's memory in place of that line; a save now holds
+  exactly what the original writes. Older saves still load
+  ([record](docs/fntech3/2026-10-08-stvef-input-menus.md)).
 - Stop a server faulting when `bot_saveroutingcache 1` is set while its bots'
   navigation is still being prepared, as it is for a while after a map loads
   with `bot_forcereachability 1`. There are no routes to save yet: the server

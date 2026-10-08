@@ -147,6 +147,32 @@ static void Names() {
 	// A comment is kept within its 128 bytes whatever the level is called.
 	save::DatedComment( 23, 59, 59, 12, 31, 99, std::string( 400, 'm' ).c_str(), comment );
 	assert( std::strlen( comment ) == save::CommentBytes - 1 );
+
+	// From byte 64 the chunk holds the line the menus list (stvoy.exe
+	// 0x427086..0x427115), and every byte after the two strings is zero.
+	char chunk[save::CommentBytes]{};
+	save::AutosaveComment( "voy1", chunk );
+	save::CommentInfo( 9, 5, 3, 7, 4, 26, "voy1", chunk );
+	assert( save::CommentInfoOffset == 64 );
+	assert( std::string( chunk ) == "-------> voy1" );
+	assert( std::string( chunk + 64 ) == "09:05:03 07/04/26   voy1" );
+	for ( std::size_t i = 13; i < 64; ++i ) assert( chunk[i] == 0 );
+	for ( std::size_t i = 64 + 24; i < save::CommentBytes; ++i ) assert( chunk[i] == 0 );
+	// The user's own retail save of scav5 holds its two lines the same way.
+	char retail[save::CommentBytes]{};
+	save::DatedComment( 16, 58, 59, 7, 15, 20, "scav5", retail );
+	save::CommentInfo( 16, 58, 59, 7, 15, 20, "scav5", retail );
+	assert( std::string( retail ) == "16:58:59  07/15/20    scav5" );
+	assert( std::string( retail + 64 ) == "16:58:59 07/15/20   scav5" );
+	// The line is cut to 63 characters, and the chunk's last byte stays clear.
+	char longer[save::CommentBytes]{};
+	save::CommentInfo( 23, 59, 59, 12, 31, 99, std::string( 400, 'm' ).c_str(), longer );
+	assert( std::strlen( longer + 64 ) == 63 && longer[save::CommentBytes - 1] == 0 );
+	// A comment longer than 63 characters runs into the line, as in retail.
+	char crowded[save::CommentBytes]{};
+	std::memcpy( crowded, std::string( 100, 'c' ).c_str(), 100 );
+	save::CommentInfo( 1, 2, 3, 4, 5, 6, "dn1", crowded );
+	assert( std::string( crowded ) == std::string( 64, 'c' ) + "01:02:03 04/05/06   dn1" + std::string( 100 - 64 - 23, 'c' ) );
 }
 
 static void Pictures() {
@@ -293,6 +319,15 @@ class STVEFSPSavegameTests(unittest.TestCase):
         level = write[write.index('if ( !autosave ) {'):write.index('SV_STVEFSPWriteConfigstrings()')]
         for chunk in ('savegame::Time', 'savegame::TimeResidual', 'SV_STVEFSPWritePortals()'):
             self.assertIn(chunk, level)
+
+    def test_a_comment_chunk_is_cleared_and_carries_the_menus_line(self):
+        comment = function(self.save, 'void SV_STVEFSPWriteComment( qboolean autosave, const char *map ) {')
+        # No byte of the chunk is left as the stack had it.
+        self.assertIn('char comment[savegame::CommentBytes]{};', comment)
+        order = ['savegame::AutosaveComment( map, comment )', 'Q_strncpyz( comment, stvefSpSaveComment',
+                 'savegame::DatedComment(', 'savegame::CommentInfo(',
+                 'SV_STVEFSPAppendChunk( savegame::Comment, comment, sizeof( comment ) )']
+        self.assertEqual(sorted(order, key=comment.index), order)
 
     def test_a_save_is_read_with_the_map_spawned_in_the_middle(self):
         load = function(self.save, 'qboolean SV_STVEFSPReadSavegame( const char *name ) {')

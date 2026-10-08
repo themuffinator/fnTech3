@@ -1,0 +1,574 @@
+{
+ "record": "2026-10-08-stvef-input-menus.md",
+ "profiles": [
+  "stvef-sp",
+  "stvef-mp"
+ ],
+ "baseCommit": "45444bd3f509e635e973c34357f277aa4ccb6e64",
+ "platform": "Windows 11 x86 build (MSVC, debugoptimized, strict warnings); clients windowed on unswitched private desktops; input only through in_synthesize with +set in_synthetic 1",
+ "permission": "The user approved synthetic input for this task's Elite Force probe windows on private desktops (2026-10-08), chose not to run the hands-on checks, and has no force-feedback device.",
+ "retail": {
+  "stvoy.exe": {
+   "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+   "SG_WriteComment": "0x426f40",
+   "cleared": "0x426f72..0x426f88",
+   "autosaveComment": "\"-------> %s\" at 0x42706e",
+   "datedComment": "0x426fd4..0x427069",
+   "menuLine": "\"%s %s %s\" of _strtime, _strdate + two spaces, map; Com_sprintf size 0x40 at 0x4270d6, copied to the chunk + 0x40 at 0x42710e without its terminator",
+   "appended": "SG_Append COMM 0x80 at 0x427121"
+  },
+  "retailSave": {
+   "path": "BaseEF/saves/auto.sav (the installation, read only)",
+   "comment": {
+    "id": "COMM",
+    "length": 128,
+    "first": "31363a35383a3539202030372f31352f323020202020736361763500000000000000000000000000000000000000000000000000000000000000000000000000",
+    "second": "31363a35383a35392030372f31352f32302020207363617635000000000000000000000000000000000000000000000000000000000000000000000000000000"
+   }
+  }
+ },
+ "runtimes": {
+  "play": {
+   "folder": ".tmp/runtime/stvef-compat-after",
+   "fntech3": "ef59fafa92f0514a5d03de42e2fa2eea431e0df120a40a595a97195675943256",
+   "note": "the server-messages change (45444bd3) and its baseline export"
+  },
+  "fixed": {
+   "folder": ".tmp/runtime/stvef-compat-after2",
+   "fntech3": "83a7723e1bebe944b5d7d28b47f04d643517e6ce5baa84ea9cbf152d895f5ee6",
+   "note": "45444bd3 plus this change"
+  }
+ },
+ "play": {
+  "script": "scripts/probe_stvef_input.py --play",
+  "holomatch": {
+   "level": "hm_borg1",
+   "bindings": {
+    "w": "+forward",
+    "mouse1": "+attack",
+    "uparrow": "+forward"
+   },
+   "movement": {
+    "key": "w",
+    "before": [
+     496.0,
+     96.0,
+     50.0,
+     135.0
+    ],
+    "after": [
+     79.0,
+     497.0,
+     -58.0,
+     135.0
+    ],
+    "distance": 588.5
+   },
+   "look": {
+    "motion": [
+     400,
+     0
+    ],
+    "before": [
+     79.0,
+     497.0,
+     -58.0,
+     135.0
+    ],
+    "after": [
+     79.0,
+     497.0,
+     -58.0,
+     117.0
+    ],
+    "yawChange": -18.0
+   },
+   "consoleBinding": {
+    "key": "k",
+    "ran": true
+   },
+   "fire": {
+    "key": "mouse1",
+    "held": 1.5,
+    "hudAmmunition": [
+     50,
+     38
+    ],
+    "screenshots": [
+     [
+      "BaseEF\\screenshots\\stvef-mp-fire-before.png"
+     ],
+     [
+      "BaseEF\\screenshots\\stvef-mp-fire-after.png"
+     ]
+    ],
+    "note": "read from the two engine screenshots; a scorch mark appears at the crosshair"
+   }
+  },
+  "singlePlayer": {
+   "level": "borg2",
+   "bindings": {
+    "w": "+forward",
+    "mouse1": "+attack",
+    "uparrow": "+forward"
+   },
+   "movement": {
+    "key": "w",
+    "before": [
+     -396.0,
+     352.0,
+     44.0,
+     -90.0
+    ],
+    "after": [
+     -377.0,
+     -106.0,
+     52.0,
+     -90.0
+    ],
+    "distance": 458.5
+   },
+   "look": {
+    "motion": [
+     400,
+     0
+    ],
+    "before": [
+     -377.0,
+     -106.0,
+     52.0,
+     -90.0
+    ],
+    "after": [
+     -377.0,
+     -106.0,
+     52.0,
+     -105.0
+    ],
+    "yawChange": -15.0
+   },
+   "consoleBinding": {
+    "key": "k",
+    "ran": true
+   },
+   "fire": {
+    "key": "mouse1",
+    "held": 2.0,
+    "weapon": 2,
+    "before": {
+     "playersave": "100 100 7 2 2 0.000000 -90.000000 0.000000",
+     "playerammo0": "0",
+     "playerammo1": "300",
+     "playerammo2": "300",
+     "playerammo3": "100"
+    },
+    "after": {
+     "playersave": "100 100 7 2 2 0.000000 -90.000000 0.000000",
+     "playerammo0": "0",
+     "playerammo1": "288",
+     "playerammo2": "300",
+     "playerammo3": "100"
+    },
+    "spent": {
+     "playerammo0": 0,
+     "playerammo1": 12,
+     "playerammo2": 0,
+     "playerammo3": 0
+    }
+   }
+  }
+ },
+ "menus": {
+  "holomatchRebind": {
+   "runtimeSha256": "ef59fafa92f0514a5d03de42e2fa2eea431e0df120a40a595a97195675943256",
+   "profile": "stvef-mp",
+   "level": "hm_borg1",
+   "steps": [
+    {
+     "action": "bind k",
+     "reply": "print\n\"k\" is not bound"
+    },
+    {
+     "action": "bind 9",
+     "reply": "print\n\"9\" = \"weapon 9\""
+    },
+    {
+     "action": "press escape"
+    },
+    {
+     "action": "wait 1.5"
+    },
+    {
+     "action": "click 215 77"
+    },
+    {
+     "action": "wait 1.5"
+    },
+    {
+     "action": "shot hm-controls-weapons",
+     "screenshot": [
+      "BaseEF\\screenshots\\hm-controls-weapons.png"
+     ]
+    },
+    {
+     "action": "click 245 353"
+    },
+    {
+     "action": "wait 1.0"
+    },
+    {
+     "action": "shot hm-bind-waiting",
+     "screenshot": [
+      "BaseEF\\screenshots\\hm-bind-waiting.png"
+     ]
+    },
+    {
+     "action": "press k"
+    },
+    {
+     "action": "wait 1.0"
+    },
+    {
+     "action": "shot hm-bind-done",
+     "screenshot": [
+      "BaseEF\\screenshots\\hm-bind-done.png"
+     ]
+    },
+    {
+     "action": "bind k",
+     "reply": "print\n\"k\" = \"weapon 9\""
+    },
+    {
+     "action": "bind 9",
+     "reply": "print\n\"9\" = \"weapon 9\""
+    }
+   ],
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "screenshots": {
+    "hm-bind-done.png": "28d78f1281466e8c88ba27ef85c77520fec6ec3ecf5c66d979cc890f8e5b72f4",
+    "hm-bind-waiting.png": "e97871363c69f5ec29a08fb76519c003c2e546d1dfcd18de3bb80ec253ee8211",
+    "hm-controls-weapons.png": "47f01d9418d5c7c66fec74d9bc27a3aea0ef02f4ba7f5ad15a3ab66909e7f504"
+   }
+  },
+  "singlePlayerRebind": {
+   "runtimeSha256": "83a7723e1bebe944b5d7d28b47f04d643517e6ce5baa84ea9cbf152d895f5ee6",
+   "profile": "stvef-sp",
+   "level": "borg2",
+   "steps": [
+    {
+     "action": "bind k",
+     "reply": "print\n\"k\" is not bound"
+    },
+    {
+     "action": "press escape"
+    },
+    {
+     "action": "wait 2"
+    },
+    {
+     "action": "click 365 71"
+    },
+    {
+     "action": "wait 2"
+    },
+    {
+     "action": "click 245 353"
+    },
+    {
+     "action": "wait 1.0"
+    },
+    {
+     "action": "press k"
+    },
+    {
+     "action": "wait 1.0"
+    },
+    {
+     "action": "shot sp-bind-done",
+     "screenshot": [
+      "BaseEF\\screenshots\\sp-bind-done.png"
+     ]
+    },
+    {
+     "action": "bind k",
+     "reply": "print\n\"k\" = \"weapon 9\""
+    },
+    {
+     "action": "bind 9",
+     "reply": "print\n\"9\" = \"weapon 9\""
+    }
+   ],
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "screenshots": {
+    "sp-bind-done.png": "d5f2eb235a41c3877c601c29f9f771828071225a6513b2767799155a7218a94a"
+   }
+  },
+  "singlePlayerSaveLoad": {
+   "beforeFix": {
+    "runtimeSha256": "ef59fafa92f0514a5d03de42e2fa2eea431e0df120a40a595a97195675943256",
+    "profile": "stvef-sp",
+    "level": "borg2",
+    "steps": [
+     {
+      "action": "press escape"
+     },
+     {
+      "action": "wait 2"
+     },
+     {
+      "action": "click 190 95"
+     },
+     {
+      "action": "wait 2"
+     },
+     {
+      "action": "click 390 75"
+     },
+     {
+      "action": "wait 0.5"
+     },
+     {
+      "action": "type probe menu save"
+     },
+     {
+      "action": "wait 0.5"
+     },
+     {
+      "action": "click 205 110"
+     },
+     {
+      "action": "wait 3"
+     },
+     {
+      "action": "press escape"
+     },
+     {
+      "action": "wait 2"
+     },
+     {
+      "action": "click 190 95"
+     },
+     {
+      "action": "wait 2"
+     },
+     {
+      "action": "shot sp-save-reopened",
+      "screenshot": [
+       "BaseEF\\screenshots\\sp-save-reopened.png"
+      ]
+     },
+     {
+      "action": "press escape"
+     },
+     {
+      "action": "wait 2"
+     },
+     {
+      "action": "click 190 118"
+     },
+     {
+      "action": "wait 2"
+     },
+     {
+      "action": "shot sp-load-screen",
+      "screenshot": [
+       "BaseEF\\screenshots\\sp-load-screen.png"
+      ]
+     }
+    ],
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "screenshots": {
+     "sp-load-screen.png": "a9dab8d05a7e96380f437cf8dd665d593a2a8a70950927f3099cfe1508ee05ef",
+     "sp-save-reopened.png": "aaad07e1307769344b5b49d6b1a2e4daf6a7662eb018928000a40ab1e9461cd4"
+    }
+   },
+   "afterFix": {
+    "runtimeSha256": "83a7723e1bebe944b5d7d28b47f04d643517e6ce5baa84ea9cbf152d895f5ee6",
+    "profile": "stvef-sp",
+    "level": "borg2",
+    "steps": [
+     {
+      "action": "press escape"
+     },
+     {
+      "action": "wait 2"
+     },
+     {
+      "action": "click 190 95"
+     },
+     {
+      "action": "wait 2"
+     },
+     {
+      "action": "click 390 75"
+     },
+     {
+      "action": "wait 0.5"
+     },
+     {
+      "action": "type probe menu save"
+     },
+     {
+      "action": "wait 0.5"
+     },
+     {
+      "action": "click 205 110"
+     },
+     {
+      "action": "wait 3"
+     },
+     {
+      "action": "press escape"
+     },
+     {
+      "action": "wait 2"
+     },
+     {
+      "action": "click 190 118"
+     },
+     {
+      "action": "wait 2"
+     },
+     {
+      "action": "shot sp-load-list",
+      "screenshot": [
+       "BaseEF\\screenshots\\sp-load-list.png"
+      ]
+     },
+     {
+      "action": "click 125 206"
+     },
+     {
+      "action": "wait 1.5"
+     },
+     {
+      "action": "shot sp-load-selected",
+      "screenshot": [
+       "BaseEF\\screenshots\\sp-load-selected.png"
+      ]
+     },
+     {
+      "action": "click 205 110"
+     },
+     {
+      "action": "wait 10"
+     },
+     {
+      "action": "shot sp-after-load",
+      "screenshot": [
+       "BaseEF\\screenshots\\sp-after-load.png"
+      ]
+     }
+    ],
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "screenshots": {
+     "sp-after-load.png": "a6ab9249a771222a7c2516e2b3d4b7fd0895f1c3299d0fe00d78f9527e0ba5ac",
+     "sp-load-list.png": "042ef4ff013dc7fbe6d3129e0addcb9837c961999dce8bb051126dc57516b7d0",
+     "sp-load-selected.png": "d6a5878f92c0b832d9093fbde6ef88d4e13681fd55d95b46a6d1d2c4e39e7fc0"
+    }
+   },
+   "logAfterFix": [
+    "Server: borg2",
+    "^5Saving game \"eforce0\"...",
+    "^5Done.",
+    "^5Loading game \"eforce0\"...",
+    "^5Reading: probe menu save",
+    "Server: borg2",
+    "^5Done."
+   ]
+  },
+  "singlePlayerDeath": {
+   "runtimeSha256": "83a7723e1bebe944b5d7d28b47f04d643517e6ce5baa84ea9cbf152d895f5ee6",
+   "profile": "stvef-sp",
+   "level": "borg2",
+   "steps": [
+    {
+     "action": "kill"
+    },
+    {
+     "action": "wait 4"
+    },
+    {
+     "action": "shot sp-dead",
+     "screenshot": [
+      "BaseEF\\screenshots\\sp-dead.png"
+     ]
+    },
+    {
+     "action": "press mouse1 0.3"
+    },
+    {
+     "action": "wait 3"
+    },
+    {
+     "action": "shot sp-dead-pressed",
+     "screenshot": [
+      "BaseEF\\screenshots\\sp-dead-pressed.png"
+     ]
+    },
+    {
+     "action": "press mouse1 0.3"
+    },
+    {
+     "action": "wait 10"
+    },
+    {
+     "action": "shot sp-respawned",
+     "screenshot": [
+      "BaseEF\\screenshots\\sp-respawned.png"
+     ]
+    }
+   ],
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "screenshots": {
+    "sp-dead-pressed.png": "3d9c5d2601ab83f8126e2817de3d220a5e17965d28eadcf87452f8041653bcd0",
+    "sp-dead.png": "37e7eae67760ad05b7eb2f7443f619bead34e3a6d70591bcd2ff64bc6890833d",
+    "sp-respawned.png": "d3d68df642f8d2519703569a29e6a0f2e08428f224c8dd9302c8d995e2cd79c1"
+   },
+   "log": [
+    "Server: borg2",
+    "Rcon from 127.0.0.1: kill",
+    "^5clientCommand: Munro : 2 : kill",
+    "^5Loading game \"auto\"...",
+    "Server: borg2",
+    "^5Done."
+   ]
+  }
+ },
+ "commentChunk": {
+  "beforeFix": {
+   "id": "COMM",
+   "length": 128,
+   "first": "70726f6265206d656e7520736176650000000000ccf1a21fc2755f3f000000030000c6c37da5dfc200803042b02cb4e1f1b593000cdf0f04110f000000f0af3d",
+   "second": "0010f03d94dd0f0418dc0f0418dc0f0401b693000000000094dd0f0400000000c0f1a21f0000000082ac9300acdf0f04b8df0f04b4d1a41f7c2db4e1f1b59300"
+  },
+  "afterFix": {
+   "id": "COMM",
+   "length": 128,
+   "first": "70726f6265206d656e75207361766500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+   "second": "32303a32333a34382031302f30382f3236202020626f726732000000000000000000000000000000000000000000000000000000000000000000000000000000"
+  }
+ },
+ "tests": {
+  "files": [
+   "tests/stvef_sp_savegame_tests.py",
+   "tests/stvef_sp_save_write_tests.py"
+  ],
+  "result": "19 passed"
+ },
+ "notCovered": [
+  "physical keyboard, mouse and joystick, and listening (the user chose not to run them)",
+  "force-feedback output (no device)"
+ ],
+ "proprietaryContentCommitted": false
+}
