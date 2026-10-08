@@ -385,7 +385,9 @@ renderers.
 
 - **Single player** starts each of its 32 maps, with their menus and
   cutscenes, and saves and loads games -- including saves made with the
-  original game, and the other way round.
+  original game, and the other way round. On the levels checked so far,
+  reaching a level's exit takes you on to the next one with your weapons,
+  ammunition and armour.
 - **Multiplayer** starts each of its 15 maps, joins original servers and lets
   players with the original game join fnTech3's in short sessions, and plays
   demos recorded by the original game, which also plays fnTech3's.

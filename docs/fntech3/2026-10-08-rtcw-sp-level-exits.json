@@ -1,0 +1,1770 @@
+{
+ "date": "2026-10-08",
+ "scope": "RTCW SP level exits run by the retail game scripts; persistent player carry-over; map commands while the game changes level.",
+ "baseCommit": "50e4680fecff0063ce9c87490c427e61dfe2715d",
+ "correctionCommit": "f3f7b0427b0ce62d53f323298cb764d1feaef6ac",
+ "platform": "Windows 11 x86 client (MSVC), GL renderer, OpenAL, 800x600 windowed, private desktop",
+ "installation": {
+  "path": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+  "wolfSP": {
+   "file": "WolfSP.exe",
+   "version": "Wolf 1.32",
+   "sha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7"
+  },
+  "pak0": {
+   "file": "Main/pak0.pk3",
+   "sha256": "1dfcfc3187ba09fe32cd8a7921a09cd15dd789816186c89b11e5e0d954c55e6c"
+  },
+  "unchangedAfterRuns": true
+ },
+ "facts": {
+  "retailMapGuard": {
+   "function": "SV_Map_f",
+   "entry": "0x430c40",
+   "test": "if (!com_buildScript->integer && g_reloading->integer && g_reloading->integer != 2) return;",
+   "reads": "0x430c6d",
+   "returns": "0x430c7c",
+   "cvar": "g_reloading registered CVAR_ROM in SV_Init (push 0x4ddbe4 at 0x4375cf, stored at 0xc042fc)",
+   "gplSource": "RTCW-SP src/server/sv_ccmds.c SV_Map_f, identical test"
+  },
+  "retailDisconnect": {
+   "function": "CL_Disconnect_f",
+   "entry": "0x40b790",
+   "order": [
+    "SCR_StopCinematic",
+    "Cvar_Set savegame_loading 0",
+    "Cvar_Set g_reloading 0",
+    "Com_Error(ERR_DISCONNECT) unless disconnected or cinematic"
+   ]
+  },
+  "gameReloadingValues": {
+   "1": "level load until the briefing Ready (and savegame load)",
+   "2": "game starts its next level (RELOAD_NEXTMAP)",
+   "4": "exit fade (RELOAD_NEXTMAP_WAITING)",
+   "8": "failed mission reload",
+   "16": "end of campaign"
+  },
+  "otherProfiles": "RTCW MP source has no such test; ET source applies it only in its single-player game types; ET is neither changed nor measured here",
+  "exitInventory": {
+   "escape1": {
+    "objectivesNeeded": 2,
+    "objectiveSources": {
+     "1": [
+      "ai_trigger"
+     ],
+     "2": [
+      "ai_trigger"
+     ]
+    },
+    "exit": {
+     "next": "escape2",
+     "delayMs": null,
+     "persistent": true,
+     "silent": false
+    },
+    "exitSources": [
+     "ai_trigger"
+    ]
+   },
+   "escape2": {
+    "objectivesNeeded": 1,
+    "objectiveSources": {
+     "1": [
+      "func_door_rotating",
+      "target_script_trigger"
+     ]
+    },
+    "exit": {
+     "next": "tram",
+     "delayMs": null,
+     "persistent": true,
+     "silent": false
+    },
+    "exitSources": [
+     "ai_trigger"
+    ]
+   },
+   "tram": {
+    "objectivesNeeded": 3,
+    "objectiveSources": {
+     "1": [
+      "target_relay",
+      "target_script_trigger"
+     ],
+     "2": [
+      "script button1 / trigger movedown"
+     ],
+     "3": [
+      "script zone1 / trigger finaldown"
+     ]
+    },
+    "exit": {
+     "next": "village1",
+     "delayMs": 5000,
+     "persistent": true,
+     "silent": true
+    },
+    "exitSources": [
+     "ai_trigger"
+    ]
+   },
+   "village1": {
+    "objectivesNeeded": 2,
+    "objectiveSources": {
+     "1": [
+      "ai_trigger"
+     ],
+     "2": [
+      "ai_trigger"
+     ]
+    },
+    "exit": {
+     "next": "crypt1",
+     "delayMs": 4000,
+     "persistent": true,
+     "silent": false
+    },
+    "exitSources": [
+     "ai_trigger"
+    ]
+   },
+   "crypt1": {
+    "objectivesNeeded": 2,
+    "objectiveSources": {
+     "1": [
+      "holdable_book3",
+      "target_script_trigger"
+     ],
+     "2": [
+      "func_button",
+      "target_script_trigger"
+     ]
+    },
+    "exit": {
+     "next": "crypt2",
+     "delayMs": null,
+     "persistent": true,
+     "silent": false
+    },
+    "exitSources": [
+     "ai_trigger"
+    ]
+   },
+   "crypt2": {
+    "objectivesNeeded": 1,
+    "objectiveSources": {
+     "1": [
+      "script secretdummy / trigger cracks"
+     ]
+    },
+    "exit": {
+     "next": "church",
+     "delayMs": null,
+     "persistent": true,
+     "silent": false
+    },
+    "exitSources": [
+     "ai_trigger"
+    ]
+   },
+   "church": {
+    "objectivesNeeded": 3,
+    "objectiveSources": {
+     "1": [
+      "script counter1 / trigger pass_mission1"
+     ],
+     "2": [
+      "func_explosive",
+      "target_script_trigger"
+     ],
+     "3": [
+      "script coffincover1a / trigger objective3"
+     ]
+    },
+    "exit": {
+     "next": "boss1",
+     "delayMs": null,
+     "persistent": true,
+     "silent": false
+    },
+    "exitSources": [
+     "ai_trigger"
+    ]
+   },
+   "boss1": {
+    "objectivesNeeded": 2,
+    "objectiveSources": {
+     "2": [
+      "ai_trigger"
+     ]
+    },
+    "exit": {
+     "next": "cutscene6",
+     "delayMs": 4000,
+     "persistent": false,
+     "silent": false
+    },
+    "exitSources": [
+     "script counter1 / trigger plane_cine1"
+    ]
+   },
+   "forest": {
+    "objectivesNeeded": 4,
+    "objectiveSources": {
+     "1": [
+      "ai_trigger"
+     ],
+     "2": [
+      "ai_trigger"
+     ],
+     "3": [
+      "ai_trigger"
+     ],
+     "4": [
+      "target_script_trigger",
+      "weapon_snooperrifle"
+     ]
+    },
+    "exit": {
+     "next": "rocket",
+     "delayMs": null,
+     "persistent": true,
+     "silent": false
+    },
+    "exitSources": [
+     "script dialog / trigger ending"
+    ]
+   },
+   "rocket": {
+    "objectivesNeeded": 3,
+    "objectiveSources": {
+     "1": [
+      "ai_trigger"
+     ],
+     "2": [
+      "func_invisible_user"
+     ],
+     "3": [
+      "ai_trigger"
+     ]
+    },
+    "exit": {
+     "next": "baseout",
+     "delayMs": 9000,
+     "persistent": true,
+     "silent": false
+    },
+    "exitSources": [
+     "ai_trigger"
+    ]
+   },
+   "baseout": {
+    "objectivesNeeded": 2,
+    "objectiveSources": {
+     "1": [
+      "func_explosive",
+      "target_script_trigger"
+     ],
+     "2": [
+      "ai_trigger"
+     ]
+    },
+    "exit": {
+     "next": "assault",
+     "delayMs": null,
+     "persistent": true,
+     "silent": false
+    },
+    "exitSources": [
+     "ai_trigger"
+    ]
+   },
+   "assault": {
+    "objectivesNeeded": 3,
+    "objectiveSources": {
+     "1": [
+      "ai_trigger"
+     ],
+     "2": [
+      "script doorbutton / trigger check_light"
+     ],
+     "3": [
+      "func_invisible_user",
+      "target_script_trigger"
+     ]
+    },
+    "exit": {
+     "next": "cutscene9",
+     "delayMs": 3000,
+     "persistent": true,
+     "silent": false
+    },
+    "exitSources": [
+     "script table1 / trigger launch"
+    ]
+   },
+   "sfm": {
+    "objectivesNeeded": 4,
+    "objectiveSources": {
+     "1": [
+      "script counter / trigger zone1enemy"
+     ],
+     "2": [
+      "script counter / trigger zone3reset"
+     ],
+     "3": [
+      "script counter / trigger zone2enemy"
+     ],
+     "4": [
+      "script panzer / trigger fire2"
+     ]
+    },
+    "exit": {
+     "next": "factory",
+     "delayMs": 2000,
+     "persistent": true,
+     "silent": false
+    },
+    "exitSources": [
+     "ai_trigger"
+    ]
+   },
+   "factory": {
+    "objectivesNeeded": 2,
+    "objectiveSources": {
+     "1": [
+      "func_door_rotating",
+      "target_script_trigger"
+     ],
+     "2": [
+      "holdable_book1",
+      "target_script_trigger"
+     ]
+    },
+    "exit": {
+     "next": "trainyard",
+     "delayMs": null,
+     "persistent": true,
+     "silent": false
+    },
+    "exitSources": [
+     "ai_trigger"
+    ]
+   },
+   "trainyard": {
+    "objectivesNeeded": 2,
+    "objectiveSources": {
+     "1": [
+      "ai_trigger"
+     ],
+     "2": [
+      "target_relay",
+      "target_script_trigger"
+     ]
+    },
+    "exit": {
+     "next": "swf",
+     "delayMs": null,
+     "persistent": true,
+     "silent": false
+    },
+    "exitSources": [
+     "ai_trigger"
+    ]
+   },
+   "swf": {
+    "objectivesNeeded": 2,
+    "objectiveSources": {
+     "1": [
+      "ai_trigger"
+     ],
+     "2": [
+      "ai_trigger"
+     ]
+    },
+    "exit": {
+     "next": "cutscene11",
+     "delayMs": 4000,
+     "persistent": false,
+     "silent": true
+    },
+    "exitSources": [
+     "script elevator / trigger end_cutscene"
+    ]
+   },
+   "norway": {
+    "objectivesNeeded": 2,
+    "objectiveSources": {
+     "1": [
+      "ai_trigger"
+     ],
+     "2": [
+      "func_explosive",
+      "target_script_trigger"
+     ]
+    },
+    "exit": {
+     "next": "xlabs",
+     "delayMs": null,
+     "persistent": true,
+     "silent": false
+    },
+    "exitSources": [
+     "ai_trigger"
+    ]
+   },
+   "xlabs": {
+    "objectivesNeeded": 2,
+    "objectiveSources": {
+     "1": [
+      "holdable_book2",
+      "target_script_trigger"
+     ],
+     "2": [
+      "func_invisible_user"
+     ]
+    },
+    "exit": {
+     "next": "boss2",
+     "delayMs": null,
+     "persistent": true,
+     "silent": false
+    },
+    "exitSources": [
+     "ai_trigger"
+    ]
+   },
+   "boss2": {
+    "objectivesNeeded": 3,
+    "objectiveSources": {
+     "1": [
+      "ai_trigger"
+     ],
+     "3": [
+      "script counter1 / trigger get_objective3"
+     ]
+    },
+    "exit": {
+     "next": "cutscene14",
+     "delayMs": null,
+     "persistent": true,
+     "silent": false
+    },
+    "exitSources": [
+     "ai_trigger"
+    ]
+   },
+   "dam": {
+    "objectivesNeeded": 2,
+    "objectiveSources": {
+     "1": [
+      "ai_trigger"
+     ],
+     "2": [
+      "func_button",
+      "target_script_trigger"
+     ]
+    },
+    "exit": {
+     "next": "village2",
+     "delayMs": null,
+     "persistent": true,
+     "silent": false
+    },
+    "exitSources": [
+     "ai_trigger"
+    ]
+   },
+   "village2": {
+    "objectivesNeeded": 7,
+    "objectiveSources": {
+     "7": [
+      "ai_trigger"
+     ]
+    },
+    "exit": {
+     "next": "chateau",
+     "delayMs": null,
+     "persistent": true,
+     "silent": false
+    },
+    "exitSources": [
+     "ai_trigger"
+    ]
+   },
+   "chateau": {
+    "objectivesNeeded": 2,
+    "objectiveSources": {
+     "2": [
+      "ai_trigger"
+     ]
+    },
+    "exit": {
+     "next": "dark",
+     "delayMs": null,
+     "persistent": true,
+     "silent": false
+    },
+    "exitSources": [
+     "ai_trigger"
+    ]
+   },
+   "dark": {
+    "objectivesNeeded": 2,
+    "objectiveSources": {
+     "1": [
+      "ai_trigger"
+     ]
+    },
+    "exit": {
+     "next": "dig",
+     "delayMs": null,
+     "persistent": true,
+     "silent": false
+    },
+    "exitSources": [
+     "ai_trigger"
+    ]
+   },
+   "dig": {
+    "objectivesNeeded": 2,
+    "objectiveSources": {
+     "1": [
+      "ai_trigger"
+     ],
+     "2": [
+      "ai_trigger"
+     ]
+    },
+    "exit": {
+     "next": "castle",
+     "delayMs": null,
+     "persistent": true,
+     "silent": false
+    },
+    "exitSources": [
+     "ai_trigger"
+    ]
+   },
+   "castle": {
+    "objectivesNeeded": 1,
+    "objectiveSources": {
+     "1": [
+      "ai_trigger"
+     ]
+    },
+    "exit": {
+     "next": "end",
+     "delayMs": null,
+     "persistent": true,
+     "silent": false
+    },
+    "exitSources": [
+     "ai_trigger"
+    ]
+   },
+   "end": {
+    "objectivesNeeded": 1,
+    "objectiveSources": {},
+    "exit": {
+     "next": "cutscene19",
+     "delayMs": 5,
+     "persistent": false,
+     "silent": true
+    },
+    "exitSources": [
+     "script counter1 / trigger endmap"
+    ]
+   }
+  },
+  "consoleReachableExits": [
+   "escape1",
+   "village1",
+   "dig",
+   "castle"
+  ]
+ },
+ "probe": {
+  "script": "scripts/probe_rtcw_transitions.py",
+  "hook": "tests/rtcw_transition_probe.hpp",
+  "hookSha256": "b8138c2b47177b7c0746bc973011399351362568aaf54ee42af53bbf0ae656ca",
+  "input": "one briefing Ready click per level (AGENTS.md standing exception); everything else console commands: god, notarget, give Venom, give armor, setviewpos",
+  "build": "private export of the base commit with the correction applied, instrumented with the hook",
+  "afterExecutable": "E:\\Repositories\\fnTech3\\.tmp\\compat-gaps\\ihvrec-export\\build\\fntech3.exe",
+  "afterExecutableSha256": "48af09a0a21eaf12ea211d7750132e347010ebc91e1d5b2ed04b8f9b90cc9e97",
+  "beforeExecutable": "E:\\Repositories\\fnTech3\\.tmp\\compat-gaps\\ihvlive-export\\build\\fntech3.exe",
+  "beforeExecutableSha256": "ee8af5599f767c069be26f317cbb93aae8c93c9759d40745686adbed9edd4273"
+ },
+ "runs": {
+  "after": [
+   {
+    "chain": "castle",
+    "levels": [
+     "dig",
+     "castle",
+     "end"
+    ],
+    "settings": {},
+    "reached": [
+     "dig",
+     "castle",
+     "end"
+    ],
+    "passed": true,
+    "exitCode": 0,
+    "forcedStop": false,
+    "seconds": 163.2,
+    "readyClicks": 3,
+    "steps": [
+     "dig getobjective1",
+     "dig endmap",
+     "castle getobjective1",
+     "castle endmap"
+    ],
+    "playerScript": {
+     "objectivesMet": [
+      1,
+      2,
+      1
+     ],
+     "changelevels": [
+      {
+       "next": "castle",
+       "delayMs": null,
+       "persistent": true,
+       "silent": false
+      },
+      {
+       "next": "end",
+       "delayMs": null,
+       "persistent": true,
+       "silent": false
+      }
+     ]
+    },
+    "changes": [
+     {
+      "from": "dig",
+      "to": "castle",
+      "persidWritten": "27516",
+      "persidAfterLoad": "0",
+      "stateAtExit": {
+       "health": "100",
+       "armor": "100",
+       "weapon": "8",
+       "weapons0": "00000100",
+       "weapons1": "00000000",
+       "ammo": "8:0/496,"
+      },
+      "stateOnArrival": {
+       "health": "100",
+       "armor": "100",
+       "weapon": "8",
+       "weapons0": "00000100",
+       "weapons1": "00000000",
+       "ammo": "8:0/496,"
+      },
+      "carried": true
+     },
+     {
+      "from": "castle",
+      "to": "end",
+      "persidWritten": "35271",
+      "persidAfterLoad": "0",
+      "stateAtExit": {
+       "health": "100",
+       "armor": "100",
+       "weapon": "8",
+       "weapons0": "00000100",
+       "weapons1": "00000000",
+       "ammo": "8:399/496,"
+      },
+      "stateOnArrival": {
+       "health": "100",
+       "armor": "100",
+       "weapon": "8",
+       "weapons0": "00000100",
+       "weapons1": "00000000",
+       "ammo": "8:399/496,"
+      },
+      "carried": true
+     }
+    ],
+    "startStates": {
+     "dig": {
+      "health": "100",
+      "armor": "0",
+      "weapon": "0",
+      "weapons0": "00000000",
+      "weapons1": "00000000",
+      "ammo": ""
+     },
+     "castle": {
+      "health": "100",
+      "armor": "100",
+      "weapon": "8",
+      "weapons0": "00000100",
+      "weapons1": "00000000",
+      "ammo": "8:0/496,"
+     },
+     "end": {
+      "health": "100",
+      "armor": "100",
+      "weapon": "8",
+      "weapons0": "00000100",
+      "weapons1": "00000000",
+      "ammo": "8:399/496,"
+     }
+    },
+    "persistentFiles": [
+     "main\\save\\current.psw"
+    ],
+    "saves": [
+     "main\\save\\autosave\\castle.svg",
+     "main\\save\\autosave\\dig.svg",
+     "main\\save\\autosave\\end.svg",
+     "main\\save\\current.svg"
+    ],
+    "engineErrors": [],
+    "screenshots": [
+     {
+      "name": "transition-01-dig-start.png",
+      "sha256": "51a9586587597c3d2ca556002146ba80180d78cbc799dea652e13db249c617fb"
+     },
+     {
+      "name": "transition-02-castle-start.png",
+      "sha256": "c2899b7154a6c9d8a1eaaa28efdce6688ba67f8a20cf467cdf6c23af901f9c7b"
+     },
+     {
+      "name": "transition-03-end-final.png",
+      "sha256": "0a4341221a6c3e2ae6221785621b4f2ed83992b816e420b7687b8d2db6af7bff"
+     },
+     {
+      "name": "transition-03-end-start.png",
+      "sha256": "7880a996254802ca888398b81b2d71972c689c86ca021721a39e93593c41424a"
+     }
+    ]
+   },
+   {
+    "chain": "control-castle",
+    "levels": [
+     "castle"
+    ],
+    "settings": {},
+    "reached": [
+     "castle"
+    ],
+    "passed": true,
+    "exitCode": 0,
+    "forcedStop": false,
+    "seconds": 16.9,
+    "readyClicks": 1,
+    "steps": [],
+    "playerScript": {
+     "objectivesMet": [],
+     "changelevels": []
+    },
+    "changes": [],
+    "startStates": {
+     "castle": {
+      "health": "100",
+      "armor": "0",
+      "weapon": "0",
+      "weapons0": "00000000",
+      "weapons1": "00000000",
+      "ammo": ""
+     }
+    },
+    "saves": [
+     "main\\save\\autosave\\castle.svg",
+     "main\\save\\current.svg"
+    ],
+    "engineErrors": [],
+    "screenshots": [
+     {
+      "name": "transition-01-castle-final.png",
+      "sha256": "a61155b0c5cfbdcbae64702823c95c2ea492daf09003ec2a3da7b1872beb1e87"
+     },
+     {
+      "name": "transition-01-castle-start.png",
+      "sha256": "fc258b53ebb3fc7a93d5eefef881f7d1ecb8ca51368352f5a72e0e535449ecce"
+     }
+    ]
+   },
+   {
+    "chain": "control-crypt1",
+    "levels": [
+     "crypt1"
+    ],
+    "settings": {},
+    "reached": [
+     "crypt1"
+    ],
+    "passed": true,
+    "exitCode": 0,
+    "forcedStop": false,
+    "seconds": 66.2,
+    "readyClicks": 1,
+    "steps": [],
+    "playerScript": {
+     "objectivesMet": [],
+     "changelevels": []
+    },
+    "changes": [],
+    "startStates": {
+     "crypt1": {
+      "health": "100",
+      "armor": "0",
+      "weapon": "0",
+      "weapons0": "00000000",
+      "weapons1": "00000000",
+      "ammo": ""
+     }
+    },
+    "saves": [
+     "main\\save\\autosave\\crypt1.svg",
+     "main\\save\\current.svg"
+    ],
+    "engineErrors": [],
+    "screenshots": [
+     {
+      "name": "transition-01-crypt1-final.png",
+      "sha256": "add78d50072808efba0e2084493509f6fcd5550f71daed0ead6edcb12c175d05"
+     },
+     {
+      "name": "transition-01-crypt1-start.png",
+      "sha256": "22b452707bbe29533a99f2281d798313b43de3cd90de76b0da9383dd9a0cf2d4"
+     }
+    ]
+   },
+   {
+    "chain": "control-end",
+    "levels": [
+     "end"
+    ],
+    "settings": {},
+    "reached": [
+     "end"
+    ],
+    "passed": true,
+    "exitCode": 0,
+    "forcedStop": false,
+    "seconds": 123.0,
+    "readyClicks": 1,
+    "steps": [],
+    "playerScript": {
+     "objectivesMet": [],
+     "changelevels": []
+    },
+    "changes": [],
+    "startStates": {
+     "end": {
+      "health": "100",
+      "armor": "0",
+      "weapon": "0",
+      "weapons0": "00000000",
+      "weapons1": "00000000",
+      "ammo": ""
+     }
+    },
+    "saves": [
+     "main\\save\\autosave\\end.svg",
+     "main\\save\\current.svg"
+    ],
+    "engineErrors": [],
+    "screenshots": [
+     {
+      "name": "transition-01-end-final.png",
+      "sha256": "f74443af6b234142bfb66d7e2a332634b754d1213e1f0154e2ac12704632168d"
+     },
+     {
+      "name": "transition-01-end-start.png",
+      "sha256": "78dd0abd69da095a4bfd1a6e06da324f200afe207b4d449e33b9ef9ab75bd769"
+     }
+    ]
+   },
+   {
+    "chain": "control-escape2",
+    "levels": [
+     "escape2"
+    ],
+    "settings": {},
+    "reached": [
+     "escape2"
+    ],
+    "passed": true,
+    "exitCode": 0,
+    "forcedStop": false,
+    "seconds": 16.9,
+    "readyClicks": 1,
+    "steps": [],
+    "playerScript": {
+     "objectivesMet": [],
+     "changelevels": []
+    },
+    "changes": [],
+    "startStates": {
+     "escape2": {
+      "health": "100",
+      "armor": "0",
+      "weapon": "0",
+      "weapons0": "00000000",
+      "weapons1": "00000000",
+      "ammo": ""
+     }
+    },
+    "saves": [
+     "main\\save\\autosave\\escape2.svg",
+     "main\\save\\current.svg"
+    ],
+    "engineErrors": [],
+    "screenshots": [
+     {
+      "name": "transition-01-escape2-final.png",
+      "sha256": "79b517c2769279b87a8c41b7df43dfe30a03107115481939f2d2371257704074"
+     },
+     {
+      "name": "transition-01-escape2-start.png",
+      "sha256": "557d42cb28991539c3c5a7a02c068136d5af4ca32737041c0f96d1e6fddf9331"
+     }
+    ]
+   },
+   {
+    "chain": "dam",
+    "levels": [
+     "cutscene14",
+     "dam"
+    ],
+    "settings": {},
+    "reached": [
+     "cutscene14",
+     "dam"
+    ],
+    "passed": true,
+    "exitCode": 0,
+    "forcedStop": false,
+    "seconds": 332.1,
+    "readyClicks": 2,
+    "steps": [],
+    "playerScript": {
+     "objectivesMet": [],
+     "changelevels": [
+      {
+       "next": "dam",
+       "delayMs": 4000,
+       "persistent": false,
+       "silent": true
+      }
+     ]
+    },
+    "changes": [
+     {
+      "from": "cutscene14",
+      "to": "dam",
+      "persidWritten": "",
+      "persidAfterLoad": "",
+      "stateAtExit": {
+       "health": "100",
+       "armor": "0",
+       "weapon": "0",
+       "weapons0": "00000000",
+       "weapons1": "00000000",
+       "ammo": ""
+      },
+      "stateOnArrival": {
+       "health": "100",
+       "armor": "0",
+       "weapon": "0",
+       "weapons0": "00000000",
+       "weapons1": "00000000",
+       "ammo": ""
+      },
+      "carried": false
+     }
+    ],
+    "startStates": {
+     "cutscene14": {
+      "health": "100",
+      "armor": "0",
+      "weapon": "0",
+      "weapons0": "00000000",
+      "weapons1": "00000000",
+      "ammo": ""
+     },
+     "dam": {
+      "health": "100",
+      "armor": "0",
+      "weapon": "0",
+      "weapons0": "00000000",
+      "weapons1": "00000000",
+      "ammo": ""
+     }
+    },
+    "saves": [
+     "main\\save\\autosave\\cutscene14.svg",
+     "main\\save\\autosave\\dam.svg",
+     "main\\save\\current.svg"
+    ],
+    "engineErrors": [],
+    "screenshots": [
+     {
+      "name": "transition-01-cutscene14-start.png",
+      "sha256": "1782f522ea21c37dfca74db2b8867f0b08609681481ad0d36ede39e716136301"
+     },
+     {
+      "name": "transition-02-dam-final.png",
+      "sha256": "cf08179ea3911facd67c0cbacd232e2c13c1a05d4c35297cfcc5b5003b5fe1f3"
+     },
+     {
+      "name": "transition-02-dam-start.png",
+      "sha256": "bc6a2a5feb8b12ba484a30d285be97daadb587c69eea83d55a001ecc47936d1a"
+     }
+    ]
+   },
+   {
+    "chain": "escape",
+    "levels": [
+     "cutscene1",
+     "escape1",
+     "escape2"
+    ],
+    "settings": {},
+    "reached": [
+     "cutscene1",
+     "escape1",
+     "escape2"
+    ],
+    "passed": true,
+    "exitCode": 0,
+    "forcedStop": false,
+    "seconds": 304.0,
+    "readyClicks": 3,
+    "steps": [
+     "escape1 action3",
+     "escape1 action14",
+     "escape1 endmap"
+    ],
+    "playerScript": {
+     "objectivesMet": [
+      1,
+      2
+     ],
+     "changelevels": [
+      {
+       "next": "escape1",
+       "delayMs": null,
+       "persistent": false,
+       "silent": true
+      },
+      {
+       "next": "escape2",
+       "delayMs": null,
+       "persistent": true,
+       "silent": false
+      }
+     ]
+    },
+    "changes": [
+     {
+      "from": "cutscene1",
+      "to": "escape1",
+      "persidWritten": "",
+      "persidAfterLoad": "",
+      "stateAtExit": {
+       "health": "100",
+       "armor": "0",
+       "weapon": "0",
+       "weapons0": "00000000",
+       "weapons1": "00000000",
+       "ammo": ""
+      },
+      "stateOnArrival": {
+       "health": "100",
+       "armor": "0",
+       "weapon": "0",
+       "weapons0": "00000000",
+       "weapons1": "00000000",
+       "ammo": ""
+      },
+      "carried": false
+     },
+     {
+      "from": "escape1",
+      "to": "escape2",
+      "persidWritten": "277772",
+      "persidAfterLoad": "0",
+      "stateAtExit": {
+       "health": "100",
+       "armor": "100",
+       "weapon": "8",
+       "weapons0": "00000102",
+       "weapons1": "00000000",
+       "ammo": "1:999/0,8:0/358,"
+      },
+      "stateOnArrival": {
+       "health": "100",
+       "armor": "100",
+       "weapon": "8",
+       "weapons0": "00000102",
+       "weapons1": "00000000",
+       "ammo": "1:999/0,8:0/358,"
+      },
+      "carried": true
+     }
+    ],
+    "startStates": {
+     "cutscene1": {
+      "health": "100",
+      "armor": "0",
+      "weapon": "0",
+      "weapons0": "00000000",
+      "weapons1": "00000000",
+      "ammo": ""
+     },
+     "escape1": {
+      "health": "100",
+      "armor": "0",
+      "weapon": "0",
+      "weapons0": "00000000",
+      "weapons1": "00000000",
+      "ammo": ""
+     },
+     "escape2": {
+      "health": "100",
+      "armor": "100",
+      "weapon": "8",
+      "weapons0": "00000102",
+      "weapons1": "00000000",
+      "ammo": "1:999/0,8:0/358,"
+     }
+    },
+    "persistentFiles": [
+     "main\\save\\current.psw"
+    ],
+    "saves": [
+     "main\\save\\autosave\\cutscene1.svg",
+     "main\\save\\autosave\\escape1.svg",
+     "main\\save\\autosave\\escape2.svg",
+     "main\\save\\current.svg"
+    ],
+    "engineErrors": [],
+    "screenshots": [
+     {
+      "name": "transition-01-cutscene1-start.png",
+      "sha256": "fc9cc30f1cca6320b0efecdab09bd4b168bd08b78905054c959d180f166cb5f0"
+     },
+     {
+      "name": "transition-02-escape1-start.png",
+      "sha256": "f907f784a086bc68afbabfc1ef4eccd2e846f340fc7a95a227c4676018fdec2c"
+     },
+     {
+      "name": "transition-03-escape2-final.png",
+      "sha256": "1ba031c493d883e79c86e94c3a4bf955e3208ff9c0461b7115708bfd62f5b6e1"
+     },
+     {
+      "name": "transition-03-escape2-start.png",
+      "sha256": "87bad7fbc8c9b1235975c056ea7e63ef77eede88b200124ebdd14f056461faca"
+     }
+    ]
+   },
+   {
+    "chain": "forest",
+    "levels": [
+     "cutscene6",
+     "forest"
+    ],
+    "settings": {},
+    "reached": [
+     "cutscene6",
+     "forest"
+    ],
+    "passed": true,
+    "exitCode": 0,
+    "forcedStop": false,
+    "seconds": 146.7,
+    "readyClicks": 2,
+    "steps": [],
+    "playerScript": {
+     "objectivesMet": [],
+     "changelevels": [
+      {
+       "next": "forest",
+       "delayMs": 4000,
+       "persistent": false,
+       "silent": true
+      }
+     ]
+    },
+    "changes": [
+     {
+      "from": "cutscene6",
+      "to": "forest",
+      "persidWritten": "",
+      "persidAfterLoad": "",
+      "stateAtExit": {
+       "health": "100",
+       "armor": "0",
+       "weapon": "0",
+       "weapons0": "00000000",
+       "weapons1": "00000000",
+       "ammo": ""
+      },
+      "stateOnArrival": {
+       "health": "100",
+       "armor": "0",
+       "weapon": "0",
+       "weapons0": "00000000",
+       "weapons1": "00000000",
+       "ammo": ""
+      },
+      "carried": false
+     }
+    ],
+    "startStates": {
+     "cutscene6": {
+      "health": "100",
+      "armor": "0",
+      "weapon": "0",
+      "weapons0": "00000000",
+      "weapons1": "00000000",
+      "ammo": ""
+     },
+     "forest": {
+      "health": "100",
+      "armor": "0",
+      "weapon": "0",
+      "weapons0": "00000000",
+      "weapons1": "00000000",
+      "ammo": ""
+     }
+    },
+    "saves": [
+     "main\\save\\autosave\\cutscene6.svg",
+     "main\\save\\autosave\\forest.svg",
+     "main\\save\\current.svg"
+    ],
+    "engineErrors": [],
+    "screenshots": [
+     {
+      "name": "transition-02-forest-final.png",
+      "sha256": "1f9f1bc706ba4372cf4f2a28d300121011366b123bbc6ec5c15fe03936086595"
+     },
+     {
+      "name": "transition-02-forest-start.png",
+      "sha256": "73a04379b9a4230f4c2c5507eb14f63ef8c9ebee8e17afea13ab712d2164c2cb"
+     }
+    ]
+   },
+   {
+    "chain": "guard-briefing",
+    "levels": [
+     "escape2"
+    ],
+    "settings": {
+     "rtcw_probe_briefing_command": "spdevmap crypt1"
+    },
+    "reached": [
+     "escape2"
+    ],
+    "passed": true,
+    "exitCode": 0,
+    "forcedStop": false,
+    "seconds": 18.4,
+    "readyClicks": 1,
+    "steps": [],
+    "playerScript": {
+     "objectivesMet": [],
+     "changelevels": []
+    },
+    "changes": [],
+    "startStates": {
+     "escape2": {
+      "health": "100",
+      "armor": "0",
+      "weapon": "0",
+      "weapons0": "00000000",
+      "weapons1": "00000000",
+      "ammo": ""
+     }
+    },
+    "saves": [
+     "main\\save\\autosave\\escape2.svg",
+     "main\\save\\current.svg"
+    ],
+    "engineErrors": [],
+    "screenshots": [
+     {
+      "name": "transition-01-escape2-final.png",
+      "sha256": "b6d7ee5a55dc41e7f09ff3773d68ce21900c79f78df850d6e776f0d59adc051b"
+     },
+     {
+      "name": "transition-01-escape2-start.png",
+      "sha256": "45da70637dd62074461285d2535e21dd7e88223f72e20ed3f88b0ead4b40544d"
+     }
+    ]
+   },
+   {
+    "chain": "norway",
+    "levels": [
+     "cutscene11",
+     "norway"
+    ],
+    "settings": {},
+    "reached": [
+     "cutscene11",
+     "norway"
+    ],
+    "passed": true,
+    "exitCode": 0,
+    "forcedStop": false,
+    "seconds": 114.7,
+    "readyClicks": 2,
+    "steps": [],
+    "playerScript": {
+     "objectivesMet": [],
+     "changelevels": [
+      {
+       "next": "norway",
+       "delayMs": 4000,
+       "persistent": false,
+       "silent": true
+      }
+     ]
+    },
+    "changes": [
+     {
+      "from": "cutscene11",
+      "to": "norway",
+      "persidWritten": "",
+      "persidAfterLoad": "",
+      "stateAtExit": {
+       "health": "100",
+       "armor": "0",
+       "weapon": "0",
+       "weapons0": "00000000",
+       "weapons1": "00000000",
+       "ammo": ""
+      },
+      "stateOnArrival": {
+       "health": "100",
+       "armor": "0",
+       "weapon": "0",
+       "weapons0": "00000000",
+       "weapons1": "00000000",
+       "ammo": ""
+      },
+      "carried": false
+     }
+    ],
+    "startStates": {
+     "cutscene11": {
+      "health": "100",
+      "armor": "0",
+      "weapon": "0",
+      "weapons0": "00000000",
+      "weapons1": "00000000",
+      "ammo": ""
+     },
+     "norway": {
+      "health": "100",
+      "armor": "0",
+      "weapon": "0",
+      "weapons0": "00000000",
+      "weapons1": "00000000",
+      "ammo": ""
+     }
+    },
+    "saves": [
+     "main\\save\\autosave\\cutscene11.svg",
+     "main\\save\\autosave\\norway.svg",
+     "main\\save\\current.svg"
+    ],
+    "engineErrors": [],
+    "screenshots": [
+     {
+      "name": "transition-02-norway-final.png",
+      "sha256": "ca60be27dcdbdd57fc95a94f0715fd42990eb11696a7b53cd922134b87412fa6"
+     },
+     {
+      "name": "transition-02-norway-start.png",
+      "sha256": "71fd88de35b127fe2a04150af23cfba41a927538291053adf6b9e2b4234f461f"
+     }
+    ]
+   },
+   {
+    "chain": "sfm",
+    "levels": [
+     "cutscene9",
+     "sfm"
+    ],
+    "settings": {},
+    "reached": [
+     "cutscene9",
+     "sfm"
+    ],
+    "passed": true,
+    "exitCode": 0,
+    "forcedStop": false,
+    "seconds": 152.6,
+    "readyClicks": 2,
+    "steps": [],
+    "playerScript": {
+     "objectivesMet": [],
+     "changelevels": [
+      {
+       "next": "sfm",
+       "delayMs": 2000,
+       "persistent": false,
+       "silent": true
+      }
+     ]
+    },
+    "changes": [
+     {
+      "from": "cutscene9",
+      "to": "sfm",
+      "persidWritten": "",
+      "persidAfterLoad": "",
+      "stateAtExit": {
+       "health": "100",
+       "armor": "0",
+       "weapon": "0",
+       "weapons0": "00000000",
+       "weapons1": "00000000",
+       "ammo": ""
+      },
+      "stateOnArrival": {
+       "health": "100",
+       "armor": "0",
+       "weapon": "0",
+       "weapons0": "00000000",
+       "weapons1": "00000000",
+       "ammo": ""
+      },
+      "carried": false
+     }
+    ],
+    "startStates": {
+     "cutscene9": {
+      "health": "100",
+      "armor": "0",
+      "weapon": "0",
+      "weapons0": "00000000",
+      "weapons1": "00000000",
+      "ammo": ""
+     },
+     "sfm": {
+      "health": "100",
+      "armor": "0",
+      "weapon": "0",
+      "weapons0": "00000000",
+      "weapons1": "00000000",
+      "ammo": ""
+     }
+    },
+    "saves": [
+     "main\\save\\autosave\\cutscene9.svg",
+     "main\\save\\autosave\\sfm.svg",
+     "main\\save\\current.svg"
+    ],
+    "engineErrors": [],
+    "screenshots": [
+     {
+      "name": "transition-02-sfm-final.png",
+      "sha256": "5d8f14ae1a493808c06a9c84b43d03418197ee5d2b4d61c0cf56eb2aa483ccfe"
+     },
+     {
+      "name": "transition-02-sfm-start.png",
+      "sha256": "9cb43a4ad765426b81e18fa8cce3b9c0e7b62771a7ec6798b044ed0d3b68dbea"
+     }
+    ]
+   },
+   {
+    "chain": "village",
+    "levels": [
+     "village1",
+     "crypt1"
+    ],
+    "settings": {},
+    "reached": [
+     "village1",
+     "crypt1"
+    ],
+    "passed": true,
+    "exitCode": 0,
+    "forcedStop": false,
+    "seconds": 130.9,
+    "readyClicks": 2,
+    "steps": [
+     "village1 action3",
+     "village1 got_objective2",
+     "village1 endmapb"
+    ],
+    "playerScript": {
+     "objectivesMet": [
+      1,
+      2
+     ],
+     "changelevels": [
+      {
+       "next": "crypt1",
+       "delayMs": 4000,
+       "persistent": true,
+       "silent": false
+      }
+     ]
+    },
+    "changes": [
+     {
+      "from": "village1",
+      "to": "crypt1",
+      "persidWritten": "80638",
+      "persidAfterLoad": "0",
+      "stateAtExit": {
+       "health": "100",
+       "armor": "100",
+       "weapon": "8",
+       "weapons0": "00000100",
+       "weapons1": "00000000",
+       "ammo": "8:0/227,"
+      },
+      "stateOnArrival": {
+       "health": "100",
+       "armor": "100",
+       "weapon": "8",
+       "weapons0": "00000100",
+       "weapons1": "00000000",
+       "ammo": "8:0/227,"
+      },
+      "carried": true
+     }
+    ],
+    "startStates": {
+     "village1": {
+      "health": "100",
+      "armor": "0",
+      "weapon": "0",
+      "weapons0": "00000000",
+      "weapons1": "00000000",
+      "ammo": ""
+     },
+     "crypt1": {
+      "health": "100",
+      "armor": "100",
+      "weapon": "8",
+      "weapons0": "00000100",
+      "weapons1": "00000000",
+      "ammo": "8:0/227,"
+     }
+    },
+    "persistentFiles": [
+     "main\\save\\current.psw"
+    ],
+    "saves": [
+     "main\\save\\autosave\\crypt1.svg",
+     "main\\save\\autosave\\village1.svg",
+     "main\\save\\current.svg"
+    ],
+    "engineErrors": [],
+    "screenshots": [
+     {
+      "name": "transition-01-village1-start.png",
+      "sha256": "fc8fef5f8a86cb59c128b1469133348e00c21656562927601c09b82b74455972"
+     },
+     {
+      "name": "transition-02-crypt1-final.png",
+      "sha256": "afefa87833658a4ab61b0b0e406ba325cc3e3fabae9693ebeff0d89bd053c834"
+     },
+     {
+      "name": "transition-02-crypt1-start.png",
+      "sha256": "645fdbd111190ceb8a4c730467a54a33eef9c0ce5a565bcc17178d3618ae13e6"
+     }
+    ]
+   }
+  ],
+  "guardBefore": [
+   {
+    "chain": "guard-briefing",
+    "levels": [
+     "escape2"
+    ],
+    "settings": {
+     "rtcw_probe_briefing_command": "spdevmap crypt1"
+    },
+    "reached": [
+     "escape2",
+     "crypt1"
+    ],
+    "passed": false,
+    "exitCode": 0,
+    "forcedStop": false,
+    "seconds": 69.7,
+    "readyClicks": 1,
+    "steps": [],
+    "playerScript": {
+     "objectivesMet": [],
+     "changelevels": []
+    },
+    "changes": [
+     {
+      "from": "escape2",
+      "to": "crypt1",
+      "persidWritten": "",
+      "persidAfterLoad": "",
+      "stateAtExit": {
+       "health": "100",
+       "armor": "0",
+       "weapon": "0",
+       "weapons0": "00000000",
+       "weapons1": "00000000",
+       "ammo": ""
+      },
+      "stateOnArrival": {
+       "health": "100",
+       "armor": "0",
+       "weapon": "0",
+       "weapons0": "00000000",
+       "weapons1": "00000000",
+       "ammo": ""
+      },
+      "carried": false
+     }
+    ],
+    "startStates": {
+     "escape2": null,
+     "crypt1": {
+      "health": "100",
+      "armor": "0",
+      "weapon": "0",
+      "weapons0": "00000000",
+      "weapons1": "00000000",
+      "ammo": ""
+     }
+    },
+    "saves": [
+     "main\\save\\autosave\\crypt1.svg",
+     "main\\save\\current.svg"
+    ],
+    "engineErrors": [],
+    "screenshots": [
+     {
+      "name": "transition-02-crypt1-final.png",
+      "sha256": "711aef2906ab8b69b14add82ade249106c4f308559b0402b9593c4f0c088e7de"
+     },
+     {
+      "name": "transition-02-crypt1-start.png",
+      "sha256": "820fb944c42e06a665a22e208fc30594b93aee851e1124639b4a3287b060f96e"
+     }
+    ]
+   }
+  ],
+  "firstSweepUncorrected": [
+   {
+    "chain": "castle",
+    "reached": [
+     "dig",
+     "castle",
+     "end"
+    ],
+    "passed": true,
+    "note": null
+   },
+   {
+    "chain": "control-castle",
+    "reached": [
+     "castle"
+    ],
+    "passed": true,
+    "note": null
+   },
+   {
+    "chain": "control-crypt1",
+    "reached": [
+     "crypt1"
+    ],
+    "passed": true,
+    "note": null
+   },
+   {
+    "chain": "control-end",
+    "reached": [
+     "end"
+    ],
+    "passed": true,
+    "note": null
+   },
+   {
+    "chain": "control-escape2",
+    "reached": [
+     "escape2"
+    ],
+    "passed": true,
+    "note": null
+   },
+   {
+    "chain": "dam",
+    "reached": [
+     "cutscene14",
+     "dam"
+    ],
+    "passed": true,
+    "note": null
+   },
+   {
+    "chain": "escape",
+    "reached": [
+     "cutscene1",
+     "escape1",
+     "escape2"
+    ],
+    "passed": true,
+    "note": null
+   },
+   {
+    "chain": "forest",
+    "reached": [
+     "cutscene6",
+     "forest"
+    ],
+    "passed": true,
+    "note": null
+   },
+   {
+    "chain": "norway",
+    "reached": [
+     "cutscene11",
+     "norway"
+    ],
+    "passed": true,
+    "note": null
+   },
+   {
+    "chain": "sfm",
+    "reached": [
+     "cutscene9",
+     "sfm"
+    ],
+    "passed": true,
+    "note": null
+   },
+   {
+    "chain": "village",
+    "reached": [
+     "village1"
+    ],
+    "passed": false,
+    "note": "objective 2 trigger aimed at its bounding-box centre, between its brushes"
+   }
+  ]
+ },
+ "inferences": [
+  "The carried state is the retail game record written and read through the engine file system, cvars, map command and level load; those paths serve a persistent level change as the game expects.",
+  "No retail WolfSP.exe run of the same chains was made; fade and load timing are not compared.",
+  "Give and teleport cheats skip each level's fights: AI and combat are not exercised."
+ ],
+ "fadeObservations": "g_reloading read 4 in an observation inside the exit fade on 7 of the 9 level changes (not caught on cutscene1->escape1 and cutscene14->dam; observations are 10 s apart)",
+ "tests": [
+  "tests/rtcw_server_policy_tests.py",
+  "tests/rtcw_sp_disconnect_tests.py"
+ ]
+}

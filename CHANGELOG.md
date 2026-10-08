@@ -2192,6 +2192,15 @@ historical upstream records, not fnTech3 release history. See the
   sent a command the game never reads; they now open the chat line, whose
   words reach everyone, the team or one player as the original game sends
   them.
+- Leave Return to Castle Wolfenstein single player's level changes to its
+  game, as `WolfSP.exe` does. A `map`, `spmap` or `devmap` typed while a
+  briefing is up, while a level's exit fades out or while a failed mission
+  reloads now does nothing, where it had started a level under the game's
+  own change, and disconnecting clears the game's loading state. Nine level
+  changes the game makes itself now have runtime evidence: four exits carry
+  the player's weapons, ammunition and armour into the next level, and five
+  cinematic levels hand over to the next episode
+  ([record](docs/fntech3/2026-10-08-rtcw-sp-level-exits.md)).
 
 ### Builds and Packaging
 
