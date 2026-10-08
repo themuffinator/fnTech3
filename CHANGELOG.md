@@ -2207,6 +2207,11 @@ historical upstream records, not fnTech3 release history. See the
   With that, 64,800 world traces asked of every release's retail server and
   of fnTech3's agree in every hit, flag and contents
   ([record](docs/fntech3/2026-10-08-q3test-traces.md)).
+- Leave a Q3Test entity unlinked when its box reaches only solid leafs, or
+  when the game has not marked it in use, as every Q3Test release does;
+  fnTech3 linked both. A brush model moved into a wall had answered box
+  queries and stopped traces that a retail server never saw
+  ([record](docs/fntech3/2026-10-08-q3test-traces.md)).
 
 ### Builds and Packaging
 

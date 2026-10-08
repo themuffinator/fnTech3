@@ -365,6 +365,20 @@ int SV_LinkEntityClusters( svEntity_t *ent, const vec3_t absmin, const vec3_t ab
 	return num_leafs;
 }
 
+/*
+===============
+SV_LinkLeavesUnlinked
+
+Whether the leafs a link found leave its entity unlinked: none, because the
+box lies outside the world, or, in Q3Test, none with an area, because every
+one is solid (SV_LinkEntity, 1.02 0x41e17b..0x41e183, 1.08
+0x41fa80..0x41fa88). Quake III links a box buried in solid.
+===============
+*/
+static bool SV_LinkLeavesUnlinked( int numLeafs, const svEntity_t *ent ) {
+	return !numLeafs || ( Com_GameProfile()->id == COM_GAME_Q3TEST && ent->areanum == -1 );
+}
+
 void SV_LinkEntity( sharedEntity_t *gEnt ) {
 	worldSector_t	*node;
 	int			num_leafs;
@@ -474,7 +488,7 @@ void SV_LinkEntity( sharedEntity_t *gEnt ) {
 
 	// if none of the leafs were inside the map, the
 	// entity is outside the world and can be considered unlinked
-	if ( !num_leafs ) {
+	if ( SV_LinkLeavesUnlinked( num_leafs, ent ) ) {
 		if ( !SV_WriteGameEntity( gEnt, &entity ) ) {
 			Com_Error( ERR_DROP, "%s: game-data write failed", __func__ );
 		}

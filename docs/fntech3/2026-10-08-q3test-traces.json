@@ -1,18 +1,21 @@
 {
  "date": "2026-10-08",
- "scope": "Q3Test world collision: every release's retail dedicated server against fnTech3, one synthetic game module",
- "baseCommit": "01229dd7b7d28bedbb9c69202e2b6f3543115be6",
+ "scope": "Q3Test collision and entity linking: every release's retail dedicated server against fnTech3, one synthetic game module",
+ "commits": {
+  "contentsRule": "7f5775a6121498ac6e2343ae03b8b021f78e4ed6",
+  "linkRules": "the commit adding this revision of the record"
+ },
  "platform": "Windows 11, x86 MSVC builds; dedicated servers on loopback, private desktop",
  "module": {
   "source": ".tmp/q3test-trace/trace_module.c (not committed)",
   "families": {
-   "1.02, 1.03": "A (API 4, 33 imports, 20-word exports; the battery runs in SpawnEntities)",
+   "1.02, 1.03": "A (API 4, 33 imports, 20-word exports; the batteries run in SpawnEntities)",
    "1.05": "B (API 4, 33 imports, 18-word exports)",
    "1.06, 1.07": "C (API 6, 31 imports, 14-word exports)",
    "1.08": "D (API 6, 34 imports, 14-word exports)"
   },
-  "firstSweep": "full-v1: 1.05 and 1.08 only, before the correction, with the B and D builds of an earlier revision of the same source (moduleSha256 under fntech3Before)",
-  "battery": "seeded LCG; three hulls (point, player box -15,-15,-24..15,15,32, random box up to 32) x two masks (1, -1) x three shapes (long random, vertical drop through the world, short <=48 units), 300 of each shape; then 1,500 point contents; pass entity 1023; every answer printed as raw float bits",
+  "worldBattery": "seeded LCG; three hulls (point, player box -15,-15,-24..15,15,32, random box up to 32) x two masks (1, -1) x three shapes (long random, vertical drop through the world, short <=48 units), 300 of each shape; then 1,500 point contents; pass entity 1023; every answer printed as raw float bits",
+  "entityBattery": "a 32-unit box entity linked with inuse 0, 1, 0; every brush model k linked as entity 300+k with contents 1, moved by (8k, -4k, 2k) and, for even k, turned (pitch 5*(k%3), yaw 15k); its linked flags and bounds; 90 traces through the region the module computes for it (point and player box, masks 1 and -1); 200 box queries (EntitiesInBox in C/D, ContactEntities in A/B) around the models",
   "stamp": "the retail qagamex86.dll's PE TimeDateStamp copied in, which is how fnTech3 names a release; retail engines never read it",
   "botLibrary": "bot_enable 0; retail 1.08 tests it before GetBotAIAPI (0x41b494), which the C and D builds export as a stub"
  },
@@ -28,13 +31,120 @@
     "1.08": "0x0040eeb4 c8, 0x0040eec2 cc, 0x0040eec9 c4"
    },
    "positionTest": "every release has a brush position test storing fraction, allsolid, startsolid and contents (1.08 0x0040ea3b..0x0040ea54)"
+  },
+  "SV_LinkEntity": {
+   "1.08": "0x0041f740 (game import LinkEntity, table built at 0x0041d058..0x0041d167): unlinks first; returns if inuse (+0xd0) is clear (0x0041f76b..0x0041f773); after CM_BoxLeafnums returns if no leaf had an area (0x0041fa80..0x0041fa88), before linkcount++ and linked = 1 (0x0041fb6b)",
+   "1.02": "0x0041de30: unlinks first, skips the world (0x0041de5a), returns if inuse is clear (0x0041de66..0x0041de6e)",
+   "noAreaReturnEveryRelease": {
+    "1.02": "0x0041e183",
+    "1.03": "0x0041e7a3",
+    "1.05": "0x0041e643",
+    "1.06": "0x0041f118",
+    "1.07": "0x0041f1b8",
+    "1.08": "0x0041fa88"
+   },
+   "quake3": "Quake III 1.32's GPL source links a box whose leafs are all solid and checks no inuse"
   }
  },
+ "sweeps": {
+  "full-v1": "world battery, 1.05 and 1.08, before the contents rule (fnTech3 dedicated d3def17e7b61)",
+  "full-v4": "world and entity batteries, all releases, with the contents rule, before the link rules",
+  "full-v5": "world and entity batteries, all releases, with every rule (an earlier build of the same rules)",
+  "full-v6": "world and entity batteries, all releases, with every rule, on the committed source"
+ },
+ "inUseBeforeLinkRules": {
+  "1.02": {
+   "retail": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "fntech3": [
+    [
+     "0",
+     "0",
+     "1",
+     "1"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "2"
+    ],
+    [
+     "2",
+     "0",
+     "1",
+     "3"
+    ]
+   ]
+  },
+  "1.08": {
+   "retail": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "fntech3": [
+    [
+     "0",
+     "0",
+     "1",
+     "1"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "2"
+    ],
+    [
+     "2",
+     "0",
+     "1",
+     "3"
+    ]
+   ]
+  }
+ },
+ "inUseFields": "step, inuse, linked, linkcount",
  "runs": [
   {
    "release": "1.02",
    "map": "q3test1",
    "bspVersion": 44,
+   "brushModels": 7,
    "worldMins": [
     -404.0,
     -2652.0,
@@ -47,26 +157,109 @@
    ],
    "seed": 20261008,
    "perShapeCount": 300,
-   "moduleSha256": "dfb58c7caa1752e4f40d4d782e2529032831322ea01ef81c139663855eadf65a",
+   "moduleSha256": "bd30252c649c6dbc7a98811c8fecbeda0a0d0cc2617e1c3b8286c458b42b7b4d",
    "moduleStamp": "37228c03",
    "retailExecutableSha256": "86da36081878d5586d5621709f48a7e621db3c24d33fa4b45838b08d01020d4a",
-   "fntech3Before": null,
-   "fntech3After": {
-    "executableSha256": "6b4086618b0a45158ce139415523122ea45b789a9dd65489aed5d1fd92a3ab09",
-    "traces": 5400,
+   "fntech3ExecutableSha256": "bee9f0c68a39b8c0ea490971ed7cd0b5583ee5cb5b52037d78d20319b61bf9b0",
+   "after": {
+    "traces": 6030,
     "tally": {
-     "exact": 4680,
-     "within 0.01 unit": 720
+     "exact": 5244,
+     "within 0.01 unit": 786,
+     "differ": 0,
+     "inputs differ": 0
     },
     "worst": {
      "fraction": 3.337860107421875e-06,
      "endpos": 0.0025634765625
     },
     "points": 1500,
-    "pointsSame": 1500
+    "pointsSame": 1500,
+    "entityTraces": 630,
+    "entityTally": {
+     "hit": 354,
+     "entity hit": 95,
+     "clear": 276
+    },
+    "links": 7,
+    "linksBitExact": 7,
+    "linkFlagsSame": 7,
+    "linkWorst": 0.0,
+    "boxQueries": 200,
+    "boxesSameOrder": 200,
+    "boxesSameSet": 200
+   },
+   "inUseRetail": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "inUseFntech3": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "worldBeforeContentsRule": null,
+   "entitiesBeforeLinkRules": {
+    "traces": 6030,
+    "tally": {
+     "exact": 5244,
+     "within 0.01 unit": 786,
+     "differ": 0,
+     "inputs differ": 0
+    },
+    "worst": {
+     "fraction": 3.337860107421875e-06,
+     "endpos": 0.0025634765625
+    },
+    "points": 1500,
+    "pointsSame": 1500,
+    "entityTraces": 630,
+    "entityTally": {
+     "hit": 354,
+     "entity hit": 95,
+     "clear": 276
+    },
+    "links": 7,
+    "linksBitExact": 7,
+    "linkFlagsSame": 7,
+    "linkWorst": 0.0,
+    "boxQueries": 200,
+    "boxesSameOrder": 200,
+    "boxesSameSet": 200,
+    "inUseRetail": null
    },
    "retailCommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -74,6 +267,9 @@
     "+set",
     "tr_count",
     "300",
+    "+set",
+    "tr_models",
+    "7",
     "+set",
     "tr_mins",
     "-404 -2652 -688",
@@ -84,7 +280,6 @@
     "q3test1"
    ],
    "fntech3CommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -93,6 +288,9 @@
     "tr_count",
     "300",
     "+set",
+    "tr_models",
+    "7",
+    "+set",
     "tr_mins",
     "-404 -2652 -688",
     "+set",
@@ -100,14 +298,13 @@
     "2498 552 1024",
     "+map",
     "q3test1"
-   ],
-   "retailSeconds": 5.0,
-   "fntech3Seconds": 4.3
+   ]
   },
   {
    "release": "1.02",
    "map": "q3test2",
    "bspVersion": 44,
+   "brushModels": 19,
    "worldMins": [
     -2364.0,
     -2936.0,
@@ -120,26 +317,109 @@
    ],
    "seed": 20261008,
    "perShapeCount": 300,
-   "moduleSha256": "dfb58c7caa1752e4f40d4d782e2529032831322ea01ef81c139663855eadf65a",
+   "moduleSha256": "bd30252c649c6dbc7a98811c8fecbeda0a0d0cc2617e1c3b8286c458b42b7b4d",
    "moduleStamp": "37228c03",
    "retailExecutableSha256": "86da36081878d5586d5621709f48a7e621db3c24d33fa4b45838b08d01020d4a",
-   "fntech3Before": null,
-   "fntech3After": {
-    "executableSha256": "6b4086618b0a45158ce139415523122ea45b789a9dd65489aed5d1fd92a3ab09",
-    "traces": 5400,
+   "fntech3ExecutableSha256": "bee9f0c68a39b8c0ea490971ed7cd0b5583ee5cb5b52037d78d20319b61bf9b0",
+   "after": {
+    "traces": 7110,
     "tally": {
-     "exact": 4913,
-     "within 0.01 unit": 487
+     "exact": 6262,
+     "within 0.01 unit": 848,
+     "differ": 0,
+     "inputs differ": 0
     },
     "worst": {
-     "fraction": 3.4570693969726562e-06,
+     "fraction": 3.5390257835388184e-06,
      "endpos": 0.0013427734375
     },
     "points": 1500,
-    "pointsSame": 1500
+    "pointsSame": 1500,
+    "entityTraces": 1710,
+    "entityTally": {
+     "hit": 1021,
+     "entity hit": 495,
+     "clear": 689
+    },
+    "links": 19,
+    "linksBitExact": 19,
+    "linkFlagsSame": 19,
+    "linkWorst": 0.0,
+    "boxQueries": 200,
+    "boxesSameOrder": 200,
+    "boxesSameSet": 200
+   },
+   "inUseRetail": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "inUseFntech3": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "worldBeforeContentsRule": null,
+   "entitiesBeforeLinkRules": {
+    "traces": 7110,
+    "tally": {
+     "exact": 6262,
+     "within 0.01 unit": 848,
+     "differ": 0,
+     "inputs differ": 0
+    },
+    "worst": {
+     "fraction": 3.5390257835388184e-06,
+     "endpos": 0.0013427734375
+    },
+    "points": 1500,
+    "pointsSame": 1500,
+    "entityTraces": 1710,
+    "entityTally": {
+     "hit": 1021,
+     "entity hit": 495,
+     "clear": 689
+    },
+    "links": 19,
+    "linksBitExact": 19,
+    "linkFlagsSame": 19,
+    "linkWorst": 0.0,
+    "boxQueries": 200,
+    "boxesSameOrder": 200,
+    "boxesSameSet": 200,
+    "inUseRetail": null
    },
    "retailCommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -147,6 +427,9 @@
     "+set",
     "tr_count",
     "300",
+    "+set",
+    "tr_models",
+    "19",
     "+set",
     "tr_mins",
     "-2364 -2936 -2432",
@@ -157,7 +440,6 @@
     "q3test2"
    ],
    "fntech3CommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -166,6 +448,9 @@
     "tr_count",
     "300",
     "+set",
+    "tr_models",
+    "19",
+    "+set",
     "tr_mins",
     "-2364 -2936 -2432",
     "+set",
@@ -173,14 +458,13 @@
     "3232 2695.93 1984",
     "+map",
     "q3test2"
-   ],
-   "retailSeconds": 4.5,
-   "fntech3Seconds": 4.1
+   ]
   },
   {
    "release": "1.03",
    "map": "q3test1",
    "bspVersion": 44,
+   "brushModels": 7,
    "worldMins": [
     -404.0,
     -2652.0,
@@ -193,26 +477,109 @@
    ],
    "seed": 20261008,
    "perShapeCount": 300,
-   "moduleSha256": "b4a3ef6e73fd9824774d51b58c82fd89e5d519a48ad72351ec4786e76ecc9905",
+   "moduleSha256": "dd752d1bf670b1571bf7ade616ef96b0f6375f85c6afe6fc2d26df3b8913798f",
    "moduleStamp": "3727df48",
    "retailExecutableSha256": "313ed8d1b71296b834b806b64c0f5929eb5bdd05eb7ce96b9c7fdb7369ecbf79",
-   "fntech3Before": null,
-   "fntech3After": {
-    "executableSha256": "6b4086618b0a45158ce139415523122ea45b789a9dd65489aed5d1fd92a3ab09",
-    "traces": 5400,
+   "fntech3ExecutableSha256": "bee9f0c68a39b8c0ea490971ed7cd0b5583ee5cb5b52037d78d20319b61bf9b0",
+   "after": {
+    "traces": 6030,
     "tally": {
-     "exact": 4680,
-     "within 0.01 unit": 720
+     "exact": 5244,
+     "within 0.01 unit": 786,
+     "differ": 0,
+     "inputs differ": 0
     },
     "worst": {
      "fraction": 3.337860107421875e-06,
      "endpos": 0.0025634765625
     },
     "points": 1500,
-    "pointsSame": 1500
+    "pointsSame": 1500,
+    "entityTraces": 630,
+    "entityTally": {
+     "hit": 354,
+     "entity hit": 95,
+     "clear": 276
+    },
+    "links": 7,
+    "linksBitExact": 7,
+    "linkFlagsSame": 7,
+    "linkWorst": 0.0,
+    "boxQueries": 200,
+    "boxesSameOrder": 200,
+    "boxesSameSet": 200
+   },
+   "inUseRetail": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "inUseFntech3": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "worldBeforeContentsRule": null,
+   "entitiesBeforeLinkRules": {
+    "traces": 6030,
+    "tally": {
+     "exact": 5244,
+     "within 0.01 unit": 786,
+     "differ": 0,
+     "inputs differ": 0
+    },
+    "worst": {
+     "fraction": 3.337860107421875e-06,
+     "endpos": 0.0025634765625
+    },
+    "points": 1500,
+    "pointsSame": 1500,
+    "entityTraces": 630,
+    "entityTally": {
+     "hit": 354,
+     "entity hit": 95,
+     "clear": 276
+    },
+    "links": 7,
+    "linksBitExact": 7,
+    "linkFlagsSame": 7,
+    "linkWorst": 0.0,
+    "boxQueries": 200,
+    "boxesSameOrder": 200,
+    "boxesSameSet": 200,
+    "inUseRetail": null
    },
    "retailCommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -220,6 +587,9 @@
     "+set",
     "tr_count",
     "300",
+    "+set",
+    "tr_models",
+    "7",
     "+set",
     "tr_mins",
     "-404 -2652 -688",
@@ -230,7 +600,6 @@
     "q3test1"
    ],
    "fntech3CommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -239,6 +608,9 @@
     "tr_count",
     "300",
     "+set",
+    "tr_models",
+    "7",
+    "+set",
     "tr_mins",
     "-404 -2652 -688",
     "+set",
@@ -246,14 +618,13 @@
     "2498 552 1024",
     "+map",
     "q3test1"
-   ],
-   "retailSeconds": 20.5,
-   "fntech3Seconds": 4.0
+   ]
   },
   {
    "release": "1.03",
    "map": "q3test2",
    "bspVersion": 44,
+   "brushModels": 19,
    "worldMins": [
     -2364.0,
     -2936.0,
@@ -266,26 +637,109 @@
    ],
    "seed": 20261008,
    "perShapeCount": 300,
-   "moduleSha256": "b4a3ef6e73fd9824774d51b58c82fd89e5d519a48ad72351ec4786e76ecc9905",
+   "moduleSha256": "dd752d1bf670b1571bf7ade616ef96b0f6375f85c6afe6fc2d26df3b8913798f",
    "moduleStamp": "3727df48",
    "retailExecutableSha256": "313ed8d1b71296b834b806b64c0f5929eb5bdd05eb7ce96b9c7fdb7369ecbf79",
-   "fntech3Before": null,
-   "fntech3After": {
-    "executableSha256": "6b4086618b0a45158ce139415523122ea45b789a9dd65489aed5d1fd92a3ab09",
-    "traces": 5400,
+   "fntech3ExecutableSha256": "bee9f0c68a39b8c0ea490971ed7cd0b5583ee5cb5b52037d78d20319b61bf9b0",
+   "after": {
+    "traces": 7110,
     "tally": {
-     "exact": 4913,
-     "within 0.01 unit": 487
+     "exact": 6262,
+     "within 0.01 unit": 848,
+     "differ": 0,
+     "inputs differ": 0
     },
     "worst": {
-     "fraction": 3.4570693969726562e-06,
+     "fraction": 3.5390257835388184e-06,
      "endpos": 0.0013427734375
     },
     "points": 1500,
-    "pointsSame": 1500
+    "pointsSame": 1500,
+    "entityTraces": 1710,
+    "entityTally": {
+     "hit": 1021,
+     "entity hit": 495,
+     "clear": 689
+    },
+    "links": 19,
+    "linksBitExact": 19,
+    "linkFlagsSame": 19,
+    "linkWorst": 0.0,
+    "boxQueries": 200,
+    "boxesSameOrder": 200,
+    "boxesSameSet": 200
+   },
+   "inUseRetail": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "inUseFntech3": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "worldBeforeContentsRule": null,
+   "entitiesBeforeLinkRules": {
+    "traces": 7110,
+    "tally": {
+     "exact": 6262,
+     "within 0.01 unit": 848,
+     "differ": 0,
+     "inputs differ": 0
+    },
+    "worst": {
+     "fraction": 3.5390257835388184e-06,
+     "endpos": 0.0013427734375
+    },
+    "points": 1500,
+    "pointsSame": 1500,
+    "entityTraces": 1710,
+    "entityTally": {
+     "hit": 1021,
+     "entity hit": 495,
+     "clear": 689
+    },
+    "links": 19,
+    "linksBitExact": 19,
+    "linkFlagsSame": 19,
+    "linkWorst": 0.0,
+    "boxQueries": 200,
+    "boxesSameOrder": 200,
+    "boxesSameSet": 200,
+    "inUseRetail": null
    },
    "retailCommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -293,6 +747,9 @@
     "+set",
     "tr_count",
     "300",
+    "+set",
+    "tr_models",
+    "19",
     "+set",
     "tr_mins",
     "-2364 -2936 -2432",
@@ -303,7 +760,6 @@
     "q3test2"
    ],
    "fntech3CommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -312,6 +768,9 @@
     "tr_count",
     "300",
     "+set",
+    "tr_models",
+    "19",
+    "+set",
     "tr_mins",
     "-2364 -2936 -2432",
     "+set",
@@ -319,14 +778,13 @@
     "3232 2695.93 1984",
     "+map",
     "q3test2"
-   ],
-   "retailSeconds": 24.1,
-   "fntech3Seconds": 6.1
+   ]
   },
   {
    "release": "1.05",
    "map": "q3test1",
    "bspVersion": 44,
+   "brushModels": 7,
    "worldMins": [
     -404.0,
     -2652.0,
@@ -339,12 +797,79 @@
    ],
    "seed": 20261008,
    "perShapeCount": 300,
-   "moduleSha256": "fa068ec5fffef5fc14edf3e50e2759c35178e0ab96bd6ab3591df7e527883b9a",
+   "moduleSha256": "2d9be8e9eec0d65dbebf6a4f7344693793953df8611e2f72739ae27b80a0cd4d",
    "moduleStamp": "37369456",
    "retailExecutableSha256": "05579377e09286d658aef430d6fb45dc6c4fc4578988cea83afa51459768fcf8",
-   "fntech3Before": {
-    "executableSha256": "d3def17e7b615da281325a658298a562a91840f6bb6b723397bee8c85ad84eeb",
-    "moduleSha256": "6e8ab88926ad0274bdc38d66983a872d7993368262715996b339866c24319482",
+   "fntech3ExecutableSha256": "bee9f0c68a39b8c0ea490971ed7cd0b5583ee5cb5b52037d78d20319b61bf9b0",
+   "after": {
+    "traces": 6030,
+    "tally": {
+     "exact": 5225,
+     "within 0.01 unit": 805,
+     "differ": 0,
+     "inputs differ": 0
+    },
+    "worst": {
+     "fraction": 4.32133674621582e-06,
+     "endpos": 0.00244140625
+    },
+    "points": 1500,
+    "pointsSame": 1500,
+    "entityTraces": 630,
+    "entityTally": {
+     "hit": 377,
+     "entity hit": 102,
+     "clear": 253
+    },
+    "links": 7,
+    "linksBitExact": 7,
+    "linkFlagsSame": 7,
+    "linkWorst": 0.0,
+    "boxQueries": 200,
+    "boxesSameOrder": 200,
+    "boxesSameSet": 200
+   },
+   "inUseRetail": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "inUseFntech3": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "worldBeforeContentsRule": {
     "traces": 5400,
     "tally": {
      "exact": 4568,
@@ -358,22 +883,36 @@
     "points": 1500,
     "pointsSame": 1500
    },
-   "fntech3After": {
-    "executableSha256": "6b4086618b0a45158ce139415523122ea45b789a9dd65489aed5d1fd92a3ab09",
-    "traces": 5400,
+   "entitiesBeforeLinkRules": {
+    "traces": 6030,
     "tally": {
-     "exact": 4677,
-     "within 0.01 unit": 723
+     "exact": 5224,
+     "within 0.01 unit": 805,
+     "differ": 1,
+     "inputs differ": 0
     },
     "worst": {
-     "fraction": 4.32133674621582e-06,
-     "endpos": 0.00244140625
+     "fraction": 0.10630728304386139,
+     "endpos": 12.0
     },
     "points": 1500,
-    "pointsSame": 1500
+    "pointsSame": 1500,
+    "entityTraces": 630,
+    "entityTally": {
+     "hit": 377,
+     "entity hit": 102,
+     "clear": 253
+    },
+    "links": 7,
+    "linksBitExact": 6,
+    "linkFlagsSame": 6,
+    "linkWorst": 0.0,
+    "boxQueries": 200,
+    "boxesSameOrder": 185,
+    "boxesSameSet": 185,
+    "inUseRetail": null
    },
    "retailCommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -381,6 +920,9 @@
     "+set",
     "tr_count",
     "300",
+    "+set",
+    "tr_models",
+    "7",
     "+set",
     "tr_mins",
     "-404 -2652 -640",
@@ -391,7 +933,6 @@
     "q3test1"
    ],
    "fntech3CommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -400,6 +941,9 @@
     "tr_count",
     "300",
     "+set",
+    "tr_models",
+    "7",
+    "+set",
     "tr_mins",
     "-404 -2652 -640",
     "+set",
@@ -407,14 +951,13 @@
     "2498 552 1024",
     "+map",
     "q3test1"
-   ],
-   "retailSeconds": 24.1,
-   "fntech3Seconds": 4.0
+   ]
   },
   {
    "release": "1.05",
    "map": "q3test2",
    "bspVersion": 44,
+   "brushModels": 19,
    "worldMins": [
     -1376.0,
     -1552.0,
@@ -427,12 +970,79 @@
    ],
    "seed": 20261008,
    "perShapeCount": 300,
-   "moduleSha256": "fa068ec5fffef5fc14edf3e50e2759c35178e0ab96bd6ab3591df7e527883b9a",
+   "moduleSha256": "2d9be8e9eec0d65dbebf6a4f7344693793953df8611e2f72739ae27b80a0cd4d",
    "moduleStamp": "37369456",
    "retailExecutableSha256": "05579377e09286d658aef430d6fb45dc6c4fc4578988cea83afa51459768fcf8",
-   "fntech3Before": {
-    "executableSha256": "d3def17e7b615da281325a658298a562a91840f6bb6b723397bee8c85ad84eeb",
-    "moduleSha256": "6e8ab88926ad0274bdc38d66983a872d7993368262715996b339866c24319482",
+   "fntech3ExecutableSha256": "bee9f0c68a39b8c0ea490971ed7cd0b5583ee5cb5b52037d78d20319b61bf9b0",
+   "after": {
+    "traces": 7110,
+    "tally": {
+     "exact": 6232,
+     "within 0.01 unit": 878,
+     "differ": 0,
+     "inputs differ": 0
+    },
+    "worst": {
+     "fraction": 4.082918167114258e-06,
+     "endpos": 0.000732421875
+    },
+    "points": 1500,
+    "pointsSame": 1500,
+    "entityTraces": 1710,
+    "entityTally": {
+     "hit": 997,
+     "entity hit": 539,
+     "clear": 713
+    },
+    "links": 19,
+    "linksBitExact": 19,
+    "linkFlagsSame": 19,
+    "linkWorst": 0.0,
+    "boxQueries": 200,
+    "boxesSameOrder": 200,
+    "boxesSameSet": 200
+   },
+   "inUseRetail": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "inUseFntech3": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "worldBeforeContentsRule": {
     "traces": 5400,
     "tally": {
      "exact": 4868,
@@ -446,22 +1056,36 @@
     "points": 1500,
     "pointsSame": 1500
    },
-   "fntech3After": {
-    "executableSha256": "6b4086618b0a45158ce139415523122ea45b789a9dd65489aed5d1fd92a3ab09",
-    "traces": 5400,
+   "entitiesBeforeLinkRules": {
+    "traces": 7110,
     "tally": {
-     "exact": 4958,
-     "within 0.01 unit": 442
+     "exact": 6232,
+     "within 0.01 unit": 878,
+     "differ": 0,
+     "inputs differ": 0
     },
     "worst": {
      "fraction": 4.082918167114258e-06,
      "endpos": 0.000732421875
     },
     "points": 1500,
-    "pointsSame": 1500
+    "pointsSame": 1500,
+    "entityTraces": 1710,
+    "entityTally": {
+     "hit": 997,
+     "entity hit": 539,
+     "clear": 713
+    },
+    "links": 19,
+    "linksBitExact": 19,
+    "linkFlagsSame": 19,
+    "linkWorst": 0.0,
+    "boxQueries": 200,
+    "boxesSameOrder": 200,
+    "boxesSameSet": 200,
+    "inUseRetail": null
    },
    "retailCommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -469,6 +1093,9 @@
     "+set",
     "tr_count",
     "300",
+    "+set",
+    "tr_models",
+    "19",
     "+set",
     "tr_mins",
     "-1376 -1552 -2432",
@@ -479,7 +1106,6 @@
     "q3test2"
    ],
    "fntech3CommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -488,6 +1114,9 @@
     "tr_count",
     "300",
     "+set",
+    "tr_models",
+    "19",
+    "+set",
     "tr_mins",
     "-1376 -1552 -2432",
     "+set",
@@ -495,14 +1124,13 @@
     "3232 1640 2248",
     "+map",
     "q3test2"
-   ],
-   "retailSeconds": 25.7,
-   "fntech3Seconds": 4.0
+   ]
   },
   {
    "release": "1.06",
    "map": "q3test1",
    "bspVersion": 45,
+   "brushModels": 7,
    "worldMins": [
     -404.0,
     -2652.0,
@@ -515,26 +1143,109 @@
    ],
    "seed": 20261008,
    "perShapeCount": 300,
-   "moduleSha256": "de0fa92219fe1f59cac9bf6822c9fb35d195f3a0440857b4d1216d67a2570e36",
+   "moduleSha256": "d200f80c154c4624bde9dc9c45870d446e619d8386803ab8a5e3b5911a347dce",
    "moduleStamp": "378fba49",
    "retailExecutableSha256": "a18c714fac103c4634fc08c88b2dd1c7b63720c8ddb8ec0f408e00d7ccb63db3",
-   "fntech3Before": null,
-   "fntech3After": {
-    "executableSha256": "6b4086618b0a45158ce139415523122ea45b789a9dd65489aed5d1fd92a3ab09",
-    "traces": 5400,
+   "fntech3ExecutableSha256": "bee9f0c68a39b8c0ea490971ed7cd0b5583ee5cb5b52037d78d20319b61bf9b0",
+   "after": {
+    "traces": 6030,
     "tally": {
-     "exact": 4252,
-     "within 0.01 unit": 1148
+     "exact": 4780,
+     "within 0.01 unit": 1250,
+     "differ": 0,
+     "inputs differ": 0
     },
     "worst": {
      "fraction": 1.4603137969970703e-06,
      "endpos": 0.00201416015625
     },
     "points": 1500,
-    "pointsSame": 1500
+    "pointsSame": 1500,
+    "entityTraces": 630,
+    "entityTally": {
+     "hit": 377,
+     "entity hit": 102,
+     "clear": 253
+    },
+    "links": 7,
+    "linksBitExact": 7,
+    "linkFlagsSame": 7,
+    "linkWorst": 0.0,
+    "boxQueries": 200,
+    "boxesSameOrder": 200,
+    "boxesSameSet": 200
+   },
+   "inUseRetail": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "inUseFntech3": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "worldBeforeContentsRule": null,
+   "entitiesBeforeLinkRules": {
+    "traces": 6030,
+    "tally": {
+     "exact": 4779,
+     "within 0.01 unit": 1250,
+     "differ": 1,
+     "inputs differ": 0
+    },
+    "worst": {
+     "fraction": 0.10630728304386139,
+     "endpos": 12.0
+    },
+    "points": 1500,
+    "pointsSame": 1500,
+    "entityTraces": 630,
+    "entityTally": {
+     "hit": 377,
+     "entity hit": 102,
+     "clear": 253
+    },
+    "links": 7,
+    "linksBitExact": 6,
+    "linkFlagsSame": 6,
+    "linkWorst": 0.0,
+    "boxQueries": 200,
+    "boxesSameOrder": 185,
+    "boxesSameSet": 185,
+    "inUseRetail": null
    },
    "retailCommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -542,6 +1253,9 @@
     "+set",
     "tr_count",
     "300",
+    "+set",
+    "tr_models",
+    "7",
     "+set",
     "tr_mins",
     "-404 -2652 -640",
@@ -552,7 +1266,6 @@
     "q3test1"
    ],
    "fntech3CommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -561,6 +1274,9 @@
     "tr_count",
     "300",
     "+set",
+    "tr_models",
+    "7",
+    "+set",
     "tr_mins",
     "-404 -2652 -640",
     "+set",
@@ -568,14 +1284,13 @@
     "2498 552 1024",
     "+map",
     "q3test1"
-   ],
-   "retailSeconds": 20.0,
-   "fntech3Seconds": 4.0
+   ]
   },
   {
    "release": "1.06",
    "map": "q3test2",
    "bspVersion": 45,
+   "brushModels": 19,
    "worldMins": [
     -1376.0,
     -1552.0,
@@ -588,26 +1303,109 @@
    ],
    "seed": 20261008,
    "perShapeCount": 300,
-   "moduleSha256": "de0fa92219fe1f59cac9bf6822c9fb35d195f3a0440857b4d1216d67a2570e36",
+   "moduleSha256": "d200f80c154c4624bde9dc9c45870d446e619d8386803ab8a5e3b5911a347dce",
    "moduleStamp": "378fba49",
    "retailExecutableSha256": "a18c714fac103c4634fc08c88b2dd1c7b63720c8ddb8ec0f408e00d7ccb63db3",
-   "fntech3Before": null,
-   "fntech3After": {
-    "executableSha256": "6b4086618b0a45158ce139415523122ea45b789a9dd65489aed5d1fd92a3ab09",
-    "traces": 5400,
+   "fntech3ExecutableSha256": "bee9f0c68a39b8c0ea490971ed7cd0b5583ee5cb5b52037d78d20319b61bf9b0",
+   "after": {
+    "traces": 7110,
     "tally": {
-     "exact": 4468,
-     "within 0.01 unit": 932
+     "exact": 5670,
+     "within 0.01 unit": 1440,
+     "differ": 0,
+     "inputs differ": 0
     },
     "worst": {
-     "fraction": 5.960464477539063e-08,
-     "endpos": 0.00048828125
+     "fraction": 3.933906555175781e-06,
+     "endpos": 0.0009765625
     },
     "points": 1500,
-    "pointsSame": 1500
+    "pointsSame": 1500,
+    "entityTraces": 1710,
+    "entityTally": {
+     "hit": 997,
+     "entity hit": 539,
+     "clear": 713
+    },
+    "links": 19,
+    "linksBitExact": 17,
+    "linkFlagsSame": 19,
+    "linkWorst": 0.00048828125,
+    "boxQueries": 200,
+    "boxesSameOrder": 200,
+    "boxesSameSet": 200
+   },
+   "inUseRetail": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "inUseFntech3": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "worldBeforeContentsRule": null,
+   "entitiesBeforeLinkRules": {
+    "traces": 7110,
+    "tally": {
+     "exact": 5670,
+     "within 0.01 unit": 1440,
+     "differ": 0,
+     "inputs differ": 0
+    },
+    "worst": {
+     "fraction": 3.933906555175781e-06,
+     "endpos": 0.0009765625
+    },
+    "points": 1500,
+    "pointsSame": 1500,
+    "entityTraces": 1710,
+    "entityTally": {
+     "hit": 997,
+     "entity hit": 539,
+     "clear": 713
+    },
+    "links": 19,
+    "linksBitExact": 17,
+    "linkFlagsSame": 19,
+    "linkWorst": 0.00048828125,
+    "boxQueries": 200,
+    "boxesSameOrder": 200,
+    "boxesSameSet": 200,
+    "inUseRetail": null
    },
    "retailCommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -615,6 +1413,9 @@
     "+set",
     "tr_count",
     "300",
+    "+set",
+    "tr_models",
+    "19",
     "+set",
     "tr_mins",
     "-1376 -1552 -2432",
@@ -625,7 +1426,6 @@
     "q3test2"
    ],
    "fntech3CommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -634,6 +1434,9 @@
     "tr_count",
     "300",
     "+set",
+    "tr_models",
+    "19",
+    "+set",
     "tr_mins",
     "-1376 -1552 -2432",
     "+set",
@@ -641,14 +1444,13 @@
     "3232 1640 2248",
     "+map",
     "q3test2"
-   ],
-   "retailSeconds": 18.9,
-   "fntech3Seconds": 4.0
+   ]
   },
   {
    "release": "1.07",
    "map": "q3test1",
    "bspVersion": 45,
+   "brushModels": 7,
    "worldMins": [
     -404.0,
     -2652.0,
@@ -661,26 +1463,109 @@
    ],
    "seed": 20261008,
    "perShapeCount": 300,
-   "moduleSha256": "79804bded54a2a69b263ed2e8c939a408e2d4e35015d55bdc08b2cd36eb55db0",
+   "moduleSha256": "e1d56f9603a89f343e5709e767ab356326118ae54707f55cb47447c3df7dd724",
    "moduleStamp": "37940ae0",
    "retailExecutableSha256": "a507b42aa346dd7c67f0fdd33c42e88c3ee144d91bce3dea0a3fb06aa7368962",
-   "fntech3Before": null,
-   "fntech3After": {
-    "executableSha256": "6b4086618b0a45158ce139415523122ea45b789a9dd65489aed5d1fd92a3ab09",
-    "traces": 5400,
+   "fntech3ExecutableSha256": "bee9f0c68a39b8c0ea490971ed7cd0b5583ee5cb5b52037d78d20319b61bf9b0",
+   "after": {
+    "traces": 6030,
     "tally": {
-     "exact": 4252,
-     "within 0.01 unit": 1148
+     "exact": 4780,
+     "within 0.01 unit": 1250,
+     "differ": 0,
+     "inputs differ": 0
     },
     "worst": {
      "fraction": 1.4603137969970703e-06,
      "endpos": 0.00201416015625
     },
     "points": 1500,
-    "pointsSame": 1500
+    "pointsSame": 1500,
+    "entityTraces": 630,
+    "entityTally": {
+     "hit": 377,
+     "entity hit": 102,
+     "clear": 253
+    },
+    "links": 7,
+    "linksBitExact": 7,
+    "linkFlagsSame": 7,
+    "linkWorst": 0.0,
+    "boxQueries": 200,
+    "boxesSameOrder": 200,
+    "boxesSameSet": 200
+   },
+   "inUseRetail": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "inUseFntech3": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "worldBeforeContentsRule": null,
+   "entitiesBeforeLinkRules": {
+    "traces": 6030,
+    "tally": {
+     "exact": 4779,
+     "within 0.01 unit": 1250,
+     "differ": 1,
+     "inputs differ": 0
+    },
+    "worst": {
+     "fraction": 0.10630728304386139,
+     "endpos": 12.0
+    },
+    "points": 1500,
+    "pointsSame": 1500,
+    "entityTraces": 630,
+    "entityTally": {
+     "hit": 377,
+     "entity hit": 102,
+     "clear": 253
+    },
+    "links": 7,
+    "linksBitExact": 6,
+    "linkFlagsSame": 6,
+    "linkWorst": 0.0,
+    "boxQueries": 200,
+    "boxesSameOrder": 185,
+    "boxesSameSet": 185,
+    "inUseRetail": null
    },
    "retailCommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -688,6 +1573,9 @@
     "+set",
     "tr_count",
     "300",
+    "+set",
+    "tr_models",
+    "7",
     "+set",
     "tr_mins",
     "-404 -2652 -640",
@@ -698,7 +1586,6 @@
     "q3test1"
    ],
    "fntech3CommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -707,6 +1594,9 @@
     "tr_count",
     "300",
     "+set",
+    "tr_models",
+    "7",
+    "+set",
     "tr_mins",
     "-404 -2652 -640",
     "+set",
@@ -714,14 +1604,13 @@
     "2498 552 1024",
     "+map",
     "q3test1"
-   ],
-   "retailSeconds": 20.0,
-   "fntech3Seconds": 4.0
+   ]
   },
   {
    "release": "1.07",
    "map": "q3test2",
    "bspVersion": 45,
+   "brushModels": 19,
    "worldMins": [
     -1376.0,
     -1552.0,
@@ -734,26 +1623,109 @@
    ],
    "seed": 20261008,
    "perShapeCount": 300,
-   "moduleSha256": "79804bded54a2a69b263ed2e8c939a408e2d4e35015d55bdc08b2cd36eb55db0",
+   "moduleSha256": "e1d56f9603a89f343e5709e767ab356326118ae54707f55cb47447c3df7dd724",
    "moduleStamp": "37940ae0",
    "retailExecutableSha256": "a507b42aa346dd7c67f0fdd33c42e88c3ee144d91bce3dea0a3fb06aa7368962",
-   "fntech3Before": null,
-   "fntech3After": {
-    "executableSha256": "6b4086618b0a45158ce139415523122ea45b789a9dd65489aed5d1fd92a3ab09",
-    "traces": 5400,
+   "fntech3ExecutableSha256": "bee9f0c68a39b8c0ea490971ed7cd0b5583ee5cb5b52037d78d20319b61bf9b0",
+   "after": {
+    "traces": 7110,
     "tally": {
-     "exact": 4468,
-     "within 0.01 unit": 932
+     "exact": 5670,
+     "within 0.01 unit": 1440,
+     "differ": 0,
+     "inputs differ": 0
     },
     "worst": {
-     "fraction": 5.960464477539063e-08,
-     "endpos": 0.00048828125
+     "fraction": 3.933906555175781e-06,
+     "endpos": 0.0009765625
     },
     "points": 1500,
-    "pointsSame": 1500
+    "pointsSame": 1500,
+    "entityTraces": 1710,
+    "entityTally": {
+     "hit": 997,
+     "entity hit": 539,
+     "clear": 713
+    },
+    "links": 19,
+    "linksBitExact": 17,
+    "linkFlagsSame": 19,
+    "linkWorst": 0.00048828125,
+    "boxQueries": 200,
+    "boxesSameOrder": 200,
+    "boxesSameSet": 200
+   },
+   "inUseRetail": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "inUseFntech3": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "worldBeforeContentsRule": null,
+   "entitiesBeforeLinkRules": {
+    "traces": 7110,
+    "tally": {
+     "exact": 5670,
+     "within 0.01 unit": 1440,
+     "differ": 0,
+     "inputs differ": 0
+    },
+    "worst": {
+     "fraction": 3.933906555175781e-06,
+     "endpos": 0.0009765625
+    },
+    "points": 1500,
+    "pointsSame": 1500,
+    "entityTraces": 1710,
+    "entityTally": {
+     "hit": 997,
+     "entity hit": 539,
+     "clear": 713
+    },
+    "links": 19,
+    "linksBitExact": 17,
+    "linkFlagsSame": 19,
+    "linkWorst": 0.00048828125,
+    "boxQueries": 200,
+    "boxesSameOrder": 200,
+    "boxesSameSet": 200,
+    "inUseRetail": null
    },
    "retailCommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -761,6 +1733,9 @@
     "+set",
     "tr_count",
     "300",
+    "+set",
+    "tr_models",
+    "19",
     "+set",
     "tr_mins",
     "-1376 -1552 -2432",
@@ -771,7 +1746,6 @@
     "q3test2"
    ],
    "fntech3CommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -780,6 +1754,9 @@
     "tr_count",
     "300",
     "+set",
+    "tr_models",
+    "19",
+    "+set",
     "tr_mins",
     "-1376 -1552 -2432",
     "+set",
@@ -787,14 +1764,13 @@
     "3232 1640 2248",
     "+map",
     "q3test2"
-   ],
-   "retailSeconds": 20.4,
-   "fntech3Seconds": 4.0
+   ]
   },
   {
    "release": "1.08",
    "map": "q3test1",
    "bspVersion": 45,
+   "brushModels": 7,
    "worldMins": [
     -404.0,
     -2652.0,
@@ -807,12 +1783,79 @@
    ],
    "seed": 20261008,
    "perShapeCount": 300,
-   "moduleSha256": "b1fc02bb372500a51d841865f4ebf6086ff16de9f68393eeaf12c5967f67d1fd",
+   "moduleSha256": "4b578847430e366810735af51629d0b393fbb0de2530dd3b66dd12a67781ae8d",
    "moduleStamp": "37a67322",
    "retailExecutableSha256": "89a7dfb431c6738a13e1e44d0c2d76d69107c6e0791a64f6a49830e1a51c547b",
-   "fntech3Before": {
-    "executableSha256": "d3def17e7b615da281325a658298a562a91840f6bb6b723397bee8c85ad84eeb",
-    "moduleSha256": "ab4b782fe9e2c22a8fc2549d52f8a4509e6aedd94f42a919e58826c41564f1bb",
+   "fntech3ExecutableSha256": "bee9f0c68a39b8c0ea490971ed7cd0b5583ee5cb5b52037d78d20319b61bf9b0",
+   "after": {
+    "traces": 6030,
+    "tally": {
+     "exact": 4780,
+     "within 0.01 unit": 1250,
+     "differ": 0,
+     "inputs differ": 0
+    },
+    "worst": {
+     "fraction": 1.4603137969970703e-06,
+     "endpos": 0.00201416015625
+    },
+    "points": 1500,
+    "pointsSame": 1500,
+    "entityTraces": 630,
+    "entityTally": {
+     "hit": 377,
+     "entity hit": 102,
+     "clear": 253
+    },
+    "links": 7,
+    "linksBitExact": 7,
+    "linkFlagsSame": 7,
+    "linkWorst": 0.0,
+    "boxQueries": 200,
+    "boxesSameOrder": 200,
+    "boxesSameSet": 200
+   },
+   "inUseRetail": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "inUseFntech3": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "worldBeforeContentsRule": {
     "traces": 5400,
     "tally": {
      "exact": 4142,
@@ -826,22 +1869,36 @@
     "points": 1500,
     "pointsSame": 1500
    },
-   "fntech3After": {
-    "executableSha256": "6b4086618b0a45158ce139415523122ea45b789a9dd65489aed5d1fd92a3ab09",
-    "traces": 5400,
+   "entitiesBeforeLinkRules": {
+    "traces": 6030,
     "tally": {
-     "exact": 4252,
-     "within 0.01 unit": 1148
+     "exact": 4779,
+     "within 0.01 unit": 1250,
+     "differ": 1,
+     "inputs differ": 0
     },
     "worst": {
-     "fraction": 1.4603137969970703e-06,
-     "endpos": 0.00201416015625
+     "fraction": 0.10630728304386139,
+     "endpos": 12.0
     },
     "points": 1500,
-    "pointsSame": 1500
+    "pointsSame": 1500,
+    "entityTraces": 630,
+    "entityTally": {
+     "hit": 377,
+     "entity hit": 102,
+     "clear": 253
+    },
+    "links": 7,
+    "linksBitExact": 6,
+    "linkFlagsSame": 6,
+    "linkWorst": 0.0,
+    "boxQueries": 200,
+    "boxesSameOrder": 185,
+    "boxesSameSet": 185,
+    "inUseRetail": null
    },
    "retailCommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -849,6 +1906,9 @@
     "+set",
     "tr_count",
     "300",
+    "+set",
+    "tr_models",
+    "7",
     "+set",
     "tr_mins",
     "-404 -2652 -640",
@@ -859,7 +1919,6 @@
     "q3test1"
    ],
    "fntech3CommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -868,6 +1927,9 @@
     "tr_count",
     "300",
     "+set",
+    "tr_models",
+    "7",
+    "+set",
     "tr_mins",
     "-404 -2652 -640",
     "+set",
@@ -875,14 +1937,13 @@
     "2498 552 1024",
     "+map",
     "q3test1"
-   ],
-   "retailSeconds": 21.0,
-   "fntech3Seconds": 4.1
+   ]
   },
   {
    "release": "1.08",
    "map": "q3test2",
    "bspVersion": 45,
+   "brushModels": 19,
    "worldMins": [
     -1376.0,
     -1552.0,
@@ -895,12 +1956,79 @@
    ],
    "seed": 20261008,
    "perShapeCount": 300,
-   "moduleSha256": "b1fc02bb372500a51d841865f4ebf6086ff16de9f68393eeaf12c5967f67d1fd",
+   "moduleSha256": "4b578847430e366810735af51629d0b393fbb0de2530dd3b66dd12a67781ae8d",
    "moduleStamp": "37a67322",
    "retailExecutableSha256": "89a7dfb431c6738a13e1e44d0c2d76d69107c6e0791a64f6a49830e1a51c547b",
-   "fntech3Before": {
-    "executableSha256": "d3def17e7b615da281325a658298a562a91840f6bb6b723397bee8c85ad84eeb",
-    "moduleSha256": "ab4b782fe9e2c22a8fc2549d52f8a4509e6aedd94f42a919e58826c41564f1bb",
+   "fntech3ExecutableSha256": "bee9f0c68a39b8c0ea490971ed7cd0b5583ee5cb5b52037d78d20319b61bf9b0",
+   "after": {
+    "traces": 7110,
+    "tally": {
+     "exact": 5670,
+     "within 0.01 unit": 1440,
+     "differ": 0,
+     "inputs differ": 0
+    },
+    "worst": {
+     "fraction": 3.933906555175781e-06,
+     "endpos": 0.0009765625
+    },
+    "points": 1500,
+    "pointsSame": 1500,
+    "entityTraces": 1710,
+    "entityTally": {
+     "hit": 997,
+     "entity hit": 539,
+     "clear": 713
+    },
+    "links": 19,
+    "linksBitExact": 17,
+    "linkFlagsSame": 19,
+    "linkWorst": 0.00048828125,
+    "boxQueries": 200,
+    "boxesSameOrder": 200,
+    "boxesSameSet": 200
+   },
+   "inUseRetail": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "inUseFntech3": [
+    [
+     "0",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "2",
+     "0",
+     "0",
+     "1"
+    ]
+   ],
+   "worldBeforeContentsRule": {
     "traces": 5400,
     "tally": {
      "exact": 4378,
@@ -914,22 +2042,36 @@
     "points": 1500,
     "pointsSame": 1500
    },
-   "fntech3After": {
-    "executableSha256": "6b4086618b0a45158ce139415523122ea45b789a9dd65489aed5d1fd92a3ab09",
-    "traces": 5400,
+   "entitiesBeforeLinkRules": {
+    "traces": 7110,
     "tally": {
-     "exact": 4468,
-     "within 0.01 unit": 932
+     "exact": 5670,
+     "within 0.01 unit": 1440,
+     "differ": 0,
+     "inputs differ": 0
     },
     "worst": {
-     "fraction": 5.960464477539063e-08,
-     "endpos": 0.00048828125
+     "fraction": 3.933906555175781e-06,
+     "endpos": 0.0009765625
     },
     "points": 1500,
-    "pointsSame": 1500
+    "pointsSame": 1500,
+    "entityTraces": 1710,
+    "entityTally": {
+     "hit": 997,
+     "entity hit": 539,
+     "clear": 713
+    },
+    "links": 19,
+    "linksBitExact": 17,
+    "linkFlagsSame": 19,
+    "linkWorst": 0.00048828125,
+    "boxQueries": 200,
+    "boxesSameOrder": 200,
+    "boxesSameSet": 200,
+    "inUseRetail": null
    },
    "retailCommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -937,6 +2079,9 @@
     "+set",
     "tr_count",
     "300",
+    "+set",
+    "tr_models",
+    "19",
     "+set",
     "tr_mins",
     "-1376 -1552 -2432",
@@ -947,7 +2092,6 @@
     "q3test2"
    ],
    "fntech3CommandTail": [
-    "bot_enable",
     "0",
     "+set",
     "tr_seed",
@@ -956,6 +2100,9 @@
     "tr_count",
     "300",
     "+set",
+    "tr_models",
+    "19",
+    "+set",
     "tr_mins",
     "-1376 -1552 -2432",
     "+set",
@@ -963,17 +2110,16 @@
     "3232 1640 2248",
     "+map",
     "q3test2"
-   ],
-   "retailSeconds": 25.3,
-   "fntech3Seconds": 4.6
+   ]
   }
  ],
  "inferences": [
-  "The remaining differences are in the last bits of fractions and positions, at most 0.0025 units: retail computes in x87 registers, fnTech3 in SSE with double-precision dot products. No hit, solid flag, surface flag or contents differs.",
-  "The world-only battery does not reach entities, brush models or a position test (no zero-length trace).",
+  "The remaining differences are in the last bits of fractions, positions and rotated link bounds, at most 0.0026 units: retail computes in x87 registers, fnTech3 in SSE with double-precision dot products. No hit, solid flag, surface flag, contents, entity, link flag or box query differs.",
+  "No zero-length trace (position test) is compared.",
   "The IHV Test's collision was not compared."
  ],
  "tests": [
-  "tests/collision_capsule_trace_tests.c"
+  "tests/collision_capsule_trace_tests.c",
+  "tests/q3test_link_rules_tests.py"
  ]
 }

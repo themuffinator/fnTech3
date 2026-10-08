@@ -110,9 +110,11 @@ dropped, every trace against curves using 1.32's point algorithm with the box
 offset, 1.02-1.05's patch contents forced from the one `powerupshit` shader,
 and 1.06-1.07's surface flags read from the shader's contents. A trace that
 starts and ends inside a brush keeps the contents an earlier brush wrote, as
-every release's brush sweep does. Every map of every release loads
-(`tests/q3test_bsp_tests.cpp`), and every release's retail server answers
-the same world traces as fnTech3's
+every release's brush sweep does, and a link that finds only solid leafs,
+or an entity the game has not marked in use, stays unlinked. Every map of
+every release loads (`tests/q3test_bsp_tests.cpp`), and every release's
+retail server answers the same traces, through the world and around
+linked brush models, as fnTech3's
 ([trace record](2026-10-08-q3test-traces.md)).
 
 ### Server
@@ -247,7 +249,7 @@ of one build, all passed, across every pairing below.
 | --- | --- | --- |
 | Profile / identity | PARTIAL -- Unit, Live | Release pinning and recognition as above; every release activates from its installation on the client and the server. |
 | Filesystem | PARTIAL -- Live | `demoq3` mounts and each release's paks load. The retail restricted mode's pak pins and loose-file rule are not enforced; fnTech3 reads its own home as for every profile. |
-| Map format / collision | PARTIAL -- Unit, Live | Every map of every release loads and is played on; Q3Test's curve rules are unit-tested; 64,800 world traces and 18,000 point contents on every release's retail server agree with fnTech3's in every hit, flag and contents, and within 0.0026 units, since a trace left inside a brush keeps its contents as every release's does ([trace record](2026-10-08-q3test-traces.md)); entities and brush models are not compared. |
+| Map format / collision | PARTIAL -- Unit, Live | Every map of every release loads and is played on; Q3Test's curve rules are unit-tested; 78,840 traces through the world and around linked brush models, 18,000 point contents, 156 links and 2,400 box queries on every release's retail server agree with fnTech3's in every hit, flag, contents, entity, link and box, and within 0.0026 units, since a trace left inside a brush keeps its contents and a link that finds no area, or an entity not in use, stays unlinked, as in every release ([trace record](2026-10-08-q3test-traces.md)); position tests and client entities are not compared. |
 | Module ABI | PARTIAL -- Live | Every release's game module hosts every map it ships; 1.05-1.08's client games and 1.06-1.08's menus run in fnTech3's client. No bots are claimed: no release shipped a bot library. |
 | Wire (both directions) | PARTIAL -- Interop subset | Short one-client sessions on loopback: fnTech3's server with each retail client (1.05-1.08) and with the protocol client (every release, also in slot 120 of 128); fnTech3's client with each retail server; the protocol client with every retail server, which gives it the same slot and, but for 1.05, the same info keys. A retail 1.08 client and fnTech3's client share fnTech3's server, and both share a retail 1.08 server, for five minutes at 10% loss through a map change; the retail client hears every chat line of fnTech3's, and cannot be made to answer, as retail reads its config files only at startup ([sustained sessions record](2026-10-08-legacy-sustained-sessions.md)). No session with a remote peer. |
 | Demos | PARTIAL -- Live | The six shipped recordings time-demo in fnTech3, 1.06-1.08's to retail's frame counts; fnTech3's recordings replay in fnTech3 and an independent decoder reads every record. 1.05's machine-dependent time-demo count is not reproduced, and a retail client cannot load fnTech3's recordings (restricted mode). |

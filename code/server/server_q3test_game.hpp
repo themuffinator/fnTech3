@@ -477,9 +477,15 @@ int SV_Q3TestInPVSIgnorePortals( const float *a, const float *b ) {
 }
 void SV_Q3TestAdjustAreaPortalState( q3tEnt *entity, int open ) { SV_AdjustAreaPortalState( SV_Q3TestEntity( entity ), open != 0 ); }
 int SV_Q3TestAreasConnected( int a, int b ) { return CM_AreasConnected( a, b ); }
-/* A/B never link the world, entity 0 (1.02 SV_LinkEntity 0x41de5a). */
+/* A/B never link the world, entity 0 (1.02 SV_LinkEntity 0x41de5a). Every
+ * release unlinks the entity first and links nothing the game has not marked
+ * in use (1.02 0x41de66..0x41de6e, 1.08 0x41f76b..0x41f773). */
 void SV_Q3TestLinkEntity( q3tEnt *entity ) {
 	if ( !SV_Q3TestNumberedClients() && SV_Q3TestEntityIndex( entity ) == 0 ) return;
+	if ( !entity->inuse ) {
+		SV_UnlinkEntity( SV_Q3TestEntity( entity ) );
+		return;
+	}
 	SV_LinkEntity( SV_Q3TestEntity( entity ) );
 }
 void SV_Q3TestUnlinkEntity( q3tEnt *entity ) { SV_UnlinkEntity( SV_Q3TestEntity( entity ) ); }
