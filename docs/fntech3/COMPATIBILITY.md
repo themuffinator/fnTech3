@@ -1377,8 +1377,10 @@ entity tests and reports the entity's own contents, and `CONTENTS_BODY` comes
 back on every way out of the sweep. RTCW SP keeps `CONTENTS_BODY`, as
 `WolfSP.exe` does. Real-trace fixtures cover all five frozen entity layouts and
 a recorded-call fixture every catalog profile; no retail session was compared.
-Two related differences stay open: `WolfSP.exe`'s sweep skips a carried prop,
-and `WolfMP.exe`'s point contents place an entity at its `s.origin`.
+Two related differences, `WolfSP.exe`'s sweep skipping a carried prop and
+both RTCW engines' point contents placing an entity at its `s.origin`, are
+followed since the [entity-query record](2026-10-08-rtcw-entity-queries.md),
+which shows each against the retail servers (Live).
 The [RTCW trace record](2026-10-08-rtcw-traces.md) compares physical
 collision with the retail `WolfSP.exe` and `WolfMP.exe` servers through a
 synthetic native game module: 202,860 traces, 21,000 point contents, 434

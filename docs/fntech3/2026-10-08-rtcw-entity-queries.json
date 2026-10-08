@@ -1,0 +1,186 @@
+{
+ "date": "2026-10-08",
+ "scope": "RTCW SP and MP server entity queries: SV_PointContents origin and angles, and RTCW SP SV_ClipMoveToEntities carried-prop skip; retail WolfSP.exe 1.32 and WolfMP.exe 1.41 dedicated servers against fnTech3",
+ "baseCommit": "6cb358f976eb3302ba284d29b09bbe89da5bc444",
+ "retailRules": {
+  "pointContentsOrigin": "SV_PointContents passes the entity s.origin (+0x5c) and s.angles (+0x74) to CM_TransformedPointContents for every entity, boxes included (WolfSP.exe 0x43a1ba..0x43a1c4, WolfMP.exe 0x43d60a..0x43d614). fnTech3 passed r.currentOrigin, r.currentAngles and zero angles for boxes, outside the IHV profile.",
+  "carriedProp": "WolfSP.exe SV_ClipMoveToEntities, after the owner and contents tests, skips an entity whose s.eType is 32 (RTCW SP ET_PROP) and whose s.otherEntityNum is passEntityNum + 1 (0x439f07..0x439f16). WolfMP.exe goes from the contents test straight to SV_ClipHandleForEntity (0x43d31d..0x43d32f)."
+ },
+ "module": ".tmp/q3-trace/q3trace_module.c (not committed), the RTCW trace record module plus a state battery: a player-sized box entity and a capsule-flagged one whose s.origin lies 48 and 40 units off r.currentOrigin with s.angles turned, and brush model *2 with s.origin 32 units off and s.angles turned; 400 point contents around them; then an ET_PROP (eType 32) entity whose s.otherEntityNum is pass entity 290 plus one and one naming 290 itself, swept 60 times each with box and point hulls, with pass entity 290 and with none (kind 7). Pass entity 290 is not linked and its r.ownerNum is none.",
+ "runs": [
+  {
+   "phase": "before",
+   "mode": "rtcw-sp",
+   "map": "escape1",
+   "traces": 7620,
+   "tally": {
+    "exact": 6223,
+    "within 0.01 unit": 1387,
+    "differ": 10
+   },
+   "propTraces": {
+    "prop entity: differ": 10,
+    "prop entity: exact": 224,
+    "prop entity: within 0.01 unit": 6
+   },
+   "entityPointContents": 600,
+   "entityPointContentsSame": 597,
+   "retailExecutableSha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+   "fntech3ExecutableSha256": "3a61c9bd32d371bfae1d8a42c918d40bdbce508eac7508904ede6a627cd18697",
+   "moduleSha256": "725725e96ee2ff99ce2dc2af920b349f324218579a5a2983816ec75394546a2c",
+   "seed": 20261008,
+   "perShapeCount": 100
+  },
+  {
+   "phase": "before",
+   "mode": "rtcw-sp",
+   "map": "village1",
+   "traces": 7620,
+   "tally": {
+    "exact": 6448,
+    "within 0.01 unit": 1162,
+    "differ": 10
+   },
+   "propTraces": {
+    "prop entity: differ": 10,
+    "prop entity: exact": 220,
+    "prop entity: within 0.01 unit": 10
+   },
+   "entityPointContents": 600,
+   "entityPointContentsSame": 597,
+   "retailExecutableSha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+   "fntech3ExecutableSha256": "3a61c9bd32d371bfae1d8a42c918d40bdbce508eac7508904ede6a627cd18697",
+   "moduleSha256": "725725e96ee2ff99ce2dc2af920b349f324218579a5a2983816ec75394546a2c",
+   "seed": 20261008,
+   "perShapeCount": 100
+  },
+  {
+   "phase": "before",
+   "mode": "rtcw-mp",
+   "map": "mp_beach",
+   "traces": 7620,
+   "tally": {
+    "exact": 6638,
+    "within 0.01 unit": 982
+   },
+   "propTraces": {
+    "prop entity: exact": 236,
+    "prop entity: within 0.01 unit": 4
+   },
+   "entityPointContents": 600,
+   "entityPointContentsSame": 597,
+   "retailExecutableSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+   "fntech3ExecutableSha256": "3a61c9bd32d371bfae1d8a42c918d40bdbce508eac7508904ede6a627cd18697",
+   "moduleSha256": "92da4b0973d4dc641d31193d8bdb9b11ebbd75a6ea173764bc6e2655cda80a2c",
+   "seed": 20261008,
+   "perShapeCount": 100
+  },
+  {
+   "phase": "before",
+   "mode": "rtcw-mp",
+   "map": "mp_assault",
+   "traces": 7620,
+   "tally": {
+    "exact": 6409,
+    "within 0.01 unit": 1211
+   },
+   "propTraces": {
+    "prop entity: exact": 240
+   },
+   "entityPointContents": 600,
+   "entityPointContentsSame": 597,
+   "retailExecutableSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+   "fntech3ExecutableSha256": "3a61c9bd32d371bfae1d8a42c918d40bdbce508eac7508904ede6a627cd18697",
+   "moduleSha256": "92da4b0973d4dc641d31193d8bdb9b11ebbd75a6ea173764bc6e2655cda80a2c",
+   "seed": 20261008,
+   "perShapeCount": 100
+  },
+  {
+   "phase": "after",
+   "mode": "rtcw-sp",
+   "map": "escape1",
+   "traces": 7620,
+   "tally": {
+    "exact": 6233,
+    "within 0.01 unit": 1387
+   },
+   "propTraces": {
+    "prop entity: exact": 234,
+    "prop entity: within 0.01 unit": 6
+   },
+   "entityPointContents": 600,
+   "entityPointContentsSame": 600,
+   "retailExecutableSha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+   "fntech3ExecutableSha256": "6cecdc0ebf0ea849951c3c93ecfc361353a11e67c1b82734aee8de3120b031d3",
+   "moduleSha256": "725725e96ee2ff99ce2dc2af920b349f324218579a5a2983816ec75394546a2c",
+   "seed": 20261008,
+   "perShapeCount": 100
+  },
+  {
+   "phase": "after",
+   "mode": "rtcw-sp",
+   "map": "village1",
+   "traces": 7620,
+   "tally": {
+    "exact": 6458,
+    "within 0.01 unit": 1162
+   },
+   "propTraces": {
+    "prop entity: exact": 230,
+    "prop entity: within 0.01 unit": 10
+   },
+   "entityPointContents": 600,
+   "entityPointContentsSame": 600,
+   "retailExecutableSha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+   "fntech3ExecutableSha256": "6cecdc0ebf0ea849951c3c93ecfc361353a11e67c1b82734aee8de3120b031d3",
+   "moduleSha256": "725725e96ee2ff99ce2dc2af920b349f324218579a5a2983816ec75394546a2c",
+   "seed": 20261008,
+   "perShapeCount": 100
+  },
+  {
+   "phase": "after",
+   "mode": "rtcw-mp",
+   "map": "mp_beach",
+   "traces": 7620,
+   "tally": {
+    "exact": 6638,
+    "within 0.01 unit": 982
+   },
+   "propTraces": {
+    "prop entity: exact": 236,
+    "prop entity: within 0.01 unit": 4
+   },
+   "entityPointContents": 600,
+   "entityPointContentsSame": 600,
+   "retailExecutableSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+   "fntech3ExecutableSha256": "6cecdc0ebf0ea849951c3c93ecfc361353a11e67c1b82734aee8de3120b031d3",
+   "moduleSha256": "92da4b0973d4dc641d31193d8bdb9b11ebbd75a6ea173764bc6e2655cda80a2c",
+   "seed": 20261008,
+   "perShapeCount": 100
+  },
+  {
+   "phase": "after",
+   "mode": "rtcw-mp",
+   "map": "mp_assault",
+   "traces": 7620,
+   "tally": {
+    "exact": 6409,
+    "within 0.01 unit": 1211
+   },
+   "propTraces": {
+    "prop entity: exact": 240
+   },
+   "entityPointContents": 600,
+   "entityPointContentsSame": 600,
+   "retailExecutableSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+   "fntech3ExecutableSha256": "6cecdc0ebf0ea849951c3c93ecfc361353a11e67c1b82734aee8de3120b031d3",
+   "moduleSha256": "92da4b0973d4dc641d31193d8bdb9b11ebbd75a6ea173764bc6e2655cda80a2c",
+   "seed": 20261008,
+   "perShapeCount": 100
+  }
+ ],
+ "inferences": [
+  "Only three of the 400 state-battery points per map fell where the state and current placements part, so the point-contents change shows in three answers per map; every one now matches retail.",
+  "The carried prop is the chair an RTCW SP player picks up; retail sweeps from the carrier pass over it, so the carrier does not collide with what it carries."
+ ]
+}

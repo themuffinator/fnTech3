@@ -170,7 +170,7 @@ template<class Entity,class Player> void run(comGameId_t id){
  for(std::size_t n=0;n<count;++n){
   Entity e{};e.s.number=int(n);e.r.linked=1;e.r.ownerNum=ENTITYNUM_NONE;e.r.contents=contents[n];
   for(int axis=0;axis<3;++axis){e.r.mins[axis]=-8;e.r.maxs[axis]=8;}
-  e.r.currentOrigin[0]=64.0f*n;
+  e.r.currentOrigin[0]=e.s.origin[0]=64.0f*n;
   if(n==5)e.r.svFlags=id==COM_GAME_QUAKE3||id==COM_GAME_QUAKELIVE?SVF_CAPSULE:FNTECH3_RTCW_SVF_CAPSULE;
   std::memcpy(memory.data()+base+n*stride,&e,sizeof(e));
  }
@@ -219,6 +219,29 @@ template<class Entity,class Player> void run(comGameId_t id){
  Check(single.entityNum==1&&single.contents==body&&single.fraction<1,"SV_ClipToEntity reports CONTENTS_BODY");
  touching={1,2,3,4,5};vec3_t point{64,0,0};
  Check(SV_PointContents(point,ENTITYNUM_NONE)==body,"SV_PointContents reads CONTENTS_BODY");
+ // RTCW's point contents place an entity at its s.origin (WolfSP.exe
+ // 0x43a1ba, WolfMP.exe 0x43d60a); the other profiles at r.currentOrigin.
+ const bool rtcw=id==COM_GAME_RTCW_SP||id==COM_GAME_RTCW_MP;
+ auto entityAt=[&](int n){Entity e;std::memcpy(&e,memory.data()+base+n*stride,sizeof(e));return e;};
+ auto store=[&](int n,const Entity &e){std::memcpy(memory.data()+base+n*stride,&e,sizeof(e));};
+ Entity moved=entityAt(4);moved.s.origin[0]+=32;store(4,moved);
+ vec3_t current{256,0,0},state{288,0,0};
+ touching={4};
+ Check(SV_PointContents(current,ENTITYNUM_NONE)==(rtcw?0:body),"Point contents at r.currentOrigin");
+ Check(SV_PointContents(state,ENTITYNUM_NONE)==(rtcw?body:0),"Point contents at s.origin");
+ std::memcpy(memory.data(),before.data(),memory.size());
+ // RTCW SP's sweep passes over an ET_PROP whose otherEntityNum is the pass
+ // entity plus one, a carried prop (WolfSP.exe 0x439f07..0x439f16).
+ Entity prop=entityAt(4);prop.s.eType=32;prop.s.otherEntityNum=4;store(4,prop);
+ auto sweepBy=[&](int pass){
+  touching={1,2,3,4,5};vec3_t from{0,0,0},to{512,0,0};trace_t result;
+  SV_Trace(&result,from,lo,hi,to,pass,body,qfalse);return result;
+ };
+ const trace_t carried=sweepBy(3);
+ Check(id==COM_GAME_RTCW_SP?misses(carried):hits(carried,4,body),"A carried prop");
+ Check(hits(sweepBy(2),4,body),"A prop another entity carries");
+ Check(hits(sweepBy(ENTITYNUM_NONE),4,body),"A prop with no pass entity");
+ std::memcpy(memory.data(),before.data(),memory.size());
  // As a client game's entity traces do.
  const vec3_t mins{-8,-8,-8},maxs{8,8,8},origin{64,0,0};trace_t client;
  const clipHandle_t box=CM_TempBoxModel(mins,maxs,qfalse);

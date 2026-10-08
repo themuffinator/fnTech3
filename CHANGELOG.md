@@ -2242,6 +2242,12 @@ historical upstream records, not fnTech3 release history. See the
   already shut, as both its engines do. fnTech3 stopped the level with
   "negative reference count" where the original game went on
   ([record](docs/fntech3/2026-10-08-rtcw-area-portals.md)).
+- Place Return to Castle Wolfenstein entities as its engines do when the
+  server asks what is at a point: where the game last sent them, and turned
+  as it sent them, as `WolfSP.exe` and `WolfMP.exe` do, where fnTech3 used
+  the entity's current position. In single player a sweep from a player no
+  longer stops on the object that player carries, as in the original game
+  ([record](docs/fntech3/2026-10-08-rtcw-entity-queries.md)).
 
 ### Builds and Packaging
 

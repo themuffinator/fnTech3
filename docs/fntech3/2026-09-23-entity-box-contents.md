@@ -159,17 +159,19 @@ the original engine's name so the two can be compared.
   `CONTENTS_BODY`. The gameplay effects above are inferred from the game
   sources.
 - Three related differences were found and left alone, for their own
-  changes:
+  changes; RTCW's two are followed since the
+  [entity-query record](2026-10-08-rtcw-entity-queries.md):
   - ET's `SV_ClipMoveToEntities` and `SV_PointContents` skip an entity whose
     clip handle is 0, the world (`et.exe` `0x449e59` and `0x44a63d`). fnTech3
     traces it.
   - RTCW SP's `SV_ClipMoveToEntities` skips an `ET_PROP` whose
     `s.otherEntityNum` is the pass entity plus one, a carried chair
-    (`WolfSP.exe` `0x439f07`..`0x439f16`). fnTech3 does not.
+    (`WolfSP.exe` `0x439f07`..`0x439f16`). fnTech3 now does too.
   - `WolfMP.exe`'s `SV_PointContents` passes the entity's `s.origin` and
     `s.angles` to `CM_TransformedPointContents` (`0x43d60a`..`0x43d614`), as
-    the Quake III source does. fnTech3 passes `r.currentOrigin`, and zero
-    angles for a box. `et.exe` passes `r.currentOrigin` and `r.currentAngles`.
+    the Quake III source does, and so does `WolfSP.exe` (`0x43a1ba`..
+    `0x43a1c4`). fnTech3 now does too for both RTCW modes. `et.exe` passes
+    `r.currentOrigin` and `r.currentAngles`.
 - Jedi Outcast's and Jedi Academy's `CONTENTS_BODY` is `0x100`, not Quake
   III's `0x2000000`, which Raven leaves unused. Their retail engines build the
   box brush with `0x100`: `jk2mp.exe` at `0x420e92`, `jk2sp.exe` at

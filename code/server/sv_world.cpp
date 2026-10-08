@@ -691,6 +691,8 @@ static void SV_ClipMoveToEntities( moveclip_t &clip ) {
 	float		*origin;
 	const float *angles;
 	const bool ihv = Com_GameProfile()->id == COM_GAME_QUAKE3_IHV;
+	const bool rtcwSP = Com_GameProfile()->id == COM_GAME_RTCW_SP;
+	constexpr int rtcwSPPropType = 32;	// RTCW SP's ET_PROP
 	const bool checkOwner = ihv ? clip.passEntityNum > 0 : clip.passEntityNum != ENTITYNUM_NONE;
 
 	num = SV_AreaEntities( clip.boxmins, clip.boxmaxs, touchlist.data(), SV_ArraySize(touchlist) );
@@ -752,6 +754,14 @@ static void SV_ClipMoveToEntities( moveclip_t &clip ) {
 		// if it doesn't have any brushes of a type we
 		// are looking for, ignore it
 		if ( ! ( clip.contentmask & entity.r.contents ) ) {
+			continue;
+		}
+
+		// RTCW SP's sweep passes over a prop its pass entity carries: an
+		// ET_PROP whose otherEntityNum is the pass entity's number plus one
+		// (WolfSP.exe 0x439f07..0x439f16). WolfMP.exe has no such test.
+		if ( rtcwSP && entity.s.eType == rtcwSPPropType
+			&& entity.s.otherEntityNum == clip.passEntityNum + 1 ) {
 			continue;
 		}
 
@@ -912,6 +922,7 @@ int SV_PointContents( const vec3_t p, int passEntityNum ) {
 	const float		*angles;
 	const float		*origin;
 	const bool ihv = Com_GameProfile()->id == COM_GAME_QUAKE3_IHV;
+	const bool stateOrigin = ihv || Com_GameProfile()->titleId == COM_GAME_TITLE_RTCW;
 	if ( ihv && !SV_FiniteWorldVector( p ) ) {
 		Com_Error( ERR_DROP, "%s: invalid IHV point", __func__ );
 		return 0;
@@ -934,10 +945,12 @@ int SV_PointContents( const vec3_t p, int passEntityNum ) {
 		}
 		if ( ihv && entity.s.number == passEntityNum ) continue;
 		// Original point queries always use state.origin/state.angles,
-		// including boxes and entities with SVF_USE_CURRENT_ORIGIN set.
-		origin = ihv ? entity.s.origin : entity.r.currentOrigin;
-		angles = ihv ? entity.s.angles : entity.r.currentAngles;
-		if ( !ihv && !entity.r.bmodel ) {
+		// including boxes and entities with SVF_USE_CURRENT_ORIGIN set; so
+		// do both RTCW engines (WolfSP.exe 0x43a1ba..0x43a1c4, WolfMP.exe
+		// 0x43d60a..0x43d614).
+		origin = stateOrigin ? entity.s.origin : entity.r.currentOrigin;
+		angles = stateOrigin ? entity.s.angles : entity.r.currentAngles;
+		if ( !stateOrigin && !entity.r.bmodel ) {
 			angles = vec3_origin;	// boxes don't rotate
 		}
 		if ( ihv && ( !SV_ValidWorldBounds( entity.r.mins, entity.r.maxs )
