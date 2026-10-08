@@ -383,6 +383,14 @@ servers report a ping of 999 for a while after a level change, as
 `SV_CalcPings` (`0x41a910`) averages frame records that outlive the level.
 No profile gate closes.
 
+The [2026-10-08 IHV serverinfo record](2026-10-08-q3-ihv-serverinfo.md)
+publishes the original's serverinfo keys, in its order: those its `SV_Init`
+(`0x419a40`) marks, such as `hostname` and `privateclients`, and the game's.
+fnTech3's own serverinfo cvars, such as `sv_hostname` and
+`sv_allowDownload`, no longer appear. `getstatus` carries the same string, so
+a server browser reads the `hostname` an operator sets. Only the version stays
+fnTech3's. No profile gate closes.
+
 The original client's parser treats the download message as illegible
 (`0x407188`), so no IHV peer can carry a download, and downloads are no
 longer counted as an IHV gap. No profile gate closes.

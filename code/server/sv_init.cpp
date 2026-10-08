@@ -173,6 +173,9 @@ void SV_SetConfigstring (int index, const char *val) {
 		val = SV_Q3TestServerinfo();
 	} else if ( Com_GameIsQ3Test() && index == CS_SYSTEMINFO ) {
 		val = SV_Q3TestSysteminfo();
+	} else if ( Com_GameIsQuake3IHV() && index == CS_SERVERINFO ) {
+		// So is the IHV Test's serverinfo (server_q3_ihv_net.hpp).
+		val = SV_IHVServerinfo();
 	}
 
 	// don't bother broadcasting an update if no change

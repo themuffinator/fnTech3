@@ -313,7 +313,7 @@ screen. `record <name>` records a demo the original IHV Test can play too,
 and `stoprecord` ends it. Commands the game itself knows, such as `kill`,
 reach the server from the console. The portal on `km_portal` shows the view
 through it, turning as in the original. fnTech3's own server takes players too, from the
-original IHV Test or from fnTech3. The IHV Test cannot download files, so
+original IHV Test or from fnTech3; name it with `hostname`, as the original does. The IHV Test cannot download files, so
 every player needs the maps already. The
 [IHV record](fntech3/Q3_IHV.md) has the details.
 

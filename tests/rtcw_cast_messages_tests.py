@@ -29,6 +29,7 @@ void SV_IHVNetServerCommand(client_t*,const char*){assert(false);}
 void SV_IHVNetConfigstringChanged(int){assert(false);}
 const char *SV_Q3TestSysteminfo(){assert(false);return "";}
 const char *SV_Q3TestServerinfo(){assert(false);return "";}
+const char *SV_IHVServerinfo(){assert(false);return "";}
 int Com_GameConfigstringLimit(){return 32;}
 static int drops;
 void SV_DropClient(client_t *client,const char*){++drops;client->state=CS_ZOMBIE;}

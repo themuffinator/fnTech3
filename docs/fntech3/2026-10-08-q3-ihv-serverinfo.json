@@ -1,0 +1,40 @@
+{
+  "record": "2026-10-08-q3-ihv-serverinfo.md",
+  "profile": "q3-ihv",
+  "baseCommit": "00bd14ef9d9c7970cb17f34e4ae6ddcf347acfea",
+  "platform": "Windows x86, MSVC 2022, meson debugoptimized export build with strict warnings, loopback",
+  "binaries": {
+    "fntech3.exe": "f5346572bc506baba215e9964b6c1b4432674d79eab0622f67ed876ca64104fc",
+    "fntech3.ded.exe": "a47019e7990d0466eca6b138c0aa2359a239981ea1d13ecfa6fcddcbfff5d8a6",
+    "original quake3.exe": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37"
+  },
+  "original": {
+    "serverinfo": "\\teamflags\\0\\maxclients\\8\\gamedate\\Feb 12 1999\\gamename\\baseq3\\sv_maxclients\\8\\privateclients\\0\\mapname\\tim_dm1\\protocol\\33\\timelimit\\0\\fraglimit\\0\\dmflags\\0\\version\\4.01 x86 Feb 12 1999 RELEASE\\hostname\\noname\\cheats\\1",
+    "systeminfo": "\\serverid\\0\\mapChecksum\\1733697977",
+    "getstatus": "status\\nprobe\\n<serverinfo>\\n0 25 \"fnTech3\"\\n",
+    "getinfo": "info\\n33 \"noname\" \"tim_dm1\" 8 91536724\\n",
+    "svInit": "0x419a40 Cvar_Get(name, value, flags): timelimit 0 8; cheats 1 0x28; protocol (va %i 33) 0x88; mapname nomap 0x88; privateclients 0 8; hostname noname 9; sv_maxclients 8 0x28; sv_running 0x80; rconpassword, sv_fps 40, sv_timeout 120, sv_zombietime 2, sv_allowdownload 1, sv_public, sv_master1-5, sv_reconnectlimit 3, sv_nopredict, sv_showloss, sv_pad, sv_killserver all 0",
+    "cgameReads": ["dmflags", "fraglimit", "mapname", "maxclients", "teamflags", "timelimit"],
+    "gameNames": ["cheats", "dmflags", "fraglimit", "gamedate", "gamename", "maxclients", "teamflags", "timelimit"]
+  },
+  "before": {
+    "serverinfo": "\\cheats\\1\\dmflags\\0\\fraglimit\\0\\g_gametype\\0\\gamedate\\Feb 12 1999\\gamename\\baseq3\\mapname\\tim_dm1\\maxclients\\8\\protocol\\33\\sv_allowDownload\\1\\sv_dlRate\\100\\sv_floodProtect\\1\\sv_hostname\\noname\\sv_maxRate\\0\\sv_maxclients\\8\\sv_minRate\\0\\sv_playingDemo\\0\\sv_privateClients\\0\\teamflags\\0\\timelimit\\0\\version\\fnTech3 0.1.0 win_msvc-x86-debug Oct  8 2026",
+    "systeminfo": "\\serverid\\141\\mapChecksum\\1733697977"
+  },
+  "after": {
+    "serverinfo": "\\teamflags\\0\\maxclients\\8\\gamedate\\Feb 12 1999\\gamename\\baseq3\\sv_maxclients\\8\\privateclients\\0\\mapname\\tim_dm1\\protocol\\33\\timelimit\\0\\fraglimit\\0\\dmflags\\0\\version\\fnTech3 0.1.0 win_msvc-x86-debug Oct  8 2026\\hostname\\noname\\cheats\\1",
+    "getstatus": "status\\nprobe\\n<serverinfo>\\n0 0 \"fnTech3\"\\n",
+    "getinfo": "info\\n33 \"noname\" \"tim_dm1\" 8 1\\n",
+    "hostname": ["+set hostname IHVProbe: getstatus hostname IHVProbe, getinfo \"IHVProbe\"", "rcon set hostname Renamed: getstatus hostname Renamed, getinfo \"Renamed\""]
+  },
+  "change": "code/server/server_q3_ihv_net.hpp SV_IHVServerinfo (original engine keys and the game's serverinfo cvars in the original's order), used by sv_init.cpp SV_SetConfigstring for CS_SERVERINFO and by getstatus; hostname and privateclients registered with CVAR_SERVERINFO",
+  "kept": ["version: this engine's", "getinfo's last word: this engine's connected count; the original's is an unset word"],
+  "commands": {
+    "original": ".tmp/ihv-client/probe_orig_pair.py info-orig2 --fn-client <export>/fntech3.exe --fn-script \"wait 600|serverinfo|wait 60|quit\" --steps \"12:getstatus probe|13:getinfo probe\"",
+    "fntech3": ".tmp/ihv-client/probe_serve.py info-fn2 --server <export>/fntech3.ded.exe --no-client --fn-client --fn-script \"wait 600|serverinfo|wait 60\" --steps \"12:getstatus probe|13:getinfo probe\"",
+    "hostname": ".tmp/ihv-client/probe_serve.py info-fn3 --no-client --extra \"+set hostname IHVProbe +set rconpassword probe\" --steps \"6:getstatus x|7:getinfo x|8:rcon probe set hostname Renamed|10:getstatus y|11:getinfo y\""
+  },
+  "tests": ["tests/q3_ihv_serverinfo_tests.py", "tests/rtcw_cast_messages_tests.py (stub)"],
+  "inputInjected": false,
+  "open": ["fought play", "remote peers"]
+}

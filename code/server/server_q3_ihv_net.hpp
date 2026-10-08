@@ -562,7 +562,7 @@ void SV_IHVConnectionless( const netadr_t *from, msg_t *msg ) {
 			players.push_back( { SV_IHVScore( slot ), session ? SV_ClientForIndex( slot ).ping : 0,
 				ihvGameClientRecords.Name( slot ) } );
 		}
-		const std::string reply = ihvsv::StatusReply( Cmd_Argv( 1 ), Cvar_InfoString( CVAR_SERVERINFO, nullptr ), players );
+		const std::string reply = ihvsv::StatusReply( Cmd_Argv( 1 ), SV_IHVServerinfo(), players );
 		NET_OutOfBandPrint( NS_SERVER, from, "%s", reply.c_str() );
 	} else if ( !strcmp( verb, "getinfo" ) ) {
 		const std::string reply = ihvsv::InfoReply( Cvar_VariableString( "hostname" ), sv_mapname->string,
@@ -764,12 +764,46 @@ int SV_IHVNetClientScore( int slot ) {
 
 /* The original's own server cvars that this engine names differently:
  * hostname, privateclients and rconpassword (SV_Init 0x419a40), and
- * sv_nopredict. */
+ * sv_nopredict. The first two are serverinfo there (flags 9 and 8). */
 void SV_IHVNetRegisterCvars( void ) {
-	Cvar_Get( "hostname", "noname", 0 );
-	Cvar_Get( "privateclients", "0", 0 );
+	Cvar_Get( "hostname", "noname", CVAR_SERVERINFO | CVAR_ARCHIVE );
+	Cvar_Get( "privateclients", "0", CVAR_SERVERINFO );
 	Cvar_Get( "rconpassword", "", CVAR_TEMP );
 	Cvar_Get( "sv_nopredict", "0", 0 );
+}
+
+/* The original's serverinfo: what its SV_Init (0x419a40) registers with the
+ * serverinfo bit (8) -- timelimit, cheats, protocol, mapname, privateclients,
+ * hostname and sv_maxclients -- with the version, and the game's serverinfo
+ * cvars. This engine's own serverinfo cvars (sv_hostname, sv_privateClients,
+ * sv_allowDownload, sv_dlRate, sv_floodProtect, sv_minRate, sv_maxRate,
+ * sv_playingDemo, g_gametype) have no IHV counterpart, and the original keeps
+ * its download switch out (0x419b66). Keys come in the order the original's
+ * cvar list gives them with the build's game; the version is this engine's. */
+const char *SV_IHVServerinfo( void ) {
+	static char info[MAX_INFO_STRING];
+	static const char *const engine[] = { "sv_maxclients", "privateclients", "mapname", "protocol",
+		"timelimit", "version", "hostname", "cheats" };
+	static const char *const order[] = { "teamflags", "maxclients", "gamedate", "gamename",
+		"sv_maxclients", "privateclients", "mapname", "protocol", "timelimit", "fraglimit", "dmflags",
+		"version", "hostname", "cheats" };
+	const auto game = []( const char *key ) {
+		for ( const IhvGameCvar *node = ihvGameCvars; node; node = node->next )
+			if ( ( fntech3::q3ihv::CvarFlagsToEngine( node->flags ) & CVAR_SERVERINFO ) && !Q_stricmp( node->name, key ) )
+				return true;
+		return false;
+	};
+	const auto published = [&game]( const char *key ) {
+		for ( const char *name : engine ) if ( !Q_stricmp( name, key ) ) return true;
+		return game( key );
+	};
+	info[0] = '\0';
+	for ( const char *key : order )
+		if ( published( key ) ) Info_SetValueForKey( info, key, Cvar_VariableString( key ) );
+	for ( const IhvGameCvar *node = ihvGameCvars; node; node = node->next )
+		if ( game( node->name ) && !Info_ValueForKey( info, node->name )[0] )
+			Info_SetValueForKey( info, node->name, Cvar_VariableString( node->name ) );
+	return info;
 }
 
 const char *SV_IHVNetRconPassword( void ) {

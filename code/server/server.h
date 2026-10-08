@@ -640,6 +640,7 @@ void SV_IHVNetCalcPings( void );
 int SV_IHVNetClientScore( int slot );
 void SV_IHVNetRegisterCvars( void );
 const char *SV_IHVNetRconPassword( void );
+const char *SV_IHVServerinfo( void );
 void SV_FreeClient( client_t *client );
 void SV_DropClient( client_t *drop, const char *reason );
 void SV_StartDemoRecord( client_t *client );
