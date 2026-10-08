@@ -46,6 +46,8 @@ typedef struct {
 
 #define PORTAL_VIEW_STACK_PLANS 4
 
+#include "tr_q3_ihv_portal.h"
+
 #ifdef USE_PMLIGHT
 #include "tr_rtcw_engine_lights.h"
 
@@ -154,7 +156,9 @@ static void R_PortalApplyCameraSpin( const trRefEntity_t *entity, orientation_t 
 	float d;
 	vec3_t transformed;
 
-	if ( entity->e.oldframe ) {
+	if ( entity->e.q3IHV.active ) {
+		d = Q3IHV_PortalRoll( tr.refdef.time, entity->e.frame, entity->e.skinNum );
+	} else if ( entity->e.oldframe ) {
 		if ( entity->e.frame ) {
 			d = ( tr.refdef.time / 1000.0f ) * entity->e.frame;
 		} else {
@@ -292,7 +296,8 @@ static qboolean R_PortalSurfaceIsOffscreen( const drawSurf_t *drawSurf, qboolean
 		return qfalse;
 	}
 
-	if ( shortest > ( tess.shader->portalRange * tess.shader->portalRange ) ) {
+	if ( Q3IHV_PortalRanged( ri.gameId ) &&
+		shortest > ( tess.shader->portalRange * tess.shader->portalRange ) ) {
 		return qtrue;
 	}
 

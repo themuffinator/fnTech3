@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_main.c -- main control flow for each frame
 
 #include "tr_local.h"
+#include "../renderercommon/tr_q3_ihv_portal.h"
 #include "../renderercommon/tr_jka_distance_cull.h"
 #include "../renderercommon/tr_jka_entity.h"
 #include "../renderercommon/tr_q3_ihv_entity_view.h"
@@ -1212,8 +1213,14 @@ static qboolean R_GetPortalOrientations( const drawSurf_t *drawSurf, int entityN
 		VectorSubtract( vec3_origin, camera->axis[0], camera->axis[0] );
 		VectorSubtract( vec3_origin, camera->axis[1], camera->axis[1] );
 
-		// optionally rotate
-		if ( e->e.oldframe ) {
+		// optionally rotate; the IHV Test always does
+		if ( e->e.q3IHV.active ) {
+			d = Q3IHV_PortalRoll( tr.refdef.time, e->e.frame, e->e.skinNum );
+			VectorCopy( camera->axis[1], transformed );
+			RotatePointAroundVector( camera->axis[1], camera->axis[0], transformed, d );
+			CrossProduct( camera->axis[0], camera->axis[1], camera->axis[2] );
+		}
+		else if ( e->e.oldframe ) {
 			// if a speed is specified
 			if ( e->e.frame ) {
 				// continuous rotate
@@ -1414,7 +1421,8 @@ static qboolean SurfIsOffscreen( const drawSurf_t *drawSurf, qboolean *isMirror 
 		return qfalse;
 	}
 
-	if ( shortest > (tess.shader->portalRange*tess.shader->portalRange) )
+	if ( Q3IHV_PortalRanged( ri.gameId ) &&
+		shortest > (tess.shader->portalRange*tess.shader->portalRange) )
 	{
 		return qtrue;
 	}

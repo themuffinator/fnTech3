@@ -164,6 +164,8 @@ static char s_wolfetImplicitMap[MAX_QPATH];
 static const char *R_WolfETImplicitImage(const char *name) { return name; }
 static void R_WolfETFixShaderName(char *) {}
 static void R_CreateWolfETDefaultShading(image_t *image) { R_CreateDefaultShading(image); }
+// The IHV Test's stageless scripts are exercised by q3_ihv_stageless_portal_tests.py.
+static qboolean s_q3ihvStagelessImage;
 static shader_t *FinishShader() {
     ++finishes; const int stage = stageCount;
 ''' + adjustment + r'''

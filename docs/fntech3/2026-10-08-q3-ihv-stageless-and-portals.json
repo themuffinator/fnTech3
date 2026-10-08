@@ -1,0 +1,53 @@
+{
+  "record": "2026-10-08-q3-ihv-stageless-and-portals.md",
+  "profile": "q3-ihv",
+  "baseCommit": "dc715a37c60c9d6b3000b37e19d7609d6a2ffa00",
+  "platform": "Windows x86, MSVC 2022, meson debugoptimized export build with strict warnings",
+  "binaries": {
+    "fntech3.exe": "f16c7ee465803084bf947ddeab9456ba677bfaf6e499ad1469e17510309a9eb5",
+    "fntech3.ded.exe": "86a80a6442d1b1fbd8a8c327ee40691a6cb1bda768076842cadec764f84689e2",
+    "beforeFntech3.exe": "26411f009c4320dd60128a143562dfda66518dfcb615e94cf2eeef71f0cbce4e",
+    "original quake3.exe": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37"
+  },
+  "stagelessScripts": {
+    "originalParseShader": "0x43a3c0; returns 0 when stages == 0, not sky ([shader+0x4c]) and not fog ([shader+0x88]) at 0x43ad34..0x43ad54, otherwise FinishShader 0x43beb0",
+    "originalFindShader": "0x439fd0 calls 0x43a350 (text lookup then ParseShader); a 0 result falls to the image path: %s.tga, %s.bmp, %s.wal, %s.pcx through 0x438b00 (0x43a1a9..0x43a297), implicit stage 0 and iterator 0x43f760 (0x43a2d8..0x43a337); a missing image prints 'shader image not found' and copies the default shader (0x43a299)",
+    "q3_132": "ParseShader returns qfalse and R_FindShader sets defaultShader; world surfaces then use tr.defaultShader",
+    "buildScript": "scripts/sfx.shader textures/sfx/blackness: surfaceparm nolightmap, noimpact, nomarks; no stage",
+    "buildImage": "textures/sfx/blackness.tga: type 2, 32x32, 24-bit, black",
+    "stagelessScriptsInBuild": 33,
+    "withImage": ["textures/sfx/blackness"],
+    "mapsUsingIt": {"km_portal": "7 surfaces, lightmaps 10-15", "ihv_test1": "present"},
+    "beforeShaderlist": "textures/sfx/blackness (DEFAULTED)",
+    "afterShaderlist": "1 L MT(x) gen : textures/sfx/blackness",
+    "fix": "code/renderercommon/tr_q3_ihv_stageless.h: R_Q3IHVStagelessImage sets s_q3ihvStagelessImage for COM_GAME_QUAKE3_IHV where ParseShader ignores a stageless script; R_FindShaderInternal then continues to R_FindShaderImage; reset in InitShader; all three tr_shader.c"
+  },
+  "portals": {
+    "portalKeyword": "0x43a78a stores 1 at shader+0x7c; no range argument; no alphaGen portal in the dialect",
+    "originalPass": "0x42c160: returns for a recursive portal (0x4f002b8, 'WARNING: recursive mirror/portal found') or r_noportals != 0 (0x42c18a); otherwise orientation 0x42bde0 and view 0x42c9b0; no off-screen or distance test",
+    "originalOrientation": "0x42bde0: first entity with flag 0x800 (record +88) whose origin (+40) lies within [-64, 64] of the surface plane; oldorigin (+56) equal to origin makes a mirror; otherwise camera at oldorigin, axis (+4) with forward and left negated",
+    "originalRoll": "0x42c0b6..0x42c12c: frame (+52) nonzero: fild refdef.time (0x43d6aac), fmul 0.001f (0x45b550), fimul frame; else fild time, fmul 0.003 (double 0x45b548), fsin, fmul 4.0f (0x45b3f8), fiadd skinNum (+76); RotatePointAroundVector 0x413630 then CrossProduct 0x414690",
+    "q3_132": "SurfIsOffscreen skips a portal beyond shader.portalRange, set only by alphaGen portal (0 otherwise); the camera rolls only with oldframe set, or by skinNum alone",
+    "kmPortalEntity": "flags 0x800, frame 25, origin 2168 1761 168",
+    "fix": "code/renderercommon/tr_q3_ihv_portal.h: Q3IHV_PortalRanged false and Q3IHV_PortalRoll for IHV entities (q3IHV.active); used by tr_portal_plan.h (GLx, Vulkan) and rendererrtx/tr_main.c",
+    "kept": "off-screen and back-facing portal surfaces are still skipped; their views cannot be seen"
+  },
+  "captures": {
+    "before": {"glxKmPortal": "3deda7ffc47a6618 (grid walls, white portal)"},
+    "glx": {"spawn": "5b65c74820990e9f", "plus1s": "c0f62c99da721ce8", "plus2s": "517ac43b50e68715", "noportals": "f49352f586a7fc8d"},
+    "vk": {"spawn": "08fe7e16fff7d583", "plus1s": "6f953cdb113cf337"},
+    "rtx": {"spawn": "50bfd7818797f646", "plus1s": "44d5eb9b067ce111"},
+    "original": {"kmPortalSpawn": "dda008f47390c8aa", "kmPortalLater": "ee03a2105ce38be0", "ihvTest1": "7d02def423cff72f"},
+    "fntech3IhvTest1": "e83446461d08fe06",
+    "sliOpening": "14241b94bff3499e"
+  },
+  "commands": {
+    "fntech3": ".tmp/ihv-client/probe_serve.py <run> --server <export>/fntech3.ded.exe --map km_portal --no-client --fn-client --fn-renderer glx|vk|rtx --fn-script \"wait 200|screenshotPNG a|wait 60|screenshotPNG b|...\"",
+    "original": ".tmp/ihv-client/probe_serve.py <run> --map km_portal --raw 'set shotloop \"screenshot;vstr w1000;vstr shotloop\"|vstr shotloop' (the original's waits count loop passes; frames kept: 0400, 1200)",
+    "demo": ".tmp/ihv-client/probe_demo.py sli-portal --client <export>/fntech3.exe --frames 60,240,600"
+  },
+  "tests": ["tests/q3_ihv_stageless_portal_tests.py", "tests/model_shader_tests.py (fixture flag)"],
+  "notChanged": ["fnTech3 lighting brighter than the original's captures, whose probe ran with r_nohwgamma 1", "sli.dm3 opening particle burst draws as large white discs; no original capture at that moment"],
+  "inputInjected": false,
+  "open": ["the particle comparison", "the build's menus", "input-driven play"]
+}

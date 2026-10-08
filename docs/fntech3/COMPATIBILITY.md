@@ -355,6 +355,22 @@ closes three client gaps.
 
 No profile gate closes.
 
+The [2026-10-08 IHV stageless and portals record](2026-10-08-q3-ihv-stageless-and-portals.md)
+closes two rendering gaps on `km_portal`, the map of the build's `sli.dm3`.
+Captures of the original client and fnTech3's at the same spawn showed both.
+
+- A shader script with no stage that is neither sky nor fog now draws the
+  image of its name. The original's `R_FindShader` (`0x439fd0`) does this; Q3
+  1.32 gives such a script the default shader. `km_portal`'s walls
+  (`textures/sfx/blackness`) now draw black, as in the original, not as
+  fnTech3's grid.
+- Portals have no range and their cameras always roll, as in the original's
+  portal pass and orientation (`0x42c160`, `0x42bde0`). The IHV dialect has
+  no `alphaGen portal`, so Q3 1.32's range test had never drawn the view.
+  `km_portal`'s portal now shows its turning view in GLx, Vulkan and RTX.
+
+No profile gate closes.
+
 The original client's parser treats the download message as illegible
 (`0x407188`), so no IHV peer can carry a download, and downloads are no
 longer counted as an IHV gap. No profile gate closes.

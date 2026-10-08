@@ -130,6 +130,7 @@ static void R_RtSnapshotStages( int numStages )
 #endif
 
 #include "../renderercommon/tr_wolfet_shader.h"
+#include "../renderercommon/tr_q3_ihv_stageless.h"
 #include "../renderercommon/tr_jka_shader.h"
 
 static image_t *R_FindShaderImage( const char *name, imgFlags_t flags ) {
@@ -2923,6 +2924,8 @@ static qboolean ParseShader( const char **text )
 	// ignore shaders that don't have any stages, unless it is a sky or fog
 	//
 	if ( numStages == 0 && !shader.isSky && !(shader.contentFlags & CONTENTS_FOG ) && !s_wolfetImplicitMap[0] ) {
+		// the IHV Test then reads the name as an image (tr_q3_ihv_stageless.h)
+		R_Q3IHVStagelessImage();
 		return qfalse;
 	}
 
@@ -3848,6 +3851,7 @@ static void InitShader( const char *name, int lightmapIndex ) {
 	VectorSet( shader.surfaceLightImageColor, 1.0f, 1.0f, 1.0f );
 	R_ApplyShaderPicMipFilter();
 	R_WolfETResetImplicit();
+	s_q3ihvStagelessImage = qfalse;
 
 	// we need to know original (unmodified) lightmap index
 	// because shader search functions expects this
@@ -5015,13 +5019,16 @@ static shader_t *R_FindShaderInternal( const char *name, int lightmapIndex,
 		}
 
 		if ( !ParseShader( &shaderText ) ) {
-			// had errors, so use default shader
-			shader.defaultShader = qtrue;
-			return FinishShader();
+			// an IHV Test script without stages goes on to find its image
+			if ( !s_q3ihvStagelessImage ) {
+				// had errors, so use default shader
+				shader.defaultShader = qtrue;
+				return FinishShader();
+			}
 		}
 
 		// an Enemy Territory shader mapped implicitly goes on to find its image
-		if ( !s_wolfetImplicitMap[0] ) {
+		else if ( !s_wolfetImplicitMap[0] ) {
 			return FinishShader();
 		}
 	}
