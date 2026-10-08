@@ -4,8 +4,8 @@ The [legacy-server record](2026-10-05-legacy-server-hosting.md) passed a UDP
 pak download inside a mod with retail Quake III, RTCW and ET. Its pak was
 32 KiB on clean loopback; larger files and loss were open. These runs
 download a 1 MiB pak while fnTech3's side drops a fifth of the packets it
-receives, in both directions, with each of those three retail engines. All
-pass. The [JSON companion](2026-10-08-legacy-downloads-under-loss.json) holds
+receives, in both directions, with each of those three retail engines and
+with retail Elite Force. All pass. The [JSON companion](2026-10-08-legacy-downloads-under-loss.json) holds
 identities, commands and results.
 
 ## Method
@@ -35,6 +35,7 @@ installation is unchanged afterwards.
 | Quake III (`quake3.exe` 1.32) | pak exact, enters pure | pak exact, enters pure |
 | RTCW MP (`WolfMP.exe` 1.4) | pak exact, enters pure; the retail server logged 29 "dropped gamestate, resending" | pak exact, enters pure |
 | ET (`etded.exe` / `et.exe` 2.60b) | pak exact, enters pure; 6 gamestate resends against 1 without loss | pak exact, enters pure |
+| Elite Force Holomatch (`stvoyHM.exe` 1.20) | pak exact, enters pure | pak exact, enters pure; fnTech3's server resent the gamestate 4 times |
 
 "Exact" means the client's pak hashes the same as the server's. No partial
 `.tmp` file remained, and no client was reported unpure. A control run for ET
@@ -47,6 +48,6 @@ harness effect, not a fault.
 
 ## Open
 
-Retail Elite Force, real networks, files of tens of megabytes, broader maps
-and mods, and the gamestate-overflow fallback remain open. No profile gate
+Real networks, files of tens of megabytes, broader maps and mods, and the
+gamestate-overflow fallback remain open. No profile gate
 closes.

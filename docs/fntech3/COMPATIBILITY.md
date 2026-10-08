@@ -105,11 +105,11 @@ client and the retail Jedi clients remain open. No profile gate closes.
 
 The [2026-10-08 downloads under loss record](2026-10-08-legacy-downloads-under-loss.md)
 repeats that UDP download with a 1 MiB pak while fnTech3's side drops a fifth
-of the packets it receives (`net_dropsim 20`). With retail Quake III, RTCW and
-ET, in both directions, the client's pak matches the server's byte for byte
-and the client enters pure, though RTCW's retail server resent the gamestate
-29 times. Retail Elite Force, real networks and much larger files remain
-open. No profile gate closes.
+of the packets it receives (`net_dropsim 20`). With retail Quake III, RTCW, ET
+and Elite Force, in both directions, the client's pak matches the server's
+byte for byte and the client enters pure, though RTCW's retail server resent
+the gamestate 29 times. Real networks and much larger files remain open. No
+profile gate closes.
 
 The [2026-10-06 GameSpy record](2026-10-06-mohaa-gamespy-lan-queries.md)
 makes a Medal of Honor multiplayer server, dedicated or listen, answer
