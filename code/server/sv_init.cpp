@@ -192,6 +192,11 @@ void SV_SetConfigstring (int index, const char *val) {
 		SV_Q3TestConfigstringChanged( index );
 		return;
 	}
+	// The IHV Test repeats changes in its clients' datagrams instead.
+	if ( Com_GameIsQuake3IHV() ) {
+		SV_IHVNetConfigstringChanged( index );
+		return;
+	}
 
 	// send it to all the clients if we aren't
 	// spawning a new server
@@ -800,6 +805,9 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	if ( Com_GameIsQ3Test() ) {
 		SV_Q3TestSpawnReset();
 	}
+	if ( Com_GameIsQuake3IHV() ) {
+		SV_IHVNetSpawnReset();
+	}
 	for ( int index : SV_Indices( Com_GameConfigstringLimit() ) ) {
 		sv.configstrings[index] = CopyString("");
 	}
@@ -960,7 +968,14 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	// create a baseline for more efficient communications
 	SV_CreateBaseline();
 
+	// The IHV Test offers its clients, bots included, to its game again.
+	if ( Com_GameIsQuake3IHV() ) {
+		SV_IHVNetReconnectClients();
+	}
 	for ( SV_ClientSlot slot : SV_ClientSlots() ) {
+		if ( Com_GameIsQuake3IHV() ) {
+			break;
+		}
 		// send the new gamestate to all connected clients
 		if ( slot.client.state >= CS_CONNECTED ) {
 			const char *denied;
@@ -1209,6 +1224,9 @@ void SV_Init( void )
 	Cvar_Get ("sv_keywords", "", CVAR_SERVERINFO);
 	if ( Com_GameIsQ3Test() ) {
 		SV_Q3TestRegisterCvars();
+	}
+	if ( Com_GameIsQuake3IHV() ) {
+		SV_IHVNetRegisterCvars();
 	}
 	//Cvar_Get ("protocol", va("%i", PROTOCOL_VERSION), CVAR_SERVERINFO | CVAR_ROM);
 	if ( Com_GameIsQuake3IHV() ) {
@@ -1508,6 +1526,11 @@ static void SV_FinalMessage( const char *message ) {
 		NET_FlushPacketQueue( 99999 );
 		return;
 	}
+	if ( Com_GameIsQuake3IHV() ) {
+		SV_IHVNetFinalMessage( message );
+		NET_FlushPacketQueue( 99999 );
+		return;
+	}
 
 	// send it twice, ignoring rate
 	for ( j = 0 ; j < 2 ; j++ ) {
@@ -1575,9 +1598,12 @@ void SV_Shutdown( const char *finalmsg ) {
 			SV_FreeClient( &client );
 		}
 	}
-	// Q3Test's client channels go with their slots.
+	// Q3Test's client channels go with their slots, as the IHV Test's do.
 	if ( Com_GameIsQ3Test() ) {
 		SV_Q3TestClearSessions();
+	}
+	if ( Com_GameIsQuake3IHV() ) {
+		SV_IHVNetClearSessions();
 	}
 
 	// free current level

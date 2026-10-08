@@ -27,7 +27,7 @@ hashes, rather than its commit alone, identify those supplied inputs.
 | Identity/filesystem | `4.01 x86 Feb 12 1999 RELEASE`, supplied loose `baseq3` assets, module DLLs beside the executable; original also contains `pak%i.pk3` lookup | **PARTIAL — Unit/Fixture/Live:** separate `q3-ihv` profile, bounded Win32 export/BSP43 metadata detection, native module names and root containment. Mixed retail/IHV markers fail as ambiguous. Dedicated startup validates loose installation evidence instead of retail pak checksums. Native reads own their buffers; writable paths are bounded to the isolated home/game. **OPEN:** full original filesystem/pak contract; automatic recognition covers the supplied loose installation. Other profiles retain their pak checks. |
 | Game module | `qagamex86.dll` exports `GetGameAPI`; returns API 4; copies 35 import words; advertises an entity stride of 556 bytes | **PARTIAL — Unit/Build/Fixture/Live:** API 4 dispatch now starts the original DLL, spawns all four supplied maps, runs frames, preserves game allocations between maps and shuts down cleanly. Separate cvar/entity records, allocation validation and partial-startup cleanup have executable tests. All thirty-five imports are implemented: the bot lifecycle, bot scheduler, snapshot getters, the snapshot builder that fills their history and the protocol-33 message that carries a frame all use native client records compared against the original functions. **OPEN:** transport, shared player projections, client/gameplay callbacks and parity. This is not retail Q3 GAME API 8 or its `dllEntry`/`vmMain` interface. |
 | Client module | `cgamex86.dll` exports `GetCGameAPI`, returning eight callbacks; its Init copies 62 import words | **PARTIAL — Unit/Source/Fixture/Live:** exact client records and ordered delivery; an isolated host completes original Init, all 56 `sli.dm3` frame updates and draw callbacks without patching cgame. The developer client now hosts the module with all 62 imports served by engine services -- collision, renderers, audio, 2D -- and plays `sli.dm3` to its end on GLx, Vulkan and RTX ([client record](2026-10-08-q3-ihv-client.md)). Live, it predicts against the original dedicated server ([live client record](2026-10-08-q3-ihv-live-client.md)). **OPEN:** the build's menus, the overlay quad, input. |
-| Server protocol | Original dedicated server starts `tim_dm1`; `getinfo ihvprobe` returns an `info` text reply advertising 33 | **PARTIAL — Unit/Fixture:** separate entity/player/usercmd codecs and transactional gamestate/configstring/snapshot/command message readers and writers, with ordered events. The dedicated server now builds each client's snapshot message, byte-identical to the original writer across 1,536 generated scenarios, and its netchan matches the original's packets byte for byte across 5,202 of them. **OPEN:** handshake, client sessions, downloads, transmission and bidirectional sessions. The query reply is not the retail `infoResponse` key/value format. The fnTech3 client's handshake and session with the original server are observed ([live client record](2026-10-08-q3-ihv-live-client.md)); fnTech3's own server still takes no client. |
+| Server protocol | Original dedicated server starts `tim_dm1`; `getinfo ihvprobe` returns an `info` text reply advertising 33 | **PARTIAL — Unit/Fixture:** separate entity/player/usercmd codecs and transactional gamestate/configstring/snapshot/command message readers and writers, with ordered events. The dedicated server now builds each client's snapshot message, byte-identical to the original writer across 1,536 generated scenarios, and its netchan matches the original's packets byte for byte across 5,202 of them. The query reply is not the retail `infoResponse` key/value format. Sessions run in both directions: the fnTech3 client joins the original server ([live client record](2026-10-08-q3-ihv-live-client.md)), and the original client joins fnTech3's ([server sessions record](2026-10-08-q3-ihv-server-sessions.md)). **OPEN:** downloads, sustained and fought play, the original serverinfo keys. |
 | Demo container | `.dm3` records contain a signed length followed by message bytes, without the later per-record server sequence word | **PARTIAL — Unit/Fixture/Live:** bounded length-only reader/writer and protocol-33 message parsing; `demo` plays a record at a time as the client game asks ([client record](2026-10-08-q3-ihv-client.md)). Recording remains open and is refused by name. This is not the later raw-43 `.dm3` contract. |
 | `sli.dm3` | 57 message records plus a `-1` length terminator; initial configstrings advertise 33 and `km_portal` | **Fixture and reference runtime:** isolated codecs parse/regenerate all 57 messages; 55 are byte-identical. All 56 native snapshots and 680 entity states match the original parser. A later isolated cgame host completes Init, unmodified snapshot callbacks and 56 frame/draw updates, capturing 124 scenes with synthetic collision/resource services. The original engine completes timedemo playback. The fnTech3 developer client plays it to its end through the original client game on all three renderers ([client record](2026-10-08-q3-ihv-client.md)). |
 | `berj.dm3` | One 879-byte configstring block; no gamestate opener, snapshots or terminator | **Malformed/incomplete fixture:** the new message decoder rejects it cleanly in x86 and x64 tests. The original engine exits with access violation `0xC0000005`. Successful playback cannot be inferred from the filename. |
@@ -53,9 +53,8 @@ separate. Existing profile IDs retain their values. The profile permits only
 the supplied Win32 x86 `qagamex86.dll` / `cgamex86.dll` module names, with no
 QVM, `vmMain`, QL structured API or UI DLL fallback. It has no Steam identity,
 Workshop or retail pure-proof contract. Default builds remain blocked. The
-developer option is restricted to Windows x86; its server does not enable the
-packet dispatcher, and its client plays demos and connects to the original
-server.
+developer option is restricted to Windows x86. Its server takes protocol-33
+clients, and its client plays demos and connects to the original server.
 
 ## Developer client and demo playback
 
@@ -76,7 +75,17 @@ handshake is Quake II's -- `getchallenge`, `challenge`, `connect 33 <qport>
 with the client game's provisional command and the frame's ping read from
 `quake3.exe`'s own `CL_SendCmd` and `CL_ParseFrame`. On loopback the client
 enters the original server's `tim_dm1`, receives its frames and leaves
-cleanly; the original client joining an fnTech3 server is still open.
+cleanly.
+
+The [server sessions record](2026-10-08-q3-ihv-server-sessions.md) serves the
+original client from fnTech3's dedicated server. Its connectionless verbs,
+connect, gamestate, moves, server commands, configstring repeats, rate
+schedule, ping, level changes and drops are read from `quake3.exe`'s own
+server (`0x41a560`, `0x4181d0`, `0x418750`, `0x418cc0`, `0x419e90`,
+`0x41af60`, `0x41b520`, `0x41a910`, `0x419966`, `0x4186e0`). The original
+client joins `tim_dm1` on loopback, plays and leaves cleanly. Beside
+fnTech3's own client it survives a level change, and a kick reaches it as a
+clean disconnect.
 
 ## Dedicated native game integration
 
@@ -420,12 +429,9 @@ the offset it expected (`0x412d15`), so one lost fragment stops every later
 reassembly on that channel. fnTech3 forgets the partial message instead, which
 lets the peer's retransmission start over.
 
-**OPEN:** nothing carries these packets yet. The connectionless handshake, the
-challenge and connect exchange, the client slots a session would occupy, the
-gamestate a new client needs, the reliable server-command stream and the
-usercmd path back from a client are all unimplemented, and
-`GAME_CLIENT_CONNECT` still refuses a client. Until that layer exists the
-snapshot messages above have no peer to reach.
+Client sessions now carry these packets in both directions; see the
+[live client record](2026-10-08-q3-ihv-live-client.md) and the
+[server sessions record](2026-10-08-q3-ihv-server-sessions.md).
 
 ## Native server game-data adapter
 

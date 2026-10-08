@@ -73,6 +73,9 @@ static bool q3test;
 static char q3testPassword[] = "old";
 static int Com_GameIsQ3Test( void ) { return q3test; }
 static const char *SV_Q3TestRconPassword( void ) { return q3testPassword; }
+// The IHV Test's own password cvar is rconpassword; no case here selects it.
+static int Com_GameIsQuake3IHV( void ) { return 0; }
+static const char *SV_IHVNetRconPassword( void ) { return ""; }
 static char rconPassword2[64];
 static netadr_t redirectAddress;
 static const char *NET_AdrToString( const netadr_t * ) { return "127.0.0.1"; }

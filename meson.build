@@ -2449,6 +2449,12 @@ q3_ihv_client_data_tests = executable('fntech3_q3_ihv_client_data_tests',
 )
 test('fntech3_q3_ihv_client_data', q3_ihv_client_data_tests)
 
+q3_ihv_server_session_tests = executable('fntech3_q3_ihv_server_session_tests',
+  'tests/q3_ihv_server_session_tests.cpp',
+  cpp_args: common_cpp_args,
+)
+test('fntech3_q3_ihv_server_session', q3_ihv_server_session_tests)
+
 q3_ihv_model_tags_tests = executable('fntech3_q3_ihv_model_tags_tests',
   'tests/q3_ihv_model_tags_tests.cpp',
   cpp_args: common_cpp_args,

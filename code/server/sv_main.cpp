@@ -323,6 +323,11 @@ void QDECL SV_SendServerCommand( client_t *cl, const char *fmt, ... ) {
 		SV_Q3TestSendServerCommand( cl, message.data() );
 		return;
 	}
+	// So do the IHV Test's, on its clients' reliable messages.
+	if ( Com_GameIsQuake3IHV() ) {
+		SV_IHVNetServerCommand( cl, message.data() );
+		return;
+	}
 
 	if ( cl != nullptr ) {
 		// outdated clients can't properly decode 1023-chars-long strings
@@ -1335,8 +1340,9 @@ static void SVC_RemoteCommand( const netadr_t *from ) {
 	}
 
 	pw = Cmd_Argv( 1 );
-	// Q3Test 1.02 names its password rcon_password.
-	const char *const rconPassword = Com_GameIsQ3Test() ? SV_Q3TestRconPassword() : sv_rconPassword->string;
+	// Q3Test 1.02 names its password rcon_password, the IHV Test rconpassword.
+	const char *const rconPassword = Com_GameIsQ3Test() ? SV_Q3TestRconPassword()
+		: Com_GameIsQuake3IHV() ? SV_IHVNetRconPassword() : sv_rconPassword->string;
 	if ( ( rconPassword[0] && strcmp( pw, rconPassword ) == 0 ) ||
 		( rconPassword2[0] && strcmp( pw, rconPassword2 ) == 0 ) ) {
 		valid = true;
@@ -1507,9 +1513,12 @@ SV_PacketEvent
 =================
 */
 void SV_PacketEvent( const netadr_t *from, msg_t *msg ) {
-	// Dedicated IHV developer probes exercise native game imports only. Its
-	// protocol-33 envelopes must never enter the retail packet dispatcher.
-	if ( Com_GameIsQuake3IHV() ) return;
+	// The IHV Test's protocol-33 packets are its own sessions'
+	// (server_q3_ihv_net.hpp); none enters the retail dispatcher.
+	if ( Com_GameIsQuake3IHV() ) {
+		SV_IHVNetPacketEvent( from, msg );
+		return;
+	}
 	// Q3Test's packets are its own sessions' (server_q3test_net.hpp).
 	if ( Com_GameIsQ3Test() ) {
 		SV_Q3TestPacketEvent( from, msg );
@@ -1589,6 +1598,12 @@ static void SV_CalcPings( void ) {
 	int			j;
 	int			total, count;
 	int			delta;
+
+	// The IHV Test averages its own frames (server_q3_ihv_net.hpp).
+	if ( Com_GameIsQuake3IHV() ) {
+		SV_IHVNetCalcPings();
+		return;
+	}
 
 	for ( SV_ClientSlot slot : SV_ClientSlots() ) {
 		client_t &client = slot.client;

@@ -444,14 +444,17 @@ static void Snapshots(){
  float storedOrigin[3];
  std::memcpy(storedOrigin,payload.playerState.bytes+FNTECH3_Q3_IHV_PLAYER_ORIGIN,sizeof storedOrigin);
  CHECK(!storedOrigin[0]&&!storedOrigin[1]&&!storedOrigin[2]);
- // The interval gates the next build; the frame stays put until it passes.
- CHECK(ihvGameClientRecords.NextSnapshotTime(0)==sv.time+50);
+ // A bot returns before its next snapshot time is advanced (0x41b544), so
+ // every server frame rebuilds its snapshot.
+ CHECK(!ihvGameClientRecords.NextSnapshotTime(0));
  auto *removed=ihvGameEntities.At(3);removed->inuse=0;
  SV_IHVServerFrame();
- CHECK(Snapshot(viewer)==all);
+ CHECK((Snapshot(viewer)==std::vector<int>{2,4,5,6,7}));
+ // A network client's slot is left to its session's own pass.
+ removed->inuse=1;CHECK(ihvGameClientRecords.SetRemote(0,true));
  sv.time+=1000;SV_IHVServerFrame();
  CHECK((Snapshot(viewer)==std::vector<int>{2,4,5,6,7}));
- removed->inuse=1;
+ CHECK(ihvGameClientRecords.SetRemote(0,false));
  // Unlinked, no-client, a disconnected area and an invisible cluster each drop
  // an entity. Broadcast ignores visibility but not the first two rules.
  for(int rule=0;rule<4;++rule){

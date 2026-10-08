@@ -27,6 +27,7 @@ int Com_GameIsQuakeLive(){return profile.id==COM_GAME_QUAKELIVE;}
 // shared path stands in for its catalog entry here.
 int Com_GameIsQ3Test(){return 0;}
 void SV_Q3TestDropClient(client_t*,const char*){assert(false);}
+void SV_IHVNetDropClient(client_t*,const char*){assert(false);}
 int Com_GameClientLimit(){return Com_GameIsRTCW()?128:64;}
 static cvar_t timeout{},zombieTime{},quitOnEmpty{},maxclients{},gametype{};
 cvar_t *sv_timeout=&timeout,*sv_zombietime=&zombieTime,*sv_quitOnEmpty=&quitOnEmpty,*sv_maxclients=&maxclients;

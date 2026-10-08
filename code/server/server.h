@@ -625,6 +625,21 @@ void SV_MOHAAUserMove( client_t *cl, msg_t *msg, qboolean delta );
 void SV_IHVServerFrame( void );
 void SV_IHVServerBaselines( void );
 int SV_IHVServerSnapshotMessage( int slot, void *buffer, int capacity );
+/* Its protocol-33 client sessions (server_q3_ihv_net.hpp): connectionless
+ * verbs, channels, gamestates, server commands, moves and datagrams. */
+void SV_IHVNetPacketEvent( const netadr_t *from, msg_t *msg );
+void SV_IHVNetSendClientMessages( void );
+void SV_IHVNetServerCommand( client_t *client, const char *text );
+void SV_IHVNetConfigstringChanged( int index );
+void SV_IHVNetSpawnReset( void );
+void SV_IHVNetReconnectClients( void );
+void SV_IHVNetDropClient( client_t *drop, const char *reason );
+void SV_IHVNetFinalMessage( const char *message );
+void SV_IHVNetClearSessions( void );
+void SV_IHVNetCalcPings( void );
+int SV_IHVNetClientScore( int slot );
+void SV_IHVNetRegisterCvars( void );
+const char *SV_IHVNetRconPassword( void );
 void SV_FreeClient( client_t *client );
 void SV_DropClient( client_t *drop, const char *reason );
 void SV_StartDemoRecord( client_t *client );

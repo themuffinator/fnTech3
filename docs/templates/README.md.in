@@ -72,7 +72,7 @@ server and three renderers -- aims to run ten games:
 | American McGee's Alice | `alice` | Experimental, Windows: `-Dalice-development=true`. |
 | Heavy Metal: F.A.K.K.2 | `fakk2` | Experimental, Windows: `-Dfakk2-development=true`. |
 | Medal of Honor: Allied Assault | `mohaa` | Experimental, Windows: `-Dmohaa-development=true`. |
-| Quake III Arena IHV Test | `q3-ihv` | Experimental, Windows: `-Dq3-ihv-development=true`. A server, and a client that plays the test's demo and joins original IHV servers; fnTech3's server takes no players yet. |
+| Quake III Arena IHV Test | `q3-ihv` | Experimental, Windows: `-Dq3-ihv-development=true`. A server that takes original IHV Test players, and a client that plays the test's demo and joins original IHV servers. |
 | Quake III Arena Q3Test 1.02 to 1.08 | `q3test` | Experimental, Windows: `-Dq3test-development=true`. |
 
 **No game is finished yet.** The [Games Guide](docs/GAMES.md) says plainly

@@ -22,6 +22,7 @@ enum {
 	FNTECH3_Q3_IHV_CLIENT_FREE = 0,
 	FNTECH3_Q3_IHV_CLIENT_ZOMBIE = 1,
 	FNTECH3_Q3_IHV_CLIENT_CONNECTED = 2,
+	FNTECH3_Q3_IHV_CLIENT_PRIMED = 3,
 	FNTECH3_Q3_IHV_CLIENT_ACTIVE = 4,
 	/* Frames are addressed by the outgoing sequence's low five bits. */
 	FNTECH3_Q3_IHV_SNAPSHOT_FRAMES = 32,
@@ -128,7 +129,7 @@ public:
 	int NextSnapshotTime(int slot) const { return Valid(slot) ? At(slot).nextSnapshotTime : 0; }
 	/* Header state the snapshot writer reads: the message the client asked to
 	 * delta against, the sequences it has acknowledged and its snapshot flags.
-	 * A connected session sets these; nothing else in fnTech3 does yet. */
+	 * A client's session sets these before each datagram (server_q3_ihv_net.hpp). */
 	int DeltaMessage(int slot) const { return Valid(slot) ? At(slot).deltaMessage : 0; }
 	int ConfigSequence(int slot) const { return Valid(slot) ? At(slot).configSequence : 0; }
 	int CommandSequence(int slot) const { return Valid(slot) ? At(slot).commandSequence : 0; }
@@ -175,6 +176,32 @@ public:
 		client.lastPacketTime = time;
 		client.messageCleared = true;
 		client.entityBound = true;
+		return true;
+	}
+	/* A network client's slot. SV_DirectConnect 0x418511 zeroes the whole
+	 * record before it admits a client, and its session then moves the state
+	 * through connected, primed and active (0x41869e, 0x41877b, 0x418857). A
+	 * remote slot is one a protocol-33 session feeds; the snapshot pass leaves
+	 * those to the session, which builds and sends each when it is due. */
+	bool Free(int slot) {
+		if (!Valid(slot)) return false;
+		At(slot) = Client{};
+		return true;
+	}
+	bool SetState(int slot, int state) {
+		if (!Valid(slot) || state < FNTECH3_Q3_IHV_CLIENT_FREE || state > FNTECH3_Q3_IHV_CLIENT_ACTIVE) return false;
+		At(slot).state = state;
+		return true;
+	}
+	bool SetLastPacketTime(int slot, int time) {
+		if (!Valid(slot)) return false;
+		At(slot).lastPacketTime = time;
+		return true;
+	}
+	bool Remote(int slot) const { return Valid(slot) && At(slot).remote; }
+	bool SetRemote(int slot, bool remote) {
+		if (!Valid(slot)) return false;
+		At(slot).remote = remote;
 		return true;
 	}
 	/* BotFreeClient 0x4176e0 only marks the slot and clears the visible name;
@@ -332,6 +359,7 @@ private:
 		int snapshotFlags = 0;
 		bool messageCleared = false;
 		bool entityBound = false;
+		bool remote = false;
 		char userinfo[FNTECH3_Q3_IHV_USERINFO_BYTES]{};
 		char name[FNTECH3_Q3_IHV_CLIENT_NAME_LIMIT + 1]{};
 		SnapshotFrame frames[FNTECH3_Q3_IHV_SNAPSHOT_FRAMES]{};

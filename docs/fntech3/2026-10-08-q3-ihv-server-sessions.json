@@ -1,0 +1,62 @@
+{
+  "record": "2026-10-08-q3-ihv-server-sessions.md",
+  "profile": "q3-ihv",
+  "baseCommit": "6cc18d02aa5af460697e194289bbaa1b933da53a",
+  "platform": "Windows x86, MSVC 2022, meson debugoptimized export build with strict warnings",
+  "server": {
+    "fntech3.ded.exe": "965f00edeae9400d403fce78aeabc86a543bb366d2e19f0e91a9eec248be96f0",
+    "installation": "E:\\Games\\Quake 3 IHV (read only)",
+    "commandTemplate": "fntech3.ded.exe +set com_gameProfile q3-ihv +set fs_basepath <installation> +set fs_homepath <isolated home> +set net_ip 127.0.0.1 +set net_enabled 1 +set net_port 27996 +set developer 1 +set dedicated 1 [+set rconpassword probe] +map tim_dm1"
+  },
+  "clients": {
+    "original": {
+      "copy": ".tmp/q3-ihv/original-server",
+      "quake3.exe": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37",
+      "command": "quake3.exe +set dedicated 0 +set r_fullscreen 0 +set vid_fullscreen 0 +set in_mouse 0 +set in_joystick 0 +set fs_basepath . +set gl_driver opengl32 +set gl_allowExtensions 0 +set r_nohwgamma 1 +set logfile 2 +set public 0 +set s_initsound 0 +set maxfps 10 +set developer 1 +exec ihvserveprobe.cfg (connect 127.0.0.1:27996; vstr-chained waits; screenshot; quit)"
+    },
+    "fntech3": {
+      "fntech3.exe": "296fe3045665c751ac96536051c8a6da330e65f98eb74a689da942f170c4b742",
+      "commandTemplate": "fntech3.exe +set com_gameProfile q3-ihv +set fs_basepath <installation> +set fs_homepath <isolated home> +set r_fullscreen 0 +set net_enabled 1 +set net_ip 127.0.0.1 +set cl_renderer <renderer> +exec probe.cfg (connect 127.0.0.1:27996; waits; screenshotPNG; quit)"
+    }
+  },
+  "originalObservations": {
+    "connectionless": {"function": "0x41a560", "verbs": ["getstatus", "getinfo", "getchallenge", "connect", "rcon"], "ignored": ["disconnect"], "otherwise": "bad connectionless packet from %s:\\n%s\\n"},
+    "getchallenge": {"function": "0x4180e0", "entries": 1024, "key": "base address", "refreshed": false, "value": "(rand() << 16) ^ rand()", "reply": "challenge %i"},
+    "getinfo": {"function": "0x41a260", "reply": "info\\n33 \"<hostname>\" \"<mapname>\" <maxclients> <unwritten stack word>", "originalServerReply": "info\\n33 \"noname\" \"tim_dm1\" 8 91536724\\n"},
+    "getstatus": {"function": "0x41a0c0", "reply": "status\\n<argv1>\\n<serverinfo>\\n then \"%i %i \\\"%s\\\"\\n\" per connected client while under 1400 bytes", "score": "signed short at player state 0x84"},
+    "rcon": {"function": "0x41a340", "password": "rconpassword"},
+    "directConnect": {"function": "0x4181d0", "form": "connect 33 <qport> <challenge> \"<userinfo>\"", "badVersion": "print\\nServer is version 4.01.\\n", "privateSlots": "rconpassword matched by userinfo password opens privateclients", "reconnect": "same base address and qport or port, after sv_reconnectlimit, no disconnect", "gameFirst": "ClientConnect sees the userinfo before the slot is set up; a refusal leaves the slot free", "accept": "client_connect"},
+    "gamestate": {"function": "0x418750", "content": "opcode 2, set configstrings, baselines with field 2, 0x94, 0x95 or word 4 set, zero byte", "configAck": "the current configstring sequence"},
+    "executeMessage": {"function": "0x418ef0", "ops": {"1": "nop", "2": "move", "3": "client command, seven per message"}, "readers": "return -1 without consuming (0x410db0, 0x410de0, 0x410e10, 0x410e40)"},
+    "userMove": {"function": "0x418cc0", "order": ["serverId", "time", "delta", "configAck", "lastCommand", "count", "commands"], "enterWorld": "0x418840", "gapReplays": 5, "provisional": "ClientAfterCommands unless sv_nopredict", "stateTime": "entity state +80 = server time"},
+    "clientCommands": {"table": "0x4623a0", "verbs": ["userinfo", "disconnect", "download", "nextdl"], "userinfoOrder": "game ClientUserinfoChanged before SV_UserinfoChanged"},
+    "serverCommand": {"function": "0x419e90", "bytes": "5, text, terminator via WriteData", "broadcast": "state >= primed"},
+    "configstrings": {"stamp": "0x419655", "datagramRepeat": "0x41af60"},
+    "datagram": {"function": "0x41b520", "bytes": 1400, "schedule": "loopback every frame; silent over 1 s once a second; else max((bytes + 48) * 1000 / rate, snapshotMsec)", "rateDelayedFlag": "snapshot header flags"},
+    "sendClientMessages": {"function": "0x41b6a0", "nonActive": "empty message when reliable data waits or once a second", "overflow": "drop overflowed", "bots": "built every frame, never sent, next time never advanced"},
+    "ping": {"function": "0x41a910", "rule": "mean of non-negative acked - sent over all 32 frames; 999 when none or above"},
+    "messageWrites": {"bits": "0x410b40, dropped below four free bytes", "data": "0x410aa0 and 0x410d00 at the byte count", "overflowCopy": "0x410a30 clears first"},
+    "spawn": {"function": "0x419966", "reoffer": "every client from connected on, bots included, to ClientConnect; refused dropped"},
+    "drop": {"function": "0x4186e0"},
+    "finalMessage": {"function": "0x419cd0", "sends": "print and disconnect, twice, to every connected client"}
+  },
+  "runs": [
+    {"name": "final-original", "clients": ["original"], "originalExit": 0, "forced": false, "seconds": 29.7,
+     "serverLog": ["Original connected", "SV_SendGameState() for Original", "Begin() from Original", "Original entered the game", "Original disconnected"],
+     "captures": {"shot0000.tga": "27f272d9043d5872 (health 119)", "shot0001.tga": "dc11ee999b139f1d (health 106)"}},
+    {"name": "final-both", "clients": ["original", "fntech3 glx"], "originalExit": 0, "fntech3Exit": 0, "forced": false, "seconds": 65.3,
+     "steps": ["getinfo -> info 33 \"noname\" \"tim_dm1\" 8 2", "rcon status (two clients)", "getstatus", "rcon map km_portal -> both re-sent the gamestate and began again", "getstatus", "rcon status", "rcon clientkick 0 -> Original was kicked, disconnect on the original client", "getstatus"],
+     "captures": {"shot0000.tga": "f61df28c54970281", "shot0001.tga": "e12f5e7dc9f6f4cd (console: entered the game, telefrag, kicked, disconnect)", "fn-00-00600.png": "743c0536d8901a1f", "fn-01-01900.png": "859ed25071e6c82b (km_portal)"}},
+    {"name": "final-fn-glx", "clients": ["fntech3 glx"], "fntech3Exit": 0, "forced": false, "seconds": 21.4},
+    {"name": "final-fn-vk", "clients": ["fntech3 vk"], "fntech3Exit": 0, "forced": false, "seconds": 21.0},
+    {"name": "final-query", "clients": [], "replies": ["info\\n33 \"noname\" \"tim_dm1\" 8 0\\n", "status\\nx\\n<serverinfo>\\n", "challenge <n>", "print\\nServer is version 4.01.\\n", "(info 33: no reply)", "print\\nBad challenge.\\n"]}
+  ],
+  "earlierObservation": "in a run before the final build, the original client's ping read 999 for 16 s after a level change; inferred from the original's arithmetic as stale per-frame acknowledgement stamps from the previous level, not compared live",
+  "fntech3Boundaries": ["getinfo's last field is the connected count", "downloads refused with length -1", "datagram overflow counted past 1396 bytes", "no second drop of a zombie or free slot", "the engine's timeout check reads engine server time"],
+  "fidelityCorrection": "bot snapshots rebuilt every server frame instead of every snapshot interval",
+  "harness": [".tmp/ihv-client/probe_serve.py", ".tmp/ihv-client/query_original.py"],
+  "tests": ["tests/q3_ihv_server_session_tests.cpp", "tests/q3_ihv_game_bridge_tests.cpp (per-frame bot snapshots, network slot exemption)", "eleven sliced-source fixtures"],
+  "portability": "touched server sources pass GCC 13 and clang 18 -m32 syntax checks in WSL Ubuntu",
+  "inputInjected": false,
+  "open": ["longer, impaired and remote sessions", "moved and fought play", "downloads", "the original serverinfo key set", "the same scenes on the original server"]
+}

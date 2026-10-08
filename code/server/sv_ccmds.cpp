@@ -1549,13 +1549,18 @@ static void SV_Status_f( void ) {
 			continue;
 
 		Com_Printf( "%2i ", slot.index ); // id
-		if ( !SV_ReadGameClient( slot.index, &ps ) ) {
-			Com_Error( ERR_DROP, "%s: invalid game client %i", __func__,
-				slot.index );
-			return;
+		// The IHV Test's player state is its own, with the score at 0x84.
+		if ( Com_GameIsQuake3IHV() ) {
+			Com_Printf( "%5i ", SV_IHVNetClientScore( slot.index ) );
+		} else {
+			if ( !SV_ReadGameClient( slot.index, &ps ) ) {
+				Com_Error( ERR_DROP, "%s: invalid game client %i", __func__,
+					slot.index );
+				return;
+			}
+			Com_Printf( "%5i ", SV_GameGetClientScore( slot.index,
+				ps.persistant[PERS_SCORE] ) );
 		}
-		Com_Printf( "%5i ", SV_GameGetClientScore( slot.index,
-			ps.persistant[PERS_SCORE] ) );
 
 		// ping/status
 		if ( cl->state == CS_PRIMED )

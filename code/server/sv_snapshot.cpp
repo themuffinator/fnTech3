@@ -1461,6 +1461,10 @@ void SV_SendClientMessages( void )
 		SV_Q3TestSendClientMessages();
 		return;
 	}
+	if ( Com_GameIsQuake3IHV() ) {
+		SV_IHVNetSendClientMessages();
+		return;
+	}
 
 	// send a message to each connected client
 	for ( client_t &client : SV_Clients() )

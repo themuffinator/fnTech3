@@ -276,8 +276,8 @@ void SV_IHVBotUserinfo(fntech3_q3_ihv_entity_t *entity,const char *userinfo) {
 /* Native snapshot building. SV_BuildClientSnapshot 0x41b210 selects what a
  * client can see from its own view point, sorts those entity numbers and copies
  * each 164-byte native state into the shared ring, leaving the count and ring
- * position in the client's frame. Nothing here writes or sends a packet: the
- * protocol-33 message writer is separate and still gated. The walk itself lives
+ * position in the client's frame. Nothing here writes or sends a packet; the
+ * sessions in server_q3_ihv_net.hpp do. The walk itself lives
  * in q3_ihv_snapshot_select.hpp so the original-function probe drives the same
  * code; these callbacks supply the engine's collision and link records. */
 int SV_IHVPointLeafnum(void *,const float *point){return CM_PointLeafnum(point);}
@@ -360,8 +360,8 @@ void SV_IHVBuildClientSnapshot(int slot) {
 /* Protocol-33 snapshot writing. SV_WriteSnapshotToClient 0x41add0 chooses a
  * delta base from the client's retained frames, then emits one svc_snapshot
  * whose header, area bits, player delta and entity deltas the shared codec in
- * q3_ihv_message.hpp already encodes. Nothing here transmits the message: the
- * netchan and the connected client session remain gated. */
+ * q3_ihv_message.hpp already encodes. A client's session transmits it
+ * (server_q3_ihv_net.hpp). */
 void SV_IHVCreateBaselines() {
     SV_IHVBindEntities();
     for(auto &baseline:ihvGameState.baselines)baseline={};
@@ -437,15 +437,16 @@ void SV_IHVWriteSnapshotToClient(int slot,fntech3::q3ihv::wire::MessageWriter &w
         Com_Error(ERR_DROP,"IHV client %i cannot shorten its snapshot",slot);
 }
 /* SV_SendClientMessages 0x41b6a0 visits every client once per server frame and
- * builds a snapshot for an active one whose interval has elapsed. Sending is
- * skipped for bots (0x41b544) and remains unimplemented for everyone else. */
+ * builds a snapshot for an active one whose next snapshot time has come. A bot
+ * returns before anything is sent (0x41b544) and before that time is advanced
+ * (0x41b690), so a bot's snapshot is rebuilt every server frame. A network
+ * client's session builds, writes and sends its own (server_q3_ihv_net.hpp). */
 void SV_IHVBuildClientSnapshots() {
     if(!ihvGame || !ihvGameInitialized || !ihvGameClientRecords.Count())return;
     for(int slot=0;slot<ihvGameClientRecords.Count();++slot) {
         if(ihvGameClientRecords.State(slot)!=fntech3::q3ihv::FNTECH3_Q3_IHV_CLIENT_ACTIVE)continue;
-        if(sv.time<ihvGameClientRecords.NextSnapshotTime(slot))continue;
+        if(ihvGameClientRecords.Remote(slot) || sv.time<ihvGameClientRecords.NextSnapshotTime(slot))continue;
         SV_IHVBuildClientSnapshot(slot);
-        ihvGameClientRecords.SetNextSnapshotTime(slot,sv.time+ihvGameClientRecords.SnapshotMsec(slot));
     }
 }
 /* Bot scheduler 0x4177e0 runs before the game's RunFrame in the same simulated
@@ -515,7 +516,8 @@ intptr_t QDECL SV_IHVGameEntry(int command,...) {
     }
     case GAME_CONSOLE_COMMAND:result=ihvGame->ConsoleCommand();break;
     case GAME_CLIENT_CONNECT:
-        return reinterpret_cast<intptr_t>("IHV protocol-33 client integration is not yet available");
+        // The engine's own connect path never reaches this game.
+        return reinterpret_cast<intptr_t>("IHV protocol-33 clients connect through their own sessions");
     default:Com_Error(ERR_DROP,"IHV game export %i is not yet integrated",command);break;
     }
     SV_IHVBindEntities();return result;
@@ -549,9 +551,8 @@ void SV_IHVServerFrame( void ) { SV_IHVBuildClientSnapshots(); }
 void SV_IHVServerBaselines( void ) { SV_IHVCreateBaselines(); }
 
 /* One client's protocol-33 snapshot message, returning its byte count or -1
- * when the slot cannot be written. A connected session will transmit this;
- * GAME_CLIENT_CONNECT still refuses one, so nothing in the engine calls it
- * yet. The adapter tests and the reference probe do. */
+ * when the slot cannot be written. A session writes its own datagram around
+ * the same writer; the adapter tests and the reference probe call this. */
 int SV_IHVServerSnapshotMessage( int slot, void *buffer, int capacity ) {
     static fntech3::q3ihv::wire::MessageWriter writer;
     if ( !ihvGameClientRecords.Valid( slot ) || !buffer || capacity < 0 ) return -1;

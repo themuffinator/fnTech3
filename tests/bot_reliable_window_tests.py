@@ -66,6 +66,7 @@ int Com_GameIsRTCWMP(){return profile.id==COM_GAME_RTCW_MP;}
 // for its catalog entry here.
 int Com_GameIsQ3Test(){return 0;}
 void SV_Q3TestSendServerCommand(client_t*,const char*){assert(false);}
+void SV_IHVNetServerCommand(client_t*,const char*){assert(false);}
 static std::vector<std::pair<int,std::string>> drops;
 void SV_DropClient(client_t *client,const char *reason){
  drops.emplace_back(SV_ClientIndex(client),reason);client->state=CS_ZOMBIE;

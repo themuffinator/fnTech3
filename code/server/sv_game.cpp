@@ -1303,6 +1303,7 @@ static intptr_t SV_RTCWGameSharedCall( fntech3::rtcw::module::Call call ) {
 #include "server_jk2_sp_game.hpp"
 #include "server_stvef_sp_save.hpp"
 #include "server_q3_ihv_game.hpp"
+#include "server_q3_ihv_net.hpp"
 #include "server_alice_game.hpp"
 #include "server_mohaa_game.hpp"
 #include "server_q3test_game.hpp"

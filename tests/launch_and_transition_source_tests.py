@@ -127,7 +127,7 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
                 if client:
                     self.assertEqual(args[args.index("net_ip6") + 1], "::1", name)
             if profile == "q3-ihv":
-                # IHV's server drops every packet, so its probes run offline.
+                # IHV's launch probes run offline; its sessions have their own probes.
                 self.assertEqual(args[args.index("net_enabled") + 1], "0", name)
             mode = "SP" if profile in single_player else "ET" if profile == "wolfet" else "MP"
             if profile == "mohaa" and "g_gametype" in args and args[args.index("g_gametype") + 1] != "0":

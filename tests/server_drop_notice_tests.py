@@ -53,6 +53,7 @@ int Com_GameIsJK2MP(){return profile.id==COM_GAME_JK2_MP;}
 // shared path stands in for its catalog entry here.
 int Com_GameIsQ3Test(){return 0;}
 void SV_Q3TestDropClient(client_t*,const char*){assert(false);}
+void SV_IHVNetDropClient(client_t*,const char*){assert(false);}
 static cvar_t gametype{};
 cvar_t *sv_gametype=&gametype;
 vm_t *gvm=reinterpret_cast<vm_t*>(1);
@@ -173,6 +174,8 @@ static void formats(){
 static void everyProfile(){
  serverGameData.Invalidate();
  for(unsigned id=COM_GAME_QUAKE3;id<COM_GAME_COUNT;++id){
+  // The IHV test drops through its own sessions, which its own tests cover.
+  if(id==COM_GAME_QUAKE3_IHV)continue;
   profile.id=comGameId_t(id);useGameinfo(retailGameinfo);
   for(int type:{-1,0,1,2,3,4,5,6,7,32})for(bool bot:{false,true}){
    gametype.integer=type;
@@ -282,6 +285,7 @@ static void markRageQuit(){
 static void rageQuits(){
  serverGameData.Invalidate();
  for(unsigned id=COM_GAME_QUAKE3;id<COM_GAME_COUNT;++id){
+  if(id==COM_GAME_QUAKE3_IHV)continue;
   profile.id=comGameId_t(id);useGameinfo(retailGameinfo);gametype.integer=2;
   for(bool bot:{false,true}){
    drop(bot,nullptr,"disconnected","Player",true);

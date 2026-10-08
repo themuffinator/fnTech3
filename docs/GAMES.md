@@ -47,7 +47,7 @@ you use to start it. Several other spellings are accepted too.
 | Game | Mode | Name to use | Also accepted | Game folder | Settings file | Starts in |
 | --- | --- | --- | --- | --- | --- | --- |
 | Quake III Arena | | `quake3` | `q3`, `quake3arena` | `baseq3` | `q3config.cfg` | the normal download |
-| Quake III Arena IHV Test (February 1999) | | `q3-ihv` | `quake3-ihv`, `q3ihv`, `ihv` | `baseq3` | `q3config.cfg` | a development build: a server, and a client that plays demos and joins original servers |
+| Quake III Arena IHV Test (February 1999) | | `q3-ihv` | `quake3-ihv`, `q3ihv`, `ihv` | `baseq3` | `q3config.cfg` | a development build: a server that takes original and fnTech3 players, and a client that plays demos and joins original servers |
 | Quake III Arena Q3Test 1.02 to 1.08 (1999) | | `q3test` | `q3t`, `quake3-test` | `demoq3` | `q3config.cfg` | a Windows development build |
 | Quake Live | | `quakelive` | `ql` | `baseq3` | `qzconfig.cfg` | the normal download |
 | Return to Castle Wolfenstein | single player | `rtcw-sp` | `rtcwsp`, `wolfsp` | `main` | `wolfconfig.cfg` | a development build |
@@ -309,9 +309,9 @@ protocol and map format -- to need its own profile.
 code on its four maps, and the client runs the test's own client game: open
 the console and type `demo sli` to play its demo, or `connect <address>` to
 join a server running the original IHV Test. There is no menu beyond a title
-screen, and recording a demo is not supported. fnTech3's own server cannot
-take players yet: it ignores all network traffic, so run it with networking
-turned off (`+set net_enabled 0`). The
+screen, and recording a demo is not supported. fnTech3's own server takes
+players too, from the original IHV Test or from fnTech3. It does not send
+files, so every player needs the maps already. The
 [IHV record](fntech3/Q3_IHV.md) has the details.
 
 ## Quake III Arena Q3Test (`q3test`)

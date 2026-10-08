@@ -39,6 +39,7 @@ int Com_GameIsRTCWMP(){return profile.id==COM_GAME_RTCW_MP;}
 // shared path stands in for its catalog entry here.
 int Com_GameIsQ3Test(){return 0;}
 void SV_Q3TestSendServerCommand(client_t*,const char*){assert(false);}
+void SV_IHVNetServerCommand(client_t*,const char*){assert(false);}
 static std::vector<int> dropped;
 void SV_DropClient(client_t *client,const char *){dropped.push_back(SV_ClientIndex(client));client->state=CS_ZOMBIE;}
 void Q_strncpyz(char *out,const char *in,int size){assert(size>0);std::strncpy(out,in,size);out[size-1]=0;}
@@ -156,7 +157,8 @@ static void wolfET(){
 static void otherProfiles(){
  serverGameData.Invalidate();
  for(unsigned id=COM_GAME_QUAKE3;id<COM_GAME_COUNT;++id){
-  if(id==COM_GAME_WOLFET)continue;
+  // The IHV test's broadcasts take its own sessions, which its own tests cover.
+  if(id==COM_GAME_WOLFET||id==COM_GAME_QUAKE3_IHV)continue;
   profile.id=comGameId_t(id);
   setup({{CS_ACTIVE,NA_IP,unreadable},{CS_ACTIVE,NA_BOT,unreadable},{CS_PRIMED,NA_BOT,unreadable},
          {CS_CONNECTED,NA_BOT,unreadable},{CS_ZOMBIE,NA_BOT,unreadable},{CS_FREE,NA_BOT,unreadable},

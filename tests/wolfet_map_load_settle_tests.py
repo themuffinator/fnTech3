@@ -110,6 +110,9 @@ void SV_ClientEnterWorld(client_t *client,const void *cmd){
  assert(!cmd);events.push_back({"enter",int(client-clients),lastFrame-initTime,sv.time,""});
  client->state=CS_ACTIVE;
 }
+// The IHV test offers every client, bots included, to its game through its
+// own sessions (server_q3_ihv_net.hpp); here the call is all that counts.
+void SV_IHVNetReconnectClients(){events.push_back({"ihvreconnect",0,0,sv.time,""});}
 '''
 CHECKS = r'''
 static std::vector<Event> Expected(int p,int type,bool killBots){
@@ -139,7 +142,8 @@ static std::vector<Event> Expected(int p,int type,bool killBots){
  // or co-op game as well as when told to, with no reason, and begins the rest
  // 500 ms after the level's start.
  const bool dropBots=killBots||(et&&(type==0||type==1));
- for(int slot=2;slot<8;++slot){
+ if(ihv)want.push_back({"ihvreconnect",0,0,time,""});
+ for(int slot=2;slot<8&&!ihv;++slot){
   const bool bot=slot==5||slot==6;
   // Q3Test frees its bots' slots and tells the game nothing.
   if(bot&&q3test)continue;
@@ -191,9 +195,10 @@ int main(){
    std::printf("profile %d: sv.time %d, svs.time %d, %d waits\n",p,sv.time,svs.time,waits);
    return 1;
   }
-  // Each person the game takes back waits for the new gamestate.
-  for(int i=2;i<5;++i)assert(clients[i].state==CS_CONNECTED&&clients[i].gamestateAck==GSA_INIT&&!clients[i].gentity);
-  assert(clients[0].state==CS_FREE&&clients[1].state==CS_ZOMBIE&&clients[7].state==CS_ZOMBIE);
+  // Each person the game takes back waits for the new gamestate; the IHV
+  // test's sessions keep their own records.
+  for(int i=2;i<5&&!ihv;++i)assert(clients[i].state==CS_CONNECTED&&clients[i].gamestateAck==GSA_INIT&&!clients[i].gentity);
+  assert(clients[0].state==CS_FREE&&clients[1].state==CS_ZOMBIE&&(ihv||clients[7].state==CS_ZOMBIE));
   // Q3Test's bots leave their slots free and nameless.
   if(q3test&&!(clients[5].state==CS_FREE&&clients[6].state==CS_FREE&&!clients[5].name[0]&&!clients[6].name[0])){
    std::printf("profile %d: a bot kept its slot or name\n",p);
@@ -263,6 +268,10 @@ MUTATIONS = {
         '} else if ( false ) {\n\t\t/* Q3Test runs no frame here'),
     'Q3Test 1.08 runs no last frames': ('Com_Q3TestRelease()->protocol == 40', 'false'),
     "every Q3Test release runs 1.08's last frames": ('Com_Q3TestRelease()->protocol == 40', 'true'),
+    'the IHV test reconnects through the engine as well': (
+        'if ( Com_GameIsQuake3IHV() ) {\n\t\t\tbreak;', 'if ( false ) {\n\t\t\tbreak;'),
+    'the IHV test reconnects only through the engine': (
+        'if ( Com_GameIsQuake3IHV() ) {\n\t\tSV_IHVNetReconnectClients();', 'if ( false ) {\n\t\tSV_IHVNetReconnectClients();'),
 }
 
 

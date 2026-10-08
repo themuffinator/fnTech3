@@ -2194,6 +2194,11 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 		SV_Q3TestDropClient( drop, reason );
 		return;
 	}
+	// So does the IHV Test (server_q3_ihv_net.hpp).
+	if ( Com_GameIsQuake3IHV() ) {
+		SV_IHVNetDropClient( drop, reason );
+		return;
+	}
 	std::array<char, sizeof( drop->name )> name{};
 	bool isBot;
 

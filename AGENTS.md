@@ -46,8 +46,8 @@ for isolated probes; release builds still refuse both. Elite Force is gated too;
 `-Dstvef-development=true` enables its isolated probes.
 IHV remains gated by default; `-Dq3-ihv-development=true` permits Windows x86
 dedicated native-game probes and a developer client that plays its demos
-and joins its original server through the original client game. Its server's
-network path remains blocked.
+and joins its original server through the original client game; its
+developer server takes the original client.
 Jedi Academy is gated too: `-Djka-development=true` enables its isolated
 probes, as `-Djk2-development=true` enables Jedi Outcast's. Both developer
 multiplayer servers load retail game modules through their own adapters.

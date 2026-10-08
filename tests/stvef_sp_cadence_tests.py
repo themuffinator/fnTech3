@@ -70,6 +70,7 @@ int Com_GameIsSTVEFSP() { return profile == COM_GAME_STVEF_SP; }
 int Com_GameIsQ3Test() { return profile == COM_GAME_Q3TEST; }
 int Com_GameIsQuake3IHV() { return profile == COM_GAME_QUAKE3_IHV; }
 static void SV_Q3TestSendClientMessages() { assert(false); }
+static void SV_IHVNetSendClientMessages() { assert(false); }
 static void SV_IHVServerFrame() { assert(false); }
 static void SV_UpdateSysteminfoConfigstring() {}
 static std::array<client_t, 1> &SV_Clients() { return clients; }

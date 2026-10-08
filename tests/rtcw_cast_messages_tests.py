@@ -25,6 +25,8 @@ int Com_GameIsMOHAA(){return profile.id==COM_GAME_MOHAA;}
 int Com_GameIsQ3Test(){return 0;}
 void SV_Q3TestSendServerCommand(client_t*,const char*){assert(false);}
 void SV_Q3TestConfigstringChanged(int){assert(false);}
+void SV_IHVNetServerCommand(client_t*,const char*){assert(false);}
+void SV_IHVNetConfigstringChanged(int){assert(false);}
 const char *SV_Q3TestSysteminfo(){assert(false);return "";}
 const char *SV_Q3TestServerinfo(){assert(false);return "";}
 int Com_GameConfigstringLimit(){return 32;}

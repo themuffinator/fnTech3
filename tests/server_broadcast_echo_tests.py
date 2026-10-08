@@ -41,6 +41,9 @@ int Com_GameIsWolfET(){return profile.id==COM_GAME_WOLFET;}
 // shared path stands in for its catalog entry here.
 int Com_GameIsQ3Test(){return 0;}
 void SV_Q3TestSendServerCommand(client_t*,const char*){assert(false);}
+// So do the IHV Test's (server_q3_ihv_net.hpp).
+int Com_GameIsQuake3IHV(){return 0;}
+void SV_IHVNetServerCommand(client_t*,const char*){assert(false);}
 static std::vector<std::string> printed;
 void QDECL Com_Printf(const char *format,...){
  std::vector<char> text(1<<14);va_list args;va_start(args,format);
