@@ -31,6 +31,7 @@ int Com_GameIsQuake3() { return active == COM_GAME_QUAKE3; }
 int Com_GameIsQuakeLive() { return active == COM_GAME_QUAKELIVE; }
 int Com_GameIsWolfET() { return active == COM_GAME_WOLFET; }
 int Com_GameIsJKA() { return record.titleId == COM_GAME_TITLE_JKA; }
+int Com_GameIsAlice() { return active == COM_GAME_ALICE; }
 
 qboolean FS_FilenameCompare(const char *s1, const char *s2) {
  // Stands in for the engine comparison: case folded, separators equivalent.
@@ -47,6 +48,22 @@ qboolean FS_FilenameCompare(const char *s1, const char *s2) {
 
 int Q_stricmp(const char *a, const char *b) {
  return FS_FilenameCompare(a, b) ? 1 : 0;
+}
+
+int Q_stricmpn(const char *a, const char *b, int n) {
+ for (int i = 0; i < n; ++i) {
+  int c1 = a[i], c2 = b[i];
+  if (c1 >= 'a' && c1 <= 'z') c1 -= 'a' - 'A';
+  if (c2 >= 'a' && c2 <= 'z') c2 -= 'a' - 'A';
+  if (c1 != c2) return c1 < c2 ? -1 : 1;
+  if (!c1) return 0;
+ }
+ return 0;
+}
+
+void Q_strncpyz(char *dest, const char *src, int destsize) {
+ std::strncpy(dest, src, destsize - 1);
+ dest[destsize - 1] = '\0';
 }
 
 static char vaBuffer[1024];

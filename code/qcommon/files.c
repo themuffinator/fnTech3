@@ -6407,7 +6407,8 @@ downloadable.
 
 Jedi Academy numbers its own retail paks assets0-assets8 rather than pak0-pak8,
 and its own rule refuses that same set under a missionpack directory, which it
-inherited from Quake.
+inherited from Quake. Alice suffixes some of its numbered paks (pak1_small,
+pak4_english), and those are refused too.
 
 FS_idPak compares against the compile-time BASEGAME, which is Quake's directory.
 Profiles whose base game is named differently need this instead, or they would
@@ -6459,6 +6460,28 @@ qboolean FS_OfficialPak( const char *pak )
 	if ( Com_GameIsJKA() ) {
 		for ( i = 0; i < NUM_ID_PAKS; i++ ) {
 			if ( !FS_FilenameCompare( pak, va( "%s/%s%d", BASETA, stem, i ) ) ) {
+				return qtrue;
+			}
+		}
+	}
+
+	/* Alice ships pak1 in two texture sizes and its voices in a pak per
+	 * language -- pak1_small, pak1_large, pak4_english to pak4_spanish and
+	 * pak5_dutch -- so a numbered pak with a suffix after an underscore is
+	 * retail's too. */
+	if ( Com_GameIsAlice() ) {
+		char name[MAX_OSPATH];
+		char *c;
+		Q_strncpyz( name, pak, sizeof( name ) );
+		for ( c = name; *c; ++c ) {
+			if ( *c == '\\' ) {
+				*c = '/';
+			}
+		}
+		for ( i = 0; i < NUM_ID_PAKS; i++ ) {
+			const char *prefix = va( "%s/%s%d_", base, stem, i );
+			const size_t length = strlen( prefix );
+			if ( strlen( name ) > length && !Q_stricmpn( name, prefix, (int)length ) ) {
 				return qtrue;
 			}
 		}

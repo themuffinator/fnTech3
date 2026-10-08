@@ -37,11 +37,12 @@ constexpr bool qtrue=true,qfalse=false;
 #define NUM_TA_PAKS 4
 #define MAX_OSPATH 256
 #define MAX_ZPATH 256
-bool ql,localExists,jka;
+bool ql,localExists,jka,alice;
 bool Com_GameIsQuakeLive(){return ql;}
 bool Com_GameIsQuake3(){return !ql;}
 bool Com_GameIsWolfET(){return false;}
 bool Com_GameIsJKA(){return jka;}
+bool Com_GameIsAlice(){return alice;}
 struct comGameProfile_t{const char*baseGame;const char*officialPakStem;};
 comGameProfile_t activeProfile{BASEGAME,nullptr};
 const comGameProfile_t*Com_GameProfile(){return &activeProfile;}
@@ -50,6 +51,9 @@ int Q_stricmp(const char*a,const char*b){
  for(auto&c:x)c=std::tolower(static_cast<unsigned char>(c));
  for(auto&c:y)c=std::tolower(static_cast<unsigned char>(c));
  return x.compare(y);
+}
+int Q_stricmpn(const char*a,const char*b,int n){
+ return Q_stricmp(std::string(a).substr(0,size_t(n)).c_str(),std::string(b).substr(0,size_t(n)).c_str());
 }
 const char*va(const char*f,...){
  static char text[2048];va_list args;va_start(args,f);
@@ -144,6 +148,23 @@ int main(){
  fs_serverReferencedPakNames[0]="japlus/assets3.pk3";
  assert(FS_ComparePaks(jkaOutput,sizeof(jkaOutput),true));
  activeProfile={BASEGAME,nullptr};jka=false;
+ // Alice's ten retail paks in base/: the numbered ones and the suffixed
+ // texture-size and language sets. A mod's pak of the same name, an empty
+ // suffix and another stem stay downloadable.
+ alice=true;activeProfile={"base",nullptr};
+ for(const char*name:{"base/pak0","base/Pak2","base/Pak3","base/pak1_small","base/pak1_large",
+  "base/pak4_english","base/pak4_french","base/pak4_german","base/pak4_spanish","base/pak5_dutch",
+  "BASE\\PAK4_ENGLISH","base\\pak1_large"})
+  assert(FS_OfficialPak(name));
+ for(const char*name:{"base/pak1_","base/pak9_extra","base/pak10_x","base/pakx_y","mods/pak4_english",
+  "base/zpak4_english","base/assets1_large",""})
+  assert(!FS_OfficialPak(name));
+ fs_serverReferencedPakNames[0]="base/pak4_english.pk3";char aliceOutput[1024];
+ assert(!FS_ComparePaks(aliceOutput,sizeof(aliceOutput),true));
+ // Every other profile keeps offering a suffixed name.
+ alice=false;
+ assert(!FS_OfficialPak("base/pak4_english"));
+ activeProfile={BASEGAME,nullptr};
 }
 '''
         with tempfile.TemporaryDirectory() as folder:
