@@ -30,6 +30,7 @@ void QDECL Com_Error(errorParm_t,const char*,...){throw 7;}
 int Com_GameIsQuakeLive(){return profile->id==COM_GAME_QUAKELIVE;}
 int Com_GameIsJKAMP(){return profile->id==COM_GAME_JKA_MP;}
 int Com_GameIsJK2MP(){return profile->id==COM_GAME_JK2_MP;}
+int Com_GameIsSTVEFMP(){return profile->id==COM_GAME_STVEF_MP;}
 // The map command asks the real single-player rule, but never ET's, whose
 // gameinfo.dat has its own fixtures.
 static const fntech3::wolfet::gameinfo::GameInfo &SV_WolfETGameInfo(){
