@@ -7,6 +7,8 @@ static unsigned rtcwTransitionStart;
 static unsigned rtcwTransitionBegun;
 static unsigned rtcwTransitionObserved;
 static int rtcwTransitionLevels;
+static int rtcwTransitionRestarts;
+static int rtcwTransitionServerId;
 static bool rtcwTransitionCommanded;
 static char rtcwTransitionMap[MAX_QPATH];
 
@@ -19,12 +21,14 @@ static void CL_RTCWTransitionObserve( const char *phase ) {
 		if ( count || clip ) Q_strcat(ammo, sizeof(ammo), va("%d:%d/%d,", i, count, clip));
 	}
 	Com_Printf("TRANSITION %s level=%d map=%s state=%d valid=%d time=%d camera=%d paused=%d norender=%d "
-		"reloading=%d persid=%s health=%d armor=%d weapon=%d weapons=%08x,%08x ammo=%s origin=%.0f,%.0f,%.0f\n",
+		"reloading=%d persid=%s health=%d armor=%d weapon=%d weapons=%08x,%08x ammo=%s origin=%.0f,%.0f,%.0f "
+		"restarts=%d loading=%d\n",
 		phase, rtcwTransitionLevels, Cvar_VariableString("mapname"), cls.state, cl.snap.valid,
 		cl.snap.serverTime, cl.rtcwCameraMode, Cvar_VariableIntegerValue("cl_paused"),
 		Cvar_VariableIntegerValue("cg_norender"), Cvar_VariableIntegerValue("g_reloading"),
 		Cvar_VariableString("persid"), ps.stats[0], ps.stats[2], ps.weapon,
-		ps.rtcw.weapons[0], ps.rtcw.weapons[1], ammo, ps.origin[0], ps.origin[1], ps.origin[2]);
+		ps.rtcw.weapons[0], ps.rtcw.weapons[1], ammo, ps.origin[0], ps.origin[1], ps.origin[2],
+		rtcwTransitionRestarts, Cvar_VariableIntegerValue("savegame_loading"));
 }
 
 static void CL_RTCWTransitionStart() {
@@ -51,13 +55,26 @@ static void CL_RTCWTransitionFrame() {
 	}
 	if ( cls.state != CA_ACTIVE ) return;
 	const char *map = Cvar_VariableString("mapname");
+	// A restart toggles the snapshots' server-count bit; this engine keeps
+	// its server id across a restart, as Quake3e does.
+	const int serverId = cl.snap.snapFlags & SNAPFLAG_SERVERCOUNT;
 	if ( Q_stricmp(map, rtcwTransitionMap) ) {
 		Q_strncpyz(rtcwTransitionMap, map, sizeof(rtcwTransitionMap));
 		++rtcwTransitionLevels;
+		rtcwTransitionServerId = serverId;
 		rtcwTransitionPhase = 1;
 		rtcwTransitionStart = now;
 		rtcwTransitionObserved = now;
 		CL_RTCWTransitionObserve("level-active");
+	} else if ( serverId != rtcwTransitionServerId ) {
+		// The same level started again: a death or a failed mission reloads
+		// the last save through map_restart, with no briefing.
+		rtcwTransitionServerId = serverId;
+		++rtcwTransitionRestarts;
+		rtcwTransitionPhase = 2;
+		rtcwTransitionStart = now;
+		rtcwTransitionObserved = now;
+		CL_RTCWTransitionObserve("level-restarted");
 	}
 	unsigned elapsed = now - rtcwTransitionStart;
 	if ( rtcwTransitionPhase == 1 ) {
@@ -99,7 +116,8 @@ static void CL_RTCWTransitionFrame() {
 		( !cl.rtcwCameraMode || elapsed >= 150000 ) && !Cvar_VariableIntegerValue("cg_norender") ) {
 		CL_RTCWTransitionObserve("playing");
 		Cbuf_AddText(va("screenshotPNG transition-%02d-%s-start\n", rtcwTransitionLevels, map));
-		if ( rtcwTransitionLevels >= Cvar_VariableIntegerValue("rtcw_probe_levels") ) {
+		if ( rtcwTransitionLevels >= Cvar_VariableIntegerValue("rtcw_probe_levels") &&
+			rtcwTransitionRestarts >= Cvar_VariableIntegerValue("rtcw_probe_restarts") ) {
 			rtcwTransitionPhase = 4;
 		} else {
 			Cbuf_AddText(va("exec transition-%s.cfg\n", map));

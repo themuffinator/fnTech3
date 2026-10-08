@@ -2199,7 +2199,8 @@ historical upstream records, not fnTech3 release history. See the
   own change, and disconnecting clears the game's loading state. Nine level
   changes the game makes itself now have runtime evidence: four exits carry
   the player's weapons, ammunition and armour into the next level, and five
-  cinematic levels hand over to the next episode
+  cinematic levels hand over to the next episode. A death reloads the level's
+  last save in place, as the original game does
   ([record](docs/fntech3/2026-10-08-rtcw-sp-level-exits.md)).
 - Keep a Q3Test trace's contents when it starts and ends inside a brush, as
   every Q3Test release does; fnTech3 wrote the brush's, as Quake III does.

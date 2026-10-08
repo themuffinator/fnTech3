@@ -4,9 +4,10 @@ Return to Castle Wolfenstein single player had been checked one level at a
 time: every map starts, saves and loads, but no level had been left by its
 own exit. This record plays nine level changes that the retail game makes
 itself -- four exits that carry the player into the next level and five
-cinematic levels that hand over to the next episode -- and finds one engine
-difference on the way: retail ignores a map command while its game is
-changing level, and fnTech3 did not. The
+cinematic levels that hand over to the next episode -- and follows a death
+back to the level's save. It finds one engine difference on the way: retail
+ignores a map command while its game is changing level, and fnTech3 did not.
+The
 [machine-readable record](2026-10-08-rtcw-sp-level-exits.json) holds the
 identities, every run's observations and the exit inventory.
 
@@ -74,20 +75,21 @@ not play.
 
 ## Results
 
-Twelve chains ran on the corrected client, one process each, with one
+Thirteen chains ran on the corrected client, one process each, with one
 Ready click per level:
 
 | Chain | Level changes the game made | Objectives met before the exit | Held on arrival | Run |
 | --- | --- | --- | --- | --- |
-| `escape` | cutscene1 → escape1 (cinematic); escape1 → escape2 (persistent) | escape1: 2 of 2 | knife, Venom, 100 armour, 100 health | 304 s |
+| `escape` | cutscene1 → escape1 (cinematic); escape1 → escape2 (persistent) | escape1: 2 of 2 | knife, Venom, 100 armour, 100 health | 292 s |
 | `village` | village1 → crypt1 (persistent, 4 s delay) | 2 of 2 | Venom and its ammunition, 100 armour | 131 s |
-| `castle` | dig → castle → end (both persistent) | dig: 2 of 2; castle: 1 of 1 | Venom and its ammunition, 100 armour, on both | 163 s |
-| `forest` | cutscene6 → forest (cinematic) | — | nothing: not persistent | 147 s |
-| `sfm` | cutscene9 → sfm (cinematic) | — | nothing: not persistent | 153 s |
+| `castle` | dig → castle → end (both persistent) | dig: 2 of 2; castle: 1 of 1 | Venom and its ammunition, 100 armour, on both | 169 s |
+| `forest` | cutscene6 → forest (cinematic) | — | nothing: not persistent | 145 s |
+| `sfm` | cutscene9 → sfm (cinematic) | — | nothing: not persistent | 152 s |
 | `norway` | cutscene11 → norway (cinematic) | — | nothing: not persistent | 115 s |
-| `dam` | cutscene14 → dam (cinematic) | — | nothing: not persistent | 332 s |
-| `control-escape2`, `-crypt1`, `-castle`, `-end` | none: each level started directly | — | no weapon, no armour | 17–123 s |
+| `dam` | cutscene14 → dam (cinematic) | — | nothing: not persistent | 330 s |
+| `control-escape2`, `-crypt1`, `-castle`, `-end` | none: each level started directly | — | no weapon, no armour | 16–122 s |
 | `guard-briefing` | none: see the correction below | — | — | 18 s |
+| `death-castle` | none: the level restarts from its save, see below | — | no weapon, no armour, as saved | 30 s |
 
 Facts from the logs:
 
@@ -119,7 +121,34 @@ brushes of that trigger, so the objective was never met and the exit refused
 with `objectivesnotcomplete`, as the game should. Aiming inside one brush
 fixed it.
 
-## Correction: map commands while the game changes level
+## A death reloads the level's save
+
+Observed in the RTCW SP source (`g_active.c`, `g_client.c`, `g_main.c`,
+`src/server/sv_ccmds.c`): a dead single player respawns at once, with no
+button, and `respawn` sets `g_reloading` to 1 and fades out. Six seconds
+later the game sets `savegame_loading` to 2 and inserts `map_restart`; the
+engine's restart takes the game time from `save/current.svg`, and the game
+reads that save back. A failed mission (`g_reloading` 8) ends the same way.
+
+The `death-castle` chain plays castle, and once play has begun runs
+`give Venom`, `give armor` and `kill`. The hook recognises the restart by the
+snapshots' server-count bit, which a restart toggles; fnTech3 keeps its
+server id across a restart, as Quake3e does, where the Quake III and RTCW SP
+sources issue a new one.
+
+| Game time | Observed |
+| ---: | --- |
+| 5.0 s | play begins; health 100, no weapon, no armour, at the start |
+| 10.5 s | dead: health 0, with the Venom and 100 armour; `g_reloading` 1 |
+| 2.5 s | the level restarted with `savegame_loading` 2, at the time of the save the game made when play began: health 100, no weapon, no armour, at the start |
+| 5.5 s | play again, in the same state |
+| 13.5 s | the final capture; the client quit by itself |
+
+The save directory holds the level's autosave and `current.svg`, and no
+level was loaded again: the restart reused the running level, as a
+`map_restart` does.
+
+
 
 The retail Steam `WolfSP.exe` (`Wolf 1.32`, SHA-256 in the JSON) returns
 from its map command without a word
@@ -162,6 +191,7 @@ escape2's briefing holds the game, then clicks Ready:
 
 The campaign changes level 32 times, counting the final cutscene's end in
 the [endgame record](2026-09-18-rtcw-sp-endgame.md). Ten have now been
-played; the other 22 need the use key, shooting or fights. The played exits
+played; the other 22 need the use key, shooting or fights. A failed
+mission, which reloads through the same restart, was not reached. The played exits
 skip their levels' fights, so full campaign traversal, sustained AI and
 combat, and a retail comparison of the same chains remain open.

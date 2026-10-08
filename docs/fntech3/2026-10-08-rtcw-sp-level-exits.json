@@ -1,7 +1,7 @@
 {
  "date": "2026-10-08",
  "scope": "RTCW SP level exits run by the retail game scripts; persistent player carry-over; map commands while the game changes level.",
- "baseCommit": "50e4680fecff0063ce9c87490c427e61dfe2715d",
+ "baseCommit": "01229dd7b7d28bedbb9c69202e2b6f3543115be6",
  "correctionCommit": "f3f7b0427b0ce62d53f323298cb764d1feaef6ac",
  "platform": "Windows 11 x86 client (MSVC), GL renderer, OpenAL, 800x600 windowed, private desktop",
  "installation": {
@@ -587,11 +587,11 @@
  "probe": {
   "script": "scripts/probe_rtcw_transitions.py",
   "hook": "tests/rtcw_transition_probe.hpp",
-  "hookSha256": "b8138c2b47177b7c0746bc973011399351362568aaf54ee42af53bbf0ae656ca",
+  "hookSha256": "35caf655387c23f005ba21c9333db76d6aef8b8c4b70568b34b569911f8b851a",
   "input": "one briefing Ready click per level (AGENTS.md standing exception); everything else console commands: god, notarget, give Venom, give armor, setviewpos",
   "build": "private export of the base commit with the correction applied, instrumented with the hook",
   "afterExecutable": "E:\\Repositories\\fnTech3\\.tmp\\compat-gaps\\ihvrec-export\\build\\fntech3.exe",
-  "afterExecutableSha256": "48af09a0a21eaf12ea211d7750132e347010ebc91e1d5b2ed04b8f9b90cc9e97",
+  "afterExecutableSha256": "bdc5f8bb3035184dbe75362829a7c0f7e2f07c443e06c889c917e5445fcdf61e",
   "beforeExecutable": "E:\\Repositories\\fnTech3\\.tmp\\compat-gaps\\ihvlive-export\\build\\fntech3.exe",
   "beforeExecutableSha256": "ee8af5599f767c069be26f317cbb93aae8c93c9759d40745686adbed9edd4273"
  },
@@ -613,7 +613,7 @@
     "passed": true,
     "exitCode": 0,
     "forcedStop": false,
-    "seconds": 163.2,
+    "seconds": 169.2,
     "readyClicks": 3,
     "steps": [
      "dig getobjective1",
@@ -646,7 +646,7 @@
      {
       "from": "dig",
       "to": "castle",
-      "persidWritten": "27516",
+      "persidWritten": "50092",
       "persidAfterLoad": "0",
       "stateAtExit": {
        "health": "100",
@@ -654,7 +654,7 @@
        "weapon": "8",
        "weapons0": "00000100",
        "weapons1": "00000000",
-       "ammo": "8:0/496,"
+       "ammo": "8:0/326,"
       },
       "stateOnArrival": {
        "health": "100",
@@ -662,14 +662,14 @@
        "weapon": "8",
        "weapons0": "00000100",
        "weapons1": "00000000",
-       "ammo": "8:0/496,"
+       "ammo": "8:0/326,"
       },
       "carried": true
      },
      {
       "from": "castle",
       "to": "end",
-      "persidWritten": "35271",
+      "persidWritten": "56635",
       "persidAfterLoad": "0",
       "stateAtExit": {
        "health": "100",
@@ -677,7 +677,7 @@
        "weapon": "8",
        "weapons0": "00000100",
        "weapons1": "00000000",
-       "ammo": "8:399/496,"
+       "ammo": "8:367/326,"
       },
       "stateOnArrival": {
        "health": "100",
@@ -685,7 +685,7 @@
        "weapon": "8",
        "weapons0": "00000100",
        "weapons1": "00000000",
-       "ammo": "8:399/496,"
+       "ammo": "8:367/326,"
       },
       "carried": true
      }
@@ -705,7 +705,7 @@
       "weapon": "8",
       "weapons0": "00000100",
       "weapons1": "00000000",
-      "ammo": "8:0/496,"
+      "ammo": "8:0/326,"
      },
      "end": {
       "health": "100",
@@ -713,9 +713,10 @@
       "weapon": "8",
       "weapons0": "00000100",
       "weapons1": "00000000",
-      "ammo": "8:399/496,"
+      "ammo": "8:367/326,"
      }
     },
+    "restarts": [],
     "persistentFiles": [
      "main\\save\\current.psw"
     ],
@@ -729,19 +730,19 @@
     "screenshots": [
      {
       "name": "transition-01-dig-start.png",
-      "sha256": "51a9586587597c3d2ca556002146ba80180d78cbc799dea652e13db249c617fb"
+      "sha256": "0f6562613eb98500268cfe1178993f6d95dba78b08a47d2b2240d443cd8612cd"
      },
      {
       "name": "transition-02-castle-start.png",
-      "sha256": "c2899b7154a6c9d8a1eaaa28efdce6688ba67f8a20cf467cdf6c23af901f9c7b"
+      "sha256": "151772293f97c189559f8e5d5dc851f0e2590d902248ad3c6983b3e446e24369"
      },
      {
       "name": "transition-03-end-final.png",
-      "sha256": "0a4341221a6c3e2ae6221785621b4f2ed83992b816e420b7687b8d2db6af7bff"
+      "sha256": "ae709489f5bff82b3420e8b52624ba90d1861f33fbba184050678ceba1b53d25"
      },
      {
       "name": "transition-03-end-start.png",
-      "sha256": "7880a996254802ca888398b81b2d71972c689c86ca021721a39e93593c41424a"
+      "sha256": "20b287eebe74a51132adba6b166bb9ad2a26c676b7c673d71eb891dcc1cf8764"
      }
     ]
    },
@@ -757,7 +758,7 @@
     "passed": true,
     "exitCode": 0,
     "forcedStop": false,
-    "seconds": 16.9,
+    "seconds": 16.2,
     "readyClicks": 1,
     "steps": [],
     "playerScript": {
@@ -775,6 +776,7 @@
       "ammo": ""
      }
     },
+    "restarts": [],
     "saves": [
      "main\\save\\autosave\\castle.svg",
      "main\\save\\current.svg"
@@ -783,11 +785,11 @@
     "screenshots": [
      {
       "name": "transition-01-castle-final.png",
-      "sha256": "a61155b0c5cfbdcbae64702823c95c2ea492daf09003ec2a3da7b1872beb1e87"
+      "sha256": "7ee926d9785cd6d6a3c6b0e73d1a1031a69d2ed43f60717125712e1a22d78254"
      },
      {
       "name": "transition-01-castle-start.png",
-      "sha256": "fc258b53ebb3fc7a93d5eefef881f7d1ecb8ca51368352f5a72e0e535449ecce"
+      "sha256": "29e6bbf7a4e0f4045cc22c1e7e521bf5dc19df6a1fca1a037ee5d1de6f9f634d"
      }
     ]
    },
@@ -803,7 +805,7 @@
     "passed": true,
     "exitCode": 0,
     "forcedStop": false,
-    "seconds": 66.2,
+    "seconds": 65.8,
     "readyClicks": 1,
     "steps": [],
     "playerScript": {
@@ -821,6 +823,7 @@
       "ammo": ""
      }
     },
+    "restarts": [],
     "saves": [
      "main\\save\\autosave\\crypt1.svg",
      "main\\save\\current.svg"
@@ -829,11 +832,11 @@
     "screenshots": [
      {
       "name": "transition-01-crypt1-final.png",
-      "sha256": "add78d50072808efba0e2084493509f6fcd5550f71daed0ead6edcb12c175d05"
+      "sha256": "438e0c84ed599806681d81e38c7adbb66b261fff11b57cfb57d8ea3260626596"
      },
      {
       "name": "transition-01-crypt1-start.png",
-      "sha256": "22b452707bbe29533a99f2281d798313b43de3cd90de76b0da9383dd9a0cf2d4"
+      "sha256": "1410a500f5b4ab4ce3ae82d85113585e635c177c5de48a7abbdb71a8e3e36c20"
      }
     ]
    },
@@ -849,7 +852,7 @@
     "passed": true,
     "exitCode": 0,
     "forcedStop": false,
-    "seconds": 123.0,
+    "seconds": 122.4,
     "readyClicks": 1,
     "steps": [],
     "playerScript": {
@@ -867,6 +870,7 @@
       "ammo": ""
      }
     },
+    "restarts": [],
     "saves": [
      "main\\save\\autosave\\end.svg",
      "main\\save\\current.svg"
@@ -875,11 +879,11 @@
     "screenshots": [
      {
       "name": "transition-01-end-final.png",
-      "sha256": "f74443af6b234142bfb66d7e2a332634b754d1213e1f0154e2ac12704632168d"
+      "sha256": "b22a874714643dc7cc6e91f8c4696cf92bbdf9dca325526b658498f67b5e24f2"
      },
      {
       "name": "transition-01-end-start.png",
-      "sha256": "78dd0abd69da095a4bfd1a6e06da324f200afe207b4d449e33b9ef9ab75bd769"
+      "sha256": "a2d59731ac52c8c88dd4af6268997722e755982340af1433f39208389a126bf5"
      }
     ]
    },
@@ -895,7 +899,7 @@
     "passed": true,
     "exitCode": 0,
     "forcedStop": false,
-    "seconds": 16.9,
+    "seconds": 17.2,
     "readyClicks": 1,
     "steps": [],
     "playerScript": {
@@ -913,6 +917,7 @@
       "ammo": ""
      }
     },
+    "restarts": [],
     "saves": [
      "main\\save\\autosave\\escape2.svg",
      "main\\save\\current.svg"
@@ -921,11 +926,11 @@
     "screenshots": [
      {
       "name": "transition-01-escape2-final.png",
-      "sha256": "79b517c2769279b87a8c41b7df43dfe30a03107115481939f2d2371257704074"
+      "sha256": "afb12a2259bf2f2ee0b0d1813ae6e4d56d72f8088872d3478307148563b99474"
      },
      {
       "name": "transition-01-escape2-start.png",
-      "sha256": "557d42cb28991539c3c5a7a02c068136d5af4ca32737041c0f96d1e6fddf9331"
+      "sha256": "25c5b611afb9d5da77699da9a38542ab5988a5b0471560f70b4bd8b82eec9f48"
      }
     ]
    },
@@ -943,7 +948,7 @@
     "passed": true,
     "exitCode": 0,
     "forcedStop": false,
-    "seconds": 332.1,
+    "seconds": 329.5,
     "readyClicks": 2,
     "steps": [],
     "playerScript": {
@@ -1000,6 +1005,7 @@
       "ammo": ""
      }
     },
+    "restarts": [],
     "saves": [
      "main\\save\\autosave\\cutscene14.svg",
      "main\\save\\autosave\\dam.svg",
@@ -1009,15 +1015,87 @@
     "screenshots": [
      {
       "name": "transition-01-cutscene14-start.png",
-      "sha256": "1782f522ea21c37dfca74db2b8867f0b08609681481ad0d36ede39e716136301"
+      "sha256": "817904d975e1bb366382aaa1e37d973300c5d4a06af27dfc1547bd8b01fce182"
      },
      {
       "name": "transition-02-dam-final.png",
-      "sha256": "cf08179ea3911facd67c0cbacd232e2c13c1a05d4c35297cfcc5b5003b5fe1f3"
+      "sha256": "2702fb546809343a9eca135f4b6f2477d58e8b46850ec2412aa225f09bc32ba2"
      },
      {
       "name": "transition-02-dam-start.png",
-      "sha256": "bc6a2a5feb8b12ba484a30d285be97daadb587c69eea83d55a001ecc47936d1a"
+      "sha256": "d07ce87be2befe42eeef46e88a464211641cb3f3b620f769313a0ffb4d59f62a"
+     }
+    ]
+   },
+   {
+    "chain": "death-castle",
+    "levels": [
+     "castle"
+    ],
+    "settings": {
+     "rtcw_probe_restarts": "1"
+    },
+    "reached": [
+     "castle"
+    ],
+    "passed": true,
+    "exitCode": 0,
+    "forcedStop": false,
+    "seconds": 29.7,
+    "readyClicks": 1,
+    "steps": [
+     "castle kill"
+    ],
+    "playerScript": {
+     "objectivesMet": [],
+     "changelevels": []
+    },
+    "changes": [],
+    "startStates": {
+     "castle": {
+      "health": "100",
+      "armor": "0",
+      "weapon": "0",
+      "weapons0": "00000000",
+      "weapons1": "00000000",
+      "ammo": ""
+     }
+    },
+    "restarts": [
+     {
+      "phase": "tick",
+      "time": "10500",
+      "reloading": "1",
+      "loading": "0",
+      "health": "0",
+      "armor": "100",
+      "weapons0": "00000100",
+      "origin": "606,98,-359"
+     },
+     {
+      "phase": "level-restarted",
+      "time": "2500",
+      "reloading": "1",
+      "loading": "2",
+      "health": "100",
+      "armor": "0",
+      "weapons0": "00000000",
+      "origin": "606,98,-359"
+     }
+    ],
+    "saves": [
+     "main\\save\\autosave\\castle.svg",
+     "main\\save\\current.svg"
+    ],
+    "engineErrors": [],
+    "screenshots": [
+     {
+      "name": "transition-01-castle-final.png",
+      "sha256": "743104384212cc249209736a544af8f80fba9b635c792e9d3568b85f901db9ce"
+     },
+     {
+      "name": "transition-01-castle-start.png",
+      "sha256": "77ccbbe8be76a386056ed1f18c6e298d454ae2b1375f39f69871ffe3c16a6f31"
      }
     ]
    },
@@ -1037,7 +1115,7 @@
     "passed": true,
     "exitCode": 0,
     "forcedStop": false,
-    "seconds": 304.0,
+    "seconds": 292.0,
     "readyClicks": 3,
     "steps": [
      "escape1 action3",
@@ -1091,7 +1169,7 @@
      {
       "from": "escape1",
       "to": "escape2",
-      "persidWritten": "277772",
+      "persidWritten": "283479",
       "persidAfterLoad": "0",
       "stateAtExit": {
        "health": "100",
@@ -1099,7 +1177,7 @@
        "weapon": "8",
        "weapons0": "00000102",
        "weapons1": "00000000",
-       "ammo": "1:999/0,8:0/358,"
+       "ammo": "1:999/0,8:0/362,"
       },
       "stateOnArrival": {
        "health": "100",
@@ -1107,7 +1185,7 @@
        "weapon": "8",
        "weapons0": "00000102",
        "weapons1": "00000000",
-       "ammo": "1:999/0,8:0/358,"
+       "ammo": "1:999/0,8:0/362,"
       },
       "carried": true
      }
@@ -1135,9 +1213,10 @@
       "weapon": "8",
       "weapons0": "00000102",
       "weapons1": "00000000",
-      "ammo": "1:999/0,8:0/358,"
+      "ammo": "1:999/0,8:0/362,"
      }
     },
+    "restarts": [],
     "persistentFiles": [
      "main\\save\\current.psw"
     ],
@@ -1151,19 +1230,19 @@
     "screenshots": [
      {
       "name": "transition-01-cutscene1-start.png",
-      "sha256": "fc9cc30f1cca6320b0efecdab09bd4b168bd08b78905054c959d180f166cb5f0"
+      "sha256": "b709e975423a9ee0a8f351c2f3b6d656ffa3e026fdb519a9438b9be68300dcba"
      },
      {
       "name": "transition-02-escape1-start.png",
-      "sha256": "f907f784a086bc68afbabfc1ef4eccd2e846f340fc7a95a227c4676018fdec2c"
+      "sha256": "d1f3caf7d4b2550788ca29cb66175f53e064a793b8d7d2fdf159a249fba9b4b9"
      },
      {
       "name": "transition-03-escape2-final.png",
-      "sha256": "1ba031c493d883e79c86e94c3a4bf955e3208ff9c0461b7115708bfd62f5b6e1"
+      "sha256": "32834f3c58a1f818da864f4efbf68b854c3e809aad2694bf51d9fb73313cf231"
      },
      {
       "name": "transition-03-escape2-start.png",
-      "sha256": "87bad7fbc8c9b1235975c056ea7e63ef77eede88b200124ebdd14f056461faca"
+      "sha256": "b82ff556bacf235ac6651faf5be9a8280a2b8a181d489332fc0a72c97053cdf1"
      }
     ]
    },
@@ -1181,7 +1260,7 @@
     "passed": true,
     "exitCode": 0,
     "forcedStop": false,
-    "seconds": 146.7,
+    "seconds": 145.3,
     "readyClicks": 2,
     "steps": [],
     "playerScript": {
@@ -1238,6 +1317,7 @@
       "ammo": ""
      }
     },
+    "restarts": [],
     "saves": [
      "main\\save\\autosave\\cutscene6.svg",
      "main\\save\\autosave\\forest.svg",
@@ -1247,11 +1327,11 @@
     "screenshots": [
      {
       "name": "transition-02-forest-final.png",
-      "sha256": "1f9f1bc706ba4372cf4f2a28d300121011366b123bbc6ec5c15fe03936086595"
+      "sha256": "9c7e3835368300850f9c25f8b62ce37a71484c59a1209c213b5b9c00d3f4dfab"
      },
      {
       "name": "transition-02-forest-start.png",
-      "sha256": "73a04379b9a4230f4c2c5507eb14f63ef8c9ebee8e17afea13ab712d2164c2cb"
+      "sha256": "2503395e8ea4699c9606b6f52a93dad61474d94d0ef619701b53b88ab6f8e7f4"
      }
     ]
    },
@@ -1269,7 +1349,7 @@
     "passed": true,
     "exitCode": 0,
     "forcedStop": false,
-    "seconds": 18.4,
+    "seconds": 18.3,
     "readyClicks": 1,
     "steps": [],
     "playerScript": {
@@ -1287,6 +1367,7 @@
       "ammo": ""
      }
     },
+    "restarts": [],
     "saves": [
      "main\\save\\autosave\\escape2.svg",
      "main\\save\\current.svg"
@@ -1295,11 +1376,11 @@
     "screenshots": [
      {
       "name": "transition-01-escape2-final.png",
-      "sha256": "b6d7ee5a55dc41e7f09ff3773d68ce21900c79f78df850d6e776f0d59adc051b"
+      "sha256": "79b517c2769279b87a8c41b7df43dfe30a03107115481939f2d2371257704074"
      },
      {
       "name": "transition-01-escape2-start.png",
-      "sha256": "45da70637dd62074461285d2535e21dd7e88223f72e20ed3f88b0ead4b40544d"
+      "sha256": "6f4f2a33415269c80bcd4a30ea7a6ce5fdf6a9885f0d6335bd4044212d804edb"
      }
     ]
    },
@@ -1374,6 +1455,7 @@
       "ammo": ""
      }
     },
+    "restarts": [],
     "saves": [
      "main\\save\\autosave\\cutscene11.svg",
      "main\\save\\autosave\\norway.svg",
@@ -1383,11 +1465,11 @@
     "screenshots": [
      {
       "name": "transition-02-norway-final.png",
-      "sha256": "ca60be27dcdbdd57fc95a94f0715fd42990eb11696a7b53cd922134b87412fa6"
+      "sha256": "587e7543f6e7f59c76cb7fc23d1d0028f7f4fe273cb795e3e0830320ac672cbc"
      },
      {
       "name": "transition-02-norway-start.png",
-      "sha256": "71fd88de35b127fe2a04150af23cfba41a927538291053adf6b9e2b4234f461f"
+      "sha256": "a885a1b2eb05bb43417920e7d44cbced91aa2801f3c05948686ba9de6cf03543"
      }
     ]
    },
@@ -1405,7 +1487,7 @@
     "passed": true,
     "exitCode": 0,
     "forcedStop": false,
-    "seconds": 152.6,
+    "seconds": 152.1,
     "readyClicks": 2,
     "steps": [],
     "playerScript": {
@@ -1462,6 +1544,7 @@
       "ammo": ""
      }
     },
+    "restarts": [],
     "saves": [
      "main\\save\\autosave\\cutscene9.svg",
      "main\\save\\autosave\\sfm.svg",
@@ -1471,11 +1554,11 @@
     "screenshots": [
      {
       "name": "transition-02-sfm-final.png",
-      "sha256": "5d8f14ae1a493808c06a9c84b43d03418197ee5d2b4d61c0cf56eb2aa483ccfe"
+      "sha256": "fb65fc4d54b87f90471463aab29f2e506e7c5d1c3cd1d7d5edbeaeae3ef20729"
      },
      {
       "name": "transition-02-sfm-start.png",
-      "sha256": "9cb43a4ad765426b81e18fa8cce3b9c0e7b62771a7ec6798b044ed0d3b68dbea"
+      "sha256": "7a3437ff07677661fa23bb807c697c379736f2cd7b09b8ac66d73efa105228e6"
      }
     ]
    },
@@ -1493,7 +1576,7 @@
     "passed": true,
     "exitCode": 0,
     "forcedStop": false,
-    "seconds": 130.9,
+    "seconds": 130.8,
     "readyClicks": 2,
     "steps": [
      "village1 action3",
@@ -1518,7 +1601,7 @@
      {
       "from": "village1",
       "to": "crypt1",
-      "persidWritten": "80638",
+      "persidWritten": "90393",
       "persidAfterLoad": "0",
       "stateAtExit": {
        "health": "100",
@@ -1526,7 +1609,7 @@
        "weapon": "8",
        "weapons0": "00000100",
        "weapons1": "00000000",
-       "ammo": "8:0/227,"
+       "ammo": "8:0/140,"
       },
       "stateOnArrival": {
        "health": "100",
@@ -1534,7 +1617,7 @@
        "weapon": "8",
        "weapons0": "00000100",
        "weapons1": "00000000",
-       "ammo": "8:0/227,"
+       "ammo": "8:0/140,"
       },
       "carried": true
      }
@@ -1554,9 +1637,10 @@
       "weapon": "8",
       "weapons0": "00000100",
       "weapons1": "00000000",
-      "ammo": "8:0/227,"
+      "ammo": "8:0/140,"
      }
     },
+    "restarts": [],
     "persistentFiles": [
      "main\\save\\current.psw"
     ],
@@ -1569,15 +1653,15 @@
     "screenshots": [
      {
       "name": "transition-01-village1-start.png",
-      "sha256": "fc8fef5f8a86cb59c128b1469133348e00c21656562927601c09b82b74455972"
+      "sha256": "8c73ca0c4f51b49ccc838bba850096bf2d1fdeda6b481b955a04412b9fc22e3e"
      },
      {
       "name": "transition-02-crypt1-final.png",
-      "sha256": "afefa87833658a4ab61b0b0e406ba325cc3e3fabae9693ebeff0d89bd053c834"
+      "sha256": "97ec35ba9cef895310d8149ae80691cfa939b04527876309341bc19fbdc0a550"
      },
      {
       "name": "transition-02-crypt1-start.png",
-      "sha256": "645fdbd111190ceb8a4c730467a54a33eef9c0ce5a565bcc17178d3618ae13e6"
+      "sha256": "2b321e337a182111df884450f409a97ae5e7a796d9934e6a49138afbe60ac292"
      }
     ]
    }
@@ -1641,6 +1725,7 @@
       "ammo": ""
      }
     },
+    "restarts": [],
     "saves": [
      "main\\save\\autosave\\crypt1.svg",
      "main\\save\\current.svg"
@@ -1763,6 +1848,10 @@
   "Give and teleport cheats skip each level's fights: AI and combat are not exercised."
  ],
  "fadeObservations": "g_reloading read 4 in an observation inside the exit fade on 7 of the 9 level changes (not caught on cutscene1->escape1 and cutscene14->dam; observations are 10 s apart)",
+ "restartDetection": "the snapshots SNAPFLAG_SERVERCOUNT bit; fnTech3 keeps sv.serverId across map_restart (Quake3e lineage) where the Q3 1.32 and RTCW SP sources issue a new one",
+ "earlierSweeps": {
+  "trans-v4": "same 12 chains on the corrected client with the hook before restart detection: all 12 passed"
+ },
  "tests": [
   "tests/rtcw_server_policy_tests.py",
   "tests/rtcw_sp_disconnect_tests.py"

@@ -56,15 +56,28 @@ CHAINS = {
     # A map command typed while the briefing holds the game: WolfSP.exe
     # ignores it, so the level stays escape2.
     'guard-briefing': ['escape2'],
+    # The player dies after taking a weapon and armour: the game reloads the
+    # save it made when play began, through map_restart, without them.
+    'death-castle': ['castle'],
 }
 
-CHAIN_SETTINGS = {'guard-briefing': dict(rtcw_probe_briefing_command='spdevmap crypt1')}
+CHAIN_SETTINGS = {
+    'guard-briefing': dict(rtcw_probe_briefing_command='spdevmap crypt1'),
+    'death-castle': dict(rtcw_probe_restarts='1'),
+}
+
+# Step files that replace a level's teleports in one chain.
+STEP_OVERRIDES = {
+    'death-castle': {'castle': ['give Venom', 'give armor', 'wait 120',
+                                'echo TRANSITION step castle kill', 'kill']},
+}
 
 OBSERVE = re.compile(r'TRANSITION (\S+) level=(\d+) map=(\S*) state=(\d+) valid=(\d+) time=(-?\d+) camera=(\d+) '
                      r'paused=(\d+) norender=(\d+) reloading=(\d+) persid=(\S*) health=(-?\d+) armor=(-?\d+) '
-                     r'weapon=(\d+) weapons=([0-9a-f]+),([0-9a-f]+) ammo=(\S*) origin=(\S+)')
+                     r'weapon=(\d+) weapons=([0-9a-f]+),([0-9a-f]+) ammo=(\S*) origin=(\S+) '
+                     r'restarts=(\d+) loading=(\d+)')
 FIELDS = ('phase', 'level', 'map', 'state', 'valid', 'time', 'camera', 'paused', 'norender', 'reloading',
-          'persid', 'health', 'armor', 'weapon', 'weapons0', 'weapons1', 'ammo', 'origin')
+          'persid', 'health', 'armor', 'weapon', 'weapons0', 'weapons1', 'ammo', 'origin', 'restarts', 'loading')
 
 
 def step_config(name):
@@ -83,17 +96,19 @@ def run(args, chain, output):
         sv_autoRecordDemos='0', cl_autoRecordDemos='0', cl_allowDownload='0', cl_motd='0',
         s_backend='openal', s_muteWhenUnfocused='1', s_muteWhenMinimized='1',
         r_csmShadows='0', con_notifytime='0', aicast_debug='2', aicast_debugname='player',
-        rtcw_probe_levels=str(len(levels)), rtcw_probe_dwell=str(args.dwell),
+        rtcw_probe_levels=str(len(levels)), rtcw_probe_restarts='0', rtcw_probe_dwell=str(args.dwell),
         rtcw_probe_timeout=str(args.timeout), activeAction='fntech3_transition_start')
     values.update(CHAIN_SETTINGS.get(chain, {}))
     for i in range(1, 6): values[f'sv_master{i}'] = ''
     config = ''.join(f'set {key} "{value}"\n' for key, value in values.items())
     (game / 'autoexec.cfg').write_text(config)
     (game / 'wolfconfig.cfg').write_text('')
-    for name in levels[:-1]:
-        if name in STEPS:
-            (game / f'transition-{name}.cfg').write_text(step_config(name))
-            (folder / f'transition-{name}.cfg').write_text(step_config(name))
+    steps = {name: step_config(name) for name in levels[:-1] if name in STEPS}
+    steps.update({name: ''.join(line + '\n' for line in lines)
+                  for name, lines in STEP_OVERRIDES.get(chain, {}).items()})
+    for name, text in steps.items():
+        (game / f'transition-{name}.cfg').write_text(text)
+        (folder / f'transition-{name}.cfg').write_text(text)
     startup = dict(com_gameProfile='rtcw-sp', fs_basepath=str(args.installation),
         fs_homepath=str(home), fs_game='', fs_cdpath='', r_fullscreen='0', r_mode='-1',
         r_customWidth='800', r_customHeight='600', in_mouse='0', in_joystick='0', in_nograb='1',
@@ -133,8 +148,10 @@ def run(args, chain, output):
         row['objectivesNotComplete'] = log.count('objectivesnotcomplete')
         reached = [o['map'] for o in row['observations'] if o['phase'] == 'level-active']
         row['levelsReached'] = reached
+        row['restarts'] = sum(o['phase'] == 'level-restarted' for o in row['observations'])
         row['passed'] = (reached == levels and row.get('exitCode') == 0 and not row.get('forcedStop') and
-                         not row['engineErrors'] and any(o['phase'] == 'final' for o in row['observations']))
+                         not row['engineErrors'] and any(o['phase'] == 'final' for o in row['observations']) and
+                         row['restarts'] == int(values['rtcw_probe_restarts']))
         if not args.keep_home:
             boot.remove_home(home, output)
         (folder / 'manifest.json').write_text(json.dumps(row, indent=2) + '\n')
