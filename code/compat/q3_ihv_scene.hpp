@@ -4,6 +4,7 @@
 
 #include "q3_ihv_render_abi.h"
 #include <array>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -58,6 +59,28 @@ struct View {
 		auto result = visibleAreas;
 		for (auto &value : result) value = static_cast<std::uint8_t>(~value);
 		return result;
+	}
+	/* The overlay R_BlendBlobs (0x442700) draws after the scene while its
+	 * colour has alpha: a square of its shader's first image, its corners at
+	 * ten times (centre +- half-size) of the geometry words at eye depth 10,
+	 * the modelview reset (0x442779) under the scene's own projection, its
+	 * first texture corner top left. This is the screen rectangle that square
+	 * covers inside the view, false when nothing would be drawn. A square
+	 * with no positive size is not drawn. */
+	bool OverlayRect(float &left, float &top, float &w, float &h) const {
+		if (!(overlayColor[3] != 0.0f) || width <= 0 || height <= 0 || !(overlayGeometry[2] > 0.0f)) return false;
+		const double halfX = std::tan(static_cast<double>(fovX) * 3.14159265358979323846 / 360.0);
+		const double halfY = std::tan(static_cast<double>(fovY) * 3.14159265358979323846 / 360.0);
+		if (!(halfX > 0.0) || !(halfY > 0.0) || !std::isfinite(halfX) || !std::isfinite(halfY)) return false;
+		const double cx = overlayGeometry[0], cy = overlayGeometry[1], r = overlayGeometry[2];
+		const double ndcLeft = (cx - r) / halfX, ndcRight = (cx + r) / halfX;
+		const double ndcTop = (cy + r) / halfY, ndcBottom = (cy - r) / halfY;
+		const double l = x + (ndcLeft + 1.0) * 0.5 * width, t = y + (1.0 - ndcTop) * 0.5 * height;
+		const double rw = (ndcRight - ndcLeft) * 0.5 * width, rh = (ndcTop - ndcBottom) * 0.5 * height;
+		if (!std::isfinite(l) || !std::isfinite(t) || !std::isfinite(rw) || !std::isfinite(rh)) return false;
+		left = static_cast<float>(l); top = static_cast<float>(t);
+		w = static_cast<float>(rw); h = static_cast<float>(rh);
+		return true;
 	}
 };
 struct Entity {

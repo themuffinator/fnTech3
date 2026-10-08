@@ -339,6 +339,22 @@ shared writer (Live/Fixture). Recordings that span a level change, by either
 client, play through both levels in fnTech3. The original client stops after
 a demo's second gamestate, in its own recordings too.
 
+The [2026-10-08 IHV commands and 2D record](2026-10-08-q3-ihv-commands-and-2d.md)
+closes three client gaps.
+
+- Console commands forwarded to a server, such as `kill` and `give all`, had
+  all failed with "Client command overflow", because the IHV wire gave the
+  reliable command ring no room. They now reach the game on both servers.
+- The build's 2D art takes the colour its client game sets, as the original's
+  `Draw_StretchPic` (`0x43fd60`) gives it. Its `nomipmaps` stages take the 2D
+  colour in all three renderers, and handle 0 draws white. The HUD's counters
+  are now green and the scoreboard's bar blue with its text, as in the
+  original's capture.
+- The overlay square (`R_BlendBlobs` `0x442700`) is drawn after the scene in
+  eye space, but no observed scene used it.
+
+No profile gate closes.
+
 The original client's parser treats the download message as illegible
 (`0x407188`), so no IHV peer can carry a download, and downloads are no
 longer counted as an IHV gap. No profile gate closes.

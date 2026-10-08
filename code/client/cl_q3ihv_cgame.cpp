@@ -441,7 +441,7 @@ struct IhvSceneResources final : ihvrender::Resources {
 
 /* R_RenderScene 0x42cce0: one complete scene a call. Its view's bit 0 lets it
  * draw without a world (0x42cd11); its area bits admit an area where retail's
- * block one. The overlay quad (0x442700) is not drawn yet. */
+ * block one. Its overlay square (R_BlendBlobs 0x442700) follows the scene. */
 void QDECL IhvRenderScene( const void *native ) {
 	if ( !native ) Com_Error( ERR_DROP, "IHV scene is null" );
 	ihvrender::Scene scene;
@@ -459,6 +459,12 @@ void QDECL IhvRenderScene( const void *native ) {
 			scene.view.width, scene.view.height, scene.view.fovX, scene.view.flags,
 			static_cast<int>( scene.entities.size() ), static_cast<int>( scene.lights.size() ),
 			static_cast<int>( scene.particles.size() ), static_cast<int>( scene.polygons.size() ) );
+		if ( scene.view.overlayColor[3] != 0.0f ) {
+			Com_Printf( "  overlay %.3f %.3f %.3f rgba %.2f %.2f %.2f %.2f shader %i\n", scene.view.overlayGeometry[0],
+				scene.view.overlayGeometry[1], scene.view.overlayGeometry[2], scene.view.overlayColor[0],
+				scene.view.overlayColor[1], scene.view.overlayColor[2], scene.view.overlayColor[3],
+				scene.view.overlayShader );
+		}
 		for ( const auto &e : scene.entities ) {
 			const auto name = ihvModelNames.find( e.model );
 			Com_Printf( "  model %i %s skin %i shader %i flags 0x%x frame %i rgba %i %i %i %i at %.0f %.0f %.0f\n", e.model,
@@ -522,10 +528,25 @@ void QDECL IhvRenderScene( const void *native ) {
 	const auto blocked = scene.view.BlockedAreas();
 	std::memcpy( view.areamask, blocked.data(), ( std::min )( sizeof( view.areamask ), blocked.size() ) );
 	re.RenderScene( &view );
+	// The original draws the overlay while gl_polyblend, its renderer's cvar,
+	// is set (0x442716); fnTech3 draws it as the 2D picture it covers.
+	static cvar_t *polyblend;
+	if ( !polyblend ) polyblend = Cvar_Get( "gl_polyblend", "1", 0 );
+	float left = 0, top = 0, width = 0, height = 0;
+	if ( polyblend->value != 0.0f && scene.view.OverlayRect( left, top, width, height ) ) {
+		re.SetColor( scene.view.overlayColor );
+		re.DrawStretchPic( left, top, width, height, 0, 0, 1, 1,
+			scene.view.overlayShader ? scene.view.overlayShader : cls.whiteShader );
+		re.SetColor( nullptr );
+	}
 }
 void QDECL IhvSetColor( const float *rgba ) { re.SetColor( rgba ); }
+/* Draw_StretchPic 0x43fd60 draws a shader's first image in the current colour;
+ * the module's handle 0 (its lagometer, 0x407250's fills) is the default
+ * shader, whose corner texel is white, so it draws the 2D white. */
+qhandle_t Ihv2DShader( std::uintptr_t token ) { return token ? IhvShader( token ) : cls.whiteShader; }
 void QDECL IhvStretchPic( float x, float y, float w, float h, float s1, float t1, float s2, float t2, std::uintptr_t shader ) {
-	re.DrawStretchPic( x, y, w, h, s1, t1, s2, t2, IhvShader( shader ) );
+	re.DrawStretchPic( x, y, w, h, s1, t1, s2, t2, Ihv2DShader( shader ) );
 }
 /* Only the module's refresh timing calls these two (cgamex86.dll 0x1000969a). */
 void QDECL IhvBeginFrame() { re.BeginFrame( STEREO_CENTER ); }
@@ -547,7 +568,7 @@ int QDECL IhvSmallStringWidth( const char *text ) {
 }
 void QDECL IhvAdjustFrom640( float *x, float *y, float *w, float *h ) { SCR_AdjustFrom640( x, y, w, h ); }
 void QDECL IhvFillRect( float x, float y, float w, float h, const float *color ) { SCR_FillRect( x, y, w, h, color ); }
-void QDECL IhvDrawPic( float x, float y, float w, float h, std::uintptr_t shader ) { SCR_DrawPic( x, y, w, h, IhvShader( shader ) ); }
+void QDECL IhvDrawPic( float x, float y, float w, float h, std::uintptr_t shader ) { SCR_DrawPic( x, y, w, h, Ihv2DShader( shader ) ); }
 void QDECL IhvBigString( int x, int y, const char *text, float alpha ) {
 	SCR_DrawBigString( x, y, IhvText( text ).c_str(), alpha, qfalse );
 }

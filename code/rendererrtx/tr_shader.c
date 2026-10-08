@@ -296,6 +296,7 @@ static void R_RtFindLightImage( void )
 #endif
 
 #include "../renderercommon/tr_q3_ihv_shader.h"
+#include "../renderercommon/tr_q3_ihv_2d.h"
 #include "../renderercommon/tr_q3_ihv_fog_parser.h"
 #include "../renderercommon/tr_q3test_shader_dialect.h"
 // The Vulkan family keeps rgbGen, alphaGen, constantColor and rgbWave on each
@@ -4264,6 +4265,9 @@ static shader_t *FinishShader( void ) {
 			shader.sort = SS_OPAQUE;
 		}
 	}
+
+	// The IHV Test colours its 2D art whatever its stages say.
+	R_Q3IHV2DStageColors();
 
 	DetectNeeds();
 

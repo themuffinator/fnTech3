@@ -5844,6 +5844,16 @@ static void CL_InitRenderer( void ) {
 		cls.whiteShader = re.RegisterShaderNoMip( "*white" );
 		cls.consoleShader = re.RegisterShaderNoMip( "gfx/2d/conback" );
 		cls.cursorShader = re.RegisterShaderNoMip( "menu/arena/3_cursor2" );
+	} else if ( Com_GameIsQuake3IHV() ) {
+		// The IHV Test ships no "white", "console", recording icon or cursor:
+		// its fills take the renderer's own white, as the original's take its
+		// default shader's white corner (0x407250), and its console is the
+		// conback picture.
+		cls.charSetShader = re.RegisterShader( "gfx/2d/bigchars" );
+		cls.recordShader = 0;
+		cls.whiteShader = re.RegisterShaderNoMip( "*white" );
+		cls.consoleShader = re.RegisterShaderNoMip( "gfx/2d/conback" );
+		cls.cursorShader = 0;
 	} else {
 	// Academy supplies this same half-cell atlas; retain Fn HUD and console placement.
 	cls.charSetShader = Com_GameIsSTVEF() || Com_GameIsJKA() ? re.RegisterShaderNoMip( "gfx/2d/charsgrid_med" )

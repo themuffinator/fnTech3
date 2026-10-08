@@ -56,7 +56,8 @@ void Profile() {
 	CHECK(!(features & NETCHAN_FEATURE_RELIABLE_XOR));
 	CHECK(!(features & NETCHAN_FEATURE_SEQUENCE_CHECKSUM));
 	CHECK(!(features & NETCHAN_FEATURE_PACKET_SCRAMBLE));
-	CHECK(!Netchan_ReliableCommandLimit(NETCHAN_WIRE_Q3_IHV));
+	// A client's commands wait in a ring of 64 before they join the reliable block.
+	CHECK(Netchan_ReliableCommandLimit(NETCHAN_WIRE_Q3_IHV) == 64);
 	CHECK(Netchan_MessageLimit(NETCHAN_WIRE_Q3_IHV) == FNTECH3_Q3_IHV_NETCHAN_BYTES);
 	for (int protocol : {66, 67, 68, 71, 91, 49, 60, 84, 24, 40})
 		CHECK(Netchan_SelectWireProfile(protocol, 0) != NETCHAN_WIRE_Q3_IHV);

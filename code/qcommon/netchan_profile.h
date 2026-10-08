@@ -253,12 +253,12 @@ NETCHAN_PROFILE_INLINE int Netchan_ReliableCommandLimit( netchanWireProfile_t pr
 	 * changes when a client with that many unacknowledged commands is
 	 * dropped, not which command a sequence number keys. */
 	case NETCHAN_WIRE_MOHAA: return 256;
-	/* IHV acknowledges one reliable block at a time, not a command ring.
-	 * Q3Test from 1.06 rings 64 (1.06 SV_AddServerCommand 0x41d3b6,
-	 * CL_AddReliableCommand 0x4052a0); up to 1.05 it sends one reliable block
-	 * as IHV does, and this engine stages its commands in a ring of the same
-	 * size before they join the block. */
-	case NETCHAN_WIRE_Q3_IHV: return 0;
+	/* IHV acknowledges one reliable block at a time, not a command ring;
+	 * this engine stages a client's commands in a ring of 64 before they join
+	 * the block (cl_q3ihv.cpp), as it does for Q3Test up to 1.05. Q3Test from
+	 * 1.06 rings 64 (1.06 SV_AddServerCommand 0x41d3b6, CL_AddReliableCommand
+	 * 0x4052a0). */
+	case NETCHAN_WIRE_Q3_IHV:
 	case NETCHAN_WIRE_Q3TEST_A:
 	case NETCHAN_WIRE_Q3TEST_B: return 64;
 	default: return 0;

@@ -217,6 +217,28 @@ int main() {
 		m.segments[vertexAddress][0] ^= 127;
 		Check(scene.polygons[0].vertices[0].xyz[0] == 0 && scene.polygons[1].vertices[0].xyz[0] == 0, "shared source vertex arrays copied");
 	}
+	{
+		// R_BlendBlobs 0x442700: the square at eye depth 10 under the scene's
+		// projection. A 90-degree view of 640x480 maps the half-size 1 at the
+		// centre to the whole width, and its height by the vertical fov.
+		r::View view;
+		view.x = 10; view.y = 20; view.width = 640; view.height = 480; view.fovX = 90; view.fovY = 90;
+		view.overlayColor[3] = 1; view.overlayGeometry[2] = 1;
+		float l = 0, t = 0, w = 0, h = 0;
+		Check(view.OverlayRect(l, t, w, h) && std::fabs(l - 10) < 1e-3f && std::fabs(t - 20) < 1e-3f &&
+			std::fabs(w - 640) < 1e-3f && std::fabs(h - 480) < 1e-3f, "overlay square fills a 90-degree view");
+		view.overlayGeometry[0] = .5f; view.overlayGeometry[1] = .5f; view.overlayGeometry[2] = .25f;
+		Check(view.OverlayRect(l, t, w, h) && std::fabs(l - (10 + 400)) < 1e-3f && std::fabs(t - (20 + 60)) < 1e-3f &&
+			std::fabs(w - 160) < 1e-3f && std::fabs(h - 120) < 1e-3f, "overlay square offset up and right");
+		view.overlayColor[3] = 0;
+		Check(!view.OverlayRect(l, t, w, h), "no alpha, no overlay");
+		view.overlayColor[3] = 1; view.overlayGeometry[2] = 0;
+		Check(!view.OverlayRect(l, t, w, h), "no size, no overlay");
+		view.overlayGeometry[2] = 1; view.fovX = 0;
+		Check(!view.OverlayRect(l, t, w, h), "degenerate projection, no overlay");
+		view.fovX = 90; view.width = 0;
+		Check(!view.OverlayRect(l, t, w, h), "empty view, no overlay");
+	}
 	std::printf("IHV scene tests passed: %zu nonfinite fields, %u read and %u resource failure positions; bounds, lifetime, masks and atomic publication\n",
 		floats.size(), readCount, resolveCount);
 }

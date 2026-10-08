@@ -1,0 +1,47 @@
+{
+  "record": "2026-10-08-q3-ihv-commands-and-2d.md",
+  "profile": "q3-ihv",
+  "baseCommit": "29b915e0a89e8eaa779db8b2d55e08ee4d8e0c7e",
+  "platform": "Windows x86, MSVC 2022, meson debugoptimized export build with strict warnings",
+  "binaries": {
+    "fntech3.exe": "26411f009c4320dd60128a143562dfda66518dfcb615e94cf2eeef71f0cbce4e",
+    "fntech3.ded.exe": "8885ed8279efd4815c47f125832c2b74269d8dc35662b676bbdd30d2d612286b",
+    "original quake3.exe": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37"
+  },
+  "consoleCommands": {
+    "fault": "NETCHAN_WIRE_Q3_IHV reliable command limit 0: CL_AddReliableCommand raised Client command overflow for every forwarded command",
+    "fix": "a ring of 64, the same staging as Q3Test up to 1.05; the wire still carries one reliable block (CL_SendCmd 0x403360)",
+    "observed": {
+      "kill": "fnTech3 killed himself.; death camera and scoreboard; on fnTech3's server and the original server",
+      "killTooSoon": "Only one kill every five seconds",
+      "giveAll": "health 100, ammunition 999, armour 200, a holdable item",
+      "giveQuad": "nothing visible for give quad or give Quad Damage"
+    }
+  },
+  "twoD": {
+    "originalStretchPic": "0x43fd60: first stage image, current colour (RE_SetColor 0x43fd20 -> glColor4fv)",
+    "originalFill": "0x407250: SetColor then DrawStretchPic with handle 0 (default shader, white corner texel)",
+    "nomipmapsShaders": "scripts/gfx.shader 2D art: crosshair, smallchars, bigchars, select (rgbGen identity); conback, assault1d, armor1h, health, blank and the eleven number digits (no rgbGen)",
+    "traceBeforeFix": {"digits": "SetColor 0.2 1.0 0.2 1.0 then DrawPic, drawn white", "lagometer": "SetColor blue and yellow, StretchPic handle 0, drawn white", "scoreboardBar": "opaque white over white text"},
+    "fix": ["code/renderercommon/tr_q3_ihv_2d.h: IHV nomipmaps stages with identity rgbGen/alphaGen take vertex colour/alpha, called in each renderer's FinishShader", "handle 0 draws the renderer's white", "IHV client art: *white fills, gfx/2d/conback console, no record icon or cursor"],
+    "captures": {
+      "glx": {"hud": "b3c218df7c8c2754", "score": "1263c3d74d5723e4"},
+      "vk": {"hud": "d13f00d73e6f0169", "score": "d6c8c192dafa68e3"},
+      "rtx": {"hud": "06282d959adb1d51", "score": "e1966a9c1845ea53"},
+      "originalScoreboard": "9202e4cc167459ee (blue bar, -1 0 Original)",
+      "giveAll": "728a6dae6504ab4d"
+    }
+  },
+  "overlay": {
+    "original": "R_BlendBlobs 0x442700 after the scene (0x42ce73), gl_polyblend default 1 (0x42a021, checked 0x442716), alpha != 0; glLoadIdentity (0x43d64c4, stored 0x43034f) at 0x442779; square at eye z -10, centre 10*(g0,g1), half-size 10*g2 (scale 0x45b4c0 = 10), texcoords (0,0) top left",
+    "fntech3": "View::OverlayRect screen rectangle under the scene's fov; drawn as a 2D picture in the overlay colour after RenderScene while gl_polyblend",
+    "seenInRuns": false
+  },
+  "commands": {
+    "harness": ".tmp/ihv-client/probe_serve.py --no-client --fn-client --fn-renderer <r> --fn-script \"wait 300|screenshotPNG hud|wait 300|kill|wait 30|screenshotPNG score\""
+  },
+  "tests": ["tests/q3_ihv_2d_color_tests.py (all three renderers' stage layouts, profiles and mipmapped shaders)", "tests/q3_ihv_scene_tests.cpp (overlay rectangle)", "tests/q3_ihv_netchan_tests.cpp (ring of 64)"],
+  "observations": ["sli.dm3 opening particles draw as large white discs before and after this change; not compared with the original"],
+  "inputInjected": false,
+  "open": ["the overlay seen drawn", "the particle comparison", "the build's menus", "input-driven play"]
+}
