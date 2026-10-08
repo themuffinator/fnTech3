@@ -94,5 +94,7 @@ fnTech3 completed, with two exceptions:
 RTCW SP demos are refused before any record is read (see the
 [RTCW demo record](2026-09-18-rtcw-demos.md)), so they have no fault corpus.
 This build has no result for the last 31 variants of the fnTech3 RTCW MP
-recording. Retail QL and retail WolfMP were not run on these variants.
+recording. Retail QL and retail WolfMP were not run on these variants; the
+[RTCW demo-fault record](2026-10-08-rtcw-demo-faults.md) plays both RTCW MP
+sets in full, in a later build and in retail WolfMP.
 Seeking and protocol switching within a damaged demo remain open.

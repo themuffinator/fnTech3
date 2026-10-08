@@ -1,0 +1,2028 @@
+{
+ "date": "2026-10-08",
+ "scope": "Damaged RTCW MP demos: the 2026-09-18 fault corpus of both RTCW MP recordings played in full by fnTech3 and by retail WolfMP.exe 1.41",
+ "probe": {
+  "path": "scripts/probe_demo_faults.py",
+  "change": "--retail now also plays rtcw-mp in the installation WolfMP.exe, whose console log is main/rtcwconsole.log",
+  "probeCfg": "set cl_allowDownload 0\nset cl_motd 0\nset com_introplayed 1\nset timedemo 1\nset fault_tick \"echo FAULT_DEMO_TICK; wait 100; vstr fault_tick\"\ndemo fault\nvstr fault_tick\n"
+ },
+ "client": {
+  "path": ".tmp/compat-gaps/ihvlive-export/build/fntech3.exe",
+  "baseCommit": "6cb358f976eb3302ba284d29b09bbe89da5bc444",
+  "build": "debugoptimized Windows x86 export of baseCommit plus the RTCW entity-query change, every development gate on",
+  "sha256": "4b7b0055b5a911b4c97cfb255b565ad7a2dd57fdac145707cf30723173d44745",
+  "note": "result.json files name the repository HEAD at run time (37b87dce), not the export"
+ },
+ "retail": {
+  "executable": "WolfMP.exe \"Wolf 1.4-MP\" from the Steam installation",
+  "sha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+  "settings": "fs_basepath installation, fs_homepath a scratch folder, r_fullscreen 0, r_mode 3, in_mouse 0, in_joystick 0, in_nograb 1, s_initsound 0, logfile 2"
+ },
+ "sourceDemos": {
+  "retailRecording": {
+   "file": "retail-mp-probe.dm_60",
+   "sha256": "7cc0f4ad1e2e6633dec2064b86c4e51281abceba5412d8c73cc759e5bad71e0f",
+   "seed": 11,
+   "origin": "recorded by retail WolfMP.exe on a pure fnTech3 server on mp_beach (2026-09-18-demo-faults.json sourceDemos.rtcw-mp-retail)"
+  },
+  "fntech3Recording": {
+   "file": "fntech3-rtcw-mp-probe.dm_60",
+   "sha256": "9bed06af96a495079f54e20f5820b92e90c26d458f9df78445382aab2d33ee26",
+   "seed": 13,
+   "origin": "recorded by fnTech3 on mp_beach (2026-09-18-demo-faults.json sourceDemos.rtcw-mp-fntech3)"
+  }
+ },
+ "runs": {
+  "retailRecording": {
+   "fntech3": {
+    "engine": "fnTech3",
+    "outcomes": {
+     "completed": 4,
+     "rejected": 42,
+     "stalled": 1,
+     "crashed": 0,
+     "hung": 0
+    },
+    "installationUnchanged": true,
+    "passed": true,
+    "clientSha256": "4b7b0055b5a911b4c97cfb255b565ad7a2dd57fdac145707cf30723173d44745",
+    "sourceSha256": "7cc0f4ad1e2e6633dec2064b86c4e51281abceba5412d8c73cc759e5bad71e0f",
+    "sourceRecords": 146,
+    "messageLimit": 32768,
+    "fuzz": {
+     "count": 40,
+     "seed": 11
+    },
+    "variants": {
+     "truncated-header": {
+      "outcome": "completed",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": "73 frames, 2.23 seconds: 32.8 fps",
+      "inputSha256": "70ae262e446435bb97dc558827fc4cf80757a0e1cfa9c0475e6b7ba616d32732",
+      "expected": "completed",
+      "passed": true
+     },
+     "truncated-body": {
+      "outcome": "completed",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": "146 frames, 2.22 seconds: 65.9 fps",
+      "inputSha256": "abc7bccffe5f9111d77dfcee1dcc31429eaa513d930606953e02111a15764fcd",
+      "expected": "completed",
+      "passed": true
+     },
+     "no-terminator": {
+      "outcome": "completed",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": "147 frames, 1.81 seconds: 81.0 fps",
+      "inputSha256": "ce035f2b490bf389c739043fbd09217efe26bde9a30f5e293aad90b124995168",
+      "expected": "completed",
+      "passed": true
+     },
+     "length-negative": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDemoMessage: invalid demo message length -2"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "17cd9d1e2364815db2eb6d785a1ce7d78ab0c7152624cb84210b62c4a0310006",
+      "expected": "rejected",
+      "passed": true
+     },
+     "length-over-limit": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDemoMessage: invalid demo message length 32769"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "8f928fe9ecc261082b1fb4fdf6aef069d5a1e2efa5ee7959b14407a02f76f4cc",
+      "expected": "rejected",
+      "passed": true
+     },
+     "length-huge": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDemoMessage: invalid demo message length 2147483647"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "13338fc2e88bf4896faf7b71195997898994284c36f6a21eb2fda31b21df2d77",
+      "expected": "rejected",
+      "passed": true
+     },
+     "flipped-body": {
+      "outcome": "completed",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": "147 frames, 1.22 seconds: 121.0 fps",
+      "inputSha256": "7cc0f4ad1e2e6633dec2064b86c4e51281abceba5412d8c73cc759e5bad71e0f",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-000": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "3bd96ef4859c4e54adb63f12a1872baa0993e5001102f4264cb32369ab496b69",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-001": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "6940d7f4320e605ddea2aae21b2961742eae96f3efccf3078d53caf0faa6a142",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-002": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "930a62921187a40cafd3c2d3a36b6d8f4123f5b384497df7c33c71b00cadc320",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-003": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "79388d6da69abe10771b5af5c47a8115cc3de6e885979048a08afcb2aa8ed3e3",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-004": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "72ad8ad0d3b494d5601e3a4bb84f0df50a3b25f5ed500b34a6419b425f1d36e8",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-005": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseSnapshot: Invalid size 83 for areamask"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "665713c7dfcba20b040266efcf670a1e178c940b223926adb9059f72b5dbe7ca",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-006": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "f17accfdcc00c934b993523bd5232f658bbb4d7c1f8786e27892c340facb93b4",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-007": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "84da23790d7afd271a31df755effe0a2b23d9195b8642bc3844979b6807343b4",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-008": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "771203b8869c7ce3c2af8c0654e48caf20aa72f176a06917c1bb30792f100d87",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-009": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseSnapshot: Invalid size 254 for areamask"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "4bd39f404e737fb6b15226956e61d7cb048695d647414bbdf28f9b7b277680db",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-010": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseSnapshot: Invalid size 254 for areamask"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "00a39092f2d04ccd030dc0ea1bcbeef8f401ba5d6278a45296c55f1204f35e3e",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-011": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "4f9be3f8628fa490c6e943eec0c4ef965f3d18be778aa988070423c87155b8a7",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-012": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseSnapshot: Invalid size 254 for areamask"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "54d2885f58e2454d484ebd6b7fff60c16c99335d3970633a112ff5f236634252",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-013": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "f5eb425eedb034691c23e15e187a5b01655f140e9d0607b5eaba84dd8ca1f39a",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-014": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "69391242d98e993f77d62ea18d8f07ad81e10b521caf90541d7505a9554f7a25",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-015": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "547475a64209f2a9a18a696887959221ecc9fd1b9ae2b6f09eb6504864b4ff70",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-016": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseSnapshot: Invalid size 204 for areamask"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "ee17b01c2a470932d7ff0623efdf19c24bf3b51f88af7756f43f2393d89451aa",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-017": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseSnapshot: Invalid size 139 for areamask"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "c28e1ed555bcb5a407b2c9b7e53ade29e68f3d16dd73e5096de1d9b2b48b9d4c",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-018": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "71f08a2bb8d9a3949320d7749c8d15ccdb891f51c4e1fd00f9e0bf3c330c0815",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-019": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "d0a785fd1ce868ae802c3f0ead6be346eeee81f1738037b44c43a6c135a72fa9",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-020": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "b829468406f66d1954e841bf3cd0d8eb6a66bcd3daf92d418f195047a94f6baa",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-021": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "226404687ccc249b13d5e3c16d9418fb37e714ed015db7b9194a0f6358d78ab4",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-022": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "f37320148f73a2e4b847b06fee3467f17ed4386af4db7f323582246287fc3027",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-023": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "6680342867335436150fd86f8de4a8c7eecbd530c801890a9924f0b3bfae1dfb",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-024": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "5825dddf37922eee06da01828a3a4de92c1ed6bf1227b3cb690b8ed07680d42b",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-025": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseSnapshot: Invalid size 66 for areamask"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "7bf0a561992461dca38ee635b1b084de9979f40ffb40d9883b3905fbae75fd49",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-026": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "bde902d2d657353381c8624e121676c45b25c63d97d21bd8be2cedb1c6f9bf23",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-027": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "3ea667615923f7850d28d7b2bbbabefe88ff62f480c9fda08504cdaf57b87cef",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-028": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseSnapshot: Invalid size 66 for areamask"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "fc660bfdedcd718f9c24e6b3d6c3b84a00cceaf25ba45c6085309545075c36f7",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-029": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "c3aaaedf14babab0696dd13b534ce90d9614f8375c258a98bbe10a10bbad836d",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-030": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "da85ca28ad1b5f7f2b772b9464b62123316cba626520f92a0fcaf1374890fbfe",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-031": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "0a407b2f3e7c3da414de6b8093573c203f1ff5097a167f1061cce9ed098ccc39",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-032": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseServerMessage: Illegible server message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "5679b8c441aa4a89b9c868895cd42722257e72632a3dda98f6f0b8dd6fa0513e",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-033": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseServerMessage: Illegible server message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "743885a61a0f6bb520383e9c7ee63937d1621cd2595611ba609a7c844ab0091d",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-034": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "817bf1be96186b4bd19649a7bda2234edb384ef7a12e5f968fc8e8ab7c05fee4",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-035": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "aaaa20d8a0f2999d4723eece6c60a0b5f2a57c983cc3299587ac89f36a654619",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-036": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "733e32d27fa7dcd48ca87211d0f9f601be2566a7725cb2471e43be63a6e8d8b2",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-037": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "4fd6d12f46738c88985b5f1e35c2f855444f4350463c55ec39939fbda9311fb9",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-038": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "582349a7c05fc612e309d65fb051878b16f73269c588a2cd6905daa8ad2202e1",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-11-039": {
+      "outcome": "stalled",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "aca4f5de1a54224c780bd51e673494a52b71b0224126765a41e70dafc152ad8c",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     }
+    }
+   },
+   "retail": {
+    "engine": "retail WolfMP.exe",
+    "outcomes": {
+     "completed": 5,
+     "rejected": 40,
+     "stalled": 1,
+     "crashed": 1,
+     "hung": 0
+    },
+    "installationUnchanged": true,
+    "passed": null,
+    "clientSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+    "sourceSha256": "7cc0f4ad1e2e6633dec2064b86c4e51281abceba5412d8c73cc759e5bad71e0f",
+    "sourceRecords": 146,
+    "messageLimit": 32768,
+    "fuzz": {
+     "count": 40,
+     "seed": 11
+    },
+    "variants": {
+     "truncated-header": {
+      "outcome": "completed",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": "73 frames, 0.5 seconds: 156.0 fps",
+      "inputSha256": "70ae262e446435bb97dc558827fc4cf80757a0e1cfa9c0475e6b7ba616d32732"
+     },
+     "truncated-body": {
+      "outcome": "completed",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": "146 frames, 1.2 seconds: 117.3 fps",
+      "inputSha256": "abc7bccffe5f9111d77dfcee1dcc31429eaa513d930606953e02111a15764fcd"
+     },
+     "no-terminator": {
+      "outcome": "completed",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": "147 frames, 1.2 seconds: 126.8 fps",
+      "inputSha256": "ce035f2b490bf389c739043fbd09217efe26bde9a30f5e293aad90b124995168"
+     },
+     "length-negative": {
+      "outcome": "completed",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": "147 frames, 1.6 seconds: 93.2 fps",
+      "inputSha256": "17cd9d1e2364815db2eb6d785a1ce7d78ab0c7152624cb84210b62c4a0310006"
+     },
+     "length-over-limit": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDemoMessage: demoMsglen > MAX_MSGLEN"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "8f928fe9ecc261082b1fb4fdf6aef069d5a1e2efa5ee7959b14407a02f76f4cc"
+     },
+     "length-huge": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDemoMessage: demoMsglen > MAX_MSGLEN"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "13338fc2e88bf4896faf7b71195997898994284c36f6a21eb2fda31b21df2d77"
+     },
+     "flipped-body": {
+      "outcome": "completed",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": "147 frames, 0.5 seconds: 312.1 fps",
+      "inputSha256": "7cc0f4ad1e2e6633dec2064b86c4e51281abceba5412d8c73cc759e5bad71e0f"
+     },
+     "fuzz-11-000": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "3bd96ef4859c4e54adb63f12a1872baa0993e5001102f4264cb32369ab496b69"
+     },
+     "fuzz-11-001": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: BG_EvaluateTrajectory: unknown trType: 0"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "6940d7f4320e605ddea2aae21b2961742eae96f3efccf3078d53caf0faa6a142"
+     },
+     "fuzz-11-002": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "930a62921187a40cafd3c2d3a36b6d8f4123f5b384497df7c33c71b00cadc320"
+     },
+     "fuzz-11-003": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "79388d6da69abe10771b5af5c47a8115cc3de6e885979048a08afcb2aa8ed3e3"
+     },
+     "fuzz-11-004": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "72ad8ad0d3b494d5601e3a4bb84f0df50a3b25f5ed500b34a6419b425f1d36e8"
+     },
+     "fuzz-11-005": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "665713c7dfcba20b040266efcf670a1e178c940b223926adb9059f72b5dbe7ca"
+     },
+     "fuzz-11-006": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "f17accfdcc00c934b993523bd5232f658bbb4d7c1f8786e27892c340facb93b4"
+     },
+     "fuzz-11-007": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "84da23790d7afd271a31df755effe0a2b23d9195b8642bc3844979b6807343b4"
+     },
+     "fuzz-11-008": {
+      "outcome": "crashed",
+      "errors": [],
+      "exitCode": 3221225477,
+      "timedemoLine": null,
+      "inputSha256": "771203b8869c7ce3c2af8c0654e48caf20aa72f176a06917c1bb30792f100d87"
+     },
+     "fuzz-11-009": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "4bd39f404e737fb6b15226956e61d7cb048695d647414bbdf28f9b7b277680db"
+     },
+     "fuzz-11-010": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "00a39092f2d04ccd030dc0ea1bcbeef8f401ba5d6278a45296c55f1204f35e3e"
+     },
+     "fuzz-11-011": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "4f9be3f8628fa490c6e943eec0c4ef965f3d18be778aa988070423c87155b8a7"
+     },
+     "fuzz-11-012": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "54d2885f58e2454d484ebd6b7fff60c16c99335d3970633a112ff5f236634252"
+     },
+     "fuzz-11-013": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "f5eb425eedb034691c23e15e187a5b01655f140e9d0607b5eaba84dd8ca1f39a"
+     },
+     "fuzz-11-014": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "69391242d98e993f77d62ea18d8f07ad81e10b521caf90541d7505a9554f7a25"
+     },
+     "fuzz-11-015": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "547475a64209f2a9a18a696887959221ecc9fd1b9ae2b6f09eb6504864b4ff70"
+     },
+     "fuzz-11-016": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "ee17b01c2a470932d7ff0623efdf19c24bf3b51f88af7756f43f2393d89451aa"
+     },
+     "fuzz-11-017": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "c28e1ed555bcb5a407b2c9b7e53ade29e68f3d16dd73e5096de1d9b2b48b9d4c"
+     },
+     "fuzz-11-018": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: BG_EvaluateTrajectory: unknown trType: 0"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "71f08a2bb8d9a3949320d7749c8d15ccdb891f51c4e1fd00f9e0bf3c330c0815"
+     },
+     "fuzz-11-019": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "d0a785fd1ce868ae802c3f0ead6be346eeee81f1738037b44c43a6c135a72fa9"
+     },
+     "fuzz-11-020": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "b829468406f66d1954e841bf3cd0d8eb6a66bcd3daf92d418f195047a94f6baa"
+     },
+     "fuzz-11-021": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: BG_EvaluateTrajectory: unknown trType: 0"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "226404687ccc249b13d5e3c16d9418fb37e714ed015db7b9194a0f6358d78ab4"
+     },
+     "fuzz-11-022": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "f37320148f73a2e4b847b06fee3467f17ed4386af4db7f323582246287fc3027"
+     },
+     "fuzz-11-023": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "6680342867335436150fd86f8de4a8c7eecbd530c801890a9924f0b3bfae1dfb"
+     },
+     "fuzz-11-024": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "5825dddf37922eee06da01828a3a4de92c1ed6bf1227b3cb690b8ed07680d42b"
+     },
+     "fuzz-11-025": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "7bf0a561992461dca38ee635b1b084de9979f40ffb40d9883b3905fbae75fd49"
+     },
+     "fuzz-11-026": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "bde902d2d657353381c8624e121676c45b25c63d97d21bd8be2cedb1c6f9bf23"
+     },
+     "fuzz-11-027": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "3ea667615923f7850d28d7b2bbbabefe88ff62f480c9fda08504cdaf57b87cef"
+     },
+     "fuzz-11-028": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "fc660bfdedcd718f9c24e6b3d6c3b84a00cceaf25ba45c6085309545075c36f7"
+     },
+     "fuzz-11-029": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "c3aaaedf14babab0696dd13b534ce90d9614f8375c258a98bbe10a10bbad836d"
+     },
+     "fuzz-11-030": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "da85ca28ad1b5f7f2b772b9464b62123316cba626520f92a0fcaf1374890fbfe"
+     },
+     "fuzz-11-031": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "0a407b2f3e7c3da414de6b8093573c203f1ff5097a167f1061cce9ed098ccc39"
+     },
+     "fuzz-11-032": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseServerMessage: Illegible server message -1"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "5679b8c441aa4a89b9c868895cd42722257e72632a3dda98f6f0b8dd6fa0513e"
+     },
+     "fuzz-11-033": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseServerMessage: Illegible server message 13"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "743885a61a0f6bb520383e9c7ee63937d1621cd2595611ba609a7c844ab0091d"
+     },
+     "fuzz-11-034": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "817bf1be96186b4bd19649a7bda2234edb384ef7a12e5f968fc8e8ab7c05fee4"
+     },
+     "fuzz-11-035": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "aaaa20d8a0f2999d4723eece6c60a0b5f2a57c983cc3299587ac89f36a654619"
+     },
+     "fuzz-11-036": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "733e32d27fa7dcd48ca87211d0f9f601be2566a7725cb2471e43be63a6e8d8b2"
+     },
+     "fuzz-11-037": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "4fd6d12f46738c88985b5f1e35c2f855444f4350463c55ec39939fbda9311fb9"
+     },
+     "fuzz-11-038": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "582349a7c05fc612e309d65fb051878b16f73269c588a2cd6905daa8ad2202e1"
+     },
+     "fuzz-11-039": {
+      "outcome": "stalled",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "aca4f5de1a54224c780bd51e673494a52b71b0224126765a41e70dafc152ad8c"
+     }
+    }
+   }
+  },
+  "fntech3Recording": {
+   "fntech3": {
+    "engine": "fnTech3",
+    "outcomes": {
+     "completed": 5,
+     "rejected": 42,
+     "stalled": 0,
+     "crashed": 0,
+     "hung": 0
+    },
+    "installationUnchanged": true,
+    "passed": true,
+    "clientSha256": "4b7b0055b5a911b4c97cfb255b565ad7a2dd57fdac145707cf30723173d44745",
+    "sourceSha256": "9bed06af96a495079f54e20f5820b92e90c26d458f9df78445382aab2d33ee26",
+    "sourceRecords": 121,
+    "messageLimit": 32768,
+    "fuzz": {
+     "count": 40,
+     "seed": 13
+    },
+    "variants": {
+     "truncated-header": {
+      "outcome": "completed",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": "74 frames, 0.53 seconds: 139.4 fps",
+      "inputSha256": "f26c8159c2b761f06b7a92e2d5d1c1e3ffbf655285f2246cc2e0dd35f66a9844",
+      "expected": "completed",
+      "passed": true
+     },
+     "truncated-body": {
+      "outcome": "completed",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": "151 frames, 0.93 seconds: 163.1 fps",
+      "inputSha256": "690b26e70665a65157e7e83cf5560b0362e4e6bf662110ae53f71ca225e166c1",
+      "expected": "completed",
+      "passed": true
+     },
+     "no-terminator": {
+      "outcome": "completed",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": "152 frames, 0.93 seconds: 164.0 fps",
+      "inputSha256": "167559fc34ebdbc9b7f5c5fc1cb34487a8279c483c0dd3a0798dadbce92d5d61",
+      "expected": "completed",
+      "passed": true
+     },
+     "length-negative": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDemoMessage: invalid demo message length -2"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "12c4248f505a64176300737eb7b336c537535d67b08a1a98ea48ccdf5f6a839f",
+      "expected": "rejected",
+      "passed": true
+     },
+     "length-over-limit": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDemoMessage: invalid demo message length 32769"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "e7cfe2a41fb41b58946bbf308bee46e062b51737cca8729569508c6983b34dc0",
+      "expected": "rejected",
+      "passed": true
+     },
+     "length-huge": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDemoMessage: invalid demo message length 2147483647"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "030206441c89c546e2480cda06d915c5bf3cbf44b56fc57d0378fb4312890b1e",
+      "expected": "rejected",
+      "passed": true
+     },
+     "flipped-body": {
+      "outcome": "completed",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": "152 frames, 1.04 seconds: 146.2 fps",
+      "inputSha256": "9bed06af96a495079f54e20f5820b92e90c26d458f9df78445382aab2d33ee26",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-000": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseSnapshot: Invalid size 254 for areamask"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "532dce8d60e35c8b912d40400f64098cf05bfd8023983273c7bdb0a8d97fbe86",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-001": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "3b8f19db6d880db976ff0fc33def56fb4a77faabfcd0c8fe68497e6dbbef8ea4",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-002": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseSnapshot: Invalid size 254 for areamask"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "588b9cf53ca9a90b0c24faef7d1dd80e27a2d609f12333d1a039e3ecddff4b2c",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-003": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "97f9123911fa274d4235b75831f030ee1eea6aa4d8414f9c29052dd351b659d3",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-004": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseSnapshot: Invalid size 254 for areamask"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "87600e9a5ab923cc937c8852254fdc2d1a9cbfcf1fab20468501f82720f07d9c",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-005": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "9f4b1b24c5ec6eb2e6217fbb273ccacb7df1da17b9f2630f9597e047212894d2",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-006": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "ae946de24ffb0bc31de8ee152ca698d89c74bac577d683c2b3192ffe05384f32",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-007": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "e2a48b6d354dacfaac0f7006cfcef04a58d9316320e3018db94753cfd4ebed14",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-008": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "30d302956c5a48270dd8569e744de9317dd0806e7ab3c8bc5f8bb78b192b6943",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-009": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "00bada5e9ed808401d0c4b75f55a26d57650284bf75e3cb00337146c0f9ba916",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-010": {
+      "outcome": "completed",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": "152 frames, 0.92 seconds: 165.6 fps",
+      "inputSha256": "fd9ad96335719ef4136fb4fb7d427ebc25f5920e43c189cfd95313f2f30df5a5",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-011": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "08afc0ec1ffc1c7ce22615fb3fee3db500728b84603e22ed456f23602d12e116",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-012": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "b8400641a9427dfd31012af9df5fdbd5cc28b6bd67efd474e02f3f3cabe45f22",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-013": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "7f9878a50bdd9e2b11ddcabc22f25351a5452afe61fe5154d535d475628225d6",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-014": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "e61c83697fab84203a73dbb3193eeffbc5e83d9555987441e20fa68dd9467cd4",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-015": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "187035bd6b0b287d6c9c27c6d98f343a48d628b6df95beabea32e6146f6ec930",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-016": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "807fe9e18655a672e48150e25631fe6ed8043fcbb5b873c9ed88a9380bbcd030",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-017": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "de637db8512db33794f88bdf78ba9a31ddfc69a7dde0aa22e8ae63b7021a6ee1",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-018": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "db59d4b3efcb0e9b474318402f3021b0bb1f60697ecf9bcea5404de8f6e6da9c",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-019": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseSnapshot: Invalid size 254 for areamask"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "a31864d2cf055de9833ba6a032b4c5a1a1176e9d9ebd8b631970b8635320f4f2",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-020": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "1ad90546df7de6f13b1ee2bc75d48b9e460c4baed632f8ffd399ef29093ec69e",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-021": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseSnapshot: Invalid size 254 for areamask"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "d25a7a939ea664cf78c1a60e500790ebe29a509e768d7e2dbdc17507b6ca082d",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-022": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "59eed8d1fd4f3e137feeb8bc11c66adf7714043a7810f24b71f0c9e3abd777c9",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-023": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseServerMessage: Illegible server message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "7156d1682a3012b168c33664758e3c3a20a445b063b2c841718a8f05f53af360",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-024": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "f742ca8ff4c0919c0e7ea0bb3cb3e7c13638a93af2d7c68305fa2767f31fd38f",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-025": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseSnapshot: Invalid size 171 for areamask"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "b1236790475a5dd77eca9569f8c97e0fc75d866e5c47da627ceffd40091f932c",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-026": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "e7aeac2152d3d9d339367216447f708fa5a48106e335413d69bb4c73a8c3149c",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-027": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "13e3cf7352f4baa5d50353f3dd54a66fb8d530d1eab80f2a69108b79f4eecf08",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-028": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "a33df79b02ccbad6db2e33a8d2021cd87c8321f3cc00cf8c20efacf4db892408",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-029": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "fd3b887f8273704bd95e62e162fd8539e9783942e1cd6fecbf1b8f83d070600e",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-030": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseServerMessage: Illegible server message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "05433f4a607a52202b1a4d0ec6be1613569582b7c7019feef48be308cbfbcf49",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-031": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "37b7cc110bac69518c9811110091cc9c2d1598612af352bf77f2efa37b7979ef",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-032": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "33869b51c5fe99428c3193c1340707c408402c4ab4bef40875842213a9ad51ad",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-033": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "9bbe36de9b7df68392effbcfee044a4a322c5829ca0f07192cfeba000d194b0a",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-034": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "11c50e3c58b810ea5e5cd7e3bdc179cfa7489d5557a15a877099850877e63647",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-035": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseSnapshot: Invalid size 254 for areamask"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "357a5d0657aea0a93a46c4e3d6b1a48f2bde0084b517e2ef86175dbc516c4f2e",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-036": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "df68be43471d2d0e3b8e20b50af6acd6c57e0dfa91a59231fe2235ec1ba66fec",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-037": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseSnapshot: Invalid size 120 for areamask"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "eda0c4b379dd8cb5605ed51a99b37dfb0a14569a3daf1a5816675dce3484c0e6",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-038": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "f029babd34b6abac3fff4d81a73c212665edc810c6eb7c9d7a7e834f87eef92f",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     },
+     "fuzz-13-039": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "08e00ce8e71b7ec2c13b91aaae6e19e958aef40f396cbd26d38f1e5fd3614f5a",
+      "expected": "completed-or-rejected-or-stalled",
+      "passed": true
+     }
+    }
+   },
+   "retail": {
+    "engine": "retail WolfMP.exe",
+    "outcomes": {
+     "completed": 6,
+     "rejected": 38,
+     "stalled": 2,
+     "crashed": 1,
+     "hung": 0
+    },
+    "installationUnchanged": true,
+    "passed": null,
+    "clientSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+    "sourceSha256": "9bed06af96a495079f54e20f5820b92e90c26d458f9df78445382aab2d33ee26",
+    "sourceRecords": 121,
+    "messageLimit": 32768,
+    "fuzz": {
+     "count": 40,
+     "seed": 13
+    },
+    "variants": {
+     "truncated-header": {
+      "outcome": "completed",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": "74 frames, 0.3 seconds: 275.1 fps",
+      "inputSha256": "f26c8159c2b761f06b7a92e2d5d1c1e3ffbf655285f2246cc2e0dd35f66a9844"
+     },
+     "truncated-body": {
+      "outcome": "completed",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": "151 frames, 0.4 seconds: 395.3 fps",
+      "inputSha256": "690b26e70665a65157e7e83cf5560b0362e4e6bf662110ae53f71ca225e166c1"
+     },
+     "no-terminator": {
+      "outcome": "completed",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": "152 frames, 0.5 seconds: 279.4 fps",
+      "inputSha256": "167559fc34ebdbc9b7f5c5fc1cb34487a8279c483c0dd3a0798dadbce92d5d61"
+     },
+     "length-negative": {
+      "outcome": "completed",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": "152 frames, 0.6 seconds: 252.1 fps",
+      "inputSha256": "12c4248f505a64176300737eb7b336c537535d67b08a1a98ea48ccdf5f6a839f"
+     },
+     "length-over-limit": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDemoMessage: demoMsglen > MAX_MSGLEN"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "e7cfe2a41fb41b58946bbf308bee46e062b51737cca8729569508c6983b34dc0"
+     },
+     "length-huge": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDemoMessage: demoMsglen > MAX_MSGLEN"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "030206441c89c546e2480cda06d915c5bf3cbf44b56fc57d0378fb4312890b1e"
+     },
+     "flipped-body": {
+      "outcome": "completed",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": "152 frames, 1.3 seconds: 116.7 fps",
+      "inputSha256": "9bed06af96a495079f54e20f5820b92e90c26d458f9df78445382aab2d33ee26"
+     },
+     "fuzz-13-000": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "532dce8d60e35c8b912d40400f64098cf05bfd8023983273c7bdb0a8d97fbe86"
+     },
+     "fuzz-13-001": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "3b8f19db6d880db976ff0fc33def56fb4a77faabfcd0c8fe68497e6dbbef8ea4"
+     },
+     "fuzz-13-002": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "588b9cf53ca9a90b0c24faef7d1dd80e27a2d609f12333d1a039e3ecddff4b2c"
+     },
+     "fuzz-13-003": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "97f9123911fa274d4235b75831f030ee1eea6aa4d8414f9c29052dd351b659d3"
+     },
+     "fuzz-13-004": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "87600e9a5ab923cc937c8852254fdc2d1a9cbfcf1fab20468501f82720f07d9c"
+     },
+     "fuzz-13-005": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "9f4b1b24c5ec6eb2e6217fbb273ccacb7df1da17b9f2630f9597e047212894d2"
+     },
+     "fuzz-13-006": {
+      "outcome": "crashed",
+      "errors": [],
+      "exitCode": 3221225477,
+      "timedemoLine": null,
+      "inputSha256": "ae946de24ffb0bc31de8ee152ca698d89c74bac577d683c2b3192ffe05384f32"
+     },
+     "fuzz-13-007": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "e2a48b6d354dacfaac0f7006cfcef04a58d9316320e3018db94753cfd4ebed14"
+     },
+     "fuzz-13-008": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "30d302956c5a48270dd8569e744de9317dd0806e7ab3c8bc5f8bb78b192b6943"
+     },
+     "fuzz-13-009": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "00bada5e9ed808401d0c4b75f55a26d57650284bf75e3cb00337146c0f9ba916"
+     },
+     "fuzz-13-010": {
+      "outcome": "completed",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": "152 frames, 0.5 seconds: 279.4 fps",
+      "inputSha256": "fd9ad96335719ef4136fb4fb7d427ebc25f5920e43c189cfd95313f2f30df5a5"
+     },
+     "fuzz-13-011": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "08afc0ec1ffc1c7ce22615fb3fee3db500728b84603e22ed456f23602d12e116"
+     },
+     "fuzz-13-012": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "b8400641a9427dfd31012af9df5fdbd5cc28b6bd67efd474e02f3f3cabe45f22"
+     },
+     "fuzz-13-013": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "7f9878a50bdd9e2b11ddcabc22f25351a5452afe61fe5154d535d475628225d6"
+     },
+     "fuzz-13-014": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "e61c83697fab84203a73dbb3193eeffbc5e83d9555987441e20fa68dd9467cd4"
+     },
+     "fuzz-13-015": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "187035bd6b0b287d6c9c27c6d98f343a48d628b6df95beabea32e6146f6ec930"
+     },
+     "fuzz-13-016": {
+      "outcome": "stalled",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "807fe9e18655a672e48150e25631fe6ed8043fcbb5b873c9ed88a9380bbcd030"
+     },
+     "fuzz-13-017": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "de637db8512db33794f88bdf78ba9a31ddfc69a7dde0aa22e8ae63b7021a6ee1"
+     },
+     "fuzz-13-018": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "db59d4b3efcb0e9b474318402f3021b0bb1f60697ecf9bcea5404de8f6e6da9c"
+     },
+     "fuzz-13-019": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "a31864d2cf055de9833ba6a032b4c5a1a1176e9d9ebd8b631970b8635320f4f2"
+     },
+     "fuzz-13-020": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "1ad90546df7de6f13b1ee2bc75d48b9e460c4baed632f8ffd399ef29093ec69e"
+     },
+     "fuzz-13-021": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "d25a7a939ea664cf78c1a60e500790ebe29a509e768d7e2dbdc17507b6ca082d"
+     },
+     "fuzz-13-022": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "59eed8d1fd4f3e137feeb8bc11c66adf7714043a7810f24b71f0c9e3abd777c9"
+     },
+     "fuzz-13-023": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseServerMessage: Illegible server message -1"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "7156d1682a3012b168c33664758e3c3a20a445b063b2c841718a8f05f53af360"
+     },
+     "fuzz-13-024": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "f742ca8ff4c0919c0e7ea0bb3cb3e7c13638a93af2d7c68305fa2767f31fd38f"
+     },
+     "fuzz-13-025": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "b1236790475a5dd77eca9569f8c97e0fc75d866e5c47da627ceffd40091f932c"
+     },
+     "fuzz-13-026": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "e7aeac2152d3d9d339367216447f708fa5a48106e335413d69bb4c73a8c3149c"
+     },
+     "fuzz-13-027": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "13e3cf7352f4baa5d50353f3dd54a66fb8d530d1eab80f2a69108b79f4eecf08"
+     },
+     "fuzz-13-028": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "a33df79b02ccbad6db2e33a8d2021cd87c8321f3cc00cf8c20efacf4db892408"
+     },
+     "fuzz-13-029": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "fd3b887f8273704bd95e62e162fd8539e9783942e1cd6fecbf1b8f83d070600e"
+     },
+     "fuzz-13-030": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParseServerMessage: Illegible server message 16"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "05433f4a607a52202b1a4d0ec6be1613569582b7c7019feef48be308cbfbcf49"
+     },
+     "fuzz-13-031": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "37b7cc110bac69518c9811110091cc9c2d1598612af352bf77f2efa37b7979ef"
+     },
+     "fuzz-13-032": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "33869b51c5fe99428c3193c1340707c408402c4ab4bef40875842213a9ad51ad"
+     },
+     "fuzz-13-033": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: BG_EvaluateTrajectory: unknown trType: 0"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "9bbe36de9b7df68392effbcfee044a4a322c5829ca0f07192cfeba000d194b0a"
+     },
+     "fuzz-13-034": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "11c50e3c58b810ea5e5cd7e3bdc179cfa7489d5557a15a877099850877e63647"
+     },
+     "fuzz-13-035": {
+      "outcome": "stalled",
+      "errors": [],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "357a5d0657aea0a93a46c4e3d6b1a48f2bde0084b517e2ef86175dbc516c4f2e"
+     },
+     "fuzz-13-036": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "df68be43471d2d0e3b8e20b50af6acd6c57e0dfa91a59231fe2235ec1ba66fec"
+     },
+     "fuzz-13-037": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "eda0c4b379dd8cb5605ed51a99b37dfb0a14569a3daf1a5816675dce3484c0e6"
+     },
+     "fuzz-13-038": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "f029babd34b6abac3fff4d81a73c212665edc810c6eb7c9d7a7e834f87eef92f"
+     },
+     "fuzz-13-039": {
+      "outcome": "rejected",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "exitCode": null,
+      "timedemoLine": null,
+      "inputSha256": "08e00ce8e71b7ec2c13b91aaae6e19e958aef40f396cbd26d38f1e5fd3614f5a"
+     }
+    }
+   }
+  }
+ },
+ "differences": {
+  "retailRecording": [
+   {
+    "variant": "length-negative",
+    "retail": "completed",
+    "retailError": [],
+    "retailExitCode": null,
+    "fntech3": "rejected",
+    "fntech3Error": [
+     "ERROR: CL_ReadDemoMessage: invalid demo message length -2"
+    ]
+   },
+   {
+    "variant": "fuzz-11-008",
+    "retail": "crashed",
+    "retailError": [],
+    "retailExitCode": 3221225477,
+    "fntech3": "rejected",
+    "fntech3Error": [
+     "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+    ]
+   }
+  ],
+  "fntech3Recording": [
+   {
+    "variant": "length-negative",
+    "retail": "completed",
+    "retailError": [],
+    "retailExitCode": null,
+    "fntech3": "rejected",
+    "fntech3Error": [
+     "ERROR: CL_ReadDemoMessage: invalid demo message length -2"
+    ]
+   },
+   {
+    "variant": "fuzz-13-006",
+    "retail": "crashed",
+    "retailError": [],
+    "retailExitCode": 3221225477,
+    "fntech3": "rejected",
+    "fntech3Error": [
+     "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+    ]
+   },
+   {
+    "variant": "fuzz-13-016",
+    "retail": "stalled",
+    "retailError": [],
+    "retailExitCode": null,
+    "fntech3": "rejected",
+    "fntech3Error": [
+     "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+    ]
+   },
+   {
+    "variant": "fuzz-13-035",
+    "retail": "stalled",
+    "retailError": [],
+    "retailExitCode": null,
+    "fntech3": "rejected",
+    "fntech3Error": [
+     "ERROR: CL_ParseSnapshot: Invalid size 254 for areamask"
+    ]
+   }
+  ]
+ },
+ "environment": "Windows 11; each variant a fresh process and isolated home, windowed on an unswitched private desktop, sound and mouse/joystick input off, console commands only; the installation unchanged after every run",
+ "inferences": [
+  "Every variant retail rejected, fnTech3 rejected, and every variant retail completed, fnTech3 completed, except a record length of -2, which retail ends as a truncation and fnTech3 rejects, as the invalid-length checkpoint chose for every profile.",
+  "The two retail crashes and two retail stalls are corruptions fnTech3 rejects by its decoder checks: a truncated player-state delta (three) and an area mask of 254 bytes."
+ ]
+}

@@ -33,9 +33,9 @@ The probe stops every process that is still running. The tick loop keeps the
 command buffer busy, so commands queued by the completion path (nextdemo, the
 automatic quit) never run; completion is taken from the timedemo line that
 CL_DemoCompleted prints itself. The expected outcome per variant is recorded
-next to the observed one. With --retail (q3 only) the same variants play in the
-installation's retail quake3.exe instead; its outcomes are recorded for
-comparison, not judged. Windows only: windowed on unswitched private desktops,
+next to the observed one. With --retail the same variants play in the
+installation's retail quake3.exe (q3) or WolfMP.exe (rtcw-mp) instead; its
+outcomes are recorded for comparison, not judged. Windows only: windowed on unswitched private desktops,
 sound and mouse/joystick input disabled, console commands only.
 """
 from pathlib import Path
@@ -54,6 +54,7 @@ sys.path.insert(0, str(ROOT / 'tests'))
 from windows_private_process import WindowsPrivateProcess
 
 GAMES = {'q3': 'baseq3', 'ql': 'baseq3', 'rtcw-sp': 'main', 'rtcw-mp': 'main', 'wolfet': 'etmain'}
+RETAIL = {'q3': 'quake3.exe', 'rtcw-mp': 'WolfMP.exe'}
 LIMITS = {'q3': 16384, 'ql': 16384, 'rtcw-sp': 32768, 'rtcw-mp': 32768, 'wolfet': 32768}
 TICK = 'FAULT_DEMO_TICK'
 STATS = re.compile(r'^\d+ frames, [\d.]+ seconds: [\d.]+ fps', re.M)
@@ -146,7 +147,8 @@ def play(client, installation, profile, name, payload, output, retail=False):
     for key, value in settings.items():
         command += ['+set', key, value]
     command += ['+exec', 'probe.cfg']
-    log = game / 'qconsole.log'
+    # retail WolfMP.exe names its console log rtcwconsole.log
+    log = game / ('rtcwconsole.log' if retail and profile.startswith('rtcw') else 'qconsole.log')
     read = lambda: log.read_text(encoding='utf-8', errors='replace') if log.exists() else ''
     begin = time.monotonic()
     process = WindowsPrivateProcess(command, client.parent, output / f'{name}-stdout.log')
@@ -204,20 +206,20 @@ def main():
     parser.add_argument('--seed', type=int, default=20260918)
     parser.add_argument('--fuzz-only', action='store_true', help='skip the fixed fault variants')
     parser.add_argument('--retail', action='store_true',
-                        help='play the same variants in the installation\'s retail quake3.exe instead (q3 only); '
-                             'outcomes are recorded for comparison, not judged')
+                        help='play the same variants in the installation\'s retail quake3.exe (q3) or WolfMP.exe '
+                             '(rtcw-mp) instead; outcomes are recorded for comparison, not judged')
     args = parser.parse_args()
     if os.name != 'nt':
         parser.error('This probe requires the Windows private-desktop harness')
-    if args.retail and args.profile != 'q3':
-        parser.error('--retail compares against retail quake3.exe, so it needs --profile q3')
+    if args.retail and args.profile not in RETAIL:
+        parser.error('--retail compares against retail quake3.exe or WolfMP.exe, so it needs --profile q3 or rtcw-mp')
     if not args.retail and not args.client:
         parser.error('--client is required unless --retail is given')
     installation = args.installation.resolve(strict=True)
     inventory = lambda: {str(p.relative_to(installation)): (p.stat().st_size, p.stat().st_mtime_ns)
                          for p in installation.rglob('*') if p.is_file()}
     before = inventory()
-    client = (installation / 'quake3.exe' if args.retail else args.client).resolve(strict=True)
+    client = (installation / RETAIL[args.profile] if args.retail else args.client).resolve(strict=True)
     source = args.demo.resolve(strict=True).read_bytes()
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
@@ -231,7 +233,7 @@ def main():
             row['passed'] = row['outcome'] in expected.split('-or-')
         rows[name] = row
         print(name, row['outcome'], '' if args.retail else f'expected {expected}', row['errors'][:1], flush=True)
-    report = dict(profile=args.profile, engine='retail quake3.exe' if args.retail else 'fnTech3',
+    report = dict(profile=args.profile, engine=f'retail {RETAIL[args.profile]}' if args.retail else 'fnTech3',
                   installation=str(installation), installationUnchanged=before == inventory(),
                   sourceDemo=str(args.demo), sourceSha256=hashlib.sha256(source).hexdigest(),
                   sourceRecords=len(records(source)[0]), clientSha256=hashlib.sha256(client.read_bytes()).hexdigest(),
