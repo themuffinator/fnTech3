@@ -105,7 +105,7 @@ int main(){
 #define CHECK(x) do{if(!(x)){std::fprintf(stderr,"%d: %s\n",__LINE__,#x);return 1;}}while(0)
 int main(){
  bool enabled=false;
-#if defined(FNTECH3_Q3_IHV_DEVELOPMENT) && defined(DEDICATED) && defined(_WIN32) && (defined(_M_IX86)||defined(__i386__))
+#if defined(FNTECH3_Q3_IHV_DEVELOPMENT) && defined(_WIN32) && (defined(_M_IX86)||defined(__i386__))
  enabled=true;
 #endif
  const auto *profile=Com_GameProfileById(COM_GAME_QUAKE3_IHV);

@@ -227,6 +227,7 @@ static void CL_SetDemoRecordingCvars(const char *) {}
 /* Q3Test records with its own recorder (cl_q3test.cpp). */
 static int Com_GameIsQ3Test() { return 0; }
 static void CL_Q3TestRecord_f() {}
+static int Com_GameIsQuake3IHV() { return 0; }
 static void CL_WriteGamestate(qboolean initial) { assert(initial); ++gamestates; }
 /* Demo files already on disk, and every name the automatic search probed. */
 struct ScopedFileHandle {};

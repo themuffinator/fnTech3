@@ -62,6 +62,8 @@ int Com_GameIsRitual() { return profile.id == COM_GAME_ALICE || profile.id == CO
 // Q3Test plays its demos with its own reader (cl_q3test.cpp).
 int Com_GameIsQ3Test() { return 0; }
 void CL_Q3TestPlayDemo_f() {}
+int Com_GameIsQuake3IHV() { return 0; }
+void CL_Q3IHVPlayDemo_f() {}
 const int demo_protocols[] = {''' + demo_protocols + r'''};
 bool Com_DemoProtocolSupported(int p) {
     for (int value : demo_protocols) if (value && value == p) return true;

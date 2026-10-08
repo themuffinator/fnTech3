@@ -29,6 +29,7 @@ extern "C" {
 
 #include "client_cpp.h"
 #include "client_q3test.h"
+#include "client_q3ihv.h"
 #include "client_cvar_compat.hpp"
 #include "ql_font_bridge.hpp"
 #include "../compat/game_abi_adapter.h"
@@ -1929,6 +1930,9 @@ void CL_ShutdownCGame( void ) {
 	if (Com_GameIsJKAMP()) CL_JKACgameClear();
 	if ( Com_GameIsQ3Test() ) {
 		CL_Q3TestShutdownCGame();
+	}
+	if ( Com_GameIsQuake3IHV() ) {
+		CL_Q3IHVShutdownCGame();
 	}
 }
 
@@ -3863,7 +3867,8 @@ void CL_RegisterCGameCvars( void ) {
 	// Ritual's client game is a function table without a cvar-registration
 	// entry; the generic loader only loads and refuses it. So are Medal of
 	// Honor's and Q3Test's.
-	if ( Com_GameIsRitual() || Com_GameIsMOHAA() || Com_GameIsQ3Test() || Com_GameIsJKA() ) {
+	if ( Com_GameIsRitual() || Com_GameIsMOHAA() || Com_GameIsQ3Test() || Com_GameIsJKA()
+		|| Com_GameIsQuake3IHV() ) {
 		return;
 	}
 
@@ -3958,6 +3963,9 @@ void CL_InitCGame( void ) {
 	} else if ( Com_GameIsQ3Test() ) {
 		/* Q3Test's are each release's own (cl_q3test_cgame.cpp). */
 		cgvm = CL_Q3TestLoadCGame();
+	} else if ( Com_GameIsQuake3IHV() ) {
+		/* The IHV Test's is pushed its data (cl_q3ihv_cgame.cpp). */
+		cgvm = CL_Q3IHVLoadCGame();
 	} else {
 		cgvm = CL_LoadCGameVM( interpret );
 	}
@@ -3971,6 +3979,8 @@ void CL_InitCGame( void ) {
 	// otherwise server commands sent just before a gamestate are dropped
 	if ( Com_GameIsQ3Test() ) {
 		CL_Q3TestInitCGameModule();
+	} else if ( Com_GameIsQuake3IHV() ) {
+		CL_Q3IHVInitCGameModule();
 	} else if ( Com_GameIsWolfET() ) {
 		// ET's cgame is told whether it is replaying a demo at initialisation.
 		VM_Call( cgvm, 4, CG_INIT, clc.serverMessageSequence, clc.lastExecutedServerCommand,
@@ -4287,6 +4297,12 @@ CL_SetCGameTime
 */
 void CL_SetCGameTime( void ) {
 	bool demoFreezed;
+
+	// The IHV Test's client game keeps its own time (cl_q3ihv.cpp).
+	if ( Com_GameIsQuake3IHV() ) {
+		CL_Q3IHVSetCGameTime();
+		return;
+	}
 
 	// getting a valid frame message ends the connection process
 	if ( cls.state != CA_ACTIVE ) {

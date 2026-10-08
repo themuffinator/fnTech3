@@ -1,0 +1,64 @@
+{
+  "record": "2026-10-08-q3-ihv-client.md",
+  "profile": "q3-ihv",
+  "baseCommit": "f99e8c31c385d04c3ba96cac8297bf630889c598",
+  "platform": "Windows x86, MSVC 2022, meson win32-dev (every development gate on)",
+  "installation": {
+    "path": "E:\\Games\\Quake 3 IHV",
+    "access": "read only; whole-tree hash unchanged after every run",
+    "files": {
+      "quake3.exe": {"bytes": 725042, "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37"},
+      "cgamex86.dll": {"bytes": 192570, "sha256": "175f94756f994b06235690fdd2d9fe798503f7a797f2e070277a672847593614"},
+      "baseq3/demos/sli.dm3": {"bytes": 8628, "sha256": "fbdc209d1c7fc1075976c9120c79d5e579ed36f4e38062b01248d6b2d807c57b"}
+    },
+    "originalEngineCopy": ".tmp/q3-ihv/original-server (writable copy, same hashes)"
+  },
+  "build": {
+    "fntech3.exe": "06af347a0cc05972b27a65928eff5804a6cb625e45d007a992be860e70c04fa2",
+    "fnql_glx_x86.dll": "ec0676ff57ae4c728722589dcb29fdf4afb80e7eeb703cd11de03069513bed59",
+    "fnql_vk_x86.dll": "24fe5cb03e810f2257a626f77af3a1d969982d43194e95e3894ccdd9f5e2886d",
+    "fnql_rtx_x86.dll": "c26a4d25e2d7782597f62f0c78aacdec6f5228d837c7a0cf1724becbcb68d396"
+  },
+  "originalObservations": {
+    "cgameInit": {"function": "0x405e30", "tableWords": 62, "nullWords": [0, 57], "valueWords": {"37": "video width", "38": "video height"}, "pointerWords": {"61": "weapon byte copied into each command at 0x402e91"}},
+    "importTargets": {
+      "1": "0x40cae0 print", "2": "0x40cca0 error", "3": "0x40d730 milliseconds", "4": "0x40de80 Cvar_Get",
+      "5": "0x40e2b0 Cvar_Set (forced)", "6": "0x40c570 Cmd_Argc", "7": "0x40c580 Cmd_Argv", "8": "0x40c5a0 Cmd_Args",
+      "9": "0x40f000 FS_ReadFile", "10": "0x40f080 FS_FreeFile", "11": "0x40f090 FS_WriteFile", "12": "0x40c240 Cbuf_AddText",
+      "13": "0x407720 debug graph", "14": "0x404aa0 reliable client command",
+      "15": "0x408a10 CM_TempBoxModel", "16": "0x40aa90 CM_BoxBrushes", "17": "0x40a570 CM_LerpTag", "18": "0x408550 CM_LoadMap",
+      "19": "0x408500 map name loaded", "20": "0x4087c0 CM_InlineModel", "21": "0x40a140 CM_RegisterModel", "22": "0x408810 CM_NumInlineModels",
+      "23": "0x40ab20 CM_PointContents", "24": "0x40abe0 CM_TransformedPointContents", "25": "0x40ba80 CM_BoxTrace", "26": "0x40be20 CM_TransformedBoxTrace",
+      "27": "0x415b60 S_StartSound", "28": "0x415c10 S_StartLocalSound", "29": "0x415d00 S_ClearLoopingSounds", "30": "0x415d10 S_AddLoopingSound",
+      "31": "0x416200 S_Respatialize", "32": "0x4157f0 S_BeginRegistration", "33": "0x415860 S_RegisterSound", "34": "0x4158c0 a second sound registration (looks the name up, loads if needed); served as S_RegisterSound",
+      "35": "0x415910 S_EndRegistration", "36": "0x416790 S_StartBackgroundTrack",
+      "39": "renderer LoadWorld", "40": "renderer RegisterModel", "41": "renderer RegisterSkin", "42": "renderer RegisterShader",
+      "43": "0x42cce0 RenderScene", "44": "renderer SetColor", "45": "renderer DrawStretchPic", "46": "0x42ce90 BeginFrame", "47": "0x42a970 EndFrame",
+      "48": "0x407a90 SCR_UpdateScreen", "49": "0x407620 big string width", "50": "0x407670 small string width", "51": "0x4071b0 AdjustFrom640",
+      "52": "0x407250 FillRect", "53": "0x4072b0 DrawPic", "54": "0x4075b0 big string", "55": "0x407600 big string with colour",
+      "56": "0x405d40 gamestate copy (0x13a1 dwords)", "58": "0x405dd0 entity getter (0x29 dwords)", "59": "0x405dc0 current command number", "60": "0x405d60 command getter (14 bytes)"
+    },
+    "cgameExports": {"function": "0x10009590", "order": ["Init", "snapshot", "configstring", "server command", "console command", "frame", "draw", "loading screen"]},
+    "snapshotPush": "0x406c2f, after the state becomes active (0x406c11)",
+    "serverCommand": "0x406f60: disconnect and clientLevelShot handled by the engine",
+    "frameDriver": {"function": "0x4059b0", "demoLoop": "0x405a40", "frameExport": "0x10010d40", "mapCheck": "0x10010daa"},
+    "collisionRecord": {"bytes": 112, "mins": 0, "maxs": 12, "headnode": 24, "name": 28, "evidence": ["0x1000e73f", "0x1000e9e8", "0x40aafd"]},
+    "brushQuery": {"import": 16, "brushBytes": 40, "sideCount": "0x1c", "sides": "0x20", "readAt": "0x1000b2c6"},
+    "screenshotReadback": "0x429660 reads the current buffer when the console command runs, after the swap",
+    "cdbTrace": {"frameCalls": 77, "notReady": 16, "ready": 61, "renderScene": 61, "recordsRead": 18, "viewport": "640x480"}
+  },
+  "runs": [
+    {"renderer": "glx", "exit": 0, "forced": false, "seconds": 6.125},
+    {"renderer": "vk", "exit": 0, "forced": false, "seconds": 4.906},
+    {"renderer": "rtx", "exit": 0, "forced": false, "seconds": 8.093},
+    {"renderer": "glx", "sound": "OpenAL", "exit": 0, "forced": false, "seconds": 6.016, "missingInInstallation": ["sound/weapons/chainsaw.wav"]}
+  ],
+  "commandTemplate": "fntech3.exe +set com_gameProfile q3-ihv +set fs_basepath <installation> +set fs_homepath <isolated home> +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set s_initsound 0 +set cl_renderer <renderer> +exec probe.cfg (demo sli; waits; screenshotPNG)",
+  "harness": [".tmp/ihv-client/probe_demo.py", ".tmp/ihv-client/probe_original.py", ".tmp/ihv-client/frame.cdb"],
+  "faultsFoundAndFixed": [
+    "a demo started with only its gamestate read waited for its snapshot forever",
+    "import 16 served as a leaf query faulted inside the module at cgamex86.dll+0xb2c6"
+  ],
+  "tests": ["tests/q3_ihv_client_tests.py", "tests/q3_ihv_game_lifecycle_tests.py (developer gate now includes the client)", "13 q3-ihv meson targets"],
+  "open": ["live protocol-33 sessions in both directions", "demo recording", "overlay quad 0x442700", "the build's menus", "input", "listening test", "frame comparison with the original"]
+}

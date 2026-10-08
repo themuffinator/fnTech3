@@ -1281,6 +1281,8 @@ Q3OBJ = \
   $(B)/client/cl_mohaa_decals.o \
   $(B)/client/cl_mohaa_sound.o \
   $(B)/client/cl_mohaa_ui.o \
+  $(B)/client/cl_q3ihv.o \
+  $(B)/client/cl_q3ihv_cgame.o \
   $(B)/client/cl_q3test.o \
   $(B)/client/cl_q3test_cgame.o \
   $(B)/client/cl_q3test_menus.o \

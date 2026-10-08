@@ -383,6 +383,8 @@ client_src = [
   'code/client/cl_workshop.cpp',
   'code/client/cl_net_chan.cpp',
   'code/client/cl_parse.cpp',
+  'code/client/cl_q3ihv.cpp',
+  'code/client/cl_q3ihv_cgame.cpp',
   'code/client/cl_q3test.cpp',
   'code/client/cl_q3test_cgame.cpp',
   'code/client/cl_q3test_menus.cpp',

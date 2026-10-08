@@ -708,7 +708,10 @@ bool EqualsIgnoreCase( const char *left, const char *right )
 
 bool RuntimeBlocked( const comGameProfile_t *profile )
 {
-#if defined(FNTECH3_Q3_IHV_DEVELOPMENT) && defined(DEDICATED) && defined(_WIN32) && (defined(_M_IX86) || defined(__i386__))
+#if defined(FNTECH3_Q3_IHV_DEVELOPMENT) && defined(_WIN32) && (defined(_M_IX86) || defined(__i386__))
+	/* The IHV Test's modules are Win32 x86 libraries: its developer server
+	 * runs the game and its developer client the client game, in isolated
+	 * probes. The release gate stays shut. */
 	if ( profile && profile->id == COM_GAME_QUAKE3_IHV ) return false;
 #endif
 #if defined( FNTECH3_JKA_DEVELOPMENT )

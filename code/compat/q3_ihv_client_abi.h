@@ -39,8 +39,11 @@ typedef struct {
  * 0x42cb). Engine-owned mirrors must retain both arrays for the registration
  * lifetime. These are 32-bit native addresses, never retail clip handles. */
 typedef struct {
-	int32_t headnode;
+	/* The headnode is word 6: the client game passes it to the contents and
+	 * trace calls (cgamex86.dll 0x1000e73f, 0x1000e9e8), and the engine's
+	 * brush walk starts from the world's (0x40aafd). */
 	float mins[3], maxs[3];
+	int32_t headnode;
 	char name[64];
 	int32_t isMD3, frameCount, tagCount;
 	uint32_t frames, tags;

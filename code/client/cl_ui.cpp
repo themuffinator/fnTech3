@@ -28,6 +28,7 @@ extern "C" {
 
 #include "client_cpp.h"
 #include "client_q3test.h"
+#include "client_q3ihv.h"
 #include "cl_mohaa.h"
 #include "ql_font_bridge.hpp"
 #include "../compat/game_abi_adapter.h"
@@ -2862,6 +2863,15 @@ void CL_InitUI( void ) {
 		uivm = CL_Q3TestLoadUI();
 		if ( !uivm ) {
 			Com_Error( ERR_FATAL, "Couldn't load ui" );
+		}
+		VM_Call( uivm, 1, UI_INIT, (cls.state >= CA_AUTHORIZING && cls.state < CA_ACTIVE) );
+		return;
+	}
+	/* Nor has the IHV Test, whose menus were its engine's (cl_q3ihv.cpp). */
+	if ( Com_GameIsQuake3IHV() ) {
+		uivm = CL_Q3IHVLoadUI();
+		if ( !uivm ) {
+			Com_Error( ERR_FATAL, "The IHV Test's engine screens could not be hosted" );
 		}
 		VM_Call( uivm, 1, UI_INIT, (cls.state >= CA_AUTHORIZING && cls.state < CA_ACTIVE) );
 		return;

@@ -27,6 +27,7 @@ extern "C" {
 
 #include "client_cpp.h"
 #include "client_q3test.h"
+#include "client_q3ihv.h"
 #include "canvas_geometry.hpp"
 #include "client_cvar_compat.hpp"
 #include "client_alice_demo.hpp"
@@ -1413,6 +1414,11 @@ static void CL_Record_f( void ) {
 		CL_Q3TestRecord_f();
 		return;
 	}
+	// The IHV Test's recorder is not written yet; its .dm3 is not Quake III's.
+	if ( Com_GameIsQuake3IHV() ) {
+		Com_Printf( "Recording an IHV Test demo is not supported yet.\n" );
+		return;
+	}
 
 	if ( Cmd_Argc() > 2 ) {
 		Com_Printf( "record <demoname>\n" );
@@ -1655,6 +1661,13 @@ void CL_ReadDemoMessage( void ) {
 	// Q3Test's .dm3 records carry no sequence (cl_q3test.cpp).
 	if ( Com_GameIsQ3Test() ) {
 		if ( !CL_Q3TestReadDemoMessage() ) {
+			CL_DemoCompleted();
+		}
+		return;
+	}
+	// Nor do the IHV Test's (cl_q3ihv.cpp).
+	if ( Com_GameIsQuake3IHV() ) {
+		if ( !CL_Q3IHVReadDemoMessage() ) {
 			CL_DemoCompleted();
 		}
 		return;
@@ -1906,6 +1919,11 @@ static void CL_PlayDemo_f( void ) {
 	// Q3Test plays its own .dm3 (cl_q3test.cpp).
 	if ( Com_GameIsQ3Test() ) {
 		CL_Q3TestPlayDemo_f();
+		return;
+	}
+	// So does the IHV Test (cl_q3ihv.cpp).
+	if ( Com_GameIsQuake3IHV() ) {
+		CL_Q3IHVPlayDemo_f();
 		return;
 	}
 
@@ -2794,6 +2812,9 @@ qboolean CL_Disconnect( qboolean showMainMenu ) {
 	}
 	if ( Com_GameIsQ3Test() ) {
 		CL_Q3TestClearConnection();
+	}
+	if ( Com_GameIsQuake3IHV() ) {
+		CL_Q3IHVClearConnection();
 	}
 
 #ifdef USE_CURL

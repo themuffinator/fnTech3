@@ -353,6 +353,7 @@ static int Com_GameIsMOHAA() { return game == COM_GAME_MOHAA; }
 // Q3Test records with its own recorder (cl_q3test.cpp).
 static int Com_GameIsQ3Test() { return 0; }
 static void CL_Q3TestRecord_f() {}
+static int Com_GameIsQuake3IHV() { return 0; }
 /* cl_mohaa.h: Medal of Honor's own snapshots, entities and baselines. */
 static int mohaaClears;
 static void CL_MOHAAClearState( void ) { ++mohaaClears; }

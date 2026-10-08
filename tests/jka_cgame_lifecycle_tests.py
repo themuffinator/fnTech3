@@ -35,6 +35,8 @@ static void CL_ClearWolfETCameras(){}
 static void CL_HudResetCGame(){}
 static void CL_EntityOverrideCGameShutdown(){}
 static void CL_Q3TestShutdownCGame(){assert(false);}
+static bool Com_GameIsQuake3IHV(){return false;}
+static void CL_Q3IHVShutdownCGame(){assert(false);}
 static void CL_JKACgameClear(){++clears;}
 static void FS_VM_CloseFiles(int value){assert(value==H_CGAME);++closes;}
 static void VertexLighting(int value){assert(!value);}

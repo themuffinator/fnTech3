@@ -97,6 +97,7 @@ int Com_GameIsSTVEFMP( void ) { return Is( COM_GAME_STVEF_MP ); }
 // either; the shared recorder stands in for it here.
 int Com_GameIsQ3Test( void ) { return 0; }
 void CL_Q3TestRecord_f( void ) {}
+int Com_GameIsQuake3IHV( void ) { return 0; }
 void CL_Q3TestStopRecord_f( void ) {}
 
 // The engine's cvars, by name. Like the engine's, a write creates a cvar that

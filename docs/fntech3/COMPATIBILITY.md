@@ -10,7 +10,7 @@ Full compatibility is **not yet established for any profile**.
 | Game / mode | Startup profile | Current availability |
 | --- | --- | --- |
 | Quake III Arena | `q3` / `quake3` | Enabled; partial build, fixture, live, and interoperability evidence; required gates remain open. |
-| Quake III Arena — IHV Test | `q3-ihv` | Gated by default; `-Dq3-ihv-development=true` permits Windows x86 dedicated native-game probes. Client/network integration remains blocked. |
+| Quake III Arena — IHV Test | `q3-ihv` | Gated by default; `-Dq3-ihv-development=true` permits Windows x86 dedicated native-game probes, and a developer client that plays the supplied demo through the original client game on all three renderers. Network sessions remain blocked. |
 | Quake III Arena — Q3Test 1.02 to 1.08 | `q3test` | Gated by default; `-Dq3test-development=true` runs the Windows x86 developer client and server with each release's retail modules, against retail peers in both directions; see the [Q3Test gate matrix](#q3test-gate-matrix). Required gates remain open. |
 | Quake Live | `ql` / `quakelive` | Enabled; retail client boundary is Windows x86; required gates remain open. |
 | Return to Castle Wolfenstein — single player | `rtcw-sp` | Experimental; default startup gated; `-Drtcw-development=true` permits isolated probes; campaign and broader compatibility gates remain open. |
@@ -289,6 +289,17 @@ fnTech3's do. On the server they are copied into each frame from the game's
 own client record and never encoded. The game module uses them for its
 medal and scoring bookkeeping. fnTech3's behaviour does not change (Source).
 The Quake Live module ABI gate stays partial for its other open items.
+
+The [2026-10-08 IHV client record](2026-10-08-q3-ihv-client.md) lifts the
+IHV Test's client gate in developer builds. The original `cgamex86.dll` runs
+in the engine with its 62 imports served by engine collision, renderers,
+audio and 2D, read from `quake3.exe`'s own table. It is pushed its data as
+the original engine pushes it, and asked each frame whether it can draw.
+`sli.dm3` plays to its end on GLx, Vulkan and RTX, and with OpenAL sound,
+with the installation unchanged (Unit, Live). Under cdb the original reads
+and renders as the driver does. Its own screenshots are not pixel references,
+so no frame is compared. Network sessions, recording and the build's menus
+remain open, and no profile gate closes.
 
 Desktop system-console branding has Source/Unit/Build evidence for all sixteen
 profiles: title palettes, active-profile remade icons in Windows client and
@@ -827,8 +838,9 @@ normal shutdowns release all native allocations; allocation-budget and client
 capacity failures exercise partial-startup cleanup. The adapter marshals native
 cvars, entity imports and by-value traces, publishes IHV systeminfo before
 spawning, and preserves the other profiles' lifecycle paths. The developer
-option enables dedicated Windows x86 probes only; native clients, protocol-33
-network sessions, gameplay parity and native rendered demo playback remain open.
+option enables Windows x86 probes only. Protocol-33 network sessions and
+gameplay parity remain open; the [client record](2026-10-08-q3-ihv-client.md)
+adds native client-game hosting and rendered demo playback.
 The [bot client record](2026-09-21-q3-ihv-bot-clients.json) completes the
 remaining five imports on native server client records that are separate from
 the retail client array and player projection. Bot allocation, release and
@@ -993,9 +1005,10 @@ colors in all three raster renderers. Actual translated-map light loading matche
 The native `r_lerpmodels` float toggle now controls raster/ray interpolation and
 invalidates affected ray geometry. These are CPU/fixture results; native scene
 dispatch, sorted flag-`0x80` retention and rendered lighting parity remain open.
-**Full IHV support remains OPEN:** native game/cgame adapters, protocol-33
-interoperability, demo playback and legacy material/collision parity are not
-established by the asset and codec probes. Original portal, clamp and lighting behavior
+**Full IHV support remains OPEN:** protocol-33 interoperability, live
+client play, demo recording and legacy material/collision parity are not
+established; the client game now plays the supplied demo
+([client record](2026-10-08-q3-ihv-client.md)). Original portal, clamp and lighting behavior
 still need validation.
 
 ### Return to Castle Wolfenstein
@@ -1748,7 +1761,7 @@ Local compatibility work can continue while the account owner resolves it.
 - Run the full automated suite and supported build matrix on a clean checkout.
 - Run every applicable client and server path of all sixteen profiles from the
   same packaged executable set with isolated homepaths and no file replacement
-  between launches. Explicitly retain the IHV client/network restriction and
+  between launches. Explicitly retain the IHV network restriction and
   the unwritten Jedi single-player/client/wire boundaries until implemented.
   Each experimental profile's development gate must be resolved through
   evidence before full release compatibility can be claimed.
