@@ -164,6 +164,54 @@ int main(){
 }
 ''')
 
+    def test_native_command(self):
+        body = function(SESSION.read_text(encoding='utf-8'), 'fntech3_q3_ihv_usercmd_t CL_Q3IHVNativeCmd(')
+        self.execute(r'''
+#include "code/qcommon/q3_ihv_wire.hpp"
+#include "code/compat/q3_ihv_client_abi.h"
+#include <cstdio>
+#define CHECK(x) do{if(!(x)){std::fprintf(stderr,"%d: %s\n",__LINE__,#x);return 1;}}while(0)
+namespace ihvwire = fntech3::q3ihv::wire;
+enum { CMD_MASK = 63, BUTTON_ANY = 2048 };
+struct usercmd_t { int serverTime; int angles[3]; int buttons; unsigned char weapon; signed char forwardmove, rightmove, upmove; };
+struct { usercmd_t cmds[64]; } cl;
+''' + body + r'''
+int main(){
+ cl.cmds[4]={1000,{0,0,0},0,0,0,0,0};
+ cl.cmds[5]={1016,{0x4000,-1,0x12345},1|16|BUTTON_ANY|0x100,9,127,-128,-3};
+ auto c=CL_Q3IHVNativeCmd(5,7);
+ CHECK(c.bytes[0]==16&&c.bytes[1]==(1|16|0x80)&&c.bytes[2]==7&&c.bytes[3]==0);
+ CHECK(c.bytes[4]==0x00&&c.bytes[5]==0x40&&c.bytes[6]==0xff&&c.bytes[7]==0xff&&c.bytes[8]==0x45&&c.bytes[9]==0x23);
+ CHECK(c.bytes[10]==127&&c.bytes[11]==0x80&&c.bytes[12]==0xfd&&c.bytes[13]==0);
+ // CL_FinishMove 0x402ea4: past 250 ms is 100; a step back is nothing
+ cl.cmds[6]=cl.cmds[5];cl.cmds[6].serverTime=1016+251;CHECK(CL_Q3IHVNativeCmd(6,0).bytes[0]==100);
+ cl.cmds[7]=cl.cmds[5];cl.cmds[7].serverTime=900;CHECK(CL_Q3IHVNativeCmd(7,0).bytes[0]==0);
+}
+''')
+
+    def test_frame_ping(self):
+        body = function(SESSION.read_text(encoding='utf-8'), 'std::uint32_t CL_Q3IHVPing(')
+        self.execute(r'''
+#include "code/qcommon/q3_ihv_message.hpp"
+#include <array>
+#include <cstdio>
+#define CHECK(x) do{if(!(x)){std::fprintf(stderr,"%d: %s\n",__LINE__,#x);return 1;}}while(0)
+namespace ihvwire = fntech3::q3ihv::wire;
+struct { bool demoplaying=false; } clc;
+struct { int realtime=5000; } cls;
+struct IhvOutPacket { int realtime = 0; int cmdNumber = 0; };
+struct Chan { int out=40; int OutgoingSequence() const { return out; } };
+struct { Chan chan; std::array<IhvOutPacket,32> out{}; } ihvLive;
+''' + body + r'''
+int main(){
+ for(int s=8;s<40;++s) ihvLive.out[s&31]={s*100,s};
+ ihvwire::Snapshot frame; frame.commandSequence=37;
+ CHECK(CL_Q3IHVPing(frame)==5000-3700);
+ frame.commandSequence=7; CHECK(CL_Q3IHVPing(frame)==999);
+ clc.demoplaying=true; frame.commandSequence=37; CHECK(CL_Q3IHVPing(frame)==0);
+}
+''')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -14,10 +14,15 @@
 
 #include "../compat/q3_ihv_client_abi.h"
 
-// cl_main.cpp hooks (cl_q3ihv.cpp)
+// cl_main.cpp / cl_input.cpp hooks (cl_q3ihv.cpp)
 void CL_Q3IHVPlayDemo_f( void );
 bool CL_Q3IHVReadDemoMessage( void );
 void CL_Q3IHVClearConnection( void );
+netchanWireProfile_t CL_Q3IHVWireProfile( void );
+void CL_Q3IHVCheckForResend( void );
+void CL_Q3IHVPacketEvent( const netadr_t *from, msg_t *msg );
+void CL_Q3IHVSendCmd( void );
+void CL_Q3IHVDisconnect( void );
 // cl_cgame.cpp: CL_SetCGameTime's work for this profile (cl_q3ihv.cpp)
 void CL_Q3IHVSetCGameTime( void );
 // cl_ui.cpp: the engine's own screens, there being no menu module (cl_q3ihv.cpp)
@@ -33,6 +38,8 @@ void CL_Q3IHVCGameConfigstring( int index );
 void CL_Q3IHVCGameServerCommand( void );
 // Export 5: whether the client game has a frame to draw at this time.
 bool CL_Q3IHVCGameFrame( int realtime, bool demo );
+// The weapon the client game last chose (import 61).
+int CL_Q3IHVCGameWeapon( void );
 
 namespace fntech3::q3ihv::client {
 class ClientData;

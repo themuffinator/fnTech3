@@ -137,7 +137,7 @@ closes no gate, and release builds never enable it.
 | `-Dstvef-development=true` | `-STVEFDevelopment` | `stvef-sp`, `stvef-mp` | Client and server, both modes; single player on Windows x86 only. |
 | `-Djka-development=true` | `-JKADevelopment` | `jka-sp`, `jka-mp` | Experimental server and partial client probes. |
 | `-Djk2-development=true` | `-JK2Development` | `jk2-sp`, `jk2-mp` | Partial Windows x86 developer probes; client and SP gameplay remain incomplete. |
-| `-Dq3-ihv-development=true` | `-Q3IHVDevelopment` | `q3-ihv` | Windows x86 dedicated server, and a client that plays demos only. |
+| `-Dq3-ihv-development=true` | `-Q3IHVDevelopment` | `q3-ihv` | Windows x86 dedicated server, and a client that plays demos and joins original servers. |
 | `-Dq3test-development=true` | `-Q3TestDevelopment` | `q3test` | Windows x86 client and server, every release from 1.02 to 1.08. |
 | `-Dalice-development=true` | `-AliceDevelopment` | `alice` | Windows x86 client and server. |
 | `-Dfakk2-development=true` | `-FAKK2Development` | `fakk2` | Windows x86 client and server. |
@@ -306,8 +306,8 @@ gate matrices.
 `-Dq3-ihv-development=true` (helper: `-Q3IHVDevelopment`) lets a Windows x86
 dedicated server run the February 1999 IHV Test's original game DLL, and a
 Windows x86 client run its original client game to play its demos
-(`demo sli`). Its network paths stay gated, and its server drops every packet,
-so run it with networking off. The lifecycle probe needs only the server and
+(`demo sli`) or join an original IHV server. Its server still drops every
+packet, so run it with networking off. The lifecycle probe needs only the server and
 the supplied installation:
 
 ```powershell

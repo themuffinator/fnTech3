@@ -205,6 +205,36 @@ static void Supplied(const char *path,bool valid) {
 	CHECK(digest.value==0x4582fb032c471ba6ull);
 	std::printf("Supplied native client data replay: %u messages, %u snapshots, %u entities, %016llx\n",messages,frames,entities,static_cast<unsigned long long>(digest.value));
 }
-int main(int argc,char **argv){Histories();Publication();Snapshots();Session();std::puts("IHV native client records, packet staging and ordered callbacks passed");
+/* The live client's additions: each frame rewrites the newest command and
+ * appends a provisional one (CL_SendCmd 0x4033d9..0x403440), and a frame's ping
+ * is computed from the decoded frame (CL_ParseFrame 0x406ab2). */
+static void LiveAdditions() {
+	auto data=std::make_unique<ClientData>();wire::MessageDecoder decoder;Start(decoder,*data);
+	fntech3_q3_ihv_usercmd_t finished{},provisional{},second{},out{};finished.bytes[0]=10;second.bytes[0]=20;
+	CHECK(data->ReplaceNewestCommand(finished)&&data->AppendCommand(provisional)&&data->CurrentCommandNumber()==1);
+	CHECK(data->CopyCommand(0,&out,14)==ReadResult::Ok&&out.bytes[0]==10);
+	CHECK(data->CopyCommand(1,&out,14)==ReadResult::Ok&&out.bytes[0]==0);
+	CHECK(data->ReplaceNewestCommand(second)&&data->AppendCommand(provisional)&&data->CurrentCommandNumber()==2);
+	CHECK(data->CopyCommand(1,&out,14)==ReadResult::Ok&&out.bytes[0]==20&&data->CopyCommand(0,&out,14)==ReadResult::Ok&&out.bytes[0]==10);
+	ClientData empty;CHECK(!empty.ReplaceNewestCommand(finished));
+	struct Events final:ClientEvents {
+		std::uint32_t ping=0;unsigned frames=0;
+		void GameState(const ClientData&)override{}
+		void Configstring(const ClientData&,std::uint32_t)override{}
+		void ServerCommand(const ClientData&,std::string_view)override{}
+		void Snapshot(const ClientData&,const fntech3_q3_ihv_snapshot_t &s)override{ping=wire::Load(s.bytes+24,4);++frames;}
+	} events;
+	auto session=std::make_unique<ClientSession>();const auto game=cases::Game();
+	wire::MessageWriter start;CHECK(start.AddGameState(game));
+	CHECK(session->Feed(start.Data(),start.Bytes(),0,events).code==PacketResult::Delivered);
+	unsigned asked=0;const auto frame=cases::Frame(1,nullptr);
+	wire::MessageWriter snapshot;CHECK(snapshot.AddSnapshot(game,nullptr,frame));
+	CHECK(session->FeedWith(snapshot.Data(),snapshot.Bytes(),[&](const wire::Snapshot &s){++asked;return s.commandSequence-0xfedc0000u+500;},events).code==PacketResult::Delivered);
+	CHECK(asked==1&&events.frames==1&&events.ping==501);
+	wire::MessageWriter command;CHECK(command.AddServerCommand("x"));
+	CHECK(session->FeedWith(command.Data(),command.Bytes(),[&](const wire::Snapshot &){++asked;return 7u;},events).code==PacketResult::Delivered&&asked==1);
+}
+
+int main(int argc,char **argv){Histories();Publication();Snapshots();Session();LiveAdditions();std::puts("IHV native client records, packet staging and ordered callbacks passed");
 	if(argc>1)Supplied(argv[1],true);if(argc>2)Supplied(argv[2],false);
 }

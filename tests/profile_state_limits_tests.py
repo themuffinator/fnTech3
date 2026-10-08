@@ -52,6 +52,8 @@ const comGameProfile_t *Com_GameProfile(){return &selected;}
 // Q3Test's wire is its pinned release's (cl_q3test.cpp).
 int Com_GameIsQ3Test(){return 0;}
 netchanWireProfile_t CL_Q3TestWireProfile(){assert(false);return NETCHAN_WIRE_Q3TEST_B;}
+int Com_GameIsQuake3IHV(){return 0;}
+netchanWireProfile_t CL_Q3IHVWireProfile(){assert(false);return NETCHAN_WIRE_Q3_IHV;}
 ''' + implementation + r'''
 int main(){
  struct Mode{int protocol;netchanWireProfile_t wire;int commands;unsigned families;};

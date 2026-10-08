@@ -687,6 +687,7 @@ netchanWireProfile_t CL_ActiveWireProfile( void )
 {
 	// Q3Test's channel is its release's, never chosen by protocol number.
 	if ( Com_GameIsQ3Test() ) return CL_Q3TestWireProfile();
+	if ( Com_GameIsQuake3IHV() ) return CL_Q3IHVWireProfile();
 	if ( clc.demoplaying ) return clc.demoWireProfile;
 	// Before a connection exists, queued commands already belong to the
 	// selected game. A zeroed netchan must not impose Q3's window on RTCW.
@@ -2805,6 +2806,8 @@ qboolean CL_Disconnect( qboolean showMainMenu ) {
 	if ( cls.state >= CA_CONNECTED && cls.state != CA_CINEMATIC && !clc.demoplaying ) {
 		if ( Com_GameIsQ3Test() ) {
 			CL_Q3TestDisconnect();
+		} else if ( Com_GameIsQuake3IHV() ) {
+			CL_Q3IHVDisconnect();
 		} else {
 			CL_AddReliableCommand( "disconnect", qtrue );
 			CL_WritePacket( 2 );
@@ -4121,6 +4124,11 @@ static void CL_CheckForResend( void ) {
 		CL_Q3TestCheckForResend();
 		return;
 	}
+	// So does the IHV Test, Quake II's way (cl_q3ihv.cpp).
+	if ( Com_GameIsQuake3IHV() ) {
+		CL_Q3IHVCheckForResend();
+		return;
+	}
 
 	// don't send anything if playing back a demo
 	if ( clc.demoplaying ) {
@@ -5091,6 +5099,11 @@ void CL_PacketEvent( const netadr_t *from, msg_t *msg ) {
 	// Q3Test's packets are its own session's (cl_q3test.cpp).
 	if ( Com_GameIsQ3Test() ) {
 		CL_Q3TestPacketEvent( from, msg );
+		return;
+	}
+	// So are the IHV Test's (cl_q3ihv.cpp).
+	if ( Com_GameIsQuake3IHV() ) {
+		CL_Q3IHVPacketEvent( from, msg );
 		return;
 	}
 

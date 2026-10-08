@@ -38,6 +38,13 @@ public:
 	bool AppendCommand(const fntech3_q3_ihv_usercmd_t &command) { return data_.AppendCommand(command); }
 	void Clear() { decoder_.Clear(); data_.Clear(); ++generation_; }
 	PacketResult Feed(const void *input, std::size_t bytes, std::uint32_t ping, ClientEvents &events) {
+		return FeedWith(input, bytes, [ping](const wire::Snapshot &) { return ping; }, events);
+	}
+	/* A live session's ping depends on the frame: the time since the packet
+	 * carrying the command the server names as its last (CL_ParseFrame
+	 * 0x406ab2), so the host computes it from the decoded snapshot. */
+	template<class PingFor>
+	PacketResult FeedWith(const void *input, std::size_t bytes, PingFor &&pingFor, ClientEvents &events) {
 		if (processing_) return {PacketResult::Reentrant};
 		struct Processing {
 			bool &flag;
@@ -48,6 +55,8 @@ public:
 		const auto status = next.Decode(input, bytes, message);
 		if (status != wire::MessageResult::Ok) return {PacketResult::Rejected, status};
 		const auto generation = generation_;
+		// A message carries one snapshot at most (MessageDecoder).
+		const std::uint32_t ping = message.snapshot ? static_cast<std::uint32_t>(pingFor(*message.snapshot)) : 0;
 		auto pending = std::make_unique<ClientData>(data_);
 		for (const auto &event : message.events) {
 			bool notify;

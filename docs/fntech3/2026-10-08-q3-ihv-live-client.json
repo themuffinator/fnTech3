@@ -1,0 +1,36 @@
+{
+  "record": "2026-10-08-q3-ihv-live-client.md",
+  "profile": "q3-ihv",
+  "baseCommit": "ae6dba1d3385950ecd67802fea8611e2fd2185d5",
+  "platform": "Windows x86, MSVC 2022, meson win32-dev",
+  "originalServer": {
+    "copy": ".tmp/q3-ihv/original-server",
+    "quake3.exe": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37",
+    "command": "quake3.exe +set dedicated 1 +set r_fullscreen 0 +set vid_fullscreen 0 +set in_mouse 0 +set in_joystick 0 +set fs_basepath . +set net_port 27995 +set port 27995 +set logfile 2 +set public 0 +map tim_dm1"
+  },
+  "client": {
+    "fntech3.exe": "81cd20ee6627f2bbb490693040fa437109ffbb7fd699eb2dbf66cb62c0a43ed4",
+    "installation": "E:\\Games\\Quake 3 IHV (read only)",
+    "commandTemplate": "fntech3.exe +set com_gameProfile q3-ihv +set fs_basepath <installation> +set fs_homepath <isolated home> +set r_fullscreen 0 +set net_enabled 1 +set net_ip 127.0.0.1 +set cl_renderer <renderer> +set cl_ihvRawLog ihvraw.dm3 +exec probe.cfg (connect 127.0.0.1:27995; waits; screenshotPNG; quit)"
+  },
+  "originalObservations": {
+    "checkForResend": {"function": "0x405280", "intervalMs": 3000, "connecting": "getchallenge", "challenging": "connect 33 <qport> <challenge> \"<userinfo>\"", "localServer": "skips the challenge"},
+    "connectionless": {"function": "0x405420", "words": ["challenge", "client_connect", "info", "disconnect", "echo"], "clientConnect": "only while challenging and from the server address; Netchan_Setup with the qport cvar (0x4055c6)"},
+    "sendCmd": {"function": "0x403360", "connectedKeepaliveMs": 1000, "commandHistorySlots": 64, "provisional": "0x403030 into the next slot", "maxPackets": "cl_maxpackets except loopback", "minNewCommands": 2, "maxCommands": 32, "move": ["opcode 2", "server id", "client time", "delta frame or -1", "configstring sequence (frame word 336)", "last finished command", "count", "delta commands (0x411910)"], "clientCommand": "opcode 3 + string, reliable"},
+    "finishMove": {"function": "0x402e40", "msec": "over 250 becomes 100", "buttons": "attack and buttons by bit, 0x10 walking, 0x80 any key", "weapon": "byte from import 61", "angles": "shorts at 4, 6, 8", "moves": "signed bytes at 10, 11, 12"},
+    "receive": {"parseAfterHeader": "0x4057f1", "emptyMessageEnds": "0x4070cd"},
+    "framePing": {"function": "0x406ab2", "rule": "time since the newest of the last 32 packets carrying the frame's command sequence"}
+  },
+  "runs": [
+    {"renderer": "glx", "clientExit": 0, "forced": false, "seconds": 15.969, "serverLog": ["fnTech3 connected", "fnTech3 entered the game", "fnTech3 disconnected"],
+     "decodedLog": {"messages": 187, "gamestates": 1, "snapshots": 186, "configstrings": 12, "serverCommands": 1, "serverTimeSpanMs": 9250, "maxEntities": 21, "failures": 0}},
+    {"renderer": "vk", "clientExit": 0, "forced": false, "seconds": 17.0, "serverLog": ["fnTech3 connected", "fnTech3 entered the game", "fnTech3 disconnected"],
+     "decodedLog": {"messages": 179, "gamestates": 1, "snapshots": 178, "configstrings": 12, "serverCommands": 1, "serverTimeSpanMs": 9100, "maxEntities": 21, "failures": 0}}
+  ],
+  "earlierObservation": "a prior run's captures at 400 and 700 frames read health 121 then 116 as the spawn bonus counted down",
+  "faultsFoundAndFixed": ["an empty, acknowledgement-only message was refused as illegible"],
+  "harness": [".tmp/ihv-client/probe_live.py", ".tmp/ihv-client/decode_raw.cpp"],
+  "tests": ["tests/q3_ihv_client_tests.py (command conversion, frame ping)", "tests/q3_ihv_client_data_tests.cpp (provisional commands, per-frame ping)"],
+  "inputInjected": false,
+  "open": ["the original client joining an fnTech3 server", "longer and impaired sessions", "a remote peer", "moved and fought play", "downloads", "demo recording"]
+}

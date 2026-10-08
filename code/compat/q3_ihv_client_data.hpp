@@ -33,6 +33,12 @@ public:
 		const auto sequence = CounterIsNext ? counter_++ : ++counter_;
 		records_[sequence & (Count - 1)] = value;
 	}
+	// The newest record, rewritten in place: a command finished after the
+	// provisional copy that held its slot (CL_SendCmd 0x4033d9).
+	void ReplaceNewest(const Record &value) {
+		static_assert(!CounterIsNext, "only a history whose counter names its newest record");
+		records_[counter_ & (Count - 1)] = value;
+	}
 	ReadResult Copy(std::uint32_t sequence, void *output, std::size_t bytes) const {
 		if (!output || bytes < sizeof(Record)) return ReadResult::InvalidOutput;
 		const auto requested = SignedSequence(sequence), current = SignedSequence(counter_);
@@ -84,6 +90,10 @@ public:
 	bool AppendCommand(const fntech3_q3_ihv_usercmd_t &command) {
 		if (!ready_) return false;
 		commands_.Append(command); return true;
+	}
+	bool ReplaceNewestCommand(const fntech3_q3_ihv_usercmd_t &command) {
+		if (!ready_) return false;
+		commands_.ReplaceNewest(command); return true;
 	}
 	std::uint32_t CurrentCommandNumber() const { return commands_.Counter(); }
 	ReadResult CopyCommand(std::uint32_t sequence, void *output, std::size_t bytes) const {

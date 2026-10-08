@@ -27,6 +27,7 @@ extern "C" {
 
 #include "client_cpp.h"
 #include "client_q3test.h"
+#include "client_q3ihv.h"
 #include "input_compat.hpp"
 #include "client_jka_command_values.hpp"
 #include "alice_input.hpp"
@@ -2232,6 +2233,11 @@ void CL_SendCmd( void ) {
 	// Q3Test's session decides when and what to send (cl_q3test.cpp).
 	if ( Com_GameIsQ3Test() ) {
 		CL_Q3TestSendCmd();
+		return;
+	}
+	// So does the IHV Test's (cl_q3ihv.cpp).
+	if ( Com_GameIsQuake3IHV() ) {
+		CL_Q3IHVSendCmd();
 		return;
 	}
 

@@ -37,6 +37,7 @@ void CL_Q3TestDisconnect(){assert(false);}
 void CL_Q3TestClearConnection(){assert(false);}
 int Com_GameIsQuake3IHV(){return 0;}
 void CL_Q3IHVClearConnection(){assert(false);}
+void CL_Q3IHVDisconnect(){assert(false);}
 void Com_Memset(void*p,int value,int n){assert(!liveEasy&&!liveMulti);memset(p,value,n);}
 '''+cleanup+'\nvoid disconnect(){'+sequence+r'''
 }
