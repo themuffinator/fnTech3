@@ -1,0 +1,1072 @@
+{
+ "record": "2026-10-08-stvef-server-messages.md",
+ "profiles": [
+  "stvef-sp",
+  "stvef-mp"
+ ],
+ "baseCommit": "84bcf66bcbd3834fb388d48f6f3025d8cdfb2043",
+ "platform": "Windows 11 x86 build (MSVC, debugoptimized, strict warnings), loopback",
+ "retail": {
+  "stvoy.exe": {
+   "version": "1.20",
+   "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+   "SV_DropClient": "0x424840",
+   "zombie": "0x424852",
+   "clientDisconnect": "0x42488f",
+   "notice": {
+    "format": "print \"%s %s\\n\"",
+    "string": "0x492af8",
+    "push": "0x4248a1"
+   },
+   "addressed": {
+    "format": "disconnect",
+    "string": "0x488430",
+    "push": "0x4248b0"
+   },
+   "clientDisconnectText": {
+    "text": "Server disconnected\\n",
+    "push": "0x402a15"
+   },
+   "SV_FinalMessage": {
+    "function": "0x425dc0",
+    "print": "print \"%s\" at 0x425dc6",
+    "disconnect": "disconnect at 0x425dd5"
+   },
+   "quitMessage": {
+    "text": "Server quit\\n",
+    "string": "0x48b5e0"
+   }
+  },
+  "stvoyHM.exe": {
+   "version": "1.20",
+   "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+   "SV_DropClient": "0x42faf0",
+   "clientDisconnect": "0x42fbb9",
+   "zombie": "0x42fb78",
+   "notice": {
+    "format": "print \"%s^7 %s\\n\"",
+    "string": "0x4cb854",
+    "push": "0x42fb56"
+   },
+   "addressed": {
+    "format": "disconnect %s",
+    "string": "0x4cb828",
+    "push": "0x42fbbf"
+   },
+   "clientDisconnectText": {
+    "rule": "Com_Error( ERR_SERVERDISCONNECT, s + 10 )",
+    "at": "0x402b7a",
+    "compare": "0x402b44"
+   },
+   "kick": {
+    "function": "0x42e8d0",
+    "reason": "kicked",
+    "string": "0x4cb1bc",
+    "push": "0x42e93f",
+    "refusesHost": "0x42e927 (NA_LOOPBACK)",
+    "commandTable": "0x42e350",
+    "commands": [
+     "heartbeat",
+     "kick",
+     "status",
+     "serverinfo",
+     "systeminfo",
+     "dumpuser",
+     "map_restart",
+     "sectorlist",
+     "map",
+     "devmap",
+     "spmap",
+     "spdevmap",
+     "killserver",
+     "svsay"
+    ]
+   },
+   "SV_Shutdown": {
+    "function": "0x434180",
+    "print": "print \"%s\" at 0x4341b7",
+    "disconnect": "disconnect server shut down at 0x4341c3 (0x4cc054)"
+   },
+   "quitMessage": {
+    "text": "Server quit\\n",
+    "string": "0x4c2138"
+   },
+   "fatalMessage": {
+    "text": "^1Server fatal crashed: %s\\n",
+    "string": "0x4c3f40"
+   },
+   "dropMessage": {
+    "text": "Server crashed: %s\\n",
+    "string": "0x4c3f2c",
+    "note": "ERR_DROP and ERR_DISCONNECT (0x41a16f..0x41a17b)"
+   },
+   "SV_Map_f": {
+    "function": "0x42e440",
+    "singlePlayer": "0x42e53e..0x42e59e",
+    "devmapKillsBots": "0x42e5a5..0x42e5c1",
+    "singlePlayerToFreeForAll": "0x42e5c2..0x42e5d3"
+   },
+   "SV_SpawnServer": {
+    "botDrop": "0x433b42..0x433b7b",
+    "reason": "\"\" (0x4df864)",
+    "rule": "killBots or Cvar_VariableValue(\"g_gametype\") == 2.0"
+   },
+   "singlePlayerSilence": {
+    "SVC_Status": "0x434620",
+    "SVC_Info": "0x434800",
+    "SV_GetChallenge": "0x42ee80",
+    "rule": "return first while Cvar_VariableValue(\"g_gametype\") == 2.0"
+   },
+   "broadcastFilter": "clients from CS_PRIMED (0x4343fc); addressed commands unfiltered (0x434314)"
+  }
+ },
+ "runtimes": {
+  "baseline": {
+   "folder": ".tmp/runtime/stvef-compat-before",
+   "source": "git archive 84bcf66b",
+   "fntech3": "3c7e0748c88b1afd09b44e6250a1be8095bca0a38511f2fdf5fd66b1b03e795a",
+   "fntech3_ded": "e3fcf1c09dbeeed3153f1d5ea14f456e9f19324ed4f96ff53b80b239faa636c2"
+  },
+  "change": {
+   "folder": ".tmp/runtime/stvef-compat-after",
+   "source": "git archive 84bcf66b plus this change",
+   "fntech3": "ef59fafa92f0514a5d03de42e2fa2eea431e0df120a40a595a97195675943256",
+   "fntech3_ded": "088a4f40f1e6a7bea66c2a41956e0fa15c5ff15d7af10a1bd71e4f49c6cd6507"
+  }
+ },
+ "tests": {
+  "files": [
+   "tests/server_drop_notice_tests.py",
+   "tests/stvef_server_messages_tests.py",
+   "tests/rtcw_cast_lifecycle_tests.py",
+   "tests/server_zombie_snapshot_tests.py"
+  ],
+  "dropNoticeMutations": 32,
+  "newEliteForceMutations": 8,
+  "serverMessageMutations": 7,
+  "result": "7 passed, 43 subtests (the first three files); the zombie snapshot file passed in its own run"
+ },
+ "botRules": {
+  "script": "scripts/probe_stvef_bot_rules.py",
+  "commands": [
+   "python scripts/probe_stvef_bot_rules.py --output .tmp/stvef-compat/bot-rules-before --runtime .tmp/runtime/stvef-compat-before --kinds retail fntech3",
+   "python scripts/probe_stvef_bot_rules.py --output .tmp/stvef-compat/bot-rules-after2 --runtime .tmp/runtime/stvef-compat-after --kinds fntech3"
+  ],
+  "retail": {
+   "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+   "steps": [
+    {
+     "step": "addbot",
+     "commands": [
+      "addbot Munro 1"
+     ],
+     "map": "hm_borg1",
+     "players": [
+      "Munro"
+     ],
+     "notices": [
+      "Munro^7 connected\\n\""
+     ]
+    },
+    {
+     "step": "devmap",
+     "commands": [
+      "devmap hm_voy1"
+     ],
+     "map": "hm_voy1",
+     "players": [],
+     "notices": [
+      "Munro^7 \\n\""
+     ]
+    },
+    {
+     "step": "addbot-again",
+     "commands": [
+      "addbot Munro 1"
+     ],
+     "map": "hm_voy1",
+     "players": [
+      "Munro"
+     ],
+     "notices": [
+      "Munro^7 connected\\n\""
+     ]
+    },
+    {
+     "step": "spmap",
+     "commands": [
+      "spmap hm_borg1"
+     ],
+     "map": null,
+     "players": null,
+     "notices": [
+      "Server: fraglimit changed to 10\\n\"",
+      "Munro^7 \\n\"",
+      "3 of 6^7 connected\\n\"",
+      "2 of 3^7 connected\\n\"",
+      "1 of 12^7 connected\\n\""
+     ]
+    },
+    {
+     "step": "addbot-single-player",
+     "commands": [
+      "addbot Munro 1"
+     ],
+     "map": null,
+     "players": null,
+     "notices": [
+      "Munro^7 connected\\n\""
+     ]
+    },
+    {
+     "step": "map-from-single-player",
+     "commands": [
+      "map hm_voy1"
+     ],
+     "map": "hm_voy1",
+     "players": [
+      "3 of 6",
+      "2 of 3",
+      "1 of 12",
+      "Munro"
+     ],
+     "notices": []
+    },
+    {
+     "step": "ensure-bot",
+     "commands": [],
+     "map": "hm_voy1",
+     "players": [
+      "3 of 6",
+      "2 of 3",
+      "1 of 12",
+      "Munro"
+     ],
+     "notices": []
+    },
+    {
+     "step": "map-latched-single-player",
+     "commands": [
+      "g_gametype 2",
+      "map hm_borg1"
+     ],
+     "map": "hm_borg1",
+     "players": [
+      "3 of 6",
+      "2 of 3",
+      "1 of 12",
+      "Munro"
+     ],
+     "notices": []
+    },
+    {
+     "step": "free-for-all",
+     "commands": [
+      "g_gametype 0",
+      "map hm_voy1"
+     ],
+     "map": "hm_voy1",
+     "players": [
+      "3 of 6",
+      "2 of 3",
+      "1 of 12",
+      "Munro"
+     ],
+     "notices": []
+    },
+    {
+     "step": "addbot-free-for-all",
+     "commands": [
+      "addbot Munro 1"
+     ],
+     "map": "hm_voy1",
+     "players": [
+      "3 of 6",
+      "2 of 3",
+      "1 of 12",
+      "Munro",
+      "Munro"
+     ],
+     "notices": [
+      "Munro^7 connected\\n\""
+     ]
+    },
+    {
+     "step": "map",
+     "commands": [
+      "map hm_borg1"
+     ],
+     "map": "hm_borg1",
+     "players": [
+      "3 of 6",
+      "2 of 3",
+      "1 of 12",
+      "Munro",
+      "Munro"
+     ],
+     "notices": []
+    },
+    {
+     "step": "kick",
+     "commands": [
+      "kick Munro"
+     ],
+     "map": "hm_borg1",
+     "players": [
+      "3 of 6",
+      "2 of 3",
+      "1 of 12",
+      "Munro"
+     ],
+     "notices": [
+      "Munro^7 kicked\\n\""
+     ]
+    }
+   ]
+  },
+  "baseline": {
+   "sha256": "e3fcf1c09dbeeed3153f1d5ea14f456e9f19324ed4f96ff53b80b239faa636c2",
+   "steps": [
+    {
+     "step": "addbot",
+     "commands": [
+      "addbot Munro 1"
+     ],
+     "map": "hm_borg1",
+     "players": [
+      "Munro"
+     ],
+     "notices": [
+      "Munro^7 connected\\n\""
+     ]
+    },
+    {
+     "step": "devmap",
+     "commands": [
+      "devmap hm_voy1"
+     ],
+     "map": "hm_voy1",
+     "players": [
+      "Munro"
+     ],
+     "notices": []
+    },
+    {
+     "step": "addbot-again",
+     "commands": [
+      "addbot Munro 1"
+     ],
+     "map": "hm_voy1",
+     "players": [
+      "Munro",
+      "Munro"
+     ],
+     "notices": [
+      "Munro^7 connected\\n\""
+     ]
+    },
+    {
+     "step": "spmap",
+     "commands": [
+      "spmap hm_borg1"
+     ],
+     "map": "hm_borg1",
+     "players": [
+      "3 of 6",
+      "2 of 3",
+      "1 of 12"
+     ],
+     "notices": [
+      "Server: fraglimit changed to 10\\n\"",
+      "Munro^7 was kicked\\n\"",
+      "Munro^7 was kicked\\n\"",
+      "3 of 6^7 connected\\n\"",
+      "2 of 3^7 connected\\n\"",
+      "1 of 12^7 connected\\n\""
+     ]
+    },
+    {
+     "step": "addbot-single-player",
+     "commands": [
+      "addbot Munro 1"
+     ],
+     "map": "hm_borg1",
+     "players": [
+      "3 of 6",
+      "2 of 3",
+      "1 of 12",
+      "Munro"
+     ],
+     "notices": [
+      "Munro^7 connected\\n\""
+     ]
+    },
+    {
+     "step": "map-from-single-player",
+     "commands": [
+      "map hm_voy1"
+     ],
+     "map": "hm_voy1",
+     "players": [],
+     "notices": [
+      "3 of 6^7 was kicked\\n\"",
+      "2 of 3^7 was kicked\\n\"",
+      "1 of 12^7 was kicked\\n\"",
+      "Munro^7 was kicked\\n\""
+     ]
+    },
+    {
+     "step": "ensure-bot",
+     "commands": [
+      "addbot Munro 1"
+     ],
+     "map": "hm_voy1",
+     "players": [
+      "Munro"
+     ],
+     "notices": [
+      "Munro^7 connected\\n\""
+     ]
+    },
+    {
+     "step": "map-latched-single-player",
+     "commands": [
+      "g_gametype 2",
+      "map hm_borg1"
+     ],
+     "map": "hm_borg1",
+     "players": [],
+     "notices": [
+      "Munro^7 was kicked\\n\""
+     ]
+    },
+    {
+     "step": "free-for-all",
+     "commands": [
+      "g_gametype 0",
+      "map hm_voy1"
+     ],
+     "map": "hm_voy1",
+     "players": [],
+     "notices": []
+    },
+    {
+     "step": "addbot-free-for-all",
+     "commands": [
+      "addbot Munro 1"
+     ],
+     "map": "hm_voy1",
+     "players": [
+      "Munro"
+     ],
+     "notices": [
+      "Munro^7 connected\\n\""
+     ]
+    },
+    {
+     "step": "map",
+     "commands": [
+      "map hm_borg1"
+     ],
+     "map": "hm_borg1",
+     "players": [
+      "Munro"
+     ],
+     "notices": []
+    },
+    {
+     "step": "kick",
+     "commands": [
+      "kick Munro"
+     ],
+     "map": "hm_borg1",
+     "players": [],
+     "notices": [
+      "Munro^7 was kicked\\n\""
+     ]
+    }
+   ]
+  },
+  "change": {
+   "sha256": "088a4f40f1e6a7bea66c2a41956e0fa15c5ff15d7af10a1bd71e4f49c6cd6507",
+   "steps": [
+    {
+     "step": "addbot",
+     "commands": [
+      "addbot Munro 1"
+     ],
+     "map": "hm_borg1",
+     "players": [
+      "Munro"
+     ],
+     "notices": [
+      "Munro^7 connected\\n\""
+     ]
+    },
+    {
+     "step": "devmap",
+     "commands": [
+      "devmap hm_voy1"
+     ],
+     "map": "hm_voy1",
+     "players": [],
+     "notices": [
+      "Munro^7 \\n\""
+     ]
+    },
+    {
+     "step": "addbot-again",
+     "commands": [
+      "addbot Munro 1"
+     ],
+     "map": "hm_voy1",
+     "players": [
+      "Munro"
+     ],
+     "notices": [
+      "Munro^7 connected\\n\""
+     ]
+    },
+    {
+     "step": "spmap",
+     "commands": [
+      "spmap hm_borg1"
+     ],
+     "map": null,
+     "players": null,
+     "notices": [
+      "Server: fraglimit changed to 10\\n\"",
+      "Munro^7 \\n\"",
+      "3 of 6^7 connected\\n\"",
+      "2 of 3^7 connected\\n\"",
+      "1 of 12^7 connected\\n\""
+     ]
+    },
+    {
+     "step": "addbot-single-player",
+     "commands": [
+      "addbot Munro 1"
+     ],
+     "map": null,
+     "players": null,
+     "notices": [
+      "Munro^7 connected\\n\""
+     ]
+    },
+    {
+     "step": "map-from-single-player",
+     "commands": [
+      "map hm_voy1"
+     ],
+     "map": "hm_voy1",
+     "players": [
+      "3 of 6",
+      "2 of 3",
+      "1 of 12",
+      "Munro"
+     ],
+     "notices": []
+    },
+    {
+     "step": "ensure-bot",
+     "commands": [],
+     "map": "hm_voy1",
+     "players": [
+      "3 of 6",
+      "2 of 3",
+      "1 of 12",
+      "Munro"
+     ],
+     "notices": []
+    },
+    {
+     "step": "map-latched-single-player",
+     "commands": [
+      "g_gametype 2",
+      "map hm_borg1"
+     ],
+     "map": "hm_borg1",
+     "players": [
+      "3 of 6",
+      "2 of 3",
+      "1 of 12",
+      "Munro"
+     ],
+     "notices": []
+    },
+    {
+     "step": "free-for-all",
+     "commands": [
+      "g_gametype 0",
+      "map hm_voy1"
+     ],
+     "map": "hm_voy1",
+     "players": [
+      "3 of 6",
+      "2 of 3",
+      "1 of 12",
+      "Munro"
+     ],
+     "notices": []
+    },
+    {
+     "step": "addbot-free-for-all",
+     "commands": [
+      "addbot Munro 1"
+     ],
+     "map": "hm_voy1",
+     "players": [
+      "3 of 6",
+      "2 of 3",
+      "1 of 12",
+      "Munro",
+      "Munro"
+     ],
+     "notices": [
+      "Munro^7 connected\\n\""
+     ]
+    },
+    {
+     "step": "map",
+     "commands": [
+      "map hm_borg1"
+     ],
+     "map": "hm_borg1",
+     "players": [
+      "3 of 6",
+      "2 of 3",
+      "1 of 12",
+      "Munro",
+      "Munro"
+     ],
+     "notices": []
+    },
+    {
+     "step": "kick",
+     "commands": [
+      "kick Munro"
+     ],
+     "map": "hm_borg1",
+     "players": [
+      "3 of 6",
+      "2 of 3",
+      "1 of 12",
+      "Munro"
+     ],
+     "notices": [
+      "Munro^7 kicked\\n\""
+     ]
+    }
+   ]
+  },
+  "changeEqualsRetail": true,
+  "baselineStepsDiffering": 11,
+  "installationUnchanged": true
+ },
+ "sessions": {
+  "script": "scripts/probe_legacy_sessions.py",
+  "command": "python scripts/probe_legacy_sessions.py --output .tmp/stvef-compat/sessions-after2 --runtime .tmp/runtime/stvef-compat-after --profiles stvef-mp --directions host listen join --sessions main kick",
+  "runs": [
+   {
+    "direction": "host",
+    "serverKind": "fntech3",
+    "clientKind": "retail",
+    "passed": true,
+    "installationUnchanged": true,
+    "sessions": [
+     {
+      "session": "main",
+      "serverSha256": "088a4f40f1e6a7bea66c2a41956e0fa15c5ff15d7af10a1bd71e4f49c6cd6507",
+      "clientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "serverExit": 0,
+      "clientExit": 0,
+      "clientForced": false,
+      "steps": [
+       {
+        "step": "server-ready",
+        "passed": true,
+        "seconds": 0.89
+       },
+       {
+        "step": "join",
+        "passed": true,
+        "seconds": 61.14,
+        "slot": 0
+       },
+       {
+        "step": "client-chat",
+        "passed": true,
+        "seconds": 61.38
+       },
+       {
+        "step": "server-chat",
+        "passed": true,
+        "seconds": 62.52
+       },
+       {
+        "step": "map-change",
+        "passed": true,
+        "seconds": 64.91,
+        "map": "hm_voy1"
+       },
+       {
+        "step": "map-restart",
+        "passed": true,
+        "seconds": 66.05
+       },
+       {
+        "step": "reconnect",
+        "passed": true,
+        "seconds": 67.78,
+        "slot": 0
+       },
+       {
+        "step": "server-quit",
+        "passed": true,
+        "seconds": 69.03,
+        "answered": true,
+        "clientError": null,
+        "received": "disconnect server shut down",
+        "printed": "Server quit"
+       }
+      ]
+     },
+     {
+      "session": "kick",
+      "serverSha256": "088a4f40f1e6a7bea66c2a41956e0fa15c5ff15d7af10a1bd71e4f49c6cd6507",
+      "clientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "serverExit": 0,
+      "clientExit": 0,
+      "clientForced": false,
+      "steps": [
+       {
+        "step": "server-ready",
+        "passed": true,
+        "seconds": 0.53
+       },
+       {
+        "step": "kick-join",
+        "passed": true,
+        "seconds": 60.59,
+        "slot": 0
+       },
+       {
+        "step": "kick",
+        "passed": true,
+        "seconds": 61.97,
+        "answered": true,
+        "clientError": null,
+        "received": "disconnect kicked",
+        "printed": "fnprobe^7 kicked"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "direction": "listen",
+    "serverKind": "listen",
+    "clientKind": "retail",
+    "passed": true,
+    "installationUnchanged": true,
+    "sessions": [
+     {
+      "session": "main",
+      "serverSha256": "ef59fafa92f0514a5d03de42e2fa2eea431e0df120a40a595a97195675943256",
+      "clientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "serverExit": 0,
+      "clientExit": 0,
+      "clientForced": false,
+      "steps": [
+       {
+        "step": "server-ready",
+        "passed": true,
+        "seconds": 2.17
+       },
+       {
+        "step": "join",
+        "passed": true,
+        "seconds": 8.95,
+        "slot": 1
+       },
+       {
+        "step": "client-chat",
+        "passed": true,
+        "seconds": 9.27
+       },
+       {
+        "step": "server-chat",
+        "passed": true,
+        "seconds": 10.41
+       },
+       {
+        "step": "map-change",
+        "passed": true,
+        "seconds": 15.5,
+        "map": "hm_voy1"
+       },
+       {
+        "step": "map-restart",
+        "passed": true,
+        "seconds": 16.64
+       },
+       {
+        "step": "reconnect",
+        "passed": true,
+        "seconds": 18.78,
+        "slot": 1
+       },
+       {
+        "step": "server-quit",
+        "passed": true,
+        "seconds": 20.03,
+        "answered": true,
+        "clientError": null,
+        "received": "disconnect server shut down",
+        "printed": "Server quit"
+       }
+      ]
+     },
+     {
+      "session": "kick",
+      "serverSha256": "ef59fafa92f0514a5d03de42e2fa2eea431e0df120a40a595a97195675943256",
+      "clientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "serverExit": 0,
+      "clientExit": 0,
+      "clientForced": false,
+      "steps": [
+       {
+        "step": "server-ready",
+        "passed": true,
+        "seconds": 2.8
+       },
+       {
+        "step": "kick-join",
+        "passed": true,
+        "seconds": 10.94,
+        "slot": 1
+       },
+       {
+        "step": "kick",
+        "passed": true,
+        "seconds": 12.3,
+        "answered": true,
+        "clientError": null,
+        "received": "disconnect kicked",
+        "printed": "fnprobe^7 kicked"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "direction": "join",
+    "serverKind": "retail",
+    "clientKind": "fntech3",
+    "passed": false,
+    "installationUnchanged": true,
+    "sessions": [
+     {
+      "session": "main",
+      "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "clientSha256": "ef59fafa92f0514a5d03de42e2fa2eea431e0df120a40a595a97195675943256",
+      "serverExit": 0,
+      "clientExit": null,
+      "clientForced": true,
+      "steps": [
+       {
+        "step": "server-ready",
+        "passed": true,
+        "seconds": 2.05
+       },
+       {
+        "step": "join",
+        "passed": true,
+        "seconds": 62.41,
+        "slot": 0
+       },
+       {
+        "step": "client-chat",
+        "passed": true,
+        "seconds": 62.7
+       },
+       {
+        "step": "server-chat",
+        "passed": true,
+        "seconds": 63.84
+       },
+       {
+        "step": "map-change",
+        "passed": true,
+        "seconds": 66.34,
+        "map": "hm_voy1"
+       },
+       {
+        "step": "map-restart",
+        "passed": true,
+        "seconds": 67.53
+       },
+       {
+        "step": "reconnect",
+        "passed": true,
+        "seconds": 69.94,
+        "slot": 0
+       },
+       {
+        "step": "server-quit",
+        "passed": true,
+        "seconds": 74.0,
+        "answered": true,
+        "clientError": "disconnect server shut down",
+        "printed": "Server quit",
+        "survived": true
+       }
+      ]
+     },
+     {
+      "session": "kick",
+      "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "clientSha256": "ef59fafa92f0514a5d03de42e2fa2eea431e0df120a40a595a97195675943256",
+      "serverExit": 0,
+      "clientExit": 1,
+      "clientForced": true,
+      "steps": [
+       {
+        "step": "server-ready",
+        "passed": true,
+        "seconds": 0.97
+       },
+       {
+        "step": "kick-join",
+        "passed": true,
+        "seconds": 61.2,
+        "slot": 0
+       },
+       {
+        "step": "kick",
+        "passed": true,
+        "seconds": 65.34,
+        "answered": true,
+        "clientError": "disconnect kicked",
+        "printed": "fnprobe^7 kicked",
+        "survived": true
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "joinNote": "every step passed; the harness read no exit code from the fnTech3 client within its wait (clientExit null, forced), which its clean-exit check counts as a failure. The same client passed outright in the run before this one (.tmp/stvef-compat/sessions-after).",
+  "retailClientReceived": {
+   "retailServerKick": [
+    "print \"fnprobe^7 kicked",
+    "disconnect kicked"
+   ],
+   "retailServerQuit": [
+    "print \"Server quit",
+    "disconnect server shut down"
+   ],
+   "baselineServerKick": [
+    "print \"fnprobe^7 was kicked",
+    "cs 544 \"\"",
+    "cs 6 \"-9999\"",
+    "disconnect \"was kicked\""
+   ],
+   "baselineServerQuit": [
+    "print \"Server quit",
+    "disconnect \"Server quit\""
+   ],
+   "changeServerKick": [
+    "print \"fnprobe^7 kicked",
+    "disconnect kicked"
+   ],
+   "changeServerQuit": [
+    "print \"Server quit",
+    "disconnect server shut down"
+   ]
+  }
+ },
+ "singlePlayerDrop": {
+  "script": ".tmp/stvef-compat/sp_drop_probe.py",
+  "note": "cmd disconnect from the local client: the server drops and frees it at once; no command reaches it after the drop in either build",
+  "results": [
+   {
+    "label": "before",
+    "runtime": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\stvef-compat-before",
+    "exit": 0,
+    "sent": true,
+    "commandsAfterDrop": [],
+    "errorLines": []
+   },
+   {
+    "label": "after",
+    "runtime": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\stvef-compat-after",
+    "exit": 0,
+    "sent": true,
+    "commandsAfterDrop": [],
+    "errorLines": []
+   }
+  ]
+ },
+ "maxclients": {
+  "script": ".tmp/stvef-compat/maxclients_probe.py",
+  "results": [
+   {
+    "kind": "retail",
+    "requested": 64,
+    "served": "64",
+    "logLines": [
+     "sv_maxclients will be changed upon restarting.",
+     "E:\\Repositories\\fnTech3\\.tmp\\stvef-compat\\maxclients\\retail-64\\sb/baseEF"
+    ]
+   },
+   {
+    "kind": "retail",
+    "requested": 100,
+    "served": "100",
+    "logLines": [
+     "sv_maxclients will be changed upon restarting.",
+     "E:\\Repositories\\fnTech3\\.tmp\\stvef-compat\\maxclients\\retail-100\\sb/baseEF"
+    ]
+   },
+   {
+    "kind": "retail",
+    "requested": 128,
+    "served": null,
+    "logLines": [
+     "sv_maxclients will be changed upon restarting.",
+     "^6ERROR: Hunk_Alloc failed on 53477376 with 49283072 free."
+    ]
+   },
+   {
+    "kind": "fntech3",
+    "requested": 64,
+    "served": "64",
+    "logLines": [
+     "sv_maxclients will be changed upon restarting.",
+     "InitGame: \\dmflags\\0\\fraglimit\\20\\g_gametype\\0\\g_pModActionHero\\0\\g_pModAssimilation\\0\\g_pModDisintegration\\0\\g_pModElimination\\0\\g_pModSpecialties\\0\\mapname\\hm_borg1\\protocol\\24\\sv_allowDownload\\1\\sv_dlRate\\100\\sv_floodProtect\\1\\sv_hostname\\noname\\sv_maxPing\\0\\sv_maxRate\\0\\sv_maxclients\\64\\sv_minPing\\0\\sv_minRate\\0\\sv_playingDemo\\0\\sv_privateClients\\0\\timelimit\\0\\version\\fnTech3 0.1.0 win_msvc-x86-debug Oct  8 2026\\capturelimit\\8\\g_allowVote\\1\\g_friendlyFire\\0\\g_gravity\\800\\g_maxGameClients\\0\\g_needpass\\0\\g_speed\\250\\gamename\\baseEF"
+    ]
+   },
+   {
+    "kind": "fntech3",
+    "requested": 100,
+    "served": "64",
+    "logLines": [
+     "WARNING: cvar 'sv_maxclients' is out of range (max '64'), setting to '64'",
+     "sv_maxclients will be changed upon restarting."
+    ]
+   },
+   {
+    "kind": "fntech3",
+    "requested": 128,
+    "served": "64",
+    "logLines": [
+     "WARNING: cvar 'sv_maxclients' is out of range (max '64'), setting to '64'",
+     "sv_maxclients will be changed upon restarting."
+    ]
+   }
+  ]
+ },
+ "inputInjected": false,
+ "proprietaryContentCommitted": false
+}

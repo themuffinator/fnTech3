@@ -396,7 +396,12 @@ def disconnect_evidence(client, marker, step):
         wait_for(lambda: step in client.log()[marker:], 20)
         tail = client.log()[marker:]
         message = re.findall(r'"com_errorMessage" is:"([^"]*)"', tail)
-        return dict(answered=step in tail, clientError=message[-1] if message else None)
+        # A developer client also logs each command the server sent it;
+        # Elite Force's has no com_errorMessage, so these are its evidence.
+        received = re.findall(r'serverCommand: \d+ : (disconnect[^\n]*)', tail)
+        printed = re.findall(r'serverCommand: \d+ : print "([^"\n]*)', tail)
+        return dict(answered=step in tail, clientError=message[-1] if message else None,
+                    received=received[-1] if received else None, printed=printed[-1] if printed else None)
     # The disconnect command, or what the game's client module prints for it
     # (ET's cgame prints "[skipnotify]Server quit" and logs no command line).
     told = re.compile(r'disconnect|server quit|kicked|server disconnected|server shutdown', re.I)

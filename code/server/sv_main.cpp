@@ -1089,6 +1089,11 @@ static void SVC_Status( const netadr_t *from ) {
 		return;
 	}
 #endif
+	// Holomatch keeps a single-player game to itself on a dedicated server
+	// too (stvoyHM.exe SVC_Status 0x434620, SVC_Info 0x434800).
+	if ( Com_GameIsSTVEFMP() && Cvar_VariableValue( "g_gametype" ) == GT_SINGLE_PLAYER ) {
+		return;
+	}
 
 	// Prevent using getstatus as an amplifier
 	if ( SVC_RateLimitAddress( from, 10, 1000 ) ) {
@@ -1206,6 +1211,11 @@ static void SVC_Info( const netadr_t *from ) {
 		return;
 	}
 #endif
+	// Holomatch keeps a single-player game to itself on a dedicated server
+	// too (stvoyHM.exe SVC_Status 0x434620, SVC_Info 0x434800).
+	if ( Com_GameIsSTVEFMP() && Cvar_VariableValue( "g_gametype" ) == GT_SINGLE_PLAYER ) {
+		return;
+	}
 
 	// Prevent using getinfo as an amplifier
 	if ( SVC_RateLimitAddress( from, 10, 1000 ) ) {

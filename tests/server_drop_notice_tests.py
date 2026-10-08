@@ -9,8 +9,16 @@ client is a bot there by its entity's SVF_BOT (8) at +0x128, or by its
 address (et.exe 0x441892..0x44192d, etded.exe 0x427eb2..0x427f4d). Alice's
 and F.A.K.K.2's engines print `print "%s %s\n"`, with no colour reset, and
 send the client that left a bare `disconnect` (alice.exe 0x004529fb and
-0x00452a6b, fakk2.exe 1.02 0x00443abb and 0x00443b2b). Quake III 1.32 and
-every other profile keep `print "%s^7 %s\n"` and address `disconnect "%s"`.
+0x00452a6b, fakk2.exe 1.02 0x00443abb and 0x00443b2b). Elite Force single
+player does too (stvoy.exe 0x4248a1, 0x4248b0), and makes the client a zombie
+before its game's ClientDisconnect, which comes before the notice (0x424852,
+0x42488f): neither the game's broadcasts nor the notice reach that client,
+and only the addressed command does. Holomatch keeps Quake III's notice,
+then makes the client a zombie before its game's ClientDisconnect (0x42fb78,
+0x42fbb9), and addresses `disconnect %s`, unquoted (stvoyHM.exe 0x42fb56,
+0x42fbbf). Quake
+III 1.32 and every other profile keep `print "%s^7 %s\n"` and address
+`disconnect "%s"`.
 Quake Live names a client its game marked with `ragequit` as
 `print "%s ^1rage^7quits\n"` instead, without the reason
 (quakelive_steam.exe 0x4df716, the format at 0x5452ac): game import 192
@@ -45,6 +53,8 @@ serverStatic_t svs{};
 int Com_GameIsRTCWSP(){return profile.id==COM_GAME_RTCW_SP;}
 int Com_GameIsRTCWMP(){return profile.id==COM_GAME_RTCW_MP;}
 int Com_GameIsRitual(){return profile.id==COM_GAME_ALICE||profile.id==COM_GAME_FAKK2;}
+int Com_GameIsSTVEFSP(){return profile.id==COM_GAME_STVEF_SP;}
+int Com_GameIsSTVEF(){return profile.id==COM_GAME_STVEF_SP||profile.id==COM_GAME_STVEF_MP;}
 int Com_GameIsQuakeLive(){return profile.id==COM_GAME_QUAKELIVE;}
 int Com_GameIsMOHAA(){return profile.id==COM_GAME_MOHAA;}
 int Com_GameIsJKAMP(){return profile.id==COM_GAME_JKA_MP;}
@@ -72,15 +82,20 @@ int FS_ReadFile(const char *name,void **buffer){
 void FS_FreeFile(void *buffer){assert(buffer==&gameinfo[0]);}
 void Q_strncpyz(char *out,const char *in,int size){assert(size>0);std::strncpy(out,in,size);out[size-1]=0;}
 void SV_FreeClient(client_t *c){assert(c==svs.clients);events.emplace_back("free");}
+// The engine's command queue takes a command only from a client in the game,
+// and a broadcast passes over a zombie.
 void QDECL SV_SendServerCommand(client_t *c,const char *format,...){
  assert(!c||c==svs.clients);va_list args;va_start(args,format);char text[1024];
  const int length=vsnprintf(text,sizeof(text),format,args);va_end(args);
  assert(length>=0&&size_t(length)<sizeof(text));
- events.emplace_back(std::string(c?"to the client: ":"to everyone: ")+text);
+ const bool zombie=svs.clients[0].state==CS_ZOMBIE;
+ events.emplace_back(std::string(c?(zombie?"lost to a zombie: ":"to the client: ")
+  :(zombie?"to everyone else: ":"to everyone: "))+text);
 }
 intptr_t QDECL VM_Call(vm_t *vm,int nargs,int call,...){
  assert(vm==gvm&&nargs==1&&call==GAME_CLIENT_DISCONNECT);va_list args;va_start(args,call);
- assert(va_arg(args,int)==0);va_end(args);events.emplace_back("game");
+ assert(va_arg(args,int)==0);va_end(args);
+ events.emplace_back(svs.clients[0].state==CS_ZOMBIE?"game, the client a zombie":"game");
  if(onDisconnect)onDisconnect();return 0;
 }
 void SV_BotFreeClient(int n){assert(n==0);events.emplace_back("bot freed");}
@@ -138,17 +153,24 @@ static void drop(bool bot,sharedEntity_t *gentity,const char *reason,const char 
 static std::string notice(unsigned id,const std::string &name,const std::string &reason){
  if(id==COM_GAME_RTCW_MP)return "print \"[lof]"+name+"^7 [lon]"+reason+"\n\"";
  if(id==COM_GAME_WOLFET)return "cpm \""+name+"^7 "+reason+"\n\"";
- if(id==COM_GAME_ALICE||id==COM_GAME_FAKK2)return "print \""+name+" "+reason+"\n\"";
+ if(id==COM_GAME_ALICE||id==COM_GAME_FAKK2||id==COM_GAME_STVEF_SP)return "print \""+name+" "+reason+"\n\"";
  return "print \""+name+"^7 "+reason+"\n\"";
 }
 static std::vector<std::string> sequence(bool bot,const std::string *announced,const char *reason){
  std::vector<std::string> result{"free"};
- if(announced)result.push_back("to everyone: "+*announced);
- result.emplace_back("game");
+ // Elite Force single player's game hears of the drop first, from a zombie,
+ // and its notice reaches everyone else; Holomatch's game hears of it from a
+ // zombie after the notice.
+ const bool zombieFirst=profile.id==COM_GAME_STVEF_SP;
+ if(zombieFirst)result.emplace_back("game, the client a zombie");
+ if(announced)result.push_back((zombieFirst?"to everyone else: ":"to everyone: ")+*announced);
+ if(!zombieFirst)result.emplace_back(profile.id==COM_GAME_STVEF_MP?"game, the client a zombie":"game");
  // The addressed command is Quake III's in every profile but the Ritual
- // ones, whose engines send it bare.
- const bool ritual=profile.id==COM_GAME_ALICE||profile.id==COM_GAME_FAKK2;
- if(reason)result.push_back(ritual?std::string("to the client: disconnect")
+ // ones and Elite Force single player, whose engines send it bare, and
+ // Holomatch, whose engine leaves the reason unquoted.
+ const bool bare=profile.id==COM_GAME_ALICE||profile.id==COM_GAME_FAKK2||profile.id==COM_GAME_STVEF_SP;
+ if(reason)result.push_back(bare?std::string("to the client: disconnect")
+  :profile.id==COM_GAME_STVEF_MP?std::string("to the client: disconnect ")+reason
   :std::string("to the client: disconnect \"")+reason+"\"");
  if(bot)result.emplace_back("bot freed");
  return result;
@@ -167,6 +189,9 @@ static void formats(){
  // alice.exe 0x0051a688 and fakk2.exe 1.02 0x004ed088.
  assert(notice(COM_GAME_FAKK2,"Player","was kicked")=="print \"Player was kicked\n\"");
  assert(notice(COM_GAME_ALICE,"Player","was kicked")=="print \"Player was kicked\n\"");
+ // stvoy.exe 0x492af8 and stvoyHM.exe 0x4cb854.
+ assert(notice(COM_GAME_STVEF_SP,"Player","was kicked")=="print \"Player was kicked\n\"");
+ assert(notice(COM_GAME_STVEF_MP,"Player","kicked")=="print \"Player^7 kicked\n\"");
 }
 
 // Every profile, with no module bound: a player and a bot leave, with a
@@ -375,6 +400,27 @@ MUTATIONS = {
         'SV_SendServerCommand( nullptr, "print \\"%s" S_COLOR_WHITE " %s\\n\\"", name.data(), reason );'),
     "the Ritual profiles give the reason to the client": (
         'void SV_DropClient(', 'SV_SendServerCommand( drop, "disconnect" );',
+        'SV_SendServerCommand( drop, "disconnect \\"%s\\"", reason );'),
+    'Elite Force single player tells its game after the notice, as Quake III does': (
+        'void SV_DropClient(', 'const bool zombieBeforeNotice = Com_GameIsSTVEFSP();',
+        'const bool zombieBeforeNotice = false;'),
+    'Elite Force single player tells its game while the client is still in it': (
+        'void SV_DropClient(', '\t\tdrop->state = CS_ZOMBIE;\n\t\tVM_Call(', '\t\tVM_Call('),
+    "Elite Force's command is lost to the zombie": (
+        'void SV_DropClient(', '\t\tdrop->state = dropState;\n', '\n'),
+    'Holomatch tells its game while the client is still in it': (
+        'void SV_DropClient(', 'zombieBeforeNotice || Com_GameIsSTVEFMP();', 'zombieBeforeNotice;'),
+    "Holomatch's client is a zombie before its notice": (
+        'void SV_DropClient(', 'const bool zombieBeforeNotice = Com_GameIsSTVEFSP();',
+        'const bool zombieBeforeNotice = Com_GameIsSTVEF();'),
+    'Elite Force single player resets the colour after the name': (
+        'void SV_DropClient(', '} else if ( Com_GameIsRitual() || Com_GameIsSTVEFSP() ) {\n\t\t\t// Alice',
+        '} else if ( Com_GameIsRitual() ) {\n\t\t\t// Alice'),
+    'Elite Force single player gives the reason to the client': (
+        'void SV_DropClient(', 'if ( Com_GameIsRitual() || Com_GameIsSTVEFSP() ) {\n\t\t\t// Theirs',
+        'if ( Com_GameIsRitual() ) {\n\t\t\t// Theirs'),
+    'Holomatch quotes the reason': (
+        'void SV_DropClient(', 'SV_SendServerCommand( drop, "disconnect %s", reason );',
         'SV_SendServerCommand( drop, "disconnect \\"%s\\"", reason );'),
     "game import 192 marks the pure check's cp instead, as before": (
         'static void *QDECL QL_G_trap_MarkClientRageQuit(', 'client.rageQuit = qtrue;', 'client.gotCP = qtrue;'),

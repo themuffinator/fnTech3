@@ -995,10 +995,14 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 				// Enemy Territory also drops every bot from a single-player or
 				// co-op game type, and gives no reason (et.exe
 				// 0x446a3f..0x446a7b, etded.exe 0x42d16f..0x42d1ab).
+				// Holomatch drops them from a level its game started as single
+				// player, also with no reason (stvoyHM.exe 0x433b42..0x433b7b).
 				const bool wolfET = Com_GameIsWolfET();
+				const bool holomatch = Com_GameIsSTVEFMP();
 				if ( killBots || ( wolfET && ( SV_GameTypeIsSinglePlayer( sv_gametype->integer )
-					|| SV_WolfETGameTypeIsCoop( sv_gametype->integer ) ) ) ) {
-					SV_DropClient( &slot.client, wolfET ? "" : "was kicked" );
+					|| SV_WolfETGameTypeIsCoop( sv_gametype->integer ) ) )
+					|| ( holomatch && Cvar_VariableValue( "g_gametype" ) == GT_SINGLE_PLAYER ) ) {
+					SV_DropClient( &slot.client, ( wolfET || holomatch ) ? "" : "was kicked" );
 					continue;
 				}
 				isBot = true;
@@ -1535,14 +1539,26 @@ static void SV_FinalMessage( const char *message ) {
 		return;
 	}
 
+	// Elite Force's engines print the message as it is, each of their
+	// messages ending its own line, and send no reason with the command:
+	// Holomatch's client shows the text after the word (stvoyHM.exe 0x4341b7,
+	// 0x4341c3; stvoy.exe 0x425dc6, 0x425dd5).
+	const std::size_t messageLength = strlen( message );
+	const char *const lineEnd = ( messageLength && message[messageLength - 1] == '\n' ) ? "" : "\n";
+
 	// send it twice, ignoring rate
 	for ( j = 0 ; j < 2 ; j++ ) {
 		for ( client_t &client : SV_Clients() ) {
 			if (client.state >= CS_CONNECTED ) {
 				// don't send a disconnect to a local client
 				if ( client.netchan.remoteAddress.type != NA_LOOPBACK ) {
-					SV_SendServerCommand( &client, "print \"%s\n\"\n", message );
-					SV_SendServerCommand( &client, "disconnect \"%s\"", message );
+					if ( Com_GameIsSTVEF() ) {
+						SV_SendServerCommand( &client, "print \"%s%s\"", message, lineEnd );
+						SV_SendServerCommand( &client, "%s", Com_GameIsSTVEFMP() ? "disconnect server shut down" : "disconnect" );
+					} else {
+						SV_SendServerCommand( &client, "print \"%s\n\"\n", message );
+						SV_SendServerCommand( &client, "disconnect \"%s\"", message );
+					}
 				}
 				// force a snapshot to be sent
 				client.lastSnapshotTime = svs.time - 9999; // generate a snapshot immediately

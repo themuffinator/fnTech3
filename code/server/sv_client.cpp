@@ -285,6 +285,10 @@ void SV_GetChallenge( const netadr_t *from, const msg_t *msg ) {
 		return;
 	}
 #endif
+	// Holomatch also on a dedicated server (stvoyHM.exe 0x42ee80).
+	if ( Com_GameIsSTVEFMP() && Cvar_VariableValue( "g_gametype" ) == GT_SINGLE_PLAYER ) {
+		return;
+	}
 
 	if ( SV_ServerTypeRefusesChallenge( from ) ) {
 		NET_OutOfBandPrint( NS_SERVER, from, "print\nServer is for LAN clients only.\n" );
@@ -2213,6 +2217,20 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 	// Free all allocated data on the client structure
 	SV_FreeClient( drop );
 
+	// Elite Force's engines make the client a zombie, which broadcasts pass
+	// over, before their game hears of the drop, so the configstrings and
+	// prints its ClientDisconnect sends do not reach that client. Single
+	// player does it even before its notice (stvoy.exe 0x424852, the game's
+	// ClientDisconnect at 0x42488f), Holomatch just after it (stvoyHM.exe
+	// 0x42fb78, the game at 0x42fbb9).
+	const bool zombieBeforeNotice = Com_GameIsSTVEFSP();
+	const bool zombieBeforeGame = zombieBeforeNotice || Com_GameIsSTVEFMP();
+	const clientState_t dropState = drop->state;
+	if ( zombieBeforeNotice ) {
+		drop->state = CS_ZOMBIE;
+		VM_Call( gvm, 1, GAME_CLIENT_DISCONNECT, SV_ClientIndex( drop ) );
+	}
+
 	// tell everyone why they got dropped, in the words of the profile's engine
 	if ( reason && SV_AnnouncesDrop( drop, isBot ) ) {
 		if ( Com_GameIsRTCWMP() ) {
@@ -2224,10 +2242,11 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 			// Enemy Territory pops the notice up instead of printing it
 			// (et.exe 0x441937, etded.exe 0x427f57).
 			SV_SendServerCommand( nullptr, "cpm \"%s" S_COLOR_WHITE " %s\n\"", name.data(), reason );
-		} else if ( Com_GameIsRitual() ) {
-			// Alice's and F.A.K.K.2's engines print the name and the reason
-			// with no colour reset between them (alice.exe 0x004529fb,
-			// fakk2.exe 1.02 0x00443abb).
+		} else if ( Com_GameIsRitual() || Com_GameIsSTVEFSP() ) {
+			// Alice's, F.A.K.K.2's and Elite Force single player's engines
+			// print the name and the reason with no colour reset between them
+			// (alice.exe 0x004529fb, fakk2.exe 1.02 0x00443abb, stvoy.exe
+			// 0x4248a1).
 			SV_SendServerCommand( nullptr, "print \"%s %s\n\"", name.data(), reason );
 		} else if ( Com_GameIsQuakeLive() && drop->rageQuit ) {
 			// Quake Live names a client its game marked with ragequit this
@@ -2239,17 +2258,32 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 		}
 	}
 
-	// call the prog function for removing a client
-	// this will remove the body, among other things
-	VM_Call( gvm, 1, GAME_CLIENT_DISCONNECT, SV_ClientIndex( drop ) );
+	if ( zombieBeforeGame && !zombieBeforeNotice ) {
+		drop->state = CS_ZOMBIE;
+	}
+	if ( !zombieBeforeNotice ) {
+		// call the prog function for removing a client
+		// this will remove the body, among other things
+		VM_Call( gvm, 1, GAME_CLIENT_DISCONNECT, SV_ClientIndex( drop ) );
+	}
+	if ( zombieBeforeGame ) {
+		// Retail still addresses its command to the zombie, and this
+		// engine's command queue takes one only from a client in the game.
+		drop->state = dropState;
+	}
 
 	// add the disconnect command
 	// The game callback can change the entity or its cast flag.
 	if ( reason && !( Com_GameIsRTCWSP() && SV_ClientIsRTCWCastAI( drop ) ) ) {
-		if ( Com_GameIsRitual() ) {
+		if ( Com_GameIsRitual() || Com_GameIsSTVEFSP() ) {
 			// Theirs is a bare `disconnect`, and their clients print no
-			// reason (alice.exe 0x00452a6b, fakk2.exe 1.02 0x00443b2b).
+			// reason (alice.exe 0x00452a6b, fakk2.exe 1.02 0x00443b2b,
+			// stvoy.exe 0x4248b0).
 			SV_SendServerCommand( drop, "disconnect" );
+		} else if ( Com_GameIsSTVEFMP() ) {
+			// Holomatch sends the reason unquoted (stvoyHM.exe 0x42fbbf),
+			// and its client shows the command's own text after the word.
+			SV_SendServerCommand( drop, "disconnect %s", reason );
 		} else {
 			SV_SendServerCommand( drop, "disconnect \"%s\"", reason );
 		}

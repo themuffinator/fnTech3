@@ -134,6 +134,13 @@ tables:
   `0x00443abb` and `0x00443b2b`). Their clients print no reason, and
   fnTech3's shows `Server disconnected` for a bare command.
   `tests/server_drop_notice_tests.py` expects both, with a mutation for each.
+- 2026-10-08: both Elite Force profiles follow their engines. Single player
+  makes the client a zombie and calls the game before its notice,
+  `print "%s %s\n"`, and addresses a bare `disconnect`; Holomatch keeps the
+  notice, makes the client a zombie before the game, and addresses
+  `disconnect %s`, unquoted. Its kick says `kicked` and a quitting Holomatch
+  server sends `disconnect server shut down`
+  ([server messages record](2026-10-08-stvef-server-messages.md)).
 
 The RTCW, ET and Quake III sources, the qagame module and the retail
 executables were read as reference observations. No text from them is
@@ -255,14 +262,14 @@ runs above show both on the baseline as well.
 
 ## Open
 
-- The IHV test, Elite Force SP, Jedi Academy SP and Jedi Outcast SP
-  broadcast `print "%s %s\n"`, and fnTech3 still sends them `^7` after the
-  name. Alice and F.A.K.K.2 now get their engines' notice and bare
-  `disconnect` (2026-09-25, under Change). Elite Force SP and both Jedi single players also send the notice
+- The IHV test, Jedi Academy SP and Jedi Outcast SP broadcast
+  `print "%s %s\n"`, and fnTech3 still sends them `^7` after the name.
+  Alice and F.A.K.K.2 now get their engines' notice and bare `disconnect`
+  (2026-09-25), and both Elite Force profiles their engines' forms and order
+  (2026-10-08), under Change. Both Jedi single players also send the notice
   after the game's `ClientDisconnect`, where fnTech3 sends it before.
-- The addressed command. `WolfSP.exe`, the IHV test, Elite Force SP, both
-  Jedi single players and Jedi Outcast MP send a bare `disconnect`.
-  `stvoyHM.exe` sends `disconnect %s`, unquoted. ET adds a newline after the
+- The addressed command. `WolfSP.exe`, the IHV test, both Jedi single
+  players and Jedi Outcast MP send a bare `disconnect`. ET adds a newline after the
   closing quote, which its client's tokenizer drops: the retail client above
   showed `Server Disconnected - player kicked`. Jedi Academy MP formats the
   command twice, so a `%` in the reason is read as a format. fnTech3 sends

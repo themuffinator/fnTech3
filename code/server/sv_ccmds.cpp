@@ -297,6 +297,13 @@ static void SV_Map_f( void ) {
 		} else {
 			killBots = false;
 		}
+		// Holomatch's devmap is what removes the bots, and its map from a
+		// single-player game keeps them (stvoyHM.exe SV_Map_f 0x42e5a5..
+		// 0x42e5d3); SV_SpawnServer still removes them from a level that
+		// starts as single player.
+		if ( Com_GameIsSTVEFMP() ) {
+			killBots = cheat;
+		}
 	}
 
 	// Retail QL's map command owns factory selection.  Keep the inherited
@@ -672,6 +679,19 @@ static void SV_LoadGame_f() {
 
 /*
 ==================
+SV_KickedReason
+
+What a kicked client is told it was. Holomatch's engine says "kicked"
+(stvoyHM.exe 0x4cb1bc, pushed at 0x42e93f); the other profiles keep
+Quake III's words.
+==================
+*/
+static const char *SV_KickedReason( void ) {
+	return Com_GameIsSTVEFMP() ? "kicked" : "was kicked";
+}
+
+/*
+==================
 SV_Kick_f
 
 Kick a user off of the server  FIXME: move to game
@@ -701,7 +721,7 @@ static void SV_Kick_f( void ) {
 				if ( client.netchan.remoteAddress.type == NA_LOOPBACK ) {
 					continue;
 				}
-				SV_DropClient( &client, "was kicked" );
+				SV_DropClient( &client, SV_KickedReason() );
 				client.lastPacketTime = svs.time;	// in case there is a funny zombie
 			}
 		}
@@ -713,7 +733,7 @@ static void SV_Kick_f( void ) {
 				if ( client.netchan.remoteAddress.type != NA_BOT ) {
 					continue;
 				}
-				SV_DropClient( &client, "was kicked" );
+				SV_DropClient( &client, SV_KickedReason() );
 				client.lastPacketTime = svs.time;	// in case there is a funny zombie
 			}
 		}
@@ -724,7 +744,7 @@ static void SV_Kick_f( void ) {
 		return;
 	}
 
-	SV_DropClient( cl, "was kicked" );
+	SV_DropClient( cl, SV_KickedReason() );
 	cl->lastPacketTime = svs.time;	// in case there is a funny zombie
 }
 
@@ -754,7 +774,7 @@ static void SV_KickBots_f( void ) {
 			continue;
 		}
 
-		SV_DropClient( cl, "was kicked" );
+		SV_DropClient( cl, SV_KickedReason() );
 		cl->lastPacketTime = svs.time; // in case there is a funny zombie
 	}
 }
@@ -784,7 +804,7 @@ static void SV_KickAll_f( void ) {
 			continue;
 		}
 
-		SV_DropClient( cl, "was kicked" );
+		SV_DropClient( cl, SV_KickedReason() );
 		cl->lastPacketTime = svs.time; // in case there is a funny zombie
 	}
 }
@@ -819,7 +839,7 @@ static void SV_KickNum_f( void ) {
 		return;
 	}
 
-	SV_DropClient( cl, "was kicked" );
+	SV_DropClient( cl, SV_KickedReason() );
 	cl->lastPacketTime = svs.time;	// in case there is a funny zombie
 }
 

@@ -183,6 +183,14 @@ historical upstream records, not fnTech3 release history. See the
   compiler built, team-only and do-not-enter liquid areas are no longer
   avoided either, as retail does not avoid them
   ([record](docs/fntech3/2026-09-29-stvef-route-seed.md)).
+- Tell Elite Force players why they left as the original servers do. A
+  kicked Holomatch player is told `kicked`, and a player leaving or kicked
+  gets Holomatch's own disconnect message, which the original client shows
+  as it is; a quitting server says `server shut down`. Holomatch's `devmap`
+  removes the bots, its `map` out of a single-player game keeps them, and a
+  server running a single-player game answers no browser or connection, as
+  the original server does. Single player announces a player leaving in its
+  own words ([record](docs/fntech3/2026-10-08-stvef-server-messages.md)).
 - Stop a server faulting when `bot_saveroutingcache 1` is set while its bots'
   navigation is still being prepared, as it is for a while after a map loads
   with `bot_forcereachability 1`. There are no routes to save yet: the server
