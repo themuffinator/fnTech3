@@ -512,5 +512,331 @@
     "combat and objectives",
     "more than two clients",
     "a retail-originated Q3Test chat line"
-  ]
+  ],
+  "lifecycleUnderLoss": {
+    "engineCommit": "9d8c0c9ceb69e62354b660d4f39de15171fff832",
+    "fntech3": {
+      "fntech3.exe": "f335c39f563c3fa3f6505923a5cb44cc0e4a397a66406eca9a28a3106c3f88aa",
+      "fntech3.ded.exe": "8e58c10c7ed19d6f6c7f630318a05ed4dcb9e2708b2e93eb5649a1c875dc8cbb"
+    },
+    "command": "python scripts/probe_legacy_sessions.py --output <new dir> --profiles q3 rtcw-mp wolfet stvef-mp --directions join host --sessions main kick --runtime <export build> --fntech3-set net_dropsim 10",
+    "runs": [
+      {
+        "profile": "q3",
+        "direction": "host",
+        "session": "main",
+        "passed": true,
+        "installationUnchanged": true,
+        "steps": {
+          "server-ready": true,
+          "join": true,
+          "client-chat": true,
+          "server-chat": true,
+          "map-change": true,
+          "map-restart": true,
+          "reconnect": true,
+          "server-quit": true
+        },
+        "exits": [
+          0,
+          0
+        ],
+        "clientForced": false
+      },
+      {
+        "profile": "q3",
+        "direction": "host",
+        "session": "kick",
+        "passed": true,
+        "installationUnchanged": true,
+        "steps": {
+          "server-ready": true,
+          "kick-join": true,
+          "kick": true
+        },
+        "exits": [
+          0,
+          0
+        ],
+        "clientForced": false
+      },
+      {
+        "profile": "q3",
+        "direction": "join",
+        "session": "main",
+        "passed": true,
+        "installationUnchanged": true,
+        "steps": {
+          "server-ready": true,
+          "join": true,
+          "client-chat": true,
+          "server-chat": true,
+          "map-change": true,
+          "map-restart": true,
+          "reconnect": true,
+          "server-quit": true
+        },
+        "exits": [
+          0,
+          1
+        ],
+        "clientForced": true
+      },
+      {
+        "profile": "q3",
+        "direction": "join",
+        "session": "kick",
+        "passed": true,
+        "installationUnchanged": true,
+        "steps": {
+          "server-ready": true,
+          "kick-join": true,
+          "kick": true
+        },
+        "exits": [
+          0,
+          1
+        ],
+        "clientForced": true
+      },
+      {
+        "profile": "rtcw-mp",
+        "direction": "host",
+        "session": "main",
+        "passed": true,
+        "installationUnchanged": true,
+        "steps": {
+          "server-ready": true,
+          "join": true,
+          "client-chat": true,
+          "server-chat": true,
+          "map-change": true,
+          "map-restart": true,
+          "reconnect": true,
+          "server-quit": true
+        },
+        "exits": [
+          0,
+          0
+        ],
+        "clientForced": false
+      },
+      {
+        "profile": "rtcw-mp",
+        "direction": "host",
+        "session": "kick",
+        "passed": true,
+        "installationUnchanged": true,
+        "steps": {
+          "server-ready": true,
+          "kick-join": true,
+          "kick": true
+        },
+        "exits": [
+          0,
+          0
+        ],
+        "clientForced": false
+      },
+      {
+        "profile": "rtcw-mp",
+        "direction": "join",
+        "session": "main",
+        "passed": true,
+        "installationUnchanged": true,
+        "steps": {
+          "server-ready": true,
+          "join": true,
+          "client-chat": true,
+          "server-chat": true,
+          "map-change": true,
+          "map-restart": true,
+          "reconnect": true,
+          "server-quit": true
+        },
+        "exits": [
+          0,
+          1
+        ],
+        "clientForced": true
+      },
+      {
+        "profile": "rtcw-mp",
+        "direction": "join",
+        "session": "kick",
+        "passed": true,
+        "installationUnchanged": true,
+        "steps": {
+          "server-ready": true,
+          "kick-join": true,
+          "kick": true
+        },
+        "exits": [
+          0,
+          1
+        ],
+        "clientForced": true
+      },
+      {
+        "profile": "stvef-mp",
+        "direction": "host",
+        "session": "main",
+        "passed": true,
+        "installationUnchanged": true,
+        "steps": {
+          "server-ready": true,
+          "join": true,
+          "client-chat": true,
+          "server-chat": true,
+          "map-change": true,
+          "map-restart": true,
+          "reconnect": true,
+          "server-quit": true
+        },
+        "exits": [
+          0,
+          0
+        ],
+        "clientForced": false
+      },
+      {
+        "profile": "stvef-mp",
+        "direction": "host",
+        "session": "kick",
+        "passed": true,
+        "installationUnchanged": true,
+        "steps": {
+          "server-ready": true,
+          "kick-join": true,
+          "kick": true
+        },
+        "exits": [
+          0,
+          0
+        ],
+        "clientForced": false
+      },
+      {
+        "profile": "stvef-mp",
+        "direction": "join",
+        "session": "main",
+        "passed": true,
+        "installationUnchanged": true,
+        "steps": {
+          "server-ready": true,
+          "join": true,
+          "client-chat": true,
+          "server-chat": true,
+          "map-change": true,
+          "map-restart": true,
+          "reconnect": true,
+          "server-quit": true
+        },
+        "exits": [
+          0,
+          1
+        ],
+        "clientForced": true
+      },
+      {
+        "profile": "stvef-mp",
+        "direction": "join",
+        "session": "kick",
+        "passed": true,
+        "installationUnchanged": true,
+        "steps": {
+          "server-ready": true,
+          "kick-join": true,
+          "kick": true
+        },
+        "exits": [
+          0,
+          1
+        ],
+        "clientForced": true
+      },
+      {
+        "profile": "wolfet",
+        "direction": "host",
+        "session": "main",
+        "passed": true,
+        "installationUnchanged": true,
+        "steps": {
+          "server-ready": true,
+          "server-playing": true,
+          "join": true,
+          "client-chat": true,
+          "server-chat": true,
+          "map-change": true,
+          "map-restart": true,
+          "reconnect": true,
+          "server-quit": true
+        },
+        "exits": [
+          0,
+          0
+        ],
+        "clientForced": false
+      },
+      {
+        "profile": "wolfet",
+        "direction": "host",
+        "session": "kick",
+        "passed": true,
+        "installationUnchanged": true,
+        "steps": {
+          "server-ready": true,
+          "server-playing": true,
+          "kick-join": true,
+          "kick": true
+        },
+        "exits": [
+          0,
+          0
+        ],
+        "clientForced": false
+      },
+      {
+        "profile": "wolfet",
+        "direction": "join",
+        "session": "main",
+        "passed": true,
+        "installationUnchanged": true,
+        "steps": {
+          "server-ready": true,
+          "server-playing": true,
+          "join": true,
+          "client-chat": true,
+          "server-chat": true,
+          "map-change": true,
+          "map-restart": true,
+          "reconnect": true,
+          "server-quit": true
+        },
+        "exits": [
+          0,
+          1
+        ],
+        "clientForced": true
+      },
+      {
+        "profile": "wolfet",
+        "direction": "join",
+        "session": "kick",
+        "passed": true,
+        "installationUnchanged": true,
+        "steps": {
+          "server-ready": true,
+          "server-playing": true,
+          "kick-join": true,
+          "kick": true
+        },
+        "exits": [
+          0,
+          1
+        ],
+        "clientForced": true
+      }
+    ]
+  }
 }

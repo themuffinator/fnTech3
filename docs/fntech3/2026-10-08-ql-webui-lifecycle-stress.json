@@ -1,0 +1,31 @@
+{
+  "record": "2026-10-08-ql-webui-lifecycle-stress.md",
+  "profile": "ql",
+  "engineCommit": "9d8c0c9ceb69e62354b660d4f39de15171fff832",
+  "platform": "Windows x86, MSVC 2022, meson debugoptimized export build with every development option",
+  "fntech3.exe": "f335c39f563c3fa3f6505923a5cb44cc0e4a397a66406eca9a28a3106c3f88aa",
+  "retailRuntime": {
+    "awesomium_process.exe": "3067bdb00878ebf271f210d06257dc5f0fd4d4c34bb17195fbad067db3174c6f",
+    "awesomium.dll": "de27851602cb1387ef50086761b417d3d39a2a2648b5490939f843a711ff7f6e",
+    "web.pak": "338862a0384f71fb962a71e0c77a686ae5d2204c88eebe9ccea3a8dfee13793b"
+  },
+  "startup": "+set com_gameProfile ql, fs_basepath <QL install>, fs_homepath <run home> (empty qzconfig.cfg), r_fullscreen 0, r_mode -1 1280x720, in_mouse 0, s_initsound 0, com_steamIntegration 0, fs_skipWorkshop 1, cl_webuiEnable 1 (control 0), cl_renderer glx, com_maxfps 60, +exec stress.cfg",
+  "steps": ["wait 900", "vid_restart", "renderer_switch vk", "renderer_switch rtx", "renderer_switch glx", "r_customWidth 1600, r_customHeight 900, vid_restart", "echo PROBE_KILL_NOW (harness kills this client's awesomium_process.exe by PID)", "wait 900", "wait 600", "vid_restart"],
+  "runs": {
+    "webui": {
+      "exitCode": 0, "forcedStop": false, "seconds": 114.4, "killedChildPid": 60788, "installationUnchanged": true,
+      "webStatusBeforeKill": "loading=1 crashed=0 nativeError=0 ready=1 assetLocation=1 locationLength=23 hidden=0 at every step",
+      "webStatusAfterKill": "WebUI status is unavailable without a live browser.",
+      "captures": {"start": "303f4509fc89", "vid_restart": "303f4509fc89", "vk": "303f4509fc89", "rtx": "303f4509fc89", "glx": "303f4509fc89", "resize": "b0cf275aee31", "afterKill": "a1c81e74a1fa", "later": "a1c81e74a1fa", "restartAfterKill": "a1c81e74a1fa"}
+    },
+    "control": {
+      "exitCode": 0, "forcedStop": false, "seconds": 111.3, "installationUnchanged": true,
+      "captures": {"start": "cd76c4dca690", "vid_restart": "cd76c4dca690", "vk": "cd76c4dca690", "rtx": "cd76c4dca690", "glx": "cd76c4dca690", "resize": "a1c81e74a1fa", "later": "a1c81e74a1fa"}
+    }
+  },
+  "facts": ["the web menu capture is byte-identical through vid_restart and GLx, Vulkan, RTX and back", "after the child's death the capture is byte-identical to the control's native screen at 1600x900", "no new child is started"],
+  "unrelated": "three 'Hunk_FreeTempMemory: not the final block' developer lines at every renderer shutdown, with the web interface on or off",
+  "command": "python .tmp/ql-webui-stress/probe.py <export build dir> <tag> [--no-webui]",
+  "inputInjected": false,
+  "open": ["device loss", "Linux and Proton", "bringing the web interface back without a client restart"]
+}

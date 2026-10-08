@@ -71,6 +71,17 @@ with chat delivered from fnTech3's client to the retail one.
 `scripts/probe_legacy_discovery.py` lists the 1.08 installation and stages it
 in the slot `scripts/probe_q3test.py` keeps (`.tmp/q3-point-releases/r/24`).
 
+## Lifecycle under loss
+
+The script's short `main` and `kick` sessions were run again with the same
+10% loss on fnTech3's side, with retail Quake III, RTCW, ET and Elite Force
+in both directions. That covers join, chat both ways, map change,
+`map_restart`, reconnect, server quit and kick. All 16 sessions passed,
+every step, and every installation was unchanged. The fnTech3 client ends
+with its server's disconnect and is stopped by the probe, as in the
+legacy-server record. These runs used a later build, at `9d8c0c9c`; it
+changes only rendering and the IHV client from the sustained runs' `6830eb1f`.
+
 ## Open
 
 Real networks, combat and objectives, more than two clients and a
