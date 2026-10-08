@@ -3062,6 +3062,12 @@ CL_Disconnect_f
 */
 void CL_Disconnect_f( void ) {
 	SCR_StopCinematic();
+	// WolfSP.exe clears both loading states first (0x40b790), so a level
+	// left mid-reload cannot keep the map command refusing.
+	if ( Com_GameIsRTCWSP() ) {
+		Cvar_Set( "savegame_loading", "0" );
+		Cvar_Set( "g_reloading", "0" );
+	}
 	Cvar_Set( "ui_singlePlayerActive", "0" );
 	if ( cls.state != CA_DISCONNECTED && cls.state != CA_CINEMATIC ) {
 		if ( com_sv_running && com_sv_running->integer

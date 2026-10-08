@@ -50,6 +50,7 @@ static void SV_RTCWClearSaveRequest(){Cvar_Set("savegame_loading","0");Cvar_Set(
 const char *COM_GetExtension(const char *s){const char *p=strrchr(s,'.');return p?p+1:"";}
 void Cvar_SetLatched(const char *name,const char *text){auto &v=values[name];v.latched=text;v.cvar.latchedString=v.latched.data();}
 void Cvar_SetIntegerValue(const char *name,int value){Cvar_Set(name,std::to_string(value).c_str());}
+int Cvar_VariableIntegerValue(const char *name){auto it=values.find(name);return it==values.end()?0:it->second.cvar.integer;}
 cvar_t *sv_gametype,*sv_maxclients;
 static cvar_t running{},dedicated{};
 cvar_t *com_sv_running=&running,*com_dedicated=&dedicated,*com_developer;
@@ -243,6 +244,16 @@ int main(){
    for(const char *fog:{"r_mapFogColor","r_waterFogColor","r_savegameFogColor"}){
     if(sp)assert(values.at(fog).value=="0");else assert(!values.count(fog));
    }
+  }
+  // WolfSP.exe ignores every map command while its game is reloading,
+  // unless the game starts its next level itself (2) or a build script
+  // runs (0x430c6d). No other engine here has the guard.
+  for(int reloading:{1,2,4,8,16})for(int build:{0,1})for(const char *cmd:{"spmap","spdevmap","map","devmap"}){
+   command=cmd;map="synthetic";values.clear();SV_TestServerDefaults();
+   Cvar_Set("g_reloading",std::to_string(reloading).c_str());Cvar_Set("com_buildScript",build?"1":"0");
+   spawns=pure=probes=0;available=true;activeFactory=false;argc=ql?3:2;SV_Map_f();
+   const int started=!(sp&&!build&&reloading!=2);
+   assert(spawns==started&&probes==started&&pure==0);
   }
   // A nonexistent map cannot tear down the server or apply new cvars.
   values.clear();SV_TestServerDefaults();Cvar_Set("sv_maxclients","37");

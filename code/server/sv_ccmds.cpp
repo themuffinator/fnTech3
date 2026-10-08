@@ -188,6 +188,15 @@ static void SV_Map_f( void ) {
 		Com_Printf( "Single Player is not enabled.\n" );
 		return;
 	}
+	// WolfSP.exe ignores a new map while its game is reloading -- through
+	// a briefing, a level exit's fade or a failed mission's reload --
+	// unless the game is starting its next level itself (2) or a build
+	// script runs (SV_Map_f, 0x430c6d).
+	if ( Com_GameIsRTCWSP() && !Cvar_VariableIntegerValue("com_buildScript") ) {
+		constexpr int reloadNextMap = 2;
+		const int reloading = Cvar_VariableIntegerValue("g_reloading");
+		if ( reloading && reloading != reloadNextMap ) return;
+	}
 	if ( Com_GameIsRTCWSP() && Q_stricmp(COM_GetExtension(map), "svg") == 0 ) {
 		if ( !fntech3::rtcw::savegame::Filename(map, saveFilename) ||
 			!SV_RTCWReadSaveHeader(saveFilename, saveHeader) ) return;
