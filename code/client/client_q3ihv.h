@@ -16,6 +16,8 @@
 
 // cl_main.cpp / cl_input.cpp hooks (cl_q3ihv.cpp)
 void CL_Q3IHVPlayDemo_f( void );
+void CL_Q3IHVRecord_f( void );
+void CL_Q3IHVStopRecord_f( void );
 bool CL_Q3IHVReadDemoMessage( void );
 void CL_Q3IHVClearConnection( void );
 netchanWireProfile_t CL_Q3IHVWireProfile( void );

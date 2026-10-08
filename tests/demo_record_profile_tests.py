@@ -69,9 +69,11 @@ static void FS_Rename(const char *from,const char *to) {
 }
 static void Com_Printf(const char *text) { printed = text; }
 static void CL_SetDemoRecordingCvars(const char *) {}
-/* Q3Test records with its own recorder (cl_q3test.cpp). */
+/* Q3Test records with its own recorder (cl_q3test.cpp), as the IHV Test does. */
 static int Com_GameIsQ3Test() { return 0; }
 static void CL_Q3TestStopRecord_f() {}
+static int Com_GameIsQuake3IHV() { return 0; }
+static void CL_Q3IHVStopRecord_f() {}
 '''
         fixture += fallback + "\n" + finalizer
         fixture += "\nstatic void InitializeCompatibility() { " + initializer + " }\n"
@@ -228,6 +230,7 @@ static void CL_SetDemoRecordingCvars(const char *) {}
 static int Com_GameIsQ3Test() { return 0; }
 static void CL_Q3TestRecord_f() {}
 static int Com_GameIsQuake3IHV() { return 0; }
+static void CL_Q3IHVRecord_f() {}
 static void CL_WriteGamestate(qboolean initial) { assert(initial); ++gamestates; }
 /* Demo files already on disk, and every name the automatic search probed. */
 struct ScopedFileHandle {};

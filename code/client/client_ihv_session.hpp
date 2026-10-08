@@ -35,6 +35,9 @@ public:
 	ClientSession(const ClientSession &) = delete;
 	ClientSession &operator=(const ClientSession &) = delete;
 	const ClientData &Data() const { return data_; }
+	// The decoded gamestate, configstring changes applied, that a recorded
+	// demo starts from (CL_Record_f 0x404560).
+	const wire::MessageDecoder &Decoder() const { return decoder_; }
 	bool AppendCommand(const fntech3_q3_ihv_usercmd_t &command) { return data_.AppendCommand(command); }
 	void Clear() { decoder_.Clear(); data_.Clear(); ++generation_; }
 	PacketResult Feed(const void *input, std::size_t bytes, std::uint32_t ping, ClientEvents &events) {

@@ -309,9 +309,10 @@ protocol and map format -- to need its own profile.
 code on its four maps, and the client runs the test's own client game: open
 the console and type `demo sli` to play its demo, or `connect <address>` to
 join a server running the original IHV Test. There is no menu beyond a title
-screen, and recording a demo is not supported. fnTech3's own server takes
-players too, from the original IHV Test or from fnTech3. It does not send
-files, so every player needs the maps already. The
+screen. `record <name>` records a demo the original IHV Test can play too,
+and `stoprecord` ends it. fnTech3's own server takes players too, from the
+original IHV Test or from fnTech3. The IHV Test cannot download files, so
+every player needs the maps already. The
 [IHV record](fntech3/Q3_IHV.md) has the details.
 
 ## Quake III Arena Q3Test (`q3test`)

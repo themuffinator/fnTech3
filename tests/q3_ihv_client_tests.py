@@ -212,6 +212,39 @@ int main(){
 }
 ''')
 
+    def test_recorded_gamestate(self):
+        # CL_Record_f 0x404650..0x404707: the client's configstrings and the
+        # baselines that carry a model, a narrower test than the server's.
+        body = function(SESSION.read_text(encoding='utf-8'), 'bool CL_Q3IHVDemoGamestate(')
+        self.execute(r'''
+#include "code/qcommon/q3_ihv_message.hpp"
+#include <cstdio>
+#include <memory>
+#define CHECK(x) do{if(!(x)){std::fprintf(stderr,"%d: %s\n",__LINE__,#x);return 1;}}while(0)
+namespace ihvwire = fntech3::q3ihv::wire;
+''' + body + r'''
+int main(){
+ auto game=std::make_unique<ihvwire::GameState>();
+ game->configstrings[0]="\\protocol\\33\\mapname\\tim_dm1";
+ game->configstrings[5]="models/x.md3";
+ auto set=[&](unsigned n,unsigned field,unsigned value){
+  auto &b=game->baselines[n];ihvwire::Store(b.data(),2,n);b[field]=static_cast<std::uint8_t>(value);};
+ set(3,0x95,7);   // a model: kept
+ set(4,0x94,9);   // a looping sound alone: the server sends it, a recording drops it
+ set(6,4,1);      // effects alone: dropped too
+ auto out=std::make_unique<ihvwire::MessageWriter>();
+ CHECK(CL_Q3IHVDemoGamestate(*game,*out));
+ ihvwire::MessageDecoder decoder;ihvwire::DecodedMessage decoded;
+ CHECK(decoder.Decode(out->Data(),out->Bytes(),decoded)==ihvwire::MessageResult::Ok&&decoded.gamestate);
+ CHECK(decoded.gamestate->configstrings[5]=="models/x.md3");
+ CHECK(decoded.gamestate->baselines[3][0x95]==7);
+ CHECK(!ihvwire::Load(decoded.gamestate->baselines[4].data(),2)&&!ihvwire::Load(decoded.gamestate->baselines[6].data(),2));
+ // A gamestate without its protocol is refused, as the shared writer refuses it.
+ game->configstrings[0]="\\mapname\\tim_dm1";out=std::make_unique<ihvwire::MessageWriter>();
+ CHECK(!CL_Q3IHVDemoGamestate(*game,*out));
+}
+''')
+
 
 if __name__ == '__main__':
     unittest.main()

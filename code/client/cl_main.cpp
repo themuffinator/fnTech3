@@ -977,6 +977,11 @@ void CL_StopRecord_f( void ) {
 		CL_Q3TestStopRecord_f();
 		return;
 	}
+	// The IHV Test's .dm3 ends with one -1 (cl_q3ihv.cpp).
+	if ( Com_GameIsQuake3IHV() ) {
+		CL_Q3IHVStopRecord_f();
+		return;
+	}
 
 	if ( clc.recordfile != FS_INVALID_HANDLE ) {
 		std::array<char, MAX_OSPATH> tempName;
@@ -1415,9 +1420,9 @@ static void CL_Record_f( void ) {
 		CL_Q3TestRecord_f();
 		return;
 	}
-	// The IHV Test's recorder is not written yet; its .dm3 is not Quake III's.
+	// The IHV Test records its own length-only .dm3 (cl_q3ihv.cpp).
 	if ( Com_GameIsQuake3IHV() ) {
-		Com_Printf( "Recording an IHV Test demo is not supported yet.\n" );
+		CL_Q3IHVRecord_f();
 		return;
 	}
 

@@ -121,6 +121,8 @@ void CL_Q3IHVSnapshot( const fntech3_q3_ihv_snapshot_t &record ) {
 	cl.serverTime = mirror.serverTime;
 	cl.newSnapshots = qtrue;
 	ihvLive.configAck = word( 336 );
+	// A full frame starts a demo being recorded (0x406af4).
+	if ( mirror.deltaNum <= 0 ) clc.demowaiting = qfalse;
 	clc.lastPacketTime = cls.realtime;
 	if ( cls.state == CA_PRIMED ) {
 		cls.state = CA_ACTIVE;
@@ -193,6 +195,28 @@ void CL_Q3IHVParse( const std::uint8_t *data, std::size_t size ) {
 	const auto result = ihvSession->FeedWith( data, size, CL_Q3IHVPing, ihvEvents );
 	if ( result.code == ihvcl::PacketResult::Delivered || result.code == ihvcl::PacketResult::Aborted ) return;
 	Com_Error( ERR_DROP, "CL_ParseServerMessage: %s", CL_Q3IHVPacketError( result ) );
+}
+
+/* ---- demo recording ------------------------------------------------------- */
+
+/* A record of a demo being recorded: the message's length, then its bytes
+ * (CL_WriteDemoMessage 0x4044a0). */
+void CL_Q3IHVDemoWrite( const void *data, std::size_t size ) {
+	if ( !clc.demorecording || !clc.recordfile || !size ) return;
+	const int length = LittleLong( static_cast<int>( size ) );
+	FS_Write( &length, 4, clc.recordfile );
+	FS_Write( data, static_cast<int>( size ), clc.recordfile );
+}
+
+/* The gamestate a recorded demo starts with (CL_Record_f 0x404650..0x404707):
+ * the client's own configstrings and only the baselines that carry a model,
+ * a narrower test than the server's (0x4187d1). */
+bool CL_Q3IHVDemoGamestate( const ihvwire::GameState &game, ihvwire::MessageWriter &out ) {
+	auto recorded = std::make_unique<ihvwire::GameState>( game );
+	for ( auto &baseline : recorded->baselines ) {
+		if ( !baseline[0x95] ) baseline = {};
+	}
+	return out.AddGameState( *recorded );
 }
 
 /* ---- the live connection ------------------------------------------------- */
@@ -448,6 +472,9 @@ void CL_Q3IHVPacketEvent( const netadr_t *from, msg_t *msg ) {
 		FS_Flush( ihvLive.rawLog );
 	}
 	CL_Q3IHVParse( msg->data, size );
+	// The message after the channel's header goes to a demo being recorded
+	// once a full frame has arrived (0x405812).
+	if ( clc.demorecording && !clc.demowaiting ) CL_Q3IHVDemoWrite( msg->data, size );
 }
 
 /* CL_SendCmd (0x403360), after the engine has made the frame's command.
@@ -587,6 +614,71 @@ void CL_Q3IHVPlayDemo_f( void ) {
 	while ( cls.state >= CA_CONNECTED && cls.state < CA_PRIMED ) {
 		CL_ReadDemoMessage();
 	}
+}
+
+/* record <name> (CL_Record_f 0x404560): demos/<name>.dm3, its first record a
+ * gamestate built from the client's own state, the rest the server's messages
+ * from the next full frame, which the next move asks for. The original's
+ * console command needs a name; without one this takes the first free name its
+ * menu would (demos/demo%03d.dm3, 0x463a3c). */
+void CL_Q3IHVRecord_f( void ) {
+	if ( Cmd_Argc() > 2 ) {
+		Com_Printf( "record <demoname>\n" );
+		return;
+	}
+	if ( clc.demorecording ) {
+		Com_Printf( "Already recording.\n" );
+		return;
+	}
+	const auto game = ihvSession ? ihvSession->Decoder().CurrentGameState() : nullptr;
+	if ( cls.state != CA_ACTIVE || !game ) {
+		Com_Printf( "You must be in a level to record.\n" );
+		return;
+	}
+	char name[MAX_OSPATH];
+	if ( Cmd_Argc() == 2 ) {
+		Com_sprintf( name, sizeof( name ), "demos/%s.dm3", Cmd_Argv( 1 ) );
+	} else {
+		int number = 0;
+		for ( ; number <= 999; ++number ) {
+			Com_sprintf( name, sizeof( name ), "demos/demo%03d.dm3", number );
+			if ( !FS_FileExists( name ) ) break;
+		}
+		if ( number > 999 ) {
+			Com_Printf( "ERROR: no free demo name\n" );
+			return;
+		}
+	}
+	auto writer = std::make_unique<ihvwire::MessageWriter>();
+	if ( !CL_Q3IHVDemoGamestate( *game, *writer ) ) {
+		Com_Printf( "ERROR: the gamestate does not fit a demo record\n" );
+		return;
+	}
+	Com_Printf( "recording to %s.\n", name );
+	clc.recordfile = FS_FOpenFileWrite( name );
+	if ( !clc.recordfile ) {
+		Com_Printf( "ERROR: couldn't open.\n" );
+		return;
+	}
+	Q_strncpyz( clc.recordName, name, sizeof( clc.recordName ) );
+	clc.demorecording = qtrue;
+	clc.demowaiting = qtrue;
+	CL_Q3IHVDemoWrite( writer->Data(), writer->Bytes() );
+}
+
+/* stoprecord (CL_StopRecord_f 0x4044f0): the -1 terminator. */
+void CL_Q3IHVStopRecord_f( void ) {
+	if ( !clc.demorecording ) {
+		Com_Printf( "Not recording a demo.\n" );
+		return;
+	}
+	const int end = LittleLong( -1 );
+	FS_Write( &end, 4, clc.recordfile );
+	FS_FCloseFile( clc.recordfile );
+	clc.recordfile = 0;
+	clc.demorecording = qfalse;
+	clc.demowaiting = qfalse;
+	Com_Printf( "Stopped demo.\n" );
 }
 
 /* CL_CgameFrame (0x4059b0): while active, the client game is asked each frame

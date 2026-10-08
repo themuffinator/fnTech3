@@ -99,6 +99,8 @@ int Com_GameIsQ3Test( void ) { return 0; }
 void CL_Q3TestRecord_f( void ) {}
 int Com_GameIsQuake3IHV( void ) { return 0; }
 void CL_Q3TestStopRecord_f( void ) {}
+void CL_Q3IHVRecord_f( void ) {}
+void CL_Q3IHVStopRecord_f( void ) {}
 
 // The engine's cvars, by name. Like the engine's, a write creates a cvar that
 // does not exist yet, so a stray write in another profile shows up as a cvar.

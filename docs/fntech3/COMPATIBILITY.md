@@ -328,6 +328,19 @@ formats. Bot snapshots are now rebuilt every server frame, as the original
 rebuilds them. No input was driven, downloads are refused, and no profile
 gate closes.
 
+The [2026-10-08 IHV demo recording record](2026-10-08-q3-ihv-demo-recording.md)
+adds `record`. It writes the build's own length-only `.dm3`, following
+`quake3.exe`'s `CL_Record_f`: a gamestate of the client's configstrings and
+model-carrying baselines, then each message from the next full frame, then
+one -1. Recordings made on fnTech3's server and on the original server play to
+their end in both clients. The original client's own recording plays in
+fnTech3, and its gamestate record re-encodes byte-identically through the
+shared writer (Live/Fixture).
+
+The original client's parser treats the download message as illegible
+(`0x407188`), so no IHV peer can carry a download, and downloads are no
+longer counted as an IHV gap. No profile gate closes.
+
 Desktop system-console branding has Source/Unit/Build evidence for all sixteen
 profiles: title palettes, active-profile remade icons in Windows client and
 dedicated consoles, and the corrected Elite Force artwork. The
@@ -1035,12 +1048,14 @@ colors in all three raster renderers. Actual translated-map light loading matche
 The native `r_lerpmodels` float toggle now controls raster/ray interpolation and
 invalidates affected ray geometry. These are CPU/fixture results; native scene
 dispatch, sorted flag-`0x80` retention and rendered lighting parity remain open.
-**Full IHV support remains OPEN:** sustained and fought play, downloads, demo
-recording and legacy material/collision parity are not established. The
+**Full IHV support remains OPEN:** sustained and fought play and legacy
+material/collision parity are not established. The
 client game now plays the supplied demo ([client record](2026-10-08-q3-ihv-client.md))
 and joins the original server ([live client record](2026-10-08-q3-ihv-live-client.md)),
 and the original client joins an fnTech3 server
-([server sessions record](2026-10-08-q3-ihv-server-sessions.md)). Original portal, clamp and lighting behavior
+([server sessions record](2026-10-08-q3-ihv-server-sessions.md)). Its demos are
+recorded and play in both engines ([recording record](2026-10-08-q3-ihv-demo-recording.md)).
+Original portal, clamp and lighting behavior
 still need validation.
 
 ### Return to Castle Wolfenstein
