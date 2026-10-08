@@ -24,8 +24,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "cm_trace_contract.h"
 #include "cm_mohaa_terrain.h"
 
-// always use bbox vs. bbox collision and never capsule vs. bbox or vice versa
-//#define ALWAYS_BBOX_VS_BBOX
+// RTCW SP always uses bbox vs. bbox collision and never capsule vs. bbox or
+// vice versa (clipMap_t.tempModelsAreBoxes)
 // always use capsule vs. capsule collision and never capsule vs. bbox or vice versa
 //#define ALWAYS_CAPSULE_VS_CAPSULE
 
@@ -1061,6 +1061,17 @@ static void CM_TraceBoundingBoxThroughCapsule( traceWork_t *tw, clipHandle_t mod
 	tw->sphere.halfheight = size[1][2];
 	VectorSet( tw->sphere.offset, 0, 0, size[1][2] - tw->sphere.radius );
 
+	// CM_TraceThroughLeaf passes over a brush outside these bounds, a test
+	// the original engines lack, so they must hold the capsule's sweep now,
+	// not the box's: a point's missed every box it should hit, where retail
+	// WolfMP.exe stops (docs/fntech3/2026-10-08-rtcw-traces.md)
+	for ( i = 0 ; i < 3 ; i++ ) {
+		const float reach = fabs( tw->sphere.offset[i] ) + tw->sphere.radius;
+
+		tw->bounds[0][i] = ( tw->start[i] < tw->end[i] ? tw->start[i] : tw->end[i] ) - reach;
+		tw->bounds[1][i] = ( tw->start[i] < tw->end[i] ? tw->end[i] : tw->start[i] ) + reach;
+	}
+
 	// replace the capsule with the bounding box
 	h = CM_TempBoxModel(tw->size[0], tw->size[1], qfalse);
 	// calculate collision
@@ -1340,13 +1351,12 @@ static void CM_Trace( trace_t *results, const vec3_t start, const vec3_t end, co
 	//
 	if (start[0] == end[0] && start[1] == end[1] && start[2] == end[2]) {
 		if ( model ) {
-#ifdef ALWAYS_BBOX_VS_BBOX // FIXME - compile time flag?
-			if ( CM_IsTemporaryModelHandle( model ) ) {
+			if ( cm.tempModelsAreBoxes && CM_IsTemporaryModelHandle( model ) ) {
 				tw.sphere.use = qfalse;
 				CM_TestInLeaf( &tw, &cmod->leaf );
 			}
 			else
-#elif defined(ALWAYS_CAPSULE_VS_CAPSULE)
+#if defined(ALWAYS_CAPSULE_VS_CAPSULE)
 			if ( CM_IsTemporaryModelHandle( model ) ) {
 				planeSource = CM_TRACE_PLANE_ANALYTIC;
 				CM_TestCapsuleInCapsule( &tw, model );
@@ -1386,13 +1396,12 @@ static void CM_Trace( trace_t *results, const vec3_t start, const vec3_t end, co
 		// general sweeping through world
 		//
 		if ( model ) {
-#ifdef ALWAYS_BBOX_VS_BBOX
-			if ( CM_IsTemporaryModelHandle( model ) ) {
+			if ( cm.tempModelsAreBoxes && CM_IsTemporaryModelHandle( model ) ) {
 				tw.sphere.use = qfalse;
 				CM_TraceThroughLeaf( &tw, &cmod->leaf );
 			}
 			else
-#elif defined(ALWAYS_CAPSULE_VS_CAPSULE)
+#if defined(ALWAYS_CAPSULE_VS_CAPSULE)
 			if ( CM_IsTemporaryModelHandle( model ) ) {
 				planeSource = CM_TRACE_PLANE_ANALYTIC;
 				CM_TraceCapsuleThroughCapsule( &tw, model );

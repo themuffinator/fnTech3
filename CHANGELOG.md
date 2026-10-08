@@ -2220,6 +2220,18 @@ historical upstream records, not fnTech3 release history. See the
   fnTech3 linked both. A brush model moved into a wall had answered box
   queries and stopped traces that a retail server never saw
   ([record](docs/fntech3/2026-10-08-q3test-traces.md)).
+- Collide in Return to Castle Wolfenstein as its own engines do. Multiplayer
+  cuts curves into pieces as `WolfMP.exe` does, so a curve far from the
+  middle of a level no longer stops a shot or a player the original server
+  lets through, and it finds a player inside a curve as `WolfMP.exe` does.
+  Single player treats its players as boxes, as `WolfSP.exe` does, where
+  fnTech3 had rounded them into capsules. A trace that starts and ends inside
+  a wall or curve keeps the contents it had in both modes, and a shot traced
+  at a multiplayer entity flagged as a capsule now stops on it where it had
+  passed through. Asked the same questions, the retail servers and fnTech3's
+  now agree on every hit, flag and contents of 202,860 traces on fourteen
+  maps but for nine that differ only in floating-point precision
+  ([record](docs/fntech3/2026-10-08-rtcw-traces.md)).
 
 ### Builds and Packaging
 

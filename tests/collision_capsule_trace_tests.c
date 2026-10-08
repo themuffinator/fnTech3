@@ -394,9 +394,8 @@ static void BrushTrace( trace_t *trace, float sx, float ex )
 	CM_BoxTrace( trace, start, end, point, point, 1, CONTENTS_SOLID, qfalse );
 }
 
-static void TestQ3TestBrushSolidKeepsContents( void )
+static void BuildCube( void )
 {
-	trace_t trace;
 	int i;
 
 	for ( i = 0; i < 6; ++i ) {
@@ -420,7 +419,22 @@ static void TestQ3TestBrushSolidKeepsContents( void )
 	cm.numLeafBrushes = 1;
 	stubModel.leaf.firstLeafBrush = 0;
 	stubModel.leaf.numLeafBrushes = 1;
+}
 
+static void ClearCube( void )
+{
+	stubModel.leaf.numLeafBrushes = 0;
+	cm.brushes = NULL;
+	cm.numBrushes = 0;
+	cm.leafbrushes = NULL;
+	cm.numLeafBrushes = 0;
+}
+
+static void TestQ3TestBrushSolidKeepsContents( void )
+{
+	trace_t trace;
+
+	BuildCube();
 	cm.brushSolidKeepsContents = qfalse;
 	BrushTrace( &trace, 0, 10 );
 	CHECK( trace.allsolid && trace.startsolid && trace.fraction == 0.0f );
@@ -436,11 +450,63 @@ static void TestQ3TestBrushSolidKeepsContents( void )
 	CHECK( trace.allsolid && trace.contents == CONTENTS_SOLID );
 
 	cm.brushSolidKeepsContents = qfalse;
-	stubModel.leaf.numLeafBrushes = 0;
-	cm.brushes = NULL;
-	cm.numBrushes = 0;
-	cm.leafbrushes = NULL;
-	cm.numLeafBrushes = 0;
+	ClearCube();
+}
+
+/*
+ * RTCW SP traces its temporary capsule model as the box CM_TempBoxModel
+ * builds for it too, with the capsule hull off (WolfSP.exe CM_Trace
+ * 0x41a77b..0x41a7ae). The cube stands in for that box here: the sweep stops
+ * on its face, 79 units out for this hull, where the capsule-vs-capsule sweep
+ * stops on the player capsule.
+ */
+static void TestRTCWSPTracesTemporaryModelsAsBoxes( void )
+{
+	const float boxFraction = ( 200.0f - 79.0f - (float)SURFACE_CLIP_EPSILON ) / 200.0f;
+	trace_t trace;
+	vec3_t start, end;
+
+	BuildCube();
+	cm.tempModelsAreBoxes = qtrue;
+	CHECK( NearlyEqual( SweepFraction( 200, 0, 0, 0, 0, 0 ), boxFraction ) );
+	VectorSet( start, 70, 0, 0 );
+	VectorCopy( start, end );
+	CapsuleSweep( &trace, start, end );
+	CHECK( trace.startsolid && trace.allsolid && trace.contents == CONTENTS_SOLID );
+
+	cm.tempModelsAreBoxes = qfalse;
+	CHECK( SweepFraction( 200, 0, 0, 0, 0, 0 ) > boxFraction + 0.1f );
+	ClearCube();
+}
+
+/*
+ * A point traced against a capsule model sweeps the capsule against a box of
+ * the point's size instead (CM_TraceBoundingBoxThroughCapsule); the cube
+ * stands in for that box. 70 units out the point misses the cube, but the
+ * player capsule, 15 across, reaches it: RTCW MP's server stops the trace
+ * there, where the trace's own bounds, a line, had passed the cube over.
+ */
+static void TestPointSweepReachesWhatTheCapsuleReaches( void )
+{
+	const vec3_t point = { 0.0f, 0.0f, 0.0f };
+	const float expected = ( 196.0f - 13.0f - 79.0f - (float)SURFACE_CLIP_EPSILON ) / 400.0f;
+	trace_t trace;
+	vec3_t start, end;
+
+	BuildCube();
+	VectorCopy( playerMins, stubModel.mins );
+	VectorCopy( playerMaxs, stubModel.maxs );
+	VectorSet( start, 70, 0, 200 );
+	VectorSet( end, 70, 0, -200 );
+	CM_BoxTrace( &trace, start, end, point, point, CM_TemporaryModelHandle( qtrue ), CONTENTS_SOLID, qfalse );
+	CHECK( NearlyEqual( trace.fraction, expected ) );
+	CHECK( trace.plane.normal[2] > 0.99f );
+
+	VectorSet( start, 100, 0, 200 );
+	VectorSet( end, 100, 0, -200 );
+	CM_BoxTrace( &trace, start, end, point, point, CM_TemporaryModelHandle( qtrue ), CONTENTS_SOLID, qfalse );
+	CHECK( trace.fraction == 1.0f );
+	ClearCube();
 }
 
 int main( void )
@@ -474,6 +540,8 @@ int main( void )
 			TestOverlapReportsStartSolid();
 			TestPlaneContractHoldsAcrossTheWorld();
 		}
+		TestRTCWSPTracesTemporaryModelsAsBoxes();
+		TestPointSweepReachesWhatTheCapsuleReaches();
 	}
 
 	return failures == 0 ? EXIT_SUCCESS : EXIT_FAILURE;

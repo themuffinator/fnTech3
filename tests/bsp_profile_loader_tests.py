@@ -219,7 +219,8 @@ static qboolean R_MOHAABuildWorld(const mohaa_translation_t *translation, const 
 }
 static byte *cmod_base, *fileBase;
 static int c_gridVerts;
-static struct { char name[MAX_QPATH]; int checksum; } cm;
+static struct { char name[MAX_QPATH]; int checksum;
+    qboolean brushSolidKeepsContents, curveInsideKeepsContents, tempModelsAreBoxes; } cm;
 static void CM_ClearMap() { std::memset(&cm, 0, sizeof(cm)); }
 static void CM_InitBoxHull() {}
 static void CM_FloodAreaConnections() {}
@@ -348,6 +349,13 @@ int main() {
             const bool rtcw = profile->titleId == COM_GAME_TITLE_RTCW;
             Reset(); Map(47, !rtcw); Load(loader, true);
             assert(advertisements == (!rtcw && loader != Collision));
+            // RTCW's brush sweep and curve position test keep the trace's
+            // contents; only RTCW SP traces its capsules as boxes.
+            if (loader == Collision) {
+                assert(bool(cm.brushSolidKeepsContents) == rtcw);
+                assert(bool(cm.curveInsideKeepsContents) == rtcw);
+                assert(!cm.tempModelsAreBoxes || rtcw);
+            }
             assert(!translations && !allocationReleases);
             if (rtcw) {
                 // Exactly 144 bytes is a complete RTCW header. Every shorter

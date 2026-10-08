@@ -54,6 +54,8 @@ int Com_GameIsRitual( void ) { return game == 1; }
 int Com_GameIsWolfET( void ) { return game == 2; }
 int Com_GameIsMOHAA( void ) { return game == 3; }
 int Com_GameIsQ3Test( void ) { return game == 4; }
+int Com_GameIsRTCWSP( void ) { return game == 5; }
+int Com_GameIsRTCWMP( void ) { return game == 6; }
 void QDECL Com_Printf( const char *fmt, ... ) { if ( strstr( fmt, "invalid bevel" ) ) reports++; }
 void QDECL Com_DPrintf( const char *fmt, ... ) {
 	if ( com_developer->integer && strstr( fmt, "invalid bevel" ) ) reports++;

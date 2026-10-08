@@ -37,7 +37,45 @@ Observations: docs/fntech3/Q3TEST.md.
 static qboolean CM_Q3TestCurves( void ) {
 	return Com_GameIsQ3Test() ? qtrue : qfalse;
 }
+
+/*
+RTCW's curves are Quake III's cut to their own sizes. WolfMP.exe 1.41 starts
+a facet's winding 8192 units out from the plane's point nearest the origin
+(BaseWindingForPlane 0x419ae8), bounds it from +-99999 (WindingBounds
+0x4198e9) and keeps a facet no wider than 4096 units on any axis, with no
+other check (CM_ValidateFacet 0x4185d7..0x4185f0). WolfSP.exe reaches and
+bounds from 131072 units (0x416fd8, 0x416dd9) and keeps Quake III's three
+checks at that bound (0x415987..0x4159bf). Their position tests differ too
+(CM_PositionTestInPatchCollide). Observations:
+docs/fntech3/2026-10-08-rtcw-traces.md.
+*/
+static qboolean CM_RTCWMPCurves( void ) {
+	return Com_GameIsRTCWMP() ? qtrue : qfalse;
+}
 #endif
+
+typedef struct {
+	float	windingSize;	// how far a facet's first winding reaches
+	float	boundsStart;	// where the winding's bounds start
+	float	extentLimit;	// nonzero: the widest facet kept, the only check
+	float	boundsLimit;	// otherwise Quake III's checks at this bound
+} facetSizes_t;
+
+static const facetSizes_t *CM_FacetSizes( void ) {
+	static const facetSizes_t quake3 = { MAX_MAP_BOUNDS, MAX_MAP_BOUNDS, 0.0f, MAX_MAP_BOUNDS };
+#ifndef BSPC
+	static const facetSizes_t rtcwSP = { 131072.0f, 131072.0f, 0.0f, 131072.0f };
+	static const facetSizes_t rtcwMP = { 8192.0f, 99999.0f, 4096.0f, 0.0f };
+
+	if ( CM_RTCWMPCurves() ) {
+		return &rtcwMP;
+	}
+	if ( Com_GameIsRTCWSP() ) {
+		return &rtcwSP;
+	}
+#endif
+	return &quake3;
+}
 
 /*
 
@@ -808,6 +846,7 @@ If the facet isn't bounded by its borders, we screwed up.
 ==================
 */
 static qboolean CM_ValidateFacet( const facet_t *facet ) {
+	const facetSizes_t *sizes = CM_FacetSizes();
 	float		plane[4];
 	int			j;
 	winding_t	*w;
@@ -818,7 +857,7 @@ static qboolean CM_ValidateFacet( const facet_t *facet ) {
 	}
 
 	Vector4Copy( planes[ facet->surfacePlane ].plane, plane );
-	w = BaseWindingForPlane( plane,  plane[3] );
+	w = BaseWindingForPlaneOfSize( plane, plane[3], sizes->windingSize );
 	for ( j = 0 ; j < facet->numBorders && w ; j++ ) {
 		if ( facet->borderPlanes[j] == -1 ) {
 			FreeWinding( w );
@@ -837,7 +876,7 @@ static qboolean CM_ValidateFacet( const facet_t *facet ) {
 	}
 
 	// see if the facet is unreasonably large
-	WindingBounds( w, bounds[0], bounds[1] );
+	WindingBoundsWithin( w, sizes->boundsStart, bounds[0], bounds[1] );
 	FreeWinding( w );
 
 #ifndef BSPC
@@ -852,14 +891,23 @@ static qboolean CM_ValidateFacet( const facet_t *facet ) {
 	}
 #endif
 
+	if ( sizes->extentLimit ) {
+		for ( j = 0 ; j < 3 ; j++ ) {
+			if ( bounds[1][j] - bounds[0][j] > sizes->extentLimit ) {
+				return qfalse;
+			}
+		}
+		return qtrue;
+	}
+
 	for ( j = 0 ; j < 3 ; j++ ) {
-		if ( bounds[1][j] - bounds[0][j] > MAX_MAP_BOUNDS ) {
+		if ( bounds[1][j] - bounds[0][j] > sizes->boundsLimit ) {
 			return qfalse;		// we must be missing a plane
 		}
-		if ( bounds[0][j] >= MAX_MAP_BOUNDS ) {
+		if ( bounds[0][j] >= sizes->boundsLimit ) {
 			return qfalse;
 		}
-		if ( bounds[1][j] <= -MAX_MAP_BOUNDS ) {
+		if ( bounds[1][j] <= -sizes->boundsLimit ) {
 			return qfalse;
 		}
 	}
@@ -880,6 +928,7 @@ static void CM_AddFacetBevels( facet_t *facet ) {
 	winding_t *w, *w2;
 	vec3_t mins, maxs, vec, vec2;
 	double d, d1[3], d2[3];
+	const facetSizes_t *sizes;
 
 #ifndef BSPC
 	// Q3Test's facets keep their three or four borders alone
@@ -888,9 +937,10 @@ static void CM_AddFacetBevels( facet_t *facet ) {
 	}
 #endif
 
+	sizes = CM_FacetSizes();
 	Vector4Copy( planes[ facet->surfacePlane ].plane, plane );
 
-	w = BaseWindingForPlane( plane,  plane[3] );
+	w = BaseWindingForPlaneOfSize( plane, plane[3], sizes->windingSize );
 	for ( j = 0 ; j < facet->numBorders && w ; j++ ) {
 		if (facet->borderPlanes[j] == facet->surfacePlane) continue;
 		Vector4Copy( planes[ facet->borderPlanes[j] ].plane, plane );
@@ -906,7 +956,7 @@ static void CM_AddFacetBevels( facet_t *facet ) {
 		return;
 	}
 
-	WindingBounds(w, mins, maxs);
+	WindingBoundsWithin( w, sizes->boundsStart, mins, maxs );
 
 	// add the axial planes
 	order = 0;
@@ -1429,7 +1479,10 @@ CM_TracePointThroughPatchCollide
 */
 static void CM_TracePointThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *pc ) {
 #ifndef BSPC
-	if ( !cm_playerCurveClip->integer || !tw->isPoint ) {
+	// RTCW MP traces a point against curves whatever cm_playerCurveClip
+	// says (WolfMP.exe 0x41860a..0x418629)
+	if ( CM_RTCWMPCurves() ? !cm_playerCurveClip->integer && !tw->isPoint
+			: !cm_playerCurveClip->integer || !tw->isPoint ) {
 		return;
 	}
 #endif
@@ -1641,37 +1694,36 @@ POSITION TEST
 */
 
 #ifndef BSPC
-/*
-====================
-CM_Q3TestPositionTest
-
-Q3Test 1.02 and 1.03 find a start inside a curve wherever their bounds meet,
-but only with cm_curveClipHack set, which it is not by default, and with
-cm_playerCurveClip set or a point test (1.02 0x0040a8a0). 1.05 to 1.08 place
-the start against every plane of the curve, widened by the box's extent along
-it -- behind, in front, or straddling -- and find it inside a facet whose
-surface plane it straddles and each of whose borders it straddles or lies on
-the inner side of (1.05 0x0040b0a0, 1.08 0x0040d030). A point is inside only
-exactly on a facet.
-====================
-*/
-static qboolean CM_Q3TestPositionTest( const traceWork_t *tw, const struct patchCollide_s *pc ) {
-	enum { BEHIND, IN_FRONT, STRADDLING };
-	int				side[MAX_PATCH_PLANES];
-	const q3testRelease_t *release = Com_Q3TestRelease();
-	const patchPlane_t *pp;
-	const facet_t	*facet;
-	int				i, j;
+static qboolean CM_PatchBoundsMeet( const traceWork_t *tw, const struct patchCollide_s *pc ) {
+	int i;
 
 	for ( i = 0 ; i < 3 ; i++ ) {
 		if ( pc->bounds[1][i] < tw->bounds[0][i] || tw->bounds[1][i] < pc->bounds[0][i] ) {
 			return qfalse;
 		}
 	}
-	if ( !release || release->id == Q3TEST_RELEASE_1_02 || release->id == Q3TEST_RELEASE_1_03 ) {
-		return cm_curveClipHack && cm_curveClipHack->integer
-			&& ( cm_playerCurveClip->integer || tw->isPoint ) ? qtrue : qfalse;
-	}
+	return qtrue;
+}
+
+/*
+====================
+CM_PlaneSidePositionTest
+
+The position test of Q3Test 1.05 to 1.08 and RTCW MP: it places the start
+against every plane of the curve, widened by the box's extent along it --
+behind, in front, or straddling -- and finds it inside a facet whose surface
+plane it straddles and each of whose borders it straddles or lies on the inner
+side of (Q3Test 1.05 0x0040b0a0, 1.08 0x0040d030; WolfMP.exe 1.41
+0x418f52..0x419035). A capsule is tested as its box, and a point is inside
+only exactly on a facet.
+====================
+*/
+static qboolean CM_PlaneSidePositionTest( const traceWork_t *tw, const struct patchCollide_s *pc ) {
+	enum { BEHIND, IN_FRONT, STRADDLING };
+	int				side[MAX_PATCH_PLANES];
+	const patchPlane_t *pp;
+	const facet_t	*facet;
+	int				i, j;
 
 	for ( i = 0, pp = pc->planes ; i < pc->numPlanes ; i++, pp++ ) {
 		const float d = DotProduct( tw->start, pp->plane ) - pp->plane[3];
@@ -1696,11 +1748,37 @@ static qboolean CM_Q3TestPositionTest( const traceWork_t *tw, const struct patch
 	}
 	return qfalse;
 }
+
+/*
+====================
+CM_Q3TestPositionTest
+
+Q3Test 1.02 and 1.03 find a start inside a curve wherever their bounds meet,
+but only with cm_curveClipHack set, which it is not by default, and with
+cm_playerCurveClip set or a point test (1.02 0x0040a8a0). 1.05 to 1.08 test
+the planes' sides (CM_PlaneSidePositionTest).
+====================
+*/
+static qboolean CM_Q3TestPositionTest( const traceWork_t *tw, const struct patchCollide_s *pc ) {
+	const q3testRelease_t *release = Com_Q3TestRelease();
+
+	if ( !CM_PatchBoundsMeet( tw, pc ) ) {
+		return qfalse;
+	}
+	if ( !release || release->id == Q3TEST_RELEASE_1_02 || release->id == Q3TEST_RELEASE_1_03 ) {
+		return cm_curveClipHack && cm_curveClipHack->integer
+			&& ( cm_playerCurveClip->integer || tw->isPoint ) ? qtrue : qfalse;
+	}
+	return CM_PlaneSidePositionTest( tw, pc );
+}
 #endif
 
 /*
 ====================
 CM_PositionTestInPatchCollide
+
+RTCW SP keeps Quake III's test (WolfSP.exe 0x4162d0); RTCW MP tests the
+planes' sides once the bounds meet (WolfMP.exe 0x418f00).
 ====================
 */
 qboolean CM_PositionTestInPatchCollide( traceWork_t *tw, const struct patchCollide_s *pc ) {
@@ -1714,6 +1792,9 @@ qboolean CM_PositionTestInPatchCollide( traceWork_t *tw, const struct patchColli
 #ifndef BSPC
 	if ( CM_Q3TestCurves() ) {
 		return CM_Q3TestPositionTest( tw, pc );
+	}
+	if ( CM_RTCWMPCurves() ) {
+		return CM_PatchBoundsMeet( tw, pc ) && CM_PlaneSidePositionTest( tw, pc ) ? qtrue : qfalse;
 	}
 #endif
 

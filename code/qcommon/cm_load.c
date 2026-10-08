@@ -1091,6 +1091,16 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 	if ( bspFormat == COM_GAME_BSP_Q3TEST ) {
 		CM_Q3TestCurveRules();
 	}
+	// RTCW's brush sweep, as Q3Test's, writes no contents when it starts and
+	// ends inside the brush (WolfSP.exe 0x4194bd..0x4194f1, WolfMP.exe
+	// 0x41bfdd..0x41c011), nor does its curve position test (WolfSP.exe
+	// 0x418b8d..0x418ba2, WolfMP.exe 0x41b6ad..0x41b6c2). SP's CM_Trace turns
+	// the capsule off for its box and capsule models alike (0x41a77b..0x41a7ae).
+	if ( bspFormat == COM_GAME_BSP_RTCW ) {
+		cm.brushSolidKeepsContents = qtrue;
+		cm.curveInsideKeepsContents = qtrue;
+		cm.tempModelsAreBoxes = Com_GameIsRTCWSP() ? qtrue : qfalse;
+	}
 #endif
 
 	CMod_CheckLeafBrushes();
@@ -1294,7 +1304,9 @@ clipHandle_t CM_TempBoxModel( const vec3_t mins, const vec3_t maxs, int capsule 
 	VectorCopy( mins, box_model.mins );
 	VectorCopy( maxs, box_model.maxs );
 
-	if ( capsule ) {
+	// RTCW SP builds the box for a capsule too, which it traces as one
+	// (WolfSP.exe 0x41386e..0x41387b)
+	if ( capsule && !cm.tempModelsAreBoxes ) {
 		return CM_TemporaryModelHandle( qtrue );
 	}
 
@@ -1314,7 +1326,7 @@ clipHandle_t CM_TempBoxModel( const vec3_t mins, const vec3_t maxs, int capsule 
 	VectorCopy( mins, box_brush->bounds[0] );
 	VectorCopy( maxs, box_brush->bounds[1] );
 
-	return CM_TemporaryModelHandle( qfalse );
+	return CM_TemporaryModelHandle( capsule ? qtrue : qfalse );
 }
 
 

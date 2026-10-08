@@ -190,12 +190,16 @@ typedef struct {
 	/* What a curve hands a trace besides its surface flags. Quake III gives
 	 * its contents too; Q3Test's curves keep the trace's earlier contents when
 	 * a sweep hits one in 1.02 to 1.05, and when a start is found inside one in
-	 * every release. Set per map by CM_LoadMap; zero is Quake III's rule. */
+	 * every release, as RTCW's do. Set per map by CM_LoadMap; zero is Quake
+	 * III's rule. */
 	qboolean	curveHitKeepsContents;
 	qboolean	curveInsideKeepsContents;
-	/* Q3Test's brushes likewise keep the trace's earlier contents when a
-	 * sweep starts and ends inside one; Quake III writes the brush's. */
+	/* Q3Test's and RTCW's brushes likewise keep the trace's earlier contents
+	 * when a sweep starts and ends inside one; Quake III writes the brush's. */
 	qboolean	brushSolidKeepsContents;
+	/* RTCW SP traces the temporary box and capsule models both as boxes,
+	 * capsule hull or not; Quake III sweeps capsules as capsules. */
+	qboolean	tempModelsAreBoxes;
 } clipMap_t;
 
 

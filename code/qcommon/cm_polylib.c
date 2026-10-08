@@ -162,11 +162,23 @@ WindingBounds
 */
 void WindingBounds( const winding_t *w, vec3_t mins, vec3_t maxs )
 {
+	WindingBoundsWithin( w, MAX_MAP_BOUNDS, mins, maxs );
+}
+
+/*
+=============
+WindingBoundsWithin
+
+WindingBounds starting from +-limit rather than +-MAX_MAP_BOUNDS
+=============
+*/
+void WindingBoundsWithin( const winding_t *w, vec_t limit, vec3_t mins, vec3_t maxs )
+{
 	vec_t	v;
 	int		i,j;
 
-	mins[0] = mins[1] = mins[2] = MAX_MAP_BOUNDS;
-	maxs[0] = maxs[1] = maxs[2] = -MAX_MAP_BOUNDS;
+	mins[0] = mins[1] = mins[2] = limit;
+	maxs[0] = maxs[1] = maxs[2] = -limit;
 
 	for (i=0 ; i<w->numpoints ; i++)
 	{
@@ -205,6 +217,19 @@ BaseWindingForPlane
 =================
 */
 winding_t *BaseWindingForPlane (vec3_t normal, vec_t dist)
+{
+	return BaseWindingForPlaneOfSize( normal, dist, MAX_MAP_BOUNDS );
+}
+
+/*
+=================
+BaseWindingForPlaneOfSize
+
+BaseWindingForPlane reaching size units from the plane's point nearest the
+origin rather than MAX_MAP_BOUNDS
+=================
+*/
+winding_t *BaseWindingForPlaneOfSize( vec3_t normal, vec_t dist, vec_t size )
 {
 	int		i, x;
 	vec_t	max, v;
@@ -248,8 +273,8 @@ winding_t *BaseWindingForPlane (vec3_t normal, vec_t dist)
 	
 	CrossProductDP( vup, normal, vright );
 	
-	VectorScale (vup, MAX_MAP_BOUNDS, vup);
-	VectorScale (vright, MAX_MAP_BOUNDS, vright);
+	VectorScale (vup, size, vup);
+	VectorScale (vright, size, vright);
 
 // project a really big	axis aligned box onto the plane
 	w = AllocWinding (4);

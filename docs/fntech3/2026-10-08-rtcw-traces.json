@@ -1,0 +1,1885 @@
+{
+ "date": "2026-10-08",
+ "scope": "RTCW SP and MP world and entity collision: retail WolfSP.exe 1.32 and WolfMP.exe 1.41 dedicated servers against fnTech3, one synthetic native game module per mode",
+ "baseCommit": "84bcf66bcbd3834fb388d48f6f3025d8cdfb2043",
+ "build": "fntech3.ded.exe built from baseCommit plus this change and the RTCW area-portal close (2026-10-08-rtcw-area-portals.md), which no trace here reaches",
+ "platform": "Windows 11, x86 MSVC builds; dedicated servers on loopback, private desktop",
+ "installation": "Steam Return to Castle Wolfenstein: WolfSP.exe \"Wolf 1.32\", WolfMP.exe \"Wolf 1.4-MP\"; game directory Main; read only",
+ "module": {
+  "source": ".tmp/q3-trace/q3trace_module.c (not committed), built with GAME_RTCWSP or GAME_RTCWMP",
+  "abi": "dllEntry/vmMain; SP imports G_TRACE 26, G_POINT_CONTENTS 27, G_LINKENTITY 32, G_ENTITIES_IN_BOX 34, G_TRACECAPSULE 45; MP G_TRACE 25, G_POINT_CONTENTS 26, G_LINKENTITY 31, G_ENTITIES_IN_BOX 33, G_TRACECAPSULE 44 (code/compat/rtcw_module_calls.def); sharedEntity_t 680 bytes (SP) and 684 (MP), r.linked at 576, r.svFlags at 584; 56-byte trace_t",
+  "loading": "MP: WolfMP.exe's Sys_LoadDll (0x445240) tries fs_basepath/fs_game then fs_basepath/main, so a scratch fs_basepath holds main/qagame_mp_x86.dll and the installation is fs_cdpath. SP: WolfSP.exe's Sys_LoadDll (0x441c10) first loads the bare name, which finds the installation's own qagamex86.dll beside the executable; under cdb that result is set to none as it returns (bp 0x441cb4 \"r eax=0; gc\"), nothing patched, and the engine goes on to fs_cdpath/main. fnTech3: fs_homepath/main. All dedicated 1, sv_pure 0, bot_enable 0",
+  "worldBattery": "seeded LCG (seed 20261008); four hulls (point, player box, random box up to 32, player box as a capsule trace) x three masks (1, 0x2010001, -1) x three shapes (long, vertical drop, short <=48), 300 of each shape; 1,500 point contents; pass entity 1023",
+  "entityBattery": "every brush model *k (up to 32) on entity 300+k, contents 1, moved by (8k,-4k,2k), even k turned; link flags and bounds; 90 traces around each; 200 EntitiesInBox queries; a player-sized box entity (contents body) traced 300 times with box and capsule hulls; then the same entity flagged SVF_CAPSULE (0x200) traced 600 times with point, box and capsule hulls, one in four a position test, and 200 point contents around it"
+ },
+ "retailRules": {
+  "brushAllSolidContents": "CM_TraceThroughBrush writes no contents when the sweep starts and ends inside the brush (WolfSP.exe 0x4194bd..0x4194f1, WolfMP.exe 0x41bfdd..0x41c011)",
+  "curvePositionContents": "CM_TestInLeaf sets fraction 0, startsolid and allsolid on a curve position hit, no contents (WolfSP.exe 0x418b8d..0x418ba2, WolfMP.exe 0x41b6ad..0x41b6c2)",
+  "mpFacetSizes": "BaseWindingForPlane reaches 8192 units (WolfMP.exe 0x419ae8..0x419b30), WindingBounds starts from +-99999 (0x4198e9), CM_ValidateFacet keeps a facet no wider than 4096 on any axis and checks nothing else (0x4185d7..0x4185f0)",
+  "spFacetSizes": "BaseWindingForPlane reaches 131072 units (WolfSP.exe 0x416fd8..0x417020), WindingBounds starts from +-131072 (0x416dd9), CM_ValidateFacet applies Quake III three checks at 131072 (0x415987..0x4159bf)",
+  "mpPositionTest": "CM_PositionTestInPatchCollide (WolfMP.exe 0x418f00): bounds test, then every plane classified front/back/straddling by the box extent, inside a facet whose surface plane straddles and whose borders straddle or match borderInward; ignores the capsule",
+  "spPositionTest": "Quake III 1.32's capsule-aware test (WolfSP.exe 0x4162d0: a point is never inside)",
+  "mpPointGuard": "CM_TracePointThroughPatchCollide returns only when cm_playerCurveClip is 0 and the trace is not a point (WolfMP.exe 0x41860a..0x418629); SP returns when either holds (0x4159da..0x4159fd)",
+  "spTempModels": "CM_Trace turns the capsule off and traces the box leaf for handle 0x1ff or 0x1fe (WolfSP.exe 0x41a77b..0x41a7ae, 0x41a86a..0x41a89a); CM_TempBoxModel builds the box planes for a capsule too and returns capsule ? 0x1fe : 0x1ff (0x41386e..0x41387b). MP keeps the capsule routines (0x41d291..0x41d2c7)",
+  "areaPortalClose": "CM_AdjustAreaPortalState skips the decrement when the count is zero and floods as after any close (WolfSP.exe 0x418489..0x41849a, WolfMP.exe 0x41afa9..0x41afba)"
+ },
+ "contentsBefore": {
+  "map": "mp_beach",
+  "traces": 3900,
+  "contentsDiffer": {
+   "allsolid": 1533
+  },
+  "fntech3ExecutableSha256": "bee9f0c68a39b8c0ea490971ed7cd0b5583ee5cb5b52037d78d20319b61bf9b0",
+  "note": "fnTech3 at cac46a13 (no RTCW collision rule) against retail WolfMP.exe 1.41, 100 per shape"
+ },
+ "mpDepotBefore": {
+  "map": "mp_depot",
+  "tally": {
+   "within 0.01 unit": 1869,
+   "exact": 12106,
+   "differ": 5
+  },
+  "worst": {
+   "fraction": 0.08981940150260925,
+   "endpos": 256.0
+  },
+  "examples": [
+   {
+    "kind": "point",
+    "mask": 0,
+    "index": 447,
+    "shape": "long",
+    "retail": {
+     "allsolid": 0,
+     "startsolid": 1,
+     "fraction": 0.12833872437477112,
+     "endpos": [
+      -8376.2109375,
+      3327.875,
+      -302.38348388671875
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "dist": -3328.0,
+     "surfaceFlags": 0,
+     "contents": 1,
+     "entityNum": 1022
+    },
+    "fntech3": {
+     "allsolid": 0,
+     "startsolid": 1,
+     "fraction": 0.038519322872161865,
+     "endpos": [
+      -8577.755859375,
+      3071.875,
+      -277.41094970703125
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      -0.0
+     ],
+     "dist": -3072.0,
+     "surfaceFlags": 0,
+     "contents": 1,
+     "entityNum": 1022
+    },
+    "start": [
+     -8664.189453125,
+     2962.088623046875,
+     -266.701416015625
+    ],
+    "end": [
+     -6420.29833984375,
+     5812.25244140625,
+     -544.73193359375
+    ]
+   },
+   {
+    "kind": "player box",
+    "mask": 0,
+    "index": 360,
+    "shape": "long",
+    "retail": {
+     "allsolid": 0,
+     "startsolid": 1,
+     "fraction": 0.09521698206663132,
+     "endpos": [
+      -11086.181640625,
+      3527.125,
+      -653.19384765625
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "dist": 3512.0,
+     "surfaceFlags": 0,
+     "contents": 1,
+     "entityNum": 1022
+    },
+    "fntech3": {
+     "allsolid": 0,
+     "startsolid": 1,
+     "fraction": 0.08867740631103516,
+     "endpos": [
+      -11113.6123046875,
+      3533.945068359375,
+      -664.1251831054688
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "dist": 660.0001831054688,
+     "surfaceFlags": 4096,
+     "contents": 1,
+     "entityNum": 1022
+    },
+    "start": [
+     -11485.578125,
+     3626.42529296875,
+     -812.3549194335938
+    ],
+    "end": [
+     -7290.98779296875,
+     2583.541015625,
+     859.2066650390625
+    ]
+   },
+   {
+    "kind": "player box",
+    "mask": 2,
+    "index": 399,
+    "shape": "long",
+    "retail": {
+     "allsolid": 0,
+     "startsolid": 0,
+     "fraction": 0.13803730905056,
+     "endpos": [
+      -11689.0859375,
+      4900.82373046875,
+      328.125
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "dist": 304.0,
+     "surfaceFlags": 16560,
+     "contents": 65536,
+     "entityNum": 1022
+    },
+    "fntech3": {
+     "allsolid": 0,
+     "startsolid": 0,
+     "fraction": 0.13803668320178986,
+     "endpos": [
+      -11689.08984375,
+      4900.82470703125,
+      328.12579345703125
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "dist": 332.0007629394531,
+     "surfaceFlags": 0,
+     "contents": 1,
+     "entityNum": 1022
+    },
+    "start": [
+     -12547.421875,
+     5053.5439453125,
+     501.4599609375
+    ],
+    "end": [
+     -6329.2783203125,
+     3947.17626953125,
+     -754.2510375976562
+    ]
+   },
+   {
+    "kind": "random box",
+    "mask": 1,
+    "index": 313,
+    "shape": "drop",
+    "retail": {
+     "allsolid": 0,
+     "startsolid": 1,
+     "fraction": 0.38116103410720825,
+     "endpos": [
+      -11671.3935546875,
+      4826.4248046875,
+      314.0317077636719
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "dist": 304.0,
+     "surfaceFlags": 4096,
+     "contents": 1,
+     "entityNum": 1022
+    },
+    "fntech3": {
+     "allsolid": 0,
+     "startsolid": 1,
+     "fraction": 0.3811606466770172,
+     "endpos": [
+      -11671.3935546875,
+      4826.4248046875,
+      314.032470703125
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "dist": 311.8731689453125,
+     "surfaceFlags": 0,
+     "contents": 1,
+     "entityNum": 1022
+    },
+    "start": [
+     -11671.3935546875,
+     4826.4248046875,
+     1039.0
+    ],
+    "end": [
+     -11671.3935546875,
+     4826.4248046875,
+     -863.0
+    ]
+   },
+   {
+    "kind": "random box",
+    "mask": 1,
+    "index": 879,
+    "shape": "long",
+    "retail": {
+     "allsolid": 0,
+     "startsolid": 1,
+     "fraction": 0.020366860553622246,
+     "endpos": [
+      -8619.12890625,
+      1223.3319091796875,
+      -288.18402099609375
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "dist": -1226.0,
+     "surfaceFlags": 128,
+     "contents": 65536,
+     "entityNum": 1022
+    },
+    "fntech3": {
+     "allsolid": 0,
+     "startsolid": 1,
+     "fraction": 0.020366152748465538,
+     "endpos": [
+      -8619.1298828125,
+      1223.3302001953125,
+      -288.1838073730469
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "dist": -1223.964111328125,
+     "surfaceFlags": 4096,
+     "contents": 1,
+     "entityNum": 1022
+    },
+    "start": [
+     -8637.16796875,
+     1174.214111328125,
+     -282.369140625
+    ],
+    "end": [
+     -7751.48486328125,
+     3585.866943359375,
+     -567.875732421875
+    ]
+   }
+  ],
+  "note": "with only the brush-contents rule; every trace beyond 0.01 unit lies beyond x = -8192"
+ },
+ "runs": [
+  {
+   "mode": "rtcw-sp",
+   "map": "escape1",
+   "worldMins": [
+    -3920.005126953125,
+    -1648.0,
+    -1344.0
+   ],
+   "worldMaxs": [
+    2096.0,
+    3000.00439453125,
+    1432.0
+   ],
+   "brushModels": 229,
+   "seed": 20261008,
+   "perShapeCount": 300,
+   "traces": 14580,
+   "tally": {
+    "exact": 11369,
+    "within 0.01 unit": 3211
+   },
+   "kindTally": {
+    "box entity: exact": 295,
+    "box entity: within 0.01 unit": 5,
+    "capsule entity: exact": 596,
+    "capsule entity: within 0.01 unit": 4,
+    "entity: exact": 2415,
+    "entity: within 0.01 unit": 465,
+    "player box: exact": 1939,
+    "player box: within 0.01 unit": 761,
+    "player capsule: exact": 1951,
+    "player capsule: within 0.01 unit": 749,
+    "point: exact": 2302,
+    "point: within 0.01 unit": 398,
+    "random box: exact": 1871,
+    "random box: within 0.01 unit": 829
+   },
+   "worst": {
+    "fraction": 1.1593103408813477e-05,
+    "endpos": 0.00174713134765625
+   },
+   "points": 1500,
+   "pointsSame": 1500,
+   "entityTraces": 2880,
+   "links": 32,
+   "linksBitExact": 27,
+   "linkFlagsSame": 32,
+   "linkWorst": 0.000244140625,
+   "boxQueries": 200,
+   "boxesSameOrder": 200,
+   "capsuleEntityLink": {
+    "retail": [
+     "1",
+     "1"
+    ],
+    "fntech3": [
+     "1",
+     "1"
+    ]
+   },
+   "capsulePointContents": 200,
+   "capsulePointContentsSame": 200,
+   "retailSeconds": 128.1,
+   "fntech3Seconds": 13.4,
+   "retailExecutableSha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+   "fntech3ExecutableSha256": "6530c5997738f0fa7e51d68f4a31cccc197670415e6d9b936769ec99b8ed6e59",
+   "moduleSha256": "e76c9fae98ed3aa8e99ddaa391e2dceab64a30e9b0989d647f65ec322cfee2fb"
+  },
+  {
+   "mode": "rtcw-sp",
+   "map": "village1",
+   "worldMins": [
+    -3200.0,
+    -2080.006103515625,
+    -544.0
+   ],
+   "worldMaxs": [
+    3968.0,
+    5200.00146484375,
+    880.0
+   ],
+   "brushModels": 167,
+   "seed": 20261008,
+   "perShapeCount": 300,
+   "traces": 14580,
+   "tally": {
+    "exact": 12308,
+    "within 0.01 unit": 2272
+   },
+   "kindTally": {
+    "box entity: exact": 257,
+    "box entity: within 0.01 unit": 43,
+    "capsule entity: exact": 543,
+    "capsule entity: within 0.01 unit": 57,
+    "entity: exact": 2400,
+    "entity: within 0.01 unit": 480,
+    "player box: exact": 2335,
+    "player box: within 0.01 unit": 365,
+    "player capsule: exact": 2344,
+    "player capsule: within 0.01 unit": 356,
+    "point: exact": 2323,
+    "point: within 0.01 unit": 377,
+    "random box: exact": 2106,
+    "random box: within 0.01 unit": 594
+   },
+   "worst": {
+    "fraction": 1.7933547496795654e-05,
+    "endpos": 0.001708984375
+   },
+   "points": 1500,
+   "pointsSame": 1500,
+   "entityTraces": 2880,
+   "links": 32,
+   "linksBitExact": 30,
+   "linkFlagsSame": 32,
+   "linkWorst": 0.000244140625,
+   "boxQueries": 200,
+   "boxesSameOrder": 200,
+   "capsuleEntityLink": {
+    "retail": [
+     "1",
+     "1"
+    ],
+    "fntech3": [
+     "1",
+     "1"
+    ]
+   },
+   "capsulePointContents": 200,
+   "capsulePointContentsSame": 200,
+   "retailSeconds": 103.3,
+   "fntech3Seconds": 10.6,
+   "retailExecutableSha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+   "fntech3ExecutableSha256": "6530c5997738f0fa7e51d68f4a31cccc197670415e6d9b936769ec99b8ed6e59",
+   "moduleSha256": "e76c9fae98ed3aa8e99ddaa391e2dceab64a30e9b0989d647f65ec322cfee2fb"
+  },
+  {
+   "mode": "rtcw-sp",
+   "map": "forest",
+   "worldMins": [
+    -8064.0029296875,
+    -7488.0,
+    -896.0
+   ],
+   "worldMaxs": [
+    15040.0,
+    6464.0,
+    1782.0
+   ],
+   "brushModels": 131,
+   "seed": 20261008,
+   "perShapeCount": 300,
+   "traces": 14580,
+   "tally": {
+    "exact": 12477,
+    "within 0.01 unit": 2103
+   },
+   "kindTally": {
+    "box entity: exact": 258,
+    "box entity: within 0.01 unit": 42,
+    "capsule entity: exact": 536,
+    "capsule entity: within 0.01 unit": 64,
+    "entity: exact": 2411,
+    "entity: within 0.01 unit": 469,
+    "player box: exact": 2389,
+    "player box: within 0.01 unit": 311,
+    "player capsule: exact": 2379,
+    "player capsule: within 0.01 unit": 321,
+    "point: exact": 2382,
+    "point: within 0.01 unit": 318,
+    "random box: exact": 2122,
+    "random box: within 0.01 unit": 578
+   },
+   "worst": {
+    "fraction": 1.8064863979816437e-05,
+    "endpos": 0.0023193359375
+   },
+   "points": 1500,
+   "pointsSame": 1500,
+   "entityTraces": 2880,
+   "links": 32,
+   "linksBitExact": 29,
+   "linkFlagsSame": 32,
+   "linkWorst": 0.00048828125,
+   "boxQueries": 200,
+   "boxesSameOrder": 200,
+   "capsuleEntityLink": {
+    "retail": [
+     "1",
+     "1"
+    ],
+    "fntech3": [
+     "1",
+     "1"
+    ]
+   },
+   "capsulePointContents": 200,
+   "capsulePointContentsSame": 200,
+   "retailSeconds": 78.5,
+   "fntech3Seconds": 10.6,
+   "retailExecutableSha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+   "fntech3ExecutableSha256": "6530c5997738f0fa7e51d68f4a31cccc197670415e6d9b936769ec99b8ed6e59",
+   "moduleSha256": "e76c9fae98ed3aa8e99ddaa391e2dceab64a30e9b0989d647f65ec322cfee2fb"
+  },
+  {
+   "mode": "rtcw-sp",
+   "map": "rocket",
+   "worldMins": [
+    -2624.0107421875,
+    -1592.0,
+    -912.0
+   ],
+   "worldMaxs": [
+    3616.0,
+    2496.003173828125,
+    1664.0
+   ],
+   "brushModels": 196,
+   "seed": 20261008,
+   "perShapeCount": 300,
+   "traces": 14580,
+   "tally": {
+    "exact": 11519,
+    "within 0.01 unit": 3061
+   },
+   "kindTally": {
+    "box entity: exact": 243,
+    "box entity: within 0.01 unit": 57,
+    "capsule entity: exact": 512,
+    "capsule entity: within 0.01 unit": 88,
+    "entity: exact": 2187,
+    "entity: within 0.01 unit": 693,
+    "player box: exact": 2209,
+    "player box: within 0.01 unit": 491,
+    "player capsule: exact": 2173,
+    "player capsule: within 0.01 unit": 527,
+    "point: exact": 2159,
+    "point: within 0.01 unit": 541,
+    "random box: exact": 2036,
+    "random box: within 0.01 unit": 664
+   },
+   "worst": {
+    "fraction": 0.00014513731002807617,
+    "endpos": 0.00972747802734375
+   },
+   "points": 1500,
+   "pointsSame": 1500,
+   "entityTraces": 2880,
+   "links": 32,
+   "linksBitExact": 26,
+   "linkFlagsSame": 32,
+   "linkWorst": 3.0517578125e-05,
+   "boxQueries": 200,
+   "boxesSameOrder": 200,
+   "capsuleEntityLink": {
+    "retail": [
+     "1",
+     "1"
+    ],
+    "fntech3": [
+     "1",
+     "1"
+    ]
+   },
+   "capsulePointContents": 200,
+   "capsulePointContentsSame": 200,
+   "retailSeconds": 74.3,
+   "fntech3Seconds": 9.3,
+   "retailExecutableSha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+   "fntech3ExecutableSha256": "6530c5997738f0fa7e51d68f4a31cccc197670415e6d9b936769ec99b8ed6e59",
+   "moduleSha256": "e76c9fae98ed3aa8e99ddaa391e2dceab64a30e9b0989d647f65ec322cfee2fb"
+  },
+  {
+   "mode": "rtcw-sp",
+   "map": "factory",
+   "worldMins": [
+    -576.004150390625,
+    -1744.0,
+    -264.0
+   ],
+   "worldMaxs": [
+    3144.0,
+    1488.007080078125,
+    656.0
+   ],
+   "brushModels": 61,
+   "seed": 20261008,
+   "perShapeCount": 300,
+   "traces": 14580,
+   "tally": {
+    "exact": 12302,
+    "within 0.01 unit": 2278
+   },
+   "kindTally": {
+    "box entity: exact": 263,
+    "box entity: within 0.01 unit": 37,
+    "capsule entity: exact": 541,
+    "capsule entity: within 0.01 unit": 59,
+    "entity: exact": 2355,
+    "entity: within 0.01 unit": 525,
+    "player box: exact": 2362,
+    "player box: within 0.01 unit": 338,
+    "player capsule: exact": 2353,
+    "player capsule: within 0.01 unit": 347,
+    "point: exact": 2362,
+    "point: within 0.01 unit": 338,
+    "random box: exact": 2066,
+    "random box: within 0.01 unit": 634
+   },
+   "worst": {
+    "fraction": 1.8298625946044922e-05,
+    "endpos": 0.0064792633056640625
+   },
+   "points": 1500,
+   "pointsSame": 1500,
+   "entityTraces": 2880,
+   "links": 32,
+   "linksBitExact": 29,
+   "linkFlagsSame": 32,
+   "linkWorst": 0.000244140625,
+   "boxQueries": 200,
+   "boxesSameOrder": 200,
+   "capsuleEntityLink": {
+    "retail": [
+     "1",
+     "1"
+    ],
+    "fntech3": [
+     "1",
+     "1"
+    ]
+   },
+   "capsulePointContents": 200,
+   "capsulePointContentsSame": 200,
+   "retailSeconds": 66.7,
+   "fntech3Seconds": 13.5,
+   "retailExecutableSha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+   "fntech3ExecutableSha256": "6530c5997738f0fa7e51d68f4a31cccc197670415e6d9b936769ec99b8ed6e59",
+   "moduleSha256": "e76c9fae98ed3aa8e99ddaa391e2dceab64a30e9b0989d647f65ec322cfee2fb"
+  },
+  {
+   "mode": "rtcw-sp",
+   "map": "norway",
+   "worldMins": [
+    -8128.0,
+    -5120.0,
+    -384.0
+   ],
+   "worldMaxs": [
+    5312.0,
+    7296.0,
+    2304.0
+   ],
+   "brushModels": 88,
+   "seed": 20261008,
+   "perShapeCount": 300,
+   "traces": 14580,
+   "tally": {
+    "within 0.01 unit": 2821,
+    "exact": 11757,
+    "differ": 1,
+    "within 1 unit": 1
+   },
+   "kindTally": {
+    "box entity: exact": 300,
+    "capsule entity: exact": 598,
+    "capsule entity: within 0.01 unit": 2,
+    "entity: exact": 2518,
+    "entity: within 0.01 unit": 361,
+    "entity: within 1 unit": 1,
+    "player box: differ": 1,
+    "player box: exact": 2173,
+    "player box: within 0.01 unit": 526,
+    "player capsule: exact": 2178,
+    "player capsule: within 0.01 unit": 522,
+    "point: exact": 2090,
+    "point: within 0.01 unit": 610,
+    "random box: exact": 1900,
+    "random box: within 0.01 unit": 800
+   },
+   "worst": {
+    "fraction": 4.1015446186065674e-05,
+    "endpos": 0.010498046875
+   },
+   "points": 1500,
+   "pointsSame": 1500,
+   "entityTraces": 2880,
+   "links": 32,
+   "linksBitExact": 29,
+   "linkFlagsSame": 32,
+   "linkWorst": 7.62939453125e-06,
+   "boxQueries": 200,
+   "boxesSameOrder": 200,
+   "capsuleEntityLink": {
+    "retail": [
+     "1",
+     "1"
+    ],
+    "fntech3": [
+     "1",
+     "1"
+    ]
+   },
+   "capsulePointContents": 200,
+   "capsulePointContentsSame": 200,
+   "retailSeconds": 70.7,
+   "fntech3Seconds": 10.8,
+   "retailExecutableSha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+   "fntech3ExecutableSha256": "6530c5997738f0fa7e51d68f4a31cccc197670415e6d9b936769ec99b8ed6e59",
+   "moduleSha256": "e76c9fae98ed3aa8e99ddaa391e2dceab64a30e9b0989d647f65ec322cfee2fb"
+  },
+  {
+   "mode": "rtcw-sp",
+   "map": "dam",
+   "worldMins": [
+    -4928.0,
+    -6720.0,
+    -2112.0
+   ],
+   "worldMaxs": [
+    2624.0029296875,
+    8000.0,
+    3720.0
+   ],
+   "brushModels": 149,
+   "seed": 20261008,
+   "perShapeCount": 300,
+   "traces": 14580,
+   "tally": {
+    "exact": 12376,
+    "within 0.01 unit": 2204
+   },
+   "kindTally": {
+    "box entity: exact": 298,
+    "box entity: within 0.01 unit": 2,
+    "capsule entity: exact": 599,
+    "capsule entity: within 0.01 unit": 1,
+    "entity: exact": 2472,
+    "entity: within 0.01 unit": 408,
+    "player box: exact": 2317,
+    "player box: within 0.01 unit": 383,
+    "player capsule: exact": 2311,
+    "player capsule: within 0.01 unit": 389,
+    "point: exact": 2361,
+    "point: within 0.01 unit": 339,
+    "random box: exact": 2018,
+    "random box: within 0.01 unit": 682
+   },
+   "worst": {
+    "fraction": 2.1278858184814453e-05,
+    "endpos": 0.002685546875
+   },
+   "points": 1500,
+   "pointsSame": 1500,
+   "entityTraces": 2880,
+   "links": 32,
+   "linksBitExact": 28,
+   "linkFlagsSame": 32,
+   "linkWorst": 0.00048828125,
+   "boxQueries": 200,
+   "boxesSameOrder": 200,
+   "capsuleEntityLink": {
+    "retail": [
+     "1",
+     "1"
+    ],
+    "fntech3": [
+     "1",
+     "1"
+    ]
+   },
+   "capsulePointContents": 200,
+   "capsulePointContentsSame": 200,
+   "retailSeconds": 48.8,
+   "fntech3Seconds": 8.7,
+   "retailExecutableSha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+   "fntech3ExecutableSha256": "6530c5997738f0fa7e51d68f4a31cccc197670415e6d9b936769ec99b8ed6e59",
+   "moduleSha256": "e76c9fae98ed3aa8e99ddaa391e2dceab64a30e9b0989d647f65ec322cfee2fb"
+  },
+  {
+   "mode": "rtcw-sp",
+   "map": "chateau",
+   "worldMins": [
+    -1952.00732421875,
+    -80.00749969482422,
+    -280.0
+   ],
+   "worldMaxs": [
+    2176.003173828125,
+    3568.00341796875,
+    1232.0
+   ],
+   "brushModels": 215,
+   "seed": 20261008,
+   "perShapeCount": 300,
+   "traces": 14580,
+   "tally": {
+    "within 0.01 unit": 2473,
+    "exact": 12107
+   },
+   "kindTally": {
+    "box entity: exact": 272,
+    "box entity: within 0.01 unit": 28,
+    "capsule entity: exact": 559,
+    "capsule entity: within 0.01 unit": 41,
+    "entity: exact": 2354,
+    "entity: within 0.01 unit": 526,
+    "player box: exact": 2313,
+    "player box: within 0.01 unit": 387,
+    "player capsule: exact": 2332,
+    "player capsule: within 0.01 unit": 368,
+    "point: exact": 2267,
+    "point: within 0.01 unit": 433,
+    "random box: exact": 2010,
+    "random box: within 0.01 unit": 690
+   },
+   "worst": {
+    "fraction": 5.0008296966552734e-05,
+    "endpos": 0.00714111328125
+   },
+   "points": 1500,
+   "pointsSame": 1500,
+   "entityTraces": 2880,
+   "links": 32,
+   "linksBitExact": 26,
+   "linkFlagsSame": 32,
+   "linkWorst": 0.0001220703125,
+   "boxQueries": 200,
+   "boxesSameOrder": 200,
+   "capsuleEntityLink": {
+    "retail": [
+     "1",
+     "1"
+    ],
+    "fntech3": [
+     "1",
+     "1"
+    ]
+   },
+   "capsulePointContents": 200,
+   "capsulePointContentsSame": 200,
+   "retailSeconds": 45.7,
+   "fntech3Seconds": 7.4,
+   "retailExecutableSha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+   "fntech3ExecutableSha256": "6530c5997738f0fa7e51d68f4a31cccc197670415e6d9b936769ec99b8ed6e59",
+   "moduleSha256": "e76c9fae98ed3aa8e99ddaa391e2dceab64a30e9b0989d647f65ec322cfee2fb"
+  },
+  {
+   "mode": "rtcw-mp",
+   "map": "mp_beach",
+   "worldMins": [
+    -5760.0,
+    -4864.0,
+    -64.0
+   ],
+   "worldMaxs": [
+    4672.0,
+    6208.0,
+    1856.0
+   ],
+   "brushModels": 38,
+   "seed": 20261008,
+   "perShapeCount": 300,
+   "traces": 14580,
+   "tally": {
+    "exact": 12234,
+    "within 0.01 unit": 2345,
+    "differ": 1
+   },
+   "kindTally": {
+    "box entity: exact": 296,
+    "box entity: within 0.01 unit": 4,
+    "capsule entity: exact": 550,
+    "capsule entity: within 0.01 unit": 50,
+    "entity: exact": 2706,
+    "entity: within 0.01 unit": 174,
+    "player box: exact": 2225,
+    "player box: within 0.01 unit": 475,
+    "player capsule: differ": 1,
+    "player capsule: exact": 2259,
+    "player capsule: within 0.01 unit": 440,
+    "point: exact": 2234,
+    "point: within 0.01 unit": 466,
+    "random box: exact": 1964,
+    "random box: within 0.01 unit": 736
+   },
+   "worst": {
+    "fraction": 2.0205974578857422e-05,
+    "endpos": 0.002197265625
+   },
+   "points": 1500,
+   "pointsSame": 1500,
+   "entityTraces": 2880,
+   "links": 32,
+   "linksBitExact": 29,
+   "linkFlagsSame": 32,
+   "linkWorst": 0.00048828125,
+   "boxQueries": 200,
+   "boxesSameOrder": 200,
+   "capsuleEntityLink": {
+    "retail": [
+     "1",
+     "1"
+    ],
+    "fntech3": [
+     "1",
+     "1"
+    ]
+   },
+   "capsulePointContents": 200,
+   "capsulePointContentsSame": 200,
+   "retailSeconds": 133.8,
+   "fntech3Seconds": 13.0,
+   "retailExecutableSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+   "fntech3ExecutableSha256": "6530c5997738f0fa7e51d68f4a31cccc197670415e6d9b936769ec99b8ed6e59",
+   "moduleSha256": "b01f916b9e335d13c15cb15bc8d3d483f32094b7683b7d5040b3b1c9ed147609"
+  },
+  {
+   "mode": "rtcw-mp",
+   "map": "mp_assault",
+   "worldMins": [
+    -5440.0,
+    -9856.0,
+    -704.0015258789062
+   ],
+   "worldMaxs": [
+    8256.00390625,
+    9728.0,
+    3648.0
+   ],
+   "brushModels": 86,
+   "seed": 20261008,
+   "perShapeCount": 300,
+   "traces": 14580,
+   "tally": {
+    "exact": 11603,
+    "within 0.01 unit": 2977
+   },
+   "kindTally": {
+    "box entity: exact": 298,
+    "box entity: within 0.01 unit": 2,
+    "capsule entity: exact": 554,
+    "capsule entity: within 0.01 unit": 46,
+    "entity: exact": 2590,
+    "entity: within 0.01 unit": 290,
+    "player box: exact": 2127,
+    "player box: within 0.01 unit": 573,
+    "player capsule: exact": 2108,
+    "player capsule: within 0.01 unit": 592,
+    "point: exact": 2036,
+    "point: within 0.01 unit": 664,
+    "random box: exact": 1890,
+    "random box: within 0.01 unit": 810
+   },
+   "worst": {
+    "fraction": 1.224316656589508e-05,
+    "endpos": 0.001953125
+   },
+   "points": 1500,
+   "pointsSame": 1500,
+   "entityTraces": 2880,
+   "links": 32,
+   "linksBitExact": 31,
+   "linkFlagsSame": 32,
+   "linkWorst": 0.0001220703125,
+   "boxQueries": 200,
+   "boxesSameOrder": 200,
+   "capsuleEntityLink": {
+    "retail": [
+     "1",
+     "1"
+    ],
+    "fntech3": [
+     "1",
+     "1"
+    ]
+   },
+   "capsulePointContents": 200,
+   "capsulePointContentsSame": 200,
+   "retailSeconds": 104.8,
+   "fntech3Seconds": 9.9,
+   "retailExecutableSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+   "fntech3ExecutableSha256": "6530c5997738f0fa7e51d68f4a31cccc197670415e6d9b936769ec99b8ed6e59",
+   "moduleSha256": "b01f916b9e335d13c15cb15bc8d3d483f32094b7683b7d5040b3b1c9ed147609"
+  },
+  {
+   "mode": "rtcw-mp",
+   "map": "mp_village",
+   "worldMins": [
+    -3200.0,
+    -2432.0,
+    -400.0
+   ],
+   "worldMaxs": [
+    2176.0,
+    5080.0,
+    880.0
+   ],
+   "brushModels": 86,
+   "seed": 20261008,
+   "perShapeCount": 300,
+   "traces": 14580,
+   "tally": {
+    "exact": 12139,
+    "within 0.01 unit": 2441
+   },
+   "kindTally": {
+    "box entity: exact": 287,
+    "box entity: within 0.01 unit": 13,
+    "capsule entity: exact": 540,
+    "capsule entity: within 0.01 unit": 60,
+    "entity: exact": 2386,
+    "entity: within 0.01 unit": 494,
+    "player box: exact": 2368,
+    "player box: within 0.01 unit": 332,
+    "player capsule: exact": 2370,
+    "player capsule: within 0.01 unit": 330,
+    "point: exact": 2243,
+    "point: within 0.01 unit": 457,
+    "random box: exact": 1945,
+    "random box: within 0.01 unit": 755
+   },
+   "worst": {
+    "fraction": 1.1563301086425781e-05,
+    "endpos": 0.0013427734375
+   },
+   "points": 1500,
+   "pointsSame": 1500,
+   "entityTraces": 2880,
+   "links": 32,
+   "linksBitExact": 28,
+   "linkFlagsSame": 32,
+   "linkWorst": 0.00048828125,
+   "boxQueries": 200,
+   "boxesSameOrder": 200,
+   "capsuleEntityLink": {
+    "retail": [
+     "1",
+     "1"
+    ],
+    "fntech3": [
+     "1",
+     "1"
+    ]
+   },
+   "capsulePointContents": 200,
+   "capsulePointContentsSame": 200,
+   "retailSeconds": 82.7,
+   "fntech3Seconds": 10.3,
+   "retailExecutableSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+   "fntech3ExecutableSha256": "6530c5997738f0fa7e51d68f4a31cccc197670415e6d9b936769ec99b8ed6e59",
+   "moduleSha256": "b01f916b9e335d13c15cb15bc8d3d483f32094b7683b7d5040b3b1c9ed147609"
+  },
+  {
+   "mode": "rtcw-mp",
+   "map": "mp_castle",
+   "worldMins": [
+    -768.0,
+    -992.0,
+    -512.0
+   ],
+   "worldMaxs": [
+    1792.0,
+    2304.00146484375,
+    1120.0
+   ],
+   "brushModels": 18,
+   "seed": 20261008,
+   "perShapeCount": 300,
+   "traces": 13320,
+   "tally": {
+    "within 0.01 unit": 2920,
+    "exact": 10400
+   },
+   "kindTally": {
+    "box entity: exact": 277,
+    "box entity: within 0.01 unit": 23,
+    "capsule entity: exact": 538,
+    "capsule entity: within 0.01 unit": 62,
+    "entity: exact": 1256,
+    "entity: within 0.01 unit": 364,
+    "player box: exact": 2131,
+    "player box: within 0.01 unit": 569,
+    "player capsule: exact": 2173,
+    "player capsule: within 0.01 unit": 527,
+    "point: exact": 2159,
+    "point: within 0.01 unit": 541,
+    "random box: exact": 1866,
+    "random box: within 0.01 unit": 834
+   },
+   "worst": {
+    "fraction": 2.205371856689453e-06,
+    "endpos": 0.00054931640625
+   },
+   "points": 1500,
+   "pointsSame": 1500,
+   "entityTraces": 1620,
+   "links": 18,
+   "linksBitExact": 17,
+   "linkFlagsSame": 18,
+   "linkWorst": 6.103515625e-05,
+   "boxQueries": 200,
+   "boxesSameOrder": 200,
+   "capsuleEntityLink": {
+    "retail": [
+     "1",
+     "1"
+    ],
+    "fntech3": [
+     "1",
+     "1"
+    ]
+   },
+   "capsulePointContents": 200,
+   "capsulePointContentsSame": 200,
+   "retailSeconds": 71.4,
+   "fntech3Seconds": 8.2,
+   "retailExecutableSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+   "fntech3ExecutableSha256": "6530c5997738f0fa7e51d68f4a31cccc197670415e6d9b936769ec99b8ed6e59",
+   "moduleSha256": "b01f916b9e335d13c15cb15bc8d3d483f32094b7683b7d5040b3b1c9ed147609"
+  },
+  {
+   "mode": "rtcw-mp",
+   "map": "mp_depot",
+   "worldMins": [
+    -13784.0029296875,
+    1072.0,
+    -864.0
+   ],
+   "worldMaxs": [
+    -5215.9921875,
+    6472.0,
+    1040.0
+   ],
+   "brushModels": 38,
+   "seed": 20261008,
+   "perShapeCount": 300,
+   "traces": 14580,
+   "tally": {
+    "within 0.01 unit": 1919,
+    "exact": 12661
+   },
+   "kindTally": {
+    "box entity: exact": 297,
+    "box entity: within 0.01 unit": 3,
+    "capsule entity: exact": 551,
+    "capsule entity: within 0.01 unit": 49,
+    "entity: exact": 2566,
+    "entity: within 0.01 unit": 314,
+    "player box: exact": 2380,
+    "player box: within 0.01 unit": 320,
+    "player capsule: exact": 2376,
+    "player capsule: within 0.01 unit": 324,
+    "point: exact": 2406,
+    "point: within 0.01 unit": 294,
+    "random box: exact": 2085,
+    "random box: within 0.01 unit": 615
+   },
+   "worst": {
+    "fraction": 3.212690353393555e-05,
+    "endpos": 0.0059814453125
+   },
+   "points": 1500,
+   "pointsSame": 1500,
+   "entityTraces": 2880,
+   "links": 32,
+   "linksBitExact": 24,
+   "linkFlagsSame": 32,
+   "linkWorst": 0.0009765625,
+   "boxQueries": 200,
+   "boxesSameOrder": 200,
+   "capsuleEntityLink": {
+    "retail": [
+     "1",
+     "1"
+    ],
+    "fntech3": [
+     "1",
+     "1"
+    ]
+   },
+   "capsulePointContents": 200,
+   "capsulePointContentsSame": 200,
+   "retailSeconds": 69.3,
+   "fntech3Seconds": 8.9,
+   "retailExecutableSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+   "fntech3ExecutableSha256": "6530c5997738f0fa7e51d68f4a31cccc197670415e6d9b936769ec99b8ed6e59",
+   "moduleSha256": "b01f916b9e335d13c15cb15bc8d3d483f32094b7683b7d5040b3b1c9ed147609"
+  },
+  {
+   "mode": "rtcw-mp",
+   "map": "mp_ice",
+   "worldMins": [
+    -11424.0,
+    -6176.0,
+    -192.0
+   ],
+   "worldMaxs": [
+    4256.0,
+    6304.0,
+    3200.0
+   ],
+   "brushModels": 50,
+   "seed": 20261008,
+   "perShapeCount": 300,
+   "traces": 14580,
+   "tally": {
+    "exact": 12798,
+    "within 0.01 unit": 1779,
+    "within 1 unit": 3
+   },
+   "kindTally": {
+    "box entity: exact": 297,
+    "box entity: within 0.01 unit": 3,
+    "capsule entity: exact": 551,
+    "capsule entity: within 0.01 unit": 49,
+    "entity: exact": 2592,
+    "entity: within 0.01 unit": 285,
+    "entity: within 1 unit": 3,
+    "player box: exact": 2432,
+    "player box: within 0.01 unit": 268,
+    "player capsule: exact": 2430,
+    "player capsule: within 0.01 unit": 270,
+    "point: exact": 2422,
+    "point: within 0.01 unit": 278,
+    "random box: exact": 2074,
+    "random box: within 0.01 unit": 626
+   },
+   "worst": {
+    "fraction": 0.0021070241928100586,
+    "endpos": 0.107421875
+   },
+   "points": 1500,
+   "pointsSame": 1500,
+   "entityTraces": 2880,
+   "links": 32,
+   "linksBitExact": 27,
+   "linkFlagsSame": 32,
+   "linkWorst": 0.0009765625,
+   "boxQueries": 200,
+   "boxesSameOrder": 200,
+   "capsuleEntityLink": {
+    "retail": [
+     "1",
+     "1"
+    ],
+    "fntech3": [
+     "1",
+     "1"
+    ]
+   },
+   "capsulePointContents": 200,
+   "capsulePointContentsSame": 200,
+   "retailSeconds": 69.4,
+   "fntech3Seconds": 10.3,
+   "retailExecutableSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+   "fntech3ExecutableSha256": "6530c5997738f0fa7e51d68f4a31cccc197670415e6d9b936769ec99b8ed6e59",
+   "moduleSha256": "b01f916b9e335d13c15cb15bc8d3d483f32094b7683b7d5040b3b1c9ed147609"
+  }
+ ],
+ "differences": [
+  {
+   "mode": "rtcw-sp",
+   "map": "forest",
+   "hull": "entity 21",
+   "maskIndex": 1,
+   "index": 49,
+   "endposDifference": 0.000213623046875,
+   "fieldsDiffer": [
+    "entityNum"
+   ],
+   "start": [
+    3077.208251953125,
+    -152.47640991210938,
+    334.8026123046875
+   ],
+   "end": [
+    3109.731201171875,
+    -129.886474609375,
+    368.5701599121094
+   ],
+   "retail": {
+    "allsolid": 0,
+    "startsolid": 0,
+    "fraction": 0.19261980056762695,
+    "endpos": [
+     3083.472900390625,
+     -148.12513732910156,
+     341.3069152832031
+    ],
+    "normal": [
+     -4.867185765533577e-08,
+     -1.0,
+     0.0
+    ],
+    "dist": 37.0,
+    "surfaceFlags": 262144,
+    "contents": 1,
+    "entityNum": 324
+   },
+   "fntech3": {
+    "allsolid": 0,
+    "startsolid": 0,
+    "fraction": 0.19262604415416718,
+    "endpos": [
+     3083.472900390625,
+     -148.125,
+     341.30712890625
+    ],
+    "normal": [
+     0.0,
+     -1.0,
+     0.0
+    ],
+    "dist": 41.0,
+    "surfaceFlags": 262144,
+    "contents": 1,
+    "entityNum": 323
+   }
+  },
+  {
+   "mode": "rtcw-sp",
+   "map": "forest",
+   "hull": "entity 21",
+   "maskIndex": 1,
+   "index": 67,
+   "endposDifference": 0.00030517578125,
+   "fieldsDiffer": [
+    "entityNum"
+   ],
+   "start": [
+    3055.005126953125,
+    -176.0997772216797,
+    267.2737731933594
+   ],
+   "end": [
+    3105.22802734375,
+    -135.5143280029297,
+    358.8367614746094
+   ],
+   "retail": {
+    "allsolid": 0,
+    "startsolid": 0,
+    "fraction": 0.6892775297164917,
+    "endpos": [
+     3089.62255859375,
+     -148.12513732910156,
+     330.3860778808594
+    ],
+    "normal": [
+     -4.867185765533577e-08,
+     -1.0,
+     0.0
+    ],
+    "dist": 37.0,
+    "surfaceFlags": 262144,
+    "contents": 1,
+    "entityNum": 324
+   },
+   "fntech3": {
+    "allsolid": 0,
+    "startsolid": 0,
+    "fraction": 0.6892809271812439,
+    "endpos": [
+     3089.622802734375,
+     -148.125,
+     330.3863830566406
+    ],
+    "normal": [
+     0.0,
+     -1.0,
+     0.0
+    ],
+    "dist": 41.0,
+    "surfaceFlags": 262144,
+    "contents": 1,
+    "entityNum": 323
+   }
+  },
+  {
+   "mode": "rtcw-sp",
+   "map": "forest",
+   "hull": "entity 23",
+   "maskIndex": 1,
+   "index": 1,
+   "endposDifference": 0.000244140625,
+   "fieldsDiffer": [
+    "entityNum"
+   ],
+   "start": [
+    3050.115478515625,
+    -197.4954071044922,
+    338.2142639160156
+   ],
+   "end": [
+    3135.57958984375,
+    -115.6518783569336,
+    327.34912109375
+   ],
+   "retail": {
+    "allsolid": 0,
+    "startsolid": 0,
+    "fraction": 0.6032274961471558,
+    "endpos": [
+     3101.669677734375,
+     -148.12513732910156,
+     331.6601257324219
+    ],
+    "normal": [
+     -4.867185765533577e-08,
+     -1.0,
+     0.0
+    ],
+    "dist": 37.0,
+    "surfaceFlags": 262144,
+    "contents": 1,
+    "entityNum": 324
+   },
+   "fntech3": {
+    "allsolid": 0,
+    "startsolid": 0,
+    "fraction": 0.6032292246818542,
+    "endpos": [
+     3101.669921875,
+     -148.125,
+     331.66009521484375
+    ],
+    "normal": [
+     0.0,
+     -1.0,
+     0.0
+    ],
+    "dist": 41.0,
+    "surfaceFlags": 262144,
+    "contents": 1,
+    "entityNum": 323
+   }
+  },
+  {
+   "mode": "rtcw-sp",
+   "map": "norway",
+   "hull": "player box",
+   "maskIndex": 2,
+   "index": 210,
+   "endposDifference": 0.00048828125,
+   "fieldsDiffer": [
+    "surfaceFlags"
+   ],
+   "start": [
+    4973.263671875,
+    -1297.697265625,
+    366.47283935546875
+   ],
+   "end": [
+    -4156.07568359375,
+    707.84912109375,
+    1387.558349609375
+   ],
+   "retail": {
+    "allsolid": 0,
+    "startsolid": 1,
+    "fraction": 0.017601512372493744,
+    "endpos": [
+     4812.57373046875,
+     -1262.3966064453125,
+     384.44549560546875
+    ],
+    "normal": [
+     0.7071068286895752,
+     0.7071068286895752,
+     0.0
+    ],
+    "dist": 2489.01611328125,
+    "surfaceFlags": 160,
+    "contents": 1,
+    "entityNum": 1022
+   },
+   "fntech3": {
+    "allsolid": 0,
+    "startsolid": 1,
+    "fraction": 0.017601512372493744,
+    "endpos": [
+     4812.5732421875,
+     -1262.3966064453125,
+     384.44549560546875
+    ],
+    "normal": [
+     0.7071089744567871,
+     0.7071045637130737,
+     0.0
+    ],
+    "dist": 2489.029296875,
+    "surfaceFlags": 525472,
+    "contents": 1,
+    "entityNum": 1022
+   }
+  },
+  {
+   "mode": "rtcw-sp",
+   "map": "norway",
+   "hull": "entity 10",
+   "maskIndex": 1,
+   "index": 5,
+   "endposDifference": 0.010498046875,
+   "fieldsDiffer": [],
+   "start": [
+    6815.27001953125,
+    -1192.1328125,
+    1214.259521484375
+   ],
+   "end": [
+    6992.6884765625,
+    -1314.496337890625,
+    956.3843383789062
+   ],
+   "retail": {
+    "allsolid": 0,
+    "startsolid": 0,
+    "fraction": 0.1004398912191391,
+    "endpos": [
+     6833.08984375,
+     -1204.4229736328125,
+     1188.3585205078125
+    ],
+    "normal": [
+     0.5,
+     0.8660253882408142,
+     0.0
+    ],
+    "dist": 2368.0,
+    "surfaceFlags": 4096,
+    "contents": 1,
+    "entityNum": 310
+   },
+   "fntech3": {
+    "allsolid": 0,
+    "startsolid": 0,
+    "fraction": 0.10048090666532516,
+    "endpos": [
+     6833.09716796875,
+     -1204.427978515625,
+     1188.3480224609375
+    ],
+    "normal": [
+     0.5000000596046448,
+     0.8660253882408142,
+     0.0
+    ],
+    "dist": 2368.0,
+    "surfaceFlags": 4096,
+    "contents": 1,
+    "entityNum": 310
+   }
+  },
+  {
+   "mode": "rtcw-mp",
+   "map": "mp_beach",
+   "hull": "player capsule",
+   "maskIndex": 2,
+   "index": 816,
+   "endposDifference": 0.0,
+   "fieldsDiffer": [
+    "surfaceFlags"
+   ],
+   "start": [
+    4531.7216796875,
+    1532.9599609375,
+    812.0279541015625
+   ],
+   "end": [
+    -5757.1455078125,
+    3196.25830078125,
+    1427.0302734375
+   ],
+   "retail": {
+    "allsolid": 0,
+    "startsolid": 1,
+    "fraction": 0.008146796375513077,
+    "endpos": [
+     4447.900390625,
+     1546.510498046875,
+     817.0382690429688
+    ],
+    "normal": [
+     0.7071086168289185,
+     -0.7071049809455872,
+     0.0
+    ],
+    "dist": 2036.4783935546875,
+    "surfaceFlags": 525472,
+    "contents": 1,
+    "entityNum": 1022
+   },
+   "fntech3": {
+    "allsolid": 0,
+    "startsolid": 1,
+    "fraction": 0.008146782405674458,
+    "endpos": [
+     4447.900390625,
+     1546.510498046875,
+     817.0382690429688
+    ],
+    "normal": [
+     0.7071067690849304,
+     -0.7071067690849304,
+     0.0
+    ],
+    "dist": 2036.467529296875,
+    "surfaceFlags": 160,
+    "contents": 1,
+    "entityNum": 1022
+   }
+  },
+  {
+   "mode": "rtcw-mp",
+   "map": "mp_ice",
+   "hull": "entity 11",
+   "maskIndex": 0,
+   "index": 88,
+   "endposDifference": 0.107421875,
+   "fieldsDiffer": [],
+   "start": [
+    -6037.66552734375,
+    2223.892578125,
+    1012.0197143554688
+   ],
+   "end": [
+    -5986.8095703125,
+    2207.837890625,
+    1025.054931640625
+   ],
+   "retail": {
+    "allsolid": 0,
+    "startsolid": 0,
+    "fraction": 0.7562099099159241,
+    "endpos": [
+     -5999.20751953125,
+     2211.751953125,
+     1021.8770751953125
+    ],
+    "normal": [
+     0.0,
+     0.0,
+     -1.0
+    ],
+    "dist": -1026.0020751953125,
+    "surfaceFlags": 4096,
+    "contents": 1,
+    "entityNum": 1022
+   },
+   "fntech3": {
+    "allsolid": 0,
+    "startsolid": 0,
+    "fraction": 0.754102885723114,
+    "endpos": [
+     -5999.31494140625,
+     2211.78564453125,
+     1021.849609375
+    ],
+    "normal": [
+     0.0,
+     0.0,
+     -1.0
+    ],
+    "dist": -1025.974609375,
+    "surfaceFlags": 4096,
+    "contents": 1,
+    "entityNum": 1022
+   }
+  },
+  {
+   "mode": "rtcw-mp",
+   "map": "mp_ice",
+   "hull": "entity 20",
+   "maskIndex": 1,
+   "index": 21,
+   "endposDifference": 0.0146484375,
+   "fieldsDiffer": [],
+   "start": [
+    -4439.0244140625,
+    7032.19921875,
+    1995.4488525390625
+   ],
+   "end": [
+    -4609.578125,
+    6954.0302734375,
+    1923.2769775390625
+   ],
+   "retail": {
+    "allsolid": 0,
+    "startsolid": 0,
+    "fraction": 0.41135621070861816,
+    "endpos": [
+     -4509.1826171875,
+     7000.0439453125,
+     1965.760498046875
+    ],
+    "normal": [
+     0.4924038350582123,
+     -0.8528685569763184,
+     -0.1736481785774231
+    ],
+    "dist": -8672.0,
+    "surfaceFlags": 160,
+    "contents": 1,
+    "entityNum": 320
+   },
+   "fntech3": {
+    "allsolid": 0,
+    "startsolid": 0,
+    "fraction": 0.41144025325775146,
+    "endpos": [
+     -4509.197265625,
+     7000.03759765625,
+     1965.75439453125
+    ],
+    "normal": [
+     0.4924037754535675,
+     -0.8528685569763184,
+     -0.1736481785774231
+    ],
+    "dist": -8672.0,
+    "surfaceFlags": 160,
+    "contents": 1,
+    "entityNum": 320
+   }
+  },
+  {
+   "mode": "rtcw-mp",
+   "map": "mp_ice",
+   "hull": "entity 24",
+   "maskIndex": 1,
+   "index": 79,
+   "endposDifference": 0.0174560546875,
+   "fieldsDiffer": [],
+   "start": [
+    -7270.2138671875,
+    2212.9208984375,
+    586.5902099609375
+   ],
+   "end": [
+    -7273.28271484375,
+    2310.598876953125,
+    476.7488708496094
+   ],
+   "retail": {
+    "allsolid": 0,
+    "startsolid": 0,
+    "fraction": 0.21543356776237488,
+    "endpos": [
+     -7270.875,
+     2233.964111328125,
+     562.9266967773438
+    ],
+    "normal": [
+     1.0,
+     -4.867185765533577e-08,
+     0.0
+    ],
+    "dist": -7478.0,
+    "surfaceFlags": 65536,
+    "contents": 1,
+    "entityNum": 324
+   },
+   "fntech3": {
+    "allsolid": 0,
+    "startsolid": 0,
+    "fraction": 0.21559268236160278,
+    "endpos": [
+     -7270.87548828125,
+     2233.9794921875,
+     562.9092407226562
+    ],
+    "normal": [
+     1.0,
+     1.7484555314695172e-07,
+     0.0
+    ],
+    "dist": -7478.0,
+    "surfaceFlags": 65536,
+    "contents": 1,
+    "entityNum": 324
+   }
+  }
+ ],
+ "spCapsuleBefore": {
+  "map": "escape1",
+  "kindTally": {
+   "capsule entity: differ": 64,
+   "capsule entity: exact": 487,
+   "capsule entity: within 0.01 unit": 42,
+   "capsule entity: within 1 unit": 7
+  },
+  "capsulePointContents": 200,
+  "capsulePointContentsSame": 198,
+  "fntech3ExecutableSha256": "446d1e6e3bed6131b4e105586b7bb633d3f56c8806eb8839c3056d387c6d282d",
+  "note": "the final build with only the SP rule off (capsules traced as capsules)"
+ },
+ "mpPointCapsuleBefore": {
+  "mp_beach": {
+   "kindTally": {
+    "capsule entity: differ": 13,
+    "capsule entity: exact": 538,
+    "capsule entity: within 0.01 unit": 49
+   },
+   "capsulePointContents": 200,
+   "capsulePointContentsSame": 200,
+   "fntech3ExecutableSha256": "8e4772b1d19e9083ca9a59faf910c60fb29ebd4981e615e5f577c0887a9b9d80"
+  },
+  "mp_assault": {
+   "kindTally": {
+    "capsule entity: differ": 13,
+    "capsule entity: exact": 541,
+    "capsule entity: within 0.01 unit": 46
+   },
+   "capsulePointContents": 200,
+   "capsulePointContentsSame": 200,
+   "fntech3ExecutableSha256": "8e4772b1d19e9083ca9a59faf910c60fb29ebd4981e615e5f577c0887a9b9d80"
+  },
+  "mp_village": {
+   "kindTally": {
+    "capsule entity: differ": 13,
+    "capsule entity: exact": 532,
+    "capsule entity: within 0.01 unit": 55
+   },
+   "capsulePointContents": 200,
+   "capsulePointContentsSame": 200,
+   "fntech3ExecutableSha256": "8e4772b1d19e9083ca9a59faf910c60fb29ebd4981e615e5f577c0887a9b9d80"
+  },
+  "mp_castle": {
+   "kindTally": {
+    "capsule entity: differ": 9,
+    "capsule entity: exact": 530,
+    "capsule entity: within 0.01 unit": 61
+   },
+   "capsulePointContents": 200,
+   "capsulePointContentsSame": 200,
+   "fntech3ExecutableSha256": "8e4772b1d19e9083ca9a59faf910c60fb29ebd4981e615e5f577c0887a9b9d80"
+  },
+  "mp_depot": {
+   "kindTally": {
+    "capsule entity: differ": 13,
+    "capsule entity: exact": 539,
+    "capsule entity: within 0.01 unit": 48
+   },
+   "capsulePointContents": 200,
+   "capsulePointContentsSame": 200,
+   "fntech3ExecutableSha256": "8e4772b1d19e9083ca9a59faf910c60fb29ebd4981e615e5f577c0887a9b9d80"
+  },
+  "mp_ice": {
+   "kindTally": {
+    "capsule entity: differ": 13,
+    "capsule entity: exact": 541,
+    "capsule entity: within 0.01 unit": 46
+   },
+   "capsulePointContents": 200,
+   "capsulePointContentsSame": 200,
+   "fntech3ExecutableSha256": "8e4772b1d19e9083ca9a59faf910c60fb29ebd4981e615e5f577c0887a9b9d80"
+  }
+ },
+ "inferences": [
+  "The nine remaining differences are precision: two traces where a brush and a curve facet tie (mp_beach, norway; retail's facet plane is built in float, fnTech3's in double, so the tie breaks the other way), one curve bevel placed 0.027 units apart (mp_ice, the facet winding cut in double), and six traces around turned brush models whose rotations differ in the last bits (forest three, norway one, mp_ice two).",
+  "MP's 8192-unit starting winding drops curve facets lying far from their plane's point nearest the origin; mp_depot's level reaches x = -12547, and every trace that had differed there lay beyond x = -8192."
+ ]
+}
