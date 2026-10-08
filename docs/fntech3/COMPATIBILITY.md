@@ -111,6 +111,16 @@ byte for byte and the client enters pure, though RTCW's retail server resent
 the gamestate 29 times. Real networks and much larger files remain open. No
 profile gate closes.
 
+The [2026-10-08 sustained sessions record](2026-10-08-legacy-sustained-sessions.md)
+keeps a retail and an fnTech3 client on one server for ten minutes, with chat
+every 20 seconds and a map change halfway, while fnTech3's side drops a
+tenth of the packets it receives. With retail Quake III, RTCW, ET and Elite
+Force, in both directions, every one of the 30 rounds is heard both ways and
+both clients follow the map change. Q3Test 1.08 holds its two clients for
+five minutes in both directions through a map change. The retail client
+hears every line of fnTech3's, but retail Q3Test reads its config files only
+at startup, so it cannot be made to speak. No profile gate closes.
+
 The [2026-10-06 GameSpy record](2026-10-06-mohaa-gamespy-lan-queries.md)
 makes a Medal of Honor multiplayer server, dedicated or listen, answer
 GameSpy's LAN status queries on the first free port from 12300 with the keys
@@ -2576,7 +2586,7 @@ probe driven by console commands alone:
 | Filesystem | PARTIAL -- Live | Each release's paks mount; retail's restricted-mode pak pins are not enforced. |
 | Map format / collision | PARTIAL -- Unit, Live | IBSP 44 and 45 translate for collision and every renderer; Q3Test's curve rules are unit-tested; no trace comparison against retail. |
 | Module ABI | PARTIAL -- Live | Game modules of every release; client games 1.05 to 1.08; menus 1.06 to 1.08. Bots are not claimed: no release shipped a bot library. |
-| Wire | PARTIAL -- Interop subset | Short one-client loopback sessions in both directions with every retail peer that exists, up to slot 120 of 128; no session with several clients, loss or a remote peer. |
+| Wire | PARTIAL -- Interop subset | Short one-client loopback sessions in both directions with every retail peer that exists, up to slot 120 of 128. A retail 1.08 client and fnTech3's share fnTech3's server, and both share a retail 1.08 server, for five minutes at 10% loss through a map change, with chat from fnTech3's client heard by the retail one ([sustained sessions record](2026-10-08-legacy-sustained-sessions.md)). No session with a remote peer. |
 | Demos | PARTIAL -- Live | Shipped recordings time-demo (1.06 to 1.08 to retail's counts); fnTech3's recordings replay and decode; retail cannot read them; 1.05's machine-dependent time-demo count is not reproduced. |
 | Renderer / assets | PARTIAL -- Live | GLx, Vulkan and RTX (raster and path-traced) captures of both map formats, menus and HUD; the release shader dialect and 2D pictures read as retail read them. |
 | Audio / input | PARTIAL -- Live (audio) | Replays' effects found at their logged times in the legacy mixer's capture; the OpenAL mix is not captured; no input test, because simulated buttons need the user's permission per run. |

@@ -1,0 +1,516 @@
+{
+  "record": "2026-10-08-legacy-sustained-sessions.md",
+  "profiles": [
+    "q3",
+    "q3test",
+    "rtcw-mp",
+    "stvef-mp",
+    "wolfet"
+  ],
+  "baseCommit": "6830eb1f95eec2b70ea38b5f96d6ebca58fc6022",
+  "platform": "Windows x86, MSVC 2022, meson debugoptimized export build with every development option, loopback",
+  "fntech3": {
+    "fntech3.exe": "b788de497e8dbcbb1f04d69883fb66c90062ff72147542f9b39d3543b4af6f15",
+    "fntech3.ded.exe": "a56a866d0977e143d16645ee78c510f89944f89627d88b1eca2467a5136c5975"
+  },
+  "loss": "net_dropsim 10 on fnTech3's server and clients only; each drops 10% of the packets it receives",
+  "session": "every 20 s both clients say a fresh random line, each must hear the other within 10 s, one retry; map change at the halfway round; hold 600 s (Q3Test 300 s)",
+  "commands": [
+    "python scripts/probe_legacy_sessions.py --output <new dir> --profiles q3 rtcw-mp wolfet stvef-mp --directions join host --sessions sustained --hold 600 --runtime <export build> --fntech3-set net_dropsim 10",
+    "python scripts/probe_legacy_sessions.py --output <new dir> --profiles q3test --directions join host --sessions sustained --hold 300 --runtime <export build> --fntech3-set net_dropsim 10"
+  ],
+  "q3testDriving": "retail Q3Test 1.08 reads its loose files once, at startup: it cannot find a command file made later, and a placeholder made first stays as first read even when rewritten at the same length; its client never sends a chat line or receives quit, and the probe stops it (exit 1)",
+  "runs": [
+    {
+      "profile": "q3",
+      "direction": "host",
+      "folder": "hold600",
+      "passed": true,
+      "installationUnchanged": true,
+      "serverKind": "fntech3",
+      "clientKind": "retail",
+      "serverSha256": "a56a866d0977e143d16645ee78c510f89944f89627d88b1eca2467a5136c5975",
+      "clientSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+      "secondClientSha256": "b788de497e8dbcbb1f04d69883fb66c90062ff72147542f9b39d3543b4af6f15",
+      "exits": [
+        0,
+        0,
+        0
+      ],
+      "steps": {
+        "server-ready": {
+          "passed": true,
+          "seconds": 2.22
+        },
+        "sustained-join": {
+          "passed": true,
+          "seconds": 42.45,
+          "slots": [
+            0,
+            1
+          ]
+        },
+        "sustained-map-change": {
+          "passed": true,
+          "seconds": 642.7
+        },
+        "sustained-chat": {
+          "passed": true,
+          "seconds": 642.7,
+          "rounds": 30,
+          "heard": 30,
+          "retried": 0,
+          "missed": [],
+          "held": 600.2
+        }
+      }
+    },
+    {
+      "profile": "q3",
+      "direction": "join",
+      "folder": "hold600",
+      "passed": true,
+      "installationUnchanged": true,
+      "serverKind": "retail",
+      "clientKind": "fntech3",
+      "serverSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+      "clientSha256": "b788de497e8dbcbb1f04d69883fb66c90062ff72147542f9b39d3543b4af6f15",
+      "secondClientSha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+      "exits": [
+        0,
+        0,
+        0
+      ],
+      "steps": {
+        "server-ready": {
+          "passed": true,
+          "seconds": 1.55
+        },
+        "sustained-join": {
+          "passed": true,
+          "seconds": 44.91,
+          "slots": [
+            1,
+            0
+          ]
+        },
+        "sustained-map-change": {
+          "passed": true,
+          "seconds": 645.38
+        },
+        "sustained-chat": {
+          "passed": true,
+          "seconds": 645.38,
+          "rounds": 30,
+          "heard": 30,
+          "retried": 0,
+          "missed": [],
+          "held": 600.5
+        }
+      }
+    },
+    {
+      "profile": "rtcw-mp",
+      "direction": "host",
+      "folder": "hold600",
+      "passed": true,
+      "installationUnchanged": true,
+      "serverKind": "fntech3",
+      "clientKind": "retail",
+      "serverSha256": "a56a866d0977e143d16645ee78c510f89944f89627d88b1eca2467a5136c5975",
+      "clientSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+      "secondClientSha256": "b788de497e8dbcbb1f04d69883fb66c90062ff72147542f9b39d3543b4af6f15",
+      "exits": [
+        0,
+        0,
+        0
+      ],
+      "steps": {
+        "server-ready": {
+          "passed": true,
+          "seconds": 1.53
+        },
+        "sustained-join": {
+          "passed": true,
+          "seconds": 41.81,
+          "slots": [
+            0,
+            1
+          ]
+        },
+        "sustained-map-change": {
+          "passed": true,
+          "seconds": 642.27
+        },
+        "sustained-chat": {
+          "passed": true,
+          "seconds": 642.27,
+          "rounds": 30,
+          "heard": 30,
+          "retried": 0,
+          "missed": [],
+          "held": 600.5
+        }
+      }
+    },
+    {
+      "profile": "rtcw-mp",
+      "direction": "join",
+      "folder": "hold600",
+      "passed": true,
+      "installationUnchanged": true,
+      "serverKind": "retail",
+      "clientKind": "fntech3",
+      "serverSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+      "clientSha256": "b788de497e8dbcbb1f04d69883fb66c90062ff72147542f9b39d3543b4af6f15",
+      "secondClientSha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+      "exits": [
+        0,
+        0,
+        0
+      ],
+      "steps": {
+        "server-ready": {
+          "passed": true,
+          "seconds": 2.11
+        },
+        "sustained-join": {
+          "passed": true,
+          "seconds": 47.39,
+          "slots": [
+            1,
+            0
+          ]
+        },
+        "sustained-map-change": {
+          "passed": true,
+          "seconds": 647.84
+        },
+        "sustained-chat": {
+          "passed": true,
+          "seconds": 647.84,
+          "rounds": 30,
+          "heard": 30,
+          "retried": 0,
+          "missed": [],
+          "held": 600.5
+        }
+      }
+    },
+    {
+      "profile": "stvef-mp",
+      "direction": "host",
+      "folder": "hold600",
+      "passed": true,
+      "installationUnchanged": true,
+      "serverKind": "fntech3",
+      "clientKind": "retail",
+      "serverSha256": "a56a866d0977e143d16645ee78c510f89944f89627d88b1eca2467a5136c5975",
+      "clientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "secondClientSha256": "b788de497e8dbcbb1f04d69883fb66c90062ff72147542f9b39d3543b4af6f15",
+      "exits": [
+        0,
+        0,
+        0
+      ],
+      "steps": {
+        "server-ready": {
+          "passed": true,
+          "seconds": 2.52
+        },
+        "sustained-join": {
+          "passed": true,
+          "seconds": 62.7,
+          "slots": [
+            0,
+            1
+          ]
+        },
+        "sustained-map-change": {
+          "passed": true,
+          "seconds": 663.16
+        },
+        "sustained-chat": {
+          "passed": true,
+          "seconds": 663.16,
+          "rounds": 30,
+          "heard": 30,
+          "retried": 0,
+          "missed": [],
+          "held": 600.5
+        }
+      }
+    },
+    {
+      "profile": "stvef-mp",
+      "direction": "join",
+      "folder": "hold600",
+      "passed": true,
+      "installationUnchanged": true,
+      "serverKind": "retail",
+      "clientKind": "fntech3",
+      "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "clientSha256": "b788de497e8dbcbb1f04d69883fb66c90062ff72147542f9b39d3543b4af6f15",
+      "secondClientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "exits": [
+        0,
+        0,
+        0
+      ],
+      "steps": {
+        "server-ready": {
+          "passed": true,
+          "seconds": 1.27
+        },
+        "sustained-join": {
+          "passed": true,
+          "seconds": 91.05,
+          "slots": [
+            1,
+            0
+          ]
+        },
+        "sustained-map-change": {
+          "passed": true,
+          "seconds": 691.3
+        },
+        "sustained-chat": {
+          "passed": true,
+          "seconds": 691.3,
+          "rounds": 30,
+          "heard": 30,
+          "retried": 0,
+          "missed": [],
+          "held": 600.2
+        }
+      }
+    },
+    {
+      "profile": "wolfet",
+      "direction": "host",
+      "folder": "hold600",
+      "passed": true,
+      "installationUnchanged": true,
+      "serverKind": "fntech3",
+      "clientKind": "retail",
+      "serverSha256": "a56a866d0977e143d16645ee78c510f89944f89627d88b1eca2467a5136c5975",
+      "clientSha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+      "secondClientSha256": "b788de497e8dbcbb1f04d69883fb66c90062ff72147542f9b39d3543b4af6f15",
+      "exits": [
+        0,
+        0,
+        0
+      ],
+      "steps": {
+        "server-ready": {
+          "passed": true,
+          "seconds": 1.53
+        },
+        "server-playing": {
+          "passed": true,
+          "seconds": 10.94
+        },
+        "sustained-join": {
+          "passed": true,
+          "seconds": 51.25,
+          "slots": [
+            0,
+            1
+          ]
+        },
+        "sustained-map-change": {
+          "passed": true,
+          "seconds": 651.7
+        },
+        "sustained-chat": {
+          "passed": true,
+          "seconds": 651.7,
+          "rounds": 30,
+          "heard": 30,
+          "retried": 0,
+          "missed": [],
+          "held": 600.5
+        }
+      }
+    },
+    {
+      "profile": "wolfet",
+      "direction": "join",
+      "folder": "hold600",
+      "passed": true,
+      "installationUnchanged": true,
+      "serverKind": "retail",
+      "clientKind": "fntech3",
+      "serverSha256": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+      "clientSha256": "b788de497e8dbcbb1f04d69883fb66c90062ff72147542f9b39d3543b4af6f15",
+      "secondClientSha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+      "exits": [
+        0,
+        0,
+        0
+      ],
+      "steps": {
+        "server-ready": {
+          "passed": true,
+          "seconds": 2.42
+        },
+        "server-playing": {
+          "passed": true,
+          "seconds": 7.28
+        },
+        "sustained-join": {
+          "passed": true,
+          "seconds": 55.39,
+          "slots": [
+            1,
+            0
+          ]
+        },
+        "sustained-map-change": {
+          "passed": true,
+          "seconds": 655.64
+        },
+        "sustained-chat": {
+          "passed": true,
+          "seconds": 655.64,
+          "rounds": 30,
+          "heard": 30,
+          "retried": 0,
+          "missed": [],
+          "held": 600.2
+        }
+      }
+    },
+    {
+      "profile": "q3test",
+      "direction": "host",
+      "folder": "q3test-hold300",
+      "passed": false,
+      "installationUnchanged": true,
+      "serverKind": "fntech3",
+      "clientKind": "retail",
+      "serverSha256": "a56a866d0977e143d16645ee78c510f89944f89627d88b1eca2467a5136c5975",
+      "clientSha256": "89a7dfb431c6738a13e1e44d0c2d76d69107c6e0791a64f6a49830e1a51c547b",
+      "secondClientSha256": "b788de497e8dbcbb1f04d69883fb66c90062ff72147542f9b39d3543b4af6f15",
+      "exits": [
+        1,
+        1,
+        0
+      ],
+      "steps": {
+        "server-ready": {
+          "passed": true,
+          "seconds": 1.55
+        },
+        "sustained-join": {
+          "passed": true,
+          "seconds": 41.83,
+          "slots": [
+            0,
+            1
+          ]
+        },
+        "sustained-map-change": {
+          "passed": true,
+          "seconds": 476.3
+        },
+        "sustained-chat": {
+          "passed": false,
+          "seconds": 476.3,
+          "rounds": 15,
+          "heard": 0,
+          "heardBySecond": 0,
+          "heardByFirst": 15,
+          "retried": 0,
+          "missed": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+          "held": 434.5
+        }
+      }
+    },
+    {
+      "profile": "q3test",
+      "direction": "join",
+      "folder": "q3test-hold300",
+      "passed": false,
+      "installationUnchanged": true,
+      "serverKind": "retail",
+      "clientKind": "fntech3",
+      "serverSha256": "89a7dfb431c6738a13e1e44d0c2d76d69107c6e0791a64f6a49830e1a51c547b",
+      "clientSha256": "b788de497e8dbcbb1f04d69883fb66c90062ff72147542f9b39d3543b4af6f15",
+      "secondClientSha256": "89a7dfb431c6738a13e1e44d0c2d76d69107c6e0791a64f6a49830e1a51c547b",
+      "exits": [
+        0,
+        0,
+        1
+      ],
+      "steps": {
+        "server-ready": {
+          "passed": true,
+          "seconds": 0.53
+        },
+        "sustained-join": {
+          "passed": true,
+          "seconds": 44.77,
+          "slots": [
+            1,
+            0
+          ]
+        },
+        "sustained-map-change": {
+          "passed": true,
+          "seconds": 480.7
+        },
+        "sustained-chat": {
+          "passed": false,
+          "seconds": 480.7,
+          "rounds": 15,
+          "heard": 0,
+          "heardBySecond": 15,
+          "heardByFirst": 0,
+          "retried": 0,
+          "missed": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+          "held": 435.9
+        }
+      }
+    }
+  ],
+  "inputInjected": false,
+  "open": [
+    "real networks",
+    "combat and objectives",
+    "more than two clients",
+    "a retail-originated Q3Test chat line"
+  ]
+}

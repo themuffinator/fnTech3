@@ -63,6 +63,8 @@ INSTALLS = {
     'stvef-mp': Path(r'E:\Games\Star Trek Voyager Elite Force'),
     'jka-mp': Path(r'E:\Games\Jedi Academy'),
     'jk2-mp': Path(r'E:\Games\Jedi Outcast'),
+    # Q3Test 1.08 as laid down from its Win32 package (scripts/probe_q3test.py).
+    'q3test': ROOT / '.tmp' / 'q3test' / 'install' / '1.08',
 }
 
 # Retail facts the probe checks against: each engine's protocol, default
@@ -250,6 +252,12 @@ def stage_retail(profile_key, profile, installation):
                     shutil.copy2(source, target)
         (root / 'base').mkdir(exist_ok=True)
         return dict(root=root, cdpath=installation)
+    if layout == 'q3test':
+        # Q3Test has no home path and runs from the fixed runtime slot the
+        # Q3Test probe keeps for its release, with its modules and paks.
+        from probe_q3test import retail_runtime
+        root = retail_runtime(installation, profile.get('release', '1.08'))
+        return dict(root=root, cdpath=root)
     if layout == 'stvef':
         # Retail Elite Force formats search paths into 128-byte buffers, has
         # no home path, and overflows its stack on the installation's

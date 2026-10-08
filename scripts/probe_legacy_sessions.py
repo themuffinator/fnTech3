@@ -83,6 +83,11 @@ PROFILES = {
                      # Retail asks Raven's dead authorize server about a
                      # non-LAN client and waits it out (about 20 s).
                      connectSeconds=60),
+    # Q3Test 1.08 (layout q3test): no home path, so its writable base is the
+    # run's own folder and its paks come from the release's runtime slot.
+    'q3test': dict(game='demoq3', maps=('q3test1', 'q3test2'), protocol=40, gametype='0',
+                   retailServer='quake3.exe', retailClient='quake3.exe', retailLog='qconsole.log',
+                   layout='q3test', release='1.08', clientSettings=dict(cl_motd='0')),
     'jka-mp': dict(game='base', maps=('mp/ffa1', 'mp/ffa3'), protocol=26, gametype='0',
                    retailServer='jamp.exe', retailClient=None, retailLog='qconsole.log', layout='jka',
                    consoleSay='svsay',
@@ -258,7 +263,7 @@ def start_server(run, kind, key, profile, installation, runtime, layout, pure, m
         exe, cwd = layout['root'] / profile['retailServer'], layout['root']
         if profile.get('developerLater'):
             del settings['developer']
-        if profile.get('layout') == 'stvef':
+        if profile.get('layout') in ('stvef', 'q3test'):
             base = run.dir / 'sb'
             base.mkdir()
             settings = dict(fs_basepath=str(base), fs_cdpath=str(layout['cdpath']), **settings)
@@ -304,7 +309,7 @@ def start_client(run, kind, key, profile, installation, runtime, layout, port, e
     lines = []
     if kind == 'retail':
         exe, cwd = layout['root'] / profile['retailClient'], layout['root']
-        if profile.get('layout') == 'stvef':
+        if profile.get('layout') in ('stvef', 'q3test'):
             base = run.dir / ('cb' if role == 'client' else 'cb2')
             base.mkdir()
             settings = dict(fs_basepath=str(base), fs_cdpath=str(layout['cdpath']), **settings)
@@ -483,6 +488,63 @@ def mixed_session(run, server, clients, profile):
     run.step('mixed-chat-after-change', heard)
 
 
+# --hold: how long a sustained session keeps its two clients on the server.
+HOLD_SECONDS = 300
+
+
+def sustained_session(run, server, clients, profile):
+    """A retail and an fnTech3 client share a server for HOLD_SECONDS: every
+    20 s each says a line the other must hear, a lost round being said once
+    more, and the map changes halfway."""
+    connect_seconds = profile.get('connectSeconds', 40)
+    game = lambda: server.game_log() + server.log()
+    names = [NAME, NAME2]
+    slots = [wait_for(lambda n=n: slot_of(game(), n), connect_seconds) for n in names]
+    joined = all(s is not None for s in slots) and \
+        wait_for(lambda: all(begins(game(), s) >= 1 for s in slots), 30)
+    if not run.step('sustained-join', joined, slots=slots):
+        return
+    rounds = max(2, HOLD_SECONDS // 20)
+    begin = time.monotonic()
+    heard_rounds, retried, missed, changed = 0, 0, [], None
+    # Rounds in which the second client heard the first, and the reverse.
+    heard_by_second, heard_by_first = 0, 0
+    for number in range(rounds):
+        if number == rounds // 2:
+            base = [begins(game(), s) for s in slots]
+            server_exec(server, 'map', [f'map {profile["maps"][1]}'])
+            changed = wait_for(lambda: all(begins(game(), s) > b for s, b in zip(slots, base)), 90)
+            if not changed:
+                break
+        # Pace the rounds 20 s apart; flood protection drops a second
+        # reliable command within a second of another.
+        time.sleep(max(2.5, begin + 20 * (number + 1) - time.monotonic()))
+        heard = False
+        second, first = False, False
+        for attempt in range(2):
+            nonces = [secrets.token_hex(4) for _ in clients]
+            for client, nonce in zip(clients, nonces):
+                client.driver.send(f'say probe-hold-{nonce}')
+            heard = wait_for(lambda: f'probe-hold-{nonces[1]}' in clients[0].log()
+                             and f'probe-hold-{nonces[0]}' in clients[1].log(), 10)
+            second = second or f'probe-hold-{nonces[0]}' in clients[1].log()
+            first = first or f'probe-hold-{nonces[1]}' in clients[0].log()
+            if heard:
+                retried += attempt
+                break
+            time.sleep(2.5)
+        heard_by_second += second
+        heard_by_first += first
+        if heard:
+            heard_rounds += 1
+        else:
+            missed.append(number)
+    run.step('sustained-map-change', bool(changed))
+    run.step('sustained-chat', heard_rounds == rounds, rounds=rounds, heard=heard_rounds,
+             heardBySecond=heard_by_second, heardByFirst=heard_by_first,
+             retried=retried, missed=missed, held=round(time.monotonic() - begin, 1))
+
+
 def kick_session(run, server, client, profile):
     connect_seconds = profile.get('connectSeconds', 40)
     game = lambda: server.game_log() + server.log()
@@ -549,8 +611,8 @@ def run_direction(output, key, direction, runtime, args):
     result = dict(profile=key, direction=direction, serverKind=server_kind, clientKind=client_kind,
                   maps=list(profile['maps']), pure=not args.no_pure, sessions=[])
     for session in args.sessions:
-        # Mixed sessions put a retail and an fnTech3 client on one server.
-        if session == 'mixed' and (direction not in ('join', 'host') or not profile.get('retailClient')):
+        # Mixed and sustained sessions put a retail and an fnTech3 client on one server.
+        if session in ('mixed', 'sustained') and (direction not in ('join', 'host') or not profile.get('retailClient')):
             continue
         run = Run(output, f'{key}-{direction}-{session}')
         mod = MOD if session == 'download' else None
@@ -574,12 +636,12 @@ def run_direction(output, key, direction, runtime, args):
                 main_session(run, server, client, profile)
             elif session == 'kick':
                 kick_session(run, server, client, profile)
-            elif session == 'mixed':
+            elif session in ('mixed', 'sustained'):
                 other = 'retail' if client_kind == 'fntech3' else 'fntech3'
                 others.append(start_client(run, other, key, profile, installation, runtime, layout,
                                            server.port, name=NAME2, role='client2'))
                 record.update(secondClientCommand=others[0].command, secondClientSha256=others[0].sha256)
-                mixed_session(run, server, [client] + others, profile)
+                (mixed_session if session == 'mixed' else sustained_session)(run, server, [client] + others, profile)
             else:
                 download_session(run, server, client, profile, server.fixture)
         except (OSError, RuntimeError) as error:
@@ -625,7 +687,9 @@ def main():
     parser.add_argument('--runtime', type=Path, required=True, help='fnTech3 runtime folder')
     parser.add_argument('--no-pure', action='store_true')
     parser.add_argument('--sessions', nargs='+', default=['main', 'kick', 'download', 'mixed'],
-                        choices=['main', 'kick', 'download', 'mixed'])
+                        choices=['main', 'kick', 'download', 'mixed', 'sustained'])
+    parser.add_argument('--hold', type=int, default=HOLD_SECONDS,
+                        help='seconds a sustained session keeps its two clients on the server')
     parser.add_argument('--fntech3-set', nargs=2, action='append', default=[], metavar=('CVAR', 'VALUE'),
                         help="a cvar for fnTech3's server and clients only, e.g. net_dropsim 20")
     parser.add_argument('--payload-bytes', type=int, default=PAYLOAD_BYTES,
@@ -635,6 +699,9 @@ def main():
     if not 1 <= args.payload_bytes <= 64 << 20:
         parser.error('--payload-bytes must be 1 to 64 MiB')
     globals()['PAYLOAD_BYTES'] = args.payload_bytes
+    if not 40 <= args.hold <= 6 * 3600:
+        parser.error('--hold must be 40 s to 6 h')
+    globals()['HOLD_SECONDS'] = args.hold
     if os.name != 'nt':
         parser.error('Windows only')
     output = args.output.resolve()
