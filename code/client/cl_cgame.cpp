@@ -1549,7 +1549,9 @@ static qboolean CL_GetRTCWSnapshot( int number, ExternalSnapshot *destination ) 
 namespace {
 
 // Retail consumer copy/stride provenance (module hash and instruction RVAs):
-// docs/fntech3/2026-09-08-retail-snapshot-layout.md. Tail semantics remain unknown.
+// docs/fntech3/2026-09-08-retail-snapshot-layout.md. The 0x58-byte tail is the
+// game's own state, zero in every retail client snapshot:
+// docs/fntech3/2026-10-08-ql-snapshot-tail.md.
 constexpr int kRetailPlayerStateBytes = 0x250;
 constexpr int kRetailSnapshotEntityCount = 0x180;
 

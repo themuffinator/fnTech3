@@ -60,7 +60,12 @@ enum {
 	/* The reconstructed, source-known player-state bytes below are 0x1f8. */
 	FNTECH3_QL_PLAYERSTATE_KNOWN_BYTES = 0x1f8,
 
-	/* The retail native snapshot reserves this larger opaque state region. */
+	/*
+	 * The retail native snapshot reserves this larger state region. Its last
+	 * 0x58 bytes are the game module's own state, never transmitted; the
+	 * retail client hands them over as zeroes
+	 * (docs/fntech3/2026-10-08-ql-snapshot-tail.md).
+	 */
 	FNTECH3_QL_RETAIL_SNAPSHOT_PLAYERSTATE_BYTES = 0x250
 };
 
@@ -217,9 +222,12 @@ typedef struct fntech3_ql_entityState_s {
 
 /*
  * This is the exact 0x1f8 source-known prefix used by current FnQL. Retail
- * native snapshots reserve 0x250 bytes for player state. The meaning and
- * member structure of bytes 0x1f8..0x24f have not been established, so this
- * type deliberately does not guess at them or call them padding.
+ * native snapshots reserve 0x250 bytes for player state. Bytes 0x1f8..0x24f
+ * belong to the retail game module (its medal and scoring bookkeeping): the
+ * engine copies them into server frames but never encodes them, and every
+ * snapshot the retail client hands its client game holds them as zeroes
+ * (docs/fntech3/2026-10-08-ql-snapshot-tail.md). This type does not name
+ * them, and adapters zero them on the client.
  */
 typedef struct fntech3_ql_playerState_s {
 	int32_t commandTime;

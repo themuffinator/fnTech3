@@ -1,0 +1,128 @@
+{
+  "record": "2026-10-08-ql-snapshot-tail.md",
+  "profile": "ql",
+  "sourceCommit": "6a93b622e78e37949e89625484c56997f34fa8a5",
+  "engineBehaviourChanged": false,
+  "installation": {
+    "path": "E:\\SteamLibrary\\steamapps\\common\\Quake Live",
+    "access": "read only",
+    "files": [
+      {
+        "name": "quakelive_steam.exe",
+        "bytes": 2107904,
+        "sha256": "c926fe9f6c851e00b3b9332e88903ad01f28fdd60454873891c0158f5ded1299",
+        "imageBase": "0x400000"
+      },
+      {
+        "name": "baseq3/cgamex86.dll",
+        "bytes": 561152,
+        "sha256": "310542161ae03cc09a2edf7c5933a3cb5e2f13d791f59d5a33a62721bbf39953",
+        "imageBase": "0x10000000"
+      },
+      {
+        "name": "baseq3/bin.pk3",
+        "sha256": "0587e55a98516d9645d2dd7ad894822db4bc5190f53e11f82e7486876b753ce0"
+      },
+      {
+        "name": "baseq3/bin.pk3!qagamex86.dll",
+        "bytes": 640512,
+        "sha256": "9bfad1b5df4cbbb3fcfb20781024fc5c0abe73ba8389c2f20be8c0a55552e83d",
+        "imageBase": "0x10000000"
+      }
+    ]
+  },
+  "tools": {
+    "pefile": "2024.8.26",
+    "capstone": "5.0.6"
+  },
+  "method": [
+    "Linear disassembly of the executable's whole .text section, listing every instruction with a memory displacement or immediate inside the snapshot history or cl.snap.",
+    "Raw little-endian byte search of every section for the same address ranges; each match not in the first list was decoded from 64 starting offsets and found to straddle unrelated instructions.",
+    "Disassembly of each function reached from those instructions, and of the player-state delta reader and writer, checking every fixed displacement at or beyond byte 480.",
+    "In qagamex86.dll, intra-block tracking of registers loaded from an entity's player pointer at offset 0x23c, listing their uses at offsets 0x1f8 to 0x24f."
+  ],
+  "layout": {
+    "playerStateBytes": 592,
+    "namedPrefixBytes": 504,
+    "tailOffset": 504,
+    "tailBytes": 88,
+    "deltaTableLastFieldOffset": 478,
+    "deltaTableFields": 58,
+    "fieldTable": "0x5424d8",
+    "pingOffset": 480
+  },
+  "client": {
+    "clientState": "0x146cd20",
+    "clientStateBytes": "0xbbe54",
+    "currentSnapshot": "0x146cd24",
+    "history": "0x1472874",
+    "historySlots": 32,
+    "historyStride": "0x298",
+    "playerStateOffsetInRecord": "0x3c",
+    "decodedReferences": {
+      "history": [
+        { "address": "0x4af5a9", "role": "snapshot producer reads a slot (client game import 87)" },
+        { "address": "0x4bd437", "role": "parser takes the delta base slot, passed read-only to 0x4d66c0 and 0x4bd000" },
+        { "address": "0x4bd54e", "role": "parser clears skipped slots' valid word only" },
+        { "address": "0x4bd5c6", "role": "parser copies cl.snap into the slot (rep movsd at 0x4bd5d6, 0xa6 dwords)" }
+      ],
+      "currentSnapshotWrites": [
+        { "address": "0x4bd568", "role": "parser copies its zero-initialised local (0x4bd376) into cl.snap, 0xa6 dwords" },
+        { "address": "0x4bd576", "role": "ping word (offset 0x14)" },
+        { "address": "0x4bd5ab", "role": "ping word (offset 0x14)" }
+      ],
+      "clientStateClears": [
+        { "call": "0x4b892c", "bytes": "0xbbe54" },
+        { "call": "0x4b8a10", "bytes": "0xbbe54" },
+        { "call": "0x4bc6af", "bytes": "0xbbe54" }
+      ]
+    },
+    "rawOnlyMatchesRejected": [
+      { "match": "0x4b511f", "decodesAs": "call 0x4c9860 at 0x4b511f" },
+      { "match": "0x4ceda8", "decodesAs": "jne at 0x4ceda7 and following bytes" },
+      { "match": "0x4ee340", "decodesAs": "mov al, [edx+1] at 0x4ee33e and following bytes" }
+    ],
+    "parserLocalWriters": [
+      { "function": "0x4d66c0", "role": "player-state delta reader: zero baseline at 0x4d66fa when there is no base, 592-byte baseline copy at 0x4d670b, then 4-byte stores of the 58 table fields (0x4d67c4, 0x4d680a, 0x4d682e, 0x4d6868, 0x4d68c2); no fixed displacement >= 480; ends 0x4d6ba4" },
+      { "function": "0x4bd000", "role": "entity parser: writes the local's offsets 0x28c and 0x290 only" },
+      { "function": "0x4d5160", "role": "area mask, at most 32 bytes at offset 0x18 (bound checked at 0x4bd404)" }
+    ],
+    "conclusion": "Every client player-state tail is copied from zeroed storage; the client game always receives 88 zero bytes, live or from a demo. Bytes 480 to 503 are zero too."
+  },
+  "server": {
+    "gameClientNum": "0x4e10d0",
+    "gameClients": "0x1333774",
+    "gameClientSize": "0x1333778",
+    "setAt": ["0x4e1353", "0x4e1358"],
+    "callers": [
+      { "address": "0x4dece5", "role": "status listing reads offset 0x100 (score)" },
+      { "address": "0x4e47aa", "role": "SV_CalcPings writes ping at offset 0x1e0 (0x4e47b4)" },
+      { "address": "0x4e570a", "role": "SV_BuildClientSnapshot copies 0x94 dwords into the frame (0x4e5719)" }
+    ],
+    "deltaWriter": { "start": "0x4d5d50", "end": "0x4d66b9", "fixedDisplacementsAtOrBeyond480": 0 },
+    "conclusion": "The tail is copied into server frames and never encoded."
+  },
+  "gameModule": {
+    "playerPointerOffsetInEntity": "0x23c",
+    "playerPointerLoads": 1200,
+    "tailUses": [
+      { "offset": "0x1f8", "address": ["0x1004bd3b", "0x1004cfdd", "0x1004d01f", "0x1004d168"], "observed": "set to 0 or 1; guards 0x1fc" },
+      { "offset": "0x1fc", "address": ["0x1004d15c", "0x1004d185"], "observed": "latched from another player's clientNum (offset 0x88)" },
+      { "offset": "0x204", "address": ["0x1006457c", "0x100466cb"], "observed": "added to with the amount added to the score at 0x100 (0x1006456a)" },
+      { "offset": "0x208", "address": ["0x100479f5"], "observed": "read beside COMBOKILL" },
+      { "offset": "0x20c", "address": ["0x100483de"], "observed": "read beside RAMPAGE" },
+      { "offset": "0x210", "address": ["0x10047ba9"], "observed": "read beside MIDAIR and HEADSHOT" },
+      { "offset": "0x214", "address": ["0x10047968"], "observed": "read beside REVENGE" },
+      { "offset": "0x218", "address": ["0x10047c0e", "0x10047c6d"], "observed": "read beside HEADSHOT and PERFORATED" },
+      { "offset": "0x21c", "address": ["0x10047be5"], "observed": "read beside MIDAIR, HEADSHOT and PERFORATED" }
+    ],
+    "inference": "Per-client medal and scoring bookkeeping private to the game module."
+  },
+  "fnTech3": {
+    "clientAdapter": "FnTech3_QLSnapshotPlayerStateFromInternal (code/compat/game_abi_adapter.c) zero-fills the tail; tests/game_abi_adapter_tests.cpp checks it with guards",
+    "serverLayout": "code/server/server_game_data.cpp reads the game's 504-byte prefix at the game's stride and writes ping at offset 480 (tests/game_abi_layout_tests.cpp)",
+    "deltaFields": "quakeLivePlayerStateFields in code/qcommon/msg.cpp, the same 58 fields",
+    "knownEncodingDifference": "retail compares the movement bytes as 4-byte words when encoding, so a ping-only change re-sends upmove; recorded in 2026-09-08-retail-playerstate-wire.md, decodes identically"
+  },
+  "gateEffect": "The Quake Live snapshot tail is resolved; the module ABI gate stays partial for its other open items."
+}
