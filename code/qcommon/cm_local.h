@@ -193,6 +193,9 @@ typedef struct {
 	 * every release. Set per map by CM_LoadMap; zero is Quake III's rule. */
 	qboolean	curveHitKeepsContents;
 	qboolean	curveInsideKeepsContents;
+	/* Q3Test's brushes likewise keep the trace's earlier contents when a
+	 * sweep starts and ends inside one; Quake III writes the brush's. */
+	qboolean	brushSolidKeepsContents;
 } clipMap_t;
 
 

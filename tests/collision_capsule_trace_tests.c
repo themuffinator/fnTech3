@@ -372,6 +372,77 @@ static void TestPlaneContractHoldsAcrossTheWorld( void )
 	CHECK( violations == 0 );
 }
 
+/*
+ * A 128-unit cube in the stub model's leaf, for the brush sweep: Q3Test's
+ * sweep that starts and ends inside a brush writes only the solid flags and
+ * fraction, keeping the contents an earlier brush wrote (1.08
+ * CM_TraceThroughBrush 0x0040eeb4..0x0040eec9), where Quake III writes the
+ * brush's. A sweep into the brush and a position test write them in both.
+ */
+static cplane_t		cubePlanes[6];
+static cbrushside_t	cubeSides[6];
+static cbrush_t		cubeBrush;
+static int			cubeLeafBrushes[1];
+
+static void BrushTrace( trace_t *trace, float sx, float ex )
+{
+	const vec3_t point = { 0.0f, 0.0f, 0.0f };
+	vec3_t start, end;
+
+	VectorSet( start, sx, 0, 0 );
+	VectorSet( end, ex, 0, 0 );
+	CM_BoxTrace( trace, start, end, point, point, 1, CONTENTS_SOLID, qfalse );
+}
+
+static void TestQ3TestBrushSolidKeepsContents( void )
+{
+	trace_t trace;
+	int i;
+
+	for ( i = 0; i < 6; ++i ) {
+		cplane_t *plane = &cubePlanes[i];
+
+		VectorClear( plane->normal );
+		plane->normal[i >> 1] = ( i & 1 ) ? -1.0f : 1.0f;
+		plane->dist = 64.0f;
+		plane->type = ( i & 1 ) ? PLANE_NON_AXIAL : i >> 1;
+		SetPlaneSignbits( plane );
+		cubeSides[i].plane = plane;
+	}
+	cubeBrush.contents = CONTENTS_SOLID;
+	VectorSet( cubeBrush.bounds[0], -64, -64, -64 );
+	VectorSet( cubeBrush.bounds[1], 64, 64, 64 );
+	cubeBrush.numsides = 6;
+	cubeBrush.sides = cubeSides;
+	cm.brushes = &cubeBrush;
+	cm.numBrushes = 1;
+	cm.leafbrushes = cubeLeafBrushes;
+	cm.numLeafBrushes = 1;
+	stubModel.leaf.firstLeafBrush = 0;
+	stubModel.leaf.numLeafBrushes = 1;
+
+	cm.brushSolidKeepsContents = qfalse;
+	BrushTrace( &trace, 0, 10 );
+	CHECK( trace.allsolid && trace.startsolid && trace.fraction == 0.0f );
+	CHECK( trace.contents == CONTENTS_SOLID );
+
+	cm.brushSolidKeepsContents = qtrue;
+	BrushTrace( &trace, 0, 10 );
+	CHECK( trace.allsolid && trace.startsolid && trace.fraction == 0.0f );
+	CHECK( trace.contents == 0 );
+	BrushTrace( &trace, 100, 0 );
+	CHECK( !trace.startsolid && trace.fraction < 1.0f && trace.contents == CONTENTS_SOLID );
+	BrushTrace( &trace, 0, 0 );
+	CHECK( trace.allsolid && trace.contents == CONTENTS_SOLID );
+
+	cm.brushSolidKeepsContents = qfalse;
+	stubModel.leaf.numLeafBrushes = 0;
+	cm.brushes = NULL;
+	cm.numBrushes = 0;
+	cm.leafbrushes = NULL;
+	cm.numLeafBrushes = 0;
+}
+
 int main( void )
 {
 	cm.numNodes = 1;
@@ -388,6 +459,7 @@ int main( void )
 	TestContactContentsStayRetailShaped();
 	TestOverlapReportsStartSolid();
 	TestPlaneContractHoldsAcrossTheWorld();
+	TestQ3TestBrushSolidKeepsContents();
 	{
 		const comGameId_t games[] = { COM_GAME_RTCW_SP, COM_GAME_RTCW_MP };
 		unsigned i;

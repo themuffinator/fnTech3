@@ -661,7 +661,10 @@ static void CM_TraceThroughBrush( traceWork_t *tw, const cbrush_t *brush ) {
 		if (!getout) {
 			tw->trace.allsolid = qtrue;
 			tw->trace.fraction = 0;
-			tw->trace.contents = brush->contents;
+			// Q3Test leaves the contents an earlier brush wrote
+			if ( !cm.brushSolidKeepsContents ) {
+				tw->trace.contents = brush->contents;
+			}
 		}
 		return;
 	}

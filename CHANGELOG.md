@@ -2201,6 +2201,11 @@ historical upstream records, not fnTech3 release history. See the
   the player's weapons, ammunition and armour into the next level, and five
   cinematic levels hand over to the next episode
   ([record](docs/fntech3/2026-10-08-rtcw-sp-level-exits.md)).
+- Keep a Q3Test trace's contents when it starts and ends inside a brush, as
+  every Q3Test release does; fnTech3 wrote the brush's, as Quake III does.
+  With that, 64,800 world traces asked of every release's retail server and
+  of fnTech3's agree in every hit, flag and contents
+  ([record](docs/fntech3/2026-10-08-q3test-traces.md)).
 
 ### Builds and Packaging
 

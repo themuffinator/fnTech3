@@ -818,6 +818,10 @@ read a patch's surface flags from its shader's contents as well (1.06
 CMod_LoadPatches 0x00409cf0), which 1.08 corrected (0x0040a690). A sweep that
 hits a curve takes its contents too only from 1.06 (1.02 0x0040d270, 1.06
 0x0040e2d0), and a start found inside one never does (docs/fntech3/Q3TEST.md).
+No release's brush sweep writes the contents when it starts and ends inside
+the brush, only the solid flags and fraction (CM_TraceThroughBrush, 1.02
+0x0040d494..0x0040d4a9, 1.05 0x0040dc64..0x0040dc79, 1.08
+0x0040eeb4..0x0040eec9); its position test does.
 =================
 */
 static void CM_Q3TestCurveRules( void ) {
@@ -827,6 +831,7 @@ static void CM_Q3TestCurveRules( void ) {
 
 	cm.curveHitKeepsContents = id <= Q3TEST_RELEASE_1_05 ? qtrue : qfalse;
 	cm.curveInsideKeepsContents = qtrue;
+	cm.brushSolidKeepsContents = qtrue;
 	if ( id == Q3TEST_RELEASE_1_06 || id == Q3TEST_RELEASE_1_07 ) {
 		for ( i = 0; i < cm.numSurfaces; i++ ) {
 			if ( cm.surfaces[i] ) {
