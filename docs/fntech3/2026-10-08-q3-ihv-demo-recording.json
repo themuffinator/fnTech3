@@ -10,27 +10,130 @@
   },
   "installation": "E:\\Games\\Quake 3 IHV (read only); the original client ran from the writable copy .tmp/q3-ihv/original-server",
   "originalObservations": {
-    "record": {"function": "0x404560", "argc": 2, "refusals": ["Already recording.", "You must be in a level to record."], "file": "demos/%s.dm3", "menuName": "demos/demo%03d.dm3 (0x463a3c)"},
-    "firstRecord": {"range": "0x404650..0x404707", "content": "opcode 2, every set configstring, baselines with byte 0x95 (model) set, zero byte", "serverRule": "0x4187d1 also sends baselines with only byte 2, 0x94 or word 4 set"},
-    "messages": {"hook": "0x405812", "writer": "0x4044a0", "record": "length of the bytes after the channel header, then those bytes", "afterParse": true},
-    "waiting": {"set": "record", "cleared": "first frame with delta <= 0 (CL_ParseFrame 0x406af4)", "movesAskFullFrame": "0x4035f9"},
-    "stop": {"function": "0x4044f0", "terminator": -1, "onDisconnect": "0x404b0d"},
+    "record": {
+      "function": "0x404560",
+      "argc": 2,
+      "refusals": [
+        "Already recording.",
+        "You must be in a level to record."
+      ],
+      "file": "demos/%s.dm3",
+      "menuName": "demos/demo%03d.dm3 (0x463a3c)"
+    },
+    "firstRecord": {
+      "range": "0x404650..0x404707",
+      "content": "opcode 2, every set configstring, baselines with byte 0x95 (model) set, zero byte",
+      "serverRule": "0x4187d1 also sends baselines with only byte 2, 0x94 or word 4 set"
+    },
+    "messages": {
+      "hook": "0x405812",
+      "writer": "0x4044a0",
+      "record": "length of the bytes after the channel header, then those bytes",
+      "afterParse": true
+    },
+    "waiting": {
+      "set": "record",
+      "cleared": "first frame with delta <= 0 (CL_ParseFrame 0x406af4)",
+      "movesAskFullFrame": "0x4035f9"
+    },
+    "stop": {
+      "function": "0x4044f0",
+      "terminator": -1,
+      "onDisconnect": "0x404b0d"
+    },
     "indicator": "RECORDING %s: %ik (0x4076a0)",
-    "downloads": {"clientParserTable": "0x407188", "opcode6": "Illegible server message (0x40714e)", "serverRefusal": "0x418a63", "serverRefusesMaps": "0x4189ba", "conclusion": "no IHV peer can carry a download"}
+    "downloads": {
+      "clientParserTable": "0x407188",
+      "opcode6": "Illegible server message (0x40714e)",
+      "serverRefusal": "0x418a63",
+      "serverRefusesMaps": "0x4189ba",
+      "conclusion": "no IHV peer can carry a download"
+    }
   },
   "runs": [
-    {"name": "rec1", "recorder": "fnTech3 client", "server": "fnTech3", "file": "fnrec.dm3", "sha256": "155fac79b110bcba5e40db2e384a89e81ee30b3fc04623541dba68b995af34eb", "bytes": 10872,
-     "decoded": {"messages": 289, "gamestates": 1, "snapshots": 288, "serverTimeSpanMs": 14350, "failures": 0, "terminated": true},
-     "gamestate": {"bytes": 1471, "reencodedIdentical": true, "configstrings": 12, "baselines": 23, "baselinesWithoutModel": 0, "firstFrameDelta": -1},
-     "playback": {"fntech3": "CL_NextDemo, exit 0", "original": "1662 frames, 14.3 seconds: 116.5 fps"}},
-    {"name": "rec2", "recorder": "fnTech3 client", "server": "original", "file": "origrec.dm3", "sha256": "75796dbd9e3f1ae17853165d0e5813cbb0f0067ebe98d8aca53dce6fc50dea4f", "bytes": 10745,
-     "decoded": {"messages": 289, "gamestates": 1, "snapshots": 288, "serverTimeSpanMs": 14350, "failures": 0, "terminated": true},
-     "gamestate": {"bytes": 1340, "reencodedIdentical": true, "configstrings": 12, "baselines": 23, "baselinesWithoutModel": 0, "firstFrameDelta": -1},
-     "playback": {"fntech3": "CL_NextDemo, exit 0", "original": "5475 frames, 14.3 seconds: 384.1 fps"}},
-    {"name": "rec3", "recorder": "original client", "server": "fnTech3", "file": "origcl.dm3", "sha256": "ce5c0f0170fbb1f59f1e71759e1587ab831a397fc2ae48f19e494fb762924fa9", "bytes": 8363,
-     "decoded": {"messages": 206, "gamestates": 1, "snapshots": 205, "serverTimeSpanMs": 10200, "failures": 0, "terminated": true},
-     "gamestate": {"bytes": 1473, "reencodedIdentical": true, "configstrings": 12, "baselines": 23, "baselinesWithoutModel": 0, "firstFrameDelta": -1},
-     "playback": {"fntech3": "CL_NextDemo, exit 0"}}
+    {
+      "name": "rec1",
+      "recorder": "fnTech3 client",
+      "server": "fnTech3",
+      "file": "fnrec.dm3",
+      "sha256": "155fac79b110bcba5e40db2e384a89e81ee30b3fc04623541dba68b995af34eb",
+      "bytes": 10872,
+      "decoded": {
+        "messages": 289,
+        "gamestates": 1,
+        "snapshots": 288,
+        "serverTimeSpanMs": 14350,
+        "failures": 0,
+        "terminated": true
+      },
+      "gamestate": {
+        "bytes": 1471,
+        "reencodedIdentical": true,
+        "configstrings": 12,
+        "baselines": 23,
+        "baselinesWithoutModel": 0,
+        "firstFrameDelta": -1
+      },
+      "playback": {
+        "fntech3": "CL_NextDemo, exit 0",
+        "original": "1662 frames, 14.3 seconds: 116.5 fps"
+      }
+    },
+    {
+      "name": "rec2",
+      "recorder": "fnTech3 client",
+      "server": "original",
+      "file": "origrec.dm3",
+      "sha256": "75796dbd9e3f1ae17853165d0e5813cbb0f0067ebe98d8aca53dce6fc50dea4f",
+      "bytes": 10745,
+      "decoded": {
+        "messages": 289,
+        "gamestates": 1,
+        "snapshots": 288,
+        "serverTimeSpanMs": 14350,
+        "failures": 0,
+        "terminated": true
+      },
+      "gamestate": {
+        "bytes": 1340,
+        "reencodedIdentical": true,
+        "configstrings": 12,
+        "baselines": 23,
+        "baselinesWithoutModel": 0,
+        "firstFrameDelta": -1
+      },
+      "playback": {
+        "fntech3": "CL_NextDemo, exit 0",
+        "original": "5475 frames, 14.3 seconds: 384.1 fps"
+      }
+    },
+    {
+      "name": "rec3",
+      "recorder": "original client",
+      "server": "fnTech3",
+      "file": "origcl.dm3",
+      "sha256": "ce5c0f0170fbb1f59f1e71759e1587ab831a397fc2ae48f19e494fb762924fa9",
+      "bytes": 8363,
+      "decoded": {
+        "messages": 206,
+        "gamestates": 1,
+        "snapshots": 205,
+        "serverTimeSpanMs": 10200,
+        "failures": 0,
+        "terminated": true
+      },
+      "gamestate": {
+        "bytes": 1473,
+        "reencodedIdentical": true,
+        "configstrings": 12,
+        "baselines": 23,
+        "baselinesWithoutModel": 0,
+        "firstFrameDelta": -1
+      },
+      "playback": {
+        "fntech3": "CL_NextDemo, exit 0"
+      }
+    }
   ],
   "commands": {
     "record": "probe_serve.py / probe_live.py --fn-script \"wait 300|record <name>|wait 600|screenshotPNG ...|wait 300|stoprecord\"",
@@ -38,9 +141,41 @@
     "fntech3Playback": "probe_demo.py --demo <name> --demo-file <file> (cl_quitOnDemoCompleted 1)",
     "originalPlayback": "probe_original.py --demo <name> --demo-file <file> --timedemo 1"
   },
-  "tools": [".tmp/ihv-client/decode_raw.cpp", ".tmp/ihv-client/gs_compare.cpp"],
-  "tests": ["tests/q3_ihv_client_tests.py test_recorded_gamestate", "demo_record_profile, demo_recording_cvar_profile and engine_input_capture fixtures stub the new hooks"],
-  "notes": ["the original client stays on a demo's last frame after its timedemo summary, so its playback runs ended at the harness time limit"],
+  "tools": [
+    ".tmp/ihv-client/decode_raw.cpp",
+    ".tmp/ihv-client/gs_compare.cpp"
+  ],
+  "tests": [
+    "tests/q3_ihv_client_tests.py test_recorded_gamestate",
+    "demo_record_profile, demo_recording_cvar_profile and engine_input_capture fixtures stub the new hooks",
+    "tests/q3_ihv_client_tests.py test_demo_records (empty record read past)"
+  ],
+  "notes": [
+    "the original client stays on a demo's last frame after its timedemo summary, so its playback runs ended at the harness time limit"
+  ],
   "inputInjected": false,
-  "open": ["recording across a level change", "a frame-by-frame playback comparison"]
+  "open": [
+    "a frame-by-frame playback comparison"
+  ],
+  "levelChanges": {
+    "fntech3Recording": {
+      "file": "lvl.dm3",
+      "gamestates": 2,
+      "snapshots": 156,
+      "records": 158,
+      "fntech3Playback": "both levels to CL_NextDemo",
+      "originalPlayback": "stops at Awaiting snapshot after the second gamestate"
+    },
+    "originalRecording": {
+      "file": "origlvl.dm3",
+      "records": 2475,
+      "secondGamestateRecord": 161,
+      "emptyRecord": 162,
+      "fntech3PlaybackBefore": "ended at the empty record",
+      "fntech3PlaybackAfter": "both levels to CL_NextDemo in 128.7 s",
+      "originalPlayback": "stops at Awaiting snapshot after the second gamestate"
+    },
+    "originalReaderEmptyRecord": "fread of zero bytes counts no item (0x404886): reported truncated; not reached, the stall comes first",
+    "originalDemoReadsOnlyWhileActive": "inferred from 0x4059b0; stall observed"
+  }
 }

@@ -83,8 +83,33 @@ The original client's captures during playback show `tim_dm1` with its HUD.
 After its timedemo summary it stays at the demo's last frame, as it does with
 its own demos, so those runs ended at the harness's time limit.
 
+## Level changes
+
+A recording continues through a level change in both engines: the new
+gamestate is a message like any other.
+
+- **fnTech3's recording** (`lvl.dm3`, made with `rcon map km_portal` during
+  it) holds two gamestates and 156 frames, and fnTech3 plays it through both
+  levels.
+- **The original's recording** (`origlvl.dm3`) also holds both levels. Its
+  record 162, right after the second gamestate, is empty: the original records
+  the empty keepalive message the server sends a reconnecting client. fnTech3
+  read only up to that record and stopped there as if the demo had ended. It now
+  reads past an empty record, an empty message carrying nothing, and plays the
+  recording through `km_portal` to its end (129 s).
+- **The original client** stops at "Awaiting snapshot..." after a demo's second
+  gamestate, in fnTech3's recording and in its own. It reads demo records only
+  from its frame loop, which waits for the level to be active (inferred from
+  `0x4059b0`; the stall is observed). Its reader would also end a demo at an
+  empty record: a read of zero bytes counts no item, so it reports the file as
+  truncated (`0x404886`). That point is not reached here, as the stall comes
+  first.
+
+`tests/q3_ihv_client_tests.py` checks the reader: records, the empty one, -1,
+truncation, the size limit and a missing file.
+
 ## Open
 
-Recording during a level change, and a frame-by-frame comparison of playback
-in the two engines, remain open. The profile stays a Windows x86 developer
-path, and release builds still refuse it.
+A frame-by-frame comparison of playback in the two engines remains open. The
+profile stays a Windows x86 developer path, and release builds still refuse
+it.

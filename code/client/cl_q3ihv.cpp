@@ -558,7 +558,11 @@ void CL_Q3IHVDisconnect( void ) {
 }
 
 /* One record of the demo being played (CL_ReadDemoMessage 0x4047e0): a
- * length, then the message; -1, a short read or an empty record ends it. */
+ * length, then the message; -1 or a short read ends it. The original's
+ * recorder writes an empty message as an empty record (0x4044a0), and its
+ * reader then ends the demo as truncated, its read of zero bytes counting no
+ * item (0x404886); fnTech3 reads past one, as an empty message carries
+ * nothing, so a recording that spans a level change plays on. */
 bool CL_Q3IHVReadDemoMessage( void ) {
 	if ( !clc.demofile ) return false;
 	int length = 0;
@@ -569,7 +573,7 @@ bool CL_Q3IHVReadDemoMessage( void ) {
 		Com_Error( ERR_DROP, "CL_ReadDemoMessage: demoMsglen > MAX_MSGLEN" );
 		return false;
 	}
-	if ( !length ) return false;
+	if ( !length ) return true;
 	std::vector<std::uint8_t> data( static_cast<std::size_t>( length ) );
 	if ( FS_Read( data.data(), length, clc.demofile ) != length ) {
 		Com_Printf( "Demo file was truncated.\n" );

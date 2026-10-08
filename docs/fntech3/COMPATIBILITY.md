@@ -335,7 +335,9 @@ model-carrying baselines, then each message from the next full frame, then
 one -1. Recordings made on fnTech3's server and on the original server play to
 their end in both clients. The original client's own recording plays in
 fnTech3, and its gamestate record re-encodes byte-identically through the
-shared writer (Live/Fixture).
+shared writer (Live/Fixture). Recordings that span a level change, by either
+client, play through both levels in fnTech3. The original client stops after
+a demo's second gamestate, in its own recordings too.
 
 The original client's parser treats the download message as illegible
 (`0x407188`), so no IHV peer can carry a download, and downloads are no

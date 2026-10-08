@@ -212,6 +212,55 @@ int main(){
 }
 ''')
 
+    def test_demo_records(self):
+        # CL_ReadDemoMessage 0x4047e0: a length and a message, -1 or a short
+        # read ending the demo; the original's recorder writes an empty
+        # message as an empty record, which fnTech3 reads past.
+        body = function(SESSION.read_text(encoding='utf-8'), 'bool CL_Q3IHVReadDemoMessage(')
+        self.execute(r'''
+#include <algorithm>
+#include <cstdio>
+#include <cstdint>
+#include <cstring>
+#include <string>
+#include <vector>
+#define CHECK(x) do{if(!(x)){std::fprintf(stderr,"%d: %s\n",__LINE__,#x);return 1;}}while(0)
+enum { ERR_DROP = 1 };
+static const int Q3IHV_DEMO_MESSAGE_BYTES = 16384;
+struct { int demofile = 1; int lastPacketTime = 0; } clc;
+struct { int realtime = 77; } cls;
+static std::vector<std::uint8_t> file; static std::size_t at;
+static std::vector<std::string> parsed; static std::string printed; static int errors;
+int FS_Read(void *out, int bytes, int) {
+ const int n = int(std::min<std::size_t>(std::size_t(bytes), file.size() - at));
+ std::memcpy(out, file.data() + at, std::size_t(n)); at += std::size_t(n); return n;
+}
+int LittleLong(int v) { return v; }
+void Com_Error(int, const char *) { ++errors; }
+void Com_Printf(const char *text) { printed += text; }
+void CL_Q3IHVParse(const std::uint8_t *data, std::size_t size) { parsed.emplace_back(reinterpret_cast<const char *>(data), size); }
+static void Add(int length, const char *text = "") {
+ const auto *p = reinterpret_cast<const std::uint8_t *>(&length); file.insert(file.end(), p, p + 4);
+ file.insert(file.end(), text, text + std::strlen(text));
+}
+''' + body + r'''
+int main(){
+ Add(3,"abc");Add(0);Add(2,"de");Add(-1);
+ CHECK(CL_Q3IHVReadDemoMessage()&&parsed.size()==1&&parsed[0]=="abc"&&clc.lastPacketTime==77);
+ CHECK(CL_Q3IHVReadDemoMessage()&&parsed.size()==1);
+ CHECK(CL_Q3IHVReadDemoMessage()&&parsed.size()==2&&parsed[1]=="de");
+ CHECK(!CL_Q3IHVReadDemoMessage()&&parsed.size()==2);
+ // a record longer than the file is truncated; one past the limit is an error
+ file.clear();at=0;Add(5,"ab");
+ CHECK(!CL_Q3IHVReadDemoMessage()&&printed=="Demo file was truncated.\n");
+ file.clear();at=0;Add(16385);
+ CHECK(!CL_Q3IHVReadDemoMessage()&&errors==1);
+ // no file, or no length, ends it
+ file.clear();at=0;CHECK(!CL_Q3IHVReadDemoMessage());
+ clc.demofile=0;CHECK(!CL_Q3IHVReadDemoMessage());
+}
+''')
+
     def test_recorded_gamestate(self):
         # CL_Record_f 0x404650..0x404707: the client's configstrings and the
         # baselines that carry a model, a narrower test than the server's.
