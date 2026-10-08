@@ -237,6 +237,17 @@ historical upstream records, not fnTech3 release history. See the
   pairing, including a headless protocol client for 1.02 and 1.03, which have
   no retail client, and checks the sound a demo replay mixes
   ([Q3Test ledger](docs/fntech3/Q3TEST.md)).
+- **Play the Quake III IHV Test of February 1999.** The `q3-ihv` profile
+  (`-Dq3-ihv-development=true`, Windows x86) now has a developer client
+  beside its dedicated server. It runs the build's own client game, plays
+  its `sli.dm3` on GLx, Vulkan and RTX, joins the original IHV dedicated
+  server over protocol 33, and records `.dm3` demos the original plays too.
+  fnTech3's IHV server takes the original client and fnTech3's together,
+  publishes the original's serverinfo keys, and both keep playing through
+  level changes and lost packets. The build's 2D art takes the colours its
+  client game sets, its stageless scripts and its portal draw as its own
+  renderer drew them, and its damage splat draws in its colour. Its menus
+  are not drawn yet ([IHV ledger](docs/fntech3/Q3_IHV.md)).
 
 - Keep the Win32 client's path tracer compiling. The 32-bit NVIDIA driver
   compiles the compute backend's trace inside the client's 2 GB address
