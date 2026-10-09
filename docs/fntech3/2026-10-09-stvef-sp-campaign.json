@@ -1,0 +1,4676 @@
+{
+ "record": "2026-10-09-stvef-sp-campaign.md",
+ "profiles": [
+  "stvef-sp"
+ ],
+ "baseCommit": "18e6b5419723962d438d2589d1f57e90529d12d4",
+ "platform": "Windows 11, x86 developer builds (MSVC, debugoptimized, strict warnings) from git archive exports; clients windowed on unswitched private desktops, no sound, no device input, loopback rcon",
+ "builds": {
+  "ef59fafa92f0": "45444bd3 (server messages)",
+  "83a7723e1beb": "45444bd3 + the save-line fix (37b87dce)",
+  "fd4f979d8202": "8da1234c + the frame-time and serverinfo changes"
+ },
+ "installation": {
+  "path": "E:/Games/Star Trek Voyager Elite Force (read only)",
+  "note": "BaseEF holds the four retail paks and a third-party HD texture pack, zSTVEFtex.pk3 (839,268,276 bytes, 2023); the stock layout holds only the retail paks and the three retail libraries"
+ },
+ "campaign": {
+  "installed": {
+   "client": "ef59fafa92f0514a5d03de42e2fa2eea431e0df120a40a595a97195675943256",
+   "runtime": "stvef-compat-after",
+   "basepath": "E:\\Games\\Star Trek Voyager Elite Force",
+   "renderer": "glx",
+   "chain": "campaign",
+   "passed": true,
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "levels": [
+    {
+     "step": 1,
+     "level": "borg1",
+     "passed": true,
+     "loadSeconds": 21.0,
+     "settleSeconds": 6.9,
+     "exit": "use t96",
+     "autosave": "borg1",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 7 2 2 0.000000 0.000000 0.000000",
+      "playerammo0": "0",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "borg1"
+     },
+     "screenshotSha256": "7e5a13be09e6cf3820056cde7d844213f81e8c48759080f8283ebbd0bf500217",
+     "errors": [],
+     "warningCount": 571
+    },
+    {
+     "step": 2,
+     "level": "borg2",
+     "passed": true,
+     "loadSeconds": 8.3,
+     "settleSeconds": 6.9,
+     "exit": "use t121",
+     "autosave": "borg2",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 7 0 1 0.000000 -90.000000 0.000000",
+      "playerammo0": "0",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "borg2"
+     },
+     "screenshotSha256": "3a7418be6237707ab280723165e08f7c72296c1d84361ca5040ec5bf5a951464",
+     "errors": [],
+     "warningCount": 178
+    },
+    {
+     "step": 3,
+     "level": "holodeck",
+     "passed": true,
+     "loadSeconds": 8.1,
+     "settleSeconds": 7.0,
+     "exit": "use loadVoy1",
+     "autosave": "holodeck",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 7 0 5 0.000000 0.000000 0.000000",
+      "playerammo0": "0",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "holodeck"
+     },
+     "screenshotSha256": "0b8af31f42ee18a290b8438c496918530cb5fb187d60e0440d27bf184f439f0a",
+     "errors": [],
+     "warningCount": 78
+    },
+    {
+     "step": 4,
+     "level": "voy1",
+     "passed": true,
+     "loadSeconds": 8.4,
+     "settleSeconds": 8.1,
+     "exit": "use goto_voy2",
+     "autosave": "voy1",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy1"
+     },
+     "screenshotSha256": "540c4498c2a34c61202666dc146c1ce734aa83cd4d279f8222d7f55f5071a187",
+     "errors": [],
+     "warningCount": 293
+    },
+    {
+     "step": 5,
+     "level": "voy2",
+     "passed": true,
+     "loadSeconds": 4.6,
+     "settleSeconds": 6.9,
+     "exit": "use t85",
+     "autosave": "voy2",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy2"
+     },
+     "screenshotSha256": "31dcb022a4e7e761ab02bbbd0db63cc53dd00d3e94b10975945b5b040d5faa1a",
+     "errors": [],
+     "warningCount": 278
+    },
+    {
+     "step": 6,
+     "level": "voy3",
+     "passed": true,
+     "loadSeconds": 5.6,
+     "settleSeconds": 6.9,
+     "exit": "use changelevel",
+     "autosave": "voy3",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy3"
+     },
+     "screenshotSha256": "0d658ebad1765eb28a090e4a83d4df4664bed1bdd4b7de1eb566d2d29e41e5ad",
+     "errors": [],
+     "warningCount": 216
+    },
+    {
+     "step": 7,
+     "level": "voy4",
+     "passed": true,
+     "loadSeconds": 5.2,
+     "settleSeconds": 6.9,
+     "exit": "use changelevel",
+     "autosave": "voy4",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy4"
+     },
+     "screenshotSha256": "d72e373d00d4abfe85781436e61562e2909b86922fd56807a73aa24eb6fb85f4",
+     "errors": [],
+     "warningCount": 204
+    },
+    {
+     "step": 8,
+     "level": "voy5",
+     "passed": true,
+     "loadSeconds": 8.2,
+     "settleSeconds": 6.9,
+     "exit": "use loadmap",
+     "autosave": "voy5",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy5"
+     },
+     "screenshotSha256": "1dfc8445d889b656810426f1402a7bec6e0e35100f1f9900f269874f9b3683de",
+     "errors": [],
+     "warningCount": 672
+    },
+    {
+     "step": 9,
+     "level": "stasis1",
+     "passed": true,
+     "loadSeconds": 7.0,
+     "settleSeconds": 8.0,
+     "exit": "use t673",
+     "autosave": "stasis1",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "stasis1"
+     },
+     "screenshotSha256": "5558b091fac21137f3e36ae66d917d240d8fbfb81f8abb54574e2d9f343fab4d",
+     "errors": [],
+     "warningCount": 685
+    },
+    {
+     "step": 10,
+     "level": "stasis2",
+     "passed": true,
+     "loadSeconds": 8.2,
+     "settleSeconds": 6.9,
+     "exit": "use loadStasis3",
+     "autosave": "stasis2",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 23 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "stasis2"
+     },
+     "screenshotSha256": "ceddedfaef4b38acf52cda068b9eaa13ed13b30b3a437174f75023633cc6af1d",
+     "errors": [],
+     "warningCount": 110
+    },
+    {
+     "step": 11,
+     "level": "stasis3",
+     "passed": true,
+     "loadSeconds": 7.3,
+     "settleSeconds": 6.9,
+     "exit": "use loadVoy6",
+     "autosave": "stasis3",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 23 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "stasis3"
+     },
+     "screenshotSha256": "5d0dcedd3a01566f9c26772f2ca96070a51c838755e3893d0b30161d1c1f3992",
+     "errors": [],
+     "warningCount": 68
+    },
+    {
+     "step": 12,
+     "level": "voy6",
+     "passed": true,
+     "loadSeconds": 4.5,
+     "settleSeconds": 8.0,
+     "exit": "use goto_voy7",
+     "autosave": "voy6",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy6"
+     },
+     "screenshotSha256": "ceee3305b6997d001ac8e74d88ab38ba864e678db75cb8491bbd073a9babdf54",
+     "errors": [],
+     "warningCount": 32
+    },
+    {
+     "step": 13,
+     "level": "voy7",
+     "passed": true,
+     "loadSeconds": 10.5,
+     "settleSeconds": 6.9,
+     "exit": "use t81",
+     "autosave": "voy7",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy7"
+     },
+     "screenshotSha256": "869757bc2a3de01a64605a1f909462dd0840f108e3f3b3b1950df033e06e0b46",
+     "errors": [],
+     "warningCount": 92
+    },
+    {
+     "step": 14,
+     "level": "voy8",
+     "passed": true,
+     "loadSeconds": 5.8,
+     "settleSeconds": 6.9,
+     "exit": "use goto_scav1",
+     "autosave": "voy8",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy8"
+     },
+     "screenshotSha256": "ae4eef6ec5e35d1ff26863db8c52afd1d0430de20e020e4e822094c5eca83427",
+     "errors": [],
+     "warningCount": 154
+    },
+    {
+     "step": 15,
+     "level": "scav1",
+     "passed": true,
+     "loadSeconds": 4.5,
+     "settleSeconds": 16.8,
+     "exit": "use startScav2",
+     "autosave": "scav1",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 119 5 2 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "scav1"
+     },
+     "screenshotSha256": "f33e1ddbd2f94714b15412004a421b4756ceb6df408cde706a78c2050f1f540e",
+     "errors": [],
+     "warningCount": 94
+    },
+    {
+     "step": 16,
+     "level": "scav2",
+     "passed": true,
+     "loadSeconds": 5.0,
+     "settleSeconds": 6.9,
+     "exit": "use t28",
+     "autosave": "scav2",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 119 0 1 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "scav2"
+     },
+     "screenshotSha256": "9ee972970b4c2b202ab56be7fb7197f815e455ed7bbb9a5ba35a8c9c9de50f5f",
+     "errors": [],
+     "warningCount": 51
+    },
+    {
+     "step": 17,
+     "level": "scav3",
+     "passed": true,
+     "loadSeconds": 4.7,
+     "settleSeconds": 6.9,
+     "exit": "use t115",
+     "autosave": "scav3",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 119 2 2 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "scav3"
+     },
+     "screenshotSha256": "8578823250344e08a07e50efc4cef5a6da5888517ea354c9f3d5c752aa62fc45",
+     "errors": [],
+     "warningCount": 81
+    },
+    {
+     "step": 18,
+     "level": "scav3b",
+     "passed": true,
+     "loadSeconds": 6.9,
+     "settleSeconds": 6.9,
+     "exit": "use levelchange",
+     "autosave": "scav3b",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 119 2 2 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "scav3b"
+     },
+     "screenshotSha256": "0c3cf9b47964e6b43b60f792c5e8de18026e767d44aa84f395926ab61407b40a",
+     "errors": [],
+     "warningCount": 154
+    },
+    {
+     "step": 19,
+     "level": "scav4",
+     "passed": true,
+     "loadSeconds": 7.0,
+     "settleSeconds": 6.9,
+     "exit": "use t247",
+     "autosave": "scav4",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 119 2 2 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "scav4"
+     },
+     "screenshotSha256": "daa740543258d72e28177932223c3e55e4e7dd99cc002ebbc513ba443067d408",
+     "errors": [],
+     "warningCount": 161
+    },
+    {
+     "step": 20,
+     "level": "scav5",
+     "passed": true,
+     "loadSeconds": 7.0,
+     "settleSeconds": 6.6,
+     "exit": "use t306",
+     "autosave": "scav5",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 119 2 2 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "scav5"
+     },
+     "screenshotSha256": "d7987e87e4c5f5aabe3fed1fa2ce21ee75bdd14c295fbc2ecb9ced95441a1313",
+     "errors": [],
+     "warningCount": 94
+    },
+    {
+     "step": 21,
+     "level": "scavboss",
+     "passed": true,
+     "loadSeconds": 8.5,
+     "settleSeconds": 7.0,
+     "exit": "use goto_voy9",
+     "autosave": "scavboss",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 119 2 2 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": null,
+      "playerammo3": null,
+      "mapname": "scavboss"
+     },
+     "screenshotSha256": "fa6efa373addf2baf968633386a8f610f837d4300840749b48fddc11e856913b",
+     "errors": [],
+     "warningCount": 48
+    },
+    {
+     "step": 22,
+     "level": "voy9",
+     "passed": true,
+     "loadSeconds": 6.4,
+     "settleSeconds": 8.0,
+     "exit": "use goto_borg3",
+     "autosave": "voy9",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 114.999390 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy9"
+     },
+     "screenshotSha256": "602a0301006ced31840641a3a056e4ca92168ba5e3ad6bf152fb6cec50309ba6",
+     "errors": [],
+     "warningCount": 50
+    },
+    {
+     "step": 23,
+     "level": "borg3",
+     "passed": true,
+     "loadSeconds": 8.0,
+     "settleSeconds": 6.9,
+     "exit": "use t265",
+     "autosave": "borg3",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -135.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "borg3"
+     },
+     "screenshotSha256": "9588e2efe44414263e11b6772516e785250d315dbc01c7152bbee0b56a36ac58",
+     "errors": [],
+     "warningCount": 106
+    },
+    {
+     "step": 24,
+     "level": "borg4",
+     "passed": true,
+     "loadSeconds": 9.7,
+     "settleSeconds": 6.9,
+     "exit": "use endlevel",
+     "autosave": "borg4",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 255 2 2 0.000000 90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "borg4"
+     },
+     "screenshotSha256": "5d9654b9ad3554134b787d1dbbf0c587942f8c253f2d512f2d64715db9d38a3f",
+     "errors": [],
+     "warningCount": 105
+    },
+    {
+     "step": 25,
+     "level": "borg5",
+     "passed": true,
+     "loadSeconds": 6.4,
+     "settleSeconds": 6.9,
+     "exit": "use t447",
+     "autosave": "borg5",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 255 2 2 0.000000 90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "borg5"
+     },
+     "screenshotSha256": "38f47713a0771018b4b8a122a106c41443e11d68733b1a6d1dfa7604e3fd038d",
+     "errors": [],
+     "warningCount": 49
+    },
+    {
+     "step": 26,
+     "level": "borg6",
+     "passed": true,
+     "loadSeconds": 9.1,
+     "settleSeconds": 6.9,
+     "exit": "use goto_voy13",
+     "autosave": "borg6",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 255 2 2 0.000000 135.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "borg6"
+     },
+     "screenshotSha256": "1071629ac5965dcd26cda64a944fcc819ecf1864e5b375edc33988d1a09054ae",
+     "errors": [],
+     "warningCount": 46
+    },
+    {
+     "step": 27,
+     "level": "voy13",
+     "passed": true,
+     "loadSeconds": 6.4,
+     "settleSeconds": 8.0,
+     "exit": "use levelchange",
+     "autosave": "voy13",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy13"
+     },
+     "screenshotSha256": "77e86550e5abf22539021cf9b4f8d2a0bd32adca2b9fb709c0653952cd158990",
+     "errors": [],
+     "warningCount": 71
+    },
+    {
+     "step": 28,
+     "level": "voy14",
+     "passed": true,
+     "loadSeconds": 5.9,
+     "settleSeconds": 7.0,
+     "exit": "use loadvoy15",
+     "autosave": "voy14",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy14"
+     },
+     "screenshotSha256": "ebb2b6d3809be3eddc8ea06e3a9844a7e7ea683602001429e25bad078b9cdd82",
+     "errors": [],
+     "warningCount": 68
+    },
+    {
+     "step": 29,
+     "level": "voy15",
+     "passed": true,
+     "loadSeconds": 12.0,
+     "settleSeconds": 7.0,
+     "exit": "use goto_dn1",
+     "autosave": "voy15",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy15"
+     },
+     "screenshotSha256": "497328fc6609fd6f56a44c12ea8edb1f34db0846c9d526db26a9c1ca9a314ef7",
+     "errors": [],
+     "warningCount": 72
+    },
+    {
+     "step": 30,
+     "level": "dn1",
+     "passed": true,
+     "loadSeconds": 8.3,
+     "settleSeconds": 11.4,
+     "exit": "use t2",
+     "autosave": "dn1",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "dn1"
+     },
+     "screenshotSha256": "4be29b57bb922dcb199f2dc8f64d3fa9c499872d2e202411a512aa3757745af3",
+     "errors": [],
+     "warningCount": 72
+    },
+    {
+     "step": 31,
+     "level": "dn2",
+     "passed": true,
+     "loadSeconds": 8.9,
+     "settleSeconds": 7.0,
+     "exit": "use goto_dn3",
+     "autosave": "dn2",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "dn2"
+     },
+     "screenshotSha256": "408f805b612ea07aa1f8c4e265be37b05bf727656845285d927b73f930b9e1ef",
+     "errors": [],
+     "warningCount": 36
+    },
+    {
+     "step": 32,
+     "level": "dn3",
+     "passed": true,
+     "loadSeconds": 7.4,
+     "settleSeconds": 7.0,
+     "exit": "use goto4",
+     "autosave": "dn3",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "dn3"
+     },
+     "screenshotSha256": "f011b964c7d0f6a4ca3e28ceb4eb62a6e388453096e92844286a0c9bcba51747",
+     "errors": [],
+     "warningCount": 45
+    },
+    {
+     "step": 33,
+     "level": "dn4",
+     "passed": true,
+     "loadSeconds": 7.2,
+     "settleSeconds": 7.0,
+     "exit": "use t109",
+     "autosave": "dn4",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "dn4"
+     },
+     "screenshotSha256": "6c6701993f3e71cc49caf20a27ac01c06e97bf6a4520facc21196b976244d1ec",
+     "errors": [],
+     "warningCount": 25
+    },
+    {
+     "step": 34,
+     "level": "dn5",
+     "passed": true,
+     "loadSeconds": 9.9,
+     "settleSeconds": 6.9,
+     "exit": "use goto_dn6",
+     "autosave": "dn5",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "dn5"
+     },
+     "screenshotSha256": "94ada1260462c83d4b22e57ed6a7b900df505bc0e95af82a2269bf12e141b17f",
+     "errors": [],
+     "warningCount": 24
+    },
+    {
+     "step": 35,
+     "level": "dn6",
+     "passed": true,
+     "loadSeconds": 18.2,
+     "settleSeconds": 6.9,
+     "exit": "use level_change",
+     "autosave": "dn6",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "dn6"
+     },
+     "screenshotSha256": "b579e06f6353eb0376e8eb2879c422f4ce2c8ef6e365e0ffe5713d59546a6fe8",
+     "errors": [],
+     "warningCount": 82
+    },
+    {
+     "step": 36,
+     "level": "dn8",
+     "passed": true,
+     "loadSeconds": 11.3,
+     "settleSeconds": 7.0,
+     "exit": "use changelevel",
+     "autosave": "dn8",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "dn8"
+     },
+     "screenshotSha256": "677992b6e90352b201362913cad5afca3bbc7411cd1fd3dc5ec242fffa6adbef",
+     "errors": [],
+     "warningCount": 99
+    },
+    {
+     "step": 37,
+     "level": "voy16",
+     "passed": true,
+     "loadSeconds": 19.8,
+     "settleSeconds": 7.0,
+     "exit": "use goto_voy17",
+     "autosave": "voy16",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy16"
+     },
+     "screenshotSha256": "9a1c1dcafab40c73f3381c5677881d475fc87e6b0e272ee86a8ec13e4a7cf739",
+     "errors": [],
+     "warningCount": 53
+    },
+    {
+     "step": 38,
+     "level": "voy17",
+     "passed": true,
+     "loadSeconds": 12.4,
+     "settleSeconds": 7.0,
+     "exit": "use goto_forge1",
+     "autosave": "voy17",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy17"
+     },
+     "screenshotSha256": "c0703ccad52722ade561d8bab40b5a98fc459d675bf07e47db7b8cc8f31dcbc4",
+     "errors": [],
+     "warningCount": 41
+    },
+    {
+     "step": 39,
+     "level": "forge1",
+     "passed": true,
+     "loadSeconds": 6.4,
+     "settleSeconds": 7.0,
+     "exit": "use t40",
+     "autosave": "forge1",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "forge1"
+     },
+     "screenshotSha256": "e9257fb2aaf676c831ba0342606cb86a2a877bd2a10ea1ef6fa79b64751d2a57",
+     "errors": [],
+     "warningCount": 49
+    },
+    {
+     "step": 40,
+     "level": "forge2",
+     "passed": true,
+     "loadSeconds": 7.7,
+     "settleSeconds": 7.0,
+     "exit": "use t31",
+     "autosave": "forge2",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 1023 2 2 0.000000 45.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "forge2"
+     },
+     "screenshotSha256": "1c97f828ea7610e8895ae87a28135a74c85627dbf1a60dff7cb8da4a1ec9cc25",
+     "errors": [],
+     "warningCount": 66
+    },
+    {
+     "step": 41,
+     "level": "forge3",
+     "passed": true,
+     "loadSeconds": 6.2,
+     "settleSeconds": 7.0,
+     "exit": "use t331",
+     "autosave": "forge3",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 1023 2 2 0.000000 45.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "forge3"
+     },
+     "screenshotSha256": "192d18f65333cb166aa6518a6a2ea1cf9a5c83c982d7102230e780792a3b159d",
+     "errors": [],
+     "warningCount": 47
+    },
+    {
+     "step": 42,
+     "level": "forge4",
+     "passed": true,
+     "loadSeconds": 9.5,
+     "settleSeconds": 7.0,
+     "exit": "use t1",
+     "autosave": "forge4",
+     "restored": null,
+     "carried": {
+      "playersave": "100 100 1023 2 2 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "forge4"
+     },
+     "screenshotSha256": "a14bec7e23843b62c6c89a1123f01bfdca6502a01b38624819112dd0dda3952d",
+     "errors": [],
+     "warningCount": 71
+    },
+    {
+     "step": 43,
+     "level": "forge5",
+     "passed": true,
+     "loadSeconds": 10.6,
+     "settleSeconds": 7.0,
+     "exit": "use exit",
+     "autosave": "forge5",
+     "restored": null,
+     "carried": {
+      "playersave": "47 81 1023 2 2 0.000000 45.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "forge5"
+     },
+     "screenshotSha256": "bc30e60969a3c2ce6a1f418819fa393b7ededc06b37fbb7ad5c9c61f448eb0e5",
+     "errors": [],
+     "warningCount": 81
+    },
+    {
+     "step": 44,
+     "level": "forgeboss",
+     "passed": true,
+     "loadSeconds": 14.8,
+     "settleSeconds": 7.0,
+     "exit": "use changemap",
+     "autosave": "forgeboss",
+     "restored": null,
+     "carried": {
+      "playersave": "47 81 1023 2 2 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "forgeboss"
+     },
+     "screenshotSha256": "6c3b8cbf95cfa6d6b1467339642474b43cb3209917b41e8ad22d692aed9911df",
+     "errors": [],
+     "warningCount": 32
+    },
+    {
+     "step": 45,
+     "level": "voy20",
+     "passed": true,
+     "loadSeconds": 5.8,
+     "settleSeconds": null,
+     "exit": null,
+     "autosave": null,
+     "restored": null,
+     "carried": null,
+     "screenshotSha256": null,
+     "errors": null,
+     "warningCount": null
+    }
+   ],
+   "epilogue": {
+    "finalSeconds": 63.5,
+    "finalPaused": true,
+    "movieLines": [
+     "^5CIN_PlayCinematic( st_21 )",
+     "Bink: video/st_21.bik, 512x384, 160 frames, track 0, sound off",
+     "^5Bink finished: video/st_21.bik"
+    ],
+    "movieFinished": null,
+    "creditsStarted": null,
+    "creditsLines": [
+     "^5clientCommand: Munro : 47 : music music/endcredits.mp3  music/briefing2.mp3"
+    ],
+    "finalScreenshots": [
+     "BaseEF\\screenshots\\campaign-final-00.png",
+     "BaseEF\\screenshots\\campaign-final-01.png"
+    ]
+   }
+  },
+  "stock": {
+   "client": "83a7723e1bebe944b5d7d28b47f04d643517e6ce5baa84ea9cbf152d895f5ee6",
+   "runtime": "stvef-compat-after2",
+   "basepath": "E:\\Repositories\\fnTech3\\.tmp\\stvef-stock",
+   "renderer": "glx",
+   "chain": "campaign",
+   "passed": true,
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "levels": [
+    {
+     "step": 1,
+     "level": "borg1",
+     "passed": true,
+     "loadSeconds": 3.2,
+     "settleSeconds": 6.9,
+     "exit": "use t96",
+     "autosave": "borg1",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 7 2 2 0.000000 0.000000 0.000000",
+      "playerammo0": "0",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "borg1"
+     },
+     "screenshotSha256": "25abf16217c9d4e3187167549fba613229a419c2a09444cd22351473e102ae16",
+     "errors": [],
+     "warningCount": 571
+    },
+    {
+     "step": 2,
+     "level": "borg2",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 6.9,
+     "exit": "use t121",
+     "autosave": "borg2",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 7 2 2 0.000000 -90.000000 0.000000",
+      "playerammo0": "0",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "borg2"
+     },
+     "screenshotSha256": "8ea9aa6c12440ec007b3cbd993055518d91628eb7803bbfa6a6210f43d7690f2",
+     "errors": [],
+     "warningCount": 178
+    },
+    {
+     "step": 3,
+     "level": "holodeck",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 6.9,
+     "exit": "use loadVoy1",
+     "autosave": "holodeck",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 7 2 2 0.000000 0.000000 0.000000",
+      "playerammo0": "0",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "holodeck"
+     },
+     "screenshotSha256": "1bbef79fe9d512c7361178c0dc156e6278814b672d9ac4cc4740ae4eacb00865",
+     "errors": [],
+     "warningCount": 78
+    },
+    {
+     "step": 4,
+     "level": "voy1",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 8.0,
+     "exit": "use goto_voy2",
+     "autosave": "voy1",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy1"
+     },
+     "screenshotSha256": "18e8de59b3f64fe11bbab7c02c33d9104b61dcfb847c6eb04fc83d3a786ef075",
+     "errors": [],
+     "warningCount": 293
+    },
+    {
+     "step": 5,
+     "level": "voy2",
+     "passed": true,
+     "loadSeconds": 1.2,
+     "settleSeconds": 6.9,
+     "exit": "use t85",
+     "autosave": "voy2",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy2"
+     },
+     "screenshotSha256": "3b59b899f4e4613809d27f258ce081d13bd153498562ab6cb7adcbda62388fec",
+     "errors": [],
+     "warningCount": 278
+    },
+    {
+     "step": 6,
+     "level": "voy3",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 6.9,
+     "exit": "use changelevel",
+     "autosave": "voy3",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy3"
+     },
+     "screenshotSha256": "c303ead0526dc046941eb5b8e0bcb4162ebeda6a7001da66f0fea39eea7c6800",
+     "errors": [],
+     "warningCount": 216
+    },
+    {
+     "step": 7,
+     "level": "voy4",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 7.0,
+     "exit": "use changelevel",
+     "autosave": "voy4",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy4"
+     },
+     "screenshotSha256": "91b504ecd9f516176512b1bfdf20aead80f21752dfb56cc6b4acb873a5c44671",
+     "errors": [],
+     "warningCount": 204
+    },
+    {
+     "step": 8,
+     "level": "voy5",
+     "passed": true,
+     "loadSeconds": 1.6,
+     "settleSeconds": 6.9,
+     "exit": "use loadmap",
+     "autosave": "voy5",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy5"
+     },
+     "screenshotSha256": "8d93f7b59c6522b528d66c9c835a68c14b26ad72b44991e584982705c15d2e65",
+     "errors": [],
+     "warningCount": 658
+    },
+    {
+     "step": 9,
+     "level": "stasis1",
+     "passed": true,
+     "loadSeconds": 1.8,
+     "settleSeconds": 8.0,
+     "exit": "use t673",
+     "autosave": "stasis1",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "stasis1"
+     },
+     "screenshotSha256": "ca0949a51d36747dc28a56f4a7c845645247b517dfb0fe6ab07cbfb8edf16c24",
+     "errors": [],
+     "warningCount": 685
+    },
+    {
+     "step": 10,
+     "level": "stasis2",
+     "passed": true,
+     "loadSeconds": 1.3,
+     "settleSeconds": 6.9,
+     "exit": "use loadStasis3",
+     "autosave": "stasis2",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 23 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "stasis2"
+     },
+     "screenshotSha256": "c4059452ba178e983972a2c7306b2a2447cf541f657a0d8589694527d1f410c5",
+     "errors": [],
+     "warningCount": 110
+    },
+    {
+     "step": 11,
+     "level": "stasis3",
+     "passed": true,
+     "loadSeconds": 1.2,
+     "settleSeconds": 6.9,
+     "exit": "use loadVoy6",
+     "autosave": "stasis3",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 23 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "stasis3"
+     },
+     "screenshotSha256": "7e39da1eed12439efc2c310be14a67f0bc7bd0b24bf5a284f78c02027d25ad61",
+     "errors": [],
+     "warningCount": 68
+    },
+    {
+     "step": 12,
+     "level": "voy6",
+     "passed": true,
+     "loadSeconds": 0.6,
+     "settleSeconds": 8.1,
+     "exit": "use goto_voy7",
+     "autosave": "voy6",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy6"
+     },
+     "screenshotSha256": "6eda625bfae2a13d18674a4c2562e8d3ce81d6d2e316203189f36e3909e1c24b",
+     "errors": [],
+     "warningCount": 32
+    },
+    {
+     "step": 13,
+     "level": "voy7",
+     "passed": true,
+     "loadSeconds": 1.8,
+     "settleSeconds": 7.0,
+     "exit": "use t81",
+     "autosave": "voy7",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy7"
+     },
+     "screenshotSha256": "8cd6dc27aa8dca2a209de2126a0725d7c87a8b41b0928e6d6ace502e3dacf55a",
+     "errors": [],
+     "warningCount": 107
+    },
+    {
+     "step": 14,
+     "level": "voy8",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 6.9,
+     "exit": "use goto_scav1",
+     "autosave": "voy8",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy8"
+     },
+     "screenshotSha256": "d7dcada68ec488f1521a135720c2478b106a5914438a177bccd019d9d386fe92",
+     "errors": [],
+     "warningCount": 154
+    },
+    {
+     "step": 15,
+     "level": "scav1",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 16.8,
+     "exit": "use startScav2",
+     "autosave": "scav1",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 119 5 2 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "scav1"
+     },
+     "screenshotSha256": "ebcb61efe661fb81147bbdd5eb79e1d5fce2bb4c80381d09269aec1ae55a231f",
+     "errors": [],
+     "warningCount": 94
+    },
+    {
+     "step": 16,
+     "level": "scav2",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 6.9,
+     "exit": "use t28",
+     "autosave": "scav2",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 119 0 1 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "scav2"
+     },
+     "screenshotSha256": "7b155f3c5a46dd1870c9f12267ea6fe8e5d20c4c181b337f23932a877a3e48c5",
+     "errors": [],
+     "warningCount": 51
+    },
+    {
+     "step": 17,
+     "level": "scav3",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 6.9,
+     "exit": "use t115",
+     "autosave": "scav3",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 119 2 2 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "scav3"
+     },
+     "screenshotSha256": "a2c0f9da251c3954d9610b696321051486bb6b8b009a9c58e03ba12f1b6755fc",
+     "errors": [],
+     "warningCount": 81
+    },
+    {
+     "step": 18,
+     "level": "scav3b",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 6.9,
+     "exit": "use levelchange",
+     "autosave": "scav3b",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 119 2 2 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "scav3b"
+     },
+     "screenshotSha256": "7ae642c5ac83718025d7828f56b9cdb7519b8cc618c09c3dfaeaea8a93ee4016",
+     "errors": [],
+     "warningCount": 154
+    },
+    {
+     "step": 19,
+     "level": "scav4",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 6.9,
+     "exit": "use t247",
+     "autosave": "scav4",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 119 2 2 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "scav4"
+     },
+     "screenshotSha256": "70d669d0b40dd7e6b138d2b6ff54530659ff2e80c473b7d7682b0bd03371d8cf",
+     "errors": [],
+     "warningCount": 161
+    },
+    {
+     "step": 20,
+     "level": "scav5",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 6.9,
+     "exit": "use t306",
+     "autosave": "scav5",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 119 2 2 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "scav5"
+     },
+     "screenshotSha256": "6f5ee4cc296b6ca09995b188de813ab3e4904d04732c394313b993cc1e7b23fd",
+     "errors": [],
+     "warningCount": 68
+    },
+    {
+     "step": 21,
+     "level": "scavboss",
+     "passed": true,
+     "loadSeconds": 1.2,
+     "settleSeconds": 6.9,
+     "exit": "use goto_voy9",
+     "autosave": "scavboss",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 119 2 2 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "scavboss"
+     },
+     "screenshotSha256": "9435ef69e4def377afe4a21b9c061e342a41d9f2eb09084f998d8193e33f44ab",
+     "errors": [],
+     "warningCount": 48
+    },
+    {
+     "step": 22,
+     "level": "voy9",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 8.0,
+     "exit": "use goto_borg3",
+     "autosave": "voy9",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 114.999390 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy9"
+     },
+     "screenshotSha256": "b3853f6ba9d1860aee6412adafd1a4d757a6d4cd3b4140052e13b98de39b0f68",
+     "errors": [],
+     "warningCount": 50
+    },
+    {
+     "step": 23,
+     "level": "borg3",
+     "passed": true,
+     "loadSeconds": 1.2,
+     "settleSeconds": 6.9,
+     "exit": "use t265",
+     "autosave": "borg3",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -135.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "borg3"
+     },
+     "screenshotSha256": "433e808542fe268cbb56dc1c6f016d80cd3256d838a04346ea1a189344f39514",
+     "errors": [],
+     "warningCount": 106
+    },
+    {
+     "step": 24,
+     "level": "borg4",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 6.9,
+     "exit": "use endlevel",
+     "autosave": "borg4",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 255 2 2 0.000000 90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "borg4"
+     },
+     "screenshotSha256": "1cc3d865226befc4cf07467c1fad51e4023334b1aa07e96507ffc78949604d4e",
+     "errors": [],
+     "warningCount": 83
+    },
+    {
+     "step": 25,
+     "level": "borg5",
+     "passed": true,
+     "loadSeconds": 1.2,
+     "settleSeconds": 6.9,
+     "exit": "use t447",
+     "autosave": "borg5",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 255 2 2 0.000000 90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "borg5"
+     },
+     "screenshotSha256": "9ab90275b728fb01c23dc38251ab351e9bec875f652ddcc21d4bae3b77b9d66b",
+     "errors": [],
+     "warningCount": 49
+    },
+    {
+     "step": 26,
+     "level": "borg6",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 6.9,
+     "exit": "use goto_voy13",
+     "autosave": "borg6",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 255 2 2 0.000000 135.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "borg6"
+     },
+     "screenshotSha256": "be6c32de6cf8b1a240c4ca43675714c60ae227c443a27f01be3e751d2bcf9302",
+     "errors": [],
+     "warningCount": 46
+    },
+    {
+     "step": 27,
+     "level": "voy13",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 8.0,
+     "exit": "use levelchange",
+     "autosave": "voy13",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy13"
+     },
+     "screenshotSha256": "3860c82ff3ee21096ca9d0e3863f8bb1ca2b3395d91dcb5868dcc8a218e74c22",
+     "errors": [],
+     "warningCount": 71
+    },
+    {
+     "step": 28,
+     "level": "voy14",
+     "passed": true,
+     "loadSeconds": 1.2,
+     "settleSeconds": 6.9,
+     "exit": "use loadvoy15",
+     "autosave": "voy14",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy14"
+     },
+     "screenshotSha256": "3cf47b5e3464be4dfa7df21ee879149216df52fe39d3d6108dc4bf4ed048ac0f",
+     "errors": [],
+     "warningCount": 68
+    },
+    {
+     "step": 29,
+     "level": "voy15",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 6.9,
+     "exit": "use goto_dn1",
+     "autosave": "voy15",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy15"
+     },
+     "screenshotSha256": "28a60fb9528f598c58613f4e5f69e90c4d3ecc3a620730d62805f8b10c6c79fd",
+     "errors": [],
+     "warningCount": 49
+    },
+    {
+     "step": 30,
+     "level": "dn1",
+     "passed": true,
+     "loadSeconds": 1.2,
+     "settleSeconds": 11.3,
+     "exit": "use t2",
+     "autosave": "dn1",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "dn1"
+     },
+     "screenshotSha256": "f5d23437545b93753781cba5bfb43bc8c6bdadc9a46a5e458bb720e7bcbfdf40",
+     "errors": [],
+     "warningCount": 55
+    },
+    {
+     "step": 31,
+     "level": "dn2",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 6.9,
+     "exit": "use goto_dn3",
+     "autosave": "dn2",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "dn2"
+     },
+     "screenshotSha256": "d6c51e128b95e4b3344b429a889a423739f7674899d8d67a225c7b25a74792d7",
+     "errors": [],
+     "warningCount": 36
+    },
+    {
+     "step": 32,
+     "level": "dn3",
+     "passed": true,
+     "loadSeconds": 0.5,
+     "settleSeconds": 6.0,
+     "exit": "use goto4",
+     "autosave": "dn3",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "dn3"
+     },
+     "screenshotSha256": "94bb487339d81e62fefc34663d45b375b83366a0a7ba77e29492cee1231d1a7a",
+     "errors": [],
+     "warningCount": 45
+    },
+    {
+     "step": 33,
+     "level": "dn4",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 6.9,
+     "exit": "use t109",
+     "autosave": "dn4",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "dn4"
+     },
+     "screenshotSha256": "afa9cc2ce6a1f704c0bcd3a5bb2245663b0d6f1647700f85d2d947ec29bf7126",
+     "errors": [],
+     "warningCount": 49
+    },
+    {
+     "step": 34,
+     "level": "dn5",
+     "passed": true,
+     "loadSeconds": 1.0,
+     "settleSeconds": 6.9,
+     "exit": "use goto_dn6",
+     "autosave": "dn5",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "dn5"
+     },
+     "screenshotSha256": "b53becc0e67a6a539b267f751ee3732472776cf1c62531aeb3c9632ba32ca948",
+     "errors": [],
+     "warningCount": 36
+    },
+    {
+     "step": 35,
+     "level": "dn6",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 6.9,
+     "exit": "use level_change",
+     "autosave": "dn6",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "dn6"
+     },
+     "screenshotSha256": "0e09b4474680585019afa8cab8a623c1bc0208fa787091e592e0b5f5661c7799",
+     "errors": [],
+     "warningCount": 114
+    },
+    {
+     "step": 36,
+     "level": "dn8",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 6.9,
+     "exit": "use changelevel",
+     "autosave": "dn8",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "dn8"
+     },
+     "screenshotSha256": "edb7aa5bc6243f3b2244d07ec5722d8f5807245b948542a1967ed2e405e7d314",
+     "errors": [],
+     "warningCount": 119
+    },
+    {
+     "step": 37,
+     "level": "voy16",
+     "passed": true,
+     "loadSeconds": 1.6,
+     "settleSeconds": 6.9,
+     "exit": "use goto_voy17",
+     "autosave": "voy16",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy16"
+     },
+     "screenshotSha256": "0a4d77b5b73ee209ef5d4ec73bf348f588eaf19fd3e5d3d4674527ef53f0feee",
+     "errors": [],
+     "warningCount": 53
+    },
+    {
+     "step": 38,
+     "level": "voy17",
+     "passed": true,
+     "loadSeconds": 1.0,
+     "settleSeconds": 6.9,
+     "exit": "use goto_forge1",
+     "autosave": "voy17",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy17"
+     },
+     "screenshotSha256": "be4a6d935e5f7b09ccf300857d52abee429b4113a2f021a66fc56bf581f89da9",
+     "errors": [],
+     "warningCount": 24
+    },
+    {
+     "step": 39,
+     "level": "forge1",
+     "passed": true,
+     "loadSeconds": 1.6,
+     "settleSeconds": 6.9,
+     "exit": "use t40",
+     "autosave": "forge1",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "forge1"
+     },
+     "screenshotSha256": "e521bf771a8aeaf0803e6a4b537b272e8c27a0e76d93dac069d2c86a165f5961",
+     "errors": [],
+     "warningCount": 49
+    },
+    {
+     "step": 40,
+     "level": "forge2",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 6.9,
+     "exit": "use t31",
+     "autosave": "forge2",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1023 2 2 0.000000 45.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "forge2"
+     },
+     "screenshotSha256": "50241090adc15ef327d215c1db1f091af909d48a0aa7ef06d66da58bfa62387e",
+     "errors": [],
+     "warningCount": 66
+    },
+    {
+     "step": 41,
+     "level": "forge3",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 6.9,
+     "exit": "use t331",
+     "autosave": "forge3",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1023 2 2 0.000000 45.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "forge3"
+     },
+     "screenshotSha256": "9e68ade69a55c278b91d1b76e44bae7966217160e3cc3c08d9a30779af3e763c",
+     "errors": [],
+     "warningCount": 34
+    },
+    {
+     "step": 42,
+     "level": "forge4",
+     "passed": true,
+     "loadSeconds": 1.2,
+     "settleSeconds": 6.9,
+     "exit": "use t1",
+     "autosave": "forge4",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1023 2 2 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "forge4"
+     },
+     "screenshotSha256": "511e04bdab069636bd9bdc74fe560d97204f0887336c966c803b1483e8687777",
+     "errors": [],
+     "warningCount": 46
+    },
+    {
+     "step": 43,
+     "level": "forge5",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": 6.9,
+     "exit": "use exit",
+     "autosave": "forge5",
+     "restored": [],
+     "carried": {
+      "playersave": "73 91 1023 2 2 0.000000 45.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "forge5"
+     },
+     "screenshotSha256": "7970742f797ed5fc5ac9af527960bf04221dd0a7266a2bfc51b0eab3ffe23e40",
+     "errors": [],
+     "warningCount": 81
+    },
+    {
+     "step": 44,
+     "level": "forgeboss",
+     "passed": true,
+     "loadSeconds": 1.6,
+     "settleSeconds": 6.9,
+     "exit": "use changemap",
+     "autosave": "forgeboss",
+     "restored": [],
+     "carried": {
+      "playersave": "73 91 1023 2 2 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "forgeboss"
+     },
+     "screenshotSha256": "bd8dc449666e4500c874d0e0b47d5ff80c7ef29f4105040c86903cbb4cea3549",
+     "errors": [],
+     "warningCount": 32
+    },
+    {
+     "step": 45,
+     "level": "voy20",
+     "passed": true,
+     "loadSeconds": 1.1,
+     "settleSeconds": null,
+     "exit": null,
+     "autosave": null,
+     "restored": null,
+     "carried": null,
+     "screenshotSha256": null,
+     "errors": null,
+     "warningCount": null
+    }
+   ],
+   "epilogue": {
+    "finalSeconds": 112.0,
+    "finalPaused": true,
+    "movieLines": [
+     "^5CIN_PlayCinematic( st_21 )",
+     "Bink: video/st_21.bik, 512x384, 160 frames, track 0, sound off",
+     "^5Bink finished: video/st_21.bik"
+    ],
+    "movieFinished": true,
+    "creditsStarted": true,
+    "creditsLines": [
+     "^5clientCommand: Munro : 47 : music music/endcredits.mp3  music/briefing2.mp3",
+     "Rcon from 127.0.0.1: screenshot campaign-credits-00",
+     "Wrote screenshots/campaign-credits-00.png",
+     "Rcon from 127.0.0.1: screenshot campaign-credits-01",
+     "Wrote screenshots/campaign-credits-01.png",
+     "Rcon from 127.0.0.1: screenshot campaign-credits-02"
+    ],
+    "finalScreenshots": [
+     "BaseEF\\screenshots\\campaign-credits-00.png",
+     "BaseEF\\screenshots\\campaign-credits-01.png",
+     "BaseEF\\screenshots\\campaign-credits-02.png"
+    ]
+   }
+  },
+  "final": {
+   "client": "fd4f979d82022b71b95c4c774d5d621f1b0ef01291fdcff239671d00f5b6b33f",
+   "runtime": "stvef-compat-after3",
+   "basepath": "E:\\Games\\Star Trek Voyager Elite Force",
+   "renderer": "glx",
+   "chain": "campaign",
+   "passed": true,
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "levels": [
+    {
+     "step": 1,
+     "level": "borg1",
+     "passed": true,
+     "loadSeconds": 14.1,
+     "settleSeconds": 6.9,
+     "exit": "use t96",
+     "autosave": "borg1",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 7 2 2 0.000000 0.000000 0.000000",
+      "playerammo0": "0",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "borg1"
+     },
+     "screenshotSha256": "b67e5dbba5e76a071a46461eb0e7301da296c6475824e2e3b3d5d55c105b13ac",
+     "errors": [],
+     "warningCount": 552
+    },
+    {
+     "step": 2,
+     "level": "borg2",
+     "passed": true,
+     "loadSeconds": 7.4,
+     "settleSeconds": 6.9,
+     "exit": "use t121",
+     "autosave": "borg2",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 7 2 2 0.000000 -90.000000 0.000000",
+      "playerammo0": "0",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "borg2"
+     },
+     "screenshotSha256": "5df6d0558529e84648dd169d2b5ccf95753eb331ce83ce77d45b39686d4f6161",
+     "errors": [],
+     "warningCount": 164
+    },
+    {
+     "step": 3,
+     "level": "holodeck",
+     "passed": true,
+     "loadSeconds": 8.4,
+     "settleSeconds": 6.9,
+     "exit": "use loadVoy1",
+     "autosave": "holodeck",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 7 2 2 0.000000 0.000000 0.000000",
+      "playerammo0": "0",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "holodeck"
+     },
+     "screenshotSha256": "edd36337841b699155f3dcdee000cf11c6b7e406bd0349e73e11427f663a41c7",
+     "errors": [],
+     "warningCount": 63
+    },
+    {
+     "step": 4,
+     "level": "voy1",
+     "passed": true,
+     "loadSeconds": 7.4,
+     "settleSeconds": 8.0,
+     "exit": "use goto_voy2",
+     "autosave": "voy1",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy1"
+     },
+     "screenshotSha256": "23fc17eef13ff8e7c1803b89dabd9aaac9dedc4595a81d0560a4c5cd29c7a9e6",
+     "errors": [],
+     "warningCount": 277
+    },
+    {
+     "step": 5,
+     "level": "voy2",
+     "passed": true,
+     "loadSeconds": 5.3,
+     "settleSeconds": 6.9,
+     "exit": "use t85",
+     "autosave": "voy2",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy2"
+     },
+     "screenshotSha256": "b8d7188c8e45a58c30645d61d5aba0e9c46c615ce4280a1857293abe6840d4e2",
+     "errors": [],
+     "warningCount": 258
+    },
+    {
+     "step": 6,
+     "level": "voy3",
+     "passed": true,
+     "loadSeconds": 7.0,
+     "settleSeconds": 6.9,
+     "exit": "use changelevel",
+     "autosave": "voy3",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy3"
+     },
+     "screenshotSha256": "0d658ebad1765eb28a090e4a83d4df4664bed1bdd4b7de1eb566d2d29e41e5ad",
+     "errors": [],
+     "warningCount": 206
+    },
+    {
+     "step": 7,
+     "level": "voy4",
+     "passed": true,
+     "loadSeconds": 6.0,
+     "settleSeconds": 6.9,
+     "exit": "use changelevel",
+     "autosave": "voy4",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy4"
+     },
+     "screenshotSha256": "9a00a2eb9b6363d0a84d1ab71f594b0587bc295d17144d0f57eb94d39656763f",
+     "errors": [],
+     "warningCount": 188
+    },
+    {
+     "step": 8,
+     "level": "voy5",
+     "passed": true,
+     "loadSeconds": 8.9,
+     "settleSeconds": 6.9,
+     "exit": "use loadmap",
+     "autosave": "voy5",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy5"
+     },
+     "screenshotSha256": "72eea8c9851c0b4568ac4dc5e1ed785004cd179b33b0e3930ae0460f074e7af6",
+     "errors": [],
+     "warningCount": 658
+    },
+    {
+     "step": 9,
+     "level": "stasis1",
+     "passed": true,
+     "loadSeconds": 7.5,
+     "settleSeconds": 8.1,
+     "exit": "use t673",
+     "autosave": "stasis1",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "stasis1"
+     },
+     "screenshotSha256": "6d4c140c51069d88eca69ba9249a1c87c18a2878d170b66d39b3bf656796f5a3",
+     "errors": [],
+     "warningCount": 685
+    },
+    {
+     "step": 10,
+     "level": "stasis2",
+     "passed": true,
+     "loadSeconds": 7.0,
+     "settleSeconds": 6.9,
+     "exit": "use loadStasis3",
+     "autosave": "stasis2",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 23 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "stasis2"
+     },
+     "screenshotSha256": "293a34ba888f17845be715cf2e146039271e7f2e5e9f0da6a32586c74f843b3b",
+     "errors": [],
+     "warningCount": 91
+    },
+    {
+     "step": 11,
+     "level": "stasis3",
+     "passed": true,
+     "loadSeconds": 6.9,
+     "settleSeconds": 6.9,
+     "exit": "use loadVoy6",
+     "autosave": "stasis3",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 23 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "stasis3"
+     },
+     "screenshotSha256": "f16f9d420f66f1ba3344a86cbd0730310723d237c33cf02b5bd7c84312199557",
+     "errors": [],
+     "warningCount": 58
+    },
+    {
+     "step": 12,
+     "level": "voy6",
+     "passed": true,
+     "loadSeconds": 4.2,
+     "settleSeconds": 8.0,
+     "exit": "use goto_voy7",
+     "autosave": "voy6",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy6"
+     },
+     "screenshotSha256": "9f02fdc66dcd78b383b4297a8f76eb53ad37f135f31aa4d1ff7c25391111626f",
+     "errors": [],
+     "warningCount": 18
+    },
+    {
+     "step": 13,
+     "level": "voy7",
+     "passed": true,
+     "loadSeconds": 10.0,
+     "settleSeconds": 6.9,
+     "exit": "use t81",
+     "autosave": "voy7",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy7"
+     },
+     "screenshotSha256": "869757bc2a3de01a64605a1f909462dd0840f108e3f3b3b1950df033e06e0b46",
+     "errors": [],
+     "warningCount": 92
+    },
+    {
+     "step": 14,
+     "level": "voy8",
+     "passed": true,
+     "loadSeconds": 5.8,
+     "settleSeconds": 6.9,
+     "exit": "use goto_scav1",
+     "autosave": "voy8",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy8"
+     },
+     "screenshotSha256": "baf6f756a74ca2d5628b2d95b5a0faf69e22534ac59e1798833007698ea563a8",
+     "errors": [],
+     "warningCount": 143
+    },
+    {
+     "step": 15,
+     "level": "scav1",
+     "passed": true,
+     "loadSeconds": 5.2,
+     "settleSeconds": 16.8,
+     "exit": "use startScav2",
+     "autosave": "scav1",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 119 5 2 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "scav1"
+     },
+     "screenshotSha256": "023200057b2f187e7ebb71c8ae2d976f2e72f37752d245d9c430c0e09296502c",
+     "errors": [],
+     "warningCount": 65
+    },
+    {
+     "step": 16,
+     "level": "scav2",
+     "passed": true,
+     "loadSeconds": 6.5,
+     "settleSeconds": 6.9,
+     "exit": "use t28",
+     "autosave": "scav2",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 119 0 1 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "scav2"
+     },
+     "screenshotSha256": "b7495255b66b266d8e528f4fe40b1ee246dc0ce2f01c35b384e4677957dd999c",
+     "errors": [],
+     "warningCount": 29
+    },
+    {
+     "step": 17,
+     "level": "scav3",
+     "passed": true,
+     "loadSeconds": 5.3,
+     "settleSeconds": 6.9,
+     "exit": "use t115",
+     "autosave": "scav3",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 119 2 2 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "scav3"
+     },
+     "screenshotSha256": "db33d136f96ac3e530318698c25ead0938ec35ed248ffd3d0a49e9e232d42b38",
+     "errors": [],
+     "warningCount": 58
+    },
+    {
+     "step": 18,
+     "level": "scav3b",
+     "passed": true,
+     "loadSeconds": 6.4,
+     "settleSeconds": 6.9,
+     "exit": "use levelchange",
+     "autosave": "scav3b",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 119 2 2 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "scav3b"
+     },
+     "screenshotSha256": "6cee220af10e0dfd4f26debf1171783d20da357a4890ec0714a7c1c51b25d8e7",
+     "errors": [],
+     "warningCount": 125
+    },
+    {
+     "step": 19,
+     "level": "scav4",
+     "passed": true,
+     "loadSeconds": 7.9,
+     "settleSeconds": 6.9,
+     "exit": "use t247",
+     "autosave": "scav4",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 119 2 2 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "scav4"
+     },
+     "screenshotSha256": "5ebec82d3189c41bdae604be7744ada6152498c15ea6916e6a8fcef144c3da73",
+     "errors": [],
+     "warningCount": 131
+    },
+    {
+     "step": 20,
+     "level": "scav5",
+     "passed": true,
+     "loadSeconds": 7.4,
+     "settleSeconds": 6.9,
+     "exit": "use t306",
+     "autosave": "scav5",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 119 2 2 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "scav5"
+     },
+     "screenshotSha256": "dbd8751decd2b10d7121d539e91aff4a8042da8890bfa27bf31b399f1052ac61",
+     "errors": [],
+     "warningCount": 68
+    },
+    {
+     "step": 21,
+     "level": "scavboss",
+     "passed": true,
+     "loadSeconds": 7.4,
+     "settleSeconds": 6.9,
+     "exit": "use goto_voy9",
+     "autosave": "scavboss",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 119 2 2 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "scavboss"
+     },
+     "screenshotSha256": "6b26d4302110531b3f7f93e7d81cbcc24619e6e1f7e75a509f01dd74e77d0074",
+     "errors": [],
+     "warningCount": 36
+    },
+    {
+     "step": 22,
+     "level": "voy9",
+     "passed": true,
+     "loadSeconds": 7.7,
+     "settleSeconds": 8.0,
+     "exit": "use goto_borg3",
+     "autosave": "voy9",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 114.999390 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy9"
+     },
+     "screenshotSha256": "220de4191c8ab1aa324b91a636b584acb984e8ddffbd314ad914e705bc17b41a",
+     "errors": [],
+     "warningCount": 30
+    },
+    {
+     "step": 23,
+     "level": "borg3",
+     "passed": true,
+     "loadSeconds": 8.2,
+     "settleSeconds": 6.9,
+     "exit": "use t265",
+     "autosave": "borg3",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -135.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "borg3"
+     },
+     "screenshotSha256": "2390f37a636da62b826bde95f8f5fb8c92f3853e363f84385097b45d1841eead",
+     "errors": [],
+     "warningCount": 81
+    },
+    {
+     "step": 24,
+     "level": "borg4",
+     "passed": true,
+     "loadSeconds": 8.2,
+     "settleSeconds": 6.9,
+     "exit": "use endlevel",
+     "autosave": "borg4",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 255 2 2 0.000000 90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "borg4"
+     },
+     "screenshotSha256": "20f0ce5b3cc930ccd9eb610ca65dd5e4afafef1506661ebc4267e14f48c0720c",
+     "errors": [],
+     "warningCount": 83
+    },
+    {
+     "step": 25,
+     "level": "borg5",
+     "passed": true,
+     "loadSeconds": 7.6,
+     "settleSeconds": 6.9,
+     "exit": "use t447",
+     "autosave": "borg5",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 255 2 2 0.000000 90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "borg5"
+     },
+     "screenshotSha256": "3cbb9e955160f1da5406047e0c92238d041f9b860e299bdb9d258c90b90f1ef8",
+     "errors": [],
+     "warningCount": 33
+    },
+    {
+     "step": 26,
+     "level": "borg6",
+     "passed": true,
+     "loadSeconds": 8.6,
+     "settleSeconds": 6.9,
+     "exit": "use goto_voy13",
+     "autosave": "borg6",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 255 2 2 0.000000 135.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "borg6"
+     },
+     "screenshotSha256": "dae5746ab4065ed5ae3655bfa55bd3088fd591fa863b41e329597d45b7fe96a8",
+     "errors": [],
+     "warningCount": 30
+    },
+    {
+     "step": 27,
+     "level": "voy13",
+     "passed": true,
+     "loadSeconds": 7.1,
+     "settleSeconds": 8.0,
+     "exit": "use levelchange",
+     "autosave": "voy13",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy13"
+     },
+     "screenshotSha256": "707452d54320fffcfd1f61b83c14da564a93c5951ab31ae34c8ab3f29de4aa03",
+     "errors": [],
+     "warningCount": 60
+    },
+    {
+     "step": 28,
+     "level": "voy14",
+     "passed": true,
+     "loadSeconds": 5.6,
+     "settleSeconds": 6.9,
+     "exit": "use loadvoy15",
+     "autosave": "voy14",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy14"
+     },
+     "screenshotSha256": "ebb2b6d3809be3eddc8ea06e3a9844a7e7ea683602001429e25bad078b9cdd82",
+     "errors": [],
+     "warningCount": 55
+    },
+    {
+     "step": 29,
+     "level": "voy15",
+     "passed": true,
+     "loadSeconds": 9.1,
+     "settleSeconds": 6.9,
+     "exit": "use goto_dn1",
+     "autosave": "voy15",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy15"
+     },
+     "screenshotSha256": "497328fc6609fd6f56a44c12ea8edb1f34db0846c9d526db26a9c1ca9a314ef7",
+     "errors": [],
+     "warningCount": 49
+    },
+    {
+     "step": 30,
+     "level": "dn1",
+     "passed": true,
+     "loadSeconds": 7.2,
+     "settleSeconds": 11.3,
+     "exit": "use t2",
+     "autosave": "dn1",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "dn1"
+     },
+     "screenshotSha256": "5bce2e2a6cc6eeae904849e2aac85cda7a0e499fe854dab3f8153b8d4720d6de",
+     "errors": [],
+     "warningCount": 55
+    },
+    {
+     "step": 31,
+     "level": "dn2",
+     "passed": true,
+     "loadSeconds": 7.1,
+     "settleSeconds": 6.9,
+     "exit": "use goto_dn3",
+     "autosave": "dn2",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "dn2"
+     },
+     "screenshotSha256": "8805216a0be73ba1c0e7fcad6c33640d5829023b4df640cadf3498fea929322d",
+     "errors": [],
+     "warningCount": 17
+    },
+    {
+     "step": 32,
+     "level": "dn3",
+     "passed": true,
+     "loadSeconds": 5.1,
+     "settleSeconds": 6.9,
+     "exit": "use goto4",
+     "autosave": "dn3",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "dn3"
+     },
+     "screenshotSha256": "efb8ffa7c6136b92c7d96dd58afa2763cc33e7f6a059eb73d7aedac0a25bd16c",
+     "errors": [],
+     "warningCount": 20
+    },
+    {
+     "step": 33,
+     "level": "dn4",
+     "passed": true,
+     "loadSeconds": 6.1,
+     "settleSeconds": 6.9,
+     "exit": "use t109",
+     "autosave": "dn4",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "dn4"
+     },
+     "screenshotSha256": "1aa84fe661e8d44306a14132ac1e7372b646d4dd0b6cd7fd031164d422a8bbd7",
+     "errors": [],
+     "warningCount": 25
+    },
+    {
+     "step": 34,
+     "level": "dn5",
+     "passed": true,
+     "loadSeconds": 5.6,
+     "settleSeconds": 6.9,
+     "exit": "use goto_dn6",
+     "autosave": "dn5",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "dn5"
+     },
+     "screenshotSha256": "e9854568488be90e9cf5b5da9bb1dbee17bbf7adea11f237e97808c06aa9a8a8",
+     "errors": [],
+     "warningCount": 36
+    },
+    {
+     "step": 35,
+     "level": "dn6",
+     "passed": true,
+     "loadSeconds": 7.1,
+     "settleSeconds": 6.9,
+     "exit": "use level_change",
+     "autosave": "dn6",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "dn6"
+     },
+     "screenshotSha256": "7a4cbc0e5828fa53bf84787db9c448c92dc802b131dd96b8efb5927b9c6b3625",
+     "errors": [],
+     "warningCount": 82
+    },
+    {
+     "step": 36,
+     "level": "dn8",
+     "passed": true,
+     "loadSeconds": 7.7,
+     "settleSeconds": 6.9,
+     "exit": "use changelevel",
+     "autosave": "dn8",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "dn8"
+     },
+     "screenshotSha256": "a06ca938484d9a2598ead027b487f587825734799d105426b0426602e690bac9",
+     "errors": [],
+     "warningCount": 99
+    },
+    {
+     "step": 37,
+     "level": "voy16",
+     "passed": true,
+     "loadSeconds": 8.1,
+     "settleSeconds": 6.9,
+     "exit": "use goto_voy17",
+     "autosave": "voy16",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy16"
+     },
+     "screenshotSha256": "e685dc08bb61a30200c2f98ad3646ed5fe49d810d76a5b0ac014fe3aeccf4f8b",
+     "errors": [],
+     "warningCount": 48
+    },
+    {
+     "step": 38,
+     "level": "voy17",
+     "passed": true,
+     "loadSeconds": 8.1,
+     "settleSeconds": 6.9,
+     "exit": "use goto_forge1",
+     "autosave": "voy17",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "voy17"
+     },
+     "screenshotSha256": "c0703ccad52722ade561d8bab40b5a98fc459d675bf07e47db7b8cc8f31dcbc4",
+     "errors": [],
+     "warningCount": 24
+    },
+    {
+     "step": 39,
+     "level": "forge1",
+     "passed": true,
+     "loadSeconds": 5.6,
+     "settleSeconds": 6.9,
+     "exit": "use t40",
+     "autosave": "forge1",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 511 0 0 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "forge1"
+     },
+     "screenshotSha256": "b996f94d9176e4312f5e017d3af8b42783af31f176508f245c6d7c91042fda8e",
+     "errors": [],
+     "warningCount": 38
+    },
+    {
+     "step": 40,
+     "level": "forge2",
+     "passed": true,
+     "loadSeconds": 5.6,
+     "settleSeconds": 6.9,
+     "exit": "use t31",
+     "autosave": "forge2",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1023 2 2 0.000000 45.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "forge2"
+     },
+     "screenshotSha256": "2b758de7f8dc2168249abe99fd104f881cd843b2a1035c5a97e7d826c06bf39c",
+     "errors": [],
+     "warningCount": 42
+    },
+    {
+     "step": 41,
+     "level": "forge3",
+     "passed": true,
+     "loadSeconds": 5.1,
+     "settleSeconds": 6.9,
+     "exit": "use t331",
+     "autosave": "forge3",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1023 2 2 0.000000 45.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "forge3"
+     },
+     "screenshotSha256": "c9435c65ed9a4a7207c01737269574d6479c95d6b3c7bc55ffa4c282818ca785",
+     "errors": [],
+     "warningCount": 34
+    },
+    {
+     "step": 42,
+     "level": "forge4",
+     "passed": true,
+     "loadSeconds": 7.6,
+     "settleSeconds": 6.9,
+     "exit": "use t1",
+     "autosave": "forge4",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1023 2 2 0.000000 -180.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "forge4"
+     },
+     "screenshotSha256": "1a7471fe9ec2846ec91e10bb91788ff8da824403249173b15df68228c0f317df",
+     "errors": [],
+     "warningCount": 46
+    },
+    {
+     "step": 43,
+     "level": "forge5",
+     "passed": true,
+     "loadSeconds": 8.1,
+     "settleSeconds": 6.9,
+     "exit": "use exit",
+     "autosave": "forge5",
+     "restored": [],
+     "carried": {
+      "playersave": "70 89 1023 2 2 0.000000 45.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "forge5"
+     },
+     "screenshotSha256": "ac893b8cf703d3153e3c3e15b4f38eafcbf13a8c04c4ffe1531fd0ce6474310a",
+     "errors": [],
+     "warningCount": 67
+    },
+    {
+     "step": 44,
+     "level": "forgeboss",
+     "passed": true,
+     "loadSeconds": 10.6,
+     "settleSeconds": 6.9,
+     "exit": "use changemap",
+     "autosave": "forgeboss",
+     "restored": [],
+     "carried": {
+      "playersave": "70 89 1023 2 2 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "forgeboss"
+     },
+     "screenshotSha256": "0788716cb587ae0ca5032570e84d441979ff38ec40bc88cd434334445be98802",
+     "errors": [],
+     "warningCount": 23
+    },
+    {
+     "step": 45,
+     "level": "voy20",
+     "passed": true,
+     "loadSeconds": 5.1,
+     "settleSeconds": null,
+     "exit": null,
+     "autosave": null,
+     "restored": null,
+     "carried": null,
+     "screenshotSha256": null,
+     "errors": null,
+     "warningCount": null
+    }
+   ],
+   "epilogue": {
+    "finalSeconds": 111.4,
+    "finalPaused": true,
+    "movieLines": [
+     "^5CIN_PlayCinematic( st_21 )",
+     "Bink: video/st_21.bik, 512x384, 160 frames, track 0, sound off",
+     "^5Bink finished: video/st_21.bik"
+    ],
+    "movieFinished": true,
+    "creditsStarted": true,
+    "creditsLines": [
+     "^5clientCommand: Munro : 47 : music music/endcredits.mp3  music/briefing2.mp3",
+     "Rcon from 127.0.0.1: screenshot campaign-credits-00",
+     "Wrote screenshots/campaign-credits-00.png",
+     "Rcon from 127.0.0.1: screenshot campaign-credits-01",
+     "Wrote screenshots/campaign-credits-01.png",
+     "Rcon from 127.0.0.1: screenshot campaign-credits-02"
+    ],
+    "finalScreenshots": [
+     "BaseEF\\screenshots\\campaign-credits-00.png",
+     "BaseEF\\screenshots\\campaign-credits-01.png",
+     "BaseEF\\screenshots\\campaign-credits-02.png"
+    ]
+   }
+  },
+  "movies": {
+   "installed": {
+    "played": [
+     {
+      "movie": "st_01",
+      "width": 512,
+      "height": 384,
+      "frames": 75
+     },
+     {
+      "movie": "st_06",
+      "width": 512,
+      "height": 384,
+      "frames": 60
+     },
+     {
+      "movie": "st_07",
+      "width": 512,
+      "height": 384,
+      "frames": 60
+     },
+     {
+      "movie": "st_09",
+      "width": 512,
+      "height": 384,
+      "frames": 166
+     },
+     {
+      "movie": "st_10",
+      "width": 512,
+      "height": 384,
+      "frames": 60
+     },
+     {
+      "movie": "st_13",
+      "width": 512,
+      "height": 384,
+      "frames": 60
+     },
+     {
+      "movie": "st_15",
+      "width": 512,
+      "height": 384,
+      "frames": 90
+     },
+     {
+      "movie": "st_21",
+      "width": 512,
+      "height": 384,
+      "frames": 160
+     }
+    ],
+    "finished": [
+     "st_01",
+     "st_06",
+     "st_07",
+     "st_09",
+     "st_10",
+     "st_13",
+     "st_15",
+     "st_21"
+    ]
+   },
+   "stock": {
+    "played": [
+     {
+      "movie": "st_01",
+      "width": 512,
+      "height": 384,
+      "frames": 75
+     },
+     {
+      "movie": "st_06",
+      "width": 512,
+      "height": 384,
+      "frames": 60
+     },
+     {
+      "movie": "st_07",
+      "width": 512,
+      "height": 384,
+      "frames": 60
+     },
+     {
+      "movie": "st_09",
+      "width": 512,
+      "height": 384,
+      "frames": 166
+     },
+     {
+      "movie": "st_10",
+      "width": 512,
+      "height": 384,
+      "frames": 60
+     },
+     {
+      "movie": "st_13",
+      "width": 512,
+      "height": 384,
+      "frames": 60
+     },
+     {
+      "movie": "st_15",
+      "width": 512,
+      "height": 384,
+      "frames": 90
+     },
+     {
+      "movie": "st_21",
+      "width": 512,
+      "height": 384,
+      "frames": 160
+     }
+    ],
+    "finished": [
+     "st_01",
+     "st_06",
+     "st_07",
+     "st_09",
+     "st_10",
+     "st_13",
+     "st_15",
+     "st_21"
+    ]
+   },
+   "final": {
+    "played": [
+     {
+      "movie": "st_01",
+      "width": 512,
+      "height": 384,
+      "frames": 75
+     },
+     {
+      "movie": "st_06",
+      "width": 512,
+      "height": 384,
+      "frames": 60
+     },
+     {
+      "movie": "st_07",
+      "width": 512,
+      "height": 384,
+      "frames": 60
+     },
+     {
+      "movie": "st_09",
+      "width": 512,
+      "height": 384,
+      "frames": 166
+     },
+     {
+      "movie": "st_10",
+      "width": 512,
+      "height": 384,
+      "frames": 60
+     },
+     {
+      "movie": "st_13",
+      "width": 512,
+      "height": 384,
+      "frames": 60
+     },
+     {
+      "movie": "st_15",
+      "width": 512,
+      "height": 384,
+      "frames": 90
+     },
+     {
+      "movie": "st_21",
+      "width": 512,
+      "height": 384,
+      "frames": 160
+     }
+    ],
+    "finished": [
+     "st_01",
+     "st_06",
+     "st_07",
+     "st_09",
+     "st_10",
+     "st_13",
+     "st_15",
+     "st_21"
+    ]
+   }
+  }
+ },
+ "sideTrips": {
+  "holodeck-voy5": {
+   "first": {
+    "client": "ef59fafa92f0514a5d03de42e2fa2eea431e0df120a40a595a97195675943256",
+    "runtime": "stvef-compat-after",
+    "basepath": "E:\\Games\\Star Trek Voyager Elite Force",
+    "renderer": "glx",
+    "chain": "holodeck-voy5",
+    "passed": true,
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "levels": [
+     {
+      "step": 1,
+      "level": "voy5",
+      "passed": true,
+      "loadSeconds": 12.9,
+      "settleSeconds": 7.0,
+      "exit": "use hololevel",
+      "autosave": "voy5",
+      "restored": null,
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 -90.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "voy5"
+      },
+      "screenshotSha256": "355e1a1c72116f5691abb7b4d83f8409acc4c0484b8674b229f15a6330129f0a",
+      "errors": [],
+      "warningCount": 20
+     },
+     {
+      "step": 2,
+      "level": "_holodeck_highnoon",
+      "passed": true,
+      "loadSeconds": 4.7,
+      "settleSeconds": 6.9,
+      "exit": "use endsim",
+      "autosave": "voy5",
+      "restored": null,
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 90.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "_holodeck_highnoon"
+      },
+      "screenshotSha256": "f4fb60bb027de55caf735f23660db2661a6f3b3a564d0ef86b75fbd18037ac21",
+      "errors": [],
+      "warningCount": 16
+     },
+     {
+      "step": 3,
+      "level": "voy5",
+      "passed": true,
+      "loadSeconds": 8.7,
+      "settleSeconds": 6.9,
+      "exit": null,
+      "autosave": "voy5",
+      "restored": null,
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 90.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "voy5"
+      },
+      "screenshotSha256": "1adc49ff3e84c1f2f230c724126db6a657cbb8ad1651ab80c65fce07a0e5e31e",
+      "errors": [],
+      "warningCount": null
+     }
+    ]
+   },
+   "final": {
+    "client": "fd4f979d82022b71b95c4c774d5d621f1b0ef01291fdcff239671d00f5b6b33f",
+    "runtime": "stvef-compat-after3",
+    "basepath": "E:\\Games\\Star Trek Voyager Elite Force",
+    "renderer": "glx",
+    "chain": "holodeck-voy5",
+    "passed": true,
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "levels": [
+     {
+      "step": 1,
+      "level": "voy5",
+      "passed": true,
+      "loadSeconds": 9.6,
+      "settleSeconds": 6.9,
+      "exit": "use hololevel",
+      "autosave": "voy5",
+      "restored": [],
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 -90.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "voy5"
+      },
+      "screenshotSha256": "a0b68d3bc721172b5798b931878560eb9aca969bb0bb57b23c061318ab121c57",
+      "errors": [],
+      "warningCount": 20
+     },
+     {
+      "step": 2,
+      "level": "_holodeck_highnoon",
+      "passed": true,
+      "loadSeconds": 4.1,
+      "settleSeconds": 6.9,
+      "exit": "use endsim",
+      "autosave": "voy5",
+      "restored": [
+       "^5Done."
+      ],
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 90.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "_holodeck_highnoon"
+      },
+      "screenshotSha256": "b0d4a6eebe3dc1bf6588d37c12126f2e5d4a060cfa88fae3ce4ec272c62dd83b",
+      "errors": [],
+      "warningCount": 16
+     },
+     {
+      "step": 3,
+      "level": "voy5",
+      "passed": true,
+      "loadSeconds": 8.1,
+      "settleSeconds": 6.9,
+      "exit": null,
+      "autosave": "voy5",
+      "restored": [
+       "^5Loading game \"exitholodeck\"..."
+      ],
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 90.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "voy5"
+      },
+      "screenshotSha256": "1adc49ff3e84c1f2f230c724126db6a657cbb8ad1651ab80c65fce07a0e5e31e",
+      "errors": [],
+      "warningCount": null
+     }
+    ]
+   }
+  },
+  "holodeck-voy7": {
+   "first": {
+    "client": "ef59fafa92f0514a5d03de42e2fa2eea431e0df120a40a595a97195675943256",
+    "runtime": "stvef-compat-after",
+    "basepath": "E:\\Games\\Star Trek Voyager Elite Force",
+    "renderer": "glx",
+    "chain": "holodeck-voy7",
+    "passed": true,
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "levels": [
+     {
+      "step": 1,
+      "level": "voy7",
+      "passed": true,
+      "loadSeconds": 12.8,
+      "settleSeconds": 6.9,
+      "exit": "use hololevel",
+      "autosave": "voy7",
+      "restored": null,
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 0.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "voy7"
+      },
+      "screenshotSha256": "279242ba504ef7f2a9791c93b8f92300ea42e93d1a820a8a8ed94351359239cf",
+      "errors": [],
+      "warningCount": 18
+     },
+     {
+      "step": 2,
+      "level": "_holodeck_camelot",
+      "passed": true,
+      "loadSeconds": 6.7,
+      "settleSeconds": 6.9,
+      "exit": "use endsim",
+      "autosave": "voy7",
+      "restored": null,
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 0.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "_holodeck_camelot"
+      },
+      "screenshotSha256": "0c26b4598923b041f62170bb4b8305fd8a7461b9df4e3acd9fe851af48d191fb",
+      "errors": [],
+      "warningCount": 10
+     },
+     {
+      "step": 3,
+      "level": "voy7",
+      "passed": true,
+      "loadSeconds": 11.1,
+      "settleSeconds": 6.9,
+      "exit": null,
+      "autosave": "voy7",
+      "restored": null,
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 0.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "voy7"
+      },
+      "screenshotSha256": "4d8cf99b6019047f3263cfd37920f6312ac957709b99d999b6203f61f02925fb",
+      "errors": [],
+      "warningCount": null
+     }
+    ]
+   },
+   "final": {
+    "client": "fd4f979d82022b71b95c4c774d5d621f1b0ef01291fdcff239671d00f5b6b33f",
+    "runtime": "stvef-compat-after3",
+    "basepath": "E:\\Games\\Star Trek Voyager Elite Force",
+    "renderer": "glx",
+    "chain": "holodeck-voy7",
+    "passed": true,
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "levels": [
+     {
+      "step": 1,
+      "level": "voy7",
+      "passed": true,
+      "loadSeconds": 10.6,
+      "settleSeconds": 6.9,
+      "exit": "use hololevel",
+      "autosave": "voy7",
+      "restored": [],
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 0.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "voy7"
+      },
+      "screenshotSha256": "279242ba504ef7f2a9791c93b8f92300ea42e93d1a820a8a8ed94351359239cf",
+      "errors": [],
+      "warningCount": 18
+     },
+     {
+      "step": 2,
+      "level": "_holodeck_camelot",
+      "passed": true,
+      "loadSeconds": 4.7,
+      "settleSeconds": 6.9,
+      "exit": "use endsim",
+      "autosave": "voy7",
+      "restored": [
+       "^5Done."
+      ],
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 0.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "_holodeck_camelot"
+      },
+      "screenshotSha256": "33b3f46b8ac06c1501d5f82cc2e5cae37da9648de091b87eb18b611b62d804bd",
+      "errors": [],
+      "warningCount": 10
+     },
+     {
+      "step": 3,
+      "level": "voy7",
+      "passed": true,
+      "loadSeconds": 9.6,
+      "settleSeconds": 6.9,
+      "exit": null,
+      "autosave": "voy7",
+      "restored": [
+       "^5Loading game \"exitholodeck\"..."
+      ],
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 0.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "voy7"
+      },
+      "screenshotSha256": "4d8cf99b6019047f3263cfd37920f6312ac957709b99d999b6203f61f02925fb",
+      "errors": [],
+      "warningCount": null
+     }
+    ]
+   }
+  },
+  "holodeck-voy13": {
+   "first": {
+    "client": "ef59fafa92f0514a5d03de42e2fa2eea431e0df120a40a595a97195675943256",
+    "runtime": "stvef-compat-after",
+    "basepath": "E:\\Games\\Star Trek Voyager Elite Force",
+    "renderer": "glx",
+    "chain": "holodeck-voy13",
+    "passed": true,
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "levels": [
+     {
+      "step": 1,
+      "level": "voy13",
+      "passed": true,
+      "loadSeconds": 9.1,
+      "settleSeconds": 8.0,
+      "exit": "use hololevel",
+      "autosave": "voy13",
+      "restored": [],
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 -180.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "voy13"
+      },
+      "screenshotSha256": "24f7244546d9d30aa81a0be87895eda5a32e373f6fb121d2f4723d054bc712c2",
+      "errors": [],
+      "warningCount": 20
+     },
+     {
+      "step": 2,
+      "level": "_holodeck_temple",
+      "passed": true,
+      "loadSeconds": 5.5,
+      "settleSeconds": 6.9,
+      "exit": "use endsim",
+      "autosave": "voy13",
+      "restored": [
+       "^5Done."
+      ],
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 -180.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "_holodeck_temple"
+      },
+      "screenshotSha256": "83dd142a9205682e470e483e7cafdb7b973aa9b1beeccdb87523ed85c4a3e015",
+      "errors": [],
+      "warningCount": 10
+     },
+     {
+      "step": 3,
+      "level": "voy13",
+      "passed": true,
+      "loadSeconds": 9.9,
+      "settleSeconds": 6.9,
+      "exit": null,
+      "autosave": "voy13",
+      "restored": [
+       "^5Loading game \"exitholodeck\"..."
+      ],
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 -180.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "voy13"
+      },
+      "screenshotSha256": "91e6a44c56880627e174df15db91044db4cbc5ef35bb57849483f412efcbdeca",
+      "errors": [],
+      "warningCount": null
+     }
+    ]
+   },
+   "final": {
+    "client": "fd4f979d82022b71b95c4c774d5d621f1b0ef01291fdcff239671d00f5b6b33f",
+    "runtime": "stvef-compat-after3",
+    "basepath": "E:\\Games\\Star Trek Voyager Elite Force",
+    "renderer": "glx",
+    "chain": "holodeck-voy13",
+    "passed": true,
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "levels": [
+     {
+      "step": 1,
+      "level": "voy13",
+      "passed": true,
+      "loadSeconds": 8.1,
+      "settleSeconds": 8.0,
+      "exit": "use hololevel",
+      "autosave": "voy13",
+      "restored": [],
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 -180.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "voy13"
+      },
+      "screenshotSha256": "e5c5432ba388713f61f9577929a8c5da1efabcb59d752f07436f4dad6aac41b2",
+      "errors": [],
+      "warningCount": 20
+     },
+     {
+      "step": 2,
+      "level": "_holodeck_temple",
+      "passed": true,
+      "loadSeconds": 4.1,
+      "settleSeconds": 6.9,
+      "exit": "use endsim",
+      "autosave": "voy13",
+      "restored": [
+       "^5Done."
+      ],
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 -180.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "_holodeck_temple"
+      },
+      "screenshotSha256": "0eff6e62512fd23ff2250715b84726c40c842ef27dd428a59fd7f1fd633e2f6d",
+      "errors": [],
+      "warningCount": 10
+     },
+     {
+      "step": 3,
+      "level": "voy13",
+      "passed": true,
+      "loadSeconds": 6.6,
+      "settleSeconds": 6.9,
+      "exit": null,
+      "autosave": "voy13",
+      "restored": [
+       "^5Loading game \"exitholodeck\"..."
+      ],
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 -180.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "voy13"
+      },
+      "screenshotSha256": "e357cb1616335bbc80c10a9a4b370e18f9483345daabdf2d185b8c0d4d729e26",
+      "errors": [],
+      "warningCount": null
+     }
+    ]
+   }
+  },
+  "brig-voy1": {
+   "first": {
+    "client": "ef59fafa92f0514a5d03de42e2fa2eea431e0df120a40a595a97195675943256",
+    "runtime": "stvef-compat-after",
+    "basepath": "E:\\Games\\Star Trek Voyager Elite Force",
+    "renderer": "glx",
+    "chain": "brig-voy1",
+    "passed": true,
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "levels": [
+     {
+      "step": 1,
+      "level": "voy1",
+      "passed": true,
+      "loadSeconds": 12.4,
+      "settleSeconds": 8.1,
+      "exit": "use gotobrig",
+      "autosave": "voy1",
+      "restored": [],
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 -180.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "voy1"
+      },
+      "screenshotSha256": "06ac6a5c06385899037a2ced6f8cf7c1668fe9b26a34cb80622523a136e47bef",
+      "errors": [],
+      "warningCount": 47
+     },
+     {
+      "step": 2,
+      "level": "_brig",
+      "passed": true,
+      "loadSeconds": 4.1,
+      "settleSeconds": 6.9,
+      "exit": "load *respawn",
+      "autosave": "voy1",
+      "restored": [],
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 -180.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "_brig"
+      },
+      "screenshotSha256": "ed3f6495e026f55ba05d76ca6adf272481b536d05299000ee283aa1f3591ac20",
+      "errors": [],
+      "warningCount": 38
+     },
+     {
+      "step": 3,
+      "level": "voy1",
+      "passed": true,
+      "loadSeconds": 7.6,
+      "settleSeconds": 8.0,
+      "exit": null,
+      "autosave": "voy1",
+      "restored": [
+       "^5Loading game \"auto\"..."
+      ],
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 -180.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "voy1"
+      },
+      "screenshotSha256": "0ecdcce7f56196346070fcda991191312d17eb3824801f0430b0cd877af939cc",
+      "errors": [],
+      "warningCount": null
+     }
+    ]
+   },
+   "final": {
+    "client": "fd4f979d82022b71b95c4c774d5d621f1b0ef01291fdcff239671d00f5b6b33f",
+    "runtime": "stvef-compat-after3",
+    "basepath": "E:\\Games\\Star Trek Voyager Elite Force",
+    "renderer": "glx",
+    "chain": "brig-voy1",
+    "passed": true,
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "levels": [
+     {
+      "step": 1,
+      "level": "voy1",
+      "passed": true,
+      "loadSeconds": 8.6,
+      "settleSeconds": 8.0,
+      "exit": "use gotobrig",
+      "autosave": "voy1",
+      "restored": [],
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 -180.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "voy1"
+      },
+      "screenshotSha256": "edbb0c754363881d1fcdd73e90de23739023d9b175a202f374762b3f7a66a668",
+      "errors": [],
+      "warningCount": 47
+     },
+     {
+      "step": 2,
+      "level": "_brig",
+      "passed": true,
+      "loadSeconds": 3.1,
+      "settleSeconds": 6.9,
+      "exit": "load *respawn",
+      "autosave": "voy1",
+      "restored": [],
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 -180.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "_brig"
+      },
+      "screenshotSha256": "12aeb09205bb89fd865ac887f6d5cc869088c1f127a888bffe0bc988dfc8328d",
+      "errors": [],
+      "warningCount": 38
+     },
+     {
+      "step": 3,
+      "level": "voy1",
+      "passed": true,
+      "loadSeconds": 6.6,
+      "settleSeconds": 8.0,
+      "exit": null,
+      "autosave": "voy1",
+      "restored": [
+       "^5Loading game \"auto\"..."
+      ],
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 -180.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "voy1"
+      },
+      "screenshotSha256": "f2d68e9772401122faaac37d2dbcac356d9cfeb449edc668492222bf291937d5",
+      "errors": [],
+      "warningCount": null
+     }
+    ]
+   }
+  },
+  "brig-voy4": {
+   "first": {
+    "client": "ef59fafa92f0514a5d03de42e2fa2eea431e0df120a40a595a97195675943256",
+    "runtime": "stvef-compat-after",
+    "basepath": "E:\\Games\\Star Trek Voyager Elite Force",
+    "renderer": "glx",
+    "chain": "brig-voy4",
+    "passed": true,
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "levels": [
+     {
+      "step": 1,
+      "level": "voy4",
+      "passed": true,
+      "loadSeconds": 12.7,
+      "settleSeconds": 6.9,
+      "exit": "use gotobrig",
+      "autosave": "voy4",
+      "restored": [],
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 90.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "voy4"
+      },
+      "screenshotSha256": "7f358bcf29b0596503bafeba5a7c5ff490129a20c576c72a818755a01cb53dd2",
+      "errors": [],
+      "warningCount": 184
+     },
+     {
+      "step": 2,
+      "level": "_brig",
+      "passed": true,
+      "loadSeconds": 4.2,
+      "settleSeconds": 6.9,
+      "exit": "load *respawn",
+      "autosave": "voy4",
+      "restored": [],
+      "carried": {
+       "playersave": "100 100 3 1 5 0.000000 90.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "_brig"
+      },
+      "screenshotSha256": "96c799b52c3cf6671b5112a026a504432f06bd7422771eecede6558e608945e7",
+      "errors": [],
+      "warningCount": 180
+     },
+     {
+      "step": 3,
+      "level": "voy4",
+      "passed": true,
+      "loadSeconds": 5.6,
+      "settleSeconds": 6.9,
+      "exit": null,
+      "autosave": "voy4",
+      "restored": [
+       "^5Loading game \"auto\"..."
+      ],
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 90.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "voy4"
+      },
+      "screenshotSha256": "eccc461d5258c616b6815a32fab905fbf2dace2303760ba05f75cc7f8cd67240",
+      "errors": [],
+      "warningCount": null
+     }
+    ]
+   },
+   "final": {
+    "client": "fd4f979d82022b71b95c4c774d5d621f1b0ef01291fdcff239671d00f5b6b33f",
+    "runtime": "stvef-compat-after3",
+    "basepath": "E:\\Games\\Star Trek Voyager Elite Force",
+    "renderer": "glx",
+    "chain": "brig-voy4",
+    "passed": true,
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "levels": [
+     {
+      "step": 1,
+      "level": "voy4",
+      "passed": true,
+      "loadSeconds": 7.1,
+      "settleSeconds": 6.9,
+      "exit": "use gotobrig",
+      "autosave": "voy4",
+      "restored": [],
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 90.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "voy4"
+      },
+      "screenshotSha256": "3a3294d4f5ba73fabbda69eba82db23edc18613aca850523485976d35912ca4e",
+      "errors": [],
+      "warningCount": 184
+     },
+     {
+      "step": 2,
+      "level": "_brig",
+      "passed": true,
+      "loadSeconds": 2.6,
+      "settleSeconds": 6.9,
+      "exit": "load *respawn",
+      "autosave": "voy4",
+      "restored": [],
+      "carried": {
+       "playersave": "100 100 3 1 5 0.000000 90.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "_brig"
+      },
+      "screenshotSha256": "8c10d1d468646af1bb52b77e54516275ed61a827a192f5d2b598fa956fe6663e",
+      "errors": [],
+      "warningCount": 180
+     },
+     {
+      "step": 3,
+      "level": "voy4",
+      "passed": true,
+      "loadSeconds": 5.6,
+      "settleSeconds": 6.9,
+      "exit": null,
+      "autosave": "voy4",
+      "restored": [
+       "^5Loading game \"auto\"..."
+      ],
+      "carried": {
+       "playersave": "100 100 1 0 0 0.000000 90.000000 0.000000",
+       "playerammo0": "32000",
+       "playerammo1": "300",
+       "playerammo2": "300",
+       "playerammo3": "100",
+       "mapname": "voy4"
+      },
+      "screenshotSha256": "d703a5a55f989ec5c5f7f4d52313fdaa45885c2032066bd0f6b37a9b53627b50",
+      "errors": [],
+      "warningCount": null
+     }
+    ]
+   }
+  }
+ },
+ "tour": {
+  "first": {
+   "client": "83a7723e1bebe944b5d7d28b47f04d643517e6ce5baa84ea9cbf152d895f5ee6",
+   "runtime": "stvef-compat-after2",
+   "basepath": "E:\\Games\\Star Trek Voyager Elite Force",
+   "renderer": "glx",
+   "chain": "tour",
+   "passed": true,
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "levels": [
+    {
+     "step": 1,
+     "level": "tour/deck02",
+     "passed": true,
+     "loadSeconds": 9.4,
+     "settleSeconds": 6.9,
+     "exit": "use tour_turbo_03",
+     "autosave": "tour/deck02",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -110.000610 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "tour/deck02"
+     },
+     "screenshotSha256": "f357f9c55def6d75c73a89e1952862612ce6ebdff72758758696904f6b1ff24f",
+     "errors": [],
+     "warningCount": 547
+    },
+    {
+     "step": 2,
+     "level": "tour/deck03",
+     "passed": true,
+     "loadSeconds": 10.4,
+     "settleSeconds": 6.9,
+     "exit": "use tour_turbo_02",
+     "autosave": "tour/deck03",
+     "restored": [
+      "^5Restoring game \"hub/tour/deck03\"...",
+      "^5Failed to open savegame file saves/hub/tour/deck03.sav",
+      "^1Failed to open savegame \"hub/tour/deck03\""
+     ],
+     "carried": {
+      "playersave": "100 100 2049 11 5 0.000000 -110.000610 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "tour/deck03"
+     },
+     "screenshotSha256": "3412fd212f41f5d79c7fb03a3817134296c1037b1dec796e596a01974a1ed670",
+     "errors": [],
+     "warningCount": 546
+    },
+    {
+     "step": 3,
+     "level": "tour/deck02",
+     "passed": true,
+     "loadSeconds": 7.6,
+     "settleSeconds": 6.9,
+     "exit": "use tour_turbo_04",
+     "autosave": "tour/deck02",
+     "restored": [
+      "^5Restoring game \"hub/tour/deck02\"..."
+     ],
+     "carried": {
+      "playersave": "100 100 2049 11 5 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "tour/deck02"
+     },
+     "screenshotSha256": "649a67b562b25078cd8c7544da826b2ffb84ac67351ebd55f5817f0e0b96659f",
+     "errors": [],
+     "warningCount": 605
+    },
+    {
+     "step": 4,
+     "level": "tour/deck04",
+     "passed": true,
+     "loadSeconds": 10.5,
+     "settleSeconds": 6.9,
+     "exit": "use tour_turbo_05",
+     "autosave": "tour/deck04",
+     "restored": [
+      "^5Restoring game \"hub/tour/deck04\"...",
+      "^5Failed to open savegame file saves/hub/tour/deck04.sav",
+      "^1Failed to open savegame \"hub/tour/deck04\""
+     ],
+     "carried": {
+      "playersave": "100 100 2049 11 5 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "tour/deck04"
+     },
+     "screenshotSha256": "917ae012517c4a61a7c2db4ed48a1c1a8ae3dd985a8b34d91d0582c9bcac04fd",
+     "errors": [],
+     "warningCount": 508
+    },
+    {
+     "step": 5,
+     "level": "tour/deck05",
+     "passed": true,
+     "loadSeconds": 4.5,
+     "settleSeconds": 6.9,
+     "exit": "use tour_turbo_08",
+     "autosave": "tour/deck05",
+     "restored": [
+      "^5Restoring game \"hub/tour/deck05\"...",
+      "^5Failed to open savegame file saves/hub/tour/deck05.sav",
+      "^1Failed to open savegame \"hub/tour/deck05\""
+     ],
+     "carried": {
+      "playersave": "100 100 2049 11 5 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "tour/deck05"
+     },
+     "screenshotSha256": "a9f95a3526f3d44ea39d4a4a76a81e6a280ae791af104e57f548793ea74fd545",
+     "errors": [],
+     "warningCount": 414
+    },
+    {
+     "step": 6,
+     "level": "tour/deck08",
+     "passed": true,
+     "loadSeconds": 10.4,
+     "settleSeconds": 6.9,
+     "exit": "use tour_turbo_09",
+     "autosave": "tour/deck08",
+     "restored": [
+      "^5Restoring game \"hub/tour/deck08\"...",
+      "^5Failed to open savegame file saves/hub/tour/deck08.sav",
+      "^1Failed to open savegame \"hub/tour/deck08\""
+     ],
+     "carried": {
+      "playersave": "100 100 2049 11 5 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "tour/deck08"
+     },
+     "screenshotSha256": "d46c0d5a0e0600caef62687d03436371ba8e69ff3ddbb809a6c8224fe14774ec",
+     "errors": [],
+     "warningCount": 463
+    },
+    {
+     "step": 7,
+     "level": "tour/deck09",
+     "passed": true,
+     "loadSeconds": 6.8,
+     "settleSeconds": 6.9,
+     "exit": "use tour_turbo_10",
+     "autosave": "tour/deck09",
+     "restored": [
+      "^5Restoring game \"hub/tour/deck09\"...",
+      "^5Failed to open savegame file saves/hub/tour/deck09.sav",
+      "^1Failed to open savegame \"hub/tour/deck09\""
+     ],
+     "carried": {
+      "playersave": "100 100 2049 11 5 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "tour/deck09"
+     },
+     "screenshotSha256": "3c6a49b101bd50f2d2063f7647b544234404570df3fa83800854ca2adf31dbe2",
+     "errors": [],
+     "warningCount": 385
+    },
+    {
+     "step": 8,
+     "level": "tour/deck10",
+     "passed": true,
+     "loadSeconds": 7.8,
+     "settleSeconds": 6.9,
+     "exit": "use tour_turbo_11",
+     "autosave": "tour/deck10",
+     "restored": [
+      "^5Restoring game \"hub/tour/deck10\"...",
+      "^5Failed to open savegame file saves/hub/tour/deck10.sav",
+      "^1Failed to open savegame \"hub/tour/deck10\""
+     ],
+     "carried": {
+      "playersave": "100 100 2049 11 5 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "tour/deck10"
+     },
+     "screenshotSha256": "1b95ac85c60abd4ebca0b72bdee9962857c3ed286803851d4a32bc2da3f7e626",
+     "errors": [],
+     "warningCount": 229
+    },
+    {
+     "step": 9,
+     "level": "tour/deck11",
+     "passed": true,
+     "loadSeconds": 5.6,
+     "settleSeconds": 7.0,
+     "exit": "use tour_turbo_01",
+     "autosave": "tour/deck11",
+     "restored": [
+      "^5Restoring game \"hub/tour/deck11\"...",
+      "^5Failed to open savegame file saves/hub/tour/deck11.sav",
+      "^1Failed to open savegame \"hub/tour/deck11\""
+     ],
+     "carried": {
+      "playersave": "100 100 2049 11 5 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "tour/deck11"
+     },
+     "screenshotSha256": "2a06263c6e059a125a69243a6a1036575e5c05f013fec8144c5339e6c65f9737",
+     "errors": [],
+     "warningCount": 498
+    },
+    {
+     "step": 10,
+     "level": "tour/deck01",
+     "passed": true,
+     "loadSeconds": 7.6,
+     "settleSeconds": 6.9,
+     "exit": "use tour_turbo_04",
+     "autosave": "tour/deck01",
+     "restored": [
+      "^5Restoring game \"hub/tour/deck01\"...",
+      "^5Failed to open savegame file saves/hub/tour/deck01.sav",
+      "^1Failed to open savegame \"hub/tour/deck01\""
+     ],
+     "carried": {
+      "playersave": "100 100 2049 11 5 0.000000 90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "tour/deck01"
+     },
+     "screenshotSha256": "10f0af2d3b7a623b249489fa4c965b9e9ca7a72217b8b05eeb869096ce534691",
+     "errors": [],
+     "warningCount": 676
+    },
+    {
+     "step": 11,
+     "level": "tour/deck04",
+     "passed": true,
+     "loadSeconds": 10.5,
+     "settleSeconds": 6.9,
+     "exit": null,
+     "autosave": "tour/deck04",
+     "restored": [
+      "^5Restoring game \"hub/tour/deck04\"..."
+     ],
+     "carried": {
+      "playersave": "100 100 2049 11 5 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "tour/deck04"
+     },
+     "screenshotSha256": "14980fd75b3bcd15f142d313034967af645064498cba3c3c60e09ed9698b3061",
+     "errors": [],
+     "warningCount": null
+    }
+   ]
+  },
+  "final": {
+   "client": "fd4f979d82022b71b95c4c774d5d621f1b0ef01291fdcff239671d00f5b6b33f",
+   "runtime": "stvef-compat-after3",
+   "basepath": "E:\\Games\\Star Trek Voyager Elite Force",
+   "renderer": "glx",
+   "chain": "tour",
+   "passed": true,
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "levels": [
+    {
+     "step": 1,
+     "level": "tour/deck02",
+     "passed": true,
+     "loadSeconds": 9.1,
+     "settleSeconds": 6.9,
+     "exit": "use tour_turbo_03",
+     "autosave": "tour/deck02",
+     "restored": [],
+     "carried": {
+      "playersave": "100 100 1 0 0 0.000000 -110.000610 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "tour/deck02"
+     },
+     "screenshotSha256": "cf82444a7a564b1827b8ee0615d6c1aeb0a79efb77b2f31953e5082930ad9a01",
+     "errors": [],
+     "warningCount": 547
+    },
+    {
+     "step": 2,
+     "level": "tour/deck03",
+     "passed": true,
+     "loadSeconds": 10.7,
+     "settleSeconds": 6.9,
+     "exit": "use tour_turbo_02",
+     "autosave": "tour/deck03",
+     "restored": [
+      "^5Restoring game \"hub/tour/deck03\"...",
+      "^5Failed to open savegame file saves/hub/tour/deck03.sav",
+      "^1Failed to open savegame \"hub/tour/deck03\""
+     ],
+     "carried": {
+      "playersave": "100 100 2049 11 5 0.000000 -110.000610 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "tour/deck03"
+     },
+     "screenshotSha256": "8246eaca6da902d5c7856e3cea3efde396451569e2a6303ec2e359d9b975d239",
+     "errors": [],
+     "warningCount": 546
+    },
+    {
+     "step": 3,
+     "level": "tour/deck02",
+     "passed": true,
+     "loadSeconds": 7.7,
+     "settleSeconds": 6.9,
+     "exit": "use tour_turbo_04",
+     "autosave": "tour/deck02",
+     "restored": [
+      "^5Restoring game \"hub/tour/deck02\"..."
+     ],
+     "carried": {
+      "playersave": "100 100 2049 11 5 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "tour/deck02"
+     },
+     "screenshotSha256": "48400d15ab91f5c1fa78acbd13def8a32d06387a27f3b1a6f2edb7a4a368dbd2",
+     "errors": [],
+     "warningCount": 605
+    },
+    {
+     "step": 4,
+     "level": "tour/deck04",
+     "passed": true,
+     "loadSeconds": 9.6,
+     "settleSeconds": 6.9,
+     "exit": "use tour_turbo_05",
+     "autosave": "tour/deck04",
+     "restored": [
+      "^5Restoring game \"hub/tour/deck04\"...",
+      "^5Failed to open savegame file saves/hub/tour/deck04.sav",
+      "^1Failed to open savegame \"hub/tour/deck04\""
+     ],
+     "carried": {
+      "playersave": "100 100 2049 11 5 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "tour/deck04"
+     },
+     "screenshotSha256": "e3223438b6bc692e27ea125ed3eebca2a56ade4285ba9dab8fa72f797d5e89fa",
+     "errors": [],
+     "warningCount": 508
+    },
+    {
+     "step": 5,
+     "level": "tour/deck05",
+     "passed": true,
+     "loadSeconds": 4.8,
+     "settleSeconds": 6.9,
+     "exit": "use tour_turbo_08",
+     "autosave": "tour/deck05",
+     "restored": [
+      "^5Restoring game \"hub/tour/deck05\"...",
+      "^5Failed to open savegame file saves/hub/tour/deck05.sav",
+      "^1Failed to open savegame \"hub/tour/deck05\""
+     ],
+     "carried": {
+      "playersave": "100 100 2049 11 5 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "tour/deck05"
+     },
+     "screenshotSha256": "9cb7971d6390ca38f626019109cbe89aeb836430d9466f7c61424473af05386a",
+     "errors": [],
+     "warningCount": 414
+    },
+    {
+     "step": 6,
+     "level": "tour/deck08",
+     "passed": true,
+     "loadSeconds": 9.4,
+     "settleSeconds": 6.9,
+     "exit": "use tour_turbo_09",
+     "autosave": "tour/deck08",
+     "restored": [
+      "^5Restoring game \"hub/tour/deck08\"...",
+      "^5Failed to open savegame file saves/hub/tour/deck08.sav",
+      "^1Failed to open savegame \"hub/tour/deck08\""
+     ],
+     "carried": {
+      "playersave": "100 100 2049 11 5 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "tour/deck08"
+     },
+     "screenshotSha256": "80e880ea87b4c974e867514f54780d195afb62d216e486233902801cf4001e74",
+     "errors": [],
+     "warningCount": 463
+    },
+    {
+     "step": 7,
+     "level": "tour/deck09",
+     "passed": true,
+     "loadSeconds": 6.5,
+     "settleSeconds": 6.9,
+     "exit": "use tour_turbo_10",
+     "autosave": "tour/deck09",
+     "restored": [
+      "^5Restoring game \"hub/tour/deck09\"...",
+      "^5Failed to open savegame file saves/hub/tour/deck09.sav",
+      "^1Failed to open savegame \"hub/tour/deck09\""
+     ],
+     "carried": {
+      "playersave": "100 100 2049 11 5 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "tour/deck09"
+     },
+     "screenshotSha256": "2be1c0fc14a47a3d9dcb28cf22a49c36e16d0b437cc397da9b4a6dcf0a4d2633",
+     "errors": [],
+     "warningCount": 385
+    },
+    {
+     "step": 8,
+     "level": "tour/deck10",
+     "passed": true,
+     "loadSeconds": 6.8,
+     "settleSeconds": 6.9,
+     "exit": "use tour_turbo_11",
+     "autosave": "tour/deck10",
+     "restored": [
+      "^5Restoring game \"hub/tour/deck10\"...",
+      "^5Failed to open savegame file saves/hub/tour/deck10.sav",
+      "^1Failed to open savegame \"hub/tour/deck10\""
+     ],
+     "carried": {
+      "playersave": "100 100 2049 11 5 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "tour/deck10"
+     },
+     "screenshotSha256": "9e94abdc0ff4e0fc17694fbcaa6def2aabcdfd2f84790e8c95078db72f38cdcd",
+     "errors": [],
+     "warningCount": 229
+    },
+    {
+     "step": 9,
+     "level": "tour/deck11",
+     "passed": true,
+     "loadSeconds": 5.8,
+     "settleSeconds": 6.9,
+     "exit": "use tour_turbo_01",
+     "autosave": "tour/deck11",
+     "restored": [
+      "^5Restoring game \"hub/tour/deck11\"...",
+      "^5Failed to open savegame file saves/hub/tour/deck11.sav",
+      "^1Failed to open savegame \"hub/tour/deck11\""
+     ],
+     "carried": {
+      "playersave": "100 100 2049 11 5 0.000000 0.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "tour/deck11"
+     },
+     "screenshotSha256": "2fc865bab4706bf7de848c624c5a86d3be6257f8c98137e5845301e65256d532",
+     "errors": [],
+     "warningCount": 498
+    },
+    {
+     "step": 10,
+     "level": "tour/deck01",
+     "passed": true,
+     "loadSeconds": 6.8,
+     "settleSeconds": 6.9,
+     "exit": "use tour_turbo_04",
+     "autosave": "tour/deck01",
+     "restored": [
+      "^5Restoring game \"hub/tour/deck01\"...",
+      "^5Failed to open savegame file saves/hub/tour/deck01.sav",
+      "^1Failed to open savegame \"hub/tour/deck01\""
+     ],
+     "carried": {
+      "playersave": "100 100 2049 11 5 0.000000 90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "tour/deck01"
+     },
+     "screenshotSha256": "155ea532a6a4f6c3c6d51123cfbaefbb1655ee72e6c1d52ee20f79dd019b1302",
+     "errors": [],
+     "warningCount": 676
+    },
+    {
+     "step": 11,
+     "level": "tour/deck04",
+     "passed": true,
+     "loadSeconds": 9.9,
+     "settleSeconds": 6.9,
+     "exit": null,
+     "autosave": "tour/deck04",
+     "restored": [
+      "^5Restoring game \"hub/tour/deck04\"..."
+     ],
+     "carried": {
+      "playersave": "100 100 2049 11 5 0.000000 -90.000000 0.000000",
+      "playerammo0": "32000",
+      "playerammo1": "300",
+      "playerammo2": "300",
+      "playerammo3": "100",
+      "mapname": "tour/deck04"
+     },
+     "screenshotSha256": "b074fd3b7ab89a929970a3f8e19bf4526be8ee988c5448d53f19f7eb81565260",
+     "errors": [],
+     "warningCount": null
+    }
+   ]
+  }
+ },
+ "menus": {
+  "client": "ef59fafa92f0514a5d03de42e2fa2eea431e0df120a40a595a97195675943256",
+  "level": "tour/deck02",
+  "renderer": "glx",
+  "rows": [
+   {
+    "command": "ui_holodeck",
+    "unknown": false,
+    "errors": [],
+    "screenshot": "home\\BaseEF\\screenshots\\sp-menu-ui_holodeck.png"
+   },
+   {
+    "command": "ui_turbolift",
+    "unknown": false,
+    "errors": [],
+    "screenshot": "home\\BaseEF\\screenshots\\sp-menu-ui_turbolift.png"
+   },
+   {
+    "command": "ui_transporter",
+    "unknown": false,
+    "errors": [],
+    "screenshot": "home\\BaseEF\\screenshots\\sp-menu-ui_transporter.png"
+   },
+   {
+    "command": "ui_library",
+    "unknown": false,
+    "errors": [],
+    "screenshot": "home\\BaseEF\\screenshots\\sp-menu-ui_library.png"
+   },
+   {
+    "command": "ui_log",
+    "unknown": false,
+    "errors": [],
+    "screenshot": "home\\BaseEF\\screenshots\\sp-menu-ui_log.png"
+   },
+   {
+    "command": "ui_navigation",
+    "unknown": false,
+    "errors": [],
+    "screenshot": "home\\BaseEF\\screenshots\\sp-menu-ui_navigation.png"
+   },
+   {
+    "command": "ui_ops",
+    "unknown": false,
+    "errors": [],
+    "screenshot": "home\\BaseEF\\screenshots\\sp-menu-ui_ops.png"
+   },
+   {
+    "command": "ui_padd",
+    "unknown": false,
+    "errors": [],
+    "screenshot": "home\\BaseEF\\screenshots\\sp-menu-ui_padd.png"
+   },
+   {
+    "command": "ui_tactical",
+    "unknown": false,
+    "errors": [],
+    "screenshot": "home\\BaseEF\\screenshots\\sp-menu-ui_tactical.png"
+   },
+   {
+    "command": "ui_astrometrics",
+    "unknown": false,
+    "errors": [],
+    "screenshot": "home\\BaseEF\\screenshots\\sp-menu-ui_astrometrics.png"
+   },
+   {
+    "command": "ui_cargo",
+    "unknown": false,
+    "errors": [],
+    "screenshot": "home\\BaseEF\\screenshots\\sp-menu-ui_cargo.png"
+   },
+   {
+    "command": "ui_diseases",
+    "unknown": false,
+    "errors": [],
+    "screenshot": "home\\BaseEF\\screenshots\\sp-menu-ui_diseases.png"
+   },
+   {
+    "command": "ui_engineeringdata",
+    "unknown": false,
+    "errors": [],
+    "screenshot": "home\\BaseEF\\screenshots\\sp-menu-ui_engineeringdata.png"
+   },
+   {
+    "command": "ui_engineeringstatus",
+    "unknown": false,
+    "errors": [],
+    "screenshot": "home\\BaseEF\\screenshots\\sp-menu-ui_engineeringstatus.png"
+   },
+   {
+    "command": "ui_weaponlibrary",
+    "unknown": false,
+    "errors": [],
+    "screenshot": "home\\BaseEF\\screenshots\\sp-menu-ui_weaponlibrary.png"
+   },
+   {
+    "command": "ui_shootingrange",
+    "unknown": false,
+    "errors": [],
+    "screenshot": "home\\BaseEF\\screenshots\\sp-menu-ui_shootingrange.png"
+   },
+   {
+    "command": "ui_hazardgame",
+    "unknown": false,
+    "errors": [],
+    "screenshot": "home\\BaseEF\\screenshots\\sp-menu-ui_hazardgame.png"
+   },
+   {
+    "command": "ui_initialsetup",
+    "unknown": false,
+    "errors": [],
+    "screenshot": "home\\BaseEF\\screenshots\\sp-menu-ui_initialsetup.png"
+   },
+   {
+    "command": "genericmenu",
+    "unknown": false,
+    "errors": [],
+    "screenshot": "home\\BaseEF\\screenshots\\sp-menu-genericmenu.png"
+   },
+   {
+    "command": "genericholomenu",
+    "unknown": false,
+    "errors": [],
+    "screenshot": "home\\BaseEF\\screenshots\\sp-menu-genericholomenu.png"
+   },
+   {
+    "command": "endholomenu",
+    "unknown": false,
+    "errors": [],
+    "screenshot": "home\\BaseEF\\screenshots\\sp-menu-endholomenu.png"
+   },
+   {
+    "command": "ui_closingcredits",
+    "unknown": false,
+    "errors": [],
+    "screenshot": "home\\BaseEF\\screenshots\\sp-menu-ui_closingcredits.png"
+   }
+  ],
+  "distinctScreenshots": 22,
+  "exit": 0,
+  "installationUnchanged": true
+ },
+ "stockMapSweep": {
+  "renderer": "vk",
+  "requestedHunkMiB": 36,
+  "width": 800,
+  "height": 600,
+  "soundBackend": "off",
+  "passed": 99,
+  "failed": 0,
+  "binaries": {
+   "E:\\Repositories\\fnTech3\\.tmp\\runtime\\stvef-compat-after2\\fntech3.exe": "83a7723e1bebe944b5d7d28b47f04d643517e6ce5baa84ea9cbf152d895f5ee6",
+   "E:\\Repositories\\fnTech3\\.tmp\\runtime\\stvef-compat-after2\\fnql_vk_x86.dll": "0ed4ff166e7688e7fe30c8c9b306e64bacfb09ea54dc97b5b8211524d57153ea"
+  },
+  "installation": "E:\\Repositories\\fnTech3\\.tmp\\stvef-stock",
+  "installationUnchanged": true,
+  "binariesUnchanged": true,
+  "startedUtc": "2026-10-08T19:50:02Z",
+  "endedUtc": "2026-10-08T19:55:50Z"
+ },
+ "warningKinds": {
+  "final": {
+   "^NWARNING: CM_AddFacetBevels... invalid bevel": 2208,
+   "^N^NR_RegisterMDN: couldn't load models/weapons.../..._flash...mdN": 868,
+   "^NWARNING: Unable to load ambient sound \"...\"": 614,
+   "^NWARNING: Too many subwaves on set \"...\"": 225,
+   "^NWARNING: CM_SetBorderInward: mixed plane sides": 58,
+   "^NWarning: cvar \"...\" given initial values: \"...\" and \"...\"": 45,
+   "^NWARNING: reused image models/mapobjects/borg/sparkboxN.tga with mixed flags (N vs N)": 44,
+   "^NWARNING: reused image textures/borg/static.tga with mixed flags (N vs N)": 6,
+   "^NWARNING: reused image textures/dreadnought/lightN.tga with mixed flags (N vs N)": 5,
+   "^NWARNING: reused image textures/dreadnought/energyN.tga with mixed flags (N vs N)": 5,
+   "^NWARNING: reused image textures/forge/trimlightb.tga with mixed flags (N vs N)": 5,
+   "^NWARNING: reused image textures/stasis/pulseN.tga with mixed flags (N vs N)": 4,
+   "^NWARNING: reused image textures/stasis/k_ceilingl with mixed flags (N vs N)": 3,
+   "^NWARNING: MAX_FACE_POINTS exceeded: N": 2
+  }
+ },
+ "warningClasses": {
+  "Unable to load ambient sound": "the runs have no sound system (s_initsound 0), so S_RegisterSound returns 0; stvoy.exe prints the same text (0x491800); borg1 prints none with sound on (.tmp/stvef-compat/sound-on-borg1)",
+  "Too many subwaves on set": "retail data; stvoy.exe's own text (0x491844)",
+  "CM_AddFacetBevels invalid bevel, CM_SetBorderInward mixed plane sides": "retail map data; stvoy.exe's own texts (0x48af64, 0x48b0cc)",
+  "R_RegisterMD3 couldn't load ..._flash": "weapon flash models the paks do not hold; a developer notice here, where retail's RE_RegisterModel fails silently",
+  "reused image with mixed flags": "the renderer's form of retail's reused-image warnings (0x49a73c..0x49a7b0)",
+  "cvar \"cg_stereoSeparation\" given initial values": "fnTech3 keeps the cvar read-only at 0 because its renderers own stereo separation (r_stereoSeparation), as FnQuake3 does; the SP cgame's 0.4 is refused"
+ },
+ "notCovered": [
+  "play by a person: every level was left through its own exit trigger, not by playing it",
+  "listening and physical devices (the user chose not to run them)",
+  "synchronized pixel comparison with retail's renderer"
+ ],
+ "proprietaryContentCommitted": false
+}

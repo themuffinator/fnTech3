@@ -456,8 +456,10 @@ Single player needs Windows.
 - **Single player** runs every level with the original game code, menus and
   sound, saves games and moves from level to level. Characters' mouths move
   as they speak, and the movies play using the movie player in your
-  installation. Matching the original's picture exactly, and playing the whole
-  campaign through, are still to be checked.
+  installation. The whole campaign plays through, from the first mission to
+  the closing movie and credits, and so do the holodeck programmes and the
+  Virtual Voyager tour. Matching the original's picture exactly is still to
+  be checked.
 - **Holomatch** runs the original game code and plays the original demos.
   fnTech3 has played with the original game and with Lilium Voyager, joining
   and hosting, including servers that check players' files, and downloaded

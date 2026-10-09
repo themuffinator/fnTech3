@@ -375,9 +375,9 @@ def play(args, output):
                 if wait_for(lambda: level_start(client.log(), following, level_mark + 1) >= 0, args.exit_seconds):
                     break
             text = client.log()
-            transition = re.findall(r'(?m)^\]?((?:map|load)transition [^\n]*)', text[level_mark:])
-            entry.update(commands=used, transition=transition[-1] if transition else None,
-                         passed=level_start(text, following, level_mark + 1) >= 0)
+            # The game's transition command runs from the command buffer with
+            # no echo, so the next level's start is the evidence it ran.
+            entry.update(commands=used, passed=level_start(text, following, level_mark + 1) >= 0)
             segment = text[level_mark:]
             entry.update(errors=ERROR.findall(segment)[:5], warnings=len(WARNING.findall(segment)))
             print(f'== {entry["step"]:2d} {level}: passed={entry["passed"]} via={used[-1]!r} '
