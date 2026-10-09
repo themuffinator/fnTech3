@@ -463,7 +463,8 @@ Single player needs Windows.
 - **Holomatch** runs the original game code and plays the original demos.
   fnTech3 has played with the original game and with Lilium Voyager, joining
   and hosting, including servers that check players' files, and downloaded
-  from both. The dedicated server also runs on Linux.
+  from both. Every game type and Expansion Pack mode plays with bots as on
+  the original server. The dedicated server also runs on Linux.
 
 See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
 

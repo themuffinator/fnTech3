@@ -1,0 +1,1304 @@
+{
+ "record": "2026-10-09-stvef-holomatch-modes.md",
+ "profiles": [
+  "stvef-mp"
+ ],
+ "baseCommit": "3cb9d35c8a802fce5b3f67f711eb26da75cf89ac",
+ "script": "scripts/probe_stvef_modes.py --runtime .tmp/runtime/stvef-compat-after3",
+ "settings": {
+  "timescale": "3",
+  "timelimit": "3 minutes",
+  "fraglimit": "10",
+  "capturelimit": "3",
+  "warmup": "off",
+  "bots": "skill 2, added by the startup config after devmap",
+  "pure": "0",
+  "maxclients": "12"
+ },
+ "cases": [
+  {
+   "label": "ffa",
+   "map": "hm_borg1",
+   "gametype": 0,
+   "modes": [],
+   "bots": [
+    "Chell",
+    "Chakotay",
+    "Foster",
+    "Gamma"
+   ]
+  },
+  {
+   "label": "ffa-disintegration",
+   "map": "hm_borg1",
+   "gametype": 0,
+   "modes": [
+    "g_pModDisintegration"
+   ],
+   "bots": [
+    "Chell",
+    "Chakotay",
+    "Foster",
+    "Gamma"
+   ]
+  },
+  {
+   "label": "ffa-actionhero",
+   "map": "hm_voy1",
+   "gametype": 0,
+   "modes": [
+    "g_pModActionHero"
+   ],
+   "bots": [
+    "Chell",
+    "Chakotay",
+    "Foster",
+    "Gamma"
+   ]
+  },
+  {
+   "label": "ffa-specialties",
+   "map": "hm_dn1",
+   "gametype": 0,
+   "modes": [
+    "g_pModSpecialties"
+   ],
+   "bots": [
+    "Chell",
+    "Chakotay",
+    "Foster",
+    "Gamma"
+   ]
+  },
+  {
+   "label": "ffa-elimination",
+   "map": "hm_kln1",
+   "gametype": 0,
+   "modes": [
+    "g_pModElimination"
+   ],
+   "bots": [
+    "Chell",
+    "Chakotay",
+    "Foster",
+    "Gamma"
+   ]
+  },
+  {
+   "label": "tournament",
+   "map": "hm_voy2",
+   "gametype": 1,
+   "modes": [],
+   "bots": [
+    "Chell",
+    "Chakotay"
+   ]
+  },
+  {
+   "label": "team",
+   "map": "hm_for1",
+   "gametype": 3,
+   "modes": [],
+   "bots": [
+    "Chell",
+    "Chakotay",
+    "Foster",
+    "Gamma"
+   ]
+  },
+  {
+   "label": "team-assimilation",
+   "map": "hm_borg2",
+   "gametype": 3,
+   "modes": [
+    "g_pModAssimilation"
+   ],
+   "bots": [
+    "Chell",
+    "Chakotay",
+    "Foster",
+    "Gamma"
+   ]
+  },
+  {
+   "label": "team-elimination",
+   "map": "hm_scav1",
+   "gametype": 3,
+   "modes": [
+    "g_pModElimination"
+   ],
+   "bots": [
+    "Chell",
+    "Chakotay",
+    "Foster",
+    "Gamma"
+   ]
+  },
+  {
+   "label": "ctf",
+   "map": "ctf_voy1",
+   "gametype": 4,
+   "modes": [],
+   "bots": [
+    "Chell",
+    "Chakotay",
+    "Foster",
+    "Gamma",
+    "Munro",
+    "Biessman"
+   ]
+  },
+  {
+   "label": "ctf-specialties",
+   "map": "ctf_kln1",
+   "gametype": 4,
+   "modes": [
+    "g_pModSpecialties"
+   ],
+   "bots": [
+    "Chell",
+    "Chakotay",
+    "Foster",
+    "Gamma"
+   ]
+  },
+  {
+   "label": "ffa-asks-assimilation",
+   "map": "hm_cam",
+   "gametype": 0,
+   "modes": [
+    "g_pModAssimilation"
+   ],
+   "bots": [
+    "Chell",
+    "Chakotay"
+   ]
+  },
+  {
+   "label": "team-asks-actionhero",
+   "map": "hm_noon",
+   "gametype": 3,
+   "modes": [
+    "g_pModActionHero"
+   ],
+   "bots": [
+    "Chell",
+    "Chakotay"
+   ]
+  }
+ ],
+ "retail": {
+  "stvoyHM.exe": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+  "vm/qagame.qvm": "pak2.pk3, run by both servers"
+ },
+ "final": {
+  "server": "bada7c657282 (8da1234c + the frame-time, serverinfo and world-record changes)",
+  "results": [
+   {
+    "engine": "retail",
+    "case": "ffa",
+    "map": "hm_borg1",
+    "gametype": 0,
+    "asked": [],
+    "server": "5b5b6e82ce7a",
+    "exit": "Timelimit hit.",
+    "kills": 6,
+    "means": [
+     "MOD_CRIFLE_SPLASH",
+     "MOD_IMOD",
+     "MOD_PHASER_ALT",
+     "MOD_TELEFRAG",
+     "MOD_TRIGGER_HURT"
+    ],
+    "realSeconds": 76.4,
+    "modesOn": {},
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "ffa",
+    "map": "hm_borg1",
+    "gametype": 0,
+    "asked": [],
+    "server": "bada7c657282",
+    "exit": "Timelimit hit.",
+    "kills": 9,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_CRIFLE_SPLASH",
+     "MOD_IMOD",
+     "MOD_PHASER_ALT",
+     "MOD_TELEFRAG"
+    ],
+    "realSeconds": 61.7,
+    "modesOn": {},
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "ffa-disintegration",
+    "map": "hm_borg1",
+    "gametype": 0,
+    "asked": [
+     "g_pModDisintegration"
+    ],
+    "server": "5b5b6e82ce7a",
+    "exit": "Timelimit hit.",
+    "kills": 16,
+    "means": [
+     "MOD_CRIFLE_ALT"
+    ],
+    "realSeconds": 64.2,
+    "modesOn": {
+     "g_pModDisintegration": "1"
+    },
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "ffa-disintegration",
+    "map": "hm_borg1",
+    "gametype": 0,
+    "asked": [
+     "g_pModDisintegration"
+    ],
+    "server": "bada7c657282",
+    "exit": "Fraglimit hit.",
+    "kills": 28,
+    "means": [
+     "MOD_CRIFLE_ALT"
+    ],
+    "realSeconds": 59.2,
+    "modesOn": {
+     "g_pModDisintegration": "1"
+    },
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "ffa-actionhero",
+    "map": "hm_voy1",
+    "gametype": 0,
+    "asked": [
+     "g_pModActionHero"
+    ],
+    "server": "5b5b6e82ce7a",
+    "exit": "Timelimit hit.",
+    "kills": 9,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_IMOD",
+     "MOD_SCAVENGER"
+    ],
+    "realSeconds": 65.1,
+    "modesOn": {
+     "g_pModActionHero": "1"
+    },
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "ffa-actionhero",
+    "map": "hm_voy1",
+    "gametype": 0,
+    "asked": [
+     "g_pModActionHero"
+    ],
+    "server": "bada7c657282",
+    "exit": "Timelimit hit.",
+    "kills": 15,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_IMOD",
+     "MOD_QUANTUM_SPLASH",
+     "MOD_STASIS_ALT"
+    ],
+    "realSeconds": 62.1,
+    "modesOn": {
+     "g_pModActionHero": "1"
+    },
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "ffa-specialties",
+    "map": "hm_dn1",
+    "gametype": 0,
+    "asked": [
+     "g_pModSpecialties"
+    ],
+    "server": "5b5b6e82ce7a",
+    "exit": "Timelimit hit.",
+    "kills": 9,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_CRIFLE_SPLASH",
+     "MOD_IMOD"
+    ],
+    "realSeconds": 65.7,
+    "modesOn": {
+     "g_pModSpecialties": "1"
+    },
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "ffa-specialties",
+    "map": "hm_dn1",
+    "gametype": 0,
+    "asked": [
+     "g_pModSpecialties"
+    ],
+    "server": "bada7c657282",
+    "exit": "Timelimit hit.",
+    "kills": 14,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_CRIFLE_SPLASH",
+     "MOD_DREADNOUGHT",
+     "MOD_IMOD",
+     "MOD_SCAVENGER"
+    ],
+    "realSeconds": 62.1,
+    "modesOn": {
+     "g_pModSpecialties": "1"
+    },
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "ffa-elimination",
+    "map": "hm_kln1",
+    "gametype": 0,
+    "asked": [
+     "g_pModElimination"
+    ],
+    "server": "5b5b6e82ce7a",
+    "exit": "Last Man Standing.",
+    "kills": 3,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_PHASER_ALT"
+    ],
+    "realSeconds": 44.2,
+    "modesOn": {
+     "g_pModElimination": "1"
+    },
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "ffa-elimination",
+    "map": "hm_kln1",
+    "gametype": 0,
+    "asked": [
+     "g_pModElimination"
+    ],
+    "server": "bada7c657282",
+    "exit": "Last Man Standing.",
+    "kills": 3,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_SCAVENGER"
+    ],
+    "realSeconds": 24.2,
+    "modesOn": {
+     "g_pModElimination": "1"
+    },
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "tournament",
+    "map": "hm_voy2",
+    "gametype": 1,
+    "asked": [],
+    "server": "5b5b6e82ce7a",
+    "exit": "Timelimit hit.",
+    "kills": 5,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_CRIFLE_SPLASH",
+     "MOD_SCAVENGER",
+     "MOD_TETRYON"
+    ],
+    "realSeconds": 61.0,
+    "modesOn": {},
+    "gametypeRun": "1",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "tournament",
+    "map": "hm_voy2",
+    "gametype": 1,
+    "asked": [],
+    "server": "bada7c657282",
+    "exit": "Timelimit hit.",
+    "kills": 4,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_PHASER_ALT",
+     "MOD_SCAVENGER",
+     "MOD_TETRYON"
+    ],
+    "realSeconds": 60.5,
+    "modesOn": {},
+    "gametypeRun": "1",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "team",
+    "map": "hm_for1",
+    "gametype": 3,
+    "asked": [],
+    "server": "5b5b6e82ce7a",
+    "exit": "Timelimit hit.",
+    "kills": 8,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_PHASER_ALT",
+     "MOD_QUANTUM_SPLASH",
+     "MOD_TETRYON",
+     "MOD_TRIGGER_HURT"
+    ],
+    "realSeconds": 61.2,
+    "modesOn": {},
+    "gametypeRun": "3",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "team",
+    "map": "hm_for1",
+    "gametype": 3,
+    "asked": [],
+    "server": "bada7c657282",
+    "exit": "Timelimit hit.",
+    "kills": 6,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_GRENADE_SPLASH",
+     "MOD_PHASER_ALT"
+    ],
+    "realSeconds": 60.9,
+    "modesOn": {},
+    "gametypeRun": "3",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "team-assimilation",
+    "map": "hm_borg2",
+    "gametype": 3,
+    "asked": [
+     "g_pModAssimilation"
+    ],
+    "server": "5b5b6e82ce7a",
+    "exit": "Assimilation Complete.",
+    "kills": 7,
+    "means": [
+     "MOD_BORG",
+     "MOD_EXPLOSION",
+     "MOD_IMOD"
+    ],
+    "realSeconds": 51.1,
+    "modesOn": {
+     "g_pModAssimilation": "1"
+    },
+    "gametypeRun": "3",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "team-assimilation",
+    "map": "hm_borg2",
+    "gametype": 3,
+    "asked": [
+     "g_pModAssimilation"
+    ],
+    "server": "bada7c657282",
+    "exit": null,
+    "kills": 2,
+    "means": [
+     "MOD_BORG",
+     "MOD_EXPLOSION"
+    ],
+    "realSeconds": 150.4,
+    "modesOn": {
+     "g_pModAssimilation": "1"
+    },
+    "gametypeRun": "3",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "team-elimination",
+    "map": "hm_scav1",
+    "gametype": 3,
+    "asked": [
+     "g_pModElimination"
+    ],
+    "server": "5b5b6e82ce7a",
+    "exit": "Last Man Standing.",
+    "kills": 1,
+    "means": [
+     "MOD_TETRYON"
+    ],
+    "realSeconds": 14.7,
+    "modesOn": {
+     "g_pModElimination": "1"
+    },
+    "gametypeRun": "3",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "team-elimination",
+    "map": "hm_scav1",
+    "gametype": 3,
+    "asked": [
+     "g_pModElimination"
+    ],
+    "server": "bada7c657282",
+    "exit": "Last Man Standing.",
+    "kills": 1,
+    "means": [
+     "MOD_PHASER_ALT"
+    ],
+    "realSeconds": 45.9,
+    "modesOn": {
+     "g_pModElimination": "1"
+    },
+    "gametypeRun": "3",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "ctf",
+    "map": "ctf_voy1",
+    "gametype": 4,
+    "asked": [],
+    "server": "5b5b6e82ce7a",
+    "exit": "Capturelimit hit.",
+    "kills": 9,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_PHASER_ALT",
+     "MOD_QUANTUM",
+     "MOD_QUANTUM_SPLASH",
+     "MOD_SCAVENGER"
+    ],
+    "realSeconds": 60.2,
+    "modesOn": {},
+    "gametypeRun": "4",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "ctf",
+    "map": "ctf_voy1",
+    "gametype": 4,
+    "asked": [],
+    "server": "bada7c657282",
+    "exit": "Timelimit hit.",
+    "kills": 12,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_CRIFLE_SPLASH",
+     "MOD_GRENADE",
+     "MOD_GRENADE_ALT",
+     "MOD_PHASER_ALT",
+     "MOD_TELEFRAG"
+    ],
+    "realSeconds": 61.3,
+    "modesOn": {},
+    "gametypeRun": "4",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "ctf-specialties",
+    "map": "ctf_kln1",
+    "gametype": 4,
+    "asked": [
+     "g_pModSpecialties"
+    ],
+    "server": "5b5b6e82ce7a",
+    "exit": "Timelimit hit.",
+    "kills": 5,
+    "means": [
+     "MOD_DREADNOUGHT",
+     "MOD_LAVA",
+     "MOD_QUANTUM_ALT",
+     "MOD_SCAVENGER"
+    ],
+    "realSeconds": 60.9,
+    "modesOn": {
+     "g_pModSpecialties": "1"
+    },
+    "gametypeRun": "4",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "ctf-specialties",
+    "map": "ctf_kln1",
+    "gametype": 4,
+    "asked": [
+     "g_pModSpecialties"
+    ],
+    "server": "bada7c657282",
+    "exit": "Timelimit hit.",
+    "kills": 2,
+    "means": [
+     "MOD_DREADNOUGHT",
+     "MOD_LAVA"
+    ],
+    "realSeconds": 60.4,
+    "modesOn": {
+     "g_pModSpecialties": "1"
+    },
+    "gametypeRun": "4",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "ffa-asks-assimilation",
+    "map": "hm_cam",
+    "gametype": 0,
+    "asked": [
+     "g_pModAssimilation"
+    ],
+    "server": "5b5b6e82ce7a",
+    "exit": "Timelimit hit.",
+    "kills": 3,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_CRIFLE_ALT",
+     "MOD_TETRYON"
+    ],
+    "realSeconds": 60.7,
+    "modesOn": {},
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "ffa-asks-assimilation",
+    "map": "hm_cam",
+    "gametype": 0,
+    "asked": [
+     "g_pModAssimilation"
+    ],
+    "server": "bada7c657282",
+    "exit": "Timelimit hit.",
+    "kills": 1,
+    "means": [
+     "MOD_CRIFLE"
+    ],
+    "realSeconds": 70.8,
+    "modesOn": {},
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "team-asks-actionhero",
+    "map": "hm_noon",
+    "gametype": 3,
+    "asked": [
+     "g_pModActionHero"
+    ],
+    "server": "5b5b6e82ce7a",
+    "exit": null,
+    "kills": 0,
+    "means": [],
+    "realSeconds": 150.8,
+    "modesOn": {},
+    "gametypeRun": "3",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "team-asks-actionhero",
+    "map": "hm_noon",
+    "gametype": 3,
+    "asked": [
+     "g_pModActionHero"
+    ],
+    "server": "bada7c657282",
+    "exit": null,
+    "kills": 0,
+    "means": [],
+    "realSeconds": 150.5,
+    "modesOn": {},
+    "gametypeRun": "3",
+    "errors": []
+   }
+  ],
+  "installationUnchanged": true
+ },
+ "earlier": {
+  "note": "the first sweep, on 088a4f40 (45444bd3), before the frame-time change",
+  "results": [
+   {
+    "engine": "retail",
+    "case": "ffa",
+    "map": "hm_borg1",
+    "gametype": 0,
+    "asked": [],
+    "server": "5b5b6e82ce7a",
+    "exit": "Timelimit hit.",
+    "kills": 9,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_IMOD",
+     "MOD_PHASER_ALT",
+     "MOD_SCAVENGER",
+     "MOD_TELEFRAG"
+    ],
+    "realSeconds": 60.4,
+    "modesOn": {},
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "ffa",
+    "map": "hm_borg1",
+    "gametype": 0,
+    "asked": [],
+    "server": "088a4f40f1e6",
+    "exit": "Timelimit hit.",
+    "kills": 9,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_CRIFLE_SPLASH",
+     "MOD_DREADNOUGHT",
+     "MOD_TELEFRAG"
+    ],
+    "realSeconds": 59.7,
+    "modesOn": {},
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "ffa-disintegration",
+    "map": "hm_borg1",
+    "gametype": 0,
+    "asked": [
+     "g_pModDisintegration"
+    ],
+    "server": "5b5b6e82ce7a",
+    "exit": "Fraglimit hit.",
+    "kills": 25,
+    "means": [
+     "MOD_CRIFLE_ALT"
+    ],
+    "realSeconds": 36.8,
+    "modesOn": {
+     "g_pModDisintegration": "1"
+    },
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "ffa-disintegration",
+    "map": "hm_borg1",
+    "gametype": 0,
+    "asked": [
+     "g_pModDisintegration"
+    ],
+    "server": "088a4f40f1e6",
+    "exit": "Fraglimit hit.",
+    "kills": 26,
+    "means": [
+     "MOD_CRIFLE_ALT"
+    ],
+    "realSeconds": 59.4,
+    "modesOn": {
+     "g_pModDisintegration": "1"
+    },
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "ffa-actionhero",
+    "map": "hm_voy1",
+    "gametype": 0,
+    "asked": [
+     "g_pModActionHero"
+    ],
+    "server": "5b5b6e82ce7a",
+    "exit": "Timelimit hit.",
+    "kills": 6,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_STASIS_ALT"
+    ],
+    "realSeconds": 61.1,
+    "modesOn": {
+     "g_pModActionHero": "1"
+    },
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "ffa-actionhero",
+    "map": "hm_voy1",
+    "gametype": 0,
+    "asked": [
+     "g_pModActionHero"
+    ],
+    "server": "088a4f40f1e6",
+    "exit": "Fraglimit hit.",
+    "kills": 12,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_CRIFLE_SPLASH",
+     "MOD_PHASER_ALT"
+    ],
+    "realSeconds": 51.6,
+    "modesOn": {
+     "g_pModActionHero": "1"
+    },
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "ffa-specialties",
+    "map": "hm_dn1",
+    "gametype": 0,
+    "asked": [
+     "g_pModSpecialties"
+    ],
+    "server": "5b5b6e82ce7a",
+    "exit": "Timelimit hit.",
+    "kills": 15,
+    "means": [
+     "MOD_DREADNOUGHT",
+     "MOD_QUANTUM_ALT",
+     "MOD_QUANTUM_ALT_SPLASH",
+     "MOD_SCAVENGER"
+    ],
+    "realSeconds": 62.9,
+    "modesOn": {
+     "g_pModSpecialties": "1"
+    },
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "ffa-specialties",
+    "map": "hm_dn1",
+    "gametype": 0,
+    "asked": [
+     "g_pModSpecialties"
+    ],
+    "server": "088a4f40f1e6",
+    "exit": "Timelimit hit.",
+    "kills": 11,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_IMOD"
+    ],
+    "realSeconds": 61.5,
+    "modesOn": {
+     "g_pModSpecialties": "1"
+    },
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "ffa-elimination",
+    "map": "hm_kln1",
+    "gametype": 0,
+    "asked": [
+     "g_pModElimination"
+    ],
+    "server": "5b5b6e82ce7a",
+    "exit": null,
+    "kills": 2,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_TELEFRAG"
+    ],
+    "realSeconds": 150.8,
+    "modesOn": {
+     "g_pModElimination": "1"
+    },
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "ffa-elimination",
+    "map": "hm_kln1",
+    "gametype": 0,
+    "asked": [
+     "g_pModElimination"
+    ],
+    "server": "088a4f40f1e6",
+    "exit": null,
+    "kills": 2,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_SCAVENGER"
+    ],
+    "realSeconds": 150.8,
+    "modesOn": {
+     "g_pModElimination": "1"
+    },
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "tournament",
+    "map": "hm_voy2",
+    "gametype": 1,
+    "asked": [],
+    "server": "5b5b6e82ce7a",
+    "exit": "Timelimit hit.",
+    "kills": 1,
+    "means": [
+     "MOD_CRIFLE"
+    ],
+    "realSeconds": 62.2,
+    "modesOn": {},
+    "gametypeRun": "1",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "tournament",
+    "map": "hm_voy2",
+    "gametype": 1,
+    "asked": [],
+    "server": "088a4f40f1e6",
+    "exit": "Timelimit hit.",
+    "kills": 2,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_SCAVENGER"
+    ],
+    "realSeconds": 61.1,
+    "modesOn": {},
+    "gametypeRun": "1",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "team",
+    "map": "hm_for1",
+    "gametype": 3,
+    "asked": [],
+    "server": "5b5b6e82ce7a",
+    "exit": "Timelimit hit.",
+    "kills": 9,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_CRIFLE_SPLASH",
+     "MOD_DREADNOUGHT",
+     "MOD_GRENADE",
+     "MOD_PHASER_ALT",
+     "MOD_SCAVENGER",
+     "MOD_TRIGGER_HURT"
+    ],
+    "realSeconds": 61.9,
+    "modesOn": {},
+    "gametypeRun": "3",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "team",
+    "map": "hm_for1",
+    "gametype": 3,
+    "asked": [],
+    "server": "088a4f40f1e6",
+    "exit": "Timelimit hit.",
+    "kills": 4,
+    "means": [
+     "MOD_GRENADE_SPLASH",
+     "MOD_PHASER_ALT",
+     "MOD_QUANTUM_SPLASH",
+     "MOD_TRIGGER_HURT"
+    ],
+    "realSeconds": 60.5,
+    "modesOn": {},
+    "gametypeRun": "3",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "team-assimilation",
+    "map": "hm_borg2",
+    "gametype": 3,
+    "asked": [
+     "g_pModAssimilation"
+    ],
+    "server": "5b5b6e82ce7a",
+    "exit": "Assimilation Complete.",
+    "kills": 8,
+    "means": [
+     "MOD_BORG",
+     "MOD_EXPLOSION",
+     "MOD_IMOD"
+    ],
+    "realSeconds": 145.4,
+    "modesOn": {
+     "g_pModAssimilation": "1"
+    },
+    "gametypeRun": "3",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "team-assimilation",
+    "map": "hm_borg2",
+    "gametype": 3,
+    "asked": [
+     "g_pModAssimilation"
+    ],
+    "server": "088a4f40f1e6",
+    "exit": null,
+    "kills": 4,
+    "means": [
+     "MOD_BORG",
+     "MOD_EXPLOSION"
+    ],
+    "realSeconds": 150.5,
+    "modesOn": {
+     "g_pModAssimilation": "1"
+    },
+    "gametypeRun": "3",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "team-elimination",
+    "map": "hm_scav1",
+    "gametype": 3,
+    "asked": [
+     "g_pModElimination"
+    ],
+    "server": "5b5b6e82ce7a",
+    "exit": "Last Man Standing.",
+    "kills": 2,
+    "means": [
+     "MOD_PHASER_ALT",
+     "MOD_TELEFRAG"
+    ],
+    "realSeconds": 11.5,
+    "modesOn": {
+     "g_pModElimination": "1"
+    },
+    "gametypeRun": "3",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "team-elimination",
+    "map": "hm_scav1",
+    "gametype": 3,
+    "asked": [
+     "g_pModElimination"
+    ],
+    "server": "088a4f40f1e6",
+    "exit": "Last Man Standing.",
+    "kills": 2,
+    "means": [
+     "MOD_GRENADE",
+     "MOD_PHASER_ALT"
+    ],
+    "realSeconds": 21.2,
+    "modesOn": {
+     "g_pModElimination": "1"
+    },
+    "gametypeRun": "3",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "ctf",
+    "map": "ctf_voy1",
+    "gametype": 4,
+    "asked": [],
+    "server": "5b5b6e82ce7a",
+    "exit": "Capturelimit hit.",
+    "kills": 0,
+    "means": [],
+    "realSeconds": 48.3,
+    "modesOn": {},
+    "gametypeRun": "4",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "ctf",
+    "map": "ctf_voy1",
+    "gametype": 4,
+    "asked": [],
+    "server": "088a4f40f1e6",
+    "exit": "Timelimit hit.",
+    "kills": 18,
+    "means": [
+     "MOD_GRENADE",
+     "MOD_GRENADE_SPLASH",
+     "MOD_PHASER_ALT",
+     "MOD_TELEFRAG"
+    ],
+    "realSeconds": 59.5,
+    "modesOn": {},
+    "gametypeRun": "4",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "ctf-specialties",
+    "map": "ctf_kln1",
+    "gametype": 4,
+    "asked": [
+     "g_pModSpecialties"
+    ],
+    "server": "5b5b6e82ce7a",
+    "exit": "Timelimit hit.",
+    "kills": 6,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_DETPACK",
+     "MOD_IMOD",
+     "MOD_SCAVENGER"
+    ],
+    "realSeconds": 63.1,
+    "modesOn": {
+     "g_pModSpecialties": "1"
+    },
+    "gametypeRun": "4",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "ctf-specialties",
+    "map": "ctf_kln1",
+    "gametype": 4,
+    "asked": [
+     "g_pModSpecialties"
+    ],
+    "server": "088a4f40f1e6",
+    "exit": "Timelimit hit.",
+    "kills": 2,
+    "means": [
+     "MOD_QUANTUM_ALT",
+     "MOD_QUANTUM_ALT_SPLASH"
+    ],
+    "realSeconds": 60.9,
+    "modesOn": {
+     "g_pModSpecialties": "1"
+    },
+    "gametypeRun": "4",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "ffa-asks-assimilation",
+    "map": "hm_cam",
+    "gametype": 0,
+    "asked": [
+     "g_pModAssimilation"
+    ],
+    "server": "5b5b6e82ce7a",
+    "exit": "Timelimit hit.",
+    "kills": 4,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_TETRYON",
+     "MOD_TETRYON_ALT"
+    ],
+    "realSeconds": 61.2,
+    "modesOn": {},
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "ffa-asks-assimilation",
+    "map": "hm_cam",
+    "gametype": 0,
+    "asked": [
+     "g_pModAssimilation"
+    ],
+    "server": "088a4f40f1e6",
+    "exit": "Timelimit hit.",
+    "kills": 2,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_TETRYON"
+    ],
+    "realSeconds": 60.0,
+    "modesOn": {},
+    "gametypeRun": "0",
+    "errors": []
+   },
+   {
+    "engine": "retail",
+    "case": "team-asks-actionhero",
+    "map": "hm_noon",
+    "gametype": 3,
+    "asked": [
+     "g_pModActionHero"
+    ],
+    "server": "5b5b6e82ce7a",
+    "exit": null,
+    "kills": 0,
+    "means": [],
+    "realSeconds": 150.5,
+    "modesOn": {},
+    "gametypeRun": "3",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "team-asks-actionhero",
+    "map": "hm_noon",
+    "gametype": 3,
+    "asked": [
+     "g_pModActionHero"
+    ],
+    "server": "088a4f40f1e6",
+    "exit": "Timelimit hit.",
+    "kills": 4,
+    "means": [
+     "MOD_CRIFLE",
+     "MOD_CRIFLE_SPLASH"
+    ],
+    "realSeconds": 59.9,
+    "modesOn": {},
+    "gametypeRun": "3",
+    "errors": []
+   }
+  ],
+  "installationUnchanged": true
+ },
+ "proprietaryContentCommitted": false
+}
