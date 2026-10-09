@@ -4,7 +4,11 @@ The fixture comes from the user's stvoy.exe 1.20: SV_Frame (0x4265c0),
 SV_CheckPaused (0x4265a0), SV_SendClientMessages (0x4287e0), and the loopback
 deadline in SV_SendMessageToClient (0x427eb0). Only game/payload/network
 callbacks were replaced in the local observation process. No game is started
-by these tests. The six other profiles retain their shared scheduler.
+by these tests. Holomatch follows stvoyHM.exe 1.20: a fixed tick, a server
+clock that moves only with ticks (0x4353a4), each client's next snapshot
+held to the deadline its last message left (0x435478..0x43550d), and a
+dedicated server that does nothing in a frame owing no tick (0x43529c). The
+five other profiles retain their shared scheduler.
 """
 from pathlib import Path
 import json
@@ -43,15 +47,21 @@ struct cvar_t { int integer = 0; float value = 0; };
 CVAR(sv_killserver); CVAR(com_sv_running); CVAR(com_dedicated);
 CVAR(sv_idleExit); CVAR(com_timescale); CVAR(sv_fps); CVAR(sv_idleRestart);
 CVAR(sv_levelTimeReset); CVAR(com_speeds); CVAR(cl_paused); CVAR(sv_paused);
+CVAR(sv_maxRate);
+constexpr int PACKET_MASK = 31;
+struct clientFrame_t { int messageSize = 0, messageSent = 0, messageAcked = 0; };
 struct client_t {
-    int state = CS_ACTIVE, lastSnapshotTime = 0, snapshotMsec = 50, rate = 0;
+    int state = CS_ACTIVE, lastSnapshotTime = 0, snapshotMsec = 50, rate = 0, snapshotDelayMsec = 0;
     bool rateDelayed = false, netchan_start_queue = false;
     struct {
         struct { int type = NA_LOOPBACK; } remoteAddress;
-        int lastSentSize = 100, lastSentTime = 0;
+        int lastSentSize = 100, lastSentTime = 0, outgoingSequence = 0;
         bool unsentFragments = false;
     } netchan;
+    std::array<clientFrame_t, PACKET_MASK + 1> frames{};
 };
+struct msg_t { int cursize = 0; };
+static int messageBytes = 1000;
 static std::array<client_t, 1> clients;
 static struct { int time, timeResidual, restartTime; } sv;
 static struct { int time, msgTime; client_t *clients; } svs;
@@ -60,12 +70,13 @@ static struct {
     void Reset() {}
 } idleExitTimer;
 static comGameId_t profile;
-static int wallTime, time_game, cvar_modifiedFlags, gvm, issued, saves, sent;
-static std::vector<int> ticks;
+static int wallTime, time_game, cvar_modifiedFlags, gvm, issued, saves, sent, timeouts, heartbeats;
+static std::vector<int> ticks, botFrames;
 static constexpr const char *HEARTBEAT_FOR_MASTER = "test";
 const char *Com_GameHeartbeatName() { return HEARTBEAT_FOR_MASTER; }
 int Com_GameIsSTVEFSP() { return profile == COM_GAME_STVEF_SP; }
 int Com_GameIsSTVEF() { return profile == COM_GAME_STVEF_SP || profile == COM_GAME_STVEF_MP; }
+int Com_GameIsSTVEFMP() { return profile == COM_GAME_STVEF_MP; }
 // Q3Test and the IHV test send and simulate through their own paths, which
 // their own tests cover; no profile here reaches them.
 int Com_GameIsQ3Test() { return profile == COM_GAME_Q3TEST; }
@@ -96,7 +107,7 @@ static void Zmq_UpdatePasswords() {}
 static void Zmq_PumpRcon() {}
 static void SV_MOHAAGameSpyFrame() {}
 static void SV_SteamP2PFrame() {}
-static void SV_BotFrame(int) {}
+static void SV_BotFrame(int time) { botFrames.push_back(time); }
 static void SV_SetConfigstring(int, const char *) {}
 static void SV_UpdateQLCvarConfigstrings(bool) {}
 static void SV_UpdateRTCWCvarConfigstrings(bool) {}
@@ -104,10 +115,20 @@ static void SV_CalcPings() {}
 static void VM_Call(int, int, int, int time) { ticks.push_back(time); }
 static void SV_JKAGhoul2SetTime(int) {}
 static void SV_STVEFSPTestSave() { ++saves; }
-static void SV_CheckTimeouts() {}
+static void SV_CheckTimeouts() { ++timeouts; }
 static void SV_IssueNewSnapshot() { ++issued; }
-static void SV_MasterHeartbeat(const char *) {}
-static void SV_SendClientSnapshot(client_t *) { ++sent; }
+static void SV_MasterHeartbeat(const char *) { ++heartbeats; }
+// A bot's snapshot is only built; anyone else's message goes through the
+// production SV_SendMessageToClient, where Holomatch sets its next deadline.
+void SV_SendMessageToClient( msg_t *msg, client_t *client );
+static void SV_RecordDemoMessage(client_t *, msg_t *) {}
+static void SV_Netchan_Transmit(client_t *client, msg_t *) { ++client->netchan.outgoingSequence; }
+static void SV_SendClientSnapshot(client_t *client) {
+    ++sent;
+    if (client->netchan.remoteAddress.type == NA_BOT) return;
+    msg_t msg; msg.cursize = messageBytes;
+    SV_SendMessageToClient(&msg, client);
+}
 
 PRODUCTION_FUNCTIONS
 
@@ -118,17 +139,19 @@ static void Reset(int fps = 20, float scale = 1, int start = 1000, int residual 
     cl_pausedValue = {}; sv_pausedValue = {}; com_sv_runningValue = { 1, 1 };
     sv_fpsValue = { fps, static_cast<float>(fps) };
     com_timescaleValue = { static_cast<int>(scale), scale };
-    wallTime = cvar_modifiedFlags = issued = saves = sent = 0; ticks.clear();
+    sv_maxRateValue = {}; messageBytes = 1000;
+    wallTime = cvar_modifiedFlags = issued = saves = sent = timeouts = heartbeats = 0;
+    ticks.clear(); botFrames.clear();
 }
 static void Frame(int gameMsec, int realMsec) {
     wallTime += realMsec;
     SV_Frame(gameMsec, realMsec);
 }
 static void OtherProfiles() {
-    // Concrete controls for the six unchanged profiles, including repeated
+    // Concrete controls for the five unchanged profiles, including repeated
     // simulation frames inside one wall-clock snapshot interval.
     for (auto id : { COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP,
-                    COM_GAME_RTCW_MP, COM_GAME_WOLFET, COM_GAME_STVEF_MP }) {
+                    COM_GAME_RTCW_MP, COM_GAME_WOLFET }) {
         profile = id; Reset();
         for (int i = 0; i < 10; ++i) Frame(50, 1);
         assert(sv.time == 1500 && ticks.size() == 10 && sent == 0 && issued == 10);
@@ -141,27 +164,127 @@ static void OtherProfiles() {
         cl_paused->integer = 0; Frame(50, 1);
         assert(sv.time == 1550 && sent == 2 && issued == 12);
 
-        // Holomatch keeps retail's fixed tick under timescale as SP does
-        // (stvoyHM.exe SV_Frame 0x435252); the others scale it. Snapshots
-        // keep the shared wall-clock schedule either way.
-        const bool fixedTick = id == COM_GAME_STVEF_MP;
+        // These profiles scale their tick by timescale and send snapshots on
+        // the wall clock.
         Reset(20, .5f);
         for (int i = 0; i < 20; ++i) Frame(25, 25);
-        assert(sv.time == 1500 && ticks.size() == (fixedTick ? 10u : 20u) && sent == 10 && issued == 20);
-        if (fixedTick) assert(ticks.front() == 1050 && ticks.back() == 1500);
+        assert(sv.time == 1500 && ticks.size() == 20u && sent == 10 && issued == 20);
         Reset(20, 2); Frame(100, 50);
-        assert(sv.time == 1100 && sent == 1);
-        assert(ticks == (fixedTick ? std::vector<int>{1050, 1100} : std::vector<int>{1100}));
+        assert(sv.time == 1100 && sent == 1 && ticks == std::vector<int>{1100});
         Reset(20, 3); Frame(150, 50); Frame(149, 50);
-        assert(ticks.size() == (fixedTick ? 5u : 1u) && sv.time == (fixedTick ? 1250 : 1150));
-        assert(sv.timeResidual == (fixedTick ? 49 : 149));
+        assert(ticks.size() == 1u && sv.time == 1150 && sv.timeResidual == 149);
         Reset(20, 0); Frame(0, 100);
         assert(sv.time == 1000 && ticks.empty() && sent == 1 && issued == 1);
+        // Their dedicated servers run every frame through, owing a tick or not.
+        Reset(); com_dedicated->integer = 1; Frame(30, 30);
+        assert(ticks.empty() && issued == 1 && timeouts == 1 && heartbeats == 1);
+        assert(botFrames == std::vector<int>{1000});
     }
+}
+static void Holomatch() {
+    // stvoyHM.exe 1.20 keeps a fixed tick under timescale (SV_Frame
+    // 0x435252), and its server clock is the game clock, which moves only
+    // with each tick (0x4353a4): it stands still between ticks and while
+    // paused, and follows timescale.
+    profile = COM_GAME_STVEF_MP;
+    Reset(); clients[0].netchan.remoteAddress.type = NA_IP; clients[0].rate = 25000;
+    Frame(50, 1);
+    assert(sv.time == 1050 && svs.time == 50 && sent == 1 && clients[0].lastSnapshotTime == 50);
+    // The rate takes 41 ms for 1,000 bytes and 48 more, under the 50 ms
+    // interval, so the interval is the wait and no delay is flagged.
+    assert(clients[0].snapshotDelayMsec == 50 && !clients[0].rateDelayed);
+    Frame(25, 30);
+    assert(svs.time == 50 && sent == 1);
+    Frame(25, 30);
+    assert(svs.time == 100 && sent == 2);
+    cl_paused->integer = 1; Frame(50, 200);
+    assert(svs.time == 100 && sent == 2 && ticks.size() == 2 && sv_paused->integer == 1);
+    cl_paused->integer = 0;
+    // A rate slower than the interval sets the wait and flags the next one.
+    Reset(); clients[0].netchan.remoteAddress.type = NA_IP; clients[0].rate = 3000; messageBytes = 1400;
+    Frame(50, 1);
+    assert(sent == 1 && clients[0].snapshotDelayMsec == (1400 + 48) * 1000 / 3000 && clients[0].rateDelayed);
+    for (int i = 0; i < 9; ++i) Frame(50, 1);
+    assert(sent == 1 && svs.time == 500);
+    Frame(50, 1);
+    assert(sent == 2);
+    // A message counts at most 1,500 bytes; sv_maxRate holds the rate.
+    Reset(); clients[0].netchan.remoteAddress.type = NA_IP; clients[0].rate = 90000;
+    sv_maxRate->integer = 4000; messageBytes = 9000;
+    Frame(50, 1);
+    assert(clients[0].snapshotDelayMsec == (1500 + 48) * 1000 / 4000 && clients[0].rateDelayed);
+    // At timescale 3 a frame runs three ticks; one more tick 20 ms of wall
+    // time later makes the client due again, on the game clock.
+    Reset(20, 3); clients[0].netchan.remoteAddress.type = NA_IP; clients[0].rate = 25000;
+    Frame(150, 50);
+    assert(ticks.size() == 3 && svs.time == 150 && sent == 1);
+    Frame(60, 20);
+    assert(ticks.size() == 4 && svs.time == 200 && sent == 2 && sv.timeResidual == 10);
+    Reset(20, .5f);
+    for (int i = 0; i < 20; ++i) Frame(25, 25);
+    assert(sv.time == 1500 && ticks.size() == 10u && ticks.front() == 1050 && svs.time == 500);
+    Reset(20, 2); Frame(100, 50);
+    assert(ticks == (std::vector<int>{1050, 1100}) && svs.time == 100);
+    Reset(20, 0); Frame(0, 100);
+    assert(sv.time == 1000 && ticks.empty() && svs.time == 0);
+    // A local client gets a snapshot every frame, with a tick or without
+    // (0x435481..0x43548d); a bot's is built every frame, as no message
+    // ever sets its deadline.
+    for (int address : { NA_LOOPBACK, NA_BOT }) {
+        Reset(); clients[0].netchan.remoteAddress.type = address;
+        Frame(10, 10); Frame(10, 10);
+        assert(sent == 2 && ticks.empty() && clients[0].snapshotDelayMsec == 0 && !clients[0].rateDelayed);
+    }
+    // A full packet queue or unsent fragments hold the snapshot back without
+    // touching the flag; nor can a free or loading client get one.
+    for (int blocked = 0; blocked < 2; ++blocked) {
+        Reset(); clients[0].netchan.remoteAddress.type = NA_IP;
+        clients[0].netchan.unsentFragments = blocked == 0; clients[0].netchan_start_queue = blocked == 1;
+        Frame(50, 1);
+        assert(sent == 0 && !clients[0].rateDelayed && clients[0].lastSnapshotTime == 0);
+    }
+    for (int state : { CS_FREE, CS_CONNECTED }) {
+        Reset(); clients[0].netchan.remoteAddress.type = NA_IP; clients[0].state = state;
+        Frame(50, 1);
+        assert(sent == 0);
+    }
+    // A dedicated server does nothing in a frame that owes no tick
+    // (0x43529c..0x4352b4): no bot frame, timeouts, snapshot or heartbeat.
+    // Its bot frame runs once before the ticks a frame owes, at the time of
+    // the last one (0x43538e); a listen server runs its own every frame, at
+    // the time it has reached (0x435280).
+    for (int dedicated : { 1, 0 }) {
+        Reset(); com_dedicated->integer = dedicated; clients[0].netchan.remoteAddress.type = NA_BOT;
+        Frame(30, 30);
+        assert(ticks.empty() && sent == !dedicated && issued == !dedicated);
+        assert(timeouts == !dedicated && heartbeats == !dedicated);
+        assert(botFrames == (dedicated ? std::vector<int>{} : std::vector<int>{1030}));
+        Frame(30, 30);
+        assert(ticks == std::vector<int>{1050} && sv.timeResidual == 10 && svs.time == 50);
+        assert(sent == (dedicated ? 1 : 2) && timeouts == (dedicated ? 1 : 2));
+        assert(botFrames == (dedicated ? std::vector<int>{1000} : (std::vector<int>{1030, 1060})));
+    }
+    // At timescale 20 a frame of 5 ms owes two ticks: one bot frame runs
+    // before them and one snapshot after.
+    Reset(20, 20); com_dedicated->integer = 1; clients[0].netchan.remoteAddress.type = NA_IP;
+    clients[0].rate = 25000;
+    Frame(100, 5);
+    assert(ticks == (std::vector<int>{1050, 1100}) && botFrames == std::vector<int>{1000} && sent == 1);
+    // At timescale 3, 15 ms of game time a frame: the fourth frame owes the
+    // first tick, the seventh the second, and only those frames send.
+    Reset(20, 3); com_dedicated->integer = 1; clients[0].netchan.remoteAddress.type = NA_IP;
+    clients[0].rate = 25000;
+    std::vector<int> sentAt;
+    for (int frame = 1; frame <= 7; ++frame) {
+        const int before = sent;
+        Frame(15, 5);
+        if (sent != before) sentAt.push_back(frame);
+    }
+    assert(ticks == (std::vector<int>{1050, 1100}) && sentAt == (std::vector<int>{4, 7}) && heartbeats == 2);
 }
 static void SnapshotBoundaries() {
     for (auto id : { COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP,
-                    COM_GAME_RTCW_MP, COM_GAME_WOLFET, COM_GAME_STVEF_SP, COM_GAME_STVEF_MP }) {
+                    COM_GAME_RTCW_MP, COM_GAME_WOLFET, COM_GAME_STVEF_SP }) {
         profile = id;
         for (int address : { NA_LOOPBACK, NA_IP, NA_BOT }) {
             const bool everyTick = id == COM_GAME_STVEF_SP && address == NA_LOOPBACK;
@@ -235,8 +358,8 @@ int main() {
         ++rows;
     }
     assert(rows == 780);
-    OtherProfiles(); SnapshotBoundaries();
-    std::printf("%d retail cases x 18 clock combinations; seven-profile boundary controls passed\n", rows);
+    OtherProfiles(); SnapshotBoundaries(); Holomatch();
+    std::printf("%d retail cases x 18 clock combinations; six-profile boundary controls and Holomatch passed\n", rows);
 }
 '''
 
@@ -252,6 +375,8 @@ class STVEFSPCadenceTests(unittest.TestCase):
             function(main, 'static bool SV_CheckPaused('),
             'static constexpr int UDPIP_HEADER_SIZE = 28;',
             function(main, 'int SV_RateMsec('),
+            function(snapshot, 'static void SV_HolomatchSnapshotDelay('),
+            function(snapshot, 'void SV_SendMessageToClient('),
             function(snapshot, 'void SV_SendClientMessages('),
             function(main, 'void SV_Frame('),
         ))

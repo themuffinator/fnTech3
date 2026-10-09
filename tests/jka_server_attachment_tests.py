@@ -1073,6 +1073,7 @@ FRAME_HARNESS = r'''
 #include <cstdio>
 enum { GAME_RUN_FRAME = 8 };
 static struct { int time, timeResidual; } sv;
+static struct { int time; } svs;
 static int *gvm, poseClock = -1;
 static void VM_Call(int *, int count, int call, int time) {
  if (count == 1 && call == GAME_RUN_FRAME) std::printf("%d %d\n", time, poseClock);
@@ -1080,6 +1081,7 @@ static void VM_Call(int *, int count, int call, int time) {
 static void SV_JKAGhoul2SetTime(int time) { poseClock = time; }
 static void Frame(int msec) {
  const int frameMsec = 50;
+ const bool gameClock = false; // only Holomatch's server clock moves with its ticks
  sv.timeResidual += msec;
 LOOP
 }

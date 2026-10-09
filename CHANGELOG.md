@@ -215,6 +215,17 @@ historical upstream records, not fnTech3 release history. See the
   original server accepts and fnTech3's had treated as an error, stopping
   the server with `SV_SvEntityForGentity: bad gEnt`
   ([record](docs/fntech3/2026-10-09-stvef-world-record.md)).
+- Keep an Elite Force Holomatch server's clock as the original does. When
+  `timescale` speeds the game up, a dedicated server now sends each player
+  as many updates for each step of the game as the original does, one for
+  every 50 ms step by default, where at `timescale 3` it had sent one every
+  three steps; when it slows the game down, the game runs at about the
+  original's speed, about a sixth of normal at `timescale 0.1` rather than a
+  tenth. Timeouts, the master heartbeat and
+  download resends count game time, as the original's do, and a player's
+  `rate` and `snaps` settings are held to the original's limits. `sv_fps`
+  now takes any value from 1 to 1000 in both Elite Force modes
+  ([record](docs/fntech3/2026-10-09-stvef-holomatch-server-clock.md)).
 - Stop a server faulting when `bot_saveroutingcache 1` is set while its bots'
   navigation is still being prepared, as it is for a while after a map loads
   with `bot_forcereachability 1`. There are no routes to save yet: the server

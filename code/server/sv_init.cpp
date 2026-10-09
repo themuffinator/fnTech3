@@ -1406,7 +1406,14 @@ void SV_Init( void )
 	sv_privatePassword = Cvar_Get ("sv_privatePassword", "", CVAR_TEMP | CVAR_PRIVATE );
 	Cvar_SetDescription( sv_privatePassword, "Set password for private clients to login with." );
 	sv_fps = Cvar_Get ("sv_fps", quakeLive ? "40" : "20", CVAR_TEMP );
-	Cvar_CheckRange( sv_fps, "10", "125", CV_INTEGER );
+	// Both Elite Force servers take any rate from 1 (stvoy.exe 1.20 0x426633,
+	// stvoyHM.exe 0x43523b, which set 10 below that); past 1000 their tick is
+	// 0 ms and the server never leaves its frame, so the range stops there.
+	if ( Com_GameIsSTVEF() ) {
+		Cvar_CheckRange( sv_fps, "1", "1000", CV_INTEGER );
+	} else {
+		Cvar_CheckRange( sv_fps, "10", "125", CV_INTEGER );
+	}
 	Cvar_SetDescription( sv_fps, "Set the max frames per second the server sends the client." );
 	sv_audioPVS = Cvar_Get( "sv_audioPVS", "0", CVAR_ARCHIVE_ND );
 	Cvar_CheckRange( sv_audioPVS, "0", "2", CV_INTEGER );

@@ -147,6 +147,7 @@ int		time_backend;		// renderer backend time
 static int	lastTime;
 int			com_frameTime;
 static int	com_frameNumber;
+static int	com_frameEndTime;	// Sys_Milliseconds() as the last frame ended
 
 qboolean	com_errorEntered = qfalse;
 qboolean	com_fullyInitialized = qfalse;
@@ -5134,7 +5135,13 @@ void Com_Frame( qboolean noDelay ) {
 
 	// we may want to spin here if things are going too fast
 	if ( com_dedicated->integer ) {
-		minMsec = SV_FrameMsec();
+		// A dedicated Holomatch server sleeps 5 ms after each frame, as
+		// stvoyHM.exe 1.20 does (Sleep( 5 ) before each Com_Frame, WinMain
+		// 0x440a1a): the next frame starts on the first millisecond after
+		// five whole ones have passed. Its SV_Frame does nothing until a
+		// tick is owed, so under a timescale its frames carry about the game
+		// time retail's do, 1 ms floor included, and owe ticks as they do.
+		minMsec = Com_GameIsSTVEFMP() ? com_frameEndTime + 6 - com_frameTime : SV_FrameMsec();
 #ifndef DEDICATED
 		bias = 0;
 #endif
@@ -5332,6 +5339,7 @@ void Com_Frame( qboolean noDelay ) {
 	}
 
 	com_frameNumber++;
+	com_frameEndTime = Sys_Milliseconds();
 }
 
 

@@ -1917,7 +1917,14 @@ void SV_Frame( int msec, int realMsec ) {
 	Zmq_UpdatePasswords();
 	Zmq_PumpRcon();
 
-	svs.time += realMsec;
+	// Holomatch's server clock is its game clock: stvoyHM.exe 1.20 advances it
+	// only with each tick (SV_Frame 0x4353a4), so snapshot deadlines,
+	// timeouts, challenge pings and heartbeats count game time, stand still
+	// while the game is paused and follow timescale.
+	const bool gameClock = Com_GameIsSTVEFMP() != 0;
+	if ( !gameClock ) {
+		svs.time += realMsec;
+	}
 	SV_SteamP2PFrame();
 
 	// allow pause if only the local client is connected
@@ -1948,6 +1955,12 @@ void SV_Frame( int msec, int realMsec ) {
 	if ( stvefSP && sv.timeResidual < frameMsec ) {
 		// SP publishes one snapshot after its new tick(s), without
 		// duplicating game state on intervening render frames.
+		return;
+	}
+	if ( gameClock && com_dedicated->integer && sv.timeResidual < frameMsec ) {
+		// Nor does a dedicated Holomatch server do anything in a frame that
+		// owes no tick (stvoyHM.exe SV_Frame 0x43529c): its bot frame,
+		// timeouts, snapshots and heartbeat all wait for the next tick.
 		return;
 	}
 
@@ -2029,6 +2042,9 @@ void SV_Frame( int msec, int realMsec ) {
 	while ( frameMsec > 0 && sv.timeResidual >= frameMsec ) {
 		sv.timeResidual -= frameMsec;
 		sv.time += frameMsec;
+		if ( gameClock ) {
+			svs.time += frameMsec;
+		}
 
 		// let everything in the world think and move
 		VM_Call( gvm, 1, GAME_RUN_FRAME, sv.time );

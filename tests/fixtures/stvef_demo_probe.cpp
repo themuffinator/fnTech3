@@ -14,7 +14,8 @@ General Public License, version 2 or (at your option) any later version.
 // baseline (bits above a field's width, or -0.0 against 0.0, which the
 // sender saw but no reader can), "escape" when a pre-release encoder sent a
 // raw vector the dictionary holds, otherwise "other". Paths arrive one per
-// line on stdin; one JSON object per demo is printed.
+// line on stdin; one JSON object per demo is printed. With --times it also
+// lists every snapshot as [message, server time, flags].
 // scripts/probe_stvef_demos.py drives it.
 
 extern "C" {
@@ -33,6 +34,7 @@ extern "C" {
 #include <cstring>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -69,6 +71,7 @@ struct Result {
 	int invalidDeltaFrames = 0;
 	std::array<int, 8> leftoverBits{};
 	std::array<int, 32> vectorSymbols{};
+	std::vector<std::array<int, 3>> times;
 	std::string version;
 	std::string error;
 };
@@ -292,9 +295,9 @@ private:
 	bool Snapshot( msg_t &msg, int sequence ) {
 		++result_.snapshots;
 		MSG_ReadLong( &msg );
-		MSG_ReadLong( &msg );
+		const int serverTime = MSG_ReadLong( &msg );
 		const int deltaNum = MSG_ReadByte( &msg );
-		MSG_ReadByte( &msg );
+		result_.times.push_back( { sequence, serverTime, MSG_ReadByte( &msg ) } );
 		const int areaBytes = MSG_ReadByte( &msg );
 		if ( areaBytes < 0 || areaBytes > MAX_MAP_AREA_BYTES ) return Fail( "areamask" );
 		byte areamask[MAX_MAP_AREA_BYTES];
@@ -381,9 +384,10 @@ std::string Escape( const std::string &text ) {
 	return out;
 }
 
-void ProbeDemo( const std::string &path ) {
+void ProbeDemo( const std::string &path, bool times ) {
 	Result result;
-	Probe probe( result );
+	// The baselines and frames outgrow a default 1 MB stack.
+	const auto probe = std::make_unique<Probe>( result );
 	FILE *file = std::fopen( path.c_str(), "rb" );
 	if ( !file ) {
 		result.error = "cannot open";
@@ -404,7 +408,7 @@ void ProbeDemo( const std::string &path ) {
 				result.error = "truncated record";
 				break;
 			}
-			if ( !probe.Record( header[0], data ) ) {
+			if ( !probe->Record( header[0], data ) ) {
 				result.error += " at record " + std::to_string( result.records );
 				break;
 			}
@@ -430,15 +434,25 @@ void ProbeDemo( const std::string &path ) {
 	std::cout << "],\"leftoverBits\":[";
 	for ( std::size_t i = 0; i < result.leftoverBits.size(); ++i )
 		std::cout << ( i ? "," : "" ) << result.leftoverBits[i];
-	std::cout << "],\"error\":\"" << Escape( result.error ) << "\"}" << std::endl;
+	std::cout << "]";
+	if ( times ) {
+		std::cout << ",\"snapshotTimes\":[";
+		for ( std::size_t i = 0; i < result.times.size(); ++i ) {
+			const auto &row = result.times[i];
+			std::cout << ( i ? "," : "" ) << "[" << row[0] << "," << row[1] << "," << row[2] << "]";
+		}
+		std::cout << "]";
+	}
+	std::cout << ",\"error\":\"" << Escape( result.error ) << "\"}" << std::endl;
 }
 
 } // namespace
 
-int main() {
+int main( int argc, char **argv ) {
+	const bool times = argc > 1 && !std::strcmp( argv[1], "--times" );
 	std::string path;
 	while ( std::getline( std::cin, path ) ) {
-		if ( !path.empty() ) ProbeDemo( path );
+		if ( !path.empty() ) ProbeDemo( path, times );
 	}
 	return 0;
 }

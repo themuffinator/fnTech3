@@ -1361,6 +1361,42 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 
 /*
 =======================
+SV_HolomatchSnapshotDelay
+
+How long Holomatch holds a client's next snapshot after a message, as
+stvoyHM.exe 1.20's SV_SendMessageToClient decides (0x435478..0x43550d): a
+local client gets one every frame; anyone else waits the longer of its
+snapshot interval and the time its rate takes to carry the message, at most
+1,500 bytes and 48 header bytes, at the rate held under sv_maxRate. The next
+snapshot after a rate-held wait is flagged as delayed.
+=======================
+*/
+static void SV_HolomatchSnapshotDelay( client_t *client, int messageSize )
+{
+	if ( client->netchan.remoteAddress.type == NA_LOOPBACK ) {
+		client->snapshotDelayMsec = 0;
+		return;
+	}
+	if ( messageSize > 1500 ) {
+		messageSize = 1500;
+	}
+	int rate = client->rate;
+	if ( sv_maxRate->integer && sv_maxRate->integer < rate ) {
+		rate = sv_maxRate->integer;
+	}
+	const int rateMsec = rate > 0 ? ( messageSize + 48 ) * 1000 / rate : 0;
+	if ( rateMsec < client->snapshotMsec ) {
+		client->snapshotDelayMsec = client->snapshotMsec;
+		client->rateDelayed = qfalse;
+	} else {
+		client->snapshotDelayMsec = rateMsec;
+		client->rateDelayed = qtrue;
+	}
+}
+
+
+/*
+=======================
 SV_SendMessageToClient
 
 Called by SV_SendClientSnapshot and SV_SendClientGameState
@@ -1377,6 +1413,10 @@ void SV_SendMessageToClient( msg_t *msg, client_t *client )
 
 	// send the datagram
 	SV_Netchan_Transmit( client, msg );
+
+	if ( Com_GameIsSTVEFMP() ) {
+		SV_HolomatchSnapshotDelay( client, msg->cursize );
+	}
 }
 
 
@@ -1488,16 +1528,26 @@ void SV_SendClientMessages( void )
 		// queue/rate guards below so pending deltas cannot be overwritten.
 		const bool stvefLocal = Com_GameIsSTVEFSP()
 			&& client.netchan.remoteAddress.type == NA_LOOPBACK;
-		if ( !stvefLocal && svs.time - client.lastSnapshotTime < client.snapshotMsec )
+		// Holomatch waits out the deadline its last snapshot left on its game
+		// clock, which already holds the client's rate (stvoyHM.exe
+		// SV_SendClientMessages 0x435d25); a bot's is never set, so its
+		// snapshot is built every frame, as retail's is.
+		const bool holomatch = Com_GameIsSTVEFMP() != 0;
+		if ( holomatch ) {
+			if ( svs.time - client.lastSnapshotTime < client.snapshotDelayMsec )
+				continue;
+		} else if ( !stvefLocal && svs.time - client.lastSnapshotTime < client.snapshotMsec )
 			continue;		// It's not time yet
 
 		if ( client.netchan.unsentFragments || client.netchan_start_queue )
 		{
-			client.rateDelayed = qtrue;
+			if ( !holomatch ) {
+				client.rateDelayed = qtrue;
+			}
 			continue;		// Drop this snapshot if the packet queue is still full or delta compression will break
 		}
 
-		if ( SV_RateMsec( &client ) > 0 )
+		if ( !holomatch && SV_RateMsec( &client ) > 0 )
 		{
 			// Not enough time since last packet passed through the line
 			client.rateDelayed = qtrue;
@@ -1507,6 +1557,8 @@ void SV_SendClientMessages( void )
 		// generate and send a new message
 		SV_SendClientSnapshot( &client );
 		client.lastSnapshotTime = svs.time;
-		client.rateDelayed = qfalse;
+		if ( !holomatch ) {
+			client.rateDelayed = qfalse;
+		}
 	}
 }

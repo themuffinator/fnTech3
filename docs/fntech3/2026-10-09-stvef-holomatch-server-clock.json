@@ -1,0 +1,791 @@
+{
+ "record": "2026-10-09-stvef-holomatch-server-clock.md",
+ "profiles": [
+  "stvef-mp"
+ ],
+ "platform": "Windows 11, x86 builds (MSVC, debugoptimized, strict warnings) from git archive exports; servers bound to 127.0.0.1 with isolated folders; clients windowed on private desktops, without sound",
+ "retail": {
+  "stvoyHM.exe": {
+   "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+   "WinMain": "0x440a05..0x440a5e: Sleep( 5 ) (0x440a1a) before every Com_Frame (0x440a39) while minimized or dedicated; timeBeginPeriod( 1 ) at 0x4404f3",
+   "NET_Sleep": "0x440190: an empty function (ret)",
+   "Com_Frame": "0x41c5c0: a dedicated server waits for 1 ms (0x41c6bf), running Com_EventLoop (0x41c6c4..0x41c6e9)",
+   "SV_Frame": {
+    "address": "0x4351a0",
+    "fps": "0x43523b: sv_fps below 1 set to 10; tick 1000 / sv_fps (0x435252..0x435265)",
+    "listenBotFrame": "0x43527e..0x435289: SV_BotFrame( svs.time + residual ) unless dedicated",
+    "earlyReturn": "0x43529c..0x4352b4: dedicated and residual < frameMsec: NET_Sleep, return",
+    "dedicatedBotFrame": "0x43537a..0x435393: SV_BotFrame( svs.time ) once, before the ticks",
+    "ticks": "0x435396..0x4353c8: svs.time += frameMsec (0x4353a4), GAME_RUN_FRAME( svs.time )",
+    "tail": "SV_CheckTimeouts 0x4353e3, SV_SendClientMessages 0x4353e8, SV_MasterHeartbeat 0x4353f2"
+   },
+   "SV_SendMessageToClient": {
+    "deadline": "0x435478..0x43551d",
+    "loopback": "0x435481..0x435494: nextSnapshotTime = svs.time - 1",
+    "size": "0x435495..0x4354a0: message size held to 1500",
+    "maxRate": "0x4354a5..0x4354df: sv_maxRate below 1000 set to 1000; rate held under it",
+    "rateMsec": "0x4354e1..0x4354f2: ( size + 48 ) * 1000 / rate",
+    "flag": "0x4354fb..0x435517: the larger of rateMsec and snapshotMsec; rateDelayed when rateMsec wins"
+   },
+   "SV_SendClientMessages": {
+    "address": "0x435cf0",
+    "deadline": "0x435d25..0x435d31: skip while svs.time < nextSnapshotTime",
+    "fragments": "0x435d37..: a pending fragment is sent here, its deadline svs.time + rateMsec of what remains (held to 1500)"
+   },
+   "SV_UserinfoChanged": "0x4306ca..0x4307bb: LAN rate 99999; else rate held to 1000..90000, 3000 when absent; snaps held to 1..30, 50 ms when absent"
+  },
+  "stvoy.exe": {
+   "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+   "sv_fps": "0x426633: below 1 set to 10"
+  }
+ },
+ "tests": {
+  "tests/stvef_sp_cadence_tests.py": {
+   "mutationsThatFail": [
+    "no dedicated early return",
+    "early return for every dedicated profile",
+    "early return on listen servers too",
+    "real-time Holomatch clock",
+    "rate wait ignores sv_maxRate",
+    "no 1500-byte cap",
+    "loopback waits its interval",
+    "queue guard flags the delay"
+   ]
+  },
+  "tests/stvef_client_rate_tests.py": {
+   "mutationsThatFail": [
+    "LAN unchoked as the shared rule",
+    "ceiling 25000",
+    "default rate 10000",
+    "snaps held to 20",
+    "default snaps from sv_fps",
+    "every profile takes the retail rule",
+    "shared floor dropped",
+    "sv_fps from 10 for Elite Force too"
+   ]
+  },
+  "tests/stvef_frame_time_tests.py": {
+   "added": "test_a_dedicated_holomatch_server_sleeps_between_frames"
+  }
+ },
+ "commands": {
+  "speed": "python scripts/probe_stvef_game_speed.py --output <dir> --runtime <runtime> --kinds retail fntech3 --timescales 0.1 0.5 3 (the table's runs used the same code as a scratch script before it was committed; speed.committedProbe reruns it)",
+  "snapshotCadence": "python scripts/probe_stvef_snapshot_cadence.py --output <dir> --servers retail head=<HEAD runtime> candidate=<this change> --client-runtime <this change> --probe <fntech3_stvef_demo_probe.exe> --timescales 1 3 0.5 --snaps 20 --seconds 20",
+  "sessions": "python scripts/probe_legacy_sessions.py --output <dir> --profiles stvef-mp --directions host listen join --runtime <this change>"
+ },
+ "builds": {
+  "baseCommit": "465b5eb1",
+  "head": {
+   "note": "runtime .tmp/runtime/stvef-compat-after3, code of da14aed2 (no server change since)",
+   "ded": "bada7c657282c360f3298510c4030906675747c77f7de7023e3ecb02067c71e5"
+  },
+  "firstCandidate": {
+   "note": "frames started on the fifth millisecond after the last ended",
+   "ded": "be04fb9a235c097a33309df6adb1bfe12188c1eab4d0e5fbfc84b6af448d0ae3"
+  },
+  "speedCandidate": {
+   "note": "this change, SV_HolomatchSnapshotDelay comment placed below the SV_SendMessageToClient header; code otherwise identical",
+   "ded": "5e333d8f67547bf7d240a07a6576ed5a6a1fab58d5c0aac35de98d17f0e9744a"
+  },
+  "final": {
+   "client": "c6650f52474b3a9188f81d1d0e4df05a6b9a81ff01133071a928efc7b5905a1c",
+   "ded": "234c3af5de6eade374296929716bcbcffbadcd9526108e051de81338f9082232",
+   "demoProbe": "7bc783d888b0e46d673fb5b3682b59426d7c931d050c984621a89983df61a23f"
+  }
+ },
+ "speed": {
+  "method": "three bots added over rcon at 0, 60 and 120 s of wall time on hm_borg1 (devmap, the timescale set before the bots); game times of their ClientConnect lines from the game log",
+  "retailAndHead": {
+   "build": "retail and HEAD at 0.1 and 0.5",
+   "installationUnchanged": true,
+   "runs": [
+    {
+     "server": "retail",
+     "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "timescale": 0.1,
+     "wallSeconds": [
+      0.0,
+      60.015,
+      120.0
+     ],
+     "gameSeconds": [
+      5,
+      16,
+      26
+     ],
+     "gamePerWall": 0.175,
+     "hitchWarnings": 1
+    },
+    {
+     "server": "fntech3",
+     "sha256": "bada7c657282c360f3298510c4030906675747c77f7de7023e3ecb02067c71e5",
+     "timescale": 0.1,
+     "wallSeconds": [
+      0.0,
+      60.0,
+      120.031
+     ],
+     "gameSeconds": [
+      0,
+      6,
+      11
+     ],
+     "gamePerWall": 0.0916,
+     "hitchWarnings": 0
+    },
+    {
+     "server": "retail",
+     "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "timescale": 0.5,
+     "wallSeconds": [
+      0.0,
+      60.016,
+      120.0
+     ],
+     "gameSeconds": [
+      6,
+      35,
+      63
+     ],
+     "gamePerWall": 0.475,
+     "hitchWarnings": 1
+    },
+    {
+     "server": "fntech3",
+     "sha256": "bada7c657282c360f3298510c4030906675747c77f7de7023e3ecb02067c71e5",
+     "timescale": 0.5,
+     "wallSeconds": [
+      0.0,
+      60.0,
+      120.031
+     ],
+     "gameSeconds": [
+      1,
+      30,
+      60
+     ],
+     "gamePerWall": 0.4915,
+     "hitchWarnings": 0
+    }
+   ]
+  },
+  "firstCandidate": {
+   "build": "first build (be04fb9a)",
+   "installationUnchanged": true,
+   "runs": [
+    {
+     "server": "fntech3",
+     "sha256": "be04fb9a235c097a33309df6adb1bfe12188c1eab4d0e5fbfc84b6af448d0ae3",
+     "timescale": 0.1,
+     "wallSeconds": [
+      0.0,
+      60.031,
+      120.015
+     ],
+     "gameSeconds": [
+      0,
+      12,
+      24
+     ],
+     "gamePerWall": 0.2,
+     "hitchWarnings": 0
+    },
+    {
+     "server": "fntech3",
+     "sha256": "be04fb9a235c097a33309df6adb1bfe12188c1eab4d0e5fbfc84b6af448d0ae3",
+     "timescale": 0.5,
+     "wallSeconds": [
+      0.0,
+      60.0,
+      120.047
+     ],
+     "gameSeconds": [
+      1,
+      25,
+      49
+     ],
+     "gamePerWall": 0.3998,
+     "hitchWarnings": 0
+    },
+    {
+     "server": "fntech3",
+     "sha256": "be04fb9a235c097a33309df6adb1bfe12188c1eab4d0e5fbfc84b6af448d0ae3",
+     "timescale": 3.0,
+     "wallSeconds": [
+      0.0,
+      60.031,
+      120.016
+     ],
+     "gameSeconds": [
+      7,
+      187,
+      367
+     ],
+     "gamePerWall": 2.9996,
+     "hitchWarnings": 0
+    }
+   ]
+  },
+  "candidate": {
+   "build": "this change (5e333d8f)",
+   "installationUnchanged": true,
+   "runs": [
+    {
+     "server": "fntech3",
+     "sha256": "5e333d8f67547bf7d240a07a6576ed5a6a1fab58d5c0aac35de98d17f0e9744a",
+     "timescale": 0.1,
+     "wallSeconds": [
+      0.0,
+      60.015,
+      120.031
+     ],
+     "gameSeconds": [
+      0,
+      10,
+      20
+     ],
+     "gamePerWall": 0.1666,
+     "hitchWarnings": 0
+    },
+    {
+     "server": "fntech3",
+     "sha256": "5e333d8f67547bf7d240a07a6576ed5a6a1fab58d5c0aac35de98d17f0e9744a",
+     "timescale": 0.5,
+     "wallSeconds": [
+      0.0,
+      60.0,
+      120.0
+     ],
+     "gameSeconds": [
+      1,
+      31,
+      61
+     ],
+     "gamePerWall": 0.5,
+     "hitchWarnings": 0
+    },
+    {
+     "server": "fntech3",
+     "sha256": "5e333d8f67547bf7d240a07a6576ed5a6a1fab58d5c0aac35de98d17f0e9744a",
+     "timescale": 3.0,
+     "wallSeconds": [
+      0.0,
+      60.031,
+      120.031
+     ],
+     "gameSeconds": [
+      7,
+      187,
+      367
+     ],
+     "gamePerWall": 2.9992,
+     "hitchWarnings": 0
+    }
+   ]
+  },
+  "timescale3": {
+   "build": "retail and HEAD at timescale 3",
+   "installationUnchanged": true,
+   "runs": [
+    {
+     "server": "retail",
+     "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "timescale": 3.0,
+     "wallSeconds": [
+      0.0,
+      60.032,
+      120.0
+     ],
+     "gameSeconds": [
+      7,
+      187,
+      367
+     ],
+     "gamePerWall": 3.0,
+     "hitchWarnings": 1
+    },
+    {
+     "server": "fntech3",
+     "sha256": "bada7c657282c360f3298510c4030906675747c77f7de7023e3ecb02067c71e5",
+     "timescale": 3.0,
+     "wallSeconds": [
+      0.0,
+      60.016,
+      120.047
+     ],
+     "gameSeconds": [
+      7,
+      187,
+      367
+     ],
+     "gamePerWall": 2.9988,
+     "hitchWarnings": 0
+    }
+   ]
+  },
+  "final": {
+   "build": "this change, final build (234c3af5)",
+   "installationUnchanged": true,
+   "runs": [
+    {
+     "server": "fntech3",
+     "sha256": "234c3af5de6eade374296929716bcbcffbadcd9526108e051de81338f9082232",
+     "timescale": 0.1,
+     "wallSeconds": [
+      0.0,
+      60.016,
+      120.032
+     ],
+     "gameSeconds": [
+      0,
+      10,
+      20
+     ],
+     "gamePerWall": 0.1666,
+     "hitchWarnings": 0
+    },
+    {
+     "server": "fntech3",
+     "sha256": "234c3af5de6eade374296929716bcbcffbadcd9526108e051de81338f9082232",
+     "timescale": 0.5,
+     "wallSeconds": [
+      0.0,
+      60.0,
+      120.032
+     ],
+     "gameSeconds": [
+      1,
+      31,
+      61
+     ],
+     "gamePerWall": 0.4999,
+     "hitchWarnings": 0
+    },
+    {
+     "server": "fntech3",
+     "sha256": "234c3af5de6eade374296929716bcbcffbadcd9526108e051de81338f9082232",
+     "timescale": 3.0,
+     "wallSeconds": [
+      0.0,
+      60.031,
+      120.015
+     ],
+     "gameSeconds": [
+      7,
+      187,
+      367
+     ],
+     "gamePerWall": 2.9996,
+     "hitchWarnings": 0
+    }
+   ]
+  },
+  "committedProbe": {
+   "build": "scripts/probe_stvef_game_speed.py as committed: retail and the final build at 0.1 and 0.5",
+   "installationUnchanged": true,
+   "runs": [
+    {
+     "server": "retail",
+     "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "timescale": 0.1,
+     "wallSeconds": [
+      0.0,
+      60.047,
+      120.0
+     ],
+     "gameSeconds": [
+      5,
+      16,
+      26
+     ],
+     "gamePerWall": 0.175,
+     "hitchWarnings": 1
+    },
+    {
+     "server": "fntech3",
+     "sha256": "234c3af5de6eade374296929716bcbcffbadcd9526108e051de81338f9082232",
+     "timescale": 0.1,
+     "wallSeconds": [
+      0.0,
+      60.032,
+      120.016
+     ],
+     "gameSeconds": [
+      0,
+      10,
+      20
+     ],
+     "gamePerWall": 0.1666,
+     "hitchWarnings": 0
+    },
+    {
+     "server": "retail",
+     "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "timescale": 0.5,
+     "wallSeconds": [
+      0.016,
+      60.031,
+      120.031
+     ],
+     "gameSeconds": [
+      6,
+      34,
+      63
+     ],
+     "gamePerWall": 0.4749,
+     "hitchWarnings": 1
+    },
+    {
+     "server": "fntech3",
+     "sha256": "234c3af5de6eade374296929716bcbcffbadcd9526108e051de81338f9082232",
+     "timescale": 0.5,
+     "wallSeconds": [
+      0.0,
+      60.0,
+      120.016
+     ],
+     "gameSeconds": [
+      1,
+      31,
+      61
+     ],
+     "gamePerWall": 0.4999,
+     "hitchWarnings": 0
+    }
+   ]
+  }
+ },
+ "snapshotCadence": {
+  "installationUnchanged": true,
+  "runs": [
+   {
+    "server": "retail",
+    "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+    "clientSha256": "c6650f52474b3a9188f81d1d0e4df05a6b9a81ff01133071a928efc7b5905a1c",
+    "timescale": 1.0,
+    "snaps": 20,
+    "snapshots": 398,
+    "serverSeconds": 19.85,
+    "gaps": {
+     "50": 397
+    },
+    "rateDelayed": 0,
+    "decodeError": "",
+    "steps": {
+     "server-ready": true,
+     "synchronous-clients": true,
+     "join": true,
+     "demo": true
+    }
+   },
+   {
+    "server": "retail",
+    "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+    "clientSha256": "c6650f52474b3a9188f81d1d0e4df05a6b9a81ff01133071a928efc7b5905a1c",
+    "timescale": 3.0,
+    "snaps": 20,
+    "snapshots": 1195,
+    "serverSeconds": 59.7,
+    "gaps": {
+     "50": 1194
+    },
+    "rateDelayed": 0,
+    "decodeError": "",
+    "steps": {
+     "server-ready": true,
+     "synchronous-clients": true,
+     "join": true,
+     "demo": true
+    }
+   },
+   {
+    "server": "retail",
+    "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+    "clientSha256": "c6650f52474b3a9188f81d1d0e4df05a6b9a81ff01133071a928efc7b5905a1c",
+    "timescale": 0.5,
+    "snaps": 20,
+    "snapshots": 182,
+    "serverSeconds": 9.05,
+    "gaps": {
+     "50": 181
+    },
+    "rateDelayed": 0,
+    "decodeError": "",
+    "steps": {
+     "server-ready": true,
+     "synchronous-clients": true,
+     "join": true,
+     "demo": true
+    }
+   },
+   {
+    "server": "head",
+    "serverSha256": "bada7c657282c360f3298510c4030906675747c77f7de7023e3ecb02067c71e5",
+    "clientSha256": "c6650f52474b3a9188f81d1d0e4df05a6b9a81ff01133071a928efc7b5905a1c",
+    "timescale": 1.0,
+    "snaps": 20,
+    "snapshots": 387,
+    "serverSeconds": 19.85,
+    "gaps": {
+     "50": 375,
+     "100": 11
+    },
+    "rateDelayed": 0,
+    "decodeError": "",
+    "steps": {
+     "server-ready": true,
+     "synchronous-clients": true,
+     "join": true,
+     "demo": true
+    }
+   },
+   {
+    "server": "head",
+    "serverSha256": "bada7c657282c360f3298510c4030906675747c77f7de7023e3ecb02067c71e5",
+    "clientSha256": "c6650f52474b3a9188f81d1d0e4df05a6b9a81ff01133071a928efc7b5905a1c",
+    "timescale": 3.0,
+    "snaps": 20,
+    "snapshots": 310,
+    "serverSeconds": 59.35,
+    "gaps": {
+     "150": 75,
+     "200": 208,
+     "250": 26
+    },
+    "rateDelayed": 0,
+    "decodeError": "",
+    "steps": {
+     "server-ready": true,
+     "synchronous-clients": true,
+     "join": true,
+     "demo": true
+    }
+   },
+   {
+    "server": "head",
+    "serverSha256": "bada7c657282c360f3298510c4030906675747c77f7de7023e3ecb02067c71e5",
+    "clientSha256": "c6650f52474b3a9188f81d1d0e4df05a6b9a81ff01133071a928efc7b5905a1c",
+    "timescale": 0.5,
+    "snaps": 20,
+    "snapshots": 390,
+    "serverSeconds": 9.75,
+    "gaps": {
+     "0": 194,
+     "50": 195
+    },
+    "rateDelayed": 0,
+    "decodeError": "",
+    "steps": {
+     "server-ready": true,
+     "synchronous-clients": true,
+     "join": true,
+     "demo": true
+    }
+   },
+   {
+    "server": "candidate",
+    "serverSha256": "234c3af5de6eade374296929716bcbcffbadcd9526108e051de81338f9082232",
+    "clientSha256": "c6650f52474b3a9188f81d1d0e4df05a6b9a81ff01133071a928efc7b5905a1c",
+    "timescale": 1.0,
+    "snaps": 20,
+    "snapshots": 403,
+    "serverSeconds": 20.1,
+    "gaps": {
+     "50": 402
+    },
+    "rateDelayed": 0,
+    "decodeError": "",
+    "steps": {
+     "server-ready": true,
+     "synchronous-clients": true,
+     "join": true,
+     "demo": true
+    }
+   },
+   {
+    "server": "candidate",
+    "serverSha256": "234c3af5de6eade374296929716bcbcffbadcd9526108e051de81338f9082232",
+    "clientSha256": "c6650f52474b3a9188f81d1d0e4df05a6b9a81ff01133071a928efc7b5905a1c",
+    "timescale": 3.0,
+    "snaps": 20,
+    "snapshots": 1195,
+    "serverSeconds": 59.7,
+    "gaps": {
+     "50": 1194
+    },
+    "rateDelayed": 0,
+    "decodeError": "",
+    "steps": {
+     "server-ready": true,
+     "synchronous-clients": true,
+     "join": true,
+     "demo": true
+    }
+   },
+   {
+    "server": "candidate",
+    "serverSha256": "234c3af5de6eade374296929716bcbcffbadcd9526108e051de81338f9082232",
+    "clientSha256": "c6650f52474b3a9188f81d1d0e4df05a6b9a81ff01133071a928efc7b5905a1c",
+    "timescale": 0.5,
+    "snaps": 20,
+    "snapshots": 200,
+    "serverSeconds": 9.95,
+    "gaps": {
+     "50": 199
+    },
+    "rateDelayed": 0,
+    "decodeError": "",
+    "steps": {
+     "server-ready": true,
+     "synchronous-clients": true,
+     "join": true,
+     "demo": true
+    }
+   }
+  ]
+ },
+ "sessions": [
+  {
+   "direction": "host",
+   "serverKind": "fntech3",
+   "clientKind": "retail",
+   "passed": true,
+   "installationUnchanged": true,
+   "sessions": {
+    "main": {
+     "steps": {
+      "server-ready": true,
+      "join": true,
+      "client-chat": true,
+      "server-chat": true,
+      "map-change": true,
+      "map-restart": true,
+      "reconnect": true,
+      "server-quit": true
+     },
+     "serverSha256": "234c3af5de6eade374296929716bcbcffbadcd9526108e051de81338f9082232",
+     "clientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff"
+    },
+    "kick": {
+     "steps": {
+      "server-ready": true,
+      "kick-join": true,
+      "kick": true
+     },
+     "serverSha256": "234c3af5de6eade374296929716bcbcffbadcd9526108e051de81338f9082232",
+     "clientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff"
+    },
+    "download": {
+     "steps": {
+      "server-ready": true,
+      "download": true
+     },
+     "serverSha256": "234c3af5de6eade374296929716bcbcffbadcd9526108e051de81338f9082232",
+     "clientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff"
+    },
+    "mixed": {
+     "steps": {
+      "server-ready": true,
+      "mixed-join": true,
+      "mixed-chat": true,
+      "mixed-map-change": true,
+      "mixed-chat-after-change": true
+     },
+     "serverSha256": "234c3af5de6eade374296929716bcbcffbadcd9526108e051de81338f9082232",
+     "clientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff"
+    }
+   }
+  },
+  {
+   "direction": "join",
+   "serverKind": "retail",
+   "clientKind": "fntech3",
+   "passed": true,
+   "installationUnchanged": true,
+   "sessions": {
+    "main": {
+     "steps": {
+      "server-ready": true,
+      "join": true,
+      "client-chat": true,
+      "server-chat": true,
+      "map-change": true,
+      "map-restart": true,
+      "reconnect": true,
+      "server-quit": true
+     },
+     "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "clientSha256": "c6650f52474b3a9188f81d1d0e4df05a6b9a81ff01133071a928efc7b5905a1c"
+    },
+    "kick": {
+     "steps": {
+      "server-ready": true,
+      "kick-join": true,
+      "kick": true
+     },
+     "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "clientSha256": "c6650f52474b3a9188f81d1d0e4df05a6b9a81ff01133071a928efc7b5905a1c"
+    },
+    "download": {
+     "steps": {
+      "server-ready": true,
+      "download": true
+     },
+     "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "clientSha256": "c6650f52474b3a9188f81d1d0e4df05a6b9a81ff01133071a928efc7b5905a1c"
+    },
+    "mixed": {
+     "steps": {
+      "server-ready": true,
+      "mixed-join": true,
+      "mixed-chat": true,
+      "mixed-map-change": true,
+      "mixed-chat-after-change": true
+     },
+     "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "clientSha256": "c6650f52474b3a9188f81d1d0e4df05a6b9a81ff01133071a928efc7b5905a1c"
+    }
+   }
+  },
+  {
+   "direction": "listen",
+   "serverKind": "listen",
+   "clientKind": "retail",
+   "passed": true,
+   "installationUnchanged": true,
+   "sessions": {
+    "main": {
+     "steps": {
+      "server-ready": true,
+      "join": true,
+      "client-chat": true,
+      "server-chat": true,
+      "map-change": true,
+      "map-restart": true,
+      "reconnect": true,
+      "server-quit": true
+     },
+     "serverSha256": "c6650f52474b3a9188f81d1d0e4df05a6b9a81ff01133071a928efc7b5905a1c",
+     "clientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff"
+    },
+    "kick": {
+     "steps": {
+      "server-ready": true,
+      "kick-join": true,
+      "kick": true
+     },
+     "serverSha256": "c6650f52474b3a9188f81d1d0e4df05a6b9a81ff01133071a928efc7b5905a1c",
+     "clientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff"
+    },
+    "download": {
+     "steps": {
+      "server-ready": true,
+      "download": true
+     },
+     "serverSha256": "c6650f52474b3a9188f81d1d0e4df05a6b9a81ff01133071a928efc7b5905a1c",
+     "clientSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff"
+    }
+   }
+  }
+ ]
+}

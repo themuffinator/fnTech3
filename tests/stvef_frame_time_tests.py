@@ -9,8 +9,9 @@ cutscene at timescale 100 (`skippingCinematic`, stvoy.exe 0x412fae);
 Holomatch at 5000 on a dedicated server, 200 while it hosts a game and 5000
 otherwise. The production function is compiled with stubbed cvars; the other
 profiles are controls that keep their existing rule. Both servers also keep
-a fixed tick under timescale, and neither restarts its frame clock after a
-level loads. No game is started.
+a fixed tick under timescale, neither restarts its frame clock after a level
+loads, and a dedicated Holomatch server sleeps 5 ms between frames, as
+stvoyHM.exe's WinMain does. No game is started.
 """
 from pathlib import Path
 import os
@@ -147,6 +148,20 @@ class STVEFFrameTimeTests(unittest.TestCase):
                         frame.index('} else if ( com_timescale->value > 0.0f ) {'))
         # Only single player bounds a frame's game time to a second.
         self.assertIn('if ( stvefSP && msec > 1000 ) {', frame)
+
+    def test_a_dedicated_holomatch_server_sleeps_between_frames(self):
+        # stvoyHM.exe 1.20 sleeps 5 ms before each Com_Frame of a dedicated
+        # server (WinMain 0x440a1a) and leaves SV_Frame at once while no tick
+        # is owed (0x43529c, tests/stvef_sp_cadence_tests.py). Every other
+        # profile's dedicated server waits for its next tick.
+        common = (ROOT / 'code/qcommon/common.c').read_text(encoding='utf-8').replace('\r\n', '\n')
+        frame = function(common, 'void Com_Frame( qboolean noDelay ) {')
+        self.assertIn('\tif ( com_dedicated->integer ) {\n', frame)
+        self.assertIn('minMsec = Com_GameIsSTVEFMP() ? com_frameEndTime + 6 - com_frameTime : SV_FrameMsec();',
+                      frame)
+        self.assertTrue(frame.endswith('\tcom_frameNumber++;\n\tcom_frameEndTime = Sys_Milliseconds();\n}\n'))
+        self.assertEqual(common.count('com_frameEndTime = '), 1)
+        self.assertEqual(common.count('minMsec = SV_FrameMsec()'), 0)
 
     def test_a_level_load_counts_into_the_next_frame(self):
         # Neither retail engine sets its frame clock outside Com_Frame

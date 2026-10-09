@@ -3478,34 +3478,14 @@ static void SV_ResetPureClient_f( client_t *cl ) {
 
 /*
 =================
-SV_UserinfoChanged
+SV_ClientRateAndSnaps
 
-Pull specific info from a newly changed userinfo string
-into a more C friendly form.
+A client's rate and snapshot interval from its userinfo.
 =================
 */
-void SV_UserinfoChanged( client_t *cl, qboolean updateUserinfo, qboolean runFilter ) {
-	std::array<char, MAX_NAME_LENGTH> buf{};
+static void SV_ClientRateAndSnaps( client_t *cl ) {
 	const char *val;
-	const char *ip;
 	int	i;
-
-	if ( cl->netchan.remoteAddress.type == NA_BOT ) {
-		cl->lastSnapshotTime = svs.time - 9999; // generate a snapshot immediately
-		cl->snapshotMsec = 1000 / sv_fps->integer;
-		cl->rate = 0;
-		return;
-	}
-
-	if ( Com_GameIsWolfET() ) {
-		// ET learns whether a client can fetch files itself from its userinfo.
-		if ( auto *web = fntech3::wolfet::server::Download( SV_ClientIndex( cl ) ) ) {
-			val = Info_ValueForKey( cl->userinfo, "cl_wwwDownload" );
-			web->capable = val[0] != 0 && atoi( val ) != 0;
-		}
-	}
-
-	// rate command
 
 	// if the client is on the same subnet as the server and we aren't running an
 	// internet public server, assume they don't need a rate choke
@@ -3549,6 +3529,85 @@ void SV_UserinfoChanged( client_t *cl, qboolean updateUserinfo, qboolean runFilt
 		// Reset last sent snapshot so we avoid desync between server frame time and snapshot send time
 		cl->lastSnapshotTime = svs.time - 9999; // generate a snapshot immediately
 		cl->snapshotMsec = i;
+	}
+}
+
+
+/*
+=================
+SV_HolomatchRateAndSnaps
+
+Holomatch's rate and snapshot interval, as stvoyHM.exe 1.20's
+SV_UserinfoChanged reads them (0x4306ca..0x4307bb): a LAN client's rate is
+99999, anyone else's its own held to 1000..90000, or 3000; snaps are held to
+1..30, or 20 a second. A change waits for the deadline already set.
+=================
+*/
+static void SV_HolomatchRateAndSnaps( client_t *cl ) {
+	if ( cl->netchan.isLANAddress || cl->netchan.remoteAddress.type == NA_LOOPBACK ) {
+		cl->rate = 99999;
+	} else {
+		const char *rate = Info_ValueForKey( cl->userinfo, "rate" );
+		if ( rate[0] ) {
+			cl->rate = atoi( rate );
+			if ( cl->rate < 1000 ) {
+				cl->rate = 1000;
+			} else if ( cl->rate > 90000 ) {
+				cl->rate = 90000;
+			}
+		} else {
+			cl->rate = 3000;
+		}
+	}
+	const char *snaps = Info_ValueForKey( cl->userinfo, "snaps" );
+	if ( snaps[0] ) {
+		int perSecond = atoi( snaps );
+		if ( perSecond < 1 ) {
+			perSecond = 1;
+		} else if ( perSecond > 30 ) {
+			perSecond = 30;
+		}
+		cl->snapshotMsec = 1000 / perSecond;
+	} else {
+		cl->snapshotMsec = 50;
+	}
+}
+
+
+/*
+=================
+SV_UserinfoChanged
+
+Pull specific info from a newly changed userinfo string
+into a more C friendly form.
+=================
+*/
+void SV_UserinfoChanged( client_t *cl, qboolean updateUserinfo, qboolean runFilter ) {
+	std::array<char, MAX_NAME_LENGTH> buf{};
+	const char *val;
+	const char *ip;
+	int	i;
+
+	if ( cl->netchan.remoteAddress.type == NA_BOT ) {
+		cl->lastSnapshotTime = svs.time - 9999; // generate a snapshot immediately
+		cl->snapshotMsec = 1000 / sv_fps->integer;
+		cl->rate = 0;
+		return;
+	}
+
+	if ( Com_GameIsWolfET() ) {
+		// ET learns whether a client can fetch files itself from its userinfo.
+		if ( auto *web = fntech3::wolfet::server::Download( SV_ClientIndex( cl ) ) ) {
+			val = Info_ValueForKey( cl->userinfo, "cl_wwwDownload" );
+			web->capable = val[0] != 0 && atoi( val ) != 0;
+		}
+	}
+
+	// rate and snaps commands
+	if ( Com_GameIsSTVEFMP() ) {
+		SV_HolomatchRateAndSnaps( cl );
+	} else {
+		SV_ClientRateAndSnaps( cl );
 	}
 
 	if ( !updateUserinfo )
