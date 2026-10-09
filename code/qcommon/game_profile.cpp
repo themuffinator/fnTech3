@@ -266,7 +266,9 @@ const comGameProfile_t profiles[] = { {
 	nullptr,
 	"Elite Force Holomatch module, wire and renderer adapters are not yet complete",
 	64, 1024, 544, 256, COM_ENTITY_HULL_TRACE_SHAPE, COM_ENTITY_BOX_CONTENTS_BODY, "fntech3-stvef-servercache.dat",
-	{ "0", "20", "8", "8", nullptr, nullptr, 1, "1", 1 },
+	/* stvoyHM.exe 1.20 SV_Init registers sv_pure "1" unlatched, archived
+	 * and in its serverinfo as well (0x433f88). */
+	{ "0", "20", "8", "8", nullptr, nullptr, 1, "1", 0 },
 	{ "1", "64", "1024", 1024, COM_BOT_AI_QUAKE, 1, 0, 0, 1, 64 },
 	COM_PURE_PROOF_QVM,
 	{ "munro/red", nullptr, nullptr, nullptr, "color", nullptr, 0, 1,

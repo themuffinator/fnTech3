@@ -205,6 +205,11 @@ historical upstream records, not fnTech3 release history. See the
   in the original, two and a half times faster than before; and a level
   starts by catching up on the time its loading took, as the original does
   ([record](docs/fntech3/2026-10-08-stvef-frame-time.md)).
+- List the same details for an Elite Force Holomatch server as the original
+  does: server browsers and the game's log now see whether it is pure, and no
+  longer see fnTech3's own download and rate settings. Its `sv_pure` setting
+  is saved with the configuration, as the original's is
+  ([record](docs/fntech3/2026-10-08-stvef-serverinfo.md)).
 - Stop a server faulting when `bot_saveroutingcache 1` is set while its bots'
   navigation is still being prepared, as it is for a while after a map loads
   with `bot_forcereachability 1`. There are no routes to save yet: the server

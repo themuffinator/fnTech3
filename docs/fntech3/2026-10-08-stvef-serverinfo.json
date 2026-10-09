@@ -1,0 +1,192 @@
+{
+ "record": "2026-10-08-stvef-serverinfo.md",
+ "profiles": [
+  "stvef-mp"
+ ],
+ "baseCommit": "e53ba098e0120e24c6e316df1d4fa35de374034b",
+ "retail": {
+  "stvoyHM.exe": {
+   "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+   "SV_Init": "0x433e00..0x434180",
+   "sv_pure": "Cvar_Get(\"sv_pure\", \"1\", 0x0d = ARCHIVE|SERVERINFO|SYSTEMINFO) at 0x433f88..0x433f99",
+   "notRegistered": [
+    "sv_dlURL",
+    "sv_dlRate",
+    "sv_minRate",
+    "sv_playingDemo"
+   ]
+  }
+ },
+ "before": {
+  "server": "b05b3b50f0cb19b012101483e92b3da7b0c004db85b63aa7d52e8a4179be8a90",
+  "probe": ".tmp probe info_keys.py (the same queries as scripts/probe_stvef_info_keys.py before it was committed)",
+  "retailServerinfo": "print\nServer info settings:\ng_allowVote         1\ng_gravity           800\ng_speed             250\ng_needpass          0\ng_friendlyFire      0\ng_maxGameClients    0\ngamename            baseEF\ncapturelimit        3\nbot_minplayers      0\nsv_allowDownload    1\nsv_pure             0\nsv_floodProtect     1\nsv_maxPing          0\nsv_minPing          0\nsv_maxRate          0\nsv_maxclients       12\nsv_hostname         fntech3-modes\nsv_privateClients   0\nmapname             hm_borg1\nprotocol            24\ng_pModElimination   0\ng_pModActionHero    0\ng_pModDisintegration0\ng_pModAssimilation  0\ng_pModSpecialties   0\ng_gametype          0\ntimelimit           3\nfraglimit           10\ndmflags             0\nversion             ST:V HM v1.20 win-x86 Apr 17 2001\n",
+  "fnTech3Serverinfo": "print\nServer info settings:\nbot_minplayers       0\ndmflags              0\nfraglimit            10\ng_gametype           0\ng_pModActionHero     0\ng_pModAssimilation   0\ng_pModDisintegration 0\ng_pModElimination    0\ng_pModSpecialties    0\nmapname              hm_borg1\nprotocol             24\nsv_allowDownload     1\nsv_dlRate            100\nsv_floodProtect      1\nsv_hostname          fntech3-modes\nsv_maxPing           0\nsv_maxRate           0\nsv_maxclients        12\nsv_minPing           0\nsv_minRate           0\nsv_playingDemo       0\nsv_privateClients    0\ntimelimit            3\nversion              fnTech3 0.1.0 win_msvc-x86-debug Oct  8 2026\ncapturelimit         3\ng_allowVote          1\ng_friendlyFire       0\ng_gravity            800\ng_maxGameClients     0\ng_needpass           0\ng_speed              250\ngamename             baseEF\n",
+  "retailSysteminfo": "print\nSystem info settings:\ng_synchronousClients0\nsv_referencedPakNamesbaseEF/pak2  baseEF/pak0\nsv_referencedPaks   -334095706 -918669779 \nsv_pure             0\nsv_serverid         1125467722\ntimescale           3\nsv_cheats           1\n",
+  "fnTech3Systeminfo": "print\nSystem info settings:\ng_synchronousClients 0\nsv_cheats            1\nsv_pure              0\nsv_referencedPakNames baseEF/pak2 baseEF/pak0\nsv_referencedPaks    -334095706 -918669779 \nsv_serverid          323\ntimescale            3\n",
+  "serverinfoOnlyRetail": [
+   "sv_pure"
+  ],
+  "serverinfoOnlyFnTech3": [
+   "sv_dlRate",
+   "sv_minRate",
+   "sv_playingDemo"
+  ]
+ },
+ "after": {
+  "server": "663f416226bb8b4d16f3185f01ee86327ea2d168cb4f606ff8c763692de96175",
+  "retail": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+  "probe": "scripts/probe_stvef_info_keys.py --runtime .tmp/runtime/stvef-compat-after3",
+  "serverinfo": {
+   "onlyRetail": [],
+   "onlyFnTech3": [],
+   "counts": [
+    30,
+    30
+   ]
+  },
+  "systeminfo": {
+   "onlyRetail": [],
+   "onlyFnTech3": [],
+   "counts": [
+    7,
+    7
+   ]
+  },
+  "retailKeys": [
+   "g_allowVote",
+   "g_gravity",
+   "g_speed",
+   "g_needpass",
+   "g_friendlyFire",
+   "g_maxGameClients",
+   "gamename",
+   "capturelimit",
+   "bot_minplayers",
+   "sv_allowDownload",
+   "sv_pure",
+   "sv_floodProtect",
+   "sv_maxPing",
+   "sv_minPing",
+   "sv_maxRate",
+   "sv_maxclients",
+   "sv_hostname",
+   "sv_privateClients",
+   "mapname",
+   "protocol",
+   "g_pModElimination",
+   "g_pModActionHero",
+   "g_pModDisintegration",
+   "g_pModAssimilation",
+   "g_pModSpecialties",
+   "g_gametype",
+   "timelimit",
+   "fraglimit",
+   "dmflags",
+   "version"
+  ],
+  "fnTech3Keys": [
+   "bot_minplayers",
+   "dmflags",
+   "fraglimit",
+   "g_gametype",
+   "g_pModActionHero",
+   "g_pModAssimilation",
+   "g_pModDisintegration",
+   "g_pModElimination",
+   "g_pModSpecialties",
+   "mapname",
+   "protocol",
+   "sv_allowDownload",
+   "sv_floodProtect",
+   "sv_hostname",
+   "sv_maxPing",
+   "sv_maxRate",
+   "sv_maxclients",
+   "sv_minPing",
+   "sv_privateClients",
+   "sv_pure",
+   "timelimit",
+   "version",
+   "capturelimit",
+   "g_allowVote",
+   "g_friendlyFire",
+   "g_gravity",
+   "g_maxGameClients",
+   "g_needpass",
+   "g_speed",
+   "gamename"
+  ],
+  "installationUnchanged": true
+ },
+ "sessions": {
+  "script": "scripts/probe_legacy_sessions.py --profiles stvef-mp --directions join host listen --sessions main kick",
+  "server": "663f416226bb8b4d16f3185f01ee86327ea2d168cb4f606ff8c763692de96175",
+  "results": {
+   "stvef-mp join": {
+    "steps": [
+     "server-ready: ok",
+     "join: ok",
+     "client-chat: ok",
+     "server-chat: ok",
+     "map-change: ok",
+     "map-restart: ok",
+     "reconnect: ok",
+     "server-quit: ok",
+     "server-ready: ok",
+     "kick-join: ok",
+     "kick: ok"
+    ],
+    "passed": true
+   },
+   "stvef-mp host": {
+    "steps": [
+     "server-ready: ok",
+     "join: ok",
+     "client-chat: ok",
+     "server-chat: ok",
+     "map-change: ok",
+     "map-restart: ok",
+     "reconnect: ok",
+     "server-quit: ok",
+     "server-ready: ok",
+     "kick-join: ok",
+     "kick: ok"
+    ],
+    "passed": true
+   },
+   "stvef-mp listen": {
+    "steps": [
+     "server-ready: ok",
+     "join: ok",
+     "client-chat: ok",
+     "server-chat: ok",
+     "map-change: ok",
+     "map-restart: ok",
+     "reconnect: ok",
+     "server-quit: ok",
+     "server-ready: ok",
+     "kick-join: ok",
+     "kick: ok"
+    ],
+    "passed": true
+   }
+  }
+ },
+ "tests": {
+  "files": [
+   "tests/stvef_serverinfo_tests.py",
+   "tests/rtcw_server_policy_tests.py"
+  ],
+  "mutationsThatFail": [
+   "no SV_HolomatchInfoKeys call",
+   "sv_playingDemo kept",
+   "Holomatch sv_pure latched",
+   "Holomatch sv_pure without ARCHIVE|SERVERINFO"
+  ]
+ },
+ "notChanged": [
+  "key order: retail lists the newest registration first, fnTech3 sorts"
+ ],
+ "proprietaryContentCommitted": false
+}

@@ -218,8 +218,12 @@ int main(){
    continue;
   }
   const bool sp=p.id==COM_GAME_RTCW_SP,mp=p.id==COM_GAME_RTCW_MP,ql=p.id==COM_GAME_QUAKELIVE;
+  const bool holomatch=p.id==COM_GAME_STVEF_MP;
   values.clear();auto *pureMode=SV_RegisterPureMode();assert(pureMode->integer==(sp?0:1));
-  assert(pureMode->flags&CVAR_SYSTEMINFO);assert(bool(pureMode->flags&CVAR_LATCH)==!(sp||mp));
+  assert(pureMode->flags&CVAR_SYSTEMINFO);assert(bool(pureMode->flags&CVAR_LATCH)==!(sp||mp||holomatch));
+  // Holomatch alone archives sv_pure and publishes it in its serverinfo
+  // (stvoyHM.exe 1.20 SV_Init 0x433f88).
+  assert(bool(pureMode->flags&CVAR_SERVERINFO)==holomatch&&bool(pureMode->flags&CVAR_ARCHIVE)==holomatch);
   Cvar_Set("sv_pure",sp?"1":"0");assert(SV_RegisterPureMode()->integer==(sp?1:0));
   Cvar_SetLatched("sv_pure","1");assert(SV_RegisterPureMode()->integer==1&&!pureMode->latchedString);
   values.clear();SV_TestServerDefaults();assert(sv_gametype->integer==(mp?5:0));

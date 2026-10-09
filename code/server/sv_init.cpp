@@ -670,8 +670,11 @@ static void SV_ReferenceNativeModulePaks( void ) {
 
 static cvar_t *SV_RegisterPureMode() {
 	const auto &policy = Com_GameProfile()->server;
+	// Holomatch archives sv_pure and publishes it in its serverinfo too
+	// (stvoyHM.exe 1.20 SV_Init 0x433f88).
+	const int holomatch = Com_GameIsSTVEFMP() ? CVAR_ARCHIVE | CVAR_SERVERINFO : 0;
 	return Cvar_Get("sv_pure", policy.pure,
-		CVAR_SYSTEMINFO | (policy.pureLatched ? CVAR_LATCH : 0));
+		CVAR_SYSTEMINFO | holomatch | (policy.pureLatched ? CVAR_LATCH : 0));
 }
 
 void SV_SpawnServer( const char *mapname, qboolean killBots ) {
@@ -1197,6 +1200,24 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 
 /*
 ===============
+SV_HolomatchInfoKeys
+
+Holomatch's serverinfo holds none of this engine's own keys: stvoyHM.exe 1.20
+registers no sv_dlURL, sv_dlRate, sv_minRate or sv_playingDemo (SV_Init
+0x433e00..0x434180), so they stay local under that profile.
+===============
+*/
+static void SV_HolomatchInfoKeys( void ) {
+	static const char *const ownKeys[] = { "sv_dlURL", "sv_dlRate", "sv_minRate", "sv_playingDemo" };
+
+	for ( const char *name : ownKeys ) {
+		Cvar_Get( name, "", 0 )->flags &= ~CVAR_SERVERINFO;
+	}
+}
+
+
+/*
+===============
 SV_Init
 
 Only called at main exe startup, not for each game
@@ -1407,6 +1428,9 @@ void SV_Init( void )
 	sv_allowDownload = Cvar_Get ("sv_allowDownload", "1", CVAR_SERVERINFO);
 	Cvar_SetDescription( sv_allowDownload, "Toggle the ability for clients to download files maps etc. from server." );
 	Cvar_Get ("sv_dlURL", "", CVAR_SERVERINFO | CVAR_ARCHIVE);
+	if ( Com_GameIsSTVEFMP() ) {
+		SV_HolomatchInfoKeys();
+	}
 
 	// moved to Com_Init()
 	//sv_master[0] = Cvar_Get( "sv_master1", MASTER_SERVER_NAME, CVAR_INIT | CVAR_ARCHIVE_ND );
