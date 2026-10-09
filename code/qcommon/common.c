@@ -4982,18 +4982,27 @@ Com_ModifyMsec
 */
 static int Com_ModifyMsec( int msec ) {
 	int		clampTime;
+	const qboolean stvef = Com_GameIsSTVEF() ? qtrue : qfalse;
 
 	//
 	// modify time for debugging values
 	//
 	if ( com_fixedtime->integer ) {
 		msec = com_fixedtime->integer;
+	} else if ( stvef ) {
+		// Both Elite Force executables leave a zero timescale unscaled and
+		// truncate an x87 product, which a double holds exactly (stvoy.exe
+		// 1.20 0x412f7c, stvoyHM.exe 1.20 0x41c70f).
+		if ( com_timescale->value != 0.0f ) {
+			msec = (int)( msec * (double)com_timescale->value );
+		}
 	} else if ( com_timescale->value != 1.0f || com_cameraMode->integer ) {
 		msec *= com_timescale->value;
 	}
 
-	// don't let positive timescales scale below 1 msec
-	if ( msec < 1 && com_timescale->value > 0.0f ) {
+	// don't let positive timescales scale below 1 msec; Elite Force lets
+	// no frame do so
+	if ( msec < 1 && ( stvef || com_timescale->value > 0.0f ) ) {
 		msec = 1;
 	}
 
@@ -5005,6 +5014,12 @@ static int Com_ModifyMsec( int msec ) {
 			Com_Printf( "Hitch warning: %i msec frame time\n", msec );
 
 		clampTime = 5000;
+	} else
+	if ( Com_GameIsSTVEFSP() ) {
+		// Retail single player always hosts its own game, and lets a
+		// cutscene the game skips at timescale 100 run 500 msec frames
+		// (stvoy.exe 0x412fae).
+		clampTime = Cvar_VariableIntegerValue( "skippingCinematic" ) ? 500 : 200;
 	} else
 	if ( !com_sv_running->integer ) {
 		// clients of remote servers do not want to clamp time, because

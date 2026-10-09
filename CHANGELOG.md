@@ -197,6 +197,14 @@ historical upstream records, not fnTech3 release history. See the
   bytes from the engine's memory in place of that line; a save now holds
   exactly what the original writes. Older saves still load
   ([record](docs/fntech3/2026-10-08-stvef-input-menus.md)).
+- Keep Elite Force's game speed as the original engines do. A Holomatch
+  server's game now advances in the original's 50 ms steps when `timescale`
+  speeds it up or slows it down, where it had lengthened each step, which
+  changed how bots fought; `timescale 0` leaves either mode at normal speed
+  instead of stopping it; skipping a single-player cutscene runs as fast as
+  in the original, two and a half times faster than before; and a level
+  starts by catching up on the time its loading took, as the original does
+  ([record](docs/fntech3/2026-10-08-stvef-frame-time.md)).
 - Stop a server faulting when `bot_saveroutingcache 1` is set while its bots'
   navigation is still being prepared, as it is for a while after a map loads
   with `bot_forcereachability 1`. There are no routes to save yet: the server

@@ -1928,12 +1928,13 @@ void SV_Frame( int msec, int realMsec ) {
 	// if it isn't time for the next frame, do nothing
 	frameMsec = 0;
 	const bool stvefSP = Com_GameIsSTVEFSP();
-	if ( stvefSP ) {
-		// Retail SP keeps fixed simulation ticks when timescale changes
-		// (stvoy.exe 1.20, SV_Frame 0x4265c0). Com_ModifyMsec has already
-		// scaled the elapsed game time; sv_fps is range-checked at startup.
+	if ( Com_GameIsSTVEF() ) {
+		// Both retail Elite Force servers keep fixed simulation ticks when
+		// timescale changes (stvoy.exe 1.20 SV_Frame 0x4265c0, stvoyHM.exe
+		// 1.20 0x435252). Com_ModifyMsec has already scaled the elapsed game
+		// time; sv_fps is range-checked at startup.
 		frameMsec = 1000 / sv_fps->integer;
-		if ( msec > 1000 ) {
+		if ( stvefSP && msec > 1000 ) {
 			msec = 1000;
 		}
 	} else if ( com_timescale->value > 0.0f ) {

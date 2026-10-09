@@ -65,6 +65,7 @@ static std::vector<int> ticks;
 static constexpr const char *HEARTBEAT_FOR_MASTER = "test";
 const char *Com_GameHeartbeatName() { return HEARTBEAT_FOR_MASTER; }
 int Com_GameIsSTVEFSP() { return profile == COM_GAME_STVEF_SP; }
+int Com_GameIsSTVEF() { return profile == COM_GAME_STVEF_SP || profile == COM_GAME_STVEF_MP; }
 // Q3Test and the IHV test send and simulate through their own paths, which
 // their own tests cover; no profile here reaches them.
 int Com_GameIsQ3Test() { return profile == COM_GAME_Q3TEST; }
@@ -140,11 +141,20 @@ static void OtherProfiles() {
         cl_paused->integer = 0; Frame(50, 1);
         assert(sv.time == 1550 && sent == 2 && issued == 12);
 
+        // Holomatch keeps retail's fixed tick under timescale as SP does
+        // (stvoyHM.exe SV_Frame 0x435252); the others scale it. Snapshots
+        // keep the shared wall-clock schedule either way.
+        const bool fixedTick = id == COM_GAME_STVEF_MP;
         Reset(20, .5f);
         for (int i = 0; i < 20; ++i) Frame(25, 25);
-        assert(sv.time == 1500 && ticks.size() == 20 && sent == 10 && issued == 20);
+        assert(sv.time == 1500 && ticks.size() == (fixedTick ? 10u : 20u) && sent == 10 && issued == 20);
+        if (fixedTick) assert(ticks.front() == 1050 && ticks.back() == 1500);
         Reset(20, 2); Frame(100, 50);
-        assert(sv.time == 1100 && ticks == std::vector<int>{1100} && sent == 1);
+        assert(sv.time == 1100 && sent == 1);
+        assert(ticks == (fixedTick ? std::vector<int>{1050, 1100} : std::vector<int>{1100}));
+        Reset(20, 3); Frame(150, 50); Frame(149, 50);
+        assert(ticks.size() == (fixedTick ? 5u : 1u) && sv.time == (fixedTick ? 1250 : 1150));
+        assert(sv.timeResidual == (fixedTick ? 49 : 149));
         Reset(20, 0); Frame(0, 100);
         assert(sv.time == 1000 && ticks.empty() && sent == 1 && issued == 1);
     }

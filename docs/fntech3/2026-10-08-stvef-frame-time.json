@@ -1,0 +1,1175 @@
+{
+ "record": "2026-10-08-stvef-frame-time.md",
+ "profiles": [
+  "stvef-sp",
+  "stvef-mp"
+ ],
+ "baseCommit": "8da1234cf1a8978480eedac015f2ef725c22bc95",
+ "platform": "Windows 11, x86 builds (MSVC, debugoptimized, strict warnings) from git archive exports; servers bound to 127.0.0.1 with isolated homes; clients windowed on private desktops",
+ "retail": {
+  "stvoy.exe": {
+   "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+   "Com_Frame": {
+    "waitLoop": "0x41304b..0x41306d",
+    "frameTime": "0x666724",
+    "lastTime": "0x66601c",
+    "cbufExecute": "0x41306f",
+    "lastTimeStore": "0x41307b",
+    "modifyMsec": "0x413087",
+    "svFrame": "0x4130ab",
+    "lastTimeWrites": [
+     "0x413061",
+     "0x41307b"
+    ],
+    "frameTimeWrites": [
+     "0x412d6c (Com_Init)",
+     "0x413058"
+    ]
+   },
+   "Com_ModifyMsec": {
+    "address": "0x412f70",
+    "fixedtime": "0x412f70..0x412f7a (cvar 0x666004)",
+    "zeroTimescaleUnscaled": "0x412f7c..0x412f90 (cvar 0x66676c)",
+    "product": "0x412f92..0x412f99, _ftol 0x46db60",
+    "floorOneMsec": "0x412fa4",
+    "cap": "0x412fae..0x412fcb: skippingCinematic (cvar 0x665f2c) ? 500 : 200"
+   },
+   "SV_Frame": {
+    "address": "0x4265c0",
+    "note": "fixed 1000 / sv_fps ticks; see 2026-09-21-stvef-sp-cadence.md"
+   },
+   "sv_fps": "\"20\", CVAR_TEMP at 0x425cc9"
+  },
+  "stvoyHM.exe": {
+   "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+   "Com_Frame": {
+    "waitLoop": "0x41c6c4..0x41c6e9",
+    "frameTime": "0x9b6180",
+    "lastTime": "0x5916b0",
+    "cbufExecute": "0x41c6eb",
+    "lastTimeStore": "0x41c6fb",
+    "lastTimeWrites": [
+     "0x41c6da",
+     "0x41c6fb"
+    ],
+    "fixedtime": "0x41c706..0x41c70d",
+    "zeroTimescaleUnscaled": "0x41c70f..0x41c723",
+    "product": "0x41c725..0x41c72b, _ftol 0x4a8570",
+    "floorOneMsec": "0x41c732..0x41c737",
+    "dedicated": "0x41c73c..0x41c762: Hitch warning above 500, cap 5000",
+    "listen": "0x41c764..0x41c775: com_sv_running ? 200 : 5000",
+    "svFrame": "0x41c794"
+   },
+   "SV_Frame": {
+    "address": "0x4351a0",
+    "fpsFloor": "0x43523b..0x43524a: sv_fps < 1 set to \"10\"",
+    "frameMsec": "0x435252..0x435265: 1000 / sv_fps->integer, no timescale",
+    "listenBotFrame": "0x435289 (svs.time + residual)",
+    "dedicatedEarlyReturn": "0x43529c..0x4352b4: NET_Sleep(frameMsec - residual)",
+    "dedicatedBotFrame": "0x43538e (once, before the ticks)",
+    "ticks": "0x435396..0x4353c8: GAME_RUN_FRAME (8) per frameMsec"
+   },
+   "sv_fps": "\"20\", CVAR_TEMP at 0x43401a"
+  },
+  "efgamex86.dll": {
+   "sha256": "c159cba671544ddcc8694887c21bbeba13fead35bbf4488c08914f66695105a9",
+   "ClientThink_real": "0x20056250: in a camera, a newly pressed button bit 4 (use item) toggles skippingCinematic \"1\" + timescale \"100\" (0x200562cd..0x200562e7) or back to \"0\" + \"1\" (0x200562a5..0x200562bf); out of a camera both are reset (0x200562fb..0x20056320)",
+   "ClientCinematicThink": "0x20056ab0: (oldbuttons ^ buttons) & buttons & 4"
+  }
+ },
+ "fnTech3Before": {
+  "Com_ModifyMsec": "Quake3e: scales by a float multiply unless timescale is 1, so timescale 0 stops game time; raises a frame to 1 msec only for a positive timescale; caps 5000 dedicated or without a local game, else 200",
+  "SV_Frame": "single player fixed 1000 / sv_fps; every other profile 1000 / sv_fps * timescale",
+  "SV_SpawnServer": "Com_FrameInit() at the end for every profile"
+ },
+ "runtimes": {
+  "before": {
+   "folders": [
+    ".tmp/runtime/stvef-compat-after",
+    ".tmp/runtime/stvef-compat-after2"
+   ],
+   "servers": [
+    "088a4f40f1e6a7be (45444bd3)",
+    "c1720b14d502b0ca (45444bd3 + the save-line fix)"
+   ],
+   "clients": [
+    "83a7723e1beb (45444bd3 + the save-line fix)"
+   ]
+  },
+  "tickAndFrameTime": {
+   "folder": ".tmp/runtime/stvef-compat-after3",
+   "fntech3": "2a45f501a389",
+   "fntech3Ded": "ccc8691ac6f9",
+   "note": "37b87dce + Com_ModifyMsec and SV_Frame"
+  },
+  "spawnClock": {
+   "folder": ".tmp/runtime/stvef-compat-after3",
+   "fntech3": "3f1cf262e6da",
+   "fntech3Ded": "b05b3b50f0cb",
+   "note": "37b87dce + this whole change"
+  },
+  "final": {
+   "folder": ".tmp/runtime/stvef-compat-after3",
+   "fntech3": "fd4f979d8202",
+   "fntech3Ded": "663f416226bb",
+   "note": "8da1234c + this change + the Holomatch serverinfo keys"
+  }
+ },
+ "unitTests": {
+  "files": [
+   "tests/stvef_frame_time_tests.py",
+   "tests/stvef_sp_cadence_tests.py"
+  ],
+  "mutationsThatFail": [
+   "HEAD Com_ModifyMsec (timescale 0 stops time)",
+   "no skippingCinematic cap",
+   "float multiply (10 msec at timescale 0.7 gives 7)",
+   "Holomatch tick scaled by timescale again"
+  ]
+ },
+ "timescaleZero": {
+  "note": "a one-minute duel (tournament, hm_voy2, two bots) at timescale 0",
+  "retailAndTick": {
+   "runs": [
+    {
+     "engine": "retail",
+     "case": "tournament",
+     "trial": 0,
+     "map": "hm_voy2",
+     "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+     "exit": "Timelimit hit.",
+     "kills": 1,
+     "realSeconds": 55.8
+    },
+    {
+     "engine": "fntech3",
+     "case": "tournament",
+     "trial": 0,
+     "map": "hm_voy2",
+     "serverSha256": "ccc8691ac6f97c045bd4d19b30c81c5566bf6005c8758f303ebf3474b8db953a",
+     "exit": "Timelimit hit.",
+     "kills": 1,
+     "realSeconds": 60.8
+    }
+   ],
+   "installationUnchanged": true
+  },
+  "before": {
+   "runs": [
+    {
+     "engine": "fntech3",
+     "case": "tournament",
+     "trial": 0,
+     "map": "hm_voy2",
+     "serverSha256": "c1720b14d502b0ca90cbefcf7db4bc697a88a396254bcb93b0468483a09e61a0",
+     "exit": null,
+     "kills": 0,
+     "realSeconds": 100.2
+    }
+   ],
+   "installationUnchanged": true
+  }
+ },
+ "startupBots": {
+  "retailAndBefore": {
+   "first": {
+    "runs": [
+     {
+      "engine": "retail",
+      "case": "team",
+      "trial": 0,
+      "map": "hm_for1",
+      "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "exit": "Timelimit hit.",
+      "kills": 9,
+      "realSeconds": 61.9,
+      "players": 4,
+      "spectators": [],
+      "joinedAt": [
+       "0:04"
+      ],
+      "hitchWarnings": [
+       3951,
+       567,
+       516,
+       1188
+      ]
+     },
+     {
+      "engine": "fntech3",
+      "case": "team",
+      "trial": 0,
+      "map": "hm_for1",
+      "serverSha256": "088a4f40f1e6a7bea66c2a41956e0fa15c5ff15d7af10a1bd71e4f49c6cd6507",
+      "exit": "Timelimit hit.",
+      "kills": 4,
+      "realSeconds": 60.5,
+      "players": 4,
+      "spectators": [],
+      "joinedAt": [
+       "0:00"
+      ],
+      "hitchWarnings": []
+     },
+     {
+      "engine": "retail",
+      "case": "ctf",
+      "trial": 0,
+      "map": "ctf_voy1",
+      "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "exit": "Capturelimit hit.",
+      "kills": 0,
+      "realSeconds": 48.3,
+      "players": 3,
+      "spectators": [
+       "Chell",
+       "Chakotay",
+       "Biessman"
+      ],
+      "joinedAt": [
+       "0:04"
+      ],
+      "hitchWarnings": [
+       3465,
+       675,
+       600
+      ]
+     },
+     {
+      "engine": "fntech3",
+      "case": "ctf",
+      "trial": 0,
+      "map": "ctf_voy1",
+      "serverSha256": "088a4f40f1e6a7bea66c2a41956e0fa15c5ff15d7af10a1bd71e4f49c6cd6507",
+      "exit": "Timelimit hit.",
+      "kills": 18,
+      "realSeconds": 59.5,
+      "players": 6,
+      "spectators": [],
+      "joinedAt": [
+       "0:00"
+      ],
+      "hitchWarnings": []
+     }
+    ],
+    "installationUnchanged": true
+   },
+   "repeat": {
+    "runs": [
+     {
+      "engine": "retail",
+      "case": "team",
+      "trial": 0,
+      "map": "hm_for1",
+      "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "exit": "Timelimit hit.",
+      "kills": 5,
+      "realSeconds": 61.1,
+      "players": 3,
+      "spectators": [
+       "Chell"
+      ],
+      "joinedAt": [
+       "0:02"
+      ],
+      "hitchWarnings": [
+       1548
+      ]
+     },
+     {
+      "engine": "fntech3",
+      "case": "team",
+      "trial": 0,
+      "map": "hm_for1",
+      "serverSha256": "088a4f40f1e6a7bea66c2a41956e0fa15c5ff15d7af10a1bd71e4f49c6cd6507",
+      "exit": "Timelimit hit.",
+      "kills": 4,
+      "realSeconds": 59.9,
+      "players": 4,
+      "spectators": [],
+      "joinedAt": [
+       "0:00"
+      ],
+      "hitchWarnings": []
+     },
+     {
+      "engine": "retail",
+      "case": "team",
+      "trial": 1,
+      "map": "hm_for1",
+      "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "exit": "Timelimit hit.",
+      "kills": 12,
+      "realSeconds": 61.1,
+      "players": 4,
+      "spectators": [],
+      "joinedAt": [
+       "0:02"
+      ],
+      "hitchWarnings": [
+       1659
+      ]
+     },
+     {
+      "engine": "fntech3",
+      "case": "team",
+      "trial": 1,
+      "map": "hm_for1",
+      "serverSha256": "088a4f40f1e6a7bea66c2a41956e0fa15c5ff15d7af10a1bd71e4f49c6cd6507",
+      "exit": "Timelimit hit.",
+      "kills": 5,
+      "realSeconds": 60.7,
+      "players": 4,
+      "spectators": [],
+      "joinedAt": [
+       "0:00"
+      ],
+      "hitchWarnings": []
+     },
+     {
+      "engine": "retail",
+      "case": "team",
+      "trial": 2,
+      "map": "hm_for1",
+      "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "exit": "Timelimit hit.",
+      "kills": 3,
+      "realSeconds": 75.1,
+      "players": 4,
+      "spectators": [],
+      "joinedAt": [
+       "0:02"
+      ],
+      "hitchWarnings": [
+       1455
+      ]
+     },
+     {
+      "engine": "fntech3",
+      "case": "team",
+      "trial": 2,
+      "map": "hm_for1",
+      "serverSha256": "088a4f40f1e6a7bea66c2a41956e0fa15c5ff15d7af10a1bd71e4f49c6cd6507",
+      "exit": "Timelimit hit.",
+      "kills": 1,
+      "realSeconds": 59.9,
+      "players": 3,
+      "spectators": [
+       "Foster"
+      ],
+      "joinedAt": [
+       "0:00"
+      ],
+      "hitchWarnings": []
+     },
+     {
+      "engine": "retail",
+      "case": "team",
+      "trial": 3,
+      "map": "hm_for1",
+      "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "exit": null,
+      "kills": 0,
+      "realSeconds": 150.3,
+      "players": 2,
+      "spectators": [
+       "Chell",
+       "Chakotay"
+      ],
+      "joinedAt": [
+       "0:02"
+      ],
+      "hitchWarnings": [
+       1767
+      ]
+     },
+     {
+      "engine": "fntech3",
+      "case": "team",
+      "trial": 3,
+      "map": "hm_for1",
+      "serverSha256": "088a4f40f1e6a7bea66c2a41956e0fa15c5ff15d7af10a1bd71e4f49c6cd6507",
+      "exit": "Timelimit hit.",
+      "kills": 5,
+      "realSeconds": 59.8,
+      "players": 4,
+      "spectators": [],
+      "joinedAt": [
+       "0:00"
+      ],
+      "hitchWarnings": []
+     },
+     {
+      "engine": "retail",
+      "case": "ctf",
+      "trial": 0,
+      "map": "ctf_voy1",
+      "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "exit": "Timelimit hit.",
+      "kills": 2,
+      "realSeconds": 61.2,
+      "players": 6,
+      "spectators": [],
+      "joinedAt": [
+       "0:02"
+      ],
+      "hitchWarnings": [
+       1545
+      ]
+     },
+     {
+      "engine": "fntech3",
+      "case": "ctf",
+      "trial": 0,
+      "map": "ctf_voy1",
+      "serverSha256": "088a4f40f1e6a7bea66c2a41956e0fa15c5ff15d7af10a1bd71e4f49c6cd6507",
+      "exit": "Timelimit hit.",
+      "kills": 14,
+      "realSeconds": 60.6,
+      "players": 6,
+      "spectators": [],
+      "joinedAt": [
+       "0:00"
+      ],
+      "hitchWarnings": []
+     },
+     {
+      "engine": "retail",
+      "case": "ctf",
+      "trial": 1,
+      "map": "ctf_voy1",
+      "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "exit": "Timelimit hit.",
+      "kills": 7,
+      "realSeconds": 60.6,
+      "players": 5,
+      "spectators": [
+       "Chakotay"
+      ],
+      "joinedAt": [
+       "0:01",
+       "0:02"
+      ],
+      "hitchWarnings": [
+       1422
+      ]
+     },
+     {
+      "engine": "fntech3",
+      "case": "ctf",
+      "trial": 1,
+      "map": "ctf_voy1",
+      "serverSha256": "088a4f40f1e6a7bea66c2a41956e0fa15c5ff15d7af10a1bd71e4f49c6cd6507",
+      "exit": "Timelimit hit.",
+      "kills": 10,
+      "realSeconds": 60.1,
+      "players": 6,
+      "spectators": [],
+      "joinedAt": [
+       "0:00"
+      ],
+      "hitchWarnings": []
+     },
+     {
+      "engine": "retail",
+      "case": "ctf",
+      "trial": 2,
+      "map": "ctf_voy1",
+      "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "exit": "Capturelimit hit.",
+      "kills": 3,
+      "realSeconds": 45.6,
+      "players": 4,
+      "spectators": [
+       "Chakotay",
+       "Foster"
+      ],
+      "joinedAt": [
+       "0:01"
+      ],
+      "hitchWarnings": [
+       1374
+      ]
+     },
+     {
+      "engine": "fntech3",
+      "case": "ctf",
+      "trial": 2,
+      "map": "ctf_voy1",
+      "serverSha256": "088a4f40f1e6a7bea66c2a41956e0fa15c5ff15d7af10a1bd71e4f49c6cd6507",
+      "exit": "Timelimit hit.",
+      "kills": 5,
+      "realSeconds": 60.5,
+      "players": 5,
+      "spectators": [
+       "Foster"
+      ],
+      "joinedAt": [
+       "0:00"
+      ],
+      "hitchWarnings": []
+     },
+     {
+      "engine": "retail",
+      "case": "ctf",
+      "trial": 3,
+      "map": "ctf_voy1",
+      "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "exit": "Timelimit hit.",
+      "kills": 2,
+      "realSeconds": 61.1,
+      "players": 5,
+      "spectators": [
+       "Biessman"
+      ],
+      "joinedAt": [
+       "0:02"
+      ],
+      "hitchWarnings": [
+       1563
+      ]
+     },
+     {
+      "engine": "fntech3",
+      "case": "ctf",
+      "trial": 3,
+      "map": "ctf_voy1",
+      "serverSha256": "088a4f40f1e6a7bea66c2a41956e0fa15c5ff15d7af10a1bd71e4f49c6cd6507",
+      "exit": "Timelimit hit.",
+      "kills": 15,
+      "realSeconds": 60.7,
+      "players": 5,
+      "spectators": [
+       "Foster"
+      ],
+      "joinedAt": [
+       "0:00"
+      ],
+      "hitchWarnings": []
+     }
+    ],
+    "installationUnchanged": true
+   }
+  },
+  "fixedTick": {
+   "runs": [
+    {
+     "engine": "fntech3",
+     "case": "team",
+     "trial": 0,
+     "map": "hm_for1",
+     "serverSha256": "ccc8691ac6f97c045bd4d19b30c81c5566bf6005c8758f303ebf3474b8db953a",
+     "exit": "Timelimit hit.",
+     "kills": 4,
+     "realSeconds": 60.7,
+     "players": 3,
+     "spectators": [
+      "Chell"
+     ],
+     "joinedAt": [
+      "0:00"
+     ],
+     "hitchWarnings": []
+    },
+    {
+     "engine": "fntech3",
+     "case": "team",
+     "trial": 1,
+     "map": "hm_for1",
+     "serverSha256": "ccc8691ac6f97c045bd4d19b30c81c5566bf6005c8758f303ebf3474b8db953a",
+     "exit": "Timelimit hit.",
+     "kills": 3,
+     "realSeconds": 60.8,
+     "players": 4,
+     "spectators": [],
+     "joinedAt": [
+      "0:00"
+     ],
+     "hitchWarnings": []
+    },
+    {
+     "engine": "fntech3",
+     "case": "team",
+     "trial": 2,
+     "map": "hm_for1",
+     "serverSha256": "ccc8691ac6f97c045bd4d19b30c81c5566bf6005c8758f303ebf3474b8db953a",
+     "exit": "Timelimit hit.",
+     "kills": 11,
+     "realSeconds": 60.8,
+     "players": 4,
+     "spectators": [],
+     "joinedAt": [
+      "0:00"
+     ],
+     "hitchWarnings": []
+    },
+    {
+     "engine": "fntech3",
+     "case": "team",
+     "trial": 3,
+     "map": "hm_for1",
+     "serverSha256": "ccc8691ac6f97c045bd4d19b30c81c5566bf6005c8758f303ebf3474b8db953a",
+     "exit": "Timelimit hit.",
+     "kills": 1,
+     "realSeconds": 99.7,
+     "players": 2,
+     "spectators": [
+      "Foster",
+      "Gamma"
+     ],
+     "joinedAt": [
+      "0:00"
+     ],
+     "hitchWarnings": []
+    },
+    {
+     "engine": "fntech3",
+     "case": "ctf",
+     "trial": 0,
+     "map": "ctf_voy1",
+     "serverSha256": "ccc8691ac6f97c045bd4d19b30c81c5566bf6005c8758f303ebf3474b8db953a",
+     "exit": "Timelimit hit.",
+     "kills": 7,
+     "realSeconds": 60.9,
+     "players": 6,
+     "spectators": [],
+     "joinedAt": [
+      "0:00"
+     ],
+     "hitchWarnings": []
+    },
+    {
+     "engine": "fntech3",
+     "case": "ctf",
+     "trial": 1,
+     "map": "ctf_voy1",
+     "serverSha256": "ccc8691ac6f97c045bd4d19b30c81c5566bf6005c8758f303ebf3474b8db953a",
+     "exit": "Timelimit hit.",
+     "kills": 1,
+     "realSeconds": 60.8,
+     "players": 5,
+     "spectators": [
+      "Foster"
+     ],
+     "joinedAt": [
+      "0:00"
+     ],
+     "hitchWarnings": []
+    },
+    {
+     "engine": "fntech3",
+     "case": "ctf",
+     "trial": 2,
+     "map": "ctf_voy1",
+     "serverSha256": "ccc8691ac6f97c045bd4d19b30c81c5566bf6005c8758f303ebf3474b8db953a",
+     "exit": "Timelimit hit.",
+     "kills": 12,
+     "realSeconds": 61.1,
+     "players": 6,
+     "spectators": [],
+     "joinedAt": [
+      "0:00"
+     ],
+     "hitchWarnings": []
+    },
+    {
+     "engine": "fntech3",
+     "case": "ctf",
+     "trial": 3,
+     "map": "ctf_voy1",
+     "serverSha256": "ccc8691ac6f97c045bd4d19b30c81c5566bf6005c8758f303ebf3474b8db953a",
+     "exit": "Timelimit hit.",
+     "kills": 4,
+     "realSeconds": 60.8,
+     "players": 4,
+     "spectators": [
+      "Foster",
+      "Gamma"
+     ],
+     "joinedAt": [
+      "0:00"
+     ],
+     "hitchWarnings": []
+    }
+   ],
+   "installationUnchanged": true
+  },
+  "spawnClock": {
+   "runs": [
+    {
+     "engine": "fntech3",
+     "case": "team",
+     "trial": 0,
+     "map": "hm_for1",
+     "serverSha256": "b05b3b50f0cb19b012101483e92b3da7b0c004db85b63aa7d52e8a4179be8a90",
+     "exit": null,
+     "kills": 0,
+     "realSeconds": 150.2,
+     "players": 2,
+     "spectators": [
+      "Chell",
+      "Chakotay"
+     ],
+     "joinedAt": [
+      "0:01"
+     ],
+     "hitchWarnings": []
+    },
+    {
+     "engine": "fntech3",
+     "case": "team",
+     "trial": 1,
+     "map": "hm_for1",
+     "serverSha256": "b05b3b50f0cb19b012101483e92b3da7b0c004db85b63aa7d52e8a4179be8a90",
+     "exit": "Timelimit hit.",
+     "kills": 6,
+     "realSeconds": 61.0,
+     "players": 4,
+     "spectators": [],
+     "joinedAt": [
+      "0:01"
+     ],
+     "hitchWarnings": []
+    },
+    {
+     "engine": "fntech3",
+     "case": "team",
+     "trial": 2,
+     "map": "hm_for1",
+     "serverSha256": "b05b3b50f0cb19b012101483e92b3da7b0c004db85b63aa7d52e8a4179be8a90",
+     "exit": "Timelimit hit.",
+     "kills": 8,
+     "realSeconds": 60.6,
+     "players": 4,
+     "spectators": [],
+     "joinedAt": [
+      "0:01"
+     ],
+     "hitchWarnings": []
+    },
+    {
+     "engine": "fntech3",
+     "case": "team",
+     "trial": 3,
+     "map": "hm_for1",
+     "serverSha256": "b05b3b50f0cb19b012101483e92b3da7b0c004db85b63aa7d52e8a4179be8a90",
+     "exit": "Timelimit hit.",
+     "kills": 13,
+     "realSeconds": 62.8,
+     "players": 4,
+     "spectators": [],
+     "joinedAt": [
+      "0:01"
+     ],
+     "hitchWarnings": []
+    },
+    {
+     "engine": "fntech3",
+     "case": "ctf",
+     "trial": 0,
+     "map": "ctf_voy1",
+     "serverSha256": "b05b3b50f0cb19b012101483e92b3da7b0c004db85b63aa7d52e8a4179be8a90",
+     "exit": "Timelimit hit.",
+     "kills": 7,
+     "realSeconds": 61.0,
+     "players": 4,
+     "spectators": [
+      "Chakotay",
+      "Foster"
+     ],
+     "joinedAt": [
+      "0:00",
+      "0:01"
+     ],
+     "hitchWarnings": []
+    },
+    {
+     "engine": "fntech3",
+     "case": "ctf",
+     "trial": 1,
+     "map": "ctf_voy1",
+     "serverSha256": "b05b3b50f0cb19b012101483e92b3da7b0c004db85b63aa7d52e8a4179be8a90",
+     "exit": "Timelimit hit.",
+     "kills": 12,
+     "realSeconds": 60.5,
+     "players": 6,
+     "spectators": [],
+     "joinedAt": [
+      "0:01"
+     ],
+     "hitchWarnings": []
+    },
+    {
+     "engine": "fntech3",
+     "case": "ctf",
+     "trial": 2,
+     "map": "ctf_voy1",
+     "serverSha256": "b05b3b50f0cb19b012101483e92b3da7b0c004db85b63aa7d52e8a4179be8a90",
+     "exit": "Timelimit hit.",
+     "kills": 12,
+     "realSeconds": 60.2,
+     "players": 6,
+     "spectators": [],
+     "joinedAt": [
+      "0:01"
+     ],
+     "hitchWarnings": []
+    },
+    {
+     "engine": "fntech3",
+     "case": "ctf",
+     "trial": 3,
+     "map": "ctf_voy1",
+     "serverSha256": "b05b3b50f0cb19b012101483e92b3da7b0c004db85b63aa7d52e8a4179be8a90",
+     "exit": "Timelimit hit.",
+     "kills": 6,
+     "realSeconds": 60.2,
+     "players": 4,
+     "spectators": [
+      "Munro",
+      "Biessman"
+     ],
+     "joinedAt": [
+      "0:01"
+     ],
+     "hitchWarnings": []
+    }
+   ],
+   "installationUnchanged": true
+  }
+ },
+ "lateBots": {
+  "runs": [
+   {
+    "engine": "retail",
+    "case": "ctf",
+    "trial": 0,
+    "map": "ctf_voy1",
+    "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+    "exit": "Timelimit hit.",
+    "kills": 15,
+    "realSeconds": 56.9,
+    "players": 6,
+    "spectators": [],
+    "joinedAt": [
+     "0:11"
+    ],
+    "hitchWarnings": [
+     1401,
+     846
+    ]
+   },
+   {
+    "engine": "fntech3",
+    "case": "ctf",
+    "trial": 0,
+    "map": "ctf_voy1",
+    "serverSha256": "ccc8691ac6f97c045bd4d19b30c81c5566bf6005c8758f303ebf3474b8db953a",
+    "exit": "Timelimit hit.",
+    "kills": 8,
+    "realSeconds": 56.9,
+    "players": 6,
+    "spectators": [],
+    "joinedAt": [
+     "0:10"
+    ],
+    "hitchWarnings": []
+   },
+   {
+    "engine": "retail",
+    "case": "ctf",
+    "trial": 1,
+    "map": "ctf_voy1",
+    "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+    "exit": "Timelimit hit.",
+    "kills": 13,
+    "realSeconds": 57.3,
+    "players": 6,
+    "spectators": [],
+    "joinedAt": [
+     "0:11"
+    ],
+    "hitchWarnings": [
+     1215,
+     894,
+     591,
+     876
+    ]
+   },
+   {
+    "engine": "fntech3",
+    "case": "ctf",
+    "trial": 1,
+    "map": "ctf_voy1",
+    "serverSha256": "ccc8691ac6f97c045bd4d19b30c81c5566bf6005c8758f303ebf3474b8db953a",
+    "exit": "Timelimit hit.",
+    "kills": 12,
+    "realSeconds": 55.6,
+    "players": 6,
+    "spectators": [],
+    "joinedAt": [
+     "0:13"
+    ],
+    "hitchWarnings": []
+   },
+   {
+    "engine": "retail",
+    "case": "ctf",
+    "trial": 2,
+    "map": "ctf_voy1",
+    "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+    "exit": "Timelimit hit.",
+    "kills": 9,
+    "realSeconds": 56.5,
+    "players": 6,
+    "spectators": [],
+    "joinedAt": [
+     "0:14"
+    ],
+    "hitchWarnings": [
+     2043,
+     3027
+    ]
+   },
+   {
+    "engine": "fntech3",
+    "case": "ctf",
+    "trial": 2,
+    "map": "ctf_voy1",
+    "serverSha256": "ccc8691ac6f97c045bd4d19b30c81c5566bf6005c8758f303ebf3474b8db953a",
+    "exit": "Timelimit hit.",
+    "kills": 3,
+    "realSeconds": 57.6,
+    "players": 5,
+    "spectators": [
+     "Chakotay"
+    ],
+    "joinedAt": [
+     "0:09",
+     "0:10"
+    ],
+    "hitchWarnings": []
+   },
+   {
+    "engine": "retail",
+    "case": "ctf",
+    "trial": 3,
+    "map": "ctf_voy1",
+    "serverSha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+    "exit": "Timelimit hit.",
+    "kills": 3,
+    "realSeconds": 57.0,
+    "players": 6,
+    "spectators": [],
+    "joinedAt": [
+     "0:11"
+    ],
+    "hitchWarnings": [
+     1263,
+     933
+    ]
+   },
+   {
+    "engine": "fntech3",
+    "case": "ctf",
+    "trial": 3,
+    "map": "ctf_voy1",
+    "serverSha256": "ccc8691ac6f97c045bd4d19b30c81c5566bf6005c8758f303ebf3474b8db953a",
+    "exit": "Timelimit hit.",
+    "kills": 9,
+    "realSeconds": 57.8,
+    "players": 6,
+    "spectators": [],
+    "joinedAt": [
+     "0:09"
+    ],
+    "hitchWarnings": []
+   }
+  ],
+  "installationUnchanged": true
+ },
+ "ctfKillMeans": {
+  "retailStartup": 2.8,
+  "beforeStartup": 12.4,
+  "fixedTickStartup": 6.0,
+  "spawnClockStartup": 9.2,
+  "retailLate": 10.0,
+  "fixedTickLate": 8.0
+ },
+ "cutsceneSkip": {
+  "note": "voy1, the use-item button pressed 4 s after the opening movie, 5 frames a second; skippingCinematic sampled over rcon about every 1.1 s",
+  "before": {
+   "clientSha256": "83a7723e1bebe944b5d7d28b47f04d643517e6ce5baa84ea9cbf152d895f5ee6",
+   "level": "voy1",
+   "movieFinishedFirst": true,
+   "skipping": {
+    "started": true,
+    "firstSeen": 1.1,
+    "lastSeen": 25.3,
+    "clearedBy": 26.4
+   },
+   "samples": [
+    [
+     1.1,
+     "1"
+    ],
+    [
+     2.2,
+     "1"
+    ],
+    [
+     3.3,
+     "1"
+    ],
+    [
+     4.4,
+     "1"
+    ],
+    [
+     5.5,
+     "1"
+    ],
+    [
+     6.6,
+     "1"
+    ],
+    [
+     7.7,
+     "1"
+    ],
+    [
+     8.8,
+     "1"
+    ],
+    [
+     9.9,
+     "1"
+    ],
+    [
+     11.0,
+     "1"
+    ],
+    [
+     12.1,
+     "1"
+    ],
+    [
+     13.2,
+     "1"
+    ],
+    [
+     14.3,
+     "1"
+    ],
+    [
+     15.4,
+     "1"
+    ],
+    [
+     16.5,
+     "1"
+    ],
+    [
+     17.6,
+     "1"
+    ],
+    [
+     18.7,
+     "1"
+    ],
+    [
+     19.8,
+     "1"
+    ],
+    [
+     20.9,
+     "1"
+    ],
+    [
+     22.0,
+     "1"
+    ],
+    [
+     23.1,
+     "1"
+    ],
+    [
+     24.2,
+     "1"
+    ],
+    [
+     25.3,
+     "1"
+    ],
+    [
+     26.4,
+     "0"
+    ]
+   ],
+   "timescaleAfter": "1",
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true
+  },
+  "after": {
+   "clientSha256": "3f1cf262e6da69cf2e4b685052ac67487c68e9c7f40a293601190ee58ccf31f0",
+   "level": "voy1",
+   "movieFinishedFirst": true,
+   "skipping": {
+    "started": true,
+    "firstSeen": 1.1,
+    "lastSeen": 8.8,
+    "clearedBy": 9.9
+   },
+   "samples": [
+    [
+     1.1,
+     "1"
+    ],
+    [
+     2.2,
+     "1"
+    ],
+    [
+     3.3,
+     "1"
+    ],
+    [
+     4.4,
+     "1"
+    ],
+    [
+     5.5,
+     "1"
+    ],
+    [
+     6.6,
+     "1"
+    ],
+    [
+     7.7,
+     "1"
+    ],
+    [
+     8.8,
+     "1"
+    ],
+    [
+     9.9,
+     "0"
+    ]
+   ],
+   "timescaleAfter": "1",
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true
+  }
+ },
+ "notChanged": [
+  "Snapshots to remote clients keep the real-time schedule; at a timescale other than 1 retail sends them on game time",
+  "sv_fps stays within 10 to 125; retail takes any value from 1",
+  "the hitch warning still needs a running map",
+  "retail lists infostring keys newest first; fnTech3 keeps its sorted order"
+ ],
+ "proprietaryContentCommitted": false
+}

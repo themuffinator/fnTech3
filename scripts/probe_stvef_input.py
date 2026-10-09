@@ -14,7 +14,9 @@ focus. Each check is driven over loopback rcon:
 - fire: the key bound to `+attack` is held. Single player's carried ammunition
   (`playerammo*`, which `maptransition` writes from the live player) must
   drop; Holomatch's HUD is captured before and after;
-- a key bound through the console takes effect when pressed.
+- a key bound through the console takes effect when pressed;
+- skip (`--skip`, single player): the use-item button skips the level's opening
+  scene, and the time until the game clears `skippingCinematic` is measured.
 
 Menus are driven with `menu` actions in a scenario file: `point X Y`, `click X
 Y [KEY]`, `press KEY [SECONDS]`, `type TEXT`, `shot NAME`, `wait SECONDS` and
@@ -235,6 +237,37 @@ def sp_fire(client, level, attack, weapon=2):
     return dict(key=attack, held=2.0, weapon=weapon, before=before, after=after, spent=spent)
 
 
+def skip_scene(client, key='u', delay=4.0, limit=180):
+    """Single player: the use-item button (`+button2`) skips a scripted
+    scene. The game sets `skippingCinematic` 1 and `timescale` 100 when it is
+    newly pressed in a scene, and clears both when the scene ends
+    (efgamex86.dll 0x2005627a, button bit 4 at 0x20056ae4), so the engine's
+    cap on a frame's game time sets how long the skip takes."""
+    client.run([f'bind {key} +button2'])
+    # A level may open with a movie, which any key ends; the scene follows it.
+    result = dict(movie=bool(wait_for(lambda: 'finished cinematic' in client.log(), 30, 0.5)))
+    time.sleep(delay)
+    result.update(key=key, before=dict(skipping=client.cvar('skippingCinematic'), timescale=client.cvar('timescale')))
+    client.key(key, 0.5)
+    pressed = time.monotonic()
+    # Nothing but the cvar is asked while the skip runs: each rcon query
+    # waits out the server's query limit, which sets the resolution.
+    samples = []
+    while time.monotonic() - pressed < limit:
+        value = client.cvar('skippingCinematic')
+        samples.append([round(time.monotonic() - pressed, 1), value])
+        if value == '0' and any(seen == '1' for _, seen in samples):
+            break
+    skipping = [at for at, value in samples if value == '1']
+    result['samples'] = samples
+    result['skipping'] = dict(started=bool(skipping), firstSeen=skipping[0] if skipping else None,
+                              lastSeen=skipping[-1] if skipping else None,
+                              clearedBy=samples[-1][0] if skipping and samples[-1][1] == '0' else None)
+    result['timescaleAfter'] = client.cvar('timescale')
+    result['shotAfter'] = client.shot('skip-after')
+    return result
+
+
 def menu(client, scenario):
     """Runs a menu scenario; returns what each step left behind."""
     steps = []
@@ -281,6 +314,9 @@ def main():
     parser.add_argument('--level', default=None)
     parser.add_argument('--play', action='store_true', help='movement, look, fire and binding checks')
     parser.add_argument('--menu', type=Path, help='a menu scenario file')
+    parser.add_argument('--skip', action='store_true',
+                        help="single player: skip the level's opening scene with the use-item button, at 5 frames a "
+                             "second")
     parser.add_argument('--forward', default='w')
     parser.add_argument('--attack', default='mouse1')
     args = parser.parse_args()
@@ -291,12 +327,17 @@ def main():
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     before = inventory(INSTALL)
-    client = Client(runtime, output / 'home', args.profile, level)
+    # A skip is timed at a fixed 5 frames a second, so each frame's game
+    # time is the engine's cap rather than the machine's frame rate.
+    extra = ['com_maxfps 5', 'com_maxfpsUnfocused 5', 'com_maxfpsMinimized 5'] if args.skip else []
+    client = Client(runtime, output / 'home', args.profile, level, extra=extra)
     result = dict(profile=args.profile, level=level, runtime=str(runtime), sha256=client.sha256,
                   command=client.command)
     try:
         if not in_game(client, level):
             raise RuntimeError('level did not start')
+        if args.skip:
+            result['skip'] = skip_scene(client)
         settle(client)
         if args.play:
             result['play'] = play_checks(client, args.profile, level, args.forward, args.attack)
