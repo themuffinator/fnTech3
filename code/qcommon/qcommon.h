@@ -1300,6 +1300,7 @@ extern	int		time_frontend;
 extern	int		time_backend;		// renderer backend time
 
 extern	int		com_frameTime;
+float Com_FrameFractionMsec( void );
 
 #ifndef DEDICATED
 extern	qboolean	gw_minimized;

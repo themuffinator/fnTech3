@@ -914,6 +914,30 @@ spawn the level again with the new count, and retail RTCW MP and ET clients
 stay connected across the `map_restart` that applies it (Fixture, and Live
 inbound). Other profiles, listen servers and unoptimized builds were not run.
 
+## Frame-time and entity rules checked against installed engines
+
+The [2026-10-09 frame/entity audit](2026-10-09-profile-frame-rules.md) adds
+retail machine-code observations and production-function unit evidence.
+These rows do not close live gameplay or interoperability gates. Elite Force
+keeps its separately established rules.
+
+| Profile | Frame-time evidence and correction | Entity arena |
+| --- | --- | --- |
+| `q3` | Source/Unit: fixed ticks, x87 product, zero unscaled except camera mode, nonzero-scale floor, load retained | Source/Unit: 1024 records, published snapshot count retained |
+| `ql` | Source/Unit: retain scaled ticks; integer division then x87 product, zero unscaled except camera mode, nonzero-scale floor, load retained; zero-tick safety guard retained | Source/Unit: 1024 records, published snapshot count retained |
+| `rtcw-sp` | Source/Unit: fixed ticks, x87 product, zero unscaled, nonzero-scale floor, load retained | Full arena already bound; retail number limit reconfirmed |
+| `rtcw-mp` | Source/Unit: fixed ticks, x87 product, zero unscaled, nonzero-scale floor, load retained | Full arena already bound; retail number limit reconfirmed |
+| `wolfet` | Source/Unit: fixed ticks, installed Steam executable's float product, zero unscaled, nonzero-scale floor, load retained | Full arena already bound; retail number limit reconfirmed |
+| `jka-sp` | Source/Unit: fixed ticks, x87 product with fractional carry, zero unscaled, unconditional floor, cinematic 200/500 ms cap, load retained | Full arena already bound; retail number limit reconfirmed |
+| `jka-mp` | Source/Unit: fixed ticks, float input then x87 product, zero unscaled except camera mode, nonzero-scale floor, load retained | Source/Unit: 1024 records, published snapshot count retained |
+| `jk2-sp` | Source/Unit: fixed ticks, x87 product with fractional carry, zero unscaled, unconditional floor, cinematic 200/500 ms cap, load retained | Shared SP arena already bound; retail number limit reconfirmed |
+| `jk2-mp` | Source/Unit: fixed ticks, x87 product, zero unscaled except camera mode, nonzero-scale floor, load retained | Source/Unit: 1024 records, published snapshot count retained |
+| `alice` | Source/Unit: fixed ticks, x87 product, zero unscaled, unconditional floor, load retained | Published-capacity arena retained; retail number limit reconfirmed |
+| `q3-ihv` | Source/Unit: fixed tick from float fps, x87 product, zero unscaled, unconditional floor and 200 ms cap, load retained | Full arena already bound; retail signed 16-bit number limit reconfirmed |
+| `q3test` | Source/Unit: all six installed releases independently checked; fixed ticks, x87 product, zero unscaled, unconditional floor and 200 ms cap, load retained | Full arena already bound; retail number limit reconfirmed |
+| `fakk2` | **Open:** encrypted engine; related Alice behavior is inference only; timing unchanged | Existing published-capacity binding retained; engine acceptance remains inference |
+| `mohaa` | **Open:** SafeDisc engine; OpenMoHAA supports fixed ticks and zero unscaled, but is reconstruction evidence only; timing unchanged | Existing published-capacity binding retained; engine acceptance remains reconstruction evidence |
+
 ## Evidence vocabulary
 
 | Level | Meaning |

@@ -37,6 +37,10 @@ const comGameProfile_t *Com_GameProfile(){return &profile;}
 int Com_GameIsRTCW(){return profile.id==COM_GAME_RTCW_SP||profile.id==COM_GAME_RTCW_MP;}
 int Com_GameIsWolfET(){return profile.id==COM_GAME_WOLFET;}
 int Com_GameIsSTVEFMP(){return profile.id==COM_GAME_STVEF_MP;}
+int Com_GameIsQuake3(){return profile.id==COM_GAME_QUAKE3;}
+int Com_GameIsQuakeLive(){return profile.id==COM_GAME_QUAKELIVE;}
+int Com_GameIsJK2MP(){return profile.id==COM_GAME_JK2_MP;}
+int Com_GameIsJKAMP(){return profile.id==COM_GAME_JKA_MP;}
 struct Drop{};
 void QDECL Com_Error(errorParm_t,const char *,...){throw Drop{};}
 const vec3_t vec3_origin{};
@@ -117,13 +121,13 @@ int main(){
   run<fntech3_rtcw_sp_sharedEntity_t,fntech3_rtcw_sp_playerState_t>(COM_GAME_RTCW_SP,
    (sizeof(fntech3_rtcw_sp_sharedEntity_t)+15)&~std::size_t(15),1024);
   run<fntech3_q3_sharedEntity_t,fntech3_q3_playerState_t>(COM_GAME_QUAKE3,
-   (sizeof(fntech3_q3_sharedEntity_t)+15)&~std::size_t(15),0);
+   (sizeof(fntech3_q3_sharedEntity_t)+15)&~std::size_t(15),1024);
   run<fntech3_ql_sharedEntity_t,fntech3_ql_playerState_t>(COM_GAME_QUAKELIVE,
-   (sizeof(fntech3_ql_sharedEntity_t)+15)&~std::size_t(15),0);
+   (sizeof(fntech3_ql_sharedEntity_t)+15)&~std::size_t(15),1024);
   // Holomatch's bots' frame unlinks the world's record past its count.
   profile.id=COM_GAME_STVEF_MP;Check(SV_GameEntityArena()==MAX_GENTITIES,"Holomatch entity arena");
   for(auto id:{COM_GAME_JK2_MP,COM_GAME_JKA_MP}){
-   profile.id=id;Check(SV_GameEntityArena()==0,"Other profiles keep their published bound");
+   profile.id=id;Check(SV_GameEntityArena()==MAX_GENTITIES,"Retail Jedi MP entity arena");
   }
  }catch(const Drop&){std::fprintf(stderr,"Unexpected engine rejection\n");return 1;}
  catch(const std::exception &e){std::fprintf(stderr,"%s (profile %d)\n",e.what(),static_cast<int>(profile.id));return 1;}

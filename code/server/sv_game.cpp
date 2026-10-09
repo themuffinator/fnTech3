@@ -938,12 +938,16 @@ Holomatch's game unlinks the world's record, g_entities[ENTITYNUM_WORLD],
 from its bot frame in an Elimination game, past the count it publishes.
 stvoyHM.exe 1.20 takes any record whose number is below 1024
 (SV_SvEntityForGentity, 0x43170c..0x431726).
+Q3, QL, JK2 MP and JKA MP likewise accept the world's numbered record;
+see docs/fntech3/2026-10-09-profile-frame-rules.md. Snapshots still use the
+published high-water mark; pointer alignment and arena-span checks remain.
 ===============
 */
 static int SV_GameEntityArena( void ) {
 	if ( Com_GameIsRTCW() ) return 1 << FNTECH3_RTCW_GENTITYNUM_BITS;
 	if ( Com_GameIsWolfET() ) return 1 << FNTECH3_WOLFET_GENTITYNUM_BITS;
-	if ( Com_GameIsSTVEFMP() ) return MAX_GENTITIES;
+	if ( Com_GameIsSTVEFMP() || Com_GameIsQuake3() || Com_GameIsQuakeLive()
+		|| Com_GameIsJK2MP() || Com_GameIsJKAMP() ) return MAX_GENTITIES;
 	return 0;
 }
 

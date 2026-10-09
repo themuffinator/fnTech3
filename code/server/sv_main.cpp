@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 
+#include "../qcommon/profile_frame_time.h"
 #include "server.h"
 #include "server_cvar_compat.hpp"
 #include "../qcommon/netchan_safety.hpp"
@@ -1935,19 +1936,28 @@ void SV_Frame( int msec, int realMsec ) {
 	// if it isn't time for the next frame, do nothing
 	frameMsec = 0;
 	const bool stvefSP = Com_GameIsSTVEFSP();
-	if ( Com_GameIsSTVEF() ) {
-		// Both retail Elite Force servers keep fixed simulation ticks when
-		// timescale changes (stvoy.exe 1.20 SV_Frame 0x4265c0, stvoyHM.exe
-		// 1.20 0x435252). Com_ModifyMsec has already scaled the elapsed game
-		// time; sv_fps is range-checked at startup.
-		frameMsec = 1000 / sv_fps->integer;
-		if ( stvefSP && msec > 1000 ) {
+	const unsigned int rules = Com_ProfileFrameRules( Com_GameProfile()->id );
+	if ( rules & FRAME_FIXED_TICK ) {
+		// Elapsed game time is already scaled. QL alone scales its tick too.
+		frameMsec = Com_GameIsQuake3IHV()
+			? static_cast<int>( 1000.0 / sv_fps->value ) : 1000 / sv_fps->integer;
+		if ( ( stvefSP || ( rules & FRAME_FRACTION ) ) && msec > 1000 ) {
 			msec = 1000;
 		}
 	} else if ( com_timescale->value > 0.0f ) {
-		frameMsec = static_cast<int>( 1000.0f / sv_fps->value * com_timescale->value );
+		frameMsec = ( rules & FRAME_RETAIL )
+			? static_cast<int>( ( 1000 / sv_fps->integer ) * (double)com_timescale->value )
+			: static_cast<int>( 1000.0f / sv_fps->value * com_timescale->value );
+		// Do not reproduce QL's zero-length tick loop at tiny timescales.
 		if ( frameMsec < 1 ) {
 			frameMsec = 1;
+		}
+	}
+	if ( rules & FRAME_FRACTION ) {
+		sv.timeResidualFraction += Com_FrameFractionMsec();
+		if ( sv.timeResidualFraction >= 1.0f ) {
+			sv.timeResidualFraction -= 1.0f;
+			++msec;
 		}
 	}
 

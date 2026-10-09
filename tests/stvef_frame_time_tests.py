@@ -1,17 +1,8 @@
-"""Execute the engine's frame-time rule against both retail Elite Force engines.
+"""Compile production frame-time rules for every startup profile.
 
-Com_ModifyMsec turns a frame's elapsed wall time into game time. The user's
-stvoy.exe 1.20 (0x412f70) and stvoyHM.exe 1.20 (inline in Com_Frame,
-0x41c70f-0x41c77e) scale it by timescale with an x87 multiply truncated by
-_ftol, leave it unscaled when timescale is 0, let no frame fall below 1 msec,
-and cap it: single player at 200 msec, or 500 while its game skips a
-cutscene at timescale 100 (`skippingCinematic`, stvoy.exe 0x412fae);
-Holomatch at 5000 on a dedicated server, 200 while it hosts a game and 5000
-otherwise. The production function is compiled with stubbed cvars; the other
-profiles are controls that keep their existing rule. Both servers also keep
-a fixed tick under timescale, neither restarts its frame clock after a level
-loads, and a dedicated Holomatch server sleeps 5 ms between frames, as
-stvoyHM.exe's WinMain does. No game is started.
+Retail addresses and distinctions are in 2026-10-09-profile-frame-rules.md.
+The original Elite Force cases remain; encrypted-engine profiles are controls.
+No game is started.
 """
 from pathlib import Path
 import os
@@ -34,15 +25,21 @@ HARNESS = r'''
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include "code/qcommon/profile_frame_time.h"
 typedef enum { qfalse, qtrue } qboolean;
 typedef struct { int integer; float value; } cvar_t;
-enum { QUAKE3, QUAKELIVE, RTCW_SP, RTCW_MP, WOLFET, STVEF_SP, STVEF_MP };
+enum { QUAKE3=COM_GAME_QUAKE3, QUAKELIVE=COM_GAME_QUAKELIVE,
+ RTCW_SP=COM_GAME_RTCW_SP, RTCW_MP=COM_GAME_RTCW_MP, WOLFET=COM_GAME_WOLFET,
+ STVEF_SP=COM_GAME_STVEF_SP, STVEF_MP=COM_GAME_STVEF_MP };
+static float com_frameFractionMsec;
+static comGameProfile_t selected;
+const comGameProfile_t *Com_GameProfile(void) { return &selected; }
 static cvar_t fixedtime, timescale, cameraMode, dedicated, running;
 static cvar_t *com_fixedtime = &fixedtime, *com_timescale = &timescale, *com_cameraMode = &cameraMode,
     *com_dedicated = &dedicated, *com_sv_running = &running;
 static int profile, skipping, hitches;
-static int Com_GameIsSTVEF( void ) { return profile == STVEF_SP || profile == STVEF_MP; }
-static int Com_GameIsSTVEFSP( void ) { return profile == STVEF_SP; }
+int Com_GameIsSTVEF( void ) { return profile == STVEF_SP || profile == STVEF_MP; }
+int Com_GameIsSTVEFSP( void ) { return profile == STVEF_SP; }
 static int Cvar_VariableIntegerValue( const char *name ) {
     assert( !strcmp( name, "skippingCinematic" ) );
     return skipping;
@@ -55,10 +52,10 @@ PRODUCTION
 
 /* host: 0 client of no local game, 1 hosting a game, 2 dedicated server */
 static int Frame( int game, int host, float scale, int fixed, int skip, int msec ) {
-    profile = game; skipping = skip;
+    profile = game; selected.id = (comGameId_t)game; skipping = skip;
     dedicated.integer = host == 2; running.integer = host != 0;
     timescale.value = scale; timescale.integer = (int)scale;
-    fixedtime.integer = fixed;
+    fixedtime.integer = fixed; fixedtime.value = (float)fixed;
     cameraMode.integer = 0;
     return Com_ModifyMsec( msec );
 }
@@ -99,21 +96,60 @@ int main( void ) {
     assert( Frame( STVEF_MP, 0, 1.0f, 0, 1, 1000 ) == 1000 );
     assert( Frame( STVEF_MP, 0, 1.0f, 0, 0, 6000 ) == 5000 );
 
-    /* Controls: the other profiles keep their rule. A zero timescale stops
-       game time and a negative one is not raised to 1 msec. */
-    for ( game = QUAKE3; game <= WOLFET; ++game ) {
-        for ( host = 0; host < 3; ++host ) {
-            assert( Frame( game, host, 1.0f, 0, 1, 16 ) == 16 );
-            assert( Frame( game, host, 3.0f, 0, 0, 16 ) == 48 );
-            assert( Frame( game, host, 0.0f, 0, 0, 16 ) == 0 );
-            assert( Frame( game, host, -1.0f, 0, 0, 16 ) == -16 );
-            assert( Frame( game, host, 0.01f, 0, 0, 16 ) == 1 );
+    /* Expected outputs are independent retail observations, not values
+       derived from the production policy table. */
+    static const struct {
+        int game, zero, negative, pointSeven, zeroFixed, zeroFloor, cameraZero;
+        int capRemote, capListen, capDedicated;
+        float fraction;
+    } cases[] = {
+        {COM_GAME_QUAKE3,     16,1,6,-3,0,0, 5000,200,5000,0},
+        {COM_GAME_QUAKELIVE,  16,1,6,-3,0,0, 5000,200,5000,0},
+        {COM_GAME_RTCW_SP,    16,1,6,-3,0,16,5000,200,5000,0},
+        {COM_GAME_RTCW_MP,    16,1,6,-3,0,16,5000,200,5000,0},
+        {COM_GAME_WOLFET,     16,1,7,-3,0,16,5000,200,5000,0},
+        {COM_GAME_STVEF_SP,   16,1,6, 1,1,16, 500,500, 500,0},
+        {COM_GAME_STVEF_MP,   16,1,6, 1,1,16,5000,200,5000,0},
+        {COM_GAME_QUAKE3_IHV, 16,1,6, 1,1,16, 200,200, 200,0},
+        {COM_GAME_JKA_SP,     16,1,6, 1,1,16, 500,500, 500,1},
+        {COM_GAME_JKA_MP,     16,1,6,-3,0,0, 5000,200,5000,0},
+        {COM_GAME_JK2_SP,     16,1,6, 1,1,16, 500,500, 500,1},
+        {COM_GAME_JK2_MP,     16,1,6,-3,0,0, 5000,200,5000,0},
+        {COM_GAME_ALICE,      16,1,6, 1,1,16,5000,200,5000,0},
+        {COM_GAME_FAKK2,       0,-16,7,-3,0,0,5000,200,5000,0},
+        {COM_GAME_MOHAA,       0,-16,7,-3,0,0,5000,200,5000,0},
+        {COM_GAME_Q3TEST,     16,1,6, 1,1,16, 200,200, 200,0},
+    };
+    unsigned row;
+    assert(sizeof(cases)/sizeof(cases[0]) == COM_GAME_COUNT-1);
+    for (row=0; row<sizeof(cases)/sizeof(cases[0]); ++row) {
+        game = cases[row].game;
+        for (host = 0; host < 3; ++host) {
+            assert(Frame(game, host, 0, 0, 0, 16) == cases[row].zero);
+            assert(Frame(game, host, -1, 0, 0, 16) == cases[row].negative);
+            assert(Frame(game, host, .01f, 0, 0, 16) == 1);
+            assert(Frame(game, host, .7f, 0, 0, 10) == cases[row].pointSeven);
+            assert(com_frameFractionMsec == cases[row].fraction);
+            assert(Frame(game, host, 0, -3, 0, 16) == cases[row].zeroFixed);
+            assert(Frame(game, host, 0, 0, 0, 0) == cases[row].zeroFloor);
+            assert(Frame(game, host, 1, 7, 0, 16) == 7);
+            assert(Frame(game, host, 1, 0, 1, 6000) ==
+                (host == 0 ? cases[row].capRemote : host == 1 ? cases[row].capListen : cases[row].capDedicated));
+            assert(com_frameFractionMsec == 0);
         }
-        assert( Frame( game, 1, 1.0f, 0, 1, 1000 ) == 200 );
-        assert( Frame( game, 0, 1.0f, 0, 1, 1000 ) == 1000 );
-        assert( Frame( game, 2, 1.0f, 0, 1, 6000 ) == 5000 );
+        Frame(game, 1, 0, 0, 0, 16); cameraMode.integer = 1;
+        assert(Com_ModifyMsec(16) == cases[row].cameraZero);
     }
-    puts( "Elite Force frame-time rules and five control profiles passed" );
+    for (game = COM_GAME_JKA_SP; game <= COM_GAME_JK2_SP; game += 2) {
+        assert(Frame(game, 1, .25f, 0, 0, 7) == 1 && com_frameFractionMsec == .75f);
+        assert(Frame(game, 1, .01f, 0, 0, 7) == 1 && com_frameFractionMsec == 0);
+        assert(Frame(game, 1, 1.25f, 0, 0, 401) == 200 && com_frameFractionMsec == 0);
+        assert(Frame(game, 0, 1.25f, 0, 1, 401) == 500 && com_frameFractionMsec == 0);
+    }
+    Frame(COM_GAME_QUAKE3_IHV, 2, 3, 0, 0, 16);
+    fixedtime.value = .5f;
+    assert(Com_ModifyMsec(16) == 1);
+    puts( "Sixteen-profile frame-time rules passed" );
     return 0;
 }
 '''
@@ -130,7 +166,7 @@ class STVEFFrameTimeTests(unittest.TestCase):
             source = Path(folder) / 'probe.c'
             exe = Path(folder) / ('probe.exe' if os.name == 'nt' else 'probe')
             source.write_text(HARNESS.replace('PRODUCTION', production), encoding='utf-8')
-            built = subprocess.run([compiler, *compiler_target_args(compiler), '-std=c99', '-Wall', '-Wextra',
+            built = subprocess.run([compiler, *compiler_target_args(compiler), '-I', str(ROOT), '-std=c99', '-Wall', '-Wextra',
                                     '-Wno-unused-function', '-D_CRT_SECURE_NO_WARNINGS', str(source), '-o', str(exe)],
                                    capture_output=True, text=True, timeout=120)
             self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
@@ -142,12 +178,12 @@ class STVEFFrameTimeTests(unittest.TestCase):
     def test_both_servers_keep_a_fixed_tick(self):
         main = (ROOT / 'code/server/sv_main.cpp').read_text(encoding='utf-8').replace('\r\n', '\n')
         frame = function(main, 'void SV_Frame( int msec, int realMsec ) {')
-        fixed = frame.index('if ( Com_GameIsSTVEF() ) {')
-        self.assertLess(fixed, frame.index('frameMsec = 1000 / sv_fps->integer;'))
-        self.assertLess(frame.index('frameMsec = 1000 / sv_fps->integer;'),
+        fixed = frame.index('if ( rules & FRAME_FIXED_TICK ) {')
+        self.assertLess(fixed, frame.index(': 1000 / sv_fps->integer;'))
+        self.assertLess(frame.index(': 1000 / sv_fps->integer;'),
                         frame.index('} else if ( com_timescale->value > 0.0f ) {'))
         # Only single player bounds a frame's game time to a second.
-        self.assertIn('if ( stvefSP && msec > 1000 ) {', frame)
+        self.assertIn('stvefSP || ( rules & FRAME_FRACTION )', frame)
 
     def test_a_dedicated_holomatch_server_sleeps_between_frames(self):
         # stvoyHM.exe 1.20 sleeps 5 ms before each Com_Frame of a dedicated
@@ -170,7 +206,7 @@ class STVEFFrameTimeTests(unittest.TestCase):
         init = (ROOT / 'code/server/sv_init.cpp').read_text(encoding='utf-8').replace('\r\n', '\n')
         spawn = function(init, 'void SV_SpawnServer( const char *mapname, qboolean killBots ) {')
         self.assertEqual(spawn.count('Com_FrameInit();'), 1)
-        self.assertIn('\tif ( !Com_GameIsSTVEF() ) {\n\t\tCom_FrameInit();\n\t}\n}\n', spawn)
+        self.assertIn('\tif ( !( Com_ProfileFrameRules( Com_GameProfile()->id ) & FRAME_RETAIL ) ) {\n\t\tCom_FrameInit();\n\t}\n}\n', spawn)
 
 
 if __name__ == '__main__':

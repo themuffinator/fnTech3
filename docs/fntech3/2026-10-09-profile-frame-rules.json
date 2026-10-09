@@ -1,0 +1,737 @@
+{
+  "date": "2026-10-09",
+  "base_commit": "60d3a85a01450b0eb439d484c25ff62f5ba7b38b",
+  "platform": "Windows x86 PE static inspection with pefile and Capstone; x86 MSVC/clang production-function tests",
+  "evidence_level": "Source (retail machine-code observation), Unit; not new live or interop evidence",
+  "retail": {
+    "q3": {
+      "path": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\\quake3.exe",
+      "sha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+      "frame_base": {
+        "address": "0x88c510",
+        "writes": [
+          "004202bf mov dword ptr [0x88c510], ecx",
+          "004202e6 mov dword ptr [0x88c510], eax"
+        ],
+        "all_direct_references": [
+          "004202ae",
+          "004202bf",
+          "004202e6"
+        ]
+      },
+      "observed": {
+        "modify_msec": "0x4202f1..0x420382",
+        "server_tick": "0x43aa81..0x43aa94",
+        "entity_check": "0x435e30..0x435e68",
+        "precision": "x87",
+        "one_ms_floor": "nonzero scale",
+        "cap": "shared",
+        "zero_timescale": "unscaled except camera mode",
+        "tick": "integer 1000 / fps",
+        "entity_numbers": "0..1023; no published-count test",
+        "entity_number_width": 32
+      },
+      "embedded_identity_strings": [
+        "Q3 1.32"
+      ]
+    },
+    "ql": {
+      "path": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake Live-\\quakelive_steam.exe",
+      "sha256": "c926fe9f6c851e00b3b9332e88903ad01f28fdd60454873891c0158f5ded1299",
+      "frame_base": {
+        "address": "0x1205e48",
+        "writes": [
+          "004cc854 mov dword ptr [0x1205e48], ecx",
+          "004cc8b2 mov dword ptr [0x1205e48], edx"
+        ],
+        "all_direct_references": [
+          "004cc843",
+          "004cc854",
+          "004cc8b2"
+        ]
+      },
+      "observed": {
+        "modify_msec": "0x4cb710..0x4cb7c6",
+        "server_tick": "0x4e4a1c..0x4e4a46",
+        "entity_check": "0x4e10f0..0x4e1126",
+        "precision": "x87",
+        "one_ms_floor": "nonzero scale",
+        "cap": "shared",
+        "zero_timescale": "unscaled except camera mode",
+        "tick": "integer 1000 / fps then x87 timescale",
+        "entity_numbers": "0..1023; no published-count test",
+        "entity_number_width": 32
+      },
+      "embedded_identity_strings": [
+        "1069 win-x86 Jun  3 2016 16:09:18"
+      ]
+    },
+    "rtcw-sp": {
+      "path": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\WolfSP.exe",
+      "sha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+      "frame_base": {
+        "address": "0x985f18",
+        "writes": [
+          "0041dcd6 mov dword ptr [0x985f18], ecx",
+          "0041dcf2 mov dword ptr [0x985f18], eax"
+        ],
+        "all_direct_references": [
+          "0041dcc5",
+          "0041dcd6",
+          "0041dcf2"
+        ]
+      },
+      "observed": {
+        "modify_msec": "0x41db70..0x41dc0b",
+        "server_tick": "0x4386b9..0x4386cc",
+        "entity_check": "0x433b20..0x433b57",
+        "precision": "x87",
+        "one_ms_floor": "nonzero scale",
+        "cap": "shared",
+        "zero_timescale": "unscaled",
+        "tick": "integer 1000 / fps",
+        "entity_numbers": "0..1023; no published-count test",
+        "entity_number_width": 32
+      },
+      "embedded_identity_strings": [
+        "Wolf 1.32"
+      ]
+    },
+    "rtcw-mp": {
+      "path": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\\WolfMP.exe",
+      "sha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+      "frame_base": {
+        "address": "0x9972c8",
+        "writes": [
+          "00420fb6 mov dword ptr [0x9972c8], ecx",
+          "00420fd2 mov dword ptr [0x9972c8], eax"
+        ],
+        "all_direct_references": [
+          "00420fa5",
+          "00420fb6",
+          "00420fd2"
+        ]
+      },
+      "observed": {
+        "modify_msec": "0x420e40..0x420ee3",
+        "server_tick": "0x43b65f..0x43b672",
+        "entity_check": "0x436570..0x4365a7",
+        "precision": "x87",
+        "one_ms_floor": "nonzero scale",
+        "cap": "shared",
+        "zero_timescale": "unscaled",
+        "tick": "integer 1000 / fps",
+        "entity_numbers": "0..1023; no published-count test",
+        "entity_number_width": 32
+      },
+      "embedded_identity_strings": [
+        "Wolf 1.4-MP"
+      ]
+    },
+    "wolfet": {
+      "path": "E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory\\et.exe",
+      "sha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+      "frame_base": {
+        "address": "0xa40a10",
+        "writes": [
+          "0042a58a mov dword ptr [0xa40a10], ecx",
+          "0042a59f mov dword ptr [0xa40a10], eax"
+        ],
+        "all_direct_references": [
+          "0042a575",
+          "0042a58a",
+          "0042a59f"
+        ]
+      },
+      "observed": {
+        "modify_msec": "0x42bd90..0x42be35",
+        "server_tick": "0x447e24..0x447e47",
+        "entity_check": "0x4457e0..0x445815",
+        "precision": "float SSE",
+        "one_ms_floor": "nonzero scale",
+        "cap": "shared",
+        "zero_timescale": "unscaled",
+        "tick": "integer 1000 / fps",
+        "entity_numbers": "0..1023; no published-count test",
+        "entity_number_width": 32
+      },
+      "embedded_identity_strings": [
+        "ET 2.60b"
+      ]
+    },
+    "jka-sp": {
+      "path": "E:\\Games\\Jedi Academy\\jasp.exe",
+      "sha256": "9351a8de230fcd577e2b474889d08f38982450306767a6823dd659482566d6ce",
+      "frame_base": {
+        "address": "0x1184688",
+        "writes": [
+          "0041b5b6 mov dword ptr [0x1184688], ecx",
+          "0041b5d8 mov dword ptr [0x1184688], eax"
+        ],
+        "all_direct_references": [
+          "0041b5a5",
+          "0041b5b6",
+          "0041b5d8"
+        ]
+      },
+      "observed": {
+        "modify_msec": "0x41b440..0x41b4d0",
+        "server_tick": "0x43a93d..0x43a99a",
+        "entity_check": "0x438bf0..0x438c1d",
+        "precision": "x87 with float remainder",
+        "one_ms_floor": "always",
+        "cap": "200 / skippingCinematic 500",
+        "zero_timescale": "unscaled",
+        "tick": "integer 1000 / fps",
+        "entity_numbers": "0..1023; no published-count test",
+        "entity_number_width": 32
+      },
+      "embedded_identity_strings": [
+        "JA: v1.0.1.0"
+      ]
+    },
+    "jka-mp": {
+      "path": "E:\\Games\\Jedi Academy\\jamp.exe",
+      "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+      "frame_base": {
+        "address": "0x1309c40",
+        "writes": [
+          "00438cb8 mov dword ptr [0x1309c40], ecx",
+          "00438cd2 mov dword ptr [0x1309c40], eax"
+        ],
+        "all_direct_references": [
+          "00438ca7",
+          "00438cb8",
+          "00438cd2"
+        ]
+      },
+      "observed": {
+        "modify_msec": "0x438af0..0x438bab",
+        "server_tick": "0x4606bb..0x4606d0",
+        "entity_check": "0x459ce0..0x459d0d",
+        "precision": "float input then x87",
+        "one_ms_floor": "nonzero scale",
+        "cap": "shared",
+        "zero_timescale": "unscaled except camera mode",
+        "tick": "integer 1000 / fps",
+        "entity_numbers": "0..1023; no published-count test",
+        "entity_number_width": 32
+      },
+      "embedded_identity_strings": [
+        "JAmp: v1.0.1.0"
+      ]
+    },
+    "jk2-sp": {
+      "path": "E:\\Games\\Jedi Outcast\\jk2sp.exe",
+      "sha256": "0d3c635ee5b20ac32fc957e00cf21e65ebc1584112b11f6ae026706dcc0d0e0c",
+      "frame_base": {
+        "address": "0xa83b4c",
+        "writes": [
+          "00415c79 mov dword ptr [0xa83b4c], ecx",
+          "00415c97 mov dword ptr [0xa83b4c], ecx"
+        ],
+        "all_direct_references": [
+          "00415c68",
+          "00415c79",
+          "00415c97"
+        ]
+      },
+      "observed": {
+        "modify_msec": "0x415b00..0x415b99",
+        "server_tick": "0x437df5..0x437e52",
+        "entity_check": "0x4363d0..0x436403",
+        "precision": "x87 with float remainder",
+        "one_ms_floor": "always",
+        "cap": "200 / skippingCinematic 500",
+        "zero_timescale": "unscaled",
+        "tick": "integer 1000 / fps",
+        "entity_numbers": "0..1023; no published-count test",
+        "entity_number_width": 32
+      },
+      "embedded_identity_strings": [
+        "JK2: v1.02a"
+      ]
+    },
+    "jk2-mp": {
+      "path": "E:\\Games\\Jedi Outcast\\jk2mp.exe",
+      "sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a",
+      "frame_base": {
+        "address": "0xa9f458",
+        "writes": [
+          "0042a20b mov dword ptr [0xa9f458], ecx",
+          "0042a225 mov dword ptr [0xa9f458], eax"
+        ],
+        "all_direct_references": [
+          "0042a1fa",
+          "0042a20b",
+          "0042a225"
+        ]
+      },
+      "observed": {
+        "modify_msec": "0x42a080..0x42a137",
+        "server_tick": "0x44f201..0x44f214",
+        "entity_check": "0x44a740..0x44a773",
+        "precision": "x87",
+        "one_ms_floor": "nonzero scale",
+        "cap": "shared",
+        "zero_timescale": "unscaled except camera mode",
+        "tick": "integer 1000 / fps",
+        "entity_numbers": "0..1023; no published-count test",
+        "entity_number_width": 32
+      },
+      "embedded_identity_strings": [
+        "JK2MP: v1.02a"
+      ]
+    },
+    "alice": {
+      "path": "E:\\Games\\Alice\\alice.exe",
+      "sha256": "8aa22917b7707f0e1a7c4dbe9a3c38332b1873ae2059174ac5329de26921fc18",
+      "frame_base": {
+        "address": "0x5115c8",
+        "writes": [
+          "0043a0a8 mov dword ptr [0x5115c8], ecx",
+          "0043a0c2 mov dword ptr [0x5115c8], eax"
+        ],
+        "all_direct_references": [
+          "0043a097",
+          "0043a0a8",
+          "0043a0c2"
+        ]
+      },
+      "observed": {
+        "modify_msec": "0x439f60..0x439fe9",
+        "server_tick": "0x45680b..0x45681e",
+        "entity_check": "0x4533d0..0x45340b",
+        "precision": "x87",
+        "one_ms_floor": "always",
+        "cap": "shared",
+        "zero_timescale": "unscaled",
+        "tick": "integer 1000 / fps",
+        "entity_numbers": "0..1023; no published-count test",
+        "entity_number_width": 32
+      }
+    },
+    "q3-ihv": {
+      "path": "E:\\Repositories\\Quake3-IHV\\ref\\install\\quake3.exe",
+      "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37",
+      "frame_base": {
+        "address": "0x24727bc",
+        "writes": [
+          "0040db00 mov dword ptr [0x24727bc], ecx",
+          "0040db17 mov dword ptr [0x24727bc], eax"
+        ],
+        "all_direct_references": [
+          "0040daef",
+          "0040db00",
+          "0040db17"
+        ]
+      },
+      "observed": {
+        "modify_msec": "0x40db11..0x40db6d",
+        "server_tick": "0x41ab84..0x41ab97",
+        "entity_check": "0x418fc0..0x418ff2",
+        "precision": "x87",
+        "one_ms_floor": "always",
+        "cap": "200 always",
+        "zero_timescale": "unscaled",
+        "tick": "truncated 1000.0 / float fps",
+        "entity_numbers": "0..1023; no published-count test",
+        "entity_number_width": 16
+      }
+    },
+    "q3test-1.02": {
+      "path": "E:\\Repositories\\fnTech3\\.tmp\\q3test\\install\\1.02\\quake3.exe",
+      "sha256": "86da36081878d5586d5621709f48a7e621db3c24d33fa4b45838b08d01020d4a",
+      "frame_base": {
+        "address": "0x49eaa8",
+        "writes": [
+          "0040fb82 mov dword ptr [0x49eaa8], ecx",
+          "0040fb99 mov dword ptr [0x49eaa8], eax"
+        ],
+        "all_direct_references": [
+          "0040fb71",
+          "0040fb82",
+          "0040fb99"
+        ]
+      },
+      "observed": {
+        "modify_msec": "0x40fb93..0x40fbe1",
+        "server_tick": "0x41d06a..0x41d079",
+        "entity_check": "0x41b540",
+        "precision": "x87",
+        "one_ms_floor": "always",
+        "cap": "200 always",
+        "zero_timescale": "unscaled",
+        "tick": "integer 1000 / fps",
+        "entity_numbers": "0..1023; no published-count test",
+        "entity_number_width": 32
+      }
+    },
+    "q3test-1.03": {
+      "path": "E:\\Repositories\\fnTech3\\.tmp\\q3test\\install\\1.03\\quake3.exe",
+      "sha256": "313ed8d1b71296b834b806b64c0f5929eb5bdd05eb7ce96b9c7fdb7369ecbf79",
+      "frame_base": {
+        "address": "0x49fc54",
+        "writes": [
+          "0040fef2 mov dword ptr [0x49fc54], ecx",
+          "0040ff09 mov dword ptr [0x49fc54], eax"
+        ],
+        "all_direct_references": [
+          "0040fee1",
+          "0040fef2",
+          "0040ff09"
+        ]
+      },
+      "observed": {
+        "modify_msec": "0x40ff03..0x40ff51",
+        "server_tick": "0x41d62a..0x41d639",
+        "entity_check": "0x41baa0",
+        "precision": "x87",
+        "one_ms_floor": "always",
+        "cap": "200 always",
+        "zero_timescale": "unscaled",
+        "tick": "integer 1000 / fps",
+        "entity_numbers": "0..1023; no published-count test",
+        "entity_number_width": 32
+      }
+    },
+    "q3test-1.05": {
+      "path": "E:\\Repositories\\fnTech3\\.tmp\\q3test\\install\\1.05\\quake3.exe",
+      "sha256": "05579377e09286d658aef430d6fb45dc6c4fc4578988cea83afa51459768fcf8",
+      "frame_base": {
+        "address": "0x4a0094",
+        "writes": [
+          "004103f2 mov dword ptr [0x4a0094], ecx",
+          "00410409 mov dword ptr [0x4a0094], eax"
+        ],
+        "all_direct_references": [
+          "004103e1",
+          "004103f2",
+          "00410409"
+        ]
+      },
+      "observed": {
+        "modify_msec": "0x410403..0x410451",
+        "server_tick": "0x41d48a..0x41d499",
+        "entity_check": "0x41b900",
+        "precision": "x87",
+        "one_ms_floor": "always",
+        "cap": "200 always",
+        "zero_timescale": "unscaled",
+        "tick": "integer 1000 / fps",
+        "entity_numbers": "0..1023; no published-count test",
+        "entity_number_width": 32
+      }
+    },
+    "q3test-1.06": {
+      "path": "E:\\Repositories\\fnTech3\\.tmp\\q3test\\install\\1.06\\quake3.exe",
+      "sha256": "a18c714fac103c4634fc08c88b2dd1c7b63720c8ddb8ec0f408e00d7ccb63db3",
+      "frame_base": {
+        "address": "0x4953d0",
+        "writes": [
+          "00410e4d mov dword ptr [0x4953d0], ecx",
+          "00410e5e mov dword ptr [0x4953d0], eax"
+        ],
+        "all_direct_references": [
+          "00410e3c",
+          "00410e4d",
+          "00410e5e"
+        ]
+      },
+      "observed": {
+        "modify_msec": "0x410e63..0x410eab",
+        "server_tick": "0x41e13a..0x41e149",
+        "entity_check": "0x41c370",
+        "precision": "x87",
+        "one_ms_floor": "always",
+        "cap": "200 always",
+        "zero_timescale": "unscaled",
+        "tick": "integer 1000 / fps",
+        "entity_numbers": "0..1023; no published-count test",
+        "entity_number_width": 32
+      }
+    },
+    "q3test-1.07": {
+      "path": "E:\\Repositories\\fnTech3\\.tmp\\q3test\\install\\1.07\\quake3.exe",
+      "sha256": "a507b42aa346dd7c67f0fdd33c42e88c3ee144d91bce3dea0a3fb06aa7368962",
+      "frame_base": {
+        "address": "0x495400",
+        "writes": [
+          "00410ead mov dword ptr [0x495400], ecx",
+          "00410ebe mov dword ptr [0x495400], eax"
+        ],
+        "all_direct_references": [
+          "00410e9c",
+          "00410ead",
+          "00410ebe"
+        ]
+      },
+      "observed": {
+        "modify_msec": "0x410ec3..0x410f0b",
+        "server_tick": "0x41e1da..0x41e1e9",
+        "entity_check": "0x41c410",
+        "precision": "x87",
+        "one_ms_floor": "always",
+        "cap": "200 always",
+        "zero_timescale": "unscaled",
+        "tick": "integer 1000 / fps",
+        "entity_numbers": "0..1023; no published-count test",
+        "entity_number_width": 32
+      }
+    },
+    "q3test-1.08": {
+      "path": "E:\\Repositories\\fnTech3\\.tmp\\q3test\\install\\1.08\\quake3.exe",
+      "sha256": "89a7dfb431c6738a13e1e44d0c2d76d69107c6e0791a64f6a49830e1a51c547b",
+      "frame_base": {
+        "address": "0x4969fc",
+        "writes": [
+          "004117dd mov dword ptr [0x4969fc], ecx",
+          "004117ee mov dword ptr [0x4969fc], eax"
+        ],
+        "all_direct_references": [
+          "004117cc",
+          "004117dd",
+          "004117ee"
+        ]
+      },
+      "observed": {
+        "modify_msec": "0x4117f3..0x41183b",
+        "server_tick": "0x41ea9a..0x41eaa9",
+        "entity_check": "0x41cc70",
+        "precision": "x87",
+        "one_ms_floor": "always",
+        "cap": "200 always",
+        "zero_timescale": "unscaled",
+        "tick": "integer 1000 / fps",
+        "entity_numbers": "0..1023; no published-count test",
+        "entity_number_width": 32
+      }
+    }
+  },
+  "inferences": {
+    "fakk2": {
+      "status": "Encrypted executable. Alice is a related engine, not direct evidence of F.A.K.K.2 timing. No timing change. Published-capacity entity adapter retained.",
+      "path": "E:\\Repositories\\fnTech3\\.tmp\\fakk2-install\\game\\fakk2.exe",
+      "sha256": "a1980fbf35c6b195e5e7db029ea30a4c5e8cdd8df8d9514223c6b8f1fa90cf88",
+      "sections": [
+        ".text",
+        ".rdata",
+        ".data",
+        ".rsrc",
+        "icd1",
+        ".idata",
+        "icd2"
+      ]
+    },
+    "mohaa": {
+      "status": "SafeDisc executable. Pinned OpenMoHAA sv_main.c uses fixed integer ticks, common.c leaves zero timescale unscaled and floors nonzero scales, sv_game.c accepts numbers below MAX_GENTITIES. Maintained-port source is supporting evidence only; no timing change. Published-capacity adapter retained.",
+      "path": "E:\\Games\\Medal of Honor Allied Assault\\MOHAA.exe",
+      "sha256": "7abe43b41746c87877507d4c2938f6f4c9471f8d559448eba4553faa962316eb",
+      "sections": [
+        ".text",
+        ".rdata",
+        ".data",
+        ".rsrc",
+        "stxt774",
+        "stxt371"
+      ]
+    }
+  },
+  "jedi_fraction": {
+    "jka-sp": "0x41b470..0x41b49a: floor exact product, float product minus integer; 0x43a943..0x43a99a: accumulate, subtract one and add one millisecond when >=1 and cl_newClock enabled",
+    "jk2-sp": "0x415b2d..0x415b5b and 0x437dfb..0x437e52",
+    "cl_newClock_default": "1 at jasp 0x409ca2..0x409cc4 and jk2sp 0x4096d2..0x4096f7; fnTech3 adopts that default without adding a legacy clock switch"
+  },
+  "safety_exceptions": [
+    "QL zero/nonpositive tick loop remains suppressed; tiny positive tick floored to 1 rather than reproducing retail nontermination.",
+    "Existing fps range, frame/presentation scheduling, bounds and aligned arena-pointer validation retained."
+  ],
+  "validation": {
+    "status": "Passed: full planned-tree sweep and seven direct script entry points; final precision materialization and independent expectations passed focused tests and production recompilation.",
+    "production_compile": [
+      {
+        "file": "code/qcommon/common.c",
+        "target": "fntech3.exe.p",
+        "exit": 0
+      },
+      {
+        "file": "code/qcommon/common.c",
+        "target": "fntech3.ded.exe.p",
+        "exit": 0
+      },
+      {
+        "file": "code/server/sv_main.cpp",
+        "target": "fntech3.exe.p",
+        "exit": 0
+      },
+      {
+        "file": "code/server/sv_main.cpp",
+        "target": "fntech3.ded.exe.p",
+        "exit": 0
+      },
+      {
+        "file": "code/server/sv_init.cpp",
+        "target": "fntech3.exe.p",
+        "exit": 0
+      },
+      {
+        "file": "code/server/sv_init.cpp",
+        "target": "fntech3.ded.exe.p",
+        "exit": 0
+      },
+      {
+        "file": "code/server/sv_game.cpp",
+        "target": "fntech3.exe.p",
+        "exit": 0
+      },
+      {
+        "file": "code/server/sv_game.cpp",
+        "target": "fntech3.ded.exe.p",
+        "exit": 0
+      },
+      {
+        "file": "code/server/server_game_data.cpp",
+        "target": "fntech3.exe.p",
+        "exit": 0
+      },
+      {
+        "file": "code/server/server_game_data.cpp",
+        "target": "fntech3.ded.exe.p",
+        "exit": 0
+      },
+      {
+        "file": "code/server/server_game_data.cpp",
+        "target": "fntech3_jka_sp_game_bridge_tests.exe.p",
+        "exit": 0
+      },
+      {
+        "file": "code/server/server_game_data.cpp",
+        "target": "fntech3_jka_sp_state_tests.exe.p",
+        "exit": 0
+      },
+      {
+        "file": "code/server/server_game_data.cpp",
+        "target": "fntech3_server_game_data_tests.exe.p",
+        "exit": 0
+      },
+      {
+        "file": "code/server/server_game_data.cpp",
+        "target": "fntech3_q3_ihv_game_data_tests.exe.p",
+        "exit": 0
+      },
+      {
+        "file": "code/server/server_game_data.cpp",
+        "target": "fntech3_q3_ihv_game_bridge_tests.exe.p",
+        "exit": 0
+      },
+      {
+        "file": "code/server/server_game_data.cpp",
+        "target": "fntech3_wolfet_contract_tests.exe.p",
+        "exit": 0
+      },
+      {
+        "file": "tests/server_game_data_tests.cpp",
+        "exit": 0
+      },
+      {
+        "test": "server_game_data",
+        "exit": 0
+      }
+    ],
+    "regression_mutations": [
+      {
+        "mutation": "float product",
+        "rejected": true,
+        "functions": [
+          "static int Com_ModifyMsec( int msec ) {"
+        ]
+      },
+      {
+        "mutation": "stopped zero clock",
+        "rejected": true,
+        "functions": [
+          "static int Com_ModifyMsec( int msec ) {"
+        ]
+      },
+      {
+        "mutation": "scaled non-EF tick",
+        "rejected": true,
+        "functions": [
+          "void SV_Frame("
+        ]
+      }
+    ],
+    "script_checks": [
+      {
+        "test": "csm_plan_source_tests.py",
+        "exit": 0,
+        "output": "Checked CSM planning source contract.\n"
+      },
+      {
+        "test": "csm_shadow_cache_source_tests.py",
+        "exit": 0,
+        "output": "Checked CSM shadow cache source contract.\n"
+      },
+      {
+        "test": "shadow_manager_source_tests.py",
+        "exit": 0,
+        "output": "Checked shadow manager source contract.\n"
+      },
+      {
+        "test": "shadow_projection_source_tests.py",
+        "exit": 0,
+        "output": "Checked shadow projection source contract.\n"
+      },
+      {
+        "test": "static_map_lights_source_tests.py",
+        "exit": 0,
+        "output": "Checked static map light sidecar source contract.\n"
+      },
+      {
+        "test": "surface_light_proxy_source_tests.py",
+        "exit": 0,
+        "output": "Checked surfacelight proxy source contract.\n"
+      },
+      {
+        "test": "surfacelight_validation_docs_tests.py",
+        "exit": 0,
+        "output": "Checked surfacelight, combined atlas, and CSM fallback validation documentation contract.\n"
+      }
+    ],
+    "python_suite": {
+      "tree": "09a38df9842b7c8dafadfa58706672ad09e137b6",
+      "files": 524,
+      "pytest_success": 517,
+      "script_entry_points_passed": 7,
+      "timeouts": 0,
+      "pytest_cases_passed": 2323,
+      "pytest_cases_skipped": 16,
+      "workers": 4,
+      "per_file_timeout_seconds": 900,
+      "details": ".tmp/profile-frame-rules/suite-results.json",
+      "skips": "Platform/tool availability and opt-in runtime checks; see per-file logs. No runtime compatibility gate is closed."
+    },
+    "final_validation": {
+      "tree": "244f3dd7fb57ae9fe1708d02f7e1570e3455123a",
+      "files": [
+        "tests/stvef_frame_time_tests.py",
+        "tests/stvef_sp_cadence_tests.py",
+        "tests/world_owner_trace_tests.py",
+        "tests/generate_docs_tests.py"
+      ],
+      "pytest_cases_passed": 10,
+      "production_compile_entries_passed": 18,
+      "scope": "Final code and test tree; subsequent changes record validation results only. Complete server_game_data C++ test executable also passes."
+    }
+  },
+  "retail_installations": "Opened read-only; no retail processes launched; no input or screen capture.",
+  "source_audit": {
+    "searched": "tests/*.py for SV_Frame, Com_ModifyMsec, Com_FrameInit, SV_GameEntityArena, BindNative and references to edited source files",
+    "updated_harnesses": [
+      "tests/stvef_frame_time_tests.py",
+      "tests/stvef_sp_cadence_tests.py",
+      "tests/world_owner_trace_tests.py"
+    ],
+    "other_slicers": "JKA attachment tick-loop slice and SP-save ordering slice remain compatible; full sweep exercises the remaining source checks."
+  }
+}

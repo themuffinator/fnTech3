@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 
+#include "../qcommon/profile_frame_time.h"
 #include "server.h"
 #include "../compat/rtcw_game_abi.h"
 #include "server_stvef_policy.hpp"
@@ -1189,10 +1190,9 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 		SV_MOHAASpawnDone();
 	}
 
-	// suppress hitch warning. Both Elite Force engines set their frame clock
-	// only in Com_Frame (stvoy.exe 1.20 0x41307b, stvoyHM.exe 1.20 0x41c6fb),
-	// so the load counts into the next frame, up to its cap, as it does there.
-	if ( !Com_GameIsSTVEF() ) {
+	// Retail frame baselines are written only in Com_Frame: a level load
+	// contributes to the next frame, up to that profile's cap.
+	if ( !( Com_ProfileFrameRules( Com_GameProfile()->id ) & FRAME_RETAIL ) ) {
 		Com_FrameInit();
 	}
 }

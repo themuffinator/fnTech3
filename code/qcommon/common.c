@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 // common.c -- misc functions used in client and server
 
+#include "profile_frame_time.h"
 #include "q_shared.h"
 #include "qcommon.h"
 #include "../compat/game_abi_adapter.h"
@@ -4981,32 +4982,54 @@ static void Com_WriteConfig_f( void ) {
 Com_ModifyMsec
 ================
 */
+static float com_frameFractionMsec;
+
+float Com_FrameFractionMsec( void ) {
+	return com_frameFractionMsec;
+}
+
 static int Com_ModifyMsec( int msec ) {
 	int		clampTime;
-	const qboolean stvef = Com_GameIsSTVEF() ? qtrue : qfalse;
+	const unsigned int rules = Com_ProfileFrameRules( Com_GameProfile()->id );
+	com_frameFractionMsec = 0.0f;
 
-	//
-	// modify time for debugging values
-	//
-	if ( com_fixedtime->integer ) {
-		msec = com_fixedtime->integer;
-	} else if ( stvef ) {
-		// Both Elite Force executables leave a zero timescale unscaled and
-		// truncate an x87 product, which a double holds exactly (stvoy.exe
-		// 1.20 0x412f7c, stvoyHM.exe 1.20 0x41c70f).
-		if ( com_timescale->value != 0.0f ) {
-			msec = (int)( msec * (double)com_timescale->value );
+	if ( com_fixedtime->integer
+		|| ( ( rules & FRAME_FIXEDTIME_FLOAT ) && com_fixedtime->value != 0.0f ) ) {
+		msec = ( rules & FRAME_FIXEDTIME_FLOAT ) ? (int)com_fixedtime->value : com_fixedtime->integer;
+	} else if ( rules & FRAME_RETAIL ) {
+		if ( com_timescale->value != 0.0f
+			|| ( ( rules & FRAME_CAMERA_SCALE ) && com_cameraMode->integer ) ) {
+			if ( rules & FRAME_X87_PRODUCT ) {
+				const double elapsed = ( rules & FRAME_FLOAT_INPUT ) ? (double)(float)msec : (double)msec;
+				const double scaled = elapsed * (double)com_timescale->value;
+				msec = (int)scaled;
+				if ( rules & FRAME_FRACTION ) {
+					/* Raven retains the rounded float product minus its integer
+					 * part, then carries it in the server (cl_newClock's default). */
+					com_frameFractionMsec = (float)scaled - (float)msec;
+				}
+			} else {
+				// The installed ET executable rounds its SSE product to float.
+				// Materialize it even on targets with excess x87 precision.
+				volatile float scaled = (float)msec * com_timescale->value;
+				msec = (int)scaled;
+			}
 		}
 	} else if ( com_timescale->value != 1.0f || com_cameraMode->integer ) {
 		msec *= com_timescale->value;
 	}
 
-	// don't let positive timescales scale below 1 msec; Elite Force lets
-	// no frame do so
-	if ( msec < 1 && ( stvef || com_timescale->value > 0.0f ) ) {
+	if ( msec < 1 && ( ( rules & FRAME_ALWAYS_FLOOR )
+		|| ( ( rules & FRAME_RETAIL ) ? com_timescale->value != 0.0f : com_timescale->value > 0.0f ) ) ) {
 		msec = 1;
+		com_frameFractionMsec = 0.0f;
 	}
 
+	if ( rules & FRAME_CAP_200 ) {
+		clampTime = 200;
+	} else if ( rules & FRAME_CINEMATIC_CAP ) {
+		clampTime = Cvar_VariableIntegerValue( "skippingCinematic" ) ? 500 : 200;
+	} else
 	if ( com_dedicated->integer ) {
 		// dedicated servers don't want to clamp for a much longer
 		// period, because it would mess up all the client's views
@@ -5015,12 +5038,6 @@ static int Com_ModifyMsec( int msec ) {
 			Com_Printf( "Hitch warning: %i msec frame time\n", msec );
 
 		clampTime = 5000;
-	} else
-	if ( Com_GameIsSTVEFSP() ) {
-		// Retail single player always hosts its own game, and lets a
-		// cutscene the game skips at timescale 100 run 500 msec frames
-		// (stvoy.exe 0x412fae).
-		clampTime = Cvar_VariableIntegerValue( "skippingCinematic" ) ? 500 : 200;
 	} else
 	if ( !com_sv_running->integer ) {
 		// clients of remote servers do not want to clamp time, because
@@ -5035,6 +5052,7 @@ static int Com_ModifyMsec( int msec ) {
 
 	if ( msec > clampTime ) {
 		msec = clampTime;
+		com_frameFractionMsec = 0.0f;
 	}
 
 	return msec;

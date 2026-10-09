@@ -91,6 +91,7 @@ typedef struct {
 	int				checksumFeedServerId; // RTCW MP retains this across fast map restarts
 	int				snapshotCounter;	// incremented for each snapshot built
 	int				configstringSequence;	// IHV: bumped by every configstring change (0x41964a)
+	float           timeResidualFraction; // Jedi SP fractional game milliseconds
 	int				timeResidual;		// <= 1000 / sv_frame->value
 	char			*configstrings[MAX_GAME_CONFIGSTRINGS];
 	svEntity_t		svEntities[MAX_GENTITIES];

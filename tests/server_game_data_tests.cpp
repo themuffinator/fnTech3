@@ -14,6 +14,7 @@ General Public License, version 2 or (at your option) any later version.
 #include "../code/compat/q3_game_abi.h"
 #include "../code/compat/ql_game_abi.h"
 #include "../code/compat/jka_game_abi.h"
+#include "../code/compat/jk2_game_abi.h"
 #include "../code/compat/stvef_game_abi.h"
 #include "../code/compat/wolfet_game_abi.h"
 
@@ -1137,9 +1138,6 @@ void TestRTCWSaveEntityCapacity()
 	Expect( view.BindNative(COM_GAME_RTCW_SP, binding) == GameDataBindError::EntitySpanTooSmall,
 		"capacity requires a complete native/QVM memory span" );
 	++binding.entitySpanBytes;
-	for ( auto profile : {COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_JK2_MP, COM_GAME_JKA_MP} )
-		Expect( view.BindNative(profile, binding) == GameDataBindError::InvalidEntityCount,
-			"other profiles do not broaden their entity contracts" );
 	ExpectGuardsIntact(storage, "SP save capacity preserves array guards");
 }
 
@@ -1150,6 +1148,8 @@ void TestRTCWSaveEntityCapacity()
  * Holomatch's game unlinks that record from its bots' frame. The strides are
  * the retail modules' own: 1352 bytes in RTCW MP's qagame_mp_x86.dll, 1404 in
  * ET 2.60b's and 624 in Holomatch's vm/qagame.qvm. */
+struct JK2WorldRecord { fntech3_jk2_entityState_t s; unsigned char shared[104]; };
+
 template<typename Entity, typename Player>
 void TestWorldEntityArena( comGameId_t profile, std::size_t stride, const char *name )
 {
@@ -1216,6 +1216,14 @@ int main()
 		COM_GAME_WOLFET, 1404, "ET" );
 	TestWorldEntityArena<fntech3_stvef_mp_sharedEntity_t, fntech3_stvef_mp_playerState_t>(
 		COM_GAME_STVEF_MP, 624, "Holomatch" );
+	TestWorldEntityArena<fntech3_q3_sharedEntity_t, fntech3_q3_playerState_t>(
+		COM_GAME_QUAKE3, sizeof(fntech3_q3_sharedEntity_t) + 16, "QUAKE3" );
+	TestWorldEntityArena<fntech3_ql_sharedEntity_t, fntech3_ql_playerState_t>(
+		COM_GAME_QUAKELIVE, sizeof(fntech3_ql_sharedEntity_t) + 16, "QUAKELIVE" );
+	TestWorldEntityArena<JK2WorldRecord, fntech3_jk2_playerState_t>(
+		COM_GAME_JK2_MP, sizeof(JK2WorldRecord) + 16, "JK2_MP" );
+	TestWorldEntityArena<fntech3_jka_sharedEntity_t, fntech3_jka_playerState_t>(
+		COM_GAME_JKA_MP, sizeof(fntech3_jka_sharedEntity_t) + 16, "JKA_MP" );
 	TestRTCWRecords<fntech3_rtcw_sp_sharedEntity_t, fntech3_rtcw_sp_playerState_t>( COM_GAME_RTCW_SP, 128 );
 	TestRTCWRecords<fntech3_rtcw_mp_sharedEntity_t, fntech3_rtcw_mp_playerState_t>( COM_GAME_RTCW_MP, 64 );
 	TestRTCWMPWorldflags();

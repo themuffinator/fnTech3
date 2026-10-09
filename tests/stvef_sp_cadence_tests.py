@@ -8,7 +8,7 @@ by these tests. Holomatch follows stvoyHM.exe 1.20: a fixed tick, a server
 clock that moves only with ticks (0x4353a4), each client's next snapshot
 held to the deadline its last message left (0x435478..0x43550d), and a
 dedicated server that does nothing in a frame owing no tick (0x43529c). The
-five other profiles retain their shared scheduler.
+other profiles retain their snapshot scheduler while exercising their own ticks.
 """
 from pathlib import Path
 import json
@@ -36,7 +36,7 @@ HARNESS = r'''
 #include <cstdlib>
 #include <cstring>
 #include <vector>
-#include "code/qcommon/game_profile.h"
+#include "code/qcommon/profile_frame_time.h"
 enum { CS_FREE, CS_ZOMBIE, CS_CONNECTED, CS_PRIMED, CS_ACTIVE };
 enum { NA_LOOPBACK, NA_IP, NA_BOT };
 enum { CVG_SERVER, ERR_FATAL, CS_SERVERINFO, CS_SYSTEMINFO, GAME_RUN_FRAME };
@@ -63,13 +63,17 @@ struct client_t {
 struct msg_t { int cursize = 0; };
 static int messageBytes = 1000;
 static std::array<client_t, 1> clients;
-static struct { int time, timeResidual, restartTime; } sv;
+static struct { int time, timeResidual, restartTime; float timeResidualFraction; } sv;
 static struct { int time, msgTime; client_t *clients; } svs;
 static struct {
     bool Poll(bool, uint32_t, int) { return false; }
     void Reset() {}
 } idleExitTimer;
 static comGameId_t profile;
+static comGameProfile_t selected;
+static float fraction;
+const comGameProfile_t *Com_GameProfile() { selected.id = profile; return &selected; }
+float Com_FrameFractionMsec() { return fraction; }
 static int wallTime, time_game, cvar_modifiedFlags, gvm, issued, saves, sent, timeouts, heartbeats;
 static std::vector<int> ticks, botFrames;
 static constexpr const char *HEARTBEAT_FOR_MASTER = "test";
@@ -77,13 +81,13 @@ const char *Com_GameHeartbeatName() { return HEARTBEAT_FOR_MASTER; }
 int Com_GameIsSTVEFSP() { return profile == COM_GAME_STVEF_SP; }
 int Com_GameIsSTVEF() { return profile == COM_GAME_STVEF_SP || profile == COM_GAME_STVEF_MP; }
 int Com_GameIsSTVEFMP() { return profile == COM_GAME_STVEF_MP; }
-// Q3Test and the IHV test send and simulate through their own paths, which
-// their own tests cover; no profile here reaches them.
+// Q3Test and IHV use private snapshot callbacks; tick checks below observe
+// their production loop while their own tests cover the packet payloads.
 int Com_GameIsQ3Test() { return profile == COM_GAME_Q3TEST; }
 int Com_GameIsQuake3IHV() { return profile == COM_GAME_QUAKE3_IHV; }
-static void SV_Q3TestSendClientMessages() { assert(false); }
-static void SV_IHVNetSendClientMessages() { assert(false); }
-static void SV_IHVServerFrame() { assert(false); }
+static void SV_Q3TestSendClientMessages() { ++sent; }
+static void SV_IHVNetSendClientMessages() { ++sent; }
+static void SV_IHVServerFrame() {}
 static void SV_UpdateSysteminfoConfigstring() {}
 static std::array<client_t, 1> &SV_Clients() { return clients; }
 static int Sys_Milliseconds() { return wallTime; }
@@ -133,7 +137,7 @@ static void SV_SendClientSnapshot(client_t *client) {
 PRODUCTION_FUNCTIONS
 
 static void Reset(int fps = 20, float scale = 1, int start = 1000, int residual = 0) {
-    sv = { start, residual, 0 }; svs = { 0, 0, clients.data() }; clients[0] = {};
+    fraction = 0; sv = { start, residual, 0, 0 }; svs = { 0, 0, clients.data() }; clients[0] = {};
     sv_killserverValue = {}; com_dedicatedValue = {}; sv_idleExitValue = {};
     sv_idleRestartValue = {}; sv_levelTimeResetValue = {}; com_speedsValue = {};
     cl_pausedValue = {}; sv_pausedValue = {}; com_sv_runningValue = { 1, 1 };
@@ -148,10 +152,11 @@ static void Frame(int gameMsec, int realMsec) {
     SV_Frame(gameMsec, realMsec);
 }
 static void OtherProfiles() {
-    // Concrete controls for the five unchanged profiles, including repeated
+    // Per-profile tick expectations, including repeated
     // simulation frames inside one wall-clock snapshot interval.
     for (auto id : { COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP,
-                    COM_GAME_RTCW_MP, COM_GAME_WOLFET }) {
+                    COM_GAME_RTCW_MP, COM_GAME_WOLFET, COM_GAME_JKA_SP, COM_GAME_JKA_MP,
+                    COM_GAME_JK2_SP, COM_GAME_JK2_MP, COM_GAME_ALICE, COM_GAME_FAKK2, COM_GAME_MOHAA }) {
         profile = id; Reset();
         for (int i = 0; i < 10; ++i) Frame(50, 1);
         assert(sv.time == 1500 && ticks.size() == 10 && sent == 0 && issued == 10);
@@ -164,15 +169,16 @@ static void OtherProfiles() {
         cl_paused->integer = 0; Frame(50, 1);
         assert(sv.time == 1550 && sent == 2 && issued == 12);
 
-        // These profiles scale their tick by timescale and send snapshots on
-        // the wall clock.
+        const bool fixed = id != COM_GAME_QUAKELIVE && id != COM_GAME_FAKK2 && id != COM_GAME_MOHAA;
         Reset(20, .5f);
         for (int i = 0; i < 20; ++i) Frame(25, 25);
-        assert(sv.time == 1500 && ticks.size() == 20u && sent == 10 && issued == 20);
+        assert(sv.time == 1500 && ticks.size() == (fixed ? 10u : 20u) && sent == 10 && issued == 20);
         Reset(20, 2); Frame(100, 50);
-        assert(sv.time == 1100 && sent == 1 && ticks == std::vector<int>{1100});
+        assert(sv.time == 1100 && sent == 1);
+        assert(ticks == (fixed ? std::vector<int>{1050,1100} : std::vector<int>{1100}));
         Reset(20, 3); Frame(150, 50); Frame(149, 50);
-        assert(ticks.size() == 1u && sv.time == 1150 && sv.timeResidual == 149);
+        assert(ticks.size() == (fixed ? 5u : 1u));
+        assert(sv.time == (fixed ? 1250 : 1150) && sv.timeResidual == (fixed ? 49 : 149));
         Reset(20, 0); Frame(0, 100);
         assert(sv.time == 1000 && ticks.empty() && sent == 1 && issued == 1);
         // Their dedicated servers run every frame through, owing a tick or not.
@@ -181,6 +187,29 @@ static void OtherProfiles() {
         assert(botFrames == std::vector<int>{1000});
     }
 }
+static void FractionalJediTime() {
+    for (auto id : {COM_GAME_JKA_SP, COM_GAME_JK2_SP}) {
+        profile = id; Reset(); fraction = .75f;
+        for (int i=0; i<28; ++i) Frame(1, 7);
+        assert(ticks.empty() && sv.timeResidual == 49 && sv.timeResidualFraction == 0);
+        Frame(1,7); assert(ticks == std::vector<int>{1050} && sv.timeResidualFraction == .75f);
+        cl_paused->integer=1; Frame(1,7); assert(sv.timeResidualFraction == .75f);
+        cl_paused->integer=0; Frame(1,7); assert(sv.timeResidual == 2 && sv.timeResidualFraction == .5f);
+        Reset(); assert(sv.timeResidualFraction == 0);
+    }
+    for (auto id : {COM_GAME_QUAKE3_IHV, COM_GAME_Q3TEST}) {
+        profile=id; Reset(20,3); Frame(150,50);
+        assert(ticks == (std::vector<int>{1050,1100,1150}));
+        Reset(20,.5f); Frame(25,50); assert(ticks.empty());
+        Frame(25,50); assert(ticks == std::vector<int>{1050});
+    }
+    profile=COM_GAME_QUAKELIVE;
+    // Integer division precedes QL's x87 product (1000 / 30 * .7 = 23).
+    Reset(30,.7f); Frame(23,33); assert(ticks == std::vector<int>{1023});
+    Reset(30,3); Frame(99,33); assert(ticks == std::vector<int>{1099});
+    Reset(20,.7f); Frame(34,50); assert(ticks == std::vector<int>{1034});
+}
+
 static void Holomatch() {
     // stvoyHM.exe 1.20 keeps a fixed tick under timescale (SV_Frame
     // 0x435252), and its server clock is the game clock, which moves only
@@ -358,7 +387,7 @@ int main() {
         ++rows;
     }
     assert(rows == 780);
-    OtherProfiles(); SnapshotBoundaries(); Holomatch();
+    OtherProfiles(); SnapshotBoundaries(); Holomatch(); FractionalJediTime();
     std::printf("%d retail cases x 18 clock combinations; six-profile boundary controls and Holomatch passed\n", rows);
 }
 '''
