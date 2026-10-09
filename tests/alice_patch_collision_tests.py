@@ -163,6 +163,29 @@ int main( void ) {
 			}
 		}
 		assert( CM_GeneratePatchCollide( 3, 3, points, SUBDIVIDE_DISTANCE )->numFacets == 1 );
+
+		/* Every release's first winding reaches 8192 units from the plane's
+		 * point nearest the origin, where Quake III's reaches 65535: a
+		 * 64-unit square standing in the x = 0 plane 10000 units out along
+		 * y is chopped away, and one 8000 units out is kept. */
+		for ( game = 0; game <= 4; game += 4 ) {
+			for ( i = 0; i < 2; i++ ) {
+				const float along = i ? 10000.0f : 8000.0f;
+				for ( j = 0; j < 9; j++ ) {
+					VectorSet( points[j], 0.0f, along + ( j % 3 ) * 32.0f, ( j / 3 ) * 32.0f );
+				}
+				assert( CM_GeneratePatchCollide( 3, 3, points, SUBDIVIDE_DISTANCE )->numFacets
+					== ( game == 4 && i ? 0 : 1 ) );
+			}
+		}
+		/* Its bounds start from +-99999: a square standing in the
+		 * x = 70000 plane spans nothing across x, where bounds started
+		 * from +-65535 would span 4465 units and drop it. */
+		for ( j = 0; j < 9; j++ ) {
+			VectorSet( points[j], 70000.0f, ( j % 3 ) * 32.0f, ( j / 3 ) * 32.0f );
+		}
+		game = 4;
+		assert( CM_GeneratePatchCollide( 3, 3, points, SUBDIVIDE_DISTANCE )->numFacets == 1 );
 		game = 0;
 	}
 	return 0;

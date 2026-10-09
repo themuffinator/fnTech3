@@ -30,6 +30,10 @@ when its winding spans no more than 4096 units on every axis, it gains no
 bevels, and every trace, a box's as well as a point's, runs the point
 algorithm, widened by the box, whenever cm_playerCurveClip is set or the trace
 is a point. Its position tests differ by release (CM_Q3TestPositionTest).
+Every release also cuts a facet's winding, as WolfMP.exe does, from one
+reaching 8192 units out from the plane's point nearest the origin
+(BaseWindingForPlane, 1.02 0x40b178..0x40b1c0, 1.08 0x40d6b8..0x40d700) and
+bounds it from +-99999 (WindingBounds, 1.02 0x40af79, 1.08 0x40d529).
 Observations: docs/fntech3/Q3TEST.md.
 */
 #define	Q3TEST_FACET_EXTENT		4096.0f
@@ -66,9 +70,14 @@ static const facetSizes_t *CM_FacetSizes( void ) {
 #ifndef BSPC
 	static const facetSizes_t rtcwSP = { 131072.0f, 131072.0f, 0.0f, 131072.0f };
 	static const facetSizes_t rtcwMP = { 8192.0f, 99999.0f, 4096.0f, 0.0f };
+	// CM_ValidateFacet reads Q3Test's extent with its own comparison
+	static const facetSizes_t q3test = { 8192.0f, 99999.0f, Q3TEST_FACET_EXTENT, 0.0f };
 
 	if ( CM_RTCWMPCurves() ) {
 		return &rtcwMP;
+	}
+	if ( CM_Q3TestCurves() ) {
+		return &q3test;
 	}
 	if ( Com_GameIsRTCWSP() ) {
 		return &rtcwSP;

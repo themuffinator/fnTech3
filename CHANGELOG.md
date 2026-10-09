@@ -2266,6 +2266,15 @@ historical upstream records, not fnTech3 release history. See the
   the entity's current position. In single player a sweep from a player no
   longer stops on the object that player carries, as in the original game
   ([record](docs/fntech3/2026-10-08-rtcw-entity-queries.md)).
+- Cut Q3Test's curves into pieces as every Q3Test release does, measuring
+  each piece within a square reaching 8192 units out from its plane's point
+  nearest the level's origin, where fnTech3 used Quake III's 65535. A curve
+  far from the origin no longer stops a shot or a player that a retail
+  server lets through, and a long one the square clips is kept where retail
+  keeps it. No shipped map has such a curve: each release's own curve code,
+  run beside fnTech3's, keeps the same pieces on every shipped curve and on
+  curves placed where the size decides
+  ([record](docs/fntech3/2026-10-09-q3test-facet-windings.md)).
 
 ### Builds and Packaging
 

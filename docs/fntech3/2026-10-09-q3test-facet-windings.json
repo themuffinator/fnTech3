@@ -1,0 +1,2723 @@
+{
+ "date": "2026-10-09",
+ "scope": "Q3Test curve facets: the winding each release cuts them from and the bounds it reads, against every release's retail executable",
+ "commits": {
+  "base": "e53ba098e0120e24c6e316df1d4fa35de374034b",
+  "change": "the commit adding this record"
+ },
+ "platform": "Windows 11, x86; clang (i686-pc-windows-msvc) harness; MSVC x86 dedicated servers on a private desktop",
+ "rule": {
+  "windingSize": 8192.0,
+  "boundsStart": 99999.0,
+  "extentLimit": 4096.0,
+  "before": {
+   "windingSize": 65535.0,
+   "boundsStart": 65535.0,
+   "extentLimit": 4096.0
+  },
+  "code": "code/qcommon/cm_patch.c CM_FacetSizes (Q3Test entry), used by CM_ValidateFacet"
+ },
+ "retailFacts": {
+  "1.02": {
+   "cmValidateFacet": "0x40a4a0",
+   "callsBaseWindingForPlane": "0x40a4f0",
+   "baseWindingForPlane": "0x40b070",
+   "multipliesBy8192": [
+    "0x40b178",
+    "0x40b188",
+    "0x40b196",
+    "0x40b1a4",
+    "0x40b1b2",
+    "0x40b1c0"
+   ],
+   "callsWindingBounds": "0x40a5cf",
+   "windingBounds": "0x40af70",
+   "boundsStart99999": "0x40af79",
+   "extentCompare4096": "0x40a5ec",
+   "otherBaseWindingForPlaneCaller": {
+    "site": "0x40a9bf",
+    "note": "CM_DrawDebugSurface (registers cm_debugSize); drawing only"
+   }
+  },
+  "1.03": {
+   "cmValidateFacet": "0x40a8a0",
+   "callsBaseWindingForPlane": "0x40a8f0",
+   "baseWindingForPlane": "0x40b470",
+   "multipliesBy8192": [
+    "0x40b578",
+    "0x40b588",
+    "0x40b596",
+    "0x40b5a4",
+    "0x40b5b2",
+    "0x40b5c0"
+   ],
+   "callsWindingBounds": "0x40a9cf",
+   "windingBounds": "0x40b370",
+   "boundsStart99999": "0x40b379",
+   "extentCompare4096": "0x40a9ec",
+   "otherBaseWindingForPlaneCaller": {
+    "site": "0x40adbf",
+    "note": "CM_DrawDebugSurface (registers cm_debugSize); drawing only"
+   }
+  },
+  "1.05": {
+   "cmValidateFacet": "0x40aca0",
+   "callsBaseWindingForPlane": "0x40acf0",
+   "baseWindingForPlane": "0x40b950",
+   "multipliesBy8192": [
+    "0x40ba58",
+    "0x40ba68",
+    "0x40ba76",
+    "0x40ba84",
+    "0x40ba92",
+    "0x40baa0"
+   ],
+   "callsWindingBounds": "0x40adcf",
+   "windingBounds": "0x40b850",
+   "boundsStart99999": "0x40b859",
+   "extentCompare4096": "0x40adec",
+   "otherBaseWindingForPlaneCaller": {
+    "site": "0x40b29f",
+    "note": "CM_DrawDebugSurface (registers cm_debugSize); drawing only"
+   }
+  },
+  "1.06": {
+   "cmValidateFacet": "0x40c280",
+   "callsBaseWindingForPlane": "0x40c2d0",
+   "baseWindingForPlane": "0x40cc00",
+   "multipliesBy8192": [
+    "0x40cd08",
+    "0x40cd18",
+    "0x40cd26",
+    "0x40cd34",
+    "0x40cd42",
+    "0x40cd50"
+   ],
+   "callsWindingBounds": "0x40c3af",
+   "windingBounds": "0x40cb70",
+   "boundsStart99999": "0x40cb79",
+   "extentCompare4096": "0x40c3cc",
+   "otherBaseWindingForPlaneCaller": {
+    "site": "0x40c8ba",
+    "note": "CM_DrawDebugSurface (registers cm_debugSize); drawing only"
+   }
+  },
+  "1.07": {
+   "cmValidateFacet": "0x40c2c0",
+   "callsBaseWindingForPlane": "0x40c310",
+   "baseWindingForPlane": "0x40cc40",
+   "multipliesBy8192": [
+    "0x40cd48",
+    "0x40cd58",
+    "0x40cd66",
+    "0x40cd74",
+    "0x40cd82",
+    "0x40cd90"
+   ],
+   "callsWindingBounds": "0x40c3ef",
+   "windingBounds": "0x40cbb0",
+   "boundsStart99999": "0x40cbb9",
+   "extentCompare4096": "0x40c40c",
+   "otherBaseWindingForPlaneCaller": {
+    "site": "0x40c8fa",
+    "note": "CM_DrawDebugSurface (registers cm_debugSize); drawing only"
+   }
+  },
+  "1.08": {
+   "cmValidateFacet": "0x40cc30",
+   "callsBaseWindingForPlane": "0x40cc80",
+   "baseWindingForPlane": "0x40d5b0",
+   "multipliesBy8192": [
+    "0x40d6b8",
+    "0x40d6c8",
+    "0x40d6d6",
+    "0x40d6e4",
+    "0x40d6f2",
+    "0x40d700"
+   ],
+   "callsWindingBounds": "0x40cd5f",
+   "windingBounds": "0x40d520",
+   "boundsStart99999": "0x40d529",
+   "extentCompare4096": "0x40cd7c",
+   "otherBaseWindingForPlaneCaller": {
+    "site": "0x40d26a",
+    "note": "CM_DrawDebugSurface (registers cm_debugSize); drawing only"
+   }
+  }
+ },
+ "inProcess": {
+  "tool": ".tmp/q3test-facet/retail_facets.py with stub.c (not committed)",
+  "host": "a CRT-free stub linked fixed at 0x400000 whose .bss spans each retail image (relocations stripped); a harness DLL copies the retail sections over that range in memory and runs them",
+  "redirected": [
+   "Com_Error (longjmp back to the harness)",
+   "Com_Printf",
+   "Hunk_Alloc",
+   "Z_Malloc",
+   "Z_Free"
+  ],
+  "entry": "CM_GeneratePatchCollide( width, height, points ), cdecl; patchCollide_t 40 bytes, facet_t 56 bytes, patchPlane_t 20 bytes (sizes read from the facet and plane copies, e.g. 1.08 0x40c2f0..0x40c338)",
+  "x87ControlWord": "9001f (_control87 form: 53-bit precision, round to nearest, all exceptions masked; Windows' default for a new thread). The generator's call graph in 1.02 to 1.05 holds no control-word instruction",
+  "fntech3Generator": "code/qcommon/cm_patch.c sliced as tests/alice_patch_collision_tests.py does, game = Q3Test, compiled into the same process: HEAD e53ba098 and the change",
+  "synthetic": [
+   {
+    "case": "stand-y8000",
+    "retailFacets": 1,
+    "headFacets": 1,
+    "changedFacets": 1
+   },
+   {
+    "case": "stand-y8100",
+    "retailFacets": 1,
+    "headFacets": 1,
+    "changedFacets": 1
+   },
+   {
+    "case": "stand-y8127",
+    "retailFacets": 1,
+    "headFacets": 1,
+    "changedFacets": 1
+   },
+   {
+    "case": "stand-y8128",
+    "retailFacets": 1,
+    "headFacets": 1,
+    "changedFacets": 1
+   },
+   {
+    "case": "stand-y8129",
+    "retailFacets": 1,
+    "headFacets": 1,
+    "changedFacets": 1
+   },
+   {
+    "case": "stand-y8160",
+    "retailFacets": 1,
+    "headFacets": 1,
+    "changedFacets": 1
+   },
+   {
+    "case": "stand-y8191",
+    "retailFacets": 1,
+    "headFacets": 1,
+    "changedFacets": 1
+   },
+   {
+    "case": "stand-y8192",
+    "retailFacets": 0,
+    "headFacets": 1,
+    "changedFacets": 0
+   },
+   {
+    "case": "stand-y8193",
+    "retailFacets": 0,
+    "headFacets": 1,
+    "changedFacets": 0
+   },
+   {
+    "case": "stand-y8200",
+    "retailFacets": 0,
+    "headFacets": 1,
+    "changedFacets": 0
+   },
+   {
+    "case": "stand-y8300",
+    "retailFacets": 0,
+    "headFacets": 1,
+    "changedFacets": 0
+   },
+   {
+    "case": "stand-y10000",
+    "retailFacets": 0,
+    "headFacets": 1,
+    "changedFacets": 0
+   },
+   {
+    "case": "stand-y20000",
+    "retailFacets": 0,
+    "headFacets": 1,
+    "changedFacets": 0
+   },
+   {
+    "case": "stand-y60000",
+    "retailFacets": 0,
+    "headFacets": 1,
+    "changedFacets": 0
+   },
+   {
+    "case": "stand-y65000",
+    "retailFacets": 0,
+    "headFacets": 1,
+    "changedFacets": 0
+   },
+   {
+    "case": "flat-w4000",
+    "retailFacets": 1,
+    "headFacets": 1,
+    "changedFacets": 1
+   },
+   {
+    "case": "flat-w4095",
+    "retailFacets": 1,
+    "headFacets": 1,
+    "changedFacets": 1
+   },
+   {
+    "case": "flat-w4096",
+    "retailFacets": 1,
+    "headFacets": 1,
+    "changedFacets": 1
+   },
+   {
+    "case": "flat-w4097",
+    "retailFacets": 0,
+    "headFacets": 0,
+    "changedFacets": 0
+   },
+   {
+    "case": "flat-w4200",
+    "retailFacets": 0,
+    "headFacets": 0,
+    "changedFacets": 0
+   },
+   {
+    "case": "flat-w5000",
+    "retailFacets": 0,
+    "headFacets": 0,
+    "changedFacets": 0
+   },
+   {
+    "case": "flat-w8000",
+    "retailFacets": 0,
+    "headFacets": 0,
+    "changedFacets": 0
+   },
+   {
+    "case": "strip-y5000-l5000",
+    "retailFacets": 1,
+    "headFacets": 0,
+    "changedFacets": 1
+   },
+   {
+    "case": "strip-y3000-l5000",
+    "retailFacets": 0,
+    "headFacets": 0,
+    "changedFacets": 0
+   },
+   {
+    "case": "plane-x65000",
+    "retailFacets": 1,
+    "headFacets": 1,
+    "changedFacets": 1
+   },
+   {
+    "case": "plane-x66000",
+    "retailFacets": 1,
+    "headFacets": 1,
+    "changedFacets": 1
+   },
+   {
+    "case": "plane-x70000",
+    "retailFacets": 1,
+    "headFacets": 0,
+    "changedFacets": 1
+   },
+   {
+    "case": "plane-x99000",
+    "retailFacets": 1,
+    "headFacets": 0,
+    "changedFacets": 1
+   },
+   {
+    "case": "plane-x100000",
+    "retailFacets": 1,
+    "headFacets": 0,
+    "changedFacets": 1
+   },
+   {
+    "case": "plane-x103999",
+    "retailFacets": 1,
+    "headFacets": 0,
+    "changedFacets": 1
+   },
+   {
+    "case": "plane-x104090",
+    "retailFacets": 1,
+    "headFacets": 0,
+    "changedFacets": 1
+   },
+   {
+    "case": "plane-x104100",
+    "retailFacets": 0,
+    "headFacets": 0,
+    "changedFacets": 0
+   },
+   {
+    "case": "plane-x104200",
+    "retailFacets": 0,
+    "headFacets": 0,
+    "changedFacets": 0
+   },
+   {
+    "case": "plane-x110000",
+    "retailFacets": 0,
+    "headFacets": 0,
+    "changedFacets": 0
+   },
+   {
+    "case": "slant-y9000",
+    "retailFacets": 1,
+    "headFacets": 1,
+    "changedFacets": 1
+   },
+   {
+    "case": "slant-y5000",
+    "retailFacets": 1,
+    "headFacets": 1,
+    "changedFacets": 1
+   }
+  ],
+  "releases": {
+   "1.02": {
+    "addresses": {
+     "base": "0x400000",
+     "generate": "0x408d90",
+     "comError": "0x40eac0",
+     "comPrintf": "0x40e930",
+     "hunkAlloc": "0x40f0f0",
+     "zMalloc": "0x40ef20",
+     "zFree": "0x40eea0"
+    },
+    "maps": [
+     "pak0.pk3:maps/Q3TEST1.bsp",
+     "pak0.pk3:maps/Q3TEST2.bsp"
+    ],
+    "shippedPatches": 217,
+    "shippedFacetsRetail": 1320,
+    "shippedFacetsChanged": 1320,
+    "shippedFacetsHead": 1320,
+    "casesDifferingFromRetail": {
+     "head": [
+      "stand-y8192",
+      "stand-y8193",
+      "stand-y8200",
+      "stand-y8300",
+      "stand-y10000",
+      "stand-y20000",
+      "stand-y60000",
+      "stand-y65000",
+      "strip-y5000-l5000",
+      "plane-x70000",
+      "plane-x99000",
+      "plane-x100000",
+      "plane-x103999",
+      "plane-x104090"
+     ],
+     "changed": []
+    },
+    "facetShapesDifferingFromRetail": {
+     "head": [
+      "stand-y8192",
+      "stand-y8193",
+      "stand-y8200",
+      "stand-y8300",
+      "stand-y10000",
+      "stand-y20000",
+      "stand-y60000",
+      "stand-y65000",
+      "strip-y5000-l5000",
+      "plane-x70000",
+      "plane-x99000",
+      "plane-x100000",
+      "plane-x103999",
+      "plane-x104090"
+     ],
+     "changed": []
+    },
+    "worstPlaneDifferenceChanged": 0.00225799999998344,
+    "retailErrors": {},
+    "retailPrints": 0
+   },
+   "1.03": {
+    "addresses": {
+     "base": "0x400000",
+     "generate": "0x409190",
+     "comError": "0x40ee00",
+     "comPrintf": "0x40ec70",
+     "hunkAlloc": "0x40f440",
+     "zMalloc": "0x40f270",
+     "zFree": "0x40f1f0"
+    },
+    "maps": [
+     "pak0.pk3:maps/Q3TEST1.bsp",
+     "pak0.pk3:maps/Q3TEST2.bsp"
+    ],
+    "shippedPatches": 217,
+    "shippedFacetsRetail": 1320,
+    "shippedFacetsChanged": 1320,
+    "shippedFacetsHead": 1320,
+    "casesDifferingFromRetail": {
+     "head": [
+      "stand-y8192",
+      "stand-y8193",
+      "stand-y8200",
+      "stand-y8300",
+      "stand-y10000",
+      "stand-y20000",
+      "stand-y60000",
+      "stand-y65000",
+      "strip-y5000-l5000",
+      "plane-x70000",
+      "plane-x99000",
+      "plane-x100000",
+      "plane-x103999",
+      "plane-x104090"
+     ],
+     "changed": []
+    },
+    "facetShapesDifferingFromRetail": {
+     "head": [
+      "stand-y8192",
+      "stand-y8193",
+      "stand-y8200",
+      "stand-y8300",
+      "stand-y10000",
+      "stand-y20000",
+      "stand-y60000",
+      "stand-y65000",
+      "strip-y5000-l5000",
+      "plane-x70000",
+      "plane-x99000",
+      "plane-x100000",
+      "plane-x103999",
+      "plane-x104090"
+     ],
+     "changed": []
+    },
+    "worstPlaneDifferenceChanged": 0.00225799999998344,
+    "retailErrors": {},
+    "retailPrints": 0
+   },
+   "1.05": {
+    "addresses": {
+     "base": "0x400000",
+     "generate": "0x409590",
+     "comError": "0x40f2e0",
+     "comPrintf": "0x40f150",
+     "hunkAlloc": "0x40f930",
+     "zMalloc": "0x40f760",
+     "zFree": "0x40f6d0"
+    },
+    "maps": [
+     "pak0.pk3:maps/Q3TEST1.bsp",
+     "pak0.pk3:maps/Q3TEST2.bsp"
+    ],
+    "shippedPatches": 209,
+    "shippedFacetsRetail": 1190,
+    "shippedFacetsChanged": 1190,
+    "shippedFacetsHead": 1190,
+    "casesDifferingFromRetail": {
+     "head": [
+      "stand-y8192",
+      "stand-y8193",
+      "stand-y8200",
+      "stand-y8300",
+      "stand-y10000",
+      "stand-y20000",
+      "stand-y60000",
+      "stand-y65000",
+      "strip-y5000-l5000",
+      "plane-x70000",
+      "plane-x99000",
+      "plane-x100000",
+      "plane-x103999",
+      "plane-x104090"
+     ],
+     "changed": []
+    },
+    "facetShapesDifferingFromRetail": {
+     "head": [
+      "stand-y8192",
+      "stand-y8193",
+      "stand-y8200",
+      "stand-y8300",
+      "stand-y10000",
+      "stand-y20000",
+      "stand-y60000",
+      "stand-y65000",
+      "strip-y5000-l5000",
+      "plane-x70000",
+      "plane-x99000",
+      "plane-x100000",
+      "plane-x103999",
+      "plane-x104090"
+     ],
+     "changed": []
+    },
+    "worstPlaneDifferenceChanged": 0.002060000000000173,
+    "retailErrors": {},
+    "retailPrints": 0
+   },
+   "1.06": {
+    "addresses": {
+     "base": "0x400000",
+     "generate": "0x40ab70",
+     "comError": "0x40fbc0",
+     "comPrintf": "0x40fa30",
+     "hunkAlloc": "0x410210",
+     "zMalloc": "0x410040",
+     "zFree": "0x40ffb0"
+    },
+    "maps": [
+     "pak0.pk3:maps/q3test1.bsp",
+     "pak0.pk3:maps/q3test2.bsp",
+     "pak0.pk3:maps/Q3TOURNEY.bsp"
+    ],
+    "shippedPatches": 435,
+    "shippedFacetsRetail": 1800,
+    "shippedFacetsChanged": 1800,
+    "shippedFacetsHead": 1800,
+    "casesDifferingFromRetail": {
+     "head": [
+      "stand-y8192",
+      "stand-y8193",
+      "stand-y8200",
+      "stand-y8300",
+      "stand-y10000",
+      "stand-y20000",
+      "stand-y60000",
+      "stand-y65000",
+      "strip-y5000-l5000",
+      "plane-x70000",
+      "plane-x99000",
+      "plane-x100000",
+      "plane-x103999",
+      "plane-x104090"
+     ],
+     "changed": []
+    },
+    "facetShapesDifferingFromRetail": {
+     "head": [
+      "stand-y8192",
+      "stand-y8193",
+      "stand-y8200",
+      "stand-y8300",
+      "stand-y10000",
+      "stand-y20000",
+      "stand-y60000",
+      "stand-y65000",
+      "strip-y5000-l5000",
+      "plane-x70000",
+      "plane-x99000",
+      "plane-x100000",
+      "plane-x103999",
+      "plane-x104090"
+     ],
+     "changed": []
+    },
+    "worstPlaneDifferenceChanged": 0.002060000000000173,
+    "retailErrors": {},
+    "retailPrints": 0
+   },
+   "1.07": {
+    "addresses": {
+     "base": "0x400000",
+     "generate": "0x40abb0",
+     "comError": "0x40fc00",
+     "comPrintf": "0x40fa70",
+     "hunkAlloc": "0x410250",
+     "zMalloc": "0x410080",
+     "zFree": "0x40fff0"
+    },
+    "maps": [
+     "pak0.pk3:maps/q3test1.bsp",
+     "pak0.pk3:maps/q3test2.bsp",
+     "pak1.pk3:maps/q3tourney.bsp"
+    ],
+    "shippedPatches": 435,
+    "shippedFacetsRetail": 1800,
+    "shippedFacetsChanged": 1800,
+    "shippedFacetsHead": 1800,
+    "casesDifferingFromRetail": {
+     "head": [
+      "stand-y8192",
+      "stand-y8193",
+      "stand-y8200",
+      "stand-y8300",
+      "stand-y10000",
+      "stand-y20000",
+      "stand-y60000",
+      "stand-y65000",
+      "strip-y5000-l5000",
+      "plane-x70000",
+      "plane-x99000",
+      "plane-x100000",
+      "plane-x103999",
+      "plane-x104090"
+     ],
+     "changed": []
+    },
+    "facetShapesDifferingFromRetail": {
+     "head": [
+      "stand-y8192",
+      "stand-y8193",
+      "stand-y8200",
+      "stand-y8300",
+      "stand-y10000",
+      "stand-y20000",
+      "stand-y60000",
+      "stand-y65000",
+      "strip-y5000-l5000",
+      "plane-x70000",
+      "plane-x99000",
+      "plane-x100000",
+      "plane-x103999",
+      "plane-x104090"
+     ],
+     "changed": []
+    },
+    "worstPlaneDifferenceChanged": 0.002060000000000173,
+    "retailErrors": {},
+    "retailPrints": 0
+   },
+   "1.08": {
+    "addresses": {
+     "base": "0x400000",
+     "generate": "0x40b520",
+     "comError": "0x410580",
+     "comPrintf": "0x4103f0",
+     "hunkAlloc": "0x410bd0",
+     "zMalloc": "0x410a00",
+     "zFree": "0x410970"
+    },
+    "maps": [
+     "pak0.pk3:maps/q3test1.bsp",
+     "pak0.pk3:maps/q3test2.bsp",
+     "pak0.pk3:maps/q3tourney.bsp"
+    ],
+    "shippedPatches": 435,
+    "shippedFacetsRetail": 1800,
+    "shippedFacetsChanged": 1800,
+    "shippedFacetsHead": 1800,
+    "casesDifferingFromRetail": {
+     "head": [
+      "stand-y8192",
+      "stand-y8193",
+      "stand-y8200",
+      "stand-y8300",
+      "stand-y10000",
+      "stand-y20000",
+      "stand-y60000",
+      "stand-y65000",
+      "strip-y5000-l5000",
+      "plane-x70000",
+      "plane-x99000",
+      "plane-x100000",
+      "plane-x103999",
+      "plane-x104090"
+     ],
+     "changed": []
+    },
+    "facetShapesDifferingFromRetail": {
+     "head": [
+      "stand-y8192",
+      "stand-y8193",
+      "stand-y8200",
+      "stand-y8300",
+      "stand-y10000",
+      "stand-y20000",
+      "stand-y60000",
+      "stand-y65000",
+      "strip-y5000-l5000",
+      "plane-x70000",
+      "plane-x99000",
+      "plane-x100000",
+      "plane-x103999",
+      "plane-x104090"
+     ],
+     "changed": []
+    },
+    "worstPlaneDifferenceChanged": 0.002060000000000173,
+    "retailErrors": {},
+    "retailPrints": 0
+   }
+  }
+ },
+ "shippedMapFacets": {
+  "tool": ".tmp/q3test-facet/count_facets.py (not committed)",
+  "maps": [
+   {
+    "release": "1.02",
+    "map": "pak0.pk3:maps/Q3TEST1.bsp",
+    "patches": 183,
+    "facetsHead": 1108,
+    "facetsChanged": 1108,
+    "facetsOnlyHead": 0,
+    "facetsOnlyChanged": 0
+   },
+   {
+    "release": "1.02",
+    "map": "pak0.pk3:maps/Q3TEST2.bsp",
+    "patches": 34,
+    "facetsHead": 212,
+    "facetsChanged": 212,
+    "facetsOnlyHead": 0,
+    "facetsOnlyChanged": 0
+   },
+   {
+    "release": "1.03",
+    "map": "pak0.pk3:maps/Q3TEST1.bsp",
+    "patches": 183,
+    "facetsHead": 1108,
+    "facetsChanged": 1108,
+    "facetsOnlyHead": 0,
+    "facetsOnlyChanged": 0
+   },
+   {
+    "release": "1.03",
+    "map": "pak0.pk3:maps/Q3TEST2.bsp",
+    "patches": 34,
+    "facetsHead": 212,
+    "facetsChanged": 212,
+    "facetsOnlyHead": 0,
+    "facetsOnlyChanged": 0
+   },
+   {
+    "release": "1.05",
+    "map": "pak0.pk3:maps/Q3TEST1.bsp",
+    "patches": 177,
+    "facetsHead": 1010,
+    "facetsChanged": 1010,
+    "facetsOnlyHead": 0,
+    "facetsOnlyChanged": 0
+   },
+   {
+    "release": "1.05",
+    "map": "pak0.pk3:maps/Q3TEST2.bsp",
+    "patches": 32,
+    "facetsHead": 180,
+    "facetsChanged": 180,
+    "facetsOnlyHead": 0,
+    "facetsOnlyChanged": 0
+   },
+   {
+    "release": "1.06",
+    "map": "pak0.pk3:maps/Q3TOURNEY.bsp",
+    "patches": 215,
+    "facetsHead": 594,
+    "facetsChanged": 594,
+    "facetsOnlyHead": 0,
+    "facetsOnlyChanged": 0
+   },
+   {
+    "release": "1.06",
+    "map": "pak0.pk3:maps/q3test1.bsp",
+    "patches": 188,
+    "facetsHead": 1026,
+    "facetsChanged": 1026,
+    "facetsOnlyHead": 0,
+    "facetsOnlyChanged": 0
+   },
+   {
+    "release": "1.06",
+    "map": "pak0.pk3:maps/q3test2.bsp",
+    "patches": 32,
+    "facetsHead": 180,
+    "facetsChanged": 180,
+    "facetsOnlyHead": 0,
+    "facetsOnlyChanged": 0
+   },
+   {
+    "release": "1.07",
+    "map": "pak0.pk3:maps/Q3TOURNEY.bsp",
+    "patches": 215,
+    "facetsHead": 594,
+    "facetsChanged": 594,
+    "facetsOnlyHead": 0,
+    "facetsOnlyChanged": 0
+   },
+   {
+    "release": "1.07",
+    "map": "pak0.pk3:maps/q3test1.bsp",
+    "patches": 188,
+    "facetsHead": 1026,
+    "facetsChanged": 1026,
+    "facetsOnlyHead": 0,
+    "facetsOnlyChanged": 0
+   },
+   {
+    "release": "1.07",
+    "map": "pak0.pk3:maps/q3test2.bsp",
+    "patches": 32,
+    "facetsHead": 180,
+    "facetsChanged": 180,
+    "facetsOnlyHead": 0,
+    "facetsOnlyChanged": 0
+   },
+   {
+    "release": "1.07",
+    "map": "pak1.pk3:maps/q3tourney.bsp",
+    "patches": 215,
+    "facetsHead": 594,
+    "facetsChanged": 594,
+    "facetsOnlyHead": 0,
+    "facetsOnlyChanged": 0
+   },
+   {
+    "release": "1.08",
+    "map": "pak0.pk3:maps/q3test1.bsp",
+    "patches": 188,
+    "facetsHead": 1026,
+    "facetsChanged": 1026,
+    "facetsOnlyHead": 0,
+    "facetsOnlyChanged": 0
+   },
+   {
+    "release": "1.08",
+    "map": "pak0.pk3:maps/q3test2.bsp",
+    "patches": 32,
+    "facetsHead": 180,
+    "facetsChanged": 180,
+    "facetsOnlyHead": 0,
+    "facetsOnlyChanged": 0
+   },
+   {
+    "release": "1.08",
+    "map": "pak0.pk3:maps/q3tourney.bsp",
+    "patches": 215,
+    "facetsHead": 594,
+    "facetsChanged": 594,
+    "facetsOnlyHead": 0,
+    "facetsOnlyChanged": 0
+   }
+  ]
+ },
+ "sweep": {
+  "method": "docs/fntech3/2026-10-08-q3test-traces.md batteries (seed 20261008, 300 per shape); one retail run and two fnTech3 runs per map; q3tourney added for 1.06-1.08; fnTech3 servers with net_enabled 0",
+  "tool": ".tmp/q3test-facet/run_pair.py, run_all.sh; .tmp/q3test-trace/compare.py (not committed)",
+  "headServer": {
+   "path": ".tmp/runtime/q3test-facet-before/fntech3.ded.exe",
+   "source": "git archive of e53ba098, -Dbuild-client=false, win32-dev options"
+  },
+  "changedServer": {
+   "path": ".tmp/runtime/q3test-facet-after/fntech3.ded.exe",
+   "source": "the same export with this change to cm_patch.c"
+  },
+  "runs": [
+   {
+    "release": "1.02",
+    "map": "q3test1",
+    "bspVersion": 44,
+    "brushModels": 7,
+    "worldMins": [
+     -404.0,
+     -2652.0,
+     -688.0
+    ],
+    "worldMaxs": [
+     2498.0,
+     552.0,
+     1024.0
+    ],
+    "seed": 20261008,
+    "perShapeCount": 300,
+    "moduleSha256": "bd30252c649c6dbc7a98811c8fecbeda0a0d0cc2617e1c3b8286c458b42b7b4d",
+    "moduleStamp": "37228c03",
+    "retailExecutableSha256": "86da36081878d5586d5621709f48a7e621db3c24d33fa4b45838b08d01020d4a",
+    "headExecutableSha256": "f5f813b4ea7b711c74e9f6273709470fe7cda9d700a2cd42b15347d6475a6fef",
+    "changedExecutableSha256": "849f4b3ec15a119537762a925305153f1da4c9a917a7aa732fcf0085849a54cc",
+    "answerLines": 7743,
+    "headAndChangedAnswersIdentical": true,
+    "changed": {
+     "traces": 6030,
+     "tally": {
+      "exact": 5244,
+      "within 0.01 unit": 786
+     },
+     "worst": {
+      "fraction": 3.337860107421875e-06,
+      "endpos": 0.0025634765625
+     },
+     "entityTraces": 630,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 7,
+     "linkFlagsSame": 7,
+     "linksSame": 7,
+     "linkWorst": 0.0,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "head": {
+     "traces": 6030,
+     "tally": {
+      "exact": 5244,
+      "within 0.01 unit": 786
+     },
+     "worst": {
+      "fraction": 3.337860107421875e-06,
+      "endpos": 0.0025634765625
+     },
+     "entityTraces": 630,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 7,
+     "linkFlagsSame": 7,
+     "linksSame": 7,
+     "linkWorst": 0.0,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "differingTraces": [],
+    "fntech3CommandTail": [
+     "+set",
+     "com_gameProfile",
+     "q3test",
+     "+set",
+     "fs_basepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.02-q3test1\\after\\base",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.02-q3test1\\after\\home",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "bot_enable",
+     "0",
+     "+set",
+     "tr_seed",
+     "20261008",
+     "+set",
+     "tr_count",
+     "300",
+     "+set",
+     "tr_models",
+     "7",
+     "+set",
+     "tr_mins",
+     "-404 -2652 -688",
+     "+set",
+     "tr_maxs",
+     "2498 552 1024",
+     "+map",
+     "q3test1"
+    ]
+   },
+   {
+    "release": "1.02",
+    "map": "q3test2",
+    "bspVersion": 44,
+    "brushModels": 19,
+    "worldMins": [
+     -2364.0,
+     -2936.0,
+     -2432.0
+    ],
+    "worldMaxs": [
+     3232.0,
+     2695.927001953125,
+     1984.0
+    ],
+    "seed": 20261008,
+    "perShapeCount": 300,
+    "moduleSha256": "bd30252c649c6dbc7a98811c8fecbeda0a0d0cc2617e1c3b8286c458b42b7b4d",
+    "moduleStamp": "37228c03",
+    "retailExecutableSha256": "86da36081878d5586d5621709f48a7e621db3c24d33fa4b45838b08d01020d4a",
+    "headExecutableSha256": "f5f813b4ea7b711c74e9f6273709470fe7cda9d700a2cd42b15347d6475a6fef",
+    "changedExecutableSha256": "849f4b3ec15a119537762a925305153f1da4c9a917a7aa732fcf0085849a54cc",
+    "answerLines": 8835,
+    "headAndChangedAnswersIdentical": true,
+    "changed": {
+     "traces": 7110,
+     "tally": {
+      "exact": 6262,
+      "within 0.01 unit": 848
+     },
+     "worst": {
+      "fraction": 3.5390257835388184e-06,
+      "endpos": 0.0013427734375
+     },
+     "entityTraces": 1710,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 19,
+     "linkFlagsSame": 19,
+     "linksSame": 19,
+     "linkWorst": 0.0,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "head": {
+     "traces": 7110,
+     "tally": {
+      "exact": 6262,
+      "within 0.01 unit": 848
+     },
+     "worst": {
+      "fraction": 3.5390257835388184e-06,
+      "endpos": 0.0013427734375
+     },
+     "entityTraces": 1710,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 19,
+     "linkFlagsSame": 19,
+     "linksSame": 19,
+     "linkWorst": 0.0,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "differingTraces": [],
+    "fntech3CommandTail": [
+     "+set",
+     "com_gameProfile",
+     "q3test",
+     "+set",
+     "fs_basepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.02-q3test2\\after\\base",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.02-q3test2\\after\\home",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "bot_enable",
+     "0",
+     "+set",
+     "tr_seed",
+     "20261008",
+     "+set",
+     "tr_count",
+     "300",
+     "+set",
+     "tr_models",
+     "19",
+     "+set",
+     "tr_mins",
+     "-2364 -2936 -2432",
+     "+set",
+     "tr_maxs",
+     "3232 2695.93 1984",
+     "+map",
+     "q3test2"
+    ]
+   },
+   {
+    "release": "1.03",
+    "map": "q3test1",
+    "bspVersion": 44,
+    "brushModels": 7,
+    "worldMins": [
+     -404.0,
+     -2652.0,
+     -688.0
+    ],
+    "worldMaxs": [
+     2498.0,
+     552.0,
+     1024.0
+    ],
+    "seed": 20261008,
+    "perShapeCount": 300,
+    "moduleSha256": "dd752d1bf670b1571bf7ade616ef96b0f6375f85c6afe6fc2d26df3b8913798f",
+    "moduleStamp": "3727df48",
+    "retailExecutableSha256": "313ed8d1b71296b834b806b64c0f5929eb5bdd05eb7ce96b9c7fdb7369ecbf79",
+    "headExecutableSha256": "f5f813b4ea7b711c74e9f6273709470fe7cda9d700a2cd42b15347d6475a6fef",
+    "changedExecutableSha256": "849f4b3ec15a119537762a925305153f1da4c9a917a7aa732fcf0085849a54cc",
+    "answerLines": 7743,
+    "headAndChangedAnswersIdentical": true,
+    "changed": {
+     "traces": 6030,
+     "tally": {
+      "exact": 5244,
+      "within 0.01 unit": 786
+     },
+     "worst": {
+      "fraction": 3.337860107421875e-06,
+      "endpos": 0.0025634765625
+     },
+     "entityTraces": 630,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 7,
+     "linkFlagsSame": 7,
+     "linksSame": 7,
+     "linkWorst": 0.0,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "head": {
+     "traces": 6030,
+     "tally": {
+      "exact": 5244,
+      "within 0.01 unit": 786
+     },
+     "worst": {
+      "fraction": 3.337860107421875e-06,
+      "endpos": 0.0025634765625
+     },
+     "entityTraces": 630,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 7,
+     "linkFlagsSame": 7,
+     "linksSame": 7,
+     "linkWorst": 0.0,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "differingTraces": [],
+    "fntech3CommandTail": [
+     "+set",
+     "com_gameProfile",
+     "q3test",
+     "+set",
+     "fs_basepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.03-q3test1\\after\\base",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.03-q3test1\\after\\home",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "bot_enable",
+     "0",
+     "+set",
+     "tr_seed",
+     "20261008",
+     "+set",
+     "tr_count",
+     "300",
+     "+set",
+     "tr_models",
+     "7",
+     "+set",
+     "tr_mins",
+     "-404 -2652 -688",
+     "+set",
+     "tr_maxs",
+     "2498 552 1024",
+     "+map",
+     "q3test1"
+    ]
+   },
+   {
+    "release": "1.03",
+    "map": "q3test2",
+    "bspVersion": 44,
+    "brushModels": 19,
+    "worldMins": [
+     -2364.0,
+     -2936.0,
+     -2432.0
+    ],
+    "worldMaxs": [
+     3232.0,
+     2695.927001953125,
+     1984.0
+    ],
+    "seed": 20261008,
+    "perShapeCount": 300,
+    "moduleSha256": "dd752d1bf670b1571bf7ade616ef96b0f6375f85c6afe6fc2d26df3b8913798f",
+    "moduleStamp": "3727df48",
+    "retailExecutableSha256": "313ed8d1b71296b834b806b64c0f5929eb5bdd05eb7ce96b9c7fdb7369ecbf79",
+    "headExecutableSha256": "f5f813b4ea7b711c74e9f6273709470fe7cda9d700a2cd42b15347d6475a6fef",
+    "changedExecutableSha256": "849f4b3ec15a119537762a925305153f1da4c9a917a7aa732fcf0085849a54cc",
+    "answerLines": 8835,
+    "headAndChangedAnswersIdentical": true,
+    "changed": {
+     "traces": 7110,
+     "tally": {
+      "exact": 6262,
+      "within 0.01 unit": 848
+     },
+     "worst": {
+      "fraction": 3.5390257835388184e-06,
+      "endpos": 0.0013427734375
+     },
+     "entityTraces": 1710,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 19,
+     "linkFlagsSame": 19,
+     "linksSame": 19,
+     "linkWorst": 0.0,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "head": {
+     "traces": 7110,
+     "tally": {
+      "exact": 6262,
+      "within 0.01 unit": 848
+     },
+     "worst": {
+      "fraction": 3.5390257835388184e-06,
+      "endpos": 0.0013427734375
+     },
+     "entityTraces": 1710,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 19,
+     "linkFlagsSame": 19,
+     "linksSame": 19,
+     "linkWorst": 0.0,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "differingTraces": [],
+    "fntech3CommandTail": [
+     "+set",
+     "com_gameProfile",
+     "q3test",
+     "+set",
+     "fs_basepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.03-q3test2\\after\\base",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.03-q3test2\\after\\home",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "bot_enable",
+     "0",
+     "+set",
+     "tr_seed",
+     "20261008",
+     "+set",
+     "tr_count",
+     "300",
+     "+set",
+     "tr_models",
+     "19",
+     "+set",
+     "tr_mins",
+     "-2364 -2936 -2432",
+     "+set",
+     "tr_maxs",
+     "3232 2695.93 1984",
+     "+map",
+     "q3test2"
+    ]
+   },
+   {
+    "release": "1.05",
+    "map": "q3test1",
+    "bspVersion": 44,
+    "brushModels": 7,
+    "worldMins": [
+     -404.0,
+     -2652.0,
+     -640.0
+    ],
+    "worldMaxs": [
+     2498.0,
+     552.0,
+     1024.0
+    ],
+    "seed": 20261008,
+    "perShapeCount": 300,
+    "moduleSha256": "2d9be8e9eec0d65dbebf6a4f7344693793953df8611e2f72739ae27b80a0cd4d",
+    "moduleStamp": "37369456",
+    "retailExecutableSha256": "05579377e09286d658aef430d6fb45dc6c4fc4578988cea83afa51459768fcf8",
+    "headExecutableSha256": "f5f813b4ea7b711c74e9f6273709470fe7cda9d700a2cd42b15347d6475a6fef",
+    "changedExecutableSha256": "849f4b3ec15a119537762a925305153f1da4c9a917a7aa732fcf0085849a54cc",
+    "answerLines": 7743,
+    "headAndChangedAnswersIdentical": true,
+    "changed": {
+     "traces": 6030,
+     "tally": {
+      "exact": 5225,
+      "within 0.01 unit": 805
+     },
+     "worst": {
+      "fraction": 4.32133674621582e-06,
+      "endpos": 0.00244140625
+     },
+     "entityTraces": 630,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 7,
+     "linkFlagsSame": 7,
+     "linksSame": 7,
+     "linkWorst": 0.0,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "head": {
+     "traces": 6030,
+     "tally": {
+      "exact": 5225,
+      "within 0.01 unit": 805
+     },
+     "worst": {
+      "fraction": 4.32133674621582e-06,
+      "endpos": 0.00244140625
+     },
+     "entityTraces": 630,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 7,
+     "linkFlagsSame": 7,
+     "linksSame": 7,
+     "linkWorst": 0.0,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "differingTraces": [],
+    "fntech3CommandTail": [
+     "+set",
+     "com_gameProfile",
+     "q3test",
+     "+set",
+     "fs_basepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.05-q3test1\\after\\base",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.05-q3test1\\after\\home",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "bot_enable",
+     "0",
+     "+set",
+     "tr_seed",
+     "20261008",
+     "+set",
+     "tr_count",
+     "300",
+     "+set",
+     "tr_models",
+     "7",
+     "+set",
+     "tr_mins",
+     "-404 -2652 -640",
+     "+set",
+     "tr_maxs",
+     "2498 552 1024",
+     "+map",
+     "q3test1"
+    ]
+   },
+   {
+    "release": "1.05",
+    "map": "q3test2",
+    "bspVersion": 44,
+    "brushModels": 19,
+    "worldMins": [
+     -1376.0,
+     -1552.0,
+     -2432.0
+    ],
+    "worldMaxs": [
+     3232.0,
+     1640.0,
+     2248.0
+    ],
+    "seed": 20261008,
+    "perShapeCount": 300,
+    "moduleSha256": "2d9be8e9eec0d65dbebf6a4f7344693793953df8611e2f72739ae27b80a0cd4d",
+    "moduleStamp": "37369456",
+    "retailExecutableSha256": "05579377e09286d658aef430d6fb45dc6c4fc4578988cea83afa51459768fcf8",
+    "headExecutableSha256": "f5f813b4ea7b711c74e9f6273709470fe7cda9d700a2cd42b15347d6475a6fef",
+    "changedExecutableSha256": "849f4b3ec15a119537762a925305153f1da4c9a917a7aa732fcf0085849a54cc",
+    "answerLines": 8835,
+    "headAndChangedAnswersIdentical": true,
+    "changed": {
+     "traces": 7110,
+     "tally": {
+      "exact": 6232,
+      "within 0.01 unit": 878
+     },
+     "worst": {
+      "fraction": 4.082918167114258e-06,
+      "endpos": 0.000732421875
+     },
+     "entityTraces": 1710,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 19,
+     "linkFlagsSame": 19,
+     "linksSame": 19,
+     "linkWorst": 0.0,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "head": {
+     "traces": 7110,
+     "tally": {
+      "exact": 6232,
+      "within 0.01 unit": 878
+     },
+     "worst": {
+      "fraction": 4.082918167114258e-06,
+      "endpos": 0.000732421875
+     },
+     "entityTraces": 1710,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 19,
+     "linkFlagsSame": 19,
+     "linksSame": 19,
+     "linkWorst": 0.0,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "differingTraces": [],
+    "fntech3CommandTail": [
+     "+set",
+     "com_gameProfile",
+     "q3test",
+     "+set",
+     "fs_basepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.05-q3test2\\after\\base",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.05-q3test2\\after\\home",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "bot_enable",
+     "0",
+     "+set",
+     "tr_seed",
+     "20261008",
+     "+set",
+     "tr_count",
+     "300",
+     "+set",
+     "tr_models",
+     "19",
+     "+set",
+     "tr_mins",
+     "-1376 -1552 -2432",
+     "+set",
+     "tr_maxs",
+     "3232 1640 2248",
+     "+map",
+     "q3test2"
+    ]
+   },
+   {
+    "release": "1.06",
+    "map": "q3test1",
+    "bspVersion": 45,
+    "brushModels": 7,
+    "worldMins": [
+     -404.0,
+     -2652.0,
+     -640.0
+    ],
+    "worldMaxs": [
+     2498.0,
+     552.0,
+     1024.0
+    ],
+    "seed": 20261008,
+    "perShapeCount": 300,
+    "moduleSha256": "d200f80c154c4624bde9dc9c45870d446e619d8386803ab8a5e3b5911a347dce",
+    "moduleStamp": "378fba49",
+    "retailExecutableSha256": "a18c714fac103c4634fc08c88b2dd1c7b63720c8ddb8ec0f408e00d7ccb63db3",
+    "headExecutableSha256": "f5f813b4ea7b711c74e9f6273709470fe7cda9d700a2cd42b15347d6475a6fef",
+    "changedExecutableSha256": "849f4b3ec15a119537762a925305153f1da4c9a917a7aa732fcf0085849a54cc",
+    "answerLines": 7743,
+    "headAndChangedAnswersIdentical": true,
+    "changed": {
+     "traces": 6030,
+     "tally": {
+      "exact": 4780,
+      "within 0.01 unit": 1250
+     },
+     "worst": {
+      "fraction": 1.4603137969970703e-06,
+      "endpos": 0.00201416015625
+     },
+     "entityTraces": 630,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 7,
+     "linkFlagsSame": 7,
+     "linksSame": 7,
+     "linkWorst": 0.0,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "head": {
+     "traces": 6030,
+     "tally": {
+      "exact": 4780,
+      "within 0.01 unit": 1250
+     },
+     "worst": {
+      "fraction": 1.4603137969970703e-06,
+      "endpos": 0.00201416015625
+     },
+     "entityTraces": 630,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 7,
+     "linkFlagsSame": 7,
+     "linksSame": 7,
+     "linkWorst": 0.0,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "differingTraces": [],
+    "fntech3CommandTail": [
+     "+set",
+     "com_gameProfile",
+     "q3test",
+     "+set",
+     "fs_basepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.06-q3test1\\after\\base",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.06-q3test1\\after\\home",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "bot_enable",
+     "0",
+     "+set",
+     "tr_seed",
+     "20261008",
+     "+set",
+     "tr_count",
+     "300",
+     "+set",
+     "tr_models",
+     "7",
+     "+set",
+     "tr_mins",
+     "-404 -2652 -640",
+     "+set",
+     "tr_maxs",
+     "2498 552 1024",
+     "+map",
+     "q3test1"
+    ]
+   },
+   {
+    "release": "1.06",
+    "map": "q3test2",
+    "bspVersion": 45,
+    "brushModels": 19,
+    "worldMins": [
+     -1376.0,
+     -1552.0,
+     -2432.0
+    ],
+    "worldMaxs": [
+     3232.0,
+     1640.0,
+     2248.0
+    ],
+    "seed": 20261008,
+    "perShapeCount": 300,
+    "moduleSha256": "d200f80c154c4624bde9dc9c45870d446e619d8386803ab8a5e3b5911a347dce",
+    "moduleStamp": "378fba49",
+    "retailExecutableSha256": "a18c714fac103c4634fc08c88b2dd1c7b63720c8ddb8ec0f408e00d7ccb63db3",
+    "headExecutableSha256": "f5f813b4ea7b711c74e9f6273709470fe7cda9d700a2cd42b15347d6475a6fef",
+    "changedExecutableSha256": "849f4b3ec15a119537762a925305153f1da4c9a917a7aa732fcf0085849a54cc",
+    "answerLines": 8835,
+    "headAndChangedAnswersIdentical": true,
+    "changed": {
+     "traces": 7110,
+     "tally": {
+      "exact": 5670,
+      "within 0.01 unit": 1440
+     },
+     "worst": {
+      "fraction": 3.933906555175781e-06,
+      "endpos": 0.0009765625
+     },
+     "entityTraces": 1710,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 19,
+     "linkFlagsSame": 19,
+     "linksSame": 17,
+     "linkWorst": 0.00048828125,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "head": {
+     "traces": 7110,
+     "tally": {
+      "exact": 5670,
+      "within 0.01 unit": 1440
+     },
+     "worst": {
+      "fraction": 3.933906555175781e-06,
+      "endpos": 0.0009765625
+     },
+     "entityTraces": 1710,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 19,
+     "linkFlagsSame": 19,
+     "linksSame": 17,
+     "linkWorst": 0.00048828125,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "differingTraces": [],
+    "fntech3CommandTail": [
+     "+set",
+     "com_gameProfile",
+     "q3test",
+     "+set",
+     "fs_basepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.06-q3test2\\after\\base",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.06-q3test2\\after\\home",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "bot_enable",
+     "0",
+     "+set",
+     "tr_seed",
+     "20261008",
+     "+set",
+     "tr_count",
+     "300",
+     "+set",
+     "tr_models",
+     "19",
+     "+set",
+     "tr_mins",
+     "-1376 -1552 -2432",
+     "+set",
+     "tr_maxs",
+     "3232 1640 2248",
+     "+map",
+     "q3test2"
+    ]
+   },
+   {
+    "release": "1.06",
+    "map": "q3tourney",
+    "bspVersion": 45,
+    "brushModels": 10,
+    "worldMins": [
+     -1136.0,
+     -848.0,
+     -1152.0
+    ],
+    "worldMaxs": [
+     1000.0,
+     1848.0,
+     1040.0
+    ],
+    "seed": 20261008,
+    "perShapeCount": 300,
+    "moduleSha256": "d200f80c154c4624bde9dc9c45870d446e619d8386803ab8a5e3b5911a347dce",
+    "moduleStamp": "378fba49",
+    "retailExecutableSha256": "a18c714fac103c4634fc08c88b2dd1c7b63720c8ddb8ec0f408e00d7ccb63db3",
+    "headExecutableSha256": "f5f813b4ea7b711c74e9f6273709470fe7cda9d700a2cd42b15347d6475a6fef",
+    "changedExecutableSha256": "849f4b3ec15a119537762a925305153f1da4c9a917a7aa732fcf0085849a54cc",
+    "answerLines": 8016,
+    "headAndChangedAnswersIdentical": true,
+    "changed": {
+     "traces": 6300,
+     "tally": {
+      "exact": 5039,
+      "within 0.01 unit": 1259,
+      "differ": 2
+     },
+     "worst": {
+      "fraction": 1.8477439880371094e-06,
+      "endpos": 0.00018310546875
+     },
+     "entityTraces": 900,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 10,
+     "linkFlagsSame": 10,
+     "linksSame": 9,
+     "linkWorst": 1.52587890625e-05,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "head": {
+     "traces": 6300,
+     "tally": {
+      "exact": 5039,
+      "within 0.01 unit": 1259,
+      "differ": 2
+     },
+     "worst": {
+      "fraction": 1.8477439880371094e-06,
+      "endpos": 0.00018310546875
+     },
+     "entityTraces": 900,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 10,
+     "linkFlagsSame": 10,
+     "linksSame": 9,
+     "linkWorst": 1.52587890625e-05,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "differingTraces": [
+     {
+      "kind": "player box",
+      "mask": 1,
+      "index": 435,
+      "shape": "long",
+      "retail": {
+       "allsolid": 0,
+       "startsolid": 1,
+       "fraction": 0.21025659143924713,
+       "endpos": [
+        -785.9208984375,
+        304.875,
+        356.0153503417969
+       ],
+       "normal": [
+        0.0,
+        -1.0,
+        0.0
+       ],
+       "dist": -320.0,
+       "surfaceFlags": 1,
+       "contents": 1,
+       "entityNum": 1022
+      },
+      "fntech3": {
+       "allsolid": 0,
+       "startsolid": 1,
+       "fraction": 0.21025659143924713,
+       "endpos": [
+        -785.9208984375,
+        304.8749694824219,
+        356.0153503417969
+       ],
+       "normal": [
+        0.0,
+        -1.0,
+        0.0
+       ],
+       "dist": -320.0,
+       "surfaceFlags": 0,
+       "contents": 1,
+       "entityNum": 1022
+      },
+      "start": [
+       -757.4248657226562,
+       0.57440185546875,
+       423.999755859375
+      ],
+      "end": [
+       -892.9545288085938,
+       1447.8564453125,
+       100.6595458984375
+      ]
+     },
+     {
+      "kind": "random box",
+      "mask": 0,
+      "index": 684,
+      "shape": "long",
+      "retail": {
+       "allsolid": 0,
+       "startsolid": 1,
+       "fraction": 0.31680044531822205,
+       "endpos": [
+        -335.80694580078125,
+        692.4105834960938,
+        261.8837585449219
+       ],
+       "normal": [
+        0.0,
+        0.0,
+        1.0
+       ],
+       "dist": 256.0,
+       "surfaceFlags": 0,
+       "contents": 1,
+       "entityNum": 1022
+      },
+      "fntech3": {
+       "allsolid": 0,
+       "startsolid": 1,
+       "fraction": 0.31680044531822205,
+       "endpos": [
+        -335.80694580078125,
+        692.4105834960938,
+        261.8837585449219
+       ],
+       "normal": [
+        0.0,
+        0.0,
+        1.0
+       ],
+       "dist": 256.0,
+       "surfaceFlags": 1,
+       "contents": 1,
+       "entityNum": 1022
+      },
+      "start": [
+       -519.9540405273438,
+       930.7720947265625,
+       587.2818603515625
+      ],
+      "end": [
+       61.3175048828125,
+       178.369384765625,
+       -439.857177734375
+      ]
+     }
+    ],
+    "fntech3CommandTail": [
+     "+set",
+     "com_gameProfile",
+     "q3test",
+     "+set",
+     "fs_basepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.06-q3tourney\\after\\base",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.06-q3tourney\\after\\home",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "bot_enable",
+     "0",
+     "+set",
+     "tr_seed",
+     "20261008",
+     "+set",
+     "tr_count",
+     "300",
+     "+set",
+     "tr_models",
+     "10",
+     "+set",
+     "tr_mins",
+     "-1136 -848 -1152",
+     "+set",
+     "tr_maxs",
+     "1000 1848 1040",
+     "+map",
+     "q3tourney"
+    ]
+   },
+   {
+    "release": "1.07",
+    "map": "q3test1",
+    "bspVersion": 45,
+    "brushModels": 7,
+    "worldMins": [
+     -404.0,
+     -2652.0,
+     -640.0
+    ],
+    "worldMaxs": [
+     2498.0,
+     552.0,
+     1024.0
+    ],
+    "seed": 20261008,
+    "perShapeCount": 300,
+    "moduleSha256": "e1d56f9603a89f343e5709e767ab356326118ae54707f55cb47447c3df7dd724",
+    "moduleStamp": "37940ae0",
+    "retailExecutableSha256": "a507b42aa346dd7c67f0fdd33c42e88c3ee144d91bce3dea0a3fb06aa7368962",
+    "headExecutableSha256": "f5f813b4ea7b711c74e9f6273709470fe7cda9d700a2cd42b15347d6475a6fef",
+    "changedExecutableSha256": "849f4b3ec15a119537762a925305153f1da4c9a917a7aa732fcf0085849a54cc",
+    "answerLines": 7743,
+    "headAndChangedAnswersIdentical": true,
+    "changed": {
+     "traces": 6030,
+     "tally": {
+      "exact": 4780,
+      "within 0.01 unit": 1250
+     },
+     "worst": {
+      "fraction": 1.4603137969970703e-06,
+      "endpos": 0.00201416015625
+     },
+     "entityTraces": 630,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 7,
+     "linkFlagsSame": 7,
+     "linksSame": 7,
+     "linkWorst": 0.0,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "head": {
+     "traces": 6030,
+     "tally": {
+      "exact": 4780,
+      "within 0.01 unit": 1250
+     },
+     "worst": {
+      "fraction": 1.4603137969970703e-06,
+      "endpos": 0.00201416015625
+     },
+     "entityTraces": 630,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 7,
+     "linkFlagsSame": 7,
+     "linksSame": 7,
+     "linkWorst": 0.0,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "differingTraces": [],
+    "fntech3CommandTail": [
+     "+set",
+     "com_gameProfile",
+     "q3test",
+     "+set",
+     "fs_basepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.07-q3test1\\after\\base",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.07-q3test1\\after\\home",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "bot_enable",
+     "0",
+     "+set",
+     "tr_seed",
+     "20261008",
+     "+set",
+     "tr_count",
+     "300",
+     "+set",
+     "tr_models",
+     "7",
+     "+set",
+     "tr_mins",
+     "-404 -2652 -640",
+     "+set",
+     "tr_maxs",
+     "2498 552 1024",
+     "+map",
+     "q3test1"
+    ]
+   },
+   {
+    "release": "1.07",
+    "map": "q3test2",
+    "bspVersion": 45,
+    "brushModels": 19,
+    "worldMins": [
+     -1376.0,
+     -1552.0,
+     -2432.0
+    ],
+    "worldMaxs": [
+     3232.0,
+     1640.0,
+     2248.0
+    ],
+    "seed": 20261008,
+    "perShapeCount": 300,
+    "moduleSha256": "e1d56f9603a89f343e5709e767ab356326118ae54707f55cb47447c3df7dd724",
+    "moduleStamp": "37940ae0",
+    "retailExecutableSha256": "a507b42aa346dd7c67f0fdd33c42e88c3ee144d91bce3dea0a3fb06aa7368962",
+    "headExecutableSha256": "f5f813b4ea7b711c74e9f6273709470fe7cda9d700a2cd42b15347d6475a6fef",
+    "changedExecutableSha256": "849f4b3ec15a119537762a925305153f1da4c9a917a7aa732fcf0085849a54cc",
+    "answerLines": 8835,
+    "headAndChangedAnswersIdentical": true,
+    "changed": {
+     "traces": 7110,
+     "tally": {
+      "exact": 5670,
+      "within 0.01 unit": 1440
+     },
+     "worst": {
+      "fraction": 3.933906555175781e-06,
+      "endpos": 0.0009765625
+     },
+     "entityTraces": 1710,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 19,
+     "linkFlagsSame": 19,
+     "linksSame": 17,
+     "linkWorst": 0.00048828125,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "head": {
+     "traces": 7110,
+     "tally": {
+      "exact": 5670,
+      "within 0.01 unit": 1440
+     },
+     "worst": {
+      "fraction": 3.933906555175781e-06,
+      "endpos": 0.0009765625
+     },
+     "entityTraces": 1710,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 19,
+     "linkFlagsSame": 19,
+     "linksSame": 17,
+     "linkWorst": 0.00048828125,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "differingTraces": [],
+    "fntech3CommandTail": [
+     "+set",
+     "com_gameProfile",
+     "q3test",
+     "+set",
+     "fs_basepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.07-q3test2\\after\\base",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.07-q3test2\\after\\home",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "bot_enable",
+     "0",
+     "+set",
+     "tr_seed",
+     "20261008",
+     "+set",
+     "tr_count",
+     "300",
+     "+set",
+     "tr_models",
+     "19",
+     "+set",
+     "tr_mins",
+     "-1376 -1552 -2432",
+     "+set",
+     "tr_maxs",
+     "3232 1640 2248",
+     "+map",
+     "q3test2"
+    ]
+   },
+   {
+    "release": "1.07",
+    "map": "q3tourney",
+    "bspVersion": 45,
+    "brushModels": 10,
+    "worldMins": [
+     -1136.0,
+     -848.0,
+     -1152.0
+    ],
+    "worldMaxs": [
+     1000.0,
+     1848.0,
+     1040.0
+    ],
+    "seed": 20261008,
+    "perShapeCount": 300,
+    "moduleSha256": "e1d56f9603a89f343e5709e767ab356326118ae54707f55cb47447c3df7dd724",
+    "moduleStamp": "37940ae0",
+    "retailExecutableSha256": "a507b42aa346dd7c67f0fdd33c42e88c3ee144d91bce3dea0a3fb06aa7368962",
+    "headExecutableSha256": "f5f813b4ea7b711c74e9f6273709470fe7cda9d700a2cd42b15347d6475a6fef",
+    "changedExecutableSha256": "849f4b3ec15a119537762a925305153f1da4c9a917a7aa732fcf0085849a54cc",
+    "answerLines": 8016,
+    "headAndChangedAnswersIdentical": true,
+    "changed": {
+     "traces": 6300,
+     "tally": {
+      "exact": 5044,
+      "within 0.01 unit": 1254,
+      "differ": 2
+     },
+     "worst": {
+      "fraction": 1.8477439880371094e-06,
+      "endpos": 0.00018310546875
+     },
+     "entityTraces": 900,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 10,
+     "linkFlagsSame": 10,
+     "linksSame": 9,
+     "linkWorst": 1.52587890625e-05,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "head": {
+     "traces": 6300,
+     "tally": {
+      "exact": 5044,
+      "within 0.01 unit": 1254,
+      "differ": 2
+     },
+     "worst": {
+      "fraction": 1.8477439880371094e-06,
+      "endpos": 0.00018310546875
+     },
+     "entityTraces": 900,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 10,
+     "linkFlagsSame": 10,
+     "linksSame": 9,
+     "linkWorst": 1.52587890625e-05,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "differingTraces": [
+     {
+      "kind": "player box",
+      "mask": 1,
+      "index": 435,
+      "shape": "long",
+      "retail": {
+       "allsolid": 0,
+       "startsolid": 1,
+       "fraction": 0.21025659143924713,
+       "endpos": [
+        -785.9208984375,
+        304.875,
+        356.0153503417969
+       ],
+       "normal": [
+        0.0,
+        -1.0,
+        0.0
+       ],
+       "dist": -320.0,
+       "surfaceFlags": 1,
+       "contents": 1,
+       "entityNum": 1022
+      },
+      "fntech3": {
+       "allsolid": 0,
+       "startsolid": 1,
+       "fraction": 0.21025659143924713,
+       "endpos": [
+        -785.9208984375,
+        304.8749694824219,
+        356.0153503417969
+       ],
+       "normal": [
+        0.0,
+        -1.0,
+        0.0
+       ],
+       "dist": -320.0,
+       "surfaceFlags": 0,
+       "contents": 1,
+       "entityNum": 1022
+      },
+      "start": [
+       -757.4248657226562,
+       0.57440185546875,
+       423.999755859375
+      ],
+      "end": [
+       -892.9545288085938,
+       1447.8564453125,
+       100.6595458984375
+      ]
+     },
+     {
+      "kind": "random box",
+      "mask": 0,
+      "index": 684,
+      "shape": "long",
+      "retail": {
+       "allsolid": 0,
+       "startsolid": 1,
+       "fraction": 0.31680044531822205,
+       "endpos": [
+        -335.80694580078125,
+        692.4105834960938,
+        261.8837585449219
+       ],
+       "normal": [
+        0.0,
+        0.0,
+        1.0
+       ],
+       "dist": 256.0,
+       "surfaceFlags": 0,
+       "contents": 1,
+       "entityNum": 1022
+      },
+      "fntech3": {
+       "allsolid": 0,
+       "startsolid": 1,
+       "fraction": 0.31680044531822205,
+       "endpos": [
+        -335.80694580078125,
+        692.4105834960938,
+        261.8837585449219
+       ],
+       "normal": [
+        0.0,
+        0.0,
+        1.0
+       ],
+       "dist": 256.0,
+       "surfaceFlags": 1,
+       "contents": 1,
+       "entityNum": 1022
+      },
+      "start": [
+       -519.9540405273438,
+       930.7720947265625,
+       587.2818603515625
+      ],
+      "end": [
+       61.3175048828125,
+       178.369384765625,
+       -439.857177734375
+      ]
+     }
+    ],
+    "fntech3CommandTail": [
+     "+set",
+     "com_gameProfile",
+     "q3test",
+     "+set",
+     "fs_basepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.07-q3tourney\\after\\base",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.07-q3tourney\\after\\home",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "bot_enable",
+     "0",
+     "+set",
+     "tr_seed",
+     "20261008",
+     "+set",
+     "tr_count",
+     "300",
+     "+set",
+     "tr_models",
+     "10",
+     "+set",
+     "tr_mins",
+     "-1136 -848 -1152",
+     "+set",
+     "tr_maxs",
+     "1000 1848 1040",
+     "+map",
+     "q3tourney"
+    ]
+   },
+   {
+    "release": "1.08",
+    "map": "q3test1",
+    "bspVersion": 45,
+    "brushModels": 7,
+    "worldMins": [
+     -404.0,
+     -2652.0,
+     -640.0
+    ],
+    "worldMaxs": [
+     2498.0,
+     552.0,
+     1024.0
+    ],
+    "seed": 20261008,
+    "perShapeCount": 300,
+    "moduleSha256": "4b578847430e366810735af51629d0b393fbb0de2530dd3b66dd12a67781ae8d",
+    "moduleStamp": "37a67322",
+    "retailExecutableSha256": "89a7dfb431c6738a13e1e44d0c2d76d69107c6e0791a64f6a49830e1a51c547b",
+    "headExecutableSha256": "f5f813b4ea7b711c74e9f6273709470fe7cda9d700a2cd42b15347d6475a6fef",
+    "changedExecutableSha256": "849f4b3ec15a119537762a925305153f1da4c9a917a7aa732fcf0085849a54cc",
+    "answerLines": 7743,
+    "headAndChangedAnswersIdentical": true,
+    "changed": {
+     "traces": 6030,
+     "tally": {
+      "exact": 4780,
+      "within 0.01 unit": 1250
+     },
+     "worst": {
+      "fraction": 1.4603137969970703e-06,
+      "endpos": 0.00201416015625
+     },
+     "entityTraces": 630,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 7,
+     "linkFlagsSame": 7,
+     "linksSame": 7,
+     "linkWorst": 0.0,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "head": {
+     "traces": 6030,
+     "tally": {
+      "exact": 4780,
+      "within 0.01 unit": 1250
+     },
+     "worst": {
+      "fraction": 1.4603137969970703e-06,
+      "endpos": 0.00201416015625
+     },
+     "entityTraces": 630,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 7,
+     "linkFlagsSame": 7,
+     "linksSame": 7,
+     "linkWorst": 0.0,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "differingTraces": [],
+    "fntech3CommandTail": [
+     "+set",
+     "com_gameProfile",
+     "q3test",
+     "+set",
+     "fs_basepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.08-q3test1\\after\\base",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.08-q3test1\\after\\home",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "bot_enable",
+     "0",
+     "+set",
+     "tr_seed",
+     "20261008",
+     "+set",
+     "tr_count",
+     "300",
+     "+set",
+     "tr_models",
+     "7",
+     "+set",
+     "tr_mins",
+     "-404 -2652 -640",
+     "+set",
+     "tr_maxs",
+     "2498 552 1024",
+     "+map",
+     "q3test1"
+    ]
+   },
+   {
+    "release": "1.08",
+    "map": "q3test2",
+    "bspVersion": 45,
+    "brushModels": 19,
+    "worldMins": [
+     -1376.0,
+     -1552.0,
+     -2432.0
+    ],
+    "worldMaxs": [
+     3232.0,
+     1640.0,
+     2248.0
+    ],
+    "seed": 20261008,
+    "perShapeCount": 300,
+    "moduleSha256": "4b578847430e366810735af51629d0b393fbb0de2530dd3b66dd12a67781ae8d",
+    "moduleStamp": "37a67322",
+    "retailExecutableSha256": "89a7dfb431c6738a13e1e44d0c2d76d69107c6e0791a64f6a49830e1a51c547b",
+    "headExecutableSha256": "f5f813b4ea7b711c74e9f6273709470fe7cda9d700a2cd42b15347d6475a6fef",
+    "changedExecutableSha256": "849f4b3ec15a119537762a925305153f1da4c9a917a7aa732fcf0085849a54cc",
+    "answerLines": 8835,
+    "headAndChangedAnswersIdentical": true,
+    "changed": {
+     "traces": 7110,
+     "tally": {
+      "exact": 5670,
+      "within 0.01 unit": 1440
+     },
+     "worst": {
+      "fraction": 3.933906555175781e-06,
+      "endpos": 0.0009765625
+     },
+     "entityTraces": 1710,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 19,
+     "linkFlagsSame": 19,
+     "linksSame": 17,
+     "linkWorst": 0.00048828125,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "head": {
+     "traces": 7110,
+     "tally": {
+      "exact": 5670,
+      "within 0.01 unit": 1440
+     },
+     "worst": {
+      "fraction": 3.933906555175781e-06,
+      "endpos": 0.0009765625
+     },
+     "entityTraces": 1710,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 19,
+     "linkFlagsSame": 19,
+     "linksSame": 17,
+     "linkWorst": 0.00048828125,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "differingTraces": [],
+    "fntech3CommandTail": [
+     "+set",
+     "com_gameProfile",
+     "q3test",
+     "+set",
+     "fs_basepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.08-q3test2\\after\\base",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.08-q3test2\\after\\home",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "bot_enable",
+     "0",
+     "+set",
+     "tr_seed",
+     "20261008",
+     "+set",
+     "tr_count",
+     "300",
+     "+set",
+     "tr_models",
+     "19",
+     "+set",
+     "tr_mins",
+     "-1376 -1552 -2432",
+     "+set",
+     "tr_maxs",
+     "3232 1640 2248",
+     "+map",
+     "q3test2"
+    ]
+   },
+   {
+    "release": "1.08",
+    "map": "q3tourney",
+    "bspVersion": 45,
+    "brushModels": 10,
+    "worldMins": [
+     -1136.0,
+     -848.0,
+     -1152.0
+    ],
+    "worldMaxs": [
+     1000.0,
+     1848.0,
+     1040.0
+    ],
+    "seed": 20261008,
+    "perShapeCount": 300,
+    "moduleSha256": "4b578847430e366810735af51629d0b393fbb0de2530dd3b66dd12a67781ae8d",
+    "moduleStamp": "37a67322",
+    "retailExecutableSha256": "89a7dfb431c6738a13e1e44d0c2d76d69107c6e0791a64f6a49830e1a51c547b",
+    "headExecutableSha256": "f5f813b4ea7b711c74e9f6273709470fe7cda9d700a2cd42b15347d6475a6fef",
+    "changedExecutableSha256": "849f4b3ec15a119537762a925305153f1da4c9a917a7aa732fcf0085849a54cc",
+    "answerLines": 8016,
+    "headAndChangedAnswersIdentical": true,
+    "changed": {
+     "traces": 6300,
+     "tally": {
+      "exact": 5045,
+      "within 0.01 unit": 1255
+     },
+     "worst": {
+      "fraction": 1.8477439880371094e-06,
+      "endpos": 0.00018310546875
+     },
+     "entityTraces": 900,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 10,
+     "linkFlagsSame": 10,
+     "linksSame": 9,
+     "linkWorst": 1.52587890625e-05,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "head": {
+     "traces": 6300,
+     "tally": {
+      "exact": 5045,
+      "within 0.01 unit": 1255
+     },
+     "worst": {
+      "fraction": 1.8477439880371094e-06,
+      "endpos": 0.00018310546875
+     },
+     "entityTraces": 900,
+     "points": 1500,
+     "pointsSame": 1500,
+     "links": 10,
+     "linkFlagsSame": 10,
+     "linksSame": 9,
+     "linkWorst": 1.52587890625e-05,
+     "boxes": 203,
+     "boxesSameOrder": 203,
+     "boxesSameSet": 203
+    },
+    "differingTraces": [],
+    "fntech3CommandTail": [
+     "+set",
+     "com_gameProfile",
+     "q3test",
+     "+set",
+     "fs_basepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.08-q3tourney\\after\\base",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\q3test-facet\\sweep-full\\1.08-q3tourney\\after\\home",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "bot_enable",
+     "0",
+     "+set",
+     "tr_seed",
+     "20261008",
+     "+set",
+     "tr_count",
+     "300",
+     "+set",
+     "tr_models",
+     "10",
+     "+set",
+     "tr_mins",
+     "-1136 -848 -1152",
+     "+set",
+     "tr_maxs",
+     "1000 1848 1040",
+     "+map",
+     "q3tourney"
+    ]
+   }
+  ]
+ },
+ "openDifferences": [
+  {
+   "maps": [
+    "1.06 q3tourney",
+    "1.07 q3tourney"
+   ],
+   "observed": "the same two traces in both releases differ from retail in surfaceFlags alone (retail 1 against fnTech3 0 for player box 435, retail 0 against 1 for random box 684), before and after the change; both start in solid; fractions are bit-identical. 1.07 loads q3tourney from pak1.pk3, the same file as 1.08's (sha256 99c56e37247c...; 1.06's pak0 file is 0dd7ddbe4921...), and on it 1.08's retail server and fnTech3 both report 0 for both traces",
+   "mapFiles": {
+    "1.06 pak0.pk3:maps/Q3TOURNEY.bsp": "0dd7ddbe4921",
+    "1.07 pak1.pk3:maps/q3tourney.bsp": "99c56e37247c",
+    "1.08 pak0.pk3:maps/q3tourney.bsp": "99c56e37247c"
+   },
+   "inference": "each trace meets a curve and a brush at the same fraction and the engines report different ones; 1.06 and 1.07 give a curve's surface flags from its shader's contents (1), 1.08 does not, so the choice shows only there. Not investigated further."
+  }
+ ],
+ "tests": [
+  "tests/alice_patch_collision_tests.py: a 64-unit square standing in the x = 0 plane 10000 units out along y is dropped for Q3Test and kept for Quake III; 8000 units out both keep it; one in the x = 70000 plane is kept for Q3Test"
+ ]
+}
