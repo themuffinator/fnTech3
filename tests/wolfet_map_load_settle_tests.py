@@ -4,7 +4,9 @@ Retail Enemy Territory 2.60b's SV_SpawnServer (et.exe 0x4467f0, etded.exe
 0x42cf20) runs six frames after starting its game, each with its bots at the
 current time before advancing it (et.exe 0x4469e1..0x446a12), and its last
 frame the same way (0x446b14..0x446b3a). Between them it drops every bot from a
-single-player or co-op game type, with no reason (0x446a3f..0x446a7b). Every
+single-player or co-op game type, with no reason (0x446a3f..0x446a7b), as
+Holomatch does from a level its game started as single player (stvoyHM.exe
+0x433b42..0x433b7b). Every
 other retail engine runs three frames and its last one the same way, each at
 the current time before advancing it (2026-09-24-settle-frame-order.md), and
 so does every other profile here, but for the IHV test's frames, Alice's
@@ -34,6 +36,7 @@ enum { Q3, QL, RTCW_SP, RTCW_MP, WOLFET, STVEF_SP, STVEF_MP, Q3_IHV, JKA_SP, JKA
        MOHAA, Q3TEST, Q3TEST_1_08, PROFILES };
 static int profile;
 int Com_GameIsWolfET(){return profile==WOLFET;}
+int Com_GameIsSTVEFMP(){return profile==STVEF_MP;}
 int Com_GameIsQuake3IHV(){return profile==Q3_IHV;}
 int Com_GameIsAlice(){return profile==ALICE;}
 int Com_GameIsRitual(){return profile==ALICE||profile==FAKK2;}
@@ -54,6 +57,10 @@ static Cvar gametype;
 static Cvar *sv_gametype=&gametype;
 qboolean SV_GameTypeIsSinglePlayer(int type){return type==0;}
 qboolean SV_WolfETGameTypeIsCoop(int type){return type==1;}
+// Holomatch asks the game type its game applied, by name, against Elite
+// Force's single player, 2.
+enum { GT_SINGLE_PLAYER=2 };
+float Cvar_VariableValue(const char *name){assert(std::string(name)=="g_gametype");return float(gametype.integer);}
 enum { CS_FREE, CS_ZOMBIE, CS_CONNECTED, CS_PRIMED, CS_ACTIVE };
 enum { NA_BAD, NA_BOT, NA_LOOPBACK, NA_IP };
 enum { GSA_INIT, GSA_SENT_ONCE, GSA_SENT_MANY, GSA_ACKED };
@@ -140,14 +147,16 @@ static std::vector<Event> Expected(int p,int type,bool killBots){
  // Slots: 2 connected, 3 loading, 4 active, 5 an active bot, 6 a loading bot,
  // 7 an active client the game refuses. ET drops its bots from a single-player
  // or co-op game as well as when told to, with no reason, and begins the rest
- // 500 ms after the level's start.
- const bool dropBots=killBots||(et&&(type==0||type==1));
+ // 500 ms after the level's start. Holomatch drops them, with no reason, from
+ // a level its game started as single player (stvoyHM.exe 0x433b42..0x433b7b).
+ const bool holomatch=p==STVEF_MP;
+ const bool dropBots=killBots||(et&&(type==0||type==1))||(holomatch&&type==GT_SINGLE_PLAYER);
  if(ihv)want.push_back({"ihvreconnect",0,0,time,""});
  for(int slot=2;slot<8&&!ihv;++slot){
   const bool bot=slot==5||slot==6;
   // Q3Test frees its bots' slots and tells the game nothing.
   if(bot&&q3test)continue;
-  if(bot&&dropBots){want.push_back({"drop",slot,0,time,et?"":"was kicked"});continue;}
+  if(bot&&dropBots){want.push_back({"drop",slot,0,time,et||holomatch?"":"was kicked"});continue;}
   want.push_back({"connect",slot,bot?1:0,time,""});
   if(slot==7)want.push_back({"drop",slot,0,time,"refused"});
   else if(bot)want.push_back({"enter",slot,game-start,time,""});
@@ -251,13 +260,17 @@ MUTATIONS = {
     'ET keeps its single-player and co-op bots': ('( wolfET && (', '( false && ('),
     'every profile drops its single-player and co-op bots': ('( wolfET && (', '( true && ('),
     'ET keeps its co-op bots': (
-        '\n\t\t\t\t\t|| SV_WolfETGameTypeIsCoop( sv_gametype->integer ) ) ) ) {', ' ) ) ) {'),
+        '\n\t\t\t\t\t|| SV_WolfETGameTypeIsCoop( sv_gametype->integer ) ) )\n', ' ) )\n'),
     'ET keeps its single-player bots': (
         '( SV_GameTypeIsSinglePlayer( sv_gametype->integer )\n\t\t\t\t\t|| ', '( '),
     'ET keeps its bots when told to drop them': (
         'if ( killBots || ( wolfET', 'if ( ( !wolfET && killBots ) || ( wolfET'),
-    'ET drops its bots with a reason': ('wolfET ? "" : "was kicked"', '"was kicked"'),
-    'every profile drops its bots with no reason': ('wolfET ? "" : "was kicked"', '""'),
+    'ET drops its bots with a reason': ('( wolfET || holomatch ) ? "" : "was kicked"', 'holomatch ? "" : "was kicked"'),
+    'every profile drops its bots with no reason': ('( wolfET || holomatch ) ? "" : "was kicked"', '""'),
+    'Holomatch keeps its single-player bots': ('( holomatch && Cvar_VariableValue', '( false && Cvar_VariableValue'),
+    'every profile drops its bots from a single-player level as Holomatch does': (
+        '( holomatch && Cvar_VariableValue', '( true && Cvar_VariableValue'),
+    'Holomatch drops its bots with a reason': ('( wolfET || holomatch ) ? "" : "was kicked"', 'wolfET ? "" : "was kicked"'),
     'Medal of Honor settles in the engine\'s three frames': (
         'Com_GameIsMOHAA() ) {\n\t\t// Medal of Honor', 'false ) {\n\t\t// Medal of Honor'),
     'Medal of Honor runs a last frame': ('&& !Com_GameIsMOHAA() ) {', ') {'),
