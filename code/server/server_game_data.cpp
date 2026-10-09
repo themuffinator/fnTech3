@@ -648,10 +648,11 @@ GameDataBindError ServerGameDataView::BindNative( comGameId_t profile,
 	// in use at the moment it is called and the module then spawns a level's
 	// worth past that, so the arena to bind is the capacity it publishes
 	// separately. RTCW MP and ET join for the world record past the mark,
-	// which their settled explosives take as owner and trace with.
+	// which their settled explosives take as owner and trace with, and
+	// Holomatch for the same record, which its bots' frame unlinks.
 	if ( entityCapacity < binding.entityCount || entityCapacity > FNTECH3_Q3_MAX_GENTITIES
 		|| ( profile != COM_GAME_RTCW_SP && profile != COM_GAME_RTCW_MP && profile != COM_GAME_WOLFET
-			&& profile != COM_GAME_STVEF_SP && profile != COM_GAME_QUAKE3_IHV
+			&& profile != COM_GAME_STVEF_SP && profile != COM_GAME_STVEF_MP && profile != COM_GAME_QUAKE3_IHV
 			&& profile != COM_GAME_ALICE && profile != COM_GAME_FAKK2 && profile != COM_GAME_MOHAA
 			&& profile != COM_GAME_Q3TEST && profile != COM_GAME_JKA_SP && entityCapacity != binding.entityCount ) )
 		return GameDataBindError::InvalidEntityCount;

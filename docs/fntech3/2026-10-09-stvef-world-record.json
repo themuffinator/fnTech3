@@ -1,0 +1,273 @@
+{
+ "record": "2026-10-09-stvef-world-record.md",
+ "profiles": [
+  "stvef-mp"
+ ],
+ "baseCommit": "18e6b5419723962d438d2589d1f57e90529d12d4",
+ "retail": {
+  "stvoyHM.exe": {
+   "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+   "VM_ArgPtr": "0x43b3b0: NULL for 0, else dataBase + offset, no mask",
+   "SV_SvEntityForGentity": "0x43170c..0x431728 (inlined again at 0x4355f1 and 0x435e52): bad gEnt for NULL or a number outside 0..1023 (cmp 0x400)"
+  },
+  "vm/qagame.qvm (pak2.pk3)": {
+   "g_entities": "VM 0x65c4c, stored into level.gentities (VM 1055824) at instruction 1268",
+   "LocateGameData": "instruction 1333: level.gentities, level.num_entities, 624, level.clients, 764",
+   "worldRecord": "g_entities + 1022 * 624 = VM 0x10176c; its address appears as a constant only at instructions 114049, 114056 (function 113992) and 141620 (function 141381)",
+   "unlinkSites": 16
+  }
+ },
+ "crash": {
+  "server": "663f416226bb (8da1234c + the frame-time and serverinfo changes)",
+  "sweep": [
+   {
+    "engine": "retail",
+    "case": "ffa-elimination",
+    "exit": "Last Man Standing.",
+    "errors": []
+   },
+   {
+    "engine": "fntech3",
+    "case": "ffa-elimination",
+    "exit": null,
+    "errors": [
+     "ERROR: SV_SvEntityForGentity: bad gEnt",
+     "----- Server Shutdown (Server crashed: SV_SvEntityForGentity: bad gEnt) -----"
+    ]
+   }
+  ],
+  "debuggerRuns": [
+   "0 no error 28.1",
+   "1 no error 26.5",
+   "2 no error 45.4",
+   "3 no error 32.4",
+   "4 no error 29.4",
+   "5 no error 36.5",
+   "6 caught 12.5"
+  ],
+  "stack": [
+   "ChildEBP RetAddr      Args to Child",
+   "00afdf44 00dc7e07     00000001 00ee51bc ffffffff fntech3_ded!Com_Error (FPO: [2,0,0]) (CONV: cdecl)",
+   "00afdf6c 00de5f13     0cbef7ac 00afe900 0000001f fntech3_ded!SV_SvEntityForGentity+0x77 (FPO: [1,7,0]) (CONV: cdecl)",
+   "00afe734 00d793cf     0cbef7ac 00afe900 001ffba0 fntech3_ded!SV_UnlinkEntity+0x23 (FPO: [1,494,0]) (CONV: cdecl)",
+   "00afe85c 04e214fc     001ffc68 0ccedca8 04e2b26a fntech3_ded!SV_GameSystemCalls+0xe0f (FPO: [Non-Fpo]) (CONV: cdecl)",
+   "WARNING: Frame IP not in any known module. Following frames may be wrong.",
+   "00afe868 04e2b26a     00afe900 001ffca8 0ccedce8 0x4e214fc",
+   "00afe878 04de8845     00afe900 001ffd10 0ccedd50 0x4e2b26a"
+  ],
+  "gameData": {
+   "entityBase_": "0x0cb53c8c",
+   "entitySpanBytes_": "0x2a5a0",
+   "entityCount_": "0n278",
+   "entityCapacity_": "0n278",
+   "entityStride_": "0x270"
+  },
+  "pointer": "0xcbef7ac",
+  "offset": "0x9bb20",
+  "record": 1022.0
+ },
+ "fixed": {
+  "server": "bada7c657282 (8da1234c + the frame-time, serverinfo and world-record changes)",
+  "worldUnlinksCounted": [
+   "0 world unlinks 0",
+   "0 no error 42.7",
+   "1 world unlinks 3",
+   "1 no error 32.7",
+   "2 world unlinks 0",
+   "2 no error 32.9",
+   "3 world unlinks 0",
+   "3 no error 21.3"
+  ],
+  "worldUnlinksCountedAgain": [
+   "0 world unlinks 0",
+   "0 no error 49.6",
+   "1 world unlinks 1",
+   "1 no error 11.9",
+   "2 world unlinks 0",
+   "2 no error 32.1",
+   "3 world unlinks 0",
+   "3 no error 33.2",
+   "4 world unlinks 0",
+   "4 no error 25.1",
+   "5 world unlinks 0",
+   "5 no error 24.0"
+  ],
+  "interpretedChain": {
+   "how": "vm_game 1; at an unlink of the world record cdb wrote the VM program stack, and each frame base holds the return instruction the interpreter stored there (vm_interpreted.c OP_CALL)",
+   "frames": [
+    {
+     "function": 86996,
+     "frame": 340,
+     "note": "client think, run for a bot inside the bot frame"
+    },
+    {
+     "function": 86118,
+     "frame": 104,
+     "note": "holdable items: \"CHARGE PLACED\", \"FORCE FIELD PLACED\", \"DECOY PLACED\""
+    },
+    {
+     "function": 166204,
+     "frame": 64
+    },
+    {
+     "function": 154997,
+     "frame": 200,
+     "note": "unlinks at instruction 155366, traces, makes a temp entity (function 152377, \"tempEntity\") and links: as TeleportPlayer does (inference)"
+    }
+   ]
+  },
+  "eliminationGames": [
+   {
+    "case": "ffa-elimination",
+    "trial": 0,
+    "exit": "Last Man Standing.",
+    "kills": 3,
+    "errors": []
+   },
+   {
+    "case": "ffa-elimination",
+    "trial": 1,
+    "exit": "Last Man Standing.",
+    "kills": 3,
+    "errors": []
+   },
+   {
+    "case": "ffa-elimination",
+    "trial": 2,
+    "exit": "Last Man Standing.",
+    "kills": 3,
+    "errors": []
+   },
+   {
+    "case": "ffa-elimination",
+    "trial": 3,
+    "exit": "Last Man Standing.",
+    "kills": 3,
+    "errors": []
+   },
+   {
+    "case": "ffa-elimination",
+    "trial": 4,
+    "exit": "Last Man Standing.",
+    "kills": 3,
+    "errors": []
+   },
+   {
+    "case": "ffa-elimination",
+    "trial": 5,
+    "exit": "Last Man Standing.",
+    "kills": 3,
+    "errors": []
+   },
+   {
+    "case": "ffa-elimination",
+    "trial": 6,
+    "exit": "Last Man Standing.",
+    "kills": 3,
+    "errors": []
+   },
+   {
+    "case": "ffa-elimination",
+    "trial": 7,
+    "exit": "Last Man Standing.",
+    "kills": 3,
+    "errors": []
+   },
+   {
+    "case": "ffa-elimination",
+    "trial": 8,
+    "exit": "Last Man Standing.",
+    "kills": 3,
+    "errors": []
+   },
+   {
+    "case": "ffa-elimination",
+    "trial": 9,
+    "exit": "Last Man Standing.",
+    "kills": 3,
+    "errors": []
+   },
+   {
+    "case": "team-elimination",
+    "trial": 0,
+    "exit": "Last Man Standing.",
+    "kills": 1,
+    "errors": []
+   },
+   {
+    "case": "team-elimination",
+    "trial": 1,
+    "exit": "Last Man Standing.",
+    "kills": 3,
+    "errors": []
+   },
+   {
+    "case": "team-elimination",
+    "trial": 2,
+    "exit": "Last Man Standing.",
+    "kills": 2,
+    "errors": []
+   },
+   {
+    "case": "team-elimination",
+    "trial": 3,
+    "exit": "Last Man Standing.",
+    "kills": 1,
+    "errors": []
+   },
+   {
+    "case": "team-elimination",
+    "trial": 4,
+    "exit": null,
+    "kills": 0,
+    "errors": []
+   },
+   {
+    "case": "team-elimination",
+    "trial": 5,
+    "exit": "Last Man Standing.",
+    "kills": 2,
+    "errors": []
+   },
+   {
+    "case": "team-elimination",
+    "trial": 6,
+    "exit": null,
+    "kills": 0,
+    "errors": []
+   },
+   {
+    "case": "team-elimination",
+    "trial": 7,
+    "exit": null,
+    "kills": 0,
+    "errors": []
+   },
+   {
+    "case": "team-elimination",
+    "trial": 8,
+    "exit": "Last Man Standing.",
+    "kills": 1,
+    "errors": []
+   },
+   {
+    "case": "team-elimination",
+    "trial": 9,
+    "exit": "Last Man Standing.",
+    "kills": 2,
+    "errors": []
+   }
+  ],
+  "installationUnchanged": true
+ },
+ "tests": {
+  "files": [
+   "tests/server_game_data_tests.cpp",
+   "tests/world_owner_trace_tests.py"
+  ],
+  "mutationsThatFail": [
+   "no Holomatch exception in BindNative (5 checks fail)"
+  ]
+ },
+ "proprietaryContentCommitted": false
+}

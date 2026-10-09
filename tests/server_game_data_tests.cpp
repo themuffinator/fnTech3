@@ -1137,8 +1137,7 @@ void TestRTCWSaveEntityCapacity()
 	Expect( view.BindNative(COM_GAME_RTCW_SP, binding) == GameDataBindError::EntitySpanTooSmall,
 		"capacity requires a complete native/QVM memory span" );
 	++binding.entitySpanBytes;
-	for ( auto profile : {COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_STVEF_MP,
-		COM_GAME_JK2_MP, COM_GAME_JKA_MP} )
+	for ( auto profile : {COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_JK2_MP, COM_GAME_JKA_MP} )
 		Expect( view.BindNative(profile, binding) == GameDataBindError::InvalidEntityCount,
 			"other profiles do not broaden their entity contracts" );
 	ExpectGuardsIntact(storage, "SP save capacity preserves array guards");
@@ -1148,8 +1147,9 @@ void TestRTCWSaveEntityCapacity()
  * publish only the count in use, which starts at 64. Dynamite that stops
  * moving takes the world, ENTITYNUM_WORLD, as its owner and traces with it as
  * the pass entity, so the server reads the world's record past that count.
- * The strides are the retail modules' own: 1352 bytes in RTCW MP's
- * qagame_mp_x86.dll and 1404 in ET 2.60b's. */
+ * Holomatch's game unlinks that record from its bots' frame. The strides are
+ * the retail modules' own: 1352 bytes in RTCW MP's qagame_mp_x86.dll, 1404 in
+ * ET 2.60b's and 624 in Holomatch's vm/qagame.qvm. */
 template<typename Entity, typename Player>
 void TestWorldEntityArena( comGameId_t profile, std::size_t stride, const char *name )
 {
@@ -1214,6 +1214,8 @@ int main()
 		COM_GAME_RTCW_MP, 1352, "RTCW MP" );
 	TestWorldEntityArena<fntech3_wolfet_sharedEntity_t, fntech3_wolfet_playerState_t>(
 		COM_GAME_WOLFET, 1404, "ET" );
+	TestWorldEntityArena<fntech3_stvef_mp_sharedEntity_t, fntech3_stvef_mp_playerState_t>(
+		COM_GAME_STVEF_MP, 624, "Holomatch" );
 	TestRTCWRecords<fntech3_rtcw_sp_sharedEntity_t, fntech3_rtcw_sp_playerState_t>( COM_GAME_RTCW_SP, 128 );
 	TestRTCWRecords<fntech3_rtcw_mp_sharedEntity_t, fntech3_rtcw_mp_playerState_t>( COM_GAME_RTCW_MP, 64 );
 	TestRTCWMPWorldflags();

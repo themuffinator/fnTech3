@@ -36,6 +36,7 @@ static comGameProfile_t profile{};
 const comGameProfile_t *Com_GameProfile(){return &profile;}
 int Com_GameIsRTCW(){return profile.id==COM_GAME_RTCW_SP||profile.id==COM_GAME_RTCW_MP;}
 int Com_GameIsWolfET(){return profile.id==COM_GAME_WOLFET;}
+int Com_GameIsSTVEFMP(){return profile.id==COM_GAME_STVEF_MP;}
 struct Drop{};
 void QDECL Com_Error(errorParm_t,const char *,...){throw Drop{};}
 const vec3_t vec3_origin{};
@@ -119,7 +120,9 @@ int main(){
    (sizeof(fntech3_q3_sharedEntity_t)+15)&~std::size_t(15),0);
   run<fntech3_ql_sharedEntity_t,fntech3_ql_playerState_t>(COM_GAME_QUAKELIVE,
    (sizeof(fntech3_ql_sharedEntity_t)+15)&~std::size_t(15),0);
-  for(auto id:{COM_GAME_STVEF_MP,COM_GAME_JK2_MP,COM_GAME_JKA_MP}){
+  // Holomatch's bots' frame unlinks the world's record past its count.
+  profile.id=COM_GAME_STVEF_MP;Check(SV_GameEntityArena()==MAX_GENTITIES,"Holomatch entity arena");
+  for(auto id:{COM_GAME_JK2_MP,COM_GAME_JKA_MP}){
    profile.id=id;Check(SV_GameEntityArena()==0,"Other profiles keep their published bound");
   }
  }catch(const Drop&){std::fprintf(stderr,"Unexpected engine rejection\n");return 1;}

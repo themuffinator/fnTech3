@@ -933,11 +933,17 @@ the same. Retail qagame_mp_x86.dll (RTCW MP) clears 1024 records of 1352
 bytes (0x20041d3f), stores the world owner at 0x20047d7c and traces with it
 at 0x20048b0d. ET 2.60b's clears 1024 of 1404 (0x20051ff7) and stores it at
 0x20057a4e and 0x2005a385.
+
+Holomatch's game unlinks the world's record, g_entities[ENTITYNUM_WORLD],
+from its bot frame in an Elimination game, past the count it publishes.
+stvoyHM.exe 1.20 takes any record whose number is below 1024
+(SV_SvEntityForGentity, 0x43170c..0x431726).
 ===============
 */
 static int SV_GameEntityArena( void ) {
 	if ( Com_GameIsRTCW() ) return 1 << FNTECH3_RTCW_GENTITYNUM_BITS;
 	if ( Com_GameIsWolfET() ) return 1 << FNTECH3_WOLFET_GENTITYNUM_BITS;
+	if ( Com_GameIsSTVEFMP() ) return MAX_GENTITIES;
 	return 0;
 }
 

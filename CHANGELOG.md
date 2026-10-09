@@ -210,6 +210,11 @@ historical upstream records, not fnTech3 release history. See the
   longer see fnTech3's own download and rate settings. Its `sv_pure` setting
   is saved with the configuration, as the original's is
   ([record](docs/fntech3/2026-10-08-stvef-serverinfo.md)).
+- Keep Elite Force Holomatch Elimination games running. Their bots
+  sometimes ask the server to take the level's world out of play, which the
+  original server accepts and fnTech3's had treated as an error, stopping
+  the server with `SV_SvEntityForGentity: bad gEnt`
+  ([record](docs/fntech3/2026-10-09-stvef-world-record.md)).
 - Stop a server faulting when `bot_saveroutingcache 1` is set while its bots'
   navigation is still being prepared, as it is for a while after a map loads
   with `bot_forcereachability 1`. There are no routes to save yet: the server
