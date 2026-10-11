@@ -35,13 +35,17 @@ extern "C" {
 
 #include "client_cpp.h"
 #include "cl_mohaa.h"
+#include "../compat/gamespy_query.hpp"
 #include "../compat/mohaa_message_codec.hpp"
+#include "../qcommon/net_query.h"
 #include "../qcommon/netchan_safety.hpp"
 
 #include <algorithm>
 #include <array>
+#include <bitset>
 #include <cstring>
 #include <memory>
+#include <string>
 
 namespace {
 
@@ -643,4 +647,120 @@ void CL_MOHAADrawFades( void ) {
 bool CL_MOHAALetterboxActive( void ) {
 	const PlayerState *ps = CL_MOHAAPlayerState();
 	return ps && ps->stats[fntech3::mohaa::kStatLetterbox] > 0;
+}
+
+/*
+==================
+GameSpy's LAN search
+
+1.00's Join LAN Game list asks the game ports with `getinfo` (its Refresh
+runs `localservers`, ui/joinlangame.urc), and so finds a server whose game
+port is one of the four the engine scans. Beside that, fnTech3's list makes
+GameSpy's LAN search as the SDK's browser made it **[O]**
+(code/compat/gamespy_query.hpp): `\status\` broadcast once to each port from
+12300 to 12316, from a socket of its own, the answers taken for three
+seconds. 1.00's servers answered GameSpy's browsers there (Start New
+Server's GameSpy box, `ui_gamespy`), so a server is found either way, and
+one whose game port lies beyond the four is found as well. An answer is
+judged as OpenMoHAA's browser judges one **[O]** and listed only when 1.00
+can join it: GameSpy's `mohaa` at 1.00, at its `hostport`. A server that
+answers on its game port is listed from that answer, whichever comes first,
+so GameSpy's answers only add. No master is asked anything: GameSpy's are
+gone.
+==================
+*/
+namespace {
+
+fntech3::gamespy::LanAnswers lanAnswers;
+/* The local servers a GameSpy answer listed. */
+std::bitset<MAX_OTHER_SERVERS> lanListedByGameSpy;
+int lanSearchStarted;
+
+void GameSpyLanAnswer( const netadr_t *from, const byte *data, int length ) {
+	namespace mohaa = fntech3::gamespy::mohaa;
+	if ( !Com_GameIsMOHAA() || cls.pingUpdateSource != AS_LOCAL || !from || from->type != NA_IP || !data
+		|| length <= 0 ) {
+		return;
+	}
+	const std::string source = NET_AdrToStringwPort( from );
+	const fntech3::gamespy::LanAnswers::Answer *answer =
+		lanAnswers.Add( source, reinterpret_cast<const char *>( data ), static_cast<std::size_t>( length ) );
+	if ( !answer ) {
+		return;
+	}
+	mohaa::LanServer server;
+	const mohaa::LanVerdict verdict = mohaa::JudgeLanAnswer( *answer, Com_GameDefaultServerPort(), server );
+	if ( verdict != mohaa::LanVerdict::Listed ) {
+		Com_DPrintf( "GameSpy LAN answer from %s not listed: %s (gamever %s)\n", source.c_str(),
+			mohaa::LanVerdictName( verdict ), server.version.c_str() );
+		return;
+	}
+	netadr_t address = *from;
+	address.port = BigShort( static_cast<short>( server.hostPort ) );
+	int i;
+	for ( i = 0; i < MAX_OTHER_SERVERS; i++ ) {
+		if ( cls.localServers[i].adr.port == 0 ) {
+			break;
+		}
+		if ( NET_CompareAdr( &address, &cls.localServers[i].adr ) ) {
+			return;
+		}
+	}
+	if ( i == MAX_OTHER_SERVERS ) {
+		Com_DPrintf( "MAX_OTHER_SERVERS hit, dropping GameSpy answer\n" );
+		return;
+	}
+	/* As CL_InitServerInfo and CL_SetServerInfo leave a getinfo answer's
+	 * entry, its visibility untouched. */
+	serverInfo_t &entry = cls.localServers[i];
+	entry.adr = address;
+	Q_strncpyz( entry.hostName, server.hostName.c_str(), sizeof( entry.hostName ) );
+	Q_strncpyz( entry.mapName, server.mapName.c_str(), sizeof( entry.mapName ) );
+	entry.game[0] = '\0';
+	entry.netType = 0;
+	entry.gameType = server.gameType;
+	entry.clients = server.players;
+	entry.maxClients = server.maxPlayers;
+	entry.minPing = 0;
+	entry.maxPing = 0;
+	entry.ping = Sys_Milliseconds() - lanSearchStarted;
+	entry.punkbuster = 0;
+	entry.g_humanplayers = 0;
+	entry.g_needpass = 0;
+	cls.numlocalservers = i + 1;
+	lanListedByGameSpy.set( static_cast<std::size_t>( i ) );
+	Com_DPrintf( "%s listed from GameSpy's answer from %s: %s\n", NET_AdrToStringwPort( &address ), source.c_str(),
+		entry.hostName );
+}
+
+} // namespace
+
+void CL_MOHAAGameSpyLanSearch( void ) {
+	namespace gamespy = fntech3::gamespy;
+	lanAnswers.Clear();
+	lanListedByGameSpy.reset();
+	const int port = NET_OpenSearchSocket( gamespy::LanSearchMilliseconds, GameSpyLanAnswer );
+	if ( !port ) {
+		Com_DPrintf( "No GameSpy LAN search: no IPv4 socket for it.\n" );
+		return;
+	}
+	lanSearchStarted = Sys_Milliseconds();
+	netadr_t to{};
+	to.type = NA_BROADCAST;
+	const int length = static_cast<int>( std::strlen( gamespy::StatusQuery ) );
+	for ( int queryPort = gamespy::mohaa::LanSearchFirstPort; queryPort <= gamespy::mohaa::LanSearchLastPort;
+		queryPort++ ) {
+		to.port = BigShort( static_cast<short>( queryPort ) );
+		NET_SendSearchPacket( length, gamespy::StatusQuery, &to );
+	}
+	Com_DPrintf( "GameSpy LAN search from UDP port %i to ports %i-%i\n", port, gamespy::mohaa::LanSearchFirstPort,
+		gamespy::mohaa::LanSearchLastPort );
+}
+
+bool CL_MOHAAGameSpyTakeOver( int index ) {
+	if ( index < 0 || index >= MAX_OTHER_SERVERS || !lanListedByGameSpy.test( static_cast<std::size_t>( index ) ) ) {
+		return false;
+	}
+	lanListedByGameSpy.reset( static_cast<std::size_t>( index ) );
+	return true;
 }

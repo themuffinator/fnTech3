@@ -116,7 +116,7 @@ class RtxRendererContractSourceTests(unittest.TestCase):
 
         # 30: Medal of Honor's model registration joined the table; 31: Elite
         # Force single player's scissor and raw-image members after it.
-        self.assertIn("#define\tREF_API_VERSION\t\t34", public)
+        self.assertIn("#define\tREF_API_VERSION\t\t35", public)
         self.assertIn("Com_Memset( &re, 0, sizeof( re ) );", init)
         exports = (
             "re.RegisterMOHAATiki = RE_RegisterMOHAATiki;",
@@ -562,7 +562,7 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         ordered = (
             "rtComposition ? RB_DRAWSURFS_RT_BASE : RB_DRAWSURFS_ALL",
             "rtTraceCompleted = vk_rt_trace_frame();",
-            "rb_rtFogOverlay = rtTraceCompleted;",
+            "rb_rtFogOverlay = qtrue;",
             "RB_RenderDrawSurfList( cmd->drawSurfs, cmd->numDrawSurfs, RB_DRAWSURFS_RT_OVERLAY );",
             "rb_rtFogOverlay = qfalse;",
         )
@@ -572,10 +572,14 @@ class RtxRendererContractSourceTests(unittest.TestCase):
             "rtx_rt_require 1 primary-view dispatch or scene-color copy failed; refusing silent raster fallback",
             draw,
         )
-        # a skipped or failed trace keeps the base pass's raster draw, and
-        # draws its dynamic light pass
-        self.assertIn("if ( !rtTraceCompleted &&", draw)
-        self.assertIn("RB_LightingPass( RB_DRAWSURFS_RT_BASE, qfalse );", draw)
+        # A depth-only base cannot stand as fallback. Failure restores all
+        # shadow consumers then redraws the full list, with no extra overlay.
+        failure = source_section(draw, "if ( !rtTraceCompleted ) {", "} else {")
+        self.assertIn("rb_rtCompositionActive = qfalse;", failure)
+        self.assertIn("RB_RunScheduledShadowManagerPreMainPasses", failure)
+        self.assertIn("RB_BeginDrawingView();", failure)
+        self.assertIn("RB_DRAWSURFS_ALL", failure)
+        self.assertNotIn("RB_DRAWSURFS_RT_OVERLAY", failure)
         # every surface is drawn exactly once across the two lists
         self.assertIn("return owner != RT_SURFACE_RASTER ? qtrue : qfalse;", included)
         self.assertIn("return owner == RT_SURFACE_RASTER ? qtrue : qfalse;", included)
@@ -598,7 +602,7 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         # dynamic lights do not
         extract = (source_section(backend, "static qboolean RT_ExtractWorldSurface(", "\n}\n") +
                    source_section(backend, "static qboolean RT_ExtractWorld(", "\n}\n"))
-        self.assertIn("} else if ( shader->rtCompiledTranslucent ||", extract)
+        self.assertIn("shader->rtCompiledTranslucent ||", extract)
         self.assertIn(
             "*surface->data == SF_GRID && rtx_rt_patch_shadows && !rtx_rt_patch_shadows->integer", extract
         )
@@ -651,7 +655,7 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         # light through (trans) nor filters it, alpha-tested ones included:
         # the map's lights and sun trace solid rays, a dynamic light's rays
         # keep the alpha test
-        self.assertIn("rt_trace_shadow_mask(origin, chosen.L, chosen.dist - 0.1, mask, !dynamicLight);", sample)
+        self.assertIn("rt_trace_shadow_mask(origin, chosen.L, chosen.dist - 0.1, mask, !dynamicLight, reactive);", sample)
         self.assertIn("if (!trace_solid(origin, L, 0.01, 1e5, g_shadowMask | RT_MASK_SPECIAL)) {", sun_visibility)
         # the composite eases specular light with the irradiance near a lamp
         composite = read("code/rendererrtx/shaders/rt_composite.comp")
@@ -765,7 +769,7 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         main = source_section(path, "void rt_path_main(", "\n}\n")
         self.assertIn("vec3 N = sh.N;", main)
         self.assertIn("vec3 reflectance = finite_or_zero(sh.diffuse);", main)
-        self.assertIn("RtShading sh = rt_shading(material, tri, h, surf, geometric, 1.0);",
+        self.assertIn("RtShading sh = rt_shading(material, tri, h, surf, geometric, lodBias);",
                       source_section(path, "vec3 bounce_radiance(", "\n}\n"))
 
     def test_glossy_reflections_share_surface_lights_with_light_sampling(self) -> None:
@@ -797,7 +801,7 @@ class RtxRendererContractSourceTests(unittest.TestCase):
                       bounce)
         main = source_section(path, "void rt_path_main(", "\n}\n")
         self.assertIn("bool mis = reflections && (u_frame.flags.x & RT_FRAME_MIS) != 0u;", main)
-        self.assertLess(main.index("g_mis = g_misLights;"), main.index("bounce_radiance(rorigin, L,"))
+        self.assertLess(main.index("g_mis = !liquid && lobe == 1u && g_misLights;"), main.index("bounce_radiance(rayOrigin, L,"))
 
         # The resampling's normalizer is random, so the reflection side takes
         # the light sampler's density with the point it met in place of the
@@ -806,18 +810,20 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         # to one on every path. Each candidate draws from its own stream, so
         # the reflection side draws the replaced one again.
         sample = source_section(lighting, "vec3 rt_sample_lights(", "\n}\n")
-        self.assertIn("rt_light_candidate(P, N, cell, total, enumerate, exclude, rt_light_stream(choice.streams, k), k,",
+        self.assertIn("rt_light_candidate(P, N, cell, total, enumerate, globalShare, exclude, rt_choice_stream(choice, k), k,",
                       sample)
         self.assertLess(sample.index("choice.weightSum = wSum;"), sample.index("if (!(wSum > 0.0) || !(pSel > 0.0)) {"))
         at = source_section(lighting, "float rt_light_pdf_at(", "\n}\n")
-        self.assertIn("slot = enumerate ? k : 0u;", at)
-        self.assertIn("rt_light_candidate(P, N, c.cell, total, enumerate, c.exclude, rt_light_stream(c.streams, slot), slot,",
+        self.assertIn("slot = enumerate ? rt_local_light_slot(c.cell, index) : 0u;", at)
+        self.assertIn("rt_light_candidate(P, N, c.cell, total, enumerate, c.globalShare, c.exclude, rt_choice_stream(c, slot), slot,",
                       at)
         self.assertIn(
-            "float weightSum = max(c.weightSum - drawnWeight, 0.0) + (enumerate ? target : target * float(total));", at)
+            "float weightSum = max(c.weightSum - drawnWeight, 0.0) + (enumerate ? target : target / proposal);", at)
         candidate = source_section(lighting, "bool rt_light_candidate(", "\n}\n")
         self.assertIn("uint pick = enumerate ? k : min(uint(rand01(stream) * float(total)), total - 1u);", candidate)
         self.assertIn("if (!rt_light_eval(index, P, N, exclude, stream, s)) {", candidate)
+        self.assertIn("proposal = rt_light_proposal_pdf(cell, total, globalShare, index)", candidate)
+        self.assertIn("weight = p / proposal;", candidate)
 
         # a world triangle names the light it emits as; the frame flag follows
         # rtx_rt_mis, and changing it (or any setting the trace reads) starts
@@ -903,10 +909,10 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         self.assertIn("float elevation = (0.5 * PI / iterations) * (float(row) + 0.5);", dome)
         self.assertIn("float angle = (2.0 * PI / float(perRow)) * (float(column) + float(row) / float(rows));", dome)
         self.assertIn("light = u_frame.skyLight.rgb * cosR;", dome)
-        self.assertIn("return light * visible;", dome)
+        self.assertIn("return light;", dome)
         # one visibility ray for either sky: a second call site stops the
         # 32-bit compute pipeline from being created
-        self.assertEqual(dome.count("rt_sun_visibility("), 1)
+        self.assertNotIn("rt_sun_visibility(", dome)
         for iterations in (2, 3, 4, 6):
             with self.subTest(iterations=iterations):
                 # CreateSkyLights, as q3map2 walks it
@@ -931,9 +937,9 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         direct = source_section(path, "ShadeResult shade_direct(", "\n}\n")
         # a bounce's point samples one of the emitters, the sun and the sky
         # (oneSample), the one drawn counted for all
-        self.assertIn("vec3 Esky = (pick & 4u) != 0u ? rt_sample_sky_light(P, N, Ng, seed, Lsky) * share : vec3(0.0);",
+        self.assertIn("Esky *= share * rt_sun_visibility(origin, Lsky, skyReactive);",
                       direct)
-        self.assertIn("if ((u_frame.flags.x & RT_FRAME_SPECULAR) != 0u && !reflections) {", direct)
+        self.assertIn("if ((u_frame.flags.x & RT_FRAME_SPECULAR) != 0u && (sky == 0u || !reflections)) {", direct)
 
     def test_diffuse_paths_take_the_bounces_asked_for(self) -> None:
         # rtx_rt_bounces is the number of diffuse bounces (0-4); each hit adds
@@ -941,15 +947,15 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         # baked surface ends the path
         path = read("code/rendererrtx/shaders/rt_path.glsl")
         bounce = source_section(path, "vec3 bounce_radiance(", "\n}\n")
-        self.assertIn("for (uint d = 0u; d < depth; d++) {", bounce)
+        self.assertIn("for (uint step = 0u; step < depth + 8u && d < depth; step++) {", bounce)
         self.assertIn("radiance += throughput * (sh.diffuse * irradiance + emission * u_frame.params0.y + lightSeen);", bounce)
         self.assertIn("if (baked || !surf.lit || d + 1u >= depth) {", bounce)
         self.assertIn("throughput *= sh.diffuse;", bounce)
         # the reflection's MIS share belongs to its own hit
         self.assertIn("bool seen = reflection && d == 0u;", bounce)
         main = source_section(path, "void rt_path_main(", "\n}\n")
-        self.assertIn("bounce_radiance(borigin, bdir, h.coneWidth, bakedLighting, false, bounces, seed)", main)
-        self.assertIn("bounce_radiance(rorigin, L, h.coneWidth, bakedLighting, true, max(bounces, 1u), seed)", main)
+        self.assertIn("bool visible = lobe != 0u;", main)
+        self.assertIn("bounce_radiance(rayOrigin, L, h.coneWidth, bakedLighting, visible, depth, medium, footprint, receiverReflectance, seed)", main)
         backend = read("code/rendererrtx/rt/rt_backend.c")
         self.assertIn("u->flags[1] = rtx_rt_bounces ? (uint32_t)Com_Clamp( 0, 4, rtx_rt_bounces->integer ) : 1u;", backend)
         self.assertIn('ri.Cvar_CheckRange( rtx_rt_bounces, "0", "4", CV_INTEGER );', read("code/rendererrtx/tr_init.c"))
@@ -992,7 +998,7 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         self.assertIn("pick = (u_frame.flags.w > 0u && (exclude & RT_LIGHT_DYNAMIC) == 0u) ? 1u : 0u;", baked)
         sample = source_section(lighting, "vec3 rt_sample_lights(", "\n}\n")
         self.assertIn("uvec2 cell = dynamicOnly ? uvec2(0u) : rt_light_cell(P + Ng);", sample)
-        self.assertIn("rt_sample_lights(P, N, Ng, candidates, exclude, baked, seed, L, found, choice) * share",
+        self.assertIn("rt_sample_lights(P, N, Ng, candidates, exclude, baked, seed, L, found, choice, r.shadowReactive) * share",
                       direct)
 
         # raster's stand-ins for surface lights are lights the trace casts

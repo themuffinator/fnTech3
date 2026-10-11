@@ -17,6 +17,7 @@ General Public License, version 2 or (at your option) any later version.
 
 #include <cstring>
 #include <iostream>
+#include <iterator>
 #include <set>
 #include <string>
 
@@ -380,9 +381,125 @@ static void CheckExportSlots()
 	for ( int slot : { 0, 21, 22, 23, 24, 25 } ) {
 		CHECK( kGameExports[slot].kind == SlotKind::VALUE );
 	}
-	/* The entity size is the one value the module writes as a constant. */
+	/* The API version and the entity size are the two values the module
+	 * writes as constants. */
+	CHECK( kGameExports[FNTECH3_ALICE_EXPORT_apiversion].evidence
+		== ExportEvidence::IMMEDIATE );
 	CHECK( kGameExports[FNTECH3_ALICE_EXPORT_gentitySize].evidence
 		== ExportEvidence::IMMEDIATE );
+}
+
+/* The frozen signatures (alice_*_sigs.def). The shape check refuses what it
+ * should: these are the slots fnTech3 had served with the wrong shape, and
+ * the shapes they had. */
+static_assert( !Fits<GameImportSig<FNTECH3_ALICE_IMPORT_DebugGraph>, void ( * )()>(),
+	"a no-argument no-op is not DebugGraph" );
+static_assert( Fits<GameImportSig<FNTECH3_ALICE_IMPORT_DebugGraph>, void ( * )( float, int )>(),
+	"DebugGraph takes a float and an int" );
+static_assert( !Fits<GameImportSig<FNTECH3_ALICE_IMPORT_FS_PrepFileWrite>, void ( * )()>(),
+	"FS_PrepFileWrite returns a path" );
+static_assert( Fits<GameImportSig<FNTECH3_ALICE_IMPORT_FS_PrepFileWrite>, const char *( * )( const char * )>(),
+	"FS_PrepFileWrite takes a name" );
+static_assert( !Fits<GameImportSig<FNTECH3_ALICE_IMPORT_CalcCRC>, int ( * )( const unsigned char *, int )>(),
+	"CalcCRC returns sixteen bits" );
+static_assert( Fits<GameImportSig<FNTECH3_ALICE_IMPORT_CalcCRC>,
+	unsigned short ( * )( const unsigned char *, int )>(), "CalcCRC returns sixteen bits" );
+static_assert( !Fits<GameImportSig<FNTECH3_ALICE_IMPORT_Alias_UpdateDialog>,
+	void ( * )( int, const char *, int, int, int )>(), "the played flag is a byte" );
+static_assert( Fits<GameImportSig<FNTECH3_ALICE_IMPORT_Alias_UpdateDialog>,
+	void ( * )( int, const char *, int, unsigned char, int )>(), "the played flag is a byte" );
+/* A record is a pointer whatever its C++ type; a float is not an int; a
+ * variadic slot needs `...`; a value slot is not a function. */
+static_assert( Fits<GameImportSig<FNTECH3_ALICE_IMPORT_cvar>, void *( * )( const char *, const char *, int )>(),
+	"cvar" );
+static_assert( Fits<GameImportSig<FNTECH3_ALICE_IMPORT_Printf>, void ( * )( const char *, ... )>(), "Printf" );
+static_assert( !Fits<GameImportSig<FNTECH3_ALICE_IMPORT_Printf>, void ( * )( const char * )>(),
+	"Printf is variadic" );
+static_assert( !Fits<GameImportSig<FNTECH3_ALICE_IMPORT_DebugGraph>, void ( * )( int, int )>(),
+	"DebugGraph's value is a float" );
+static_assert( !Fits<GameImportSig<FNTECH3_ALICE_IMPORT_DebugLines>, void ( * )()>(), "DebugLines is data" );
+static_assert( HoldsValue<GameImportSig<FNTECH3_ALICE_IMPORT_DebugLines>, void **>(), "DebugLines is data" );
+static_assert( !Fits<GameExportSig<FNTECH3_ALICE_EXPORT_BotBegin>, void ( * )()>(), "BotBegin is absent" );
+
+static void CheckSignatureTable( const SigRow *rows, std::size_t count, int expectedRows )
+{
+	CHECK( static_cast<int>( count ) == expectedRows );
+	for ( std::size_t i = 0; i < count; ++i ) {
+		CHECK( rows[i].slot == static_cast<int>( i ) );
+		CHECK( rows[i].name && rows[i].name[0] );
+		CHECK( rows[i].evidence && rows[i].evidence[0] );
+		/* Every shape has engine or module evidence; the SDK alone fixes none. */
+		CHECK( std::strchr( rows[i].evidence, 'E' ) || std::strchr( rows[i].evidence, 'M' ) );
+		CHECK( ( rows[i].kind == SigKind::FUNCTION ) == ( rows[i].paramCount >= 0 ) );
+	}
+}
+
+static void CheckSignatures()
+{
+	CheckSignatureTable( kGameImportSigs, std::size( kGameImportSigs ), FNTECH3_ALICE_GAME_IMPORT_SLOTS );
+	CheckSignatureTable( kGameExportSigs, std::size( kGameExportSigs ), FNTECH3_ALICE_GAME_EXPORT_SLOTS );
+	CheckSignatureTable( kCGameImportSigs, std::size( kCGameImportSigs ), FNTECH3_ALICE_CGAME_IMPORT_SLOTS );
+	CheckSignatureTable( kCGameExportSigs, std::size( kCGameExportSigs ), FNTECH3_ALICE_CGAME_EXPORT_SLOTS );
+
+	/* The rows name the slots the name tables do. */
+	for ( const auto &row : kGameImportSigs ) CHECK( !std::strcmp( row.name, kGameImports[row.slot].name ) );
+	for ( const auto &row : kGameExportSigs ) CHECK( !std::strcmp( row.name, kGameExports[row.slot].name ) );
+	for ( const auto &row : kCGameImportSigs ) CHECK( !std::strcmp( row.name, kCGameImports[row.slot].name ) );
+	for ( const auto &row : kCGameExportSigs ) CHECK( !std::strcmp( row.name, kCGameExports[row.slot].name ) );
+
+	/* A count the module's own call sites fix is the signature's: exactly,
+	 * or at least its fixed part for a variadic one (centerprintf's eight
+	 * sites all pass its two). A slot whose sites disagree is variadic. */
+	for ( const auto &row : kGameImportSigs ) {
+		const auto &calls = kGameImportCalls[row.slot];
+		if ( calls.basis == CallBasis::AGREED || calls.basis == CallBasis::PUSHES ) {
+			CHECK( row.kind == SigKind::FUNCTION );
+			CHECK( row.variadic ? row.paramCount <= calls.args : row.paramCount == calls.args );
+		}
+		if ( calls.basis == CallBasis::VARIADIC ) CHECK( row.variadic );
+		if ( row.kind != SigKind::FUNCTION ) CHECK( calls.basis == CallBasis::UNCALLED );
+	}
+	for ( const auto &row : kCGameImportSigs ) {
+		const auto &slot = kCGameImports[row.slot];
+		if ( slot.basis == CallBasis::AGREED || slot.basis == CallBasis::PUSHES ) {
+			CHECK( row.kind == SigKind::FUNCTION );
+			CHECK( row.variadic ? row.paramCount <= slot.args : row.paramCount == slot.args );
+		}
+		if ( slot.basis == CallBasis::VARIADIC ) CHECK( row.variadic );
+		if ( row.kind != SigKind::FUNCTION ) CHECK( slot.basis == CallBasis::UNCALLED );
+	}
+	/* Tag_OrientationEx, whose call rows once read three. */
+	CHECK( kGameImportCalls[FNTECH3_ALICE_IMPORT_Tag_OrientationEx].args == 17 );
+	CHECK( kGameImportSigs[FNTECH3_ALICE_IMPORT_Tag_OrientationEx].paramCount == 17 );
+
+	/* What retail leaves empty: game import 100, client-game imports 0, 88
+	 * and 116, and the three game exports the module never writes. The two
+	 * data imports are the only value rows among the imports. */
+	int absent = 0, values = 0;
+	for ( const auto &row : kGameImportSigs ) {
+		absent += row.kind == SigKind::ABSENT;
+		values += row.kind == SigKind::VALUE;
+		CHECK( ( row.kind == SigKind::ABSENT ) == ( kGameImports[row.slot].evidence == Evidence::ABSENT ) );
+	}
+	CHECK( absent == 1 && values == 2 );
+	CHECK( kGameImportSigs[FNTECH3_ALICE_IMPORT_DebugLines].kind == SigKind::VALUE );
+	CHECK( kGameImportSigs[FNTECH3_ALICE_IMPORT_numDebugLines].kind == SigKind::VALUE );
+	absent = 0;
+	for ( const auto &row : kCGameImportSigs ) absent += row.kind == SigKind::ABSENT;
+	CHECK( absent == 3 );
+	for ( int slot : { FNTECH3_ALICE_CGAME_IMPORT_UNFILLED_A, FNTECH3_ALICE_CGAME_IMPORT_UNFILLED_B,
+		FNTECH3_ALICE_CGAME_IMPORT_UNFILLED_C } ) {
+		CHECK( kCGameImportSigs[slot].kind == SigKind::ABSENT );
+	}
+	for ( const auto &row : kGameExportSigs ) {
+		CHECK( ( row.kind == SigKind::ABSENT ) == ( kGameExports[row.slot].evidence == ExportEvidence::ABSENT ) );
+		if ( row.kind != SigKind::ABSENT ) {
+			CHECK( ( row.kind == SigKind::VALUE ) == ( kGameExports[row.slot].kind == SlotKind::VALUE ) );
+		}
+	}
+	for ( const auto &row : kCGameExportSigs ) {
+		CHECK( row.kind == SigKind::FUNCTION && row.paramCount == kCGameExports[row.slot].args );
+	}
 }
 
 /* The two delta field tables. What is asserted is the shape the retail
@@ -623,6 +740,7 @@ int main()
 	CheckExportSlots();
 	CheckClientGameImports();
 	CheckClientGameExports();
+	CheckSignatures();
 	CheckWireFields();
 	CheckNothingElseClaimsThisApi();
 	std::cout << "Alice module table and import slot tests passed\n";

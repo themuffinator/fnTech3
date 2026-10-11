@@ -4,8 +4,9 @@ Retail alice.exe builds each client's snapshot from its game's own records
 (SV_BuildClientSnapshot 0x00456f20, SV_AddEntitiesVisibleFromPoint 0x004571e0,
 SV_AddEntToSnapshot 0x00457150): the client's own entity first, a child judged
 by its parent, the sky portal's and every portal's view, and render flags
-rewritten on the entities for each. A load of the level that is running keeps
-the server's configstrings (SV_SpawnServer's reuse path, 0x004550a1..0x004550db);
+rewritten on the entities for each. A load or a restart of the level that is
+running keeps the game module, its clients and the server's state
+(SV_SpawnServer's reuse path, 0x004550a1..0x004550db);
 the model import wrappers answer their own defaults for an index with no model
 (0x00453960..0x004540f0); and `map`, `loadgame` and `loadbrokengame` stop a
 playing cinematic before they spawn (0x00451118, 0x00451c53, 0x00451b09).
@@ -270,29 +271,62 @@ class AliceSnapshotSourceTests(unittest.TestCase):
         self.assertGreater(self.game.index('unsigned char *SV_AliceGameEntity( int number ) {'),
                            self.game.index('} // namespace\n'))
 
-    def test_a_load_of_the_running_level_keeps_its_configstrings(self):
-        prepare = function(self.save, 'const char *SV_AlicePrepareSpawn( const char *server, char *bsp, int size ) {')
-        ordered(self, prepare, ['SV_AliceBspName( server, bsp, size );', 'aliceKeptConfigstrings.clear();',
-                                'if ( aliceLoadPending && gvm && aliceSpawnedBsp[0] && !Q_stricmp( bsp, aliceSpawnedBsp ) ) {',
-                                'aliceKeptConfigstrings.emplace_back(',
-                                'Q_strncpyz( aliceSpawnedBsp, bsp, sizeof( aliceSpawnedBsp ) );'])
-        restore = function(self.save, 'void SV_AliceRestoreConfigstrings( void ) {')
-        ordered(self, restore, ['aliceModelTableKept = !aliceKeptConfigstrings.empty();',
-                                'SV_ZFree( sv.configstrings[i] );', 'aliceKeptConfigstrings.clear();'])
-        self.assertIn('void SV_AliceRestoreConfigstrings( void );', self.header)
-        # After the spawn's own reset and before the module is loaded.
-        ordered(self, self.init, ['SV_ClearServer();\n\tsv.maxclients = preservedMaxClients;',
-                                  'sv.configstrings[index] = CopyString("");',
-                                  'if ( Com_GameIsRitual() ) {\n\t\tSV_AliceRestoreConfigstrings();\n\t}',
-                                  'SV_InitGameProgs();'])
-        fill = function(self.game, 'void SV_AliceFillImports() {')
-        ordered(self, fill, ['std::memset( aliceModelTiki, 0, sizeof( aliceModelTiki ) );',
-                             'SV_AliceRegisterKeptModels();'])
-        kept = function(self.game, 'void SV_AliceRegisterKeptModels() {')
-        self.assertIn('aliceModelTiki[index] = AliceTiki_Register( name ) + 1;', kept)
-        abort = function(self.save, 'void SV_AliceSaveAbort( void ) {')
-        self.assertIn('aliceKeptConfigstrings.clear();', abort)
-        self.assertIn('aliceModelTableKept = false;', abort)
+    def test_a_load_or_restart_of_the_running_level_keeps_the_module(self):
+        # SV_SpawnServer's choice (0x004550a1..0x004550df, then svs.initialized
+        # at 0x004550f8): the module loaded, the server running, the BSP the
+        # last spawn named, and a load or a restart.
+        keeps = function(self.save, 'bool SV_AliceSpawnKeepsModule( const char *server, bool restart ) {')
+        for condition in ('gvm && aliceGameExports && com_sv_running && com_sv_running->integer',
+                          '!Q_stricmp( bsp, aliceSpawnedBsp )', '( aliceLoadPending || restart )'):
+            self.assertIn(condition, keeps)
+        spawn = function(self.save, 'void SV_AliceSpawn( const char *server, bool restart ) {')
+        ordered(self, spawn, ['SV_AliceSpawnKeepsModule( server, restart )',
+                              'SV_AliceReuseSpawn( server, restart );', 'SV_SpawnServer( server, qfalse );'])
+        reuse = function(self.save, 'void SV_AliceReuseSpawn( const char *server, bool restart ) {')
+        ordered(self, reuse, ['SV_AlicePrepareSpawn( server, bsp, sizeof( bsp ) );', 'CL_AliceMapLoadingKeep();',
+                              'SV_AliceRestoreLevelTime();', 'SV_AliceCallCleanup();',
+                              'sv.restartedServerId = sv.serverId;', 'sv.serverId = com_frameTime;',
+                              'svs.snapFlagServerBit ^= SNAPFLAG_SERVERCOUNT;', 'CM_FloodAreaConnections();',
+                              'SV_SetConfigstring( 8, "none" );', 'SV_ClearWorld();',
+                              'AliceTiki_ResetDialogActors();', 'sv.state = SS_LOADING;',
+                              'SV_AliceArchiveLevelFile( true )', 'SV_AliceCallSpawnEntities();',
+                              'SV_AliceArchivePersistantFile( true );', 'SV_AliceSettle( qfalse );',
+                              '\tsv.restarting = qfalse;\n\tsv.state = SS_GAME;', 'GAME_CLIENT_CONNECT',
+                              'slot.client.state = CS_ACTIVE;',
+                              'SV_ClientEnterWorld( &slot.client, &slot.client.lastUsercmd );', 'SV_AliceSpawnDone();'])
+        # None of the full spawn: no map load, no state wipe, no new module,
+        # no cache flush, no baselines and no gamestate.
+        for absent in ('CM_LoadMap', 'SV_ClearServer', 'SV_InitGameProgs', 'SV_ShutdownGameProgs',
+                       'SV_AliceFlushModels', 'SV_CreateBaseline', 'gamestateAck'):
+            self.assertNotIn(absent, reuse)
+        # restart and both loads choose; map, devmap and gamemap spawn in full.
+        self.assertIn('SV_AliceSpawn( server, true );', function(self.save, 'void SV_AliceRestart_f() {'))
+        self.assertIn('SV_AliceSpawn( map, false );', function(self.save, 'void SV_AliceLoadArchive() {'))
+        self.assertIn('SV_AliceSpawn( map, false );', function(self.save, 'void SV_AliceLoadBrokenGame_f() {'))
+        for signature in ('void SV_AliceMap_f() {', 'void SV_AliceGameMap_f() {'):
+            self.assertIn('SV_SpawnServer( server, qfalse );', function(self.save, signature))
+            self.assertNotIn('SV_AliceSpawn(', function(self.save, signature))
+        # The full spawn keeps nothing of the level it leaves.
+        self.assertNotIn('aliceKeptConfigstrings', self.save)
+        self.assertNotIn('SV_AliceRestoreConfigstrings', self.init + self.header + self.save)
+        self.assertNotIn('SV_AliceRegisterKeptModels', self.game)
+        # The client keeps its connection and its client game, raises the
+        # loading screen, and lowers it at the next server count (0x0042d890).
+        alice = read('code/client/cl_alice.cpp')
+        keep = function(alice, 'void CL_AliceMapLoadingKeep( void ) {')
+        self.assertIn('CL_AliceMapLoading();', keep)
+        self.assertNotIn('CL_Disconnect', keep)
+        count = function(alice, 'qboolean CL_AliceSnapshotServerCount( int snapFlags ) {')
+        ordered(self, count, ['( snapFlags ^ lastSnapFlags ) & SNAPFLAG_SERVERCOUNT', 'lastSnapFlags = snapFlags;',
+                              'S_AliceSoundStopAll();', 'CL_AliceUIReleasePause();', 'CL_AliceLoadingEnd();',
+                              'S_AliceFadeSound( 0.0f );', 'VectorClear( cl.viewangles );'])
+        cgame = function(read('code/client/cl_cgame.cpp'), 'void CL_SetCGameTime( void ) {')
+        ordered(self, cgame, ['CL_CheckPaused()',
+                              'Com_GameIsRitual() ? CL_AliceSnapshotServerCount( cl.snap.snapFlags ) : qfalse',
+                              'if ( !ritualRespawned && cl.snap.serverTime - cl.oldFrameServerTime < 0 ) {'])
+        # Every spawn resets the loaded definitions' speakers (0x00462460).
+        tiki = function(read('code/qcommon/alice_tiki.cpp'), 'void AliceTiki_ResetDialogActors( void ) {')
+        ordered(self, tiki, ['alias::ClearActors( model->aliasList.get() );', 'alias::Sort( model->aliasList.get() );'])
 
     def test_map_and_loads_stop_a_cinematic_before_they_spawn(self):
         stop = function(self.save, 'void SV_AliceStopCinematic() {')
@@ -306,7 +340,7 @@ class AliceSnapshotSourceTests(unittest.TestCase):
                  'SV_AliceCallLevelArchiveValid( level )', 'SV_AliceLoadArchive();'])
         ordered(self, function(self.save, 'void SV_AliceLoadBrokenGame_f() {'),
                 ['SV_AliceArchiveServerFile( true, false )', 'SV_AliceCopyPersistant( true );',
-                 'Cvar_Set( "nextmap", "" );', 'SV_AliceStopCinematic();', 'SV_SpawnServer( map, qfalse );'])
+                 'Cvar_Set( "nextmap", "" );', 'SV_AliceStopCinematic();', 'SV_AliceSpawn( map, false );'])
         # gamemap and restart have no stop in retail (callers of 0x00425770 are
         # 0x00429e69, 0x0042abf2 and the three above).
         for signature in ('void SV_AliceGameMap_f() {', 'void SV_AliceRestart_f() {'):

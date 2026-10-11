@@ -113,6 +113,7 @@ struct Variable {
 	}
 };
 static std::map<std::string, Variable> vars;
+static int cvarGetCalls;
 static std::map<int,cvar_t *> vmVars;
 static std::string configstring, userinfo, sentCommand, dropReason;
 void SV_SetConfigstring(int index,const char *text) { CHECK(index==20);configstring=text; }
@@ -154,11 +155,21 @@ void FS_FreeFile(void *buffer) { ++bufferFrees; std::free(buffer); }
 int FS_GetFileList(const char *,const char *,char *list,int size) { CHECK(size>=5);std::memcpy(list,"test",5);return 1; }
 static std::string Key(const char *name) { std::string key=name; for (char &c:key) if(c>='A'&&c<='Z')c+=32; return key; }
 cvar_t *Cvar_Get(const char *name, const char *value, int flags) {
+	++cvarGetCalls;
 	auto &v=vars[Key(name)]; if(v.name.empty()) { v.name=Key(name); v.value=v.reset=value; }
+	// Match Cvar_Get's latch side effect, even when value is empty and flags zero.
+	if(v.engine.latchedString) {
+		v.value=v.engine.latchedString;v.engine.latchedString=nullptr;
+		++v.engine.modificationCount;v.engine.modified=qtrue;
+	}
 	v.engine.flags|=flags; v.Publish(); return &v.engine;
 }
+const cvar_t *Cvar_FindExisting(const char *name) {
+	const auto found=vars.find(Key(name));return found==vars.end() ? nullptr : &found->second.engine;
+}
 void Cvar_Set(const char *name, const char *value) {
-	auto &v=vars[Key(name)]; v.value=value; ++v.engine.modificationCount; v.engine.modified=qtrue; v.Publish();
+	auto &v=vars[Key(name)]; v.value=value; v.engine.latchedString=nullptr;
+	++v.engine.modificationCount; v.engine.modified=qtrue; v.Publish();
 }
 void Cvar_Update(vmCvar_t *external,int) {
 	const auto found=vmVars.find(external->handle);
@@ -464,10 +475,34 @@ int main() {
 	using Cvar = fntech3_jka_sp_cvar_prefix_t *(*)(const char *,const char *,int);
 	auto get=reinterpret_cast<Cvar>(received->slots[FNTECH3_JKA_SP_IMPORT_cvar]);
 	auto set=reinterpret_cast<void (*)(const char *,const char *)>(received->slots[FNTECH3_JKA_SP_IMPORT_cvar_set]);
+	const int previousGets=cvarGetCalls;
 	auto *var=get("Value","3.5",256|512); CHECK(var->integer==3&&var->value==3.5f);
+	CHECK(cvarGetCalls==previousGets+1);
 	CHECK(get("VALUE","0",0)==var); CHECK(var->flags==(256|512));
 	CHECK((vars["value"].engine.flags&256)==0); CHECK((vars["value"].engine.flags&512)!=0);
+	// Existing engine flags are visible through a zero-flag registration;
+	// TEMP (engine bit256) must not manufacture SP SAVEGAME (also bit256).
+	auto *existingEngine=Cvar_Get("existing","1",CVAR_ROM|CVAR_LATCH|CVAR_TEMP);
+	auto *existingExternal=get("EXISTING","1",0);
+	CHECK(existingExternal->flags==(CVAR_ROM|CVAR_LATCH));
+	CHECK(get("existing","1",256)==existingExternal);
+	CHECK(existingExternal->flags==(CVAR_ROM|CVAR_LATCH|256));
+	existingEngine->flags=(existingEngine->flags & ~CVAR_ROM)|CVAR_ARCHIVE;
+	const int beforeFlagSync=cvarGetCalls;
+	SV_JKASPSyncCvars();
+	CHECK(cvarGetCalls==beforeFlagSync);
+	CHECK(existingExternal->flags==(CVAR_ARCHIVE|CVAR_LATCH|256));
 	set("value","7"); CHECK(var->integer==7&&var->value==7&&var->modificationCount==1);
+	vars["value"].engine.latchedString=const_cast<char *>("9");
+	var->modified=qfalse;
+	const int beforeSync=cvarGetCalls;
+	SV_JKASPSyncCvars();CHECK(cvarGetCalls==beforeSync);
+	CHECK(var->integer==7&&!var->modified&&var->latchedString&&!std::strcmp(var->latchedString,"9"));
+	get("unrelated","1",0);set("unrelated","2");
+	CHECK(var->integer==7&&!var->modified&&vars["value"].engine.latchedString);
+	set("value","8");CHECK(var->integer==8&&var->modified&&!var->latchedString);
+	get("removed","1",0);vars.erase("removed");
+	Reject(SV_JKASPSyncCvars,"no longer exists: removed");jkaSpCvars.erase("removed");
 	struct VmCvarCanaries { uint32_t before; fntech3_jka_sp_vmCvar_t cvar; uint32_t after; } cgvar{0x12345678,{},0x98765432};
 	cgameSyscall(3,&cgvar.cvar,"cg_test","3.5",256|512);
 	CHECK(cgvar.cvar.value==3.5f && cgvar.cvar.integer==3 && !std::strcmp(cgvar.cvar.string,"3.5"));

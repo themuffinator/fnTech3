@@ -1,0 +1,3189 @@
+{
+ "record": "2026-10-09-jka-foreign-voices.md",
+ "date": "2026-10-09",
+ "profiles": [
+  "jka-sp",
+  "jka-mp"
+ ],
+ "evidence": [
+  "Source",
+  "Unit",
+  "Live subset (jka-mp)"
+ ],
+ "base": {
+  "head": "18e6b5419723962d438d2589d1f57e90529d12d4",
+  "note": "The runtimes are a git archive export of this commit (before) and the same export with this change's two engine files (after); only those two objects recompiled."
+ },
+ "identities": {
+  "jamp.exe 1.01": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+  "jasp.exe 1.01": "9351a8de230fcd577e2b474889d08f38982450306767a6823dd659482566d6ce",
+  "base/assets0.pk3": "ffea9e7489bad7175411d122e0652b4272efb67c0e71805d1f4d8058084b5939",
+  "base/assets1.pk3": "5f196826e226b1115bd46f54697334ca970c8261dd76864c1600179ff38e4c4f",
+  "base/assets2.pk3": "8f21cdd89afe78fdf916d103117f4b2621c6f4781dee003716057dc705ef98af",
+  "base/assets3.pk3": "0f542dccb6858fc10a8083ca71f581c9eba93173386e03a9e5e05d3a56118f78",
+  "fntech3.exe before (.tmp/runtime/jka-voices-before)": "a83dd8fc84f54cfdcd66e77f9435e6d4bc5daa94ee525c35b8b6709a821ed8ed",
+  "fntech3.exe after (.tmp/runtime/jka-voices-after)": "13d16f659039fc830173f30399f073f68187475c6efc42e1544b36bb071bcc63",
+  "fnql_glx_x86.dll, both": "28be86b7ee200d7568bf931baf54d11feced4e9dcb2d04bb6794b62ce706b0c3",
+  "fntech3-pkg.fnz, both": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+  "fnql-web.pak, both": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+  "soft_oal.dll, OpenAL Soft 1.25.2 x86, beside both": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+ },
+ "installation": {
+  "observed": "base/*.pk3 read with zipfile; folder entries not counted",
+  "voiceFolders": {
+   "chars": {
+    "files": 3576,
+    "stems": 3576,
+    "extensions": {
+     "mp3": 3531,
+     "wav": 45
+    },
+    "stemsInBothFormats": []
+   },
+   "chr_d": {
+    "files": 2873,
+    "stems": 2873,
+    "extensions": {
+     "mp3": 2873
+    },
+    "stemsInBothFormats": []
+   },
+   "chr_f": {
+    "files": 2877,
+    "stems": 2877,
+    "extensions": {
+     "mp3": 2877
+    },
+    "stemsInBothFormats": []
+   },
+   "chr_e": {
+    "files": 2873,
+    "stems": 2873,
+    "extensions": {
+     "mp3": 2870,
+     "wav": 3
+    },
+    "stemsInBothFormats": []
+   }
+  },
+  "folderEntriesInPaks": {
+   "chars": 148,
+   "chr_d": 92,
+   "chr_e": 92,
+   "chr_f": 93
+  },
+  "allVoicesIn": "assets0.pk3",
+  "namesNotLowercase": 0,
+  "duplicateAcrossPaks": 0,
+  "looseSoundFiles": 0,
+  "englishWithGerman": 2868,
+  "englishWithFrench": 2871,
+  "englishWithSpanish": 2867,
+  "englishWithAllThree": 2857,
+  "englishWithNone": 695,
+  "englishWithNoneByExtension": {
+   "wav": 42,
+   "mp3": 653
+  },
+  "germanOnlyForeign": [
+   "alora/misc/taunt",
+   "kothos/misc/taunt",
+   "rockettrooper1/misc/falling1",
+   "tavion/misc/taunt",
+   "worker2/misc/giveup4"
+  ],
+  "frenchOnlyForeign": [
+   "alora/misc/taunt",
+   "kothos/misc/taunt",
+   "rockettrooper1/misc/falling1",
+   "tavion/misc/taunt",
+   "worker2/misc/confuse3",
+   "worker2/misc/giveup4"
+  ],
+  "spanishOnlyForeign": [
+   "alora/misc/taunt",
+   "kothos/misc/taunt",
+   "rockettrooper1/misc/falling1",
+   "sab1/08is3002",
+   "tavion/misc/taunt",
+   "worker2/misc/giveup4"
+  ],
+  "formatPairs": {
+   "de english=mp3 foreign=mp3": 2868,
+   "es english=mp3 foreign=mp3": 2864,
+   "es english=wav foreign=wav": 3,
+   "fr english=mp3 foreign=mp3": 2871
+  },
+  "coverage": {
+   "de+fr+es": {
+    "count": 2857,
+    "voices": [
+     "alora/01alo001",
+     "alora/10alo001",
+     "alora/10alo002",
+     "alora/10alo003",
+     "alora/10alo004"
+    ]
+   },
+   "none": {
+    "count": 695,
+    "voices": [
+     "atst/atst_crash1",
+     "atst/atst_crash2",
+     "atst/atst_damaged1",
+     "atst/atst_damaged2",
+     "atst/atst_fall"
+    ]
+   },
+   "de+fr": {
+    "count": 10,
+    "voices": [
+     "worker1/misc/choke1",
+     "worker1/misc/choke2",
+     "worker1/misc/choke3",
+     "worker1/misc/death2",
+     "worker1/misc/pain100",
+     "worker1/misc/pain25",
+     "worker1/misc/pain50",
+     "worker1/misc/pain75",
+     "worker2/misc/confuse1",
+     "worker2/misc/confuse2"
+    ]
+   },
+   "es": {
+    "count": 9,
+    "voices": [
+     "boba/bf_blast-off",
+     "boba/bf_jetpack_lp",
+     "boba/bf_land",
+     "boba/jethover",
+     "boba/jeton",
+     "protocol/walk01",
+     "protocol/walk02",
+     "rebel_pilot1/misc/taunt2",
+     "rebel_pilot1/misc/taunt3"
+    ]
+   },
+   "fr": {
+    "count": 4,
+    "voices": [
+     "stormtrooper/bodyfall_trooper1",
+     "stormtrooper/bodyfall_trooper2",
+     "stormtrooper/bodyfall_trooper3",
+     "stormtrooper/bodyfall_trooper4"
+    ]
+   },
+   "de+es": {
+    "count": 1,
+    "voices": [
+     "stofficer1/misc/cover5"
+    ]
+   }
+  },
+  "spanishWavs": [
+   "sound/chr_e/boba/bf_jetpack_lp.wav",
+   "sound/chr_e/boba/jethover.wav",
+   "sound/chr_e/boba/jeton.wav"
+  ],
+  "spanishWavsIdenticalToEnglish": true,
+  "spanishWavsRequestedAs": {
+   "sound/chars/boba/bf_jetpack_lp.wav": [
+    "jagamex86.dll (single player)"
+   ],
+   "sound/chars/boba/jethover.wav": [
+    "assets2/3 cgamex86.dll",
+    "assets2/3 jampgamex86.dll",
+    "assets2 uix86.dll"
+   ],
+   "sound/chars/boba/jeton.wav": [
+    "assets2/3 cgamex86.dll",
+    "assets2/3 jampgamex86.dll",
+    "assets2 uix86.dll"
+   ]
+  },
+  "otherPakNamesContainingChars": [
+   "gfx/2d/charsgrid_med.tga"
+  ],
+  "cinematicVoiceTracks": [],
+  "videos": [
+   "ja01.roq",
+   "ja02.roq",
+   "ja03.roq",
+   "ja04.roq",
+   "ja05.roq",
+   "ja06.roq",
+   "ja07.roq",
+   "ja08.roq",
+   "ja09.roq",
+   "ja10.roq",
+   "ja11.roq",
+   "ja12.roq",
+   "jk0101_sw.roq",
+   "openinglogos.roq"
+  ],
+  "menus": {
+   "values": [
+    "english",
+    "francais",
+    "deutsch",
+    "espanol"
+   ],
+   "multiplayer": {
+    "files": [
+     "assets3.pk3 ui/jamp/setup.menu",
+     "assets1.pk3 ui/jamp/setup.menu",
+     "assets1.pk3 ui/jamp/ingame_setup.menu"
+    ],
+    "setLanguageButton": "exec \"ui_load ; snd_restart\""
+   },
+   "singlePlayer": {
+    "files": [
+     "assets1.pk3 ui/setup.menu",
+     "assets1.pk3 ui/ingamesetup.menu"
+    ],
+    "setLanguageButton": "ui/ingamesetup.menu langapply: exec \"snd_restart\"; ui/setup.menu has none; both hide the item when com_demo is 1"
+   },
+   "textLanguage": "se_language (a separate setting; jaconfig.cfg in the installation sets both to english)"
+  },
+  "probeVoiceLengths": {
+   "kyle/misc/taunt1": {
+    "chars": {
+     "file": "sound/chars/kyle/misc/taunt1.mp3",
+     "pak": "assets0.pk3",
+     "bytes": 9182,
+     "rate": 44100,
+     "channels": 1,
+     "uncompBytes": 103680,
+     "samples": 51840,
+     "ms": 1176
+    },
+    "chr_d": {
+     "file": "sound/chr_d/kyle/misc/taunt1.mp3",
+     "pak": "assets0.pk3",
+     "bytes": 11614,
+     "rate": 44100,
+     "channels": 1,
+     "uncompBytes": 119808,
+     "samples": 59904,
+     "ms": 1358
+    },
+    "chr_f": {
+     "file": "sound/chr_f/kyle/misc/taunt1.mp3",
+     "pak": "assets0.pk3",
+     "bytes": 11759,
+     "rate": 44100,
+     "channels": 1,
+     "uncompBytes": 126720,
+     "samples": 63360,
+     "ms": 1437
+    },
+    "chr_e": {
+     "file": "sound/chr_e/kyle/misc/taunt1.mp3",
+     "pak": "assets0.pk3",
+     "bytes": 10853,
+     "rate": 44100,
+     "channels": 1,
+     "uncompBytes": 112896,
+     "samples": 56448,
+     "ms": 1280
+    }
+   },
+   "kyle/misc/death1": {
+    "chars": {
+     "file": "sound/chars/kyle/misc/death1.mp3",
+     "pak": "assets0.pk3",
+     "bytes": 12898,
+     "rate": 44100,
+     "channels": 1,
+     "uncompBytes": 147456,
+     "samples": 73728,
+     "ms": 1672
+    },
+    "chr_d": {
+     "file": "sound/chr_d/kyle/misc/death1.mp3",
+     "pak": "assets0.pk3",
+     "bytes": 6085,
+     "rate": 44100,
+     "channels": 1,
+     "uncompBytes": 69120,
+     "samples": 34560,
+     "ms": 784
+    },
+    "chr_f": {
+     "file": "sound/chr_f/kyle/misc/death1.mp3",
+     "pak": "assets0.pk3",
+     "bytes": 15977,
+     "rate": 44100,
+     "channels": 1,
+     "uncompBytes": 172800,
+     "samples": 86400,
+     "ms": 1959
+    },
+    "chr_e": {
+     "file": "sound/chr_e/kyle/misc/death1.mp3",
+     "pak": "assets0.pk3",
+     "bytes": 20159,
+     "rate": 44100,
+     "channels": 1,
+     "uncompBytes": 200448,
+     "samples": 100224,
+     "ms": 2273
+    }
+   },
+   "tavion/misc/taunt": {
+    "chr_d": {
+     "file": "sound/chr_d/tavion/misc/taunt.mp3",
+     "pak": "assets0.pk3",
+     "bytes": 19033,
+     "rate": 44100,
+     "channels": 1,
+     "uncompBytes": 193536,
+     "samples": 96768,
+     "ms": 2194
+    },
+    "chr_f": {
+     "file": "sound/chr_f/tavion/misc/taunt.mp3",
+     "pak": "assets0.pk3",
+     "bytes": 11671,
+     "rate": 44100,
+     "channels": 1,
+     "uncompBytes": 115200,
+     "samples": 57600,
+     "ms": 1306
+    },
+    "chr_e": {
+     "file": "sound/chr_e/tavion/misc/taunt.mp3",
+     "pak": "assets0.pk3",
+     "bytes": 16606,
+     "rate": 44100,
+     "channels": 1,
+     "uncompBytes": 175104,
+     "samples": 87552,
+     "ms": 1985
+    }
+   },
+   "chewbacca/misc/death1": {
+    "chars": {
+     "file": "sound/chars/chewbacca/misc/death1.mp3",
+     "pak": "assets0.pk3",
+     "bytes": 9854,
+     "rate": 44100,
+     "channels": 1,
+     "uncompBytes": 115200,
+     "samples": 57600,
+     "ms": 1306
+    }
+   },
+   "worker1/misc/death2": {
+    "chars": {
+     "file": "sound/chars/worker1/misc/death2.mp3",
+     "pak": "assets0.pk3",
+     "bytes": 3977,
+     "rate": 44100,
+     "channels": 1,
+     "uncompBytes": 69120,
+     "samples": 34560,
+     "ms": 784
+    },
+    "chr_d": {
+     "file": "sound/chr_d/worker1/misc/death2.mp3",
+     "pak": "assets0.pk3",
+     "bytes": 3535,
+     "rate": 44100,
+     "channels": 1,
+     "uncompBytes": 52992,
+     "samples": 26496,
+     "ms": 601
+    },
+    "chr_f": {
+     "file": "sound/chr_f/worker1/misc/death2.mp3",
+     "pak": "assets0.pk3",
+     "bytes": 4679,
+     "rate": 44100,
+     "channels": 1,
+     "uncompBytes": 85248,
+     "samples": 42624,
+     "ms": 967
+    }
+   },
+   "stofficer1/misc/cover5": {
+    "chars": {
+     "file": "sound/chars/stofficer1/misc/cover5.mp3",
+     "pak": "assets0.pk3",
+     "bytes": 6083,
+     "rate": 44100,
+     "channels": 1,
+     "uncompBytes": 78336,
+     "samples": 39168,
+     "ms": 888
+    },
+    "chr_d": {
+     "file": "sound/chr_d/stofficer1/misc/cover5.mp3",
+     "pak": "assets0.pk3",
+     "bytes": 7513,
+     "rate": 44100,
+     "channels": 1,
+     "uncompBytes": 101376,
+     "samples": 50688,
+     "ms": 1149
+    },
+    "chr_e": {
+     "file": "sound/chr_e/stofficer1/misc/cover5.mp3",
+     "pak": "assets0.pk3",
+     "bytes": 5095,
+     "rate": 44100,
+     "channels": 1,
+     "uncompBytes": 73728,
+     "samples": 36864,
+     "ms": 836
+    }
+   },
+   "sab1/08is3002": {
+    "chr_e": {
+     "file": "sound/chr_e/sab1/08is3002.mp3",
+     "pak": "assets0.pk3",
+     "bytes": 28585,
+     "rate": 44100,
+     "channels": 1,
+     "uncompBytes": 350208,
+     "samples": 175104,
+     "ms": 3971
+    }
+   },
+   "boba/jethover": {
+    "chars": {
+     "file": "sound/chars/boba/jethover.wav",
+     "pak": "assets0.pk3",
+     "bytes": 10818,
+     "rate": 8000,
+     "channels": 1,
+     "bits": 8,
+     "samples": 10691,
+     "ms": 1336
+    },
+    "chr_e": {
+     "file": "sound/chr_e/boba/jethover.wav",
+     "pak": "assets0.pk3",
+     "bytes": 10818,
+     "rate": 8000,
+     "channels": 1,
+     "bits": 8,
+     "samples": 10691,
+     "ms": 1336
+    }
+   },
+   "sound/weapons/saber/saberon": {
+    "other": {
+     "file": "sound/weapons/saber/saberon.mp3",
+     "pak": "assets0.pk3",
+     "bytes": 13293,
+     "rate": 44100,
+     "channels": 1,
+     "uncompBytes": 145152,
+     "samples": 72576,
+     "ms": 1646
+    }
+   }
+  }
+ },
+ "retail": {
+  "readWith": "Capstone 32-bit linear decode and pefile; no retail code incorporated",
+  "jamp.exe": {
+   "S_Init": "0x469420",
+   "s_languageRegistration": "0x4695b7..0x4695cb Cvar_Get(\"s_language\", \"english\", 0x401)",
+   "s_languagePointer": "0xc717bc (written 0x4695de; read only at 0x472527, 0x47255b, 0x47258b)",
+   "s_initsoundCheck": "0x46962d registration, 0x46963a \"not initializing.\"",
+   "cvarRestart": "0x43a010 skips cvars with 0x450 set (0x400 = CVAR_NORESTART)",
+   "configWriter": "0x439e30 writes seta for flag 0x1",
+   "loadWrapper": "0x46a0e0, called from 0x46a08f (S_RegisterSound), 0x46ab61 (S_StartAmbientSound), 0x46acd2 (S_StartSound), 0x46b1d6 (S_AddLoopingSound), 0x46b2d7 (loop sounds)",
+   "S_LoadSound": "0x4726c0: refuses names shorter than 5 or starting with *; Q_strncpyz 64; _strlwr (0x539379) called at 0x472726; .wav appended (0x444350) when the 4th character from the end is not .; chooser call 0x47278f",
+   "chooser": "0x4723e0: strstr (0x52a630) for \"chars\"; com_buildScript (pointer 0xb43ce4, registered 0x4386bc) pass 0x472402..0x472524 opens chr_d, chr_f, chr_e as .wav else .mp3, putting back \"wav\" each time and \"chars\" last; _stricmp (0x539336) of \"DEUTSCH\" 0x47253d, \"FRANCAIS\" 0x47256d, \"ESPANOL\" 0x47259d against s_language; strncpy of chr_d 0x472551, chr_f 0x472581, chr_e 0x4725b1; any other value: no substitution (0x4725bb); reads 0x4725be (name as given), 0x4725f4 (.mp3), then only when substituted puts \"chars\" back (0x472614) and reads .wav (0x47262c) and .mp3 (0x47264f)",
+   "keepMp3Decision": "0x472680 compares the English sfx name (0x4727fe) with \"sound/chars/\" by _strnicmp",
+   "lipSyncDataDecision": "0x47283a strstr of \"chars\" or \"CHARS\" in the English sfx name",
+   "otherReaders": "none: the pointer is read only by the chooser; the string is pushed only at 0x4695c1",
+   "S_RegisterSoundCallers": "sound/null.wav (0x469ed6), effects ParseSounds (0x40daf4, 0x40db6f), cgame import (0x412a2d), UI import (0x4245f7), ambient sets (0x467561, 0x467646), play (0x46d7eb); the music command (0x46d860) is not among them",
+   "missingForeignMessage": "none (no such string; no print on the fallback path)"
+  },
+  "jasp.exe": {
+   "S_Init": "0x425860",
+   "s_languageRegistration": "0x425a1b..0x425a2f Cvar_Get(\"s_language\", \"english\", 0x401)",
+   "s_languagePointer": "0x8d24b4 (written 0x425a34; read at 0x404fdf, 0x404ffd, 0x42ddbc, 0x42ddf0, 0x42de20)",
+   "s_initsoundCheck": "0x425a73 registration, 0x425a80 \"not initializing.\"",
+   "menuRegistration": "the built-in menus' start-up (0x494ae0) registers s_language \"english\" 0x401 again at 0x494b6f",
+   "cvarRestart": "0x41c660 skips cvars with 0x450 set",
+   "configWriter": "0x41c4a0 writes seta for flag 0x1",
+   "loadWrapper": "0x42e410 via 0x426410, from S_RegisterSound (0x426360), S_StartAmbientSound (0x426d60), S_StartSound (0x426e90), S_AddLoopingSound (0x4274e0), loop sounds (0x4275b0)",
+   "S_LoadSound": "0x42df70: the same refusals; Q_strncpyz 64 (0x422ff0); _strlwr (0x4eb58e) called at 0x42dfc0; .wav appended (0x422a40); chooser call 0x42e031",
+   "chooser": "0x42dc80: strstr (0x4df020); com_buildScript (pointer 0x88fef0) pass 0x42dc9e..0x42ddb4; _stricmp (0x4eb4f6) of \"DEUTSCH\" 0x42ddd2, \"FRANCAIS\" 0x42de02, \"ESPANOL\" 0x42de32; strncpy (0x4e09c0) chr_d/chr_f/chr_e; reads 0x42de58, 0x42de91 (.mp3), English .wav 0x42dece and .mp3 0x42def2 only when substituted",
+   "keepMp3Decision": "0x42df20 compares the English sfx name with \"sound/chars/\" by _strnicmp",
+   "lipSyncDataDecision": "0x42e0d5 strstr of \"chars\" in the English sfx name",
+   "cinematicVoiceTrack": "0x404e80 (CL_PlayCinematic): when s_language is set and neither \"english\" nor empty (0x404fdf..0x405017), video/jk05.roq gets sound/chars/video/cinematic_5 and jk06.roq cinematic_6 (0x4050a1..0x4050d9); the installation has neither video nor any such recording",
+   "cinematicTrackRegistration": "SCR_PlayCinematic registers the track through S_RegisterSound (0x40464a)",
+   "otherReaders": "none besides the cinematic player; no s_language rule for g_dismemberment (the systeminfo handler 0x40ad60 reads sv_serverid and helpUsObi and sets each setting as a cvar)",
+   "S_RegisterSoundCallers": "cgame import (0x40192e), SCR_PlayCinematic (0x40464a), ambient sets (0x423cef, 0x423de7), sound/null.wav (0x426247), play (0x4299cb), 0x4aa115; the music command (0x429a00) is not among them",
+   "missingForeignMessage": "none"
+  },
+  "modules": "No retail module names s_language: jagamex86.dll, and the paks' cgamex86.dll, jampgamex86.dll and uix86.dll were searched; the menus write it through cvar items.",
+  "comparedWithOutcast": {
+   "same": [
+    "first \"chars\" with strstr",
+    "_stricmp of the language",
+    "foreign then English, each name as given then .mp3 (Outcast: .wav then .mp3)",
+    "registration \"english\" 0x401 before s_initsound",
+    "nothing printed for a missing foreign recording"
+   ],
+   "different": [
+    "Academy adds ESPANOL -> chr_e",
+    "both Academy engines lowercase the name first (Outcast MP does not)",
+    "Academy keeps the name's own extension (Outcast cuts at the first . and reads .wav first)",
+    "Academy's build pass puts .wav back each time (Outcast MP leaves .mp3)",
+    "no German dismemberment rule in jasp.exe"
+   ]
+  }
+ },
+ "change": {
+  "files": [
+   "code/client/audio/codecs/snd_codec.cpp",
+   "code/client/audio/snd_main.cpp"
+  ],
+  "S_Init": "s_language registered \"english\", CVAR_ARCHIVE | CVAR_NORESTART, for jka-sp and jka-mp, before the s_initsound check",
+  "S_JKAForeignVoice": "jka-sp and jka-mp only: DEUTSCH, FRANCAIS or ESPANOL (any case) turns the first \"chars\" (any case) into chr_d, chr_f or chr_e; the rest of the name keeps its letters",
+  "S_CodecLoad": "the foreign name through the codec list quietly, then the English name as before",
+  "otherProfiles": "unchanged; Outcast keeps its own rule and Elite Force its vox_d rule"
+ },
+ "differencesRecorded": [
+  "An .mp3 name: retail reads the foreign .mp3 twice, then the English .wav and .mp3; Fn reads the foreign .mp3, .wav, .ogg, then the English .mp3, .wav, .ogg. They differ only for a voice in both formats or a foreign .wav asked for as .mp3: no installed voice is in both formats, and the three Spanish WAVs are asked for as .wav.",
+  "Fn finds \"chars\" in any case without lowercasing the rest of the name; pak lookups ignore case, so the same file loads. Fn's OpenAL backend lowercases every name anyway.",
+  "The Ogg Vorbis attempt after .mp3 is Fn's own, as for every name.",
+  "The data-build pass (com_buildScript) is not reproduced.",
+  "With developer set, Fn's fallback note names the foreign file read; retail prints nothing."
+ ],
+ "startupCfgs": {
+  "voices-legacy": [
+   "s_show 2",
+   "s_alSourceClassDebug 1",
+   "wait 600",
+   "echo probe-step ready",
+   "s_info",
+   "s_language",
+   "cvarlist s_language",
+   "echo probe-step taunt",
+   "play sound/chars/kyle/misc/taunt1.wav",
+   "echo probe-dump taunt 0",
+   "s_info",
+   "wait 2",
+   "echo probe-dump taunt 1",
+   "s_info",
+   "wait 2",
+   "echo probe-dump taunt 2",
+   "s_info",
+   "wait 2",
+   "echo probe-dump taunt 3",
+   "s_info",
+   "wait 2",
+   "echo probe-dump taunt 4",
+   "s_info",
+   "wait 2",
+   "echo probe-dump taunt 5",
+   "s_info",
+   "wait 2",
+   "echo probe-dump taunt 6",
+   "s_info",
+   "wait 2",
+   "echo probe-dump taunt 7",
+   "s_info",
+   "wait 2",
+   "wait 60",
+   "echo probe-step death",
+   "play sound/CHARS/kyle/misc/death1.wav",
+   "echo probe-dump death 0",
+   "s_info",
+   "wait 2",
+   "echo probe-dump death 1",
+   "s_info",
+   "wait 2",
+   "echo probe-dump death 2",
+   "s_info",
+   "wait 2",
+   "echo probe-dump death 3",
+   "s_info",
+   "wait 2",
+   "echo probe-dump death 4",
+   "s_info",
+   "wait 2",
+   "echo probe-dump death 5",
+   "s_info",
+   "wait 2",
+   "echo probe-dump death 6",
+   "s_info",
+   "wait 2",
+   "echo probe-dump death 7",
+   "s_info",
+   "wait 2",
+   "wait 60",
+   "echo probe-step tavion",
+   "play sound/chars/tavion/misc/taunt.wav",
+   "echo probe-dump tavion 0",
+   "s_info",
+   "wait 2",
+   "echo probe-dump tavion 1",
+   "s_info",
+   "wait 2",
+   "echo probe-dump tavion 2",
+   "s_info",
+   "wait 2",
+   "echo probe-dump tavion 3",
+   "s_info",
+   "wait 2",
+   "echo probe-dump tavion 4",
+   "s_info",
+   "wait 2",
+   "echo probe-dump tavion 5",
+   "s_info",
+   "wait 2",
+   "echo probe-dump tavion 6",
+   "s_info",
+   "wait 2",
+   "echo probe-dump tavion 7",
+   "s_info",
+   "wait 2",
+   "wait 60",
+   "echo probe-step chewie",
+   "play sound/chars/chewbacca/misc/death1.wav",
+   "echo probe-dump chewie 0",
+   "s_info",
+   "wait 2",
+   "echo probe-dump chewie 1",
+   "s_info",
+   "wait 2",
+   "echo probe-dump chewie 2",
+   "s_info",
+   "wait 2",
+   "echo probe-dump chewie 3",
+   "s_info",
+   "wait 2",
+   "echo probe-dump chewie 4",
+   "s_info",
+   "wait 2",
+   "echo probe-dump chewie 5",
+   "s_info",
+   "wait 2",
+   "echo probe-dump chewie 6",
+   "s_info",
+   "wait 2",
+   "echo probe-dump chewie 7",
+   "s_info",
+   "wait 2",
+   "wait 60",
+   "echo probe-step worker",
+   "play sound/chars/worker1/misc/death2.wav",
+   "echo probe-dump worker 0",
+   "s_info",
+   "wait 2",
+   "echo probe-dump worker 1",
+   "s_info",
+   "wait 2",
+   "echo probe-dump worker 2",
+   "s_info",
+   "wait 2",
+   "echo probe-dump worker 3",
+   "s_info",
+   "wait 2",
+   "echo probe-dump worker 4",
+   "s_info",
+   "wait 2",
+   "echo probe-dump worker 5",
+   "s_info",
+   "wait 2",
+   "echo probe-dump worker 6",
+   "s_info",
+   "wait 2",
+   "echo probe-dump worker 7",
+   "s_info",
+   "wait 2",
+   "wait 60",
+   "echo probe-step officer",
+   "play sound/chars/stofficer1/misc/cover5.wav",
+   "echo probe-dump officer 0",
+   "s_info",
+   "wait 2",
+   "echo probe-dump officer 1",
+   "s_info",
+   "wait 2",
+   "echo probe-dump officer 2",
+   "s_info",
+   "wait 2",
+   "echo probe-dump officer 3",
+   "s_info",
+   "wait 2",
+   "echo probe-dump officer 4",
+   "s_info",
+   "wait 2",
+   "echo probe-dump officer 5",
+   "s_info",
+   "wait 2",
+   "echo probe-dump officer 6",
+   "s_info",
+   "wait 2",
+   "echo probe-dump officer 7",
+   "s_info",
+   "wait 2",
+   "wait 60",
+   "echo probe-step saber",
+   "play sound/weapons/saber/saberon.wav",
+   "echo probe-dump saber 0",
+   "s_info",
+   "wait 2",
+   "echo probe-dump saber 1",
+   "s_info",
+   "wait 2",
+   "echo probe-dump saber 2",
+   "s_info",
+   "wait 2",
+   "echo probe-dump saber 3",
+   "s_info",
+   "wait 2",
+   "echo probe-dump saber 4",
+   "s_info",
+   "wait 2",
+   "echo probe-dump saber 5",
+   "s_info",
+   "wait 2",
+   "echo probe-dump saber 6",
+   "s_info",
+   "wait 2",
+   "echo probe-dump saber 7",
+   "s_info",
+   "wait 2",
+   "wait 60",
+   "echo probe-step list",
+   "s_list",
+   "wait 30",
+   "echo probe-step done",
+   "quit"
+  ],
+  "voices-openal": [
+   "s_alSourceClassDebug 1",
+   "wait 600",
+   "echo probe-step ready",
+   "s_info",
+   "s_language",
+   "cvarlist s_language",
+   "echo probe-step taunt",
+   "play sound/chars/kyle/misc/taunt1.wav",
+   "echo probe-dump taunt 0",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump taunt 1",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump taunt 2",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump taunt 3",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump taunt 4",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump taunt 5",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump taunt 6",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump taunt 7",
+   "s_alDebugDump",
+   "wait 2",
+   "wait 60",
+   "echo probe-step death",
+   "play sound/CHARS/kyle/misc/death1.wav",
+   "echo probe-dump death 0",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump death 1",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump death 2",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump death 3",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump death 4",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump death 5",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump death 6",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump death 7",
+   "s_alDebugDump",
+   "wait 2",
+   "wait 60",
+   "echo probe-step tavion",
+   "play sound/chars/tavion/misc/taunt.wav",
+   "echo probe-dump tavion 0",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump tavion 1",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump tavion 2",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump tavion 3",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump tavion 4",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump tavion 5",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump tavion 6",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump tavion 7",
+   "s_alDebugDump",
+   "wait 2",
+   "wait 60",
+   "echo probe-step chewie",
+   "play sound/chars/chewbacca/misc/death1.wav",
+   "echo probe-dump chewie 0",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump chewie 1",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump chewie 2",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump chewie 3",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump chewie 4",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump chewie 5",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump chewie 6",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump chewie 7",
+   "s_alDebugDump",
+   "wait 2",
+   "wait 60",
+   "echo probe-step worker",
+   "play sound/chars/worker1/misc/death2.wav",
+   "echo probe-dump worker 0",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump worker 1",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump worker 2",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump worker 3",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump worker 4",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump worker 5",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump worker 6",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump worker 7",
+   "s_alDebugDump",
+   "wait 2",
+   "wait 60",
+   "echo probe-step officer",
+   "play sound/chars/stofficer1/misc/cover5.wav",
+   "echo probe-dump officer 0",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump officer 1",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump officer 2",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump officer 3",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump officer 4",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump officer 5",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump officer 6",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump officer 7",
+   "s_alDebugDump",
+   "wait 2",
+   "wait 60",
+   "echo probe-step saber",
+   "play sound/weapons/saber/saberon.wav",
+   "echo probe-dump saber 0",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump saber 1",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump saber 2",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump saber 3",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump saber 4",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump saber 5",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump saber 6",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump saber 7",
+   "s_alDebugDump",
+   "wait 2",
+   "wait 60",
+   "echo probe-step list",
+   "s_list",
+   "wait 30",
+   "echo probe-step done",
+   "quit"
+  ],
+  "restart-openal": [
+   "s_alSourceClassDebug 1",
+   "wait 600",
+   "echo probe-step ready",
+   "s_info",
+   "s_language",
+   "cvarlist s_language",
+   "echo probe-step first",
+   "play sound/chars/kyle/misc/taunt1.wav",
+   "echo probe-dump first 0",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump first 1",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump first 2",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump first 3",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump first 4",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump first 5",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump first 6",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump first 7",
+   "s_alDebugDump",
+   "wait 2",
+   "wait 60",
+   "echo probe-step firstlist",
+   "s_list",
+   "wait 30",
+   "echo probe-step restart",
+   "set s_language espanol",
+   "ui_load ; snd_restart",
+   "wait 600",
+   "echo probe-step restarted",
+   "s_language",
+   "echo probe-step taunt",
+   "play sound/chars/kyle/misc/taunt1.wav",
+   "echo probe-dump taunt 0",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump taunt 1",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump taunt 2",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump taunt 3",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump taunt 4",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump taunt 5",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump taunt 6",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump taunt 7",
+   "s_alDebugDump",
+   "wait 2",
+   "wait 60",
+   "echo probe-step list",
+   "s_list",
+   "wait 30",
+   "echo probe-step done",
+   "quit"
+  ]
+ },
+ "runs": {
+  "after-de-legacy-1": {
+   "game": "jka-mp",
+   "runtime": ".tmp\\runtime\\jka-voices-after",
+   "backend": "legacy",
+   "language": "DEUTSCH",
+   "restart": false,
+   "commandLine": [
+    "+set",
+    "com_gameProfile",
+    "jka-mp",
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Jedi Academy",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\jka-foreign-voices\\runs\\after-de-legacy-1\\home",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "developer",
+    "1",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_enabled",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "3",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "1",
+    "+set",
+    "s_backend",
+    "legacy",
+    "+set",
+    "s_muteWhenUnfocused",
+    "0",
+    "+set",
+    "s_muteWhenMinimized",
+    "0",
+    "+set",
+    "s_volume",
+    "0.05",
+    "+set",
+    "s_musicvolume",
+    "0",
+    "+set",
+    "cl_motd",
+    "0",
+    "+set",
+    "com_introplayed",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+set",
+    "com_maxfpsUnfocused",
+    "60",
+    "+set",
+    "com_maxfpsMinimized",
+    "60",
+    "+set",
+    "s_language",
+    "DEUTSCH",
+    "+exec",
+    "probevoices.cfg"
+   ],
+   "startupCfg": "voices-legacy",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 22.3,
+   "installationUnchanged": true,
+   "exeUnchanged": true,
+   "refusal": null,
+   "stepsLogged": [
+    "ready",
+    "taunt",
+    "death",
+    "tavion",
+    "chewie",
+    "worker",
+    "officer",
+    "saber",
+    "list",
+    "done"
+   ],
+   "tally": {
+    "taunt": {
+     "name": "sound/chars/kyle/misc/taunt1.wav",
+     "fallbackRead": [
+      "sound/chr_d/kyle/misc/taunt1.mp3"
+     ],
+     "listed": [
+      "29952[16bit] : sound/chars/kyle/misc/taunt1.wav[resident ]"
+     ],
+     "length": 29952,
+     "folderByLength": "chr_d",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "death": {
+     "name": "sound/CHARS/kyle/misc/death1.wav",
+     "fallbackRead": [
+      "sound/chr_d/kyle/misc/death1.mp3"
+     ],
+     "listed": [
+      "17280[16bit] : sound/CHARS/kyle/misc/death1.wav[resident ]"
+     ],
+     "length": 17280,
+     "folderByLength": "chr_d",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "tavion": {
+     "name": "sound/chars/tavion/misc/taunt.wav",
+     "fallbackRead": [
+      "sound/chr_d/tavion/misc/taunt.mp3"
+     ],
+     "listed": [
+      "48384[16bit] : sound/chars/tavion/misc/taunt.wav[resident ]"
+     ],
+     "length": 48384,
+     "folderByLength": "chr_d",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "chewie": {
+     "name": "sound/chars/chewbacca/misc/death1.wav",
+     "fallbackRead": [
+      "sound/chars/chewbacca/misc/death1.mp3"
+     ],
+     "listed": [
+      "28800[16bit] : sound/chars/chewbacca/misc/death1.wav[resident ]"
+     ],
+     "length": 28800,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "worker": {
+     "name": "sound/chars/worker1/misc/death2.wav",
+     "fallbackRead": [
+      "sound/chr_d/worker1/misc/death2.mp3"
+     ],
+     "listed": [
+      "13248[16bit] : sound/chars/worker1/misc/death2.wav[resident ]"
+     ],
+     "length": 13248,
+     "folderByLength": "chr_d",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "officer": {
+     "name": "sound/chars/stofficer1/misc/cover5.wav",
+     "fallbackRead": [
+      "sound/chr_d/stofficer1/misc/cover5.mp3"
+     ],
+     "listed": [
+      "25344[16bit] : sound/chars/stofficer1/misc/cover5.wav[resident ]"
+     ],
+     "length": 25344,
+     "folderByLength": "chr_d",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "saber": {
+     "name": "sound/weapons/saber/saberon.wav",
+     "fallbackRead": [
+      "sound/weapons/saber/saberon.mp3"
+     ],
+     "listed": [
+      "36288[16bit] : sound/weapons/saber/saberon.wav[resident ]"
+     ],
+     "length": 36288,
+     "folderByLength": "other",
+     "missing": false,
+     "dumpsShowingIt": 8
+    }
+   },
+   "languageLines": [
+    "\"s_language\" is:\"DEUTSCH^7\" default:\"english^7\"",
+    "A    s_language \"DEUTSCH\""
+   ]
+  },
+  "after-de-openal-1": {
+   "game": "jka-mp",
+   "runtime": ".tmp\\runtime\\jka-voices-after",
+   "backend": "openal",
+   "language": "deutsch",
+   "restart": false,
+   "commandLine": [
+    "+set",
+    "com_gameProfile",
+    "jka-mp",
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Jedi Academy",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\jka-foreign-voices\\runs\\after-de-openal-1\\home",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "developer",
+    "1",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_enabled",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "3",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "1",
+    "+set",
+    "s_backend",
+    "openal",
+    "+set",
+    "s_muteWhenUnfocused",
+    "0",
+    "+set",
+    "s_muteWhenMinimized",
+    "0",
+    "+set",
+    "s_volume",
+    "0.05",
+    "+set",
+    "s_musicvolume",
+    "0",
+    "+set",
+    "cl_motd",
+    "0",
+    "+set",
+    "com_introplayed",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+set",
+    "com_maxfpsUnfocused",
+    "60",
+    "+set",
+    "com_maxfpsMinimized",
+    "60",
+    "+set",
+    "s_language",
+    "deutsch",
+    "+exec",
+    "probevoices.cfg"
+   ],
+   "startupCfg": "voices-openal",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 22.5,
+   "installationUnchanged": true,
+   "exeUnchanged": true,
+   "refusal": null,
+   "stepsLogged": [
+    "ready",
+    "taunt",
+    "death",
+    "tavion",
+    "chewie",
+    "worker",
+    "officer",
+    "saber",
+    "list",
+    "done"
+   ],
+   "tally": {
+    "taunt": {
+     "name": "sound/chars/kyle/misc/taunt1.wav",
+     "fallbackRead": [
+      "sound/chr_d/kyle/misc/taunt1.mp3"
+     ],
+     "listed": [
+      "13 : sound/chars/kyle/misc/taunt1.wav [mono 44100 Hz 1358 ms]"
+     ],
+     "length": 1358,
+     "folderByLength": "chr_d",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "death": {
+     "name": "sound/CHARS/kyle/misc/death1.wav",
+     "fallbackRead": [
+      "sound/chr_d/kyle/misc/death1.mp3"
+     ],
+     "listed": [
+      "14 : sound/chars/kyle/misc/death1.wav [mono 44100 Hz 783 ms]"
+     ],
+     "length": 783,
+     "folderByLength": "chr_d",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "tavion": {
+     "name": "sound/chars/tavion/misc/taunt.wav",
+     "fallbackRead": [
+      "sound/chr_d/tavion/misc/taunt.mp3"
+     ],
+     "listed": [
+      "15 : sound/chars/tavion/misc/taunt.wav [mono 44100 Hz 2194 ms]"
+     ],
+     "length": 2194,
+     "folderByLength": "chr_d",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "chewie": {
+     "name": "sound/chars/chewbacca/misc/death1.wav",
+     "fallbackRead": [
+      "sound/chars/chewbacca/misc/death1.mp3"
+     ],
+     "listed": [
+      "16 : sound/chars/chewbacca/misc/death1.wav [mono 44100 Hz 1306 ms]"
+     ],
+     "length": 1306,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "worker": {
+     "name": "sound/chars/worker1/misc/death2.wav",
+     "fallbackRead": [
+      "sound/chr_d/worker1/misc/death2.mp3"
+     ],
+     "listed": [
+      "17 : sound/chars/worker1/misc/death2.wav [mono 44100 Hz 600 ms]"
+     ],
+     "length": 600,
+     "folderByLength": "chr_d",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "officer": {
+     "name": "sound/chars/stofficer1/misc/cover5.wav",
+     "fallbackRead": [
+      "sound/chr_d/stofficer1/misc/cover5.mp3"
+     ],
+     "listed": [
+      "18 : sound/chars/stofficer1/misc/cover5.wav [mono 44100 Hz 1149 ms]"
+     ],
+     "length": 1149,
+     "folderByLength": "chr_d",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "saber": {
+     "name": "sound/weapons/saber/saberon.wav",
+     "fallbackRead": [
+      "sound/weapons/saber/saberon.mp3"
+     ],
+     "listed": [
+      "19 : sound/weapons/saber/saberon.wav [mono 44100 Hz 1645 ms]"
+     ],
+     "length": 1645,
+     "folderByLength": "other",
+     "missing": false,
+     "dumpsShowingIt": 8
+    }
+   },
+   "languageLines": [
+    "\"s_language\" is:\"deutsch^7\" default:\"english^7\"",
+    "A    s_language \"deutsch\""
+   ]
+  },
+  "after-en-openal-1": {
+   "game": "jka-mp",
+   "runtime": ".tmp\\runtime\\jka-voices-after",
+   "backend": "openal",
+   "language": null,
+   "restart": false,
+   "commandLine": [
+    "+set",
+    "com_gameProfile",
+    "jka-mp",
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Jedi Academy",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\jka-foreign-voices\\runs\\after-en-openal-1\\home",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "developer",
+    "1",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_enabled",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "3",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "1",
+    "+set",
+    "s_backend",
+    "openal",
+    "+set",
+    "s_muteWhenUnfocused",
+    "0",
+    "+set",
+    "s_muteWhenMinimized",
+    "0",
+    "+set",
+    "s_volume",
+    "0.05",
+    "+set",
+    "s_musicvolume",
+    "0",
+    "+set",
+    "cl_motd",
+    "0",
+    "+set",
+    "com_introplayed",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+set",
+    "com_maxfpsUnfocused",
+    "60",
+    "+set",
+    "com_maxfpsMinimized",
+    "60",
+    "+exec",
+    "probevoices.cfg"
+   ],
+   "startupCfg": "voices-openal",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 23.5,
+   "installationUnchanged": true,
+   "exeUnchanged": true,
+   "refusal": null,
+   "stepsLogged": [
+    "ready",
+    "taunt",
+    "death",
+    "tavion",
+    "chewie",
+    "worker",
+    "officer",
+    "saber",
+    "list",
+    "done"
+   ],
+   "tally": {
+    "taunt": {
+     "name": "sound/chars/kyle/misc/taunt1.wav",
+     "fallbackRead": [
+      "sound/chars/kyle/misc/taunt1.mp3"
+     ],
+     "listed": [
+      "13 : sound/chars/kyle/misc/taunt1.wav [mono 44100 Hz 1175 ms]"
+     ],
+     "length": 1175,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "death": {
+     "name": "sound/CHARS/kyle/misc/death1.wav",
+     "fallbackRead": [
+      "sound/chars/kyle/misc/death1.mp3"
+     ],
+     "listed": [
+      "14 : sound/chars/kyle/misc/death1.wav [mono 44100 Hz 1671 ms]"
+     ],
+     "length": 1671,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "tavion": {
+     "name": "sound/chars/tavion/misc/taunt.wav",
+     "fallbackRead": [],
+     "listed": [
+      "15 : sound/chars/tavion/misc/taunt.wav [missing]"
+     ],
+     "length": null,
+     "folderByLength": null,
+     "missing": true,
+     "dumpsShowingIt": 0
+    },
+    "chewie": {
+     "name": "sound/chars/chewbacca/misc/death1.wav",
+     "fallbackRead": [
+      "sound/chars/chewbacca/misc/death1.mp3"
+     ],
+     "listed": [
+      "16 : sound/chars/chewbacca/misc/death1.wav [mono 44100 Hz 1306 ms]"
+     ],
+     "length": 1306,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "worker": {
+     "name": "sound/chars/worker1/misc/death2.wav",
+     "fallbackRead": [
+      "sound/chars/worker1/misc/death2.mp3"
+     ],
+     "listed": [
+      "17 : sound/chars/worker1/misc/death2.wav [mono 44100 Hz 783 ms]"
+     ],
+     "length": 783,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "officer": {
+     "name": "sound/chars/stofficer1/misc/cover5.wav",
+     "fallbackRead": [
+      "sound/chars/stofficer1/misc/cover5.mp3"
+     ],
+     "listed": [
+      "18 : sound/chars/stofficer1/misc/cover5.wav [mono 44100 Hz 888 ms]"
+     ],
+     "length": 888,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "saber": {
+     "name": "sound/weapons/saber/saberon.wav",
+     "fallbackRead": [
+      "sound/weapons/saber/saberon.mp3"
+     ],
+     "listed": [
+      "19 : sound/weapons/saber/saberon.wav [mono 44100 Hz 1645 ms]"
+     ],
+     "length": 1645,
+     "folderByLength": "other",
+     "missing": false,
+     "dumpsShowingIt": 8
+    }
+   },
+   "languageLines": [
+    "\"s_language\" is:\"english^7\" default:\"english^7\"",
+    "A    s_language \"english\""
+   ]
+  },
+  "after-es-legacy-1": {
+   "game": "jka-mp",
+   "runtime": ".tmp\\runtime\\jka-voices-after",
+   "backend": "legacy",
+   "language": "espanol",
+   "restart": false,
+   "commandLine": [
+    "+set",
+    "com_gameProfile",
+    "jka-mp",
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Jedi Academy",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\jka-foreign-voices\\runs\\after-es-legacy-1\\home",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "developer",
+    "1",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_enabled",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "3",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "1",
+    "+set",
+    "s_backend",
+    "legacy",
+    "+set",
+    "s_muteWhenUnfocused",
+    "0",
+    "+set",
+    "s_muteWhenMinimized",
+    "0",
+    "+set",
+    "s_volume",
+    "0.05",
+    "+set",
+    "s_musicvolume",
+    "0",
+    "+set",
+    "cl_motd",
+    "0",
+    "+set",
+    "com_introplayed",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+set",
+    "com_maxfpsUnfocused",
+    "60",
+    "+set",
+    "com_maxfpsMinimized",
+    "60",
+    "+set",
+    "s_language",
+    "espanol",
+    "+exec",
+    "probevoices.cfg"
+   ],
+   "startupCfg": "voices-legacy",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 22.5,
+   "installationUnchanged": true,
+   "exeUnchanged": true,
+   "refusal": null,
+   "stepsLogged": [
+    "ready",
+    "taunt",
+    "death",
+    "tavion",
+    "chewie",
+    "worker",
+    "officer",
+    "saber",
+    "list",
+    "done"
+   ],
+   "tally": {
+    "taunt": {
+     "name": "sound/chars/kyle/misc/taunt1.wav",
+     "fallbackRead": [
+      "sound/chr_e/kyle/misc/taunt1.mp3"
+     ],
+     "listed": [
+      "28224[16bit] : sound/chars/kyle/misc/taunt1.wav[resident ]"
+     ],
+     "length": 28224,
+     "folderByLength": "chr_e",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "death": {
+     "name": "sound/CHARS/kyle/misc/death1.wav",
+     "fallbackRead": [
+      "sound/chr_e/kyle/misc/death1.mp3"
+     ],
+     "listed": [
+      "50112[16bit] : sound/CHARS/kyle/misc/death1.wav[resident ]"
+     ],
+     "length": 50112,
+     "folderByLength": "chr_e",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "tavion": {
+     "name": "sound/chars/tavion/misc/taunt.wav",
+     "fallbackRead": [
+      "sound/chr_e/tavion/misc/taunt.mp3"
+     ],
+     "listed": [
+      "43776[16bit] : sound/chars/tavion/misc/taunt.wav[resident ]"
+     ],
+     "length": 43776,
+     "folderByLength": "chr_e",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "chewie": {
+     "name": "sound/chars/chewbacca/misc/death1.wav",
+     "fallbackRead": [
+      "sound/chars/chewbacca/misc/death1.mp3"
+     ],
+     "listed": [
+      "28800[16bit] : sound/chars/chewbacca/misc/death1.wav[resident ]"
+     ],
+     "length": 28800,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "worker": {
+     "name": "sound/chars/worker1/misc/death2.wav",
+     "fallbackRead": [
+      "sound/chars/worker1/misc/death2.mp3"
+     ],
+     "listed": [
+      "17280[16bit] : sound/chars/worker1/misc/death2.wav[resident ]"
+     ],
+     "length": 17280,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "officer": {
+     "name": "sound/chars/stofficer1/misc/cover5.wav",
+     "fallbackRead": [
+      "sound/chr_e/stofficer1/misc/cover5.mp3"
+     ],
+     "listed": [
+      "18432[16bit] : sound/chars/stofficer1/misc/cover5.wav[resident ]"
+     ],
+     "length": 18432,
+     "folderByLength": "chr_e",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "saber": {
+     "name": "sound/weapons/saber/saberon.wav",
+     "fallbackRead": [
+      "sound/weapons/saber/saberon.mp3"
+     ],
+     "listed": [
+      "36288[16bit] : sound/weapons/saber/saberon.wav[resident ]"
+     ],
+     "length": 36288,
+     "folderByLength": "other",
+     "missing": false,
+     "dumpsShowingIt": 8
+    }
+   },
+   "languageLines": [
+    "\"s_language\" is:\"espanol^7\" default:\"english^7\"",
+    "A    s_language \"espanol\""
+   ]
+  },
+  "after-es-openal-1": {
+   "game": "jka-mp",
+   "runtime": ".tmp\\runtime\\jka-voices-after",
+   "backend": "openal",
+   "language": "espanol",
+   "restart": false,
+   "commandLine": [
+    "+set",
+    "com_gameProfile",
+    "jka-mp",
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Jedi Academy",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\jka-foreign-voices\\runs\\after-es-openal-1\\home",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "developer",
+    "1",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_enabled",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "3",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "1",
+    "+set",
+    "s_backend",
+    "openal",
+    "+set",
+    "s_muteWhenUnfocused",
+    "0",
+    "+set",
+    "s_muteWhenMinimized",
+    "0",
+    "+set",
+    "s_volume",
+    "0.05",
+    "+set",
+    "s_musicvolume",
+    "0",
+    "+set",
+    "cl_motd",
+    "0",
+    "+set",
+    "com_introplayed",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+set",
+    "com_maxfpsUnfocused",
+    "60",
+    "+set",
+    "com_maxfpsMinimized",
+    "60",
+    "+set",
+    "s_language",
+    "espanol",
+    "+exec",
+    "probevoices.cfg"
+   ],
+   "startupCfg": "voices-openal",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 23.3,
+   "installationUnchanged": true,
+   "exeUnchanged": true,
+   "refusal": null,
+   "stepsLogged": [
+    "ready",
+    "taunt",
+    "death",
+    "tavion",
+    "chewie",
+    "worker",
+    "officer",
+    "saber",
+    "list",
+    "done"
+   ],
+   "tally": {
+    "taunt": {
+     "name": "sound/chars/kyle/misc/taunt1.wav",
+     "fallbackRead": [
+      "sound/chr_e/kyle/misc/taunt1.mp3"
+     ],
+     "listed": [
+      "13 : sound/chars/kyle/misc/taunt1.wav [mono 44100 Hz 1280 ms]"
+     ],
+     "length": 1280,
+     "folderByLength": "chr_e",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "death": {
+     "name": "sound/CHARS/kyle/misc/death1.wav",
+     "fallbackRead": [
+      "sound/chr_e/kyle/misc/death1.mp3"
+     ],
+     "listed": [
+      "14 : sound/chars/kyle/misc/death1.wav [mono 44100 Hz 2272 ms]"
+     ],
+     "length": 2272,
+     "folderByLength": "chr_e",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "tavion": {
+     "name": "sound/chars/tavion/misc/taunt.wav",
+     "fallbackRead": [
+      "sound/chr_e/tavion/misc/taunt.mp3"
+     ],
+     "listed": [
+      "15 : sound/chars/tavion/misc/taunt.wav [mono 44100 Hz 1985 ms]"
+     ],
+     "length": 1985,
+     "folderByLength": "chr_e",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "chewie": {
+     "name": "sound/chars/chewbacca/misc/death1.wav",
+     "fallbackRead": [
+      "sound/chars/chewbacca/misc/death1.mp3"
+     ],
+     "listed": [
+      "16 : sound/chars/chewbacca/misc/death1.wav [mono 44100 Hz 1306 ms]"
+     ],
+     "length": 1306,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "worker": {
+     "name": "sound/chars/worker1/misc/death2.wav",
+     "fallbackRead": [
+      "sound/chars/worker1/misc/death2.mp3"
+     ],
+     "listed": [
+      "17 : sound/chars/worker1/misc/death2.wav [mono 44100 Hz 783 ms]"
+     ],
+     "length": 783,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "officer": {
+     "name": "sound/chars/stofficer1/misc/cover5.wav",
+     "fallbackRead": [
+      "sound/chr_e/stofficer1/misc/cover5.mp3"
+     ],
+     "listed": [
+      "18 : sound/chars/stofficer1/misc/cover5.wav [mono 44100 Hz 835 ms]"
+     ],
+     "length": 835,
+     "folderByLength": "chr_e",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "saber": {
+     "name": "sound/weapons/saber/saberon.wav",
+     "fallbackRead": [
+      "sound/weapons/saber/saberon.mp3"
+     ],
+     "listed": [
+      "19 : sound/weapons/saber/saberon.wav [mono 44100 Hz 1645 ms]"
+     ],
+     "length": 1645,
+     "folderByLength": "other",
+     "missing": false,
+     "dumpsShowingIt": 8
+    }
+   },
+   "languageLines": [
+    "\"s_language\" is:\"espanol^7\" default:\"english^7\"",
+    "A    s_language \"espanol\""
+   ]
+  },
+  "after-fr-openal-1": {
+   "game": "jka-mp",
+   "runtime": ".tmp\\runtime\\jka-voices-after",
+   "backend": "openal",
+   "language": "francais",
+   "restart": false,
+   "commandLine": [
+    "+set",
+    "com_gameProfile",
+    "jka-mp",
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Jedi Academy",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\jka-foreign-voices\\runs\\after-fr-openal-1\\home",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "developer",
+    "1",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_enabled",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "3",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "1",
+    "+set",
+    "s_backend",
+    "openal",
+    "+set",
+    "s_muteWhenUnfocused",
+    "0",
+    "+set",
+    "s_muteWhenMinimized",
+    "0",
+    "+set",
+    "s_volume",
+    "0.05",
+    "+set",
+    "s_musicvolume",
+    "0",
+    "+set",
+    "cl_motd",
+    "0",
+    "+set",
+    "com_introplayed",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+set",
+    "com_maxfpsUnfocused",
+    "60",
+    "+set",
+    "com_maxfpsMinimized",
+    "60",
+    "+set",
+    "s_language",
+    "francais",
+    "+exec",
+    "probevoices.cfg"
+   ],
+   "startupCfg": "voices-openal",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 23.4,
+   "installationUnchanged": true,
+   "exeUnchanged": true,
+   "refusal": null,
+   "stepsLogged": [
+    "ready",
+    "taunt",
+    "death",
+    "tavion",
+    "chewie",
+    "worker",
+    "officer",
+    "saber",
+    "list",
+    "done"
+   ],
+   "tally": {
+    "taunt": {
+     "name": "sound/chars/kyle/misc/taunt1.wav",
+     "fallbackRead": [
+      "sound/chr_f/kyle/misc/taunt1.mp3"
+     ],
+     "listed": [
+      "13 : sound/chars/kyle/misc/taunt1.wav [mono 44100 Hz 1436 ms]"
+     ],
+     "length": 1436,
+     "folderByLength": "chr_f",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "death": {
+     "name": "sound/CHARS/kyle/misc/death1.wav",
+     "fallbackRead": [
+      "sound/chr_f/kyle/misc/death1.mp3"
+     ],
+     "listed": [
+      "14 : sound/chars/kyle/misc/death1.wav [mono 44100 Hz 1959 ms]"
+     ],
+     "length": 1959,
+     "folderByLength": "chr_f",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "tavion": {
+     "name": "sound/chars/tavion/misc/taunt.wav",
+     "fallbackRead": [
+      "sound/chr_f/tavion/misc/taunt.mp3"
+     ],
+     "listed": [
+      "15 : sound/chars/tavion/misc/taunt.wav [mono 44100 Hz 1306 ms]"
+     ],
+     "length": 1306,
+     "folderByLength": "chr_f",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "chewie": {
+     "name": "sound/chars/chewbacca/misc/death1.wav",
+     "fallbackRead": [
+      "sound/chars/chewbacca/misc/death1.mp3"
+     ],
+     "listed": [
+      "16 : sound/chars/chewbacca/misc/death1.wav [mono 44100 Hz 1306 ms]"
+     ],
+     "length": 1306,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "worker": {
+     "name": "sound/chars/worker1/misc/death2.wav",
+     "fallbackRead": [
+      "sound/chr_f/worker1/misc/death2.mp3"
+     ],
+     "listed": [
+      "17 : sound/chars/worker1/misc/death2.wav [mono 44100 Hz 966 ms]"
+     ],
+     "length": 966,
+     "folderByLength": "chr_f",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "officer": {
+     "name": "sound/chars/stofficer1/misc/cover5.wav",
+     "fallbackRead": [
+      "sound/chars/stofficer1/misc/cover5.mp3"
+     ],
+     "listed": [
+      "18 : sound/chars/stofficer1/misc/cover5.wav [mono 44100 Hz 888 ms]"
+     ],
+     "length": 888,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "saber": {
+     "name": "sound/weapons/saber/saberon.wav",
+     "fallbackRead": [
+      "sound/weapons/saber/saberon.mp3"
+     ],
+     "listed": [
+      "19 : sound/weapons/saber/saberon.wav [mono 44100 Hz 1645 ms]"
+     ],
+     "length": 1645,
+     "folderByLength": "other",
+     "missing": false,
+     "dumpsShowingIt": 8
+    }
+   },
+   "languageLines": [
+    "\"s_language\" is:\"francais^7\" default:\"english^7\"",
+    "A    s_language \"francais\""
+   ]
+  },
+  "after-restart-openal-1": {
+   "game": "jka-mp",
+   "runtime": ".tmp\\runtime\\jka-voices-after",
+   "backend": "openal",
+   "language": null,
+   "restart": [
+    "probe-step restart",
+    "VM_LoadDll: loaded native module cache 'E:\\Repositories\\fnTech3\\.tmp\\jka-foreign-voices\\runs\\after-restart-openal-1\\home\\.tmp\\native\\4f22927754b740aeb17f363095ec57cb\\uix86.dll'",
+    "^5^5Sound fallback: sound/interface/menuroam.wav -> sound/interface/menuroam.mp3",
+    "^5^5Sound fallback: sound/interface/choose_color.wav -> sound/interface/choose_color.mp3",
+    "^5^5Sound fallback: sound/interface/choose_head.wav -> sound/interface/choose_head.mp3",
+    "^5^5Sound fallback: sound/interface/choose_torso.wav -> sound/interface/choose_torso.mp3",
+    "^5^5Sound fallback: sound/interface/choose_saber.wav -> sound/interface/choose_saber.mp3",
+    "^5^5Sound fallback: sound/interface/choose_hilt.wav -> sound/interface/choose_hilt.mp3",
+    "^5^5Sound fallback: sound/interface/choose_blade.wav -> sound/interface/choose_blade.mp3",
+    "^5^5Sound fallback: sound/interface/transition.wav -> sound/interface/transition.mp3",
+    "^5^5Sound fallback: sound/interface/esc.wav -> sound/interface/esc.mp3",
+    "^5^5Sound fallback: sound/interface/sub_select.wav -> sound/interface/sub_select.mp3"
+   ],
+   "commandLine": [
+    "+set",
+    "com_gameProfile",
+    "jka-mp",
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Jedi Academy",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\jka-foreign-voices\\runs\\after-restart-openal-1\\home",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "developer",
+    "1",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_enabled",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "3",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "1",
+    "+set",
+    "s_backend",
+    "openal",
+    "+set",
+    "s_muteWhenUnfocused",
+    "0",
+    "+set",
+    "s_muteWhenMinimized",
+    "0",
+    "+set",
+    "s_volume",
+    "0.05",
+    "+set",
+    "s_musicvolume",
+    "0",
+    "+set",
+    "cl_motd",
+    "0",
+    "+set",
+    "com_introplayed",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+set",
+    "com_maxfpsUnfocused",
+    "60",
+    "+set",
+    "com_maxfpsMinimized",
+    "60",
+    "+exec",
+    "probevoices.cfg"
+   ],
+   "startupCfg": "restart-openal",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 29.3,
+   "installationUnchanged": true,
+   "exeUnchanged": true,
+   "refusal": null,
+   "stepsLogged": [
+    "ready",
+    "first",
+    "firstlist",
+    "restart",
+    "restarted",
+    "taunt",
+    "list",
+    "done"
+   ],
+   "tally": {
+    "taunt": {
+     "name": "sound/chars/kyle/misc/taunt1.wav",
+     "fallbackRead": [
+      "sound/chr_e/kyle/misc/taunt1.mp3"
+     ],
+     "listed": [
+      "13 : sound/chars/kyle/misc/taunt1.wav [mono 44100 Hz 1280 ms]"
+     ],
+     "length": 1280,
+     "folderByLength": "chr_e",
+     "missing": false,
+     "dumpsShowingIt": 8
+    }
+   },
+   "languageLines": [
+    "\"s_language\" is:\"english^7\" default:\"english^7\"",
+    "A    s_language \"english\""
+   ],
+   "beforeRestart": [
+    "13 : sound/chars/kyle/misc/taunt1.wav [mono 44100 Hz 1175 ms]"
+   ],
+   "beforeRestartFolder": "chars",
+   "restartedLanguage": [
+    "\"s_language\" is:\"espanol^7\" default:\"english^7\""
+   ]
+  },
+  "after-sp-de-openal-1": {
+   "game": "jka-sp",
+   "runtime": ".tmp\\runtime\\jka-voices-after",
+   "backend": "openal",
+   "language": "deutsch",
+   "restart": false,
+   "commandLine": [
+    "+set",
+    "com_gameProfile",
+    "jka-sp",
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Jedi Academy",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\jka-foreign-voices\\runs\\after-sp-de-openal-1\\home",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "developer",
+    "1",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_enabled",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "3",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "1",
+    "+set",
+    "s_backend",
+    "openal",
+    "+set",
+    "s_muteWhenUnfocused",
+    "0",
+    "+set",
+    "s_muteWhenMinimized",
+    "0",
+    "+set",
+    "s_volume",
+    "0.05",
+    "+set",
+    "s_musicvolume",
+    "0",
+    "+set",
+    "cl_motd",
+    "0",
+    "+set",
+    "com_introplayed",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+set",
+    "com_maxfpsUnfocused",
+    "60",
+    "+set",
+    "com_maxfpsMinimized",
+    "60",
+    "+set",
+    "s_language",
+    "deutsch",
+    "+exec",
+    "probevoices.cfg"
+   ],
+   "startupCfg": "voices-openal",
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "seconds": 27.1,
+   "installationUnchanged": true,
+   "exeUnchanged": true,
+   "refusal": "ERROR: jka-sp is not implemented: Jedi Academy's single-player engine menu boundary is open.",
+   "stepsLogged": [],
+   "tally": {
+    "taunt": {
+     "name": "sound/chars/kyle/misc/taunt1.wav",
+     "fallbackRead": [],
+     "listed": [],
+     "length": null,
+     "folderByLength": null,
+     "missing": false,
+     "dumpsShowingIt": 0
+    },
+    "death": {
+     "name": "sound/CHARS/kyle/misc/death1.wav",
+     "fallbackRead": [],
+     "listed": [],
+     "length": null,
+     "folderByLength": null,
+     "missing": false,
+     "dumpsShowingIt": 0
+    },
+    "tavion": {
+     "name": "sound/chars/tavion/misc/taunt.wav",
+     "fallbackRead": [],
+     "listed": [],
+     "length": null,
+     "folderByLength": null,
+     "missing": false,
+     "dumpsShowingIt": 0
+    },
+    "chewie": {
+     "name": "sound/chars/chewbacca/misc/death1.wav",
+     "fallbackRead": [],
+     "listed": [],
+     "length": null,
+     "folderByLength": null,
+     "missing": false,
+     "dumpsShowingIt": 0
+    },
+    "worker": {
+     "name": "sound/chars/worker1/misc/death2.wav",
+     "fallbackRead": [],
+     "listed": [],
+     "length": null,
+     "folderByLength": null,
+     "missing": false,
+     "dumpsShowingIt": 0
+    },
+    "officer": {
+     "name": "sound/chars/stofficer1/misc/cover5.wav",
+     "fallbackRead": [],
+     "listed": [],
+     "length": null,
+     "folderByLength": null,
+     "missing": false,
+     "dumpsShowingIt": 0
+    },
+    "saber": {
+     "name": "sound/weapons/saber/saberon.wav",
+     "fallbackRead": [],
+     "listed": [],
+     "length": null,
+     "folderByLength": null,
+     "missing": false,
+     "dumpsShowingIt": 0
+    }
+   },
+   "languageLines": []
+  },
+  "before-de-openal-1": {
+   "game": "jka-mp",
+   "runtime": ".tmp\\runtime\\jka-voices-before",
+   "backend": "openal",
+   "language": "deutsch",
+   "restart": false,
+   "commandLine": [
+    "+set",
+    "com_gameProfile",
+    "jka-mp",
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Jedi Academy",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\jka-foreign-voices\\runs\\before-de-openal-1\\home",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "developer",
+    "1",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_enabled",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "3",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "1",
+    "+set",
+    "s_backend",
+    "openal",
+    "+set",
+    "s_muteWhenUnfocused",
+    "0",
+    "+set",
+    "s_muteWhenMinimized",
+    "0",
+    "+set",
+    "s_volume",
+    "0.05",
+    "+set",
+    "s_musicvolume",
+    "0",
+    "+set",
+    "cl_motd",
+    "0",
+    "+set",
+    "com_introplayed",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+set",
+    "com_maxfpsUnfocused",
+    "60",
+    "+set",
+    "com_maxfpsMinimized",
+    "60",
+    "+set",
+    "s_language",
+    "deutsch",
+    "+exec",
+    "probevoices.cfg"
+   ],
+   "startupCfg": "voices-openal",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 24.6,
+   "installationUnchanged": true,
+   "exeUnchanged": true,
+   "refusal": null,
+   "stepsLogged": [
+    "ready",
+    "taunt",
+    "death",
+    "tavion",
+    "chewie",
+    "worker",
+    "officer",
+    "saber",
+    "list",
+    "done"
+   ],
+   "tally": {
+    "taunt": {
+     "name": "sound/chars/kyle/misc/taunt1.wav",
+     "fallbackRead": [
+      "sound/chars/kyle/misc/taunt1.mp3"
+     ],
+     "listed": [
+      "13 : sound/chars/kyle/misc/taunt1.wav [mono 44100 Hz 1175 ms]"
+     ],
+     "length": 1175,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "death": {
+     "name": "sound/CHARS/kyle/misc/death1.wav",
+     "fallbackRead": [
+      "sound/chars/kyle/misc/death1.mp3"
+     ],
+     "listed": [
+      "14 : sound/chars/kyle/misc/death1.wav [mono 44100 Hz 1671 ms]"
+     ],
+     "length": 1671,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "tavion": {
+     "name": "sound/chars/tavion/misc/taunt.wav",
+     "fallbackRead": [],
+     "listed": [
+      "15 : sound/chars/tavion/misc/taunt.wav [missing]"
+     ],
+     "length": null,
+     "folderByLength": null,
+     "missing": true,
+     "dumpsShowingIt": 0
+    },
+    "chewie": {
+     "name": "sound/chars/chewbacca/misc/death1.wav",
+     "fallbackRead": [
+      "sound/chars/chewbacca/misc/death1.mp3"
+     ],
+     "listed": [
+      "16 : sound/chars/chewbacca/misc/death1.wav [mono 44100 Hz 1306 ms]"
+     ],
+     "length": 1306,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "worker": {
+     "name": "sound/chars/worker1/misc/death2.wav",
+     "fallbackRead": [
+      "sound/chars/worker1/misc/death2.mp3"
+     ],
+     "listed": [
+      "17 : sound/chars/worker1/misc/death2.wav [mono 44100 Hz 783 ms]"
+     ],
+     "length": 783,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "officer": {
+     "name": "sound/chars/stofficer1/misc/cover5.wav",
+     "fallbackRead": [
+      "sound/chars/stofficer1/misc/cover5.mp3"
+     ],
+     "listed": [
+      "18 : sound/chars/stofficer1/misc/cover5.wav [mono 44100 Hz 888 ms]"
+     ],
+     "length": 888,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "saber": {
+     "name": "sound/weapons/saber/saberon.wav",
+     "fallbackRead": [
+      "sound/weapons/saber/saberon.mp3"
+     ],
+     "listed": [
+      "19 : sound/weapons/saber/saberon.wav [mono 44100 Hz 1645 ms]"
+     ],
+     "length": 1645,
+     "folderByLength": "other",
+     "missing": false,
+     "dumpsShowingIt": 8
+    }
+   },
+   "languageLines": [
+    "\"s_language\" is:\"deutsch^7\" default:\"deutsch^7\"",
+    "? s_language \"deutsch\""
+   ]
+  },
+  "before-es-legacy-1": {
+   "game": "jka-mp",
+   "runtime": ".tmp\\runtime\\jka-voices-before",
+   "backend": "legacy",
+   "language": "espanol",
+   "restart": false,
+   "commandLine": [
+    "+set",
+    "com_gameProfile",
+    "jka-mp",
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Jedi Academy",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\jka-foreign-voices\\runs\\before-es-legacy-1\\home",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "developer",
+    "1",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_enabled",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "3",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "1",
+    "+set",
+    "s_backend",
+    "legacy",
+    "+set",
+    "s_muteWhenUnfocused",
+    "0",
+    "+set",
+    "s_muteWhenMinimized",
+    "0",
+    "+set",
+    "s_volume",
+    "0.05",
+    "+set",
+    "s_musicvolume",
+    "0",
+    "+set",
+    "cl_motd",
+    "0",
+    "+set",
+    "com_introplayed",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+set",
+    "com_maxfpsUnfocused",
+    "60",
+    "+set",
+    "com_maxfpsMinimized",
+    "60",
+    "+set",
+    "s_language",
+    "espanol",
+    "+exec",
+    "probevoices.cfg"
+   ],
+   "startupCfg": "voices-legacy",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 22.3,
+   "installationUnchanged": true,
+   "exeUnchanged": true,
+   "refusal": null,
+   "stepsLogged": [
+    "ready",
+    "taunt",
+    "death",
+    "tavion",
+    "chewie",
+    "worker",
+    "officer",
+    "saber",
+    "list",
+    "done"
+   ],
+   "tally": {
+    "taunt": {
+     "name": "sound/chars/kyle/misc/taunt1.wav",
+     "fallbackRead": [
+      "sound/chars/kyle/misc/taunt1.mp3"
+     ],
+     "listed": [
+      "25920[16bit] : sound/chars/kyle/misc/taunt1.wav[resident ]"
+     ],
+     "length": 25920,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "death": {
+     "name": "sound/CHARS/kyle/misc/death1.wav",
+     "fallbackRead": [
+      "sound/CHARS/kyle/misc/death1.mp3"
+     ],
+     "listed": [
+      "36864[16bit] : sound/CHARS/kyle/misc/death1.wav[resident ]"
+     ],
+     "length": 36864,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "tavion": {
+     "name": "sound/chars/tavion/misc/taunt.wav",
+     "fallbackRead": [],
+     "listed": [
+      "0[16bit] : sound/chars/tavion/misc/taunt.wav[resident ]"
+     ],
+     "length": 0,
+     "folderByLength": null,
+     "missing": true,
+     "dumpsShowingIt": 0
+    },
+    "chewie": {
+     "name": "sound/chars/chewbacca/misc/death1.wav",
+     "fallbackRead": [
+      "sound/chars/chewbacca/misc/death1.mp3"
+     ],
+     "listed": [
+      "28800[16bit] : sound/chars/chewbacca/misc/death1.wav[resident ]"
+     ],
+     "length": 28800,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "worker": {
+     "name": "sound/chars/worker1/misc/death2.wav",
+     "fallbackRead": [
+      "sound/chars/worker1/misc/death2.mp3"
+     ],
+     "listed": [
+      "17280[16bit] : sound/chars/worker1/misc/death2.wav[resident ]"
+     ],
+     "length": 17280,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "officer": {
+     "name": "sound/chars/stofficer1/misc/cover5.wav",
+     "fallbackRead": [
+      "sound/chars/stofficer1/misc/cover5.mp3"
+     ],
+     "listed": [
+      "19584[16bit] : sound/chars/stofficer1/misc/cover5.wav[resident ]"
+     ],
+     "length": 19584,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "saber": {
+     "name": "sound/weapons/saber/saberon.wav",
+     "fallbackRead": [
+      "sound/weapons/saber/saberon.mp3"
+     ],
+     "listed": [
+      "36288[16bit] : sound/weapons/saber/saberon.wav[resident ]"
+     ],
+     "length": 36288,
+     "folderByLength": "other",
+     "missing": false,
+     "dumpsShowingIt": 8
+    }
+   },
+   "languageLines": [
+    "\"s_language\" is:\"espanol^7\" default:\"espanol^7\"",
+    "? s_language \"espanol\""
+   ]
+  },
+  "before-fr-openal-1": {
+   "game": "jka-mp",
+   "runtime": ".tmp\\runtime\\jka-voices-before",
+   "backend": "openal",
+   "language": "francais",
+   "restart": false,
+   "commandLine": [
+    "+set",
+    "com_gameProfile",
+    "jka-mp",
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Jedi Academy",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\jka-foreign-voices\\runs\\before-fr-openal-1\\home",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "developer",
+    "1",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_enabled",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "3",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "1",
+    "+set",
+    "s_backend",
+    "openal",
+    "+set",
+    "s_muteWhenUnfocused",
+    "0",
+    "+set",
+    "s_muteWhenMinimized",
+    "0",
+    "+set",
+    "s_volume",
+    "0.05",
+    "+set",
+    "s_musicvolume",
+    "0",
+    "+set",
+    "cl_motd",
+    "0",
+    "+set",
+    "com_introplayed",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+set",
+    "com_maxfpsUnfocused",
+    "60",
+    "+set",
+    "com_maxfpsMinimized",
+    "60",
+    "+set",
+    "s_language",
+    "francais",
+    "+exec",
+    "probevoices.cfg"
+   ],
+   "startupCfg": "voices-openal",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 23.2,
+   "installationUnchanged": true,
+   "exeUnchanged": true,
+   "refusal": null,
+   "stepsLogged": [
+    "ready",
+    "taunt",
+    "death",
+    "tavion",
+    "chewie",
+    "worker",
+    "officer",
+    "saber",
+    "list",
+    "done"
+   ],
+   "tally": {
+    "taunt": {
+     "name": "sound/chars/kyle/misc/taunt1.wav",
+     "fallbackRead": [
+      "sound/chars/kyle/misc/taunt1.mp3"
+     ],
+     "listed": [
+      "13 : sound/chars/kyle/misc/taunt1.wav [mono 44100 Hz 1175 ms]"
+     ],
+     "length": 1175,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "death": {
+     "name": "sound/CHARS/kyle/misc/death1.wav",
+     "fallbackRead": [
+      "sound/chars/kyle/misc/death1.mp3"
+     ],
+     "listed": [
+      "14 : sound/chars/kyle/misc/death1.wav [mono 44100 Hz 1671 ms]"
+     ],
+     "length": 1671,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "tavion": {
+     "name": "sound/chars/tavion/misc/taunt.wav",
+     "fallbackRead": [],
+     "listed": [
+      "15 : sound/chars/tavion/misc/taunt.wav [missing]"
+     ],
+     "length": null,
+     "folderByLength": null,
+     "missing": true,
+     "dumpsShowingIt": 0
+    },
+    "chewie": {
+     "name": "sound/chars/chewbacca/misc/death1.wav",
+     "fallbackRead": [
+      "sound/chars/chewbacca/misc/death1.mp3"
+     ],
+     "listed": [
+      "16 : sound/chars/chewbacca/misc/death1.wav [mono 44100 Hz 1306 ms]"
+     ],
+     "length": 1306,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "worker": {
+     "name": "sound/chars/worker1/misc/death2.wav",
+     "fallbackRead": [
+      "sound/chars/worker1/misc/death2.mp3"
+     ],
+     "listed": [
+      "17 : sound/chars/worker1/misc/death2.wav [mono 44100 Hz 783 ms]"
+     ],
+     "length": 783,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "officer": {
+     "name": "sound/chars/stofficer1/misc/cover5.wav",
+     "fallbackRead": [
+      "sound/chars/stofficer1/misc/cover5.mp3"
+     ],
+     "listed": [
+      "18 : sound/chars/stofficer1/misc/cover5.wav [mono 44100 Hz 888 ms]"
+     ],
+     "length": 888,
+     "folderByLength": "chars",
+     "missing": false,
+     "dumpsShowingIt": 8
+    },
+    "saber": {
+     "name": "sound/weapons/saber/saberon.wav",
+     "fallbackRead": [
+      "sound/weapons/saber/saberon.mp3"
+     ],
+     "listed": [
+      "19 : sound/weapons/saber/saberon.wav [mono 44100 Hz 1645 ms]"
+     ],
+     "length": 1645,
+     "folderByLength": "other",
+     "missing": false,
+     "dumpsShowingIt": 8
+    }
+   },
+   "languageLines": [
+    "\"s_language\" is:\"francais^7\" default:\"francais^7\"",
+    "? s_language \"francais\""
+   ]
+  }
+ },
+ "tests": {
+  "files": [
+   "tests/audio_codec_profile_tests.py",
+   "tests/stvef_language_tests.py"
+  ],
+  "mutations": [
+   "baseline: exit 0 3 passed, 2 deselected in 22.37s",
+   "no foreign voices: caught (exit 1) 2 failed, 1 passed, 2 deselected in 16.36s",
+   "a missing foreign voice warns: caught (exit 1) 2 failed, 1 passed, 2 deselected in 16.23s",
+   "no English fallback: caught (exit 1) 2 failed, 1 passed, 2 deselected in 21.21s",
+   "Spanish plays the German voices: caught (exit 1) 2 failed, 1 passed, 2 deselected in 18.11s",
+   "German and French swapped: caught (exit 1) 2 failed, 1 passed, 2 deselected in 20.95s",
+   "no Spanish, as Outcast: caught (exit 1) 2 failed, 1 passed, 2 deselected in 13.93s",
+   "language compared with case: caught (exit 1) 2 failed, 1 passed, 2 deselected in 9.09s",
+   "every other language Spanish: caught (exit 1) 2 failed, 1 passed, 2 deselected in 6.62s",
+   "\"chars\" found only in lower case, as Outcast MP: caught (exit 1) 2 failed, 1 passed, 2 deselected in 7.42s",
+   "the last \"chars\" instead of the first: caught (exit 1) 2 failed, 1 passed, 2 deselected in 7.08s",
+   "only a \"/chars/\" folder: caught (exit 1) 2 failed, 1 passed, 2 deselected in 8.25s",
+   "the foreign name cut to its stem, as Outcast: caught (exit 1) 2 failed, 1 passed, 2 deselected in 6.14s",
+   "foreign voices for every profile: caught (exit 1) 2 failed, 1 passed, 2 deselected in 3.69s",
+   "foreign voices for multiplayer only: caught (exit 1) 2 failed, 1 passed, 2 deselected in 5.85s",
+   "foreign voices for single player only: caught (exit 1) 2 failed, 1 passed, 2 deselected in 5.46s",
+   "registered empty, as Elite Force does: caught (exit 1) 1 failed, 2 passed, 2 deselected in 8.77s",
+   "registered without CVAR_NORESTART: caught (exit 1) 1 failed, 2 passed, 2 deselected in 8.52s",
+   "registered unarchived: caught (exit 1) 1 failed, 2 passed, 2 deselected in 8.01s",
+   "registered for multiplayer only: caught (exit 1) 1 failed, 2 passed, 2 deselected in 8.97s",
+   "not registered: caught (exit 1) 1 failed, 2 passed, 2 deselected in 8.36s",
+   "restored: exit 0 3 passed, 2 deselected in 8.42s",
+   "all caught"
+  ],
+  "linux": "both fixtures generated from the tests build and pass with GCC 13.3.0 and Clang 18.1.3 (-m32; the voice probe also native, -Wall -Wextra -Werror)",
+  "chain": {
+   "tree": "git archive of 3cb9d35c + the Academy UI import-33, menu sound policy and Outcast UI import-32 records + import 32's ledger row + the Outcast MP3 slice + the Outcast foreign-voice slice + this slice (.tmp/jka-foreign-voices/chain, own repository)",
+   "files": 27,
+   "passed": 269,
+   "skipped": 1,
+   "subtests": 1148,
+   "skipReason": "symbolic links need a privilege this machine lacks",
+   "strictCompile": [
+    "code/client/audio/codecs/snd_codec.cpp",
+    "code/client/audio/snd_main.cpp"
+   ]
+  },
+  "sharedTree": {
+   "filesReadingTheEngineFiles": 22,
+   "passed": 155,
+   "subtests": 272,
+   "docsChangelogManualPackaging": {
+    "passed": 110,
+    "skipped": 1,
+    "subtests": 877
+   }
+  }
+ },
+ "open": [
+  "jka-sp live: its client stops at the single-player menu boundary before any startup command (run after-sp-de-openal-1), so its voices have unit evidence only",
+  "In-game voices: the client game's own voice lines in a session were not exercised; the console played them here",
+  "Audible play and retail playback: the clients were muted, and the retail clients need disc 1"
+ ]
+}

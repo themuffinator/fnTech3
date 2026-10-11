@@ -181,8 +181,8 @@ int main(){
  vm.entryPoint=nullptr;Reject([&]{Queue(record);});vm.entryPoint=reinterpret_cast<decltype(vm.entryPoint)>(1);
  vm.dllExports=reinterpret_cast<decltype(vm.dllExports)>(1);Reject([&]{Queue(record);});vm.dllExports=nullptr;
  Queue(record);jkaCgameBoneClocks.Reset();Reject([&]{Render(view);});ClearScene();
- Queue(record);jkaCgameBoneClocks.BeginFrame(100,true);Reject([&]{Render(view);});ClearScene();
- jkaCgameBoneClocks.BeginFrame(100,false);
+ // The same production renderer now serves a local server's shared clock.
+ jkaCgameBoneClocks.Set(0,75);jkaCgameBoneClocks.BeginFrame(100,true);
  // Visibility changes are consumed; all-off means no generated surface/draw.
  const std::string offText="root,*off\n";assets["models/players/test/off.skin"]=Bytes(offText.begin(),offText.end());
  skinArgs[1]=reinterpret_cast<intptr_t>("models/players/test/off.skin");const auto offSkin=Invoke(skinArgs);

@@ -33,6 +33,10 @@ and the
 [compatibility ledger](fntech3/COMPATIBILITY.md) records what has been tested
 so far.
 
+RTX's new liquid reflections and refraction have been compared on Quake
+III's `q3dm12`. The shared path is available to the other games, whose liquid
+materials still need their own checks; see the [RTX guide](RTX.md#what-you-will-see).
+
 **Experimental** games only start in a *development build* of fnTech3, which
 you compile yourself with that game's option turned on, as the
 [Build Guide](../BUILD.md#game-development-builds) describes. The normal
@@ -219,7 +223,8 @@ Force ([details](fntech3/2026-10-05-legacy-server-hosting.md)).
   use the game's own port. A Medal of Honor server also answers GameSpy's LAN
   queries on a second port, the first free one from 12300
   (`net_gamespy_port`; `sv_gamespy 0` turns it off), where GameSpy's server
-  browsers and tools look.
+  browsers and tools look. fnTech3's Medal of Honor LAN list looks in both
+  places.
 - **Server lists.** A public server (`+set dedicated 2`) announces itself to
   the original game's master server list, and the in-game browser asks the
   same lists. Many of those lists have shut down: add a community list as
@@ -508,13 +513,19 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   background sounds are now played as the original plays them, fading in
   and from one map's sounds to the next
   ([details](fntech3/2026-10-06-jka-ambient-sets.md)), and a map restart,
-  reconnecting and the server shutting down all work. With sound turned on,
-  though, the game still stops when it asks how loud a player's voice is,
-  so the background sounds were checked in a test build that answers it.
-  Joining the game as a player stops at its first sound. The
+  reconnecting and the server shutting down all work. Ordinary positional
+  sounds now reach fnTech3's sound system, and local hosting reaches the
+  player menu and survives a map restart with sound enabled. Joining the
+  match still stops on part of its spawn effect, so full play is not
+  ready ([latest audit](fntech3/2026-10-07-jedi-compatibility-round2.md)). The
   open-source OpenJK engine's client joins fnTech3's server.
 - **Single player:** the original game code starts, then stops on its first
   frame.
+
+The characters speak German, French or Spanish when `s_language` is
+`deutsch`, `francais` or `espanol`, as the game's setup menus set it, and
+English where a line has no recording in that language
+([details](fntech3/2026-10-09-jka-foreign-voices.md)).
 
 Not done yet: the campaign and saved games, the full game world and effects,
 music, and playing in both directions with the original game. The original
@@ -529,10 +540,17 @@ Jedi Academy asks for disc 1 before it will connect to any server. See the
 (`-Djk2-development=true`). A multiplayer server runs the original game code;
 bots find opponents and fight with sabers in tested matches. Parts of the
 client -- its network messages, menus and fonts -- are being built and tested
-on their own, but there is no working client yet.
+on their own. The main menu now draws its text, models and effects with
+corrected fonts; client gameplay is
+still incomplete ([latest audit](fntech3/2026-10-07-jedi-compatibility-round2.md)).
 Single player's game code loads, then stops before the game starts. The
-campaign, saves, demos, graphics, sound and controls are still to come. See
-the [Jedi Outcast details](fntech3/COMPATIBILITY.md#jedi-outcast-gate-matrix).
+game's sounds and music, which are MP3 files, now load, and the multiplayer
+menus play their sounds ([details](fntech3/2026-10-08-jk2-mp3-sounds.md)).
+The characters speak German or French when `s_language` is `deutsch` or
+`francais`, as the game's setup menu sets it
+([details](fntech3/2026-10-08-jk2-foreign-voices.md)). The
+campaign, saves, demos, graphics, in-game sound and controls are still to
+come. See the [Jedi Outcast details](fntech3/COMPATIBILITY.md#jedi-outcast-gate-matrix).
 
 ## American McGee's Alice (`alice`)
 
@@ -629,6 +647,12 @@ against the original game. See the
 - The menus, HUD and loading screens are the game's own menu files, drawn by
   the engine, as in the original.
 - fnTech3 brings a sound zone and map lights for each of the 54 maps.
+- Barrel explosions, their smoke and flying debris, and other hidden
+  emitters now draw in GL, Vulkan and RTX; no extra setting is needed
+  ([effects details](fntech3/2026-10-11-mohaa-effects.md)).
+- RTX path tracing includes the game's terrain and static scenery,
+  correcting holes in the ground on `m1l1` and the same omission elsewhere
+  ([terrain details](fntech3/2026-10-11-mohaa-rtx-world.md)).
 - The HUD grows with the screen's height; `ui_hudScale 0` draws it at the
   original's pixel sizes. On a widescreen display the view widens and keeps
   its 4:3 height ([Widescreen guide](ASPECT_CORRECTION.md)).
@@ -648,9 +672,12 @@ against the original game. See the
 - A multiplayer server, dedicated or started with Start New Server, answers
   GameSpy's LAN queries with its name, map, game type, players and rules; the
   menu's GameSpy box turns that off. GameSpy's internet lists are gone, so no
-  server appears there, and the game's own Join LAN Game list finds servers
-  as before ([details](fntech3/2026-10-06-mohaa-gamespy-lan-queries.md)). A
-  team match started from the menu is listed and lets other players join.
+  server appears there ([details](fntech3/2026-10-06-mohaa-gamespy-lan-queries.md)).
+  A team match started from the menu is listed and lets other players join.
+- Join LAN Game's Refresh asks both a server's game port and GameSpy's
+  ports, so it also finds servers started on other game ports. It lists only
+  servers of version 1.00, the only version fnTech3 can join
+  ([details](fntech3/2026-10-08-mohaa-gamespy-lan-search.md)).
 - fnTech3's saved games use their own format, so they cannot be swapped with
   the original's; the
   [Medal of Honor record](fntech3/2026-09-24-mohaa-contracts.md) explains why.

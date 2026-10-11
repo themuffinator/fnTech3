@@ -163,6 +163,7 @@ static void S_Respatialize(int,const float *,float (*)[3],int){assert(false);}
 static void S_AddRTCWLoopingSound(const float *,const float *,int,int,int){assert(false);}
 static void S_StartRTCWSound(const float *,int,int,int,int){assert(false);}
 static void S_StartRTCWLocalSound(int,int){assert(false);}
+static void S_StartInterfaceSound(int,int,float){assert(false);}
 static void S_StartRTCWEntityStream(const char *,const char *,int,int,int){assert(false);}
 static void S_StopRTCWEntityStream(int){assert(false);}
 #include "code/client/client_rtcw_audio_compat.hpp"

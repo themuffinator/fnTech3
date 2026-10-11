@@ -71,13 +71,15 @@ def imports():
     prefix = IMPORTS[:IMPORTS.index('#include "code/client/client_rtcw_audio_compat.hpp"')]
     prefix = prefix.replace('static void S_StartRTCWSound(const float *,int,int,int,int){assert(false);}', '')
     prefix = prefix.replace('static void S_StartRTCWLocalSound(int,int){assert(false);}', '')
+    prefix = prefix.replace('static void S_StartInterfaceSound(int,int,float){assert(false);}', '')
     return prefix + r'''
-static int entityWord,channelWord,handleWord,flagsWord;static float recorded[3];static const float *input;
+static int entityWord,channelWord,handleWord,flagsWord,interfaces;static float recorded[3],interfaceVolume;static const float *input;
 static void S_StartRTCWSound(const float *origin,int entity,int channel,int handle,int flags){
  ++operation;input=origin;if(origin)memcpy(recorded,origin,12);
  entityWord=entity;channelWord=channel;handleWord=handle;flagsWord=flags;
 }
 static void S_StartRTCWLocalSound(int handle,int channel){++operation;handleWord=handle;channelWord=channel;}
+static void S_StartInterfaceSound(int handle,int channel,float volume){++operation;++interfaces;handleWord=handle;channelWord=channel;interfaceVolume=volume;}
 #include "code/client/client_rtcw_audio_compat.hpp"
 using fntech3::rtcw::module::Call;
 template<class F>static void reject(F action){const int before=operation;bool failed=false;try{action();}catch(int){failed=true;}assert(failed&&operation==before);}
@@ -112,7 +114,9 @@ int main(){
   // Exact-size buffers ensure no optional argument is read for these imports.
   intptr_t plain[]={0,0,0,2,17};assert(CL_RTCWAudioCall(&vm,Call::CG_S_STARTSOUND,plain)&&flagsWord==0);
   for(auto call:{Call::CG_S_STARTLOCALSOUND,Call::UI_S_STARTLOCALSOUND}){
-   intptr_t local[]={0,17,7};assert(CL_RTCWAudioCall(&vm,call,local)&&handleWord==17&&channelWord==7);
+   const int before=interfaces;intptr_t local[]={0,17,7};assert(CL_RTCWAudioCall(&vm,call,local)&&handleWord==17&&channelWord==7);
+   // The menus' own sound is interface audio; the client game's stays the level's.
+   const bool menu=call==Call::UI_S_STARTLOCALSOUND;assert(interfaces-before==(menu?1:0)&&(!menu||interfaceVolume==1.0f));
   }
  }
  for(auto id:{COM_GAME_QUAKE3,COM_GAME_QUAKELIVE})for(auto call:{Call::CG_S_STARTSOUND,Call::CG_S_STARTSOUNDEX,Call::CG_S_STARTLOCALSOUND,Call::UI_S_STARTLOCALSOUND}){
@@ -263,8 +267,8 @@ static float S_STVEFSeparation(){return 0.5f;}
 static int generic=0;static SpatialParams ComputeSpatialParams(const float *,const float *,const float (*)[3],int,float,float){++generic;return {0.42f,0.1f};}
 static float level=0;
 static SpatialParams calculate(bool shot,bool loop,int entity,int channel,const float *voiceOrigin){
- struct {bool rtcwOneShot,rtcwLoop;int entnum,entchannel;Loop rtcwLoopData;bool stvefAmbient;int stvefVolume;}
-  voice{shot,loop,entity,channel,{},false,0};
+ struct {bool rtcwOneShot,rtcwLoop;int entnum,entchannel;Loop rtcwLoopData;bool stvefAmbient;int stvefVolume;bool interfaceSound;}
+  voice{shot,loop,entity,channel,{},false,0,false};
  voice.rtcwLoopData.volume=255;
  const int listenerNumber_=0;const float referenceScale=1,rangeScale=1;
  struct {float value[3]{};const float *Data()const{return value;}}listenerOrigin_;

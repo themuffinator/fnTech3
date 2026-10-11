@@ -97,8 +97,12 @@ inline bool CL_WolfETAudioCall( vm_t *vm, fntech3::wolfet::module::Call call,
 		return true;
 	}
 	case Call::CG_S_STARTLOCALSOUND:
-	case Call::UI_S_STARTLOCALSOUND:
 		S_StartWolfETLocalSound( CL_WolfETAudioInteger( args[1] ),
+			CL_WolfETAudioInteger( args[2] ), CL_WolfETAudioInteger( args[3] ) );
+		return true;
+	case Call::UI_S_STARTLOCALSOUND:
+		// The menus' own sound, at its volume, played as interface audio.
+		S_StartWolfETInterfaceSound( CL_WolfETAudioInteger( args[1] ),
 			CL_WolfETAudioInteger( args[2] ), CL_WolfETAudioInteger( args[3] ) );
 		return true;
 	case Call::CG_S_CLEARLOOPINGSOUNDS:

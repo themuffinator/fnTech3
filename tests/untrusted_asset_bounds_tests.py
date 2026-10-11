@@ -434,7 +434,7 @@ class VulkanRendererTests(unittest.TestCase):
         # trees it built this frame
         compute = body(source, "static qboolean RT_RecordComputeScene(", "\n}\n")
         reset = compute.index("frame->swInstanceCount = 0;")
-        self.assertLess(compute.index("RT_BvhReset( &s_rt.bvh );"), compute.index("RT_BvhAppend("))
+        self.assertLess(compute.index("RT_BvhReset( &cache->bvh );"), compute.index("RT_BvhAppend("))
         self.assertLess(compute.index("RT_BvhAppend("), compute.index("trees[c].valid = qtrue;"))
         self.assertLess(compute.index("trees[c].valid = qtrue;"), reset)
         self.assertLess(reset, compute.index("RT_AddComputeInstance("))

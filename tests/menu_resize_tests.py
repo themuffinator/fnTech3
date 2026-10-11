@@ -36,7 +36,8 @@ std::vector<std::string> events;
 bool failRenderer=false;
 bool Com_GameIsRTCW(){return profile>=2;}
 bool Com_GameIsAlice(){return false;}
-bool Com_GameIsRitual(){return false;}
+bool ritual=false;
+bool Com_GameIsRitual(){return ritual;}
 void S_AliceMusicFreeAll(){}
 void S_AliceMusicSoundtrackAfterRestart(){}
 int Key_GetCatcher(){return catcher;}
@@ -46,8 +47,15 @@ int VM_Call(int*,int count,int call,int arg=0) {
  assert(uivm&&uiWidth==renderWidth&&menuGeneration==generation);
  menu=arg;catcher|=KEYCATCH_UI;events.push_back("reopen");return 0;
 }
-int Cvar_VariableIntegerValue(const char *name){assert(!strcmp(name,"cl_paused"));return paused;}
-void Cvar_Set(const char *name,const char *value){assert(!strcmp(name,"cl_paused"));paused=std::stoi(value);}
+int gamePaused;
+int Cvar_VariableIntegerValue(const char *name){
+ if(!strcmp(name,"paused")){assert(ritual);return gamePaused;}
+ assert(!strcmp(name,"cl_paused"));return paused;
+}
+void Cvar_Set(const char *name,const char *value){
+ if(!strcmp(name,"paused")){assert(ritual);gamePaused=std::stoi(value);return;}
+ assert(!strcmp(name,"cl_paused"));paused=std::stoi(value);
+}
 bool CL_VideoRecording(){return false;}
 void CL_CloseAVI(int){}
 void CL_StopRecord_f(){}
@@ -89,6 +97,16 @@ int main(){
   assert(events.front()=="shutdown");
   if(active&&visible)assert(events.back()=="reopen");
  }
+ // Ritual's engine UI never sees a video restart (alice.exe 0x0042b590): no
+ // menu is asked for or reopened, and the game is unpaused outright.
+ ritual=true;profile=0;cls={};cls.state=CA_ACTIVE;cls.cgameStarted=true;
+ uivm=&vmStorage;catcher=KEYCATCH_UI;menu=UIMENU_INGAME;paused=1;gamePaused=1;
+ cl_restartMenu=UIMENU_NONE;queryCalls=0;events.clear();
+ CL_Vid_Restart(1);
+ assert(cl_restartMenu==UIMENU_NONE&&gamePaused==0&&queryCalls==0);
+ cls.state=CA_ACTIVE;CL_FinishUIMenuRestart();
+ assert(events.back()!="reopen"&&menu==UIMENU_NONE);
+ ritual=false;
  // Simulate ERR_DROP interrupting a resize. Its disconnect hook must clear
  // both guards, allowing a later resize to be scheduled after recovery.
  cl_windowResize.Notify(1,800,600,true);cl_windowResizeRestart=cl_windowModeChange=1;

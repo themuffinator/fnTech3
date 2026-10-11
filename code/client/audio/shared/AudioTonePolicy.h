@@ -118,6 +118,9 @@ struct ToneClassInputs {
 	bool listenerAttached = false;
 	// The voice plays on a local-only channel and never reaches the world mix.
 	bool localOnly = false;
+	// The game's menus started the voice through their local-sound import, so
+	// it is interface audio whatever channel the module names.
+	bool interfaceSound = false;
 	bool positionalSource = false;
 	bool underwater = false;
 };
@@ -133,6 +136,13 @@ inline bool SampleNameHasPrefix( const char *name, const char *prefix ) {
 inline SoundToneClass ClassifyToneClass( const ToneClassInputs &inputs ) {
 	if ( inputs.stereoSample ) {
 		return inputs.multichannelSample ? SoundToneClass::Multichannel : SoundToneClass::Stereo;
+	}
+	// A menu's sound plays outside the level whichever channel it names: Jedi
+	// Academy's menus play on the automatic channel, Elite Force Holomatch's on
+	// a number past the announcer's. An announcer, outside the level already,
+	// keeps its own shaping.
+	if ( inputs.interfaceSound ) {
+		return inputs.channelClass == SoundToneClass::Announcer ? SoundToneClass::Announcer : SoundToneClass::Local;
 	}
 	if ( inputs.channelClass != SoundToneClass::Neutral ) {
 		return inputs.channelClass;

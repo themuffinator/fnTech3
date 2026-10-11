@@ -1327,6 +1327,8 @@ qboolean R_MOHAABuildWorld( const mohaa_translation_t *translation, const char *
 		header->lumps[LUMP_DRAWVERTS].filelen = LittleLong( vertCursor * (int)sizeof( drawVert_t ) );
 		header->lumps[LUMP_DRAWINDEXES].filelen = LittleLong( indexCursor * (int)sizeof( int ) );
 		header->lumps[LUMP_SURFACES].filelen = LittleLong( surfaceCursor * (int)sizeof( dsurface_t ) );
+		built->firstBuiltSurface = numSurfaces;
+		built->numBuiltSurfaces = surfaceCursor - numSurfaces;
 	}
 
 	/* the leafs' surface lists */

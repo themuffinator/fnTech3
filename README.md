@@ -62,16 +62,16 @@ server and three renderers -- aims to run ten games:
 
 | Game | Name to start it | Status |
 | --- | --- | --- |
-| Quake III Arena | `quake3` (`q3`) | **Playable** in the normal download, on Windows and Linux. Plays online with 1.32, ioquake3 and the original 1.29 to 1.31 releases, and plays demos back to 1.11 ([versions](docs/GAMES.md#quake-iii-arena-quake3)). |
+| Quake III Arena | `quake3` (`q3`) | **Playable** in the normal download, on Windows and Linux. Plays online with 1.32, ioquake3 and the original 1.29 to 1.31 releases, and plays demos back to 1.11 ([versions](docs/GAMES.md#quake-iii-arena-quake3)). RTX liquid reflections and refraction tested on `q3dm12` ([guide](docs/RTX.md#what-you-will-see)). |
 | Quake Live | `quakelive` (`ql`) | **Playable** in the normal download. The client needs Windows, where Quake Live's own game code runs. |
 | Return to Castle Wolfenstein | `rtcw-sp`, `rtcw-mp` | Experimental: development builds with `-Drtcw-development=true`. |
 | Wolfenstein: Enemy Territory | `wolfet` (`et`) | Experimental: `-Dwolfet-development=true`. |
 | Star Trek Voyager: Elite Force | `stvef-sp`, `stvef-mp` | Experimental: `-Dstvef-development=true`; single player on Windows only. |
-| Star Wars Jedi Knight: Jedi Academy | `jka-sp`, `jka-mp` | Experimental and early: `-Djka-development=true`. A multiplayer server runs, and the client joins original servers with parts of the game drawn; the campaign and full graphics are still to come. |
-| Star Wars Jedi Knight II: Jedi Outcast | `jk2-sp`, `jk2-mp` | Experimental and early: `-Djk2-development=true`. A multiplayer server runs with tested bot saber combat; there is no working client yet. |
+| Star Wars Jedi Knight: Jedi Academy | `jka-sp`, `jka-mp` | Experimental and early: `-Djka-development=true`. A multiplayer server runs, the client joins original servers, and local hosting reaches its player menu and restarts with sound enabled; the campaign, full graphics and complete play are still to come. |
+| Star Wars Jedi Knight II: Jedi Outcast | `jk2-sp`, `jk2-mp` | Experimental and early: `-Djk2-development=true`. A multiplayer server runs with tested bot saber combat, and the main menu draws; client gameplay is still incomplete. |
 | American McGee's Alice | `alice` | Experimental, Windows: `-Dalice-development=true`. |
 | Heavy Metal: F.A.K.K.2 | `fakk2` | Experimental, Windows: `-Dfakk2-development=true`. |
-| Medal of Honor: Allied Assault | `mohaa` | Experimental, Windows: `-Dmohaa-development=true`. |
+| Medal of Honor: Allied Assault | `mohaa` | Experimental, Windows: `-Dmohaa-development=true`. RTX traces terrain and static map scenery ([details](docs/fntech3/2026-10-11-mohaa-rtx-world.md)). |
 | Quake III Arena IHV Test | `q3-ihv` | Experimental, Windows: `-Dq3-ihv-development=true`. A server that takes original IHV Test players, and a client that plays the test's demo and joins original IHV servers. |
 | Quake III Arena Q3Test 1.02 to 1.08 | `q3test` | Experimental, Windows: `-Dq3test-development=true`. |
 

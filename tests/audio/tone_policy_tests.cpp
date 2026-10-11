@@ -100,6 +100,42 @@ bool NonDiegeticAudioStaysOutsideTheLevel() {
 	return true;
 }
 
+// A sound the game's menus start is interface audio whatever channel the
+// module names: Jedi Academy's menu clicks ride the automatic channel at the
+// listener, which alone would make them the listener's own sound in the level.
+bool MenuSoundsAreInterfaceOnAnyChannel() {
+	tone::ToneClassInputs click;
+	click.listenerAttached = true;
+	CHECK( tone::ClassifyToneClass( click ) == tone::SoundToneClass::Self );
+	click.interfaceSound = true;
+	CHECK( tone::ClassifyToneClass( click ) == tone::SoundToneClass::Local );
+
+	const tone::SoundToneClass channelClasses[] = { tone::SoundToneClass::Weapon, tone::SoundToneClass::Voice,
+		tone::SoundToneClass::Item, tone::SoundToneClass::Body };
+	for ( const tone::SoundToneClass channelClass : channelClasses ) {
+		tone::ToneClassInputs menu = click;
+		menu.channelClass = channelClass;
+		menu.underwater = true;
+		CHECK( tone::ClassifyToneClass( menu ) == tone::SoundToneClass::Local );
+	}
+
+	tone::ToneClassInputs weaponPreview;
+	weaponPreview.sampleName = "sound/weapons/change.wav";
+	weaponPreview.positionalSource = true;
+	weaponPreview.interfaceSound = true;
+	CHECK( tone::ClassifyToneClass( weaponPreview ) == tone::SoundToneClass::Local );
+
+	// The announcer, outside the level already, keeps its own shaping, and
+	// authored stereo its own path.
+	tone::ToneClassInputs announcer = click;
+	announcer.channelClass = tone::SoundToneClass::Announcer;
+	CHECK( tone::ClassifyToneClass( announcer ) == tone::SoundToneClass::Announcer );
+	tone::ToneClassInputs stereo = click;
+	stereo.stereoSample = true;
+	CHECK( tone::ClassifyToneClass( stereo ) == tone::SoundToneClass::Stereo );
+	return true;
+}
+
 bool WorldClassificationIsUnchanged() {
 	tone::ToneClassInputs remoteWeapon;
 	remoteWeapon.sampleName = "sound/weapons/rocket/rocklf1a.wav";
@@ -238,6 +274,7 @@ int main() {
 	const TestCase tests[] = {
 		{ "ListenerAttachedLoopsAreDiegetic", ListenerAttachedLoopsAreDiegetic },
 		{ "NonDiegeticAudioStaysOutsideTheLevel", NonDiegeticAudioStaysOutsideTheLevel },
+		{ "MenuSoundsAreInterfaceOnAnyChannel", MenuSoundsAreInterfaceOnAnyChannel },
 		{ "WorldClassificationIsUnchanged", WorldClassificationIsUnchanged },
 		{ "AuthoredStereoKeepsItsPathUntilItIsSpatialized", AuthoredStereoKeepsItsPathUntilItIsSpatialized },
 		{ "SubmergedListenerMufflesItsOwnSounds", SubmergedListenerMufflesItsOwnSounds },

@@ -167,10 +167,10 @@ void QDECL Q3UI_LerpTag( orientation_t *tag, clipHandle_t model, int startFrame,
 	q3cl::LerpTag( tag, model, startFrame, endFrame, frac, name );
 }
 clipHandle_t QDECL Q3UI_LoadModel( const char *name ) { return q3cl::CollisionModel( name ); }
-// by name, on the listener's channel 1 (0x418300)
+// by name, on the listener's channel 1 (0x418300), as interface audio
 void QDECL Q3UI_StartLocalSound( const char *name ) {
 	if ( !name || strlen( name ) >= MAX_QPATH ) return;
-	S_StartLocalSound( S_RegisterSound( name, qfalse ), 1 );
+	S_StartInterfaceSound( S_RegisterSound( name, qfalse ), 1, 1.0f );
 }
 
 /* Key numbers are Quake III's (5.8); this engine's sit four higher from the

@@ -11,15 +11,15 @@
  *   RUNTIME    the module writes it from a register, matching a data member
  *   ABSENT     no instruction in the module ever writes it
  *   ORDER      position between two slots identified another way
- *   ADDED      Alice's own addition beyond the reference table
  *
- * The reference table has 25 members; Alice's has 26, because slot 0 carries
- * an API version the reference table does not declare. Every other slot is
- * the reference member one place below it. See
- * docs/fntech3/2026-09-22-alice-module-abi.md.
+ * The 26 slots are the reference table's 26 members in order. Slot 0 is its
+ * API version, which the module writes as the constant 4; an earlier reading
+ * took it for an Alice addition to a 25-member table, which it is not. See
+ * docs/fntech3/2026-09-22-alice-module-abi.md and, for each slot's shape,
+ * alice_game_export_sigs.def.
  */
 
-FNTECH3_ALICE_GAME_EXPORT(  0, apiversion,            VALUE,    ADDED     )
+FNTECH3_ALICE_GAME_EXPORT(  0, apiversion,            VALUE,    IMMEDIATE )
 FNTECH3_ALICE_GAME_EXPORT(  1, Init,                  FUNCTION, ORDER     )
 FNTECH3_ALICE_GAME_EXPORT(  2, Shutdown,              FUNCTION, ORDER     )
 FNTECH3_ALICE_GAME_EXPORT(  3, Cleanup,               FUNCTION, ORDER     )

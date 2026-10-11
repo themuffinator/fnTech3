@@ -483,6 +483,38 @@ static qboolean FS_PakIsPure( const pack_t *pack ) {
 
 /*
 =================
+FS_RitualDirectoryFileAllowed
+
+Ritual's engines serve a pure client nothing loose but configuration, the
+savegames and their pictures: their FS_FOpenFileRead skips a directory file
+once a server's pak list is in force, unless its name ends ".cfg" or ".dat"
+or its last three letters are "ssv", "sav", "spv" or "tga", compared as they
+are (alice.exe 0x0043bffe..0x0043c17b; fakk2.exe 1.02 tests the same list
+at 0x00430614..0x0043072e). Every other profile reads its directories as
+before.
+=================
+*/
+static qboolean FS_RitualDirectoryFileAllowed( const char *filename ) {
+	static const char *const tails[] = { ".cfg", ".dat", "ssv", "sav", "spv", "tga" };
+	size_t length;
+	size_t i;
+
+	if ( !fs_numServerPaks || !Com_GameIsRitual() ) {
+		return qtrue;
+	}
+	length = strlen( filename );
+	for ( i = 0; i < ARRAY_LEN( tails ); i++ ) {
+		const size_t tail = strlen( tails[i] );
+		if ( length >= tail && !strcmp( filename + length - tail, tails[i] ) ) {
+			return qtrue;
+		}
+	}
+	return qfalse;
+}
+
+
+/*
+=================
 FS_LoadStack
 return load stack
 =================
@@ -2021,6 +2053,34 @@ fileHandle_t FS_FOpenFileWrite( const char *filename ) {
 
 /*
 ===========
+FS_PrepareWritePath
+
+The OS path FS_FOpenFileWrite would write a game file to, with its
+directories made, in a static buffer; NULL for a name it refuses. Ritual's
+engines hand their modules such a path (FS_PrepFileWrite, alice.exe
+0x0043cb80).
+===========
+*/
+const char *FS_PrepareWritePath( const char *filename ) {
+	static char path[MAX_OSPATH * 2 + 1];
+
+	if ( !fs_searchpaths ) {
+		Com_Error( ERR_FATAL, "Filesystem call made without initialization" );
+	}
+	if ( !FS_WriteQpathIsValid( filename ) ) {
+		return NULL;
+	}
+	Q_strncpyz( path, FS_BuildOSPath( fs_homepath->string, fs_gamedir, filename ), sizeof( path ) );
+	FS_CheckFilenameIsNotAllowed( path, __func__, qfalse );
+	if ( FS_CreatePath( path ) ) {
+		return NULL;
+	}
+	return path;
+}
+
+
+/*
+===========
 FS_FOpenFileAppend
 ===========
 */
@@ -2424,7 +2484,7 @@ int FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean uniqueF
 					}
 					pakFile = pakFile->next;
 				} while ( pakFile != NULL );
-			} else if ( search->dir && search->policy != DIR_DENY ) {
+			} else if ( search->dir && search->policy != DIR_DENY && FS_RitualDirectoryFileAllowed( filename ) ) {
 				dir = search->dir;
 				netpath = FS_BuildSearchPathOSPath( dir, filename );
 				if ( netpath[0] == '\0' ) {
@@ -2469,7 +2529,7 @@ int FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean uniqueF
 				}
 				pakFile = pakFile->next;
 			} while ( pakFile != NULL );
-		} else if ( search->dir && search->policy != DIR_DENY ) {
+		} else if ( search->dir && search->policy != DIR_DENY && FS_RitualDirectoryFileAllowed( filename ) ) {
 			// check a file in the directory tree
 			dir = search->dir;
 
@@ -7699,6 +7759,11 @@ void FS_PureServerSetLoadedPaks( const char *pakSums, const char *pakNames ) {
 	c = Cmd_Argc();
 	if ( c > ARRAY_LEN( fs_serverPaks ) ) {
 		c = ARRAY_LEN( fs_serverPaks );
+	}
+	// Ritual's engines keep the first 64 (alice.exe 0x0043e426, fakk2.exe 1.02
+	// 0x00432516): a pak past them is not on the list.
+	if ( Com_GameIsRitual() && c > 64 ) {
+		c = 64;
 	}
 
 	fs_numServerPaks = c;

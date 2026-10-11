@@ -4,6 +4,7 @@
 
 #include "../compat/jk2_client_adapter.hpp"
 #include "client_jk2_font.hpp"
+#include "client_jk2_strings.hpp"
 
 /* The low services were identified by jk2mp.exe's own dispatch targets at
  * 0x4017a0 (index 0x4031a0, jump table 0x402f14). Never fall through by number:
@@ -59,6 +60,12 @@ static bool CL_JK2CgameCall( intptr_t *args, intptr_t &operation, intptr_t &resu
 			CL_HudDrawStretchPic( x, y, w, h, glyph.s, glyph.t, glyph.s2, glyph.t2, shader );
 		} ) ) return true;
 	switch ( args[0] ) {
+	case 271:
+		result = CL_JK2StringText( cgvm, args[1], args[2], args[3], true );
+		return true;
+	case 272:
+		result = CL_JK2StringRegister( cgvm, args[1], 1 );
+		return true;
 	case 3:
 		VM_CHECKBOUNDS( cgvm, args[1], 272 );
 		Cvar_RegisterLegacy( VMA(1), VMA(2), VMA(3), args[4], cgvm->privateFlag );

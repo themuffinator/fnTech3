@@ -1,0 +1,667 @@
+{
+ "record": "2026-10-08-jk2-ui-local-sound.md",
+ "profile": "jk2-mp",
+ "level": "Source, Unit, Live subset (menu-only client, no input)",
+ "headAtStart": "cac46a13af6d055aaf00d0d82e1e291692ffcb79",
+ "headAtRecord": "84bcf66bcbd3834fb388d48f6f3025d8cdfb2043 (documentation only since the snapshot: the Quake III trace record)",
+ "dependsOn": [
+  "2026-10-08-ui-sound-policy.md (uncommitted when written): S_StartInterfaceSound and the interface mark",
+  "the uncommitted Outcast menu work of 2026-10-07-jedi-compatibility-round2.md in client_jk2_ui.hpp, client_jk2_ui_render.hpp and client_jk2_strings.hpp, without which the menu never reaches the probe's steps"
+ ],
+ "build": {
+  "platform": "Windows 11 x86 (MSVC 2022, meson debugoptimized, strict warnings, every development gate on)",
+  "source": ".tmp/jk2-ui-local-sound/src: a byte copy of the shared working tree (4,302 tracked and untracked files on cac46a13, other sessions' uncommitted work included) taken before this slice was written, built with win32-dev's options in .tmp/jk2-ui-local-sound/build (snapshot.py, build.ps1)",
+  "before": "the snapshot as taken: fntech3, fnql_glx_x86, fntech3-pkg.fnz and fnql-web.pak",
+  "after": "the snapshot plus this slice's code/client/client_jk2_ui.hpp; only cl_ui.cpp recompiled and fntech3.exe relinked; the renderer module, engine package, web pak and OpenAL Soft are the before runtime's files",
+  "mp3Diagnostic": "diagnostic only, not part of this change: the before and after sources plus one line in code/client/audio/codecs/snd_codec.cpp's S_CodecInit that also registers the MP3 codec for Com_GameIsJK2(), so the installation's MP3 menu sounds decode; snd_codec.cpp and cl_ui.cpp recompiled (build_variants.ps1); the snapshot was restored to the after state afterwards"
+ },
+ "runtime": {
+  "before": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "a726d3b17c7e7d0365313a19ea0e717e0fa91dcefe2530eb6d01395da60bb3d2",
+   "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+   "fntech3.exe": "d6d0bf6c9de6c97c5f06fefc5e214198f90b5db8ac622ffaa17b93a13ea6a652",
+   "fntech3.pdb": "421eb4e2720c8106738199245f29e47a0e6c96942bc8289f676811ae5f8632b2",
+   "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+  },
+  "after": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "a726d3b17c7e7d0365313a19ea0e717e0fa91dcefe2530eb6d01395da60bb3d2",
+   "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+   "fntech3.exe": "7b095d422a8dba82da1123bbaa920f0549c26f440cc57b51ca1a8861de1d98be",
+   "fntech3.pdb": "c845f84ea28b063984f772ad0e272f579e07e857bad83fa1da4a48a7a99057cb",
+   "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+  },
+  "mp3DiagnosticBefore": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "a726d3b17c7e7d0365313a19ea0e717e0fa91dcefe2530eb6d01395da60bb3d2",
+   "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+   "fntech3.exe": "b3d9af8458dcf6c337b6eeca62aff3fcd3a953129b04147ea0c04ea9f70d45f8",
+   "fntech3.pdb": "c2c6420bad270a90d44b662e29de56cc492dc432df37835dbc1a5329b342e050",
+   "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+  },
+  "mp3DiagnosticAfter": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "a726d3b17c7e7d0365313a19ea0e717e0fa91dcefe2530eb6d01395da60bb3d2",
+   "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+   "fntech3.exe": "05d611de694239f2a6bba69fda04bbc438cd7341b411df360ebbe4c9e9bcffb5",
+   "fntech3.pdb": "3f7328880bb168af46d82fdb9c76207bb39cc5d38d937898e0f87ba9775e15f8",
+   "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+  }
+ },
+ "retail": {
+  "jk2mp.exe 1.02a": {
+   "path": "E:\\Games\\Jedi Outcast\\jk2mp.exe",
+   "sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a"
+  },
+  "base/assets0.pk3": {
+   "sha256": "e8e466f219bb2faed536021bb0d10aa6b7f5cd687302aa43080da2debdae307c"
+  },
+  "base/assets0.pk3:vm/ui.qvm": {
+   "sha256": "19e372d0381b8b53965bd0fc38cae0eef266b3aab68e9088f915894fadca3a4f"
+  },
+  "base/assets0.pk3:vm/cgame.qvm": {
+   "sha256": "82c6543ad48508e153672673b02f94a7e264a91a8be9e01e83c46687a0033466"
+  },
+  "base/assets1.pk3": {
+   "sha256": "c3a9aeaf09c93e57847290e7e5cd6c1a071a560045fa8c5e8c6df3688df841c1",
+   "holds": "ui/jk2mp/*.menu"
+  },
+  "tools": "Capstone and pefile for the executable; a QVM bytecode decoder for the modules (.tmp/ui-sound-policy/qvm_tool.py, qvm_range.py; .tmp/jk2-ui-local-sound/qvm_channels.py, exe_range.py, dispatch_targets.py, sweep.py, menu_scripts.py); no retail code is incorporated"
+ },
+ "import32": {
+  "observed": {
+   "uiDispatcher": "0x40fb70: cmp eax, 0xca; ja 0x4106e5; idx = byte [0x410894 + N]; jmp dword [0x4106fc + idx*4]",
+   "uiImport30": "0x4106e5, the unhandled branch",
+   "uiImport31": "0x40ff99: VM_ArgPtr 0x43e5c0 of args[1], then a tail jump to S_RegisterSound 0x45ce20",
+   "uiImport32": "0x40ffb0: push args[2] (channel), push args[1] (handle), call S_StartLocalSound 0x45d370, return 0",
+   "cgameDispatcher": "0x4017a0: cmp eax, 0x12c; idx = byte [0x4031a0 + N]; jmp dword [0x402f14 + idx*4]",
+   "cgameImports": {
+    "31": "0x401c3e -> 0x45d200, picks the entity's channel and zeroes its three levels",
+    "32": "0x401c56 -> S_StartSound 0x45d230 (origin through VM_ArgPtr 0x43e5c0, entity, channel, handle)",
+    "33": "0x401c7f -> S_StartLocalSound 0x45d370 (handle, channel), return 0: the UI case's twin",
+    "40": "0x401d73 -> S_RegisterSound 0x45ce20"
+   },
+   "S_StartLocalSound": {
+    "address": "0x45d370",
+    "stoppedOrMuted": "returns while [0x1a20c80] is zero or [0x1a20c88] nonzero",
+    "handleRange": "0 <= handle < [0x1a3efb8], else Com_Printf 0x427cf0 and return",
+    "outOfRangeMessage": "pushes the handle, the message 0x4fdc44 \"S_StartLocalSound: handle %i out of range\\n\" and 0x4fdc40 \"^3\" in that order, so \"^3\" is the format and the message an unused argument: only a colour code is printed",
+    "start": "S_StartSound(NULL, listener [0x1a20cb4], channel, handle)"
+   },
+   "S_StartSound": {
+    "address": "0x45d230",
+    "entityCheck": "with no origin, an entity outside 0..1024 drops (Com_Error 0x427ed0, level 1, \"S_StartSound: bad entitynum %i\")",
+    "handleCheck": "out-of-range handle drops (\"S_StartSound: handle %i out of range\"); unreachable from 0x45d370, which checks first",
+    "level": "0x45d315..0x45d333: mov eax, 0xf0 then stores it into the channel's master level (+0x18) and both side levels (+0x10, +0x14): 240 for every sound, whatever its channel or entity",
+    "mp3": "0x45d336..0x45d35c: copies a 0x1a03-word block from the sound (sfx+0x10) into the channel, or clears it when the sound has none; inferred to be MP3 decoding state"
+   },
+   "S_PickChannel": {
+    "address": "0x45d090",
+    "negativeChannel": "Com_Error level 1 (ERR_DROP) \"S_PickChannel: entchannel<0\" (0x4fdbd0)",
+    "rules": "channel 0 takes one pass and never overrides; any other channel takes a first pass in which the same entity's sound on the same channel is replaced (compare 0x45d1f0); no other channel number has a rule"
+   },
+   "respatialize": "0x45dc18..0x45dc3d: a channel whose entity is the listener keeps left = right = its master level; others are spatialized from it by 0x45cf50",
+   "loops": "0x45d7f0 spatializes a loop at 240 (0xf0) or 180 (0xb4) by its flag at +0x24; the merged loop channel (0x45d750) stores master 255 and clamps both sides at 255 (0x45d766..0x45d78a); 0x45d7ba refuses a streamed MP3 for a loop",
+   "mixer": "s_volume registered at 0x45c93a with default \"0.8\"; 0x45fbd0 sets the paint scale to s_volume * 256.0 (float at 0x4e4420); 0x45fb50 paints sample * (side level * scale) >> 8",
+   "comFunctions": "Com_Printf 0x427cf0 (format first); Com_Error 0x427ed0 (\"recursive error after: %s\")"
+  },
+  "channelNumbering": {
+   "question": "Quake III's numbering makes 6 the local-sound channel and 7 the announcer; Raven's single-player numbering, Academy's, inserts channels from 4 on and makes 6 the body channel and 7 the ambient one",
+   "engine": "jk2mp.exe gives no channel number a rule but 0 (and refuses negatives), so the modules' use decides",
+   "cgameLocalSound": {
+    "module": "base/assets0.pk3:vm/cgame.qvm",
+    "import": "CG_S_STARTLOCALSOUND 33 (CONST -34; CALL), 17 calls",
+    "channels": {
+     "0": 2,
+     "1": 2,
+     "3": 1,
+     "6": 2,
+     "7": 10
+    },
+    "calls": [
+     "  call  21987 proc  21576 channel 7     sound/chars/mothma/misc/40MOM037",
+     "  call  21997 proc  21576 channel 7     sound/chars/mothma/misc/40MOM036",
+     "  call  22007 proc  21576 channel 7     sound/chars/mothma/misc/40MOM035",
+     "  call  48455 proc  47787 channel 7     sound/chars/mothma/misc/40MOM038",
+     "  call  50369 proc  47787 channel 1     music/goodsmall.mp3",
+     "  call  50701 proc  47787 channel 0     ",
+     "  call  50717 proc  47787 channel 0     ",
+     "  call  53613 proc  47787 channel 1     music/badsmall.mp3",
+     "  call 100524 proc 100230 channel 7     sound/chars/mothma/misc/40MOM004",
+     "  call 100572 proc 100230 channel 7     sound/chars/mothma/misc/40MOM005",
+     "  call 104628 proc 104417 channel 7     ",
+     "  call 104919 proc 104632 channel 7     ",
+     "  call 110513 proc 110456 channel 7     sound/chars/mothma/misc/40MOM038",
+     "  call 111621 proc 111601 channel 3     ",
+     "  call 113034 proc 112534 channel 6     sound/player/talk.wav",
+     "  call 113085 proc 112534 channel 6     sound/player/talk.wav",
+     "  call 119233 proc 119202 channel 7     "
+    ],
+    "reading": {
+     "7": "Mon Mothma's announcer lines: 40MOM035, 036 and 037 in procedure 21576 (the warmup countdown, beside WAITING_FOR_PLAYERS), 40MOM038 (47787, 110456), 40MOM004 and 005 (100230), the round-over and objective sounds (104628, 104919) and the buffered announcements (119233)",
+     "6": "sound/player/talk.wav (global 2402156, registered at instruction 2171) for the chat and tchat server commands (procedure 112534)",
+     "1": "music/goodsmall.mp3 and music/badsmall.mp3",
+     "3": "the voice-chat path (procedure 111601)",
+     "0": "the disruptor's zoom start and end"
+    }
+   },
+   "cgameStartSound": {
+    "import": "CG_S_STARTSOUND 32 (CONST -33; CALL), 75 calls",
+    "constantChannels": {
+     "0": 41,
+     "1": 1,
+     "2": 5,
+     "3": 9,
+     "4": 1,
+     "5": 12
+    },
+    "otherChannels": "6 calls pass the channel through an expression: a temporary set to 0 just before (19881, 19906) or to 2 (128447, 128530), and an entity-state field at +148 of the event entity (53185, 53236)",
+    "example": "sound/player/roll1.wav on 5 (procedure 47787)"
+   },
+   "uiModule": "base/assets0.pk3:vm/ui.qvm calls import 32 only through its display context (slot +0x88): `play` (procedure 43651) on 0, `setfocus` (43312) and the item-focus path (44110) on 6 (2026-10-08-ui-sound-policy.json)",
+   "conclusion": "Quake III's numbering, the engine's own: 6 CHAN_LOCAL_SOUND (\"chat messages, etc\"), 7 CHAN_ANNOUNCER, 5 CHAN_BODY, 3 CHAN_VOICE, 1 CHAN_LOCAL, 0 CHAN_AUTO (names from id's source release, for names only); Outcast's numbers need no translation"
+  },
+  "level": "every one-shot starts at the same level (240) and the listener's own sounds have no level of their own, unlike Academy (0.75 below its ambient channel); a menu sound is at the profile's ordinary one-shot level, Fn's full level 1.0; 240 against the 255 ceiling is the retail mixer's own scale",
+  "served": "code/client/client_jk2_ui.hpp case 32: a word outside int drops (\"Invalid Jedi Outcast UI local sound handle or channel\"); otherwise S_StartInterfaceSound(handle, channel unchanged, 1.0f) and result 0; CL_JK2UISharedCall never maps 32, so the shared dispatcher never sees it",
+  "differences": [
+   "an out-of-range handle plays nothing in either engine; Fn's backends print \"S_StartLocalSound: handle %i out of range\" in yellow, where retail's call prints only the colour code",
+   "a negative channel drops retail's module (S_PickChannel) when the sound would play; Fn plays it on that number, which has no engine channel's rule, as its Quake III and Academy paths do; no retail module passes one",
+   "presentation is Fn's (invariant 11): the interface class of 2026-10-08-ui-sound-policy.md, not retail's mixing"
+  ]
+ },
+ "noInputPath": {
+  "consoleHandler": "vm/ui.qvm procedure 33186: ui_test (1382), ui_report, ui_load, ui_openmenu (only while `developer` is nonzero, 33279..33299, then Menus_OpenByName 42295, which closes nothing), remapShader, postgame, ui_cache, ui_teamOrders, ui_cdkey",
+  "step1": "ui_openmenu quitMenu: quitMenu's onOpen `setfocus quitgame_cancel` (43312) plays the item-focus sound (main.menu assetGlobalDef: sound/interface/menuroam.wav) on 6 when its handle is nonzero",
+  "step2": "ui_openmenu videowarningMenu; then in one frame ui_test and ui_openmenu main: ui_test runs UI_ShowPostGame (1382), whose post-game branch (29340..29356) sets the key catcher, closes every menu (42447, running each visible menu's onClose through 42304) and opens `endofgame`, which Outcast does not ship; videowarningMenu's onClose `play \"sound/interface/button1.wav\"` (43651) reaches import 32 on 0 whatever handle the registration returned. The UI does not claim ui_test, so the console also prints Unknown command \"ui_test\"",
+  "menuSurvey": {
+   "pak": "base/assets1.pk3",
+   "menus": 35,
+   "totals": {
+    "play:onESC": 17,
+    "play:action": 532,
+    "setfocus:onOpen": 3,
+    "play:doubleClick": 1,
+    "setfocus:mouseEnterText": 1,
+    "setfocus:action": 4,
+    "play:onClose": 2
+   },
+   "onClosePlay": [
+    "videowarningMenu",
+    "videodriverMenu"
+   ],
+   "onOpenSetfocus": {
+    "quitMenu": "quitgame_cancel",
+    "creditsMenu": "newgamebutton",
+    "findplayer_popmenu": "nameField"
+   },
+   "focusSound": "sound/interface/menuroam.wav (main.menu and ingame.menu)"
+  }
+ },
+ "mp3": {
+  "installation": {
+   "soundMp3": 7987,
+   "soundWav": 309,
+   "musicMp3": 139,
+   "menuSounds": "sound/interface/button1.mp3 and menuroam.mp3 (assets0.pk3); no .wav of either"
+  },
+  "fnTech3": "code/client/audio/codecs/snd_codec.cpp S_CodecInit registers the MP3 codec for Elite Force, the Ritual titles, Medal of Honor and both Academy profiles only, so in jk2-sp and jk2-mp a .wav name never falls back to its .mp3: menuroam.wav, button1.wav and feedback/hit.wav fail to load, registration answers 0, setfocus skips the import and `play` plays handle 0, Fn's generated fallback tone",
+  "retail": "inferred: the installation holds these sounds only as MP3, and jk2mp.exe carries MP3 decoding state: S_StartSound copies a 0x1a03-word block from the sound (sfx+0x10) into its channel or clears it (0x45d336..0x45d35c), and its loop setup refuses \"streamed MP3 files\" by name (0x45d7ba)",
+  "status": "open blocker for every Outcast sound, outside this slice"
+ },
+ "probe": {
+  "script": ".tmp/jk2-ui-local-sound/probe_menu_sound.py (not committed); tally.py reads its dumps",
+  "desktop": "unswitched private desktop (tests/windows_private_process.py); windowed; no input injected; net_enabled 0; no server",
+  "home": "a fresh fs_homepath per run under .tmp/jk2-ui-local-sound/runs/<run>/home with an empty base/jk2mpconfig.cfg",
+  "commandLine": [
+   "+set",
+   "com_gameProfile",
+   "jk2-mp",
+   "+set",
+   "fs_basepath",
+   "E:\\Games\\Jedi Outcast",
+   "+set",
+   "fs_homepath",
+   "E:\\Repositories\\fnTech3\\.tmp\\jk2-ui-local-sound\\runs\\after-openal-1\\home",
+   "+set",
+   "com_steamIntegration",
+   "0",
+   "+set",
+   "developer",
+   "1",
+   "+set",
+   "logfile",
+   "2",
+   "+set",
+   "net_enabled",
+   "0",
+   "+set",
+   "r_fullscreen",
+   "0",
+   "+set",
+   "r_mode",
+   "3",
+   "+set",
+   "in_mouse",
+   "0",
+   "+set",
+   "in_joystick",
+   "0",
+   "+set",
+   "in_nograb",
+   "1",
+   "+set",
+   "s_initsound",
+   "1",
+   "+set",
+   "s_muteWhenUnfocused",
+   "0",
+   "+set",
+   "s_muteWhenMinimized",
+   "0",
+   "+set",
+   "s_volume",
+   "0.05",
+   "+set",
+   "s_musicvolume",
+   "0",
+   "+set",
+   "cl_motd",
+   "0",
+   "+set",
+   "com_introplayed",
+   "1",
+   "+set",
+   "com_maxfps",
+   "60",
+   "+set",
+   "com_maxfpsUnfocused",
+   "60",
+   "+set",
+   "com_maxfpsMinimized",
+   "60",
+   "+set",
+   "s_backend",
+   "openal",
+   "+exec",
+   "probemenu.cfg"
+  ],
+  "commandLineNotes": "fs_homepath is the run's own home; s_backend is openal or legacy, absent with s_initsound 0",
+  "steps": [
+   "s_alSourceClassDebug 1",
+   "wait 600",
+   "echo probe-step ready",
+   "s_info",
+   "echo probe-step quitmenu",
+   "ui_openmenu quitMenu",
+   "echo probe-dump quitmenu 0",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump quitmenu 1",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump quitmenu 2",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump quitmenu 3",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump quitmenu 4",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump quitmenu 5",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump quitmenu 6",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump quitmenu 7",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump quitmenu 8",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump quitmenu 9",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump quitmenu 10",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump quitmenu 11",
+   "s_alDebugDump",
+   "wait 2",
+   "wait 240",
+   "echo probe-step videowarning",
+   "ui_openmenu videowarningMenu",
+   "wait 120",
+   "echo probe-step closewarning",
+   "ui_test",
+   "ui_openmenu main",
+   "echo probe-dump closewarning 0",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump closewarning 1",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump closewarning 2",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump closewarning 3",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump closewarning 4",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump closewarning 5",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump closewarning 6",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump closewarning 7",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump closewarning 8",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump closewarning 9",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump closewarning 10",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump closewarning 11",
+   "s_alDebugDump",
+   "wait 2",
+   "wait 240",
+   "echo probe-step done",
+   "quit"
+  ],
+  "legacy": "s_show 2 first (lists each voice's left and right level)",
+  "muting": "a client on a private desktop is offscreen-muted, so nothing was heard"
+ },
+ "runs": [
+  {
+   "run": "before-openal-1",
+   "runtime": ".tmp/runtime/jk2-ui-sound-before",
+   "backend": "openal",
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "seconds": 44.7,
+   "stepsLogged": [
+    "ready",
+    "quitmenu",
+    "videowarning",
+    "closewarning"
+   ],
+   "refusal": "ERROR: Unsupported jk2-mp UI import 32: Jedi Outcast's menu service boundary is open.",
+   "installationUnchanged": true,
+   "runtimeUnchanged": true,
+   "note": "step 1 passes: the focus handle is 0, so setfocus makes no call",
+   "quitmenu": {
+    "dumps": 12
+   }
+  },
+  {
+   "run": "before-legacy-1",
+   "runtime": ".tmp/runtime/jk2-ui-sound-before",
+   "backend": "legacy",
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "seconds": 42.3,
+   "stepsLogged": [
+    "ready",
+    "quitmenu",
+    "videowarning",
+    "closewarning"
+   ],
+   "refusal": "ERROR: Unsupported jk2-mp UI import 32: Jedi Outcast's menu service boundary is open.",
+   "installationUnchanged": true,
+   "runtimeUnchanged": true,
+   "note": "",
+   "quitmenu": {
+    "dumps": 12
+   }
+  },
+  {
+   "run": "before-none-1",
+   "runtime": ".tmp/runtime/jk2-ui-sound-before",
+   "backend": "none",
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "seconds": 41.2,
+   "stepsLogged": [
+    "ready",
+    "quitmenu",
+    "videowarning",
+    "closewarning"
+   ],
+   "refusal": "ERROR: Unsupported jk2-mp UI import 32: Jedi Outcast's menu service boundary is open.",
+   "installationUnchanged": true,
+   "runtimeUnchanged": true,
+   "note": "sound off",
+   "quitmenu": {
+    "dumps": 12
+   }
+  },
+  {
+   "run": "after-openal-1",
+   "runtime": ".tmp/runtime/jk2-ui-sound-after",
+   "backend": "openal",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 26.3,
+   "stepsLogged": [
+    "ready",
+    "quitmenu",
+    "videowarning",
+    "closewarning",
+    "done"
+   ],
+   "refusal": null,
+   "installationUnchanged": true,
+   "runtimeUnchanged": true,
+   "note": "`play` plays handle 0 (button1 cannot be decoded): Fn's fallback tone",
+   "quitmenu": {
+    "dumps": 12
+   },
+   "closewarning": {
+    "shots": {
+     "sound/feedback/hit.wav ent=0 mode=relative tone=local/highpass gain=1.00 pan=0.00 dry=1.00 wet=0.00": 9
+    },
+    "tones": {
+     "class=local direct=highpass send=none": 9
+    },
+    "dumps": 12
+   }
+  },
+  {
+   "run": "after-legacy-1",
+   "runtime": ".tmp/runtime/jk2-ui-sound-after",
+   "backend": "legacy",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 22.3,
+   "stepsLogged": [
+    "ready",
+    "quitmenu",
+    "videowarning",
+    "closewarning",
+    "done"
+   ],
+   "refusal": null,
+   "installationUnchanged": true,
+   "runtimeUnchanged": true,
+   "note": "the legacy mixer plays handle 0 as its default sound",
+   "quitmenu": {
+    "dumps": 12
+   },
+   "closewarning": {
+    "legacy": {
+     "sound/feedback/hit.wav 127/127": 5
+    },
+    "dumps": 12
+   }
+  },
+  {
+   "run": "after-none-1",
+   "runtime": ".tmp/runtime/jk2-ui-sound-after",
+   "backend": "none",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 22.2,
+   "stepsLogged": [
+    "ready",
+    "quitmenu",
+    "videowarning",
+    "closewarning",
+    "done"
+   ],
+   "refusal": null,
+   "installationUnchanged": true,
+   "runtimeUnchanged": true,
+   "note": "sound off: the import is reached and nothing plays",
+   "quitmenu": {
+    "dumps": 12
+   },
+   "closewarning": {
+    "dumps": 12
+   }
+  },
+  {
+   "run": "diag-before-openal-1",
+   "runtime": ".tmp/runtime/jk2-ui-sound-mp3diag-before",
+   "backend": "openal",
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "seconds": 36.2,
+   "stepsLogged": [
+    "ready",
+    "quitmenu"
+   ],
+   "refusal": "ERROR: Unsupported jk2-mp UI import 32: Jedi Outcast's menu service boundary is open.",
+   "installationUnchanged": true,
+   "runtimeUnchanged": true,
+   "note": "MP3 diagnostic: the focus sound now registers, so step 1 reaches the import"
+  },
+  {
+   "run": "diag-after-openal-1",
+   "runtime": ".tmp/runtime/jk2-ui-sound-mp3diag-after",
+   "backend": "openal",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 23.2,
+   "stepsLogged": [
+    "ready",
+    "quitmenu",
+    "videowarning",
+    "closewarning",
+    "done"
+   ],
+   "refusal": null,
+   "installationUnchanged": true,
+   "runtimeUnchanged": true,
+   "note": "MP3 diagnostic",
+   "quitmenu": {
+    "shots": {
+     "sound/interface/menuroam.wav ent=0 mode=relative tone=local/highpass gain=1.00 pan=0.00 dry=1.00 wet=0.00": 7
+    },
+    "tones": {
+     "class=local direct=highpass send=none": 7
+    },
+    "dumps": 12
+   },
+   "closewarning": {
+    "shots": {
+     "sound/interface/button1.wav ent=0 mode=relative tone=local/highpass gain=1.00 pan=0.00 dry=1.00 wet=0.00": 9
+    },
+    "tones": {
+     "class=local direct=highpass send=none": 9
+    },
+    "dumps": 12
+   }
+  },
+  {
+   "run": "diag-after-legacy-1",
+   "runtime": ".tmp/runtime/jk2-ui-sound-mp3diag-after",
+   "backend": "legacy",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 22.2,
+   "stepsLogged": [
+    "ready",
+    "quitmenu",
+    "videowarning",
+    "closewarning",
+    "done"
+   ],
+   "refusal": null,
+   "installationUnchanged": true,
+   "runtimeUnchanged": true,
+   "note": "MP3 diagnostic",
+   "quitmenu": {
+    "legacy": {
+     "sound/interface/menuroam.wav 127/127": 16
+    },
+    "dumps": 12
+   },
+   "closewarning": {
+    "legacy": {
+     "sound/interface/button1.wav 127/127": 20
+    },
+    "dumps": 12
+   }
+  }
+ ],
+ "tests": [
+  {
+   "file": "tests/jk2_ui_local_sound_tests.py",
+   "covers": "the production case 32 and the host's refusal branch compiled against a recording S_StartInterfaceSound: channels 0..7 and unused numbers unchanged at level 1.0, result 0, the retail UI's 0 and 6, unregistered handles, over-wide words refused (x86_64 build), unknown ordinals still refused, CL_JK2UISharedCall(32) == -1; a source test ties the case to the interface entry and the host's single entry to the jk2-mp guard in cl_ui.cpp"
+  },
+  {
+   "file": "tests/ui_interface_sound_tests.py",
+   "covers": "the Outcast case joins the menu hosts, and client_jk2_ui.hpp the interface entry's caller set"
+  },
+  {
+   "unchanged": [
+    "tests/jk2_ui_definition_tests.py",
+    "tests/jk2_ui_render_tests.py",
+    "tests/rtcw_cinematic_tests.py",
+    "tests/rtcw_module_cvar_tests.py",
+    "tests/rtcw_render_import_tests.py",
+    "tests/jka_ui_local_sound_tests.py"
+   ]
+  },
+  {
+   "mutations": ".tmp/jk2-ui-local-sound/mutations.py: Academy's channel table, a 0.75 level, retail's 240/255, no width check, a truncating handle cast, a nonzero result and routing 32 through the shared dispatcher; each fails the probe or the source test"
+  },
+  {
+   "compile": "code/client/cl_ui.cpp with meson/build/win32-dev's compile_commands.json command (strict warnings), output redirected (.tmp/jk2-ui-local-sound/cc_check.py): ok"
+  },
+  {
+   "fullSuite": {
+    "tree": "the snapshot with only this slice's seven files added (its own git commit 237927d over the snapshot da96100); python -m pytest tests in a VS x86 developer shell",
+    "result": "2648 passed, 129 skipped, 65661 subtests passed, 1 failed (55:39)",
+    "failure": "tests/rtcw_speech_tests.py::RTCWSpeechTests::test_rtcw_default_handle_pcm_registration_reload_and_other_profiles: its fixture compiles SoundSample::EnsureLoaded, which another session's uncommitted Academy lip-sync lines extend (Com_GameIsJKAMP, jkaMpeg_); it fails the same way with this slice's files reverted",
+    "log": ".tmp/jk2-ui-local-sound/suite-pytest.log"
+   }
+  }
+ ],
+ "open": [
+  "the installation's MP3 sounds (7,987 of 8,296 under sound/, the menus' among them, and all 139 music files) do not decode in either Outcast profile: fnTech3 does not register its MP3 codec for them",
+  "audible play and a captured mix",
+  "mouse and key focus paths (need input)",
+  "menu sounds during a session; retail jk2mp.exe's own menu sounds were not observed for comparison",
+  "Outcast's client-game sound imports (31 to 41) remain refused; the channel numbering pinned here is theirs too",
+  "Outcast single player's menus are not served"
+ ]
+}

@@ -187,6 +187,11 @@ static SOCKET	query_socket = INVALID_SOCKET;
 static int		query_port;
 static netQueryHandler_t	query_handler;
 
+// a browser's search from a port of its own, and when it ends (net_query.h)
+static SOCKET	search_socket = INVALID_SOCKET;
+static int		search_ends;
+static netQueryHandler_t	search_handler;
+
 #ifdef USE_IPV6
 static SOCKET	ip6_socket = INVALID_SOCKET;
 static SOCKET	multicast6_socket = INVALID_SOCKET;
@@ -1691,25 +1696,94 @@ void NET_SendQueryPacket( int length, const void *data, const netadr_t *to ) {
 
 /*
 ====================
-NET_QueryEvent
-
-Hands each datagram waiting on the query socket to its handler; a bounded
-number at a time, so a flood cannot hold up the frame.
+NET_CloseSearchSocket
 ====================
 */
-static void NET_QueryEvent( const fd_set *fdr ) {
+void NET_CloseSearchSocket( void ) {
+	if ( search_socket != INVALID_SOCKET ) {
+		closesocket( search_socket );
+		search_socket = INVALID_SOCKET;
+	}
+	search_handler = NULL;
+}
+
+
+/*
+====================
+NET_OpenSearchSocket
+====================
+*/
+int NET_OpenSearchSocket( int lifetime, netQueryHandler_t handler ) {
+	struct sockaddr_in	bound;
+	socklen_t			boundlen = sizeof( bound );
+	int					broadcast = 1;
+
+	NET_CloseSearchSocket();
+
+	if ( !handler || lifetime <= 0 || !networkingEnabled || !net_enabled
+		|| !( net_enabled->integer & NET_ENABLEV4 ) || ip_socket == INVALID_SOCKET || usingSocks ) {
+		return 0;
+	}
+
+	// port 0: the system picks one
+	search_socket = NET_QueryIPSocket( 0 );
+	if ( search_socket == INVALID_SOCKET ) {
+		return 0;
+	}
+	if ( setsockopt( search_socket, SOL_SOCKET, SO_BROADCAST, (char *) &broadcast, sizeof( broadcast ) ) == SOCKET_ERROR
+		|| getsockname( search_socket, (struct sockaddr *) &bound, &boundlen ) == SOCKET_ERROR ) {
+		Com_DPrintf( "NET_OpenSearchSocket: %s\n", NET_ErrorString() );
+		NET_CloseSearchSocket();
+		return 0;
+	}
+	search_handler = handler;
+	search_ends = Sys_Milliseconds() + lifetime;
+	return ntohs( bound.sin_port );
+}
+
+
+/*
+====================
+NET_SendSearchPacket
+====================
+*/
+void NET_SendSearchPacket( int length, const void *data, const netadr_t *to ) {
+	sockaddr_t	addr;
+
+	if ( search_socket == INVALID_SOCKET || !to || ( to->type != NA_IP && to->type != NA_BROADCAST ) || !data
+		|| length <= 0 ) {
+		return;
+	}
+	NetadrToSockadr( to, &addr );
+	if ( sendto( search_socket, data, length, 0, (struct sockaddr *) &addr, sizeof( struct sockaddr_in ) ) == SOCKET_ERROR
+		&& socketError != EAGAIN ) {
+		Com_DPrintf( "NET_SendSearchPacket: %s\n", NET_ErrorString() );
+	}
+}
+
+
+/*
+====================
+NET_ReadQuerySocket
+
+Hands each datagram waiting on a query or search socket to its handler; a
+bounded number at a time, so a flood cannot hold up the frame. The handler
+may close the socket.
+====================
+*/
+static void NET_ReadQuerySocket( const SOCKET *sock, const netQueryHandler_t *handler, const fd_set *fdr ) {
 	byte		data[ MAX_PACKETLEN ];
 	sockaddr_t	from;
 	socklen_t	fromlen;
 	netadr_t	adr;
 	int			ret, err, i;
 
-	if ( query_socket == INVALID_SOCKET || !FD_ISSET( query_socket, fdr ) ) {
+	if ( *sock == INVALID_SOCKET || !FD_ISSET( *sock, fdr ) ) {
 		return;
 	}
-	for ( i = 0; i < 64 && query_socket != INVALID_SOCKET && query_handler; i++ ) {
+	for ( i = 0; i < 64 && *sock != INVALID_SOCKET && *handler; i++ ) {
 		fromlen = sizeof( from );
-		ret = recvfrom( query_socket, (void *)data, sizeof( data ), 0, (struct sockaddr *) &from, &fromlen );
+		ret = recvfrom( *sock, (void *)data, sizeof( data ), 0, (struct sockaddr *) &from, &fromlen );
 		if ( ret == SOCKET_ERROR ) {
 			err = socketError;
 			// Windows reports an earlier answer's unreachable address, and
@@ -1729,8 +1803,19 @@ static void NET_QueryEvent( const fd_set *fdr ) {
 		}
 		memset( &from.v4.sin_zero, 0, sizeof( from.v4.sin_zero ) );
 		SockadrToNetadr( &from, &adr );
-		query_handler( &adr, data, ret );
+		(*handler)( &adr, data, ret );
 	}
+}
+
+
+/*
+====================
+NET_QueryEvent
+====================
+*/
+static void NET_QueryEvent( const fd_set *fdr ) {
+	NET_ReadQuerySocket( &query_socket, &query_handler, fdr );
+	NET_ReadQuerySocket( &search_socket, &search_handler, fdr );
 }
 
 
@@ -1887,6 +1972,8 @@ static void NET_Config( qboolean enableNetworking ) {
 	if( stop ) {
 		// its owner opens it again on the network that replaces this one
 		NET_CloseQuerySocket();
+		// a search in progress ends with the network
+		NET_CloseSearchSocket();
 
 		if ( ip_socket != INVALID_SOCKET ) {
 			closesocket( ip_socket );
@@ -2055,6 +2142,18 @@ qboolean NET_Sleep( int timeout )
 
 		if ( highestfd == INVALID_SOCKET || query_socket > highestfd )
 			highestfd = query_socket;
+	}
+
+	// a browser's search ends by itself
+	if ( search_socket != INVALID_SOCKET && Sys_Milliseconds() - search_ends >= 0 )
+		NET_CloseSearchSocket();
+
+	if ( search_socket != INVALID_SOCKET )
+	{
+		FD_SET( search_socket, &fdr );
+
+		if ( highestfd == INVALID_SOCKET || search_socket > highestfd )
+			highestfd = search_socket;
 	}
 
 	if ( highestfd == INVALID_SOCKET )

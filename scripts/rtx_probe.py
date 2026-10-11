@@ -143,7 +143,8 @@ def build_plan(args: argparse.Namespace, home: Path) -> tuple[list[str], str]:
                 lines.append(action[1])
         lines.append(f'wait {step["frames"] if step["frames"] is not None else args.settle}')
         lines.append(f'screenshotPNG {step["name"]}')
-        lines.append('wait 3')
+        # Render the queued capture before a later step mutates cvars or quits.
+        lines.append(f'wait {getattr(args, "capture_gap", 3)}')
     lines.append('quit')
     script = '\n'.join(lines) + '\n'
 
@@ -185,6 +186,8 @@ def main() -> int:
     source.add_argument('--map', help='map to load with devmap')
     parser.add_argument('--advance', type=int, default=300, help='frames to play (or wait after devmap) before freezing')
     parser.add_argument('--settle', type=int, default=90, help='frames to wait before each capture without @frames')
+    parser.add_argument('--capture-gap', type=int, choices=range(1, 121), default=3,
+                        metavar='1..120', help='frames after a capture; 1 with @0 steps captures consecutive rendered frames')
     parser.add_argument('--width', type=int, default=960)
     parser.add_argument('--height', type=int, default=540)
     parser.add_argument('--startup', type=parse_assignment, action='append', default=[],

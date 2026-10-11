@@ -30,6 +30,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // one is C++ of its own.
 extern "C++" {
 #include "shared/STVEFLipSync.h"
+#include "shared/JKALipSync.h"
+#include "../client_jka_sound.hpp"
 // American McGee's Alice's voices: shared/AliceSound.h decides, a backend plays.
 namespace fntech3::audio::alice::sfx { class Device; }
 }
@@ -89,6 +91,8 @@ struct sfx_t {
 	// resampling above; American McGee's Alice's loop blocks count in them.
 	int				sourceFrames;
 	int				sourceFrameBytes;
+	qboolean		jkaMpeg;
+	float			jkaPeak;
 };
 
 struct dma_t {
@@ -162,6 +166,9 @@ struct soundInterface_t {
 	void (*Shutdown)(void);
 	void (*StartSound)( const vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx, float volume );
 	void (*StartLocalSound)( sfxHandle_t sfx, int channelNum, float volume );
+	// Whether the next local sound is one the game's menus started, which a
+	// backend with tone classes plays as interface audio on any channel.
+	void (*MarkInterfaceSound)( qboolean interfaceSound );
 	void (*StartRTCWSound)( const vec3_t origin, int entity, int channel, sfxHandle_t handle, int flags );
 	void (*StartWolfETSound)( const vec3_t origin, int entity, int channel, sfxHandle_t handle, int flags, int volume );
 	void (*StartWolfETLocalSound)( sfxHandle_t handle, int channel, int volume );
@@ -170,6 +177,7 @@ struct soundInterface_t {
 	void (*StopRTCWEntityStream)( int entity );
 	void (*FadeRTCWEntityStream)( float volume, int time, int stream );
 	int (*RTCWVoiceAmplitude)( int entity );
+	int (*JKAVoiceVolume)( int entity );
 	void (*StartBackgroundTrack)( const char *intro, const char *loop );
 	void (*StartRTCWBackgroundTrack)( const char *intro, const char *loop, int fadeTime );
 	void (*FadeRTCWBackgroundTrack)( float volume, int time );
@@ -289,13 +297,28 @@ static ID_INLINE float S_STVEFSeparation( void ) {
 	if ( s_separation->value > 1.0f ) return 1.0f;
 	return s_separation->value;
 }
-// Elite Force SP alone registers these four, in the order retail compares
-// them to decide how wide a mouth a voice opens (0x421637).
+// Elite Force SP and Academy MP register these four in the order their
+// retail engines compare them to decide how wide a mouth a voice opens.
 extern cvar_t *s_threshold1;
 extern cvar_t *s_threshold2;
 extern cvar_t *s_threshold3;
 extern cvar_t *s_threshold4;
 #ifdef __cplusplus
+extern "C++" inline bool S_JKAIsVoiceChannel( int channel ) {
+	namespace sound=fntech3::jka::sound;
+	return channel==sound::EngineChannel(sound::ChanVoice)||
+		channel==sound::EngineChannel(sound::ChanVoiceAtten)||channel==sound::EngineChannel(sound::ChanVoiceGlobal);
+}
+extern "C++" inline fntech3::audio::jka::lipsync::Thresholds S_JKAThresholds( void ) {
+	// Snapshot only: sample loading owns temporary PCM buffers, so validation
+	// here must not Com_Error/longjmp across their destructors.
+	fntech3::audio::jka::lipsync::Thresholds t;
+	if (s_threshold1) t.closed=s_threshold1->value;
+	if (s_threshold2) t.narrow=s_threshold2->value;
+	if (s_threshold3) t.wide=s_threshold3->value;
+	if (s_threshold4) t.widest=s_threshold4->value;
+	return t;
+}
 extern "C++" inline fntech3::audio::stvef::lipsync::Thresholds S_STVEFThresholds( void ) {
 	fntech3::audio::stvef::lipsync::Thresholds thresholds;
 	if ( s_threshold1 != NULL ) thresholds.closed = s_threshold1->value;

@@ -58,6 +58,8 @@ void R_LoadTGA ( const char *name, byte **pic, int *width, int *height)
 	TargaHeader	targa_header;
 	byte		*targa_rgba;
 	int length;
+	const qboolean jediRows = ( ri.gameId == COM_GAME_JKA_SP || ri.gameId == COM_GAME_JKA_MP ||
+		ri.gameId == COM_GAME_JK2_SP || ri.gameId == COM_GAME_JK2_MP ) ? qtrue : qfalse;
 
 	*pic = NULL;
 
@@ -109,12 +111,12 @@ void R_LoadTGA ( const char *name, byte **pic, int *width, int *height)
 		ri.Error( ERR_DROP, "LoadTGA: colormaps not supported" );
 	}
 
-	/* Retail Academy rejects oriented RLE (jamp.exe 0x49dd4a..0x49dd61).
-	 * Its uncompressed font atlases do use top-down rows; decode those into
+	/* Retail Academy rejects oriented RLE (jamp.exe 0x49dd4a..0x49dd61), as
+	 * does Outcast (jk2mp 0x47c244..0x47c252, jk2sp 0x46b144..0x46b152).
+	 * Their uncompressed font atlases do use top-down rows; decode those into
 	 * the same engine image storage rather than treating the flag as advisory. */
-	if ( ( ri.gameId == COM_GAME_JKA_SP || ri.gameId == COM_GAME_JKA_MP )
-		&& targa_header.image_type == 10 && ( targa_header.attributes & 0x30 ) ) {
-		ri.Error( ERR_DROP, "LoadTGA: Academy RLE images require bottom-to-top rows (%s)", name );
+	if ( jediRows && targa_header.image_type == 10 && ( targa_header.attributes & 0x30 ) ) {
+		ri.Error( ERR_DROP, "LoadTGA: Jedi RLE images require bottom-to-top rows (%s)", name );
 	}
 
 	if ( ( targa_header.pixel_size != 32 && targa_header.pixel_size != 24 ) && targa_header.image_type != 3 )
@@ -292,9 +294,9 @@ void R_LoadTGA ( const char *name, byte **pic, int *width, int *height)
 		}
 	}
 
-  if ( ( ri.gameId == COM_GAME_JKA_SP || ri.gameId == COM_GAME_JKA_MP )
-       && (targa_header.attributes & 0x20) ) {
-    /* Primary row selection: jamp.exe 0x49dd7b..0x49dda5. The unpacker
+  if ( jediRows && (targa_header.attributes & 0x20) ) {
+    /* Primary row selection: jamp.exe 0x49dd7b..0x49dda5,
+     * jk2mp.exe 0x47c272..0x47c29e, jk2sp.exe 0x46b172..0x46b19e. The unpacker
      * above always starts at the last row, so reverse the completed image.
      * Swapping bytes avoids an additional allocation during partial init. */
     for (row = 0; row < (int)rows / 2; row++) {
@@ -309,8 +311,7 @@ void R_LoadTGA ( const char *name, byte **pic, int *width, int *height)
   }
   // instead we just print a warning; Enemy Territory ignores the flag
   // silently, and its own images carry it
-  if ((targa_header.attributes & 0x20) && ri.gameId != COM_GAME_WOLFET
-      && ri.gameId != COM_GAME_JKA_SP && ri.gameId != COM_GAME_JKA_MP) {
+  if ((targa_header.attributes & 0x20) && ri.gameId != COM_GAME_WOLFET && !jediRows) {
     ri.Printf( PRINT_WARNING, "WARNING: '%s' TGA file header declares top-down image, ignoring\n", name);
   }
 

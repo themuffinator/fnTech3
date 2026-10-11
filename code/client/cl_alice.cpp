@@ -114,6 +114,59 @@ void CL_AliceFirstSnapshot( void ) {
 
 /*
 ====================
+CL_AliceMapLoadingKeep
+
+CL_MapLoading as the server's reuse path calls it, with a zero argument
+(0x0045513f): the loading screen goes up as for any spawn, and the
+connection, the gamestate and the client game are all kept (0x0042aaab
+returns before the reconnect). The console closes as this engine's own map
+loading closes it.
+====================
+*/
+void CL_AliceMapLoadingKeep( void ) {
+	if ( !com_cl_running || !com_cl_running->integer ) {
+		return;
+	}
+	Con_Close();
+	Key_SetCatcher( 0 );
+	CL_AliceMapLoading();
+	SCR_UpdateScreen();
+}
+
+/*
+====================
+CL_AliceSnapshotServerCount
+
+CL_SetCGameTime's test of each frame's snapshot (0x00424b9f..0x00424bf1): when
+the server bit differs from the last frame's, the server has spawned again,
+and 0x0042d890 runs -- every sound stops but the music (S_StopAllSounds(0)),
+UI_EndLoad lowers the loading screen and releases a menu's pause (0x0040ecf0),
+the sound fade is cancelled (0x0040eed0, S_FadeSound(0)) and the view angles
+are cleared (0x00c36428..0x00c36430). A server time behind the last frame's
+is then allowed, which only a restart in place can send. True when it ran.
+====================
+*/
+qboolean CL_AliceSnapshotServerCount( int snapFlags ) {
+	/* Retail keeps the last frame's flags in a static (0x00532a30), which no
+	 * state clear touches. */
+	static int lastSnapFlags;
+	const bool changed = ( ( snapFlags ^ lastSnapFlags ) & SNAPFLAG_SERVERCOUNT ) != 0;
+
+	lastSnapFlags = snapFlags;
+	if ( !changed ) {
+		return qfalse;
+	}
+	S_AliceSoundStopAll();
+	CL_AliceUIReleasePause();
+	CL_AliceLoadingEnd();
+	S_AliceFadeSound( 0.0f );
+	VectorClear( cl.viewangles );
+	Com_DPrintf( "%s: server count changed\n", Com_GameIsFAKK2() ? "F.A.K.K.2" : "Alice" );
+	return qtrue;
+}
+
+/*
+====================
 CL_AliceWidgetPrint
 
 UI_WidgetPrint (0x00410e30): the first desktop widget of that name prints the

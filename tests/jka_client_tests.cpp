@@ -40,6 +40,8 @@ static int Mapping() {
     }
     CHECK(FNTech3_JKACgameExportOrdinal(CG_RAVEN_MAP_CHANGE) == 27);
     CHECK(FNTech3_JKACgameExportArgumentCount(CG_RAVEN_MAP_CHANGE) == 0);
+    CHECK(FNTech3_JKACgameExportOrdinal(CG_RAVEN_TRACE) == 15);
+    CHECK(FNTech3_JKACgameExportArgumentCount(CG_RAVEN_TRACE) == 0);
     for (int event = 0; event <= 3; ++event) CHECK(FNTech3_JKACgameEventToExternal(event) == event);
     CHECK(FNTech3_JKACgameEventToExternal(CGAME_EVENT_REFRESH_DISPLAY_CONTEXT) == -1);
     CHECK(FNTech3_JKACgameEventToExternal(CGAME_EVENT_CLOSECOMMANDOVERLAY) == -1);

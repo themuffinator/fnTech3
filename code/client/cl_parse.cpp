@@ -993,13 +993,28 @@ void CL_SystemInfoChanged( qboolean onlyGame ) {
 		Cvar_SetModified( "fs_game", qfalse );
 	}
 
-	s = Info_ValueForKey( systemInfo, "sv_cheats" );
+	if ( Com_GameIsRitual() ) {
+		// Ritual's servers publish `cheats` and no sv_cheats, and their
+		// clients take the cheat state from it (alice.exe 0x0042dee8..
+		// 0x0042df04, fakk2.exe 1.02 0x00423ad8..0x00423af4); it drives this
+		// engine's switch, as Q3Test's does (CL_Q3TestSystemInfoChanged).
+		s = Info_ValueForKey( systemInfo, "cheats" );
+		Cvar_Set( "sv_cheats", std::atoi( s ) ? "1" : "0" );
+	} else {
+		s = Info_ValueForKey( systemInfo, "sv_cheats" );
+	}
 	cl_connectedToCheatServer = std::atoi( s );
 	if ( !cl_connectedToCheatServer ) {
 		Cvar_SetCheatState();
 	}
 
-	if ( com_sv_running->integer ) {
+	// Ritual's engines take a pure server's pak list even from their own
+	// local server: CL_SystemInfoChanged applies sv_paks whenever no demo
+	// plays (alice.exe 0x0042df09..0x0042df19).
+	if ( com_sv_running->integer && Com_GameIsRitual() ) {
+		FS_PureServerSetLoadedPaks( Info_ValueForKey( systemInfo, "sv_paks" ), "" );
+		FS_PureServerSetReferencedPaks( "", "" );
+	} else if ( com_sv_running->integer ) {
 		// no filesystem restrictions for localhost
 		FS_PureServerSetLoadedPaks( "", "" );
 		FS_PureServerSetReferencedPaks( "", "" );

@@ -166,6 +166,7 @@ static qboolean Build( const byte *file, int length, int *first, int *count, byt
 	built = R_MOHAABuildWorld( &translation, "maps/fixture.bsp", &data, &size, &surfaces );
 	/* no terrain here: its range is empty, built or not */
 	assert( surfaces.numTerrain == 0 );
+	assert( surfaces.firstBuiltSurface == 0 && surfaces.numBuiltSurfaces == surfaces.numDecals );
 	*first = surfaces.firstDecal;
 	*count = surfaces.numDecals;
 	*out = data;

@@ -1,7 +1,8 @@
 /* Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later. */
 
 /* Heavy Metal: F.A.K.K.2's inventory and weapon groups, which its engine's UI
- * owns. The script is global/inventory.scr (ui_inventoryfile; inv_restart
+ * owns, as Alice's does with an empty script (CL_Fakk2InventoryInit). The
+ * script is global/inventory.scr (ui_inventoryfile; inv_restart
  * 0x0040eeb0); the grammar, the selection's steps and the commands an item
  * sends are code/compat/fakk2_inventory.hpp. The drawing is fakk2.exe 1.02's:
  * FakkInventory::Draw 0x004088c0 (the type column), FakkItemList::Draw
@@ -390,8 +391,13 @@ const char *CL_RitualItemName( int item ) {
 	return text[0] ? text : nullptr;
 }
 
+/* Alice's UI starts the same way (UI_Init's inv_restart, alice.exe 0x004105f2;
+ * fakk2.exe 1.02 0x0040ea82) and registers the same commands but ui_hud
+ * (0x004106cc..0x00410715, saveweaps 0x004107f7). Its global/inventory.scr is
+ * empty, so its inventory commands only ever print "- No inventory -"
+ * (UI_DoInventory 0x004085ae). */
 void CL_Fakk2InventoryInit( void ) {
-	if ( !Com_GameIsFAKK2() ) return;
+	if ( !Com_GameIsRitual() ) return;
 	inventoryFile = Cvar_Get( "ui_inventoryfile", "global/inventory.scr", 0 );
 	if ( !commandsRegistered ) {
 		/* Once, as the UI's other commands are: a `warpinv` queued just before
@@ -403,7 +409,7 @@ void CL_Fakk2InventoryInit( void ) {
 		Cmd_AddCommand( "previnv", PrevInv_f );
 		Cmd_AddCommand( "inv_restart", InvRestart_f );
 		Cmd_AddCommand( "saveweaps", SaveWeaps_f );
-		Cmd_AddCommand( "ui_hud", UiHud_f );
+		if ( Com_GameIsFAKK2() ) Cmd_AddCommand( "ui_hud", UiHud_f );
 	}
 	CL_Fakk2InventoryClose();
 	LoadInventory();

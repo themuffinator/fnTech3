@@ -1146,8 +1146,13 @@ inline bool Store::DeformationPalette( const Model &model, int now,
 		 * replaces the bone (jk2mp.exe 0x476b8b), and that path rescales the
 		 * stored matrix in place on every build (0x476c18) and was not
 		 * followed: a store keeping builds poses PREMULT and POSTMULT at any
-		 * blend time (0x476d39, 0x476d99) and refuses REPLACE. */
-		if ( keepBuilds_ ? bent.flags == 4 : bent.blendTime != 0 ) return false;
+		 * blend time (0x476d39, 0x476d99) and refuses REPLACE. Academy also
+		 * reads boneBlendTime only inside REPLACE (jamp.exe 0x497c34,
+		 * 0x497e21): PREMULT/POSTMULT at 0x4980ac/0x497d94 never read it.
+		 * Its MP stores opt into this; earlier stores retain
+		 * their existing zero-blend boundary. */
+		if ( keepBuilds_ ? bent.flags == 4
+			: bent.blendTime != 0 && (!serveAnimationBlends_ || bent.flags == 4) ) return false;
 		pose::Matrix base, inverse, post;
 		if ( !model::BoneRestMatrix(data, size, model.skeleton, bent.bone, base.data())
 			|| !model::BoneRestMatrixInverse(data, size, model.skeleton, bent.bone, inverse.data())

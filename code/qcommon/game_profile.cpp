@@ -505,8 +505,12 @@ const comGameProfile_t profiles[] = { {
 	"Alice module, wire, savegame, asset and renderer adapters are not yet complete",
 	/* sv_maxclients clamps to 128 in retail; MAX_CONFIGSTRINGS is 1,328 and
 	 * MAX_SUBMODELS 512, both read from the engine's own bounds checks. The
-	 * configstring index the players start at is not pinned yet. */
-	128, 1328, 0, 512, COM_ENTITY_HULL_TRACE_SHAPE, COM_ENTITY_BOX_CONTENTS_BODY, nullptr,
+	 * players start at 896 (0x380): the game module writes a client's name
+	 * there plus its number (fgamex86.dll 0x100a5556, before setConfigstring
+	 * at 0x100a555e), where the client game's light styles end
+	 * (cgamex86.dll 0x30023da2), and the 128 of them reach the item block
+	 * at 0x400. */
+	128, 1328, 896, 512, COM_ENTITY_HULL_TRACE_SHAPE, COM_ENTITY_BOX_CONTENTS_BODY, nullptr,
 	/* Retail's SV_Init registers sv_maxclients at "1", SERVERINFO and
 	 * LATCH (0x0045566b..0x0045567c), and that first registration is the
 	 * default: the "8" SV_BoundMaxClients passes (0x00454e0c) applies only to

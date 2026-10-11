@@ -14,6 +14,7 @@ General Public License, version 2 or (at your option) any later version.
  * present. */
 
 #include "../code/compat/alice_menu.hpp"
+#include "../code/compat/alice_picker.hpp"
 #include "alice_pak_reader.hpp"
 
 #include <cmath>
@@ -382,6 +383,62 @@ void TestRetailFiles() {
 	std::cout << "alice_menu_tests: retail bind.scr and keybind.scr read\n";
 }
 
+/* The developer menus' file pickers (code/compat/alice_picker.hpp, alice.exe
+ * FilePickerClass 0x00417fd0 and its subclasses). */
+void TestPickers() {
+	namespace picker = fntech3::alice::picker;
+	CHECK( picker::WithSlash( "models" ) == "models/" && picker::WithSlash( "sound/" ) == "sound/" );
+	CHECK( picker::WithSlash( "" ).empty() && picker::WithSlash( "a" ) == "a" );
+	// The parent: unchanged at the root, compared exactly (0x00418840).
+	CHECK( picker::ParentOf( "sound/", "sound/" ) == "sound/" );
+	CHECK( picker::ParentOf( "sound/world/door/", "sound/" ) == "sound/world/" );
+	CHECK( picker::ParentOf( "sound/world/", "sound/" ) == "sound/" );
+	// A sound picker opens where the last pick lies, inside its root.
+	CHECK( picker::StartFolder( "sound/world/door/door wood close 01.wav", "sound/" ) == "sound/world/door/" );
+	CHECK( picker::StartFolder( "", "sound/" ) == "sound/" && picker::StartFolder( "music.wav", "sound/" ) == "sound/" );
+	CHECK( picker::StartFolder( "models/x.tik", "sound/" ) == "sound/" );
+	CHECK( picker::StartFolder( "sound/../x.wav", "sound/" ) == "sound/" );
+	CHECK( picker::StartFolder( "Sound/a/b.wav", "sound/" ) == "Sound/a/" );
+	// What a choice runs: viewspawn unquoted, map without maps/ and .bsp.
+	CHECK( picker::ViewSpawnCommand( "models/alice.tik" ) == "viewspawn models/alice.tik\n" );
+	CHECK( picker::MapCommand( "maps/garden1.bsp" ) == "map garden1\n" );
+	CHECK( picker::MapCommand( "maps/a/b.bsp" ) == "map a/b\n" && picker::MapCommand( "maps/.bsp" ).empty() );
+	// The date: noon and midnight print as hour 0 (0x0043ec00).
+	std::tm when{};
+	when.tm_year = 100; when.tm_mon = 10; when.tm_mday = 14; when.tm_hour = 12; when.tm_min = 5;
+	CHECK( picker::DateText( when ) == "11/14/2000  0:05p" );
+	when.tm_hour = 0;
+	CHECK( picker::DateText( when ) == "11/14/2000  0:05a" );
+	when.tm_hour = 19; when.tm_mon = 0; when.tm_mday = 3;
+	CHECK( picker::DateText( when ) == " 1/03/2000  7:05p" );
+	// Names: folders lose one trailing slash; dotted, deeper and repeated go.
+	const std::vector<std::string> folders = picker::CleanNames( { "door/", ".", "..", "Door", "a/b/", "glass/" }, true );
+	CHECK( folders.size() == 2 && folders[0] == "door" && folders[1] == "glass" );
+	const std::vector<std::string> files = picker::CleanNames( { "a.wav", "sub/", "b/c.wav", ".hidden", "A.WAV", "z.mp3" }, false );
+	CHECK( files.size() == 2 && files[0] == "a.wav" && files[1] == "z.mp3" );
+	// The rows: the parent away from the root, [folders], then files.
+	std::vector<picker::Row> rows = picker::BuildRows( "sound/world/", "sound/", folders, files,
+		{ "", " 1/03/2000  7:05p" }, { "", "9" } );
+	CHECK( rows.size() == 5 && rows[0].cells[0] == ".." && rows[0].type == picker::RowType::Parent );
+	CHECK( rows[1].cells[0] == "[door]" && rows[1].name == "door" && rows[1].type == picker::RowType::Folder );
+	CHECK( rows[3].cells[0] == "a.wav" && rows[3].cells[2].empty() && rows[4].cells[2] == "9" );
+	CHECK( picker::BuildRows( "sound/", "sound/", {}, { "x" }, {}, {} ).size() == 1 );
+	// Sorting by a column keeps the chosen row (0x004cf0e0).
+	int chosen = 4;   // a.wav
+	picker::SortRows( rows, 0, chosen );
+	CHECK( rows[chosen - 1].cells[0] == "a.wav" && rows[0].cells[0] == ".." );
+	picker::SortRows( rows, 2, chosen );
+	CHECK( rows[chosen - 1].cells[0] == "a.wav" && rows.back().cells[2] == "9" );
+	// Rows under the header, and the double click (0x004ceb3f, 0x004ceb7f).
+	CHECK( picker::RowAt( 17.0f, 18.0f, 14.0f, 0 ) == 0 && picker::RowAt( 18.0f, 18.0f, 14.0f, 3 ) == 4 );
+	CHECK( picker::RowAt( 46.0f, 18.0f, 14.0f, 0 ) == 3 );
+	CHECK( picker::DoubleClick( 1499, 1000, 2, 2, 10.0f, 10.0f, 12.0f, 8.0f ) );
+	CHECK( !picker::DoubleClick( 1500, 1000, 2, 2, 10.0f, 10.0f, 10.0f, 10.0f ) );
+	CHECK( !picker::DoubleClick( 1100, 1000, 2, 3, 10.0f, 10.0f, 10.0f, 10.0f ) );
+	CHECK( !picker::DoubleClick( 1100, 1000, 2, 2, 10.0f, 10.0f, 12.5f, 10.0f ) );
+	std::cout << "alice_menu_tests: pickers\n";
+}
+
 } // namespace
 
 int main() {
@@ -396,6 +453,7 @@ int main() {
 	TestScroll();
 	TestKeptImage();
 	TestRetailFiles();
+	TestPickers();
 	std::cout << "alice_menu_tests: ok\n";
 	return 0;
 }

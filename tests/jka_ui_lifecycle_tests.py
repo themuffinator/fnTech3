@@ -27,10 +27,13 @@ enum { qfalse, qtrue, KEYCATCH_UI = 2, H_Q3UI = 3, UI_SHUTDOWN = 2,
 struct vm_t {};
 static vm_t module;
 static vm_t *uivm;
-static bool jka, com_errorEntered, cl_jkaUIInitialized;
+static bool jka, jk2, com_errorEntered, cl_jkaUIInitialized, cl_jk2UIInitialized;
 static int catcher, shutdownCalls, freeCalls, fileCloses, fontResets, stringResets, ghoul2Resets;
 static int rendererCalls, soundCalls, soundRegistrationCalls, initCalls;
 static bool Com_GameIsJKAMP() { return jka; }
+static bool Com_GameIsJK2MP() { return jk2; }
+static int jk2StringResets;
+static void CL_JK2StringReset(unsigned owner) { assert(owner == 4); ++jk2StringResets; }
 static bool Com_GameIsSTVEFSP() { return false; }
 static bool Com_GameIsQ3Test() { return false; }
 static int Key_GetCatcher() { return catcher; }
@@ -46,7 +49,8 @@ static int VM_Call(vm_t *vm, int count, int ordinal) {
     assert(vm == &module && count == 0 && ordinal == UI_SHUTDOWN);
     // The initialized marker must be cleared before calling into the image,
     // while its engine-owned font/string storage is still alive.
-    assert(!cl_jkaUIInitialized && fontResets == 0 && stringResets == 0 && ghoul2Resets == 0);
+    assert(!cl_jkaUIInitialized && !cl_jk2UIInitialized && fontResets == 0 &&
+        stringResets == 0 && ghoul2Resets == 0 && jk2StringResets == 0);
     ++shutdownCalls;
     return 0;
 }
@@ -71,9 +75,11 @@ static void CL_InitUI() {
     ++initCalls;
     uivm = &module;
     cl_jkaUIInitialized = jka;
+    cl_jk2UIInitialized = jk2;
 }
 static void Reset() {
-    cls = {}; uivm = &module; cl_jkaUIInitialized = false;
+    cls = {}; uivm = &module; cl_jkaUIInitialized = cl_jk2UIInitialized = false;
+    jk2StringResets = 0;
     com_errorEntered = false; catcher = 7;
     shutdownCalls = freeCalls = fileCloses = fontResets = stringResets = ghoul2Resets = 0;
     rendererCalls = soundCalls = soundRegistrationCalls = initCalls = 0;
@@ -118,6 +124,26 @@ int main() {
     assert(!freeCalls && !shutdownCalls && fileCloses == 1);
     assert(fontResets == 1 && stringResets == 1 && ghoul2Resets == 1);
 
+    // Outcast's QVM must also avoid reentering an abandoned UI_INIT/export.
+    jka = false; jk2 = true; Reset();
+    assert(!CL_UIModuleReady()); CL_ShutdownUI();
+    assert(!shutdownCalls && freeCalls == 1 && fileCloses == 1 && jk2StringResets == 1);
+    assert(!fontResets && !stringResets && !ghoul2Resets);
+    Reset(); cl_jk2UIInitialized = true; com_errorEntered = true;
+    assert(!CL_UIModuleReady()); CL_ShutdownUI();
+    assert(!shutdownCalls && freeCalls == 1 && fileCloses == 1 && jk2StringResets == 1);
+    CL_StartHunkUsers(); assert(!initCalls && !rendererCalls && !soundCalls);
+    com_errorEntered = false; CL_StartHunkUsers();
+    assert(initCalls == 1 && CL_UIModuleReady());
+    Reset(); cl_jk2UIInitialized = true;
+    assert(CL_UIModuleReady()); CL_ShutdownUI();
+    assert(shutdownCalls == 1 && freeCalls == 1 && fileCloses == 1 && jk2StringResets == 1);
+    assert(!CL_UIModuleReady());
+    Reset(); uivm = nullptr; CL_ShutdownUI();
+    assert(!shutdownCalls && !freeCalls && fileCloses == 1 && jk2StringResets == 1);
+    CL_ShutdownUI(); assert(jk2StringResets == 2 && fileCloses == 2);
+    jk2 = false;
+
     // Existing profiles keep their shutdown/restart dispatch during recovery.
     jka = false; Reset(); com_errorEntered = true;
     assert(CL_UIModuleReady());
@@ -144,6 +170,9 @@ class JkaUiLifecycleTests(unittest.TestCase):
         self.assertLess(init.index("cl_jkaUIInitialized = false;"),
                         init.index("// sanity check"))
         self.assertGreater(init.index("cl_jkaUIInitialized = Com_GameIsJKAMP();"),
+                           init.index("// init for this gamestate"))
+        self.assertLess(init.index("cl_jk2UIInitialized = false;"), init.index("// sanity check"))
+        self.assertGreater(init.index("cl_jk2UIInitialized = Com_GameIsJK2MP();"),
                            init.index("// init for this gamestate"))
         disconnect = function(main, "qboolean CL_Disconnect( qboolean showMainMenu )")
         self.assertIn("CL_UIModuleReady() && showMainMenu", disconnect)

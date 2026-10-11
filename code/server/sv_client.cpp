@@ -4118,7 +4118,10 @@ static void SV_UserMove( client_t *cl, msg_t *msg, bool delta ) {
 	// if this is the first usercmd we have received
 	// this gamestate, put the client into the world
 	if ( cl->state == CS_PRIMED ) {
-		if ( sv.pure != 0 && !cl->gotCP ) {
+		// Ritual's servers take no pure proof: a pure server only lists its
+		// paks, and its clients keep to them (alice.exe and fakk2.exe 1.02
+		// have no `cp` command).
+		if ( sv.pure != 0 && !cl->gotCP && !Com_GameIsRitual() ) {
 			// we didn't get a cp yet, don't assume anything and just send the gamestate all over again
 			if ( !SVC_RateLimit( &cl->gamestate_rate, 2, 1000 ) ) {
 				Com_DPrintf( "%s: didn't get cp command, resending gamestate\n", cl->name );
@@ -4138,7 +4141,7 @@ static void SV_UserMove( client_t *cl, msg_t *msg, bool delta ) {
 	}
 
 	// a bad cp command was sent, drop the client
-	if ( sv.pure != 0 && !cl->pureAuthentic ) {
+	if ( sv.pure != 0 && !cl->pureAuthentic && !Com_GameIsRitual() ) {
 		SV_DropClient( cl, "Cannot validate pure client!" );
 		return;
 	}

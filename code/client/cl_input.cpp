@@ -1816,6 +1816,7 @@ static usercmd_t CL_CreateCmd( void ) {
 	usercmd_t	cmd{};
 	vec3_t		oldAngles;
 	bool		pitchLimited = false;
+	CL_RendererInputSample();
 
 	VectorCopy( cl.viewangles, oldAngles );
 

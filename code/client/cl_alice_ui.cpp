@@ -75,7 +75,9 @@
 #include "client_alice_ui.hpp"
 #include "../compat/alice_menu.hpp"
 #include "../compat/alice_noise.hpp"
+#include "../compat/alice_picker.hpp"
 #include "../compat/alice_savegame.hpp"
+#include "../compat/alice_state_adapter.hpp"
 #include "../compat/alice_urc.hpp"
 #include "../compat/fakk2_hud.hpp"
 #include "../compat/fakk2_inventory.hpp"
@@ -97,6 +99,7 @@ namespace screen = fntech3::alice::screen;
 namespace font = fntech3::alice::ritualfont;
 namespace mw = fntech3::alice::menu;
 namespace noise = fntech3::alice::noise;
+namespace picker = fntech3::alice::picker;
 namespace alicesave = fntech3::alice::savegame;
 namespace fakkhud = fntech3::fakk2::hud;
 namespace fakkinv = fntech3::fakk2::inventory;
@@ -118,6 +121,21 @@ struct Wait {
 	int fireAt = -1;
 };
 
+/* UIVertScroll (0x004d80b0) as a press holds it: the part pressed (+0x1f8) --
+ * 1 the up arrow, 2 the down arrow, 3 the thumb, 4 below the thumb, 5 above
+ * it (0x004d8f49..0x004d9006) -- the scrollrate its posted _scrollbar_scroll
+ * carries (0x004d90bc) and the cls.realtime that event is due at, -1 for
+ * none; and for the thumb its grab in items (+0x218) and the position at the
+ * press (+0x21c). The bind list's, the text box's and the save list's
+ * scrollbars are all one (0x004e3856, 0x004dc379, 0x004d3e98). */
+struct ScrollHold {
+	int part = 0;
+	int rate = 0;
+	int dueAt = -1;
+	int grab = 0;
+	int topAtPress = 0;
+};
+
 /* UIFakkBindList (constructor 0x004e37f0): the rows its bind file lists
  * (built at 0x004e3bd0), its selection and its scrollbar (UIVertScroll,
  * 0x004d80b0, attached at 0x004d9370). */
@@ -135,9 +153,7 @@ struct BindState {
 	bool capturing = false;   // the row's key button waits for a key ([0xaa47a0])
 	int animWait = -1;    // ms since the row changed (+0x1f8), -1 once played
 	int animRow = -1;     // the row that wait is for (+0x1fc)
-	int scrollPart = 0;   // UIVertScroll's pressed part (+0x1f8): 1 up, 2 down
-	bool thumbDrag = false;
-	float thumbGrab = 0.0f;
+	ScrollHold hold;      // its scrollbar's press
 	int model = -1;       // the menu's `alice3d` widget (+0x200)
 };
 
@@ -182,9 +198,7 @@ struct EditState {
 	bool changed = false;     // +0x206
 	bool dragging = false;    // +0x200
 	int dragRepeatAt = -1;    // the drag timer's next scroll (0x004dd080)
-	int scrollPart = 0;       // the scrollbar's pressed arrow: 1 up, 2 down
-	bool thumbDrag = false;
-	float thumbGrab = 0.0f;
+	ScrollHold hold;          // its scrollbar's press
 };
 
 /* UIAlice3D (constructor 0x004d2ca0) over UIWidget3D (0x004d22d0). */
@@ -281,6 +295,7 @@ struct Widget {
 		/* The last click (UIListCtrl +0x188..+0x194): its time, row and place. */
 		int clickTime = -100000, clickRow = 0;
 		float clickX = 0.0f, clickY = 0.0f;
+		ScrollHold hold;   // its scrollbar's press (0x004d3e98)
 	} load;
 	/* UIAutoScroll (0x004c0340). */
 	struct {
@@ -1045,6 +1060,25 @@ void LoadMenus() {
 	Com_DPrintf( "Alice UI: %i menus from %i files\n", static_cast<int>( menus.size() ), static_cast<int>( names.size() ) );
 }
 
+/* loadmenu (alice.exe 0x0040e180 over 0x0040e0c0, fakk2.exe 1.02 0x0040cb80
+ * over 0x0040cac0): ui/<name> in a 128-byte buffer with its extension
+ * replaced by .urc, read as every menu file is, its initdata written as it
+ * is read. A menu whose name the list already holds stays behind the one
+ * loaded first, which the lookup finds (0x004c40f0). */
+void LoadMenu_f() {
+	char path[128];
+	Com_sprintf( path, sizeof( path ), "ui/%s", Cmd_Argv( 1 ) );
+	COM_StripExtension( path, path, sizeof( path ) );
+	Q_strcat( path, sizeof( path ), ".urc" );
+	const std::size_t first = menus.size();
+	LoadMenuFile( path );
+	for ( std::size_t i = first; i < menus.size(); ++i ) {
+		for ( const Widget &widget : menus[i].widgets ) {
+			if ( widget.hasInitData ) UiCvarSet( widget.linkCvar, widget.initData.c_str() );
+		}
+	}
+}
+
 /* keybind.scr (UI_LoadTransTable 0x004d1810) and maplist.scr's titles for the
  * load/save menu (0x0040b950 over UI_LoadMapList 0x0040b5a0), read as the UI
  * starts (UI_Init 0x00410940..0x0041094f). */
@@ -1395,6 +1429,30 @@ void DrawAlice3D( Widget &widget ) {
 	alice.torsoCrossblendLerp = 0.0f;
 	alice.useLegs = qtrue;
 	alice.scale = 1.0f;
+	/* The head follows the cursor (0x004d31db..0x004d3296): the cursor's place
+	 * in pixels over the whole screen, read every frame whatever the cursor
+	 * mode (0x0040e400), gives Bip01 Head a pitch and a yaw -- -45 times
+	 * (1 - y / height - 0.5) and (1 - x / width - 0.2), so straight ahead
+	 * with the cursor at 0.8 of the width -- made a quaternion through their
+	 * axis (0x0044a810) on controller 0 at scale 1, with the entity's
+	 * useAngles set (0x004d320e). Nothing is kept between frames, smoothed or
+	 * clamped. Retail leaves the other four controllers zeroed, which its
+	 * renderer applies to bone 0, the origin no vertex follows; here they
+	 * name no bone. */
+	if ( handles.tiki >= 0 && cls.glconfig.vidWidth > 0 && cls.glconfig.vidHeight > 0 ) {
+		int mx = 0, my = 0;
+		CL_AliceGetMouseState( &mx, &my, nullptr );
+		const float head[3] = {
+			static_cast<float>( ( 1.0 - static_cast<double>( my ) / cls.glconfig.vidHeight - 0.5 ) * -45.0 ),
+			static_cast<float>( ( 1.0 - static_cast<double>( mx ) / cls.glconfig.vidWidth - 0.2 ) * -45.0 ),
+			0.0f };
+		aliceBoneController_t &control = alice.controllers[0];
+		control.bone = AliceTiki_TagNumForName( handles.tiki, "Bip01 Head" );
+		fntech3::alice::state::reader::EulerToQuat( head, control.quat );
+		control.scale = 1.0f;
+		for ( int c = 1; c < 5; ++c ) alice.controllers[c].bone = -1;
+		alice.useControllers = qtrue;
+	}
 	if ( handles.tiki >= 0 ) {
 		const int eyes = AliceTiki_SurfaceNameToNum( handles.tiki, "material1" );
 		aliceBlink = aliceBlink + 1 > 100 ? 0 : aliceBlink + 1;
@@ -2043,9 +2101,12 @@ std::string EditSelectedText( const EditState &edit ) {
 }
 
 /* AttemptScrollTo (0x004d8b70): the top line held to the text. */
-void EditScrollTo( const Widget &widget, EditState &edit, int top ) {
+bool EditScrollTo( const Widget &widget, EditState &edit, int top ) {
 	const int last = std::max( 0, static_cast<int>( edit.lines.size() ) - EditPage( widget ) );
-	edit.top = std::min( std::max( top, 0 ), last );
+	const int clamped = std::min( std::max( top, 0 ), last );
+	const bool moved = clamped != edit.top;
+	edit.top = clamped;
+	return moved;
 }
 
 /* Copy (0x004ddc00) to the clipboard. */
@@ -2359,8 +2420,7 @@ void ShowMenu( Menu &menu, int delayMs ) {
 		widget.list.previousPressed = widget.list.nextPressed = false;
 		widget.pulldown.open = -1;
 		widget.edit.dragging = false;
-		widget.edit.scrollPart = 0;
-		widget.edit.thumbDrag = false;
+		widget.edit.hold = widget.bind.hold = widget.load.hold = ScrollHold();
 		AddAliases( widget );
 	}
 	for ( const std::string &command : menu.showCommands ) ExecuteLine( command );
@@ -2822,15 +2882,22 @@ void UiCheckRestart_f() {
  * load -- a `widgetcommand`, a `pushmenu`, the `_intro` a movie appends behind
  * the map it starts (CIN_Finish 0x00425865) -- must not find itself unknown.
  * Each works on the menus the UI has, and while it is down there are none. */
+/* The developer menus' pickers (UI_Init 0x00410672..0x00410690). */
+void MapList_f();
+void ViewSpawnList_f();
+void SoundPicker_f();
+
 const char *const kCommands[] = {
 	"pushmenu", "forcemenu", "popmenu", "showmenu", "widgetcommand", "listmenus",
 	"centerprint", "locationprint", "ui_resetcvars", "ui_restorecvars", "ui_setcvars",
-	"ui_showmouse", "ui_hidemouse", "ui_checkrestart",
+	"ui_showmouse", "ui_hidemouse", "ui_checkrestart", "maplist", "viewspawnlist", "soundpicker",
+	"loadmenu",
 };
 const xcommand_t kCommandHandlers[] = {
 	PushMenu_f, ForceMenu_f, PopMenu_f, ShowMenu_f, WidgetCommand_f, ListMenus_f,
 	CenterPrint_f, LocationPrint_f, UiResetCvars_f, UiRestoreCvars_f, UiSetCvars_f,
-	UiShowMouse_f, UiHideMouse_f, UiCheckRestart_f,
+	UiShowMouse_f, UiHideMouse_f, UiCheckRestart_f, MapList_f, ViewSpawnList_f, SoundPicker_f,
+	LoadMenu_f,
 };
 static_assert( std::size( kCommands ) == std::size( kCommandHandlers ), "one handler for each command" );
 
@@ -3116,6 +3183,85 @@ void ThumbFor( const Widget &widget, float &offset, float &length ) {
 		offset, length );
 }
 
+/* The item a point on the track names (0x004d91d0): its share of the count,
+ * truncated (0x004e6d40). */
+int ScrollItemAt( float local, float height, int count ) {
+	const float track = height - 32.0f;
+	if ( track <= 0.0f ) return 0;
+	return static_cast<int>( static_cast<float>( count ) * ( local - ScrollbarWidth ) / track );
+}
+
+/* UIVertScroll::left_mouse_down (0x004d8e10). `local` is the press below the
+ * scrollbar's top. A list that fits takes no press at all (0x004d8f35..
+ * 0x004d8f43). An arrow or the track posts _scrollbar_scroll with no delay,
+ * which the next frame's event pass runs (0x004d9199..0x004d91a0); the
+ * thumb is taken in items (0x004d8fd6..0x004d9025). Either way the bar holds
+ * the mouse until it is let go (0x004d91a5). */
+void ScrollPress( ScrollHold &hold, float local, float height, int top, int page, int count ) {
+	hold = ScrollHold();
+	if ( count <= page ) return;
+	if ( local < ScrollbarWidth ) {
+		hold.part = 1;
+		hold.rate = -1;
+	} else if ( height - ScrollbarWidth < local ) {
+		hold.part = 2;
+		hold.rate = 1;
+	} else {
+		float offset, length;
+		ScrollThumb( height, top, page, count, offset, length );
+		if ( local < offset ) {
+			hold.part = 5;
+			hold.rate = -page;
+		} else if ( local < offset + length ) {
+			hold.part = 3;
+			hold.grab = top - ScrollItemAt( local, height, count );
+			hold.topAtPress = top;
+			return;
+		} else {
+			hold.part = 4;
+			hold.rate = page;
+		}
+		if ( !hold.rate ) {   // 0x004d8fa4
+			hold = ScrollHold();
+			return;
+		}
+	}
+	hold.dueAt = Now();
+}
+
+/* UIVertScroll's _scrollbar_scroll (0x004d88b0): one step, and while it still
+ * moves the list the same step again 0.2 s on (0x004d896c). Its 0.1 s form
+ * needs `autorepeat`, which retail never posts (0x004d8fc6, 0x004d898e). The
+ * event pass fires an event up to 1 ms early (0x00443bda), and runs before
+ * the mouse is read (0x0042c2aa, 0x0040c82b). */
+template <typename Move>
+void ScrollRepeat( ScrollHold &hold, int top, Move move ) {
+	if ( hold.dueAt < 0 || Now() + 1 < hold.dueAt ) return;
+	hold.dueAt = move( top + hold.rate ) ? Now() + 200 : -1;
+}
+
+/* left_mousedragged (0x004d9240): only the thumb follows, while the cursor
+ * is within 24 units either side of the bar; past that it goes back where it
+ * was pressed (0x004d9302..0x004d9355). `lx` is across the bar, `local` down
+ * it. */
+template <typename Move>
+void ScrollDrag( const ScrollHold &hold, float lx, float local, float height, int count, Move move ) {
+	if ( hold.part != 3 ) return;
+	if ( lx >= -24.0f && lx <= ScrollbarWidth + 24.0f ) move( ScrollItemAt( local, height, count ) + hold.grab );
+	else move( hold.topAtPress );
+}
+
+/* left_mouse_up (0x004d9200): the step waiting goes and the bar lets go. */
+void ScrollRelease( ScrollHold &hold ) {
+	hold = ScrollHold();
+}
+
+/* Whether a widget's scrollbar holds the mouse, as the window manager's
+ * first responder does (0x004b3990): no other widget hovers meanwhile. */
+bool HoldsMouse( const Widget &widget ) {
+	return widget.bind.hold.part || widget.edit.hold.part || widget.load.hold.part;
+}
+
 void BindListDown( Menu &menu, int index, float mx, float my ) {
 	Widget &widget = menu.widgets[index];
 	BindState &bind = widget.bind;
@@ -3124,20 +3270,7 @@ void BindListDown( Menu &menu, int index, float mx, float my ) {
 	WidgetPosition( menu, widget, x, y );
 	const float barX = x + widget.w - ScrollbarWidth;
 	if ( mx >= barX ) {
-		const float local = my - y;
-		if ( local < ScrollbarWidth ) {
-			bind.scrollPart = 1;
-			ScrollTo( bind, bind.top - 1 );
-		} else if ( local >= widget.h - ScrollbarWidth ) {
-			bind.scrollPart = 2;
-			ScrollTo( bind, bind.top + 1 );
-		} else {
-			float offset, length;
-			ThumbFor( widget, offset, length );
-			if ( local < offset ) ScrollTo( bind, bind.top - bind.page );
-			else if ( local >= offset + length ) ScrollTo( bind, bind.top + bind.page );
-			else { bind.thumbDrag = true; bind.thumbGrab = local - offset; }
-		}
+		ScrollPress( bind.hold, my - y, widget.h, bind.top, bind.page, static_cast<int>( bind.layout.items.size() ) );
 		return;
 	}
 	int row = 0, column = 1;
@@ -3166,16 +3299,12 @@ void BindListDown( Menu &menu, int index, float mx, float my ) {
 	PlayLocalSound( bind.layout.changeSound );
 }
 
-void BindListDragged( const Menu &menu, Widget &widget, float my ) {
+void BindListDragged( const Menu &menu, Widget &widget, float mx, float my ) {
 	BindState &bind = widget.bind;
-	if ( !bind.thumbDrag ) return;
 	float x, y;
 	WidgetPosition( menu, widget, x, y );
-	const float track = widget.h - 32.0f;
-	const float count = static_cast<float>( bind.layout.items.size() );
-	if ( track <= 0.0f ) return;
-	const float offset = my - y - bind.thumbGrab - ScrollbarWidth;
-	ScrollTo( bind, static_cast<int>( offset * count / track + 0.5f ) );
+	ScrollDrag( bind.hold, mx - ( x + widget.w - ScrollbarWidth ), my - y, widget.h,
+		static_cast<int>( bind.layout.items.size() ), [&bind]( int value ) { return ScrollTo( bind, value ); } );
 }
 
 /* ---- UIMultiLineEdit's mouse (0x004dcf60 down, 0x004dd020 dragged,
@@ -3187,24 +3316,7 @@ void EditDown( Menu &menu, int index, float mx, float my ) {
 	float x, y;
 	WidgetPosition( menu, widget, x, y );
 	if ( mx >= x + widget.w - ScrollbarWidth ) {
-		const float local = my - y;
-		const int page = EditPage( widget );
-		if ( local < ScrollbarWidth ) {
-			edit.scrollPart = 1;
-			EditScrollTo( widget, edit, edit.top - 1 );
-		} else if ( local >= widget.h - ScrollbarWidth ) {
-			edit.scrollPart = 2;
-			EditScrollTo( widget, edit, edit.top + 1 );
-		} else {
-			float offset, length;
-			ScrollThumb( widget.h, edit.top, page, static_cast<int>( edit.lines.size() ), offset, length );
-			if ( local < offset ) EditScrollTo( widget, edit, edit.top - page );
-			else if ( local >= offset + length ) EditScrollTo( widget, edit, edit.top + page );
-			else {
-				edit.thumbDrag = true;
-				edit.thumbGrab = local - offset;
-			}
-		}
+		ScrollPress( edit.hold, my - y, widget.h, edit.top, EditPage( widget ), static_cast<int>( edit.lines.size() ) );
 		return;
 	}
 	// The selection starts and ends at the point, which is brought into view.
@@ -3218,11 +3330,10 @@ void EditDragged( const Menu &menu, Widget &widget, float mx, float my ) {
 	EditState &edit = widget.edit;
 	float x, y;
 	WidgetPosition( menu, widget, x, y );
-	if ( edit.thumbDrag ) {
-		const float track = widget.h - 32.0f;
-		if ( track <= 0.0f ) return;
-		const float offset = my - y - edit.thumbGrab - ScrollbarWidth;
-		EditScrollTo( widget, edit, static_cast<int>( offset * static_cast<float>( edit.lines.size() ) / track + 0.5f ) );
+	if ( edit.hold.part ) {
+		ScrollDrag( edit.hold, mx - ( x + widget.w - ScrollbarWidth ), my - y, widget.h,
+			static_cast<int>( edit.lines.size() ),
+			[&widget, &edit]( int value ) { return EditScrollTo( widget, edit, value ); } );
 		return;
 	}
 	if ( !edit.dragging ) return;
@@ -3243,8 +3354,38 @@ void EditRepeat( const Menu &menu, Widget &widget ) {
 void EditUp( Widget &widget ) {
 	widget.edit.dragging = false;
 	widget.edit.dragRepeatAt = -1;
-	widget.edit.scrollPart = 0;
-	widget.edit.thumbDrag = false;
+	ScrollRelease( widget.edit.hold );
+}
+
+int SaveRowsPage( const Widget &list );
+void SaveListDragged( const Menu &menu, Widget &list, float mx, float my );
+
+/* Every scrollbar's step that is due, before the mouse is read, as retail's
+ * event pass runs ahead of its UI update (0x0042c2aa, 0x0040c82b). */
+void ScrollRepeats( Menu &menu ) {
+	for ( Widget &widget : menu.widgets ) {
+		BindState &bind = widget.bind;
+		ScrollRepeat( bind.hold, bind.top, [&bind]( int value ) { return ScrollTo( bind, value ); } );
+		EditState &edit = widget.edit;
+		ScrollRepeat( edit.hold, edit.top,
+			[&widget, &edit]( int value ) { return EditScrollTo( widget, edit, value ); } );
+		const int count = static_cast<int>( widget.load.rows.size() ), page = SaveRowsPage( widget );
+		ScrollRepeat( widget.load.hold, widget.load.top, [&widget, count, page]( int value ) {
+			const int top = std::clamp( value, 0, std::max( 0, count - page ) );
+			const bool moved = top != widget.load.top;
+			widget.load.top = top;
+			return moved;
+		} );
+	}
+}
+
+/* The bar lets go wherever the button comes up (0x004d9200). */
+void ScrollReleases( Menu &menu ) {
+	for ( Widget &widget : menu.widgets ) {
+		ScrollRelease( widget.bind.hold );
+		ScrollRelease( widget.edit.hold );
+		ScrollRelease( widget.load.hold );
+	}
 }
 
 /* ---- the window manager's mouse (0x004b3a50) ------------------------------ */
@@ -3293,10 +3434,25 @@ void MouseExit( Menu &menu, int index ) {
 	}
 }
 
+/* The pickers' windows, defined with their drawing below. */
+bool PickerUnderCursor();
+bool PickerMouseDown();
+bool PickerMouseUp();
+bool PickerMouseDragged();
+bool PickerKey( int key );
+void PickerHover();
+void PickerRepeats();
+void RebuildPickers();
+void DrawPickers();
+
 void UpdateHover() {
 	Menu *menu = CurrentMenu();
 	if ( !menu ) return;
-	const int hovered = Now() < menu->showStart || cursorX < 0 || viewHasMouse
+	for ( const Widget &widget : menu->widgets ) {
+		if ( HoldsMouse( widget ) ) return;
+	}
+	// A picker's window over the menu is what the cursor is on (0x004b3990).
+	const int hovered = Now() < menu->showStart || cursorX < 0 || viewHasMouse || PickerUnderCursor()
 		? -1 : WidgetAt( *menu, VirtualCursorX(), VirtualCursorY() );
 	// A held F.A.K.K.2 button is lit while the cursor is on it (0x004ae0c0).
 	if ( menu->pressed >= 0 && LightsFollowKeys( menu->widgets[menu->pressed] ) ) {
@@ -3358,10 +3514,15 @@ void Click( Widget &widget ) {
 }
 
 void MouseUp( Menu &menu ) {
-	// A text box lets the mouse go wherever the button comes up (0x004dcfd0).
+	// A text box lets the mouse go wherever the button comes up (0x004dcfd0),
+	// and so does every scrollbar (0x004d9200).
+	bool held = false;
 	for ( Widget &widget : menu.widgets ) {
+		held = held || HoldsMouse( widget );
 		if ( widget.kind == WidgetKind::MultiLineEdit ) EditUp( widget );
 	}
+	ScrollReleases( menu );
+	if ( held ) return;
 	if ( menu.pressed >= 0 ) {
 		Widget &widget = menu.widgets[menu.pressed];
 		const int under = WidgetAt( menu, VirtualCursorX(), VirtualCursorY() );
@@ -3392,10 +3553,6 @@ void MouseUp( Menu &menu ) {
 	case WidgetKind::List:
 		widget.list.previousPressed = widget.list.nextPressed = false;
 		break;
-	case WidgetKind::BindList:
-		widget.bind.scrollPart = 0;
-		widget.bind.thumbDrag = false;
-		break;
 	default:
 		break;
 	}
@@ -3404,8 +3561,16 @@ void MouseUp( Menu &menu ) {
 void MouseDragged( Menu &menu ) {
 	// A text box being dragged across keeps the mouse, as its first responder does.
 	for ( Widget &widget : menu.widgets ) {
-		if ( widget.kind == WidgetKind::MultiLineEdit && ( widget.edit.dragging || widget.edit.thumbDrag ) ) {
+		if ( widget.kind == WidgetKind::MultiLineEdit && ( widget.edit.dragging || widget.edit.hold.part ) ) {
 			EditDragged( menu, widget, VirtualCursorX(), VirtualCursorY() );
+			return;
+		}
+		if ( widget.kind == WidgetKind::BindList && widget.bind.hold.part ) {
+			BindListDragged( menu, widget, VirtualCursorX(), VirtualCursorY() );
+			return;
+		}
+		if ( widget.kind == WidgetKind::LoadGame && widget.load.hold.part ) {
+			SaveListDragged( menu, widget, VirtualCursorX(), VirtualCursorY() );
 			return;
 		}
 	}
@@ -3413,7 +3578,6 @@ void MouseDragged( Menu &menu ) {
 	if ( index < 0 ) return;
 	Widget &widget = menu.widgets[index];
 	if ( widget.kind == WidgetKind::Slider ) SliderDragged( menu, widget, VirtualCursorX(), VirtualCursorY() );
-	else if ( widget.kind == WidgetKind::BindList ) BindListDragged( menu, widget, VirtualCursorY() );
 }
 
 /* A mouse button while a key is awaited binds that button when the cursor is
@@ -3529,6 +3693,7 @@ void KeyEvent( int key, bool down ) {
 		return;
 	}
 	if ( !down ) {
+		if ( key == K_MOUSE1 && PickerMouseUp() ) return;
 		if ( key == K_MOUSE1 && menu ) MouseUp( *menu );
 		return;
 	}
@@ -3547,9 +3712,12 @@ void KeyEvent( int key, bool down ) {
 	}
 	if ( !menu || Now() < inputLockUntil ) return;
 	if ( key == K_MOUSE1 ) {
+		if ( PickerMouseDown() ) return;
 		MouseDown( *menu );
 		return;
 	}
+	// A picker's list that has the keys takes them before the menu does.
+	if ( PickerKey( key ) ) return;
 	if ( menu->focus >= 0 && WidgetKey( *menu, menu->focus, key ) ) return;
 	if ( menu->focus >= 0 && RunKeyCommands( menu->widgets[menu->focus].keyCommands, key ) ) return;
 	if ( RunKeyCommands( menu->keyCommands, key ) ) return;
@@ -3784,7 +3952,7 @@ void DrawBindCell( const Widget &list, float x, float y, float w, float h, const
 /* UIVertScroll::Draw (alice.exe 0x004d87b0): its bar, its arrows (the lower
  * one flipped) and, with more rows than a page, its thumb, in Alice's art.
  * F.A.K.K.2 ships none of that art and draws its own below. */
-void DrawScrollbar( float barX, float y, float height, int top, int page, int count ) {
+void DrawScrollbar( float barX, float y, float height, int top, int page, int count, int held ) {
 	static const float white[4] = { 1, 1, 1, 1 };
 	const qhandle_t bar = CL_AliceShader( "ui/control/slider2_bar.tga" );
 	const qhandle_t arrow = CL_AliceShader( "ui/control/slider2_top.tga" );
@@ -3792,9 +3960,19 @@ void DrawScrollbar( float barX, float y, float height, int top, int page, int co
 	const bool thumb = count > page;
 	if ( thumb ) ScrollThumb( height, top, page, count, offset, length );
 	if ( bar && arrow ) {
+		/* Alice's arrows (0x004d8430): the lower one is the upper picture turned
+		 * half a turn, all four texture coordinates swapped (0x004d8613..
+		 * 0x004d863b); while there is something to scroll each is boxed, the
+		 * held one sunken (0x004d85d2..0x004d85fa, the box 0x004b5d80) in the
+		 * light grey a widget draws its borders from (0x004bb01e). */
+		static const mw::BorderColor border = mw::MakeBorderColor( { 0.75f, 0.75f, 0.75f, 1.0f } );
 		VirtualPic( barX, y + ScrollbarWidth, ScrollbarWidth, height - 32.0f, white, bar );
 		VirtualPic( barX, y, ScrollbarWidth, ScrollbarWidth, white, arrow );
-		VirtualPic( barX, y + height - ScrollbarWidth, ScrollbarWidth, ScrollbarWidth, white, arrow, 0.0f, 1.0f, 1.0f, 0.0f );
+		VirtualPic( barX, y + height - ScrollbarWidth, ScrollbarWidth, ScrollbarWidth, white, arrow, 1.0f, 1.0f, 0.0f, 0.0f );
+		if ( thumb ) {
+			Box3D( barX, y, ScrollbarWidth, ScrollbarWidth, held == 1, border, 1.0f );
+			Box3D( barX, y + height - ScrollbarWidth, ScrollbarWidth, ScrollbarWidth, held == 2, border, 1.0f );
+		}
 		if ( thumb ) {
 			VirtualPic( barX, y + offset, ScrollbarWidth, length, white, CL_AliceShader( "ui/control/slider2_indicator.tga" ) );
 		}
@@ -3891,7 +4069,7 @@ void DrawBindList( Menu &menu, Widget &widget, float x, float y, float alpha ) {
 		}
 	}
 	DrawScrollbar( x + widget.w - ScrollbarWidth, y, widget.h, bind.top, bind.page,
-		static_cast<int>( layout.items.size() ) );
+		static_cast<int>( layout.items.size() ), bind.hold.part );
 }
 
 /* Whether the paks hold textures/bind/<name>: F.A.K.K.2's key cell registers
@@ -4020,7 +4198,7 @@ void DrawFakk2BindList( Widget &widget, float x, float y, float alpha ) {
 			}
 		}
 	}
-	DrawScrollbar( x + widget.w - ScrollbarWidth, y, widget.h, bind.top, bind.page, count );
+	DrawScrollbar( x + widget.w - ScrollbarWidth, y, widget.h, bind.top, bind.page, count, bind.hold.part );
 }
 
 /* ---- UIFAKKLoadGameClass drawn: the list control ------------------------- */
@@ -4092,7 +4270,7 @@ void DrawSaveList( Widget &list, float x, float y, float alpha ) {
 		}
 	}
 	const int page = SaveRowsPage( list );
-	DrawScrollbar( x + list.w - ScrollbarWidth, y, list.h, list.load.top, page, count );
+	DrawScrollbar( x + list.w - ScrollbarWidth, y, list.h, list.load.top, page, count, list.load.hold.part );
 }
 
 /* A drawn list follows the page's choice -- the newest save after a refresh
@@ -4132,13 +4310,10 @@ void SaveListDown( Menu &menu, Widget &list, float mx, float my ) {
 	const int line = FontHeight( list );
 	const int count = static_cast<int>( list.load.rows.size() );
 	const int page = SaveRowsPage( list );
-	if ( count > page && mx >= x + list.w - ScrollbarWidth ) {
-		const float local = my - y;
-		int top = list.load.top;
-		if ( local < ScrollbarWidth ) top -= 1;
-		else if ( local >= list.h - ScrollbarWidth ) top += 1;
-		else top += local < list.h * 0.5f ? -page : page;
-		list.load.top = std::clamp( top, 0, count - page );
+	/* Its scrollbar is a child over its right edge (0x004d3e98), which takes
+	 * the press whether or not there is anything to scroll. */
+	if ( mx >= x + list.w - ScrollbarWidth ) {
+		ScrollPress( list.load.hold, my - y, list.h, list.load.top, page, count );
 		return;
 	}
 	const float local = my - y - static_cast<float>( mw::SaveHeaderHeight( line ) );
@@ -4154,6 +4329,19 @@ void SaveListDown( Menu &menu, Widget &list, float mx, float my ) {
 	list.load.clickX = mx;
 	list.load.clickY = my;
 	if ( twice ) LoadChosenSave( list );
+}
+
+void SaveListDragged( const Menu &menu, Widget &list, float mx, float my ) {
+	float x, y;
+	WidgetPosition( menu, list, x, y );
+	const int count = static_cast<int>( list.load.rows.size() ), page = SaveRowsPage( list );
+	ScrollDrag( list.load.hold, mx - ( x + list.w - ScrollbarWidth ), my - y, list.h, count,
+		[&list, count, page]( int value ) {
+			const int top = std::clamp( value, 0, std::max( 0, count - page ) );
+			const bool moved = top != list.load.top;
+			list.load.top = top;
+			return moved;
+		} );
 }
 
 /* ---- UIFakkLabel (Draw 0x0041ef00) ----------------------------------------- */
@@ -4453,6 +4641,523 @@ void DrawPopup() {
 /* UIMultiLineEdit::Draw (0x004dc4f0): the lines from the scrollbar's top in the
  * foreground colour, the selection white on a dark blue box, and a black
  * caret on the selection's end line every other 375 ms while it has the keys. */
+/* ---- the developer menus' file pickers -------------------------------------
+ *
+ * FilePickerClass (0x00417fd0) in its UIFloatingWindow (0x004c1dd0) of a
+ * UIListCtrl (0x004cdc50), and the three subclasses the developer menus open:
+ * MapRunnerClass (`maplist`, 0x0041c1c0), ViewSpawnerClass (`viewspawnlist`,
+ * 0x0041c930) and SoundPickerClass (`soundpicker`, 0x0041d830); fakk2.exe 1.02
+ * has the same five (0x00412880..0x00416f90). Each command opens another
+ * window at the same place, as retail tracks none (0x0040d9a0..0x0040daca).
+ * The rules are code/compat/alice_picker.hpp's. What differs here: the rows
+ * come from this engine's file listing, because retail's skips a folder's
+ * own pak files and garbles deeper names (0x0043cc90), so on a retail
+ * installation its pickers listed no model or map; and a picker lives across
+ * the hosted UI's restarts, its rows read again, where retail's UI never
+ * restarts. */
+
+struct FilePicker {
+	picker::Kind kind = picker::Kind::MapRunner;
+	std::string root, current, extension;     // +0x24, +0x20, +0x28
+	std::vector<picker::Row> rows;
+	int currentRow = 0;   // 1-based, 0 for none (UIListBase +0x1d0)
+	int top = 0;          // the first row shown (its scrollbar's position)
+	ScrollHold hold;
+	int clickTime = 0, clickRow = 0;
+	float clickX = 0.0f, clickY = 0.0f;
+	float width[3] = { picker::ColumnWidths[0], picker::ColumnWidths[1], picker::ColumnWidths[2] };
+	int sizing = -1;      // the column a header edge resizes (+0x1f0)
+	float sizingLeft = 0.0f;
+	float x = picker::WindowX, y = picker::WindowY, w = picker::WindowW, h = picker::WindowH;
+	float restoredH = picker::WindowH;
+	bool minimized = false, dragging = false;
+	float grabX = 0.0f, grabY = 0.0f;
+	int titleClickTime = -20000;
+	float titleClickX = 0.0f, titleClickY = 0.0f;
+};
+
+std::vector<FilePicker> pickers;   // drawn in order; the last is on top
+int pickerKeys = -1;               // the picker whose list has the keys
+
+int PickerFont() {
+	static std::string loaded;
+	static int font = -1;
+	const char *name = CL_RitualDefaultFont();
+	if ( font < 0 || loaded != name ) {
+		font = CL_AliceFontRegister( name );
+		loaded = name;
+	}
+	return font;
+}
+
+float PickerLine() {
+	const int line = CL_AliceFontLineHeight( PickerFont() );
+	return static_cast<float>( line > 0 ? line : 14 );
+}
+
+float PickerHeader() {
+	return PickerLine() + 2.0f * picker::HeaderPad;
+}
+
+void PickerList( const FilePicker &p, float &lx, float &ly, float &lw, float &lh ) {
+	lx = p.x + picker::ClientX;
+	ly = p.y + picker::ClientY;
+	lw = p.w - picker::ClientShrinkW;
+	lh = p.h - picker::ClientShrinkH;
+}
+
+int PickerPage( const FilePicker &p ) {
+	float lx, ly, lw, lh;
+	PickerList( p, lx, ly, lw, lh );
+	return std::max( 0, static_cast<int>( ( lh - PickerHeader() ) / PickerLine() ) );
+}
+
+/* A loose file's date and size from the directory that holds it; a file in a
+ * pak has neither (FileInfo 0x0043ec00, whose _findfirst finds only files on
+ * disk). */
+void PickerFileInfo( const std::string &path, std::string &date, std::string &size ) {
+	date.clear();
+	size.clear();
+	const char *bases[] = { Cvar_VariableString( "fs_homepath" ), Cvar_VariableString( "fs_basepath" ) };
+	for ( const char *base : bases ) {
+		if ( !base || !base[0] ) continue;
+		fileOffset_t bytes = 0;
+		fileTime_t mtime = 0, ctime = 0;
+		const char *os = FS_BuildOSPath( base, FS_GetCurrentGameDir(), path.c_str() );
+		if ( os && Sys_GetFileStats( os, &bytes, &mtime, &ctime ) ) {
+			const time_t when = static_cast<time_t>( mtime );
+			if ( const std::tm *local = std::localtime( &when ) ) date = picker::DateText( *local );
+			size = va( "%d", static_cast<int>( bytes ) );
+			return;
+		}
+	}
+}
+
+std::vector<std::string> PickerListing( const std::string &folder, const char *extension ) {
+	std::vector<std::string> names;
+	std::string path = folder;
+	while ( path.size() > 1 && path.back() == '/' ) path.pop_back();
+	int count = 0;
+	char **list = FS_ListFiles( path.c_str(), extension, &count );
+	for ( int i = 0; list && i < count; ++i ) names.emplace_back( list[i] );
+	if ( list ) FS_FreeFileList( list );
+	return names;
+}
+
+/* SetupFiles (0x00418b10): the rows again, the selection and scroll gone. */
+void PickerSetupFiles( FilePicker &p ) {
+	const std::vector<std::string> folders = picker::CleanNames( PickerListing( p.current, "/" ), true );
+	/* SoundPickerClass lists every file (".*", 0x0041db96); this listing's
+	 * empty extension is that. */
+	const char *extension = p.extension == ".*" ? "" : p.extension.c_str();
+	const std::vector<std::string> files = picker::CleanNames( PickerListing( p.current, extension ), false );
+	std::vector<std::string> dates( files.size() ), sizes( files.size() );
+	for ( std::size_t i = 0; i < files.size(); ++i ) PickerFileInfo( p.current + files[i], dates[i], sizes[i] );
+	p.rows = picker::BuildRows( p.current, p.root, folders, files, dates, sizes );
+	p.currentRow = 0;
+	p.top = 0;
+	p.hold = ScrollHold();
+}
+
+/* Setup (0x004185d0): the root and the current folder each end in '/'. */
+void OpenPicker( picker::Kind kind, const std::string &root, const std::string &current, const char *extension ) {
+	FilePicker p;
+	p.kind = kind;
+	p.root = picker::WithSlash( root );
+	p.current = picker::WithSlash( current );
+	p.extension = extension;
+	PickerSetupFiles( p );
+	pickers.push_back( std::move( p ) );
+}
+
+void RebuildPickers() {
+	for ( FilePicker &p : pickers ) PickerSetupFiles( p );
+}
+
+/* `maplist [folder]` (0x0040d710): maps/<folder>, "." meaning the root. */
+void MapList_f() {
+	if ( !uiInitialized ) return;
+	std::string folder = "maps";
+	if ( Cmd_Argc() == 2 && std::strcmp( Cmd_Argv( 1 ), "." ) ) folder += std::string( "/" ) + Cmd_Argv( 1 );
+	OpenPicker( picker::Kind::MapRunner, "maps", folder, ".bsp" );
+}
+
+/* `viewspawnlist` (0x0040d9f0): models/, .tik, no arguments. */
+void ViewSpawnList_f() {
+	if ( !uiInitialized ) return;
+	OpenPicker( picker::Kind::ViewSpawner, "models", "models", ".tik" );
+}
+
+/* `soundpicker` (0x0040d9a0): sound/, every file, opening in the folder of
+ * the sound last picked (0x0041d9cc reads ui_pickedsound as the UI does,
+ * latched value first). */
+void SoundPicker_f() {
+	if ( !uiInitialized ) return;
+	const std::string picked = UiCvarString( "ui_pickedsound" );
+	OpenPicker( picker::Kind::SoundPicker, "sound", picker::StartFolder( picked, "sound/" ), ".*" );
+}
+
+/* TrySelectItem (0x004d4180): clamped to the rows, `listbase_item_selected`
+ * only on a change, kept on the page. A sound picker plays a file selected
+ * (0x0041dc30, the alias-aware local sound 0x0044ce10); a folder or the
+ * parent row selects silently (0x004195ad, 0x004195d5). */
+void PickerSelect( FilePicker &p, int row ) {
+	const int count = static_cast<int>( p.rows.size() );
+	if ( count <= 0 ) return;
+	row = std::clamp( row, 1, count );
+	const int page = std::max( 1, PickerPage( p ) );
+	if ( row <= p.top ) p.top = row - 1;
+	else if ( row > p.top + page ) p.top = row - page;
+	p.top = std::clamp( p.top, 0, std::max( 0, count - page ) );
+	if ( row == p.currentRow ) return;
+	p.currentRow = row;
+	const picker::Row &chosen = p.rows[row - 1];
+	if ( chosen.type == picker::RowType::File && p.kind == picker::Kind::SoundPicker ) {
+		PlayLocalSound( p.current + chosen.name );
+	}
+}
+
+/* FileChosen (0x00419740): a folder or the parent opens there; a file goes to
+ * the subclass, which then closes its window (0x0041c42f, 0x0041cb3c,
+ * 0x0041dc6c). True when the picker is to close. */
+bool PickerChoose( FilePicker &p, int row ) {
+	if ( row < 1 || row > static_cast<int>( p.rows.size() ) ) return false;
+	const picker::Row chosen = p.rows[row - 1];
+	if ( chosen.type == picker::RowType::Parent ) {
+		const std::string parent = picker::ParentOf( p.current, p.root );
+		if ( parent != p.current ) {
+			p.current = parent;
+			PickerSetupFiles( p );
+		}
+		return false;
+	}
+	if ( chosen.type == picker::RowType::Folder ) {
+		p.current += chosen.name + "/";
+		PickerSetupFiles( p );
+		return false;
+	}
+	const std::string full = p.current + chosen.name;
+	switch ( p.kind ) {
+	case picker::Kind::ViewSpawner:
+		Cbuf_AddText( picker::ViewSpawnCommand( full ).c_str() );
+		break;
+	case picker::Kind::MapRunner: {
+		const std::string command = picker::MapCommand( full );
+		if ( !command.empty() ) Cbuf_AddText( command.c_str() );
+		break;
+	}
+	case picker::Kind::SoundPicker:
+		// Cvar_Set2 without force (0x0040e2d0), and no sound.
+		UiCvarSet( "ui_pickedsound", full.c_str() );
+		break;
+	}
+	return true;
+}
+
+void ClosePicker( std::size_t index ) {
+	if ( index >= pickers.size() ) return;
+	pickers.erase( pickers.begin() + static_cast<std::ptrdiff_t>( index ) );
+	if ( pickerKeys == static_cast<int>( index ) ) pickerKeys = -1;
+	else if ( pickerKeys > static_cast<int>( index ) ) --pickerKeys;
+}
+
+bool PickerContains( const FilePicker &p, float vx, float vy ) {
+	return Inside( vx, vy, p.x, p.y, p.w, p.minimized ? picker::TitleHeight : p.h );
+}
+
+int PickerAt( float vx, float vy ) {
+	for ( int i = static_cast<int>( pickers.size() ) - 1; i >= 0; --i ) {
+		if ( PickerContains( pickers[static_cast<std::size_t>( i )], vx, vy ) ) return i;
+	}
+	return -1;
+}
+
+bool PickerUnderCursor() {
+	return cursorX >= 0 && PickerAt( VirtualCursorX(), VirtualCursorY() ) >= 0;
+}
+
+/* The list's `mouse_entered` makes it the active control (0x004ceef0), which
+ * is what gives it the keys. */
+void PickerHover() {
+	const int at = cursorX >= 0 ? PickerAt( VirtualCursorX(), VirtualCursorY() ) : -1;
+	if ( at < 0 ) return;
+	const FilePicker &p = pickers[static_cast<std::size_t>( at )];
+	float lx, ly, lw, lh;
+	PickerList( p, lx, ly, lw, lh );
+	if ( !p.minimized && Inside( VirtualCursorX(), VirtualCursorY(), lx, ly, lw, lh ) ) pickerKeys = at;
+}
+
+/* A press: the window under the cursor takes it (the window manager's hit
+ * test, 0x004b3990) and comes to the top. */
+bool PickerMouseDown() {
+	if ( cursorX < 0 ) return false;
+	const float vx = VirtualCursorX(), vy = VirtualCursorY();
+	int index = PickerAt( vx, vy );
+	if ( index < 0 ) {
+		pickerKeys = -1;
+		return false;
+	}
+	if ( index != static_cast<int>( pickers.size() ) - 1 ) {
+		FilePicker raised = std::move( pickers[static_cast<std::size_t>( index )] );
+		pickers.erase( pickers.begin() + index );
+		pickers.push_back( std::move( raised ) );
+		if ( pickerKeys == index ) pickerKeys = static_cast<int>( pickers.size() ) - 1;
+		else if ( pickerKeys > index ) --pickerKeys;
+		index = static_cast<int>( pickers.size() ) - 1;
+	}
+	FilePicker &p = pickers[static_cast<std::size_t>( index )];
+	const float localX = vx - p.x, localY = vy - p.y;
+	const int now = Now();
+	// The title bar's two buttons (FrameInitialized 0x004c2170).
+	const float buttonY = 2.0f;
+	if ( localY >= buttonY && localY < buttonY + picker::ButtonSize ) {
+		if ( localX >= p.w - picker::CloseRight && localX < p.w - picker::CloseRight + picker::ButtonSize ) {
+			// floatingwindow_close_pressed (0x004c2ad0): the window goes.
+			ClosePicker( static_cast<std::size_t>( index ) );
+			return true;
+		}
+		if ( localX >= p.w - picker::MinimizeRight && localX < p.w - picker::MinimizeRight + picker::ButtonSize ) {
+			// floatingwindow_minimize_pressed (0x004c2af0).
+			p.minimized = !p.minimized;
+			if ( p.minimized ) p.restoredH = p.h;
+			return true;
+		}
+	}
+	// left_mouse_down (0x004c2840): twice quickly minimises; the title drags.
+	if ( p.titleClickTime + picker::DoubleClickMs > now && std::fabs( vx - p.titleClickX ) <= picker::DoubleClickSlop
+		&& std::fabs( vy - p.titleClickY ) <= picker::DoubleClickSlop ) {
+		p.minimized = !p.minimized;
+		p.titleClickTime = -20000;   // 0x004c291b
+		return true;
+	}
+	p.titleClickTime = now;
+	p.titleClickX = vx;
+	p.titleClickY = vy;
+	if ( localY <= picker::TitleGrab ) {
+		p.dragging = true;
+		p.grabX = localX;
+		p.grabY = localY;
+		return true;
+	}
+	if ( p.minimized ) return true;
+	float lx, ly, lw, lh;
+	PickerList( p, lx, ly, lw, lh );
+	if ( !Inside( vx, vy, lx, ly, lw, lh ) ) return true;
+	pickerKeys = index;
+	const float ix = vx - lx, iy = vy - ly;
+	const int count = static_cast<int>( p.rows.size() );
+	// The scrollbar, 16 wide at the list's right edge (0x004ce8ed).
+	if ( ix >= lw - ScrollbarWidth ) {
+		ScrollPress( p.hold, iy, lh, p.top, PickerPage( p ), count );
+		return true;
+	}
+	const float header = PickerHeader();
+	if ( iy < header ) {
+		// A column edge resizes it, inside a column sorts by it (0x004ce9b0..0x004ceb25).
+		float left = 0.0f;
+		for ( int c = 0; c < 3; ++c ) {
+			const float right = left + p.width[c];
+			if ( std::fabs( ix - right ) <= picker::EdgeGrab ) {
+				p.sizing = c;
+				p.sizingLeft = left;
+				return true;
+			}
+			if ( ix >= left && ix < right ) {
+				picker::SortRows( p.rows, c, p.currentRow );
+				return true;
+			}
+			left = right;
+		}
+		return true;
+	}
+	const int row = picker::RowAt( iy, header, PickerLine(), p.top );
+	PickerSelect( p, row );
+	if ( picker::DoubleClick( now, p.clickTime, p.currentRow, p.clickRow, vx, vy, p.clickX, p.clickY ) ) {
+		p.clickTime = 0;   // 0x004cedff
+		if ( PickerChoose( p, p.currentRow ) ) ClosePicker( static_cast<std::size_t>( index ) );
+		return true;
+	}
+	p.clickTime = now;
+	p.clickRow = p.currentRow;
+	p.clickX = vx;
+	p.clickY = vy;
+	return true;
+}
+
+/* Drags go to the picker that holds the mouse. */
+bool PickerMouseDragged() {
+	if ( cursorX < 0 ) return false;
+	const float vx = VirtualCursorX(), vy = VirtualCursorY();
+	for ( FilePicker &p : pickers ) {
+		if ( p.dragging ) {
+			// left_mousedragged (0x004c2990): the window follows.
+			p.x = vx - p.grabX;
+			p.y = vy - p.grabY;
+			return true;
+		}
+		if ( p.sizing >= 0 ) {
+			float lx, ly, lw, lh;
+			PickerList( p, lx, ly, lw, lh );
+			p.width[p.sizing] = std::clamp( vx - lx - p.sizingLeft, 0.0f, picker::MaxColumnWidth );
+			return true;
+		}
+		if ( p.hold.part ) {
+			float lx, ly, lw, lh;
+			PickerList( p, lx, ly, lw, lh );
+			const int count = static_cast<int>( p.rows.size() ), page = PickerPage( p );
+			ScrollDrag( p.hold, vx - ( lx + lw - ScrollbarWidth ), vy - ly, lh, count, [&p, count, page]( int value ) {
+				const int top = std::clamp( value, 0, std::max( 0, count - page ) );
+				const bool moved = top != p.top;
+				p.top = top;
+				return moved;
+			} );
+			return true;
+		}
+	}
+	return false;
+}
+
+/* Letting go ends a drag, a resize and a scrollbar's hold (0x004c2a40,
+ * 0x004cef00, 0x004d9200). True when a picker held the mouse. */
+bool PickerMouseUp() {
+	bool held = false;
+	for ( FilePicker &p : pickers ) {
+		held = held || p.dragging || p.sizing >= 0 || p.hold.part;
+		p.dragging = false;
+		p.sizing = -1;
+		ScrollRelease( p.hold );
+	}
+	return held;
+}
+
+void PickerRepeats() {
+	for ( FilePicker &p : pickers ) {
+		const int count = static_cast<int>( p.rows.size() ), page = PickerPage( p );
+		ScrollRepeat( p.hold, p.top, [&p, count, page]( int value ) {
+			const int top = std::clamp( value, 0, std::max( 0, count - page ) );
+			const bool moved = top != p.top;
+			p.top = top;
+			return moved;
+		} );
+	}
+}
+
+/* UIListBase::KeyEvent (0x004d43d0) for the list that has the keys: the
+ * arrows step, the page keys page from the page's edge, Home and End go to
+ * the ends and the wheel scrolls two rows. Enter and Escape are not its. */
+bool PickerKey( int key ) {
+	if ( pickerKeys < 0 || pickerKeys >= static_cast<int>( pickers.size() ) ) return false;
+	FilePicker &p = pickers[static_cast<std::size_t>( pickerKeys )];
+	if ( p.minimized ) return false;
+	const int count = static_cast<int>( p.rows.size() ), page = std::max( 1, PickerPage( p ) );
+	const int row = p.currentRow;
+	switch ( key ) {
+	case K_UPARROW:
+	case K_LEFTARROW:
+		PickerSelect( p, row - 1 );
+		return true;
+	case K_DOWNARROW:
+	case K_RIGHTARROW:
+		PickerSelect( p, row + 1 );
+		return true;
+	case K_PGUP:
+		PickerSelect( p, row - 1 != p.top ? p.top + 1 : row - page );
+		return true;
+	case K_PGDN:
+		PickerSelect( p, row != p.top + page ? p.top + page : row + page );
+		return true;
+	case K_HOME:
+		PickerSelect( p, 1 );
+		return true;
+	case K_END:
+		PickerSelect( p, count );
+		return true;
+	case K_MWHEELUP:
+	case K_MWHEELDOWN:
+		p.top = std::clamp( p.top + ( key == K_MWHEELUP ? -2 : 2 ), 0, std::max( 0, count - page ) );
+		return true;
+	default:
+		return false;
+	}
+}
+
+/* The window (0x004c2430) and its list (0x004ce3a0): a blue title bar with
+ * white text while it is the one on top, grey with black otherwise; its two
+ * marlett buttons; the list white with black text, its header grey boxes
+ * with black titles, its chosen row yellow on blue; the scrollbar over its
+ * right edge. Cells are cut at the list's edge, as retail's scissor cuts
+ * its 400 units of columns in a 396-unit list. */
+void DrawPicker( const FilePicker &p, bool active ) {
+	static const float blue[4] = { 0, 0, 1, 1 };
+	static const float white[4] = { 1, 1, 1, 1 };
+	static const float black[4] = { 0, 0, 0, 1 };
+	static const float yellow[4] = { 1, 1, 0, 1 };
+	static const float grey[4] = { 0.75f, 0.75f, 0.75f, 1 };
+	static const float inactive[4] = { 0.5f, 0.5f, 0.5f, 1 };
+	static const mw::BorderColor border = mw::MakeBorderColor( { 0.75f, 0.75f, 0.75f, 1.0f } );
+	static const int marlett = CL_AliceFontRegister( "marlett" );
+	const int font = PickerFont();
+	const float title = std::min( p.minimized ? picker::TitleHeight : p.h, picker::TitleHeight );
+	if ( !p.minimized ) {
+		VirtualFill( p.x, p.y, p.w, p.h, grey );
+		Box3D( p.x, p.y + picker::TitleHeight, p.w, p.h - picker::TitleHeight, false, border, 1.0f );
+	}
+	VirtualFill( p.x, p.y, p.w, title, active ? blue : inactive );
+	CL_AliceFontPrint( font, active ? white : black, false, p.x + 3.0f, p.y + 3.0f, p.current.c_str(), -1, 0.0f,
+		0.0f, 0.0f, 1.0f, 1.0f );
+	const struct { float right; const char *glyph; } buttons[] = {
+		{ picker::CloseRight, "r" }, { picker::MinimizeRight, p.minimized ? "1" : "0" } };
+	for ( const auto &button : buttons ) {
+		const float bx = p.x + p.w - button.right, by = p.y + 2.0f;
+		VirtualFill( bx, by, picker::ButtonSize, picker::ButtonSize, grey );
+		Box3D( bx, by, picker::ButtonSize, picker::ButtonSize, false, border, 1.0f );
+		const font::Rect rect{ bx, by, picker::ButtonSize, picker::ButtonSize };
+		CL_AliceFontPrintJustified( marlett, black, false, rect, 0, 1, button.glyph, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f );
+	}
+	if ( p.minimized ) return;
+
+	float lx, ly, lw, lh;
+	PickerList( p, lx, ly, lw, lh );
+	VirtualFill( lx, ly, lw, lh, white );
+	const float header = PickerHeader(), line = PickerLine();
+	const float sx = ScaleX(), sy = ScaleY();
+	const float clip[4] = { lx * sx, ly * sy, std::max( lw - ScrollbarWidth, 0.0f ) * sx, lh * sy };
+	CL_RitualSetClip( clip );
+	float cx = lx;
+	for ( int c = 0; c < 3; ++c ) {
+		VirtualFill( cx, ly, p.width[c], header, grey );
+		Box3D( cx, ly, p.width[c], header, false, border, 1.0f );
+		CL_AliceFontPrint( font, black, false, cx + picker::HeaderPad, ly + picker::HeaderPad, picker::ColumnTitles[c],
+			-1, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f );
+		cx += p.width[c];
+	}
+	if ( cx < lx + lw ) {
+		VirtualFill( cx, ly, lx + lw - cx, header, grey );
+		Box3D( cx, ly, lx + lw - cx, header, false, border, 1.0f );
+	}
+	const int count = static_cast<int>( p.rows.size() );
+	float ry = ly + header;
+	for ( int row = p.top + 1; row <= count && ry < ly + lh; ++row, ry += line ) {
+		const picker::Row &r = p.rows[static_cast<std::size_t>( row - 1 )];
+		const bool chosen = row == p.currentRow;
+		float rx = lx;
+		for ( int c = 0; c < 3; ++c ) {
+			if ( chosen ) VirtualFill( rx, ry, p.width[c], line, blue );
+			CL_AliceFontPrint( font, chosen ? yellow : black, false, rx, ry, r.cells[c].c_str(), -1, 0.0f, 0.0f, 0.0f,
+				1.0f, 1.0f );
+			rx += p.width[c];
+		}
+	}
+	CL_RitualSetClip( nullptr );
+	DrawScrollbar( lx + lw - ScrollbarWidth, ly, lh, p.top, PickerPage( p ), count, p.hold.part );
+}
+
+/* UI_Update draws every window the window manager holds, menu up or not
+ * (UpdateViews 0x004b3440, at 0x0040ca97). */
+void DrawPickers() {
+	for ( std::size_t i = 0; i < pickers.size(); ++i ) DrawPicker( pickers[i], i + 1 == pickers.size() );
+}
+
 void DrawMultiLineEdit( Menu &menu, int index, float x, float y ) {
 	Widget &widget = menu.widgets[index];
 	EditState &edit = widget.edit;
@@ -4493,7 +5198,7 @@ void DrawMultiLineEdit( Menu &menu, int index, float x, float y ) {
 	}
 	// Its scrollbar, 16 units at its right edge, over the text (0x004d9370).
 	DrawScrollbar( x + widget.w - ScrollbarWidth, y, widget.h, edit.top, EditPage( widget ),
-		static_cast<int>( edit.lines.size() ) );
+		static_cast<int>( edit.lines.size() ), edit.hold.part );
 }
 
 void DrawWidget( Menu &menu, int index, float parentAlpha ) {
@@ -4778,6 +5483,8 @@ void Init() {
 	CL_Fakk2InventoryInit();
 	LoadTables();
 	LoadMenus();
+	// An open picker outlives the restart; its folder is read again.
+	RebuildPickers();
 	uiInitialized = true;
 
 	if ( !firstInitDone ) {
@@ -4939,6 +5646,10 @@ void CL_AliceUIFrame( void ) {
 	// F.A.K.K.2's inventory's timeout, and its closing in a cinematic.
 	CL_Fakk2InventoryFrame();
 
+	// Scrollbar steps that are due run ahead of the mouse (0x0042c2aa).
+	if ( Menu *menu = CurrentMenu() ) ScrollRepeats( *menu );
+	PickerRepeats();
+
 	/* Cursor mode: on while a menu is up (the push path's 0x00427b00), off
 	 * once none remains or ui_hidemouse gives the view the mouse (0x00427b50).
 	 * While it is on the pointer moves only the cursor and the mouse buttons
@@ -4951,6 +5662,9 @@ void CL_AliceUIFrame( void ) {
 		CL_AliceSetCursorMode( wantCursor ? qtrue : qfalse );
 		cursorModeOn = wantCursor;
 		cursorButtons = 0;
+		// The release this loses would never come: no bar keeps the mouse.
+		if ( Menu *menu = CurrentMenu() ) ScrollReleases( *menu );
+		PickerMouseUp();
 	}
 	if ( cursorModeOn ) {
 		int x = 0, y = 0, buttons = 0;
@@ -4972,8 +5686,9 @@ void CL_AliceUIFrame( void ) {
 			if ( !PulldownOpen() ) UpdateHover();
 		} else {
 			UpdateHover();
+			PickerHover();
 			Menu *menu = CurrentMenu();
-			if ( menu && ( buttons & cursorButtons & 1 ) && moved ) {
+			if ( menu && ( buttons & cursorButtons & 1 ) && moved && !PickerMouseDragged() ) {
 				MouseDragged( *menu );
 			}
 			if ( ( buttons ^ cursorButtons ) & 1 ) {
@@ -5098,6 +5813,7 @@ void CL_AliceUIDrawMenus( void ) {
 		}
 		DrawMenu( menu );
 	}
+	DrawPickers();
 	DrawPopup();
 }
 

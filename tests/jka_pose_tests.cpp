@@ -205,8 +205,33 @@ static void CheckRetailMemoryInput() {
 #ifdef FNTECH3_JKA_POSE_EMBEDDED
 #define main AcademyUnblendedPoseFixtureMain
 #endif
+static void CheckAcademyAngleBlendMetadata() {
+	TestFiles files;files.files["models/players/test/model.glm"]=Mesh("models/players/test/skeleton",3);
+	files.files["models/players/test/skeleton.gla"]=PoseSkeleton();
+	ghoul2::Store store(files,true,true,true);void *instance=nullptr;LoadError error;
+	CHECK(store.AddModel(&instance,"models/players/test/model.glm",error)==0);
+	const int bolt=store.AddBolt(instance,0,"child");CHECK(bolt==0);
+	const float bend[]{10,20,30};
+	for(int mode:{1,2}) {
+		CHECK(store.SetBoneAngles(instance,0,"child",bend,mode,1,3,2,0,100));
+		float expected[12];CHECK(store.BoltMatrix(instance,0,bolt,100,expected));
+		for(int duration:{-80,1,80,INT_MAX}) {
+			CHECK(store.SetBoneAngles(instance,0,"child",bend,mode,1,3,2,duration,100));
+			for(int now:{0,99,100,140,180,1000}) {
+				float actual[12];CHECK(store.BoltMatrix(instance,0,bolt,now,actual));
+				for(int n=0;n<12;++n)CHECK(NearPose(actual[n],expected[n]));
+			}
+		}
+	}
+	// REPLACE has a different timed path; a nonzero duration remains refused.
+	CHECK(store.SetBoneAngles(instance,0,"child",bend,4,1,3,2,80,100));
+	float untouched[12];std::fill(untouched,untouched+12,-777.0f);
+	CHECK(!store.BoltMatrix(instance,0,bolt,140,untouched));
+	for(float value:untouched)CHECK(value==-777.0f);
+	CHECK(store.Clean(&instance)&&!instance);
+}
 int main(int argc,char **argv) {
-	CheckHierarchyAndInheritance();CheckPlacementAndStore();
+	CheckHierarchyAndInheritance();CheckPlacementAndStore();CheckAcademyAngleBlendMetadata();
 	if(argc==2&&std::strcmp(argv[1],"--retail-memory")==0)CheckRetailMemoryInput();
 	std::cout<<"JKA/JK2 Ghoul2 shared pose kernel tests passed\n";
 	return 0;

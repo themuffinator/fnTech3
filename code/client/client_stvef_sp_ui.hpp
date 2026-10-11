@@ -120,8 +120,10 @@ void CL_STVEFSPUILerpTag( fntech3_stvef_orientation_t *tag, std::int32_t model, 
 	static_assert( sizeof( fntech3_stvef_orientation_t ) == sizeof( orientation_t ) );
 	re.LerpTag( reinterpret_cast<orientation_t *>( tag ), model, startFrame, endFrame, frac, tagName );
 }
+// The menus' own sound, on single player's channel as the engine numbers it,
+// played as interface audio.
 void CL_STVEFSPUIStartLocalSound( std::int32_t sfx, std::int32_t channel ) {
-	S_StartLocalSound( sfx, CL_STVEFSPSoundChannel( channel ) );
+	S_StartInterfaceSound( sfx, CL_STVEFSPSoundChannel( channel ), 1.0f );
 }
 std::int32_t CL_STVEFSPUIRegisterSound( const char *name ) { return S_RegisterSound( name, qfalse ); }
 // A loop on the listener, entity 0 in single player, with no position

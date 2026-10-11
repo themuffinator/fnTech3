@@ -786,7 +786,10 @@ typedef enum {
 	RB_DRAWSURFS_RT_OVERLAY
 } rbDrawSurfsMode_t;
 
+static qboolean rb_rtCompositionActive;
+
 #ifdef USE_PMLIGHT
+static qboolean RB_RTNeedsShadowPass( shadowManagerPass_t pass, drawSurf_t *drawSurfs, int numDrawSurfs );
 static void RB_LightingPass( rbDrawSurfsMode_t mode, qboolean finish );
 static void RB_CSMShadowReceiverPass( drawSurf_t *drawSurfs, int numDrawSurfs );
 static void RB_RenderCSMShadowAtlas( drawSurf_t *drawSurfs, int numDrawSurfs );
@@ -861,6 +864,9 @@ static void RB_RunScheduledShadowManagerPreMainPasses( drawSurf_t *drawSurfs, in
 		if ( !RB_ShadowManagerPreMainPass( passOrder[i] ) ) {
 			continue;
 		}
+		if ( rb_rtCompositionActive && !RB_RTNeedsShadowPass( passOrder[i], drawSurfs, numDrawSurfs ) ) {
+			continue;
+		}
 		RB_RunScheduledShadowManagerPass( passOrder[i], drawSurfs, numDrawSurfs );
 	}
 }
@@ -889,8 +895,8 @@ static qboolean RB_DrawSurfIncluded( int entityNum, const shader_t *shader, int 
 	 * blended, additive and decal materials, fog, particles, effects, and
 	 * anything whose geometry the trace does not reproduce. A traced surface
 	 * inside a fog volume also returns to the overlay for its fog pass alone
-	 * (fogOnly), unless the trace failed and the base pass's complete raster
-	 * draw, fog included, stands; lighting passes never take it.
+	 * (fogOnly). A failed trace redraws the complete list with raster shading.
+	 * Lighting passes never take these fog-only surfaces.
 	 */
 	owner = vk_rt_surface_owner( entityNum, shader, fogNum, surface ? (int)*surface : (int)SF_BAD );
 	if ( mode == RB_DRAWSURFS_RT_BASE ) {
@@ -999,6 +1005,7 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, rbDr
 	unsigned int	oldSort;
 	qboolean		sortDecomposed;
 	qboolean		fogOnly;
+	qboolean		depthOnly;
 #ifdef USE_PMLIGHT
 	float			oldShaderSort;
 	qboolean		csmReceiverDrawn;
@@ -1025,7 +1032,7 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, rbDr
 	oldSort = MAX_UINT;
 #ifdef USE_PMLIGHT
 	oldShaderSort = -1;
-	csmReceiverDrawn = ( mode == RB_DRAWSURFS_RT_OVERLAY ) ? qtrue : qfalse;
+	csmReceiverDrawn = ( mode == RB_DRAWSURFS_RT_BASE ) ? qtrue : qfalse;
 #endif
 #ifdef USE_VULKAN
 	depthFadeSnapshot = vk_depth_fade_ready();
@@ -1049,15 +1056,20 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, rbDr
 		}
 		sortDecomposed = qfalse;
 		fogOnly = qfalse;
+		depthOnly = qfalse;
 		if ( mode != RB_DRAWSURFS_ALL ) {
 			R_DecomposeSort( drawSurf->sort, &entityNum, &shader, &fogNum, &dlighted );
 			sortDecomposed = qtrue;
 			if ( !RB_DrawSurfIncluded( entityNum, shader, fogNum, drawSurf->surface, mode, &fogOnly ) ) {
 				continue;
 			}
+			if ( mode == RB_DRAWSURFS_RT_BASE ) {
+				rtSurfaceOwner_t owner = vk_rt_surface_owner( entityNum, shader, fogNum, (int)*drawSurf->surface );
+				depthOnly = owner == RT_SURFACE_TRACED || owner == RT_SURFACE_TRACED_FOGGED;
+			}
 		}
 
-		if ( drawSurf->sort == oldSort ) {
+		if ( drawSurf->sort == oldSort && tess.rtDepthOnly == depthOnly && tess.rtFogOnly == fogOnly ) {
 			// fast path, same as previous sort
 			rb_surfaceTable[ *drawSurf->surface ]( drawSurf->surface );
 			continue;
@@ -1095,6 +1107,7 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, rbDr
 		// a "entityMergable" shader is a shader that can have surfaces from separate
 		// entities merged into a single batch, like smoke and blood puff sprites
 		if ( ( (oldSort ^ drawSurf->sort ) & ~QSORT_REFENTITYNUM_MASK )
+			|| tess.rtDepthOnly != depthOnly || tess.rtFogOnly != fogOnly
 			|| ( !qlRendererCvars.forceMergeEntities->integer && !shader->entityMergable ) ) {
 			//if ( oldShader != NULL ) {
 				RB_EndSurfaceWithSTVEFAlpha();
@@ -1104,6 +1117,7 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, rbDr
 			// through the batch's own restarts (VBO transitions, overflow)
 			// but not into the passes interleaved below
 			tess.rtFogOnly = qfalse;
+			tess.rtDepthOnly = qfalse;
 #endif
 #ifdef USE_PMLIGHT
 			#define INSERT_POINT SS_FOG
@@ -1133,7 +1147,7 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, rbDr
 #endif
 #ifdef USE_VULKAN
 			/* Keep screen-space world edges below fog, liquids and transparency. */
-			if ( shader->sort > SS_OPAQUE ) {
+			if ( mode != RB_DRAWSURFS_RT_BASE && shader->sort > SS_OPAQUE ) {
 				RB_DrawWorldCelOutlineForScene( &worldCelOutlineDrawn );
 			}
 			/*
@@ -1172,6 +1186,7 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, rbDr
 			RB_BeginSurface( shader, fogNum );
 #ifdef USE_VULKAN
 			tess.rtFogOnly = fogOnly;
+			tess.rtDepthOnly = depthOnly;
 #endif
 			oldShader = shader;
 		}
@@ -1306,6 +1321,7 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, rbDr
 	}
 #ifdef USE_VULKAN
 	tess.rtFogOnly = qfalse;
+	tess.rtDepthOnly = qfalse;
 #endif
 
 #ifdef USE_PMLIGHT
@@ -3172,6 +3188,42 @@ static void RB_RenderCSMShadowAtlas( drawSurf_t *drawSurfs, int numDrawSurfs )
 	}
 }
 
+/* An RT view only consumes raster shadow maps on its raster-owned surfaces.
+ * Keep all casters in an atlas that is needed; ownership filters receivers,
+ * never the bodies that can shadow them. A permissive fallback clears this
+ * filter before preparing its full set of maps. */
+static qboolean RB_RTNeedsShadowPass( shadowManagerPass_t pass, drawSurf_t *drawSurfs, int numDrawSurfs )
+{
+	int i;
+	if ( pass == SHADOW_MANAGER_PASS_POINT_ATLAS ) {
+		for ( i = 0; i < backEnd.viewParms.num_dlights; ++i ) {
+			const litSurf_t *s;
+			for ( s = backEnd.viewParms.dlights[i].head; s; s = s->next ) {
+				shader_t *shader;
+				int entityNum, fogNum;
+				if ( s->flags & LSF_SHADOW_CASTER_ONLY ) continue;
+				R_DecomposeLitSort( s->sort, &entityNum, &shader, &fogNum );
+				if ( RB_DrawSurfIncluded( entityNum, shader, fogNum, s->surface, RB_DRAWSURFS_RT_OVERLAY, NULL ) ) return qtrue;
+			}
+		}
+		return qfalse;
+	}
+	for ( i = 0; i < numDrawSurfs; ++i ) {
+		shader_t *shader;
+		int entityNum, fogNum, dlighted;
+		const drawSurf_t *s = &drawSurfs[i];
+		if ( s->flags & DSF_SHADOW_CASTER_ONLY ) continue;
+		R_DecomposeSort( s->sort, &entityNum, &shader, &fogNum, &dlighted );
+		if ( !RB_DrawSurfIncluded( entityNum, shader, fogNum, s->surface, RB_DRAWSURFS_RT_OVERLAY, NULL ) ) continue;
+		if ( pass == SHADOW_MANAGER_PASS_CSM_ATLAS ) {
+			if ( RB_CSMShadowEntityAllowed( entityNum ) && RB_CSMShadowSurfaceAllowed( shader, s->surface ) ) return qtrue;
+		} else if ( dlighted || ( shader && shader->lightingStage >= 0 ) ) {
+			return qtrue;
+		}
+	}
+	return qfalse;
+}
+
 static void RB_CSMShadowReceiverPass( drawSurf_t *drawSurfs, int numDrawSurfs )
 {
 	const csmCascadePlan_t *cascade;
@@ -3216,6 +3268,8 @@ static void RB_CSMShadowReceiverPass( drawSurf_t *drawSurfs, int numDrawSurfs )
 				continue;
 			}
 			R_DecomposeSort( drawSurf->sort, &entityNum, &shader, &fogNum, &dlighted );
+			if ( rb_rtCompositionActive && !RB_DrawSurfIncluded( entityNum, shader, fogNum,
+				drawSurf->surface, RB_DRAWSURFS_RT_OVERLAY, NULL ) ) continue;
 			if ( !RB_CSMShadowEntityAllowed( entityNum ) ||
 				!RB_CSMShadowSurfaceAllowed( shader, drawSurf->surface ) ) {
 				continue;
@@ -4110,6 +4164,10 @@ static const void *RB_DrawSurfs( const void *data ) {
 	VBO_UnBind();
 #endif
 
+#ifdef USE_VULKAN
+	rtComposition = vk_rt_primary_view_eligible();
+	rb_rtCompositionActive = rtComposition;
+#endif
 #ifdef USE_PMLIGHT
 	RB_RunScheduledShadowManagerPreMainPasses( cmd->drawSurfs, cmd->numDrawSurfs );
 #endif
@@ -4118,7 +4176,6 @@ static const void *RB_DrawSurfs( const void *data ) {
 	RB_BeginDrawingView();
 
 #ifdef USE_VULKAN
-	rtComposition = vk_rt_primary_view_eligible();
 	if ( RB_IsPrimaryFullView() &&
 		!glConfig.stereoEnabled ) {
 		backEnd.liquidScreenMapDone = qfalse;
@@ -4148,26 +4205,22 @@ static const void *RB_DrawSurfs( const void *data ) {
 				"RTX RT: rtx_rt_require 1 primary-view dispatch or scene-color copy failed; refusing silent raster fallback" );
 		}
 
+		if ( !rtTraceCompleted ) {
+			/* Failure is known before the trace ends the raster pass. Its base
+			 * contains depth, sky and portals, so prepare any skipped atlases and
+			 * redraw ALL colour/fog/lighting; do not submit a second overlay. */
+			rb_rtCompositionActive = qfalse;
+			rtComposition = qfalse;
 #ifdef USE_PMLIGHT
-		/*
-		 * The path tracer lights the surfaces it owns with the scene's
-		 * dynamic lights. A skipped or failed trace leaves the base pass's
-		 * raster draw standing, so its dynamic light pass is drawn here.
-		 */
-		if ( !rtTraceCompleted &&
-			backEnd.refdef.numLitSurfs && backEnd.viewParms.num_dlights ) {
-			RB_BeginDrawingLitSurfs();
-			RB_LightingPass( RB_DRAWSURFS_RT_BASE, qfalse );
-		}
+			RB_RunScheduledShadowManagerPreMainPasses( cmd->drawSurfs, cmd->numDrawSurfs );
 #endif
-
-		/* The trace validates its composition path before ending the raster
-		 * pass.  Success continues in post-bloom; a permissive failure keeps the
-		 * complete raster pass active.  The overlay is submitted exactly once in
-		 * either state, with traced surfaces' fog passes only after a trace. */
-		rb_rtFogOverlay = rtTraceCompleted;
-		RB_RenderDrawSurfList( cmd->drawSurfs, cmd->numDrawSurfs, RB_DRAWSURFS_RT_OVERLAY );
-		rb_rtFogOverlay = qfalse;
+			RB_BeginDrawingView();
+			RB_RenderDrawSurfList( cmd->drawSurfs, cmd->numDrawSurfs, RB_DRAWSURFS_ALL );
+		} else {
+			rb_rtFogOverlay = qtrue;
+			RB_RenderDrawSurfList( cmd->drawSurfs, cmd->numDrawSurfs, RB_DRAWSURFS_RT_OVERLAY );
+			rb_rtFogOverlay = qfalse;
+		}
 	}
 #endif
 
@@ -4217,6 +4270,7 @@ static const void *RB_DrawSurfs( const void *data ) {
 #endif
 
 	//TODO Maybe check for rdf_noworld stuff but q3mme has full 3d ui
+	rb_rtCompositionActive = qfalse;
 	backEnd.doneSurfaces = qtrue; // for bloom
 #ifdef USE_VULKAN
 	vk_motion_blur();

@@ -91,12 +91,19 @@ static float EvalWaveForm( const waveForm_t *wf )
 
 	wf = R_AliceWave( wf, &aliceWave );
 
-	// Elite Force: base + amplitude when a noise value from 0 to 2, chosen by
+	// Raven random: base + amplitude when a noise value from 0 to 2, chosen by
 	// the view time plus phase, is at most the frequency; base otherwise
 	// (stvoyHM.exe 0x47b5fa, stvoy.exe 0x46431a).
 	if ( wf->func == GF_RANDOM ) {
 		const int clock = (int)( (double)backEnd.refdef.time + wf->phase );
 		return R_NoiseRandom( clock ) <= wf->frequency ? wf->base + wf->amplitude : wf->base;
+	}
+	// Outcast SP0x47a0bc/MP0x48a11c uses the view's float seconds, not
+	// material shaderTime, and rounds the noise coordinate to binary32.
+	if ( wf->func == GF_NOISE && ( ri.gameId == COM_GAME_JK2_SP || ri.gameId == COM_GAME_JK2_MP ) ) {
+		volatile float clock = (float)backEnd.refdef.floatTime;
+		volatile float coordinate = (float)( ( (double)clock + wf->phase ) * wf->frequency );
+		return wf->base + R_NoiseGet4f( 0, 0, 0, coordinate ) * wf->amplitude;
 	}
 	// Elite Force also takes noise as a wave, as in tcMod stretch: base plus
 	// amplitude times the noise at (time + phase) * frequency (stvoy.exe

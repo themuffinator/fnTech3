@@ -1206,7 +1206,9 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 		Com_Frame( qfalse );
 #else
 		// make sure mouse and joystick are only called once a frame
+		CL_RendererPrepareInput();
 		IN_Frame();
+		CL_RendererInputPolled();
 		// run the game
 		Com_Frame( CL_NoDelay() );
 #endif

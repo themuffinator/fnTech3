@@ -578,9 +578,6 @@ void SV_AliceRestoreLevelTime( void );
 qboolean SV_AliceSpawnLevel( void );
 void SV_AliceSettle( qboolean restored );
 void SV_AliceSpawnDone( void );
-/* The configstrings a load of the running level keeps across its spawn,
- * put back once the spawn has cleared the server state. */
-void SV_AliceRestoreConfigstrings( void );
 /* The raw 732-byte record of one of Alice's entities, bounded by the arena
  * its game module published, or null (server_alice_game.hpp); the snapshot
  * walk reads and writes it as retail's does. */

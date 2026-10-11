@@ -1,0 +1,39 @@
+/* Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later.
+ *
+ * Alice's 7 client-game export slots, typed.
+ *
+ * FNTECH3_ALICE_CGAME_EXPORT_SIG( slot, name, kind, type, params, evidence )
+ *
+ * The frozen shape of every slot, read statically out of retail alice.exe,
+ * base/fgamex86.dll and base/cgamex86.dll (SHA-256 8aa22917..., ae5a5727...,
+ * fa70feb1...; nothing was run). `kind` is
+ *
+ *   FUNCTION  a function: `type` is its return type and `params` its
+ *             parenthesised parameter list
+ *   VALUE     a value the slot itself holds: `type` is that value's type
+ *   ABSENT    no instruction in the module writes the slot
+ *
+ * Types are fixed-width: int (handles, qboolean and long included), float,
+ * pointers, and unsigned char or unsigned short where retail reads or returns
+ * only that width. A record returned by value is written as MSVC passes it, a
+ * hidden first pointer returned in eax. Every function is __cdecl (QDECL):
+ * each one ends in a bare `ret`.
+ *
+ * `evidence` names what fixes the shape: E the engine's side (alice.exe's own calls through the table it keeps at 0x00532a2c), M
+ * the module's side (the export's body in cgamex86.dll), S the member at that position in Ritual's
+ * F.A.K.K.2 v1.02 SDK, read for reference only -- a hypothesis E and M
+ * confirm, never text taken from it. The slot names are the ones
+ * alice_cgame_exports.def already carries. The comment on each row is the export in cgamex86.dll.
+ *
+ * fntech3::alice::module checks every function this engine serves or calls
+ * through a slot against its row, by ABI class (alice_module_abi.h); see
+ * docs/fntech3/2026-10-08-alice-module-signatures.md.
+ */
+
+FNTECH3_ALICE_CGAME_EXPORT_SIG(   0, Init,              FUNCTION, void, ( void *, int, int ), EMS ) /* 0x300240e0 */
+FNTECH3_ALICE_CGAME_EXPORT_SIG(   1, Shutdown,          FUNCTION, void, ( void ), EMS ) /* 0x30024150 */
+FNTECH3_ALICE_CGAME_EXPORT_SIG(   2, DrawActiveFrame,   FUNCTION, void, ( int, int, int ), EMS ) /* 0x3002c710 */
+FNTECH3_ALICE_CGAME_EXPORT_SIG(   3, ConsoleCommand,    FUNCTION, int, ( void ), EMS ) /* 0x30021520 */
+FNTECH3_ALICE_CGAME_EXPORT_SIG(   4, GetRendererConfig, FUNCTION, void, ( void ), EMS ) /* 0x30023f60 */
+FNTECH3_ALICE_CGAME_EXPORT_SIG(   5, Draw2D,            FUNCTION, void, ( void ), EMS ) /* 0x300217f0 */
+FNTECH3_ALICE_CGAME_EXPORT_SIG(   6, EntityOrientation, FUNCTION, void, ( int, float *, float * ), EM ) /* 0x30024160 */

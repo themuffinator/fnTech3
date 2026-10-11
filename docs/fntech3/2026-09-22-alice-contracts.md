@@ -128,6 +128,13 @@ found by the scan, and the profile claims no pure proof until that is settled.
 The configstring index the players start at is likewise unpinned; it is a module
 contract rather than an engine one, and it is left at zero rather than guessed.
 
+*Correction (2026-10-08):* `SV_Init` does register `sv_pure`, as `"0"` in the
+systeminfo (`0x004556d7..0x004556e8`), and a pure server publishes its paks'
+checksums as `sv_paks` (`0x00455455..0x00455472`). There is still no pure
+proof: the client keeps to that list itself, and nothing is sent back. The
+players start at configstring 896. Both are settled in the
+[2026-10-08 round](2026-10-08-alice-compatibility-round.md).
+
 ## Installation identity
 
 `base/pak0.pk3` names the installation. It carries `default.cfg` at its root,

@@ -822,12 +822,6 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	// starts (jamp.exe 0x45e9e8), and again after each settling frame and the
 	// last frame below.
 	SV_JKAGhoul2SetTime( sv.time );
-	// Alice's load of the level it is running keeps that level's
-	// configstrings, as retail's spawn keeps its server state for one
-	// (server_alice_save.hpp).
-	if ( Com_GameIsRitual() ) {
-		SV_AliceRestoreConfigstrings();
-	}
 
 	// make sure we are not paused
 #ifndef DEDICATED
@@ -1200,6 +1194,38 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 
 /*
 ===============
+SV_RitualInfoKeys
+
+Ritual's engines publish only what they register for their infostrings: the
+serverinfo has no download or rate keys, and the systeminfo is `cheats`,
+sv_serverid, sv_pure, sv_paks and timescale (alice.exe SV_Init
+0x004555b5..0x004556fe and Cvar_Init 0x0043b4f5; fakk2.exe 1.02 SV_Init
+0x00446471..0x004465ae and Cvar_Init 0x0042fb45). Their systeminfo predates
+Quake III's pak-name triplet, and their clients take the cheat state from
+`cheats` (alice.exe 0x0042dee8, fakk2.exe 1.02 0x00423ad8). These keys of
+this engine's own stay local under those profiles.
+===============
+*/
+static void SV_RitualInfoKeys( void ) {
+	static const char *const serverInfo[] = {
+		"sv_allowDownload", "sv_dlURL", "sv_dlRate", "sv_minRate", "sv_playingDemo"
+	};
+	static const char *const systemInfo[] = {
+		"sv_cheats", "sv_pakNames", "sv_referencedPaks", "sv_referencedPakNames"
+	};
+
+	for ( const char *name : serverInfo ) {
+		Cvar_Get( name, "", 0 )->flags &= ~CVAR_SERVERINFO;
+	}
+	for ( const char *name : systemInfo ) {
+		Cvar_Get( name, "", 0 )->flags &= ~CVAR_SYSTEMINFO;
+	}
+	cvar_modifiedFlags |= CVAR_SERVERINFO | CVAR_SYSTEMINFO;
+}
+
+
+/*
+===============
 SV_HolomatchInfoKeys
 
 Holomatch's serverinfo holds none of this engine's own keys: stvoyHM.exe 1.20
@@ -1437,6 +1463,9 @@ void SV_Init( void )
 	Cvar_Get ("sv_dlURL", "", CVAR_SERVERINFO | CVAR_ARCHIVE);
 	if ( Com_GameIsSTVEFMP() ) {
 		SV_HolomatchInfoKeys();
+	}
+	if ( Com_GameIsRitual() ) {
+		SV_RitualInfoKeys();
 	}
 
 	// moved to Com_Init()

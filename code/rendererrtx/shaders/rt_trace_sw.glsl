@@ -150,6 +150,7 @@ bool rt_sw_trace(vec3 origin, vec3 dir, float tMin, float tMax, uint mask, bool 
 					uint local = prim - (masked ? b.y : b.x);
 					if (masked && (!solid || dynamic)) {
 						RtTriangle shaded = rt_fetch_triangle(a.z << 20u, geometry, local);
+						if ((firstHit || solid) && !rt_casts_shadow(shaded)) continue;
 						if (!rt_hit_accepted(shaded, bary, front, dir)) {
 							continue;
 						}
@@ -202,13 +203,19 @@ bool trace_solid(vec3 origin, vec3 dir, float tMin, float tMax, uint mask)
 // The last shadow ray's blocker (hitT -1 for none), for rtx_rt_debug_light
 RtHitPayload g_shadowBlocker;
 
-float rt_trace_shadow_mask(vec3 origin, vec3 dir, float tMax, uint mask, bool solid)
+float rt_trace_shadow_mask(vec3 origin, vec3 dir, float tMax, uint mask, bool solid, out float reactive)
 {
+	reactive = 0.0;
 	g_shadowBlocker.hitT = -1.0;
 	if (tMax <= 0.02) {
 		return 1.0;
 	}
-	return rt_sw_trace(origin, dir, 0.01, tMax, mask, true, solid, g_shadowBlocker) ? 0.0 : 1.0;
+	bool blocked = rt_sw_trace(origin, dir, 0.01, tMax, mask, true, solid, g_shadowBlocker);
+	if (blocked) {
+		uint cls = instance_class(g_shadowBlocker.customIndex);
+		if (cls == RT_CLASS_DYNAMIC || cls == RT_CLASS_BODY || cls == RT_CLASS_WEAPON) reactive = 1.0;
+	}
+	return blocked ? 0.0 : 1.0;
 }
 
 // The light the map's alphashadow and lightfilter surfaces let through along

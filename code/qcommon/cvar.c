@@ -168,6 +168,10 @@ static cvar_t *Cvar_FindVar( const char *var_name ) {
 	return NULL;
 }
 
+const cvar_t *Cvar_FindExisting( const char *var_name ) {
+	return Cvar_FindVar( var_name );
+}
+
 
 /*
 ============

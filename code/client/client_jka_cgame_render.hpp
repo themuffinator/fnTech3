@@ -125,8 +125,8 @@ static fntech3::jka::cgame::scene::Runtime &CL_JKACgameRenderGeometry(std::uint3
 static void CL_JKACgameRenderFlush() {
     auto &state=fntech3::jka::cgame::scene::state;
     if (state.pending.empty()) return;
-    if (!jkaCgameBoneClocks.FrameReady() || jkaCgameBoneClocks.LocalServer())
-        Com_Error(ERR_DROP,"Academy cgame Ghoul2 rendering requires the owned remote-client frame clock");
+    if (!jkaCgameBoneClocks.FrameReady())
+        Com_Error(ERR_DROP,"Academy cgame Ghoul2 rendering requires a published frame clock");
     if (!re.RegisterRuntimeMDR || !re.UpdateRuntimeMDRPose)
         Com_Error(ERR_DROP,"Academy cgame Ghoul2 Fn skeletal renderer is unavailable");
     state.prepared.clear(); state.prepared.reserve(state.pending.size());

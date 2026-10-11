@@ -43,11 +43,18 @@ int main(void) {
     assert(VM_Call(&module, 0, CG_RAVEN_MAP_CHANGE) == nativeReturn);
     assert(nativeCalls == 1 && observedCall == FNTECH3_JKA_CG_MAP_CHANGE && observedCall == 27);
     assert(module.callLevel == 0 && errors == 0);
+    Reset(COM_GAME_JKA_MP, VM_CGAME);
+    assert(VM_Call(&module, 0, CG_RAVEN_TRACE) == nativeReturn);
+    assert(nativeCalls == 1 && observedCall == FNTECH3_JKA_CG_TRACE && observedCall == 15);
+    assert(module.callLevel == 0 && errors == 0);
+    ERROR(VM_Call(&module, 1, CG_RAVEN_TRACE, 0));
     /* Every other profile's client game refuses it before its module runs. */
     for (id = 0; id < COM_GAME_COUNT; ++id) {
         if (id == COM_GAME_JKA_MP) continue;
         Reset((comGameId_t)id, VM_CGAME);
         ERROR(VM_Call(&module, 0, CG_RAVEN_MAP_CHANGE));
+        assert(nativeCalls == 0 && module.callLevel == 0);
+        ERROR(VM_Call(&module, 0, CG_RAVEN_TRACE));
         assert(nativeCalls == 0 && module.callLevel == 0);
     }
 #endif

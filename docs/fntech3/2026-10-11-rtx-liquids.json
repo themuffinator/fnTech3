@@ -1,0 +1,951 @@
+{
+  "record": "2026-10-11-rtx-liquids",
+  "date": "2026-10-11",
+  "evidenceLevels": [
+    "Source",
+    "Unit",
+    "Live subset"
+  ],
+  "gatesClosed": [],
+  "profile": "q3",
+  "map": "q3dm12",
+  "viewpos": [
+    17,
+    -2206,
+    -157
+  ],
+  "yaw": 52,
+  "platform": "Windows-10-10.0.26200-SP0",
+  "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "vulkanApi": "1.4.325",
+  "driver": "591.74.0.0",
+  "sourceCommit": "6a8ea608c046690e572e77f13195f7608478d466",
+  "workingTreeDirty": true,
+  "sourceSnapshotNote": "Hashes captured after verification; the tree also contains unrelated concurrent work. Build hashes below identify each actual executable and renderer.",
+  "sourceSha256": {
+    "code/rendererrtx/rt/rt_material.c": "2c53a9c9c1a436aaa30284f120b4bacf978ef3d60e8e34f5ff6a1d8bf9cf8f8b",
+    "code/rendererrtx/rt/rt_backend.c": "a8ccdb43f838412c086f7e9803e4050d158b7f7b1bdedc830d168a9ebd79d384",
+    "code/rendererrtx/rt/rt_gpu.h": "5483aab30d910d952c790302f606674764f0a1edcc6e35b79cd19349f65ec1e8",
+    "code/rendererrtx/shaders/rt_liquid.glsl": "e4c343a9b3e960ff39617e35f19025c05fa16eca501b1613c64bac16362f0829",
+    "code/rendererrtx/shaders/rt_path.glsl": "ca55e7d2311c4007967c949f11ececc15bccee159b7159b8a0066e1ba2af962c",
+    "code/rendererrtx/shaders/rt_common.glsl": "b317a0d5957c8a65e8bee7cb4d3952a8a65748967ff7260410609342ec565667",
+    "code/rendererrtx/shaders/rt_denoise_atrous.comp": "ea9c6f66746143b6fe2fb3aa8becc72dae6df05c9fca14a681d40190d9069643",
+    "code/rendererrtx/shaders/rt_denoise_temporal.comp": "6c01657ee6b6c8e2df990d07c4ee6fc6c1cb31dc6d880c19e3583c0b52b0b08c",
+    "code/rendererrtx/shaders/rt_composite.comp": "3a1e3cbb9b4e634d75ae009a5fa759999d6abdd3c0e069a765062b045d04c13d",
+    "code/rendererrtx/shaders/spirv/shader_data.c": "0f5a2c95586d24de91c5f55edec28ec5c0439608b8b2d02d3ac6bbb7c4dcad52",
+    "code/rendererrtx/shaders/spirv/shader_reflection.json": "9b2a5b2b208d94c67c939a80583f237235d0ebc984977a49c4c838e3d76d8077",
+    "code/client/cl_cgame.cpp": "5c0eb2f9c3d2b23e45c7c0228dd4da1d92e137348668c01479ac929ae56e9cad",
+    "tests/rtx_liquid_tests.py": "4bfbf985eac58850743cc773c088b090e75dada3511bd9b4c37f9c4003952363",
+    "tests/rtx_lightmap_execution_tests.py": "2c46febceca475cc1bdaa464c713a867e7025410cea9fcc8106cce8d2603dff1",
+    "scripts/rtx_probe.py": "b33ae3316b2c64680552695e46af083b7e50cfcc028f19993e48a3e0163a42b6"
+  },
+  "fixture": {
+    "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+    "readOnly": true,
+    "note": "Existing zz-q3netpack.pk3 overrides some liquid shaders; not untouched retail image parity.",
+    "pk3": [
+      {
+        "file": "awoken_b2.pk3",
+        "bytes": 62936463,
+        "sha256": "1ea8522e774b58bf2c959575778c400fb1cf5d39da52cc5dee882cab087ad9a0"
+      },
+      {
+        "file": "ct3tourney3.pk3",
+        "bytes": 109123669,
+        "sha256": "6cc0aa88ea0ab6e5dadf1c863df09fbcc2f8b9191ac5acd44b6c04649d9948bb"
+      },
+      {
+        "file": "pak0.pk3",
+        "bytes": 479493658,
+        "sha256": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae"
+      },
+      {
+        "file": "pak1.pk3",
+        "bytes": 374405,
+        "sha256": "d4ffd60b4b414c3419499e321b6f5c2e933cf082df85823ad2d6ae2f803e1682"
+      },
+      {
+        "file": "pak2.pk3",
+        "bytes": 7511182,
+        "sha256": "ccae938a2f13a03b24902d675181d516a431699701ed88023a307f34b5bcd58c"
+      },
+      {
+        "file": "pak3.pk3",
+        "bytes": 276305,
+        "sha256": "d03c0a0e06b99f9ecca2be7389f57faed406e85f7c09b9c56afdfa53ba25e312"
+      },
+      {
+        "file": "pak4.pk3",
+        "bytes": 9600350,
+        "sha256": "af5f6d5c82fe4440ae0bb660f0648d1fa1731a9e8305a9eb652aa243428697f1"
+      },
+      {
+        "file": "pak5.pk3",
+        "bytes": 191872,
+        "sha256": "69f87070ca7719e252a3ba97e6483f6663939c987ede550d1268d4d9a07b45bc"
+      },
+      {
+        "file": "pak6.pk3",
+        "bytes": 7346884,
+        "sha256": "bb4f0ae2bf603b050fb665436d3178ce7c1c20360e67bacf7c14d93daff38daf"
+      },
+      {
+        "file": "pak7.pk3",
+        "bytes": 320873,
+        "sha256": "de6283ce23e3486a2622c5dbf73d3721a59f24debd380e90f43a97d952fea283"
+      },
+      {
+        "file": "pak8.pk3",
+        "bytes": 454478,
+        "sha256": "812c9e97f231e89cefede3848c6110b7bd34245093af6f22c2cacde3e6b15663"
+      },
+      {
+        "file": "rq3dm5_remix.pk3",
+        "bytes": 19873347,
+        "sha256": "0ab757144312d730bcb52f28e0e5c1d036acad64994e2848cb2911b54177e815"
+      },
+      {
+        "file": "spank_dhremix.pk3",
+        "bytes": 3605620,
+        "sha256": "8e8c11a1e7538f0bc089aae214ef2379dff143d5cf7738788c7f68e4691ba930"
+      },
+      {
+        "file": "vedq3dm1_remix.pk3",
+        "bytes": 24648447,
+        "sha256": "d768c3cadc541ec8954a86437d30c47759ae9de8a926af2bf34f138a9d512501"
+      },
+      {
+        "file": "zz-q3netpack.pk3",
+        "bytes": 10119042,
+        "sha256": "dcb7dd3aac318638017294d62d6ab0131f0cb42ca88c3cb981dc884542bc393c"
+      }
+    ],
+    "mapInputs": [
+      {
+        "pak": "pak0.pk3",
+        "entry": "maps/q3dm12.bsp",
+        "bytes": 7526584,
+        "sha256": "4d8800b7bab10fea0b7c2214b57ec3b721d17ca12bc6cdd30ccacd99d7bde3b8"
+      }
+    ],
+    "cameraDemoPak": {
+      "path": ".tmp/rtx-liquids/camera.pk3",
+      "sha256": "3e21422090fb8757a03fe37c1089ed855f3cf0879356d51118e8756a64550c76"
+    }
+  },
+  "runtimeSafety": {
+    "windowed": true,
+    "privateDesktop": true,
+    "inputInjected": false,
+    "captureCommand": "screenshotPNG",
+    "operatingSystemCapture": false
+  },
+  "comparison": {
+    "demo": "rtx-liquid",
+    "advanceFrames": 10,
+    "freezeDemo": true,
+    "baseline": "compare-fnql",
+    "candidateHardware": "verified-hardware",
+    "candidateCompute": "verified-compute",
+    "observations": [
+      "Refracted pool geometry and liquid reflections",
+      "Calm optical normal removes ambient distortion",
+      "Transmitted receiver colour preserves texture detail through denoising"
+    ],
+    "offscreenGeometry": "Full-world ray traversal established by source; not a moving-source runtime test"
+  },
+  "runs": [
+    {
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\meson-q3-rtx-x64\\fntech3-q3.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\rtx-liquids\\compare-fnql\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customwidth",
+        "1280",
+        "+set",
+        "r_customheight",
+        "720",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "1280",
+        "+set",
+        "r_windowedHeight",
+        "720",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "rtx_rt_liquids",
+        "0",
+        "+set",
+        "r_liquid",
+        "2",
+        "+exec",
+        "rtx-probe.cfg"
+      ],
+      "script": "set cl_allowDownload \"0\"\nset cl_motd \"0\"\nset sv_autoRecordDemos \"0\"\nset com_maxfps \"60\"\nset com_maxfpsUnfocused \"60\"\nset cg_lagometer \"0\"\nset con_notifytime \"0\"\nset cg_drawFPS \"0\"\nset cg_drawGun \"0\"\nset cg_draw2D \"0\"\nset timedemo \"1\"\nset cl_freezeDemo \"0\"\ndemo \"rtx-liquid\"\nwait 10\nset cl_freezeDemo \"1\"\nset timedemo \"0\"\nrtx_caps_report 2\nwait 180\nscreenshotPNG native\nwait 3\nset rtx_rt_lighting \"1\"\nwait 60\nscreenshotPNG baked\nwait 3\nquit\n",
+      "utc": "2026-10-11T09:21:34.931126+00:00",
+      "commit": "6a8ea608c046690e572e77f13195f7608478d466",
+      "dirty": true,
+      "client": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-q3-rtx-x64\\fntech3-q3.exe",
+        "sha256": "84198304644e37b63012dc34758f1227605af0304a15bb812781f5c964f09842"
+      },
+      "renderers": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-q3-rtx-x64\\fnql_rtx_x86_64.dll",
+          "sha256": "fde70a78c465cd208ad0f85ae87db7dadff068c4552fe3f489fd347d630ca5c2"
+        }
+      ],
+      "paks": [
+        {
+          "name": "camera.pk3",
+          "sha256": "3e21422090fb8757a03fe37c1089ed855f3cf0879356d51118e8756a64550c76"
+        }
+      ],
+      "privateDesktop": true,
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 19.05,
+      "console": {
+        "mode": {
+          "requested": 2,
+          "active": 2,
+          "require": 0
+        },
+        "nativeDispatch": true,
+        "validationMessages": 0,
+        "validationSample": [],
+        "vuids": [],
+        "fatal": []
+      },
+      "images": [
+        {
+          "name": "native",
+          "set": [],
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\rtx-liquids\\compare-fnql\\native.png",
+          "sha256": "3ec664b89aa2efb695e8b9c00218780c99e0e475db9543fb5a811f8b2d5d9708"
+        },
+        {
+          "name": "baked",
+          "set": [
+            [
+              "rtx_rt_lighting",
+              "1"
+            ]
+          ],
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\rtx-liquids\\compare-fnql\\baked.png",
+          "sha256": "9775e8bcec1fc14968096a589bb5e21d7858d0c85cda2d0098c0f5e57c84863a"
+        }
+      ],
+      "evidencePath": ".tmp/rtx-liquids/compare-fnql",
+      "backend": "ray_tracing_pipeline",
+      "notes": "Same replay camera with rtx_rt_liquids=0 and latched r_liquid=2; native and baked room-lighting comparisons.",
+      "validationEnabled": false,
+      "consoleSha256": "2193a22de34c93f3ed1996f4658976d7395bc62ff04aed603163a638135bfeca"
+    },
+    {
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\meson-q3-rtx-x64\\fntech3-q3.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\rtx-liquids\\verified-hardware\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customwidth",
+        "1280",
+        "+set",
+        "r_customheight",
+        "720",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "1280",
+        "+set",
+        "r_windowedHeight",
+        "720",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "rtx_debug_vk_validation",
+        "1",
+        "+exec",
+        "rtx-probe.cfg"
+      ],
+      "script": "set cl_allowDownload \"0\"\nset cl_motd \"0\"\nset sv_autoRecordDemos \"0\"\nset com_maxfps \"60\"\nset com_maxfpsUnfocused \"60\"\nset cg_lagometer \"0\"\nset con_notifytime \"0\"\nset cg_drawFPS \"0\"\nset cg_drawGun \"0\"\nset cg_draw2D \"0\"\nset timedemo \"1\"\nset cl_freezeDemo \"0\"\ndemo \"rtx-liquid\"\nwait 10\nset cl_freezeDemo \"1\"\nset timedemo \"0\"\nrtx_caps_report 2\nwait 180\nscreenshotPNG native\nwait 3\nset rtx_rt_lighting \"1\"\nwait 60\nscreenshotPNG baked\nwait 3\nset r_liquidWarpScale \"0\"\nwait 60\nscreenshotPNG flat\nwait 3\nset rtx_rt_specular \"0\"\nwait 60\nscreenshotPNG transmission\nwait 3\nquit\n",
+      "utc": "2026-10-11T09:28:15.338527+00:00",
+      "commit": "6a8ea608c046690e572e77f13195f7608478d466",
+      "dirty": true,
+      "client": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-q3-rtx-x64\\fntech3-q3.exe",
+        "sha256": "84198304644e37b63012dc34758f1227605af0304a15bb812781f5c964f09842"
+      },
+      "renderers": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-q3-rtx-x64\\fnql_rtx_x86_64.dll",
+          "sha256": "bfa4d9751fda226c9f435f3f1db75d753fc99ea56bb2546557753c6b103bbac5"
+        }
+      ],
+      "paks": [
+        {
+          "name": "camera.pk3",
+          "sha256": "3e21422090fb8757a03fe37c1089ed855f3cf0879356d51118e8756a64550c76"
+        }
+      ],
+      "privateDesktop": true,
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 97.89,
+      "console": {
+        "mode": {
+          "requested": 2,
+          "active": 2,
+          "require": 0
+        },
+        "nativeDispatch": true,
+        "validationMessages": 0,
+        "validationSample": [],
+        "vuids": [],
+        "fatal": []
+      },
+      "images": [
+        {
+          "name": "native",
+          "set": [],
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\rtx-liquids\\verified-hardware\\native.png",
+          "sha256": "86887d99ac20b5da47aeb001a26928b237330a9d8b95309e78f3ec94abc5a3d3"
+        },
+        {
+          "name": "baked",
+          "set": [
+            [
+              "rtx_rt_lighting",
+              "1"
+            ]
+          ],
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\rtx-liquids\\verified-hardware\\baked.png",
+          "sha256": "85be164dbb821bcf2c71fa11a56285208dd99a4b9c9655419b3e00ddc18613f9"
+        },
+        {
+          "name": "flat",
+          "set": [
+            [
+              "r_liquidWarpScale",
+              "0"
+            ]
+          ],
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\rtx-liquids\\verified-hardware\\flat.png",
+          "sha256": "9e84cb3485f895bed8fc492cf773bd396a60e1c8425043f1f3bda1047c007e17"
+        },
+        {
+          "name": "transmission",
+          "set": [
+            [
+              "rtx_rt_specular",
+              "0"
+            ]
+          ],
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\rtx-liquids\\verified-hardware\\transmission.png",
+          "sha256": "a04a03514c7fc67089f1e6c6603719820a62e20db4344001319698da3254b70f"
+        }
+      ],
+      "evidencePath": ".tmp/rtx-liquids/verified-hardware",
+      "backend": "ray_tracing_pipeline",
+      "notes": "Q3-only Windows x64 diagnostic; final transmission demodulation and texture differentials; native, baked, calm and no-specular captures.",
+      "validationEnabled": true,
+      "consoleSha256": "d750a62bce8ce1cdd59c085a57cb985aff3664c3a74f1789b522a1ddef3c62da"
+    },
+    {
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\rtx-liquids\\verified-compute\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customwidth",
+        "960",
+        "+set",
+        "r_customheight",
+        "540",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "960",
+        "+set",
+        "r_windowedHeight",
+        "540",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "rtx_debug_vk_validation",
+        "1",
+        "+exec",
+        "rtx-probe.cfg"
+      ],
+      "script": "set cl_allowDownload \"0\"\nset cl_motd \"0\"\nset sv_autoRecordDemos \"0\"\nset com_maxfps \"60\"\nset com_maxfpsUnfocused \"60\"\nset cg_lagometer \"0\"\nset con_notifytime \"0\"\nset cg_drawFPS \"0\"\nset cg_drawGun \"0\"\nset cg_draw2D \"0\"\nset timedemo \"1\"\nset cl_freezeDemo \"0\"\ndemo \"rtx-liquid\"\nwait 10\nset cl_freezeDemo \"1\"\nset timedemo \"0\"\nrtx_caps_report 2\nwait 80\nscreenshotPNG native\nwait 3\nset rtx_rt_lighting \"1\"\nwait 40\nscreenshotPNG baked\nwait 3\nset rtx_rt_denoise \"0\"\nwait 10\nscreenshotPNG raw\nwait 3\nquit\n",
+      "utc": "2026-10-11T09:32:25.930654+00:00",
+      "commit": "6a8ea608c046690e572e77f13195f7608478d466",
+      "dirty": true,
+      "client": {
+        "path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "sha256": "dcdd55235729e189d0e56ed634a991a0b47bb4cd385d27804aeebc59e7f410a9"
+      },
+      "renderers": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fnql_rtx_x86.dll",
+          "sha256": "aa7efda6685dd309c9e2f3d7cf8a4a02b38455c88d95f89e1ef4a0f60ccfd223"
+        }
+      ],
+      "paks": [
+        {
+          "name": "camera.pk3",
+          "sha256": "3e21422090fb8757a03fe37c1089ed855f3cf0879356d51118e8756a64550c76"
+        }
+      ],
+      "privateDesktop": true,
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 15.64,
+      "console": {
+        "mode": {
+          "requested": 2,
+          "active": 2,
+          "require": 0
+        },
+        "nativeDispatch": true,
+        "validationMessages": 0,
+        "validationSample": [],
+        "vuids": [],
+        "fatal": []
+      },
+      "images": [
+        {
+          "name": "native",
+          "set": [],
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\rtx-liquids\\verified-compute\\native.png",
+          "sha256": "b23a8024dfc1c2944b8b4f2c51051831837b0387ac3e5758f02fb5c9aaffda56"
+        },
+        {
+          "name": "baked",
+          "set": [
+            [
+              "rtx_rt_lighting",
+              "1"
+            ]
+          ],
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\rtx-liquids\\verified-compute\\baked.png",
+          "sha256": "46b9560e979f0376a0e16514e3c2c577fe491500918b52abc254e5ba791a4eae"
+        },
+        {
+          "name": "raw",
+          "set": [
+            [
+              "rtx_rt_denoise",
+              "0"
+            ]
+          ],
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\rtx-liquids\\verified-compute\\raw.png",
+          "sha256": "5a4c3fb0effdf55cd8425c6e3794a35705db8e07678a1b7a934adeca4b75ef10"
+        }
+      ],
+      "evidencePath": ".tmp/rtx-liquids/verified-compute",
+      "backend": "compute",
+      "notes": "Shared Win32 client; final liquid shaders; native, baked and unfiltered captures.",
+      "validationEnabled": false,
+      "consoleSha256": "ba79a8e435fe4090f59e3a93ff147089d9081eeb3e5a5b99845e92e895fe82a4"
+    },
+    {
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\rtx-liquids\\optical-controls\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customwidth",
+        "960",
+        "+set",
+        "r_customheight",
+        "540",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "960",
+        "+set",
+        "r_windowedHeight",
+        "540",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "rtx_debug_vk_validation",
+        "1",
+        "+set",
+        "r_liquid",
+        "2",
+        "+exec",
+        "rtx-probe.cfg"
+      ],
+      "script": "set cl_allowDownload \"0\"\nset cl_motd \"0\"\nset sv_autoRecordDemos \"0\"\nset com_maxfps \"60\"\nset com_maxfpsUnfocused \"60\"\nset cg_lagometer \"0\"\nset con_notifytime \"0\"\nset cg_drawFPS \"0\"\nset cg_drawGun \"0\"\nset cg_draw2D \"0\"\nset timedemo \"1\"\nset cl_freezeDemo \"0\"\ndemo \"rtx-liquid\"\nwait 10\nset cl_freezeDemo \"1\"\nset timedemo \"0\"\nrtx_caps_report 2\nwait 80\nscreenshotPNG native\nwait 3\nset rtx_rt_specular \"0\"\nwait 60\nscreenshotPNG transmission\nwait 3\nset rtx_rt_specular \"1\"\nset rtx_rt_bounces \"0\"\nwait 60\nscreenshotPNG zero-bounces\nwait 3\nquit\n",
+      "utc": "2026-10-11T09:34:13.607358+00:00",
+      "commit": "6a8ea608c046690e572e77f13195f7608478d466",
+      "dirty": true,
+      "client": {
+        "path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "sha256": "dcdd55235729e189d0e56ed634a991a0b47bb4cd385d27804aeebc59e7f410a9"
+      },
+      "renderers": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fnql_rtx_x86.dll",
+          "sha256": "aa7efda6685dd309c9e2f3d7cf8a4a02b38455c88d95f89e1ef4a0f60ccfd223"
+        }
+      ],
+      "paks": [
+        {
+          "name": "camera.pk3",
+          "sha256": "3e21422090fb8757a03fe37c1089ed855f3cf0879356d51118e8756a64550c76"
+        }
+      ],
+      "privateDesktop": true,
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 17.58,
+      "console": {
+        "mode": {
+          "requested": 2,
+          "active": 2,
+          "require": 0
+        },
+        "nativeDispatch": true,
+        "validationMessages": 0,
+        "validationSample": [],
+        "vuids": [],
+        "fatal": []
+      },
+      "images": [
+        {
+          "name": "native",
+          "set": [],
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\rtx-liquids\\optical-controls\\native.png",
+          "sha256": "e453d9cbb04b629b8d627a0697bb1468f2e7fc6d52d5cd95169ad5db754a6957"
+        },
+        {
+          "name": "transmission",
+          "set": [
+            [
+              "rtx_rt_specular",
+              "0"
+            ]
+          ],
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\rtx-liquids\\optical-controls\\transmission.png",
+          "sha256": "ce2c08407d0e9c0e0d708d8e1e3bc150a1db291f73cb0d453ed3f630828f52d0"
+        },
+        {
+          "name": "zero-bounces",
+          "set": [
+            [
+              "rtx_rt_specular",
+              "1"
+            ],
+            [
+              "rtx_rt_bounces",
+              "0"
+            ]
+          ],
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\rtx-liquids\\optical-controls\\zero-bounces.png",
+          "sha256": "2f41d11426f7f7362cf8e40c0e7272f7f6ee84a5e1c2693daa90e98bef21bbc4"
+        }
+      ],
+      "evidencePath": ".tmp/rtx-liquids/optical-controls",
+      "backend": "compute",
+      "notes": "Shared Win32 client with r_liquid=2 still enabled; native, reflection disabled, and zero diffuse bounce captures.",
+      "validationEnabled": false,
+      "consoleSha256": "5359d3fe0077bb577ca1bf6595cbca9d99dcb8b704cfac18d49e67e381ae79a6"
+    },
+    {
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\meson-q3-rtx-x64\\fntech3-q3.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\rtx-liquids\\first\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customwidth",
+        "1280",
+        "+set",
+        "r_customheight",
+        "720",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "1280",
+        "+set",
+        "r_windowedHeight",
+        "720",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+exec",
+        "rtx-probe.cfg"
+      ],
+      "script": "set cl_allowDownload \"0\"\nset cl_motd \"0\"\nset sv_autoRecordDemos \"0\"\nset com_maxfps \"60\"\nset com_maxfpsUnfocused \"60\"\nset cg_lagometer \"0\"\nset con_notifytime \"0\"\nset cg_drawFPS \"0\"\nset r_liquid \"0\"\nset cg_drawGun \"0\"\nset cg_draw2D \"0\"\ndevmap q3dm12\nwait 60\nnoclip\nsetviewpos 17 -2206 -157 52\nrtx_rt_pick 192 -2200 -100 0 0 -1\nrtx_caps_report 2\nwait 90\nscreenshotPNG water\nwait 3\nset r_liquidWarpScale \"0\"\nwait 90\nscreenshotPNG flat\nwait 3\nsetviewpos 192 -2100 -265 90\nwait 90\nscreenshotPNG under\nwait 3\nsetviewpos -1040 -2350 -184 90\nwait 90\nscreenshotPNG slime\nwait 3\nquit\n",
+      "utc": "2026-10-11T09:06:05.651149+00:00",
+      "commit": "6a8ea608c046690e572e77f13195f7608478d466",
+      "dirty": true,
+      "client": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-q3-rtx-x64\\fntech3-q3.exe",
+        "sha256": "84198304644e37b63012dc34758f1227605af0304a15bb812781f5c964f09842"
+      },
+      "renderers": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-q3-rtx-x64\\fnql_rtx_x86_64.dll",
+          "sha256": "ed1b279112105062d2e6e4cba38263d4f70ce06f7748ccb497ec41ad7b23029f"
+        }
+      ],
+      "paks": [],
+      "privateDesktop": true,
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 36.72,
+      "console": {
+        "mode": {
+          "requested": 2,
+          "active": 2,
+          "require": 0
+        },
+        "nativeDispatch": true,
+        "validationMessages": 0,
+        "validationSample": [],
+        "vuids": [],
+        "fatal": []
+      },
+      "images": [
+        {
+          "name": "water",
+          "set": [],
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\rtx-liquids\\first\\water.png",
+          "sha256": "1e28b472b03e0c642ff3a3cfecaedb3007c5d8a8a94770695df1d3242182981c"
+        },
+        {
+          "name": "flat",
+          "set": [
+            [
+              "r_liquidWarpScale",
+              "0"
+            ]
+          ],
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\rtx-liquids\\first\\flat.png",
+          "sha256": "fbfb6ba16e37b6fcde8dcf564c539b19853f672cdb0de1c6877cdbaf53ed8729"
+        },
+        {
+          "name": "under",
+          "set": [],
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\rtx-liquids\\first\\under.png",
+          "sha256": "cef3d38430cfa7a39510e24900f4727424575380adb0219394f70c56295f4cf4"
+        },
+        {
+          "name": "slime",
+          "set": [],
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\rtx-liquids\\first\\slime.png",
+          "sha256": "ea67d53a15d3303a812808174d8776f902c13c0ca3b30b327188a27c392dbd3f"
+        }
+      ],
+      "evidencePath": ".tmp/rtx-liquids/first",
+      "backend": "ray_tracing_pipeline",
+      "notes": "Earlier liquid revision, before final footprint/denoiser refinements: clear_calm1 material pick and underside view. Slime side view is obscured by fog and is not appearance proof.",
+      "validationEnabled": false,
+      "consoleSha256": "7493498f30f110f872672786df8a5939a3a192b8e59ae7ab6ecfa4bcf77033f5"
+    }
+  ],
+  "builds": [
+    {
+      "command": "meson compile -C meson/build/win32-dev fnql_rtx_x86 fntech3",
+      "result": "passed",
+      "log": ".tmp/rtx-liquids/build-x86.log"
+    },
+    {
+      "command": "meson compile -C .tmp/meson-q3-rtx-x64 fnql_rtx_x86_64 fntech3-q3",
+      "result": "passed",
+      "log": ".tmp/rtx-liquids/build-x64.log"
+    },
+    {
+      "command": "python code/rendererrtx/shaders/build_shaders.py",
+      "result": "passed",
+      "variants": 97
+    }
+  ],
+  "checks": [
+    {
+      "command": "python -m unittest discover -s tests -p 'rtx*tests.py'",
+      "tests": 134,
+      "result": "passed",
+      "log": ".tmp/rtx-liquids/tests.log"
+    },
+    {
+      "command": "python -m unittest discover -s tests -p 'liquid*tests.py'",
+      "tests": 31,
+      "result": "passed",
+      "log": ".tmp/rtx-liquids/liquid-tests.log"
+    },
+    {
+      "command": "python -m unittest discover -s tests -p 'generate_docs_tests.py'",
+      "tests": 4,
+      "result": "passed",
+      "log": ".tmp/rtx-liquids/docs-tests.log"
+    },
+    {
+      "command": "python scripts/player_manual.py --output .tmp/rtx-liquids/manual",
+      "files": 38,
+      "result": "passed",
+      "log": ".tmp/rtx-liquids/manual.log"
+    }
+  ],
+  "limitations": [
+    "No dynamic liquid mesh silhouette",
+    "No nested-medium stack or traced caustics",
+    "Raster-only effects/models absent from traced reflections",
+    "No runtime liquid evidence for other profiles or lava",
+    "Shadow filtering and submerged-view compositor retain their existing policies"
+  ],
+  "unrelatedIssuesObserved": [
+    "Native RT room-wall grain is visible with both old and new liquid presentations."
+  ],
+  "externalCodeIncorporated": false
+}

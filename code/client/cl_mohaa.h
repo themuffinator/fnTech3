@@ -53,6 +53,13 @@ void CL_MOHAADrawPrints( void );
 void CL_MOHAADrawFades( void );
 bool CL_MOHAALetterboxActive( void );
 
+/* `localservers`: beside the game ports' getinfo, GameSpy's LAN search,
+ * whose answers join the LAN list for three seconds. */
+void CL_MOHAAGameSpyLanSearch( void );
+/* True, once, when local server `index` was listed from a GameSpy answer:
+ * the server's own getinfo answer then lists it instead. */
+bool CL_MOHAAGameSpyTakeOver( int index );
+
 /* cl_cgame.cpp's reading of a server command (cs, bcs, disconnect and the
  * rest), which the client game's slot 118 is served by. */
 qboolean CL_GetServerCommandForProfile( int serverCommandNumber );

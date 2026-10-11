@@ -14,6 +14,12 @@ of Honor and the Quake III test versions. Jedi Academy and Jedi Outcast are
 not ready: their early development builds do not play the games' sound
 properly yet.
 
+Academy's development build now routes ordinary positional sounds and loops
+through fnTech3's sound system and supplies voice-animation data. It reaches
+the player menu and survives a map restart with either sound backend enabled;
+complete playback and visible mouth animation are still being checked
+([Jedi support audit](fntech3/2026-10-07-jedi-compatibility-audit.md)).
+
 ## Quick start
 
 Most players need to change nothing: fnTech3 starts with its 3D sound on and
@@ -136,7 +142,9 @@ All of this is on by default, and each part can be adjusted on its own.
 Sounds that are meant to be "in your head" -- the announcer, menu sounds,
 music, voice chat and movie sound -- are not placed in 3D, and your own
 weapon keeps its close-up sound, though it is muffled with everything else
-when you go under water.
+when you go under water. Menu sounds never take the room's echo or the
+muffling under water, in any game's menus
+([menu sound record](fntech3/2026-10-08-ui-sound-policy.md)).
 
 ### Sound zones
 
@@ -207,6 +215,17 @@ Settings and commands only some games have:
   left-right spread. `s_language DEUTSCH` plays German voices where your copy
   has them. In single player, `s_threshold1` to `s_threshold4` set how loud a
   voice must be for a speaker's mouth to open wider.
+- **Jedi Academy:** `s_language` chooses the language the characters speak,
+  as the game's setup menus do: `deutsch` plays the German voices, `francais`
+  the French ones and `espanol` the Spanish ones, and anything else,
+  `english` by default, the English ones. A line with no recording in that
+  language plays in English. Type `snd_restart` after changing it to hear the
+  new voices.
+- **Jedi Outcast:** `s_language` chooses the language the characters speak,
+  as the game's setup menu does: `deutsch` plays the German voices and
+  `francais` the French ones, and anything else, `english` by default, the
+  English ones. A line with no recording in that language plays in English.
+  Type `snd_restart` after changing it to hear the new voices.
 - **Alice and F.A.K.K.2:** `s_separation` (default `0.3`) spreads the
   characters' speech. `s_reverb 1` (the default) lets a room the level names
   set the echo; no map that came with the games does. `s_show_sounds 1`
@@ -225,8 +244,10 @@ fnTech3 plays:
   its extension;
 - **Ogg Vorbis** files in every game;
 - **MP3** files for the games that use them: Elite Force, including its
-  speech and mouth-movement data, and Alice and F.A.K.K.2, including their
-  songs' loop points.
+  speech and mouth-movement data; Alice and F.A.K.K.2, including their
+  songs' loop points; Medal of Honor; Jedi Academy; and Jedi Outcast, which,
+  like the original game, plays a sound's `.wav` file before an `.mp3` of
+  the same name.
 
 Music works as each game's original did:
 

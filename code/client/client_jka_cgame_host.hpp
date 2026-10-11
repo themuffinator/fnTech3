@@ -216,6 +216,23 @@ static bool CL_JKACgameCall(intptr_t *args, intptr_t &operation, intptr_t &resul
         result = FS_GetFileList(VMA(1), VMA(2),
             static_cast<char *>(CL_JKACgameSpan(args[3], std::size_t(args[4]))), static_cast<int>(args[4]));
         return true;
+    case Call::CG_S_STARTSOUND: {
+        // Retail 0x412910 passes the nullable origin, entity, channel and
+        // handle to 0x46ac60. Copy native vectors before Fn consumes them.
+        for (int index = 2; index <= 4; ++index)
+            if (args[index] < INT_MIN || args[index] > INT_MAX)
+                Com_Error(ERR_DROP, "Invalid Academy spatial sound scalar");
+        vec3_t origin;
+        if (args[1]) {
+            std::memcpy(origin, CL_JKACgameSpan(args[1], sizeof(origin)), sizeof(origin));
+            if (!render::Finite(origin)) Com_Error(ERR_DROP, "Invalid Academy spatial sound origin");
+        } else if (args[2] < 0 || args[2] >= FNTECH3_JKA_MAX_GENTITIES) {
+            Com_Error(ERR_DROP, "Invalid Academy attached sound entity");
+        }
+        S_StartJKASound(args[1] ? origin : nullptr, static_cast<int>(args[2]),
+            static_cast<int>(args[3]), static_cast<sfxHandle_t>(args[4]));
+        return true;
+    }
     case Call::CG_S_STARTLOCALSOUND: {
         // Retail 0x412934 passes the handle and channel to S_StartLocalSound
         // 0x46aed0, which plays it on the listener's own entity, and returns

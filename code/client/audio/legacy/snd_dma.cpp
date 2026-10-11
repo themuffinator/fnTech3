@@ -164,6 +164,7 @@ static fntech3::audio::stvef::AmbientLoopFrame stvefAmbientLoops;
 static fntech3::audio::jka::AmbientLoops jkaAmbientLoops;
 // How wide a mouth each entity holds, which Elite Force SP's game reads.
 static fntech3::audio::stvef::lipsync::Mouths stvefMouths;
+static fntech3::audio::jka::lipsync::Mouths jkaMouths;
 static_assert( sizeof( int ) == sizeof( std::int32_t ),
 	"the game reads the mouths as a plain int array" );
 static void S_UpdateWolfETMasterFade( void );
@@ -1023,6 +1024,7 @@ static void S_Base_StartSound( const vec3_t origin, int entityNum, int entchanne
 	ch->leftvol = ch->master_vol;		// these will get calced at next spatialize
 	ch->rightvol = ch->master_vol;		// unless the game isn't running
 	ch->doppler = qfalse;
+	if ( Com_GameIsJKAMP() && S_JKAIsVoiceChannel(entchannel) ) jkaMouths.Write(entityNum,-1);
 
 	if ( Com_GameIsSTVEFSP() && ( entchannel == fntech3::audio::stvef::VoiceChannel
 		|| entchannel == fntech3::audio::stvef::AttenuatedVoiceChannel ) ) {
@@ -1048,6 +1050,17 @@ static void S_Base_StartLocalSound( sfxHandle_t sfxHandle, int channelNum, float
 	}
 
 	S_Base_StartSound( nullptr, listener_number, channelNum, sfxHandle, volume );
+}
+
+/*
+==================
+S_Base_MarkInterfaceSound
+
+This mixer, the retail-exact option, has no tone classes or room sends, so a
+sound the game's menus start plays as any local sound on its channel.
+==================
+*/
+static void S_Base_MarkInterfaceSound( qboolean ) {
 }
 
 
@@ -1271,6 +1284,7 @@ static void S_Base_ClearSoundBuffer( void ) {
 	stvefAmbientLoops.Clear();
 	jkaAmbientLoops.Clear();
 	stvefMouths.Reset();
+	jkaMouths.Reset();
 	std::fill_n( loop_channels, MAX_CHANNELS, channel_t{} );
 	numLoopChannels = 0;
 
@@ -1325,6 +1339,7 @@ static void S_Base_ClearRTCWSounds( qboolean clearMusic ) {
 	stvefAmbientLoops.Clear();
 	jkaAmbientLoops.Clear();
 	stvefMouths.Reset();
+	jkaMouths.Reset();
 	std::fill_n(loop_channels, MAX_CHANNELS, channel_t{});
 	numLoopChannels = 0;
 	S_ChannelSetup();
@@ -1676,6 +1691,29 @@ S_Base_STVEFSPMouths
 static const int *S_Base_STVEFSPMouths( void ) {
 	return stvefMouths.Levels();
 }
+
+static void S_Base_MeasureJKAMouths( int position ) {
+	namespace lipsync=fntech3::audio::jka::lipsync;
+	jkaMouths.Clear();
+	const auto thresholds=S_JKAThresholds();
+	if(!lipsync::Valid(thresholds))Com_Error(ERR_DROP,"Invalid Academy lip-sync thresholds");
+	for(const channel_t &ch:s_channels) {
+		const sfx_t *sample=ch.thesfx;
+		if(!sample||!S_JKAIsVoiceChannel(ch.entchannel)||ch.startSample==START_SAMPLE_IMMEDIATE)continue;
+		if(sample->soundChannels!=1||sample->soundCompressionMethod!=0||!lipsync::Finite(sample->jkaPeak))
+			Com_Error(ERR_DROP,"Academy legacy lip-sync requires finite mono PCM metadata");
+		const auto offset=std::int64_t(position)-ch.startSample;
+		const int value=jkaMouths.MeasureLegacy(ch.entnum,ch.startSample,position,s_soundtime,[&] {
+			if(offset<0||offset>sample->soundLength)return 0;
+			return lipsync::Legacy([sample](int frame){return S_STVEFSPSampleAt(sample,frame);},
+				static_cast<int>(offset),sample->soundLength,sample->jkaMpeg!=qfalse,sample->jkaPeak,thresholds);
+		});
+		jkaMouths.Write(ch.entnum,value);
+	}
+	jkaMouths.Mixed(s_soundtime);
+}
+
+static int S_Base_JKAVoiceVolume( int entity ) { return jkaMouths.Read(entity); }
 
 
 /*
@@ -2154,6 +2192,7 @@ static void S_Update_( int msec ) {
 	if ( Com_GameIsSTVEFSP() ) {
 		S_STVEFSPMeasureMouths( s_paintedtime );
 	}
+	if ( Com_GameIsJKAMP() ) S_Base_MeasureJKAMouths(paintStartFrame);
 
 	if ( traceTiming ) {
 		Com_Printf( "snd_timing ms=%d elapsed=%d work_ms=%d paint_ms=%d cursor=%d previous_end=%d start=%d end=%u raw_end=%d rate=%d\n",
@@ -2584,6 +2623,7 @@ extern "C" qboolean S_Base_Init( soundInterface_t *si ) {
 	si->Shutdown = S_Base_Shutdown;
 	si->StartSound = S_Base_StartSound;
 	si->StartLocalSound = S_Base_StartLocalSound;
+	si->MarkInterfaceSound = S_Base_MarkInterfaceSound;
 	si->StartRTCWSound = S_Base_StartRTCWSound;
 	si->StartWolfETSound = S_Base_StartWolfETSound;
 	si->StartWolfETLocalSound = S_Base_StartWolfETLocalSound;
@@ -2596,6 +2636,7 @@ extern "C" qboolean S_Base_Init( soundInterface_t *si ) {
 	si->StopRTCWEntityStream = S_Base_StopRTCWEntityStream;
 	si->FadeRTCWEntityStream = S_Base_FadeRTCWEntityStream;
 	si->RTCWVoiceAmplitude = S_Base_RTCWVoiceAmplitude;
+	si->JKAVoiceVolume = S_Base_JKAVoiceVolume;
 	si->StartBackgroundTrack = S_Base_StartBackgroundTrack;
 	si->StartRTCWBackgroundTrack = S_Base_StartRTCWBackgroundTrack;
 	si->FadeRTCWBackgroundTrack = S_Base_FadeRTCWBackgroundTrack;

@@ -31,6 +31,7 @@ extern "C" {
 #include "client_q3test.h"
 #include "client_q3ihv.h"
 #include "client_cvar_compat.hpp"
+#include "client_jk2_strings.hpp"
 #include "ql_font_bridge.hpp"
 #include "../compat/game_abi_adapter.h"
 #include "../compat/rtcw_module_abi.h"
@@ -64,6 +65,7 @@ namespace {
 
 static void CL_JKACgameClear();
 static bool cl_jkaCgameInitialized = false;
+static bool cl_jk2CgameInitialized = false;
 
 static const char *SkipPath( const char *path )
 {
@@ -230,7 +232,10 @@ static qboolean CL_LiquidInteractionFeedEnabled( void ) {
 	if ( cl_liquidFeedCheckFrame != cls.framecount ) {
 		cl_liquidFeedCheckFrame = cls.framecount;
 		cl_liquidFeedEnabled = ( re.AddLiquidInteractionToScene &&
-			Cvar_VariableIntegerValue( "r_liquid" ) > 0 &&
+			( Cvar_VariableIntegerValue( "r_liquid" ) > 0 ||
+			  ( !Q_stricmp( Cvar_VariableString( "cl_renderer" ), "rtx" ) &&
+			    Cvar_VariableIntegerValue( "rtx_rt_mode" ) == 2 &&
+			    Cvar_VariableIntegerValue( "rtx_rt_liquids" ) > 0 ) ) &&
 			Cvar_VariableValue( "r_liquidRipples" ) > 0.0f ) ? qtrue : qfalse;
 	}
 	enabled = cl_liquidFeedEnabled;
@@ -1899,9 +1904,10 @@ CL_ShutdonwCGame
 ====================
 */
 void CL_ShutdownCGame( void ) {
-	const bool callShutdown = !Com_GameIsJKAMP()
-		|| (cl_jkaCgameInitialized && !com_errorEntered);
+	const bool callShutdown = (!Com_GameIsJKAMP() || (cl_jkaCgameInitialized && !com_errorEntered))
+		&& (!Com_GameIsJK2MP() || (cl_jk2CgameInitialized && !com_errorEntered));
 	cl_jkaCgameInitialized = false;
+	cl_jk2CgameInitialized = false;
 
 	Key_SetCatcher( Key_GetCatcher( ) & ~KEYCATCH_CGAME );
 	cls.cgameStarted = qfalse;
@@ -1913,6 +1919,10 @@ void CL_ShutdownCGame( void ) {
 	CL_EntityOverrideCGameShutdown();
 
 	if ( !cgvm ) {
+		if ( Com_GameIsJK2MP() ) {
+			CL_JK2StringReset( 1 );
+			FS_VM_CloseFiles( H_CGAME );
+		}
 		if (Com_GameIsJKAMP()) {
 			CL_JKACgameClear();
 			FS_VM_CloseFiles(H_CGAME);
@@ -1922,10 +1932,11 @@ void CL_ShutdownCGame( void ) {
 
 	re.VertexLighting( qfalse );
 
-	// An interrupted native export must not be reentered during error recovery.
+	// An interrupted native or QVM export must not be reentered during error recovery.
 	if (callShutdown) VM_Call( cgvm, 0, CG_SHUTDOWN );
 	VM_Free( cgvm );
 	cgvm = nullptr;
+	if ( Com_GameIsJK2MP() ) CL_JK2StringReset( 1 );
 	FS_VM_CloseFiles( H_CGAME );
 	if (Com_GameIsJKAMP()) CL_JKACgameClear();
 	if ( Com_GameIsQ3Test() ) {
@@ -3900,6 +3911,7 @@ static int cl_cgameLoadDuration;
 
 void CL_InitCGame( void ) {
 	cl_jkaCgameInitialized = false;
+	cl_jk2CgameInitialized = false;
 	const char			*info;
 	const char			*mapname;
 	int					t1, t2;
@@ -3989,6 +4001,7 @@ void CL_InitCGame( void ) {
 		VM_Call( cgvm, 3, CG_INIT, clc.serverMessageSequence, clc.lastExecutedServerCommand, clc.clientNum );
 	}
 	cl_jkaCgameInitialized = Com_GameIsJKAMP();
+	cl_jk2CgameInitialized = Com_GameIsJK2MP();
 
 	// reset any CVAR_CHEAT cvars registered by cgame. Q3Test resets them only
 	// when its systeminfo turns cheats off (CL_Q3TestSystemInfoChanged): no
@@ -4338,7 +4351,11 @@ void CL_SetCGameTime( void ) {
 		return;
 	}
 
-	if ( cl.snap.serverTime - cl.oldFrameServerTime < 0 ) {
+	// Ritual's engines test every frame's snapshot for a new server count
+	// before its time: a spawn that kept the game module may then be behind
+	// the last frame (CL_AliceSnapshotServerCount).
+	const qboolean ritualRespawned = Com_GameIsRitual() ? CL_AliceSnapshotServerCount( cl.snap.snapFlags ) : qfalse;
+	if ( !ritualRespawned && cl.snap.serverTime - cl.oldFrameServerTime < 0 ) {
 		if ( Com_GameIsRTCWSP() && !clc.demoplaying && com_sv_running->integer &&
 			clc.serverAddress.type == NA_LOOPBACK ) {
 			CL_FirstSnapshot();

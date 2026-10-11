@@ -1,6 +1,7 @@
 #version 460
 #extension GL_EXT_nonuniform_qualifier : require
 #extension GL_GOOGLE_include_directive : require
+#extension GL_EXT_control_flow_attributes : require
 
 // The path tracer without VK_KHR_ray_tracing_pipeline: the per-pixel work of
 // rt_path.glsl, tracing BVHs of the compute backend's own (rt_trace_sw.glsl).

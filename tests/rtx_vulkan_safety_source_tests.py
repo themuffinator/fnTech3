@@ -128,7 +128,7 @@ class RtxVulkanSafetySourceTests(unittest.TestCase):
             self.vk,
         )
         self.assertIn(
-            "#define RTX_RT_TRACE_STORAGE_IMAGE_COUNT ( RT_BINDING_OUT_INFO - RT_BINDING_OUT_COLOR + 1u )",
+            "#define RTX_RT_TRACE_STORAGE_IMAGE_COUNT ( RT_BINDING_OUT_INDIRECT - RT_BINDING_OUT_COLOR + 1u )",
             self.vk,
         )
         self.assertIn("#define RTX_RT_SAMPLED_IMAGE_COUNT RT_MAX_TEXTURES", self.vk)
@@ -165,7 +165,7 @@ class RtxVulkanSafetySourceTests(unittest.TestCase):
         self.assertNotRegex(material, r"\btexture\(u_textures")
         self.assertNotIn("gl_RayFlagsOpaqueEXT", closest_hit)
         self.assertNotIn("gl_RayFlagsOpaqueEXT", any_hit)
-        self.assertIn("VkPipelineShaderStageCreateInfo stages[7];", pipeline)
+        self.assertIn("VkPipelineShaderStageCreateInfo stages[8];", pipeline)
         self.assertIn("vk.modules.rt_rahit", pipeline)
         self.assertIn("VK_SHADER_STAGE_ANY_HIT_BIT_KHR", pipeline)
         self.assertIn("groups[4].anyHitShader = 5;", pipeline)

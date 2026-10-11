@@ -55,4 +55,22 @@ typedef struct {
 	char servername[1024], updateInfoString[1024], messageString[1024];
 } fntech3_jk2_mp_uiClientState_t;
 
+/* UI66: jk2mp.exe 0x4b5a9c/0x4b5acb/0x4b5adc..e1 place the
+ * 1024-character token after three signed words and one binary32 value. */
+typedef struct {
+	int32_t type, subtype, intvalue;
+	float floatvalue;
+	char string[1024];
+} fntech3_jk2_mp_pc_token_t;
+
+/* UI72: 0x428789..0x4287ba copies the nine 32-bit CRT calendar fields. */
+typedef struct {
+	int32_t tm_sec, tm_min, tm_hour, tm_mday, tm_mon, tm_year;
+	int32_t tm_wday, tm_yday, tm_isdst;
+} fntech3_jk2_mp_qtime_t;
+
+/* Retail assets0.pk3 vm/ui.qvm diagnostic procedures at instructions
+ * 38438/38486 use filename local28..155, then another local at156. */
+enum { FNTECH3_JK2_MP_SOURCE_FILENAME_CHARS = 128 };
+
 #endif

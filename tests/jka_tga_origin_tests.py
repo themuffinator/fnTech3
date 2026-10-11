@@ -1,4 +1,4 @@
-"""Run the shared TGA decoder with Academy's measured row orientation."""
+"""Run the shared TGA decoder with both Jedi titles' measured row orientation."""
 
 import os
 from pathlib import Path
@@ -63,19 +63,22 @@ static void Reject() {
 }
 int main() {
     ri.FS_ReadFile=Read;ri.FS_FreeFile=FreeFile;ri.Malloc=Allocate;ri.Error=Error;ri.Printf=Print;
-    for(auto profile:{COM_GAME_JKA_SP,COM_GAME_JKA_MP,COM_GAME_QUAKE3,COM_GAME_QUAKELIVE,
-        COM_GAME_RTCW_SP,COM_GAME_RTCW_MP,COM_GAME_WOLFET,COM_GAME_STVEF_SP,COM_GAME_JK2_MP}) {
-        ri.gameId=profile;const bool jka=profile==COM_GAME_JKA_SP || profile==COM_GAME_JKA_MP;
+    for(auto profile:{COM_GAME_JKA_SP,COM_GAME_JKA_MP,COM_GAME_JK2_SP,COM_GAME_JK2_MP,
+        COM_GAME_QUAKE3,COM_GAME_QUAKELIVE,COM_GAME_RTCW_SP,COM_GAME_RTCW_MP,COM_GAME_WOLFET,
+        COM_GAME_STVEF_SP,COM_GAME_STVEF_MP,COM_GAME_QUAKE3_IHV,COM_GAME_Q3TEST,
+        COM_GAME_ALICE,COM_GAME_FAKK2,COM_GAME_MOHAA}) {
+        ri.gameId=profile;const bool jedi=profile==COM_GAME_JKA_SP || profile==COM_GAME_JKA_MP ||
+            profile==COM_GAME_JK2_SP || profile==COM_GAME_JK2_MP;
         for(int bits:{8,24,32})for(int attributes:{0,8,0x20,0x28}) {
             Header(bits==8?3:2,bits,attributes);
             for(byte value:{1,2,3,4})Pixel(bits,value);
-            Decode(jka && (attributes&0x20)?std::vector<byte>{1,2,3,4}:std::vector<byte>{3,4,1,2});
-            assert(warnings==((attributes&0x20) && !jka && profile!=COM_GAME_WOLFET?1:0));
+            Decode(jedi && (attributes&0x20)?std::vector<byte>{1,2,3,4}:std::vector<byte>{3,4,1,2});
+            assert(warnings==((attributes&0x20) && !jedi && profile!=COM_GAME_WOLFET?1:0));
         }
         for(int attributes:{0,0x10,0x20,0x30}) {
             Header(10,32,attributes);input.push_back(3);
             for(byte value:{1,2,3,4})Pixel(32,value);
-            if(jka && attributes)Reject();else Decode({3,4,1,2});
+            if(jedi && attributes)Reject();else Decode({3,4,1,2});
         }
         Header(2,32,0x20);Pixel(32,1);Reject();
         Header(2,32,0x20);input[12]=0;Reject();

@@ -815,6 +815,9 @@ int main()
 		assert( fakk2->maxConfigstrings == 1200 && fakk2->playerConfigstringBase == 768 );
 		assert( fakk2->maxClients == 128 && fakk2->bots.reliableCommands == 64 );
 		assert( alice->bots.reliableCommands == 128 );
+		// Alice's players follow its 32 light styles at 864, before its items
+		// at 1,024: fgamex86.dll adds 0x380 to a client's number.
+		assert( alice->maxConfigstrings == 1328 && alice->playerConfigstringBase == 896 );
 		assert( !std::strcmp( Com_GameManagerConfigFile( fakk2, 0 ), "config.cfg" ) );
 		assert( Com_GameManagerInstallationMatches( fakk2, COM_GAME_MARKER_FAKK2 ) );
 		assert( !Com_GameManagerInstallationMatches( fakk2, COM_GAME_MARKER_FAKK2 | COM_GAME_MARKER_ALICE ) );

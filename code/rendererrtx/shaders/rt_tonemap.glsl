@@ -65,7 +65,7 @@ const float RT_TONE_MAX_LUMINANCE = 1.0;
 // light, plus specular and emission
 vec3 traced_color(ivec2 tp, uint final)
 {
-	return imageLoad(u_reflectance, tp).rgb * imageLoad(u_filterDiffuse[final], tp).rgb +
+	return imageLoad(u_reflectance, tp).rgb * denoised_irradiance(tp, final) +
 		imageLoad(u_filterSpecular[final], tp).rgb + imageLoad(u_emission, tp).rgb;
 }
 
@@ -73,7 +73,7 @@ vec3 traced_color(ivec2 tp, uint final)
 // a mid-grey surface would return it, plus the specular light and emission
 float tone_base(ivec2 tp, uint final)
 {
-	vec3 light = imageLoad(u_filterDiffuse[final], tp).rgb * RT_TONE_GREY +
+	vec3 light = denoised_irradiance(tp, final) * RT_TONE_GREY +
 		imageLoad(u_filterSpecular[final], tp).rgb + imageLoad(u_emission, tp).rgb;
 	return denoise_luminance(max(light, vec3(0.0)));
 }

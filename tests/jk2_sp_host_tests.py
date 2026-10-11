@@ -78,6 +78,7 @@ HOST = r'''
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <map>
 #include <string>
 #define QDECL
 enum { ERR_DROP, ERR_DISCONNECT, ERR_NEED_CD, ERR_FATAL, H_QAGAME,
@@ -92,7 +93,8 @@ static bool com_errorEntered;
 static constexpr int MAXPRINTMSG=4096, MAX_STRING_CHARS=1024, MAX_QPATH=64;
 struct cvar_t {
     char *name, *string, *resetString, *latchedString;
-    int flags, modified, modificationCount; float value; int integer; cvar_t* next;
+    int flags, modified, modificationCount; float value; int integer;
+    int validator; char *mins, *maxs, *description; cvar_t* next;
 };
 struct { const char* entityParsePoint; } sv;
 struct Drop { std::string text; };
@@ -110,8 +112,43 @@ static void Q_vsnprintf(char* b, std::size_t n, const char* f, va_list a) { vsnp
 static void FS_VM_CloseFiles(int) { ++filesClosed; }
 static int Sys_Milliseconds() { return 777; }
 static int Com_Milliseconds() { return 888; }
-static cvar_t* Cvar_Get(const char*,const char*,int) { static cvar_t c{}; return &c; }
-static void Cvar_Set(const char*,const char*) {}
+static std::map<std::string,cvar_t> cvars;
+static int cvarGetCalls;
+static std::string CanonicalName(const char* name) {
+    std::string result=name;
+    for(char& c:result) if(c>='A' && c<='Z') c += 'a'-'A';
+    return result;
+}
+static cvar_t* Cvar_Get(const char* name,const char* value,int flags) {
+    ++cvarGetCalls;
+    const auto key=CanonicalName(name);
+    auto inserted=cvars.emplace(key,cvar_t{});
+    auto& c=inserted.first->second;
+    if(inserted.second) {
+        c.name=const_cast<char*>(inserted.first->first.c_str());
+        c.string=c.resetString=const_cast<char*>(value);
+        c.value=std::strtof(value,nullptr); c.integer=std::atoi(value);
+        c.modified=1; c.modificationCount=1; c.validator=0x12345678;
+    }
+    // Production Cvar_Get applies a pending latch even for (name,"",0).
+    if(c.latchedString) {
+        c.string=c.latchedString; c.latchedString=nullptr;
+        c.value=std::strtof(c.string,nullptr); c.integer=std::atoi(c.string);
+        c.modified=1; ++c.modificationCount;
+    }
+    c.flags|=flags; return &c;
+}
+static const cvar_t* Cvar_FindExisting(const char* name) {
+    const auto found=cvars.find(CanonicalName(name));
+    return found==cvars.end() ? nullptr : &found->second;
+}
+static void Cvar_Set(const char* name,const char* value) {
+    auto* c=const_cast<cvar_t*>(Cvar_FindExisting(name));
+    if(!c)c=Cvar_Get(name,value,0);
+    c->string=const_cast<char*>(value); c->latchedString=nullptr;
+    c->value=std::strtof(value,nullptr); c->integer=std::atoi(value);
+    c->modified=1; ++c->modificationCount;
+}
 static int Cvar_VariableIntegerValue(const char*) { return 123; }
 static void Cvar_VariableStringBuffer(const char* name,char* b,int n) {
     std::snprintf(b,n,"%s", !std::strcmp(name,"mapname") ? "kejim_post" : "");
@@ -140,11 +177,13 @@ static vm_t* VM_CreateTable(int,const char*,vmMainFunc_t,void**);
 static void VM_Free(vm_t*) { ++vmFreed; }
 static void* Sys_LoadFunction(void*,const char*);
 #include "code/server/server_jk2_sp_game.hpp"
+static fntech3_jk2_sp_cvar_t* entryCvar;
 static void FakeInit(const char* map,const char* target,int checksum,const char* entities,
     int time,int seed,int global,int saved,int transition) {
     assert(!std::strcmp(map,"kejim_post") && !*target && checksum==123);
     assert(!std::strcmp(entities,"{}") && time==1000 && seed==53 && global==888);
     assert(!saved && !transition); ++initCalls;
+    assert(entryCvar && entryCvar->integer==1200);
     assert(SV_JK2SPMalloc(17,11,1));
     // Exercise refusal with a malformed native pointer without dereferencing it.
     auto callback = reinterpret_cast<void(*)(void*,const char*)>(jk2SpImports.SetBrushModel);
@@ -172,12 +211,58 @@ static void* Sys_LoadFunction(void*,const char* name) {
 }
 int main() {
     SV_JK2SPFillImports();
+    // Retail SP's save mask is 2, not OpenJK's 256. It must not become
+    // the common engine's USERINFO flag, and internal cvar tails never escape.
+    auto* gravity=jk2SpImports.cvar("g_gravity","800",0x42);
+    auto* internalGravity=Cvar_Get("g_gravity","",0);
+    assert(!(internalGravity->flags & 2));
+    assert(gravity->flags==0x42 && gravity->integer==800 && gravity->value==800.0f);
+    assert(reinterpret_cast<void*>(gravity)!=reinterpret_cast<void*>(internalGravity));
+    assert(gravity->next==nullptr);
+    auto* skill=jk2SpImports.cvar("g_spskill","0",3);
+    assert(skill!=gravity && skill->next==gravity);
+    assert(gravity==jk2SpImports.cvar("G_GRAVITY","800",0));
+    assert(gravity->flags==0x42 && !(internalGravity->flags & 2));
+    assert(skill->flags==3 && Cvar_Get("g_spskill","",0)->flags==1);
+    // Live value, latch and modification metadata are refreshed on entry,
+    // including an engine-side edit that did not use the import callback.
+    jk2SpImports.cvar_set("g_gravity","900");
+    assert(gravity->integer==900 && !std::strcmp(gravity->string,"900"));
+    Cvar_Set("g_gravity","1000");
+    internalGravity->latchedString=const_cast<char*>("1100");
+    internalGravity->flags|=0x800000; // private engine metadata is not retail flags.
+    jk2SpImports.cvar("third","1",0);
+    assert(gravity->integer==1000 && gravity->value==1000.0f);
+    assert(gravity->modificationCount==internalGravity->modificationCount);
+    assert(gravity->modified==internalGravity->modified);
+    assert(gravity->latchedString==internalGravity->latchedString && gravity->flags==0x42);
+    assert(internalGravity->latchedString && !std::strcmp(internalGravity->latchedString,"1100"));
+    assert(!std::strcmp(gravity->string,"1000"));
+    const int getCalls=cvarGetCalls;
+    gravity->modified=0; SV_JK2SPSyncCvars();
+    assert(!gravity->modified && cvarGetCalls==getCalls && gravity->integer==1000);
+    assert(gravity->latchedString && !std::strcmp(gravity->latchedString,"1100"));
+    jk2SpImports.cvar_set("third","2"); assert(!gravity->modified);
+    jk2SpImports.cvar_set("g_gravity","1200");
+    assert(gravity->modified && gravity->integer==1200 && !gravity->latchedString);
+    // Registering a known engine USERINFO cvar cannot label it SAVEGAME.
+    Cvar_Get("existing","7",2);
+    assert(jk2SpImports.cvar("existing","7",0)->flags==0);
+    for(int invalid=0;invalid<2;++invalid) {
+        try { jk2SpImports.cvar(invalid ? "bad" : nullptr,invalid ? nullptr : "0",0); assert(false); }
+        catch(const Drop&) {}
+    }
+    // Missing engine records are refused without reading their retired strings.
+    cvars.erase("third");
+    try { SV_JK2SPSyncCvars(); assert(false); }
+    catch(const Drop& drop) { assert(drop.text.find("no longer exists: third")!=std::string::npos); }
     SV_JK2SPPrintf("literal %s", "%n"); assert(printed=="literal %n");
     assert(SV_JK2SPMalloc(17,11,1));
     assert(jk2SpMemory.Count()==1);
     try { jk2SpImports.unserved[0](); assert(false); }
     catch(const Drop& drop) { assert(drop.text.find("42 (+0xa8)")!=std::string::npos); }
     assert(jk2SpMemory.Count()==0 && !jk2SpGame && !jk2SpInitComplete && filesClosed==1);
+    assert(jk2SpCvars.empty() && !jk2SpCvarHead);
     // Repeated cleanup is safe; unowned frees cannot poison the allocation list.
     SV_JK2SPReset();
     assert(SV_JK2SPMalloc(3,32,0));
@@ -187,10 +272,13 @@ int main() {
     try { SV_JK2SPMalloc(-1,11,0); assert(false); } catch(const Drop&) {}
     assert(jk2SpMemory.Count()==0);
     SV_JK2SPGameEntry(GAME_SHUTDOWN); assert(shutdownCalls==0);
+    entryCvar=jk2SpImports.cvar("g_gravity","800",0x42);
+    Cvar_Set("g_gravity","1200");
     jk2SpGame=FakeGetAPI(&jk2SpImports); sv.entityParsePoint="{}";
     try { SV_JK2SPGameEntry(GAME_INIT,1000,53,0); assert(false); }
     catch(const Drop& drop) { assert(drop.text.find("28 (+0x70)")!=std::string::npos); }
     assert(initCalls==1 && jk2SpMemory.Count()==0 && !jk2SpGame && !jk2SpInitComplete);
+    assert(jk2SpCvars.empty() && !jk2SpCvarHead);
     com_errorEntered=true;
     SV_JK2SPGameEntry(GAME_SHUTDOWN); assert(shutdownCalls==0);
     com_errorEntered=false;

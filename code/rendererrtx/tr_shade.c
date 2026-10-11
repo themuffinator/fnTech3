@@ -1384,6 +1384,45 @@ static qboolean VK_JKATintPipeline( uint32_t pipeline, const shaderStage_t *pSta
 	return qtrue;
 }
 
+/* Opaque coverage needs only position. Alpha-tested coverage uses the original
+ * stage expression (including animated UVs/entity alpha) with colour masked;
+ * a sprite depthFragment pipeline is unsuitable because it changes depth. */
+static qboolean VK_RTDepthOpaque( void )
+{
+	int stage;
+	for ( stage = 0; stage < MAX_SHADER_STAGES && tess.xstages[stage]; ++stage ) {
+		const shaderStage_t *s = tess.xstages[stage];
+		Vk_Pipeline_Def def;
+		if ( !( s->stateBits & GLS_DEPTHMASK_TRUE ) ||
+			( s->stateBits & ( GLS_ATEST_BITS | GLS_ALICE_ATEST_BITS | GLS_DEPTHFUNC_EQUAL ) ) ||
+			RB_AliceSkipStage( s ) ) continue;
+		Com_Memset( &def, 0, sizeof( def ) );
+		def.shader_type = TYPE_COLOR_WHITE;
+		def.state_bits = s->stateBits & ~( GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS );
+		def.face_culling = tess.shader->cullType;
+		def.polygon_offset = tess.shader->polygonOffset;
+		def.mirror = backEnd.viewParms.portalView == PV_MIRROR;
+		def.depth_only = qtrue;
+		vk_bind_pipeline( vk_find_pipeline_ext( 0, &def, qfalse ) );
+		vk_bind_index();
+		vk_bind_geometry( TESS_XYZ );
+		vk_draw_geometry( tess.depthRange, qtrue );
+		return qtrue;
+	}
+	return qfalse;
+}
+
+static uint32_t VK_RTDepthPipeline( uint32_t pipeline )
+{
+	Vk_Pipeline_Def def;
+	vk_get_pipeline_def( pipeline, &def );
+	def.state_bits &= ~( GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS );
+	def.depth_only = qtrue;
+	def.fog_stage = 0;
+	def.depth_fade = 0;
+	return vk_find_pipeline_ext( 0, &def, qfalse );
+}
+
 static void RB_IterateStagesGeneric( const shaderCommands_t *input, qboolean fogCollapse )
 #else
 static void RB_IterateStagesGeneric( const shaderCommands_t *input )
@@ -1433,6 +1472,8 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 
 		// Alice's per-draw skips; the stage adds no tessellation flags
 		if ( RB_AliceSkipStage( pStage ) )
+			continue;
+		if ( tess.rtDepthOnly && !( pStage->stateBits & GLS_DEPTHMASK_TRUE ) )
 			continue;
 
 #ifdef USE_VBO
@@ -1520,12 +1561,15 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 		if ( forced || tinted ) {
 			pipeline = forcedPipeline;
 		}
+		if ( tess.rtDepthOnly ) {
+			pipeline = VK_RTDepthPipeline( pipeline );
+		}
 
 		vk_bind_pipeline( pipeline );
 		vk_bind_geometry( tess_flags );
 		vk_draw_geometry( tess.depthRange, qtrue );
 
-		if ( pStage->depthFragment && !forced ) {
+		if ( pStage->depthFragment && !forced && !tess.rtDepthOnly ) {
 			if ( backEnd.viewParms.portalView == PV_MIRROR )
 				pipeline = pStage->vk_mirror_pipeline_df;
 			else
@@ -2214,6 +2258,10 @@ void RB_StageIteratorGeneric( void )
 #endif
 
 #ifdef USE_VULKAN
+	if ( tess.rtDepthOnly ) {
+		if ( !VK_RTDepthOpaque() ) RB_IterateStagesGeneric( &tess, qfalse );
+		return;
+	}
 	if ( tess.rtFogOnly ) {
 		// the path tracer drew the stages; blend only the fog over them
 		if ( tess.fogNum && tess.shader->fogPass ) {
@@ -2490,7 +2538,7 @@ void RB_EndSurface( void ) {
 	// call off to shader specific tess end function
 	//
 	tess.shader->optimalStageIteratorFunc();
-	RB_CelOutlineTessEnd();
+	if ( !tess.rtDepthOnly ) RB_CelOutlineTessEnd();
 
 	//
 	// draw debugging stuff

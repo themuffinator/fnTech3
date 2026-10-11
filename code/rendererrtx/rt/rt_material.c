@@ -11,12 +11,13 @@ One GPU material per shader_t (after remapping), holding the shader's stages
 as the parser left them (rt_stage_source.h). Classification decides which
 surfaces the path tracer draws:
 
-- traced: the first stage writes depth without blending (opaque), or a stage
-  alpha-tests (masked); the trace shades these pixels;
+- traced: the first stage writes depth without blending (opaque), a stage
+  alpha-tests (masked), or a supported liquid supplies an optical interface;
+  the trace shades these pixels;
 - sky and portal: kept in the acceleration structure so primary rays stop at
   them, but the raster pass keeps those pixels (skybox, portal view);
-- everything else (blended, additive, fog, polygon-offset decals, deformed
-  geometry) stays with the raster overlay pass.
+- everything else (other blends, additive effects, fog, polygon-offset decals,
+  unsupported deformed geometry) stays with the raster overlay pass.
 
 The stages keep their blends; rt_material.glsl evaluates them with the
 lighting term (the $lightmap stage, the baked vertex light of a vertex-lit
@@ -31,7 +32,7 @@ Included by vk.c.
 
 typedef enum {
 	RT_OWNER_RASTER,		// drawn by the overlay pass after the trace
-	RT_OWNER_TRACED,		// opaque or masked; the trace owns its pixels
+	RT_OWNER_TRACED,		// opaque, masked or liquid; the trace owns its pixels
 	RT_OWNER_BASE_RASTER	// sky and portals: drawn before the trace and kept
 } rtOwner_t;
 
@@ -691,6 +692,37 @@ static qboolean RT_ShaderEmission( const shader_t *shader, vec3_t emission )
 	return ( 0.2126f * dark[0] + 0.7152f * dark[1] + 0.0722f * dark[2] ) >= RT_EMISSION_MIN ? qtrue : qfalse;
 }
 
+/* Small authored wave deforms become optical normals on the BSP interface.
+ * Other deforms, cutouts and screen-reading materials keep their raster path.
+ * Contents, never texture names, select the liquid contract for every profile. */
+static qboolean RT_ShaderIsLiquid( const shader_t *shader )
+{
+	int i;
+	if ( !shader || !rtx_rt_liquids || !rtx_rt_liquids->integer ||
+		!( shader->contentFlags & ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ) ||
+		shader->rtNumStages <= 0 || shader->rtNumStages > RT_GPU_MAX_STAGES || !shader->rtStages || shader->polygonOffset ||
+		shader->numDeforms < 0 || shader->numDeforms > MAX_SHADER_DEFORMS ||
+		shader->hasScreenMap || RT_ShaderIsSky( shader ) || shader->sort == SS_PORTAL ||
+		( shader->surfaceFlags & SURF_NODRAW ) ) {
+		return qfalse;
+	}
+	for ( i = 0; i < shader->numDeforms; i++ ) {
+		if ( shader->deforms[i].deformation != DEFORM_WAVE ||
+			!( fabsf( shader->deforms[i].deformationWave.base ) +
+			fabsf( shader->deforms[i].deformationWave.amplitude ) <= 4.0f ) ) {
+			return qfalse;
+		}
+	}
+	for ( i = 0; i < shader->rtNumStages; i++ ) {
+		const rtStageSource_t *stage = &shader->rtStages[i];
+		if ( stage->isScreenMap || ( stage->stateBits &
+			( GLS_ATEST_BITS | GLS_ALICE_ATEST_BITS | GLS_DEPTHTEST_DISABLE | GLS_POLYMODE_LINE ) ) ) {
+			return qfalse;
+		}
+	}
+	return qtrue;
+}
+
 static rtOwner_t RT_ClassifyOwner( const shader_t *shader, qboolean *masked )
 {
 	const rtStageSource_t *first;
@@ -703,6 +735,9 @@ static rtOwner_t RT_ClassifyOwner( const shader_t *shader, qboolean *masked )
 	}
 	if ( shader->sort == SS_PORTAL ) {
 		return RT_OWNER_BASE_RASTER;
+	}
+	if ( RT_ShaderIsLiquid( shader ) ) {
+		return RT_OWNER_TRACED;
 	}
 	if ( shader->rtNumStages <= 0 || !shader->rtStages ||
 		shader->polygonOffset || shader->numDeforms > 0 || shader->hasScreenMap ||
@@ -967,6 +1002,21 @@ static qboolean RT_TranslateMaterial( const shader_t *shader, rtGpuMaterial_t *o
 	out->params[0] = envMapped ? 0.3f : 0.8f;	// roughness
 	out->params[1] = 0.0f;						// metallic
 	out->params[2] = envMapped ? 0.25f : 0.04f;	// normal-incidence specular reflectance
+	if ( RT_ShaderIsLiquid( shader ) ) {
+		const unsigned blend = RT_StageBlend( &shader->rtStages[0] );
+		out->flags |= RT_MF_LIQUID | RT_MF_TWO_SIDED;
+		// An opaque first stage (q3dm12's slime, lava) stays opaque. Only
+		// authored see-through water becomes a transmitting dielectric.
+		if ( ( shader->contentFlags & CONTENTS_WATER ) &&
+			!( shader->contentFlags & ( CONTENTS_SLIME | CONTENTS_LAVA ) ) &&
+			blend && blend != ( GLS_SRCBLEND_ONE | GLS_DSTBLEND_ZERO ) ) {
+			out->flags |= RT_MF_TRANSMISSIVE;
+		}
+		out->params[0] = 0.08f;
+		out->params[3] = ( shader->contentFlags & CONTENTS_LAVA ) ? 1.45f :
+			( shader->contentFlags & CONTENTS_SLIME ) ? 1.38f : 1.333f;
+		out->params[2] = powf( ( out->params[3] - 1.0f ) / ( out->params[3] + 1.0f ), 2.0f );
+	}
 
 	// a texture pack's companion maps, sampled through the stage they
 	// belong to (rt_material.glsl rt_material_maps)

@@ -134,6 +134,7 @@ def default_sound():
     return COMMON + r'''
 #include "code/client/audio/shared/RTCWDefaultSound.h"
 #include "code/client/audio/shared/AudioSpeakerLayout.h"
+#include "code/client/audio/shared/JKALipSync.h"
 #include <cmath>
 #include <string>
 #include <map>
@@ -143,6 +144,7 @@ static bool Com_GameIsWolfET(){return wolfet;}
 static bool Com_GameIsSTVEF(){return stvef;}static bool Com_GameIsAlice(){return false;}
 static bool Com_GameIsRitual(){return false;}
 static bool Com_GameIsMOHAA(){return false;}
+static bool Com_GameIsJKAMP(){return false;}
 static int Cvar_VariableIntegerValue(const char *name){assert(std::string(name)=="s_defaultsound");return audible;}
 constexpr bool qfalse=false,qtrue=true;
 struct sndBuffer{short sndChunk[1024];sndBuffer *next;};
@@ -166,7 +168,7 @@ namespace openal {
 using byte=unsigned char;
 enum class AudioSampleEncoding{PCM};struct AudioSampleFormat{AudioSampleEncoding encoding;int channels;};
 struct OpenALDevice{bool SupportsSampleFormat(AudioSampleFormat){return true;}};
-struct snd_info_t{int width=2,channels=1,size=0,dataofs=0,samples=0,rate=22050;unsigned speakerMask=0;float peak=0;};
+struct snd_info_t{int width=2,channels=1,size=0,dataofs=0,samples=0,rate=22050,mpegBytes=0;unsigned speakerMask=0;float peak=0,jkaMpegPeak=128;};
 static int openalCodecLoads=0;
 static void *S_CodecLoad(const char *,snd_info_t *){++openalCodecLoads;return nullptr;}
 namespace fnql {
@@ -182,7 +184,7 @@ static std::vector<short> DownmixPCM16ToStereo(const std::vector<short> &,int){r
 constexpr int kDefaultStreamChannels=2;
 struct SoundSample{
  std::string name_;bool defaultSample_=false,missing_=false,loaded_=false,fail=false,loadAttempted_=false;
- int durationMs_=0,sourceFrameBytes_=0;float peak_=0;
+ int durationMs_=0,sourceFrameBytes_=0;float peak_=0,jkaPeak_=128;bool jkaMpeg_=false;
  std::vector<short> uploaded;
  SoundSample(std::string name,int):name_(name){}
  bool UploadPCM(OpenALDevice &,const std::vector<short> &pcm,AudioSampleFormat f,int rate){assert(f.channels==1&&rate==22050);uploaded=pcm;durationMs_=int(pcm.size())*1000/rate;return !fail;}

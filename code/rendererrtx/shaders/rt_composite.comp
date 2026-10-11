@@ -27,6 +27,9 @@ const uint RT_VIEW_HISTORY = 7u;
 const uint RT_VIEW_DEPTH = 8u;
 const uint RT_VIEW_MOTION = 9u;
 const uint RT_VIEW_LIGHTING = 10u;
+const uint RT_VIEW_DIRECT = 11u;
+const uint RT_VIEW_INDIRECT = 12u;
+const uint RT_VIEW_SHADOW_RESPONSE = 13u;
 // the lighting view's surfaces: a light stone's reflectance, below the tone
 // mapper's mid-grey so that both light and shade show
 const float RT_VIEW_CLAY = 0.10;
@@ -70,11 +73,11 @@ void main()
 
 	if ((info & RT_PIXEL_OWNED) != 0u) {
 		vec3 R = imageLoad(u_reflectance, tp).rgb;
-		vec3 E = imageLoad(u_filterDiffuse[final], tp).rgb;
+		vec3 E = denoised_irradiance(tp, final);
 		vec3 S = imageLoad(u_filterSpecular[final], tp).rgb;
 		vec4 emissionFog = imageLoad(u_emission, tp);
 		vec3 Em = emissionFog.rgb;
-		if ((pc.extra.w & RT_COMPOSITE_SHOULDER) != 0u) {
+		if ((pc.extra.w & RT_COMPOSITE_SHOULDER) != 0u && (info & RT_PIXEL_LIQUID) == 0u) {
 			// the specular light the same lights reflect eases with it, or a
 			// lamp's own highlight would still wash its wall out
 			vec3 eased = shoulder_irradiance(E, 0.8, 1.25);
@@ -105,19 +108,20 @@ void main()
 		} else if (view == RT_VIEW_REFLECTANCE) {
 			color = R;
 		} else if (view == RT_VIEW_NORMAL) {
-			color = oct_decode(imageLoad(u_normalDepth[cur], tp).xy) * 0.5 + 0.5;
+			color = oct_decode(read_normal_depth(cur, tp).xy) * 0.5 + 0.5;
 		} else if (view == RT_VIEW_IRRADIANCE) {
 			color = E * 0.5;
 		} else if (view == RT_VIEW_NOISY_IRRADIANCE) {
-			color = imageLoad(u_noisyDiffuse, tp).rgb * 0.5;
+			vec4 indirect = imageLoad(u_noisyIndirect, tp);
+			color = (imageLoad(u_noisyDiffuse, tp).rgb + indirect.rgb * indirect.a) * 0.5;
 		} else if (view == RT_VIEW_SPECULAR) {
 			color = S;
 		} else if (view == RT_VIEW_EMISSION) {
 			color = Em;
 		} else if (view == RT_VIEW_HISTORY) {
-			color = vec3(imageLoad(u_histDiffuse[cur], tp).a / float(max(pc.extra.x, 1u)));
+			color = vec3(imageLoad(u_histSpecular[cur], tp).a / float(max(pc.extra.x, 1u)));
 		} else if (view == RT_VIEW_DEPTH) {
-			color = vec3(fract(imageLoad(u_normalDepth[cur], tp).z / 256.0));
+			color = vec3(fract(read_normal_depth(cur, tp).z / 256.0));
 		} else if (view == RT_VIEW_LIGHTING) {
 			// the light alone: what a plain grey surface would return there,
 			// plus the specular light and emission, through the same camera
@@ -138,7 +142,18 @@ void main()
 			}
 			color = mix(pc.fog.rgb, color, clamp(emissionFog.a, 0.0, 1.0));
 		} else if (view == RT_VIEW_MOTION) {
-			color = vec3(imageLoad(u_motion, tp).xy * 32.0 + 0.5, 0.5);
+			color = vec3(read_motion(tp).xy * 32.0 + 0.5, 0.5);
+		} else if (view == RT_VIEW_DIRECT) {
+			// A fixed bounded diagnostic curve keeps HDR-lit floors from
+			// saturating both the lit and shadowed values in an 8-bit capture.
+			vec3 light = max(imageLoad(u_filterDiffuse[final], tp).rgb, vec3(0.0));
+			color = light / (vec3(1.0) + light);
+		} else if (view == RT_VIEW_INDIRECT) {
+			vec3 light = max(imageLoad(u_filterIndirect[final], tp).rgb, vec3(0.0));
+			color = light / (vec3(1.0) + light);
+		} else if (view == RT_VIEW_SHADOW_RESPONSE) {
+			color = vec3(imageLoad(u_histDiffuse[cur], tp).a / 0.15,
+				imageLoad(u_noisyDiffuse, tp).a, 0.0);
 		}
 		result = vec4(max(color, vec3(0.0)), 1.0);
 	}

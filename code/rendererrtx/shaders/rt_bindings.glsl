@@ -26,15 +26,15 @@ layout(set = 0, binding = 0, std430) readonly buffer RtWorldBvh {
 	RtBvhNode nodes[];
 } u_worldBvh;
 
-layout(set = 0, binding = 21, std430) readonly buffer RtWorldBvhTris {
+layout(set = 0, binding = 22, std430) readonly buffer RtWorldBvhTris {
 	RtBvhTri tris[];
 } u_worldTris;
 
-layout(set = 0, binding = 22, std430) readonly buffer RtDynamicBvh {
+layout(set = 0, binding = 23, std430) readonly buffer RtDynamicBvh {
 	RtBvhNode nodes[];
 } u_dynamicBvh;
 
-layout(set = 0, binding = 23, std430) readonly buffer RtDynamicBvhTris {
+layout(set = 0, binding = 24, std430) readonly buffer RtDynamicBvhTris {
 	RtBvhTri tris[];
 } u_dynamicTris;
 #else
@@ -86,13 +86,13 @@ layout(set = 0, binding = 11) uniform sampler2D u_textures[RT_MAX_TEXTURES];
 
 // Each dynamic vertex's world position last frame; w is 0 for a vertex whose
 // entity was not there (rt/rt_backend.c RT_WritePreviousPositions).
-layout(set = 0, binding = 19, std430) readonly buffer RtDynamicPrevious {
+layout(set = 0, binding = 20, std430) readonly buffer RtDynamicPrevious {
 	vec4 positions[];
 } u_dynamicPrevious;
 
 // The triangle light each world triangle emits as, by its index in the world
 // index buffer, ~0 for none (rt/rt_lights.c RT_MapPrimitiveLights).
-layout(set = 0, binding = 20, std430) readonly buffer RtPrimitiveLights {
+layout(set = 0, binding = 21, std430) readonly buffer RtPrimitiveLights {
 	uint lights[];
 } u_primitiveLights;
 

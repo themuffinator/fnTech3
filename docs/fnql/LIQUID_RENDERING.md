@@ -1,5 +1,11 @@
 # Liquid Rendering
 
+RTX native tracing now owns supported liquid interfaces and replaces these
+screen-space passes with traced reflection and transmission. It retains the
+shared wave field and interaction feed. Raster mode, unsupported materials
+and failed tracing retain this path; see the
+[RTX liquid record](../fntech3/2026-10-11-rtx-liquids.md).
+
 > **fnTech3 note.** Written for FnQL; the liquid effect is available in every
 > fnTech3 game. Its interaction ripples are fed from the Quake III-style
 > client-game path, which Quake III Arena, Quake Live and Elite Force use, and

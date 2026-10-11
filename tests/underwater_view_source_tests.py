@@ -161,7 +161,7 @@ class UnderwaterViewFeedTests(unittest.TestCase):
         # The version has moved on since the export was added; 30 is Medal of
         # Honor's model registration, appended after it, and 31 Elite Force
         # single player's scissor and raw-image members, appended after that.
-        self.assertIn("#define	REF_API_VERSION		34", public)
+        self.assertIn("#define	REF_API_VERSION		35", public)
 
     def test_client_samples_the_eye_and_skips_non_world_scenes(self) -> None:
         client = read("code/client/cl_cgame.cpp")

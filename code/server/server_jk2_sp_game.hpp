@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <array>
 #include <cstdarg>
+#include <map>
+#include <string>
 #include <utility>
 
 namespace {
@@ -14,12 +16,16 @@ fntech3_jk2_sp_game_export_t *jk2SpGame = nullptr;
 fntech3::jk2::sp::AllocationPool jk2SpMemory;
 bool jk2SpInitComplete = false;
 std::int32_t jk2SpVoiceVolume[1024]{};
+std::map<std::string, fntech3_jk2_sp_cvar_t> jk2SpCvars;
+fntech3_jk2_sp_cvar_t *jk2SpCvarHead = nullptr;
 
 void SV_JK2SPReset() {
 	jk2SpGame = nullptr;
 	jk2SpInitComplete = false;
 	jk2SpMemory.Reset();
 	FS_VM_CloseFiles( H_QAGAME );
+	jk2SpCvars.clear();
+	jk2SpCvarHead = nullptr;
 }
 
 /* No opaque entity, save or Ghoul2 pointer is dereferenced by a refusal.
@@ -48,15 +54,60 @@ void SV_JK2SPError( std::int32_t level, const char *fmt, ... ) {
 }
 void SV_JK2SPWriteCam( const char * ) { SV_JK2SPRefuseImport<1>(); }
 std::int32_t SV_JK2SPMilliseconds() { return Sys_Milliseconds(); }
-fntech3_jk2_sp_cvar_t *SV_JK2SPCvar( const char *name, const char *value, std::int32_t flags ) {
-	/* Retail reads string at +4, value at +28 and integer at +32. The
-	 * common prefix is frozen; none of the engine's extended tail escapes. */
-	static_assert( offsetof( cvar_t, string ) == offsetof( fntech3_jk2_sp_cvar_t, string ) );
-	static_assert( offsetof( cvar_t, value ) == offsetof( fntech3_jk2_sp_cvar_t, value ) );
-	static_assert( offsetof( cvar_t, integer ) == offsetof( fntech3_jk2_sp_cvar_t, integer ) );
-	return reinterpret_cast<fntech3_jk2_sp_cvar_t *>( Cvar_Get( name, value, flags ) );
+/* Retail 1.02a's save writer tests bit 2 at 0x438556 and 0x438585,
+ * then writes CVCN/CVAR/VALU chunks. It is not the common engine's
+ * USERINFO bit, nor modern OpenJK's SAVEGAME bit 256. Preserve it only
+ * in the external record: campaign saves are still an unserved boundary. */
+constexpr int JK2_SP_CVAR_SAVEGAME = 2;
+constexpr int JK2_SP_CVAR_COMMON_FLAGS = 0x7ff & ~JK2_SP_CVAR_SAVEGAME;
+void SV_JK2SPSyncCvars() {
+	for ( auto &entry : jk2SpCvars ) {
+		// Cvar_Get consumes latched values even with empty value/zero flags.
+		// Publication must observe the record without triggering a restart.
+		const cvar_t *internal = Cvar_FindExisting( entry.first.c_str() );
+		if ( !internal ) {
+			Com_Error( ERR_DROP, "Jedi Outcast SP registered cvar no longer exists: %s", entry.first.c_str() );
+			return;
+		}
+		auto &external = entry.second;
+		// Native modules may acknowledge a change by clearing modified. Do
+		// not revive it merely because an unrelated import publishes again.
+		if ( !external.name || external.modificationCount != internal->modificationCount )
+			external.modified = internal->modified;
+		external.name = internal->name;
+		external.string = internal->string;
+		external.resetString = internal->resetString;
+		external.latchedString = internal->latchedString;
+		external.flags = ( external.flags & JK2_SP_CVAR_SAVEGAME )
+			| ( internal->flags & JK2_SP_CVAR_COMMON_FLAGS );
+		external.modificationCount = internal->modificationCount;
+		external.value = internal->value;
+		external.integer = internal->integer;
+	}
 }
-void SV_JK2SPCvarSet( const char *name, const char *value ) { Cvar_Set( name, value ); }
+fntech3_jk2_sp_cvar_t *SV_JK2SPCvar( const char *name, const char *value, std::int32_t flags ) {
+	if ( !name || !value ) {
+		Com_Error( ERR_DROP, "Jedi Outcast SP cvar has null input" ); return nullptr;
+	}
+	cvar_t *internal = Cvar_Get( name, value, flags & JK2_SP_CVAR_COMMON_FLAGS );
+	/* Retail allocates 40-byte records (0x4163c5) and writes next at +36
+	 * (0x416416), where the common engine has its validator. Own the
+	 * external records and link only records exposed to this module. The
+	 * canonical engine spelling also makes case aliases share an address. */
+	auto inserted = jk2SpCvars.emplace( internal->name, fntech3_jk2_sp_cvar_t{} );
+	auto &external = inserted.first->second;
+	if ( inserted.second ) {
+		external.next = jk2SpCvarHead;
+		jk2SpCvarHead = &external;
+	}
+	external.flags |= flags & JK2_SP_CVAR_SAVEGAME;
+	SV_JK2SPSyncCvars();
+	return &external;
+}
+void SV_JK2SPCvarSet( const char *name, const char *value ) {
+	Cvar_Set( name, value );
+	SV_JK2SPSyncCvars();
+}
 std::int32_t SV_JK2SPCvarInteger( const char *name ) { return Cvar_VariableIntegerValue( name ); }
 void SV_JK2SPCvarString( const char *name, char *buffer, std::int32_t size ) { Cvar_VariableStringBuffer( name, buffer, size ); }
 std::int32_t SV_JK2SPArgc() { return Cmd_Argc(); }
@@ -153,11 +204,14 @@ intptr_t QDECL SV_JK2SPGameEntry( int command, ... ) {
 		/* An incomplete Init may have left private objects unconstructed. Do
 		 * not execute retail Shutdown on them or recursively refuse its G2
 		 * callbacks while processing an error. All owned memory is reclaimed. */
-		if ( jk2SpGame && jk2SpInitComplete && !com_errorEntered ) jk2SpGame->Shutdown();
+		if ( jk2SpGame && jk2SpInitComplete && !com_errorEntered ) {
+			SV_JK2SPSyncCvars(); jk2SpGame->Shutdown();
+		}
 		SV_JK2SPReset();
 		return 0;
 	}
 	if ( !jk2SpGame ) { Com_Error( ERR_DROP, "Jedi Outcast SP game called after shutdown" ); return 0; }
+	SV_JK2SPSyncCvars();
 	if ( command == GAME_INIT ) {
 		va_list args; va_start( args, command );
 		const std::int32_t time = va_arg( args, std::int32_t );

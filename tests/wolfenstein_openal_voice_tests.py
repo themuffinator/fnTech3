@@ -93,6 +93,8 @@ struct VoiceRouteCache {};
 struct SoundVoice {
 	bool active = true, alice = false, fixedOrigin = true, rtcwLoop = false, rtcwOneShot = false, stvefAmbient = false;
 	bool doppler = false, looping = false, liquidBoundary = false, occlusionInitialized = false;
+	// A sound the game's menus started (ui_interface_sound_tests runs it).
+	bool interfaceSound = false;
 	unsigned source = 1, directFilter = 0, sendFilter = 0;
 	SoundSample *sample = nullptr; Vec3 origin, velocity;
 	int entnum = 200, entchannel = CHAN_AUTO, stvefVolume = 0, lastOcclusionSmoothTime = 0, nextEnvironmentUpdateTime = 0;

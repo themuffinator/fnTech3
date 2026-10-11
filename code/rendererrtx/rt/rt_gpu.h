@@ -71,6 +71,8 @@ typedef enum {
 // a shader drawn fullbright that the scene lights all the same, only its
 // bright texels glowing (rtx_rt_lighting 0; rt_material.glsl)
 #define RT_MF_FULLBRIGHT_LIT	( 1u << 17 )
+#define RT_MF_LIQUID			( 1u << 18 )
+#define RT_MF_TRANSMISSIVE		( 1u << 19 )
 
 // A model vertex's fourth position lane: the top byte of the raster pass's
 // light for it, RGB8 below (RT_StampEntityLight), without or with the dynamic
@@ -114,6 +116,7 @@ typedef enum {
 // composite encodes the tone mapped result (the default lighting on a frame
 // whose textures are not already decoded)
 #define RT_FRAME_LINEAR_LIGHT	( 1u << 11 )
+#define RT_FRAME_LIGHT_REUSE	( 1u << 12 )
 
 // Sky flags (skyImages[1][3])
 #define RT_SKY_BOX				( 1u << 0 )
@@ -126,6 +129,7 @@ typedef enum {
 #define RT_PIXEL_PORTAL			( 1u << 2 )
 #define RT_PIXEL_DYNAMIC		( 1u << 3 )
 #define RT_PIXEL_WEAPON			( 1u << 4 )
+#define RT_PIXEL_LIQUID			( 1u << 5 )
 
 // Light types
 #define RT_LIGHT_POINT			0u
@@ -220,6 +224,10 @@ typedef struct {
 	// start, end, density, and 1 for radial or 0 for eye-plane distance
 	float		fogColor[4];
 	float		fogParams[4];
+	// Shared FnQL waves and interaction rings, in world units for ray normals.
+	float		liquidParams[4];	// wave time, warp scale, ring count, unused
+	float		liquidImpulses[8][4]; // world origin, expanding radius
+	float		liquidAmplitudes[2][4];
 } rtFrameUniforms_t;
 
 // Push constants of the denoiser and composite (rt_denoise_common.glsl)
@@ -273,7 +281,7 @@ typedef char rtFrameUniformsSwOffset[ ( offsetof( rtFrameUniforms_t, swInfo ) ==
 typedef char rtFrameUniformsSunShapeOffset[ ( offsetof( rtFrameUniforms_t, sunShape ) == 272 + 16 * RT_CLASS_COUNT + 64 + 48 + 16 + 32 * RT_SW_MAX_INSTANCES ) ? 1 : -1 ];
 typedef char rtFrameUniformsMaterialLightsOffset[ ( offsetof( rtFrameUniforms_t, materialLights ) == 272 + 16 * RT_CLASS_COUNT + 64 + 48 + 16 + 32 * RT_SW_MAX_INSTANCES + 48 ) ? 1 : -1 ];
 typedef char rtFrameUniformsFogOffset[ ( offsetof( rtFrameUniforms_t, fogColor ) == 272 + 16 * RT_CLASS_COUNT + 64 + 48 + 16 + 32 * RT_SW_MAX_INSTANCES + 64 ) ? 1 : -1 ];
-typedef char rtFrameUniformsSize[ ( sizeof( rtFrameUniforms_t ) == 272 + 16 * RT_CLASS_COUNT + 64 + 48 + 16 + 32 * RT_SW_MAX_INSTANCES + 96 ) ? 1 : -1 ];
+typedef char rtFrameUniformsSize[ ( sizeof( rtFrameUniforms_t ) == 272 + 16 * RT_CLASS_COUNT + 64 + 48 + 16 + 32 * RT_SW_MAX_INSTANCES + 272 ) ? 1 : -1 ];
 // the 128 bytes every Vulkan device offers
 typedef char rtDenoisePushSize[ ( sizeof( rtDenoisePush_t ) == 128 ) ? 1 : -1 ];
 typedef char rtToneBufferSize[ ( sizeof( rtToneBuffer_t ) == 8 * RT_TONE_BINS + 16 ) ? 1 : -1 ];
@@ -299,6 +307,7 @@ typedef enum {
 	RT_BINDING_OUT_EMISSION,
 	RT_BINDING_OUT_MOTION,
 	RT_BINDING_OUT_INFO,
+	RT_BINDING_OUT_INDIRECT,
 	RT_BINDING_DYNAMIC_PREVIOUS,	// dynamic vertices' world positions last frame
 	RT_BINDING_PRIMITIVE_LIGHTS,	// the light each world triangle emits as
 	RT_BINDING_COUNT,

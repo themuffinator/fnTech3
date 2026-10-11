@@ -12,6 +12,15 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Highlights
 
+- Restore Medal of Honor's terrain and static map scenery in RTX path
+  tracing, fixing missing ground on `m1l1` and the same omission on other
+  maps ([record](docs/fntech3/2026-10-11-mohaa-rtx-world.md)).
+
+- Restore Medal of Honor's barrel explosions, smoke, debris and other
+  effects from hidden emitters across GL, Vulkan and RTX. The engine had
+  discarded visible particles carrying their emitter's hidden flag
+  ([record](docs/fntech3/2026-10-11-mohaa-effects.md)).
+
 - Introduce fnTech3's shared engine distribution and startup game profiles,
   based on the documented FnQuake3 and FnQL baselines. Quake III Arena and
   Quake Live start in every build; Return to Castle Wolfenstein, Enemy
@@ -94,6 +103,33 @@ historical upstream records, not fnTech3 release history. See the
 
 ### Compatibility
 
+- Keep American McGee's Alice's game module when a save of the running level
+  loads or the level restarts, as `alice.exe` does: its models,
+  configstrings and players stay, the module only cleans up, and the client
+  takes the new server count as retail's does, stopping every sound but the
+  music. Heavy Metal: F.A.K.K.2 does the same, and a FAKK map's checksum is
+  now the one its header carries
+  ([record](docs/fntech3/2026-10-08-alice-compatibility-round.md)).
+- Run Alice's and F.A.K.K.2's pure servers as their engines do: the client
+  keeps to the server's pak list, from its own server too, reads no loose
+  file but configurations and saves, and neither side asks for or sends a
+  pure proof. Both servers publish only their engines' own server and system
+  info keys, so a retail client sees none of fnTech3's, and the client takes
+  its cheat state from `cheats`
+  ([record](docs/fntech3/2026-10-08-alice-compatibility-round.md)).
+- Complete Alice's developer menus: the file pickers behind `soundpicker`,
+  `viewspawnlist` and `maplist`, `loadmenu`, and the inventory commands;
+  scrollbars repeat while an arrow is held; the controls menu's Alice turns
+  her head after the cursor; and `vid_restart` leaves the menus and the
+  console as they were
+  ([record](docs/fntech3/2026-10-08-alice-compatibility-round.md)).
+- Freeze Alice's module signatures. Every slot of its four module tables now
+  has a type read from the retail binaries, and the engine's table fills and
+  export calls must match those types to compile. Five game imports served
+  at the wrong shape are corrected; a module's file read keeps quiet when it
+  asks to, a flush leaves the file unbuffered, and a server command reaches
+  every client only for -1, as in retail
+  ([record](docs/fntech3/2026-10-08-alice-module-signatures.md)).
 - Host and join each game's original servers as its own engine does. A
   public server reports to the game's own master with its own heartbeat --
   Quake III's, RTCW's, Enemy Territory's, Elite Force's, Jedi Academy's and
@@ -143,6 +179,13 @@ historical upstream records, not fnTech3 release history. See the
   On a retail server the client now passes `mp/ffa3` and completes every
   step of the standard session on both maps
   ([record](docs/fntech3/2026-10-06-jka-ambient-sets.md)).
+- Play Jedi Academy's German, French and Spanish voices. As in the original
+  game, `s_language` chooses them, `deutsch`, `francais` or `espanol` as its
+  setup menus write it, and a line with no recording in that language plays
+  in English; `snd_restart`, which the menus' Set Language buttons run,
+  reloads the voices. The multiplayer client plays them; single player, which
+  has no client yet, takes them the same way
+  ([record](docs/fntech3/2026-10-09-jka-foreign-voices.md)).
 - Answer GameSpy's LAN queries from Medal of Honor servers. A multiplayer
   server, dedicated or started from Start New Server, answers GameSpy's
   status queries on UDP 12300 or the next free port (`net_gamespy_port`,
@@ -153,6 +196,24 @@ historical upstream records, not fnTech3 release history. See the
   player, which had hidden it from the Join LAN Game list and turned away
   every remote player
   ([record](docs/fntech3/2026-10-06-mohaa-gamespy-lan-queries.md)).
+- Find Medal of Honor servers on any game port in Join LAN Game. Refresh
+  also makes GameSpy's LAN search, asking UDP 12300 to 12316 as GameSpy's
+  own browsers did, so a server the usual scan of game ports 12203 to 12206
+  misses is listed too. Only servers of version 1.00, the one fnTech3 joins,
+  are shown, and a server that answers both ways is listed once
+  ([record](docs/fntech3/2026-10-08-mohaa-gamespy-lan-search.md)).
+- Load Jedi Outcast's sounds and music, which it stores as MP3 files. Both
+  Outcast profiles now decode them, so the multiplayer menus play their own
+  sounds, and, as the original engines do, a sound's `.wav` file is used
+  before an `.mp3` of the same name, whichever one the game asks for
+  ([record](docs/fntech3/2026-10-08-jk2-mp3-sounds.md)).
+- Play Jedi Outcast's German and French voices. As in the original game,
+  `s_language` chooses them, `deutsch` or `francais` as its setup menu writes
+  it, and a line with no recording in that language plays in English;
+  `snd_restart`, which the menu's Set Language button runs, reloads the
+  voices. The multiplayer client plays them; single player, which has no
+  client yet, takes them the same way
+  ([record](docs/fntech3/2026-10-08-jk2-foreign-voices.md)).
 - Give Jedi Academy and Jedi Outcast multiplayer their own single-player game
   types. `spmap` starts Jedi Academy's single player, 5, and Jedi Outcast's,
   4, where it had started Jedi Master; `map` keeps every Jedi Academy game
@@ -215,17 +276,14 @@ historical upstream records, not fnTech3 release history. See the
   original server accepts and fnTech3's had treated as an error, stopping
   the server with `SV_SvEntityForGentity: bad gEnt`
   ([record](docs/fntech3/2026-10-09-stvef-world-record.md)).
-- Keep an Elite Force Holomatch server's clock as the original does. When
-  `timescale` speeds the game up, a dedicated server now sends each player
-  as many updates for each step of the game as the original does, one for
-  every 50 ms step by default, where at `timescale 3` it had sent one every
-  three steps; when it slows the game down, the game runs at about the
-  original's speed, about a sixth of normal at `timescale 0.1` rather than a
-  tenth. Timeouts, the master heartbeat and
-  download resends count game time, as the original's do, and a player's
-  `rate` and `snaps` settings are held to the original's limits. `sv_fps`
-  now takes any value from 1 to 1000 in both Elite Force modes
-  ([record](docs/fntech3/2026-10-09-stvef-holomatch-server-clock.md)).
+- Decode the last frame of an MP3 sound that stray bytes follow, as the
+  original engines do: each frame is decoded from its own header, without
+  waiting for the next. The Force Drain sound of Jedi Outcast and Jedi Academy
+  had ended a frame, 26 ms, early, and so had 675 of F.A.K.K.2's sounds and
+  music tracks, MP3 audio inside RIFF files, which the game's own Miles
+  decoder plays whole. Every other MP3 file of Elite Force, the Jedi games,
+  Alice, F.A.K.K.2 and Medal of Honor decodes exactly as before
+  ([record](docs/fntech3/2026-10-08-mp3-last-frame.md)).
 - Stop a server faulting when `bot_saveroutingcache 1` is set while its bots'
   navigation is still being prepared, as it is for a while after a map loads
   with `bot_forcereachability 1`. There are no routes to save yet: the server

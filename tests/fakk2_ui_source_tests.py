@@ -118,13 +118,16 @@ class Fakk2UiSourceTests(unittest.TestCase):
                         'statbar_tileshader_flash', 'linkstring'):
             self.assertIn(f'widget.kind == WidgetKind::Label && is( "{keyword}" )', self.ui)
 
-    def test_inventory_commands_are_fakk2s_and_registered_once(self):
+    def test_inventory_commands_are_ritual_and_registered_once(self):
+        # Both engines' UI_Init load the script and register these (alice.exe
+        # 0x004105f2, 0x004106cc..0x00410715, 0x004107f7; fakk2.exe 1.02
+        # 0x0040ea82); only fakk2.exe registers ui_hud as a command.
         init = function(self.inventory, 'void CL_Fakk2InventoryInit( void ) {')
-        assert_order(self, init, 'if ( !Com_GameIsFAKK2() ) return;', 'if ( !commandsRegistered ) {',
+        assert_order(self, init, 'if ( !Com_GameIsRitual() ) return;', 'if ( !commandsRegistered ) {',
                      'Cmd_AddCommand( "inventory", Inventory_f );', 'Cmd_AddCommand( "warpinv", WarpInv_f );',
                      'Cmd_AddCommand( "nextinv", NextInv_f );', 'Cmd_AddCommand( "previnv", PrevInv_f );',
                      'Cmd_AddCommand( "inv_restart", InvRestart_f );', 'Cmd_AddCommand( "saveweaps", SaveWeaps_f );',
-                     'LoadInventory();')
+                     'if ( Com_GameIsFAKK2() ) Cmd_AddCommand( "ui_hud", UiHud_f );', 'LoadInventory();')
         self.assertNotIn('Cmd_RemoveCommand', self.inventory)
         self.assertIn('CL_Fakk2InventoryInit();', function(self.ui, 'void Init() {'))
         # The alias the group becomes, and the centre print.
@@ -238,7 +241,7 @@ class Fakk2UiSourceTests(unittest.TestCase):
                      'fg = bind.capturing ? layout.activeForeground : layout.selectForeground;',
                      'const char *name = key >= 0 ? Key_KeynumToString( key ) : "None";',
                      'std::string( "textures/bind/" ) + name : std::string( "textures/bind/emptykey" )',
-                     'DrawScrollbar( x + widget.w - ScrollbarWidth, y, widget.h, bind.top, bind.page, count );')
+                     'DrawScrollbar( x + widget.w - ScrollbarWidth, y, widget.h, bind.top, bind.page, count, bind.hold.part );')
         self.assertIn('if ( Com_GameIsFAKK2() ) DrawFakk2BindList( widget, vx, vy, alpha );', self.ui)
         keys = function(self.ui, 'bool BindListKey( Menu &menu, int index, int key ) {')
         assert_order(self, keys, 'if ( !fakk2 || bind.column >= 2 ) StartCapture( menu, index );',
@@ -260,7 +263,7 @@ class Fakk2UiSourceTests(unittest.TestCase):
     def test_fakk2s_scrollbar_and_save_list(self):
         # UIVertScroll (fakk2.exe 1.02 0x004b3ab0): black-edged light grey, the
         # arrows bevelled and white only while there is something to scroll.
-        bar = function(self.ui, 'void DrawScrollbar( float barX, float y, float height, int top, int page, int count ) {')
+        bar = function(self.ui, 'void DrawScrollbar( float barX, float y, float height, int top, int page, int count, int held ) {')
         assert_order(self, bar, 'if ( bar && arrow ) {', 'return;',
                      'EdgedBox( barX, y, ScrollbarWidth, height, grey );',
                      'if ( thumb ) Bevel( barX + 1.0f, ay + 1.0f, ScrollbarWidth - 2.0f, ScrollbarWidth - 2.0f, bevel );',
@@ -274,7 +277,7 @@ class Fakk2UiSourceTests(unittest.TestCase):
         saves = function(self.ui, 'void DrawSaveList( Widget &list, float x, float y, float alpha ) {')
         assert_order(self, saves, 'const float headerFill[4] = { 0.3f, 0.3f, 0.3f, alpha };',
                      'EdgedBox( x + cx, y, w, header, headerFill, white );',
-                     'DrawScrollbar( x + list.w - ScrollbarWidth, y, list.h, list.load.top, page, count );')
+                     'DrawScrollbar( x + list.w - ScrollbarWidth, y, list.h, list.load.top, page, count, list.load.hold.part );')
         self.assertNotIn('if ( count > page ) DrawScrollbar', saves)
         shown = function(self.ui, 'void ShowSaves( Menu &menu, Widget &list ) {')
         self.assertIn('std::string shot = Com_GameIsFAKK2() ? "textures/menu/no_saved_games.tga" : "";', shown)

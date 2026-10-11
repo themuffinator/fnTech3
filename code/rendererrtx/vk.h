@@ -20,6 +20,8 @@
 
 #define NUM_COMMAND_BUFFERS 2	// number of command buffers / render semaphores / framebuffer sets
 
+void vk_rt_frame_event( refFrameEvent_t event, int64_t microseconds );
+
 #define USE_REVERSED_DEPTH
 
 #define USE_UPLOAD_QUEUE
@@ -193,6 +195,7 @@ typedef struct {
 	int line_width;
 	int fog_stage; // off, fog-in / fog-out
 	int depth_fade;
+	qboolean depth_only; // primary RT coverage: no colour attachment writes
 	int abs_light;
 	int allow_discard;
 	int acff; // none, rgb, rgba, alpha
@@ -739,6 +742,7 @@ typedef struct {
 		VkShaderModule rt_trace;	// the compute backend's trace
 		VkShaderModule rt_rmiss_filter;	// filter rays (alphashadow, lightfilter)
 		VkShaderModule rt_rahit_filter;
+		VkShaderModule rt_rahit_shadow;
 		VkShaderModule rt_composite;
 		VkShaderModule rt_tonemap;		// the traced view's tone mapper, before the composite
 		VkShaderModule rt_denoise_temporal;

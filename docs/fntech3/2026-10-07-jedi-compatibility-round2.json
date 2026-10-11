@@ -1,0 +1,3829 @@
+{
+  "date": "2026-10-07",
+  "profiles": [
+    "jka-sp",
+    "jka-mp",
+    "jk2-sp",
+    "jk2-mp"
+  ],
+  "base_commit": "6a93b622e78e37949e89625484c56997f34fa8a5",
+  "working_tree_changes": true,
+  "previous_record": "2026-10-07-jedi-compatibility-audit.json",
+  "claim": "Compatibility slices only; no complete gate closes.",
+  "provenance": "Independently authored; retail binaries/assets and pinned OpenJK are observation only.",
+  "build": {
+    "preset": "meson/build/win32-dev",
+    "platform": "Windows x86",
+    "compiler": "MSVC",
+    "command": "meson compile -C meson/build/win32-dev",
+    "result": "pass",
+    "outputs": [
+      {
+        "path": "meson/build/win32-dev/fntech3.exe",
+        "sha256": "d7684507cd451d83d9b1e61d70a16a8ca0ea9260eb94cfe92ac6d24d213a7ccc"
+      },
+      {
+        "path": "meson/build/win32-dev/fntech3.ded.exe",
+        "sha256": "70870b0563606ffa3ce515b8763c4f6a731d22dec2430d4993ed7aff7f1bc90e"
+      },
+      {
+        "path": "meson/build/win32-dev/fnql_glx_x86.dll",
+        "sha256": "3ff91712b0c35a8e27cb34b6cae1143a5a821d971b67b738cd86cbca87e41507"
+      },
+      {
+        "path": "meson/build/win32-dev/fnql_vk_x86.dll",
+        "sha256": "965c779df4835985e89cd9dede3141211518cbb901ab2702a8ca66d309e11fbb"
+      },
+      {
+        "path": "meson/build/win32-dev/fnql_rtx_x86.dll",
+        "sha256": "d6ce63fb4cab8aea54fd620c09c226f2f0917044405881d97e9f7f08d9eeb068"
+      }
+    ]
+  },
+  "retail_identity": [
+    {
+      "title": "Jedi Academy 1.01",
+      "file": "jamp.exe",
+      "bytes": 1527808,
+      "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b"
+    },
+    {
+      "title": "Jedi Academy 1.01",
+      "file": "jasp.exe",
+      "bytes": 1236992,
+      "sha256": "9351a8de230fcd577e2b474889d08f38982450306767a6823dd659482566d6ce"
+    },
+    {
+      "title": "Jedi Academy 1.01",
+      "file": "jagamex86.dll",
+      "bytes": 1802240,
+      "sha256": "6b87b804137f56f3bb8901235788c735e6c36cf1bea42cab48dad7f2d15b6ee3"
+    },
+    {
+      "title": "Jedi Outcast 1.02a",
+      "file": "jk2mp.exe",
+      "bytes": 1126400,
+      "sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a"
+    },
+    {
+      "title": "Jedi Outcast 1.02a",
+      "file": "jk2sp.exe",
+      "bytes": 999482,
+      "sha256": "0d3c635ee5b20ac32fc957e00cf21e65ebc1584112b11f6ae026706dcc0d0e0c"
+    },
+    {
+      "title": "Jedi Outcast 1.02a",
+      "file": "jk2gamex86.dll",
+      "bytes": 1318912,
+      "sha256": "8cc1c15f462b15bcb9dc9840a2b9ccc18e57e17f7292d8080a77625a34a27e18"
+    }
+  ],
+  "line_contract": {
+    "trace_export": 15,
+    "trace_bytes": 104,
+    "trace_ray": 16384,
+    "trace_mask": 4097,
+    "trace_skip": -1,
+    "size_wave_multiplier": 0.0031415901612490416,
+    "lifetime_end_inclusive": true,
+    "scalar_oracle": {
+      "cases": 96,
+      "result": "pass",
+      "source": ".tmp/jedi-audit-round2/retail-line-size-oracle.cpp",
+      "log": ".tmp/jedi-audit-round2/retail-line-size-oracle.log",
+      "scope": "Retail scalar routine plus its CRT cosine with absolute-data relocation; no full engine execution"
+    },
+    "installed_asset_probe": [
+      {
+        "pak": "assets1.pk3",
+        "path": "effects/env/beam_bolts.efx",
+        "bytes": 979,
+        "sha256": "15a689e476d0d12f468db66f0d8d03e97a8edade3d5ba29841d48b0cf7e70b62",
+        "result": [
+          "Electricity effects primitive family is not served yet",
+          "Electricity effects primitive family is not served yet"
+        ]
+      },
+      {
+        "pak": "assets1.pk3",
+        "path": "effects/env/beam_lights.efx",
+        "bytes": 160,
+        "sha256": "6e74de9ad70eac63f15aaa9524af05e7d24ab7c00e64e1f8ac57b189c4a3b4f4",
+        "result": [
+          "Light effects primitive family is not served yet",
+          "FxRunner effects primitive family is not served yet"
+        ]
+      },
+      {
+        "pak": "assets1.pk3",
+        "path": "effects/mp/spawn.efx",
+        "bytes": 650,
+        "sha256": "d1f3a0bbc47fcf82a698a4a80ef374c0684036e82065c1afafafded0cc8cbf8a",
+        "result": [
+          "Line served",
+          "Line served",
+          "Emitter effects primitive family is not served yet"
+        ]
+      }
+    ]
+  },
+  "jk2_renderer": {
+    "kind": "read-only retail disassembly/QVM/asset observations; no runtime render claim",
+    "exe": {
+      "path": "E:\\Games\\Jedi Outcast\\jk2mp.exe",
+      "sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a"
+    },
+    "ui_qvm": {
+      "sha256": "19e372d0381b8b53965bd0fc38cae0eef266b3aab68e9088f915894fadca3a4f",
+      "model_draw_procedure": 58210,
+      "entity_clear_instruction": 58450,
+      "entity_bytes": 212,
+      "view_clear_instruction": 58228,
+      "view_bytes": 368,
+      "entity_offsets": {
+        "model": 8,
+        "axis": 12,
+        "origin": 52,
+        "oldorigin": 64,
+        "lightingOrigin": 108
+      },
+      "model_renderfx": 192
+    },
+    "renderer_factory": "0x480160, callback table at0x1a4fa10 copied to0x9d9e40",
+    "ui_imports": {
+      "18": {
+        "handler": "0x40fe0e",
+        "callback": "0x485220",
+        "service": "RegisterModel"
+      },
+      "19": {
+        "handler": "0x40fe26",
+        "callback": "0x47cec0",
+        "service": "RegisterSkin"
+      },
+      "21": {
+        "handler": "0x40fe56",
+        "callback": "0x487910",
+        "service": "ClearScene"
+      },
+      "22": {
+        "handler": "0x40fe61",
+        "callback": "0x487bf0",
+        "service": "AddRefEntityToScene"
+      },
+      "23": {
+        "handler": "0x40fe79",
+        "callback": "0x4879a0",
+        "service": "AddPolyToScene, one polygon"
+      },
+      "24": {
+        "handler": "0x40fe9e",
+        "callback": "0x487ec0",
+        "service": "AddLightToScene"
+      },
+      "25": {
+        "handler": "0x40fec9",
+        "callback": "0x487f20",
+        "service": "RenderScene"
+      },
+      "29": {
+        "handler": "0x40ff61",
+        "callback": "0x485a00",
+        "service": "LerpTag, module return always0"
+      },
+      "62": {
+        "handler": "0x40ff2b",
+        "callback": "0x485ba0",
+        "service": "ModelBounds"
+      }
+    },
+    "entity": {
+      "copy_words": 53,
+      "ghoul2_offset": 208,
+      "supported_type": "static model0; other Raven types/Ghoul2 remain refused"
+    },
+    "refdef": {
+      "bytes": 368,
+      "axis": 36,
+      "time": 72,
+      "flags": 76,
+      "areamask": 80,
+      "text": 112,
+      "text_bytes": 256
+    },
+    "vertex": {
+      "stride": 24,
+      "xyz": 0,
+      "st": 12,
+      "modulate": 20
+    },
+    "orientation": {
+      "bytes": 48,
+      "origin": 0,
+      "axis": 12
+    },
+    "menu_models": {
+      "ui/jk2mp/controls.menu": [
+        "models/map_objects/bespin/jk2logo.md3"
+      ],
+      "ui/jk2mp/credits.menu": [
+        "models/map_objects/bespin/jk2logo.md3"
+      ],
+      "ui/jk2mp/demo.menu": [
+        "models/map_objects/bespin/jk2logo.md3"
+      ],
+      "ui/jk2mp/main.menu": [
+        "models/map_objects/bespin/jk2logo.md3"
+      ],
+      "ui/jk2mp/multiplayer.menu": [
+        "models/map_objects/bespin/jk2logo.md3"
+      ],
+      "ui/jk2mp/quit.menu": [
+        "models/map_objects/bespin/jk2logo.md3"
+      ],
+      "ui/jk2mp/rules.menu": [
+        "models/map_objects/bespin/jk2logo.md3"
+      ],
+      "ui/jk2mp/rules_force.menu": [
+        "models/map_objects/bespin/jk2logo.md3"
+      ],
+      "ui/jk2mp/rules_games.menu": [
+        "models/map_objects/bespin/jk2logo.md3"
+      ],
+      "ui/jk2mp/rules_items.menu": [
+        "models/map_objects/bespin/jk2logo.md3"
+      ],
+      "ui/jk2mp/rules_weapons.menu": [
+        "models/map_objects/bespin/jk2logo.md3"
+      ],
+      "ui/jk2mp/setup.menu": [
+        "models/map_objects/bespin/jk2logo.md3"
+      ]
+    },
+    "menu_signed_viewport": {
+      "pak": "assets1.pk3",
+      "path": "ui/jk2mp/main.menu",
+      "sha256": "736383cbfd4506ac3870e9f8aec9115d321a0eda59a6b11d9ff1820c26dd01e0",
+      "authored_logo_rectangles": [
+        [
+          -78,
+          83,
+          250,
+          250
+        ],
+        [
+          -19,
+          167,
+          250,
+          250
+        ]
+      ],
+      "qvm_instructions": "58241..58318: x=(item.x+1)*xscale, y=(item.y+1)*yscale, width=(item.width-2)*xscale, height=(item.height-2)*yscale; CVFI for each",
+      "root_runtime_observation": "UI25 diagnostic rect=-77,84 248x248 fov=45,45 flags=1 at640x480; named viewport-origin rejection",
+      "fn_boundary": "retain signed origins; after menu scaling validate positive dimensions, x+width, y+height, framebufferHeight-y and framebufferHeight-(y+height) in signed32 before renderer publication"
+    },
+    "logo": {
+      "pak": "assets0.pk3",
+      "path": "models/map_objects/bespin/jk2logo.md3",
+      "sha256": "6575bb64f820195605cad46cfcd5f81f1d76daf25ca4e22d596eb0a2e044d3ef",
+      "bytes": 40180,
+      "format": "IDP3",
+      "version": 15,
+      "frames": 1,
+      "tags": 0,
+      "surfaces": 2,
+      "file_end": 40180
+    },
+    "implementation": "independently authored, no external implementation text; Fn renderer and UI viewport retained",
+    "remaining": "Ghoul2, procedural renderer entities and Raven-only flags; runtime evidence supplied separately by root"
+  },
+  "jk2_shader_layout": {
+    "installation": "E:\\Games\\Jedi Outcast",
+    "proprietary_files_extracted": false,
+    "packages": [
+      {
+        "pak": "assets0.pk3",
+        "bytes": 534984353,
+        "shader_directories": {
+          "shaders": 29
+        },
+        "files": [
+          {
+            "path": "shaders/bespin.shader",
+            "bytes": 18303,
+            "sha256": "faee29d4cbbceaef051f62bd0db72519893fd657713414ae98a7d81d3d9a4dc2",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/cinematics.shader",
+            "bytes": 3171,
+            "sha256": "a6d968afed5fcd0b2709804b2a5905f074759d99901055a924ca1ef8a79fcaa5",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/common.shader",
+            "bytes": 1882,
+            "sha256": "11fe0cbe53cbc15756ec05595e5a3c517414340c04d42dbbb22333cf5f0dc705",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/decals.shader",
+            "bytes": 3912,
+            "sha256": "59e50e91cb61db9b223723267e8ed3f5fcd3b790ca8b35cdc4ea01e42133af83",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/doomgiver.shader",
+            "bytes": 18984,
+            "sha256": "e447f8372fb0bb026569eccac8f872eb53dea3bca1e8296596adfbfac012bb63",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/effects.shader",
+            "bytes": 14566,
+            "sha256": "3ba22c7111b8f64e7cd689cd914a42e43a36e0fe985f0d4a61f7f8be6a4e6611",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/explosions.shader",
+            "bytes": 5274,
+            "sha256": "8ac68b594c3a66ea7dd81e664cadffc77bfa7db8c8f914f47ac89ee3a47cc54a",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/flares.shader",
+            "bytes": 1280,
+            "sha256": "01def41a1e13f0c2fb46e910edfefa46d0c578baf9bd2f94c0e814d462d530f0",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/fogs.shader",
+            "bytes": 4559,
+            "sha256": "2d54585ca5e572d7ec1ebfac5913065909ab40fb4e716dbe9061530237b1ca9a",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/gfx.shader",
+            "bytes": 12537,
+            "sha256": "c0af4fc78be990aabee62f0f174d422963cfe6082b1b95adaf918d1c4cbae13f",
+            "requested_menu_names": [
+              "console",
+              "white"
+            ]
+          },
+          {
+            "path": "shaders/gfx2.shader",
+            "bytes": 8237,
+            "sha256": "1eeee43713b61c18d933d08dcf2ba324c60d380cdc662c2668834e9d8f456116",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/imperial.shader",
+            "bytes": 112569,
+            "sha256": "a8cd81a09c042f850a785f31cdde2931969aac8e12bc14d1885d46e82ff83317",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/items.shader",
+            "bytes": 4989,
+            "sha256": "5caf9d2af14a46c42c8fb60d05db624af9064fecea74978ee4b301b146f26909",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/marks.shader",
+            "bytes": 590,
+            "sha256": "e8d6ac7a7cca667b19c59bc59dadf9e6a59c4cee70958c3970e7c09bb63af125",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/metashader.shader",
+            "bytes": 8494,
+            "sha256": "6c119fc280c773fdb4c0b3e6479413b6b1b438854748b26c10b7f5159f5862af",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/models.shader",
+            "bytes": 56438,
+            "sha256": "13e15585ca4ee0ef4f3376f2996d652129b38426c2146ab431cba82268eaf597",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/mp.shader",
+            "bytes": 9552,
+            "sha256": "17354d78d5745f5b53984cb85ca27bc501c66832f22e5427c3c30987df8e4493",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/nar_shaddaa.shader",
+            "bytes": 9125,
+            "sha256": "9f33e355ef4a4b0196edf13edbc564ca376137f80d63783f05936b9868e318a5",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/players.shader",
+            "bytes": 15298,
+            "sha256": "3389236caf0ccc932ae2746e17b02ef80560757af0fc7d73d3b1aee6964e7432",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/sabers.shader",
+            "bytes": 2346,
+            "sha256": "f055e2ac047f4c59352e100b07a3e2fbad7fa0c3a9e4b0395cbedc2c4cc5d07b",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/scavenger.shader",
+            "bytes": 2585,
+            "sha256": "a1eca1875c397bfbb8751e54223a9936da6bbdecf8f94705fae9432e52ca99a7",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/skies.shader",
+            "bytes": 7388,
+            "sha256": "794ee02bf028c07e1b950605700391fdc7f1abbdbd8b6de877b7f3741e7d6937",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/sprites.shader",
+            "bytes": 3757,
+            "sha256": "0be7400c2dc37ab5592de7e840df1a1ef5a16e0945133a40230e000df3967278",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/system.shader",
+            "bytes": 7332,
+            "sha256": "4297d24830f408babf2bd7ebb3714f30649f870b6a618af656c84ac55546da74",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/test.shader",
+            "bytes": 19151,
+            "sha256": "4038539d241f21759fe6be96aeba7f7d5a34dcf2721e086a0128eb5894fa7fe0",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/text_crawl.shader",
+            "bytes": 577,
+            "sha256": "ef1866a0d43c1cb692a0b170405641552623e397699d9622d3b4868e283e0f79",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/ui.shader",
+            "bytes": 15237,
+            "sha256": "f3b8bafa47685f4802d4c6fc2c14e382ff96d031a0c933bbea0727fcbad71e59",
+            "requested_menu_names": [
+              "cursor",
+              "forcestar0",
+              "gfx/menus/menu2",
+              "gfx/menus/menu2br",
+              "gfx/menus/menu_blendbox2",
+              "gfx/menus/menu_blendbox3",
+              "warning"
+            ]
+          },
+          {
+            "path": "shaders/yavin.shader",
+            "bytes": 25850,
+            "sha256": "52a73173bfbef4c0b4ff46959419143865aa7147c1b3703b42faf63cac00cd88",
+            "requested_menu_names": []
+          },
+          {
+            "path": "shaders/zoom.shader",
+            "bytes": 5197,
+            "sha256": "aec219bc5ead2455cc11fde8ac126ae0db49fa4f94198d4a08a5ab4e6a6bb497",
+            "requested_menu_names": []
+          }
+        ]
+      },
+      {
+        "pak": "assets1.pk3",
+        "bytes": 86950705,
+        "shader_directories": {},
+        "files": []
+      }
+    ],
+    "executables": [
+      {
+        "name": "jk2mp.exe",
+        "bytes": 1126400,
+        "sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a"
+      },
+      {
+        "name": "jk2sp.exe",
+        "bytes": 999482,
+        "sha256": "0d3c635ee5b20ac32fc957e00cf21e65ebc1584112b11f6ae026706dcc0d0e0c"
+      }
+    ],
+    "retail_directory_observations": [
+      {
+        "profile": "jk2-mp",
+        "file": "jk2mp.exe",
+        "loader": "0x4903b0",
+        "directory_argument": "0x490391",
+        "list_call": "0x4903d1",
+        "directory_string": "0x4f3664",
+        "extension_string": "0x4f5410",
+        "directory": "shaders",
+        "extension": ".shader"
+      },
+      {
+        "profile": "jk2-sp",
+        "file": "jk2sp.exe",
+        "loader": "0x480000",
+        "directory_argument": "0x480016",
+        "list_call": "0x48001d",
+        "directory_string": "0x4e59c0",
+        "extension_string": "0x4e59c8",
+        "directory": "shaders",
+        "extension": ".shader"
+      }
+    ]
+  },
+  "jk2_image_charset": {
+    "kind": "read-only retail format observations; independently authored profile selection, no external implementation text",
+    "executables": [
+      {
+        "name": "jk2mp.exe",
+        "sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a",
+        "oriented_rle_refusal": "0x47c244..0x47c252",
+        "row_selection": "0x47c272..0x47c29e"
+      },
+      {
+        "name": "jk2sp.exe",
+        "sha256": "0d3c635ee5b20ac32fc957e00cf21e65ebc1584112b11f6ae026706dcc0d0e0c",
+        "oriented_rle_refusal": "0x46b144..0x46b152",
+        "row_selection": "0x46b172..0x46b19e"
+      }
+    ],
+    "font": {
+      "pak": "assets0.pk3",
+      "path": "fonts/anewhope.tga",
+      "sha256": "5c87ef60967ac1c1034983aff820c2465711e3d44bef6e087353deeeb73c5d17",
+      "bytes": 524306,
+      "type": 2,
+      "width": 512,
+      "height": 256,
+      "bits": 32,
+      "descriptor": 32
+    },
+    "contract": "For uncompressed top-down images, select first output row and step +1; for bottom-up select last row and step -1. Reject RLE type10 with nonzero orientation bits. Fn owns decoded image storage, compression, mip policy and presentation.",
+    "tests": "tests/jka_tga_origin_tests.py and tests/tga_loader_source_tests.py: 2 passed; tests all16profile selectors, raw8/24/32 pixels, top/bottom rows, oriented RLE rejection, truncated/invalid headers and output canaries.",
+    "charset": {
+      "pak": "assets0.pk3",
+      "path": "gfx/2d/charsgrid_med.tga",
+      "sha256": "8ac0dfcfc830a92c2e6280425996c89d8069b274de62a135fbd6befa88a09579",
+      "bytes": 262188,
+      "type": 2,
+      "width": 256,
+      "height": 256,
+      "bits": 32,
+      "descriptor": 8,
+      "registration": {
+        "jk2mp.exe": "0x40c32b, no-mip callback table+0x14, result0x8ca3bc",
+        "jk2sp.exe": "0x4093c0, no-mip callback table+0x14, result0x7ffd38"
+      },
+      "uv_contract": "byte character; row=ch>>4, col=ch&15; both starts*0.0625; endS=startS+0.03125; endT=startT+0.0625",
+      "mp_uv_addresses": "0x40ef79/0x40ef8e starts; 0x40efa0 endT; 0x40efae endS; scalable draw0x40f191..0x40f1e5 agrees",
+      "sp_uv_addresses": "0x40aea9/0x40aebe starts; 0x40aed0 endT; 0x40aede endS; scalable draw0x40af34..0x40af7e agrees",
+      "implementation_assignment": "root owns client charset selectors and tests; observation only here"
+    }
+  },
+  "sp_cvar_flags": {
+    "profile": "jka-sp",
+    "retail_function": "jasp.exe 0x41bc70",
+    "merge": "0x41bd04",
+    "stable_return": "0x41bd97",
+    "savegame_bit": 256,
+    "correction": "Refresh shared external flags from engine; preserve external SAVEGAME without aliasing internal TEMP.",
+    "test": "fntech3_jka_sp_game_bridge"
+  },
+  "regression": {
+    "counts": {
+      "OK": 265,
+      "SKIP": 2
+    },
+    "results": [
+      {
+        "name": "zlib:example",
+        "result": "OK",
+        "duration": 0.060532569885253906,
+        "returncode": 0
+      },
+      {
+        "name": "ogg:framing",
+        "result": "OK",
+        "duration": 0.03951311111450195,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_audio_zones",
+        "result": "OK",
+        "duration": 0.03452134132385254,
+        "returncode": 0
+      },
+      {
+        "name": "ogg:bitwise",
+        "result": "OK",
+        "duration": 0.0730278491973877,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_audio_zone_authoring_audit",
+        "result": "OK",
+        "duration": 0.03200030326843262,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_audio_recovery",
+        "result": "OK",
+        "duration": 0.04206991195678711,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_audio_init_policy",
+        "result": "OK",
+        "duration": 0.04207038879394531,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_audio_tone",
+        "result": "OK",
+        "duration": 0.034487009048461914,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_audio_occlusion",
+        "result": "OK",
+        "duration": 0.06310486793518066,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_audio_voice_queue",
+        "result": "OK",
+        "duration": 0.05503726005554199,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_audio_loopback",
+        "result": "SKIP",
+        "duration": 0.027498483657836914,
+        "returncode": 77
+      },
+      {
+        "name": "fnTech3:fnql_retail_sound_compat_source",
+        "result": "OK",
+        "duration": 0.0955355167388916,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_audio_init_source",
+        "result": "OK",
+        "duration": 0.09453487396240234,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_audio_impact_occlusion_source",
+        "result": "OK",
+        "duration": 0.09450507164001465,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_abi_layouts",
+        "result": "OK",
+        "duration": 0.027515411376953125,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_sp_abi",
+        "result": "OK",
+        "duration": 0.10214591026306152,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_audio_zone_sweep_script",
+        "result": "OK",
+        "duration": 0.17470169067382812,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_sp_game_bridge",
+        "result": "OK",
+        "duration": 0.11716008186340332,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_sp_state",
+        "result": "OK",
+        "duration": 0.04001283645629883,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_wire",
+        "result": "OK",
+        "duration": 0.02299976348876953,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_ui",
+        "result": "OK",
+        "duration": 0.016498804092407227,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_snapshot",
+        "result": "OK",
+        "duration": 0.03999829292297363,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_font",
+        "result": "OK",
+        "duration": 0.028501033782958984,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_font_host",
+        "result": "OK",
+        "duration": 0.028002262115478516,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_client",
+        "result": "OK",
+        "duration": 0.030012845993041992,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_string_package",
+        "result": "OK",
+        "duration": 0.032579660415649414,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_string_host",
+        "result": "OK",
+        "duration": 0.03407859802246094,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_render",
+        "result": "OK",
+        "duration": 0.03556990623474121,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_sp_player_abi",
+        "result": "OK",
+        "duration": 0.0320124626159668,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_sp_model_precache",
+        "result": "OK",
+        "duration": 0.032498836517333984,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_sp_animation_cfg",
+        "result": "OK",
+        "duration": 0.03350090980529785,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_cgame_host",
+        "result": "OK",
+        "duration": 1.161451816558838,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_audio_zone_material_map",
+        "result": "OK",
+        "duration": 6.142760515213013,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_cgame_render",
+        "result": "OK",
+        "duration": 7.941797971725464,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_cgame_ghoul2",
+        "result": "OK",
+        "duration": 8.538733959197998,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_cgame_attachment",
+        "result": "OK",
+        "duration": 7.886699438095093,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_skin",
+        "result": "OK",
+        "duration": 0.02052760124206543,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_lightstyle",
+        "result": "OK",
+        "duration": 0.026999950408935547,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_music_host",
+        "result": "OK",
+        "duration": 0.8927872180938721,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_music_preload",
+        "result": "OK",
+        "duration": 0.026001453399658203,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_ambient_sets",
+        "result": "OK",
+        "duration": 0.028005361557006836,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_cgame_ambient",
+        "result": "OK",
+        "duration": 2.624704360961914,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_effects",
+        "result": "OK",
+        "duration": 0.01899886131286621,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_cgame_effects",
+        "result": "OK",
+        "duration": 2.2694196701049805,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_default_skeleton",
+        "result": "OK",
+        "duration": 7.31932806968689,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_cgame_tag",
+        "result": "OK",
+        "duration": 7.980928421020508,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_audio_codec_profile",
+        "result": "OK",
+        "duration": 1.4003756046295166,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_effect_play",
+        "result": "OK",
+        "duration": 4.850696086883545,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_render_host",
+        "result": "OK",
+        "duration": 2.119943857192993,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_ui_binding",
+        "result": "OK",
+        "duration": 0.7910122871398926,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_ui_metadata",
+        "result": "OK",
+        "duration": 0.7157979011535645,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_server_attachment",
+        "result": "OK",
+        "duration": 15.432193040847778,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_sp_vm_export",
+        "result": "OK",
+        "duration": 0.7349534034729004,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_common_recursive_error",
+        "result": "OK",
+        "duration": 0.4585442543029785,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_ui_lifecycle",
+        "result": "OK",
+        "duration": 0.4640491008758545,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_ui_ghoul2",
+        "result": "OK",
+        "duration": 2.0082945823669434,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_line_effect",
+        "result": "OK",
+        "duration": 8.040926218032837,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_tga_origin",
+        "result": "OK",
+        "duration": 0.7224502563476562,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_cinematic_path",
+        "result": "OK",
+        "duration": 0.858299732208252,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_shader_files",
+        "result": "OK",
+        "duration": 2.8513143062591553,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_ghoul2_clock",
+        "result": "OK",
+        "duration": 1.7128760814666748,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_cgame_spatial_sound",
+        "result": "OK",
+        "duration": 3.316226005554199,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_shader_notc",
+        "result": "OK",
+        "duration": 6.020227432250977,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_ghoul2_cleanup",
+        "result": "OK",
+        "duration": 7.3164379596710205,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_lipsync",
+        "result": "OK",
+        "duration": 4.8345396518707275,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_ui_render",
+        "result": "OK",
+        "duration": 2.774364948272705,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_ui_cvar",
+        "result": "OK",
+        "duration": 0.7928075790405273,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_handshake",
+        "result": "OK",
+        "duration": 0.7395713329315186,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_geometry_host",
+        "result": "OK",
+        "duration": 7.3464860916137695,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_cgame_lifecycle",
+        "result": "OK",
+        "duration": 0.38101673126220703,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_mdr_host",
+        "result": "OK",
+        "duration": 6.385766506195068,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_parser_global",
+        "result": "OK",
+        "duration": 2.7505276203155518,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_runtime_mdr",
+        "result": "OK",
+        "duration": 4.028742551803589,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_probe_jka_client",
+        "result": "OK",
+        "duration": 0.8638479709625244,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_framing",
+        "result": "OK",
+        "duration": 0.7956101894378662,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_probe_jka_openjk_peer",
+        "result": "OK",
+        "duration": 4.990873575210571,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_demo_wire_profile",
+        "result": "OK",
+        "duration": 0.03066110610961914,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_sp_ghoul2",
+        "result": "OK",
+        "duration": 0.026004552841186523,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_pose",
+        "result": "OK",
+        "duration": 0.017505407333374023,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_geometry",
+        "result": "OK",
+        "duration": 0.023001670837402344,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_mdr",
+        "result": "OK",
+        "duration": 0.03999972343444824,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_raven_bsp_render",
+        "result": "OK",
+        "duration": 0.033057451248168945,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_probe_jka_openjk_demo",
+        "result": "OK",
+        "duration": 4.495092868804932,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_demo_snapshot",
+        "result": "OK",
+        "duration": 1.6796238422393799,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_netchan",
+        "result": "OK",
+        "duration": 0.021004915237426758,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_actions",
+        "result": "OK",
+        "duration": 1.735659122467041,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_roff",
+        "result": "OK",
+        "duration": 0.017006397247314453,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_icarus",
+        "result": "OK",
+        "duration": 0.017511367797851562,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_raven_roff_server",
+        "result": "OK",
+        "duration": 0.03299999237060547,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jk2_abi_layouts",
+        "result": "OK",
+        "duration": 0.030989885330200195,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_pose_host",
+        "result": "OK",
+        "duration": 16.666243314743042,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_raven_bsp_renderer_dispatch",
+        "result": "OK",
+        "duration": 2.082731008529663,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jk2_shader_wave_names",
+        "result": "OK",
+        "duration": 1.041588306427002,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jk2_ui_render",
+        "result": "OK",
+        "duration": 1.4651975631713867,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jk2_handshake",
+        "result": "OK",
+        "duration": 0.02701711654663086,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jk2_client_adapter",
+        "result": "OK",
+        "duration": 0.02801060676574707,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jk2_font",
+        "result": "OK",
+        "duration": 0.01850152015686035,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jk2_message_codec",
+        "result": "OK",
+        "duration": 0.016499042510986328,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jk2_string",
+        "result": "OK",
+        "duration": 0.018040895462036133,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jk2_ui_definition",
+        "result": "OK",
+        "duration": 2.214153528213501,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_ui_viewport",
+        "result": "OK",
+        "duration": 1.1442649364471436,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:jk2-sp-host",
+        "result": "OK",
+        "duration": 1.6703884601593018,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_nav_graph",
+        "result": "OK",
+        "duration": 0.01700758934020996,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_raven_ghoul2_server",
+        "result": "OK",
+        "duration": 0.01649951934814453,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_icarus_callbacks",
+        "result": "OK",
+        "duration": 0.026023149490356445,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_icarus_runtime",
+        "result": "OK",
+        "duration": 0.03150010108947754,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_icarus_ids",
+        "result": "OK",
+        "duration": 0.0279998779296875,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_icarus_values",
+        "result": "OK",
+        "duration": 0.0345304012298584,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_models",
+        "result": "OK",
+        "duration": 0.019532203674316406,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_module_abi",
+        "result": "OK",
+        "duration": 0.0305025577545166,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_bsp",
+        "result": "OK",
+        "duration": 0.019999265670776367,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_alice_bsp",
+        "result": "OK",
+        "duration": 0.02651524543762207,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_alice_module_abi",
+        "result": "OK",
+        "duration": 0.03600883483886719,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_alice_message_codec",
+        "result": "OK",
+        "duration": 0.034476518630981445,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_fakk2_message_codec",
+        "result": "OK",
+        "duration": 0.025526762008666992,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_distance_cull",
+        "result": "OK",
+        "duration": 5.999471187591553,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_alice_tan",
+        "result": "OK",
+        "duration": 0.022506237030029297,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_alice_skb",
+        "result": "OK",
+        "duration": 0.025500059127807617,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_alice_tiki",
+        "result": "OK",
+        "duration": 0.026497840881347656,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_alice_alias",
+        "result": "OK",
+        "duration": 0.03249979019165039,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_alice_ska",
+        "result": "OK",
+        "duration": 0.03299999237060547,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_alice_tiki_pose",
+        "result": "OK",
+        "duration": 0.04201865196228027,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_alice_tiki_lod",
+        "result": "OK",
+        "duration": 0.036019086837768555,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_alice_input",
+        "result": "OK",
+        "duration": 0.021500349044799805,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_alice_music",
+        "result": "OK",
+        "duration": 0.022508621215820312,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_alice_tiki_render",
+        "result": "OK",
+        "duration": 0.07402205467224121,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_alice_sound",
+        "result": "OK",
+        "duration": 0.027016639709472656,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_alice_urc",
+        "result": "OK",
+        "duration": 0.029605627059936523,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_alice_ritualfont",
+        "result": "OK",
+        "duration": 0.048107147216796875,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_alice_menu",
+        "result": "OK",
+        "duration": 0.02449798583984375,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_alice_screen",
+        "result": "OK",
+        "duration": 0.03599953651428223,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_alice_hud",
+        "result": "OK",
+        "duration": 0.029500961303710938,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_alice_noise",
+        "result": "OK",
+        "duration": 0.09853100776672363,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_alice_savegame",
+        "result": "OK",
+        "duration": 0.11844491958618164,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_alice_snapshot",
+        "result": "OK",
+        "duration": 0.0389254093170166,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_fakk2_module_abi",
+        "result": "OK",
+        "duration": 0.029521703720092773,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_fakk2_hud",
+        "result": "OK",
+        "duration": 0.03000330924987793,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_mohaa_module_abi",
+        "result": "OK",
+        "duration": 0.03450775146484375,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_mohaa_savegame",
+        "result": "OK",
+        "duration": 0.03502345085144043,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_mohaa_load_record",
+        "result": "OK",
+        "duration": 0.03250241279602051,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_game_profiles",
+        "result": "OK",
+        "duration": 0.03201031684875488,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_identity",
+        "result": "OK",
+        "duration": 0.09447479248046875,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_game_abi_layouts",
+        "result": "OK",
+        "duration": 0.028028249740600586,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_game_abi_adapters",
+        "result": "OK",
+        "duration": 0.029999494552612305,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_server_game_data",
+        "result": "OK",
+        "duration": 0.03644990921020508,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_q3_ihv_game_data",
+        "result": "OK",
+        "duration": 0.03052973747253418,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jk2_actions",
+        "result": "OK",
+        "duration": 1.9764184951782227,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_q3_ihv_game_bridge",
+        "result": "OK",
+        "duration": 0.030509471893310547,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_wolfet_contracts",
+        "result": "OK",
+        "duration": 0.0280001163482666,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_stvef_mp3_frames",
+        "result": "OK",
+        "duration": 0.03151822090148926,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_stvef_abi_layouts",
+        "result": "OK",
+        "duration": 0.02850031852722168,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_stvef_client_wire",
+        "result": "OK",
+        "duration": 0.02601766586303711,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_stvef_vm_rounding",
+        "result": "OK",
+        "duration": 0.04901719093322754,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_stvef_render_records",
+        "result": "OK",
+        "duration": 0.025499820709228516,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_wolfet_client_boundary",
+        "result": "OK",
+        "duration": 0.031499624252319336,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_netchan_profiles",
+        "result": "OK",
+        "duration": 0.026999950408935547,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_netchan_codec",
+        "result": "OK",
+        "duration": 0.022500038146972656,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_ql_font_text",
+        "result": "OK",
+        "duration": 0.01849961280822754,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_window_placement",
+        "result": "OK",
+        "duration": 0.029514074325561523,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jk2_bot_collision",
+        "result": "OK",
+        "duration": 2.466578960418701,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_steam_paths",
+        "result": "OK",
+        "duration": 0.5452983379364014,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_launcher_core",
+        "result": "OK",
+        "duration": 0.24662160873413086,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_ql_font_source",
+        "result": "OK",
+        "duration": 0.10253310203552246,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_map_overbright_cap_source",
+        "result": "OK",
+        "duration": 0.08853650093078613,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_global_fog",
+        "result": "OK",
+        "duration": 0.03049325942993164,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_window_management_source",
+        "result": "OK",
+        "duration": 0.09305739402770996,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_macos_support_source",
+        "result": "OK",
+        "duration": 0.0945582389831543,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_menu_blur",
+        "result": "OK",
+        "duration": 0.019498586654663086,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_levelshot_validation",
+        "result": "OK",
+        "duration": 0.023897886276245117,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_global_fog_source",
+        "result": "OK",
+        "duration": 0.10145425796508789,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_application_icons",
+        "result": "OK",
+        "duration": 0.4446372985839844,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_renderer_port_safety_source",
+        "result": "OK",
+        "duration": 0.08527350425720215,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_menu_blur_source",
+        "result": "OK",
+        "duration": 0.2090909481048584,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_untrusted_asset_bounds_source",
+        "result": "OK",
+        "duration": 0.16068267822265625,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_surface_geometry_limits_source",
+        "result": "OK",
+        "duration": 0.13865232467651367,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_bmp_loader",
+        "result": "OK",
+        "duration": 0.12141990661621094,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_huffman_decoder",
+        "result": "OK",
+        "duration": 0.042568206787109375,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_qvm_header_bounds",
+        "result": "OK",
+        "duration": 0.04556870460510254,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_png_loader",
+        "result": "OK",
+        "duration": 0.04206585884094238,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_filesystem_write_bounds",
+        "result": "OK",
+        "duration": 0.0695655345916748,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_native_seh",
+        "result": "OK",
+        "duration": 0.05151200294494629,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_netchan_safety",
+        "result": "OK",
+        "duration": 0.05054044723510742,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_input_compat",
+        "result": "OK",
+        "duration": 0.047028303146362305,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_unzip",
+        "result": "OK",
+        "duration": 0.11003351211547852,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_client_cvar_compat",
+        "result": "OK",
+        "duration": 0.06003427505493164,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_server_cvar_compat",
+        "result": "OK",
+        "duration": 0.04376935958862305,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_entity_editor",
+        "result": "OK",
+        "duration": 0.0402677059173584,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_server_cvar_compat_source",
+        "result": "OK",
+        "duration": 0.10074806213378906,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_client_cvar_compat_source",
+        "result": "OK",
+        "duration": 0.15172147750854492,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_protocol_layout",
+        "result": "OK",
+        "duration": 0.028009653091430664,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_spawn_view_angle_source",
+        "result": "OK",
+        "duration": 0.10195279121398926,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_protocol_contract",
+        "result": "OK",
+        "duration": 0.025011062622070312,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_retail_auth_challenge",
+        "result": "OK",
+        "duration": 0.0290219783782959,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_factory_rotation",
+        "result": "OK",
+        "duration": 0.02651381492614746,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_stats_session",
+        "result": "OK",
+        "duration": 0.022503376007080078,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_json_document",
+        "result": "OK",
+        "duration": 0.020500898361206055,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_stats_event",
+        "result": "OK",
+        "duration": 0.018498659133911133,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_factory_catalog",
+        "result": "OK",
+        "duration": 0.039499759674072266,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_message_codec",
+        "result": "OK",
+        "duration": 0.16199636459350586,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_stats_report",
+        "result": "OK",
+        "duration": 0.028027057647705078,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_demo_stream",
+        "result": "OK",
+        "duration": 0.028034210205078125,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_ql_bsp_contract",
+        "result": "OK",
+        "duration": 0.02556300163269043,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_bsp43_contract",
+        "result": "OK",
+        "duration": 0.032059431076049805,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_q3_ihv_netchan",
+        "result": "OK",
+        "duration": 0.033178091049194336,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_ql_demo_source",
+        "result": "OK",
+        "duration": 0.08870053291320801,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_q3_ihv_native_boundary",
+        "result": "OK",
+        "duration": 0.0446467399597168,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_q3_ihv_message",
+        "result": "OK",
+        "duration": 0.04056429862976074,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_q3_ihv_wire",
+        "result": "OK",
+        "duration": 0.06999349594116211,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_q3_ihv_configstrings",
+        "result": "OK",
+        "duration": 0.05806231498718262,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_q3_ihv_model_tags",
+        "result": "OK",
+        "duration": 0.027528762817382812,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_q3_ihv_scene",
+        "result": "OK",
+        "duration": 0.026524782180786133,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_q3_ihv_client_data",
+        "result": "OK",
+        "duration": 0.06101703643798828,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_q3_ihv_identity",
+        "result": "OK",
+        "duration": 0.031038999557495117,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_q3test_bsp",
+        "result": "OK",
+        "duration": 0.02369236946105957,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_q3_ihv_collision",
+        "result": "OK",
+        "duration": 0.030001163482666016,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_collision_model_parity",
+        "result": "OK",
+        "duration": 0.029499530792236328,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_collision_game_contract",
+        "result": "OK",
+        "duration": 0.027492284774780273,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_collision_capsule_trace",
+        "result": "OK",
+        "duration": 0.05051732063293457,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_stvef_server_policy",
+        "result": "OK",
+        "duration": 0.03200125694274902,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_collision_model_parity_source",
+        "result": "OK",
+        "duration": 0.08584761619567871,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_ql_services_source",
+        "result": "OK",
+        "duration": 0.08829164505004883,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_ql_cvar_configstring_source",
+        "result": "OK",
+        "duration": 0.16682028770446777,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_q3test_identity",
+        "result": "OK",
+        "duration": 0.5651490688323975,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_join_menu_source",
+        "result": "OK",
+        "duration": 0.08509206771850586,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_q3test_wire",
+        "result": "OK",
+        "duration": 0.8437671661376953,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_windowed_mouse_source",
+        "result": "OK",
+        "duration": 0.294109582901001,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_frame_clock_source",
+        "result": "OK",
+        "duration": 0.07031559944152832,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_renderer_contract_source",
+        "result": "OK",
+        "duration": 0.14165186882019043,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_lightmap_parity_source",
+        "result": "OK",
+        "duration": 0.08751511573791504,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_renderer_cvar_compat_source",
+        "result": "OK",
+        "duration": 0.6620755195617676,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_entity_override",
+        "result": "OK",
+        "duration": 2.474487781524658,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_rtx_renderer_contract_source",
+        "result": "OK",
+        "duration": 0.13568472862243652,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_rtx_raster_feature_parity_source",
+        "result": "OK",
+        "duration": 0.17004919052124023,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_fnq3_bloom_parity_source",
+        "result": "OK",
+        "duration": 0.6314220428466797,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_rtx_vulkan_safety_source",
+        "result": "OK",
+        "duration": 0.09489774703979492,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_input_system_source",
+        "result": "OK",
+        "duration": 1.831554889678955,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_rtx_runtime_smoke_source",
+        "result": "OK",
+        "duration": 0.4166276454925537,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_platform_port_safety_source",
+        "result": "OK",
+        "duration": 2.1764938831329346,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_rtx_lightmap_execution",
+        "result": "OK",
+        "duration": 0.9974451065063477,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_rtx_mdr_geometry",
+        "result": "OK",
+        "duration": 0.029499053955078125,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_cvar_factory_snapshot_source",
+        "result": "OK",
+        "duration": 0.08649301528930664,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_factory_runtime_source",
+        "result": "OK",
+        "duration": 0.09061884880065918,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_rtx_raster_execution",
+        "result": "OK",
+        "duration": 1.2640347480773926,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_retail_factory_probe",
+        "result": "SKIP",
+        "duration": 0.09607434272766113,
+        "returncode": 77
+      },
+      {
+        "name": "fnTech3:fnql_steam_identity",
+        "result": "OK",
+        "duration": 0.01849818229675293,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_steam_provider_source",
+        "result": "OK",
+        "duration": 0.0984654426574707,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_steam_identity_source",
+        "result": "OK",
+        "duration": 0.08237361907958984,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_webpak_format",
+        "result": "OK",
+        "duration": 0.017484664916992188,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_webpak_builder_source",
+        "result": "OK",
+        "duration": 0.14583563804626465,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_webui_backend",
+        "result": "OK",
+        "duration": 0.01799917221069336,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_webui_request_schedule",
+        "result": "OK",
+        "duration": 0.030482769012451172,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_webui_resource_queue",
+        "result": "OK",
+        "duration": 0.03394675254821777,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_zmq_endpoint",
+        "result": "OK",
+        "duration": 0.018514156341552734,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_glx_logic",
+        "result": "OK",
+        "duration": 0.018492937088012695,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_glx_header_boundary",
+        "result": "OK",
+        "duration": 0.1926589012145996,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_glx_spot_shadow_source",
+        "result": "OK",
+        "duration": 0.12040162086486816,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_static_map_lights_source",
+        "result": "OK",
+        "duration": 0.05204296112060547,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_surface_light_proxy_source",
+        "result": "OK",
+        "duration": 0.05201315879821777,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_csm_shadow_cache_source",
+        "result": "OK",
+        "duration": 0.05354785919189453,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_csm_plan_source",
+        "result": "OK",
+        "duration": 0.04902195930480957,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_shadow_manager_source",
+        "result": "OK",
+        "duration": 0.05510401725769043,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_rtx_lifecycle",
+        "result": "OK",
+        "duration": 1.7535994052886963,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_vid_restart_fast_source",
+        "result": "OK",
+        "duration": 0.08300352096557617,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_cgame_native_bridge_source",
+        "result": "OK",
+        "duration": 0.10401582717895508,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_ui_native_bridge_source",
+        "result": "OK",
+        "duration": 0.10505199432373047,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_rtx_transport",
+        "result": "OK",
+        "duration": 2.1605453491210938,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_workshop_source",
+        "result": "OK",
+        "duration": 3.9742326736450195,
+        "returncode": 0
+      }
+    ]
+  },
+  "excluded_tests": [
+    "fnql_python_source_regressions (one-hour recursive source suite; not run this round)"
+  ],
+  "runtime": [
+    {
+      "checks": [],
+      "profile": "jka-mp",
+      "installation": "E:\\Games\\Jedi Academy",
+      "platform": "Windows x86",
+      "desktopSwitched": false,
+      "windowed": true,
+      "inputInjected": false,
+      "actions": [
+        "status",
+        "screenshot silent",
+        "team free"
+      ],
+      "processes": {
+        "host": {
+          "command": [
+            "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "jka-mp",
+            "+set",
+            "fs_basepath",
+            "E:\\Games\\Jedi Academy",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\jedi-audit-round2\\jka-before\\host-home",
+            "+set",
+            "developer",
+            "1",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_enabled",
+            "1",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "-1",
+            "+set",
+            "r_customwidth",
+            "640",
+            "+set",
+            "r_customheight",
+            "480",
+            "+set",
+            "s_volume",
+            "0",
+            "+set",
+            "s_musicvolume",
+            "0",
+            "+set",
+            "s_initsound",
+            "1",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "net_port",
+            "29070",
+            "+set",
+            "rconPassword",
+            "<password>",
+            "+set",
+            "name",
+            "ProbeHost",
+            "+set",
+            "sv_maxclients",
+            "8",
+            "+set",
+            "g_gametype",
+            "0",
+            "+set",
+            "cl_renderer",
+            "glx",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "sv_pure",
+            "0",
+            "+set",
+            "s_backend",
+            "openal",
+            "+map",
+            "mp/ffa1"
+          ],
+          "sha256": "7433979db48cbed33c6e1af49d8121a85ca831de07809489b0f325282eaeb34f"
+        }
+      },
+      "exitCode": null,
+      "reachedActive": true,
+      "status": "map: mp/ffa1\ncl score ping name      address  rate steamid\n-- ----- ---- --------- -------- ----- -----------------\n 0     0    2 ProbeHost^7 loopback     0 0",
+      "joinReply": null,
+      "errors": [
+        "ERROR: Academy effect effects/mp/spawn.efx: effects primitive family is not served yet (Line)",
+        "----- Server Shutdown (Server crashed: Academy effect effects/mp/spawn.efx: effects primitive family is not served yet (Line)) -----"
+      ],
+      "installationUnchanged": true,
+      "local_result": ".tmp/jedi-audit-round2/jka-before/result.json",
+      "captures": [
+        {
+          "path": ".tmp/jedi-audit-round2/jka-before/shot-20261007-204804.png",
+          "sha256": "7a27ae0844235138421509fbe4ad432127bf9dfac30c0e94c146cd81b4f41276"
+        }
+      ]
+    },
+    {
+      "checks": [],
+      "profile": "jka-mp",
+      "installation": "E:\\Games\\Jedi Academy",
+      "platform": "Windows x86",
+      "desktopSwitched": false,
+      "windowed": true,
+      "inputInjected": false,
+      "actions": [
+        "status",
+        "screenshot silent",
+        "team free"
+      ],
+      "processes": {
+        "host": {
+          "command": [
+            "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "jka-mp",
+            "+set",
+            "fs_basepath",
+            "E:\\Games\\Jedi Academy",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\jedi-audit-round2\\jka-after\\host-home",
+            "+set",
+            "developer",
+            "1",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_enabled",
+            "1",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "-1",
+            "+set",
+            "r_customwidth",
+            "640",
+            "+set",
+            "r_customheight",
+            "480",
+            "+set",
+            "s_volume",
+            "0",
+            "+set",
+            "s_musicvolume",
+            "0",
+            "+set",
+            "s_initsound",
+            "1",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "net_port",
+            "29070",
+            "+set",
+            "rconPassword",
+            "<password>",
+            "+set",
+            "name",
+            "ProbeHost",
+            "+set",
+            "sv_maxclients",
+            "8",
+            "+set",
+            "g_gametype",
+            "0",
+            "+set",
+            "cl_renderer",
+            "glx",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "sv_pure",
+            "0",
+            "+set",
+            "s_backend",
+            "openal",
+            "+map",
+            "mp/ffa1"
+          ],
+          "sha256": "e08626bbb8a323cc7df25fcfa6550c41ffa048a62adcc39669585fc6e20f08dd"
+        }
+      },
+      "exitCode": null,
+      "reachedActive": true,
+      "status": "map: mp/ffa1\ncl score ping name      address  rate steamid\n-- ----- ---- --------- -------- ----- -----------------\n 0     0    1 ProbeHost^7 loopback     0 0",
+      "joinReply": null,
+      "errors": [
+        "ERROR: Academy effect effects/mp/spawn.efx: effects primitive family is not served yet (Emitter)",
+        "----- Server Shutdown (Server crashed: Academy effect effects/mp/spawn.efx: effects primitive family is not served yet (Emitter)) -----"
+      ],
+      "installationUnchanged": true,
+      "local_result": ".tmp/jedi-audit-round2/jka-after/result.json",
+      "captures": [
+        {
+          "path": ".tmp/jedi-audit-round2/jka-after/shot-20261007-210404.png",
+          "sha256": "012108439bda2f83abc112f99a4b6c70ba25911c2c2d14f0bd5b33595419350c"
+        }
+      ]
+    },
+    {
+      "checks": [],
+      "profile": "jka-mp",
+      "installation": "E:\\Games\\Jedi Academy",
+      "platform": "Windows x86",
+      "desktopSwitched": false,
+      "windowed": true,
+      "inputInjected": false,
+      "actions": [
+        "status",
+        "screenshot silent",
+        "team free",
+        "screenshot silent",
+        "map_restart 0",
+        "status"
+      ],
+      "diagnosticFixture": {
+        "path": "base/effects/mp/spawn.efx",
+        "sha256": "4dd3e4fa6f747ac8022fa9edde93cfb69488c65a2b03471f0a430c50eb3d8d10",
+        "scope": "independently authored Line-only override; does not prove installed spawn support"
+      },
+      "processes": {
+        "host": {
+          "command": [
+            "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "jka-mp",
+            "+set",
+            "fs_basepath",
+            "E:\\Games\\Jedi Academy",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\jedi-audit-round2\\jka-line-diagnostic-valid\\host-home",
+            "+set",
+            "developer",
+            "1",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_enabled",
+            "1",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "-1",
+            "+set",
+            "r_customwidth",
+            "640",
+            "+set",
+            "r_customheight",
+            "480",
+            "+set",
+            "s_volume",
+            "0",
+            "+set",
+            "s_musicvolume",
+            "0",
+            "+set",
+            "s_initsound",
+            "1",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "net_port",
+            "29070",
+            "+set",
+            "rconPassword",
+            "<password>",
+            "+set",
+            "name",
+            "ProbeHost",
+            "+set",
+            "sv_maxclients",
+            "8",
+            "+set",
+            "g_gametype",
+            "0",
+            "+set",
+            "cl_renderer",
+            "glx",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "sv_pure",
+            "0",
+            "+set",
+            "s_backend",
+            "openal",
+            "+map",
+            "mp/ffa1"
+          ],
+          "sha256": "690cb83b9c92255366a8951a27a33aabc8e186a74fb8c2d534faa6f59276ea99"
+        }
+      },
+      "exitCode": null,
+      "reachedActive": true,
+      "status": "map: mp/ffa1\ncl score ping name      address  rate steamid\n-- ----- ---- --------- -------- ----- -----------------\n 0     0    2 ProbeHost^7 loopback     0 0",
+      "joinReply": null,
+      "restartReply": null,
+      "afterRestartStatus": null,
+      "errors": [
+        "ERROR: Academy cgame bolt pose is outside its served hierarchy/animation boundary (model=models/players/kyle/model.glm, index=0, bolt=6, clock=34328) [bone=0 clip=14651..14653 flags=0x90 speed=1 start=21766 blend=21766/100 known=1] [bone=11 clip=15456..15457 flags=0xc8 speed=1 start=21828 blend=21828/100 known=1] [bone=2 clip=15456..15457 flags=0xc8 speed=1 start=21828 blend=21828/100 known=1] [bone=52 clip=4..6 flags=0x8 speed=0.05 start=33318 blend=0/50 known=0] [angle bone=12 flags=0x2 blend=0] [angle bone=15 flags=0x2 blend=0] [angle bone=14 flags=0x2 blend=0] [angle bone=13 flags=0x2 blend=0] [angle bone=11 flags=0x2 blend=0] [angle bone=19 flags=0x2 blend=80] [angle bone=23 flags=0x2 blend=80]",
+        "----- Server Shutdown (Server crashed: Academy cgame bolt pose is outside its served hierarchy/animation boundary (model=models/players/kyle/model.glm, index=0, bolt=6, clock=34328) [bone=0 clip=14651..14653 flags=0x90 speed=1 start=21766 blend=21766/100 known=1] [bone=11 clip=15456..15457 flags=0xc8 speed=1 start=21828 blend=21828/100 known=1] [bone=2 clip=15456..15457 flags=0xc8 speed=1 start=21828 blend=21828/100 known=1] [bone=52 clip=4..6 flags=0x8 speed=0.05 start=33318 blend=0/50 known=0] [angle bone=12 flags=0x2 blend=0] [angle bone=15 flags=0x2 blend=0] [angle bone=14 flags=0x2 blend=0] [angle bone=13 flags=0x2 blend=0] [angle bone=11 flags=0x2 blend=0] [angle bone=19 flags=0x2 blend=80] [angle bone=23 flags=0x2 blend=80]) -----"
+      ],
+      "installationUnchanged": true,
+      "local_result": ".tmp/jedi-audit-round2/jka-line-diagnostic-valid/result.json",
+      "captures": [
+        {
+          "path": ".tmp/jedi-audit-round2/jka-line-diagnostic-valid/shot-20261007-210524.png",
+          "sha256": "8cc0a053acc31ee3765dc39d69de808714ef06ab71c4184ec69ad5c7a9fdc684"
+        },
+        {
+          "path": ".tmp/jedi-audit-round2/jka-line-diagnostic-valid/shot-20261007-210542.png",
+          "sha256": "021507d0c1213bb564bc139fcedc178e94ce1d33e831dae4baf84b4fd751bd1d"
+        }
+      ]
+    },
+    {
+      "checks": [],
+      "profile": "jk2-mp",
+      "installation": "E:\\Games\\Jedi Outcast",
+      "platform": "Windows x86",
+      "desktopSwitched": false,
+      "windowed": true,
+      "inputInjected": false,
+      "actions": [],
+      "processes": {
+        "host": {
+          "command": [
+            "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "jk2-mp",
+            "+set",
+            "fs_basepath",
+            "E:\\Games\\Jedi Outcast",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\jedi-audit-round2\\jk2-before\\host-home",
+            "+set",
+            "developer",
+            "1",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_enabled",
+            "1",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "-1",
+            "+set",
+            "r_customwidth",
+            "640",
+            "+set",
+            "r_customheight",
+            "480",
+            "+set",
+            "s_volume",
+            "0",
+            "+set",
+            "s_musicvolume",
+            "0",
+            "+set",
+            "s_initsound",
+            "0",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "net_port",
+            "28070",
+            "+set",
+            "rconPassword",
+            "<password>",
+            "+set",
+            "name",
+            "ProbeHost",
+            "+set",
+            "sv_maxclients",
+            "8",
+            "+set",
+            "g_gametype",
+            "0",
+            "+set",
+            "cl_renderer",
+            "glx",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "sv_pure",
+            "0",
+            "+set",
+            "s_backend",
+            "openal"
+          ],
+          "sha256": "7433979db48cbed33c6e1af49d8121a85ca831de07809489b0f325282eaeb34f"
+        }
+      },
+      "exitCode": null,
+      "reachedActive": false,
+      "errors": [
+        "ERROR: Unsupported jk2-mp UI import 18: Jedi Outcast's menu service boundary is open."
+      ],
+      "installationUnchanged": true,
+      "local_result": ".tmp/jedi-audit-round2/jk2-before/result.json",
+      "captures": []
+    },
+    {
+      "checks": [],
+      "profile": "jk2-mp",
+      "installation": "E:\\Games\\Jedi Outcast",
+      "platform": "Windows x86",
+      "desktopSwitched": false,
+      "windowed": true,
+      "inputInjected": false,
+      "actions": [],
+      "processes": {
+        "host": {
+          "command": [
+            "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "jk2-mp",
+            "+set",
+            "fs_basepath",
+            "E:\\Games\\Jedi Outcast",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\jedi-audit-round2\\jk2-record-diagnostic\\host-home",
+            "+set",
+            "developer",
+            "1",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_enabled",
+            "1",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "-1",
+            "+set",
+            "r_customwidth",
+            "640",
+            "+set",
+            "r_customheight",
+            "480",
+            "+set",
+            "s_volume",
+            "0",
+            "+set",
+            "s_musicvolume",
+            "0",
+            "+set",
+            "s_initsound",
+            "0",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "net_port",
+            "28070",
+            "+set",
+            "rconPassword",
+            "<password>",
+            "+set",
+            "name",
+            "ProbeHost",
+            "+set",
+            "sv_maxclients",
+            "8",
+            "+set",
+            "g_gametype",
+            "0",
+            "+set",
+            "cl_renderer",
+            "glx",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "sv_pure",
+            "0",
+            "+set",
+            "s_backend",
+            "openal",
+            "+wait",
+            "600",
+            "+screenshot",
+            "silent",
+            "+wait",
+            "5",
+            "+quit"
+          ],
+          "sha256": "690cb83b9c92255366a8951a27a33aabc8e186a74fb8c2d534faa6f59276ea99"
+        }
+      },
+      "exitCode": null,
+      "reachedActive": false,
+      "errors": [
+        "ERROR: Jedi Outcast UI view25: invalid renderer record (field=viewport origin rect=-77,84 248x248 fov=45,45 flags=0x1)"
+      ],
+      "installationUnchanged": true,
+      "local_result": ".tmp/jedi-audit-round2/jk2-record-diagnostic/result.json",
+      "captures": []
+    },
+    {
+      "checks": [],
+      "profile": "jk2-mp",
+      "installation": "E:\\Games\\Jedi Outcast",
+      "platform": "Windows x86",
+      "desktopSwitched": false,
+      "windowed": true,
+      "inputInjected": false,
+      "actions": [],
+      "renderer": {
+        "file": "fnql_glx_x86.dll",
+        "sha256": "3ff91712b0c35a8e27cb34b6cae1143a5a821d971b67b738cd86cbca87e41507"
+      },
+      "processes": {
+        "host": {
+          "command": [
+            "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "jk2-mp",
+            "+set",
+            "fs_basepath",
+            "E:\\Games\\Jedi Outcast",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\jedi-audit-round2\\jk2-menu-complete\\host-home",
+            "+set",
+            "developer",
+            "1",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_enabled",
+            "1",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "-1",
+            "+set",
+            "r_customwidth",
+            "640",
+            "+set",
+            "r_customheight",
+            "480",
+            "+set",
+            "s_volume",
+            "0",
+            "+set",
+            "s_musicvolume",
+            "0",
+            "+set",
+            "s_initsound",
+            "0",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "net_port",
+            "28070",
+            "+set",
+            "rconPassword",
+            "<password>",
+            "+set",
+            "name",
+            "ProbeHost",
+            "+set",
+            "sv_maxclients",
+            "8",
+            "+set",
+            "g_gametype",
+            "0",
+            "+set",
+            "cl_renderer",
+            "glx",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "sv_pure",
+            "0",
+            "+set",
+            "s_backend",
+            "openal",
+            "+wait",
+            "600",
+            "+screenshot",
+            "silent",
+            "+wait",
+            "5",
+            "+quit"
+          ],
+          "sha256": "db682a3b26b6322f342997048e0442436340ce14e9bf8672fb0bb9af2973d639"
+        }
+      },
+      "exitCode": 0,
+      "reachedActive": false,
+      "errors": [],
+      "installationUnchanged": true,
+      "local_result": ".tmp/jedi-audit-round2/jk2-menu-complete/result.json",
+      "captures": [
+        {
+          "path": ".tmp/jedi-audit-round2/jk2-menu-complete/shot-20261007-211955.png",
+          "sha256": "4e8bacf7c7f0910185ec314c771105812fdb958e28260fe6659b7dc17463a328"
+        }
+      ]
+    },
+    {
+      "checks": [],
+      "profile": "jk2-mp",
+      "installation": "E:\\Games\\Jedi Outcast",
+      "platform": "Windows x86",
+      "desktopSwitched": false,
+      "windowed": true,
+      "inputInjected": false,
+      "actions": [
+        "quit"
+      ],
+      "renderer": {
+        "file": "fnql_glx_x86.dll",
+        "sha256": "3ff91712b0c35a8e27cb34b6cae1143a5a821d971b67b738cd86cbca87e41507"
+      },
+      "processes": {
+        "host": {
+          "command": [
+            "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "jk2-mp",
+            "+set",
+            "fs_basepath",
+            "E:\\Games\\Jedi Outcast",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\jedi-audit-round2\\jk2-map-final\\host-home",
+            "+set",
+            "developer",
+            "1",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_enabled",
+            "1",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "-1",
+            "+set",
+            "r_customwidth",
+            "640",
+            "+set",
+            "r_customheight",
+            "480",
+            "+set",
+            "s_volume",
+            "0",
+            "+set",
+            "s_musicvolume",
+            "0",
+            "+set",
+            "s_initsound",
+            "0",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "net_port",
+            "28070",
+            "+set",
+            "rconPassword",
+            "<password>",
+            "+set",
+            "name",
+            "ProbeHost",
+            "+set",
+            "sv_maxclients",
+            "8",
+            "+set",
+            "g_gametype",
+            "0",
+            "+set",
+            "cl_renderer",
+            "glx",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "sv_pure",
+            "0",
+            "+set",
+            "s_backend",
+            "openal",
+            "+map",
+            "ffa_bespin"
+          ],
+          "sha256": "db682a3b26b6322f342997048e0442436340ce14e9bf8672fb0bb9af2973d639"
+        }
+      },
+      "exitCode": null,
+      "reachedActive": false,
+      "quitReply": null,
+      "quitCode": null,
+      "errors": [],
+      "installationUnchanged": true,
+      "observed_log_failures": [
+        "----- Client Shutdown (Unsupported jk2-mp cgame import 264: Jedi Outcast's effects boundary is open.) -----",
+        "WARNING: Recursive CL_Shutdown()"
+      ],
+      "interpretation": "Partial-module error recovery masked the initial error; fixed by the later cleanup probe. The original harness ERROR-only filter missed these retained log lines.",
+      "local_result": ".tmp/jedi-audit-round2/jk2-map-final/result.json",
+      "captures": []
+    },
+    {
+      "checks": [],
+      "profile": "jk2-mp",
+      "installation": "E:\\Games\\Jedi Outcast",
+      "platform": "Windows x86",
+      "desktopSwitched": false,
+      "windowed": true,
+      "inputInjected": false,
+      "actions": [],
+      "renderer": {
+        "file": "fnql_glx_x86.dll",
+        "sha256": "3ff91712b0c35a8e27cb34b6cae1143a5a821d971b67b738cd86cbca87e41507"
+      },
+      "processes": {
+        "host": {
+          "command": [
+            "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+            "+set",
+            "com_gameProfile",
+            "jk2-mp",
+            "+set",
+            "fs_basepath",
+            "E:\\Games\\Jedi Outcast",
+            "+set",
+            "fs_homepath",
+            "E:\\Repositories\\fnTech3\\.tmp\\jedi-audit-round2\\jk2-map-cleanup-final\\host-home",
+            "+set",
+            "developer",
+            "1",
+            "+set",
+            "logfile",
+            "2",
+            "+set",
+            "net_ip",
+            "127.0.0.1",
+            "+set",
+            "net_enabled",
+            "1",
+            "+set",
+            "r_fullscreen",
+            "0",
+            "+set",
+            "r_mode",
+            "-1",
+            "+set",
+            "r_customwidth",
+            "640",
+            "+set",
+            "r_customheight",
+            "480",
+            "+set",
+            "s_volume",
+            "0",
+            "+set",
+            "s_musicvolume",
+            "0",
+            "+set",
+            "s_initsound",
+            "0",
+            "+set",
+            "com_maxfps",
+            "60",
+            "+set",
+            "in_mouse",
+            "0",
+            "+set",
+            "in_nograb",
+            "1",
+            "+set",
+            "net_port",
+            "28070",
+            "+set",
+            "rconPassword",
+            "<password>",
+            "+set",
+            "name",
+            "ProbeHost",
+            "+set",
+            "sv_maxclients",
+            "8",
+            "+set",
+            "g_gametype",
+            "0",
+            "+set",
+            "cl_renderer",
+            "glx",
+            "+set",
+            "in_joystick",
+            "0",
+            "+set",
+            "com_steamIntegration",
+            "0",
+            "+set",
+            "sv_pure",
+            "0",
+            "+set",
+            "s_backend",
+            "openal",
+            "+map",
+            "ffa_bespin"
+          ],
+          "sha256": "d7684507cd451d83d9b1e61d70a16a8ca0ea9260eb94cfe92ac6d24d213a7ccc"
+        }
+      },
+      "exitCode": null,
+      "reachedActive": false,
+      "errors": [
+        "ERROR: Unsupported jk2-mp cgame import 300: Jedi Outcast's client service boundary is open.",
+        "----- Server Shutdown (Server crashed: Unsupported jk2-mp cgame import 300: Jedi Outcast's client service boundary is open.) -----"
+      ],
+      "installationUnchanged": true,
+      "local_result": ".tmp/jedi-audit-round2/jk2-map-cleanup-final/result.json",
+      "captures": []
+    }
+  ],
+  "presentation": {
+    "uses": [
+      "Fn model/material/light path",
+      "Fn UI aspect and viewport scaling",
+      "Fn effect polygons"
+    ],
+    "omitted": "Moving emitters, nested Light/FxRunner/Electricity and unsupported Raven entities remain explicit refusals.",
+    "retail_exact_option_added": false
+  },
+  "environment_limits": [
+    "OpenAL ALC_SOFT_loopback unavailable; system compatibility runtime lacks OpenAL Soft extensions.",
+    "Optional Quake Live factory fixture not discovered.",
+    "Host skips file/directory symlink cases."
+  ],
+  "remaining": [
+    "Installed Academy spawn refuses Emitter and its unsupported child-effect chain.",
+    "Line-only diagnostic exposes a separate Kyle bone-animation/bolt refusal; no complete joined-play claim.",
+    "SP campaign/client/save paths and full MP world, sound, input, demo/gameplay/retail interop gates remain open.",
+    "Outcast main menu renders and exits cleanly; map startup refuses cgame import300, with partial-module cleanup repaired."
+  ],
+  "final_focused": {
+    "counts": {
+      "OK": 92
+    },
+    "results": [
+      {
+        "name": "fnTech3:fntech3_jka_abi_layouts",
+        "result": "OK",
+        "duration": 0.20069050788879395,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_sp_abi",
+        "result": "OK",
+        "duration": 0.19069170951843262,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_sp_game_bridge",
+        "result": "OK",
+        "duration": 0.1811826229095459,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_sp_state",
+        "result": "OK",
+        "duration": 0.16992878913879395,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_wire",
+        "result": "OK",
+        "duration": 0.16188812255859375,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_snapshot",
+        "result": "OK",
+        "duration": 0.1513354778289795,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_ui",
+        "result": "OK",
+        "duration": 0.1411900520324707,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_font",
+        "result": "OK",
+        "duration": 0.13318109512329102,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_font_host",
+        "result": "OK",
+        "duration": 0.12570858001708984,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_client",
+        "result": "OK",
+        "duration": 0.11691474914550781,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_string_package",
+        "result": "OK",
+        "duration": 0.10890984535217285,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_string_host",
+        "result": "OK",
+        "duration": 0.10104799270629883,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_render",
+        "result": "OK",
+        "duration": 0.0942997932434082,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_sp_player_abi",
+        "result": "OK",
+        "duration": 0.08689022064208984,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_sp_model_precache",
+        "result": "OK",
+        "duration": 0.07703948020935059,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_sp_animation_cfg",
+        "result": "OK",
+        "duration": 0.06722092628479004,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_skin",
+        "result": "OK",
+        "duration": 0.16657400131225586,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_lightstyle",
+        "result": "OK",
+        "duration": 0.1547074317932129,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_music_preload",
+        "result": "OK",
+        "duration": 0.1321711540222168,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_ambient_sets",
+        "result": "OK",
+        "duration": 0.12055230140686035,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_effects",
+        "result": "OK",
+        "duration": 0.0920257568359375,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_ui_lifecycle",
+        "result": "OK",
+        "duration": 1.1325342655181885,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_ui_binding",
+        "result": "OK",
+        "duration": 1.4282276630401611,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_cgame_host",
+        "result": "OK",
+        "duration": 1.7372453212738037,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_ui_metadata",
+        "result": "OK",
+        "duration": 1.6009185314178467,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_music_host",
+        "result": "OK",
+        "duration": 1.782853603363037,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_sp_vm_export",
+        "result": "OK",
+        "duration": 1.6923799514770508,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_cgame_effects",
+        "result": "OK",
+        "duration": 2.825824499130249,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_tga_origin",
+        "result": "OK",
+        "duration": 1.882601022720337,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_cinematic_path",
+        "result": "OK",
+        "duration": 1.7429473400115967,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_render_host",
+        "result": "OK",
+        "duration": 3.8061022758483887,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_ui_ghoul2",
+        "result": "OK",
+        "duration": 3.9107673168182373,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_cgame_ambient",
+        "result": "OK",
+        "duration": 5.568984031677246,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_ui_cvar",
+        "result": "OK",
+        "duration": 1.5716640949249268,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_ghoul2_clock",
+        "result": "OK",
+        "duration": 4.035727024078369,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_shader_files",
+        "result": "OK",
+        "duration": 5.996394634246826,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_cgame_lifecycle",
+        "result": "OK",
+        "duration": 1.0783092975616455,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_cgame_ghoul2",
+        "result": "OK",
+        "duration": 6.94089674949646,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_handshake",
+        "result": "OK",
+        "duration": 1.790318250656128,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_cgame_spatial_sound",
+        "result": "OK",
+        "duration": 5.768571138381958,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_framing",
+        "result": "OK",
+        "duration": 1.885976791381836,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_effect_play",
+        "result": "OK",
+        "duration": 9.276470422744751,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_sp_ghoul2",
+        "result": "OK",
+        "duration": 0.10637879371643066,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_pose",
+        "result": "OK",
+        "duration": 0.08655524253845215,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_ui_render",
+        "result": "OK",
+        "duration": 5.622198581695557,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_geometry",
+        "result": "OK",
+        "duration": 0.1552584171295166,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_mdr",
+        "result": "OK",
+        "duration": 0.12872982025146484,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_lipsync",
+        "result": "OK",
+        "duration": 7.742218732833862,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_netchan",
+        "result": "OK",
+        "duration": 0.0676579475402832,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_roff",
+        "result": "OK",
+        "duration": 0.08936309814453125,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_icarus",
+        "result": "OK",
+        "duration": 0.10291743278503418,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jk2_abi_layouts",
+        "result": "OK",
+        "duration": 0.052645206451416016,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_probe_jka_client",
+        "result": "OK",
+        "duration": 3.0906882286071777,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_shader_notc",
+        "result": "OK",
+        "duration": 10.564462184906006,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_demo_snapshot",
+        "result": "OK",
+        "duration": 3.6781773567199707,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jk2_handshake",
+        "result": "OK",
+        "duration": 0.09891581535339355,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jk2_client_adapter",
+        "result": "OK",
+        "duration": 0.21546149253845215,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_parser_global",
+        "result": "OK",
+        "duration": 5.863065242767334,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jk2_font",
+        "result": "OK",
+        "duration": 0.09340167045593262,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jk2_message_codec",
+        "result": "OK",
+        "duration": 0.1370408535003662,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jk2_string",
+        "result": "OK",
+        "duration": 0.1381063461303711,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jk2_shader_wave_names",
+        "result": "OK",
+        "duration": 2.185499429702759,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_mdr_host",
+        "result": "OK",
+        "duration": 9.35174036026001,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_icarus_callbacks",
+        "result": "OK",
+        "duration": 0.13296866416931152,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_icarus_runtime",
+        "result": "OK",
+        "duration": 0.10422372817993164,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jk2_ui_render",
+        "result": "OK",
+        "duration": 3.146106481552124,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_icarus_ids",
+        "result": "OK",
+        "duration": 0.0538640022277832,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_icarus_values",
+        "result": "OK",
+        "duration": 0.07988214492797852,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_models",
+        "result": "OK",
+        "duration": 0.0645151138305664,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_module_abi",
+        "result": "OK",
+        "duration": 0.14524364471435547,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_ui_viewport",
+        "result": "OK",
+        "duration": 2.2584898471832275,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_bsp",
+        "result": "OK",
+        "duration": 0.1609344482421875,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_stvef_render_records",
+        "result": "OK",
+        "duration": 0.06567645072937012,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_identity",
+        "result": "OK",
+        "duration": 0.19361352920532227,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_default_skeleton",
+        "result": "OK",
+        "duration": 13.541598320007324,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fnql_ui_native_bridge_source",
+        "result": "OK",
+        "duration": 0.32828235626220703,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_actions",
+        "result": "OK",
+        "duration": 4.0816380977630615,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_cgame_attachment",
+        "result": "OK",
+        "duration": 13.973083972930908,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_ghoul2_cleanup",
+        "result": "OK",
+        "duration": 12.367066621780396,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jk2_ui_definition",
+        "result": "OK",
+        "duration": 4.657241106033325,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_cgame_render",
+        "result": "OK",
+        "duration": 14.627143859863281,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:jk2-sp-host",
+        "result": "OK",
+        "duration": 2.9894638061523438,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_cgame_tag",
+        "result": "OK",
+        "duration": 15.139803171157837,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_line_effect",
+        "result": "OK",
+        "duration": 15.04271149635315,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jk2_actions",
+        "result": "OK",
+        "duration": 3.258678436279297,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jk2_bot_collision",
+        "result": "OK",
+        "duration": 4.07468056678772,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_probe_jka_openjk_demo",
+        "result": "OK",
+        "duration": 9.226284503936768,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_probe_jka_openjk_peer",
+        "result": "OK",
+        "duration": 9.716531038284302,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_geometry_host",
+        "result": "OK",
+        "duration": 13.401017904281616,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_distance_cull",
+        "result": "OK",
+        "duration": 8.459867238998413,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_server_attachment",
+        "result": "OK",
+        "duration": 22.822921752929688,
+        "returncode": 0
+      },
+      {
+        "name": "fnTech3:fntech3_jka_pose_host",
+        "result": "OK",
+        "duration": 22.321006298065186,
+        "returncode": 0
+      }
+    ]
+  },
+  "jk2_noise": {
+    "date": "2026-10-07",
+    "kind": "Read-only primary retail disassembly and installed-asset observation; production-function regression tests. No engine runtime or native retail noise execution claimed.",
+    "retail": [
+      {
+        "file": "E:/Games/Jedi Outcast/jk2mp.exe",
+        "sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a",
+        "timestamp": "0x3c832b11",
+        "sizeOfImage": "0x1713000",
+        "waveEvaluator": "0x48a110..0x48a1ab",
+        "noiseBranch": "func6 at0x48a117; float view seconds0x1a4a1ac read0x48a11c; add phase then multiply frequency; binary32 coordinate store0x48a129; call R_NoiseGet4f0x4872b0 at0x48a132; multiply amplitude and add base0x48a137..0x48a13d",
+        "randomBranch": "func7 at0x48a142; integer view milliseconds0x1a4a17c read0x48a147; add phase then truncate via0x4d4f00; R_NoiseRandom0x487220; compare <= frequency then base+amplitude, else base",
+        "randomLookup": "0x487220 masks index255, indexes permutation0x1a5cf20 and table0x1a5cb20, then adds1",
+        "noiseInitializer": "0x487240..0x4872a0 seeds1001, writes256 noise values and permutation words using alternating rand calls",
+        "randomGenerator": "0x4d554b..0x4d5568: state=state*214013+2531011; result=(state>>16)&32767",
+        "valueScale": "0x4e4370 contains float bits0x38000100",
+        "permutationScale": "0x4eabf0 contains float bits0x3bff01fe",
+        "shaderDirectory": "0x490391 pushes shaders literal0x4f3664 into scan0x4903b0; scan pushes .shader literal0x4f5410 and calls FS_List through0x1a4fc18 at0x4903d1"
+      },
+      {
+        "file": "E:/Games/Jedi Outcast/jk2sp.exe",
+        "sha256": "0d3c635ee5b20ac32fc957e00cf21e65ebc1584112b11f6ae026706dcc0d0e0c",
+        "timestamp": "0x3c840a46",
+        "sizeOfImage": "0x1214000",
+        "waveEvaluator": "0x47a0b0..0x47a14b",
+        "noiseBranch": "func6 at0x47a0b7; float view seconds0x12e267c read0x47a0bc; add phase then multiply frequency; binary32 coordinate store0x47a0c9; call R_NoiseGet4f0x4772b0 at0x47a0d2; multiply amplitude and add base0x47a0d7..0x47a0dd",
+        "randomBranch": "func7 at0x47a0e2; integer view milliseconds0x12e264c read0x47a0e7; add phase then truncate via0x4b33c0; R_NoiseRandom0x477220; compare <= frequency then base+amplitude, else base",
+        "randomLookup": "0x477220 masks index255, indexes permutation0x12edd00 and table0x12ee100, then adds1",
+        "noiseInitializer": "0x477240..0x4772af seeds1001 and builds256 entries with same scales; afterwards reseeds the retail process PRNG from0xa84244. Fn uses a local generator and does not change unrelated engine randomness.",
+        "randomGenerator": "0x4b3a43..0x4b3a64: state=state*214013+2531011; result=(state>>16)&32767",
+        "valueScale": "0x4c8c08 contains float bits0x38000100",
+        "permutationScale": "0x4cf508 contains float bits0x3bff01fe",
+        "randomParser": "0x47de08 pushes random literal0x4e4b14; equality returns7 at0x47de1a",
+        "shaderDirectory": "scan0x480000 pushes .shader literal0x4e59c8 at0x480011 and shaders literal0x4e59c0 at0x480016, then FS_List through0x12e3730 at0x48001d"
+      }
+    ],
+    "asset": {
+      "archive": "E:/Games/Jedi Outcast/base/assets0.pk3",
+      "file": "shaders/ui.shader",
+      "materials": [
+        "gfx/menus/menu3",
+        "gfx/menus/menu3r"
+      ],
+      "contracts": [
+        "rgbGen wave random 0.15 0.2 0 123",
+        "tcMod stretch noise 1 0.1 0 179"
+      ],
+      "observation": "Read directly from the archive in memory; no asset extracted or incorporated. Both noise and random must parse/evaluate for the stock menu."
+    },
+    "implementation": {
+      "scope": "JK2SP/MP-only general noise-wave evaluator in all three backends; existing EliteForce general noise path unchanged, all other profiles retain their existing path",
+      "clock": "Read Fn view floatTime, narrow to volatile binary32 clock, add phase and multiply frequency in double, narrow coordinate to volatile binary32 before real R_NoiseGet4f. Does not use tess.shaderTime or wall time.",
+      "seed": "Extend the existing independently authored EliteForce local seeded1001 initializer to JK2SP/MP; both retail modes have identical seed,15bit PRNG and two scale words. The existing256-entry retail EliteForce table fixture therefore checks the same JK2 output contract.",
+      "random": "Existing production GF_RANDOM formula already agrees with both measured JK2 branches; no evaluator change required. Parser gate is implemented separately by jka_audit.",
+      "presentation": "Existing Fn noise interpolator and tcMod transform path; no constant replacement or alternate shader."
+    },
+    "validation": {
+      "command": "powershell -NoProfile -File .tmp/jedi-audit-round2/x86.ps1 python tests/stvef_wave_tests.py",
+      "result": "PASS3 tests",
+      "coverage": [
+        "All three actual EvalWaveForm, RB_CalcStretchTexCoords and RB_CalcTransformTexCoords bodies with actual shared GetNoiseValue and R_NoiseGet4f",
+        "Five coordinate vectors including negative phase and large float clock; three independent material shader times;16 profile values; plain and O2/fast-math",
+        "Exact coordinate examples: clock10000.123456789 phase0.1 frequency179 ->1790039.875; clock16777.216999 phase0.0001 frequency179 ->3003121.75",
+        "Both JK2 and EliteForce profiles produce all256 expected noise/permutation entries, consume no generic rand calls, and reinitialize deterministically; unrelated profiles retain generic rand behavior",
+        "Existing retail random vectors replayed for both JK2 and EliteForce profiles with independent wall clocks"
+      ]
+    }
+  },
+  "documentation_checks": {
+    "generated_docs_tests": 4,
+    "player_manual_tests": 16,
+    "result": "pass",
+    "logs": [
+      ".tmp/jedi-audit-round2/docs-tests.log",
+      ".tmp/jedi-audit-round2/player-manual-tests.log"
+    ]
+  },
+  "integration_followup": {
+    "date": "2026-10-09",
+    "record": "2026-10-09-compatibility-integration.json",
+    "scope": "Later combined-tree validation; original validation counts and runtime identities remain historical."
+  }
+}

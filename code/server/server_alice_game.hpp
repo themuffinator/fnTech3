@@ -293,14 +293,15 @@ void QDECL SV_AliceAddCommand( const char *name ) {
 	}
 }
 
-/* Slots 13, 14 and 15. The read takes three arguments where fnTech3's takes
- * two; the third is not established, and is ignored rather than guessed at. */
-int QDECL SV_AliceReadFile( const char *path, void **buffer, int unestablished ) {
+/* Slots 13, 14 and 15. The read's third argument is retail's `quiet`: it goes
+ * on to the open (0x0043c9c8), whose developer line for a missing file it
+ * keeps back when set (0x0043c1fa..0x0043c204). */
+int QDECL SV_AliceReadFile( const char *path, void **buffer, int quiet ) {
 	const int length = FS_ReadFile( path, buffer );
 
-	Com_DPrintf( "%s ReadFile: \"%s\" third=%i -> %i bytes at %p\n", SV_RitualName(),
-		path ? path : "(null)", unestablished, length,
-		buffer ? *buffer : nullptr );
+	if ( length < 0 && !quiet && path ) {
+		Com_DPrintf( "Can't find %s\n", path );
+	}
 	return length;
 }
 
@@ -359,9 +360,13 @@ int QDECL SV_AliceFSeek( fileHandle_t file, int offset, int origin ) {
 	return FS_Seek( file, offset, static_cast<fsOrigin_t>( origin ) );
 }
 
+/* Retail's flush (0x0043b5d0) is Quake III's FS_ForceFlush: the file goes
+ * unbuffered for good (setvbuf _IONBF, 0x0043b5da..0x0043b5e1), so every later
+ * write reaches it at once. What is buffered already is written first. */
 void QDECL SV_AliceFSFlush( fileHandle_t file ) {
 	if ( file ) {
 		FS_Flush( file );
+		FS_ForceFlush( file );
 	}
 }
 
@@ -399,9 +404,9 @@ const char *QDECL SV_AliceGetArchiveFileName( const char *name, const char *exte
 /* Slot 99, the engine's CalcCRC (0x0043a4c0): CRC-16 over a buffer. The
  * module calls it when it loads a script it has not cached (fgamex86
  * 0x100b201a) and, reading a level archive, compares the result with the one
- * the save recorded (0x100b30aa). It keeps the low sixteen bits, and so does
- * this answer. */
-int QDECL SV_AliceCalcCRC( const byte *data, int length ) {
+ * the save recorded (0x100b30aa). It returns sixteen bits, in ax (0x0043a4fb,
+ * 0x0043a503), which the module masks (0x100b2020). */
+unsigned short QDECL SV_AliceCalcCRC( const byte *data, int length ) {
 	// Silent, as retail's is.
 	return fntech3::alice::savegame::CalcCRC( data, length );
 }
@@ -706,30 +711,6 @@ void SV_AliceNameInlineModels() {
 	const int count = CM_NumInlineModels();
 	for ( int i = 1; i < count; i++ ) {
 		SV_AliceFindIndex( va( "*%i", i ), SV_RitualLayout().csModels, SV_RitualLayout().maxModels, "model" );
-	}
-}
-
-/* Set when a load kept the running level's configstrings (server_alice_save.hpp,
- * SV_AliceRestoreConfigstrings). Retail's spawn skips its model table's clear
- * (0x004551de) on the same path that skips the configstrings', so the table
- * still holds a definition for every kept model; this engine loads the game
- * module afresh, which starts the table empty, and registers each kept `tik`
- * name again as the module's table is filled. Retail's own registration
- * (0x00454153..0x00454176) leaves an entry empty when the definition fails to
- * load, and so does this. */
-bool aliceModelTableKept;
-
-void SV_AliceRegisterKeptModels() {
-	if ( !aliceModelTableKept ) {
-		return;
-	}
-	aliceModelTableKept = false;
-	for ( int index = 1; index < SV_RitualLayout().maxModels; ++index ) {
-		const char *name = sv.configstrings[SV_RitualLayout().csModels + index];
-		const std::size_t length = name ? strlen( name ) : 0;
-		if ( length >= 3 && !Q_stricmp( name + length - 3, "tik" ) ) {
-			aliceModelTiki[index] = AliceTiki_Register( name ) + 1;
-		}
 	}
 }
 
@@ -1083,15 +1064,17 @@ void *QDECL SV_AliceAliasGetList( int index ) {
 }
 
 /* Dialog bookkeeping the module restores from a save: how often a line was
- * played and when. It updates what FindDialog consults. */
+ * played and when. It updates what FindDialog consults. The played flag is a
+ * byte: retail reads only that (0x00423238, 0x004232cf), and the module pushes
+ * a word whose upper three bytes are whatever its stack held. */
 void QDECL SV_AliceAliasUpdateDialog( int index, const char *alias, int timesPlayed,
-	int played, int lastPlayed ) {
+	unsigned char played, int lastPlayed ) {
 	SV_AliceTikiDo( index, [&]( int tiki ) {
 		AliceAlias_UpdateDialog( tiki, alias, -1, timesPlayed, played, lastPlayed ); } );
 }
 
 void QDECL SV_AliceAliasAddActorDialog( int index, const char *alias, int actor, int timesPlayed,
-	int played, int lastPlayed ) {
+	unsigned char played, int lastPlayed ) {
 	SV_AliceTikiDo( index, [&]( int tiki ) {
 		AliceAlias_UpdateDialog( tiki, alias, actor, timesPlayed, played, lastPlayed ); } );
 }
@@ -1160,7 +1143,9 @@ void QDECL SV_AliceExecuteText( int when, const char *text ) {
 }
 
 /* Slot 28, the reliable server command, at retail's shape: a client number
- * -- negative for every client -- a format and its arguments. */
+ * -- -1 for every client -- a format and its arguments. Any other number
+ * outside the clients is dropped (alice.exe 0x00453467, 0x00453489..
+ * 0x00453494; fakk2.exe 1.02 0x004444a7, 0x004444c9..0x004444d4). */
 void QDECL SV_AliceSendServerCommand( int clientNum, const char *fmt, ... ) {
 	char text[MAX_STRING_CHARS];
 	va_list argptr;
@@ -1172,11 +1157,11 @@ void QDECL SV_AliceSendServerCommand( int clientNum, const char *fmt, ... ) {
 	Q_vsnprintf( text, sizeof( text ), fmt, argptr );
 	va_end( argptr );
 
-	if ( clientNum < 0 ) {
+	if ( clientNum == -1 ) {
 		SV_SendServerCommand( nullptr, "%s", text );
 		return;
 	}
-	if ( clientNum >= sv_maxclients->integer ) {
+	if ( clientNum < 0 || clientNum >= sv_maxclients->integer ) {
 		Com_DPrintf( "%s game sent a command to client %i of %i\n", SV_RitualTitle(),
 			clientNum, sv_maxclients->integer );
 		return;
@@ -1335,10 +1320,22 @@ int QDECL SV_AliceAreasConnected( int area1, int area2 ) {
 	return CM_AreasConnected( area1, area2 );
 }
 
-/* Slot 27, a debug graph this engine has no equivalent for, and slot 18, which
- * prepares a path for writing -- something this engine's own file open already
- * does for itself. Both answer and do nothing. */
-void QDECL SV_AliceNothing() {
+/* Slot 27: a value and a colour for the client's debug graph, which retail's
+ * single executable keeps in a ring its client draws (0x0042e2a0). A server
+ * here has no graph, as for this engine's other adapters; the module never
+ * calls the slot. */
+void QDECL SV_AliceDebugGraph( float value, int color ) {
+	(void)value;
+	(void)color;
+}
+
+/* Slot 18 (0x0043cb80): the path a file of the game directory is written to,
+ * its directories made, in a static buffer. Retail's is its game directory's;
+ * this engine writes into the home path, so the path is that one, and a name
+ * no write may take answers an empty path. The module never calls the slot. */
+const char *QDECL SV_AliceFSPrepFileWrite( const char *filename ) {
+	const char *path = filename ? FS_PrepareWritePath( filename ) : nullptr;
+	return path ? path : "";
 }
 
 /* Slots 41 and 42, the first imports that take one of Alice's own entities
@@ -1959,10 +1956,9 @@ void SV_AliceFillImports() {
 	SV_AliceFillUnserved(
 		std::make_index_sequence<FNTECH3_ALICE_GAME_IMPORT_SLOTS>{} );
 
-	/* A new game module starts a new level's model indices, unless a load kept
-	 * the level's own. */
+	/* A new game module starts a new level's model indices. A load or a
+	 * restart that keeps the module keeps its table too (SV_AliceSpawn). */
 	std::memset( aliceModelTiki, 0, sizeof( aliceModelTiki ) );
-	SV_AliceRegisterKeptModels();
 	/* Retail's table build clears the shared block first, and the module
 	 * publishes its debug lines afresh. */
 	Alice_SharedBlockClear();
@@ -1970,8 +1966,12 @@ void SV_AliceFillImports() {
 	*Alice_DebugLineCount() = 0;
 
 /* The parameter may not be called `slot`: it would replace the member name in
- * `aliceImport.slot` as well as the enumerator suffix. */
+ * `aliceImport.slot` as well as the enumerator suffix. A function whose shape
+ * is not the slot's frozen one (alice_game_import_sigs.def) does not compile. */
 #define SERVE( member, fn ) \
+	static_assert( fntech3::alice::module::Fits< \
+		fntech3::alice::module::GameImportSig<FNTECH3_ALICE_IMPORT_##member>, decltype( &fn )>(), \
+		#fn " does not have the frozen shape of game import " #member ); \
 	aliceImport.slot[FNTECH3_ALICE_IMPORT_##member] = \
 		reinterpret_cast<std::intptr_t>( &fn )
 
@@ -2070,8 +2070,8 @@ void SV_AliceFillImports() {
 	SERVE( inPVS, SV_AliceInPVS );
 	SERVE( inPVSIgnorePortals, SV_AliceInPVSIgnorePortals );
 	SERVE( AreasConnected, SV_AliceAreasConnected );
-	SERVE( DebugGraph, SV_AliceNothing );
-	SERVE( FS_PrepFileWrite, SV_AliceNothing );
+	SERVE( DebugGraph, SV_AliceDebugGraph );
+	SERVE( FS_PrepFileWrite, SV_AliceFSPrepFileWrite );
 	SERVE( SendServerCommand, SV_AliceSendServerCommand );
 	SERVE( AdjustAreaPortalState, SV_AliceAdjustAreaPortalState );
 	SERVE( pointbrushnum, SV_AlicePointBrushNum );
@@ -2091,6 +2091,10 @@ void SV_AliceFillImports() {
 	/* The two data slots. These carry the address of a variable rather than
 	 * of a function, so they are assigned directly: SERVE takes the address of
 	 * a function and would be the wrong shape here. */
+	static_assert( fntech3::alice::module::HoldsValue<fntech3::alice::module::GameImportSig<
+		FNTECH3_ALICE_IMPORT_DebugLines>, decltype( Alice_DebugLineArray() )>(), "DebugLines holds a pointer" );
+	static_assert( fntech3::alice::module::HoldsValue<fntech3::alice::module::GameImportSig<
+		FNTECH3_ALICE_IMPORT_numDebugLines>, decltype( Alice_DebugLineCount() )>(), "numDebugLines holds a pointer" );
 	aliceImport.slot[FNTECH3_ALICE_IMPORT_DebugLines] =
 		reinterpret_cast<std::intptr_t>( Alice_DebugLineArray() );
 	aliceImport.slot[FNTECH3_ALICE_IMPORT_numDebugLines] =
@@ -2337,6 +2341,30 @@ typedef qboolean ( QDECL *AliceReadPersistant_t )( const char *file );
 typedef void ( QDECL *AliceWriteLevel_t )( const char *file, qboolean autosave );
 typedef qboolean ( QDECL *AliceReadLevel_t )( const char *file );
 typedef qboolean ( QDECL *AliceLevelArchiveValid_t )( const char *file );
+
+/* Every type an export is called through has its frozen row's shape
+ * (alice_game_export_sigs.def). */
+#define FNTECH3_ALICE_EXPORT_FITS( member, type ) \
+	static_assert( fntech3::alice::module::Fits<fntech3::alice::module::GameExportSig< \
+		FNTECH3_ALICE_EXPORT_##member>, type>(), #type " is not the frozen shape of game export " #member )
+FNTECH3_ALICE_EXPORT_FITS( Init, AliceInit_t );
+FNTECH3_ALICE_EXPORT_FITS( Shutdown, AliceShutdown_t );
+FNTECH3_ALICE_EXPORT_FITS( Cleanup, AliceCleanup_t );
+FNTECH3_ALICE_EXPORT_FITS( SpawnEntities, AliceSpawnEntities_t );
+FNTECH3_ALICE_EXPORT_FITS( ClientConnect, AliceClientConnect_t );
+FNTECH3_ALICE_EXPORT_FITS( ClientBegin, AliceClientBegin_t );
+FNTECH3_ALICE_EXPORT_FITS( ClientUserinfoChanged, AliceClientUserinfoChanged_t );
+FNTECH3_ALICE_EXPORT_FITS( ClientDisconnect, AliceClientEntity_t );
+FNTECH3_ALICE_EXPORT_FITS( ClientCommand, AliceClientEntity_t );
+FNTECH3_ALICE_EXPORT_FITS( ClientThink, AliceClientThink_t );
+FNTECH3_ALICE_EXPORT_FITS( RunFrame, AliceRunFrame_t );
+FNTECH3_ALICE_EXPORT_FITS( ConsoleCommand, AliceConsoleCommand_t );
+FNTECH3_ALICE_EXPORT_FITS( WritePersistant, AliceWritePersistant_t );
+FNTECH3_ALICE_EXPORT_FITS( ReadPersistant, AliceReadPersistant_t );
+FNTECH3_ALICE_EXPORT_FITS( WriteLevel, AliceWriteLevel_t );
+FNTECH3_ALICE_EXPORT_FITS( ReadLevel, AliceReadLevel_t );
+FNTECH3_ALICE_EXPORT_FITS( LevelArchiveValid, AliceLevelArchiveValid_t );
+#undef FNTECH3_ALICE_EXPORT_FITS
 
 template<typename T>
 T SV_AliceExport( int slot, const char *name ) {

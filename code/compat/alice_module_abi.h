@@ -22,10 +22,13 @@
  * export table, so the gap between the two is the export table's size.
  * See docs/fntech3/2026-09-22-alice-module-abi.md for the addresses.
  *
- * These are shapes, not contracts. No slot's signature is claimed here, and
- * nothing in this header loads, serves or calls anything: it is the map, not
- * the boundary. The boundary is code/server/server_alice_game.hpp, which
- * serves twenty of the game imports and calls two of its exports. */
+ * Every slot's signature is frozen too, in the alice_*_sigs.def tables at the
+ * end of this header, and each function the engine serves into a slot or
+ * calls an export through is held to its row at compile time
+ * (docs/fntech3/2026-10-08-alice-module-signatures.md). Nothing in this
+ * header loads, serves or calls anything: it is the map, not the boundary.
+ * The boundary is code/server/server_alice_game.hpp and
+ * code/client/client_alice_cgame.hpp. */
 
 enum {
 	/* Export slot 0 of the game table is this constant, written as an
@@ -258,6 +261,7 @@ enum {
 #ifdef __cplusplus
 #include <cstddef>
 #include <cstdint>
+#include <type_traits>
 
 namespace fntech3::alice::module {
 
@@ -386,9 +390,9 @@ static_assert( sizeof( kCGameExports ) / sizeof( kCGameExports[0] )
 	== FNTECH3_ALICE_CGAME_EXPORT_SLOTS,
 	"every client-game export slot needs one row" );
 
-/* Raw slot maps. The engine cannot use these until each slot's signature is
- * established, so they are deliberately untyped: a wrong prototype here would
- * be a silent ABI break rather than a compile error. */
+/* Raw slot maps, untyped as the tables are in memory. What may go into each
+ * slot is the frozen signature's business (Fits, below), so a wrong prototype
+ * is a compile error where it is served rather than a silent ABI break. */
 struct GameImportTable {
 	std::intptr_t slot[FNTECH3_ALICE_GAME_IMPORT_SLOTS];
 };
@@ -471,6 +475,168 @@ constexpr const char *EntryPointName( Entry entry ) {
 constexpr const char *LibraryName( Entry entry ) {
 	return entry == Entry::Game ? "fgamex86.dll" : "cgamex86.dll";
 }
+
+/* ---- the frozen signatures ------------------------------------------------
+ *
+ * Every slot's shape, from alice_*_sigs.def. A function served into a slot, or
+ * a type the engine calls an export through, is checked against its row at
+ * compile time by ABI class -- void, a 32-bit integer, a 16- or 8-bit one, a
+ * float, a pointer -- with its parameter count and whether it is variadic.
+ * The classes are compared rather than the C++ types because this engine
+ * hands records over as their own types where a row says `void *`; what the
+ * two sides of a cdecl call must agree on is each argument's class. */
+enum class Abi : unsigned char { Void, I32, U16, U8, F32, Ptr, Other };
+
+template<typename T> constexpr Abi AbiOf() {
+	if constexpr ( std::is_void_v<T> ) return Abi::Void;
+	else if constexpr ( std::is_pointer_v<T> ) return Abi::Ptr;
+	else if constexpr ( std::is_same_v<std::remove_cv_t<T>, float> ) return Abi::F32;
+	else if constexpr ( std::is_integral_v<T> || std::is_enum_v<T> ) {
+		if constexpr ( sizeof( T ) == 1 ) return Abi::U8;
+		else if constexpr ( sizeof( T ) == 2 ) return Abi::U16;
+		else return Abi::I32;
+	} else return Abi::Other;
+}
+
+template<typename F> struct Shape {
+	static constexpr bool function = false;
+};
+template<typename R, typename... A> struct Shape<R ( * )( A... )> {
+	static constexpr bool function = true;
+	static constexpr bool variadic = false;
+	static constexpr std::size_t params = sizeof...( A );
+	static constexpr Abi abi[] = { AbiOf<R>(), AbiOf<A>()... };
+};
+template<typename R, typename... A> struct Shape<R ( * )( A..., ... )> {
+	static constexpr bool function = true;
+	static constexpr bool variadic = true;
+	static constexpr std::size_t params = sizeof...( A );
+	static constexpr Abi abi[] = { AbiOf<R>(), AbiOf<A>()... };
+};
+
+template<typename F, typename G> constexpr bool SameShape() {
+	using A = Shape<F>;
+	using B = Shape<G>;
+	if constexpr ( !A::function || !B::function ) {
+		return false;
+	} else if constexpr ( A::variadic != B::variadic || A::params != B::params ) {
+		return false;
+	} else {
+		for ( std::size_t i = 0; i <= A::params; ++i ) {
+			if ( A::abi[i] != B::abi[i] ) return false;
+		}
+		return true;
+	}
+}
+
+/* A row's kind: a function, a value the slot holds, or a slot retail leaves
+ * empty. */
+enum class SigKind : unsigned char { FUNCTION, VALUE, ABSENT };
+
+#define FNTECH3_ALICE_SIG_FUNCTION( type, params ) type ( * ) params
+#define FNTECH3_ALICE_SIG_VALUE( type, params ) type
+#define FNTECH3_ALICE_SIG_ABSENT( type, params ) void
+
+/* `Type` is the function-pointer type for a FUNCTION row and the held value's
+ * type for a VALUE row. */
+template<int Slot> struct GameImportSig;
+template<int Slot> struct GameExportSig;
+template<int Slot> struct CGameImportSig;
+template<int Slot> struct CGameExportSig;
+
+#define FNTECH3_ALICE_SIG_SPECIALIZE( table, slot, kind, type, params ) \
+	template<> struct table<slot> { \
+		static constexpr SigKind sigKind = SigKind::kind; \
+		using Type = FNTECH3_ALICE_SIG_##kind( type, params ); \
+	};
+#define FNTECH3_ALICE_GAME_IMPORT_SIG( slot, name, kind, type, params, evidence ) \
+	FNTECH3_ALICE_SIG_SPECIALIZE( GameImportSig, slot, kind, type, params )
+#include "alice_game_import_sigs.def"
+#undef FNTECH3_ALICE_GAME_IMPORT_SIG
+#define FNTECH3_ALICE_GAME_EXPORT_SIG( slot, name, kind, type, params, evidence ) \
+	FNTECH3_ALICE_SIG_SPECIALIZE( GameExportSig, slot, kind, type, params )
+#include "alice_game_export_sigs.def"
+#undef FNTECH3_ALICE_GAME_EXPORT_SIG
+#define FNTECH3_ALICE_CGAME_IMPORT_SIG( slot, name, kind, type, params, evidence ) \
+	FNTECH3_ALICE_SIG_SPECIALIZE( CGameImportSig, slot, kind, type, params )
+#include "alice_cgame_import_sigs.def"
+#undef FNTECH3_ALICE_CGAME_IMPORT_SIG
+#define FNTECH3_ALICE_CGAME_EXPORT_SIG( slot, name, kind, type, params, evidence ) \
+	FNTECH3_ALICE_SIG_SPECIALIZE( CGameExportSig, slot, kind, type, params )
+#include "alice_cgame_export_sigs.def"
+#undef FNTECH3_ALICE_CGAME_EXPORT_SIG
+#undef FNTECH3_ALICE_SIG_SPECIALIZE
+
+/* What a function served into a slot, or a type an export is called through,
+ * must satisfy. */
+template<typename Sig, typename F> constexpr bool Fits() {
+	return Sig::sigKind == SigKind::FUNCTION && SameShape<F, typename Sig::Type>();
+}
+
+/* A value slot's own type, by class. */
+template<typename Sig, typename T> constexpr bool HoldsValue() {
+	return Sig::sigKind == SigKind::VALUE && AbiOf<T>() == AbiOf<typename Sig::Type>();
+}
+
+/* The rows themselves, for the tests that hold them to the other tables. */
+struct SigRow {
+	int slot;
+	const char *name;
+	SigKind kind;
+	const char *type;
+	const char *params;
+	const char *evidence;
+	/* For a FUNCTION row: its parameter count, -1 otherwise, and whether its
+	 * last parameter is `...`. */
+	int paramCount;
+	bool variadic;
+};
+
+template<typename Sig> constexpr int SigParams() {
+	if constexpr ( Sig::sigKind == SigKind::FUNCTION ) return static_cast<int>( Shape<typename Sig::Type>::params );
+	else return -1;
+}
+template<typename Sig> constexpr bool SigVariadic() {
+	if constexpr ( Sig::sigKind == SigKind::FUNCTION ) return Shape<typename Sig::Type>::variadic;
+	else return false;
+}
+
+#define FNTECH3_ALICE_SIG_ROW( table, slot, name, kind, type, params, evidence ) \
+	{ slot, #name, SigKind::kind, #type, #params, #evidence, SigParams<table<slot>>(), SigVariadic<table<slot>>() },
+inline constexpr SigRow kGameImportSigs[] = {
+#define FNTECH3_ALICE_GAME_IMPORT_SIG( slot, name, kind, type, params, evidence ) \
+	FNTECH3_ALICE_SIG_ROW( GameImportSig, slot, name, kind, type, params, evidence )
+#include "alice_game_import_sigs.def"
+#undef FNTECH3_ALICE_GAME_IMPORT_SIG
+};
+inline constexpr SigRow kGameExportSigs[] = {
+#define FNTECH3_ALICE_GAME_EXPORT_SIG( slot, name, kind, type, params, evidence ) \
+	FNTECH3_ALICE_SIG_ROW( GameExportSig, slot, name, kind, type, params, evidence )
+#include "alice_game_export_sigs.def"
+#undef FNTECH3_ALICE_GAME_EXPORT_SIG
+};
+inline constexpr SigRow kCGameImportSigs[] = {
+#define FNTECH3_ALICE_CGAME_IMPORT_SIG( slot, name, kind, type, params, evidence ) \
+	FNTECH3_ALICE_SIG_ROW( CGameImportSig, slot, name, kind, type, params, evidence )
+#include "alice_cgame_import_sigs.def"
+#undef FNTECH3_ALICE_CGAME_IMPORT_SIG
+};
+inline constexpr SigRow kCGameExportSigs[] = {
+#define FNTECH3_ALICE_CGAME_EXPORT_SIG( slot, name, kind, type, params, evidence ) \
+	FNTECH3_ALICE_SIG_ROW( CGameExportSig, slot, name, kind, type, params, evidence )
+#include "alice_cgame_export_sigs.def"
+#undef FNTECH3_ALICE_CGAME_EXPORT_SIG
+};
+#undef FNTECH3_ALICE_SIG_ROW
+
+static_assert( sizeof( kGameImportSigs ) / sizeof( kGameImportSigs[0] ) == FNTECH3_ALICE_GAME_IMPORT_SLOTS,
+	"every game import slot has a signature" );
+static_assert( sizeof( kGameExportSigs ) / sizeof( kGameExportSigs[0] ) == FNTECH3_ALICE_GAME_EXPORT_SLOTS,
+	"every game export slot has a signature" );
+static_assert( sizeof( kCGameImportSigs ) / sizeof( kCGameImportSigs[0] ) == FNTECH3_ALICE_CGAME_IMPORT_SLOTS,
+	"every client-game import slot has a signature" );
+static_assert( sizeof( kCGameExportSigs ) / sizeof( kCGameExportSigs[0] ) == FNTECH3_ALICE_CGAME_EXPORT_SLOTS,
+	"every client-game export slot has a signature" );
 
 } // namespace fntech3::alice::module
 #endif

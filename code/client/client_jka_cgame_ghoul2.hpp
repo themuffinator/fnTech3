@@ -7,6 +7,7 @@
 #include "client_jka_cgame_clock.hpp"
 #include "client_jka_cgame_render_state.hpp"
 #include <array>
+#include <cstdio>
 
 /* MP cgame owns a separate opaque model store. Primary retail dispatch:
  * Init 297:0x413977, Clean 301:0x413ae4, Have 293:0x41385e,
@@ -48,17 +49,17 @@ public:
 JKACgameGhoul2Files jkaCgameGhoul2Files;
 std::unique_ptr<fntech3::ghoul2::Store> jkaCgameGhoul2Store;
 
-fntech3::jka::cgame::clock::State jkaCgameBoneClocks;
+auto &jkaCgameBoneClocks = fntech3::jka::clock::shared;
 // Primary296 sets this selector before the shared core; only a successful
 // no-rotation result clears it. A false bolt result leaves it pending.
-bool jkaCgameNoRotationPending = false;
+auto &jkaCgameNoRotationPending = fntech3::jka::clock::noRotationPending;
 inline void CL_JKACgameGhoul2BeginFrame(int now, bool localServer) {
     jkaCgameBoneClocks.BeginFrame(now, localServer);
 }
 static void CL_JKACgameSkinClear();
 static void CL_JKACgameGhoul2Clear() {
     fntech3::jka::cgame::scene::state.Clear();
-    jkaCgameBoneClocks.Reset();jkaCgameNoRotationPending=false;CL_JKACgameSkinClear();jkaCgameGhoul2Store.reset();
+    jkaCgameBoneClocks.ClearFrame();CL_JKACgameSkinClear();jkaCgameGhoul2Store.reset();
 }
 
 static fntech3::ghoul2::Store &CL_JKACgameGhoul2Store() {
@@ -233,8 +234,8 @@ static bool CL_JKACgameGhoul2Call(intptr_t *args, fntech3::jka::module::Call cal
         // Primary0x4e368d uses0x18; known inactive bones publish0 then
         // return false, while an unknown name never reaches publication.
         if (playing && (playing->flags & 0x18)) {
-            if (!jkaCgameBoneClocks.FrameReady() || jkaCgameBoneClocks.LocalServer())
-                Com_Error(ERR_DROP, "Academy animated bone-frame queries require the measured remote-client clock");
+            if (!jkaCgameBoneClocks.FrameReady())
+                Com_Error(ERR_DROP, "Academy animated bone-frame queries require a published frame clock");
             if (!fntech3::ghoul2::FiniteScalar(playing->speed) || playing->speed < 0.0f
                 || playing->startFrame < 0 || playing->endFrame <= playing->startFrame
                 || playing->endFrame > model->skeleton.numFrames || (playing->flags & ~0xd8))
@@ -308,8 +309,8 @@ static bool CL_JKACgameGhoul2Call(intptr_t *args, fntech3::jka::module::Call cal
             result = qfalse;
             return true;
         }
-        if (!jkaCgameBoneClocks.FrameReady() || jkaCgameBoneClocks.LocalServer())
-            Com_Error(ERR_DROP, "Academy cgame bolt queries require the measured remote-client frame clock; local-server clock sharing is not served yet");
+        if (!jkaCgameBoneClocks.FrameReady())
+            Com_Error(ERR_DROP, "Academy cgame bolt queries require a published frame clock");
         std::array<float,3> scale;
         std::memcpy(scale.data(), CL_JKACgameSpan(args[9], sizeof(scale)), sizeof(scale));
         for (float component : scale)
@@ -323,8 +324,26 @@ static bool CL_JKACgameGhoul2Call(intptr_t *args, fntech3::jka::module::Call cal
         // stale state is not reproduced and refuses by name.
         const auto posing = CL_JKACgameGhoul2Store().LinkedBolt(reinterpret_cast<void *>(std::uintptr_t(identity)),
             static_cast<int>(args[2]), static_cast<int>(args[3]), jkaCgameBoneClocks.Time(), raw.data());
-        if (posing == fntech3::ghoul2::Posing::Unserved)
-            Com_Error(ERR_DROP, "Academy cgame bolt pose is outside its served hierarchy/animation boundary");
+        if (posing == fntech3::ghoul2::Posing::Unserved) {
+            // ERR_DROP may longjmp: keep diagnostics in bounded stack storage.
+            std::array<char, 2048> details{};
+            std::size_t used = 0;
+            const auto append = [&](const char *format, auto... values) {
+                const int length = std::snprintf(details.data() + used, details.size() - used, format, values...);
+                if (length > 0) used += std::min(std::size_t(length), details.size() - used - 1);
+            };
+            for (const auto &clip : model->animations) {
+                append(" [bone=%d clip=%d..%d flags=0x%x speed=%g start=%d blend=%d/%d known=%d]",
+                    clip.bone, clip.startFrame, clip.endFrame, clip.flags, double(clip.speed), clip.startTime,
+                    clip.blendStart, clip.blendTime, int(clip.previousKnown));
+            }
+            for (const auto &bend : model->angles)
+                append(" [angle bone=%d flags=0x%x blend=%d]", bend.bone, bend.flags, bend.blendTime);
+            Com_Error(ERR_DROP, "Academy cgame bolt pose is outside its served hierarchy/animation boundary "
+                "(model=%s, index=%d, bolt=%d, clock=%d)%s",
+                model->name.c_str(), static_cast<int>(args[2]), static_cast<int>(args[3]), jkaCgameBoneClocks.Time(),
+                details.data());
+        }
         if (posing != fntech3::ghoul2::Posing::Served)
             Com_Error(ERR_DROP, "Academy cgame bolt query on model %d is %s (link=%d)", static_cast<int>(args[2]),
                 fntech3::ghoul2::PosingName(posing), model->boltInfo);

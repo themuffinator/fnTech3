@@ -1288,6 +1288,20 @@ void AliceTiki_Clear( void ) {
 	files.clear();
 }
 
+/* 0x00462460 walks the cache's loaded definitions, stopping once it has seen
+ * as many as are loaded, and for each one with an alias list frees every
+ * line's actor records (0x004229b0) and sorts the list (0x00422e30, which
+ * does nothing to a list already sorted). The engine's global list is not
+ * the cache's and keeps its actors. */
+void AliceTiki_ResetDialogActors( void ) {
+	for ( const auto &model : models ) {
+		if ( model && model->aliasList ) {
+			alias::ClearActors( model->aliasList.get() );
+			alias::Sort( model->aliasList.get() );
+		}
+	}
+}
+
 const fntech3::alice::tiki::File *AliceTiki_FindFile( const char *name ) {
 	return name ? LoadFile( name ) : nullptr;
 }

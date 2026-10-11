@@ -89,19 +89,30 @@ void QDECL SV_JKASPError(int, const char *format, ...) {
 int SV_JKASPCvarFlags(int flags) { return flags & (1|2|4|8|16|32|64|128|512|1024); }
 void SV_JKASPSyncCvars() {
 	for (auto &entry : jkaSpCvars) {
-		cvar_t *internal = Cvar_Get(entry.first.c_str(), "", 0);
+		// Refresh without consuming restart-latched values or changing defaults.
+		const cvar_t *internal = Cvar_FindExisting(entry.first.c_str());
+		if (!internal) {
+			Com_Error(ERR_DROP, "Jedi Academy SP registered cvar no longer exists: %s", entry.first.c_str());
+			return;
+		}
 		auto &external = entry.second;
+		// Preserve the native module's acknowledgement until another change.
+		if (!external.name || external.modificationCount != internal->modificationCount)
+			external.modified = internal->modified;
 		external.name = internal->name; external.string = internal->string;
 		external.resetString = internal->resetString; external.latchedString = internal->latchedString;
-		external.modified = internal->modified; external.modificationCount = internal->modificationCount;
+		// Retail Cvar_Get returns the live record after OR-ing flags at
+		// jasp.exe 0x41bd04. Existing engine flags must remain visible even
+		// when the module requests none; bit 256 is separately owned SAVEGAME.
+		external.flags = (external.flags & 256) | SV_JKASPCvarFlags(internal->flags);
+		external.modificationCount = internal->modificationCount;
 		external.value = internal->value; external.integer = internal->integer;
 	}
 }
 fntech3_jka_sp_cvar_prefix_t *SV_JKASPCvar(const char *name, const char *value, int flags) {
 	if (!name || !value) Com_Error(ERR_DROP, "Jedi Academy single-player cvar has null input");
-	Cvar_Get(name, value, SV_JKASPCvarFlags(flags));
 	/* Use the canonical engine name to give case variants the same address. */
-	cvar_t *internal = Cvar_Get(name, value, 0);
+	cvar_t *internal = Cvar_Get(name, value, SV_JKASPCvarFlags(flags));
 	auto &external = jkaSpCvars[internal->name];
 	external.flags |= flags & 2047;
 	SV_JKASPSyncCvars(); return &external;

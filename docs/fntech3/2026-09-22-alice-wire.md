@@ -192,7 +192,10 @@ for this title.
 
 The systeminfo predates Quake III 1.27's pak-name triplet: `sv_paks` and
 `sv_serverid` are set, and `sv_pakNames`, `sv_referencedPaks` and
-`sv_referencedPakNames` appear nowhere in the image.
+`sv_referencedPakNames` appear nowhere in the image. (*2026-10-08:* fnTech3's
+Ritual servers now publish retail's systeminfo and serverinfo keys and no
+others, and its client takes the cheat state from `cheats`;
+[round record](2026-10-08-alice-compatibility-round.md#infostrings).)
 
 ## Server messages
 

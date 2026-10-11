@@ -1,0 +1,1403 @@
+{
+ "record": "2026-10-08-jk2-foreign-voices.md",
+ "profiles": [
+  "jk2-sp",
+  "jk2-mp"
+ ],
+ "level": "Source, Unit, Asset subset (every voice file inventoried), Live subset (jk2-mp menu client, no input)",
+ "headAtStart": "6cb358f976eb3302ba284d29b09bbe89da5bc444",
+ "headAtRecord": "e53ba098e0120e24c6e316df1d4fa35de374034b",
+ "dependsOn": [
+  "2026-10-08-jk2-mp3-sounds.md (the <name>.wav rule and MP3 registration this rule builds on; its S_JK2SoundFile, S_CodecLoad branch and ledger row text are what this change extends)"
+ ],
+ "retail": {
+  "jk2mp.exe 1.02a": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a",
+  "jk2sp.exe 1.02a": "0d3c635ee5b20ac32fc957e00cf21e65ebc1584112b11f6ae026706dcc0d0e0c",
+  "base/assets0.pk3": "e8e466f219bb2faed536021bb0d10aa6b7f5cd687302aa43080da2debdae307c",
+  "base/assets1.pk3": "c3a9aeaf09c93e57847290e7e5cd6c1a071a560045fa8c5e8c6df3688df841c1",
+  "tools": "Capstone 32-bit x86 and pefile over the executables (.tmp/jk2-foreign-voices/pe_tool.py); Python zipfile over the paks; nothing written to the installation"
+ },
+ "registration": {
+  "call": "Cvar_Get(\"s_language\", \"english\", 0x401)",
+  "S_Init": {
+   "mp": "0x45ca1a (stored at [0x1a20c90], 0x45ca36)",
+   "sp": "0x423350 (stored at [0xd3899c], 0x423369)"
+  },
+  "beforeS_InitSoundCheck": {
+   "mp": "s_initsound registered at 0x45ca68",
+   "sp": "s_initsound registered at 0x42339d"
+  },
+  "flag0x1": "archive: the config writer saves cvars with bit 1 (test byte [esi+0x10], 1 at mp 0x42b1f0, sp 0x416af0, beside the \"seta %s \\\"%s\\\"\" format)",
+  "flag0x400": "CVAR_NORESTART: cvar_restart (mp 0x42b3b0, sp 0x416ca0; registered at mp 0x42b662, sp 0x416ee2) skips cvars with flags & 0x450 (ROM 0x40, INIT 0x10, 0x400) at mp 0x42b3c0, sp 0x416cb0",
+  "fnTech3Flags": "CVAR_ARCHIVE 0x0001 and CVAR_NORESTART 0x0400 (code/qcommon/q_shared.h): the same bits",
+  "menus": {
+   "mp ui.qvm": "cvar table entry at data offset 0xdc4: s_language, \"english\", 0x401",
+   "sp built-in UI_Init": "0x4994b0 (\"Bad UI_API_VERSION\"), Cvar_Get through the UI import table at 0x49953f: s_language, \"english\", 0x401"
+  }
+ },
+ "loader": {
+  "path": "S_RegisterSound (mp 0x45ce20, sp 0x423c20) and the sound starters (mp 0x45d2a7, 0x45d53c, 0x45d634; sp 0x423761, 0x424346, 0x424477, 0x42495a, 0x424a60) -> load helper (mp 0x45cf20, sp 0x423cf0) -> S_LoadSound (its only callers: mp 0x45cf26, sp 0x423cf6) -> file loader (mp 0x45f520 called only at 0x45f0d6; sp 0x42adb0 called only at 0x42a9da)",
+  "find": "first \"chars\" by the CRT strstr, case-sensitive (mp 0x4d4fe0 called at 0x45f52f; sp 0x4b33f0 at 0x42adbf)",
+  "language": "_stricmp(s_language->string, \"DEUTSCH\") then \"FRANCAIS\" (mp 0x4e2480 at 0x45f655, 0x45f685; sp 0x4c55f0 at 0x42aef4, 0x42af24); a missing cvar or any other value clears the substitution (mp 0x45f6a3, sp 0x42af42)",
+  "substitute": "strncpy of 5 bytes, \"chr_d\" (mp 0x45f669, sp 0x42af08) or \"chr_f\" (mp 0x45f699, sp 0x42af38)",
+  "order": "FS_ReadFile <name>.wav, then the last three characters overwritten with mp3 and read again (mp 0x45f6b1, 0x45f6dd..0x45f6eb; sp 0x42af50, 0x42af7c..0x42af8a); when both fail after a substitution: \"chars\" restored and English .wav then .mp3 (mp 0x45f707..0x45f748, sp 0x42afa6..0x42afe7)",
+  "messages": "none: the release engines carry no string for a missing foreign recording",
+  "case": {
+   "mp": "S_LoadSound 0x45f050 writes \"%s.wav\" (0x4fddf0) on the stored name cut at its first \".\" (COM_StripExtension 0x434220); S_FindName 0x45cc00 stores names with Q_strncpyz (0x434620), unchanged in case: \"Chars\" is not found",
+   "sp": "S_LoadSound 0x42a910 lowercases its copy with _strlwr (0x4c6323, called at 0x42a96a) before the loader: any case is found"
+  },
+  "buildScript": {
+   "cvar": "com_buildScript pointer mp [0xaa1d88] (Cvar_Get at 0x429ccc), sp [0xa852b0] (0x4157d3)",
+   "rule": "when set, opens and closes the chr_d and chr_f .wav, else .mp3, of every voice (mp 0x45f545..0x45f640, sp 0x42add5..0x42aee0)",
+   "mpSlip": "mp restores \"chars\" but not \"wav\" after the French probe (0x45f633), so where the French .wav is missing the name continues ending .mp3; inferred, not run: an English-only WAV voice such as sound/chars/turret/move.wav then fails to load in such a run",
+   "sp": "restores both \"chars\" (0x42aec3) and \"wav\" (0x42aed3)"
+  },
+  "music": "never passes the loader (the MP3 record: S_StartBackgroundTrack 0x45e2c0)"
+ },
+ "otherReaders": {
+  "mp": "none: [0x1a20c90] is written at 0x45ca36 and read only at 0x45f643 and 0x45f673",
+  "sp cinematic": "0x404a8f: when s_language is neither empty nor \"english\", video/jk05.roq and video/jk06.roq get the separate track sound/chars/video/cinematic_5 or _6 (flag 8, 0x404b4f), registered through S_RegisterSound (0x403c50), so the loader plays chr_d or chr_f; both exist only in the foreign folders",
+  "sp censorship": "0x40a970 (reads sv_serverid and helpUsObi from the server settings): Cvar_Set (\"g_dismemberment\", \"0\") at 0x40aa43 when s_language is DEUTSCH, sp_language is 2 or ui_iscensored is 1"
+ },
+ "installation": {
+  "counts": {
+   "chars": {
+    "files": 2895,
+    "stems": 2895,
+    "extensions": {
+     "mp3": 2864,
+     "wav": 31
+    },
+    "stemsInBothFormats": 0
+   },
+   "chr_d": {
+    "files": 2358,
+    "stems": 2358,
+    "extensions": {
+     "mp3": 2358
+    },
+    "stemsInBothFormats": 0
+   },
+   "chr_f": {
+    "files": 2356,
+    "stems": 2356,
+    "extensions": {
+     "mp3": 2356
+    },
+    "stemsInBothFormats": 0
+   }
+  },
+  "folderEntriesAlsoCountedByTheMp3Record": {
+   "chars": 123,
+   "chr_d": 76,
+   "chr_f": 76
+  },
+  "englishWithGerman": 2352,
+  "englishWithFrench": 2350,
+  "englishWithBoth": 2350,
+  "englishWithNeither": 543,
+  "foreignOnly": [
+   "bartender/misc/choke1",
+   "bartender/misc/choke2",
+   "jedi1/misc/anger3",
+   "video/cinematic_5",
+   "video/cinematic_6",
+   "worker2/misc/giveup4"
+  ],
+  "formatPairs": {
+   "de english=mp3 foreign=mp3": 2352,
+   "fr english=mp3 foreign=mp3": 2350
+  },
+  "folderSpellings": {
+   "chars": 2895,
+   "chr_d": 2358,
+   "chr_f": 2356
+  },
+  "fileNamesWithCapitals": 78,
+  "requestedNamesWithCharsInAnotherCase": 0,
+  "paks": {
+   "assets1.pk3:chars": 2895,
+   "assets1.pk3:chr_d": 2358,
+   "assets1.pk3:chr_f": 2356
+  },
+  "menus": {
+   "files": [
+    "ui/setup.menu",
+    "ui/ingamesetup.menu",
+    "ui/jk2mp/setup.menu",
+    "ui/jk2mp/ingame_setup.menu"
+   ],
+   "values": {
+    "English": "english",
+    "Francais": "francais",
+    "Deutsch": "deutsch"
+   },
+   "mpApply": "langapply button: exec \"ui_load ; snd_restart\"",
+   "textLanguage": "sp_language 0, 1, 2 (separate)"
+  },
+  "mpClientGameVoices": "vm/cgame.qvm registers sound/chars/mothma/misc/40MOM001.. (Mon Mothma), each in all three languages but \"taunt\"",
+  "subfolders": {
+   "chars/atst": 11,
+   "chars/bartender": 24,
+   "chars/bespincop1": 68,
+   "chars/bespincop2": 65,
+   "chars/desann": 58,
+   "chars/galak": 43,
+   "chars/gonk": 5,
+   "chars/gran1": 63,
+   "chars/gran2": 65,
+   "chars/interrogator": 4,
+   "chars/io1": 85,
+   "chars/io2": 69,
+   "chars/ion_cannon": 3,
+   "chars/jan": 139,
+   "chars/jedi1": 22,
+   "chars/jedi2": 22,
+   "chars/jeditrainer": 9,
+   "chars/kyle": 283,
+   "chars/lando": 123,
+   "chars/luke": 67,
+   "chars/mark1": 18,
+   "chars/mark2": 6,
+   "chars/mine": 20,
+   "chars/morgan": 7,
+   "chars/mothma": 53,
+   "chars/mouse": 9,
+   "chars/mp_generic_female": 6,
+   "chars/mp_generic_male": 15,
+   "chars/prisoner1": 56,
+   "chars/prisoner2": 55,
+   "chars/probe": 13,
+   "chars/protocol": 25,
+   "chars/r2d2": 10,
+   "chars/r5d2": 11,
+   "chars/rebel1": 67,
+   "chars/rebel2": 64,
+   "chars/reborn1": 43,
+   "chars/reborn2": 37,
+   "chars/reborn3": 38,
+   "chars/reelo": 19,
+   "chars/remote": 2,
+   "chars/rodian1": 65,
+   "chars/rodian2": 64,
+   "chars/rogueleader": 6,
+   "chars/seeker": 2,
+   "chars/sentry": 9,
+   "chars/shadow1": 17,
+   "chars/shadow2": 17,
+   "chars/shadowtrooper": 2,
+   "chars/st1": 113,
+   "chars/st2": 106,
+   "chars/st3": 110,
+   "chars/stofficer1": 66,
+   "chars/stofficer2": 62,
+   "chars/stormtrooper": 4,
+   "chars/swamp1": 63,
+   "chars/swamp2": 62,
+   "chars/tavion": 48,
+   "chars/trandoshan1": 63,
+   "chars/turret": 4,
+   "chars/weequay": 22,
+   "chars/worker1": 63,
+   "chars/worker2": 62,
+   "chars/worker3": 63,
+   "chr_d/bartender": 25,
+   "chr_d/bespincop1": 66,
+   "chr_d/bespincop2": 65,
+   "chr_d/desann": 57,
+   "chr_d/galak": 42,
+   "chr_d/io1": 84,
+   "chr_d/io2": 69,
+   "chr_d/jan": 137,
+   "chr_d/jedi1": 22,
+   "chr_d/jedi2": 22,
+   "chr_d/kyle": 282,
+   "chr_d/lando": 122,
+   "chr_d/luke": 66,
+   "chr_d/morgan": 6,
+   "chr_d/mothma": 52,
+   "chr_d/prisoner1": 55,
+   "chr_d/prisoner2": 55,
+   "chr_d/protocol": 23,
+   "chr_d/rebel1": 66,
+   "chr_d/rebel2": 64,
+   "chr_d/reborn1": 42,
+   "chr_d/reborn2": 37,
+   "chr_d/reborn3": 38,
+   "chr_d/reelo": 19,
+   "chr_d/rogueleader": 6,
+   "chr_d/shadow1": 17,
+   "chr_d/shadow2": 17,
+   "chr_d/st1": 112,
+   "chr_d/st2": 105,
+   "chr_d/st3": 110,
+   "chr_d/stofficer1": 66,
+   "chr_d/stofficer2": 62,
+   "chr_d/swamp1": 61,
+   "chr_d/swamp2": 62,
+   "chr_d/tavion": 47,
+   "chr_d/video": 2,
+   "chr_d/worker1": 62,
+   "chr_d/worker2": 61,
+   "chr_d/worker3": 52,
+   "chr_f/bartender": 25,
+   "chr_f/bespincop1": 66,
+   "chr_f/bespincop2": 65,
+   "chr_f/desann": 56,
+   "chr_f/galak": 42,
+   "chr_f/io1": 84,
+   "chr_f/io2": 69,
+   "chr_f/jan": 137,
+   "chr_f/jedi1": 22,
+   "chr_f/jedi2": 22,
+   "chr_f/kyle": 281,
+   "chr_f/lando": 122,
+   "chr_f/luke": 66,
+   "chr_f/morgan": 6,
+   "chr_f/mothma": 52,
+   "chr_f/prisoner1": 55,
+   "chr_f/prisoner2": 55,
+   "chr_f/protocol": 23,
+   "chr_f/rebel1": 66,
+   "chr_f/rebel2": 64,
+   "chr_f/reborn1": 42,
+   "chr_f/reborn2": 37,
+   "chr_f/reborn3": 38,
+   "chr_f/reelo": 19,
+   "chr_f/rogueleader": 6,
+   "chr_f/shadow1": 17,
+   "chr_f/shadow2": 17,
+   "chr_f/st1": 112,
+   "chr_f/st2": 105,
+   "chr_f/st3": 110,
+   "chr_f/stofficer1": 66,
+   "chr_f/stofficer2": 62,
+   "chr_f/swamp1": 61,
+   "chr_f/swamp2": 62,
+   "chr_f/tavion": 47,
+   "chr_f/video": 2,
+   "chr_f/worker1": 62,
+   "chr_f/worker2": 61,
+   "chr_f/worker3": 52
+  }
+ },
+ "fnTech3": {
+  "before": "s_language registered only for Elite Force; jk2-mp got it from ui.qvm's cvar table, jk2-sp never; no Outcast load read it",
+  "change": [
+   "code/client/audio/snd_main.cpp S_Init: Com_GameIsJK2() registers s_language \"english\", CVAR_ARCHIVE | CVAR_NORESTART, before the s_initsound check",
+   "code/client/audio/codecs/snd_codec.cpp: S_JK2ForeignVoice (first \"chars\" -> chr_d/chr_f by s_language; case-sensitive in jk2-mp, any case in jk2-sp) and S_CodecLoad: the foreign <name>.wav quietly first (.wav, .mp3, .ogg), then the English one"
+  ],
+  "differencesRecorded": [
+   "the OpenAL backend lowercases every registered name (NormalizeSoundName) before loading, so there a multiplayer \"Chars\" finds the foreign recording; the legacy mixer keeps case and matches retail; no installed name has such a \"chars\"",
+   "com_buildScript foreign-file opening and its multiplayer .mp3 slip are not reproduced",
+   "Fn tries Ogg Vorbis after .mp3 for the foreign name too; no Outcast voice is Ogg Vorbis",
+   "developer note \"Sound fallback: ...chr_d/x.wav -> ...chr_d/x.mp3\" names each foreign voice; a missing foreign recording prints nothing, as retail",
+   "jk2-sp cinematic voice track and German g_dismemberment rule not served (no jk2-sp client)"
+  ]
+ },
+ "build": {
+  "platform": "Windows 11 x86 (MSVC 2022, meson debugoptimized, strict warnings, every development gate on)",
+  "source": ".tmp/jk2-foreign-voices/src: a byte copy of the shared working tree (4326 tracked and untracked files) on 37b87dceb8a8d9fa291c5be29b1898c3323fbd5f, taken before this change; built in .tmp/jk2-foreign-voices/build",
+  "before": "the snapshot as taken (with the uncommitted MP3 slice, UI import 32 and Outcast menu work)",
+  "after": "the snapshot with this change's snd_codec.cpp and snd_main.cpp; only those two recompiled and fntech3.exe relinked; the renderer module, engine package and web pak are the same files",
+  "runtimeHashes": {
+   "jk2-voices-before/fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "jk2-voices-before/fnql_glx_x86.dll": "bf6eef54d6b44bb42a7234a894b2b64ab4ba9e9697d3e2233c59341445410f6b",
+   "jk2-voices-before/fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+   "jk2-voices-before/fntech3.exe": "e3f7cdaa8b6969972830381315fb391e6ed7e8ad1272bfcf19d0df663ec7cbea",
+   "jk2-voices-before/fntech3.pdb": "76f2ec2eebac5d1a77825fb550f6a1d9836ffe0de4ea65ccab3b1fbbe9ab2710",
+   "jk2-voices-before/soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a",
+   "jk2-voices-after/fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "jk2-voices-after/fnql_glx_x86.dll": "bf6eef54d6b44bb42a7234a894b2b64ab4ba9e9697d3e2233c59341445410f6b",
+   "jk2-voices-after/fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+   "jk2-voices-after/fntech3.exe": "d97e887534c1d9fc3a397a0401fac890bdce81367aacca1efb26f8419343f4c6",
+   "jk2-voices-after/fntech3.pdb": "5226bc91f982a74a86bf47bf8ae376c74152c598747e51fb55de0660ac9ee053",
+   "jk2-voices-after/soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+  }
+ },
+ "expectedLengths": {
+  "mothma/misc/40mom038": {
+   "chars": {
+    "file": "sound/chars/mothma/misc/40MOM038.mp3",
+    "bytes": 6320,
+    "rate": 44100,
+    "channels": "mono",
+    "uncompBytes": 85248,
+    "samples": 42624,
+    "ms": 967
+   },
+   "chr_d": {
+    "file": "sound/chr_d/mothma/misc/40MOM038.mp3",
+    "bytes": 4940,
+    "rate": 44100,
+    "channels": "mono",
+    "uncompBytes": 71424,
+    "samples": 35712,
+    "ms": 810
+   },
+   "chr_f": {
+    "file": "sound/chr_f/mothma/misc/40MOM038.mp3",
+    "bytes": 5774,
+    "rate": 44100,
+    "channels": "mono",
+    "uncompBytes": 64512,
+    "samples": 32256,
+    "ms": 731
+   }
+  },
+  "mothma/misc/taunt": {
+   "chars": {
+    "file": "sound/chars/mothma/misc/taunt.mp3",
+    "bytes": 3745,
+    "rate": 44100,
+    "channels": "mono",
+    "uncompBytes": 46080,
+    "samples": 23040,
+    "ms": 522
+   }
+  },
+  "bartender/misc/choke1": {
+   "chr_d": {
+    "file": "sound/chr_d/bartender/misc/choke1.mp3",
+    "bytes": 6528,
+    "rate": 44100,
+    "channels": "mono",
+    "uncompBytes": 73728,
+    "samples": 36864,
+    "ms": 836
+   },
+   "chr_f": {
+    "file": "sound/chr_f/bartender/misc/choke1.mp3",
+    "bytes": 7309,
+    "rate": 44100,
+    "channels": "mono",
+    "uncompBytes": 80640,
+    "samples": 40320,
+    "ms": 914
+   }
+  },
+  "kyle/misc/taunt1": {
+   "chars": {
+    "file": "sound/chars/kyle/misc/taunt1.mp3",
+    "bytes": 27616,
+    "rate": 44100,
+    "channels": "mono",
+    "uncompBytes": 156672,
+    "samples": 78336,
+    "ms": 1776
+   },
+   "chr_d": {
+    "file": "sound/chr_d/kyle/misc/taunt1.mp3",
+    "bytes": 9494,
+    "rate": 44100,
+    "channels": "mono",
+    "uncompBytes": 115200,
+    "samples": 57600,
+    "ms": 1306
+   }
+  }
+ },
+ "probe": {
+  "script": ".tmp/jk2-foreign-voices/probe_foreign_voices.py (adapted from .tmp/jk2-mp3-sounds/probe_mp3_sounds.py)",
+  "desktop": "tests/windows_private_process.py: an unswitched private desktop; no input injected; windowed",
+  "muting": "the private desktop mutes the client; nothing was heard",
+  "commandLine": [
+   "+set",
+   "com_gameProfile",
+   "jk2-mp",
+   "+set",
+   "fs_basepath",
+   "E:\\Games\\Jedi Outcast",
+   "+set",
+   "fs_homepath",
+   "E:\\Repositories\\fnTech3\\.tmp\\jk2-foreign-voices\\runs\\after-de-openal-1\\home",
+   "+set",
+   "com_steamIntegration",
+   "0",
+   "+set",
+   "developer",
+   "1",
+   "+set",
+   "logfile",
+   "2",
+   "+set",
+   "net_enabled",
+   "0",
+   "+set",
+   "r_fullscreen",
+   "0",
+   "+set",
+   "r_mode",
+   "3",
+   "+set",
+   "in_mouse",
+   "0",
+   "+set",
+   "in_joystick",
+   "0",
+   "+set",
+   "in_nograb",
+   "1",
+   "+set",
+   "s_initsound",
+   "1",
+   "+set",
+   "s_backend",
+   "openal",
+   "+set",
+   "s_muteWhenUnfocused",
+   "0",
+   "+set",
+   "s_muteWhenMinimized",
+   "0",
+   "+set",
+   "s_volume",
+   "0.05",
+   "+set",
+   "cl_motd",
+   "0",
+   "+set",
+   "com_introplayed",
+   "1",
+   "+set",
+   "com_maxfps",
+   "60",
+   "+set",
+   "com_maxfpsUnfocused",
+   "60",
+   "+set",
+   "com_maxfpsMinimized",
+   "60",
+   "+set",
+   "s_language",
+   "DEUTSCH",
+   "+exec",
+   "probevoices.cfg"
+  ],
+  "steps": [
+   "s_alSourceClassDebug 1",
+   "wait 600",
+   "echo probe-step ready",
+   "s_info",
+   "s_language",
+   "cvarlist s_language",
+   "echo probe-step mothma",
+   "play sound/chars/mothma/misc/40MOM038",
+   "echo probe-dump mothma 0",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump mothma 1",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump mothma 2",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump mothma 3",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump mothma 4",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump mothma 5",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump mothma 6",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump mothma 7",
+   "s_alDebugDump",
+   "wait 2",
+   "wait 60",
+   "echo probe-step taunt",
+   "play sound/chars/mothma/misc/taunt",
+   "echo probe-dump taunt 0",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump taunt 1",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump taunt 2",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump taunt 3",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump taunt 4",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump taunt 5",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump taunt 6",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump taunt 7",
+   "s_alDebugDump",
+   "wait 2",
+   "wait 60",
+   "echo probe-step choke",
+   "play sound/chars/bartender/misc/choke1",
+   "echo probe-dump choke 0",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump choke 1",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump choke 2",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump choke 3",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump choke 4",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump choke 5",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump choke 6",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump choke 7",
+   "s_alDebugDump",
+   "wait 2",
+   "wait 60",
+   "echo probe-step kyle",
+   "play sound/chars/kyle/misc/taunt1",
+   "echo probe-dump kyle 0",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump kyle 1",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump kyle 2",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump kyle 3",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump kyle 4",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump kyle 5",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump kyle 6",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump kyle 7",
+   "s_alDebugDump",
+   "wait 2",
+   "wait 60",
+   "echo probe-step saber",
+   "play sound/weapons/saber/saberon.wav",
+   "echo probe-dump saber 0",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump saber 1",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump saber 2",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump saber 3",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump saber 4",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump saber 5",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump saber 6",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump saber 7",
+   "s_alDebugDump",
+   "wait 2",
+   "wait 60",
+   "echo probe-step list",
+   "s_list",
+   "wait 30",
+   "echo probe-step done",
+   "quit"
+  ],
+  "restartSteps": [
+   "s_alSourceClassDebug 1",
+   "wait 600",
+   "echo probe-step ready",
+   "s_info",
+   "s_language",
+   "cvarlist s_language",
+   "echo probe-step first",
+   "play sound/chars/mothma/misc/40MOM038",
+   "echo probe-dump first 0",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump first 1",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump first 2",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump first 3",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump first 4",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump first 5",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump first 6",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump first 7",
+   "s_alDebugDump",
+   "wait 2",
+   "wait 60",
+   "echo probe-step firstlist",
+   "s_list",
+   "wait 30",
+   "echo probe-step restart",
+   "set s_language deutsch",
+   "ui_load ; snd_restart",
+   "wait 600",
+   "echo probe-step restarted",
+   "s_language",
+   "echo probe-step mothma",
+   "play sound/chars/mothma/misc/40MOM038",
+   "echo probe-dump mothma 0",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump mothma 1",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump mothma 2",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump mothma 3",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump mothma 4",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump mothma 5",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump mothma 6",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump mothma 7",
+   "s_alDebugDump",
+   "wait 2",
+   "wait 60",
+   "echo probe-step list",
+   "s_list",
+   "wait 30",
+   "echo probe-step done",
+   "quit"
+  ],
+  "singlePlayer": "not run: a jk2-sp client stops at CL_InitUI before any startup command (MP3 record)"
+ },
+ "runs": [
+  {
+   "run": "after-de-legacy-1",
+   "game": "jk2-mp",
+   "runtime": ".tmp/runtime/jk2-voices-after",
+   "backend": "legacy",
+   "s_language": "DEUTSCH",
+   "restart": false,
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 19.1,
+   "installationUnchanged": true,
+   "identity": {
+    "fntech3.exe": "d97e887534c1d9fc3a397a0401fac890bdce81367aacca1efb26f8419343f4c6",
+    "fnql_glx_x86.dll": "bf6eef54d6b44bb42a7234a894b2b64ab4ba9e9697d3e2233c59341445410f6b",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+   },
+   "identityUnchanged": true,
+   "stepsLogged": [
+    "ready",
+    "mothma",
+    "taunt",
+    "choke",
+    "kyle",
+    "saber",
+    "list",
+    "done"
+   ],
+   "languageLines": [
+    "\"s_language\" is:\"DEUTSCH^7\" default:\"english^7\"",
+    "A    s_language \"DEUTSCH\""
+   ],
+   "sounds": {
+    "mothma": {
+     "fallbackTo": [
+      "sound/chr_d/mothma/misc/40MOM038.mp3"
+     ],
+     "listed": [
+      "17856[16bit] : sound/chars/mothma/misc/40MOM038[resident ]"
+     ],
+     "linesNamingIt": 56,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "127 127 sound/chars/mothma/misc/40MOM038",
+     "legacySamples": 17856,
+     "matches": "chr_d"
+    },
+    "taunt": {
+     "fallbackTo": [
+      "sound/chars/mothma/misc/taunt.mp3"
+     ],
+     "listed": [
+      "11520[16bit] : sound/chars/mothma/misc/taunt[resident ]"
+     ],
+     "linesNamingIt": 37,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "127 127 sound/chars/mothma/misc/taunt",
+     "legacySamples": 11520,
+     "matches": "chars"
+    },
+    "choke": {
+     "fallbackTo": [
+      "sound/chr_d/bartender/misc/choke1.mp3"
+     ],
+     "listed": [
+      "18432[16bit] : sound/chars/bartender/misc/choke1[resident ]"
+     ],
+     "linesNamingIt": 57,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "127 127 sound/chars/bartender/misc/choke1",
+     "legacySamples": 18432,
+     "matches": "chr_d"
+    },
+    "kyle": {
+     "fallbackTo": [
+      "sound/chr_d/kyle/misc/taunt1.mp3"
+     ],
+     "listed": [
+      "28800[16bit] : sound/chars/kyle/misc/taunt1[resident ]"
+     ],
+     "linesNamingIt": 76,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "127 127 sound/chars/kyle/misc/taunt1",
+     "legacySamples": 28800,
+     "matches": "chr_d"
+    },
+    "saber": {
+     "fallbackTo": [
+      "sound/weapons/saber/saberon.mp3"
+     ],
+     "listed": [
+      "36288[16bit] : sound/weapons/saber/saberon.wav[resident ]"
+     ],
+     "linesNamingIt": 76,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "127 127 sound/weapons/saber/saberon.wav",
+     "legacySamples": 36288,
+     "matches": null
+    }
+   }
+  },
+  {
+   "run": "after-de-openal-1",
+   "game": "jk2-mp",
+   "runtime": ".tmp/runtime/jk2-voices-after",
+   "backend": "openal",
+   "s_language": "DEUTSCH",
+   "restart": false,
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 20.8,
+   "installationUnchanged": true,
+   "identity": {
+    "fntech3.exe": "d97e887534c1d9fc3a397a0401fac890bdce81367aacca1efb26f8419343f4c6",
+    "fnql_glx_x86.dll": "bf6eef54d6b44bb42a7234a894b2b64ab4ba9e9697d3e2233c59341445410f6b",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+   },
+   "identityUnchanged": true,
+   "stepsLogged": [
+    "ready",
+    "mothma",
+    "taunt",
+    "choke",
+    "kyle",
+    "saber",
+    "list",
+    "done"
+   ],
+   "languageLines": [
+    "\"s_language\" is:\"DEUTSCH^7\" default:\"english^7\"",
+    "A    s_language \"DEUTSCH\""
+   ],
+   "sounds": {
+    "mothma": {
+     "fallbackTo": [
+      "sound/chr_d/mothma/misc/40mom038.mp3"
+     ],
+     "listed": [
+      "2 : sound/chars/mothma/misc/40mom038 [mono 44100 Hz 809 ms]"
+     ],
+     "linesNamingIt": 16,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "Selected voice: ent=0 type=shot mode=relative sample=sound/chars/mothma/misc/40mom038 dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00 transient=0",
+     "matches": "chr_d"
+    },
+    "taunt": {
+     "fallbackTo": [
+      "sound/chars/mothma/misc/taunt.mp3"
+     ],
+     "listed": [
+      "3 : sound/chars/mothma/misc/taunt [mono 44100 Hz 522 ms]"
+     ],
+     "linesNamingIt": 16,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "Selected voice: ent=0 type=shot mode=relative sample=sound/chars/mothma/misc/taunt dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00 transient=0",
+     "matches": "chars"
+    },
+    "choke": {
+     "fallbackTo": [
+      "sound/chr_d/bartender/misc/choke1.mp3"
+     ],
+     "listed": [
+      "4 : sound/chars/bartender/misc/choke1 [mono 44100 Hz 835 ms]"
+     ],
+     "linesNamingIt": 16,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "Selected voice: ent=0 type=shot mode=relative sample=sound/chars/bartender/misc/choke1 dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00 transient=0",
+     "matches": "chr_d"
+    },
+    "kyle": {
+     "fallbackTo": [
+      "sound/chr_d/kyle/misc/taunt1.mp3"
+     ],
+     "listed": [
+      "5 : sound/chars/kyle/misc/taunt1 [mono 44100 Hz 1306 ms]"
+     ],
+     "linesNamingIt": 16,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "Selected voice: ent=0 type=shot mode=relative sample=sound/chars/kyle/misc/taunt1 dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00 transient=0",
+     "matches": "chr_d"
+    },
+    "saber": {
+     "fallbackTo": [
+      "sound/weapons/saber/saberon.mp3"
+     ],
+     "listed": [
+      "6 : sound/weapons/saber/saberon.wav [mono 44100 Hz 1645 ms]"
+     ],
+     "linesNamingIt": 12,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "shot ent=0 mode=relative tone=local/highpass sample=sound/weapons/saber/saberon.wav dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00",
+     "matches": null
+    }
+   }
+  },
+  {
+   "run": "after-en-openal-1",
+   "game": "jk2-mp",
+   "runtime": ".tmp/runtime/jk2-voices-after",
+   "backend": "openal",
+   "s_language": null,
+   "restart": false,
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 20.1,
+   "installationUnchanged": true,
+   "identity": {
+    "fntech3.exe": "d97e887534c1d9fc3a397a0401fac890bdce81367aacca1efb26f8419343f4c6",
+    "fnql_glx_x86.dll": "bf6eef54d6b44bb42a7234a894b2b64ab4ba9e9697d3e2233c59341445410f6b",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+   },
+   "identityUnchanged": true,
+   "stepsLogged": [
+    "ready",
+    "mothma",
+    "taunt",
+    "choke",
+    "kyle",
+    "saber",
+    "list",
+    "done"
+   ],
+   "languageLines": [
+    "\"s_language\" is:\"english^7\" default:\"english^7\"",
+    "A    s_language \"english\""
+   ],
+   "sounds": {
+    "mothma": {
+     "fallbackTo": [
+      "sound/chars/mothma/misc/40mom038.mp3"
+     ],
+     "listed": [
+      "2 : sound/chars/mothma/misc/40mom038 [mono 44100 Hz 966 ms]"
+     ],
+     "linesNamingIt": 16,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "Selected voice: ent=0 type=shot mode=relative sample=sound/chars/mothma/misc/40mom038 dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00 transient=0",
+     "matches": "chars"
+    },
+    "taunt": {
+     "fallbackTo": [
+      "sound/chars/mothma/misc/taunt.mp3"
+     ],
+     "listed": [
+      "3 : sound/chars/mothma/misc/taunt [mono 44100 Hz 522 ms]"
+     ],
+     "linesNamingIt": 16,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "Selected voice: ent=0 type=shot mode=relative sample=sound/chars/mothma/misc/taunt dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00 transient=0",
+     "matches": "chars"
+    },
+    "choke": {
+     "fallbackTo": [],
+     "listed": [
+      "4 : sound/chars/bartender/misc/choke1 [missing]"
+     ],
+     "linesNamingIt": 0,
+     "dumpsShowingIt": 0,
+     "dumps": 8,
+     "sampleLine": null,
+     "matches": "missing"
+    },
+    "kyle": {
+     "fallbackTo": [
+      "sound/chars/kyle/misc/taunt1.mp3"
+     ],
+     "listed": [
+      "5 : sound/chars/kyle/misc/taunt1 [mono 44100 Hz 1776 ms]"
+     ],
+     "linesNamingIt": 16,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "Selected voice: ent=0 type=shot mode=relative sample=sound/chars/kyle/misc/taunt1 dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00 transient=0",
+     "matches": "chars"
+    },
+    "saber": {
+     "fallbackTo": [
+      "sound/weapons/saber/saberon.mp3"
+     ],
+     "listed": [
+      "6 : sound/weapons/saber/saberon.wav [mono 44100 Hz 1645 ms]"
+     ],
+     "linesNamingIt": 8,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "shot ent=0 mode=relative tone=local/highpass sample=sound/weapons/saber/saberon.wav dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00",
+     "matches": null
+    }
+   }
+  },
+  {
+   "run": "after-fr-openal-1",
+   "game": "jk2-mp",
+   "runtime": ".tmp/runtime/jk2-voices-after",
+   "backend": "openal",
+   "s_language": "francais",
+   "restart": false,
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 20.6,
+   "installationUnchanged": true,
+   "identity": {
+    "fntech3.exe": "d97e887534c1d9fc3a397a0401fac890bdce81367aacca1efb26f8419343f4c6",
+    "fnql_glx_x86.dll": "bf6eef54d6b44bb42a7234a894b2b64ab4ba9e9697d3e2233c59341445410f6b",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+   },
+   "identityUnchanged": true,
+   "stepsLogged": [
+    "ready",
+    "mothma",
+    "taunt",
+    "choke",
+    "kyle",
+    "saber",
+    "list",
+    "done"
+   ],
+   "languageLines": [
+    "\"s_language\" is:\"francais^7\" default:\"english^7\"",
+    "A    s_language \"francais\""
+   ],
+   "sounds": {
+    "mothma": {
+     "fallbackTo": [
+      "sound/chr_f/mothma/misc/40mom038.mp3"
+     ],
+     "listed": [
+      "2 : sound/chars/mothma/misc/40mom038 [mono 44100 Hz 731 ms]"
+     ],
+     "linesNamingIt": 16,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "Selected voice: ent=0 type=shot mode=relative sample=sound/chars/mothma/misc/40mom038 dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00 transient=0",
+     "matches": "chr_f"
+    },
+    "taunt": {
+     "fallbackTo": [
+      "sound/chars/mothma/misc/taunt.mp3"
+     ],
+     "listed": [
+      "3 : sound/chars/mothma/misc/taunt [mono 44100 Hz 522 ms]"
+     ],
+     "linesNamingIt": 16,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "Selected voice: ent=0 type=shot mode=relative sample=sound/chars/mothma/misc/taunt dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00 transient=0",
+     "matches": "chars"
+    },
+    "choke": {
+     "fallbackTo": [
+      "sound/chr_f/bartender/misc/choke1.mp3"
+     ],
+     "listed": [
+      "4 : sound/chars/bartender/misc/choke1 [mono 44100 Hz 914 ms]"
+     ],
+     "linesNamingIt": 16,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "Selected voice: ent=0 type=shot mode=relative sample=sound/chars/bartender/misc/choke1 dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00 transient=0",
+     "matches": "chr_f"
+    },
+    "kyle": {
+     "fallbackTo": [
+      "sound/chars/kyle/misc/taunt1.mp3"
+     ],
+     "listed": [
+      "5 : sound/chars/kyle/misc/taunt1 [mono 44100 Hz 1776 ms]"
+     ],
+     "linesNamingIt": 16,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "Selected voice: ent=0 type=shot mode=relative sample=sound/chars/kyle/misc/taunt1 dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00 transient=0",
+     "matches": "chars"
+    },
+    "saber": {
+     "fallbackTo": [
+      "sound/weapons/saber/saberon.mp3"
+     ],
+     "listed": [
+      "6 : sound/weapons/saber/saberon.wav [mono 44100 Hz 1645 ms]"
+     ],
+     "linesNamingIt": 8,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "shot ent=0 mode=relative tone=local/highpass sample=sound/weapons/saber/saberon.wav dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00",
+     "matches": null
+    }
+   }
+  },
+  {
+   "run": "after-restart-openal-1",
+   "game": "jk2-mp",
+   "runtime": ".tmp/runtime/jk2-voices-after",
+   "backend": "openal",
+   "s_language": null,
+   "restart": [
+    "probe-step restart",
+    "^5^5Sound fallback: sound/interface/menuroam.wav -> sound/interface/menuroam.mp3"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 25.5,
+   "installationUnchanged": true,
+   "identity": {
+    "fntech3.exe": "d97e887534c1d9fc3a397a0401fac890bdce81367aacca1efb26f8419343f4c6",
+    "fnql_glx_x86.dll": "bf6eef54d6b44bb42a7234a894b2b64ab4ba9e9697d3e2233c59341445410f6b",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+   },
+   "identityUnchanged": true,
+   "stepsLogged": [
+    "ready",
+    "first",
+    "firstlist",
+    "restart",
+    "restarted",
+    "mothma",
+    "list",
+    "done"
+   ],
+   "languageLines": [
+    "\"s_language\" is:\"english^7\" default:\"english^7\"",
+    "A    s_language \"english\""
+   ],
+   "sounds": {
+    "mothma": {
+     "fallbackTo": [
+      "sound/chr_d/mothma/misc/40mom038.mp3"
+     ],
+     "listed": [
+      "2 : sound/chars/mothma/misc/40mom038 [mono 44100 Hz 809 ms]"
+     ],
+     "linesNamingIt": 16,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "Selected voice: ent=0 type=shot mode=relative sample=sound/chars/mothma/misc/40mom038 dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00 transient=0",
+     "matches": "chr_d"
+    }
+   },
+   "first": {
+    "fallbackTo": [
+     "sound/chars/mothma/misc/40mom038.mp3"
+    ],
+    "listed": [
+     "2 : sound/chars/mothma/misc/40mom038 [mono 44100 Hz 966 ms]"
+    ]
+   },
+   "restartLines": [
+    "probe-step restart",
+    "------ Initializing Sound ------"
+   ],
+   "restartedLanguage": [
+    "\"s_language\" is:\"deutsch^7\" default:\"english^7\""
+   ]
+  },
+  {
+   "run": "before-de-legacy-1",
+   "game": "jk2-mp",
+   "runtime": ".tmp/runtime/jk2-voices-before",
+   "backend": "legacy",
+   "s_language": "DEUTSCH",
+   "restart": false,
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 19.2,
+   "installationUnchanged": true,
+   "identity": {
+    "fntech3.exe": "e3f7cdaa8b6969972830381315fb391e6ed7e8ad1272bfcf19d0df663ec7cbea",
+    "fnql_glx_x86.dll": "bf6eef54d6b44bb42a7234a894b2b64ab4ba9e9697d3e2233c59341445410f6b",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+   },
+   "identityUnchanged": true,
+   "stepsLogged": [
+    "ready",
+    "mothma",
+    "taunt",
+    "choke",
+    "kyle",
+    "saber",
+    "list",
+    "done"
+   ],
+   "languageLines": [
+    "\"s_language\" is:\"DEUTSCH^7\" default:\"english^7\"",
+    "A    s_language \"DEUTSCH\""
+   ],
+   "sounds": {
+    "mothma": {
+     "fallbackTo": [
+      "sound/chars/mothma/misc/40MOM038.mp3"
+     ],
+     "listed": [
+      "21312[16bit] : sound/chars/mothma/misc/40MOM038[resident ]"
+     ],
+     "linesNamingIt": 66,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "127 127 sound/chars/mothma/misc/40MOM038",
+     "legacySamples": 21312,
+     "matches": "chars"
+    },
+    "taunt": {
+     "fallbackTo": [
+      "sound/chars/mothma/misc/taunt.mp3"
+     ],
+     "listed": [
+      "11520[16bit] : sound/chars/mothma/misc/taunt[resident ]"
+     ],
+     "linesNamingIt": 38,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "127 127 sound/chars/mothma/misc/taunt",
+     "legacySamples": 11520,
+     "matches": "chars"
+    },
+    "choke": {
+     "fallbackTo": [],
+     "listed": [
+      "0[16bit] : sound/chars/bartender/misc/choke1[resident ]"
+     ],
+     "linesNamingIt": 0,
+     "dumpsShowingIt": 0,
+     "dumps": 8,
+     "sampleLine": null,
+     "legacySamples": 0,
+     "matches": "missing"
+    },
+    "kyle": {
+     "fallbackTo": [
+      "sound/chars/kyle/misc/taunt1.mp3"
+     ],
+     "listed": [
+      "39168[16bit] : sound/chars/kyle/misc/taunt1[resident ]"
+     ],
+     "linesNamingIt": 76,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "127 127 sound/chars/kyle/misc/taunt1",
+     "legacySamples": 39168,
+     "matches": "chars"
+    },
+    "saber": {
+     "fallbackTo": [
+      "sound/weapons/saber/saberon.mp3"
+     ],
+     "listed": [
+      "36288[16bit] : sound/weapons/saber/saberon.wav[resident ]"
+     ],
+     "linesNamingIt": 76,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "127 127 sound/weapons/saber/saberon.wav",
+     "legacySamples": 36288,
+     "matches": null
+    }
+   }
+  },
+  {
+   "run": "before-de-openal-1",
+   "game": "jk2-mp",
+   "runtime": ".tmp/runtime/jk2-voices-before",
+   "backend": "openal",
+   "s_language": "DEUTSCH",
+   "restart": false,
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 21.7,
+   "installationUnchanged": true,
+   "identity": {
+    "fntech3.exe": "e3f7cdaa8b6969972830381315fb391e6ed7e8ad1272bfcf19d0df663ec7cbea",
+    "fnql_glx_x86.dll": "bf6eef54d6b44bb42a7234a894b2b64ab4ba9e9697d3e2233c59341445410f6b",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+   },
+   "identityUnchanged": true,
+   "stepsLogged": [
+    "ready",
+    "mothma",
+    "taunt",
+    "choke",
+    "kyle",
+    "saber",
+    "list",
+    "done"
+   ],
+   "languageLines": [
+    "\"s_language\" is:\"DEUTSCH^7\" default:\"english^7\"",
+    "A    s_language \"DEUTSCH\""
+   ],
+   "sounds": {
+    "mothma": {
+     "fallbackTo": [
+      "sound/chars/mothma/misc/40mom038.mp3"
+     ],
+     "listed": [
+      "2 : sound/chars/mothma/misc/40mom038 [mono 44100 Hz 966 ms]"
+     ],
+     "linesNamingIt": 16,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "Selected voice: ent=0 type=shot mode=relative sample=sound/chars/mothma/misc/40mom038 dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00 transient=0",
+     "matches": "chars"
+    },
+    "taunt": {
+     "fallbackTo": [
+      "sound/chars/mothma/misc/taunt.mp3"
+     ],
+     "listed": [
+      "3 : sound/chars/mothma/misc/taunt [mono 44100 Hz 522 ms]"
+     ],
+     "linesNamingIt": 16,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "Selected voice: ent=0 type=shot mode=relative sample=sound/chars/mothma/misc/taunt dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00 transient=0",
+     "matches": "chars"
+    },
+    "choke": {
+     "fallbackTo": [],
+     "listed": [
+      "4 : sound/chars/bartender/misc/choke1 [missing]"
+     ],
+     "linesNamingIt": 0,
+     "dumpsShowingIt": 0,
+     "dumps": 8,
+     "sampleLine": null,
+     "matches": "missing"
+    },
+    "kyle": {
+     "fallbackTo": [
+      "sound/chars/kyle/misc/taunt1.mp3"
+     ],
+     "listed": [
+      "5 : sound/chars/kyle/misc/taunt1 [mono 44100 Hz 1776 ms]"
+     ],
+     "linesNamingIt": 16,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "Selected voice: ent=0 type=shot mode=relative sample=sound/chars/kyle/misc/taunt1 dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00 transient=0",
+     "matches": "chars"
+    },
+    "saber": {
+     "fallbackTo": [
+      "sound/weapons/saber/saberon.mp3"
+     ],
+     "listed": [
+      "6 : sound/weapons/saber/saberon.wav [mono 44100 Hz 1645 ms]"
+     ],
+     "linesNamingIt": 8,
+     "dumpsShowingIt": 8,
+     "dumps": 8,
+     "sampleLine": "shot ent=0 mode=relative tone=local/highpass sample=sound/weapons/saber/saberon.wav dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00",
+     "matches": null
+    }
+   }
+  }
+ ],
+ "tests": [
+  "tests/audio_codec_profile_tests.py: every profile, with and without MP3; ten s_language values x six names x eight file sets; Outcast reads the foreign .wav/.mp3/.ogg quietly then the English; first \"chars\" anywhere; jk2-sp alone finds \"CHARS\"; a missing voice warns once; other profiles load as the codec list does",
+  "tests/stvef_language_tests.py: voice probe adds Outcast German/French order, quiet flags, English fallback and warning, other settings, the multiplayer/single-player case rule; Elite Force unchanged; source check of both Outcast profiles' S_Init registration before s_initsound",
+  "mutations (.tmp/jk2-foreign-voices/mutations.log): baseline: exit 0 3 passed, 2 deselected in 6.98s | no foreign voices: caught (exit 1) 2 failed, 1 passed, 2 deselected in 4.09s | a missing foreign voice warns: caught (exit 1) 2 failed, 1 passed, 2 deselected in 4.24s | no English fallback: caught (exit 1) 2 failed, 1 passed, 2 deselected in 3.92s | German and French swapped: caught (exit 1) 2 failed, 1 passed, 2 deselected in 4.02s | language compared with case: caught (exit 1) 2 failed, 1 passed, 2 deselected in 7.42s | every other language German: caught (exit 1) 2 failed, 1 passed, 2 deselected in 10.76s | multiplayer finds any case: caught (exit 1) 2 failed, 1 passed, 2 deselected in 12.16s | single player finds only lower case: caught (exit 1) 2 failed, 1 passed, 2 deselected in 12.21s | the last \"chars\" instead of the first: caught (exit 1) 2 failed, 1 passed, 2 deselected in 11.63s | only a \"/chars/\" folder: caught (exit 1) 2 failed, 1 passed, 2 deselected in 16.66s | foreign voices for every profile: caught (exit 1) 2 failed, 1 passed, 2 deselected in 10.16s | registered empty, as Elite Force does: caught (exit 1) 1 failed, 2 passed, 2 deselected in 8.87s | registered without CVAR_NORESTART: caught (exit 1) 1 failed, 2 passed, 2 deselected in 7.65s | registered for multiplayer only: caught (exit 1) 1 failed, 2 passed, 2 deselected in 7.23s | restored: exit 0 3 passed, 2 deselected in 6.53s | all caught",
+  "shared tree: the 22 test files that read snd_codec.cpp or snd_main.cpp: 158 passed, 1 failed (rtcw_speech_tests default-handle case: another session's uncommitted JKA lip-sync lines in AudioSystemWorld.inl; the test reads none of this change's files)",
+  "Linux (WSL Ubuntu 24.04): both fixtures, generated from the tests, build and pass with g++ 13.3.0 and clang++ 18.1.3 (-m32; the voice probe also native, -Wall -Wextra -Werror)",
+  "chain (.tmp/jk2-foreign-voices/chain.py: git archive of 37b87dce + the Academy UI import-33, menu sound policy and Outcast UI import-32 records + import-32's ledger row + .tmp/jk2-mp3-sounds/overlay.py --apply + this overlay.py --apply, own git repository): changelog, generate_docs, player_manual, release_packaging, release_workflow, version_metadata, steam_identity_source and the 20 test files that read snd_codec.cpp or snd_main.cpp: 269 passed, 1 skipped (symlink privilege), 1148 subtests (chain-tests.log); snd_codec.cpp and snd_main.cpp compile there with the win32-dev command (cc_check.py)",
+  "shared tree docs run: 111 passed, 14 failed, all in release_packaging_tests; the two re-run alone stop at \"Missing packaged evidence document: docs/fntech3/2026-10-08-mp3-last-frame.md -> 2026-10-08-mp3-last-frame.json\", another session's record whose JSON was not yet written; the chain, without that record, passes them all"
+ ],
+ "open": [
+  "jk2-sp live voices (no client menu), its cinematic voice track for jk05/jk06 and its German g_dismemberment rule",
+  "in-game voices: Outcast client-game sound imports are still refused, so the client game does not start Mon Mothma's lines yet",
+  "audible play (offscreen-muted clients) and retail jk2mp.exe playback for comparison"
+ ]
+}

@@ -7,7 +7,12 @@
  * queries there (code/server/server_mohaa_gamespy.hpp). It binds the
  * interface net_ip names, is read wherever the game's socket is (NET_Sleep),
  * so an answer goes out at once rather than at the next server frame, and
- * closes with the network (net_restart, NET_Shutdown). */
+ * closes with the network (net_restart, NET_Shutdown).
+ *
+ * A third, the search socket, is a browser's: Medal of Honor's LAN list
+ * broadcasts GameSpy's status query from it (code/client/cl_mohaa.cpp). It
+ * binds a port the system picks on the same interface, may broadcast, and
+ * closes by itself when its search is over, or with the network. */
 
 #include "qcommon.h"
 
@@ -27,6 +32,14 @@ void	NET_CloseQuerySocket( void );
 int		NET_QuerySocketPort( void );
 /* Sends from the query socket, so that the answer comes from the port asked. */
 void	NET_SendQueryPacket( int length, const void *data, const netadr_t *to );
+
+/* Opens the search socket for `lifetime` milliseconds, replacing any search
+ * still open, its answers going to `handler`; returns its port, or 0 when
+ * NET_OpenQuerySocket would fail. */
+int		NET_OpenSearchSocket( int lifetime, netQueryHandler_t handler );
+void	NET_CloseSearchSocket( void );
+/* Sends from the search socket, to an IPv4 address or as a broadcast. */
+void	NET_SendSearchPacket( int length, const void *data, const netadr_t *to );
 
 #ifdef __cplusplus
 }

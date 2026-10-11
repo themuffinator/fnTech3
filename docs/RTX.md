@@ -29,6 +29,10 @@ traced shadows or reflections. Return to Castle Wolfenstein and Enemy
 Territory have been drawn with it in testing, but, like those games
 themselves, that is still experimental.
 
+Medal of Honor's terrain and static map scenery are traced too; its
+animated characters and props still use normal drawing
+([terrain details](fntech3/2026-10-11-mohaa-rtx-world.md)).
+
 ## Turning RTX On
 
 Open the console and type:
@@ -79,16 +83,31 @@ games' original colour handling, for comparing pictures with the original.
 - **Bounced light.** Light reflects off walls and floors, so a sunlit floor
   lights the room around it. One bounce is the default.
 - **Reflections** on shiny surfaces, which show the lights around them.
+- **Ray-traced liquids.** Water bends the view into the pool and reflects
+  the room, including things behind you and outside the screen. Deeper water
+  absorbs more colour; looking up from below can reflect the underwater room.
+  Opaque slime and lava keep their colour and glow, with traced reflections.
 - **A clean picture.** Ray tracing starts out grainy, and fnTech3 smooths it
   as you play. When everything stands still -- a paused demo, say -- it keeps
   refining towards a perfectly clean image.
 
 Some things are always drawn the normal way, on top of the traced picture:
-see-through and glowing effects, smoke and sparks, sprites, water, the sky,
+see-through and glowing effects, smoke and sparks, sprites, the sky,
 the HUD and menus. Mirrors, portals, small views and the distant sky that
 Return to Castle Wolfenstein and Enemy Territory draw are drawn normally too.
 Fog is drawn over the traced picture as usual. Your own body is not shown,
 but it casts a shadow and appears in reflections.
+
+Liquid tracing is on by default with RT. `r_liquidWarpScale` controls the
+waves (`0` makes the surface calm; default `1`), and `r_liquidRipples`
+controls interaction ripples (`0` disables them; default `1`) in games that
+supply them. The screen-space settings `r_liquid`, `r_liquidResolution`,
+`r_liquidReflection` and `r_liquidRefraction` apply to normal drawing.
+`rtx_rt_liquids 0`, followed by `vid_restart`, restores that liquid path for
+comparison. Unusual cutout or strongly deformed liquids use it automatically.
+There are no traced caustics or reflections of effects that are drawn only
+by raster. This path has been checked on Quake III's `q3dm12`; other games
+still need their own comparisons ([evidence](fntech3/2026-10-11-rtx-liquids.md)).
 
 **Seeing it through a camera.** `rtx_rt_camera 1` shows the light as a camera
 would see it, with brightness that adapts as your eyes do when you move
@@ -125,6 +144,7 @@ RTX finds that itself. Only RTX uses these maps; `rtx_rt_material_maps 0` and
 | `rtx_rt_require` | `0` | `1` stops the renderer instead of drawing normally when tracing fails; for testing. Needs `vid_restart`. |
 | `rtx_rt_backend` | `0` | `0` hardware where available, else compute; `1` hardware only; `2` compute only. Needs `vid_restart`. |
 | `rtx_rt_material_maps` | `1` | Use a texture pack's material maps. Needs `vid_restart`. |
+| `rtx_rt_liquids` | `1` | Traced liquid reflections and water refraction; `0` restores normal liquid drawing. Needs `vid_restart`. |
 | `rtx_rt_lighting` | `0` | `0` lights each map with its own lamps, glowing surfaces, sky and sun, with nothing painted in advance; `3` with the sky and glowing surfaces only, as Quake II RTX does. `1` and `2` are for comparing with the original lighting: `1` uses the painted lighting and traces only moving lights over it, `2` traces the lights as the map's tools painted them. |
 | `rtx_rt_camera` | `0` | `1` sees the light through a camera, with automatic brightness; `0` shows it exactly as traced. `rtx_rt_lighting 3` always uses the camera. |
 | `rtx_rt_emissive_light` | `2.0` | How much light glowing surfaces give off, as a multiple of how bright they look; `0` none. |
@@ -133,7 +153,11 @@ RTX finds that itself. Only RTX uses these maps; `rtx_rt_material_maps 0` and
 | `rtx_rt_exposure_speed` | `1` | With the camera on: how quickly the automatic brightness adapts; `0` instantly. |
 | `rtx_rt_tonemap_range` | `7` | With the camera on: how wide a range of brightness it fits onto the screen, in stops. |
 | `rtx_rt_tonemap_curve` | `0.5` | With the camera on: how much of its adaptive curve to use; the rest is a simpler curve. |
-| `rtx_rt_checkerboard` | `0` | Traces bounced light for half the screen each frame, in a checkerboard, for speed: `0` only in compute mode, `1` always, `2` never. |
+| `rtx_rt_indirect_divisor` | `0` | Resolution of bounced light: `0` chooses half width and height on compute, full resolution on hardware; `1` full, `2` half, `3` one third, `4` one quarter. Direct shadows and model animation still update at full resolution every frame. |
+| `rtx_rt_frame_budget_ms` | `0` | Optional GPU time target for tracing and its filters, in milliseconds; `0` disables it. Adjusts bounced-light resolution gradually. For example, `16.7` targets that portion of a 60 FPS frame; it cannot guarantee 60 FPS if other work or direct tracing is too expensive. |
+| `rtx_rt_checkerboard` | `0` | Traces bounced light in half the tiles for speed: `0` only on compute with indirect divisor `1`, `1` always, `2` never. Combines with the indirect divisor, at the cost of more reconstruction. |
+| `rtx_rt_low_latency` | `1` | Waits for GPU work before reading input: `1` allows one GPU frame in flight, `2` allows two for a possible throughput tradeoff, `0` restores the old wait placement. Does not change gameplay timing. |
+| `rtx_rt_light_reuse` | `0` | Experimental: `1` shares a small, rotating set of light choices between nearby compatible surfaces and frames, with current shadow tests. It can increase correlated noise, so independent choices remain the default. |
 | `rtx_rt_bounces` | `1` | How many times light bounces, `0` to `4`. More is brighter in enclosed rooms and slower. |
 | `rtx_rt_indirect_strength` | `1.0` | How strong bounced light is; `0` keeps only direct light. |
 | `rtx_rt_specular` | `1` | Shine and reflections. |
@@ -164,16 +188,35 @@ RTX finds that itself. Only RTX uses these maps; `rtx_rt_material_maps 0` and
 session, in a line starting `RTX RT:`. Mirrors, portals and small views are
 always drawn normally.
 
-**It is too slow.** Compute mode is slower than ray-tracing hardware. Render
-at a lower resolution with `r_renderScale` (see the
-[Graphics guide](DISPLAY.md#sharper-edges-and-render-resolution)), keep
-`rtx_rt_bounces 1` or try `0`, or use `rtx_rt_checkerboard 1`.
+**It is too slow.** Check the active tracing backend in the startup log;
+having an RTX card does not by itself mean the driver exposes hardware
+tracing to the 32-bit client. Try `rtx_rt_indirect_divisor 2` or `4` first,
+or `rtx_rt_bounces 0` to test the cost of bounced light. If direct tracing
+is still too expensive, reduce `r_renderScale` (see the
+[Graphics guide](DISPLAY.md#sharper-edges-and-render-resolution)).
+`rtx_rt_frame_budget_ms` can adjust bounced-light quality automatically,
+but cannot make an expensive direct pass meet the target.
 
-**A large map fails to load.** fnTech3 is a 32-bit program with 2 GB to work
-in, and ray tracing adds about 200 MB on a large map. fnTech3 keeps room for
-the game's own code while the renderer restarts, so even Enemy Territory's
-largest maps load back; if a map still will not load with RTX, play it with
-GLx or Vulkan.
+**Input feels delayed.** Keep `rtx_rt_low_latency 1`. This moves GPU waits
+before input polling; it cannot remove the delay caused by a very long
+frame or the display's presentation queue. Try `2` if one frame in flight
+reduces throughput on your system, and compare the display's VSync setting.
+
+**The player's shadow moves in steps.** Direct shadows now have their own
+fast filter response when entities move, separate from the slower filter
+for bounced light. The renderer uses the current body pose every frame;
+lowering bounced-light resolution does not throttle it. This has a bounded
+Quake III test, not complete animation coverage for every game
+([shadow and performance evidence](fntech3/2026-10-11-rtx-entity-shadows.md)).
+If stepping remains, note the active backend and whether disabling the
+filter with `rtx_rt_denoise 0` changes it, then restore `1` for play.
+
+**A large map fails to load.** The shared client is a 32-bit program with
+limited address space. RTX's intermediate images alone use 180 MiB at
+1280 x 720, plus geometry, textures and driver allocations. Reducing
+`r_renderScale` reduces those images; the indirect divisor reduces tracing
+work but keeps their full-resolution storage. If the map still will not
+load, use GLx or Vulkan.
 
 Developer tools -- views of the tracer's inner workings, timings, and
 pointing at a surface or a light to see how it is traced -- are described in

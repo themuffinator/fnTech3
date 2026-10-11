@@ -37,8 +37,9 @@ freezing the original renderer API and asset assumptions.
 
 The required boundary is:
 
-- renderer API version 13, with the export table zero-initialized before
-  optional entries are assigned;
+- renderer API version 35, with the export table zero-initialized before
+  optional entries are assigned; engine frame-event callbacks are optional
+  and do not change any retail module ABI;
 - Quake Live BSP version 47 alongside the retained legacy BSP readers, with
   every lump range validated before use;
 - Quake Live advertisement cells, including loading-view refresh, cell display
@@ -68,10 +69,12 @@ HUD-only views, and other secondary work retain complete raster behavior.
 
 An eligible primary frame is composed in this order:
 
-1. The raster base pass draws the surfaces the path tracer owns, for their
-   depth, and the sky and portal surfaces, whose raster colour is kept. With
-   the overlay it is also a complete raster frame if tracing cannot run.
-2. The path tracer rebuilds the frame's dynamic acceleration structures (or,
+1. The raster base pass writes only depth for trace-owned surfaces. Opaque
+   coverage uses a position-only pipeline; alpha-tested coverage retains its
+   authored stage evaluation, including dependencies on earlier depth writes.
+   Sky and portal surfaces keep their raster colour. Shadow maps are scheduled
+   for actual raster receivers; those maps still include all needed casters.
+2. The path tracer updates the frame's dynamic acceleration structures (or,
    on the compute backend, bounding volume hierarchies), traces one primary
    ray per pixel against the world, the entities' posed models and the
    first-person weapon, shades the hits it owns with their shader materials
@@ -79,9 +82,10 @@ An eligible primary frame is composed in this order:
    and writes them over the raster colour.
 3. The complementary raster overlay draws everything the tracer does not own:
    blended, additive and decal surfaces, deformed geometry, particles,
-   beams, sprites, marks, flares, liquids and advertisements, plus the fog
-   pass of each traced surface inside a fog volume. A failed trace leaves the
-   base pass's complete raster draw, fog included, standing.
+   beams, sprites, marks, flares, unsupported liquids and advertisements, plus
+   the fog pass of each traced surface inside a fog volume. If tracing fails
+   permissively, the renderer clears the partial base and draws the complete
+   raster view with its required shadow maps, colour, lighting and fog instead.
 4. World-space post effects, optional global fog, bloom, tone mapping, and the
    final SDR transform run in their defined order. Later HUD-only scenes remain
    raster-owned.
@@ -92,7 +96,7 @@ from the shader's stages alone (`rt/rt_material.c`): the tracer owns a surface
 whose first stage writes depth without blending, or whose stages alpha-test;
 a blended or authored-special surface never becomes an opaque traced material
 because its texture name resembles one. When fallback is permitted, a trace,
-copy, or capability failure preserves the already complete raster result.
+copy, or capability failure selects a complete raster redraw.
 When strict RT is requested, the same failure stops the run.
 
 ## Conservative Defaults
@@ -259,7 +263,7 @@ run ID and never deletes or reuses an earlier run.
 
 Before treating an RTX slice as complete, keep these gates distinct:
 
-1. Source-contract tests: API 13 exports, BSP 47/advertisements, conservative
+1. Source-contract tests: API 35 exports, BSP 47/advertisements, conservative
    defaults, hybrid ownership, absence of duplicate FOV correction, and the
    isolated smoke-command contract.
 2. Shader tests: every source variant compiles, generated payloads are fresh,
@@ -333,18 +337,33 @@ in Quake III's usual order.
 The tracer owns:
 
 - the world's opaque and alpha-tested surfaces, including curved patches;
+- supported liquid surfaces, including small wave-deformed water, slime and lava;
 - models (MD3, MDR, IQM, and RTCW's and ET's MDC, MDS and skeletal meshes) and
   brush models such as doors and platforms;
 - the first-person weapon. Your own third-person body is traced but never
   seen directly: it casts shadows and shows in reflections.
 
 The raster pass keeps everything else: blended, additive and decal surfaces,
-particles, beams, rails, sprites, flares, marks, liquids, deformed geometry,
+particles, beams, rails, sprites, flares, marks, unsupported liquids and deformed geometry,
 the sky box and portal surfaces, the HUD and menus. Portal and mirror views,
 stereo eyes, cube captures, views covering less than half the screen and the
 portal sky that RTCW and Enemy Territory draw behind a map's main view are
 rasterized completely. A main view smaller than the screen (Enemy Territory
 insets its view by a pixel) is traced into its own rectangle.
+
+**Liquids.** `rtx_rt_liquids 1` (default, latched) gives contents-marked
+liquids to the tracer. Clear, blended water uses dielectric Fresnel, Snell
+refraction, total internal reflection and distance-dependent absorption;
+opaque first stages remain opaque. FnQL's shared ambient waves and bounded
+interaction rings perturb optical normals in world space. Small authored
+vertex waves are replaced by that field on the BSP boundary, not frozen into
+static geometry. Camera-visible rays carry texture differentials through
+interfaces; diffuse paths cross clear water with absorption but without
+specular bending, so caustics are not claimed. Both backends share the path,
+and secondary interfaces have a bounded iteration count separate from the
+diffuse bounce budget. Material identity, waves, malformed/fallback cases
+and q3dm12 captures are recorded in the
+[liquid evidence](../fntech3/2026-10-11-rtx-liquids.md).
 
 **Materials.** A traced surface uses its shader's stages as authored: the
 blend functions, `rgbGen` and `alphaGen` (including waveforms, entity colours,
@@ -475,19 +494,81 @@ tracer applies the same fog to each pixel it owns, by the same equation at the
 traced surface's distance from the eye, after its light is resolved. A
 `nofog` material stays clear, as in raster.
 
-**Noise.** Each pixel takes one sample of each light source (the emitters,
-the sun and the sky) and one bounce ray a frame, and one light sample at the
-bounce. On the compute backend the bounce is traced in a checkerboard of 8 x 8
-tiles that alternates each frame, as Q2RTX traces its indirect light
-(`rtx_rt_checkerboard`). A temporal filter and an edge-aware spatial filter remove the noise;
-when the view and the game clock stand still (a paused demo, a photo) samples
-keep accumulating into a clean image. Changing a lighting setting, or a model
-or dynamic light changing while the clock stands still (a light switched off,
-a weapon hidden), starts the accumulation over; one that keeps changing (a
-flickering powerup glow) is filtered as a moving scene is. Moving models,
-players and brush models carry their own motion into the temporal filter, so
-their history follows them instead of smearing; a surface newly in view starts
-afresh.
+**Noise and moving shadows.** Direct, indirect and specular illumination
+have separate histories. Moving dynamic geometry, including an offscreen
+first-person BODY caster, holds a reactive state for 150 ms. Direct light
+then uses a 35 ms response, independently of the slower indirect response.
+History weights use elapsed time, so lower FPS does not stretch a fixed
+sample count into a long shadow trail. Current compatible neighbours bound
+old history; old dark history never caps newly revealed bright light.
+Variance includes the indirect sample residual. Stationary view and game
+clock can still accumulate, but changing geometry, lights or relevant
+settings invalidates that frozen estimate.
+
+Motion matching uses stable internal entity IDs where the profile supplies
+them, plus model/part topology and material signatures. Ambiguous duplicate
+parts without IDs, changed topology/materials, teleportation and missing
+matches reject history. External module records remain unchanged. A reused
+ID without a supplied spawn generation cannot universally identify a respawn.
+
+`rtx_rt_indirect_divisor` controls bounce sampling independently: `0` chooses
+2 on compute and 1 on hardware, and explicit values are 1 through 4. One
+rotating subpixel phase per divisor-sized block is traced; missing samples
+are marked invalid, never counted as black observations. Depth and normals
+guide history and a bounded reconstruction at disocclusions. History resets
+seed all pixels. `rtx_rt_checkerboard 0` additionally checkerboards 8 x 8
+tiles only on compute at divisor 1; `1` forces it, `2` disables it. Its phase
+changes after a complete divisor cycle, so combinations leave no permanently
+unsampled pixels. Primary visibility, direct shadows and current entity poses
+remain full rate. `rtx_rt_frame_budget_ms` optionally adjusts the divisor from
+measured GPU pass time with hysteresis and a 45-frame cooldown. Its default,
+0, disables adaptation; the direct/primary cost can exceed any requested target.
+
+The 25 intermediate images total 192 bytes per pixel (180 MiB at 720p).
+Depth/oct-normal and motion are packed into RG32UI images; moment mean and
+standard deviation use RGBA16F. Independent bounce density saves ray work,
+not these full-resolution allocations. Spatial filtering computes the shared
+variance neighbourhood once for all illumination signals.
+
+**Light selection.** Each grid cell retains at most 64 important static
+lights, sorted by ID for binary-search membership. Overflow counts and omitted
+local importance are reported. A global CDF mixes power weighting with a 10%
+uniform floor. The local/global proposal mixture retains nonzero support for
+every static light and includes dynamic lights, with its full PDF in RIS and
+MIS replacement. Cell overflow no longer removes lights from the estimator.
+`rtx_rt_light_reuse 1` replays four candidate random streams across nearby
+compatible primary receivers and up to four frames, replacing one stream each
+frame. The remaining candidates, current target/PDF, reservoir selection and
+visibility are recomputed. This is common-random-number proposal reuse, not
+ReSTIR or cached visibility. Receiver position, normal, material and proposal
+table keys bound sharing; secondary paths stay independent. Reuse remains
+opt-in (default 0): energy tests pass, but the bounded runtime comparison did
+not establish a noise improvement and showed higher temporal variation in
+the compute capture region.
+
+**Geometry and uploads.** Exact model-space pose keys cache MD3, MDR, IQM and
+brush geometry in a 16-entry LRU with a 1 MiB per-entry retention limit. Current
+transforms, entity lighting and motion are applied on every append. Frame,
+old frame and interpolation are never quantized. Procedural MDS/ET poses and
+IHV camera-dependent interpolation bypass this cache. IQM influence scratch
+storage is reused. Compute BVHs refit exact connectivity, rebuilding after
+120 refits or 1.5x traversal-cost growth after at least eight refits. Hardware
+BLASes use UPDATE for stable topology and rebuild after 60 updates. Model/map
+invalidation clears retained geometry. `RF_NOSHADOW` suppresses shadow rays
+without removing primary or reflected geometry; BODY remains hidden only
+from primary rays. Frequent GPU-read buffers prefer coherent host-visible
+device-local memory, with portable allocation fallback.
+
+**Frame pacing.** `rtx_rt_low_latency 1` waits for at most one GPU frame in
+flight before OS input polling and acquires presentation there too. `2` allows
+two GPU frames, `0` restores late waits. The engine keeps simulation, network
+and prediction ordering; no per-frame queue-idle wait is added. Other renderer
+modules leave the optional frame-event callback unset. Engine and renderer
+binaries must have matching internal API versions.
+
+The [entity-shadow and performance record](../fntech3/2026-10-11-rtx-entity-shadows.md)
+separates executed tests and Q3 runtime observations from remaining profile,
+driver and end-to-end latency coverage.
 
 ### Developer Diagnostics
 
@@ -496,9 +577,21 @@ images: `1` reflectance, `2` shading normal, `3` denoised light, `4` raw
 light, `5` specular, `6` emission, `7` temporal history, `8` view depth and
 `9` motion; `10` shows the light alone, on plain grey surfaces seen through
 the same camera, which makes shadows, light pools and bounce light easy to
-see. `rtx_rt_perf_timing 1` prints GPU and CPU timings every
-`rtx_rt_perf_interval` frames, with the number of still frames averaged so
-far. With a map loaded, `rtx_rt_pick` names the
+see. `11` and `12` show direct and indirect illumination through a fixed
+Reinhard compression; `13` shows temporal reactivity.
+`rtx_rt_perf_timing 1` prints GPU and CPU timings every
+`rtx_rt_perf_interval` frames, including rolling 256-sample p50/p95/p99,
+active backend and indirect divisor, image storage, geometry cache/refit
+counters, upload memory heaps and input-to-submit/present-call intervals.
+`2` also prints every frame's monotonic input, simulation, fence/acquire,
+submit and present CPU events. These are API timestamps, not display latency.
+`rtx_rt_device_local 0` with `vid_restart` selects portable host-visible
+allocation for a heap comparison; default 1 prefers host-visible VRAM.
+The cheat `rtx_rt_test_caster "x y z halfWidth [noShadow]"` submits a 56-unit
+BODY box for scripted engine captures; an empty string disables it.
+`rtx_rt_test_fail_trace 1` exercises full raster recovery after the depth base,
+or a strict-RT error. Keep both at their defaults outside testing.
+With a map loaded, `rtx_rt_pick` names the
 traced surface at the centre of the view (or along `rtx_rt_pick x y z dx dy
 dz`) with its material flags, the directions its texture's s and t grow in
 (where a normal map leans), whether the map's lights pass it and the material
@@ -538,7 +631,8 @@ developer log (`developer 1`) names every material that takes a material map.
   light keys, are not reproduced.
 - Participating media are not traced: fog volumes and global fog remain raster
   passes over the traced colour.
-- Optional global fog, enhanced liquid presentation, and scene-linear HDR are
-  independent opt-ins. Enabling native RT does not silently enable them.
+- Global fog and the submerged-view compositor remain separate controls.
+  Supported liquid interfaces are traced by default in native RT; screen-space
+  liquid controls remain available in raster mode and explicit liquid fallback.
 - A complete maintained GPU/driver promotion corpus has not been established.
   Keep native RT mode explicit and capability-gated until that evidence exists.

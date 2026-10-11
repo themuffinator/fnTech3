@@ -312,6 +312,25 @@ extern "C" qboolean S_LoadSound( sfx_t *sfx ) {
 	sfx->soundChannels = info.channels;
 	sfx->sourceFrames = info.samples;
 	sfx->sourceFrameBytes = sourceFrameBytes;
+	if ( Com_GameIsJKAMP() ) {
+		namespace lipsync=fntech3::audio::jka::lipsync;
+		sfx->jkaMpeg=lipsync::StreamedMpeg(sfx->soundName,info.mpegBytes,info.samples,info.rate,
+			Cvar_VariableIntegerValue("s_mp3overhead"))?qtrue:qfalse;
+		sfx->jkaPeak=info.jkaMpegPeak;
+		if(!sfx->jkaMpeg) {
+			int maximum=0;
+			std::int64_t remaining=std::int64_t(sfx->soundLength)*sfx->soundChannels;
+			for(const sndBuffer *part=sfx->soundData;part&&remaining>0;part=part->next) {
+				const int count=static_cast<int>((std::min)(remaining,std::int64_t(SND_CHUNK_SIZE)));
+				for(int i=0;i<count;++i) {
+					const int value=part->sndChunk[i],peak=(value<0?-value:value)>>8;
+					maximum=(std::max)(maximum,peak);
+				}
+				remaining-=count;
+			}
+			sfx->jkaPeak=static_cast<float>(maximum);
+		}
+	}
 
 	return qtrue;
 }

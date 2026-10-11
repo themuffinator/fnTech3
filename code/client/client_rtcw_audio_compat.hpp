@@ -91,8 +91,11 @@ inline bool CL_RTCWAudioCall( vm_t *vm, fntech3::rtcw::module::Call call, intptr
 		return true;
 	}
 	case Call::CG_S_STARTLOCALSOUND:
-	case Call::UI_S_STARTLOCALSOUND:
 		S_StartRTCWLocalSound(CL_RTCWAudioInteger(args[1]), CL_RTCWAudioInteger(args[2]));
+		return true;
+	case Call::UI_S_STARTLOCALSOUND:
+		// The menus' own sound: RTCW's local sound, played as interface audio.
+		S_StartInterfaceSound(CL_RTCWAudioInteger(args[1]), CL_RTCWAudioInteger(args[2]), 1.0f);
 		return true;
 	case Call::CG_S_ADDLOOPINGSOUND:
 	case Call::CG_S_ADDREALLOOPINGSOUND: {

@@ -625,7 +625,8 @@ static genFunc_t NameToGenFunc( const char *funcname )
 		return GF_NOISE;
 	}
 	else if ( !Q_stricmp( funcname, "random" ) &&
-		( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ) )
+		( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ||
+		  ri.gameId == COM_GAME_JK2_SP || ri.gameId == COM_GAME_JK2_MP ) )
 	{
 		return GF_RANDOM;
 	}
@@ -5542,9 +5543,10 @@ static void ScanAndLoadShaderFiles( void )
 
 	long sum = 0;
 
-	// Academy authors its shaders in a different directory. Keep the engine
+	// Both Jedi titles author their shaders in this directory in SP and MP. Keep the engine
 	// scripts and extended shaders available as supplements to the same parser.
-	if ( ri.gameId == COM_GAME_JKA_SP || ri.gameId == COM_GAME_JKA_MP ) {
+	if ( ri.gameId == COM_GAME_JKA_SP || ri.gameId == COM_GAME_JKA_MP ||
+		ri.gameId == COM_GAME_JK2_SP || ri.gameId == COM_GAME_JK2_MP ) {
 		profileShaderFiles = ri.FS_ListFiles( "shaders", ".shader", &numProfileShaderFiles );
 	}
 

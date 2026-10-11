@@ -1252,8 +1252,6 @@ int EngineRenderFx( int renderfx ) {
 	return out;
 }
 
-constexpr int kRfDontDraw = 1 << 7;
-
 /* Every entity added this frame, as the module submitted it, which slot 97
  * finds by number whether or not it is drawn. */
 std::vector<mohaa::RefEntity> sceneEntities;
@@ -1317,8 +1315,13 @@ void TikiEntity( const mohaa::RefEntity &in, dtiki_t *tiki, mohaaRenderEntity_t 
 	out.lod = -1.0f;
 }
 
-/* Slot 88. The parent's number rides beside the entity: it is the one the
- * entity's pose hangs from, which the renderer's own TIKI path reads. */
+/* Slots 88 and 89 accept the client game's draw submissions, including
+ * RF_DONTDRAW (0x80). 1.00's client game suppresses hidden network models
+ * before slot 88, but its animation emitters inherit that bit: the gas
+ * barrel submits fire/smoke sprites and TIKI debris with renderfx 0x90.
+ * Filtering again here loses the effects of invisible carriers. OpenMoHAA's
+ * RE_AddRefEntityToScene and RE_AddRefSpriteToScene likewise accept them.
+ * See docs/fntech3/2026-10-11-mohaa-effects.md. */
 void QDECL AddRefEntityToScene( const mohaa::RefEntity *entity, int parentEntityNumber ) {
 	(void)parentEntityNumber;
 	if ( !entity ) {
@@ -1331,10 +1334,6 @@ void QDECL AddRefEntityToScene( const mohaa::RefEntity *entity, int parentEntity
 	if ( sceneEntities.size() < kMaxSceneEntities ) {
 		sceneEntities.push_back( *entity );
 	}
-	if ( entity->renderfx & kRfDontDraw ) {
-		return;
-	}
-
 	refEntity_t ent;
 	BaseEntity( *entity, ent );
 	switch ( entity->reType ) {
@@ -1380,7 +1379,7 @@ void QDECL AddRefEntityToScene( const mohaa::RefEntity *entity, int parentEntity
  * `spritescale` and the entity's scale, turned by the shader's `spritegen`
  * (code/renderer/tr_alice.c), and tinted by the entity's colour. */
 void QDECL AddRefSpriteToScene( const mohaa::RefEntity *entity ) {
-	if ( !entity || ( entity->renderfx & kRfDontDraw ) ) {
+	if ( !entity ) {
 		return;
 	}
 	const Model *model = ModelFor( entity->hModel );

@@ -506,6 +506,32 @@ static void Restore()
 	FreeList( list );
 }
 
+/* 0x004229b0, which every server spawn runs on each loaded definition's list
+ * (0x00462460): the speakers' history goes, each line's own stays. */
+static void ActorsCleared()
+{
+	Reset();
+	SetClock( Clock );
+	List *list = CreateList( "fixture" );
+	CHECK( Add( list, "w1", "l1", nullptr ) );
+	CHECK( Add( list, "w2", "l2", nullptr ) );
+	now = 70;
+	CHECK( Is( FindDialog( list, "w", 0, 5 ), "l1" ) );
+	CHECK( Is( FindDialog( list, "w", 0, -1 ), "l1" ) );
+	Record *w1 = Named( list, "w1" ), *w2 = Named( list, "w2" );
+	CHECK( ActorOf( w1, 5 ) && ActorOf( w2, 5 ) && w1->played == 1 && w1->timesPlayed == 1 );
+	ClearActors( list );
+	CHECK( !w1->actors && !w2->actors );
+	CHECK( w1->played == 1 && w1->timesPlayed == 1 && w1->lastPlayed == 70 && list->count == 2 );
+	/* The speaker starts again from the first line; the list's own history
+	 * still has the first line played. */
+	CHECK( Is( FindDialog( list, "w", 0, 5 ), "l1" ) );
+	CHECK( Is( FindDialog( list, "w", 0, -1 ), "l2" ) );
+	ClearActors( nullptr );
+	FreeList( list );
+	SetClock( nullptr );
+}
+
 /* 0x00423990 and the global list. */
 static void DumpAndClear()
 {
@@ -552,6 +578,7 @@ int main()
 	DialogPerActor();
 	DialogAtRandom();
 	Restore();
+	ActorsCleared();
 	DumpAndClear();
 	std::cout << "alice alias tests passed\n";
 	return 0;

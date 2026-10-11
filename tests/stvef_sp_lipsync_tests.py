@@ -266,8 +266,8 @@ class STVEFSPLipSyncTests(unittest.TestCase):
             self.assertIn('s_threshold%d = Cvar_Get( "s_threshold%d", "%s", 0 );' % (number, number, default),
                           registration)
         thresholds = registration[registration.index('s_threshold1 = Cvar_Get'):]
-        gate = ('if ( Com_GameIsSTVEFSP() ) {' + chr(10) +
-                '\t\t// Single player alone registers these')
+        gate = ('if ( Com_GameIsSTVEFSP() || Com_GameIsJKAMP() ) {' + chr(10) +
+                '\t\t// Raven compares these in order')
         self.assertIn(gate, registration)
         self.assertNotIn('CVAR_ARCHIVE', thresholds[:thresholds.index('Cvar_SetDescription')])
 

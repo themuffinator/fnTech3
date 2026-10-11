@@ -474,6 +474,16 @@ int main( void ) {
         return 4;
     }
     const uint32_t cells = (uint32_t)( s_rtLights.dims[0] * s_rtLights.dims[1] * s_rtLights.dims[2] );
+    float previous = 0.0f;
+    for ( uint32_t l = 0; l < count; l++ ) {
+        floatint_t cdf, pdf;
+        cdf.u = s_rtLights.cells[(cells+l)*2];
+        pdf.u = s_rtLights.cells[(cells+l)*2+1];
+        if ( !( cdf.f > previous ) || pdf.f != cdf.f-previous ) return 7;
+        previous = cdf.f;
+    }
+    if ( previous != 1.0f || s_rtLights.overflowCells == 0 || s_rtLights.overflowEntries == 0 ||
+         !( s_rtLights.overflowImportance > 0 && s_rtLights.candidateImportance > s_rtLights.overflowImportance ) ) return 8;
     /* which way the build found each cell's candidates */
     listed = RT_ListCellLights( cells, s_rtLights.cellSize, &start );
     printf( "listed %d\n", listed != NULL );

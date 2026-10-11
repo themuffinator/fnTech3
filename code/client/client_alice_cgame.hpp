@@ -183,10 +183,15 @@ void QDECL CL_AliceAddCommand( const char *name ) {
 	}
 }
 
-/* Slots 14 to 17, the file calls the client game shares with the game. */
-int QDECL CL_AliceReadFile( const char *path, void **buffer, int unestablished ) {
-	(void)unestablished;
-	return FS_ReadFile( path, buffer );
+/* Slots 14 to 17, the file calls the client game shares with the game. The
+ * read's third argument is retail's `quiet`, which keeps back the open's
+ * developer line for a missing file (0x0043c9c8, 0x0043c1fa..0x0043c204). */
+int QDECL CL_AliceReadFile( const char *path, void **buffer, int quiet ) {
+	const int length = FS_ReadFile( path, buffer );
+	if ( length < 0 && !quiet && path ) {
+		Com_DPrintf( "Can't find %s\n", path );
+	}
+	return length;
 }
 
 void QDECL CL_AliceFreeFile( void *buffer ) {
@@ -1005,11 +1010,13 @@ AliceCGameOrientation *QDECL CL_AliceTagOrientation( AliceCGameOrientation *out,
 	return out;
 }
 
+/* Slot 117 (0x0045fbc0): the legs alone, with every crossblend and torso
+ * argument zero and both lerps 0.0 (0x0045fbd1..0x0045fbe7). */
 AliceCGameOrientation *QDECL CL_AliceTagNamedOrientation( AliceCGameOrientation *out, int tiki, int anim,
 	int frame, float scale, const char *tagName, const fntech3_alice_bonectrl_t *controllers ) {
 	const int tag = AliceTiki_TagNumForName( tiki, tagName );
-	AliceTiki_TagOrientationEx( tiki, anim, frame, tag, scale, controllers, -1, 0, -1.0f,
-		qtrue, qfalse, -1, 0, -1, 0, -1.0f, out->origin, out->axis );
+	AliceTiki_TagOrientationEx( tiki, anim, frame, tag, scale, controllers, 0, 0, 0.0f,
+		qtrue, qfalse, 0, 0, 0, 0, 0.0f, out->origin, out->axis );
 	return out;
 }
 
@@ -1157,7 +1164,12 @@ void CL_AliceFillCGameImports() {
 	CL_AliceFillUnservedCGame(
 		std::make_index_sequence<FNTECH3_ALICE_CGAME_IMPORT_SLOTS>{} );
 
+/* A function whose shape is not the slot's frozen one
+ * (alice_cgame_import_sigs.def) does not compile. */
 #define SERVE_CGAME( index, fn ) \
+	static_assert( fntech3::alice::module::Fits< \
+		fntech3::alice::module::CGameImportSig<index>, decltype( &fn )>(), \
+		#fn " does not have the frozen shape of client-game import " #index ); \
 	aliceCGameImport.slot[index] = reinterpret_cast<std::intptr_t>( &fn )
 
 	SERVE_CGAME( FNTECH3_ALICE_CG_Printf, CL_AlicePrintf );
@@ -1549,6 +1561,23 @@ typedef void ( QDECL *AliceCGameVoid_t )();
 typedef void ( QDECL *AliceCGameDrawActiveFrame_t )( int serverTime,
 	int stereoView, int demoPlayback );
 typedef int ( QDECL *AliceCGameConsoleCommand_t )();
+/* Export 6, which retail's client collision calls (0x00431261) and this
+ * engine's does not. */
+typedef void ( QDECL *AliceCGameEntityOrientation_t )( int entityNum, float *origin, float *angles );
+
+/* Every type an export is called through has its frozen row's shape
+ * (alice_cgame_export_sigs.def). */
+#define FNTECH3_ALICE_CGAME_EXPORT_FITS( member, type ) \
+	static_assert( fntech3::alice::module::Fits<fntech3::alice::module::CGameExportSig< \
+		FNTECH3_ALICE_CGE_##member>, type>(), #type " is not the frozen shape of client-game export " #member )
+FNTECH3_ALICE_CGAME_EXPORT_FITS( Init, AliceCGameInit_t );
+FNTECH3_ALICE_CGAME_EXPORT_FITS( Shutdown, AliceCGameVoid_t );
+FNTECH3_ALICE_CGAME_EXPORT_FITS( DrawActiveFrame, AliceCGameDrawActiveFrame_t );
+FNTECH3_ALICE_CGAME_EXPORT_FITS( ConsoleCommand, AliceCGameConsoleCommand_t );
+FNTECH3_ALICE_CGAME_EXPORT_FITS( GetRendererConfig, AliceCGameVoid_t );
+FNTECH3_ALICE_CGAME_EXPORT_FITS( Draw2D, AliceCGameVoid_t );
+FNTECH3_ALICE_CGAME_EXPORT_FITS( EntityOrientation, AliceCGameEntityOrientation_t );
+#undef FNTECH3_ALICE_CGAME_EXPORT_FITS
 
 template<typename T>
 T CL_AliceCGameExport( int slot ) {

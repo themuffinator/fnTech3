@@ -67,6 +67,8 @@ static std::string sent;
 static std::vector<std::string> arguments;
 int Com_GameIsQuake3() { return q3; }
 int Com_GameIsJKAMP() { return jka; }
+static bool ritual;
+int Com_GameIsRitual() { return ritual; }
 const comGameProfile_t *Com_GameProfile() {
     static comGameProfile_t profile{};
     profile.pureProof = unavailable ? COM_PURE_PROOF_UNAVAILABLE : q3 ? COM_PURE_PROOF_QVM :
@@ -316,6 +318,12 @@ int main() {
     assert(!FS_ReferencedPakPureChecksums(INT32_MAX)[0]);
     try { CL_SendPureChecksums(); assert(false); } catch(const std::runtime_error &) {}
     assert(reliableCommands == commands); /* No truncated proof is sent. */
+    /* Ritual's engines have no `cp`: a pure server lists its paks and the
+     * client keeps to them, proving nothing. */
+    ritual = true;
+    CL_SendPureChecksums();
+    assert(reliableCommands == commands);
+    ritual = false;
     return 0;
 }
 '''

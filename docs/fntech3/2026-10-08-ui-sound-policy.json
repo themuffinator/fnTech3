@@ -1,0 +1,1086 @@
+{
+  "record": "2026-10-08-ui-sound-policy.md",
+  "profiles": [
+    "q3",
+    "ql",
+    "rtcw-sp",
+    "rtcw-mp",
+    "wolfet",
+    "stvef-sp",
+    "stvef-mp",
+    "jk2-mp",
+    "jka-mp",
+    "q3test",
+    "q3-ihv",
+    "alice",
+    "fakk2",
+    "mohaa",
+    "jka-sp",
+    "jk2-sp"
+  ],
+  "level": "Source, Unit, Live subset (jka-mp and stvef-mp menus, no input)",
+  "question": "2026-10-08-jka-ui-local-sound.md left open whether every sound a UI module starts should be non-diegetic: Academy's `play` (channel 0, CHAN_AUTO) took Fn's self class with a send into the listener's room while its focus sounds (channel 8, CHAN_LOCAL_SOUND) took the local class.",
+  "baseCommit": "6cc18d02aa5af460697e194289bbaa1b933da53a",
+  "headAtRecord": "b8b04b91b4498832133d6bebd7c4000ef1597023",
+  "build": {
+    "platform": "Windows 11 x86 (MSVC 2022, meson debugoptimized, strict warnings, every development gate on)",
+    "before": ".tmp/runtime/jka-ui-sound-after: the Academy UI import-33 slice's own after runtime (6cc18d02 + that uncommitted slice), unchanged since its record",
+    "after": ".tmp/runtime/ui-sound-policy-after: a clone of that slice's export with this task's edits (.tmp/ui-sound-policy/overlay.py) built in .tmp/ui-sound-policy/build; fntech3.exe and its pdb are new, the renderer modules, engine package, web pak and OpenAL Soft are the before runtime's files (no edit touches them)",
+    "runtime": {
+      "before": {
+        "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+        "fnql_glx_x86.dll": "fad5326b9c606e13912e8b3df550f53a52815501c06a0ebb7c2e1b91fd0b9022",
+        "fnql_rtx_x86.dll": "5d8be3fc1479de034f74ce5e5cedac3a7fb244c7b83e412f0ffe002823f44380",
+        "fnql_vk_x86.dll": "48a2647ea25fc2cae634aa0b3a82ce542d9fb4576f737e7f599022f2e470be44",
+        "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+        "fntech3.exe": "9e26146d89f3c6dd3483329a854a094cd2454071db89f5529711d134184a0229",
+        "fntech3.pdb": "9c7307bfbd0b264c409a360bae988ab97894216d0cf1239303cf5ca13b18f8f2",
+        "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+      },
+      "after": {
+        "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+        "fnql_glx_x86.dll": "fad5326b9c606e13912e8b3df550f53a52815501c06a0ebb7c2e1b91fd0b9022",
+        "fnql_rtx_x86.dll": "5d8be3fc1479de034f74ce5e5cedac3a7fb244c7b83e412f0ffe002823f44380",
+        "fnql_vk_x86.dll": "48a2647ea25fc2cae634aa0b3a82ce542d9fb4576f737e7f599022f2e470be44",
+        "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+        "fntech3.exe": "8bea54d7a1205e197c8c561ede63c3f101c4e858a58a709c87cf701098aae3ef",
+        "fntech3.pdb": "5458809dd624f1433b8ce8e5ef5fe89d199886b37d65a92012a0e4599f7e773d",
+        "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+      }
+    }
+  },
+  "survey": {
+    "method": "Retail modules read with Capstone/pefile (DLLs) and a QVM decoder, read only. For each module the local-sound import's syscall wrapper, table slot or struct copy is found, every direct caller is listed with the channel it passes, every store of the import into a display context is followed to the context base (the Init_Display call) and every instruction using that slot offset through the context pointer is read. Reference sources were used for names only.",
+    "modules": [
+      {
+        "profile": "q3",
+        "module": "baseq3/pak8.pk3:vm/ui.qvm (q3_ui, 1.32)",
+        "sha256": "3a6fd12b889f5d35df20a09b51bf8eca46966d014be55ffad38ddc2ffb38c807",
+        "import": "UI_S_STARTLOCALSOUND 32 (CONST -33; CALL)",
+        "pointerStores": 0,
+        "directCalls": {
+          "6": [
+            13256,
+            15386,
+            15579,
+            16673
+          ],
+          "1": [
+            39358
+          ],
+          "7": [
+            60625,
+            63171,
+            63419,
+            65000,
+            65010,
+            65042,
+            65068,
+            65579
+          ]
+        },
+        "channelNames": {
+          "1": "CHAN_LOCAL",
+          "6": "CHAN_LOCAL_SOUND",
+          "7": "CHAN_ANNOUNCER"
+        },
+        "referenceNames": "id q3_ui: menu move/in/out/buzz sounds (ui_atoms.c) on 6, weapon change in the player preview (ui_players.c) on 1, award, winner and skill voices (ui_splevel.c, ui_sppostgame.c, ui_spskill.c) on 7",
+        "fnClassBefore": {
+          "1": "local",
+          "6": "local",
+          "7": "announcer"
+        }
+      },
+      {
+        "profile": "q3 (Team Arena)",
+        "module": "missionpack/pak3.pk3:vm/ui.qvm (E: install, 1.32)",
+        "sha256": "ef956cca46edbb5cfc38d09127c2788bc3d5842df6de07b3fa9e553a98ba4e5b",
+        "directCalls": {
+          "7": [
+            11395
+          ],
+          "1": [
+            35882
+          ]
+        },
+        "displayContext": {
+          "store": 26518,
+          "field": "0x12e9c",
+          "base": "0x12e2c",
+          "initDisplayCall": 26583,
+          "initDisplay": 40235,
+          "pointerGlobal": "0xc44",
+          "slotOffset": "0x70"
+        },
+        "slotCalls": [
+          {
+            "call": 44010,
+            "procedure": 43877,
+            "script": "setfocus",
+            "channel": 6,
+            "note": "through a local copy of the context pointer (LOCAL 48 = [0xc44] at 43993)"
+          },
+          {
+            "call": 44186,
+            "procedure": 44149,
+            "script": "play",
+            "channel": 6
+          },
+          {
+            "call": 44929,
+            "procedure": 44612,
+            "channel": 6
+          }
+        ],
+        "scriptTable": {
+          "play": "string 0x5bc0, entry 0xd04 -> 44149",
+          "setfocus": "string 0x5bfa, entry 0xcd4 -> 43877"
+        },
+        "also": {
+          "module": "Steam missionpack/pak0.pk3:vm/ui.qvm",
+          "sha256": "7b157f32acdb21a3904d078296672ed2d32195c5b7a206922f6f7d33c6c40e40",
+          "directCalls": {
+            "7": [
+              11566
+            ],
+            "1": [
+              33750
+            ]
+          },
+          "slotOffset": "0x70",
+          "pointerGlobal": "0xc30",
+          "slotCalls": {
+            "6": [
+              41374,
+              41550,
+              42293
+            ]
+          }
+        },
+        "fnClassBefore": {
+          "1": "local",
+          "6": "local",
+          "7": "announcer"
+        }
+      },
+      {
+        "profile": "ql",
+        "module": "baseq3/bin.pk3:uix86.dll",
+        "sha256": "b320a5cbd21985b185260b729a28f1c6447c9ac9b08c97a9721edddcfef0dea5",
+        "imageBase": "0x10000000",
+        "import": "table slot 34 (+0x88); dllEntry 0x10003970 keeps the table pointer at [0x106b40a8]",
+        "directCalls": [
+          {
+            "call": "0x10009fe4",
+            "function": "0x10009d30",
+            "channel": 7,
+            "sound": "sound/feedback/voc_newhighscore.ogg"
+          },
+          {
+            "call": "0x100116c1",
+            "function": "0x10011690",
+            "channel": 7,
+            "sound": "sound/misc/vo_default.wav"
+          },
+          {
+            "call": "0x100116d8",
+            "function": "0x10011690",
+            "channel": 7,
+            "sound": "sound/misc/vo_female.wav"
+          },
+          {
+            "call": "0x100116fa",
+            "function": "0x10011690",
+            "channel": 7,
+            "sound": "sound/misc/vo_evil.wav"
+          },
+          {
+            "call": "0x10012f5b",
+            "function": "0x10012d90",
+            "channel": 1
+          }
+        ],
+        "displayContext": {
+          "base": "0x10746340",
+          "pointerGlobal": "0x106b40d0 (stores 0x10003925, 0x1000fd18)",
+          "copy": "0x1000fc03..0x1000fc09 copies table+0x88 into 0x107463b4",
+          "slotOffset": "0x74"
+        },
+        "slotCalls": [
+          {
+            "call": "0x10016b92 (tail jump)",
+            "function": "0x10016b10",
+            "channel": 6,
+            "sound": "focus sound at context +0xf214"
+          },
+          {
+            "call": "0x10016d0b",
+            "function": "0x10016cd0",
+            "channel": 6,
+            "sound": "registered through context +0xac (play)"
+          },
+          {
+            "call": "0x1001711d",
+            "function": "0x10016fc0",
+            "channel": 6
+          }
+        ],
+        "fnClassBefore": {
+          "1": "local",
+          "6": "local",
+          "7": "announcer"
+        }
+      },
+      {
+        "profile": "rtcw-sp",
+        "module": "uix86.dll (installation root)",
+        "sha256": "691f1f611d0354c11f4c73804d1c9d5feb83219d49fb5319d31e3989044b4ac7",
+        "imageBase": "0x40000000",
+        "import": "UI_S_STARTLOCALSOUND 36; dllEntry 0x400190c0 keeps the syscall at [0x4002e010]; wrapper 0x400194f0 (push 0x24)",
+        "directCalls": [
+          {
+            "call": "0x40008956",
+            "channel": 7,
+            "sound": "new high score"
+          },
+          {
+            "call": "0x4000e17f",
+            "channel": 1,
+            "sound": "sound/weapons/change.wav"
+          }
+        ],
+        "displayContext": {
+          "store": "0x40005a61 -> 0x401e4970",
+          "base": "0x401e4900",
+          "initDisplay": "0x400105a0 (push 0x40005944)",
+          "pointerGlobal": "0x401bd8fc",
+          "slotOffset": "0x70"
+        },
+        "slotCalls": [
+          {
+            "call": "0x40011afb",
+            "function": "0x40011a80",
+            "channel": 6,
+            "sound": "focus sound at +0x1424c"
+          },
+          {
+            "call": "0x40011c30",
+            "function": "0x40011c00",
+            "channel": 6,
+            "sound": "registered through +0xb4 (play)"
+          },
+          {
+            "call": "0x4001206e",
+            "function": "0x40011f20",
+            "channel": 6
+          }
+        ],
+        "fnClassBefore": {
+          "1": "local",
+          "6": "local",
+          "7": "announcer"
+        }
+      },
+      {
+        "profile": "rtcw-mp",
+        "module": "Main/mp_bin.pk3:ui_mp_x86.dll",
+        "sha256": "f57c73ae8b155b802d29a0f903a514b917d61e3a4181193d488176e446ac8971",
+        "imageBase": "0x40000000",
+        "import": "UI_S_STARTLOCALSOUND 35; dllEntry 0x4001ae00 keeps the syscall at [0x40031f64]; wrapper 0x4001b230 (push 0x23)",
+        "directCalls": [
+          {
+            "call": "0x40009ba8",
+            "channel": 7
+          },
+          {
+            "call": "0x4000fbef",
+            "channel": 1,
+            "sound": "sound/weapons/change.wav"
+          }
+        ],
+        "displayContext": {
+          "store": "0x40006afa -> 0x401f0214",
+          "base": "0x401f01a0",
+          "initDisplay": "0x40012190 (push 0x400069d3)",
+          "pointerGlobal": "0x401c11cc",
+          "slotOffset": "0x74"
+        },
+        "slotCalls": [
+          {
+            "call": "0x400137bb",
+            "function": "0x40013740",
+            "channel": 6
+          },
+          {
+            "call": "0x40013920",
+            "function": "0x400138f0",
+            "channel": 6,
+            "sound": "registered through +0xc0 (play)"
+          },
+          {
+            "call": "0x40013d8e",
+            "function": "0x40013c40",
+            "channel": 6
+          }
+        ],
+        "fnClassBefore": {
+          "1": "local",
+          "6": "local",
+          "7": "announcer"
+        }
+      },
+      {
+        "profile": "wolfet",
+        "module": "etmain/mp_bin.pk3:ui_mp_x86.dll",
+        "sha256": "072fe733bb21c91b11d47d43ffd3777c3a416cdc1600e8a4f49961ce16063573",
+        "imageBase": "0x40000000",
+        "import": "UI_S_STARTLOCALSOUND 40; dllEntry 0x4001f390 keeps the syscall at [0x40037634]; wrapper 0x4001f840 pushes volume 127 (0x7f), the channel, the handle and 0x28",
+        "directCalls": [
+          {
+            "call": "0x4000883e",
+            "channel": 7
+          },
+          {
+            "call": "0x400126cd",
+            "channel": 1,
+            "sound": "sound/weapons/change.wav"
+          }
+        ],
+        "displayContext": {
+          "store": "0x40011892 -> 0x40291868",
+          "base": "0x402917e0",
+          "initDisplay": "0x400140b0 (push 0x40011737)",
+          "pointerGlobal": "0x40242a44",
+          "slotOffset": "0x88"
+        },
+        "slotCalls": [
+          {
+            "call": "0x4001547c",
+            "function": "0x40015440",
+            "channel": 6,
+            "sound": "registered through +0xe0 (play)"
+          },
+          {
+            "call": "0x4001d5c4",
+            "function": "0x4001d540",
+            "channel": 6,
+            "sound": "focus sound at +0x1e324"
+          },
+          {
+            "call": "0x4001d6ed",
+            "function": "0x4001d650",
+            "channel": 6,
+            "sound": "focus sound at +0x1e324"
+          },
+          {
+            "call": "0x4001d890",
+            "function": "0x4001d778",
+            "channel": 6
+          }
+        ],
+        "fnClassBefore": {
+          "1": "local",
+          "6": "local",
+          "7": "announcer"
+        }
+      },
+      {
+        "profile": "stvef-sp",
+        "module": "efuix86.dll (installation root)",
+        "sha256": "35dfe9ca1a3ee20cc1d314013d1d5c281cd9ed2b68fc57b22af77bb2a0bedfb2",
+        "imageBase": "0x40000000",
+        "import": "GetUIAPI 0x40005680; UI_Init 0x40006150 copies the 59-word import table to 0x40089838; S_StartLocalSound +0x8c = [0x400898c4], S_StartLocalLoopingSound +0x94 = [0x400898cc]",
+        "calls": {
+          "8": 11,
+          "10": 13,
+          "11": 6,
+          "1": 2
+        },
+        "callSites": 32,
+        "loopingImportUses": 0,
+        "channelNames": {
+          "1": "CHAN_LOCAL",
+          "8": "CHAN_LOCAL_SOUND",
+          "10": "CHAN_MENU1",
+          "11": "CHAN_MENU2"
+        },
+        "engineChannels": {
+          "1": 1,
+          "8": 6,
+          "10": 18,
+          "11": 19
+        },
+        "fnClassBefore": "local for all four (ApplySTVEFVoice: local and menu channels at the listener are interface sounds)"
+      },
+      {
+        "profile": "stvef-mp",
+        "module": "BaseEF/pak2.pk3:vm/ui.qvm (1.20)",
+        "sha256": "b2f09c95c37d3d6769ad1735b793bd99b091028dd3388bb3929f85709e2a801d",
+        "import": "UI_S_STARTLOCALSOUND 32 (CONST -33; CALL)",
+        "pointerStores": 0,
+        "directCalls": {
+          "6": [
+            2893,
+            5705,
+            5898,
+            7319,
+            24685,
+            25819
+          ],
+          "8": [
+            24677,
+            28197,
+            28580,
+            29445,
+            29520,
+            99586,
+            99600
+          ],
+          "1": [
+            29469,
+            29791,
+            42437
+          ],
+          "7": [
+            67683,
+            71744,
+            71776,
+            71817
+          ]
+        },
+        "channel8Sounds": {
+          "24677": "a handle indexed from a table at 289460 (LOCAL 36 = 8 is the channel)",
+          "28197": "sound/voice/computer/misc/intro_01.wav",
+          "28580": "sound/voice/computer/menu/logout.wav",
+          "29445": "sound/interface/sensorping.wav",
+          "29520": "sound/interface/button3.wav",
+          "99586": "sound/interface/button2.wav",
+          "99600": "sound/interface/button2.wav"
+        },
+        "intro": "the main menu (27764) runs 28208 -> 28154 while [281628] is 0; 28154 sets it, registers intro_01.wav (28121) and plays it on channel 8 (28197)",
+        "clientGame": {
+          "module": "BaseEF/pak2.pk3:vm/cgame.qvm",
+          "sha256": "3d825661c2fcc6f9329b6b31998ab5f712cb334c6e59b7f965ca3cf1a4517f72",
+          "localSoundImport": "CG_S_STARTLOCALSOUND 29 (CONST -30; CALL)",
+          "channels": {
+            "6": 12,
+            "7": 31
+          },
+          "note": "no client-game local sound uses 8"
+        },
+        "channelNames": {
+          "1": "CHAN_LOCAL",
+          "6": "CHAN_LOCAL_SOUND",
+          "7": "CHAN_ANNOUNCER",
+          "8": "no reference here names it; the first number past the announcer"
+        },
+        "fnClassBefore": {
+          "1": "local",
+          "6": "local",
+          "7": "announcer",
+          "8": "self (with a room send)"
+        }
+      },
+      {
+        "profile": "jk2-mp",
+        "module": "base/assets0.pk3:vm/ui.qvm (1.02a)",
+        "sha256": "19e372d0381b8b53965bd0fc38cae0eef266b3aab68e9088f915894fadca3a4f",
+        "import": "UI_S_STARTLOCALSOUND 32; no direct call",
+        "pointerStores": 1,
+        "displayContext": {
+          "store": 28644,
+          "field": "0x157ec",
+          "base": "0x15764",
+          "initDisplayCall": 28744,
+          "initDisplay": 39409,
+          "pointerGlobal": "0xef0",
+          "slotOffset": "0x88"
+        },
+        "slotCalls": [
+          {
+            "call": 43445,
+            "procedure": 43312,
+            "script": "setfocus",
+            "channel": 6,
+            "note": "through a local copy of the context pointer"
+          },
+          {
+            "call": 43686,
+            "procedure": 43651,
+            "script": "play",
+            "channel": 0
+          },
+          {
+            "call": 44427,
+            "procedure": 44110,
+            "channel": 6
+          }
+        ],
+        "scriptTable": {
+          "play": "string 0x81b6, entry 0x1040 -> 43651",
+          "setfocus": "string 0x81fe, entry 0x1008 -> 43312"
+        },
+        "engine": "jk2mp.exe 1.02a UI dispatcher 0x40fb70 (bound 0xca; idx byte [0x410894 + N]; jmp [0x4106fc + idx*4]): import 32 -> 0x40ffb0 hands args[1] and args[2] to S_StartLocalSound 0x45d370, which calls S_StartSound 0x45d230 (no origin, listener [0x1a20cb4]); its channel picker 0x45d090 treats only channel 0 apart, so 6 means what the modules agree it means",
+        "fnTech3": "UI import 32 is refused by name (client_jk2_ui.hpp), so no menu sound plays yet",
+        "fnClassBefore": "none plays"
+      },
+      {
+        "profile": "jka-mp",
+        "module": "base/assets3.pk3:uix86.dll (1.01)",
+        "sha256": "1179892f84f56805457455e0e01dbaab83f524180f2440b0f8157484eb711429",
+        "source": "2026-10-08-jka-ui-local-sound.json, re-read with this task's scanner: the same wrapper (0x40026e50), four direct channel-1 calls, the slot store 0x40017658 and the two channel-8 calls through +0x90; the `play` call (0x4001b316) goes through `lea esi, [ecx + 0x90]; call [esi]`, which only a sweep of the offset finds",
+        "channels": {
+          "0": "play (CHAN_AUTO)",
+          "1": "move previews (CHAN_LOCAL) x4",
+          "8": "focus sounds (CHAN_LOCAL_SOUND) x2"
+        },
+        "engineChannels": {
+          "0": "CHAN_AUTO",
+          "1": "CHAN_LOCAL",
+          "8": "CHAN_LOCAL_SOUND"
+        },
+        "fnClassBefore": {
+          "0": "self (with a room send)",
+          "1": "local",
+          "8": "local"
+        }
+      },
+      {
+        "profile": "q3test",
+        "module": "1.06-1.08 uix86.dll; 1.05 engine menus (fnTech3's own code)",
+        "import": "the UI import takes a name; fnTech3 plays it on channel 1 (cl_q3test_ui.cpp cites retail 0x418300)",
+        "fnClassBefore": "local"
+      },
+      {
+        "profile": "q3-ihv",
+        "module": "none: the build's menus are engine code fnTech3 does not reproduce (cl_q3ihv.cpp)"
+      },
+      {
+        "profile": "alice, fakk2",
+        "module": "engine menus (fnTech3's own code, cl_alice_ui.cpp, cl_fakk2_inventory.cpp)",
+        "import": "S_StartLocalSound -> the Ritual route: Alice's menu channel 9 at the listener (snd_main.cpp S_StartLocalSoundVolume, retail 0x0044ce10 per its comment), the Interface role in AliceSound.h",
+        "fnClassBefore": "local (interface role)"
+      },
+      {
+        "profile": "mohaa",
+        "module": "engine menus (fnTech3's own code, cl_mohaa_ui.cpp PlaySound)",
+        "import": "S_StartLocalSound on CHAN_LOCAL_SOUND",
+        "fnClassBefore": "local"
+      },
+      {
+        "profile": "jka-sp, jk2-sp",
+        "module": "engine menus, not implemented: CL_InitUI refuses both profiles"
+      }
+    ]
+  },
+  "decision": {
+    "adopted": true,
+    "rule": "A sound a game's menu module starts through its local-sound import is interface audio in Fn's tone policy whatever channel it names: the local class (dry, no send to the listener's room, no medium or occlusion shaping, head-relative at the listener), the announcer class on the announcer channel, authored stereo and surround on their own unsent path.",
+    "unchanged": [
+      "channel numbers and every channel rule (which voice a sound replaces or evicts, RTCW's and ET's one-shot bookkeeping, Academy's 0.75 level below its ambient channel)",
+      "every module ABI and import ordinal",
+      "the client games' local sounds (cl_cgame.cpp, the Academy, Elite Force SP, Q3Test and IHV hosts)",
+      "the legacy mixer, the retail-exact option, which has no tone classes or room sends",
+      "the engines' own menus, which already play on local or menu channels"
+    ],
+    "whyNotChannels": "Treating the automatic channel at the listener as local everywhere would also move the client games' own listener sounds (Fn's self class: the listener's sound inside the level); translating Academy's or Holomatch's menu channels to a local channel would change which sound replaces which on the listener's entity, a contract retail pins.",
+    "invariant11": "Retail pins the channel and the level the module hands over; how the engine presents a menu sound is Fn's, and its tone policy already calls UI audio non-diegetic (AudioTonePolicy.h: \"Non-diegetic: UI, feedback, and chat that plays outside the level\").",
+    "affected": {
+      "jka-mp": "play (channel 0, automatic): self -> local",
+      "stvef-mp": "channel 8 (seven call sites, the holodeck intro's computer voice among them): self -> local",
+      "jk2-mp": "its UI import 32 is still refused; once served, its `play` on 0 will be interface audio too",
+      "others": "every retail menu channel was already local or announcer; the mark makes that hold for a mod's menus too"
+    }
+  },
+  "implementation": {
+    "policy": "code/client/audio/shared/AudioTonePolicy.h: ToneClassInputs.interfaceSound; ClassifyToneClass returns Local (Announcer on the announcer channel) for it after the authored-stereo check and before the channel class",
+    "openal": "code/client/audio/openal/AudioSystemWorld.inl: SoundVoice.interfaceSound (cleared on release); Q3SoundWorld::MarkNextInterfaceSound and interfaceNext_, taken by the next PlayOneShot and cleared by Reset and StopAllSounds; ApplyVoice treats a marked voice as local-only on any channel and at any entity; ApplySTVEFVoice hears it at the listener as an interface sound; BuildVoiceToneSettings passes the mark to the policy. AudioSystemBackend.inl: si->MarkInterfaceSound",
+    "legacy": "code/client/audio/legacy/snd_dma.cpp: S_Base_MarkInterfaceSound does nothing",
+    "frontEnd": "code/client/audio/snd_main.cpp: S_StartInterfaceSound (marks, starts the profile's own local sound -- RTCW's, the Ritual menu channel or the generic one -- and unmarks) and S_StartWolfETInterfaceSound (ET only, with its volume); S_ValidSoundInterface requires the backend member (snd_local.h)",
+    "hosts": {
+      "q3, ql, stvef-mp": "cl_ui.cpp case UI_S_STARTLOCALSOUND",
+      "rtcw-sp, rtcw-mp": "client_rtcw_audio_compat.hpp UI case (the client game's case stays on S_StartRTCWLocalSound)",
+      "wolfet": "client_wolfet_audio_compat.hpp UI case (the client game's stays on S_StartWolfETLocalSound)",
+      "jka-mp": "client_jka_ui_host.hpp import 33 (the uncommitted slice's case; the channel table and level are kept)",
+      "stvef-sp": "client_stvef_sp_ui.hpp CL_STVEFSPUIStartLocalSound",
+      "q3test": "cl_q3test_ui.cpp Q3UI_StartLocalSound",
+      "jk2-mp": "none: its import 32 is not served"
+    }
+  },
+  "tests": [
+    {
+      "file": "tests/ui_interface_sound_tests.py",
+      "covers": "the policy over every channel class, sample prefix and placement (576 cases) with stereo and surround, unchanged classes without the mark; the real ApplyVoice (Quake III line and Wolfenstein one-shots) on every engine channel, Holomatch's 8 and Academy's own numbers at both levels, a listener that moved, under water, authored stereo, the focus mute; the real ApplySTVEFVoice; the real PlayOneShot taking one mark for one one-shot; the real front-end entries for each route and refusal; every menu host on the interface entry, every client game off it, and no other caller; both backends' member, the legacy no-op, the resets"
+    },
+    {
+      "file": "tests/audio/tone_policy_tests.cpp",
+      "covers": "MenuSoundsAreInterfaceOnAnyChannel (meson fnql_audio_tone_tests)"
+    },
+    {
+      "file": "tests/jka_ui_local_sound_tests.py",
+      "covers": "the uncommitted slice's test now records the interface entry"
+    },
+    {
+      "file": "tests/rtcw_one_shot_tests.py, tests/rtcw_music_tests.py",
+      "covers": "the RTCW UI case reaches the interface entry at full level and the client game's case does not"
+    },
+    {
+      "file": "tests/stvef_sp_cgame_tests.py, tests/stvef_sp_openal_voice_tests.py, tests/wolfenstein_openal_voice_tests.py",
+      "covers": "pinned text and the fixtures' voice records follow the new member"
+    }
+  ],
+  "probe": {
+    "script": ".tmp/ui-sound-policy/probe_menu_sound.py (not committed): the Academy steps of .tmp/jka-ui-local-sound/probe_menu_sound.py unchanged, plus a Holomatch mode that only dumps from the first menu frame on (`--early`: from the first frame, one frame apart)",
+    "desktop": "unswitched private desktop; windowed; no input injected; net_enabled 0; no server; an empty jampconfig.cfg or hmconfig.cfg in each run's home; installation inventoried before and after",
+    "commandLine": [
+      "+set",
+      "com_gameProfile",
+      "jka-mp | stvef-mp",
+      "+set",
+      "fs_basepath",
+      "<installation>",
+      "+set",
+      "fs_homepath",
+      "<run>/home",
+      "+set",
+      "com_steamIntegration",
+      "0",
+      "+set",
+      "developer",
+      "1",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "net_enabled",
+      "0",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "r_mode",
+      "3",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_joystick",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "s_initsound",
+      "1",
+      "+set",
+      "s_muteWhenUnfocused",
+      "0",
+      "+set",
+      "s_muteWhenMinimized",
+      "0",
+      "+set",
+      "s_volume",
+      "0.05",
+      "+set",
+      "s_musicvolume",
+      "0",
+      "+set",
+      "cl_motd",
+      "0",
+      "+set",
+      "com_introplayed",
+      "1",
+      "+set",
+      "com_maxfps",
+      "60",
+      "+set",
+      "com_maxfpsUnfocused",
+      "60",
+      "+set",
+      "com_maxfpsMinimized",
+      "60",
+      "(stvef-mp: +set fs_game \"\" +set fs_cdpath \"\")",
+      "+set",
+      "s_backend",
+      "openal | legacy",
+      "+exec",
+      "probemenu.cfg"
+    ]
+  },
+  "runs": [
+    {
+      "run": "before-jka-openal-1",
+      "game": "jka",
+      "backend": "openal",
+      "outcome": "exited",
+      "exit": 0,
+      "forced": false,
+      "seconds": 23.8,
+      "installationUnchanged": true,
+      "refusal": null,
+      "stepsLogged": [
+        "ready",
+        "quitmenu",
+        "videowarning",
+        "closewarning",
+        "done"
+      ],
+      "runtime": ".tmp/runtime/jka-ui-sound-after",
+      "fntech3.exe": "9e26146d89f3c6dd3483329a854a094cd2454071db89f5529711d134184a0229",
+      "voices": {
+        "menuroam": [
+          {
+            "voice": "shot ent=0 mode=relative tone=local/highpass sample=sound/interface/menuroam.wav dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=*",
+            "dumps": 6,
+            "wetMin": 0.0,
+            "wetMax": 0.0
+          }
+        ],
+        "button1": [
+          {
+            "voice": "shot ent=0 mode=relative tone=self/highpass sample=sound/interface/button1.wav dist=0.0 occ=0.00 target=0.00 gain=0.75 pan=0.00 pitch=1.00 dry=1.00 wet=*",
+            "dumps": 12,
+            "wetMin": 0.17,
+            "wetMax": 0.17
+          }
+        ]
+      },
+      "selectedTones": [
+        "Selected tone: class=local direct=highpass lf=0.92 hf=1.00 send=none lf=1.00 hf=1.00",
+        "Selected tone: class=self direct=highpass lf=0.92 hf=1.00 send=lowpass lf=1.00 hf=1.00"
+      ],
+      "environment": "Environment: small-room (zone generic, reverb small-room, blend 1.00, wet 0.30, directLF/HF 1.00/0.95, wetLF/HF 1.00/1.00, occx 1.00, outdoors 0, underwater 0, transition 650ms)",
+      "render": "OpenAL active render: HRTF enabled, output stereo-hrtf, distance inverse_clamped, limiter on"
+    },
+    {
+      "run": "after-jka-openal-1",
+      "game": "jka",
+      "backend": "openal",
+      "outcome": "exited",
+      "exit": 0,
+      "forced": false,
+      "seconds": 23.8,
+      "installationUnchanged": true,
+      "refusal": null,
+      "stepsLogged": [
+        "ready",
+        "quitmenu",
+        "videowarning",
+        "closewarning",
+        "done"
+      ],
+      "runtime": ".tmp/runtime/ui-sound-policy-after",
+      "fntech3.exe": "8bea54d7a1205e197c8c561ede63c3f101c4e858a58a709c87cf701098aae3ef",
+      "voices": {
+        "menuroam": [
+          {
+            "voice": "shot ent=0 mode=relative tone=local/highpass sample=sound/interface/menuroam.wav dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=*",
+            "dumps": 6,
+            "wetMin": 0.0,
+            "wetMax": 0.0
+          }
+        ],
+        "button1": [
+          {
+            "voice": "shot ent=0 mode=relative tone=local/highpass sample=sound/interface/button1.wav dist=0.0 occ=0.00 target=0.00 gain=0.75 pan=0.00 pitch=1.00 dry=1.00 wet=*",
+            "dumps": 12,
+            "wetMin": 0.0,
+            "wetMax": 0.0
+          }
+        ]
+      },
+      "selectedTones": [
+        "Selected tone: class=local direct=highpass lf=0.92 hf=1.00 send=none lf=1.00 hf=1.00"
+      ],
+      "environment": "Environment: small-room (zone generic, reverb small-room, blend 1.00, wet 0.30, directLF/HF 1.00/0.95, wetLF/HF 1.00/1.00, occx 1.00, outdoors 0, underwater 0, transition 650ms)",
+      "render": "OpenAL active render: HRTF enabled, output stereo-hrtf, distance inverse_clamped, limiter on"
+    },
+    {
+      "run": "before-stvef-openal-1",
+      "game": "stvef-mp",
+      "backend": "openal",
+      "outcome": "exited",
+      "exit": 0,
+      "forced": false,
+      "seconds": 8.9,
+      "installationUnchanged": true,
+      "refusal": null,
+      "stepsLogged": [
+        "intro",
+        "ready",
+        "done"
+      ],
+      "runtime": ".tmp/runtime/jka-ui-sound-after",
+      "fntech3.exe": "9e26146d89f3c6dd3483329a854a094cd2454071db89f5529711d134184a0229",
+      "voices": {
+        "intro_01": [
+          {
+            "voice": "shot ent=0 mode=relative tone=self/highpass sample=sound/voice/computer/misc/intro_01.wav dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=*",
+            "dumps": 21,
+            "wetMin": 0.12,
+            "wetMax": 0.17
+          }
+        ],
+        "button2": []
+      },
+      "selectedTones": [
+        "Selected tone: class=self direct=highpass lf=0.92 hf=1.00 send=lowpass lf=1.00 hf=1.00"
+      ],
+      "environment": "Environment: small-room (zone generic, reverb small-room, blend 1.00, wet 0.30, directLF/HF 1.00/0.95, wetLF/HF 1.00/1.00, occx 1.00, outdoors 0, underwater 0, transition 650ms)",
+      "render": "OpenAL active render: HRTF enabled, output stereo-hrtf, distance inverse_clamped, limiter on"
+    },
+    {
+      "run": "after-stvef-openal-1",
+      "game": "stvef-mp",
+      "backend": "openal",
+      "outcome": "exited",
+      "exit": 0,
+      "forced": false,
+      "seconds": 9.0,
+      "installationUnchanged": true,
+      "refusal": null,
+      "stepsLogged": [
+        "intro",
+        "ready",
+        "done"
+      ],
+      "runtime": ".tmp/runtime/ui-sound-policy-after",
+      "fntech3.exe": "8bea54d7a1205e197c8c561ede63c3f101c4e858a58a709c87cf701098aae3ef",
+      "voices": {
+        "intro_01": [
+          {
+            "voice": "shot ent=0 mode=relative tone=local/highpass sample=sound/voice/computer/misc/intro_01.wav dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=*",
+            "dumps": 21,
+            "wetMin": 0.0,
+            "wetMax": 0.0
+          }
+        ],
+        "button2": []
+      },
+      "selectedTones": [
+        "Selected tone: class=local direct=highpass lf=0.92 hf=1.00 send=none lf=1.00 hf=1.00"
+      ],
+      "environment": "Environment: small-room (zone generic, reverb small-room, blend 1.00, wet 0.30, directLF/HF 1.00/0.95, wetLF/HF 1.00/1.00, occx 1.00, outdoors 0, underwater 0, transition 650ms)",
+      "render": "OpenAL active render: HRTF enabled, output stereo-hrtf, distance inverse_clamped, limiter on"
+    },
+    {
+      "run": "before-stvef-early-1",
+      "game": "stvef-mp",
+      "backend": "openal",
+      "outcome": "exited",
+      "exit": 0,
+      "forced": false,
+      "seconds": 8.5,
+      "installationUnchanged": true,
+      "refusal": null,
+      "stepsLogged": [
+        "intro",
+        "ready",
+        "done"
+      ],
+      "runtime": ".tmp/runtime/jka-ui-sound-after",
+      "fntech3.exe": "9e26146d89f3c6dd3483329a854a094cd2454071db89f5529711d134184a0229",
+      "voices": {
+        "intro_01": [
+          {
+            "voice": "shot ent=0 mode=relative tone=self/highpass sample=sound/voice/computer/misc/intro_01.wav dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=*",
+            "dumps": 39,
+            "wetMin": 0.1,
+            "wetMax": 0.16
+          }
+        ],
+        "button2": [
+          {
+            "voice": "shot ent=0 mode=relative tone=local/highpass sample=sound/interface/button2.wav dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=*",
+            "dumps": 7,
+            "wetMin": 0.0,
+            "wetMax": 0.0
+          }
+        ]
+      },
+      "selectedTones": [
+        "Selected tone: class=self direct=highpass lf=0.92 hf=1.00 send=lowpass lf=1.00 hf=1.00"
+      ],
+      "environment": "Environment: small-room (zone generic, reverb small-room, blend 1.00, wet 0.18, directLF/HF 1.00/0.95, wetLF/HF 1.00/1.00, occx 1.00, outdoors 0, underwater 0, transition 650ms)",
+      "render": "OpenAL active render: HRTF enabled, output stereo-hrtf, distance inverse_clamped, limiter on"
+    },
+    {
+      "run": "after-stvef-early-1",
+      "game": "stvef-mp",
+      "backend": "openal",
+      "outcome": "exited",
+      "exit": 0,
+      "forced": false,
+      "seconds": 6.8,
+      "installationUnchanged": true,
+      "refusal": null,
+      "stepsLogged": [
+        "intro",
+        "ready",
+        "done"
+      ],
+      "runtime": ".tmp/runtime/ui-sound-policy-after",
+      "fntech3.exe": "8bea54d7a1205e197c8c561ede63c3f101c4e858a58a709c87cf701098aae3ef",
+      "voices": {
+        "intro_01": [
+          {
+            "voice": "shot ent=0 mode=relative tone=local/highpass sample=sound/voice/computer/misc/intro_01.wav dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=*",
+            "dumps": 39,
+            "wetMin": 0.0,
+            "wetMax": 0.0
+          }
+        ],
+        "button2": [
+          {
+            "voice": "shot ent=0 mode=relative tone=local/highpass sample=sound/interface/button2.wav dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=*",
+            "dumps": 7,
+            "wetMin": 0.0,
+            "wetMax": 0.0
+          }
+        ]
+      },
+      "selectedTones": [
+        "Selected tone: class=local direct=highpass lf=0.92 hf=1.00 send=none lf=1.00 hf=1.00"
+      ],
+      "environment": "Environment: small-room (zone generic, reverb small-room, blend 1.00, wet 0.18, directLF/HF 1.00/0.95, wetLF/HF 1.00/1.00, occx 1.00, outdoors 0, underwater 0, transition 650ms)",
+      "render": "OpenAL active render: HRTF enabled, output stereo-hrtf, distance inverse_clamped, limiter on"
+    },
+    {
+      "run": "before-jka-legacy-1",
+      "game": "jka",
+      "backend": "legacy",
+      "outcome": "exited",
+      "exit": 0,
+      "forced": false,
+      "seconds": 25.4,
+      "installationUnchanged": true,
+      "refusal": null,
+      "stepsLogged": [
+        "ready",
+        "quitmenu",
+        "videowarning",
+        "closewarning",
+        "done"
+      ],
+      "runtime": ".tmp/runtime/jka-ui-sound-after",
+      "fntech3.exe": "9e26146d89f3c6dd3483329a854a094cd2454071db89f5529711d134184a0229",
+      "sShow2": {
+        "127 127 sound/interface/menuroam.wav": 15,
+        "95 95 sound/interface/button1.wav": 44
+      }
+    },
+    {
+      "run": "after-jka-legacy-1",
+      "game": "jka",
+      "backend": "legacy",
+      "outcome": "exited",
+      "exit": 0,
+      "forced": false,
+      "seconds": 24.7,
+      "installationUnchanged": true,
+      "refusal": null,
+      "stepsLogged": [
+        "ready",
+        "quitmenu",
+        "videowarning",
+        "closewarning",
+        "done"
+      ],
+      "runtime": ".tmp/runtime/ui-sound-policy-after",
+      "fntech3.exe": "8bea54d7a1205e197c8c561ede63c3f101c4e858a58a709c87cf701098aae3ef",
+      "sShow2": {
+        "127 127 sound/interface/menuroam.wav": 14,
+        "95 95 sound/interface/button1.wav": 44
+      }
+    },
+    {
+      "run": "before-stvef-legacy-1",
+      "game": "stvef-mp",
+      "backend": "legacy",
+      "outcome": "exited",
+      "exit": 0,
+      "forced": false,
+      "seconds": 6.7,
+      "installationUnchanged": true,
+      "refusal": null,
+      "stepsLogged": [
+        "intro",
+        "ready",
+        "done"
+      ],
+      "runtime": ".tmp/runtime/jka-ui-sound-after",
+      "fntech3.exe": "9e26146d89f3c6dd3483329a854a094cd2454071db89f5529711d134184a0229",
+      "sShow2": {
+        "127 127 sound/interface/button2.wav": 23,
+        "127 127 sound/voice/computer/misc/intro_01.wav": 94
+      }
+    },
+    {
+      "run": "after-stvef-legacy-1",
+      "game": "stvef-mp",
+      "backend": "legacy",
+      "outcome": "exited",
+      "exit": 0,
+      "forced": false,
+      "seconds": 6.7,
+      "installationUnchanged": true,
+      "refusal": null,
+      "stepsLogged": [
+        "intro",
+        "ready",
+        "done"
+      ],
+      "runtime": ".tmp/runtime/ui-sound-policy-after",
+      "fntech3.exe": "8bea54d7a1205e197c8c561ede63c3f101c4e858a58a709c87cf701098aae3ef",
+      "sShow2": {
+        "127 127 sound/interface/button2.wav": 24,
+        "127 127 sound/voice/computer/misc/intro_01.wav": 95
+      }
+    },
+    {
+      "run": "after-jka-none-1",
+      "game": "jka",
+      "backend": "none",
+      "outcome": "exited",
+      "exit": 0,
+      "forced": false,
+      "seconds": 23.2,
+      "installationUnchanged": true,
+      "refusal": null,
+      "stepsLogged": [
+        "ready",
+        "quitmenu",
+        "videowarning",
+        "closewarning",
+        "done"
+      ],
+      "runtime": ".tmp/runtime/ui-sound-policy-after",
+      "fntech3.exe": "8bea54d7a1205e197c8c561ede63c3f101c4e858a58a709c87cf701098aae3ef"
+    },
+    {
+      "run": "after-stvef-none-1",
+      "game": "stvef-mp",
+      "backend": "none",
+      "outcome": "exited",
+      "exit": 0,
+      "forced": false,
+      "seconds": 6.7,
+      "installationUnchanged": true,
+      "refusal": null,
+      "stepsLogged": [
+        "intro",
+        "ready",
+        "done"
+      ],
+      "runtime": ".tmp/runtime/ui-sound-policy-after",
+      "fntech3.exe": "8bea54d7a1205e197c8c561ede63c3f101c4e858a58a709c87cf701098aae3ef"
+    }
+  ],
+  "open": [
+    "audible play and a captured mix: the clients were offscreen-muted on the private desktop",
+    "Holomatch's other channel-8 sounds (logout, sensor ping, buttons, the indexed handle) and every focus or click path that follows the pointer or keys: they take the same served path but were not run",
+    "menus during a session, and under water, live: the unit tests cover both",
+    "Jedi Outcast multiplayer's UI import 32 is still refused; when it is served it should start its sounds through S_StartInterfaceSound with Outcast's own channel numbers",
+    "no retail engine's menu sounds were captured for comparison; retail presentation is not the specification here"
+  ]
+}

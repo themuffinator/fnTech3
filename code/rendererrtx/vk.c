@@ -363,12 +363,12 @@ typedef struct {
  * ray-tracing set's buffers (bindings 1-9, the dynamic vertices' previous
  * positions and the world triangles' lights), uniform block, texture table
  * and output images
- * in each ray-tracing stage, and the denoiser set's images (RT_DN_*: 20
+ * in each ray-tracing stage, and the denoiser set's images (RT_DN_*: 25
  * descriptors, the history and filter pairs counting twice) in compute. */
 #define RTX_RT_STORAGE_BUFFER_COUNT ( RT_BINDING_LIGHT_INDICES - RT_BINDING_WORLD_VERTICES + 3u )
 #define RTX_RT_UNIFORM_BUFFER_COUNT 1u
-#define RTX_RT_TRACE_STORAGE_IMAGE_COUNT ( RT_BINDING_OUT_INFO - RT_BINDING_OUT_COLOR + 1u )
-#define RTX_RT_DENOISE_STORAGE_IMAGE_COUNT 20u
+#define RTX_RT_TRACE_STORAGE_IMAGE_COUNT ( RT_BINDING_OUT_INDIRECT - RT_BINDING_OUT_COLOR + 1u )
+#define RTX_RT_DENOISE_STORAGE_IMAGE_COUNT 25u
 #define RTX_RT_STORAGE_IMAGE_COUNT RTX_RT_DENOISE_STORAGE_IMAGE_COUNT
 #define RTX_RT_ACCELERATION_STRUCTURE_COUNT 1u
 #define RTX_RT_SAMPLED_IMAGE_COUNT RT_MAX_TEXTURES
@@ -535,6 +535,66 @@ static float vk_rt_elapsed_ms( int64_t startUs, int64_t endUs )
 		return 0.0f;
 	}
 	return (float)( (double)( endUs - startUs ) * ( 1.0 / 1000.0 ) );
+}
+
+#include "rt/rt_frame_stats.h"
+
+static struct {
+	int64_t events[REF_FRAME_EVENT_COUNT];
+	int64_t submit, present, previousPresent;
+	float earlyFence, lateFence, earlyAcquire, lateAcquire, submitMs, presentMs;
+	qboolean preparingInput;
+	int lastSubmittedSlot;
+	unsigned reports;
+	rtFrameStats_t frames;
+} s_vkRtLatency;
+
+static qboolean vk_rt_latency_timing( void )
+{
+	return rtx_rt_perf_timing && rtx_rt_perf_timing->integer && vk.caps.activeRtMode == 2;
+}
+
+static void vk_rt_latency_wait( int64_t start, qboolean acquire )
+{
+	float ms;
+	if ( !vk_rt_latency_timing() ) return;
+	ms = vk_rt_elapsed_ms( start, vk_rt_now_microseconds() );
+	if ( acquire ) {
+		if ( s_vkRtLatency.preparingInput ) s_vkRtLatency.earlyAcquire += ms;
+		else s_vkRtLatency.lateAcquire += ms;
+	} else {
+		if ( s_vkRtLatency.preparingInput ) s_vkRtLatency.earlyFence += ms;
+		else s_vkRtLatency.lateFence += ms;
+	}
+}
+
+static void vk_rt_latency_report( int64_t presented )
+{
+	float p50, p95, p99;
+	int interval;
+	if ( !vk_rt_latency_timing() ) return;
+	if ( s_vkRtLatency.previousPresent ) {
+		RT_FrameStatsAdd( &s_vkRtLatency.frames, vk_rt_elapsed_ms( s_vkRtLatency.previousPresent, presented ) );
+	}
+	s_vkRtLatency.previousPresent = presented;
+	interval = rtx_rt_perf_timing->integer == 2 ? 1 : MAX( 1, rtx_rt_perf_interval->integer );
+	if ( ++s_vkRtLatency.reports % interval ) return;
+	RT_FrameStatsPercentiles( &s_vkRtLatency.frames, &p50, &p95, &p99 );
+	ri.Printf( PRINT_ALL, "RTX RT latency: CPU frame p50/p95/p99 %.2f/%.2f/%.2f ms (%u), input-to-submit %.2f ms, "
+		"simulation %.2f, fence before/after input %.2f/%.2f, acquire %.2f/%.2f, submit/present API %.2f/%.2f ms, policy %d\n",
+		p50, p95, p99, s_vkRtLatency.frames.count,
+		s_vkRtLatency.events[REF_FRAME_INPUT_SAMPLE] ? vk_rt_elapsed_ms( s_vkRtLatency.events[REF_FRAME_INPUT_SAMPLE], s_vkRtLatency.submit ) : 0.0f,
+		s_vkRtLatency.events[REF_FRAME_SIMULATION_BEGIN] ? vk_rt_elapsed_ms( s_vkRtLatency.events[REF_FRAME_SIMULATION_BEGIN],
+			s_vkRtLatency.events[REF_FRAME_SIMULATION_END] ) : 0.0f,
+		s_vkRtLatency.earlyFence, s_vkRtLatency.lateFence, s_vkRtLatency.earlyAcquire, s_vkRtLatency.lateAcquire,
+		s_vkRtLatency.submitMs, s_vkRtLatency.presentMs, rtx_rt_low_latency ? rtx_rt_low_latency->integer : 0 );
+	if ( rtx_rt_perf_timing->integer == 2 ) {
+		ri.Printf( PRINT_ALL, "RTX RT CPU stamps us: prepare %lld poll %lld input %lld sim %lld..%lld submit %lld present %lld..%lld\n",
+			(long long)s_vkRtLatency.events[REF_FRAME_PREPARE_INPUT], (long long)s_vkRtLatency.events[REF_FRAME_INPUT_POLLED],
+			(long long)s_vkRtLatency.events[REF_FRAME_INPUT_SAMPLE], (long long)s_vkRtLatency.events[REF_FRAME_SIMULATION_BEGIN],
+			(long long)s_vkRtLatency.events[REF_FRAME_SIMULATION_END], (long long)s_vkRtLatency.submit,
+			(long long)s_vkRtLatency.present, (long long)presented );
+	}
 }
 
 static int vk_rt_debug_as_stats_level( void )
@@ -804,6 +864,15 @@ static qboolean vk_rt_create_buffer_ex( VkDeviceSize size, VkBufferUsageFlags us
 		qvkDestroyBuffer( vk.device, buffer, NULL );
 		Com_Memset( outBuffer, 0, sizeof( *outBuffer ) );
 		return qfalse;
+	}
+	if ( vk_caps_report_level() >= 2 ) {
+		VkPhysicalDeviceMemoryProperties props;
+		const uint32_t selected = allocInfo.memoryTypeIndex;
+		qvkGetPhysicalDeviceMemoryProperties( vk.physical_device, &props );
+		ri.Printf( PRINT_ALL, "RTX RT memory: %s, %llu bytes, type %u heap %u, flags 0x%x%s\n",
+			debugName ? debugName : "unnamed", (unsigned long long)memoryRequirements.size,
+			selected, props.memoryTypes[selected].heapIndex, props.memoryTypes[selected].propertyFlags,
+			( props.memoryTypes[selected].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT ) ? " (GPU local)" : " (host)" );
 	}
 
 	return qtrue;
@@ -2108,6 +2177,25 @@ static void vk_rt_iqm_compute_pose_mats( const iqmData_t *data, int frame, int o
 	}
 }
 
+static float *s_rtIqmScratch;
+static uint32_t s_rtIqmScratchCount;
+
+static qboolean RT_IqmScratch( uint32_t count )
+{
+	uint32_t capacity;
+	size_t bytes;
+	float *replacement;
+	if ( count <= s_rtIqmScratchCount ) return qtrue;
+	if ( !vk_rt_cpu_array_growth( s_rtIqmScratchCount, count, 256u,
+		21u * sizeof( float ), "IQM influence scratch", &capacity, &bytes ) ) return qfalse;
+	replacement = (float *)RT_HostAlloc( bytes );
+	if ( !replacement ) return qfalse;
+	RT_HostFree( s_rtIqmScratch );
+	s_rtIqmScratch = replacement;
+	s_rtIqmScratchCount = capacity;
+	return qtrue;
+}
+
 static qboolean vk_rt_append_iqm_entity_geometry( rtxRtCpuGeometry_t *geometry, const trRefEntity_t *ent )
 {
 	static const float kIdentity34[12] = {
@@ -2183,19 +2271,11 @@ static qboolean vk_rt_append_iqm_entity_geometry( rtxRtCpuGeometry_t *geometry, 
 
 		if ( skinningMode > 0 && data->num_poses > 0 && data->influences && surface->num_influences > 0 ) {
 			useSkinning = qtrue;
-			influenceVtxMat = (float *)ri.Malloc( surface->num_influences * 12 * sizeof( float ) );
-			influenceNrmMat = (float *)ri.Malloc( surface->num_influences * 9 * sizeof( float ) );
-			if ( !influenceVtxMat || !influenceNrmMat ) {
-				if ( influenceVtxMat ) {
-					ri.Free( influenceVtxMat );
-					influenceVtxMat = NULL;
-				}
-				if ( influenceNrmMat ) {
-					ri.Free( influenceNrmMat );
-					influenceNrmMat = NULL;
-				}
-				useSkinning = qfalse;
-			}
+			/* Reused across surfaces/frames; allocation failure must not silently
+			 * freeze this animated shadow in the model's bind pose. */
+			if ( !RT_IqmScratch( (uint32_t)surface->num_influences ) ) return qfalse;
+			influenceVtxMat = s_rtIqmScratch;
+			influenceNrmMat = s_rtIqmScratch + 12u * s_rtIqmScratchCount;
 
 			for ( i = 0; useSkinning && i < surface->num_influences; i++ ) {
 				int influence = surface->first_influence + i;
@@ -2315,12 +2395,6 @@ static qboolean vk_rt_append_iqm_entity_geometry( rtxRtCpuGeometry_t *geometry, 
 			}
 
 			if ( !vk_rt_cpu_geometry_add_vertex( geometry, worldPos, worldNormal, tangent, uv, color, materialIndex, NULL ) ) {
-				if ( influenceVtxMat ) {
-					ri.Free( influenceVtxMat );
-				}
-				if ( influenceNrmMat ) {
-					ri.Free( influenceNrmMat );
-				}
 				return qfalse;
 			}
 		}
@@ -2341,22 +2415,9 @@ static qboolean vk_rt_append_iqm_entity_geometry( rtxRtCpuGeometry_t *geometry, 
 				baseVertex + (uint32_t)i0,
 				baseVertex + (uint32_t)i1,
 				baseVertex + (uint32_t)i2 ) ) {
-				if ( influenceVtxMat ) {
-					ri.Free( influenceVtxMat );
-				}
-				if ( influenceNrmMat ) {
-					ri.Free( influenceNrmMat );
-				}
 				return qfalse;
 			}
 			validTriangleCount++;
-		}
-
-		if ( influenceVtxMat ) {
-			ri.Free( influenceVtxMat );
-		}
-		if ( influenceNrmMat ) {
-			ri.Free( influenceNrmMat );
 		}
 
 		geometry->sourceTriangleCount += validTriangleCount;
@@ -2369,7 +2430,7 @@ static qboolean vk_rt_append_iqm_entity_geometry( rtxRtCpuGeometry_t *geometry, 
 	return qtrue;
 }
 
-static qboolean vk_rt_append_dynamic_model_entity_geometry( rtxRtCpuGeometry_t *geometry, const trRefEntity_t *ent, uint32_t *outModelCount )
+static qboolean vk_rt_extract_dynamic_model_entity_geometry( rtxRtCpuGeometry_t *geometry, const trRefEntity_t *ent, uint32_t *outModelCount )
 {
 	const model_t *model;
 	qboolean counted = qfalse;
@@ -2432,6 +2493,8 @@ static qboolean vk_rt_append_dynamic_model_entity_geometry( rtxRtCpuGeometry_t *
 
 	return qtrue;
 }
+
+#include "rt/rt_geometry_cache.h"
 
 static qboolean vk_rt_init( void )
 {
@@ -2547,6 +2610,7 @@ qboolean vk_rt_trace_frame( void )
 	static int lastUiSkipFrame = -1;
 	static int lastHyperspaceSkipFrame = -1;
 	static int lastNonPrimarySkipFrame = -1;
+	if ( rtx_rt_test_fail_trace && rtx_rt_test_fail_trace->integer ) return qfalse;
 
 	if ( !vk_rt_trace_available() ) {
 		ri.Printf( PRINT_DEVELOPER, "RTX RT: no tracing backend is available\n" );
@@ -7893,6 +7957,7 @@ static void vk_create_shader_modules( void )
 			vk.modules.rt_rchit = SHADER_MODULE( rt_main_rchit_spv );
 			vk.modules.rt_rahit = SHADER_MODULE( rt_main_rahit_spv );
 			vk.modules.rt_rahit_filter = SHADER_MODULE( rt_filter_rahit_spv );
+			vk.modules.rt_rahit_shadow = SHADER_MODULE( rt_shadow_rahit_spv );
 
 			SET_OBJECT_NAME( vk.modules.rt_rgen, "rt raygen module", VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT );
 			SET_OBJECT_NAME( vk.modules.rt_rmiss, "rt miss module", VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT );
@@ -9583,6 +9648,8 @@ static void vk_create_sync_primitives( void ) {
 	VkSemaphoreCreateInfo desc;
 	VkFenceCreateInfo fence_desc;
 	uint32_t i;
+	Com_Memset( &s_vkRtLatency, 0, sizeof( s_vkRtLatency ) );
+	s_vkRtLatency.lastSubmittedSlot = -1;
 
 	desc.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 	desc.pNext = NULL;
@@ -10752,6 +10819,10 @@ void vk_shutdown( refShutdownCode_t code )
 	if ( vk.modules.rt_rahit_filter != VK_NULL_HANDLE ) {
 		qvkDestroyShaderModule( vk.device, vk.modules.rt_rahit_filter, NULL );
 		vk.modules.rt_rahit_filter = VK_NULL_HANDLE;
+	}
+	if ( vk.modules.rt_rahit_shadow != VK_NULL_HANDLE ) {
+		qvkDestroyShaderModule( vk.device, vk.modules.rt_rahit_shadow, NULL );
+		vk.modules.rt_rahit_shadow = VK_NULL_HANDLE;
 	}
 	if ( vk.modules.rt_composite != VK_NULL_HANDLE ) {
 		qvkDestroyShaderModule( vk.device, vk.modules.rt_composite, NULL );
@@ -12961,7 +13032,7 @@ VkPipeline create_pipeline( const Vk_Pipeline_Def *def, renderPass_t renderPassI
 	Com_Memset(&attachment_blend_state, 0, sizeof(attachment_blend_state));
 	attachment_blend_state.blendEnable = (state_bits & (GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS)) ? VK_TRUE : VK_FALSE;
 
-	if ( def->shadow_phase == SHADOW_EDGES || def->shadow_phase == SHADOW_OUTLINE_MASK ||
+	if ( def->depth_only || def->shadow_phase == SHADOW_EDGES || def->shadow_phase == SHADOW_OUTLINE_MASK ||
 		def->shadow_phase == SHADOW_OUTLINE_CLEAR || def->shader_type == TYPE_SIGNLE_TEXTURE_DF )
 		attachment_blend_state.colorWriteMask = 0;
 	else if ( def->shader_type == TYPE_LIQUID )
@@ -14763,45 +14834,20 @@ static qboolean vk_find_screenmap_drawsurfs( void )
 #define UINT64_MAX 0xFFFFFFFFFFFFFFFFULL
 #endif
 
-void vk_begin_frame( void )
+static void vk_acquire_frame_image( void )
 {
-	VkCommandBufferBeginInfo begin_info;
 	VkResult res;
-
-	if ( vk.frame_count++ ) // might happen during stereo rendering
-		return;
-
-	vk_lifetime_begin_frame();
-
-#ifdef USE_UPLOAD_QUEUE
-	vk_submit_staging_buffer( qtrue );
-#endif
-
-	vk.cmd = &vk.tess[ vk.cmd_index ];
-
-	if ( vk.cmd->waitForFence ) {
-		vk.cmd->waitForFence = qfalse;
-		res = qvkWaitForFences( vk.device, 1, &vk.cmd->rendering_finished_fence, VK_FALSE, 1e10 );
-		if ( res != VK_SUCCESS ) {
-			if ( res == VK_ERROR_DEVICE_LOST ) {
-				// silently discard previous command buffer
-				ri.Printf( PRINT_WARNING, "Vulkan: %s returned %s", "vkWaitForFences", vk_result_string( res ) );
-			}
-			else {
-				ri.Error( ERR_FATAL, "Vulkan: %s returned %s", "vkWaitForFences", vk_result_string( res ) );
-			}
-		}
-		VK_CHECK( qvkResetFences( vk.device, 1, &vk.cmd->rendering_finished_fence ) );
-	}
-
 	if ( s_vkSwapchainResizePending ) {
 		( void )vk_restart_swapchain( __func__, s_vkSwapchainResizeResult );
 	}
 
 	if ( !ri.CL_IsMinimized() && !vk.cmd->swapchain_image_acquired ) {
 		qboolean retry = qfalse;
+		int64_t acquireStarted;
 _retry:
+		acquireStarted = vk_rt_now_microseconds();
 		res = qvkAcquireNextImageKHR( vk.device, vk.swapchain, 1 * 1000000000ULL, vk.cmd->image_acquired, VK_NULL_HANDLE, &vk.cmd->swapchain_image_index );
+		vk_rt_latency_wait( acquireStarted, qtrue );
 		// when running via RDP: "Application has already acquired the maximum number of images (0x2)"
 		// probably caused by "device lost" errors
 		if ( res == VK_SUCCESS || res == VK_SUBOPTIMAL_KHR ) {
@@ -14828,6 +14874,78 @@ _retry:
 			ri.Error( ERR_FATAL, "vkAcquireNextImageKHR returned %s without an offscreen fallback path", vk_result_string( res ) );
 		}
 	}
+
+}
+
+void vk_rt_frame_event( refFrameEvent_t event, int64_t microseconds )
+{
+	int policy, slot;
+	if ( event < 0 || event >= REF_FRAME_EVENT_COUNT ) return;
+	if ( event == REF_FRAME_PREPARE_INPUT ) {
+		Com_Memset( s_vkRtLatency.events, 0, sizeof( s_vkRtLatency.events ) );
+		s_vkRtLatency.earlyFence = s_vkRtLatency.lateFence = 0.0f;
+		s_vkRtLatency.earlyAcquire = s_vkRtLatency.lateAcquire = 0.0f;
+		s_vkRtLatency.submitMs = s_vkRtLatency.presentMs = 0.0f;
+	}
+	s_vkRtLatency.events[event] = microseconds;
+	if ( event != REF_FRAME_PREPARE_INPUT || vk.device == VK_NULL_HANDLE ||
+		vk.caps.activeRtMode != 2 || !rtx_rt_low_latency || !rtx_rt_low_latency->integer ||
+		ri.CL_IsMinimized() ) return;
+	policy = rtx_rt_low_latency->integer;
+	vk.cmd = &vk.tess[vk.cmd_index];
+	slot = policy == 1 ? s_vkRtLatency.lastSubmittedSlot : (int)vk.cmd_index;
+	s_vkRtLatency.preparingInput = qtrue;
+	if ( slot >= 0 && slot < NUM_COMMAND_BUFFERS && vk.tess[slot].waitForFence ) {
+		const int64_t started = vk_rt_now_microseconds();
+		VkResult result = qvkWaitForFences( vk.device, 1, &vk.tess[slot].rendering_finished_fence, VK_TRUE, 10000000000ULL );
+		vk_rt_latency_wait( started, qfalse );
+		if ( result != VK_SUCCESS ) {
+			s_vkRtLatency.preparingInput = qfalse;
+			ri.Printf( PRINT_WARNING, "RTX RT: pre-input fence wait returned %s\n", vk_result_string( result ) );
+			return;
+		}
+	}
+	// Acquisition can block under FIFO presentation even after the GPU has
+	// finished. Do it before input too. Fence reset stays in vk_begin_frame;
+	// there is no command recording here and no simulation clock adjustment.
+	vk_acquire_frame_image();
+	s_vkRtLatency.preparingInput = qfalse;
+}
+
+void vk_begin_frame( void )
+{
+	VkCommandBufferBeginInfo begin_info;
+	VkResult res;
+
+	if ( vk.frame_count++ ) // might happen during stereo rendering
+		return;
+
+	vk_lifetime_begin_frame();
+
+#ifdef USE_UPLOAD_QUEUE
+	vk_submit_staging_buffer( qtrue );
+#endif
+
+	vk.cmd = &vk.tess[ vk.cmd_index ];
+
+	if ( vk.cmd->waitForFence ) {
+		const int64_t waitStarted = vk_rt_now_microseconds();
+		vk.cmd->waitForFence = qfalse;
+		res = qvkWaitForFences( vk.device, 1, &vk.cmd->rendering_finished_fence, VK_FALSE, 1e10 );
+		vk_rt_latency_wait( waitStarted, qfalse );
+		if ( res != VK_SUCCESS ) {
+			if ( res == VK_ERROR_DEVICE_LOST ) {
+				// silently discard previous command buffer
+				ri.Printf( PRINT_WARNING, "Vulkan: %s returned %s", "vkWaitForFences", vk_result_string( res ) );
+			}
+			else {
+				ri.Error( ERR_FATAL, "Vulkan: %s returned %s", "vkWaitForFences", vk_result_string( res ) );
+			}
+		}
+		VK_CHECK( qvkResetFences( vk.device, 1, &vk.cmd->rendering_finished_fence ) );
+	}
+
+	vk_acquire_frame_image();
 
 	begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	begin_info.pNext = NULL;
@@ -15037,7 +15155,10 @@ void vk_end_frame( void )
 		submit_info.pSignalSemaphores = NULL;
 	}
 
+	s_vkRtLatency.submit = vk_rt_now_microseconds();
 	VK_CHECK( qvkQueueSubmit( vk.queue, 1, &submit_info, vk.cmd->rendering_finished_fence ) );
+	s_vkRtLatency.submitMs = vk_rt_elapsed_ms( s_vkRtLatency.submit, vk_rt_now_microseconds() );
+	s_vkRtLatency.lastSubmittedSlot = (int)vk.cmd_index;
 	vk.cmd->waitForFence = qtrue;
 
 	// presentation may take undefined time to complete, we can't measure it in a reliable way
@@ -15073,7 +15194,13 @@ void vk_present_frame( void )
 
 	vk.cmd->swapchain_image_acquired = qfalse;
 
+	s_vkRtLatency.present = vk_rt_now_microseconds();
 	res = qvkQueuePresentKHR( vk.queue, &present_info );
+	{
+		const int64_t presented = vk_rt_now_microseconds();
+		s_vkRtLatency.presentMs = vk_rt_elapsed_ms( s_vkRtLatency.present, presented );
+		vk_rt_latency_report( presented );
+	}
 	vk_lifetime_mark_use( RTX_VK_RESOURCE_SWAPCHAIN, "vkQueuePresentKHR" );
 	switch ( res ) {
 		case VK_SUCCESS:

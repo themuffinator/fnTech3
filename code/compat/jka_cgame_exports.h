@@ -28,6 +28,7 @@ static inline int FNTech3_JKACgameExportOrdinal(int operation) {
     JKA_CGAME_EXPORT(CG_EVENT_HANDLING)
 #undef JKA_CGAME_EXPORT
     case CG_RAVEN_MAP_CHANGE: return FNTECH3_JKA_CG_MAP_CHANGE;
+    case CG_RAVEN_TRACE: return FNTECH3_JKA_CG_TRACE;
     default: return -1;
     }
 }
@@ -35,7 +36,7 @@ static inline int FNTech3_JKACgameExportArgumentCount(int operation) {
     switch (operation) {
     case CG_INIT: case CG_DRAW_ACTIVE_FRAME: return 3;
     case CG_SHUTDOWN: case CG_CONSOLE_COMMAND: case CG_CROSSHAIR_PLAYER:
-    case CG_LAST_ATTACKER: case CG_RAVEN_MAP_CHANGE: return 0;
+    case CG_LAST_ATTACKER: case CG_RAVEN_MAP_CHANGE: case CG_RAVEN_TRACE: return 0;
     case CG_KEY_EVENT: case CG_MOUSE_EVENT: return 2;
     case CG_EVENT_HANDLING: return 1;
     default: return -1;

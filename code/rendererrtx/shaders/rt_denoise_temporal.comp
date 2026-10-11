@@ -10,6 +10,7 @@
 
 #include "rt_common.glsl"
 #include "rt_denoise_common.glsl"
+#include "rt_temporal_response.glsl"
 
 layout(local_size_x = 8, local_size_y = 8) in;
 
@@ -29,15 +30,24 @@ void main()
 		imageStore(u_histDiffuse[cur], p, vec4(0.0));
 		imageStore(u_histSpecular[cur], p, vec4(0.0));
 		imageStore(u_histMoments[cur], p, vec4(0.0));
+		imageStore(u_filterIndirect[0], p, vec4(0.0));
+		imageStore(u_histIndirect[cur], p, vec4(0.0));
 		return;
 	}
 
-	vec3 D = max(imageLoad(u_noisyDiffuse, p).rgb, vec3(0.0));
+	vec4 noisyD = imageLoad(u_noisyDiffuse, p);
+	vec3 D = max(noisyD.rgb, vec3(0.0));
+	// Keep the fast response briefly after a caster leaves, so newly
+	// revealed light also replaces the old shadow quickly.
+	float reactiveTime = rt_shadow_reactive_time(0.0, noisyD.a, pc.params.x);
 	vec3 S = max(imageLoad(u_noisySpecular, p).rgb, vec3(0.0));
-	vec4 nd = imageLoad(u_normalDepth[cur], p);
+	vec4 noisyI = imageLoad(u_noisyIndirect, p);
+	vec3 I = max(noisyI.rgb, vec3(0.0));
+	bool validI = noisyI.a > 0.0;
+	vec4 nd = read_normal_depth(cur, p);
 	vec3 n = oct_decode(nd.xy);
 	float z = nd.z;
-	vec4 motion = imageLoad(u_motion, p);
+	vec4 motion = read_motion(p);
 	float expectedPrevZ = motion.z;
 
 	vec2 uv = (vec2(p) + 0.5) * pc.traceSize.zw;
@@ -50,6 +60,8 @@ void main()
 	vec4 histM = vec4(0.0);
 	float histLen = 0.0;
 	float wsum = 0.0;
+	vec4 histI = vec4(0.0);
+	float iwsum = 0.0;
 
 	// motion.w: a moving surface new this frame has nothing to reproject
 	if ((pc.state.w & RT_DENOISE_FLAG_HISTORY_VALID) != 0u && motion.w < 0.5) {
@@ -66,7 +78,7 @@ void main()
 			if ((pinfo & RT_PIXEL_OWNED) == 0u || (pinfo >> 8u) != (info >> 8u)) {
 				continue;
 			}
-			vec4 pnd = imageLoad(u_normalDepth[prev], q);
+			vec4 pnd = read_normal_depth(prev, q);
 			if (abs(pnd.z - expectedPrevZ) > 0.04 * abs(expectedPrevZ) + 2.0) {
 				continue;
 			}
@@ -74,12 +86,47 @@ void main()
 				continue;
 			}
 			vec4 hd = imageLoad(u_histDiffuse[prev], q);
+			reactiveTime = max(reactiveTime, rt_shadow_reactive_time(hd.a, 0.0, pc.params.x));
 			vec4 hs = imageLoad(u_histSpecular[prev], q);
 			histD += hd.rgb * bw;
 			histS += hs.rgb * bw;
-			histM += imageLoad(u_histMoments[prev], q) * bw;
+			histM += rt_unpack_moments(imageLoad(u_histMoments[prev], q)) * bw;
 			histLen += hs.a * bw;
+			vec4 hi = imageLoad(u_histIndirect[prev], q);
+			if (hi.a > 0.0) {
+				histI += hi * bw;
+				iwsum += bw;
+			}
 			wsum += bw;
+		}
+	}
+
+	// Current lighting, not receiver motion alone, bounds the old signal.
+	// This catches a moving body's shadow on a completely stationary floor.
+	vec3 lowD = D, highD = D, lowS = S, highS = S;
+	vec3 sumI = vec3(0.0);
+	float sumI2 = 0.0, countI = 0.0;
+	for (int dy = -1; dy <= 1; dy++) {
+		for (int dx = -1; dx <= 1; dx++) {
+			ivec2 q = p + ivec2(dx, dy);
+			if (!in_trace(q)) continue;
+			uint qi = imageLoad(u_info[cur], q).r;
+			vec4 qnd = read_normal_depth(cur, q);
+			if ((qi & RT_PIXEL_OWNED) == 0u || (qi >> 8u) != (info >> 8u) ||
+				abs(qnd.z - z) > 0.01 * abs(z) + 1.0 || dot(oct_decode(qnd.xy), n) < 0.85) continue;
+			vec4 qDirect = imageLoad(u_noisyDiffuse, q);
+			vec3 qD = qDirect.rgb;
+			if (qDirect.a > 0.0) reactiveTime = 0.15;
+			vec3 qS = imageLoad(u_noisySpecular, q).rgb;
+			lowD = min(lowD, qD); highD = max(highD, qD);
+			lowS = min(lowS, qS); highS = max(highS, qS);
+			vec4 qI = imageLoad(u_noisyIndirect, q);
+			if (qI.a > 0.0) {
+				sumI += qI.rgb;
+				float l = denoise_luminance(qI.rgb);
+				sumI2 += l * l;
+				countI += 1.0;
+			}
 		}
 	}
 
@@ -98,30 +145,83 @@ void main()
 		float maxHistory = float(max(pc.extra.x, 1u));
 		// moving surfaces reproject along their own motion; a shorter history
 		// still lets lighting that moves with them settle quickly
-		if ((info & (RT_PIXEL_DYNAMIC | RT_PIXEL_WEAPON)) != 0u) {
+		if ((info & (RT_PIXEL_DYNAMIC | RT_PIXEL_WEAPON | RT_PIXEL_LIQUID)) != 0u) {
 			maxHistory = min(maxHistory, 16.0);
 		}
 		len = min(histLen + 1.0, maxHistory);
-		float alpha = max(1.0 / len, pc.params.x);
-
-		// clip outliers against the history: one very bright sample on a
-		// long history is a firefly, not a lighting change
-		float histL = denoise_luminance(histD);
-		if (len > 4.0 && lD > 8.0 * histL + 0.05) {
-			D *= (8.0 * histL + 0.05) / max(lD, 1e-6);
-			lD = denoise_luminance(D);
+		float directResponse = reactiveTime > 0.0 ? 0.035 : 0.320;
+		float alphaD = rt_temporal_alpha(pc.params.x, directResponse, len);
+		float alphaS = rt_temporal_alpha(pc.params.x, 0.060, len);
+		for (int c = 0; c < 3; c++) {
+			accD[c] = rt_temporal_blend(D[c], histD[c], lowD[c], highD[c], pc.params.x, directResponse, len);
+			accS[c] = rt_temporal_blend(S[c], histS[c], lowS[c], highS[c], pc.params.x, 0.060, len);
+			histD[c] = rt_temporal_history(histD[c], lowD[c], highD[c], pc.params.x);
+			histS[c] = rt_temporal_history(histS[c], lowS[c], highS[c], pc.params.x);
 		}
-		float histLS = denoise_luminance(histS);
-		if (len > 4.0 && lS > 8.0 * histLS + 0.05) {
-			S *= (8.0 * histLS + 0.05) / max(lS, 1e-6);
-			lS = denoise_luminance(S);
-		}
-		moments = vec4(lD, lD * lD, lS, lS * lS);
-
-		accD = mix(histD, D, alpha);
-		accS = mix(histS, S, alpha);
-		moments = mix(histM, moments, alpha);
+		// Recenter the old moments when history was clipped, retaining its
+		// variance instead of mixing a new mean with stale squared luminance.
+		vec2 variance = max(histM.yw - histM.xz * histM.xz, vec2(0.0));
+		vec2 mean = vec2(denoise_luminance(histD), denoise_luminance(histS));
+		histM = vec4(mean.x, mean.x * mean.x + variance.x, mean.y, mean.y * mean.y + variance.y);
+		moments = mix(histM, moments, vec4(alphaD, alphaD, alphaS, alphaS));
 	}
+
+	float lenI = validI ? 1.0 : 0.0;
+	vec3 accI = validI ? I : (countI > 0.0 ? sumI / countI : vec3(0.0));
+	if (!validI && iwsum <= 0.01 && pc.view.w > 1u) {
+		// A disoccluded receiver may have neither history nor its own sample
+		// this frame. Reconstruct only indirect light from nearby sampled
+		// blocks whose material, depth and normal agree; primary/direct are
+		// still exact-resolution observations. Subsequent real samples replace
+		// this initialization normally.
+		int divisor = int(pc.view.w & 255u);
+		int phase = int(pc.view.w >> 8u);
+		ivec2 center = (p / divisor) * divisor + ivec2(phase % divisor, phase / divisor);
+		vec3 reconstructed = vec3(0.0);
+		float weightSum = 0.0;
+		for (int y = -1; y <= 1; y++) {
+			for (int x = -1; x <= 1; x++) {
+				ivec2 q = center + ivec2(x, y) * divisor;
+				if (!in_trace(q)) continue;
+				vec4 sampleI = imageLoad(u_noisyIndirect, q);
+				if (sampleI.a <= 0.0) continue;
+				uint qi = imageLoad(u_info[cur], q).r;
+				vec4 qnd = read_normal_depth(cur, q);
+				if ((qi & RT_PIXEL_OWNED) == 0u || (qi >> 8u) != (info >> 8u) ||
+					abs(qnd.z-z) > 0.01*abs(z)+1.0 || dot(oct_decode(qnd.xy), n) < 0.85) continue;
+				vec2 delta = vec2(q-p);
+				float weight = 1.0 / (1.0 + dot(delta,delta));
+				reconstructed += weight * sampleI.rgb;
+				weightSum += weight;
+			}
+		}
+		if (weightSum > 0.0) { accI = reconstructed / weightSum; lenI = 1.0; }
+	}
+	if (iwsum > 0.01) {
+		histI /= iwsum;
+		lenI = histI.a;
+		accI = histI.rgb;
+		if (validI) {
+			lenI = min(lenI + 1.0, float(max(pc.extra.x, 1u)));
+			// Half-rate samples represent twice the interval between samples.
+			float alphaI = rt_indirect_sample_alpha(noisyI.a, pc.params.x, lenI);
+			accI = mix(histI.rgb, I, alphaI);
+		}
+	}
+	if ((pc.state.w & RT_DENOISE_FLAG_DISABLED) != 0u) {
+		// The unfiltered diagnostic retains the unbiased sparse estimate.
+		accI = I * noisyI.a;
+	}
+	float meanI = countI > 0.0 ? denoise_luminance(sumI / countI) : denoise_luminance(accI);
+	float varI = countI > 0.0 ? max(sumI2 / countI - meanI * meanI, 0.0) : meanI * meanI;
+	// Frame count is not effective sample count for an exponential history.
+	// A bright historical sample surrounded by currently dark samples still
+	// carries uncertainty: otherwise a zero variance locks that firefly out
+	// of every spatial filter. Missing samples use the current neighborhood.
+	float aI = rt_indirect_sample_alpha(max(noisyI.a, 1.0), pc.params.x, max(lenI, 1.0));
+	float residualI = denoise_luminance(accI) - (validI ? denoise_luminance(I) : meanI);
+	varI = max(varI * aI / max(2.0 - aI, 1.0), residualI * residualI);
+	varI = max(varI, lenI < 4.0 ? meanI * meanI : 0.0);
 
 	float varD = max(moments.y - moments.x * moments.x, 0.0);
 	float varS = max(moments.w - moments.z * moments.z, 0.0);
@@ -134,7 +234,9 @@ void main()
 
 	imageStore(u_filterDiffuse[0], p, vec4(accD, varD));
 	imageStore(u_filterSpecular[0], p, vec4(accS, varS));
-	imageStore(u_histDiffuse[cur], p, vec4(accD, len));
+	imageStore(u_histDiffuse[cur], p, vec4(accD, reactiveTime));
 	imageStore(u_histSpecular[cur], p, vec4(accS, len));
-	imageStore(u_histMoments[cur], p, moments);
+	imageStore(u_histMoments[cur], p, rt_pack_moments(moments));
+	imageStore(u_filterIndirect[0], p, vec4(accI, varI));
+	imageStore(u_histIndirect[cur], p, vec4(accI, lenI));
 }

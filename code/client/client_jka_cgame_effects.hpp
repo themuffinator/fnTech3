@@ -14,7 +14,7 @@
 
 /* Cgame import 263 registers an owned declaration and actual Fn media handles.
  * Context/pool lifecycle and its frame clock are served. Shader-only single-
- * spawn/no-motion particles and cylinders enter Fn sprites/polygons; remaining
+ * spawn/no-motion particles, cylinders and lines enter Fn sprites/polygons; remaining
  * playback controls and primitive families remain named refusals. Registration owns
  * all buffers and partial records across engine ERR_DROP/longjmp recovery. */
 namespace {
@@ -55,12 +55,15 @@ struct JKACgameEffectsState {
     std::map<std::string,int> lookup;
 };
 std::unique_ptr<JKACgameEffectsState> jkaCgameEffects;
+std::uint64_t jkaCgameEffectsRevision{};
+bool jkaCgameEffectsTracing{};
 static void CL_JKACgameEffectClose(JKACgameEffect &effect) {
     const fileHandle_t file=effect.file;
     effect.file=0;
     if (file) FS_FCloseFile(file);
 }
 static void CL_JKACgameEffectsClear() {
+    ++jkaCgameEffectsRevision;jkaCgameEffectsTracing=false;
     if (!jkaCgameEffects) return;
     for (const auto &effect:jkaCgameEffects->effects) CL_JKACgameEffectClose(*effect);
     jkaCgameEffects.reset();
@@ -75,6 +78,7 @@ static intptr_t CL_JKACgameEffectsView(intptr_t address) {
 }
 static void CL_JKACgameEffectsInit(intptr_t view) {
     view=CL_JKACgameEffectsView(view);
+    ++jkaCgameEffectsRevision;
     auto &state=CL_JKACgameEffectsState();
     if (!state.initialized) state.instances={};
     state.nextFree=0;
@@ -91,6 +95,7 @@ static void CL_JKACgameEffectsInit(intptr_t view) {
 static void CL_JKACgameEffectsAdjustTime(intptr_t argument) {
     if(argument<INT_MIN || argument>INT_MAX)
         Com_Error(ERR_DROP,"Invalid Academy effects clock word");
+    ++jkaCgameEffectsRevision;
     auto &state=CL_JKACgameEffectsState();
     const int time=static_cast<int>(argument);
     // Retail0x4010c0 pauses for a nonpositive input without replacing either
@@ -108,6 +113,7 @@ static void CL_JKACgameEffectsAdjustTime(intptr_t argument) {
 }
 static void CL_JKACgameEffectsFree() {
     if (!jkaCgameEffects) return;
+    ++jkaCgameEffectsRevision;
     auto &state=*jkaCgameEffects;
     for (const auto &effect:state.effects) CL_JKACgameEffectClose(*effect);
     state.effects.clear();state.lookup.clear();state.pendingName={};
@@ -170,6 +176,35 @@ static void CL_JKACgameEffectNative() {
     if(sizeof(void*)!=4||!cgvm||!cgvm->entryPoint||cgvm->dllExports||cgvm->index!=VM_CGAME)
         Com_Error(ERR_DROP,"Academy effects playback requires its x86 legacy native cgame");
 }
+static void CL_JKACgameEffectTraceEndpoint(fntech3::jka::effectplay::Spawn &spawn) {
+    using namespace fntech3::jka;
+    // Retail0x40931f publishes104bytes to the registered scratch buffer,
+    // then export15 traces against the client's world and entity snapshot.
+    const auto *owner=jkaCgameEffects.get();
+    const auto revision=jkaCgameEffectsRevision;
+    auto *const module=cgvm;
+    void *const shared=jkaCgameSharedBuffer;
+    void *const destination=CL_JKACgameSpan(reinterpret_cast<intptr_t>(shared),sizeof(fntech3_jka_cgame_trace_t));
+    fntech3_jka_cgame_trace_t request{};
+    std::memcpy(request.start,spawn.origin.data(),sizeof(request.start));
+    std::memcpy(request.end,spawn.endpoint.data(),sizeof(request.end));
+    request.skipEntity=-1;request.mask=0x1001; // Academy SOLID|TERRAIN.
+    std::memcpy(destination,&request,sizeof(request));
+    jkaCgameEffectsTracing=true;
+    VM_Call(module,0,CG_RAVEN_TRACE);
+    jkaCgameEffectsTracing=false;
+    if(cgvm!=module||jkaCgameSharedBuffer!=shared||jkaCgameEffects.get()!=owner||jkaCgameEffectsRevision!=revision)
+        Com_Error(ERR_DROP,"Academy effects trace changed its owning context");
+    std::memcpy(&request,destination,sizeof(request));
+    if(!effectplay::Finite(request.result.fraction)||request.result.fraction<0||request.result.fraction>1)
+        Com_Error(ERR_DROP,"Invalid Academy effects trace fraction");
+    for(int n=0;n<3;++n){
+        const float value=request.result.endpos[n];
+        if(!effectplay::Finite(value)||std::fabs(value)>10000000.0f)
+            Com_Error(ERR_DROP,"Invalid Academy effects trace endpoint");
+        spawn.endpoint[n]=value;
+    }
+}
 static void CL_JKACgameEffectRetire(JKACgameEffectsState &state) {
     for(const auto &instance:state.instances)if(instance.active){
         const std::int64_t age=std::int64_t(state.time)-instance.startTime;
@@ -213,6 +248,7 @@ static void CL_JKACgameEffectPlay(const intptr_t *args) {
     for(const auto &spec:effect.playback){
         effectplay::Spawn spawn;
         if(!effectplay::Instantiate(spec,origin,axis,random,spawn))Com_Error(ERR_DROP,"Invalid Academy effects spawn result");
+        if(spawn.traceEnd)CL_JKACgameEffectTraceEndpoint(spawn);
         state.spawnWork.push_back(spawn);
     }
     for(std::size_t n=0;n<state.instances.size()&&state.slotWork.size()<state.spawnWork.size();++n){
@@ -258,7 +294,7 @@ static void CL_JKACgameEffectDrawScheduled(bool portal) {
         if(!instance.active)continue;
         const auto &spawn=instance.spawn;
         double distance=0;for(int n=0;n<3;++n){const double delta=double(spawn.origin[n])-view.vieworg[n];distance+=delta*delta;}
-        if(distance<double(nearDistance)*nearDistance)continue;
+        if(spawn.kind!=effects::Kind::Line&&distance<double(nearDistance)*nearDistance)continue;
         state.drawWork.emplace_back();auto &draw=state.drawWork.back();draw.shader=spawn.shader;
         if(spawn.kind==effects::Kind::Particle){
             draw.entity.reType=RT_SPRITE;draw.entity.customShader=spawn.shader;draw.entity.radius=spawn.size;draw.entity.rotation=spawn.rotation;
@@ -272,6 +308,24 @@ static void CL_JKACgameEffectDrawScheduled(bool portal) {
             constexpr float x[]{-1,1,1,-1},y[]{-1,-1,1,1};
             for(int n=0;n<4;++n)CL_JKACgameEffectVertex(draw.vertices[n],spawn,0,
                 spawn.size*(x[n]*cosine-y[n]*sine),spawn.size*(x[n]*sine+y[n]*cosine),n==1||n==2?1:0,n>=2?1:0);
+        }else if(spawn.kind==effects::Kind::Line){
+            effectplay::Vector eye{},side{};
+            std::memcpy(eye.data(),view.vieworg,sizeof(view.vieworg));
+            const float radius=effectplay::LineRadius(spawn,static_cast<int>(std::int64_t(state.time)-instance.startTime));
+            if(!effectplay::Finite(radius))Com_Error(ERR_DROP,"Invalid Academy effects line width");
+            if(radius==0||!effectplay::LineSide(spawn.origin,spawn.endpoint,eye,side)){state.drawWork.pop_back();continue;}
+            draw.vertices.resize(4);
+            for(int n=0;n<4;++n){
+                auto &vertex=draw.vertices[n];
+                const auto &point=n<2?spawn.origin:spawn.endpoint;
+                const float offset=(n==0||n==3)?radius:-radius;
+                for(int component=0;component<3;++component){
+                    vertex.xyz[component]=point[component]+side[component]*offset;
+                    if(!effectplay::Finite(vertex.xyz[component]))Com_Error(ERR_DROP,"Invalid Academy effects line vertex");
+                }
+                vertex.st[0]=n==0||n==3?0.0f:1.0f;vertex.st[1]=n<2?0.0f:1.0f;
+                std::memcpy(vertex.modulate.rgba,spawn.color.data(),4);
+            }
         }else if(spawn.kind==effects::Kind::Cylinder){
             constexpr int segments=16;draw.vertices.resize(segments*4);
             for(int n=0;n<segments;++n){
@@ -292,11 +346,18 @@ static void CL_JKACgameEffectDrawScheduled(bool portal) {
 }
 static bool CL_JKACgameEffectsCall(intptr_t *args,fntech3::jka::module::Call call,intptr_t &result) {
     using fntech3::jka::module::Call;
+    if(jkaCgameEffectsTracing)switch(call){
+    case Call::CG_FX_PLAY_EFFECT_ID:case Call::CG_FX_ADD_SCHEDULED_EFFECTS:case Call::CG_FX_INIT_SYSTEM:
+    case Call::CG_FX_SET_REFDEF:case Call::CG_FX_FREE_SYSTEM:case Call::CG_FX_ADJUST_TIME:case Call::CG_FX_REGISTER_EFFECT:
+        Com_Error(ERR_DROP,"Academy effects trace cannot reenter its effect context");
+    default:break;
+    }
     switch (call) {
     case Call::CG_FX_PLAY_EFFECT_ID:CL_JKACgameEffectPlay(args);result=0;return true;
     case Call::CG_FX_ADD_SCHEDULED_EFFECTS:CL_JKACgameEffectDrawScheduled(args[1]!=0);result=0;return true;
     case Call::CG_FX_INIT_SYSTEM:CL_JKACgameEffectsInit(args[1]);result=1;return true;
     case Call::CG_FX_SET_REFDEF:
+        ++jkaCgameEffectsRevision;
         CL_JKACgameEffectsState().view=CL_JKACgameEffectsView(args[1]);result=0;return true;
     case Call::CG_FX_FREE_SYSTEM:CL_JKACgameEffectsFree();result=1;return true;
     case Call::CG_FX_ADJUST_TIME:CL_JKACgameEffectsAdjustTime(args[1]);result=0;return true;

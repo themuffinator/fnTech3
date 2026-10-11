@@ -375,3 +375,74 @@ static qboolean RT_BvhAppend( rtBvh_t *bvh, const rtxRtPackedVertex_t *vertices,
 	bvh->numTris += count;
 	return qtrue;
 }
+
+// Update a single cached tree with unchanged triangle connectivity. Leaves
+// retain their triangle order; child bounds are ready before their parent
+// because the builder always allocates children after it. The caller checks
+// the index array exactly before choosing refit instead of build.
+static qboolean RT_BvhRefit( rtBvh_t *bvh, const rtxRtPackedVertex_t *vertices, uint32_t numVertices,
+	const uint32_t *indices, uint32_t count, uint32_t oldBias, uint32_t newBias )
+{
+	uint32_t i;
+	if ( !bvh->numNodes || bvh->numTris != count ) return qfalse;
+	for ( i = 0; i < count; i++ ) {
+		rtBvhTri_t *tri = &bvh->tris[i];
+		uint32_t prim, local, v;
+		float *corners[3] = { tri->v0, tri->v1, tri->v2 };
+		Com_Memcpy( &prim, &tri->v0[3], sizeof( prim ) );
+		if ( prim < oldBias || prim - oldBias >= count ) return qfalse;
+		local = prim - oldBias;
+		for ( v = 0; v < 3; v++ ) {
+			const uint32_t index = indices[local * 3 + v];
+			int k;
+			if ( index >= numVertices ) return qfalse;
+			for ( k = 0; k < 3; k++ ) {
+				const float x = vertices[index].xyz[k];
+				if ( !( x >= -FLT_MAX && x <= FLT_MAX ) ) return qfalse;
+				corners[v][k] = x;
+			}
+		}
+		prim = newBias + local;
+		Com_Memcpy( &tri->v0[3], &prim, sizeof( prim ) );
+	}
+	for ( i = bvh->numNodes; i-- > 0; ) {
+		rtBvhNode_t *n = &bvh->nodes[i];
+		uint32_t j;
+		int k;
+		RT_BvhClearBounds( n->bmin, n->bmax );
+		if ( n->count ) {
+			if ( n->first > count || n->count > count - n->first ) return qfalse;
+			for ( j = n->first; j < n->first + n->count; j++ ) {
+				const rtBvhTri_t *tri = &bvh->tris[j];
+				for ( k = 0; k < 3; k++ ) {
+					n->bmin[k] = MIN( n->bmin[k], MIN( tri->v0[k], MIN( tri->v1[k], tri->v2[k] ) ) );
+					n->bmax[k] = MAX( n->bmax[k], MAX( tri->v0[k], MAX( tri->v1[k], tri->v2[k] ) ) );
+				}
+			}
+		} else {
+			if ( n->first <= i || n->first >= bvh->numNodes - 1 ) return qfalse;
+			for ( k = 0; k < 3; k++ ) {
+				n->bmin[k] = MIN( bvh->nodes[n->first].bmin[k], bvh->nodes[n->first + 1].bmin[k] );
+				n->bmax[k] = MAX( bvh->nodes[n->first].bmax[k], bvh->nodes[n->first + 1].bmax[k] );
+			}
+		}
+	}
+	return qtrue;
+}
+
+// Expected traversal work relative to the root area. Pure translation and
+// uniform scale leave this unchanged; deformation that makes child boxes
+// overlap substantially triggers a rebuild in the caller.
+static float RT_BvhCost( const rtBvh_t *bvh )
+{
+	double cost = 0.0;
+	uint32_t i;
+	float rootArea;
+	if ( !bvh->numNodes ) return 0.0f;
+	rootArea = RT_BvhArea( bvh->nodes[0].bmin, bvh->nodes[0].bmax );
+	for ( i = 0; i < bvh->numNodes; i++ ) {
+		const rtBvhNode_t *n = &bvh->nodes[i];
+		cost += (double)RT_BvhArea( n->bmin, n->bmax ) * ( n->count ? n->count : 1u );
+	}
+	return rootArea > 0.0f ? (float)( cost / rootArea ) : 0.0f;
+}

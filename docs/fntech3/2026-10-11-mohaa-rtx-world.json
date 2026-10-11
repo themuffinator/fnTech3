@@ -1,0 +1,1874 @@
+{
+  "record": "2026-10-11-mohaa-rtx-world.md",
+  "evidence": [
+    "Source",
+    "Unit",
+    "Live subset"
+  ],
+  "profile": "mohaa",
+  "retail_version": "1.00 US",
+  "full_compatibility": false,
+  "source_commit": "6a8ea608c046690e572e77f13195f7608478d466",
+  "source_state": "Existing dirty working tree plus this fix; unrelated RTX work also changed during the investigation and was preserved. Per-run renderer and executable hashes identify tested builds.",
+  "build": {
+    "preset": "meson/build/win32-dev",
+    "platform": "Windows x86",
+    "compiler": "MSVC 2022",
+    "option": "mohaa-development=true",
+    "log": ".tmp/mohaa-terrain/build.log",
+    "targets": [
+      "fnql_glx_x86",
+      "fnql_vk_x86",
+      "fnql_rtx_x86"
+    ]
+  },
+  "installation": {
+    "path": "E:\\Games\\Medal of Honor Allied Assault",
+    "read_only_asset_lookup": true,
+    "files": {
+      "main/cgamex86.dll": "cb2be40ce4d9248234652d44bbb02c41b0438886b34de56e5de9910f16679c2c",
+      "main/gamex86.dll": "2f37ead1a91aae850dd8cdb29c6b5774864f6ae8654fb79d3593e45d9d3fc55c",
+      "system86.dll": "9971bbebf1692b0fabba6831563bca4bdead8b68964fe2327b2535656f29ed0b"
+    }
+  },
+  "engine_change_files": [
+    "code/renderercommon/tr_mohaa_world.c",
+    "code/renderercommon/tr_mohaa_world.h",
+    "code/renderer/tr_bsp.c",
+    "code/renderervk/tr_bsp.c",
+    "code/rendererrtx/tr_bsp.c",
+    "code/rendererrtx/tr_local.h",
+    "code/rendererrtx/rt/rt_backend.c"
+  ],
+  "change": "Report the actual appended world-surface range and include it in RTX static extraction without extending model zero across inline brush models.",
+  "tests": {
+    "windows_x86": {
+      "mohaa": 72,
+      "rtx": 120,
+      "logs": [
+        ".tmp/mohaa-terrain/tests-mohaa.log",
+        ".tmp/mohaa-terrain/tests-rtx.log"
+      ],
+      "terrain_fixture_after_extension": {
+        "tests": 6,
+        "log": ".tmp/mohaa-terrain/tests-terrain.log"
+      }
+    },
+    "linux_x86": {
+      "tests": 17,
+      "logs": [
+        ".tmp/mohaa-terrain/tests-linux-extraction.log",
+        ".tmp/mohaa-terrain/tests-linux-terrain.log",
+        ".tmp/mohaa-terrain/tests-linux-decals.log"
+      ]
+    },
+    "old_extraction_mutation": {
+      "result": "The original extraction fails the new geometry-count assertion",
+      "log": ".tmp/mohaa-terrain/tests-mutation.log"
+    },
+    "documentation": {
+      "player_manual": 16,
+      "generated_docs": 4,
+      "logs": [
+        ".tmp/mohaa-terrain/tests-manual.log",
+        ".tmp/mohaa-terrain/tests-docs.log"
+      ]
+    }
+  },
+  "inventory": [
+    {
+      "map": "maps/DM/mohdm1.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "effa7cbcdadfdec432b85ce3eef7a9d7c20397392b948563ccf7fcbf20978b7a",
+      "terrain": 0,
+      "statics": 349,
+      "original_surfaces": 6163,
+      "model_zero": 6059
+    },
+    {
+      "map": "maps/DM/mohdm2.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "7738c8ba27566258a3b8e8225b9a518fe515f6cc627d35e0788cb20d232c82aa",
+      "terrain": 70,
+      "statics": 61,
+      "original_surfaces": 6707,
+      "model_zero": 6433
+    },
+    {
+      "map": "maps/DM/mohdm3.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "a8f0ae02fbddb27cbcca596236d855c73e4f305d0ce7b99d604019b7c371fa7c",
+      "terrain": 22,
+      "statics": 294,
+      "original_surfaces": 8641,
+      "model_zero": 8627
+    },
+    {
+      "map": "maps/DM/mohdm4.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "4654c4ad762eb16d8f3ee94f86e02f1866b4af302febdc192d92e93c98d0f857",
+      "terrain": 242,
+      "statics": 310,
+      "original_surfaces": 7697,
+      "model_zero": 7563
+    },
+    {
+      "map": "maps/DM/mohdm5.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "568543c6f4e42188e9fb4a1d9bc7a6a11ff6d23b023067c6c26165df212a1472",
+      "terrain": 127,
+      "statics": 418,
+      "original_surfaces": 2987,
+      "model_zero": 2987
+    },
+    {
+      "map": "maps/DM/mohdm6.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "404e140c51c7529870c715a58f178635c191cfc6c22d8ed90b6feb6cf9d5ac29",
+      "terrain": 6,
+      "statics": 128,
+      "original_surfaces": 5457,
+      "model_zero": 5252
+    },
+    {
+      "map": "maps/DM/mohdm7.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "800dbdcc99e01622ce5b9e8c348ec9c7d48bc7493a82f0f18fb8828a12baa14d",
+      "terrain": 13,
+      "statics": 215,
+      "original_surfaces": 12041,
+      "model_zero": 11955
+    },
+    {
+      "map": "maps/briefing/briefing1.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "9215f2fbb2283d5f1d56bfa77dceb78e2acc74590e9db9dcc413dbc88c25a059",
+      "terrain": 0,
+      "statics": 0,
+      "original_surfaces": 6,
+      "model_zero": 6
+    },
+    {
+      "map": "maps/briefing/briefing2.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "9b70837762fb5c5db67e725b36fe999b48442e90b498f81ccb120a137c2f065e",
+      "terrain": 0,
+      "statics": 0,
+      "original_surfaces": 6,
+      "model_zero": 6
+    },
+    {
+      "map": "maps/briefing/briefing3.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "0098a97f045e2cb888efe5ee0ba04293bcb37cbd87b56127c754487d8612e61f",
+      "terrain": 0,
+      "statics": 0,
+      "original_surfaces": 6,
+      "model_zero": 6
+    },
+    {
+      "map": "maps/briefing/briefing4.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "279aa93a9c67f93de7c3349bdc04be446e62ee15fc65916a4c570a73b2b46708",
+      "terrain": 0,
+      "statics": 0,
+      "original_surfaces": 6,
+      "model_zero": 6
+    },
+    {
+      "map": "maps/briefing/briefing5.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "82fc6a516b15a13623baac97a84b3fb1221996043bbc6c82fff3560088e76c74",
+      "terrain": 0,
+      "statics": 0,
+      "original_surfaces": 6,
+      "model_zero": 6
+    },
+    {
+      "map": "maps/briefing/briefing6.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "aceb54a028a789d1e37e23b949b4b19103267ff16cc26ebf8993d1895c33adf7",
+      "terrain": 0,
+      "statics": 0,
+      "original_surfaces": 6,
+      "model_zero": 6
+    },
+    {
+      "map": "maps/credits.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "6320c7d24234d6224053251a1c470afda06df7336564d733e88563d6ab64d00c",
+      "terrain": 0,
+      "statics": 0,
+      "original_surfaces": 6,
+      "model_zero": 6
+    },
+    {
+      "map": "maps/m1l1.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "38ab956dd4dcd89b0068ceca4c24bd46bc6142415a0491d59850d361de87f514",
+      "terrain": 18,
+      "statics": 135,
+      "original_surfaces": 4270,
+      "model_zero": 3811
+    },
+    {
+      "map": "maps/m1l2a.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "37050a20b2502d4485ae9589c82006f1d0064e5b39a312f2b7ecdfb2a0462fad",
+      "terrain": 146,
+      "statics": 504,
+      "original_surfaces": 10166,
+      "model_zero": 9480
+    },
+    {
+      "map": "maps/m1l2b.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "9186bb8999a2de418e329485629c72545cef4b94c03cb8199149a92553217127",
+      "terrain": 8,
+      "statics": 189,
+      "original_surfaces": 10199,
+      "model_zero": 8631
+    },
+    {
+      "map": "maps/m1l3a.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "faee27f112616f59f9ac3c5f66cfd3c4b6a534939d749448516a8bb043a86fad",
+      "terrain": 265,
+      "statics": 112,
+      "original_surfaces": 2844,
+      "model_zero": 2151
+    },
+    {
+      "map": "maps/m1l3b.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "32644f33ad47411526428d100d268592788a59de4a7b89b94e61894730786eee",
+      "terrain": 488,
+      "statics": 147,
+      "original_surfaces": 2417,
+      "model_zero": 2079
+    },
+    {
+      "map": "maps/m1l3c.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "b717e2f0f6b5254f0f8801b0a64e52842442fdb717fc8ff2bef31013748bedee",
+      "terrain": 0,
+      "statics": 204,
+      "original_surfaces": 8804,
+      "model_zero": 7464
+    },
+    {
+      "map": "maps/m2l1.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "d7144a0c23f52c7ce7100fa887fe7e489a0f847d50d81d2fc3ef22d7d88ea526",
+      "terrain": 0,
+      "statics": 353,
+      "original_surfaces": 8568,
+      "model_zero": 8341
+    },
+    {
+      "map": "maps/m2l2a.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "3327bdcf0dc1ed12fb4b1b3a2c7d948316476a45bf484b2bec378a934a4efe34",
+      "terrain": 0,
+      "statics": 554,
+      "original_surfaces": 10379,
+      "model_zero": 9309
+    },
+    {
+      "map": "maps/m2l2b.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "bb4cc751dd837ee83ccce34975e8b27b77b35097a674dc66175685a035d57604",
+      "terrain": 0,
+      "statics": 607,
+      "original_surfaces": 9211,
+      "model_zero": 8775
+    },
+    {
+      "map": "maps/m2l2c.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "2a50187ac3cfa446a8e9288da028a4f9d27dc61be1c6cea6b8d710c756900a68",
+      "terrain": 0,
+      "statics": 490,
+      "original_surfaces": 5786,
+      "model_zero": 5478
+    },
+    {
+      "map": "maps/m2l3.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "87a9b86124b28e9bc9bedb24aefe30d2a78b204e59436535397c3713240e5b69",
+      "terrain": 0,
+      "statics": 260,
+      "original_surfaces": 13378,
+      "model_zero": 12930
+    },
+    {
+      "map": "maps/m3l1a.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "aed97fcc58f6c94945fa6a8cb4475553af803274141fe2aa1f0415036e643e55",
+      "terrain": 273,
+      "statics": 401,
+      "original_surfaces": 2088,
+      "model_zero": 1350
+    },
+    {
+      "map": "maps/m3l1b.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "4a5a2d7667bc93d64a94628f60a462ff29640c27c3aec32f8a46f9e5a2555233",
+      "terrain": 426,
+      "statics": 299,
+      "original_surfaces": 6976,
+      "model_zero": 5619
+    },
+    {
+      "map": "maps/m3l2.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "b94848291ae680bd63130e8058f0b74521a8e859e3c93c1be46875433d4c6f24",
+      "terrain": 165,
+      "statics": 406,
+      "original_surfaces": 4901,
+      "model_zero": 4676
+    },
+    {
+      "map": "maps/m3l3.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "e95b09ad68e0b4695bf0c89b75338458b06daea6454b142a0149ade96b63f01e",
+      "terrain": 391,
+      "statics": 373,
+      "original_surfaces": 9102,
+      "model_zero": 8540
+    },
+    {
+      "map": "maps/m4l0.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "b72ff59f02551c2f071daebfe7e7ffbf06c63265e5acde8819a8075320b5b623",
+      "terrain": 591,
+      "statics": 158,
+      "original_surfaces": 2967,
+      "model_zero": 2943
+    },
+    {
+      "map": "maps/m4l1.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "93d3d83739653f16226a5e04ee7057dfe4f47d98c5dbd9ed5c30b53b4a369d65",
+      "terrain": 8,
+      "statics": 388,
+      "original_surfaces": 5684,
+      "model_zero": 5537
+    },
+    {
+      "map": "maps/m4l2.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "3475fcfe1624aa4c7f10534049fa5b14c867786971e700b9358e443629373445",
+      "terrain": 187,
+      "statics": 396,
+      "original_surfaces": 10150,
+      "model_zero": 8306
+    },
+    {
+      "map": "maps/m4l3.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "b92a6d08cc67dc7b37690f58cfd96ef44296ce40f0491b5055b36285858134ea",
+      "terrain": 440,
+      "statics": 764,
+      "original_surfaces": 9977,
+      "model_zero": 8994
+    },
+    {
+      "map": "maps/m5l1a.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "8fde521eb07ef270729e9a11155e727c87d9bb5fb3972892e577e74179f7f82d",
+      "terrain": 161,
+      "statics": 102,
+      "original_surfaces": 6848,
+      "model_zero": 6569
+    },
+    {
+      "map": "maps/m5l1b.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "3ef6dead653a5a9c7c32cac798a87c2635f755ff9701b7776e5c496373f1146e",
+      "terrain": 212,
+      "statics": 134,
+      "original_surfaces": 10612,
+      "model_zero": 9859
+    },
+    {
+      "map": "maps/m5l2a.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "628d39e27ac3baf6fe145ef64cf3ee5e65b5452e5d1f994a88405abed07dde42",
+      "terrain": 308,
+      "statics": 107,
+      "original_surfaces": 6847,
+      "model_zero": 3966
+    },
+    {
+      "map": "maps/m5l2b.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "4b1027379def1feccfcce08170d29194003bfd58061935ec95dcd813be0eea81",
+      "terrain": 518,
+      "statics": 291,
+      "original_surfaces": 8842,
+      "model_zero": 3812
+    },
+    {
+      "map": "maps/m5l3.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "fae849f4006c0867b3104c31267898bb0133ca297cd00bfa1da6edc413003ec6",
+      "terrain": 56,
+      "statics": 67,
+      "original_surfaces": 11913,
+      "model_zero": 8240
+    },
+    {
+      "map": "maps/m6l1a.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "f671345ef216ec8b3c614b3801af754e800004336d50fdc18024b3084232512b",
+      "terrain": 460,
+      "statics": 2763,
+      "original_surfaces": 2108,
+      "model_zero": 2108
+    },
+    {
+      "map": "maps/m6l1b.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "c138779b395e97ca3a42d8ac59a6caa73141363782ee3160c2aae423c40d4f43",
+      "terrain": 388,
+      "statics": 2054,
+      "original_surfaces": 2653,
+      "model_zero": 2508
+    },
+    {
+      "map": "maps/m6l1c.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "6c10faeb08edf6994008e8afe440cfa42bbbac3c3bbc315229cafbcbf1606db6",
+      "terrain": 83,
+      "statics": 404,
+      "original_surfaces": 14670,
+      "model_zero": 13649
+    },
+    {
+      "map": "maps/m6l2a.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "7b47a36091d17510dac3eef48feee1bb8b30f02b058d55c1736cb1938516cc95",
+      "terrain": 42,
+      "statics": 578,
+      "original_surfaces": 14839,
+      "model_zero": 13267
+    },
+    {
+      "map": "maps/m6l2b.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "423eafc06c6abb65237f9dc91147ed520c12e394e61904e223a7058d54731104",
+      "terrain": 127,
+      "statics": 1061,
+      "original_surfaces": 13064,
+      "model_zero": 12096
+    },
+    {
+      "map": "maps/m6l3a.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "7d94c30b5dd1c9388b33dc9178cddbe628976e1fda37b03db4527612250412b8",
+      "terrain": 80,
+      "statics": 238,
+      "original_surfaces": 15853,
+      "model_zero": 13311
+    },
+    {
+      "map": "maps/m6l3b.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "5100f2a6a76207fd21bbe0ad49a6d7bb1a858542852bf9962f5368a4189b4764",
+      "terrain": 0,
+      "statics": 252,
+      "original_surfaces": 14950,
+      "model_zero": 13372
+    },
+    {
+      "map": "maps/m6l3c.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "906e004b6f7eabe060d429b35edadd4915aea19307a8d8c5dfc44482c8f67cbf",
+      "terrain": 0,
+      "statics": 191,
+      "original_surfaces": 16478,
+      "model_zero": 13180
+    },
+    {
+      "map": "maps/m6l3d.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "940658a3a9e414438ea5a035d269d47fb7e44b93e0d67edf9d86f04522ee7ce3",
+      "terrain": 0,
+      "statics": 76,
+      "original_surfaces": 8978,
+      "model_zero": 8830
+    },
+    {
+      "map": "maps/m6l3e.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "b229fb8677eececa927725a953a4c6643f753ce4461c9d79f2dfdc07aae0736f",
+      "terrain": 51,
+      "statics": 60,
+      "original_surfaces": 4943,
+      "model_zero": 3701
+    },
+    {
+      "map": "maps/obj/obj_team1.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "2c111fa60d262ef6fbb4b3e3aa0517ff9d01a399355b169a3d88367a57f7600b",
+      "terrain": 177,
+      "statics": 155,
+      "original_surfaces": 7135,
+      "model_zero": 6999
+    },
+    {
+      "map": "maps/obj/obj_team2.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "0a5ca80b77d9bb7e61f6be6ad3569e91b5f6d2f28b6bb980cf892eb606c94580",
+      "terrain": 100,
+      "statics": 324,
+      "original_surfaces": 18344,
+      "model_zero": 17859
+    },
+    {
+      "map": "maps/obj/obj_team3.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "5147afd25bbc11e8071a44937b6b111d9ce58b7b70f5f90fe5a1cfad078f8643",
+      "terrain": 330,
+      "statics": 422,
+      "original_surfaces": 8250,
+      "model_zero": 8181
+    },
+    {
+      "map": "maps/obj/obj_team4.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "204a16c415484760672d28a71aec9a240a87eb5983e4ac93a4c7b6ecc5f70e7d",
+      "terrain": 211,
+      "statics": 346,
+      "original_surfaces": 8193,
+      "model_zero": 7504
+    },
+    {
+      "map": "maps/training.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "a56eb7d2713b53d4514165ada3a0a8fe85e6986d10a6cb4244e568842d4826b3",
+      "terrain": 80,
+      "statics": 166,
+      "original_surfaces": 4341,
+      "model_zero": 3277
+    },
+    {
+      "map": "maps/void.bsp",
+      "pak": "Pak5.pk3",
+      "sha256": "764fb5ee0574ff4ec6424200991328a9f2658800a80e64557ac698b96e62152c",
+      "terrain": 0,
+      "statics": 0,
+      "original_surfaces": 6,
+      "model_zero": 6
+    }
+  ],
+  "live_runs": [
+    {
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "mohaa",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Medal of Honor Allied Assault",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\mohaa-terrain\\before-user\\home",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "3",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_volume",
+        "0",
+        "+set",
+        "s_musicvolume",
+        "0",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "12441",
+        "+set",
+        "rconPassword",
+        "terrainprobe",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "com_maxfps",
+        "30",
+        "+set",
+        "com_maxfpsUnfocused",
+        "30",
+        "+set",
+        "thereisnomonkey",
+        "1",
+        "+set",
+        "g_ai",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "2",
+        "+devmap",
+        "m1l1"
+      ],
+      "map": "m1l1",
+      "exe_sha256": "dc289f94d9561498b849b0decee59a24f56c84814696b523801c20f1e3da7945",
+      "renderer_sha256": "4f910e19c5ea6058d688c81865927d00b94cdcfed6507f79d132494320874305",
+      "commands": [
+        {
+          "command": "finishloadingscreen",
+          "reply": ""
+        },
+        {
+          "command": "viewpos",
+          "reply": "\u0001print\n(-3610 -309 486) : 72\n"
+        },
+        {
+          "command": "screenshot traced",
+          "reply": ""
+        },
+        {
+          "command": "rtx_rt_debug_visualizer 2",
+          "reply": ""
+        },
+        {
+          "command": "screenshot normals",
+          "reply": ""
+        },
+        {
+          "command": "rtx_rt_debug_visualizer 1",
+          "reply": ""
+        },
+        {
+          "command": "screenshot reflectance",
+          "reply": ""
+        },
+        {
+          "command": "rtx_caps_report 2",
+          "reply": ""
+        },
+        {
+          "command": "rtx_rt_pick -3610 -309 600 0 0 -1",
+          "reply": "\u0001print\nrtx_rt_pick: no traced surface along the ray\n"
+        },
+        {
+          "command": "quit",
+          "reply": ""
+        }
+      ],
+      "complete": true,
+      "captures": [
+        {
+          "path": ".tmp/mohaa-terrain/before-user/home/main/screenshots/normals.png",
+          "sha256": "0414ed0fac177690c35b35a886b9260248cdb4403a767fd33e8975b67757d719"
+        },
+        {
+          "path": ".tmp/mohaa-terrain/before-user/home/main/screenshots/reflectance.png",
+          "sha256": "a7486f8a0490695927a20fa01f2dffd56e7eb9a61eeecf05fa049fa60052686a"
+        },
+        {
+          "path": ".tmp/mohaa-terrain/before-user/home/main/screenshots/traced.png",
+          "sha256": "69abc344628bba9480c8615d0ffaf25e212cfa7744922a6c68e70585fc1f355e"
+        }
+      ],
+      "diagnostics": [
+        "RTX capability gate: requested=ray_tracing_pipeline (2), active=ray_tracing_pipeline (2), require=0, backend=compute",
+        "^5terrain: 1128 of 2304 triangles in 18 patches, the rest taken out",
+        "^3RTX RT: no memory for a BVH over 318847 triangles",
+        "^3RTX RT: world acceleration structure build failed",
+        "^5serverCommand: 5 : stufftext \"echo TERRAIN_READY\"",
+        "TERRAIN_READY"
+      ],
+      "label": "before-user",
+      "local_evidence": ".tmp/mohaa-terrain/before-user"
+    },
+    {
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "mohaa",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Medal of Honor Allied Assault",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\mohaa-terrain\\before-picmip\\home",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "3",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_volume",
+        "0",
+        "+set",
+        "s_musicvolume",
+        "0",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "12441",
+        "+set",
+        "rconPassword",
+        "terrainprobe",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "com_maxfps",
+        "30",
+        "+set",
+        "com_maxfpsUnfocused",
+        "30",
+        "+set",
+        "thereisnomonkey",
+        "1",
+        "+set",
+        "g_ai",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "2",
+        "+set",
+        "r_picmip",
+        "1",
+        "+set",
+        "r_picmipFilter",
+        "0",
+        "+devmap",
+        "m1l1"
+      ],
+      "map": "m1l1",
+      "exe_sha256": "dc289f94d9561498b849b0decee59a24f56c84814696b523801c20f1e3da7945",
+      "renderer_sha256": "4f910e19c5ea6058d688c81865927d00b94cdcfed6507f79d132494320874305",
+      "commands": [
+        {
+          "command": "finishloadingscreen",
+          "reply": ""
+        },
+        {
+          "command": "viewpos",
+          "reply": "\u0001print\n(-3610 -309 486) : 72\n"
+        },
+        {
+          "command": "screenshot traced",
+          "reply": ""
+        },
+        {
+          "command": "rtx_rt_debug_visualizer 2",
+          "reply": ""
+        },
+        {
+          "command": "screenshot normals",
+          "reply": ""
+        },
+        {
+          "command": "rtx_rt_debug_visualizer 1",
+          "reply": ""
+        },
+        {
+          "command": "screenshot reflectance",
+          "reply": ""
+        },
+        {
+          "command": "rtx_caps_report 2",
+          "reply": ""
+        },
+        {
+          "command": "rtx_rt_pick -3610 -309 600 0 0 -1",
+          "reply": "\u0001print\nrtx_rt_pick: no traced surface along the ray\n"
+        },
+        {
+          "command": "quit",
+          "reply": ""
+        }
+      ],
+      "complete": true,
+      "captures": [
+        {
+          "path": ".tmp/mohaa-terrain/before-picmip/home/main/screenshots/normals.png",
+          "sha256": "d2b4d27ed4e296cc9331abfc82f2b43408f74523c6418c89c2a40e8a8231f937"
+        },
+        {
+          "path": ".tmp/mohaa-terrain/before-picmip/home/main/screenshots/reflectance.png",
+          "sha256": "f8fc4346d291fec4214c37c5224b150bd1b87dc52d4a22032f83bd081bb8a4d8"
+        },
+        {
+          "path": ".tmp/mohaa-terrain/before-picmip/home/main/screenshots/traced.png",
+          "sha256": "bc191abef70d7bb149d96b8b69d7e0be3e976c70e30b010f49de8ddbe11a9a89"
+        }
+      ],
+      "diagnostics": [
+        "RTX capability gate: requested=ray_tracing_pipeline (2), active=ray_tracing_pipeline (2), require=0, backend=compute",
+        "^5terrain: 1128 of 2304 triangles in 18 patches, the rest taken out",
+        "^3RTX RT: no memory for a BVH over 318847 triangles",
+        "^3RTX RT: world acceleration structure build failed",
+        "^5serverCommand: 5 : stufftext \"echo TERRAIN_READY\"",
+        "TERRAIN_READY"
+      ],
+      "label": "before-picmip",
+      "local_evidence": ".tmp/mohaa-terrain/before-picmip"
+    },
+    {
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "mohaa",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Medal of Honor Allied Assault",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\mohaa-terrain\\before-subdiv4\\home",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "3",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_volume",
+        "0",
+        "+set",
+        "s_musicvolume",
+        "0",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "12441",
+        "+set",
+        "rconPassword",
+        "terrainprobe",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "com_maxfps",
+        "30",
+        "+set",
+        "com_maxfpsUnfocused",
+        "30",
+        "+set",
+        "thereisnomonkey",
+        "1",
+        "+set",
+        "g_ai",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "2",
+        "+set",
+        "r_picmip",
+        "0",
+        "+set",
+        "r_picmipFilter",
+        "0",
+        "+set",
+        "r_subdivisions",
+        "4",
+        "+devmap",
+        "m1l1"
+      ],
+      "map": "m1l1",
+      "exe_sha256": "dc289f94d9561498b849b0decee59a24f56c84814696b523801c20f1e3da7945",
+      "renderer_sha256": "4f910e19c5ea6058d688c81865927d00b94cdcfed6507f79d132494320874305",
+      "commands": [
+        {
+          "command": "finishloadingscreen",
+          "reply": ""
+        },
+        {
+          "command": "viewpos",
+          "reply": "\u0001print\n(-3610 -309 486) : 72\n"
+        },
+        {
+          "command": "screenshot traced",
+          "reply": ""
+        },
+        {
+          "command": "rtx_rt_debug_visualizer 2",
+          "reply": ""
+        },
+        {
+          "command": "screenshot normals",
+          "reply": ""
+        },
+        {
+          "command": "rtx_rt_debug_visualizer 1",
+          "reply": ""
+        },
+        {
+          "command": "screenshot reflectance",
+          "reply": ""
+        },
+        {
+          "command": "rtx_caps_report 2",
+          "reply": ""
+        },
+        {
+          "command": "rtx_rt_pick -3610 -309 600 0 0 -1",
+          "reply": "\u0001print\nrtx_rt_pick: no traced surface along the ray\n"
+        },
+        {
+          "command": "quit",
+          "reply": ""
+        }
+      ],
+      "complete": true,
+      "captures": [
+        {
+          "path": ".tmp/mohaa-terrain/before-subdiv4/home/main/screenshots/normals.png",
+          "sha256": "1f5965d10084c912d1c882b82c760843aae4d99139feea91f18c5f355055799d"
+        },
+        {
+          "path": ".tmp/mohaa-terrain/before-subdiv4/home/main/screenshots/reflectance.png",
+          "sha256": "5d4e0aa0ab0cb4bb09b619dadca86b7e59d052d29581a1ba9c2a7184109b5988"
+        },
+        {
+          "path": ".tmp/mohaa-terrain/before-subdiv4/home/main/screenshots/traced.png",
+          "sha256": "1ecdfe4dd98b37fe289acd27c05786c60a7f2e0f041bf3448635cd631f990747"
+        }
+      ],
+      "diagnostics": [
+        "RTX capability gate: requested=ray_tracing_pipeline (2), active=ray_tracing_pipeline (2), require=0, backend=compute",
+        "^5terrain: 1128 of 2304 triangles in 18 patches, the rest taken out",
+        "RTX RT: compute backend world BVH: 141632 nodes over 234031 triangles in 67.1 ms",
+        "^5RTX RT: textures/light/jh_rustwin1lit is a surface light of 2000",
+        "^5RTX RT: textures/light/jh_window1pj_lit is a surface light of 3000",
+        "^5RTX RT: textures/light/window4_exteriorlit is a surface light of 1500",
+        "^5RTX RT: textures/light/ihwin1a_framelit is a surface light of 2000",
+        "^5RTX RT: textures/light/warewindowlit_nolight glows 0.357 0.353 0.260",
+        "^5RTX RT: the first sky surface's shader textures/sky/africanight has no q3map_sun",
+        "RTX RT: 248 lights (118 point, 130 surface triangles, q3map model), grid 82x80x25 of 200 units, 171353 list entries, 91.2 ms",
+        "RTX RT: the level's own lights: 118 light entities and 1 glowing shaders over 16 triangles",
+        "RTX RT: world traced triangles opaque=4242 masked=106 special=174, casting no q3map shadow 139470, filtering q3map's light 90039, vertices=95164, materials=85",
+        "^5serverCommand: 5 : stufftext \"echo TERRAIN_READY\"",
+        "TERRAIN_READY"
+      ],
+      "label": "before-subdiv4",
+      "local_evidence": ".tmp/mohaa-terrain/before-subdiv4"
+    },
+    {
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "mohaa",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Medal of Honor Allied Assault",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\mohaa-terrain\\after-user\\home",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "3",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_volume",
+        "0",
+        "+set",
+        "s_musicvolume",
+        "0",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "12441",
+        "+set",
+        "rconPassword",
+        "terrainprobe",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "com_maxfps",
+        "30",
+        "+set",
+        "com_maxfpsUnfocused",
+        "30",
+        "+set",
+        "thereisnomonkey",
+        "1",
+        "+set",
+        "g_ai",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "2",
+        "+set",
+        "r_picmip",
+        "0",
+        "+set",
+        "r_picmipFilter",
+        "0",
+        "+set",
+        "r_subdivisions",
+        "4",
+        "+devmap",
+        "m1l1"
+      ],
+      "map": "m1l1",
+      "exe_sha256": "dc289f94d9561498b849b0decee59a24f56c84814696b523801c20f1e3da7945",
+      "renderer_sha256": "7820edfb692fd5ebd653e86ef16eb7fd86c4323a222908d91567e023fee33cdf",
+      "commands": [
+        {
+          "command": "finishloadingscreen",
+          "reply": ""
+        },
+        {
+          "command": "viewpos",
+          "reply": "\u0001print\n(-3610 -309 486) : 72\n"
+        },
+        {
+          "command": "screenshot traced",
+          "reply": ""
+        },
+        {
+          "command": "rtx_rt_debug_visualizer 2",
+          "reply": ""
+        },
+        {
+          "command": "screenshot normals",
+          "reply": ""
+        },
+        {
+          "command": "rtx_rt_debug_visualizer 1",
+          "reply": ""
+        },
+        {
+          "command": "screenshot reflectance",
+          "reply": ""
+        },
+        {
+          "command": "rtx_caps_report 2",
+          "reply": ""
+        },
+        {
+          "command": "rtx_rt_pick -3610 -309 600 0 0 -1",
+          "reply": "\u0001print\nrtx_rt_pick: textures/algiers/grndset_2af (material 40, owner 1, flags 0x20) at -3610.0 -309.0 401.2, distance 198.8, normal 0.02 -0.18 0.98, lightmap st 0.8812 0.4393, vertex colour ffffffff\nrtx_rt_pick: texture s grows along 1.000 0.000 -0.031, t along 0.000 -0.977 -0.214\nrtx_rt_pick: shader surface flags 0x0, contents 0x0, sky 0, sun 0, surface light 0.0, lightmap 0, q3map's light stops\n"
+        },
+        {
+          "command": "quit",
+          "reply": ""
+        }
+      ],
+      "complete": true,
+      "captures": [
+        {
+          "path": ".tmp/mohaa-terrain/after-user/home/main/screenshots/normals.png",
+          "sha256": "01ec53fbed1da2689b1cf471dbc5112dc861a7be4b563e7d5396eae912468c50"
+        },
+        {
+          "path": ".tmp/mohaa-terrain/after-user/home/main/screenshots/reflectance.png",
+          "sha256": "addad729b01fc18ee90213930bd74cbd182e56817fe2023c8b6033000e97dd91"
+        },
+        {
+          "path": ".tmp/mohaa-terrain/after-user/home/main/screenshots/traced.png",
+          "sha256": "2fbbf24a545d3c6ebaec68460e93b070f845665df2c1c22cd8134c41cace6c2b"
+        }
+      ],
+      "diagnostics": [
+        "RTX capability gate: requested=ray_tracing_pipeline (2), active=ray_tracing_pipeline (2), require=0, backend=compute",
+        "^5terrain: 1128 of 2304 triangles in 18 patches, the rest taken out",
+        "RTX RT: compute backend world BVH: 146920 nodes over 243073 triangles in 59.2 ms",
+        "^5RTX RT: textures/light/jh_rustwin1lit is a surface light of 2000",
+        "^5RTX RT: textures/light/jh_window1pj_lit is a surface light of 3000",
+        "^5RTX RT: textures/light/window4_exteriorlit is a surface light of 1500",
+        "^5RTX RT: textures/light/ihwin1a_framelit is a surface light of 2000",
+        "^5RTX RT: textures/light/warewindowlit_nolight glows 0.357 0.353 0.260",
+        "^5RTX RT: the first sky surface's shader textures/sky/africanight has no q3map_sun",
+        "RTX RT: 248 lights (118 point, 130 surface triangles, q3map model), grid 82x80x25 of 200 units, 171353 list entries, 76.3 ms",
+        "RTX RT: the level's own lights: 118 light entities and 1 glowing shaders over 16 triangles",
+        "RTX RT: world traced triangles opaque=9512 masked=3878 special=174, casting no q3map shadow 139470, filtering q3map's light 90039, vertices=104686, materials=102",
+        "^5serverCommand: 5 : stufftext \"echo TERRAIN_READY\"",
+        "TERRAIN_READY"
+      ],
+      "label": "after-user",
+      "local_evidence": ".tmp/mohaa-terrain/after-user"
+    },
+    {
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "mohaa",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Medal of Honor Allied Assault",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\mohaa-terrain\\terrain-m1l3a\\home",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "3",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_volume",
+        "0",
+        "+set",
+        "s_musicvolume",
+        "0",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "12441",
+        "+set",
+        "rconPassword",
+        "terrainprobe",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "com_maxfps",
+        "30",
+        "+set",
+        "com_maxfpsUnfocused",
+        "30",
+        "+set",
+        "thereisnomonkey",
+        "1",
+        "+set",
+        "g_ai",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "2",
+        "+set",
+        "r_picmip",
+        "0",
+        "+set",
+        "r_picmipFilter",
+        "0",
+        "+set",
+        "r_subdivisions",
+        "1",
+        "+devmap",
+        "m1l3a"
+      ],
+      "map": "m1l3a",
+      "exe_sha256": "dc289f94d9561498b849b0decee59a24f56c84814696b523801c20f1e3da7945",
+      "renderer_sha256": "9f91e9429d75012b333001338c5bfc32eb2a9cbc35ef3d5601bf771680dfd52a",
+      "commands": [
+        {
+          "command": "finishloadingscreen",
+          "reply": ""
+        },
+        {
+          "command": "viewpos",
+          "reply": "\u0001print\n(3352 -6176 -28) : 135\n"
+        },
+        {
+          "command": "screenshot traced",
+          "reply": ""
+        },
+        {
+          "command": "rtx_rt_debug_visualizer 2",
+          "reply": ""
+        },
+        {
+          "command": "screenshot normals",
+          "reply": ""
+        },
+        {
+          "command": "rtx_rt_debug_visualizer 1",
+          "reply": ""
+        },
+        {
+          "command": "screenshot reflectance",
+          "reply": ""
+        },
+        {
+          "command": "rtx_caps_report 2",
+          "reply": ""
+        },
+        {
+          "command": "rtx_rt_pick -3610 -309 600 0 0 -1",
+          "reply": "\u0001print\nrtx_rt_pick: no traced surface along the ray\n"
+        },
+        {
+          "command": "quit",
+          "reply": ""
+        }
+      ],
+      "complete": true,
+      "captures": [
+        {
+          "path": ".tmp/mohaa-terrain/terrain-m1l3a/home/main/screenshots/normals.png",
+          "sha256": "5e78b164a5d48f4db2cb90c7e8169acbc3ca368048092a950df7420dd13ecbb6"
+        },
+        {
+          "path": ".tmp/mohaa-terrain/terrain-m1l3a/home/main/screenshots/reflectance.png",
+          "sha256": "8f8a4409ffb92e5d763ff9fc95b20e58fcd103e43f4cd962f6182e81bc3abc61"
+        },
+        {
+          "path": ".tmp/mohaa-terrain/terrain-m1l3a/home/main/screenshots/traced.png",
+          "sha256": "c956963809adb35d93651ac7a987b86b9e991aa090bbb349d77fa348b62538f1"
+        }
+      ],
+      "diagnostics": [
+        "RTX capability gate: requested=ray_tracing_pipeline (2), active=ray_tracing_pipeline (2), require=0, backend=compute",
+        "^5terrain: 24555 of 33920 triangles in 265 patches, the rest taken out",
+        "RTX RT: compute backend world BVH: 204614 nodes over 345881 triangles in 104.2 ms",
+        "^5RTX RT: textures/light/jh_rustwin1lit is a surface light of 2000",
+        "^5RTX RT: the first sky surface's shader textures/sky/mohnightfog has no q3map_sun",
+        "RTX RT: 11 lights (9 point, 2 surface triangles, q3map model), grid 81x102x21 of 160 units, 69759 list entries, 77.9 ms",
+        "RTX RT: the level's own lights: 9 light entities and 0 glowing shaders over 0 triangles",
+        "RTX RT: world traced triangles opaque=43834 masked=1756 special=10, casting no q3map shadow 150148, filtering q3map's light 150133, vertices=119415, materials=70",
+        "^5serverCommand: 5 : stufftext \"echo TERRAIN_READY\"",
+        "TERRAIN_READY"
+      ],
+      "label": "terrain-m1l3a",
+      "local_evidence": ".tmp/mohaa-terrain/terrain-m1l3a"
+    },
+    {
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "mohaa",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Medal of Honor Allied Assault",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\mohaa-terrain\\static-m1l3c\\home",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "3",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_volume",
+        "0",
+        "+set",
+        "s_musicvolume",
+        "0",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "12441",
+        "+set",
+        "rconPassword",
+        "terrainprobe",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "com_maxfps",
+        "30",
+        "+set",
+        "com_maxfpsUnfocused",
+        "30",
+        "+set",
+        "thereisnomonkey",
+        "1",
+        "+set",
+        "g_ai",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "2",
+        "+set",
+        "r_picmip",
+        "0",
+        "+set",
+        "r_picmipFilter",
+        "0",
+        "+set",
+        "r_subdivisions",
+        "4",
+        "+devmap",
+        "m1l3c"
+      ],
+      "map": "m1l3c",
+      "exe_sha256": "dc289f94d9561498b849b0decee59a24f56c84814696b523801c20f1e3da7945",
+      "renderer_sha256": "9f91e9429d75012b333001338c5bfc32eb2a9cbc35ef3d5601bf771680dfd52a",
+      "commands": [
+        {
+          "command": "finishloadingscreen",
+          "reply": ""
+        },
+        {
+          "command": "viewpos",
+          "reply": "\u0001print\n(-4628 -6500 966) : 90\n"
+        },
+        {
+          "command": "screenshot traced",
+          "reply": ""
+        },
+        {
+          "command": "rtx_rt_debug_visualizer 2",
+          "reply": ""
+        },
+        {
+          "command": "screenshot normals",
+          "reply": ""
+        },
+        {
+          "command": "rtx_rt_debug_visualizer 1",
+          "reply": ""
+        },
+        {
+          "command": "screenshot reflectance",
+          "reply": ""
+        },
+        {
+          "command": "rtx_caps_report 2",
+          "reply": ""
+        },
+        {
+          "command": "rtx_rt_pick -3610 -309 600 0 0 -1",
+          "reply": "\u0001print\nrtx_rt_pick: textures/misc_outside/northafrika_shoreline (material 60, owner 0, flags 0x29208) at -3610.0 -309.0 -376.3, distance 976.3, normal 0.00 0.00 1.00, lightmap st -nan -nan, vertex colour ffffffff\nrtx_rt_pick: texture s grows along 0.966 -0.258 -0.001, t along 0.000 1.000 0.000\nrtx_rt_pick: shader surface flags 0x400, contents 0x20000020, sky 0, sun 0, surface light 0.0, lightmap -1, q3map's light passes filtered\n"
+        },
+        {
+          "command": "quit",
+          "reply": ""
+        }
+      ],
+      "complete": true,
+      "captures": [
+        {
+          "path": ".tmp/mohaa-terrain/static-m1l3c/home/main/screenshots/normals.png",
+          "sha256": "976eaf1b848538615360ee8880f3e82f658bd058f8ad61434c6f403c7ef3e6ed"
+        },
+        {
+          "path": ".tmp/mohaa-terrain/static-m1l3c/home/main/screenshots/reflectance.png",
+          "sha256": "8086ca786e5d598fc0ba7046612c70f3d2a09234514f3c4bc5eb73cf7b071038"
+        },
+        {
+          "path": ".tmp/mohaa-terrain/static-m1l3c/home/main/screenshots/traced.png",
+          "sha256": "c9ddc08e745243b43de1696e50e4e94582b42b7f775cc32c2f609bb00d217905"
+        }
+      ],
+      "diagnostics": [
+        "RTX capability gate: requested=ray_tracing_pipeline (2), active=ray_tracing_pipeline (2), require=0, backend=compute",
+        "RTX RT: compute backend world BVH: 50706 nodes over 83227 triangles in 25.4 ms",
+        "^5RTX RT: the first sky surface's shader textures/sky/lighthouse has no q3map_sun",
+        "RTX RT: 85 lights (85 point, 0 surface triangles, q3map model), grid 124x80x23 of 128 units, 209509 list entries, 280.4 ms",
+        "RTX RT: the level's own lights: 85 light entities and 0 glowing shaders over 0 triangles",
+        "RTX RT: world traced triangles opaque=48062 masked=3980 special=45, casting no q3map shadow 14908, filtering q3map's light 16232, vertices=69860, materials=156",
+        "^5serverCommand: 5 : stufftext \"echo TERRAIN_READY\"",
+        "TERRAIN_READY"
+      ],
+      "label": "static-m1l3c",
+      "local_evidence": ".tmp/mohaa-terrain/static-m1l3c"
+    },
+    {
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "mohaa",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Medal of Honor Allied Assault",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\mohaa-terrain\\parity-glx\\home",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "3",
+        "+set",
+        "cl_renderer",
+        "glx",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_volume",
+        "0",
+        "+set",
+        "s_musicvolume",
+        "0",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "12441",
+        "+set",
+        "rconPassword",
+        "terrainprobe",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "com_maxfps",
+        "30",
+        "+set",
+        "com_maxfpsUnfocused",
+        "30",
+        "+set",
+        "thereisnomonkey",
+        "1",
+        "+set",
+        "g_ai",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "0",
+        "+set",
+        "r_picmip",
+        "0",
+        "+set",
+        "r_picmipFilter",
+        "0",
+        "+set",
+        "r_subdivisions",
+        "4",
+        "+devmap",
+        "m1l1"
+      ],
+      "map": "m1l1",
+      "exe_sha256": "dc289f94d9561498b849b0decee59a24f56c84814696b523801c20f1e3da7945",
+      "renderer_sha256": "75d184fda7949cd1d723cd0916fb847dbe7d624e015325ed337f24f408416298",
+      "commands": [
+        {
+          "command": "finishloadingscreen",
+          "reply": ""
+        },
+        {
+          "command": "viewpos",
+          "reply": "\u0001print\n(-3610 -309 486) : 72\n"
+        },
+        {
+          "command": "screenshot raster",
+          "reply": ""
+        },
+        {
+          "command": "quit",
+          "reply": ""
+        }
+      ],
+      "complete": true,
+      "captures": [
+        {
+          "path": ".tmp/mohaa-terrain/parity-glx/home/main/screenshots/raster.png",
+          "sha256": "8741709b704c1c3032231654dd83c2d581ebdc49ee333b09ad43f1b7c666ac49"
+        }
+      ],
+      "diagnostics": [
+        "^5terrain: 1128 of 2304 triangles in 18 patches, the rest taken out",
+        "^5serverCommand: 5 : stufftext \"echo TERRAIN_READY\"",
+        "TERRAIN_READY"
+      ],
+      "label": "parity-glx",
+      "local_evidence": ".tmp/mohaa-terrain/parity-glx"
+    },
+    {
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "mohaa",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Medal of Honor Allied Assault",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\mohaa-terrain\\parity-vk\\home",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "3",
+        "+set",
+        "cl_renderer",
+        "vk",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_volume",
+        "0",
+        "+set",
+        "s_musicvolume",
+        "0",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "12441",
+        "+set",
+        "rconPassword",
+        "terrainprobe",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "com_maxfps",
+        "30",
+        "+set",
+        "com_maxfpsUnfocused",
+        "30",
+        "+set",
+        "thereisnomonkey",
+        "1",
+        "+set",
+        "g_ai",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "0",
+        "+set",
+        "r_picmip",
+        "0",
+        "+set",
+        "r_picmipFilter",
+        "0",
+        "+set",
+        "r_subdivisions",
+        "4",
+        "+devmap",
+        "m1l1"
+      ],
+      "map": "m1l1",
+      "exe_sha256": "dc289f94d9561498b849b0decee59a24f56c84814696b523801c20f1e3da7945",
+      "renderer_sha256": "c29de1441ec1ca6c661cb8478162c7b73fe6fbdc8395ee94bf04958e7a2e48de",
+      "commands": [
+        {
+          "command": "finishloadingscreen",
+          "reply": ""
+        },
+        {
+          "command": "viewpos",
+          "reply": "\u0001print\n(-3610 -309 486) : 72\n"
+        },
+        {
+          "command": "screenshot raster",
+          "reply": ""
+        },
+        {
+          "command": "quit",
+          "reply": ""
+        }
+      ],
+      "complete": true,
+      "captures": [
+        {
+          "path": ".tmp/mohaa-terrain/parity-vk/home/main/screenshots/raster.png",
+          "sha256": "bf768fad3439e6c9324d1a79fcac63d6100404d92f08fda1ca0ce5d4fada89e3"
+        }
+      ],
+      "diagnostics": [
+        "^5terrain: 1128 of 2304 triangles in 18 patches, the rest taken out",
+        "^5serverCommand: 5 : stufftext \"echo TERRAIN_READY\"",
+        "TERRAIN_READY"
+      ],
+      "label": "parity-vk",
+      "local_evidence": ".tmp/mohaa-terrain/parity-vk"
+    },
+    {
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "mohaa",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Medal of Honor Allied Assault",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\mohaa-terrain\\parity-rtx\\home",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "3",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_volume",
+        "0",
+        "+set",
+        "s_musicvolume",
+        "0",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "12441",
+        "+set",
+        "rconPassword",
+        "terrainprobe",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "com_maxfps",
+        "30",
+        "+set",
+        "com_maxfpsUnfocused",
+        "30",
+        "+set",
+        "thereisnomonkey",
+        "1",
+        "+set",
+        "g_ai",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "0",
+        "+set",
+        "r_picmip",
+        "0",
+        "+set",
+        "r_picmipFilter",
+        "0",
+        "+set",
+        "r_subdivisions",
+        "4",
+        "+devmap",
+        "m1l1"
+      ],
+      "map": "m1l1",
+      "exe_sha256": "dc289f94d9561498b849b0decee59a24f56c84814696b523801c20f1e3da7945",
+      "renderer_sha256": "9f91e9429d75012b333001338c5bfc32eb2a9cbc35ef3d5601bf771680dfd52a",
+      "commands": [
+        {
+          "command": "finishloadingscreen",
+          "reply": ""
+        },
+        {
+          "command": "viewpos",
+          "reply": "\u0001print\n(-3610 -309 486) : 72\n"
+        },
+        {
+          "command": "screenshot raster",
+          "reply": ""
+        },
+        {
+          "command": "rtx_caps_report 2",
+          "reply": ""
+        },
+        {
+          "command": "rtx_rt_pick -3610 -309 600 0 0 -1",
+          "reply": "\u0001print\nrtx_rt_pick: textures/algiers/grndset_2af (material 21, owner 1, flags 0x20) at -3610.0 -309.0 401.2, distance 198.8, normal 0.02 -0.18 0.98, lightmap st 0.8812 0.4393, vertex colour ffffffff\nrtx_rt_pick: texture s grows along 1.000 0.000 -0.031, t along 0.000 -0.977 -0.214\nrtx_rt_pick: shader surface flags 0x0, contents 0x0, sky 0, sun 0, surface light 0.0, lightmap 0, q3map's light stops\n"
+        },
+        {
+          "command": "quit",
+          "reply": ""
+        }
+      ],
+      "complete": true,
+      "captures": [
+        {
+          "path": ".tmp/mohaa-terrain/parity-rtx/home/main/screenshots/raster.png",
+          "sha256": "57cfebb0d956769b4762206ba26ca7a93b44ec123c9c50b9d94fd15c2ce66a00"
+        }
+      ],
+      "diagnostics": [
+        "RTX capability gate: requested=disabled (0), active=disabled (0), require=0, backend=none",
+        "^5terrain: 1128 of 2304 triangles in 18 patches, the rest taken out",
+        "^5serverCommand: 5 : stufftext \"echo TERRAIN_READY\"",
+        "TERRAIN_READY"
+      ],
+      "label": "parity-rtx",
+      "local_evidence": ".tmp/mohaa-terrain/parity-rtx"
+    }
+  ],
+  "invariant_11": {
+    "uses": [
+      "RTX material ownership and triangle packing",
+      "native lighting, shadows and reflections for terrain and baked scenery",
+      "existing raster overlays for effects, decals and animated TIKI models",
+      "unchanged GL/Vulkan leaf traversal"
+    ],
+    "not_added": [
+      "traced animated TIKI entities"
+    ],
+    "retail_exact_option_added": false
+  },
+  "limits": [
+    "Compute backend exercised; hardware ray tracing shares extraction but was not available for live testing.",
+    "Default r_subdivisions 1 failed BVH allocation on baseline m1l1; reduced texture resolution alone also failed. Successful m1l1 comparison and m1l3c use 4; m1l3a uses default 1.",
+    "Maximum-detail 32-bit BVH allocation remains a separate issue.",
+    "Existing startup Unknown command fov diagnostic remains.",
+    "No retail-engine comparison, campaign-play coverage, audible fidelity or full compatibility claim."
+  ],
+  "evidence_directory": ".tmp/mohaa-terrain/",
+  "cleanup": {
+    "result": "Automatic approval review rejected the removal command: blocked by policy. No alternative deletion attempted.",
+    "retained": ".tmp/mohaa-terrain/"
+  }
+}

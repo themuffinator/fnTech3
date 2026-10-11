@@ -36,8 +36,12 @@ qboolean S_SoundRegistrationWarningsEnabled( void );
 // if origin is NULL, the sound will be dynamically sourced from the entity
 void S_StartSound( vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx );
 void S_StartSoundVolume( vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx, float volume );
+void S_StartJKASound( vec3_t origin, int entnum, int channel, sfxHandle_t sfx );
 void S_StartLocalSound( sfxHandle_t sfx, int channelNum );
 void S_StartLocalSoundVolume( sfxHandle_t sfx, int channelNum, float volume );
+// A sound the game's menus start through their local-sound import: a local
+// sound on its channel, played as interface audio whatever that channel is.
+void S_StartInterfaceSound( sfxHandle_t sfx, int channelNum, float volume );
 void S_StartRTCWSound( const vec3_t origin, int entity, int channel, sfxHandle_t handle, int flags );
 // Enemy Territory carries a per-sound volume its own modules set, a start
 // time on looping sounds, and a flag deciding whether a fade also stops the
@@ -45,6 +49,7 @@ void S_StartRTCWSound( const vec3_t origin, int entity, int channel, sfxHandle_t
 void S_StartWolfETSound( const vec3_t origin, int entity, int channel, sfxHandle_t handle,
 	int flags, int volume );
 void S_StartWolfETLocalSound( sfxHandle_t handle, int channel, int volume );
+void S_StartWolfETInterfaceSound( sfxHandle_t handle, int channel, int volume );
 void S_AddWolfETLoopingSound( const vec3_t origin, const vec3_t velocity, int range,
 	sfxHandle_t handle, int volume, int soundTime );
 void S_ClearWolfETLoopingSounds( void );

@@ -474,7 +474,7 @@
         </article>
         <article class="feature-group">
           <h3>Fast, modern hardware rendering</h3>
-          <p>Three renderers in every game &ndash; GLx, Vulkan and RTX &ndash; built to make the most of today's graphics cards. RTX ray traces each map with light from its own lamps, sky and sun.</p>
+          <p>Three renderers in every game &ndash; GLx, Vulkan and RTX &ndash; built to make the most of today's graphics cards. RTX ray traces each map with light from its own lamps, sky and sun, including liquid reflections and water refraction tested on Quake III's q3dm12.</p>
         </article>
         <article class="feature-group">
           <h3>Modern visual upgrades</h3>

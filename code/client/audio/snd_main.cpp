@@ -33,6 +33,7 @@ extern "C" {
 #include "snd_rtcw.h"
 #include "shared/JKAMusicPreload.h"
 #include "../../compat/jka_game_abi.h"
+#include "../client_jka_sound.hpp"
 
 #include <cstdlib>
 #include <cerrno>
@@ -73,6 +74,7 @@ cvar_t *s_alSpatializeStereo;
 namespace {
 static soundInterface_t si;
 bool jkaQuietSoundRegistration = false;
+int jkaSoundListener = 0;
 fntech3::audio::rtcw::Music rtcwMusic;
 fntech3::audio::rtcw::MasterFade rtcwMasterFade;
 struct DisabledRTCWMusicOutput {
@@ -105,12 +107,10 @@ fntech3::audio::rtcw::MasterFade &S_WolfETMasterFade() { return wolfetMasterFade
 extern "C" int S_JKAVoiceVolume( intptr_t entity ) {
     if ( !Com_GameIsJKAMP() || entity < 0 || entity >= FNTECH3_JKA_MAX_GENTITIES )
         Com_Error( ERR_DROP, "Invalid Academy voice-volume entity/profile" );
-    // Retail0x4128ea reads a zero-initialized entity table. An absent audio
-    // interface owns no active voice; never manufacture zero for an enabled
-    // backend whose PCM-derived mouth-level contract is still unserved.
-    if ( si.Shutdown )
-        Com_Error( ERR_DROP, "Academy voice volume with an enabled audio backend is not served yet" );
-    return 0;
+    // Retail0x4128ea reads the entity table produced by the sound backend.
+    if ( !si.Shutdown ) return 0;
+    if ( !si.JKAVoiceVolume ) Com_Error( ERR_DROP, "Academy lip-sync interface is unavailable" );
+    return si.JKAVoiceVolume( static_cast<int>(entity) );
 }
 
 extern "C" int S_RTCWVoiceAmplitude( intptr_t entity ) {
@@ -135,12 +135,14 @@ static bool S_ValidSoundInterface( const soundInterface_t *s )
 	if( !s->Shutdown ) return false;
 	if( !s->StartSound ) return false;
 	if( !s->StartLocalSound ) return false;
+	if( !s->MarkInterfaceSound ) return false;
 	if( !s->StartRTCWSound ) return false;
 	if( !s->StartRTCWLocalSound ) return false;
 	if( !s->StartRTCWEntityStream ) return false;
 	if( !s->StopRTCWEntityStream ) return false;
 	if( !s->FadeRTCWEntityStream ) return false;
 	if( !s->RTCWVoiceAmplitude ) return false;
+	if( !s->JKAVoiceVolume ) return false;
 	if( !s->StartBackgroundTrack ) return false;
 	if( !s->StartRTCWBackgroundTrack ) return false;
 	if( !s->FadeRTCWBackgroundTrack ) return false;
@@ -221,6 +223,16 @@ extern "C" void S_StartSoundVolume( vec3_t origin, int entnum, int entchannel, s
 	if( si.StartSound ) {
 		si.StartSound( origin, entnum, entchannel, sfx, volume );
 	}
+}
+
+extern "C" void S_StartJKASound( vec3_t origin, int entnum, int channel, sfxHandle_t sfx ) {
+	if ( !Com_GameIsJKAMP() )
+		Com_Error( ERR_DROP, "Academy sound requires its selected multiplayer profile" );
+	// Retail 0x46ae6f compares with the last sound listener (0xd83140),
+	// not the newest snapshot's player. Keep the volume on Fn's spatial path.
+	const float volume = entnum == jkaSoundListener
+		? fntech3::jka::sound::ListenerVolume( channel ) : 1.0f;
+	S_StartSoundVolume( origin, entnum, fntech3::jka::sound::EngineChannel( channel ), sfx, volume );
 }
 
 
@@ -386,6 +398,44 @@ extern "C" void S_StartLocalSoundVolume( sfxHandle_t sfx, int channelNum, float 
 	if( si.StartLocalSound ) {
 		si.StartLocalSound( sfx, channelNum, volume );
 	}
+}
+
+
+/*
+=================
+S_StartInterfaceSound
+
+A sound a game's menus start through their local-sound import. It starts as
+the profile's local sound on the channel the module names, so every channel
+rule holds, and the backend plays it as interface audio whatever that channel
+is: outside the level, with no room, medium or occlusion (AudioTonePolicy.h).
+Jedi Academy's menus play their `play` command on the automatic channel and
+Elite Force Holomatch's menus several sounds on a number past the announcer's,
+which the engine's own channel rules alone would place in the level.
+=================
+*/
+extern "C" void S_StartInterfaceSound( sfxHandle_t sfx, int channelNum, float volume )
+{
+	if ( si.MarkInterfaceSound ) {
+		si.MarkInterfaceSound( qtrue );
+	}
+	if ( Com_GameIsRTCW() ) {
+		// RTCW's local sounds carry no volume of their own.
+		S_StartRTCWLocalSound( sfx, channelNum );
+	} else {
+		S_StartLocalSoundVolume( sfx, channelNum, volume );
+	}
+	if ( si.MarkInterfaceSound ) {
+		si.MarkInterfaceSound( qfalse );
+	}
+}
+
+// Enemy Territory's menus pass a volume with their sound, as its local sounds do.
+extern "C" void S_StartWolfETInterfaceSound( sfxHandle_t handle, int channel, int volume ) {
+	if ( !Com_GameIsWolfET() ) Com_Error( ERR_DROP, "ET menu sound requested for another game profile" );
+	if ( si.MarkInterfaceSound ) si.MarkInterfaceSound( qtrue );
+	S_StartWolfETLocalSound( handle, channel, volume );
+	if ( si.MarkInterfaceSound ) si.MarkInterfaceSound( qfalse );
 }
 
 
@@ -675,6 +725,7 @@ S_Respatialize
 extern "C" void S_Respatialize( int entityNum, const vec3_t origin,
 		vec3_t axis[3], int inwater )
 {
+	if ( Com_GameIsJKAMP() ) jkaSoundListener = entityNum;
 	if( si.Respatialize ) {
 		si.Respatialize( entityNum, origin, axis, inwater );
 	}
@@ -1055,6 +1106,7 @@ extern "C" void S_Init( void )
 	}
 	si = {};
 	jkaQuietSoundRegistration = false;
+	jkaSoundListener = 0;
 	rtcwMusic = {};
 	rtcwMasterFade = {};
 	wolfetMasterFade = {};
@@ -1097,6 +1149,12 @@ extern "C" void S_Init( void )
 		cv = Cvar_Get( "s_defaultsound", "0", CVAR_ARCHIVE );
 		Cvar_SetDescription( cv, "Play the Wolfenstein diagnostic placeholder for missing sounds; otherwise keep it silent. Requires snd_restart." );
 	}
+	if ( Com_GameIsJKASP() || Com_GameIsJKAMP() ) {
+		// Registered as both retail S_Inits register it (jamp.exe 0x4695cb,
+		// jasp.exe 0x425a2f); the setup menus write it in lower case.
+		cv = Cvar_Get( "s_language", "english", CVAR_ARCHIVE | CVAR_NORESTART );
+		Cvar_SetDescription( cv, "Jedi Academy voice language: deutsch, francais or espanol plays the German, French or Spanish voices (sound/chr_d, sound/chr_f, sound/chr_e) where the game has them, anything else the English ones. Applies to sounds loaded afterwards; snd_restart reloads them." );
+	}
 	if ( Com_GameIsSTVEF() ) {
 		// Registered as retail S_Init registers it (stvoyHM.exe 0x429b46).
 		cv = Cvar_Get( "s_language", "", CVAR_ARCHIVE | CVAR_NORESTART );
@@ -1110,6 +1168,12 @@ extern "C" void S_Init( void )
 			"  0.5 - default, the engine's own spread\n"
 			"  1 - both channels hear every sound alike" );
 	}
+	if ( Com_GameIsJK2() ) {
+		// Registered as both retail S_Inits register it (jk2mp.exe 0x45ca1a,
+		// jk2sp.exe 0x423350); the setup menus write it in lower case.
+		cv = Cvar_Get( "s_language", "english", CVAR_ARCHIVE | CVAR_NORESTART );
+		Cvar_SetDescription( cv, "Jedi Outcast voice language: deutsch or francais plays the German or French voices (sound/chr_d, sound/chr_f) where the game has them, anything else the English ones. Applies to sounds loaded afterwards; snd_restart reloads them." );
+	}
 	if ( alice ) {
 		// Retail registers it at 0.3 and spreads only its two-dimensional
 		// dialog voices by it (alice.exe 0x0044c756, 0x004724a0).
@@ -1119,18 +1183,20 @@ extern "C" void S_Init( void )
 			"  0.3 - default\n"
 			"  1 - both channels hear every sound alike" );
 	}
-	if ( Com_GameIsSTVEFSP() ) {
-		// Single player alone registers these, and compares them in this order
-		// to decide how wide a mouth a voice opens (stvoy.exe 0x41fb5d).
-		// Holomatch has no lip-sync and registers none of them.
+	if ( Com_GameIsSTVEFSP() || Com_GameIsJKAMP() ) {
+		// Raven compares these in order to choose a speech animation frame.
+		// Academy registration is measured at jamp.exe 0x469563..0x4695c6.
 		s_threshold1 = Cvar_Get( "s_threshold1", "0.5", 0 );
 		s_threshold2 = Cvar_Get( "s_threshold2", "4.0", 0 );
 		s_threshold3 = Cvar_Get( "s_threshold3", "7.0", 0 );
 		s_threshold4 = Cvar_Get( "s_threshold4", "8.0", 0 );
-		Cvar_SetDescription( s_threshold1, "How loud a voice must be before Elite Force single player opens the speaker's mouth at all, against the loudest the sound itself reaches." );
-		Cvar_SetDescription( s_threshold2, "How loud a voice must be for Elite Force single player to open the speaker's mouth past its narrowest." );
-		Cvar_SetDescription( s_threshold3, "How loud a voice must be for Elite Force single player to open the speaker's mouth wider still." );
-		Cvar_SetDescription( s_threshold4, "How loud a voice must be for Elite Force single player to open the speaker's mouth its widest." );
+		Cvar_SetDescription( s_threshold1, "How loud a voice must be before the speaker's mouth opens at all, against the loudest the sound itself reaches." );
+		Cvar_SetDescription( s_threshold2, "How loud a voice must be for the speaker's mouth to open past its narrowest." );
+		Cvar_SetDescription( s_threshold3, "How loud a voice must be for the speaker's mouth to open wider still." );
+		Cvar_SetDescription( s_threshold4, "How loud a voice must be for the speaker's mouth to open its widest." );
+	}
+	if ( Com_GameIsJKAMP() ) {
+		Cvar_Get("s_mp3overhead","31756",CVAR_ARCHIVE);
 	}
 	if ( Com_GameIsMOHAA() ) {
 		s_mohaaReverb = Cvar_Get( "s_reverb", "1", CVAR_ARCHIVE );

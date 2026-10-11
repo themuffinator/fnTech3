@@ -22,7 +22,9 @@ int Com_GameIsJKAMP(){return selected==COM_GAME_JKA_MP;}
 void Com_Error(errorParm_t,const char*,...){throw 7;}
 static int backendCalls=0;
 static void Shutdown(){++backendCalls;}
-static struct { void(*Shutdown)(); } si;
+static int voiceCalls=0,level=0;
+static int Voice(int entity){assert(entity==17);++voiceCalls;return level;}
+static struct { void(*Shutdown)(); int(*JKAVoiceVolume)(int); } si;
 '''
 CHECKS = r'''
 template<class F>void Refuses(F call){bool caught=false;try{call();}catch(int){caught=true;}assert(caught);}
@@ -41,6 +43,9 @@ int main(){
  }
  selected=COM_GAME_JKA_MP;
  si.Shutdown=Shutdown;Refuses([]{S_JKAVoiceVolume(17);});
+ si.JKAVoiceVolume=Voice;
+ for(int expected:{-1,0,1,2,3,4}){level=expected;assert(S_JKAVoiceVolume(17)==expected);}
+ assert(voiceCalls==6);
  si={};assert(S_JKAVoiceVolume(17)==0);
  assert(backendCalls==0);
 }

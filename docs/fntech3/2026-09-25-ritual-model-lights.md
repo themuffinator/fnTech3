@@ -282,7 +282,10 @@ sidecars, not yet committed, were absent from its package.
   before the drawing function is chosen, so a flagged model in such a view
   (a menu's) is drawn by whichever function the last model left [I]. fnTech3
   keeps its earlier rule for these views: Alice starts from no light, and
-  F.A.K.K.2 from its flat light. Not traced further.
+  F.A.K.K.2 from its flat light. Not traced further. (*2026-10-08:* no shipped
+  Alice view reaches it: the UI's and the HUD's models are unflagged, and an
+  unflagged model in such a view takes no light but the view's own, which is
+  Alice's rule here; [round record](2026-10-08-alice-compatibility-round.md#model-light-in-a-view-with-no-world).)
 - **Traces cost time** per flagged model per frame, as in retail: one point
   trace per listed light that needs one, and one toward the sun. The frame
   cost was not measured.

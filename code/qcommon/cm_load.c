@@ -952,6 +952,13 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 		Com_Error( ERR_DROP, "%s: %s has truncated header", __func__, name );
 	}
 	sourceChecksum = LittleLong( Com_BlockChecksum( buf, length ) );
+	/* A FAKK map carries its checksum in its header, after the version, and
+	 * Ritual's engines return that as they read it, computing none:
+	 * alice.exe CM_LoadMap 0x00430a1a..0x00430a20, fakk2.exe 1.02
+	 * 0x0042640a..0x00426410. */
+	if ( bspFormat == COM_GAME_BSP_FAKK ) {
+		sourceChecksum = QLBSP_ReadLE32( (byte *)buf + 8 );
+	}
 	if ( length >= (int)sizeof( dheader43_t ) ) {
 		const dheader43_t *rawHeader = (const dheader43_t *)buf;
 

@@ -266,7 +266,7 @@ aliases -- into the OpenAL pipeline's distance model, occlusion, environment
 reverb, audio zones and HRTF. The legacy mixer keeps each game's retail gain,
 and its pan where that was read, as the documented retail-exact option. Codecs
 cover WAV, Ogg Vorbis and MP3, which is registered only for Elite Force, Alice,
-F.A.K.K.2 and Medal of Honor.
+F.A.K.K.2, Medal of Honor, Jedi Academy and Jedi Outcast.
 
 ### Platform and services
 

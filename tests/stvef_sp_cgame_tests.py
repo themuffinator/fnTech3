@@ -144,7 +144,8 @@ class STVEFSPCgameTests(unittest.TestCase):
                       call)
         self.assertIn('CL_STVEFSPSoundChannel( static_cast<int>( args[2] ) )',
                       call[call.index('case Call::CG_S_STARTLOCALSOUND:'):])
-        self.assertIn('S_StartLocalSound( sfx, CL_STVEFSPSoundChannel( channel ) );',
+        # The menus' sounds take the same channels, as interface audio.
+        self.assertIn('S_StartInterfaceSound( sfx, CL_STVEFSPSoundChannel( channel ), 1.0f );',
                       read('code/client/client_stvef_sp_ui.hpp'))
         sound = read('code/client/audio/snd_main.cpp')
         self.assertIn('return length < 0 ? 0 : length;', function(sound, 'extern "C" int S_STVEFSoundLength('))

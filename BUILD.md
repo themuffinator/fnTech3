@@ -105,7 +105,7 @@ suite alone runs with `python -m pytest tests`.
 | `-Dcurl-dlopen=auto\|true\|false` | `auto` | Resolve cURL at runtime; `auto` links it on Windows and loads it at runtime elsewhere. |
 | `-Dsystem-jpeg=true\|false` | `false` | Require the system JPEG library instead of allowing the libjpeg-turbo fallback. |
 | `-Dogg-vorbis=true\|false` | `true` | Ogg Vorbis sound and music, from system `vorbisfile` or the fallback. |
-| `-Dmp3=true\|false` | `true` | The MP3 codec (minimp3 through `subprojects/minimp3.wrap`), registered only for the games whose data is MP3: Elite Force, Alice and F.A.K.K.2. |
+| `-Dmp3=true\|false` | `true` | The MP3 codec (minimp3 through `subprojects/minimp3.wrap`), registered only for the games whose data is MP3: Elite Force, Alice, F.A.K.K.2, Medal of Honor, Jedi Academy and Jedi Outcast. |
 | `-Dlocal-headers=true\|false` | `true` | Define `USE_LOCAL_HEADERS` for compatibility include conventions. |
 | `-Ddefault-basedir=<path>` | empty | Compile in a `DEFAULT_BASEDIR`. |
 | `-Daudio-tests=true\|false` | `true` | Build the audio tools and deterministic audio tests. |

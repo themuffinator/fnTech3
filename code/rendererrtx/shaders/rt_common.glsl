@@ -62,6 +62,8 @@ const uint RT_MF_MATERIAL_MAPS = 1u << 14;	// companion normal or material map (
 const uint RT_MF_NODLIGHT = 1u << 15;		// the raster light pass skips it: no dynamic light
 const uint RT_MF_NOFOG = 1u << 16;			// RTCW nofog: the view's global fog leaves it
 const uint RT_MF_FULLBRIGHT_LIT = 1u << 17;	// drawn fullbright, lit all the same; bright texels glow
+const uint RT_MF_LIQUID = 1u << 18;
+const uint RT_MF_TRANSMISSIVE = 1u << 19;
 
 // a model vertex's xyz.w: the raster pass's light for it, RGB8 under this top
 // byte, without or with the dynamic lights (rt/rt_backend.c RT_StampEntityLight)
@@ -176,6 +178,7 @@ const uint RT_FRAME_ACCUMULATE = 1u << 8;	// average still frames
 const uint RT_FRAME_SKY_RADIANCE = 1u << 9;	// the sky lights with its own colour
 const uint RT_FRAME_CHECKERBOARD = 1u << 10;	// half the tiles bounce each frame
 const uint RT_FRAME_LINEAR_LIGHT = 1u << 11;	// colours decoded, light traced linear
+const uint RT_FRAME_LIGHT_REUSE = 1u << 12; // replay compatible primary light proposals
 
 // Pixel information flags (u_info bits 0..7).
 const uint RT_PIXEL_OWNED = 1u << 0;		// the path tracer owns this pixel's colour
@@ -183,6 +186,7 @@ const uint RT_PIXEL_SKY = 1u << 1;
 const uint RT_PIXEL_PORTAL = 1u << 2;
 const uint RT_PIXEL_DYNAMIC = 1u << 3;
 const uint RT_PIXEL_WEAPON = 1u << 4;
+const uint RT_PIXEL_LIQUID = 1u << 5;
 
 struct RtVertex {
 	vec4 xyz;
@@ -200,7 +204,7 @@ struct RtMaterial {
 	uint stageCount;
 	uint lightmapImage;
 	vec4 emit;				// rgb: q3map surface-light colour, w: q3map_surfacelight value
-	vec4 params;			// roughness, metallic, specular reflectance, unused
+	vec4 params;			// roughness, metallic, specular reflectance, liquid IOR
 	vec4 timing;			// shader timeOffset, clampTime, unused, unused
 	uvec4 maps;				// normal map, material map, material map type, stage they follow
 	uvec4 lightImage;		// the compilers' light image, RT_LIGHT_IMAGE_* flags, unused, unused
@@ -241,7 +245,7 @@ struct RtFrameData {
 	vec4 lightGridOrigin;	// xyz, 1 / cell size
 	uvec4 lightGridDims;	// cells per axis, static light count
 	vec4 params0;			// indirect strength, emission scale, roughness floor, sky scale
-	vec4 params1;			// tr.identityLight, unused, radiance clamp, pixel cone angle
+	vec4 params1;			// tr.identityLight, indirect divisor, radiance clamp, pixel cone angle
 	uvec4 flags;			// frame flags, bounce limit, debug mode, dlight count
 	uvec4 counts;			// materials, stages, total lights, first dlight
 	uvec4 classPrims[RT_CLASS_COUNT];	// per class: first opaque prim, first masked prim, unused, unused
@@ -259,6 +263,9 @@ struct RtFrameData {
 	uvec4 materialLights;	// RTCW light materials: first light, count; rtx_rt_debug_light + 1 (0: off), its mode
 	vec4 fogColor;			// the view's global fog: colour, mode (0 none, 1 linear, 2 exp)
 	vec4 fogParams;			// start, end, density, 1 radial or 0 eye-plane distance
+	vec4 liquidParams;		// wave time, warp scale, ring count, unused
+	vec4 liquidImpulses[8];	// world origin, expanding radius
+	vec4 liquidAmplitudes[2];
 };
 
 // Radiance rays record the hit; ray generation shades it.

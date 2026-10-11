@@ -56,6 +56,7 @@ Ownership
 */
 
 #define RT_FRAMES NUM_COMMAND_BUFFERS
+#include "rt_quality.h"
 #define RT_DYNAMIC_CLASSES 3	// DYNAMIC, WEAPON, BODY
 #define RT_WORLD_INSTANCES 4	// world, no-shadow, special, filter
 #define RT_MAX_INSTANCES 8		// TLAS instances: the world's and the dynamic classes
@@ -98,6 +99,12 @@ typedef struct {
 	uint32_t		primCount[2];
 	uint32_t		firstPrim[2];		// global primitive index of each geometry
 	qboolean		built;
+	uint32_t		vertexCount;
+	uint32_t		vertexBase;
+	VkBuildAccelerationStructureFlagsKHR buildFlags;
+	qboolean		anyHitOnly;
+	uint32_t		*topology;
+	uint32_t		topologyCapacity, topologyCount, updateAge;
 } rtBlas_t;
 
 typedef struct {
@@ -105,6 +112,7 @@ typedef struct {
 	VkImageView		view;
 	VkDeviceMemory	memory;
 	VkFormat		format;
+	VkDeviceSize	allocatedBytes;
 } rtImage_t;
 
 // The trace's outputs and the denoiser's working images. Pairs alternate:
@@ -122,7 +130,10 @@ typedef enum {
 	RT_IMG_HIST_MOMENTS = RT_IMG_HIST_SPECULAR + 2,
 	RT_IMG_FILTER_DIFFUSE = RT_IMG_HIST_MOMENTS + 2,
 	RT_IMG_FILTER_SPECULAR = RT_IMG_FILTER_DIFFUSE + 2,
-	RT_IMG_COUNT = RT_IMG_FILTER_SPECULAR + 2
+	RT_IMG_INDIRECT = RT_IMG_FILTER_SPECULAR + 2,
+	RT_IMG_HIST_INDIRECT,
+	RT_IMG_FILTER_INDIRECT = RT_IMG_HIST_INDIRECT + 2,
+	RT_IMG_COUNT = RT_IMG_FILTER_INDIRECT + 2
 } rtImageId_t;
 
 typedef struct {
@@ -157,22 +168,9 @@ typedef struct {
 	qboolean			toneWritten;
 } rtFrame_t;
 
-/*
-Motion: the dynamic entities of a frame, each with its vertex range, so the
-next frame can find where its vertices were. An entity carries no identity
-from frame to frame; one with the same model, class and vertex count within
-RT_MOTION_MATCH_DISTANCE of where it was is taken to be the same.
-*/
-#define RT_MOTION_MATCH_DISTANCE	256.0f
-
-typedef struct {
-	qhandle_t	model;
-	int			cls;
-	uint32_t	first;			// first vertex: in its class geometry, or last frame's positions
-	uint32_t	count;
-	vec3_t		origin;
-	qboolean	taken;
-} rtMotionEntity_t;
+// Motion uses profile identities where the module supplies one; ambiguous
+// identity-free submissions are never paired merely by proximity.
+#include "rt_motion.h"
 
 typedef struct {
 	rtMotionEntity_t	*entities;
@@ -187,6 +185,14 @@ typedef struct {
 	uint32_t			triOffset;
 	qboolean			valid;
 } rtSwTree_t;
+
+typedef struct {
+	rtBvh_t bvh;
+	uint32_t *indices;
+	uint32_t indexCapacity, numIndices, numVertices, primBias;
+	uint32_t age;
+	float buildCost;
+} rtDynamicBvh_t;
 
 typedef struct {
 	qboolean			failed;				// a resource could not be created; stay raster
@@ -215,6 +221,9 @@ typedef struct {
 	rtxVkRtBuffer_t		worldBvhTris;
 	rtSwTree_t			worldTrees[RT_WORLD_INSTANCES];
 	rtBvh_t				bvh;
+	rtDynamicBvh_t		dynamicBvh[RT_DYNAMIC_CLASSES];
+	uint32_t			bvhBuilds, bvhRefits;
+	uint32_t			blasBuilds, blasUpdates;
 
 	rtFrame_t			frames[RT_FRAMES];
 
@@ -225,6 +234,10 @@ typedef struct {
 	uint32_t			outputWidth, outputHeight;
 	uint32_t			parity;				// which normal/depth, info and history set is current
 	qboolean			historyValid;
+	int					temporalTime;	// wall clock of the previous traced frame
+	int					indirectDivisor, budgetDivisor, budgetMinimum, budgetCooldown;
+	qboolean			budgetSample;
+	rtFrameStats_t		gpuFrameStats;
 
 	VkDescriptorPool		pool;
 	VkDescriptorSetLayout	rtSetLayout;
@@ -351,7 +364,8 @@ static qboolean RT_EnsureMapped( rtMappedBuffer_t *buffer, VkDeviceSize minSize,
 	RT_DestroyMapped( buffer );
 	if ( !vk_rt_create_buffer_ex( size, usage,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			deviceLocal ? VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT : 0, deviceAddress, name, &buffer->buffer ) ) {
+			deviceLocal && ( !rtx_rt_device_local || rtx_rt_device_local->integer ) ?
+				VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT : 0, deviceAddress, name, &buffer->buffer ) ) {
 		return qfalse;
 	}
 	result = qvkMapMemory( vk.device, buffer->buffer.memory, 0, VK_WHOLE_SIZE, 0, &buffer->mapped );
@@ -482,6 +496,7 @@ static qboolean RT_CreateImage( rtImage_t *image, uint32_t width, uint32_t heigh
 		return qfalse;
 	}
 	image->format = format;
+	image->allocatedBytes = requirements.size;
 	SET_OBJECT_NAME( image->image, name, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT );
 	return qtrue;
 }
@@ -494,21 +509,26 @@ static const struct {
 	{ VK_FORMAT_R16G16B16A16_SFLOAT, "rt specular" },
 	{ VK_FORMAT_R16G16B16A16_SFLOAT, "rt reflectance" },
 	{ VK_FORMAT_R16G16B16A16_SFLOAT, "rt emission" },
-	{ VK_FORMAT_R32G32B32A32_SFLOAT, "rt motion" },
-	{ VK_FORMAT_R32G32B32A32_SFLOAT, "rt normal depth 0" },
-	{ VK_FORMAT_R32G32B32A32_SFLOAT, "rt normal depth 1" },
+	{ VK_FORMAT_R32G32_UINT, "rt motion" },
+	{ VK_FORMAT_R32G32_UINT, "rt normal depth 0" },
+	{ VK_FORMAT_R32G32_UINT, "rt normal depth 1" },
 	{ VK_FORMAT_R32_UINT, "rt info 0" },
 	{ VK_FORMAT_R32_UINT, "rt info 1" },
 	{ VK_FORMAT_R16G16B16A16_SFLOAT, "rt history diffuse 0" },
 	{ VK_FORMAT_R16G16B16A16_SFLOAT, "rt history diffuse 1" },
 	{ VK_FORMAT_R16G16B16A16_SFLOAT, "rt history specular 0" },
 	{ VK_FORMAT_R16G16B16A16_SFLOAT, "rt history specular 1" },
-	{ VK_FORMAT_R32G32B32A32_SFLOAT, "rt history moments 0" },
-	{ VK_FORMAT_R32G32B32A32_SFLOAT, "rt history moments 1" },
+	{ VK_FORMAT_R16G16B16A16_SFLOAT, "rt history moments 0" },
+	{ VK_FORMAT_R16G16B16A16_SFLOAT, "rt history moments 1" },
 	{ VK_FORMAT_R16G16B16A16_SFLOAT, "rt filter diffuse 0" },
 	{ VK_FORMAT_R16G16B16A16_SFLOAT, "rt filter diffuse 1" },
 	{ VK_FORMAT_R16G16B16A16_SFLOAT, "rt filter specular 0" },
 	{ VK_FORMAT_R16G16B16A16_SFLOAT, "rt filter specular 1" },
+	{ VK_FORMAT_R16G16B16A16_SFLOAT, "rt indirect" },
+	{ VK_FORMAT_R16G16B16A16_SFLOAT, "rt history indirect 0" },
+	{ VK_FORMAT_R16G16B16A16_SFLOAT, "rt history indirect 1" },
+	{ VK_FORMAT_R16G16B16A16_SFLOAT, "rt filter indirect 0" },
+	{ VK_FORMAT_R16G16B16A16_SFLOAT, "rt filter indirect 1" },
 };
 
 static void RT_DestroyImages( void )
@@ -595,6 +615,12 @@ static qboolean RT_EnsureImages( uint32_t width, uint32_t height )
 
 	s_rt.traceWidth = s_rt.outputWidth = width;
 	s_rt.traceHeight = s_rt.outputHeight = height;
+	{
+		VkDeviceSize bytes = s_rt.output.allocatedBytes;
+		for ( i = 0; i < RT_IMG_COUNT; i++ ) bytes += s_rt.images[i].allocatedBytes;
+		ri.Printf( PRINT_ALL, "RTX RT images: %ux%u, %u images, %.2f MiB allocated\n",
+			width, height, RT_IMG_COUNT + 1u, (double)bytes / (1024.0 * 1024.0) );
+	}
 	s_rt.hasPrevCamera = qfalse;
 	s_rt.historyValid = qfalse;
 	return qtrue;
@@ -696,7 +722,10 @@ static qboolean RT_PartitionTriangles( rtxRtCpuGeometry_t *geometry, qboolean wo
 			// pass through filtered
 			marker = world ? (uint32_t)( geometry->vertices[i0].lightmapData[3] + 0.5f ) : 0u;
 			if ( owner == RT_OWNER_TRACED ) {
-				bucket = RT_MaterialMasked( material ) ? RT_PART_MASKED : RT_PART_OPAQUE;
+				// An entity's no-shadow policy needs any-hit on shadow rays,
+				// even when its material is otherwise opaque.
+				bucket = ( RT_MaterialMasked( material ) || ( !world && geometry->vertices[i0].normal[3] < 0.0f ) ) ?
+					RT_PART_MASKED : RT_PART_OPAQUE;
 				if ( marker & ( RT_MARK_NOSHADOW | RT_MARK_FILTER ) ) {
 					bucket += RT_PART_NOSHADOW_OPAQUE;
 				}
@@ -818,9 +847,27 @@ static qboolean RT_ExtractWorld( rtxRtCpuGeometry_t *geometry )
 	if ( !tr.world || !tr.worldMapLoaded || !tr.world->bmodels ) {
 		return qfalse;
 	}
+	if ( tr.world->mohaaFirstBuiltSurface < 0 || tr.world->mohaaNumBuiltSurfaces < 0 ||
+		tr.world->mohaaFirstBuiltSurface > tr.world->numsurfaces ||
+		tr.world->mohaaNumBuiltSurfaces > tr.world->numsurfaces - tr.world->mohaaFirstBuiltSurface ||
+		( tr.world->mohaaNumBuiltSurfaces && !tr.world->surfaces ) ) {
+		return qfalse;
+	}
 	worldModel = &tr.world->bmodels[0];
 	for ( i = 0; i < worldModel->numSurfaces; i++ ) {
 		if ( !RT_ExtractWorldSurface( geometry, &worldModel->firstSurface[i], filterFlags ) ) {
+			vk_rt_cpu_geometry_free( geometry );
+			return qfalse;
+		}
+	}
+	// MOHAA appends its terrain and static scenery after the BSP's original
+	// surfaces, including the inline models. Raster finds them in the leaf
+	// lists, but model zero's contiguous range cannot include them. Trace
+	// the builder's separate range too, without baking doors into the world.
+	// Decals retain their material's raster ownership in ExtractWorldSurface.
+	for ( i = 0; i < tr.world->mohaaNumBuiltSurfaces; i++ ) {
+		const msurface_t *surface = &tr.world->surfaces[tr.world->mohaaFirstBuiltSurface + i];
+		if ( !RT_ExtractWorldSurface( geometry, surface, filterFlags ) ) {
 			vk_rt_cpu_geometry_free( geometry );
 			return qfalse;
 		}
@@ -941,6 +988,8 @@ static void RT_StampEntityVertices( rtxRtCpuGeometry_t *geometry, uint32_t first
 	}
 	for ( i = firstVertex; i < geometry->numVertices; i++ ) {
 		rtxRtPackedVertex_t *v = &geometry->vertices[i];
+		// Renderer-internal metadata; no external refEntity layout changes.
+		v->normal[3] = ( ent->e.renderfx & RF_NOSHADOW ) ? -1.0f : 0.0f;
 		if ( brush ) {
 			// brush models keep BSP lightmap coordinates and vertex colours
 			v->lightmapData[2] = ent->e.shaderTime.f;
@@ -966,10 +1015,15 @@ static void RT_MotionFree( rtMotionFrame_t *motion )
 }
 
 // Record an entity this frame extracted, for the next frame to match.
-static void RT_MotionRecord( const trRefEntity_t *ent, int cls, uint32_t first, uint32_t count )
+static void RT_MotionRecord( const trRefEntity_t *ent, int cls, uint32_t first, uint32_t firstIndex )
 {
 	rtMotionFrame_t *motion = &s_rt.motion[0];
+	const rtxRtCpuGeometry_t *geometry = &s_rt.dynamic[cls];
+	const uint32_t count = geometry->numVertices - first;
 	rtMotionEntity_t *record;
+	uint64_t topology = 14695981039346656037ull;
+	uint32_t v, k;
+	int identity = -1;
 
 	if ( count == 0 || !RT_Vec3Valid( ent->e.origin, RT_LIGHT_MAX_COORD ) ||
 		!RT_BvhGrow( (void **)&motion->entities, &motion->entityCapacity, motion->numEntities,
@@ -981,6 +1035,27 @@ static void RT_MotionRecord( const trRefEntity_t *ent, int cls, uint32_t first, 
 	record->cls = cls;
 	record->first = first;
 	record->count = count;
+	// These are engine-owned translations of frozen module records. Never
+	// infer that a field belonging to a different profile is an identity.
+	if ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ) identity = ent->e.rtcw.entityNum;
+	else if ( ri.gameId == COM_GAME_WOLFET ) identity = ent->e.wolfet.entityNum;
+	record->identity = identity >= 0 && identity < 1022 ? identity : -1;
+	record->materialGeneration = s_rtMaterials.generation;
+	for ( v = firstIndex; v < geometry->numIndices; v++ ) {
+		topology = ( topology ^ ( geometry->indices[v] - first ) ) * 1099511628211ull;
+	}
+	for ( v = first; v < geometry->numVertices; v++ ) {
+		const rtxRtPackedVertex_t *vertex = &geometry->vertices[v];
+		topology = ( topology ^ vertex->materialIndex ) * 1099511628211ull;
+		// UV and material order identify parts even when connectivity and
+		// vertex counts alone coincide. Position/normal vary with the pose.
+		for ( k = 0; k < 2; k++ ) {
+			uint32_t word;
+			Com_Memcpy( &word, &vertex->texCoord[k], sizeof( word ) );
+			topology = ( topology ^ word ) * 1099511628211ull;
+		}
+	}
+	record->topology = topology;
 	VectorCopy( ent->e.origin, record->origin );
 	record->taken = qfalse;
 }
@@ -1031,6 +1106,50 @@ static uint32_t RT_HashVertices( uint32_t hash, const rtxRtPackedVertex_t *verti
 	return RT_HashWords( hash, lanes, 4 );
 }
 
+// A deterministic BODY caster for engine screenshot probes. It traverses
+// the same partition, acceleration structure and shadow paths as the own
+// player's body. Scripted offsets change every rendered frame without
+// synthesizing game input or depending on a particular game module.
+static qboolean RT_AppendTestCaster( void )
+{
+	static const uint32_t indices[36] = {
+		0,2,3, 0,3,1, 4,5,7, 4,7,6, 0,1,5, 0,5,4,
+		2,6,7, 2,7,3, 0,4,6, 0,6,2, 1,3,7, 1,7,5
+	};
+	rtxRtCpuGeometry_t *g = &s_rt.dynamic[2];
+	vec3_t origin;
+	float halfWidth;
+	int noShadow = 0;
+	uint32_t i, first, material;
+	if ( !rtx_rt_test_caster || !rtx_rt_test_caster->string[0] ) return qtrue;
+	if ( sscanf( rtx_rt_test_caster->string, "%f %f %f %f %d", &origin[0], &origin[1], &origin[2], &halfWidth, &noShadow ) < 4 ||
+		!RT_Vec3Valid( origin, RT_LIGHT_MAX_COORD ) || !RT_FloatValid( halfWidth, 128.0f ) || halfWidth <= 0.0f ) {
+		return qtrue;
+	}
+	if ( !vk_rt_cpu_geometry_reserve( g, 8, 36 ) ) return qfalse;
+	first = g->numVertices;
+	material = RT_MaterialIndexForShader( tr.defaultShader );
+	if ( rtx_rt_test_caster->modified ) {
+		ri.Printf( PRINT_DEVELOPER, "RTX RT test BODY: %.1f %.1f %.1f, width %.1f, noShadow %d, material %u owner %d\n",
+			origin[0], origin[1], origin[2], halfWidth, noShadow, material, (int)RT_MaterialOwner( material ) );
+		rtx_rt_test_caster->modified = qfalse;
+	}
+	for ( i = 0; i < 8; i++ ) {
+		rtxRtPackedVertex_t *v = &g->vertices[g->numVertices++];
+		Com_Memset( v, 0, sizeof( *v ) );
+		v->xyz[0] = origin[0] + ( ( i & 1 ) ? halfWidth : -halfWidth );
+		v->xyz[1] = origin[1] + ( ( i & 2 ) ? halfWidth : -halfWidth );
+		v->xyz[2] = origin[2] + ( ( i & 4 ) ? 56.0f : 0.0f );
+		v->xyz[3] = 1.0f;
+		v->normal[2] = 1.0f;
+		v->normal[3] = noShadow ? -1.0f : 0.0f;
+		v->color = 0xffffffffu;
+		v->materialIndex = material;
+	}
+	for ( i = 0; i < 36; i++ ) g->indices[g->numIndices++] = first + indices[i];
+	return qtrue;
+}
+
 static qboolean RT_ExtractDynamic( void )
 {
 	int c;
@@ -1045,21 +1164,23 @@ static qboolean RT_ExtractDynamic( void )
 		const int cls = RT_EntityClass( ent );
 		rtxRtCpuGeometry_t *geometry;
 		const model_t *model;
-		uint32_t firstVertex;
+		uint32_t firstVertex, firstIndex;
 
 		if ( cls < 0 ) {
 			continue;
 		}
 		geometry = &s_rt.dynamic[cls];
 		firstVertex = geometry->numVertices;
+		firstIndex = geometry->numIndices;
 		if ( !vk_rt_append_dynamic_model_entity_geometry( geometry, ent, NULL ) ) {
 			return qfalse;
 		}
 		model = R_GetModelByHandle( ent->e.hModel );
 		RT_StampEntityVertices( geometry, firstVertex, ent, ( model && model->type == MOD_BRUSH ) ? qtrue : qfalse );
 		RT_RemapMaterials( geometry, firstVertex );
-		RT_MotionRecord( ent, cls, firstVertex, geometry->numVertices - firstVertex );
+		RT_MotionRecord( ent, cls, firstVertex, firstIndex );
 	}
+	if ( !RT_AppendTestCaster() ) return qfalse;
 	s_rt.sceneHash = 2166136261u;
 	for ( c = 0; c < RT_DYNAMIC_CLASSES; c++ ) {
 		const rtxRtCpuGeometry_t *geometry = &s_rt.dynamic[c];
@@ -1124,8 +1245,12 @@ static qboolean RT_PrepareBlas( rtBlas_t *blas, VkDeviceAddress vertexAddress, u
 {
 	VkAccelerationStructureBuildSizesInfoKHR sizes;
 	uint32_t g;
+	qboolean update = blas->built && ( flags & VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR ) &&
+		blas->geometryCount == geometryCount && blas->vertexCount == vertexCount &&
+		blas->buildFlags == flags && blas->anyHitOnly == anyHitOnly;
 
 	for ( g = 0; g < geometryCount; g++ ) {
+		if ( blas->primCount[g] != primCount[g] || blas->firstPrim[g] != firstPrim[g] ) update = qfalse;
 		// the first geometry is opaque, unless every hit goes to any-hit
 		RT_FillBlasGeometry( &geometries[g], vertexAddress, vertexCount, indexAddress,
 			( g == 0 && !anyHitOnly ) ? qtrue : qfalse );
@@ -1136,6 +1261,9 @@ static qboolean RT_PrepareBlas( rtBlas_t *blas, VkDeviceAddress vertexAddress, u
 		blas->firstPrim[g] = firstPrim[g];
 	}
 	blas->geometryCount = geometryCount;
+	blas->vertexCount = vertexCount;
+	blas->buildFlags = flags;
+	blas->anyHitOnly = anyHitOnly;
 
 	Com_Memset( buildInfo, 0, sizeof( *buildInfo ) );
 	buildInfo->sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR;
@@ -1151,6 +1279,7 @@ static qboolean RT_PrepareBlas( rtBlas_t *blas, VkDeviceAddress vertexAddress, u
 		buildInfo, primCount, &sizes );
 
 	if ( blas->as.handle == VK_NULL_HANDLE || blas->as.size < sizes.accelerationStructureSize ) {
+		update = qfalse;
 		VkDeviceSize size = sizes.accelerationStructureSize;
 		if ( blas->as.handle != VK_NULL_HANDLE ) {
 			size = MAX( size, blas->as.size + blas->as.size / 2 );
@@ -1168,7 +1297,15 @@ static qboolean RT_PrepareBlas( rtBlas_t *blas, VkDeviceAddress vertexAddress, u
 		}
 	}
 	buildInfo->dstAccelerationStructure = blas->as.handle;
-	blas->buildScratchSize = RT_AlignScratch( sizes.buildScratchSize );
+	if ( update ) {
+		buildInfo->mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_UPDATE_KHR;
+		buildInfo->srcAccelerationStructure = blas->as.handle;
+	}
+	blas->updateAge = update ? blas->updateAge + 1 : 0;
+	if ( flags & VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR ) {
+		if ( update ) s_rt.blasUpdates++; else s_rt.blasBuilds++;
+	}
+	blas->buildScratchSize = RT_AlignScratch( update ? sizes.updateScratchSize : sizes.buildScratchSize );
 	return qtrue;
 }
 
@@ -1392,7 +1529,7 @@ static qboolean RT_BuildWorld( void )
 	if ( RT_BuildLights() ) {
 		const uint32_t numCells = (uint32_t)( s_rtLights.dims[0] * s_rtLights.dims[1] * s_rtLights.dims[2] );
 		static const uint32_t noIndex = 0;
-		if ( !RT_CreateStatic( &s_rt.lightGrid, s_rtLights.cells, (size_t)numCells * 2 * sizeof( uint32_t ),
+		if ( !RT_CreateStatic( &s_rt.lightGrid, s_rtLights.cells, (size_t)( numCells + s_rtLights.numLights ) * 2 * sizeof( uint32_t ),
 				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, qfalse, "rt light grid" ) ||
 			!RT_CreateStatic( &s_rt.lightIndices, s_rtLights.numIndices ? (const void *)s_rtLights.indices : &noIndex,
 				(size_t)MAX( s_rtLights.numIndices, 1u ) * sizeof( uint32_t ),
@@ -1470,6 +1607,7 @@ static qboolean RT_RecordAccelerationStructures( rtFrame_t *frame, VkCommandBuff
 	VkAccelerationStructureInstanceKHR *instances;
 	uint32_t buildCount = 0;
 	uint32_t instanceCount = 0;
+	uint32_t vertexBase = 0;
 	VkDeviceSize scratchSize = 0;
 	VkDeviceSize scratchOffsets[RT_DYNAMIC_CLASSES + 1];
 	int c;
@@ -1477,14 +1615,29 @@ static qboolean RT_RecordAccelerationStructures( rtFrame_t *frame, VkCommandBuff
 	for ( c = 0; c < RT_DYNAMIC_CLASSES; c++ ) {
 		const uint32_t prims[2] = { s_rt.dynamicTriangles[c][0], s_rt.dynamicTriangles[c][1] };
 		const uint32_t first[2] = { primBase[c], primBase[c] + prims[0] };
+		const rtxRtCpuGeometry_t *g = &s_rt.dynamic[c];
+		rtBlas_t *blas = &frame->blas[c];
+		const uint32_t base = vertexBase;
+		vertexBase += g->numVertices;
 
-		frame->blas[c].built = qfalse;
 		if ( prims[0] + prims[1] == 0 ) {
+			frame->blas[c].built = qfalse;
 			continue;
 		}
+		// Vulkan updates require identical connectivity, not just identical
+		// triangle counts. Match exact local indices and refresh periodically
+		// so large deformations cannot degrade traversal indefinitely.
+		if ( blas->vertexBase != base || blas->topologyCount != g->numIndices || blas->updateAge >= 60 ||
+			!blas->topology || memcmp( blas->topology, g->indices, (size_t)g->numIndices * sizeof( uint32_t ) ) ) {
+			blas->built = qfalse;
+		}
+		if ( !RT_BvhGrow( (void **)&blas->topology, &blas->topologyCapacity, 0, g->numIndices, sizeof( uint32_t ) ) ) return qfalse;
+		Com_Memcpy( blas->topology, g->indices, (size_t)g->numIndices * sizeof( uint32_t ) );
+		blas->topologyCount = g->numIndices;
+		blas->vertexBase = base;
 		if ( !RT_PrepareBlas( &frame->blas[c], frame->vertices.buffer.address, totalVertices,
 				frame->indices.buffer.address, 2, prims, first,
-				VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR, qfalse,
+				VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR, qfalse,
 				va( "rt dynamic blas %d", c ), geometries[buildCount], ranges[buildCount], &buildInfos[buildCount] ) ) {
 			return qfalse;
 		}
@@ -1632,31 +1785,65 @@ static qboolean RT_RecordComputeScene( rtFrame_t *frame, const uint32_t worldFir
 	const uint32_t primBase[RT_DYNAMIC_CLASSES], uint32_t *outInstances )
 {
 	rtSwTree_t trees[RT_DYNAMIC_CLASSES];
+	uint32_t numNodes = 0, numTris = 0;
 	int c;
 
 	Com_Memset( trees, 0, sizeof( trees ) );
-	RT_BvhReset( &s_rt.bvh );
 	for ( c = 0; c < RT_DYNAMIC_CLASSES; c++ ) {
 		const rtxRtCpuGeometry_t *g = &s_rt.dynamic[c];
-		const uint32_t count = s_rt.dynamicTriangles[c][0] + s_rt.dynamicTriangles[c][1];
+		rtDynamicBvh_t *cache = &s_rt.dynamicBvh[c];
+		const uint32_t count = g->numIndices / 3;
+		qboolean refit;
 		if ( count == 0 ) {
+			cache->numIndices = 0;
+			RT_BvhReset( &cache->bvh );
 			continue;
 		}
-		if ( !RT_BvhAppend( &s_rt.bvh, g->vertices, g->numVertices, g->indices, count, primBase[c],
-				&trees[c].nodeOffset, &trees[c].triOffset ) ) {
-			return qfalse;
+		refit = cache->bvh.numNodes && cache->numIndices == g->numIndices && cache->numVertices == g->numVertices &&
+			cache->age < 120 && !memcmp( cache->indices, g->indices, (size_t)g->numIndices * sizeof( uint32_t ) ) &&
+			RT_BvhRefit( &cache->bvh, g->vertices, g->numVertices, g->indices, count, cache->primBias, primBase[c] );
+		if ( refit && cache->age >= 8 && RT_BvhCost( &cache->bvh ) > cache->buildCost * 1.5f ) refit = qfalse;
+		if ( !refit ) {
+			uint32_t nodeOffset, triOffset;
+			// Never update a tree after connectivity changes, or indefinitely
+			// retain a poor partition after entities move through each other.
+			RT_BvhReset( &cache->bvh );
+			if ( !RT_BvhAppend( &cache->bvh, g->vertices, g->numVertices, g->indices, count, primBase[c],
+					&nodeOffset, &triOffset ) ||
+				!RT_BvhGrow( (void **)&cache->indices, &cache->indexCapacity, 0, g->numIndices, sizeof( uint32_t ) ) ) {
+				cache->numIndices = 0;
+				return qfalse;
+			}
+			Com_Memcpy( cache->indices, g->indices, (size_t)g->numIndices * sizeof( uint32_t ) );
+			cache->buildCost = RT_BvhCost( &cache->bvh );
+			cache->age = 0;
+			s_rt.bvhBuilds++;
+		} else {
+			cache->age++;
+			s_rt.bvhRefits++;
 		}
+		cache->primBias = primBase[c];
+		cache->numVertices = g->numVertices;
+		cache->numIndices = g->numIndices;
+		trees[c].nodeOffset = numNodes;
+		trees[c].triOffset = numTris;
 		trees[c].valid = qtrue;
+		numNodes += cache->bvh.numNodes;
+		numTris += cache->bvh.numTris;
 	}
-	if ( s_rt.bvh.numNodes > 0 ) {
-		if ( !RT_EnsureMapped( &frame->bvhNodes, (VkDeviceSize)s_rt.bvh.numNodes * sizeof( rtBvhNode_t ),
+	if ( numNodes > 0 ) {
+		if ( !RT_EnsureMapped( &frame->bvhNodes, (VkDeviceSize)numNodes * sizeof( rtBvhNode_t ),
 				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, qfalse, qtrue, "rt dynamic bvh nodes" ) ||
-			!RT_EnsureMapped( &frame->bvhTris, (VkDeviceSize)s_rt.bvh.numTris * sizeof( rtBvhTri_t ),
-				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, qfalse, qtrue, "rt dynamic bvh triangles" ) ) {
-			return qfalse;
+			!RT_EnsureMapped( &frame->bvhTris, (VkDeviceSize)numTris * sizeof( rtBvhTri_t ),
+				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, qfalse, qtrue, "rt dynamic bvh triangles" ) ) return qfalse;
+		for ( c = 0; c < RT_DYNAMIC_CLASSES; c++ ) {
+			const rtBvh_t *bvh = &s_rt.dynamicBvh[c].bvh;
+			if ( !trees[c].valid ) continue;
+			Com_Memcpy( (rtBvhNode_t *)frame->bvhNodes.mapped + trees[c].nodeOffset, bvh->nodes,
+				(size_t)bvh->numNodes * sizeof( rtBvhNode_t ) );
+			Com_Memcpy( (rtBvhTri_t *)frame->bvhTris.mapped + trees[c].triOffset, bvh->tris,
+				(size_t)bvh->numTris * sizeof( rtBvhTri_t ) );
 		}
-		Com_Memcpy( frame->bvhNodes.mapped, s_rt.bvh.nodes, (size_t)s_rt.bvh.numNodes * sizeof( rtBvhNode_t ) );
-		Com_Memcpy( frame->bvhTris.mapped, s_rt.bvh.tris, (size_t)s_rt.bvh.numTris * sizeof( rtBvhTri_t ) );
 	}
 
 	frame->swInstanceCount = 0;
@@ -1714,21 +1901,11 @@ static qboolean RT_WritePreviousPositions( rtFrame_t *frame, const uint32_t vert
 	}
 	for ( e = 0; e < current->numEntities; e++ ) {
 		const rtMotionEntity_t *now = &current->entities[e];
-		rtMotionEntity_t *best = NULL;
-		float bestDistance = RT_MOTION_MATCH_DISTANCE * RT_MOTION_MATCH_DISTANCE;
-		uint32_t k;
-		for ( k = 0; k < last->numEntities; k++ ) {
-			rtMotionEntity_t *then = &last->entities[k];
-			float d;
-			if ( then->taken || then->model != now->model || then->cls != now->cls || then->count != now->count ) {
-				continue;
-			}
-			d = DistanceSquared( then->origin, now->origin );
-			if ( d <= bestDistance ) {
-				bestDistance = d;
-				best = then;
-			}
-		}
+		const float elapsed = s_rt.temporalTime ? Com_Clamp( 0.001f, 0.05f,
+			(float)( ri.Milliseconds() - s_rt.temporalTime ) * 0.001f ) : 1.0f / 60.0f;
+		const int matched = RT_MotionMatch( current->entities, current->numEntities, e,
+			last->entities, last->numEntities, 8.0f + 2000.0f * elapsed );
+		rtMotionEntity_t *best = matched >= 0 ? &last->entities[matched] : NULL;
 		if ( best && best->first + best->count <= last->numPositions ) {
 			best->taken = qtrue;
 			for ( v = 0; v < now->count; v++ ) {
@@ -1821,9 +1998,9 @@ static qboolean RT_RecordSceneBuild( rtFrame_t *frame, VkCommandBuffer cmd, uint
 		uint32_t *dstIndices;
 
 		if ( !RT_EnsureMapped( &frame->vertices, (VkDeviceSize)totalVertices * sizeof( rtxRtPackedVertex_t ),
-				usage, !compute, compute, "rt dynamic vertices" ) ||
+				usage, !compute, qtrue, "rt dynamic vertices" ) ||
 			!RT_EnsureMapped( &frame->indices, (VkDeviceSize)totalIndices * sizeof( uint32_t ),
-				usage, !compute, compute, "rt dynamic indices" ) ) {
+				usage, !compute, qtrue, "rt dynamic indices" ) ) {
 			return qfalse;
 		}
 		dstVertices = (rtxRtPackedVertex_t *)frame->vertices.mapped;
@@ -1862,9 +2039,9 @@ The shader binding table: ray generation; the radiance, shadow and filter
 misses; the radiance and shadow hit group and the filter rays' (their
 sbtRecordOffset 1 selects it).
 */
-#define RT_SBT_GROUPS	6
+#define RT_SBT_GROUPS	7
 #define RT_SBT_MISSES	3
-#define RT_SBT_HITS		2
+#define RT_SBT_HITS		3
 
 static qboolean RT_CreateSbt( void )
 {
@@ -1950,6 +2127,9 @@ typedef enum {
 	RT_DN_OUTPUT,
 	RT_DN_SCENE_COLOR,
 	RT_DN_TONE,				// the tone mapper's buffer
+	RT_DN_NOISY_INDIRECT,
+	RT_DN_HIST_INDIRECT,
+	RT_DN_FILTER_INDIRECT,
 	RT_DN_COUNT
 } rtDenoiseBinding_t;
 
@@ -1957,10 +2137,11 @@ typedef enum {
 static const int s_rtDenoiseImage[RT_DN_COUNT] = {
 	RT_IMG_DIFFUSE, RT_IMG_SPECULAR, RT_IMG_REFLECTANCE, RT_IMG_NORMAL_DEPTH, RT_IMG_MOTION, RT_IMG_INFO,
 	RT_IMG_HIST_DIFFUSE, RT_IMG_HIST_SPECULAR, RT_IMG_HIST_MOMENTS, RT_IMG_FILTER_DIFFUSE,
-	RT_IMG_FILTER_SPECULAR, RT_IMG_EMISSION, -1, -1, -1
+	RT_IMG_FILTER_SPECULAR, RT_IMG_EMISSION, -1, -1, -1,
+	RT_IMG_INDIRECT, RT_IMG_HIST_INDIRECT, RT_IMG_FILTER_INDIRECT
 };
 static const uint32_t s_rtDenoiseCount[RT_DN_COUNT] = {
-	1, 1, 1, 2, 1, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1
+	1, 1, 1, 2, 1, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 2, 2
 };
 
 static qboolean RT_CreateComputePipeline( VkShaderModule module, VkPipelineLayout layout, VkPipeline *pipeline,
@@ -1974,8 +2155,9 @@ static qboolean RT_CreateComputePipeline( VkShaderModule module, VkPipelineLayou
 	computeInfo.stage.module = module;
 	computeInfo.stage.pName = "main";
 	computeInfo.layout = layout;
-	if ( qvkCreateComputePipelines( vk.device, vk.pipelineCache, 1, &computeInfo, NULL, pipeline ) != VK_SUCCESS ) {
-		ri.Printf( PRINT_ERROR, "RTX RT: failed to create the %s pipeline\n", name );
+	const VkResult result = qvkCreateComputePipelines( vk.device, vk.pipelineCache, 1, &computeInfo, NULL, pipeline );
+	if ( result != VK_SUCCESS ) {
+		ri.Printf( PRINT_ERROR, "RTX RT: failed to create the %s pipeline (VkResult %d)\n", name, result );
 		return qfalse;
 	}
 	return qtrue;
@@ -2009,7 +2191,7 @@ static qboolean RT_EnsurePipelines( void )
 			( vk.modules.rt_rgen == VK_NULL_HANDLE || vk.modules.rt_rmiss == VK_NULL_HANDLE ||
 			  vk.modules.rt_rmiss_shadow == VK_NULL_HANDLE || vk.modules.rt_rmiss_filter == VK_NULL_HANDLE ||
 			  vk.modules.rt_rchit == VK_NULL_HANDLE || vk.modules.rt_rahit == VK_NULL_HANDLE ||
-			  vk.modules.rt_rahit_filter == VK_NULL_HANDLE ) ) ||
+			  vk.modules.rt_rahit_filter == VK_NULL_HANDLE || vk.modules.rt_rahit_shadow == VK_NULL_HANDLE ) ) ||
 		vk.modules.rt_composite == VK_NULL_HANDLE || vk.modules.rt_tonemap == VK_NULL_HANDLE ||
 		vk.modules.rt_denoise_temporal == VK_NULL_HANDLE || vk.modules.rt_denoise_atrous == VK_NULL_HANDLE ) {
 		ri.Printf( PRINT_ERROR, "RTX RT: path tracer shader modules are missing\n" );
@@ -2030,7 +2212,7 @@ static qboolean RT_EnsurePipelines( void )
 	rtBindings[RT_BINDING_FRAME].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	rtBindings[RT_BINDING_TEXTURES].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	rtBindings[RT_BINDING_TEXTURES].descriptorCount = RT_MAX_TEXTURES;
-	for ( i = RT_BINDING_OUT_COLOR; i <= RT_BINDING_OUT_INFO; i++ ) {
+	for ( i = RT_BINDING_OUT_COLOR; i <= RT_BINDING_OUT_INDIRECT; i++ ) {
 		rtBindings[i].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
 		rtBindings[i].stageFlags = compute ? VK_SHADER_STAGE_COMPUTE_BIT : VK_SHADER_STAGE_RAYGEN_BIT_KHR;
 	}
@@ -2092,7 +2274,8 @@ static qboolean RT_EnsurePipelines( void )
 	poolSizes[poolSizeCount].descriptorCount = RT_FRAMES * ( RT_MAX_TEXTURES + 1 );
 	poolSizeCount++;
 	poolSizes[poolSizeCount].type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-	poolSizes[poolSizeCount].descriptorCount = RT_FRAMES * 32;
+	poolSizes[poolSizeCount].descriptorCount = RT_FRAMES * ( RT_IMG_COUNT + 1 +
+		RT_BINDING_OUT_INDIRECT - RT_BINDING_OUT_COLOR + 1 );
 	poolSizeCount++;
 	Com_Memset( &poolInfo, 0, sizeof( poolInfo ) );
 	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -2134,17 +2317,17 @@ static qboolean RT_EnsurePipelines( void )
 	} else {
 		// ray-tracing pipeline: raygen, the radiance, shadow and filter
 		// misses, the radiance hit group and the filter rays' (RT_CreateSbt)
-		VkPipelineShaderStageCreateInfo stages[7];
+		VkPipelineShaderStageCreateInfo stages[8];
 		VkRayTracingShaderGroupCreateInfoKHR groups[RT_SBT_GROUPS];
 		VkRayTracingPipelineCreateInfoKHR pipelineInfo;
-		const VkShaderStageFlagBits stageBits[7] = {
+		const VkShaderStageFlagBits stageBits[8] = {
 			VK_SHADER_STAGE_RAYGEN_BIT_KHR, VK_SHADER_STAGE_MISS_BIT_KHR, VK_SHADER_STAGE_MISS_BIT_KHR,
 			VK_SHADER_STAGE_MISS_BIT_KHR, VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR, VK_SHADER_STAGE_ANY_HIT_BIT_KHR,
-			VK_SHADER_STAGE_ANY_HIT_BIT_KHR
+			VK_SHADER_STAGE_ANY_HIT_BIT_KHR, VK_SHADER_STAGE_ANY_HIT_BIT_KHR
 		};
-		const VkShaderModule modules[7] = {
+		const VkShaderModule modules[8] = {
 			vk.modules.rt_rgen, vk.modules.rt_rmiss, vk.modules.rt_rmiss_shadow, vk.modules.rt_rmiss_filter,
-			vk.modules.rt_rchit, vk.modules.rt_rahit, vk.modules.rt_rahit_filter
+			vk.modules.rt_rchit, vk.modules.rt_rahit, vk.modules.rt_rahit_filter, vk.modules.rt_rahit_shadow
 		};
 
 		Com_Memset( stages, 0, sizeof( stages ) );
@@ -2170,6 +2353,10 @@ static qboolean RT_EnsurePipelines( void )
 		groups[5].type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR;
 		groups[5].generalShader = VK_SHADER_UNUSED_KHR;
 		groups[5].anyHitShader = 6;
+		groups[6].type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR;
+		groups[6].generalShader = VK_SHADER_UNUSED_KHR;
+		groups[6].closestHitShader = 4;
+		groups[6].anyHitShader = 7;
 
 		Com_Memset( &pipelineInfo, 0, sizeof( pipelineInfo ) );
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR;
@@ -2229,9 +2416,9 @@ static qboolean RT_UploadMaterials( rtFrame_t *frame )
 		return qtrue;
 	}
 	if ( !RT_EnsureMapped( &frame->materials, (VkDeviceSize)MAX( s_rtMaterials.numMaterials, 1u ) * sizeof( rtGpuMaterial_t ),
-			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, qfalse, qfalse, "rt materials" ) ||
+			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, qfalse, qtrue, "rt materials" ) ||
 		!RT_EnsureMapped( &frame->stages, (VkDeviceSize)MAX( s_rtMaterials.numStages, 1u ) * sizeof( rtGpuStage_t ),
-			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, qfalse, qfalse, "rt stages" ) ) {
+			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, qfalse, qtrue, "rt stages" ) ) {
 		return qfalse;
 	}
 	if ( s_rtMaterials.numMaterials ) {
@@ -2293,7 +2480,7 @@ static qboolean RT_UploadLights( rtFrame_t *frame )
 		// RT_EnsureMapped replaces the buffer: it holds no static lights yet
 		frame->lightGeneration = (uint32_t)-1;
 	}
-	if ( !RT_EnsureMapped( &frame->lights, size, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, qfalse, qfalse, "rt lights" ) ) {
+	if ( !RT_EnsureMapped( &frame->lights, size, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, qfalse, qtrue, "rt lights" ) ) {
 		return qfalse;
 	}
 	dst = (rtGpuLight_t *)frame->lights.mapped;
@@ -2377,9 +2564,9 @@ static void RT_UpdateDescriptors( rtFrame_t *frame )
 	VkWriteDescriptorSet writes[(int)RT_BINDING_SW_COUNT + (int)RT_DN_COUNT];
 	VkDescriptorImageInfo *textures = s_vkRtDescriptorImageInfos;
 	// the trace writes this frame's normal/depth and info
-	const int outputs[RT_BINDING_OUT_INFO - RT_BINDING_OUT_COLOR + 1] = {
+	const int outputs[RT_BINDING_OUT_INDIRECT - RT_BINDING_OUT_COLOR + 1] = {
 		RT_IMG_DIFFUSE, RT_IMG_SPECULAR, RT_IMG_REFLECTANCE, RT_IMG_NORMAL_DEPTH + (int)s_rt.parity,
-		RT_IMG_EMISSION, RT_IMG_MOTION, RT_IMG_INFO + (int)s_rt.parity
+		RT_IMG_EMISSION, RT_IMG_MOTION, RT_IMG_INFO + (int)s_rt.parity, RT_IMG_INDIRECT
 	};
 	Vk_Sampler_Def samplerDef;
 	uint32_t writeCount = 0;
@@ -2579,7 +2766,8 @@ static int RT_TraceSettingsCount( void )
 		rtx_rt_lighting, rtx_rt_bounces, rtx_rt_indirect_strength, rtx_rt_emissive_scale, rtx_rt_sky_intensity,
 		rtx_rt_sun_intensity, rtx_rt_specular, rtx_rt_mis, rtx_rt_dlight_scale, rtx_rt_iqm_skinning,
 		rtx_rt_patch_shadows, r_dlightFalloff, r_dlightScale, rtx_rt_debug_light, rtx_rt_debug_light_mode,
-		rtx_rt_emissive_light, rtx_rt_checkerboard, rtx_rt_camera
+		rtx_rt_emissive_light, rtx_rt_checkerboard, rtx_rt_camera, rtx_rt_indirect_divisor,
+		r_liquidWarpScale, r_liquidRipples
 	};
 	int count = 0;
 	int i;
@@ -2618,6 +2806,26 @@ static fnRTCWFogDraw_t RT_ViewFog( void )
 		draw.params[3] = 1.0f;	// radial
 	}
 	return draw;
+}
+
+static int RT_IndirectDivisor( void )
+{
+	const int requested = rtx_rt_indirect_divisor ? rtx_rt_indirect_divisor->integer : 0;
+	const int minimum = requested ? MIN( MAX( requested, 1 ), 4 ) : ( RT_Compute() ? 2 : 1 );
+	const float budget = rtx_rt_frame_budget_ms ? rtx_rt_frame_budget_ms->value : 0.0f;
+	if ( s_rt.budgetMinimum != minimum || !( budget > 0.0f ) ) {
+		s_rt.budgetMinimum = s_rt.budgetDivisor = minimum;
+		s_rt.budgetCooldown = 45;
+	}
+	if ( s_rt.budgetCooldown > 0 ) s_rt.budgetCooldown--;
+	if ( budget > 0.0f && s_rt.budgetSample && s_rt.budgetCooldown == 0 ) {
+		const float ms = s_rt.gpuMs[0] + s_rt.gpuMs[1] + s_rt.gpuMs[2] + s_rt.gpuMs[3];
+		s_rt.budgetDivisor = RT_BudgetDivisor( s_rt.budgetDivisor, minimum, ms, budget );
+		s_rt.budgetCooldown = 45;
+	}
+	s_rt.budgetSample = qfalse;
+	// A complete seed after cuts/resizes avoids dark holes at a new surface.
+	return s_rt.historyValid ? s_rt.budgetDivisor : 1;
 }
 
 static void RT_WriteFrameUniforms( rtFrame_t *frame, uint32_t classPrims[RT_CLASS_COUNT][4], qboolean weapon )
@@ -2707,6 +2915,24 @@ static void RT_WriteFrameUniforms( rtFrame_t *frame, uint32_t classPrims[RT_CLAS
 
 	u->time[0] = (float)backEnd.refdef.floatTime;
 	u->time[1] = (float)tr.frameCount;
+	u->liquidParams[0] = R_LiquidWaveTime( backEnd.refdef.floatTime );
+	u->liquidParams[1] = r_liquidWarpScale ? Com_Clamp( 0.0f, 2.0f, r_liquidWarpScale->value ) : 1.0f;
+	{
+		int i, count = 0;
+		for ( i = 0; i < backEnd.refdef.numLiquidInteractions && count < 8; i++ ) {
+			const liquidInteraction_t *ring = &backEnd.refdef.liquidInteractions[i];
+			float age, life;
+			if ( !R_LiquidInteractionActive( ring, backEnd.refdef.time ) ) continue;
+			age = (float)( backEnd.refdef.time - ring->time ) * 0.001f;
+			life = 1.0f - age * ( 1000.0f / LIQUID_IMPULSE_LIFETIME_MSEC );
+			VectorCopy( ring->origin, u->liquidImpulses[count] );
+			u->liquidImpulses[count][3] = ring->radius + age * LIQUID_RIPPLE_EXPAND_SPEED;
+			u->liquidAmplitudes[count / 4][count & 3] = ring->strength * life *
+				( r_liquidRipples ? Com_Clamp( 0.0f, 2.0f, r_liquidRipples->value ) : 1.0f );
+			count++;
+		}
+		u->liquidParams[2] = (float)count;
+	}
 	VectorCopy( s_rtLights.gridOrigin, u->lightGridOrigin );
 	u->lightGridOrigin[3] = s_rtLights.cellSize > 0.0f ? 1.0f / s_rtLights.cellSize : 0.0f;
 	if ( s_rt.lightGrid.buffer != VK_NULL_HANDLE ) {
@@ -2720,10 +2946,12 @@ static void RT_WriteFrameUniforms( rtFrame_t *frame, uint32_t classPrims[RT_CLAS
 	u->params0[2] = 0.05f;		// roughness floor
 	u->params0[3] = rtx_rt_sky_intensity ? MAX( 0.0f, rtx_rt_sky_intensity->value ) : 1.0f;
 	u->params1[0] = tr.identityLight;
-	u->params1[1] = 1.0f;
+	s_rt.indirectDivisor = RT_IndirectDivisor();
+	u->params1[1] = (float)s_rt.indirectDivisor;
 	u->params1[2] = 64.0f;		// radiance clamp
 	u->params1[3] = 2.0f * tanY / (float)MAX( 1u, s_rt.traceHeight );
 	u->flags[0] |= ( bakedLighting ? RT_FRAME_BAKED_LIGHTING : 0u ) |
+		( ( rtx_rt_light_reuse && rtx_rt_light_reuse->integer ) ? RT_FRAME_LIGHT_REUSE : 0u ) |
 		( weapon ? RT_FRAME_WEAPON : 0u ) |
 		( s_rt.worldTriangles[RT_PART_FILTER] ? RT_FRAME_FILTERS : 0u ) |
 		( s_rtLights.q3map2 ? RT_FRAME_Q3MAP2 : 0u ) |
@@ -2737,7 +2965,10 @@ static void RT_WriteFrameUniforms( rtFrame_t *frame, uint32_t classPrims[RT_CLAS
 	// incoherent rays cost it twice what the primary view does
 	{
 		const int checkerboard = rtx_rt_checkerboard ? rtx_rt_checkerboard->integer : 0;
-		if ( checkerboard == 1 || ( checkerboard == 0 && RT_Compute() ) ) {
+		// Seed a complete history after a cut/resize; a missing tile has no
+		// observation to reconstruct yet.
+		if ( s_rt.historyValid && ( checkerboard == 1 ||
+			( checkerboard == 0 && RT_Compute() && s_rt.indirectDivisor == 1 ) ) ) {
 			u->flags[0] |= RT_FRAME_CHECKERBOARD;
 		}
 	}
@@ -2917,9 +3148,15 @@ GPU timing: five timestamps per frame slot around the scene build, trace,
 denoiser and composite. A slot's results are read when it is reused, after
 vk_begin_frame waited for its fence, so reading never stalls.
 */
+static qboolean RT_TimingEnabled( void )
+{
+	return ( ( rtx_rt_perf_timing && rtx_rt_perf_timing->integer ) ||
+		( rtx_rt_frame_budget_ms && rtx_rt_frame_budget_ms->value > 0.0f ) ) ? qtrue : qfalse;
+}
+
 static void RT_TimingBegin( VkCommandBuffer cmd, uint32_t slot )
 {
-	if ( !rtx_rt_perf_timing || !rtx_rt_perf_timing->integer ) {
+	if ( !RT_TimingEnabled() ) {
 		return;
 	}
 	if ( s_rt.timingPool == VK_NULL_HANDLE ) {
@@ -2943,6 +3180,8 @@ static void RT_TimingBegin( VkCommandBuffer cmd, uint32_t slot )
 				const float ms = (float)( stamps[i + 1] - stamps[i] ) * toMs;
 				s_rt.gpuMs[i] = s_rt.gpuMs[i] * 0.9f + ms * 0.1f;
 			}
+			s_rt.budgetSample = qtrue;
+			RT_FrameStatsAdd( &s_rt.gpuFrameStats, (float)( stamps[RT_TIMING_STAGES] - stamps[0] ) * toMs );
 		}
 	}
 	qvkCmdResetQueryPool( cmd, s_rt.timingPool, slot * RT_TIMING_QUERIES, RT_TIMING_QUERIES );
@@ -2951,7 +3190,7 @@ static void RT_TimingBegin( VkCommandBuffer cmd, uint32_t slot )
 
 static void RT_TimingStamp( VkCommandBuffer cmd, uint32_t slot, uint32_t index, VkPipelineStageFlagBits stage )
 {
-	if ( s_rt.timingPool == VK_NULL_HANDLE || !rtx_rt_perf_timing || !rtx_rt_perf_timing->integer ) {
+	if ( s_rt.timingPool == VK_NULL_HANDLE || !RT_TimingEnabled() ) {
 		return;
 	}
 	qvkCmdWriteTimestamp( cmd, stage, s_rt.timingPool, slot * RT_TIMING_QUERIES + index );
@@ -2959,16 +3198,34 @@ static void RT_TimingStamp( VkCommandBuffer cmd, uint32_t slot, uint32_t index, 
 
 static void RT_TimingReport( void )
 {
-	const int interval = rtx_rt_perf_interval ? MAX( 1, rtx_rt_perf_interval->integer ) : 120;
+	const int interval = rtx_rt_perf_timing && rtx_rt_perf_timing->integer == 2 ? 1 :
+		( rtx_rt_perf_interval ? MAX( 1, rtx_rt_perf_interval->integer ) : 120 );
 	if ( !rtx_rt_perf_timing || !rtx_rt_perf_timing->integer ) {
 		return;
 	}
 	if ( ++s_rt.timingReports % interval == 0 ) {
+		float p50, p95, p99;
+		RT_FrameStatsPercentiles( &s_rt.gpuFrameStats, &p50, &p95, &p99 );
+		ri.Printf( PRINT_ALL, "RTX RT GPU p50/p95/p99: %.2f/%.2f/%.2f ms (%u frames)\n",
+			p50, p95, p99, s_rt.gpuFrameStats.count );
+		ri.Printf( PRINT_ALL, "RTX RT quality: %s backend, direct %ux%u, indirect divisor %d, budget %.2f ms%s\n",
+			RT_Compute() ? "compute" : "hardware", s_rt.traceWidth, s_rt.traceHeight, s_rt.indirectDivisor,
+			rtx_rt_frame_budget_ms ? rtx_rt_frame_budget_ms->value : 0.0f,
+			s_rt.indirectDivisor == 4 ? " (minimum indirect density)" : "" );
 		ri.Printf( PRINT_ALL, "RTX RT timing: gpu build %.2f trace %.2f denoise %.2f composite %.2f = %.2f ms, cpu %.2f ms, %ux%u, "
 			"%u still frames\n",
 			s_rt.gpuMs[0], s_rt.gpuMs[1], s_rt.gpuMs[2], s_rt.gpuMs[3],
 			s_rt.gpuMs[0] + s_rt.gpuMs[1] + s_rt.gpuMs[2] + s_rt.gpuMs[3], s_rt.cpuMs,
 			s_rt.traceWidth, s_rt.traceHeight, s_rt.accumulated );
+		if ( RT_Compute() ) {
+			ri.Printf( PRINT_ALL, "RTX RT acceleration: %u dynamic builds, %u refits (all current-frame vertices)\n",
+				s_rt.bvhBuilds, s_rt.bvhRefits );
+		} else {
+			ri.Printf( PRINT_ALL, "RTX RT acceleration: %u dynamic BLAS builds, %u updates (all current-frame vertices)\n",
+				s_rt.blasBuilds, s_rt.blasUpdates );
+		}
+		ri.Printf( PRINT_ALL, "RTX RT geometry cache: %llu exact-pose hits, %llu extractions, IQM scratch %u influences\n",
+			(unsigned long long)s_rtGeometryHits, (unsigned long long)s_rtGeometryMisses, s_rtIqmScratchCount );
 		if ( s_rt.toneActive && s_rt.toneRead ) {
 			// where the curve takes light 4 and 2 stops either side of the
 			// metered luminance, in log2 display luminance before the bias
@@ -3149,16 +3406,24 @@ static qboolean RT_TraceFrame( void )
 	push.outputSize[1] = (float)s_rt.outputHeight;
 	push.outputSize[2] = 1.0f / (float)s_rt.outputWidth;
 	push.outputSize[3] = 1.0f / (float)s_rt.outputHeight;
-	// a still view keeps accumulating; a moving one keeps about 20 frames
-	push.params[0] = s_rt.accumulated > 0 ? 0.0f : 0.05f;
+	// Direct shadows and indirect light use different response times. A slow
+	// frame must not turn a short lighting response into seconds of history.
+	{
+		const int now = ri.Milliseconds();
+		const float elapsed = s_rt.temporalTime ? (float)( now - s_rt.temporalTime ) * 0.001f : 1.0f / 60.0f;
+		push.params[0] = s_rt.accumulated > 0 ? 0.0f : Com_Clamp( 0.001f, 0.25f, elapsed );
+		s_rt.temporalTime = now;
+	}
 	push.params[1] = 4.0f;		// luminance edge stop (sigma)
 	push.params[2] = 64.0f;		// normal edge stop (power)
 	push.params[3] = 1.0f;		// depth edge stop
 	push.state[0] = s_rt.parity;
-	push.state[3] = ( s_rt.historyValid && denoise ) ? 1u : 0u;
-	push.extra[0] = s_rt.accumulated > 0 ? 4096u : 32u;
-	push.extra[1] = rtx_rt_debug_visualizer ? (uint32_t)Com_Clamp( 0, 10, rtx_rt_debug_visualizer->integer ) : 0u;
+	push.state[3] = ( ( s_rt.historyValid && denoise ) ? 1u : 0u ) | ( denoise ? 0u : 4u );
+	push.extra[0] = s_rt.accumulated > 0 ? 4096u : 128u;
+	push.extra[1] = rtx_rt_debug_visualizer ? (uint32_t)Com_Clamp( 0, 13, rtx_rt_debug_visualizer->integer ) : 0u;
 	push.extra[2] = iterations;
+	push.view[3] = (uint32_t)s_rt.indirectDivisor | ( ( (uint32_t)tr.frameCount %
+		(uint32_t)( s_rt.indirectDivisor * s_rt.indirectDivisor ) ) << 8 );
 	// Light in a map compiler's units is shown as it was traced: the light a
 	// surface receives times its colour, as the engine shows a surface's
 	// light, an SDR scene keeping the engine's lightmap ceiling on it.
@@ -3201,7 +3466,6 @@ static qboolean RT_TraceFrame( void )
 	push.view[0] = (uint32_t)view.offset.x;
 	push.view[1] = (uint32_t)view.offset.y;
 	push.view[2] = 0;
-	push.view[3] = 0;
 	{
 		const fnRTCWFogDraw_t fog = RT_ViewFog();
 		Com_Memcpy( push.fog, fog.color, sizeof( push.fog ) );
@@ -3300,6 +3564,7 @@ static void RT_DestroyFrame( rtFrame_t *frame )
 	frame->lightGeneration = (uint32_t)-1;
 	for ( c = 0; c < RT_DYNAMIC_CLASSES; c++ ) {
 		vk_rt_destroy_as( &frame->blas[c].as );
+		if ( frame->blas[c].topology ) RT_HostFree( frame->blas[c].topology );
 		Com_Memset( &frame->blas[c], 0, sizeof( frame->blas[c] ) );
 	}
 	vk_rt_destroy_as( &frame->tlas );
@@ -3321,6 +3586,10 @@ static void RT_DestroyFrame( rtFrame_t *frame )
 static void RT_InvalidateScene( void )
 {
 	int i;
+	RT_GeometryCacheClear();
+	RT_HostFree( s_rtIqmScratch );
+	s_rtIqmScratch = NULL;
+	s_rtIqmScratchCount = 0;
 	RT_DestroyWorld();
 	vk_rt_destroy_buffer( &s_rt.lightGrid );
 	vk_rt_destroy_buffer( &s_rt.lightIndices );
@@ -3336,6 +3605,14 @@ static void RT_InvalidateScene( void )
 	}
 	s_rt.hasPrevCamera = qfalse;
 	s_rt.historyValid = qfalse;
+	for ( i = 0; i < RT_DYNAMIC_CLASSES; i++ ) {
+		rtDynamicBvh_t *cache = &s_rt.dynamicBvh[i];
+		RT_BvhFree( &cache->bvh );
+		if ( cache->indices ) RT_HostFree( cache->indices );
+		Com_Memset( cache, 0, sizeof( *cache ) );
+	}
+	s_rt.bvhBuilds = s_rt.bvhRefits = 0;
+	s_rt.blasBuilds = s_rt.blasUpdates = 0;
 	RT_MotionFree( &s_rt.motion[0] );
 	RT_MotionFree( &s_rt.motion[1] );
 	RT_MaterialsFree();

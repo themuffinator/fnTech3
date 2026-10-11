@@ -37,7 +37,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // 32: texture capabilities for profiles' frozen renderer records.
 /* Version 33 appends engine-owned mutable MDR registration and pose updates. */
 /* Version 34 appends the renderer-owned Academy world distance query. */
-#define	REF_API_VERSION		34
+/* Version 35 appends optional engine frame pacing/profiling events. */
+#define	REF_API_VERSION		35
+
+typedef enum {
+	REF_FRAME_PREPARE_INPUT,
+	REF_FRAME_INPUT_POLLED,
+	REF_FRAME_INPUT_SAMPLE,
+	REF_FRAME_SIMULATION_BEGIN,
+	REF_FRAME_SIMULATION_END,
+	REF_FRAME_EVENT_COUNT
+} refFrameEvent_t;
 
 //
 // these are the functions exported by the refresh module
@@ -259,6 +269,10 @@ typedef struct {
 
 	/* MP world visibility limit; false before load or after shutdown. */
 	qboolean (*GetJKADistanceCull)( float *distance );
+	/* Optional; no game module sees this table. PREPARE_INPUT may pace the
+	 * next frame, before input polling and the engine's frame clock sample.
+	 * Other events are read-only instrumentation using the monotonic clock. */
+	void (*FrameEvent)( refFrameEvent_t event, int64_t microseconds );
 
 } refexport_t;
 

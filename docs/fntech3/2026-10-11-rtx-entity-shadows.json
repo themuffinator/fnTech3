@@ -1,0 +1,3094 @@
+{
+  "record": "2026-10-11-rtx-entity-shadows",
+  "date": "2026-10-11",
+  "evidenceLevels": [
+    "Source",
+    "Unit",
+    "Live subset"
+  ],
+  "gatesClosed": [],
+  "sourceCommit": "6a8ea608c046690e572e77f13195f7608478d466",
+  "workingTreeDirty": true,
+  "sourceSnapshotNote": "Concurrent unrelated changes exist. Per-run binary identities below identify tested artifacts; final source hashes include the decision to default proposal reuse off, exercised explicitly in the final A/B runs.",
+  "sourceSha256": {
+    "code/rendererrtx/rt/rt_backend.c": "b3ec118d69c7ba6e3497c94ec7447d27c69a8b704c88bddefea2bdaf1b9c7b58",
+    "code/rendererrtx/rt/rt_bvh.c": "e6747b7713d1ecc7e17df5a814414a609059faf67662f1c18d04e9b6262a25b6",
+    "code/rendererrtx/rt/rt_frame_stats.h": "b7d17a4b81ee007333b6e07f8bb09b2648bab8036eb96e4481c604a0813fc5e7",
+    "code/rendererrtx/rt/rt_geometry_cache.h": "27f412bdb6c2f379b6ed4c3c9da1563b684d0dd5f18d11c3898129a4c75a27fb",
+    "code/rendererrtx/rt/rt_motion.h": "86dd9ef1e7eccacdecfb79d5e29411cdffe6856cef5c6c65c4c8880b7afc1343",
+    "code/rendererrtx/rt/rt_quality.h": "f690674912858300799e566fc6ad29dae4947c43f1f844d7061b4929731b65bf",
+    "code/rendererrtx/rt/rt_lights.c": "b5522abbb43b05b8748dfbbdf8ef95e2326446b0128f7e4597b4977ff6d827e3",
+    "code/rendererrtx/rt/rt_gpu.h": "5483aab30d910d952c790302f606674764f0a1edcc6e35b79cd19349f65ec1e8",
+    "code/rendererrtx/shaders/rt_temporal_response.glsl": "784fe1c957914b19f948ee5d48fc2028d597b12bbc59c3040837c0312e544d4c",
+    "code/rendererrtx/shaders/rt_indirect_sampling.glsl": "bdeed76d216c3e14e8e74d891a6d945663a4b5cee98f877f9f8727f58938ee89",
+    "code/rendererrtx/shaders/rt_light_proposal.glsl": "af3e986ba1a2233aed65d5e9a10a5cdc3df4ccd6b1358441acb15abbf6dfa1d1",
+    "code/rendererrtx/shaders/rt_light_reuse.glsl": "67746a6d481aad71197939f0f4410cc2919ba15b4e49e5e2f259e08eb2617f55",
+    "code/rendererrtx/shaders/rt_signal_packing.glsl": "0b4a74caf0fe12c5283f60b7765fa18c0a34c86c9316b9199d0038e82da8c248",
+    "code/rendererrtx/shaders/rt_shadow.rahit": "55f95541726b8ae27995ce1ef60576ae757c2725a199208dff7285ce253fea1c",
+    "code/rendererrtx/shaders/rt_denoise_temporal.comp": "6c01657ee6b6c8e2df990d07c4ee6fc6c1cb31dc6d880c19e3583c0b52b0b08c",
+    "code/rendererrtx/shaders/rt_denoise_atrous.comp": "ea9c6f66746143b6fe2fb3aa8becc72dae6df05c9fca14a681d40190d9069643",
+    "code/rendererrtx/shaders/rt_path.glsl": "ca55e7d2311c4007967c949f11ececc15bccee159b7159b8a0066e1ba2af962c",
+    "code/rendererrtx/shaders/rt_lighting.glsl": "2b67cd80c94d9b8bc18623d21fca7d6a397cd230efbc49549f3648ddff26a1bb",
+    "code/rendererrtx/shaders/spirv/shader_data.c": "0f5a2c95586d24de91c5f55edec28ec5c0439608b8b2d02d3ac6bbb7c4dcad52",
+    "code/rendererrtx/shaders/spirv/shader_reflection.json": "9b2a5b2b208d94c67c939a80583f237235d0ebc984977a49c4c838e3d76d8077",
+    "code/rendererrtx/vk.c": "3f576f48457620f8e1e81df25fd52addae6ea0cde07f2139472d7f7f7acc0e4a",
+    "code/rendererrtx/vk.h": "3b39f764444260c16ac3f0529887c1cff79ad4dffa2fe8be1007d270491579ed",
+    "code/rendererrtx/tr_backend.c": "aa50d0e53a0efa6119279df7df6f1a37f0cff4edc896614adfed51bcc4db2e60",
+    "code/rendererrtx/tr_shade.c": "b3e9782ca03d84f3866cb8aea55f2e13fef64068938f3936b18d0d5aa8d52f01",
+    "code/rendererrtx/tr_init.c": "5f52767fc25c76cfd6a4127976548622ab29fba80ddd9b6fc15521afc55507c6",
+    "code/renderercommon/tr_public.h": "1e1dacc97300d63ecf19a4e762767d02cb3c759793f567fc9abbbcefec5b5c44",
+    "code/client/cl_input.cpp": "f13fef7a5975415a020bc21ff6549c6254d7fb247548877980192ce87cda9c9c",
+    "code/client/cl_main.cpp": "8bd5323b1bf7aaab66e998e42ef23e549d752bece923e6f691dad3ef720df425",
+    "code/qcommon/common.c": "bbb25e72027b1fe1f81ed0b94f9135b1fb21282f696c20cc92637efa817f5c38",
+    "code/win32/win_main.cpp": "14155fe94e172ee5c6e3cd3acdf535dff424674aa51701ea5a7d9a445fa928f4",
+    "code/unix/unix_main.cpp": "799a21804887340f47e4bd063104a14c89639e22b55e74c4bd609e6b45ecad6c",
+    "scripts/rtx_probe.py": "b33ae3316b2c64680552695e46af083b7e50cfcc028f19993e48a3e0163a42b6"
+  },
+  "testSha256": {
+    "tests/rtx_bvh_refit_tests.py": "117314763c3db6d4d8d267355dc3bcde3f6bb9c0ccbb2c3383a00965cb69e0b5",
+    "tests/rtx_dynamic_light_tests.py": "af931977a131ae2a7c60f886a578e2d5535ed46168a1eceecc7b8adb6ea1212a",
+    "tests/rtx_emitter_lighting_tests.py": "11c52a43ad234583932b068c456270d7e4b6f8998848e8d2307d88ce2d34c6cd",
+    "tests/rtx_entity_shadow_tests.py": "7ede92cc7a158c90018e19b5841bc20f9a8b261997313096ae44f7b0e4f53664",
+    "tests/rtx_geometry_cache_tests.py": "ac7da86b0e8035a19166b0e6c4371345a2e8e9404b32de9cea4247de29351e9a",
+    "tests/rtx_indirect_budget_tests.py": "934fb2121f19b74bc2123b186e14a02593494538673404bf968a488bb9c9b01b",
+    "tests/rtx_latency_tests.py": "c5f435b195c9f1eaad98fee39ee527f99b4b807d67d1b67456137961cd651f94",
+    "tests/rtx_lifecycle_tests.py": "729868e380892e1c76e95b55e457961de38e253523d01482dd390b11a1a4478e",
+    "tests/rtx_light_entity_tests.py": "5aa3cfaab14504ee0d3f88b47e54f1938076c6ce9a251a600fa2cccbfbea8147",
+    "tests/rtx_light_proposal_tests.py": "156050240b6126c9ca5a303cd4f95134a73a25f01caca896779a7cf0066fb066",
+    "tests/rtx_light_rules_tests.py": "fe87cc90c59adbee03af6f3a0fe6c3a0ec534280646e95aa10817cb2669846f8",
+    "tests/rtx_lightmap_execution_tests.py": "2c46febceca475cc1bdaa464c713a867e7025410cea9fcc8106cce8d2603dff1",
+    "tests/rtx_liquid_tests.py": "4bfbf985eac58850743cc773c088b090e75dada3511bd9b4c37f9c4003952363",
+    "tests/rtx_mohaa_world_tests.py": "63f2f5d2cc0440d00fe59a2a48b0d363628d4bee85eb08cc5a28b7695c03d61a",
+    "tests/rtx_motion_identity_tests.py": "5c8825c75a7640314d641b47763f89b720f20d9f52dc08e2191ead3f92150217",
+    "tests/rtx_raster_execution_tests.py": "285aa1bcb9b413500702d41b368d98737129a1e2746c2bd9b26100ad5595532d",
+    "tests/rtx_raster_feature_parity_source_tests.py": "8be521555d04121d4661bec8b3a64d8e74773440b6502754ef43bba540835d4e",
+    "tests/rtx_renderer_contract_source_tests.py": "d25ae3e2b02fa722fb7a8cc62a26551a0aae1f48af06208528a4b395b1ea5417",
+    "tests/rtx_runtime_smoke_tests.py": "b4e5c48dedf5703880c8ad6b64fc8b18caca137b654db6e2ce357da425c84dd7",
+    "tests/rtx_scene_linear_gate_tests.py": "5abf1e7955d1f94a3a709aa9c5a6e19b71f3fba0f4706e90c583ea8a48ca0c23",
+    "tests/rtx_signal_packing_tests.py": "0436af9fb57049000fca3522eaef13b5027387fd6e6a4c8d2a9dc3b20bb70003",
+    "tests/rtx_surface_owner_tests.py": "133900b9139ec6a44035dee84017ab334b3417b17e903c1d8c5fc773f09839d8",
+    "tests/rtx_temporal_response_tests.py": "75d682b1662955563fcd8bd2bee1cd5cbc8886961e5e430e391076d926a60294",
+    "tests/rtx_transport_tests.py": "261c6c44eff846830d782cdec4b01ff8d9f77708e0955e12a7a7c437904665d2",
+    "tests/rtx_vulkan_safety_source_tests.py": "24dd18dfe292147c232589f0f5115b3acff59e6ec357d5f677ee28215421d225"
+  },
+  "platform": "Windows-10-10.0.26200-SP0",
+  "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "driver": "591.74",
+  "profile": "q3",
+  "rendererApi": 35,
+  "externalModuleAbiChanged": false,
+  "settings": {
+    "rtx_rt_low_latency": 1,
+    "rtx_rt_indirect_divisor": 0,
+    "computeDefaultIndirectDivisor": 2,
+    "hardwareDefaultIndirectDivisor": 1,
+    "rtx_rt_frame_budget_ms": 0,
+    "rtx_rt_light_reuse": 0,
+    "rtx_rt_device_local": 1
+  },
+  "safety": {
+    "windowed": true,
+    "privateDesktop": true,
+    "inputInjected": false,
+    "osCaptureUsed": false,
+    "captureCommand": "screenshotPNG",
+    "retailReadOnly": true,
+    "isolatedHome": true
+  },
+  "tests": {
+    "rtx": 134,
+    "affected": 90,
+    "input": 98,
+    "shaderVariants": 97,
+    "documentation": 20,
+    "playerGuideLinks": "passed",
+    "frameClock": "passed; see frame-clock-tests.log",
+    "logsRoot": ".tmp/rtx-implementation-2026-10-11",
+    "logs": [
+      "rtx-tests-final.log",
+      "affected-tests.log",
+      "input-tests.log",
+      "frame-clock-tests.log",
+      "shader-build.log",
+      "docs-tests.log"
+    ]
+  },
+  "builds": [
+    {
+      "name": "Win32 shared",
+      "outcome": "passed",
+      "client": {
+        "path": "meson/build/win32-dev/fntech3.exe",
+        "sha256": "dcdd55235729e189d0e56ed634a991a0b47bb4cd385d27804aeebc59e7f410a9"
+      },
+      "renderer": {
+        "path": "meson/build/win32-dev/fnql_rtx_x86.dll",
+        "sha256": "a054f466a91933ed53dacb9f7c18835596fb5f082275cca84aec3d44481b4543"
+      }
+    },
+    {
+      "name": "Q3-only x64",
+      "outcome": "passed",
+      "client": {
+        "path": ".tmp/meson-q3-rtx-x64/fntech3-q3.exe",
+        "sha256": "84198304644e37b63012dc34758f1227605af0304a15bb812781f5c964f09842"
+      },
+      "renderer": {
+        "path": ".tmp/meson-q3-rtx-x64/fnql_rtx_x86_64.dll",
+        "sha256": "4406c8553b3f590afcc048730aaab102f6dadcdb8939fc071f8b3050089e28f0"
+      }
+    }
+  ],
+  "runs": [
+    {
+      "name": "body-floor-response-720",
+      "manifest": ".tmp/rtx-implementation-2026-10-11/body-floor-response-720/manifest.json",
+      "manifestSha256": "b1988420606b00163b8c0177b4704cff0f7b55414af5faabcc4962d6fa617e8b",
+      "consoleSha256": "c0525a4be2c767e2a7dfbb6b6c7916ff9fdb0bad072c49b6fbbf60d192c7e7d0",
+      "utc": "2026-10-11T09:27:13.027297+00:00",
+      "client": {
+        "path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "sha256": "dcdd55235729e189d0e56ed634a991a0b47bb4cd385d27804aeebc59e7f410a9"
+      },
+      "renderers": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fnql_rtx_x86.dll",
+          "sha256": "004ad0e2374679031defc288413c371327897a7f63069ec71392b2d359b201dc"
+        }
+      ],
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\rtx-implementation-2026-10-11\\body-floor-response-720\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customwidth",
+        "1280",
+        "+set",
+        "r_customheight",
+        "720",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "1280",
+        "+set",
+        "r_windowedHeight",
+        "720",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "rtx_rt_mode",
+        "2",
+        "+set",
+        "rtx_rt_require",
+        "1",
+        "+exec",
+        "rtx-probe.cfg"
+      ],
+      "script": "set cl_allowDownload \"0\"\nset cl_motd \"0\"\nset sv_autoRecordDemos \"0\"\nset com_maxfps \"60\"\nset com_maxfpsUnfocused \"60\"\nset cg_lagometer \"0\"\nset con_notifytime \"0\"\nset cg_drawFPS \"0\"\nset rtx_rt_bounces \"0\"\nset rtx_rt_debug_visualizer \"11\"\nset cg_drawGun \"0\"\nset cg_bobup \"0\"\nset cg_bobpitch \"0\"\nset cg_bobroll \"0\"\ndevmap q3dm1\nwait 60\nsetviewpos 212 2360 65 315\nrtx_caps_report 2\nwait 90\nscreenshotPNG clear\nwait 1\nset rtx_rt_test_caster \"600 2000 0 24\"\nwait 90\nscreenshotPNG start\nwait 1\nset rtx_rt_test_caster \"604 2000 0 24\"\nwait 0\nscreenshotPNG m01\nwait 1\nset rtx_rt_test_caster \"608 2000 0 24\"\nwait 0\nscreenshotPNG m02\nwait 1\nset rtx_rt_test_caster \"612 2000 0 24\"\nwait 0\nscreenshotPNG m03\nwait 1\nset rtx_rt_test_caster \"616 2000 0 24\"\nwait 0\nscreenshotPNG m04\nwait 1\nset rtx_rt_test_caster \"620 2000 0 24\"\nwait 0\nscreenshotPNG m05\nwait 1\nset rtx_rt_test_caster \"624 2000 0 24\"\nwait 0\nscreenshotPNG m06\nwait 1\nset rtx_rt_test_caster \"628 2000 0 24\"\nwait 0\nscreenshotPNG m07\nwait 1\nset rtx_rt_test_caster \"632 2000 0 24\"\nwait 0\nscreenshotPNG m08\nwait 1\nwait 60\nscreenshotPNG settled\nwait 1\nset rtx_rt_test_caster \"632 2000 0 24 1\"\nwait 60\nscreenshotPNG clear-after\nwait 1\nquit\n",
+      "tracingBackends": [
+        "compute"
+      ],
+      "validationLayerEnabled": false,
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 9.52,
+      "console": {
+        "mode": {
+          "requested": 2,
+          "active": 2,
+          "require": 1
+        },
+        "nativeDispatch": true,
+        "validationMessages": 0,
+        "validationSample": [],
+        "vuids": [],
+        "fatal": []
+      },
+      "captures": [
+        {
+          "name": "clear",
+          "sha256": "5a4d7aa62f2a6d10872811b5a1d74a6a51692b901a0682c994367ee91be88224",
+          "missing": false
+        },
+        {
+          "name": "start",
+          "sha256": "51880177d560b8065ed17a20b45fd7831fcf1eea0458eaff76bef3547d104a6f",
+          "missing": false
+        },
+        {
+          "name": "m01",
+          "sha256": "b2876d059f3e139d9377bcfc096d8d2461dec9199e463139cbcaba0791e9cf90",
+          "missing": false
+        },
+        {
+          "name": "m02",
+          "sha256": "13177e63484cd6f398f7429a0ba5cda02e7d36a6ebd8dfd61861945ae79a8c37",
+          "missing": false
+        },
+        {
+          "name": "m03",
+          "sha256": "083b9f1e4f591f04998a90e99c8741942acd494916f1039b8f879299ba301d45",
+          "missing": false
+        },
+        {
+          "name": "m04",
+          "sha256": "51cbb0319f855975be6ce6e4bb02f24ed6540577b6dbf9aba4cb59c26b9f678f",
+          "missing": false
+        },
+        {
+          "name": "m05",
+          "sha256": "9c354fb791fcbf07d91502a189d0f1089219cc0cb1a2c57fba159105485017aa",
+          "missing": false
+        },
+        {
+          "name": "m06",
+          "sha256": "025ea8db137faf2409fa6655b7552a3d06292790a45acd77afbbc80e3463812b",
+          "missing": false
+        },
+        {
+          "name": "m07",
+          "sha256": "8fe87bd487e6c44258dba4647536af84a6d5f89de5b026c6c79f7c8b42803943",
+          "missing": false
+        },
+        {
+          "name": "m08",
+          "sha256": "b38731d1d1eae89e96e501e6b7f952b9e8afadf09407bc2eee461d1bf3a5ab7b",
+          "missing": false
+        },
+        {
+          "name": "settled",
+          "sha256": "de788ea97f76b432bd2272e89bf4337849650bb46502ca883d3f1a876ec1253a",
+          "missing": false
+        },
+        {
+          "name": "clear-after",
+          "sha256": "c2252a96aab881aafa675e859e1e46688889a07b6198e8a0eea1e70a71eea483",
+          "missing": false
+        }
+      ],
+      "measurements": {
+        "roi": [
+          500,
+          415,
+          720,
+          475
+        ],
+        "threshold": 70,
+        "method": "largest connected dark component in direct-light debug view; engine screenshots, no OS capture",
+        "samples": [
+          {
+            "frame": "clear",
+            "area": 0,
+            "centroid": null
+          },
+          {
+            "frame": "start",
+            "area": 779,
+            "centroid": [
+              612.33,
+              431.64
+            ]
+          },
+          {
+            "frame": "m01",
+            "area": 856,
+            "centroid": [
+              608.72,
+              431.74
+            ]
+          },
+          {
+            "frame": "m02",
+            "area": 810,
+            "centroid": [
+              603.39,
+              430.97
+            ]
+          },
+          {
+            "frame": "m03",
+            "area": 800,
+            "centroid": [
+              600.1,
+              430.42
+            ]
+          },
+          {
+            "frame": "m04",
+            "area": 784,
+            "centroid": [
+              597.92,
+              429.84
+            ]
+          },
+          {
+            "frame": "m05",
+            "area": 729,
+            "centroid": [
+              593.91,
+              429.03
+            ]
+          },
+          {
+            "frame": "m06",
+            "area": 717,
+            "centroid": [
+              589.55,
+              428.57
+            ]
+          },
+          {
+            "frame": "m07",
+            "area": 758,
+            "centroid": [
+              586.06,
+              428.19
+            ]
+          },
+          {
+            "frame": "m08",
+            "area": 714,
+            "centroid": [
+              583.15,
+              427.64
+            ]
+          },
+          {
+            "frame": "settled",
+            "area": 668,
+            "centroid": [
+              582.85,
+              427.4
+            ]
+          },
+          {
+            "frame": "clear-after",
+            "area": 0,
+            "centroid": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "final-light-reuse-compute",
+      "manifest": ".tmp/rtx-implementation-2026-10-11/final-light-reuse-compute/manifest.json",
+      "manifestSha256": "0f0a19689dc752eae2435422507ce14ded7ba90028422f358026269045cae3bd",
+      "consoleSha256": "01c7d5f0349c36d6c6377b73d4c9599b438a6e6324898da3675841087047c5c7",
+      "utc": "2026-10-11T09:38:41.733913+00:00",
+      "client": {
+        "path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "sha256": "dcdd55235729e189d0e56ed634a991a0b47bb4cd385d27804aeebc59e7f410a9"
+      },
+      "renderers": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fnql_rtx_x86.dll",
+          "sha256": "d16ab6ccf96d6d68871d9a6100c5421663907e364b516802c5de1faafaef593b"
+        }
+      ],
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\rtx-implementation-2026-10-11\\final-light-reuse-compute\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customwidth",
+        "1280",
+        "+set",
+        "r_customheight",
+        "720",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "1280",
+        "+set",
+        "r_windowedHeight",
+        "720",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "rtx_rt_require",
+        "1",
+        "+exec",
+        "rtx-probe.cfg"
+      ],
+      "script": "set cl_allowDownload \"0\"\nset cl_motd \"0\"\nset sv_autoRecordDemos \"0\"\nset com_maxfps \"60\"\nset com_maxfpsUnfocused \"60\"\nset cg_lagometer \"0\"\nset con_notifytime \"0\"\nset cg_drawFPS \"0\"\nset rtx_rt_perf_timing \"1\"\nset rtx_rt_perf_interval \"30\"\nset rtx_rt_bounces \"0\"\nset rtx_rt_debug_visualizer \"11\"\nset rtx_rt_accumulate \"0\"\nset cg_drawGun \"0\"\nset cg_bobup \"0\"\nset cg_bobpitch \"0\"\nset cg_bobroll \"0\"\ndevmap q3dm1\nwait 60\nsetviewpos 212 2360 65 315\nrtx_caps_report 2\nset rtx_rt_light_reuse \"0\"\nset rtx_rt_test_caster \"600 2000 0 24\"\nwait 90\nscreenshotPNG independent-settle\nwait 1\nwait 0\nscreenshotPNG independent-still-00\nwait 1\nwait 0\nscreenshotPNG independent-still-01\nwait 1\nwait 0\nscreenshotPNG independent-still-02\nwait 1\nwait 0\nscreenshotPNG independent-still-03\nwait 1\nwait 0\nscreenshotPNG independent-still-04\nwait 1\nwait 0\nscreenshotPNG independent-still-05\nwait 1\nwait 0\nscreenshotPNG independent-still-06\nwait 1\nwait 0\nscreenshotPNG independent-still-07\nwait 1\nwait 0\nscreenshotPNG independent-still-08\nwait 1\nwait 0\nscreenshotPNG independent-still-09\nwait 1\nwait 0\nscreenshotPNG independent-still-10\nwait 1\nwait 0\nscreenshotPNG independent-still-11\nwait 1\nwait 0\nscreenshotPNG independent-still-12\nwait 1\nwait 0\nscreenshotPNG independent-still-13\nwait 1\nwait 0\nscreenshotPNG independent-still-14\nwait 1\nwait 0\nscreenshotPNG independent-still-15\nwait 1\nset rtx_rt_test_caster \"604 2000 0 24\"\nwait 0\nscreenshotPNG independent-move-01\nwait 1\nset rtx_rt_test_caster \"608 2000 0 24\"\nwait 0\nscreenshotPNG independent-move-02\nwait 1\nset rtx_rt_test_caster \"612 2000 0 24\"\nwait 0\nscreenshotPNG independent-move-03\nwait 1\nset rtx_rt_test_caster \"616 2000 0 24\"\nwait 0\nscreenshotPNG independent-move-04\nwait 1\nset rtx_rt_test_caster \"620 2000 0 24\"\nwait 0\nscreenshotPNG independent-move-05\nwait 1\nset rtx_rt_test_caster \"624 2000 0 24\"\nwait 0\nscreenshotPNG independent-move-06\nwait 1\nset rtx_rt_test_caster \"628 2000 0 24\"\nwait 0\nscreenshotPNG independent-move-07\nwait 1\nset rtx_rt_test_caster \"632 2000 0 24\"\nwait 0\nscreenshotPNG independent-move-08\nwait 1\nwait 60\nscreenshotPNG independent-settled\nwait 1\nset rtx_rt_test_caster \"632 2000 0 24 1\"\nwait 60\nscreenshotPNG independent-noshadow\nwait 1\nset rtx_rt_light_reuse \"1\"\nset rtx_rt_test_caster \"600 2000 0 24\"\nwait 90\nscreenshotPNG reuse-settle\nwait 1\nwait 0\nscreenshotPNG reuse-still-00\nwait 1\nwait 0\nscreenshotPNG reuse-still-01\nwait 1\nwait 0\nscreenshotPNG reuse-still-02\nwait 1\nwait 0\nscreenshotPNG reuse-still-03\nwait 1\nwait 0\nscreenshotPNG reuse-still-04\nwait 1\nwait 0\nscreenshotPNG reuse-still-05\nwait 1\nwait 0\nscreenshotPNG reuse-still-06\nwait 1\nwait 0\nscreenshotPNG reuse-still-07\nwait 1\nwait 0\nscreenshotPNG reuse-still-08\nwait 1\nwait 0\nscreenshotPNG reuse-still-09\nwait 1\nwait 0\nscreenshotPNG reuse-still-10\nwait 1\nwait 0\nscreenshotPNG reuse-still-11\nwait 1\nwait 0\nscreenshotPNG reuse-still-12\nwait 1\nwait 0\nscreenshotPNG reuse-still-13\nwait 1\nwait 0\nscreenshotPNG reuse-still-14\nwait 1\nwait 0\nscreenshotPNG reuse-still-15\nwait 1\nset rtx_rt_test_caster \"604 2000 0 24\"\nwait 0\nscreenshotPNG reuse-move-01\nwait 1\nset rtx_rt_test_caster \"608 2000 0 24\"\nwait 0\nscreenshotPNG reuse-move-02\nwait 1\nset rtx_rt_test_caster \"612 2000 0 24\"\nwait 0\nscreenshotPNG reuse-move-03\nwait 1\nset rtx_rt_test_caster \"616 2000 0 24\"\nwait 0\nscreenshotPNG reuse-move-04\nwait 1\nset rtx_rt_test_caster \"620 2000 0 24\"\nwait 0\nscreenshotPNG reuse-move-05\nwait 1\nset rtx_rt_test_caster \"624 2000 0 24\"\nwait 0\nscreenshotPNG reuse-move-06\nwait 1\nset rtx_rt_test_caster \"628 2000 0 24\"\nwait 0\nscreenshotPNG reuse-move-07\nwait 1\nset rtx_rt_test_caster \"632 2000 0 24\"\nwait 0\nscreenshotPNG reuse-move-08\nwait 1\nwait 60\nscreenshotPNG reuse-settled\nwait 1\nset rtx_rt_test_caster \"632 2000 0 24 1\"\nwait 60\nscreenshotPNG reuse-noshadow\nwait 1\nset rtx_rt_debug_visualizer \"0\"\nset rtx_rt_bounces \"1\"\nwait 90\nscreenshotPNG normal\nwait 1\nquit\n",
+      "tracingBackends": [
+        "compute"
+      ],
+      "validationLayerEnabled": false,
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 24.33,
+      "console": {
+        "mode": {
+          "requested": 2,
+          "active": 2,
+          "require": 1
+        },
+        "nativeDispatch": true,
+        "validationMessages": 0,
+        "validationSample": [],
+        "vuids": [],
+        "fatal": []
+      },
+      "captures": [
+        {
+          "name": "independent-settle",
+          "sha256": "a7199bb4d04677811489acb71c6858aae3f3ad80ac91a5970831d0a114a14e86",
+          "missing": false
+        },
+        {
+          "name": "independent-still-00",
+          "sha256": "8f8a16655bfbf8a08151e09f85364e9c745e4283a626d11bb7c486f75119cf30",
+          "missing": false
+        },
+        {
+          "name": "independent-still-01",
+          "sha256": "dd81fe9841ba443d5c8684bf99d630bb05bd33321c0e712398967034c28c7217",
+          "missing": false
+        },
+        {
+          "name": "independent-still-02",
+          "sha256": "073c7932a94b07d1a8dbb647780dd975b25fca581f7a13a51f0281a29aec0b5c",
+          "missing": false
+        },
+        {
+          "name": "independent-still-03",
+          "sha256": "8a2ff9062d878057770ff3a929e12904e09fbfbda8d233cd1d237071a2c12ca5",
+          "missing": false
+        },
+        {
+          "name": "independent-still-04",
+          "sha256": "aa2bfa102e59f84d0f0b653a78b780794316b0e2a56c161506569f0419c2c41d",
+          "missing": false
+        },
+        {
+          "name": "independent-still-05",
+          "sha256": "cccca0402ed1b8958ff38f8df92d7b130e2fa7ed4c4a82595a8c89cafa6766be",
+          "missing": false
+        },
+        {
+          "name": "independent-still-06",
+          "sha256": "74292d5431a8d3a41eed4a4e75ad7ae512a3883be3e379cd47be3574bad38025",
+          "missing": false
+        },
+        {
+          "name": "independent-still-07",
+          "sha256": "ba57427dca780309d34245921713948a433e7dc342f960a5c33a2c049d0903b0",
+          "missing": false
+        },
+        {
+          "name": "independent-still-08",
+          "sha256": "adc89977b39d5a22c15af95e7ecb7c27c3211d7b5ee12c0fe3a9b6e363266929",
+          "missing": false
+        },
+        {
+          "name": "independent-still-09",
+          "sha256": "14c97edcef8afb6e137d5fc335ea32f1d22c46d1f907ccb1cb7de9410b20e067",
+          "missing": false
+        },
+        {
+          "name": "independent-still-10",
+          "sha256": "be8725b0a569a358d1c68898c6c2687e41f6105863f0ed02c3d4bcdd5a971d79",
+          "missing": false
+        },
+        {
+          "name": "independent-still-11",
+          "sha256": "94a04bf8f4b5c3f6ca779294708a198e17a1b61eb177de623db294bc140741c8",
+          "missing": false
+        },
+        {
+          "name": "independent-still-12",
+          "sha256": "44babeadd79be3f22e79226b736929e543e8600e273aa6384c12503167ad8b6d",
+          "missing": false
+        },
+        {
+          "name": "independent-still-13",
+          "sha256": "2334f607674cff9642ee332949d627a52682ec553f32709a9a1edb9e84e099f5",
+          "missing": false
+        },
+        {
+          "name": "independent-still-14",
+          "sha256": "df6184a61a77853cd80ac2892fc088b21b3241b9e680c053b1dc8ef60a300233",
+          "missing": false
+        },
+        {
+          "name": "independent-still-15",
+          "sha256": "2938955f8cb610ac19d82114d12651eebf2b355c1f32e79ad321a2a0c63bfac3",
+          "missing": false
+        },
+        {
+          "name": "independent-move-01",
+          "sha256": "559b5fda718743825dca50792a28dde66a5a6b6b6dfce849d7125a12630846b5",
+          "missing": false
+        },
+        {
+          "name": "independent-move-02",
+          "sha256": "dbd8d8e9f09264d0b0b96ad3fb5a1e6738a6f10e969cb40d923a69694de42a76",
+          "missing": false
+        },
+        {
+          "name": "independent-move-03",
+          "sha256": "d60dabfca5bf79dc359d3415925bfb514300841f49421d129fc87effb97e40b9",
+          "missing": false
+        },
+        {
+          "name": "independent-move-04",
+          "sha256": "b49ab8c756f678754ff317cb942401d983fac6de129081b5d16e2edd10e17433",
+          "missing": false
+        },
+        {
+          "name": "independent-move-05",
+          "sha256": "e703b50670333ea14074b76574079f0e21412d88d2712a021fe561db78fe1f93",
+          "missing": false
+        },
+        {
+          "name": "independent-move-06",
+          "sha256": "0361154cfef8b4066ca45f09eeb33d0c3715af0be5fc5ee2d31a19f3ee4ca63a",
+          "missing": false
+        },
+        {
+          "name": "independent-move-07",
+          "sha256": "3c67f0f14b84906b1900ea2256417ab98ee8c70f76d62779d0309e7c32aad5b4",
+          "missing": false
+        },
+        {
+          "name": "independent-move-08",
+          "sha256": "e05a9a26b44dc3d7fc44921563a766c2de9ddfdd4b506db2bcec244493c447f2",
+          "missing": false
+        },
+        {
+          "name": "independent-settled",
+          "sha256": "95a49689dd54ea0189e4218225b72cebdc8b447193f821419b3f2a6416561107",
+          "missing": false
+        },
+        {
+          "name": "independent-noshadow",
+          "sha256": "a67534aad2041a15f4e8a6a2367827e5ce0d4b4c1a07df72737c1de0f073edce",
+          "missing": false
+        },
+        {
+          "name": "reuse-settle",
+          "sha256": "b3d85c075dbfd0236df7e740f5bd49582c84d129726c9563cae40fbb0a4d5d37",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-00",
+          "sha256": "3fdd491cd14a71cf01d31efde16aa3a33f226f334eec29327b0742594d0c4a86",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-01",
+          "sha256": "25aed09c38d61e78e0ca92bce87b7ce68be07bac6ffefa7012f08c09b6cad6ee",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-02",
+          "sha256": "39a71edf0e91ea43cbd382e41a8b15f15f11f0a743b886fbf084df8f42364028",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-03",
+          "sha256": "adba847a25fef40c53273ea08f7a535415ac1d89fc14973a68352fd7cc7b1ed9",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-04",
+          "sha256": "9af7e89a3c6e8c5193c2d9ff7216b8cadc231702bd84cb6590ba54b8dd58fccf",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-05",
+          "sha256": "df49ddd926b3bcbb88043a5b24b32f07e89ebba6390b6e07f5ae465ae5539367",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-06",
+          "sha256": "a2f7938ec4c49b27e9d0b347453127555a2d88fc19f20e94a5dc94af4fef0f9b",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-07",
+          "sha256": "c46c866b619c7f0d5a67e4ae1897ea922007721f018ced1947fbbe4056d50d0e",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-08",
+          "sha256": "7ef484bfb26f31d85190cbbf644a4420fc5bb9891f5a39aacb5020f19ca3452f",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-09",
+          "sha256": "716aab83c59a6157eb41c009ded53526f56eae60c1583bd2a03c20387183ddee",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-10",
+          "sha256": "a3a697dc241553fdeebb76fb5ae19b245419dae500b34dd999d6d6e2f8d69dbf",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-11",
+          "sha256": "09fe6cebfa8b3891d40f6ddce5589303b2067c1f14c2d357429a553a0b99f3f9",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-12",
+          "sha256": "5861b3910f3e510e7100d240b61a49330f0ffdde38f4c19702237b677b011e26",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-13",
+          "sha256": "d4758f2a32829ec102ad4b6632b16e82a9e866cd9973478f322ead050fd0d4d6",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-14",
+          "sha256": "695757beb80a8913377096d2f893765f7eae9a63d5be4432600c2a325734d707",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-15",
+          "sha256": "d01b3325e6932610ecf88004a5dcdeed3c95dc26dd50d6fe74aedd30e7b7fdb9",
+          "missing": false
+        },
+        {
+          "name": "reuse-move-01",
+          "sha256": "0ef3e21541d4a6b015b0bde3be8d32aaa501ebfd586407932d94127fe6942552",
+          "missing": false
+        },
+        {
+          "name": "reuse-move-02",
+          "sha256": "56c2a7b98df44ffb0569445881651bf78845ca38a3557dcadb844bee8dc63325",
+          "missing": false
+        },
+        {
+          "name": "reuse-move-03",
+          "sha256": "c82d815ac7a6d91053e1b1d42580d277ce006a59308b9a5c22d83670edd55134",
+          "missing": false
+        },
+        {
+          "name": "reuse-move-04",
+          "sha256": "8655d439e51428513501564a13d3a1c979d7c10088fac17253c66500315077a3",
+          "missing": false
+        },
+        {
+          "name": "reuse-move-05",
+          "sha256": "f01aac186308fc25cf774a8419801f253b454177393f92db5ec00125c66355e5",
+          "missing": false
+        },
+        {
+          "name": "reuse-move-06",
+          "sha256": "ee90e1697ff7581da1d9d0db40abf394a450e441d6dc0db9504a5939143d2aa9",
+          "missing": false
+        },
+        {
+          "name": "reuse-move-07",
+          "sha256": "1f97a9cc8c42526f2650d0c8e40de56cbc7ac78fa6cc2bfee7e8e80f3db3e7dc",
+          "missing": false
+        },
+        {
+          "name": "reuse-move-08",
+          "sha256": "4c026fded35c23b4962bf4ddde1bf491f60e11526f9cb47e930c18805af54b8d",
+          "missing": false
+        },
+        {
+          "name": "reuse-settled",
+          "sha256": "086cd90a0b616e922492e21a11373f77b1791b18e33b70f2f324e4ee3c0fb025",
+          "missing": false
+        },
+        {
+          "name": "reuse-noshadow",
+          "sha256": "3eb32fda45f3b001298bcd10522b6f3b2f0075563b146e6f770ff3847bebabeb",
+          "missing": false
+        },
+        {
+          "name": "normal",
+          "sha256": "f897bf758b671732e692b87e2f78cbeeba85b6ac987a4c4a9371ec169b626ef9",
+          "missing": false
+        }
+      ],
+      "measurements": {
+        "kind": "compute",
+        "roi": [
+          500,
+          415,
+          720,
+          475
+        ],
+        "threshold": 70,
+        "method": "Largest connected dark component in engine direct-light screenshots. Stationary variance is encoded image RGB, not radiometric energy.",
+        "settings": {
+          "independent": {
+            "samples": [
+              {
+                "frame": "independent-settle",
+                "area": 682,
+                "centroid": [
+                  613.6319648093842,
+                  428.30205278592376
+                ]
+              },
+              {
+                "frame": "independent-move-01",
+                "area": 724,
+                "centroid": [
+                  610.3466850828729,
+                  428.1325966850829
+                ]
+              },
+              {
+                "frame": "independent-move-02",
+                "area": 699,
+                "centroid": [
+                  606.483547925608,
+                  427.552217453505
+                ]
+              },
+              {
+                "frame": "independent-move-03",
+                "area": 684,
+                "centroid": [
+                  602.859649122807,
+                  427.0204678362573
+                ]
+              },
+              {
+                "frame": "independent-move-04",
+                "area": 668,
+                "centroid": [
+                  599.2005988023952,
+                  426.51197604790417
+                ]
+              },
+              {
+                "frame": "independent-move-05",
+                "area": 697,
+                "centroid": [
+                  596.232424677188,
+                  426.16929698708753
+                ]
+              },
+              {
+                "frame": "independent-move-06",
+                "area": 666,
+                "centroid": [
+                  592.6291291291291,
+                  425.71321321321324
+                ]
+              },
+              {
+                "frame": "independent-move-07",
+                "area": 659,
+                "centroid": [
+                  589.464339908953,
+                  425.062215477997
+                ]
+              },
+              {
+                "frame": "independent-move-08",
+                "area": 629,
+                "centroid": [
+                  584.9650238473768,
+                  424.55325914149444
+                ]
+              },
+              {
+                "frame": "independent-settled",
+                "area": 579,
+                "centroid": [
+                  586.1588946459412,
+                  424.1882556131261
+                ]
+              },
+              {
+                "frame": "independent-noshadow",
+                "area": 0,
+                "centroid": null
+              }
+            ],
+            "stepDistancesPixels": [
+              3.2896471317662654,
+              3.906490592371552,
+              3.6627039449545724,
+              3.69421346786134,
+              2.9878899873107967,
+              3.6320450459007905,
+              3.231050736122769,
+              4.52801077454812
+            ],
+            "lastToSettledPixels": 1.248421026491602,
+            "stationaryMeanRGB": 96.20878866598079,
+            "stationaryMeanTemporalStdRGB": 3.2191699311016033
+          },
+          "reuse": {
+            "samples": [
+              {
+                "frame": "reuse-settle",
+                "area": 650,
+                "centroid": [
+                  613.6553846153846,
+                  428.1476923076923
+                ]
+              },
+              {
+                "frame": "reuse-move-01",
+                "area": 717,
+                "centroid": [
+                  610.465829846583,
+                  428.13668061366803
+                ]
+              },
+              {
+                "frame": "reuse-move-02",
+                "area": 711,
+                "centroid": [
+                  605.4683544303798,
+                  427.6526019690577
+                ]
+              },
+              {
+                "frame": "reuse-move-03",
+                "area": 720,
+                "centroid": [
+                  603.5694444444445,
+                  427.2638888888889
+                ]
+              },
+              {
+                "frame": "reuse-move-04",
+                "area": 688,
+                "centroid": [
+                  599.4578488372093,
+                  426.6424418604651
+                ]
+              },
+              {
+                "frame": "reuse-move-05",
+                "area": 714,
+                "centroid": [
+                  595.3207282913165,
+                  426.31232492997196
+                ]
+              },
+              {
+                "frame": "reuse-move-06",
+                "area": 652,
+                "centroid": [
+                  593.1518404907976,
+                  425.61503067484665
+                ]
+              },
+              {
+                "frame": "reuse-move-07",
+                "area": 643,
+                "centroid": [
+                  589.0855365474339,
+                  425.00622083981335
+                ]
+              },
+              {
+                "frame": "reuse-move-08",
+                "area": 607,
+                "centroid": [
+                  585.0411861614498,
+                  424.44645799011533
+                ]
+              },
+              {
+                "frame": "reuse-settled",
+                "area": 591,
+                "centroid": [
+                  586.6040609137056,
+                  424.31641285956005
+                ]
+              },
+              {
+                "frame": "reuse-noshadow",
+                "area": 0,
+                "centroid": null
+              }
+            ],
+            "stepDistancesPixels": [
+              3.189573777260891,
+              5.020865729107197,
+              1.9382871287245536,
+              4.15829470415121,
+              4.150270304335194,
+              2.2782215804154777,
+              4.111627071494709,
+              4.082903928885886
+            ],
+            "lastToSettledPixels": 1.5682758772676648,
+            "stationaryMeanRGB": 95.23294980281207,
+            "stationaryMeanTemporalStdRGB": 5.445330483853618
+          }
+        }
+      }
+    },
+    {
+      "name": "final-light-reuse-hardware",
+      "manifest": ".tmp/rtx-implementation-2026-10-11/final-light-reuse-hardware/manifest.json",
+      "manifestSha256": "5916630bca3714643e83feb9c9ee6530d28ece1a80d4dc2a40cdc5ae78d14131",
+      "consoleSha256": "efbe68059562197a25255316f5684e278b6d266f9d02835c907433564514cf28",
+      "utc": "2026-10-11T09:41:17.353061+00:00",
+      "client": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-q3-rtx-x64\\fntech3-q3.exe",
+        "sha256": "84198304644e37b63012dc34758f1227605af0304a15bb812781f5c964f09842"
+      },
+      "renderers": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-q3-rtx-x64\\fnql_rtx_x86_64.dll",
+          "sha256": "45c8f280c99c76662857f3700f1c041fd3502bf5f078794fa98c6e2297a56f38"
+        }
+      ],
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\meson-q3-rtx-x64\\fntech3-q3.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\rtx-implementation-2026-10-11\\final-light-reuse-hardware\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customwidth",
+        "1280",
+        "+set",
+        "r_customheight",
+        "720",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "1280",
+        "+set",
+        "r_windowedHeight",
+        "720",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "rtx_rt_require",
+        "1",
+        "+set",
+        "rtx_debug_vk_validation",
+        "1",
+        "+set",
+        "rtx_rt_backend",
+        "1",
+        "+exec",
+        "rtx-probe.cfg"
+      ],
+      "script": "set cl_allowDownload \"0\"\nset cl_motd \"0\"\nset sv_autoRecordDemos \"0\"\nset com_maxfps \"60\"\nset com_maxfpsUnfocused \"60\"\nset cg_lagometer \"0\"\nset con_notifytime \"0\"\nset cg_drawFPS \"0\"\nset rtx_rt_perf_timing \"1\"\nset rtx_rt_perf_interval \"30\"\nset rtx_rt_bounces \"0\"\nset rtx_rt_debug_visualizer \"11\"\nset rtx_rt_accumulate \"0\"\nset cg_drawGun \"0\"\nset cg_bobup \"0\"\nset cg_bobpitch \"0\"\nset cg_bobroll \"0\"\ndevmap q3dm1\nwait 60\nsetviewpos 212 2360 65 315\nrtx_caps_report 2\nset rtx_rt_light_reuse \"0\"\nset rtx_rt_test_caster \"600 2000 0 24\"\nwait 90\nscreenshotPNG independent-settle\nwait 1\nwait 0\nscreenshotPNG independent-still-00\nwait 1\nwait 0\nscreenshotPNG independent-still-01\nwait 1\nwait 0\nscreenshotPNG independent-still-02\nwait 1\nwait 0\nscreenshotPNG independent-still-03\nwait 1\nwait 0\nscreenshotPNG independent-still-04\nwait 1\nwait 0\nscreenshotPNG independent-still-05\nwait 1\nwait 0\nscreenshotPNG independent-still-06\nwait 1\nwait 0\nscreenshotPNG independent-still-07\nwait 1\nwait 0\nscreenshotPNG independent-still-08\nwait 1\nwait 0\nscreenshotPNG independent-still-09\nwait 1\nwait 0\nscreenshotPNG independent-still-10\nwait 1\nwait 0\nscreenshotPNG independent-still-11\nwait 1\nwait 0\nscreenshotPNG independent-still-12\nwait 1\nwait 0\nscreenshotPNG independent-still-13\nwait 1\nwait 0\nscreenshotPNG independent-still-14\nwait 1\nwait 0\nscreenshotPNG independent-still-15\nwait 1\nset rtx_rt_test_caster \"604 2000 0 24\"\nwait 0\nscreenshotPNG independent-move-01\nwait 1\nset rtx_rt_test_caster \"608 2000 0 24\"\nwait 0\nscreenshotPNG independent-move-02\nwait 1\nset rtx_rt_test_caster \"612 2000 0 24\"\nwait 0\nscreenshotPNG independent-move-03\nwait 1\nset rtx_rt_test_caster \"616 2000 0 24\"\nwait 0\nscreenshotPNG independent-move-04\nwait 1\nset rtx_rt_test_caster \"620 2000 0 24\"\nwait 0\nscreenshotPNG independent-move-05\nwait 1\nset rtx_rt_test_caster \"624 2000 0 24\"\nwait 0\nscreenshotPNG independent-move-06\nwait 1\nset rtx_rt_test_caster \"628 2000 0 24\"\nwait 0\nscreenshotPNG independent-move-07\nwait 1\nset rtx_rt_test_caster \"632 2000 0 24\"\nwait 0\nscreenshotPNG independent-move-08\nwait 1\nwait 60\nscreenshotPNG independent-settled\nwait 1\nset rtx_rt_test_caster \"632 2000 0 24 1\"\nwait 60\nscreenshotPNG independent-noshadow\nwait 1\nset rtx_rt_light_reuse \"1\"\nset rtx_rt_test_caster \"600 2000 0 24\"\nwait 90\nscreenshotPNG reuse-settle\nwait 1\nwait 0\nscreenshotPNG reuse-still-00\nwait 1\nwait 0\nscreenshotPNG reuse-still-01\nwait 1\nwait 0\nscreenshotPNG reuse-still-02\nwait 1\nwait 0\nscreenshotPNG reuse-still-03\nwait 1\nwait 0\nscreenshotPNG reuse-still-04\nwait 1\nwait 0\nscreenshotPNG reuse-still-05\nwait 1\nwait 0\nscreenshotPNG reuse-still-06\nwait 1\nwait 0\nscreenshotPNG reuse-still-07\nwait 1\nwait 0\nscreenshotPNG reuse-still-08\nwait 1\nwait 0\nscreenshotPNG reuse-still-09\nwait 1\nwait 0\nscreenshotPNG reuse-still-10\nwait 1\nwait 0\nscreenshotPNG reuse-still-11\nwait 1\nwait 0\nscreenshotPNG reuse-still-12\nwait 1\nwait 0\nscreenshotPNG reuse-still-13\nwait 1\nwait 0\nscreenshotPNG reuse-still-14\nwait 1\nwait 0\nscreenshotPNG reuse-still-15\nwait 1\nset rtx_rt_test_caster \"604 2000 0 24\"\nwait 0\nscreenshotPNG reuse-move-01\nwait 1\nset rtx_rt_test_caster \"608 2000 0 24\"\nwait 0\nscreenshotPNG reuse-move-02\nwait 1\nset rtx_rt_test_caster \"612 2000 0 24\"\nwait 0\nscreenshotPNG reuse-move-03\nwait 1\nset rtx_rt_test_caster \"616 2000 0 24\"\nwait 0\nscreenshotPNG reuse-move-04\nwait 1\nset rtx_rt_test_caster \"620 2000 0 24\"\nwait 0\nscreenshotPNG reuse-move-05\nwait 1\nset rtx_rt_test_caster \"624 2000 0 24\"\nwait 0\nscreenshotPNG reuse-move-06\nwait 1\nset rtx_rt_test_caster \"628 2000 0 24\"\nwait 0\nscreenshotPNG reuse-move-07\nwait 1\nset rtx_rt_test_caster \"632 2000 0 24\"\nwait 0\nscreenshotPNG reuse-move-08\nwait 1\nwait 60\nscreenshotPNG reuse-settled\nwait 1\nset rtx_rt_test_caster \"632 2000 0 24 1\"\nwait 60\nscreenshotPNG reuse-noshadow\nwait 1\nset rtx_rt_debug_visualizer \"0\"\nset rtx_rt_bounces \"1\"\nwait 90\nscreenshotPNG normal\nwait 1\nquit\n",
+      "tracingBackends": [
+        "ray_tracing_pipeline"
+      ],
+      "validationLayerEnabled": true,
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 64.62,
+      "console": {
+        "mode": {
+          "requested": 2,
+          "active": 2,
+          "require": 1
+        },
+        "nativeDispatch": true,
+        "validationMessages": 0,
+        "validationSample": [],
+        "vuids": [],
+        "fatal": []
+      },
+      "captures": [
+        {
+          "name": "independent-settle",
+          "sha256": "e074a74bab69898e21116172760a4e6ec29a74b54462c980660fdb4078acdd94",
+          "missing": false
+        },
+        {
+          "name": "independent-still-00",
+          "sha256": "bcd0e36a37e6b6b228f217098d5a0eb5d4e4a946e8504a9180c2087d25a51bf5",
+          "missing": false
+        },
+        {
+          "name": "independent-still-01",
+          "sha256": "44aac650d074e7129f9ac382683aca4539093356c5c2685e968ea81cacae7ae7",
+          "missing": false
+        },
+        {
+          "name": "independent-still-02",
+          "sha256": "4e59c29c6ed996eb8f4c8851ed2bf15501cef9a7b160caa8916963a77481e30f",
+          "missing": false
+        },
+        {
+          "name": "independent-still-03",
+          "sha256": "56dc6d360360e9f1f0f2bdab44ff583493375972c3a078cf7eac2c0a719f4ae1",
+          "missing": false
+        },
+        {
+          "name": "independent-still-04",
+          "sha256": "f3476ebfb7121ea6a6323e173f15ba541f60139a11319f984e04f6638e5fc7a3",
+          "missing": false
+        },
+        {
+          "name": "independent-still-05",
+          "sha256": "9f2fae65b863b400f621d7b874a5ab9638c10e97ba0c9d16b1f4f9839f94110d",
+          "missing": false
+        },
+        {
+          "name": "independent-still-06",
+          "sha256": "4ff4c6f4790773ef8b34ba509e9dbda14f4e1d3cd12d94d76f5b840e77c8c845",
+          "missing": false
+        },
+        {
+          "name": "independent-still-07",
+          "sha256": "18c2ee7253735d5b4bcf3d93945d5539acc4a1c85b55eb68c7de7a24efb2c6bc",
+          "missing": false
+        },
+        {
+          "name": "independent-still-08",
+          "sha256": "a1d80e74f117dc512a7a843810f4ffcc07124e20ef0bb9f108dab7587b3cebcc",
+          "missing": false
+        },
+        {
+          "name": "independent-still-09",
+          "sha256": "d6fa1dca88d3b464d9c321efb563a2d071158a9ca435647d934033874cfe86c4",
+          "missing": false
+        },
+        {
+          "name": "independent-still-10",
+          "sha256": "c023ea5ee2c1de015f5866907e13589a2793c230fe1b21a7715379079952548a",
+          "missing": false
+        },
+        {
+          "name": "independent-still-11",
+          "sha256": "d2ee5dcf94b7706844d47bc1b09b96cebdf7b0b0c4e59b29d72e3ab4e5b264d3",
+          "missing": false
+        },
+        {
+          "name": "independent-still-12",
+          "sha256": "5d76c44a2f29a5e1ed1d6506e8617fd7fda9a25f65a1c8771520768c595d2f97",
+          "missing": false
+        },
+        {
+          "name": "independent-still-13",
+          "sha256": "475de248d23cc1adee68ab33db1b788b09522dd7954e1306ace5818a047acf0f",
+          "missing": false
+        },
+        {
+          "name": "independent-still-14",
+          "sha256": "5785e271cc957e87321d133876ab5049ca2ba4d3a8878a6eb769ec1801b0768e",
+          "missing": false
+        },
+        {
+          "name": "independent-still-15",
+          "sha256": "1172686774eb03de43c95db8bb654bde81a24d41519bcb3ef850f7460bd677da",
+          "missing": false
+        },
+        {
+          "name": "independent-move-01",
+          "sha256": "1b8ddb3d217f8446a8f78a5bf316f2c520e24960bab5a4d2b1531cf1351a727d",
+          "missing": false
+        },
+        {
+          "name": "independent-move-02",
+          "sha256": "97609856c0254caffc655235b8452248f481b3864c36a12df95408d1ad09e720",
+          "missing": false
+        },
+        {
+          "name": "independent-move-03",
+          "sha256": "5c2eb985bbeabf2dcd5dcf2e5cfff8fc18e49f974df58c3d4d6cc438265e23b9",
+          "missing": false
+        },
+        {
+          "name": "independent-move-04",
+          "sha256": "e44a0cee09434dbb1aec5cf2934c8371e73d1a532084f9c09755bb84a60d3f4d",
+          "missing": false
+        },
+        {
+          "name": "independent-move-05",
+          "sha256": "d77a5b1dcdf5304a9e7eaa9264624cfdd1c364e388c82976a530d956411018c6",
+          "missing": false
+        },
+        {
+          "name": "independent-move-06",
+          "sha256": "a5512206dc6dedac46ecb246047b4490ba19590d2a7e4e34b7fbb2634237ebd6",
+          "missing": false
+        },
+        {
+          "name": "independent-move-07",
+          "sha256": "70f4fb7eec922e74f4591d61e6ed0fc360ff7a39e2460243ca5fefb7de954f78",
+          "missing": false
+        },
+        {
+          "name": "independent-move-08",
+          "sha256": "2359a80aa1b399be4aa5d1f4dd057e07a71365f5bdcd8d95c8b3ba95300ae1ce",
+          "missing": false
+        },
+        {
+          "name": "independent-settled",
+          "sha256": "26927ab4eab9a41a299d36087eec4ac95912dbd5075408b2b763ed5473ecbfd2",
+          "missing": false
+        },
+        {
+          "name": "independent-noshadow",
+          "sha256": "94abd7c3cf98927e060c6c4efada18adaeb47a91299a8b9939062474df843d26",
+          "missing": false
+        },
+        {
+          "name": "reuse-settle",
+          "sha256": "b4e2daa6ed7eaa351f107d3e41833203ff78f5726249cabe1749cf83197d484b",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-00",
+          "sha256": "1cdd1c42cbd33504c3a5932e7ba83b4d33d8cff4e5cd13ccba45c5e53df27efa",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-01",
+          "sha256": "f25732b0c7cb7e3cf07eaad6855e4603c58c79094a7daf3245c0b6925399bc57",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-02",
+          "sha256": "1ded36a7b5ff12757c798cd297f8056f9be90f47b246621286b0dad67448a72a",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-03",
+          "sha256": "bc6b5b75a4592e7defff2b05958a62e208379d4e7eb29e86dc845e40bccf83dc",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-04",
+          "sha256": "06f4adc75ae74a0c1017842d7882896785db4ba7a4754a0ce30416719800cd78",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-05",
+          "sha256": "1a8eba17a8f3c66176d1e38b1004acd4a37f1aa68fbbbbcd114f1c8f95e11210",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-06",
+          "sha256": "e7ca58f8ad75d08ec88bbb541f1a3a55bc51a9cfb07b73eb22730d8e121f07bb",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-07",
+          "sha256": "15e1d3ecdf391d061d9515a8be30506d63e29b68107dbfccd12d76e20af3a747",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-08",
+          "sha256": "427f92fd1aff98b11d5515b76aa6a80862b06da1196ae9e4a0001dcb8141d395",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-09",
+          "sha256": "1ff2e8689d47e1cd3bf5f7d3922ac66c1afcd7dfc4248577082799b98d845928",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-10",
+          "sha256": "3b8997fc379938265b083f0d0b2615201efd92088544e6fb6cf63699aeb691e5",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-11",
+          "sha256": "abcb6f4d94ab78ad20f78be9a5a9a8215a66999f241b22ca8cc9fb4befc1ca7f",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-12",
+          "sha256": "dc99bf44629488aaa9237a1387fc4a2d0281b961d92a430e9d62d28a3ec1c057",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-13",
+          "sha256": "337a77657e16d684e3859172f112a48876f95929c42402ee1d8c3bf1e8e2ee94",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-14",
+          "sha256": "e2791399daa92d32c7a7976f9f77c9a133ff48047ffd852814873b0af983d90f",
+          "missing": false
+        },
+        {
+          "name": "reuse-still-15",
+          "sha256": "1b3185cc01ef67394a7c451991114383cb8a179233561ddb29c9c64e4124c5e6",
+          "missing": false
+        },
+        {
+          "name": "reuse-move-01",
+          "sha256": "e5fcfdf2d5fd77d6e88456706efc25763f0be754f600ef9e1bc7ec78844af531",
+          "missing": false
+        },
+        {
+          "name": "reuse-move-02",
+          "sha256": "a36e5666c86057f32bee3b3203da9dbd6a4792c08408f4180f1040242acb0a2b",
+          "missing": false
+        },
+        {
+          "name": "reuse-move-03",
+          "sha256": "3eb6adbc72250c8b8305ba5d551c4b8f89ef50a66ab07e68219315b6b887a6b7",
+          "missing": false
+        },
+        {
+          "name": "reuse-move-04",
+          "sha256": "c6185479eaf238817fe0f16b3330a55e03f6083811eb5fde12f7dea32c856231",
+          "missing": false
+        },
+        {
+          "name": "reuse-move-05",
+          "sha256": "cc16a047911493d5f6f8c7b5d18fe9c30cc13e3e86cba04d4c320b756e86b325",
+          "missing": false
+        },
+        {
+          "name": "reuse-move-06",
+          "sha256": "5826a1059f07baeac84efdc371d70772edf19f84b98d48ab95daf78dc7912850",
+          "missing": false
+        },
+        {
+          "name": "reuse-move-07",
+          "sha256": "c3122fede1594886e17de1e27d58c29f14bc4eb71e5c0ad3f86822396fbb7251",
+          "missing": false
+        },
+        {
+          "name": "reuse-move-08",
+          "sha256": "f1d269267a69110062013a83dd8521e18226a54d3ee09d16feca066aacfa1647",
+          "missing": false
+        },
+        {
+          "name": "reuse-settled",
+          "sha256": "5ab0c32e614703ea3bdfdd18fe6f8b7bcb86dcdf3041c9791bfb00af10064ebe",
+          "missing": false
+        },
+        {
+          "name": "reuse-noshadow",
+          "sha256": "209a56760323485602801704ab9429b2fe0b42721524f4dbcf2b917a8fc8628b",
+          "missing": false
+        },
+        {
+          "name": "normal",
+          "sha256": "d211497409871d0a0611226a3069ce295c80452302051a94f77aa850dbb87b7b",
+          "missing": false
+        }
+      ],
+      "measurements": {
+        "kind": "hardware",
+        "roi": [
+          500,
+          415,
+          720,
+          475
+        ],
+        "threshold": 70,
+        "method": "Largest connected dark component in engine direct-light screenshots. Stationary variance is encoded image RGB, not radiometric energy.",
+        "settings": {
+          "independent": {
+            "samples": [
+              {
+                "frame": "independent-settle",
+                "area": 783,
+                "centroid": [
+                  614.2962962962963,
+                  428.42656449553
+                ]
+              },
+              {
+                "frame": "independent-move-01",
+                "area": 768,
+                "centroid": [
+                  610.0403645833334,
+                  427.7643229166667
+                ]
+              },
+              {
+                "frame": "independent-move-02",
+                "area": 747,
+                "centroid": [
+                  606.7215528781794,
+                  427.3721552878179
+                ]
+              },
+              {
+                "frame": "independent-move-03",
+                "area": 744,
+                "centroid": [
+                  602.6532258064516,
+                  426.7782258064516
+                ]
+              },
+              {
+                "frame": "independent-move-04",
+                "area": 679,
+                "centroid": [
+                  599.7584683357879,
+                  426.0279823269514
+                ]
+              },
+              {
+                "frame": "independent-move-05",
+                "area": 710,
+                "centroid": [
+                  595.9323943661972,
+                  425.656338028169
+                ]
+              },
+              {
+                "frame": "independent-move-06",
+                "area": 687,
+                "centroid": [
+                  592.4657933042213,
+                  425.2023289665211
+                ]
+              },
+              {
+                "frame": "independent-move-07",
+                "area": 675,
+                "centroid": [
+                  588.9777777777778,
+                  424.66962962962964
+                ]
+              },
+              {
+                "frame": "independent-move-08",
+                "area": 658,
+                "centroid": [
+                  585.4878419452888,
+                  424.19908814589667
+                ]
+              },
+              {
+                "frame": "independent-settled",
+                "area": 613,
+                "centroid": [
+                  585.4698205546492,
+                  423.8091353996737
+                ]
+              },
+              {
+                "frame": "independent-noshadow",
+                "area": 0,
+                "centroid": null
+              }
+            ],
+            "stepDistancesPixels": [
+              4.307147391740729,
+              3.341901641787773,
+              4.111451980917392,
+              2.990398985502692,
+              3.844081360428981,
+              3.496204678068887,
+              3.5284587139763564,
+              3.5215140781777645
+            ],
+            "lastToSettledPixels": 0.39036894703267605,
+            "stationaryMeanRGB": 93.24058273319616,
+            "stationaryMeanTemporalStdRGB": 4.581047494094115
+          },
+          "reuse": {
+            "samples": [
+              {
+                "frame": "reuse-settle",
+                "area": 669,
+                "centroid": [
+                  614.9177877428998,
+                  427.6038863976084
+                ]
+              },
+              {
+                "frame": "reuse-move-01",
+                "area": 726,
+                "centroid": [
+                  610.0413223140496,
+                  427.3801652892562
+                ]
+              },
+              {
+                "frame": "reuse-move-02",
+                "area": 682,
+                "centroid": [
+                  606.6348973607038,
+                  426.9134897360704
+                ]
+              },
+              {
+                "frame": "reuse-move-03",
+                "area": 648,
+                "centroid": [
+                  603.8163580246913,
+                  426.14506172839504
+                ]
+              },
+              {
+                "frame": "reuse-move-04",
+                "area": 659,
+                "centroid": [
+                  600.0257966616085,
+                  425.84370257966617
+                ]
+              },
+              {
+                "frame": "reuse-move-05",
+                "area": 667,
+                "centroid": [
+                  597.5322338830584,
+                  425.42428785607194
+                ]
+              },
+              {
+                "frame": "reuse-move-06",
+                "area": 618,
+                "centroid": [
+                  593.0792880258899,
+                  424.7993527508091
+                ]
+              },
+              {
+                "frame": "reuse-move-07",
+                "area": 606,
+                "centroid": [
+                  591.1815181518152,
+                  424.23762376237624
+                ]
+              },
+              {
+                "frame": "reuse-move-08",
+                "area": 612,
+                "centroid": [
+                  586.6062091503268,
+                  423.83496732026146
+                ]
+              },
+              {
+                "frame": "reuse-settled",
+                "area": 570,
+                "centroid": [
+                  586.1456140350878,
+                  423.6175438596491
+                ]
+              },
+              {
+                "frame": "reuse-noshadow",
+                "area": 0,
+                "centroid": null
+              }
+            ],
+            "stepDistancesPixels": [
+              4.881594638342449,
+              3.438243306503778,
+              2.921411575185789,
+              3.802521897874993,
+              2.528589338136592,
+              4.49658433621167,
+              1.9791588999853615,
+              4.592992996889694
+            ],
+            "lastToSettledPixels": 0.5093337033877567,
+            "stationaryMeanRGB": 93.03730684156379,
+            "stationaryMeanTemporalStdRGB": 5.056482423351792
+          }
+        }
+      }
+    },
+    {
+      "name": "latency-policy-720",
+      "manifest": ".tmp/rtx-implementation-2026-10-11/latency-policy-720/manifest.json",
+      "manifestSha256": "bf60d8f2afb11f682a4bbf630956909ee296a8dd098c3879216e8bdbae4b13a2",
+      "consoleSha256": "1769c83afa86a201685d8dd1a7876a217b3d701fa910eb3ee7da2f1a9750aa88",
+      "utc": "2026-10-11T08:59:35.225103+00:00",
+      "client": {
+        "path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "sha256": "ca8f02139973e38e99996149e030abfb86083dba288bc3854cd2a315d9d263bd"
+      },
+      "renderers": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fnql_rtx_x86.dll",
+          "sha256": "4496ceba79a1652e5d422a0846bd8335c82eb1c60a3b4c317627c887508fed95"
+        }
+      ],
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\rtx-implementation-2026-10-11\\latency-policy-720\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customwidth",
+        "1280",
+        "+set",
+        "r_customheight",
+        "720",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "1280",
+        "+set",
+        "r_windowedHeight",
+        "720",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "rtx_rt_mode",
+        "2",
+        "+set",
+        "rtx_rt_require",
+        "1",
+        "+exec",
+        "rtx-probe.cfg"
+      ],
+      "script": "set cl_allowDownload \"0\"\nset cl_motd \"0\"\nset sv_autoRecordDemos \"0\"\nset com_maxfps \"60\"\nset com_maxfpsUnfocused \"60\"\nset cg_lagometer \"0\"\nset con_notifytime \"0\"\nset cg_drawFPS \"0\"\nset rtx_rt_perf_timing \"1\"\nset rtx_rt_perf_interval \"30\"\nset rtx_rt_accumulate \"0\"\nset rtx_rt_indirect_divisor \"4\"\nset rtx_rt_low_latency \"0\"\ndevmap q3dm1\nwait 60\nsetviewpos 212 2360 65 315\nrtx_caps_report 2\nwait 90\nscreenshotPNG late\nwait 3\nset rtx_rt_low_latency \"1\"\nwait 160\nscreenshotPNG early\nwait 3\nset rtx_rt_low_latency \"2\"\nwait 160\nscreenshotPNG two\nwait 3\nset rtx_rt_perf_timing \"2\"\nwait 3\nscreenshotPNG stamps\nwait 3\nquit\n",
+      "tracingBackends": [
+        "compute"
+      ],
+      "validationLayerEnabled": false,
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 20.31,
+      "console": {
+        "mode": {
+          "requested": 2,
+          "active": 2,
+          "require": 1
+        },
+        "nativeDispatch": true,
+        "validationMessages": 0,
+        "validationSample": [],
+        "vuids": [],
+        "fatal": []
+      },
+      "captures": [
+        {
+          "name": "late",
+          "sha256": "1c193d0a0b5a64db90298d8827ab1b5da41cba7f75c15ca11b45dc98c61dcfa5",
+          "missing": false
+        },
+        {
+          "name": "early",
+          "sha256": "a56547df7c644637598074c40f187eb8b1dd58001e8c1bd1d59c51d6627b4a78",
+          "missing": false
+        },
+        {
+          "name": "two",
+          "sha256": "ff09ce395f222bb3e0269d7123b1113686533cd20d4ccb1264eca829fe8b6a08",
+          "missing": false
+        },
+        {
+          "name": "stamps",
+          "sha256": "9e080b61de9ad1fb18c6e31a838b5742b4d6b3a166d3620de9691345f108e186",
+          "missing": false
+        }
+      ]
+    },
+    {
+      "name": "indirect-budget-720",
+      "manifest": ".tmp/rtx-implementation-2026-10-11/indirect-budget-720/manifest.json",
+      "manifestSha256": "7974cc73f6b15766a671554f3d265fa3283adb084b015327ecd125abdde9c98d",
+      "consoleSha256": "cb35409731cc72090f7c855f378e74a48a2d1cd2dc3327cb147aa4dfabac4328",
+      "utc": "2026-10-11T08:41:51.653402+00:00",
+      "client": {
+        "path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "sha256": "dc289f94d9561498b849b0decee59a24f56c84814696b523801c20f1e3da7945"
+      },
+      "renderers": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fnql_rtx_x86.dll",
+          "sha256": "9a124c207def6248379b93023c2980a704fd4ebe19b7bbb3a9b6d3fbc16736ef"
+        }
+      ],
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\rtx-implementation-2026-10-11\\indirect-budget-720\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customwidth",
+        "1280",
+        "+set",
+        "r_customheight",
+        "720",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "1280",
+        "+set",
+        "r_windowedHeight",
+        "720",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "rtx_rt_mode",
+        "2",
+        "+set",
+        "rtx_rt_require",
+        "1",
+        "+exec",
+        "rtx-probe.cfg"
+      ],
+      "script": "set cl_allowDownload \"0\"\nset cl_motd \"0\"\nset sv_autoRecordDemos \"0\"\nset com_maxfps \"60\"\nset com_maxfpsUnfocused \"60\"\nset cg_lagometer \"0\"\nset con_notifytime \"0\"\nset cg_drawFPS \"0\"\nset rtx_rt_perf_timing \"1\"\nset rtx_rt_perf_interval \"30\"\nset rtx_rt_accumulate \"0\"\nset rtx_rt_indirect_divisor \"1\"\nset rtx_rt_checkerboard \"2\"\ndevmap q3dm1\nwait 60\nsetviewpos 212 2360 65 315\nrtx_caps_report 2\nwait 90\nscreenshotPNG full\nwait 3\nset rtx_rt_indirect_divisor \"2\"\nwait 100\nscreenshotPNG half\nwait 3\nset rtx_rt_indirect_divisor \"4\"\nwait 100\nscreenshotPNG quarter\nwait 3\nset rtx_rt_indirect_divisor \"1\"\nset rtx_rt_frame_budget_ms \"20\"\nwait 200\nscreenshotPNG budget\nwait 3\nset rtx_rt_test_caster \"340 2200 32 20\"\nwait 45\nscreenshotPNG caster\nwait 3\nquit\n",
+      "tracingBackends": [
+        "compute"
+      ],
+      "validationLayerEnabled": false,
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 133.44,
+      "console": {
+        "mode": {
+          "requested": 2,
+          "active": 2,
+          "require": 1
+        },
+        "nativeDispatch": true,
+        "validationMessages": 0,
+        "validationSample": [],
+        "vuids": [],
+        "fatal": []
+      },
+      "captures": [
+        {
+          "name": "full",
+          "sha256": "1edb6ee48b3be58503f36e21c8044ed037957859063a72f62e38ff518ddfedf3",
+          "missing": false
+        },
+        {
+          "name": "half",
+          "sha256": "d38ede190b2b8ec510643d527f64c02ff44a09819140bfb84af531dd9ac94514",
+          "missing": false
+        },
+        {
+          "name": "quarter",
+          "sha256": "600842c70652c28d186c675879331703f30ac0e7cfd88b84cff622943eb8d690",
+          "missing": false
+        },
+        {
+          "name": "budget",
+          "sha256": "478e107828a0fef8679a9bb0bf636c70e5dc58279078c0cfeb51dc933554ad42",
+          "missing": false
+        },
+        {
+          "name": "caster",
+          "sha256": "5a7b1fff3b02c2e33efce0734f556b258ce96a784caf4ac87d768a1281aa7076",
+          "missing": false
+        }
+      ]
+    },
+    {
+      "name": "memory-ab-720",
+      "manifest": ".tmp/rtx-implementation-2026-10-11/memory-ab-720/manifest.json",
+      "manifestSha256": "c0bbf936bac9eee0f8223c3a66e69a3fa295620d899b2d34d641a193f86444ce",
+      "consoleSha256": "6fd8e913fcf88a3159dac4d0279fd42e412e33a52113e580c98976d6d15d5fa4",
+      "utc": "2026-10-11T09:19:53.412193+00:00",
+      "client": {
+        "path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "sha256": "dcdd55235729e189d0e56ed634a991a0b47bb4cd385d27804aeebc59e7f410a9"
+      },
+      "renderers": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fnql_rtx_x86.dll",
+          "sha256": "9ee1423557ab9eab8e137c9e77eb667652b92817c1127b9ca1e62cdd69d8dc65"
+        }
+      ],
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\rtx-implementation-2026-10-11\\memory-ab-720\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customwidth",
+        "1280",
+        "+set",
+        "r_customheight",
+        "720",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "1280",
+        "+set",
+        "r_windowedHeight",
+        "720",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "rtx_rt_mode",
+        "2",
+        "+set",
+        "rtx_rt_require",
+        "1",
+        "+exec",
+        "rtx-probe.cfg"
+      ],
+      "script": "set cl_allowDownload \"0\"\nset cl_motd \"0\"\nset sv_autoRecordDemos \"0\"\nset com_maxfps \"60\"\nset com_maxfpsUnfocused \"60\"\nset cg_lagometer \"0\"\nset con_notifytime \"0\"\nset cg_drawFPS \"0\"\nset rtx_rt_perf_timing \"1\"\nset rtx_rt_perf_interval \"30\"\nset rtx_rt_accumulate \"0\"\nset rtx_rt_indirect_divisor \"4\"\ndevmap q3dm1\nwait 60\nsetviewpos 212 2360 65 315\nrtx_caps_report 2\nwait 180\nscreenshotPNG local\nwait 3\nset rtx_rt_device_local \"0\"\nvid_restart\nwait 180\nscreenshotPNG host\nwait 3\nset rtx_rt_device_local \"1\"\nvid_restart\nwait 180\nscreenshotPNG local-again\nwait 3\nquit\n",
+      "tracingBackends": [
+        "compute"
+      ],
+      "validationLayerEnabled": false,
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 40.08,
+      "console": {
+        "mode": {
+          "requested": 2,
+          "active": 2,
+          "require": 1
+        },
+        "nativeDispatch": true,
+        "validationMessages": 0,
+        "validationSample": [],
+        "vuids": [],
+        "fatal": []
+      },
+      "captures": [
+        {
+          "name": "local",
+          "sha256": "9d9f7c9a84aa8dcb0c229be8a06693b150ecc037455e31fd57b55c5cbdc3c59b",
+          "missing": false
+        },
+        {
+          "name": "host",
+          "sha256": "df8c90c223f0bb990a65ce6366e2dce2967936ff67e55780ba599e5015f8fd5e",
+          "missing": false
+        },
+        {
+          "name": "local-again",
+          "sha256": "e6c1bed1756a8e41a7d0317c9b10228a290c136ec6c8dc8e98ba73952b79804b",
+          "missing": false
+        }
+      ]
+    },
+    {
+      "name": "depth-base-720",
+      "manifest": ".tmp/rtx-implementation-2026-10-11/depth-base-720/manifest.json",
+      "manifestSha256": "671890817a2583eaf04ba79fe469c275d1e79752f2beb68ee96aa5e76c5668f4",
+      "consoleSha256": "626ecde83cef62cf7591557d287f340ce4db960975727a06a19e96e0dff5cd81",
+      "utc": "2026-10-11T09:09:56.381028+00:00",
+      "client": {
+        "path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "sha256": "dcdd55235729e189d0e56ed634a991a0b47bb4cd385d27804aeebc59e7f410a9"
+      },
+      "renderers": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fnql_rtx_x86.dll",
+          "sha256": "b4eda21245b0afee6c20468c8f254e92ac7115d3f9819da784acf607d9601cd2"
+        }
+      ],
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\rtx-implementation-2026-10-11\\depth-base-720\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customwidth",
+        "1280",
+        "+set",
+        "r_customheight",
+        "720",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "1280",
+        "+set",
+        "r_windowedHeight",
+        "720",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "rtx_rt_mode",
+        "2",
+        "+set",
+        "rtx_rt_require",
+        "0",
+        "+exec",
+        "rtx-probe.cfg"
+      ],
+      "script": "set cl_allowDownload \"0\"\nset cl_motd \"0\"\nset sv_autoRecordDemos \"0\"\nset com_maxfps \"60\"\nset com_maxfpsUnfocused \"60\"\nset cg_lagometer \"0\"\nset con_notifytime \"0\"\nset cg_drawFPS \"0\"\nset rtx_rt_perf_timing \"1\"\nset rtx_rt_perf_interval \"30\"\nset rtx_rt_accumulate \"0\"\nset rtx_rt_indirect_divisor \"4\"\ndevmap q3dm1\nwait 60\nsetviewpos 212 2360 65 315\nrtx_caps_report 2\nwait 90\nscreenshotPNG traced\nwait 3\nset rtx_rt_test_fail_trace \"1\"\nwait 90\nscreenshotPNG fallback\nwait 3\nset rtx_rt_test_fail_trace \"0\"\nwait 90\nscreenshotPNG restored\nwait 3\nset rtx_rt_mode \"0\"\nwait 90\nscreenshotPNG raster\nwait 3\nquit\n",
+      "tracingBackends": [
+        "compute"
+      ],
+      "validationLayerEnabled": false,
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 29.91,
+      "console": {
+        "mode": {
+          "requested": 2,
+          "active": 2,
+          "require": 0
+        },
+        "nativeDispatch": true,
+        "validationMessages": 0,
+        "validationSample": [],
+        "vuids": [],
+        "fatal": []
+      },
+      "captures": [
+        {
+          "name": "traced",
+          "sha256": "e88ab9e22376e30bc52411d768afe78527bcc5954670e089c22fd81a49433f8a",
+          "missing": false
+        },
+        {
+          "name": "fallback",
+          "sha256": "07a34f2371fe808967c2c6f3ae3ebd0d774f5b376177d4898dc364d88ce9c93f",
+          "missing": false
+        },
+        {
+          "name": "restored",
+          "sha256": "adbe7e7bb11f84e8de6201af363c9620e386b0db2e80dfa32e58a0e21eebb581",
+          "missing": false
+        },
+        {
+          "name": "raster",
+          "sha256": "a434b7a0aef4e62a7d245f873198272da643979e8a709847a834c08e66cba752",
+          "missing": false
+        }
+      ],
+      "limitation": "The mode-0 labelled capture did not restart the latched mode; only trace/failure/recovery are evidence."
+    },
+    {
+      "name": "hardware-depth-cache-720",
+      "manifest": ".tmp/rtx-implementation-2026-10-11/hardware-depth-cache-720/manifest.json",
+      "manifestSha256": "eb9da392d97d75e7c9bad69b14c991004cf1e48e1ebdda0b37bc84d0c6d7ba57",
+      "consoleSha256": "27d2f216d994819f8bfcb52806c7692df4a8623bbb264c94a7f3eb2f33655c4e",
+      "utc": "2026-10-11T09:28:15.933869+00:00",
+      "client": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-q3-rtx-x64\\fntech3-q3.exe",
+        "sha256": "84198304644e37b63012dc34758f1227605af0304a15bb812781f5c964f09842"
+      },
+      "renderers": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-q3-rtx-x64\\fnql_rtx_x86_64.dll",
+          "sha256": "bfa4d9751fda226c9f435f3f1db75d753fc99ea56bb2546557753c6b103bbac5"
+        }
+      ],
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\meson-q3-rtx-x64\\fntech3-q3.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\rtx-implementation-2026-10-11\\hardware-depth-cache-720\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customwidth",
+        "1280",
+        "+set",
+        "r_customheight",
+        "720",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "1280",
+        "+set",
+        "r_windowedHeight",
+        "720",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "rtx_rt_mode",
+        "2",
+        "+set",
+        "rtx_rt_require",
+        "0",
+        "+set",
+        "rtx_debug_vk_validation",
+        "1",
+        "+exec",
+        "rtx-probe.cfg"
+      ],
+      "script": "set cl_allowDownload \"0\"\nset cl_motd \"0\"\nset sv_autoRecordDemos \"0\"\nset com_maxfps \"60\"\nset com_maxfpsUnfocused \"60\"\nset cg_lagometer \"0\"\nset con_notifytime \"0\"\nset cg_drawFPS \"0\"\nset rtx_rt_perf_timing \"1\"\nset rtx_rt_perf_interval \"30\"\nset rtx_rt_bounces \"0\"\nset cg_drawGun \"0\"\ndevmap q3dm1\nwait 60\nsetviewpos 212 2360 65 315\nrtx_caps_report 2\nset rtx_rt_test_caster \"600 2000 0 24\"\nwait 120\nscreenshotPNG traced\nwait 3\nset rtx_rt_test_fail_trace \"1\"\nwait 60\nscreenshotPNG fallback\nwait 3\nset rtx_rt_test_fail_trace \"0\"\nwait 60\nscreenshotPNG recovered\nwait 3\nquit\n",
+      "tracingBackends": [
+        "ray_tracing_pipeline"
+      ],
+      "validationLayerEnabled": true,
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 88.84,
+      "console": {
+        "mode": {
+          "requested": 2,
+          "active": 2,
+          "require": 0
+        },
+        "nativeDispatch": true,
+        "validationMessages": 0,
+        "validationSample": [],
+        "vuids": [],
+        "fatal": []
+      },
+      "captures": [
+        {
+          "name": "traced",
+          "sha256": "2668534dc30d4604a6b2cffce991144e0edd9ce9e3c5d8ba9d85ef1f215ae420",
+          "missing": false
+        },
+        {
+          "name": "fallback",
+          "sha256": "032b6e1526674011fb0218df08d699372f11c0652fdbdfdaf9badb1489e4e5c4",
+          "missing": false
+        },
+        {
+          "name": "recovered",
+          "sha256": "4ef668c6705afa8c5a48a2c37839df095e6d204eafc89f8e115990a1a9de1964",
+          "missing": false
+        }
+      ]
+    },
+    {
+      "name": "hardware-latency-720",
+      "manifest": ".tmp/rtx-implementation-2026-10-11/hardware-latency-720/manifest.json",
+      "manifestSha256": "b63e2d2c629fb86bd3798ee6112fb484ddde9711ac1959bd2e7db6fa1c549fec",
+      "consoleSha256": "a36d81ffc0ae2d3ef4b7c0ace8251fabca876180fd9d612897b6cdcea3df6d26",
+      "utc": "2026-10-11T09:07:03.254091+00:00",
+      "client": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-q3-rtx-x64\\fntech3-q3.exe",
+        "sha256": "84198304644e37b63012dc34758f1227605af0304a15bb812781f5c964f09842"
+      },
+      "renderers": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\.tmp\\meson-q3-rtx-x64\\fnql_rtx_x86_64.dll",
+          "sha256": "ed1b279112105062d2e6e4cba38263d4f70ce06f7748ccb497ec41ad7b23029f"
+        }
+      ],
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\meson-q3-rtx-x64\\fntech3-q3.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\rtx-implementation-2026-10-11\\hardware-latency-720\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customwidth",
+        "1280",
+        "+set",
+        "r_customheight",
+        "720",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "1280",
+        "+set",
+        "r_windowedHeight",
+        "720",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "rtx_rt_mode",
+        "2",
+        "+set",
+        "rtx_rt_require",
+        "1",
+        "+set",
+        "rtx_debug_vk_validation",
+        "1",
+        "+exec",
+        "rtx-probe.cfg"
+      ],
+      "script": "set cl_allowDownload \"0\"\nset cl_motd \"0\"\nset sv_autoRecordDemos \"0\"\nset com_maxfps \"60\"\nset com_maxfpsUnfocused \"60\"\nset cg_lagometer \"0\"\nset con_notifytime \"0\"\nset cg_drawFPS \"0\"\nset rtx_rt_perf_timing \"1\"\nset rtx_rt_perf_interval \"30\"\nset rtx_rt_accumulate \"0\"\nset rtx_rt_indirect_divisor \"2\"\ndevmap q3dm1\nwait 60\nsetviewpos 212 2360 65 315\nrtx_caps_report 2\nset rtx_rt_low_latency \"0\"\nwait 120\nscreenshotPNG late\nwait 3\nset rtx_rt_low_latency \"1\"\nwait 160\nscreenshotPNG early\nwait 3\nset rtx_rt_test_caster \"280 2300 30 10\"\nwait 90\nscreenshotPNG body\nwait 3\nset rtx_rt_test_caster \"310 2300 30 10\"\nwait 90\nscreenshotPNG moved\nwait 3\nset rtx_rt_test_caster \"310 2300 30 10 1\"\nwait 90\nscreenshotPNG noshadow\nwait 3\nquit\n",
+      "tracingBackends": [
+        "ray_tracing_pipeline"
+      ],
+      "validationLayerEnabled": true,
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 30.27,
+      "console": {
+        "mode": {
+          "requested": 2,
+          "active": 2,
+          "require": 1
+        },
+        "nativeDispatch": true,
+        "validationMessages": 0,
+        "validationSample": [],
+        "vuids": [],
+        "fatal": []
+      },
+      "captures": [
+        {
+          "name": "late",
+          "sha256": "94de3b002e934f56c95868aecca5a556a675fa4c2c78dc6423aaae5c32575058",
+          "missing": false
+        },
+        {
+          "name": "early",
+          "sha256": "b5044a1853bb63c526d6c16e104c44693c1d4431de30a0ea4d8a87593489c670",
+          "missing": false
+        },
+        {
+          "name": "body",
+          "sha256": "2a457450121331b2444b7eaab1ae8784371ca7e8f89ebd94ff30dd3b7974f5d6",
+          "missing": false
+        },
+        {
+          "name": "moved",
+          "sha256": "860c8018097e1c71b93469e6cd7659fc38b61857b3ee2714ea5e6760067ce95d",
+          "missing": false
+        },
+        {
+          "name": "noshadow",
+          "sha256": "438d462da840c7a85c23eff6790b02b53d931f1b2c76579b961b5a751b805a77",
+          "missing": false
+        }
+      ]
+    },
+    {
+      "name": "cache-moving-body-720",
+      "manifest": ".tmp/rtx-implementation-2026-10-11/cache-moving-body-720/manifest.json",
+      "manifestSha256": "038745959337998c4127b62ce35efffa6020e6dd5a061f1c732a853112035a02",
+      "consoleSha256": "522c735a9d70c7283c4e25ef73eba961a7c35b6634ba2f6d35da52b3a6fe04d7",
+      "utc": "2026-10-11T09:16:16.019418+00:00",
+      "client": {
+        "path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "sha256": "dcdd55235729e189d0e56ed634a991a0b47bb4cd385d27804aeebc59e7f410a9"
+      },
+      "renderers": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fnql_rtx_x86.dll",
+          "sha256": "c316a49a55faec3dd9b72b08c9512c6bf2498c215ac8c3f6af1b5358b51693bc"
+        }
+      ],
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\rtx-implementation-2026-10-11\\cache-moving-body-720\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customwidth",
+        "1280",
+        "+set",
+        "r_customheight",
+        "720",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "1280",
+        "+set",
+        "r_windowedHeight",
+        "720",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "rtx_rt_mode",
+        "2",
+        "+set",
+        "rtx_rt_require",
+        "1",
+        "+exec",
+        "rtx-probe.cfg"
+      ],
+      "script": "set cl_allowDownload \"0\"\nset cl_motd \"0\"\nset sv_autoRecordDemos \"0\"\nset com_maxfps \"60\"\nset com_maxfpsUnfocused \"60\"\nset cg_lagometer \"0\"\nset con_notifytime \"0\"\nset cg_drawFPS \"0\"\nset rtx_rt_perf_timing \"1\"\nset rtx_rt_perf_interval \"30\"\nset rtx_rt_accumulate \"0\"\nset rtx_rt_bounces \"0\"\nset rtx_rt_debug_visualizer \"11\"\ndevmap q3dm1\nwait 60\nsetviewpos 212 2360 65 315\nrtx_caps_report 2\nwait 90\nscreenshotPNG clear\nset rtx_rt_test_caster \"340 2200 32 20\"\nwait 60\nscreenshotPNG start\nset rtx_rt_test_caster \"344 2200 32 20\"\nwait 1\nscreenshotPNG m01\nset rtx_rt_test_caster \"348 2200 32 20\"\nwait 1\nscreenshotPNG m02\nset rtx_rt_test_caster \"352 2200 32 20\"\nwait 1\nscreenshotPNG m03\nset rtx_rt_test_caster \"356 2200 32 20\"\nwait 1\nscreenshotPNG m04\nset rtx_rt_test_caster \"360 2200 32 20\"\nwait 1\nscreenshotPNG m05\nset rtx_rt_test_caster \"364 2200 32 20\"\nwait 1\nscreenshotPNG m06\nset rtx_rt_test_caster \"368 2200 32 20\"\nwait 1\nscreenshotPNG m07\nset rtx_rt_test_caster \"372 2200 32 20\"\nwait 1\nscreenshotPNG m08\nwait 60\nscreenshotPNG settled\nset rtx_rt_test_caster \"372 2200 32 20 1\"\nwait 60\nscreenshotPNG clear-after\nquit\n",
+      "tracingBackends": [
+        "compute"
+      ],
+      "validationLayerEnabled": false,
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 29.19,
+      "console": {
+        "mode": {
+          "requested": 2,
+          "active": 2,
+          "require": 1
+        },
+        "nativeDispatch": true,
+        "validationMessages": 0,
+        "validationSample": [],
+        "vuids": [],
+        "fatal": []
+      },
+      "captures": [
+        {
+          "name": "clear",
+          "sha256": "94a4cafb3a5ef68cbb769d5e73c1f7dbf264305929acaa0bef4f49b412780ca1",
+          "missing": false
+        },
+        {
+          "name": "start",
+          "sha256": "75e2d80e413f112a5542e55b1d28d707d8723f64df03468a50cc783619a64529",
+          "missing": false
+        },
+        {
+          "name": "m01",
+          "sha256": "346e6aeb54a28fbccd2a51b552a8117ea9b9bb3a328099683257c55514699ca0",
+          "missing": false
+        },
+        {
+          "name": "m02",
+          "sha256": "e79ea20f61411d99dd23ad517e7dce99fa046169371f3492683d04bab1378d0c",
+          "missing": false
+        },
+        {
+          "name": "m03",
+          "sha256": "1df7c550f574dcb6f028638dcd0d017bac2b501317e5b74f1505b4fba4b91493",
+          "missing": false
+        },
+        {
+          "name": "m04",
+          "sha256": "9eb02f177eec8657b8e19f0b4b8afd4915808081b21744c0b9878f0d4fa6c2a1",
+          "missing": false
+        },
+        {
+          "name": "m05",
+          "sha256": "bd5f3652ac3c23454b9470fe5c1e812298cb85bf169df2d7bfe70cbb97cf223f",
+          "missing": false
+        },
+        {
+          "name": "m06",
+          "sha256": "16c9f8df4fb93c4b45717b325ebca2fbf996dfa1c4696548bd9b51e641456e3c",
+          "missing": false
+        },
+        {
+          "name": "m07",
+          "sha256": "8e42a7e59766d4500f1a09e397dbe9d1c24d00f6012dc1ed45ebbd8c7bc028ab",
+          "missing": false
+        },
+        {
+          "name": "m08",
+          "sha256": "6359218c01e2d07e073ecc1eb7cd8a8ab6fed6f3524a9375f435a0b74112a4e6",
+          "missing": false
+        },
+        {
+          "name": "settled",
+          "sha256": "903118575f17cb15f39ea744a4fcb4848c5deb283e21ab13ac0fb2bc0b70ddf4",
+          "missing": false
+        },
+        {
+          "name": "clear-after",
+          "sha256": null,
+          "missing": true
+        }
+      ],
+      "limitation": "Used for cache counters only; initial screenshot sequencing is not consecutive-frame shadow evidence."
+    },
+    {
+      "name": "global-proposal-720",
+      "manifest": ".tmp/rtx-implementation-2026-10-11/global-proposal-720/manifest.json",
+      "manifestSha256": "918c816e8ada1de8be70b41c9ac4e8dfd1740f1cab4f90811c318229bccabd36",
+      "consoleSha256": "41f1ab1c4104ceaab6092c4c8e11e559c034000a659cae6d52cc9d29db2dde2c",
+      "utc": "2026-10-11T08:46:22.751353+00:00",
+      "client": {
+        "path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "sha256": "dc289f94d9561498b849b0decee59a24f56c84814696b523801c20f1e3da7945"
+      },
+      "renderers": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fnql_rtx_x86.dll",
+          "sha256": "2963f8d7c24d4c0e49273270f65c226591bcf55d5ef4013ebdef220c9c3ae49c"
+        }
+      ],
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\rtx-implementation-2026-10-11\\global-proposal-720\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customwidth",
+        "1280",
+        "+set",
+        "r_customheight",
+        "720",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "1280",
+        "+set",
+        "r_windowedHeight",
+        "720",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "rtx_rt_mode",
+        "2",
+        "+set",
+        "rtx_rt_require",
+        "1",
+        "+exec",
+        "rtx-probe.cfg"
+      ],
+      "script": "set cl_allowDownload \"0\"\nset cl_motd \"0\"\nset sv_autoRecordDemos \"0\"\nset com_maxfps \"60\"\nset com_maxfpsUnfocused \"60\"\nset cg_lagometer \"0\"\nset con_notifytime \"0\"\nset cg_drawFPS \"0\"\nset rtx_rt_perf_timing \"1\"\nset rtx_rt_perf_interval \"30\"\nset rtx_rt_accumulate \"0\"\nset rtx_rt_indirect_divisor \"2\"\nset rtx_rt_checkerboard \"2\"\ndevmap q3dm1\nwait 60\nsetviewpos 212 2360 65 315\nrtx_caps_report 2\nwait 90\nscreenshotPNG steady\nwait 3\nset rtx_rt_test_caster \"340 2200 32 20\"\nwait 45\nscreenshotPNG caster\nwait 3\nset rtx_rt_test_caster \"356 2200 32 20\"\nwait 1\nscreenshotPNG moved\nwait 3\nset rtx_rt_test_caster \"356 2200 32 20 1\"\nwait 45\nscreenshotPNG noshadow\nwait 3\nquit\n",
+      "tracingBackends": [
+        "compute"
+      ],
+      "validationLayerEnabled": false,
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 46.91,
+      "console": {
+        "mode": {
+          "requested": 2,
+          "active": 2,
+          "require": 1
+        },
+        "nativeDispatch": true,
+        "validationMessages": 0,
+        "validationSample": [],
+        "vuids": [],
+        "fatal": []
+      },
+      "captures": [
+        {
+          "name": "steady",
+          "sha256": "55fb9555a1ff79875db224c09984840a741ef284c4f7ef755abc210f4b2f611e",
+          "missing": false
+        },
+        {
+          "name": "caster",
+          "sha256": "3de64a6015367437844fbc2162afc9024290cd7951a4af8a8fa6d211f25d3282",
+          "missing": false
+        },
+        {
+          "name": "moved",
+          "sha256": "1210956ffde72fd0505038014e2fcd376b57f97b240620a54e3816327c2caddf",
+          "missing": false
+        },
+        {
+          "name": "noshadow",
+          "sha256": "ffe466a8e332f6980183af36e0660127964f96acaf389aeb7abeb2f2d67b94d0",
+          "missing": false
+        }
+      ]
+    },
+    {
+      "name": "packed-720",
+      "manifest": ".tmp/rtx-implementation-2026-10-11/packed-720/manifest.json",
+      "manifestSha256": "41cdae443d97ed218f25bae4bd945b1a71b163908608e7c63ae69ba831262ae1",
+      "consoleSha256": "784b71da11ab8b46b2e42ef00aa5027eb8e84779b7baa5dadc29b27014efc1e6",
+      "utc": "2026-10-11T08:37:23.464947+00:00",
+      "client": {
+        "path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "sha256": "dc289f94d9561498b849b0decee59a24f56c84814696b523801c20f1e3da7945"
+      },
+      "renderers": [
+        {
+          "path": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fnql_rtx_x86.dll",
+          "sha256": "7875bf109994993f12fc67e9821d8316a7fd8c678ce97f2a128be6c2a9cffeaf"
+        }
+      ],
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\rtx-implementation-2026-10-11\\packed-720\\home",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customwidth",
+        "1280",
+        "+set",
+        "r_customheight",
+        "720",
+        "+set",
+        "r_windowedMode",
+        "-1",
+        "+set",
+        "r_windowedWidth",
+        "1280",
+        "+set",
+        "r_windowedHeight",
+        "720",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "rtx_rt_mode",
+        "2",
+        "+set",
+        "rtx_rt_require",
+        "1",
+        "+set",
+        "rtx_debug_vk_validation",
+        "1",
+        "+exec",
+        "rtx-probe.cfg"
+      ],
+      "script": "set cl_allowDownload \"0\"\nset cl_motd \"0\"\nset sv_autoRecordDemos \"0\"\nset com_maxfps \"60\"\nset com_maxfpsUnfocused \"60\"\nset cg_lagometer \"0\"\nset con_notifytime \"0\"\nset cg_drawFPS \"0\"\nset rtx_rt_perf_timing \"1\"\nset rtx_rt_perf_interval \"30\"\nset rtx_rt_accumulate \"0\"\ndevmap q3dm1\nwait 60\nsetviewpos 212 2360 65 315\nrtx_caps_report 2\nwait 90\nscreenshotPNG steady\nwait 3\nset rtx_rt_debug_visualizer \"11\"\nset rtx_rt_bounces \"0\"\nwait 30\nscreenshotPNG direct\nwait 3\nset rtx_rt_test_caster \"340 2200 32 20\"\nwait 45\nscreenshotPNG caster\nwait 3\nset rtx_rt_test_caster \"356 2200 32 20\"\nwait 1\nscreenshotPNG moved\nwait 3\nset rtx_rt_test_caster \"356 2200 32 20 1\"\nwait 45\nscreenshotPNG noshadow\nwait 3\nquit\n",
+      "tracingBackends": [
+        "compute"
+      ],
+      "validationLayerEnabled": false,
+      "exitCode": 0,
+      "forcedTermination": false,
+      "elapsedSeconds": 60.11,
+      "console": {
+        "mode": {
+          "requested": 2,
+          "active": 2,
+          "require": 1
+        },
+        "nativeDispatch": true,
+        "validationMessages": 0,
+        "validationSample": [],
+        "vuids": [],
+        "fatal": []
+      },
+      "captures": [
+        {
+          "name": "steady",
+          "sha256": "d01640d249827b85c64d7ce8fdac2511664853840533eb8ccf9ea7060c8642b3",
+          "missing": false
+        },
+        {
+          "name": "direct",
+          "sha256": "933e23b969ecb35bab2e86c0a9676d4034f1fad5663d13a7ebb044b2c5c09a84",
+          "missing": false
+        },
+        {
+          "name": "caster",
+          "sha256": "a650985a5ff28b7923ae96b611a09ba51fec5dfba6971584d91d32f34fa8d011",
+          "missing": false
+        },
+        {
+          "name": "moved",
+          "sha256": "74f42849b4407b57cff75b2ac817a8f16b31178e4f6d384b2733baf2d1722c7e",
+          "missing": false
+        },
+        {
+          "name": "noshadow",
+          "sha256": "ed6ee79dcfe62fa1336100f5abc3a9b823aeb99e2a7985d2836980c965d26e54",
+          "missing": false
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Live scope is Q3; other profiles have shared source/affected tests only.",
+    "Synthetic BODY motion does not establish every retail player animation.",
+    "Input intervals are CPU/API measurements, not input-to-photon latency.",
+    "Other game sessions used the GPU during parts of timing comparisons.",
+    "The local x86 driver exposes no required KHR hardware tracing; x64 Q3 is diagnostic only.",
+    "No universal spawn generation exists in identity-free external entity contracts.",
+    "GPU skinning remains an evaluated follow-up; compute BVHs still need CPU poses.",
+    "Proposal replay is implemented and energy-tested but remains opt-in due unproven noise benefit.",
+    "Independent indirect density does not reduce full-resolution intermediate storage.",
+    "No complete profile, Linux runtime or broad GPU-driver gate is closed."
+  ],
+  "unrelatedIssues": [
+    "Q3-only x64 all target includes x86-only JKA ABI tests and fails their layout assertions; targeted Q3 client/RTX build passes."
+  ],
+  "fixture": {
+    "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+    "readOnly": true,
+    "note": "Existing additional paks are present; not untouched-retail image parity.",
+    "pk3": [
+      {
+        "file": "baseq3/awoken_b2.pk3",
+        "bytes": 62936463,
+        "sha256": "1ea8522e774b58bf2c959575778c400fb1cf5d39da52cc5dee882cab087ad9a0"
+      },
+      {
+        "file": "baseq3/ct3tourney3.pk3",
+        "bytes": 109123669,
+        "sha256": "6cc0aa88ea0ab6e5dadf1c863df09fbcc2f8b9191ac5acd44b6c04649d9948bb"
+      },
+      {
+        "file": "baseq3/pak0.pk3",
+        "bytes": 479493658,
+        "sha256": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae"
+      },
+      {
+        "file": "baseq3/pak1.pk3",
+        "bytes": 374405,
+        "sha256": "d4ffd60b4b414c3419499e321b6f5c2e933cf082df85823ad2d6ae2f803e1682"
+      },
+      {
+        "file": "baseq3/pak2.pk3",
+        "bytes": 7511182,
+        "sha256": "ccae938a2f13a03b24902d675181d516a431699701ed88023a307f34b5bcd58c"
+      },
+      {
+        "file": "baseq3/pak3.pk3",
+        "bytes": 276305,
+        "sha256": "d03c0a0e06b99f9ecca2be7389f57faed406e85f7c09b9c56afdfa53ba25e312"
+      },
+      {
+        "file": "baseq3/pak4.pk3",
+        "bytes": 9600350,
+        "sha256": "af5f6d5c82fe4440ae0bb660f0648d1fa1731a9e8305a9eb652aa243428697f1"
+      },
+      {
+        "file": "baseq3/pak5.pk3",
+        "bytes": 191872,
+        "sha256": "69f87070ca7719e252a3ba97e6483f6663939c987ede550d1268d4d9a07b45bc"
+      },
+      {
+        "file": "baseq3/pak6.pk3",
+        "bytes": 7346884,
+        "sha256": "bb4f0ae2bf603b050fb665436d3178ce7c1c20360e67bacf7c14d93daff38daf"
+      },
+      {
+        "file": "baseq3/pak7.pk3",
+        "bytes": 320873,
+        "sha256": "de6283ce23e3486a2622c5dbf73d3721a59f24debd380e90f43a97d952fea283"
+      },
+      {
+        "file": "baseq3/pak8.pk3",
+        "bytes": 454478,
+        "sha256": "812c9e97f231e89cefede3848c6110b7bd34245093af6f22c2cacde3e6b15663"
+      },
+      {
+        "file": "baseq3/rq3dm5_remix.pk3",
+        "bytes": 19873347,
+        "sha256": "0ab757144312d730bcb52f28e0e5c1d036acad64994e2848cb2911b54177e815"
+      },
+      {
+        "file": "baseq3/spank_dhremix.pk3",
+        "bytes": 3605620,
+        "sha256": "8e8c11a1e7538f0bc089aae214ef2379dff143d5cf7738788c7f68e4691ba930"
+      },
+      {
+        "file": "baseq3/vedq3dm1_remix.pk3",
+        "bytes": 24648447,
+        "sha256": "d768c3cadc541ec8954a86437d30c47759ae9de8a926af2bf34f138a9d512501"
+      },
+      {
+        "file": "baseq3/zz-q3netpack.pk3",
+        "bytes": 10119042,
+        "sha256": "dcb7dd3aac318638017294d62d6ab0131f0cb42ca88c3cb981dc884542bc393c"
+      }
+    ]
+  },
+  "apiReferences": [
+    "https://docs.vulkan.org/guide/latest/extensions/ray_tracing.html",
+    "https://docs.vulkan.org/spec/latest/chapters/accelstructures.html"
+  ],
+  "externalCodeIncorporated": false,
+  "audit": [
+    {
+      "id": "RTX-01",
+      "finding": "A static receiver keeps a moving entity's shadow in long history.",
+      "status": "addressed",
+      "disposition": "Direct, indirect and specular histories are separate. Dynamic shadow blockers, including BODY, mark direct illumination reactive for 150 ms; reactive direct response is 35 ms, static direct 320 ms, specular 60 ms and indirect 160 ms. Response uses elapsed time. Executed shader math covers 20, 60, 120 and 240 FPS; consecutive engine captures move the shadow on every frame."
+    },
+    {
+      "id": "RTX-02",
+      "finding": "History-derived firefly clipping suppresses light when an entity uncovers it.",
+      "status": "addressed",
+      "disposition": "Compatible current-neighbourhood bounds clip old history instead of capping new light to old darkness. Frozen accumulation remains a running average; indirect variance includes sample residual and effective sample count. Pulse, dark-to-light, outlier and frozen-mean tests execute the actual helper math."
+    },
+    {
+      "id": "RTX-03",
+      "finding": "An RTX-branded GPU does not establish the active tracing backend.",
+      "status": "addressed",
+      "disposition": "Startup/capability and timing reports name compute or hardware. Compute defaults to indirect divisor 2, hardware to 1. An optional measured GPU budget adjusts indirect density with hysteresis. The local Win32 driver exposes no required KHR ray-tracing capability; the Q3-only x64 probe runs the hardware path. See the architecture finding below."
+    },
+    {
+      "id": "RTX-04",
+      "finding": "Input/view work precedes GPU waits.",
+      "status": "addressed",
+      "disposition": "Optional internal renderer API 35 frame events move fence waits and presentation acquisition before OS input polling. Default `rtx_rt_low_latency 1` limits GPU work to one frame in flight; 2 allows two, 0 restores late waits. Monotonic input/simulation/submit/present events and rolling CPU/GPU p50/p95/p99 distinguish frame cost from wait placement. No queue-idle workaround or game-clock change is introduced."
+    },
+    {
+      "id": "RTX-05",
+      "finding": "Full raster shading is discarded under the traced image.",
+      "status": "addressed",
+      "disposition": "Trace-owned base surfaces write depth only. Opaque surfaces use position-only depth; cutouts retain authored alpha coverage and EQUAL-depth dependencies. Raster shadow maps are scheduled from their remaining consumers, retaining all required casters. A permissive trace failure clears the partial base and redraws complete raster colour, lighting, shadows and fog. Executed coverage tests and compute/hardware failure/recovery captures pass."
+    },
+    {
+      "id": "RTX-06",
+      "finding": "Dynamic geometry and acceleration structures are rebuilt needlessly.",
+      "status": "addressed",
+      "disposition": "A bounded, exact-pose model-space cache handles MD3/MDR/IQM/brush models; current transforms, lighting and motion are applied each frame. IQM scratch is reused. Compute BVHs refit exact connectivity with cost/age rebuild thresholds; hardware BLASes UPDATE stable topology with periodic rebuilding. Cache tests include tiny interpolation changes, transforms, material changes, eviction, invalidation and allocation failure. No animation quantization or caster throttling is used."
+    },
+    {
+      "id": "RTX-07",
+      "finding": "Nearest matching can swap histories between identical models.",
+      "status": "addressed",
+      "disposition": "Internal entity IDs where supplied by RTCW/ET, model/part topology, material generation and one-to-one matching replace proximity-only reuse. Ambiguous identity-free duplicates, changed topology/materials, absent matches and teleports reject history. External module ABIs remain unchanged. A reused ID with no supplied spawn generation cannot universally distinguish a respawn."
+    },
+    {
+      "id": "RTX-08",
+      "finding": "Frequently read uploads use host memory without a VRAM preference.",
+      "status": "addressed",
+      "disposition": "Material, stage, light and dynamic uploads prefer coherent host-visible device-local memory, retaining portable allocation fallback. Heap/type/flags are logged. The latched diagnostic `rtx_rt_device_local` permits A/B. The probe confirms different selected heaps; varying GPU contention prevents an isolated speedup claim."
+    },
+    {
+      "id": "RTX-09",
+      "finding": "Missing indirect samples and reused light choices need explicit treatment.",
+      "status": "addressed",
+      "disposition": "Indirect validity and history are independent of direct light. Missing samples are not black observations. Weighted proposals improve light selection. Optional common-random-number replay shares four rotating candidate streams across compatible primary receivers; current PDFs, selection and visibility are always evaluated. Energy and current-visibility tests pass. Runtime noise did not improve, so `rtx_rt_light_reuse` remains **0 by default**. This is not ReSTIR reservoir reuse."
+    },
+    {
+      "id": "RTX-10",
+      "finding": "Full-resolution tracing and large intermediates dominate cost.",
+      "status": "addressed",
+      "disposition": "Independent indirect divisors 1\u20134, rotating coverage phases, depth/normal-guided reconstruction and an optional GPU budget reduce bounce work while preserving full-rate primary/direct work. Depth/normal and motion use RG32UI; moments store mean/stddev in RGBA16F. Shared variance work is computed once. The 25 intermediate images total 192 bytes/pixel, 180 MiB at 720p. Their storage remains full resolution."
+    },
+    {
+      "id": "RTX-11",
+      "finding": "A cell's 64-light cap removes other emitters from sampling.",
+      "status": "addressed",
+      "disposition": "Overflow cells, omitted entries and importance are counted. The global proposal has power weighting with a 10% uniform floor and participates in the exact local/global mixture PDF, including MIS replacement. Every light retains support. Sorted retained IDs make membership a binary search. Executed Monte Carlo tests cross disjoint cell lists and omitted lights, with and without reuse and changing visibility."
+    },
+    {
+      "id": "RTX-12",
+      "finding": "`RF_NOSHADOW` is not a separate ray visibility policy.",
+      "status": "addressed",
+      "disposition": "Internal vertex metadata excludes flagged entities only from shadow visibility; primary/reflected geometry remains. Hardware uses a shadow-specific any-hit SBT group. BODY is excluded from primary rays but remains a shadow caster unless flagged. Software/hardware tests and captures show the shadow disappearing with the flag."
+    }
+  ]
+}

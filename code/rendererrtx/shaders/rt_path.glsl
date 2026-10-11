@@ -17,17 +17,22 @@
 #ifndef RT_PATH_GLSL
 #define RT_PATH_GLSL
 
-layout(set = 0, binding = 12, rgba16f) uniform image2D u_outColor;		// diffuse irradiance
+#include "rt_signal_packing.glsl"
+#include "rt_liquid.glsl"
+
+layout(set = 0, binding = 12, rgba16f) uniform image2D u_outColor;		// direct diffuse irradiance
 layout(set = 0, binding = 13, rgba16f) uniform image2D u_outSpecular;	// specular radiance
 layout(set = 0, binding = 14, rgba16f) uniform image2D u_outReflectance;
-layout(set = 0, binding = 15, rgba32f) uniform image2D u_outNormalDepth;
+layout(set = 0, binding = 15, rg32ui) uniform uimage2D u_outNormalDepth;
 layout(set = 0, binding = 16, rgba16f) uniform image2D u_outEmission;	// alpha: the view fog's visibility
-layout(set = 0, binding = 17, rgba32f) uniform image2D u_outMotion;
+layout(set = 0, binding = 17, rg32ui) uniform uimage2D u_outMotion;
 layout(set = 0, binding = 18, r32ui) uniform uimage2D u_outInfo;
+layout(set = 0, binding = 19, rgba16f) uniform image2D u_outIndirect;	// alpha: valid sample's inverse density, 0 if skipped
 
 // Shadow rays from the first-person weapon ignore the viewer's own body,
 // which the weapon sits inside.
 uint g_shadowMask = RT_MASK_SHADOW;
+uint g_lightReuseMaterial = 0u; // nonzero only while shading the primary hit
 
 // the sky's light samples (rt_lighting.glsl) take the sky's own colour
 #include "rt_sky.glsl"
@@ -167,6 +172,7 @@ vec3 sample_cosine(vec3 N, inout uint seed)
 }
 
 struct ShadeResult {
+	float shadowReactive;
 	vec3 irradiance;	// diffuse, lightmap units
 	vec3 specular;		// radiance
 };
@@ -291,6 +297,7 @@ ShadeResult shade_direct(RtMaterial material, RtSurface surf, RtShading sh, vec3
 	uint candidates, bool bakedLighting, bool reflections, bool oneSample, inout uint seed)
 {
 	ShadeResult r;
+	r.shadowReactive = 0.0;
 	r.irradiance = vec3(0.0);
 	r.specular = vec3(0.0);
 	if (!surf.lit) {
@@ -349,7 +356,7 @@ ShadeResult shade_direct(RtMaterial material, RtSurface surf, RtShading sh, vec3
 	choice.index = ~0u;
 	// over a lightmap the dynamic lights alone
 	vec3 E = (pick & 1u) != 0u ?
-		rt_sample_lights(P, N, Ng, candidates, exclude, baked, seed, L, found, choice) * share : vec3(0.0);
+		rt_sample_lights(P, N, Ng, candidates, exclude, baked, seed, L, found, choice, r.shadowReactive) * share : vec3(0.0);
 	r.irradiance += E;
 	if (found && (u_frame.flags.x & RT_FRAME_SPECULAR) != 0u) {
 		float weight = (reflections && !baked) ? rt_light_weight(choice, N, Ng, V, L, roughness * roughness) : 1.0;
@@ -367,18 +374,23 @@ ShadeResult shade_direct(RtMaterial material, RtSurface surf, RtShading sh, vec3
 		g_misV = V;
 		g_misAlpha = roughness * roughness;
 	}
-	vec3 Lsun = u_frame.sunDirection.xyz;
-	vec3 Esun = (pick & 2u) != 0u ? rt_sample_sun(P, N, Ng, seed, Lsun) * share : vec3(0.0);
-	r.irradiance += Esun;
-	if ((u_frame.flags.x & RT_FRAME_SPECULAR) != 0u) {
-		r.specular += Esun * specular_weight(N, V, Lsun, roughness, F0);
-	}
-	vec3 Lsky = vec3(0.0, 0.0, 1.0);
-	vec3 Esky = (pick & 4u) != 0u ? rt_sample_sky_light(P, N, Ng, seed, Lsky) * share : vec3(0.0);
-	r.irradiance += Esky;
-	// like a sky's emitters, left to a traced reflection
-	if ((u_frame.flags.x & RT_FRAME_SPECULAR) != 0u && !reflections) {
-		r.specular += Esky * specular_weight(N, V, Lsky, roughness, F0);
+	// Sun and sky keep independent samples but share one visibility call
+	// site. Duplicating traversal here exhausted the 32-bit driver's shader
+	// compiler address space as transport gained additional signals.
+	[[dont_unroll]] for (uint sky = 0u; sky < 2u; sky++) {
+		if ((pick & (2u << sky)) == 0u) continue;
+		vec3 Lsky;
+		vec3 Esky = sky == 0u ? rt_sample_sun(P, N, Ng, seed, Lsky) :
+			rt_sample_sky_light(P, N, Ng, seed, Lsky);
+		if (!any(greaterThan(Esky, vec3(0.0)))) continue;
+		float skyReactive;
+		vec3 origin = P + Ng * max(0.05, 1e-6 * length(P));
+		Esky *= share * rt_sun_visibility(origin, Lsky, skyReactive);
+		r.shadowReactive = max(r.shadowReactive, skyReactive);
+		r.irradiance += Esky;
+		if ((u_frame.flags.x & RT_FRAME_SPECULAR) != 0u && (sky == 0u || !reflections)) {
+			r.specular += Esky * specular_weight(N, V, Lsky, roughness, F0);
+		}
 	}
 	r.irradiance += u_frame.ambient.rgb;
 	return r;
@@ -389,10 +401,11 @@ void write_empty(ivec2 pixel, uint info)
 	imageStore(u_outColor, pixel, vec4(0.0));
 	imageStore(u_outSpecular, pixel, vec4(0.0));
 	imageStore(u_outReflectance, pixel, vec4(0.0));
-	imageStore(u_outNormalDepth, pixel, vec4(0.0, 0.0, 1e30, 1.0));
+	imageStore(u_outNormalDepth, pixel, rt_pack_geometry(vec2(0.0), 1e30));
 	imageStore(u_outEmission, pixel, vec4(0.0));
-	imageStore(u_outMotion, pixel, vec4(0.0));
+	imageStore(u_outMotion, pixel, uvec4(0u));
 	imageStore(u_outInfo, pixel, uvec4(info, 0u, 0u, 0u));
+	imageStore(u_outIndirect, pixel, vec4(0.0));
 }
 
 void orient_normals(RtTriangle tri, vec3 dir, inout RtHitAttribs h, out vec3 geometric)
@@ -443,13 +456,17 @@ vec3 rt_reflected_light(RtHitPayload hit, vec3 origin, vec3 dir)
 // triangles and sky light are sampled directly), and a baked lightmap already
 // holds the bounces its compiler traced.
 vec3 bounce_radiance(vec3 origin, vec3 dir, float coneWidthAtOrigin, bool bakedLighting, bool reflection,
-	uint depth, inout uint seed)
+	uint depth, vec3 extinction, RtLiquidFootprint footprint, out vec3 receiverReflectance, inout uint seed)
 {
 	bool skyIsLight = (u_frame.skyImages[1].w & RT_SKY_LIGHTS) != 0u;
 	vec3 radiance = vec3(0.0);
 	vec3 throughput = vec3(1.0);
 	float coneWidth = coneWidthAtOrigin;
-	for (uint d = 0u; d < depth; d++) {
+	receiverReflectance = vec3(1.0);
+	uint d = 0u;
+	// Interfaces do not consume the diffuse bounce budget. Bound their own
+	// count, including total internal reflections and malformed nested faces.
+	[[dont_unroll]] for (uint step = 0u; step < depth + 8u && d < depth; step++) {
 		// the reflection's own hit; every later one is a diffuse bounce
 		bool seen = reflection && d == 0u;
 		if (!trace_radiance(origin, dir, 0.01, 1e5, RT_MASK_SECONDARY)) {
@@ -457,6 +474,7 @@ vec3 bounce_radiance(vec3 origin, vec3 dir, float coneWidthAtOrigin, bool bakedL
 			break;
 		}
 		RtHitPayload hit = payload;
+		throughput *= rt_liquid_transmittance(extinction, hit.hitT);
 		RtTriangle tri = rt_fetch_triangle(hit.customIndex, hit.geometry & 0xFFFFu, hit.primitive);
 		RtMaterial material = rt_triangle_material(tri);
 		if ((material.flags & RT_MF_SKY) != 0u) {
@@ -470,18 +488,58 @@ vec3 bounce_radiance(vec3 origin, vec3 dir, float coneWidthAtOrigin, bool bakedL
 		vec3 geometric;
 		orient_normals(tri, dir, h, geometric);
 		// a diffuse bounce spreads widely: sample a coarse mip
-		coneWidth += hit.hitT * 0.5;
+		coneWidth += hit.hitT * (seen ? u_frame.params1.w : 0.5);
 		h.coneWidth = coneWidth;
-		RtSurface surf = rt_evaluate_material(material, h, bakedLighting, 1.0);
-		RtShading sh = rt_shading(material, tri, h, surf, geometric, 1.0);
+		if (footprint.valid) {
+			// The existing plane projection with t=1 accepts the complete
+			// unprojected footprint dO + hitT*dD, including origin motion.
+			rt_hit_differentials(tri, dir, 1.0,
+				footprint.originDx + hit.hitT * footprint.directionDx,
+				footprint.originDy + hit.hitT * footprint.directionDy, h);
+		}
+		float lodBias = footprint.valid ? 0.0 : 1.0;
+		RtSurface surf = rt_evaluate_material(material, h, bakedLighting, lodBias);
+		RtShading sh = rt_shading(material, tri, h, surf, geometric, lodBias);
 		vec3 P = origin + dir * hit.hitT;
-		ShadeResult direct = shade_direct(material, surf, sh, P, geometric, -dir, 4u, bakedLighting, false, true, seed);
+		if ((material.flags & RT_MF_LIQUID) != 0u) {
+			RtLiquidInterface liq = rt_liquid_interface(material, tri, h, P, geometric, dir,
+				surf.reflectance + surf.emission);
+			sh.N = liq.normal;
+			// We do not sample caustic paths. A diffuse ray crosses clear
+			// water with absorption but without a specular change of direction;
+			// only camera-visible reflection/transmission paths bend here.
+			// This avoids rare, enormous emitter samples flickering on walls.
+			if (!seen && (material.flags & RT_MF_TRANSMISSIVE) != 0u) {
+				extinction = liq.entering ? liq.extinction : vec3(0.0);
+				origin = P + dir * 0.05;
+				continue;
+			}
+			// Fresnel sampling carries both lobes without exponential ray
+			// growth. TIR always reflects, even with specular disabled.
+			float F = (u_frame.flags.x & RT_FRAME_SPECULAR) != 0u || liq.fresnel >= 1.0 ? liq.fresnel : 0.0;
+			bool reflected = seen && rand01(seed) < F;
+			if (reflected || (material.flags & RT_MF_TRANSMISSIVE) != 0u) {
+				footprint = rt_liquid_footprint(h, dir, liq.normal,
+					liq.entering ? 1.0 / material.params.w : material.params.w, reflected,
+					footprint.directionDx, footprint.directionDy);
+				if (!reflected) extinction = liq.entering ? liq.extinction : vec3(0.0);
+				dir = reflected ? liq.reflected : liq.transmitted;
+				origin = P + geometric * (reflected ? 0.05 : -0.05);
+				g_mis = false; // the previous GGX density no longer describes this path
+				continue;
+			}
+		}
+		if (d == 0u) receiverReflectance = max(sh.diffuse + surf.emission, vec3(0.05));
+		ShadeResult direct = shade_direct(material, surf, sh, P, geometric, -dir, seen ? 16u : 4u, bakedLighting, false, !seen, seed);
 		bool baked = baked_light(material, surf, bakedLighting);
 		vec3 irradiance = baked ? direct.irradiance : apply_min_light(material, direct.irradiance);
 		// q3map's surface lights reach the scene through light sampling; their
 		// glow stages would count them twice. A glossy reflection sees the
 		// light itself, shared with the light sample (rt_reflected_light).
 		vec3 emission = (material.flags & RT_MF_SURFACE_LIGHT) != 0u ? vec3(0.0) : surf.emission;
+		// A delta reflection/transmission sees the authored lamp itself;
+		// no competing area-light specular sample was taken at the interface.
+		if (seen && !g_mis) emission = surf.emission;
 		vec3 lightSeen = vec3(0.0);
 		if (seen && g_mis && (material.flags & RT_MF_SURFACE_LIGHT) != 0u && !tri.dynamic) {
 			lightSeen = rt_reflected_light(hit, origin, dir);
@@ -497,11 +555,15 @@ vec3 bounce_radiance(vec3 origin, vec3 dir, float coneWidthAtOrigin, bool bakedL
 		throughput *= sh.diffuse;
 		origin = P + geometric * max(0.05, 1e-6 * length(P));
 		dir = bdir;
+		footprint.valid = false;
+		d++;
 	}
 	return radiance;
 }
 
 // One pixel of the trace: its signals for the denoiser and composite.
+#include "rt_indirect_sampling.glsl"
+
 void rt_path_main(ivec2 pixel, vec2 size)
 {
 	vec2 uv = (vec2(pixel) + 0.5) / size;
@@ -559,69 +621,134 @@ void rt_path_main(ivec2 pixel, vec2 size)
 	RtShading sh = rt_shading(material, tri, h, surf, geometric, 0.0);
 	vec3 P = origin + dir * primary.hitT;
 	vec3 V = -dir;
+	bool liquid = (material.flags & RT_MF_LIQUID) != 0u;
+	bool transmitting = (material.flags & RT_MF_TRANSMISSIVE) != 0u;
+	RtLiquidInterface liq;
+	float liquidF = 0.0;
+	if (liquid) {
+		liq = rt_liquid_interface(material, tri, h, P, geometric, dir, surf.reflectance + surf.emission);
+		sh.N = liq.normal;
+		liquidF = (u_frame.flags.x & RT_FRAME_SPECULAR) != 0u || liq.fresnel >= 1.0 ? liq.fresnel : 0.0;
+		if (transmitting) {
+			// The scene through the boundary supplies all transmitted light.
+			sh.diffuse = vec3(0.0);
+			surf.emission = vec3(0.0);
+			surf.lit = false;
+		} else {
+			sh.diffuse *= 1.0 - liquidF;
+			surf.emission *= 1.0 - liquidF;
+		}
+	}
 	vec3 N = sh.N;
 	// a glossy surface also traces a reflection ray (below), which shares
 	// the specular light of the lights it can meet with the light sample
 	float roughness = max(sh.roughness, u_frame.params0.z);
-	bool reflections = surf.lit && (u_frame.flags.x & RT_FRAME_SPECULAR) != 0u && roughness < 0.65;
+	bool reflections = !liquid && surf.lit && (u_frame.flags.x & RT_FRAME_SPECULAR) != 0u && roughness < 0.65;
 	bool mis = reflections && (u_frame.flags.x & RT_FRAME_MIS) != 0u;
 
+	g_lightReuseMaterial = tri.v0.materialIndex + 1u;
 	ShadeResult direct = shade_direct(material, surf, sh, P, geometric, V, 16u, bakedLighting, mis, false, seed);
+	g_lightReuseMaterial = 0u;
+	float shadowReactive = direct.shadowReactive;
 	vec3 irradiance = direct.irradiance;
-	vec3 specular = direct.specular;
+	vec3 indirect = vec3(0.0);
+	vec3 specular = liquid ? vec3(0.0) : direct.specular;
 
 	// one bounce of diffuse light; a baked lightmap already holds its own.
 	// As Q2RTX checkerboards its indirect light, a checkerboard of 8 x 8
 	// tiles - the pixels a compute workgroup shades together, so a tile's
 	// warps all skip the work and free its slot - bounces on alternate frames
-	// and counts twice; the temporal and spatial filters fill in the rest.
+	// and records which pixels were sampled. Missing samples retain valid
+	// reprojected indirect history; they never darken the direct shadows.
 	uint bounces = u_frame.flags.y;
 	bool baked = baked_light(material, surf, bakedLighting);
 	float bounceWeight = 1.0;
-	if ((u_frame.flags.x & RT_FRAME_CHECKERBOARD) != 0u) {
-		uvec2 tile = uvec2(pixel) / uvec2(8u);
-		bounceWeight = ((tile.x + tile.y + uint(u_frame.time.y)) & 1u) == 0u ? 2.0 : 0.0;
+	if (!baked && bounces > 0u && u_frame.params0.x > 0.0) {
+		bounceWeight = rt_indirect_density(uint(pixel.x), uint(pixel.y), uint(u_frame.time.y),
+			uint(u_frame.params1.y), (u_frame.flags.x & RT_FRAME_CHECKERBOARD) != 0u);
 	}
-	if (surf.lit && !baked && bounces > 0u && u_frame.params0.x > 0.0 && bounceWeight > 0.0) {
-		vec3 bdir = sample_cosine(N, seed);
-		if (dot(bdir, geometric) > 0.0) {
-			vec3 borigin = P + geometric * max(0.05, 1e-6 * length(P));
-			// cosine sampling: the estimate of irradiance is pi * L; the
-			// lightmap-unit convention folds that pi into the light
-			irradiance += bounce_radiance(borigin, bdir, h.coneWidth, bakedLighting, false, bounces, seed) *
-				(u_frame.params0.x * bounceWeight);
-		}
-	}
-
-	// glossy reflection of the scene: one GGX-sampled ray (Walter et al.
-	// 2007), weighted F * G * (V.H) / ((N.V)(N.H))
-	if (reflections) {
-		float alpha = roughness * roughness;
-		float u1 = rand01(seed);
-		float u2 = rand01(seed);
-		float cosTheta = sqrt((1.0 - u1) / (1.0 + (alpha * alpha - 1.0) * u1));
-		float sinTheta = sqrt(max(1.0 - cosTheta * cosTheta, 0.0));
-		float phi = 2.0 * PI * u2;
-		vec3 t, b;
-		basis_from_normal(N, t, b);
-		vec3 H = normalize(t * (sinTheta * cos(phi)) + b * (sinTheta * sin(phi)) + N * cosTheta);
-		vec3 L = reflect(-V, H);
-		float NdotL = dot(N, L);
-		float NdotV = max(dot(N, V), 1e-4);
-		if (NdotL > 0.0 && dot(L, geometric) > 0.0) {
+	// All secondary lobes share one call site. This also keeps the compute
+	// shader within the 32-bit driver's compiler address-space budget.
+	[[dont_unroll]] for (uint lobe = 0u; lobe < 3u; lobe++) {
+		RtLiquidFootprint footprint;
+		footprint.originDx = footprint.originDy = vec3(0.0);
+		footprint.directionDx = footprint.directionDy = vec3(0.0);
+		footprint.valid = false;
+		vec3 L, weight, medium = vec3(0.0);
+		bool visible = lobe != 0u;
+		float side = 1.0;
+		uint depth = max(bounces, 1u);
+		if (lobe == 0u) {
+			if (!surf.lit || baked || bounces == 0u || u_frame.params0.x <= 0.0 || bounceWeight <= 0.0) continue;
+			L = sample_cosine(N, seed);
+			if (dot(L, geometric) <= 0.0) continue;
+			weight = vec3(u_frame.params0.x);
+		} else if (liquid) {
+			// The interface is not a diffuse bounce: the visible scene behind
+			// it gets the same diffuse depth as a directly visible surface.
+			depth = bounces + 1u;
+			vec3 dDdx, dDdy;
+			camera_ray_differentials(dir, size, dDdx, dDdy);
+			footprint = rt_liquid_footprint(h, dir, liq.normal,
+				liq.entering ? 1.0 / material.params.w : material.params.w, lobe == 1u, dDdx, dDdy);
+			if (lobe == 1u) {
+				if (liquidF <= 0.0) continue;
+				L = liq.reflected;
+				weight = vec3(liquidF);
+				if (!liq.entering && transmitting) medium = liq.extinction;
+			} else {
+				if (!transmitting || liquidF >= 1.0) continue;
+				L = liq.transmitted;
+				weight = vec3(1.0 - liquidF);
+				side = -1.0;
+				if (liq.entering) medium = liq.extinction;
+			}
+		} else {
+			if (lobe != 1u || !reflections) continue;
+			// One GGX reflection, weighted F G (V.H) / ((N.V)(N.H)).
+			float alpha = roughness * roughness;
+			float u1 = rand01(seed);
+			float u2 = rand01(seed);
+			float cosTheta = sqrt((1.0 - u1) / (1.0 + (alpha * alpha - 1.0) * u1));
+			float sinTheta = sqrt(max(1.0 - cosTheta * cosTheta, 0.0));
+			float phi = 2.0 * PI * u2;
+			vec3 t, b;
+			basis_from_normal(N, t, b);
+			vec3 H = normalize(t * (sinTheta * cos(phi)) + b * (sinTheta * sin(phi)) + N * cosTheta);
+			L = reflect(-V, H);
+			float NdotL = dot(N, L);
+			float NdotV = max(dot(N, V), 1e-4);
+			if (NdotL <= 0.0 || dot(L, geometric) <= 0.0) continue;
 			float VdotH = max(dot(V, H), 0.0);
 			vec3 F = sh.F0 + (1.0 - sh.F0) * pow(1.0 - VdotH, 5.0);
 			float G = smith_g1(NdotL, alpha) * smith_g1(NdotV, alpha);
-			vec3 weight = F * (G * VdotH / (NdotV * max(cosTheta, 1e-4)));
-			vec3 rorigin = P + geometric * max(0.05, 1e-6 * length(P));
-			g_mis = g_misLights;
-			specular += weight * bounce_radiance(rorigin, L, h.coneWidth, bakedLighting, true, max(bounces, 1u), seed);
-			g_mis = false;
+			weight = F * (G * VdotH / (NdotV * max(cosTheta, 1e-4)));
 		}
+		vec3 rayOrigin = P + geometric * (side * max(0.05, 1e-6 * length(P)));
+		g_mis = !liquid && lobe == 1u && g_misLights;
+		vec3 receiverReflectance;
+		vec3 radiance = weight * bounce_radiance(rayOrigin, L, h.coneWidth, bakedLighting, visible, depth, medium, footprint, receiverReflectance, seed);
+		g_mis = false;
+		if (lobe == 0u) indirect = radiance;
+		else if (lobe == 2u) {
+			// Demodulate the transmitted receiver just like a directly visible
+			// surface. Filtering its complete textured colour as specular
+			// radiance blurs the pool even when its lighting is noise-free.
+			sh.diffuse = receiverReflectance;
+			irradiance = radiance / receiverReflectance;
+		}
+		else specular += radiance;
+	}
+	// A camera inside the water traverses this segment before reaching its
+	// exit face. Apply the same distance law on either side of the boundary.
+	if (transmitting && !liq.entering) {
+		vec3 attenuation = rt_liquid_transmittance(liq.extinction, primary.hitT);
+		specular *= attenuation;
+		irradiance *= attenuation;
 	}
 
-	if (!baked) {
-		irradiance = apply_min_light(material, irradiance);
+	if (!baked && !transmitting) {
+		irradiance = apply_min_light(material, irradiance + indirect) - indirect;
 	}
 
 	vec3 emission = surf.emission * u_frame.params0.y;
@@ -631,6 +758,7 @@ void rt_path_main(ivec2 pixel, vec2 size)
 		(!tri.dynamic || tri.v0.lightmapData.w > 0.5)) {
 		vec3 factor = rt_material_light_factor(P);
 		irradiance *= factor;
+		indirect *= factor;
 		specular *= factor;
 		emission *= factor;
 	}
@@ -640,6 +768,7 @@ void rt_path_main(ivec2 pixel, vec2 size)
 	vec3 reflectance = finite_or_zero(sh.diffuse);
 	float clampValue = u_frame.params1.z;
 	irradiance = clamp(finite_or_zero(irradiance), vec3(0.0), vec3(clampValue));
+	indirect = clamp(finite_or_zero(indirect), vec3(0.0), max(vec3(clampValue) - irradiance, vec3(0.0)));
 	specular = clamp(finite_or_zero(specular), vec3(0.0), vec3(clampValue));
 
 	// where the surface point was last frame: a moving surface's own motion
@@ -671,15 +800,17 @@ void rt_path_main(ivec2 pixel, vec2 size)
 	}
 
 	info |= RT_PIXEL_OWNED;
+	if (liquid) info |= RT_PIXEL_LIQUID;
 	if (tri.dynamic) {
 		info |= RT_PIXEL_DYNAMIC;
 	}
-	imageStore(u_outColor, pixel, vec4(irradiance, 1.0));
+	imageStore(u_outColor, pixel, vec4(irradiance, shadowReactive));
+	imageStore(u_outIndirect, pixel, vec4(indirect, bounceWeight));
 	imageStore(u_outSpecular, pixel, vec4(specular, 1.0));
 	imageStore(u_outReflectance, pixel, vec4(reflectance, 1.0));
-	imageStore(u_outNormalDepth, pixel, vec4(oct_encode(N), viewZ, sh.roughness));
+	imageStore(u_outNormalDepth, pixel, rt_pack_geometry(oct_encode(N), viewZ));
 	imageStore(u_outEmission, pixel, vec4(emission, fogVisibility));
-	imageStore(u_outMotion, pixel, vec4(motion, prevViewZ, history ? 0.0 : 1.0));
+	imageStore(u_outMotion, pixel, rt_pack_geometry(motion, history ? max(prevViewZ, 0.0) : 0.0));
 	imageStore(u_outInfo, pixel, uvec4(info | (tri.v0.materialIndex << 8u), 0u, 0u, 0u));
 }
 

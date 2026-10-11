@@ -32,10 +32,17 @@
  * answer the CD-key service, has no master's key to answer `\secure\` with
  * (so it proves nothing to a master, which none here asks of it), and gives
  * the demonstration query no answer of its own. A datagram naming nothing
- * it answers gets no reply at all, where the SDK sent a lone `\final\`. */
+ * it answers gets no reply at all, where the SDK sent a lone `\final\`.
+ *
+ * The browser's side, below the server's, reads such answers for fnTech3's
+ * own Medal of Honor LAN list: a LAN search as the SDK's browser made it,
+ * and each answer judged as OpenMoHAA's browser judges one. */
 
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
+#include <cstdlib>
+#include <map>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -236,6 +243,117 @@ inline std::vector<std::string> Reply( const Query &query, const Answers &answer
 	return packets.Finish();
 }
 
+/* ---- a browser's side --------------------------------------------------
+ *
+ * GameSpy's LAN search, as the SDK's browser made it (gserverlist.c,
+ * reference only **[O]**): from a socket of its own, allowed to broadcast,
+ * the eight bytes `\status\` once to each port of a run; every source whose
+ * answer holds `\final\` is a server; three seconds on, the search is over
+ * and its socket shut. A browser then lists each server from its answer's
+ * pairs. */
+
+constexpr const char *StatusQuery = "\\status\\";
+constexpr int LanSearchMilliseconds = 3000;
+/* The SDK's browser read a datagram into 1,500 bytes, one kept for the end. */
+constexpr std::size_t MaxReplyBytes = 1499;
+
+/* One datagram of an answer, as a browser reads it: its pairs in order, the
+ * `\final\` that ends an answer noted, the `\queryid\` that numbers it left
+ * out. */
+struct ReplyPacket {
+	std::vector<std::pair<std::string, std::string>> pairs;
+	bool final = false;
+};
+
+/* Text up to its first NUL, `\key\value` after `\key\value`; a key with
+ * nothing after it has an empty value. Empty, longer than a browser reads,
+ * or not starting with a backslash, it is no answer. */
+inline std::optional<ReplyPacket> ParseReplyPacket( const char *data, std::size_t length ) {
+	if ( !data || length == 0 || length > MaxReplyBytes ) {
+		return std::nullopt;
+	}
+	const std::string_view text( data, static_cast<std::size_t>( std::find( data, data + length, '\0' ) - data ) );
+	if ( text.empty() || text[0] != '\\' ) {
+		return std::nullopt;
+	}
+	ReplyPacket packet;
+	std::size_t at = 1;
+	while ( at <= text.size() ) {
+		const std::size_t keyEnd = std::min( text.find( '\\', at ), text.size() );
+		const std::string_view key = text.substr( at, keyEnd - at );
+		std::string_view value;
+		at = keyEnd + 1;
+		if ( keyEnd < text.size() ) {
+			const std::size_t valueEnd = std::min( text.find( '\\', at ), text.size() );
+			value = text.substr( at, valueEnd - at );
+			at = valueEnd + 1;
+		}
+		if ( key == "final" ) {
+			packet.final = true;
+		} else if ( !key.empty() && key != "queryid" ) {
+			packet.pairs.emplace_back( std::string( key ), std::string( value ) );
+		}
+	}
+	return packet;
+}
+
+/* A LAN search's answers, each source's gathered over its datagrams until one
+ * holds `\final\`, as the SDK's browser took a server only then. A player's
+ * keys, numbered after their last underscore (`player_3`, `frags_3`), are
+ * not kept, as no list here shows them; nor more than `MaxSources` sources
+ * or `MaxKeys` keys from one. */
+class LanAnswers {
+public:
+	using Answer = std::map<std::string, std::string>;
+	static constexpr std::size_t MaxSources = 128;
+	static constexpr std::size_t MaxKeys = 64;
+
+	void Clear() {
+		answers_.clear();
+	}
+
+	/* A datagram from `source`: that source's whole answer when this
+	 * datagram ends it, else null. A later value of a key replaces an
+	 * earlier one. */
+	const Answer *Add( const std::string &source, const char *data, std::size_t length ) {
+		const std::optional<ReplyPacket> packet = ParseReplyPacket( data, length );
+		if ( !packet ) {
+			return nullptr;
+		}
+		auto found = answers_.find( source );
+		if ( found == answers_.end() ) {
+			if ( answers_.size() >= MaxSources ) {
+				return nullptr;
+			}
+			found = answers_.emplace( source, Answer() ).first;
+		}
+		Answer &answer = found->second;
+		for ( const auto &pair : packet->pairs ) {
+			if ( PlayerKey( pair.first ) || ( answer.size() >= MaxKeys && !answer.count( pair.first ) ) ) {
+				continue;
+			}
+			answer[pair.first] = pair.second;
+		}
+		return packet->final ? &answer : nullptr;
+	}
+
+	static bool PlayerKey( std::string_view key ) {
+		const std::size_t underscore = key.rfind( '_' );
+		if ( underscore == std::string_view::npos || underscore + 1 == key.size() ) {
+			return false;
+		}
+		for ( std::size_t i = underscore + 1; i < key.size(); i++ ) {
+			if ( key[i] < '0' || key[i] > '9' ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+private:
+	std::map<std::string, Answer> answers_;
+};
+
 /* Medal of Honor: Allied Assault's answers. The keys are those OpenMoHAA's
  * server reports (sv_gamespy.c's basic, info, rules and players callbacks)
  * **[O]**, less the ones it reports for the later games or added itself:
@@ -325,6 +443,132 @@ inline Answers Answer( const Server &server ) {
 		AppendPair( answers.players, "ping_" + index, std::to_string( player.ping ) );
 	}
 	return answers;
+}
+
+/* ---- a 1.00 browser's LAN list -------------------------------------------- */
+
+/* A server as a LAN list shows it, from its GameSpy answer. */
+struct LanServer {
+	/* The game port, which a player joins. */
+	int hostPort = 0;
+	std::string hostName;
+	std::string mapName;
+	/* g_gametype; -1 when the answer names none 1.00 knows. */
+	int gameType = -1;
+	int players = 0;
+	int maxPlayers = 0;
+	std::string version;
+};
+
+enum class LanVerdict {
+	Listed,
+	/* GameSpy names another game: Spearhead's servers answer `mohaas` and
+	 * Breakthrough's `mohaab` (OpenMoHAA sv_gamespy.c **[O]**). */
+	OtherGame,
+	/* A demo's server, its version starting with `d` **[O]**. */
+	Demo,
+	/* Another version than 1.00, which speaks another protocol. */
+	OtherVersion,
+	/* No game port to join it at. */
+	NoPort,
+};
+
+inline const char *LanVerdictName( LanVerdict verdict ) {
+	switch ( verdict ) {
+	case LanVerdict::Listed: return "listed";
+	case LanVerdict::OtherGame: return "another game";
+	case LanVerdict::Demo: return "a demo's server";
+	case LanVerdict::OtherVersion: return "another version";
+	case LanVerdict::NoPort: return "no game port";
+	}
+	return "";
+}
+
+inline bool EqualsIgnoringCase( std::string_view a, std::string_view b ) {
+	if ( a.size() != b.size() ) {
+		return false;
+	}
+	for ( std::size_t i = 0; i < a.size(); i++ ) {
+		const char x = a[i] >= 'A' && a[i] <= 'Z' ? static_cast<char>( a[i] - 'A' + 'a' ) : a[i];
+		const char y = b[i] >= 'A' && b[i] <= 'Z' ? static_cast<char>( b[i] - 'A' + 'a' ) : b[i];
+		if ( x != y ) {
+			return false;
+		}
+	}
+	return true;
+}
+
+/* g_gametypestring's values, which 1.00's game module sets from g_gametype 0
+ * to 4 (gamex86.dll 0x310e5a50); -1 for any other name. */
+inline int GameTypeFromName( std::string_view name ) {
+	static constexpr const char *names[] = { "Single-Player", "Free-For-All", "Team-Match", "Round-Based-Match",
+		"Objective-Match" };
+	for ( int i = 0; i < 5; i++ ) {
+		if ( EqualsIgnoringCase( name, names[i] ) ) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+/* A number as a browser reads one, its leading digits as atoi's; `fallback`
+ * when there are none. */
+inline int LeadingInt( const std::string &text, int fallback ) {
+	const char *start = text.c_str();
+	char *end = nullptr;
+	const long value = std::strtol( start, &end, 10 );
+	if ( end == start ) {
+		return fallback;
+	}
+	return static_cast<int>( std::max( -2147483647L, std::min( 2147483647L, value ) ) );
+}
+
+/* What an answer says of a server, judged as OpenMoHAA's browser judges one
+ * (cl_uiserverlist.cpp, cl_instantAction.cpp **[O]**): an answer naming no
+ * version is taken for 1.00's, a version starting with `d` is a demo's, and
+ * one more than a tenth from the browser's own is another version's; the
+ * game port is `hostport`, or the game's default without one. A 1.00
+ * browser lists only what it can join: the game GameSpy names `mohaa` (it
+ * asks `\status\`, whose basic part names it), at 1.00 or within a tenth. */
+inline LanVerdict JudgeLanAnswer( const LanAnswers::Answer &answer, int defaultPort, LanServer &server ) {
+	const auto value = [&answer]( const char *key ) -> const std::string * {
+		const auto found = answer.find( key );
+		return found == answer.end() ? nullptr : &found->second;
+	};
+	const std::string *version = value( "gamever" );
+	server.version = version ? *version : GameVersion;
+	const std::string *gameName = value( "gamename" );
+	if ( !gameName || !EqualsIgnoringCase( *gameName, GameName ) ) {
+		return LanVerdict::OtherGame;
+	}
+	if ( !server.version.empty() && server.version[0] == 'd' ) {
+		return LanVerdict::Demo;
+	}
+	if ( std::fabs( std::strtof( server.version.c_str(), nullptr ) - std::strtof( GameVersion, nullptr ) ) > 0.1f ) {
+		return LanVerdict::OtherVersion;
+	}
+	const std::string *port = value( "hostport" );
+	server.hostPort = port ? LeadingInt( *port, 0 ) : defaultPort;
+	if ( server.hostPort < 1 || server.hostPort > 65535 ) {
+		return LanVerdict::NoPort;
+	}
+	const std::string *hostName = value( "hostname" );
+	const std::string *mapName = value( "mapname" );
+	server.hostName = hostName ? *hostName : std::string();
+	server.mapName = mapName ? *mapName : std::string();
+	// the number where it is one of 1.00's, else the name g_gametypestring
+	// gives it
+	const std::string *typeNumber = value( "gametype_i" );
+	server.gameType = typeNumber ? LeadingInt( *typeNumber, -1 ) : -1;
+	if ( server.gameType < 0 || server.gameType > 4 ) {
+		const std::string *typeName = value( "gametype" );
+		server.gameType = typeName ? GameTypeFromName( *typeName ) : -1;
+	}
+	const std::string *players = value( "numplayers" );
+	const std::string *maxPlayers = value( "maxplayers" );
+	server.players = std::max( 0, players ? LeadingInt( *players, 0 ) : 0 );
+	server.maxPlayers = std::max( 0, maxPlayers ? LeadingInt( *maxPlayers, 0 ) : 0 );
+	return LanVerdict::Listed;
 }
 
 } // namespace mohaa

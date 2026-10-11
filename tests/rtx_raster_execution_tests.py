@@ -18,6 +18,54 @@ def function(source: str, signature: str) -> str:
 
 
 class RtxRasterExecutionTests(unittest.TestCase):
+    def test_depth_base_preserves_cutouts_and_equal_depth_dependencies(self):
+        shade = (ROOT / 'code/rendererrtx/tr_shade.c').read_text()
+        fixture = r'''
+#include <assert.h>
+#include <stdint.h>
+#include <string.h>
+#define Com_Memset memset
+typedef int qboolean;
+enum {qfalse, qtrue, MAX_SHADER_STAGES=8, TYPE_COLOR_WHITE=1, PV_MIRROR=2,
+      GLS_DEPTHMASK_TRUE=1, GLS_ATEST_BITS=2, GLS_ALICE_ATEST_BITS=4,
+      GLS_DEPTHFUNC_EQUAL=8, GLS_SRCBLEND_BITS=16, GLS_DSTBLEND_BITS=32, TESS_XYZ=1};
+typedef struct {unsigned stateBits; int skip;} shaderStage_t;
+typedef struct {int cullType, polygonOffset;} shader_t;
+typedef struct {unsigned state_bits; int shader_type, face_culling, polygon_offset, mirror,
+    depth_only, fog_stage, depth_fade;} Vk_Pipeline_Def;
+static struct {shaderStage_t *xstages[8]; shader_t *shader; int depthRange;} tess;
+static struct {struct {int portalView;} viewParms;} backEnd;
+static Vk_Pipeline_Def sourceDef, boundDef;
+static int draws, attributes;
+static int RB_AliceSkipStage(const shaderStage_t *s) {return s->skip;}
+static uint32_t vk_find_pipeline_ext(int, const Vk_Pipeline_Def *d, int) {boundDef=*d;return 1;}
+static void vk_get_pipeline_def(uint32_t, Vk_Pipeline_Def *d) {*d=sourceDef;}
+static void vk_bind_pipeline(uint32_t) {}
+static void vk_bind_index(void) {}
+static void vk_bind_geometry(int a) {attributes=a;}
+static void vk_draw_geometry(int, int) {draws++;}
+''' + function(shade, 'static qboolean VK_RTDepthOpaque(') + function(shade, 'static uint32_t VK_RTDepthPipeline(') + r'''
+int main(void) {
+    shader_t shader={3,1}; shaderStage_t cutout={GLS_DEPTHMASK_TRUE|GLS_ATEST_BITS,0};
+    shaderStage_t equal={GLS_DEPTHMASK_TRUE|GLS_DEPTHFUNC_EQUAL,0};
+    tess.shader=&shader; tess.xstages[0]=&cutout; tess.xstages[1]=&equal;
+    assert(!VK_RTDepthOpaque() && draws==0); // EQUAL must follow the actual alpha coverage
+    sourceDef.state_bits=cutout.stateBits|GLS_SRCBLEND_BITS|GLS_DSTBLEND_BITS;
+    sourceDef.fog_stage=sourceDef.depth_fade=1; sourceDef.face_culling=3;
+    VK_RTDepthPipeline(1);
+    assert(boundDef.depth_only && boundDef.state_bits==cutout.stateBits);
+    assert(!boundDef.fog_stage && !boundDef.depth_fade && boundDef.face_culling==3);
+    equal.stateBits=GLS_DEPTHMASK_TRUE;
+    assert(VK_RTDepthOpaque() && draws==1 && attributes==TESS_XYZ);
+    assert(boundDef.depth_only && boundDef.shader_type==TYPE_COLOR_WHITE && boundDef.polygon_offset);
+    equal.skip=1; assert(!VK_RTDepthOpaque() && draws==1);
+    return 0;
+}
+'''
+        # The host uses C++ argument syntax just like several existing fixtures.
+        from rtx_surface_owner_tests import compile_run
+        compile_run(self, fixture)
+
     def run_fixture(self, fixture: str) -> None:
         compiler = next((path for name in ("clang", "gcc", "cc")
                          if (path := shutil.which(name))), None)
@@ -85,7 +133,7 @@ static struct {
     struct { int c_surfaces; } pc;
 } backEnd;
 static struct { entity_t worldEntity; } tr;
-static struct { shader_t *shader; double shaderTime; int depthRange; int rtFogOnly; } tess;
+static struct { shader_t *shader; double shaderTime; int depthRange; int rtFogOnly, rtDepthOnly; } tess;
 static struct { int fboActive, renderPassIndex;
                 struct { int color_descriptor; } liquidSnapshot; } vk = {1, RENDER_PASS_MAIN, {1}};
 static struct { float modelview_transform[16]; } vk_world;
@@ -93,7 +141,7 @@ static struct { float modelview_transform[16]; } vk_world;
 /* shaders[4]: traced, sorted past opaque (an alpha-tested see-through surface) */
 static shader_t shaders[5] = {{0}, {0, 1, 0, SS_OPAQUE, 0}, {0, 0, 0, SS_OPAQUE, 0}, {0, 2, 0, SS_OPAQUE, 0},
                               {0, 1, 0, SS_OPAQUE + 1, 0}};
-static int rendered[16], fogOnlyAtDraw[16], renderedCount, snapshotChecks, decompositions;
+static int rendered[16], fogOnlyAtDraw[16], depthOnlyAtDraw[16], renderedCount, snapshotChecks, decompositions;
 static void R_DecomposeSort(unsigned sort, int *entity, shader_t **shader, int *fog, int *dlight) {
     ++decompositions; *entity = sort & 255; *shader = &shaders[sort >> 8]; *fog = 0; *dlight = 0;
 }
@@ -115,6 +163,7 @@ static void R_RotateForEntity(entity_t *entity, viewParms_t *view, orientation_t
 static void vk_update_mvp(const void *matrix) { (void)matrix; }
 static void Draw(surfaceType_t *surface) {
     fogOnlyAtDraw[renderedCount] = tess.rtFogOnly;
+    depthOnlyAtDraw[renderedCount] = tess.rtDepthOnly;
     rendered[renderedCount++] = ((fixtureSurface_t *)surface)->id;
 }
 static void (*rb_surfaceTable[])(surfaceType_t *) = {Draw};
@@ -154,7 +203,10 @@ int main(void) {
      * as must one following that batch through the equal-sort fast path. */
     Expect(draws, 8, RB_DRAWSURFS_ALL, expectedAll, 4);
     Expect(draws, 8, RB_DRAWSURFS_RT_BASE, expectedBase, 2);
+    assert(depthOnlyAtDraw[0] && depthOnlyAtDraw[1]);
+    assert(!tess.rtDepthOnly);
     Expect(draws, 8, RB_DRAWSURFS_RT_OVERLAY, expectedOverlay, 2);
+    assert(!depthOnlyAtDraw[0] && !depthOnlyAtDraw[1]);
     for (mode = RB_DRAWSURFS_ALL; mode <= RB_DRAWSURFS_RT_OVERLAY; ++mode) {
         Expect(draws, 1, (rbDrawSurfsMode_t)mode, NULL, 0);
         Expect(draws, 0, (rbDrawSurfsMode_t)mode, NULL, 0);
@@ -181,6 +233,7 @@ int main(void) {
         rb_rtFogOverlay = qfalse;
         Expect(fogged, 2, RB_DRAWSURFS_RT_BASE, expectedFogged, 2);
         assert(!fogOnlyAtDraw[0] && !fogOnlyAtDraw[1]);
+        assert(depthOnlyAtDraw[0] && depthOnlyAtDraw[1]);
         Expect(fogged, 2, RB_DRAWSURFS_RT_OVERLAY, NULL, 0);
         rb_rtFogOverlay = qtrue;
         Expect(fogged, 2, RB_DRAWSURFS_RT_OVERLAY, expectedFogged, 2);

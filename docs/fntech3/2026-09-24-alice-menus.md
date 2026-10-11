@@ -197,11 +197,14 @@ both were read for orientation only.
   - Of these, the retail menus use `togglemenu` (newgame), `viewspawnlist`
     (animate2, animate3) and `soundpicker` (zound). The rest appear only in
     the developers' own `configs/*.cfg` in the paks, not in `default.cfg`.
-  - fnTech3 serves `togglemenu`, `clear` and `toggleconsole`, but none of
+  - fnTech3 served `togglemenu`, `clear` and `toggleconsole`, but none of
     the others: `viewspawnlist`, `soundpicker`, `loadmenu`, `maplist`,
     `notepad`, `editscript`, `editshader`, the inventory commands, the
     console-position and test-list commands, `ui_checkrestart` and
-    `saveweaps`.
+    `saveweaps`. (*Since then* it serves `ui_checkrestart`, and from
+    2026-10-08 `viewspawnlist`, `soundpicker`, `maplist`, `loadmenu`, the
+    inventory commands and `saveweaps` too; see the
+    [round record](2026-10-08-alice-compatibility-round.md#menus-and-the-engine-ui).)
 - **The pause** (`0x0053162c`, UI_Update `0x0040c800`). None of this runs
   while the loading screen is up (`0x0040c8cb`).
   - When a full-screen menu is current and the state is 0, UI_Update
@@ -290,7 +293,7 @@ both were read for orientation only.
 - **`ui_restorecvars`** resets instead of restoring when the current menu
   was put up by `showmenu` (`0x004c52c4`). fnTech3's `showmenu` pushes, so
   that case does not arise.
-- **Not served:**
+- **Not served** (*all three served from 2026-10-08*):
   - the bind list scrollbar's arrows do not repeat while held;
   - UIWidget3D does not turn the model's head to follow the mouse (bone
     `Bip01 Head`, `0x004d31ed`);
@@ -414,12 +417,10 @@ fntech3.exe +set com_gameProfile alice +set fs_basepath E:\Games\Alice
 
 ## Open items
 
-- Alice's `soundpicker` and `viewspawnlist` developer tools.
-- The bind list scrollbar's arrow repeat.
-- UIWidget3D's head turn.
-- With developer on, a `vid_restart` at the main menu opens the console: the
-  client's menu restore asks for `UIMENU_MAIN`, and that request takes the
-  drop path. Retail's UI does not see a video restart at all.
-- `code/compat/alice_savegame.hpp` describes the `quicksave` test at
-  `0x0041a68f` as `strcmp`, but the call is `_stricmp` (`0x004e8760`). The
-  menu's list compares without regard to case, as retail does.
+All five were closed on 2026-10-08 ([round record](2026-10-08-alice-compatibility-round.md#menus-and-the-engine-ui)):
+the pickers (`soundpicker`, `viewspawnlist` and `maplist`), the scrollbars'
+arrow repeat and thumb drag, UIWidget3D's head turn, `vid_restart` leaving the
+menus and the console as they were, and the `_stricmp` comment. The same
+round added `loadmenu` and, under Alice, the inventory commands and
+`saveweaps`. `notepad`, `editscript`, `editshader`, `ui_testlist` and the two
+console-position commands remain unserved, for the reasons that record gives.

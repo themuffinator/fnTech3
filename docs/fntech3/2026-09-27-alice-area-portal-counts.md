@@ -256,7 +256,9 @@ tests with 128 skipped and none failed.
 - `funhouse`'s Tweedle scene was not played; its close is read from the
   script. The other closes in Alice's scripts (`pandemonium`'s minecart,
   `hatter1`'s `NORETURN`, `skool1`'s lift) and F.A.K.K.2's unguarded ones
-  were not traced.
+  were not traced. (*2026-10-08:* the Tweedle scene, `hatter1`'s clock room
+  and `skool1`'s lift were played and the rest of Alice's traced;
+  [round record](2026-10-08-alice-compatibility-round.md#area-portals). F.A.K.K.2's remain.)
 - F.A.K.K.2 1.00's engine is taken to be 1.02's. Medal of Honor's rule is
   OpenMoHAA's **[O]**. No Medal of Honor content has been found that reaches
   it.

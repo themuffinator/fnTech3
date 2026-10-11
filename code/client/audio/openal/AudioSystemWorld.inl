@@ -361,6 +361,7 @@ public:
 	int Frames() const { return frames_; }
 	int DurationMs() const { return durationMs_; }
 	bool RTCWSpeechAmplitude( std::int64_t frame, int &amplitude ) const { return speech_.At(frame, amplitude); }
+	const fntech3::audio::jka::lipsync::Envelope &JKAMouth() const { return jkaMouth_; }
 	// The loudest byte Raven's tag reports, and the sound as Elite Force SP
 	// measures it; the device keeps the samples, so these stand in for them.
 	float Peak() const { return peak_; }
@@ -395,6 +396,9 @@ private:
 	int durationMs_ = 0;
 	fntech3::audio::rtcw::SpeechEnvelope speech_;
 	fntech3::audio::stvef::lipsync::TopBytes stvefTopBytes_;
+	fntech3::audio::jka::lipsync::Envelope jkaMouth_;
+	bool jkaMpeg_ = false;
+	float jkaPeak_ = 128.0f;
 	float peak_ = 0.0f;
 	SoundShaderSettings shader_;
 	int sourceFrameBytes_ = 0;
@@ -484,6 +488,7 @@ bool SoundSample::UploadPCM( OpenALDevice &device, const std::vector<short> &pcm
 	durationMs_ = durationMs > std::numeric_limits<int>::max() ? std::numeric_limits<int>::max() : static_cast<int>( durationMs );
 	if ( Com_GameIsRTCWSP() ) speech_.Build(pcm.data(), frames_, channels_);
 	if ( Com_GameIsSTVEFSP() ) stvefTopBytes_.Build(pcm.data(), frames_, channels_);
+	if ( Com_GameIsJKAMP() ) jkaMouth_.Build(pcm.data(),frames_,channels_,rate_,jkaMpeg_,jkaPeak_,S_JKAThresholds());
 	return true;
 }
 
@@ -563,6 +568,11 @@ bool SoundSample::EnsureLoaded( OpenALDevice &device, bool allowToneFallback ) {
 	missing_ = false;
 	defaultSample_ = false;
 	peak_ = info.peak;
+	if ( Com_GameIsJKAMP() ) {
+		jkaMpeg_=fntech3::audio::jka::lipsync::StreamedMpeg(name_.c_str(),info.mpegBytes,info.samples,info.rate,
+			Cvar_VariableIntegerValue("s_mp3overhead"));
+		jkaPeak_=info.jkaMpegPeak;
+	}
 	if ( device.SupportsSampleFormat( loadFormat ) ) {
 		loaded_ = UploadPCM( device, pcm, loadFormat, info.rate );
 		if ( !loaded_ && info.channels > 2 ) {
@@ -611,6 +621,9 @@ void SoundSample::Unload( OpenALDevice &device ) {
 	durationMs_ = 0;
 	speech_.Clear();
 	stvefTopBytes_.Clear();
+	jkaMouth_.Clear();
+	jkaMpeg_=false;
+	jkaPeak_=128.0f;
 	peak_ = 0.0f;
 }
 
@@ -689,6 +702,7 @@ public:
 	int entnum = ENTITYNUM_WORLD;
 	int entchannel = CHAN_AUTO;
 	int allocTime = 0;
+	std::uint32_t jkaSpeechStart = 0;
 	ALuint source = 0;
 	ALuint directFilter = 0;
 	ALuint sendFilter = 0;
@@ -697,6 +711,9 @@ public:
 	Vec3f velocity;
 	VoiceRouteCache routeCache;
 	float volumeScale = 1.0f;
+	// A sound the game's menus started (S_StartInterfaceSound): interface
+	// audio, outside the level, whatever channel it plays on.
+	bool interfaceSound = false;
 	bool rtcwLoop = false;
 	bool rtcwOneShot = false;
 	fntech3::audio::rtcw::Loop rtcwLoopData;
@@ -764,10 +781,12 @@ public:
 		entnum = ENTITYNUM_WORLD;
 		entchannel = CHAN_AUTO;
 		allocTime = 0;
+		jkaSpeechStart = 0;
 		sample = nullptr;
 		origin = Vec3f();
 		velocity = Vec3f();
 		volumeScale = 1.0f;
+		interfaceSound = false;
 		rtcwLoop = false;
 		rtcwOneShot = false;
 		rtcwLoopData = {};
@@ -855,6 +874,7 @@ static VoiceToneSettings BuildVoiceToneSettings( const SoundVoice &voice, const 
 	classInputs.multichannelSample = ( voice.sample != nullptr && voice.sample->Channels() > kDefaultStreamChannels );
 	classInputs.listenerAttached = listenerAttached;
 	classInputs.localOnly = localOnly;
+	classInputs.interfaceSound = voice.interfaceSound;
 	classInputs.positionalSource = positionalSource;
 	classInputs.underwater = ( environment.underwater != qfalse );
 	settings.soundClass = tone::ClassifyToneClass( classInputs );
@@ -1070,6 +1090,8 @@ public:
 	void StartRTCWSound( int entity, int channel, sfxHandle_t handle, SoundSample *sample, const float *origin, int flags );
 	void StartWolfETSound( int entity, int channel, sfxHandle_t handle, SoundSample *sample, const float *origin, int flags, int volume );
 	int RTCWVoiceAmplitude( int entity, int amplitude ) const;
+	void MeasureJKAMouths();
+	int JKAVoiceVolume(int entity) const { return jkaMouths_.Read(entity); }
 	void STVEFSPMeasureMouths( int mixedSamples );
 	const int *STVEFSPMouths() const;
 	void UpdateEntityPosition( int entityNum, const float *origin );
@@ -1089,6 +1111,9 @@ public:
 	void PrintAudioZoneInfo() const;
 
 	int ListenerNumber() const { return listenerNumber_; }
+	// Whether the next one-shot is a sound the game's menus started; the
+	// one-shot takes it (S_StartInterfaceSound marks it around the start).
+	void MarkNextInterfaceSound( bool interfaceSound ) { interfaceNext_ = interfaceSound; }
 	fntech3::audio::rtcw::LoopGains EntityStreamGains( const fntech3::audio::rtcw::EntityStream &stream,
 		float volume, float fade, float master ) const {
 		const float *origin = stream.entity >= 0 && stream.entity < 1024 && stream.attenuation ? entityOrigins_[stream.entity].Data() : nullptr;
@@ -1111,6 +1136,8 @@ private:
 		int channel = -1;
 	};
 	MOHAASpan mohaaNext_;
+	// Whether the next one-shot is the menus' own (MarkNextInterfaceSound).
+	bool interfaceNext_ = false;
 	void CleanupFinishedVoices();
 	bool RefreshAudioZonesForCurrentMap();
 	EnvironmentState EvaluateCurrentListenerEnvironment() const;
@@ -1127,6 +1154,7 @@ private:
 	std::array<SoundVoice, kMaxVoices> oneShots_;
 	// How wide a mouth each entity holds, for Elite Force SP alone.
 	fntech3::audio::stvef::lipsync::Mouths stvefMouths_;
+	fntech3::audio::jka::lipsync::Mouths jkaMouths_;
 	// Entity loops take the voice of their entity; Elite Force's ambient
 	// loops, which belong to no entity, take the voices after them.
 	std::array<SoundVoice, MAX_GENTITIES + fntech3::audio::stvef::AmbientLoopFrame::Capacity> loopVoices_;
@@ -1201,6 +1229,22 @@ const int *Q3SoundWorld::STVEFSPMouths() const {
 	return stvefMouths_.Levels();
 }
 
+void Q3SoundWorld::MeasureJKAMouths() {
+	jkaMouths_.Clear();
+	const auto now=static_cast<std::uint32_t>(Sys_Milliseconds());
+	for(const SoundVoice &voice:oneShots_) {
+		if(!voice.active||!voice.source||!voice.sample||!S_JKAIsVoiceChannel(voice.entchannel))continue;
+		ALint state=0;
+		device_->AL().alGetError();
+		device_->AL().alGetSourcei(voice.source,AL_SOURCE_STATE,&state);
+		if(device_->AL().alGetError()!=AL_NO_ERROR)Com_Error(ERR_DROP,"Academy lip-sync source state is unavailable");
+		if(state!=AL_PLAYING)continue;
+		const auto &envelope=voice.sample->JKAMouth();
+		if(!envelope.Ready())Com_Error(ERR_DROP,"Academy lip-sync requires a supported mono sample and finite thresholds");
+		jkaMouths_.Write(voice.entnum,envelope.AtMilliseconds(now-voice.jkaSpeechStart));
+	}
+}
+
 int Q3SoundWorld::RTCWVoiceAmplitude( int entity, int amplitude ) const {
 	using namespace fntech3::audio::rtcw;
 	if ( !device_ || !Com_GameIsRTCWSP() || entity < 0 || entity >= SpeechClients ) return 0;
@@ -1240,6 +1284,7 @@ void Q3SoundWorld::Reset( OpenALDevice *device ) {
 	environmentTransitionEndTime_ = 0;
 	lastListenerUpdateTime_ = 0;
 	loopFrameClearPending_ = false;
+	interfaceNext_ = false;
 	for ( int i = 0; i < 3; ++i ) {
 		for ( int j = 0; j < 3; ++j ) {
 			listenerAxis_[i][j] = ( i == j ) ? 1.0f : 0.0f;
@@ -1256,6 +1301,7 @@ void Q3SoundWorld::Reset( OpenALDevice *device ) {
 		origin = Vec3f();
 	}
 	stvefMouths_.Reset();
+	jkaMouths_.Reset();
 	if ( device_ != nullptr ) {
 		device_->UpdateListener( listenerOrigin_.Data(), listenerVelocity_.Data(), listenerAxis_ );
 		device_->UpdateReverb( environment_ );
@@ -1263,11 +1309,13 @@ void Q3SoundWorld::Reset( OpenALDevice *device ) {
 }
 
 void Q3SoundWorld::StopAllSounds() {
+	jkaMouths_.Reset();
 	rtcwLoops_.Clear();
 	stvefAmbientLoops_.Clear();
 	jkaAmbientLoops_.Clear();
 	rtcwOneShots_.Reset();
 	loopFrameClearPending_ = false;
+	interfaceNext_ = false;
 	for ( SoundVoice &voice : oneShots_ ) {
 		voice.Release( *device_ );
 	}
@@ -1704,6 +1752,9 @@ void Q3SoundWorld::PlayOneShot( SoundVoice *voice, int entityNum, int entchannel
 	voice->origin.Set( origin );
 	voice->velocity = Vec3f();
 	voice->volumeScale = ClampFloat( volume, 0.0f, 2.0f );
+	// One mark, one one-shot: whatever starts next is the level's again.
+	voice->interfaceSound = interfaceNext_;
+	interfaceNext_ = false;
 	voice->mohaaMinDist = mohaaNext_.minDist;
 	voice->mohaaMaxDist = mohaaNext_.maxDist;
 	voice->mohaaPitch = mohaaNext_.pitch;
@@ -1723,6 +1774,10 @@ void Q3SoundWorld::PlayOneShot( SoundVoice *voice, int entityNum, int entchannel
 	device_->AL().alSourcei( voice->source, AL_LOOPING, AL_FALSE );
 	ApplyVoice( *voice, qfalse );
 	device_->AL().alSourcePlay( voice->source );
+	if ( Com_GameIsJKAMP() && S_JKAIsVoiceChannel(entchannel) ) {
+		jkaMouths_.Write(entityNum,-1);
+		voice->jkaSpeechStart=static_cast<std::uint32_t>(Sys_Milliseconds());
+	}
 	if ( voice->rtcwOneShot && s_alSoundStartDebug && s_alSoundStartDebug->integer ) {
 		const ALenum error = device_->AL().alGetError();
 		ALint state = 0;
@@ -1993,8 +2048,10 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 	const bool stvefSpatial = Com_GameIsSTVEFSP() && !voice.stvefAmbient;
 	// Retail Wolfenstein attenuates every sound but the listener's own by
 	// where it is, whatever its channel, so a local channel is an interface
-	// sound only at the listener.
-	const bool localOnly = !retailPanned && IsLocalOnlyChannel( voice.entchannel ) && ( !wolfenstein || listenerAttached );
+	// sound only at the listener. A sound the game's menus started is one on
+	// any channel.
+	const bool localOnly = !retailPanned && ( voice.interfaceSound ||
+		( IsLocalOnlyChannel( voice.entchannel ) && ( !wolfenstein || listenerAttached ) ) );
 	const bool stereoSample = ( voice.sample->Channels() > 1 );
 	const bool twoChannelSample = ( voice.sample->Channels() == 2 );
 	const bool encodedSoundField = voice.sample->EncodedSoundField();
@@ -2244,9 +2301,11 @@ void Q3SoundWorld::ApplySTVEFVoice( SoundVoice &voice, qboolean softMuted ) {
 	const float distance = DistanceBetweenPoints( voiceOrigin, listenerOrigin_.Data() );
 	const stvef::Span span = STVEFVoiceSpan( voice );
 	const float separation = S_STVEFSeparation();
-	const bool listenerSound = STVEFHeardAtListener( voice, distance, listenerNumber_ );
-	const bool interfaceSound = listenerSound && !voice.stvefAmbient &&
-		( IsLocalOnlyChannel( voice.entchannel ) || stvef::IsMenuChannel( voice.entchannel ) );
+	// A sound the game's menus started is heard where the listener is, as
+	// interface audio, whatever its channel.
+	const bool listenerSound = voice.interfaceSound || STVEFHeardAtListener( voice, distance, listenerNumber_ );
+	const bool interfaceSound = voice.interfaceSound || ( listenerSound && !voice.stvefAmbient &&
+		( IsLocalOnlyChannel( voice.entchannel ) || stvef::IsMenuChannel( voice.entchannel ) ) );
 	const bool stereoSample = voice.sample->Channels() > 1;
 	const bool encodedSoundField = voice.sample->EncodedSoundField();
 	const bool spatializedStereo = voice.sample->Channels() == 2 && !encodedSoundField && !listenerSound &&
@@ -2994,6 +3053,7 @@ void Q3SoundWorld::ApplyAliceVoice( SoundVoice &voice, qboolean softMuted ) {
 
 void Q3SoundWorld::Update( qboolean softMuted ) {
 	CleanupFinishedVoices();
+	if ( Com_GameIsJKAMP() ) MeasureJKAMouths();
 	RefreshEnvironment();
 	std::int64_t loopMicroseconds = 0;
 	if ( Com_GameIsRTCW() ) {

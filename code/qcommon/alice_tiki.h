@@ -82,6 +82,8 @@ struct List {
 List *CreateList( const char *name );                           /* 0x00422960 */
 void ClearList( List *list );                                   /* 0x004229f0 */
 void FreeList( List *list );                                    /* 0x00422a40 */
+/* Every line's per-actor history goes; the lines and their own stay. */
+void ClearActors( List *list );                                 /* 0x004229b0 */
 /* The engine's own list, created on first use as its wrappers do. */
 List *Global( void );
 qboolean Add( List *list, const char *name, const char *realName,
@@ -230,6 +232,10 @@ int AliceTiki_Register( const char *name );
 const AliceTikiModel *AliceTiki_Get( int handle );
 int AliceTiki_Count( void );
 void AliceTiki_Clear( void );
+/* What every server spawn does to the loaded definitions (0x00462460, from
+ * SV_SpawnServer 0x00455285): each one's alias list loses its per-actor
+ * dialog history and is sorted if an addition left it unsorted. */
+void AliceTiki_ResetDialogActors( void );
 
 /* ---- queries both modules make ------------------------------------------ */
 

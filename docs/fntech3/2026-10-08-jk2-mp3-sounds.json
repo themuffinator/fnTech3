@@ -1,0 +1,1198 @@
+{
+ "record": "2026-10-08-jk2-mp3-sounds.md",
+ "profiles": [
+  "jk2-sp",
+  "jk2-mp"
+ ],
+ "level": "Source, Unit, Asset subset (every retail MP3 decoded), Live subset (jk2-mp menu client, no input)",
+ "headAtStart": "84bcf66bcbd3834fb388d48f6f3025d8cdfb2043",
+ "headAtRecord": "45444bd3f509e635e973c34357f277aa4ccb6e64",
+ "dependsOn": [
+  "2026-10-08-jk2-ui-local-sound.md (UI import 32, which the live menu steps reach; its ledger row text is what this record updates)"
+ ],
+ "retail": {
+  "jk2mp.exe 1.02a": {
+   "sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a"
+  },
+  "jk2sp.exe 1.02a": {
+   "sha256": "0d3c635ee5b20ac32fc957e00cf21e65ebc1584112b11f6ae026706dcc0d0e0c"
+  },
+  "base/assets0.pk3": {
+   "sha256": "e8e466f219bb2faed536021bb0d10aa6b7f5cd687302aa43080da2debdae307c"
+  },
+  "base/assets1.pk3": {
+   "sha256": "c3a9aeaf09c93e57847290e7e5cd6c1a071a560045fa8c5e8c6df3688df841c1"
+  },
+  "tools": "Capstone and pefile (.tmp/jk2-mp3-sounds/pe_tool.py, not committed); zipfile for the paks; the committed tests/fixtures/stvef_mp3_probe.cpp for decoding",
+  "names": "functions carry the names the engines' own strings give them (S_FindName, S_RegisterSound, LoopSound_ChannelInit, S_AddLoopSounds, S_StartBackgroundTrack, MP3Stream_InitPlayingTimeFields) or the usual id Tech/Raven names where they give none (COM_StripExtension, MP3_IsValid, MP3_GetUnpackedSize, MP3_ReadSpecialTagInfo, MP3Stream_InitFromFile); the behaviour is read from the code, not from the names"
+ },
+ "installation": {
+  "perPak": {
+   "assets0.pk3": {
+    "music:mp3": 139,
+    "sound:mp3": 409,
+    "sound:txt": 1,
+    "sound:wav": 278
+   },
+   "assets1.pk3": {
+    "sound:mp3": 7578,
+    "sound:wav": 31
+   }
+  },
+  "totals": {
+   "music:mp3": 139,
+   "sound:mp3": 7987,
+   "sound:txt": 1,
+   "sound:wav": 309
+  },
+  "soundFolders": {
+   "sound/chars": 2895,
+   "sound/chr_d": 2358,
+   "sound/chr_f": 2356
+  },
+  "mp3Formats": {
+   "v1 L3 44100 Hz 2ch": 139,
+   "v1 L3 44100 Hz 1ch": 7987
+  },
+  "wavFormats": {
+   "tag 1 22050 Hz 1ch 16bit": 261,
+   "tag 1 44100 Hz 1ch 8bit": 3,
+   "tag 1 44100 Hz 1ch 16bit": 10,
+   "tag 1 11025 Hz 1ch 8bit": 19,
+   "tag 1 11025 Hz 1ch 16bit": 11,
+   "tag 1 5500 Hz 1ch 8bit": 2,
+   "tag 1 22050 Hz 1ch 8bit": 3
+  },
+  "namesAsBothWavAndMp3": 0,
+  "fileNamesWithTwoDots": 0,
+  "ravenTags": {
+   "withUncompAndMaxvol": 7971,
+   "untagged": {
+    "music": 139,
+    "sound": 16
+   }
+  }
+ },
+ "resolution": {
+  "register": {
+   "S_RegisterSound": {
+    "mp": "0x45ce20",
+    "note": "returns 0 before the sound system starts; NULL, empty or >= 64-character names are fatal errors (0x427ed0, code 0)"
+   },
+   "S_FindName": {
+    "mp": "0x45cc00",
+    "sp": "0x423930",
+    "rule": "COM_StripExtension (mp 0x434220, sp 0x41f1d0) copies up to the first \".\" anywhere in the name; that stem is hashed (mp 0x45cd20, sp 0x423a60), compared and stored at sfx+0x18, so x.wav, x.mp3 and x are one sound with one handle"
+   },
+   "capacity": {
+    "mp": 4096,
+    "sp": 10000
+   },
+   "defaultSound": "mp S_BeginRegistration registers \"*defaultsound\" (0x45ce04) and fills it with a generated sound (0x45cd70); a sound that fails to load is marked default and S_RegisterSound prints \"^3WARNING: could not find %s - using default\" (0x45cee6)"
+  },
+  "load": {
+   "S_LoadSound": {
+    "mp": "0x45f020 -> 0x45f050",
+    "sp": "0x42a8e0 -> 0x42a910",
+    "mp rule": "COM_StripExtension, then Com_sprintf(\"%s.wav\") (0x4fddf0)",
+    "sp rule": "a stored name shorter than five characters fails; Q_strncpyz + strlwr; a name whose fourth-last character is not \".\" gets COM_DefaultExtension(\".wav\") (0x42a992); the stored stem has no \".\" so this is always \".wav\""
+   },
+   "fileLoadAndNameAdjuster": {
+    "mp": "0x45f520",
+    "sp": "0x42adb0",
+    "rule": "FS_ReadFile (mp 0x42ccf0, sp 0x417f10) of the .wav; only if it is absent, the last three characters become \"mp3\" (mp 0x45f6dd, sp 0x42af7c) and the file is read again"
+   },
+   "foreignVoices": {
+    "rule": "a name containing \"chars\" (strstr, case-sensitive) is tried with \"chr_d\" when s_language is DEUTSCH or \"chr_f\" when FRANCAIS, .wav then .mp3; if neither exists the English .wav then .mp3",
+    "s_language": "Cvar_Get(\"s_language\", \"english\", 0x401) mp 0x45ca1a, sp 0x423350",
+    "buildScript": "with com_buildScript set, both foreign .wav and .mp3 are opened and closed so they are packed (mp 0x45f545..0x45f640)"
+   },
+   "decoderChoice": "the loaded name's own extension: \".mp3\" (Q_stricmpn, mp 0x45f104, sp 0x42aa08) -> MP3_IsValid (mp 0x45fe00, sp 0x409cf0) and MP3_GetUnpackedSize (mp 0x45fe40, sp 0x409d30), which takes Raven's #UNCOMP tag when present (MP3_ReadSpecialTagInfo mp 0x45ff90) and otherwise measures; anything else -> GetWavinfo (mp 0x45f2f0), and a stereo WAV is refused (\"%s is a stereo wav file\": mp 0x4fe250 pushed at 0x45f25f, sp 0x4dc970 at 0x42ac70)"
+  },
+  "streamedMp3": {
+   "MP3Stream_InitFromFile": {
+    "mp": "0x4600c0",
+    "sp": "0x40a0a0",
+    "rule": "keep the MP3 compressed and decode it while playing when (float)compressed + s_mp3overhead < (float)(unpacked + 2304); otherwise unpack at load (\"S_LoadSound: Unpacking MP3 file \\\"%s\\\" to wav.\", mp 0x45f16c)"
+   },
+   "s_mp3overhead": {
+    "default": 31756,
+    "flags": "CVAR_ARCHIVE",
+    "mp": "0x460090",
+    "sp": "0x40a070"
+   },
+   "scope": {
+    "mp": "every MP3 sound",
+    "sp": "only names under sound/chars/ (S_LoadSound_DirIsAllowedToKeepMP3s 0x42b010, table 0x4dc61c)"
+   },
+   "perChannelState": "S_StartSound copies 0x1a03 words of the sound's MP3 stream header (sfx+0x10) into the channel at +0x3c, or zeroes them for an unpacked sound (mp 0x45d336..0x45d35a)",
+   "loopsRefuse": {
+    "mp": "LoopSound_ChannelInit 0x45d750: ERR_DROP \"LoopSound_ChannelInit(): Cannot use streamed MP3 files here for random access (%s)\" (0x4fdce0, pushed at 0x45d7ba)",
+    "sp": "S_AddLoopSounds: ERR_DROP \"S_AddLoopSounds(): Cannot use streamed MP3 files here for random access (%s)\" (0x4dbd20, pushed at 0x424bcb)"
+   },
+   "mixerRate": "s_khz \"22\" (mp 0x45c9a8, sp 0x423256); MP3Stream_InitFromFile starts a compressed sound's decoder at dma.speed ([0xb7f220]) and 16 bits (mp 0x4601b5..0x4601c5)",
+   "installationAtDefaults": {
+    "mpStreamedSounds": 7863,
+    "mpStreamedSoundsOutsideChars": 5014,
+    "unpackedSizeUsed": "Raven's #UNCOMP where present (all but 16 sound MP3s), else Fn's decoded mono byte count"
+   }
+  },
+  "music": {
+   "S_StartBackgroundTrack": {
+    "mp": "0x45e2c0",
+    "rule": "COM_DefaultExtension(\".mp3\") on the intro (0x45e313) and S_FileExists (0x45e200, FS_FOpenFileRead with no fallback); a missing file prints \"^1ERROR: Unable to find music file:\\n( %s )\" and stops the music",
+    "sp": "COM_DefaultExtension(\".mp3\") at 0x4273b5; dynamic music sets (\"music/%s/%s.mp3\") beside it"
+   },
+   "S_StartBackgroundTrack_Actual": {
+    "mp": "0x45e380",
+    "sp": "0x4275c0",
+    "rule": "a \".mp3\" name (0x45e414 / 0x42765e) opens an MP3 stream; any other opens a WAV stream; mp defaults a bare name to \".wav\" (0x45e3a9), sp to \".mp3\" (0x4275ed)"
+   },
+   "mpLoopRestart": "when the intro ends, mp tries \"<loop>.wav\" (0x45eac1..0x45eae4) and opens it if it exists; otherwise it restarts the loop through S_StartBackgroundTrack, i.e. \".mp3\"",
+   "callers": {
+    "mp cgame import": "0x401db0",
+    "mp UI import 71": "0x410556",
+    "mp music command": "0x45e012 / 0x45e038"
+   }
+  }
+ },
+ "requestedNames": {
+  "how": "every sound/ or music/ name in the multiplayer QVMs' data, map entity lumps, text data files, jk2mp.exe, jk2sp.exe and jk2gamex86.dll (.tmp/jk2-mp3-sounds/requested_names.py); names include prefixes the modules complete at run time, which show as missing",
+  "summary": {
+   "music ext=(none) -> mp3": 18,
+   "music ext=mp3 -> exact": 9,
+   "sound ext=(none) -> missing": 69,
+   "sound ext=(none) -> mp3": 66,
+   "sound ext=(none) -> wav": 23,
+   "sound ext=mp3 -> exact": 724,
+   "sound ext=mp3 -> missing": 21,
+   "sound ext=mp3 -> wav": 9,
+   "sound ext=txt -> exact": 1,
+   "sound ext=wav -> exact": 147,
+   "sound ext=wav -> missing": 20,
+   "sound ext=wav -> mp3": 378
+  },
+  "mp3NamesWhoseOnlyFileIsWav": [
+   "sound/ambience/spark1.mp3",
+   "sound/ambience/spark2.mp3",
+   "sound/ambience/spark3.mp3",
+   "sound/ambience/spark4.mp3",
+   "sound/ambience/spark5.mp3",
+   "sound/ambience/spark6.mp3",
+   "sound/effects/hologram_loop.mp3",
+   "sound/weapons/force/heal.mp3",
+   "sound/weapons/force/speedloop.mp3"
+  ]
+ },
+ "loops": {
+  "multiplayerMaps": 15,
+  "multiplayerLoopNames": 8,
+  "multiplayerLoops": [
+   {
+    "name": "sound/interface/zoomloop",
+    "users": [
+     "cgame.qvm"
+    ],
+    "wav": true,
+    "mp3": null
+   },
+   {
+    "name": "sound/movers/doors/forcefield_lp",
+    "users": [
+     "sp:bespin_undercity",
+     "sp:cairn_bay",
+     "sp:doom_comm",
+     "sp:doom_detention",
+     "sp:doom_shields",
+     "sp:kejim_post",
+     "sp:ns_hideout",
+     "cgame.qvm"
+    ],
+    "wav": true,
+    "mp3": null
+   },
+   {
+    "name": "sound/movers/objects/green_beam_lp2",
+    "users": [
+     "mp:ffa_deathstar"
+    ],
+    "wav": true,
+    "mp3": null
+   },
+   {
+    "name": "sound/weapons/disruptor/zoomloop",
+    "users": [
+     "cgame.qvm"
+    ],
+    "wav": true,
+    "mp3": null
+   },
+   {
+    "name": "sound/weapons/force/speedloop",
+    "users": [
+     "cgame.qvm"
+    ],
+    "wav": true,
+    "mp3": null
+   },
+   {
+    "name": "sound/weapons/rocket/missileloop",
+    "users": [
+     "cgame.qvm"
+    ],
+    "wav": false,
+    "mp3": null
+   },
+   {
+    "name": "sound/weapons/saber/saberhum1",
+    "users": [
+     "cgame.qvm"
+    ],
+    "wav": true,
+    "mp3": null
+   },
+   {
+    "name": "sound/weapons/thermal/thermloop",
+    "users": [
+     "cgame.qvm"
+    ],
+    "wav": true,
+    "mp3": null
+   }
+  ],
+  "singlePlayerMp3Loops": [
+   {
+    "name": "sound/ambience/narshaddaa/cantina_1",
+    "users": [
+     "sp:ns_streets"
+    ]
+   },
+   {
+    "name": "sound/ambience/prototype/alarm1",
+    "users": [
+     "sp:cairn_bay",
+     "sp:kejim_post"
+    ]
+   },
+   {
+    "name": "sound/ambience/prototype/alarm2",
+    "users": [
+     "sp:artus_detention",
+     "sp:artus_mine",
+     "sp:cairn_dock1"
+    ]
+   },
+   {
+    "name": "sound/effects/alarm1",
+    "users": [
+     "sp:doom_shields"
+    ]
+   },
+   {
+    "name": "sound/effects/alarm2",
+    "users": [
+     "sp:artus_mine",
+     "sp:doom_shields"
+    ]
+   },
+   {
+    "name": "sound/effects/alarm4",
+    "users": [
+     "sp:artus_mine"
+    ]
+   },
+   {
+    "name": "sound/effects/arc10",
+    "users": [
+     "sp:cairn_assembly"
+    ]
+   },
+   {
+    "name": "sound/effects/arc9",
+    "users": [
+     "sp:cairn_assembly"
+    ]
+   },
+   {
+    "name": "sound/effects/combustfire",
+    "users": [
+     "sp:bespin_undercity"
+    ]
+   }
+  ],
+  "note": "target_speaker entities with spawnflags 1 or 2 in every map, plus loop-like names in vm/cgame.qvm; every multiplayer loop found is a WAV (missileloop ships in neither format); single player's MP3 loops all lie outside sound/chars/, which it never keeps streamed"
+ },
+ "decode": {
+  "how": "tests/fixtures/stvef_mp3_probe.cpp (Fn's frame walker + minimp3 configuration) over every .mp3 in both paks, extracted under .tmp and deleted (.tmp/jk2-mp3-sounds/decode_sweep.py)",
+  "summary": {
+   "files": 8126,
+   "sounds": 7987,
+   "music": 139,
+   "decodeFailures": [],
+   "rates": {
+    "44100": 8126
+   },
+   "channels": {
+    "sound": {
+     "1": 7987
+    },
+    "music": {
+     "2": 139
+    }
+   },
+   "withRavenUncomp": 7971,
+   "totalSeconds": 21629.2
+  },
+  "ravenUncompReproduced": "7,970 of 7,971 equal Fn's decoded mono byte count at 44.1 kHz",
+  "exception": {
+   "file": "sound/weapons/force/drain.mp3",
+   "bytes": 19773,
+   "frames": 93,
+   "ravenUncomp": 214272,
+   "fnDecodedBytes": 211968,
+   "cause": "one stray byte sits between the last frame (19,435..19,643) and the ID3v1 tag at 19,645; minimp3 then returns no samples for that final frame, so Fn plays 92 frames (26 ms short)"
+  }
+ },
+ "fnTech3": {
+  "before": "S_CodecInit registered mp3_codec only for Elite Force, the Ritual titles, Medal of Honor and both Academy profiles. In jk2-sp/jk2-mp a .wav name failed after .wav and .ogg; an .mp3 name matched no codec, was not cut, and was tried as \"x.mp3.wav\" and \"x.mp3.ogg\", so even its .wav failed; a bare music name tried .wav and .ogg only",
+  "change": [
+   "code/client/audio/codecs/snd_codec.cpp S_CodecInit: Com_GameIsJK2() joins the MP3 condition; the list is WAV, MP3, Ogg Vorbis as for the other MP3 titles",
+   "code/client/audio/codecs/snd_codec.cpp S_JK2SoundFile + S_CodecLoad: an Outcast sound loads as \"<name>.wav\", the name cut at the first \".\" of its file name, so the codec list reads .wav, then .mp3, then Fn's Ogg Vorbis; a stem too long for MAX_QPATH with \".wav\" loads as given; Elite Force's German voices and every other profile are unchanged",
+   "music keeps Fn's stream lookup (S_CodecOpenStream): the name as given, or WAV, MP3, Ogg Vorbis for a bare name; every one of the 27 music names the installation uses resolves to its .mp3"
+  ],
+  "differencesRecorded": [
+   "one handle per stem in retail; Fn registers each name (x.wav and x.mp3 are two handles for one file)",
+   "retail keeps large MP3s compressed and decodes per channel at its 22 kHz mixer rate; Fn decodes every effect whole at the file's 44.1 kHz and its mixers resample, so no sound is ever \"streamed\" and any MP3 can loop where retail drops the game; no retail multiplayer loop is an MP3, and single player never streams the MP3 loops its maps use",
+   "retail cuts at the first \".\" anywhere in the path; Fn at the first \".\" of the file name (a dotted folder breaks the name in retail)",
+   "music: retail looks for \"<bare name>.mp3\" only, and multiplayer's loop restart for \"<loop>.wav\" first; Fn tries .wav, .mp3, .ogg for a bare name and falls back for a missing one; the same file for every music name the installation uses",
+   "foreign voices (chr_d/chr_f by s_language) are not implemented; s_language is registered only for Elite Force",
+   "Fn's jk2 profiles register Quake III's sound/feedback/hit.wav as handle 0, which Outcast ships in neither format, so handle 0 stays Fn's generated fallback tone (retail: a generated *defaultsound)",
+   "diagnostics retail never prints: \"Sound fallback: x.wav -> x.mp3\" (developer) for every MP3 load, the legacy mixer's \"is not a 22kHz audio file\" (developer) for every 44.1 kHz sound and its \"music file %s is not 22k stereo\" for every track"
+  ]
+ },
+ "build": {
+  "platform": "Windows 11 x86 (MSVC 2022, meson debugoptimized, strict warnings, every development gate on)",
+  "source": ".tmp/jk2-mp3-sounds/src: a byte copy of the shared working tree (4312 tracked and untracked files) on 84bcf66bcbd3834fb388d48f6f3025d8cdfb2043, with this slice's files; built in .tmp/jk2-mp3-sounds/build",
+  "after": "the snapshot as taken; the final snd_codec.cpp differs from the one built only in one address in S_JK2SoundFile's comment (jk2sp.exe 0x42a920 corrected to 0x42a910, S_LoadSound's start)",
+  "before": "the snapshot with HEAD's code/client/audio/codecs/snd_codec.cpp; only that file recompiled and fntech3.exe relinked; the renderer module, engine package and web pak are the after build's"
+ },
+ "probe": {
+  "script": ".tmp/jk2-mp3-sounds/probe_mp3_sounds.py (not committed), adapted from the import-32 slice's probe_menu_sound.py",
+  "desktop": "unswitched private desktop (tests/windows_private_process.py); windowed; no input injected; net_enabled 0; a fresh fs_homepath per run with an empty base/jk2mpconfig.cfg or jk2config.cfg; the installation inventoried before and after",
+  "muting": "a client on a private desktop is offscreen-muted, so nothing was heard",
+  "commandLine": [
+   "fntech3.exe",
+   "+set",
+   "com_gameProfile",
+   "jk2-mp",
+   "+set",
+   "fs_basepath",
+   "E:\\Games\\Jedi Outcast",
+   "+set",
+   "fs_homepath",
+   "<run home>",
+   "+set",
+   "com_steamIntegration",
+   "0",
+   "+set",
+   "developer",
+   "1",
+   "+set",
+   "logfile",
+   "2",
+   "+set",
+   "net_enabled",
+   "0",
+   "+set",
+   "r_fullscreen",
+   "0",
+   "+set",
+   "r_mode",
+   "3",
+   "+set",
+   "in_mouse",
+   "0",
+   "+set",
+   "in_joystick",
+   "0",
+   "+set",
+   "in_nograb",
+   "1",
+   "+set",
+   "s_initsound",
+   "1",
+   "+set",
+   "s_backend",
+   "openal",
+   "+set",
+   "s_muteWhenUnfocused",
+   "0",
+   "+set",
+   "s_muteWhenMinimized",
+   "0",
+   "+set",
+   "s_volume",
+   "0.05",
+   "+set",
+   "s_musicvolume",
+   "0.05",
+   "+set",
+   "cl_motd",
+   "0",
+   "+set",
+   "com_introplayed",
+   "1",
+   "+set",
+   "com_maxfps",
+   "60",
+   "+set",
+   "com_maxfpsUnfocused",
+   "60",
+   "+set",
+   "com_maxfpsMinimized",
+   "60",
+   "+exec",
+   "probemp3.cfg"
+  ],
+  "commandLineNotes": "fs_homepath is each run's own home under .tmp/jk2-mp3-sounds/runs/<run>/home; com_gameProfile is jk2-mp or jk2-sp and s_backend openal or legacy; run after-mp-openal-1 had s_musicvolume 0",
+  "stepsMultiplayerOpenAL": [
+   "s_alSourceClassDebug 1",
+   "wait 600",
+   "echo probe-step ready",
+   "s_info",
+   "echo probe-step quitmenu",
+   "ui_openmenu quitMenu",
+   "echo probe-dump quitmenu 0",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump quitmenu 1",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump quitmenu 2",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump quitmenu 3",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump quitmenu 4",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump quitmenu 5",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump quitmenu 6",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump quitmenu 7",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump quitmenu 8",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump quitmenu 9",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump quitmenu 10",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump quitmenu 11",
+   "s_alDebugDump",
+   "wait 2",
+   "wait 240",
+   "echo probe-step videowarning",
+   "ui_openmenu videowarningMenu",
+   "wait 120",
+   "echo probe-step closewarning",
+   "ui_test",
+   "ui_openmenu main",
+   "echo probe-dump closewarning 0",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump closewarning 1",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump closewarning 2",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump closewarning 3",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump closewarning 4",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump closewarning 5",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump closewarning 6",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump closewarning 7",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump closewarning 8",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump closewarning 9",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump closewarning 10",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump closewarning 11",
+   "s_alDebugDump",
+   "wait 2",
+   "wait 240",
+   "echo probe-step console",
+   "play sound/weapons/saber/saberon.wav sound/ambience/spark1.mp3",
+   "echo probe-dump console 0",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump console 1",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump console 2",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump console 3",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump console 4",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump console 5",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump console 6",
+   "s_alDebugDump",
+   "wait 2",
+   "echo probe-dump console 7",
+   "s_alDebugDump",
+   "wait 2",
+   "wait 120",
+   "echo probe-step music",
+   "music music/mp/duel",
+   "wait 120",
+   "s_info",
+   "echo probe-step list",
+   "s_list",
+   "wait 30",
+   "echo probe-step done",
+   "quit"
+  ],
+  "legacy": "s_show 2 first; s_info in place of each s_alDebugDump",
+  "singlePlayer": "the console steps only (no ui_openmenu); none ran, the client stopping at CL_InitUI"
+ },
+ "runs": [
+  {
+   "run": "after-mp-legacy-2",
+   "game": "jk2-mp",
+   "backend": "legacy",
+   "runtime": ".tmp\\runtime\\jk2-mp3-after",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 26.9,
+   "installationUnchanged": true,
+   "refusal": null,
+   "stepsLogged": [
+    "ready",
+    "quitmenu",
+    "videowarning",
+    "closewarning",
+    "console",
+    "music",
+    "list",
+    "done"
+   ],
+   "identity": {
+    "fntech3.exe": "f4139b75e16a08176653d926ecef5b99f1e723b3c1e32cbd36cd7afed20f4a88",
+    "fnql_glx_x86.dll": "de90b12cc11994ffc7c5e75d536fee4be72df304442ec161fe78bf94488e8980",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+   },
+   "identityUnchanged": true,
+   "quitmenu:menuroam": {
+    "reached": true,
+    "loading": [],
+    "firstVoice": "127 127 sound/interface/menuroam.wav"
+   },
+   "closewarning:button1": {
+    "reached": true,
+    "loading": [
+     "^5^5Sound fallback: sound/interface/button1.wav -> sound/interface/button1.mp3",
+     "^5^3WARNING: sound/interface/button1.wav is not a 22kHz audio file"
+    ],
+    "firstVoice": "127 127 sound/interface/button1.wav"
+   },
+   "console:saberon": {
+    "reached": true,
+    "loading": [
+     "^5^5Sound fallback: sound/weapons/saber/saberon.wav -> sound/weapons/saber/saberon.mp3",
+     "^5^3WARNING: sound/weapons/saber/saberon.wav is not a 22kHz audio file"
+    ],
+    "firstVoice": "127 127 sound/weapons/saber/saberon.wav"
+   },
+   "console:spark1": {
+    "reached": true,
+    "loading": [
+     "^5^3WARNING: sound/ambience/spark1.mp3 is a 8 bit audio file",
+     "^5^3WARNING: sound/ambience/spark1.mp3 is not a 22kHz audio file"
+    ],
+    "firstVoice": "127 127 sound/ambience/spark1.mp3"
+   },
+   "voices": {
+    "menuroam.wav": {
+     "dumps": 12,
+     "dumpsWithVoice": 0,
+     "legacyLines": 17,
+     "legacyLevels": [
+      "127/127"
+     ]
+    },
+    "button1.wav": {
+     "dumps": 12,
+     "dumpsWithVoice": 0,
+     "legacyLines": 21,
+     "legacyLevels": [
+      "127/127"
+     ]
+    },
+    "saberon.wav": {
+     "dumps": 8,
+     "dumpsWithVoice": 0,
+     "legacyLines": 108,
+     "legacyLevels": [
+      "127/127"
+     ]
+    },
+    "spark1.mp3": {
+     "dumps": 8,
+     "dumpsWithVoice": 0,
+     "legacyLines": 24,
+     "legacyLevels": [
+      "127/127"
+     ]
+    }
+   },
+   "music": [
+    "probe-step music",
+    "^5S_StartBackgroundTrack( music/mp/duel, music/mp/duel )",
+    "^3WARNING: music file music/mp/duel is not 22k stereo",
+    "Background file: music/mp/duel"
+   ],
+   "soundList": [
+    "0[16bit] : sound/feedback/hit.wav[resident ]",
+    "4032[16bit] : sound/interface/menuroam.wav[resident ]",
+    "5760[16bit] : sound/interface/button1.wav[resident ]",
+    "36288[16bit] : sound/weapons/saber/saberon.wav[resident ]",
+    "6703[16bit] : sound/ambience/spark1.mp3[resident ]"
+   ],
+   "notable": [
+    "^5^3WARNING: Failed to load sound sound/feedback/hit.wav!",
+    "^5^3WARNING: could not find sound/feedback/hit.wav - using default",
+    "^5^5Sound fallback: sound/interface/menuroam.wav -> sound/interface/menuroam.mp3",
+    "^5^3WARNING: sound/interface/menuroam.wav is not a 22kHz audio file",
+    "^5^5Sound fallback: sound/interface/button1.wav -> sound/interface/button1.mp3",
+    "^5^3WARNING: sound/interface/button1.wav is not a 22kHz audio file",
+    "^5^5Sound fallback: sound/weapons/saber/saberon.wav -> sound/weapons/saber/saberon.mp3",
+    "^5^3WARNING: sound/weapons/saber/saberon.wav is not a 22kHz audio file",
+    "^5^3WARNING: sound/ambience/spark1.mp3 is not a 22kHz audio file",
+    "^5S_StartBackgroundTrack( music/mp/duel, music/mp/duel )",
+    "^3WARNING: music file music/mp/duel is not 22k stereo",
+    "Background file: music/mp/duel"
+   ]
+  },
+  {
+   "run": "after-mp-openal-1",
+   "game": "jk2-mp",
+   "backend": "openal",
+   "runtime": ".tmp\\runtime\\jk2-mp3-after",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 29.3,
+   "installationUnchanged": true,
+   "refusal": null,
+   "stepsLogged": [
+    "ready",
+    "quitmenu",
+    "videowarning",
+    "closewarning",
+    "console",
+    "music",
+    "list",
+    "done"
+   ],
+   "identity": {
+    "fntech3.exe": "f4139b75e16a08176653d926ecef5b99f1e723b3c1e32cbd36cd7afed20f4a88",
+    "fnql_glx_x86.dll": "de90b12cc11994ffc7c5e75d536fee4be72df304442ec161fe78bf94488e8980",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+   },
+   "identityUnchanged": true,
+   "quitmenu:menuroam": {
+    "reached": true,
+    "loading": [],
+    "firstVoice": "shot ent=0 mode=relative tone=local/highpass sample=sound/interface/menuroam.wav dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00"
+   },
+   "closewarning:button1": {
+    "reached": true,
+    "loading": [
+     "^5^5Sound fallback: sound/interface/button1.wav -> sound/interface/button1.mp3"
+    ],
+    "firstVoice": "shot ent=0 mode=relative tone=local/highpass sample=sound/interface/button1.wav dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00"
+   },
+   "console:saberon": {
+    "reached": true,
+    "loading": [
+     "^5^5Sound fallback: sound/weapons/saber/saberon.wav -> sound/weapons/saber/saberon.mp3"
+    ],
+    "firstVoice": "shot ent=0 mode=relative tone=local/highpass sample=sound/weapons/saber/saberon.wav dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00"
+   },
+   "console:spark1": {
+    "reached": true,
+    "loading": [],
+    "firstVoice": "shot ent=0 mode=relative tone=local/highpass sample=sound/ambience/spark1.mp3 dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00"
+   },
+   "voices": {
+    "menuroam.wav": {
+     "dumps": 12,
+     "dumpsWithVoice": 7,
+     "legacyLines": 0,
+     "legacyLevels": []
+    },
+    "button1.wav": {
+     "dumps": 12,
+     "dumpsWithVoice": 9,
+     "legacyLines": 0,
+     "legacyLevels": []
+    },
+    "saberon.wav": {
+     "dumps": 8,
+     "dumpsWithVoice": 8,
+     "legacyLines": 0,
+     "legacyLevels": []
+    },
+    "spark1.mp3": {
+     "dumps": 8,
+     "dumpsWithVoice": 8,
+     "legacyLines": 0,
+     "legacyLevels": []
+    }
+   },
+   "music": [
+    "probe-step music",
+    "Music stream buffers: 0 queued",
+    "Background track: music/mp/duel"
+   ],
+   "soundList": [
+    "0 : sound/feedback/hit.wav [mono 22050 Hz 250 ms fallback]",
+    "1 : sound/interface/menuroam.wav [mono 44100 Hz 182 ms]",
+    "2 : sound/interface/button1.wav [mono 44100 Hz 261 ms]",
+    "3 : sound/weapons/saber/saberon.wav [mono 44100 Hz 1645 ms]",
+    "4 : sound/ambience/spark1.mp3 [mono 44100 Hz 303 ms]"
+   ],
+   "notable": [
+    "^5^3WARNING: Failed to load sound sound/feedback/hit.wav!",
+    "^5^5Sound fallback: sound/interface/menuroam.wav -> sound/interface/menuroam.mp3",
+    "^5^5Sound fallback: sound/interface/button1.wav -> sound/interface/button1.mp3",
+    "^5^5Sound fallback: sound/weapons/saber/saberon.wav -> sound/weapons/saber/saberon.mp3",
+    "Background track: music/mp/duel"
+   ]
+  },
+  {
+   "run": "after-mp-openal-2",
+   "game": "jk2-mp",
+   "backend": "openal",
+   "runtime": ".tmp\\runtime\\jk2-mp3-after",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 29.5,
+   "installationUnchanged": true,
+   "refusal": null,
+   "stepsLogged": [
+    "ready",
+    "quitmenu",
+    "videowarning",
+    "closewarning",
+    "console",
+    "music",
+    "list",
+    "done"
+   ],
+   "identity": {
+    "fntech3.exe": "f4139b75e16a08176653d926ecef5b99f1e723b3c1e32cbd36cd7afed20f4a88",
+    "fnql_glx_x86.dll": "de90b12cc11994ffc7c5e75d536fee4be72df304442ec161fe78bf94488e8980",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+   },
+   "identityUnchanged": true,
+   "quitmenu:menuroam": {
+    "reached": true,
+    "loading": [],
+    "firstVoice": "shot ent=0 mode=relative tone=local/highpass sample=sound/interface/menuroam.wav dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00"
+   },
+   "closewarning:button1": {
+    "reached": true,
+    "loading": [
+     "^5^5Sound fallback: sound/interface/button1.wav -> sound/interface/button1.mp3"
+    ],
+    "firstVoice": "shot ent=0 mode=relative tone=local/highpass sample=sound/interface/button1.wav dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00"
+   },
+   "console:saberon": {
+    "reached": true,
+    "loading": [
+     "^5^5Sound fallback: sound/weapons/saber/saberon.wav -> sound/weapons/saber/saberon.mp3"
+    ],
+    "firstVoice": "shot ent=0 mode=relative tone=local/highpass sample=sound/weapons/saber/saberon.wav dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00"
+   },
+   "console:spark1": {
+    "reached": true,
+    "loading": [],
+    "firstVoice": "shot ent=0 mode=relative tone=local/highpass sample=sound/ambience/spark1.mp3 dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00"
+   },
+   "voices": {
+    "menuroam.wav": {
+     "dumps": 12,
+     "dumpsWithVoice": 7,
+     "legacyLines": 0,
+     "legacyLevels": []
+    },
+    "button1.wav": {
+     "dumps": 12,
+     "dumpsWithVoice": 9,
+     "legacyLines": 0,
+     "legacyLevels": []
+    },
+    "saberon.wav": {
+     "dumps": 8,
+     "dumpsWithVoice": 8,
+     "legacyLines": 0,
+     "legacyLevels": []
+    },
+    "spark1.mp3": {
+     "dumps": 8,
+     "dumpsWithVoice": 8,
+     "legacyLines": 0,
+     "legacyLevels": []
+    }
+   },
+   "music": [
+    "probe-step music",
+    "Music stream buffers: 4 queued",
+    "Background track: music/mp/duel"
+   ],
+   "soundList": [
+    "0 : sound/feedback/hit.wav [mono 22050 Hz 250 ms fallback]",
+    "1 : sound/interface/menuroam.wav [mono 44100 Hz 182 ms]",
+    "2 : sound/interface/button1.wav [mono 44100 Hz 261 ms]",
+    "3 : sound/weapons/saber/saberon.wav [mono 44100 Hz 1645 ms]",
+    "4 : sound/ambience/spark1.mp3 [mono 44100 Hz 303 ms]"
+   ],
+   "notable": [
+    "^5^3WARNING: Failed to load sound sound/feedback/hit.wav!",
+    "^5^5Sound fallback: sound/interface/menuroam.wav -> sound/interface/menuroam.mp3",
+    "^5^5Sound fallback: sound/interface/button1.wav -> sound/interface/button1.mp3",
+    "^5^5Sound fallback: sound/weapons/saber/saberon.wav -> sound/weapons/saber/saberon.mp3",
+    "Background track: music/mp/duel"
+   ]
+  },
+  {
+   "run": "after-sp-openal-1",
+   "game": "jk2-sp",
+   "backend": "openal",
+   "runtime": ".tmp\\runtime\\jk2-mp3-after",
+   "outcome": "timeout",
+   "exit": 1,
+   "forced": true,
+   "seconds": 221.1,
+   "installationUnchanged": true,
+   "refusal": null,
+   "stepsLogged": [],
+   "identity": {
+    "fntech3.exe": "f4139b75e16a08176653d926ecef5b99f1e723b3c1e32cbd36cd7afed20f4a88",
+    "fnql_glx_x86.dll": "de90b12cc11994ffc7c5e75d536fee4be72df304442ec161fe78bf94488e8980",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+   },
+   "identityUnchanged": true,
+   "quitmenu:menuroam": {
+    "reached": false,
+    "loading": [],
+    "firstVoice": null
+   },
+   "closewarning:button1": {
+    "reached": false,
+    "loading": [],
+    "firstVoice": null
+   },
+   "console:saberon": {
+    "reached": false,
+    "loading": [],
+    "firstVoice": null
+   },
+   "console:spark1": {
+    "reached": false,
+    "loading": [],
+    "firstVoice": null
+   },
+   "voices": {
+    "menuroam.wav": null,
+    "button1.wav": null,
+    "saberon.wav": null,
+    "spark1.mp3": null
+   },
+   "music": [],
+   "soundList": [],
+   "notable": [
+    "^5^3WARNING: Failed to load sound sound/feedback/hit.wav!",
+    "ERROR: jk2-sp is not implemented: Jedi Outcast's single-player menu boundary is open."
+   ]
+  },
+  {
+   "run": "before-mp-legacy-2",
+   "game": "jk2-mp",
+   "backend": "legacy",
+   "runtime": ".tmp\\runtime\\jk2-mp3-before",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 27.1,
+   "installationUnchanged": true,
+   "refusal": null,
+   "stepsLogged": [
+    "ready",
+    "quitmenu",
+    "videowarning",
+    "closewarning",
+    "console",
+    "music",
+    "list",
+    "done"
+   ],
+   "identity": {
+    "fntech3.exe": "b13b8765e9cf2fd0318319d6668cf1d4488c755ba65c356abf7dd7dcd18b6018",
+    "fnql_glx_x86.dll": "de90b12cc11994ffc7c5e75d536fee4be72df304442ec161fe78bf94488e8980",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+   },
+   "identityUnchanged": true,
+   "quitmenu:menuroam": {
+    "reached": true,
+    "loading": [],
+    "firstVoice": null
+   },
+   "closewarning:button1": {
+    "reached": true,
+    "loading": [
+     "^5^3WARNING: Failed to load sound sound/interface/button1.wav!",
+     "^5^3WARNING: couldn't load sound: sound/interface/button1.wav",
+     "^5^3WARNING: could not find sound/interface/button1.wav - using default"
+    ],
+    "firstVoice": null
+   },
+   "console:saberon": {
+    "reached": true,
+    "loading": [
+     "^5^3WARNING: Failed to load sound sound/weapons/saber/saberon.wav!",
+     "^5^3WARNING: couldn't load sound: sound/weapons/saber/saberon.wav",
+     "^5^3WARNING: could not find sound/weapons/saber/saberon.wav - using default"
+    ],
+    "firstVoice": null
+   },
+   "console:spark1": {
+    "reached": true,
+    "loading": [
+     "^5^3WARNING: Failed to load sound sound/ambience/spark1.mp3!",
+     "^5^3WARNING: couldn't load sound: sound/ambience/spark1.mp3",
+     "^5^3WARNING: could not find sound/ambience/spark1.mp3 - using default"
+    ],
+    "firstVoice": null
+   },
+   "voices": {
+    "menuroam.wav": {
+     "dumps": 12,
+     "dumpsWithVoice": 0,
+     "legacyLines": 0,
+     "legacyLevels": []
+    },
+    "button1.wav": {
+     "dumps": 12,
+     "dumpsWithVoice": 0,
+     "legacyLines": 0,
+     "legacyLevels": []
+    },
+    "saberon.wav": {
+     "dumps": 8,
+     "dumpsWithVoice": 0,
+     "legacyLines": 0,
+     "legacyLevels": []
+    },
+    "spark1.mp3": {
+     "dumps": 8,
+     "dumpsWithVoice": 0,
+     "legacyLines": 0,
+     "legacyLevels": []
+    }
+   },
+   "music": [
+    "probe-step music",
+    "^5S_StartBackgroundTrack( music/mp/duel, music/mp/duel )",
+    "^5^3WARNING: Failed to open sound music/mp/duel!",
+    "^3WARNING: couldn't open music file music/mp/duel",
+    "No background file."
+   ],
+   "soundList": [
+    "0[16bit] : sound/feedback/hit.wav[resident ]",
+    "0[16bit] : sound/interface/menuroam.wav[resident ]",
+    "0[16bit] : sound/interface/button1.wav[resident ]",
+    "0[16bit] : sound/weapons/saber/saberon.wav[resident ]",
+    "0[16bit] : sound/ambience/spark1.mp3[resident ]"
+   ],
+   "notable": [
+    "^5^3WARNING: Failed to load sound sound/feedback/hit.wav!",
+    "^5^3WARNING: could not find sound/feedback/hit.wav - using default",
+    "^5^3WARNING: Failed to load sound sound/interface/menuroam.wav!",
+    "^5^3WARNING: could not find sound/interface/menuroam.wav - using default",
+    "^5^3WARNING: Failed to load sound sound/interface/button1.wav!",
+    "^5^3WARNING: could not find sound/interface/button1.wav - using default",
+    "^5^3WARNING: Failed to load sound sound/weapons/saber/saberon.wav!",
+    "^5^3WARNING: could not find sound/weapons/saber/saberon.wav - using default",
+    "^5^3WARNING: Failed to load sound sound/ambience/spark1.mp3!",
+    "^5^3WARNING: could not find sound/ambience/spark1.mp3 - using default",
+    "^5S_StartBackgroundTrack( music/mp/duel, music/mp/duel )",
+    "^5^3WARNING: Failed to open sound music/mp/duel!",
+    "^3WARNING: couldn't open music file music/mp/duel"
+   ]
+  },
+  {
+   "run": "before-mp-openal-2",
+   "game": "jk2-mp",
+   "backend": "openal",
+   "runtime": ".tmp\\runtime\\jk2-mp3-before",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 28.2,
+   "installationUnchanged": true,
+   "refusal": null,
+   "stepsLogged": [
+    "ready",
+    "quitmenu",
+    "videowarning",
+    "closewarning",
+    "console",
+    "music",
+    "list",
+    "done"
+   ],
+   "identity": {
+    "fntech3.exe": "b13b8765e9cf2fd0318319d6668cf1d4488c755ba65c356abf7dd7dcd18b6018",
+    "fnql_glx_x86.dll": "de90b12cc11994ffc7c5e75d536fee4be72df304442ec161fe78bf94488e8980",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+   },
+   "identityUnchanged": true,
+   "quitmenu:menuroam": {
+    "reached": true,
+    "loading": [],
+    "firstVoice": null
+   },
+   "closewarning:button1": {
+    "reached": true,
+    "loading": [
+     "^5^3WARNING: Failed to load sound sound/interface/button1.wav!",
+     "^5^3WARNING: couldn't load sound: sound/interface/button1.wav"
+    ],
+    "firstVoice": null
+   },
+   "console:saberon": {
+    "reached": true,
+    "loading": [
+     "^5^3WARNING: Failed to load sound sound/weapons/saber/saberon.wav!",
+     "^5^3WARNING: couldn't load sound: sound/weapons/saber/saberon.wav"
+    ],
+    "firstVoice": null
+   },
+   "console:spark1": {
+    "reached": true,
+    "loading": [
+     "^5^3WARNING: Failed to load sound sound/ambience/spark1.mp3!",
+     "^5^3WARNING: couldn't load sound: sound/ambience/spark1.mp3"
+    ],
+    "firstVoice": null
+   },
+   "voices": {
+    "menuroam.wav": {
+     "dumps": 12,
+     "dumpsWithVoice": 0,
+     "legacyLines": 0,
+     "legacyLevels": []
+    },
+    "button1.wav": {
+     "dumps": 12,
+     "dumpsWithVoice": 0,
+     "legacyLines": 0,
+     "legacyLevels": []
+    },
+    "saberon.wav": {
+     "dumps": 8,
+     "dumpsWithVoice": 0,
+     "legacyLines": 0,
+     "legacyLevels": []
+    },
+    "spark1.mp3": {
+     "dumps": 8,
+     "dumpsWithVoice": 0,
+     "legacyLines": 0,
+     "legacyLevels": []
+    }
+   },
+   "music": [
+    "probe-step music",
+    "^5^3WARNING: Failed to open sound music/mp/duel!",
+    "^3WARNING: couldn't open music file music/mp/duel",
+    "Music stream buffers: 0 queued",
+    "Background track: none"
+   ],
+   "soundList": [
+    "0 : sound/feedback/hit.wav [mono 22050 Hz 250 ms fallback]",
+    "1 : sound/interface/menuroam.wav [missing]",
+    "2 : sound/interface/button1.wav [missing]",
+    "3 : sound/weapons/saber/saberon.wav [missing]",
+    "4 : sound/ambience/spark1.mp3 [missing]"
+   ],
+   "notable": [
+    "^5^3WARNING: Failed to load sound sound/feedback/hit.wav!",
+    "^5^3WARNING: Failed to load sound sound/interface/menuroam.wav!",
+    "^5^3WARNING: Failed to load sound sound/interface/button1.wav!",
+    "^5^3WARNING: Failed to load sound sound/weapons/saber/saberon.wav!",
+    "^5^3WARNING: Failed to load sound sound/ambience/spark1.mp3!",
+    "^5^3WARNING: Failed to open sound music/mp/duel!",
+    "^3WARNING: couldn't open music file music/mp/duel"
+   ]
+  }
+ ],
+ "tests": [
+  "tests/audio_codec_profile_tests.py: both Outcast profiles register MP3 (with and without USE_CODEC_MP3); S_CodecLoad reads \"<stem>.wav\", .mp3, .ogg for ten names against all eight combinations of present files; every other profile loads as the codec list does; a missing sound warns once",
+  "tests/stvef_language_tests.py: Elite Force's German voice order unchanged with S_JK2SoundFile compiled in; an Outcast name never takes \"vox_d\"",
+  "mutations (.tmp/jk2-mp3-sounds/mutations.log): baseline: exit 0 2 passed, 3 deselected in 27.02s | no Outcast registration: caught (exit 1) 1 failed, 1 passed, 3 deselected in 10.04s | single player only: caught (exit 1) 1 failed, 1 passed, 3 deselected in 20.80s | no Outcast name rule: caught (exit 1) 2 failed, 3 deselected in 11.42s | name rule for every profile: caught (exit 1) 1 failed, 1 passed, 3 deselected in 25.57s | cut at the last dot: caught (exit 1) 1 failed, 1 passed, 3 deselected in 6.99s | cut at the first dot of the whole path (retail exact): caught (exit 1) 1 failed, 1 passed, 3 deselected in 5.57s | keep the asked extension (mp3 first): caught (exit 1) 2 failed, 3 deselected in 6.73s | length bound off by one: caught (exit 1) 1 failed, 1 passed, 3 deselected in 6.04s | quiet Outcast load: caught (exit 1) 2 failed, 3 deselected in 6.81s | mp3 before wav: caught (exit 1) 1 failed, 1 passed, 3 deselected in 6.17s | all caught"
+ ],
+ "open": [
+  "client-game sound imports 31 to 41 are still refused in jk2-mp, so in-game sounds do not start yet",
+  "jk2-sp has no client menu (CL_InitUI refuses it), so single player's sounds are shown by the unit test and the shared S_CodecInit/S_CodecLoad path only",
+  "audible play (offscreen-muted clients) and retail jk2mp.exe's own playback for comparison"
+ ],
+ "followUp": {
+  "inventoryCorrection": "2026-10-09: recounted installation ZIP files, excluding directory entries: sound/chars 2895, sound/chr_d 2358, sound/chr_f 2356",
+  "foreignVoices": "2026-10-08-jk2-foreign-voices.md: served, with multiplayer runtime and single-player unit evidence",
+  "lastFrame": "2026-10-08-mp3-last-frame.md: all 7971 Raven sizes reproduced; original measurements above retained"
+ }
+}

@@ -116,9 +116,12 @@ typedef struct {
 	vec3_t			gridOrigin;
 	float			cellSize;
 	int				dims[3];
-	uint32_t		*cells;			// offset, count per cell
+	uint32_t		*cells;			// offset/count per cell, then CDF/probability per static light
 	uint32_t		*indices;
 	uint32_t		numIndices;
+	uint32_t		overflowCells;
+	uint64_t		overflowEntries;
+	double			overflowImportance, candidateImportance;
 
 	float			scale;			// q3map units to lightmap units
 	vec3_t			ambient;		// lightmap units
@@ -1241,7 +1244,7 @@ static qboolean RT_BuildLightGrid( void )
 	s_rtLights.cellSize = cellSize;
 	numCells = (uint32_t)( s_rtLights.dims[0] * s_rtLights.dims[1] * s_rtLights.dims[2] );
 
-	s_rtLights.cells = RT_HostAlloc( (int)( numCells * 2 * sizeof( uint32_t ) ) );
+	s_rtLights.cells = RT_HostAlloc( (int)( ( numCells + s_rtLights.numLights ) * 2 * sizeof( uint32_t ) ) );
 	candidates = RT_HostAlloc( (int)( MAX( s_rtLights.numLights, 1u ) * sizeof( *candidates ) ) );
 	capacity = numCells * 8;
 	s_rtLights.indices = RT_HostAlloc( (int)( capacity * sizeof( uint32_t ) ) );
@@ -1250,6 +1253,33 @@ static qboolean RT_BuildLightGrid( void )
 		return qfalse;
 	}
 	s_rtLights.numIndices = 0;
+	s_rtLights.overflowCells = s_rtLights.overflowEntries = 0;
+	s_rtLights.overflowImportance = s_rtLights.candidateImportance = 0.0;
+	// A power-weighted global proposal preserves support for every emitter,
+	// including ones omitted by the bounded cell lists or conservative PVS.
+	// A 10% uniform floor keeps every CDF interval representable at the
+	// maximum 2^20 lights. Store the actual quantized interval as its PDF.
+	{
+		double total = 0.0, cumulative = 0.0;
+		float previous = 0.0f;
+		uint32_t l;
+		for ( l = 0; l < s_rtLights.numLights; l++ ) {
+			float w = RT_LightImportance( &s_rtLights.lights[l], 1024.0f * 1024.0f );
+			candidates[l].importance = RT_FloatValid( w, 1e30f ) ? MAX( w, 0.0f ) : 0.0f;
+			total += candidates[l].importance;
+		}
+		for ( l = 0; l < s_rtLights.numLights; l++ ) {
+			floatint_t cdf, probability;
+			cumulative += candidates[l].importance;
+			cdf.f = l + 1u == s_rtLights.numLights ? 1.0f : (float)(
+				total > 0.0 ? 0.9 * cumulative / total + 0.1 * ( l + 1.0 ) / s_rtLights.numLights :
+				( l + 1.0 ) / s_rtLights.numLights );
+			probability.f = cdf.f - previous;
+			s_rtLights.cells[( numCells + l ) * 2u] = cdf.u;
+			s_rtLights.cells[( numCells + l ) * 2u + 1u] = probability.u;
+			previous = cdf.f;
+		}
+	}
 	listed = RT_ListCellLights( numCells, cellSize, &listStart );
 
 	cell = 0;
@@ -1323,6 +1353,14 @@ static qboolean RT_BuildLightGrid( void )
 					qsort( candidates, numCandidates, sizeof( *candidates ), RT_CompareCandidates );
 				}
 				keep = MIN( numCandidates, (uint32_t)RT_LIGHT_CELL_MAX );
+				if ( numCandidates > keep ) {
+					s_rtLights.overflowCells++;
+					s_rtLights.overflowEntries += numCandidates - keep;
+				}
+				for ( l = 0; l < numCandidates; l++ ) {
+					s_rtLights.candidateImportance += candidates[l].importance;
+					if ( l >= keep ) s_rtLights.overflowImportance += candidates[l].importance;
+				}
 				if ( s_rtLights.numIndices + keep > capacity ) {
 					uint32_t *grown;
 					while ( s_rtLights.numIndices + keep > capacity ) {
@@ -1345,6 +1383,15 @@ static qboolean RT_BuildLightGrid( void )
 				s_rtLights.cells[cell * 2 + 1] = keep;
 				for ( l = 0; l < keep; l++ ) {
 					s_rtLights.indices[ s_rtLights.numIndices++ ] = candidates[l].light;
+				}
+				/* Membership/PDF queries happen for every globally drawn GPU
+				 * candidate. Sort the retained IDs once here for bounded binary
+				 * search; selection is still uniform over this same top-K set. */
+				for ( l = 1; l < keep; ++l ) {
+					uint32_t *ids = &s_rtLights.indices[s_rtLights.cells[cell * 2]];
+					uint32_t key = ids[l], j = l;
+					while ( j && ids[j - 1] > key ) { ids[j] = ids[j - 1]; --j; }
+					ids[j] = key;
 				}
 			}
 		}
@@ -1824,6 +1871,11 @@ static qboolean RT_BuildLights( void )
 		s_rtLights.wolf ? "Wolfenstein" : s_rtLights.q3map2 ? "q3map2" : "q3map",
 		s_rtLights.dims[0], s_rtLights.dims[1], s_rtLights.dims[2], s_rtLights.cellSize, s_rtLights.numIndices,
 		vk_rt_elapsed_ms( start, vk_rt_now_microseconds() ) );
+	ri.Printf( PRINT_ALL, "RTX RT light grid: %u overflow cells, %llu omitted local entries, %.2f%% local importance; "
+		"all %u lights retained by the weighted global proposal\n",
+		s_rtLights.overflowCells, (unsigned long long)s_rtLights.overflowEntries,
+		s_rtLights.candidateImportance > 0.0 ? 100.0 * s_rtLights.overflowImportance / s_rtLights.candidateImportance : 0.0,
+		s_rtLights.numLights );
 	if ( s_rtLights.mode == RT_LIGHTING_LEVEL ) {
 		ri.Printf( PRINT_ALL, "RTX RT: the level's own lights: %u light entities and %u glowing shaders over %u triangles\n",
 			s_rtLights.entityLights, s_rtLights.emissiveShaders, s_rtLights.emissiveTriangles );

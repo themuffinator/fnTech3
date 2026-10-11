@@ -5233,7 +5233,13 @@ void Com_Frame( qboolean noDelay ) {
 		timeBeforeServer = Sys_Milliseconds();
 	}
 
+#ifndef DEDICATED
+	if ( !com_dedicated->integer ) CL_RendererSimulation( qtrue );
+#endif
 	SV_Frame( gameMsec, realMsec );
+#ifndef DEDICATED
+	if ( !com_dedicated->integer ) CL_RendererSimulation( qfalse );
+#endif
 
 	// if "dedicated" has been modified, start up
 	// or shut down the client system.

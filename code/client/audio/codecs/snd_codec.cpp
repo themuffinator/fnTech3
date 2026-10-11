@@ -163,6 +163,117 @@ bool S_STVEFGermanVoice( const char *filename, std::array<char, MAX_QPATH> &germ
 	return true;
 }
 
+/*
+=================
+S_JKAForeignVoice
+
+Jedi Academy ships German, French and Spanish recordings of its voices under
+sound/chr_d, sound/chr_f and sound/chr_e. Both retail loaders lowercase a
+sound's name first (jamp.exe 0x472726, jasp.exe 0x42dfc0); when s_language
+is DEUTSCH, FRANCAIS or ESPANOL, in any case, they turn its first "chars"
+into "chr_d", "chr_f" or "chr_e" and read that file, then its .mp3; only when
+neither exists do they read the English .wav, then .mp3 (jamp.exe 0x4723e0,
+jasp.exe 0x42dc80). Here "chars" is found in any case and the rest of the
+name keeps its own.
+=================
+*/
+bool S_JKAForeignVoice( const char *english, std::array<char, MAX_QPATH> &foreign ) {
+	if ( !Com_GameIsJKASP() && !Com_GameIsJKAMP() ) {
+		return false;
+	}
+
+	const char *language = Cvar_VariableString( "s_language" );
+	const char *folder;
+	if ( !Q_stricmp( language, "DEUTSCH" ) ) {
+		folder = "chr_d";
+	} else if ( !Q_stricmp( language, "FRANCAIS" ) ) {
+		folder = "chr_f";
+	} else if ( !Q_stricmp( language, "ESPANOL" ) ) {
+		folder = "chr_e";
+	} else {
+		return false;
+	}
+
+	Q_strncpyz( foreign.data(), english, static_cast<int>( foreign.size() ) );
+	char *voice = const_cast<char *>( Q_stristr( foreign.data(), "chars" ) );
+	if ( voice == nullptr ) {
+		return false;
+	}
+
+	memcpy( voice, folder, 5 );
+	return true;
+}
+
+/*
+=================
+S_JK2SoundFile
+
+Jedi Outcast ignores the extension a module asks for. Both retail engines
+keep a sound's name cut at its first '.' (S_FindName, jk2mp.exe 0x45cc00 and
+jk2sp.exe 0x423930), and S_LoadSound reads "<name>.wav" and only then
+"<name>.mp3" (jk2mp.exe 0x45f050 and 0x45f520, jk2sp.exe 0x42a910 and
+0x42adb0), so a .wav beside an .mp3 always wins, whichever one the name
+says. Loading "<name>.wav" gives the codec list that order. The cut is made
+in the file's own name: retail's would break a name with a dotted folder.
+=================
+*/
+bool S_JK2SoundFile( const char *filename, std::array<char, MAX_QPATH> &wav ) {
+	if ( !Com_GameIsJK2() ) {
+		return false;
+	}
+
+	const char *leaf = filename;
+	for ( const char *at = filename; *at; ++at ) {
+		if ( *at == '/' || *at == '\\' ) {
+			leaf = at + 1;
+		}
+	}
+	const char *dot = strchr( leaf, '.' );
+	const size_t length = dot ? static_cast<size_t>( dot - filename ) : strlen( filename );
+	if ( length + sizeof( ".wav" ) > wav.size() ) {
+		return false;
+	}
+
+	memcpy( wav.data(), filename, length );
+	memcpy( wav.data() + length, ".wav", sizeof( ".wav" ) );
+	return true;
+}
+
+/*
+=================
+S_JK2ForeignVoice
+
+Jedi Outcast ships German and French recordings of its voices under
+sound/chr_d and sound/chr_f. When s_language is DEUTSCH or FRANCAIS, both
+retail file loaders (jk2mp.exe 0x45f520, jk2sp.exe 0x42adb0) turn the first
+"chars" in a sound's name into "chr_d" or "chr_f" and read that .wav, then
+.mp3; only when neither exists do they read the English ones. Multiplayer
+looks for "chars" as the module wrote it; single player lowercases the name
+first (jk2sp.exe 0x42a96a), so it finds any case.
+=================
+*/
+bool S_JK2ForeignVoice( const char *english, std::array<char, MAX_QPATH> &foreign ) {
+	const char *language = Cvar_VariableString( "s_language" );
+	const char *folder;
+	if ( !Q_stricmp( language, "DEUTSCH" ) ) {
+		folder = "chr_d";
+	} else if ( !Q_stricmp( language, "FRANCAIS" ) ) {
+		folder = "chr_f";
+	} else {
+		return false;
+	}
+
+	Q_strncpyz( foreign.data(), english, static_cast<int>( foreign.size() ) );
+	char *voice = Com_GameIsJK2SP() ? const_cast<char *>( Q_stristr( foreign.data(), "chars" ) )
+		: strstr( foreign.data(), "chars" );
+	if ( voice == nullptr ) {
+		return false;
+	}
+
+	memcpy( voice, folder, 5 );
+	return true;
+}
+
 } // namespace
 
 /*
@@ -201,11 +312,12 @@ extern "C" void S_CodecInit( void ) {
 	// Elite Force stores most sounds and all music as MP3, and American
 	// McGee's Alice all of its music; Medal of Honor its music, stereo
 	// ambience and briefings. Academy also stores ambient waves, speech
-	// and music as MP3. Retail Quake and Wolfenstein engines never
-	// decode MP3, so their extension fallback must not start finding .mp3
-	// files; the codec joins only those titles.
+	// and music as MP3, and Outcast 7,987 of its 8,296 sounds and all of
+	// its music. Retail Quake and Wolfenstein engines never decode MP3, so
+	// their extension fallback must not start finding .mp3 files; the
+	// codec joins only those titles.
 	if ( Com_GameIsSTVEF() || Com_GameIsRitual() || Com_GameIsMOHAA() ||
-		Com_GameIsJKASP() || Com_GameIsJKAMP() ) {
+		Com_GameIsJKASP() || Com_GameIsJKAMP() || Com_GameIsJK2() ) {
 		S_CodecRegister( &mp3_codec );
 	}
 #endif
@@ -233,6 +345,26 @@ extern "C" void *S_CodecLoad( const char *filename, snd_info_t *info ) {
 	std::array<char, MAX_QPATH> german;
 	if ( S_STVEFGermanVoice( filename, german ) ) {
 		void *rtn = S_CodecGetSound( german.data(), info, true );
+		if ( rtn ) {
+			return rtn;
+		}
+	}
+
+	std::array<char, MAX_QPATH> outcast;
+	if ( S_JK2SoundFile( filename, outcast ) ) {
+		std::array<char, MAX_QPATH> foreign;
+		if ( S_JK2ForeignVoice( outcast.data(), foreign ) ) {
+			void *rtn = S_CodecGetSound( foreign.data(), info, true );
+			if ( rtn ) {
+				return rtn;
+			}
+		}
+		return S_CodecGetSound( outcast.data(), info );
+	}
+
+	std::array<char, MAX_QPATH> academy;
+	if ( S_JKAForeignVoice( filename, academy ) ) {
+		void *rtn = S_CodecGetSound( academy.data(), info, true );
 		if ( rtn ) {
 			return rtn;
 		}

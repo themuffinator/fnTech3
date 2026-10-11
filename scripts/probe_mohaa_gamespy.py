@@ -18,6 +18,16 @@ port it answered from, its packets read until ``\\final\\``.
   the LAN search and its ``\\status\\``, a second client joining it over UDP,
   then the host joins the Allies, takes a rifle and dies by the game's
   ``kill``, and the answer is read again.
+- ``search``: fnTech3's own Join LAN Game list. Two dedicated servers, one
+  on game port 12210, which the ``getinfo`` scan of 12203 to 12206 cannot
+  reach, the other on 12203; and stand-ins this probe runs on 12302 to 12306,
+  answering ``\\status\\`` as servers fnTech3 cannot run here would: another
+  version, another game, a demo's, a 1.00 answer in two packets without
+  ``gametype_i``, and one that never ends its answer. Their text is this
+  probe's own, modelled on OpenMoHAA's keys; no retail server sent it. A
+  client opens Join LAN Game, runs its Refresh (``localservers``) and takes
+  a screenshot; its developer log says which answer listed each server, and
+  each stand-in counts the queries it was sent.
 
 Everything binds 127.0.0.1 with IPv4 alone; this machine delivers a
 limited broadcast between loopback sockets, so the search is a real
@@ -34,6 +44,7 @@ import re
 import secrets
 import socket
 import sys
+import threading
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -184,17 +195,23 @@ class Session:
         self.result['checks'].append(dict(name=name, ok=bool(ok), **detail))
         print(('  ok   ' if ok else '  FAIL ') + name + ('' if ok else f' {detail}'))
 
-    def start(self, label, executable, settings, tail, cwd):
+    def start(self, label, executable, settings, tail, cwd, prepare=None):
         home = self.dir / f'{label}-home'
         (home / 'main').mkdir(parents=True)
+        if prepare:
+            prepare(home / 'main')
         command = [str(executable)]
         for key, value in settings.items():
             command += ['+set', key, str(value).replace('<home>', str(home))]
         command += tail
         process = WindowsPrivateProcess(command, cwd, self.dir / f'{label}-stdout.log')
         self.processes.append(process)
+        recorded_command = list(command)
+        for index in range(len(command) - 2):
+            if command[index].lower() == '+set' and command[index + 1].lower() == 'rconpassword':
+                recorded_command[index + 2] = '<redacted>'
         self.result.setdefault('processes', {})[label] = dict(
-            command=[c if 'rconPassword' not in c else c for c in command], sha256=sha(executable))
+            command=recorded_command, sha256=sha(executable))
         return process, home / 'main' / 'qconsole.log'
 
     def stop_all(self):
@@ -421,18 +438,209 @@ def listen_case(session, runtime, password, expect_answers):
     session.result['log'] = str(log)
 
 
+def gamespy_text(pairs, query_id, final=True):
+    text = ''.join(f'\\{key}\\{value}' for key, value in pairs)
+    return (text + ('\\final\\' if final else '') + f'\\queryid\\{query_id}').encode('latin-1')
+
+
+def stand_in_basic(version, name='mohaa'):
+    return [('gamename', name), ('gamever', version), ('location', '0')]
+
+
+def stand_in_info(hostname, hostport, gametype='Free-For-All', mapname='mohdm1', players=0, maximum=8):
+    return [('hostname', hostname), ('hostport', str(hostport)), ('mapname', mapname), ('gametype', gametype),
+            ('numplayers', str(players)), ('maxplayers', str(maximum)), ('gamemode', 'openplaying')]
+
+
+# Stand-ins for servers fnTech3 cannot run here, each the packets it answers
+# `\status\` with, and whether fnTech3's 1.00 list should take it. Their text
+# is this probe's own, modelled on OpenMoHAA's keys (sv_gamespy.c) **[O]**.
+STAND_INS = {
+    12302: dict(label='version 1.11', listed=False, verdict='another version', packets=[
+        gamespy_text(stand_in_basic('1.11') + stand_in_info('Stand-in 1.11', 12215), '1.1')]),
+    12303: dict(label="Spearhead's mohaas", listed=False, verdict='another game', packets=[
+        gamespy_text(stand_in_basic('2.15', 'mohaas') + stand_in_info('Stand-in Spearhead', 12216), '1.1')]),
+    12304: dict(label='a demo', listed=False, verdict="a demo's server", packets=[
+        gamespy_text(stand_in_basic('d1.00') + stand_in_info('Stand-in demo', 12218), '1.1')]),
+    12305: dict(label='1.00 in two packets, no gametype_i', listed=True, hostport=12217, hostname='Search probe C',
+                packets=[
+                    gamespy_text(stand_in_basic('1.00') + stand_in_info('Search probe C', 12217, 'Objective-Match',
+                                                                       'obj_team2', 2, 12), '1.1', final=False),
+                    gamespy_text([('player_0', 'Able'), ('frags_0', '1'), ('deaths_0', '0'), ('ping_0', '20'),
+                                  ('player_1', 'Baker'), ('frags_1', '0'), ('deaths_1', '1'), ('ping_1', '30')],
+                                 '1.2')]),
+    12306: dict(label='an answer never ended', listed=False, verdict=None, packets=[
+        gamespy_text(stand_in_basic('1.00') + stand_in_info('Stand-in unfinished', 12219), '1.1', final=False)]),
+}
+
+
+class StandIns:
+    """Answers `\\status\\` on each stand-in's port, counting what it is sent."""
+
+    def __init__(self):
+        self.stop = threading.Event()
+        self.received = {port: [] for port in STAND_INS}
+        self.sockets = {}
+        for port in STAND_INS:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.bind(('127.0.0.1', port))
+            sock.settimeout(0.1)
+            self.sockets[port] = sock
+        self.threads = [threading.Thread(target=self.serve, args=(port,), daemon=True) for port in STAND_INS]
+        for thread in self.threads:
+            thread.start()
+
+    def serve(self, port):
+        sock = self.sockets[port]
+        while not self.stop.is_set():
+            try:
+                data, source = sock.recvfrom(2048)
+            except (socket.timeout, ConnectionResetError):
+                continue
+            except OSError:
+                return
+            self.received[port].append(dict(data=data.decode('latin-1'), source=list(source)))
+            if b'\\status\\' in data:
+                for packet in STAND_INS[port]['packets']:
+                    sock.sendto(packet, source)
+
+    def close(self):
+        self.stop.set()
+        for thread in self.threads:
+            thread.join(2.0)
+        for sock in self.sockets.values():
+            sock.close()
+
+
+def lan_list(log):
+    """The client's LAN list as its developer log tells it was built: each
+    server's address and the answer that listed it last."""
+    events = []
+    for match in re.finditer(r"^(\S+) listed from GameSpy's answer from (\S+): (.*)$", log, re.M):
+        events.append((match.start(), match.group(1), 'GameSpy', match.group(3).strip()))
+    for match in re.finditer(r'^(\S+) listed from its getinfo answer: (.*)$', log, re.M):
+        events.append((match.start(), match.group(1), 'getinfo', match.group(2).strip()))
+    for match in re.finditer(r"^(\S+) listed from its getinfo answer in place of GameSpy's$", log, re.M):
+        events.append((match.start(), match.group(1), 'getinfo after GameSpy', None))
+    listed, history = {}, {}
+    for _, address, source, name in sorted(events):
+        history.setdefault(address, []).append(source)
+        listed[address] = dict(source=source, name=name if name is not None else listed.get(address, {}).get('name'))
+    return listed, history
+
+
+def search_case(session, runtime, password, expect_search):
+    ded = runtime / 'fntech3.ded.exe'
+    common = dict(com_gameProfile='mohaa', fs_basepath=str(INSTALL), fs_homepath='<home>', dedicated='1',
+                  developer='1', logfile='2', net_ip='127.0.0.1', net_enabled='1', rconPassword=password,
+                  g_gametype='1', sv_maxclients='8', timelimit='20', fraglimit='0')
+    first, first_log = session.start('dedicated-a', ded, dict(common, net_port='12210',
+                                                               sv_hostname='Search probe A'),
+                                     ['+map', 'dm/mohdm1'], runtime)
+    session.check('server A answers getinfo on game port 12210', wait_for(lambda: getinfo(12210), 90, 0.5))
+    session.check('server A answers GameSpy on 12300',
+                  wait_for(lambda: 12300 in answered_port(log_text(first_log)), 20, 0.5),
+                  ports=answered_port(log_text(first_log)))
+    second, second_log = session.start('dedicated-b', ded, dict(common, net_port='12203',
+                                                                 sv_hostname='Search probe B', g_gametype='2'),
+                                       ['+map', 'dm/mohdm2'], runtime)
+    session.check('server B answers getinfo on game port 12203', wait_for(lambda: getinfo(12203), 90, 0.5))
+    session.check('server B answers GameSpy on 12301',
+                  wait_for(lambda: 12301 in answered_port(log_text(second_log)), 20, 0.5),
+                  ports=answered_port(log_text(second_log)))
+    stand_ins = StandIns()
+    try:
+        exe = runtime / 'fntech3.exe'
+        settings = dict(com_gameProfile='mohaa', fs_basepath=str(INSTALL), fs_homepath='<home>', developer='1',
+                        logfile='2', net_ip='127.0.0.1', net_enabled='1', net_port='12233', r_fullscreen='0',
+                        r_mode='-1', r_customwidth='800', r_customheight='600', s_volume='0', s_musicvolume='0',
+                        in_mouse='0', in_nograb='1', name='ProbeSearcher')
+        # The steps are one startup config. Medal of Honor's `wait` counts
+        # milliseconds down by each frame's before every line (Cbuf_AliceWaiting),
+        # so a short wait in a loop never holds a frame; long ones in a line do.
+        homes = []
+        steps = ['wait 4000', 'pushmenu joinlangame', 'localservers', 'wait 6000', 'screenshot', 'wait 3000', 'quit']
+        client, log = session.start(
+            'searcher', exe, settings, ['+exec', 'probestart.cfg'], runtime,
+            prepare=lambda main: (homes.append(main), (main / 'probestart.cfg').write_text(
+                '\n'.join(steps) + '\n', encoding='latin-1')))
+        home = homes[0]
+        session.result['steps'] = steps
+        started = wait_for(lambda: 'execing probestart.cfg' in log_text(log) or client.poll() is not None, 90, 0.5)
+        session.check('the client starts', started and client.poll() is None, exit=client.poll())
+        exited = wait_for(lambda: client.poll() is not None, 60, 0.5)
+        session.check('the client quits by its own steps', exited, exit=client.poll())
+        shots = sorted(str(p) for p in (home / 'screenshots').glob('*')) if (home / 'screenshots').exists() else []
+        session.result['screenshots'] = shots
+        session.check('the list is captured by the engine', bool(shots), shots=shots)
+    finally:
+        stand_ins.close()
+    # developer prints reach the log behind a colour code
+    text = re.sub(r'\^[0-9]', '', log_text(log))
+    received = {port: items for port, items in stand_ins.received.items()}
+    session.result['standIns'] = {str(port): dict(label=STAND_INS[port]['label'], received=items)
+                                  for port, items in received.items()}
+    search = re.findall(r'GameSpy LAN search from UDP port (\d+) to ports 12300-12316', text)
+    listed, history = lan_list(text)
+    rejected = re.findall(r'^GameSpy LAN answer from (\S+) not listed: (.+) \(gamever (.*)\)$', text, re.M)
+    session.result['clientSearch'] = dict(searchPorts=search, listed=listed, history=history,
+                                          rejected=[list(r) for r in rejected])
+    if not expect_search:
+        session.check('HEAD: the client makes no GameSpy search', not search)
+        session.check('HEAD: no stand-in is asked anything', not any(received.values()),
+                      received={p: len(v) for p, v in received.items()})
+    else:
+        session.check('the client searches once, from a port of its own', len(search) == 1
+                      and int(search[0]) != 12233, search=search)
+        port = int(search[0]) if search else None
+        session.check('each stand-in is sent one \\status\\ from that port',
+                      all(len(items) == 1 and items[0]['data'] == '\\status\\' and items[0]['source'][1] == port
+                          for items in received.values()),
+                      received={p: [(i['data'], i['source'][1]) for i in v] for p, v in received.items()})
+        expected = {'127.0.0.1:12210': 'Search probe A', '127.0.0.1:12203': 'Search probe B',
+                    '127.0.0.1:12217': 'Search probe C'}
+        session.check('the list holds A, B and C, each once', set(listed) == set(expected)
+                      and all(listed[a]['name'] == n for a, n in expected.items()), listed=listed)
+        session.check("A, beyond the getinfo scan, is listed from GameSpy's answer from 12300",
+                      re.search(r"^127\.0\.0\.1:12210 listed from GameSpy's answer from 127\.0\.0\.1:12300: ", text,
+                                re.M) and history.get('127.0.0.1:12210') == ['GameSpy'], history=history)
+        session.check("B is listed from its own getinfo answer, whichever came first",
+                      listed.get('127.0.0.1:12203', {}).get('source', '').startswith('getinfo'), history=history)
+        session.check("C's two-packet answer is listed at its hostport",
+                      re.search(r"^127\.0\.0\.1:12217 listed from GameSpy's answer from 127\.0\.0\.1:12305: ", text,
+                                re.M) is not None, history=history)
+        want = {f'127.0.0.1:{p}': (s['verdict'], s['packets'][0].decode('latin-1').split('\\gamever\\')[1]
+                                   .split('\\')[0]) for p, s in STAND_INS.items() if s.get('verdict')}
+        got = {source: (verdict, version) for source, verdict, version in rejected}
+        session.check('the other version, game and demo are not listed, each for its reason', got == want,
+                      got=got, want=want)
+        session.check('the unfinished answer is neither listed nor judged',
+                      '127.0.0.1:12306' not in text and '127.0.0.1:12219' not in text)
+    for label, process in (('a', first), ('b', second)):
+        rcon(12210 if label == 'a' else 12203, password, 'quit')
+        wait_for(lambda p=process: p.poll() is not None, 20, 0.5)
+    session.result['logs'] = {'a': str(first_log), 'b': str(second_log), 'client': str(log)}
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--runtime', action='append', required=True, help='label=dir')
     parser.add_argument('--output', type=Path, default=ROOT / '.tmp' / 'mohaa-gamespy' / 'live')
-    parser.add_argument('--cases', default='dedicated,listen')
+    parser.add_argument('--cases', default='dedicated,listen,search')
+    parser.add_argument('--before-has', default='',
+                        help="what a runtime labelled 'before' already does: 'answers' (its server answers GameSpy), "
+                             "'search' (its client searches); by default neither")
     args = parser.parse_args()
-    for port in (12203, 12204, 12223, *LAN_PORTS, 12350):
+    # the processes run in their runtime's folder, so their homes are given
+    # whole
+    args.output = args.output.resolve()
+    before_has = set(filter(None, args.before_has.split(',')))
+    for port in (12203, 12204, 12210, 12223, 12233, *LAN_PORTS, 12350):
         if not free(port):
             sys.exit(f'port {port} is in use; run when no other Medal of Honor server is up')
     before = inventory(INSTALL)
     stamp = time.strftime('%Y%m%d-%H%M%S')
-    results = dict(installation=str(INSTALL), started=stamp, runs={})
+    results = dict(installation=str(INSTALL), started=stamp, beforeHas=sorted(before_has), runs={})
     for item in args.runtime:
         label, directory = item.split('=', 1)
         runtime = Path(directory).resolve()
@@ -442,10 +650,14 @@ def main():
             session = Session(args.output / stamp / name)
             password = secrets.token_hex(6)
             try:
+                answers = label != 'before' or 'answers' in before_has
                 if case == 'dedicated':
-                    dedicated_case(session, runtime, password, expect_answers=label != 'before')
+                    dedicated_case(session, runtime, password, expect_answers=answers)
+                elif case == 'search':
+                    search_case(session, runtime, password,
+                                expect_search=label != 'before' or 'search' in before_has)
                 else:
-                    listen_case(session, runtime, password, expect_answers=label != 'before')
+                    listen_case(session, runtime, password, expect_answers=answers)
             except Exception as error:  # noqa: BLE001 -- recorded, then the next run
                 session.check('the run completes', False, error=repr(error))
             finally:

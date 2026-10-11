@@ -27,7 +27,7 @@ def engine_constants():
     sort = re.search(r"typedef enum \{\s*SS_BAD,.*?\} shaderSort_t;", local, re.S)
     assert sort is not None
     flags = (ROOT / "code/qcommon/surfaceflags.h").read_text(encoding="utf-8")
-    surf = "\n".join(re.findall(r"^#define\s+(?:SURF_SKY|SURF_NODRAW|CONTENTS_FOG)\s+\w+", flags, re.M))
+    surf = "\n".join(re.findall(r"^#define\s+(?:SURF_SKY|SURF_NODRAW|CONTENTS_FOG|CONTENTS_WATER|CONTENTS_SLIME|CONTENTS_LAVA)\s+\w+", flags, re.M))
     return gls + "\n" + sort.group(0) + "\n" + surf + "\n"
 
 
@@ -61,6 +61,7 @@ class RtxLightmapExecutionTests(unittest.TestCase):
             function(source, "static unsigned RT_StageBlend( const rtStageSource_t *s )"),
             function(source, "static qboolean RT_StageAdds( const rtStageSource_t *s )"),
             function(source, "static qboolean RT_ShaderIsSky( const shader_t *shader )"),
+            function(source, "static qboolean RT_ShaderIsLiquid( const shader_t *shader )"),
             function(source, "static rtOwner_t RT_ClassifyOwner( const shader_t *shader, qboolean *masked )"),
             function(source, "static uint32_t RT_StageRole( const rtStageSource_t *s, int index, int lightingStage )"),
         ]
@@ -70,6 +71,13 @@ class RtxLightmapExecutionTests(unittest.TestCase):
 #include <assert.h>
 #include <stdint.h>
 #include <string.h>
+#include <math.h>
+#define RT_GPU_MAX_STAGES 8
+#define MAX_SHADER_DEFORMS 3
+enum { DEFORM_WAVE = 1 };
+typedef struct { int integer; } cvar_t;
+static cvar_t liquids = {1};
+static cvar_t *rtx_rt_liquids = &liquids;
 typedef int qboolean;
 enum { qfalse, qtrue };
 enum { LIGHTMAP_INDEX_NONE = -1, LIGHTMAP_INDEX_SHADER = 0, IMGFLAG_LIGHTMAP = 8,
@@ -79,7 +87,8 @@ enum { LIGHTMAP_INDEX_NONE = -1, LIGHTMAP_INDEX_SHADER = 0, IMGFLAG_LIGHTMAP = 8
 typedef struct { int flags; } image_t;
 typedef struct { image_t *images[8]; unsigned stateBits; int tcGen, rgbGen, lightmap, isScreenMap; } rtStageSource_t;
 typedef struct { int isSky, surfaceFlags, sort, rtNumStages, polygonOffset, numDeforms, hasScreenMap;
-    rtStageSource_t *rtStages; int rtCompiledSky; } shader_t;
+    rtStageSource_t *rtStages; int rtCompiledSky, contentFlags;
+    struct { int deformation; struct { float base, amplitude; } deformationWave; } deforms[3]; } shader_t;
 ''' + "\n".join(pieces)
 
     def test_trace_owns_only_opaque_or_alpha_tested_first_stages(self):
@@ -108,6 +117,24 @@ int main(void) {
     /* the map's BSP says sky though a later script dropped the parm */
     reset(); shader.rtCompiledSky = 1; assert(classify(&masked) == RT_OWNER_BASE_RASTER);
     reset(); shader.sort = SS_PORTAL; assert(classify(&masked) == RT_OWNER_BASE_RASTER);
+    /* Liquids are recognised by contents across profiles, including small waves.
+       Alpha-tested, screen-reading and large/deforming interfaces stay raster. */
+    reset(); shader.contentFlags = CONTENTS_WATER; shader.sort = SS_BLEND0;
+    stages[0].stateBits = GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ONE;
+    shader.numDeforms = 1; shader.deforms[0].deformation = DEFORM_WAVE;
+    shader.deforms[0].deformationWave.amplitude = 0.5f;
+    assert(RT_ShaderIsLiquid(&shader) && classify(&masked) == RT_OWNER_TRACED);
+    liquids.integer = 0; assert(classify(&masked) == RT_OWNER_RASTER); liquids.integer = 1;
+    shader.contentFlags = CONTENTS_SLIME; assert(classify(&masked) == RT_OWNER_TRACED);
+    shader.contentFlags = CONTENTS_LAVA; assert(classify(&masked) == RT_OWNER_TRACED);
+    stages[0].stateBits |= GLS_ATEST_GE_80; assert(classify(&masked) == RT_OWNER_RASTER);
+    stages[0].stateBits &= ~GLS_ATEST_BITS;
+    shader.deforms[0].deformationWave.amplitude = 8; assert(classify(&masked) == RT_OWNER_RASTER);
+    shader.deforms[0].deformationWave.amplitude = NAN; assert(classify(&masked) == RT_OWNER_RASTER);
+    shader.deforms[0].deformationWave.amplitude = 1;
+    shader.hasScreenMap = 1; assert(classify(&masked) == RT_OWNER_RASTER);
+    shader.hasScreenMap = 0; shader.numDeforms = 0; shader.rtNumStages = 0;
+    assert(classify(&masked) == RT_OWNER_RASTER);
     /* everything the trace cannot reproduce stays raster */
     reset(); stages[0].stateBits |= GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA;
     assert(classify(&masked) == RT_OWNER_RASTER);

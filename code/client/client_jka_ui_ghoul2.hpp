@@ -3,6 +3,7 @@
 #define FNTECH3_CLIENT_JKA_UI_GHOUL2_HPP
 
 #include "../ghoul2/ghoul2_server.hpp"
+#include "../compat/jka_ghoul2_clock.hpp"
 #include <array>
 
 /* UI-only ownership and metadata, independently implemented from retail
@@ -50,9 +51,8 @@ public:
 
 ClientUIGhoul2Files jkaUIGhoul2Files;
 std::unique_ptr<fntech3::ghoul2::Store> jkaUIGhoul2Store;
-std::array<std::int32_t, 2> jkaUIBoneClocks{};
 static int CL_JKAUIGhoul2Time() {
-	return jkaUIBoneClocks[1] ? jkaUIBoneClocks[1] : jkaUIBoneClocks[0];
+	return fntech3::jka::clock::shared.Time();
 }
 static fntech3::ghoul2::Store &CL_JKAUIGhoul2Store() {
 	if ( !jkaUIGhoul2Store ) jkaUIGhoul2Store = std::make_unique<fntech3::ghoul2::Store>( jkaUIGhoul2Files );
@@ -113,7 +113,6 @@ static void CL_JKAUIGhoul2Clear() {
 	// Destroy the store as well as instances, releasing cached files on every
 	// module/search-path lifetime. No retired module slot is followed here.
 	jkaUIGhoul2Store.reset();
-	jkaUIBoneClocks = {};
 }
 
 static bool CL_JKAUIGhoul2Call( intptr_t *args, fntech3::jka::module::Call call, intptr_t &result ) {
@@ -127,13 +126,7 @@ static bool CL_JKAUIGhoul2Call( intptr_t *args, fntech3::jka::module::Call call,
 		CL_JKAUIGhoul2Native();
 		if (args[2] < 0 || args[2] > 1)
 			Com_Error(ERR_DROP, "Invalid Jedi Academy UI Ghoul2 clock selector");
-		jkaUIBoneClocks[std::size_t(args[2])] = static_cast<std::int32_t>(args[1]);
-		// Retail0x4de0d0 uses a signed compare after x86 wrapping addition.
-		// UI refresh0x40014450 sets both clocks before rendering its model.
-		const std::uint32_t thresholdBits = static_cast<std::uint32_t>(jkaUIBoneClocks[0]) + 200u;
-		std::int32_t threshold;
-		std::memcpy(&threshold, &thresholdBits, sizeof(threshold));
-		if (jkaUIBoneClocks[1] > threshold) jkaUIBoneClocks[1] = 0;
+		fntech3::jka::clock::shared.Set(static_cast<int>(args[2]), static_cast<std::int32_t>(args[1]));
 		result = 0;
 		return true;
 	}

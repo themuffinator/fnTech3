@@ -257,9 +257,20 @@ looping sound by name (`0x100ad18e`) and looks it up again on a load
 again; one without keeps the number it was saved with, which only means the
 same model while the model configstrings keep their places.
 
-fnTech3 reloads the module on every spawn. `SV_AlicePrepareSpawn` copies the
-configstrings when a load names the BSP the server last spawned and a module
-is loaded; `SV_AliceRestoreConfigstrings` puts them back once the spawn has
+*Update, 2026-10-08:* fnTech3 now takes retail's reuse path itself
+(`SV_AliceSpawn`, `code/server/server_alice_save.hpp`): a load or a `restart`
+of the BSP it last spawned, with the module loaded, keeps the module, its
+model table and the configstrings, calls the module's `Cleanup`, moves the
+server id on and flips the snapshot's server-count bit, and admits the
+clients again without a new gamestate; the client takes the flipped bit as
+retail's does. The configstring copy described next was the earlier
+stand-in and has been removed. The
+[2026-10-08 round](2026-10-08-alice-compatibility-round.md) has the
+addresses and runs.
+
+Before that, fnTech3 reloaded the module on every spawn. `SV_AlicePrepareSpawn` copied the
+configstrings when a load named the BSP the server last spawned and a module
+was loaded; `SV_AliceRestoreConfigstrings` puts them back once the spawn has
 reset them, before the module is loaded; and the module's table fill
 registers every kept `tik` model again (`SV_AliceRegisterKeptModels`), so the
 model table holds what retail's still would.
@@ -384,19 +395,18 @@ cinematic only while one plays, and a dedicated build compiles it out.
   does. The default keeps the profile's own file, so fnTech3's dedicated
   server still writes `config_server.cfg`, which retail's single executable
   does not have.
-- The reuse path is reproduced only in its server state: retail keeps the
-  module and its clients when a load or a `restart` names the map already
-  running; fnTech3 always reloads, which is retail's full path, but a load of
-  the running BSP keeps the configstrings and the model table built from them,
-  as the reuse path does ([below](#a-load-of-the-running-level)).
+- (*Until 2026-10-08:* the reuse path was reproduced only in its server
+  state. fnTech3 now keeps the module and its clients as retail does; see
+  [above](#a-load-of-the-running-level).)
 - A dedicated server with nobody connected starts a level's clock from zero
   before `Init`, where retail hands `Init` the previous level's clock; the
   module sees the same clock once `SpawnEntities` runs.
 - The picture is read from the frame as drawn. With hardware gamma, as in
   retail, that is before the gamma ramp; where fnTech3 applies gamma in its
   own post-process the frame already carries it.
-- The cache is emptied whole at each level change rather than model by model
-  as the renderer re-registers.
+- The cache is emptied whole at each full spawn rather than model by model
+  as the renderer re-registers; a load or a restart that keeps the module
+  keeps the cache, as it keeps the model table.
 
 ## Results
 
@@ -495,8 +505,13 @@ The installation was not written.
   fresh `+loadgame`). By the reading above retail's full path does the same;
   that is not established against a retail run.
 - `CalcCRC` is served and unit-tested but has not yet been reached at run
-  time.
+  time. (*2026-10-08:* nor can it be with the shipped data: the module calls
+  it only for a script it has not cached and for a level archive's check,
+  and neither path is taken by any retail script or save; see the
+  [2026-10-08 round](2026-10-08-alice-compatibility-round.md#calccrc).)
 - The load/save menu is the engine UI's: it has to list the `.ssv` headers,
   skip `quicksave`, and show `SV_AliceSaveError`. (*2026-09-24:* it does now;
   see [2026-09-24-alice-menus.md](2026-09-24-alice-menus.md). Loading a save
-  from the menu has not been exercised at run time.)
+  from the menu has not been exercised at run time.) (*2026-10-08:* it has:
+  the menu's own command loads a save made on another level and reads it
+  back; see the [2026-10-08 round](2026-10-08-alice-compatibility-round.md).)

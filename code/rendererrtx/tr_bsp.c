@@ -4214,7 +4214,7 @@ void RE_LoadWorldMap( const char *name ) {
 	byte		*startMarker;
 	lump_t		qlAdvertisementsLump = { 0, 0 };
 	comGameBspFormat_t bspFormat;
-	mohaaBuiltSurfaces_t	mohaaBuilt = { 0, 0, 0, 0 };
+	mohaaBuiltSurfaces_t	mohaaBuilt = { 0 };
 	fnRavenBspView_t ravenOriginal = { 0 };
 
 	// American McGee's Alice's loading screen follows the world load: its
@@ -4376,6 +4376,8 @@ void RE_LoadWorldMap( const char *name ) {
 	s_worldData.mohaaNumDecals = mohaaBuilt.numDecals;
 	s_worldData.mohaaFirstTerrain = mohaaBuilt.firstTerrain;
 	s_worldData.mohaaNumTerrain = mohaaBuilt.numTerrain;
+	s_worldData.mohaaFirstBuiltSurface = mohaaBuilt.firstBuiltSurface;
+	s_worldData.mohaaNumBuiltSurfaces = mohaaBuilt.numBuiltSurfaces;
 
 	Q_strncpyz( s_worldData.baseName, COM_SkipPath( s_worldData.name ), sizeof( s_worldData.name ) );
 	COM_StripExtension(s_worldData.baseName, s_worldData.baseName, sizeof(s_worldData.baseName));

@@ -83,8 +83,9 @@ struct vm_t { int id; };
 static vm_t ui{ 1 }, cgame{ 2 };
 static vm_t *uivm = &ui, *cgvm = &cgame;
 enum { UI_KEY_EVENT = 3, CG_KEY_EVENT = 6 };
-enum Game { QUAKE3, QUAKELIVE, RTCW, WOLFET, STVEF_MP, STVEF_SP, Q3TEST_1_05, Q3TEST_1_06 } game;
+enum Game { QUAKE3, QUAKELIVE, RTCW, WOLFET, STVEF_MP, STVEF_SP, Q3TEST_1_05, Q3TEST_1_06, JK2_MP } game;
 static bool Com_GameIsQuake3() { return game == QUAKE3; }
+static bool Com_GameIsJK2MP() { return game == JK2_MP; }
 static bool Com_GameIsSTVEF() { return game == STVEF_MP || game == STVEF_SP; }
 static bool Com_GameIsQ3Test() { return game == Q3TEST_1_05 || game == Q3TEST_1_06; }
 enum { Q3TEST_RELEASE_1_05 = 2, Q3TEST_RELEASE_1_06 };
@@ -151,7 +152,7 @@ int main() {
 		for ( int key : { K_MOUSE6, K_MOUSE9, K_MWHEELDOWN, K_MWHEELUP, K_JOY1, K_AUX16, K_PAD0_SOUTH, K_ESCAPE } ) Every( key, key );
 	}
 	// Elite Force's numbers are Quake III's.
-	for ( Game eliteForce : { STVEF_MP, STVEF_SP } ) {
+	for ( Game eliteForce : { STVEF_MP, STVEF_SP, JK2_MP } ) {
 		game = eliteForce;
 		Every( K_MWHEELDOWN, 183 );
 		Every( K_AUX16, 232 );
@@ -359,7 +360,7 @@ class Q3KeyNumberTests(unittest.TestCase):
         for helper in ('static void CL_UIKeyDownEvent(', 'static void CL_UIKeyUpEvent(', 'static void CL_CGameKeyEvent('):
             self.assertIn('key = CL_ModuleKeyEvent( key );', function(keys, helper))
         module = function(keys, 'static int CL_ModuleKeyEvent(')
-        self.assertLess(module.index('if ( Com_GameIsQuake3() ) {\n\t\treturn FnTech3_Q3KeyEventFromInternal( key );'),
+        self.assertLess(module.index('if ( Com_GameIsQuake3() || Com_GameIsJK2MP() ) {\n\t\treturn FnTech3_Q3KeyEventFromInternal( key );'),
                         module.index('if ( Com_GameIsSTVEF() ) {\n\t\treturn FnTech3_STVEFKeyEventFromInternal( key );'))
         self.assertTrue(module.endswith('\treturn key;\n}\n'))
 

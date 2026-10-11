@@ -5,6 +5,7 @@
 #include "client_jka_glconfig.hpp"
 #include "client_jka_font.hpp"
 #include "client_jka_strings.hpp"
+#include "client_jka_sound.hpp"
 #include "../compat/jka_render_adapter.hpp"
 #include "../compat/jka_key_adapter.h"
 #include <climits>
@@ -232,6 +233,19 @@ static bool CL_JKAUICall( intptr_t *args, intptr_t &operation, intptr_t &result,
 	case Call::UI_S_REGISTERSOUND:
 		result = S_RegisterSound( VMA(1), qfalse );
 		return true;
+	case Call::UI_S_STARTLOCALSOUND: {
+		// Retail 0x424603 hands the handle and channel to S_StartLocalSound
+		// 0x46aed0 exactly as client-game import 38 does, and returns zero.
+		// Menu sounds take the same channel translation and level into Fn's
+		// local-sound path, as interface audio: `play` names the automatic
+		// channel, which would otherwise be the listener's own in the level.
+		if ( args[1] < INT_MIN || args[1] > INT_MAX || args[2] < INT_MIN || args[2] > INT_MAX )
+			Com_Error( ERR_DROP, "Invalid Academy UI local sound handle or channel" );
+		const int channel = static_cast<int>( args[2] );
+		S_StartInterfaceSound( static_cast<sfxHandle_t>( args[1] ), sound::EngineChannel( channel ),
+			sound::ListenerVolume( channel ) );
+		return true;
+	}
 	default:
 		operation = ui::SharedImport( call );
 		if ( operation >= 0 ) {

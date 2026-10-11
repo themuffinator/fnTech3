@@ -242,6 +242,7 @@ static fntech3::audio::rtcw::LoopFrame rtcwLoops;
 static fntech3::audio::stvef::AmbientLoopFrame stvefAmbientLoops;
 static fntech3::audio::jka::AmbientLoops jkaAmbientLoops;
 static fntech3::audio::stvef::lipsync::Mouths stvefMouths;
+static fntech3::audio::stvef::lipsync::Mouths jkaMouths;
 struct channel_t{int active=0;};static channel_t loop_channels[MAX_CHANNELS];static int numLoopChannels;
 static int channels=0,voiceLanes=0,submits=0;
 static void S_ChannelSetup(){channels=0;}static void ResetVoiceLanes(){voiceLanes=0;}

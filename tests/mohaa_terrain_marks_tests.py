@@ -218,6 +218,7 @@ int main( void ) {
 	translation.numTerrainIndexes = 2;
 	assert( R_MOHAABuildWorld( &translation, "maps/fixture.bsp", &data, &size, &built ) );
 	assert( built.firstTerrain == 0 && built.numTerrain == 2 && built.numDecals == 0 );
+	assert( built.firstBuiltSurface == 0 && built.numBuiltSurfaces == 2 );
 
 	surfaces = Out( data, LUMP_SURFACES, sizeof( dsurface_t ), &n );
 	assert( n == 2 );
@@ -246,6 +247,30 @@ int main( void ) {
 	assert( leafs[0].numLeafSurfaces == 2 && leafSurfaces[leafs[0].firstLeafSurface] == 0 );
 	assert( leafSurfaces[leafs[0].firstLeafSurface + 1] == 1 && leafs[1].numLeafSurfaces == 0 );
 	free( data );
+	/* The generated range starts after ALL original surfaces. Model zero
+	 * stops before the inline model, even though the terrain is world data. */
+	{
+		dsurface_t original[3];
+		dmodel_t *model;
+		BuildMap();
+		memset( original, 0, sizeof( original ) );
+		Lump( (dheader_t *)map, LUMP_SURFACES, original, sizeof( original ) );
+		model = (dmodel_t *)( map + ((dheader_t *)map)->lumps[LUMP_MODELS].fileofs );
+		model->numSurfaces = 2;
+		translation.length = mapLength;
+		assert( R_MOHAABuildWorld( &translation, "maps/fixture.bsp", &data, &size, &built ) );
+		assert( built.firstBuiltSurface == 3 && built.numBuiltSurfaces == 2 );
+		assert( built.firstTerrain == 3 && built.numTerrain == 2 );
+		assert( ((const dmodel_t *)Out( data, LUMP_MODELS, sizeof( dmodel_t ), &n ))->numSurfaces == 2 );
+		Out( data, LUMP_SURFACES, sizeof( dsurface_t ), &n );
+		assert( n == 5 );
+		free( data );
+		/* A reused result record cannot leak a previous map's generated range. */
+		translation.numTerrain = 0;
+		memset( &built, 0xff, sizeof( built ) );
+		assert( !R_MOHAABuildWorld( &translation, "maps/fixture.bsp", &data, &size, &built ) );
+		assert( built.firstBuiltSurface == 0 && built.numBuiltSurfaces == 0 );
+	}
 	puts( "terrain ok" );
 	return 0;
 }

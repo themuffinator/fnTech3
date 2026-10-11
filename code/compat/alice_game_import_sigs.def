@@ -1,0 +1,143 @@
+/* Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later.
+ *
+ * Alice's 111 game import slots, typed.
+ *
+ * FNTECH3_ALICE_GAME_IMPORT_SIG( slot, name, kind, type, params, evidence )
+ *
+ * The frozen shape of every slot, read statically out of retail alice.exe,
+ * base/fgamex86.dll and base/cgamex86.dll (SHA-256 8aa22917..., ae5a5727...,
+ * fa70feb1...; nothing was run). `kind` is
+ *
+ *   FUNCTION  a function: `type` is its return type and `params` its
+ *             parenthesised parameter list
+ *   VALUE     a value the slot itself holds: `type` is that value's type
+ *   ABSENT    retail leaves the slot null and the module never calls it
+ *
+ * Types are fixed-width: int (handles, qboolean and long included), float,
+ * pointers, and unsigned char or unsigned short where retail reads or returns
+ * only that width. A record returned by value is written as MSVC passes it, a
+ * hidden first pointer returned in eax. Every function is __cdecl (QDECL):
+ * each one ends in a bare `ret`.
+ *
+ * `evidence` names what fixes the shape: E the engine's side (the slot target alice.exe's table build writes, 0x004544c0), M
+ * the module's side (every call through the copy at fgamex86.dll 0x101e8d10), S the member at that position in Ritual's
+ * F.A.K.K.2 v1.02 SDK, read for reference only -- a hypothesis E and M
+ * confirm, never text taken from it. The slot names are the ones
+ * alice_game_imports.def already carries. The comment on each row is the slot target in alice.exe.
+ *
+ * fntech3::alice::module checks every function this engine serves or calls
+ * through a slot against its row, by ABI class (alice_module_abi.h); see
+ * docs/fntech3/2026-10-08-alice-module-signatures.md.
+ */
+
+FNTECH3_ALICE_GAME_IMPORT_SIG(   0, Printf,                 FUNCTION, void, ( const char *, ... ), EMS ) /* 0x00438850 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(   1, DPrintf,                FUNCTION, void, ( const char *, ... ), EMS ) /* 0x00438a40 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(   2, DebugPrintf,            FUNCTION, void, ( const char *, ... ), EMS ) /* 0x00438a90 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(   3, Error,                  FUNCTION, void, ( int, const char *, ... ), EMS ) /* 0x00438ae0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(   4, Milliseconds,           FUNCTION, int, ( void ), EMS ) /* 0x0046dfc0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(   5, Malloc,                 FUNCTION, void *, ( int ), EMS ) /* 0x00454420 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(   6, Free,                   FUNCTION, void, ( void * ), EMS ) /* 0x00444ed0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(   7, cvar,                   FUNCTION, void *, ( const char *, const char *, int ), EMS ) /* 0x0043a6c0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(   8, cvar_set,               FUNCTION, void, ( const char *, const char * ), EMS ) /* 0x0043ab60 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(   9, argc,                   FUNCTION, int, ( void ), EMS ) /* 0x00438140 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  10, argv,                   FUNCTION, const char *, ( int ), EMS ) /* 0x00438150 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  11, args,                   FUNCTION, const char *, ( void ), EMS ) /* 0x004381a0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  12, AddCommand,             FUNCTION, void, ( const char * ), EMS ) /* 0x00454410 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  13, FS_ReadFile,            FUNCTION, int, ( const char *, void **, int ), EMS ) /* 0x0043c850 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  14, FS_FreeFile,            FUNCTION, void, ( void * ), EMS ) /* 0x0043cb10 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  15, FS_WriteFile,           FUNCTION, void, ( const char *, const void *, int ), EMS ) /* 0x0043cbc0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  16, FS_FOpenFileWrite,      FUNCTION, int, ( const char * ), EMS ) /* 0x0043b9e0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  17, FS_FOpenFileAppend,     FUNCTION, int, ( const char * ), ES ) /* 0x0043bbb0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  18, FS_PrepFileWrite,       FUNCTION, const char *, ( const char * ), ES ) /* 0x0043cb80 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  19, FS_Write,               FUNCTION, int, ( const void *, int, int ), EMS ) /* 0x0043c560 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  20, FS_Read,                FUNCTION, int, ( void *, int, int ), ES ) /* 0x0043c460 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  21, FS_FCloseFile,          FUNCTION, void, ( int ), EMS ) /* 0x0043b960 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  22, FS_FTell,               FUNCTION, int, ( int ), EMS ) /* 0x0043eb80 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  23, FS_FSeek,               FUNCTION, int, ( int, int, int ), EMS ) /* 0x0043c680 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  24, FS_Flush,               FUNCTION, void, ( int ), EMS ) /* 0x0043b5d0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  25, GetArchiveFileName,     FUNCTION, const char *, ( const char *, const char * ), EMS ) /* 0x0043a350 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  26, SendConsoleCommand,     FUNCTION, void, ( const char * ), EMS ) /* 0x00437a50 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  27, DebugGraph,             FUNCTION, void, ( float, int ), ES ) /* 0x0042e2a0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  28, SendServerCommand,      FUNCTION, void, ( int, const char *, ... ), EMS ) /* 0x00453440 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  29, setConfigstring,        FUNCTION, void, ( int, const char * ), EMS ) /* 0x00454a50 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  30, getConfigstring,        FUNCTION, const char *, ( int ), EMS ) /* 0x00454b00 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  31, setUserinfo,            FUNCTION, void, ( int, const char * ), ES ) /* 0x00454ca0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  32, getUserinfo,            FUNCTION, void, ( int, char *, int ), EMS ) /* 0x00454d30 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  33, SetBrushModel,          FUNCTION, void, ( void *, const char * ), ES ) /* 0x00453510 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  34, trace,                  FUNCTION, void, ( void *, const float *, const float *, const float *, const float *, int, int, int ), EMS ) /* 0x004582f0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  35, pointcontents,          FUNCTION, int, ( const float *, int ), EMS ) /* 0x00458480 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  36, pointbrushnum,          FUNCTION, int, ( const float *, int ), EMS ) /* 0x00435ed0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  37, inPVS,                  FUNCTION, int, ( const float *, const float * ), EMS ) /* 0x004535e0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  38, inPVSIgnorePortals,     FUNCTION, int, ( const float *, const float * ), ES ) /* 0x00453660 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  39, AdjustAreaPortalState,  FUNCTION, void, ( void *, int ), EMS ) /* 0x004536d0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  40, AreasConnected,         FUNCTION, int, ( int, int ), EMS ) /* 0x00436340 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  41, linkentity,             FUNCTION, void, ( void * ), EMS ) /* 0x00457a40 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  42, unlinkentity,           FUNCTION, void, ( void * ), EMS ) /* 0x004579e0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  43, AreaEntities,           FUNCTION, int, ( const float *, const float *, int *, int ), EMS ) /* 0x00458030 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  44, ClipToEntity,           FUNCTION, void, ( void *, const float *, const float *, const float *, const float *, int, int ), EMS ) /* 0x00458080 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  45, imageindex,             FUNCTION, int, ( const char * ), EMS ) /* 0x00454c40 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  46, itemindex,              FUNCTION, int, ( const char * ), EMS ) /* 0x00454c60 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  47, soundindex,             FUNCTION, int, ( const char * ), EMS ) /* 0x00454c20 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  48, modelindex,             FUNCTION, int, ( const char * ), EMS ) /* 0x00454110 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  49, SetLightStyle,          FUNCTION, void, ( int, const char * ), EMS ) /* 0x00454c80 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  50, GameDir,                FUNCTION, const char *, ( void ), ES ) /* 0x0043cae0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  51, IsModel,                FUNCTION, int, ( int ), EMS ) /* 0x00453940 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  52, setmodel,               FUNCTION, void, ( void *, const char * ), EMS ) /* 0x00454190 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  53, NumAnims,               FUNCTION, int, ( int ), EMS ) /* 0x00453960 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  54, NumSkins,               FUNCTION, int, ( int ), ES ) /* 0x00453980 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  55, NumSurfaces,            FUNCTION, int, ( int ), EMS ) /* 0x00453990 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  56, NumTags,                FUNCTION, int, ( int ), EMS ) /* 0x004539b0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  57, InitCommands,           FUNCTION, int, ( int, void * ), EMS ) /* 0x00453a30 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  58, CalculateBounds,        FUNCTION, void, ( int, float, float *, float * ), EMS ) /* 0x00453a60 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  59, Anim_NameForNum,        FUNCTION, const char *, ( int, int ), EMS ) /* 0x00453a90 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  60, Anim_NumForName,        FUNCTION, int, ( int, const char * ), EMS ) /* 0x00453ac0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  61, Anim_Random,            FUNCTION, int, ( int, const char * ), EMS ) /* 0x00453af0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  62, Anim_NumFrames,         FUNCTION, int, ( int, int ), EMS ) /* 0x00453b20 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  63, Anim_Time,              FUNCTION, float, ( int, int ), EMS ) /* 0x00453b50 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  64, Anim_Delta,             FUNCTION, void, ( int, int, float * ), EMS ) /* 0x00453b80 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  65, Anim_AbsoluteDelta,     FUNCTION, void, ( int, int, float * ), EMS ) /* 0x00453bc0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  66, Anim_Flags,             FUNCTION, int, ( int, int ), EMS ) /* 0x00453c00 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  67, Anim_HasCommands,       FUNCTION, int, ( int, int ), EMS ) /* 0x00453c30 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  68, Frame_Commands,         FUNCTION, int, ( int, int, int, void * ), EMS ) /* 0x00453c60 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  69, Frame_Delta,            FUNCTION, void, ( int, int, int, float * ), EMS ) /* 0x00453cc0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  70, Frame_Time,             FUNCTION, float, ( int, int, int ), EMS ) /* 0x00453c90 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  71, Frame_Bounds,           FUNCTION, void, ( int, int, int, float, float *, float * ), EMS ) /* 0x00453cf0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  72, Surface_NameToNum,      FUNCTION, int, ( int, const char * ), EMS ) /* 0x00453d60 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  73, Surface_NumToName,      FUNCTION, const char *, ( int, int ), EMS ) /* 0x00453d30 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  74, Surface_Flags,          FUNCTION, int, ( int, int ), ES ) /* 0x004539d0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  75, Surface_NumSkins,       FUNCTION, int, ( int, int ), ES ) /* 0x00453a00 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  76, Tag_NumForName,         FUNCTION, int, ( int, const char * ), EMS ) /* 0x00453df0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  77, Tag_NameForNum,         FUNCTION, const char *, ( int, int ), EMS ) /* 0x00453dc0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  78, Tag_Orientation,        FUNCTION, void *, ( void *, int, int, int, int, float, const void * ), EMS ) /* 0x00453e20 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  79, Tag_OrientationEx,      FUNCTION, void *, ( void *, int, int, int, int, float, const void *, int, int, float, int, int, int, int, int, int, float ), EMS ) /* 0x00453ec0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  80, Alias_Add,              FUNCTION, int, ( int, const char *, const char *, const char * ), EMS ) /* 0x00453f90 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  81, Alias_FindRandom,       FUNCTION, const char *, ( int, const char * ), EMS ) /* 0x00453fc0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  82, Alias_Dump,             FUNCTION, void, ( int ), ES ) /* 0x004540b0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  83, Alias_Clear,            FUNCTION, void, ( int ), ES ) /* 0x004540d0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  84, Alias_FindDialog,       FUNCTION, const char *, ( int, const char *, int, int ), EMS ) /* 0x00453ff0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  85, Alias_GetList,          FUNCTION, void *, ( int ), EMS ) /* 0x00454090 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  86, Alias_UpdateDialog,     FUNCTION, void, ( int, const char *, int, unsigned char, int ), EMS ) /* 0x00454020 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  87, Alias_AddActorDialog,   FUNCTION, void, ( int, const char *, int, int, unsigned char, int ), EMS ) /* 0x00454050 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  88, NameForNum,             FUNCTION, const char *, ( int ), EMS ) /* 0x004540f0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  89, GlobalAlias_Add,        FUNCTION, int, ( const char *, const char *, const char * ), EMS ) /* 0x00423a40 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  90, GlobalAlias_FindRandom, FUNCTION, const char *, ( const char * ), EMS ) /* 0x00423a90 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  91, GlobalAlias_Dump,       FUNCTION, void, ( void ), ES ) /* 0x00423ac0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  92, GlobalAlias_Clear,      FUNCTION, void, ( void ), ES ) /* 0x00423af0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  93, centerprintf,           FUNCTION, void, ( void *, const char *, ... ), EMS ) /* 0x00454250 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  94, locationprintf,         FUNCTION, void, ( void *, int, int, const char *, ... ), ES ) /* 0x004542f0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  95, Sound,                  FUNCTION, void, ( const float *, int, int, const char *, float, float ), EMS ) /* 0x00457670 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  96, StopSound,              FUNCTION, void, ( int, int ), EMS ) /* 0x00457740 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  97, SoundLength,            FUNCTION, float, ( const char * ), EMS ) /* 0x0043f100 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  98, SoundAmplitudes,        FUNCTION, const unsigned char *, ( const char *, int * ), EMS ) /* 0x0043f170 */
+FNTECH3_ALICE_GAME_IMPORT_SIG(  99, CalcCRC,                FUNCTION, unsigned short, ( const unsigned char *, int ), EMS ) /* 0x0043a4c0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG( 100, AliceAbsent100,         ABSENT,   void, ( void ), E )
+FNTECH3_ALICE_GAME_IMPORT_SIG( 101, DebugLines,             VALUE,    void **, ( void ), ES ) /* 0x006a0870 */
+FNTECH3_ALICE_GAME_IMPORT_SIG( 102, numDebugLines,          VALUE,    int *, ( void ), ES ) /* 0x006a0874 */
+FNTECH3_ALICE_GAME_IMPORT_SIG( 103, LocateGameData,         FUNCTION, void, ( void *, int, int, void *, int ), EMS ) /* 0x00453790 */
+FNTECH3_ALICE_GAME_IMPORT_SIG( 104, SetFarPlane,            FUNCTION, void, ( int ), EMS ) /* 0x004537d0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG( 105, SetSkyPortal,           FUNCTION, void, ( int ), EMS ) /* 0x00453800 */
+FNTECH3_ALICE_GAME_IMPORT_SIG( 106, AliceImport106,         FUNCTION, void, ( const char *, const char *, ... ), EM ) /* 0x004389e0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG( 107, AliceImport107,         FUNCTION, void *, ( void ), EM ) /* 0x0042c490 */
+FNTECH3_ALICE_GAME_IMPORT_SIG( 108, AliceImport108,         FUNCTION, void, ( int ), EM ) /* 0x0040b590 */
+FNTECH3_ALICE_GAME_IMPORT_SIG( 109, AliceImport109,         FUNCTION, void, ( void ), EM ) /* 0x0042d8d0 */
+FNTECH3_ALICE_GAME_IMPORT_SIG( 110, Cbuf_ExecuteText,       FUNCTION, void, ( int, const char * ), EM ) /* 0x00437b30 */

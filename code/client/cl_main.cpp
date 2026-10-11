@@ -3335,6 +3335,12 @@ static void CL_SendPureChecksums( void ) {
 	if ( !cl_connectedToPureServer || clc.demoplaying )
 		return;
 
+	// Ritual's engines prove nothing: a pure server lists its paks in sv_paks
+	// and the client keeps to them itself (alice.exe and fakk2.exe 1.02 have
+	// no `cp` command and no pure verification at all).
+	if ( Com_GameIsRitual() )
+		return;
+
 	// Q3, RTCW and ET have distinct cgame/UI slots in the filesystem proof.
 	// Retail QL prefixes one native-module pak before its general references.
 	// JKA's cp starts with its module checksums (jamp.exe 0x41dd50..0x41dda4).
@@ -3544,6 +3550,12 @@ static void CL_Vid_Restart( refShutdownCode_t shutdownCode ) {
 
 	// unpause so the cgame definitely gets a snapshot and renders a frame
 	Cvar_Set( "cl_paused", "0" );
+	// Ritual's vid_restart unpauses its game outright (alice.exe
+	// 0x0042b5b2..0x0042b5c6, fakk2.exe 1.02 0x00421312..0x00421326), and
+	// `paused` follows cl_paused here (SV_AlicePause_f).
+	if ( Com_GameIsRitual() && Cvar_VariableIntegerValue( "paused" ) ) {
+		Cvar_Set( "paused", "0" );
+	}
 
 	CL_ClearMemory();
 
@@ -5456,6 +5468,19 @@ static void CL_CheckUserinfo( void ) {
 CL_Frame
 ==================
 */
+static void CL_RendererFrameEvent( refFrameEvent_t event ) {
+	if ( cls.rendererStarted && re.FrameEvent ) {
+		re.FrameEvent( event, Sys_Microseconds() );
+	}
+}
+
+void CL_RendererPrepareInput( void ) { CL_RendererFrameEvent( REF_FRAME_PREPARE_INPUT ); }
+void CL_RendererInputPolled( void ) { CL_RendererFrameEvent( REF_FRAME_INPUT_POLLED ); }
+void CL_RendererInputSample( void ) { CL_RendererFrameEvent( REF_FRAME_INPUT_SAMPLE ); }
+void CL_RendererSimulation( qboolean begin ) {
+	CL_RendererFrameEvent( begin ? REF_FRAME_SIMULATION_BEGIN : REF_FRAME_SIMULATION_END );
+}
+
 void CL_Frame( int msec, int realMsec ) {
 	const bool traceFrameStages = com_speeds && com_speeds->integer >= 4;
 	const int frameStarted = traceFrameStages ? Sys_Milliseconds() : 0;
@@ -5861,8 +5886,9 @@ static void CL_InitRenderer( void ) {
 		cls.consoleShader = re.RegisterShaderNoMip( "gfx/2d/conback" );
 		cls.cursorShader = 0;
 	} else {
-	// Academy supplies this same half-cell atlas; retain Fn HUD and console placement.
-	cls.charSetShader = Com_GameIsSTVEF() || Com_GameIsJKA() ? re.RegisterShaderNoMip( "gfx/2d/charsgrid_med" )
+	// Both Jedi titles supply this half-cell atlas (JK2 MP0x40c32b,
+	// SP0x4093c0); retain Fn HUD and console placement.
+	cls.charSetShader = Com_GameIsSTVEF() || Com_GameIsJKA() || Com_GameIsJK2() ? re.RegisterShaderNoMip( "gfx/2d/charsgrid_med" )
 		: re.RegisterShader( wolfet ? "gfx/2d/consolechars" : rtcwMP ? "gfx/2d/hudchars" : "gfx/2d/bigchars" );
 	cls.recordShader = wolfet || Com_GameIsSTVEF() ? 0 : re.RegisterShaderNoMip( "icons/record" );
 	// Medal of Honor's "white" is an additive sprite (scripts/sprites.shader),
@@ -5912,9 +5938,9 @@ void CL_StartHunkUsers( void ) {
 	if ( !com_cl_running || !com_cl_running->integer ) {
 		return;
 	}
-	// Com_Error flushes the hunk before abandoning the failed native call.
-	// Reload Academy's client modules only once that recovery has completed.
-	if ( Com_GameIsJKAMP() && com_errorEntered ) return;
+	// Com_Error flushes the hunk before abandoning the failed module call.
+	// Reload Jedi multiplayer modules only once that recovery has completed.
+	if ( ( Com_GameIsJKAMP() || Com_GameIsJK2MP() ) && com_errorEntered ) return;
 
 	if ( cls.state >= CA_LOADING ) {
 		// try to apply map-depending configuration from cvar cl_mapConfig_<mapname> cvars
@@ -7481,6 +7507,12 @@ static void CL_ServerInfoPacket( const netadr_t *from, msg_t *msg ) {
 
 		// avoid duplicate
 		if ( NET_CompareAdr( from, &cls.localServers[i].adr ) ) {
+			// Medal of Honor: a server GameSpy's LAN search listed first is
+			// listed from its game port's own answer instead (cl_mohaa.cpp)
+			if ( Com_GameIsMOHAA() && CL_MOHAAGameSpyTakeOver( i ) ) {
+				CL_SetServerInfo( &cls.localServers[i], infoString, Sys_Milliseconds() - cl_localServersQueryTime );
+				Com_DPrintf( "%s listed from its getinfo answer in place of GameSpy's\n", NET_AdrToStringwPort( from ) );
+			}
 			return;
 		}
 	}
@@ -7497,6 +7529,8 @@ static void CL_ServerInfoPacket( const netadr_t *from, msg_t *msg ) {
 	// (OpenMoHAA CL_ServerInfoPacket); Quake III's menus ping for it instead.
 	if ( Com_GameIsMOHAA() ) {
 		CL_SetServerInfo( &cls.localServers[i], infoString, Sys_Milliseconds() - cl_localServersQueryTime );
+		Com_DPrintf( "%s listed from its getinfo answer: %s\n", NET_AdrToStringwPort( from ),
+			cls.localServers[i].hostName );
 	}
 
 	Q_strncpyz( info.data(), MSG_ReadString( msg ), static_cast<int>( info.size() ) );
@@ -7768,6 +7802,11 @@ static void CL_LocalServers_f( void ) {
 			NET_SendPacket( NS_CLIENT, n, message, &to );
 #endif
 		}
+	}
+
+	// and GameSpy's LAN search, which finds a server on any game port
+	if ( Com_GameIsMOHAA() ) {
+		CL_MOHAAGameSpyLanSearch();
 	}
 }
 

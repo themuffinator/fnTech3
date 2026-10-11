@@ -621,6 +621,16 @@ void FreeList( List *list ) {
 	std::free( list );
 }
 
+/* 0x004229b0: every line keeps its own history and loses its speakers'. */
+void ClearActors( List *list ) {
+	if ( !list ) {
+		return;
+	}
+	for ( Record *record = list->head; record; record = record->next ) {
+		FreeActors( record );
+	}
+}
+
 void ListDeleter::operator()( List *list ) const {
 	FreeList( list );
 }

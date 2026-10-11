@@ -151,15 +151,19 @@ neighbours is a weaker claim than one named by its own code:
   arguments for `LocateGameData` and slot 71 reads six for `Frame_Bounds`.
 - **order** (16 slots): position between two slots named another way. These
   are the weakest rows and are marked as such.
-- **Alice's own** (5 slots): 48, and 106 to 109. The sixth append, slot 110, names itself and is a literal. Slot 48 takes a name, measures
-  it with `repne scasb`, requires at least three characters and compares
-  against `tik`, so it is a TIKI model-name call the reference engine did not
-  have. Nothing is claimed about the five appended ones, except that slot 106
-  does the same 4KB stack probe and reaches the same formatting routine as
-  `Printf` and `DPrintf`, so it is a sixth print-family call.
-- **unnamed** (2 slots): 50 and 86. The engine writes a function into each and
-  this tree has not identified it. They are reference table members, not Alice
-  additions: the slot is accounted for, only the name is not.
+- **Alice's own** (4 slots): 106 to 109. The fifth append, slot 110, names
+  itself and is a literal. Nothing is claimed about the four, except that slot
+  106 does the same 4KB stack probe and reaches the same formatting routine as
+  `Printf` and `DPrintf`, so it is a sixth print-family call. This reading
+  first counted slot 48 here too, for its name test against `tik`; that test
+  is the reference table's `modelindex`, which loads the model definition
+  the name gives (correction above).
+- **unnamed** (none since the correction): this reading first left 50 and 86
+  unnamed; 50 is `GameDir` and 86 `Alias_UpdateDialog`.
+
+The counts above are the first reading's; the correction moved 48 out of
+Alice's own and named 50 and 86, and `code/compat/alice_game_imports.def`
+carries each slot's evidence as it now stands.
 - **absent** (1 slot): 100, which the engine's `rep stosd` leaves null and
   never writes. The module never calls it, which is the agreement that makes
   the null safe.
@@ -178,8 +182,8 @@ have broken a wrong map:
    and each carries a different configstring base -- `0x320`, `0x400` and
    `0x220` -- which is three index calls; with 48's `0x20` they are
    `imageindex`, `itemindex`, `soundindex` and `modelindex` (corrected
-   above). The largest block, 256 entries at `0x220`, is the model
-   one. Slot 49 sits beside them and is not an index call at all: it writes a
+   above). The 256 entries at `0x220` are the sounds; the models are the
+   512 at `0x20`. Slot 49 sits beside them and is not an index call at all: it writes a
    configstring at base `0x360` directly, which is `SetLightStyle`.
 4. **The TIKI block's arities.** Slots 53 to 87 reproduce the declared
    argument counts of the model, animation, frame, surface, tag and alias
@@ -1204,6 +1208,12 @@ version, not a call -- so an incoming ordinal must not be looked up in the map
 above. Doing so named the refusal `apiversion` instead of `GAME_INIT`.
 
 ## What this does not claim
+
+*Update, 2026-10-08:* every slot of all four tables now has a fixed-width
+type read out of the retail binaries, and the engine's table fills and export
+calls are checked against those types at compile time
+([signatures record](2026-10-08-alice-module-signatures.md)). The paragraph
+below is this record's original scope.
 
 No slot's signature, calling convention or return value is claimed, for any
 of the four tables. An argument count is not a signature: 59 of the game's

@@ -1182,7 +1182,9 @@ int main( int argc, const char* argv[] )
 		Com_Frame( qfalse );
 #else
 		// check for other input devices
+		CL_RendererPrepareInput();
 		IN_Frame();
+		CL_RendererInputPolled();
 		// run the game
 		Com_Frame( CL_NoDelay() );
 #endif

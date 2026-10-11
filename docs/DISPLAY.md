@@ -6,6 +6,10 @@ effects. The same three renderers and the same settings work in every game,
 using each game's own maps, models, lights and fog. Where a game behaves
 differently, this guide says so.
 
+Jedi Academy and Jedi Outcast still have incomplete graphics support; their
+supported menu models and effects use these same renderers and settings
+([current limits](GAMES.md#star-wars-jedi-knight-jedi-academy-jka-sp-jka-mp)).
+
 New to typing settings? [Getting Started](GETTING_STARTED.md#the-console-and-settings)
 shows how to open the console, change a setting and keep it. Widescreen
 field of view and HUD are in the [Widescreen guide](ASPECT_CORRECTION.md), and
@@ -567,6 +571,10 @@ but makes the brightest flares spread more naturally.
 
 ## Enhanced Liquids
 
+With [RTX ray tracing](RTX.md#what-you-will-see), liquids use traced
+reflections and refraction automatically. The screen-space effect described
+below applies to normal drawing. RTX shares its wave and ripple controls.
+
 fnTech3 can make water look more alive: the world behind it shimmers through
 it, the surface reflects the room at low angles, and players and rockets send
 ripples across it. Everything the map's designer gave the water -- its colour,
@@ -784,6 +792,10 @@ Standing still gives a perfectly sharp picture, very fast turns are capped so
 they never smear badly, and teleporting or a jump in the action resets it.
 
 ## Game-Specific Renderer Settings
+
+Medal of Honor's barrel explosions and other hidden emitters now draw
+their particles and debris in all three renderers, with no extra setting
+needed ([effects details](fntech3/2026-10-11-mohaa-effects.md)).
 
 A few settings exist only in the game whose original engine had them, with
 that engine's defaults:

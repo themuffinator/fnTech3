@@ -341,7 +341,7 @@ class RuntimeMdrTests(unittest.TestCase):
 
     def test_engine_export_bindings(self):
         public = (ROOT / 'code/renderercommon/tr_public.h').read_text(encoding='utf-8')
-        self.assertRegex(public, r'REF_API_VERSION\s+34')
+        self.assertRegex(public, r'REF_API_VERSION\s+35')
         self.assertLess(public.index('(*GetTextureCapabilities)'), public.index('(*RegisterRuntimeMDR)'))
         self.assertLess(public.index('(*RegisterRuntimeMDR)'), public.index('(*UpdateRuntimeMDRPose)'))
         for backend in BACKENDS:

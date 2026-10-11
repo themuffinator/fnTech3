@@ -809,7 +809,9 @@ numbers; RTCW's and ET's are converted with the rest of their calls in vm.c.
 =============
 */
 static int CL_ModuleKeyEvent( int key ) {
-	if ( Com_GameIsQuake3() ) {
+	// JK2's retail key table (jk2mp.exe 1.02a 0x4efba8) uses the same
+	// original Q3 numbers, including wheel183/184 and joystick185-216.
+	if ( Com_GameIsQuake3() || Com_GameIsJK2MP() ) {
 		return FnTech3_Q3KeyEventFromInternal( key );
 	}
 	// Q3Test's menu modules (1.06-1.08) number keys as Quake III does; 1.05's

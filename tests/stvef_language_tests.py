@@ -1,10 +1,13 @@
 """Elite Force's languages: German voices, translated key names and the
-language cvars, and the key numbers its UI is given.
+language cvars, and the key numbers its UI is given; and Jedi Outcast's
+German and French voices and Jedi Academy's German, French and Spanish ones.
 
 Retail S_LoadSound (stvoyHM.exe 0x42c690, stvoy.exe 0x4232f3) plays the
-German recording under sound/vox_d when s_language is DEUTSCH; the probe
-compiles fnTech3's S_CodecLoad against recording stubs and checks the order it
-tries names in. The key probes compile the adapter and name headers; the
+German recording under sound/vox_d when s_language is DEUTSCH, and Outcast's
+loaders (jk2mp.exe 0x45f520, jk2sp.exe 0x42adb0) the one under sound/chr_d or
+sound/chr_f when it is DEUTSCH or FRANCAIS; Academy's (jamp.exe 0x4723e0,
+jasp.exe 0x42dc80) add sound/chr_e for ESPANOL; the probe compiles fnTech3's
+S_CodecLoad against recording stubs and checks the order it tries names in. The key probes compile the adapter and name headers; the
 retail tables themselves are compared by scripts/probe_stvef_key_names.py. The
 source checks pin where the cvars are registered and that the Holomatch UI's
 key imports and key events go through Elite Force's own key numbers.
@@ -30,8 +33,16 @@ VOICE_PROBE = r'''
 #define MAX_QPATH 64
 struct snd_info_t { int rate; };
 static bool eliteForce = true;
+static bool outcast = false;
+static bool outcastSP = false;
 static std::string language = "DEUTSCH";
 static bool Com_GameIsSTVEF() { return eliteForce; }
+static bool Com_GameIsJK2() { return outcast; }
+static bool Com_GameIsJK2SP() { return outcast && outcastSP; }
+static bool academy = false;
+static bool academySP = false;
+static bool Com_GameIsJKASP() { return academy && academySP; }
+static bool Com_GameIsJKAMP() { return academy && !academySP; }
 static const char *Cvar_VariableString( const char * ) { return language.c_str(); }
 static int Q_stricmp( const char *a, const char *b ) {
 	for ( ;; ++a, ++b ) {
@@ -63,6 +74,9 @@ static void *S_CodecGetSound( const char *filename, snd_info_t *, bool quiet = f
 	return nullptr;
 }
 GERMAN
+JK2FILE
+JK2VOICE
+JKAVOICE
 LOAD
 static void Check( const char *name, std::vector<Attempt> expected, bool loads ) {
 	attempts.clear();
@@ -97,10 +111,119 @@ int main() {
 	language = "DEUTSCH";
 	eliteForce = false;
 	Check( voice, { { voice, false } }, false );
+	// Jedi Outcast reads its own "<name>.wav" first and has no "vox_d".
+	outcast = true;
+	Check( "sound/voice/computer/misc/1_frag.mp3", { { voice, false } }, false );
+	// Its voices: the first "chars" becomes "chr_d" or "chr_f", tried without
+	// a warning before the English recording (jk2mp.exe 0x45f520).
+	const char *kyle = "sound/chars/kyle/misc/death1.wav";
+	const char *kyleGerman = "sound/chr_d/kyle/misc/death1.wav", *kyleFrench = "sound/chr_f/kyle/misc/death1.wav";
+	present = { kyleGerman, kyleFrench, kyle };
+	for ( const char *german : { "DEUTSCH", "deutsch", "Deutsch" } ) {
+		language = german;
+		Check( "sound/chars/kyle/misc/death1.mp3", { { kyleGerman, true } }, true );
+	}
+	for ( const char *french : { "FRANCAIS", "francais" } ) {
+		language = french;
+		Check( "sound/chars/kyle/misc/death1", { { kyleFrench, true } }, true );
+	}
+	// No French recording: the English one, which warns only when it is missing too.
+	present = { kyleGerman, kyle };
+	Check( kyle, { { kyleFrench, true }, { kyle, false } }, true );
+	present.clear();
+	Check( kyle, { { kyleFrench, true }, { kyle, false } }, false );
+	// Only the first "chars", wherever it is.
+	Check( "sound/chars/chars/x.wav", { { "sound/chr_f/chars/x.wav", true }, { "sound/chars/chars/x.wav", false } }, false );
+	Check( "sound/xcharsx/y", { { "sound/xchr_fx/y.wav", true }, { "sound/xcharsx/y.wav", false } }, false );
+	// English, a language Outcast has no voices in, or no "chars": the name alone.
+	present = { kyleGerman, kyleFrench, kyle };
+	for ( const char *other : { "", "english", "DEUTSCH ", "german", "italiano" } ) {
+		language = other;
+		Check( kyle, { { kyle, false } }, true );
+	}
+	language = "DEUTSCH";
+	Check( "sound/weapons/saber/saberon.mp3", { { "sound/weapons/saber/saberon.wav", false } }, false );
+	// Multiplayer finds "chars" as the module wrote it; single player lowercases
+	// the name first (jk2sp.exe 0x42a96a), so it finds any case.
+	const char *upper = "sound/CHARS/kyle/misc/death1.wav";
+	present = { kyleGerman, upper };
+	Check( upper, { { upper, false } }, true );
+	outcastSP = true;
+	Check( upper, { { kyleGerman, true } }, true );
+	Check( kyle, { { kyleGerman, true } }, true );
+	outcastSP = false;
+	// Elite Force's German rule never reads "chars", nor Outcast's "voice/".
+	outcast = false;
+	Check( kyle, { { kyle, false } }, false );
+	present.clear();
 	eliteForce = true;
+	Check( kyle, { { kyle, false } }, false );
 	// Retail copies 64 bytes: a "voice/" beyond them is not seen.
 	const std::string longName = "sound/" + std::string( 60, 'a' ) + "/voice/x.wav";
 	Check( longName.c_str(), { { longName, false } }, false );
+
+	// Jedi Academy, both profiles: each lowercases the name first (jamp.exe
+	// 0x472726, jasp.exe 0x42dfc0), so its first "chars" in any case becomes
+	// "chr_d", "chr_f" or "chr_e" for DEUTSCH, FRANCAIS or ESPANOL, tried
+	// without a warning before the English recording, each name as the module
+	// wrote it (jamp.exe 0x4723e0, jasp.exe 0x42dc80).
+	eliteForce = false;
+	academy = true;
+	const char *taunt = "sound/chars/kyle/misc/taunt1.wav";
+	const char *tauntGerman = "sound/chr_d/kyle/misc/taunt1.wav", *tauntFrench = "sound/chr_f/kyle/misc/taunt1.wav";
+	const char *tauntSpanish = "sound/chr_e/kyle/misc/taunt1.wav";
+	for ( bool singlePlayer : { false, true } ) {
+		academySP = singlePlayer;
+		present = { tauntGerman, tauntFrench, tauntSpanish, taunt };
+		for ( const char *german : { "DEUTSCH", "deutsch", "Deutsch" } ) {
+			language = german;
+			Check( taunt, { { tauntGerman, true } }, true );
+		}
+		for ( const char *french : { "FRANCAIS", "francais" } ) {
+			language = french;
+			Check( taunt, { { tauntFrench, true } }, true );
+		}
+		for ( const char *spanish : { "ESPANOL", "espanol", "Espanol" } ) {
+			language = spanish;
+			Check( taunt, { { tauntSpanish, true } }, true );
+		}
+		// The extension the module asked for, or none, is kept.
+		Check( "sound/chars/kyle/misc/taunt1.mp3", { { "sound/chr_e/kyle/misc/taunt1.mp3", true },
+			{ "sound/chars/kyle/misc/taunt1.mp3", false } }, false );
+		Check( "sound/chars/kyle/misc/taunt1", { { "sound/chr_e/kyle/misc/taunt1", true },
+			{ "sound/chars/kyle/misc/taunt1", false } }, false );
+		// No Spanish recording: the English one, which warns only when it is missing too.
+		present = { tauntGerman, tauntFrench, taunt };
+		Check( taunt, { { tauntSpanish, true }, { taunt, false } }, true );
+		present.clear();
+		Check( taunt, { { tauntSpanish, true }, { taunt, false } }, false );
+		// "chars" in any case, the first only, wherever it is; the rest keeps its case.
+		Check( "sound/CHARS/Kyle/x.wav", { { "sound/chr_e/Kyle/x.wav", true }, { "sound/CHARS/Kyle/x.wav", false } }, false );
+		Check( "sound/Chars/chars/x.wav", { { "sound/chr_e/chars/x.wav", true }, { "sound/Chars/chars/x.wav", false } }, false );
+		Check( "sound/xcharsx/y.wav", { { "sound/xchr_ex/y.wav", true }, { "sound/xcharsx/y.wav", false } }, false );
+		// English, a language Academy has no voices in, or no "chars": the name alone.
+		present = { tauntGerman, tauntFrench, tauntSpanish, taunt };
+		for ( const char *other : { "", "english", "ESPANOL ", "espa\xf1ol", "spanish", "german", "italiano" } ) {
+			language = other;
+			Check( taunt, { { taunt, false } }, true );
+		}
+		language = "ESPANOL";
+		Check( "sound/weapons/saber/saberon.wav", { { "sound/weapons/saber/saberon.wav", false } }, false );
+		// Neither Elite Force's "voice/" nor Outcast's cut name.
+		language = "DEUTSCH";
+		Check( voice, { { voice, false } }, false );
+		Check( "sound/chars/kyle/misc/taunt1.mp3", { { "sound/chr_d/kyle/misc/taunt1.mp3", true },
+			{ "sound/chars/kyle/misc/taunt1.mp3", false } }, false );
+	}
+	// Spanish is Academy's alone: Outcast and Elite Force play English for it.
+	academy = false;
+	language = "ESPANOL";
+	present = { tauntSpanish, taunt };
+	outcast = true;
+	Check( taunt, { { taunt, false } }, true );
+	outcast = false;
+	eliteForce = true;
+	Check( taunt, { { taunt, false } }, true );
 }
 '''
 
@@ -178,8 +301,12 @@ class STVEFLanguageTests(unittest.TestCase):
     def test_german_voices_load_first(self):
         codec = read('code/client/audio/codecs/snd_codec.cpp')
         german = function(codec, 'bool S_STVEFGermanVoice(')
+        outcast = function(codec, 'bool S_JK2SoundFile(')
+        foreign = function(codec, 'bool S_JK2ForeignVoice(')
+        academy = function(codec, 'bool S_JKAForeignVoice(')
         load = function(codec, 'extern "C" void *S_CodecLoad(').replace('extern "C" ', 'static ')
-        probe = VOICE_PROBE.replace('GERMAN', german).replace('LOAD', load)
+        probe = (VOICE_PROBE.replace('GERMAN', german).replace('JK2FILE', outcast).replace('JK2VOICE', foreign)
+                 .replace('JKAVOICE', academy).replace('LOAD', load))
         build_and_run(self, probe, 'stvef-voice-', ('clang++', 'g++'), '-std=c++17')
 
     def test_key_numbers_and_names(self):
@@ -192,6 +319,22 @@ class STVEFLanguageTests(unittest.TestCase):
         # Before the s_initsound check, as retail registers it.
         self.assertLess(language, init.index('cv = Cvar_Get( "s_initsound", "1", 0 );'))
         self.assertIn('if ( Com_GameIsSTVEF() ) {', init[language - 200:language])
+        # Jedi Outcast's: "english", archived, kept by cvar_restart, in both
+        # profiles' S_Init before s_initsound (jk2mp.exe 0x45ca1a, jk2sp.exe
+        # 0x423350). Its menus offer english, francais and deutsch.
+        outcast = init.index('cv = Cvar_Get( "s_language", "english", CVAR_ARCHIVE | CVAR_NORESTART );',
+                             init.index('\n\tif ( Com_GameIsJK2() ) {'))
+        self.assertLess(outcast, init.index('cv = Cvar_Get( "s_initsound", "1", 0 );'))
+        block = init[init.rindex('\n\tif ( ', 0, outcast):outcast]
+        self.assertTrue(block.startswith('\n\tif ( Com_GameIsJK2() ) {'), block)
+        # Jedi Academy's: the same, in both of its profiles' S_Init (jamp.exe
+        # 0x4695cb, jasp.exe 0x425a2f). Its menus add espanol.
+        academy = init.index('cv = Cvar_Get( "s_language", "english", CVAR_ARCHIVE | CVAR_NORESTART );',
+                             init.index('\n\tif ( Com_GameIsJKASP() || Com_GameIsJKAMP() ) {'))
+        self.assertLess(academy, init.index('cv = Cvar_Get( "s_initsound", "1", 0 );'))
+        block = init[init.rindex('\n\tif ( ', 0, academy):academy]
+        self.assertTrue(block.startswith('\n\tif ( Com_GameIsJKASP() || Com_GameIsJKAMP() ) {'), block)
+        self.assertEqual(init.count('Cvar_Get( "s_language"'), 3)
         client = read('code/client/cl_main.cpp')
         block = client[client.index('	if ( Com_GameIsSTVEF() ) {\n		// Retail\'s text and keyboard languages'):]
         block = block[:block.index('\n	}\n')]

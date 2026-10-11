@@ -82,8 +82,10 @@ static void Clear() {
     s_shaderText=nullptr;s_extensionOffset=nullptr;
 }
 int main() {
-    for(auto profile:{COM_GAME_JKA_SP,COM_GAME_JKA_MP,COM_GAME_QUAKE3,
-        COM_GAME_QUAKELIVE,COM_GAME_RTCW_SP,COM_GAME_RTCW_MP,COM_GAME_JK2_MP}) {
+    for(auto profile:{COM_GAME_JKA_SP,COM_GAME_JKA_MP,COM_GAME_JK2_SP,COM_GAME_JK2_MP,
+        COM_GAME_QUAKE3,COM_GAME_QUAKELIVE,COM_GAME_RTCW_SP,COM_GAME_RTCW_MP,
+        COM_GAME_WOLFET,COM_GAME_STVEF_SP,COM_GAME_STVEF_MP,COM_GAME_QUAKE3_IHV,
+        COM_GAME_Q3TEST,COM_GAME_ALICE,COM_GAME_FAKK2,COM_GAME_MOHAA}) {
         for(bool programs:{false,true}) {
             Clear();ri.gameId=profile;extended=programs;
             lists["shaders.shader"]={"shared.shader","broken.shader","only.shader","clipped.shader"};
@@ -98,8 +100,9 @@ int main() {
             files["scripts/extended.shaderx"]="extended-only { { map fnx } }";
             ScanAndLoadShaderFiles();
             assert(allocations==0 && liveLists==0);
-            const bool jka=profile==COM_GAME_JKA_SP || profile==COM_GAME_JKA_MP;
-            assert(bool(Find("profile-only"))==jka && !Find("broken"));
+            const bool jedi=profile==COM_GAME_JKA_SP || profile==COM_GAME_JKA_MP ||
+                profile==COM_GAME_JK2_SP || profile==COM_GAME_JK2_MP;
+            assert(bool(Find("profile-only"))==jedi && !Find("broken"));
             assert(Find("engine-owned") && bool(Find("extended-only"))==programs);
             const auto duplicate=Find("duplicate");
             assert(duplicate);
@@ -108,15 +111,17 @@ int main() {
             assert(!std::strcmp(COM_ParseExt(&body,qtrue),"supplement"));
             assert(duplicate<s_extensionOffset);
             if(programs)assert(Find("extended-only")>=s_extensionOffset);
-            assert((std::find(listCalls.begin(),listCalls.end(),"shaders.shader")!=listCalls.end())==jka);
+            assert((std::find(listCalls.begin(),listCalls.end(),"shaders.shader")!=listCalls.end())==jedi);
         }
     }
     // Profile-only installations still load, without engine supplements.
-    Clear();ri.gameId=COM_GAME_JKA_MP;extended=false;
-    lists["shaders.shader"]={"only.shader"};
-    files["shaders/only.shader"]="profile-only { }";
-    ScanAndLoadShaderFiles();assert(Find("profile-only"));
-    Clear();ScanAndLoadShaderFiles();assert(!s_shaderText && hunks.empty());
+    for(auto profile:{COM_GAME_JKA_SP,COM_GAME_JKA_MP,COM_GAME_JK2_SP,COM_GAME_JK2_MP}) {
+        Clear();ri.gameId=profile;extended=false;
+        lists["shaders.shader"]={"only.shader"};
+        files["shaders/only.shader"]="profile-only { }";
+        ScanAndLoadShaderFiles();assert(Find("profile-only"));
+        Clear();ScanAndLoadShaderFiles();assert(!s_shaderText && hunks.empty());
+    }
     Clear();return 0;
 }
 '''

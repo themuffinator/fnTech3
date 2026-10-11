@@ -749,6 +749,10 @@ cvar_t *Cvar_Get( const char *var_name, const char *value, int flags );
 // that allows variables to be unarchived without needing bitflags
 // if value is "", the value will not override a previously set value.
 
+const cvar_t *Cvar_FindExisting( const char *var_name );
+// Read an existing record without applying latched values or changing flags/defaults.
+// Returns NULL when absent; borrowed strings can change on the next cvar mutation.
+
 void	Cvar_Register( vmCvar_t *vmCvar, const char *varName, const char *defaultValue, int flags, int privateFlag );
 // Preserve the smaller Quake III vmCvar_t memory layout for legacy vmMain/QVM modules.
 void	Cvar_RegisterLegacy( void *vmCvar, const char *varName, const char *defaultValue, int flags, int privateFlag );
@@ -965,6 +969,8 @@ fileHandle_t	FS_FOpenFileWrite( const char *qpath );
 fileHandle_t	FS_FOpenFileAppend( const char *filename );
 fileHandle_t	FS_FOpenProfileFileWrite( const char *qpath );
 // will properly create any needed paths and deal with separator character issues
+const char	*FS_PrepareWritePath( const char *filename );
+// the OS path FS_FOpenFileWrite would use, its directories made; NULL if refused
 
 qboolean FS_ResetReadOnlyAttribute( const char *filename );
 qboolean FS_ResetProfileReadOnlyAttribute( const char *filename );
@@ -1414,6 +1420,10 @@ qboolean CL_Disconnect( qboolean showMainMenu );
 void CL_ResetOldGame( void );
 void CL_Shutdown( const char *finalmsg, qboolean quit );
 void CL_Frame( int msec, int realMsec );
+void CL_RendererPrepareInput( void );
+void CL_RendererInputPolled( void );
+void CL_RendererInputSample( void );
+void CL_RendererSimulation( qboolean begin );
 void CL_WebHost_Frame( void );
 qboolean CL_GameCommand( void );
 intptr_t CL_RTCWGetTag( int client, const char *name, orientation_t *orientation );

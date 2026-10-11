@@ -67,6 +67,7 @@ struct { int checksumFeed = 1234; int pure = 0; } sv;
 static bool rtcwSP;
 bool Com_GameIsRTCWSP() { return rtcwSP; }
 bool Com_GameIsSTVEFSP() { return false; }
+bool Com_GameIsRitual() { return false; }
 void SV_STVEFSPEnteredWorld() {}
 int SV_ReliableCommandLimit(const client_t *client) { return Netchan_ReliableCommandLimit(client->netchan.wireProfile); }
 

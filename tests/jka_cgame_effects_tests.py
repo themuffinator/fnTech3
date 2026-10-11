@@ -19,8 +19,10 @@ def fixture():
 #include "code/client/client_jka_command_values.hpp"
 #include "code/compat/jka_lightstyle.hpp"
 #include "code/qcommon/qcommon.h"
+#include "code/cgame/cg_public.h"
 #include "code/qcommon/vm_local.h"
 #include "code/compat/jka_module_abi.h"
+#include "code/compat/jka_client_abi.h"
 #include <array>
 #include <map>
 #include <limits>
@@ -34,6 +36,8 @@ void QDECL Com_Error(errorParm_t,const char *,...){
  if(recover)CL_JKACgameClear();if(jumpRecovery)std::longjmp(recoveryPoint,1);throw Drop{};
 }
 static vm_t *cgvm;
+static void *jkaCgameSharedBuffer;
+intptr_t QDECL VM_Call(vm_t*,int,int,...){assert(false);return 0;}
 ''' + function(vm,'void *VM_ExplicitArgPtr(')+'\n'+function(vm,'void VM_CheckBounds(')+'\n'+ \
         function(host,'static void *CL_JKACgameSpan(') + r'''
 static const std::string mainEffect=
@@ -98,7 +102,7 @@ cvar_t *Cvar_Get(const char *name,const char *value,int flags){
 }
 #include "code/client/client_jka_cgame_effects.hpp"
 static fntech3::jka::lightstyle::Store jkaCgameLightStyles;
-static void *jkaCgameSharedBuffer;static std::vector<int> jkaFonts;
+static std::vector<int> jkaFonts;
 static int modelResets,stringResets,ambientResets;
 static void CL_JKACgameGhoul2Clear(){++modelResets;}
 static void CL_JKACgameAmbientClear(){++ambientResets;}

@@ -535,6 +535,10 @@ void CL_AliceLoadingScreenRefresh( void );
 void CL_AliceRegisterClientArt( void );
 void CL_AliceMapLoading( void );
 void CL_AliceFirstSnapshot( void );
+// The loading screen a spawn that keeps the game module puts up, and the
+// server-count test each frame's snapshot gets (0x00424b9f).
+void CL_AliceMapLoadingKeep( void );
+qboolean CL_AliceSnapshotServerCount( int snapFlags );
 void CL_AliceWidgetPrint( const char *widget, const char *text );
 // cl_alice_saveshot.cpp: the savegame picture. The `saveshot <path> <w> <h>`
 // command's body, and the capture it makes: one frame drawn and kept as a
@@ -565,12 +569,13 @@ void CL_StopRecord_f( void );
 netchanWireProfile_t CL_ActiveWireProfile( void );
 // Elite Force Holomatch's retail protocol-24 framing, live or from a demo.
 qboolean CL_LegacyFraming( void );
-// Elite Force and Academy's charsgrid_med uses the left half of a cell.
+// Elite Force and both Jedi titles' charsgrid_med use the left half of a cell.
 // The installed atlas is adapted into Fn's diagnostic and console text paths.
 static inline float CL_CharsetCellWidth( void ) {
 	const comGameProfile_t *profile = Com_GameProfile();
-	const bool academy = profile && ( profile->id == COM_GAME_JKA_SP || profile->id == COM_GAME_JKA_MP );
-	return Com_GameIsSTVEF() || academy ? 0.03125f : 0.0625f;
+	const bool jedi = profile && ( profile->id == COM_GAME_JKA_SP || profile->id == COM_GAME_JKA_MP ||
+		profile->id == COM_GAME_JK2_SP || profile->id == COM_GAME_JK2_MP );
+	return Com_GameIsSTVEF() || jedi ? 0.03125f : 0.0625f;
 }
 // Ritual's protocol 1 is one wire for Alice and F.A.K.K.2, whose engines ring
 // 128 and 64 commands (alice.exe 0x0042a220, fakk2.exe 1.02 0x0041ffaf); the

@@ -25,6 +25,13 @@ bool rt_class_dynamic(uint customIndex)
 	return cls == RT_CLASS_DYNAMIC || cls == RT_CLASS_WEAPON || cls == RT_CLASS_BODY;
 }
 
+// This lane is stamped from RF_NOSHADOW after pose extraction, independently
+// of material alpha, first-person visibility and reflection visibility.
+bool rt_casts_shadow(RtTriangle tri)
+{
+	return !tri.dynamic || tri.v0.normal.w >= 0.0;
+}
+
 RtTriangle rt_fetch_triangle(uint customIndex, uint geometryIndex, uint primitive)
 {
 	RtTriangle tri;
@@ -166,6 +173,10 @@ vec3 rt_triangle_geometric_normal(RtTriangle tri)
 bool rt_hit_accepted(RtTriangle tri, vec2 bary, bool front, vec3 dir)
 {
 	RtMaterial m = rt_triangle_material(tri);
+	// Opaque geometry normally bypasses any-hit altogether. An opaque
+	// RF_NOSHADOW entity is routed here only to enforce its shadow policy;
+	// preserve its original primary/reflection coverage in that case.
+	if ((m.flags & RT_MF_MASKED) == 0u) return true;
 	if ((m.flags & RT_MF_TWO_SIDED) == 0u) {
 		bool cullFront = (m.flags & RT_MF_CULL_FRONT) != 0u;
 		if (cullFront ? front : !front) {

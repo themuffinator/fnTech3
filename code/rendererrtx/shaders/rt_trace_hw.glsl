@@ -34,7 +34,7 @@ bool trace_solid(vec3 origin, vec3 dir, float tMin, float tMax, uint mask)
 	if ((mask & RT_MASK_MOVING) != 0u) {
 		RtHitPayload world = payload;
 		float reach = world.hitT >= 0.0 ? world.hitT : tMax;
-		traceRayEXT(u_tlas, gl_RayFlagsNoneEXT, mask & RT_MASK_MOVING, 0, 0, 0, origin, tMin, dir, reach, 0);
+		traceRayEXT(u_tlas, gl_RayFlagsNoneEXT, mask & RT_MASK_MOVING, 2, 0, 0, origin, tMin, dir, reach, 0);
 		if (payload.hitT < 0.0) {
 			payload = world;
 		}
@@ -47,31 +47,28 @@ bool trace_solid(vec3 origin, vec3 dir, float tMin, float tMax, uint mask)
 // The last shadow ray's blocker, which this backend does not report (hitT -1)
 RtHitPayload g_shadowBlocker;
 
-float rt_trace_shadow_mask(vec3 origin, vec3 dir, float tMax, uint mask, bool solid)
+float rt_trace_shadow_mask(vec3 origin, vec3 dir, float tMax, uint mask, bool solid, out float reactive)
 {
+	reactive = 0.0;
 	g_shadowBlocker.hitT = -1.0;
 	if (tMax <= 0.02) {
 		return 1.0;
 	}
-	shadowVisible = 0.0;
-	if (!solid) {
-		traceRayEXT(u_tlas, gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
-			mask, 0, 0, 1, origin, 0.01, dir, tMax, 1);
-		return shadowVisible;
-	}
-	// a solid ray: the world opaque, then what the compilers never saw
-	// through its alpha tests
+	// Separate the world and entities so a body shadow can invalidate light
+	// history on a static receiver without a closest-hit payload.
 	uint still = mask & ~RT_MASK_MOVING;
 	shadowVisible = 1.0;
 	if (still != 0u) {
 		shadowVisible = 0.0;
-		traceRayEXT(u_tlas, gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT | gl_RayFlagsOpaqueEXT,
+		traceRayEXT(u_tlas, gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT |
+			(solid ? gl_RayFlagsOpaqueEXT : gl_RayFlagsNoneEXT),
 			still, 0, 0, 1, origin, 0.01, dir, tMax, 1);
 	}
 	if (shadowVisible > 0.0 && (mask & RT_MASK_MOVING) != 0u) {
 		shadowVisible = 0.0;
 		traceRayEXT(u_tlas, gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
-			mask & RT_MASK_MOVING, 0, 0, 1, origin, 0.01, dir, tMax, 1);
+			mask & RT_MASK_MOVING, 2, 0, 1, origin, 0.01, dir, tMax, 1);
+		if (shadowVisible == 0.0) reactive = 1.0;
 	}
 	return shadowVisible;
 }

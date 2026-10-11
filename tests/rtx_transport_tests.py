@@ -99,7 +99,7 @@ class RtxTransportTests(unittest.TestCase):
                 source = shader(backend_file)
                 self.assertIn("bool trace_radiance(vec3 origin, vec3 dir, float tMin, float tMax, uint mask)", source)
                 self.assertIn("bool trace_solid(vec3 origin, vec3 dir, float tMin, float tMax, uint mask)", source)
-                self.assertIn("float rt_trace_shadow_mask(vec3 origin, vec3 dir, float tMax, uint mask, bool solid)",
+                self.assertIn("float rt_trace_shadow_mask(vec3 origin, vec3 dir, float tMax, uint mask, bool solid, out float reactive)",
                               source)
         backend = (ROOT / "code/rendererrtx/rt/rt_backend.c").read_text(encoding="utf-8")
         self.assertIn("pipelineInfo.maxPipelineRayRecursionDepth = 1;", backend)
@@ -117,7 +117,7 @@ class RtxTransportTests(unittest.TestCase):
         # shadow rays skip closest hit and stop at the first opaque hit
         self.assertIn("gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT",
                       shader("rt_trace_hw.glsl"))
-        self.assertIn("return rt_sw_trace(origin, dir, 0.01, tMax, mask, true, solid, g_shadowBlocker) ? 0.0 : 1.0;",
+        self.assertIn("bool blocked = rt_sw_trace(origin, dir, 0.01, tMax, mask, true, solid, g_shadowBlocker);",
                       software)
         self.assertIn("g_shadowMask", shader("rt_lighting.glsl"))
         # a solid ray takes the world as opaque, as the map compilers' light
@@ -131,7 +131,7 @@ class RtxTransportTests(unittest.TestCase):
         self.assertIn("if (masked && (!solid || dynamic)) {", software)
         shadow = function(hardware, "rt_trace_shadow_mask")
         self.assertIn("uint still = mask & ~RT_MASK_MOVING;", shadow)
-        self.assertIn("gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT | gl_RayFlagsOpaqueEXT,\n"
+        self.assertIn("(solid ? gl_RayFlagsOpaqueEXT : gl_RayFlagsNoneEXT),\n"
                       "\t\t\tstill,", shadow)
         self.assertIn("gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,\n"
                       "\t\t\tmask & RT_MASK_MOVING,", shadow)
@@ -195,7 +195,7 @@ class RtxTransportTests(unittest.TestCase):
         for glsl, name in (("u_outColor", "OUT_COLOR"), ("u_outSpecular", "OUT_SPECULAR"),
                            ("u_outReflectance", "OUT_REFLECTANCE"), ("u_outNormalDepth", "OUT_NORMAL_DEPTH"),
                            ("u_outEmission", "OUT_EMISSION"), ("u_outMotion", "OUT_MOTION"),
-                           ("u_outInfo", "OUT_INFO")):
+                           ("u_outInfo", "OUT_INFO"), ("u_outIndirect", "OUT_INDIRECT")):
             with self.subTest(binding=glsl):
                 self.assertEqual(raygen.get(glsl), index[name])
 
@@ -206,7 +206,7 @@ class RtxTransportTests(unittest.TestCase):
         self.assertIn("dot(oct_decode(pnd.xy), n) < 0.85", temporal)
         self.assertIn("RT_DENOISE_FLAG_HISTORY_VALID", temporal)
         # moving surfaces keep a short history
-        self.assertIn("(info & (RT_PIXEL_DYNAMIC | RT_PIXEL_WEAPON)) != 0u", temporal)
+        self.assertIn("(info & (RT_PIXEL_DYNAMIC | RT_PIXEL_WEAPON | RT_PIXEL_LIQUID)) != 0u", temporal)
         atrous = shader("rt_denoise_atrous.comp")
         self.assertIn("iteration == 0u && (pc.state.w & RT_DENOISE_FLAG_WRITE_HISTORY) != 0u", atrous)
         self.assertIn("exp(-abs(lD - denoise_luminance(qD.rgb)) / (phiD + 1e-6))", atrous)

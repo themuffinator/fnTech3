@@ -1,0 +1,409 @@
+{
+  "record": "2026-10-08-jka-ui-local-sound.md",
+  "profile": "jka-mp",
+  "baseCommit": "6cc18d02aa5af460697e194289bbaa1b933da53a",
+  "build": {
+    "platform": "Windows 11 x86 (MSVC 2022, meson debugoptimized, strict warnings)",
+    "source": "baseCommit exported clean (git archive) with every development gate on; the after runtime adds this slice's code/client/client_jka_ui_host.hpp (cl_ui.cpp recompiled, fntech3.exe relinked; the other files are the same build's)",
+    "runtimeFolders": [
+      ".tmp/runtime/jka-ui-sound-before",
+      ".tmp/runtime/jka-ui-sound-after"
+    ],
+    "openal": "OpenAL Soft 1.25.2 x86 soft_oal.dll beside both executables"
+  },
+  "runtime": {
+    "before": {
+      "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+      "fnql_glx_x86.dll": "fad5326b9c606e13912e8b3df550f53a52815501c06a0ebb7c2e1b91fd0b9022",
+      "fnql_rtx_x86.dll": "5d8be3fc1479de034f74ce5e5cedac3a7fb244c7b83e412f0ffe002823f44380",
+      "fnql_vk_x86.dll": "48a2647ea25fc2cae634aa0b3a82ce542d9fb4576f737e7f599022f2e470be44",
+      "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+      "fntech3.exe": "1cdacf443e81f1961b7b5a52e018141a5151d3e030b742904b3b34a63c68cd47",
+      "fntech3.pdb": "86ef632940c2b5e8cffd50a8f2eb0007002952a3ab79016e1ee38a624986c6b5",
+      "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+    },
+    "after": {
+      "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+      "fnql_glx_x86.dll": "fad5326b9c606e13912e8b3df550f53a52815501c06a0ebb7c2e1b91fd0b9022",
+      "fnql_rtx_x86.dll": "5d8be3fc1479de034f74ce5e5cedac3a7fb244c7b83e412f0ffe002823f44380",
+      "fnql_vk_x86.dll": "48a2647ea25fc2cae634aa0b3a82ce542d9fb4576f737e7f599022f2e470be44",
+      "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+      "fntech3.exe": "9e26146d89f3c6dd3483329a854a094cd2454071db89f5529711d134184a0229",
+      "fntech3.pdb": "9c7307bfbd0b264c409a360bae988ab97894216d0cf1239303cf5ca13b18f8f2",
+      "soft_oal.dll": "011d2cdb7cdc2a97858f414956955df5a2514fecefe1982928c4cd2b1a2e0c8a"
+    }
+  },
+  "retail": {
+    "jamp.exe 1.01": {
+      "path": "E:\\Games\\Jedi Academy\\jamp.exe",
+      "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+      "peTimestamp": "0x3faa8a05",
+      "sizeOfImage": "0xf27000"
+    },
+    "uix86.dll (base/assets3.pk3)": {
+      "sha256": "1179892f84f56805457455e0e01dbaab83f524180f2440b0f8157484eb711429",
+      "imageBase": "0x40000000",
+      "peTimestamp": "0x3faa8802"
+    }
+  },
+  "import33": {
+    "level": "Source, Unit, Live subset",
+    "observed": {
+      "engineDispatcher": "0x423f50: cmp eax, 0xeb; ja 0x425136; idx = byte [0x425384 + N]; jmp dword [0x425150 + idx*4]",
+      "engineDefault": "0x425136: push N, push \"Bad UI system trap: %i\" (0x562b50), push 1 (ERR_DROP), call Com_Error 0x437290",
+      "engineCase": "0x424603: mov edx, [esi+8] (channel); mov esi, [esi+4] (handle); push edx; call S_StartLocalSound 0x46aed0; xor eax, eax; return",
+      "cgameImport38Case": "0x412934: the same hand-off with ecx for the channel",
+      "S_StartLocalSoundCallers": {
+        "direct": [
+          "0x41293b (cgame 38)",
+          "0x42460a (UI 33)"
+        ],
+        "data": []
+      },
+      "S_StartLocalSound": "0x46aed0: returns unless started (0xd83160) and unmuted (0xd8315c); handle outside [0, numSfx 0xc71a00) -> ERR_DROP \"S_StartLocalSound: handle %i out of range\" (0x55a9c4); else S_StartSound 0x46ac60 (origin NULL, listener 0xd83140, channel, handle)",
+      "listenerLevel": "0x46ae4d cmp channel, 7; below it and on the listener entity, volume = ftol(0.75 (0x54d4f0) * 255.0 (0x5660e0)) = 191, else 255",
+      "uiDllEntry": "0x400269b0 stores the syscall at 0x40049bb8",
+      "uiWrapper": "0x40026e50: push [esp+8] (channel), push [esp+4] (handle), push 0x21, call [0x40049bb8]",
+      "uiDirectCalls": [
+        {
+          "call": "0x4000f592",
+          "channel": 1
+        },
+        {
+          "call": "0x400242a3",
+          "channel": 1
+        },
+        {
+          "call": "0x400242de",
+          "channel": 1
+        },
+        {
+          "call": "0x40024321",
+          "channel": 1
+        }
+      ],
+      "uiContext": {
+        "base": "0x4047d2e0",
+        "pointer": "0x403ddcc4",
+        "startLocalSoundSlot": "0x4047d370 (+0x90)",
+        "slotStore": "0x40017658",
+        "registerSoundSlot": "+0xc8 = 0x40026e70 (import-32 wrapper)",
+        "itemFocusSound": "+0x160"
+      },
+      "uiContextCalls": [
+        {
+          "call": "0x4001b316",
+          "function": "0x4001b2d0",
+          "scriptTable": "0x40048cd0 \"play\"",
+          "channel": 0,
+          "handle": "registerSound(name), whatever it returns"
+        },
+        {
+          "call": "0x40023ca1",
+          "function": "0x40023c10",
+          "scriptTable": "0x40048ca0 \"setfocus\"",
+          "channel": 8,
+          "handle": "context item-focus sound, only when nonzero (0x40023c9a)"
+        },
+        {
+          "call": "0x40023f84",
+          "function": "0x40023e40",
+          "channel": 8,
+          "handle": "a focus sound"
+        }
+      ],
+      "slotScan": "every instruction with displacement 0x90 (19, swept and byte-scanned) and every reference to 0x4047d370; no other use of the slot",
+      "uiChannels": [
+        0,
+        1,
+        8
+      ],
+      "uiOpenMenu": "0x400047b3 compares \"ui_openmenu\" (0x40034d70); 0x4000477c: Menus_CloseAll 0x400234e0 (runs each visible menu's onClose, then clears focus and visibility), Argv(1), Menus_ActivateByName 0x40025ec0 (onOpen via 0x4001d800, then a mouse move at the context cursor), Key_SetCatcher(2)"
+    },
+    "installation": {
+      "source": "ui/jamp/*.menu from the installation's paks (assets1.pk3), later paks overriding",
+      "menus": 49,
+      "playOutsideComments": 711,
+      "playMenus": 45,
+      "playByEvent": {
+        "action": 678,
+        "onESC": 29,
+        "doubleClick": 2,
+        "onClose": 2
+      },
+      "playCountNotes": "696 of the 711 name the sound in quotes; counting `play \"` with comments gives 697",
+      "onClosePlay": {
+        "videowarningMenu": "play \"sound/interface/button1.wav\"",
+        "videodriverMenu": "play \"sound/interface/button1.wav\""
+      },
+      "onOpenSetfocus": {
+        "quitMenu": "quitgame_cancel",
+        "multiplayermenu": "quickserver_button",
+        "findplayer_popmenu": "nameField",
+        "createfavorite_popmenu": "addressEntry",
+        "ingame_voicechat": "attack"
+      },
+      "itemFocusSound": {
+        "ui/jamp/main.menu": "sound/interface/menuroam.wav",
+        "ui/jamp/ingame.menu": "sound/interface/menuroam.wav"
+      },
+      "itemFocusSoundsOfTheirOwn": 0
+    },
+    "reference": "OpenJK 1a6a643427aa347553e9073dac5570b33337c4d9 codemp/ui/ui_shared.c (Script_Play CHAN_AUTO, Script_SetFocus and Item_SetFocus CHAN_LOCAL_SOUND, Item_Model_Paint CHAN_LOCAL), codemp/ui/ui_main.c (UI_FeederSelection CHAN_LOCAL), codemp/ui/ui_atoms.c (ui_openmenu); names only. Quake III Team Arena code/ui/ui_shared.c (id source release) Script_Play uses CHAN_LOCAL_SOUND.",
+    "served": "client_jka_ui_host.hpp case UI_S_STARTLOCALSOUND: words outside int refused; S_StartLocalSoundVolume(handle, fntech3::jka::sound::EngineChannel(channel), fntech3::jka::sound::ListenerVolume(channel)); result 0 (as client-game import 38)",
+    "retailUiChannelsServed": {
+      "0": "CHAN_AUTO at 0.75",
+      "1": "CHAN_LOCAL at 0.75",
+      "8": "CHAN_LOCAL_SOUND at 1.0"
+    },
+    "fnFeatures": "S_StartLocalSoundVolume; Fn channel rules for the translated engine channel; source and tone classes (local: non-diegetic, dry, unsent, high-pass; self: the listener's own sound with a send to its environment); OpenAL HRTF, limiter and output settings; the legacy mixer",
+    "differences": [
+      "Retail ends in an ERR_DROP on an out-of-range handle while sound runs; fnTech3's backends warn and play nothing."
+    ],
+    "presentationOpen": "Academy plays `play` on the auto channel (Quake III TA on the local-sound channel), so its menu clicks take Fn's self class and a send to the listener's room; whether every UI-module sound should be non-diegetic is left open."
+  },
+  "probe": {
+    "script": ".tmp/jka-ui-local-sound/probe_menu_sound.py (not committed)",
+    "desktop": "unswitched private desktop; windowed; no input injected; net_enabled 0; no server",
+    "commandLine": [
+      "+set",
+      "com_gameProfile",
+      "jka-mp",
+      "+set",
+      "fs_basepath",
+      "E:\\Games\\Jedi Academy",
+      "+set",
+      "fs_homepath",
+      "<run>/home",
+      "+set",
+      "com_steamIntegration",
+      "0",
+      "+set",
+      "developer",
+      "1",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "net_enabled",
+      "0",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "r_mode",
+      "3",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_joystick",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "s_initsound",
+      "1",
+      "+set",
+      "s_muteWhenUnfocused",
+      "0",
+      "+set",
+      "s_muteWhenMinimized",
+      "0",
+      "+set",
+      "s_volume",
+      "0.05",
+      "+set",
+      "s_musicvolume",
+      "0",
+      "+set",
+      "cl_motd",
+      "0",
+      "+set",
+      "com_introplayed",
+      "1",
+      "+set",
+      "com_maxfps",
+      "60",
+      "+set",
+      "com_maxfpsUnfocused",
+      "60",
+      "+set",
+      "com_maxfpsMinimized",
+      "60",
+      "+set",
+      "s_backend",
+      "openal",
+      "+exec",
+      "probemenu.cfg"
+    ],
+    "startupCfg": [
+      "s_alSourceClassDebug 1",
+      "wait 600",
+      "ui_openmenu quitMenu",
+      "12 x (s_alDebugDump; wait 2)",
+      "wait 240",
+      "ui_openmenu videowarningMenu",
+      "wait 120",
+      "ui_openmenu mainMenu",
+      "12 x (s_alDebugDump; wait 2)",
+      "wait 240",
+      "quit"
+    ],
+    "legacyRun": "s_show 2 first (writable while no server runs); s_info in place of the dumps",
+    "homeConfig": "an empty jampconfig.cfg in each run's home"
+  },
+  "runs": [
+    {
+      "run": "before-openal-1",
+      "runtime": ".tmp/runtime/jka-ui-sound-before",
+      "backend": "openal",
+      "outcome": "refused",
+      "exit": 1,
+      "forced": true,
+      "stepsLogged": [
+        "ready",
+        "quitmenu"
+      ],
+      "refusal": "ERROR: Jedi Academy multiplayer UI import UI_S_STARTLOCALSOUND (33) is not served yet: menu service boundary is open",
+      "installationUnchanged": true
+    },
+    {
+      "run": "before-none-1",
+      "runtime": ".tmp/runtime/jka-ui-sound-before",
+      "backend": "none",
+      "outcome": "refused",
+      "exit": 1,
+      "forced": true,
+      "stepsLogged": [
+        "ready",
+        "quitmenu",
+        "videowarning",
+        "closewarning"
+      ],
+      "refusal": "ERROR: Jedi Academy multiplayer UI import UI_S_STARTLOCALSOUND (33) is not served yet: menu service boundary is open",
+      "installationUnchanged": true
+    },
+    {
+      "run": "after-openal-1",
+      "runtime": ".tmp/runtime/jka-ui-sound-after",
+      "backend": "openal",
+      "outcome": "exited",
+      "exit": 0,
+      "forced": false,
+      "stepsLogged": [
+        "ready",
+        "quitmenu",
+        "videowarning",
+        "closewarning",
+        "done"
+      ],
+      "refusal": null,
+      "installationUnchanged": true,
+      "quitmenu": {
+        "dumpsHolding": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "dumpsTaken": 12,
+        "voice": "shot ent=0 mode=relative tone=local/highpass sample=sound/interface/menuroam.wav dist=0.0 occ=0.00 target=0.00 gain=1.00 pan=0.00 pitch=1.00 dry=1.00 wet=0.00",
+        "tone": "Selected tone: class=local direct=highpass lf=0.92 hf=1.00 send=none lf=1.00 hf=1.00"
+      },
+      "closewarning": {
+        "dumpsHolding": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "dumpsTaken": 12,
+        "voice": "shot ent=0 mode=relative tone=self/highpass sample=sound/interface/button1.wav dist=0.0 occ=0.00 target=0.00 gain=0.75 pan=0.00 pitch=1.00 dry=1.00 wet=0.17",
+        "tone": "Selected tone: class=self direct=highpass lf=0.92 hf=1.00 send=lowpass lf=1.00 hf=1.00"
+      },
+      "environment": "Environment: small-room (zone generic, reverb small-room, blend 1.00, wet 0.30, directLF/HF 1.00/0.95, wetLF/HF 1.00/1.00, occx 1.00, outdoors 0, underwater 0, transition 650ms)",
+      "render": "OpenAL active render: HRTF enabled, output stereo-hrtf, distance inverse_clamped, limiter on",
+      "muteDuringSteps": "offscreen-muted (window's desktop is not on screen)"
+    },
+    {
+      "run": "after-legacy-1",
+      "runtime": ".tmp/runtime/jka-ui-sound-after",
+      "backend": "legacy",
+      "outcome": "exited",
+      "exit": 0,
+      "forced": false,
+      "stepsLogged": [
+        "ready",
+        "quitmenu",
+        "videowarning",
+        "closewarning",
+        "done"
+      ],
+      "refusal": null,
+      "installationUnchanged": true,
+      "quitmenu": {
+        "sShow2Updates": 15,
+        "leftRight": [
+          "127 127"
+        ]
+      },
+      "closewarning": {
+        "sShow2Updates": 44,
+        "leftRight": [
+          "95 95"
+        ]
+      }
+    },
+    {
+      "run": "after-none-1",
+      "runtime": ".tmp/runtime/jka-ui-sound-after",
+      "backend": "none",
+      "outcome": "exited",
+      "exit": 0,
+      "forced": false,
+      "stepsLogged": [
+        "ready",
+        "quitmenu",
+        "videowarning",
+        "closewarning",
+        "done"
+      ],
+      "refusal": null,
+      "installationUnchanged": true
+    }
+  ],
+  "tests": [
+    {
+      "file": "tests/jka_ui_local_sound_tests.py",
+      "covers": "production import-33 case and the host refusal branch: all 14 channels, levels at 6/7, unused numbers, retail UI channels 0/1/8, unregistered handles, over-wide words (x86_64 build), every other profile refused with no sound; source ties to the channel table and the jka-mp guard",
+      "mutations": {
+        "raw channel": "fails",
+        "full level": "fails",
+        "no width check": "fails (x86_64)",
+        "truncating cast": "fails"
+      }
+    },
+    {
+      "file": "UI-host fixtures and tests/jka_cgame_local_sound_tests.py",
+      "result": "pass unchanged"
+    }
+  ],
+  "open": [
+    "audible play and a captured mix",
+    "mouse and key focus paths and move previews (need input)",
+    "menu sounds during a session against retail jamp.exe; retail client needs disc 1",
+    "the class of Academy menu clicks in Fn's audio policy (settled by 2026-10-08-ui-sound-policy.md: interface audio on any channel)"
+  ]
+}

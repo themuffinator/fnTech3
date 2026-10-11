@@ -106,6 +106,10 @@ inline Status View(const fntech3_jka_mp_refdef_t &source, refdef_t &destination)
         !Finite(source.fov_x) || !Finite(source.fov_y) || source.fov_x <= 0 || source.fov_x >= 180 ||
         source.fov_y <= 0 || source.fov_y >= 180 || !Finite(source.vieworg)) return Status::InvalidRecord;
     for (const auto &axis : source.viewaxis) if (!Finite(axis)) return Status::InvalidRecord;
+    // Fn's text deformation consumes each slot as a C string. Do not let a
+    // malformed module record make it read into the next slot or view field.
+    for (const auto &text : source.text)
+        if (!std::memchr(text, 0, sizeof(text))) return Status::InvalidRecord;
     // Raven's normal-view draw-sky request (0x10) enters Fn's regular sky
     // material/cloud/fog/lighting path, which already draws ordinary skies.
     // It has no Q3 rdflag alias. Portal scenes (0x08) and other Raven-only

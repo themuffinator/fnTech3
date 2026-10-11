@@ -32,7 +32,7 @@ def fixture():
     end = host.index('\n\tcase Call::G_G2_GETBONEANIM:', start)
     assert '\tcase Call::G_G2_SETBOLTINFO:' in host[start:end]
     # The server's pose clock, its no-rotation selector and the clock's setter.
-    clock = host[host.index('static int jkaServerGhoul2Clock'):host.index('static void SV_JKAClearGame(')]
+    clock = host[host.index('static int SV_JKAGhoul2Time()'):host.index('static void SV_JKAClearGame(')]
     academy = binding('code/server/server_jka_game.hpp', 'static bool SV_JKAGameCall(')
     # Import 597, and the angle setter whose bits its flags word carries.
     bone_anim = host[host.index('\tcase Call::G_G2_GETBONEANIM:'):host.index('\n\tcase Call::G_G2_GETGLANAME:')]
@@ -42,6 +42,7 @@ def fixture():
         'int main(int argc,char **argv)', 'int PoseUnitFixtureMain(int argc,char **argv)')
     return tests + r'''
 #include "code/compat/jka_module_abi.h"
+#include "code/compat/jka_ghoul2_clock.hpp"
 #include <cstdlib>
 #include <initializer_list>
 #include <stdexcept>
@@ -177,8 +178,8 @@ static bool Reference(fntech3::ghoul2::Store &reference,void *owner,int model,in
 // writes retail's fallback for retail's own failures (server_jka_game.hpp).
 static void CheckAcademyClock(fntech3::ghoul2::Store &store,void *body){
  // The clock is the server's own, and only Academy's server sets it.
- SV_JKAGhoul2SetTime(100);CHECK(jkaServerGhoul2Clock==100);
- academyProfile=false;SV_JKAGhoul2SetTime(5000);academyProfile=true;CHECK(jkaServerGhoul2Clock==100);
+ SV_JKAGhoul2SetTime(100);CHECK(SV_JKAGhoul2Time()==100);
+ academyProfile=false;SV_JKAGhoul2SetTime(5000);academyProfile=true;CHECK(SV_JKAGhoul2Time()==100);
  fntech3::ghoul2::Store reference(ravenGhoul2Files,true,true,true);
  void *blendWeapon=nullptr,*instantWeapon=nullptr;
  void *blended=Twin(reference,true,blendWeapon),*instant=Twin(reference,false,instantWeapon);
@@ -205,6 +206,15 @@ static void CheckAcademyClock(fntech3::ghoul2::Store &store,void *body){
  // The answer follows the clock, not the word: at 150 the 100 answer is gone.
  CHECK(Query(587,body,0,1,100,out)&&!Same(out,bone));
  SV_JKAGhoul2SetTime(100);CHECK(Query(587,body,0,1,150,out)&&Same(out,bone));
+ // A listen server sees the client's clock, even inside its next frame.
+ // The two clocks survive module cleanup; an over-ahead client clock clears.
+ fntech3::jka::clock::shared.BeginFrame(120,true);
+ CHECK(SV_JKAGhoul2Time()==120);
+ CHECK(Query(587,body,0,1,99999,out)&&Reference(reference,blended,0,1,120,want)&&Same(out,want));
+ SV_JKAGhoul2SetTime(110);CHECK(SV_JKAGhoul2Time()==120);
+ fntech3::jka::clock::shared.ClearFrame();CHECK(SV_JKAGhoul2Time()==120);
+ fntech3::jka::clock::shared.Set(1,311);CHECK(SV_JKAGhoul2Time()==110);
+ SV_JKAGhoul2SetTime(100);
  // Retail's own failures write its fallback and answer 0: a model or bolt
  // the instance lacks, through any of the three imports.
  for(int op:{587,588,589}){
@@ -1140,7 +1150,7 @@ class JKAServerPoseClockTests(unittest.TestCase):
                                                          'static void SV_MapRestart_f( void ) {'))
         # One definition, which sets nothing for another profile.
         setter = function(read('code/server/server_jka_game.hpp'), 'void SV_JKAGhoul2SetTime( int time )')
-        self.assertIn('if ( Com_GameIsJKAMP() ) jkaServerGhoul2Clock = time;', setter)
+        self.assertIn('if ( Com_GameIsJKAMP() ) fntech3::jka::clock::shared.Set(0, time);', setter)
         self.assertIn('void SV_JKAGhoul2SetTime( int time );', read('code/server/server.h'))
 
 

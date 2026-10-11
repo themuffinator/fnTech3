@@ -13,11 +13,11 @@ layout(local_size_x = 8, local_size_y = 8) in;
 
 const float kernel[3] = float[3](3.0 / 8.0, 1.0 / 4.0, 1.0 / 16.0);
 
-float blurred_variance(uint src, ivec2 p, bool specular)
+vec3 blurred_variance(uint src, ivec2 p)
 {
 	// 3x3 Gaussian over the variance, for a steadier edge stop
 	const float g[2] = float[2](1.0 / 4.0, 1.0 / 8.0);
-	float sum = 0.0;
+	vec3 sum = vec3(0.0);
 	float wsum = 0.0;
 	for (int dy = -1; dy <= 1; dy++) {
 		for (int dx = -1; dx <= 1; dx++) {
@@ -26,7 +26,8 @@ float blurred_variance(uint src, ivec2 p, bool specular)
 				continue;
 			}
 			float w = g[abs(dx)] * g[abs(dy)];
-			float v = specular ? imageLoad(u_filterSpecular[src], q).a : imageLoad(u_filterDiffuse[src], q).a;
+			vec3 v = vec3(imageLoad(u_filterDiffuse[src], q).a,
+				imageLoad(u_filterSpecular[src], q).a, imageLoad(u_filterIndirect[src], q).a);
 			sum += v * w;
 			wsum += w;
 		}
@@ -49,20 +50,26 @@ void main()
 
 	vec4 cD = imageLoad(u_filterDiffuse[src], p);
 	vec4 cS = imageLoad(u_filterSpecular[src], p);
+	vec4 cI = imageLoad(u_filterIndirect[src], p);
+	float reactiveTime = imageLoad(u_histDiffuse[cur], p).a;
 	if ((info & RT_PIXEL_OWNED) == 0u) {
 		imageStore(u_filterDiffuse[dst], p, cD);
 		imageStore(u_filterSpecular[dst], p, cS);
+		imageStore(u_filterIndirect[dst], p, cI);
 		return;
 	}
 
-	vec4 nd = imageLoad(u_normalDepth[cur], p);
+	vec4 nd = read_normal_depth(cur, p);
 	vec3 n = oct_decode(nd.xy);
 	float z = nd.z;
 	float lD = denoise_luminance(cD.rgb);
 	float lS = denoise_luminance(cS.rgb);
 	float sigmaL = pc.params.y;
-	float phiD = sigmaL * sqrt(max(blurred_variance(src, p, false), 1e-10));
-	float phiS = sigmaL * sqrt(max(blurred_variance(src, p, true), 1e-10));
+	vec3 variance = blurred_variance(src, p);
+	float phiD = sigmaL * sqrt(max(variance.x, 1e-10));
+	float phiS = sigmaL * sqrt(max(variance.y, 1e-10));
+	float phiI = sigmaL * sqrt(max(variance.z, 1e-10));
+	float lI = denoise_luminance(cI.rgb);
 	float normalPower = pc.params.z;
 	float depthScale = pc.params.w * float(stepSize) * max(abs(z), 1.0) * 0.01 + 1e-3;
 	uint material = info >> 8u;
@@ -70,10 +77,13 @@ void main()
 	float k0 = kernel[0] * kernel[0];
 	vec3 sumD = cD.rgb * k0;
 	vec3 sumS = cS.rgb * k0;
+	vec3 sumI = cI.rgb * k0;
 	float varD = cD.a * k0 * k0;
 	float varS = cS.a * k0 * k0;
+	float varI = cI.a * k0 * k0;
 	float wD = k0;
 	float wS = k0;
+	float wI = k0;
 
 	for (int dy = -2; dy <= 2; dy++) {
 		for (int dx = -2; dx <= 2; dx++) {
@@ -88,7 +98,7 @@ void main()
 			if ((qinfo & RT_PIXEL_OWNED) == 0u) {
 				continue;
 			}
-			vec4 qnd = imageLoad(u_normalDepth[cur], q);
+			vec4 qnd = read_normal_depth(cur, q);
 			float wn = pow(max(dot(n, oct_decode(qnd.xy)), 0.0), normalPower);
 			float wz = exp(-abs(z - qnd.z) / depthScale);
 			float k = kernel[abs(dx)] * kernel[abs(dy)];
@@ -99,10 +109,18 @@ void main()
 
 			vec4 qD = imageLoad(u_filterDiffuse[src], q);
 			vec4 qS = imageLoad(u_filterSpecular[src], q);
+			vec4 qI = imageLoad(u_filterIndirect[src], q);
 			float w1 = wGeom * exp(-abs(lD - denoise_luminance(qD.rgb)) / (phiD + 1e-6));
+			// Direct shadows need a small spatial support. The wide passes
+			// reconstruct indirect light and glossy reflections only.
+			if (reactiveTime > 0.0 && iteration >= 2u) w1 = 0.0;
 			// specular also stops at material boundaries: glossiness differs
 			float w2 = ((qinfo >> 8u) == material ? wGeom : 0.0) *
 				exp(-abs(lS - denoise_luminance(qS.rgb)) / (phiS + 1e-6));
+			// Water carries a resolved reflected/refracted image. Wide support
+			// washes its details across unrelated objects behind the interface.
+			if ((info & RT_PIXEL_LIQUID) != 0u && iteration >= 3u) w2 = 0.0;
+			float w3 = wGeom * exp(-abs(lI - denoise_luminance(qI.rgb)) / (phiI + 1e-6));
 
 			sumD += qD.rgb * w1;
 			varD += qD.a * w1 * w1;
@@ -110,18 +128,25 @@ void main()
 			sumS += qS.rgb * w2;
 			varS += qS.a * w2 * w2;
 			wS += w2;
+			sumI += qI.rgb * w3;
+			varI += qI.a * w3 * w3;
+			wI += w3;
 		}
 	}
 
 	vec4 outD = vec4(sumD / wD, varD / (wD * wD));
 	vec4 outS = vec4(sumS / wS, varS / (wS * wS));
+	vec4 outI = vec4(sumI / wI, varI / (wI * wI));
 	imageStore(u_filterDiffuse[dst], p, outD);
 	imageStore(u_filterSpecular[dst], p, outS);
+	imageStore(u_filterIndirect[dst], p, outI);
 
 	if (iteration == 0u && (pc.state.w & RT_DENOISE_FLAG_WRITE_HISTORY) != 0u) {
 		// SVGF keeps the first filtered result as history
-		float len = imageLoad(u_histDiffuse[cur], p).a;
-		imageStore(u_histDiffuse[cur], p, vec4(outD.rgb, len));
+		float len = imageLoad(u_histSpecular[cur], p).a;
+		imageStore(u_histDiffuse[cur], p, vec4(outD.rgb, reactiveTime));
 		imageStore(u_histSpecular[cur], p, vec4(outS.rgb, len));
+		float lenI = imageLoad(u_histIndirect[cur], p).a;
+		imageStore(u_histIndirect[cur], p, vec4(outI.rgb, lenI));
 	}
 }

@@ -13,11 +13,12 @@ ROOT=Path(__file__).resolve().parents[1]
 def dispatch_fixture():
     host=(ROOT/'code/server/server_jka_game.hpp').read_text()
     start=host.index('\tcase Call::G_G2_GETBOLT:');end=host.index('\n\tcase Call::G_G2_ADDBOLT:',start)
-    clock=host[host.index('static int jkaServerGhoul2Clock'):host.index('static void SV_JKAClearGame(')]
+    clock=host[host.index('static int SV_JKAGhoul2Time()'):host.index('static void SV_JKAClearGame(')]
     vm=(ROOT/'code/qcommon/vm.c').read_text()
     tests=(ROOT/'tests/jka_pose_tests.cpp').read_text().replace('int main(int argc,char **argv)', 'int PoseUnitFixtureMain(int argc,char **argv)')
     return tests+r'''
 #include "code/compat/jka_module_abi.h"
+#include "code/compat/jka_ghoul2_clock.hpp"
 #include <stdexcept>
 using vec3_t=float[3];
 struct vm_t { void *entryPoint; void *dllExports; unsigned char *dataBase; unsigned dataMask; };

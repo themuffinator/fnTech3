@@ -4,7 +4,9 @@
 #include "../compat/jka_string_package.hpp"
 #include <set>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
+#include <limits>
 #include <utility>
 #include <vector>
 
@@ -37,9 +39,15 @@ inline void Add(std::string_view path, std::set<std::string> &paths) {
         !Component(path.substr(slash+1, path.size()-slash-5))) return;
     paths.insert(Lower(std::string(path)));
 }
-inline void Discover() {
+inline bool Failure(char (&error)[256], const char *message, const char *detail = nullptr) {
+    std::snprintf(error, sizeof(error), "%s%s%s", message, detail ? ": " : "", detail ? detail : "");
+    return false;
+}
+// Owning helpers return diagnostics; only their thin callers use Com_Error,
+// after temporary sets, strings and parsed tables have been destroyed.
+inline bool DiscoverPackages(char (&error)[256]) {
     auto &state = Storage();
-    if (state.discovered) return;
+    if (state.discovered) return true;
     Cvar_Get("se_language", "english", CVAR_ARCHIVE | CVAR_NORESTART);
     std::set<std::string> paths;
     int count = 0;
@@ -61,33 +69,42 @@ inline void Discover() {
         FS_FreeFileList(nested);
     }
     FS_FreeFileList(files);
-    if (paths.empty() || paths.size() > 4096) Com_Error(ERR_DROP, "Jedi Academy StringEd packages are missing or exceed the file limit");
+    if (paths.empty() || paths.size() > 4096)
+        return Failure(error, "Jedi Academy StringEd packages are missing or exceed the file limit");
     std::set<std::string> languages;
-    state.paths.assign(paths.begin(), paths.end());
     for (const auto &path : paths) languages.insert(path.substr(0, path.find('/')));
-    if (!languages.count("english")) Com_Error(ERR_DROP, "Jedi Academy StringEd requires its installed English packages");
-    state.languages.push_back("english");
-    for (const auto &language : languages) if (language != "english") state.languages.push_back(language);
-    state.discovered = true;
+    if (!languages.count("english"))
+        return Failure(error, "Jedi Academy StringEd requires its installed English packages");
+    State next;
+    next.paths.assign(paths.begin(), paths.end());
+    next.languages.push_back("english");
+    for (const auto &language : languages) if (language != "english") next.languages.push_back(language);
+    next.discovered = true;
+    state = std::move(next);
+    return true;
 }
-inline std::string Selected() {
+inline void Discover() {
+    char error[256]{};
+    if (!DiscoverPackages(error)) Com_Error(ERR_DROP, "%s", error);
+}
+inline const std::string &Selected() {
     Discover();
-    char language[65]{};
-    Cvar_VariableStringBuffer("se_language", language, sizeof(language));
-    const auto selected = Lower(language);
+    char selected[65]{};
+    Cvar_VariableStringBuffer("se_language", selected, sizeof(selected));
+    for (auto &c : selected) if (c >= 'A' && c <= 'Z') c += 'a'-'A';
     if (!Component(selected)) Com_Error(ERR_DROP, "Invalid Jedi Academy StringEd language name");
     const auto &languages = Storage().languages;
-    if (std::find(languages.begin(), languages.end(), selected) == languages.end())
-        Com_Error(ERR_DROP, "Selected Jedi Academy StringEd language is not installed: %s", selected.c_str());
-    if (!strings::Western(selected) || selected == "russian" || selected == "polish")
-        Com_Error(ERR_DROP, "Jedi Academy language-specific font and localization boundary is open: %s", selected.c_str());
-    return selected;
+    const auto found = std::find(languages.begin(), languages.end(), selected);
+    if (found == languages.end())
+        Com_Error(ERR_DROP, "Selected Jedi Academy StringEd language is not installed: %s", selected);
+    if (!strings::Western(selected) || !std::strcmp(selected, "russian") || !std::strcmp(selected, "polish"))
+        Com_Error(ERR_DROP, "Jedi Academy language-specific font and localization boundary is open: %s", selected);
+    return *found;
 }
-inline const strings::Table &Table() {
-    const auto selected = Selected();
+inline const strings::Table *LoadTable(const std::string &selected, char (&error)[256]) {
     auto &state = Storage();
     const auto cached = state.cache.find(selected);
-    if (cached != state.cache.end()) return cached->second;
+    if (cached != state.cache.end()) return &cached->second;
     strings::Table next;
     for (const auto &path : state.paths) {
         const auto slash = path.find('/');
@@ -98,15 +115,27 @@ inline const strings::Table &Table() {
         const bool valid = length > 0 && data && strings::Read(package, selected,
             std::string_view(static_cast<const char *>(data), static_cast<std::size_t>(length)), next);
         if (data) FS_FreeFile(data);
-        if (!valid) Com_Error(ERR_DROP, "Invalid Jedi Academy StringEd package: strings/%s", path.c_str());
+        if (!valid) {
+            Failure(error, "Invalid Jedi Academy StringEd package", ("strings/"+path).c_str());
+            return nullptr;
+        }
     }
-    return state.cache.emplace(selected, std::move(next)).first->second;
+    return &state.cache.emplace(selected, std::move(next)).first->second;
+}
+inline const strings::Table &Table() {
+    const auto &selected = Selected();
+    char error[256]{};
+    const auto *table = LoadTable(selected, error);
+    if (!table) Com_Error(ERR_DROP, "%s", error);
+    return *table;
 }
 inline const char *Text(vm_t *vm, intptr_t address) {
     if (!address) Com_Error(ERR_DROP, "Missing Jedi Academy string reference");
     const auto *value = static_cast<const char *>(VM_ExplicitArgPtr(vm, address));
     for (unsigned n = 0; n <= 255; ++n) {
-        VM_CHECKBOUNDS(vm, address+n, 1);
+        if (address > (std::numeric_limits<intptr_t>::max)() - static_cast<intptr_t>(n))
+            Com_Error(ERR_DROP, "Invalid Jedi Academy string reference range");
+        VM_CHECKBOUNDS(vm, address + static_cast<intptr_t>(n), 1);
         if (!value[n]) return value;
     }
     Com_Error(ERR_DROP, "Unterminated Jedi Academy string reference");

@@ -19,6 +19,7 @@ public:
 	void StopRTCWEntityStream( int entity );
 	void FadeRTCWEntityStream( float volume, int time, int stream );
 	int RTCWVoiceAmplitude( int entity );
+	int JKAVoiceVolume( int entity ) { return world_.JKAVoiceVolume(entity); }
 	void StartLocalSound( sfxHandle_t sfxHandle, int channelNum, float volume );
 	void StartBackgroundTrack( const char *intro, const char *loop );
 	void StartRTCWBackgroundTrack( const char *intro, const char *loop, int fadeTime );
@@ -420,7 +421,9 @@ bool AudioSystem::Init( soundInterface_t *si ) {
 	si->StopRTCWEntityStream = []( int entity ) { AudioSystem::Get().StopRTCWEntityStream( entity ); };
 	si->FadeRTCWEntityStream = []( float volume, int time, int stream ) { AudioSystem::Get().FadeRTCWEntityStream( volume, time, stream ); };
 	si->RTCWVoiceAmplitude = []( int entity ) { return AudioSystem::Get().RTCWVoiceAmplitude( entity ); };
+	si->JKAVoiceVolume = []( int entity ) { return AudioSystem::Get().JKAVoiceVolume( entity ); };
 	si->StartLocalSound = []( sfxHandle_t sfxHandle, int channelNum, float volume ) { AudioSystem::Get().StartLocalSound( sfxHandle, channelNum, volume ); };
+	si->MarkInterfaceSound = []( qboolean interfaceSound ) { AudioSystem::Get().world_.MarkNextInterfaceSound( interfaceSound != qfalse ); };
 	si->StartBackgroundTrack = []( const char *intro, const char *loop ) { AudioSystem::Get().StartBackgroundTrack( intro, loop ); };
 	si->StartRTCWBackgroundTrack = []( const char *intro, const char *loop, int time ) { AudioSystem::Get().StartRTCWBackgroundTrack( intro, loop, time ); };
 	si->FadeRTCWBackgroundTrack = []( float volume, int time ) { AudioSystem::Get().FadeRTCWBackgroundTrack( volume, time ); };

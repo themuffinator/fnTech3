@@ -72,8 +72,20 @@ Release packages include them as web pages in their `manual` folder, built by
 
 ### Game-specific ledgers and records
 
+- [October 9 compatibility integration](fntech3/2026-10-09-compatibility-integration.md)
+  -- resumed Alice and Elite Force work, shared-tree validation, and probe
+  evidence and limits for the combined compatibility slices.
+- [October 9 Elite Force single-player retail views](fntech3/2026-10-09-stvef-sp-retail-views.md)
+  -- eighty synchronized runs across eight scenes, with presentation controls
+  and measured limits for GLx, Vulkan and RTX raster SDR.
+- [October 8 Medal of Honor GameSpy LAN search](fntech3/2026-10-08-mohaa-gamespy-lan-search.md)
+  -- the Join LAN Game list's GameSpy search beside its `getinfo` scan, and
+  the query sockets on Linux.
 - [October 6 Medal of Honor GameSpy LAN queries](fntech3/2026-10-06-mohaa-gamespy-lan-queries.md)
   -- the GameSpy query port beside the game's, and listen servers' team matches.
+- [October 8 MP3 last frame](fntech3/2026-10-08-mp3-last-frame.md)
+  -- the last frame before stray bytes, decoded as Raven's engines and Miles
+  decode it, and every MP3 of the six titles that use them, before and after.
 - [October 6 Jedi listen servers and game types](fntech3/2026-10-06-jedi-listen-server-game-types.md)
   -- each Jedi game's single-player number, `spmap` and `map`, and which
   game types keep a listen server from remote players.
@@ -101,6 +113,27 @@ Release packages include them as web pages in their `manual` folder, built by
 - [October 7 Jedi Academy server bone animation query](fntech3/2026-10-07-jka-server-bone-anim.md)
   -- what Jedi Academy's server answers when the game asks which animation a
   bone is playing, measured in retail's server and served.
+- [October 9 Jedi Academy German, French and Spanish voices](fntech3/2026-10-09-jka-foreign-voices.md)
+  -- `s_language` choosing Academy's German, French and Spanish voice
+  recordings, with the English one where a language has none, as both of its
+  engines choose.
+- [October 8 menu sounds as interface audio](fntech3/2026-10-08-ui-sound-policy.md)
+  -- the channels every game's menus play their sounds on, and Fn playing
+  them all as interface audio, outside the level, whatever the channel.
+- [October 8 Jedi Academy UI local sound](fntech3/2026-10-08-jka-ui-local-sound.md)
+  -- menu sounds (UI import 33) through the client game's channel adapter
+  and Fn's local-sound path, reached without input from the UI's own
+  `ui_openmenu`.
+- [October 8 Jedi Outcast UI local sound](fntech3/2026-10-08-jk2-ui-local-sound.md)
+  -- Outcast's menu sounds (UI import 32) as interface audio on Quake III's
+  channel numbers, reached without input, and its MP3 sounds that fnTech3
+  does not decode yet.
+- [October 8 Jedi Outcast MP3 sounds](fntech3/2026-10-08-jk2-mp3-sounds.md)
+  -- Outcast's sounds and music, stored as MP3, loading and playing, each
+  sound's `.wav` read before its `.mp3` as both of its engines read them.
+- [October 8 Jedi Outcast German and French voices](fntech3/2026-10-08-jk2-foreign-voices.md)
+  -- `s_language` choosing Outcast's German and French voice recordings, with
+  the English one where a language has none, as both of its engines choose.
 - [October 6 Jedi Academy live join](fntech3/2026-10-06-jka-live-join.md)
   -- client-game local sounds, the map-change export and the next boundary
   against retail `jamp.exe`.
@@ -129,6 +162,8 @@ Release packages include them as web pages in their `manual` folder, built by
   [Outcast protocol 15](fntech3/2026-10-02-jk2-protocol-15.md),
   [Outcast client and fonts](fntech3/2026-10-02-jk2-client-boundary.md),
   [Outcast SP bootstrap](fntech3/2026-10-02-jk2-sp-bootstrap.md),
+  [Jedi compatibility audit](fntech3/2026-10-07-jedi-compatibility-audit.md),
+  [Jedi audit, second round](fntech3/2026-10-07-jedi-compatibility-round2.md),
   [Alice contracts](fntech3/2026-09-22-alice-contracts.md),
   [F.A.K.K.2 contracts](fntech3/2026-09-24-fakk2-contracts.md) and
   [Medal of Honor contracts](fntech3/2026-09-24-mohaa-contracts.md).

@@ -13,9 +13,9 @@ General Public License, version 2 or (at your option) any later version.
 // docs/fntech3/2026-09-18-stvef-contracts.md. Raven's "#UNCOMP" byte count
 // includes every MPEG frame, so this codec decodes frame by frame with
 // minimp3 (CC0) and never drops a leading Xing/Info frame as tag metadata.
-// The codec joins Elite Force, Alice, F.A.K.K.2, Medal of Honor and Jedi
-// Academy profiles, which supply MP3 assets; other profiles keep their
-// existing extension fallback behaviour.
+// The codec joins Elite Force, Alice, F.A.K.K.2, Medal of Honor, Jedi
+// Academy and Jedi Outcast profiles, which supply MP3 assets; other profiles
+// keep their existing extension fallback behaviour.
 
 #ifdef USE_CODEC_MP3
 
@@ -25,6 +25,7 @@ extern "C" {
 }
 
 #include "../../client_cpp.h"
+#include "../shared/JKALipSync.h"
 
 #include <cstdint>
 #include <cstring>
@@ -271,6 +272,8 @@ void *S_MP3_CodecLoad( const char *filename, snd_info_t *info )
 		return nullptr;
 	}
 	decodedInfo.peak = Mp3RavenPeak( compressed.as<std::uint8_t>(), length );
+	decodedInfo.mpegBytes = length;
+	decodedInfo.jkaMpegPeak = fntech3::audio::jka::lipsync::TaggedPeak(compressed.as<std::uint8_t>(),length);
 	*info = decodedInfo;
 	return buffer.release();
 }

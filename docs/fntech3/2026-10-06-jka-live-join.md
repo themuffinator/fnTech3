@@ -131,6 +131,58 @@ attachments render. That is the next refusal; it is a renderer slice of its
 own (bolt matrices from the parent's pose, the attached model's own skeleton
 and placement through Fn's skeletal path), not served here.
 
+## Re-check at `6a93b622`, 2026-10-08
+
+The slice was checked again at `6a93b622`, after the attachment, entity tint,
+ambient set and server Ghoul2 slices that followed it. A clean export of that
+commit was built as above, and its binaries replaced this record's runtime in
+`.tmp/runtime/jka-live-join` (`fntech3.exe` `0f698f02...`). Its import-38
+and map-change unit tests (below) pass in that export.
+
+With sound on, a client at `6a93b622` still stops at the voice-volume query
+(import 35) before any chat line, so the sound runs use a diagnostic build
+that differs from `6a93b622` there alone: import 35 answers 0 with a backend
+running, as the [ambient sets record](2026-10-06-jka-ambient-sets.md)'s
+diagnostic did (`fntech3.exe` `a394abed...` in
+`.tmp/runtime/jka-ambient-diag`, not committed). Every client ran windowed
+on the probe's private desktop, so it was offscreen-muted and nothing was
+heard. The installation was unchanged after every run.
+
+| Run | Runtime | Sound | Steps |
+| --- | --- | --- | --- |
+| `sess-head` | `6a93b622` | off | every main and kick step passes: join, both chat lines, map change, `map_restart`, reconnect, server quit, kick |
+| `chat-audio-1` | diagnostic | OpenAL | join and both chat lines pass, the OpenAL world dumped every three frames around each line |
+| `sound-on-openal` | diagnostic | OpenAL | every main and kick step passes |
+| `sound-on-legacy` | diagnostic | legacy mixer | every main and kick step passes |
+
+**Observed** (fnTech3, OpenAL backend, `s_alDebugDump`): each chat line --
+the server's game echoing the client's own `say` back as `chat`, and the
+server's `svsay` -- starts `sound/player/talk.wav` in the first dump after
+the command arrives (the installation holds `talk.mp3`, which fnTech3's
+sound fallback loads), and the voice holds for 23 dumps each time. It is a
+one-shot on the listener's own entity, 0, where retail's `S_StartLocalSound`
+plays it: Fn's `local` source class, listener-relative at pan 0, gain 1.00
+(retail's full level for channel 8, above the ambient channel), dry 1.00 and
+no reverb send. The dump's `dist=36.0` is the view height between the
+player's origin and the listener's eye; a relative voice plays at the
+listener. The legacy mixer's voices were not observed: its per-voice print,
+`s_show`, is a cheat variable, which a server with `sv_cheats 0` resets, so
+that session shows only that the mixer takes import 38 through the whole
+session without a refusal.
+
+**Presentation (invariant 11).** In the same dumps the map's own loops carry
+Fn's occlusion, band-pass tones and the reverb of the listener's `hall`
+environment, while the chat sound keeps the local class's dry, unsent
+routing. This machine's system OpenAL runtime has no OpenAL Soft extensions:
+its filters are low-pass only, so the local class's high-pass tone and the
+band-pass tones degrade to low-pass, and HRTF is unavailable here.
+
+So the standard session reaches no refusal at `6a93b622`. The boundaries
+beyond it are those recorded after this slice: the voice-volume query with
+sound on, and the first sound a client that joins the game starts, import 37
+([ambient sets record](2026-10-06-jka-ambient-sets.md)). The UI's own local
+sound (UI import 33) is unchanged.
+
 ## Tests
 
 - `tests/jka_cgame_local_sound_tests.py` compiles the production import-38
@@ -149,11 +201,17 @@ and placement through Fn's skeletal path), not served here.
 
 - **Ghoul2 attachments** in the client game, the next refusal above, and
   with them `map_restart`, reconnect and server quit in this direction.
+  Served since ([attachments record](2026-10-06-jka-attachments.md)); the
+  2026-10-08 re-check passes all three.
 - **Audible play.** These sessions run without sound. With audio enabled,
   Academy's voice-volume query (import 35) still refuses an enabled backend,
-  so import 38's mixing is established by unit tests only.
-- The UI's own local sound (UI import 33) remains a named refusal; no probe
-  without input reaches it.
+  so import 38's mixing is established by unit tests only. The 2026-10-08
+  re-check's diagnostic build, which answers that query, shows the chat
+  sound starting as an Fn OpenAL voice; the mix itself is not captured.
+- The UI's own local sound (UI import 33) remained a named refusal; no probe
+  without input reached it. Served since through import 38's path, and
+  reached without input from the UI's own `ui_openmenu` command
+  ([UI local sound record](2026-10-08-jka-ui-local-sound.md)).
 - The retail client needs disc 1, so the other directions remain unrun; the
   download session's retail server still cannot load its game library from
   a generated mod folder.

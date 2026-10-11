@@ -1,0 +1,628 @@
+{
+  "record": "docs/fntech3/2026-10-08-alice-compatibility-round.md",
+  "date": "2026-10-08",
+  "profiles": [
+    "alice",
+    "fakk2"
+  ],
+  "build": {
+    "source": "git archive of e53ba098 with this round's changes laid over it",
+    "exportBase": "e53ba098e0120e24c6e316df1d4fa35de374034b",
+    "interveningCommits": "three, changing only paths gated to Elite Force (Com_GameIsSTVEF)",
+    "fullSuiteBase": "fab8e1a01c6f90e6acdf3d16e53166017ce0e8a2 with this round's changes",
+    "platform": "Windows x86, MSVC, configured like win32-dev with every development option",
+    "fntech3.exe": "d6754d7c9f5dc30116924deb56a9899db094b268ae957c9830ad3f0f011e7ea3",
+    "fntech3.ded.exe": "ae75e304a6efef2f45b04c31878554adb4c5365ca687510cca3c0e8cc6ac73e4",
+    "fnql_glx_x86.dll": "ca205c70c968269451304e6c03f7c0e144936eec4124be930adf9dedd1d31f5e",
+    "isolatedSuiteBase": "fab8e1a01c6f90e6acdf3d16e53166017ce0e8a2"
+  },
+  "retail": {
+    "alice.exe": {
+      "sha256": "8aa22917b7707f0e1a7c4dbe9a3c38332b1873ae2059174ac5329de26921fc18",
+      "run": false,
+      "why": "SafeDisc"
+    },
+    "fakk2.exe 1.02": {
+      "sha256": "681bc51c3343d01d772c5ae4aae7523ae4547350b243c875156e138043335785",
+      "run": true
+    }
+  },
+  "conditions": "windowed 800x600, private desktop, isolated home under .tmp/alice-gaps/final/<run>, no input, engine screenshotPNG, developer 1 unless extra says otherwise",
+  "clientRuns": {
+    "reuse": {
+      "profile": "alice",
+      "map": "garden1",
+      "renderer": "glx",
+      "extra": [],
+      "steps": ".tmp/alice-gaps/runs/reuse1.steps",
+      "clientExit": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "screenshots": [
+        "afterload.png",
+        "before.png",
+        "restarted.png"
+      ],
+      "expectedLines": {
+        "keeps its game module for garden1": true,
+        "Alice level read back from t1": true,
+        "server count changed": true
+      },
+      "refusedLines": {},
+      "ok": true
+    },
+    "reuse-fakk2": {
+      "profile": "fakk2",
+      "map": "fakkhouse",
+      "renderer": "glx",
+      "extra": [],
+      "steps": ".tmp/alice-gaps/runs/reuse-fakk2.steps",
+      "clientExit": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "screenshots": [
+        "afterload.png",
+        "before.png",
+        "restarted.png"
+      ],
+      "expectedLines": {
+        "F.A.K.K.2 keeps its game module for fakkhouse": true,
+        "F.A.K.K.2 level read back from t1": true
+      },
+      "refusedLines": {},
+      "ok": true
+    },
+    "pure0": {
+      "profile": "alice",
+      "map": "garden1",
+      "renderer": "glx",
+      "extra": [
+        "sv_pure=0"
+      ],
+      "steps": ".tmp/alice-gaps/runs/pure.steps",
+      "clientExit": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "screenshots": [
+        "loaded.png",
+        "shot.png"
+      ],
+      "expectedLines": {
+        "Server: zzpure": true
+      },
+      "refusedLines": {},
+      "ok": true
+    },
+    "pure1": {
+      "profile": "alice",
+      "map": "garden1",
+      "renderer": "glx",
+      "extra": [
+        "sv_pure=1"
+      ],
+      "steps": ".tmp/alice-gaps/runs/pure.steps",
+      "clientExit": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "screenshots": [
+        "loaded.png",
+        "shot.png"
+      ],
+      "expectedLines": {
+        "Alice level read back from p1": true
+      },
+      "refusedLines": {
+        "Server: zzpure": false
+      },
+      "ok": true
+    },
+    "pure-fakk2": {
+      "profile": "fakk2",
+      "map": "fakkhouse",
+      "renderer": "glx",
+      "extra": [
+        "sv_pure=1"
+      ],
+      "steps": ".tmp/alice-gaps/runs/pure-fakk2.steps",
+      "clientExit": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "screenshots": [
+        "loaded.png"
+      ],
+      "expectedLines": {
+        "F.A.K.K.2 level read back from p1": true
+      },
+      "refusedLines": {},
+      "ok": true
+    },
+    "death": {
+      "profile": "alice",
+      "map": "garden1",
+      "renderer": "glx",
+      "extra": [],
+      "steps": ".tmp/alice-gaps/final/steps/death.steps",
+      "clientExit": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "screenshots": [
+        "before.png",
+        "dead.png",
+        "reloaded.png"
+      ],
+      "expectedLines": {
+        "Alice level read back from g1": true
+      },
+      "refusedLines": {},
+      "ok": true
+    },
+    "combat-exit": {
+      "profile": "alice",
+      "map": "garden1",
+      "renderer": "glx",
+      "extra": [],
+      "steps": ".tmp/alice-gaps/runs/play3.steps",
+      "clientExit": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "screenshots": [
+        "attack1.png",
+        "attack2.png",
+        "before.png",
+        "garden2.png"
+      ],
+      "expectedLines": {
+        "Server: garden2": true
+      },
+      "refusedLines": {},
+      "ok": true
+    },
+    "mallet": {
+      "profile": "alice",
+      "map": "garden1",
+      "renderer": "glx",
+      "extra": [],
+      "steps": ".tmp/alice-gaps/runs/play5.steps",
+      "clientExit": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "screenshots": [
+        "armed.png",
+        "attack1.png",
+        "attack2.png",
+        "attack3.png"
+      ],
+      "expectedLines": {},
+      "refusedLines": {},
+      "ok": true
+    },
+    "menuload": {
+      "profile": "alice",
+      "map": "garden1",
+      "renderer": "glx",
+      "extra": [
+        "developer=0"
+      ],
+      "steps": ".tmp/alice-gaps/final/steps/menuload.steps",
+      "clientExit": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "screenshots": [
+        "chosen.png",
+        "loaded.png"
+      ],
+      "expectedLines": {
+        "Server: garden2": true,
+        "Alice level read back from m1": true
+      },
+      "refusedLines": {},
+      "ok": true
+    },
+    "pickers": {
+      "profile": "alice",
+      "map": "garden1",
+      "renderer": "glx",
+      "extra": [
+        "developer=0"
+      ],
+      "steps": ".tmp/alice-gaps/runs/pickers.steps",
+      "clientExit": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "screenshots": [
+        "maplist.png",
+        "soundpicker.png",
+        "viewspawnlist.png",
+        "zound.png"
+      ],
+      "expectedLines": {
+        "Wrote screenshots/maplist.png": true
+      },
+      "refusedLines": {},
+      "ok": true
+    },
+    "vid-restart": {
+      "profile": "alice",
+      "map": "garden1",
+      "renderer": "glx",
+      "extra": [
+        "developer=0"
+      ],
+      "steps": ".tmp/alice-gaps/runs/vr.steps",
+      "clientExit": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "screenshots": [
+        "vr-after-restart.png",
+        "vr-before-restart.png"
+      ],
+      "expectedLines": {
+        "Wrote screenshots/vr-after-restart.png": true
+      },
+      "refusedLines": {},
+      "ok": true
+    },
+    "controls": {
+      "profile": "alice",
+      "map": null,
+      "renderer": "glx",
+      "extra": [
+        "developer=0"
+      ],
+      "steps": ".tmp/alice-gaps/runs/head2.steps",
+      "clientExit": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "screenshots": [
+        "controls.png"
+      ],
+      "expectedLines": {
+        "Wrote screenshots/controls.png": true
+      },
+      "refusedLines": {},
+      "ok": true
+    },
+    "tweedle": {
+      "profile": "alice",
+      "map": "funhouse",
+      "renderer": "glx",
+      "extra": [],
+      "steps": ".tmp/alice-gaps/runs/tweedle.steps",
+      "clientExit": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "screenshots": [
+        "tweedle-dialog.png",
+        "tweedle-door.png",
+        "tweedle-skipped.png",
+        "tweedle-start.png"
+      ],
+      "expectedLines": {
+        "CM_AdjustAreaPortalState: negative reference count": true
+      },
+      "refusedLines": {},
+      "ok": true
+    },
+    "hatter": {
+      "profile": "alice",
+      "map": "hatter1",
+      "renderer": "glx",
+      "extra": [],
+      "steps": ".tmp/alice-gaps/runs/hatter.steps",
+      "clientExit": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "screenshots": [
+        "hatter-start.png",
+        "hatter-trigger.png"
+      ],
+      "expectedLines": {
+        "CM_AdjustAreaPortalState: negative reference count": true
+      },
+      "refusedLines": {},
+      "ok": true
+    },
+    "skool": {
+      "profile": "alice",
+      "map": "skool1$skool1_start2",
+      "renderer": "glx",
+      "extra": [],
+      "steps": ".tmp/alice-gaps/runs/skool.steps",
+      "clientExit": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "screenshots": [
+        "skool-doors.png",
+        "skool-lift.png"
+      ],
+      "expectedLines": {
+        "observatory_lift.wav": true
+      },
+      "refusedLines": {
+        "negative reference count": false
+      },
+      "ok": true
+    },
+    "infostrings": {
+      "profile": "alice",
+      "map": "garden1",
+      "renderer": "glx",
+      "extra": [],
+      "steps": ".tmp/alice-gaps/runs/info.steps",
+      "clientExit": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "screenshots": [],
+      "expectedLines": {
+        "System info settings:": true
+      },
+      "refusedLines": {
+        "sv_referencedPaks": false,
+        "sv_cheats ": false,
+        "sv_allowDownload": false,
+        "sv_dlRate": false,
+        "sv_minRate": false,
+        "sv_playingDemo": false
+      },
+      "ok": true
+    },
+    "ui-commands": {
+      "profile": "alice",
+      "map": "garden1",
+      "renderer": "glx",
+      "extra": [],
+      "steps": ".tmp/alice-gaps/final/steps/ui-commands.steps",
+      "clientExit": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "screenshots": [
+        "noinventory.png",
+        "weapgroup.png"
+      ],
+      "expectedLines": {
+        "UI: couldn't read ui/nosuchmenu.urc": true,
+        "Loading inventory...": true,
+        "controls (ui/controls.urc)": true
+      },
+      "refusedLines": {},
+      "ok": true
+    },
+    "hud-glx": {
+      "profile": "alice",
+      "map": "garden1",
+      "renderer": "glx",
+      "extra": [],
+      "steps": ".tmp/alice-gaps/runs/hudr.steps",
+      "clientExit": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "screenshots": [
+        "hud.png"
+      ],
+      "expectedLines": {},
+      "refusedLines": {},
+      "ok": true
+    },
+    "hud-vk": {
+      "profile": "alice",
+      "map": "garden1",
+      "renderer": "vk",
+      "extra": [],
+      "steps": ".tmp/alice-gaps/runs/hudr.steps",
+      "clientExit": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "screenshots": [
+        "hud.png"
+      ],
+      "expectedLines": {},
+      "refusedLines": {},
+      "ok": true
+    },
+    "hud-rtx": {
+      "profile": "alice",
+      "map": "garden1",
+      "renderer": "rtx",
+      "extra": [],
+      "steps": ".tmp/alice-gaps/runs/hudr.steps",
+      "clientExit": 0,
+      "forcedStop": false,
+      "installationUnchanged": true,
+      "screenshots": [
+        "hud.png"
+      ],
+      "expectedLines": {},
+      "refusedLines": {},
+      "ok": true
+    }
+  },
+  "retailPeer": {
+    "name": "fakk2-live",
+    "server": "fntech3.ded.exe, fakk2 profile, +map fakkhouse, loopback 127.0.0.1:27991, sv_pure 0",
+    "client": "retail fakk2.exe 1.02 from .tmp/runtime/fakk2-retail, connect after 3 s, cvarlist after 75 s",
+    "serverReady": true,
+    "observed": [
+      "challengeResponse",
+      "connectResponse",
+      "CS_ACTIVE",
+      "F.A.K.K.2 ClientBegin: client 0",
+      "retail cvarlist: sv_serverid \"325\", sv_pure \"0\", sv_paks \"\", timescale \"1\", cheats \"1\"",
+      "none of sv_referencedPaks, sv_referencedPakNames, sv_pakNames, sv_cheats, sv_allowDownload, sv_dlRate, sv_minRate, sv_playingDemo, sv_dlURL in the retail log"
+    ],
+    "capture": "retail screenshot shot0000.tga: Julie in play on fakkhouse with the HUD"
+  },
+  "debuggerRuns": {
+    "breakpoints": {
+      "fgamex86+0xb1f20": "the module routine holding the CalcCRC call (0x100b201a)",
+      "fgamex86+0xb12e0": "entry 1 (calls it at 0x100b1619)",
+      "fgamex86+0xb29f0": "entry 2 (calls it at 0x100b2a2c)",
+      "fgamex86+0xb2fd0": "entry 3 (calls it at 0x100b30aa)",
+      "fgamex86+0x1761c0": "the script loader printing 'Adding script'",
+      "fntech3_ded!SV_AliceCalcCRC": "this engine's import"
+    },
+    "crc": {
+      "steps": "devmap garden1, map garden2 (savegame refused: no player)",
+      "hits": {
+        "0x1761c0": 2
+      }
+    },
+    "crc2": {
+      "steps": "devmap garden1, loadgame g1 (a save from the death run)",
+      "readBack": "Alice level read back from g1 at level time 11750",
+      "hits": {
+        "0x1761c0": 2
+      }
+    },
+    "crcRoutineHits": 0
+  },
+  "changes": {
+    "server": [
+      "reuse path for a load or restart of the running level (SV_AliceSpawn, SV_AliceReuseSpawn)",
+      "dialog actors cleared at every spawn (AliceTiki_ResetDialogActors)",
+      "players at configstring 896",
+      "FAKK map checksum from the header",
+      "no pure proof asked; Ritual infostring keys (SV_RitualInfoKeys)"
+    ],
+    "client": [
+      "server-count change handled as retail (CL_AliceSnapshotServerCount)",
+      "sv_paks applied from the local server, 64 kept, loose files by retail's list",
+      "no cp sent",
+      "cheat state from cheats",
+      "vid_restart leaves Ritual menus alone and unpauses",
+      "pickers, scrollbar repeat, head turn, loadmenu, inventory commands under Alice"
+    ],
+    "records": [
+      "2026-09-22-alice-contracts.md (sv_pure, players)",
+      "2026-09-22-alice-module-abi.md",
+      "2026-09-23-alice-savegames.md",
+      "2026-09-23-alice-audio.md",
+      "2026-09-24-alice-menus.md",
+      "2026-09-24-alice-hud.md",
+      "2026-09-25-ritual-model-lights.md",
+      "2026-09-27-alice-area-portal-counts.md",
+      "2026-09-22-alice-maps.md",
+      "2026-09-22-alice-wire.md"
+    ]
+  },
+  "notEstablished": [
+    "no retail alice.exe run: no peer session, retail save or demo, or frame comparison",
+    "movement, turning and firing by the player's own buttons (needs synthesized input)",
+    "no listening test of the audio",
+    "what reaches the module's CRC routine, if anything shipped does",
+    "F.A.K.K.2's module tables untyped; its unguarded portal closes untraced"
+  ],
+  "validation": {
+    "isolatedFullPythonSuite": {
+      "passed": 2639,
+      "skipped": 129,
+      "subtestsPassed": 65346,
+      "failures": 0,
+      "log": ".tmp/alice-gaps/suite.log",
+      "completed": "2026-10-09"
+    },
+    "signatureOnlyRelevantPythonSuite": {
+      "files": 84,
+      "passed": 615,
+      "environment": "Visual Studio x86 developer shell"
+    }
+  },
+  "inputFollowUp": {
+    "date": "2026-10-09",
+    "manifest": {
+      "profile": "alice",
+      "command": [
+        "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe",
+        "+set",
+        "com_gameProfile",
+        "alice",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Alice",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\claude-continuation\\alice-input\\home",
+        "+set",
+        "fs_game",
+        "",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customWidth",
+        "800",
+        "+set",
+        "r_customHeight",
+        "600",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "fs_skipWorkshop",
+        "1",
+        "+set",
+        "cl_webuiEnable",
+        "0",
+        "+set",
+        "cl_renderer",
+        "glx",
+        "+set",
+        "logfile",
+        "4",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "net_enabled",
+        "1",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "in_synthetic",
+        "1",
+        "+exec",
+        "ritual-probe.cfg"
+      ],
+      "steps": "devmap garden1\nwait 5000\nbind w +forward\nbind a +moveleft\nbind s +back\nbind d +moveright\nbind SPACE +moveup\nbind MOUSE1 +attack\n+mlook\nviewpos\nscreenshotPNG alice-before\nin_synthesize key w 1\nwait 100\nin_synthesize console exec ritual-input-1.cfg\n",
+      "phases": 11,
+      "exitCode": 0,
+      "forcedStop": false,
+      "stopError": null,
+      "seconds": 19.4,
+      "screenshots": [
+        "alice-attack.png",
+        "alice-before.png",
+        "alice-jump.png",
+        "alice-moved.png"
+      ],
+      "exeSha256": "521c84364c5df5845f6f85d16dd5df803b485d077303e0fd0839d4187b77273f",
+      "rendererSha256": "6deab0c8c1165f1603f4a64d6ff3ab91c49536e05819f742eeefc486cbfa5ef4",
+      "installationUnchanged": true
+    },
+    "establishesGameplayInput": false,
+    "reason": "Probe began during the opening cinematic and used unsupported +attack instead of Alice +attackright",
+    "correctedRun": "Not executed; separately requested per-run input authorization is pending",
+    "recipe": ".tmp/claude-continuation/alice-input-corrected.actions"
+  }
+}

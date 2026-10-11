@@ -38,7 +38,13 @@ extern "C" int CL_AliceUIGetIntroState( void );
 bool CL_AliceLoadingActive( void );
 /* The client's CIN_Stop (0x00425770), in cl_cin.cpp. */
 void CL_AliceStopCinematic( void );
+/* CL_MapLoading as the reuse path calls it, with a zero argument
+ * (0x0042aa80): the loading screen and nothing else, in cl_alice.cpp. */
+extern "C" void CL_AliceMapLoadingKeep( void );
 #endif
+
+/* SV_SpawnServer's choice between its full and reuse paths, defined below. */
+void SV_AliceSpawn( const char *server, bool restart );
 
 namespace {
 
@@ -60,10 +66,9 @@ bool aliceLoadPending;
 int aliceLoadLevelTime;
 
 /* The BSP the server last spawned (retail's 0x00b59b80, written at
- * 0x00455130), and the configstrings a load of that same BSP keeps across
- * its spawn (SV_AlicePrepareSpawn). */
+ * 0x00455130), which decides whether a load or a restart keeps the game
+ * module (SV_AliceSpawn). */
 char aliceSpawnedBsp[alicesave::NameBytes];
-std::vector<std::string> aliceKeptConfigstrings;
 
 bool aliceFreeSpaceUnknownReported;
 
@@ -507,7 +512,7 @@ void SV_AliceArchiveProbe_f() {
 
 /* The load both commands finish with (0x00451ca3..0x00451cc3): the header,
  * then current.spv from the save, then a spawn of the header's map that reads
- * the level back. */
+ * the level back, SV_SpawnServer( map, 1, 0 ). */
 void SV_AliceLoadArchive() {
 	if ( !SV_AliceArchiveServerFile( true, false ) ) {
 		return;
@@ -516,7 +521,7 @@ void SV_AliceLoadArchive() {
 	aliceLoadPending = true;
 	char map[alicesave::NameBytes];
 	Q_strncpyz( map, aliceMapName, sizeof( map ) );
-	SV_SpawnServer( map, qfalse );
+	SV_AliceSpawn( map, false );
 }
 
 /* The name a load command was given, refused where retail only prints "Bad
@@ -582,7 +587,7 @@ void SV_AliceLoadBrokenGame_f() {
 	aliceLoadPending = true;
 	char map[alicesave::NameBytes];
 	Q_strncpyz( map, aliceMapName, sizeof( map ) );
-	SV_SpawnServer( map, qfalse );
+	SV_AliceSpawn( map, false );
 }
 
 /* The BSP a map argument names: the part before any `$` (0x00450f96). */
@@ -676,9 +681,9 @@ void SV_AliceGameMap_f() {
 }
 
 /* restart (0x00450d80): the current level again, from its whole `map`
- * argument, and never twice in one frame. Retail keeps the module and its
- * clients when the map is the same (its reuse path); this engine always
- * reloads, which is retail's full path. */
+ * argument, and never twice in one frame: SV_SpawnServer( name, 0, 1 ),
+ * which keeps the game module and its clients while the BSP is the one last
+ * spawned (SV_AliceSpawn). */
 void SV_AliceRestart_f() {
 	if ( com_frameTime == sv.serverId ) {
 		return;
@@ -689,7 +694,7 @@ void SV_AliceRestart_f() {
 	}
 	char server[alicesave::NameBytes];
 	Q_strncpyz( server, aliceRawServerName, sizeof( server ) );
-	SV_SpawnServer( server, qfalse );
+	SV_AliceSpawn( server, true );
 }
 
 /* pause (0x00439800): unpause if paused, otherwise pause a local game that is
@@ -766,51 +771,8 @@ const char *SV_AlicePrepareSpawn( const char *server, char *bsp, int size ) {
 	Cvar_Set( "nextmap", va( "map %s", server ) );
 	SV_AliceBspName( server, bsp, size );
 	Q_strncpyz( aliceMapName, bsp, sizeof( aliceMapName ) );
-
-	/* A load of the BSP the server is running, with the game module loaded,
-	 * is retail's reuse path (0x004550a1..0x004550db): it skips the full
-	 * spawn's wipe of the server state, so the configstrings stay as they
-	 * were (0x00455171..0x004551bb are passed over) and the model table with
-	 * them (0x004551de). The level archive keeps an entity's model index as a
-	 * number and names it again only for an entity with a model name
-	 * (fgamex86 G_ArchiveEdict 0x100ad47b), so a model index read back means
-	 * the model it meant only while the model configstrings keep their
-	 * places. This engine reloads the module on every spawn; what it keeps is
-	 * the configstrings, which SV_AliceRestoreConfigstrings puts back after
-	 * the spawn clears them, and the model table built from them. */
-	aliceKeptConfigstrings.clear();
-	if ( aliceLoadPending && gvm && aliceSpawnedBsp[0] && !Q_stricmp( bsp, aliceSpawnedBsp ) ) {
-		const int count = Com_GameConfigstringLimit();
-		aliceKeptConfigstrings.reserve( static_cast<std::size_t>( count ) );
-		for ( int i = 0; i < count; ++i ) {
-			aliceKeptConfigstrings.emplace_back( sv.configstrings[i] ? sv.configstrings[i] : "" );
-		}
-	}
 	Q_strncpyz( aliceSpawnedBsp, bsp, sizeof( aliceSpawnedBsp ) );
 	return bsp;
-}
-
-/*
-====================
-SV_AliceRestoreConfigstrings
-
-After the spawn has cleared the server state: the configstrings a load of the
-running BSP kept (SV_AlicePrepareSpawn), and a model table registered from
-them when the module loads. Nothing is kept for any other spawn.
-====================
-*/
-void SV_AliceRestoreConfigstrings( void ) {
-	aliceModelTableKept = !aliceKeptConfigstrings.empty();
-	const int count = std::min( static_cast<int>( aliceKeptConfigstrings.size() ),
-		Com_GameConfigstringLimit() );
-	for ( int i = 0; i < count; ++i ) {
-		SV_ZFree( sv.configstrings[i] );
-		sv.configstrings[i] = CopyString( aliceKeptConfigstrings[static_cast<std::size_t>( i )].c_str() );
-	}
-	if ( count ) {
-		Com_DPrintf( "Alice load of the running level keeps its %i configstrings\n", count );
-	}
-	aliceKeptConfigstrings.clear();
 }
 
 /*
@@ -867,7 +829,7 @@ qboolean SV_AliceSpawnLevel( void ) {
 	}
 	if ( loading && SV_AliceArchiveLevelFile( true ) ) {
 		aliceLastLevelTime = sv.time;
-		Com_Printf( "Alice level read back from %s at level time %i\n", aliceGameName, sv.time );
+		Com_Printf( "%s level read back from %s at level time %i\n", SV_RitualName(), aliceGameName, sv.time );
 		return qtrue;
 	}
 	sv.time = 0;
@@ -910,6 +872,152 @@ void SV_AliceSpawnDone( void ) {
 
 /*
 ====================
+SV_AliceSpawnKeepsModule
+
+Retail's SV_SpawnServer takes its reuse path (0x004550a1..0x004550df) when the
+game module is loaded, the BSP is the one it last spawned (0x00b59b80) and it
+was asked to load a save or to restart; an engine whose server is not running
+takes the full path whatever was asked (svs.initialized, 0x004550f8..
+0x00455113). F.A.K.K.2 1.02's spawn makes the same choice
+(0x00445f41..0x00445fb3).
+====================
+*/
+bool SV_AliceSpawnKeepsModule( const char *server, bool restart ) {
+	char bsp[alicesave::NameBytes];
+
+	SV_AliceBspName( server, bsp, sizeof( bsp ) );
+	return gvm && aliceGameExports && com_sv_running && com_sv_running->integer
+		&& aliceSpawnedBsp[0] && !Q_stricmp( bsp, aliceSpawnedBsp ) && ( aliceLoadPending || restart );
+}
+
+/*
+====================
+SV_AliceReuseSpawn
+
+Retail's reuse path, in its order. The module stays loaded and is asked to
+Clean up (0x004551cf); the map, the configstrings, the model table, the
+baselines and the server state are kept (0x004551d8 jumps past
+0x004551de..0x0045523b). A new server id is made, the old one becoming the
+restarted id (0x004553cf..0x004553e0); the snapshot server bit flips, the area
+portals close and the world is cleared, as on a full spawn
+(0x00455240..0x00455285); then the level is read back from the save or
+spawned afresh with its three frames, configstring changes reaching the
+clients as they are made (sv.restarting, 0x0045528a..0x004552b1); and each
+connected client is admitted again without a new gamestate and enters the
+world at once (0x004554eb..0x0045557c). The client keeps its client game and
+puts up the loading screen (CL_MapLoading(0) at 0x0045513f), which the first
+snapshot of the new server count takes down (0x0042d890).
+====================
+*/
+void SV_AliceReuseSpawn( const char *server, bool restart ) {
+	char bsp[alicesave::NameBytes];
+	const bool loading = aliceLoadPending;
+
+	SV_AlicePrepareSpawn( server, bsp, sizeof( bsp ) );
+#ifndef DEDICATED
+	/* This engine pauses its local server through cl_paused, which `paused`
+	 * follows (SV_AlicePause_f); the full spawn clears it the same way. */
+	Cvar_Set( "cl_paused", "0" );
+#endif
+	Com_Printf( "------ Server Initialization ------\n" );
+	Com_Printf( "Server: %s\n", server );
+	Com_DPrintf( "%s keeps its game module for %s\n", SV_RitualName(), server );
+	if ( sv_maxclients->modified ) {
+		SV_ChangeMaxClients();
+	}
+#ifndef DEDICATED
+	if ( !com_dedicated->integer ) {
+		CL_AliceMapLoadingKeep();
+	}
+#endif
+	/* The level clock is the save's before the module hears of it, as
+	 * retail's load sets it from the header before it spawns (0x00451a2a). */
+	SV_AliceRestoreLevelTime();
+	SV_AliceCallCleanup();
+
+	sv.restartedServerId = sv.serverId;
+	sv.serverId = com_frameTime;
+	Cvar_SetIntegerValue( "sv_serverid", sv.serverId );
+	svs.snapFlagServerBit ^= SNAPFLAG_SERVERCOUNT;
+
+	/* CM_ClearAreaPortals (0x00436270): every count to zero, then a flood. */
+	int portals = 0;
+	int *counts = CM_AreaPortalCounts( &portals );
+	if ( counts && portals > 0 ) {
+		std::fill_n( counts, portals, 0 );
+	}
+	CM_FloodAreaConnections();
+	if ( !loading ) {
+		SV_SetConfigstring( 8, "none" );
+	}
+	/* 0x00457960: the world cleared and the inline models named again. */
+	SV_ClearWorld();
+	SV_AliceRegisterInlineModels();
+	Com_Memset( aliceLinked, 0, sizeof( aliceLinked ) );
+	AliceTiki_ResetDialogActors();
+
+	sv.state = SS_LOADING;
+	sv.restarting = restart ? qtrue : qfalse;
+	bool restored = false;
+	if ( loading ) {
+		sv.restarting = qtrue;
+		restored = SV_AliceArchiveLevelFile( true ) != qfalse;
+		if ( restored ) {
+			aliceLastLevelTime = sv.time;
+			Com_Printf( "%s level read back from %s at level time %i\n", SV_RitualName(), aliceGameName, sv.time );
+		} else {
+			sv.restarting = qfalse;
+		}
+	}
+	if ( !restored ) {
+		sv.time = 0;
+		aliceLastLevelTime = 0;
+		SV_AliceCallSpawnEntities();
+		SV_AliceArchivePersistantFile( true );
+		SV_AliceSettle( qfalse );
+	}
+
+	sv.restarting = qfalse;
+	sv.state = SS_GAME;
+	for ( SV_ClientSlot slot : SV_ClientSlots() ) {
+		if ( slot.client.state < CS_CONNECTED ) {
+			continue;
+		}
+		const char *denied = static_cast<const char *>( GVM_ArgPtr( VM_Call( gvm, 3, GAME_CLIENT_CONNECT,
+			slot.index, qfalse, qfalse ) ) );
+		if ( denied ) {
+			SV_DropClient( &slot.client, denied );
+			continue;
+		}
+		slot.client.state = CS_ACTIVE;
+		slot.client.oldServerTime = 0;
+		SV_ClientEnterWorld( &slot.client, &slot.client.lastUsercmd );
+	}
+
+	SV_AliceSpawnDone();
+	Com_Printf( "-----------------------------------\n" );
+	Sys_SetStatus( "Running map %s", server );
+	Com_FrameInit();
+}
+
+/*
+====================
+SV_AliceSpawn
+
+Every spawn the level flow asks for: `map`, `devmap` and `gamemap` spawn in
+full, a load or a restart keeps the module where retail's would.
+====================
+*/
+void SV_AliceSpawn( const char *server, bool restart ) {
+	if ( SV_AliceSpawnKeepsModule( server, restart ) ) {
+		SV_AliceReuseSpawn( server, restart );
+	} else {
+		SV_SpawnServer( server, qfalse );
+	}
+}
+
+/*
+====================
 SV_AliceSaveAbort
 
 An error unwinding a load or a save leaves no load pending and the archive
@@ -918,8 +1026,7 @@ name at `current`.
 */
 void SV_AliceSaveAbort( void ) {
 	aliceLoadPending = false;
-	aliceKeptConfigstrings.clear();
-	aliceModelTableKept = false;
+	sv.restarting = qfalse;
 	Q_strncpyz( aliceGameName, alicesave::CurrentName, sizeof( aliceGameName ) );
 }
 

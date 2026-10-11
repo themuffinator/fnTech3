@@ -1,0 +1,2564 @@
+{
+  "record": "docs/fntech3/2026-10-08-alice-module-signatures.md",
+  "date": "2026-10-08",
+  "profile": "alice",
+  "method": "static reading with capstone and pefile; nothing was run",
+  "binaries": {
+    "alice.exe": {
+      "bytes": 2209835,
+      "sha256": "8aa22917b7707f0e1a7c4dbe9a3c38332b1873ae2059174ac5329de26921fc18"
+    },
+    "base/fgamex86.dll": {
+      "bytes": 2084930,
+      "sha256": "ae5a572728fbb2cbf8935d633ef9e23f023edad986d7dd9ee506d589eb261aea"
+    },
+    "base/cgamex86.dll": {
+      "bytes": 409666,
+      "sha256": "fa70feb1be9883511cf46e1f5556e5c9a2bc52b6b6eecd31a28fa228fa3b443c"
+    }
+  },
+  "evidence": {
+    "E": "engine side: the slot target alice.exe writes, or its own calls through an export",
+    "M": "module side: every call through the copied table, or the export body",
+    "S": "Ritual's F.A.K.K.2 v1.02 SDK member at that position, reference only"
+  },
+  "conventions": {
+    "callingConvention": "cdecl for every slot and export (bare ret)",
+    "structReturn": "hidden first pointer, returned in eax",
+    "abiClasses": [
+      "void",
+      "int32",
+      "uint16",
+      "uint8",
+      "float",
+      "pointer"
+    ]
+  },
+  "counts": {
+    "gameImports": {
+      "slots": 111,
+      "functions": 108,
+      "values": 2,
+      "absent": 1
+    },
+    "gameExports": {
+      "slots": 26,
+      "functions": 17,
+      "values": 6,
+      "absent": 3
+    },
+    "cgameImports": {
+      "slots": 125,
+      "functions": 122,
+      "values": 0,
+      "absent": 3
+    },
+    "cgameExports": {
+      "slots": 7,
+      "functions": 7,
+      "values": 0,
+      "absent": 0
+    }
+  },
+  "corrections": [
+    {
+      "table": "gameImports",
+      "slot": 18,
+      "name": "FS_PrepFileWrite",
+      "was": "void ()",
+      "now": "const char *( const char * )",
+      "retail": "0x0043cb80",
+      "calledByModule": false
+    },
+    {
+      "table": "gameImports",
+      "slot": 27,
+      "name": "DebugGraph",
+      "was": "void ()",
+      "now": "void ( float, int )",
+      "retail": "0x0042e2a0",
+      "calledByModule": false
+    },
+    {
+      "table": "gameImports",
+      "slot": 86,
+      "name": "Alias_UpdateDialog",
+      "was": "played flag int",
+      "now": "played flag unsigned char",
+      "retail": "0x00423238",
+      "calledByModule": true
+    },
+    {
+      "table": "gameImports",
+      "slot": 87,
+      "name": "Alias_AddActorDialog",
+      "was": "played flag int",
+      "now": "played flag unsigned char",
+      "retail": "0x004232cf",
+      "calledByModule": true
+    },
+    {
+      "table": "gameImports",
+      "slot": 99,
+      "name": "CalcCRC",
+      "was": "int return",
+      "now": "unsigned short return",
+      "retail": "0x0043a4fb",
+      "calledByModule": true
+    }
+  ],
+  "behaviour": [
+    {
+      "slot": "game 13 / cgame 14 FS_ReadFile",
+      "retail": "0x0043c9c8, 0x0043c1fa..0x0043c204",
+      "change": "third argument is quiet; a missing file prints 'Can't find %s' unless quiet"
+    },
+    {
+      "slot": "game 24 FS_Flush",
+      "retail": "0x0043b5d0, 0x0043b5da..0x0043b5e1",
+      "change": "flush, then unbuffered for good (FS_ForceFlush)"
+    },
+    {
+      "slot": "game 28 SendServerCommand",
+      "retail": "alice.exe 0x00453467, 0x00453489..0x00453494; fakk2.exe 1.02 0x004444a7, 0x004444c9..0x004444d4",
+      "change": "broadcast for -1 only; other numbers outside the clients dropped"
+    },
+    {
+      "slot": "cgame 117 Tag_NamedOrientation",
+      "retail": "0x0045fbd1..0x0045fbe7",
+      "change": "crossblend and torso arguments 0, lerps 0.0 (was -1)"
+    }
+  ],
+  "tables": {
+    "alice_game_import_calls.def": "row 79 corrected by hand from 3 to 17 arguments (sites 0x1010b3be, 0x101679a6; engine body 0x00453ec0)",
+    "alice_game_exports.def": "slot 0 is the SDK member apiversion written as an immediate, not an addition"
+  },
+  "unchanged": {
+    "DebugPrintf": "retail OutputDebugStringA (0x0046b765); fnTech3 console",
+    "errorLevels": "retail 0 fatal, 1 drop, 2 disconnect, 3 need-CD; fnTech3 drops for every module level",
+    "emptySlots": "game 100, cgame 0, 88, 116 hold drop-by-name thunks where retail holds 0; never read",
+    "fakk2": "F.A.K.K.2's tables are served from the same functions and are not typed"
+  },
+  "tests": [
+    "tests/alice_module_abi_tests.cpp (fntech3_alice_module_abi)",
+    "compile-time: SERVE, SERVE_CGAME and every export typedef in code/server/server_alice_game.hpp and code/client/client_alice_cgame.hpp"
+  ],
+  "rows": {
+    "gameImports": [
+      {
+        "slot": 0,
+        "name": "Printf",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char *, ... )",
+        "evidence": "EMS",
+        "retail": "0x00438850"
+      },
+      {
+        "slot": 1,
+        "name": "DPrintf",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char *, ... )",
+        "evidence": "EMS",
+        "retail": "0x00438a40"
+      },
+      {
+        "slot": 2,
+        "name": "DebugPrintf",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char *, ... )",
+        "evidence": "EMS",
+        "retail": "0x00438a90"
+      },
+      {
+        "slot": 3,
+        "name": "Error",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, const char *, ... )",
+        "evidence": "EMS",
+        "retail": "0x00438ae0"
+      },
+      {
+        "slot": 4,
+        "name": "Milliseconds",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( void )",
+        "evidence": "EMS",
+        "retail": "0x0046dfc0"
+      },
+      {
+        "slot": 5,
+        "name": "Malloc",
+        "kind": "FUNCTION",
+        "type": "void *",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x00454420"
+      },
+      {
+        "slot": 6,
+        "name": "Free",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void * )",
+        "evidence": "EMS",
+        "retail": "0x00444ed0"
+      },
+      {
+        "slot": 7,
+        "name": "cvar",
+        "kind": "FUNCTION",
+        "type": "void *",
+        "params": "( const char *, const char *, int )",
+        "evidence": "EMS",
+        "retail": "0x0043a6c0"
+      },
+      {
+        "slot": 8,
+        "name": "cvar_set",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char *, const char * )",
+        "evidence": "EMS",
+        "retail": "0x0043ab60"
+      },
+      {
+        "slot": 9,
+        "name": "argc",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( void )",
+        "evidence": "EMS",
+        "retail": "0x00438140"
+      },
+      {
+        "slot": 10,
+        "name": "argv",
+        "kind": "FUNCTION",
+        "type": "const char *",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x00438150"
+      },
+      {
+        "slot": 11,
+        "name": "args",
+        "kind": "FUNCTION",
+        "type": "const char *",
+        "params": "( void )",
+        "evidence": "EMS",
+        "retail": "0x004381a0"
+      },
+      {
+        "slot": 12,
+        "name": "AddCommand",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char * )",
+        "evidence": "EMS",
+        "retail": "0x00454410"
+      },
+      {
+        "slot": 13,
+        "name": "FS_ReadFile",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const char *, void **, int )",
+        "evidence": "EMS",
+        "retail": "0x0043c850"
+      },
+      {
+        "slot": 14,
+        "name": "FS_FreeFile",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void * )",
+        "evidence": "EMS",
+        "retail": "0x0043cb10"
+      },
+      {
+        "slot": 15,
+        "name": "FS_WriteFile",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char *, const void *, int )",
+        "evidence": "EMS",
+        "retail": "0x0043cbc0"
+      },
+      {
+        "slot": 16,
+        "name": "FS_FOpenFileWrite",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const char * )",
+        "evidence": "EMS",
+        "retail": "0x0043b9e0"
+      },
+      {
+        "slot": 17,
+        "name": "FS_FOpenFileAppend",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const char * )",
+        "evidence": "ES",
+        "retail": "0x0043bbb0"
+      },
+      {
+        "slot": 18,
+        "name": "FS_PrepFileWrite",
+        "kind": "FUNCTION",
+        "type": "const char *",
+        "params": "( const char * )",
+        "evidence": "ES",
+        "retail": "0x0043cb80"
+      },
+      {
+        "slot": 19,
+        "name": "FS_Write",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const void *, int, int )",
+        "evidence": "EMS",
+        "retail": "0x0043c560"
+      },
+      {
+        "slot": 20,
+        "name": "FS_Read",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( void *, int, int )",
+        "evidence": "ES",
+        "retail": "0x0043c460"
+      },
+      {
+        "slot": 21,
+        "name": "FS_FCloseFile",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x0043b960"
+      },
+      {
+        "slot": 22,
+        "name": "FS_FTell",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x0043eb80"
+      },
+      {
+        "slot": 23,
+        "name": "FS_FSeek",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, int, int )",
+        "evidence": "EMS",
+        "retail": "0x0043c680"
+      },
+      {
+        "slot": 24,
+        "name": "FS_Flush",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x0043b5d0"
+      },
+      {
+        "slot": 25,
+        "name": "GetArchiveFileName",
+        "kind": "FUNCTION",
+        "type": "const char *",
+        "params": "( const char *, const char * )",
+        "evidence": "EMS",
+        "retail": "0x0043a350"
+      },
+      {
+        "slot": 26,
+        "name": "SendConsoleCommand",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char * )",
+        "evidence": "EMS",
+        "retail": "0x00437a50"
+      },
+      {
+        "slot": 27,
+        "name": "DebugGraph",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( float, int )",
+        "evidence": "ES",
+        "retail": "0x0042e2a0"
+      },
+      {
+        "slot": 28,
+        "name": "SendServerCommand",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, const char *, ... )",
+        "evidence": "EMS",
+        "retail": "0x00453440"
+      },
+      {
+        "slot": 29,
+        "name": "setConfigstring",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, const char * )",
+        "evidence": "EMS",
+        "retail": "0x00454a50"
+      },
+      {
+        "slot": 30,
+        "name": "getConfigstring",
+        "kind": "FUNCTION",
+        "type": "const char *",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x00454b00"
+      },
+      {
+        "slot": 31,
+        "name": "setUserinfo",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, const char * )",
+        "evidence": "ES",
+        "retail": "0x00454ca0"
+      },
+      {
+        "slot": 32,
+        "name": "getUserinfo",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, char *, int )",
+        "evidence": "EMS",
+        "retail": "0x00454d30"
+      },
+      {
+        "slot": 33,
+        "name": "SetBrushModel",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void *, const char * )",
+        "evidence": "ES",
+        "retail": "0x00453510"
+      },
+      {
+        "slot": 34,
+        "name": "trace",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void *, const float *, const float *, const float *, const float *, int, int, int )",
+        "evidence": "EMS",
+        "retail": "0x004582f0"
+      },
+      {
+        "slot": 35,
+        "name": "pointcontents",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const float *, int )",
+        "evidence": "EMS",
+        "retail": "0x00458480"
+      },
+      {
+        "slot": 36,
+        "name": "pointbrushnum",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const float *, int )",
+        "evidence": "EMS",
+        "retail": "0x00435ed0"
+      },
+      {
+        "slot": 37,
+        "name": "inPVS",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const float *, const float * )",
+        "evidence": "EMS",
+        "retail": "0x004535e0"
+      },
+      {
+        "slot": 38,
+        "name": "inPVSIgnorePortals",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const float *, const float * )",
+        "evidence": "ES",
+        "retail": "0x00453660"
+      },
+      {
+        "slot": 39,
+        "name": "AdjustAreaPortalState",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void *, int )",
+        "evidence": "EMS",
+        "retail": "0x004536d0"
+      },
+      {
+        "slot": 40,
+        "name": "AreasConnected",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, int )",
+        "evidence": "EMS",
+        "retail": "0x00436340"
+      },
+      {
+        "slot": 41,
+        "name": "linkentity",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void * )",
+        "evidence": "EMS",
+        "retail": "0x00457a40"
+      },
+      {
+        "slot": 42,
+        "name": "unlinkentity",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void * )",
+        "evidence": "EMS",
+        "retail": "0x004579e0"
+      },
+      {
+        "slot": 43,
+        "name": "AreaEntities",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const float *, const float *, int *, int )",
+        "evidence": "EMS",
+        "retail": "0x00458030"
+      },
+      {
+        "slot": 44,
+        "name": "ClipToEntity",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void *, const float *, const float *, const float *, const float *, int, int )",
+        "evidence": "EMS",
+        "retail": "0x00458080"
+      },
+      {
+        "slot": 45,
+        "name": "imageindex",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const char * )",
+        "evidence": "EMS",
+        "retail": "0x00454c40"
+      },
+      {
+        "slot": 46,
+        "name": "itemindex",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const char * )",
+        "evidence": "EMS",
+        "retail": "0x00454c60"
+      },
+      {
+        "slot": 47,
+        "name": "soundindex",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const char * )",
+        "evidence": "EMS",
+        "retail": "0x00454c20"
+      },
+      {
+        "slot": 48,
+        "name": "modelindex",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const char * )",
+        "evidence": "EMS",
+        "retail": "0x00454110"
+      },
+      {
+        "slot": 49,
+        "name": "SetLightStyle",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, const char * )",
+        "evidence": "EMS",
+        "retail": "0x00454c80"
+      },
+      {
+        "slot": 50,
+        "name": "GameDir",
+        "kind": "FUNCTION",
+        "type": "const char *",
+        "params": "( void )",
+        "evidence": "ES",
+        "retail": "0x0043cae0"
+      },
+      {
+        "slot": 51,
+        "name": "IsModel",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x00453940"
+      },
+      {
+        "slot": 52,
+        "name": "setmodel",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void *, const char * )",
+        "evidence": "EMS",
+        "retail": "0x00454190"
+      },
+      {
+        "slot": 53,
+        "name": "NumAnims",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x00453960"
+      },
+      {
+        "slot": 54,
+        "name": "NumSkins",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int )",
+        "evidence": "ES",
+        "retail": "0x00453980"
+      },
+      {
+        "slot": 55,
+        "name": "NumSurfaces",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x00453990"
+      },
+      {
+        "slot": 56,
+        "name": "NumTags",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x004539b0"
+      },
+      {
+        "slot": 57,
+        "name": "InitCommands",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, void * )",
+        "evidence": "EMS",
+        "retail": "0x00453a30"
+      },
+      {
+        "slot": 58,
+        "name": "CalculateBounds",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, float, float *, float * )",
+        "evidence": "EMS",
+        "retail": "0x00453a60"
+      },
+      {
+        "slot": 59,
+        "name": "Anim_NameForNum",
+        "kind": "FUNCTION",
+        "type": "const char *",
+        "params": "( int, int )",
+        "evidence": "EMS",
+        "retail": "0x00453a90"
+      },
+      {
+        "slot": 60,
+        "name": "Anim_NumForName",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, const char * )",
+        "evidence": "EMS",
+        "retail": "0x00453ac0"
+      },
+      {
+        "slot": 61,
+        "name": "Anim_Random",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, const char * )",
+        "evidence": "EMS",
+        "retail": "0x00453af0"
+      },
+      {
+        "slot": 62,
+        "name": "Anim_NumFrames",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, int )",
+        "evidence": "EMS",
+        "retail": "0x00453b20"
+      },
+      {
+        "slot": 63,
+        "name": "Anim_Time",
+        "kind": "FUNCTION",
+        "type": "float",
+        "params": "( int, int )",
+        "evidence": "EMS",
+        "retail": "0x00453b50"
+      },
+      {
+        "slot": 64,
+        "name": "Anim_Delta",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, int, float * )",
+        "evidence": "EMS",
+        "retail": "0x00453b80"
+      },
+      {
+        "slot": 65,
+        "name": "Anim_AbsoluteDelta",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, int, float * )",
+        "evidence": "EMS",
+        "retail": "0x00453bc0"
+      },
+      {
+        "slot": 66,
+        "name": "Anim_Flags",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, int )",
+        "evidence": "EMS",
+        "retail": "0x00453c00"
+      },
+      {
+        "slot": 67,
+        "name": "Anim_HasCommands",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, int )",
+        "evidence": "EMS",
+        "retail": "0x00453c30"
+      },
+      {
+        "slot": 68,
+        "name": "Frame_Commands",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, int, int, void * )",
+        "evidence": "EMS",
+        "retail": "0x00453c60"
+      },
+      {
+        "slot": 69,
+        "name": "Frame_Delta",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, int, int, float * )",
+        "evidence": "EMS",
+        "retail": "0x00453cc0"
+      },
+      {
+        "slot": 70,
+        "name": "Frame_Time",
+        "kind": "FUNCTION",
+        "type": "float",
+        "params": "( int, int, int )",
+        "evidence": "EMS",
+        "retail": "0x00453c90"
+      },
+      {
+        "slot": 71,
+        "name": "Frame_Bounds",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, int, int, float, float *, float * )",
+        "evidence": "EMS",
+        "retail": "0x00453cf0"
+      },
+      {
+        "slot": 72,
+        "name": "Surface_NameToNum",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, const char * )",
+        "evidence": "EMS",
+        "retail": "0x00453d60"
+      },
+      {
+        "slot": 73,
+        "name": "Surface_NumToName",
+        "kind": "FUNCTION",
+        "type": "const char *",
+        "params": "( int, int )",
+        "evidence": "EMS",
+        "retail": "0x00453d30"
+      },
+      {
+        "slot": 74,
+        "name": "Surface_Flags",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, int )",
+        "evidence": "ES",
+        "retail": "0x004539d0"
+      },
+      {
+        "slot": 75,
+        "name": "Surface_NumSkins",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, int )",
+        "evidence": "ES",
+        "retail": "0x00453a00"
+      },
+      {
+        "slot": 76,
+        "name": "Tag_NumForName",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, const char * )",
+        "evidence": "EMS",
+        "retail": "0x00453df0"
+      },
+      {
+        "slot": 77,
+        "name": "Tag_NameForNum",
+        "kind": "FUNCTION",
+        "type": "const char *",
+        "params": "( int, int )",
+        "evidence": "EMS",
+        "retail": "0x00453dc0"
+      },
+      {
+        "slot": 78,
+        "name": "Tag_Orientation",
+        "kind": "FUNCTION",
+        "type": "void *",
+        "params": "( void *, int, int, int, int, float, const void * )",
+        "evidence": "EMS",
+        "retail": "0x00453e20"
+      },
+      {
+        "slot": 79,
+        "name": "Tag_OrientationEx",
+        "kind": "FUNCTION",
+        "type": "void *",
+        "params": "( void *, int, int, int, int, float, const void *, int, int, float, int, int, int, int, int, int, float )",
+        "evidence": "EMS",
+        "retail": "0x00453ec0"
+      },
+      {
+        "slot": 80,
+        "name": "Alias_Add",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, const char *, const char *, const char * )",
+        "evidence": "EMS",
+        "retail": "0x00453f90"
+      },
+      {
+        "slot": 81,
+        "name": "Alias_FindRandom",
+        "kind": "FUNCTION",
+        "type": "const char *",
+        "params": "( int, const char * )",
+        "evidence": "EMS",
+        "retail": "0x00453fc0"
+      },
+      {
+        "slot": 82,
+        "name": "Alias_Dump",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int )",
+        "evidence": "ES",
+        "retail": "0x004540b0"
+      },
+      {
+        "slot": 83,
+        "name": "Alias_Clear",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int )",
+        "evidence": "ES",
+        "retail": "0x004540d0"
+      },
+      {
+        "slot": 84,
+        "name": "Alias_FindDialog",
+        "kind": "FUNCTION",
+        "type": "const char *",
+        "params": "( int, const char *, int, int )",
+        "evidence": "EMS",
+        "retail": "0x00453ff0"
+      },
+      {
+        "slot": 85,
+        "name": "Alias_GetList",
+        "kind": "FUNCTION",
+        "type": "void *",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x00454090"
+      },
+      {
+        "slot": 86,
+        "name": "Alias_UpdateDialog",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, const char *, int, unsigned char, int )",
+        "evidence": "EMS",
+        "retail": "0x00454020"
+      },
+      {
+        "slot": 87,
+        "name": "Alias_AddActorDialog",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, const char *, int, int, unsigned char, int )",
+        "evidence": "EMS",
+        "retail": "0x00454050"
+      },
+      {
+        "slot": 88,
+        "name": "NameForNum",
+        "kind": "FUNCTION",
+        "type": "const char *",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x004540f0"
+      },
+      {
+        "slot": 89,
+        "name": "GlobalAlias_Add",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const char *, const char *, const char * )",
+        "evidence": "EMS",
+        "retail": "0x00423a40"
+      },
+      {
+        "slot": 90,
+        "name": "GlobalAlias_FindRandom",
+        "kind": "FUNCTION",
+        "type": "const char *",
+        "params": "( const char * )",
+        "evidence": "EMS",
+        "retail": "0x00423a90"
+      },
+      {
+        "slot": 91,
+        "name": "GlobalAlias_Dump",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "ES",
+        "retail": "0x00423ac0"
+      },
+      {
+        "slot": 92,
+        "name": "GlobalAlias_Clear",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "ES",
+        "retail": "0x00423af0"
+      },
+      {
+        "slot": 93,
+        "name": "centerprintf",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void *, const char *, ... )",
+        "evidence": "EMS",
+        "retail": "0x00454250"
+      },
+      {
+        "slot": 94,
+        "name": "locationprintf",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void *, int, int, const char *, ... )",
+        "evidence": "ES",
+        "retail": "0x004542f0"
+      },
+      {
+        "slot": 95,
+        "name": "Sound",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const float *, int, int, const char *, float, float )",
+        "evidence": "EMS",
+        "retail": "0x00457670"
+      },
+      {
+        "slot": 96,
+        "name": "StopSound",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, int )",
+        "evidence": "EMS",
+        "retail": "0x00457740"
+      },
+      {
+        "slot": 97,
+        "name": "SoundLength",
+        "kind": "FUNCTION",
+        "type": "float",
+        "params": "( const char * )",
+        "evidence": "EMS",
+        "retail": "0x0043f100"
+      },
+      {
+        "slot": 98,
+        "name": "SoundAmplitudes",
+        "kind": "FUNCTION",
+        "type": "const unsigned char *",
+        "params": "( const char *, int * )",
+        "evidence": "EMS",
+        "retail": "0x0043f170"
+      },
+      {
+        "slot": 99,
+        "name": "CalcCRC",
+        "kind": "FUNCTION",
+        "type": "unsigned short",
+        "params": "( const unsigned char *, int )",
+        "evidence": "EMS",
+        "retail": "0x0043a4c0"
+      },
+      {
+        "slot": 100,
+        "name": "AliceAbsent100",
+        "kind": "ABSENT",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "E"
+      },
+      {
+        "slot": 101,
+        "name": "DebugLines",
+        "kind": "VALUE",
+        "type": "void **",
+        "params": "( void )",
+        "evidence": "ES",
+        "retail": "0x006a0870"
+      },
+      {
+        "slot": 102,
+        "name": "numDebugLines",
+        "kind": "VALUE",
+        "type": "int *",
+        "params": "( void )",
+        "evidence": "ES",
+        "retail": "0x006a0874"
+      },
+      {
+        "slot": 103,
+        "name": "LocateGameData",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void *, int, int, void *, int )",
+        "evidence": "EMS",
+        "retail": "0x00453790"
+      },
+      {
+        "slot": 104,
+        "name": "SetFarPlane",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x004537d0"
+      },
+      {
+        "slot": 105,
+        "name": "SetSkyPortal",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x00453800"
+      },
+      {
+        "slot": 106,
+        "name": "AliceImport106",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char *, const char *, ... )",
+        "evidence": "EM",
+        "retail": "0x004389e0"
+      },
+      {
+        "slot": 107,
+        "name": "AliceImport107",
+        "kind": "FUNCTION",
+        "type": "void *",
+        "params": "( void )",
+        "evidence": "EM",
+        "retail": "0x0042c490"
+      },
+      {
+        "slot": 108,
+        "name": "AliceImport108",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int )",
+        "evidence": "EM",
+        "retail": "0x0040b590"
+      },
+      {
+        "slot": 109,
+        "name": "AliceImport109",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "EM",
+        "retail": "0x0042d8d0"
+      },
+      {
+        "slot": 110,
+        "name": "Cbuf_ExecuteText",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, const char * )",
+        "evidence": "EM",
+        "retail": "0x00437b30"
+      }
+    ],
+    "gameExports": [
+      {
+        "slot": 0,
+        "name": "apiversion",
+        "kind": "VALUE",
+        "type": "int",
+        "params": "( void )",
+        "evidence": "EMS"
+      },
+      {
+        "slot": 1,
+        "name": "Init",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, int )",
+        "evidence": "EMS",
+        "retail": "0x100a3690"
+      },
+      {
+        "slot": 2,
+        "name": "Shutdown",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "EMS",
+        "retail": "0x100a3610"
+      },
+      {
+        "slot": 3,
+        "name": "Cleanup",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "EMS",
+        "retail": "0x100a35a0"
+      },
+      {
+        "slot": 4,
+        "name": "SpawnEntities",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char *, const char *, int )",
+        "evidence": "EMS",
+        "retail": "0x100a3970"
+      },
+      {
+        "slot": 5,
+        "name": "ClientConnect",
+        "kind": "FUNCTION",
+        "type": "const char *",
+        "params": "( int, int )",
+        "evidence": "EMS",
+        "retail": "0x100a57e0"
+      },
+      {
+        "slot": 6,
+        "name": "ClientBegin",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void *, void * )",
+        "evidence": "EMS",
+        "retail": "0x100a5380"
+      },
+      {
+        "slot": 7,
+        "name": "ClientUserinfoChanged",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void *, const char * )",
+        "evidence": "EMS",
+        "retail": "0x100a54b0"
+      },
+      {
+        "slot": 8,
+        "name": "ClientDisconnect",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void * )",
+        "evidence": "EMS",
+        "retail": "0x100a5980"
+      },
+      {
+        "slot": 9,
+        "name": "ClientCommand",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void * )",
+        "evidence": "EMS",
+        "retail": "0x100af390"
+      },
+      {
+        "slot": 10,
+        "name": "ClientThink",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void *, void * )",
+        "evidence": "EMS",
+        "retail": "0x100a52e0"
+      },
+      {
+        "slot": 11,
+        "name": "BotBegin",
+        "kind": "ABSENT",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "MS"
+      },
+      {
+        "slot": 12,
+        "name": "BotThink",
+        "kind": "ABSENT",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "MS"
+      },
+      {
+        "slot": 13,
+        "name": "PrepFrame",
+        "kind": "ABSENT",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "MS"
+      },
+      {
+        "slot": 14,
+        "name": "RunFrame",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, int )",
+        "evidence": "EMS",
+        "retail": "0x100a4fc0"
+      },
+      {
+        "slot": 15,
+        "name": "ConsoleCommand",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( void )",
+        "evidence": "EMS",
+        "retail": "0x100af320"
+      },
+      {
+        "slot": 16,
+        "name": "WritePersistant",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char * )",
+        "evidence": "EMS",
+        "retail": "0x100a3bd0"
+      },
+      {
+        "slot": 17,
+        "name": "ReadPersistant",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const char * )",
+        "evidence": "EMS",
+        "retail": "0x100a3b60"
+      },
+      {
+        "slot": 18,
+        "name": "WriteLevel",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char *, int )",
+        "evidence": "EMS",
+        "retail": "0x100a47a0"
+      },
+      {
+        "slot": 19,
+        "name": "ReadLevel",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const char * )",
+        "evidence": "EMS",
+        "retail": "0x100a47d0"
+      },
+      {
+        "slot": 20,
+        "name": "LevelArchiveValid",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const char * )",
+        "evidence": "EMS",
+        "retail": "0x100a47f0"
+      },
+      {
+        "slot": 21,
+        "name": "gentities",
+        "kind": "VALUE",
+        "type": "void *",
+        "params": "( void )",
+        "evidence": "EMS"
+      },
+      {
+        "slot": 22,
+        "name": "gentitySize",
+        "kind": "VALUE",
+        "type": "int",
+        "params": "( void )",
+        "evidence": "EMS"
+      },
+      {
+        "slot": 23,
+        "name": "num_entities",
+        "kind": "VALUE",
+        "type": "int",
+        "params": "( void )",
+        "evidence": "EMS"
+      },
+      {
+        "slot": 24,
+        "name": "max_entities",
+        "kind": "VALUE",
+        "type": "int",
+        "params": "( void )",
+        "evidence": "EMS"
+      },
+      {
+        "slot": 25,
+        "name": "error_message",
+        "kind": "VALUE",
+        "type": "const char *",
+        "params": "( void )",
+        "evidence": "EMS"
+      }
+    ],
+    "cgameImports": [
+      {
+        "slot": 0,
+        "name": "apiversion",
+        "kind": "ABSENT",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "ES"
+      },
+      {
+        "slot": 1,
+        "name": "Printf",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char *, ... )",
+        "evidence": "EMS",
+        "retail": "0x00438850"
+      },
+      {
+        "slot": 2,
+        "name": "DPrintf",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char *, ... )",
+        "evidence": "EMS",
+        "retail": "0x00438a40"
+      },
+      {
+        "slot": 3,
+        "name": "DebugPrintf",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char *, ... )",
+        "evidence": "EMS",
+        "retail": "0x00438a90"
+      },
+      {
+        "slot": 4,
+        "name": "Malloc",
+        "kind": "FUNCTION",
+        "type": "void *",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x004243b0"
+      },
+      {
+        "slot": 5,
+        "name": "Free",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void * )",
+        "evidence": "EMS",
+        "retail": "0x004243c0"
+      },
+      {
+        "slot": 6,
+        "name": "Error",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, const char *, ... )",
+        "evidence": "EMS",
+        "retail": "0x00438ae0"
+      },
+      {
+        "slot": 7,
+        "name": "Milliseconds",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( void )",
+        "evidence": "EMS",
+        "retail": "0x004397b0"
+      },
+      {
+        "slot": 8,
+        "name": "Cvar_Get",
+        "kind": "FUNCTION",
+        "type": "void *",
+        "params": "( const char *, const char *, int )",
+        "evidence": "EMS",
+        "retail": "0x0043a6c0"
+      },
+      {
+        "slot": 9,
+        "name": "Cvar_Set",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char *, const char * )",
+        "evidence": "EMS",
+        "retail": "0x0043ab60"
+      },
+      {
+        "slot": 10,
+        "name": "Argc",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( void )",
+        "evidence": "EMS",
+        "retail": "0x00438140"
+      },
+      {
+        "slot": 11,
+        "name": "Argv",
+        "kind": "FUNCTION",
+        "type": "const char *",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x00438150"
+      },
+      {
+        "slot": 12,
+        "name": "Args",
+        "kind": "FUNCTION",
+        "type": "const char *",
+        "params": "( void )",
+        "evidence": "ES",
+        "retail": "0x004381a0"
+      },
+      {
+        "slot": 13,
+        "name": "AddCommand",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char * )",
+        "evidence": "EMS",
+        "retail": "0x00423f70"
+      },
+      {
+        "slot": 14,
+        "name": "FS_ReadFile",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const char *, void **, int )",
+        "evidence": "EMS",
+        "retail": "0x0043c850"
+      },
+      {
+        "slot": 15,
+        "name": "FS_FreeFile",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void * )",
+        "evidence": "EMS",
+        "retail": "0x0043cb10"
+      },
+      {
+        "slot": 16,
+        "name": "FS_WriteFile",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char *, const void *, int )",
+        "evidence": "ES",
+        "retail": "0x0043cbc0"
+      },
+      {
+        "slot": 17,
+        "name": "FS_WriteTextFile",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char *, const void *, int )",
+        "evidence": "EMS",
+        "retail": "0x0043cc40"
+      },
+      {
+        "slot": 18,
+        "name": "SendConsoleCommand",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char * )",
+        "evidence": "ES",
+        "retail": "0x00437a50"
+      },
+      {
+        "slot": 19,
+        "name": "UpdateLoadingScreen",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "EMS",
+        "retail": "0x0042d8d0"
+      },
+      {
+        "slot": 20,
+        "name": "SendClientCommand",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char * )",
+        "evidence": "ES",
+        "retail": "0x0042a220"
+      },
+      {
+        "slot": 21,
+        "name": "CM_LoadMap",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char * )",
+        "evidence": "EMS",
+        "retail": "0x00424380"
+      },
+      {
+        "slot": 22,
+        "name": "CM_InlineModel",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x00430d70"
+      },
+      {
+        "slot": 23,
+        "name": "CM_NumInlineModels",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( void )",
+        "evidence": "EMS",
+        "retail": "0x00430db0"
+      },
+      {
+        "slot": 24,
+        "name": "CM_PointContents",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const float *, int )",
+        "evidence": "EMS",
+        "retail": "0x00435e00"
+      },
+      {
+        "slot": 25,
+        "name": "CM_TransformedPointContents",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const float *, int, const float *, const float * )",
+        "evidence": "EMS",
+        "retail": "0x00435fa0"
+      },
+      {
+        "slot": 26,
+        "name": "CM_BoxTrace",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void *, const float *, const float *, const float *, const float *, int, int, int )",
+        "evidence": "EMS",
+        "retail": "0x00437130"
+      },
+      {
+        "slot": 27,
+        "name": "CM_TransformedBoxTrace",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void *, const float *, const float *, const float *, const float *, int, int, const float *, const float *, int )",
+        "evidence": "EMS",
+        "retail": "0x004375b0"
+      },
+      {
+        "slot": 28,
+        "name": "CM_TempBoxModel",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const float *, const float *, int )",
+        "evidence": "EMS",
+        "retail": "0x00430f50"
+      },
+      {
+        "slot": 29,
+        "name": "CM_MarkFragments",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, const float *, const float *, int, float *, int, void * )",
+        "evidence": "EMS",
+        "retail": "0x004310c0"
+      },
+      {
+        "slot": 30,
+        "name": "S_StartSound",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const float *, int, int, int, float, float )",
+        "evidence": "EMS",
+        "retail": "0x0044cdb0"
+      },
+      {
+        "slot": 31,
+        "name": "S_StartLocalSound",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char * )",
+        "evidence": "ES",
+        "retail": "0x0044ce10"
+      },
+      {
+        "slot": 32,
+        "name": "S_StopSound",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, int )",
+        "evidence": "EMS",
+        "retail": "0x0044cf50"
+      },
+      {
+        "slot": 33,
+        "name": "S_ClearLoopingSounds",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "EMS",
+        "retail": "0x0044ce80"
+      },
+      {
+        "slot": 34,
+        "name": "S_AddLoopingSound",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const float *, const float *, int, float, float )",
+        "evidence": "EMS",
+        "retail": "0x0044cea0"
+      },
+      {
+        "slot": 35,
+        "name": "S_Respatialize",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, const float *, const float * )",
+        "evidence": "EMS",
+        "retail": "0x0044cf00"
+      },
+      {
+        "slot": 36,
+        "name": "S_BeginRegistration",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "ES",
+        "retail": "0x0044cae0"
+      },
+      {
+        "slot": 37,
+        "name": "S_RegisterSound",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const char * )",
+        "evidence": "EMS",
+        "retail": "0x0044cb10"
+      },
+      {
+        "slot": 38,
+        "name": "S_EndRegistration",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "ES",
+        "retail": "0x0044ccc0"
+      },
+      {
+        "slot": 39,
+        "name": "S_UpdateEntity",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, const float *, const float *, int )",
+        "evidence": "EMS",
+        "retail": "0x0044cd20"
+      },
+      {
+        "slot": 40,
+        "name": "S_SetReverb",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, float )",
+        "evidence": "EMS",
+        "retail": "0x0044cf80"
+      },
+      {
+        "slot": 41,
+        "name": "S_SetGlobalAmbientVolumeLevel",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( float )",
+        "evidence": "ES",
+        "retail": "0x0044cda0"
+      },
+      {
+        "slot": 42,
+        "name": "MUSIC_NewSoundtrack",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char * )",
+        "evidence": "EMS",
+        "retail": "0x0044f7a0"
+      },
+      {
+        "slot": 43,
+        "name": "MUSIC_UpdateMood",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, int )",
+        "evidence": "EMS",
+        "retail": "0x0044f860"
+      },
+      {
+        "slot": 44,
+        "name": "MUSIC_UpdateVolume",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( float, float )",
+        "evidence": "EMS",
+        "retail": "0x0044f980"
+      },
+      {
+        "slot": 45,
+        "name": "get_lip_length",
+        "kind": "FUNCTION",
+        "type": "float",
+        "params": "( const char * )",
+        "evidence": "ES",
+        "retail": "0x0043f100"
+      },
+      {
+        "slot": 46,
+        "name": "get_lip_amplitudes",
+        "kind": "FUNCTION",
+        "type": "const unsigned char *",
+        "params": "( const char *, int * )",
+        "evidence": "ES",
+        "retail": "0x0043f170"
+      },
+      {
+        "slot": 47,
+        "name": "get_camera_offset",
+        "kind": "FUNCTION",
+        "type": "float *",
+        "params": "( int *, int * )",
+        "evidence": "EMS",
+        "retail": "0x0042a1f0"
+      },
+      {
+        "slot": 48,
+        "name": "BeginRegistration",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "ES",
+        "retail": "0x0040e6e0"
+      },
+      {
+        "slot": 49,
+        "name": "EndRegistration",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "ES",
+        "retail": "0x0048a4e0"
+      },
+      {
+        "slot": 50,
+        "name": "R_ClearScene",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "EMS",
+        "retail": "0x00491330"
+      },
+      {
+        "slot": 51,
+        "name": "R_RenderScene",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const void * )",
+        "evidence": "EMS",
+        "retail": "0x00491870"
+      },
+      {
+        "slot": 52,
+        "name": "R_LoadWorldMap",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const char * )",
+        "evidence": "EMS",
+        "retail": "0x0049afd0"
+      },
+      {
+        "slot": 53,
+        "name": "R_RegisterModel",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const char * )",
+        "evidence": "EMS",
+        "retail": "0x004895f0"
+      },
+      {
+        "slot": 54,
+        "name": "R_RegisterSkin",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const char * )",
+        "evidence": "ES",
+        "retail": "0x00485300"
+      },
+      {
+        "slot": 55,
+        "name": "R_RegisterShader",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const char * )",
+        "evidence": "EMS",
+        "retail": "0x0048f2d0"
+      },
+      {
+        "slot": 56,
+        "name": "R_RegisterShaderNoMip",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const char * )",
+        "evidence": "EMS",
+        "retail": "0x0048f320"
+      },
+      {
+        "slot": 57,
+        "name": "R_AddRefEntityToScene",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const void * )",
+        "evidence": "EMS",
+        "retail": "0x00491650"
+      },
+      {
+        "slot": 58,
+        "name": "R_AddRefSpriteToScene",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const void * )",
+        "evidence": "EMS",
+        "retail": "0x00491700"
+      },
+      {
+        "slot": 59,
+        "name": "R_AddLightToScene",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const float *, float, float, float, float, int )",
+        "evidence": "EMS",
+        "retail": "0x004917e0"
+      },
+      {
+        "slot": 60,
+        "name": "R_AddPolyToScene",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, int, const void *, int )",
+        "evidence": "EMS",
+        "retail": "0x00491400"
+      },
+      {
+        "slot": 61,
+        "name": "R_SetColor",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const float * )",
+        "evidence": "EMS",
+        "retail": "0x00498b80"
+      },
+      {
+        "slot": 62,
+        "name": "R_DrawStretchPic",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( float, float, float, float, float, float, float, float, int )",
+        "evidence": "EMS",
+        "retail": "0x00498be0"
+      },
+      {
+        "slot": 63,
+        "name": "R_GetRenderEntity",
+        "kind": "FUNCTION",
+        "type": "void *",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x00491600"
+      },
+      {
+        "slot": 64,
+        "name": "R_ModelBounds",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, float *, float * )",
+        "evidence": "EMS",
+        "retail": "0x0048a850"
+      },
+      {
+        "slot": 65,
+        "name": "R_ModelRadius",
+        "kind": "FUNCTION",
+        "type": "float",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x0048a980"
+      },
+      {
+        "slot": 66,
+        "name": "R_Noise",
+        "kind": "FUNCTION",
+        "type": "float",
+        "params": "( float, float, float, float )",
+        "evidence": "EMS",
+        "retail": "0x004923c0"
+      },
+      {
+        "slot": 67,
+        "name": "R_DebugLine",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const float *, const float *, float, float, float, float )",
+        "evidence": "EMS",
+        "retail": "0x004766f0"
+      },
+      {
+        "slot": 68,
+        "name": "R_SwipeBegin",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( float, float, int )",
+        "evidence": "EMS",
+        "retail": "0x00497e40"
+      },
+      {
+        "slot": 69,
+        "name": "R_SwipePoint",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( const float *, const float *, float )",
+        "evidence": "EMS",
+        "retail": "0x00497ee0"
+      },
+      {
+        "slot": 70,
+        "name": "R_SwipeEnd",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "EMS",
+        "retail": "0x00497f60"
+      },
+      {
+        "slot": 71,
+        "name": "R_GetShaderWidth",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x00497de0"
+      },
+      {
+        "slot": 72,
+        "name": "R_GetShaderHeight",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x00497e10"
+      },
+      {
+        "slot": 73,
+        "name": "R_DrawBox",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( float, float, float, float )",
+        "evidence": "ES",
+        "retail": "0x004992e0"
+      },
+      {
+        "slot": 74,
+        "name": "GetGameState",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void * )",
+        "evidence": "EMS",
+        "retail": "0x00423b20"
+      },
+      {
+        "slot": 75,
+        "name": "GetSnapshot",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, void * )",
+        "evidence": "EMS",
+        "retail": "0x00423c40"
+      },
+      {
+        "slot": 76,
+        "name": "GetCurrentSnapshotNumber",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int *, int * )",
+        "evidence": "EMS",
+        "retail": "0x00423c20"
+      },
+      {
+        "slot": 77,
+        "name": "GetGlconfig",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void * )",
+        "evidence": "EMS",
+        "retail": "0x00423b40"
+      },
+      {
+        "slot": 78,
+        "name": "GetParseEntityState",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, void * )",
+        "evidence": "ES",
+        "retail": "0x00423bc0"
+      },
+      {
+        "slot": 79,
+        "name": "GetCurrentCmdNumber",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( void )",
+        "evidence": "EMS",
+        "retail": "0x00423bb0"
+      },
+      {
+        "slot": 80,
+        "name": "GetUserCmd",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, void * )",
+        "evidence": "EMS",
+        "retail": "0x00423b60"
+      },
+      {
+        "slot": 81,
+        "name": "GetServerCommand",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x00424300"
+      },
+      {
+        "slot": 82,
+        "name": "Alias_Add",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( const char *, const char *, const char * )",
+        "evidence": "EMS",
+        "retail": "0x00423a40"
+      },
+      {
+        "slot": 83,
+        "name": "Alias_FindRandom",
+        "kind": "FUNCTION",
+        "type": "const char *",
+        "params": "( const char * )",
+        "evidence": "EMS",
+        "retail": "0x00423a90"
+      },
+      {
+        "slot": 84,
+        "name": "Alias_Dump",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "ES",
+        "retail": "0x00423ac0"
+      },
+      {
+        "slot": 85,
+        "name": "Alias_Clear",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "ES",
+        "retail": "0x00423af0"
+      },
+      {
+        "slot": 86,
+        "name": "TIKI_GetHandle",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x0048aac0"
+      },
+      {
+        "slot": 87,
+        "name": "NumAnims",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int )",
+        "evidence": "ES",
+        "retail": "0x0045cde0"
+      },
+      {
+        "slot": 88,
+        "name": "NumSkins",
+        "kind": "ABSENT",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "ES"
+      },
+      {
+        "slot": 89,
+        "name": "NumSurfaces",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int )",
+        "evidence": "ES",
+        "retail": "0x0045ce00"
+      },
+      {
+        "slot": 90,
+        "name": "NumTags",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int )",
+        "evidence": "ES",
+        "retail": "0x0045ce20"
+      },
+      {
+        "slot": 91,
+        "name": "InitCommands",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, void * )",
+        "evidence": "EMS",
+        "retail": "0x0045cf40"
+      },
+      {
+        "slot": 92,
+        "name": "CalculateBounds",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, float, float *, float * )",
+        "evidence": "EMS",
+        "retail": "0x0045d040"
+      },
+      {
+        "slot": 93,
+        "name": "FlushAll",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "EMS",
+        "retail": "0x0048ab00"
+      },
+      {
+        "slot": 94,
+        "name": "TIKI_NameForNum",
+        "kind": "FUNCTION",
+        "type": "const char *",
+        "params": "( int )",
+        "evidence": "EMS",
+        "retail": "0x0045cdd0"
+      },
+      {
+        "slot": 95,
+        "name": "Anim_NameForNum",
+        "kind": "FUNCTION",
+        "type": "const char *",
+        "params": "( int, int )",
+        "evidence": "EMS",
+        "retail": "0x0045d0d0"
+      },
+      {
+        "slot": 96,
+        "name": "Anim_NumForName",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, const char * )",
+        "evidence": "ES",
+        "retail": "0x0045d120"
+      },
+      {
+        "slot": 97,
+        "name": "Anim_Random",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, const char * )",
+        "evidence": "EMS",
+        "retail": "0x0045d180"
+      },
+      {
+        "slot": 98,
+        "name": "Anim_NumFrames",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, int )",
+        "evidence": "EMS",
+        "retail": "0x0045d2b0"
+      },
+      {
+        "slot": 99,
+        "name": "Anim_Time",
+        "kind": "FUNCTION",
+        "type": "float",
+        "params": "( int, int )",
+        "evidence": "EMS",
+        "retail": "0x0045d340"
+      },
+      {
+        "slot": 100,
+        "name": "Anim_Delta",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, int, float * )",
+        "evidence": "EMS",
+        "retail": "0x0045d3e0"
+      },
+      {
+        "slot": 101,
+        "name": "Anim_Flags",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, int )",
+        "evidence": "EMS",
+        "retail": "0x0045d640"
+      },
+      {
+        "slot": 102,
+        "name": "Anim_CrossblendTime",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, int )",
+        "evidence": "EMS",
+        "retail": "0x0045d730"
+      },
+      {
+        "slot": 103,
+        "name": "Anim_HasCommands",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, int )",
+        "evidence": "EMS",
+        "retail": "0x0045d6e0"
+      },
+      {
+        "slot": 104,
+        "name": "Frame_Commands",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, int, int, void * )",
+        "evidence": "EMS",
+        "retail": "0x0045d8d0"
+      },
+      {
+        "slot": 105,
+        "name": "Frame_Delta",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, int, int, float * )",
+        "evidence": "ES",
+        "retail": "0x0045da20"
+      },
+      {
+        "slot": 106,
+        "name": "Frame_Time",
+        "kind": "FUNCTION",
+        "type": "float",
+        "params": "( int, int, int )",
+        "evidence": "EMS",
+        "retail": "0x0045db70"
+      },
+      {
+        "slot": 107,
+        "name": "Frame_Bounds",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, int, int, float, float *, float * )",
+        "evidence": "ES",
+        "retail": "0x0045dd40"
+      },
+      {
+        "slot": 108,
+        "name": "Frame_Radius",
+        "kind": "FUNCTION",
+        "type": "float",
+        "params": "( int, int, int )",
+        "evidence": "ES",
+        "retail": "0x0045dc40"
+      },
+      {
+        "slot": 109,
+        "name": "Surface_NameToNum",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, const char * )",
+        "evidence": "ES",
+        "retail": "0x0045dec0"
+      },
+      {
+        "slot": 110,
+        "name": "Surface_NumToName",
+        "kind": "FUNCTION",
+        "type": "const char *",
+        "params": "( int, int )",
+        "evidence": "ES",
+        "retail": "0x0045df20"
+      },
+      {
+        "slot": 111,
+        "name": "Surface_Flags",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, int )",
+        "evidence": "ES",
+        "retail": "0x0045dfe0"
+      },
+      {
+        "slot": 112,
+        "name": "Surface_NumSkins",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, int )",
+        "evidence": "ES",
+        "retail": "0x0045e030"
+      },
+      {
+        "slot": 113,
+        "name": "Tag_NumForName",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, const char * )",
+        "evidence": "EMS",
+        "retail": "0x0045e080"
+      },
+      {
+        "slot": 114,
+        "name": "Tag_NameForNum",
+        "kind": "FUNCTION",
+        "type": "const char *",
+        "params": "( int, int )",
+        "evidence": "ES",
+        "retail": "0x0045e170"
+      },
+      {
+        "slot": 115,
+        "name": "Tag_Orientation",
+        "kind": "FUNCTION",
+        "type": "void *",
+        "params": "( void *, int, int, int, int, float, const void * )",
+        "evidence": "EMS",
+        "retail": "0x0045f440"
+      },
+      {
+        "slot": 116,
+        "name": "Tag_OrientationEx",
+        "kind": "ABSENT",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "ES"
+      },
+      {
+        "slot": 117,
+        "name": "Tag_NamedOrientation",
+        "kind": "FUNCTION",
+        "type": "void *",
+        "params": "( void *, int, int, int, float, const char *, const void * )",
+        "evidence": "ES",
+        "retail": "0x0045fbc0"
+      },
+      {
+        "slot": 118,
+        "name": "Tag_LerpedOrientation",
+        "kind": "FUNCTION",
+        "type": "void *",
+        "params": "( void *, int, const void *, int )",
+        "evidence": "EMS",
+        "retail": "0x004612f0"
+      },
+      {
+        "slot": 119,
+        "name": "TIKI_Alias_Add",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( int, const char *, const char *, const char * )",
+        "evidence": "EMS",
+        "retail": "0x0045cc00"
+      },
+      {
+        "slot": 120,
+        "name": "TIKI_Alias_FindRandom",
+        "kind": "FUNCTION",
+        "type": "const char *",
+        "params": "( int, const char * )",
+        "evidence": "EMS",
+        "retail": "0x0045ccc0"
+      },
+      {
+        "slot": 121,
+        "name": "TIKI_Alias_Dump",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int )",
+        "evidence": "ES",
+        "retail": "0x0045cc60"
+      },
+      {
+        "slot": 122,
+        "name": "TIKI_Alias_Clear",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int )",
+        "evidence": "ES",
+        "retail": "0x0045cc90"
+      },
+      {
+        "slot": 123,
+        "name": "TIKI_Alias_FindDialog",
+        "kind": "FUNCTION",
+        "type": "const char *",
+        "params": "( int, const char *, int, int )",
+        "evidence": "ES",
+        "retail": "0x0045ccf0"
+      },
+      {
+        "slot": 124,
+        "name": "SharedBlock",
+        "kind": "FUNCTION",
+        "type": "void *",
+        "params": "( void )",
+        "evidence": "EM",
+        "retail": "0x0042c490"
+      }
+    ],
+    "cgameExports": [
+      {
+        "slot": 0,
+        "name": "Init",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void *, int, int )",
+        "evidence": "EMS",
+        "retail": "0x300240e0"
+      },
+      {
+        "slot": 1,
+        "name": "Shutdown",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "EMS",
+        "retail": "0x30024150"
+      },
+      {
+        "slot": 2,
+        "name": "DrawActiveFrame",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, int, int )",
+        "evidence": "EMS",
+        "retail": "0x3002c710"
+      },
+      {
+        "slot": 3,
+        "name": "ConsoleCommand",
+        "kind": "FUNCTION",
+        "type": "int",
+        "params": "( void )",
+        "evidence": "EMS",
+        "retail": "0x30021520"
+      },
+      {
+        "slot": 4,
+        "name": "GetRendererConfig",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "EMS",
+        "retail": "0x30023f60"
+      },
+      {
+        "slot": 5,
+        "name": "Draw2D",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( void )",
+        "evidence": "EMS",
+        "retail": "0x300217f0"
+      },
+      {
+        "slot": 6,
+        "name": "EntityOrientation",
+        "kind": "FUNCTION",
+        "type": "void",
+        "params": "( int, float *, float * )",
+        "evidence": "EM",
+        "retail": "0x30024160"
+      }
+    ]
+  }
+}

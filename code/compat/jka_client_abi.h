@@ -24,6 +24,14 @@
 #define FNTECH3_JKA_CLIENT_AREAMASK_BYTES 32
 #define FNTECH3_JKA_CGAME_SHARED_BUFFER_BYTES 2048 /* pinned cg_public.h */
 
+/* Retail jamp.exe0x40931f..0x4093e2 writes this shared record then invokes
+ * cgame export15. It includes entity collision, not just the world model. */
+typedef struct {
+    fntech3_jka_trace_t result;
+    float start[3], mins[3], maxs[3], end[3];
+    int32_t skipEntity, mask;
+} fntech3_jka_cgame_trace_t;
+
 typedef struct {
     int32_t stringOffsets[FNTECH3_JKA_MAX_CONFIGSTRINGS];
     char stringData[FNTECH3_JKA_MAX_GAMESTATE_CHARS];
@@ -90,6 +98,13 @@ typedef struct {
 } fntech3_jka_mp_refdef_t;
 
 #ifdef __cplusplus
+static_assert(sizeof(fntech3_jka_cgame_trace_t)==104);
+static_assert(offsetof(fntech3_jka_cgame_trace_t,start)==48);
+static_assert(offsetof(fntech3_jka_cgame_trace_t,mins)==60);
+static_assert(offsetof(fntech3_jka_cgame_trace_t,maxs)==72);
+static_assert(offsetof(fntech3_jka_cgame_trace_t,end)==84);
+static_assert(offsetof(fntech3_jka_cgame_trace_t,skipEntity)==96);
+static_assert(offsetof(fntech3_jka_cgame_trace_t,mask)==100);
 static_assert(sizeof(fntech3_jka_mp_orientation_t) == 48);
 static_assert(offsetof(fntech3_jka_mp_orientation_t, origin) == 0);
 static_assert(offsetof(fntech3_jka_mp_orientation_t, axis) == 12);

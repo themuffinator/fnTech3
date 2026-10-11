@@ -12,6 +12,8 @@
 #ifndef RT_LIGHTING_GLSL
 #define RT_LIGHTING_GLSL
 
+#include "rt_light_proposal.glsl"
+
 struct RtLightSample {
 	vec3 L;			// toward the light
 	float dist;		// shadow ray length
@@ -161,6 +163,9 @@ struct RtLightChoice {
 	uint exclude;
 	uint candidates;	// the cell is enumerated when it holds no more
 	uint streams;		// rt_light_stream
+	uint reuseKey;		// compatible primary receiver, 0 disables proposal replay
+	float globalShare;	// mixture weight of the global proposal
+	bool enumerate;
 };
 
 // Candidate k's random numbers: its pick and its point on the light draw on
@@ -170,16 +175,32 @@ uint rt_light_stream(uint streams, uint k)
 	return hash_u32(streams ^ (k * 0x85ebca6bu));
 }
 
+#include "rt_light_reuse.glsl"
+
+uint rt_choice_stream(RtLightChoice c, uint k)
+{
+	return c.reuseKey != 0u && k < 4u ?
+		rt_reused_light_stream(c.reuseKey, uint(u_frame.time.y), k) : rt_light_stream(c.streams, k);
+}
+
 // Candidate k of a resampling over the cell's lights and the dynamic lights
 // after them (total): the light it picks, its own place when they are
 // enumerated, and its sample. Its weight is its target, the luminance of its
 // irradiance, times the lights it was picked from unless they were
 // enumerated. False when it adds nothing.
-bool rt_light_candidate(vec3 P, vec3 N, uvec2 cell, uint total, bool enumerate, uint exclude, uint stream,
+bool rt_light_candidate(vec3 P, vec3 N, uvec2 cell, uint total, bool enumerate, float globalShare, uint exclude, uint stream,
 	uint k, out uint index, out RtLightSample s, out float target, out float weight)
 {
-	uint pick = enumerate ? k : min(uint(rand01(stream) * float(total)), total - 1u);
-	index = pick < cell.y ? u_lightIndices.indices[cell.x + pick] : u_frame.counts.w + (pick - cell.y);
+	float proposal;
+	if (!enumerate && globalShare > 0.0 && rand01(stream) < globalShare) {
+		index = rt_global_light_pick(rand01(stream));
+		proposal = rt_light_proposal_pdf(cell, total, globalShare, index);
+	} else {
+		uint pick = enumerate ? k : min(uint(rand01(stream) * float(total)), total - 1u);
+		index = pick < cell.y ? u_lightIndices.indices[cell.x + pick] : u_frame.counts.w + (pick - cell.y);
+		// A locally drawn index is already known to be in the list.
+		proposal = enumerate ? 1.0 : globalShare * rt_global_light_pdf(index) + (1.0-globalShare) / float(total);
+	}
 	target = 0.0;
 	weight = 0.0;
 	if (!rt_light_eval(index, P, N, exclude, stream, s)) {
@@ -190,7 +211,7 @@ bool rt_light_candidate(vec3 P, vec3 N, uvec2 cell, uint total, bool enumerate, 
 		return false;
 	}
 	target = p;
-	weight = enumerate ? p : p * float(total);
+	weight = p / proposal;
 	return true;
 }
 
@@ -200,8 +221,7 @@ bool rt_light_candidate(vec3 P, vec3 N, uvec2 cell, uint total, bool enumerate, 
 // enumerated and nearly otherwise.
 float rt_light_normalizer(RtLightChoice c, float weightSum)
 {
-	bool enumerate = c.candidates == c.cell.y + u_frame.flags.w;
-	return enumerate ? weightSum : weightSum / float(max(c.candidates, 1u));
+	return c.enumerate ? weightSum : weightSum / float(max(c.candidates, 1u));
 }
 
 // A triangle light's target at its point along L at distance dist from a
@@ -258,23 +278,18 @@ float rt_light_pdf_at(RtLightChoice c, uint index, vec3 P, vec3 N, vec3 L, float
 	if (!(target > 0.0)) {
 		return 0.0;
 	}
-	bool enumerate = c.candidates == total;
-	uint slot = ~0u;
-	for (uint k = 0u; k < c.cell.y; k++) {
-		if (u_lightIndices.indices[c.cell.x + k] == index) {
-			slot = enumerate ? k : 0u;
-			break;
-		}
-	}
-	if (slot == ~0u) {
+	bool enumerate = c.enumerate;
+	float proposal = rt_light_proposal_pdf(c.cell, total, c.globalShare, index);
+	uint slot = enumerate ? rt_local_light_slot(c.cell, index) : 0u;
+	if (slot == ~0u || !(proposal > 0.0)) {
 		return 0.0;
 	}
 	uint picked;
 	RtLightSample drawn;
 	float drawnTarget, drawnWeight;
-	rt_light_candidate(P, N, c.cell, total, enumerate, c.exclude, rt_light_stream(c.streams, slot), slot, picked,
+	rt_light_candidate(P, N, c.cell, total, enumerate, c.globalShare, c.exclude, rt_choice_stream(c, slot), slot, picked,
 		drawn, drawnTarget, drawnWeight);
-	float weightSum = max(c.weightSum - drawnWeight, 0.0) + (enumerate ? target : target * float(total));
+	float weightSum = max(c.weightSum - drawnWeight, 0.0) + (enumerate ? target : target / proposal);
 	float normalizer = rt_light_normalizer(c, weightSum);
 	return normalizer > 0.0 ? (target / normalizer) * toSolidAngle : 0.0;
 }
@@ -285,7 +300,7 @@ float rt_light_pdf_at(RtLightChoice c, uint index, vec3 P, vec3 N, vec3 L, float
 // dynamicOnly leaves the map's own lights out (a lightmap holds them), and
 // the choice records an empty cell, so none is weighed against a reflection.
 vec3 rt_sample_lights(vec3 P, vec3 N, vec3 Ng, uint maxCandidates, uint exclude, bool dynamicOnly, inout uint seed,
-	out vec3 Lsel, out bool found, out RtLightChoice choice)
+	out vec3 Lsel, out bool found, out RtLightChoice choice, out float reactive)
 {
 	// A wall often lies on a cell boundary, and the cell behind it lists the
 	// lights of the space behind it (the grid culls by PVS). Look one unit
@@ -293,8 +308,10 @@ vec3 rt_sample_lights(vec3 P, vec3 N, vec3 Ng, uint maxCandidates, uint exclude,
 	uvec2 cell = dynamicOnly ? uvec2(0u) : rt_light_cell(P + Ng);
 	uint dlights = u_frame.flags.w;
 	uint total = cell.y + dlights;
-	uint M = min(total, maxCandidates);
-	bool enumerate = (M == total);
+	float globalShare = !dynamicOnly && u_frame.counts.w > 0u ? (total > 0u ? 0.25 : 1.0) : 0.0;
+	uint M = globalShare > 0.0 ? maxCandidates : min(total, maxCandidates);
+	bool enumerate = globalShare == 0.0 && M == total;
+	reactive = 0.0;
 	found = false;
 	Lsel = N;
 	choice.index = ~0u;
@@ -305,7 +322,22 @@ vec3 rt_sample_lights(vec3 P, vec3 N, vec3 Ng, uint maxCandidates, uint exclude,
 	choice.exclude = exclude;
 	choice.candidates = M;
 	choice.streams = hash_u32(seed ^ 0xa511e9b3u);
-	if (total == 0u) {
+	choice.reuseKey = 0u;
+	if (g_lightReuseMaterial != 0u && M > 4u && !enumerate &&
+		(u_frame.flags.x & RT_FRAME_LIGHT_REUSE) != 0u) {
+		// Material, geometric neighbourhood, normal and proposal-table identity
+		// must agree to share streams. No data from a disappeared instance or
+		// previous light table is read. Small cells limit spatial correlation.
+		uvec3 pKey = uvec3(ivec3(floor(P * 0.25)));
+		uvec3 nKey = uvec3(ivec3(floor(N * 16.0)));
+		choice.reuseKey = hash_u32(pKey.x ^ hash_u32(pKey.y) ^ hash_u32(pKey.z + 19u) ^
+			hash_u32(nKey.x + nKey.y * 37u + nKey.z * 1369u) ^
+			hash_u32(g_lightReuseMaterial ^ exclude) ^ hash_u32(cell.x + total * 257u) ^
+			hash_u32(u_frame.counts.w + u_frame.flags.w * 65537u)) | 1u;
+	}
+	choice.globalShare = globalShare;
+	choice.enumerate = enumerate;
+	if (M == 0u) {
 		return vec3(0.0);
 	}
 
@@ -321,7 +353,7 @@ vec3 rt_sample_lights(vec3 P, vec3 N, vec3 Ng, uint maxCandidates, uint exclude,
 		uint index;
 		RtLightSample s;
 		float p, w;
-		if (!rt_light_candidate(P, N, cell, total, enumerate, exclude, rt_light_stream(choice.streams, k), k, index, s,
+		if (!rt_light_candidate(P, N, cell, total, enumerate, globalShare, exclude, rt_choice_stream(choice, k), k, index, s,
 			p, w)) {
 			continue;
 		}
@@ -347,6 +379,7 @@ vec3 rt_sample_lights(vec3 P, vec3 N, vec3 Ng, uint maxCandidates, uint exclude,
 		}
 	}
 	choice.weightSum = wSum;
+	choice.enumerate = enumerate;
 	if (!(wSum > 0.0) || !(pSel > 0.0)) {
 		return vec3(0.0);
 	}
@@ -364,7 +397,7 @@ vec3 rt_sample_lights(vec3 P, vec3 N, vec3 Ng, uint maxCandidates, uint exclude,
 	// every surface, through its alpha test.
 	bool dynamicLight = chosenIndex >= u_frame.counts.w;
 	uint mask = dynamicLight ? (g_shadowMask | RT_MASK_NOSHADOW) : g_shadowMask;
-	float visibility = rt_trace_shadow_mask(origin, chosen.L, chosen.dist - 0.1, mask, !dynamicLight);
+	float visibility = rt_trace_shadow_mask(origin, chosen.L, chosen.dist - 0.1, mask, !dynamicLight, reactive);
 	vec3 transmission = vec3(visibility);
 	// ... and through its alphashadow and lightfilter surfaces, filtered
 	vec3 filtered = vec3(1.0);
@@ -399,14 +432,16 @@ vec3 rt_sample_lights(vec3 P, vec3 N, vec3 Ng, uint maxCandidates, uint exclude,
 // nearest of the shadow casters, solid as the compiler saw them, and the sky
 // surfaces decides; the alphashadow and lightfilter surfaces before the sky
 // filter what is left.
-vec3 rt_sun_visibility(vec3 origin, vec3 L)
+vec3 rt_sun_visibility(vec3 origin, vec3 L, out float reactive)
 {
+	reactive = 0.0;
 	if (!trace_solid(origin, L, 0.01, 1e5, g_shadowMask | RT_MASK_SPECIAL)) {
 		return vec3(0.0);
 	}
 	float skyT = payload.hitT;
 	RtTriangle tri = rt_fetch_triangle(payload.customIndex, payload.geometry & 0xFFFFu, payload.primitive);
 	if ((rt_triangle_material(tri).flags & RT_MF_SKY) == 0u) {
+		if (tri.dynamic) reactive = 1.0;
 		return vec3(0.0);
 	}
 	return rt_trace_filter(origin, L, 0.01, skyT);
@@ -462,17 +497,13 @@ vec3 rt_sample_sky_light(vec3 P, vec3 N, vec3 Ng, inout uint seed, out vec3 Lsky
 		light = u_frame.skyLight.rgb * cosR;
 	}
 	Lsky = L;
-	// one visibility ray for either sky (a second call site here stops the
-	// 32-bit compute pipeline from being created)
-	vec3 origin = P + Ng * max(0.05, 1e-6 * length(P));
-	vec3 visible = rt_sun_visibility(origin, L);
-	if (skyRadiance && any(greaterThan(visible, vec3(0.0)))) {
-		// evenly, as the map's sky shaders ask (skyLight.w 1), or the sky's
-		// own images (rt_lights.c RT_FindSkyLightColor)
+	// Visibility is shared with the sun sampler in shade_direct. Keeping
+	// the expensive traversal at one call site matters to 32-bit drivers.
+	if (skyRadiance) {
 		light = u_frame.skyLight.w > 0.5 ? u_frame.skyLight.rgb * u_frame.params0.w :
 			rt_sky_radiance(L) * u_frame.skyLight.rgb;
 	}
-	return light * visible;
+	return light;
 }
 
 // The sun: q3map_sun's light where the path toward it reaches the sky.
@@ -513,8 +544,7 @@ vec3 rt_sample_sun(vec3 P, vec3 N, vec3 Ng, inout uint seed, out vec3 Lsun)
 		return vec3(0.0);
 	}
 	Lsun = L;
-	vec3 origin = P + Ng * max(0.05, 1e-6 * length(P));
-	return u_frame.sunColor.rgb * (cosR * rt_sun_visibility(origin, L));
+	return u_frame.sunColor.rgb * cosR;
 }
 
 // The $dlight image RTCW's light materials project (tr_image.c

@@ -4093,6 +4093,7 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.RegisterRuntimeMDR = RE_RegisterRuntimeMDR;
 	re.UpdateRuntimeMDRPose = RE_UpdateRuntimeMDRPose;
 	re.GetJKADistanceCull = RE_GetJKADistanceCull;
+	re.FrameEvent = NULL; // optional RT pacing/profiling extension
 	re.VertexLighting = RE_VertexLighting;
 	re.SyncRender = RE_SyncRender;
 	re.TransformModelToClip = RE_TransformModelToClip;

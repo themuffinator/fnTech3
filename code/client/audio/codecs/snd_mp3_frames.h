@@ -15,6 +15,11 @@
  * This reproduces every retail "#UNCOMP" size (8,071 effects and 3 tracks);
  * see docs/fntech3/2026-09-18-stvef-contracts.md.
  *
+ * Each frame is decoded from its own header without looking past it, as
+ * every Raven engine does (stvoy.exe 0x437320, jk2mp.exe 0x456870, jamp.exe
+ * 0x47e2c0), so a last frame decodes when stray bytes follow it; see
+ * docs/fntech3/2026-10-08-mp3-last-frame.md.
+ *
  * A trailing 128-byte ID3v1 tag and a leading ID3v2 tag are excluded before
  * any sync search. Rate and channel count must stay constant; a frame that
  * changes them ends the stream. */
@@ -67,6 +72,45 @@ inline int Mp3UnpaddedFrameBytes( const std::uint8_t *header, int frameBytes ) n
 	return frameBytes > pad ? frameBytes - pad : 0;
 }
 
+/* Byte size of the frame whose header starts at 'header', padding included,
+ * read from that header alone (the ISO/IEC 11172-3 and 13818-3 bitrate and
+ * sample-rate tables); 0 when fewer than four bytes are available, the
+ * header is not valid, or the frame is free format, whose size no header
+ * holds. MPEG 2.5 defines Layer III only. */
+inline int Mp3HeaderFrameBytes( const std::uint8_t *header, int available ) noexcept {
+	// kbps by [MPEG-1][layer field - 1][bitrate index]; layer field 1 is Layer III.
+	static constexpr short kKbps[2][3][15] = {
+		{ { 0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160 },
+			{ 0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160 },
+			{ 0, 32, 48, 56, 64, 80, 96, 112, 128, 144, 160, 176, 192, 224, 256 } },
+		{ { 0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320 },
+			{ 0, 32, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 384 },
+			{ 0, 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448 } } };
+	static constexpr int kHz[3] = { 44100, 48000, 32000 };
+	if ( !header || available < 4 || header[0] != 0xff || ( header[1] & 0xe0 ) != 0xe0 ) return 0;
+	const int version = ( header[1] >> 3 ) & 3; // 0 MPEG 2.5, 1 reserved, 2 MPEG-2, 3 MPEG-1
+	const int layer = ( header[1] >> 1 ) & 3;   // 1 Layer III, 2 Layer II, 3 Layer I
+	const int bitrate = header[2] >> 4;
+	const int rate = ( header[2] >> 2 ) & 3;
+	if ( version == 1 || layer == 0 || ( version == 0 && layer != 1 ) || bitrate == 0
+		|| bitrate == 15 || rate == 3 ) return 0;
+	const bool mpeg1 = version == 3;
+	const int hz = kHz[rate] >> ( mpeg1 ? 0 : version == 2 ? 1 : 2 );
+	const int samples = layer == 3 ? 384 : ( layer == 1 && !mpeg1 ? 576 : 1152 );
+	const int bytes = samples * kKbps[mpeg1][layer - 1][bitrate] * 125 / hz;
+	const bool padded = ( header[2] >> 1 ) & 1;
+	if ( layer == 3 ) return ( bytes & ~3 ) + ( padded ? 4 : 0 ); // four-byte slots
+	return bytes + ( padded ? 1 : 0 );
+}
+
+/* Whether 'next', the 'available' bytes after the frame whose header is
+ * 'frame', begins another frame of that stream: a sized header with the same
+ * MPEG version, layer and sample rate. */
+inline bool Mp3ContinuesStream( const std::uint8_t *frame, const std::uint8_t *next, int available ) noexcept {
+	return frame && Mp3HeaderFrameBytes( next, available ) > 0 && !( ( frame[1] ^ next[1] ) & 0xfe )
+		&& !( ( frame[2] ^ next[2] ) & 0x0c );
+}
+
 class Mp3FrameDecoder {
 public:
 	static constexpr int kMaxFrameSamples = 1152 * 2;
@@ -76,6 +120,7 @@ public:
 		length_ = data && length > 0 ? length : 0;
 		position_ = 0;
 		limit_ = 0;
+		aligned_ = true;
 		frameSamples_ = frameCursor_ = 0;
 		if ( length_ >= 128 && !std::memcmp( data_ + length_ - 128, "TAG", 3 ) ) {
 			length_ -= 128;
@@ -96,12 +141,15 @@ public:
 		if ( !decode ) return info;
 		std::int64_t total = 0;
 		int limit = 0;
+		bool aligned = true;
 		for ( int position = start_; position < length_; ) {
 			if ( limit && length_ - position < limit ) break;
+			const int bytes = DecodeBytes( position, aligned );
 			int frameBytes = 0, offset = 0, channels = 0, rate = 0;
-			const int samples = decode( codec, data_ + position, length_ - position,
+			const int samples = decode( codec, data_ + position, bytes,
 				nullptr, &frameBytes, &offset, &channels, &rate );
-			if ( frameBytes <= 0 || frameBytes > length_ - position || offset < 0 || offset >= frameBytes ) break;
+			if ( frameBytes <= 0 || frameBytes > bytes || offset < 0 || offset >= frameBytes ) break;
+			aligned = channels > 0;
 			if ( samples > 0 && !limit ) {
 				limit = Mp3UnpaddedFrameBytes( data_ + position + offset, frameBytes - offset );
 				if ( !limit ) break;
@@ -137,6 +185,7 @@ public:
 	 * which then resyncs from any byte. */
 	void SeekFileOffset( int offset ) noexcept {
 		position_ = offset < start_ ? start_ : ( offset > length_ ? length_ : offset );
+		aligned_ = position_ == start_;
 		frameSamples_ = frameCursor_ = 0;
 	}
 
@@ -145,11 +194,14 @@ public:
 	std::int64_t SamplesBefore( void *codec, Mp3DecodeFn decode, int offset ) const noexcept {
 		std::int64_t total = 0;
 		if ( !decode ) return total;
+		bool aligned = true;
 		for ( int position = start_; position < length_; ) {
+			const int bytes = DecodeBytes( position, aligned );
 			int frameBytes = 0, skipped = 0, channels = 0, rate = 0;
-			const int samples = decode( codec, data_ + position, length_ - position,
+			const int samples = decode( codec, data_ + position, bytes,
 				nullptr, &frameBytes, &skipped, &channels, &rate );
-			if ( frameBytes <= 0 || frameBytes > length_ - position || skipped < 0 || skipped >= frameBytes ) break;
+			if ( frameBytes <= 0 || frameBytes > bytes || skipped < 0 || skipped >= frameBytes ) break;
+			aligned = channels > 0;
 			if ( position + skipped >= offset ) break;
 			position += frameBytes;
 			if ( samples > 0 && samples <= kMaxFrameSamples / 2 ) total += samples;
@@ -185,14 +237,31 @@ public:
 	}
 
 private:
+	/* The bytes from 'position' to hand the decoder. Retail decodes each
+	 * frame from its own header and never reads past it, but a decoder may
+	 * want the next frame's header before it trusts a frame (minimp3 does,
+	 * unless the frame ends its input). So where a frame is due, 'aligned'
+	 * (the start, or just after a frame the decoder found), a complete frame
+	 * that no frame of its stream follows, such as a last frame before stray
+	 * bytes, goes alone. After a seek into a frame the decoder resyncs. */
+	int DecodeBytes( int position, bool aligned ) const noexcept {
+		const int remaining = length_ - position;
+		const std::uint8_t *frame = data_ + position;
+		const int bytes = aligned ? Mp3HeaderFrameBytes( frame, remaining ) : 0;
+		if ( bytes <= 0 || bytes >= remaining ) return remaining;
+		return Mp3ContinuesStream( frame, frame + bytes, remaining - bytes ) ? remaining : bytes;
+	}
+
 	bool NextFrame( void *codec, Mp3DecodeFn decode, int channels, int rate ) noexcept {
 		frameSamples_ = frameCursor_ = 0;
 		while ( position_ < length_ ) {
 			if ( limit_ && length_ - position_ < limit_ ) break;
+			const int bytes = DecodeBytes( position_, aligned_ );
 			int frameBytes = 0, offset = 0, frameChannels = 0, frameRate = 0;
-			const int samples = decode( codec, data_ + position_, length_ - position_,
+			const int samples = decode( codec, data_ + position_, bytes,
 				frame_, &frameBytes, &offset, &frameChannels, &frameRate );
-			if ( frameBytes <= 0 || frameBytes > length_ - position_ || offset < 0 || offset >= frameBytes ) break;
+			if ( frameBytes <= 0 || frameBytes > bytes || offset < 0 || offset >= frameBytes ) break;
+			aligned_ = frameChannels > 0;
 			if ( samples > 0 && !limit_ ) {
 				limit_ = Mp3UnpaddedFrameBytes( data_ + position_ + offset, frameBytes - offset );
 				if ( !limit_ ) break;
@@ -212,6 +281,7 @@ private:
 	int start_ = 0;
 	int position_ = 0;
 	int limit_ = 0;
+	bool aligned_ = true;
 	short frame_[kMaxFrameSamples] = {};
 	int frameSamples_ = 0;
 	int frameCursor_ = 0;

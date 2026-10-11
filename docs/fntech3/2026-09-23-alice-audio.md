@@ -487,14 +487,11 @@ outside the profile and does nothing while no backend runs:
 
 ### Still open
 
-- The client game's slots 30 to 41 and `fadesound` are to be wired to the
-  entry points above.
-- The menu soundtrack, `sound/music/intro`, is named when the intro sequence
-  reaches the main menu (`0x0040fdd7`); fnTech3's Alice interface does not
-  have that sequence yet.
-- Retail also cancels the fade when the server count changes
-  (`CL_SetCGameTime` `0x00424bb2` to `0x0042d89f`), with an
-  `S_StopAllSounds(0)` that keeps the music.
+- (*Done since:* the client game's slots 30 to 41 and `fadesound` are served;
+  the intro names the menu soundtrack when it reaches the main menu; and a
+  changed server count cancels the fade and stops every sound but the music,
+  as `CL_SetCGameTime` does (`0x00424bb2` to `0x0042d89f`;
+  [2026-10-08 round](2026-10-08-alice-compatibility-round.md#a-load-or-a-restart-of-the-running-level)).)
 - The dialog path, the obstruction, a named room and the pause have unit
   evidence only; the zone reverb, occlusion and tone classes have the fourth
   run below and no listening test. Loop blocks, which no shipped record has, have unit and

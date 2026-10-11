@@ -38,6 +38,8 @@ struct snd_info_t {
 	// The loudest byte the sound reaches, which Elite Force measures its
 	// lip-sync against; zero where the file reports none.
 	float peak = 0.0f;
+	int mpegBytes = 0; // Encoded source size, including a .wav-to-.mp3 fallback.
+	float jkaMpegPeak = 128.0f;
 };
 
 struct snd_codec_t;

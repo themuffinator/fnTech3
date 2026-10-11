@@ -383,6 +383,8 @@ static int Cmd_Argc(void) { return int(args.size()); }
 static const char *Cmd_Argv(int i) { return i < int(args.size()) ? args[i].c_str() : ""; }
 static void FS_SetDirPolicy(dirPolicy_t) {}
 static void Com_DPrintf(const char *, ...) {}
+static qboolean ritual;
+static qboolean Com_GameIsRitual(void) { return ritual; }
 static void FS_Restart(int) { ++restarts; }
 static void Z_Free(void *p) { std::free(p); }
 static char *FS_CopyString(const char *s) { char *c = (char *)std::malloc(std::strlen(s) + 1); std::strcpy(c, s); return c; }
@@ -401,6 +403,14 @@ int main() {
     fs_reordered = qtrue;
     FS_PureServerSetLoadedPaks("", "");
     CHECK(restarts == 1 && c.referenced == 1);
+    // Ritual's engines keep the first 64 checksums (alice.exe 0x0043e426).
+    std::string many;
+    for (int i = 0; i < 70; ++i) many += std::to_string(1000 + i) + ' ';
+    FS_PureServerSetLoadedPaks(many.c_str(), "");
+    CHECK(fs_numServerPaks == 70);
+    ritual = qtrue;
+    FS_PureServerSetLoadedPaks(many.c_str(), "");
+    CHECK(fs_numServerPaks == 64 && fs_serverPaks[63] == 1063);
     std::printf("ok\n");
 }
 '''

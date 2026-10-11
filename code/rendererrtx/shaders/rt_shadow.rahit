@@ -1,0 +1,22 @@
+#version 460
+#extension GL_EXT_ray_tracing : require
+#extension GL_EXT_nonuniform_qualifier : require
+#extension GL_GOOGLE_include_directive : require
+
+// Shadow-specific hit group (SBT offset 2), including the sun's nearest-sky
+// query. Radiance and reflection rays retain the ordinary hit group.
+#include "rt_common.glsl"
+#include "rt_bindings.glsl"
+#include "rt_material.glsl"
+#include "rt_geometry.glsl"
+
+hitAttributeEXT vec2 bary;
+
+void main()
+{
+	RtTriangle tri = rt_fetch_triangle(gl_InstanceCustomIndexEXT, uint(gl_GeometryIndexEXT), uint(gl_PrimitiveID));
+	bool front = gl_HitKindEXT == gl_HitKindFrontFacingTriangleEXT;
+	if (!rt_casts_shadow(tri) || !rt_hit_accepted(tri, bary, front, gl_WorldRayDirectionEXT)) {
+		ignoreIntersectionEXT;
+	}
+}

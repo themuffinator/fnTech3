@@ -1,7 +1,7 @@
 {
   "schema": "q3rtx.rendererrtx.shader_reflection.v1",
   "generator": "code/rendererrtx/shaders/build_shaders.py",
-  "shader_count": 96,
+  "shader_count": 97,
   "shaders": [
     {
       "symbol": "color_vert_spv",
@@ -528,7 +528,7 @@
       "source": "rt_composite.comp",
       "stage": "comp",
       "defines": [],
-      "byte_size": 21168,
+      "byte_size": 24608,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -650,6 +650,30 @@
             "storage_class": "StorageBuffer",
             "descriptor_class": "storage_buffer",
             "descriptor_count": 1
+          },
+          {
+            "name": "u_noisyIndirect",
+            "set": 0,
+            "binding": 15,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_histIndirect",
+            "set": 0,
+            "binding": 16,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_filterIndirect",
+            "set": 0,
+            "binding": 17,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
           }
         ],
         "push_constants": [
@@ -665,7 +689,7 @@
       "source": "rt_denoise_atrous.comp",
       "stage": "comp",
       "defines": [],
-      "byte_size": 17448,
+      "byte_size": 21272,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -787,6 +811,30 @@
             "storage_class": "StorageBuffer",
             "descriptor_class": "storage_buffer",
             "descriptor_count": 1
+          },
+          {
+            "name": "u_noisyIndirect",
+            "set": 0,
+            "binding": 15,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_histIndirect",
+            "set": 0,
+            "binding": 16,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_filterIndirect",
+            "set": 0,
+            "binding": 17,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
           }
         ],
         "push_constants": [
@@ -802,7 +850,7 @@
       "source": "rt_denoise_temporal.comp",
       "stage": "comp",
       "defines": [],
-      "byte_size": 17140,
+      "byte_size": 38604,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -924,6 +972,30 @@
             "storage_class": "StorageBuffer",
             "descriptor_class": "storage_buffer",
             "descriptor_count": 1
+          },
+          {
+            "name": "u_noisyIndirect",
+            "set": 0,
+            "binding": 15,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_histIndirect",
+            "set": 0,
+            "binding": 16,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_filterIndirect",
+            "set": 0,
+            "binding": 17,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
           }
         ],
         "push_constants": [
@@ -939,7 +1011,7 @@
       "source": "rt_tonemap.comp",
       "stage": "comp",
       "defines": [],
-      "byte_size": 19296,
+      "byte_size": 19968,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -1061,6 +1133,30 @@
             "storage_class": "StorageBuffer",
             "descriptor_class": "storage_buffer",
             "descriptor_count": 1
+          },
+          {
+            "name": "u_noisyIndirect",
+            "set": 0,
+            "binding": 15,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_histIndirect",
+            "set": 0,
+            "binding": 16,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
+          },
+          {
+            "name": "u_filterIndirect",
+            "set": 0,
+            "binding": 17,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 2
           }
         ],
         "push_constants": [
@@ -1076,7 +1172,7 @@
       "source": "rt_trace.comp",
       "stage": "comp",
       "defines": [],
-      "byte_size": 228252,
+      "byte_size": 266296,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -1160,7 +1256,7 @@
             "descriptor_count": 1
           },
           {
-            "name": "id_1592",
+            "name": "id_1688",
             "set": 0,
             "binding": 10,
             "storage_class": "Uniform",
@@ -1232,15 +1328,15 @@
             "descriptor_count": 1
           },
           {
-            "name": "u_dynamicPrevious",
+            "name": "u_outIndirect",
             "set": 0,
             "binding": 19,
-            "storage_class": "StorageBuffer",
-            "descriptor_class": "storage_buffer",
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
             "descriptor_count": 1
           },
           {
-            "name": "u_primitiveLights",
+            "name": "u_dynamicPrevious",
             "set": 0,
             "binding": 20,
             "storage_class": "StorageBuffer",
@@ -1248,7 +1344,7 @@
             "descriptor_count": 1
           },
           {
-            "name": "u_worldTris",
+            "name": "u_primitiveLights",
             "set": 0,
             "binding": 21,
             "storage_class": "StorageBuffer",
@@ -1256,7 +1352,7 @@
             "descriptor_count": 1
           },
           {
-            "name": "u_dynamicBvh",
+            "name": "u_worldTris",
             "set": 0,
             "binding": 22,
             "storage_class": "StorageBuffer",
@@ -1264,9 +1360,17 @@
             "descriptor_count": 1
           },
           {
-            "name": "u_dynamicTris",
+            "name": "u_dynamicBvh",
             "set": 0,
             "binding": 23,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_dynamicTris",
+            "set": 0,
+            "binding": 24,
             "storage_class": "StorageBuffer",
             "descriptor_class": "storage_buffer",
             "descriptor_count": 1
@@ -1280,7 +1384,7 @@
       "source": "rt_main.rgen",
       "stage": "rgen",
       "defines": [],
-      "byte_size": 195524,
+      "byte_size": 232116,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -1364,7 +1468,7 @@
             "descriptor_count": 1
           },
           {
-            "name": "id_1490",
+            "name": "id_1582",
             "set": 0,
             "binding": 10,
             "storage_class": "Uniform",
@@ -1436,9 +1540,17 @@
             "descriptor_count": 1
           },
           {
-            "name": "u_dynamicPrevious",
+            "name": "u_outIndirect",
             "set": 0,
             "binding": 19,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "storage_image",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_dynamicPrevious",
+            "set": 0,
+            "binding": 20,
             "storage_class": "StorageBuffer",
             "descriptor_class": "storage_buffer",
             "descriptor_count": 1
@@ -1446,7 +1558,7 @@
           {
             "name": "u_primitiveLights",
             "set": 0,
-            "binding": 20,
+            "binding": 21,
             "storage_class": "StorageBuffer",
             "descriptor_class": "storage_buffer",
             "descriptor_count": 1
@@ -1504,7 +1616,7 @@
       "source": "rt_filter.rahit",
       "stage": "rahit",
       "defines": [],
-      "byte_size": 18672,
+      "byte_size": 18896,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -1588,7 +1700,7 @@
             "descriptor_count": 1
           },
           {
-            "name": "id_144",
+            "name": "id_147",
             "set": 0,
             "binding": 10,
             "storage_class": "Uniform",
@@ -1606,7 +1718,7 @@
           {
             "name": "u_dynamicPrevious",
             "set": 0,
-            "binding": 19,
+            "binding": 20,
             "storage_class": "StorageBuffer",
             "descriptor_class": "storage_buffer",
             "descriptor_count": 1
@@ -1614,7 +1726,7 @@
           {
             "name": "u_primitiveLights",
             "set": 0,
-            "binding": 20,
+            "binding": 21,
             "storage_class": "StorageBuffer",
             "descriptor_class": "storage_buffer",
             "descriptor_count": 1
@@ -1628,7 +1740,7 @@
       "source": "rt_main.rahit",
       "stage": "rahit",
       "defines": [],
-      "byte_size": 54352,
+      "byte_size": 54704,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -1712,7 +1824,7 @@
             "descriptor_count": 1
           },
           {
-            "name": "id_936",
+            "name": "id_938",
             "set": 0,
             "binding": 10,
             "storage_class": "Uniform",
@@ -1730,7 +1842,7 @@
           {
             "name": "u_dynamicPrevious",
             "set": 0,
-            "binding": 19,
+            "binding": 20,
             "storage_class": "StorageBuffer",
             "descriptor_class": "storage_buffer",
             "descriptor_count": 1
@@ -1738,7 +1850,131 @@
           {
             "name": "u_primitiveLights",
             "set": 0,
+            "binding": 21,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          }
+        ],
+        "push_constants": []
+      }
+    },
+    {
+      "symbol": "rt_shadow_rahit_spv",
+      "source": "rt_shadow.rahit",
+      "stage": "rahit",
+      "defines": [],
+      "byte_size": 55364,
+      "reflection": {
+        "descriptor_bindings": [
+          {
+            "name": "u_tlas",
+            "set": 0,
+            "binding": 0,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "acceleration_structure",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_worldVertices",
+            "set": 0,
+            "binding": 1,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_worldIndices",
+            "set": 0,
+            "binding": 2,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_dynamicVertices",
+            "set": 0,
+            "binding": 3,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_dynamicIndices",
+            "set": 0,
+            "binding": 4,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_materials",
+            "set": 0,
+            "binding": 5,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_stages",
+            "set": 0,
+            "binding": 6,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_lights",
+            "set": 0,
+            "binding": 7,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_lightGrid",
+            "set": 0,
+            "binding": 8,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_lightIndices",
+            "set": 0,
+            "binding": 9,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "id_942",
+            "set": 0,
+            "binding": 10,
+            "storage_class": "Uniform",
+            "descriptor_class": "uniform_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_textures",
+            "set": 0,
+            "binding": 11,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "combined_image_sampler",
+            "descriptor_count": 2048
+          },
+          {
+            "name": "u_dynamicPrevious",
+            "set": 0,
             "binding": 20,
+            "storage_class": "StorageBuffer",
+            "descriptor_class": "storage_buffer",
+            "descriptor_count": 1
+          },
+          {
+            "name": "u_primitiveLights",
+            "set": 0,
+            "binding": 21,
             "storage_class": "StorageBuffer",
             "descriptor_class": "storage_buffer",
             "descriptor_count": 1

@@ -1575,6 +1575,8 @@ test('fntech3_jka_effects', jka_effects_tests)
 test('fntech3_jka_cgame_effects', python, args: files('tests/jka_cgame_effects_tests.py'))
 test('fntech3_jka_effect_play', python, args: files('tests/jka_effect_play_tests.py'),
   timeout: jka_test_timeout)
+test('fntech3_jka_line_effect', python, args: files('tests/jka_line_effect_tests.py'),
+  timeout: jka_test_timeout)
 test('fntech3_audio_codec_profile', python, args: files('tests/audio_codec_profile_tests.py'))
 test('fntech3_jka_render_host', python, args: files('tests/jka_render_host_tests.py'))
 test('fntech3_jka_ui_binding', python, args: files('tests/jka_ui_binding_tests.py'))
@@ -1589,6 +1591,12 @@ test('fntech3_jka_shader_notc', python, args: files('tests/jka_shader_notc_tests
 test('fntech3_jka_tga_origin', python, args: files('tests/jka_tga_origin_tests.py'))
 test('fntech3_jka_cinematic_path', python, args: files('tests/jka_cinematic_path_tests.py'))
 test('fntech3_jka_ghoul2_cleanup', python, args: files('tests/jka_ghoul2_cleanup_tests.py'),
+  timeout: jka_test_timeout)
+test('fntech3_jka_ghoul2_clock', python, args: files('tests/jka_ghoul2_clock_tests.py'),
+  timeout: jka_test_timeout)
+test('fntech3_jka_cgame_spatial_sound', python, args: files('tests/jka_cgame_spatial_sound_tests.py'),
+  timeout: jka_test_timeout)
+test('fntech3_jka_lipsync', python, args: files('tests/jka_lipsync_tests.py'),
   timeout: jka_test_timeout)
 test('fntech3_jka_pose_host', python, args: files('tests/jka_pose_tests.py'),
   timeout: jka_test_timeout)
@@ -1664,8 +1672,16 @@ jk2_abi_layout_tests = executable('fntech3_jk2_abi_layout_tests',
   cpp_args: common_cpp_args,
 )
 test('fntech3_jk2_abi_layouts', jk2_abi_layout_tests)
+test('fntech3_jk2_ui_definition', python, args: files('tests/jk2_ui_definition_tests.py'),
+  timeout: jka_test_timeout)
+test('fntech3_jk2_ui_render', python, args: files('tests/jk2_ui_render_tests.py'),
+  timeout: jka_test_timeout)
+test('fntech3_jk2_shader_wave_names', python, args: files('tests/jk2_shader_wave_names_tests.py'),
+  timeout: jka_test_timeout)
+test('fntech3_ui_viewport', python, args: files('tests/ui_viewport_tests.py'),
+  timeout: jka_test_timeout)
 
-foreach jk2_test : ['handshake', 'client_adapter', 'font', 'message_codec']
+foreach jk2_test : ['handshake', 'client_adapter', 'font', 'message_codec', 'string']
   jk2_test_exe = executable('fntech3_jk2_' + jk2_test + '_tests',
     'tests/jk2_' + jk2_test + '_tests.cpp',
     cpp_args: common_cpp_args,

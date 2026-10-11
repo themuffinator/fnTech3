@@ -217,7 +217,10 @@ class RtxEmitterLightingTests(unittest.TestCase):
         sample = function(glsl, 'vec3 rt_sample_sky_light(')
         self.assertIn('light = u_frame.skyLight.w > 0.5 ? u_frame.skyLight.rgb * u_frame.params0.w :', sample)
         self.assertIn('rt_sky_radiance(L) * u_frame.skyLight.rgb;', sample)
-        self.assertEqual(sample.count('rt_sun_visibility('), 1)
+        self.assertNotIn('rt_sun_visibility(', sample)
+        direct = function(read('code/rendererrtx/shaders/rt_path.glsl'), 'ShadeResult shade_direct(')
+        self.assertEqual(direct.count('rt_sun_visibility('), 1)
+        self.assertIn('[[dont_unroll]] for (uint sky = 0u; sky < 2u; sky++)', direct)
         # q3map's sky surface lights give way to the sky's own light
         surface = function(lights, 'static void RT_AddSurfaceLights(')
         self.assertIn('if ( s_rtLights.mode == RT_LIGHTING_EMITTERS && RT_ShaderIsSky( shader ) ) {', surface)
@@ -247,7 +250,7 @@ class RtxEmitterLightingTests(unittest.TestCase):
         # the light is mapped, not the surface it lights: textures keep their
         # detail (the detail layer of Eilertsen et al.)
         glsl_base = function(read('code/rendererrtx/shaders/rt_tonemap.glsl'), 'float tone_base(ivec2 tp, uint final)')
-        self.assertIn('imageLoad(u_filterDiffuse[final], tp).rgb * RT_TONE_GREY +', glsl_base)
+        self.assertIn('denoised_irradiance(tp, final) * RT_TONE_GREY +', glsl_base)
         self.assertNotIn('u_reflectance', glsl_base)
         self.assertIn('float lum = tone_base(tp, pc.extra.z & 1u);', function(tonemap, 'void histogram_pass()'))
         self.assertIn('u_tone.histogram[tid] = 0u;', curve)
@@ -444,13 +447,13 @@ class RtxEmitterLightingTests(unittest.TestCase):
         path = read('code/rendererrtx/shaders/rt_path.glsl')
         direct = function(path, 'ShadeResult shade_direct(')
         self.assertEqual(direct.count('rt_sample_lights('), 1)
-        self.assertIn('rt_sample_lights(P, N, Ng, candidates, exclude, baked, seed, L, found, choice) * share', direct)
+        self.assertIn('rt_sample_lights(P, N, Ng, candidates, exclude, baked, seed, L, found, choice, r.shadowReactive) * share', direct)
         baked = direct[direct.index('if (baked) {'):direct.index('} else if (oneSample) {')]
         self.assertIn('r.irradiance = surf.baked;', baked)
         self.assertIn('pick = (u_frame.flags.w > 0u && (exclude & RT_LIGHT_DYNAMIC) == 0u) ? 1u : 0u;', baked)
         # a lightmapped surface takes no sun or sky sample of its own
         self.assertLess(direct.index('if (baked) {\n\t\treturn r;\n\t}'),
-                        direct.index('rt_sample_sun(P, N, Ng, seed, Lsun)'))
+                        direct.index('rt_sample_sun(P, N, Ng, seed, Lsky)'))
         self.assertIn('float weight = (reflections && !baked) ? rt_light_weight(choice, N, Ng, V, L, roughness * roughness) : 1.0;',
                       direct)
 
@@ -466,8 +469,8 @@ class RtxEmitterLightingTests(unittest.TestCase):
         self.assertIn('tone_encode(tone_map(max(light, vec3(0.0)), tone_base(tp, final), pc.exposure.y, pc.exposure.z));',
                       view)
         self.assertIn('color = mix(pc.fog.rgb, color, clamp(emissionFog.a, 0.0, 1.0));', view)
-        self.assertIn('Com_Clamp( 0, 10, rtx_rt_debug_visualizer->integer )', read('code/rendererrtx/rt/rt_backend.c'))
-        self.assertIn('ri.Cvar_CheckRange( rtx_rt_debug_visualizer, "0", "10", CV_INTEGER );',
+        self.assertIn('Com_Clamp( 0, 13, rtx_rt_debug_visualizer->integer )', read('code/rendererrtx/rt/rt_backend.c'))
+        self.assertIn('ri.Cvar_CheckRange( rtx_rt_debug_visualizer, "0", "13", CV_INTEGER );',
                       read('code/rendererrtx/tr_init.c'))
 
     def test_quake_live_advertisements_are_traced_in_place(self):

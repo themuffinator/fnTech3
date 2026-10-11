@@ -43,9 +43,12 @@ void R_NoiseInit( void )
 {
 	int i;
 
-	if ( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ) {
+	if ( ri.gameId == COM_GAME_STVEF_SP || ri.gameId == COM_GAME_STVEF_MP ||
+		ri.gameId == COM_GAME_JK2_SP || ri.gameId == COM_GAME_JK2_MP ) {
 		// Retail SP/MP seed at 1001 and use the same 15-bit sequence
-		// (stvoy.exe 0x458ad0, stvoyHM.exe 0x46bf40). Keep it local so the
+		// (stvoy.exe 0x458ad0, stvoyHM.exe 0x46bf40; jk2sp.exe0x477240,
+		// jk2mp.exe0x487240). Outcast also has the exact same scale words.
+		// Keep it local so the
 		// table is portable and does not reseed the engine's other randomness.
 		uint32_t state = 1001;
 		// Exact values of retail's float scale words 0x38000100/0x3bff01fe.

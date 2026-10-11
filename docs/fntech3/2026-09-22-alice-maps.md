@@ -428,7 +428,10 @@ read the file at all rather than after.
 The translation is lossy by design and is collision evidence only. The light
 grid, the entity lights and their visibility, and the per-surface light
 definitions are dropped, so a renderer cannot be built on this reader: it will
-need one that keeps them. No map is drawn, no shader script is parsed, no
+need one that keeps them. (*Since then* the renderers' own world load keeps
+the grid, and the entity lights and their visibility light flagged models;
+retail's never reads the light definitions at all,
+[2026-10-08 round](2026-10-08-alice-compatibility-round.md#light-definitions).) No map is drawn, no shader script is parsed, no
 entity is spawned, and no module has run.
 
 The patch collision rules above are read from the retail binary and checked

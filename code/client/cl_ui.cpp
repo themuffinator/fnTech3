@@ -43,6 +43,7 @@ extern "C" {
 
 #include <algorithm>
 #include <array>
+#include <climits>
 #include <initializer_list>
 #include <memory>
 
@@ -71,6 +72,7 @@ vm_t *uivm = nullptr;
 namespace {
 
 bool cl_jkaUIInitialized = false;
+bool cl_jk2UIInitialized = false;
 
 struct LANServerList {
 	serverInfo_t *servers;
@@ -121,7 +123,17 @@ static int LAN_ApplySortDirection( int result, int sortDir ) {
 }
 
 static int RoundToInt( float value ) {
-	return static_cast<int>( value + 0.5f );
+	// Preserve the UI's existing rounding for ordinary coordinates, but reject
+	// malformed values before converting to int (including under fast math).
+	const float rounded = value + 0.5f;
+	uint32_t bits;
+	std::memcpy( &bits, &rounded, sizeof( bits ) );
+	volatile uint32_t encoded = bits;
+	if ( ( encoded & 0x7f800000u ) == 0x7f800000u
+		|| double( rounded ) < double( INT_MIN ) || double( rounded ) > double( INT_MAX ) ) {
+		Com_Error( ERR_DROP, "Invalid scaled UI coordinate" );
+	}
+	return static_cast<int>( rounded );
 }
 
 } // namespace
@@ -801,10 +813,17 @@ static void CL_UIAdjustRefdef( refdef_t *refdef ) {
 
 	CL_UIAdjustStretchPic( &x, &y, &w, &h );
 
-	refdef->x = RoundToInt( x );
-	refdef->y = RoundToInt( y );
-	refdef->width = RoundToInt( w );
-	refdef->height = RoundToInt( h );
+	const int nextX = RoundToInt( x ), nextY = RoundToInt( y );
+	const int nextWidth = RoundToInt( w ), nextHeight = RoundToInt( h );
+	const int64_t right = int64_t( nextX ) + nextWidth;
+	const int64_t bottom = int64_t( nextY ) + nextHeight;
+	if ( right < INT_MIN || right > INT_MAX || bottom < INT_MIN || bottom > INT_MAX ) {
+		Com_Error( ERR_DROP, "Invalid scaled UI viewport" );
+	}
+	refdef->x = nextX;
+	refdef->y = nextY;
+	refdef->width = nextWidth;
+	refdef->height = nextHeight;
 }
 
 
@@ -1680,7 +1699,8 @@ static intptr_t CL_UISystemCalls( intptr_t *args ) {
 		return S_RegisterSound( VMA(1), static_cast<qboolean>( args[2] ) );
 
 	case UI_S_STARTLOCALSOUND:
-		S_StartLocalSound( args[1], args[2] );
+		// The menus' own sound: interface audio on whatever channel they name.
+		S_StartInterfaceSound( args[1], args[2], 1.0f );
 		return 0;
 
 	// Quake III's UI numbers keys as original Quake III does; Quake Live's
@@ -2694,6 +2714,13 @@ qboolean CL_UIMenusAreVisible( void ) {
 // root menu without inventing a module export or retaining invalid handles.
 int CL_UIMenuForRestart( void ) {
 	if ( !uivm || !( Key_GetCatcher() & KEYCATCH_UI ) ) return UIMENU_NONE;
+	/* Ritual's engine UI never sees a video restart: vid_restart (alice.exe
+	 * 0x0042b590, fakk2.exe 1.02 0x004212f0) shuts no UI down -- its
+	 * UI_Shutdown runs only from CL_Shutdown (0x0042cd44) -- so its menus and
+	 * its console stay as they were. The hosted UI puts its own stack back as
+	 * it restarts; a request here would take Com_Error's drop path, which
+	 * opens the console for a developer. */
+	if ( Com_GameIsRitual() ) return UIMENU_NONE;
 	if ( Com_GameIsRTCW() ) return VM_Call( uivm, 0, UI_GET_ACTIVE_MENU );
 	return cls.state == CA_ACTIVE ? UIMENU_INGAME : UIMENU_MAIN;
 }
@@ -2731,16 +2758,22 @@ void CL_JKAStringCacheReset( void ) {
 
 qboolean CL_UIModuleReady( void ) {
 	return uivm && ( !Com_GameIsJKAMP()
-		|| ( cl_jkaUIInitialized && !com_errorEntered ) ) ? qtrue : qfalse;
+		|| ( cl_jkaUIInitialized && !com_errorEntered ) )
+		&& ( !Com_GameIsJK2MP()
+		|| ( cl_jk2UIInitialized && !com_errorEntered ) ) ? qtrue : qfalse;
 }
 
 void CL_ShutdownUI( void ) {
 	Key_SetCatcher( Key_GetCatcher() & ~KEYCATCH_UI );
 	cls.uiStarted = qfalse;
-	const bool callShutdown = !Com_GameIsJKAMP()
-		|| ( cl_jkaUIInitialized && !com_errorEntered );
+	const bool callShutdown = CL_UIModuleReady();
 	cl_jkaUIInitialized = false;
+	cl_jk2UIInitialized = false;
 	if ( !uivm ) {
+		if ( Com_GameIsJK2MP() ) {
+			CL_JK2StringReset( 4 );
+			FS_VM_CloseFiles( H_Q3UI );
+		}
 		if ( Com_GameIsJKAMP() ) {
 			CL_JKAFontReset();
 			CL_JKAStringReset();
@@ -2754,11 +2787,12 @@ void CL_ShutdownUI( void ) {
 		Cmd_RemoveCommand( "genericmenu" );
 		Cmd_RemoveCommand( "endholodeckmenu" );
 	}
-	// An abandoned native UI_INIT/export may leave the retail module's state
+	// An abandoned UI_INIT/export may leave the retail module's state
 	// incomplete. Release engine-owned resources without reentering that image.
 	if ( callShutdown ) VM_Call( uivm, 0, UI_SHUTDOWN );
 	VM_Free( uivm );
 	uivm = nullptr;
+	if ( Com_GameIsJK2MP() ) CL_JK2StringReset( 4 );
 	FS_VM_CloseFiles( H_Q3UI );
 	if ( Com_GameIsJKAMP() ) {
 		CL_JKAFontReset();
@@ -2914,6 +2948,7 @@ void CL_InitUI( void ) {
 	}
 	else if ( Com_GameIsJK2MP() ) {
 		// Retail ships a QVM and cannot receive a native Quake Live table.
+		cl_jk2UIInitialized = false;
 		uivm = VM_Create( VM_UI, CL_UISystemCalls, UI_DllSyscall,
 			interpret == VMI_BYTECODE ? VMI_BYTECODE : VMI_COMPILED );
 		if ( !uivm ) Com_Error( ERR_FATAL, "%s", CL_UIModuleLoadFailureMessage() );
@@ -2968,6 +3003,7 @@ void CL_InitUI( void ) {
 	// init for this gamestate
 	VM_Call( uivm, 1, UI_INIT, (cls.state >= CA_AUTHORIZING && cls.state < CA_ACTIVE) );
 	cl_jkaUIInitialized = Com_GameIsJKAMP();
+	cl_jk2UIInitialized = Com_GameIsJK2MP();
 
 	// Holomatch's UI asks for a CD key until these are set. Raven's key check
 	// and authorize service are not part of this engine, so it never asks.

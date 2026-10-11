@@ -3408,6 +3408,10 @@ intptr_t QDECL VM_Call( vm_t *vm, int nargs, int callnum, ... )
 		Com_Error( ERR_DROP, "Academy map-change export requires the Jedi Academy multiplayer profile" );
 		return 0;
 	}
+	if ( vm->index == VM_CGAME && callnum == CG_RAVEN_TRACE && !Com_GameIsJKAMP() ) {
+		Com_Error( ERR_DROP, "Academy trace export requires the Jedi Academy multiplayer profile" );
+		return 0;
+	}
 #endif
 
 	/* Academy's native UI has its own legacy export and menu contract. */

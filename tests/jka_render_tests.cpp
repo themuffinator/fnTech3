@@ -93,6 +93,17 @@ int main() {
     assert(fd.vieworg[2]==12&&fd.viewaxis[2][2]==28&&fd.time==1200&&fd.rdflags==(RDF_NOWORLDMODEL|RDF_HYPERSPACE));
     assert(!(fd.rdflags&(RDF_NOFIRSTPERSON|RDF_NOFOVCORRECTION))&&fd.areamask[0]==0x67&&fd.areamask[31]==0x89);
     assert(fd.text[0][0]=='a'&&fd.text[7][31]=='z');refdef_t emptyView{};assert(same(fd.rtcw,emptyView.rtcw)&&same(fd.alice,emptyView.alice));
+    // A terminator must exist within each independent 32-byte text slot.
+    // Reject without publishing output; a terminator at byte31 is valid.
+    for(int row=0;row<8;++row) {
+        view=sourceView;std::memset(view.data()+3+128+32*row,'x',32);
+        auto guarded=view;const auto prior=fd;
+        assert(raven::ReadView(view.data()+3,fd)==raven::Status::InvalidRecord);
+        assert(view==guarded&&same(fd,prior));
+        view[3+128+32*row+31]=0;guarded=view;
+        assert(raven::ReadView(view.data()+3,fd)==raven::Status::Ok&&view==guarded);
+        assert(!std::memcmp(fd.text[row],view.data()+3+128+32*row,32));
+    }
     // A normal draw-sky request does not acquire an unrelated Q3 rdflag.
     // Complete copied viewport/view data and canaries remain unchanged.
     for(uint32_t flags:{16u,17u,20u,21u}) {

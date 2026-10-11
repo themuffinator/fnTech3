@@ -69,6 +69,12 @@ int main(){
  hideHud=true;view.rdflags=1;cl_enemyHighlightNumPending=4;submit(Call::CG_R_RENDERSCENE,view);
  assert(sceneCalls==2&&!cl_enemyHighlightNumPending&&liquidCalls==2&&underwaterCalls==2&&flushCalls==2);
  hideHud=false;view.rdflags=0;
+ const auto validView=view;const int scenesBefore=sceneCalls,liquidsBefore=liquidCalls,flushesBefore=flushCalls;
+ for(int row=0;row<8;++row){
+  std::memset(view.text[row],'x',sizeof(view.text[row]));
+  Reject([&]{submit(Call::CG_R_RENDERSCENE,view);});view=validView;
+  assert(sceneCalls==scenesBefore&&liquidCalls==liquidsBefore&&underwaterCalls==liquidsBefore&&flushCalls==flushesBefore);
+ }
  entity.ghoul2=0x12345678;Reject([&]{submit(Call::CG_R_ADDREFENTITYTOSCENE,entity);});entity.ghoul2=0;
  entity.renderfx=0x10;Reject([&]{submit(Call::CG_R_ADDREFENTITYTOSCENE,entity);});entity.renderfx=0;
  view.rdflags=8;Reject([&]{submit(Call::CG_R_RENDERSCENE,view);});view.rdflags=0;
@@ -149,6 +155,12 @@ int main(){
  menuAspect.integer=0;submitUI(Call::UI_R_RENDERSCENE,view);
  assert(sceneCalls==2&&capturedView.x==267&&capturedView.y==200&&capturedView.width==400&&capturedView.height==200);
  assert(!liquidCalls&&!underwaterCalls&&!flushCalls); // UI follows its menu pipeline
+ const auto validView=view;const int scenesBefore=sceneCalls;
+ for(int row=0;row<8;++row){
+  std::memset(view.text[row],'x',sizeof(view.text[row]));
+  Reject([&]{submitUI(Call::UI_R_RENDERSCENE,view);});view=validView;
+  assert(sceneCalls==scenesBefore&&!liquidCalls&&!underwaterCalls&&!flushCalls);
+ }
  entity.ghoul2=0x12345678;Reject([&]{submitUI(Call::UI_R_ADDREFENTITYTOSCENE,entity);});entity.ghoul2=0;
  assert(std::strstr(lastError,"dedicated production host"));
  entity.renderfx=0x10;Reject([&]{submitUI(Call::UI_R_ADDREFENTITYTOSCENE,entity);});entity.renderfx=0;

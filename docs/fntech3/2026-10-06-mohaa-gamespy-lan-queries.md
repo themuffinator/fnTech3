@@ -163,7 +163,9 @@ used. The protocol, as written down in `code/compat/gamespy_query.hpp`:
 The client's LAN list is unchanged. It asks the game ports with `getinfo`, as
 1.00's does, which every 1.00 server and OpenMoHAA's answer; GameSpy queries
 would add only servers whose game port lies beyond the four it scans, at the
-cost of a second answer from every server to merge.
+cost of a second answer from every server to merge. (Since the
+[October 8 record](2026-10-08-mohaa-gamespy-lan-search.md) the list makes
+GameSpy's search as well, as a second route to a server.)
 
 No audio, rendering, input or interface path changed (AGENTS.md invariant
 11).
@@ -218,4 +220,6 @@ The `before` runs: the dedicated server answers `getinfo` but nothing from
   answered; GameSpy's masters are gone. A community GameSpy-compatible master
   would need both, and its key; neither is attempted. CD-key checks
   (`gcd_*`) are not served.
-- The client's own LAN list stays on `getinfo`, as above.
+- The client's own LAN list stays on `getinfo`, as above; the
+  [October 8 record](2026-10-08-mohaa-gamespy-lan-search.md) has since added
+  GameSpy's search to it.

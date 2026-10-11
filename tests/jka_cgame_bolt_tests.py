@@ -120,7 +120,8 @@ int main(){
  vm.dllExports=reinterpret_cast<decltype(vm.dllExports)>(1);unchangedFrame([&]{Invoke(frameArgs);});vm.dllExports=nullptr;
  frameArgs[1]=0;unchangedFrame([&]{Invoke(frameArgs);});frameArgs[1]=id;
  jkaCgameBoneClocks.Reset();unchangedFrame([&]{Invoke(frameArgs);});
- jkaCgameBoneClocks.BeginFrame(75,true);unchangedFrame([&]{Invoke(frameArgs);});
+ jkaCgameBoneClocks.Set(0,50);jkaCgameBoneClocks.BeginFrame(75,true);
+ assert(Invoke(frameArgs)==1&&readFrame()==1.5f);
  jkaCgameBoneClocks.BeginFrame(75,false);
  auto setPlaying=[&](int first,int last,int flags,float speed,int now){
    assert(CL_JKACgameGhoul2Store().SetBoneAnim(identity,0,"model_root",first,last,flags,speed,now,-1,0));};
@@ -189,7 +190,8 @@ int main(){
  vm.index=VM_UI;Reject([&]{Invoke(args);});assert(storage==saved);vm.index=VM_CGAME;
  vm.entryPoint=nullptr;Reject([&]{Invoke(args);});assert(storage==saved);vm.entryPoint=reinterpret_cast<decltype(vm.entryPoint)>(1);
  vm.dllExports=reinterpret_cast<decltype(vm.dllExports)>(1);Reject([&]{Invoke(args);});assert(storage==saved);vm.dllExports=nullptr;
- ownServer.integer=1;CL_CGameRendering(STEREO_CENTER);Reject([&]{Invoke(args);});assert(storage==saved);ownServer.integer=0;
+ assert(Invoke(args)==1);const auto remotePose=storage;
+ ownServer.integer=1;CL_CGameRendering(STEREO_CENTER);assert(Invoke(args)==1&&storage==remotePose);ownServer.integer=0;
  intptr_t getter[]{325};intptr_t setBase[]{326,1000,0},setClient[]{326,1200,1};
  assert(!Invoke(setBase)&&!Invoke(setClient)&&Invoke(getter)==1200);
  setClient[1]=1201;assert(!Invoke(setClient)&&Invoke(getter)==1000);
@@ -201,7 +203,8 @@ int main(){
  const auto guarded=storage;float bad[]{0,std::numeric_limits<float>::infinity(),0};
  assert(!pose::FailureBolt(bad,position,reinterpret_cast<float*>(storage.data()+3))&&storage==guarded);
  assert(!pose::FailureBolt(angles,nullptr,reinterpret_cast<float*>(storage.data()+3))&&storage==guarded);
- jkaCgameNoRotationPending=true;CL_JKACgameClear();assert(!jkaCgameBoneClocks.FrameReady()&&jkaCgameBoneClocks.Time()==0);assert(!jkaCgameNoRotationPending);
+ const int retainedTime=jkaCgameBoneClocks.Time();
+ jkaCgameNoRotationPending=true;CL_JKACgameClear();assert(!jkaCgameBoneClocks.FrameReady()&&jkaCgameBoneClocks.Time()==retainedTime);assert(jkaCgameNoRotationPending);
  args[1]=id;Reject([&]{Invoke(args);});assert(storage==guarded);
  unchangedFrame([&]{Invoke(frameArgs);});
  assert(openFiles.empty());std::cout<<"Owned JKA cgame bolt/frame/failure guards passed\n";

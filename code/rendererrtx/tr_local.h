@@ -1456,6 +1456,8 @@ typedef struct {
 	int			mohaaNumDecals;			// the surfaces by tr_mohaa_world.c
 	int			mohaaFirstTerrain;		// and its terrain, a surface a patch in the
 	int			mohaaNumTerrain;		// map's order
+	int			mohaaFirstBuiltSurface; // appended terrain, static scenery and decals,
+	int			mohaaNumBuiltSurfaces; // outside model zero's original surface range
 
 	int			numAdvertisements;
 	qlAdvertisement_t	*advertisements;
@@ -2692,10 +2694,18 @@ extern	cvar_t	*rtx_rt_exposure_speed;
 extern	cvar_t	*rtx_rt_tonemap_range;
 extern	cvar_t	*rtx_rt_tonemap_curve;
 extern	cvar_t	*rtx_rt_checkerboard;
+extern	cvar_t	*rtx_rt_indirect_divisor;
+extern	cvar_t	*rtx_rt_frame_budget_ms;
+extern	cvar_t	*rtx_rt_low_latency;
+extern	cvar_t	*rtx_rt_device_local;
+extern	cvar_t	*rtx_rt_light_reuse;
+extern	cvar_t	*rtx_rt_test_caster;
+extern	cvar_t	*rtx_rt_test_fail_trace;
 extern	cvar_t	*rtx_rt_lighting;
 extern	cvar_t	*rtx_rt_bounces;
 extern	cvar_t	*rtx_rt_patch_shadows;
 extern	cvar_t	*rtx_rt_material_maps;
+extern	cvar_t	*rtx_rt_liquids;
 extern	cvar_t	*rtx_rt_accumulate;
 extern	cvar_t	*rtx_rt_specular;
 extern	cvar_t	*rtx_rt_mis;
@@ -2986,6 +2996,7 @@ typedef struct shaderCommands_s
 #ifdef USE_VULKAN
 	Vk_Depth_Range depthRange;
 	qboolean	rtFogOnly;	// the path tracer drew this batch; draw only its fog
+	qboolean	rtDepthOnly;	// primary RT coverage; retain alpha-tested depth
 #endif
 
 	// info extracted from current shader

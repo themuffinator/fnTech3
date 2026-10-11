@@ -3,6 +3,7 @@
 #define FNTECH3_SERVER_JKA_GAME_HPP
 
 #include "../compat/jka_game_abi.h"
+#include "../compat/jka_ghoul2_clock.hpp"
 #include "../compat/jka_module_abi.h"
 #include "../compat/jka_state_adapter.hpp"
 #include "server_jka_icarus.hpp"
@@ -44,18 +45,18 @@ static float jkaServerCullDistance = 0.0f;
  * game frames (0x460883) -- so a query from inside a game frame poses one or
  * more server frames behind the time that frame was given. The clip setter
  * (0x4df310) and the angle setter (0x4df460) keep the caller's time. Neither
- * global is reset with a level, here or in retail. A listen server's client
- * clock is not shared with this one. See
+ * global is reset with a level, here or in retail. A listen server shares
+ * the same pair with its client game and UI. See
  * docs/fntech3/2026-10-07-jka-server-pose-clock.md. */
-static int jkaServerGhoul2Clock = 0;
+static int SV_JKAGhoul2Time() { return fntech3::jka::clock::shared.Time(); }
 /* Import 589 sets the no-rotation selector before the shared core, which
  * clears it only when a query succeeds (0x45cb27, 0x4dfc07): a failed 589
  * leaves the next successful 587 or 588 unrotated. */
-static bool jkaServerNoRotationPending = false;
+static auto &jkaServerNoRotationPending = fntech3::jka::clock::noRotationPending;
 
 void SV_JKAGhoul2SetTime( int time )
 {
-	if ( Com_GameIsJKAMP() ) jkaServerGhoul2Clock = time;
+	if ( Com_GameIsJKAMP() ) fntech3::jka::clock::shared.Set(0, time);
 }
 
 static void SV_JKAClearGame( void )
@@ -694,7 +695,7 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		 *     time, modelList, scale
 		 *
 		 * The time is not read: retail's core poses at the server's own clock
-		 * (jkaServerGhoul2Clock above), and so does this.
+		 * (SV_JKAGhoul2Time above), and so does this.
 		 *
 		 * The store works the bolt out in the model's own space: a bolt that
 		 * names a bone is that bone posed for the moment asked about, and one
@@ -747,7 +748,7 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 				return true;
 			}
 			float bolt[12];
-			if ( !ravenGhoul2.BoltMatrix( pointer( 1 ), modelIndex, boltIndex, jkaServerGhoul2Clock, bolt ) ) {
+			if ( !ravenGhoul2.BoltMatrix( pointer( 1 ), modelIndex, boltIndex, SV_JKAGhoul2Time(), bolt ) ) {
 				result = 0;
 				return true;
 			}
@@ -790,7 +791,7 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		 *     flags, animSpeed, modelList, modelIndex
 		 *
 		 * Its wrapper (0x4df400) replaces the time with the Ghoul2 clock, the
-		 * one this server's bolts pose at (jkaServerGhoul2Clock above), and
+		 * one this server's bolts pose at (SV_JKAGhoul2Time above), and
 		 * the model list is never read. A bone the skeleton lacks answers 0
 		 * and writes nothing. A bone with no clip running answers 0 and
 		 * writes frame 0, frames 0..1, no flags and no speed (0x4e3709). A
@@ -815,7 +816,7 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 			}
 			fntech3::ghoul2::BoneClip clip;
 			const auto answer = ravenGhoul2.BoneClipAt( pointer( 1 ), static_cast<int>( args[10] ),
-				text( 2 ), jkaServerGhoul2Clock, clip );
+				text( 2 ), SV_JKAGhoul2Time(), clip );
 			if ( answer == fntech3::ghoul2::BoneClipAnswer::Unserved ) {
 				Com_Error( ERR_DROP, "Jedi Academy G_G2_GETBONEANIM: bone %s of model %d plays a clip "
 					"outside the served forward timing (flags 0x%x)", text( 2 ),

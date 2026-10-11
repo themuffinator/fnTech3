@@ -47,7 +47,8 @@ constexpr std::size_t HeaderMap = 0x48;        /* the BSP name, no `$` target */
 constexpr std::size_t HeaderName = 0x88;       /* the archive name itself */
 
 constexpr const char *CurrentName = "current";
-/* The load/save list leaves this name out (strcmp 0x0041a68f). */
+/* The load/save list leaves this name out, in any case (_stricmp 0x004e8760,
+ * called at 0x0041a68f). */
 constexpr const char *QuickName = "quicksave";
 
 constexpr const char *LevelExtension = "sav";

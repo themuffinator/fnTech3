@@ -200,6 +200,7 @@ static float VectorLengthSquared(const float *v){return v[0]*v[0]+v[1]*v[1]+v[2]
 static std::int64_t micros=250000;
 static auto Sys_Microseconds(){return micros;}
 static bool Com_GameIsRTCW(){return true;}
+static bool Com_GameIsJKAMP(){return false;}
 static bool Com_GameIsSTVEFSP(){return false;}
 struct Device{
  struct Caps{std::int64_t deviceClockValue=0;} caps;
@@ -240,6 +241,7 @@ struct Q3SoundWorld{
  void ClearLoopingSoundsFrame();
  void Update(qboolean);
  void CleanupFinishedVoices(){}void RefreshEnvironment(){}
+ void MeasureJKAMouths(){assert(false);}
  void ApplyVoice(SoundVoice &voice,qboolean){assert(voice.source&&voice.rtcwLoop);++applied;}
  unsigned AllocateVoiceSourceForLoop(){return nextSource++;}
 };
