@@ -330,7 +330,10 @@ int main() {
     assert(loops.Add(a, 9, 0) == -1 && loops.Add(a, 9, -3) == -1 && loops.Add(nullptr, 9, 10) == -1 && loops.Size() == 2);
     for (int handle = 100; loops.Size() < AmbientLoops::Capacity; ++handle) assert(loops.Add(a, handle, 1) >= 0);
     assert(loops.Add(a, 999, 255) == -1);                  // retail keeps 32 a frame
-    assert(loops.Add(a, 7, 1) == 0 && loops[0].volume == 255); // merging needs no room
+    // Exercise the full-list lookup as a runtime call. GCC 16 misdiagnoses
+    // its fully inlined constant version as an array overflow after the fill.
+    int (AmbientLoops::*volatile append)(const float *, int, int) = &AmbientLoops::Add;
+    assert((loops.*append)(a, 7, 1) == 0 && loops[0].volume == 255); // merging needs no room
     loops.Clear();
     assert(loops.Size() == 0 && loops.Add(a, 7, 300) == 0 && loops[0].volume == 255);
     // Both sides are stored floats, including under MinGW x87.

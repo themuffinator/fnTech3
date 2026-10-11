@@ -1430,9 +1430,9 @@ int Com_GameManagerResolveRootModule( const comGameProfile_t *profile,
 	if ( !known ) return 0;
 	try {
 		std::error_code error;
-		const auto base = std::filesystem::canonical( std::filesystem::u8path( root ), error );
+		const auto base = fntech3::filesystem::Canonical( std::filesystem::u8path( root ), error );
 		if ( error ) return 0;
-		const auto file = std::filesystem::canonical( base / filename, error );
+		const auto file = fntech3::filesystem::Canonical( base / filename, error );
 		if ( error || file.parent_path() != base || !IsRegularFile( file ) ) return 0;
 		const auto path = file.u8string();
 		if ( path.size() >= capacity ) return 0;

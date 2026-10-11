@@ -74,6 +74,18 @@ jobs:
           ref: ${{ needs.prepare.outputs.head_commit }}
           persist-credentials: false
 
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Select native Windows Python for build scripts and tests
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force .tmp/release-workflow | Out-Null
+          $releasePython = (Get-Command python).Source.Replace('\', '/')
+          @('[binaries]', "python3 = '$releasePython'", "python = '$releasePython'") |
+            Set-Content -Encoding utf8 .tmp/release-workflow/python-native.ini
+
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW32
@@ -89,6 +101,7 @@ jobs:
         run: |
           mkdir -p bin
           meson setup meson/build-x86 \
+            --native-file .tmp/release-workflow/python-native.ini \
             --buildtype=release \
             --wrap-mode=forcefallback \
             --prefix "$PWD/bin" \
@@ -109,14 +122,12 @@ jobs:
 
       - name: Run complete regression suite
         shell: msys2 {0}
-        run: meson test -C meson/build-x86 --print-errorlogs
+        run: meson test -C meson/build-x86 --print-errorlogs --max-lines 10000
 
       - name: Check Windows runtime dependencies
-        shell: msys2 {0}
         run: python scripts/check_windows_runtime_deps.py --require-pe bin
 
       - name: Verify release layout
-        shell: msys2 {0}
         run: python scripts/verify_release_layout.py bin/fntech3-pkg.fnz
 
       - uses: actions/upload-artifact@v7
@@ -159,7 +170,7 @@ jobs:
         run: |
           for /f "usebackq tokens=*" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath`) do set VSINSTALL=%%i
           call "%VSINSTALL%\Common7\Tools\VsDevCmd.bat" -arch=x86 -host_arch=x64 || exit /b
-          meson test -C meson\build-x86 --print-errorlogs || exit /b
+          meson test -C meson\build-x86 --print-errorlogs --max-lines 10000 || exit /b
 
       - name: Check Windows runtime dependencies
         run: python scripts/check_windows_runtime_deps.py --require-pe bin

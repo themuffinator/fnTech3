@@ -90,6 +90,21 @@ the bundled fallbacks.
 `meson test` runs the C++ unit tests and the Python source suite. The Python
 suite alone runs with `python -m pytest tests`.
 
+For a Windows MinGW Meson build, use standard Windows CPython for the build
+scripts and tests. The release workflow selects CPython 3.13 with a native
+file; MinGW still compiles the engine and native fixtures. MSYS2 Python
+3.14.8 mixes path separators under `MSYSTEM`, breaking some `pathlib`
+comparisons and packaging checks ([observations](docs/fntech3/2026-10-11-release-portability.md)).
+To select your installed Windows Python, create `python-native.ini` in the
+project with its actual executable path and pass
+`--native-file python-native.ini` to `meson setup`:
+
+```ini
+[binaries]
+python3 = 'C:/Python313/python.exe'
+python = 'C:/Python313/python.exe'
+```
+
 ### General options
 
 | Option | Default | Effect |

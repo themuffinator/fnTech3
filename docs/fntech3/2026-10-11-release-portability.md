@@ -49,6 +49,26 @@ The IHV renderer retains the same shared renderer integration. These fixes
 add no retail-exact presentation option and disable no FnQ3/FnQL
 rendering, audio or interface feature. Experimental game gates stay closed.
 
+## Installation containment
+
+The release's GCC 16.2.0 MinGW run exposed a separate installation-containment
+fault: `std::filesystem::canonical` kept a Windows junction's spelling rather
+than returning its target. A synthetic junction from an installation to a
+sibling directory reproduced it locally. IHV and Q3Test identity checks and
+the shared root-native-module resolver now use an engine-owned canonical-path
+helper. On Windows it opens the existing object for metadata and asks
+[`GetFinalPathNameByHandleW`](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfinalpathnamebyhandlew)
+for its resolved path; other platforms keep `std::filesystem::canonical`.
+The IHV fixture rejects an outside junction and accepts an inside one, without
+requiring symlink privileges. Native-module fixtures retain profile selection,
+Unicode, missing-file, malformed-name and capacity checks. Their outside/inside
+module-link expectations are explicit rather than derived from MinGW's same
+faulty canonicalizer. The API is looked up dynamically: a Windows host without
+it rejects these containment-dependent
+lookups rather than adding a newer mandatory Kernel32 import or accepting an
+unresolved path. These local tests cover Windows NTFS and Linux; UNC shares
+and older Windows versions have not gained runtime evidence.
+
 ## Probe corrections
 
 Several fixtures compared stored floats against constants or expressions
@@ -59,6 +79,20 @@ collision, separate misleadingly indented statements, recognize the MinGW
 x86 target and select its GUI linker options. The relaunch fixture builds
 under an ASCII filename before moving to its Unicode runtime filename, so
 the existing Unicode-path and descriptor-isolation checks still execute.
+Compiler-name checks match `g++` exactly, since `clang++` contains that suffix.
+The JKA ambient-loop fixture calls its full-list merge through a volatile
+member-function pointer: GCC 16 otherwise diagnoses an out-of-bounds write
+when it folds the constant, inlined fixture. The production bound checks and
+the fixture's assertions remain unchanged; no warning is disabled.
+
+The MSYS2 job now selects standard Windows CPython 3.13 through a Meson native
+file while keeping MinGW as its C/C++ compiler. The reproduced MSYS2 Python
+3.14.8 environment switches `os.sep` to `/` when `MSYSTEM` is set, but directory
+iteration produces paths with backslashes. That caused unequal paths naming
+the same directory and failed `relative_to` checks in release packaging.
+Standard Windows Python passes those same fixtures with GCC 16.2.0. The job
+allows ninety minutes for compilation and the complete suite and retains
+long failure logs so separate errors are not truncated away.
 
 The synthetic server-discovery host changes profiles inside a process and
 now makes its selector volatile so compiler analysis cannot cache it across

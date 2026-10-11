@@ -128,7 +128,7 @@ inline bool Pak( const std::filesystem::path &path, const q3testRelease_t &relea
  * release's own. */
 inline q3testReleaseId_t Recognize( const std::filesystem::path &path ) {
 	std::error_code error;
-	const auto root = std::filesystem::canonical( path, error );
+	const auto root = fntech3::filesystem::Canonical( path, error );
 	if ( error ) return Q3TEST_RELEASE_NONE;
 	std::vector<std::uint8_t> data;
 	const auto game = q3ihv::install::ContainedFile( root, "qagamex86.dll" );

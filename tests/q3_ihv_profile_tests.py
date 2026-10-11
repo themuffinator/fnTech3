@@ -65,8 +65,8 @@ int main(int argc,char **argv) {
                             str(source), str(ROOT/'code/qcommon/game_profile.cpp'), '-o', str(exe)],
                            check=True, capture_output=True, text=True, cwd=ROOT)
             fixture = folder/'fixture'; maps = fixture/'baseq3/maps'; maps.mkdir(parents=True)
-            def check(expected):
-                result = subprocess.run([str(exe), str(fixture), str(expected)], capture_output=True, text=True, cwd=ROOT)
+            def check(expected, installation=None):
+                result = subprocess.run([str(exe), str(installation or fixture), str(expected)], capture_output=True, text=True, cwd=ROOT)
                 self.assertEqual(result.returncode, 0, result.stdout+result.stderr+f' (expected marker {expected})')
             config = fixture/'baseq3/default.cfg'; config.write_text('// Synthetic config\n')
             qagame = fixture/'qagamex86.dll'; cgame = fixture/'cgamex86.dll'
@@ -96,6 +96,28 @@ int main(int argc,char **argv) {
                 try: check(0)
                 finally: qagame.unlink()
             qagame.write_bytes(qa); check(256)
+            if os.name == 'nt':
+                # Junctions need no symlink privilege and expose MinGW's
+                # canonical() retaining the link spelling on Windows.
+                linked = folder/'linked-install'; linked.mkdir()
+                (linked/'qagamex86.dll').write_bytes(qa)
+                (linked/'cgamex86.dll').write_bytes(cg)
+                junction = linked/'baseq3'
+                for target, expected in ((folder/'outside-baseq3', 0), (linked/'kept-baseq3', 256)):
+                    (target/'maps').mkdir(parents=True)
+                    (target/'default.cfg').write_text('// Synthetic config\n')
+                    (target/'maps/ihv_test1.bsp').write_bytes(bsp)
+                    self.assertTrue(target.resolve().is_relative_to(folder.resolve()))
+                    self.assertTrue(junction.parent.resolve().is_relative_to(folder.resolve()))
+                    made = subprocess.run(['cmd', '/d', '/c', 'mklink', '/J', str(junction), str(target)],
+                                          capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
+                    self.assertEqual(made.returncode, 0, made.stdout + made.stderr)
+                    try:
+                        self.assertTrue(os.lstat(junction).st_file_attributes & 0x400)
+                        check(expected, linked)
+                    finally:
+                        # Remove only the verified junction, never its target.
+                        os.rmdir(junction)
 
 
 if __name__ == '__main__': unittest.main()

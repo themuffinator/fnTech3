@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <fstream>
 #include <vector>
+#include "filesystem_canonical.hpp"
 
 /* Early installation evidence, not executable authentication or a module
  * loader. The supplied IHV tree has loose BSP43 assets and Win32 function-table
@@ -73,7 +74,7 @@ inline bool HasX86Export(const void *data,std::size_t size,const char *symbol) {
 
 inline std::filesystem::path ContainedFile(const std::filesystem::path &root,const char *name) {
 	std::error_code error;
-	const auto file=std::filesystem::canonical(root/name,error); if(error) return {};
+	const auto file=fntech3::filesystem::Canonical(root/name,error); if(error) return {};
 	const auto relative=file.lexically_relative(root);
 	if(relative.empty() || relative.is_absolute() || *relative.begin()==".."
 		|| !std::filesystem::is_regular_file(file,error) || error) return {};
@@ -100,7 +101,7 @@ inline bool Map(const std::filesystem::path &root,const char *name) {
 	return true;
 }
 inline bool Recognizes(const std::filesystem::path &path) {
-	std::error_code error; const auto root=std::filesystem::canonical(path,error); if(error) return false;
+	std::error_code error; const auto root=fntech3::filesystem::Canonical(path,error); if(error) return false;
 	const auto config=ContainedFile(root,"baseq3/default.cfg"); if(config.empty()) return false;
 	const auto configBytes=std::filesystem::file_size(config,error);
 	if(error || !configBytes || configBytes>1024*1024) return false;

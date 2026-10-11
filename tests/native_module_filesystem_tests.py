@@ -26,15 +26,20 @@ int main(int argc, char **argv) {
     assert(argc == 4 || argc == 5);
     const auto *sp = Com_GameProfileById(COM_GAME_RTCW_SP);
     const auto *profile = Com_GameManagerFindProfile(argv[3]);
-    const std::string root = std::string(argv[1]) + (argc == 5 ? "/caf\xc3\xa9" : ""), name = argv[2];
+    const bool unicode = argc == 5 && !std::strcmp(argv[4], "unicode");
+    const bool outside = argc == 5 && !std::strcmp(argv[4], "outside");
+    const bool inside = argc == 5 && !std::strcmp(argv[4], "inside");
+    const std::string root = std::string(argv[1]) + (unicode ? "/caf\xc3\xa9" : ""), name = argv[2];
     char output[4096];
     std::memset(output, 0x5a, sizeof(output));
     const bool allowed = profile == sp && (name == "cgamex86.dll" || name == "cgame_sp_x86.dll");
     const auto base = std::filesystem::canonical(std::filesystem::u8path(root));
     std::error_code error;
-    const auto path = std::filesystem::canonical(base / name, error);
+    const auto path = std::filesystem::canonical(base / (inside ? "cgame_sp_x86.dll" : name), error);
     const bool exists = !error && path.parent_path() == base && std::filesystem::is_regular_file(path);
-    const bool expected = allowed && exists;
+    // The fixture knows where each link points. MinGW canonical() must not
+    // serve as the oracle for the very containment failure being tested.
+    const bool expected = allowed && exists && !outside;
     const int result = Com_GameManagerResolveRootModule(profile, root.c_str(), name.c_str(),
         "x86", ".dll", output, sizeof(output));
     assert(result == expected);
@@ -246,7 +251,12 @@ class NativeModuleFilesystemTests(unittest.TestCase):
                 pass  # Windows accounts without symlink rights; Linux covers this case.
             else:
                 try:
-                    self.run_probe(executable, root, "cgamex86.dll", "rtcw-sp")
+                    self.run_probe(executable, root, "cgamex86.dll", "rtcw-sp", "outside")
+                finally:
+                    link.unlink()
+                link.symlink_to(root / "cgame_sp_x86.dll")
+                try:
+                    self.run_probe(executable, root, "cgamex86.dll", "rtcw-sp", "inside")
                 finally:
                     link.unlink()
 

@@ -9,8 +9,9 @@ Full compatibility is **not yet established for any profile**.
 
 The [0.1.0 portability follow-up](2026-10-11-release-portability.md) records
 unit fixes for shared UI bounds, Jedi and IHV rounding, SP allocation
-alignment, RTCW prediction/skin validation and RTX light-byte parity found by cross-platform
-release checks. It closes no runtime gate.
+alignment, RTCW prediction/skin validation, RTX light-byte parity and MinGW
+installation/module path containment found by cross-platform release checks.
+It closes no runtime gate.
 
 | Game / mode | Startup profile | Current availability |
 | --- | --- | --- |
