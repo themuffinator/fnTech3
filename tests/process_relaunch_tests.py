@@ -280,7 +280,7 @@ class ProcessRelaunchTests(unittest.TestCase):
         # a console window or take focus from the user's applications.
         linker = []
         if os.name == 'nt':
-            linker = (['-mwindows'] if 'g++' in Path(compiler).name.lower() else
+            linker = (['-mwindows'] if Path(compiler).stem.lower() == 'g++' else
                       ['-Xlinker', '/subsystem:windows', '-Xlinker', '/entry:mainCRTStartup'])
         target = compiler_target_args(compiler)
         abi = (['-DFNTECH3_Q3_ONLY'] if not target else []) if os.name == 'nt' else ['-m32']

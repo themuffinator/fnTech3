@@ -264,7 +264,7 @@ class RTCWServerWorldTests(unittest.TestCase):
             # engine's records to the fixture's shape.
             stack = []
             if os.name == 'nt':
-                stack = (['-Wl,--stack,8388608'] if 'g++' in Path(compiler).name.lower()
+                stack = (['-Wl,--stack,8388608'] if Path(compiler).stem.lower() == 'g++'
                          else ['-Wl,/stack:8388608'])
             command = [compiler, *target, '-std=c++17', '-D_CRT_SECURE_NO_WARNINGS', '-I', str(ROOT),
                        str(cpp), str(ROOT / 'code/server/server_game_data.cpp'), '-x', 'c++',
