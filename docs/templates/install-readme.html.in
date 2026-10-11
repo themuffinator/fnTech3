@@ -456,7 +456,7 @@
           <p>Press the key below <strong>Esc</strong> (or <strong>Shift+Esc</strong>) to open the console, where every setting can be changed. <strong>Alt+Enter</strong> switches between a window and fullscreen.</p>
         </article>
       </div>
-      <p class="note"><strong>Which games start?</strong> This download plays <strong>Quake III Arena</strong> and <strong>Quake Live</strong>; Quake Live's client needs Windows. The other games are still experimental: they only start in a development build that you compile yourself, as the <a href="https://github.com/themuffinator/fnTech3/blob/main/BUILD.md#game-development-builds">build guide</a> explains, and this download refuses them with a message. No game is finished yet; the <a href="manual/games.html">Games guide</a> says plainly what works in each.</p>
+      <p class="note"><strong>Which games are available?</strong> Every build includes all sixteen game profiles. Quake III Arena and Quake Live are playable; other games remain experimental, with the limitations described in the <a href="manual/games.html">Games guide</a>. Quake Live's client and games with Windows-only retail modules need Windows. No development build or opt-in flag is required. Complete compatibility is not yet established for any game.</p>
       <p class="footer">The <a href="manual/getting-started.html">Getting Started guide</a> walks through shortcuts, the console, settings files and where your saves and screenshots go. Steam features in Quake Live need a separately supplied Steam add-on, which this download does not include; without it they say they are unavailable rather than pretending to work.</p>
     </section>
 

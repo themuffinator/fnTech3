@@ -90,12 +90,10 @@ the filesystem, network, modules, renderer or any service starts:
    cvar becomes read-only, the window and console titles name the game, and
    any later attempt to activate a different profile is a fatal error.
 
-A profile whose adapters are incomplete carries a `runtimeBlocker` string.
-Detection refuses it unless the build defines that game's development macro --
-`FNTECH3_RTCW_DEVELOPMENT`, `FNTECH3_WOLFET_DEVELOPMENT` and so on, set by
-the Meson options described in the [Build Guide](../../BUILD.md#game-development-builds).
-Those options let developers run the game; they never change its contracts or
-close a gate.
+All catalogue profiles are selectable in every build. A profile with open
+compatibility work carries an informational `compatibilityWarning`; neither
+detection nor activation uses it as a gate. The old development options are
+no-ops. Module loaders still enforce each profile's actual host ABI requirements.
 
 Changing mode within a title is a relaunch, not a mutation: `gameMode` (and
 RTCW's `startSingleplayer`/`startMultiplayer`) saves the current config, shuts
@@ -333,7 +331,7 @@ its documents resolves.
   in [`docs/manual/`](../manual/README.md).
 - User-visible changes go under Unreleased in the root
   [CHANGELOG.md](../../CHANGELOG.md). [RELEASING.md](RELEASING.md) describes
-  preparing a version and the draft prerelease workflow.
+  preparing a version and the draft release workflow.
 - Release packages contain the engine, the renderer modules,
   `fntech3-pkg.fnz`, `fnql-web.pak` and documentation, and exclude every retail
   or proprietary file, including the optional Steam provider.
@@ -345,8 +343,8 @@ A new title touches every layer above. In order:
 1. Record the retail contracts first: installation identity, protocol, module
    tables and record layouts, each pinned to an observation.
 2. Add the catalog entry, installation marker, protocol family and module
-   interface, with a `runtimeBlocker` and a development option so default
-   builds refuse it.
+   interface, with an informational `compatibilityWarning` where needed. Every
+   build must make the profile available immediately.
 3. Build the adapters -- modules, wire, demos, saves, assets -- in
    `code/compat/` and the client and server hosts, one boundary at a time.
 4. Give the profile its engine-package namespace in `scripts/root_archive.py`,

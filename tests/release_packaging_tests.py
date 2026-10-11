@@ -205,7 +205,7 @@ class ReleasePackagingTests(unittest.TestCase):
             manifest = release.build_archives(args)
             self.assertEqual(manifest["glx_runtime_proof"]["status"], "not-established")
             self.assertEqual(manifest["source_commit"], source)
-            self.assertTrue(manifest["prerelease"])
+            self.assertFalse(manifest["prerelease"])
             info = {"version": version, "release_tag": f"v{version}",
                     "head_commit": source, "build_date": "2026-09-01"}
             files = release_workflow.release_files(args.output_dir / "release-manifest.json", info)

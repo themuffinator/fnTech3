@@ -9,8 +9,8 @@ Jedi Outcast, American McGee's Alice, Heavy Metal: F.A.K.K.2 and Medal of
 Honor: Allied Assault. Each process selects one of sixteen game profiles at
 startup and keeps it until it exits.
 
-Quake III Arena and Quake Live start in every build; the other games need a
-developer build and remain experimental. **No profile has full compatibility
+Every build includes all sixteen profiles. Games beyond Quake III Arena and
+Quake Live remain experimental. **No profile has full compatibility
 sign-off.** The [compatibility ledger](fntech3/COMPATIBILITY.md) records what
 has been shown to work and what has not.
 

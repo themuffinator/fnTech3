@@ -47,7 +47,7 @@ const comGameTitle_t titles[] = {
 
 /* One catalog owns title identity, aliases and startup contracts. RTCW facts
  * are pinned in docs/fntech3/2026-09-14-rtcw-contracts.md. Catalog registration
- * does not enable an unfinished engine boundary or claim runtime compatibility.
+ * makes every profile selectable without claiming complete runtime compatibility.
  */
 const comGameProfile_t profiles[] = { {
 	COM_GAME_QUAKE3,
@@ -712,83 +712,10 @@ bool EqualsIgnoreCase( const char *left, const char *right )
 	}
 }
 
-bool RuntimeBlocked( const comGameProfile_t *profile )
-{
-#if defined(FNTECH3_Q3_IHV_DEVELOPMENT) && defined(_WIN32) && (defined(_M_IX86) || defined(__i386__))
-	/* The IHV Test's modules are Win32 x86 libraries: its developer server
-	 * runs the game and its developer client the client game, in isolated
-	 * probes. The release gate stays shut. */
-	if ( profile && profile->id == COM_GAME_QUAKE3_IHV ) return false;
-#endif
-#if defined( FNTECH3_JKA_DEVELOPMENT )
-	/* Developer builds exercise Jedi Academy's single-player and multiplayer
-	 * adapters with the retail modules. Neither mode's release gate moves. */
-	if ( profile && profile->titleId == COM_GAME_TITLE_JKA ) return false;
-#endif
-#if defined( FNTECH3_JK2_DEVELOPMENT )
-	/* The same for Jedi Outcast, whose two modes share this title's formats
-	 * and differ from Jedi Academy chiefly in shipping QVMs. */
-	if ( profile && profile->titleId == COM_GAME_TITLE_JK2 ) return false;
-#endif
-#if defined( FNTECH3_ALICE_DEVELOPMENT )
-	/* The same for Alice, whose engine lineage differs from every other
-	 * profile's. A developer server now loads a retail level and runs its
-	 * frame loop, but 25 of the game's 111 imports are still unserved, no
-	 * client can connect and nothing is rendered, so the release gate below
-	 * does not move. */
-	if ( profile && profile->titleId == COM_GAME_TITLE_ALICE ) return false;
-#endif
-#if defined( FNTECH3_FAKK2_DEVELOPMENT )
-	/* The same for Heavy Metal: F.A.K.K.2, which runs on the Alice adapters
-	 * where the two engines agree. Its release gate does not move either. */
-	if ( profile && profile->titleId == COM_GAME_TITLE_FAKK2 ) return false;
-#endif
-#if defined( FNTECH3_MOHAA_DEVELOPMENT )
-	/* The same for Medal of Honor: Allied Assault, whose modules speak 2015's
-	 * own tables. Its release gate does not move either. */
-	if ( profile && profile->titleId == COM_GAME_TITLE_MOHAA ) return false;
-#endif
-#if defined( FNTECH3_Q3TEST_DEVELOPMENT ) && defined( _WIN32 ) && ( defined( _M_IX86 ) || defined( __i386__ ) )
-	/* Q3Test's retail modules are Win32 x86 libraries, so only that build
-	 * runs them, and only for isolated probes; the release gate stays shut. */
-	if ( profile && profile->id == COM_GAME_Q3TEST ) return false;
-#endif
-#if defined( FNTECH3_STVEF_DEVELOPMENT )
-	/* Developer builds exercise Elite Force's SP and Holomatch adapters with
-	 * the retail modules. Neither mode's release gate is lifted by this. */
-	if ( profile && profile->titleId == COM_GAME_TITLE_STVEF ) return false;
-#endif
-#if defined(FNTECH3_WOLFET_DEVELOPMENT)
-	/* Explicit developer builds exercise the ET client and server with real
-	 * modules, as the RTCW developer build does. This does not alter the
-	 * profile contract or lift the release gate below. */
-	if (profile && profile->id == COM_GAME_WOLFET) return false;
-#endif
-#if defined( FNTECH3_RTCW_DEVELOPMENT )
-	/* Explicit developer builds exercise incomplete adapters with real modules.
-	 * This does not alter any profile contract or the release gate ledger. */
-	if ( profile && profile->titleId == COM_GAME_TITLE_RTCW ) return false;
-#endif
-	return profile && profile->runtimeBlocker;
-}
-
 comGameDetectionResult_t Result( comGameDetectionStatus_t status,
 	comGameDetectionEvidence_t evidence, const comGameProfile_t *profile )
 {
 	comGameDetectionResult_t result;
-#if defined( FNTECH3_Q3_ONLY )
-	/* Preserve evidence priority: a detected QL installation must fail here,
-	 * before activation/filesystem startup, rather than falling through to a
-	 * different installation or exposing a retail x86 module to an x64 host. */
-	if ( profile && profile->id != COM_GAME_QUAKE3 ) {
-		status = COM_GAME_DETECTION_UNSUPPORTED_BUILD;
-		profile = nullptr;
-	}
-#endif
-	if ( RuntimeBlocked( profile ) ) {
-		status = COM_GAME_DETECTION_INCOMPLETE_ENGINE;
-		profile = nullptr;
-	}
 	result.status = status;
 	result.evidence = evidence;
 	result.profile = profile;
@@ -1057,13 +984,9 @@ const comGameProfile_t *Com_GameManagerTitleProfileAt(
 
 int Com_GameManagerCanActivate( const comGameProfile_t *profile )
 {
-	if ( !profile || Com_GameProfileById( profile->id ) != profile
-		|| RuntimeBlocked( profile ) ) return 0;
-#if defined( FNTECH3_Q3_ONLY )
-	return profile->id == COM_GAME_QUAKE3;
-#else
-	return 1;
-#endif
+	// Every catalogue profile is available in every build. Runtime capability
+	// checks still enforce the selected profile's actual module/host contract.
+	return profile && Com_GameProfileById( profile->id ) == profile;
 }
 
 comGameBspFormat_t Com_GameManagerBspFormat( const comGameProfile_t *profile,
@@ -1623,11 +1546,6 @@ comGameDetectionResult_t Com_DetectGameProfile(
 
 int Com_ActivateGameProfile( comGameId_t id )
 {
-#if defined( FNTECH3_Q3_ONLY )
-	if ( id != COM_GAME_QUAKE3 ) {
-		return 0;
-	}
-#endif
 	const comGameProfile_t *requested = Com_GameProfileById( id );
 
 	if ( !Com_GameManagerCanActivate( requested ) ) {
@@ -1989,7 +1907,7 @@ const char *Com_GameDetectionStatusName( comGameDetectionStatus_t status )
 		case COM_GAME_DETECTION_UNKNOWN_REQUEST:
 			return "unknown profile";
 		case COM_GAME_DETECTION_UNSUPPORTED_BUILD:
-			return "this game is unavailable in the Q3-only build; use the shared Win32 fnTech3 binary";
+			return "this game requires a compatible native module host; see docs/GAMES.md";
 		case COM_GAME_DETECTION_UNRECOGNIZED_PAK:
 			return "unrecognized base pak identity; verify the installation or select its profile explicitly";
 		case COM_GAME_DETECTION_MODE_REQUIRED:

@@ -98,24 +98,20 @@ int main(){
 '''
         self.execute(source)
 
-    def test_default_client_dedicated_and_developer_gates(self):
+    def test_default_client_dedicated_and_legacy_developer_flags(self):
         source = r'''
 #include "code/qcommon/game_manager.h"
 #include <cstdio>
 #define CHECK(x) do{if(!(x)){std::fprintf(stderr,"%d: %s\n",__LINE__,#x);return 1;}}while(0)
 int main(){
- bool enabled=false;
-#if defined(FNTECH3_Q3_IHV_DEVELOPMENT) && defined(_WIN32) && (defined(_M_IX86)||defined(__i386__))
- enabled=true;
-#endif
  const auto *profile=Com_GameProfileById(COM_GAME_QUAKE3_IHV);
- CHECK(bool(Com_GameManagerCanActivate(profile))==enabled);
+ CHECK(Com_GameManagerCanActivate(profile));
  comGameMarkerInputs_t input{"q3-ihv",COM_GAME_MARKER_QUAKE3_IHV,0,0};
  const auto detected=Com_DetectGameProfileMarkers(&input);
- CHECK(enabled?detected.profile==profile:detected.status==COM_GAME_DETECTION_INCOMPLETE_ENGINE);
+ CHECK(detected.profile==profile && detected.status==COM_GAME_DETECTION_OK);
  CHECK(Com_GameManagerCanActivate(Com_GameProfileById(COM_GAME_QUAKE3)));
  CHECK(Com_GameManagerCanActivate(Com_GameProfileById(COM_GAME_QUAKELIVE)));
- CHECK(!Com_GameManagerCanActivate(Com_GameProfileById(COM_GAME_WOLFET)));
+ CHECK(Com_GameManagerCanActivate(Com_GameProfileById(COM_GAME_WOLFET)));
 }
 '''
         for dev in (False, True):

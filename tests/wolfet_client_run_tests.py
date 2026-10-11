@@ -87,14 +87,10 @@ class WolfETClientRunTests(unittest.TestCase):
         common = source('code/qcommon/common.c')
         self.assertIn('"Error during initialization%s%s"', common)
 
-    def test_the_client_runs_in_developer_builds_only(self):
+    def test_profile_availability_is_independent_of_development_flags(self):
         profile = source('code/qcommon/game_profile.cpp')
-        blocked = profile[profile.index('bool RuntimeBlocked('):]
-        blocked = blocked[:blocked.index('\n}\n')]
-        self.assertIn('#if defined(FNTECH3_WOLFET_DEVELOPMENT)\n', blocked)
-        self.assertNotIn('FNTECH3_WOLFET_DEVELOPMENT) && defined(DEDICATED)', blocked)
-        # The release gate itself is untouched.
-        self.assertIn('return profile && profile->runtimeBlocker;', blocked)
+        self.assertNotIn('RuntimeBlocked', profile)
+        self.assertNotIn('FNTECH3_WOLFET_DEVELOPMENT', profile)
 
     def test_the_probe_keeps_its_discipline(self):
         probe = source('scripts/probe_wolfet_client.py')

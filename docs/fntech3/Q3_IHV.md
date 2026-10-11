@@ -1,8 +1,8 @@
 # Quake III IHV compatibility
 
-**Full IHV support is not implemented.** The separate `q3-ihv` profile is gated
-by default. `-Dq3-ihv-development=true` enables Windows x86 dedicated probes of
-the original game DLL with all four supplied maps, and a Windows x86 developer
+**Full IHV support is not implemented.** The separate `q3-ihv` profile is available
+in every build; its retail modules require Windows x86. Recorded probes cover
+the original game DLL with all four supplied maps, and a Windows x86
 client that runs the original client game, plays the supplied `sli.dm3` and
 joins the original dedicated server (see [below](#developer-client-and-demo-playback)). BSP 43 map loading and native
 game lifecycle dispatch now have runtime evidence. Server link/trace decisions

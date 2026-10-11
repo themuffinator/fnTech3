@@ -360,8 +360,8 @@ typedef struct comGameProfile_s {
 	const char *serverConfig;
 	const char *pakOverridePrefix;
 	const char *pakExcludePrefix;
-	/* NULL when startup is implemented; this is not a compatibility claim. */
-	const char *runtimeBlocker;
+	/* Informational only: never prevents selection, activation or launch. */
+	const char *compatibilityWarning;
 	int maxClients;
 	int maxConfigstrings;
 	int playerConfigstringBase;

@@ -29,8 +29,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  * translation unit independently rejects a mismatched or flag-dropping
  * compiler wrapper. QVM bytecode and preprocessed assembly are not host engine
  * objects and cannot evaluate the C sizeof expression.
- * The explicit Meson Q3-only diagnostic target uses Windows x86_64 and rejects
- * every Quake Live selection before filesystem/module initialization.
+ * The legacy-named Meson Q3-only diagnostic target uses Windows x86_64.
+ * It retains every profile; native module loaders enforce host ABI limits.
  */
 #if !defined( Q3_VM ) && !defined( __ASSEMBLER__ )
 #if defined( FNTECH3_Q3_ONLY )

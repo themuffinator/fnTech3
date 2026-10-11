@@ -38,8 +38,8 @@ The label beside the name says where the installation came from:
 A few more tags can appear:
 
 - **Running**: the game is open. A green dot also shows on its icon.
-- **Experimental**: the game's support in fnTech3 is still being built. Only
-  developer builds start it, and parts of it may be missing.
+- **Experimental**: the game's support in fnTech3 is still being built. Every
+  build can start it on a compatible platform, but parts may be missing.
 - **Unverified**: a folder you added even though fnTech3 did not recognise
   the game's files. It may not start.
 - **Folder not found**: a folder you added is no longer there, for example
@@ -215,7 +215,7 @@ recognise the folder, check that you chose the game's own folder; a game
 with damaged or unusual files may need repairing or reinstalling.
 
 **A game is under "Not playable in this build"**: point at it to see why.
-Experimental games start only in developer builds of fnTech3. On Linux, games
+Experimental status does not prevent launch. On Linux, games
 whose own game code exists only for Windows -- Quake Live's menus, the Jedi
 Knight single-player games, Elite Force's single player, Alice, F.A.K.K.2 and
 Medal of Honor -- start only in the Windows version.

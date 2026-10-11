@@ -11,10 +11,10 @@ original sound mixer is still there as an option.
 This works in every game with a client: Quake III Arena, Quake Live, Return
 to Castle Wolfenstein, Enemy Territory, Elite Force, Alice, F.A.K.K.2, Medal
 of Honor and the Quake III test versions. Jedi Academy and Jedi Outcast are
-not ready: their early development builds do not play the games' sound
+not ready: their early profiles do not play the games' sound
 properly yet.
 
-Academy's development build now routes ordinary positional sounds and loops
+Academy's profile now routes ordinary positional sounds and loops
 through fnTech3's sound system and supplies voice-animation data. It reaches
 the player menu and survives a map restart with either sound backend enabled;
 complete playback and visible mouth animation are still being checked

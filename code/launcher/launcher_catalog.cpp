@@ -441,14 +441,9 @@ bool ProfileStartsInThisBuild( const comGameProfile_t *profile )
 std::string ProfileUnavailableReason( const comGameProfile_t *profile )
 {
 	if ( !profile ) return "This game is not part of fnTech3's catalogue.";
-	if ( !Com_GameManagerCanActivate( profile ) ) {
-#if defined( FNTECH3_Q3_ONLY )
-		if ( profile->id != COM_GAME_QUAKE3 ) {
-			return "This Quake III-only build of fnTech3 starts Quake III Arena alone.";
-		}
-#endif
-		return "Support for this game is still being built. It starts only in developer builds of fnTech3.";
-	}
+	if ( !Com_GameManagerCanActivate( profile ) )
+		return "This game is not part of fnTech3's catalogue.";
+
 	// Retail modules that exist only as Windows x86 libraries decide the host
 	// before the engine ever starts: ask the engine's own module naming.
 	if ( profile->titleId == COM_GAME_TITLE_QUAKELIVE ) {
@@ -465,25 +460,5 @@ std::string ProfileUnavailableReason( const comGameProfile_t *profile )
 	return {};
 }
 
-const char *ProfileDevelopmentOption( const comGameProfile_t *profile )
-{
-	if ( !profile ) return "";
-	switch ( profile->id ) {
-	case COM_GAME_QUAKE3_IHV: return "q3-ihv-development";
-	case COM_GAME_Q3TEST: return "q3test-development";
-	case COM_GAME_WOLFET: return "wolfet-development";
-	default: break;
-	}
-	switch ( profile->titleId ) {
-	case COM_GAME_TITLE_RTCW: return "rtcw-development";
-	case COM_GAME_TITLE_STVEF: return "stvef-development";
-	case COM_GAME_TITLE_JKA: return "jka-development";
-	case COM_GAME_TITLE_JK2: return "jk2-development";
-	case COM_GAME_TITLE_ALICE: return "alice-development";
-	case COM_GAME_TITLE_FAKK2: return "fakk2-development";
-	case COM_GAME_TITLE_MOHAA: return "mohaa-development";
-	default: return "";
-	}
-}
 
 } // namespace fntech3::launcher

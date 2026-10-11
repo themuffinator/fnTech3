@@ -121,7 +121,7 @@ int main() {
  Reset(); com_dedicated=nullptr; NoTransition();
  Reset(); dedicated.integer=1; NoTransition();
  Reset(); runtimeReady=false; NoTransition(); assert(!probes);
- assert(diagnostic.find(Com_GameProfileById(COM_GAME_RTCW_MP)->runtimeBlocker)!=std::string::npos);
+ assert(diagnostic.find(Com_GameProfileById(COM_GAME_RTCW_MP)->compatibilityWarning)!=std::string::npos);
  for(unsigned evidence : {0u, unsigned(COM_GAME_MARKER_RTCW_SP),
    unsigned(COM_GAME_MARKER_RTCW_MP|COM_GAME_MARKER_QUAKE3),
    unsigned(COM_GAME_MARKER_RTCW_MP|COM_GAME_MARKER_UNRECOGNIZED_PAK)}) {

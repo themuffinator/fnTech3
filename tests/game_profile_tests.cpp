@@ -382,6 +382,7 @@ static void TestManager()
 		for ( unsigned i = 0; i < count; ++i ) {
 			const auto *profile = Com_GameManagerTitleProfileAt( title->id, i );
 			assert( profile && profile->titleId == title->id );
+			assert( Com_GameManagerCanActivate( profile ) );
 			assert( profile == Com_GameProfileById( profile->id ) );
 			assert( !( seen & profile->installMarker ) );
 			seen |= profile->installMarker;
@@ -394,7 +395,7 @@ static void TestManager()
 			assert( Com_GameProfileAllowsModuleApi( profile, profile->preferredModuleApi ) );
 			assert( profile->clientConfig && profile->serverConfig );
 			comGameProfile_t forged = *profile;
-			forged.runtimeBlocker = nullptr;
+			forged.compatibilityWarning = nullptr;
 			assert( !Com_GameManagerCanActivate( &forged ) );
 		}
 	}
@@ -486,20 +487,14 @@ static void TestManager()
 			assert( !Com_GameProfileAllowsProtocol( Com_GameProfileById( COM_GAME_QUAKELIVE ), protocol ) );
 		}
 	}
-	// Registration must never activate Q3/QL codecs against RTCW modules.
-	assert( !Com_GameManagerCanActivate( sp ) && !Com_GameManagerCanActivate( mp ) );
-	assert( !Com_ActivateGameProfile( COM_GAME_RTCW_SP ) );
-	assert( !Com_ActivateGameProfile( COM_GAME_RTCW_MP ) );
+	// Registration preserves each profile's contracts without activating it.
+	assert( Com_GameManagerCanActivate( sp ) && Com_GameManagerCanActivate( mp ) );
 	assert( !Com_GameIsRTCW() && !Com_GameIsRTCWSP() && !Com_GameIsRTCWMP() );
 	assert( !Com_GameProfile() );
 	for ( const char *key : { "rtcw-sp", "rtcwsp", "wolfsp", "rtcw-mp", "rtcwmp", "wolfmp" } ) {
 		const auto result = Detect( key, COM_GAME_MARKER_QUAKE3, 0, 0 );
-#if defined( FNTECH3_Q3_ONLY )
-		assert( result.status == COM_GAME_DETECTION_UNSUPPORTED_BUILD );
-#else
-		assert( result.status == COM_GAME_DETECTION_INCOMPLETE_ENGINE );
-#endif
-		assert( result.evidence == COM_GAME_EVIDENCE_EXPLICIT && !result.profile );
+		assert( result.status == COM_GAME_DETECTION_OK );
+		assert( result.evidence == COM_GAME_EVIDENCE_EXPLICIT && result.profile == Com_GameManagerFindProfile( key ) );
 	}
 	assert( Detect( "rtcw", 0, 0, 0 ).status == COM_GAME_DETECTION_MODE_REQUIRED );
 	assert( Detect( "stvef", 0, 0, 0 ).status == COM_GAME_DETECTION_MODE_REQUIRED );
@@ -672,7 +667,7 @@ static void TestModeLaunch()
 		assert( Com_GameManagerModeLaunchStatusMessage( comGameModeLaunchStatus_t( status ) )[0] );
 	}
 	assert( Com_GameProfile() == active );
-	assert( !Com_GameManagerCanActivate( sp ) && !Com_GameManagerCanActivate( mp ) );
+	assert( Com_GameManagerCanActivate( sp ) && Com_GameManagerCanActivate( mp ) );
 }
 
 int main()
@@ -693,13 +688,8 @@ int main()
 
 	result = Detect( "QuakeLive", COM_GAME_MARKER_QUAKE3,
 		COM_GAME_MARKER_NONE, COM_GAME_MARKER_NONE );
-#if defined( FNTECH3_Q3_ONLY )
-	assert( result.status == COM_GAME_DETECTION_UNSUPPORTED_BUILD );
-	assert( result.profile == nullptr );
-#else
 	assert( result.status == COM_GAME_DETECTION_OK );
 	assert( result.profile->id == COM_GAME_QUAKELIVE );
-#endif
 
 	result = Detect( "auto", COM_GAME_MARKER_QUAKE3,
 		COM_GAME_MARKER_QUAKELIVE, COM_GAME_MARKER_QUAKELIVE );
@@ -708,22 +698,12 @@ int main()
 
 	result = Detect( "auto", COM_GAME_MARKER_NONE,
 		COM_GAME_MARKER_QUAKELIVE, COM_GAME_MARKER_NONE );
-#if defined( FNTECH3_Q3_ONLY )
-	assert( result.status == COM_GAME_DETECTION_UNSUPPORTED_BUILD );
-	assert( result.profile == nullptr );
-#else
 	assert( result.profile->id == COM_GAME_QUAKELIVE );
-#endif
 	assert( result.evidence == COM_GAME_EVIDENCE_APP_PATH );
 
 	result = Detect( "auto", COM_GAME_MARKER_NONE,
 		COM_GAME_MARKER_NONE, COM_GAME_MARKER_QUAKELIVE );
-#if defined( FNTECH3_Q3_ONLY )
-	assert( result.status == COM_GAME_DETECTION_UNSUPPORTED_BUILD );
-	assert( result.profile == nullptr );
-#else
 	assert( result.profile->id == COM_GAME_QUAKELIVE );
-#endif
 	assert( result.evidence == COM_GAME_EVIDENCE_STEAM_PATH );
 
 	result = Detect( "auto",
@@ -754,16 +734,6 @@ int main()
 	assert( result.status == COM_GAME_DETECTION_UNKNOWN_REQUEST );
 
 	assert( Com_GameProfile() == nullptr );
-#if defined( FNTECH3_Q3_ONLY )
-	/* Activation itself guards the ABI even if a caller skips detection. */
-	assert( !Com_ActivateGameProfile( COM_GAME_QUAKELIVE ) );
-	assert( Com_GameProfile() == nullptr );
-	result = Detect( "auto", COM_GAME_MARKER_QUAKELIVE,
-		COM_GAME_MARKER_QUAKE3, COM_GAME_MARKER_NONE );
-	assert( result.status == COM_GAME_DETECTION_UNSUPPORTED_BUILD );
-	assert( result.profile == nullptr );
-	assert( result.evidence == COM_GAME_EVIDENCE_BASE_PATH );
-#endif
 	assert( Com_ActivateGameProfile( COM_GAME_QUAKE3 ) );
 	assert( Com_GameIsQuake3() );
 	assert( Com_GameBspFormat( 47 ) == COM_GAME_BSP_QUAKELIVE );

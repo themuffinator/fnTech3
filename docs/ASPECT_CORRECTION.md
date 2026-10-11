@@ -37,7 +37,7 @@ only change the games the table below lists.
 
 The IHV Test has no client, and the Q3Test versions have none of these
 corrections. Jedi Academy widens the view with `r_fovCorrection` in its early
-development build; neither Jedi game has HUD correction, and their pictures
+profile; neither Jedi game has HUD correction, and their pictures
 have not been checked yet.
 
 ## Field Of View

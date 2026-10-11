@@ -2,8 +2,8 @@
 
 The first fnTech3 version is **0.1.0**, tagged **v0.1.0**. The
 [`release` workflow](../../.github/workflows/release.yml) validates pushes to
-`main`; only **Run workflow** creates a GitHub release, always as a **draft
-prerelease**. Publishing that reviewed draft is a separate manual action.
+`main`; only **Run workflow** creates a GitHub release, always as an **ordinary draft
+release**. Publishing that reviewed draft is a separate manual action.
 The workflow never commits version changes, moves tags, clears changelog
 history or sends announcements. No AI service, webhook or extra token is needed.
 
@@ -27,6 +27,10 @@ version. This workflow uses the exact requested tag, not the newest tag or a
 commit count. The legacy `manual_release.py` and `manual` packaging channel
 remain available for historical local snapshot tooling; they are not the
 fnTech3 publication path.
+
+Tags predating the ordinary-release policy cannot be published by the current
+workflow: it rejects a prerelease manifest before making any release API write.
+Prepare a new version from current source instead of reusing an old tag.
 
 ## Maintain the changelog
 
@@ -100,8 +104,9 @@ Downloads are also retained as the `release-v0.1.0` workflow artifact for 30
 days. The packager includes the changelog, compatibility ledger, legal
 notices, `README.html` and the player guides as web pages in `manual/`,
 built by `scripts/player_manual.py`; a broken link between guides stops it.
-All packages are engine-only, and none enables a game development option:
-they start Quake III Arena and Quake Live and refuse the experimental games.
+All packages are engine-only and expose all sixteen profiles. No game
+development option is required. Experimental status and native-module host
+requirements remain documented independently of availability.
 Large changelog entries publish their complete Highlights and Known limitations
 sections with a link to the full versioned changelog, which remains in every
 package. Documentation links in release notes point to the tagged source commit.
@@ -110,9 +115,8 @@ Verify the five uploaded assets and release notes, extract and test the target
 builds with legitimate installations and isolated writable home paths, and
 record relevant runtime evidence. Runtime testing must be windowed and obey
 the project's input and engine-screenshot rules. CI success does not establish
-retail runtime behavior or complete compatibility. Keep the **prerelease**
-flag set while the applicable gates remain open, then click **Publish release**
-when the scoped development release is ready.
+retail runtime behavior or complete compatibility. Never set the **prerelease** flag. Publish a reviewed draft as an ordinary
+release, documenting open compatibility gates in its notes and manifest.
 
 After downloading all five assets into one directory, Linux users can run
 `sha256sum --check SHA256SUMS.txt`; Windows users can compare
@@ -121,7 +125,7 @@ After downloading all five assets into one directory, Linux users can run
 ## Retries and failures
 
 Runs for the same tag are serialized and do not cancel uploads. A retry can
-repair an unpublished draft only when its tag, full target SHA and prerelease
+repair an unpublished draft only when its tag, full target SHA and ordinary-release
 state agree. Unexpected assets or an already published release cause failure.
 All local checksums are verified before uploading; GitHub's returned asset
 sizes and SHA-256 digests are checked afterwards. A failed upload leaves a
@@ -136,10 +140,10 @@ leave the frozen changelog section in place and accumulate subsequent changes
 under Unreleased until the next explicit version preparation.
 
 The `candidate` packaging channel records runtime proof as **not-established**
-when none was supplied. It is exclusively for these scoped prereleases. The
+when none was supplied. It describes a scoped ordinary release, not a GitHub prerelease. The
 existing `release` channel still requires reviewed GLx runtime evidence and
 applicable rollback metadata; switching a label does not satisfy that gate or
-the separate unified compatibility ledger. A future stable publication path
+the separate unified compatibility ledger. A publication claiming full GLx proof
 must bind the required evidence to the exact binaries being published.
 
 Repository administrators should restrict `v*` tag creation/update/deletion
@@ -147,7 +151,7 @@ to maintainers and enable immutable published releases where available. These
 repository settings are not configured by source files. The workflow needs
 only the built-in `GITHUB_TOKEN`, with `contents: write` limited to its draft
 job. Draft creation uses GitHub CLI's documented
-[`--draft`, `--prerelease` and `--verify-tag` options](https://cli.github.com/manual/gh_release_create).
+[`--draft`, `--prerelease=false` and `--verify-tag` options](https://cli.github.com/manual/gh_release_create).
 Draft discovery uses the authenticated, paginated
 [release listing API](https://docs.github.com/en/rest/releases/releases#list-releases),
 which includes drafts; the by-tag REST endpoint is for published releases.

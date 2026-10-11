@@ -14,9 +14,8 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing reviewed release tag (for example v0.1.0). Creates or repairs a draft prerelease.
+        description: Existing reviewed release tag (for example v0.1.0). Creates or repairs a draft release.
         required: true
-        default: v0.1.0
         type: string
 
 # Never cancel an upload in progress. Push validation cannot cancel a release.
@@ -382,7 +381,7 @@ jobs:
           name: linux-x86
           path: artifacts/linux-x86
 
-      - name: Package development prerelease
+      - name: Package release
         run: |
           python scripts/release.py --channel candidate --artifact-root artifacts \
             --ref-name "$RELEASE_TAG" --build-date "$RELEASE_DATE" --commit "$SOURCE_COMMIT"
@@ -404,11 +403,20 @@ jobs:
           retention-days: 30
           include-hidden-files: true
 
-      - name: Create or repair draft prerelease
+      - name: Create or repair draft release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # This workflow can build an older tag whose scripts predate the
+          # ordinary-release policy. Refuse its manifest before any API write.
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          manifest = json.loads(Path('.install/release-manifest.json').read_text())
+          if manifest.get('prerelease') is not False:
+              raise SystemExit('This tag uses prerelease packaging; prepare a new version with ordinary-release tooling.')
+          PY
           python scripts/release_workflow.py draft --tag "$RELEASE_TAG" \
             --manifest .install/release-manifest.json --notes .tmp/release-notes.md
           echo "Draft $RELEASE_TAG is ready for manual review in the repository Releases page." >> "$GITHUB_STEP_SUMMARY"
-          echo 'Publication is a separate manual action. Retain the prerelease flag while compatibility gates remain open.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Publication is a separate manual action. Publish as an ordinary release; compatibility limitations are documented independently.' >> "$GITHUB_STEP_SUMMARY"

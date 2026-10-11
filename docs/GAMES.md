@@ -37,11 +37,11 @@ RTX's new liquid reflections and refraction have been compared on Quake
 III's `q3dm12`. The shared path is available to the other games, whose liquid
 materials still need their own checks; see the [RTX guide](RTX.md#what-you-will-see).
 
-**Experimental** games only start in a *development build* of fnTech3, which
-you compile yourself with that game's option turned on, as the
-[Build Guide](../BUILD.md#game-development-builds) describes. The normal
-download refuses them with a message. They are for testing: expect missing
-features and crashes, and read the game's section below for what works.
+**Every game profile is available in every build**, including the normal
+download. **Experimental** means support is incomplete: expect missing features
+and possible crashes, and read the game's section below for what works. No
+development option is needed. Games whose retail modules exist only for Windows
+still require the Windows build.
 
 ## Games and profiles
 
@@ -51,21 +51,21 @@ you use to start it. Several other spellings are accepted too.
 | Game | Mode | Name to use | Also accepted | Game folder | Settings file | Starts in |
 | --- | --- | --- | --- | --- | --- | --- |
 | Quake III Arena | | `quake3` | `q3`, `quake3arena` | `baseq3` | `q3config.cfg` | the normal download |
-| Quake III Arena IHV Test (February 1999) | | `q3-ihv` | `quake3-ihv`, `q3ihv`, `ihv` | `baseq3` | `q3config.cfg` | a development build: a server that takes original and fnTech3 players, and a client that plays demos and joins original servers |
-| Quake III Arena Q3Test 1.02 to 1.08 (1999) | | `q3test` | `q3t`, `quake3-test` | `demoq3` | `q3config.cfg` | a Windows development build |
+| Quake III Arena IHV Test (February 1999) | | `q3-ihv` | `quake3-ihv`, `q3ihv`, `ihv` | `baseq3` | `q3config.cfg` | the Windows download |
+| Quake III Arena Q3Test 1.02 to 1.08 (1999) | | `q3test` | `q3t`, `quake3-test` | `demoq3` | `q3config.cfg` | the Windows download |
 | Quake Live | | `quakelive` | `ql` | `baseq3` | `qzconfig.cfg` | the normal download |
-| Return to Castle Wolfenstein | single player | `rtcw-sp` | `rtcwsp`, `wolfsp` | `main` | `wolfconfig.cfg` | a development build |
-| | multiplayer | `rtcw-mp` | `rtcwmp`, `wolfmp` | `main` | `wolfconfig_mp.cfg` | a development build |
-| Wolfenstein: Enemy Territory | | `wolfet` | `et`, `enemy-territory`, `enemyterritory` | `etmain` | `etconfig.cfg` | a development build |
-| Star Trek Voyager: Elite Force | single player | `stvef-sp` | `efsp`, `stvoy`, `eliteforce-sp` | `baseEF` | `efconfig.cfg` | a development build |
-| | Holomatch | `stvef-mp` | `stvef-hm`, `holomatch`, `efhm`, `stvoyhm` | `baseEF` | `hmconfig.cfg` | a development build |
-| Star Wars Jedi Knight: Jedi Academy | single player | `jka-sp` | `jasp`, `jediacademy-sp`, `jedi-academy-sp` | `base` | `jaconfig.cfg` | a development build |
-| | multiplayer | `jka-mp` | `jamp`, `jediacademy-mp`, `jedi-academy-mp` | `base` | `jampconfig.cfg` | a development build |
-| Star Wars Jedi Knight II: Jedi Outcast | single player | `jk2-sp` | `jk2sp`, `jedioutcast-sp`, `jedi-outcast-sp` | `base` | `jk2config.cfg` | a development build |
-| | multiplayer | `jk2-mp` | `jk2mp`, `jedioutcast-mp`, `jedi-outcast-mp` | `base` | `jk2mpconfig.cfg` | a development build |
-| American McGee's Alice | | `alice` | `americanmcgeesalice`, `mcgee-alice`, `alice2000` | `base` | `config.cfg` | a Windows development build |
-| Heavy Metal: F.A.K.K.2 | | `fakk2` | `heavymetal-fakk2`, `heavymetalfakk2`, `hmfakk2` | `fakk` | `config.cfg` | a Windows development build |
-| Medal of Honor: Allied Assault | | `mohaa` | `medalofhonor`, `moh-aa`, `alliedassault` | `main` | `configs/unnamedsoldier.cfg` | a Windows development build |
+| Return to Castle Wolfenstein | single player | `rtcw-sp` | `rtcwsp`, `wolfsp` | `main` | `wolfconfig.cfg` | the normal download |
+| | multiplayer | `rtcw-mp` | `rtcwmp`, `wolfmp` | `main` | `wolfconfig_mp.cfg` | the normal download |
+| Wolfenstein: Enemy Territory | | `wolfet` | `et`, `enemy-territory`, `enemyterritory` | `etmain` | `etconfig.cfg` | the normal download |
+| Star Trek Voyager: Elite Force | single player | `stvef-sp` | `efsp`, `stvoy`, `eliteforce-sp` | `baseEF` | `efconfig.cfg` | the normal download |
+| | Holomatch | `stvef-mp` | `stvef-hm`, `holomatch`, `efhm`, `stvoyhm` | `baseEF` | `hmconfig.cfg` | the normal download |
+| Star Wars Jedi Knight: Jedi Academy | single player | `jka-sp` | `jasp`, `jediacademy-sp`, `jedi-academy-sp` | `base` | `jaconfig.cfg` | the normal download |
+| | multiplayer | `jka-mp` | `jamp`, `jediacademy-mp`, `jedi-academy-mp` | `base` | `jampconfig.cfg` | the normal download |
+| Star Wars Jedi Knight II: Jedi Outcast | single player | `jk2-sp` | `jk2sp`, `jedioutcast-sp`, `jedi-outcast-sp` | `base` | `jk2config.cfg` | the normal download |
+| | multiplayer | `jk2-mp` | `jk2mp`, `jedioutcast-mp`, `jedi-outcast-mp` | `base` | `jk2mpconfig.cfg` | the normal download |
+| American McGee's Alice | | `alice` | `americanmcgeesalice`, `mcgee-alice`, `alice2000` | `base` | `config.cfg` | the Windows download |
+| Heavy Metal: F.A.K.K.2 | | `fakk2` | `heavymetal-fakk2`, `heavymetalfakk2`, `hmfakk2` | `fakk` | `config.cfg` | the Windows download |
+| Medal of Honor: Allied Assault | | `mohaa` | `medalofhonor`, `moh-aa`, `alliedassault` | `main` | `configs/unnamedsoldier.cfg` | the Windows download |
 
 The **game folder** is the folder inside the game's installation that holds
 its data, and the **settings file** is where your settings are saved, inside
@@ -309,8 +309,7 @@ The test version id Software gave graphics-card makers in February 1999 is
 different enough from the released game -- its own game code, network
 protocol and map format -- to need its own profile.
 
-**Status:** experimental, Windows only, in a development build
-(`-Dq3-ihv-development=true`). The dedicated server runs the original game
+**Status:** experimental, Windows only. The dedicated server runs the original game
 code on its four maps, and the client runs the test's own client game: open
 the console and type `demo sli` to play its demo, or `connect <address>` to
 join a server running the original IHV Test. There is no menu beyond a title
@@ -334,8 +333,7 @@ installed when it starts, so keep each version in a folder of its own.
 `demoq3/`. fnTech3 runs the version's own game code and never writes to its
 folder.
 
-**Status:** experimental, in a Windows development build
-(`-Dq3test-development=true`). Every version's server runs every map, for up
+**Status:** experimental, in the Windows download. Every version's server runs every map, for up
 to 128 players. From 1.05 on, the client joins fnTech3's and the original
 servers, draws the version's menus in every renderer -- 1.05, which shipped
 none, gets fnTech3's own -- and
@@ -384,7 +382,7 @@ Live work both ways ([details](fntech3/COMPATIBILITY.md#compatibility-and-gate-m
 `main` folder. Single player and multiplayer share it, so always name the
 mode.
 
-**Status:** experimental, in a development build (`-Drtcw-development=true`).
+**Status:** experimental, in the normal download.
 Both modes run the original game code in the Windows client, with all three
 renderers.
 
@@ -415,8 +413,7 @@ the computer's soldiers, and long online matches. See the
 **What you need:** an installed Enemy Territory with its `etmain` folder, such
 as the Steam release.
 
-**Status:** experimental, in a development build
-(`-Dwolfet-development=true`), which runs both the client and the dedicated
+**Status:** experimental, in the normal download, which runs both the client and the dedicated
 server. The original game code draws Enemy Territory's menus and the limbo
 screen, and loads all six maps in every renderer. Joining with both teams
 works on all six maps, in both directions with the original game, including
@@ -455,7 +452,7 @@ long play are still to be checked. See the
 **What you need:** Elite Force version 1.20, with its `baseEF` folder. Single
 player and Holomatch share it, so always name the mode.
 
-**Status:** experimental, in a development build (`-Dstvef-development=true`).
+**Status:** experimental, in the normal download.
 Single player needs Windows.
 
 - **Single player** runs every level with the original game code, menus and
@@ -493,8 +490,7 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
 
 **What you need:** Jedi Academy version 1.01, with its `base` folder.
 
-**Status:** experimental and early, in a Windows development build
-(`-Djka-development=true`).
+**Status:** experimental and early, in the Windows download.
 
 - **Multiplayer:** a server runs the original game code on an original map,
   with bots, and tells the game where a held saber or weapon is as the
@@ -536,8 +532,7 @@ Jedi Academy asks for disc 1 before it will connect to any server. See the
 
 **What you need:** Jedi Outcast version 1.02a, with its `base` folder.
 
-**Status:** experimental and early, in a Windows development build
-(`-Djk2-development=true`). A multiplayer server runs the original game code;
+**Status:** experimental and early, in the Windows download. A multiplayer server runs the original game code;
 bots find opponents and fight with sabers in tested matches. Parts of the
 client -- its network messages, menus and fonts -- are being built and tested
 on their own. The main menu now draws its text, models and effects with
@@ -561,8 +556,7 @@ sounds are all different. fnTech3 has separate support for them.
 **What you need:** an installed Alice with `base/pak0.pk3`, `base/fgamex86.dll`
 and `base/cgamex86.dll`.
 
-**Status:** experimental, in a Windows development build
-(`-Dalice-development=true`). The original game code runs. The opening logos
+**Status:** experimental, in the Windows download. The original game code runs. The opening logos
 lead to the menus, New Game plays the opening movie into the first level, and
 the garden draws Alice and her HUD in all three renderers. Games save and
 load, and demos record and play back. Nothing has yet been swapped with the
@@ -594,8 +588,7 @@ both with the same support, with F.A.K.K.2's own rules where the two differ.
 and `fakk/cgamex86.dll`. A copy of the disc is not enough: the disc keeps the
 game's program files packed inside its installer.
 
-**Status:** experimental, in a Windows development build
-(`-Dfakk2-development=true`). A server starts all thirty maps with the
+**Status:** experimental, in the Windows download. A server starts all thirty maps with the
 original game code. The client draws the menus, HUD and inventory, plays New
 Game and the level exits with your progress carried over, saves and loads,
 and records and plays demos. English and German copies both run. With the
@@ -627,8 +620,7 @@ grew from both Ritual's and Quake III's. fnTech3 has separate support for it.
 `MOHAA.exe`. fnTech3 uses your installation's copy of that file and never
 includes it.
 
-**Status:** experimental, in a Windows development build
-(`-Dmohaa-development=true`). A server starts all fifty-four maps with the
+**Status:** experimental, in the Windows download. A server starts all fifty-four maps with the
 original game code. The client plays every single-player level, briefing and
 the credits: the game's menus, HUD, loading screens, briefing slides,
 objectives, subtitles and fades, the music and speech, the sun's lens flare,
@@ -688,7 +680,6 @@ against the original game. See the
   and settings files.
 - [Launcher Guide](LAUNCHER.md) for finding your games and starting them with
   a click.
-- [Build Guide](../BUILD.md) for compiling a development build with the
-  experimental games.
+- [Build Guide](../BUILD.md) for compiling the engine; every game is included.
 - [Compatibility ledger](fntech3/COMPATIBILITY.md) for every test and what is
   still open, for each game.

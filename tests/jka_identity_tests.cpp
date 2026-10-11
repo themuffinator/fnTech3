@@ -224,16 +224,11 @@ static void TestProfiles()
 	CHECK( !sp->usesSteam && !mp->usesSteam && !sp->supportsWorkshop && !mp->supportsWorkshop );
 	CHECK( !sp->steamAppId && !mp->steamAppId && !sp->steamInstallName && !mp->steamInstallName );
 
-	// Both stay blocked in ordinary builds; registration is not a claim.
-	CHECK( sp->runtimeBlocker && mp->runtimeBlocker );
-#if !defined( FNTECH3_JKA_DEVELOPMENT )
-	CHECK( !Com_GameManagerCanActivate( sp ) && !Com_GameManagerCanActivate( mp ) );
-	CHECK( !Com_ActivateGameProfile( COM_GAME_JKA_SP ) );
-	CHECK( !Com_ActivateGameProfile( COM_GAME_JKA_MP ) );
+	// Experimental status is informational; both modes are always selectable.
+	CHECK( sp->compatibilityWarning && mp->compatibilityWarning );
+	CHECK( Com_GameManagerCanActivate( sp ) && Com_GameManagerCanActivate( mp ) );
 	comGameMarkerInputs_t explicitRequest{ "jka-mp", 0, 0, 0 };
-	CHECK( Com_DetectGameProfileMarkers( &explicitRequest ).status
-		== COM_GAME_DETECTION_INCOMPLETE_ENGINE );
-#endif
+	CHECK( Com_DetectGameProfileMarkers( &explicitRequest ).profile == mp );
 }
 
 static void TestProtocolsAndModules()

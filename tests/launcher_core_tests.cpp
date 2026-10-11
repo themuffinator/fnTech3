@@ -207,11 +207,11 @@ void TestCatalogNames()
 	}
 	for ( unsigned i = 0; i < Com_GameManagerProfileCount(); ++i ) {
 		const comGameProfile_t *profile = Com_GameManagerProfileAt( i );
-		if ( !Com_GameManagerCanActivate( profile ) ) {
-			CHECK( !ProfileStartsInThisBuild( profile ) && !ProfileUnavailableReason( profile ).empty() );
-			CHECK( profile->id == COM_GAME_QUAKE3 || profile->id == COM_GAME_QUAKELIVE
-				|| *ProfileDevelopmentOption( profile ) );
-		}
+		CHECK( Com_GameManagerCanActivate( profile ) );
+#if defined( _WIN32 ) && ( defined( _M_IX86 ) || defined( __i386__ ) )
+		CHECK( ProfileStartsInThisBuild( profile ) );
+		CHECK( ProfileUnavailableReason( profile ).empty() );
+#endif
 	}
 	static_assert( Store( 0 ) == Store::Local, "Store keys start at Local" );
 	for ( unsigned i = 0; i < unsigned( Store::Count ); ++i ) {

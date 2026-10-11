@@ -139,6 +139,5 @@ std::string ModDisplayName( const std::string &folder );
 bool ProfileStartsInThisBuild( const comGameProfile_t *profile );
 std::string ProfileUnavailableReason( const comGameProfile_t *profile );
 // The Meson option a developer build enables the profile with, or empty.
-const char *ProfileDevelopmentOption( const comGameProfile_t *profile );
 
 } // namespace fntech3::launcher

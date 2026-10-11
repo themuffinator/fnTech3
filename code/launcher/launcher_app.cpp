@@ -1302,9 +1302,6 @@ void App::DrawRow( const Installation &installation, ImVec2 min, ImVec2 max, boo
 		playEnabled = false;
 		playIcon = false;
 		playTip = ProfileUnavailableReason( mode );
-		if ( const char *option = ProfileDevelopmentOption( mode ); *option ) {
-			playTip += std::string( "\n\nDevelopers: build with -D" ) + option + "=true to try it.";
-		}
 	} else if ( running ) {
 		playLabel = "Running";
 		playKind = ButtonKind::Subtle;
@@ -1358,7 +1355,7 @@ void App::DrawRow( const Installation &installation, ImVec2 min, ImVec2 max, boo
 	if ( running ) tags.push_back( { "Running", palette.success, true } );
 	if ( installation.missing ) tags.push_back( { "Folder not found", palette.danger, false } );
 	if ( !installation.verified && !installation.missing ) tags.push_back( { "Unverified", palette.warning, false } );
-	if ( mode && mode->runtimeBlocker && ProfileStartsInThisBuild( mode ) ) tags.push_back( { "Experimental", palette.warning, false } );
+	if ( mode && mode->compatibilityWarning && ProfileStartsInThisBuild( mode ) ) tags.push_back( { "Experimental", palette.warning, false } );
 	if ( !installation.release.empty() ) tags.push_back( { "Release " + installation.release, palette.textSecondary, false } );
 	if ( installation.modes.size() > 1 && !showModes && mode ) tags.push_back( { ModeLabel( mode ), palette.textSecondary, false } );
 	if ( prefs && !prefs->mod.empty() ) tags.push_back( { "Mod: " + ModDisplayName( prefs->mod ), palette.textSecondary, false } );

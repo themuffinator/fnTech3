@@ -209,8 +209,8 @@ def notes(info: dict, *, root: Path = ROOT) -> str:
                   lambda match: f"]({source_url}/{match[1]})", body)
     return (f"# fnTech3 {info['version']}\n\n{body}\n\n"
             "## Release scope\n\n"
-            "Development prerelease: Q3 and QL profiles are enabled. All other game "
-            "profiles remain experimental and disabled in these default builds. This release does not "
+            "All sixteen game profiles are available in every build. Experimental "
+            "profiles retain their documented limitations and native-module platform requirements. This release does not "
             "establish full unified compatibility or completion of runtime gates. "
             "See the included `docs/fntech3/COMPATIBILITY.md` for evidence and open gates.\n\n"
             "Engine only; supply your own legitimate game installation.\n\n"
@@ -231,7 +231,7 @@ def sha256(path: Path) -> str:
 
 def release_files(manifest_path: Path, info: dict) -> list[Path]:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    expected = {"project": "fnTech3", "channel": "candidate", "prerelease": True,
+    expected = {"project": "fnTech3", "channel": "candidate", "prerelease": False,
                 "release_tag": info["release_tag"], "version": info["version"],
                 "source_commit": info["head_commit"], "build_date": info["build_date"]}
     for key, value in expected.items():
@@ -292,7 +292,7 @@ def validate_draft(existing: dict, info: dict, files: list[Path]) -> None:
         raise ValueError("Release is already published; published assets are immutable to this workflow")
     if existing.get("target_commitish") != info["head_commit"]:
         raise ValueError("Existing draft targets another commit; inspect it before retrying")
-    if existing.get("tag_name") != info["release_tag"] or not existing.get("prerelease"):
+    if existing.get("tag_name") != info["release_tag"] or existing.get("prerelease") is not False:
         raise ValueError("Existing draft tag or prerelease state differs")
     unexpected = {item["name"] for item in existing.get("assets", [])} - {path.name for path in files}
     if unexpected:
@@ -310,7 +310,7 @@ def create_draft(tag: str, manifest: Path, notes_path: Path) -> str:
         raise ValueError("Release notes do not match the tagged changelog")
     found = find_release(tag)
     if found is None:
-        gh("release", "create", tag, "--verify-tag", "--draft", "--prerelease",
+        gh("release", "create", tag, "--verify-tag", "--draft", "--prerelease=false",
            "--target", info["head_commit"], "--title", f"fnTech3 {info['version']}",
            "--notes-file", str(notes_path))
     else:

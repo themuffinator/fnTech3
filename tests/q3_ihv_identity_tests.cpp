@@ -60,8 +60,8 @@ static void Profile() {
 	CHECK(Com_GameProfileAllowsModuleApi(profile,COM_MODULE_API_QUAKE3_IHV_NATIVE));
 	for(unsigned api : {COM_MODULE_API_QVM,COM_MODULE_API_LEGACY_NATIVE,COM_MODULE_API_STRUCTURED_NATIVE,COM_MODULE_API_STVEF_SP_NATIVE})
 		CHECK(!Com_GameProfileAllowsModuleApi(profile,api));
-	CHECK(!Com_GameManagerCanActivate(profile)); // Integration remains gated in ordinary builds.
-	CHECK(!Com_ActivateGameProfile(COM_GAME_QUAKE3_IHV));
+	CHECK(Com_GameManagerCanActivate(profile)); // Available in every build.
+	CHECK(Com_ActivateGameProfile(COM_GAME_QUAKE3_IHV));
 	CHECK(!Com_GameProfileAllowsProtocol(Com_GameProfileById(COM_GAME_QUAKE3),33));
 	for(int protocol : {24,26,35,40,43,46,66,67,68,71,91}) CHECK(!Com_GameProfileAllowsProtocol(profile,protocol));
 	CHECK(Com_GameProfileAllowsProtocol(profile,33));

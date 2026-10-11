@@ -108,7 +108,7 @@ fnTech3 stops with a message when it cannot tell which game to start:
 | `ambiguous` | More than one game was found; name the one you want with `com_gameProfile`. |
 | `choose the game mode` | This game has single-player and multiplayer versions, such as `rtcw-sp` and `rtcw-mp`; name one. |
 | `unrecognized base pak` | The folder looks like the game but its main file is not the one expected. Check the folder, or reinstall or verify the game. |
-| `engine adapters are not yet complete` | The game is one of the experimental ones, which the normal download does not start. See the [Games guide](GAMES.md). |
+| `engine adapters are not yet complete` | Experimental support is incomplete. Current builds still let you select the game; if an older build refuses it, update. See the [Games guide](GAMES.md). |
 
 ## The console and settings
 

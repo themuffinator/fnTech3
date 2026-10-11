@@ -4269,7 +4269,7 @@ static void Com_GameList_f( void ) {
 		for ( unsigned i = 0; i < Com_GameManagerTitleProfileCount( title->id ); ++i ) {
 			const comGameProfile_t *profile = Com_GameManagerTitleProfileAt( title->id, i );
 			const char *status = Com_GameManagerCanActivate( profile ) ? "startup enabled"
-				: profile->runtimeBlocker ? profile->runtimeBlocker : "unavailable in this build";
+				: profile->compatibilityWarning ? profile->compatibilityWarning : "unavailable in this build";
 			Com_Printf( " %c %-12s protocol %d: %s\n",
 				profile == Com_GameProfile() ? '*' : ' ', profile->key,
 				profile->preferredProtocol, status );
@@ -4313,7 +4313,7 @@ static void Com_GameMode_f( void ) {
 	}
 	if ( !Com_GameManagerCanActivate( target ) ) {
 		Com_Printf( "Cannot start %s: %s.\n", target->displayName,
-			target->runtimeBlocker ? target->runtimeBlocker : "unavailable in this build" );
+			target->compatibilityWarning ? target->compatibilityWarning : "unavailable in this build" );
 		return;
 	}
 	if ( !Com_GameManagerInstallationMatches( target, Com_ProbeGameProfileMarkers( basePath ) ) ) {
@@ -4437,17 +4437,9 @@ static void Com_InitGameProfile( void ) {
 	Com_Printf( "Game profile: %s (%s, detected from %s)\n",
 		detection.profile->displayName, detection.profile->key,
 		Com_GameDetectionEvidenceName( detection.evidence ) );
-	if ( detection.profile->runtimeBlocker ) {
-		Com_Printf( Com_GameIsWolfET()
-			? "EXPERIMENTAL WOLFET DEVELOPMENT BUILD: %s. Compatibility gates remain open.\n"
-			: Com_GameIsSTVEF()
-			? "EXPERIMENTAL ELITE FORCE DEVELOPMENT BUILD: %s. Compatibility gates remain open.\n"
-			: Com_GameIsJKA()
-			? "EXPERIMENTAL JEDI ACADEMY DEVELOPMENT BUILD: %s. Compatibility gates remain open.\n"
-			: Com_GameIsQ3Test()
-			? "EXPERIMENTAL Q3TEST DEVELOPMENT BUILD: %s. Compatibility gates remain open.\n"
-			: "EXPERIMENTAL RTCW DEVELOPMENT BUILD: %s. Compatibility gates remain open.\n",
-			detection.profile->runtimeBlocker );
+	if ( detection.profile->compatibilityWarning ) {
+		Com_Printf( "EXPERIMENTAL PROFILE %s: %s. See docs/fntech3/COMPATIBILITY.md.\n",
+			detection.profile->key, detection.profile->compatibilityWarning );
 	}
 }
 

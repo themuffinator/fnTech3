@@ -13,10 +13,8 @@ fnTech3 builds one engine for every supported game. A build produces:
 Meson is the preferred build system. The legacy Makefile and CMake files
 remain for the platforms and CI jobs that still use them.
 
-Every build runs **Quake III Arena** (`quake3`) and **Quake Live**
-(`quakelive`). The other games are experimental and start only in a build made
-with their development option; see
-[Game development builds](#game-development-builds). A successful build proves
+Every build includes all sixteen profiles. Experimental games need no opt-in
+flag; see [Games](docs/GAMES.md) for their limits. A successful build proves
 that the engine compiles and links. It does not establish any game's
 compatibility: each profile must pass its runtime and interoperability gates
 in the [compatibility ledger](docs/fntech3/COMPATIBILITY.md), and full
@@ -36,11 +34,11 @@ cannot load them. Build, test, package and run:
   for Quake III Arena and engine development.
 
 macOS is disabled and unsupported, and fnTech3 does not build, test, package
-or launch ARM, PowerPC, BSD or other non-x86 targets. The Windows Q3-only RTX
+or launch ARM, PowerPC, BSD or other non-x86 targets. The legacy-named Windows x64 RTX
 diagnostic build below is x86_64 and makes a narrower, separately documented
 claim; it does not satisfy the shared-profile gates.
 
-Enabling a game's development option never widens this contract.
+Profile availability never widens the native-module platform contract.
 
 ## Quick start on Windows
 
@@ -60,8 +58,7 @@ maintained options:
 .\.vscode\build-release.ps1 -Configuration RelWithDebInfo -BuildDir meson\build\win32-dev -Target both -Renderer all
 ```
 
-Add a game's development switch, such as `-RTCWDevelopment`, to enable it; the
-switches are listed under [Game development options](#game-development-options).
+No game-enabling switches are needed. Legacy switches are accepted for script compatibility.
 The helper builds an explicit list of runtime products, so it does not compile
 Meson's test executables; add `-RunTests`, or use Meson directly, to test.
 
@@ -126,7 +123,7 @@ python = 'C:/Python313/python.exe'
 | `-Daudio-tests=true\|false` | `true` | Build the audio tools and deterministic audio tests. |
 | `-Dglx-tests=true\|false` | `true` | Build the deterministic GLx renderer logic tests. |
 | `-Dstrict-warnings=true\|false` | `false` | Treat diagnostics in fnTech3's own targets as errors, without applying the policy to fallback dependencies. |
-| `-Dq3-only=true\|false` | `false` | The Windows x86_64 Q3-only diagnostic target described below. |
+| `-Dq3-only=true\|false` | `false` | The Windows x86_64 diagnostic target described below. |
 
 Two renderer-linking modes remain for testing:
 `-Drenderer-dlopen=false -Drenderer-default=vk` links one renderer into the
@@ -140,27 +137,15 @@ not copy a fallback `z-1.dll` into a distribution.
 
 ### Game development options
 
-Each experimental game has one option. It lets the shared client and
-dedicated server start that game's profiles for isolated development probes,
-and prints an experimental-build banner. It changes no profile's contracts and
-closes no gate, and release builds never enable it.
+Every profile is always enabled. The old options below and their corresponding
+PowerShell helper switches are accepted only for compatibility with existing
+scripts. Both `true` and `false` have no effect on game availability:
 
-| Meson option | Helper switch | Profiles | What a developer build runs |
-| --- | --- | --- | --- |
-| `-Drtcw-development=true` | `-RTCWDevelopment` | `rtcw-sp`, `rtcw-mp` | Client and server, both modes. |
-| `-Dwolfet-development=true` | `-WolfETDevelopment` | `wolfet` | Client and server. |
-| `-Dstvef-development=true` | `-STVEFDevelopment` | `stvef-sp`, `stvef-mp` | Client and server, both modes; single player on Windows x86 only. |
-| `-Djka-development=true` | `-JKADevelopment` | `jka-sp`, `jka-mp` | Experimental server and partial client probes. |
-| `-Djk2-development=true` | `-JK2Development` | `jk2-sp`, `jk2-mp` | Partial Windows x86 developer probes; client and SP gameplay remain incomplete. |
-| `-Dq3-ihv-development=true` | `-Q3IHVDevelopment` | `q3-ihv` | Windows x86 dedicated server that takes original and fnTech3 players, and a client that plays demos and joins original servers. |
-| `-Dq3test-development=true` | `-Q3TestDevelopment` | `q3test` | Windows x86 client and server, every release from 1.02 to 1.08. |
-| `-Dalice-development=true` | `-AliceDevelopment` | `alice` | Windows x86 client and server. |
-| `-Dfakk2-development=true` | `-FAKK2Development` | `fakk2` | Windows x86 client and server. |
-| `-Dmohaa-development=true` | `-MOHAADevelopment` | `mohaa` | Windows x86 client and server. |
+- `rtcw-development`, `wolfet-development`, `stvef-development`
+- `jka-development`, `jk2-development`, `q3-ihv-development`, `q3test-development`
+- `alice-development`, `fakk2-development`, `mohaa-development`
 
-The options are independent of each other. None can be combined with
-`-Dq3-only=true`. The [Games Guide](docs/GAMES.md) summarizes what each game
-does today.
+The [Games Guide](docs/GAMES.md) describes each profile's runtime requirements.
 
 ## Game development builds
 
@@ -187,8 +172,7 @@ establishes compatibility by itself.
 
 Return to Castle Wolfenstein's single player (`rtcw-sp`) and multiplayer
 (`rtcw-mp`) are two profiles of one game and use the same `fntech3.exe`.
-Configure with `-Drtcw-development=true` (helper: `-RTCWDevelopment`). The
-option does not permit an in-process mode switch: a mode change from the menu
+Both are available without build options. There is no in-process mode switch: a mode change from the menu
 relaunches the executable with the other profile. See the
 [RTCW gate matrix](docs/fntech3/COMPATIBILITY.md#rtcw-gate-matrix) and the
 [RTCW contracts](docs/fntech3/2026-09-14-rtcw-contracts.md).
@@ -206,9 +190,8 @@ Build the shared Windows x86 binaries with:
 .\.vscode\build-release.ps1 -Configuration RelWithDebInfo -BuildDir meson\build\win32-dev -Target both -Renderer all -WolfETDevelopment
 ```
 
-The Meson equivalent is `-Dwolfet-development=true`. Default builds reject
-`wolfet` in both the client and the dedicated server; with the option, both run
-ET with its retail modules for isolated probes.
+Both the client and dedicated server include `wolfet` by default. The legacy
+`-WolfETDevelopment` switch above is optional and has no effect.
 
 A bounded, loopback-only dedicated probe with an isolated writable home is:
 
@@ -272,11 +255,10 @@ See the [ET gate matrix](docs/fntech3/COMPATIBILITY.md#wolfet-gate-matrix).
 ### Elite Force development profiles
 
 Star Trek Voyager: Elite Force's single player (`stvef-sp`) and Holomatch
-(`stvef-mp`) share one installation and `-Dstvef-development=true` (helper:
-`-STVEFDevelopment`). Elite Force's sounds and music are MP3, so keep the
+(`stvef-mp`) share one installation and are included in every build. Elite Force's sounds and music are MP3, so keep the
 default `-Dmp3=true`. Single player runs the installation's `efgamex86.dll`
 and `efuix86.dll`, so it needs Windows x86; other platforms refuse it before
-filesystem startup. Holomatch runs the installed QVMs, and its dedicated
+native module loading. Holomatch runs the installed QVMs, and its dedicated
 server has also been observed on Linux i686. Two probes check data without
 running the game:
 
@@ -292,9 +274,8 @@ engine's message layer and re-encodes each delta. See the
 
 ### Jedi Academy and Jedi Outcast development profiles
 
-`-Djka-development=true` (helper: `-JKADevelopment`) enables Jedi Academy's
-`jka-sp` and `jka-mp`, and `-Djk2-development=true` (helper:
-`-JK2Development`) enables Jedi Outcast's `jk2-sp` and `jk2-mp`.
+Every build includes Jedi Academy's `jka-sp` and `jka-mp` and Jedi
+Outcast's `jk2-sp` and `jk2-mp`.
 Jedi Academy's multiplayer server runs the retail module with bots; its
 protocol-26 codecs now have reference and fragmentation tests. Retail peer
 admission remains under investigation. Its measured API-8 SP bootstrap and
@@ -318,8 +299,7 @@ gate matrices.
 
 ### Quake III IHV Test development profile
 
-`-Dq3-ihv-development=true` (helper: `-Q3IHVDevelopment`) lets a Windows x86
-dedicated server run the February 1999 IHV Test's original game DLL, and a
+The Windows x86 dedicated server can run the February 1999 IHV Test's original game DLL, and a
 Windows x86 client run its original client game to play its demos
 (`demo sli`) or join an original IHV server. Its server takes players from
 the original IHV Test or from fnTech3. The lifecycle probe needs only the server and
@@ -333,8 +313,7 @@ See the [IHV ledger](docs/fntech3/Q3_IHV.md).
 
 ### Q3Test development profile
 
-`-Dq3test-development=true` (helper: `-Q3TestDevelopment`) enables the public
-Q3Test releases of 1999 (`q3test`), 1.02 to 1.08, on Windows x86, where their
+Every build includes the public Q3Test releases of 1999 (`q3test`), 1.02 to 1.08, on Windows x86, where their
 Win32 modules run. The profile pins the release its installation holds. A
 developer dedicated server runs every release's game module; a developer
 client runs 1.05 to 1.08's client game and menus, and records and plays
@@ -358,9 +337,8 @@ loop, and patches nothing. See the [Q3Test ledger](docs/fntech3/Q3TEST.md).
 
 ### Alice and F.A.K.K.2 development profiles
 
-`-Dalice-development=true` (helper: `-AliceDevelopment`) enables American
-McGee's Alice (`alice`), and `-Dfakk2-development=true` (helper:
-`-FAKK2Development`) enables Heavy Metal: F.A.K.K.2 (`fakk2`). Both run
+Every build includes American McGee's Alice (`alice`) and Heavy Metal:
+F.A.K.K.2 (`fakk2`). Both run
 Ritual's engine rather than a Quake III one, on Windows x86. A developer
 client runs each game's retail game and client-game libraries on all three
 renderers, saves and loads, and records and plays back demos. For F.A.K.K.2,
@@ -391,8 +369,8 @@ each effect's own sound. See the [Alice](docs/fntech3/COMPATIBILITY.md#alice-gat
 
 ### Medal of Honor development profile
 
-`-Dmohaa-development=true` (helper: `-MOHAADevelopment`) enables Medal of
-Honor: Allied Assault (`mohaa`), 1.00, on Windows x86. It runs 2015's engine
+Every build includes Medal of Honor: Allied Assault (`mohaa`), whose 1.00
+retail modules require Windows x86. It runs 2015's engine
 through adapters of its own, not the Ritual profiles'. A developer client
 runs the retail game and client-game libraries, loading the installation's own
 `system86.dll` beside them; it draws the engine's retail menus and HUD, saves
@@ -412,13 +390,13 @@ See the [Medal of Honor gate matrix](docs/fntech3/COMPATIBILITY.md#medal-of-hono
 
 VS Code's default `meson: build all games` task builds the client, dedicated
 server, all three renderers, and runtime packages in `meson/build/win32-dev`
-with debug symbols (`RelWithDebInfo`). It enables every development profile:
+with debug symbols (`RelWithDebInfo`). It still accepts the legacy switches:
 `-RTCWDevelopment`, `-WolfETDevelopment`, `-STVEFDevelopment`,
 `-JKADevelopment`, `-JK2Development`, `-Q3IHVDevelopment`, `-AliceDevelopment`,
 `-FAKK2Development`, `-MOHAADevelopment` and `-Q3TestDevelopment`, each passing
 the matching Meson option. The matching `(Steam)` task additionally builds the
-optional private provider. The release and debug tasks keep those profiles
-gated.
+optional private provider. Release and debug tasks expose the same profiles;
+all development switches are now optional no-ops.
 
 All launch configurations use the already-built `win32-dev` binaries and have
 no `preLaunchTask`. Build with Ctrl+Shift+B, then select a launch in Run and
@@ -538,11 +516,11 @@ the provider. Developers with the separate `../FnQL-Steam` repository can pass
 target and stage only the resulting provider beside fnTech3. See the
 [Steam provider notes](docs/fnql/STEAM_PROVIDER.md).
 
-### Windows Q3-only RTX diagnostics (x86_64)
+### legacy-named Windows x64 RTX diagnostics (x86_64)
 
 Use this explicit Meson target when the installed Vulkan driver exposes the
 required KHR ray-tracing features to a 64-bit process but not to Win32. It is
-an experimental Q3-only diagnostic build; the shared release target remains
+an experimental x64 diagnostic build; the shared release target remains
 Win32. From an **x64 Native Tools** developer prompt at the repository root,
 configure a separate build directory:
 
@@ -555,9 +533,9 @@ meson test -C .tmp/meson-q3-rtx-x64 --print-errorlogs
 ```
 
 The outputs are `fntech3-q3.exe` and `fnql_rtx_x86_64.dll`; enabling
-`-Dbuild-server=true` also produces `fntech3.ded-q3.exe`. Every other profile,
-whether selected or detected, fails before filesystem startup with an
-instruction to use the shared Win32 binary. Keep this build separate from
+`-Dbuild-server=true` also produces `fntech3.ded-q3.exe`. The legacy option
+and output names remain for existing scripts. All profiles are selectable;
+games requiring x86 native modules still need the shared Win32 binary. Keep this build separate from
 release staging and use legitimate Q3 assets. Native ray tracing still requires
 the device capability checks; building this target does not establish
 rendering compatibility. See the [RTX feature ledger](docs/fntech3/RTX_Q2RTX_PARITY.md)

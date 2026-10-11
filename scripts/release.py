@@ -1217,7 +1217,7 @@ def resolve_glx_runtime_proof(
             return {
                 "required": False,
                 "status": "not-established",
-                "reason": "Development prerelease; runtime compatibility gates remain open. See docs/fntech3/COMPATIBILITY.md.",
+                "reason": "Scoped release; runtime compatibility gates remain open. See docs/fntech3/COMPATIBILITY.md.",
             }
         return {
             "required": False,
@@ -1445,7 +1445,7 @@ def build_archives(args: argparse.Namespace) -> dict[str, object]:
         "build_date": meta["build_date"],
         "commit": meta["commit"],
         "source_commit": source_commit,
-        "prerelease": args.channel == "candidate",
+        "prerelease": False,
         "compatibility_ledger": "docs/fntech3/COMPATIBILITY.md",
         "build_run_id": os.environ.get("GITHUB_RUN_ID", ""),
         "build_run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),

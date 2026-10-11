@@ -44,7 +44,7 @@ int main(int argc,char **argv) {
  const auto expected=static_cast<unsigned>(std::strtoul(argv[2],nullptr,10));
  CHECK(Com_ProbeGameProfileMarkers(argv[1])==expected);
  const auto *ihv=Com_GameProfileById(COM_GAME_QUAKE3_IHV);
- CHECK(!Com_GameManagerCanActivate(ihv));
+ CHECK(Com_GameManagerCanActivate(ihv));
  comGameMarkerInputs_t input{"auto",expected,0,0};
  if(expected==257) CHECK(Com_DetectGameProfileMarkers(&input).status==COM_GAME_DETECTION_AMBIGUOUS);
  if(expected==256) {

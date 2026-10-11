@@ -10,6 +10,12 @@ historical upstream records, not fnTech3 release history. See the
 
 ## [Unreleased]
 
+- Make all sixteen game profiles accessible in every build. Legacy development
+  switches no longer disable games, and experimental warnings are informational.
+  Native-module platform requirements and documented compatibility limits remain
+  ([record](docs/fntech3/2026-10-11-profile-availability.md)).
+- Publish ordinary releases only: release tooling and package manifests explicitly
+  disable prerelease status while retaining runtime evidence requirements.
 - Resolve installation icon paths through Windows file handles before checking
   containment, preventing MinGW from accepting an external junction target
   ([record](docs/fntech3/2026-10-11-icon-containment.md)).

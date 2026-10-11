@@ -1,17 +1,17 @@
 option('q3-only',
   type: 'boolean',
   value: false,
-  description: 'Experimental Windows x86_64 Q3-only diagnostic build; rejects Quake Live and uses separate output names')
+  description: 'Legacy name for Windows x86_64 diagnostics; all profiles selectable, x86 native modules unavailable, separate output names')
 
 option('rtcw-development',
   type: 'boolean',
-  value: false,
-  description: 'Enable incomplete RTCW SP/MP profiles for isolated developer probes; not a compatibility claim')
+  value: true,
+  description: 'Deprecated compatibility option; all game profiles are always enabled, regardless of this value')
 
 option('q3-ihv-development',
   type: 'boolean',
-  value: false,
-  description: 'Enable IHV dedicated native-module probes; client and network integration remain gated')
+  value: true,
+  description: 'Deprecated compatibility option; all game profiles are always enabled, regardless of this value')
 
 option('build-client',
   type: 'boolean',
@@ -20,43 +20,43 @@ option('build-client',
 
 option('stvef-development',
   type: 'boolean',
-  value: false,
-  description: 'Enable incomplete Star Trek Voyager: Elite Force SP/Holomatch profiles for isolated developer probes; not a compatibility claim')
+  value: true,
+  description: 'Deprecated compatibility option; all game profiles are always enabled, regardless of this value')
 
 option('jka-development',
   type: 'boolean',
-  value: false,
-  description: 'Enable incomplete Star Wars Jedi Knight: Jedi Academy single-player/multiplayer profiles for isolated developer probes; not a compatibility claim')
+  value: true,
+  description: 'Deprecated compatibility option; all game profiles are always enabled, regardless of this value')
 
 option('jk2-development',
   type: 'boolean',
-  value: false,
-  description: 'Enable incomplete Star Wars Jedi Knight II: Jedi Outcast single-player/multiplayer profiles for isolated developer probes; not a compatibility claim')
+  value: true,
+  description: 'Deprecated compatibility option; all game profiles are always enabled, regardless of this value')
 
 option('alice-development',
   type: 'boolean',
-  value: false,
-  description: '''Enable the incomplete American McGee's Alice profile for isolated developer probes; not a compatibility claim''')
+  value: true,
+  description: 'Deprecated compatibility option; all game profiles are always enabled, regardless of this value')
 
 option('fakk2-development',
   type: 'boolean',
-  value: false,
-  description: 'Enable the incomplete Heavy Metal: F.A.K.K.2 profile for isolated developer probes; not a compatibility claim')
+  value: true,
+  description: 'Deprecated compatibility option; all game profiles are always enabled, regardless of this value')
 
 option('mohaa-development',
   type: 'boolean',
-  value: false,
-  description: 'Enable the incomplete Medal of Honor: Allied Assault profile for isolated developer probes; not a compatibility claim')
+  value: true,
+  description: 'Deprecated compatibility option; all game profiles are always enabled, regardless of this value')
 
 option('q3test-development',
   type: 'boolean',
-  value: false,
-  description: 'Enable the incomplete Quake III Q3Test 1.02-1.08 profile for isolated Windows x86 developer probes; not a compatibility claim')
+  value: true,
+  description: 'Deprecated compatibility option; all game profiles are always enabled, regardless of this value')
 
 option('wolfet-development',
   type: 'boolean',
-  value: false,
-  description: 'Enable Wolfenstein Enemy Territory client and server developer probes with real modules; release gates remain open')
+  value: true,
+  description: 'Deprecated compatibility option; all game profiles are always enabled, regardless of this value')
 
 option('build-server',
   type: 'boolean',

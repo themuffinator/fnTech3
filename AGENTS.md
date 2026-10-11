@@ -39,30 +39,18 @@ own protocol (35 to 40), map version (IBSP 44 or 45) and module tables, so the
 profile pins exactly one release at startup from the installation's own
 modules and pak, and never mixes two.
 
-Q3 and QL are enabled; RTCW remains experimental and gated in default builds,
-with `-Drtcw-development=true` enabling isolated development probes. ET is also
-gated; developer builds (`-Dwolfet-development=true`) run its client and server
-for isolated probes; release builds still refuse both. Elite Force is gated too;
-`-Dstvef-development=true` enables its isolated probes.
-IHV remains gated by default; `-Dq3-ihv-development=true` permits Windows x86
-dedicated native-game probes and a developer client that plays its demos
-and joins its original server through the original client game; its
-developer server takes the original client.
-Jedi Academy is gated too: `-Djka-development=true` enables its isolated
-probes, as `-Djk2-development=true` enables Jedi Outcast's. Both developer
-multiplayer servers load retail game modules through their own adapters.
-Academy's protocol-26 codec, client records and static rendering have source
-and unit evidence; live interoperability and complete client rendering remain
-open. Its SP API-8 bootstrap serves measured callbacks and refuses remaining
-ones by name; campaign, client admission and saves remain open. Outcast's own
-profile ledger describes its distinct protocol and partial client/SP boundaries.
-Alice is gated as well: developer builds (`-Dalice-development=true`) run its
-retail game and client modules, wire, demos, savegames, audio and renderers
-for isolated probes, while its compatibility gates remain open and default
-builds refuse it. F.A.K.K.2 is gated the same way by `-Dfakk2-development=true`,
-and Medal of Honor by `-Dmohaa-development=true`. Q3Test is gated too:
-`-Dq3test-development=true` runs its Windows x86 developer client and server
-with each release's retail modules.
+All sixteen profiles are accessible in every build, including release builds.
+Never gate a game behind a development flag or compatibility warning. Legacy
+`*-development` options are accepted as no-ops, including when set to false.
+Keep each profile's actual module ABI, installation and host-platform checks:
+availability does not establish complete compatibility or make Windows x86
+retail libraries loadable on other hosts. Describe incomplete support honestly
+in the launcher, player guides and compatibility ledger.
+
+Never mark a GitHub release as a prerelease. Create ordinary draft releases
+for review, then publish them as ordinary releases. Compatibility evidence and
+known limitations are recorded independently of the GitHub release status.
+
 The unified goal is not complete until all sixteen profiles pass their applicable
 module ABI, network, demo, filesystem, asset, renderer, audio/input, gameplay, and
 live-interoperability gates, including RTCW SP campaign/savegame behavior, in

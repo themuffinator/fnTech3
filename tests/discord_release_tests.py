@@ -430,7 +430,7 @@ class DiscordReleaseWorkflowTests(unittest.TestCase):
     def test_draft_release_workflow_does_not_announce_before_publication(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
         # Draft creation must not send public announcements before manual review.
-        self.assertIn("Create or repair draft prerelease", workflow)
+        self.assertIn("Create or repair draft release", workflow)
         self.assertNotIn("scripts/discord_release.py", workflow)
         self.assertNotIn("DISCORD_RELEASE_WEBHOOK", workflow)
         self.assertNotIn("https://discord.com/api/webhooks/", workflow)

@@ -159,8 +159,7 @@ static void Profile() {
 	// Protocol 40 still belongs to the three single players as well.
 	CHECK(Com_GameProfileAllowsProtocol(Com_GameProfileById(COM_GAME_STVEF_SP),40));
 	CHECK(!Com_GameProfileAllowsProtocol(Com_GameProfileById(COM_GAME_QUAKE3),40));
-	CHECK(!Com_GameManagerCanActivate(profile)); // Gated in ordinary builds.
-	CHECK(!Com_ActivateGameProfile(COM_GAME_Q3TEST));
+	CHECK(Com_GameManagerCanActivate(profile)); // Available in every build.
 	CHECK(!Com_Q3TestRelease() && !Com_Q3TestActivateRelease(Q3TEST_RELEASE_1_08)); // Only under the active profile.
 	CHECK(Com_GameManagerInstallationMatches(profile,COM_GAME_MARKER_Q3TEST));
 	CHECK(!Com_GameManagerInstallationMatches(profile,COM_GAME_MARKER_Q3TEST|COM_GAME_MARKER_QUAKE3));
@@ -183,6 +182,9 @@ static void Profile() {
 		if(other==profile) continue;
 		for(int version : {44,45}) CHECK(Com_GameManagerBspFormat(other,version)!=COM_GAME_BSP_Q3TEST);
 	}
+	CHECK(Com_ActivateGameProfile(COM_GAME_Q3TEST));
+	CHECK(Com_Q3TestActivateRelease(Q3TEST_RELEASE_1_08));
+	CHECK(!Com_Q3TestActivateRelease(Q3TEST_RELEASE_1_06));
 }
 int main(int argc,char **argv) {
 	const auto scratch=fs::current_path()/".tmp"/"q3test-identity-tests";

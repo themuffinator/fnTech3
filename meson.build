@@ -69,46 +69,7 @@ if darwin
 endif
 cpu_family = host_machine.cpu_family()
 q3_only = get_option('q3-only')
-rtcw_development = get_option('rtcw-development')
-wolfet_development = get_option('wolfet-development')
-stvef_development = get_option('stvef-development')
-jka_development = get_option('jka-development')
-jk2_development = get_option('jk2-development')
-alice_development = get_option('alice-development')
-fakk2_development = get_option('fakk2-development')
-mohaa_development = get_option('mohaa-development')
-q3_ihv_development = get_option('q3-ihv-development')
-q3test_development = get_option('q3test-development')
-if q3test_development and q3_only
-  error('Q3Test developer probes require the shared Windows x86 executable, not the Q3-only target.')
-endif
-if jka_development and q3_only
-  error('Jedi Academy developer probes require the shared x86 executable, not the Q3-only target.')
-endif
-if jk2_development and q3_only
-  error('Jedi Outcast developer probes require the shared x86 executable, not the Q3-only target.')
-endif
-if alice_development and q3_only
-  error('Alice developer probes require the shared x86 executable, not the Q3-only target.')
-endif
-if fakk2_development and q3_only
-  error('F.A.K.K.2 developer probes require the shared x86 executable, not the Q3-only target.')
-endif
-if mohaa_development and q3_only
-  error('Medal of Honor developer probes require the shared x86 executable, not the Q3-only target.')
-endif
-if q3_ihv_development and q3_only
-  error('IHV developer probes require the shared Windows x86 executable.')
-endif
-if wolfet_development and q3_only
-  error('WolfET developer probes require the shared executable.')
-endif
-if stvef_development and q3_only
-  error('Elite Force developer probes require the shared x86 executable, not the Q3-only target.')
-endif
-if rtcw_development and q3_only
-  error('RTCW developer probes require the shared x86 executable, not the Q3-only target.')
-endif
+# All game profiles are always available; legacy development options are no-ops.
 fnql_x86_target_probe = '''
 #if !defined(_M_IX86) && !defined(__i386__)
 #error FnQL requires an x86 target
@@ -128,7 +89,7 @@ int main(void) { return 0; }
   if not win32 or cpu_family != 'x86_64' or not cc.compiles(q3_x64_target_probe, name: 'Q3-only Windows x86_64 target')
     error('-Dq3-only=true is an experimental Windows x86_64 diagnostic target. Configure with a 64-bit Windows compiler; use the default shared Win32 build for Quake Live.')
   endif
-  warning('Q3-only diagnostic build: Quake Live is disabled. This build does not satisfy the shared Q3/QL release contract.')
+  warning('Windows x64 diagnostic build: all profiles are selectable, but x86 native modules cannot load. Use Win32 for retail game modules.')
 else
 if cpu_family != 'x86' or not fnql_target_is_32bit_x86
   error('fnTech3 shared Q3/QL builds support only 32-bit x86 targets; Meson configured host CPU family "' + cpu_family + '" or the compiler target probe failed. Select Win32 on Windows or use an i686 cross file on other platforms.')
@@ -1106,46 +1067,6 @@ if build_client and not renderer_dlopen
 endif
 
 engine_cpp_args = common_cpp_args
-if q3_ihv_development
-  warning('IHV developer build: isolated dedicated native-module probes only. Client and network integration remain gated.')
-  engine_cpp_args += ['-DFNTECH3_Q3_IHV_DEVELOPMENT=1']
-endif
-if wolfet_development
-  warning('WolfET developer build: the ET client and server run with real modules for isolated probes. Release compatibility gates remain open.')
-  engine_cpp_args += ['-DFNTECH3_WOLFET_DEVELOPMENT=1']
-endif
-if rtcw_development
-  warning('RTCW developer build: incomplete SP/MP adapters are enabled for isolated probes. Release compatibility gates remain open.')
-  engine_cpp_args += ['-DFNTECH3_RTCW_DEVELOPMENT=1']
-endif
-if stvef_development
-  warning('Elite Force developer build: incomplete SP/Holomatch adapters are enabled for isolated probes. Release compatibility gates remain open.')
-  engine_cpp_args += ['-DFNTECH3_STVEF_DEVELOPMENT=1']
-endif
-if jka_development
-  warning('Jedi Academy developer build: incomplete single-player/multiplayer adapters are enabled for isolated probes. Release compatibility gates remain open.')
-  engine_cpp_args += ['-DFNTECH3_JKA_DEVELOPMENT=1']
-endif
-if jk2_development
-  warning('Jedi Outcast developer build: incomplete single-player/multiplayer adapters are enabled for isolated probes. Release compatibility gates remain open.')
-  engine_cpp_args += ['-DFNTECH3_JK2_DEVELOPMENT=1']
-endif
-if alice_development
-  warning('Alice developer build: incomplete adapters are enabled for isolated probes. Release compatibility gates remain open.')
-  engine_cpp_args += ['-DFNTECH3_ALICE_DEVELOPMENT=1']
-endif
-if fakk2_development
-  warning('F.A.K.K.2 developer build: incomplete adapters are enabled for isolated probes. Release compatibility gates remain open.')
-  engine_cpp_args += ['-DFNTECH3_FAKK2_DEVELOPMENT=1']
-endif
-if mohaa_development
-  warning('Medal of Honor developer build: incomplete adapters are enabled for isolated probes. Release compatibility gates remain open.')
-  engine_cpp_args += ['-DFNTECH3_MOHAA_DEVELOPMENT=1']
-endif
-if q3test_development
-  warning('Q3Test developer build: incomplete 1.02-1.08 adapters are enabled for isolated Windows x86 probes. Release compatibility gates remain open.')
-  engine_cpp_args += ['-DFNTECH3_Q3TEST_DEVELOPMENT=1']
-endif
 
 client_c_args = common_c_args
 client_cpp_args = engine_cpp_args

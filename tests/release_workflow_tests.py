@@ -3,7 +3,10 @@ from __future__ import annotations
 import json
 import re
 import shutil
+import subprocess
+import sys
 import tempfile
+import textwrap
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
@@ -15,6 +18,20 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ReleaseWorkflowTests(unittest.TestCase):
+    def test_ci_refuses_legacy_prerelease_manifests_before_api_writes(self):
+        workflow_text = (ROOT / '.github/workflows/release.yml').read_text()
+        step = workflow_text.split('- name: Create or repair draft release', 1)[1]
+        guard = re.search(r"python - <<'PY'\n(.*?)\n          PY", step, re.S)
+        self.assertIsNotNone(guard)
+        self.assertLess(guard.end(), step.index('python scripts/release_workflow.py draft'))
+        manifest = self.root / '.install/release-manifest.json'
+        for value, allowed in ((False, True), (True, False), (None, False)):
+            with self.subTest(prerelease=value):
+                manifest.write_text(json.dumps({'prerelease': value}))
+                result = subprocess.run([sys.executable, '-c', textwrap.dedent(guard[1])],
+                                        cwd=self.root, capture_output=True, text=True)
+                self.assertEqual(result.returncode == 0, allowed, result.stderr)
+
     def setUp(self):
         scratch = ROOT / ".tmp" / "release-workflow-tests"
         scratch.mkdir(parents=True, exist_ok=True)
@@ -155,7 +172,7 @@ class ReleaseWorkflowTests(unittest.TestCase):
             path = packages / f"fntech3-0.1.0-{suffix}"
             path.write_bytes(f"fixture: {suffix}".encode())
             archives.append({"archive": path.name, "sha256": workflow.sha256(path)})
-        manifest = {"project": "fnTech3", "channel": "candidate", "prerelease": True,
+        manifest = {"project": "fnTech3", "channel": "candidate", "prerelease": False,
                     "release_tag": "v0.1.0", "version": "0.1.0", "source_commit": "a" * 40,
                     "build_date": "2026-09-01", "archives": archives}
         path = self.root / "release-manifest.json"
@@ -189,11 +206,11 @@ class ReleaseWorkflowTests(unittest.TestCase):
 
     def test_draft_validation_blocks_published_wrong_commit_and_unknown_assets(self):
         files = workflow.release_files(self.make_manifest(), self.info)
-        valid = {"draft": True, "prerelease": True, "tag_name": "v0.1.0",
+        valid = {"draft": True, "prerelease": False, "tag_name": "v0.1.0",
                  "target_commitish": "a" * 40, "assets": []}
         workflow.validate_draft(valid, self.info, files)
         for change in ({"draft": False}, {"target_commitish": "b" * 40},
-                       {"prerelease": False}, {"assets": [{"name": "unexpected.zip"}]}):
+                       {"prerelease": True}, {"assets": [{"name": "unexpected.zip"}]}):
             with self.subTest(change=change), self.assertRaises(ValueError):
                 workflow.validate_draft({**valid, **change}, self.info, files)
 
@@ -215,7 +232,7 @@ class ReleaseWorkflowTests(unittest.TestCase):
         files = workflow.release_files(path, self.info)
         note_path = self.root / "notes.md"
         note_path.write_text("Reviewed notes\n")
-        uploaded = {"draft": True, "prerelease": True, "tag_name": "v0.1.0",
+        uploaded = {"draft": True, "prerelease": False, "tag_name": "v0.1.0",
                     "target_commitish": "a" * 40, "html_url": "https://example.invalid/draft",
                     "assets": [{"name": p.name, "size": p.stat().st_size,
                                 "digest": "sha256:" + workflow.sha256(p)} for p in files]}
@@ -250,12 +267,13 @@ class ReleaseWorkflowTests(unittest.TestCase):
         create = next(call for call in self.draft_calls if call[:2] == ("release", "create"))
         self.assertIn("--verify-tag", create)
         self.assertIn("--draft", create)
-        self.assertIn("--prerelease", create)
+        self.assertIn("--prerelease=false", create)
+        self.assertNotIn("--prerelease", create)
         self.assertIn("a" * 40, create)
         self.assertEqual(sum(call[:2] == ("release", "upload") for call in self.draft_calls), 1)
 
     def test_retry_repairs_only_same_commit_draft(self):
-        existing = {"draft": True, "prerelease": True, "tag_name": "v0.1.0",
+        existing = {"draft": True, "prerelease": False, "tag_name": "v0.1.0",
                     "target_commitish": "a" * 40, "assets": []}
         self.exercise_draft(existing=existing)
         self.assertFalse(any(call[:2] == ("release", "create") for call in self.draft_calls))

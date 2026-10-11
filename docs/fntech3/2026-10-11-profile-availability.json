@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-11",
+  "scope": "game profile availability and ordinary release classification",
+  "profiles_available": 16,
+  "development_options": "accepted no-ops for both true and false",
+  "experimental_status": "informational",
+  "github_prerelease": false,
+  "regression": "tests/game_profile_availability_tests.py",
+  "configurations": [
+    "default",
+    "legacy-flags-off",
+    "legacy-flags-on",
+    "dedicated",
+    "legacy-diagnostic"
+  ],
+  "preserved": [
+    "profile immutability",
+    "catalogue identity",
+    "installation detection",
+    "module and protocol contracts",
+    "native host ABI restrictions",
+    "runtime evidence requirements"
+  ],
+  "compatibility_gates_changed": [],
+  "validation": {
+    "windows_release": {
+      "toolchain": "MSVC x86",
+      "legacy_development_options": "all false",
+      "targets": [
+        "client",
+        "dedicated server",
+        "launcher",
+        "GLx",
+        "Vulkan",
+        "RTX"
+      ]
+    },
+    "profile_matrix": {
+      "profiles": 16,
+      "configurations": 5,
+      "toolchains": [
+        "Clang/MSVC x86",
+        "MinGW GCC 16.2 x86",
+        "Linux x86"
+      ]
+    },
+    "windows_native_meson": {
+      "passed": 159,
+      "skipped": 1,
+      "skip_reason": "OpenAL loopback unavailable"
+    },
+    "runtime_smoke": {
+      "clients": [
+        "q3",
+        "ql",
+        "rtcw-sp",
+        "rtcw-mp"
+      ],
+      "servers": [
+        "q3",
+        "ql",
+        "rtcw-mp"
+      ],
+      "result": "passed",
+      "maps": [
+        "q3dm1",
+        "campgrounds",
+        "escape1",
+        "mp_beach"
+      ],
+      "client_sha256": "fe368cde265144ad36ab406ee0d73d5dedb0d4653738094753ac3c901d9a79dd",
+      "server_sha256": "6b5067ddd89cc71c1a84e92d7ae95fb6bcb82771a3b77a44f55190e73273d877",
+      "evidence": ".tmp/always-available-games/runtime-smoke/result.json",
+      "source_base_commit": "4ee2591c910cd513951cd3a5bd4ba5a656a5a015",
+      "source_was_dirty": true,
+      "limits": "windowed startup, engine screenshots and server queries; no input or full gameplay/interop proof"
+    }
+  }
+}

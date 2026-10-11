@@ -46,24 +46,18 @@ int main() {
     comGameMarkerInputs_t mixed{"auto",COM_GAME_MARKER_WOLFET | COM_GAME_MARKER_QUAKE3,0,0};
     assert(Com_DetectGameProfileMarkers(&mixed).status == COM_GAME_DETECTION_AMBIGUOUS);
     mixed.basePathMarkers = COM_GAME_MARKER_WOLFET;
-#if defined(FNTECH3_WOLFET_DEVELOPMENT) && !defined(FNTECH3_Q3_ONLY)
     assert(Com_DetectGameProfileMarkers(&mixed).profile == et);
     assert(Com_GameManagerCanActivate(et) && Com_ActivateGameProfile(COM_GAME_WOLFET));
     assert(Com_GameIsWolfET() && !Com_GameIsRTCW() && !Com_GameIsQuake3());
     assert(!Com_ActivateGameProfile(COM_GAME_QUAKE3));
     assert(Com_GameProfile() == et);
-#else
-    assert(!Com_DetectGameProfileMarkers(&mixed).profile && !Com_GameManagerCanActivate(et));
-    assert(!Com_ActivateGameProfile(COM_GAME_WOLFET));
-    assert(Com_ActivateGameProfile(COM_GAME_QUAKE3));
-    assert(!Com_ActivateGameProfile(COM_GAME_WOLFET));
-#endif
+
 }
 '''
 
 
 class WolfETTests(unittest.TestCase):
-    def test_immutable_profile_and_build_gates(self):
+    def test_immutable_profile_in_every_build(self):
         compiler = shutil.which('clang++') or shutil.which('g++')
         if not compiler: self.skipTest('C++17 compiler unavailable')
         scratch = ROOT/'.tmp/wolfet'; scratch.mkdir(parents=True,exist_ok=True)

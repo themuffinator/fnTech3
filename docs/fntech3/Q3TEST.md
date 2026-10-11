@@ -1,8 +1,8 @@
 # Quake III Q3Test 1.02 to 1.08
 
-**Q3Test support is not complete.** The `q3test` profile is gated by default;
-`-Dq3test-development=true` enables it in Windows x86 developer builds for
-isolated probes, and release builds refuse it. This ledger records what each
+**Q3Test support is not complete.** The `q3test` profile is available in every
+build; its retail modules require Windows x86. No development option is needed.
+This ledger records what each
 public Q3Test release's own engine and modules establish, what fnTech3
 implements of it, the runtime evidence and the gates still open.
 
