@@ -41,7 +41,7 @@ static char *Hunk(int size,int) {
     assert(size>0);auto p=new char[size]();hunks.push_back(p);return p;
 }
 static void *Allocate(int size) { assert(size>0);++allocations;return new char[size]; }
-static char *Q_stradd(char *out,const char *in) { std::strcpy(out,in);return out+std::strlen(in); }
+char *Q_stradd(char *out,const char *in) { std::strcpy(out,in);return out+std::strlen(in); }
 static bool GL_ProgramAvailable() { return extended; }
 static unsigned int generateHashValue(const char *name,unsigned int count) {
     unsigned int value=0;for(;*name;++name)value=value*33+static_cast<unsigned char>(*name);

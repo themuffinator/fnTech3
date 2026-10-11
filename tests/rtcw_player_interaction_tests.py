@@ -179,7 +179,7 @@ int main() {
 
 
 class RTCWPlayerInteractionTests(unittest.TestCase):
-    def compile_and_run(self, source):
+    def compile_and_run(self, source, extra_flags=()):
         compiler = shutil.which('clang++') or shutil.which('g++')
         if not compiler:
             self.skipTest('C++17 compiler required')
@@ -192,7 +192,7 @@ class RTCWPlayerInteractionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='rtcw-interaction-', dir=ROOT / '.tmp') as temp:
             cpp, exe = Path(temp) / 'probe.cpp', Path(temp) / 'probe.exe'
             cpp.write_text(source, encoding='utf-8')
-            built = subprocess.run([compiler, *target, '-std=c++17', '-fno-operator-names', '-O2', '-I', str(ROOT), str(cpp), '-o', str(exe)],
+            built = subprocess.run([compiler, *target, *extra_flags, '-std=c++17', '-fno-operator-names', '-O2', '-I', str(ROOT), str(cpp), '-o', str(exe)],
                                    cwd=ROOT, capture_output=True, text=True, timeout=60)
             self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
             run = subprocess.run([str(exe)], cwd=ROOT, capture_output=True, text=True, timeout=20)

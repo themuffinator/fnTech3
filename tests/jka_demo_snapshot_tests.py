@@ -16,6 +16,7 @@ extern "C" {
 #include "qcommon.h"
 }
 #include <array>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>

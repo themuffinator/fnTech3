@@ -29,7 +29,7 @@ void QDECL Com_Error(errorParm_t, const char *format, ...) {
 	Test_RaiseExpectedMessageDrop(); std::abort();
 }
 void QDECL Com_Printf(const char *, ...) {}
-#if defined(_WIN32) && !defined(__MINGW32__)
+#ifndef Q_vsnprintf
 int Q_vsnprintf(char *buffer, size_t size, const char *format, va_list args) { return std::vsnprintf(buffer,size,format,args); }
 #endif
 int Sys_Milliseconds() { return 5678; }

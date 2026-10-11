@@ -30,6 +30,7 @@ def fixture():
 #include <string>
 #include <cassert>
 #include <csetjmp>
+#include <cstring>
 static void CL_JKACgameClear();
 struct Drop{};static bool recover,jumpRecovery;static std::jmp_buf recoveryPoint;
 void QDECL Com_Error(errorParm_t,const char *,...){

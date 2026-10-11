@@ -54,7 +54,7 @@ const char *Info_ValueForKey(const char *text,const char *key){
  }
  return out;
 }
-#if defined(_WIN32) && !defined(__MINGW32__)
+#ifndef Q_vsnprintf
 int Q_vsnprintf(char *out,size_t count,const char *format,va_list args){return vsnprintf(out,count,format,args);}
 #endif
 const vec3_t vec3_origin{};

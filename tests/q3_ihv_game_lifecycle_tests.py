@@ -135,7 +135,7 @@ int main(){
 #include <vector>
 #define CHECK(x) do{if(!(x)){std::fprintf(stderr,"%d: %s\n",__LINE__,#x);return 1;}}while(0)
 server_t sv{};int cvar_modifiedFlags;
-static comGameId_t profile;static int infoCalls,index;static std::string value;
+static comGameId_t profile;static int infoCalls,configIndex;static std::string value;
 static std::vector<std::pair<int,std::string>> sets;
 int Com_GameIsQuake3IHV(){return profile==COM_GAME_QUAKE3_IHV;}
 int Com_GameIsQ3Test(){return profile==COM_GAME_Q3TEST;}
@@ -144,7 +144,7 @@ const char *SV_Q3TestServerinfo(){return "q3test serverinfo";}
 const char *Cvar_InfoString_Big(int flag,qboolean *truncated){if(flag!=CVAR_SYSTEMINFO||truncated)std::abort();++infoCalls;return "retail info";}
 const char *Cvar_VariableString(const char *name){if(std::string(name)!="sv_mapChecksum")std::abort();return "-99";}
 const char *QDECL va(const char *format,...){static char text[1024];va_list args;va_start(args,format);vsnprintf(text,sizeof text,format,args);va_end(args);return text;}
-void SV_SetConfigstring(int i,const char *text){index=i;value=text;sets.emplace_back(i,text);}
+void SV_SetConfigstring(int i,const char *text){configIndex=i;value=text;sets.emplace_back(i,text);}
 ''' + function(source, 'void SV_UpdateSysteminfoConfigstring(') + r'''
 int main(){
  sv.serverId=-7;
@@ -158,7 +158,7 @@ int main(){
    CHECK(sets[1].first==0&&sets[1].second=="q3test serverinfo");
    continue;
   }
-  CHECK(index==1&&sets.size()==1);
+  CHECK(configIndex==1&&sets.size()==1);
   CHECK(id==COM_GAME_QUAKE3_IHV?(infoCalls==0&&value=="\\serverid\\-7\\mapChecksum\\-99"):(infoCalls==1&&value=="retail info"));
  }
 }

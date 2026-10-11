@@ -2,6 +2,8 @@
 
 Native module storage and BSP queries are separate gates; these stubs do not
 establish either one. Geometry vectors are pinned to original IHV observations.
+The digest uses float-width arithmetic, so the host explicitly uses SSE rather
+than Linux i686's default extended-precision x87 intermediates.
 """
 from pathlib import Path
 import os
@@ -172,7 +174,7 @@ int main(){
             folder=Path(folder);cpp=folder/'probe.cpp';exe=folder/'probe.exe';cpp.write_text(source,encoding='utf-8')
             target=compiler_target_args(compiler)
             if os.name=='nt' and not target: target=['-DFNTECH3_Q3_ONLY']
-            result=subprocess.run([compiler,*target,'-std=c++17','-O2','-ffast-math','-I',str(ROOT),str(cpp),
+            result=subprocess.run([compiler,*target,'-msse2','-mfpmath=sse','-std=c++17','-O2','-ffast-math','-I',str(ROOT),str(cpp),
                                    str(ROOT/'code/server/server_game_data.cpp'),'-x','c++',
                                    str(ROOT/'code/compat/game_abi_adapter.c'),'-o',str(exe)],
                                   cwd=ROOT,capture_output=True,text=True,timeout=60)
@@ -191,7 +193,7 @@ int main(){
             folder = Path(folder); cpp = folder/'probe.cpp'; exe = folder/'probe.exe'; cpp.write_text(source)
             target = compiler_target_args(compiler)
             if os.name == 'nt' and not target: target = ['-DFNTECH3_Q3_ONLY']
-            result = subprocess.run([compiler,*target,'-std=c++17','-O2','-ffast-math','-I',str(ROOT),str(cpp),'-o',str(exe)],
+            result = subprocess.run([compiler,*target,'-msse2','-mfpmath=sse','-std=c++17','-O2','-ffast-math','-I',str(ROOT),str(cpp),'-o',str(exe)],
                                     cwd=ROOT,capture_output=True,text=True,timeout=60)
             self.assertEqual(result.returncode,0,result.stdout+result.stderr)
             result = subprocess.run([str(exe)],cwd=ROOT,capture_output=True,text=True,timeout=20)

@@ -39,6 +39,7 @@ static std::vector<std::pair<const std::string *,std::size_t>> packagedHandles;'
 #include "code/ui/ui_public.h"
 #include "code/compat/jk2_client_abi.h"
 #include <limits>
+#include <cstdint>
 static vm_t *uivm;
 static botlib_export_t *botlib_export;
 static int timeCalls;

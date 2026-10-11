@@ -116,7 +116,9 @@ static void CheckPosing(){
    // own root basis.
    double p1[3];Skin(parent.deformation[0],BodyTag[1],p1);
    for(int r=0;r<3;++r)assert(std::fabs(bodyTag[r*4+3]-p1[r])<.00002);
-   const pose::Matrix basis=pose::RootBasis;assert(Near(root,basis.data(),0));
+   // Quaternion reconstruction on x87 with fast math leaves ~1.5e-8 in
+   // nominally zero cells; compare the frame at float precision.
+   const pose::Matrix basis=pose::RootBasis;assert(Near(root,basis.data(),1e-7f));
    std::vector<int> order;std::vector<pose::Palette> palettes;int failed=0;
    assert(owner->InstancePalettes(instance,0,order,palettes,failed)==Posing::Unserved);
    assert(owner->LinkedPalette(instance,1,0,parent)==Posing::Unserved);

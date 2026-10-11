@@ -563,7 +563,7 @@ def build_host(folder, name, checks=NO_CHECKS, shader_source=None, renderer='ren
     if os.name == 'nt':
         command += ['-fuse-ld=lld', '-Wl,/force:unresolved']
     else:
-        command += ['-Wl,--unresolved-symbols=ignore-all', '-lm']
+        command += ['-fno-pie', '-no-pie', '-Wl,--unresolved-symbols=ignore-all', '-lm']
     built = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, timeout=180)
     if built.returncode != 0:
         raise AssertionError(built.stdout + built.stderr)
@@ -741,7 +741,7 @@ class AliceShaderParseTests(unittest.TestCase):
             cpp = Path(temp) / 'backend.cpp'
             exe = Path(temp) / 'backend.exe'
             cpp.write_text(backend_source(), encoding='utf-8')
-            built = subprocess.run([compiler, *target, '-std=c++17', '-O1', '-D_USE_MATH_DEFINES', '-I', str(ROOT),
+            built = subprocess.run([compiler, *target, '-std=c++17', '-fno-operator-names', '-O1', '-D_USE_MATH_DEFINES', '-I', str(ROOT),
                                     str(cpp), '-o', str(exe)], cwd=ROOT, capture_output=True, text=True, timeout=120)
             self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
             options = {'creationflags': subprocess.CREATE_NO_WINDOW} if os.name == 'nt' else {}

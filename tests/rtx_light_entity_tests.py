@@ -479,7 +479,10 @@ int main( void ) {
         floatint_t cdf, pdf;
         cdf.u = s_rtLights.cells[(cells+l)*2];
         pdf.u = s_rtLights.cells[(cells+l)*2+1];
-        if ( !( cdf.f > previous ) || pdf.f != cdf.f-previous ) return 7;
+        /* Compare the stored float PDF with a float-width subtraction,
+           including when the host keeps x87 intermediates in registers. */
+        volatile float expectedPdf = cdf.f-previous;
+        if ( !( cdf.f > previous ) || pdf.f != expectedPdf ) return 7;
         previous = cdf.f;
     }
     if ( previous != 1.0f || s_rtLights.overflowCells == 0 || s_rtLights.overflowEntries == 0 ||

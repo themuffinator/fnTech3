@@ -23,6 +23,7 @@ def function(source, signature):
 
 HARNESS = r'''
 #include <assert.h>
+#include <float.h>
 #include <stdio.h>
 #include <string.h>
 #include "code/qcommon/profile_frame_time.h"
@@ -116,8 +117,10 @@ int main( void ) {
         {COM_GAME_JK2_SP,     16,1,6, 1,1,16, 500,500, 500,1},
         {COM_GAME_JK2_MP,     16,1,6,-3,0,0, 5000,200,5000,0},
         {COM_GAME_ALICE,      16,1,6, 1,1,16,5000,200,5000,0},
-        {COM_GAME_FAKK2,       0,-16,7,-3,0,0,5000,200,5000,0},
-        {COM_GAME_MOHAA,       0,-16,7,-3,0,0,5000,200,5000,0},
+        /* These two encrypted engines have no measured frame contract.
+           Their unchanged legacy float expression retains host precision. */
+        {COM_GAME_FAKK2,       0,-16,FLT_EVAL_METHOD == 2 ? 6 : 7,-3,0,0,5000,200,5000,0},
+        {COM_GAME_MOHAA,       0,-16,FLT_EVAL_METHOD == 2 ? 6 : 7,-3,0,0,5000,200,5000,0},
         {COM_GAME_Q3TEST,     16,1,6, 1,1,16, 200,200, 200,0},
     };
     unsigned row;

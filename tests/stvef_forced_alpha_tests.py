@@ -185,7 +185,8 @@ class STVEFForcedAlphaTests(unittest.TestCase):
                 self.assertIn('RB_STVEFSetVertexAlpha( tess.svars.colors[0], tess.numVertexes, forcedAlpha );', generic)
                 self.assertIn('tess_flags |= TESS_RGBA0;', generic)
                 self.assertIn('pipeline = forcedPipeline;', generic)
-                self.assertIn('if ( pStage->depthFragment && !forced ) {', generic)
+                depth_only = ' && !tess.rtDepthOnly' if renderer == 'rendererrtx' else ''
+                self.assertIn(f'if ( pStage->depthFragment && !forced{depth_only} ) {{', generic)
 
 
 if __name__ == '__main__':

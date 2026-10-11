@@ -45,7 +45,7 @@ static qboolean ParseVector(const char **text,int count,float *out){
  for(int i=0;i<count;++i)if(!R_Q3IHVShaderFloat(text,out+i))return qfalse;
  return !strcmp(COM_ParseExt(text,qfalse),")")?qtrue:qfalse;
 }
-static float Q_atof(const char *value){return std::strtof(value,nullptr);}
+float Q_atof(const char *value){return std::strtof(value,nullptr);}
 '''
 
 CHECKS = r'''
@@ -304,7 +304,7 @@ class Q3IHVFogTests(unittest.TestCase):
                     cpp = Path(temp) / (renderer + '.cpp')
                     exe = cpp.with_suffix('.exe' if os.name == 'nt' else '.bin')
                     cpp.write_text(make_fixture(renderer))
-                    build = subprocess.run([compiler, *flags, '-std=c++17', '-O2', '-ffast-math', '-I', str(ROOT), str(cpp), '-o', str(exe)],
+                    build = subprocess.run([compiler, *flags, '-std=c++17', '-fno-operator-names', '-O2', '-ffast-math', '-I', str(ROOT), str(cpp), '-o', str(exe)],
                                            cwd=ROOT, capture_output=True, text=True, timeout=60)
                     self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
                     run = subprocess.run([str(exe)], cwd=ROOT, capture_output=True, text=True, timeout=30)

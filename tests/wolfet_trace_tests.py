@@ -13,12 +13,13 @@ HOST = r'''
 #include "code/qcommon/game_profile.h"
 #include "code/compat/q3_ihv_collision.hpp"
 #include <cassert>
+#include <cstdlib>
 #include <initializer_list>
 const vec3_t vec3_origin{};
 static comGameId_t profile;
 const comGameProfile_t *Com_GameProfile(){static comGameProfile_t selected{};selected.id=profile;return &selected;}
 int Com_GameIsWolfET(){return profile==COM_GAME_WOLFET;}
-static void Com_Error(errorParm_t,const char *,...){assert(false);}
+void QDECL Com_Error(errorParm_t,const char *,...){assert(false);std::abort();}
 static bool SV_AsBool(qboolean b){return b!=qfalse;}
 struct moveclip_t {
  trace_t trace{};int contentmask,passEntityNum;const float *start,*mins,*maxs;

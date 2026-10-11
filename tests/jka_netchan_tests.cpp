@@ -38,7 +38,7 @@ short BigShort(short value) { const auto word = static_cast<unsigned short>(valu
 const char *QDECL va(const char *, ...) { return ""; }
 void Q_strncpyz(char *to, const char *from, int size) { std::snprintf(to, size, "%s", from); }
 int Q_CountChar(const char *text, char value) { int n = 0; for (; *text; ++text) n += *text == value; return n; }
-#if defined(_MSC_VER)
+#ifndef Q_vsnprintf
 int Q_vsnprintf(char *str, size_t size, const char *format, va_list ap) { return std::vsnprintf(str, size, format, ap); }
 #endif
 }

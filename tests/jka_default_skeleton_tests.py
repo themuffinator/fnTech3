@@ -16,6 +16,11 @@ def fixture():
     assert prefix.count('view.numBones==3')==1 and prefix.count('count==3')==1
     prefix=prefix.replace('view.numBones==3','view.numBones==1').replace('count==3','count==1')
     return prefix+r'''
+// x87 fast-math quaternion reconstruction can leave ~1.5e-8 in zero cells.
+static bool NearMatrix(const float *actual,const pose::Matrix &expected){
+ for(int n=0;n<12;++n)if(std::fabs(actual[n]-expected[n])>1e-7f)return false;
+ return true;
+}
 static Bytes OwnDefaultMesh(){
  auto bytes=Mesh("*default",1);model::Mesh parsed;model::MeshSurface surface;
  assert(model::ParseMesh(bytes.data(),bytes.size(),1,parsed)==model::Error::None);
@@ -40,12 +45,13 @@ int main(){
  assert(files.asked==std::set<std::string>{"models/own/static.glm"});
  pose::Palette palette;assert(enabled.DeformationPalette(*owned,0,palette));
  const pose::Matrix basis{0,-1,0,0,1,0,0,0,0,0,1,0};
- assert(palette.deformation==std::vector<pose::Matrix>{basis}&&palette.bones==std::vector<pose::Matrix>{basis});
+ assert(palette.deformation.size()==1&&palette.bones.size()==1);
+ assert(NearMatrix(palette.deformation[0].data(),basis)&&NearMatrix(palette.bones[0].data(),basis));
  std::vector<float> boneMatrices;assert(enabled.BoneMatrices(*owned,INT_MAX,boneMatrices));
- assert(boneMatrices==std::vector<float>(basis.begin(),basis.end()));
+ assert(boneMatrices.size()==12&&NearMatrix(boneMatrices.data(),basis));
  const auto bolt=enabled.AddBolt(enabledID,0,"ModView internal default");assert(bolt>=0);
  float output[12];assert(enabled.BoltMatrix(enabledID,0,bolt,123,output));
- for(int n=0;n<12;++n)assert(output[n]==basis[n]);
+ assert(NearMatrix(output,basis));
  void *duplicate=nullptr;assert(enabled.Duplicate(enabledID,&duplicate));
  assert(enabled.Release(enabledID)&&enabled.DeformationPalette(*enabled.Resolve(duplicate)->At(0),100,palette));
  // A one-bone engine skeleton cannot authorize a contradictory GLM header.
@@ -64,10 +70,12 @@ int main(){
  assert(draws==1&&registrations==1&&renders==1&&submitted.size()==1);
  fnMdrView_t mdr;assert(FnMdr_Open(imported.data(),imported.size(),2000,4000,&mdr)&&mdr.numBones==1);
  float actual[3][4];assert(FnMdr_Bone(&mdr,0,0,actual));
- for(int n=0;n<12;++n)assert(actual[n/4][n%4]==basis[n]);
+ assert(NearMatrix(&actual[0][0],basis));
  ClearScene();jkaCgameBoneClocks.BeginFrame(200,false);Queue(record);Render(view);
- assert(draws==2&&registrations==1&&updates==1&&matrices==std::vector<float>(basis.begin(),basis.end()));
- assert(capturedMins==(std::array<float,3>{-7,2,5})&&capturedMaxs==(std::array<float,3>{3,4,9}));
+ assert(draws==2&&registrations==1&&updates==1&&matrices.size()==12&&NearMatrix(matrices.data(),basis));
+ const float expectedMins[]{-7,2,5},expectedMaxs[]{3,4,9};
+ for(int n=0;n<3;++n){assert(std::fabs(capturedMins[n]-expectedMins[n])<2e-6f);
+  assert(std::fabs(capturedMaxs[n]-expectedMaxs[n])<2e-6f);}
  assert(hudAdjusts==2&&liquidUpdates==2&&underwaterUpdates==2&&highlightFlushes==2);
  ClearScene();const int before=draws;std::uint32_t badSlot=0xa5a5a5a5;
  init[1]=reinterpret_cast<intptr_t>(&badSlot);init[2]=reinterpret_cast<intptr_t>("models/own/bad.glm");

@@ -102,7 +102,10 @@ int main(){
  }
 }
 '''
-        self.compile_and_run(source, routing.RTCWRoutingTests.extra(), ['-O2', '-ffast-math'])
+        # The legacy non-ET comparison values were captured with float-width
+        # intermediates. Do not substitute Linux i686's default x87 mode.
+        self.compile_and_run(source, routing.RTCWRoutingTests.extra(),
+                             ['-O2', '-ffast-math', '-msse2', '-mfpmath=sse'])
 
     def test_invalid_coordinates_area_bounds_and_partial_world(self):
         source = routing.routing_source() + r'''

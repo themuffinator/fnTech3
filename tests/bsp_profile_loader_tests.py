@@ -207,7 +207,7 @@ static void CM_Q3TestCurveRules() { ++q3testCurveRules; }
 /* The renderers rebuild a world with terrain, static models or decals into
    a new buffer, which replaces the translation; one with none keeps it. The
    map's own name finds its decal file. */
-struct mohaaBuiltSurfaces_t { int firstTerrain, numTerrain, firstDecal, numDecals; };
+struct mohaaBuiltSurfaces_t { int firstTerrain, numTerrain, firstDecal, numDecals, firstBuiltSurface, numBuiltSurfaces; };
 static qboolean R_MOHAABuildWorld(const mohaa_translation_t *translation, const char *mapName, void **data,
         int *length, mohaaBuiltSurfaces_t *built) {
     *data = nullptr; *length = 0; *built = {};
@@ -283,7 +283,8 @@ static struct {
     decltype(&Com_AliceLoadingStage) AliceLoadingStage;
 } ri{Com_Error, Print, FS_ReadFile, FS_FreeFile, Allocate, Z_Free, HunkAlloc, Format};
 static struct World { char name[MAX_QPATH], baseName[MAX_QPATH]; int dataSize; float lightGridSize[3];
-    int mohaaFirstDecal, mohaaNumDecals, mohaaFirstTerrain, mohaaNumTerrain; } s_worldData;
+    int mohaaFirstDecal, mohaaNumDecals, mohaaFirstTerrain, mohaaNumTerrain;
+    int mohaaFirstBuiltSurface, mohaaNumBuiltSurfaces; } s_worldData;
 static struct { qboolean worldMapLoaded, mapLoading; World *world;
     fnRTCWWorldShader_t rtcwWorld; void *sunShader; } tr;
 constexpr int LIGHTMAP_NONE = -1;

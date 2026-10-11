@@ -251,6 +251,7 @@ class RtxTransportTests(unittest.TestCase):
 #include <cstdint>
 #include <cstdio>
 #include <initializer_list>
+#undef M_PI // Use the extracted engine constant, not the host math.h macro.
 typedef unsigned uint;
 using std::exp;
 using std::floor;

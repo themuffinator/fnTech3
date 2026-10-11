@@ -57,6 +57,7 @@ int main(){
                      text.index('\t// get the developer cvar', start)]
         source = r'''
 #include <cassert>
+#include <cstddef>
 static int selected, requested, phases;
 static bool cvars, zone, commands;
 static void Com_InitSmallZoneMemory(){assert(!phases);++phases;}

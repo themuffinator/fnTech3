@@ -121,7 +121,8 @@ int main(){
 
 class Q3IHVModelLightingTests(unittest.TestCase):
     def test_original_numeric_surface_and_tree_digests(self):
-        compile_tests.RTCWPlayerInteractionTests.compile_and_run(self, NUMERIC)
+        # The digest records float-width arithmetic, not x87 intermediates.
+        compile_tests.RTCWPlayerInteractionTests.compile_and_run(self, NUMERIC, ['-msse2', '-mfpmath=sse'])
 
     def test_actual_entity_and_diffuse_paths_in_every_renderer(self):
         for renderer in RENDERERS:

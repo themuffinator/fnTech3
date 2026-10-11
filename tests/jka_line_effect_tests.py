@@ -16,6 +16,8 @@ KERNEL = r'''
 #include <cassert>
 #include <iostream>
 #include <iterator>
+#include <limits>
+#include <cstring>
 namespace effect=fntech3::jka::effects;
 namespace play=fntech3::jka::effectplay;
 static bool Compile(const std::string &text,play::Spec &spec){
@@ -38,7 +40,14 @@ int main(int argc,char**){
   return 0;
  }
  play::Spec spec;assert(Compile(head+"size\n{\nstart 9\nend 5\nparm 8\nflags wave\n}\n}\n",spec));
- play::Axis axis;assert(play::Basis({1,0,0},axis));std::uint32_t random=5;play::Spawn spawn;
+ play::Axis axis;assert(!play::Basis({0,0,0},axis));
+ float invalidComponent;std::uint32_t invalidBits=0x7f800000u;std::memcpy(&invalidComponent,&invalidBits,4);
+ assert(!play::Basis({invalidComponent,0,0},axis));
+ invalidBits=0x7fc00001u;std::memcpy(&invalidComponent,&invalidBits,4);
+ assert(!play::Basis({invalidComponent,0,0},axis));
+ const float largest=std::numeric_limits<float>::max();
+ assert(play::Basis({largest,largest,largest},axis));
+ assert(play::Basis({1,0,0},axis));std::uint32_t random=5;play::Spawn spawn;
  assert(play::Instantiate(spec,{10,20,30},axis,random,spawn));
  assert((spawn.origin==play::Vector{13,24,35}));
  // Explicit origin2 is relative to the placement, not the offset start.

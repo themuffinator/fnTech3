@@ -82,9 +82,11 @@ void QDECL Com_Error( errorParm_t, const char *fmt, ... ) {
 void QDECL Com_Printf( const char *fmt, ... ) {
 	va_list ap; va_start( ap, fmt ); std::vfprintf( stderr, fmt, ap ); va_end( ap );
 }
+#ifndef Q_vsnprintf
 int Q_vsnprintf( char *str, size_t size, const char *format, va_list ap ) {
 	return std::vsnprintf( str, size, format, ap );
 }
+#endif
 void Q_strcat( char *dest, int size, const char *src ) {
 	const size_t used = std::strlen( dest );
 	if ( used + 1 < (size_t)size ) Q_strncpyz( dest + used, src, size - (int)used );

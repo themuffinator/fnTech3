@@ -138,7 +138,9 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
 inline bool Basis(const Vector &forward,Axis &axis) noexcept {
     if(!Finite(forward))return false;
     double squared=0;for(float value:forward)squared+=double(value)*value;
-    if(squared<1e-12||!std::isfinite(squared))return false;
+    // Three squared finite floats fit in double, even at FLT_MAX. The bitwise
+    // Finite check above also remains valid when the compiler uses fast math.
+    if(squared<1e-12)return false;
     const double length=std::sqrt(squared);
     for(int n=0;n<3;++n)axis[0][n]=static_cast<float>(forward[n]/length);
     int least=0;for(int n=1;n<3;++n)if(std::fabs(axis[0][n])<std::fabs(axis[0][least]))least=n;

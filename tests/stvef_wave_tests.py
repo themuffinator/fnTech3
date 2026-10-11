@@ -94,7 +94,9 @@ int main(void) {
                     assert(fabsf(dst[3]-dst[2])<0.000001f);
                 } else if(profile==COM_GAME_STVEF_SP || profile==COM_GAME_STVEF_MP) {
                     assert(noiseCalls==1&&!tableCalls);
-                    assert(coordinate==(cases[i].clock+(double)cases[i].phase)*(double)cases[i].frequency);
+                    /* Compare stored doubles, not an extended x87 temporary. */
+                    volatile double expectedCoordinate=(cases[i].clock+(double)cases[i].phase)*(double)cases[i].frequency;
+                    assert(coordinate==expectedCoordinate);
                 } else {
                     assert(!noiseCalls&&tableCalls==1); // Keep existing refusal/table path.
                 }

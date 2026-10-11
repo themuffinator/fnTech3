@@ -2353,7 +2353,11 @@ _None yet._
 
 - Repair release validation across platforms: the Make FreeType probe parses
   correctly, Linux source tests install their 32-bit compiler dependencies,
-  and native fixtures compile with GCC and tolerate Windows short paths.
+  and Linux packages include the zlib and FreeType development dependencies.
+  Native fixtures compile with GCC, Clang and MinGW, tolerate Windows short
+  paths, and account for x87 intermediate precision without changing their
+  recorded numeric expectations. Allow the complete source suite to finish
+  within the release job's time limit.
   Large release histories retain their complete packaged changelog while
   GitHub notes show highlights, limitations and working documentation links.
 

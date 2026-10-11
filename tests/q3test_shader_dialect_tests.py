@@ -25,7 +25,7 @@ int Q_stricmp(const char *a, const char *b) {
     while (*a && *b && std::tolower((unsigned char)*a) == std::tolower((unsigned char)*b)) { ++a; ++b; }
     return std::tolower((unsigned char)*a) - std::tolower((unsigned char)*b);
 }
-static float Q_atof(const char *s) { return float(std::atof(s)); }
+float Q_atof(const char *s) { return float(std::atof(s)); }
 struct shader_t { char name[MAX_QPATH]; fogParms_t fogParms; int contentFlags; int surfaceFlags; qboolean isSky; };
 static shader_t shader;
 #include "code/renderercommon/tr_q3test_shader_dialect.h"
