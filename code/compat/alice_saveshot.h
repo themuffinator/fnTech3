@@ -2,6 +2,8 @@
 #ifndef FNTECH3_COMPAT_ALICE_SAVESHOT_H
 #define FNTECH3_COMPAT_ALICE_SAVESHOT_H
 
+#include <stddef.h>
+
 /*
  * American McGee's Alice's saveshot: the picture its savegames keep, made
  * from the frame the engine has just drawn. Retail alice.exe's renderer does

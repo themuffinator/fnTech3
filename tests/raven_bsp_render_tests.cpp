@@ -84,7 +84,7 @@ static std::set<void *> hunk;
 static byte *Hunk(int size,int) { auto *p=static_cast<byte *>(std::malloc(static_cast<size_t>(size))); CHECK(p); hunk.insert(p); return p; }
 static void ReleaseFile(void *p) { ++fileReleases; std::free(p); }
 static void RaiseError(const char *message) { throw std::runtime_error(message); }
-static void Error(errorParm_t,const char *format,...) {
+static void EngineError(errorParm_t,const char *format,...) {
     char message[512]; va_list args; va_start(args,format); std::vsnprintf(message,sizeof(message),format,args); va_end(args);
     void (*volatile raise)(const char *)=RaiseError; raise(message);
 }
@@ -93,7 +93,7 @@ static void R_ColorShiftLightingBytes(byte *in,byte *out,qboolean flag) {
     for(int c=0;c<3;++c) out[c]=static_cast<byte>(in[c]+1);
 }
 static struct { decltype(&Allocate) Malloc; decltype(&ReleaseFile) FS_FreeFile;
-    decltype(&Hunk) Hunk_Alloc; decltype(&Error) Error; } ri{Allocate,ReleaseFile,Hunk,Error};
+    decltype(&Hunk) Hunk_Alloc; decltype(&EngineError) Error; } ri{Allocate,ReleaseFile,Hunk,EngineError};
 #include "../code/renderercommon/tr_raven_bsp_load.h"
 
 static void CheckFailure(const Bytes &file,const char *reason=nullptr) {

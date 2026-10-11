@@ -804,7 +804,7 @@ ifeq ($(BUILD_CLIENT),1)
     ifeq ($(origin USE_FREETYPE),undefined)
       ifeq ($(FNQL_REQUIRE_BUILD_INPUTS),1)
         FREETYPE_PROBE = $(BUILD_DIR)/freetype-probe$(BINEXT)
-        USE_FREETYPE := $(shell $(MKDIR) $(BUILD_DIR) && printf '#include <ft2build.h>\n#include FT_FREETYPE_H\nint main(void) { FT_Library library; return FT_Init_FreeType(&library); }\n' | $(CC) $(FNQL_REQUIRED_ARCH_CFLAGS) $(FREETYPE_CFLAGS) -x c - -x none -o $(FREETYPE_PROBE) $(FNQL_REQUIRED_ARCH_LDFLAGS) $(FREETYPE_LIBS) >/dev/null 2>&1 && echo 1 || echo 0; rm -f $(FREETYPE_PROBE))
+        USE_FREETYPE := $(shell $(MKDIR) $(BUILD_DIR) && printf '\043include <ft2build.h>\n\043include FT_FREETYPE_H\nint main(void) { FT_Library library; return FT_Init_FreeType(&library); }\n' | $(CC) $(FNQL_REQUIRED_ARCH_CFLAGS) $(FREETYPE_CFLAGS) -x c - -x none -o $(FREETYPE_PROBE) $(FNQL_REQUIRED_ARCH_LDFLAGS) $(FREETYPE_LIBS) >/dev/null 2>&1 && echo 1 || echo 0; rm -f $(FREETYPE_PROBE))
         export USE_FREETYPE
       endif
     endif

@@ -10,6 +10,10 @@ historical upstream records, not fnTech3 release history. See the
 
 ## [Unreleased]
 
+_None yet._
+
+## [0.1.0] - 2026-10-11
+
 ### Highlights
 
 - Restore Medal of Honor's terrain and static map scenery in RTX path
@@ -2346,6 +2350,12 @@ historical upstream records, not fnTech3 release history. See the
   ([record](docs/fntech3/2026-10-09-q3test-facet-windings.md)).
 
 ### Builds and Packaging
+
+- Repair release validation across platforms: the Make FreeType probe parses
+  correctly, Linux source tests install their 32-bit compiler dependencies,
+  and native fixtures compile with GCC and tolerate Windows short paths.
+  Large release histories retain their complete packaged changelog while
+  GitHub notes show highlights, limitations and working documentation links.
 
 - Fix a missing botlib header exposed by the Linux i686 build and make four
   compatibility fixtures portable across GCC, Clang and MSVC. Record Linux

@@ -191,10 +191,25 @@ def prepare(version: str, date: str, *, root: Path = ROOT) -> None:
 def notes(info: dict, *, root: Path = ROOT) -> str:
     changelog = git("show", f"{info['head_commit']}:CHANGELOG.md", root=root)
     body = sections(changelog)[1][2]
+    source_url = f"https://github.com/themuffinator/fnTech3/blob/{info['head_commit']}"
+    # Keep large first-release histories in the packaged changelog. GitHub's
+    # release description is bounded; retain complete sections, not cut bullets.
+    if len(body.encode("utf-8")) > 60_000:
+        selected = []
+        for section in re.split(r"(?m)(?=^### )", body):
+            if section.startswith(("### Highlights\n", "### Known limitations\n")):
+                selected.append(section.strip())
+        body = "\n\n".join(selected)
+        if len(body.encode("utf-8")) > 60_000:
+            raise ValueError("Release highlights and limitations need shorter reviewed notes")
+        body += f"\n\n[Complete versioned changelog]({source_url}/CHANGELOG.md)."
+    # Release pages do not resolve repository-relative documentation links.
+    body = re.sub(r"\]\(((?:docs/)[^\s)]+|BUILD\.md(?:#[^\s)]+)?)\)",
+                  lambda match: f"]({source_url}/{match[1]})", body)
     return (f"# fnTech3 {info['version']}\n\n{body}\n\n"
             "## Release scope\n\n"
-            "Development prerelease: Q3 and QL profiles are enabled. RTCW SP/MP remain "
-            "experimental and disabled in these default builds. This release does not "
+            "Development prerelease: Q3 and QL profiles are enabled. All other game "
+            "profiles remain experimental and disabled in these default builds. This release does not "
             "establish full unified compatibility or completion of runtime gates. "
             "See the included `docs/fntech3/COMPATIBILITY.md` for evidence and open gates.\n\n"
             "Engine only; supply your own legitimate game installation.\n\n"

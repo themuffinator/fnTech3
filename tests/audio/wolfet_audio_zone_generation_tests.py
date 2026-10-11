@@ -29,12 +29,12 @@ def write_pak(path: Path, entries: dict[str, bytes]) -> None:
 class WolfETAudioZoneGenerationTests(unittest.TestCase):
     def test_official_paks_only_and_the_game_directory_is_found(self) -> None:
         with tempfile.TemporaryDirectory() as tmp, patch.object(generator, "STOCK_WOLFET_MAPS", FIXTURE_MAPS):
-            game = Path(tmp) / "etmain"
+            game = Path(tmp).resolve() / "etmain"
             game.mkdir()
             write_pak(game / "pak0.pk3", {"maps/oasis.bsp": b"oasis", "maps/radar.bsp": b"radar"})
             write_pak(game / "mp_bin.pk3", {"maps/custom.bsp": b"not official"})
             write_pak(game / "z-custom.pk3", {"maps/oasis.bsp": b"custom"})
-            self.assertEqual(generator.resolve_game_directory(Path(tmp)), game)
+            self.assertEqual(generator.resolve_game_directory(Path(tmp).resolve()), game)
             self.assertEqual(generator.resolve_game_directory(game), game)
             maps = generator.discover_official_maps(game)
             self.assertEqual(maps["oasis"], (game / "pak0.pk3", "maps/oasis.bsp"))
@@ -48,7 +48,7 @@ class WolfETAudioZoneGenerationTests(unittest.TestCase):
             ({"maps/oasis.bsp": b"x", "maps/radar.bsp": b"x", "maps/extra.bsp": b"x"}, "unexpected="),
         ):
             with self.subTest(entries=entries), tempfile.TemporaryDirectory() as tmp:
-                game = Path(tmp)
+                game = Path(tmp).resolve()
                 write_pak(game / "pak0.pk3", entries)
                 with patch.object(generator, "STOCK_WOLFET_MAPS", FIXTURE_MAPS):
                     with self.assertRaisesRegex(ValueError, message):
@@ -62,7 +62,7 @@ class WolfETAudioZoneGenerationTests(unittest.TestCase):
 
     def _run_publication_probe(self, *, fail: bool) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
+            root = Path(tmp).resolve()
             game = root / "retail" / "etmain"
             game.mkdir(parents=True)
             write_pak(game / "pak0.pk3", {"maps/oasis.bsp": b"oasis", "maps/radar.bsp": b"radar"})

@@ -39,14 +39,14 @@ class Fakk2AudioZoneGenerationTests(unittest.TestCase):
     def test_official_paks_only_and_the_game_directory_is_found(self) -> None:
         with tempfile.TemporaryDirectory() as tmp, \
              patch.object(fakk2_retail_maps, "STOCK_FAKK2_MAPS", FIXTURE_MAPS):
-            game = Path(tmp) / "fakk"
+            game = Path(tmp).resolve() / "fakk"
             game.mkdir()
             write_pak(game / "pak0.pk3", {"maps/fakkhouse.bsp": b"fakkhouse", "maps/zoo.bsp": b"zoo"})
             write_pak(game / "PAK1.pk3", {"ui/main.urc": b"not a map"})
             # A custom package named like the retail ones is not official.
             write_pak(game / "pak2.pk3", {"maps/custom.bsp": b"custom"})
             write_pak(game / "zz-custom.pk3", {"maps/zoo.bsp": b"override"})
-            self.assertEqual(fakk2_retail_maps.resolve_game_directory(Path(tmp)), game)
+            self.assertEqual(fakk2_retail_maps.resolve_game_directory(Path(tmp).resolve()), game)
             self.assertEqual(fakk2_retail_maps.resolve_game_directory(game), game)
             maps = fakk2_retail_maps.discover_official_maps(game)
             self.assertEqual(maps["fakkhouse"], (game / "pak0.pk3", "maps/fakkhouse.bsp"))
@@ -60,7 +60,7 @@ class Fakk2AudioZoneGenerationTests(unittest.TestCase):
             ({"maps/zoo.bsp": b"x", "maps/fakkhouse.bsp": b"x", "maps/extra.bsp": b"x"}, "unexpected="),
         ):
             with self.subTest(entries=entries), tempfile.TemporaryDirectory() as tmp:
-                game = Path(tmp)
+                game = Path(tmp).resolve()
                 write_pak(game / "pak0.pk3", entries)
                 with patch.object(fakk2_retail_maps, "STOCK_FAKK2_MAPS", FIXTURE_MAPS):
                     with self.assertRaisesRegex(ValueError, message):
@@ -74,7 +74,7 @@ class Fakk2AudioZoneGenerationTests(unittest.TestCase):
 
     def _run_publication_probe(self, *, fail: bool) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
+            root = Path(tmp).resolve()
             game = root / "retail" / "fakk"
             game.mkdir(parents=True)
             write_pak(game / "pak0.pk3", {"maps/fakkhouse.bsp": b"fakkhouse", "maps/zoo.bsp": b"zoo"})

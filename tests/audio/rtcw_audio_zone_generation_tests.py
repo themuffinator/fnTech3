@@ -29,13 +29,13 @@ def write_pak(path: Path, entries: dict[str, bytes]) -> None:
 class RtcwAudioZoneGenerationTests(unittest.TestCase):
     def test_patches_win_and_custom_packages_are_excluded(self) -> None:
         with tempfile.TemporaryDirectory() as tmp, patch.object(generator, "STOCK_RTCW_MAPS", FIXTURE_MAPS):
-            main = Path(tmp) / "Main"
+            main = Path(tmp).resolve() / "Main"
             main.mkdir()
             write_pak(main / "pak0.pk3", {"maps/escape1.bsp": b"original"})
             write_pak(main / "sp_pak4.pk3", {"MAPS/ESCAPE1.BSP": b"patched"})
             write_pak(main / "mp_pak0.pk3", {"maps/mp_beach.bsp": b"mp"})
             write_pak(main / "z-custom.pk3", {"maps/escape1.bsp": b"custom", "maps/custom.bsp": b"custom"})
-            self.assertEqual(generator.resolve_main_directory(Path(tmp)), main)
+            self.assertEqual(generator.resolve_main_directory(Path(tmp).resolve()), main)
             self.assertEqual(generator.resolve_main_directory(main), main)
             maps = generator.discover_official_maps(main)
             self.assertEqual(maps["rtcw-sp", "escape1"], (main / "sp_pak4.pk3", "MAPS/ESCAPE1.BSP"))
@@ -49,7 +49,7 @@ class RtcwAudioZoneGenerationTests(unittest.TestCase):
             ({"maps/escape1.bsp": b"x", "maps/extra.bsp": b"x"}, "unexpected="),
         ):
             with self.subTest(entries=entries), tempfile.TemporaryDirectory() as tmp:
-                main = Path(tmp)
+                main = Path(tmp).resolve()
                 write_pak(main / "pak0.pk3", entries)
                 with patch.object(generator, "STOCK_RTCW_MAPS", FIXTURE_MAPS):
                     with self.assertRaisesRegex(ValueError, message):
@@ -63,7 +63,7 @@ class RtcwAudioZoneGenerationTests(unittest.TestCase):
 
     def _run_publication_probe(self, *, fail: bool) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
+            root = Path(tmp).resolve()
             main = root / "retail" / "Main"
             main.mkdir(parents=True)
             write_pak(main / "pak0.pk3", {"maps/escape1.bsp": b"sp"})

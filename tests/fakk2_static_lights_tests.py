@@ -135,7 +135,7 @@ class CompiledLightTests(unittest.TestCase):
 class PublicationTests(unittest.TestCase):
     def _probe(self, *, fail: bool) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
+            root = Path(tmp).resolve()
             game = root / "retail" / "fakk"
             game.mkdir(parents=True)
             maps = {"maps/fakkhouse.bsp": fakk_map([light_record()]),
@@ -174,10 +174,10 @@ class PublicationTests(unittest.TestCase):
 
     def test_the_installation_is_found_from_its_root_or_its_game_folder(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            game = Path(tmp) / "fakk"
+            game = Path(tmp).resolve() / "fakk"
             game.mkdir()
             (game / "enu").mkdir()
-            self.assertEqual(fakk2_retail_maps.resolve_game_directory(Path(tmp)), game)
+            self.assertEqual(fakk2_retail_maps.resolve_game_directory(Path(tmp).resolve()), game)
             self.assertEqual(fakk2_retail_maps.resolve_game_directory(game), game)
 
 

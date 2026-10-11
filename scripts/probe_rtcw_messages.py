@@ -38,12 +38,14 @@ def run(command: list[str], **kwargs) -> subprocess.CompletedProcess:
 def build(args, source: Path | None, sp: bool, scratch: Path) -> Path:
     label = ("reference" if source else "fntech3") + ("-sp" if sp else "-mp")
     target = ["--target=" + args.target] if args.target else []
+    if not args.target and sys.platform.startswith("linux"):
+        target = ["-m32"]
     includes = ["-I" + str(source / "src/game"), "-I" + str(source / "src/qcommon")] if source else ["-I" + str(ROOT / "code/qcommon")]
     flags = target + includes + ["-D_CRT_SECURE_NO_WARNINGS", "-fwrapv"]
     sources = [source / "src/qcommon/msg.c", source / "src/qcommon/huffman.c"] if source else [ROOT / "code/qcommon/msg.cpp", ROOT / "code/qcommon/huffman_static.c"]
     if not source:
         flags += ["-DDEDICATED"]
-        if not args.target or args.target.startswith("x86_64"):
+        if os.name == "nt" and (not args.target or args.target.startswith("x86_64")):
             flags += ["-DFNTECH3_Q3_ONLY"]
     objects = []
     for index, unit in enumerate(sources):

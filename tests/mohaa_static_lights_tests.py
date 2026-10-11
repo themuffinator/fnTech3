@@ -139,7 +139,7 @@ class SphereLightTests(unittest.TestCase):
 class PublicationTests(unittest.TestCase):
     def _probe(self, *, fail: bool) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
+            root = Path(tmp).resolve()
             game = root / "retail" / "main"
             game.mkdir(parents=True)
             maps = {"maps/DM/mohdm1.bsp": mohaa_map([light_record()]),
@@ -181,7 +181,7 @@ class PublicationTests(unittest.TestCase):
 
     def test_the_inventory_is_the_paks_own_spelling(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            game = Path(tmp) / "main"
+            game = Path(tmp).resolve() / "main"
             game.mkdir()
             stock = ("DM/mohdm1",)
             for entries, message in ((["maps/dm/mohdm1.bsp"], "spells"),
@@ -202,7 +202,7 @@ class PublicationTests(unittest.TestCase):
                 archive.writestr("maps/custom.bsp", b"")
             with patch.object(mohaa_retail_maps, "STOCK_MOHAA_MAPS", stock):
                 self.assertEqual(set(mohaa_retail_maps.discover_official_maps(game)), {"DM/mohdm1"})
-            self.assertEqual(mohaa_retail_maps.resolve_game_directory(Path(tmp)), game)
+            self.assertEqual(mohaa_retail_maps.resolve_game_directory(Path(tmp).resolve()), game)
             self.assertEqual(mohaa_retail_maps.resolve_game_directory(game), game)
 
 

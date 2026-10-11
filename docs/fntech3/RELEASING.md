@@ -102,6 +102,9 @@ notices, `README.html` and the player guides as web pages in `manual/`,
 built by `scripts/player_manual.py`; a broken link between guides stops it.
 All packages are engine-only, and none enables a game development option:
 they start Quake III Arena and Quake Live and refuse the experimental games.
+Large changelog entries publish their complete Highlights and Known limitations
+sections with a link to the full versioned changelog, which remains in every
+package. Documentation links in release notes point to the tagged source commit.
 
 Verify the five uploaded assets and release notes, extract and test the target
 builds with legitimate installations and isolated writable home paths, and

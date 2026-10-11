@@ -128,6 +128,21 @@ class ReleaseWorkflowTests(unittest.TestCase):
             with self.subTest(tag=invalid), self.assertRaises(ValueError):
                 workflow.metadata(invalid, root=self.root)
 
+    def test_large_release_notes_keep_highlights_limits_and_link_full_history(self):
+        changelog = ("# Changelog\n\n## [Unreleased]\n\n_None yet._\n\n"
+                     "## [0.1.0] - 2026-09-01\n\n### Highlights\n\n"
+                     "- Play [Q3](docs/GAMES.md#quake-iii).\n\n### Compatibility\n\n"
+                     + "- Detailed evidence.\n" * 4000
+                     + "\n### Known limitations\n\n- Experimental profiles stay disabled.\n")
+        with mock.patch.object(workflow, "git", return_value=changelog):
+            rendered = workflow.notes(self.info, root=self.root)
+        self.assertLess(len(rendered.encode("utf-8")), 60_000)
+        source = f"https://github.com/themuffinator/fnTech3/blob/{self.info['head_commit']}"
+        self.assertIn(f"[Q3]({source}/docs/GAMES.md#quake-iii)", rendered)
+        self.assertIn("Experimental profiles stay disabled.", rendered)
+        self.assertIn(f"[Complete versioned changelog]({source}/CHANGELOG.md)", rendered)
+        self.assertNotIn("Detailed evidence.", rendered)
+
     def make_manifest(self):
         packages = self.root / "packages"
         packages.mkdir()

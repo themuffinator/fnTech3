@@ -35,14 +35,14 @@ class AliceAudioZoneGenerationTests(unittest.TestCase):
     def test_official_paks_only_and_the_game_directory_is_found(self) -> None:
         with tempfile.TemporaryDirectory() as tmp, \
              patch.object(alice_retail_maps, "STOCK_ALICE_MAPS", FIXTURE_MAPS):
-            game = Path(tmp) / "base"
+            game = Path(tmp).resolve() / "base"
             game.mkdir()
             write_pak(game / "pak0.pk3", {"maps/garden1.bsp": b"garden1", "maps/keep.bsp": b"keep"})
             write_pak(game / "Pak2.pk3", {"sound/x.wav": b"not a map"})
             # A custom package named like the retail ones is not official.
             write_pak(game / "pak6_custom.pk3", {"maps/custom.bsp": b"custom"})
             write_pak(game / "zz-custom.pk3", {"maps/keep.bsp": b"override"})
-            self.assertEqual(alice_retail_maps.resolve_game_directory(Path(tmp)), game)
+            self.assertEqual(alice_retail_maps.resolve_game_directory(Path(tmp).resolve()), game)
             self.assertEqual(alice_retail_maps.resolve_game_directory(game), game)
             maps = alice_retail_maps.discover_official_maps(game)
             self.assertEqual(maps["garden1"], (game / "pak0.pk3", "maps/garden1.bsp"))
@@ -56,7 +56,7 @@ class AliceAudioZoneGenerationTests(unittest.TestCase):
             ({"maps/keep.bsp": b"x", "maps/garden1.bsp": b"x", "maps/extra.bsp": b"x"}, "unexpected="),
         ):
             with self.subTest(entries=entries), tempfile.TemporaryDirectory() as tmp:
-                game = Path(tmp)
+                game = Path(tmp).resolve()
                 write_pak(game / "pak0.pk3", entries)
                 with patch.object(alice_retail_maps, "STOCK_ALICE_MAPS", FIXTURE_MAPS):
                     with self.assertRaisesRegex(ValueError, message):
@@ -70,7 +70,7 @@ class AliceAudioZoneGenerationTests(unittest.TestCase):
 
     def _run_publication_probe(self, *, fail: bool) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
+            root = Path(tmp).resolve()
             game = root / "retail" / "base"
             game.mkdir(parents=True)
             write_pak(game / "pak0.pk3", {"maps/garden1.bsp": b"garden1", "maps/keep.bsp": b"keep"})

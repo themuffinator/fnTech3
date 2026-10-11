@@ -190,7 +190,10 @@ jobs:
           python-version: '3.13'
 
       - name: Install source regression runner
-        run: python -m pip install pytest==8.4.1
+        run: |
+          sudo apt-get -qq update
+          sudo apt-get install -y gcc-multilib g++-multilib
+          python -m pip install pytest==8.4.1
 
       - name: Validate version, changelog and generated docs
         run: python scripts/release_workflow.py check
