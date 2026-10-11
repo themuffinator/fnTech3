@@ -1,0 +1,20 @@
+{
+  "record": "2026-09-18-wolfet-lod.md",
+  "profile": "wolfet",
+  "followUpDate": "2026-10-11",
+  "evidenceLevel": "Unit",
+  "source": "code/renderercommon/tr_wolfet_lod.h",
+  "fixture": "tests/wolfet_lod_tests.py",
+  "observation": {
+    "surfaceVertices": 100,
+    "requestedFraction": 0.1,
+    "corpse": true,
+    "floorFraction": 0.35,
+    "previousLinuxI686X87RetainedVertices": 34,
+    "existingWindowsRetainedVertices": 35,
+    "correctedRetainedVertices": 35
+  },
+  "implementation": "Materialize the float product before integer truncation, so excess x87 precision does not lower the corpse detail floor.",
+  "presentation": "Uses the existing fnTech3 skeletal detail and collapse path in GLx, Vulkan and RTX; no renderer features are disabled and no retail-exact option is introduced.",
+  "limitations": "This synthetic arithmetic fixture does not establish runtime rendering or retail interoperability. The profile remains experimental."
+}

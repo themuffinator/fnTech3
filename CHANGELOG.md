@@ -2358,8 +2358,14 @@ _None yet._
   paths, and account for x87 intermediate precision without changing their
   recorded numeric expectations. Allow the complete source suite to finish
   within the release job's time limit.
+  Install the OpenGL headers used by the production shader fixtures as well.
+  Detect MinGW's actual 32-bit target when compiling standalone fixtures.
   Large release histories retain their complete packaged changelog while
   GitHub notes show highlights, limitations and working documentation links.
+
+- Keep Enemy Territory's corpse detail floor consistent on Linux i686 and
+  Windows: round the vertex-count product to float before truncating it, so a
+  100-vertex surface retains 35 vertices at the 35% floor instead of 34.
 
 - Fix a missing botlib header exposed by the Linux i686 build and make four
   compatibility fixtures portable across GCC, Clang and MSVC. Record Linux

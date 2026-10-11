@@ -2087,6 +2087,11 @@ documented profile/platform claim, but that does not complete the unified goal.
 
 ## WolfET gate matrix
 
+The [detail-floor follow-up](2026-09-18-wolfet-lod.md#verification) fixes a
+Linux i686 x87 rounding difference at ET's corpse detail floor. Synthetic
+arithmetic checks preserve the existing Windows vertex count; renderer and
+interoperability gates keep their existing status.
+
 The [October 2 input/launch follow-up](2026-10-02-input-launch-fixes.md)
 corrects ET's sound-zero placeholder for player aliases, including jump, on
 both audio backends. Exact PCM, registration and reload checks establish

@@ -191,8 +191,9 @@ jobs:
 
       - name: Install source regression runner
         run: |
+          sudo dpkg --add-architecture i386
           sudo apt-get -qq update
-          sudo apt-get install -y gcc-multilib g++-multilib
+          sudo apt-get install -y gcc-multilib g++-multilib libgl-dev:i386 libx11-dev:i386
           python -m pip install pytest==8.4.1
 
       - name: Validate version, changelog and generated docs

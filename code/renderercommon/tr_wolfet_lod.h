@@ -32,12 +32,16 @@ static inline float FnWolfET_LodFraction( unsigned flags, float projected,
 static inline uint32_t FnWolfET_LodVertexCount( const fnWolfETMeshSurfaceView_t *surface,
 	float fraction, int dead ) {
 	uint32_t count;
+	volatile float scaledCount;
 	if ( !surface ) return 0;
 	if ( !isfinite( fraction ) ) fraction = 1;
 	if ( fraction < 0 ) fraction = 0;
 	if ( fraction > 1 ) fraction = 1;
 	if ( dead && fraction < 0.35f ) fraction = 0.35f;
-	count = (uint32_t)( (float)surface->numVerts * fraction );
+	/* Round the product to float before truncation, including on x87 hosts.
+	 * Otherwise 100 * 0.35f can retain 34 vertices instead of 35. */
+	scaledCount = (float)surface->numVerts * fraction;
+	count = (uint32_t)scaledCount;
 	if ( !dead && count < surface->minLod ) count = surface->minLod;
 	return count > surface->numVerts ? surface->numVerts : count;
 }

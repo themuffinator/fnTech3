@@ -49,6 +49,13 @@ walk past one it has already used.
 
 ## Verification
 
+Release validation on 2026-10-11 found that Linux i686's excess x87 precision
+could turn the 35% floor for a 100-vertex surface into 34 retained vertices.
+The count now materializes its float product before integer truncation, keeping
+the existing Windows result of 35 on both arithmetic paths. This is a portable
+presentation correction, not new retail interoperability evidence. The
+[JSON companion](2026-09-18-wolfet-lod.json) records this follow-up.
+
 Clean Windows x86 RelWithDebInfo build; no errors or warnings. The complete
 automated suite passes.
 
