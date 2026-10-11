@@ -10,7 +10,9 @@ historical upstream records, not fnTech3 release history. See the
 
 ## [Unreleased]
 
-_None yet._
+- Resolve installation icon paths through Windows file handles before checking
+  containment, preventing MinGW from accepting an external junction target
+  ([record](docs/fntech3/2026-10-11-icon-containment.md)).
 
 ## [0.1.0] - 2026-10-11
 

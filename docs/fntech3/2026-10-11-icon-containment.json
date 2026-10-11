@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-11",
+  "scope": "installation icon path containment",
+  "regression": "tests/game_icon_containment_tests.py",
+  "baseline": "c687af230ee2a3e9b830adcf031b41443636a7f8",
+  "observed_before": ["MinGW GCC 16.2 accepts an external bundle junction", "MinGW GCC 16.2 retains installation junction spelling"],
+  "validation": [
+    {"platform": "Windows x86", "compiler": "MinGW GCC 16.2", "passed": 3, "skipped": 2, "skip_reason": "file symlink privilege unavailable"},
+    {"platform": "Windows x86", "compiler": "Clang/MSVC", "passed": 3, "skipped": 2, "skip_reason": "file symlink privilege unavailable"},
+    {"platform": "Linux x86", "passed": 3, "skipped": 2, "skip_reason": "Windows-only junction cases"}
+  ],
+  "compatibility_gates_changed": []
+}

@@ -2,6 +2,7 @@
 #pragma once
 
 #include "../qcommon/game_profile.h"
+#include "../qcommon/filesystem_canonical.hpp"
 #include <filesystem>
 #include <string>
 #include <cstdint>
@@ -69,8 +70,11 @@ inline std::filesystem::path Resolve(const char *root, comGameId_t profile,
     const char *leaf = Candidate(profile, source, index);
     if (!root || !*root || !leaf) return {};
     try {
-        const auto base = std::filesystem::canonical(std::filesystem::u8path(root));
-        const auto path = std::filesystem::canonical(base / leaf);
+        std::error_code error;
+        const auto base = fntech3::filesystem::Canonical(std::filesystem::u8path(root), error);
+        if (error) return {};
+        const auto path = fntech3::filesystem::Canonical(base / leaf, error);
+        if (error) return {};
         if (path.parent_path() != base) return {};
         if (source == Source::Bundle) {
             if (std::filesystem::is_directory(path)) return path;
