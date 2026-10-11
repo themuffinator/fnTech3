@@ -13,7 +13,7 @@
     {"scope": "RTCW skin player scales", "correction": "Preserve nonfinite spellings with strtod before stored-bit validation", "tests": ["tests/skin_model_tests.py"]},
     {"scope": "IHV/Q3Test installation and shared root-native-module containment", "correction": "Resolve Windows reparse targets through an opened handle before checking containment; retain POSIX canonicalization", "tests": ["tests/q3_ihv_profile_tests.py", "tests/q3test_identity_tests.cpp", "tests/native_module_filesystem_tests.py", "tests/profile_marker_filesystem_tests.py"]}
   ],
-  "tooling": {"mingw_gcc": "16.2.0", "windows_python": "CPython 3.13 selected through a Meson native file", "msys2_python_path_issue_reproduced": "3.14.8 with MSYSTEM=MINGW32", "mingw_job_timeout_minutes": 90},
+  "tooling": {"mingw_gcc": "16.2.0", "windows_python": "CPython 3.13 selected through a Meson native file", "msys2_python_path_issue_reproduced": "3.14.8 with MSYSTEM=MINGW32", "mingw_job_timeout_minutes": 90, "git_revision_peeling": "Use equivalent ^0 to avoid MSYS2 brace expansion; retain annotated-tag resolution and non-commit rejection"},
   "path_runtime_scope": {"verified": ["Windows NTFS junction fixtures", "Linux filesystem fixtures"], "unverified": ["UNC shares", "older Windows"], "missing_final_path_api": "containment-dependent lookup is refused"},
   "presentation": {"shared_features_preserved": true, "retail_exact_option_added": false},
   "release_gates_changed": false

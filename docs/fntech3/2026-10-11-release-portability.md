@@ -94,6 +94,15 @@ Standard Windows Python passes those same fixtures with GCC 16.2.0. The job
 allows ninety minutes for compilation and the complete suite and retains
 long failure logs so separate errors are not truncated away.
 
+Native Windows Python also exposed MSYS2 Git's argument expansion: a subprocess
+argument `HEAD^{commit}` arrived as `HEAD^commit` and failed to resolve, while
+`HEAD^0` resolved the same commit. Release metadata and packaging now use `^0`,
+the [documented equivalent](https://git-scm.com/docs/gitrevisions) that still
+requires a commit. The tagged-metadata fixture checks an annotated tag and
+rejects a tag naming a tree; the complete packaging fixture checks the resulting
+manifest and all archive checksums. Both fixtures pass with native Windows Git
+and MSYS2 Git.
+
 The synthetic server-discovery host changes profiles inside a process and
 now makes its selector volatile so compiler analysis cannot cache it across
 those changes. Production profile selection remains immutable.

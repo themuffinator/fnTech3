@@ -18,7 +18,8 @@ _None yet._
 
 - Correct cross-platform UI validation, Jedi and IHV numeric rounding,
   Outcast SP allocation alignment, RTCW prediction/skin validation, RTX
-  model-light rounding and MinGW installation/module path containment found during release validation
+  model-light rounding, Windows installation/module path containment and
+  MSYS2 release tag resolution found during release validation
   ([record](docs/fntech3/2026-10-11-release-portability.md)).
 
 - Restore Medal of Honor's terrain and static map scenery in RTX path

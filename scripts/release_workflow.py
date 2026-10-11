@@ -119,7 +119,8 @@ def git(*args: str, root: Path = ROOT) -> str:
 def metadata(tag: str | None = None, *, root: Path = ROOT) -> dict:
     if tag:
         version = tag_version(tag)  # Validate before passing a ref to Git.
-        sha = git("rev-parse", "--verify", f"refs/tags/{tag}^{{commit}}", root=root)
+        # ^0 still requires a commit, without MSYS2's brace expansion.
+        sha = git("rev-parse", "--verify", f"refs/tags/{tag}^0", root=root)
         header = git("show", f"{sha}:{VERSION_PATH}", root=root)
         changelog = git("show", f"{sha}:CHANGELOG.md", root=root)
     else:

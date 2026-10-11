@@ -127,6 +127,10 @@ class ReleaseWorkflowTests(unittest.TestCase):
         for invalid in ("--help", "v0.1.0;echo bad", "v0.1.0\nfoo", "v0.1.0.1", "0.1.0"):
             with self.subTest(tag=invalid), self.assertRaises(ValueError):
                 workflow.metadata(invalid, root=self.root)
+        # A valid tag spelling must still reject a non-commit object.
+        git("update-ref", "refs/tags/v0.1.0", git("rev-parse", "HEAD:"))
+        with self.assertRaises(ValueError):
+            workflow.metadata("v0.1.0", root=self.root)
 
     def test_large_release_notes_keep_highlights_limits_and_link_full_history(self):
         changelog = ("# Changelog\n\n## [Unreleased]\n\n_None yet._\n\n"

@@ -1186,7 +1186,8 @@ def resolve_proof_source_commit(value: str | None) -> str:
 
     ref = candidate or "HEAD"
     result = subprocess.run(
-        ["git", "rev-parse", "--verify", f"{ref}^{{commit}}"],
+        # The equivalent ^0 avoids MSYS2 brace expansion under Windows Python.
+        ["git", "rev-parse", "--verify", f"{ref}^0"],
         cwd=ROOT,
         check=False,
         capture_output=True,
