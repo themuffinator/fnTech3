@@ -21,7 +21,10 @@ static inline int Q3IHV_PortalRanged( int gameId ) {
  * 1.32 rolls only when oldframe is set, or by skinNum alone; IHV always rolls.
  * The original keeps x87 precision until the single float store. */
 static inline float Q3IHV_PortalRoll( int time, int frame, int skinNum ) {
-	if ( frame ) return (float)( (double)time * (double)0.001f * (double)frame );
+	if ( frame ) {
+		volatile float secondsPerMillisecond = 0.001f;
+		return (float)( (double)time * secondsPerMillisecond * (double)frame );
+	}
 	return (float)( sin( (double)time * 0.003 ) * (double)4.0f + (double)skinNum );
 }
 

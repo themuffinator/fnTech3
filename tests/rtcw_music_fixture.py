@@ -208,7 +208,8 @@ int main() {
         system.StartBackgroundTrack("other-intro","other-loop");
         assert(files.back()=="other-intro" && system.backgroundLoop_=="other-loop");
         system.UpdateBackgroundTrack();assert(system.musicPlayer_.queued==2);
-        system.Update(16);assert(system.device_.gain==0.6f && system.musicPlayer_.gain==1);
+        volatile float expectedGain=0.6f;
+        system.Update(16);assert(system.device_.gain==expectedGain && system.musicPlayer_.gain==1);
         system.StopBackgroundTrack();assert(!system.backgroundStream_ && !system.musicPlayer_.queued);
     }
     assert(opened==closed);

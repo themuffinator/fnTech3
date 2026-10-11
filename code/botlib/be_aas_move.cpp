@@ -1104,7 +1104,13 @@ int AAS_PredictClientMovement(aas_clientmove_t *move,
 			|| maxframes > MaxFrames
 			|| !Position(origin) || !Position(velocity) || !Position(cmdmove)
 			|| !fntech3::rtcw::routing::Finite(frametime)) return qfalse;
-		if (frametime > 0 && !fntech3::rtcw::routing::Finite(1.0f / frametime)) return qfalse;
+		// Test positivity from the record before fast-math can flush a tiny
+		// positive duration to zero and bypass reciprocal-overflow validation.
+		const volatile auto durationBits = fntech3::rtcw::routing::Bits(frametime);
+		if (durationBits > 0u && durationBits < 0x80000000u) {
+			volatile float reciprocal = 1.0f / frametime;
+			if (!fntech3::rtcw::routing::Finite(reciprocal)) return qfalse;
+		}
 		stopevent &= StopEvents;
 	}
 	const vec3_t mins = { -4, -4, -4 };

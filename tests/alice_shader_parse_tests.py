@@ -802,6 +802,8 @@ class AliceShaderParseTests(unittest.TestCase):
         them: `crank` lost its stage's opening brace and `textures/aldiewater`
         says `deform`, and an unknown general keyword fails a shader
         (alice.exe 0x0048d141)."""
+        if not shutil.which('clang'):
+            self.skipTest('Clang unavailable')
         text = retail_scripts(FAKK2_ROOT, 'fakk')
         if text is None:
             self.skipTest('no Heavy Metal: F.A.K.K.2 installation at ' + str(FAKK2_ROOT))

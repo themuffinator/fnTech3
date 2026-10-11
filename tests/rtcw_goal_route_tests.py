@@ -37,8 +37,8 @@ class RTCWGoalRouteTests(unittest.TestCase):
 
     def test_sp_mp_route_costs_loop_rejection_entry_flags_and_terminal_areas(self):
         self.run_source(r'''
+static constexpr int flags=TFL_WALK|TFL_AIR;
 int main(){
- const int flags=TFL_WALK|TFL_AIR;
  for(const auto &p:profiles){profile=&p;if(!p.bots.navigationWorlds)continue;initialize();graph(0,4,1);
   if(!Com_GameIsRTCW()){
    assert(!AAS_RTCWMovementRoutingReady());vec3_t origin{};

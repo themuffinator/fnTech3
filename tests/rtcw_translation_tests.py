@@ -140,7 +140,7 @@ static std::map<std::string,std::string> files;
 static const std::string *current;
 static std::vector<std::string> listed, openedNames;
 static std::vector<char *> listPointers;
-static int closes, reads, warnings, notices, gets, lists, frees, lengthDelta;
+static int closes, reads, warnings, notices, cvarGets, lists, frees, lengthDelta;
 static int countOverride=INT_MAX;
 static bool shortRead, throwRead, missingHandle, nullList;
 void QDECL Com_Printf(const char *, ...) { ++warnings; }
@@ -148,7 +148,7 @@ void QDECL Com_DPrintf(const char *, ...) { ++notices; }
 cvar_t *Cvar_Get(const char *name,const char *value,int flags) {
     assert(!std::strcmp(value,"0"));
     assert(!std::strcmp(name,"cl_language") ? flags==CVAR_ARCHIVE : !std::strcmp(name,"cl_debugTranslation") && !flags);
-    ++gets; return nullptr;
+    ++cvarGets; return nullptr;
 }
 int FS_FOpenFileRead(const char *name,fileHandle_t *handle,qboolean unique) {
     assert(!current && !unique); openedNames.emplace_back(name); *handle=FS_INVALID_HANDLE;
@@ -171,7 +171,7 @@ char **FS_ListFiles(const char *path,const char *extension,int *count) {
 }
 void FS_FreeFileList(char **list) { assert(list==listPointers.data()); ++frees; }
 static void ResetIO() {
-    assert(!current); closes=reads=warnings=notices=gets=lists=frees=lengthDelta=0;
+    assert(!current); closes=reads=warnings=notices=cvarGets=lists=frees=lengthDelta=0;
     shortRead=throwRead=missingHandle=nullList=false; countOverride=INT_MAX;
     openedNames.clear(); listed.clear(); files.clear();
 }
@@ -190,10 +190,10 @@ int main() {
     assert(!rtcwTranslations.Find("unpublished"));
     assert(openedNames==std::vector<std::string>({"scripts/translation.cfg","translations/b.cfg",
         "translations/bad.cfg","translations/a.cfg","translations/missing.cfg"}));
-    assert(closes==4 && reads==4 && warnings==1 && notices==3 && gets==2 && lists==1 && frees==1 && !current);
+    assert(closes==4 && reads==4 && warnings==1 && notices==3 && cvarGets==2 && lists==1 && frees==1 && !current);
     // Other profiles do not register language settings, touch files or clear state.
     ResetIO(); multiplayer=false; CL_RTCWReloadTranslations();
-    assert(!gets && !lists && openedNames.empty() && rtcwTranslations.Size()==2);
+    assert(!cvarGets && !lists && openedNames.empty() && rtcwTranslations.Size()==2);
     multiplayer=true; files["scripts/translation.cfg"]=Record("new"); CL_RTCWReloadTranslations();
     assert(rtcwTranslations.Size()==1 && rtcwTranslations.Find("new") && !rtcwTranslations.Find("old"));
     assert(closes==1 && reads==1 && lists==1 && frees==1);

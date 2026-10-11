@@ -333,7 +333,9 @@ int main() {
     assert(loops.Add(a, 7, 1) == 0 && loops[0].volume == 255); // merging needs no room
     loops.Clear();
     assert(loops.Size() == 0 && loops.Add(a, 7, 300) == 0 && loops[0].volume == 255);
-    assert(AmbientLoops::Scale(255) == 1.0f && AmbientLoops::Scale(0) == 0.0f && AmbientLoops::Scale(51) == 0.2f);
+    // Both sides are stored floats, including under MinGW x87.
+    volatile float fifth = 0.2f, scaled = AmbientLoops::Scale(51);
+    assert(AmbientLoops::Scale(255) == 1.0f && AmbientLoops::Scale(0) == 0.0f && scaled == fifth);
     assert(AmbientLoops::Scale(-5) == 0.0f && AmbientLoops::Scale(999) == 1.0f);
     std::puts("ok");
     return 0;
@@ -406,7 +408,8 @@ int main() {
     assert(!world.Voice(11) && world.Voice(12)->starts == 1 && world.Voice(12)->volumeScale == 1.0f);
     // Two loops of one sound in a frame are one voice at their summed volume.
     world.Frame(); world.AddJKAAmbientLoopingSound(at, 12, 51, &sample); world.AddJKAAmbientLoopingSound(at, 12, 51, &sample); world.Kill();
-    assert(world.Voice(12)->starts == 1 && world.Voice(12)->volumeScale == 0.4f);
+    volatile float twoFifths = 0.4f;
+    assert(world.Voice(12)->starts == 1 && world.Voice(12)->volumeScale == twoFifths);
     // A silent loop keeps no voice.
     world.Frame(); world.AddJKAAmbientLoopingSound(at, 12, 0, &sample); world.Kill();
     assert(!world.Voice(12));

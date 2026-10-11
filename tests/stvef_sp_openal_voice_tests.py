@@ -296,7 +296,8 @@ int main() {
 	assert( d.gain == 1.0f && room.debugWetGain > 0.0f && same( room.debugToneClass, "self" ) );
 	SoundVoice fading = ambient( 0, 64 );
 	apply( fading );
-	assert( d.gain == 32.0f / 127.0f );
+	volatile float expectedGain = 32.0f / 127.0f;
+	assert( d.gain == expectedGain );
 	separation = 1.0f;
 	apply( room );
 	assert( d.gain == 2.0f );

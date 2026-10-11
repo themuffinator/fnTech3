@@ -136,8 +136,12 @@ static void CheckLimitsAndRollback(){
 	CHECK(mdr::Build(input,{0},palette,output)==mdr::Error::None);const auto prior=output;
 	for(int kind=0;kind<22;++kind){
 		auto broken=input;auto bones=palette;std::vector<int> visible{0};
-		if(kind==0)visible={-1};if(kind==1)visible={3};if(kind==2)visible={0,0};
-		if(kind==3)bones.resize(129);if(kind==4)bones.resize(2);if(kind==5)broken.numBones=129;
+		if(kind==0)visible={-1};
+		if(kind==1)visible={3};
+		if(kind==2)visible={0,0};
+		if(kind==3)bones.resize(129);
+		if(kind==4)bones.resize(2);
+		if(kind==5)broken.numBones=129;
 		if(kind==6)broken.surfaces[0].vertices[0].bones[0]=3;
 		if(kind==7)broken.surfaces[0].vertices[0].count=5;
 		if(kind==8)broken.surfaces[0].vertices[0].weights[0]=.5f;
@@ -150,7 +154,8 @@ static void CheckLimitsAndRollback(){
 		if(kind==15)broken.surfaces[0].vertices.resize(SHADER_MAX_VERTEXES,broken.surfaces[0].vertices[0]);
 		if(kind==16)broken.surfaces[0].triangles.resize(SHADER_MAX_INDEXES/3,broken.surfaces[0].triangles[0]);
 		if(kind==17)broken.surfaces[0].metadata.children.push_back(1);
-		if(kind==18)broken.version=7;if(kind==19)broken.sourceBytes=geometry::MaxFileBytes+1;
+		if(kind==18)broken.version=7;
+		if(kind==19)broken.sourceBytes=geometry::MaxFileBytes+1;
 		if(kind==20)broken.surfaces[0].vertices[0].normal[1]=std::numeric_limits<float>::max();
 		if(kind==21)broken.surfaces[0].vertices[0].position[1]=std::numeric_limits<float>::max();
 		geometry::Vector low{-777,-777,-777},high{888,888,888};const auto oldLow=low,oldHigh=high;
@@ -159,8 +164,10 @@ static void CheckLimitsAndRollback(){
 	}
 	for(std::uint32_t bits:{0x7f800000u,0xff800000u,0x7fc00001u})for(int target=0;target<5;++target){
 		auto broken=input;auto bones=palette;float value;std::memcpy(&value,&bits,4);
-		if(target==0)bones[0][3]=value;if(target==1)broken.surfaces[0].vertices[0].position[0]=value;
-		if(target==2)broken.surfaces[0].vertices[0].normal[0]=value;if(target==3)broken.surfaces[0].vertices[0].texCoord[0]=value;
+		if(target==0)bones[0][3]=value;
+		if(target==1)broken.surfaces[0].vertices[0].position[0]=value;
+		if(target==2)broken.surfaces[0].vertices[0].normal[0]=value;
+		if(target==3)broken.surfaces[0].vertices[0].texCoord[0]=value;
 		if(target==4)broken.surfaces[0].vertices[0].weights[0]=value;
 		geometry::Vector low{-777,-777,-777},high{888,888,888};const auto oldLow=low,oldHigh=high;
 		CHECK(mdr::Build(broken,{0},bones,output)!=mdr::Error::None&&output==prior);

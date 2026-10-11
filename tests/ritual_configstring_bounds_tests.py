@@ -59,7 +59,7 @@ template<class Call> void refused(Call call,const char *operation){
 }
 int main(){
  static_assert(MAX_GAME_CONFIGSTRINGS>FNTECH3_ALICE_MAX_CONFIGSTRINGS);
- static_assert(FNTECH3_ALICE_MAX_CONFIGSTRINGS>FNTECH3_FAKK2_MAX_CONFIGSTRINGS);
+ static_assert(int(FNTECH3_ALICE_MAX_CONFIGSTRINGS)>int(FNTECH3_FAKK2_MAX_CONFIGSTRINGS));
  for(const auto *selected:{&fntech3::ritual::AliceServerLayout(),&fntech3::ritual::FAKK2ServerLayout()}){
   layout=selected;stored={};writes=0;lastWrite=-1;
   for(int i=0;i<MAX_GAME_CONFIGSTRINGS;++i)sv.configstrings[i]="internal sentinel";

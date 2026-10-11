@@ -562,7 +562,9 @@ static void CheckOutcastClips(){
  using Clip=fntech3::ghoul2::BoneAnimation;
  // A clip's age: milliseconds times the float .02, kept as a float, where
  // Academy divides by fifty; the int subtraction wraps.
- CHECK(outcast::Age(5,0)==0.099999994039535522f&&outcast::Age(5,0)!=5/50.0f&&outcast::Age(50,0)==1.0f);
+ // MinGW x87 may retain wider literals: pin the measured stored float.
+ volatile float fiveMillisecondAge=0.099999994039535522f;
+ CHECK(outcast::Age(5,0)==fiveMillisecondAge&&outcast::Age(5,0)!=5/50.0f&&outcast::Age(50,0)==1.0f);
  CHECK(outcast::Age(0,50)==0.0f&&outcast::Age(INT_MIN+20,INT_MAX-29)==1.0f);
  // _ftol: truncation, the low word of 64 bits, 0 for what it cannot store.
  CHECK(outcast::Truncate(2.75)==2&&outcast::Truncate(-2.75)==-2&&outcast::Truncate(4294967298.0)==2);

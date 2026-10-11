@@ -386,7 +386,8 @@ int main() {
 #ifdef USE_VULKAN
     assert(tess.svars.colors[0][0].rgba[0]==quarterByte && tess.svars.colors[0][0].rgba[1]==halfByte);
 #elif defined(FNTECH3_RTCW_LIGHT_FLOAT_COLORS)
-    assert(glColorType==GL_FLOAT && tess.dlightColors[0][0]==quarterByte/255.f);
+    volatile float expectedQuarter=quarterByte/255.f;
+    assert(glColorType==GL_FLOAT && tess.dlightColors[0][0]==expectedQuarter);
 #else
     assert(glColorType==GL_UNSIGNED_BYTE && rtcwLightColors[0][0]==quarterByte);
 #endif

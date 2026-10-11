@@ -270,18 +270,25 @@ class ProcessRelaunchTests(unittest.TestCase):
         return compiler
 
     def build(self, compiler, source, exe, extra=()):
-        cpp = exe.with_suffix('.cpp')
+        # MinGW's linker cannot name Unicode output paths. Build under a
+        # plain name, then exercise the engine from the requested Unicode name.
+        cpp = exe.parent / 'relaunch-probe.cpp'
+        built_exe = exe.parent / 'relaunch-probe.exe'
         cpp.write_text(source, encoding='utf-8')
         # Use a windowless GUI-subsystem test image on Windows. It still enters
         # the console C runtime's main(), but a self-launched child cannot open
         # a console window or take focus from the user's applications.
-        linker = ['-Xlinker', '/subsystem:windows', '-Xlinker', '/entry:mainCRTStartup'] if os.name == 'nt' else []
+        linker = []
+        if os.name == 'nt':
+            linker = (['-mwindows'] if 'g++' in Path(compiler).name.lower() else
+                      ['-Xlinker', '/subsystem:windows', '-Xlinker', '/entry:mainCRTStartup'])
         target = compiler_target_args(compiler)
         abi = (['-DFNTECH3_Q3_ONLY'] if not target else []) if os.name == 'nt' else ['-m32']
         result = subprocess.run([compiler, *target, *abi, '-std=c++17',
-            '-I', str(ROOT), str(cpp), *map(str, extra), *linker, '-o', str(exe)],
+            '-I', str(ROOT), str(cpp), *map(str, extra), *linker, '-o', str(built_exe)],
             cwd=ROOT, capture_output=True, text=True, encoding='utf-8', errors='replace')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        built_exe.replace(exe)
 
     def test_same_executable_both_modes_unicode_quotes_and_descriptor_isolation(self):
         compiler = self.compiler()

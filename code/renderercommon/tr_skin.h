@@ -144,8 +144,10 @@ qhandle_t RE_RegisterSkin( const char *name ) {
 			volatile floatint_t scale;
 			token = CommaParse( &text_p );
 			/* Force a stored-bit check: finite-math assumptions can otherwise
-			 * remove both isfinite and a memcpy bit test of the atof result. */
-			scale.f = (float)atof( token );
+			 * remove both isfinite and a memcpy bit test of the parsed result.
+			 * MinGW's legacy atof reads nan/inf as zero; strtod preserves them
+			 * so the same malformed scale is rejected on every platform. */
+			scale.f = (float)strtod( token, NULL );
 			if ( ( scale.u & 0x7f800000u ) == 0x7f800000u ) {
 				ri.FS_FreeFile( text.v );
 				ri.Printf( PRINT_WARNING, "Invalid player scale in skin '%s'\n", name );

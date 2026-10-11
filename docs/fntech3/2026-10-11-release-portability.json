@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-11",
+  "evidence_levels": ["Source", "Unit"],
+  "full_compatibility_established": false,
+  "boundaries": [
+    {"scope": "shared UI", "correction": "Reject positive subnormal scales before fast-math zero folding", "tests": ["tests/ui_viewport_tests.py"]},
+    {"scope": "Jedi Academy effects clock", "correction": "Materialize retail binary32 seconds multiplier", "tests": ["tests/jka_cgame_effects_tests.py"]},
+    {"scope": "Jedi Outcast server animation", "correction": "Store binary32 clip age before further use", "tests": ["tests/jka_server_attachment_tests.py"]},
+    {"scope": "Jedi Outcast single-player memory", "correction": "Align payload independently of allocator alignment and release original pointer", "tests": ["tests/jk2_sp_host_tests.py"]},
+    {"scope": "Quake III IHV renderer", "correction": "Materialize binary32 model-table step and portal-roll multiplier", "tests": ["tests/q3_ihv_model_animation_tests.py", "tests/q3_ihv_stageless_portal_tests.py"]},
+    {"scope": "RTCW movement prediction", "correction": "Validate positive subnormal durations before fast-math zero folding", "tests": ["tests/rtcw_prediction_tests.py"]},
+    {"scope": "RTX model lighting", "correction": "Avoid extra float rounding before raster-equivalent light-byte truncation", "tests": ["tests/rtx_dynamic_light_tests.py"]},
+    {"scope": "RTCW skin player scales", "correction": "Preserve nonfinite spellings with strtod before stored-bit validation", "tests": ["tests/skin_model_tests.py"]}
+  ],
+  "presentation": {"shared_features_preserved": true, "retail_exact_option_added": false},
+  "release_gates_changed": false
+}

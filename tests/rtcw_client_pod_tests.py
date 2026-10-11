@@ -107,7 +107,8 @@ static void Renderer() {
     assert(record.value.textureEnvAddAvailable == 1 && record.value.isFullscreen == 1);
     assert(record.value.stereoEnabled == 1 && record.value.smpActive == 1);
     assert(record.value.vidWidth == 2560 && record.value.vidHeight == 1440);
-    assert(record.value.windowAspect == 16.0f / 9.0f && record.value.displayFrequency == 144);
+    volatile float expectedAspect = 16.0f / 9.0f;
+    assert(record.value.windowAspect == expectedAspect && record.value.displayFrequency == 144);
     assert(record.value.anisotropicAvailable == 0 && record.value.maxAnisotropy == 0);
     assert(record.value.textureFilterAnisotropicAvailable == 0 && record.value.NVFogAvailable == 0);
     assert(record.value.NVFogMode == 0 && record.value.ATIMaxTruformTess == 0);

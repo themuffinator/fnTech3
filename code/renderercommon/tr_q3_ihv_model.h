@@ -26,8 +26,9 @@ static inline float Q3IHV_ModelFraction( int frame, int oldframe,
  * fast-math. This table is private: retail sine tables have different samples. */
 static inline void Q3IHV_ModelSines(float table[1024]) {
     int i;
+    volatile float degreeStep = 360.0f / 1023.0f;
     for (i = 0; i < 1024; ++i) {
-        volatile double radians = (double)i * (360.0f / 1023.0f);
+        volatile double radians = (double)i * degreeStep;
         radians = radians * 3.141592653589793;
         radians = radians * (1.0 / 180.0);
         table[i] = (float)sin(radians);

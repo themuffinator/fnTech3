@@ -19,6 +19,19 @@ CONTRACT = r'''
 using namespace fntech3::jk2::sp;
 static void Noop() {}
 static void* Fail(std::size_t) { return nullptr; }
+static unsigned char *shiftedBase;
+static void *shiftedPointer;
+static std::size_t shift;
+static int shiftedFrees;
+static void* Shifted(std::size_t bytes) {
+    shiftedBase = static_cast<unsigned char*>(std::malloc(bytes + shift));
+    shiftedPointer = shiftedBase ? shiftedBase + shift : nullptr;
+    return shiftedPointer;
+}
+static void ReleaseShifted(void *pointer) {
+    assert(pointer == shiftedPointer);
+    ++shiftedFrees; std::free(shiftedBase);
+}
 int main() {
     assert(ValidateExports(nullptr) == ExportError::MissingTable);
     fntech3_jk2_sp_game_export_t g{};
@@ -68,6 +81,16 @@ int main() {
     assert(pool.Allocate(0, 11, true) && pool.Count() == 1);
     AllocationPool failed(Fail, std::free);
     assert(!failed.Allocate(4, 11, true) && failed.Count() == 0);
+    for (shift = 1; shift < alignof(std::max_align_t); ++shift) {
+        AllocationPool misaligned(Shifted, ReleaseShifted);
+        auto *data = static_cast<unsigned char*>(misaligned.Allocate(71, 11, true));
+        assert(data && reinterpret_cast<std::uintptr_t>(data) % alignof(std::max_align_t) == 0);
+        for (int n = 0; n < 71; ++n) assert(data[n] == 0);
+        std::memset(data, 0x5a, 71);
+        const int freed = shiftedFrees;
+        if (shift & 1) assert(misaligned.Free(data)); else misaligned.Reset();
+        assert(misaligned.Count() == 0 && shiftedFrees == freed + 1);
+    }
 }
 '''
 

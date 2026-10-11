@@ -336,7 +336,7 @@ typedef int qboolean;
 typedef struct { char string[128]; } cvar_t;
 typedef struct { const char *clientConfig; } comGameProfile_t;
 static const comGameProfile_t ritualProfile = { "config.cfg" };
-static int ritual, dedicated, gets;
+static int ritual, dedicated, configGets;
 static cvar_t config;
 static const char *commandLine;
 static int Q_stricmp(const char *a, const char *b) {
@@ -357,7 +357,7 @@ static void Com_StartupVariable(const char *match) {
     if (commandLine) snprintf(config.string, sizeof(config.string), "%s", commandLine);
 }
 static cvar_t *Cvar_Get(const char *name, const char *value, int flags) {
-    assert(!strcmp(name, "config") && !value[0] && !flags); ++gets; return &config;
+    assert(!strcmp(name, "config") && !value[0] && !flags); ++configGets; return &config;
 }
 static void Cvar_Set(const char *name, const char *value) {
     assert(!strcmp(name, "config")); snprintf(config.string, sizeof(config.string), "%s", value);
@@ -370,9 +370,9 @@ static const char *Cvar_VariableString(const char *name) {
                   sliced("code/qcommon/common.c", "static void Com_SelectRitualConfig( void )"),
                   sliced("code/qcommon/common.c", "const char *Com_ConfigFile( void )"))) + r'''
 static const char *start(const char *line) {
-    commandLine = line; config.string[0] = 0; gets = 0;
+    commandLine = line; config.string[0] = 0; configGets = 0;
     Com_SelectRitualConfig();
-    assert(gets == 1);
+    assert(configGets == 1);
     return config.string;
 }
 int main(void) {

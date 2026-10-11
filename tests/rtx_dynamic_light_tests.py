@@ -150,7 +150,9 @@ int main() {
     for ( int y = 0; y < DLIGHT_SIZE; ++y ) {
         for ( int x = 0; x < DLIGHT_SIZE; ++x ) {
             assert( dlightTexels[y][x][0] == dlightTexels[y][x][1] && dlightTexels[y][x][1] == dlightTexels[y][x][2] );
-            assert( GlslDlightTexel( x, y ) == (float)dlightTexels[y][x][0] / 255.0f );
+            volatile float expectedTexel = (float)dlightTexels[y][x][0] / 255.0f;
+            volatile float actualTexel = GlslDlightTexel( x, y );
+            assert( actualTexel == expectedTexel );
             lit += dlightTexels[y][x][0] != 0;
         }
     }

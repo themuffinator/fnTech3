@@ -217,7 +217,8 @@ int main(){
    assert(Cvar_VariableIntegerValue("cl_paused")==1&&CL_handle==0);
   }
   now=static_cast<int>(origin+1000);SCR_RunCinematic();
-  assert(!row.bink->paused&&row.bink->steps==2&&row.bink->volume==0.7f&&row.binkPresentation.Alpha()==1);
+  volatile float expectedVolume=0.7f;
+  assert(!row.bink->paused&&row.bink->steps==2&&row.bink->volume==expectedVolume&&row.binkPresentation.Alpha()==1);
   row.bink->result=Result::End;now=static_cast<int>(origin+2000);SCR_RunCinematic();
   assert(row.bink&&row.bink->volume==0&&row.binkPresentation.Alpha()==1&&row.buf==first);
   for(unsigned elapsed:{1u,500u,999u}){

@@ -361,7 +361,9 @@ inline int Truncate( double value )
 inline float Age( int now, int startTime )
 {
 	const auto elapsed = static_cast<std::int32_t>( std::uint32_t( now ) - std::uint32_t( startTime ) );
-	const float age = float( double( elapsed ) * double( FrameScale ) );
+	// The retail contract stores this product as a float. Keep that rounding
+	// even when an x87 compiler would otherwise retain an extended temporary.
+	volatile float age = float( double( elapsed ) * double( FrameScale ) );
 	return age < 0.0f ? 0.0f : age;
 }
 

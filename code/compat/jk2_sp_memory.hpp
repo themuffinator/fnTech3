@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <limits>
+#include <new>
 
 namespace fntech3::jk2::sp {
 /* Native module memory lives outside the engine's tagged zone. Raven's tags
@@ -15,6 +16,7 @@ namespace fntech3::jk2::sp {
 class AllocationPool {
 	struct alignas( std::max_align_t ) Block {
 		Block *next;
+		void *allocation;
 		std::size_t bytes;
 		std::int32_t tag;
 	};
@@ -30,11 +32,17 @@ public:
 	AllocationPool &operator=( const AllocationPool & ) = delete;
 	~AllocationPool() { Reset(); }
 	void *Allocate( std::int32_t bytes, std::int32_t tag, bool zero ) {
+		constexpr std::size_t overhead = sizeof( Block ) + alignof( Block ) - 1;
 		if ( bytes < 0 || !allocate_ || !release_ ||
-			static_cast<std::size_t>( bytes ) > std::numeric_limits<std::size_t>::max() - sizeof( Block ) ) return nullptr;
-		auto *block = static_cast<Block *>( allocate_( sizeof( Block ) + static_cast<std::size_t>( bytes ) ) );
-		if ( !block ) return nullptr;
-		block->next = head_; block->bytes = static_cast<std::size_t>( bytes ); block->tag = tag;
+			static_cast<std::size_t>( bytes ) > std::numeric_limits<std::size_t>::max() - overhead ) return nullptr;
+		void *allocation = allocate_( overhead + static_cast<std::size_t>( bytes ) );
+		if ( !allocation ) return nullptr;
+		// Win32 malloc can provide less alignment than MinGW's max_align_t.
+		// Align both the header and payload, but free the allocator's pointer.
+		const auto address = reinterpret_cast<std::uintptr_t>( allocation );
+		const auto padding = ( alignof( Block ) - address % alignof( Block ) ) % alignof( Block );
+		auto *block = new ( static_cast<unsigned char *>( allocation ) + padding )
+			Block{ head_, allocation, static_cast<std::size_t>( bytes ), tag };
 		head_ = block; ++count_;
 		void *data = block + 1;
 		if ( zero ) std::memset( data, 0, block->bytes );
@@ -45,11 +53,11 @@ public:
 		Block **link = &head_;
 		while ( *link && ( *link ) + 1 != data ) link = &( *link )->next;
 		if ( !*link ) return false;
-		Block *block = *link; *link = block->next; --count_; release_( block );
+		Block *block = *link; *link = block->next; --count_; release_( block->allocation );
 		return true;
 	}
 	void Reset() {
-		while ( head_ ) { Block *block = head_; head_ = block->next; release_( block ); }
+		while ( head_ ) { Block *block = head_; head_ = block->next; release_( block->allocation ); }
 		count_ = 0;
 	}
 	std::size_t Count() const { return count_; }

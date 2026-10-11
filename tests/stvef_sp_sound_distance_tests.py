@@ -47,6 +47,8 @@ namespace ef = fntech3::audio::stvef;
 
 static const float kListener[3] = { 0, 0, 0 };
 static const float kAxis[3][3] = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
+static volatile float expectedAttenuation = 0.0008f, expectedVoiceAttenuation = 0.004f;
+static volatile float expectedVoiceFull = 38.4000015f;
 
 // The loudness of a sound this far ahead of the listener, on this channel.
 static int Ahead( float distance, int channel ) {
@@ -63,14 +65,14 @@ static void Falloff() {
 	// A sound with no channel of its own carries to 256 units at full volume
 	// and is silent by 1,506 (0x420578).
 	ef::ChannelFalloff( 0, full, attenuation );
-	assert( full == 256.0f && attenuation == 0.0008f );
+	assert( full == 256.0f && attenuation == expectedAttenuation );
 	assert( Ahead( 0, 0 ) == 127 && Ahead( 256, 0 ) == 127 );
 	assert( Ahead( 881, 0 ) == 63 );
 	assert( Ahead( 1506, 0 ) == 0 && Ahead( 4000, 0 ) == 0 );
 
 	// A voice holds its full volume four times as far (0x42055b).
 	ef::ChannelFalloff( ef::VoiceChannel, full, attenuation );
-	assert( full == 1024.0f && attenuation == 0.0008f );
+	assert( full == 1024.0f && attenuation == expectedAttenuation );
 	assert( Ahead( 1024, ef::VoiceChannel ) == 127 );
 	assert( Ahead( 1506, ef::VoiceChannel ) > 0 );
 	assert( Ahead( 2274, ef::VoiceChannel ) == 0 );
@@ -78,7 +80,7 @@ static void Falloff() {
 	// An attenuated voice hardly carries at all, and falls five times as
 	// fast, silent by about 290 (0x420568).
 	ef::ChannelFalloff( ef::AttenuatedVoiceChannel, full, attenuation );
-	assert( full == 38.4000015f && attenuation == 0.004f );
+	assert( full == expectedVoiceFull && attenuation == expectedVoiceAttenuation );
 	assert( Ahead( 38, ef::AttenuatedVoiceChannel ) == 127 );
 	assert( Ahead( 163, ef::AttenuatedVoiceChannel ) == 63 );
 	assert( Ahead( 289, ef::AttenuatedVoiceChannel ) == 0 );
@@ -102,7 +104,7 @@ static void Spans() {
 	span = ef::ChannelSpan( ef::VoiceChannel );
 	assert( span.full == 1024.0f && Near( span.silent, 2274.0f ) );
 	span = ef::ChannelSpan( ef::AttenuatedVoiceChannel );
-	assert( span.full == 38.4000015f && Near( span.silent, 288.4f ) );
+	assert( span.full == expectedVoiceFull && Near( span.silent, 288.4f ) );
 	for ( const int channel : { -1, 1, 2, 4, 5, 15, 18 } ) {
 		assert( ef::ChannelSpan( channel ).full == 256.0f );
 	}

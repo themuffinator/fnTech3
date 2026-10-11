@@ -115,7 +115,9 @@ static void Expect(float x, float y, float w, float h) {
             std::fprintf(stderr, "component %d: got %f expected %f\n", i, submitted[i], expected[i]); std::abort();
         }
     }
-    assert(submitted[4] == 0.1f && submitted[5] == 0.2f && submitted[6] == 0.8f && submitted[7] == 0.9f);
+    // Compare the stored binary32 UVs. MinGW x87 may retain wider literals.
+    const float expectedUV[] = {0.1f, 0.2f, 0.8f, 0.9f};
+    assert(std::memcmp(submitted.data() + 4, expectedUV, sizeof(expectedUV)) == 0);
     assert(submittedShader == pictureShader);
 }
 static void Picture(float x=300, float y=90, float w=120, float h=90) {

@@ -106,8 +106,10 @@ int main(void) {
     assert(FnMdc_Vertex(&surface, 0, 0, &v)); assert(v.xyz[0] == -512 && !v.compressedNormal && !v.normal);
     assert(FnMdc_Vertex(&surface, 1, 0, &v)); assert(v.xyz[0] == 32767.0f / 64 && v.normal == 65535);
     assert(FnMdc_Vertex(&surface, 2, 0, &v));
-    assert(v.xyz[0] == -512.0f + (float)(-127 * 0.05) && v.xyz[1] == -32767.0f / 64);
-    assert(v.xyz[2] == -32766.0f / 64 + (float)(127 * 0.05) && v.normal == 255 && v.compressedNormal);
+    volatile float expectedX = -512.0f + (float)(-127 * 0.05);
+    volatile float expectedZ = -32766.0f / 64 + (float)(127 * 0.05);
+    assert(v.xyz[0] == expectedX && v.xyz[1] == -32767.0f / 64);
+    assert(v.xyz[2] == expectedZ && v.normal == 255 && v.compressedNormal);
     assert(FnMdc_Tag(&view, 0, 0, xyz, angles)); assert(xyz[0] == -1 && angles[0] == -180);
     assert(FnMdc_Tag(&view, 2, 0, xyz, xyz)); assert(xyz[0] == 180);
     assert(!FnMdc_Tag(&view, 3, 0, xyz, angles) && !FnMdc_Tag(&view, 0, 1, xyz, angles));

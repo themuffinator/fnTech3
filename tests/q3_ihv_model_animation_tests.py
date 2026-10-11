@@ -119,7 +119,8 @@ int main(){
  entity.e.frame=1;entity.e.backlerp=.13f;
  control.value=0;r_lerpmodels=&control;
  for(auto profile:{COM_GAME_QUAKE3,COM_GAME_QUAKELIVE,COM_GAME_RTCW_SP,COM_GAME_RTCW_MP,COM_GAME_WOLFET,COM_GAME_STVEF_SP,COM_GAME_STVEF_MP}){
-  ri.gameId=profile;tess={};meshFraction=0;RB_SurfaceMesh(&s);assert(meshFraction==.13f&&tess.numVertexes==17&&tess.xyz[0][2]==2);
+  volatile float expectedFraction=.13f;
+  ri.gameId=profile;tess={};meshFraction=0;RB_SurfaceMesh(&s);assert(meshFraction==expectedFraction&&tess.numVertexes==17&&tess.xyz[0][2]==2);
  }
 }
 '''

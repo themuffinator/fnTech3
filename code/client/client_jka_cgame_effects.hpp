@@ -109,7 +109,8 @@ static void CL_JKACgameEffectsAdjustTime(intptr_t argument) {
     // Retail rounds the integer delta to float before multiplying by the
     // float at0x5660dc (0.001f); preserve that rounding on x87 builds too.
     volatile float milliseconds=static_cast<float>(state.frameTime);
-    state.realTime=milliseconds*0.001f;
+    volatile float secondsPerMillisecond=0.001f;
+    state.realTime=milliseconds*secondsPerMillisecond;
 }
 static void CL_JKACgameEffectsFree() {
     if (!jkaCgameEffects) return;

@@ -238,7 +238,8 @@ template<class E, class V> static void Mode(comGameId_t id) {
             for(int flags:{INT_MIN,-1,0,1,2,3,4,INT_MAX}) {
                 assert(Invoke(module,call,{Ptr(bytes.get()+1),Float(0.2f),Float(0.4f),Float(0.6f),Float(2),-17,flags})==0&&lastOperation==21);
                 assert(!memcmp(submittedCorona.origin,origin,12)&&submittedCorona.scale==2&&submittedCorona.id==-17&&submittedCorona.flags==flags);
-                assert(submittedCorona.color[0]==0.2f&&submittedCorona.color[1]==0.4f&&submittedCorona.color[2]==0.6f);
+                const float expectedCorona[]={0.2f,0.4f,0.6f};
+                assert(!std::memcmp(submittedCorona.color,expectedCorona,sizeof(expectedCorona)));
             }
             Reject([&]{Invoke(module,call,{0,0,0,0,Float(1),0,1});});
             Reject([&]{Invoke(module,call,{Ptr(bytes.get()+2),0,0,0,Float(1),0,1});});

@@ -28,10 +28,11 @@ static float clamp(float x, float a, float b) { return min(max(x, a), b); }
 ''' + helpers + r'''
 int main() {
     // An entity's departure must not immediately restore the slow policy.
-    assert(rt_shadow_reactive_time(0, 1, 1.0f/60) == 0.15f);
+    volatile float reactivePeriod = 0.15f;
+    assert(rt_shadow_reactive_time(0, 1, 1.0f/60) == reactivePeriod);
     assert(rt_shadow_reactive_time(0.15f, 0, 0.05f) > 0.099f);
     assert(rt_shadow_reactive_time(0.15f, 0, 0.2f) == 0);
-    assert(rt_shadow_reactive_time(0.15f, 0, 0) == 0.15f);
+    assert(rt_shadow_reactive_time(0.15f, 0, 0) == reactivePeriod);
     // A settled shadow edge has a mixed black/white neighborhood. Its
     // wall-clock response is independent of the number of rendered frames.
     float reference = -1;
@@ -78,7 +79,8 @@ int main() {
             cpp.write_text(source, encoding='utf-8')
             subprocess.run([compiler, *compiler_target_args(compiler), '-std=c++17', str(cpp), '-o', str(exe)],
                            cwd=path, check=True, capture_output=True, text=True)
-            result = subprocess.run([str(exe)], cwd=path, check=True, capture_output=True, text=True)
+            result = subprocess.run([str(exe)], cwd=path, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn('PASS', result.stdout)
 
 

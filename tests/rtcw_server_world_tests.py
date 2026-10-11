@@ -262,7 +262,10 @@ class RTCWServerWorldTests(unittest.TestCase):
             # property of this fixture, not of the engine, whose own frames are
             # a few kilobytes; give the fixture room rather than hold the
             # engine's records to the fixture's shape.
-            stack = ['-Wl,/stack:8388608'] if os.name == 'nt' else []
+            stack = []
+            if os.name == 'nt':
+                stack = (['-Wl,--stack,8388608'] if 'g++' in Path(compiler).name.lower()
+                         else ['-Wl,/stack:8388608'])
             command = [compiler, *target, '-std=c++17', '-D_CRT_SECURE_NO_WARNINGS', '-I', str(ROOT),
                        str(cpp), str(ROOT / 'code/server/server_game_data.cpp'), '-x', 'c++',
                        str(ROOT / 'code/compat/game_abi_adapter.c'), '-o', str(exe), *stack]

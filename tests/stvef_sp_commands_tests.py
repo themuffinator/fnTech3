@@ -62,7 +62,7 @@ static void SV_MOHAAAddCommands() { assert(false); }
 const comGameProfile_t *Com_GameProfile() { return &profile; }
 static std::map<std::string,xcommand_t> commands,completions;
 static std::map<std::string,std::string> cvars;
-static int gets;
+static int cvarGets;
 static void *stvefSpTestSave;
 static void Cmd_AddCommand(const char *name,xcommand_t callback) {
     assert(callback && !commands.count(name)); commands[name]=callback;
@@ -75,7 +75,7 @@ static int Cvar_VariableIntegerValue(const char *name) {
 }
 static void *Cvar_Get(const char *name,const char *value,int flags) {
     assert(!std::strcmp(name,"sv_testsave") && !std::strcmp(value,"0") && flags==0);
-    ++gets; return &gets;
+    ++cvarGets; return &cvarGets;
 }
 static void Cvar_Set(const char *name,const char *value) { cvars[name]=value; }
 static const char *va(const char *format,const char *value) {
@@ -104,7 +104,7 @@ int main(int argc,char **argv) {
         Expect("loadtransition",SV_STVEFSPLoadTransition_f);
         Expect("save",SV_STVEFSPSave_f); Expect("load",SV_STVEFSPLoad_f);
         Expect("wipe",SV_STVEFSPWipe_f);
-        assert(!commands.count("spmap") && !commands.count("spdevmap") && gets==1);
+        assert(!commands.count("spmap") && !commands.count("spdevmap") && cvarGets==1);
         assert(completions.size()==4);
     } else {
 #ifndef PRE_RELEASE_DEMO
@@ -114,7 +114,7 @@ int main(int argc,char **argv) {
         assert(!commands.count("devmap") && !commands.count("spmap") && !commands.count("spdevmap"));
         assert(completions.size()==1);
 #endif
-        assert(gets==0);
+        assert(cvarGets==0);
     }
     for(const auto &entry:completions) assert(entry.second==SV_CompleteMapName);
     Expect("loadgame",SV_LoadGame_f,Com_GameIsRTCWSP()!=0);
@@ -137,9 +137,9 @@ int main(int argc,char **argv) {
     for(const char *name: {"rehashbans","listbans","banaddr","exceptaddr","bandel","exceptdel","flushbans"})
         assert((commands.count(name)!=0)==bans);
     assert((commands.count("banUser")!=0)==accountBans && (commands.count("banClient")!=0)==accountBans);
-    const auto oldCommands=commands,oldCompletions=completions; const int oldGets=gets;
+    const auto oldCommands=commands,oldCompletions=completions; const int oldGets=cvarGets;
     SV_AddOperatorCommands();
-    assert(commands==oldCommands && completions==oldCompletions && gets==oldGets);
+    assert(commands==oldCommands && completions==oldCompletions && cvarGets==oldGets);
     for(const char *map: {MAP_INPUTS}) {
         cvars["nextmap"]="echo previous continuation";
         SetNextMap(map,0);

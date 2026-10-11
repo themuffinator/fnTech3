@@ -62,7 +62,8 @@ int FS_Read(void *output,int length,fileHandle_t handle){
  ++reads;assert(openFiles.count(handle)&&length>=0);
  if(readDrop)Com_Error(ERR_DROP,"file read failure");
  const auto &data=assets[openFiles[handle]];assert(static_cast<std::size_t>(length)==data.size());
- if(shortRead)--length;std::memcpy(output,data.data(),length);return length;
+ if(shortRead)--length;
+ std::memcpy(output,data.data(),length);return length;
 }
 void FS_FCloseFile(fileHandle_t handle){++closes;assert(openFiles.erase(handle)==1);if(closeDrop)Com_Error(ERR_DROP,"file close failure");}
 ''' + function(vm,'void *VM_ExplicitArgPtr(')+'\n'+function(vm,'void VM_CheckBounds(')+'\n'+ \

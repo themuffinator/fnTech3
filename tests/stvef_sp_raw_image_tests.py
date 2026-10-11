@@ -407,7 +407,7 @@ static struct {
             source += (f'CHECK(brightness=={literal(row["light"])});'
                        f'CHECK(rectangle[0]=={x}&&rectangle[1]=={y}&&rectangle[2]=={w}&&rectangle[3]=={h});\n')
             source += f'CHECK(size[0]=={cols}&&size[1]=={rows}&&pixels==buffer);\n'
-        source += f'CHECK(calls=={len(CASES)}&&currentColor[0]==.2f&&currentColor[3]==.3f);}}\n'
+        source += f'volatile float expectedRed=.2f,expectedAlpha=.3f;CHECK(calls=={len(CASES)}&&currentColor[0]==expectedRed&&currentColor[3]==expectedAlpha);}}\n'
         self.compile_run(source)
 
     def test_pool_replays_retail_draws_and_keeps_queued_images_independent(self):

@@ -67,7 +67,9 @@ def function(source, signature):
 
 PREDICATES = r'''
 enum { ''' + ', '.join(f'ID_{name}' for name in PROFILE_IDS) + r''' };
-static int id;
+// This synthetic host changes profiles within one process. Keep the test
+// selector observable across calls even under MinGW's whole-unit analysis.
+static volatile int id;
 extern "C" {
 int Com_GameIsQuake3(void) { return id == ID_QUAKE3; }
 int Com_GameIsRTCWMP(void) { return id == ID_RTCW_MP; }

@@ -7,6 +7,11 @@ set for ten games and sixteen immutable profiles. Shared renderer, audio, input,
 platform, and tooling improvements must preserve each game's own contracts.
 Full compatibility is **not yet established for any profile**.
 
+The [0.1.0 portability follow-up](2026-10-11-release-portability.md) records
+unit fixes for shared UI bounds, Jedi and IHV rounding, SP allocation
+alignment, RTCW prediction/skin validation and RTX light-byte parity found by cross-platform
+release checks. It closes no runtime gate.
+
 | Game / mode | Startup profile | Current availability |
 | --- | --- | --- |
 | Quake III Arena | `q3` / `quake3` | Enabled; partial build, fixture, live, and interoperability evidence; required gates remain open. |

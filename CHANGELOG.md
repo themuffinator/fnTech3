@@ -16,6 +16,11 @@ _None yet._
 
 ### Highlights
 
+- Correct cross-platform UI validation, Jedi and IHV numeric rounding,
+  Outcast SP allocation alignment, RTCW prediction/skin validation and RTX
+  model-light rounding found during release validation
+  ([record](docs/fntech3/2026-10-11-release-portability.md)).
+
 - Restore Medal of Honor's terrain and static map scenery in RTX path
   tracing, fixing missing ground on `m1l1` and the same omission on other
   maps ([record](docs/fntech3/2026-10-11-mohaa-rtx-world.md)).

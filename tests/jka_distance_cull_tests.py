@@ -94,7 +94,8 @@ static struct { int gameId; decltype(&Allocate) Hunk_Alloc = Allocate;
     decltype(&Error) Error = ::Error; decltype(&Print) Printf = Print; } ri;
 int Q_stricmp(const char *a, const char *b) {
     while (*a && *b) { int x=*a++, y=*b++; if(x>='A'&&x<='Z')x+='a'-'A';
-        if(y>='A'&&y<='Z')y+='a'-'A'; if(x!=y)return x-y; } return *a-*b;
+        if(y>='A'&&y<='Z')y+='a'-'A';
+        if(x!=y)return x-y; } return *a-*b;
 }
 int Q_strncmp(const char *a, const char *b, int size) { return std::strncmp(a,b,size); }
 void Q_strncpyz(char *out, const char *in, int size) {

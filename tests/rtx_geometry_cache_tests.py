@@ -94,7 +94,8 @@ int main() {
     // Failed appends/extractions cannot publish partially filled cache entries.
     failReserve=1; assert(!vk_rt_append_dynamic_model_entity_geometry(&out,&e,&n)); failReserve=0;
     e.e.frame=5; failExtract=1; assert(!vk_rt_append_dynamic_model_entity_geometry(&out,&e,&n)); failExtract=0;
-    assert(vk_rt_append_dynamic_model_entity_geometry(&out,&e,&n)); assert(out.vertices[0].xyz[1]==5.251f); Drop(out);
+    volatile float expectedY=5.251f;
+    assert(vk_rt_append_dynamic_model_entity_geometry(&out,&e,&n)); assert(out.vertices[0].xyz[1]==expectedY); Drop(out);
     // More than the slot count evicts; no frame's pose depends on old contents.
     for(int i=1;i<=32;++i) { e.e.hModel=i; assert(vk_rt_append_dynamic_model_entity_geometry(&out,&e,nullptr)); Drop(out); }
     int before=extracts; e.e.hModel=1; assert(vk_rt_append_dynamic_model_entity_geometry(&out,&e,nullptr)); assert(extracts==before+1); Drop(out);

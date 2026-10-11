@@ -225,7 +225,8 @@ int main() {
 		// Enemy Territory's submitted volume, where 127 is unchanged.
 		SoundVoice et = shot( 200, CHAN_WEAPON, 500, 0, 0, 64.0f / 127.0f );
 		apply( et );
-		assert( world.device.gain == 64.0f / 127.0f );
+		volatile float expectedGain = 64.0f / 127.0f;
+		assert( world.device.gain == expectedGain );
 		// s_pvs and the focus mute silence the direct and wet paths alike.
 		cvar_t pvs; pvs.integer = 1; s_pvs = &pvs; inPVS = false;
 		SoundVoice culled = shot( 200, CHAN_WEAPON, 500, 0, 0 );
@@ -269,8 +270,10 @@ int main() {
 		apply( voice );
 		const Device &d = world.device;
 		assert( d.spatialize == 1 && d.relative == AL_FALSE && d.rangeCalls == 1 );
-		assert( d.reference == 321.0f * 0.064f && d.maximum == 321.0f * 0.064f + 321.0f );
-		assert( fntech3::audio::rtcw::LoopLevel( voice.rtcwLoopData ) == 89 && d.gain == 89.0f / 127.0f );
+		volatile float expectedReference = 321.0f * 0.064f, expectedMaximum = expectedReference + 321.0f;
+		volatile float expectedGain = 89.0f / 127.0f;
+		assert( d.reference == expectedReference && d.maximum == expectedMaximum );
+		assert( fntech3::audio::rtcw::LoopLevel( voice.rtcwLoopData ) == 89 && d.gain == expectedGain );
 		assert( traces == 1 && near( voice.occlusion, 0.2f ) && voice.debugWetGain > 0.0f );
 		assert( same( voice.debugToneClass, "world" ) && voice.debugPan == 0.0f );
 		// Retail disables loop Doppler, whatever the submitted velocity.
@@ -283,7 +286,8 @@ int main() {
 		SoundVoice loud = loop( 100, 0, 0, 0, 255, 4.0f );
 		apply( loud );
 		assert( fntech3::audio::rtcw::LoopLevel( loud.rtcwLoopData ) == 255 );
-		assert( world.device.gain == ( sp ? 255.0f / 127.0f : 2.0f ) );
+		volatile float expectedLevel = sp ? 255.0f / 127.0f : 2.0f;
+		assert( world.device.gain == expectedLevel );
 	}
 }
 ''',
@@ -296,10 +300,12 @@ int main() {
 	apply( voice );
 	const Device &d = world.device;
 	assert( d.spatialize == 1 && d.relative == AL_FALSE && d.rangeCalls == 0 && d.distanceCalls == 1 && d.worldDistance );
-	assert( d.gain == 124.0f / 127.0f && voice.debugPan == 0.0f && d.position[1] == 100.0f );
+	volatile float expectedGain = 124.0f / 127.0f;
+	assert( d.gain == expectedGain && voice.debugPan == 0.0f && d.position[1] == 100.0f );
 	SoundVoice looped = loop( 0, 100, 0, 0, 255 );
 	apply( looped );
-	assert( world.device.gain == 87.0f / 127.0f );
+	volatile float expectedLoopGain = 87.0f / 127.0f;
+	assert( world.device.gain == expectedLoopGain );
 	SoundVoice silent = shot( 200, CHAN_WEAPON, 1400, 0, 0 );
 	apply( silent );
 	assert( world.device.gain == 0.0f );

@@ -772,6 +772,14 @@ static int FloatAsInt( float f ) {
 static void CL_UIAdjustStretchPic( float *x, float *y, float *w, float *h ) {
 	const float xscale = cls.glconfig.vidWidth / 640.0f;
 	const float yscale = cls.glconfig.vidHeight / 480.0f;
+	uint32_t scaleBits;
+	std::memcpy( &scaleBits, &cls.scale, sizeof( scaleBits ) );
+	volatile uint32_t encodedScale = scaleBits;
+	// A subnormal positive scale would overflow the viewport conversion.
+	// Inspect its representation before fast-math modes can treat it as zero.
+	if ( cl_menuAspect && !cl_menuAspect->integer && encodedScale > 0u && encodedScale < 0x00800000u ) {
+		Com_Error( ERR_DROP, "Invalid UI scale" );
+	}
 
 	// The retail UI applies its centered 4:3 transform before this syscall, so
 	// the incoming coordinates are already framebuffer pixels.  Preserve that

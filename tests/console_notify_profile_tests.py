@@ -768,7 +768,8 @@ static void CheckQuakeLive( void ) {
 			CHECK( strips.size() == 1 );
 			if ( strips.size() == 1 ) {
 				CHECK( strips[0].x == 6.0f && strips[0].y == 410.0f && strips[0].w == 628.0f && strips[0].h == 22.0f );
-				CHECK( strips[0].rgba[3] == 0.6f );
+				volatile float expectedAlpha = 0.6f;
+				CHECK( strips[0].rgba[3] == expectedAlpha );
 			}
 			const char *prompt = team ? "say team:" : "say:";
 			if ( host ) {
@@ -790,7 +791,8 @@ static void CheckQuakeLive( void ) {
 			if ( inputs.size() == 1 ) {
 				CHECK( inputs[0].field == &chatField && inputs[0].x == ( team ? 132.0f : 72.0f ) );
 				CHECK( inputs[0].y == 826.0f && inputs[0].w == 1.0f && !inputs[0].flag );
-				CHECK( inputs[0].rgba[0] == 1.0f && inputs[0].rgba[1] == 0.8f && inputs[0].rgba[2] == 0.0f );
+				volatile float expectedGreen = 0.8f;
+				CHECK( inputs[0].rgba[0] == 1.0f && inputs[0].rgba[1] == expectedGreen && inputs[0].rgba[2] == 0.0f );
 			}
 			CHECK( chatField.widthInChars == ( team ? 68 : 73 ) );
 			CHECK( console_char_width == 16 && console_char_height == 32 );

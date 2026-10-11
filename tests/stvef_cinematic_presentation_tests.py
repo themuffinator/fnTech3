@@ -55,7 +55,8 @@ int main(){
    const auto image=p.Pixels(reinterpret_cast<const std::uint8_t*>(source.data()),source.size()*4,w,h,false);
    const bool cropped=quality>=2&&w>=256&&h>=192;
    if(!cropped){assert(image.pixels==reinterpret_cast<const std::uint8_t*>(source.data())&&image.width==w&&image.height==h&&image.heightScale==1);continue;}
-   assert(image.width==256&&image.height==256&&image.heightScale==4.f/3);
+   volatile float expectedHeightScale=4.f/3;
+   assert(image.width==256&&image.height==256&&image.heightScale==expectedHeightScale);
    for(int y=0;y<256;++y)for(int x=0;x<256;++x){
     std::uint32_t value;memcpy(&value,image.pixels+(y*256+x)*4,4);
     const auto expected=y<192?source[(y+h/2-96)*w+x+w/2-128]:0;

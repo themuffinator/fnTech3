@@ -127,6 +127,8 @@ def shader_fixture(renderer):
     color = 'rgbGen' if renderer == 'renderer' else 'bundle[0].rgbGen'
     result = common(renderer) + '#define RGB(x) ((x).' + color + ')\n' + r'''
 enum { CGEN_IDENTITY, CGEN_LIGHTING_DIFFUSE, FILE_HASH_SIZE = 1 };
+// The IHV parser branch is outside this fixture and must stay uncalled.
+const char *COM_ParseExt(const char **, qboolean) { std::abort(); }
 struct shaderStage_t { int rgbGen; struct { int rgbGen; } bundle[1]; };
 struct shader_t {
     char name[MAX_QPATH]; int lightmapSearchIndex, lightmapIndex, index, rtcwCompression;

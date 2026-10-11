@@ -283,12 +283,14 @@ int main(){
  // The device places a one-shot, so no pan is measured: the law's gain alone,
  // for every channel away from the listener, as retail attenuates them all.
  for(int channel=0;channel<8;++channel){
-  auto gain=calculate(true,false,200,channel,point);assert(gain.gain==124.f/127.f&&gain.pan==0&&level==1&&!generic);
+  volatile float expectedGain=124.f/127.f;
+  auto gain=calculate(true,false,200,channel,point);assert(gain.gain==expectedGain&&gain.pan==0&&level==1&&!generic);
   gain=calculate(true,false,0,channel,point);assert(gain.gain==1&&gain.pan==0&&!generic);
  }
  // A loop at its origin: 255 over 256 of the loops' 90, as its full level too.
- auto gain=calculate(false,true,0,0,point);assert(gain.gain==89.f/127.f&&gain.pan==0&&level==89.f/127.f&&!generic);
- gain=calculate(false,false,200,0,point);assert(gain.gain==0.42f&&generic==1);
+ volatile float expectedMP=89.f/127.f,expectedGeneric=0.42f;
+ auto gain=calculate(false,true,0,0,point);assert(gain.gain==expectedMP&&gain.pan==0&&level==expectedMP&&!generic);
+ gain=calculate(false,false,200,0,point);assert(gain.gain==expectedGeneric&&generic==1);
  gain=calculate(false,false,200,1,point);assert(gain.gain==1&&generic==1);
 }
 '''

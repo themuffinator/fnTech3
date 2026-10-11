@@ -963,7 +963,9 @@ static void RT_StampEntityLight( rtxRtPackedVertex_t *v, const trRefEntity_t *en
 	int c;
 
 	for ( c = 0; c < 3; c++ ) {
-		const float value = ent->ambientLight[c] + ( incoming > 0.0f ? incoming * ent->directedLight[c] : 0.0f );
+		// Raster truncates the evaluated expression directly to a light byte.
+		// Avoid an extra binary32 rounding here on x87 builds.
+		const double value = ent->ambientLight[c] + ( incoming > 0.0f ? incoming * ent->directedLight[c] : 0.0f );
 		const uint32_t byte = !( value > 0.0f ) ? 0u : value >= 255.0f ? 255u : (uint32_t)value;
 		word |= byte << ( 8 * c );
 	}

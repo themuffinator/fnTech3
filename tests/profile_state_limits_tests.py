@@ -28,9 +28,9 @@ class ProfileStateLimitsTests(unittest.TestCase):
             cpp.write_text(source, encoding="utf-8")
             # Match the active Windows library environment; Unix probes use
             # the shared engine's required x86 target.
-            architecture = (["-DFNTECH3_Q3_ONLY"] if os.name == "nt" and
-                            os.environ.get("VSCMD_ARG_TGT_ARCH", "").lower() != "x86" else ["-m32"])
-            built = subprocess.run([compiler, *compiler_target_args(compiler), *architecture, "-std=c++17",
+            target = compiler_target_args(compiler)
+            architecture = (["-DFNTECH3_Q3_ONLY"] if os.name == "nt" and not target else [])
+            built = subprocess.run([compiler, *target, *architecture, "-std=c++17",
                                     "-I", str(ROOT / "code/qcommon"),
                                     str(cpp), "-o", str(exe)], capture_output=True, text=True, timeout=60)
             self.assertEqual(built.returncode, 0, built.stdout + built.stderr)

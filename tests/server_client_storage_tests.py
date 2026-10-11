@@ -133,7 +133,8 @@ class ServerClientStorageTests(unittest.TestCase):
                 command = [compiler, *target, '-std=c++17', '-O1', '-fno-inline', '-D_CRT_SECURE_NO_WARNINGS',
                     *sanitizer, '-I', str(ROOT), str(cpp), '-o', str(exe)]
                 if os.name == 'nt':
-                    command += ['-Wl,/STACK:262144']
+                    command += (['-Wl,--stack,262144'] if 'g++' in Path(compiler).name.lower()
+                                else ['-Wl,/STACK:262144'])
             built = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, timeout=120)
             self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
             options = {'creationflags': subprocess.CREATE_NO_WINDOW} if os.name == 'nt' else {}
