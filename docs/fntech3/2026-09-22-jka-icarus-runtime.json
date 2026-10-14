@@ -1,0 +1,58 @@
+{
+  "record": "2026-09-22-jka-icarus-runtime.md",
+  "date": "2026-09-22",
+  "companionAdded": "2026-10-14",
+  "kind": "Engine design record with synthetic unit tests and a developer-server run against the retail multiplayer module; behaviour is fnTech3's own design, block meanings are Raven's",
+  "profiles": ["jka-mp"],
+  "installation": "legitimate retail 1.01",
+  "incorporation": "no implementation text incorporated from any source",
+  "numberSources": {"blockMeanings": "Raven's, frozen in code/compat/jka_icarus_ids.def", "behaviour": "fnTech3's own design"},
+  "boundary": {
+    "engineOwns": ["script cache", "sequencers", "task manager", "variables", "clock", "flow control"],
+    "gameOwns": "every command that touches an entity; the engine writes a record into the buffer the module lent it (G_SET_SHARED_BUFFER) and calls the module's export with no arguments",
+    "sharedBufferRank": "third thing the module asks for",
+    "callbackRecords": {"count": 17, "header": "code/compat/jka_icarus_callbacks.h", "largestBytes": 4104, "note": "sizes and offsets asserted; most begin with the task identifier then the entity, the two lerp endpoints begin with the entity"}
+  },
+  "interpreter": {
+    "directory": "code/icarus",
+    "sequencerPerEntity": true,
+    "blocksOn": ["a time (level clock reaches it)", "a task group (game reports every command finished)", "a signal"],
+    "openersMatchedAtLoad": true,
+    "nonNestingScript": "refused at load",
+    "engineFlow": ["affect", "if/else", "loop", "task", "do", "wait", "signal", "waitsignal", "declare", "free", "print", "rem", "flush", "run", "get", "random", "tag"],
+    "handedToGame": ["set (when not a declared variable)", "sound", "move", "rotate", "use", "kill", "remove", "play"],
+    "stopsByName": ["camera", "the tag group", "the lerp endpoints", "a move in a shape the reader does not know"]
+  },
+  "fixedByScripts": {
+    "set": {"leadingStringsBeginningSET_": 6850, "lowercaseDeclaredNames": "about 115", "example": "fUsedBeam"},
+    "wait": {"block": 23, "stringValuesDeclaredByTaskInSameScript": 926, "of": 926},
+    "signal": "blocks 46 and 47 name each other across scripts of one level",
+    "loop": {"minusOneRunsForever": true, "distinctValuesOfBlock27": 4}
+  },
+  "chosenByEngine": [
+    "a waitsignal consumes the signal it waited for",
+    "an affect that names no entity stops the script",
+    "a flush clears the sequencer it runs on and the commands the game still owes stop counting against a wait",
+    "random uses the engine's own generator, seeded per level",
+    "a script that never pauses is stopped after a bounded number of statements"
+  ],
+  "chosenNote": "these are not claims about Raven's behaviour; when observable behaviour later contradicts one, the choice should change",
+  "retailModuleRun": {
+    "build": "developer server (-Djka-development=true)",
+    "module": "jampgamex86.dll",
+    "reaches": "the whole ICARUS boundary",
+    "stopsAt": {"import": "G_NAV_LOAD", "ordinal": 202, "message": "Jedi Academy game import G_NAV_LOAD (202) is not served yet"},
+    "previousFrontier": "G_ICARUS_INIT",
+    "nextSubsystem": "navigation (Raven's NPC pathfinding)",
+    "importsServed": 46,
+    "icarusImportsServed": 19,
+    "icarusSurface": "init, shutdown, initialized check; four entity calls; run and register; per-entity tick and running check; three task-identifier calls; five variable calls"
+  },
+  "tests": ["tests/jka_icarus_runtime_tests.cpp"],
+  "testsNote": "exercised against a host of the test's own making",
+  "notShown": [
+    "no script has been run against the retail module; the module stops at navigation before a level's scripts start",
+    "nothing rendered, no entity moved, no client exists",
+    "Jedi Outcast ships the same format but nothing has driven its modules; its multiplayer is QVMs and its boundary was not opened"
+  ]
+}

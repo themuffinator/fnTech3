@@ -1,0 +1,74 @@
+{
+  "record": "2026-09-21-jka-models.md",
+  "date": "2026-09-21",
+  "companionAdded": "2026-10-14",
+  "kind": "Source and format observations, synthetic unit tests and an installed-asset sweep of the Ghoul2 .glm and .gla readers",
+  "profiles": ["jka-sp", "jka-mp"],
+  "claims": "format boundary only; nothing is posed, skinned or drawn; no runtime or rendering claim",
+  "format": {
+    "meshIdentifier": "2LGM",
+    "skeletonIdentifier": "2LGA",
+    "version": 6,
+    "source": "codemp/rd-common/mdx_format.h:42-:51",
+    "retailRendererTraversal": "codemp/rd-vanilla/tr_model.cpp:740-:1030",
+    "mesh": {
+      "headerBytes": 164,
+      "surfaceRecordBytes": "144 plus one index per child",
+      "lodSurfaceRecordBytes": 40,
+      "structure": "surface hierarchy offset table after the header, then one chained block per level of detail"
+    },
+    "vertex": {"bytes": 32, "layout": "normal, position, one packed word, four bytes of weight", "maxBonesPerSurface": 32, "maxWeightsPerVertex": 4, "source": "mdx_format.h:84-:88"},
+    "skeleton": {
+      "headerBytes": 100,
+      "boneRecordBytes": "172 plus one index per child",
+      "frameBytesPerBonePerFrame": 3,
+      "poseBytes": 14,
+      "poolSizeDecidedBy": "the highest pose index; the pool need not sit at the end of the file"
+    }
+  },
+  "reader": {
+    "file": "code/compat/jka_model_format.hpp",
+    "refuses": [
+      "a surface index that is not its own position, or a back-pointer that does not reach the file header",
+      "a parent, child or bone index outside the model's surfaces or bones",
+      "a triangle corner naming a vertex the surface does not have",
+      "a vertex weighted to a bone its surface never references, or with a weight count outside one to four",
+      "a mesh referencing more bones than the skeleton it names",
+      "a forward step that does not move forward"
+    ],
+    "offsetRule": "each offset table is read from immediately after its header; the header's stated offset must be the first record after that table; every entry must point at the record the walk reaches"
+  },
+  "installedSweep": {
+    "installation": "legitimate retail 1.01",
+    "script": "scripts/probe_jka_assets.py",
+    "invocation": "--installation <path>; writes only below --output; keeps no retail payload",
+    "meshes": 127,
+    "skeletons": 66,
+    "vertices": 529664,
+    "animationFrames": 131782,
+    "refused": 0,
+    "meshesNamingShippedSkeleton": 86,
+    "meshesNamingDefaultMarker": 41,
+    "defaultMarker": "*default",
+    "meshesNamingMissingSkeleton": 0,
+    "largestPair": {
+      "mesh": "models/players/jedi_hf/model.glm",
+      "skeleton": "_humanoid",
+      "surfaces": 214,
+      "levelsOfDetail": 3,
+      "vertices": 25236,
+      "triangles": 29873,
+      "heaviestVertexWeights": 4
+    },
+    "deepestSkeleton": {"name": "_humanoid_kor2.gla", "bones": 53, "frames": 24788, "poses": 465269}
+  },
+  "installedSweepFinding": "the offset table after each header is followed by the records it points at, and the header's stated offset points at the first record, not the table; every retail model was refused until the readers matched that",
+  "syntheticChecks": {
+    "mesh": "two-surface, two-level mesh with parent and child reads with totals, deepest bone reference and heaviest vertex",
+    "weights": "packed word round-trips; four weights decode to the values written and sum to one; single-weight vertex is entirely its bone",
+    "skeleton": "three-bone, two-frame skeleton reads with scale, pose-pool depth and widest bone; one with no frames still describes its bones",
+    "malformed": "wrong identifiers and versions, unterminated names, negative and oversized counts, lying offsets, indices leaving the model, triangle past the vertex list, vertex weighted to an unreferenced bone, frame past the pose pool, every truncation of both files"
+  },
+  "tests": ["tests/jka_model_tests.cpp (meson test fntech3_jka_models)"],
+  "noRetailPayload": "no retail model, animation or asset is required, incorporated or shipped"
+}

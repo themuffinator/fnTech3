@@ -1,0 +1,75 @@
+{
+  "record": "2026-09-21-jka-maps.md",
+  "date": "2026-09-21",
+  "companionAdded": "2026-10-14",
+  "kind": "Source and format observations, synthetic unit tests and an installed-asset sweep of RBSP version 1 collision translation and retail pak names",
+  "profiles": ["jka-sp", "jka-mp"],
+  "claims": "collision evidence only; no map drawn, no runtime or rendering claim",
+  "reference": {"name": "OpenJK (Raven's released sources)", "commit": "1a6a643427aa347553e9073dac5570b33337c4d9", "license": "GPL-2.0-or-later", "use": "reference observation only"},
+  "format": {
+    "identifier": "RBSP",
+    "version": 1,
+    "source": "codemp/qcommon/qfiles.h:307",
+    "lumps": 18,
+    "lumpLayout": "Quake III's seventeen in the same order plus a light array at index 17 (:356-:373)",
+    "maxLightmaps": 4,
+    "records": {
+      "brushSide": {"quake3Ibsp46Bytes": 8, "rbsp1Bytes": 12, "difference": "adds draw surface"},
+      "drawVertex": {"quake3Ibsp46Bytes": 44, "rbsp1Bytes": 80, "difference": "four lightmap coordinates and colours"},
+      "surface": {"quake3Ibsp46Bytes": 104, "rbsp1Bytes": 148, "difference": "four lightmap numbers, x and y, plus lightmap and vertex styles"},
+      "lightGridPoint": {"quake3Ibsp46Bytes": 8, "rbsp1Bytes": 30, "difference": "four ambient and direct sets, four styles, direction"}
+    },
+    "identicalToQuake3": ["entities", "shaders", "planes", "nodes", "leafs", "leaf surfaces", "leaf brushes", "models", "brushes", "draw indexes", "fogs", "lightmaps", "visibility"]
+  },
+  "acceptance": {
+    "function": "Com_GameManagerBspFormat",
+    "jkaProfile": "COM_GAME_BSP_JKA for version 1; every other version refused",
+    "otherProfiles": "none accepts version 1"
+  },
+  "translation": {
+    "file": "code/qcommon/bsp_rbsp.h",
+    "target": "IBSP 46 layout for the existing collision loader",
+    "sharedRecords": "copied without interpretation; stored little-endian values kept on any host",
+    "rewrittenRecords": "the four differing records, keeping the first lightmap set",
+    "checksum": "taken from the installed file before translation and unchanged by it",
+    "drops": [
+      "second, third and fourth lightmap sets and their styles",
+      "the light array mapping grid points to light-grid entries",
+      "draw-surface reference on every brush side"
+    ],
+    "rendererGate": "a renderer cannot be built on this translation; it needs a reader that keeps styles and the light array; that gate stays open"
+  },
+  "bounds": [
+    "header must be a full eighteen-lump directory",
+    "every lump must lie inside the file without covering the directory",
+    "each fixed-size lump's length must be a whole number of its records",
+    "indices inside records are left to the collision loader"
+  ],
+  "retailPakNames": {
+    "numbering": "assets0-assets8 instead of pak0-pak8",
+    "source": "codemp/qcommon/files.cpp:3166, :3241",
+    "installationShips": {"assets0.pk3": "content", "assets1.pk3": "content", "assets2.pk3": "configurations and multiplayer modules", "assets3.pk3": "1.01 patch"},
+    "profileRule": "official-pak rule is profile-owned through a pak stem; refuses base/assets0-assets8 and missionpack/assets0-assets8, leaves Quake's numbered names free",
+    "pureReferenceFlag": {
+      "source": "codemp/qcommon/files.cpp:1427",
+      "marks": ["cgamex86.dll", "uix86.dll", "vm/cgame.qvm", "vm/ui.qvm"],
+      "installationNote": "multiplayer modules are pak members in assets2.pk3 and, patched, assets3.pk3; no loose copy in base/"
+    }
+  },
+  "installedSweep": {
+    "installation": "legitimate retail 1.01",
+    "script": "scripts/probe_jka_assets.py",
+    "invocation": "--installation <path>; writes only below --output; keeps no retail payload",
+    "maps": 57,
+    "identity": "RBSP version 1",
+    "surfaces": 376744,
+    "largestMapSurfaces": 18777,
+    "refused": 0
+  },
+  "syntheticMap": {"surfaces": 2, "patches": 1, "vertices": 9, "brushSides": 6, "lightGridPoints": 2, "styleSetsOnEverything": 4},
+  "malformedRefusals": {"wrongIdentifierAndVersion": true, "damagedLumpDirectories": 6, "recordSizeRemainders": 4, "truncatedHeaderLengths": "every", "refusedAllocation": true, "missingArguments": true},
+  "pakNameChecks": "both modes refuse all nine assets names in base and missionpack, accept Quake's numbered names, refuse a server's base/assets3.pk3 before a download plan is made",
+  "tests": ["tests/jka_bsp_tests.cpp (meson test fntech3_jka_bsp)", "tests/profile_pak_download_tests.py", "tests/wolfet_download_tests.py"],
+  "noRetailPayload": "no retail map, pak or asset is required, incorporated or shipped",
+  "openItems": ["renderer reader keeping lightmap styles and the light array"]
+}

@@ -1,0 +1,147 @@
+{
+  "record": "2026-09-21-jka-runtime.md",
+  "date": "2026-09-21",
+  "companionAdded": "2026-10-14",
+  "kind": "Runtime observations from a developer dedicated server against a legitimate retail installation, with measurements from retail jamp.exe and the retail multiplayer module; the record accumulated sections through 2026-09-22",
+  "profiles": ["jka-sp", "jka-mp"],
+  "installation": "legitimate retail Jedi Academy 1.01, read never written",
+  "claims": "no gameplay, module, wire or rendering claim; module boundary reached and refused by name; later sections report a bot match running with no refused import, which is a milestone and not a compatibility claim",
+  "isolation": "every run used an isolated fs_homepath in a temporary directory; no client started, no window opened, no input injected",
+  "command": "fntech3.ded.exe +set fs_basepath \"<installation>\" +set fs_homepath <temp> +set com_gameProfile jka-mp +set dedicated 1 +set logfile 2 +map mp/ffa1 +quit",
+  "build": "developer build, -Djka-development=true (later superseded by the 2026-10-11 profile-availability change)",
+  "ordinaryBuildAtRecord": {
+    "result": "refused at detection with 'fnTech3 game profile detection failed (the game is recognized, but its engine adapters are not yet complete; see docs/fntech3/COMPATIBILITY.md, evidence: command line)'",
+    "writes": "nothing, not even a configuration"
+  },
+  "startup": {
+    "profilesStarted": ["jka-sp", "jka-mp"],
+    "automaticDetection": "asks for a mode because one installation carries both",
+    "filesystemPaks": [
+      {"pak": "assets3.pk3", "files": 16},
+      {"pak": "assets2.pk3", "files": 62},
+      {"pak": "assets1.pk3", "files": 8320},
+      {"pak": "assets0.pk3", "files": 15346}
+    ],
+    "totalFiles": 23744,
+    "configuration": {"executed": "default.cfg from assets2.pk3", "written": {"jka-mp": "base/jampconfig_server.cfg", "jka-sp": "base/jaconfig_server.cfg"}},
+    "mapCollision": {"jka-mp": "maps/mp/ffa1.bsp", "jka-sp": "maps/t1_sour.bsp", "translation": "RBSP (see 2026-09-21-jka-maps.md)"},
+    "module": {
+      "jka-mp": "jampgamex86.dll unpacked into the engine's cache; vmMain found at 20092A10; GAME_INIT called",
+      "gamename": "basejka",
+      "gamedate": "Nov  6 2003",
+      "serverinfo": "dmflags 0, fraglimit 20, g_gametype 0, mapname mp/ffa1, protocol 26, g_saberLocking 1, gamename basejka",
+      "gamesLog": "base/games.log opened through the engine's filesystem",
+      "firstFrontier": {"import": "G_UNLINKENTITY", "ordinal": 35, "message": "Jedi Academy game import G_UNLINKENTITY (35) is not served yet: its module boundary is still open. Its arrays are bound."}
+    },
+    "jka-sp": "refuses before loading anything; the module hands the engine a function table nothing reads yet"
+  },
+  "importService": {
+    "initiallyServed": 51,
+    "sharedArithmeticBlock": 14,
+    "firstCrash": "access violation when the module called back through Raven's import numbers and nothing served them",
+    "unservedPolicy": "stop with the import's name and number rather than returning an invented answer",
+    "G_SET_SHARED_BUFFER": "served completely; holds the pointer; imports that would read or write it stay refused",
+    "G_G2_CLEANENTATTACHMENTS": {"initial": "doing nothing, held by tests/jka_module_refusal_tests.py failing if another Ghoul2 import was served", "later": "really clears held attachments; the invariant now checks the clearing is real"},
+    "G_LOCATE_GAME_DATA": "binds the module's entity and client arrays to the checked view at Raven's strides; the engine reports its arrays are bound",
+    "navigationNo": "engine tells the game it loaded no navigation graph; retail installation ships 24 .nav files, one per multiplayer map; a test fails if any other navigation import is served while the decline stands"
+  },
+  "ghoul2Server": {
+    "holds": "the model, the .gla it names and each bone count; not the pose",
+    "reuses": "the bounded model readers that swept both installations",
+    "instancePointers": "owned by the engine and checked on the way back in; a stale, freed or off-stack address is refused (tests/raven_ghoul2_server_tests.cpp)",
+    "skins": "server skin handle held; file read and surfaces remembered; nothing about drawing",
+    "instanceCopy": "copy owns its models; changing or releasing either leaves the other alone",
+    "attachments": "engine remembers which instance belongs to which entity number; release takes attachments with it",
+    "bolts": "registered by name, a surface first and then a bone; unknown name reports no bolt"
+  },
+  "entityStateAdapter": {
+    "retailBytes": 532,
+    "quake3FieldsKept": 29,
+    "ravenFieldsInExtension": 65,
+    "check": "a record with a distinct value in every one of its 532 bytes round-trips byte for byte",
+    "trajectorySineGravity": "5 and 6, not Quake III's 4 and 5 (see 2026-09-22-jka-trace.md)",
+    "linkAndUnlinkServedByName": "Quake III's 34 and 35 are G_BOT_ALLOCATE_CLIENT and G_BOT_FREE_CLIENT; handing Raven's numbers through would free a bot client instead of unlinking an entity"
+  },
+  "traceFinding": {
+    "traceBytes": 48,
+    "quake3Bytes": 56,
+    "callSitesRead": 203,
+    "callSites": 233,
+    "extraArguments": [0, 10],
+    "record": "2026-09-22-jka-trace.md"
+  },
+  "importBoundary": {
+    "importsTheModuleCanUse": 150,
+    "ofImportNumbers": 796,
+    "areaAwarenessBlock300to318": 0,
+    "aasFilesShipped": 0,
+    "botProfileCorrection": "profile said COM_BOT_AI_QUAKE; installation contradicts it; now says what was measured",
+    "formerMessage": "couldn't load weapons.c, truthfully, for a file the game never had"
+  },
+  "levelRun": {
+    "map": "mp/ffa1",
+    "result": "the retail multiplayer module runs from GAME_INIT through level spawning and into its frame loop and refuses nothing; holds the level open",
+    "lastModuleMessage": "Unable to save navigations data for map \"mp/ffa1\" (checksum:-1695889585)",
+    "navSave": "G_NAV_SAVE answers it wrote nothing; the engine will not write a .nav file into a read-only installation",
+    "navChecksum": "0x9AEAC74F",
+    "navChecksumMatches": "the second four bytes of the retail maps/mp/ffa1.nav in assets0.pk3",
+    "claims": "no client connects, no snapshot built, no packet encoded"
+  },
+  "botConnection": {
+    "command": "addbot Alora 3",
+    "path": "module reads botfiles/bots.txt; engine allocates a client slot; userinfo written; goal, move and weapon states allocated out of the bot library; Ghoul2 instance duplicated and attached; skeleton read; bolts registered by name",
+    "broadcast": "broadcast: print \"Alora^7 @@@PLENTER\"",
+    "clientBegin": 0,
+    "bonePlayAndAngles": {"playHandler": "10 arguments, 1 converted (the bone name)", "angleHandler": "11 arguments, 3 converted (name, angles, model list)", "engineInterprets": false},
+    "usercmd": {"bytes": 27, "relationToQuake3": "Quake III's first twenty-one, then a force power, an inventory item and a general command where Quake III keeps a second weapon and a field of view; the three movement bytes sit one byte later"},
+    "elementaryActions": {"served": 17, "reason": "Raven inserted an alternate attack and a force power into the middle of Quake III's block; everything after sits two higher", "unsupported": ["alt-fire", "force power use"], "answered": "without doing anything, stated"},
+    "inputFrameReadBack": "the module's single call site reads action flags at offset 32, once as a byte and once as a word it clears bits in",
+    "vectorGuard": "refused a missing box, which is how a point trace is asked for; now allows the two a trace may leave out, refuses a missing vector elsewhere and names the call and numbers"
+  },
+  "botPlaysThenRegresses": {
+    "initialState": "bot moved about the level and took items (Item: 0 weapon_disruptor, weapon_thermal, ammo_powercell)",
+    "whyItDidNotSurvive": "the saber loader was failing for every lightsaber, keeping the game off the branch that asks for a bolt on a saber",
+    "afterLoaderFix": "bot connects, enters, begins, and is refused G_G2_GETBOLT (587)",
+    "playerState": {"fields": 168, "quake3FieldsAtQuake3Widths": 43, "ravenFieldsInExtension": 124, "ammunitionSlots": 19, "canonicalAmmunitionSlots": 16, "generated": "from the measured table", "check": "a record with a distinct value in every one of its 1552 bytes round-trips"},
+    "forceBlock": "carried whole and unread"
+  },
+  "starNamedSkeleton": {
+    "message": "models/weapons2/saber_w.glm: the skeleton it names is not there",
+    "cause": "the mesh names *default; a name beginning with a star is not a file",
+    "meshesCarryingIt": {"jka": 41, "jkaOf": 127, "jk2": 23, "jk2Of": 71},
+    "otherNamesResolve": true,
+    "effect": "with sabers loading, the game asked for four more Ghoul2 calls it had never reached"
+  },
+  "poseMeasurement": {
+    "poolStrideBytes": 14,
+    "skeletonsConfirmed": 18,
+    "frameIndexBytes": 3,
+    "engineInstructions": "0x497a23: and ecx, 0xffffff then imul ecx, ecx, 0xe",
+    "poseWords": 7,
+    "rotationDecode": "word / 16383 - 2",
+    "displacementDecode": "word / 64 - 512",
+    "composition": "transform applied to the bone's own rest matrix, no hierarchy walk",
+    "humanoidMedianBoneLengthError": 0.034,
+    "frame": "frame = startFrame + ((now - startTime) / 50) * animSpeed; a Ghoul2 frame is fifty milliseconds",
+    "blend": "element by element across the whole matrix, not a quaternion slerp",
+    "bolts": {"starNamedSurfaces": 45, "saberBolt": "*r_hand, surface 60", "tagCornersCarriedByBones": 3, "tagDistanceFromHandWithoutUndoingRest": 26.7, "tagDistanceFromHandWithUndoingRest": 0.644, "reference": "rhang_tag_bone"},
+    "record": "2026-09-22-jka-pose.md",
+    "supersession": "see 2026-09-22-jka-pose.json, which records that these pose inferences were later corrected by live engine-query comparison"
+  },
+  "finalBotRun": {
+    "map": "mp/ffa1",
+    "seconds": 20,
+    "log": "ClientConnect: 0; PLCONNECT; PLENTER; ClientBegin: 0; Item: 0 weapon_disruptor; Item: 0 weapon_thermal",
+    "importsRefused": 0,
+    "jediOutcast": "reaches the same on ffa_bespin with two bots, out of the same shared store (see 2026-09-22-jk2-records.md)"
+  },
+  "openItems": [
+    "G_NAV_LOAD answers it loaded nothing; the navigation graph stays empty and all twenty-three navigation imports answer out of it; six do nothing and say why in their source; the next step would be reading a .nav file",
+    "the module never calls G_NAV_INIT or G_NAV_FREE",
+    "an earlier passage reports a saber_w.glm skeleton warning for models/weapons2/saber/saber_w.glm as unresolved; the star-named explanation above resolves the related models/weapons2/saber_w.glm case",
+    "the configstring calls and the entity-token reader may or may not be exercised against the module; not counted",
+    "no map drawn, no packet encoded or decoded, protocol 26 remains a registered number",
+    "one installation, one edition, one platform",
+    "single-player profile reaches the same boundary from its own map; its GetGameAPI table is unwritten"
+  ]
+}

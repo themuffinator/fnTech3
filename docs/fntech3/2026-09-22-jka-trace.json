@@ -1,0 +1,110 @@
+{
+  "record": "2026-09-22-jka-trace.md",
+  "date": "2026-09-22",
+  "companionAdded": "2026-10-14",
+  "kind": "Static measurement of the retail multiplayer module's and engine's own code; method given in the record",
+  "profiles": ["jka-mp"],
+  "installation": "legitimate retail Jedi Academy 1.01, read and never written",
+  "claims": "shape of two records and counts of which imports exist; no gameplay, rendering or wire claim; whether fnTech3 answers the imports correctly is answered by COMPATIBILITY.md and per-answer tests",
+  "sourceIndependence": "nothing taken from another engine's source; every number read out of the retail module's code",
+  "traceRecord": {
+    "bytes": 48,
+    "quake3Bytes": 56,
+    "layout": [
+      {"offset": 0, "member": "byte allsolid"},
+      {"offset": 1, "member": "byte startsolid"},
+      {"offset": 2, "member": "short entityNum"},
+      {"offset": 4, "member": "float fraction"},
+      {"offset": 8, "member": "vec3 endpos"},
+      {"offset": 20, "member": "cplane_t plane"},
+      {"offset": 40, "member": "int surfaceFlags"},
+      {"offset": 44, "member": "int contents"}
+    ],
+    "plane": {"normal": 20, "dist": 32, "typeByte": 36, "signbitsByte": 37, "padding": 2, "sameAsQuake3": true},
+    "consequence": "everything from the fraction onwards sits four bytes earlier than Quake III puts it"
+  },
+  "traceMeasurement": {
+    "wrapper": "trap_Trace at RVA 0xa6180",
+    "callSites": 233,
+    "callSitesFollowed": 203,
+    "method": "results pointer produced by a lea before the last push; stack pointer tracked forward to attribute each later access to a record byte and width",
+    "accessesByOffset": {
+      "0": {"count": 97, "widths": "58 as one byte, the rest take the record's address"},
+      "1": {"count": 61, "widths": "one byte only"},
+      "2": {"count": 54, "widths": "sixteen-bit word only"},
+      "4": {"count": 96, "widths": "four-byte float only"},
+      "8": {"count": 43, "widths": "four bytes"},
+      "12": {"count": 46, "widths": "four bytes"},
+      "16": {"count": 60, "widths": "four bytes"},
+      "20": {"count": 9, "widths": "four bytes"},
+      "24": {"count": 20, "widths": "four bytes"},
+      "28": {"count": 17, "widths": "four bytes"},
+      "32": {"count": 3, "widths": "four bytes"},
+      "36": {"count": 6, "widths": "one byte"},
+      "37": {"count": 2, "widths": "one byte"},
+      "40": {"count": 12, "widths": "four bytes"},
+      "44": {"count": 2, "widths": "four bytes"}
+    },
+    "scriptLocation": "kept with the session's working files; no path recorded"
+  },
+  "traceTrap": {
+    "importArguments": 9,
+    "quake3Arguments": 7,
+    "call": "syscall( G_TRACE, results, start, mins, maxs, end, passEntityNum, contentmask, 0, 10 )",
+    "trailingConstants": [0, 10],
+    "meaning": "steer Ghoul2 collision; fnTech3 records them and does not act on them",
+    "g2Trace": {"import": 28, "name": "G_G2TRACE", "note": "passes all nine from its caller"},
+    "traceCapsule": {"import": 49, "name": "G_TRACECAPSULE", "wrapper": "none in the retail module; the game never asks for a capsule trace"}
+  },
+  "importInventory": {
+    "module": "jampgamex86.dll",
+    "thunksPresent": 150,
+    "of": 329,
+    "numbers": "0 1 5-30 32 34-38 40-44 48 52-55 59 61-78 202-206 209-214 217 220 221 223 225 227 229 232 233 235 236 241 250 251 260 261 400 401 406-409 411 414-419 421 422 424 425 525 526 546 547 548 551 555 556 561 562 563 582 585 587 589 590 591 593-598 600 601 603-607 609 612 615 622 623 625 627-634",
+    "consequences": {
+      "areaAwareness": "no number in the AAS block 300-318 has a thunk; installation ships no .aas file for any map",
+      "configuredAi": "no character load (500-506) and no chat state (507-524); installation ships none of items.c, weapons.c, syn.c, rnd.c or match.c, only botfiles/*.jkb and bots.txt",
+      "botStateMachinery": [546, 547, 548, 551, 555, 556, 561, 562, 563],
+      "botResets": [525, 526],
+      "botElementaryActionBlock": "400-425",
+      "navigation": "Raven's own at 202-241; the module never calls G_NAV_INIT or G_NAV_FREE and expects a graph from a .nav file or built through G_NAV_ADDRAWPOINT, G_NAV_HARDCONNECT and G_NAV_CALCULATEPATHS"
+    }
+  },
+  "trajectoryTypes": {
+    "function": "BG_EvaluateTrajectory",
+    "start": "RVA 0x4ac70",
+    "bound": "cmp eax, 6",
+    "jumpTable": "0x4ae9c",
+    "values": 7,
+    "table": [
+      {"value": 0, "meaning": "stationary"},
+      {"value": 1, "meaning": "interpolated"},
+      {"value": 2, "meaning": "linear"},
+      {"value": 3, "meaning": "linear stop"},
+      {"value": 4, "meaning": "Raven's own (t scaled to ninety degrees, sine)"},
+      {"value": 5, "meaning": "sine"},
+      {"value": 6, "meaning": "gravity (result[2] -= 400 * t * t)"}
+    ],
+    "consequence": "Academy's sine and gravity are 5 and 6, not Quake III's 4 and 5",
+    "file": "code/compat/jka_trajectory_types.def",
+    "guard": "static_assert in the adapter holds the two renumbered values"
+  },
+  "engineDispatcher": {
+    "executable": "jamp.exe",
+    "bound": "cmp eax, 0x27a (634)",
+    "jumpTable": {"address": "0x45d34c", "entries": 635, "byteIndexLevel": false},
+    "importSpace": "0 to 634; the 796 figure is the whole of the module tables (game, cgame and ui, imports and exports)",
+    "handledNumbers": 329,
+    "fnTech3TableNames": 329,
+    "setsIdentical": true,
+    "note": "the table was built by other means, so this independently confirms all 329 rows"
+  },
+  "animationHandlers": {
+    "596": {"address": "0x45cc63", "arguments": 10, "convertedFromModuleAddress": 1, "pointer": "args[3], the bone name", "name": "G_G2_PLAYANIM", "note": "recorded as the call that stops a bot from spawning"},
+    "593": {"arguments": 3, "pointers": 1},
+    "595": {"arguments": 11, "pointers": 3},
+    "597": {"arguments": 10, "pointers": 7, "note": "out-parameter call"},
+    "615": {"arguments": 3, "note": "copies a fourteen-word record out of args[3] before passing it on"},
+    "served": false
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "record": "2026-09-21-jka-roff.md",
+  "date": "2026-09-21",
+  "companionAdded": "2026-10-14",
+  "kind": "Source and format observations, synthetic unit tests and an installed-asset sweep of the ROFF motion-path reader",
+  "profiles": ["jka-sp", "jka-mp"],
+  "claims": "format boundary only; nothing is moved along a path",
+  "reference": {"name": "OpenJK (Raven's released sources)", "source": "codemp/qcommon/RoffSystem.h:33-:100", "commit": "1a6a643427aa347553e9073dac5570b33337c4d9", "use": "reference observation"},
+  "format": {
+    "identifier": "ROFF",
+    "version1": {
+      "headerBytes": 12,
+      "header": "identifier, version, entry count stored as a float (Raven's exporter could not write an integer)",
+      "entryBytes": 24,
+      "entry": "position offset, rotation offset",
+      "afterEntries": "nothing"
+    },
+    "version2": {
+      "headerBytes": 20,
+      "header": "identifier, version, entry count, frame rate, note count",
+      "entryBytes": 32,
+      "entry": "position offset, rotation offset, first note fired and how many",
+      "afterEntries": "note track: that many terminated strings"
+    }
+  },
+  "reader": {
+    "file": "code/compat/jka_roff_format.hpp",
+    "refuses": [
+      "a version 1 count that is not a whole, representable number of entries",
+      "a frame rate of zero or less",
+      "an entry's note range outside the track that follows (-1 means the entry fires nothing)",
+      "a note track that is not exactly that many terminated strings ending the file"
+    ]
+  },
+  "installedSweep": {
+    "installation": "legitimate retail 1.01",
+    "script": "scripts/probe_jka_assets.py",
+    "paths": 92,
+    "version": 2,
+    "framesPerSecond": 50,
+    "versionOneObserved": false,
+    "versionOneNote": "read from the format definition rather than an observation",
+    "longestEntries": 500,
+    "pathsWithNoteTracks": 3,
+    "refused": 0
+  },
+  "syntheticChecks": {
+    "version2": "reads with entries, rate, note count and the notes an entry fires; no notes, a track nothing points at, and an empty path all read",
+    "version1": "reads with its float count; fractional, negative or absurd count refused; anything after the entries refused",
+    "malformed": "wrong identifier, both unsupported versions, negative and zero counts, entries past the end, note range leaving the track, unterminated note, track not ending the file, every truncation"
+  },
+  "tests": ["tests/jka_roff_tests.cpp"],
+  "noRetailPayload": "no retail path or asset is required, incorporated or shipped"
+}

@@ -1,0 +1,51 @@
+{
+  "record": "2026-09-21-jka-module-abi.md",
+  "date": "2026-09-21",
+  "companionAdded": "2026-10-14",
+  "kind": "Source observations of module call numbers and installed export-table parsing; registration only",
+  "profiles": ["jka-mp"],
+  "claims": "numbers registered in a frozen table; nothing dispatches them; no argument or record contract described; registering a number is not compatibility",
+  "singlePlayer": "not in this table; hands the engine a GetGameAPI function table (see 2026-09-21-jka-contracts.md)",
+  "reference": {"name": "OpenJK (Raven's released multiplayer sources)", "commit": "1a6a643427aa347553e9073dac5570b33337c4d9", "license": "GPL-2.0-or-later", "use": "reference observation; no implementation text incorporated"},
+  "installation": {
+    "retail": "legitimate retail 1.01",
+    "singlePlayerModule": {"file": "jagamex86.dll", "location": "installation root beside jasp.exe", "exports": ["GetGameAPI", "dllEntry", "vmMain"]},
+    "multiplayerModules": {
+      "assets2.pk3": ["jampgamex86.dll", "cgamex86.dll", "uix86.dll"],
+      "assets3.pk3": "patched copies",
+      "exports": ["dllEntry", "vmMain"],
+      "method": "only export tables were parsed; no module was loaded"
+    }
+  },
+  "tables": {
+    "totalNamesAndOrdinals": 796,
+    "independentReadings": 2,
+    "readingsAgreeOn": 796,
+    "entries": [
+      {"module": "Game", "direction": "Import", "source": "codemp/game/g_public.h:378", "entries": 329, "highestOrdinal": 634},
+      {"module": "Game", "direction": "Export", "source": "codemp/game/g_public.h:717", "entries": 40, "highestOrdinal": 39},
+      {"module": "Client game", "direction": "Import", "source": "codemp/cgame/cg_public.h:203", "entries": 233, "highestOrdinal": 350},
+      {"module": "Client game", "direction": "Export", "source": "codemp/cgame/cg_public.h:441", "entries": 32, "highestOrdinal": 31},
+      {"module": "Menus", "direction": "Import", "source": "codemp/ui/ui_public.h:59", "entries": 150, "highestOrdinal": 235},
+      {"module": "Menus", "direction": "Export", "source": "codemp/ui/ui_public.h:214", "entries": 12, "highestOrdinal": 11}
+    ],
+    "gameImportBlocks": "0-78, 100-199 memory and string, 200 navigation, 250 bot setup, 300 areas, 400 elementary actions, 500 characters, on to 634",
+    "gapsResolvingToExplicitRefusal": {"gameImports": 306, "clientGameImports": 118, "menuImports": 86},
+    "files": ["code/compat/jka_module_calls.def", "code/compat/jka_module_abi.h"]
+  },
+  "apiVersions": {
+    "game": {"version": 1, "source": "codemp/game/g_public.h:32"},
+    "clientGame": {"version": 2, "source": "codemp/cgame/cg_public.h:26"},
+    "menus": {"version": 3, "source": "codemp/ui/ui_public.h:26"},
+    "singlePlayerGame": {"version": 10, "source": "code/game/g_public.h:28"}
+  },
+  "guarantees": [
+    "every module and direction has exactly the count and highest ordinal above",
+    "no two calls in one module and direction share a number (compile-time assertion and runtime check)",
+    "every call resolves from its own number and back again",
+    "gaps resolve to an explicit refusal, not a neighbour",
+    "a number outside the table, an invalid module or direction, and every other profile including jka-sp resolve to nothing"
+  ],
+  "quakeIIIOverlap": "names are shared with Quake III but ordinals and arguments are not; CG_MEMSET does not exist (the client game calls it CGAME_MEMSET); any Quake III ordinal assumed under a Jedi Academy profile is a defect",
+  "tests": ["tests/jka_module_abi_tests.cpp (meson test fntech3_jka_module_abi)"]
+}

@@ -1,0 +1,116 @@
+{
+  "record": "2026-09-22-jk2-contracts.md",
+  "date": "2026-09-22",
+  "companionAdded": "2026-10-14",
+  "kind": "Retail installation, executable-bound and handler observations for Jedi Outcast, plus format-reader sweeps and a developer-server run",
+  "profiles": ["jk2-sp", "jk2-mp"],
+  "claims": "nothing about gameplay, rendering or the wire; the multiplayer module loads and runs and stops at the first import not named",
+  "retail": {
+    "installation": "legitimate retail Jedi Outcast 1.02a",
+    "files": ["jk2sp.exe", "jk2mp.exe", "jk2gamex86.dll", "version.inf", "base/assets0.pk3", "base/assets1.pk3"],
+    "paks": 2,
+    "packedFiles": 14136,
+    "versionInf": {"Version": "1.02a"},
+    "binaryStrings": {"jk2sp.exe": "JK2: v1.02a", "jk2mp.exe": "JK2MP: v1.02a"},
+    "configurationPak": "assets0.pk3",
+    "defaultCfgBytes": 3048,
+    "mpdefaultCfgBytes": 3442,
+    "bothModesInOneInstallation": true,
+    "hashes": "none recorded in this record"
+  },
+  "engineContracts": {
+    "singlePlayer": {
+      "protocol": 40,
+      "configuration": "jk2config.cfg",
+      "executes": "default.cfg",
+      "gameDirectory": "base",
+      "maxConfigstrings": 1024,
+      "maxSubmodels": 512,
+      "maxClients": 1,
+      "botLibrary": "none",
+      "module": "jk2gamex86.dll in the installation root"
+    },
+    "multiplayer": {
+      "protocol": 15,
+      "configuration": "jk2mpconfig.cfg",
+      "executes": "mpdefault.cfg",
+      "gameDirectory": "base",
+      "maxConfigstrings": 1400,
+      "maxSubmodels": 256,
+      "maxClients": 32,
+      "botLibrary": "Quake III's, whole; bot_enable defaults to 1, with bot_minplayers, botlib.log and .aas",
+      "modules": ["vm/jk2mpgame.qvm", "vm/cgame.qvm", "vm/ui.qvm"],
+      "moduleLocation": "inside assets0.pk3",
+      "hostNeeded": "no native host; the existing interpreter runs it"
+    },
+    "readFrom": {
+      "protocol": "va_(\"%i\", N) in each binary's own protocol registration, three call sites each",
+      "configstrings": "each SV_SetConfigstring: bad index bound, twice apiece",
+      "submodels": "each MAX_SUBMODELS exceeded bound",
+      "maxClients": "multiplayer clamps sv_maxclients with Cvar_Set(\"sv_maxclients\", va(\"%i\", 32))"
+    },
+    "protocol40Sharing": "Elite Force's, Jedi Academy's and this single player; each profile admits only its own family"
+  },
+  "formats": {
+    "rbspVersion1": {"jk2Maps": 41, "jkaMaps": 57},
+    "meshes2LGMv6": {"jk2": 71, "jka": 127},
+    "skeletons2LGAv6": {"jk2": 21, "jka": 66},
+    "roffVersion2": {"jk2": 68, "jka": 92},
+    "icarusIBI157": {"jk2": 1356, "jka": 1018},
+    "jk2AssetsRead": 1557,
+    "refusals": 0,
+    "icarus": {"blocksConsumed": 33767, "refused": 0, "badlyNested": 0, "maximumDepth": 29, "rangesOrdered": 318, "rangesOrderedAcrossBothTitles": 487, "of": 487},
+    "engineNaming": "the engine's map identity for RBSP is named for the format, not for either game"
+  },
+  "multiplayerModuleBoundary": {
+    "qvmCodeBytes": 865928,
+    "map": "ffa_bespin (retail map collision loaded by a developer server)",
+    "dispatcher": {"executable": "jk2mp.exe", "bound": 599, "indexing": "byte table", "importSpace": "0 to 599", "handled": 221},
+    "handledRuns": "0-51, 100-111, 200-211, 300-318, 400-425, 500-599",
+    "firstTwoRunsAreQuake3": {
+      "evidence": "handler behaviour",
+      "traps": {
+        "0": "G_PRINT (one argument to the console printer with %s)",
+        "1": "G_ERROR (drop-level error)",
+        "2": "G_MILLISECONDS (tail call to the millisecond clock)",
+        "3": "G_CVAR_REGISTER (four arguments)",
+        "15": "G_LOCATE_GAME_DATA (five arguments)",
+        "29": "G_AREAS_CONNECTED (reaches area >= cm.numAreas)",
+        "34, 35": "bot client pair (SV_BotFreeClient: bad clientNum: %i)",
+        "100": "G_MEMSET (three arguments)",
+        "103": "G_SIN (a single fsin)"
+      }
+    },
+    "jkaContrast": "Raven inserted two precision timers at 3 and 4 in Academy, so its cvar calls sit two higher",
+    "run100": {"served": 12, "note": "Quake III's memory and arithmetic calls in Quake III's order; Outcast stops two short of Quake III's fourteen, with no handler for the two debug prints"},
+    "run0ServedThirtyCalls": "console and error calls, the clock, five cvar calls, two argument calls, four filesystem calls and the seek, console command, drop and server commands, configstring pair, three userinfo and serverinfo calls, two visibility checks, the area check, entity-token reader, file list, real-time clock, vector snapping",
+    "cvarRecord": {"handleOffset": 0, "modificationCountOffset": 4, "valueCopyBytes": 256, "recordBytes": 272, "conclusion": "Quake III's cvar record exactly"},
+    "moduleOutput": {
+      "banner": "------- Game Initialization -------",
+      "gamename": "basejk",
+      "gamedate": "Mar 04 2002",
+      "serverinfo": "dmflags 0, fraglimit 20, g_gametype 0, mapname ffa_bespin, protocol 15, g_blueteam Rebellion, g_redteam Empire, g_maxForceRank 6, duel_fraglimit 10, gamename basejk"
+    },
+    "stoppedAtTrap": {"first": 15, "reason": "publishes entity and client arrays; records not yet frozen at the time", "later": 588}
+  },
+  "recordMeasurements": {
+    "gentity_t": {"bytes": 828, "from": "the module's own locate call"},
+    "gclient_t": {"bytes": 1756, "from": "the module's own locate call"},
+    "engineHalfBase": 296,
+    "setBrushModelWrites": [312, 316, 328, 340],
+    "svEntityNumberOffset": 0,
+    "maxGentities": 1024,
+    "entityState": {"lastNetworkedMember": "generic1 at 292", "bytes": 296, "confirmedBy": "the shared half beginning there"},
+    "playerState": {"lastNetworkedMember": "offset 1364", "bytes": 1368, "confirmedBy": "the engine copying 1368 bytes whole, at three sites"},
+    "ping": "not measured from any delta table (this lineage does not send it); no offset claimed at this record, accessor refuses to write one",
+    "nineEntitySharedMembersNotDirectlyEvidenced": "placed at Quake III's spacing, which four evidenced members confirm at four separate offsets"
+  },
+  "importsServed": {"served": 43, "unserved": 178, "ofHandledByEngine": 221},
+  "notShown": [
+    "single player has not been started; its GetGameAPI table is unwritten",
+    "the runs at 200, 300, 400 and 500 had no names at the time",
+    "nothing is drawn, no packet is encoded, no client exists",
+    "calls that carry a Raven record are refused, not handed to a dispatcher that would read them at Quake III's offsets",
+    "one installation, one edition, one platform"
+  ]
+}

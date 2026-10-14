@@ -1,0 +1,149 @@
+{
+  "record": "2026-09-21-jka-contracts.md",
+  "date": "2026-09-21",
+  "companionAdded": "2026-10-14",
+  "kind": "Installation identity, executable observations and OpenJK reference observations for the Jedi Academy startup contracts",
+  "profiles": ["jka-sp", "jka-mp"],
+  "profileAliases": {
+    "jka-sp": ["jasp", "jediacademy-sp", "jedi-academy-sp"],
+    "jka-mp": ["jamp", "jediacademy-mp", "jedi-academy-mp"],
+    "titleKey": "jka (asks for a mode)"
+  },
+  "statusAtRecord": "experimental; default builds rejected the profiles, -Djka-development=true activated them for isolated probes",
+  "claims": "no Jedi Academy module, wire, savegame, asset or renderer boundary existed at this slice; no gameplay or interoperability claim",
+  "retail": {
+    "installation": "E:\\Games\\Jedi Academy",
+    "version": "1.01",
+    "versionInf": {"SPExtVersion": "1.01", "MPExtVersion": "1.01", "IntVersion": "6.0"},
+    "files": {
+      "jasp.exe": {"role": "single-player engine", "bytes": 1236992, "linked": "2003-10-24", "sha256": "9351a8de230fcd577e2b474889d08f38982450306767a6823dd659482566d6ce"},
+      "jamp.exe": {"role": "multiplayer engine", "bytes": 1527808, "linked": "2003-11-06", "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b"},
+      "jagamex86.dll": {"role": "single-player game and cgame", "bytes": 1802240, "linked": "2003-10-24", "sha256": "6b87b804137f56f3bb8901235788c735e6c36cf1bea42cab48dad7f2d15b6ee3"}
+    },
+    "observations": {
+      "singlePlayerModuleLocation": "installation root beside jasp.exe, not base/; exports GetGameAPI, dllEntry, vmMain",
+      "multiplayerModules": {
+        "location": "inside paks; base/ carries no loose module",
+        "assets2.pk3": ["jampgamex86.dll", "cgamex86.dll", "uix86.dll"],
+        "assets3.pk3": "1.01 patch; newer copies of all three",
+        "exports": "dllEntry and vmMain only (Quake III native shape)",
+        "method": "only the export tables were parsed; no module was loaded"
+      },
+      "configurationPak": "base/assets2.pk3",
+      "defaultCfg": {"bytes": 2178, "crc": "fb11a25b"},
+      "mpdefaultCfg": {"bytes": 2845, "crc": "4999454a"},
+      "mapPaks": ["assets0.pk3", "assets3.pk3"],
+      "writtenConfiguration": "base/jaconfig.cfg",
+      "qvm": "none in the installation's paks"
+    }
+  },
+  "reference": {
+    "name": "OpenJK",
+    "commit": "1a6a643427aa347553e9073dac5570b33337c4d9",
+    "commitDate": "2026-07-11",
+    "license": "GPL-2.0-or-later",
+    "use": "reference observation only; no implementation text incorporated",
+    "factKinds": {
+      "contractBound": "protocol numbers, module entry points and names, configstring layouts, limits, BSP identity",
+      "engineDefaultValues": "sv_pure, sv_maxclients, fraglimit and the userinfo defaults; each stays open until a retail observation confirms it"
+    },
+    "retailCompatibilityBranch": {"BASE_SAVE_COMPAT": "code/qcommon/q_shared.h:91", "effect": "defined by default; reserves the 96 configstrings a retail single-player build carries; fnTech3 follows it"}
+  },
+  "contracts": {
+    "jka-sp": {
+      "baseDirectory": "base, beside the executables",
+      "configuration": "jaconfig.cfg",
+      "dedicatedConfiguration": "jaconfig_server.cfg",
+      "protocol": 40,
+      "protocolScope": "loopback only",
+      "moduleAbi": "GetGameAPI function table plus the client game's dllEntry/vmMain from the same library",
+      "gameApiVersion": 10,
+      "nativeModule": "jagamex86.dll (game and client game; no menu module)",
+      "pureProof": "unavailable (no remote play)",
+      "bsp": {"identity": "RBSP", "version": 1, "lumps": 18, "installedMaps": 57},
+      "clients": 1,
+      "configstrings": {"total": 1300, "playersAt": 743},
+      "collisionSubmodels": 512,
+      "windowIconSource": "jasp.exe",
+      "serverDefaults": "no game type, one client slot, no frag limit",
+      "bots": "none; single player runs the game module's own AI and no bot library",
+      "userinfo": "name Jaden; no model key"
+    },
+    "jka-mp": {
+      "configuration": "jampconfig.cfg",
+      "dedicatedConfiguration": "jampconfig_server.cfg",
+      "protocol": 26,
+      "moduleAbi": "Quake III dllEntry/vmMain native shape, observed in all six installed modules",
+      "apiVersions": {"game": 1, "cgame": 2, "ui": 3},
+      "nativeModules": ["jampgamex86.dll", "cgamex86.dll", "uix86.dll"],
+      "pureProof": "native cgamex86.dll and uix86.dll (codemp/qcommon/files.cpp:1427)",
+      "bsp": {"identity": "RBSP", "version": 1, "lumps": 18},
+      "clients": 32,
+      "configstrings": {"total": 1700, "playersAt": 1131},
+      "collisionSubmodels": 512,
+      "windowIconSource": "jamp.exe",
+      "serverDefaults": {"g_gametype": 0, "sv_maxclients": 8, "fraglimit": 20, "timelimit": 0, "sv_pure": 0, "source": "OpenJK, unconfirmed by retail"},
+      "bots": {"enabled": true, "navigationWorlds": 1, "clientSlots": 32, "entitySlots": 1024, "botRate": 16384, "snapshotInterval": "none"},
+      "userinfo": {"name": "Padawan", "model": "kyle/default", "saberColours": {"color1": 4, "color2": 4}, "source": "OpenJK, unconfirmed by retail"}
+    },
+    "shared": {
+      "qvm": "none; codemp/qcommon has no VM back end to run one",
+      "steam": "none recorded; discovery reports no path rather than guessing an AppID or folder",
+      "bootCinematic": "none registered by the engine",
+      "entityHulls": "caller-supplied trace shape, as Quake III uses"
+    }
+  },
+  "installationIdentity": {
+    "pak": "base/assets2.pk3",
+    "rule": "exactly one default.cfg of 2178 bytes with CRC fb11a25b and exactly one mpdefault.cfg of 2845 bytes with CRC 4999454a, and no other title's companion name",
+    "detection": "reports that a mode must be chosen, as an RTCW or Elite Force installation with both modes does",
+    "notUsedForIdentity": ["cgamex86.dll", "uix86.dll"],
+    "notUsedBecause": "names Quake III and Quake Live installations carry too",
+    "test": "tests/jka_identity_tests.cpp"
+  },
+  "protocolSharing": {
+    "jka-sp": {"protocol": 40, "sharedWith": "Elite Force single player"},
+    "jka-mp": {"protocol": 26, "sharedWith": "ioEF and Lilium Voyager"},
+    "mechanism": "Com_ProtocolFamilyForVersion returns every family that uses the number; each profile admits only its own family",
+    "contractProfileFamilies": "code/qcommon/protocol_contract_profile.hpp",
+    "enforcedSince": "2026-09-26",
+    "enforcedBy": ["SV_DirectConnect", "client connectResponse"],
+    "beforeEnforcement": "the contract fnql::protocol::Find chose for a number was used without asking whose it was",
+    "checkedBy": "tests/game_profile_tests.cpp (no contract serves either Jedi title)"
+  },
+  "notClaimed": [
+    "Steam AppID, install directory or discovery behavior",
+    "retail pak identity, file count or asset inventory",
+    "wire codec (protocol 26 and 40 are registered numbers, not encoders)",
+    "module ABI (only module file names and entry-point shapes)",
+    "asset support (ICARUS scripts, .sav savegame format and Raven's shader extensions unimplemented at the slice)",
+    "renderer, audio or input contract"
+  ],
+  "laterRecords": {
+    "moduleNumbers": "2026-09-21-jka-module-abi.md",
+    "maps": "2026-09-21-jka-maps.md",
+    "models": "2026-09-21-jka-models.md",
+    "motionPaths": "2026-09-21-jka-roff.md",
+    "listenServerGameTypes": "2026-10-06-jedi-listen-server-game-types.md"
+  },
+  "openItems": [
+    {
+      "item": "game-type numbering",
+      "detail": "free-for-all is 0 but single player is 5 and team deathmatch 6 (codemp/game/bg_public.h:234); the inherited spmap set Quake III's single-player number, which would select Jedi Master",
+      "correction": "retail jamp.exe 1.01 registers spmap, which selects 5, and fnTech3's now does the same (2026-10-06-jedi-listen-server-game-types.md)"
+    },
+    {
+      "item": "OpenJK-sourced engine defaults",
+      "detail": "sv_pure, sv_maxclients, fraglimit and the userinfo defaults stay open until a retail observation confirms each one"
+    },
+    {
+      "item": "delta override files",
+      "detail": "netf_overrides.txt and psf_overrides.txt (ext_data/MP/ in assets1.pk3) are name-keyed overrides, not the delta tables: 130 entity fields listed where the engine's table has 132, 143 player fields where it has 152, different order, and disagreeing widths (entity weapon is 8 bits in the table and 32 in the file); the wire codec has to take its table from the engine contract and carry the override mechanism (codemp/qcommon/msg.cpp:1889)"
+    },
+    {
+      "item": "single-player userinfo",
+      "detail": "sex, snd and handicap (code/client/cl_main.cpp:1296-1301) are savegame-carried and belong to the single-player client slice"
+    }
+  ],
+  "tests": ["tests/jka_identity_tests.cpp", "tests/game_profile_tests.cpp"]
+}

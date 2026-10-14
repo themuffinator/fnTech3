@@ -1,0 +1,204 @@
+{
+  "record": "2026-09-22-jk2-records.md",
+  "date": "2026-09-22",
+  "companionAdded": "2026-10-14",
+  "kind": "Static measurement of retail jk2mp.exe and vm/jk2mpgame.qvm, plus developer-server bot runs against the retail QVM",
+  "profiles": ["jk2-mp"],
+  "installation": "legitimate retail Jedi Outcast 1.02a, read and never written",
+  "sourceAvailability": "Raven released no multiplayer source for this title; every number read out of the retail binaries",
+  "claims": "shape of two records, the offset of one field, a count of which imports exist; no packet encoded, no entity converted, no gameplay, rendering or wire claim",
+  "entityState": {
+    "bytes": 296,
+    "members": 74,
+    "deltaTable": {"executable": "jk2mp.exe", "fileOffset": "0xf5ab0", "triples": 73, "triple": "{ name, offset, bits }", "coverage": "every four-byte slot from 4 to 292 with no gap"},
+    "offset0": "number, not delta-coded",
+    "lastMember": {"name": "generic1", "offset": 292, "bytes": 4},
+    "typing": "zero bits means float (trBase, trDelta, both angle vectors, both origins, speed); 1 to 32 bits means integer",
+    "frozenIn": "code/compat/jk2_game_abi.h",
+    "heldBy": "tests/jk2_abi_layout_tests.cpp (every offset, width and kind at compile time)",
+    "notJka": {"jk2Bytes": 296, "jkaBytes": 532, "diverge": "from bolt1 onwards", "sharedNames": ["saberMove", "forcePowersActive", "trickedentindex"]},
+    "engineHalf": {
+      "bytesAfterState": 100,
+      "linkRoutine": "0x4502d0",
+      "unlinkRoutine": "0x450270",
+      "evidenced": {
+        "linked": {"engineOffset": "0x128", "reading": "mov [esi+0x128], 1 on link, zeroed on unlink"},
+        "linkcount": {"engineOffset": "0x12c", "reading": "inc dword [esi+0x12c]"},
+        "bmodel": "tested at [esi+0x138]",
+        "mins": "read at 0x13c-0x144",
+        "maxs": "read at 0x148-0x150",
+        "contents": "tested at [esi+0x154]",
+        "absmin": "written at 0x158",
+        "absmax": "written at 0x164",
+        "currentOrigin": "read at 0x170-0x178",
+        "currentAngles": "read at 0x17c-0x184"
+      },
+      "relativeOffsets": [0, 4, 16, 20, 32, 44, 48, 60, 72, 84],
+      "placedNotEvidenced": {
+        "members": ["svFlags", "singleClient", "ownerNum"],
+        "offsets": [8, 12, 96],
+        "basis": "offsets not in doubt (only free slots); which member sits where is read from Quake III's order",
+        "headerMarking": "each line marked evidenced or placed"
+      }
+    }
+  },
+  "playerState": {
+    "bytes": 1368,
+    "deltaTable": {"fileOffset": "0xf5e20", "triples": 105, "range": "0 to 1364", "last": "lastHitLoc[2] at 1364, four bytes"},
+    "ping": {
+      "offset": 484,
+      "hex": "0x1e4",
+      "evidence": "the one place the engine writes it: jk2mp.exe ping pass stores ps->ping = cl->ping at [eax + 0x1e4]",
+      "pingPass": {"clamp": "cmp eax, 0x3e7 (999) at 0x44efe9", "store": "0x44efee mov [esi], eax", "fallback": "0x44eff2 mov dword ptr [esi], 0x3e7", "accessorCall": "0x44effd call 0x44a720", "copy": "0x44f007 mov [eax + 0x1e4], edx"},
+      "accessor": {"address": "0x44a720", "stride": "[0xb7a0cc]", "base": "[0xb7a0c8]"},
+      "notInDeltaTable": "no engine in this line delta-codes a ping"
+    },
+    "arrays": {
+      "stats": {"offset": 216, "elements": 16, "elementType": "short"},
+      "persistant": {"offset": 280, "elements": 16, "elementType": "short", "enginePrints": "PS_PERSISTANT"},
+      "powerups": {"offset": 344, "elements": 16, "elementType": "long", "enginePrints": "PS_POWERUPS"},
+      "ammo": {"offset": 408, "elements": 16, "elementType": "short", "enginePrints": "PS_AMMO"},
+      "namedBytes": 680,
+      "unnamedBytes": 688,
+      "holeFromDeltaTable": 276,
+      "unnamedHandling": "declared as unnamed spans; the reader does not carry them; deliberately no way to write one"
+    }
+  },
+  "gameImports": {
+    "method": "negative constants called by the QVM (system call number is -1 - address); argument count is the widest OP_ARG offset written before the call",
+    "module": "vm/jk2mpgame.qvm",
+    "distinctImports": 97,
+    "runs": {
+      "0": {"count": 42, "numbers": "0-26, 28, 30-34, 36-39, 42, 47-50"},
+      "100": {"count": 9, "numbers": "100-106, 110, 111"},
+      "200": {"count": 5, "numbers": "200, 201, 209, 210, 211"},
+      "300": {"count": 1, "numbers": "303"},
+      "400": {"count": 16, "numbers": "400, 401, 406-409, 411, 414, 416-419, 421, 422, 424, 425"},
+      "500": {"count": 24, "numbers": "525, 526, 542, 546-548, 551, 555, 556, 561-563, 584, 586-593, 595, 596, 599"}
+    },
+    "engineHandles": 221,
+    "comparisonWithJka": {
+      "jkaImportsCounted": 150,
+      "numbersBothCall": 70,
+      "agreeOnArgumentCount": 41,
+      "elementaryActionBlock400to425": "agrees on every one of the 16 both call",
+      "aiStateBlock": {"agrees": "11 of 11", "numbers": [525, 526, 546, 547, 548, 551, 555, 556, 561, 562, 563]},
+      "block0": "does not agree; G_CVAR_REGISTER is four arguments in Academy and two in Outcast, G_FS_FCLOSE_FILE one and five",
+      "ghoul2Block584Up": "587 matches at nine arguments; 589, 590, 591, 595 and 596 differ",
+      "caveat": "agreeing argument counts are evidence for a correspondence, not proof; no import is served on that strength alone"
+    }
+  },
+  "bots": {
+    "installationShips": {"jkbCharacters": 35, "botsTxt": true, "aasFiles": 0, "maps": 41, "quake3ConfigFilesAbsent": ["items.c", "weapons.c", "syn.c", "rnd.c", "match.c"]},
+    "profileCorrection": "claimed COM_BOT_AI_QUAKE before; now says what was measured, as Academy's does"
+  },
+  "firstRun": {
+    "handlers": {
+      "23": {"arguments": 2, "pointers": 2, "meaning": "a brush model, by entity and name"},
+      "24": {"arguments": 9, "pointers": 5, "meaning": "the trace", "address": "0x450b00"},
+      "25": {"arguments": 2, "pointers": 1, "meaning": "contents at a point"},
+      "26": {"arguments": 2, "pointers": 2, "meaning": "whether two points share a visibility set"},
+      "28": {"arguments": 2, "pointers": 1, "meaning": "an area portal's state"},
+      "30": {"arguments": 1, "pointers": 1, "meaning": "calls 0x4502d0 (link)"},
+      "31": {"arguments": 1, "pointers": 1, "meaning": "calls 0x450270 (unlink)"},
+      "32": {"arguments": 4, "pointers": 3, "meaning": "entities in a box"},
+      "33": {"arguments": 3, "pointers": 3, "meaning": "whether one entity touches a box"}
+    },
+    "moduleArgumentCountsAgreeWithQuake3": "for all thirty-one numbers of the first run it calls"
+  },
+  "trace": {
+    "fractionOffset": 8,
+    "entityNumOffset": 52,
+    "moduleArguments": 7,
+    "jkaModuleArguments": 9,
+    "jkaTraceBytes": 48,
+    "conclusion": "Outcast's trace is Quake III's record; Academy's is not",
+    "passEntityMinusOne": {
+      "retailComparison": "pass entity compared only against 1023, so -1 reads the entity array at index -1",
+      "fnTech3Reading": "no pass entity, said deliberately rather than reproducing an out-of-bounds read",
+      "served": "on its own, not handed to the shared dispatcher"
+    }
+  },
+  "motionPaths": {"outcastImports": "47-51", "academyImports": "52-56", "evidence": "trap 48's routine reports ^1ROFF System Error: and references the ROFF name; argument counts agree with Academy's block member for member", "startingAPathLeftRefused": true},
+  "run200": {
+    "role": "bot library setup and shutdown, where Academy's run is navigation (twenty-three imports)",
+    "handler200": "checks bots enabled, then library bound, else prints Error: SV_BotLibSetup without SV_BotInitBotLib, then tail-jumps into the library's setup",
+    "moduleCalls": [200, 201, 209, 210, 211],
+    "matches": "Quake III's setup, shutdown, snapshot entity, console message and user command argument counts"
+  },
+  "moduleState": {
+    "loadsFromPak": true,
+    "initializes": true,
+    "gamedate": "Mar 04 2002",
+    "items": 21,
+    "botsParsed": 29,
+    "arenasParsed": 15,
+    "map": "ffa_bespin",
+    "frameLoop": true,
+    "importsRefused": 0,
+    "leftRefused": "starting a recorded motion path"
+  },
+  "run500": {
+    "dispatcher": {"byteIndexTable": "0x44cc50", "jumpTable": "0x44c8d8"},
+    "handlers": [
+      {"import": 584, "arguments": 1, "pointers": 0, "passesTo": "answered inline"},
+      {"import": 586, "arguments": 9, "pointers": 5, "passesTo": "0x4a7620"},
+      {"import": 587, "arguments": 9, "pointers": 5, "passesTo": "0x4a7620"},
+      {"import": 588, "arguments": 7, "pointers": 2, "passesTo": "0x4a6e90"},
+      {"import": 589, "arguments": 3, "pointers": 1, "passesTo": "0x4a75a0"},
+      {"import": 590, "arguments": 3, "pointers": 0, "passesTo": "0x4a75f0"},
+      {"import": 591, "arguments": 11, "pointers": 3, "passesTo": "0x4a7520"},
+      {"import": 592, "arguments": 10, "pointers": 1, "passesTo": "0x4a7440"},
+      {"import": 593, "arguments": 3, "pointers": 1, "passesTo": "0x4a7d80"},
+      {"import": 595, "arguments": 4, "pointers": 0, "passesTo": "0x4a7bf0"},
+      {"import": 596, "arguments": 2, "pointers": 1, "passesTo": "0x4a7ce0"},
+      {"import": 599, "arguments": 1, "pointers": 1, "passesTo": "0x4a6e00"}
+    ],
+    "argumentCountAgreementWithQvm": "twelve handlers; eleven for eleven that the bytecode writes",
+    "import588": {"meaning": "Ghoul2 model initializer", "served": true, "equivalentInJka": 590},
+    "imports586and587": "share one routine, nine arguments with five pointers, the shape of Academy's two bolt-position calls at 587 and 589; recorded and not served"
+  },
+  "botImports": {
+    "servedAfterRetailHandlerReading": [
+      {"imports": "34, 35", "meaning": "Quake III's bot client allocate and free", "academy": "38, 39"},
+      {"import": 584, "meaning": "walks the instance's models, true at the first not removed", "academy": 585},
+      {"import": 589, "meaning": "bounds-checks the model index, hands a name to a lookup over two lists", "academy": 593},
+      {"import": 590, "meaning": "bounds-checks the same way, stores one int inside the model", "academy": 594},
+      {"imports": "525-563", "count": 11, "meaning": "reach the bot-library export table at 0xb0d230", "academy": "the same eleven"}
+    ],
+    "exportTable": "0xb0d230",
+    "slotsRead": ["0x198", "0x19c", "0x1c0", "0x1dc"],
+    "elementaryActionSlots": {"move": "0xac", "view": "0xb0", "getInput": "0xb8", "resetInput": "0xbc"},
+    "import209": "snapshot entity; stays refused because there are no snapshots",
+    "import210": "console message",
+    "import211": "computes &clients[n] by the client stride; the engine's own client think"
+  },
+  "usercmd": {
+    "bytes": 28,
+    "memberBytes": 27,
+    "engineCopy": "rep movsd of seven dwords; the engine never reads a field",
+    "builder": "0x4076c0",
+    "fields": [
+      {"offset": 0, "field": "serverTime"},
+      {"offsets": "4, 8, 12", "field": "view angles"},
+      {"offset": 16, "field": "buttons"},
+      {"offset": 20, "field": "weapon"},
+      {"offset": 21, "field": "forcesel"},
+      {"offset": 22, "field": "invensel"},
+      {"offset": 23, "field": "generic_cmd", "evidence": "global cleared right after the write; fires once"},
+      {"offsets": "24-26", "field": "the three moves"}
+    ],
+    "sameShapeAsJka": true,
+    "quake3Bytes": 24
+  },
+  "botMatch": {
+    "result": "two bots play a retail Jedi Outcast multiplayer match with nothing refused",
+    "map": "ffa_bespin",
+    "seconds": 90,
+    "bots": ["Reborn", "Tavion"],
+    "itemsCollected": 17,
+    "itemsDescribed": "blasters, a rocket launcher, a flechette, ammunition and a medpac",
+    "command": "addbot Reborn 3"
+  },
+  "notSaid": "no gameplay, rendering or wire claim; no packet is encoded, no entity is converted and no level spawns for this title yet (as written in the record)"
+}

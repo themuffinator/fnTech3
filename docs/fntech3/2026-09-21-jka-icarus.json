@@ -1,0 +1,160 @@
+{
+  "record": "2026-09-21-jka-icarus.md",
+  "date": "2026-09-21",
+  "companionAdded": "2026-10-14",
+  "kind": "Corpus observations over one legitimate retail installation's compiled ICARUS scripts, plus unit tests of two bounded readers",
+  "profiles": ["jka-sp", "jka-mp"],
+  "scope": "container and value structure only; nothing is interpreted, no block number is given behaviour",
+  "retail": {
+    "installation": "legitimate retail 1.01 (base/ paks shared by both modes)",
+    "scripts": {
+      "stored": 1018,
+      "storedBytes": 1122906,
+      "smallestBytes": 8,
+      "largestBytes": 27083,
+      "distinctPaths": 1011,
+      "pak": "assets0.pk3",
+      "supersededByPatch": 7,
+      "supersededFrom": {"assets2.pk3": 6, "assets3.pk3": 1},
+      "visibleToEngine": 1011
+    }
+  },
+  "container": {
+    "identifier": "IBI\\0",
+    "versionFloat": 1.57,
+    "versionBits": "0x3FC8F5C3",
+    "scriptsWithHeader": 1018,
+    "blockHeaderBytes": 9,
+    "blockByteAfterCount": "0 in every block of every installed script",
+    "memberHeaderBytes": 8,
+    "storedScripts": {"blocks": 26512, "members": 52699, "payloadBytes": 454562, "parsedExactly": 1018, "trailingBytes": 0},
+    "engineVisibleScripts": {"blocks": 25987, "members": 51567, "payloadBytes": 444454},
+    "headerOnlyScripts": 10,
+    "longestScriptBlocks": 648,
+    "mostVariedScriptBlockNumbers": 16
+  },
+  "blockNumbers": {
+    "occurring": [19, 20, 21, 22, 23, 25, 26, 27, 29, 30, 31, 32, 33, 34, 35, 38, 39, 41, 42, 43, 44, 46, 47, 48],
+    "count": 24,
+    "fixedShapeCount": 22,
+    "variableShapes": {"21": "two or three values", "35": "one, three, four or six values"},
+    "fixedExamples": {"26": "two values", "23": "one value", "25": "no values"}
+  },
+  "members": {
+    "4": {"count": 23722, "payload": "terminated text, 2 to 242 bytes"},
+    "6": {"count": 23184, "payload": "4 bytes, 2551 distinct float values"},
+    "7": {"count": 1130, "payload": "terminated text, 10 to 18 bytes, nine distinct uppercase names"},
+    "14": {"count": 2832, "payload": "4 bytes, always float 14"},
+    "15": {"count": 48, "payload": "4 bytes, always float 0"},
+    "16": {"count": 3, "payload": "4 bytes, always float 0"},
+    "17": {"count": 146, "payload": "4 bytes, always float 0"},
+    "18": {"count": 8, "payload": "4 bytes, always float 0"},
+    "36": {"count": 326, "payload": "4 bytes, always float 36"},
+    "37": {"count": 169, "payload": "4 bytes, always float 16777216"},
+    "49": {"count": 1131, "payload": "4 bytes, always float 49"}
+  },
+  "valueGroupRules": {
+    "values": {
+      "4, 6, 7": "itself: text, a float, a name",
+      "14": "itself and three member-6 floats",
+      "36": "itself, a member-6 float and member-4 text",
+      "37": "itself and two member-6 floats",
+      "49": "itself, one whole value group, and a member-6 float"
+    },
+    "operators": {"members": [15, 16, 17, 18], "consumes": "itself and one whole value group"},
+    "blocksConsumedExactly": 26512,
+    "blocksRefused": 0,
+    "operatorsEndingTheirBlock": {"endingBlock": 205, "of": 205},
+    "operatorBlock": {"block": 38, "occurrences": 205, "memberCountsByOperator": {"15": 48, "16": 3, "17": 146, "18": 8}},
+    "member36Types": {"values": [4, 6, 14], "counts": {"4": 149, "6": 175, "14": 2}, "total": 326},
+    "member37Ranges": {"groups": 169, "firstStrictlyBelowSecond": 169, "examples": ["(500, 1500)", "(1500, 3500)"]},
+    "member49Names": {"asText": 1083, "asMember36Group": 48}
+  },
+  "valueReaderOverInstallation": {
+    "scripts": 1011,
+    "refusals": 0,
+    "statements": 25987,
+    "valuesGrouped": 39854,
+    "members": 51567,
+    "comparisons": 200,
+    "ranges": 169
+  },
+  "tree": {
+    "openers": [19, 27, 38, 39, 41],
+    "closer": 25,
+    "scriptsNestingExactly": 1011,
+    "maximumDepth": 12,
+    "columnRankMatrix": "1011 scripts by 23 block numbers has full column rank, so the five openers with coefficient one and every other number zero is the only solution",
+    "blocks41and42": {"block41Names": 1072, "block42Names": 1083, "distinct41": 525, "distinct42": 515, "note": "both carry one name from the same vocabulary; only 41 opens a body"}
+  },
+  "selfDescribingBlocks": {
+    "20": {"payloads": 1130, "installedSoundFiles": 1117, "notShipped": 13, "unshippedPaths": 9, "oneHasNoExtension": true},
+    "48": {"total": 109, "firstStringAlways": "PLAY_ROFF", "namingInstalledMotionPath": 109, "pathConvention": "scripts/ directory and .rof extension resolve every one"},
+    "32": {"total": 61, "namingInstalledScript": 61},
+    "26": {"leadingStrings": 6965, "beginningSET_": 6850}
+  },
+  "member7Vocabulary": ["CHAN_AMBIENT", "CHAN_ANNOUNCER", "CHAN_AUTO", "CHAN_ITEM", "CHAN_LESS_ATTEN", "CHAN_VOICE", "CHAN_VOICE_ATTEN", "CHAN_VOICE_GLOBAL", "CHAN_WEAPON"],
+  "member7Note": "four of the nine are channels Quake III does not have",
+  "nameSpaces": {
+    "mapEntities": {
+      "34": {"matched": 498, "of": 527},
+      "30": {"matched": 1128, "of": 1197},
+      "19": {"matched": 1114, "of": 1457, "playerExtraNeverInMap": 125},
+      "note": "rates are floors; folders with no same-named map are left out"
+    },
+    "scriptDeclared": {"blocks": [42, 23], "declaredBy": 41, "counts": {"42": 1071, "23": 926}, "exceptions": 0, "crossScript": 0},
+    "levelShared": {"blocks": [46, 47], "block47NamesAlsoBlock46": 509, "of": 510, "sameScript": 483, "otherScriptSameFolder": 26}
+  },
+  "ravenNumbers": {
+    "source": "Raven's released sources as carried by the pinned OpenJK port; read only after derivation",
+    "agreement": "every derived number agrees",
+    "file": "code/compat/jka_icarus_ids.def",
+    "named": {
+      "4": "TK_STRING", "6": "TK_FLOAT", "7": "TK_IDENTIFIER", "14": "TK_VECTOR",
+      "15-18": ["TK_GREATER_THAN", "TK_LESS_THAN", "TK_EQUALS", "TK_NOT"],
+      "36": "ID_GET", "37": "ID_RANDOM", "49": "ID_TAG", "25": "ID_BLOCK_END",
+      "openers 19, 27, 38, 39, 41": ["ID_AFFECT", "ID_LOOP", "ID_IF", "ID_ELSE", "ID_TASK"],
+      "20": "ID_SOUND", "48": "ID_PLAY", "32": "ID_RUN", "26": "ID_SET",
+      "30, 34": ["ID_USE", "ID_REMOVE"], "41, 42, 23": ["ID_TASK", "ID_DO", "ID_WAIT"],
+      "46, 47": ["ID_SIGNAL", "ID_WAITSIGNAL"], "35": "ID_CAMERA"
+    },
+    "namedButNeverCompiled": ["ID_BLOCK_START", "ID_LOOPEND", "ID_REM", "ID_DOWAIT", "ID_EOF"],
+    "versionChecked": {"value": 1.57, "rule": "compared for equality by Raven's reader; refusing anything else"},
+    "typeEnumeration": {
+      "range": "51 to 70",
+      "positions": {
+        "ID_AFFECT second": {"counts": [1503, 201], "names": ["TYPE_FLUSH", "TYPE_INSERT"]},
+        "ID_MOVE third": {"count": 328, "names": ["TYPE_ORIGIN"]},
+        "ID_SET sixth": {"counts": [2, 2], "names": ["TYPE_ORIGIN", "TYPE_ANGLES"]},
+        "ID_CAMERA first": {"count": 2760, "distinctValues": 9, "names": ["TYPE_MOVE", "TYPE_PAN", "TYPE_ZOOM", "TYPE_FADE", "TYPE_ENABLE", "TYPE_DISABLE", "TYPE_SHAKE", "TYPE_FOLLOW", "TYPE_PATH"]},
+        "ID_DECLARE first": {"counts": [45, 10, 5], "names": ["TK_FLOAT", "TK_STRING", "TK_VECTOR"]}
+      }
+    }
+  },
+  "readers": {
+    "container": {
+      "file": "code/compat/jka_icarus_format.hpp",
+      "guarantees": [
+        "identifier must match and version must match to the bit",
+        "member count larger than the remaining bytes can hold is refused as a count",
+        "negative count or payload size refused before arithmetic",
+        "payload must lie inside the file",
+        "file must end exactly where its last member does",
+        "empty block still offered to the caller",
+        "text only when ending in exactly one terminator and holding none before it"
+      ]
+    },
+    "values": {"file": "code/compat/jka_icarus_values.hpp", "refuses": ["member number this corpus never used", "group running off its block", "type number naming no kind of value", "comparison anywhere but last"]},
+    "installationSweep": {"scriptsRead": 1011, "refusals": 0, "otherAssetsAlreadyCovered": 342, "assetsInOnePass": 1353, "rejected": 0}
+  },
+  "tests": ["tests/jka_icarus_tests.cpp"],
+  "testsNote": "the test writes its own scripts; no retail file is used in the test",
+  "notShown": [
+    "no block or member number is named or acted on; structure is not meaning",
+    "neither reader enforces nesting",
+    "a grammar with no exceptions over 52699 members is strong evidence, not a specification; another installation, a mod's scripts or a different compiler could carry unseen member numbers",
+    "the engine still refused G_ICARUS_INIT and every other ICARUS import at this slice",
+    "single player's scripts were not examined separately",
+    "the byte after each member count is 0 everywhere, so nothing is known about another value"
+  ]
+}
