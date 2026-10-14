@@ -1446,6 +1446,7 @@ static void RB_SurfaceAxis( void ) {
 //===========================================================================
 
 #include "../renderercommon/tr_stvef_surface.h"
+#include "../renderercommon/tr_jka_surface.h"
 
 /*
 ====================
@@ -1482,7 +1483,7 @@ static void RB_SurfaceEntity( const surfaceType_t *surfType ) {
 		break;
 	default:
 		// RTCW and ET draw a tapered rail core as this debug axis too.
-		if ( !RB_SurfaceSTVEF() ) {
+		if ( !RB_SurfaceSTVEF() && !RB_SurfaceJKA() ) {
 			RB_SurfaceAxis();
 		}
 		break;

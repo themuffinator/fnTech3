@@ -19,6 +19,14 @@ historical upstream records, not fnTech3 release history. See the
 - Resolve installation icon paths through Windows file handles before checking
   containment, preventing MinGW from accepting an external junction target
   ([record](docs/fntech3/2026-10-11-icon-containment.md)).
+- Fade Medal of Honor's sound when a level ends or restarts, as the game asks.
+  The command had reached the client game, which reported it as unknown, and
+  the loading bar now recognises model definitions that are already loaded
+  ([record](docs/fntech3/2026-10-14-compatibility-round.md)).
+- Draw Jedi Academy's lightsaber glow and core lines as the original renderer
+  builds them, checked against its own vertices; a recorded match no longer
+  stops at the first lit saber
+  ([record](docs/fntech3/2026-10-14-compatibility-round.md)).
 
 ## [0.1.0] - 2026-10-11
 

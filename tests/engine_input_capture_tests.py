@@ -411,6 +411,7 @@ static void CL_SetDemoRecordingCvars(const char *) {}
 static void CL_WriteGamestate(qboolean) {}
 static void S_AliceMusicFreeAll() {}
 static void S_AliceFadeSound(float) {}
+static void S_MOHAAFadeSound(float) {}
 struct ScopedFileHandle {};
 static int OpenPureFileRead(const char *, ScopedFileHandle &) { return -1; }
 static void CL_StopRecord_f() { clc.demorecording = qfalse; }

@@ -32,6 +32,7 @@ extern "C" {
 #include "../client_cpp.h"
 #include "snd_rtcw.h"
 #include "shared/JKAMusicPreload.h"
+#include "shared/MOHAAFade.h"
 #include "../../compat/jka_game_abi.h"
 #include "../client_jka_sound.hpp"
 
@@ -676,6 +677,27 @@ bool S_MOHAANamedRoom( int *type, float *level )
 	if ( level ) *level = mohaaReverbLevel;
 	return Com_GameIsMOHAA() && s_mohaaReverb && s_mohaaReverb->integer != 0 && mohaaReverbLevel > 0.0f
 		&& mohaaReverbType >= 0 && mohaaReverbType < 26;
+}
+
+/* Medal of Honor's `fadesound` (shared/MOHAAFade.h), timed on the client's
+ * real clock as 2015's engine times it; both backends scale their whole mix,
+ * music included, by its gain. */
+static fntech3::audio::mohaa::Fade mohaaFade;
+
+extern "C" void S_MOHAAFadeSound( float ms )
+{
+	if ( !Com_GameIsMOHAA() ) {
+		return;
+	}
+	if ( ms > 0.0f || mohaaFade.Active() ) {
+		Com_DPrintf( "Medal of Honor sound fade: %.2f ms\n", static_cast<double>( ms ) );
+	}
+	mohaaFade.Start( ms, cls.realtime );
+}
+
+extern "C" float S_MOHAAFadeGain( void )
+{
+	return Com_GameIsMOHAA() ? mohaaFade.Gain( cls.realtime ) : 1.0f;
 }
 
 extern "C" void S_AddSTVEFAmbientLoopingSound( const vec3_t origin, sfxHandle_t sfx, int volume )

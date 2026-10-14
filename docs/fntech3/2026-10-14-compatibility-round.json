@@ -1,0 +1,1735 @@
+{
+ "record": "docs/fntech3/2026-10-14-compatibility-round.md",
+ "date": "2026-10-14",
+ "baseHead": "b0566581df4bd21c9e6ad5cf4153428ad37113c1",
+ "platform": "Windows 11 x86 build, MSVC 2022 14.44 (x86), clang (i686-pc-windows-msvc) for fixtures",
+ "build": {
+  "tree": "git archive of HEAD plus .tmp/round-2026-10-14/overlay.py export (this round only)",
+  "directory": ".tmp/round-2026-10-14/export/build-win32",
+  "options": [
+   "--buildtype=debugoptimized",
+   "-Db_vscrt=static_from_buildtype",
+   "-Dstrict-warnings=true",
+   "-Drenderer-dlopen=true",
+   "-Drenderers=glx,vk,rtx",
+   "-Drenderer-default=glx",
+   "-Dbuild-client=true",
+   "-Dbuild-server=true",
+   "--wrap-mode=nodownload"
+  ],
+  "targets": 1258,
+  "jobs": 4,
+  "firstAttempt": "failed at full parallelism: compiler out of heap space (commit charge exhausted while another process held about 13.6 GB private)",
+  "runtimeAfter": {
+   "folder": ".tmp/runtime/round-1014-after",
+   "sha256": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "275c1905d942cc118e9226509a2260a9689d12681a2ebb035419c2c1d0baecd5",
+    "fnql_rtx_x86.dll": "0e3bc70446c98664d206db1f24a709598997d73041755835a5021b8045d97f64",
+    "fnql_vk_x86.dll": "2b5ad4035e86e006e6e03230b891bbba97b12ae559600f9aac4ecd335b2e0485",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+    "fntech3.ded.exe": "a96c89e538a86f75a802b3c687515298bab1a84b2b794998dc564933ed713f80",
+    "fntech3.exe": "e048d976652c9426bcb488e0aaebe7a9e6c161c56a1e4ec1eb589019cecc1229",
+    "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+   }
+  },
+  "runtimeBefore": {
+   "folder": ".tmp/runtime/round-1014-before",
+   "differsBy": "HEAD's code/client/cl_mohaa_cgame.cpp (import 118) only",
+   "sha256": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "275c1905d942cc118e9226509a2260a9689d12681a2ebb035419c2c1d0baecd5",
+    "fnql_rtx_x86.dll": "0e3bc70446c98664d206db1f24a709598997d73041755835a5021b8045d97f64",
+    "fnql_vk_x86.dll": "2b5ad4035e86e006e6e03230b891bbba97b12ae559600f9aac4ecd335b2e0485",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+    "fntech3.exe": "75cd694c1ba5f4fdc06c188041571b85cb100741d1cb0350f9949edfd6206430",
+    "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+   }
+  }
+ },
+ "mohaaSoundFades": {
+  "retail": {
+   "game": {
+    "file": "main/gamex86.dll",
+    "sha256": "2f37ead1a91aae850dd8cdb29c6b5774864f6ae8654fb79d3593e45d9d3fc55c",
+    "format": {
+     "address": "0x311d64ac",
+     "text": "fadesound %0.2f"
+    },
+    "fadeRoutine": "0x310e38e0 (seconds times the float 1000 at 0x3119f4f0, sent to client 0)",
+    "intermissionWithTime": "0x310e3910",
+    "intermissionCancel": "0x310e3a10 (fadesound 0.00)"
+   },
+   "clientGame": {
+    "file": "main/cgamex86.dll",
+    "sha256": "cb2be40ce4d9248234652d44bbb02c41b0438886b34de56e5de9910f16679c2c",
+    "fadesoundStrings": 0
+   }
+  },
+  "reconstruction": "OpenMoHAA ab43a0de code/client/cl_cgame.cpp CL_ProcessServerCommand, snd_openal_new.cpp S_FadeSound/S_Update, cl_ui.cpp UI_ServerLoaded/UI_ClearState [O]",
+  "parentEngine": "alice.exe 0x004241f6 (fnTech3 CL_AliceGetServerCommand)",
+  "headLogs": [
+   ".tmp/ubertools-round-2026-10-02/map-sweep/logs/mohaa_void-console.log",
+   ".tmp/mohaa-effects/baseline2/home/main/qconsole.log"
+  ],
+  "files": [
+   "code/client/audio/shared/MOHAAFade.h",
+   "code/client/audio/snd_main.cpp",
+   "code/client/audio/snd_public.h",
+   "code/client/audio/snd_local.h",
+   "code/client/audio/legacy/snd_mix.cpp",
+   "code/client/audio/legacy/snd_dma.cpp",
+   "code/client/audio/openal/AudioSystemBackend.inl",
+   "code/client/cl_mohaa_cgame.cpp",
+   "code/client/cl_main.cpp"
+  ],
+  "tests": [
+   "tests/mohaa_sound_fade_tests.py",
+   "tests/engine_input_capture_tests.py",
+   "tests/rtcw_music_fixture.py",
+   "tests/alice_audio_backend_tests.py"
+  ],
+  "live": {
+   "observed": {
+    "path": ".tmp/round-2026-10-14/mohaa-fade/after-1",
+    "map": "m1l1",
+    "trigger": "cmd kill",
+    "serverFadeCommands": [
+     "fadesound 4000.00"
+    ],
+    "engineFadeStarts": [
+     "4000.00",
+     "0.00"
+    ],
+    "unknownFadesoundLines": 0,
+    "gainsEachSecond": [
+     [
+      6.0,
+      1.0
+     ],
+     [
+      8.0,
+      1.0
+     ],
+     [
+      9.0,
+      1.0
+     ],
+     [
+      10.0,
+      1.0
+     ],
+     [
+      11.0,
+      1.0
+     ],
+     [
+      12.0,
+      1.0
+     ],
+     [
+      13.0,
+      0.77
+     ],
+     [
+      14.0,
+      0.52
+     ],
+     [
+      15.0,
+      0.27
+     ],
+     [
+      16.0,
+      0.02
+     ],
+     [
+      17.0,
+      0.0
+     ],
+     [
+      30.0,
+      1.0
+     ]
+    ],
+    "capture": {
+     "device": "OpenAL Soft wave writer",
+     "rate": 48000,
+     "channels": 2,
+     "bits": 32,
+     "sha256": "19516c74110a4beef61ab110e92640c55718e9e3c3d367d530f67f2f4024aa02",
+     "rms100ms": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.01235,
+      0.01604,
+      0.01588,
+      0.01716,
+      0.0272,
+      0.02789,
+      0.04648,
+      0.06523,
+      0.05082,
+      0.05286,
+      0.07258,
+      0.06032,
+      0.05661,
+      0.05343,
+      0.06181,
+      0.07997,
+      0.07555,
+      0.09377,
+      0.09861,
+      0.09468,
+      0.08822,
+      0.08916,
+      0.09928,
+      0.10854,
+      0.27234,
+      0.21654,
+      0.27429,
+      0.19656,
+      0.23565,
+      0.20825,
+      0.1712,
+      0.16409,
+      0.16667,
+      0.18907,
+      0.15047,
+      0.14955,
+      0.14558,
+      0.13071,
+      0.12726,
+      0.18003,
+      0.15201,
+      0.16949,
+      0.22805,
+      0.28563,
+      0.26396,
+      0.23799,
+      0.18528,
+      0.15469,
+      0.17321,
+      0.16869,
+      0.15962,
+      0.17902,
+      0.13787,
+      0.13476,
+      0.20956,
+      0.12933,
+      0.1457,
+      0.16246,
+      0.19339,
+      0.22938,
+      0.17593,
+      0.24791,
+      0.19111,
+      0.23068,
+      0.31249,
+      0.25303,
+      0.16581,
+      0.27401,
+      0.29154,
+      0.30317,
+      0.25086,
+      0.16167,
+      0.18968,
+      0.12808,
+      0.14478,
+      0.23977,
+      0.23087,
+      0.15389,
+      0.16538,
+      0.19443,
+      0.1687,
+      0.15915,
+      0.15624,
+      0.15624,
+      0.1839,
+      0.20171,
+      0.20829,
+      0.20539,
+      0.2109,
+      0.21383,
+      0.21208,
+      0.18284,
+      0.15471,
+      0.12211,
+      0.10764,
+      0.12789,
+      0.107,
+      0.10849,
+      0.09309,
+      0.11577,
+      0.1058,
+      0.08941,
+      0.09391,
+      0.09688,
+      0.12017,
+      0.1789,
+      0.13549,
+      0.09721,
+      0.07433,
+      0.09553,
+      0.07123,
+      0.06497,
+      0.07718,
+      0.08301,
+      0.06746,
+      0.06641,
+      0.04905,
+      0.04073,
+      0.03366,
+      0.04293,
+      0.03829,
+      0.02949,
+      0.03322,
+      0.03047,
+      0.02361,
+      0.01684,
+      0.01694,
+      0.00845,
+      0.00572,
+      0.00268,
+      0.0007,
+      0.00038,
+      0.00026,
+      0.00018,
+      0.00013,
+      0.0001,
+      8e-05,
+      6e-05,
+      4e-05,
+      3e-05,
+      2e-05,
+      2e-05,
+      1e-05,
+      1e-05,
+      1e-05,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.00486,
+      0.01354,
+      0.01588,
+      0.017,
+      0.02041,
+      0.02682,
+      0.02691,
+      0.06631,
+      0.05636,
+      0.04944,
+      0.06058,
+      0.07135,
+      0.0563,
+      0.05889,
+      0.05438,
+      0.05978,
+      0.07448,
+      0.08281,
+      0.09908,
+      0.09178,
+      0.09732,
+      0.08576,
+      0.09489,
+      0.09475,
+      0.11338,
+      0.27929,
+      0.22045,
+      0.27304,
+      0.18694,
+      0.25084,
+      0.22152,
+      0.13943,
+      0.16028,
+      0.16768,
+      0.17943,
+      0.12876,
+      0.15442,
+      0.12558,
+      0.12884,
+      0.14582,
+      0.16481,
+      0.15685,
+      0.15301
+     ]
+    }
+   },
+   "killRunSummary": {
+    "round-1014-before": {
+     "runs": 7,
+     "receivedFadesound": 0
+    },
+    "round-1014-after": {
+     "runs": 7,
+     "receivedFadesound": 3
+    }
+   },
+   "killRuns": [
+    {
+     "path": ".tmp/round-2026-10-14/mohaa-fade/after-1",
+     "build": "round-1014-after",
+     "map": "m1l1",
+     "trigger": "cmd kill",
+     "probeExit": 0,
+     "serverFadeCommands": [
+      "fadesound 4000.00"
+     ],
+     "engineFadeStarts": [
+      "4000.00",
+      "0.00"
+     ],
+     "unknownFadesoundLines": 0,
+     "gainsBelowOne": [
+      [
+       13.0,
+       0.77
+      ],
+      [
+       14.0,
+       0.52
+      ],
+      [
+       15.0,
+       0.27
+      ],
+      [
+       16.0,
+       0.02
+      ],
+      [
+       17.0,
+       0.0
+      ]
+     ],
+     "installationUnchanged": true,
+     "binariesUnchanged": true
+    },
+    {
+     "path": ".tmp/round-2026-10-14/mohaa-fade/after-2",
+     "build": "round-1014-after",
+     "map": "m1l1",
+     "trigger": "cmd kill",
+     "probeExit": 0,
+     "serverFadeCommands": [],
+     "engineFadeStarts": [],
+     "unknownFadesoundLines": 0,
+     "gainsBelowOne": [],
+     "installationUnchanged": true,
+     "binariesUnchanged": true
+    },
+    {
+     "path": ".tmp/round-2026-10-14/mohaa-fade/after-6",
+     "build": "round-1014-after",
+     "map": "m1l1",
+     "trigger": "cmd kill",
+     "probeExit": 0,
+     "serverFadeCommands": [],
+     "engineFadeStarts": [],
+     "unknownFadesoundLines": 0,
+     "gainsBelowOne": [],
+     "installationUnchanged": true,
+     "binariesUnchanged": true
+    },
+    {
+     "path": ".tmp/round-2026-10-14/mohaa-fade/batch-after-0",
+     "build": "round-1014-after",
+     "map": "m1l1",
+     "trigger": "cmd kill",
+     "probeExit": 0,
+     "serverFadeCommands": [],
+     "engineFadeStarts": [],
+     "unknownFadesoundLines": 0,
+     "gainsBelowOne": [],
+     "installationUnchanged": true,
+     "binariesUnchanged": true
+    },
+    {
+     "path": ".tmp/round-2026-10-14/mohaa-fade/batch-after-1",
+     "build": "round-1014-after",
+     "map": "m1l1",
+     "trigger": "cmd kill",
+     "probeExit": 0,
+     "serverFadeCommands": [],
+     "engineFadeStarts": [],
+     "unknownFadesoundLines": 0,
+     "gainsBelowOne": [],
+     "installationUnchanged": true,
+     "binariesUnchanged": true
+    },
+    {
+     "path": ".tmp/round-2026-10-14/mohaa-fade/batch-after-2",
+     "build": "round-1014-after",
+     "map": "m1l1",
+     "trigger": "cmd kill",
+     "probeExit": 0,
+     "serverFadeCommands": [
+      "fadesound 4000.00"
+     ],
+     "engineFadeStarts": [
+      "4000.00",
+      "0.00"
+     ],
+     "unknownFadesoundLines": 0,
+     "gainsBelowOne": [
+      [
+       13.0,
+       0.77
+      ],
+      [
+       14.0,
+       0.52
+      ],
+      [
+       15.0,
+       0.27
+      ],
+      [
+       16.0,
+       0.02
+      ],
+      [
+       17.0,
+       0.0
+      ],
+      [
+       18.0,
+       0.0
+      ],
+      [
+       19.0,
+       0.0
+      ],
+      [
+       20.0,
+       0.0
+      ],
+      [
+       21.0,
+       0.0
+      ],
+      [
+       22.0,
+       0.0
+      ],
+      [
+       23.0,
+       0.0
+      ],
+      [
+       24.0,
+       0.0
+      ],
+      [
+       25.0,
+       0.0
+      ],
+      [
+       26.0,
+       0.0
+      ],
+      [
+       27.0,
+       0.0
+      ],
+      [
+       28.0,
+       0.0
+      ],
+      [
+       29.0,
+       0.0
+      ],
+      [
+       30.0,
+       0.0
+      ],
+      [
+       31.0,
+       0.0
+      ],
+      [
+       32.0,
+       0.0
+      ],
+      [
+       33.0,
+       0.0
+      ],
+      [
+       34.0,
+       0.0
+      ],
+      [
+       35.0,
+       0.0
+      ],
+      [
+       36.0,
+       0.0
+      ],
+      [
+       37.0,
+       0.0
+      ],
+      [
+       38.0,
+       0.0
+      ],
+      [
+       39.0,
+       0.0
+      ],
+      [
+       40.0,
+       0.0
+      ],
+      [
+       41.0,
+       0.0
+      ],
+      [
+       42.0,
+       0.0
+      ],
+      [
+       43.0,
+       0.0
+      ],
+      [
+       44.0,
+       0.0
+      ],
+      [
+       45.0,
+       0.0
+      ],
+      [
+       46.0,
+       0.0
+      ],
+      [
+       47.0,
+       0.0
+      ],
+      [
+       48.0,
+       0.0
+      ],
+      [
+       49.0,
+       0.0
+      ]
+     ],
+     "installationUnchanged": true,
+     "binariesUnchanged": true
+    },
+    {
+     "path": ".tmp/round-2026-10-14/mohaa-fade/batch-after-3",
+     "build": "round-1014-after",
+     "map": "m1l1",
+     "trigger": "cmd kill",
+     "probeExit": 0,
+     "serverFadeCommands": [
+      "fadesound 4000.00"
+     ],
+     "engineFadeStarts": [
+      "4000.00",
+      "0.00"
+     ],
+     "unknownFadesoundLines": 0,
+     "gainsBelowOne": [
+      [
+       13.0,
+       0.77
+      ],
+      [
+       14.0,
+       0.52
+      ],
+      [
+       15.0,
+       0.27
+      ],
+      [
+       16.0,
+       0.02
+      ],
+      [
+       17.0,
+       0.0
+      ],
+      [
+       18.0,
+       0.0
+      ],
+      [
+       19.0,
+       0.0
+      ],
+      [
+       20.0,
+       0.0
+      ],
+      [
+       21.0,
+       0.0
+      ],
+      [
+       22.0,
+       0.0
+      ],
+      [
+       23.0,
+       0.0
+      ],
+      [
+       24.0,
+       0.0
+      ],
+      [
+       25.0,
+       0.0
+      ],
+      [
+       26.0,
+       0.0
+      ],
+      [
+       27.0,
+       0.0
+      ],
+      [
+       28.0,
+       0.0
+      ],
+      [
+       29.0,
+       0.0
+      ],
+      [
+       30.0,
+       0.0
+      ],
+      [
+       31.0,
+       0.0
+      ],
+      [
+       32.0,
+       0.0
+      ],
+      [
+       33.0,
+       0.0
+      ],
+      [
+       34.0,
+       0.0
+      ],
+      [
+       35.0,
+       0.0
+      ],
+      [
+       36.0,
+       0.0
+      ],
+      [
+       37.0,
+       0.0
+      ],
+      [
+       38.0,
+       0.0
+      ],
+      [
+       39.0,
+       0.0
+      ],
+      [
+       40.0,
+       0.0
+      ],
+      [
+       41.0,
+       0.0
+      ],
+      [
+       42.0,
+       0.0
+      ],
+      [
+       43.0,
+       0.0
+      ],
+      [
+       44.0,
+       0.0
+      ],
+      [
+       45.0,
+       0.0
+      ],
+      [
+       46.0,
+       0.0
+      ],
+      [
+       47.0,
+       0.0
+      ],
+      [
+       48.0,
+       0.0
+      ],
+      [
+       49.0,
+       0.0
+      ]
+     ],
+     "installationUnchanged": true,
+     "binariesUnchanged": true
+    },
+    {
+     "path": ".tmp/round-2026-10-14/mohaa-fade/batch-before-0",
+     "build": "round-1014-before",
+     "map": "m1l1",
+     "trigger": "cmd kill",
+     "probeExit": 0,
+     "serverFadeCommands": [],
+     "engineFadeStarts": [],
+     "unknownFadesoundLines": 0,
+     "gainsBelowOne": [],
+     "installationUnchanged": true,
+     "binariesUnchanged": true
+    },
+    {
+     "path": ".tmp/round-2026-10-14/mohaa-fade/batch-before-1",
+     "build": "round-1014-before",
+     "map": "m1l1",
+     "trigger": "cmd kill",
+     "probeExit": 0,
+     "serverFadeCommands": [],
+     "engineFadeStarts": [],
+     "unknownFadesoundLines": 0,
+     "gainsBelowOne": [],
+     "installationUnchanged": true,
+     "binariesUnchanged": true
+    },
+    {
+     "path": ".tmp/round-2026-10-14/mohaa-fade/batch-before-2",
+     "build": "round-1014-before",
+     "map": "m1l1",
+     "trigger": "cmd kill",
+     "probeExit": 0,
+     "serverFadeCommands": [],
+     "engineFadeStarts": [],
+     "unknownFadesoundLines": 0,
+     "gainsBelowOne": [],
+     "installationUnchanged": true,
+     "binariesUnchanged": true
+    },
+    {
+     "path": ".tmp/round-2026-10-14/mohaa-fade/batch-before-3",
+     "build": "round-1014-before",
+     "map": "m1l1",
+     "trigger": "cmd kill",
+     "probeExit": 0,
+     "serverFadeCommands": [],
+     "engineFadeStarts": [],
+     "unknownFadesoundLines": 0,
+     "gainsBelowOne": [],
+     "installationUnchanged": true,
+     "binariesUnchanged": true
+    },
+    {
+     "path": ".tmp/round-2026-10-14/mohaa-fade/before-1",
+     "build": "round-1014-before",
+     "map": "m1l1",
+     "trigger": "cmd kill",
+     "probeExit": 0,
+     "serverFadeCommands": [],
+     "engineFadeStarts": [],
+     "unknownFadesoundLines": 0,
+     "gainsBelowOne": [],
+     "installationUnchanged": true,
+     "binariesUnchanged": true
+    },
+    {
+     "path": ".tmp/round-2026-10-14/mohaa-fade/before-2",
+     "build": "round-1014-before",
+     "map": "m1l1",
+     "trigger": "cmd kill",
+     "probeExit": 0,
+     "serverFadeCommands": [],
+     "engineFadeStarts": [],
+     "unknownFadesoundLines": 0,
+     "gainsBelowOne": [],
+     "installationUnchanged": true,
+     "binariesUnchanged": true
+    },
+    {
+     "path": ".tmp/round-2026-10-14/mohaa-fade/before-3",
+     "build": "round-1014-before",
+     "map": "m1l1",
+     "trigger": "cmd kill",
+     "probeExit": 0,
+     "serverFadeCommands": [],
+     "engineFadeStarts": [],
+     "unknownFadesoundLines": 0,
+     "gainsBelowOne": [],
+     "installationUnchanged": true,
+     "binariesUnchanged": true
+    }
+   ],
+   "triggerRuns": [
+    {
+     "path": ".tmp/round-2026-10-14/mohaa-fade/after-3",
+     "build": "round-1014-after",
+     "map": "m6l2a",
+     "trigger": "cmd script levelchange triggereffect *0",
+     "probeExit": 0,
+     "serverFadeCommands": [],
+     "engineFadeStarts": [],
+     "unknownFadesoundLines": 0,
+     "gainsBelowOne": [],
+     "installationUnchanged": true,
+     "binariesUnchanged": true
+    },
+    {
+     "path": ".tmp/round-2026-10-14/mohaa-fade/after-4",
+     "build": "round-1014-after",
+     "map": "m6l2a",
+     "trigger": "cmd script levelchange triggereffect $player",
+     "probeExit": 0,
+     "serverFadeCommands": [],
+     "engineFadeStarts": [],
+     "unknownFadesoundLines": 0,
+     "gainsBelowOne": [],
+     "installationUnchanged": true,
+     "binariesUnchanged": true
+    },
+    {
+     "path": ".tmp/round-2026-10-14/mohaa-fade/after-5",
+     "build": "round-1014-after",
+     "map": "m6l2a",
+     "trigger": "cmd script levelchange triggereffect $player",
+     "probeExit": 0,
+     "serverFadeCommands": [],
+     "engineFadeStarts": [],
+     "unknownFadesoundLines": 0,
+     "gainsBelowOne": [],
+     "installationUnchanged": true,
+     "binariesUnchanged": true
+    }
+   ],
+   "notes": [
+    "1.00 sends its death-intermission fadesound only when the death animation ends; kill runs above list which received it within each window.",
+    "Windowed on-screen listen server, loopback-only networking (net_ip 127.0.0.1, net_enabled 1), no input injected; OpenAL Soft wave driver, so no speaker output."
+   ]
+  }
+ },
+ "mohaaTikiCache": {
+  "file": "code/mohaa/tiki/tiki_cache.cpp",
+  "upstream": "OpenMoHAA ab43a0def6c4feccedae36fdb58c2e007d7e4c35",
+  "defect": "TIKI_FindTikiAnim looked up an unfilled 1,024-byte buffer",
+  "test": "tests/mohaa_tiki_cache_tests.py",
+  "beforeRun": {
+   "tree": ".tmp/round-2026-10-14/tiki-before",
+   "outcome": "assertion failure on HEAD lookup"
+  },
+  "liveEffect": "not measured"
+ },
+ "jkaRavenPrimitives": {
+  "retail": {
+   "executable": "jamp.exe 1.01",
+   "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+   "dispatch": "0x4bdcd0 (table 0x4bddb8, types 2..11)",
+   "routines": {
+    "5": "0x4ba780 (sprite 0x4ba600, quad 0x4b9840)",
+    "8": "0x4bb3c0 (quad 0x4ba860)",
+    "9": "0x4bb4c0 (quad 0x4bb040)",
+    "11": "mini-entity chain in the dispatcher"
+   },
+   "constants": {
+    "glowSpacing": "0.65f at 0x566504",
+    "radiusGrowth": "0.017f at 0x566508",
+    "hiltBase": "5.5f at 0x566500",
+    "hiltRange": "0.25f at 0x566048",
+    "randomScale": "32767.0f at 0x566080",
+    "halfWidth": "0.5 (double) at 0x565f98"
+   },
+   "frontEnd": "0x4a6442, index 0x4a65d4, table 0x4a65c0: 2-6 and 8-10 sprite branch, 7 none, 11 no third-person test, 1 bad type",
+   "recordOffsets": {
+    "saberLength": 180,
+    "lineWidth": 148,
+    "lineSTScale": 156,
+    "radius": 92,
+    "axis": 12,
+    "origin": 52,
+    "oldorigin": 64,
+    "shaderRGBA": 80
+   },
+   "crt": {
+    "sin": "0x529994",
+    "cos": "0x529824",
+    "sqrt": "0x5298d4",
+    "rand": "0x52a88a",
+    "controlWord": "0x27f expected by the math routines"
+   }
+  },
+  "retailVectors": {
+   "fixture": "tests/fixtures/jka_surface_retail.json",
+   "sha256": "6ea36ef18a9f6988d7de6b0c249374bdedd816000569b4f6d6933c1db0e07494",
+   "cases": 22,
+   "vertices": 916,
+   "harness": ".tmp/round-2026-10-14/jka-surface",
+   "x87": "9001f"
+  },
+  "reference": "OpenJK 1a6a643427aa347553e9073dac5570b33337c4d9 codemp/cgame (type usage only; no text incorporated)",
+  "files": [
+   "code/renderercommon/tr_types.h",
+   "code/compat/jka_render_adapter.hpp",
+   "code/renderercommon/tr_jka_surface.h",
+   "code/renderer/tr_surface.c",
+   "code/renderervk/tr_surface.c",
+   "code/rendererrtx/tr_surface.c",
+   "code/renderer/tr_main.c",
+   "code/renderervk/tr_main.c",
+   "code/rendererrtx/tr_main.c",
+   "code/renderer/tr_glx_compat.h"
+  ],
+  "tests": [
+   "tests/jka_render_tests.cpp",
+   "tests/jka_surface_tests.py",
+   "tests/jka_surface_fixture.c",
+   "tests/jka_surface_cases.h"
+  ],
+  "mutations": {
+   "log": ".tmp/round-2026-10-14/jka-surface/mutate.log",
+   "detected": [
+    "glow spacing 0.6",
+    "Elite Force quarter-colour corner",
+    "oriented line full width",
+    "glow radius not grown"
+   ]
+  },
+  "engineChoices": [
+   "each view starts from the module radius (retail grows it in place)",
+   "at most 1,024 glow sprites a blade (retail unbounded)",
+   "line vertices take the view-facing normal (retail writes none)"
+  ],
+  "live": {
+   "serverDemo": {
+    "glx": {
+     "profile": "jka-mp",
+     "origin": "server",
+     "command": [
+      "E:\\Repositories\\fnTech3\\.tmp\\runtime\\round-1014-after\\fntech3.exe",
+      "+set",
+      "fs_basepath",
+      "E:\\Games\\Jedi Academy",
+      "+set",
+      "fs_homepath",
+      "E:\\Repositories\\fnTech3\\.tmp\\round-2026-10-14\\jka-demo\\server-glx\\home",
+      "+set",
+      "fs_game",
+      "",
+      "+set",
+      "fs_cdpath",
+      "",
+      "+set",
+      "com_gameProfile",
+      "jka-mp",
+      "+set",
+      "com_steamIntegration",
+      "0",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "r_mode",
+      "-1",
+      "+set",
+      "r_customWidth",
+      "800",
+      "+set",
+      "r_customHeight",
+      "600",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_keyboard",
+      "0",
+      "+set",
+      "in_joystick",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "in_synthetic",
+      "0",
+      "+set",
+      "s_initsound",
+      "0",
+      "+set",
+      "developer",
+      "1",
+      "+set",
+      "logfile",
+      "4",
+      "+set",
+      "net_enabled",
+      "0",
+      "+set",
+      "net_ip",
+      "127.0.0.1",
+      "+set",
+      "net_port",
+      "0",
+      "+set",
+      "cl_renderer",
+      "glx",
+      "+set",
+      "com_introplayed",
+      "1",
+      "+set",
+      "com_bootlogo",
+      "0",
+      "+exec",
+      "jka-openjk-peer.cfg",
+      "+demo",
+      "jka-generated.dm_26"
+     ],
+     "generatedDemo": {
+      "recordCount": 440,
+      "firstSequence": 1,
+      "lastSequence": 440,
+      "maximumMessageBytes": 4950,
+      "bytes": 18850,
+      "exactEOF": true,
+      "selectedProtocol": 26,
+      "sha256": "6ca7fbd0750bff3cb9ab310895536ae9601822e6a4422a5bf9dd7987016279d9"
+     },
+     "binarySha256": {
+      "E:\\Repositories\\fnTech3\\.tmp\\runtime\\round-1014-after\\fntech3.exe": "e048d976652c9426bcb488e0aaebe7a9e6c161c56a1e4ec1eb589019cecc1229",
+      "E:\\Repositories\\fnTech3\\.tmp\\runtime\\round-1014-after\\fnql_glx_x86.dll": "275c1905d942cc118e9226509a2260a9689d12681a2ebb035419c2c1d0baecd5"
+     },
+     "passed": true,
+     "exitCode": 0,
+     "forcedStop": false,
+     "validSnapshotCount": 439,
+     "deltaSnapshotObserved": true,
+     "activeActionObserved": true,
+     "demoCompletedObserved": true,
+     "clientFrontiers": [],
+     "earlyStopReason": null,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "moduleCacheIdentitiesMatch": true,
+     "demoUnchanged": true,
+     "windowedObserved": true,
+     "desktopSwitched": false,
+     "inputInjected": false,
+     "path": ".tmp/round-2026-10-14/jka-demo/server-glx",
+     "captures": 29
+    },
+    "vk": {
+     "profile": "jka-mp",
+     "origin": "server",
+     "command": [
+      "E:\\Repositories\\fnTech3\\.tmp\\runtime\\round-1014-after\\fntech3.exe",
+      "+set",
+      "fs_basepath",
+      "E:\\Games\\Jedi Academy",
+      "+set",
+      "fs_homepath",
+      "E:\\Repositories\\fnTech3\\.tmp\\round-2026-10-14\\jka-demo\\server-vk\\home",
+      "+set",
+      "fs_game",
+      "",
+      "+set",
+      "fs_cdpath",
+      "",
+      "+set",
+      "com_gameProfile",
+      "jka-mp",
+      "+set",
+      "com_steamIntegration",
+      "0",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "r_mode",
+      "-1",
+      "+set",
+      "r_customWidth",
+      "800",
+      "+set",
+      "r_customHeight",
+      "600",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_keyboard",
+      "0",
+      "+set",
+      "in_joystick",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "in_synthetic",
+      "0",
+      "+set",
+      "s_initsound",
+      "0",
+      "+set",
+      "developer",
+      "1",
+      "+set",
+      "logfile",
+      "4",
+      "+set",
+      "net_enabled",
+      "0",
+      "+set",
+      "net_ip",
+      "127.0.0.1",
+      "+set",
+      "net_port",
+      "0",
+      "+set",
+      "cl_renderer",
+      "vk",
+      "+set",
+      "com_introplayed",
+      "1",
+      "+set",
+      "com_bootlogo",
+      "0",
+      "+exec",
+      "jka-openjk-peer.cfg",
+      "+demo",
+      "jka-generated.dm_26"
+     ],
+     "generatedDemo": {
+      "recordCount": 440,
+      "firstSequence": 1,
+      "lastSequence": 440,
+      "maximumMessageBytes": 4950,
+      "bytes": 18850,
+      "exactEOF": true,
+      "selectedProtocol": 26,
+      "sha256": "6ca7fbd0750bff3cb9ab310895536ae9601822e6a4422a5bf9dd7987016279d9"
+     },
+     "binarySha256": {
+      "E:\\Repositories\\fnTech3\\.tmp\\runtime\\round-1014-after\\fntech3.exe": "e048d976652c9426bcb488e0aaebe7a9e6c161c56a1e4ec1eb589019cecc1229",
+      "E:\\Repositories\\fnTech3\\.tmp\\runtime\\round-1014-after\\fnql_vk_x86.dll": "2b5ad4035e86e006e6e03230b891bbba97b12ae559600f9aac4ecd335b2e0485"
+     },
+     "passed": true,
+     "exitCode": 0,
+     "forcedStop": false,
+     "validSnapshotCount": 439,
+     "deltaSnapshotObserved": true,
+     "activeActionObserved": true,
+     "demoCompletedObserved": true,
+     "clientFrontiers": [],
+     "earlyStopReason": null,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "moduleCacheIdentitiesMatch": true,
+     "demoUnchanged": true,
+     "windowedObserved": true,
+     "desktopSwitched": false,
+     "inputInjected": false,
+     "path": ".tmp/round-2026-10-14/jka-demo/server-vk",
+     "captures": 2
+    },
+    "rtx": {
+     "profile": "jka-mp",
+     "origin": "server",
+     "command": [
+      "E:\\Repositories\\fnTech3\\.tmp\\runtime\\round-1014-after\\fntech3.exe",
+      "+set",
+      "fs_basepath",
+      "E:\\Games\\Jedi Academy",
+      "+set",
+      "fs_homepath",
+      "E:\\Repositories\\fnTech3\\.tmp\\round-2026-10-14\\jka-demo\\server-rtx\\home",
+      "+set",
+      "fs_game",
+      "",
+      "+set",
+      "fs_cdpath",
+      "",
+      "+set",
+      "com_gameProfile",
+      "jka-mp",
+      "+set",
+      "com_steamIntegration",
+      "0",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "r_mode",
+      "-1",
+      "+set",
+      "r_customWidth",
+      "800",
+      "+set",
+      "r_customHeight",
+      "600",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_keyboard",
+      "0",
+      "+set",
+      "in_joystick",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "in_synthetic",
+      "0",
+      "+set",
+      "s_initsound",
+      "0",
+      "+set",
+      "developer",
+      "1",
+      "+set",
+      "logfile",
+      "4",
+      "+set",
+      "net_enabled",
+      "0",
+      "+set",
+      "net_ip",
+      "127.0.0.1",
+      "+set",
+      "net_port",
+      "0",
+      "+set",
+      "cl_renderer",
+      "rtx",
+      "+set",
+      "com_introplayed",
+      "1",
+      "+set",
+      "com_bootlogo",
+      "0",
+      "+exec",
+      "jka-openjk-peer.cfg",
+      "+demo",
+      "jka-generated.dm_26"
+     ],
+     "generatedDemo": {
+      "recordCount": 440,
+      "firstSequence": 1,
+      "lastSequence": 440,
+      "maximumMessageBytes": 4950,
+      "bytes": 18850,
+      "exactEOF": true,
+      "selectedProtocol": 26,
+      "sha256": "6ca7fbd0750bff3cb9ab310895536ae9601822e6a4422a5bf9dd7987016279d9"
+     },
+     "binarySha256": {
+      "E:\\Repositories\\fnTech3\\.tmp\\runtime\\round-1014-after\\fntech3.exe": "e048d976652c9426bcb488e0aaebe7a9e6c161c56a1e4ec1eb589019cecc1229",
+      "E:\\Repositories\\fnTech3\\.tmp\\runtime\\round-1014-after\\fnql_rtx_x86.dll": "0e3bc70446c98664d206db1f24a709598997d73041755835a5021b8045d97f64"
+     },
+     "passed": true,
+     "exitCode": 0,
+     "forcedStop": false,
+     "validSnapshotCount": 439,
+     "deltaSnapshotObserved": true,
+     "activeActionObserved": true,
+     "demoCompletedObserved": true,
+     "clientFrontiers": [],
+     "earlyStopReason": null,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "moduleCacheIdentitiesMatch": true,
+     "demoUnchanged": true,
+     "windowedObserved": true,
+     "desktopSwitched": false,
+     "inputInjected": false,
+     "path": ".tmp/round-2026-10-14/jka-demo/server-rtx",
+     "captures": 2
+    }
+   },
+   "clientDemo": {
+    "profile": "jka-mp",
+    "origin": "client",
+    "command": [
+     "E:\\Repositories\\fnTech3\\.tmp\\runtime\\round-1014-after\\fntech3.exe",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\round-2026-10-14\\jka-demo\\client-glx\\home",
+     "+set",
+     "fs_game",
+     "",
+     "+set",
+     "fs_cdpath",
+     "",
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_keyboard",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "in_synthetic",
+     "0",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "4",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "net_ip",
+     "127.0.0.1",
+     "+set",
+     "net_port",
+     "0",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_bootlogo",
+     "0",
+     "+exec",
+     "jka-openjk-peer.cfg",
+     "+demo",
+     "jka-generated.dm_26"
+    ],
+    "generatedDemo": {
+     "recordCount": 29,
+     "firstSequence": 408,
+     "lastSequence": 437,
+     "maximumMessageBytes": 5431,
+     "bytes": 6205,
+     "exactEOF": true,
+     "selectedProtocol": 26,
+     "sha256": "de3308b92b3938ddb53957ce0f5ea2f75e12da83e5e882aab41e513b769364e1"
+    },
+    "binarySha256": {
+     "E:\\Repositories\\fnTech3\\.tmp\\runtime\\round-1014-after\\fntech3.exe": "e048d976652c9426bcb488e0aaebe7a9e6c161c56a1e4ec1eb589019cecc1229",
+     "E:\\Repositories\\fnTech3\\.tmp\\runtime\\round-1014-after\\fnql_glx_x86.dll": "275c1905d942cc118e9226509a2260a9689d12681a2ebb035419c2c1d0baecd5"
+    },
+    "passed": true,
+    "exitCode": 0,
+    "forcedStop": false,
+    "validSnapshotCount": 28,
+    "deltaSnapshotObserved": true,
+    "activeActionObserved": true,
+    "demoCompletedObserved": true,
+    "clientFrontiers": [],
+    "earlyStopReason": null,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "moduleCacheIdentitiesMatch": true,
+    "demoUnchanged": true,
+    "windowedObserved": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "path": ".tmp/round-2026-10-14/jka-demo/client-glx",
+    "captures": 8
+   },
+   "before": "docs/fntech3/2026-10-02-jka-compatibility.md (408 snapshots, type 5 refusal, 2026-10-03)",
+   "noBladeCapture": {
+    "serverDemoView": {
+     "path": ".tmp/round-2026-10-14/jka-demo/server-glx-diag",
+     "rSpeeds": [
+      "181/863 shaders/surfs 65 leafs (menu open)",
+      "2/0 shaders/surfs 0 leafs (after the menu)"
+     ],
+     "menuDiagnostic": {
+      "path": ".tmp/round-2026-10-14/jka-demo/server-glx-menudiag",
+      "clPaused": 0,
+      "afterClosingMenus": "still 0 leafs"
+     },
+     "debuggerRead": {
+      "path": ".tmp/round-2026-10-14/jka-demo/server-glx-cdb2-peek.txt",
+      "method": "cdb -pv (non-invasive) 7 s into the replay",
+      "clSnap": {
+       "valid": 1,
+       "snapFlags": 6,
+       "serverTime": 19350
+      },
+      "meaning": "SNAPFLAG_NOT_ACTIVE (2) with SNAPFLAG_SERVERCOUNT (4)"
+     }
+    },
+    "listenJoin": {
+     "path": ".tmp/round-2026-10-14/jka-saber-menu/runs/listen-glx-2",
+     "stop": "effects/mp/spawn.efx Emitter primitive refused"
+    },
+    "saberMenu": {
+     "path": ".tmp/round-2026-10-14/jka-saber-menu/runs/glx-1",
+     "stop": "UI Ghoul2 hilt on the engine *default skeleton refused"
+    }
+   }
+  },
+  "remaining": [
+   "types 3, 6, 10 and 11",
+   "authored glow stage keyword",
+   "a capture of a drawn blade",
+   "the server demo drawing no 3D view after its menu"
+  ]
+ },
+ "ledgerCorrections": [
+  "Elite Force matrix: legacy -Dstvef-development is a no-op",
+  "Jedi Outcast matrix: legacy -Djk2-development is a no-op",
+  "Shared release checklist: open compatibility gates, not development gates"
+ ],
+ "validation": {
+  "meson": {
+   "log": ".tmp/round-2026-10-14/meson-tests.log",
+   "counts": {
+    "Ok": 263,
+    "Fail": 0,
+    "Skipped": 2
+   },
+   "skipped": [
+    "fnTech3:fnql_audio_loopback",
+    "fnTech3:fnql_retail_factory_probe"
+   ],
+   "excluded": [
+    "fnTech3:fnql_python_source_regressions (the complete Python suite, run separately)"
+   ]
+  },
+  "pytest": {
+   "log": ".tmp/round-2026-10-14/pytest.log",
+   "summary": "6 failed, 2710 passed, 131 skipped, 66696 subtests passed in 2444.70s (0:40:44)",
+   "failed": []
+  },
+  "pytestFollowUp": {
+   "cause": "tests/q3_ihv_entity_renderer_tests.py prelude (also used by q3_ihv_model_animation_tests.py) had no RB_SurfaceJKA stub",
+   "fix": "stub added beside RB_SurfaceSTVEF",
+   "rerun": "9 passed, 12 subtests passed"
+  },
+  "finalContentTree": {
+   "path": ".tmp/round-2026-10-14/final",
+   "run": "changelog, generate_docs, player_manual, release_workflow, version_metadata, steam_identity_source, stock_ql_sidecar, the IHV renderer fixtures and this round's tests",
+   "result": "158 passed, 1684 subtests passed"
+  },
+  "focused": [
+   "tests/mohaa_sound_fade_tests.py",
+   "tests/mohaa_tiki_cache_tests.py",
+   "tests/jka_surface_tests.py",
+   "tests/stvef_surface_tests.py",
+   "tests/rtcw_splash_surface_tests.py",
+   "tests/rtx_surface_owner_tests.py",
+   "tests/jka_render_host_tests.py",
+   "tests/alice_audio_backend_tests.py",
+   "tests/engine_input_capture_tests.py",
+   "tests/rtcw_*_tests.py (mix fixtures)"
+  ]
+ },
+ "unrelated": [
+  "Academy glow stage keyword unparsed",
+  "Outcast render adapter refuses non-model types",
+  "software mixer applies s_musicvolume but not s_volume to MOHAA music",
+  "another session's uncommitted 2026-10-12 Alice effects work in the shared tree",
+  "CM_AddFacetBevels invalid bevel warnings on mp/ffa1 (pre-existing)"
+ ],
+ "proprietaryContentCommitted": false
+}

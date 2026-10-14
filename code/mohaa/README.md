@@ -44,6 +44,10 @@ behaviour was intentionally changed except where noted.
 - `SkelMat4::copy` copies its twelve floats instead of calling `MatrixCopy`,
   which copies sixteen (an upstream overrun).
 - `SaveLODFile` writes with `FS_FOpenFileWrite`.
+- `TIKI_FindTikiAnim` copies and canonicalises the name it is asked for
+  before looking it up, as `TIKI_FindTiki` does: upstream looked up its
+  buffer without ever filling it, so the loading screen's bar never found
+  an animation definition already in the cache.
 - `alias.h`'s record keeps 1.00's layout, which both 1.00 modules read: the
   subtitle straight after `streamed`, at +0xd4, and upstream's later
   `forcesubtitle` flag after it rather than before.

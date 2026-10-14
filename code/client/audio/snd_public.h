@@ -117,6 +117,8 @@ void S_AddMOHAALoopingSound( int slot, const vec3_t origin, const vec3_t velocit
 	float volume, float minDist, float maxDist, float pitch );
 // The room Medal of Honor's client game names: an EAX environment and level.
 void S_MOHAASetReverb( int type, float level );
+// Medal of Honor's `fadesound <ms>` server command, and 0 to cancel a fade.
+void S_MOHAAFadeSound( float ms );
 // How wide a mouth each entity holds, which Elite Force SP's game reads;
 // null where no backend is measuring them.
 const int *S_STVEFSPMouths( void );

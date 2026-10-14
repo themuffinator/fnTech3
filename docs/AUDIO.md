@@ -196,8 +196,10 @@ each game has an option:
 | Alice, F.A.K.K.2 | Each sound's own range, reaching 64 times its "full volume" distance. That this matches the original is a best guess. | `s_backend legacy` keeps the original's volume and muffling, with an even left-right spread. |
 | Medal of Honor: Allied Assault | Each sound's own volume, range and pitch, from the game's sound lists. A character's new sound replaces its previous one on the same channel, as in the game. | None yet. Keep the default: the classic mixer ignores the game's ranges and pitch, loop volumes and stop requests -- also when fnTech3 switches to it by itself. |
 
-Medal of Honor's sound fades -- the ones the campaign asks the engine to do --
-are not done yet.
+Medal of Honor's sound fades now play. When a level ends, or restarts after
+you are killed, the game asks for everything to fade out, music included, over
+the time it names; both sound systems do so, and the next level brings the
+sound back ([details](fntech3/2026-10-14-compatibility-round.md#medal-of-honor-sound-fades)).
 
 Settings and commands only some games have:
 

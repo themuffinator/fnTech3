@@ -61,7 +61,46 @@ int main() {
         assert(raven::ReadEntity(entity.data()+3,out)==status&&same(before,out));
     };
     rejectedEntity(208,1,raven::Status::Ghoul2);rejectedEntity(208,0xffffffff,raven::Status::Ghoul2);
-    for(uint32_t type : {1u,3u,5u,6u,8u,9u,10u,11u,12u,0xffffffffu}) rejectedEntity(0,type,raven::Status::EntityType);
+    // The three Raven primitives the client game submits (retail RB_SurfaceEntity
+    // 0x4bdcd0): the saber glow from saberLength at 180, the line from its two
+    // origins and radius, the oriented line from the union's width at 148 and
+    // texture scale at 156. Each carries only its own shape.
+    {
+        const float glowLength=40.5f,lineWidth=6.25f,lineScale=0.75f;
+        entity=original;write(entity,0,int32_t(5));write(entity,180,glowLength);
+        assert(raven::ReadEntity(entity.data()+3,out)==raven::Status::Ok);
+        assert(out.reType==RT_JKA_SABER_GLOW&&out.jka.saberLength==glowLength&&out.radius==8&&out.origin[2]==23);
+        assert(out.jka.lineWidth==0&&out.jka.lineSTScale==0&&out.axis[0][0]==1);
+        entity=original;write(entity,0,int32_t(8));write(entity,180,glowLength);
+        assert(raven::ReadEntity(entity.data()+3,out)==raven::Status::Ok);
+        assert(out.reType==RT_JKA_LINE&&out.jka.saberLength==0&&out.radius==8&&out.oldorigin[2]==33);
+        entity=original;write(entity,0,int32_t(9));write(entity,148,lineWidth);write(entity,156,lineScale);
+        assert(raven::ReadEntity(entity.data()+3,out)==raven::Status::Ok);
+        assert(out.reType==RT_JKA_ORIENTEDLINE&&out.jka.lineWidth==lineWidth&&out.jka.lineSTScale==lineScale);
+        assert(out.jka.saberLength==0&&out.axis[1][1]==5);
+        // A shape field that does not encode a number refuses its own type, and
+        // only its own: the union's other members are the module's leftovers.
+        for(uint32_t bits : {0x7fc01234u,0x7f800000u,0xff800000u}) {
+            entity=original;write(entity,0,int32_t(5));write(entity,180,bits);
+            auto prior=out;assert(raven::ReadEntity(entity.data()+3,out)==raven::Status::InvalidRecord&&same(prior,out));
+            write(entity,0,int32_t(9));write(entity,148,lineWidth);write(entity,156,lineScale);
+            assert(raven::ReadEntity(entity.data()+3,out)==raven::Status::Ok);
+            for(std::size_t offset : {148u,156u}) {
+                entity=original;write(entity,0,int32_t(9));write(entity,148,lineWidth);write(entity,156,lineScale);
+                write(entity,offset,bits);prior=out;
+                assert(raven::ReadEntity(entity.data()+3,out)==raven::Status::InvalidRecord&&same(prior,out));
+                write(entity,0,int32_t(5));write(entity,180,glowLength);
+                assert(raven::ReadEntity(entity.data()+3,out)==raven::Status::Ok&&out.jka.saberLength==glowLength);
+                write(entity,0,int32_t(8));assert(raven::ReadEntity(entity.data()+3,out)==raven::Status::Ok);
+            }
+        }
+        // A blade of any finite length, a negative one included, is retail's to
+        // draw: its loop draws no sprite and only the hilt's.
+        entity=original;write(entity,0,int32_t(5));write(entity,180,-3.0f);
+        assert(raven::ReadEntity(entity.data()+3,out)==raven::Status::Ok&&out.jka.saberLength==-3.0f);
+        entity=original;assert(raven::ReadEntity(entity.data()+3,out)==raven::Status::Ok);
+    }
+    for(uint32_t type : {1u,3u,6u,10u,11u,12u,0xffffffffu}) rejectedEntity(0,type,raven::Status::EntityType);
     for(uint32_t flags : {0x10u,0x20u,0x1000u,0x2000u,0x100000u,0x200000u,0x80000000u}) rejectedEntity(4,flags,raven::Status::EntityFlags);
     // Academy's forced alpha (0x400) and tint (0x800) cross as their own
     // engine fields, never as Quake III flags (jka_entity_override_tests.py).

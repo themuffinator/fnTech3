@@ -103,6 +103,10 @@ typedef enum {
 	RT_STVEF_ELECTRICITY,
 	// American McGee's Alice's sprite model: a shader quad in world space.
 	RT_ALICE_SPRITE,
+	// Jedi Academy multiplayer's Raven primitives; their shape is in refEntity_t.jka.
+	RT_JKA_SABER_GLOW,
+	RT_JKA_LINE,
+	RT_JKA_ORIENTEDLINE,
 
 	RT_MAX_REF_ENTITY_TYPE
 } refEntityType_t;
@@ -128,6 +132,9 @@ typedef struct {
 typedef struct {
 	qboolean rgbTint;			// retail renderfx 0x800: every stage takes the entity's colour
 	qboolean forceAlpha;		// retail renderfx 0x400: single-texture stages take its alpha, blended
+	float saberLength;			// RT_JKA_SABER_GLOW: the blade's length along axis[0]
+	float lineWidth;			// RT_JKA_ORIENTEDLINE: its whole width, half either side
+	float lineSTScale;			// RT_JKA_ORIENTEDLINE: the texture's t at oldorigin
 } jkaRenderEntity_t;
 
 // Engine-owned RTCW animation/effect state. Module records are frozen in

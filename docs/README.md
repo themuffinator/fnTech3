@@ -72,6 +72,9 @@ Release packages include them as web pages in their `manual` folder, built by
 
 ### Game-specific ledgers and records
 
+- [October 14 compatibility round](fntech3/2026-10-14-compatibility-round.md)
+  -- Medal of Honor's sound fades and cached model definitions, and Jedi
+  Academy's saber glow and lines checked against retail's own vertices.
 - [October 9 compatibility integration](fntech3/2026-10-09-compatibility-integration.md)
   -- resumed Alice and Elite Force work, shared-tree validation, and probe
   evidence and limits for the combined compatibility slices.

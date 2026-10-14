@@ -2148,6 +2148,7 @@ void CL_ShutdownAll( void ) {
 		S_AliceMusicFreeAll();
 		S_AliceFadeSound( 0.0f );
 	}
+	S_MOHAAFadeSound( 0.0f );
 
 	// shutdown VMs
 	CL_ShutdownVMs();
@@ -2290,6 +2291,10 @@ void CL_ClearState( void ) {
 		S_AliceMusicFreeAll();
 		S_AliceFadeSound( 0.0f );
 	}
+	// A new gamestate or a disconnect ends Medal of Honor's sound fade, as
+	// 2015's engine ends it once the next level is loaded and when its client
+	// state is cleared (OpenMoHAA's UI_ServerLoaded and UI_ClearState [O]).
+	S_MOHAAFadeSound( 0.0f );
 
 	// clientActive_t is larger than the default Windows thread stack once QL's
 	// snapshot/entity limits are represented. Aggregate assignment materializes

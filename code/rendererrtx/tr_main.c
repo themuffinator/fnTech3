@@ -3307,6 +3307,9 @@ static void R_AddEntitySurfaces( void ) {
 		case RT_STVEF_BEZIER:
 		case RT_STVEF_CYLINDER:
 		case RT_STVEF_ELECTRICITY:
+		case RT_JKA_SABER_GLOW:
+		case RT_JKA_LINE:
+		case RT_JKA_ORIENTEDLINE:
 			// self blood sprites, talk balloons, etc should not be drawn in the primary
 			// view.  We can't just do this check for all entities, because md3
 			// entities may still want to cast shadows from them

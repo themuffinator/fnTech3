@@ -344,6 +344,9 @@ static void S_Base_SoundInfo( void ) {
 			( gw_minimized && s_muteWhenMinimized != nullptr && s_muteWhenMinimized->integer );
 		Com_Printf( "Backend: legacy\n" );
 		Com_Printf( "Master volume: %.2f\n", s_volume != nullptr ? s_volume->value : 1.0f );
+		if ( Com_GameIsMOHAA() ) {
+			Com_Printf( "fadesound gain: %.2f\n", S_MOHAAFadeGain() );
+		}
 		Com_Printf( "Mute state: %s%s\n",
 			s_soundMuted ? "registration-muted (normal during startup/registration)" :
 				( focusMuted ? "focus-muted" : gw_offscreen ? "offscreen-muted (window's desktop is not on screen)" : "audible" ),

@@ -1692,11 +1692,23 @@ qboolean QDECL GetUserCmd( int cmdNumber, mohaa::UserCmd *command ) {
 }
 
 /* Slot 118. 1.00 passes a second argument, whether the command comes from a
- * server the client has since left; the engine's reading of the command
- * does not depend on it. */
+ * server the client has since left. The engine takes `fadesound <ms>` before
+ * the client game, which has no handler for it (its cgamex86.dll holds no
+ * such name, and printed it as unknown): the sound fades over that many
+ * milliseconds, `fadesound 0.00` ends a fade, and one from the server the
+ * client has left is dropped, so a level's closing fade cannot silence the
+ * next (OpenMoHAA's CL_ProcessServerCommand [O]; alice.exe 0x004241f6). */
 qboolean QDECL GetServerCommand( int serverCommandNumber, qboolean differentServer ) {
-	(void)differentServer;
-	return CL_GetServerCommandForProfile( serverCommandNumber );
+	if ( !CL_GetServerCommandForProfile( serverCommandNumber ) ) {
+		return qfalse;
+	}
+	if ( !strcmp( Cmd_Argv( 0 ), "fadesound" ) ) {
+		if ( !differentServer ) {
+			S_MOHAAFadeSound( static_cast<float>( atof( Cmd_Argv( 1 ) ) ) );
+		}
+		return qfalse;
+	}
+	return qtrue;
 }
 
 /* ---- aliases (slots 119..127) ------------------------------------------ */

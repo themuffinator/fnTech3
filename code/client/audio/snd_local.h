@@ -268,6 +268,9 @@ extern	int		numLoopChannels;
 
 extern	int		s_soundtime;
 float S_Base_RTCWMasterGain( void );
+// Medal of Honor's `fadesound` gain over the whole mix, 1 for every other
+// profile and while no fade runs.
+float S_MOHAAFadeGain( void );
 void S_PaintRTCWMusic( int first, int end, portable_samplepair_t *paint );
 void S_PaintRTCWEntityStreams( int first, int end, portable_samplepair_t *paint );
 extern	int		s_paintedtime;

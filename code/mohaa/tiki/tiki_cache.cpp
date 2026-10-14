@@ -62,6 +62,12 @@ dtikianim_t *TIKI_FindTikiAnim(const char *path)
     if (tikianimcache) {
         dtikianim_t **t;
 
+        // fnTech3: upstream looked up the buffer without filling it. The
+        // cache is keyed by the canonical name TIKI_RegisterTikiAnimFlags
+        // loads, so canonicalise as TIKI_FindTiki does.
+        Q_strncpyz(filename, path, sizeof(filename));
+        FS_CanonicalFilename(filename);
+
         t = tikianimcache->find(filename);
         if (t) {
             return *t;

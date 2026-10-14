@@ -56,6 +56,7 @@ struct cvar_t {float value;int integer;};
 static cvar_t volume{1.0f,0},mute{0.0f,0};
 static cvar_t *s_volume=&volume,*s_muteWhenUnfocused=&mute,*s_muteWhenMinimized=&mute;
 static float S_Base_RTCWMasterGain(){return 1.0f;}
+static float S_MOHAAFadeGain(){return 1.0f;}
 struct portable_samplepair_t {int left=0,right=0;};
 static std::array<portable_samplepair_t,PAINTBUFFER_SIZE> paintbuffer;
 static portable_samplepair_t s_rawsamples[MAX_RAW_SAMPLES];

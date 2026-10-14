@@ -52,6 +52,9 @@ static int Com_GameIsWolfET(){return 0;}
 // Alice's music stream is exercised by its own tests.
 static int Com_GameIsAlice(){return 0;}
 static int Com_GameIsRitual(){return 0;}
+// Medal of Honor's fadesound gain over the whole mix; 1 leaves it alone.
+static float mohaaFade=1;
+static float S_MOHAAFadeGain(){return mohaaFade;}
 static auto &S_RTCWMusic(){return music;}
 static auto &S_RTCWMasterFade(){return master;}
 static auto &S_WolfETMasterFade(){return wolfetMaster;}

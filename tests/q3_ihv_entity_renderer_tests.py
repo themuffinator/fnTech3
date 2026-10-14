@@ -171,6 +171,7 @@ static qboolean R_MOHAAEntityInView(const trRefEntity_t*){assert(0);return qtrue
 static void myGlMultMatrix(const float a[16],const float b[16],float out[16]){for(int row=0;row<4;++row)for(int col=0;col<4;++col){out[col*4+row]=0;for(int k=0;k<4;++k)out[col*4+row]+=a[k*4+row]*b[col*4+k];}}
 static void RB_SurfaceSprite(){assert(0);}static void RB_SurfaceSplash(){assert(0);}static void RB_SurfaceRailCore(){assert(0);}static void RB_SurfaceRailRings(){assert(0);}static void RB_SurfaceLightningBolt(){assert(0);}static void RB_SurfaceAxis(){assert(0);}
 static qboolean RB_SurfaceSTVEF(){assert(0);return qfalse;}
+static qboolean RB_SurfaceJKA(){assert(0);return qfalse;}
 static unsigned GLX_CompatEntityDynamicCategoryMask(const refEntity_t*){return 4;}
 '''
     scene = (ROOT / 'code' / renderer / 'tr_scene.c').read_text()

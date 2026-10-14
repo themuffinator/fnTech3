@@ -702,6 +702,10 @@ extern "C" void S_PaintChannels( int endtime ) {
 	// retail hands it to Miles with each sample (alice.exe 0x00472580).
 	const bool alice = Com_GameIsRitual() != 0;
 	if ( alice ) snd_vol = 255;
+	// Medal of Honor's `fadesound` takes the whole mix down: the channels
+	// through their volume, the music and other streams where they are copied.
+	const float mohaaFade = S_MOHAAFadeGain();
+	if ( mohaaFade < 1.0f ) snd_vol = static_cast<int>( static_cast<float>( snd_vol ) * mohaaFade );
 
 	// An offscreen window (a private probe desktop) still mixes, into the
 	// secondary buffer, so its output stays silent without changing the mix.
@@ -744,6 +748,12 @@ extern "C" void S_PaintChannels( int endtime ) {
 		}
 		S_PaintVoiceSamples( s_paintedtime, end, paintbuffer.data() );
 		S_PaintRTCWEntityStreams( s_paintedtime, end, paintbuffer.data() );
+		if ( mohaaFade < 1.0f ) {
+			for ( int sample = 0; sample < end - s_paintedtime; ++sample ) {
+				paintbuffer[sample].left = static_cast<int>( static_cast<float>( paintbuffer[sample].left ) * mohaaFade );
+				paintbuffer[sample].right = static_cast<int>( static_cast<float>( paintbuffer[sample].right ) * mohaaFade );
+			}
+		}
 		if ( rtcwSP ) {
 			S_PaintRTCWMusic( s_paintedtime, end, paintbuffer.data() );
 			for ( int sample = 0; sample < end - s_paintedtime; ++sample ) {

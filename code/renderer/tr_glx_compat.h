@@ -61,6 +61,8 @@ static ID_INLINE unsigned int GLX_CompatEntityDynamicCategoryMask( const refEnti
 	case RT_STVEF_BEZIER:
 	case RT_STVEF_CYLINDER:
 	case RT_STVEF_ELECTRICITY:
+	case RT_JKA_LINE:
+	case RT_JKA_ORIENTEDLINE:
 		return GLX_DYNAMIC_CATEGORY_MASK_BEAM;
 	default:
 		break;

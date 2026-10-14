@@ -13,7 +13,14 @@
  * 16, origin at 24, axis at 48, time at 88, flags at 92, mask at 96 and copies
  * 256 text bytes from 128. Common type/flag meanings are pinned OpenJK layout
  * facts. Unserved effects are rejected instead of acquiring Q3 flag aliases.
- * The converted records enter the engine's existing renderer feature path. */
+ * The converted records enter the engine's existing renderer feature path.
+ *
+ * Retail's RB_SurfaceEntity (0x4bdcd0, table 0x4bddb8) draws the saber glow
+ * (5) from saberLength at 180, the line (8) from origin, oldorigin and radius,
+ * and the oriented line (9) from axis[1] and the union's line width at 148 and
+ * texture scale at 156 (renderercommon/tr_jka_surface.h). Those are the three
+ * Raven primitives the client game submits; the oriented quad (3), electricity
+ * (6), cylinder (10) and mini-entity chain (11) stay refused by type. */
 namespace fntech3::jka::render {
 enum class Status { Ok, InvalidRecord, Ghoul2, EntityType, EntityFlags, ViewFlags };
 inline const char *StatusName(Status value) noexcept {
@@ -60,7 +67,10 @@ inline Status Entity(const fntech3_jka_mp_refEntity_t &source, refEntity_t &dest
     case 0: type = RT_MODEL; break;
     case 2: type = RT_SPRITE; break;
     case 4: type = RT_BEAM; break;
+    case 5: type = RT_JKA_SABER_GLOW; break;
     case 7: type = RT_PORTALSURFACE; break;
+    case 8: type = RT_JKA_LINE; break;
+    case 9: type = RT_JKA_ORIENTEDLINE; break;
     default: return Status::EntityType;
     }
     // 0x400 and 0x800 are Academy's own overrides (retail jamp.exe 1.01's
@@ -76,8 +86,18 @@ inline Status Entity(const fntech3_jka_mp_refEntity_t &source, refEntity_t &dest
         !Finite(source.shaderTime) || source.radius < 0 || source.backlerp < 0 || source.backlerp > 1)
         return Status::InvalidRecord;
     for (const auto &axis : source.axis) if (!Finite(axis)) return Status::InvalidRecord;
+    // Only the type that draws from a shape field must carry a number there;
+    // the union's other members are the module's leftovers.
+    if ((type == RT_JKA_SABER_GLOW && !Finite(source.saberLength)) ||
+        (type == RT_JKA_ORIENTEDLINE && (!Finite(source.data.line.width) || !Finite(source.data.line.stscale))))
+        return Status::InvalidRecord;
     refEntity_t output{};
     output.reType = type;
+    if (type == RT_JKA_SABER_GLOW) output.jka.saberLength = source.saberLength;
+    if (type == RT_JKA_ORIENTEDLINE) {
+        output.jka.lineWidth = source.data.line.width;
+        output.jka.lineSTScale = source.data.line.stscale;
+    }
     constexpr struct { uint32_t external; int internal; } flags[] = {
         {0x1, RF_MINLIGHT}, {0x2, RF_THIRD_PERSON}, {0x4, RF_FIRST_PERSON}, {0x8, RF_DEPTHHACK},
         {0x40, RF_NOSHADOW}, {0x80, RF_LIGHTING_ORIGIN}, {0x100, RF_SHADOW_PLANE}, {0x200, RF_WRAP_FRAMES}
@@ -94,8 +114,9 @@ inline Status Entity(const fntech3_jka_mp_refEntity_t &source, refEntity_t &dest
     output.skinNum = source.skinNum; output.customSkin = source.customSkin; output.customShader = source.customShader;
     Copy(output.shader, source.shaderRGBA); Copy(output.shaderTexCoord, source.shaderTexCoord);
     output.shaderTime.f = source.shaderTime; output.radius = source.radius; output.rotation = source.rotation;
-    // Mini chains and procedural union/tail fields belong to refused entity
-    // types. angles/modelScale are used by Ghoul2, which was refused above.
+    // Mini chains and the remaining procedural union/tail fields belong to
+    // refused entity types. angles/modelScale are used by Ghoul2, which was
+    // refused above.
     destination = output;
     return Status::Ok;
 }

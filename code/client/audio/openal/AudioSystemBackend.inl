@@ -1176,7 +1176,9 @@ void AudioSystem::Update( int msec ) {
 	// American McGee's Alice's voices carry s_volume in their own gains, as
 	// retail hands it to Miles with each sample, and its music and cinematic
 	// track never take it (alice.exe 0x00472580, 0x00472210).
-	device_.SetMasterGain( Com_GameIsRTCWSP() || Com_GameIsRitual() ? 1.0f : ( s_volume != nullptr ? s_volume->value : 1.0f ) );
+	// Medal of Honor's `fadesound` scales the listener, so every source fades.
+	device_.SetMasterGain( Com_GameIsRTCWSP() || Com_GameIsRitual() ? 1.0f :
+		( s_volume != nullptr ? s_volume->value : 1.0f ) * S_MOHAAFadeGain() );
 	device_.ApplyDopplerState();
 	const bool deferredUpdates = device_.BeginDeferredUpdates();
 	world_.Update( softMuted );
@@ -1231,6 +1233,9 @@ void AudioSystem::SoundInfo() {
 	Com_Printf( "Using OpenAL backend\n" );
 	const bool focusMuted = IsSoftMuted() != qfalse;
 	Com_Printf( "Master volume: %.2f\n", s_volume != nullptr ? s_volume->value : 1.0f );
+	if ( Com_GameIsMOHAA() ) {
+		Com_Printf( "fadesound gain: %.2f\n", S_MOHAAFadeGain() );
+	}
 	Com_Printf( "Mute state: %s%s\n",
 		hardMuted_ ? "registration-muted (normal during startup/registration)" :
 			( focusMuted ? "focus-muted" : gw_offscreen ? "offscreen-muted (window's desktop is not on screen)" : "audible" ),

@@ -514,7 +514,11 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   player menu and survives a map restart with sound enabled. Joining the
   match still stops on part of its spawn effect, so full play is not
   ready ([latest audit](fntech3/2026-10-07-jedi-compatibility-round2.md)). The
-  open-source OpenJK engine's client joins fnTech3's server.
+  open-source OpenJK engine's client joins fnTech3's server. A lightsaber's
+  glow and bright core are now built exactly as the original builds them,
+  and a recorded match with a lit saber in it plays to its end, though no
+  picture of a blade has been checked yet
+  ([details](fntech3/2026-10-14-compatibility-round.md#jedi-academy-saber-glow-and-lines)).
 - **Single player:** the original game code starts, then stops on its first
   frame.
 
@@ -634,8 +638,9 @@ against the original game. See the
 **Good to know:**
 
 - Keep the default sound system (OpenAL): the older software mixer ignores the
-  game's sound distances and pitch ([Sound guide](AUDIO.md)). Sound fades the
-  campaign asks for are not done yet.
+  game's sound distances and pitch ([Sound guide](AUDIO.md)). When a level
+  ends, or restarts after you are killed, the sound fades out as the game
+  asks ([details](fntech3/2026-10-14-compatibility-round.md#medal-of-honor-sound-fades)).
 - The menus, HUD and loading screens are the game's own menu files, drawn by
   the engine, as in the original.
 - fnTech3 brings a sound zone and map lights for each of the 54 maps.
