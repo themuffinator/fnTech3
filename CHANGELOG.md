@@ -76,6 +76,10 @@ historical upstream records, not fnTech3 release history. See the
   filled only its top-left corner; on a widescreen display Academy's HUD now
   keeps its shape at the screen's corners, and `cl_menuAspect 1` centres the
   menus ([record](docs/fntech3/2026-10-15-jedi-widescreen-hud.md)).
+- Keep each of Jedi Academy's weapon, Force power and item bars together
+  with its name on screens taller than 4:3, where the name was drawn over
+  the bar's middle icon. The bars and the loading screen are now checked in
+  captures ([record](docs/fntech3/2026-10-15-jka-hud-live-check.md)).
 
 ## [0.1.0] - 2026-10-11
 

@@ -714,6 +714,10 @@ int main(int argc, char **argv) {
             // with the view; the selection bar's last icon stays with its bar.
             virtualPic("gfx/2d/crosshairb", 600, 440, 24, 24); Expect(1910, 990, 54, 54);
             virtualPic("gfx/hud/w_icon_blaster", 476, 420, 40, 40); Expect(1631, 945, 90, 90);
+            // The inventory bar's last icon is centred on x 508 (live dumps); a
+            // draw centred a few units further right still goes with its bar.
+            virtualPic("gfx/hud/i_icon_big_bacta", 488, 420, 40, 40); Expect(1658, 945, 90, 90);
+            virtualPic("gfx/hud/i_icon_big_bacta", 492, 420, 40, 40); Expect(1667, 945, 90, 90);
             // A chat line from the left edge, matched by its own left end.
             CL_HudBeginTextLine(30, 337, 300, 350);
             virtualPic("fonts/ergoec", 30, 338, 6, 10); Expect(67.5f, 760.5f, 13.5f, 22.5f);
@@ -727,6 +731,9 @@ int main(int argc, char **argv) {
             virtualPic("white", 540, 400, 60, 20); Expect(2335, 900, 135, 45);
             virtualPic("levelshots/mp/ffa1", 0, 0, 640, 480); Expect(0, 0, 2560, 1080);
             virtualPic("gfx/hud/mp_levelload", 112, 448, 416, 32); Expect(812, 1008, 936, 72);
+            CL_HudEndFrame(); CL_HudBeginFrame(); // a map without a levelshot of its own
+            virtualPic("menu/art/unknownmap_mp", 0, 0, 640, 480); Expect(0, 0, 2560, 1080);
+            virtualPic("gfx/hud/load_tick", 140, 460, 360, 8); Expect(875, 1035, 810, 18);
             CL_HudEndFrame();
             // A string from the font import is one line: each glyph is placed
             // by the whole string, here a score line reaching into the right HUD.
@@ -749,6 +756,21 @@ int main(int argc, char **argv) {
             variables["cl_hudAspect"].integer=0;
             virtualPic("gfx/hud/hudleft", 0, 368, 112, 112); Expect(0, 828, 448, 252);
             variables["cl_hudAspect"].integer=1;
+            // On a screen taller than 4:3 the bottom anchor matters (live captures
+            // at 900x720): a selection bar's name, one line centred under the
+            // bar, goes down with its bar, and the loading screen stays one
+            // centred 4:3 composite over its stretched levelshot.
+            Size(900,720); frameW = 900; frameH = 720;
+            CL_HudModuleScreen(&frameW, &frameH); assert(frameW==900 && frameH==675);
+            virtualPic("gfx/hud/w_icon_blaster", 280, 400, 80, 80); Expect(393.75f, 607.5f, 112.5f, 112.5f);
+            CL_HudBeginTextLine(237, 461, 404, 476);
+            virtualPic("fonts/ocr_a", 237, 461, 10, 15); Expect(333.28125f, 693.28125f, 14.0625f, 21.09375f);
+            CL_HudEndTextLine();
+            CL_HudBeginFrame();
+            virtualPic("levelshots/mp/ffa1", 0, 0, 640, 480); Expect(0, 0, 900, 720);
+            virtualPic("gfx/hud/load_tick", 140, 460, 360, 8); Expect(196.875f, 669.375f, 506.25f, 11.25f);
+            CL_HudEndFrame();
+            CL_HudResetCGame(); Size(2560,1080);
         }
         CL_HudRegisterShaderName(17,"white");
         Picture(0,0,2560,1080); Expect(0,0,2560,1080);

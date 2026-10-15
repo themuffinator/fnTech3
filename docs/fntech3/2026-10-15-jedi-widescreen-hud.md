@@ -178,11 +178,16 @@ Results are in the companion.
 - Neither Jedi single player reaches its menus or client game.
 - At `750f070f`, weapon switching (`weapnext`) stops the client at
   client-game import 36, `CG_S_MUTESOUND`, which is not served there: a
-  separate gap (`after-panels-1680`). The selection bars and the loading
-  screen are therefore placed from the reference layout and unit samples,
-  not live captures.
+  separate gap (`after-panels-1680`), served since `aa0e7049`. The
+  selection bars and the loading screen were therefore placed from the
+  reference layout and unit samples. A later
+  [live check](2026-10-15-jka-hud-live-check.md) captured both: they land as
+  placed, and each bar's name now goes down with its bar on screens taller
+  than 4:3.
 - The disruptor and binocular masks are full-screen pictures and stay
-  stretched across the window, as the original drew them; not captured.
+  stretched across the window, as the original drew them. Not captured: any
+  zoom stops the client at client-game import 216, `CG_R_SETRANGEFOG`, before
+  a mask is drawn ([live check](2026-10-15-jka-hud-live-check.md)).
 - The menu cursor in the top-left corner of the play captures is the menu
   module's own: it keeps its key catcher after `ui_openmenu none`, and
   retail releases it only when Escape closes the menus

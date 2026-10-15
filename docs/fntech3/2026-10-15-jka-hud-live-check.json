@@ -1,0 +1,2906 @@
+{
+ "record": "2026-10-15-jka-hud-live-check.md",
+ "date": "2026-10-15",
+ "profiles": [
+  "jka-mp"
+ ],
+ "gatesClosed": [],
+ "headForRuns": "8779edb50494ab44a12ffc44eba285f986d84ce3",
+ "headAtCommit": "b589caf8bc16df8b70546a1a2ecdb1c64e0a6a24",
+ "hudPathSinceRuns": {
+  "changedFiles": [
+   "code/client/client_jka_cgame_host.hpp"
+  ],
+  "note": "client_jka_cgame_host.hpp: 4782edce adds the effects decal clear and draw hooks (CG_R_CLEARDECALS, CG_R_RENDERSCENE); the picture (211) and font (62) imports, the 4:3 frame and the HUD module are unchanged"
+ },
+ "platform": "Windows 11, Windows x86 build (MSVC, meson debugoptimized, strict warnings, renderers glx/vk/rtx)",
+ "installation": {
+  "path": "E:/Games/Jedi Academy",
+  "version": "1.01",
+  "paks": {
+   "assets0.pk3": {
+    "size": 561806019,
+    "sha256": "ffea9e7489bad7175411d122e0652b4272efb67c0e71805d1f4d8058084b5939"
+   },
+   "assets1.pk3": {
+    "size": 652804510,
+    "sha256": "5f196826e226b1115bd46f54697334ca970c8261dd76864c1600179ff38e4c4f"
+   },
+   "assets2.pk3": {
+    "size": 1116384,
+    "sha256": "8f21cdd89afe78fdf916d103117f4b2621c6f4781dee003716057dc705ef98af"
+   },
+   "assets3.pk3": {
+    "size": 9282026,
+    "sha256": "0f542dccb6858fc10a8083ca71f581c9eba93173386e03a9e5e05d3a56118f78"
+   }
+  },
+  "readOnly": true
+ },
+ "reference": {
+  "openjk": "1a6a643427aa347553e9073dac5570b33337c4d9",
+  "use": "reference observation of codemp/cgame (cg_draw.c, cg_weapons.c, cg_info.c, cg_view.c) and codemp/game (bg_pmove.c, g_items.c, w_force.c, bg_misc.c) for how to reach each screen and what the zoom draws; the retail modules draw the positions measured here"
+ },
+ "harness": {
+  "script": ".tmp/jka-hud-verify/probe.py",
+  "common": "private desktop, windowed (r_fullscreen 0), net_enabled 0, s_initsound 0, isolated home with an empty jampconfig.cfg, no input sent, engine screenshotPNG, cl_hudDump",
+  "loading": "sv_packetdelay 2500 holds the client on its loading screen (Quake III recipe)",
+  "forceConfiguration": "7-1-332212000220001333 (assets1.pk3 botfiles/Luke.jkb forceinfo)"
+ },
+ "rules": {
+  "path": "pkg/games/jka-mp/base/fntech3-hud.json",
+  "beforeSha256": "3769e2a8e670430b22e94db34ada2127d29448777c1e0c622572983a4fc22f04",
+  "afterSha256": "24359b1e738080c45947f1dcb6d3e4cb7c1733aeaa293fa4d4ac41bf66461acd",
+  "changes": [
+   "selection_bars: region w 408 -> 416 (x 100..516); the inventory bar's last icon is centred on x 508.0",
+   "selection_names (new): text whose line centre lies in x 300..340, y 440..480 -> centre, bottom"
+  ]
+ },
+ "runtimes": {
+  "jka-hud-verify (HEAD for runs, shipped rules)": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "efad68feca590ddabce5374134343155c3be4a799e605b42c67f6f1a740a00da",
+   "fnql_vk_x86.dll": "c3802ff8f311d4faefbb044f37a81bc5d34bd3ec9fb1ec0ab68cb53bb3839b9f",
+   "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+   "fntech3.exe": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28"
+  },
+  "jka-hud-verify-fix (same binaries, package with the fixed rules)": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "efad68feca590ddabce5374134343155c3be4a799e605b42c67f6f1a740a00da",
+   "fnql_vk_x86.dll": "c3802ff8f311d4faefbb044f37a81bc5d34bd3ec9fb1ec0ab68cb53bb3839b9f",
+   "fntech3-pkg.fnz": "856196fd31d90e48f1aa520226b0348c7a1db24cc83a7db32562243ae8aea2c6",
+   "fntech3.exe": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28"
+  }
+ },
+ "runs": [
+  {
+   "run": "weapsel-1680",
+   "mode": "weapsel",
+   "map": "mp/ffa1",
+   "size": "1680x720",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 19.7,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "weapsel.png",
+     "sha256": "e7ec449d2c7edeb82366d1501d6c14c78e107d8a5a91cbb2beccffd559012755"
+    }
+   ],
+   "hudDumpSha256": "0afaf996229b75e82bc62417fae6a8f2b9d982325cffffd6ef0c77dd361970a5",
+   "runtime": "jka-hud-verify",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\weapsel-1680\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 1680 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; weapnext; wait 6; screenshotPNG weapsel; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 180; ui_openmenu none; set cl_menuBlur 0; wait 300; vstr shots\""
+   ],
+   "part": "selection_bars",
+   "note": "weapon bar whole and centred; name under it"
+  },
+  {
+   "run": "weapsel-900",
+   "mode": "weapsel",
+   "map": "mp/ffa1",
+   "size": "900x720",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 14.9,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "weapsel.png",
+     "sha256": "02d4e9bdfdfd0c6b5af9fd80e1a36f456d15486beea615670bfe263983e95885"
+    }
+   ],
+   "hudDumpSha256": "9fed07b63a167dce592dda33e1a3d0a01c83e418de0268fa6ca63bab2f966650",
+   "runtime": "jka-hud-verify",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\weapsel-900\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 900 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; weapnext; wait 6; screenshotPNG weapsel; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 180; ui_openmenu none; set cl_menuBlur 0; wait 300; vstr shots\""
+   ],
+   "part": "selection_bars",
+   "note": "weapon bar at the bottom; its name 22.5 px higher, over the centre icon"
+  },
+  {
+   "run": "invsel-1680",
+   "mode": "invsel",
+   "map": "mp/ffa1",
+   "size": "1680x720",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 16.9,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "invsel.png",
+     "sha256": "942be6cd2ffa99238c4fa252d313cdefa7445a5e13e29dde79337b042539a442"
+    }
+   ],
+   "hudDumpSha256": "5414cbf0d8f6ae44d087d798c33b66992142c06ef0b557450443bec96ce977c8",
+   "runtime": "jka-hud-verify",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\invsel-1680\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 1680 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; invnext; wait 20; screenshotPNG invsel; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 180; ui_openmenu none; set cl_menuBlur 0; wait 300; vstr shots\""
+   ],
+   "part": "selection_bars",
+   "note": "inventory bar whole and centred; last icon centred on x 508"
+  },
+  {
+   "run": "invsel-900",
+   "mode": "invsel",
+   "map": "mp/ffa1",
+   "size": "900x720",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 16.8,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "invsel.png",
+     "sha256": "2ff5d6d305c238e972ae234c95dca671038537c69e375e0d3aaf1f8b3090848d"
+    }
+   ],
+   "hudDumpSha256": "c53dfb279a989cad8d7c294c11ee356614a1d1d09802c32b3a37301ff920ec14",
+   "runtime": "jka-hud-verify",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\invsel-900\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 900 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; invnext; wait 20; screenshotPNG invsel; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 180; ui_openmenu none; set cl_menuBlur 0; wait 300; vstr shots\""
+   ],
+   "part": "selection_bars",
+   "note": "inventory bar at the bottom; its name over the centre icon"
+  },
+  {
+   "run": "forcesel-1680",
+   "mode": "forcesel",
+   "map": "mp/ffa1",
+   "size": "1680x720",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 14.9,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "forcesel.png",
+     "sha256": "e1582e23984cd07efe0d0d0e41414b4cfaeb107df360b667b188e6f86f1e63ed"
+    }
+   ],
+   "hudDumpSha256": "b76e3d32954801ce52cb53141dc43da31b9625633c8d7cd2b6f402dd20ab6199",
+   "runtime": "jka-hud-verify",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\forcesel-1680\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 1680 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +set forcepowers 7-1-332212000220001333 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; forcenext; wait 20; screenshotPNG forcesel; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; wait 30; ui_openmenu none; set cl_menuBlur 0; wait 60; team free; wait 360; vstr shots\""
+   ],
+   "part": "selection_bars",
+   "note": "force bar (three powers) whole and centred"
+  },
+  {
+   "run": "forcesel-900",
+   "mode": "forcesel",
+   "map": "mp/ffa1",
+   "size": "900x720",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 15.0,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "forcesel.png",
+     "sha256": "60719a11c3291bc8a7f03dff050519237ace736c85a92d799c377d9d31d2ddf8"
+    }
+   ],
+   "hudDumpSha256": "060f81a7dd058462ce763e547cc2d3c7fe0c0e55ee68af6f6fd8aea500c2aa89",
+   "runtime": "jka-hud-verify",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\forcesel-900\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 900 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +set forcepowers 7-1-332212000220001333 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; forcenext; wait 20; screenshotPNG forcesel; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; wait 30; ui_openmenu none; set cl_menuBlur 0; wait 60; team free; wait 360; vstr shots\""
+   ],
+   "part": "selection_bars",
+   "note": "force bar at the bottom; its name over the centre icon"
+  },
+  {
+   "run": "loading-1680",
+   "mode": "loading",
+   "map": "mp/ffa1",
+   "size": "1680x720",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 70.4,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "load_05.png",
+     "sha256": "9ebb8a4503953d5e6d6a1c065317d6ac64f3a861da362d23ca0dfa3cde6e3ff7"
+    },
+    {
+     "name": "load_06.png",
+     "sha256": "515237b6c764ed9c0a48f1c4d6154283e366f3f2fa653f90bd3258c62acd88e1"
+    },
+    {
+     "name": "load_07.png",
+     "sha256": "ed66863fb4251931319eb73752353360c572010248c28fdc838a0142a183494d"
+    },
+    {
+     "name": "load_08.png",
+     "sha256": "1d01f56587091b75ebbf867a622655234bf551818988a523e635ae2c61156ff4"
+    },
+    {
+     "name": "load_09.png",
+     "sha256": "357e2140670cf5b6cfc53de4bd86b985800c3bc52777ec6d9a5fefffe35f3cc2"
+    },
+    {
+     "name": "load_10.png",
+     "sha256": "05c38e49fc21b751862d06b507304afcf5e66b1c7e49e2c392bcda81a9adcc49"
+    },
+    {
+     "name": "load_11.png",
+     "sha256": "9f73639dea1a85e8a949406a4eb65cbc11c86a6e950c3b855f81efc62570d44c"
+    },
+    {
+     "name": "load_12.png",
+     "sha256": "478879b219468de7600d7ba9d8919bcfd3982399bc30fcafc158db1f00973bab"
+    },
+    {
+     "name": "load_13.png",
+     "sha256": "7cbcfd7cbe410792977174aa584e45f855076af0fa20e49136b1425452b38dc9"
+    },
+    {
+     "name": "load_14.png",
+     "sha256": "e9f1091beae2a701cf15eaeb99ef2e3e9c4d8c9a48c0ad1f70de2515b29001c9"
+    },
+    {
+     "name": "load_15.png",
+     "sha256": "bbc21a3ca3774daf738a66d8690168aa7df754e60415d619d724856ebd4764f1"
+    },
+    {
+     "name": "load_16.png",
+     "sha256": "405ea0ac6187b0b613b21bd301c0485a85c428fbd4123366bd568b5129627b66"
+    },
+    {
+     "name": "load_17.png",
+     "sha256": "9ebb8a4503953d5e6d6a1c065317d6ac64f3a861da362d23ca0dfa3cde6e3ff7"
+    },
+    {
+     "name": "load_18.png",
+     "sha256": "17370027093889c8b43efac327bf82c31c32eb8e922352f73201da2193f953e3"
+    },
+    {
+     "name": "load_19.png",
+     "sha256": "e9ece6618a5d6eebecd7d392aa6ed2561b49aee379919b729e7ac63ed78c7312"
+    },
+    {
+     "name": "load_20.png",
+     "sha256": "ed66863fb4251931319eb73752353360c572010248c28fdc838a0142a183494d"
+    },
+    {
+     "name": "load_21.png",
+     "sha256": "478879b219468de7600d7ba9d8919bcfd3982399bc30fcafc158db1f00973bab"
+    },
+    {
+     "name": "load_22.png",
+     "sha256": "d7c3f456479ffca223976b6852de8187cc504972609a71aefe244a6ae585bc3e"
+    },
+    {
+     "name": "load_23.png",
+     "sha256": "48976646b57fb7948f11dec0a0e762fc583804b91259b3b6dfd0e951165b1bbc"
+    },
+    {
+     "name": "load_24.png",
+     "sha256": "90ada0116d5981624a2493887d973b7c10eaad9d52c48857366bb65d5f531dfd"
+    }
+   ],
+   "hudDumpSha256": "e5472e221630179f0fbc9de066ca05b78ab77003933fce40e2449241e2f12b92",
+   "runtime": "jka-hud-verify",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\loading-1680\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 1680 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +set sv_packetdelay 2500 +set cl_hudDump 1 +exec probehud.cfg +devmap mp/ffa1 +vstr loadsteps",
+   "config": [
+    "set loadsteps \"wait 30; screenshotPNG load_01; wait 30; screenshotPNG load_02; wait 30; screenshotPNG load_03; wait 30; screenshotPNG load_04; wait 30; screenshotPNG load_05; wait 30; screenshotPNG load_06; wait 30; screenshotPNG load_07; wait 30; screenshotPNG load_08; wait 30; screenshotPNG load_09; wait 30; screenshotPNG load_10; wait 30; screenshotPNG load_11; wait 30; screenshotPNG load_12; wait 30; screenshotPNG load_13; wait 30; screenshotPNG load_14; wait 30; screenshotPNG load_15; wait 30; screenshotPNG load_16; wait 30; screenshotPNG load_17; wait 30; screenshotPNG load_18; wait 30; screenshotPNG load_19; wait 30; screenshotPNG load_20; wait 30; screenshotPNG load_21; wait 30; screenshotPNG load_22; wait 30; screenshotPNG load_23; wait 30; screenshotPNG load_24; wait 20; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\""
+   ],
+   "part": "loading_levelshot",
+   "note": "levelshot stretched over 1680x720; composite in the centred 960x720"
+  },
+  {
+   "run": "loading-900",
+   "mode": "loading",
+   "map": "mp/ffa1",
+   "size": "900x720",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 25.0,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "load_05.png",
+     "sha256": "ce90d03ebd633fc7cc0bd32d433bc166c1231164e3c39f718ac2dc29fce46c35"
+    },
+    {
+     "name": "load_06.png",
+     "sha256": "6868dfe80abcdd66051b484a0474adde76b419e92fa2db2863d963f41ededbf6"
+    },
+    {
+     "name": "load_07.png",
+     "sha256": "975e8c6e22cfd42bf5347a9a5cdddba4e9e208180bfa7e2a95d1f199234da8d0"
+    },
+    {
+     "name": "load_08.png",
+     "sha256": "e59cd6cb2966ae975705838cb606dde88d9fc00020fa9dd3ae883d4015e4bc9d"
+    },
+    {
+     "name": "load_09.png",
+     "sha256": "8077cbea3fe2424942374c897d4efb8215ceaabacd6e2fc8bd06d75a7d115ee6"
+    },
+    {
+     "name": "load_10.png",
+     "sha256": "feebe0e835eee34c30eaf10f9e31142d08147500645dcf2ad03de68da0ed91b0"
+    }
+   ],
+   "hudDumpSha256": "667a0fa5165da51e6807130df6e6481f4ca69b2656b64048ca0466b9f9936e9c",
+   "runtime": "jka-hud-verify",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\loading-900\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 900 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +set sv_packetdelay 2500 +set cl_hudDump 1 +exec probehud.cfg +devmap mp/ffa1 +vstr loadsteps",
+   "config": [
+    "set loadsteps \"wait 30; screenshotPNG load_01; wait 30; screenshotPNG load_02; wait 30; screenshotPNG load_03; wait 30; screenshotPNG load_04; wait 30; screenshotPNG load_05; wait 30; screenshotPNG load_06; wait 30; screenshotPNG load_07; wait 30; screenshotPNG load_08; wait 30; screenshotPNG load_09; wait 30; screenshotPNG load_10; wait 20; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\""
+   ],
+   "part": "loading_levelshot",
+   "note": "levelshot stretched over 900x720; composite in the centred 900x675"
+  },
+  {
+   "run": "loading-unknown-1680",
+   "mode": "loading",
+   "map": "yavin1",
+   "size": "1680x720",
+   "renderer": "glx",
+   "outcome": "timeout",
+   "exit": 1,
+   "forced": true,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 324.1,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "load_12.png",
+     "sha256": "9e98564c17f16857396d7c8316b589acb95a7c3137a5cd81bcf6ea75956081cb"
+    },
+    {
+     "name": "load_13.png",
+     "sha256": "0b34059ce3080dba110da63f9868fb7b17ec7076a1c5b145cbe837ae0b0d423c"
+    },
+    {
+     "name": "load_14.png",
+     "sha256": "558cbc77f07af38c39e62f7af6e41ca3239dd60784077f32da42571fa189f5e1"
+    },
+    {
+     "name": "load_15.png",
+     "sha256": "c91b6350c36a3ec5d1df7f14834ceb36fbcf7ae142c4ebb69d9e6a7f7ea04b2c"
+    },
+    {
+     "name": "load_16.png",
+     "sha256": "d4d483f8351725f013899a786b755ab374ed47763d47d7898a269d6a9694f9d5"
+    },
+    {
+     "name": "load_17.png",
+     "sha256": "5258f2ccc0bf5f894286fe5e274a0dbc81c6d72b38eb41b7e16d6292fa621094"
+    },
+    {
+     "name": "load_18.png",
+     "sha256": "040eb02a374cf4418e145505c8db65d3960d2775956c22ce4e5f259bccbfaab6"
+    },
+    {
+     "name": "load_19.png",
+     "sha256": "558cbc77f07af38c39e62f7af6e41ca3239dd60784077f32da42571fa189f5e1"
+    },
+    {
+     "name": "load_20.png",
+     "sha256": "072105f8ad9e33f02ab090ad1fac7e9f01cacf908576040546d33c4077fd2063"
+    },
+    {
+     "name": "load_21.png",
+     "sha256": "e9b8a78e91196d64999df9564f4a02ce3036970e1e6fb0318208124ceb15275b"
+    },
+    {
+     "name": "load_22.png",
+     "sha256": "d651bf8d7ed29be61850e9569efd65b538fed7a1f28612004624a5dcaa222e13"
+    },
+    {
+     "name": "load_23.png",
+     "sha256": "8c8ddf00a60d884af35587593591a6057adbc74bbeb6622a072c5b9b0712a24f"
+    },
+    {
+     "name": "load_24.png",
+     "sha256": "0217b369f6bcc112283cc80e6047aeefdfda3eb31db2e1e53e9ccce769c36a9b"
+    },
+    {
+     "name": "load_25.png",
+     "sha256": "34458ddc23b70da74952751510d51d8d90ba2b2b8c78f1644e6e9c767319bb78"
+    },
+    {
+     "name": "load_26.png",
+     "sha256": "85585095bd57880b39aec4111a8af01e4c74768915c52005f910c9d20b8782b0"
+    },
+    {
+     "name": "load_27.png",
+     "sha256": "39d4058cbda0a6687d841d1d0b58b3941c9547d78cab795df7f3652e478c8f54"
+    },
+    {
+     "name": "load_28.png",
+     "sha256": "8adbd7b2235b09f34fc8b276c6a25793a655ea4b95e74035c84e57c707ebffa3"
+    },
+    {
+     "name": "load_29.png",
+     "sha256": "8e436231489d16c8aa5923275ac8555646b2f538f3dda0d5eb38c13c2e0bfdc1"
+    },
+    {
+     "name": "load_30.png",
+     "sha256": "c91b6350c36a3ec5d1df7f14834ceb36fbcf7ae142c4ebb69d9e6a7f7ea04b2c"
+    },
+    {
+     "name": "load_31.png",
+     "sha256": "558cbc77f07af38c39e62f7af6e41ca3239dd60784077f32da42571fa189f5e1"
+    },
+    {
+     "name": "load_32.png",
+     "sha256": "0b34059ce3080dba110da63f9868fb7b17ec7076a1c5b145cbe837ae0b0d423c"
+    }
+   ],
+   "hudDumpSha256": "dfd63b8ba68a097a18fdb6ebe2e53f6d837f268af9bf75ddead510171984eb31",
+   "runtime": "jka-hud-verify",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\loading-unknown-1680\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 1680 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +set sv_packetdelay 2500 +set cl_hudDump 1 +exec probehud.cfg +devmap yavin1 +vstr loadsteps",
+   "config": [
+    "set loadsteps \"wait 6; screenshotPNG load_01; wait 6; screenshotPNG load_02; wait 6; screenshotPNG load_03; wait 6; screenshotPNG load_04; wait 6; screenshotPNG load_05; wait 6; screenshotPNG load_06; wait 6; screenshotPNG load_07; wait 6; screenshotPNG load_08; wait 6; screenshotPNG load_09; wait 6; screenshotPNG load_10; wait 6; screenshotPNG load_11; wait 6; screenshotPNG load_12; wait 6; screenshotPNG load_13; wait 6; screenshotPNG load_14; wait 6; screenshotPNG load_15; wait 6; screenshotPNG load_16; wait 6; screenshotPNG load_17; wait 6; screenshotPNG load_18; wait 6; screenshotPNG load_19; wait 6; screenshotPNG load_20; wait 6; screenshotPNG load_21; wait 6; screenshotPNG load_22; wait 6; screenshotPNG load_23; wait 6; screenshotPNG load_24; wait 6; screenshotPNG load_25; wait 6; screenshotPNG load_26; wait 6; screenshotPNG load_27; wait 6; screenshotPNG load_28; wait 6; screenshotPNG load_29; wait 6; screenshotPNG load_30; wait 6; screenshotPNG load_31; wait 6; screenshotPNG load_32; wait 6; screenshotPNG load_33; wait 6; screenshotPNG load_34; wait 6; screenshotPNG load_35; wait 6; screenshotPNG load_36; wait 6; screenshotPNG load_37; wait 6; screenshotPNG load_38; wait 6; screenshotPNG load_39; wait 6; screenshotPNG load_40; wait 6; screenshotPNG load_41; wait 6; screenshotPNG load_42; wait 6; screenshotPNG load_43; wait 6; screenshotPNG load_44; wait 6; screenshotPNG load_45; wait 6; screenshotPNG load_46; wait 6; screenshotPNG load_47; wait 6; screenshotPNG load_48; wait 6; screenshotPNG load_49; wait 6; screenshotPNG load_50; wait 6; screenshotPNG load_51; wait 6; screenshotPNG load_52; wait 6; screenshotPNG load_53; wait 6; screenshotPNG load_54; wait 6; screenshotPNG load_55; wait 6; screenshotPNG load_56; wait 6; screenshotPNG load_57; wait 6; screenshotPNG load_58; wait 6; screenshotPNG load_59; wait 6; screenshotPNG load_60; wait 20; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\""
+   ],
+   "part": "loading_unknown_map",
+   "note": "yavin1 has no levelshot: unknownmap_mp stretched, same composite"
+  },
+  {
+   "run": "binoculars-1680",
+   "mode": "binoculars",
+   "map": "mp/ffa1",
+   "size": "1680x720",
+   "renderer": "glx",
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "errors": [
+    "ERROR: Unsupported jka-mp cgame import 216 (CG_R_SETRANGEFOG)",
+    "----- Server Shutdown (Server crashed: Unsupported jka-mp cgame import 216 (CG_R_SETRANGEFOG)) -----"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 40.3,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "binsel.png",
+     "sha256": "0f77d247afead7bbf3e600a8df8348905e8b4e99b256764696ab8dbe95c102bb"
+    }
+   ],
+   "hudDumpSha256": null,
+   "runtime": "jka-hud-verify",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\binoculars-1680\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 1680 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; invnext; wait 10; invnext; wait 10; invnext; wait 10; invnext; wait 10; invnext; wait 6; screenshotPNG binsel; wait 120; +button2; wait 6; -button2; wait 90; screenshotPNG binoculars; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 240; togglemenu; wait 60; set cl_menuBlur 0; wait 240; vstr shots\""
+   ],
+   "part": "zoom",
+   "note": "binocular zoom stops the client at cgame import 216 before its mask"
+  },
+  {
+   "run": "disruptor-1680",
+   "mode": "disruptor",
+   "map": "mp/ffa1",
+   "size": "1680x720",
+   "renderer": "glx",
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "errors": [
+    "ERROR: Unsupported jka-mp cgame import 216 (CG_R_SETRANGEFOG)",
+    "----- Server Shutdown (Server crashed: Unsupported jka-mp cgame import 216 (CG_R_SETRANGEFOG)) -----"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 40.3,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [],
+   "hudDumpSha256": null,
+   "runtime": "jka-hud-verify",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\disruptor-1680\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 1680 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; weapon 4; wait 120; +altattack; wait 6; -altattack; wait 90; screenshotPNG disruptor; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 240; togglemenu; wait 60; set cl_menuBlur 0; wait 240; vstr shots\""
+   ],
+   "part": "zoom",
+   "note": "disruptor zoom stops the client at cgame import 216 before its mask"
+  },
+  {
+   "run": "fix-weapsel-900",
+   "mode": "weapsel",
+   "map": "mp/ffa1",
+   "size": "900x720",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 14.9,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "weapsel.png",
+     "sha256": "3b980ae56edc1e539de4f784ebd07e227726b9ba0f47268f8cba60dc6fdf8342"
+    }
+   ],
+   "hudDumpSha256": "38d9a259d6fa6b0056d302331c7d7a9725fc87a64588ee71431488c21486058f",
+   "runtime": "jka-hud-verify-fix",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "856196fd31d90e48f1aa520226b0348c7a1db24cc83a7db32562243ae8aea2c6",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\fix-weapsel-900\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 900 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; weapnext; wait 6; screenshotPNG weapsel; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 180; ui_openmenu none; set cl_menuBlur 0; wait 300; vstr shots\""
+   ],
+   "part": "selection_bars (fixed)",
+   "note": "name under the weapon bar at 5:4"
+  },
+  {
+   "run": "fix-invsel-900",
+   "mode": "invsel",
+   "map": "mp/ffa1",
+   "size": "900x720",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 13.7,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "invsel.png",
+     "sha256": "d641f89f94772765fcb97dc4800f973e55adf44ab95bbbe7680da6824dbae41f"
+    }
+   ],
+   "hudDumpSha256": "e64edab35d2f6a986601bd3832f1ab64b7ab362eadf917e94c59702eec9d6adc",
+   "runtime": "jka-hud-verify-fix",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "856196fd31d90e48f1aa520226b0348c7a1db24cc83a7db32562243ae8aea2c6",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\fix-invsel-900\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 900 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; invnext; wait 20; screenshotPNG invsel; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 180; ui_openmenu none; set cl_menuBlur 0; wait 300; vstr shots\""
+   ],
+   "part": "selection_bars (fixed)",
+   "note": "name under the inventory bar at 5:4"
+  },
+  {
+   "run": "fix-forcesel-900",
+   "mode": "forcesel",
+   "map": "mp/ffa1",
+   "size": "900x720",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 13.9,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "forcesel.png",
+     "sha256": "29eb06d18e9df1b6c174dc654ca6c93487bbd5c987ffcd3ffd133552c5a07858"
+    }
+   ],
+   "hudDumpSha256": "85016a93c675a866c2c311249f60f703cb8d1348a095dcca91cc802e8e5a4324",
+   "runtime": "jka-hud-verify-fix",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "856196fd31d90e48f1aa520226b0348c7a1db24cc83a7db32562243ae8aea2c6",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\fix-forcesel-900\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 900 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +set forcepowers 7-1-332212000220001333 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; forcenext; wait 20; screenshotPNG forcesel; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; wait 30; ui_openmenu none; set cl_menuBlur 0; wait 60; team free; wait 360; vstr shots\""
+   ],
+   "part": "selection_bars (fixed)",
+   "note": "name under the force bar at 5:4"
+  },
+  {
+   "run": "fix-weapsel-900-vk",
+   "mode": "weapsel",
+   "map": "mp/ffa1",
+   "size": "900x720",
+   "renderer": "vk",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 23.2,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "weapsel.png",
+     "sha256": "a05d03838f3420cf8378919a2e3a2d7b7a84126d60ed9f585e457e7f9180659a"
+    }
+   ],
+   "hudDumpSha256": "9fed07b63a167dce592dda33e1a3d0a01c83e418de0268fa6ca63bab2f966650",
+   "runtime": "jka-hud-verify-fix",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "856196fd31d90e48f1aa520226b0348c7a1db24cc83a7db32562243ae8aea2c6",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\fix-weapsel-900-vk\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 900 +set r_customHeight 720 +set cl_renderer vk +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; weapnext; wait 6; screenshotPNG weapsel; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 180; ui_openmenu none; set cl_menuBlur 0; wait 300; vstr shots\""
+   ],
+   "part": "selection_bars (fixed)",
+   "note": "Vulkan: the same placement"
+  },
+  {
+   "run": "fix-weapsel-1680",
+   "mode": "weapsel",
+   "map": "mp/ffa1",
+   "size": "1680x720",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 13.7,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "weapsel.png",
+     "sha256": "7ee8c7a955ac1562a17d6d06dc71655ef7455415bd12510db146875952ebbe4b"
+    }
+   ],
+   "hudDumpSha256": "bc13647961f6703fab51214b67e0566071c0d03b50acf193dee154b1f612deeb",
+   "runtime": "jka-hud-verify-fix",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "856196fd31d90e48f1aa520226b0348c7a1db24cc83a7db32562243ae8aea2c6",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\fix-weapsel-1680\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 1680 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; weapnext; wait 6; screenshotPNG weapsel; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 180; ui_openmenu none; set cl_menuBlur 0; wait 300; vstr shots\""
+   ],
+   "part": "selection_bars (fixed)",
+   "note": "unchanged at 21:9"
+  },
+  {
+   "run": "fix-invsel-1680",
+   "mode": "invsel",
+   "map": "mp/ffa1",
+   "size": "1680x720",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 14.7,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "invsel.png",
+     "sha256": "46d7345a0c176c2fb864b373d0245d6e1c6826bf8f9457178d9a940d23195103"
+    }
+   ],
+   "hudDumpSha256": "5414cbf0d8f6ae44d087d798c33b66992142c06ef0b557450443bec96ce977c8",
+   "runtime": "jka-hud-verify-fix",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "856196fd31d90e48f1aa520226b0348c7a1db24cc83a7db32562243ae8aea2c6",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\fix-invsel-1680\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 1680 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; invnext; wait 20; screenshotPNG invsel; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 180; ui_openmenu none; set cl_menuBlur 0; wait 300; vstr shots\""
+   ],
+   "part": "selection_bars (fixed)",
+   "note": "unchanged at 21:9"
+  },
+  {
+   "run": "fix-forcesel-1680",
+   "mode": "forcesel",
+   "map": "mp/ffa1",
+   "size": "1680x720",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 13.7,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "forcesel.png",
+     "sha256": "cbe6456d1a1c1f55309990c42552d148b6c48bdf3b7ba6096f24072cfad09dfc"
+    }
+   ],
+   "hudDumpSha256": "38ea1a74c0068fd4f4f006264338ca7d25a7d6314fe05cf296b5e5007e1d9420",
+   "runtime": "jka-hud-verify-fix",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "856196fd31d90e48f1aa520226b0348c7a1db24cc83a7db32562243ae8aea2c6",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\fix-forcesel-1680\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 1680 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +set forcepowers 7-1-332212000220001333 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; forcenext; wait 20; screenshotPNG forcesel; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; wait 30; ui_openmenu none; set cl_menuBlur 0; wait 60; team free; wait 360; vstr shots\""
+   ],
+   "part": "selection_bars (fixed)",
+   "note": "unchanged at 21:9"
+  },
+  {
+   "run": "fix-invsel-1366",
+   "mode": "invsel",
+   "map": "mp/ffa1",
+   "size": "1366x768",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 14.7,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "invsel.png",
+     "sha256": "1e3462850d4c1d59da263710bc4cf03bf857bfc039af7b89f78831c6166c9ebb"
+    }
+   ],
+   "hudDumpSha256": "b0b01cd8547787b1b9928ef1ee2b48e8417b7cd3df461411fb960571a8956e45",
+   "runtime": "jka-hud-verify-fix",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "856196fd31d90e48f1aa520226b0348c7a1db24cc83a7db32562243ae8aea2c6",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\fix-invsel-1366\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 1366 +set r_customHeight 768 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; invnext; wait 20; screenshotPNG invsel; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 180; ui_openmenu none; set cl_menuBlur 0; wait 300; vstr shots\""
+   ],
+   "part": "selection_bars (fixed)",
+   "note": "16:9 at an inexact scale (1.6): last icon with its bar"
+  },
+  {
+   "run": "fix-weapsel-960",
+   "mode": "weapsel",
+   "map": "mp/ffa1",
+   "size": "960x720",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 14.3,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "weapsel.png",
+     "sha256": "cb3c619c9187d93d20bc63c0b9fa9e0f2f42ce714c1b3d77c95c9c057a538442"
+    }
+   ],
+   "hudDumpSha256": "abcfaeb977538fc06651a6a82727fc3891e8e35f3c4fe9cfb147341dcdd4db6a",
+   "runtime": "jka-hud-verify-fix",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "856196fd31d90e48f1aa520226b0348c7a1db24cc83a7db32562243ae8aea2c6",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\fix-weapsel-960\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 960 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; weapnext; wait 6; screenshotPNG weapsel; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 180; ui_openmenu none; set cl_menuBlur 0; wait 300; vstr shots\""
+   ],
+   "part": "selection_bars (fixed)",
+   "note": "4:3: unchanged"
+  }
+ ],
+ "attempts": [
+  {
+   "run": "invsel-1680",
+   "mode": "invsel",
+   "map": "mp/ffa1",
+   "size": "1680x720",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 16.5,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "invsel.png",
+     "sha256": "fb7073488e5d62386086ff185d6f1b08de0d2c0b71d95aebfc549905a5dd4a85"
+    }
+   ],
+   "hudDumpSha256": "99d3b34dc5dc6fc917c3ca690cf3f89b0b3619782d9046665b6e5dca852b77da",
+   "runtime": "jka-hud-verify",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\invsel-1680\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 1680 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; invnext; wait 6; screenshotPNG invsel; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 180; ui_openmenu none; set cl_menuBlur 0; wait 300; vstr shots\""
+   ],
+   "part": "attempt",
+   "note": "shot 6 frames after invnext: no bar yet (the bar waits for the server's selection)"
+  },
+  {
+   "run": "invsel-900",
+   "mode": "invsel",
+   "map": "mp/ffa1",
+   "size": "900x720",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 14.3,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "invsel.png",
+     "sha256": "d7c18a8ed400cd97542652ca8d00e7ce271a557027641118b234c7b5ed50997a"
+    }
+   ],
+   "hudDumpSha256": "0778619731a1adc4baa402bc4df3a78507a069e10729f5a20d21c1c23c0b6f08",
+   "runtime": "jka-hud-verify",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\invsel-900\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 900 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; invnext; wait 6; screenshotPNG invsel; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 180; ui_openmenu none; set cl_menuBlur 0; wait 300; vstr shots\""
+   ],
+   "part": "attempt",
+   "note": "shot 6 frames after invnext: no bar yet"
+  },
+  {
+   "run": "forcesel-1680",
+   "mode": "forcesel",
+   "map": "mp/ffa1",
+   "size": "1680x720",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 14.3,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "forcesel.png",
+     "sha256": "5544ee4f6fe507938bcc0252394d918c954d64aac020a469e849c878fb76f507"
+    }
+   ],
+   "hudDumpSha256": "99d3b34dc5dc6fc917c3ca690cf3f89b0b3619782d9046665b6e5dca852b77da",
+   "runtime": "jka-hud-verify",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\forcesel-1680\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 1680 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; forcenext; wait 6; screenshotPNG forcesel; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 180; ui_openmenu none; set cl_menuBlur 0; wait 300; vstr shots\""
+   ],
+   "part": "attempt",
+   "note": "no usable force power: forcenext fell back to the inventory, shot before the bar"
+  },
+  {
+   "run": "forcesel-900",
+   "mode": "forcesel",
+   "map": "mp/ffa1",
+   "size": "900x720",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 14.9,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "forcesel.png",
+     "sha256": "45709a4a790c283377aee92ccbf68c91d2ada7fb9bcff198f84efa1c5433aeb2"
+    }
+   ],
+   "hudDumpSha256": "95afc3308b18d48a6adf7c3d491c43fa72f70b1a4b111c19f9a435e48deed01a",
+   "runtime": "jka-hud-verify",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\forcesel-900\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 900 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; forcenext; wait 6; screenshotPNG forcesel; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 180; ui_openmenu none; set cl_menuBlur 0; wait 300; vstr shots\""
+   ],
+   "part": "attempt",
+   "note": "no usable force power, as above"
+  },
+  {
+   "run": "forcesel-1680",
+   "mode": "forcesel",
+   "map": "mp/ffa1",
+   "size": "1680x720",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 17.7,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "forcesel.png",
+     "sha256": "645eb6cb98759f4fb078a7b7ec9829d33b3b96077f459f3e725f42b7f583987d"
+    }
+   ],
+   "hudDumpSha256": "a056ac34f95e92e3ecdf6ff54dc916cb0c038d4bcafced44958abf289a09c867",
+   "runtime": "jka-hud-verify",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\forcesel-1680\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 1680 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +set forcepowers 7-1-332212000220001333 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; forcenext; wait 20; screenshotPNG forcesel; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 180; ui_openmenu none; set cl_menuBlur 0; wait 300; vstr shots\""
+   ],
+   "part": "attempt",
+   "note": "force configuration set, but team free before closing the force menu: a spectator"
+  },
+  {
+   "run": "forcesel-900",
+   "mode": "forcesel",
+   "map": "mp/ffa1",
+   "size": "900x720",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 16.0,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "forcesel.png",
+     "sha256": "103406dfd78b49176acbda02337067d07af89828555a576873c1365ccd202548"
+    }
+   ],
+   "hudDumpSha256": "66f4de3ba8bd30eb3105d52bfcf9007b29619e1785320176c72a3da66024778e",
+   "runtime": "jka-hud-verify",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\forcesel-900\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 900 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +set forcepowers 7-1-332212000220001333 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; forcenext; wait 20; screenshotPNG forcesel; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 180; ui_openmenu none; set cl_menuBlur 0; wait 300; vstr shots\""
+   ],
+   "part": "attempt",
+   "note": "as above"
+  },
+  {
+   "run": "binoculars-1680",
+   "mode": "binoculars",
+   "map": "mp/ffa1",
+   "size": "1680x720",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 22.1,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "binoculars.png",
+     "sha256": "e0e090e73cca775c31a3b9ac85e8e2b7262f471e17c91f04ce13057379e7298b"
+    },
+    {
+     "name": "binsel.png",
+     "sha256": "fdbdb9400c84cea914f1f6887e901df5674a7c756a5ce713049b63eeeb741d8e"
+    }
+   ],
+   "hudDumpSha256": "cf8200943af66979d1536546923052f76a28dcd872a825e3dc954d9ad3fee1b0",
+   "runtime": "jka-hud-verify",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\binoculars-1680\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 1680 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; invnext; wait 10; invnext; wait 10; invnext; wait 10; invnext; wait 10; invnext; wait 6; screenshotPNG binsel; wait 120; +useitem; wait 6; -useitem; wait 90; screenshotPNG binoculars; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 180; ui_openmenu none; set cl_menuBlur 0; wait 300; vstr shots\""
+   ],
+   "part": "attempt",
+   "note": "+useitem is a Wolfenstein-only alias: unknown command, no zoom"
+  },
+  {
+   "run": "binoculars-1680",
+   "mode": "binoculars",
+   "map": "mp/ffa1",
+   "size": "1680x720",
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 18.3,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [
+    {
+     "name": "binoculars.png",
+     "sha256": "7941c31ce5371e72eef4597abc489b03d4fbd6e0af698477085bfa38fb4741b3"
+    },
+    {
+     "name": "binsel.png",
+     "sha256": "f2e9716594f83f6da17dd76d2105a1bd25302f3c72e2a5d947cf9ea757498de4"
+    }
+   ],
+   "hudDumpSha256": "2e7bd4505ee2d7bb2e52c942258dfd1a1abb75bf2d63aba6441776883e37f478",
+   "runtime": "jka-hud-verify",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\binoculars-1680\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 1680 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +exec probehud.cfg +devmap mp/ffa1",
+   "config": [
+    "set shots \"give all; wait 60; invnext; wait 10; invnext; wait 10; invnext; wait 10; invnext; wait 10; invnext; wait 6; screenshotPNG binsel; wait 120; +button2; wait 6; -button2; wait 90; screenshotPNG binoculars; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 180; ui_openmenu none; set cl_menuBlur 0; wait 300; vstr shots\""
+   ],
+   "part": "attempt",
+   "note": "+button2 while the menu kept its key catcher: BUTTON_TALK, no zoom"
+  },
+  {
+   "run": "loading-unknown-1680",
+   "mode": "loading",
+   "map": "yavin1",
+   "size": "1680x720",
+   "renderer": "glx",
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "errors": [
+    "ERROR: Unhandled exception caught"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 34.4,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": [],
+   "hudDumpSha256": "00e28c2f2c665fd81d5bd193815f8e49facb0f879f60179941a8b397662d2879",
+   "runtime": "jka-hud-verify",
+   "executable": "9d97abf555cc5dacdade8f9ac6bda60f52a6f445b69570476433aee83578ad28",
+   "package": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set fs_basepath E:\\Games\\Jedi Academy +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\loading-unknown-1680\\home +set com_steamIntegration 0 +set developer 0 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 1680 +set r_customHeight 720 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set con_notifytime -1 +set sv_packetdelay 2500 +set cl_hudDump 1 +exec probehud.cfg +devmap yavin1 +vstr loadsteps",
+   "config": [
+    "set loadsteps \"wait 30; screenshotPNG load_01; wait 30; screenshotPNG load_02; wait 30; screenshotPNG load_03; wait 30; screenshotPNG load_04; wait 30; screenshotPNG load_05; wait 30; screenshotPNG load_06; wait 30; screenshotPNG load_07; wait 30; screenshotPNG load_08; wait 30; screenshotPNG load_09; wait 30; screenshotPNG load_10; wait 20; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\""
+   ],
+   "part": "attempt",
+   "note": "yavin1: retail jampgamex86.dll access violation at +0x4a293 after cgame init"
+  }
+ ],
+ "dumps": {
+  "weapsel-1680": [
+   {
+    "shader": "gfx/hud/w_icon_blaster",
+    "textLike": 0,
+    "region": [
+     280.0,
+     400.0,
+     80.0,
+     80.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "gfx/hud/w_icon_melee",
+    "textLike": 0,
+    "region": [
+     124.0,
+     420.0,
+     40.0,
+     40.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "gfx/hud/w_icon_lightsaber",
+    "textLike": 0,
+    "region": [
+     176.0,
+     420.0,
+     40.0,
+     40.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "gfx/hud/w_icon_blaster_pistol",
+    "textLike": 0,
+    "region": [
+     228.0,
+     420.0,
+     40.0,
+     40.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "gfx/hud/w_icon_disruptor",
+    "textLike": 0,
+    "region": [
+     372.0,
+     420.0,
+     40.0,
+     40.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "gfx/hud/w_icon_bowcaster",
+    "textLike": 0,
+    "region": [
+     424.0,
+     420.0,
+     40.0,
+     40.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "gfx/hud/w_icon_repeater",
+    "textLike": 0,
+    "region": [
+     476.0,
+     420.0,
+     40.0,
+     40.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     309.0,
+     461.0,
+     95.0,
+     15.0
+    ],
+    "draws": 270,
+    "frames": 30
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     237.0,
+     462.0,
+     91.0,
+     13.0
+    ],
+    "draws": 240,
+    "frames": 30
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     468.0,
+     464.9,
+     34.3,
+     10.5
+    ],
+    "draws": 420,
+    "frames": 30
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     505.1,
+     464.9,
+     8.4,
+     10.5
+    ],
+    "draws": 60,
+    "frames": 30
+   }
+  ],
+  "invsel-1680": [
+   {
+    "shader": "gfx/hud/i_icon_seeker",
+    "textLike": 0,
+    "region": [
+     280.0,
+     400.0,
+     80.0,
+     80.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "gfx/hud/i_icon_eweb",
+    "textLike": 0,
+    "region": [
+     168.0,
+     420.0,
+     40.0,
+     40.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "gfx/hud/i_icon_cloak",
+    "textLike": 0,
+    "region": [
+     224.0,
+     420.0,
+     40.0,
+     40.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "gfx/hud/i_icon_shieldwall",
+    "textLike": 0,
+    "region": [
+     376.0,
+     420.0,
+     40.0,
+     40.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "gfx/hud/i_icon_bacta",
+    "textLike": 0,
+    "region": [
+     432.0,
+     420.0,
+     40.0,
+     40.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "gfx/hud/i_icon_big_bacta",
+    "textLike": 0,
+    "region": [
+     488.0,
+     420.0,
+     40.0,
+     40.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     261.0,
+     462.0,
+     119.0,
+     14.0
+    ],
+    "draws": 330,
+    "frames": 30
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     330.0,
+     462.0,
+     10.0,
+     13.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     468.0,
+     464.9,
+     34.3,
+     10.5
+    ],
+    "draws": 420,
+    "frames": 30
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     505.1,
+     464.9,
+     8.4,
+     10.5
+    ],
+    "draws": 60,
+    "frames": 30
+   }
+  ],
+  "forcesel-1680": [
+   {
+    "shader": "gfx/mp/f_icon_lt_heal",
+    "textLike": 0,
+    "region": [
+     290.0,
+     410.0,
+     60.0,
+     60.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "gfx/mp/f_icon_lt_protect",
+    "textLike": 1,
+    "region": [
+     248.0,
+     425.0,
+     30.0,
+     30.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "gfx/mp/f_icon_lt_absorb",
+    "textLike": 1,
+    "region": [
+     362.0,
+     425.0,
+     30.0,
+     30.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     302.0,
+     462.0,
+     38.0,
+     13.0
+    ],
+    "draws": 120,
+    "frames": 30
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     468.0,
+     464.9,
+     34.3,
+     10.5
+    ],
+    "draws": 420,
+    "frames": 30
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     505.1,
+     464.9,
+     8.4,
+     10.5
+    ],
+    "draws": 60,
+    "frames": 30
+   }
+  ],
+  "fix-invsel-1366": [
+   {
+    "shader": "gfx/hud/i_icon_seeker",
+    "textLike": 0,
+    "region": [
+     280.0,
+     400.0,
+     80.0,
+     80.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "gfx/hud/i_icon_eweb",
+    "textLike": 0,
+    "region": [
+     168.0,
+     420.0,
+     40.0,
+     40.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "gfx/hud/i_icon_cloak",
+    "textLike": 0,
+    "region": [
+     224.0,
+     420.0,
+     40.0,
+     40.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "gfx/hud/i_icon_shieldwall",
+    "textLike": 0,
+    "region": [
+     376.0,
+     420.0,
+     40.0,
+     40.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "gfx/hud/i_icon_bacta",
+    "textLike": 0,
+    "region": [
+     432.0,
+     420.0,
+     40.0,
+     40.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "gfx/hud/i_icon_big_bacta",
+    "textLike": 0,
+    "region": [
+     488.0,
+     420.0,
+     40.0,
+     40.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     261.0,
+     462.0,
+     119.0,
+     14.0
+    ],
+    "draws": 330,
+    "frames": 30
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     330.0,
+     462.0,
+     10.0,
+     13.0
+    ],
+    "draws": 30,
+    "frames": 30
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     468.0,
+     464.9,
+     34.3,
+     10.5
+    ],
+    "draws": 420,
+    "frames": 30
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     505.1,
+     464.9,
+     8.4,
+     10.5
+    ],
+    "draws": 60,
+    "frames": 30
+   }
+  ],
+  "loading-1680": [
+   {
+    "shader": "levelshots/mp/ffa1",
+    "textLike": 0,
+    "region": [
+     0.0,
+     0.0,
+     640.0,
+     480.0
+    ],
+    "draws": 76,
+    "frames": 76
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     201.0,
+     102.0,
+     241.0,
+     20.0
+    ],
+    "draws": 2279,
+    "frames": 64
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     304.0,
+     102.0,
+     163.0,
+     20.0
+    ],
+    "draws": 125,
+    "frames": 9
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     201.0,
+     154.0,
+     250.0,
+     92.0
+    ],
+    "draws": 12844,
+    "frames": 76
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     239.0,
+     155.0,
+     46.0,
+     32.0
+    ],
+    "draws": 380,
+    "frames": 76
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     228.0,
+     173.0,
+     10.0,
+     14.0
+    ],
+    "draws": 76,
+    "frames": 76
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     442.0,
+     226.0,
+     8.0,
+     15.0
+    ],
+    "draws": 76,
+    "frames": 76
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     193.0,
+     227.0,
+     10.0,
+     15.0
+    ],
+    "draws": 152,
+    "frames": 76
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     159.0,
+     262.0,
+     332.0,
+     20.0
+    ],
+    "draws": 5396,
+    "frames": 76
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     347.0,
+     262.0,
+     35.0,
+     16.0
+    ],
+    "draws": 304,
+    "frames": 76
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     462.0,
+     262.0,
+     33.0,
+     16.0
+    ],
+    "draws": 456,
+    "frames": 76
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     148.0,
+     263.0,
+     35.0,
+     15.0
+    ],
+    "draws": 456,
+    "frames": 76
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     207.0,
+     263.0,
+     12.0,
+     14.0
+    ],
+    "draws": 76,
+    "frames": 76
+   },
+   {
+    "shader": "gfx/hud/mp_levelload",
+    "textLike": 0,
+    "region": [
+     112.0,
+     448.0,
+     416.0,
+     32.0
+    ],
+    "draws": 76,
+    "frames": 76
+   },
+   {
+    "shader": "gfx/hud/load_tick",
+    "textLike": 0,
+    "region": [
+     140.0,
+     460.0,
+     80.0,
+     8.0
+    ],
+    "draws": 1,
+    "frames": 1
+   },
+   {
+    "shader": "gfx/hud/load_tick_cap",
+    "textLike": 1,
+    "region": [
+     140.0,
+     460.0,
+     -8.0,
+     8.0
+    ],
+    "draws": 76,
+    "frames": 76
+   },
+   {
+    "shader": "gfx/hud/load_tick_cap",
+    "textLike": 1,
+    "region": [
+     220.0,
+     460.0,
+     8.0,
+     8.0
+    ],
+    "draws": 1,
+    "frames": 1
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     310.0,
+     102.0,
+     220.0,
+     20.0
+    ],
+    "draws": 150,
+    "frames": 7
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     166.0,
+     103.0,
+     122.0,
+     19.0
+    ],
+    "draws": 253,
+    "frames": 15
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     282.0,
+     102.0,
+     156.0,
+     17.0
+    ],
+    "draws": 104,
+    "frames": 7
+   },
+   {
+    "shader": "gfx/hud/load_tick",
+    "textLike": 0,
+    "region": [
+     140.0,
+     460.0,
+     200.0,
+     8.0
+    ],
+    "draws": 21,
+    "frames": 21
+   },
+   {
+    "shader": "gfx/hud/load_tick_cap",
+    "textLike": 1,
+    "region": [
+     340.0,
+     460.0,
+     8.0,
+     8.0
+    ],
+    "draws": 21,
+    "frames": 21
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     226.0,
+     103.0,
+     109.0,
+     19.0
+    ],
+    "draws": 115,
+    "frames": 8
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     404.0,
+     102.0,
+     122.0,
+     16.0
+    ],
+    "draws": 35,
+    "frames": 5
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     225.0,
+     103.0,
+     67.0,
+     15.0
+    ],
+    "draws": 85,
+    "frames": 57
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     347.0,
+     102.0,
+     42.0,
+     16.0
+    ],
+    "draws": 220,
+    "frames": 57
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     387.0,
+     102.0,
+     39.0,
+     16.0
+    ],
+    "draws": 8,
+    "frames": 3
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     136.0,
+     102.0,
+     352.0,
+     20.0
+    ],
+    "draws": 68,
+    "frames": 1
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     113.0,
+     103.0,
+     79.0,
+     19.0
+    ],
+    "draws": 32,
+    "frames": 2
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     143.0,
+     103.0,
+     79.0,
+     19.0
+    ],
+    "draws": 22,
+    "frames": 1
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     499.0,
+     102.0,
+     8.0,
+     15.0
+    ],
+    "draws": 1,
+    "frames": 1
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     281.0,
+     103.0,
+     58.0,
+     15.0
+    ],
+    "draws": 9,
+    "frames": 2
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     292.0,
+     103.0,
+     86.0,
+     16.0
+    ],
+    "draws": 16,
+    "frames": 1
+   },
+   {
+    "shader": "gfx/hud/load_tick",
+    "textLike": 0,
+    "region": [
+     140.0,
+     460.0,
+     360.0,
+     8.0
+    ],
+    "draws": 54,
+    "frames": 54
+   },
+   {
+    "shader": "gfx/hud/load_tick_cap",
+    "textLike": 1,
+    "region": [
+     500.0,
+     460.0,
+     8.0,
+     8.0
+    ],
+    "draws": 54,
+    "frames": 54
+   }
+  ],
+  "loading-900": [
+   {
+    "shader": "levelshots/mp/ffa1",
+    "textLike": 0,
+    "region": [
+     0.0,
+     0.0,
+     640.0,
+     480.0
+    ],
+    "draws": 80,
+    "frames": 80
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     201.0,
+     102.0,
+     241.0,
+     20.0
+    ],
+    "draws": 2419,
+    "frames": 68
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     304.0,
+     102.0,
+     163.0,
+     20.0
+    ],
+    "draws": 125,
+    "frames": 9
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     201.0,
+     154.0,
+     250.0,
+     92.0
+    ],
+    "draws": 13520,
+    "frames": 80
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     239.0,
+     155.0,
+     46.0,
+     32.0
+    ],
+    "draws": 400,
+    "frames": 80
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     228.0,
+     173.0,
+     10.0,
+     14.0
+    ],
+    "draws": 80,
+    "frames": 80
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     442.0,
+     226.0,
+     8.0,
+     15.0
+    ],
+    "draws": 80,
+    "frames": 80
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     193.0,
+     227.0,
+     10.0,
+     15.0
+    ],
+    "draws": 160,
+    "frames": 80
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     159.0,
+     262.0,
+     332.0,
+     20.0
+    ],
+    "draws": 5680,
+    "frames": 80
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     347.0,
+     262.0,
+     35.0,
+     16.0
+    ],
+    "draws": 320,
+    "frames": 80
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     462.0,
+     262.0,
+     33.0,
+     16.0
+    ],
+    "draws": 480,
+    "frames": 80
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     148.0,
+     263.0,
+     35.0,
+     15.0
+    ],
+    "draws": 480,
+    "frames": 80
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     207.0,
+     263.0,
+     12.0,
+     14.0
+    ],
+    "draws": 80,
+    "frames": 80
+   },
+   {
+    "shader": "gfx/hud/mp_levelload",
+    "textLike": 0,
+    "region": [
+     112.0,
+     448.0,
+     416.0,
+     32.0
+    ],
+    "draws": 80,
+    "frames": 80
+   },
+   {
+    "shader": "gfx/hud/load_tick",
+    "textLike": 0,
+    "region": [
+     140.0,
+     460.0,
+     80.0,
+     8.0
+    ],
+    "draws": 1,
+    "frames": 1
+   },
+   {
+    "shader": "gfx/hud/load_tick_cap",
+    "textLike": 1,
+    "region": [
+     140.0,
+     460.0,
+     -8.0,
+     8.0
+    ],
+    "draws": 80,
+    "frames": 80
+   },
+   {
+    "shader": "gfx/hud/load_tick_cap",
+    "textLike": 1,
+    "region": [
+     220.0,
+     460.0,
+     8.0,
+     8.0
+    ],
+    "draws": 1,
+    "frames": 1
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     310.0,
+     102.0,
+     220.0,
+     20.0
+    ],
+    "draws": 150,
+    "frames": 7
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     166.0,
+     103.0,
+     122.0,
+     19.0
+    ],
+    "draws": 253,
+    "frames": 15
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     282.0,
+     102.0,
+     156.0,
+     17.0
+    ],
+    "draws": 104,
+    "frames": 7
+   },
+   {
+    "shader": "gfx/hud/load_tick",
+    "textLike": 0,
+    "region": [
+     140.0,
+     460.0,
+     200.0,
+     8.0
+    ],
+    "draws": 21,
+    "frames": 21
+   },
+   {
+    "shader": "gfx/hud/load_tick_cap",
+    "textLike": 1,
+    "region": [
+     340.0,
+     460.0,
+     8.0,
+     8.0
+    ],
+    "draws": 21,
+    "frames": 21
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     226.0,
+     103.0,
+     109.0,
+     19.0
+    ],
+    "draws": 115,
+    "frames": 8
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     404.0,
+     102.0,
+     122.0,
+     16.0
+    ],
+    "draws": 35,
+    "frames": 5
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     225.0,
+     103.0,
+     67.0,
+     15.0
+    ],
+    "draws": 89,
+    "frames": 61
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     347.0,
+     102.0,
+     42.0,
+     16.0
+    ],
+    "draws": 236,
+    "frames": 61
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     387.0,
+     102.0,
+     39.0,
+     16.0
+    ],
+    "draws": 8,
+    "frames": 3
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     136.0,
+     102.0,
+     352.0,
+     20.0
+    ],
+    "draws": 68,
+    "frames": 1
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     113.0,
+     103.0,
+     79.0,
+     19.0
+    ],
+    "draws": 32,
+    "frames": 2
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     143.0,
+     103.0,
+     79.0,
+     19.0
+    ],
+    "draws": 22,
+    "frames": 1
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     499.0,
+     102.0,
+     8.0,
+     15.0
+    ],
+    "draws": 1,
+    "frames": 1
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     281.0,
+     103.0,
+     58.0,
+     15.0
+    ],
+    "draws": 9,
+    "frames": 2
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     292.0,
+     103.0,
+     86.0,
+     16.0
+    ],
+    "draws": 16,
+    "frames": 1
+   },
+   {
+    "shader": "gfx/hud/load_tick",
+    "textLike": 0,
+    "region": [
+     140.0,
+     460.0,
+     360.0,
+     8.0
+    ],
+    "draws": 58,
+    "frames": 58
+   },
+   {
+    "shader": "gfx/hud/load_tick_cap",
+    "textLike": 1,
+    "region": [
+     500.0,
+     460.0,
+     8.0,
+     8.0
+    ],
+    "draws": 58,
+    "frames": 58
+   }
+  ],
+  "loading-unknown-1680": [
+   {
+    "shader": "menu/art/unknownmap_mp",
+    "textLike": 0,
+    "region": [
+     0.0,
+     0.0,
+     640.0,
+     480.0
+    ],
+    "draws": 7,
+    "frames": 7
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     214.0,
+     102.0,
+     215.0,
+     20.0
+    ],
+    "draws": 150,
+    "frames": 4
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     304.0,
+     102.0,
+     163.0,
+     20.0
+    ],
+    "draws": 71,
+    "frames": 5
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     201.0,
+     155.0,
+     250.0,
+     73.0
+    ],
+    "draws": 1043,
+    "frames": 7
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     442.0,
+     208.0,
+     8.0,
+     15.0
+    ],
+    "draws": 7,
+    "frames": 7
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     193.0,
+     209.0,
+     10.0,
+     15.0
+    ],
+    "draws": 14,
+    "frames": 7
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     159.0,
+     244.0,
+     332.0,
+     20.0
+    ],
+    "draws": 497,
+    "frames": 7
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     347.0,
+     244.0,
+     35.0,
+     16.0
+    ],
+    "draws": 28,
+    "frames": 7
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     462.0,
+     244.0,
+     33.0,
+     16.0
+    ],
+    "draws": 42,
+    "frames": 7
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     148.0,
+     245.0,
+     35.0,
+     15.0
+    ],
+    "draws": 42,
+    "frames": 7
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     207.0,
+     245.0,
+     12.0,
+     14.0
+    ],
+    "draws": 7,
+    "frames": 7
+   },
+   {
+    "shader": "gfx/hud/mp_levelload",
+    "textLike": 0,
+    "region": [
+     112.0,
+     448.0,
+     416.0,
+     32.0
+    ],
+    "draws": 7,
+    "frames": 7
+   },
+   {
+    "shader": "gfx/hud/load_tick",
+    "textLike": 0,
+    "region": [
+     140.0,
+     460.0,
+     80.0,
+     8.0
+    ],
+    "draws": 1,
+    "frames": 1
+   },
+   {
+    "shader": "gfx/hud/load_tick_cap",
+    "textLike": 1,
+    "region": [
+     140.0,
+     460.0,
+     -8.0,
+     8.0
+    ],
+    "draws": 7,
+    "frames": 7
+   },
+   {
+    "shader": "gfx/hud/load_tick_cap",
+    "textLike": 1,
+    "region": [
+     220.0,
+     460.0,
+     8.0,
+     8.0
+    ],
+    "draws": 1,
+    "frames": 1
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     214.0,
+     103.0,
+     78.0,
+     15.0
+    ],
+    "draws": 30,
+    "frames": 3
+   },
+   {
+    "shader": "gfx/hud/load_tick",
+    "textLike": 0,
+    "region": [
+     140.0,
+     460.0,
+     200.0,
+     8.0
+    ],
+    "draws": 5,
+    "frames": 5
+   },
+   {
+    "shader": "gfx/hud/load_tick_cap",
+    "textLike": 1,
+    "region": [
+     340.0,
+     460.0,
+     8.0,
+     8.0
+    ],
+    "draws": 5,
+    "frames": 5
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     244.0,
+     103.0,
+     91.0,
+     19.0
+    ],
+    "draws": 60,
+    "frames": 4
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     445.0,
+     102.0,
+     8.0,
+     15.0
+    ],
+    "draws": 1,
+    "frames": 1
+   },
+   {
+    "shader": "",
+    "textLike": 1,
+    "region": [
+     175.0,
+     103.0,
+     79.0,
+     19.0
+    ],
+    "draws": 22,
+    "frames": 1
+   },
+   {
+    "shader": "gfx/hud/load_tick",
+    "textLike": 0,
+    "region": [
+     140.0,
+     460.0,
+     360.0,
+     8.0
+    ],
+    "draws": 1,
+    "frames": 1
+   },
+   {
+    "shader": "gfx/hud/load_tick_cap",
+    "textLike": 1,
+    "region": [
+     500.0,
+     460.0,
+     8.0,
+     8.0
+    ],
+    "draws": 1,
+    "frames": 1
+   }
+  ]
+ },
+ "nameLines": {
+  "note": "a font string is matched by its whole line (CL_HudBeginTextLine): the union of its glyphs, which the dump splits into groups",
+  "weapon (E11-Blaster Rifle)": [
+   237,
+   461,
+   404,
+   476
+  ],
+  "inventory (Seeker Drone)": [
+   261,
+   462,
+   380,
+   476
+  ],
+  "force (Heal)": [
+   302,
+   462,
+   340,
+   475
+  ],
+  "score line beside them (Score: 0), right HUD": [
+   468,
+   464.9,
+   513.5,
+   475.4
+  ],
+  "spectator lines (spec-forcesel-1680), centres y": [
+   436,
+   453.5
+  ]
+ },
+ "placementAt900x720": {
+  "frame": [
+   900,
+   675
+  ],
+  "scale": 1.40625,
+  "spareAboveAndBelow": 22.5,
+  "sideIconsPixels": [
+   635.625,
+   691.875
+  ],
+  "nameBeforePixels": [
+   670.78125,
+   691.875
+  ],
+  "nameAfterPixels": [
+   693.28125,
+   714.375
+  ]
+ },
+ "zoom": {
+  "refusal": "Unsupported jka-mp cgame import 216 (CG_R_SETRANGEFOG)",
+  "why": "the client game sets ranged fog every frame while zoomed (reference cg_view.c), before it draws the 2D; the disruptor mask also draws its insert and ticks with CG_DrawRotatePic2 (import 215), the rocket lock its wedges with CG_DrawRotatePic (214), both refused by name",
+  "expectedOnceServed": "the binocular mask (0,0,640,480) stays stretched by default; by the reference its window (34,48,570,362) and number strip would be centred, its circle (82,94) taken by left_column and its arrow (4,282-level) by left_column or left_side, so they would not stay registered with the stretched mask on a wide screen"
+ },
+ "foundAlongTheWay": [
+  "devmap yavin1 (the one installed map without a levelshot) under jka-mp: in the first of two runs retail jampgamex86.dll raised an access violation at +0x4a293 right after the client game initialised; the second run did not crash; not investigated, and retail jamp.exe was not compared",
+  "+useitem is registered for the Wolfenstein profiles only; Academy's use-item button is +button2",
+  "at 900x720 the client game's 4:3 frame is 900x675; it rounds its view height to 674 and tile-clears the one-pixel strip (gfx/2d/backtile in the dump), whose boxes fall outside the window"
+ ],
+ "notCovered": [
+  "both zoom masks: unreachable while cgame import 216 is refused (and 215 for the disruptor insert)",
+  "the force bar was seen with three powers; the weapon and inventory bars cover the widest extents",
+  "the loading screen was held by delayed server packets on a local server; a remote server was not used"
+ ],
+ "tests": {
+  "hudAspectSharedTree": "tests/hud_aspect_tests.py on the shared tree with the new rules: 1 passed, 11 subtests passed",
+  "hudAspectWithOldRules": "fails at the inventory sample centred on x 512: component 0 got 2227 expected 1667 (the old region gave it to right_hud)",
+  "hudAspectWithWidenedRegionOnly": "fails at the 900x720 name line: component 1 got 670.78125 expected 693.28125 (centre/middle instead of centre/bottom)",
+  "targetedExports": [
+   {
+    "head": "643016c640f60feccd05dd974a960002cba362ad",
+    "tree": "git archive HEAD plus this change's files (.tmp/jka-hud-verify/overlay.py export), committed inside the export",
+    "tests": [
+     "tests/hud_aspect_tests.py",
+     "tests/release_packaging_tests.py",
+     "tests/changelog_tests.py",
+     "tests/generate_docs_tests.py",
+     "tests/player_manual_tests.py",
+     "tests/root_archive_tests.py"
+    ],
+    "result": "75 passed, 1 skipped, 883 subtests passed in 702.41s",
+    "skipped": "release_packaging_tests.py:891: symlink creation needs a privilege this account lacks (WinError 1314)"
+   },
+   {
+    "head": "4782edce66542c7d56e591ca4f54e3eb8a5e021e",
+    "tree": "git archive HEAD plus this change's files, committed inside the export",
+    "tests": [
+     "tests/hud_aspect_tests.py",
+     "tests/release_packaging_tests.py",
+     "tests/changelog_tests.py",
+     "tests/generate_docs_tests.py",
+     "tests/player_manual_tests.py",
+     "tests/root_archive_tests.py"
+    ],
+    "result": "75 passed, 1 skipped, 883 subtests passed in 467.58s",
+    "skipped": "release_packaging_tests.py:891: symlink creation needs a privilege this account lacks (WinError 1314)"
+   },
+   {
+    "head": "b589caf8bc16df8b70546a1a2ecdb1c64e0a6a24",
+    "tree": "git archive HEAD plus this change's files as committed, committed inside the export",
+    "tests": [
+     "tests/hud_aspect_tests.py",
+     "tests/release_packaging_tests.py",
+     "tests/changelog_tests.py",
+     "tests/generate_docs_tests.py",
+     "tests/player_manual_tests.py",
+     "tests/root_archive_tests.py"
+    ],
+    "result": "75 passed, 1 skipped, 883 subtests passed in 1983.14s (the machine was short of commit memory)",
+    "skipped": "release_packaging_tests.py:891: symlink creation needs a privilege this account lacks (WinError 1314)"
+   }
+  ],
+  "notRun": "the native suite and the full Python suite: the change is a layout file, one Python fixture and documents; no engine source changed"
+ }
+}

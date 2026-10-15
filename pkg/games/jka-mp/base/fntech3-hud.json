@@ -36,7 +36,12 @@
     },
     {
       "name": "selection_bars",
-      "match": { "region": { "x": 100, "y": 395, "w": 408, "h": 70 } },
+      "match": { "region": { "x": 100, "y": 395, "w": 416, "h": 70 } },
+      "align": { "x": "center", "y": "bottom" }
+    },
+    {
+      "name": "selection_names",
+      "match": { "textLike": 1, "region": { "x": 300, "y": 440, "w": 40, "h": 40 } },
       "align": { "x": "center", "y": "bottom" }
     },
     {

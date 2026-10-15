@@ -581,7 +581,12 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   view widens; `cl_hudAspect 0` stretches the HUD as the original did, and
   `cl_menuAspect 1` keeps the menus in a centred 4:3 area
   ([Widescreen guide](ASPECT_CORRECTION.md),
-  [details](fntech3/2026-10-15-jedi-widescreen-hud.md)).
+  [details](fntech3/2026-10-15-jedi-widescreen-hud.md)). The weapon, Force
+  power and item bars stay whole at the bottom centre with their names
+  beneath them, on taller screens too, and the loading screen's map picture
+  fills the window behind a centred 4:3 screen. Zooming in with the
+  binoculars or the disruptor rifle still stops the game
+  ([live check](fntech3/2026-10-15-jka-hud-live-check.md)).
 - **Single player:** the original game code starts, then stops on its first
   frame.
 

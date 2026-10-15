@@ -2112,8 +2112,8 @@
  "notCovered": [
   "jk2-mp HUD: client-game renderer imports 42-218 remain refused",
   "jka-sp and jk2-sp reach no menus or client game",
-  "selection bars and loading screen placed from the reference layout and unit samples, not captured",
-  "zoom masks stay stretched full-screen pictures; not captured",
+  "selection bars and loading screen placed from the reference layout and unit samples; captured later in 2026-10-15-jka-hud-live-check.md, where each bar's name was moved with its bar on screens taller than 4:3",
+  "zoom masks stay stretched full-screen pictures; not captured: any zoom stops the client at cgame import 216 (CG_R_SETRANGEFOG), see 2026-10-15-jka-hud-live-check.md",
   "the menu module keeps its key catcher after ui_openmenu none, as retail does until Escape, so its cursor shows in play captures"
  ]
 }
