@@ -105,6 +105,11 @@ historical upstream records, not fnTech3 release history. See the
   for Quake III's light-filter bits, and each title's own alpha-shadow
   surfaces now filter the path tracer's light instead
   ([record](docs/fntech3/2026-10-15-map-shader-flag-dialects.md)).
+- Load every Jedi Academy and Jedi Outcast map: 45 maps with switchable or
+  flickering lights, among them Outcast's `ffa_ns_streets`, stopped with
+  "light styles are not served yet". Their extra lights are now added in,
+  each at full brightness for now
+  ([record](docs/fntech3/2026-10-15-raven-light-styles.md)).
 - Keep each of Jedi Academy's weapon, Force power and item bars together
   with its name on screens taller than 4:3, where the name was drawn over
   the bar's middle icon. The bars and the loading screen are now checked in

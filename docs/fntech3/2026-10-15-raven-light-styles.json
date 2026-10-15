@@ -1,0 +1,2332 @@
+{
+ "record": "2026-10-15-raven-light-styles.md",
+ "date": "2026-10-15",
+ "profiles": [
+  "jka-sp",
+  "jka-mp",
+  "jk2-sp",
+  "jk2-mp"
+ ],
+ "unchangedProfiles": "all twelve others: only RBSP 1 maps reach the reader",
+ "gateChange": "none",
+ "implementation": {
+  "files": [
+   "code/renderercommon/tr_raven_bsp_format.h"
+  ],
+  "helpers": [
+   "FN_RavenBspCheckStyles",
+   "FN_RavenBspComposeLightmaps",
+   "FN_RavenBspComposeVertexColor",
+   "FN_RavenBspComposeGrid",
+   "FN_RavenBspProjectStyles",
+   "FN_RavenBspCoverSurface"
+  ],
+  "colours": "white for every style: the renderer start and a style no game names (OpenJK R_Init, CG_RunLightStyles); FN_RavenBspProjectStyles takes other colours",
+  "authorship": "independently authored; OpenJK rd-vanilla FinishShader, ComputeFinalVertexColor, R_SetupEntityLightingGrid and cgame CG_RunLightStyles were reference observation only"
+ },
+ "installed": {
+  "maps": 98,
+  "lightmapChannelsAfterFirstOnLightmappedSurfaces": 8719,
+  "movedWholeTexels": 6772,
+  "sameCoordinates": 1814,
+  "noVertices": 66,
+  "vertexLightChannels": 67,
+  "vertexLitSurfacesWithSecondChannel": 2150,
+  "gridRowsWithSecondStyle": 39669,
+  "gridStyledMaps": 16,
+  "unsetRectangleSurfaces": 250483,
+  "unusedFirstStyle255Surfaces": 60482,
+  "sharedTexels": {
+   "styledBoundingBoxTexels": 488590,
+   "alsoInAnother": 89018,
+   "sameChannels": 32355,
+   "unstyledNeighbour": 52172,
+   "different": 4491
+  },
+  "yavinTempleFlaresInMissingFog": 11,
+  "perMap": {
+   "jka:maps/kor1.bsp": {
+    "counts": {
+     "lmSlot1 lm=page": 139,
+     "vSlot1 style=1 type=2": 12,
+     "lmSlot1 lm=neg": 25,
+     "vSlot1 style=1 type=3": 1,
+     "vSlot1 style=1 type=1": 151
+    },
+    "extraStyles": {
+     "1": 164
+    },
+    "gridStyled": 1555
+   },
+   "jka:maps/kor2.bsp": {
+    "counts": {
+     "lmSlot1 lm=page": 604,
+     "vSlot1 style=1 type=2": 15,
+     "lmSlot1 lm=neg": 50,
+     "vSlot1 style=1 type=3": 50,
+     "vSlot1 style=1 type=1": 589
+    },
+    "extraStyles": {
+     "1": 654
+    },
+    "gridStyled": 963
+   },
+   "jka:maps/t1_fatal.bsp": {
+    "counts": {
+     "lmSlot1 lm=page": 251,
+     "vSlot1 style=32 type=2": 17,
+     "vSlot1 style=32 type=1": 237,
+     "lmSlot1 lm=neg": 3
+    },
+    "extraStyles": {
+     "32": 254
+    },
+    "gridStyled": 55
+   },
+   "jka:maps/t3_bounty.bsp": {
+    "counts": {
+     "lmSlot1 lm=neg": 1960,
+     "vSlot1 style=33 type=2": 29,
+     "lmSlot1 lm=page": 924,
+     "lmSlot2 lm=page": 429,
+     "vSlot2 style=41 type=2": 7,
+     "vSlot1 style=36 type=2": 9,
+     "vSlot1 style=38 type=2": 9,
+     "vSlot2 style=40 type=2": 4,
+     "vSlot1 style=32 type=2": 10,
+     "lmSlot2 lm=neg": 795,
+     "vSlot2 style=44 type=2": 2,
+     "vSlot1 style=44 type=2": 1,
+     "vSlot1 style=34 type=2": 48,
+     "vSlot2 style=43 type=2": 35,
+     "vSlot1 style=35 type=2": 65,
+     "vSlot2 style=42 type=2": 54,
+     "vSlot1 style=42 type=2": 4,
+     "vSlot2 style=35 type=2": 1,
+     "vSlot1 style=37 type=2": 1,
+     "vSlot1 style=40 type=2": 1,
+     "vSlot1 style=33 type=1": 341,
+     "vSlot2 style=41 type=1": 117,
+     "vSlot1 style=35 type=1": 591,
+     "vSlot2 style=42 type=1": 375,
+     "vSlot1 style=36 type=1": 390,
+     "vSlot1 style=43 type=1": 38,
+     "vSlot1 style=34 type=1": 245,
+     "vSlot2 style=43 type=1": 188,
+     "vSlot1 style=32 type=1": 216,
+     "vSlot2 style=44 type=1": 133,
+     "lmSlot3 lm=page": 65,
+     "vSlot2 style=37 type=1": 11,
+     "vSlot3 style=41 type=1": 11,
+     "vSlot1 style=37 type=1": 414,
+     "vSlot1 style=40 type=1": 38,
+     "vSlot1 style=44 type=1": 23,
+     "vSlot1 style=38 type=1": 312,
+     "vSlot2 style=39 type=1": 170,
+     "vSlot3 style=40 type=1": 116,
+     "vSlot2 style=40 type=1": 124,
+     "vSlot1 style=39 type=1": 72,
+     "vSlot1 style=41 type=1": 10,
+     "vSlot1 style=42 type=1": 16,
+     "lmSlot3 lm=neg": 64,
+     "vSlot2 style=33 type=1": 1,
+     "vSlot1 style=43 type=2": 1,
+     "vSlot2 style=39 type=2": 2,
+     "vSlot3 style=40 type=2": 2
+    },
+    "extraStyles": {
+     "33": 371,
+     "41": 145,
+     "36": 399,
+     "38": 321,
+     "40": 285,
+     "32": 226,
+     "44": 159,
+     "34": 293,
+     "43": 262,
+     "35": 657,
+     "42": 449,
+     "37": 426,
+     "39": 244
+    },
+    "gridStyled": 8497
+   },
+   "jka:maps/t3_stamp.bsp": {
+    "counts": {
+     "lmSlot1 lm=page": 201,
+     "vSlot1 style=33 type=1": 81,
+     "lmSlot1 lm=neg": 41,
+     "vSlot1 style=32 type=1": 161,
+     "lmSlot2 lm=page": 1,
+     "vSlot2 style=33 type=1": 1
+    },
+    "extraStyles": {
+     "33": 82,
+     "32": 161
+    },
+    "gridStyled": 1556
+   },
+   "jk2:maps/artus_detention.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-3 type=1": 141,
+     "lmStyle0=255 lm0=-1 type=1": 1251,
+     "vStyle0=255 type=1": 1251
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/artus_mine.bsp": {
+    "counts": {
+     "lmSlot1 lm=page": 1387,
+     "vSlot1 style=32 type=2": 22,
+     "lmStyle0=255 lm0=-1 type=2": 18,
+     "vStyle0=255 type=2": 18,
+     "vSlot1 style=32 type=1": 1268,
+     "lmStyle0=255 lm0=-1 type=1": 518,
+     "vStyle0=255 type=1": 518,
+     "vSlot1 style=32 type=3": 10,
+     "lmStyle0=255 lm0=-3 type=1": 37
+    },
+    "extraStyles": {
+     "32": 1387
+    },
+    "gridStyled": 572
+   },
+   "jk2:maps/artus_topside.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=2": 8,
+     "vStyle0=255 type=2": 8,
+     "lmStyle0=255 lm0=-3 type=1": 2968,
+     "lmStyle0=255 lm0=-1 type=1": 409,
+     "vStyle0=255 type=1": 409,
+     "vSlot1 style=32 type=1": 66,
+     "vSlot2 style=33 type=1": 63,
+     "vSlot1 style=33 type=1": 12,
+     "lmSlot1 lm=page": 21,
+     "lmSlot2 lm=page": 16
+    },
+    "extraStyles": {
+     "32": 17,
+     "33": 20
+    },
+    "gridStyled": 1034
+   },
+   "jk2:maps/bespin_platform.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=1": 1070,
+     "vStyle0=255 type=1": 1070,
+     "lmStyle0=255 lm0=-3 type=1": 2
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/bespin_streets.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-3 type=2": 53,
+     "lmStyle0=255 lm0=-3 type=1": 799,
+     "lmStyle0=255 lm0=-1 type=1": 683,
+     "vStyle0=255 type=1": 683
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/bespin_undercity.bsp": {
+    "counts": {
+     "lmSlot1 lm=page": 226,
+     "lmSlot2 lm=page": 226,
+     "vSlot1 style=32 type=2": 6,
+     "vSlot2 style=33 type=2": 6,
+     "vSlot1 style=32 type=1": 207,
+     "vSlot2 style=33 type=1": 207,
+     "lmStyle0=255 lm0=-3 type=1": 8,
+     "lmStyle0=255 lm0=-1 type=1": 87,
+     "vStyle0=255 type=1": 87
+    },
+    "extraStyles": {
+     "32": 226,
+     "33": 226
+    },
+    "gridStyled": 19
+   },
+   "jk2:maps/cairn_assembly.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=2": 3,
+     "vStyle0=255 type=2": 3,
+     "lmStyle0=255 lm0=-1 type=1": 865,
+     "vStyle0=255 type=1": 865
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/cairn_bay.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=2": 14,
+     "vStyle0=255 type=2": 14,
+     "lmStyle0=255 lm0=-1 type=1": 878,
+     "vStyle0=255 type=1": 878,
+     "lmStyle0=255 lm0=-3 type=1": 22
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/cairn_dock1.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=2": 75,
+     "vStyle0=255 type=2": 75,
+     "lmSlot1 lm=page": 1061,
+     "vSlot1 style=32 type=2": 19,
+     "vSlot1 style=33 type=2": 1,
+     "vSlot1 style=33 type=1": 602,
+     "vSlot2 style=34 type=1": 96,
+     "lmStyle0=255 lm0=-1 type=1": 987,
+     "vStyle0=255 type=1": 987,
+     "lmSlot2 lm=page": 62,
+     "vSlot1 style=32 type=1": 522
+    },
+    "extraStyles": {
+     "32": 459,
+     "33": 602,
+     "34": 62
+    },
+    "gridStyled": 5995
+   },
+   "jk2:maps/cairn_reactor.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-3 type=2": 35,
+     "vSlot1 style=1 type=2": 4,
+     "lmStyle0=255 lm0=-1 type=2": 4,
+     "vStyle0=255 type=2": 4,
+     "lmSlot1 lm=page": 228,
+     "lmStyle0=255 lm0=-3 type=1": 266,
+     "vSlot1 style=1 type=1": 212,
+     "lmStyle0=255 lm0=-1 type=1": 672,
+     "vStyle0=255 type=1": 672
+    },
+    "extraStyles": {
+     "1": 228
+    },
+    "gridStyled": 934
+   },
+   "jk2:maps/ctf_bespin.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=1": 16,
+     "vStyle0=255 type=1": 16
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/ctf_imperial.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=2": 8,
+     "vStyle0=255 type=2": 8,
+     "lmStyle0=255 lm0=-1 type=1": 377,
+     "vStyle0=255 type=1": 377
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/ctf_ns_streets.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=2": 4,
+     "vStyle0=255 type=2": 4,
+     "lmStyle0=255 lm0=-1 type=1": 194,
+     "vStyle0=255 type=1": 194
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/ctf_yavin.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=2": 4,
+     "vStyle0=255 type=2": 4,
+     "lmStyle0=255 lm0=-1 type=1": 28,
+     "vStyle0=255 type=1": 28
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/doom_comm.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=2": 3,
+     "vStyle0=255 type=2": 3,
+     "lmStyle0=255 lm0=-3 type=1": 76,
+     "lmStyle0=255 lm0=-1 type=1": 985,
+     "vStyle0=255 type=1": 985
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/doom_detention.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-3 type=1": 24,
+     "lmStyle0=255 lm0=-1 type=1": 1179,
+     "vStyle0=255 type=1": 1179
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/doom_shields.bsp": {
+    "counts": {
+     "lmSlot1 lm=page": 1043,
+     "vSlot1 style=32 type=2": 67,
+     "lmStyle0=255 lm0=-1 type=2": 30,
+     "vStyle0=255 type=2": 30,
+     "lmSlot2 lm=page": 132,
+     "vSlot2 style=33 type=2": 8,
+     "vSlot1 style=33 type=2": 22,
+     "vSlot1 style=32 type=1": 886,
+     "lmStyle0=255 lm0=-1 type=1": 341,
+     "vStyle0=255 type=1": 341,
+     "vSlot2 style=33 type=1": 101,
+     "vSlot1 style=33 type=1": 201,
+     "lmStyle0=255 lm0=-3 type=1": 10
+    },
+    "extraStyles": {
+     "32": 868,
+     "33": 307
+    },
+    "gridStyled": 2245
+   },
+   "jk2:maps/duel_bay.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=1": 4,
+     "vStyle0=255 type=1": 4
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/duel_jedi.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=1": 21,
+     "vStyle0=255 type=1": 21,
+     "lmStyle0=255 lm0=-3 type=1": 20
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/duel_pit.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=1": 9,
+     "vStyle0=255 type=1": 9
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/ffa_bespin.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=2": 141,
+     "vStyle0=255 type=2": 141,
+     "lmStyle0=255 lm0=-1 type=1": 115,
+     "vStyle0=255 type=1": 115
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/ffa_deathstar.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=1": 302,
+     "vStyle0=255 type=1": 302,
+     "lmStyle0=255 lm0=-3 type=1": 2
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/ffa_imperial.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=1": 78,
+     "vStyle0=255 type=1": 78
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/ffa_ns_hideout.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=1": 95,
+     "vStyle0=255 type=1": 95
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/ffa_ns_streets.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=2": 15,
+     "vStyle0=255 type=2": 15,
+     "lmStyle0=255 lm0=-1 type=1": 206,
+     "vStyle0=255 type=1": 206,
+     "vSlot1 style=6 type=1": 44,
+     "lmSlot1 lm=page": 16
+    },
+    "extraStyles": {
+     "6": 16
+    },
+    "gridStyled": 7762
+   },
+   "jk2:maps/ffa_raven.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=2": 1,
+     "vStyle0=255 type=2": 1,
+     "lmStyle0=255 lm0=-1 type=1": 103,
+     "vStyle0=255 type=1": 103
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/ffa_yavin.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=2": 9,
+     "vStyle0=255 type=2": 9,
+     "lmStyle0=255 lm0=-1 type=1": 5,
+     "vStyle0=255 type=1": 5
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/kejim_base.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=2": 19,
+     "vStyle0=255 type=2": 19,
+     "lmStyle0=255 lm0=-1 type=1": 987,
+     "vStyle0=255 type=1": 987,
+     "lmStyle0=255 lm0=-3 type=1": 126
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/kejim_post.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=2": 39,
+     "vStyle0=255 type=2": 39,
+     "lmStyle0=255 lm0=-1 type=1": 752,
+     "vStyle0=255 type=1": 752,
+     "lmStyle0=255 lm0=-3 type=1": 710
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/ns_hideout.bsp": {
+    "counts": {
+     "lmSlot1 lm=page": 1027,
+     "vSlot1 style=9 type=2": 20,
+     "lmStyle0=255 lm0=-1 type=2": 50,
+     "vStyle0=255 type=2": 50,
+     "vSlot1 style=2 type=2": 10,
+     "vSlot1 style=32 type=2": 12,
+     "vSlot1 style=32 type=1": 742,
+     "lmStyle0=255 lm0=-1 type=1": 926,
+     "vStyle0=255 type=1": 926,
+     "vSlot1 style=2 type=1": 174,
+     "lmSlot2 lm=page": 13,
+     "vSlot1 style=34 type=1": 16,
+     "vSlot2 style=35 type=1": 16,
+     "vSlot1 style=33 type=1": 21,
+     "vSlot1 style=9 type=1": 57,
+     "vSlot1 style=36 type=1": 14,
+     "vSlot2 style=37 type=1": 9,
+     "vSlot1 style=9 type=3": 6,
+     "vSlot2 style=32 type=3": 6,
+     "vSlot1 style=2 type=3": 7
+    },
+    "extraStyles": {
+     "9": 75,
+     "2": 145,
+     "32": 782,
+     "34": 9,
+     "35": 8,
+     "36": 5,
+     "37": 5,
+     "33": 11
+    },
+    "gridStyled": 3051
+   },
+   "jk2:maps/ns_starpad.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=2": 16,
+     "vStyle0=255 type=2": 16,
+     "lmStyle0=255 lm0=-3 type=1": 571,
+     "lmStyle0=255 lm0=-1 type=1": 700,
+     "vStyle0=255 type=1": 700,
+     "vSlot1 style=11 type=1": 124,
+     "lmSlot1 lm=page": 175,
+     "vSlot1 style=2 type=1": 88,
+     "vSlot1 style=11 type=3": 4
+    },
+    "extraStyles": {
+     "2": 86,
+     "11": 89
+    },
+    "gridStyled": 2530
+   },
+   "jk2:maps/ns_streets.bsp": {
+    "counts": {
+     "vSlot1 style=37 type=2": 2,
+     "lmStyle0=255 lm0=-1 type=2": 381,
+     "vStyle0=255 type=2": 381,
+     "vSlot1 style=6 type=1": 51,
+     "lmSlot1 lm=page": 98,
+     "lmStyle0=255 lm0=-3 type=1": 1032,
+     "vSlot1 style=33 type=1": 7,
+     "vSlot2 style=34 type=1": 7,
+     "vSlot1 style=37 type=1": 48,
+     "vSlot1 style=35 type=1": 7,
+     "vSlot2 style=36 type=1": 7,
+     "vSlot1 style=36 type=1": 1,
+     "vSlot1 style=32 type=1": 55,
+     "lmStyle0=255 lm0=-1 type=1": 347,
+     "vStyle0=255 type=1": 347,
+     "lmSlot2 lm=page": 8,
+     "vSlot1 style=38 type=1": 8,
+     "vSlot1 style=6 type=3": 23
+    },
+    "extraStyles": {
+     "6": 27,
+     "35": 5,
+     "37": 18,
+     "32": 38,
+     "33": 4,
+     "34": 4,
+     "36": 4,
+     "38": 6
+    },
+    "gridStyled": 2246
+   },
+   "jk2:maps/pit.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=1": 9,
+     "vStyle0=255 type=1": 9
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/valley.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=1": 6,
+     "vStyle0=255 type=1": 6
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/yavin_canyon.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-3 type=2": 2,
+     "lmStyle0=255 lm0=-3 type=1": 15436,
+     "lmStyle0=255 lm0=-1 type=1": 272,
+     "vStyle0=255 type=1": 272
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/yavin_courtyard.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=2": 39,
+     "vStyle0=255 type=2": 39,
+     "lmStyle0=255 lm0=-1 type=1": 729,
+     "vStyle0=255 type=1": 729,
+     "lmStyle0=255 lm0=-3 type=1": 504,
+     "vStyle0=255 type=4": 11,
+     "lmSlot1 lm=page": 11,
+     "lmSlot2 lm=page": 11,
+     "lmSlot3 lm=page": 11
+    },
+    "extraStyles": {
+     "0": 33
+    },
+    "gridStyled": 0
+   },
+   "jk2:maps/yavin_final.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-3 type=1": 141,
+     "lmStyle0=255 lm0=-1 type=1": 48,
+     "vStyle0=255 type=1": 48
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/yavin_swamp.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-3 type=2": 11,
+     "lmStyle0=255 lm0=-3 type=1": 18551,
+     "lmStyle0=255 lm0=-1 type=1": 89,
+     "vStyle0=255 type=1": 89
+    },
+    "extraStyles": {},
+    "gridStyled": 0
+   },
+   "jk2:maps/yavin_temple.bsp": {
+    "counts": {
+     "lmStyle0=255 lm0=-1 type=2": 63,
+     "vStyle0=255 type=2": 63,
+     "lmStyle0=255 lm0=-1 type=1": 688,
+     "vStyle0=255 type=1": 688,
+     "lmStyle0=255 lm0=-3 type=1": 516,
+     "vStyle0=255 type=4": 11,
+     "lmSlot1 lm=page": 11,
+     "lmSlot2 lm=page": 11,
+     "lmSlot3 lm=page": 11
+    },
+    "extraStyles": {
+     "0": 33
+    },
+    "gridStyled": 0
+   },
+   "jk2:maps/yavin_trial.bsp": {
+    "counts": {
+     "lmSlot1 lm=page": 233,
+     "vSlot1 style=35 type=1": 79,
+     "lmStyle0=255 lm0=-3 type=1": 430,
+     "vSlot1 style=32 type=1": 101,
+     "vSlot1 style=34 type=1": 82,
+     "vSlot1 style=33 type=1": 86,
+     "lmStyle0=255 lm0=-1 type=1": 14,
+     "vStyle0=255 type=1": 14
+    },
+    "extraStyles": {
+     "35": 36,
+     "32": 72,
+     "34": 47,
+     "33": 78
+    },
+    "gridStyled": 655
+   }
+  }
+ },
+ "composition": {
+  "perMap": {
+   "jka:maps/academy1.bsp": {
+    "texels": 393216,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 3176,
+    "coloursChanged": 0,
+    "gridCells": 29952,
+    "gridChanged": 0
+   },
+   "jka:maps/academy2.bsp": {
+    "texels": 360448,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 2780,
+    "coloursChanged": 0,
+    "gridCells": 21528,
+    "gridChanged": 0
+   },
+   "jka:maps/academy3.bsp": {
+    "texels": 360448,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 2770,
+    "coloursChanged": 0,
+    "gridCells": 21528,
+    "gridChanged": 0
+   },
+   "jka:maps/academy4.bsp": {
+    "texels": 360448,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 2775,
+    "coloursChanged": 0,
+    "gridCells": 58812,
+    "gridChanged": 0
+   },
+   "jka:maps/academy5.bsp": {
+    "texels": 360448,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 2780,
+    "coloursChanged": 0,
+    "gridCells": 21528,
+    "gridChanged": 0
+   },
+   "jka:maps/academy6.bsp": {
+    "texels": 557056,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 12943,
+    "coloursChanged": 0,
+    "gridCells": 370685,
+    "gridChanged": 0
+   },
+   "jka:maps/hoth2.bsp": {
+    "texels": 196608,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 54600,
+    "coloursChanged": 0,
+    "gridCells": 1044126,
+    "gridChanged": 0
+   },
+   "jka:maps/hoth3.bsp": {
+    "texels": 622592,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 83772,
+    "coloursChanged": 0,
+    "gridCells": 229068,
+    "gridChanged": 0
+   },
+   "jka:maps/kor1.bsp": {
+    "texels": 393216,
+    "texelsChanged": 5602,
+    "added": 297691,
+    "vertices": 74641,
+    "coloursChanged": 330,
+    "gridCells": 562326,
+    "gridChanged": 303
+   },
+   "jka:maps/kor2.bsp": {
+    "texels": 1310720,
+    "texelsChanged": 76852,
+    "added": 4259089,
+    "vertices": 60501,
+    "coloursChanged": 12368,
+    "gridCells": 156975,
+    "gridChanged": 974
+   },
+   "jka:maps/mp/ctf1.bsp": {
+    "texels": 294912,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 47516,
+    "coloursChanged": 0,
+    "gridCells": 180668,
+    "gridChanged": 0
+   },
+   "jka:maps/mp/ctf2.bsp": {
+    "texels": 393216,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 33916,
+    "coloursChanged": 0,
+    "gridCells": 63720,
+    "gridChanged": 0
+   },
+   "jka:maps/mp/ctf3.bsp": {
+    "texels": 327680,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 25483,
+    "coloursChanged": 0,
+    "gridCells": 92053,
+    "gridChanged": 0
+   },
+   "jka:maps/mp/ctf4.bsp": {
+    "texels": 983040,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 26967,
+    "coloursChanged": 0,
+    "gridCells": 90459,
+    "gridChanged": 0
+   },
+   "jka:maps/mp/ctf5.bsp": {
+    "texels": 327680,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 57823,
+    "coloursChanged": 0,
+    "gridCells": 253260,
+    "gridChanged": 0
+   },
+   "jka:maps/mp/duel1.bsp": {
+    "texels": 753664,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 5710,
+    "coloursChanged": 0,
+    "gridCells": 25584,
+    "gridChanged": 0
+   },
+   "jka:maps/mp/duel10.bsp": {
+    "texels": 589824,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 11481,
+    "coloursChanged": 0,
+    "gridCells": 7047,
+    "gridChanged": 0
+   },
+   "jka:maps/mp/duel2.bsp": {
+    "texels": 98304,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 50183,
+    "coloursChanged": 0,
+    "gridCells": 28224,
+    "gridChanged": 0
+   },
+   "jka:maps/mp/duel3.bsp": {
+    "texels": 360448,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 9603,
+    "coloursChanged": 0,
+    "gridCells": 16100,
+    "gridChanged": 0
+   },
+   "jka:maps/mp/duel4.bsp": {
+    "texels": 32768,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 8358,
+    "coloursChanged": 0,
+    "gridCells": 11988,
+    "gridChanged": 0
+   },
+   "jka:maps/mp/duel5.bsp": {
+    "texels": 1245184,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 10962,
+    "coloursChanged": 0,
+    "gridCells": 595125,
+    "gridChanged": 0
+   },
+   "jka:maps/mp/duel6.bsp": {
+    "texels": 1114112,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 23739,
+    "coloursChanged": 0,
+    "gridCells": 465948,
+    "gridChanged": 0
+   },
+   "jka:maps/mp/duel7.bsp": {
+    "texels": 442368,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 10029,
+    "coloursChanged": 0,
+    "gridCells": 34408,
+    "gridChanged": 0
+   },
+   "jka:maps/mp/duel8.bsp": {
+    "texels": 425984,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 22359,
+    "coloursChanged": 0,
+    "gridCells": 29070,
+    "gridChanged": 0
+   },
+   "jka:maps/mp/duel9.bsp": {
+    "texels": 655360,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 9039,
+    "coloursChanged": 0,
+    "gridCells": 496800,
+    "gridChanged": 0
+   },
+   "jka:maps/mp/ffa1.bsp": {
+    "texels": 360448,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 20840,
+    "coloursChanged": 0,
+    "gridCells": 118320,
+    "gridChanged": 0
+   },
+   "jka:maps/mp/ffa2.bsp": {
+    "texels": 524288,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 29075,
+    "coloursChanged": 0,
+    "gridCells": 122766,
+    "gridChanged": 0
+   },
+   "jka:maps/mp/ffa3.bsp": {
+    "texels": 425984,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 39322,
+    "coloursChanged": 0,
+    "gridCells": 94350,
+    "gridChanged": 0
+   },
+   "jka:maps/mp/ffa4.bsp": {
+    "texels": 688128,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 30134,
+    "coloursChanged": 0,
+    "gridCells": 242060,
+    "gridChanged": 0
+   },
+   "jka:maps/mp/ffa5.bsp": {
+    "texels": 753664,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 28209,
+    "coloursChanged": 0,
+    "gridCells": 595125,
+    "gridChanged": 0
+   },
+   "jka:maps/mp/siege_desert.bsp": {
+    "texels": 425984,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 57956,
+    "coloursChanged": 0,
+    "gridCells": 861840,
+    "gridChanged": 0
+   },
+   "jka:maps/mp/siege_hoth.bsp": {
+    "texels": 622592,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 57329,
+    "coloursChanged": 0,
+    "gridCells": 444528,
+    "gridChanged": 0
+   },
+   "jka:maps/mp/siege_korriban.bsp": {
+    "texels": 294912,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 45045,
+    "coloursChanged": 0,
+    "gridCells": 906984,
+    "gridChanged": 0
+   },
+   "jka:maps/t1_danger.bsp": {
+    "texels": 1540096,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 34865,
+    "coloursChanged": 0,
+    "gridCells": 288000,
+    "gridChanged": 0
+   },
+   "jka:maps/t1_fatal.bsp": {
+    "texels": 458752,
+    "texelsChanged": 8955,
+    "added": 1486601,
+    "vertices": 80130,
+    "coloursChanged": 12,
+    "gridCells": 375375,
+    "gridChanged": 63
+   },
+   "jka:maps/t1_inter.bsp": {
+    "texels": 196608,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 751,
+    "coloursChanged": 0,
+    "gridCells": 1320,
+    "gridChanged": 0
+   },
+   "jka:maps/t1_rail.bsp": {
+    "texels": 458752,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 88844,
+    "coloursChanged": 0,
+    "gridCells": 990640,
+    "gridChanged": 0
+   },
+   "jka:maps/t1_sour.bsp": {
+    "texels": 196608,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 58428,
+    "coloursChanged": 0,
+    "gridCells": 298320,
+    "gridChanged": 0
+   },
+   "jka:maps/t1_surprise.bsp": {
+    "texels": 458752,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 46105,
+    "coloursChanged": 0,
+    "gridCells": 426951,
+    "gridChanged": 0
+   },
+   "jka:maps/t2_dpred.bsp": {
+    "texels": 524288,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 72792,
+    "coloursChanged": 0,
+    "gridCells": 46464,
+    "gridChanged": 0
+   },
+   "jka:maps/t2_rancor.bsp": {
+    "texels": 131072,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 122459,
+    "coloursChanged": 0,
+    "gridCells": 535059,
+    "gridChanged": 0
+   },
+   "jka:maps/t2_rogue.bsp": {
+    "texels": 425984,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 54698,
+    "coloursChanged": 0,
+    "gridCells": 980352,
+    "gridChanged": 0
+   },
+   "jka:maps/t2_trip.bsp": {
+    "texels": 229376,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 86770,
+    "coloursChanged": 0,
+    "gridCells": 1047540,
+    "gridChanged": 0
+   },
+   "jka:maps/t2_wedge.bsp": {
+    "texels": 589824,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 74418,
+    "coloursChanged": 0,
+    "gridCells": 1033780,
+    "gridChanged": 0
+   },
+   "jka:maps/t3_bounty.bsp": {
+    "texels": 524288,
+    "texelsChanged": 69712,
+    "added": 7717690,
+    "vertices": 102073,
+    "coloursChanged": 9508,
+    "gridCells": 295200,
+    "gridChanged": 13969
+   },
+   "jka:maps/t3_byss.bsp": {
+    "texels": 458752,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 41894,
+    "coloursChanged": 0,
+    "gridCells": 985167,
+    "gridChanged": 0
+   },
+   "jka:maps/t3_hevil.bsp": {
+    "texels": 491520,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 67890,
+    "coloursChanged": 0,
+    "gridCells": 18879,
+    "gridChanged": 0
+   },
+   "jka:maps/t3_rift.bsp": {
+    "texels": 1081344,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 61876,
+    "coloursChanged": 0,
+    "gridCells": 128304,
+    "gridChanged": 0
+   },
+   "jka:maps/t3_stamp.bsp": {
+    "texels": 393216,
+    "texelsChanged": 30160,
+    "added": 3067812,
+    "vertices": 64312,
+    "coloursChanged": 167,
+    "gridCells": 553610,
+    "gridChanged": 1652
+   },
+   "jka:maps/taspir1.bsp": {
+    "texels": 786432,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 67567,
+    "coloursChanged": 0,
+    "gridCells": 52155,
+    "gridChanged": 0
+   },
+   "jka:maps/taspir2.bsp": {
+    "texels": 491520,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 95870,
+    "coloursChanged": 0,
+    "gridCells": 886080,
+    "gridChanged": 0
+   },
+   "jka:maps/vjun1.bsp": {
+    "texels": 491520,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 77399,
+    "coloursChanged": 0,
+    "gridCells": 1001520,
+    "gridChanged": 0
+   },
+   "jka:maps/vjun2.bsp": {
+    "texels": 688128,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 83156,
+    "coloursChanged": 0,
+    "gridCells": 152500,
+    "gridChanged": 0
+   },
+   "jka:maps/vjun3.bsp": {
+    "texels": 425984,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 82322,
+    "coloursChanged": 0,
+    "gridCells": 203232,
+    "gridChanged": 0
+   },
+   "jka:maps/yavin1.bsp": {
+    "texels": 229376,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 28691,
+    "coloursChanged": 0,
+    "gridCells": 668800,
+    "gridChanged": 0
+   },
+   "jka:maps/yavin1b.bsp": {
+    "texels": 163840,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 18559,
+    "coloursChanged": 0,
+    "gridCells": 798537,
+    "gridChanged": 0
+   },
+   "jka:maps/yavin2.bsp": {
+    "texels": 655360,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 77553,
+    "coloursChanged": 0,
+    "gridCells": 866304,
+    "gridChanged": 0
+   },
+   "jk2:maps/artus_detention.bsp": {
+    "texels": 475136,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 115219,
+    "coloursChanged": 0,
+    "gridCells": 261030,
+    "gridChanged": 0
+   },
+   "jk2:maps/artus_mine.bsp": {
+    "texels": 737280,
+    "texelsChanged": 7787,
+    "added": 1521859,
+    "vertices": 101042,
+    "coloursChanged": 644,
+    "gridCells": 412368,
+    "gridChanged": 798
+   },
+   "jk2:maps/artus_topside.bsp": {
+    "texels": 212992,
+    "texelsChanged": 431,
+    "added": 26276,
+    "vertices": 40205,
+    "coloursChanged": 110,
+    "gridCells": 379674,
+    "gridChanged": 823
+   },
+   "jk2:maps/bespin_platform.bsp": {
+    "texels": 442368,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 31941,
+    "coloursChanged": 0,
+    "gridCells": 440055,
+    "gridChanged": 0
+   },
+   "jk2:maps/bespin_streets.bsp": {
+    "texels": 507904,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 46804,
+    "coloursChanged": 0,
+    "gridCells": 445208,
+    "gridChanged": 0
+   },
+   "jk2:maps/bespin_undercity.bsp": {
+    "texels": 704512,
+    "texelsChanged": 1373,
+    "added": 123937,
+    "vertices": 61252,
+    "coloursChanged": 0,
+    "gridCells": 739440,
+    "gridChanged": 19
+   },
+   "jk2:maps/cairn_assembly.bsp": {
+    "texels": 458752,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 88992,
+    "coloursChanged": 0,
+    "gridCells": 178164,
+    "gridChanged": 0
+   },
+   "jk2:maps/cairn_bay.bsp": {
+    "texels": 294912,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 71048,
+    "coloursChanged": 0,
+    "gridCells": 968376,
+    "gridChanged": 0
+   },
+   "jk2:maps/cairn_dock1.bsp": {
+    "texels": 671744,
+    "texelsChanged": 29455,
+    "added": 3864849,
+    "vertices": 72390,
+    "coloursChanged": 0,
+    "gridCells": 127512,
+    "gridChanged": 6706
+   },
+   "jk2:maps/cairn_reactor.bsp": {
+    "texels": 851968,
+    "texelsChanged": 7630,
+    "added": 2158844,
+    "vertices": 60185,
+    "coloursChanged": 70,
+    "gridCells": 843700,
+    "gridChanged": 1256
+   },
+   "jk2:maps/ctf_bespin.bsp": {
+    "texels": 196608,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 19985,
+    "coloursChanged": 0,
+    "gridCells": 162155,
+    "gridChanged": 0
+   },
+   "jk2:maps/ctf_imperial.bsp": {
+    "texels": 114688,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 25034,
+    "coloursChanged": 0,
+    "gridCells": 19135,
+    "gridChanged": 0
+   },
+   "jk2:maps/ctf_ns_streets.bsp": {
+    "texels": 720896,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 18857,
+    "coloursChanged": 0,
+    "gridCells": 263424,
+    "gridChanged": 0
+   },
+   "jk2:maps/ctf_yavin.bsp": {
+    "texels": 212992,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 18928,
+    "coloursChanged": 0,
+    "gridCells": 127980,
+    "gridChanged": 0
+   },
+   "jk2:maps/doom_comm.bsp": {
+    "texels": 557056,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 100358,
+    "coloursChanged": 0,
+    "gridCells": 493425,
+    "gridChanged": 0
+   },
+   "jk2:maps/doom_detention.bsp": {
+    "texels": 737280,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 87830,
+    "coloursChanged": 0,
+    "gridCells": 435006,
+    "gridChanged": 0
+   },
+   "jk2:maps/doom_shields.bsp": {
+    "texels": 327680,
+    "texelsChanged": 13294,
+    "added": 1520127,
+    "vertices": 46765,
+    "coloursChanged": 0,
+    "gridCells": 158184,
+    "gridChanged": 1921
+   },
+   "jk2:maps/duel_bay.bsp": {
+    "texels": 98304,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 5355,
+    "coloursChanged": 0,
+    "gridCells": 5800,
+    "gridChanged": 0
+   },
+   "jk2:maps/duel_carbon.bsp": {
+    "texels": 81920,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 5343,
+    "coloursChanged": 0,
+    "gridCells": 660,
+    "gridChanged": 0
+   },
+   "jk2:maps/duel_jedi.bsp": {
+    "texels": 98304,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 2553,
+    "coloursChanged": 0,
+    "gridCells": 14688,
+    "gridChanged": 0
+   },
+   "jk2:maps/duel_pit.bsp": {
+    "texels": 81920,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 2100,
+    "coloursChanged": 0,
+    "gridCells": 10982,
+    "gridChanged": 0
+   },
+   "jk2:maps/ffa_bespin.bsp": {
+    "texels": 180224,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 19441,
+    "coloursChanged": 0,
+    "gridCells": 90090,
+    "gridChanged": 0
+   },
+   "jk2:maps/ffa_deathstar.bsp": {
+    "texels": 278528,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 40013,
+    "coloursChanged": 0,
+    "gridCells": 134320,
+    "gridChanged": 0
+   },
+   "jk2:maps/ffa_imperial.bsp": {
+    "texels": 114688,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 32309,
+    "coloursChanged": 0,
+    "gridCells": 18130,
+    "gridChanged": 0
+   },
+   "jk2:maps/ffa_ns_hideout.bsp": {
+    "texels": 131072,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 22552,
+    "coloursChanged": 0,
+    "gridCells": 43890,
+    "gridChanged": 0
+   },
+   "jk2:maps/ffa_ns_streets.bsp": {
+    "texels": 344064,
+    "texelsChanged": 1380,
+    "added": 46639,
+    "vertices": 18637,
+    "coloursChanged": 0,
+    "gridCells": 286552,
+    "gridChanged": 8145
+   },
+   "jk2:maps/ffa_raven.bsp": {
+    "texels": 32768,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 7324,
+    "coloursChanged": 0,
+    "gridCells": 2496,
+    "gridChanged": 0
+   },
+   "jk2:maps/ffa_yavin.bsp": {
+    "texels": 212992,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 16501,
+    "coloursChanged": 0,
+    "gridCells": 69520,
+    "gridChanged": 0
+   },
+   "jk2:maps/kejim_base.bsp": {
+    "texels": 229376,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 80319,
+    "coloursChanged": 0,
+    "gridCells": 68670,
+    "gridChanged": 0
+   },
+   "jk2:maps/kejim_post.bsp": {
+    "texels": 311296,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 79188,
+    "coloursChanged": 0,
+    "gridCells": 496800,
+    "gridChanged": 0
+   },
+   "jk2:maps/ns_hideout.bsp": {
+    "texels": 589824,
+    "texelsChanged": 23364,
+    "added": 2789789,
+    "vertices": 76477,
+    "coloursChanged": 1400,
+    "gridCells": 502524,
+    "gridChanged": 2927
+   },
+   "jk2:maps/ns_starpad.bsp": {
+    "texels": 458752,
+    "texelsChanged": 4947,
+    "added": 177527,
+    "vertices": 58632,
+    "coloursChanged": 719,
+    "gridCells": 268134,
+    "gridChanged": 3289
+   },
+   "jk2:maps/ns_streets.bsp": {
+    "texels": 278528,
+    "texelsChanged": 749,
+    "added": 27337,
+    "vertices": 65845,
+    "coloursChanged": 1126,
+    "gridCells": 571384,
+    "gridChanged": 2352
+   },
+   "jk2:maps/pit.bsp": {
+    "texels": 65536,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 1690,
+    "coloursChanged": 0,
+    "gridCells": 17952,
+    "gridChanged": 0
+   },
+   "jk2:maps/valley.bsp": {
+    "texels": 262144,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 4172,
+    "coloursChanged": 0,
+    "gridCells": 223872,
+    "gridChanged": 0
+   },
+   "jk2:maps/yavin_canyon.bsp": {
+    "texels": 163840,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 82304,
+    "coloursChanged": 0,
+    "gridCells": 522576,
+    "gridChanged": 0
+   },
+   "jk2:maps/yavin_courtyard.bsp": {
+    "texels": 311296,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 41687,
+    "coloursChanged": 0,
+    "gridCells": 196560,
+    "gridChanged": 0
+   },
+   "jk2:maps/yavin_final.bsp": {
+    "texels": 212992,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 23709,
+    "coloursChanged": 0,
+    "gridCells": 558900,
+    "gridChanged": 0
+   },
+   "jk2:maps/yavin_swamp.bsp": {
+    "texels": 147456,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 102726,
+    "coloursChanged": 0,
+    "gridCells": 858816,
+    "gridChanged": 0
+   },
+   "jk2:maps/yavin_temple.bsp": {
+    "texels": 311296,
+    "texelsChanged": 0,
+    "added": 0,
+    "vertices": 41478,
+    "coloursChanged": 0,
+    "gridCells": 185920,
+    "gridChanged": 0
+   },
+   "jk2:maps/yavin_trial.bsp": {
+    "texels": 229376,
+    "texelsChanged": 2758,
+    "added": 94381,
+    "vertices": 40566,
+    "coloursChanged": 0,
+    "gridCells": 173664,
+    "gridChanged": 483
+   }
+  },
+  "changedMaps": [
+   "jka:maps/kor1.bsp",
+   "jka:maps/kor2.bsp",
+   "jka:maps/t1_fatal.bsp",
+   "jka:maps/t3_bounty.bsp",
+   "jka:maps/t3_stamp.bsp",
+   "jk2:maps/artus_mine.bsp",
+   "jk2:maps/artus_topside.bsp",
+   "jk2:maps/bespin_undercity.bsp",
+   "jk2:maps/cairn_dock1.bsp",
+   "jk2:maps/cairn_reactor.bsp",
+   "jk2:maps/doom_shields.bsp",
+   "jk2:maps/ffa_ns_streets.bsp",
+   "jk2:maps/ns_hideout.bsp",
+   "jk2:maps/ns_starpad.bsp",
+   "jk2:maps/ns_streets.bsp",
+   "jk2:maps/yavin_trial.bsp"
+  ],
+  "previouslyAccepted": [
+   "jka:maps/academy1.bsp",
+   "jka:maps/academy2.bsp",
+   "jka:maps/academy3.bsp",
+   "jka:maps/academy4.bsp",
+   "jka:maps/academy5.bsp",
+   "jka:maps/academy6.bsp",
+   "jka:maps/hoth2.bsp",
+   "jka:maps/hoth3.bsp",
+   "jka:maps/mp/ctf1.bsp",
+   "jka:maps/mp/ctf2.bsp",
+   "jka:maps/mp/ctf3.bsp",
+   "jka:maps/mp/ctf4.bsp",
+   "jka:maps/mp/ctf5.bsp",
+   "jka:maps/mp/duel1.bsp",
+   "jka:maps/mp/duel10.bsp",
+   "jka:maps/mp/duel2.bsp",
+   "jka:maps/mp/duel3.bsp",
+   "jka:maps/mp/duel4.bsp",
+   "jka:maps/mp/duel5.bsp",
+   "jka:maps/mp/duel6.bsp",
+   "jka:maps/mp/duel7.bsp",
+   "jka:maps/mp/duel8.bsp",
+   "jka:maps/mp/duel9.bsp",
+   "jka:maps/mp/ffa1.bsp",
+   "jka:maps/mp/ffa2.bsp",
+   "jka:maps/mp/ffa3.bsp",
+   "jka:maps/mp/ffa4.bsp",
+   "jka:maps/mp/ffa5.bsp",
+   "jka:maps/mp/siege_desert.bsp",
+   "jka:maps/mp/siege_hoth.bsp",
+   "jka:maps/mp/siege_korriban.bsp",
+   "jka:maps/t1_danger.bsp",
+   "jka:maps/t1_inter.bsp",
+   "jka:maps/t1_rail.bsp",
+   "jka:maps/t1_sour.bsp",
+   "jka:maps/t1_surprise.bsp",
+   "jka:maps/t2_dpred.bsp",
+   "jka:maps/t2_rancor.bsp",
+   "jka:maps/t2_rogue.bsp",
+   "jka:maps/t2_trip.bsp",
+   "jka:maps/t2_wedge.bsp",
+   "jka:maps/t3_byss.bsp",
+   "jka:maps/t3_hevil.bsp",
+   "jka:maps/t3_rift.bsp",
+   "jka:maps/taspir1.bsp",
+   "jka:maps/taspir2.bsp",
+   "jka:maps/vjun1.bsp",
+   "jka:maps/vjun2.bsp",
+   "jka:maps/vjun3.bsp",
+   "jka:maps/yavin1.bsp",
+   "jka:maps/yavin1b.bsp",
+   "jka:maps/yavin2.bsp",
+   "jk2:maps/duel_carbon.bsp"
+  ],
+  "changedAmongPreviouslyAccepted": [],
+  "totals": {
+   "texels": 284449,
+   "vertexColours": 26454,
+   "gridCells": 45680
+  }
+ },
+ "runtimes": {
+  "before": {
+   "folder": ".tmp/runtime/raven-flags-dialect",
+   "files": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "25f3c8dac136c37bc8d852b29a3f543fbcd2156b3457375d2c8f7d344a24715c",
+    "fnql_rtx_x86.dll": "d5972af207f43f615a01e2ba2887199e9be4de6f7b8367eb667bc8087f35fd82",
+    "fnql_vk_x86.dll": "4b8841789ae9096a9c0d2d18976f1ddd87865f2c6bbc2915788a05e299a3cbb1",
+    "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f",
+    "fntech3.exe": "2b902627224a7b2ce3d4f01bf4de0fa6a759cc18dde19c13c68ebeb7b006baef",
+    "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+   }
+  },
+  "after": {
+   "folder": ".tmp/runtime/raven-flags-styles",
+   "files": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "9a99b420c94a369363a87ec70803aa72d534246eb9126b871dd10e4fd4d7dd7d",
+    "fnql_rtx_x86.dll": "aff3ff53cf02b5baf91cf5a76fd148339d53354954dd0dee742f77bfca4ca052",
+    "fnql_vk_x86.dll": "ea86c2542d98cad88e9cd8b9e5faf1510182700d65359ea003e9a8e9de372148",
+    "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f",
+    "fntech3.exe": "2b902627224a7b2ce3d4f01bf4de0fa6a759cc18dde19c13c68ebeb7b006baef",
+    "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+   }
+  },
+  "base": "f8e1ee980462ccaf1ae86f39ec7e75e5ab4e4885",
+  "note": "both carry the day's Raven and dialect flag slices; after adds this change; only the renderer libraries differ"
+ },
+ "live": {
+  "probe": "jka-mp client, windowed, unswitched private desktop, net_enabled 0, isolated home, spectator, togglemenu, no input; engine screenshotPNG captures",
+  "runs": [
+   {
+    "run": "sty-before-kor1-glx",
+    "harness": ".tmp/raven-flags/probe.py",
+    "profile": "jka-mp",
+    "map": "kor1",
+    "renderer": "glx",
+    "runtime": ".tmp\\runtime\\raven-flags-dialect",
+    "identity": {
+     "fntech3.exe": "2b902627224a7b2ce3d4f01bf4de0fa6a759cc18dde19c13c68ebeb7b006baef",
+     "fnql_glx_x86.dll": "25f3c8dac136c37bc8d852b29a3f543fbcd2156b3457375d2c8f7d344a24715c",
+     "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-flags\\runs\\sty-before-kor1-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "kor1"
+    ],
+    "commands": [
+     "togglemenu"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "errors": [
+     "ERROR: Raven RBSP rendering maps/kor1.bsp: RBSP surface lightmap styles are not served yet (lump 13 record 18 slot 1 style 1)",
+     "----- Server Shutdown (Server crashed: Raven RBSP rendering maps/kor1.bsp: RBSP surface lightmap styles are not served yet (lump 13 record 18 slot 1 style 1)) -----"
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": []
+   },
+   {
+    "run": "sty-after-kor1-glx",
+    "harness": ".tmp/raven-flags/probe.py",
+    "profile": "jka-mp",
+    "map": "kor1",
+    "renderer": "glx",
+    "runtime": ".tmp\\runtime\\raven-flags-styles",
+    "identity": {
+     "fntech3.exe": "2b902627224a7b2ce3d4f01bf4de0fa6a759cc18dde19c13c68ebeb7b006baef",
+     "fnql_glx_x86.dll": "9a99b420c94a369363a87ec70803aa72d534246eb9126b871dd10e4fd4d7dd7d",
+     "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-flags\\runs\\sty-after-kor1-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "kor1"
+    ],
+    "commands": [
+     "togglemenu"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "raven-flags-00.png",
+      "sha256": "f5c6618bd841a5d1774b2f5146877f3ff6cafe45751584c5b60cb299306ba17e"
+     },
+     {
+      "name": "raven-flags-01.png",
+      "sha256": "35530ef5404598321928aaea4b0dce5be8a213dd7a381ef149092e6757e3b6be"
+     }
+    ]
+   },
+   {
+    "run": "sty-after-kor1-vk",
+    "harness": ".tmp/raven-flags/probe.py",
+    "profile": "jka-mp",
+    "map": "kor1",
+    "renderer": "vk",
+    "runtime": ".tmp\\runtime\\raven-flags-styles",
+    "identity": {
+     "fntech3.exe": "2b902627224a7b2ce3d4f01bf4de0fa6a759cc18dde19c13c68ebeb7b006baef",
+     "fnql_vk_x86.dll": "ea86c2542d98cad88e9cd8b9e5faf1510182700d65359ea003e9a8e9de372148",
+     "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-flags\\runs\\sty-after-kor1-vk\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "vk",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "kor1"
+    ],
+    "commands": [
+     "togglemenu"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "raven-flags-00.png",
+      "sha256": "4aade9347efee106fe7be29067b3c4598c0cbf5c9720557d72f2f04873dd60f2"
+     },
+     {
+      "name": "raven-flags-01.png",
+      "sha256": "0978f2ec882cdc9affe75197a2ccf56c312c6daeca2b9d2b7e843fc5b610bc8f"
+     }
+    ]
+   },
+   {
+    "run": "sty-after-kor1-rtx",
+    "harness": ".tmp/raven-flags/probe.py",
+    "profile": "jka-mp",
+    "map": "kor1",
+    "renderer": "rtx",
+    "runtime": ".tmp\\runtime\\raven-flags-styles",
+    "identity": {
+     "fntech3.exe": "2b902627224a7b2ce3d4f01bf4de0fa6a759cc18dde19c13c68ebeb7b006baef",
+     "fnql_rtx_x86.dll": "aff3ff53cf02b5baf91cf5a76fd148339d53354954dd0dee742f77bfca4ca052",
+     "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-flags\\runs\\sty-after-kor1-rtx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "kor1"
+    ],
+    "commands": [
+     "togglemenu"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "raven-flags-00.png",
+      "sha256": "c44b2a0139e11080a560200248f795eac581568df3ee5962bbbeb9cb23569bff"
+     },
+     {
+      "name": "raven-flags-01.png",
+      "sha256": "52f601993289d98cf59a0d994751b3b0eb852abc840893d6a57de090e9cae56a"
+     }
+    ]
+   },
+   {
+    "run": "sty-after-t1_fatal-glx",
+    "harness": ".tmp/raven-flags/probe.py",
+    "profile": "jka-mp",
+    "map": "t1_fatal",
+    "renderer": "glx",
+    "runtime": ".tmp\\runtime\\raven-flags-styles",
+    "identity": {
+     "fntech3.exe": "2b902627224a7b2ce3d4f01bf4de0fa6a759cc18dde19c13c68ebeb7b006baef",
+     "fnql_glx_x86.dll": "9a99b420c94a369363a87ec70803aa72d534246eb9126b871dd10e4fd4d7dd7d",
+     "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-flags\\runs\\sty-after-t1_fatal-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "t1_fatal"
+    ],
+    "commands": [
+     "togglemenu"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "raven-flags-00.png",
+      "sha256": "9791c5ad1905e138dde425f57cd5e3f3bd1e8f16b71bc66a76aaa416a28faa83"
+     },
+     {
+      "name": "raven-flags-01.png",
+      "sha256": "ab2964b43f5e0f16ec23e1cbeb56117ce618f76b8ab811a5eb45aaa58eb00e76"
+     }
+    ]
+   },
+   {
+    "run": "sty-after-t3_bounty-glx",
+    "harness": ".tmp/raven-flags/probe.py",
+    "profile": "jka-mp",
+    "map": "t3_bounty",
+    "renderer": "glx",
+    "runtime": ".tmp\\runtime\\raven-flags-styles",
+    "identity": {
+     "fntech3.exe": "2b902627224a7b2ce3d4f01bf4de0fa6a759cc18dde19c13c68ebeb7b006baef",
+     "fnql_glx_x86.dll": "9a99b420c94a369363a87ec70803aa72d534246eb9126b871dd10e4fd4d7dd7d",
+     "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-flags\\runs\\sty-after-t3_bounty-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "t3_bounty"
+    ],
+    "commands": [
+     "togglemenu"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "raven-flags-00.png",
+      "sha256": "e9a00c6492850f044cf7dd50031c43dc1f70afeb95ef41ff123e3c875ac6cefb"
+     },
+     {
+      "name": "raven-flags-01.png",
+      "sha256": "c62aa88115a7b5fee573946cf7cf14426b096e65cd3b6d89399105a552d66575"
+     }
+    ]
+   }
+  ]
+ },
+ "tests": {
+  "updated": "tests/raven_bsp_render_tests.cpp (Styles(): lightmap, vertex and grid composition, refusals, flare fog; MSVC x86 /W4 /WX export build and Clang x64)",
+  "installedSweep": "98 of 98 Jedi maps project (45 refused before); compose_stats.cpp",
+  "fixtures": [
+   "tests/bsp_profile_loader_tests.py",
+   "tests/raven_bsp_renderer_dispatch_tests.py",
+   "tests/stvef_mdr_render_tests.py"
+  ]
+ },
+ "findings": [
+  "animated and switched style colours do not reach the renderer"
+ ]
+}

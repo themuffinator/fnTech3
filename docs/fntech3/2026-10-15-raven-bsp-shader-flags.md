@@ -205,8 +205,8 @@ all RBSP 1.
     `0x4` sky included.
   - Against the reader before this change, all three renderers fail it.
 - **The installed maps.** All 98 maps through the MSVC test's `--stdin`
-  mode: 53 project, and 45 single-player maps are refused by checks made
-  before the shader lump is read (see the findings below).
+  mode: 53 project, and 45 maps are refused by checks made before the
+  shader lump is read (see the findings below).
 
 ### Live
 
@@ -261,8 +261,9 @@ all RBSP 1.
 - **Ritual and 2015 maps.** Alice, F.A.K.K.2 and Medal of Honor maps reach
   the same readers through their own loaders; their flag meanings
   were not compared in this slice.
-- **Refused single-player maps.** The renderers' RBSP reader refuses 45
-  installed single-player maps before it reads their shader lump: 43 for
-  surface light styles and one for vertex light styles that are not served
-  yet, and Outcast's one for a surface index range it finds invalid. Every
-  multiplayer map is read.
+- **Refused maps.** The renderers' RBSP reader refused 45 installed maps
+  before it read their shader lump: 43 for surface light styles (among them
+  Outcast's multiplayer `ffa_ns_streets`), one for vertex light styles that
+  were not served yet, and Outcast's `yavin_temple` for 11 flares in a fog
+  the map lacks. The [light styles slice](2026-10-15-raven-light-styles.md)
+  serves them all.

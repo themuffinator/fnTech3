@@ -903,11 +903,11 @@
   "updated": "tests/raven_bsp_render_tests.cpp (ShaderFlags: table, materials, opaque, six duel9 records projected; MSVC x86 and Clang x64)",
   "new": "tests/raven_bsp_shader_flags_tests.py (R_LoadShaders in three renderers; RTX ShaderForShaderNum, RT_ShaderIsSky, RT_FindSun; Quake III lump unchanged)",
   "negativeControl": "the new test against f8e1ee98's tr_raven_bsp_format.h fails in all three renderers (SURF_SKY on the rock record)",
-  "stdinSweep": "98 installed Jedi maps: 53 projected, 45 single-player maps refused before the shader lump (43 surface light styles, 1 vertex light styles, 1 surface index range)"
+  "stdinSweep": "98 installed Jedi maps: 53 projected, 45 maps refused before the shader lump (43 surface light styles, ffa_ns_streets among them, 1 vertex light styles, 1 flares in a missing fog); served by 2026-10-15-raven-light-styles"
  },
  "findings": [
   "Elite Force SDK surfaceflags.h keeps Quake III values for the five bits read; stvoy.exe not read",
   "Alice, F.A.K.K.2 and Medal of Honor flag meanings not compared",
-  "45 single-player Jedi maps refused by the RBSP reader before the shader lump"
+  "45 Jedi maps refused by the RBSP reader before the shader lump; served by 2026-10-15-raven-light-styles"
  ]
 }

@@ -143,7 +143,8 @@ static inline int FN_RavenBspRead( const void *data, int length,
         if ( type < 1 || type > 4 || !FN_RavenBspRange( first,count,view.vertices )
                 || !FN_RavenBspRange( firstIndex,indexes,view.lengths[11] / 4 )
                 || !FN_RavenBspRange( FN_RavenBspI32(s),1,view.lengths[1] / 72 )
-                || FN_RavenBspI32(s + 4) < -1 || FN_RavenBspI32(s + 4) >= view.lengths[12] / 72 )
+                || FN_RavenBspI32(s + 4) < -1
+                || ( type != 4 && FN_RavenBspI32(s + 4) >= view.lengths[12] / 72 ) )
             return FN_RavenBspFail( error, "RBSP rendering surface/index range is invalid", 13,i,-1,-1 );
         if ( (type == 1 || type == 3) && (!count || indexes % 3) )
             return FN_RavenBspFail( error, "RBSP rendering triangle count is invalid", 13,i,-1,-1 );
@@ -191,29 +192,256 @@ static inline int FN_RavenBspRead( const void *data, int length,
     return 1;
 }
 
-/* Current Fn material records have one lightmap/vertex-light channel. A second
- * active channel, including another normal style, requires an actual material
- * adapter; never silently project it into the first channel. All original
- * channels still remain available in the retained map. */
-static inline int FN_RavenBspNormalStyles( const fnRavenBspView_t *view, fnRavenBspError_t *error ) {
-    int i, j, group;
+/* Light styles. A surface carries up to four lightmap channels and four
+ * vertex-colour channels, each with a style; a light-grid row carries four
+ * channels too. Retail lights a surface with the sum of its channels, each
+ * tinted by its style's colour (OpenJK rd-vanilla, reference observation):
+ * - lightmaps: the channels after the first add as their own stages, while
+ *   the styles run unbroken below 254 (FinishShader); a channel that is
+ *   vertex light (-3) adds the style's colour itself, a white image; the first
+ *   channel keeps its own colour;
+ * - vertex light (first lightmap channel -3): the sum of each channel's colour
+ *   times its style's, shifted down eight bits (ComputeFinalVertexColor);
+ * - the light grid: each channel whose style is not 255, times its style's
+ *   colour over 255; a first style of 255 is a hole.
+ * Fn's renderers draw one channel, so the projection composes the others into
+ * it with the colours given. Every style starts white in retail's renderer
+ * and stays white until a client game names it (CG_RunLightStyles). */
+#define FN_RAVEN_BSP_LIGHT_STYLES 64
+#define FN_RAVEN_BSP_LIGHTMAP_SIZE 128
+
+static inline const unsigned char *FN_RavenBspStyleColor( const unsigned char (*colors)[4], unsigned style ) {
+    static const unsigned char white[4] = { 255, 255, 255, 255 };
+    return colors ? colors[style] : white;
+}
+
+/* Lightmap channels after the first that retail draws: while their styles run
+ * below 254, and only for a surface whose first channel is a lightmap. */
+static inline int FN_RavenBspLightmapStyles( const unsigned char *surface ) {
+    int count = 0;
+    if ( FN_RavenBspI32( surface + 36 ) < 0 ) return 0;
+    while ( count < 3 && surface[29 + count] < 254 ) ++count;
+    return count;
+}
+
+/* Vertex channels retail sums: a vertex-lit surface's, while below 254. */
+static inline int FN_RavenBspVertexStyles( const unsigned char *surface ) {
+    int count = 0;
+    if ( FN_RavenBspI32( surface + 36 ) != -3 ) return 0;
+    while ( count < 4 && surface[32 + count] < 254 ) ++count;
+    return count;
+}
+
+/* A lightmap channel after the first lies at the first channel's texels moved
+ * by a whole number of texels, in every installed map; anything else is
+ * refused rather than guessed. */
+static inline int FN_RavenBspStyleOffset( const fnRavenBspView_t *view, const unsigned char *s, int slot,
+        int offset[2] ) {
+    int first = FN_RavenBspI32( s + 12 ), count = FN_RavenBspI32( s + 16 ), v, axis;
+    for ( v = first; v < first + count; ++v ) {
+        const unsigned char *vertex = view->bytes + view->offsets[10] + v * 80;
+        for ( axis = 0; axis < 2; ++axis ) {
+            float base, moved;
+            double delta;
+            memcpy( &base, vertex + 20 + axis * 4, 4 );
+            memcpy( &moved, vertex + 20 + slot * 8 + axis * 4, 4 );
+            delta = ( (double)moved - (double)base ) * FN_RAVEN_BSP_LIGHTMAP_SIZE;
+            if ( !( delta > -4096.0 && delta < 4096.0 ) ) return 0;
+            if ( v == first ) offset[axis] = (int)floor( delta + 0.5 );
+            if ( fabs( delta - offset[axis] ) > 0.01 ) return 0;
+        }
+    }
+    return 1;
+}
+
+static inline int FN_RavenBspCheckStyles( const fnRavenBspView_t *view, fnRavenBspError_t *error ) {
+    int i, j, count, offset[2];
     for ( i = 0; i < view->surfaces; ++i ) {
         const unsigned char *s = view->bytes + view->offsets[13] + i * 148;
-        for ( group = 0; group < 2; ++group ) for ( j = 0; j < 4; ++j ) {
-            unsigned style = s[28 + group * 4 + j];
-            if ( (j == 0 && style != 0) || (j != 0 && style < 254) )
-                return FN_RavenBspFail( error, group ? "RBSP vertex light styles are not served yet"
-                    : "RBSP surface lightmap styles are not served yet", 13,i,j,(int)style );
+        count = FN_RavenBspLightmapStyles( s );
+        for ( j = 1; j <= count; ++j ) {
+            int map = FN_RavenBspI32( s + 36 + j * 4 );
+            if ( s[28 + j] >= FN_RAVEN_BSP_LIGHT_STYLES )
+                return FN_RavenBspFail( error, "RBSP lightmap style is out of range", 13,i,j,s[28+j] );
+            /* retail's FinishShader stops the map on such a channel */
+            if ( map < 0 && map != -3 )
+                return FN_RavenBspFail( error, "RBSP light style has no lightmap or vertex light", 13,i,j,s[28+j] );
+            if ( map >= 0 && !FN_RavenBspStyleOffset( view, s, j, offset ) )
+                return FN_RavenBspFail( error, "RBSP lightmap style channel is not its first channel moved", 13,i,j,s[28+j] );
         }
+        count = FN_RavenBspVertexStyles( s );
+        for ( j = 0; j < count; ++j )
+            if ( s[32 + j] >= FN_RAVEN_BSP_LIGHT_STYLES )
+                return FN_RavenBspFail( error, "RBSP vertex light style is out of range", 13,i,j,s[32+j] );
     }
     for ( i = 0; i < view->gridRows; ++i ) {
         const unsigned char *g = view->bytes + view->offsets[15] + i * 30;
         if ( g[24] == 255 ) continue; /* Explicit wall/hole marker. */
         for ( j = 0; j < 4; ++j )
-            if ( (j == 0 && g[24+j] != 0) || (j != 0 && g[24+j] != 255) )
-                return FN_RavenBspFail( error, "RBSP light-grid styles are not served yet", 15,i,j,g[24+j] );
+            if ( g[24 + j] != 255 && g[24 + j] >= FN_RAVEN_BSP_LIGHT_STYLES )
+                return FN_RavenBspFail( error, "RBSP light-grid style is out of range", 15,i,j,g[24+j] );
     }
     return 1;
+}
+
+/* Marks the texels a triangle touches, in lightmap texels (conservative: a
+ * texel whose square meets the triangle). */
+static inline void FN_RavenBspCoverTriangle( unsigned char *mask, const float uv[3][2] ) {
+    float lo[2], hi[2];
+    int x0, x1, y0, y1, x, y, e, axis;
+    if ( ( uv[1][0] - uv[0][0] ) * ( uv[2][1] - uv[0][1] ) == ( uv[2][0] - uv[0][0] ) * ( uv[1][1] - uv[0][1] ) )
+        return; /* no area, no texels */
+    for ( axis = 0; axis < 2; ++axis ) {
+        lo[axis] = hi[axis] = uv[0][axis];
+        for ( e = 1; e < 3; ++e ) {
+            if ( uv[e][axis] < lo[axis] ) lo[axis] = uv[e][axis];
+            if ( uv[e][axis] > hi[axis] ) hi[axis] = uv[e][axis];
+        }
+    }
+    if ( !( lo[0] < FN_RAVEN_BSP_LIGHTMAP_SIZE && hi[0] > 0 && lo[1] < FN_RAVEN_BSP_LIGHTMAP_SIZE && hi[1] > 0 ) ) return;
+    x0 = lo[0] < 0 ? 0 : (int)lo[0]; x1 = hi[0] >= FN_RAVEN_BSP_LIGHTMAP_SIZE ? FN_RAVEN_BSP_LIGHTMAP_SIZE - 1 : (int)hi[0];
+    y0 = lo[1] < 0 ? 0 : (int)lo[1]; y1 = hi[1] >= FN_RAVEN_BSP_LIGHTMAP_SIZE ? FN_RAVEN_BSP_LIGHTMAP_SIZE - 1 : (int)hi[1];
+    for ( y = y0; y <= y1; ++y ) for ( x = x0; x <= x1; ++x ) {
+        /* separating axes: each edge's normal; the square's own axes are the box test above */
+        int outside = 0;
+        for ( e = 0; e < 3 && !outside; ++e ) {
+            const float *a = uv[e], *b = uv[(e + 1) % 3], *c = uv[(e + 2) % 3];
+            float nx = a[1] - b[1], ny = b[0] - a[0], side = nx * ( c[0] - a[0] ) + ny * ( c[1] - a[1] );
+            float best, corner;
+            int cx, cy;
+            if ( side < 0 ) { nx = -nx; ny = -ny; }
+            best = -1e30f;
+            for ( cy = 0; cy < 2; ++cy ) for ( cx = 0; cx < 2; ++cx ) {
+                corner = nx * ( (float)( x + cx ) - a[0] ) + ny * ( (float)( y + cy ) - a[1] );
+                if ( corner > best ) best = corner;
+            }
+            if ( best < 0 ) outside = 1;
+        }
+        if ( !outside ) mask[y * FN_RAVEN_BSP_LIGHTMAP_SIZE + x] = 1;
+    }
+}
+
+/* Marks a surface's first-channel texels: its triangles, or a patch's control
+ * grid as triangles. */
+static inline void FN_RavenBspCoverSurface( const fnRavenBspView_t *view, const unsigned char *s, unsigned char *mask ) {
+    int type = FN_RavenBspI32( s + 8 ), first = FN_RavenBspI32( s + 12 );
+    int firstIndex = FN_RavenBspI32( s + 20 ), indexes = FN_RavenBspI32( s + 24 ), i, corner;
+    float uv[3][2];
+    if ( type == 2 ) {
+        int width = FN_RavenBspI32( s + 140 ), height = FN_RavenBspI32( s + 144 ), x, y, tri;
+        for ( y = 0; y + 1 < height; ++y ) for ( x = 0; x + 1 < width; ++x ) for ( tri = 0; tri < 2; ++tri ) {
+            static const int quad[2][3][2] = { { { 0, 0 }, { 1, 0 }, { 1, 1 } }, { { 0, 0 }, { 1, 1 }, { 0, 1 } } };
+            for ( corner = 0; corner < 3; ++corner ) {
+                const unsigned char *vertex = view->bytes + view->offsets[10]
+                    + ( first + ( y + quad[tri][corner][1] ) * width + x + quad[tri][corner][0] ) * 80;
+                memcpy( uv[corner], vertex + 20, 8 );
+                uv[corner][0] *= FN_RAVEN_BSP_LIGHTMAP_SIZE; uv[corner][1] *= FN_RAVEN_BSP_LIGHTMAP_SIZE;
+            }
+            FN_RavenBspCoverTriangle( mask, (const float (*)[2])uv );
+        }
+        return;
+    }
+    if ( type != 1 && type != 3 ) return;
+    for ( i = 0; i + 2 < indexes; i += 3 ) {
+        for ( corner = 0; corner < 3; ++corner ) {
+            int index = FN_RavenBspI32( view->bytes + view->offsets[11] + ( firstIndex + i + corner ) * 4 );
+            const unsigned char *vertex = view->bytes + view->offsets[10] + ( first + index ) * 80;
+            memcpy( uv[corner], vertex + 20, 8 );
+            uv[corner][0] *= FN_RAVEN_BSP_LIGHTMAP_SIZE; uv[corner][1] *= FN_RAVEN_BSP_LIGHTMAP_SIZE;
+        }
+        FN_RavenBspCoverTriangle( mask, (const float (*)[2])uv );
+    }
+}
+
+/* Two surfaces light the same texels alike when their first channel shares a
+ * page and their later channels agree: the same styles from the same places. */
+static inline int FN_RavenBspSameStyles( const fnRavenBspView_t *view, const unsigned char *a, const unsigned char *b ) {
+    int count = FN_RavenBspLightmapStyles( a ), j, oa[2], ob[2];
+    if ( count != FN_RavenBspLightmapStyles( b ) || FN_RavenBspI32( a + 36 ) != FN_RavenBspI32( b + 36 ) ) return 0;
+    for ( j = 1; j <= count; ++j ) {
+        int map = FN_RavenBspI32( a + 36 + j * 4 );
+        if ( a[28 + j] != b[28 + j] || map != FN_RavenBspI32( b + 36 + j * 4 ) ) return 0;
+        if ( map >= 0 && ( !FN_RavenBspStyleOffset( view, a, j, oa ) || !FN_RavenBspStyleOffset( view, b, j, ob )
+                || oa[0] != ob[0] || oa[1] != ob[1] ) ) return 0;
+    }
+    return 1;
+}
+
+static inline unsigned char FN_RavenBspAddLight( unsigned base, unsigned light, unsigned color ) {
+    unsigned sum = base + ( light * color + 127 ) / 255;
+    return (unsigned char)( sum > 255 ? 255 : sum );
+}
+
+/* Composes every surface's later lightmap channels into its first channel's
+ * texels of the projected pages, reading the original pages. Surfaces that
+ * light the same texels alike are composed once together. */
+static inline void FN_RavenBspComposeLightmaps( const fnRavenBspView_t *view, unsigned char *pages,
+        const unsigned char (*colors)[4] ) {
+    unsigned char mask[FN_RAVEN_BSP_LIGHTMAP_SIZE * FN_RAVEN_BSP_LIGHTMAP_SIZE];
+    const int pageBytes = FN_RAVEN_BSP_LIGHTMAP_SIZE * FN_RAVEN_BSP_LIGHTMAP_SIZE * 3;
+    const int numPages = view->lengths[14] / pageBytes;
+    int i, j, k, count, texel;
+    for ( i = 0; i < view->surfaces; ++i ) {
+        const unsigned char *s = view->bytes + view->offsets[13] + i * 148;
+        int page = FN_RavenBspI32( s + 36 ), done = 0, offset[2];
+        count = FN_RavenBspLightmapStyles( s );
+        if ( !count ) continue;
+        for ( k = 0; k < i && !done; ++k )
+            done = FN_RavenBspSameStyles( view, view->bytes + view->offsets[13] + k * 148, s );
+        if ( done || page >= numPages ) continue;
+        memset( mask, 0, sizeof( mask ) );
+        for ( k = i; k < view->surfaces; ++k ) {
+            const unsigned char *other = view->bytes + view->offsets[13] + k * 148;
+            if ( k == i || FN_RavenBspSameStyles( view, s, other ) ) FN_RavenBspCoverSurface( view, other, mask );
+        }
+        for ( j = 1; j <= count; ++j ) {
+            const unsigned char *color = FN_RavenBspStyleColor( colors, s[28 + j] );
+            int map = FN_RavenBspI32( s + 36 + j * 4 );
+            if ( map >= 0 ) FN_RavenBspStyleOffset( view, s, j, offset );
+            for ( texel = 0; texel < FN_RAVEN_BSP_LIGHTMAP_SIZE * FN_RAVEN_BSP_LIGHTMAP_SIZE; ++texel ) {
+                unsigned char *dest = pages + page * pageBytes + texel * 3;
+                int c;
+                if ( !mask[texel] ) continue;
+                if ( map < 0 ) { /* vertex light: retail's white image */
+                    for ( c = 0; c < 3; ++c ) dest[c] = FN_RavenBspAddLight( dest[c], 255, color[c] );
+                } else {
+                    int x = texel % FN_RAVEN_BSP_LIGHTMAP_SIZE + offset[0], y = texel / FN_RAVEN_BSP_LIGHTMAP_SIZE + offset[1];
+                    const unsigned char *src;
+                    if ( map >= numPages || x < 0 || y < 0 || x >= FN_RAVEN_BSP_LIGHTMAP_SIZE || y >= FN_RAVEN_BSP_LIGHTMAP_SIZE ) continue;
+                    src = view->bytes + view->offsets[14] + map * pageBytes + ( y * FN_RAVEN_BSP_LIGHTMAP_SIZE + x ) * 3;
+                    for ( c = 0; c < 3; ++c ) dest[c] = FN_RavenBspAddLight( dest[c], src[c], color[c] );
+                }
+            }
+        }
+    }
+}
+
+/* A vertex-lit surface's colour: retail's sum over its vertex channels. One
+ * whose only channel is the first keeps its colour as the map has it. */
+static inline void FN_RavenBspComposeVertexColor( const unsigned char *vertex, const unsigned char *s,
+        const unsigned char (*colors)[4], unsigned char out[4] ) {
+    int count = FN_RavenBspVertexStyles( s ), j, c;
+    unsigned sum[3] = { 0, 0, 0 };
+    memcpy( out, vertex + 64, 4 );
+    if ( count < 2 ) return;
+    for ( j = 0; j < count; ++j ) {
+        const unsigned char *color = FN_RavenBspStyleColor( colors, s[32 + j] );
+        for ( c = 0; c < 3; ++c ) sum[c] += (unsigned)vertex[64 + j * 4 + c] * color[c];
+    }
+    for ( c = 0; c < 3; ++c ) out[c] = (unsigned char)( ( sum[c] >> 8 ) > 255 ? 255 : sum[c] >> 8 );
+}
+
+/* A light-grid row's ambient and directed light: each channel whose style is
+ * not 255, times its style's colour. */
+static inline void FN_RavenBspComposeGrid( const unsigned char *g, const unsigned char (*colors)[4], unsigned char out[6] ) {
+    int j, c, part;
+    for ( part = 0; part < 2; ++part ) for ( c = 0; c < 3; ++c ) {
+        unsigned sum = 0;
+        for ( j = 0; j < 4; ++j )
+            if ( g[24 + j] != 255 ) sum += (unsigned)g[part * 12 + j * 3 + c] * FN_RavenBspStyleColor( colors, g[24 + j] )[c];
+        sum = ( sum + 127 ) / 255;
+        out[part * 3 + c] = (unsigned char)( sum > 255 ? 255 : sum );
+    }
 }
 
 /* A shader record's flag words in the Fn view's Quake III bits. Raven moved
@@ -259,15 +487,16 @@ static inline int FN_RavenBspAppend( int *length, int count, int *offset ) {
     return 1;
 }
 
-static inline int FN_RavenBspProject( const void *data, int length, void *(*allocate)(int),
-        fnRavenBspProjection_t *out, fnRavenBspError_t *error ) {
+/* The projection with every style at the colours given (NULL: white). */
+static inline int FN_RavenBspProjectStyles( const void *data, int length, void *(*allocate)(int),
+        const unsigned char (*colors)[4], fnRavenBspProjection_t *out, fnRavenBspError_t *error ) {
     fnRavenBspView_t view;
     fnRavenBspProjection_t result;
     unsigned char *buffer;
     int sizes[17], offsets[17], total = 144, rawOffset, i;
     if ( out ) memset( out, 0, sizeof( *out ) );
     if ( !out || !allocate ) return FN_RavenBspFail(error,"RBSP rendering allocation target is missing",-1,-1,-1,-1);
-    if ( !FN_RavenBspRead(data,length,&view,error) || !FN_RavenBspNormalStyles(&view,error) ) return 0;
+    if ( !FN_RavenBspRead(data,length,&view,error) || !FN_RavenBspCheckStyles(&view,error) ) return 0;
     for ( i = 0; i < 17; ++i ) sizes[i] = view.lengths[i];
     sizes[9] = (view.lengths[9] / 12) * 8;
     sizes[10] = view.vertices * 44; sizes[13] = view.surfaces * 104; sizes[15] = view.gridCells * 8;
@@ -307,8 +536,20 @@ static inline int FN_RavenBspProject( const void *data, int length, void *(*allo
     }
     for ( i = 0; i < view.surfaces; ++i ) {
         const unsigned char *s = view.bytes+view.offsets[13]+i*148;
+        int vertex, first = FN_RavenBspI32(s+12), count = FN_RavenBspI32(s+16);
+        if ( FN_RavenBspVertexStyles(s) < 2 ) continue;
+        for ( vertex = first; vertex < first + count; ++vertex )
+            FN_RavenBspComposeVertexColor(view.bytes+view.offsets[10]+vertex*80,s,colors,buffer+offsets[10]+vertex*44+40);
+    }
+    FN_RavenBspComposeLightmaps(&view,buffer+offsets[14],colors);
+    for ( i = 0; i < view.surfaces; ++i ) {
+        const unsigned char *s = view.bytes+view.offsets[13]+i*148;
         unsigned char *d = buffer+offsets[13]+i*104;
         memcpy(d,s,28); memcpy(d+28,s+36,4); memcpy(d+32,s+52,4); memcpy(d+36,s+68,4);
+        /* Outcast's yavin_temple has 11 flares in fog 0 of a map with no fog;
+         * OpenJK's ParseFlare reads the number unchecked. They are drawn unfogged. */
+        if ( FN_RavenBspI32(s+8) == 4 && FN_RavenBspI32(s+4) >= view.lengths[12] / 72 )
+            FN_RavenBspPut32(d+4,UINT32_C(0xffffffff));
         memcpy(d+40,s+84,8);
         {
             int scalar;
@@ -321,7 +562,7 @@ static inline int FN_RavenBspProject( const void *data, int length, void *(*allo
         unsigned row = FN_RavenBspU16(view.bytes+view.offsets[17]+i*2);
         const unsigned char *g = view.bytes+view.offsets[15]+row*30;
         unsigned char *d = buffer+offsets[15]+i*8;
-        if ( g[24] != 255 ) { memcpy(d,g,3); memcpy(d+3,g+12,3); }
+        if ( g[24] != 255 ) FN_RavenBspComposeGrid(g,colors,d);
         memcpy(d+6,g+28,2);
     }
     memcpy(buffer+rawOffset,data,(size_t)length);
@@ -329,6 +570,11 @@ static inline int FN_RavenBspProject( const void *data, int length, void *(*allo
     result.original = view; result.original.bytes = buffer+rawOffset;
     *out = result;
     return 1;
+}
+
+static inline int FN_RavenBspProject( const void *data, int length, void *(*allocate)(int),
+        fnRavenBspProjection_t *out, fnRavenBspError_t *error ) {
+    return FN_RavenBspProjectStyles( data, length, allocate, NULL, out, error );
 }
 
 /* Cell order is the original light-array order, including repeated/permuted

@@ -2766,6 +2766,19 @@ surface standing first as "sky" had withheld, and `mp/duel9` traces 8,344
 of its 8,364 world triangles where 6,669 were left to the rasterizer as sky
 (Live subset). No gate closes.
 
+The [light styles slice](2026-10-15-raven-light-styles.md) (2026-10-15)
+serves the Raven light styles that made the renderers refuse a map. Retail
+adds each later lightmap channel as its own stage tinted by its style's
+colour, sums a vertex-lit surface's colour channels, and sums the light
+grid's channels; every style starts white and stays white until a game names
+it (OpenJK's renderer and client game, reference observation). The renderers'
+RBSP reader now composes the later channels into the one Fn draws, at those
+white colours. Each channel is found at its first channel's texels moved by
+whole texels, as in every installed map (Source, Unit). All 98 installed Jedi
+maps load in the renderers, where 45 were refused. Academy's `kor1` draws in
+GLx, Vulkan and RTX, and `t1_fatal` and `t3_bounty` in GLx (Live subset).
+Animated and switched styles do not reach the renderer yet. No gate closes.
+
 Star Wars Jedi Knight: Jedi Academy is the sixth title, with two mode profiles
 over one `base/` installation: `jka-sp` for Raven's single-player campaign and
 `jka-mp` for multiplayer. The [foundation record](2026-09-21-jka-contracts.md)
@@ -2924,6 +2937,15 @@ surfaces in 9 installed Outcast maps as sky and 10,690 as light filters.
 The shared RBSP reader now translates both words (Source, Unit). No
 Outcast map has been drawn live: the multiplayer client still stops at
 client-game import 300. No gate closes.
+
+The [light styles slice](2026-10-15-raven-light-styles.md) (2026-10-15)
+serves Outcast's light styles too, composed into the one light channel Fn
+draws at the white colours retail starts with (Source, Unit). Of Outcast's
+41 installed maps, 40 had been refused by the renderers' reader. 39 were
+refused for light styles, among them the multiplayer `ffa_ns_streets`, and
+one, `yavin_temple`, for 11 flares in a fog the map lacks, now drawn
+unfogged. All 41 now project. No Outcast map has been drawn live: the
+multiplayer client still stops at client-game import 300. No gate closes.
 
 The [animMap variants record](2026-10-15-jk2-animmap-variants.md)
 (2026-10-15) has both Outcast profiles read Raven's `oneshotanimMap` and

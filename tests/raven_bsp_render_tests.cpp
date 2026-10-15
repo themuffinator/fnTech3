@@ -128,16 +128,22 @@ static void Unit() {
     CHECK(FN_RavenBspI32(surface+32)==10 && FN_RavenBspI32(surface+36)==20);
     CHECK(!std::memcmp(p+FN_RavenBspI32(p+8+11*8),file.data()+Offset(file,11),12));
     std::free(p);
+    // A second lightmap style, an unused vertex style and a second grid style
+    // are all served now (Styles() checks what they compose to).
     for(int kind=0;kind<3;++kind) {
-        Bytes bad=file;
+        Bytes styled=file;
         int at=kind==2 ? Offset(file,15)+25 : Offset(file,13)+29+kind*4;
-        bad[static_cast<size_t>(at)]=static_cast<byte>(kind==1?32:1);
-        CHECK(FN_RavenBspRead(bad.data(),static_cast<int>(bad.size()),&view,&error));
-        CHECK(!FN_RavenBspNormalStyles(&view,&error) && error.slot==1);
-        CheckFailure(bad,"styles are not served yet");
+        styled[static_cast<size_t>(at)]=static_cast<byte>(kind==1?32:1);
+        CHECK(FN_RavenBspRead(styled.data(),static_cast<int>(styled.size()),&view,&error));
+        CHECK(FN_RavenBspCheckStyles(&view,&error));
+        CHECK(FN_RavenBspProject(styled.data(),static_cast<int>(styled.size()),Allocate,&projection,&error));
+        std::free(projection.data);
     }
     Bytes four=file; auto base=static_cast<size_t>(Offset(file,13));
-    four[base+29]=38; four[base+30]=39; four[base+31]=40; CheckFailure(four,"styles");
+    four[base+29]=38; four[base+30]=39; four[base+31]=40;
+    CHECK(FN_RavenBspProject(four.data(),static_cast<int>(four.size()),Allocate,&projection,&error));
+    std::free(projection.data);
+    four[base+31]=64; CheckFailure(four,"style is out of range");
     for(int slot=0;slot<16;++slot) for(uint32_t encoding:{0x7fc00001u,0x7f800000u,0xff800000u}) {
         Bytes bad=file; Put(bad,static_cast<size_t>(Offset(file,10))+static_cast<size_t>(slot)*4,encoding);
         if(slot<7 || slot>12) CheckFailure(bad,"non-finite");
@@ -226,6 +232,105 @@ static void Unit() {
     std::cout << "Raven RBSP retained rendering records/grid/style bounds PASS\n";
 }
 
+static void SetUV(Bytes &file,int vertex,int slot,float u,float v) {
+    size_t at=static_cast<size_t>(Offset(file,10))+static_cast<size_t>(vertex)*80+20+static_cast<size_t>(slot)*8;
+    Float(file,at,u/128); Float(file,at+4,v/128);
+}
+static const byte *Texel(const byte *p,int page,int x,int y) {
+    return p+FN_RavenBspI32(p+8+14*8)+page*49152+(y*128+x)*3;
+}
+
+// Light styles composed into the one channel Fn draws: later lightmap
+// channels into the first's texels, vertex channels into a vertex-lit
+// surface's colour, grid channels into the grid row; each tinted by its
+// style's colour, white unless given.
+static void Styles() {
+    fnRavenBspProjection_t projection; fnRavenBspError_t error;
+    unsigned char colors[FN_RAVEN_BSP_LIGHT_STYLES][4];
+    std::memset(colors,255,sizeof(colors));
+    colors[1][0]=128; colors[1][1]=0; colors[1][2]=255;
+    colors[5][0]=colors[5][1]=colors[5][2]=0;
+    Bytes file=Fixture();
+    const size_t s=static_cast<size_t>(Offset(file,13)), lightmaps=static_cast<size_t>(Offset(file,14));
+    const float corners[3][2]={{0.5f,0.5f},{4.5f,0.5f},{0.5f,4.5f}};
+    for(int v=0;v<3;++v) { SetUV(file,v,0,corners[v][0],corners[v][1]); SetUV(file,v,1,corners[v][0]+10,corners[v][1]); }
+    for(int y=0;y<128;++y) for(int x=10;x<16;++x) file[lightmaps+49152+static_cast<size_t>(y*128+x)*3]=130;
+    file[s+29]=1; // the second lightmap channel: style 1, page 1, ten texels right
+
+    CHECK(FN_RavenBspProject(file.data(),static_cast<int>(file.size()),Allocate,&projection,&error));
+    const byte *p=static_cast<byte *>(projection.data);
+    for(auto xy:{std::make_pair(0,0),std::make_pair(4,0),std::make_pair(3,2),std::make_pair(0,4)})
+        CHECK(Texel(p,0,xy.first,xy.second)[0]==220 && Texel(p,0,xy.first,xy.second)[1]==180);
+    for(auto xy:{std::make_pair(5,0),std::make_pair(3,3),std::make_pair(0,5),std::make_pair(127,127)})
+        CHECK(Texel(p,0,xy.first,xy.second)[0]==0x5a && Texel(p,0,xy.first,xy.second)[1]==0x5a);
+    CHECK(Texel(p,1,10,0)[0]==130 && Texel(p,1,0,0)[0]==0x5a);
+    CHECK(!std::memcmp(projection.original.bytes,file.data(),file.size()));
+    std::free(projection.data);
+    CHECK(FN_RavenBspProjectStyles(file.data(),static_cast<int>(file.size()),Allocate,colors,&projection,&error));
+    p=static_cast<byte *>(projection.data);
+    CHECK(Texel(p,0,0,0)[0]==0x5a+65 && Texel(p,0,0,0)[1]==0x5a && Texel(p,0,0,0)[2]==180);
+    std::free(projection.data);
+
+    // A second surface lighting the same texels alike adds them once.
+    {
+        Bytes twice=file; Bytes copy(twice.begin()+static_cast<std::ptrdiff_t>(s),twice.begin()+static_cast<std::ptrdiff_t>(s)+148);
+        Bytes both(copy); both.insert(both.end(),copy.begin(),copy.end()); Lump(twice,13,both);
+        Bytes model(40); Float(model,12,128); Put(model,28,2); Lump(twice,7,model);
+        CHECK(FN_RavenBspProject(twice.data(),static_cast<int>(twice.size()),Allocate,&projection,&error));
+        CHECK(Texel(static_cast<byte *>(projection.data),0,0,0)[0]==220); std::free(projection.data);
+    }
+    // A channel that is vertex light adds the style's own colour (a white image).
+    Bytes white=file; Put(white,s+40,0xfffffffd);
+    CHECK(FN_RavenBspProject(white.data(),static_cast<int>(white.size()),Allocate,&projection,&error));
+    CHECK(Texel(static_cast<byte *>(projection.data),0,0,0)[0]==255 && Texel(static_cast<byte *>(projection.data),0,5,0)[0]==0x5a);
+    std::free(projection.data);
+    // Channels after an unused style are not drawn, as retail stops there.
+    Bytes gap=file; gap[s+29]=255; gap[s+30]=1;
+    CHECK(FN_RavenBspProject(gap.data(),static_cast<int>(gap.size()),Allocate,&projection,&error));
+    CHECK(Texel(static_cast<byte *>(projection.data),0,0,0)[0]==0x5a); std::free(projection.data);
+    // A channel with no lightmap stops the map, as retail's FinishShader does,
+    // and one that is not the first moved whole is refused, not guessed.
+    Bytes none=file; Put(none,s+40,0xffffffff); CheckFailure(none,"no lightmap or vertex light");
+    Bytes moved=file; SetUV(moved,2,1,corners[2][0]+11,corners[2][1]); CheckFailure(moved,"not its first channel moved");
+
+    // A vertex-lit surface sums its vertex channels, retail's eight-bit shift.
+    Bytes lit=Fixture(); Put(lit,s+36,0xfffffffd); lit[s+33]=5;
+    const size_t vertex=static_cast<size_t>(Offset(lit,10));
+    const byte channels[8]={100,100,100,200,50,60,70,0};
+    std::memcpy(lit.data()+vertex+64,channels,8);
+    CHECK(FN_RavenBspProject(lit.data(),static_cast<int>(lit.size()),Allocate,&projection,&error));
+    const byte *color=static_cast<byte *>(projection.data)+FN_RavenBspI32(static_cast<byte *>(projection.data)+8+10*8)+40;
+    CHECK(color[0]==149 && color[1]==159 && color[2]==169 && color[3]==200); std::free(projection.data);
+    CHECK(FN_RavenBspProjectStyles(lit.data(),static_cast<int>(lit.size()),Allocate,colors,&projection,&error));
+    color=static_cast<byte *>(projection.data)+FN_RavenBspI32(static_cast<byte *>(projection.data)+8+10*8)+40;
+    CHECK(color[0]==99 && color[1]==99 && color[2]==99); std::free(projection.data);
+    lit[s+33]=255; // its first channel alone keeps the map's colour
+    CHECK(FN_RavenBspProject(lit.data(),static_cast<int>(lit.size()),Allocate,&projection,&error));
+    color=static_cast<byte *>(projection.data)+FN_RavenBspI32(static_cast<byte *>(projection.data)+8+10*8)+40;
+    CHECK(color[0]==100 && color[3]==200); std::free(projection.data);
+    lit[s+33]=64; CheckFailure(lit,"vertex light style is out of range");
+
+    // A grid row sums its channels whose style is not 255.
+    Bytes grid=Fixture(); grid[static_cast<size_t>(Offset(grid,15))+25]=1;
+    CHECK(FN_RavenBspProject(grid.data(),static_cast<int>(grid.size()),Allocate,&projection,&error));
+    const byte *cell=static_cast<byte *>(projection.data)+FN_RavenBspI32(static_cast<byte *>(projection.data)+8+15*8)+8;
+    CHECK(cell[0]==103 && cell[1]==104 && cell[2]==105 && cell[3]==40 && cell[4]==50 && cell[5]==60);
+    std::free(projection.data);
+    CHECK(FN_RavenBspProjectStyles(grid.data(),static_cast<int>(grid.size()),Allocate,colors,&projection,&error));
+    cell=static_cast<byte *>(projection.data)+FN_RavenBspI32(static_cast<byte *>(projection.data)+8+15*8)+8;
+    CHECK(cell[0]==52 && cell[1]==0 && cell[2]==105 && cell[3]==40 && cell[4]==50 && cell[5]==60);
+    std::free(projection.data);
+    grid[static_cast<size_t>(Offset(grid,15))+25]=64; CheckFailure(grid,"light-grid style is out of range");
+
+    // A flare in a fog the map lacks is drawn unfogged; another surface is refused.
+    Bytes flare=Fixture(); Put(flare,s+8,4); Put(flare,s+4,0);
+    CHECK(FN_RavenBspProject(flare.data(),static_cast<int>(flare.size()),Allocate,&projection,&error));
+    CHECK(FN_RavenBspI32(static_cast<byte *>(projection.data)+FN_RavenBspI32(static_cast<byte *>(projection.data)+8+13*8)+4)==-1);
+    std::free(projection.data);
+    Bytes face=Fixture(); Put(face,s+4,0); CheckFailure(face,"surface/index range");
+    std::cout << "Raven RBSP light styles composed PASS\n";
+}
+
 // Shader records reach the Fn view in Quake III's bits (surfaceflags.h); the
 // Raven side is every retail Jedi engine's infoparm table.
 static void ShaderFlags() {
@@ -307,5 +412,5 @@ int main(int argc,char **argv) {
         std::cout << "ACCEPTED " << out.original.vertices << " " << out.original.surfaces << " " << out.original.gridRows << " " << out.original.gridCells << "\n";
         std::free(out.data); return 0;
     }
-    Unit(); ShaderFlags(); return 0;
+    Unit(); Styles(); ShaderFlags(); return 0;
 }
