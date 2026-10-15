@@ -513,11 +513,12 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   sounds now reach fnTech3's sound system, and local hosting reaches the
   player menu and survives a map restart with sound enabled. Joining the
   match now plays the spawn effect, with its beam, the lights that climb it
-  and its lightning, and reaches play. Full play is not ready: the shimmer
-  of the spawn shield still stops the game unless `cg_renderToTextureFX` is
-  set to `0` (it turns off the game's screen-distortion effects), and play
-  then stops after about twelve seconds on the player's animation
-  ([details](fntech3/2026-10-15-jka-spawn-effect.md)). The
+  and its lightning, and play continues: a local match runs with the
+  original settings, and an animation that comes to its end no longer
+  stops it ([details](fntech3/2026-10-15-jka-play-blockers.md)). The see-through
+  shimmer around a newly spawned player is not drawn yet; the shield itself
+  is. Longer matches, other maps and fighting have not been checked yet
+  ([spawn effect details](fntech3/2026-10-15-jka-spawn-effect.md)). The
   open-source OpenJK engine's client joins fnTech3's server. A lightsaber's
   glow and bright core are now built exactly as the original builds them,
   and a recorded match with a lit saber in it plays to its end, though no

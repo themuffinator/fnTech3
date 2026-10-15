@@ -233,6 +233,17 @@ static bool CL_JKACgameGhoul2Call(intptr_t *args, fntech3::jka::module::Call cal
         float frame = 0.0f;
         // Primary0x4e368d uses0x18; known inactive bones publish0 then
         // return false, while an unknown name never reaches publication.
+        // A clip ended without loop or freeze answers as an inactive bone once
+        // a build has cleared its word (0x4975a6). Before any build, retail's
+        // query (0x4e3640) would publish its uninitialised stack: refused.
+        if (playing && (playing->flags & 0x18) && jkaCgameBoneClocks.FrameReady()
+            && fntech3::ghoul2::ClipEnded(*playing, jkaCgameBoneClocks.Time())) {
+            const auto word = CL_JKACgameGhoul2Store().BoneFlagsWord(
+                reinterpret_cast<void *>(std::uintptr_t(identity)), static_cast<int>(args[6]), bone.data());
+            if (word & 0x18u)
+                Com_Error(ERR_DROP, "Academy bone-frame query of a clip that ended before any build is not served");
+            playing = nullptr;
+        }
         if (playing && (playing->flags & 0x18)) {
             if (!jkaCgameBoneClocks.FrameReady())
                 Com_Error(ERR_DROP, "Academy animated bone-frame queries require a published frame clock");
@@ -253,9 +264,6 @@ static bool CL_JKACgameGhoul2Call(intptr_t *args, fntech3::jka::module::Call cal
                 + std::max(0.0, double(elapsed)) / fntech3::ghoul2::FrameMilliseconds * playing->speed;
             if (progress > (std::numeric_limits<float>::max)())
                 Com_Error(ERR_DROP, "Academy bone-frame progression exceeds float32");
-            if (!(playing->flags & 0x10) && !(playing->flags & 0x40)
-                && progress > playing->endFrame - 1)
-                Com_Error(ERR_DROP, "Academy animation completion without loop/freeze is not served yet");
             // Wrapper0x4df400 selects the same clocks as bolt queries.
             // It replaces caller time word3; complete core/index ranges
             // never consume caller model-list word5.

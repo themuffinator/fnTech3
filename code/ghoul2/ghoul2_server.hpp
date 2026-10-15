@@ -296,8 +296,36 @@ inline Playhead PlayheadAt( const BoneAnimation &playing, int numFrames, int now
 	return out;
 }
 
+/* Academy's end of a clip. When the timing (jamp.exe 0x497290) finds a
+ * forward clip past its last frame (end - 1.0f < frame, 0x497340..0x497353)
+ * with neither loop (0x10) nor freeze (0x48, 0x497565..0x49756d), it clears
+ * the record's animation bits (0x4975a6: flags &= ~0xd8) and writes no frame,
+ * so the bone transform (0x497960) leaves that bone on the frames it
+ * inherited and every later query finds no clip (0x4e368d). A build reaches
+ * every animated bone each frame, and the clock only runs forward, so a clip
+ * past its end is answered as that build leaves it: cleared. Retail's clip
+ * query itself, called before any build had cleared it, would return its
+ * uninitialised stack; that moment is not reproduced. */
+inline bool PastLastFrame( const BoneAnimation &playing, int now )
+{
+	if ( !FiniteScalar( playing.speed ) || !(playing.speed > 0.0f) ) return false;
+	/* 0x4972bf..0x497321: integer age to float, over 50, clamped at 0, then
+	 * start + age * speed, each stored as binary32. */
+	volatile float age = float( std::int32_t( std::uint32_t( now ) - std::uint32_t( playing.startTime ) ) );
+	volatile float frames = age / FrameMilliseconds;
+	if ( !(frames >= 0.0f) ) frames = 0.0f;
+	volatile float frame = float( playing.startFrame ) + frames * playing.speed;
+	volatile float last = float( playing.endFrame ) - 1.0f;
+	return last < frame;
+}
+inline bool ClipEnded( const BoneAnimation &playing, int now )
+{
+	return ( playing.flags & 0x08 ) && !( playing.flags & 0x50 ) && PastLastFrame( playing, now );
+}
+
 /* The currently served forward timing subset, shared by palette evaluation
- * and the transition setter. Unfrozen terminal state is still unmeasured. */
+ * and the transition setter. A clip that has ended (ClipEnded) is answered by
+ * its callers as cleared before this is reached. */
 inline bool ForwardPlayhead( const BoneAnimation &playing, int numFrames, int now,
 	Playhead &out )
 {
@@ -305,13 +333,12 @@ inline bool ForwardPlayhead( const BoneAnimation &playing, int numFrames, int no
 		|| !FiniteScalar(playing.speed) || playing.speed < 0.0f
 		|| playing.startFrame < 0 || playing.endFrame > numFrames
 		|| playing.endFrame <= playing.startFrame ) return false;
-	const double elapsed = std::max(0.0, double(std::int64_t(now) - playing.startTime));
-	const double frame = playing.startFrame + elapsed / 50.0 * playing.speed;
 	if ( !(playing.flags & 0x10) && !(playing.flags & 0x40)
-		&& frame > playing.endFrame - 1 ) return false;
+		&& PastLastFrame( playing, now ) ) return false;
 	out = PlayheadAt(playing, numFrames, now);
 	return true;
 }
+
 
 /* Jedi Outcast's clip timing, read from jk2mp.exe 1.02a with Capstone: the
  * sample its clip setter takes of the clip it replaces (0x4ab420), and the
@@ -587,7 +614,9 @@ struct Model {
 	std::vector<fntech3::ghoul2::BoneAnimation> animations;
 	std::vector<fntech3::ghoul2::BoneAngles> angles;
 	/* Retail's flags word for each bone either setter has reached. */
-	std::vector<fntech3::ghoul2::BoneFlags> boneFlags;
+	/* Mutable: a build clears an ended clip's animation bits, as retail's
+	 * timing does in its bone record (jamp.exe 0x4975a6). */
+	mutable std::vector<fntech3::ghoul2::BoneFlags> boneFlags;
 	bool present = true;        /* false once the module removes it */
 	/* The skin the game put on this model, as a handle from the registry
 	 * below, or zero for none. A server keeps the handle and nothing else. */
@@ -1128,6 +1157,14 @@ inline bool Store::DeformationPalette( const Model &model, int now,
 			if ( playing.flags & 0x80 ) return false;
 			continue;
 		}
+		/* An ended clip leaves its bone on the frames it inherits, and the
+		 * build clears its word's animation bits (0x4975a6). */
+		if ( ClipEnded( playing, now ) ) {
+			for ( auto &record : model.boneFlags ) {
+				if ( record.bone == playing.bone && !( record.word & BoneLockFlag ) ) record.word &= ~BoneAnimationBits;
+			}
+			continue;
+		}
 		Playhead at;
 		if ( !ForwardPlayhead(playing, model.skeleton.numFrames, now, at) ) return false;
 		pose::Animation control{playing.bone, {at.currentFrame, at.newFrame, at.lerp}};
@@ -1641,7 +1678,11 @@ inline bool Store::SetBoneAnim( void *pointer, int modelIndex, const char *boneN
 	playing.blendTime = blendTime;
 	if ( serveAnimationBlends_ && (flags & 0x80) ) {
 		const auto *prior = BoneAnimation(pointer, modelIndex, boneName);
-		if ( !prior || !(prior->flags & 0x18) ) {
+		/* A prior clip a build has found ended has a cleared word: there is
+		 * nothing to blend from (0x4e339e reads the record's bits). */
+		const bool cleared = prior && ClipEnded( *prior, currentTime )
+			&& !( detail::BoneFlagsWord( model, bone ) & 0x18u );
+		if ( !prior || !(prior->flags & 0x18) || cleared ) {
 			playing.flags &= ~0x80;
 			playing.blendTime = 0;
 		} else {

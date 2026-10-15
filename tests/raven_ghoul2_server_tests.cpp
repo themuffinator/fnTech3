@@ -1147,6 +1147,67 @@ static void CheckAServedTagFrame()
 	}
 }
 
+/* Academy's end of a clip (jamp.exe 0x497290..0x4975b4): past its last frame,
+ * a clip with neither loop nor freeze clears its record's animation bits
+ * (0x4975a6) and writes no frame, so the bone keeps the frames it inherits,
+ * the clip query finds no clip, and a blend set over it has nothing to blend
+ * from. A looped or frozen clip runs on. */
+static void CheckAnEndedClipIsCleared()
+{
+	fntech3::ghoul2::BoneAnimation clip;
+	clip.startFrame = 4; clip.endFrame = 6; clip.flags = 0x08; clip.speed = 0.05f; clip.startTime = 12513;
+	/* The live refusal's clip: frame 5.0 at 13513 is the last frame itself. */
+	CHECK( !fntech3::ghoul2::ClipEnded( clip, 13513 ) );
+	CHECK( fntech3::ghoul2::ClipEnded( clip, 13517 ) );
+	clip.flags = 0x48; CHECK( !fntech3::ghoul2::ClipEnded( clip, 20000 ) );
+	clip.flags = 0x18; CHECK( !fntech3::ghoul2::ClipEnded( clip, 20000 ) );
+	clip.flags = 0x88; CHECK( fntech3::ghoul2::ClipEnded( clip, 20000 ) );
+	clip.flags = 0x08; clip.speed = 0.0f; CHECK( !fntech3::ghoul2::ClipEnded( clip, 20000 ) );
+	clip.speed = -1.0f; CHECK( !fntech3::ghoul2::ClipEnded( clip, 20000 ) );
+	clip.speed = 1.0f; clip.startTime = 30000; CHECK( !fntech3::ghoul2::ClipEnded( clip, 20000 ) );
+
+	for ( int blends = 0; blends < 2; ++blends ) {
+		TagFiles files;
+		ghoul2::Store store( files, false, blends != 0 );
+		void *slot = nullptr;
+		LoadError error = LoadError::None;
+		CHECK( store.AddModel( &slot, "models/players/tagtest/model.glm", error ) == 0 );
+		const int bolt = store.AddBolt( slot, 0, "*tag" );
+		float rest[12], matrix[12];
+		CHECK( store.BoltMatrix( slot, 0, bolt, 1000, rest ) );
+		/* One frame, held: still running at 1000, ended from 1050 on. */
+		CHECK( store.SetBoneAnim( slot, 0, "tag_bone", 0, 1, 0x08, 1.0f, 1000, -1.0f, 0 ) );
+		CHECK( store.BoltMatrix( slot, 0, bolt, 1000, matrix ) );
+		ghoul2::BoneClip early;
+		/* Ended, but no build has cleared it: retail's query would read its
+		 * uninitialised stack, so it stays refused. */
+		CHECK( store.BoneClipAt( slot, 0, "tag_bone", 1050, early ) == ghoul2::BoneClipAnswer::Unserved );
+		CHECK( store.BoneFlagsWord( slot, 0, "tag_bone" ) == 0x8008u );
+		CHECK( store.BoltMatrix( slot, 0, bolt, 1050, matrix ) );
+		CHECK( store.BoneFlagsWord( slot, 0, "tag_bone" ) == 0x8000u );
+		for ( int i = 0; i < 12; ++i ) CHECK( matrix[i] == rest[i] );
+		ghoul2::BoneClip answer;
+		answer.frame = 7.0f;
+		CHECK( store.BoneClipAt( slot, 0, "tag_bone", 1050, answer ) == ghoul2::BoneClipAnswer::Inactive );
+		CHECK( answer.frame == 0.0f );
+		/* The cleared word stays cleared: the record has no clip any more. */
+		CHECK( store.BoneClipAt( slot, 0, "tag_bone", 1000, answer ) == ghoul2::BoneClipAnswer::Inactive );
+		/* Frozen, the same clip holds its last frame and answers. */
+		CHECK( store.SetBoneAnim( slot, 0, "tag_bone", 0, 1, 0x48, 1.0f, 1000, -1.0f, 0 ) );
+		CHECK( store.BoltMatrix( slot, 0, bolt, 5000, matrix ) );
+		CHECK( store.BoneClipAt( slot, 0, "tag_bone", 5000, answer ) == ghoul2::BoneClipAnswer::Active );
+		if ( blends ) {
+			/* A blend set over an ended clip blends from nothing. */
+			CHECK( store.SetBoneAnim( slot, 0, "tag_bone", 0, 1, 0x08, 1.0f, 1000, -1.0f, 0 ) );
+			CHECK( store.BoltMatrix( slot, 0, bolt, 1500, matrix ) );
+			CHECK( store.SetBoneAnim( slot, 0, "tag_bone", 0, 1, 0x88, 1.0f, 2000, -1.0f, 100 ) );
+			const fntech3::ghoul2::BoneAnimation *held = store.BoneAnimation( slot, 0, "tag_bone" );
+			CHECK( held && held->flags == 0x08 && held->blendTime == 0 );
+			CHECK( store.BoltMatrix( slot, 0, bolt, 2000, matrix ) );
+		}
+	}
+}
+
 int main()
 {
 	CheckAModelLoads();
@@ -1167,6 +1228,7 @@ int main()
 	CheckTheTimingModel();
 	CheckABoltMatrix();
 	CheckAServedTagFrame();
+	CheckAnEndedClipIsCleared();
 	std::cout << "Raven server-side Ghoul2 model store tests passed\n";
 	return 0;
 }

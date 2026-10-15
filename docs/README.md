@@ -78,6 +78,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Jedi Academy spawn effect](fntech3/2026-10-15-jka-spawn-effect.md)
   -- the spawn effect's emitter, lights and bolts, measured in retail and
   drawn with fnTech3's lights and polygons.
+- [Jedi Academy local play blockers](fntech3/2026-10-15-jka-play-blockers.md)
+  -- animation clips that end, and the spawn shield's distortion copy,
+  answered as the original engine answers them.
 - [October 9 compatibility integration](fntech3/2026-10-09-compatibility-integration.md)
   -- resumed Alice and Elite Force work, shared-tree validation, and probe
   evidence and limits for the combined compatibility slices.

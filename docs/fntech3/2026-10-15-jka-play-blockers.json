@@ -1,0 +1,235 @@
+{
+ "record": "docs/fntech3/2026-10-15-jka-play-blockers.md",
+ "date": "2026-10-15",
+ "profiles": [
+  "jka-mp"
+ ],
+ "baseHead": "27273055193c2b4c068af0b43bd6545d1f8f611f",
+ "workingTreeChanges": true,
+ "claim": "Compatibility slice only; no gate closes.",
+ "previousRecord": "2026-10-15-jka-spawn-effect.json",
+ "retail": {
+  "jamp.exe": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+  "assets3.pk3:cgamex86.dll": "e5d5525829bfcaf3c0428d87fe804e5a46a75dcf0a141f8288061a3970ff140d",
+  "endedClip": {
+   "timing": "0x497290",
+   "pastEndTest": "0x497340..0x497353 (end - 1.0f < frame, binary32)",
+   "freezeHold": "0x497565..0x497590 (flags & 0x48 == 0x48)",
+   "clearBits": "0x4975a6 (flags &= 0xffffff27)",
+   "boneTransformCall": "0x497960 in 0x497860",
+   "query": "0x4e3640 (timing into uninitialised locals)",
+   "activeTest": "0x4e368d (0x18)"
+  },
+  "distortion": {
+   "internalShader": "internal_distortion at 0x4b6e63 (ARB vertex program)",
+   "screenCopy": "0x48af26 (renderfx 0x2000, entity stride 0x10c)",
+   "cgameSites": [
+    "0x3004a98a",
+    "0x3004db31"
+   ],
+   "cgameGate": "cg_renderToTextureFX default 1 (0x3004a719, 0x3004daf5)"
+  }
+ },
+ "liveRefusalBefore": "bone 52 clip 4..6 flags 0x8 speed 0.05 start 12513 at clock 13517 (glx-normal in the spawn-effect record)",
+ "runtime": {
+  "folder": ".tmp/runtime/jka-spawn-effect",
+  "built_from": "shared working tree (includes other sessions' uncommitted Alice renderer work)",
+  "sha256": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "b04575684b0ef882c0d0cc8831c637fe827b775a7e98bb5b3be10938910baf28",
+   "fnql_rtx_x86.dll": "75dc67e6834bb57f138e39f4f9cab2260b2cd2c4c7fd6545ddc1ff3a32d502df",
+   "fnql_vk_x86.dll": "4be718739546c649926c296781bc683d2b662f529944498e2465f7931e2f8d54",
+   "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+   "fntech3.exe": "01ef0d5f7e038d6d7cc7f68d256b722e80ab67bc2aab73f7642727fdf4f967b8",
+   "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+  }
+ },
+ "harness": ".tmp/jka-emitter/live/listen.py with JKA_SHOTS=30 JKA_SHOT_WAIT=60 JKA_FIRST_WAIT=120",
+ "baseSettings": "com_gameProfile jka-mp, windowed 1024x768, net_ip 127.0.0.1, s_initsound 0, cg_thirdPerson 1, +devmap mp/ffa1, cg_renderToTextureFX at its default, private desktop, no input",
+ "runs": {
+  "glx-play-1": {
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "commands": [
+    "set cl_menuBlur 0",
+    "cmd team free",
+    "wait 120",
+    "ui_openmenu none"
+   ],
+   "captures": 30,
+   "errors": [],
+   "seconds": 38.2,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "runtimeExe": "01ef0d5f7e038d6d7cc7f68d256b722e80ab67bc2aab73f7642727fdf4f967b8",
+   "captureSha256": {
+    "jka-listen-00.png": "62cfd3421df1423bc62f5b2733706cdb560b2c0bb1db367c09997eb3ea07f857",
+    "jka-listen-01.png": "16a533525f473117a4aee32e74e257ba4d2f5fa21797f96d159bb6d350c97866",
+    "jka-listen-02.png": "e10f073c0270e4d7d16d8e540fcf601f2bf5fa1d285d4968e7602cb7d5c2acf2",
+    "jka-listen-03.png": "b5483ee6ffeb1cbcafaafa4ba1a1d0aba74cd5b91a24e0b427545ed7340c7fd2",
+    "jka-listen-04.png": "9d97b5d69c41792cc38b6c2aed1cc999aa720a8bbb837b54be233cc12854d3b5",
+    "jka-listen-05.png": "c1076cea9be7b032cdc5dfbcd0fa6eb12179f30f3538a166b3abb51a3df60ab7",
+    "jka-listen-06.png": "0cf34054e8a5321f75be10518d7df0de44fe072504e51446c7bd577b4c70734f",
+    "jka-listen-07.png": "eeb2634505edf4253e6ec16ddce13eb68cd06d46d494cca8b8833776c1ff3382",
+    "jka-listen-08.png": "cbdced51cffcda83a0773bfc30a411ed2c15729478d316f885b16ff76503c231",
+    "jka-listen-09.png": "eaa418ea6f10e42a97760502fb181be490eba360b562b3a06d33d8d77174828d",
+    "jka-listen-10.png": "2ce7b3047de619f236d4d5cbbd23fe6d2a05fc68af7897a9417898d76391c892",
+    "jka-listen-11.png": "5e9449d1859d2b109f54880f49dfc5df420141f982001663ac07c2c180f99584",
+    "jka-listen-12.png": "47bf6666daf46d789dd03f417ce0533e1588dcfe5c34f4cdc3873fb3c356f854",
+    "jka-listen-13.png": "2b4ab61938b12a6b004b4d6de31320d2619fdc18b2bd72cbf19c7c5882980d9b",
+    "jka-listen-14.png": "80083fa37483a635e6484bc1c1c17f66179898e1b0e9e6696dc18684ec3ba68a",
+    "jka-listen-15.png": "fbb7aca14f83c7d087bfb0920122edce91c213dc9841ad3ba829ae04d438b0fd",
+    "jka-listen-16.png": "b1599b5158affc706f7157303fcc43683c44987fdd05d6eb1073ce7f6e96b638",
+    "jka-listen-17.png": "6860aa89eec11621975e425bc69d82f2207af8caf92b3716073f3c4a4a1b035f",
+    "jka-listen-18.png": "8d26f1eb0a51fbc33239c0d277d4cd0a770bc399b34d24b6cbba0babb79fa389",
+    "jka-listen-19.png": "e21dca8d5e15508579d322753073929c1bbf6f87bfb456316581acff2ec8e61c",
+    "jka-listen-20.png": "afa6b8cd72da989bd9598ea811a7da2148eb60412e8f8191013edd44101dd01d",
+    "jka-listen-21.png": "e14a7b5311d620e47fe55d0ecae2eb33eaf057038989b5b911569185e0463913",
+    "jka-listen-22.png": "0c0aa94780bb28ce71f496dd4cc080f79c21e53204f440632aec294b5d82e728",
+    "jka-listen-23.png": "9d12b5e72df79490350d220914768388151aa25435aa8aaa2e286c7ae415260e",
+    "jka-listen-24.png": "61061c60f9c0168b568bcb9c920c54c657f4ee8f8f8d20d9efe962e7f73543ad",
+    "jka-listen-25.png": "9be6236ee1a6c7d572d73f851f0a60109609d784f5829bfdc85523c25532908e",
+    "jka-listen-26.png": "10dc56e6bd79c7cef0b9176379ec3bbc38087036148b75745c9861af55771912",
+    "jka-listen-27.png": "46ab1eed6cb2d332dd1cba923aa3bec7b5cd904f9803409ef98d99e0f9cf183a",
+    "jka-listen-28.png": "f082505dfd9f66da57abb265dcebb24bdc4219a0a03bb7d406d8c09256d673b1",
+    "jka-listen-29.png": "716415aeffc548801270c5b86f43bb9e1876d1feaa663cc89124683a6778ea96"
+   }
+  },
+  "vk-play-1": {
+   "renderer": "vk",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "commands": [
+    "set cl_menuBlur 0",
+    "cmd team free",
+    "wait 120",
+    "ui_openmenu none"
+   ],
+   "captures": 30,
+   "errors": [],
+   "seconds": 38.8,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "runtimeExe": "01ef0d5f7e038d6d7cc7f68d256b722e80ab67bc2aab73f7642727fdf4f967b8",
+   "captureSha256": {
+    "jka-listen-00.png": "bccdd9237c5119e4ddfc4a44cf07c4e5dc8edac8643efeb49b4d693455af3f13",
+    "jka-listen-01.png": "18f6d4aa3f7bc720005ce64e726db4ff5195ac17c1265efc82e24fd1648979af",
+    "jka-listen-02.png": "44017f6c052bf37bd916467e65eae3b45a4a69c77c1a66bc9266a833fbf3390d",
+    "jka-listen-03.png": "32a5c0e5c34be3a7f108c2ec58c5aa98d9faace0de43a0069251bba85c469d44",
+    "jka-listen-04.png": "4a8f93af0770bd2f322aad98b57d61bdad47f72daf989e30bc89a63f9251c616",
+    "jka-listen-05.png": "6a8cc9673fc8bbf13a348b93b990d5d187673ce13aecace35400a147478bf898",
+    "jka-listen-06.png": "7e63de73061eb04f4bd40bdd1ead854ea7d9b5935f90912e5673996f01497aff",
+    "jka-listen-07.png": "2c160141ae1ecf9a00229d29b2e70deb5ab215218ababcfe761af610150a14b0",
+    "jka-listen-08.png": "b1fd51052326f58f3a865e2b1007b98f52719ae0aa4a94211750223623b003a1",
+    "jka-listen-09.png": "a1388569f4be3181315c66010a31b22cd2d66c22fa2a0c8a7e3d486707bea060",
+    "jka-listen-10.png": "b2006459431bc3a9181b12d7fb83ad33eed97533d0813377860bad9b289969c2",
+    "jka-listen-11.png": "74ea6cee135c18913ba6a4889fc4f4e5144898f52ad7e636ca33020c54ed7172",
+    "jka-listen-12.png": "eca8941466b8df8027405bebea40b7cf18b05e80b5ed69c6eecbd12e134d8669",
+    "jka-listen-13.png": "329effa54067bc6b63c9daecc97b301dedb77f95453e8ed37995fdd054fec048",
+    "jka-listen-14.png": "2c974b31f2f68649b10b84bf936cca38c5b6ef8757abdd66e8d97ee80597e1d3",
+    "jka-listen-15.png": "2bd89ef5d52b305eec47516a0f6a67810dbb662244c7024963c17d4aee24d495",
+    "jka-listen-16.png": "678e2464aecfe220629cf234ebab9576973067090bdf14184f7722c575dad42d",
+    "jka-listen-17.png": "c498335b157e74846bc937e85cfccd72f26057449430edb46ae41b5d38ae3d77",
+    "jka-listen-18.png": "1bca9805cc62101c13b91493bcca2e7aa276795a15f873d6459dc088cf9ca0e3",
+    "jka-listen-19.png": "1fd9f449970aa8998e5fdc50a44444fdb9d38251f2b8e5faa6c68d96709c430d",
+    "jka-listen-20.png": "01aecb5b0f4579a31960f3b3a19f9d9d87ddd3a2ccdcf5d2a846ba3589ffc3d3",
+    "jka-listen-21.png": "041a86d15927c144955df7ddfc721f61cc59d7e2c2ae8b699ff17aa0c952c19e",
+    "jka-listen-22.png": "f18625da94606fc2254baed2cb6cf26dee54dc180dec189db03f81b5b07509ce",
+    "jka-listen-23.png": "f6f2c299d28e3bd9c8329b2d7edbaf1bdece2d55426e5ff35683e9bb9103db0b",
+    "jka-listen-24.png": "6b598724fa0745093ac26a575d1124ce852fc0734efac6ba4790d6684328df77",
+    "jka-listen-25.png": "bb2eaf9993e9787fe2770d7689675064398c4a5c9fedb9213d988bc1e67c6637",
+    "jka-listen-26.png": "972ee2c77cad167544537b49d741d706f41a3a416002b75d197916b3899e24d0",
+    "jka-listen-27.png": "a0f61ae6f03cafd7c05b55c02f0ebb812f9670e4a993f25535d7d5307209a53f",
+    "jka-listen-28.png": "76a8953424acb7f3747096d608fbc582279146594567b928b5ff54a06920924a",
+    "jka-listen-29.png": "a984db878961eeec5415afa4cc52a3adeb99f2d9d3cbced20c2459daafc8ed48"
+   }
+  },
+  "rtx-play-1": {
+   "renderer": "rtx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "commands": [
+    "set cl_menuBlur 0",
+    "cmd team free",
+    "wait 120",
+    "ui_openmenu none"
+   ],
+   "captures": 30,
+   "errors": [],
+   "seconds": 119.5,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "runtimeExe": "01ef0d5f7e038d6d7cc7f68d256b722e80ab67bc2aab73f7642727fdf4f967b8",
+   "captureSha256": {
+    "jka-listen-00.png": "7bb745cb4d617984ad919d141572b9836f5108c5008d64896debcc9d0da337b1",
+    "jka-listen-01.png": "2376d4e3624cccea75eb3ce0e9321895c95eb8a02e7350634f7caec85d02fb69",
+    "jka-listen-02.png": "b4c9b67933a03e174f3e42d90c089abdd948e2133d15afc3975ca78f47eb3ec8",
+    "jka-listen-03.png": "079623c2782309497edfd369996ead666e551109de4e24a03b2994fb5c2f8ece",
+    "jka-listen-04.png": "b10676b3205fd7300e13215a0e3f94983f2b7b5f1a3c2a1395af152c4b54faf7",
+    "jka-listen-05.png": "244611f6e3dab1651381684fa2b70bcdedf4ffb279f038dd061b2d12a81cb24c",
+    "jka-listen-06.png": "0d38542b26cfd673881974964937884f60b810003dfbe09d5fb73bb4a9ebea13",
+    "jka-listen-07.png": "6e5c9023725244c72203b9a1a8777917f260a315cc12a558747e3aeb127bf019",
+    "jka-listen-08.png": "46dcc6fa5fefbbb6ef857b2d5457d9ac34d7f767e14b7dc864e61ee0116e21db",
+    "jka-listen-09.png": "9a6541f9cb4c11b14faee1884839370238163a0de3134685d6db37e0216d18de",
+    "jka-listen-10.png": "3ce1ec3e966755e6fa344c0c5b821ff916e83479eaba1b2f25c616a5d1ad6c44",
+    "jka-listen-11.png": "e3de8b3eecaa38080c02c241301cc73a0347bce130cb5a026768e12321c37625",
+    "jka-listen-12.png": "d50c829b180e6411073257cefe9cd23e5d2bbef35e90a1621d98d1f153308c27",
+    "jka-listen-13.png": "7fa876c718d045011728f15284a374b7789aac0592feb2fbb881804ddb14b10f",
+    "jka-listen-14.png": "b3d8777dc065213f66564f204b9e9503a95c8695ce24effbaf00ca479d23b1f3",
+    "jka-listen-15.png": "67abaa6130a3f9258576ab4258f02b2117a3b772a55f54821784e6ad4f8548f0",
+    "jka-listen-16.png": "aa6aa68d101b81db28f27d6f4e2a6f9495ae527d8d26fee936aaefb8769bd260",
+    "jka-listen-17.png": "7ea544b6b6591459c138dfb5e6efd4a956aad7ba02a2dbb80b1ed511dee8af8c",
+    "jka-listen-18.png": "de89a88873076eb4bef4b2a6e395b0494f91e43edb2cea7dc415b8bebc0bf87d",
+    "jka-listen-19.png": "f5de0c946f3057445c33651e58347cc9943ee299931ac6eb71d9d31aaf388af9",
+    "jka-listen-20.png": "15e9dd3ecef34e717cbeb1d158b9cd7c1f3089ded6e995570da41bd9992fa50c",
+    "jka-listen-21.png": "8b26e4d806aac9c2de2e257382d538b9167b06763f57162e25d89aea6019035b",
+    "jka-listen-22.png": "c7fda4627f4b36a9b941b4e8717277a0a1645a9f0df03a40395d19501edf07b2",
+    "jka-listen-23.png": "c173b592d82d5ad484f27a1d90320891b79aefdb100e671e1fb2edf56cca6c15",
+    "jka-listen-24.png": "9e4e00187dc5b0c9213baa6dce8fba01fa16a4525498154c86349e4b7bb490dc",
+    "jka-listen-25.png": "4a4ce03d787ff91f2fcb9c29a96e319cf008f4ea9edbe18ef40c0d0e5daa3607",
+    "jka-listen-26.png": "665873ed6d982c58d75b27c87c50df15deb79d263126eb1b65f1f0857298abaa",
+    "jka-listen-27.png": "1e24d4277318760b1462b666a26ecf640a8b25db212c638740d206aadba6f6c0",
+    "jka-listen-28.png": "3d81c4829c93b23252eda311dbf9738ee6725e420c14ebd371466cd8c081e3fe",
+    "jka-listen-29.png": "64f5c766ae992af80f5eb5fff90d8baaab64749b6e71fe7612516150adfa3a36"
+   }
+  }
+ },
+ "tests": {
+  "new": [
+   "tests/raven_ghoul2_server_tests.cpp CheckAnEndedClipIsCleared"
+  ],
+  "updated": [
+   "tests/jka_cgame_bolt_tests.py",
+   "tests/jka_render_host_tests.py"
+  ],
+  "result": {
+   "export": "HEAD 27273055 plus this slice only; 1541 targets, strict warnings, -j 4",
+   "mesonSuite": {
+    "ok": 265,
+    "fail": 0,
+    "skipped": 2
+   },
+   "releasePackaging": {
+    "passed": 48,
+    "skipped": 1
+   },
+   "relatedPython": {
+    "files": 32,
+    "passed": 111,
+    "subtests": 212
+   }
+  }
+ },
+ "fnFeatures": {
+  "distortion": "none applies: no entity refraction pass; liquid refraction serves liquid surfaces only; screenMap is first-person environment mapping",
+  "retailExactOption": null
+ },
+ "open": [
+  "refraction for distortion copies",
+  "a capture isolating spawn Line or bolt appearance"
+ ]
+}

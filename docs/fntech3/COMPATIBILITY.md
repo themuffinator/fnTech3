@@ -2388,6 +2388,17 @@ distortion copy (renderfx `0x2000`) still refuses, and at normal speed play
 stops about 12.5 s in on Kyle's Ghoul2 bolt pose. No capture isolates a
 Line's or bolt's appearance. No gate closes.
 
+The [play-blockers slice](2026-10-15-jka-play-blockers.md) (2026-10-15)
+resolves both. A clip past its end with neither loop nor freeze is cleared
+as retail's timing clears it (`jamp.exe` `0x4975a6`): its bone keeps the
+frames it inherits, and queries answer it as inactive once a build has
+cleared it, refusing before then, where retail would read uninitialised
+memory. Distortion copies (renderfx `0x2000`), which retail's renderer
+uses only to refract the background (`0x48af26`), are validated and not
+drawn; Fn has no entity refraction pass. With retail defaults, a local
+`mp/ffa1` session now plays its scripted 35 seconds to the end in GLx,
+Vulkan and RTX (Source, Unit, Live subset). No gate closes.
+
 Star Wars Jedi Knight: Jedi Academy is the sixth title, with two mode profiles
 over one `base/` installation: `jka-sp` for Raven's single-player campaign and
 `jka-mp` for multiplayer. The [foundation record](2026-09-21-jka-contracts.md)

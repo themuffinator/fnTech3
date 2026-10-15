@@ -132,6 +132,13 @@ int main(){
    else unchangedFrame([&]{Invoke(frameArgs);});
    jkaCgameBoneClocks.BeginFrame(75,false);
  }
+ // An ended plain clip refuses until a build reaches it; the bolt query's
+ // build clears its word (jamp.exe 0x4975a6), and the bone answers inactive.
+ setPlaying(0,3,8,1,0);jkaCgameBoneClocks.BeginFrame(175,false);
+ unchangedFrame([&]{Invoke(frameArgs);});
+ assert(Invoke(args)==1&&CL_JKACgameGhoul2Store().BoneFlagsWord(identity,0,"model_root")==0x8000u);
+ frameStorage.fill(0xa5);assert(!Invoke(frameArgs)&&readFrame()==0);
+ jkaCgameBoneClocks.BeginFrame(75,false);
  assert(CL_JKACgameGhoul2Store().SetBoneAnim(identity,0,"model_root",0,3,0xc8,.05f,0,-1,150));
  assert(Invoke(frameArgs)==1&&NearPose(readFrame(),.075f));
  setPlaying(0,3,8,0,0);assert(Invoke(frameArgs)==1&&readFrame()==0);
