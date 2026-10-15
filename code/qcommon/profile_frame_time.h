@@ -16,14 +16,22 @@ enum {
 	FRAME_CAMERA_SCALE = 64,
 	FRAME_FRACTION = 128,
 	FRAME_FLOAT_INPUT = 256,
-	FRAME_FIXEDTIME_FLOAT = 512
+	FRAME_FIXEDTIME_FLOAT = 512,
+	/* The game runs on the server's own clock (svs.time), which a map change
+	 * keeps and only a shutdown clears: GAME_INIT, the settling frames and
+	 * every snapshot carry on from the last level's time (jamp.exe 1.01 hands
+	 * it to GAME_INIT at 0x45dd50, jk2mp.exe 1.02 at 0x44cf54). Quake3e's
+	 * empty-server reset and sv_levelTimeReset do not apply. See
+	 * docs/fntech3/2026-10-15-jedi-broadcast-level-time.md. */
+	FRAME_KEEP_LEVEL_TIME = 1024
 };
 
 static inline unsigned int Com_ProfileFrameRules( comGameId_t profile ) {
 	switch ( profile ) {
 	case COM_GAME_QUAKE3:
-	case COM_GAME_JK2_MP:
 		return FRAME_RETAIL | FRAME_FIXED_TICK | FRAME_X87_PRODUCT | FRAME_CAMERA_SCALE;
+	case COM_GAME_JK2_MP:
+		return FRAME_RETAIL | FRAME_FIXED_TICK | FRAME_X87_PRODUCT | FRAME_CAMERA_SCALE | FRAME_KEEP_LEVEL_TIME;
 	case COM_GAME_QUAKELIVE:
 		return FRAME_RETAIL | FRAME_X87_PRODUCT | FRAME_CAMERA_SCALE;
 	case COM_GAME_RTCW_SP:
@@ -32,7 +40,8 @@ static inline unsigned int Com_ProfileFrameRules( comGameId_t profile ) {
 	case COM_GAME_WOLFET:
 		return FRAME_RETAIL | FRAME_FIXED_TICK;
 	case COM_GAME_JKA_MP:
-		return FRAME_RETAIL | FRAME_FIXED_TICK | FRAME_X87_PRODUCT | FRAME_CAMERA_SCALE | FRAME_FLOAT_INPUT;
+		return FRAME_RETAIL | FRAME_FIXED_TICK | FRAME_X87_PRODUCT | FRAME_CAMERA_SCALE | FRAME_FLOAT_INPUT
+			| FRAME_KEEP_LEVEL_TIME;
 	case COM_GAME_JKA_SP:
 	case COM_GAME_JK2_SP:
 		return FRAME_RETAIL | FRAME_FIXED_TICK | FRAME_X87_PRODUCT | FRAME_ALWAYS_FLOOR | FRAME_CINEMATIC_CAP | FRAME_FRACTION;

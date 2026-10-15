@@ -11,10 +11,11 @@
  *   entityState_t   296 bytes   its delta table's last member is `generic1`
  *                               at 292, and the engine's own SV_SetBrushModel
  *                               writes the entity's shared half from 296
- *   shared prefix   104 bytes   SV_SetBrushModel writes a brush flag at +16,
+ *   shared prefix   112 bytes   SV_SetBrushModel writes a brush flag at +16,
  *                               two bounds vectors at +20 and +32 and a
  *                               contents mask at +44, which is Quake III's
- *                               spacing; ownerNum is +100 (see below)
+ *                               spacing; ownerNum is +100 and the broadcast
+ *                               mask +104 (see below)
  *   playerState_t  1368 bytes   its delta table's last member sits at 1364,
  *                               and the engine copies 1,368 bytes whole
  *   gentity_t       828 bytes   the module states it when it publishes its
@@ -36,10 +37,16 @@
  * ownerNum is +100, not the +96 previously inferred from Quake III.
  * Retail's entity sweep reads it at entity +0x18c for both the pass entity
  * (0x45093d) and a candidate (0x4509cc). The word at +96 stays unnamed and
- * untouched. 104 is the minimum engine-accessed prefix, not a claim that
- * the module's next private field immediately follows it. svFlags is +8,
- * also read by that sweep at entity +0x130; singleClient at +12 remains placed.
- * See docs/fntech3/2026-10-07-jk2-bot-combat.md.
+ * untouched. svFlags is +8, also read by that sweep at entity +0x130. See
+ * docs/fntech3/2026-10-07-jk2-bot-combat.md.
+ *
+ * The snapshot walk (SV_AddEntitiesVisibleFromPoint, 0x44fcf0) reads
+ * singleClient at +12 (entity +0x134, 0x44fd93 and 0x44fdaa) and a two-word
+ * broadcast mask at +104 (`test [esi+eax*4+0x190]`, 0x44fe1a). The retail
+ * module's G_UpdateClientBroadcasts clears the mask (8 bytes at entity +400)
+ * and sets a bit per client for Force Sight and the Jedi Master. 112 is the
+ * minimum engine-accessed prefix, not a claim that the module's next private
+ * field immediately follows it. See docs/fntech3/2026-10-15-jedi-broadcast-level-time.md.
  *
  * These are boundary records, not engine types. See
  * docs/fntech3/2026-09-22-jk2-contracts.md. */
@@ -50,9 +57,9 @@
 #define FNTECH3_JK2_MAX_GENTITIES        1024
 #define FNTECH3_JK2_MAX_CONFIGSTRINGS    1400
 #define FNTECH3_JK2_ENTITY_STATE_BYTES    296
-#define FNTECH3_JK2_ENTITY_SHARED_BYTES   104
+#define FNTECH3_JK2_ENTITY_SHARED_BYTES   112
 #define FNTECH3_JK2_ENTITY_SHARED_OFFSET  296
-#define FNTECH3_JK2_SHARED_ENTITY_BYTES   400
+#define FNTECH3_JK2_SHARED_ENTITY_BYTES   408
 #define FNTECH3_JK2_PLAYER_STATE_BYTES   1368
 
 /* Everything the server keeps about a player.
@@ -314,7 +321,7 @@ typedef struct {
 #define FNTECH3_JK2_R_LINKED           FNTECH3_JK2_R(  0 )   /* evidenced */
 #define FNTECH3_JK2_R_LINKCOUNT        FNTECH3_JK2_R(  4 )   /* evidenced */
 #define FNTECH3_JK2_R_SVFLAGS          FNTECH3_JK2_R(  8 )   /* evidenced */
-#define FNTECH3_JK2_R_SINGLECLIENT     FNTECH3_JK2_R( 12 )   /* placed */
+#define FNTECH3_JK2_R_SINGLECLIENT     FNTECH3_JK2_R( 12 )   /* evidenced */
 #define FNTECH3_JK2_R_BMODEL           FNTECH3_JK2_R( 16 )   /* evidenced */
 #define FNTECH3_JK2_R_MINS             FNTECH3_JK2_R( 20 )   /* evidenced */
 #define FNTECH3_JK2_R_MAXS             FNTECH3_JK2_R( 32 )   /* evidenced */
@@ -324,6 +331,7 @@ typedef struct {
 #define FNTECH3_JK2_R_CURRENTORIGIN    FNTECH3_JK2_R( 72 )   /* evidenced */
 #define FNTECH3_JK2_R_CURRENTANGLES    FNTECH3_JK2_R( 84 )   /* evidenced */
 #define FNTECH3_JK2_R_OWNERNUM         FNTECH3_JK2_R(100 )   /* evidenced */
+#define FNTECH3_JK2_R_BROADCASTCLIENTS FNTECH3_JK2_R(104 )   /* evidenced, two words */
 
 /* Members of the state at the front that the engine itself reads, each at the
  * offset its own delta table gives. */

@@ -526,8 +526,9 @@ static bool SV_EntityPassesSnapshotClientFlags( const sharedEntity_t &entity, in
 			return false;
 		}
 	}
-	// entities can be flagged to be sent to a given mask of clients
-	if ( !Com_GameIsJKAMP() && ( entity.r.svFlags & SVF_CLIENTMASK ) ) {
+	// entities can be flagged to be sent to a given mask of clients; the
+	// Jedi engines read no such bit (jamp.exe 0x460fae, jk2mp.exe 0x44fd80)
+	if ( !Com_GameIsJKAMP() && !Com_GameIsJK2MP() && ( entity.r.svFlags & SVF_CLIENTMASK ) ) {
 		if ( clientNum >= 32 ) {
 			Com_Error( ERR_DROP, "SVF_CLIENTMASK: clientNum >= 32" );
 		}
@@ -687,9 +688,9 @@ static void SV_AddAudioReachableEntities( const vec3_t origin, int clientarea, c
 		if ( !SV_EntityPassesSnapshotClientFlags( entity, frame->ps.clientNum ) ) {
 			continue;
 		}
-		qboolean jkaBroadcast = qfalse;
-		if ( Com_GameIsJKAMP() && !SV_JKASnapshotBroadcast( es->number,
-			frame->ps.clientNum, &jkaBroadcast ) ) continue;
+		qboolean jediBroadcast = qfalse;
+		if ( ( Com_GameIsJKAMP() || Com_GameIsJK2MP() ) && !SV_JediSnapshotBroadcast( es->number,
+			frame->ps.clientNum, &jediBroadcast ) ) continue;
 
 		svEnt = &sv.svEntities[ es->number ];
 		if ( svEnt->snapshotCounter == sv.snapshotCounter ) {
@@ -776,15 +777,15 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 		svEnt = &sv.svEntities[ es->number ];
 
 		// don't double add an entity through portals
-		qboolean jkaBroadcast = qfalse;
-		if ( Com_GameIsJKAMP() && !SV_JKASnapshotBroadcast( es->number,
-			frame->ps.clientNum, &jkaBroadcast ) ) continue;
+		qboolean jediBroadcast = qfalse;
+		if ( ( Com_GameIsJKAMP() || Com_GameIsJK2MP() ) && !SV_JediSnapshotBroadcast( es->number,
+			frame->ps.clientNum, &jediBroadcast ) ) continue;
 		if ( svEnt->snapshotCounter == sv.snapshotCounter ) {
 			continue;
 		}
 
 		// broadcast entities are always sent
-		if ( ( entity.r.svFlags & SVF_BROADCAST ) || jkaBroadcast ) {
+		if ( ( entity.r.svFlags & SVF_BROADCAST ) || jediBroadcast ) {
 			eNums.Add( *svEnt, e );
 			continue;
 		}

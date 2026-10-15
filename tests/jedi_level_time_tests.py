@@ -1,0 +1,161 @@
+"""The level clock across a map change, per profile, through production code.
+
+Retail jamp.exe 1.01 and jk2mp.exe 1.02 run their game on the server's own
+clock, svs.time: GAME_INIT takes it (0x45dd50, 0x44cf54), every settling and
+game frame advances it (0x45eb5d, 0x460856; 0x44da8e, 0x44f37f), and only
+SV_Shutdown clears it, so a `map` carries on from the last level's time
+whoever is connected. FRAME_KEEP_LEVEL_TIME says so for those two profiles;
+every other profile keeps Quake3e's rule here: an empty server's map change,
+or sv_levelTimeReset, starts the clock again. This compiles the production
+rule table and SV_SpawnServer's level-time block with SV_ClearServer.
+"""
+# Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later.
+from pathlib import Path
+import os
+import shutil
+import subprocess
+import tempfile
+import unittest
+
+from compiler_support import compiler_target_args
+
+ROOT = Path(__file__).resolve().parents[1]
+
+HOST = r'''
+#include "code/server/server.h"
+#include "code/qcommon/profile_frame_time.h"
+#include <cassert>
+#include <cstdio>
+#include <vector>
+server_t sv{};
+serverStatic_t svs{};
+static comGameProfile_t current{};
+const comGameProfile_t *Com_GameProfile( void ){return &current;}
+static cvar_t resetCvar{};
+cvar_t *sv_levelTimeReset=&resetCvar;
+int Com_GameConfigstringLimit( void ){return 4;}
+void Z_Free( void * ){}
+int Com_GameIsRitual( void ){return current.id==COM_GAME_ALICE||current.id==COM_GAME_FAKK2;}
+'''
+
+CHECKS = r'''
+static std::vector<client_t> slots(2);
+static void Spawn(){
+SPAWN_BLOCK
+}
+static bool Kept(comGameId_t id){return id==COM_GAME_JKA_MP||id==COM_GAME_JK2_MP;}
+int main(){
+ // Every profile's other clock rules stay as they were.
+ const unsigned base=FRAME_RETAIL|FRAME_FIXED_TICK|FRAME_X87_PRODUCT;
+ const unsigned before[COM_GAME_COUNT]={
+  0,                                                        // auto
+  base|FRAME_CAMERA_SCALE,                                  // q3
+  FRAME_RETAIL|FRAME_X87_PRODUCT|FRAME_CAMERA_SCALE,        // ql
+  base,base,                                                // rtcw-sp, rtcw-mp
+  FRAME_RETAIL|FRAME_FIXED_TICK,                            // wolfet
+  base|FRAME_ALWAYS_FLOOR|FRAME_CINEMATIC_CAP,              // stvef-sp
+  base|FRAME_ALWAYS_FLOOR,                                  // stvef-mp
+  base|FRAME_ALWAYS_FLOOR|FRAME_CAP_200|FRAME_FIXEDTIME_FLOAT, // q3-ihv
+  base|FRAME_ALWAYS_FLOOR|FRAME_CINEMATIC_CAP|FRAME_FRACTION,  // jka-sp
+  base|FRAME_CAMERA_SCALE|FRAME_FLOAT_INPUT,                // jka-mp
+  base|FRAME_ALWAYS_FLOOR|FRAME_CINEMATIC_CAP|FRAME_FRACTION,  // jk2-sp
+  base|FRAME_CAMERA_SCALE,                                  // jk2-mp
+  base|FRAME_ALWAYS_FLOOR,                                  // alice
+  0,0,                                                      // fakk2, mohaa
+  base|FRAME_ALWAYS_FLOOR|FRAME_CAP_200                     // q3test
+ };
+ for(unsigned n=0;n<COM_GAME_COUNT;++n){
+  const comGameId_t id=static_cast<comGameId_t>(n);
+  const unsigned rules=Com_ProfileFrameRules(id);
+  assert((rules&~unsigned(FRAME_KEEP_LEVEL_TIME))==before[n]);
+  assert(((rules&FRAME_KEEP_LEVEL_TIME)!=0)==Kept(id));
+ }
+ svs.clients=slots.data();
+ for(unsigned n=1;n<COM_GAME_COUNT;++n){
+  current.id=static_cast<comGameId_t>(n);
+  const bool ritual=Com_GameIsRitual()!=0;
+  for(int reset:{0,1})for(bool connected:{false,true})for(int pending:{0,7000}){
+   std::memset(&sv,0,sizeof(sv));sv.maxclients=2;sv.time=5400;sv.restartTime=pending;
+   resetCvar.integer=reset;
+   for(client_t &client:slots){std::memset(&client,0,sizeof(client));client.oldServerTime=-1;}
+   slots[0].state=connected?CS_ACTIVE:CS_FREE;slots[1].state=CS_FREE;
+   Spawn();
+   int time=5400,old=0;
+   if(!Kept(current.id)){
+    if(reset)time=0;
+    else if(!connected&&!pending)time=0;
+    if(connected&&(reset||ritual))old=reset?5400:time;
+   }
+   if(sv.time!=time||slots[0].oldServerTime!=old||slots[1].oldServerTime!=0||sv.maxclients!=2){
+    std::printf("profile %u reset %d connected %d pending %d: time %d (want %d) old %d (want %d)\n",
+     n,reset,int(connected),pending,sv.time,time,slots[0].oldServerTime,old);
+    return 1;
+   }
+   // The clear still wipes the rest of the level, a pending restart included.
+   assert(sv.restartTime==0&&sv.state==SS_DEAD);
+  }
+ }
+ // A shutdown still clears the clock: SV_Shutdown zeroes it after the clear.
+ return 0;
+}
+'''
+
+
+def function(source, signature):
+    start = source.index(signature)
+    return source[start:source.index('\n}', start) + 2]
+
+
+class JediLevelTimeTests(unittest.TestCase):
+    def setUp(self):
+        self.init = (ROOT / 'code/server/sv_init.cpp').read_text(encoding='utf-8')
+
+    def spawn_block(self):
+        spawn = self.init[self.init.index('void SV_SpawnServer( const char *mapname, qboolean killBots ) {'):]
+        start = spawn.index('\t// try to reset level time if server is empty')
+        end = spawn.index('\tsv.maxclients = preservedMaxClients;\n', start)
+        return spawn[start:end + len('\tsv.maxclients = preservedMaxClients;\n')]
+
+    def test_map_change_keeps_the_jedi_level_clock(self):
+        compiler = shutil.which('clang++') or shutil.which('g++')
+        if not compiler:
+            self.skipTest('C++17 compiler unavailable')
+        helpers = (function(self.init, 'static bool SV_KeepsLevelTime( void ) {') + '\n'
+                   + function(self.init, 'static bool SV_LevelTimeResets( void ) {') + '\n'
+                   + function(self.init, 'static void SV_ClearServer( void ) {') + '\n')
+        source = HOST + helpers + CHECKS.replace('SPAWN_BLOCK', self.spawn_block())
+        scratch = ROOT / '.tmp' / 'jedi-level-time'
+        scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as directory:
+            folder = Path(directory)
+            path = folder / 'level_time.cpp'
+            executable = folder / ('level_time.exe' if os.name == 'nt' else 'level_time')
+            path.write_text(source, encoding='utf-8')
+            target = compiler_target_args(compiler)
+            if not target:
+                target = ['-DFNTECH3_Q3_ONLY'] if os.name == 'nt' else ['-m32']
+            built = subprocess.run([compiler, *target, '-std=c++17', '-I', str(ROOT), str(path),
+                                    '-o', str(executable)], cwd=ROOT, capture_output=True,
+                                   text=True, timeout=120)
+            self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
+            run = subprocess.run([str(executable)], cwd=ROOT, capture_output=True, text=True, timeout=30)
+            self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+
+    def test_spawn_and_shutdown_order(self):
+        # The level-time decisions precede the clear that keeps or zeroes the
+        # clock, and a shutdown zeroes it after its own clear.
+        block = self.spawn_block()
+        self.assertLess(block.index('SV_KeepsLevelTime()'), block.index('SV_ClearServer();'))
+        self.assertLess(block.index('SV_LevelTimeResets() || Com_GameIsRitual()'), block.index('SV_ClearServer();'))
+        shutdown = self.init[self.init.index('void SV_Shutdown( const char *finalmsg )'):]
+        self.assertLess(shutdown.index('SV_ClearServer();'), shutdown.index('std::memset( &svs, 0, sizeof( svs ) );'))
+        self.assertLess(shutdown.index('std::memset( &svs, 0, sizeof( svs ) );'), shutdown.index('sv.time = 0;'))
+        frame = function((ROOT / 'code/server/sv_main.cpp').read_text(encoding='utf-8'),
+                         'void SV_Frame( int msec, int realMsec ) {')
+        self.assertIn('( rules & FRAME_KEEP_LEVEL_TIME )', frame)
+        self.assertLess(frame.index('const unsigned int rules = Com_ProfileFrameRules('),
+                        frame.index('( rules & FRAME_KEEP_LEVEL_TIME )'))
+
+
+if __name__ == '__main__':
+    unittest.main()

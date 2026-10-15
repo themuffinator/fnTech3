@@ -46,6 +46,14 @@ historical upstream records, not fnTech3 release history. See the
   the class menu opens. Maps whose sky shows a distant view of its own, such
   as `mp/duel6`, now draw that view as the original renderer does
   ([record](docs/fntech3/2026-10-15-jka-siege.md)).
+- Send Jedi Academy and Jedi Outcast players what the original servers
+  send. A speaker or other fixture that Academy's game marks permanent is no
+  longer sent twice, so its sounds are no longer counted twice; an entity
+  meant for a list of players also reaches every player who can see it; and
+  in Outcast a player shown through walls by Force Sight, or as the Jedi
+  Master, now reaches the players the game names. A new level also keeps
+  the game's clock running, as both original servers do
+  ([record](docs/fntech3/2026-10-15-jedi-broadcast-level-time.md)).
 - Give Enemy Territory's bot navigation one search record per area, as the
   original server does: when a mod's bots look for cover, a retreat or nearby
   areas, the server no longer writes past the end of those records, and the

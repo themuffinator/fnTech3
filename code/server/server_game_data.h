@@ -156,6 +156,9 @@ public:
 	// no such member, and ET's map_restart never reads its own.
 	bool GetRTCWMPWorldflags( const GameEntityRef &reference,
 		std::int32_t &destination ) const;
+	// Jedi Outcast MP's two-word broadcast mask, at +104 in the engine's half.
+	bool GetJK2BroadcastClients( const GameEntityRef &reference,
+		std::uint32_t ( &destination )[2] ) const;
 	bool GetSingleClient( const GameEntityRef &reference,
 		std::int32_t &destination ) const;
 	bool SetSingleClient( const GameEntityRef &reference, std::int32_t value );

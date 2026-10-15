@@ -70,6 +70,11 @@ static_assert( sizeof( usercmd_t ) == 28 );
 static_assert( sizeof( usercmd_t ) != 24 );
 static_assert( FNTECH3_JK2_ENTITY_SHARED_OFFSET == FNTECH3_JK2_ENTITY_STATE_BYTES );
 static_assert( FNTECH3_JK2_R_OWNERNUM == 396 ); // retail jk2mp.exe 0x45093d/0x4509cc
+// Its snapshot walk reads singleClient at entity +0x134 (0x44fd93) and the
+// broadcast mask's words at +0x190 (0x44fe1a), the last the engine reads.
+static_assert( FNTECH3_JK2_R_SINGLECLIENT == 0x134 );
+static_assert( FNTECH3_JK2_R_BROADCASTCLIENTS == 0x190 );
+static_assert( FNTECH3_JK2_SHARED_ENTITY_BYTES == FNTECH3_JK2_R_BROADCASTCLIENTS + 8 );
 static_assert( FNTECH3_JK2_SHARED_ENTITY_BYTES
 	== FNTECH3_JK2_ENTITY_STATE_BYTES + FNTECH3_JK2_ENTITY_SHARED_BYTES );
 

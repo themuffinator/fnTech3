@@ -1999,8 +1999,10 @@ void SV_Frame( int msec, int realMsec ) {
 		return;
 	}
 
-	// try to do silent restart earlier if possible
-	if ( sv.time > (12*3600*1000) && ( sv_levelTimeReset->integer == 0 || sv.time > 0x40000000 ) ) {
+	// try to do silent restart earlier if possible; a profile that keeps its
+	// level time across maps lets it grow whatever sv_levelTimeReset says
+	if ( sv.time > (12*3600*1000) && ( sv_levelTimeReset->integer == 0
+		|| ( rules & FRAME_KEEP_LEVEL_TIME ) || sv.time > 0x40000000 ) ) {
 		if ( svs.clients ) {
 			bool hasRealClient = false;
 			for ( const client_t &client : SV_Clients() ) {

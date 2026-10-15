@@ -552,6 +552,25 @@ void SV_ChangeMaxClients( void ) {
 
 /*
 ================
+SV_KeepsLevelTime
+
+Whether the profile's game runs on the server's own clock, which a map change
+keeps and only a shutdown clears (FRAME_KEEP_LEVEL_TIME). The Jedi multiplayer
+engines' does, whoever is connected and whatever sv_levelTimeReset says.
+================
+*/
+static bool SV_KeepsLevelTime( void ) {
+	return ( Com_ProfileFrameRules( Com_GameProfile()->id ) & FRAME_KEEP_LEVEL_TIME ) != 0;
+}
+
+// Whether a map change starts the level clock again (sv_levelTimeReset).
+static bool SV_LevelTimeResets( void ) {
+	return sv_levelTimeReset->integer && !SV_KeepsLevelTime();
+}
+
+
+/*
+================
 SV_ClearServer
 ================
 */
@@ -560,7 +579,7 @@ static void SV_ClearServer( void ) {
 		SV_ZFree( sv.configstrings[index] );
 	}
 
-	const int preservedTime = sv_levelTimeReset->integer ? 0 : sv.time;
+	const int preservedTime = SV_LevelTimeResets() ? 0 : sv.time;
 	// Do not use aggregate assignment for these large persistent blocks.  MSVC's
 	// debug codegen materializes a complete temporary on the caller's stack.
 	std::memset( &sv, 0, sizeof( sv ) );
@@ -850,8 +869,9 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	}
 //	Cvar_Set( "nextmap", va("map %s", server) );
 
-	// try to reset level time if server is empty
-	if ( !sv_levelTimeReset->integer && !sv.restartTime ) {
+	// try to reset level time if server is empty; jamp.exe and jk2mp.exe
+	// carry on from it whoever is connected
+	if ( !sv_levelTimeReset->integer && !sv.restartTime && !SV_KeepsLevelTime() ) {
 		bool hasConnectedClient = false;
 		for ( const client_t &client : SV_Clients() ) {
 			if ( client.state >= CS_CONNECTED ) {
@@ -869,7 +889,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 		// Alice's level clock restarts with every level (at zero, or at a
 		// save's time), so its connected clients carry the old one until they
 		// acknowledge the new gamestate, as they do when sv_levelTimeReset is set.
-		if ( client.state >= CS_CONNECTED && ( sv_levelTimeReset->integer || Com_GameIsRitual() ) ) {
+		if ( client.state >= CS_CONNECTED && ( SV_LevelTimeResets() || Com_GameIsRitual() ) ) {
 			client.oldServerTime = sv.time;
 		} else {
 			client.oldServerTime = 0;

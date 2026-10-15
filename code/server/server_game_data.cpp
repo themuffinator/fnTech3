@@ -441,9 +441,9 @@ const ServerGameDataView::Layout *ServerGameDataView::FindLayout(
 #undef JKASP
 
 	// Jedi Outcast's records were measured rather than read: no multiplayer
-	// source was released for it. Its entity carries the engine's hundred-byte
-	// half at 296, after a 296-byte state, inside an 828-byte record the module
-	// states for itself. Its ping sits at 484, read out of the place the retail
+	// source was released for it. Its entity carries the engine's 112-byte
+	// half, broadcast mask included, at 296, after a 296-byte state, inside an
+	// 828-byte record the module states for itself. Its ping sits at 484, read out of the place the retail
 	// engine writes it rather than guessed from Quake III's field order.
 	static const Layout jk2Layout{
 		COM_GAME_JK2_MP, FNTECH3_JK2_SHARED_ENTITY_BYTES,
@@ -1288,6 +1288,14 @@ bool ServerGameDataView::GetRTCWMPWorldflags( const GameEntityRef &reference,
 	return layout_ && layout_->profile == COM_GAME_RTCW_MP &&
 		ReadEntityBytes( reference, offsetof( fntech3_rtcw_mp_sharedEntity_t, worldflags ),
 			&destination, sizeof( destination ) );
+}
+
+bool ServerGameDataView::GetJK2BroadcastClients( const GameEntityRef &reference,
+	std::uint32_t ( &destination )[2] ) const
+{
+	return layout_ && layout_->profile == COM_GAME_JK2_MP &&
+		ReadEntityBytes( reference, FNTECH3_JK2_R_BROADCASTCLIENTS,
+			destination, sizeof( destination ) );
 }
 
 bool ServerGameDataView::GetNumber( const GameEntityRef &reference,

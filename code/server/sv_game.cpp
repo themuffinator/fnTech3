@@ -571,15 +571,30 @@ qboolean SV_ReadJKAVehicleState( int entityNum, playerState_t *destination ) {
 	return state && fntech3::jka::state::ToInternal( *state, *destination ) ? qtrue : qfalse;
 }
 
-qboolean SV_JKASnapshotBroadcast( int entityNum, int viewer, qboolean *forced ) {
-	if ( !Com_GameIsJKAMP() || !forced || entityNum < 0 || entityNum >= sv.num_entities )
+qboolean SV_JediSnapshotBroadcast( int entityNum, int viewer, qboolean *forced ) {
+	if ( !forced || entityNum < 0 || entityNum >= sv.num_entities )
 		return qfalse;
-	const auto *entity = reinterpret_cast<const fntech3_jka_sharedEntity_t *>(
-		SV_GentityNum( entityNum ) );
-	if ( !entity ) return qfalse;
-	const auto decision = fntech3::jka::snapshot::Broadcast( entityNum, viewer,
-		static_cast<uint32_t>( entity->r.svFlags ), entity->r.broadcastClients,
-		entity->s.isPortalEnt != 0 );
+	fntech3::jka::snapshot::BroadcastDecision decision{};
+	if ( Com_GameIsJK2MP() ) {
+		// Outcast's module is usually a QVM: read its record through the view.
+		fntech3::server::GameEntityRef reference;
+		std::int32_t flags = 0;
+		std::uint32_t clients[2]{};
+		if ( !serverGameData.EntityRefAt( entityNum, reference )
+			|| !serverGameData.GetSvFlags( reference, flags )
+			|| !serverGameData.GetJK2BroadcastClients( reference, clients ) ) return qfalse;
+		decision = fntech3::jk2::snapshot::Broadcast( entityNum, viewer,
+			static_cast<uint32_t>( flags ), clients );
+	} else if ( Com_GameIsJKAMP() ) {
+		const auto *entity = reinterpret_cast<const fntech3_jka_sharedEntity_t *>(
+			SV_GentityNum( entityNum ) );
+		if ( !entity ) return qfalse;
+		decision = fntech3::jka::snapshot::Broadcast( entityNum, viewer,
+			static_cast<uint32_t>( entity->r.svFlags ), entity->r.broadcastClients,
+			entity->s.isPortalEnt != 0, static_cast<uint32_t>( entity->s.eFlags ) );
+	} else {
+		return qfalse;
+	}
 	*forced = decision.forced ? qtrue : qfalse;
 	return decision.admitted ? qtrue : qfalse;
 }

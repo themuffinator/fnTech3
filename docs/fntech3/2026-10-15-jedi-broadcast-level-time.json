@@ -1,0 +1,2147 @@
+{
+  "record": "2026-10-15-jedi-broadcast-level-time.md",
+  "date": "2026-10-15",
+  "profiles": [
+    "jka-mp",
+    "jk2-mp"
+  ],
+  "gatesClosed": [],
+  "claim": "Compatibility slice only; no gate closes.",
+  "previousRecord": "2026-10-15-jka-siege.json",
+  "heads": {
+    "runtimeBase": "643016c640f60feccd05dd974a960002cba362ad",
+    "note": "Before and after runtimes were built from a git archive export of runtimeBase; after adds only this slice's files. The diagnostic pair adds one identical case serving Academy game import 259 to both, never committed."
+  },
+  "platform": "Windows 11, Windows x86 build (MSVC, meson debugoptimized, strict warnings)",
+  "retail": {
+    "jamp": {
+      "path": "E:/Games/Jedi Academy/jamp.exe",
+      "version": "1.01",
+      "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+      "peTimeDateStamp": "0x3faa8a05",
+      "sizeOfImage": "0xf27000"
+    },
+    "jk2mp": {
+      "path": "E:/Games/Jedi Outcast/jk2mp.exe",
+      "version": "1.02a",
+      "sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a",
+      "peTimeDateStamp": "0x3c832b11",
+      "sizeOfImage": "0x1713000"
+    },
+    "jampgame": {
+      "source": "base/assets3.pk3:jampgamex86.dll",
+      "sha256": "b9e5ad492d35a3ec2fc7f6933df42ce9d3b05d3ec437e3bf12243a5d0d690850"
+    },
+    "jk2mpgame": {
+      "source": "base/assets0.pk3:vm/jk2mpgame.qvm",
+      "sha256": "4810670f4f6ec3890d510e294dfd9fd4fb7f692b8d415b496aa132a0a79dc105"
+    },
+    "surveyedEngines": {
+      "quake3.exe 1.32": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+      "WolfSP.exe": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+      "WolfMP.exe": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+      "et.exe 2.60b": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+      "stvoy.exe 1.20": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+      "stvoyHM.exe 1.20": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+      "jasp.exe 1.01": "9351a8de230fcd577e2b474889d08f38982450306767a6823dd659482566d6ce",
+      "jk2sp.exe 1.02a": "0d3c635ee5b20ac32fc957e00cf21e65ebc1584112b11f6ae026706dcc0d0e0c"
+    }
+  },
+  "retailObservations": {
+    "jampSnapshotWalk": {
+      "function": "SV_AddEntitiesVisibleFromPoint 0x460e90",
+      "loop": "0x460f70..0x4613bf",
+      "order": [
+        [
+          "unlinked skipped",
+          "r.linked +0x230",
+          "0x460f8a"
+        ],
+        [
+          "EF_PERMANENT skipped",
+          "s.eFlags byte +0x8 bit 7 (0x80)",
+          "0x460f90"
+        ],
+        [
+          "s.number repaired",
+          "developer print 0x55b30c",
+          "0x460f9b"
+        ],
+        [
+          "flags word read once; tests 0x1, 0x100, 0x800 only",
+          "r.svFlags +0x238, singleClient +0x23c",
+          "0x460fae"
+        ],
+        [
+          "already added skipped",
+          "svEntity +0x26c vs sv.snapshotCounter 0xb934f4",
+          "0x460ffb"
+        ],
+        [
+          "SVF_BROADCAST adds",
+          "0x20",
+          "0x461011"
+        ],
+        [
+          "viewer number adds",
+          "e == frame->ps.clientNum (+0xd0)",
+          "0x461028"
+        ],
+        [
+          "broadcast mask adds",
+          "r.broadcastClients +0x298, viewer/32 word, viewer%32 bit",
+          "0x46104f"
+        ],
+        [
+          "isPortalEnt adds",
+          "s.isPortalEnt +0x108",
+          "0x46105c"
+        ],
+        [
+          "random-map distance test (OpenJK com_RMG)",
+          "[0xb43cd0]+0x20",
+          "0x46107a"
+        ],
+        [
+          "area and cluster tests",
+          "CM_AreasConnected 0x433300",
+          "0x461187"
+        ],
+        [
+          "distance cull while not -1.0 (OpenJK g_svCullDist)",
+          "[0x56d588]",
+          "0x46123e"
+        ],
+        [
+          "add; SVF_PORTAL 0x40 recursion with portal=1",
+          "push 1 at 0x46139f",
+          "0x461346"
+        ]
+      ],
+      "noBit2Test": true,
+      "openjkExclusion": "OpenJK codemp/server/sv_snapshot.cpp:437 (pinned 1a6a6434), absent in retail",
+      "viewerPremarked": "SV_BuildClientSnapshot 0x4613d0 marks svEntities[ps.clientNum] sent at 0x4614cd",
+      "botSnapshotKept": "SV_SendClientSnapshot returns after building when the entity has SVF_BOT (0x8), 0x461969",
+      "botImport259": "game import 259 -> 0x45b860 -> 0x455e10 reads client frames[outgoingSequence & 31]"
+    },
+    "jampPermanentEntities": {
+      "baselines": "SV_CreateBaseline 0x45e2c0: every linked entity from 1, 0x85 dwords each",
+      "defaultState": "cgame import 231 at 0x412f95 -> 0x4118f0: answers only a baseline whose eFlags has 0x80 (0x411909)",
+      "clientGameLoop": "cgamex86.dll 1.01 0x30035907..0x3003593c (2026-10-15-compatibility-round.md)"
+    },
+    "jampgameMask": {
+      "sets": "0x2007051c (address), or at 0x20070531; 0x20070642",
+      "constantStoresToFlagsWord": 40,
+      "constantStoresSettingBit2": 0,
+      "registerStoresUntraced": 98,
+      "inference": "the module never sets 0x2"
+    },
+    "jk2mpSnapshotWalk": {
+      "function": "0x44fcf0",
+      "order": [
+        [
+          "unlinked skipped",
+          "r.linked +0x128",
+          "0x44fd67"
+        ],
+        [
+          "s.number repaired",
+          "",
+          "0x44fd6d"
+        ],
+        [
+          "flags 0x1, 0x100, 0x800",
+          "r.svFlags +0x130, singleClient +0x134",
+          "0x44fd80, 0x44fd93, 0x44fdaa"
+        ],
+        [
+          "already added skipped",
+          "svEntity +0x180 vs 0xb176cc",
+          "0x44fdd2"
+        ],
+        [
+          "SVF_BROADCAST adds",
+          "0x20",
+          "0x44fdde"
+        ],
+        [
+          "viewer number adds",
+          "frame->ps.clientNum +0xb4",
+          "0x44fdf1"
+        ],
+        [
+          "broadcast mask adds",
+          "entity +0x190 = engine half +104",
+          "0x44fe1a"
+        ],
+        [
+          "area and cluster tests, add, SVF_PORTAL recursion with portal=1",
+          "push 1 at 0x44ff5d",
+          "0x44fe27..0x44ff65"
+        ]
+      ],
+      "noPermanentSkip": true,
+      "noPortalEntAdd": true,
+      "noBit2Test": true
+    },
+    "jk2mpgameMask": {
+      "procedure": "instruction 96613 (G_UpdateClientBroadcasts): import 100 clears 8 bytes at entity +400, then calls 96387 and 96163",
+      "jediMaster": "instruction 96387: game type 2 and the client word +604; store at 96582",
+      "forceSight": "instruction 96163: other client +836 & (1 << 14); store at 96354",
+      "gentityStride": 828
+    },
+    "levelClock": {
+      "jamp": {
+        "clock": "svs.time 0xc317c4",
+        "gameInit": "0x45dd50",
+        "settle": "0x45eaee..0x45eb62",
+        "lastSpawnFrame": "0x45eca7..0x45eceb",
+        "mapRestart": [
+          "0x456396..0x4563c6",
+          "0x4564ae..0x4564cf"
+        ],
+        "gameFrames": "0x460850..0x46085e",
+        "snapshotServerTime": "0x460c69",
+        "restartDelay": "0x4562f1",
+        "levelClear": "0xb934e0..0xc317bc at 0x45e73c (SV_InitSV 0x45e6d0)",
+        "levelTail": "restartTime 0xc317a8, then 0xc317ac (set -1 at 0x45e73f), 0xc317b0, 0xc317b4, 0xc317b8",
+        "shutdownClear": "0x45f406",
+        "wrap": "svs.time > 0x70000000 at 0x460728: SV_Shutdown, then Cbuf map_restart 0 (0x46073a)"
+      },
+      "jk2mp": {
+        "clock": "svs.time 0xb0d674",
+        "gameInit": "0x44cf54",
+        "settle": "0x44da5c..0x44da94",
+        "lastSpawnFrame": "0x44db99..0x44dbc8",
+        "mapRestart": [
+          "0x447c03..0x447c2f",
+          "0x447cf2..0x447d14"
+        ],
+        "gameFrames": "0x44f374..0x44f37f",
+        "snapshotServerTime": "0x44f916",
+        "levelClear": "0xb176b8..0xb7a0d4 at 0x44d5bd"
+      }
+    },
+    "otherEngines": {
+      "gplSources": {
+        "Quake III 1.32": "sv_game.c:909 GAME_INIT svs.time; sv_init.c:442 settle svs.time",
+        "RTCW SP": "sv_game.c:937",
+        "RTCW MP": "sv_game.c:934",
+        "Enemy Territory": "sv_game.c:1054"
+      },
+      "settleLoopClocks": {
+        "quake3.exe 1.32": "0x96d184 (0x438d8d..0x438dc5)",
+        "WolfSP.exe": "0xb99e64",
+        "WolfMP.exe": "0xae8fa4",
+        "et.exe 2.60b": "0x11ef5c4",
+        "stvoyHM.exe": "0x6b5044",
+        "stvoy.exe": "0xa41c3c",
+        "jasp.exe": "0xc2a19c",
+        "jk2sp.exe": "0x126bb24"
+      },
+      "gameInitPushesSettleClock": [
+        "WolfSP.exe 0x435fb0",
+        "WolfMP.exe 0x438980",
+        "et.exe 0x445540"
+      ],
+      "spawnClearsCoverClock": {
+        "stvoy.exe": "0x425a9b",
+        "jasp.exe": "0x439d0d",
+        "jk2sp.exe": "0x437226"
+      },
+      "inference": "WolfSP, WolfMP and stvoyHM spawn clears found by a scan do not cover their clock; none found for quake3.exe and et.exe. Not run; not changed."
+    }
+  },
+  "fnDesign": {
+    "snapshot": [
+      "code/server/server_jka_snapshot.hpp: fntech3::jka::snapshot::Broadcast() skips EF_PERMANENT, drops the 0x2 exclusion; fntech3::jk2::snapshot::Broadcast() has the three adds only",
+      "code/server/sv_game.cpp: SV_JediSnapshotBroadcast (was SV_JKASnapshotBroadcast) for jka-mp and jk2-mp; Outcast through ServerGameDataView::GetJK2BroadcastClients",
+      "code/server/sv_snapshot.cpp: hook for both Jedi profiles; Quake III client mask skipped for both",
+      "code/compat/jk2_game_abi.h: engine half 112 bytes, record 408, FNTECH3_JK2_R_BROADCASTCLIENTS +104"
+    ],
+    "levelClock": [
+      "code/qcommon/profile_frame_time.h: FRAME_KEEP_LEVEL_TIME for jka-mp and jk2-mp",
+      "code/server/sv_init.cpp: SV_KeepsLevelTime, SV_LevelTimeResets in SV_ClearServer and SV_SpawnServer",
+      "code/server/sv_main.cpp: 12-hour empty-server restart treats them as never resetting"
+    ]
+  },
+  "syntheticModule": {
+    "source": ".tmp/jka-broadcast-time/probe/jedi-probe.cpp",
+    "sourceSha256": "14527262579d39f38df244287784fb8418c17d56e377c16cf0f7f0eb49cedbec",
+    "moduleSha256": "3db6b50189ef53f808ffe62749dd79d942a2addaed4edb71021ce47676a0d15a",
+    "harness": ".tmp/jka-broadcast-time/probe/run-jedi-probe.py",
+    "map": "mp/ffa1",
+    "viewer": "first spawn point (3360 1792 856)",
+    "hidden": "first spawn point outside its PVS (4164 -848 1368)",
+    "entities": {
+      "40": "ordinary, in view",
+      "41": "ordinary, out of view",
+      "42": "0x2, mask names nobody, in view",
+      "43": "0x2, mask names nobody, out of view",
+      "44": "0x2, mask names the bot, out of view",
+      "45": "mask names the bot, out of view",
+      "46": "mask names client 7, out of view",
+      "47": "EF_PERMANENT, in view",
+      "48": "EF_PERMANENT and SVF_BROADCAST, out of view",
+      "49": "SVF_BROADCAST, out of view",
+      "50": "isPortalEnt, out of view",
+      "51": "SVF_BROADCAST and 0x2 naming nobody, out of view",
+      "52": "EF_PERMANENT and isPortalEnt, out of view"
+    },
+    "diagnostic": "fnTech3 refuses Academy game import 259; both diagnostic runtimes add one identical case serving it through SV_BotGetSnapshotEntity. The retail module calls 259 at 0 sites (scan_game_import_calls.py)."
+  },
+  "runs": {
+    "retail-wall-4": {
+      "run": ".tmp/jka-broadcast-time/probe/runs/retail-wall-4",
+      "engine": "retail",
+      "executable": ".tmp/runtime/jka-retail/jamp.exe",
+      "executableSha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+      "moduleSha256": "3db6b50189ef53f808ffe62749dd79d942a2addaed4edb71021ce47676a0d15a",
+      "fixedtime": 0,
+      "passed": true,
+      "exitCode": 0,
+      "refusals": [],
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "observedAtUTC": "2026-10-15T18:19:45.139872+00:00",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail\\jamp.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\jka-broadcast-time\\probe\\runs\\retail-wall-4\\home",
+        "+set",
+        "fs_cdpath",
+        "E:\\Games\\Jedi Academy",
+        "+set",
+        "fs_game",
+        "jedi-probe",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "0",
+        "+set",
+        "sv_maxclients",
+        "8",
+        "+set",
+        "sv_fps",
+        "20",
+        "+set",
+        "jediprobe_snapshots",
+        "1",
+        "+set",
+        "net_enabled",
+        "1",
+        "+map",
+        "mp/ffa1"
+      ],
+      "stages": {
+        "0": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": ""
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "40,42,44,45,49,50,51"
+            }
+          }
+        },
+        "1": {
+          "gameInitLevelTime": 6700,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 7200,
+              "snapshot": "0,0,0,0,0,0,0"
+            },
+            "120": {
+              "levelTime": 12900,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "130": {
+              "levelTime": 13400,
+              "snapshot": "40,42,44,45,49,50,51"
+            }
+          }
+        },
+        "2": {
+          "gameInitLevelTime": 13400,
+          "restart": 1,
+          "frames": {
+            "6": {
+              "levelTime": 13900,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "120": {
+              "levelTime": 19600,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "130": {
+              "levelTime": 20100,
+              "snapshot": "40,42,44,45,49,50,51"
+            }
+          }
+        },
+        "3": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": ""
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "40,42,44,45,49,50,51"
+            }
+          }
+        }
+      }
+    },
+    "retail-fixed-1": {
+      "run": ".tmp/jka-broadcast-time/probe/runs/retail-fixed-1",
+      "engine": "retail",
+      "executable": ".tmp/runtime/jka-retail/jamp.exe",
+      "executableSha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+      "moduleSha256": "3db6b50189ef53f808ffe62749dd79d942a2addaed4edb71021ce47676a0d15a",
+      "fixedtime": 75,
+      "passed": true,
+      "exitCode": 0,
+      "refusals": [],
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "observedAtUTC": "2026-10-15T18:20:07.356111+00:00",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail\\jamp.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\jka-broadcast-time\\probe\\runs\\retail-fixed-1\\home",
+        "+set",
+        "fs_cdpath",
+        "E:\\Games\\Jedi Academy",
+        "+set",
+        "fs_game",
+        "jedi-probe",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "0",
+        "+set",
+        "sv_maxclients",
+        "8",
+        "+set",
+        "sv_fps",
+        "20",
+        "+set",
+        "fixedtime",
+        "75",
+        "+set",
+        "jediprobe_snapshots",
+        "1",
+        "+set",
+        "net_enabled",
+        "1",
+        "+map",
+        "mp/ffa1"
+      ],
+      "stages": {
+        "0": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "40,42,44,45,49,50,51"
+            }
+          }
+        },
+        "1": {
+          "gameInitLevelTime": 6700,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 7200,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "120": {
+              "levelTime": 12900,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "130": {
+              "levelTime": 13400,
+              "snapshot": "40,42,44,45,49,50,51"
+            }
+          }
+        },
+        "2": {
+          "gameInitLevelTime": 13400,
+          "restart": 1,
+          "frames": {
+            "6": {
+              "levelTime": 13900,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "120": {
+              "levelTime": 19600,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "130": {
+              "levelTime": 20100,
+              "snapshot": "40,42,44,45,49,50,51"
+            }
+          }
+        },
+        "3": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "40,42,44,45,49,50,51"
+            }
+          }
+        }
+      }
+    },
+    "before-wall-2": {
+      "run": ".tmp/jka-broadcast-time/probe/runs/before-wall-2",
+      "engine": "fntech3",
+      "executable": ".tmp/runtime/jedi-bt-before/fntech3.ded.exe",
+      "executableSha256": "bed53ce37404929b265de071c75c170fa58da69ff5a3eba4d1ab719863e3e09a",
+      "moduleSha256": "3db6b50189ef53f808ffe62749dd79d942a2addaed4edb71021ce47676a0d15a",
+      "fixedtime": 0,
+      "passed": true,
+      "exitCode": 0,
+      "refusals": [],
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "observedAtUTC": "2026-10-15T18:20:13.406272+00:00",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jedi-bt-before\\fntech3.ded.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Jedi Academy",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\jka-broadcast-time\\probe\\runs\\before-wall-2\\home",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "fs_game",
+        "jedi-probe",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "0",
+        "+set",
+        "sv_maxclients",
+        "8",
+        "+set",
+        "sv_fps",
+        "20",
+        "+set",
+        "jediprobe_snapshots",
+        "0",
+        "+set",
+        "com_gameProfile",
+        "jka-mp",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "net_enabled",
+        "0",
+        "+map",
+        "mp/ffa1"
+      ],
+      "stages": {
+        "0": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": "none"
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "none"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "none"
+            }
+          }
+        },
+        "1": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": "none"
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "none"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "none"
+            }
+          }
+        },
+        "2": {
+          "gameInitLevelTime": 6700,
+          "restart": 1,
+          "frames": {
+            "6": {
+              "levelTime": 7200,
+              "snapshot": "none"
+            },
+            "120": {
+              "levelTime": 12900,
+              "snapshot": "none"
+            },
+            "130": {
+              "levelTime": 13400,
+              "snapshot": "none"
+            }
+          }
+        },
+        "3": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": "none"
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "none"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "none"
+            }
+          }
+        }
+      }
+    },
+    "after-wall-1": {
+      "run": ".tmp/jka-broadcast-time/probe/runs/after-wall-1",
+      "engine": "fntech3",
+      "executable": ".tmp/runtime/jedi-bt-after/fntech3.ded.exe",
+      "executableSha256": "335cf477f50372a1e8851ff20baf7a88f40165ca14b6fd0ceba1917438f09210",
+      "moduleSha256": "3db6b50189ef53f808ffe62749dd79d942a2addaed4edb71021ce47676a0d15a",
+      "fixedtime": 0,
+      "passed": true,
+      "exitCode": 0,
+      "refusals": [],
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "observedAtUTC": "2026-10-15T18:20:39.439021+00:00",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jedi-bt-after\\fntech3.ded.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Jedi Academy",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\jka-broadcast-time\\probe\\runs\\after-wall-1\\home",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "fs_game",
+        "jedi-probe",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "0",
+        "+set",
+        "sv_maxclients",
+        "8",
+        "+set",
+        "sv_fps",
+        "20",
+        "+set",
+        "jediprobe_snapshots",
+        "0",
+        "+set",
+        "com_gameProfile",
+        "jka-mp",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "net_enabled",
+        "0",
+        "+map",
+        "mp/ffa1"
+      ],
+      "stages": {
+        "0": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": "none"
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "none"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "none"
+            }
+          }
+        },
+        "1": {
+          "gameInitLevelTime": 6700,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 7200,
+              "snapshot": "none"
+            },
+            "120": {
+              "levelTime": 12900,
+              "snapshot": "none"
+            },
+            "130": {
+              "levelTime": 13400,
+              "snapshot": "none"
+            }
+          }
+        },
+        "2": {
+          "gameInitLevelTime": 13400,
+          "restart": 1,
+          "frames": {
+            "6": {
+              "levelTime": 13900,
+              "snapshot": "none"
+            },
+            "120": {
+              "levelTime": 19600,
+              "snapshot": "none"
+            },
+            "130": {
+              "levelTime": 20100,
+              "snapshot": "none"
+            }
+          }
+        },
+        "3": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": "none"
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "none"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "none"
+            }
+          }
+        }
+      }
+    },
+    "before-fixed-1": {
+      "run": ".tmp/jka-broadcast-time/probe/runs/before-fixed-1",
+      "engine": "fntech3",
+      "executable": ".tmp/runtime/jedi-bt-before/fntech3.ded.exe",
+      "executableSha256": "bed53ce37404929b265de071c75c170fa58da69ff5a3eba4d1ab719863e3e09a",
+      "moduleSha256": "3db6b50189ef53f808ffe62749dd79d942a2addaed4edb71021ce47676a0d15a",
+      "fixedtime": 75,
+      "passed": true,
+      "exitCode": 0,
+      "refusals": [],
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "observedAtUTC": "2026-10-15T18:21:05.550259+00:00",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jedi-bt-before\\fntech3.ded.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Jedi Academy",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\jka-broadcast-time\\probe\\runs\\before-fixed-1\\home",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "fs_game",
+        "jedi-probe",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "0",
+        "+set",
+        "sv_maxclients",
+        "8",
+        "+set",
+        "sv_fps",
+        "20",
+        "+set",
+        "fixedtime",
+        "75",
+        "+set",
+        "jediprobe_snapshots",
+        "0",
+        "+set",
+        "com_gameProfile",
+        "jka-mp",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "net_enabled",
+        "0",
+        "+map",
+        "mp/ffa1"
+      ],
+      "stages": {
+        "0": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": "none"
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "none"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "none"
+            }
+          }
+        },
+        "1": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": "none"
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "none"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "none"
+            }
+          }
+        },
+        "2": {
+          "gameInitLevelTime": 6700,
+          "restart": 1,
+          "frames": {
+            "6": {
+              "levelTime": 7200,
+              "snapshot": "none"
+            },
+            "120": {
+              "levelTime": 12900,
+              "snapshot": "none"
+            },
+            "130": {
+              "levelTime": 13400,
+              "snapshot": "none"
+            }
+          }
+        },
+        "3": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": "none"
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "none"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "none"
+            }
+          }
+        }
+      }
+    },
+    "after-fixed-1": {
+      "run": ".tmp/jka-broadcast-time/probe/runs/after-fixed-1",
+      "engine": "fntech3",
+      "executable": ".tmp/runtime/jedi-bt-after/fntech3.ded.exe",
+      "executableSha256": "335cf477f50372a1e8851ff20baf7a88f40165ca14b6fd0ceba1917438f09210",
+      "moduleSha256": "3db6b50189ef53f808ffe62749dd79d942a2addaed4edb71021ce47676a0d15a",
+      "fixedtime": 75,
+      "passed": true,
+      "exitCode": 0,
+      "refusals": [],
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "observedAtUTC": "2026-10-15T18:21:18.958892+00:00",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jedi-bt-after\\fntech3.ded.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Jedi Academy",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\jka-broadcast-time\\probe\\runs\\after-fixed-1\\home",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "fs_game",
+        "jedi-probe",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "0",
+        "+set",
+        "sv_maxclients",
+        "8",
+        "+set",
+        "sv_fps",
+        "20",
+        "+set",
+        "fixedtime",
+        "75",
+        "+set",
+        "jediprobe_snapshots",
+        "0",
+        "+set",
+        "com_gameProfile",
+        "jka-mp",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "net_enabled",
+        "0",
+        "+map",
+        "mp/ffa1"
+      ],
+      "stages": {
+        "0": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": "none"
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "none"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "none"
+            }
+          }
+        },
+        "1": {
+          "gameInitLevelTime": 6700,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 7200,
+              "snapshot": "none"
+            },
+            "120": {
+              "levelTime": 12900,
+              "snapshot": "none"
+            },
+            "130": {
+              "levelTime": 13400,
+              "snapshot": "none"
+            }
+          }
+        },
+        "2": {
+          "gameInitLevelTime": 13400,
+          "restart": 1,
+          "frames": {
+            "6": {
+              "levelTime": 13900,
+              "snapshot": "none"
+            },
+            "120": {
+              "levelTime": 19600,
+              "snapshot": "none"
+            },
+            "130": {
+              "levelTime": 20100,
+              "snapshot": "none"
+            }
+          }
+        },
+        "3": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": "none"
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "none"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "none"
+            }
+          }
+        }
+      }
+    },
+    "before-diag-wall-1": {
+      "run": ".tmp/jka-broadcast-time/probe/runs/before-diag-wall-1",
+      "engine": "fntech3",
+      "executable": ".tmp/runtime/jedi-bt-before-diag/fntech3.ded.exe",
+      "executableSha256": "76b374358b0bc2c6acff75d74064dc727d16878d43d3d9241898395cb777c041",
+      "moduleSha256": "3db6b50189ef53f808ffe62749dd79d942a2addaed4edb71021ce47676a0d15a",
+      "fixedtime": 0,
+      "passed": true,
+      "exitCode": 0,
+      "refusals": [],
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "observedAtUTC": "2026-10-15T18:25:06.240683+00:00",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jedi-bt-before-diag\\fntech3.ded.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Jedi Academy",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\jka-broadcast-time\\probe\\runs\\before-diag-wall-1\\home",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "fs_game",
+        "jedi-probe",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "0",
+        "+set",
+        "sv_maxclients",
+        "8",
+        "+set",
+        "sv_fps",
+        "20",
+        "+set",
+        "jediprobe_snapshots",
+        "1",
+        "+set",
+        "com_gameProfile",
+        "jka-mp",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "net_enabled",
+        "0",
+        "+map",
+        "mp/ffa1"
+      ],
+      "stages": {
+        "0": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            }
+          }
+        },
+        "1": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            }
+          }
+        },
+        "2": {
+          "gameInitLevelTime": 6700,
+          "restart": 1,
+          "frames": {
+            "6": {
+              "levelTime": 7200,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            },
+            "120": {
+              "levelTime": 12900,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            },
+            "130": {
+              "levelTime": 13400,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            }
+          }
+        },
+        "3": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            }
+          }
+        }
+      }
+    },
+    "after-diag-wall-1": {
+      "run": ".tmp/jka-broadcast-time/probe/runs/after-diag-wall-1",
+      "engine": "fntech3",
+      "executable": ".tmp/runtime/jedi-bt-after-diag/fntech3.ded.exe",
+      "executableSha256": "4a7d3fa2e35db97066b7ba385a1ce8929bab43bf53ef301aad8354a1d7fc3f63",
+      "moduleSha256": "3db6b50189ef53f808ffe62749dd79d942a2addaed4edb71021ce47676a0d15a",
+      "fixedtime": 0,
+      "passed": true,
+      "exitCode": 0,
+      "refusals": [],
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "observedAtUTC": "2026-10-15T18:25:32.787736+00:00",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jedi-bt-after-diag\\fntech3.ded.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Jedi Academy",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\jka-broadcast-time\\probe\\runs\\after-diag-wall-1\\home",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "fs_game",
+        "jedi-probe",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "0",
+        "+set",
+        "sv_maxclients",
+        "8",
+        "+set",
+        "sv_fps",
+        "20",
+        "+set",
+        "jediprobe_snapshots",
+        "1",
+        "+set",
+        "com_gameProfile",
+        "jka-mp",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "net_enabled",
+        "0",
+        "+map",
+        "mp/ffa1"
+      ],
+      "stages": {
+        "0": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "40,42,44,45,49,50,51"
+            }
+          }
+        },
+        "1": {
+          "gameInitLevelTime": 6700,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 7200,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "120": {
+              "levelTime": 12900,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "130": {
+              "levelTime": 13400,
+              "snapshot": "40,42,44,45,49,50,51"
+            }
+          }
+        },
+        "2": {
+          "gameInitLevelTime": 13400,
+          "restart": 1,
+          "frames": {
+            "6": {
+              "levelTime": 13900,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "120": {
+              "levelTime": 19600,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "130": {
+              "levelTime": 20100,
+              "snapshot": "40,42,44,45,49,50,51"
+            }
+          }
+        },
+        "3": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "40,42,44,45,49,50,51"
+            }
+          }
+        }
+      }
+    },
+    "before-diag-fixed-1": {
+      "run": ".tmp/jka-broadcast-time/probe/runs/before-diag-fixed-1",
+      "engine": "fntech3",
+      "executable": ".tmp/runtime/jedi-bt-before-diag/fntech3.ded.exe",
+      "executableSha256": "76b374358b0bc2c6acff75d74064dc727d16878d43d3d9241898395cb777c041",
+      "moduleSha256": "3db6b50189ef53f808ffe62749dd79d942a2addaed4edb71021ce47676a0d15a",
+      "fixedtime": 75,
+      "passed": true,
+      "exitCode": 0,
+      "refusals": [],
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "observedAtUTC": "2026-10-15T18:25:58.595826+00:00",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jedi-bt-before-diag\\fntech3.ded.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Jedi Academy",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\jka-broadcast-time\\probe\\runs\\before-diag-fixed-1\\home",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "fs_game",
+        "jedi-probe",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "0",
+        "+set",
+        "sv_maxclients",
+        "8",
+        "+set",
+        "sv_fps",
+        "20",
+        "+set",
+        "fixedtime",
+        "75",
+        "+set",
+        "jediprobe_snapshots",
+        "1",
+        "+set",
+        "com_gameProfile",
+        "jka-mp",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "net_enabled",
+        "0",
+        "+map",
+        "mp/ffa1"
+      ],
+      "stages": {
+        "0": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            }
+          }
+        },
+        "1": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            }
+          }
+        },
+        "2": {
+          "gameInitLevelTime": 6700,
+          "restart": 1,
+          "frames": {
+            "6": {
+              "levelTime": 7200,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            },
+            "120": {
+              "levelTime": 12900,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            },
+            "130": {
+              "levelTime": 13400,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            }
+          }
+        },
+        "3": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "40,44,45,47,48,49,50,52"
+            }
+          }
+        }
+      }
+    },
+    "after-diag-fixed-1": {
+      "run": ".tmp/jka-broadcast-time/probe/runs/after-diag-fixed-1",
+      "engine": "fntech3",
+      "executable": ".tmp/runtime/jedi-bt-after-diag/fntech3.ded.exe",
+      "executableSha256": "4a7d3fa2e35db97066b7ba385a1ce8929bab43bf53ef301aad8354a1d7fc3f63",
+      "moduleSha256": "3db6b50189ef53f808ffe62749dd79d942a2addaed4edb71021ce47676a0d15a",
+      "fixedtime": 75,
+      "passed": true,
+      "exitCode": 0,
+      "refusals": [],
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "observedAtUTC": "2026-10-15T18:26:12.020886+00:00",
+      "command": [
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jedi-bt-after-diag\\fntech3.ded.exe",
+        "+set",
+        "fs_basepath",
+        "E:\\Games\\Jedi Academy",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\jka-broadcast-time\\probe\\runs\\after-diag-fixed-1\\home",
+        "+set",
+        "fs_cdpath",
+        "",
+        "+set",
+        "fs_game",
+        "jedi-probe",
+        "+set",
+        "dedicated",
+        "1",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "net_ip",
+        "127.0.0.1",
+        "+set",
+        "net_port",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "bot_enable",
+        "0",
+        "+set",
+        "sv_maxclients",
+        "8",
+        "+set",
+        "sv_fps",
+        "20",
+        "+set",
+        "fixedtime",
+        "75",
+        "+set",
+        "jediprobe_snapshots",
+        "1",
+        "+set",
+        "com_gameProfile",
+        "jka-mp",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "net_enabled",
+        "0",
+        "+map",
+        "mp/ffa1"
+      ],
+      "stages": {
+        "0": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "40,42,44,45,49,50,51"
+            }
+          }
+        },
+        "1": {
+          "gameInitLevelTime": 6700,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 7200,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "120": {
+              "levelTime": 12900,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "130": {
+              "levelTime": 13400,
+              "snapshot": "40,42,44,45,49,50,51"
+            }
+          }
+        },
+        "2": {
+          "gameInitLevelTime": 13400,
+          "restart": 1,
+          "frames": {
+            "6": {
+              "levelTime": 13900,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "120": {
+              "levelTime": 19600,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "130": {
+              "levelTime": 20100,
+              "snapshot": "40,42,44,45,49,50,51"
+            }
+          }
+        },
+        "3": {
+          "gameInitLevelTime": 0,
+          "restart": 0,
+          "frames": {
+            "6": {
+              "levelTime": 500,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "120": {
+              "levelTime": 6200,
+              "snapshot": "40,42,44,45,49,50,51"
+            },
+            "130": {
+              "levelTime": 6700,
+              "snapshot": "40,42,44,45,49,50,51"
+            }
+          }
+        }
+      }
+    }
+  },
+  "wireSummary": {
+    "retail": "40,42,44,45,49,50,51",
+    "after": "40,42,44,45,49,50,51",
+    "before": "40,44,45,47,48,49,50,52",
+    "note": "every sample from frame 120 on, all four stages, wall clock and fixedtime 75"
+  },
+  "levelTimeSummary": {
+    "retail": [
+      0,
+      6700,
+      13400,
+      0
+    ],
+    "before": [
+      0,
+      0,
+      6700,
+      0
+    ],
+    "after": [
+      0,
+      6700,
+      13400,
+      0
+    ],
+    "stages": [
+      "first level",
+      "after map",
+      "after map_restart 0",
+      "after killserver, map"
+    ]
+  },
+  "live": {
+    "jedi-bt-before-ctf3": {
+      "run": ".tmp/round-2026-10-15/jka-local-sets/runs/jedi-bt-before-ctf3",
+      "runtime": ".tmp\\runtime\\jedi-bt-before",
+      "identity": {
+        "fntech3.exe": "8ecc062010e38e2be31e412b6bedd6ea8c1bf4362ce8e7977b28f7c665f78a52",
+        "fnql_glx_x86.dll": "135cdc2979cd2d5a2bdf4e9f14a6da401e2347808177eda6cb1b8d8e90d4ade4",
+        "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+      },
+      "map": "mp/ctf3",
+      "gametype": "8",
+      "commands": [
+        "set cl_menuBlur 0",
+        "ui_openmenu none",
+        "wait 30",
+        "setviewpos 864 -1340 520 90",
+        "wait 240",
+        "viewpos",
+        "echo probe-law a",
+        "s_alDebugDump",
+        "setviewpos 864 -1200 520 90",
+        "wait 240",
+        "viewpos",
+        "echo probe-law b",
+        "s_alDebugDump"
+      ],
+      "outcome": "exited",
+      "exit": 0,
+      "errors": [],
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "speakerLoop": [
+        {
+          "probe": "a",
+          "viewpos": "864 -1266 557",
+          "distance": 147.1,
+          "gain": 1.0
+        },
+        {
+          "probe": "b",
+          "viewpos": "864 -1126 557",
+          "distance": 14.6,
+          "gain": 1.0
+        }
+      ],
+      "desktopSwitched": false,
+      "inputInjected": false
+    },
+    "jedi-bt-after-ctf3": {
+      "run": ".tmp/round-2026-10-15/jka-local-sets/runs/jedi-bt-after-ctf3",
+      "runtime": ".tmp\\runtime\\jedi-bt-after",
+      "identity": {
+        "fntech3.exe": "2fd3b898ad7b08aa1f50d507676888640aaf1763c3b83b99d7d85aae17c5df99",
+        "fnql_glx_x86.dll": "80a622c0d19bc1ba0aff12d1abaaefad16a2cb28f41b0075411803b4f2254f48",
+        "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+      },
+      "map": "mp/ctf3",
+      "gametype": "8",
+      "commands": [
+        "set cl_menuBlur 0",
+        "ui_openmenu none",
+        "wait 30",
+        "setviewpos 864 -1340 520 90",
+        "wait 240",
+        "viewpos",
+        "echo probe-law a",
+        "s_alDebugDump",
+        "setviewpos 864 -1200 520 90",
+        "wait 240",
+        "viewpos",
+        "echo probe-law b",
+        "s_alDebugDump"
+      ],
+      "outcome": "exited",
+      "exit": 0,
+      "errors": [],
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "speakerLoop": [
+        {
+          "probe": "a",
+          "viewpos": "864 -1266 557",
+          "distance": 147.0,
+          "gain": 0.82
+        },
+        {
+          "probe": "b",
+          "viewpos": "864 -1126 557",
+          "distance": 14.6,
+          "gain": 1.0
+        }
+      ],
+      "desktopSwitched": false,
+      "inputInjected": false
+    }
+  },
+  "outcastNonRegression": {
+    "jk2-jm-before": {
+      "run": ".tmp/jka-broadcast-time/jk2/jk2-jm-before",
+      "executableSha256": {
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jedi-bt-before\\fntech3.ded.exe": "bed53ce37404929b265de071c75c170fa58da69ff5a3eba4d1ab719863e3e09a"
+      },
+      "seconds": 60.0,
+      "gametype": 2,
+      "forcedStopAtDeadline": true,
+      "errors": [],
+      "clientBegins": 2,
+      "initGame": true,
+      "installationUnchanged": true,
+      "binariesUnchanged": true
+    },
+    "jk2-jm-after": {
+      "run": ".tmp/jka-broadcast-time/jk2/jk2-jm-after",
+      "executableSha256": {
+        "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jedi-bt-after\\fntech3.ded.exe": "335cf477f50372a1e8851ff20baf7a88f40165ca14b6fd0ceba1917438f09210"
+      },
+      "seconds": 60.0,
+      "gametype": 2,
+      "forcedStopAtDeadline": true,
+      "errors": [],
+      "clientBegins": 2,
+      "initGame": true,
+      "installationUnchanged": true,
+      "binariesUnchanged": true
+    }
+  },
+  "tests": [
+    "tests/jka_snapshot_tests.cpp",
+    "tests/jedi_snapshot_walk_tests.py",
+    "tests/jedi_level_time_tests.py",
+    "tests/server_game_data_tests.cpp",
+    "tests/jk2_abi_layout_tests.cpp",
+    "tests/wolfet_snapshot_tests.py"
+  ],
+  "mutations": {
+    "baseline": {
+      "cpp:jka_snapshot": "pass",
+      "cpp:server_game_data": "pass",
+      "py:tests/jedi_level_time_tests.py": "pass",
+      "py:tests/jedi_snapshot_walk_tests.py": "pass"
+    },
+    "openjk-exclusion": {
+      "cpp:jka_snapshot": "fail",
+      "py:tests/jedi_snapshot_walk_tests.py": "fail"
+    },
+    "no-permanent-skip": {
+      "cpp:jka_snapshot": "build-failed",
+      "py:tests/jedi_snapshot_walk_tests.py": "fail"
+    },
+    "eflags-not-passed": {
+      "py:tests/jedi_snapshot_walk_tests.py": "fail"
+    },
+    "jk2-clientmask": {
+      "py:tests/jedi_snapshot_walk_tests.py": "fail"
+    },
+    "jk2-mask-unread": {
+      "py:tests/jedi_snapshot_walk_tests.py": "fail"
+    },
+    "jka-not-kept": {
+      "py:tests/jedi_level_time_tests.py": "fail"
+    },
+    "empty-reset-kept": {
+      "py:tests/jedi_level_time_tests.py": "fail"
+    },
+    "cvar-reset-kept": {
+      "py:tests/jedi_level_time_tests.py": "fail"
+    },
+    "jk2-mask-offset": {
+      "cpp:server_game_data": "fail"
+    }
+  },
+  "remaining": [
+    "Quake III, RTCW, ET and Holomatch appear to keep one level clock across map changes; fnTech3 restarts an empty server at 0 there. Quake Live not read. Each needs its own measurement.",
+    "Retail svs.time advances by ticks; fnTech3 advances it by real time for every profile but Holomatch.",
+    "Time wrap: retail 0x70000000 (SV_Shutdown, then map_restart 0); fnTech3 0x78000000 (restart the map).",
+    "Portal recursion: retail jamp.exe, jk2mp.exe and id Quake III 1.32 recurse through nested portals; fnTech3 recurses only from the viewer pass (!portal) in every profile.",
+    "Academy random-map distance test and distance cull (0x46107a, 0x46123e) absent in fnTech3.",
+    "Academy game import 259 refused in fnTech3; retail serves it, its module never calls it.",
+    "SV_CreateBaseline starts at 0 in fnTech3, at 1 in retail; no wire effect."
+  ],
+  "validation": {
+    "finalExport": {
+      "base": "b589caf8bc16df8b70546a1a2ecdb1c64e0a6a24",
+      "contents": "git archive of base plus this slice: 16 code and test files, the record and its companion, and the overlay hunks of CHANGELOG.md, docs/README.md, docs/fntech3/COMPATIBILITY.md and docs/fnql/SERVER_CVAR_COMPATIBILITY.md (the changelog hunk added after the full suite, then its tests rerun)",
+      "note": "The commit is HEAD at commit time plus the same files; the stage script refuses if HEAD has changed any of this slice's code or test files since the runtime base."
+    },
+    "build": {
+      "command": "meson setup (win32-dev options, build-server=true, --wrap-mode=nodownload); meson compile -j 4",
+      "targets": 1545,
+      "strictWarnings": true,
+      "exit": 0
+    },
+    "mesonTests": {
+      "run": 276,
+      "ok": 274,
+      "fail": 0,
+      "skipped": 2,
+      "skippedNames": [
+        "fnql_audio_loopback (exit 77)",
+        "fnql_retail_factory_probe (exit 77)"
+      ],
+      "excluded": "fnql_python_source_regressions, run as pytest below"
+    },
+    "pytest": {
+      "passed": 2775,
+      "skipped": 131,
+      "failed": 0,
+      "seconds": 3003.82
+    },
+    "afterChangelog": {
+      "tests": [
+        "tests/changelog_tests.py",
+        "tests/release_workflow_tests.py",
+        "tests/version_metadata_tests.py",
+        "tests/generate_docs_tests.py",
+        "tests/jedi_snapshot_walk_tests.py",
+        "tests/jedi_level_time_tests.py",
+        "tests/release_packaging_tests.py",
+        "tests/player_manual_tests.py"
+      ],
+      "passed": 116,
+      "skipped": 1,
+      "failed": 0
+    },
+    "compileCheck": "sv_game.cpp, sv_snapshot.cpp, sv_init.cpp, sv_main.cpp, server_game_data.cpp (all seven targets) and common.c with win32-dev's own compile commands: all ok",
+    "directTests": "jka_snapshot_tests.cpp, jk2_abi_layout_tests.cpp, server_game_data_tests.cpp built with cl /W4 /WX and run: all pass; 95 tests of 13 affected snapshot and spawn fixtures pass"
+  }
+}

@@ -1062,6 +1062,13 @@ keeps its separately established rules.
 | `fakk2` | **Open:** encrypted engine; related Alice behavior is inference only; timing unchanged | Existing published-capacity binding retained; engine acceptance remains inference |
 | `mohaa` | **Open:** SafeDisc engine; OpenMoHAA supports fixed ticks and zero unscaled, but is reconstruction evidence only; timing unchanged | Existing published-capacity binding retained; engine acceptance remains reconstruction evidence |
 
+The [Jedi broadcast and level-time record](2026-10-15-jedi-broadcast-level-time.md)
+adds one clock rule, `FRAME_KEEP_LEVEL_TIME`: in `jka-mp` and `jk2-mp` a map
+change keeps the level time, as `jamp.exe` 1.01 and `jk2mp.exe` 1.02a run
+their game on `svs.time`, which only a shutdown clears. Every other profile
+keeps the inherited per-level clock. Quake III, RTCW, Enemy Territory and
+Holomatch appear to keep one clock too and remain to be measured.
+
 ## Evidence vocabulary
 
 | Level | Meaning |
@@ -2699,6 +2706,23 @@ server sends the entities the game marks as seen from the portal
 parser rejects the general `sun` line of 59 installed shaders, 58 of them
 skies, and defaults them. No gate closes.
 
+The [broadcast and level-time slice](2026-10-15-jedi-broadcast-level-time.md)
+(2026-10-15) settles the two server differences the siege slice found, in
+both Jedi multiplayer profiles. Retail `jamp.exe` 1.01's snapshot walk never
+tests `SVF_BROADCASTCLIENTS` (`0x2`): its `broadcastClients` mask only adds
+an entity (`0x46104f`), where fnTech3, after OpenJK, left a flagged entity
+out for every client the mask did not name. The same walk never sends a
+permanent entity (`EF_PERMANENT`, `0x460f90`), which the client game draws
+from its baseline; fnTech3 sent it too, so the client game added it twice a
+frame. And a level after `map` now carries on from the last level's time,
+as retail's game runs on `svs.time`, which only a shutdown clears
+(`0x45dd50`), where fnTech3 started an empty server's map at 0. A synthetic
+module's bot snapshots and level times match retail's through a map change,
+a `map_restart` and a `killserver`, at the wall clock and at `fixedtime 75`
+(Source, Unit, retail comparison). On `mp/ctf3` a permanent speaker's loop is
+now named once a frame, at 0.82 of full level 147 units away, where it was
+doubled to 1.00 (Live subset). No gate closes.
+
 The [sun keyword slice](2026-10-15-raven-sun-keyword.md) (2026-10-15) ends
 the grey skies the siege slice found. All four Jedi engines read Raven's
 general `sun` as `q3map_sun` under a second name (`jamp.exe` 1.01
@@ -2836,6 +2860,20 @@ through both mixers, and changes language through the setup menu's own
 throughout (Live subset). Single player's voices have unit evidence only, and
 its cinematic voice track and German dismemberment setting remain open. No
 gate closes.
+
+The [broadcast and level-time slice](2026-10-15-jedi-broadcast-level-time.md)
+(2026-10-15) gives Outcast's server the rule retail `jk2mp.exe` 1.02a walks
+(`0x44fcf0`): no test of `0x2`, which fnTech3 had read as Quake III's client
+mask, and a two-word mask at `+104` in the engine's half that sends an
+entity past every visibility test (`0x44fe1a`). The retail module fills it
+for Force Sight and the Jedi Master, so those players now reach the clients
+it names when out of their view. The engine half's readable prefix grows to
+112 bytes, a 408-byte record; the retail QVM's records are 828 bytes and
+still bind, running Jedi Master with two bots on the new server (Live
+subset). A map change also keeps the level time, as `jk2mp.exe` runs its
+game on `svs.time` (`0x44cf54`). Outcast's retail server stops at its disc
+check, so there is no retail runtime comparison (Source, Unit). No gate
+closes.
 
 The [sun keyword slice](2026-10-15-raven-sun-keyword.md) (2026-10-15) has
 both Outcast profiles read Raven's general `sun` as `jk2mp.exe` and

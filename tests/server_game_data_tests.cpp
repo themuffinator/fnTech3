@@ -1151,7 +1151,7 @@ void TestRTCWSaveEntityCapacity()
  * Holomatch's game unlinks that record from its bots' frame. The strides are
  * the retail modules' own: 1352 bytes in RTCW MP's qagame_mp_x86.dll, 1404 in
  * ET 2.60b's and 624 in Holomatch's vm/qagame.qvm. */
-struct JK2WorldRecord { fntech3_jk2_entityState_t s; unsigned char shared[104]; };
+struct JK2WorldRecord { fntech3_jk2_entityState_t s; unsigned char shared[FNTECH3_JK2_ENTITY_SHARED_BYTES]; };
 
 template<typename Entity, typename Player>
 void TestWorldEntityArena( comGameId_t profile, std::size_t stride, const char *name )
@@ -1187,6 +1187,40 @@ void TestWorldEntityArena( comGameId_t profile, std::size_t stride, const char *
 	check( view.BindNative(profile, binding) == GameDataBindError::EntitySpanTooSmall,
 		"the arena requires a complete native/QVM memory span" );
 	ExpectGuardsIntact( storage, "the world arena preserves array guards" );
+}
+
+/* Outcast MP's broadcast mask is the word pair at +104 in the engine's half:
+ * retail jk2mp.exe's snapshot walk reads it at entity +0x190 (0x44fe1a), so a
+ * record must reach past it, and no other profile answers for it. */
+void TestJK2BroadcastClients()
+{
+	constexpr std::size_t stride = 828; // the retail module's gentity_t
+	Storage storage( stride, sizeof(fntech3_jk2_playerState_t), 64, 1 );
+	const std::uint32_t mask[2] = { 0x80000001u, 0x00000002u };
+	std::memcpy( storage.EntityBase() + 5 * stride + FNTECH3_JK2_R_BROADCASTCLIENTS, mask, sizeof(mask) );
+	ServerGameDataView view;
+	Expect( view.BindNative(COM_GAME_JK2_MP, storage.Binding()) == GameDataBindError::None,
+		"JK2 binds the retail module's 828-byte records" );
+	GameEntityRef ref;
+	std::uint32_t read[2] = { 7u, 7u };
+	Expect( view.EntityRefAt(5, ref) && view.GetJK2BroadcastClients(ref, read)
+		&& read[0] == mask[0] && read[1] == mask[1], "JK2 reads its broadcast mask at +104" );
+	Expect( view.EntityRefAt(4, ref) && view.GetJK2BroadcastClients(ref, read)
+		&& read[0] == 0xa5a5a5a5u && read[1] == 0xa5a5a5a5u, "JK2 reads each record's own mask" );
+	ExpectGuardsIntact( storage, "the JK2 mask read preserves array guards" );
+
+	Storage narrow( FNTECH3_JK2_SHARED_ENTITY_BYTES - 4, sizeof(fntech3_jk2_playerState_t), 64, 1 );
+	Expect( view.BindNative(COM_GAME_JK2_MP, narrow.Binding()) == GameDataBindError::EntityStrideTooSmall,
+		"a JK2 record that stops inside the mask is refused" );
+	Storage exact( FNTECH3_JK2_SHARED_ENTITY_BYTES, sizeof(fntech3_jk2_playerState_t), 64, 1 );
+	Expect( view.BindNative(COM_GAME_JK2_MP, exact.Binding()) == GameDataBindError::None
+		&& view.EntityRefAt(63, ref) && view.GetJK2BroadcastClients(ref, read),
+		"a JK2 record that ends with the mask binds and reads" );
+
+	Storage academy( sizeof(fntech3_jka_sharedEntity_t), sizeof(fntech3_jka_playerState_t), 64, 1 );
+	Expect( view.BindNative(COM_GAME_JKA_MP, academy.Binding()) == GameDataBindError::None
+		&& view.EntityRefAt(5, ref) && !view.GetJK2BroadcastClients(ref, read),
+		"only JK2 answers for its mask" );
 }
 
 } // namespace
@@ -1232,6 +1266,7 @@ int main()
 	TestRTCWMPWorldflags();
 	TestSTVEFRecords();
 	TestJKARecords();
+	TestJK2BroadcastClients();
 
 	if ( failures != 0 ) {
 		std::cerr << failures << " server game-data checks failed\n";

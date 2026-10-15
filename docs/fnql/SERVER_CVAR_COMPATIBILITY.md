@@ -84,6 +84,11 @@ per-IP limits, Steam secure opt-in, Workshop references, ZMQ, rankings status,
 or the inherited empty-server time-maintenance restart. Retail defaults replace
 only confirmed missing retail owners.
 
+The Jedi multiplayer profiles are the exception for `sv_levelTimeReset` and
+the empty-server level-time reset: their retail engines keep one level clock
+across map changes, so fnTech3 keeps it there whatever the cvar says
+([record](../fntech3/2026-10-15-jedi-broadcast-level-time.md)).
+
 ## Regression Gates
 
 1. `server_cvar_compat_tests` exercises exit/error policy selection, one-shot
