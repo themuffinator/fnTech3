@@ -43,6 +43,9 @@ using Call=fntech3::jka::module::Call;
 // This static-only backend has no owned model. The actual owned queue and
 // scene flush are exercised by jka_cgame_render_tests with real Store data.
 static void CL_JKACgameRenderQueue(const fntech3_jka_mp_refEntity_t &){Com_Error(ERR_DROP,"No owned model in static-render fixture");}
+// The Academy decal pool runs in jka_decal_tests; here only its scene hook.
+static int decalDraws;
+static void CL_JKACgameDecalsDraw(int){++decalDraws;}
 static bool JKA(Call call,intptr_t *args,intptr_t &operation,intptr_t &result) {
 ''' + host[start:end] + 'switch(call){\n' + host[first:last] + '\ndefault: throw 9;\n}\n}\n' + r'''
 static intptr_t Cgame(intptr_t operation,intptr_t *args){switch(operation){
@@ -68,6 +71,8 @@ int main(){
  assert(sceneCalls==2&&(capturedView.rdflags&RDF_NOFIRSTPERSON));
  hideHud=true;view.rdflags=1;cl_enemyHighlightNumPending=4;submit(Call::CG_R_RENDERSCENE,view);
  assert(sceneCalls==2&&!cl_enemyHighlightNumPending&&liquidCalls==2&&underwaterCalls==2&&flushCalls==2);
+ // Both world scenes drew the decal pool; the scene without the world did not.
+ assert(decalDraws==2);
  hideHud=false;view.rdflags=0;
  const auto validView=view;const int scenesBefore=sceneCalls,liquidsBefore=liquidCalls,flushesBefore=flushCalls;
  for(int row=0;row<8;++row){
