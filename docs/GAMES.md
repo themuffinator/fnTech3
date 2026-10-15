@@ -318,7 +318,8 @@ and `stoprecord` ends it. Commands the game itself knows, such as `kill`,
 reach the server from the console. The portal on `km_portal` shows the view
 through it, turning as in the original. fnTech3's own server takes players too, from the
 original IHV Test or from fnTech3; name it with `hostname`, as the original does. The IHV Test cannot download files, so
-every player needs the maps already. The
+every player needs the maps already, and no IHV Test server checks players'
+files: `sv_pure` has no effect. The
 [IHV record](fntech3/Q3_IHV.md) has the details.
 
 ## Quake III Arena Q3Test (`q3test`)
@@ -344,7 +345,8 @@ checked. The [Q3Test record](fntech3/Q3TEST.md) has the details.
 **Good to know:** the original Q3Test programs only read their own data, so
 they cannot play a demo or a map made elsewhere; fnTech3's own demos are
 checked by playing them back in fnTech3 and with a separate demo reader
-instead.
+instead. No Q3Test version checks players' files, so `sv_pure` has no effect
+on its servers.
 
 ## Quake Live (`quakelive`)
 

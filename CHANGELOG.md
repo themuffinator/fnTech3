@@ -55,6 +55,12 @@ historical upstream records, not fnTech3 release history. See the
   messages: a big Enemy Territory map keeps checking players' files instead of
   falling back, and a busy Jedi Outcast server no longer publishes a list its
   players cannot receive ([record](docs/fntech3/2026-10-15-census-small-gaps.md)).
+- Measure a Medal of Honor pure server's room for its pak list in its own
+  messages, counting the sounds a multiplayer game adds once the level has
+  loaded: a big map keeps checking players' files instead of falling back,
+  and the list is dropped only when it really would not fit. The IHV Test
+  and Q3Test, which never checked players' files, now say that `sv_pure` has
+  no effect ([record](docs/fntech3/2026-10-15-pure-budget-own-wires.md)).
 - Add `cl_viewShake`, from `0` (no shake) to `1` (the game's own shake, the
   default), to turn down the view shake the engine hands a game. Jedi
   Academy multiplayer's muzzle flashes and explosions honour it; the other

@@ -2363,8 +2363,12 @@ int SV_RemainingGameState( void )
 	// own, and Outcast's entity fields come in Raven's order, which costs an
 	// item or mover more than Quake Live's; etded.exe 2.60b (0x0042d271) and
 	// jk2mp.exe 1.02a (0x0044dbce) publish sv_paks unconditionally as well.
+	// Medal of Honor's message is Alice's 48 KiB, and its baselines are its
+	// own entity states, which only its own writer encodes; OpenMoHAA's
+	// engine publishes sv_paks unconditionally too. The IHV Test and Q3Test
+	// send no pak list, so nothing measures them (SV_SetPurePaks).
 	const bool ownWire = Com_GameIsRTCW() || Com_GameIsWolfET() || Com_GameIsSTVEFMP()
-		|| Com_GameIsRitual() || Com_GameIsJKAMP() || Com_GameIsJK2MP();
+		|| Com_GameIsRitual() || Com_GameIsJKAMP() || Com_GameIsJK2MP() || Com_GameIsMOHAA();
 	const netchanWireProfile_t wire = ownWire
 		? fnql::protocol::FindForProfile( Com_GameProfile()->preferredProtocol,
 			Com_GameProfile() )->wireProfile
@@ -2406,13 +2410,17 @@ int SV_RemainingGameState( void )
 		}
 	}
 
-	// write the baselines
-	for ( int entityNum : SV_Indices( MAX_GENTITIES ) ) {
-		if ( !sv.baselineUsed[ entityNum ] ) {
-			continue;
+	// write the baselines; Medal of Honor's are its own entity states
+	if ( wire == NETCHAN_WIRE_MOHAA ) {
+		SV_MOHAAWriteBaselines( &msg );
+	} else {
+		for ( int entityNum : SV_Indices( MAX_GENTITIES ) ) {
+			if ( !sv.baselineUsed[ entityNum ] ) {
+				continue;
+			}
+			SV_WriteBaselineMessage( msg, nullstate, entityNum,
+				wire );
 		}
-		SV_WriteBaselineMessage( msg, nullstate, entityNum,
-			wire );
 	}
 
 	MSG_WriteByte( &msg, Netchan_ServerEOFOpcode( wire ) );

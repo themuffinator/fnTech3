@@ -1,0 +1,855 @@
+{
+ "record": "2026-10-15-pure-budget-own-wires.md",
+ "date": "2026-10-15",
+ "gatesClosed": [],
+ "settles": {
+  "source": "2026-10-15-census-small-gaps.json openItems",
+  "entry": "mohaa, q3-ihv, q3test: the pure gamestate budget still measures Quake Live; Medal of Honor needs a measure of its own baselines",
+  "outcome": {
+   "mohaa": "measured on its own wire and limit with its own baselines, and measured again after its multiplayer game registers its sounds",
+   "q3-ihv": "no budget applies: no pure mode in the engine and no pak list in the clients' systeminfo; sv_pure publishes nothing and warns",
+   "q3test": "no budget applies: no pure mode in any release and no pak list in the clients' systeminfo; sv_pure publishes nothing and warns"
+  }
+ },
+ "platform": "Windows 11 Home 10.0.26200; static reads with pefile; Windows x86 MSVC build (meson debugoptimized, strict warnings); clang i686-pc-windows-msvc fixtures",
+ "retail": {
+  "executables": {
+   "q3-ihv quake3.exe (February 1999)": {
+    "path": ".tmp/q3-ihv/original-server/quake3.exe",
+    "size": 725042,
+    "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37",
+    "peTimestamp": "0x36c4a216"
+   },
+   "q3test 1.02 quake3.exe": {
+    "size": 688180,
+    "peTimestamp": "0x37228c46",
+    "sha256": "86da36081878d5586d5621709f48a7e621db3c24d33fa4b45838b08d01020d4a"
+   },
+   "q3test 1.03 quake3.exe": {
+    "size": 692276,
+    "peTimestamp": "0x3727f07d",
+    "sha256": "313ed8d1b71296b834b806b64c0f5929eb5bdd05eb7ce96b9c7fdb7369ecbf79"
+   },
+   "q3test 1.05 quake3.exe": {
+    "size": 696372,
+    "peTimestamp": "0x3736948c",
+    "sha256": "05579377e09286d658aef430d6fb45dc6c4fc4578988cea83afa51459768fcf8"
+   },
+   "q3test 1.06 quake3.exe": {
+    "size": 651264,
+    "peTimestamp": "0x378fd2ba",
+    "sha256": "a18c714fac103c4634fc08c88b2dd1c7b63720c8ddb8ec0f408e00d7ccb63db3"
+   },
+   "q3test 1.07 quake3.exe": {
+    "size": 651264,
+    "peTimestamp": "0x37940afc",
+    "sha256": "a507b42aa346dd7c67f0fdd33c42e88c3ee144d91bce3dea0a3fb06aa7368962"
+   },
+   "q3test 1.08 quake3.exe": {
+    "size": 655360,
+    "peTimestamp": "0x37a67da7",
+    "sha256": "89a7dfb431c6738a13e1e44d0c2d76d69107c6e0791a64f6a49830e1a51c547b"
+   },
+   "mohaa 1.00 main/gamex86.dll": {
+    "size": 2220085,
+    "peTimestamp": "0x3c0fa7ef",
+    "sha256": "2f37ead1a91aae850dd8cdb29c6b5774864f6ae8654fb79d3593e45d9d3fc55c"
+   },
+   "mohaa 1.00 main/Pak5.pk3 (maps)": {
+    "size": 87721422,
+    "sha256": "b6035d8686bed133be76cdee322c37fd4a9814ba88bbce3e91f20571ea7b2a1d"
+   }
+  },
+  "mohaaExecutable": "MOHAA.exe 1.00 is SafeDisc-encrypted and was not read",
+  "ihvAndQ3TestExecuted": false,
+  "installationsWritten": false
+ },
+ "retailObservations": {
+  "ihvAndQ3Test": {
+   "strings": "none of the seven executables contains \"sv_pure\" or \"sv_paks\"; the only \"pure\" string in each is the C runtime's \"- pure virtual function call\"",
+   "clientCommandTables": {
+    "q3-ihv": {
+     "table": "0x4623a0",
+     "verbs": {
+      "userinfo": "0x418bb0",
+      "disconnect": "0x418a90",
+      "download": "0x418980",
+      "nextdl": "0x4188c0"
+     }
+    },
+    "1.02": {
+     "table": "0x469fc8",
+     "verbs": {
+      "userinfo": "0x41b130",
+      "disconnect": "0x41afe0",
+      "download": "0x41aed0",
+      "nextdl": "0x41ae10"
+     }
+    },
+    "1.03": {
+     "table": "0x46b160",
+     "verbs": {
+      "userinfo": "0x41b690",
+      "disconnect": "0x41b540",
+      "download": "0x41b430",
+      "nextdl": "0x41b370"
+     }
+    },
+    "1.05": {
+     "table": "0x46b438",
+     "verbs": {
+      "userinfo": "0x41b500",
+      "disconnect": "0x41b3b0",
+      "download": "0x41b2a0",
+      "nextdl": "0x41b1e0"
+     }
+    },
+    "1.06": {
+     "table": "0x462158",
+     "verbs": {
+      "userinfo": "0x41bec0",
+      "disconnect": "0x41bd70"
+     }
+    },
+    "1.07": {
+     "table": "0x462188",
+     "verbs": {
+      "userinfo": "0x41bf80",
+      "disconnect": "0x41be30"
+     }
+    },
+    "1.08": {
+     "table": "0x463188",
+     "verbs": {
+      "userinfo": "0x41c7c0",
+      "disconnect": "0x41c670"
+     }
+    },
+    "note": "each table ends with a null entry; no cp or other pak-proof verb exists"
+   },
+   "systeminfo": {
+    "q3-ihv": "serverid and mapChecksum (0x41986e..0x4198bd; Q3_IHV.md)",
+    "q3test": "sv_serverid, timescale (to 1.06) or cheats (from 1.06) and the game's systeminfo cvars (SV_Init 1.02 0x41bed0, 1.06 0x41cf90, 1.07 0x41d030; Q3TEST.md)"
+   },
+   "tools": [
+    ".tmp/pure-budget-ownwire/tools/pe_strings.py",
+    ".tmp/pure-budget-ownwire/tools/ucmd_tables.py"
+   ]
+  },
+  "mohaaModule": {
+   "RegisterSounds": "export 20, 0x310d7c50: tests neither the game type nor dedicated",
+   "aliascache": "caches each kept line's file through soundindex (0x310e2810)",
+   "source": "2026-09-24-mohaa-contracts.md"
+  }
+ },
+ "referenceObservations": {
+  "openmohaa": {
+   "commit": "ab43a0def6c4feccedae36fdb58c2e007d7e4c35",
+   "use": "reference observation only; nothing incorporated by this record",
+   "sv_init.c": {
+    "881-895": "sv_paks set from FS_LoadedPakChecksums whenever sv_pure is set; no budget",
+    "916": "SV_SetConfigstring( CS_SYSTEMINFO, ... )",
+    "928": "SV_Heartbeat_f()",
+    "933": "ge->RegisterSounds() unless the game type is single player",
+    "1081-1083": "sv_pure registered \"0\" (off by default in mohaa)"
+   },
+   "sv_client.c 824-897 SV_SendClientGameState": [
+    "svc_configstring, short index, MSG_WriteScrambledBigString for every set configstring",
+    "svc_baseline and MSG_WriteDeltaEntity from the null entity for every baseline",
+    "end byte, client number, checksum feed",
+    "MSG_WriteServerFrameTime"
+   ],
+   "msg.cpp": {
+    "586-608": "protocol 6 scrambled strings are the plain MSG_WriteString / MSG_WriteBigString",
+    "3965-3971": "the server frame time is written only from protocol 15"
+   },
+   "qcommon.h 251": "MAX_MSGLEN 49152"
+  },
+  "publishedRetailLog": {
+   "source": "https://icculus.org/pipermail/mohaa/2002-August/000728.html",
+   "version": "Medal of Honor Allied Assault 1.11 linux-i386 Jul 23 2002",
+   "map": "obj/obj_team3 (dedicated server)",
+   "lines": [
+    "-------------------- Spawning Entities Done ------------------ 195 ms",
+    "-----------PARSING UBERSOUND (SERVER)------------"
+   ],
+   "note": "published observation, not a probe of ours; nothing is printed between the two lines"
+  }
+ },
+ "inferences": [
+  "fnTech3's pure gamestate budget is an engine policy (from Quake3e), not a retail contract; it must measure the gamestate clients are sent to keep a server from an overflow.",
+  "With no pure mode in their engines and no pak list in their clients' systeminfo, no budget applies to the IHV Test or Q3Test.",
+  "Medal of Honor 1.00's engine registers a multiplayer game's sounds after publishing sv_paks, as OpenMoHAA does; its executable cannot be read.",
+  "Under HEAD's Quake Live measure a Medal of Honor map with two or three times the stock maps' configstrings before its sounds would have fallen to degraded pure although its 48 KiB message had room."
+ ],
+ "changes": {
+  "code/server/sv_client.cpp": "SV_RemainingGameState measures Medal of Honor on its own wire and limit, with its baselines written by SV_MOHAAWriteBaselines",
+  "code/server/sv_init.cpp": "the pure-pak step becomes SV_SetPurePaks; it publishes nothing for the IHV Test and Q3Test and warns when sv_pure is set; after SV_MOHAASpawnDone it runs again and the systeminfo is republished",
+  "tests/gamestate_budget_wire_tests.py": "Medal of Honor estimates, the sounds spawn, the no-pure profiles, and five mutations",
+  "tests/rtcw_gamestate_budget_tests.py": "pins the new own-wire profile list"
+ },
+ "mohaaProbe": {
+  "what": "an instrumented export of HEAD aa0e7049 with this change (tools/instrument.py, never committed): HEAD's SV_RemainingGameState beside the new one at each measure, and at the end of the spawn the gamestate SV_SendClientGameState's own text writes for client 0",
+  "server": "export/build-probe/fntech3.ded.exe",
+  "serverSha256": "de65c560c6978fa3ce4ca05903bb5fa0afb2f6e0c2d5b8bf3222412650a6d793",
+  "serverSha256After": "de65c560c6978fa3ce4ca05903bb5fa0afb2f6e0c2d5b8bf3222412650a6d793",
+  "command": "fntech3.ded.exe +set com_gameProfile mohaa +set fs_basepath \"E:\\Games\\Medal of Honor Allied Assault\" +set fs_homepath <isolated home> +set logfile 2 +set developer 1 +set dedicated 1 +set net_enabled 0 +set sv_pure 1 +set g_gametype <1 dm, 4 obj> +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set sv_errorExit 0 +exec purebudget.cfg (map <name>)",
+  "runner": ".tmp/pure-budget-ownwire/tools/probe_maps.py",
+  "paksLength": 72,
+  "maps": [
+   {
+    "map": "dm/mohdm1",
+    "gametype": 1,
+    "baselines": 57,
+    "baselineBytes": 955,
+    "configstringsBeforeSounds": 154,
+    "sounds": 364,
+    "configstrings": 520,
+    "configstringBytes": 18571,
+    "gamestateBytes": 20550,
+    "headMeasureBeforeSounds": 10722,
+    "estimateBeforeSounds": 42536,
+    "headMeasureAfterSounds": -512,
+    "estimateAfterSounds": 27891,
+    "estimateWithList": 27816,
+    "paksLength": 72,
+    "published": [
+     "PUREPROBE published 1",
+     "PUREPROBE published 2"
+    ]
+   },
+   {
+    "map": "dm/mohdm2",
+    "gametype": 1,
+    "baselines": 21,
+    "baselineBytes": 464,
+    "configstringsBeforeSounds": 144,
+    "sounds": 364,
+    "configstrings": 510,
+    "configstringBytes": 18398,
+    "gamestateBytes": 19866,
+    "headMeasureBeforeSounds": 10915,
+    "estimateBeforeSounds": 43219,
+    "headMeasureAfterSounds": -512,
+    "estimateAfterSounds": 28574,
+    "estimateWithList": 28500,
+    "paksLength": 72,
+    "published": [
+     "PUREPROBE published 1",
+     "PUREPROBE published 2"
+    ]
+   },
+   {
+    "map": "dm/mohdm3",
+    "gametype": 1,
+    "baselines": 16,
+    "baselineBytes": 319,
+    "configstringsBeforeSounds": 141,
+    "sounds": 364,
+    "configstrings": 507,
+    "configstringBytes": 18389,
+    "gamestateBytes": 19707,
+    "headMeasureBeforeSounds": 10929,
+    "estimateBeforeSounds": 43379,
+    "headMeasureAfterSounds": -512,
+    "estimateAfterSounds": 28733,
+    "estimateWithList": 28659,
+    "paksLength": 72,
+    "published": [
+     "PUREPROBE published 1",
+     "PUREPROBE published 2"
+    ]
+   },
+   {
+    "map": "dm/mohdm4",
+    "gametype": 1,
+    "baselines": 60,
+    "baselineBytes": 1070,
+    "configstringsBeforeSounds": 189,
+    "sounds": 364,
+    "configstrings": 555,
+    "configstringBytes": 18561,
+    "gamestateBytes": 20723,
+    "headMeasureBeforeSounds": 10664,
+    "estimateBeforeSounds": 42362,
+    "headMeasureAfterSounds": -512,
+    "estimateAfterSounds": 27717,
+    "estimateWithList": 27643,
+    "paksLength": 72,
+    "published": [
+     "PUREPROBE published 1",
+     "PUREPROBE published 2"
+    ]
+   },
+   {
+    "map": "dm/mohdm5",
+    "gametype": 1,
+    "baselines": 13,
+    "baselineBytes": 264,
+    "configstringsBeforeSounds": 136,
+    "sounds": 364,
+    "configstrings": 501,
+    "configstringBytes": 18333,
+    "gamestateBytes": 19585,
+    "headMeasureBeforeSounds": 10975,
+    "estimateBeforeSounds": 43479,
+    "headMeasureAfterSounds": -512,
+    "estimateAfterSounds": 28856,
+    "estimateWithList": 28781,
+    "paksLength": 72,
+    "published": [
+     "PUREPROBE published 1",
+     "PUREPROBE published 2"
+    ]
+   },
+   {
+    "map": "dm/mohdm6",
+    "gametype": 1,
+    "baselines": 40,
+    "baselineBytes": 821,
+    "configstringsBeforeSounds": 168,
+    "sounds": 364,
+    "configstrings": 533,
+    "configstringBytes": 18610,
+    "gamestateBytes": 20481,
+    "headMeasureBeforeSounds": 10635,
+    "estimateBeforeSounds": 42583,
+    "headMeasureAfterSounds": -512,
+    "estimateAfterSounds": 27959,
+    "estimateWithList": 27885,
+    "paksLength": 72,
+    "published": [
+     "PUREPROBE published 1",
+     "PUREPROBE published 2"
+    ]
+   },
+   {
+    "map": "dm/mohdm7",
+    "gametype": 1,
+    "baselines": 89,
+    "baselineBytes": 1502,
+    "configstringsBeforeSounds": 189,
+    "sounds": 364,
+    "configstrings": 555,
+    "configstringBytes": 18587,
+    "gamestateBytes": 21179,
+    "headMeasureBeforeSounds": 10640,
+    "estimateBeforeSounds": 41906,
+    "headMeasureAfterSounds": -512,
+    "estimateAfterSounds": 27261,
+    "estimateWithList": 27187,
+    "paksLength": 72,
+    "published": [
+     "PUREPROBE published 1",
+     "PUREPROBE published 2"
+    ]
+   },
+   {
+    "map": "obj/obj_team1",
+    "gametype": 4,
+    "baselines": 22,
+    "baselineBytes": 485,
+    "configstringsBeforeSounds": 141,
+    "sounds": 381,
+    "configstrings": 523,
+    "configstringBytes": 19251,
+    "gamestateBytes": 20766,
+    "headMeasureBeforeSounds": 10734,
+    "estimateBeforeSounds": 43018,
+    "headMeasureAfterSounds": -511,
+    "estimateAfterSounds": 27674,
+    "estimateWithList": 27600,
+    "paksLength": 72,
+    "published": [
+     "PUREPROBE published 1",
+     "PUREPROBE published 2"
+    ]
+   },
+   {
+    "map": "obj/obj_team2",
+    "gametype": 4,
+    "baselines": 149,
+    "baselineBytes": 2866,
+    "configstringsBeforeSounds": 212,
+    "sounds": 381,
+    "configstrings": 594,
+    "configstringBytes": 19749,
+    "gamestateBytes": 23776,
+    "headMeasureBeforeSounds": 10106,
+    "estimateBeforeSounds": 40008,
+    "headMeasureAfterSounds": -512,
+    "estimateAfterSounds": 24664,
+    "estimateWithList": 24590,
+    "paksLength": 72,
+    "published": [
+     "PUREPROBE published 1",
+     "PUREPROBE published 2"
+    ]
+   },
+   {
+    "map": "obj/obj_team3",
+    "gametype": 4,
+    "baselines": 89,
+    "baselineBytes": 1862,
+    "configstringsBeforeSounds": 238,
+    "sounds": 381,
+    "configstrings": 620,
+    "configstringBytes": 21558,
+    "gamestateBytes": 24615,
+    "headMeasureBeforeSounds": 8263,
+    "estimateBeforeSounds": 39169,
+    "headMeasureAfterSounds": -512,
+    "estimateAfterSounds": 23826,
+    "estimateWithList": 23751,
+    "paksLength": 72,
+    "published": [
+     "PUREPROBE published 1",
+     "PUREPROBE published 2"
+    ]
+   },
+   {
+    "map": "obj/obj_team4",
+    "gametype": 4,
+    "baselines": 112,
+    "baselineBytes": 2073,
+    "configstringsBeforeSounds": 284,
+    "sounds": 381,
+    "configstrings": 666,
+    "configstringBytes": 21431,
+    "gamestateBytes": 24796,
+    "headMeasureBeforeSounds": 8293,
+    "estimateBeforeSounds": 38988,
+    "headMeasureAfterSounds": -512,
+    "estimateAfterSounds": 23645,
+    "estimateWithList": 23570,
+    "paksLength": 72,
+    "published": [
+     "PUREPROBE published 1",
+     "PUREPROBE published 2"
+    ]
+   }
+  ],
+  "ranges": {
+   "clientGamestateBytes": [
+    19585,
+    24796
+   ],
+   "soundsRegisteredAfterTheBudget": {
+    "dm": 364,
+    "obj": 381
+   },
+   "soundBytes": [
+    14623,
+    15344
+   ],
+   "headMeasureFreeBeforeSounds": [
+    8263,
+    10975
+   ],
+   "headMeasureAfterSounds": "overflows its 16 KiB (-511 or -512)",
+   "newMeasureFreeBeforeSounds": [
+    38988,
+    43479
+   ],
+   "newMeasureFreeAfterSounds": [
+    23645,
+    28856
+   ],
+   "freeWithTheList": [
+    23570,
+    28781
+   ]
+  },
+  "outcome": "sv_paks published on all eleven maps before and after this change"
+ },
+ "tests": {
+  "tests/gamestate_budget_wire_tests.py": {
+   "probe": "production estimate, gamestate writer, Medal of Honor baseline writer, SV_SetPurePaks and the end of Medal of Honor's spawn, with the engine and Medal of Honor codecs",
+   "outputs": {
+    "compiler": "C:\\Program Files\\LLVM\\bin\\clang++.EXE",
+    "target": [
+     "--target=i686-pc-windows-msvc"
+    ],
+    "runs": [
+     {
+      "variant": "production",
+      "exitCode": 0,
+      "stdout": [
+       "PASS estimate jk2-mp items 0: estimate 15450, client gamestate leaves 15450",
+       "PASS estimate jk2-mp items 64: estimate 12856, client gamestate leaves 12856",
+       "PASS estimate jk2-mp items 300: estimate 5334, client gamestate leaves 5334",
+       "PASS estimate wolfet items 0: estimate 31835, client gamestate leaves 31835",
+       "PASS estimate wolfet items 64: estimate 29270, client gamestate leaves 29270",
+       "PASS estimate wolfet items 300: estimate 21853, client gamestate leaves 21853",
+       "PASS estimate rtcw-mp items 0: estimate 31835, client gamestate leaves 31835",
+       "PASS estimate rtcw-mp items 64: estimate 29270, client gamestate leaves 29270",
+       "PASS estimate rtcw-mp items 300: estimate 21853, client gamestate leaves 21853",
+       "PASS estimate jka-mp items 0: estimate 48213, client gamestate leaves 48213",
+       "PASS estimate jka-mp items 64: estimate 45603, client gamestate leaves 45603",
+       "PASS estimate jka-mp items 300: estimate 38021, client gamestate leaves 38021",
+       "PASS estimate quakelive items 0: estimate 15451, client gamestate leaves 15451",
+       "PASS estimate quakelive items 64: estimate 12985, client gamestate leaves 12985",
+       "PASS estimate quakelive items 300: estimate 5934, client gamestate leaves 5934",
+       "PASS estimate mohaa items 0: estimate 48218, client gamestate leaves 48218",
+       "PASS estimate mohaa items 64: estimate 46108, client gamestate leaves 46108",
+       "PASS estimate mohaa items 300: estimate 40422, client gamestate leaves 40422",
+       "PASS estimate quake3 items 0: estimate 15451, client gamestate leaves 15451",
+       "PASS estimate quake3 items 64: estimate 12985, client gamestate leaves 12985",
+       "PASS estimate quake3 items 300: estimate 5934, client gamestate leaves 5934",
+       "PASS publish quake3: sv_paks \"506952113 -1133579422 1520856339 -119675196 -1760206731 894229030 -74630\"",
+       "PASS mohaa-sounds room: published 1/1, leaves 28653",
+       "PASS mohaa-sounds tight: sounds cost 13655, room before them 15522, list 2858, published 1/0, leaves 1866",
+       "PASS no-pure q3-ihv: sv_paks \"\", said \"^3WARNING: Quake III Arena (IHV Test) has no pure mode, so sv_pure has no effect",
+       "\"",
+       "PASS not-pure q3-ihv: said \"\"",
+       "PASS no-pure q3test: sv_paks \"\", said \"^3WARNING: Quake III Arena (Q3Test) has no pure mode, so sv_pure has no effect",
+       "\"",
+       "PASS not-pure q3test: said \"\"",
+       "0 failures"
+      ]
+     },
+     {
+      "variant": "Enemy Territory and Outcast measured as Quake Live",
+      "exitCode": 1,
+      "stdout": [
+       "FAIL estimate jk2-mp items 0: estimate 15451, client gamestate leaves 15450",
+       "FAIL estimate jk2-mp items 64: estimate 12985, client gamestate leaves 12856",
+       "FAIL estimate jk2-mp items 300: estimate 5934, client gamestate leaves 5334",
+       "FAIL estimate wolfet items 0: estimate 15451, client gamestate leaves 31835",
+       "FAIL estimate wolfet items 64: estimate 12985, client gamestate leaves 29270",
+       "FAIL estimate wolfet items 300: estimate 5934, client gamestate leaves 21853",
+       "PASS estimate rtcw-mp items 0: estimate 31835, client gamestate leaves 31835",
+       "PASS estimate rtcw-mp items 64: estimate 29270, client gamestate leaves 29270",
+       "PASS estimate rtcw-mp items 300: estimate 21853, client gamestate leaves 21853",
+       "PASS estimate jka-mp items 0: estimate 48213, client gamestate leaves 48213",
+       "PASS estimate jka-mp items 64: estimate 45603, client gamestate leaves 45603",
+       "PASS estimate jka-mp items 300: estimate 38021, client gamestate leaves 38021",
+       "PASS estimate quakelive items 0: estimate 15451, client gamestate leaves 15451",
+       "PASS estimate quakelive items 64: estimate 12985, client gamestate leaves 12985",
+       "PASS estimate quakelive items 300: estimate 5934, client gamestate leaves 5934",
+       "PASS estimate mohaa items 0: estimate 48218, client gamestate leaves 48218",
+       "PASS estimate mohaa items 64: estimate 46108, client gamestate leaves 46108",
+       "PASS estimate mohaa items 300: estimate 40422, client gamestate leaves 40422",
+       "PASS estimate quake3 items 0: estimate 15451, client gamestate leaves 15451",
+       "PASS estimate quake3 items 64: estimate 12985, client gamestate leaves 12985",
+       "PASS estimate quake3 items 300: estimate 5934, client gamestate leaves 5934",
+       "PASS publish quake3: sv_paks \"506952113 -1133579422 1520856339 -119675196 -1760206731 894229030 -74630\"",
+       "PASS mohaa-sounds room: published 1/1, leaves 28653",
+       "PASS mohaa-sounds tight: sounds cost 13655, room before them 15522, list 2858, published 1/0, leaves 1866",
+       "PASS no-pure q3-ihv: sv_paks \"\", said \"^3WARNING: Quake III Arena (IHV Test) has no pure mode, so sv_pure has no effect",
+       "\"",
+       "PASS not-pure q3-ihv: said \"\"",
+       "PASS no-pure q3test: sv_paks \"\", said \"^3WARNING: Quake III Arena (Q3Test) has no pure mode, so sv_pure has no effect",
+       "\"",
+       "PASS not-pure q3test: said \"\"",
+       "6 failures"
+      ]
+     },
+     {
+      "variant": "Medal of Honor measured as Quake Live",
+      "exitCode": 1,
+      "stdout": [
+       "PASS estimate jk2-mp items 0: estimate 15450, client gamestate leaves 15450",
+       "PASS estimate jk2-mp items 64: estimate 12856, client gamestate leaves 12856",
+       "PASS estimate jk2-mp items 300: estimate 5334, client gamestate leaves 5334",
+       "PASS estimate wolfet items 0: estimate 31835, client gamestate leaves 31835",
+       "PASS estimate wolfet items 64: estimate 29270, client gamestate leaves 29270",
+       "PASS estimate wolfet items 300: estimate 21853, client gamestate leaves 21853",
+       "PASS estimate rtcw-mp items 0: estimate 31835, client gamestate leaves 31835",
+       "PASS estimate rtcw-mp items 64: estimate 29270, client gamestate leaves 29270",
+       "PASS estimate rtcw-mp items 300: estimate 21853, client gamestate leaves 21853",
+       "PASS estimate jka-mp items 0: estimate 48213, client gamestate leaves 48213",
+       "PASS estimate jka-mp items 64: estimate 45603, client gamestate leaves 45603",
+       "PASS estimate jka-mp items 300: estimate 38021, client gamestate leaves 38021",
+       "PASS estimate quakelive items 0: estimate 15451, client gamestate leaves 15451",
+       "PASS estimate quakelive items 64: estimate 12985, client gamestate leaves 12985",
+       "PASS estimate quakelive items 300: estimate 5934, client gamestate leaves 5934",
+       "FAIL estimate mohaa items 0: estimate 15451, client gamestate leaves 48218",
+       "FAIL estimate mohaa items 64: estimate 14264, client gamestate leaves 46108",
+       "FAIL estimate mohaa items 300: estimate 12043, client gamestate leaves 40422",
+       "PASS estimate quake3 items 0: estimate 15451, client gamestate leaves 15451",
+       "PASS estimate quake3 items 64: estimate 12985, client gamestate leaves 12985",
+       "PASS estimate quake3 items 300: estimate 5934, client gamestate leaves 5934",
+       "PASS publish quake3: sv_paks \"506952113 -1133579422 1520856339 -119675196 -1760206731 894229030 -74630\"",
+       "FAIL mohaa-sounds room: published 1/0, leaves 28737",
+       "PASS mohaa-sounds tight: sounds cost 13655, room before them 15451, list 2787, published 1/0, leaves 33640",
+       "PASS no-pure q3-ihv: sv_paks \"\", said \"^3WARNING: Quake III Arena (IHV Test) has no pure mode, so sv_pure has no effect",
+       "\"",
+       "PASS not-pure q3-ihv: said \"\"",
+       "PASS no-pure q3test: sv_paks \"\", said \"^3WARNING: Quake III Arena (Q3Test) has no pure mode, so sv_pure has no effect",
+       "\"",
+       "PASS not-pure q3test: said \"\"",
+       "4 failures"
+      ]
+     },
+     {
+      "variant": "Medal of Honor measured without its own baselines",
+      "exitCode": 1,
+      "stdout": [
+       "PASS estimate jk2-mp items 0: estimate 15450, client gamestate leaves 15450",
+       "PASS estimate jk2-mp items 64: estimate 12856, client gamestate leaves 12856",
+       "PASS estimate jk2-mp items 300: estimate 5334, client gamestate leaves 5334",
+       "PASS estimate wolfet items 0: estimate 31835, client gamestate leaves 31835",
+       "PASS estimate wolfet items 64: estimate 29270, client gamestate leaves 29270",
+       "PASS estimate wolfet items 300: estimate 21853, client gamestate leaves 21853",
+       "PASS estimate rtcw-mp items 0: estimate 31835, client gamestate leaves 31835",
+       "PASS estimate rtcw-mp items 64: estimate 29270, client gamestate leaves 29270",
+       "PASS estimate rtcw-mp items 300: estimate 21853, client gamestate leaves 21853",
+       "PASS estimate jka-mp items 0: estimate 48213, client gamestate leaves 48213",
+       "PASS estimate jka-mp items 64: estimate 45603, client gamestate leaves 45603",
+       "PASS estimate jka-mp items 300: estimate 38021, client gamestate leaves 38021",
+       "PASS estimate quakelive items 0: estimate 15451, client gamestate leaves 15451",
+       "PASS estimate quakelive items 64: estimate 12985, client gamestate leaves 12985",
+       "PASS estimate quakelive items 300: estimate 5934, client gamestate leaves 5934",
+       "PASS estimate mohaa items 0: estimate 48218, client gamestate leaves 48218",
+       "FAIL estimate mohaa items 64: estimate 47032, client gamestate leaves 46108",
+       "FAIL estimate mohaa items 300: estimate 44810, client gamestate leaves 40422",
+       "PASS estimate quake3 items 0: estimate 15451, client gamestate leaves 15451",
+       "PASS estimate quake3 items 64: estimate 12985, client gamestate leaves 12985",
+       "PASS estimate quake3 items 300: estimate 5934, client gamestate leaves 5934",
+       "PASS publish quake3: sv_paks \"506952113 -1133579422 1520856339 -119675196 -1760206731 894229030 -74630\"",
+       "PASS mohaa-sounds room: published 1/1, leaves 28653",
+       "PASS mohaa-sounds tight: sounds cost 13655, room before them 15417, list 2753, published 1/0, leaves 838",
+       "PASS no-pure q3-ihv: sv_paks \"\", said \"^3WARNING: Quake III Arena (IHV Test) has no pure mode, so sv_pure has no effect",
+       "\"",
+       "PASS not-pure q3-ihv: said \"\"",
+       "PASS no-pure q3test: sv_paks \"\", said \"^3WARNING: Quake III Arena (Q3Test) has no pure mode, so sv_pure has no effect",
+       "\"",
+       "PASS not-pure q3test: said \"\"",
+       "2 failures"
+      ]
+     },
+     {
+      "variant": "Medal of Honor's list not measured again after its sounds",
+      "exitCode": 1,
+      "stdout": [
+       "PASS estimate jk2-mp items 0: estimate 15450, client gamestate leaves 15450",
+       "PASS estimate jk2-mp items 64: estimate 12856, client gamestate leaves 12856",
+       "PASS estimate jk2-mp items 300: estimate 5334, client gamestate leaves 5334",
+       "PASS estimate wolfet items 0: estimate 31835, client gamestate leaves 31835",
+       "PASS estimate wolfet items 64: estimate 29270, client gamestate leaves 29270",
+       "PASS estimate wolfet items 300: estimate 21853, client gamestate leaves 21853",
+       "PASS estimate rtcw-mp items 0: estimate 31835, client gamestate leaves 31835",
+       "PASS estimate rtcw-mp items 64: estimate 29270, client gamestate leaves 29270",
+       "PASS estimate rtcw-mp items 300: estimate 21853, client gamestate leaves 21853",
+       "PASS estimate jka-mp items 0: estimate 48213, client gamestate leaves 48213",
+       "PASS estimate jka-mp items 64: estimate 45603, client gamestate leaves 45603",
+       "PASS estimate jka-mp items 300: estimate 38021, client gamestate leaves 38021",
+       "PASS estimate quakelive items 0: estimate 15451, client gamestate leaves 15451",
+       "PASS estimate quakelive items 64: estimate 12985, client gamestate leaves 12985",
+       "PASS estimate quakelive items 300: estimate 5934, client gamestate leaves 5934",
+       "PASS estimate mohaa items 0: estimate 48218, client gamestate leaves 48218",
+       "PASS estimate mohaa items 64: estimate 46108, client gamestate leaves 46108",
+       "PASS estimate mohaa items 300: estimate 40422, client gamestate leaves 40422",
+       "PASS estimate quake3 items 0: estimate 15451, client gamestate leaves 15451",
+       "PASS estimate quake3 items 64: estimate 12985, client gamestate leaves 12985",
+       "PASS estimate quake3 items 300: estimate 5934, client gamestate leaves 5934",
+       "PASS publish quake3: sv_paks \"506952113 -1133579422 1520856339 -119675196 -1760206731 894229030 -74630\"",
+       "PASS mohaa-sounds room: published 1/1, leaves 28653",
+       "FAIL mohaa-sounds tight: sounds cost 13655, room before them 15522, list 2858, published 1/1, leaves -788",
+       "PASS no-pure q3-ihv: sv_paks \"\", said \"^3WARNING: Quake III Arena (IHV Test) has no pure mode, so sv_pure has no effect",
+       "\"",
+       "PASS not-pure q3-ihv: said \"\"",
+       "PASS no-pure q3test: sv_paks \"\", said \"^3WARNING: Quake III Arena (Q3Test) has no pure mode, so sv_pure has no effect",
+       "\"",
+       "PASS not-pure q3test: said \"\"",
+       "1 failures"
+      ]
+     },
+     {
+      "variant": "The IHV Test and Q3Test measured as pure servers",
+      "exitCode": 1,
+      "stdout": [
+       "PASS estimate jk2-mp items 0: estimate 15450, client gamestate leaves 15450",
+       "PASS estimate jk2-mp items 64: estimate 12856, client gamestate leaves 12856",
+       "PASS estimate jk2-mp items 300: estimate 5334, client gamestate leaves 5334",
+       "PASS estimate wolfet items 0: estimate 31835, client gamestate leaves 31835",
+       "PASS estimate wolfet items 64: estimate 29270, client gamestate leaves 29270",
+       "PASS estimate wolfet items 300: estimate 21853, client gamestate leaves 21853",
+       "PASS estimate rtcw-mp items 0: estimate 31835, client gamestate leaves 31835",
+       "PASS estimate rtcw-mp items 64: estimate 29270, client gamestate leaves 29270",
+       "PASS estimate rtcw-mp items 300: estimate 21853, client gamestate leaves 21853",
+       "PASS estimate jka-mp items 0: estimate 48213, client gamestate leaves 48213",
+       "PASS estimate jka-mp items 64: estimate 45603, client gamestate leaves 45603",
+       "PASS estimate jka-mp items 300: estimate 38021, client gamestate leaves 38021",
+       "PASS estimate quakelive items 0: estimate 15451, client gamestate leaves 15451",
+       "PASS estimate quakelive items 64: estimate 12985, client gamestate leaves 12985",
+       "PASS estimate quakelive items 300: estimate 5934, client gamestate leaves 5934",
+       "PASS estimate mohaa items 0: estimate 48218, client gamestate leaves 48218",
+       "PASS estimate mohaa items 64: estimate 46108, client gamestate leaves 46108",
+       "PASS estimate mohaa items 300: estimate 40422, client gamestate leaves 40422",
+       "PASS estimate quake3 items 0: estimate 15451, client gamestate leaves 15451",
+       "PASS estimate quake3 items 64: estimate 12985, client gamestate leaves 12985",
+       "PASS estimate quake3 items 300: estimate 5934, client gamestate leaves 5934",
+       "PASS publish quake3: sv_paks \"506952113 -1133579422 1520856339 -119675196 -1760206731 894229030 -74630\"",
+       "PASS mohaa-sounds room: published 1/1, leaves 28653",
+       "PASS mohaa-sounds tight: sounds cost 13655, room before them 15522, list 2858, published 1/0, leaves 1866",
+       "FAIL no-pure q3-ihv: sv_paks \"506952113 -1133579422 1520856339 -119675196 -1760206731 894229030 -74630\", said \"\"",
+       "PASS not-pure q3-ihv: said \"\"",
+       "FAIL no-pure q3test: sv_paks \"506952113 -1133579422 1520856339 -119675196 -1760206731 894229030 -74630\", said \"\"",
+       "PASS not-pure q3test: said \"\"",
+       "2 failures"
+      ]
+     }
+    ]
+   }
+  },
+  "tests/rtcw_gamestate_budget_tests.py": "updated profile list"
+ },
+ "validation": {
+  "firstTree": {
+   "head": "aa0e704957191ed73f98740a891a5a3221645338",
+   "tree": "git archive aa0e7049 plus overlay.py export of the task files; the four shared documents (CHANGELOG.md, docs/GAMES.md, docs/README.md, docs/fntech3/COMPATIBILITY.md) were written at 16:50 from HEAD 0e99502a's text plus this record's hunks",
+   "configure": "meson setup build-full -Db_vscrt=static_from_buildtype -Dstrict-warnings=true -Drenderer-dlopen=true -Drenderers=glx,vk,rtx -Drenderer-default=glx -Dzlib:default_library=static -Dogg:default_library=static -Dbuild-client=true -Dbuild-server=true --buildtype=debugoptimized --wrap-mode=nodownload",
+   "build": "meson compile -C build-full -j 4: exit 0, 1543 targets, no warnings",
+   "nativeCommand": "meson test -C build-full --no-rebuild --num-processes 4 <every fnTech3 test but fnql_python_source_regressions>",
+   "native": {
+    "tests": 272,
+    "ok": 270,
+    "fail": 0,
+    "skipped": 2,
+    "exit": 0
+   },
+   "pytestCommand": "python -m pytest -q -p no:cacheprovider tests",
+   "pytest": "23 failed, 2731 passed, 131 skipped, 7 errors, 66105 subtests passed in 2850.73s (0:47:30)",
+   "pytestFailures": {
+    "files": {
+     "generate_docs_tests.py": 1,
+     "player_manual_tests.py": 8,
+     "release_packaging_tests.py": 21
+    },
+    "cause": "that tree's docs/README.md, written from HEAD 0e99502a, links fntech3/2026-10-15-jka-camera-shake.md (commit 8a05e028), which the aa0e7049 tree lacks; the guide-link test and every test that builds the player manual stopped on it",
+    "attribution": "an artifact of the export's mixed base, not of this change; all three files pass on the consistent second tree"
+   }
+  },
+  "secondTree": {
+   "head": "15b0766f343b12e8b96480166cc095e40d95c92e",
+   "intervening": [
+    "8a05e028",
+    "0e99502a",
+    "33c75dfd",
+    "77f0ab93",
+    "15b0766f"
+   ],
+   "overlapWithTaskFiles": "CHANGELOG.md, docs/GAMES.md, docs/README.md and docs/fntech3/COMPATIBILITY.md only; every anchored hunk applied unchanged",
+   "tree": "git archive 15b0766f plus overlay.py export of the task files, committed in its own repository",
+   "command": "python -m pytest -q -p no:cacheprovider <74 files: every test reading sv_init.cpp, sv_client.cpp, server_mohaa_game.hpp, server_mohaa_net.hpp, mohaa_msg.cpp or a changed document, and the documentation, manual and packaging tests>",
+   "files": [
+    "tests/alice_demo_tests.py",
+    "tests/alice_savegame_source_tests.py",
+    "tests/alice_snapshot_source_tests.py",
+    "tests/cgame_native_bridge_source_tests.py",
+    "tests/changelog_tests.py",
+    "tests/engine_input_capture_tests.py",
+    "tests/entity_override_tests.py",
+    "tests/factory_runtime_source_tests.py",
+    "tests/frame_clock_source_tests.py",
+    "tests/gamestate_budget_wire_tests.py",
+    "tests/generate_docs_tests.py",
+    "tests/input_system_source_tests.py",
+    "tests/jedi_listen_server_tests.py",
+    "tests/jka_framing_tests.py",
+    "tests/jka_server_attachment_tests.py",
+    "tests/launch_and_transition_source_tests.py",
+    "tests/legacy_server_discovery_tests.py",
+    "tests/mohaa_alias_registration_tests.py",
+    "tests/mohaa_cgm_framing_tests.py",
+    "tests/mohaa_cheats_tests.py",
+    "tests/mohaa_gamespy_query_tests.py",
+    "tests/mohaa_key_binding_tests.py",
+    "tests/mohaa_waited_sound_tests.py",
+    "tests/player_manual_tests.py",
+    "tests/pure_profile_contract_tests.py",
+    "tests/q3_ihv_game_lifecycle_tests.py",
+    "tests/q3_ihv_serverinfo_tests.py",
+    "tests/ql_cvar_configstring_source_tests.py",
+    "tests/ql_demo_source_tests.py",
+    "tests/ql_server_type_tests.py",
+    "tests/ql_services_source_tests.py",
+    "tests/release_packaging_tests.py",
+    "tests/release_workflow_tests.py",
+    "tests/ritual_handshake_tests.py",
+    "tests/ritual_info_keys_tests.py",
+    "tests/rtcw_bot_client_tests.py",
+    "tests/rtcw_cast_lifecycle_tests.py",
+    "tests/rtcw_cast_messages_tests.py",
+    "tests/rtcw_gamestate_budget_tests.py",
+    "tests/rtcw_handshake_tests.py",
+    "tests/rtcw_module_cvar_tests.py",
+    "tests/rtcw_server_policy_tests.py",
+    "tests/server_client_stack_tests.py",
+    "tests/server_client_storage_tests.py",
+    "tests/server_cvar_compat_source_tests.py",
+    "tests/server_download_read_tests.py",
+    "tests/server_drop_notice_tests.py",
+    "tests/server_user_move_tests.py",
+    "tests/server_zombie_snapshot_tests.py",
+    "tests/spawn_view_angle_source_tests.py",
+    "tests/steam_identity_source_tests.py",
+    "tests/steam_provider_source_tests.py",
+    "tests/stvef_client_rate_tests.py",
+    "tests/stvef_frame_time_tests.py",
+    "tests/stvef_server_messages_tests.py",
+    "tests/stvef_serverinfo_tests.py",
+    "tests/stvef_sp_commands_tests.py",
+    "tests/stvef_sp_host_tests.py",
+    "tests/stvef_sp_savegame_tests.py",
+    "tests/stvef_sp_startup_tests.py",
+    "tests/stvef_sp_user_move_tests.py",
+    "tests/ui_native_bridge_source_tests.py",
+    "tests/untrusted_asset_bounds_tests.py",
+    "tests/version_metadata_tests.py",
+    "tests/view_shake_tests.py",
+    "tests/webui_secret_boundary_tests.py",
+    "tests/wolfet_client_services_tests.py",
+    "tests/wolfet_download_framing_tests.py",
+    "tests/wolfet_download_tests.py",
+    "tests/wolfet_map_load_settle_tests.py",
+    "tests/wolfet_map_load_tests.py",
+    "tests/wolfet_pure_tests.py",
+    "tests/wolfet_web_download_tests.py",
+    "tests/workshop_source_tests.py"
+   ],
+   "result": "676 passed, 1 skipped (symlink creation needs a privilege this account lacks), 1334 subtests passed in 933.04s"
+  },
+  "earlier": {
+   "focusedExport": "tests/gamestate_budget_wire_tests.py and tests/rtcw_gamestate_budget_tests.py on the first tree: 4 passed",
+   "sharedTree": "gamestate_budget_wire, rtcw_gamestate_budget, wolfet_pure and mohaa_alias_registration tests in the shared working tree: 15 passed",
+   "probeBuild": "build-probe (dedicated server only, instrumented): exit 0, strict warnings"
+  },
+  "thirdTree": {
+   "head": "8779edb50494ab44a12ffc44eba285f986d84ce3",
+   "intervening": [
+    "8779edb5"
+   ],
+   "tree": "git archive 8779edb5 plus overlay.py export of the pinned task files, the shared ones rebuilt from 8779edb5 itself (OVERLAY_BASE), committed in its own repository",
+   "command": "python -m pytest -q -p no:cacheprovider tests/generate_docs_tests.py tests/player_manual_tests.py tests/release_packaging_tests.py tests/changelog_tests.py tests/release_workflow_tests.py tests/version_metadata_tests.py tests/gamestate_budget_wire_tests.py tests/rtcw_gamestate_budget_tests.py tests/jka_framing_tests.py tests/wolfet_pure_tests.py tests/mohaa_alias_registration_tests.py tests/ritual_info_keys_tests.py tests/wolfet_map_load_settle_tests.py tests/stvef_sp_startup_tests.py",
+   "result": "133 passed, 1 skipped (symlink privilege), 915 subtests passed in 955.88s"
+  },
+  "commitBase": {
+   "head": "4747f6f4bed7747995a00501bc86077cfdf0b7bb",
+   "intervening": [
+    "dc26d8a8",
+    "4747f6f4"
+   ],
+   "note": "dc26d8a8 (Academy renderer flags) and 4747f6f4 (x64 diagnostic build target) landed during the last run; neither touches this record's code or tests, and dc26d8a8 overlaps it only in docs/GAMES.md, docs/README.md and docs/fntech3/COMPATIBILITY.md, where every anchored hunk applies unchanged"
+  }
+ },
+ "ledgerRows": [
+  "COMPATIBILITY.md Status: pure budget paragraph",
+  "COMPATIBILITY.md Medal of Honor Filesystem / pure / downloads",
+  "COMPATIBILITY.md Q3Test Filesystem",
+  "Q3_IHV.md Profile identity",
+  "Q3TEST.md Filesystem",
+  "GAMES.md IHV Test and Q3Test notes"
+ ],
+ "openItems": [
+  "Quake III and Quake Live keep Quake Live's conservative measure",
+  "stvef-sp, jka-sp and jk2-sp are still measured as Quake Live (loopback-only single player, sv_pure off by default)",
+  "configstrings a game sets once its level runs are covered only by the 512-byte reserve",
+  "Medal of Honor 1.00's engine order around its sounds is inferred from OpenMoHAA and the 1.11 log"
+ ],
+ "unrelatedObservations": [
+  "A Medal of Honor dedicated server with net_enabled 0 and a startup script of map, wait 6000, echo and quit loaded the map but ran neither the echo nor the quit within 40 seconds; not investigated"
+ ]
+}

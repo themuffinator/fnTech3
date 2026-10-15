@@ -669,6 +669,78 @@ static void SV_ReferenceNativeModulePaks( void ) {
 	}
 }
 
+/*
+================
+SV_SetPurePaks
+
+A pure server lists the checksums of the paks it has loaded in sv_paks, and
+its clients load only from those, unless the list would not fit in the
+gamestate they are sent; the server then runs degraded pure, and its
+clients are not checked. SV_RemainingGameState measures that gamestate.
+================
+*/
+static void SV_SetPurePaks( void ) {
+	const char *p;
+
+	Cvar_Set( "sv_paks", "" );
+	// Q3 and QL clients ignore the loaded-pak names. Retail ET stores them next
+	// to the checksums and then dereferences them for its official-pak check, so
+	// it faults without them and ET publishes both. Retail RTCW MP reads the same
+	// key but never reads the names back, and a retail MP client admits to a pure
+	// server without them, so that profile keeps the empty value; see
+	// docs/fntech3/2026-09-17-rtcw-mp-pure-names.md.
+	Cvar_Set( "sv_pakNames", "" );
+
+	// No IHV Test or Q3Test engine has a pure mode (their executables have
+	// no sv_pure or sv_paks), and their clients are sent a systeminfo of
+	// their releases' own keys, which never carries a pak list
+	// (SV_UpdateSysteminfoConfigstring); see docs/fntech3/2026-10-15-pure-budget-own-wires.md.
+	if ( sv.pure != 0 && ( Com_GameIsQuake3IHV() || Com_GameIsQ3Test() ) ) {
+		Com_Printf( S_COLOR_YELLOW "WARNING: %s has no pure mode, so sv_pure has no effect\n",
+			Com_GameProfile()->displayName );
+		return;
+	}
+
+	if ( sv.pure != 0 ) {
+		int freespace, pakslen, nameslen, infolen;
+		qboolean overflowed = qfalse;
+		qboolean infoTruncated = qfalse;
+		const bool publishNames = Com_GameIsWolfET();
+		qboolean namesOverflowed = qfalse;
+		const char *names = publishNames ? FS_LoadedPakPureNames( &namesOverflowed ) : "";
+
+		p = FS_LoadedPakChecksums( &overflowed );
+
+		pakslen = strlen( p ) + 9; // + strlen( "\\sv_paks\\" )
+		nameslen = publishNames ? static_cast<int>( strlen( names ) ) + 13 : 0; // + "\\sv_pakNames\\"
+		freespace = SV_RemainingGameState();
+		infolen = strlen( Cvar_InfoString_Big( CVAR_SYSTEMINFO, &infoTruncated ) );
+
+		if ( infoTruncated ) {
+			Com_Printf( S_COLOR_YELLOW "WARNING: truncated systeminfo!\n" );
+		}
+
+		if ( pakslen + nameslen > freespace
+			|| infolen + pakslen + nameslen >= BIG_INFO_STRING
+			|| overflowed || namesOverflowed ) {
+			// switch to degraded pure mode
+			// this could *potentially* lead to a false "unpure client" detection
+			// which is better than guaranteed drop
+			Com_DPrintf( S_COLOR_YELLOW "WARNING: skipping sv_paks setup to avoid gamestate overflow\n" );
+		} else {
+			// the server sends these to the clients so they will only
+			// load pk3s also loaded at the server
+			Cvar_Set( "sv_paks", p );
+			if ( publishNames ) {
+				Cvar_Set( "sv_pakNames", names );
+			}
+			if ( *p == '\0' ) {
+				Com_Printf( S_COLOR_YELLOW "WARNING: sv_pure set but no PK3 files loaded\n" );
+			}
+		}
+	}
+}
+
 static cvar_t *SV_RegisterPureMode() {
 	const auto &policy = Com_GameProfile()->server;
 	// Holomatch archives sv_pure and publishes it in its serverinfo too
@@ -1083,53 +1155,7 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	p = FS_ReferencedPakChecksums();
 	Cvar_Set( "sv_referencedPaks", p );
 
-	Cvar_Set( "sv_paks", "" );
-	// Q3 and QL clients ignore the loaded-pak names. Retail ET stores them next
-	// to the checksums and then dereferences them for its official-pak check, so
-	// it faults without them and ET publishes both. Retail RTCW MP reads the same
-	// key but never reads the names back, and a retail MP client admits to a pure
-	// server without them, so that profile keeps the empty value; see
-	// docs/fntech3/2026-09-17-rtcw-mp-pure-names.md.
-	Cvar_Set( "sv_pakNames", "" );
-
-	if ( sv.pure != 0 ) {
-		int freespace, pakslen, nameslen, infolen;
-		qboolean overflowed = qfalse;
-		qboolean infoTruncated = qfalse;
-		const bool publishNames = Com_GameIsWolfET();
-		qboolean namesOverflowed = qfalse;
-		const char *names = publishNames ? FS_LoadedPakPureNames( &namesOverflowed ) : "";
-
-		p = FS_LoadedPakChecksums( &overflowed );
-
-		pakslen = strlen( p ) + 9; // + strlen( "\\sv_paks\\" )
-		nameslen = publishNames ? static_cast<int>( strlen( names ) ) + 13 : 0; // + "\\sv_pakNames\\"
-		freespace = SV_RemainingGameState();
-		infolen = strlen( Cvar_InfoString_Big( CVAR_SYSTEMINFO, &infoTruncated ) );
-
-		if ( infoTruncated ) {
-			Com_Printf( S_COLOR_YELLOW "WARNING: truncated systeminfo!\n" );
-		}
-
-		if ( pakslen + nameslen > freespace
-			|| infolen + pakslen + nameslen >= BIG_INFO_STRING
-			|| overflowed || namesOverflowed ) {
-			// switch to degraded pure mode
-			// this could *potentially* lead to a false "unpure client" detection
-			// which is better than guaranteed drop
-			Com_DPrintf( S_COLOR_YELLOW "WARNING: skipping sv_paks setup to avoid gamestate overflow\n" );
-		} else {
-			// the server sends these to the clients so they will only
-			// load pk3s also loaded at the server
-			Cvar_Set( "sv_paks", p );
-			if ( publishNames ) {
-				Cvar_Set( "sv_pakNames", names );
-			}
-			if ( *p == '\0' ) {
-				Com_Printf( S_COLOR_YELLOW "WARNING: sv_pure set but no PK3 files loaded\n" );
-			}
-		}
-	}
+	SV_SetPurePaks();
 
 	// Retail clients consume Workshop dependencies from this dedicated
 	// configstring.  Publish it after all map and module pak references have
@@ -1182,6 +1208,11 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	}
 	if ( Com_GameIsMOHAA() ) {
 		SV_MOHAASpawnDone();
+		// A multiplayer game has only now registered its sounds, after the
+		// pak list was measured, and each sound a level keeps is a
+		// configstring of the gamestate: measure the list again with them.
+		SV_SetPurePaks();
+		SV_UpdateSysteminfoConfigstring();
 	}
 
 	// Retail frame baselines are written only in Com_Frame: a level load

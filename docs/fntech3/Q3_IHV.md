@@ -52,7 +52,10 @@ installation marker, native API, protocol 33, BSP43 policy and config selection
 separate. Existing profile IDs retain their values. The profile permits only
 the supplied Win32 x86 `qagamex86.dll` / `cgamex86.dll` module names, with no
 QVM, `vmMain`, QL structured API or UI DLL fallback. It has no Steam identity,
-Workshop or retail pure-proof contract. Default builds remain blocked. The
+Workshop or retail pure-proof contract, and no pure mode: the original
+registers neither `sv_pure` nor `sv_paks`, so `sv_pure` publishes no pak list
+and says so ([pure budget record](2026-10-15-pure-budget-own-wires.md)).
+Default builds remain blocked. The
 developer option is restricted to Windows x86. Its server takes protocol-33
 clients, and its client plays demos and connects to the original server.
 

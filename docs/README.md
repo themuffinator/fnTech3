@@ -127,6 +127,9 @@ Release packages include them as web pages in their `manual` folder, built by
   -- Enemy Territory's tactical search queues and update records, and the
   pure gamestate budget of Enemy Territory and Jedi Outcast, read from the
   retail executables.
+- [Pure gamestate budget of Medal of Honor, the IHV Test and Q3Test](fntech3/2026-10-15-pure-budget-own-wires.md)
+  -- Medal of Honor's pak-list budget measured on its own gamestate, sounds
+  included, and why the IHV Test and Q3Test have none.
 - [Jedi HUD and menus on any screen shape](fntech3/2026-10-15-jedi-widescreen-hud.md)
   -- Raven's virtual 640x480 screen, read in both retail executables, and
   Jedi Academy's widescreen HUD layout.
