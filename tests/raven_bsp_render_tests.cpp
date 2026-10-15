@@ -226,6 +226,66 @@ static void Unit() {
     std::cout << "Raven RBSP retained rendering records/grid/style bounds PASS\n";
 }
 
+// Shader records reach the Fn view in Quake III's bits (surfaceflags.h); the
+// Raven side is every retail Jedi engine's infoparm table.
+static void ShaderFlags() {
+    const struct { uint32_t raven, fn; } surface[] = {
+        {0x00002000u,SURF_SKY},{0x00004000u,SURF_SLICK},{0x00008000u,SURF_METALSTEPS},
+        {0x00040000u,SURF_NODAMAGE},{0x00080000u,SURF_NOIMPACT},{0x00100000u,SURF_NOMARKS},
+        {0x00200000u,SURF_NODRAW},{0x00400000u,SURF_NOSTEPS},{0x00800000u,SURF_NODLIGHT},
+    }, content[] = {
+        {0x00000001u,CONTENTS_SOLID},{0x00000002u,CONTENTS_LAVA},{0x00000004u,CONTENTS_WATER},
+        {0x00000008u,CONTENTS_FOG},{0x00000010u,CONTENTS_PLAYERCLIP},{0x00000020u,CONTENTS_MONSTERCLIP},
+        {0x00000040u,CONTENTS_BOTCLIP},{0x00000400u,CONTENTS_TRIGGER},{0x00000800u,static_cast<uint32_t>(CONTENTS_NODROP)},
+        {0x00020000u,CONTENTS_SLIME},{0x08000000u,CONTENTS_DETAIL},{0x80000000u,CONTENTS_TRANSLUCENT},
+    };
+    uint32_t mapped=0;
+    for(const auto &bit:surface) { CHECK(FN_RavenBspFlagsToFn(bit.raven,0)==bit.fn && !FN_RavenBspFlagsToFn(bit.raven,1)); mapped|=bit.raven; }
+    for(uint32_t bit=1;bit;bit<<=1) if(!(bit&mapped)) CHECK(!FN_RavenBspFlagsToFn(bit,0));
+    mapped=0;
+    for(const auto &bit:content) { CHECK(FN_RavenBspFlagsToFn(bit.raven,1)==bit.fn && !FN_RavenBspFlagsToFn(bit.raven,0)); mapped|=bit.raven; }
+    for(uint32_t bit=1;bit;bit<<=1) if(!(bit&mapped)) CHECK(!FN_RavenBspFlagsToFn(bit,1));
+    // Material numbers are not flags: mp/duel9's snow (14) is not sky, nor
+    // is any other material that has Quake III's sky, nodraw or slick bit.
+    for(uint32_t material=0;material<32;++material) CHECK(!FN_RavenBspFlagsToFn(material,0));
+    // Raven's default opaque content (0x8000) is not Quake III's areaportal.
+    CHECK(!FN_RavenBspFlagsToFn(0x00008000u,1));
+
+    // Flag words of retail mp/duel9's shader records: rock (material 23,
+    // 0x17, which has Quake III's sky, slick, nodamage and noimpact bits),
+    // snow (14), its sky, caulk, its pit fog and its clip.
+    const struct { const char *name; uint32_t surface, content, fnSurface, fnContent; } records[] = {
+        {"textures/hoth/h_outground_3_clip",0x00000017u,0x00008001u,0,CONTENTS_SOLID},
+        {"textures/hoth/snowbiga",0x0000000eu,0x00008001u,0,CONTENTS_SOLID},
+        {"textures/mp/s_hothsky",0x00182000u,0x00008001u,SURF_SKY|SURF_NOIMPACT|SURF_NOMARKS,CONTENTS_SOLID},
+        {"textures/system/caulk",0x00300000u,0x00008001u,SURF_NODRAW|SURF_NOMARKS,CONTENTS_SOLID},
+        {"textures/mp/s_hothpit_fog",0x00000000u,0x80000008u,0,CONTENTS_FOG|CONTENTS_TRANSLUCENT},
+        {"textures/system/clip",0x00380000u,0x80000030u,SURF_NODRAW|SURF_NOMARKS|SURF_NOIMPACT,
+            CONTENTS_TRANSLUCENT|CONTENTS_PLAYERCLIP|CONTENTS_MONSTERCLIP},
+    };
+    Bytes file=Fixture(), lump;
+    for(const auto &record:records) {
+        Bytes shader(72); std::memcpy(shader.data(),record.name,std::strlen(record.name));
+        Put(shader,64,record.surface); Put(shader,68,record.content); lump.insert(lump.end(),shader.begin(),shader.end());
+    }
+    Lump(file,1,lump);
+    fnRavenBspProjection_t projection; fnRavenBspError_t error;
+    CHECK(FN_RavenBspProject(file.data(),static_cast<int>(file.size()),Allocate,&projection,&error));
+    const auto *p=static_cast<byte *>(projection.data);
+    CHECK(FN_RavenBspI32(p+12+1*8)==static_cast<int>(lump.size()));
+    const auto *shaders=reinterpret_cast<const dshader_t *>(p+FN_RavenBspI32(p+8+1*8));
+    for(size_t i=0;i<sizeof(records)/sizeof(records[0]);++i) {
+        CHECK(!std::strcmp(shaders[i].shader,records[i].name));
+        CHECK(static_cast<uint32_t>(shaders[i].surfaceFlags)==records[i].fnSurface);
+        CHECK(static_cast<uint32_t>(shaders[i].contentFlags)==records[i].fnContent);
+    }
+    // The world-owned original keeps Raven's bits.
+    CHECK(!std::memcmp(projection.original.bytes,file.data(),file.size()));
+    CHECK(FN_RavenBspU32(projection.original.bytes+projection.original.offsets[1]+2*72+64)==0x00182000u);
+    std::free(projection.data);
+    std::cout << "Raven RBSP shader flags in the Fn view PASS\n";
+}
+
 int main(int argc,char **argv) {
     if(argc==2 && !std::strcmp(argv[1],"--stdin")) {
 #ifdef _WIN32
@@ -247,5 +307,5 @@ int main(int argc,char **argv) {
         std::cout << "ACCEPTED " << out.original.vertices << " " << out.original.surfaces << " " << out.original.gridRows << " " << out.original.gridCells << "\n";
         std::free(out.data); return 0;
     }
-    Unit(); return 0;
+    Unit(); ShaderFlags(); return 0;
 }

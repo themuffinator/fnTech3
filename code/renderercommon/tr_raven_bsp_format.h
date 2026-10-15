@@ -216,6 +216,41 @@ static inline int FN_RavenBspNormalStyles( const fnRavenBspView_t *view, fnRaven
     return 1;
 }
 
+/* A shader record's flag words in the Fn view's Quake III bits. Raven moved
+ * every bit: the low five surface bits are a material number and sky is
+ * 0x2000, so Quake III's tests would read mp/duel9's snow (material 14,
+ * 0xe) as sky. The Raven values are the renderer infoparm tables of all
+ * four retail engines (jamp.exe 1.01 0x56cfc8, jasp.exe 1.01 0x4f3440,
+ * jk2mp.exe 0x502200, jk2sp.exe 0x4cf5a8), as OpenJK's surfaceflags.h has
+ * them; each engine's ParseMesh skips a patch on 0x200000 (jamp.exe
+ * 0x48d610). A
+ * meaning Quake III lacks (materials, forcefield, forcesight, opaque,
+ * ladder, ...) is left out; the original records keep every bit. */
+static inline uint32_t FN_RavenBspFlagsToFn( uint32_t raven, int contents ) {
+    static const uint32_t surface[][2] = {
+        { 0x00002000u, 0x00000004u }, /* sky */        { 0x00004000u, 0x00000002u }, /* slick */
+        { 0x00008000u, 0x00001000u }, /* metalsteps */ { 0x00040000u, 0x00000001u }, /* nodamage */
+        { 0x00080000u, 0x00000010u }, /* noimpact */   { 0x00100000u, 0x00000020u }, /* nomarks */
+        { 0x00200000u, 0x00000080u }, /* nodraw */     { 0x00400000u, 0x00002000u }, /* nosteps */
+        { 0x00800000u, 0x00020000u }, /* nodlight */
+    };
+    static const uint32_t content[][2] = {
+        { 0x00000001u, 0x00000001u }, /* solid */      { 0x00000002u, 0x00000008u }, /* lava */
+        { 0x00000004u, 0x00000020u }, /* water */      { 0x00000008u, 0x00000040u }, /* fog */
+        { 0x00000010u, 0x00010000u }, /* playerclip */ { 0x00000020u, 0x00020000u }, /* monsterclip */
+        { 0x00000040u, 0x00400000u }, /* botclip */    { 0x00000400u, 0x40000000u }, /* trigger */
+        { 0x00000800u, 0x80000000u }, /* nodrop */     { 0x00020000u, 0x00000010u }, /* slime */
+        { 0x08000000u, 0x08000000u }, /* detail */     { 0x80000000u, 0x20000000u }, /* trans */
+    };
+    const uint32_t (*table)[2] = contents ? content : surface;
+    const size_t count = contents ? sizeof( content ) / sizeof( content[0] ) : sizeof( surface ) / sizeof( surface[0] );
+    uint32_t fn = 0;
+    size_t i;
+    for ( i = 0; i < count; ++i )
+        if ( raven & table[i][0] ) fn |= table[i][1];
+    return fn;
+}
+
 static inline int FN_RavenBspAppend( int *length, int count, int *offset ) {
     if ( count < 0 || *length > INT_MAX - 3 ) return 0;
     *offset = (*length + 3) & ~3;
@@ -250,6 +285,11 @@ static inline int FN_RavenBspProject( const void *data, int length, void *(*allo
         FN_RavenBspPut32(buffer+12+i*8,(uint32_t)sizes[i]);
         if ( i != 9 && i != 10 && i != 13 && i != 15 && sizes[i] )
             memcpy(buffer+offsets[i],view.bytes+view.offsets[i],(size_t)sizes[i]);
+    }
+    for ( i = 0; i < view.lengths[1] / 72; ++i ) {
+        unsigned char *d = buffer+offsets[1]+i*72;
+        FN_RavenBspPut32(d+64,FN_RavenBspFlagsToFn(FN_RavenBspU32(d+64),0));
+        FN_RavenBspPut32(d+68,FN_RavenBspFlagsToFn(FN_RavenBspU32(d+68),1));
     }
     for ( i = 0; i < view.lengths[9] / 12; ++i )
         memcpy(buffer+offsets[9]+i*8,view.bytes+view.offsets[9]+i*12,8);

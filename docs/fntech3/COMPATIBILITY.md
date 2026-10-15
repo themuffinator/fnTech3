@@ -2739,6 +2739,21 @@ its sun. `mp/ctf3`, `mp/duel1`, `mp/duel4`, `mp/ffa2` and `mp/ffa3` list
 their skies as loaded where they were defaulted (Live subset). The other
 profiles still refuse `sun`, as their engines do. No gate closes.
 
+The [map shader flags slice](2026-10-15-raven-bsp-shader-flags.md)
+(2026-10-15) reads the flag words of a Raven map's shader records with
+Raven's own bits. The infoparm tables of both Academy engines put sky at
+`0x2000` and nodraw at `0x200000` (`jamp.exe` 1.01 `0x56cfc8`, `jasp.exe`
+1.01 `0x4f3440`), and the low five surface bits are a material number.
+Both engines' `ParseMesh` skips a nodraw patch (`0x48d610`, `0x457644`).
+fnTech3 read the records with Quake III's bits: RTX took every material
+with bit `0x4` as the compiler's sky, 15,371 surfaces in 42 installed
+Academy maps, and all three renderers drew 619 nodraw patches. The RBSP
+reader now rewrites both words into Quake III's bits for every renderer
+(Source, Unit). Under RTX, `mp/ffa3` takes `h_tatsky`'s sun, which a hull
+surface standing first as "sky" had withheld, and `mp/duel9` traces 8,344
+of its 8,364 world triangles where 6,669 were left to the rasterizer as sky
+(Live subset). No gate closes.
+
 Star Wars Jedi Knight: Jedi Academy is the sixth title, with two mode profiles
 over one `base/` installation: `jka-sp` for Raven's single-player campaign and
 `jka-mp` for multiplayer. The [foundation record](2026-09-21-jka-contracts.md)
@@ -2887,6 +2902,16 @@ with `noTC` now load in GLx, Vulkan and RTX, and no other definition
 changes (Source, Unit). No Outcast sky has been drawn live: the
 multiplayer client still stops at client-game import 300 before a map is
 drawn. No gate closes.
+
+The [map shader flags slice](2026-10-15-raven-bsp-shader-flags.md)
+(2026-10-15) reads Outcast's map flags with Raven's bits too. `jk2mp.exe`
+and `jk2sp.exe` give sky, nodraw and translucent Academy's values
+(infoparm tables `0x502200`, `0x4cf5a8`) and skip nodraw patches
+(`0x471253`, `0x45e630`). Read with Quake III's bits, RTX had taken 635
+surfaces in 9 installed Outcast maps as sky and 10,690 as light filters.
+The shared RBSP reader now translates both words (Source, Unit). No
+Outcast map has been drawn live: the multiplayer client still stops at
+client-game import 300. No gate closes.
 
 Star Wars Jedi Knight II: Jedi Outcast is the seventh title, with two mode
 profiles over one `base/` installation: `jk2-sp` and `jk2-mp`. Every contract

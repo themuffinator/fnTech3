@@ -89,6 +89,12 @@ historical upstream records, not fnTech3 release history. See the
   which the shader parser now reads as the original engines do, along with
   Raven's `lightColor` and Jedi Outcast's `noTC`
   ([record](docs/fntech3/2026-10-15-raven-sun-keyword.md)).
+- Light Jedi Academy's and Jedi Outcast's maps under RTX with their real
+  sky and its sun: the path tracer read the maps' surface flags with Quake
+  III's values, so ground and walls whose material shares a bit with Quake
+  III's sky were taken for sky, and `mp/ffa3` lost its sun. All three
+  renderers now also leave out the hidden patches the original engines skip
+  ([record](docs/fntech3/2026-10-15-raven-bsp-shader-flags.md)).
 - Keep each of Jedi Academy's weapon, Force power and item bars together
   with its name on screens taller than 4:3, where the name was drawn over
   the bar's middle icon. The bars and the loading screen are now checked in

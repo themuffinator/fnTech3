@@ -1,0 +1,913 @@
+{
+ "record": "2026-10-15-raven-bsp-shader-flags.md",
+ "date": "2026-10-15",
+ "profiles": [
+  "jka-sp",
+  "jka-mp",
+  "jk2-sp",
+  "jk2-mp"
+ ],
+ "unchangedProfiles": "all twelve others: only RBSP 1 maps reach the projection, and only the Jedi profiles load them (code/qcommon/game_profile.cpp)",
+ "gateChange": "none",
+ "implementation": {
+  "files": [
+   "code/renderercommon/tr_raven_bsp_format.h"
+  ],
+  "helpers": [
+   "FN_RavenBspFlagsToFn",
+   "FN_RavenBspProject"
+  ],
+  "authorship": "independently authored; OpenJK surfaceflags.h compared as reference observation only"
+ },
+ "readers": [
+  {
+   "function": "ParseMesh",
+   "renderers": [
+    "renderer",
+    "renderervk",
+    "rendererrtx"
+   ],
+   "bit": "SURF_NODRAW 0x80"
+  },
+  {
+   "function": "ShaderForShaderNum",
+   "renderers": [
+    "rendererrtx"
+   ],
+   "bit": "SURF_SKY 0x4",
+   "sets": "rtCompiledSky"
+  },
+  {
+   "function": "ShaderForShaderNum",
+   "renderers": [
+    "rendererrtx"
+   ],
+   "bit": "CONTENTS_TRANSLUCENT 0x20000000",
+   "sets": "rtCompiledTranslucent"
+  },
+  {
+   "function": "ShaderForShaderNum",
+   "renderers": [
+    "rendererrtx"
+   ],
+   "bit": "SURF_ALPHASHADOW 0x10000",
+   "sets": "rtCompiledFilter"
+  },
+  {
+   "function": "ShaderForShaderNum",
+   "renderers": [
+    "rendererrtx"
+   ],
+   "bit": "SURF_LIGHTFILTER 0x8000",
+   "sets": "rtCompiledFilter"
+  }
+ ],
+ "retailIdentities": {
+  "jamp.exe 1.01": {
+   "size": 1527808,
+   "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+   "timeDateStamp": "0x3faa8a05"
+  },
+  "jasp.exe 1.01": {
+   "size": 1236992,
+   "sha256": "9351a8de230fcd577e2b474889d08f38982450306767a6823dd659482566d6ce",
+   "timeDateStamp": "0x3f999a27"
+  },
+  "jk2mp.exe 1.02a": {
+   "size": 1126400,
+   "sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a",
+   "timeDateStamp": "0x3c832b11"
+  },
+  "jk2sp.exe 1.02a": {
+   "size": 999482,
+   "sha256": "0d3c635ee5b20ac32fc957e00cf21e65ebc1584112b11f6ae026706dcc0d0e0c",
+   "timeDateStamp": "0x3c840a46"
+  }
+ },
+ "retail": {
+  "infoparmTables": {
+   "jamp.exe 1.01": {
+    "table": "0x56cfc8",
+    "readAt": "0x4b4c42"
+   },
+   "jasp.exe 1.01": {
+    "table": "0x4f3440",
+    "readAt": "0x47ad82"
+   },
+   "jk2mp.exe 1.02a": {
+    "table": "0x502200",
+    "readAt": "0x48f5a6"
+   },
+   "jk2sp.exe 1.02a": {
+    "table": "0x4cf5a8",
+    "readAt": "0x47f1e6"
+   }
+  },
+  "parseMeshNodrawTest": {
+   "jamp.exe 1.01": "0x48d610",
+   "jasp.exe 1.01": "0x457644",
+   "jk2mp.exe 1.02a": "0x471253",
+   "jk2sp.exe 1.02a": "0x45e630",
+   "instruction": "test dword ptr [shaders + num*72 + 0x40], 0x200000"
+  },
+  "noOtherRecordFlagTests": "no test of 0x2000 or 0x80000000 at a record flag offset (0x40..0x47) in any of the four executables (scan_flags.py)",
+  "surfaceToFn": {
+   "sky": [
+    "0x2000",
+    "0x4"
+   ],
+   "slick": [
+    "0x4000",
+    "0x2"
+   ],
+   "metalsteps": [
+    "0x8000",
+    "0x1000"
+   ],
+   "nodamage": [
+    "0x40000",
+    "0x1"
+   ],
+   "noimpact": [
+    "0x80000",
+    "0x10"
+   ],
+   "nomarks": [
+    "0x100000",
+    "0x20"
+   ],
+   "nodraw": [
+    "0x200000",
+    "0x80"
+   ],
+   "nosteps": [
+    "0x400000",
+    "0x2000"
+   ],
+   "nodlight": [
+    "0x800000",
+    "0x20000"
+   ]
+  },
+  "contentToFn": {
+   "solid": [
+    "0x1",
+    "0x1"
+   ],
+   "lava": [
+    "0x2",
+    "0x8"
+   ],
+   "water": [
+    "0x4",
+    "0x20"
+   ],
+   "fog": [
+    "0x8",
+    "0x40"
+   ],
+   "playerclip": [
+    "0x10",
+    "0x10000"
+   ],
+   "monsterclip": [
+    "0x20",
+    "0x20000"
+   ],
+   "botclip": [
+    "0x40",
+    "0x400000"
+   ],
+   "trigger": [
+    "0x400",
+    "0x40000000"
+   ],
+   "nodrop": [
+    "0x800",
+    "0x80000000"
+   ],
+   "slime": [
+    "0x20000",
+    "0x10"
+   ],
+   "detail": [
+    "0x8000000",
+    "0x8000000"
+   ],
+   "trans": [
+    "0x80000000",
+    "0x20000000"
+   ]
+  },
+  "ravenOnly": [
+   "materials 0x1f",
+   "forcefield 0x10000",
+   "nomiscents 0x1000000",
+   "forcesight 0x2000000 (Academy)",
+   "shotclip 0x80",
+   "terrain 0x1000",
+   "ladder 0x2000",
+   "abseil 0x4000",
+   "opaque 0x8000",
+   "outside 0x10000",
+   "inside 0x10000000 (Academy)"
+  ],
+  "openjk": "OpenJK 1a6a643427aa347553e9073dac5570b33337c4d9 code/game, codeJK2/game and codemp/game surfaceflags.h agree with the tables"
+ },
+ "installed": {
+  "jka": {
+   "maps": 57,
+   "shaderRecords": 4819,
+   "surfaces": 376744,
+   "recordsRavenSky": 54,
+   "recordsQ3SkyBitNotSky": 213,
+   "recordsRavenTranslucent": 639,
+   "recordsQ3FilterBits": 69,
+   "surfacesMisreadAsSky": 15371,
+   "surfacesRavenSky": 1129,
+   "translucentSurfacesUnmarked": 7922,
+   "mapsWithMisreadSky": 42,
+   "mapsWithNodrawPatches": 13,
+   "surfacesMisreadAsFilter": 3449,
+   "nodrawPatchesDrawn": 619
+  },
+  "jk2": {
+   "maps": 41,
+   "shaderRecords": 3828,
+   "surfaces": 373660,
+   "recordsRavenSky": 30,
+   "recordsQ3SkyBitNotSky": 14,
+   "recordsRavenTranslucent": 295,
+   "recordsQ3FilterBits": 59,
+   "translucentSurfacesUnmarked": 12256,
+   "surfacesRavenSky": 720,
+   "surfacesMisreadAsFilter": 10690,
+   "mapsWithMisreadSky": 9,
+   "mapsWithNodrawPatches": 1,
+   "surfacesMisreadAsSky": 635,
+   "nodrawPatchesDrawn": 7
+  }
+ },
+ "sunWithheld": {
+  "jka:maps/hoth2.bsp": {
+   "firstQ3SkyBitSurface": [
+    4,
+    "textures/factory/grating"
+   ],
+   "firstRavenSkySurface": [
+    5028,
+    "textures/skies/hoth"
+   ],
+   "skySun": true,
+   "misreadFirst": true
+  },
+  "jka:maps/mp/ctf2.bsp": {
+   "firstQ3SkyBitSurface": [
+    10,
+    "textures/hoth/ion_feedtube_copper"
+   ],
+   "firstRavenSkySurface": [
+    2280,
+    "textures/mp/hoth_ctf_sky_sides"
+   ],
+   "skySun": true,
+   "misreadFirst": true
+  },
+  "jka:maps/mp/ctf3.bsp": {
+   "firstQ3SkyBitSurface": [
+    1410,
+    "textures/yavin/ground_grasssprite"
+   ],
+   "firstRavenSkySurface": [
+    1772,
+    "textures/mp/s_fatalsky"
+   ],
+   "skySun": true,
+   "misreadFirst": true
+  },
+  "jka:maps/mp/ffa2.bsp": {
+   "firstQ3SkyBitSurface": [
+    3978,
+    "textures/korriban/os_basewalk"
+   ],
+   "firstRavenSkySurface": [
+    5118,
+    "textures/mp/s_kor_sky"
+   ],
+   "skySun": true,
+   "misreadFirst": true
+  },
+  "jka:maps/mp/ffa3.bsp": {
+   "firstQ3SkyBitSurface": [
+    55,
+    "textures/desert/outerhull"
+   ],
+   "firstRavenSkySurface": [
+    3263,
+    "textures/mp/h_tatsky"
+   ],
+   "skySun": true,
+   "misreadFirst": true
+  },
+  "jka:maps/mp/siege_hoth.bsp": {
+   "firstQ3SkyBitSurface": [
+    284,
+    "textures/hoth/h_floor_02"
+   ],
+   "firstRavenSkySurface": [
+    3687,
+    "textures/siege/hoth_sky"
+   ],
+   "skySun": true,
+   "misreadFirst": true
+  },
+  "jka:maps/t1_rail.bsp": {
+   "firstQ3SkyBitSurface": [
+    1,
+    "textures/rail/roundplate2_noclip"
+   ],
+   "firstRavenSkySurface": [
+    4757,
+    "textures/skies/rail_sun"
+   ],
+   "skySun": true,
+   "misreadFirst": true
+  },
+  "jka:maps/t3_hevil.bsp": {
+   "firstQ3SkyBitSurface": [
+    317,
+    "textures/h_evil/wfall"
+   ],
+   "firstRavenSkySurface": [
+    5456,
+    "textures/skies/hevil_2"
+   ],
+   "skySun": true,
+   "misreadFirst": true
+  },
+  "jka:maps/yavin2.bsp": {
+   "firstQ3SkyBitSurface": [
+    5090,
+    "textures/yavin/ground_grasssprite_Phong"
+   ],
+   "firstRavenSkySurface": [
+    12744,
+    "textures/skies/yavin_nodraw"
+   ],
+   "skySun": true,
+   "misreadFirst": true
+  }
+ },
+ "duel9SurfaceOrder": {
+  "firstQ3SkyBitSurface": [
+   344,
+   "textures/hoth/snowbiga"
+  ],
+  "firstRavenSkySurface": [
+   333,
+   "textures/mp/s_hothsky"
+  ],
+  "skySun": true,
+  "misreadFirst": false
+ },
+ "runtimes": {
+  "before": {
+   "folder": ".tmp/runtime/raven-flags-before",
+   "files": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "c6c747647a76fa822f007159b3284752d146c14787c5976ea35bc9e4461ce5df",
+    "fnql_rtx_x86.dll": "2cc6d60075087d60854926b5d8c6b9826ce52b77de66f2f1715ff5d65459861a",
+    "fnql_vk_x86.dll": "7500840d371d87ebcb0d9d3e3cd259a8a5f4b7194fb059889105afeb2c27a99c",
+    "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f",
+    "fntech3.exe": "2b902627224a7b2ce3d4f01bf4de0fa6a759cc18dde19c13c68ebeb7b006baef",
+    "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+   }
+  },
+  "after": {
+   "folder": ".tmp/runtime/raven-flags-after",
+   "files": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "d54df6d9897d2582ad5eb8a83e1a85e0a850f4a2bb55a637a5e05ad9ee01f3de",
+    "fnql_rtx_x86.dll": "719783a6df60e266ab7b5a7e7ac9c70fcc2f7176f1c9f0fad0b000c36c8fb04b",
+    "fnql_vk_x86.dll": "588ec60edd3ad1420b35148b2637e6c7affac15899c98184d5344879f444b459",
+    "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f",
+    "fntech3.exe": "2b902627224a7b2ce3d4f01bf4de0fa6a759cc18dde19c13c68ebeb7b006baef",
+    "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+   }
+  },
+  "base": "f8e1ee980462ccaf1ae86f39ec7e75e5ab4e4885",
+  "note": "built from a git archive export of the base; after adds this change's tr_raven_bsp_format.h; only the three renderer libraries differ"
+ },
+ "live": {
+  "probe": "RTX, windowed, unswitched private desktop, net_enabled 0, isolated home, spectator, togglemenu, no input; engine screenshotPNG captures",
+  "runs": [
+   {
+    "run": "view-before-duel9-rtx",
+    "harness": ".tmp/raven-flags/probe.py (copy of .tmp/raven-sun/probe.py)",
+    "map": "mp/duel9",
+    "renderer": "rtx",
+    "runtime": ".tmp\\runtime\\raven-flags-before",
+    "identity": {
+     "fntech3.exe": "2b902627224a7b2ce3d4f01bf4de0fa6a759cc18dde19c13c68ebeb7b006baef",
+     "fnql_rtx_x86.dll": "2cc6d60075087d60854926b5d8c6b9826ce52b77de66f2f1715ff5d65459861a",
+     "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-flags\\runs\\view-before-duel9-rtx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/duel9"
+    ],
+    "commands": [
+     "togglemenu"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "raven-flags-00.png",
+      "sha256": "7fea61faf39506ca923354c3515d69a5e9235af5f634b1ca072ef9ccdd4ac9ad"
+     },
+     {
+      "name": "raven-flags-01.png",
+      "sha256": "918596564182c31ca8e62fe622abf008027ecdc3ac603f0fcfd30b0efdf86d26"
+     }
+    ],
+    "consoleLines": [
+     "RTX RT: compute backend world BVH: 5612 nodes over 8364 triangles in 6.7 ms",
+     "RTX RT: q3map sun 86.6 86.6 102.9 toward -0.133 0.112 0.985",
+     "RTX RT: world traced triangles opaque=1695 masked=0 special=6669, casting no q3map shadow 0, filtering q3map's light 0, vertices=9029, materials=20"
+    ]
+   },
+   {
+    "run": "view-after-duel9-rtx",
+    "harness": ".tmp/raven-flags/probe.py (copy of .tmp/raven-sun/probe.py)",
+    "map": "mp/duel9",
+    "renderer": "rtx",
+    "runtime": ".tmp\\runtime\\raven-flags-after",
+    "identity": {
+     "fntech3.exe": "2b902627224a7b2ce3d4f01bf4de0fa6a759cc18dde19c13c68ebeb7b006baef",
+     "fnql_rtx_x86.dll": "719783a6df60e266ab7b5a7e7ac9c70fcc2f7176f1c9f0fad0b000c36c8fb04b",
+     "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-flags\\runs\\view-after-duel9-rtx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/duel9"
+    ],
+    "commands": [
+     "togglemenu"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "raven-flags-00.png",
+      "sha256": "0236fd3585d8c766f975654cae518c2b7fb99afff6411b9d0877dad59b063688"
+     },
+     {
+      "name": "raven-flags-01.png",
+      "sha256": "bedc8988730a341106e6f3d4fcf5d51a9604f0086bfb48db93adfd8e5f7003ab"
+     }
+    ],
+    "consoleLines": [
+     "RTX RT: compute backend world BVH: 5570 nodes over 8364 triangles in 6.1 ms",
+     "RTX RT: q3map sun 86.6 86.6 102.9 toward -0.133 0.112 0.985",
+     "RTX RT: world traced triangles opaque=8344 masked=0 special=20, casting no q3map shadow 0, filtering q3map's light 0, vertices=9029, materials=20"
+    ]
+   },
+   {
+    "run": "view-before-ffa3-rtx",
+    "harness": ".tmp/raven-flags/probe.py (copy of .tmp/raven-sun/probe.py)",
+    "map": "mp/ffa3",
+    "renderer": "rtx",
+    "runtime": ".tmp\\runtime\\raven-flags-before",
+    "identity": {
+     "fntech3.exe": "2b902627224a7b2ce3d4f01bf4de0fa6a759cc18dde19c13c68ebeb7b006baef",
+     "fnql_rtx_x86.dll": "2cc6d60075087d60854926b5d8c6b9826ce52b77de66f2f1715ff5d65459861a",
+     "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-flags\\runs\\view-before-ffa3-rtx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/ffa3"
+    ],
+    "commands": [
+     "togglemenu"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "raven-flags-00.png",
+      "sha256": "80bc2da6125f6cd0cf83c1d65f0f71fc95aedbf758f265bab2e08d7a714baae0"
+     },
+     {
+      "name": "raven-flags-01.png",
+      "sha256": "6c992c0016cc94dc1b0a1ecb1fc516f9576593c95b1fe22c2299148d37a3370d"
+     }
+    ],
+    "consoleLines": [
+     "RTX RT: compute backend world BVH: 34222 nodes over 56302 triangles in 31.2 ms",
+     "RTX RT: the first sky surface's shader textures/desert/outerhull has no q3map_sun",
+     "RTX RT: world traced triangles opaque=55400 masked=0 special=902, casting no q3map shadow 0, filtering q3map's light 0, vertices=58936, materials=125"
+    ]
+   },
+   {
+    "run": "view-after-ffa3-rtx",
+    "harness": ".tmp/raven-flags/probe.py (copy of .tmp/raven-sun/probe.py)",
+    "map": "mp/ffa3",
+    "renderer": "rtx",
+    "runtime": ".tmp\\runtime\\raven-flags-after",
+    "identity": {
+     "fntech3.exe": "2b902627224a7b2ce3d4f01bf4de0fa6a759cc18dde19c13c68ebeb7b006baef",
+     "fnql_rtx_x86.dll": "719783a6df60e266ab7b5a7e7ac9c70fcc2f7176f1c9f0fad0b000c36c8fb04b",
+     "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-flags\\runs\\view-after-ffa3-rtx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/ffa3"
+    ],
+    "commands": [
+     "togglemenu"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "raven-flags-00.png",
+      "sha256": "108db15e8728069611b5a3f45847411da800f869b48631cfdf5d64941bfe110e"
+     },
+     {
+      "name": "raven-flags-01.png",
+      "sha256": "415fd5ccfefd2c42f7d00917579df75cad1b77a74c57d87044fae41c469c7876"
+     }
+    ],
+    "consoleLines": [
+     "RTX RT: compute backend world BVH: 34202 nodes over 56234 triangles in 32.3 ms",
+     "RTX RT: q3map sun 98.0 112.1 91.9 toward 0.310 0.145 0.940",
+     "RTX RT: world traced triangles opaque=56204 masked=0 special=30, casting no q3map shadow 0, filtering q3map's light 0, vertices=58862, materials=125"
+    ]
+   }
+  ],
+  "captures": {
+   "duel9-00": {
+    "beforeMean": [
+     114.2,
+     119.7,
+     126.6
+    ],
+    "afterMean": [
+     129.9,
+     134.6,
+     138.8
+    ],
+    "changedPixelsOver8": 118544,
+    "fraction": 0.247
+   },
+   "duel9-01": {
+    "beforeMean": [
+     114.7,
+     120.2,
+     127.2
+    ],
+    "afterMean": [
+     130.4,
+     135.1,
+     139.4
+    ],
+    "changedPixelsOver8": 118722,
+    "fraction": 0.247
+   },
+   "duel9-after-00-vs-01": 0.018,
+   "ffa3-00": {
+    "beforeMean": [
+     103.6,
+     107.0,
+     92.5
+    ],
+    "afterMean": [
+     170.1,
+     180.1,
+     153.4
+    ],
+    "changedPixelsOver8": 373085,
+    "fraction": 0.777
+   },
+   "ffa3-01": {
+    "beforeMean": [
+     104.1,
+     107.4,
+     93.0
+    ],
+    "afterMean": [
+     170.3,
+     180.2,
+     153.6
+    ],
+    "changedPixelsOver8": 372735,
+    "fraction": 0.777
+   },
+   "ffa3-after-00-vs-01": 0.029
+  }
+ },
+ "tests": {
+  "updated": "tests/raven_bsp_render_tests.cpp (ShaderFlags: table, materials, opaque, six duel9 records projected; MSVC x86 and Clang x64)",
+  "new": "tests/raven_bsp_shader_flags_tests.py (R_LoadShaders in three renderers; RTX ShaderForShaderNum, RT_ShaderIsSky, RT_FindSun; Quake III lump unchanged)",
+  "negativeControl": "the new test against f8e1ee98's tr_raven_bsp_format.h fails in all three renderers (SURF_SKY on the rock record)",
+  "stdinSweep": "98 installed Jedi maps: 53 projected, 45 single-player maps refused before the shader lump (43 surface light styles, 1 vertex light styles, 1 surface index range)"
+ },
+ "findings": [
+  "Elite Force SDK surfaceflags.h keeps Quake III values for the five bits read; stvoy.exe not read",
+  "Alice, F.A.K.K.2 and Medal of Honor flag meanings not compared",
+  "45 single-player Jedi maps refused by the RBSP reader before the shader lump"
+ ]
+}

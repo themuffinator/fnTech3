@@ -146,6 +146,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Raven's sun shader keyword](fntech3/2026-10-15-raven-sun-keyword.md)
   -- the `sun` line of both Jedi games' sky shaders, read as their engines
   read it, which ends the grey skies of maps such as `mp/duel9`.
+- [Raven's map shader flags](fntech3/2026-10-15-raven-bsp-shader-flags.md)
+  -- the surface and content bits in both Jedi games' maps, read with
+  Raven's values, so RTX finds each map's real sky and its sun.
 - [Jedi Academy's selection bars and loading screen, live](fntech3/2026-10-15-jka-hud-live-check.md)
   -- the bars and the loading screen checked in captures, each bar's name
   kept with its bar on tall screens, and why the zoom masks are out of reach.
