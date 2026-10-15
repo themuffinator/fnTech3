@@ -29,6 +29,7 @@ PRELUDE = r'''
 #include "code/renderercommon/tr_rtcw_world_shader.h"
 #include "code/renderercommon/tr_raven_bsp_format.h"
 #include "code/renderercommon/tr_jka_distance_cull.h"
+#include "code/renderercommon/tr_map_shader_flags.h"
 #include <algorithm>
 #include <cassert>
 #include <climits>
@@ -284,7 +285,7 @@ static struct {
 } ri{Com_Error, Print, FS_ReadFile, FS_FreeFile, Allocate, Z_Free, HunkAlloc, Format};
 static struct World { char name[MAX_QPATH], baseName[MAX_QPATH]; int dataSize; float lightGridSize[3];
     int mohaaFirstDecal, mohaaNumDecals, mohaaFirstTerrain, mohaaNumTerrain;
-    int mohaaFirstBuiltSurface, mohaaNumBuiltSurfaces; } s_worldData;
+    int mohaaFirstBuiltSurface, mohaaNumBuiltSurfaces; dshader_t *shaders; int numShaders; } s_worldData;
 static struct { qboolean worldMapLoaded, mapLoading; World *world;
     fnRTCWWorldShader_t rtcwWorld; void *sunShader; } tr;
 constexpr int LIGHTMAP_NONE = -1;
