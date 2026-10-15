@@ -19,4 +19,18 @@ static qboolean R_JKAShaderNoTCDirective( const char *token, qboolean *noTC ) {
 static imgFlags_t R_JKAShaderImageFlags( imgFlags_t flags, qboolean noTC ) {
 	return R_JKAShaderProfile() && noTC ? (imgFlags_t)( flags | IMGFLAG_NO_COMPRESSION ) : flags;
 }
+/* Retail reads animMap, clampAnimMap and oneShotAnimMap in one ParseStage
+ * branch (jamp.exe 0x4b426c, jasp.exe 0x47a42e). clampAnimMap loads its
+ * frames clamped (GL_CLAMP), oneShotAnimMap sets the bundle's one-shot byte
+ * (stage +0x1d, bundle +0x19), and all three keep up to 32 frames
+ * (0x4b42e4, 0x47a497). R_BindAnimatedImage (jamp.exe 0x4ac3d0, jasp.exe
+ * 0x472fd0) then holds a one-shot bundle on its last frame instead of
+ * wrapping. */
+#define MAX_IMAGE_ANIMATIONS_JKA 32
+static inline qboolean R_JKAClampAnimMapKeyword( const char *token ) {
+	return R_JKAShaderProfile() && !Q_stricmp( token, "clampAnimMap" ) ? qtrue : qfalse;
+}
+static inline qboolean R_JKAOneShotAnimMapKeyword( const char *token ) {
+	return R_JKAShaderProfile() && !Q_stricmp( token, "oneShotAnimMap" ) ? qtrue : qfalse;
+}
 #endif

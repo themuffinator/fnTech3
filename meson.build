@@ -1506,6 +1506,8 @@ test('fntech3_jka_tails_physics', python, args: files('tests/jka_tails_physics_t
   timeout: jka_test_timeout)
 test('fntech3_jka_effect_sound', python, args: files('tests/jka_effect_sound_tests.py'),
   timeout: jka_test_timeout)
+test('fntech3_jka_oneshot_animmap', python, args: files('tests/jka_oneshot_animmap_tests.py'),
+  timeout: jka_test_timeout)
 test('fntech3_audio_codec_profile', python, args: files('tests/audio_codec_profile_tests.py'))
 test('fntech3_jka_render_host', python, args: files('tests/jka_render_host_tests.py'))
 test('fntech3_jka_ui_binding', python, args: files('tests/jka_ui_binding_tests.py'))

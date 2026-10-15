@@ -521,8 +521,9 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   ([shimmer details](fntech3/2026-10-15-jka-entity-refraction.md)). On `mp/ffa2` the wall torches now burn, and a local match there
   runs to the end ([torch details](fntech3/2026-10-15-jka-particle-dynamics.md)).
   Sparks, sprays and dust from the game's effects now fly, trail and
-  bounce off the floor, though a few explosion pictures still show as a
-  plain grey square ([effect details](fntech3/2026-10-15-jka-tails-and-physics.md)).
+  bounce off the floor ([effect details](fntech3/2026-10-15-jka-tails-and-physics.md)),
+  and explosions now play their fireball pictures once instead of showing a
+  plain grey square ([explosion details](fntech3/2026-10-15-jka-oneshot-animmap.md)).
   The game's effects now make their sounds too, from where they happen: a
   test match has played the concussion rifle's and thermal detonator's
   muzzle flashes, a saber clash and a punch, though most guns still stop

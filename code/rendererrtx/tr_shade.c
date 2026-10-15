@@ -119,7 +119,11 @@ static void R_BindAnimatedImage( const textureBundle_t *bundle ) {
 	if ( index < 0 ) {
 		index = 0;	// may happen with shader time offsets
 	}
-	if ( bundle->aliceAnimMapOnce && index >= bundle->numImageAnimations ) {
+	// Jedi Academy's `oneShotAnimMap` holds its last frame the same way
+	// (jamp.exe 0x4ac46b, jasp.exe 0x473058), timed from the entity's
+	// shader time, which an effect's setShaderTime sets at its creation.
+	if ( ( bundle->aliceAnimMapOnce || bundle->jkaOneShotAnimMap ) &&
+		index >= bundle->numImageAnimations ) {
 		index = bundle->numImageAnimations - 1;
 	}
 	index %= bundle->numImageAnimations;

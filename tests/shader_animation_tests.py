@@ -66,16 +66,20 @@ static std::string Animation(int count) {
 }
 int main() {
     ri.Printf = Warn;
-    for (auto profile : {COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP, COM_GAME_ALICE}) {
+    for (auto profile : {COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP, COM_GAME_ALICE,
+                         COM_GAME_JKA_SP, COM_GAME_JKA_MP}) {
         ri.gameId = profile;
         const bool rtcw = profile == COM_GAME_RTCW_SP || profile == COM_GAME_RTCW_MP;
+        const bool academy = profile == COM_GAME_JKA_SP || profile == COM_GAME_JKA_MP;
         for (int extended : {0, 1}) {
             s_extendedShader = extended;
             // Ritual's dialect keeps retail's 64 frames (alice.exe 0x0048c5bc,
             // fakk2.exe 1.02 0x00476e00; F.A.K.K.2's caustics use 47) in a
             // renderer that carries it, as do extended shaders.
-            const int limit = extended ? 64 : rtcw ? 16 : profile == COM_GAME_ALICE ? ALICE_ANIMATION_LIMIT : 8;
-            for (int count : {0, 1, 8, 9, 15, 16, 17, 24, 25, 47, 64, 65}) {
+            // Jedi Academy keeps 32 (jamp.exe 0x4b42e4, jasp.exe 0x47a497).
+            const int limit = extended ? 64 : rtcw ? 16 : profile == COM_GAME_ALICE ? ALICE_ANIMATION_LIMIT :
+                academy ? 32 : 8;
+            for (int count : {0, 1, 8, 9, 15, 16, 17, 24, 25, 31, 32, 33, 47, 64, 65}) {
                 Reset(); shaderStage_t stage{};
                 auto input = Animation(count); const char *text = input.c_str();
                 assert(ParseAnimation(&stage, &text));
@@ -141,9 +145,10 @@ class ShaderAnimationTests(unittest.TestCase):
                     defines = '\n'.join(re.findall(r'^#define MAX_IMAGE_ANIMATIONS[^\n]*', local, re.M))
                     # Use the production bundle's image storage/count/speed fields.
                     fields = re.search(r'image_t\s+\*image\[MAX_IMAGE_ANIMATIONS\];.*?double\s+imageAnimationSpeed;', local, re.S)[0]
-                    records = 'struct textureBundle_t {' + fields + '};\nstruct shaderStage_t {textureBundle_t bundle[1];};\n'
+                    # Academy's oneShotAnimMap bit (tr_jka_shader.h) is written by the same branch.
+                    records = 'struct textureBundle_t {' + fields + ' unsigned int jkaOneShotAnimMap : 1;};\nstruct shaderStage_t {textureBundle_t bundle[1];};\n'
                     stage = function(source, 'static qboolean ParseStage(')
-                    start = stage.index('else if ( !Q_stricmp( token, "animMap" ) )')
+                    start = stage.index('else if ( !Q_stricmp( token, "animMap" )')
                     end = stage.index('else if ( !Q_stricmp( token, "videoMap" ) )', start)
                     branch = stage[start:end].replace('else if', 'if', 1)
                     parser = '''static qboolean ParseAnimation(shaderStage_t *stage, const char **text) {
@@ -154,7 +159,7 @@ class ShaderAnimationTests(unittest.TestCase):
                     ''' + branch + 'else return qfalse; return qtrue;}\n'
                     defines += '\n#define ALICE_ANIMATION_LIMIT %d\n' % (64 if 'R_AliceShaderDialect()' in branch else 8)
                     fixture = common(renderer) + '\n#include <cstdlib>\n' + defines + '\n' + HOST + tokenizer()
-                    fixture += '\n#include "code/renderercommon/tr_rtcw_shader_material.h"\n' + records + parser + CHECKS
+                    fixture += '\n#include "code/renderercommon/tr_rtcw_shader_material.h"\n#include "code/renderercommon/tr_jka_shader.h"\n' + records + parser + CHECKS
                     cpp = Path(temp) / f'{renderer}.cpp'
                     exe = Path(temp) / (renderer + ('.exe' if os.name == 'nt' else ''))
                     cpp.write_text(fixture, encoding='utf-8')

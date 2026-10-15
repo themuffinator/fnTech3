@@ -878,16 +878,21 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 		}
 		//
 		// animMap <frequency> <image1> .... <imageN>
+		// Jedi Academy: clampAnimMap and oneShotAnimMap (tr_jka_shader.h)
 		//
-		else if ( !Q_stricmp( token, "animMap" ) )
+		else if ( !Q_stricmp( token, "animMap" ) || R_JKAClampAnimMapKeyword( token ) ||
+			R_JKAOneShotAnimMapKeyword( token ) )
 		{
 			int	totalImages = 0;
 			// Ritual's engines keep 64 frames (alice.exe 0x0048c5bc, fakk2.exe
 			// 1.02 0x00476e00), and so does this one: F.A.K.K.2's caustics use 47.
 			int maxAnimations = s_extendedShader || R_AliceShaderDialect() ? MAX_IMAGE_ANIMATIONS :
 				R_WolfensteinShaderDialect() ?
-				MAX_IMAGE_ANIMATIONS_RTCW : MAX_IMAGE_ANIMATIONS_VQ3;
+				MAX_IMAGE_ANIMATIONS_RTCW : R_JKAShaderProfile() ? MAX_IMAGE_ANIMATIONS_JKA :
+				MAX_IMAGE_ANIMATIONS_VQ3;
+			const qboolean jkaClamp = R_JKAClampAnimMapKeyword( token );
 
+			stage->bundle[aliceStage.bundle].jkaOneShotAnimMap = R_JKAOneShotAnimMapKeyword( token );
 			token = COM_ParseExt( text, qfalse );
 			if ( !token[0] )
 			{
@@ -906,7 +911,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				}
 				num = stage->bundle[aliceStage.bundle].numImageAnimations;
 				if ( num < maxAnimations ) {
-					imgFlags_t flags = IMGFLAG_NONE;
+					imgFlags_t flags = jkaClamp ? IMGFLAG_CLAMPTOEDGE : IMGFLAG_NONE;
 
 					if (!shader.noMipMaps)
 						flags |= IMGFLAG_MIPMAP;

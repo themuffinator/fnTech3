@@ -1,0 +1,539 @@
+{
+ "record": "docs/fntech3/2026-10-15-jka-oneshot-animmap.md",
+ "date": "2026-10-15",
+ "profiles": [
+  "jka-sp",
+  "jka-mp"
+ ],
+ "baseHead": "fbde92d4 (runtime); the commit is rebased on the HEAD of its date",
+ "claim": "Compatibility slice only; no gate closes.",
+ "platform": "Windows 11, MSVC 2022 x86 (win32-dev options, strict warnings), clang i686-pc-windows-msvc for fixtures",
+ "retail": {
+  "jamp.exe": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+  "jasp.exe": "9351a8de230fcd577e2b474889d08f38982450306767a6823dd659482566d6ce",
+  "pakMembers": {
+   "assets1.pk3:shaders/explosions.shader": "8ac68b594c3a66ea7dd81e664cadffc77bfa7db8c8f914f47ac89ee3a47cc54a",
+   "assets1.pk3:effects/chunks/sparkexplode.efx": "10aa39d387e3a3e229aa3e8cfb5f9bfda827e2fea8330c66c806cd7613c2e1e9"
+  }
+ },
+ "observed": {
+  "jamp.exe": {
+   "parseStageBranch": "0x4b426c (animMap 0x4b3851, clampanimMap 0x4b386a, oneshotanimMap 0x4b3883 compare into it)",
+   "oneShotStore": "0x4b42c4 mov [stage+0x1d], (stricmp(token,\"oneshotanimMap\")==0)",
+   "speedStore": "0x4b42b6 fstp [stage+0x18]",
+   "frameBound": "0x4b42e4 cmp numImageAnimations (word stage+0x16), 0x20",
+   "wrapMode": "0x4b42f3..0x4b42fb: 0x2900 GL_CLAMP for clampanimMap, else 0x2901 GL_REPEAT",
+   "missingParameter": "0x4b44ed: names animMap for clampanimMap and clampanimMap otherwise",
+   "bindAnimatedImage": "0x4ac3d0",
+   "setAnimIndex": "0x4ac42f renderfx & 0x80000 takes refEntity +0x84 (skinNum)",
+   "frameIndex": "0x4ac440..0x4ac469 fistp(shaderTime 0x1072b64 * speed * 1024.0 0x5662f0) >> 10, negative to 0",
+   "oneShotHold": "0x4ac46b bundle +0x19 set: index >= count binds image[count-1]; else index % count (0x4ac48b)"
+  },
+  "jasp.exe": {
+   "parseStageBranch": "0x47a42e",
+   "oneShotStore": "0x47a47d",
+   "frameBound": "0x47a497 cmp 0x20",
+   "bindAnimatedImage": "0x472fd0",
+   "setAnimIndex": "0x473026 renderfx & 0x20000 takes refEntity +0x68",
+   "frameIndex": "0x473034..0x473056 Q_ftol 0x477a00 of shaderTime 0xc97b68 * speed * 1024.0 0x518a40, >> 10",
+   "oneShotHold": "0x473058"
+  }
+ },
+ "change": {
+  "files": [
+   "code/renderercommon/tr_jka_shader.h",
+   "code/{renderer,renderervk,rendererrtx}/tr_shader.c",
+   "code/{renderer,renderervk,rendererrtx}/tr_local.h",
+   "code/{renderer,renderervk,rendererrtx}/tr_shade.c"
+  ],
+  "profiles": "jka-sp and jka-mp only (R_JKAShaderProfile)"
+ },
+ "tests": {
+  "new": [
+   "tests/jka_oneshot_animmap_tests.py (registered in meson.build as fntech3_jka_oneshot_animmap)"
+  ],
+  "updated": [
+   "tests/shader_animation_tests.py (Academy profiles, 32-frame bound, the widened branch condition)"
+  ]
+ },
+ "harness": ".tmp/jka-oneshot/listen.py (.tmp/jka-tails/listen.py copied: windowed, loopback only, no input, private desktop, isolated home)",
+ "entityOverrides": {
+  "ffa2-oneshot.ent": {
+   "sha256": "7c5c1cf3d0793b23a060eddd72da539e7300a6c49bfc450830d53ab4430581cf",
+   "base": ".tmp/jka-tails/ffa2-bsp.ent (mp/ffa2 entity text)",
+   "addedRunners": [
+    "chunks/sparkexplode at -2164 1536 150, delay 2500"
+   ]
+  }
+ },
+ "runtimes": {
+  "before": {
+   "folder": ".tmp/runtime/jka-oneshot-before",
+   "sha256": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "e7efc8fa10191bed9e4042fc8145906d52849dc4217648430a529b1d5a9b3e25",
+    "fnql_rtx_x86.dll": "26925301e37e44ddf19500e31660bf1cc1fc06a0bb32df7784236187e2d772b5",
+    "fnql_vk_x86.dll": "776b8d8176f57b576f935b0d540c52ae1299da2a21bfa5e8ab86b821a5c9f100",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+    "fntech3.exe": "23b44245eb122d613fbb0a77a6c269b5168e95cd3fd056df1d1d91454dabd0af",
+    "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+   }
+  },
+  "after": {
+   "folder": ".tmp/runtime/jka-oneshot",
+   "sha256": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "756df95b6fc05674122ac9b7f3b1e8cc765760dfeccb67b5a963534d51443cb7",
+    "fnql_rtx_x86.dll": "43b3f8afc2910155e67ae79b0cfdf718fefd702e2b1ebf379d542a9fb6c01bb8",
+    "fnql_vk_x86.dll": "3fe922423d6d38090cd6b9ce8c9955892b721243e4e84ea3c36e19e8f3130e51",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+    "fntech3.exe": "23b44245eb122d613fbb0a77a6c269b5168e95cd3fd056df1d1d91454dabd0af",
+    "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+   }
+  },
+  "build": "git archive of fbde92d4, built with win32-dev options and strict warnings; after = the same export with this slice (overlay.py), renderer DLLs rebuilt, fntech3.exe identical"
+ },
+ "runs": {
+  "glx-before-3": {
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\jka-oneshot-before",
+   "identity": {
+    "fntech3.exe": "23b44245eb122d613fbb0a77a6c269b5168e95cd3fd056df1d1d91454dabd0af",
+    "fnql_glx_x86.dll": "e7efc8fa10191bed9e4042fc8145906d52849dc4217648430a529b1d5a9b3e25",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "map": "mp/ffa2",
+   "entityOverride": {
+    "source": ".tmp/jka-oneshot/ffa2-oneshot.ent",
+    "sha256": "7c5c1cf3d0793b23a060eddd72da539e7300a6c49bfc450830d53ab4430581cf"
+   },
+   "commands": [
+    "set cl_menuBlur 0",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "set cg_draw2D 0",
+    "cmd team spectator",
+    "wait 30",
+    "ui_openmenu none",
+    "setviewpos -2014 1536 90 180",
+    "wait 60",
+    "shaderlist",
+    "timescale 0.5"
+   ],
+   "shots": 40,
+   "shotWaitFrames": 12,
+   "timescale": 0.5,
+   "outcome": "exited",
+   "exit": 0,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "oneShotWarnings": 7,
+   "gfxExpShaderlist": [
+    "0           gen : gfx/exp/explosion1 (DEFAULTED)",
+    "0           gen : gfx/exp/explosion3 (DEFAULTED)",
+    "0           gen : gfx/exp/slower_rocket_explosion (DEFAULTED)",
+    "0           gen : gfx/exp/rocket_explosion (DEFAULTED)",
+    "0           gen : gfx/exp/wookie (DEFAULTED)",
+    "0           gen : gfx/exp/demp2 (DEFAULTED)"
+   ],
+   "sparkexplodePlays": [
+    "Academy FX play: effects/chunks/sparkexplode.efx at 3300",
+    "Academy FX play: effects/chunks/sparkexplode.efx at 5808"
+   ],
+   "shotsAboveBaseline": [
+    "09",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "19",
+    "20",
+    "34",
+    "35",
+    "36",
+    "37",
+    "38",
+    "39"
+   ],
+   "note": "shotsAboveBaseline: captures with more than 2,000 pixels over 24 grey levels brighter than the first capture"
+  },
+  "glx-after-3": {
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\jka-oneshot",
+   "identity": {
+    "fntech3.exe": "23b44245eb122d613fbb0a77a6c269b5168e95cd3fd056df1d1d91454dabd0af",
+    "fnql_glx_x86.dll": "756df95b6fc05674122ac9b7f3b1e8cc765760dfeccb67b5a963534d51443cb7",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "map": "mp/ffa2",
+   "entityOverride": {
+    "source": ".tmp/jka-oneshot/ffa2-oneshot.ent",
+    "sha256": "7c5c1cf3d0793b23a060eddd72da539e7300a6c49bfc450830d53ab4430581cf"
+   },
+   "commands": [
+    "set cl_menuBlur 0",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "set cg_draw2D 0",
+    "cmd team spectator",
+    "wait 30",
+    "ui_openmenu none",
+    "setviewpos -2014 1536 90 180",
+    "wait 60",
+    "shaderlist",
+    "timescale 0.5"
+   ],
+   "shots": 40,
+   "shotWaitFrames": 12,
+   "timescale": 0.5,
+   "outcome": "exited",
+   "exit": 0,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "oneShotWarnings": 0,
+   "gfxExpShaderlist": [
+    "2         E gen : gfx/exp/explosion1",
+    "2         E gen : gfx/exp/explosion3",
+    "2         E gen : gfx/exp/slower_rocket_explosion",
+    "2         E gen : gfx/exp/rocket_explosion",
+    "2         E gen : gfx/exp/wookie",
+    "2         E gen : gfx/exp/demp2"
+   ],
+   "sparkexplodePlays": [
+    "Academy FX play: effects/chunks/sparkexplode.efx at 3309",
+    "Academy FX play: effects/chunks/sparkexplode.efx at 5813"
+   ],
+   "shotsAboveBaseline": [
+    "09",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "33",
+    "34",
+    "35",
+    "36",
+    "37",
+    "38",
+    "39"
+   ],
+   "note": "shotsAboveBaseline: captures with more than 2,000 pixels over 24 grey levels brighter than the first capture"
+  },
+  "vk-before-3": {
+   "renderer": "vk",
+   "runtime": ".tmp\\runtime\\jka-oneshot-before",
+   "identity": {
+    "fntech3.exe": "23b44245eb122d613fbb0a77a6c269b5168e95cd3fd056df1d1d91454dabd0af",
+    "fnql_vk_x86.dll": "776b8d8176f57b576f935b0d540c52ae1299da2a21bfa5e8ab86b821a5c9f100",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "map": "mp/ffa2",
+   "entityOverride": {
+    "source": ".tmp/jka-oneshot/ffa2-oneshot.ent",
+    "sha256": "7c5c1cf3d0793b23a060eddd72da539e7300a6c49bfc450830d53ab4430581cf"
+   },
+   "commands": [
+    "set cl_menuBlur 0",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "set cg_draw2D 0",
+    "cmd team spectator",
+    "wait 30",
+    "ui_openmenu none",
+    "setviewpos -2014 1536 90 180",
+    "wait 60",
+    "shaderlist",
+    "timescale 0.5"
+   ],
+   "shots": 40,
+   "shotWaitFrames": 12,
+   "timescale": 0.5,
+   "outcome": "exited",
+   "exit": 0,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "oneShotWarnings": 7,
+   "gfxExpShaderlist": [
+    "0           gen : gfx/exp/explosion1 (DEFAULTED)",
+    "0           gen : gfx/exp/explosion3 (DEFAULTED)",
+    "0           gen : gfx/exp/slower_rocket_explosion (DEFAULTED)",
+    "0           gen : gfx/exp/rocket_explosion (DEFAULTED)",
+    "0           gen : gfx/exp/wookie (DEFAULTED)",
+    "0           gen : gfx/exp/demp2 (DEFAULTED)"
+   ],
+   "sparkexplodePlays": [
+    "Academy FX play: effects/chunks/sparkexplode.efx at 3302",
+    "Academy FX play: effects/chunks/sparkexplode.efx at 5805"
+   ],
+   "shotsAboveBaseline": [
+    "09",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "19",
+    "20",
+    "33",
+    "34",
+    "35",
+    "36",
+    "37",
+    "38",
+    "39"
+   ],
+   "note": "shotsAboveBaseline: captures with more than 2,000 pixels over 24 grey levels brighter than the first capture"
+  },
+  "vk-after-3": {
+   "renderer": "vk",
+   "runtime": ".tmp\\runtime\\jka-oneshot",
+   "identity": {
+    "fntech3.exe": "23b44245eb122d613fbb0a77a6c269b5168e95cd3fd056df1d1d91454dabd0af",
+    "fnql_vk_x86.dll": "3fe922423d6d38090cd6b9ce8c9955892b721243e4e84ea3c36e19e8f3130e51",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "map": "mp/ffa2",
+   "entityOverride": {
+    "source": ".tmp/jka-oneshot/ffa2-oneshot.ent",
+    "sha256": "7c5c1cf3d0793b23a060eddd72da539e7300a6c49bfc450830d53ab4430581cf"
+   },
+   "commands": [
+    "set cl_menuBlur 0",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "set cg_draw2D 0",
+    "cmd team spectator",
+    "wait 30",
+    "ui_openmenu none",
+    "setviewpos -2014 1536 90 180",
+    "wait 60",
+    "shaderlist",
+    "timescale 0.5"
+   ],
+   "shots": 40,
+   "shotWaitFrames": 12,
+   "timescale": 0.5,
+   "outcome": "exited",
+   "exit": 0,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "oneShotWarnings": 0,
+   "gfxExpShaderlist": [
+    "1   MT(x) E gen : gfx/exp/explosion1",
+    "1   MT(x) E gen : gfx/exp/explosion3",
+    "1   MT(x) E gen : gfx/exp/slower_rocket_explosion",
+    "1   MT(x) E gen : gfx/exp/rocket_explosion",
+    "1   MT(x) E gen : gfx/exp/wookie",
+    "1   MT(x) E gen : gfx/exp/demp2"
+   ],
+   "sparkexplodePlays": [
+    "Academy FX play: effects/chunks/sparkexplode.efx at 3303",
+    "Academy FX play: effects/chunks/sparkexplode.efx at 5813"
+   ],
+   "shotsAboveBaseline": [
+    "09",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "34",
+    "35",
+    "36",
+    "37",
+    "38",
+    "39"
+   ],
+   "note": "shotsAboveBaseline: captures with more than 2,000 pixels over 24 grey levels brighter than the first capture"
+  },
+  "rtx-before-3": {
+   "renderer": "rtx",
+   "runtime": ".tmp\\runtime\\jka-oneshot-before",
+   "identity": {
+    "fntech3.exe": "23b44245eb122d613fbb0a77a6c269b5168e95cd3fd056df1d1d91454dabd0af",
+    "fnql_rtx_x86.dll": "26925301e37e44ddf19500e31660bf1cc1fc06a0bb32df7784236187e2d772b5",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "map": "mp/ffa2",
+   "entityOverride": {
+    "source": ".tmp/jka-oneshot/ffa2-oneshot.ent",
+    "sha256": "7c5c1cf3d0793b23a060eddd72da539e7300a6c49bfc450830d53ab4430581cf"
+   },
+   "commands": [
+    "set cl_menuBlur 0",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "set cg_draw2D 0",
+    "cmd team spectator",
+    "wait 30",
+    "ui_openmenu none",
+    "setviewpos -2014 1536 90 180",
+    "wait 60",
+    "shaderlist",
+    "timescale 0.5"
+   ],
+   "shots": 40,
+   "shotWaitFrames": 12,
+   "timescale": 0.5,
+   "outcome": "exited",
+   "exit": 0,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "oneShotWarnings": 7,
+   "gfxExpShaderlist": [
+    "0           gen : gfx/exp/explosion1 (DEFAULTED)",
+    "0           gen : gfx/exp/explosion3 (DEFAULTED)",
+    "0           gen : gfx/exp/slower_rocket_explosion (DEFAULTED)",
+    "0           gen : gfx/exp/rocket_explosion (DEFAULTED)",
+    "0           gen : gfx/exp/wookie (DEFAULTED)",
+    "0           gen : gfx/exp/demp2 (DEFAULTED)"
+   ],
+   "sparkexplodePlays": [
+    "Academy FX play: effects/chunks/sparkexplode.efx at 3305",
+    "Academy FX play: effects/chunks/sparkexplode.efx at 5826",
+    "Academy FX play: effects/chunks/sparkexplode.efx at 8334",
+    "Academy FX play: effects/chunks/sparkexplode.efx at 10844"
+   ],
+   "shotsAboveBaseline": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "19",
+    "28",
+    "29",
+    "30",
+    "31",
+    "32",
+    "33",
+    "34"
+   ],
+   "note": "shotsAboveBaseline: captures with more than 2,000 pixels over 24 grey levels brighter than the first capture"
+  },
+  "rtx-after-3": {
+   "renderer": "rtx",
+   "runtime": ".tmp\\runtime\\jka-oneshot",
+   "identity": {
+    "fntech3.exe": "23b44245eb122d613fbb0a77a6c269b5168e95cd3fd056df1d1d91454dabd0af",
+    "fnql_rtx_x86.dll": "43b3f8afc2910155e67ae79b0cfdf718fefd702e2b1ebf379d542a9fb6c01bb8",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "map": "mp/ffa2",
+   "entityOverride": {
+    "source": ".tmp/jka-oneshot/ffa2-oneshot.ent",
+    "sha256": "7c5c1cf3d0793b23a060eddd72da539e7300a6c49bfc450830d53ab4430581cf"
+   },
+   "commands": [
+    "set cl_menuBlur 0",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "set cg_draw2D 0",
+    "cmd team spectator",
+    "wait 30",
+    "ui_openmenu none",
+    "setviewpos -2014 1536 90 180",
+    "wait 60",
+    "shaderlist",
+    "timescale 0.5"
+   ],
+   "shots": 40,
+   "shotWaitFrames": 12,
+   "timescale": 0.5,
+   "outcome": "exited",
+   "exit": 0,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "oneShotWarnings": 0,
+   "gfxExpShaderlist": [
+    "1   MT(x) E gen : gfx/exp/explosion1",
+    "1   MT(x) E gen : gfx/exp/explosion3",
+    "1   MT(x) E gen : gfx/exp/slower_rocket_explosion",
+    "1   MT(x) E gen : gfx/exp/rocket_explosion",
+    "1   MT(x) E gen : gfx/exp/wookie",
+    "1   MT(x) E gen : gfx/exp/demp2"
+   ],
+   "sparkexplodePlays": [
+    "Academy FX play: effects/chunks/sparkexplode.efx at 3311",
+    "Academy FX play: effects/chunks/sparkexplode.efx at 5817",
+    "Academy FX play: effects/chunks/sparkexplode.efx at 8319",
+    "Academy FX play: effects/chunks/sparkexplode.efx at 10826"
+   ],
+   "shotsAboveBaseline": [
+    "01",
+    "02",
+    "03",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "27",
+    "28",
+    "29",
+    "30",
+    "31"
+   ],
+   "note": "shotsAboveBaseline: captures with more than 2,000 pixels over 24 grey levels brighter than the first capture"
+  }
+ },
+ "earlierRun": {
+  "glx-after-1": {
+   "entityOverride": {
+    "source": ".tmp/jka-oneshot/ffa2-probe5.ent",
+    "sha256": "56b2f92a3c81e841428649d60e44e83b033ac5169a363c1377e509253a67d099"
+   },
+   "outcome": "exited",
+   "note": "the five-runner ffa2-probe5.ent of the tails slice: no oneshotanimmap warning, the six gfx/exp shaders list two stages each"
+  }
+ },
+ "fnFeatures": {
+  "used": [
+   "Fn shaders, fog, sorting, bloom and post-processing for every explosion stage",
+   "Fn sprites with the float entity shader clock (setShaderTime)",
+   "Vulkan and RTX multitexture collapse (the one-shot bit travels with its bundle)"
+  ],
+  "leftOut": [
+   "none: the keyword selects which image a stage binds; presentation is unchanged"
+  ],
+  "retailExactOption": "none"
+ },
+ "engineChoices": [
+  "frame index truncates shaderTime * speed (Fn frameloss fix) where retail rounds shaderTime * speed * 1024 by fistp and shifts by 10: at most 1/1024 of a frame earlier",
+  "Fn warns when animMap frames exceed the bound; retail skips them silently",
+  "Fn names the keyword animMap in its missing-parameter warning; retail swaps the two names"
+ ],
+ "openBlockers": [
+  "RF_SETANIMINDEX (renderfx 0x80000 MP, 0x20000 SP; EF_SHADER_ANIM movers such as the *_onoff door shaders) is refused by the render adapter, so those entities do not draw",
+  "no retail comparison capture",
+  "jka-sp not probed live (shared parser and profile check only)"
+ ]
+}
