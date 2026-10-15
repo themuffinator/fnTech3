@@ -1085,6 +1085,7 @@ public:
 	void StartMOHAASound( int entityNum, int entchannel, sfxHandle_t handle, SoundSample *sample, const float *origin,
 		float volume, float minDist, float maxDist, float pitch, int mohaaChannel );
 	void StopMOHAASound( int entityNum, int mohaaChannel );
+	void StopEntityChannelSound( int entityNum, int entchannel );
 	void AddMOHAALoopingSound( int slot, const float *origin, const float *velocity, sfxHandle_t handle,
 		SoundSample *sample, float volume, float minDist, float maxDist, float pitch );
 	void StartRTCWSound( int entity, int channel, sfxHandle_t handle, SoundSample *sample, const float *origin, int flags );
@@ -1446,6 +1447,15 @@ void Q3SoundWorld::StartMOHAASound( int entityNum, int entchannel, sfxHandle_t h
 void Q3SoundWorld::StopMOHAASound( int entityNum, int mohaaChannel ) {
 	for ( SoundVoice &voice : oneShots_ ) {
 		if ( voice.active && voice.entnum == entityNum && voice.mohaaChannel == mohaaChannel ) {
+			voice.Release( *device_ );
+		}
+	}
+}
+
+/* One entity's one-shots on one engine channel end (Academy's S_MuteSound). */
+void Q3SoundWorld::StopEntityChannelSound( int entityNum, int entchannel ) {
+	for ( SoundVoice &voice : oneShots_ ) {
+		if ( voice.active && voice.entnum == entityNum && voice.entchannel == entchannel ) {
 			voice.Release( *device_ );
 		}
 	}

@@ -383,17 +383,24 @@ int main(){
  const auto beforeBadCopyCount=CL_JKACgameGhoul2Resolve(modelCopyIdentity)->Count();
  for(int index:{-1,32,INT_MAX}){
   modelCopy[2]=index;assert(!Invoke(modelCopy));modelCopy[2]=0;
-  modelCopy[4]=index;assert(!Invoke(modelCopy));modelCopy[4]=0;
+  // A negative place copies nothing; the owned 32-model budget refuses by name.
+  modelCopy[4]=index;
+  if(index<0)assert(!Invoke(modelCopy));else Reject([&]{Invoke(modelCopy);});
+  modelCopy[4]=0;
   assert(CL_JKACgameGhoul2Resolve(modelCopyIdentity)->Count()==beforeBadCopyCount);
  }
- modelCopy[4]=5;Reject([&]{Invoke(modelCopy);});modelCopy[4]=0;
- assert(CL_JKACgameGhoul2Resolve(modelCopyIdentity)->Count()==beforeBadCopyCount);
+ // Past the end, retail 0x4e04b0 grows the instance; the places between are empty.
+ modelCopy[4]=5;assert(!Invoke(modelCopy));modelCopy[4]=0;
+ assert(CL_JKACgameGhoul2Resolve(modelCopyIdentity)->Count()==6);
+ for(int index:{2,3,4})assert(!CL_JKACgameGhoul2Resolve(modelCopyIdentity)->At(index));
+ assert(CL_JKACgameGhoul2Resolve(modelCopyIdentity)->At(5));
  modelCopy[1]=0;assert(!Invoke(modelCopy));modelCopy[1]=modelCopyIdentity;
  modelCopy[3]=0;assert(!Invoke(modelCopy));modelCopy[3]=modelCopyIdentity;
  vm.dllExports=reinterpret_cast<decltype(vm.dllExports)>(1);Reject([&]{Invoke(modelCopy);});vm.dllExports=nullptr;
  for(int index=2;index<32;++index){modelCopy[4]=index;assert(!Invoke(modelCopy));
-  assert(CL_JKACgameGhoul2Resolve(modelCopyIdentity)->Count()==index+1);}
- modelCopy[4]=32;assert(!Invoke(modelCopy));assert(CL_JKACgameGhoul2Resolve(modelCopyIdentity)->Count()==32);
+  assert(CL_JKACgameGhoul2Resolve(modelCopyIdentity)->Count()==(index<6?6:index+1));
+  assert(CL_JKACgameGhoul2Resolve(modelCopyIdentity)->At(index));}
+ modelCopy[4]=32;Reject([&]{Invoke(modelCopy);});assert(CL_JKACgameGhoul2Resolve(modelCopyIdentity)->Count()==32);
  intptr_t cleanCopy[]{301,reinterpret_cast<intptr_t>(&modelCopyIdentity)};
  const auto staleCopyIdentity=modelCopyIdentity;assert(!Invoke(cleanCopy)&&!modelCopyIdentity);
  modelCopy[3]=identity;Reject([&]{Invoke(modelCopy);}); // stale source identity

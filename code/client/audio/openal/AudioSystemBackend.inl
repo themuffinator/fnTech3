@@ -41,6 +41,7 @@ public:
 	void StartMOHAASound( const float *origin, int entnum, int entchannel, sfxHandle_t handle,
 		float volume, float minDist, float maxDist, float pitch, int mohaaChannel );
 	void StopMOHAASound( int entnum, int mohaaChannel );
+	void StopEntityChannelSound( int entnum, int entchannel );
 	void AddMOHAALoopingSound( int slot, const float *origin, const float *velocity, sfxHandle_t handle,
 		float volume, float minDist, float maxDist, float pitch );
 	const int *STVEFSPMouths();
@@ -447,6 +448,7 @@ bool AudioSystem::Init( soundInterface_t *si ) {
 			mohaaChannel );
 	};
 	si->StopMOHAASound = []( int entnum, int mohaaChannel ) { AudioSystem::Get().StopMOHAASound( entnum, mohaaChannel ); };
+	si->StopEntityChannelSound = []( int entnum, int entchannel ) { AudioSystem::Get().StopEntityChannelSound( entnum, entchannel ); };
 	si->AddMOHAALoopingSound = []( int slot, const vec3_t origin, const vec3_t velocity, sfxHandle_t handle,
 		float volume, float minDist, float maxDist, float pitch ) {
 		AudioSystem::Get().AddMOHAALoopingSound( slot, origin, velocity, handle, volume, minDist, maxDist, pitch );
@@ -1067,6 +1069,12 @@ void AudioSystem::StartMOHAASound( const float *origin, int entnum, int entchann
 void AudioSystem::StopMOHAASound( int entnum, int mohaaChannel ) {
 	if ( started_ ) {
 		world_.StopMOHAASound( entnum, mohaaChannel );
+	}
+}
+
+void AudioSystem::StopEntityChannelSound( int entnum, int entchannel ) {
+	if ( started_ ) {
+		world_.StopEntityChannelSound( entnum, entchannel );
 	}
 }
 

@@ -75,6 +75,9 @@ void S_StartSoundVolume(vec3_t origin,int entity,int channel,sfxHandle_t sfx,flo
  started.push_back({{origin[0],origin[1],origin[2]},entity,channel,sfx,volume});}
 void S_AddJKAAmbientLoopingSound(const vec3_t origin,sfxHandle_t sfx,int volume){
  looped.push_back({{origin[0],origin[1],origin[2]},sfx,volume});}
+struct Muted { int entity, channel; };
+static std::vector<Muted> muted;
+void S_MuteJKASound(int entity,int channel){muted.push_back({entity,channel});}
 #include "code/client/client_jka_cgame_ambient.hpp"
 static fntech3::jka::lightstyle::Store jkaCgameLightStyles;
 static void *jkaCgameSharedBuffer;static std::vector<int> jkaFonts;
@@ -94,6 +97,10 @@ static intptr_t Invoke(intptr_t *args){
 template<class F>static void Reject(F action){bool rejected=false;try{action();}catch(Drop){rejected=true;}assert(rejected);}
 int main(){
  vm_t vm{};vm.entryPoint=reinterpret_cast<decltype(vm.entryPoint)>(1);cgvm=&vm;
+ // Import 36: a weapon switch mutes the player's weapon channel (2).
+ intptr_t mute[]{36,5,2};assert(Invoke(mute)==0&&muted.size()==1&&muted[0].entity==5&&muted[0].channel==2);
+ mute[1]=-1;Reject([&]{Invoke(mute);});mute[1]=MAX_GENTITIES;Reject([&]{Invoke(mute);});
+ assert(muted.size()==1);
  intptr_t add[]{50,reinterpret_cast<intptr_t>("shared")},parse[]{49};
  intptr_t get[]{52,reinterpret_cast<intptr_t>("shared"),0};
  assert(Invoke(get)==-1&&!jkaCgameAmbient&&opens==0);

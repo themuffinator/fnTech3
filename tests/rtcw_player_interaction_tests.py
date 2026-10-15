@@ -32,6 +32,8 @@ int Com_GameIsRTCWMP() { return profile==COM_GAME_RTCW_MP; }
 int Com_GameIsSTVEFMP() { return profile==COM_GAME_STVEF_MP; }
 int Com_GameIsSTVEFSP() { return profile==COM_GAME_STVEF_SP; }
 int Com_GameIsWolfET() { return profile==COM_GAME_WOLFET; }
+int Com_GameIsJKAMP() { return profile==COM_GAME_JKA_MP; }
+int Com_GameIsJK2MP() { return profile==COM_GAME_JK2_MP; }
 int Com_GameIsAlice() { return profile==COM_GAME_ALICE; }
 int Com_GameIsRitual() { return profile==COM_GAME_ALICE || profile==COM_GAME_FAKK2; }
 int Com_GameIsMOHAA() { return profile==COM_GAME_MOHAA; }
@@ -52,7 +54,7 @@ static void IN_MLookDown() {}
 static void IN_MLookUp() {}
 signed char ClampCharMove(int value) { return value < -127 ? -127 : value > 127 ? 127 : value; }
 '''
-    source += re.search(r'constexpr std::size_t kInputButtonCount[^;]+;', client)[0] + '\n'
+    source += re.search(r'constexpr std::size_t kInputButtonCount.*?constexpr int kJediButtonAny[^;]+;', client, re.S)[0] + '\n'
     source += re.search(r'struct InputCommandBinding\s*\{.*?\n};', client, re.S)[0] + '\n'
     start = client.index('struct kbutton_t {')
     source += client[start:client.index('static cvar_t *cl_nodelta;', start)]
@@ -75,15 +77,18 @@ static void Invoke(const char *command, const char *key="42", const char *tag="f
 static usercmd_t Sample() { usercmd_t cmd{}; CL_CmdButtons(&cmd); return cmd; }
 int main() {
  run.integer=freelook.integer=1;
- for(auto id:{COM_GAME_QUAKE3,COM_GAME_QUAKELIVE,COM_GAME_RTCW_SP,COM_GAME_RTCW_MP,COM_GAME_STVEF_MP,COM_GAME_STVEF_SP}) {
+ for(auto id:{COM_GAME_QUAKE3,COM_GAME_QUAKELIVE,COM_GAME_RTCW_SP,COM_GAME_RTCW_MP,COM_GAME_STVEF_MP,COM_GAME_STVEF_SP,
+              COM_GAME_JKA_MP,COM_GAME_JK2_MP}) {
   profile=id; bool rtcw=Com_GameIsRTCW(), ef=Com_GameIsSTVEFMP(), efsp=Com_GameIsSTVEFSP();
+  bool jedi=Com_GameIsJKAMP() || Com_GameIsJK2MP();
   IN_ClearCommandInputState(); IN_AddCommandBindings();
   assert(commands.count("+activate")==rtcw && commands.count("-activate")==rtcw);
-  assert(commands.count("+altattack")==(ef||efsp) && commands.count("-use")==(ef||efsp));
+  assert(commands.count("+altattack")==(ef||efsp||jedi) && commands.count("-altattack")==(ef||efsp||jedi));
+  assert(commands.count("-use")==(ef||efsp));
   assert(bool(CL_IsEngineStatefulInputCommand("+activate"))==rtcw);
   assert(!CL_IsEngineStatefulInputCommand("+activate_more"));
   assert(CL_IsEngineStatefulInputCommand("+attack"));
-  anykeydown=1; catcher=0; assert(Sample().buttons==(rtcw?128:ef?FNTECH3_STVEF_MP_BUTTON_ANY:efsp?FNTECH3_STVEF_SP_BUTTON_ANY:BUTTON_ANY));
+  anykeydown=1; catcher=0; assert(Sample().buttons==(rtcw?128:ef?FNTECH3_STVEF_MP_BUTTON_ANY:efsp?FNTECH3_STVEF_SP_BUTTON_ANY:jedi?0x100:BUTTON_ANY));
   catcher=2; assert(Sample().buttons==BUTTON_TALK);
   catcher=0; anykeydown=0;
   if(efsp) {
@@ -92,6 +97,16 @@ int main() {
    Invoke("+button8"); assert(!Sample().buttons); Invoke("-button8");
    Invoke("+moveup","42","fnql-gen:1","84");
    usercmd_t jump{}; CL_KeyMove(&jump); assert(jump.upmove==127); Invoke("-moveup");
+   assert(!Sample().buttons);
+  }
+  if(jedi) {
+   // Both Jedi engines: alternate attack is button 7 (0x80), and only
+   // fifteen buttons reach the command.
+   Invoke("+altattack"); assert(Sample().buttons==128); Invoke("-altattack");
+   assert(!Sample().buttons);
+   Invoke("+button14"); assert(Sample().buttons==(1<<14)); Invoke("-button14");
+   Invoke("+button15"); assert(!Sample().buttons); Invoke("-button15");
+   catcher=2; Invoke("+altattack"); assert(Sample().buttons==(128|BUTTON_TALK)); Invoke("-altattack"); catcher=0;
    assert(!Sample().buttons);
   }
   if(ef) {

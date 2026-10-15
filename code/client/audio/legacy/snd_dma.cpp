@@ -424,6 +424,26 @@ static void S_ChannelFree( channel_t *v ) {
 }
 
 
+/*
+=================
+S_Base_StopEntityChannelSound
+
+Frees the voices one entity is playing on one channel.
+=================
+*/
+static void S_Base_StopEntityChannelSound( int entnum, int entchannel ) {
+	if ( !s_soundStarted ) {
+		return;
+	}
+	channel_t *ch = s_channels;
+	for ( int i = 0; i < MAX_CHANNELS; i++, ch++ ) {
+		if ( ch->thesfx && ch->entnum == entnum && ch->entchannel == entchannel ) {
+			S_ChannelFree( ch );
+		}
+	}
+}
+
+
 static channel_t* S_ChannelMalloc( int allocTime ) {
 	channel_t *v;
 	if (freelist == nullptr) {
@@ -2672,6 +2692,7 @@ extern "C" qboolean S_Base_Init( soundInterface_t *si ) {
 	si->AddSTVEFAmbientLoopingSound = S_Base_AddSTVEFAmbientLoopingSound;
 	si->AddJKAAmbientLoopingSound = S_Base_AddJKAAmbientLoopingSound;
 	si->StartMOHAASound = S_Base_StartMOHAASound;
+	si->StopEntityChannelSound = S_Base_StopEntityChannelSound;
 	si->AddMOHAALoopingSound = S_Base_AddMOHAALoopingSound;
 	si->STVEFSPMouths = S_Base_STVEFSPMouths;
 	si->AddRealLoopingSound = S_Base_AddRealLoopingSound;

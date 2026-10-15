@@ -26,6 +26,7 @@ extern "C" {
 #include "client_cpp.h"
 #include "input_compat.hpp"
 #include "alice_input.hpp"
+#include "../compat/jka_key_adapter.h"
 #include "../compat/q3_key_adapter.h"
 #include "../compat/rtcw_key_adapter.h"
 #include "../compat/rtcw_key_names.hpp"
@@ -822,6 +823,11 @@ static int CL_ModuleKeyEvent( int key ) {
 	if ( Com_GameIsSTVEF() ) {
 		return FnTech3_STVEFKeyEventFromInternal( key );
 	}
+	// Academy numbers keys as its own key-name table does (jamp.exe 1.01
+	// 0x570bc8): Enter is 10, Backspace 8, the mouse buttons 141 and 142.
+	if ( Com_GameIsJKAMP() ) {
+		return FNTech3_JKAKeyEventFromInternal( key );
+	}
 	return key;
 }
 
@@ -1481,6 +1487,11 @@ void CL_CharEvent( int key )
 		if ( uivm ) {
 			for ( std::size_t i = 0; i < encoded.size; ++i ) {
 				const int utf8Byte = encoded.bytes[i];
+				// Academy's CL_CharEvent (0x41c640) drops '`' and '~'.
+				if ( Com_GameIsJKAMP() &&
+					FNTech3_JKAKeyEventFromInternal( utf8Byte | K_CHAR_FLAG ) < 0 ) {
+					continue;
+				}
 				VM_Call( uivm, 3, UI_KEY_EVENT, utf8Byte | K_CHAR_FLAG,
 					qtrue, cls.realtime );
 			}

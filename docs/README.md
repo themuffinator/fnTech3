@@ -93,6 +93,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Jedi Academy effect sounds](fntech3/2026-10-15-jka-effect-sound.md)
   -- the sounds of the game's effects, including muzzle flashes, measured
   in retail and played through fnTech3's spatial audio.
+- [Jedi Academy weapon fire](fntech3/2026-10-15-jka-weapon-fire.md)
+  -- Escape, alternate attack, the button word and the sound mute a local
+  player needs to fire, measured in retail Jedi Academy and Jedi Outcast.
 - [Jedi Academy one-shot animations](fntech3/2026-10-15-jka-oneshot-animmap.md)
   -- explosion pictures that play once and stop, measured in retail and
   read by every renderer.

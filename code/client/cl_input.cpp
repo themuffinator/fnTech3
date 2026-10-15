@@ -45,6 +45,8 @@ using fnql::ScopedFileHandle;
 namespace {
 
 constexpr std::size_t kInputButtonCount = 16;
+constexpr std::size_t kJediButtonCount = 15;
+constexpr int kJediButtonAny = 0x100;
 
 struct InputCommandBinding {
 	const char *name;
@@ -556,6 +558,8 @@ static bool IN_CommandBindingEnabled( const InputCommandBinding& binding ) {
 	if ( binding.profile == COM_GAME_STVEF_MP ) return Com_GameIsSTVEFMP();
 	if ( binding.profile == COM_GAME_STVEF_SP ) return Com_GameIsSTVEFSP();
 	if ( binding.profile == COM_GAME_WOLFET ) return Com_GameIsWolfET();
+	if ( binding.profile == COM_GAME_JKA_MP ) return Com_GameIsJKAMP() != 0;
+	if ( binding.profile == COM_GAME_JK2_MP ) return Com_GameIsJK2MP() != 0;
 	// F.A.K.K.2 shares these buttons at the same bits: its SDK header
 	// numbers attackright 0, attackleft 1, sneak 2, holster 4 and use 5.
 	if ( binding.profile == COM_GAME_ALICE ) return Com_GameIsRitual();
@@ -666,6 +670,13 @@ static constexpr std::array kInputCommandBindings{
 	InputCommandBinding{ "-altattack", IN_ButtonUp<7>, false, COM_GAME_STVEF_SP },
 	InputCommandBinding{ "+use", IN_ButtonDown<5>, false, COM_GAME_STVEF_SP },
 	InputCommandBinding{ "-use", IN_ButtonUp<5>, false, COM_GAME_STVEF_SP },
+	// Both Jedi engines register +altattack with their +button7 handlers
+	// (jamp.exe 1.01 0x4192b0/0x4192c0 at 0x41aae7, jk2mp.exe 1.02a
+	// 0x406f70/0x406f80 at 0x4080eb): alternate fire is button 7.
+	InputCommandBinding{ "+altattack", IN_ButtonDown<7>, false, COM_GAME_JKA_MP },
+	InputCommandBinding{ "-altattack", IN_ButtonUp<7>, false, COM_GAME_JKA_MP },
+	InputCommandBinding{ "+altattack", IN_ButtonDown<7>, false, COM_GAME_JK2_MP },
+	InputCommandBinding{ "-altattack", IN_ButtonUp<7>, false, COM_GAME_JK2_MP },
 	// Alice's own buttons (alice.exe CL_InitInput 0x00428d60), each a two-line
 	// stub around IN_KeyDown or IN_KeyUp: attackright and attackleft on buttons
 	// 0 and 1 (0x00427e80..0x00427eb0), sneak on 2 (0x00427f00), holster on 4
@@ -1418,9 +1429,14 @@ static void CL_CmdButtons( usercmd_t *cmd ) {
 	// less than a frame
 	//
 	// Holomatch and ET have seven action buttons; Elite Force SP has eight.
+	// The Jedi engines read fifteen and set 0x100 for any key, Raven's
+	// BUTTON_ANY, where Quake III's 2048 is their force drain (CL_CmdButtons
+	// jamp.exe 1.01 0x419e00 and jk2mp.exe 1.02a 0x407660).
+	const bool jedi = Com_GameIsJKAMP() || Com_GameIsJK2MP();
 	const std::size_t buttonCount = Com_GameIsWolfET() ? FNTECH3_WOLFET_BUTTON_COUNT :
 		Com_GameIsSTVEFMP() ? FNTECH3_STVEF_MP_BUTTON_COUNT :
-		Com_GameIsSTVEFSP() ? FNTECH3_STVEF_SP_BUTTON_COUNT : in_buttons.size();
+		Com_GameIsSTVEFSP() ? FNTECH3_STVEF_SP_BUTTON_COUNT :
+		jedi ? kJediButtonCount : in_buttons.size();
 	for ( std::size_t i = 0; i < in_buttons.size(); i++ ) {
 		if ( i < buttonCount && ( in_buttons[i].active || in_buttons[i].wasPressed ) ) {
 			cmd->buttons |= 1 << static_cast<int>( i );
@@ -1448,7 +1464,8 @@ static void CL_CmdButtons( usercmd_t *cmd ) {
 		cmd->buttons |= Com_GameIsWolfET() ? FNTECH3_WOLFET_BUTTON_ANY :
 			Com_GameIsRTCW() ? FNTECH3_RTCW_BUTTON_ANY :
 			Com_GameIsSTVEFMP() ? FNTECH3_STVEF_MP_BUTTON_ANY :
-			Com_GameIsSTVEFSP() ? FNTECH3_STVEF_SP_BUTTON_ANY : BUTTON_ANY;
+			Com_GameIsSTVEFSP() ? FNTECH3_STVEF_SP_BUTTON_ANY :
+			jedi ? kJediButtonAny : BUTTON_ANY;
 	}
 }
 

@@ -3446,15 +3446,19 @@ intptr_t QDECL VM_Call( vm_t *vm, int nargs, int callnum, ... )
 	if ( Com_GameIsJKAMP() && vm->index == VM_UI ) {
 		int32_t args[MAX_VMMAIN_CALL_ARGS - 1] = { 0 };
 		const int external = FNTech3_JKAUIExportOrdinal( callnum );
+		const int forwarded = FNTech3_JKAUIForwardedArguments( callnum, nargs );
 		va_list ap;
-		if ( !vm->entryPoint || vm->dllExports || external < 0 ||
-			nargs != FNTech3_JKAUIExportArgumentCount( callnum ) ) {
+		if ( !vm->entryPoint || vm->dllExports || external < 0 || forwarded < 0 ) {
 			Com_Error( ERR_DROP, "Unsupported Jedi Academy native UI export %d with %d arguments", callnum, nargs );
 			return 0;
 		}
 		va_start( ap, callnum );
-		for ( i = 0; i < nargs; ++i ) args[i] = va_arg( ap, int32_t );
+		for ( i = 0; i < forwarded; ++i ) args[i] = va_arg( ap, int32_t );
 		va_end( ap );
+		if ( callnum == UI_KEY_EVENT && ( args[1] < 0 || args[1] > 1 ) ) {
+			Com_Error( ERR_DROP, "Invalid Jedi Academy UI key event" );
+			return 0;
+		}
 		if ( callnum == UI_SET_ACTIVE_MENU ) {
 			args[0] = FNTech3_JKAUIMenuToExternal( args[0] );
 			if ( args[0] < 0 ) {

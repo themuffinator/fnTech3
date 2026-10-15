@@ -197,6 +197,11 @@ Once those are served, the sweep predicts where fire stops:
 - **Bryar pistol, blaster and the other guns.** Their muzzle flashes stop
   on CameraShake, and their wall impacts on Decal.
 
+The [weapon-fire slice](2026-10-15-jka-weapon-fire.md) serves the four
+blockers above and the sound mute a weapon switch needs; the concussion
+rifle's muzzle flashes now play live, and its shots stop on the server's
+Ghoul2 trace.
+
 ## Tests
 
 - `tests/jka_effect_sound_tests.py` (new, registered as

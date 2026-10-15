@@ -1449,6 +1449,9 @@ test('fntech3_jka_snapshot', jka_snapshot_tests)
 jka_ui_tests = executable('fntech3_jka_ui_tests',
   'tests/jka_ui_tests.cpp', cpp_args: common_cpp_args)
 test('fntech3_jka_ui', jka_ui_tests)
+jka_key_event_tests = executable('fntech3_jka_key_event_tests',
+  'tests/jka_key_event_tests.cpp', cpp_args: common_cpp_args)
+test('fntech3_jka_key_event', jka_key_event_tests)
 jka_font_tests = executable('fntech3_jka_font_tests',
   'tests/jka_font_tests.cpp', cpp_args: common_cpp_args)
 test('fntech3_jka_font', jka_font_tests)
@@ -1505,6 +1508,8 @@ test('fntech3_jka_particle_dynamics', python, args: files('tests/jka_particle_dy
 test('fntech3_jka_tails_physics', python, args: files('tests/jka_tails_physics_tests.py'),
   timeout: jka_test_timeout)
 test('fntech3_jka_effect_sound', python, args: files('tests/jka_effect_sound_tests.py'),
+  timeout: jka_test_timeout)
+test('fntech3_jka_weapon_fire', python, args: files('tests/jka_weapon_fire_tests.py'),
   timeout: jka_test_timeout)
 test('fntech3_jka_oneshot_animmap', python, args: files('tests/jka_oneshot_animmap_tests.py'),
   timeout: jka_test_timeout)

@@ -73,6 +73,7 @@ int main() {
 EVENT_PROBE = r'''
 #include "code/compat/q3_key_adapter.h"
 #include "code/compat/stvef_key_adapter.h"
+#include "code/compat/jka_key_adapter.h"
 #include <cassert>
 #include <cstdarg>
 #include <cstdint>
@@ -83,9 +84,10 @@ struct vm_t { int id; };
 static vm_t ui{ 1 }, cgame{ 2 };
 static vm_t *uivm = &ui, *cgvm = &cgame;
 enum { UI_KEY_EVENT = 3, CG_KEY_EVENT = 6 };
-enum Game { QUAKE3, QUAKELIVE, RTCW, WOLFET, STVEF_MP, STVEF_SP, Q3TEST_1_05, Q3TEST_1_06, JK2_MP } game;
+enum Game { QUAKE3, QUAKELIVE, RTCW, WOLFET, STVEF_MP, STVEF_SP, Q3TEST_1_05, Q3TEST_1_06, JK2_MP, JKA_MP } game;
 static bool Com_GameIsQuake3() { return game == QUAKE3; }
 static bool Com_GameIsJK2MP() { return game == JK2_MP; }
+static bool Com_GameIsJKAMP() { return game == JKA_MP; }
 static bool Com_GameIsSTVEF() { return game == STVEF_MP || game == STVEF_SP; }
 static bool Com_GameIsQ3Test() { return game == Q3TEST_1_05 || game == Q3TEST_1_06; }
 enum { Q3TEST_RELEASE_1_05 = 2, Q3TEST_RELEASE_1_06 };
@@ -167,6 +169,17 @@ int main() {
 	Every( K_MOUSE6, -1 );
 	game = Q3TEST_1_05;
 	for ( int key : { K_MOUSE6, K_MWHEELDOWN, K_AUX16, K_ESCAPE } ) Every( key, key );
+	// Academy's numbers are its own key-name table's (jamp.exe 0x570bc8).
+	game = JKA_MP;
+	Every( K_ESCAPE, 27 );
+	Every( K_ENTER, 10 );
+	Every( K_BACKSPACE, 8 );
+	Every( K_A, 'a' );
+	Every( K_MOUSE1, 141 );
+	Every( K_MWHEELUP, 137 );
+	Every( K_JOY1, 256 );
+	Every( K_AUX16, 303 );
+	for ( int key : { K_MOUSE6, K_PAD0_SOUTH, K_KP_EQUALS, K_F13 } ) Every( key, -1 );
 }
 '''
 

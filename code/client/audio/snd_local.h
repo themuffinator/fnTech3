@@ -208,6 +208,8 @@ struct soundInterface_t {
 	void (*StartMOHAASound)( const vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx,
 		float volume, float minDist, float maxDist, float pitch, int mohaaChannel );
 	void (*StopMOHAASound)( int entnum, int mohaaChannel );
+	// Ends what one entity is playing on one channel (Academy's import 36).
+	void (*StopEntityChannelSound)( int entnum, int entchannel );
 	void (*AddMOHAALoopingSound)( int slot, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx,
 		float volume, float minDist, float maxDist, float pitch );
 	// How wide a mouth each entity holds, for Elite Force SP alone.

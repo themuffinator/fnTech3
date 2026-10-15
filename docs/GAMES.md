@@ -528,6 +528,11 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   test match has played the concussion rifle's and thermal detonator's
   muzzle flashes, a saber clash and a punch, though most guns still stop
   the game when fired ([sound details](fntech3/2026-10-15-jka-effect-sound.md)).
+  After joining from the console, the Player Configuration menu that opens
+  closes with Escape or `togglemenu`, `+altattack` fires a weapon's second
+  mode, and the concussion rifle now plays its muzzle flash and sound when
+  fired, though the match still stops when the shot reaches the server
+  ([weapon fire details](fntech3/2026-10-15-jka-weapon-fire.md)).
   Longer matches, most other maps and fighting have not been checked yet
   ([spawn effect details](fntech3/2026-10-15-jka-spawn-effect.md)). The
   open-source OpenJK engine's client joins fnTech3's server. A lightsaber's
@@ -567,7 +572,8 @@ game's sounds and music, which are MP3 files, now load, and the multiplayer
 menus play their sounds ([details](fntech3/2026-10-08-jk2-mp3-sounds.md)).
 The characters speak German or French when `s_language` is `deutsch` or
 `francais`, as the game's setup menu sets it
-([details](fntech3/2026-10-08-jk2-foreign-voices.md)). The
+([details](fntech3/2026-10-08-jk2-foreign-voices.md)). In multiplayer, `+altattack` now fires a weapon's second mode, and holding a
+key no longer counts as the force drain button ([details](fntech3/2026-10-15-jka-weapon-fire.md)). The
 campaign, saves, demos, graphics, in-game sound and controls are still to
 come. See the [Jedi Outcast details](fntech3/COMPATIBILITY.md#jedi-outcast-gate-matrix).
 

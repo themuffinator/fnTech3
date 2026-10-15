@@ -136,6 +136,14 @@ static void CL_JKACgameAmbientParse() {
 static bool CL_JKACgameAmbientCall(intptr_t *args, fntech3::jka::module::Call call, intptr_t &result) {
     using fntech3::jka::module::Call;
     switch (call) {
+    case Call::CG_S_MUTESOUND:
+        // Retail 0x4128f8 hands entity and channel to S_MuteSound 0x46ac30
+        // and returns zero. A weapon switch mutes the player's weapon channel.
+        if (args[1] < 0 || args[1] >= MAX_GENTITIES || args[2] < INT_MIN || args[2] > INT_MAX)
+            Com_Error(ERR_DROP, "Invalid Jedi Academy cgame sound mute");
+        S_MuteJKASound(static_cast<int>(args[1]), static_cast<int>(args[2]));
+        result = 0;
+        return true;
     case Call::CG_S_UPDATEAMBIENTSET: {
         const auto name = CL_JKACgameAmbientName(args[1]);
         // Retail 0x468439 returns before reading origin when lookup is absent.

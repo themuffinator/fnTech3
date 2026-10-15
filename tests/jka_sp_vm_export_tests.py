@@ -56,6 +56,8 @@ int FNTech3_JKAUIExportOrdinal(int command) { return command; }
 int FNTech3_JKAUIExportArgumentCount(int) { return 0; }
 int FNTech3_JKAUIMenuToExternal(int command) { return command; }
 int FNTech3_JKAUIMenuToInternal(int command) { return command; }
+enum { UI_KEY_EVENT=300 };
+int FNTech3_JKAUIForwardedArguments(int,int nargs) { return nargs==0?0:-1; }
 int FnTech3_WolfETMenuToInternal(intptr_t command) { return int(command); }
 int VM_RTCWMenuFromExternal(comGameId_t,intptr_t command) { return int(command); }
 qboolean VM_PrepareRTCWExport(comGameId_t,vmIndex_t,int,int,int32_t *,int *) { assert(false);return 0; }

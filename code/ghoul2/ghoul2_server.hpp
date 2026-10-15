@@ -1116,10 +1116,17 @@ inline bool Store::CopyModel( void *from, int modelFrom, void *to, int modelTo )
 	if ( modelFrom < 0 || modelFrom >= source->Count() ) return false;
 	const Model &model = source->models_[std::size_t( modelFrom )];
 	if ( !model.present ) return false;
-	if ( modelTo < 0 || modelTo > destination->Count() ) return false;
-	if ( modelTo == destination->Count() ) {
-		if ( destination->Count() >= MaxModelsPerInstance ) return false;
-		destination->models_.push_back( model );
+	if ( modelTo < 0 || modelTo >= MaxModelsPerInstance ) return false;
+	if ( modelTo >= destination->Count() ) {
+		/* jamp.exe 1.01 0x4e04b0 grows the destination to modelTo + 1 places
+		 * (0x4e04dd..0x4e04eb) before the copy: a place it skips holds no
+		 * model, as a removed one does. The source may be the destination,
+		 * so the model is copied out before the places move. */
+		Model copy = model;
+		Model empty;
+		empty.present = false;
+		destination->models_.resize( std::size_t( modelTo ), empty );
+		destination->models_.push_back( std::move( copy ) );
 		/* jk2mp.exe 0x4a7caa: a copy that grows the instance sets model 0's
 		 * build time to 0, so the next query builds again. One that replaces
 		 * a model does not. */

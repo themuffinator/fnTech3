@@ -44,4 +44,52 @@ static inline int FNTech3_JKAUIBindingKey(intptr_t external) {
     default: return -1;
     }
 }
+
+/* Key events, the other direction. Retail CL_KeyEvent 0x41c290 hands the UI
+ * vmMain(3, key, down) and the cgame vmMain(6, key, down) in the same table's
+ * numbering (Escape is 27, both on press and release), and CL_CharEvent
+ * 0x41c640 hands the UI (character | 0x400, 1) for every character except
+ * '`' and '~', which it drops. A physical key is the row whose name the
+ * binding table above reads, lowercase for letters. An engine key with no
+ * row (mouse buttons 6-9, F13-F15, keypad equals, the extra pad buttons) is
+ * not delivered rather than borrowing another key's number. */
+static inline int FNTech3_JKAKeyFromInternal(int key) {
+    if (key == K_TAB || key == K_ESCAPE) return key;
+    if (key == K_ENTER) return 10;
+    if (key == K_BACKSPACE) return 8;
+    if (key >= 32 && key <= 126) return key;
+    if (key >= K_JOY1 && key <= K_JOY32) return 256 + (key - K_JOY1);
+    if (key >= K_AUX1 && key <= K_AUX16) return 288 + (key - K_AUX1);
+    switch (key) {
+    case K_SHIFT: return 1; case K_CTRL: return 2; case K_ALT: return 3;
+    case K_CAPSLOCK: return 4; case K_KP_NUMLOCK: return 5; case K_SCROLLOCK: return 6;
+    case K_PAUSE: return 7; case K_KP_PLUS: return 11; case K_KP_MINUS: return 12;
+    case K_KP_ENTER: return 13; case K_KP_DEL: return 14; case K_PRINT: return 15;
+    case K_KP_INS: return 16; case K_KP_END: return 17; case K_KP_DOWNARROW: return 18;
+    case K_KP_PGDN: return 19; case K_KP_LEFTARROW: return 20; case K_KP_5: return 21;
+    case K_KP_RIGHTARROW: return 22; case K_KP_HOME: return 23; case K_KP_UPARROW: return 24;
+    case K_KP_PGUP: return 25; case K_CONSOLE: return 26;
+    case K_F1: return 28; case K_F2: return 29; case K_F3: return 30; case K_F4: return 31;
+    case K_DEL: return 127; case K_EURO: return 128;
+    case K_F5: return 132; case K_F6: return 133; case K_F7: return 134; case K_F8: return 135;
+    case K_MWHEELUP: return 137; case K_MWHEELDOWN: return 139;
+    case K_MOUSE1: return 141; case K_MOUSE2: return 142; case K_INS: return 143;
+    case K_HOME: return 144; case K_PGUP: return 145;
+    case K_F9: return 149; case K_F10: return 150; case K_F11: return 151; case K_F12: return 152;
+    case K_END: return 157; case K_PGDN: return 158;
+    case K_MOUSE3: return 166; case K_MOUSE4: return 167; case K_MOUSE5: return 168;
+    case K_UPARROW: return 170; case K_DOWNARROW: return 171; case K_LEFTARROW: return 172; case K_RIGHTARROW: return 173;
+    case K_KP_STAR: return 215; case K_KP_SLASH: return 247;
+    default: return -1;
+    }
+}
+
+static inline int FNTech3_JKAKeyEventFromInternal(int key) {
+    if (key & K_CHAR_FLAG) {
+        const int character = key & ~K_CHAR_FLAG;
+        if (character < 0 || character > 255 || character == '`' || character == '~') return -1;
+        return K_CHAR_FLAG | character;
+    }
+    return FNTech3_JKAKeyFromInternal(key);
+}
 #endif

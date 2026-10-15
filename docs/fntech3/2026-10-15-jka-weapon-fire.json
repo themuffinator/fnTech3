@@ -1,0 +1,655 @@
+{
+ "record": "docs/fntech3/2026-10-15-jka-weapon-fire.md",
+ "date": "2026-10-15",
+ "profiles": [
+  "jka-mp",
+  "jk2-mp"
+ ],
+ "baseHead": "34ecbab5",
+ "claim": "Compatibility slice only; no gate closes.",
+ "platform": "Windows 11, MSVC 2022 x86 (win32-dev options, strict warnings), clang for fixtures",
+ "runtime": {
+  "folder": ".tmp/runtime/jka-fire",
+  "build": "git archive of 34ecbab5 with this slice laid over it (.tmp/jka-fire/overlay.py), meson -j 4",
+  "builds": {
+   "without import 36 (glx-fire-1, glx-fire-2, glx-conc-3)": "73eac212adc3160f",
+   "complete slice (glx-catcher-1, glx-conc-4, glx-conc-5)": "42b7f54dd7555a0de75ce17b37394e302a5be16525cd995806c386f8945017a6"
+  },
+  "sha256": {
+   "fntech3.exe": "42b7f54dd7555a0de75ce17b37394e302a5be16525cd995806c386f8945017a6",
+   "fnql_glx_x86.dll": "191455a3b1b3f836ef22988d65234d42739682409751a12c77a38985caf070f1",
+   "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+   "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+  }
+ },
+ "retail": {
+  "jamp.exe": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+  "jk2mp.exe": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a",
+  "method": "capstone + pefile static reading; OpenJK 1a6a643 located routines (reference only)",
+  "catcherWrites": {
+   "uiImport42SetCatcher": "0x4246b8 (stores the argument as it is)",
+   "uiImport41GetCatcher": "0x4246ac",
+   "clShutdownUI": "0x425476 (clears bit 2)",
+   "clShutdownCGame": [
+    "0x41ddde",
+    "0x44eacf"
+   ],
+   "connectDisconnect": [
+    "0x41d300",
+    "0x41d3c3",
+    "0x41d46c",
+    "0x41db49"
+   ],
+   "consoleWhileDisconnected": "0x416ff1",
+   "messageModes": [
+    "0x417039",
+    "0x417072",
+    "0x4170b7",
+    "0x41710e",
+    "0x41717e",
+    "0x41ba6b",
+    "0x41bafd"
+   ],
+   "cgameImport": "0x413088",
+   "clientState": "0x418411",
+   "joinClearsCatcher": false
+  },
+  "cmdButtons": {
+   "jamp.exe": {
+    "function": "0x419e00",
+    "buttons": 15,
+    "talkBit": "0x419e6f: any catcher -> 2",
+    "anyKey": "0x419e85: 0x100 when no catcher",
+    "forcePowerRemap": "0x419e34..0x419e63: 0x200 -> 4 when +use or cgame export 20"
+   },
+   "jk2mp.exe": {
+    "function": "0x407660",
+    "buttons": 15,
+    "anyKey": "0x4076b0: 0x100 when no catcher"
+   }
+  },
+  "keyEvent": {
+   "function": "CL_KeyEvent 0x41c290",
+   "escapeToUI": "0x41c45b..0x41c465: vmMain(3, 27, down)",
+   "releaseToUI": "0x41c504..0x41c508: vmMain(3, key, 0)",
+   "releaseToCgame": "0x41c4c6..0x41c4ca: vmMain(6, key, down)",
+   "escapeNoCatcherActive": "0x41c41a..0x41c423: vmMain(7, 2)",
+   "charEvent": "CL_CharEvent 0x41c640: vmMain(3, c | 0x400, 1), drops 0x60 and 0x7e",
+   "togglemenuCommand": "absent from jamp.exe",
+   "uiDispatcherVM": "uivm [0xb28224], VM_Call 0x44ae90"
+  },
+  "keyTable": {
+   "address": "0x570bc8",
+   "rows": 320,
+   "rowSize": 16,
+   "numberOffset": 8,
+   "samples": {
+    "ENTER": 10,
+    "BACKSPACE": 8,
+    "TAB": 9,
+    "ESCAPE": 27,
+    "SPACE": 32,
+    "DEL": 127,
+    "F1": 28,
+    "F5": 132,
+    "F9": 149,
+    "MWHEELUP": 137,
+    "MWHEELDOWN": 139,
+    "MOUSE1": 141,
+    "MOUSE2": 142,
+    "MOUSE3": 166,
+    "UPARROW": 170,
+    "KP_STAR": 215,
+    "KP_SLASH": 247,
+    "JOY0": 256,
+    "AUX0": 288,
+    "AUX31": 319
+   }
+  },
+  "altattack": {
+   "jamp.exe": {
+    "registration": "0x41aae7",
+    "down": "0x4192b0",
+    "up": "0x4192c0",
+    "button7": "0x41ac2c same handlers"
+   },
+   "jk2mp.exe": {
+    "registration": "0x4080eb",
+    "down": "0x406f70",
+    "up": "0x406f80",
+    "button7": "0x40823b same handlers"
+   }
+  },
+  "copySpecificG2Model": {
+   "cgameImport308": "0x413c13",
+   "function": "0x4e04b0",
+   "grow": "0x4e04dd..0x4e04eb resize to modelTo + 1 (0x4de090)",
+   "assign": "0x4dea40, 0xc8-byte record"
+  },
+  "muteSound": {
+   "cgameImport36": "0x4128f8",
+   "function": "0x46ac30",
+   "picker": "S_PickChannel 0x46a110",
+   "autoChannels": "0x46a15b: channels 0 and 10 take a free voice"
+  },
+  "liveClient": [
+   {
+    "run": "retail-join-1",
+    "command": [
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\jka-fire\\retail-runs\\retail-join-1\\home",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_noudp",
+     "1",
+     "+set",
+     "net_noipx",
+     "1",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "3",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "cg_thirdPerson",
+     "1",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "proberetail.cfg",
+     "+devmap",
+     "mp/ffa2"
+    ],
+    "stoppedAt": "VM_Create on UI failed",
+    "installationUnchanged": true,
+    "exeUnchanged": true,
+    "inputInjected": false
+   },
+   {
+    "run": "retail-join-2",
+    "command": [
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\jka-fire\\retail-runs\\retail-join-2\\home",
+     "+set",
+     "fs_cdpath",
+     "E:\\Repositories\\fnTech3\\.tmp\\jka-fire\\retail-runs\\retail-join-2\\home",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_noudp",
+     "1",
+     "+set",
+     "net_noipx",
+     "1",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "3",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "cg_thirdPerson",
+     "1",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "proberetail.cfg",
+     "+devmap",
+     "mp/ffa2"
+    ],
+    "stoppedAt": "NEED CD",
+    "installationUnchanged": true,
+    "exeUnchanged": true,
+    "inputInjected": false
+   }
+  ]
+ },
+ "served": [
+  "UI export 3 with (key, down); the engine time stays behind (vm.c, FNTech3_JKAUIForwardedArguments)",
+  "Academy key and character numbers for UI and cgame key events (jka_key_adapter.h, CL_ModuleKeyEvent)",
+  "+altattack/-altattack on button 7 for jka-mp and jk2-mp",
+  "Jedi profiles: fifteen buttons and 0x100 for any key",
+  "Ghoul2 model copies past the end grow with empty places (shared store; cgame refusal removed)",
+  "cgame import 36 (S_MuteSound) through S_MuteJKASound and StopEntityChannelSound in both mixers"
+ ],
+ "notServed": [
+  "game import 28 (G_G2TRACE): stops both concussion modes on the server",
+  "cgame import 280 (CG_FX_ADDSPRITE): stops the Bryar charged shot",
+  "CameraShake effect primitive: stops the Bryar muzzle flash",
+  "force-power remap (cgame export 20) and the force/inventory commands for both Jedi profiles",
+  "retail live client: stops at NEED CD without the disc; not bypassed"
+ ],
+ "harness": ".tmp/jka-fire/listen.py (copy of .tmp/jka-sound/listen.py: private desktop, net_enabled 0, s_initsound 1, no input); .tmp/jka-fire/retail_listen.py",
+ "runs": [
+  {
+   "run": "glx-catcher-1",
+   "note": "catcher released by Escape (togglemenu)",
+   "map": "mp/ffa2",
+   "renderer": "glx",
+   "fntech3ExeSha256": "42b7f54dd7555a0de75ce17b37394e302a5be16525cd995806c386f8945017a6",
+   "steps": [
+    "set cl_menuBlur 0",
+    "team free",
+    "wait 240",
+    "screenshotPNG jka-sound-menu",
+    "wait 30",
+    "togglemenu",
+    "wait 30",
+    "screenshotPNG jka-sound-free",
+    "wait 30",
+    "togglemenu",
+    "wait 30",
+    "screenshotPNG jka-sound-ingame",
+    "wait 30",
+    "togglemenu",
+    "wait 30"
+   ],
+   "outcome": "exited",
+   "errors": [],
+   "catcherAtToggle": [
+    "0x0002",
+    "0x0000",
+    "0x0002"
+   ],
+   "menuRequests": [
+    "^5Academy cgame requested UI menu: 3",
+    "^5serverCommand: 8 : nfr 6 1 3",
+    "^5serverCommand: 19 : nfr 6 0 0"
+   ],
+   "weaponEffects": [],
+   "effectSounds": [],
+   "captures": [
+    {
+     "name": "jka-sound-00.png",
+     "sha256": "878d57e13ddf598fba2f7e885d26c28ea880ed0fdc4e90f77a54779658c94648"
+    },
+    {
+     "name": "jka-sound-free.png",
+     "sha256": "64197dffbbb5ad3e6bbc7d86975b3e0dcf4b4b1d329796283a6a7299638fc343"
+    },
+    {
+     "name": "jka-sound-ingame.png",
+     "sha256": "cc8c4f7c42dd62082bc661b673e40c6e9532bab2dbe08fee28cf42ea5ca7cf50"
+    },
+    {
+     "name": "jka-sound-menu.png",
+     "sha256": "a1f099a090185402c789bfdfbe4b62f06b56e79dbd4b0eb920677b50c1cc9cb0"
+    }
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  {
+   "run": "glx-fire-1",
+   "note": "give all served; weapon 15 is no weapon; Bryar charge stops on import 280",
+   "map": "mp/ffa2",
+   "renderer": "glx",
+   "fntech3ExeSha256": "73eac212adc3160f0f72b10e26f67a94c6b1f215a256f8a4c1d22edbd4ee0acb",
+   "steps": [
+    "set cl_menuBlur 0",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "team free",
+    "wait 240",
+    "togglemenu",
+    "wait 20",
+    "give all",
+    "wait 60",
+    "weapon 15",
+    "wait 90",
+    "echo probe-fire alt",
+    "+altattack",
+    "wait 3",
+    "-altattack",
+    "wait 6",
+    "echo probe-dump 1",
+    "s_alDebugDump",
+    "screenshotPNG jka-sound-fire",
+    "wait 90",
+    "echo probe-fire primary",
+    "+attack",
+    "wait 3",
+    "-attack",
+    "wait 6",
+    "echo probe-dump 2",
+    "s_alDebugDump",
+    "screenshotPNG jka-sound-fire2",
+    "wait 60",
+    "togglemenu",
+    "wait 10"
+   ],
+   "outcome": "refused",
+   "errors": [
+    "ERROR: Unsupported jka-mp cgame import 280 (CG_FX_ADDSPRITE)"
+   ],
+   "catcherAtToggle": [
+    "0x0002"
+   ],
+   "menuRequests": [
+    "^5Academy cgame requested UI menu: 3",
+    "^5serverCommand: 8 : nfr 6 1 3",
+    "^5serverCommand: 19 : nfr 6 0 0"
+   ],
+   "weaponEffects": [],
+   "effectSounds": [],
+   "captures": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  {
+   "run": "glx-fire-2",
+   "note": "Bryar primary fires; muzzle flash stops on CameraShake",
+   "map": "mp/ffa2",
+   "renderer": "glx",
+   "fntech3ExeSha256": "73eac212adc3160f0f72b10e26f67a94c6b1f215a256f8a4c1d22edbd4ee0acb",
+   "steps": [
+    "set cl_menuBlur 0",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "team free",
+    "wait 240",
+    "togglemenu",
+    "wait 20",
+    "give all",
+    "wait 60",
+    "weapon 15",
+    "wait 90",
+    "echo probe-fire primary",
+    "+attack",
+    "wait 3",
+    "-attack",
+    "wait 6",
+    "echo probe-dump 2",
+    "s_alDebugDump",
+    "screenshotPNG jka-sound-fire2",
+    "wait 60",
+    "togglemenu",
+    "wait 10"
+   ],
+   "outcome": "refused",
+   "errors": [
+    "ERROR: Academy effect effects/bryar/muzzle_flash.efx: effects primitive family is not served yet (CameraShake)",
+    "----- Server Shutdown (Server crashed: Academy effect effects/bryar/muzzle_flash.efx: effects primitive family is not served yet (CameraShake)) -----"
+   ],
+   "catcherAtToggle": [
+    "0x0002"
+   ],
+   "menuRequests": [
+    "^5Academy cgame requested UI menu: 3",
+    "^5serverCommand: 8 : nfr 6 1 3",
+    "^5serverCommand: 19 : nfr 6 0 0"
+   ],
+   "weaponEffects": [],
+   "effectSounds": [],
+   "captures": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  {
+   "run": "glx-conc-3",
+   "note": "before import 36 was served",
+   "map": "mp/ffa2",
+   "renderer": "glx",
+   "fntech3ExeSha256": "73eac212adc3160f0f72b10e26f67a94c6b1f215a256f8a4c1d22edbd4ee0acb",
+   "steps": [
+    "set cl_menuBlur 0",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "team free",
+    "wait 240",
+    "togglemenu",
+    "wait 20",
+    "give all",
+    "wait 60",
+    "weapon 13",
+    "wait 120",
+    "echo probe-fire primary",
+    "+attack",
+    "wait 3",
+    "-attack",
+    "wait 6",
+    "echo probe-dump 1",
+    "s_alDebugDump",
+    "screenshotPNG jka-sound-fire",
+    "wait 120",
+    "echo probe-fire alt",
+    "+altattack",
+    "wait 3",
+    "-altattack",
+    "wait 6",
+    "echo probe-dump 2",
+    "s_alDebugDump",
+    "screenshotPNG jka-sound-fire2",
+    "wait 60",
+    "togglemenu",
+    "wait 10"
+   ],
+   "outcome": "refused",
+   "errors": [
+    "ERROR: Unsupported jka-mp cgame import 36 (CG_S_MUTESOUND)"
+   ],
+   "catcherAtToggle": [
+    "0x0002"
+   ],
+   "menuRequests": [
+    "^5Academy cgame requested UI menu: 3",
+    "^5serverCommand: 8 : nfr 6 1 3",
+    "^5serverCommand: 19 : nfr 6 0 0"
+   ],
+   "weaponEffects": [],
+   "effectSounds": [],
+   "captures": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  {
+   "run": "glx-conc-4",
+   "note": "concussion primary",
+   "map": "mp/ffa2",
+   "renderer": "glx",
+   "fntech3ExeSha256": "42b7f54dd7555a0de75ce17b37394e302a5be16525cd995806c386f8945017a6",
+   "steps": [
+    "set cl_menuBlur 0",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "team free",
+    "wait 240",
+    "togglemenu",
+    "wait 20",
+    "give all",
+    "wait 60",
+    "weapon 13",
+    "wait 120",
+    "echo probe-fire primary",
+    "+attack",
+    "wait 3",
+    "-attack",
+    "wait 6",
+    "echo probe-dump 1",
+    "s_alDebugDump",
+    "screenshotPNG jka-sound-fire",
+    "wait 120",
+    "echo probe-fire alt",
+    "+altattack",
+    "wait 3",
+    "-altattack",
+    "wait 6",
+    "echo probe-dump 2",
+    "s_alDebugDump",
+    "screenshotPNG jka-sound-fire2",
+    "wait 60",
+    "togglemenu",
+    "wait 10"
+   ],
+   "outcome": "refused",
+   "errors": [
+    "ERROR: Jedi Academy game import G_G2TRACE (28) is not served yet: its module boundary is still open. Its arrays are bound. See docs/fntech3/COMPATIBILITY.md",
+    "----- Server Shutdown (Server crashed: Jedi Academy game import G_G2TRACE (28) is not served yet: its module boundary is still open. Its arrays are bound. See docs/fntech3/COMPATIBILITY.md) -----"
+   ],
+   "catcherAtToggle": [
+    "0x0002"
+   ],
+   "menuRequests": [
+    "^5Academy cgame requested UI menu: 3",
+    "^5serverCommand: 8 : nfr 6 1 3",
+    "^5serverCommand: 19 : nfr 6 0 0"
+   ],
+   "weaponEffects": [
+    "Academy FX play: effects/concussion/muzzle_flash.efx"
+   ],
+   "effectSounds": [
+    "Academy FX sound: 373 at 7952"
+   ],
+   "captures": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  {
+   "run": "glx-conc-5",
+   "note": "concussion alternate",
+   "map": "mp/ffa2",
+   "renderer": "glx",
+   "fntech3ExeSha256": "42b7f54dd7555a0de75ce17b37394e302a5be16525cd995806c386f8945017a6",
+   "steps": [
+    "set cl_menuBlur 0",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "team free",
+    "wait 240",
+    "togglemenu",
+    "wait 20",
+    "give all",
+    "wait 60",
+    "weapon 13",
+    "wait 120",
+    "echo probe-fire alt",
+    "+altattack",
+    "wait 3",
+    "-altattack",
+    "wait 6",
+    "echo probe-dump 2",
+    "s_alDebugDump",
+    "screenshotPNG jka-sound-fire2",
+    "wait 60",
+    "togglemenu",
+    "wait 10"
+   ],
+   "outcome": "refused",
+   "errors": [
+    "ERROR: Jedi Academy game import G_G2TRACE (28) is not served yet: its module boundary is still open. Its arrays are bound. See docs/fntech3/COMPATIBILITY.md",
+    "----- Server Shutdown (Server crashed: Jedi Academy game import G_G2TRACE (28) is not served yet: its module boundary is still open. Its arrays are bound. See docs/fntech3/COMPATIBILITY.md) -----"
+   ],
+   "catcherAtToggle": [
+    "0x0002"
+   ],
+   "menuRequests": [
+    "^5Academy cgame requested UI menu: 3",
+    "^5serverCommand: 8 : nfr 6 1 3",
+    "^5serverCommand: 19 : nfr 6 0 0"
+   ],
+   "weaponEffects": [
+    "Academy FX play: effects/concussion/altmuzzle_flash.efx"
+   ],
+   "effectSounds": [
+    "Academy FX sound: 374 at 7917"
+   ],
+   "captures": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  }
+ ],
+ "verification": {
+  "build": "750f070f + slice: all 1,484 targets, win32-dev options, strict warnings",
+  "mesonTests": "750f070f + slice: every fnTech3 test except fnql_python_source_regressions passed (jka_distance_cull timed out under load, passed alone; jka_sp_vm_export fixed with its stub)",
+  "relatedPython": "24bcfb49 + slice: 32 files, 344 passed",
+  "fullPython": "24bcfb49 + slice: 2704 passed, 131 skipped, 49 release_packaging deselected, 0 failed"
+ },
+ "tests": {
+  "new": [
+   "tests/jka_key_event_tests.cpp (fntech3_jka_key_event)",
+   "tests/jka_weapon_fire_tests.py (fntech3_jka_weapon_fire)"
+  ],
+  "updated": [
+   "tests/rtcw_player_interaction_tests.py (Jedi +altattack, fifteen buttons, 0x100)",
+   "tests/q3_key_numbers_tests.py (Academy key events)",
+   "tests/raven_ghoul2_server_tests.cpp (copies past the end)",
+   "tests/jka_cgame_ghoul2_tests.py (import 308 grows past the end; budget refusal)",
+   "tests/jka_cgame_ambient_tests.py (import 36 through the host)",
+   "tests/jka_sp_vm_export_tests.py (VM_Call fixture stub)"
+  ]
+ }
+}

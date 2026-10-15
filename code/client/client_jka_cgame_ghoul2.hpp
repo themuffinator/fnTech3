@@ -387,10 +387,12 @@ static bool CL_JKACgameGhoul2Call(intptr_t *args, fntech3::jka::module::Call cal
         const auto *destination = CL_JKACgameGhoul2Resolve(to);
         if (!destination || !source->At(static_cast<int>(args[2]))) return true;
         const int index = static_cast<int>(args[4]);
-        if (index > destination->Count() && index < fntech3::ghoul2::MaxModelsPerInstance)
-            Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 sparse model-copy destinations are not served yet");
+        if (index >= fntech3::ghoul2::MaxModelsPerInstance)
+            Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 model copy exceeds its owned model budget");
         // Retail 0x413c13 forwards opaque identities and scalar indices,
         // rather than pointer slots, and returns zero for this void import.
+        // A place past the destination's end grows it, empty places between
+        // (0x4e04b0, served by the store).
         if (CL_JKACgameGhoul2Store().CopyModel(reinterpret_cast<void *>(std::uintptr_t(from)),
             static_cast<int>(args[2]), reinterpret_cast<void *>(std::uintptr_t(to)), index))
             CL_JKACgameSkinCopyModel(from, static_cast<int>(args[2]), to, index);

@@ -236,6 +236,19 @@ extern "C" void S_StartJKASound( vec3_t origin, int entnum, int channel, sfxHand
 	S_StartSoundVolume( origin, entnum, fntech3::jka::sound::EngineChannel( channel ), sfx, volume );
 }
 
+extern "C" void S_MuteJKASound( int entnum, int channel ) {
+	if ( !Com_GameIsJKAMP() )
+		Com_Error( ERR_DROP, "Academy sound requires its selected multiplayer profile" );
+	// Retail 0x46ac30 zeroes the voice S_PickChannel 0x46a110 would give a
+	// new sound on that entity and channel: the one playing there. The
+	// automatic and less-attenuated channels never replace a sound (0x46a15b),
+	// and a channel with nothing playing gets another voice by retail's
+	// replacement rule; Fn ends only a sound playing on that channel.
+	if ( channel == fntech3::jka::sound::ChanAuto || channel == fntech3::jka::sound::ChanLessAtten ) return;
+	if ( si.StopEntityChannelSound )
+		si.StopEntityChannelSound( entnum, fntech3::jka::sound::EngineChannel( channel ) );
+}
+
 
 /*
 =================

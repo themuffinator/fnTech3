@@ -585,7 +585,7 @@ static void CheckOneModelCopiesBetweenInstances()
 
 	/* Anything else is refused, and nothing is half-done. */
 	int elsewhere = 0;
-	CHECK( !store.CopyModel( first, 0, second, 3 ) );     /* past the end */
+	CHECK( !store.CopyModel( first, 0, second, ghoul2::MaxModelsPerInstance ) );
 	CHECK( !store.CopyModel( first, 0, second, -1 ) );
 	CHECK( !store.CopyModel( first, 1, second, 0 ) );     /* no such source */
 	CHECK( !store.CopyModel( nullptr, 0, second, 0 ) );
@@ -594,6 +594,21 @@ static void CheckOneModelCopiesBetweenInstances()
 	CHECK( !store.CopyModel( first, 0, &elsewhere, 0 ) );
 	CHECK( store.Resolve( second )->Count() == 2 );
 	CHECK( store.Resolve( second )->At( 1 )->customSkin == 6 );
+
+	/* Past its end (jamp.exe 0x4e04b0): it grows to that place, and the
+	 * places between hold no model. */
+	CHECK( store.CopyModel( first, 0, second, 4 ) );
+	CHECK( store.Resolve( second )->Count() == 5 );
+	CHECK( !store.Resolve( second )->At( 2 ) && !store.Resolve( second )->At( 3 ) );
+	CHECK( store.Resolve( second )->At( 4 )->customSkin == 3 );
+	CHECK( store.Resolve( second )->HoldsAny() );
+	/* An empty place is no source, and a later copy fills it. */
+	CHECK( !store.CopyModel( second, 2, first, 0 ) );
+	CHECK( store.CopyModel( second, 1, second, 2 ) && store.Resolve( second )->At( 2 )->customSkin == 6 );
+	/* An instance copied into itself past its end keeps the model it copied. */
+	CHECK( store.CopyModel( second, 4, second, 7 ) );
+	CHECK( store.Resolve( second )->Count() == 8 && store.Resolve( second )->At( 7 )->customSkin == 3 );
+	CHECK( store.Resolve( second )->At( 7 )->name == store.Resolve( second )->At( 4 )->name );
 }
 
 static void CheckAPointerIsNeverTrusted()

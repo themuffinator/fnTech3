@@ -44,6 +44,17 @@ static inline int FNTech3_JKAUIExportArgumentCount(int operation) {
 	}
 }
 
+/* How many of a VM_Call's arguments reach the module, or -1 to refuse the
+ * call. The engine hands a key event as (key, down, time); retail
+ * CL_KeyEvent 0x41c290 and CL_CharEvent 0x41c640 call vmMain(3, key, down),
+ * so the time stays behind. */
+static inline int FNTech3_JKAUIForwardedArguments(int operation, int nargs) {
+	const int count = FNTech3_JKAUIExportArgumentCount(operation);
+	if (count < 0) return -1;
+	if (operation == UI_KEY_EVENT && nargs == 3) return count;
+	return nargs == count ? count : -1;
+}
+
 static inline int FNTech3_JKAUIMenuToExternal(int menu) {
 	switch (menu) {
 	case UIMENU_NONE: return 0;
