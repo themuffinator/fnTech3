@@ -524,6 +524,9 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   bounce off the floor ([effect details](fntech3/2026-10-15-jka-tails-and-physics.md)),
   and explosions now play their fireball pictures once instead of showing a
   plain grey square ([explosion details](fntech3/2026-10-15-jka-oneshot-animmap.md)).
+  The lights on Hoth's doors no longer stop the game: a locked door shows
+  red and an unlocked one green. `mp/siege_hoth` itself still stops on
+  other things ([door light details](fntech3/2026-10-15-jka-setanimindex.md)).
   The game's effects now make their sounds too, from where they happen: a
   test match has played the concussion rifle's and thermal detonator's
   muzzle flashes, a saber clash and a punch, though most guns still stop

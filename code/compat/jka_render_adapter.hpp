@@ -77,11 +77,15 @@ inline Status Entity(const fntech3_jka_mp_refEntity_t &source, refEntity_t &dest
     // stage iterator, measured in renderercommon/tr_jka_entity.h). 0x2000
     // marks a distortion copy, which retail draws only as a refraction of
     // the screen behind it (backend 0x48af26; renderercommon/
-    // tr_entity_refraction.h). None has a Q3 flag, so they cross as
-    // engine-owned refEntity_t.jka fields.
+    // tr_entity_refraction.h). 0x80000 (Raven's RF_SETANIMINDEX) makes an
+    // animMap stage show the frame the entity's skinNum names instead of its
+    // timed one (R_BindAnimatedImage 0x4ac3d0 tests it at 0x4ac42f); the
+    // client game sets it on EF_SHADER_ANIM movers. None has a Q3 flag, so
+    // they cross as engine-owned refEntity_t.jka fields.
     constexpr uint32_t commonFlags = 0x000fu | 0x00c0u | 0x0300u;
     constexpr uint32_t forceEntityAlpha = 0x0400u, rgbTint = 0x0800u, distortion = 0x2000u;
-    if (uint32_t(source.renderfx) & ~(commonFlags | forceEntityAlpha | rgbTint | distortion))
+    constexpr uint32_t setAnimIndex = 0x80000u;
+    if (uint32_t(source.renderfx) & ~(commonFlags | forceEntityAlpha | rgbTint | distortion | setAnimIndex))
         return Status::EntityFlags;
     if ((source.nonNormalizedAxes != 0 && source.nonNormalizedAxes != 1) ||
         !Finite(source.origin) || !Finite(source.oldorigin) || !Finite(source.lightingOrigin) ||
@@ -110,6 +114,7 @@ inline Status Entity(const fntech3_jka_mp_refEntity_t &source, refEntity_t &dest
     output.jka.forceAlpha = (uint32_t(source.renderfx) & forceEntityAlpha) ? qtrue : qfalse;
     output.jka.rgbTint = (uint32_t(source.renderfx) & rgbTint) ? qtrue : qfalse;
     output.jka.distortion = (uint32_t(source.renderfx) & distortion) ? qtrue : qfalse;
+    output.jka.setAnimIndex = (uint32_t(source.renderfx) & setAnimIndex) ? qtrue : qfalse;
     // Retail's copy draws only the screen behind it, so it casts no shadow.
     if (output.jka.distortion) output.renderfx |= RF_NOSHADOW;
     output.hModel = source.hModel;

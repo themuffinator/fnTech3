@@ -1,0 +1,979 @@
+{
+ "record": "docs/fntech3/2026-10-15-jka-setanimindex.md",
+ "date": "2026-10-15",
+ "profiles": [
+  "jka-mp",
+  "jka-sp"
+ ],
+ "baseHead": "aa0e7049",
+ "claim": "Compatibility slice only; no gate closes.",
+ "platform": "Windows 11, MSVC 2022 x86 (win32-dev options, strict warnings), clang for test fixtures",
+ "retail": {
+  "jamp.exe": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+  "jasp.exe": "9351a8de230fcd577e2b474889d08f38982450306767a6823dd659482566d6ce",
+  "pakMembers": {
+   "assets0.pk3:maps/mp/siege_hoth.bsp": "77c245169a6cfc34827817191f1d9356ec40f41e8c655a576127316c6c02ffbc",
+   "assets1.pk3:shaders/hoth.shader": "eed6045624dc778d79ceb4ce27e8853b374e23afb5d49997790a78b9edc3155f"
+  }
+ },
+ "observed": {
+  "jamp.exe": {
+   "R_BindAnimatedImage": "0x4ac3d0",
+   "flagTest": "0x4ac42f test dword [currentEntity+4], 0x80000",
+   "skinNumLoad": "0x4ac438 mov eax, [currentEntity+0x84]; jmp 0x4ac46b (skips the time path and its negative clamp)",
+   "timePathNegativeClamp": "0x4ac465..0x4ac469",
+   "oneShotCompare": "0x4ac476 cmp index, count; jl 0x4ac490 (signed; below count binds frames[index], no modulo)",
+   "oneShotHold": "0x4ac47a..0x4ac483 binds frames[count-1]",
+   "loopedModulo": "0x4ac48b cdq; idiv count (signed remainder)"
+  },
+  "jasp.exe": {
+   "R_BindAnimatedImage": "0x472fd0",
+   "flagTest": "0x473026 test dword [currentEntity+4], 0x20000",
+   "skinNumLoad": "0x47302f mov eax, [currentEntity+0x68]; jmp 0x473058",
+   "oneShotCompare": "0x473063 cmp; jl 0x47307c",
+   "loopedModulo": "0x473077 cdq; idiv"
+  },
+  "negativeSkinNum": "retail reads before its frame array on either kind of bundle",
+  "shaders": {
+   "textures/hoth/door_02_onoff": "last stage: oneshotanimMap 1 door_02_onoffr door_02_onoffg, blendFunc GL_ONE GL_ONE, glow",
+   "textures/hoth/h_door2_onoff": "last stage: oneshotanimMap 1 h_door2_onoffr h_door2_onoffg, blendFunc GL_ONE GL_ONE, glow"
+  },
+  "moverScan": {
+   "tool": ".tmp/jka-setanimindex/scan_movers.py",
+   "output": ".tmp/jka-setanimindex/movers.txt",
+   "criteria": "func_door spawnflags & 16, func_static spawnflags & 4, func_usable endframe > 0 (OpenJK g_mover.c, reference observation)",
+   "animatedShaderMovers": {
+    "mp/siege_hoth": 33
+   },
+   "otherMovers": {
+    "mp/siege_desert": 26
+   }
+  }
+ },
+ "change": {
+  "code/renderercommon/tr_types.h": "jkaRenderEntity_t.setAnimIndex",
+  "code/compat/jka_render_adapter.hpp": "renderfx 0x80000 served as jka.setAnimIndex; no Q3 alias; skinNum kept; 0x20000 and other bits stay refused",
+  "code/renderer/tr_shade.c": "R_BindAnimatedImage: a jka-sp/jka-mp entity with setAnimIndex takes index = skinNum before the negative clamp, one-shot hold and wrap",
+  "code/renderervk/tr_shade.c": "R_AnimatedImageDescriptor: the same",
+  "code/rendererrtx/tr_shade.c": "R_BindAnimatedImage: the same"
+ },
+ "engineChoices": [
+  "a negative skinNum shows frame 0 (retail reads before its frame array)"
+ ],
+ "fnFeatures": "The flag only chooses the bound picture; Fn lighting, glow, bloom, fog, sorting and post-processing draw the stage unchanged. No retail-exact option: there is no presentation to choose.",
+ "tests": {
+  "tests/jka_oneshot_animmap_tests.py": "frame-selection fixture in all three renderers: skinNum table for both Academy profiles, other profiles ignore the field, no entity, one-frame bundle",
+  "tests/jka_render_tests.cpp": "0x80000 alone and with 0x400/0x2000 crosses with skinNum -5 kept; 0x1000 beside it refuses; 0x20000 refuses",
+  "tests/jka_entity_override_tests.py": "0x80000 removed from the refused list",
+  "alsoPassed": [
+   "jka_cgame_host",
+   "jka_cgame_render",
+   "jka_cgame_spatial_sound",
+   "jka_cgame_tag",
+   "jka_entity_refraction",
+   "jka_sky_portal",
+   "jka_surface",
+   "jka_ui_ghoul2",
+   "rtx_vulkan_safety_source",
+   "shader_animation",
+   "alice_shader_parse",
+   "model_shader",
+   "jka_particle_dynamics",
+   "jka_render_host"
+  ],
+  "shell": "Visual Studio x86 developer shell (outside it clang targets 64-bit and q_platform.h stops the fixtures)"
+ },
+ "harness": {
+  "script": ".tmp/jka-setanimindex/probe.py",
+  "description": "windowed 1024x768, net_enabled 0, no input, private desktop, isolated home; jka-mp devmap mp/siege_hoth g_gametype 0 as a spectator; four setviewpos views, one engine screenshotPNG each",
+  "command": [
+   "+set",
+   "com_gameProfile",
+   "jka-mp",
+   "+set",
+   "fs_basepath",
+   "E:\\Games\\Jedi Academy",
+   "+set",
+   "fs_homepath",
+   "E:\\Repositories\\fnTech3\\.tmp\\jka-setanimindex\\runs\\glx-after-3\\home",
+   "+set",
+   "com_steamIntegration",
+   "0",
+   "+set",
+   "developer",
+   "1",
+   "+set",
+   "logfile",
+   "2",
+   "+set",
+   "net_enabled",
+   "0",
+   "+set",
+   "r_fullscreen",
+   "0",
+   "+set",
+   "r_mode",
+   "-1",
+   "+set",
+   "r_customWidth",
+   "1024",
+   "+set",
+   "r_customHeight",
+   "768",
+   "+set",
+   "cl_renderer",
+   "glx",
+   "+set",
+   "in_mouse",
+   "0",
+   "+set",
+   "in_joystick",
+   "0",
+   "+set",
+   "in_nograb",
+   "1",
+   "+set",
+   "s_initsound",
+   "0",
+   "+set",
+   "cl_motd",
+   "0",
+   "+set",
+   "com_introplayed",
+   "1",
+   "+set",
+   "com_maxfps",
+   "60",
+   "+set",
+   "com_maxfpsUnfocused",
+   "60",
+   "+set",
+   "com_maxfpsMinimized",
+   "60",
+   "+set",
+   "sv_pure",
+   "0",
+   "+set",
+   "g_gametype",
+   "0",
+   "+exec",
+   "probedoors.cfg",
+   "+devmap",
+   "mp/siege_hoth"
+  ],
+  "colourCount": ".tmp/jka-setanimindex/colours.py: pixels with a channel above 150 and 60 above both others",
+  "sheet": ".tmp/jka-setanimindex/runs/doors-sheet.png"
+ },
+ "entityOverride": {
+  "source": ".tmp/jka-setanimindex/siege_hoth-doors.ent",
+  "sha256": "e5a475483b3e5c39657bfe19c55889ce1fc94faa6748d852fc0992fd89bfb83f",
+  "derivedFrom": "the level's own entity lump",
+  "added": "trigger_always targeting walldoor_unlock (doors *3/*4)",
+  "removed": [
+   "misc_skyportal (the adapter at aa0e7049 refuses its view; served since by the siege slice, 77f0ab93)",
+   "NPC_Droid_R5D2, NPC_Monster_Wampa, NPC_Vehicle x2, emplaced_gun x2, misc_turret x4, misc_turretG2 x2, misc_ammo_floor_unit x5, misc_shield_floor_unit x2, misc_siege_item (client game import 312, CG_G2_SKINLESSMODEL)",
+   "fx_runner effects/env/ion_cannon (camera shake: unserved at aa0e7049, served since by the camera-shake slice, 8a05e028)"
+  ]
+ },
+ "runtimes": {
+  "before": {
+   "folder": ".tmp/runtime/jka-setanimindex-before",
+   "sha256": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "65068fd1039e5fc1ce50b2c9508127f582392ec696077f97dd59f2fbae82769e",
+    "fnql_rtx_x86.dll": "e100cd49028623312fa403a15d52ff5d428b3ee63f35e7c327a15563a573f56b",
+    "fnql_vk_x86.dll": "a5724188203957d4b21369a09a629cf9ad3a51dbf760a8f0ce060faf251f2689",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+    "fntech3.exe": "f5b93c3d12e5f3452e8b505314efbbf7e6b98a155de630004dd4ad250125e0e6",
+    "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+   }
+  },
+  "after": {
+   "folder": ".tmp/runtime/jka-setanimindex",
+   "sha256": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "69c22a408548a8266b689a230ad86dfb973c78e06446d9c81572a5cab2a8d37f",
+    "fnql_rtx_x86.dll": "d62ca10375c14f3ca140b2a362819e4f5322c8adeaf22adc0aba1a221f2fa839",
+    "fnql_vk_x86.dll": "d93783873766159e894002b64a5659b80b1b514f3e7dd3a590ac7145a7edd0bc",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+    "fntech3.exe": "715ceebaee53e448815168736bbfd95352da97ed6a3defb53cc16c137b54d547",
+    "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+   }
+  },
+  "control": {
+   "folder": ".tmp/runtime/jka-setanimindex-diag",
+   "sha256": {
+    "fnql_glx_x86.dll": "681f2037f41b25db28901a15b53227b78af68197ef80a8e817f13df5d07a08a3"
+   }
+  },
+  "head": {
+   "folder": ".tmp/runtime/jka-setanimindex-head",
+   "sha256": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "7ee00e838eb1b07b45ab38126a20561ad02b542581058ca48305fb8b6480fa60",
+    "fnql_rtx_x86.dll": "8116e470ceee28ef0305ddc663b58e2aa6480ff480996ab9bc57f182c628be88",
+    "fnql_vk_x86.dll": "3cf7e0f68d3bccfd1fdc11d3d0cda644be5bcd003fa673e01e88b57eea6ffb0b",
+    "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+    "fntech3.exe": "ee196c496e1cc1337cec6bd0770a592cabda1611ec8e21f05108cec6c77eaad2",
+    "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+   }
+  },
+  "build": "git archive of aa0e7049 with the subprojects, win32-dev options, strict warnings, -j 4; after = the same export with .tmp/jka-setanimindex/overlay.py's hunks; head = the same hunks on a git archive of 77f0ab93, built the same way"
+ },
+ "extraOverrides": {
+  ".tmp/jka-setanimindex/siege_hoth-doors-portal.ent": "ca731505c0a2861f0419f7978fa3cb70d6964f5035fc012dfa08660d886e0924",
+  ".tmp/jka-setanimindex/siege_hoth-unlock.ent": "842e5cb198eb598dc629cd15042abbf5a00f72f45b5da202c0c17ef0ded6e312",
+  ".tmp/jka-setanimindex/siege_hoth-unlock-noportal.ent": "22b2dd9035e053eb1d9524ca976cde2e60dd977f62cbf2664f634436107b3d0a"
+ },
+ "runs": {
+  "glx-before-1": {
+   "renderer": "glx",
+   "runtime": ".tmp/runtime/jka-setanimindex-before",
+   "identity": {
+    "fntech3.exe": "f5b93c3d12e5f3452e8b505314efbbf7e6b98a155de630004dd4ad250125e0e6",
+    "fnql_glx_x86.dll": "65068fd1039e5fc1ce50b2c9508127f582392ec696077f97dd59f2fbae82769e",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "map": "mp/siege_hoth",
+   "entityOverride": {
+    "source": ".tmp/jka-setanimindex/siege_hoth-unlock.ent",
+    "sha256": "842e5cb198eb598dc629cd15042abbf5a00f72f45b5da202c0c17ef0ded6e312"
+   },
+   "views": [
+    [
+     "locked-14-15",
+     "5008 -976 -290 270"
+    ],
+    [
+     "locked-14-15-back",
+     "5008 -1424 -290 90"
+    ],
+    [
+     "unlocked-3-4",
+     "4170 -256 -60 180"
+    ],
+    [
+     "unlocked-3-4-back",
+     "3670 -256 -60 0"
+    ]
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "errors": [
+    "ERROR: Jedi Academy cgame unsupported Raven renderer view flags",
+    "----- Server Shutdown (Server crashed: Jedi Academy cgame unsupported Raven renderer view flags) -----"
+   ],
+   "viewpos": [],
+   "shaderlist": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": {},
+   "note": "override keeps the misc_skyportal: stops first on HEAD's refused sky-portal view (0x8)"
+  },
+  "glx-before-2": {
+   "renderer": "glx",
+   "runtime": ".tmp/runtime/jka-setanimindex-before",
+   "identity": {
+    "fntech3.exe": "f5b93c3d12e5f3452e8b505314efbbf7e6b98a155de630004dd4ad250125e0e6",
+    "fnql_glx_x86.dll": "65068fd1039e5fc1ce50b2c9508127f582392ec696077f97dd59f2fbae82769e",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "map": "mp/siege_hoth",
+   "entityOverride": {
+    "source": ".tmp/jka-setanimindex/siege_hoth-unlock-noportal.ent",
+    "sha256": "22b2dd9035e053eb1d9524ca976cde2e60dd977f62cbf2664f634436107b3d0a"
+   },
+   "views": [
+    [
+     "locked-14-15",
+     "5008 -976 -290 270"
+    ],
+    [
+     "locked-14-15-back",
+     "5008 -1424 -290 90"
+    ],
+    [
+     "unlocked-3-4",
+     "4170 -256 -60 180"
+    ],
+    [
+     "unlocked-3-4-back",
+     "3670 -256 -60 0"
+    ]
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "errors": [
+    "ERROR: Jedi Academy cgame unsupported Raven renderer entity flags (type=0, flags=0x80040)",
+    "----- Server Shutdown (Server crashed: Jedi Academy cgame unsupported Raven renderer entity flags (type=0, flags=0x80040)) -----"
+   ],
+   "viewpos": [],
+   "shaderlist": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": {},
+   "note": "override without the sky portal only: stops on the locked door's renderfx 0x80000 (+0x40 no shadow)"
+  },
+  "glx-before-3": {
+   "renderer": "glx",
+   "runtime": ".tmp/runtime/jka-setanimindex-before",
+   "identity": {
+    "fntech3.exe": "f5b93c3d12e5f3452e8b505314efbbf7e6b98a155de630004dd4ad250125e0e6",
+    "fnql_glx_x86.dll": "65068fd1039e5fc1ce50b2c9508127f582392ec696077f97dd59f2fbae82769e",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "map": "mp/siege_hoth",
+   "entityOverride": {
+    "source": ".tmp/jka-setanimindex/siege_hoth-doors.ent",
+    "sha256": "e5a475483b3e5c39657bfe19c55889ce1fc94faa6748d852fc0992fd89bfb83f"
+   },
+   "views": [
+    [
+     "locked-14-15",
+     "5008 -976 -290 270"
+    ],
+    [
+     "locked-14-15-back",
+     "5008 -1424 -290 90"
+    ],
+    [
+     "unlocked-3-4",
+     "4170 -256 -60 180"
+    ],
+    [
+     "unlocked-3-4-back",
+     "3670 -256 -60 0"
+    ]
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "errors": [
+    "ERROR: Jedi Academy cgame unsupported Raven renderer entity flags (type=0, flags=0x80040)",
+    "----- Server Shutdown (Server crashed: Jedi Academy cgame unsupported Raven renderer entity flags (type=0, flags=0x80040)) -----"
+   ],
+   "viewpos": [],
+   "shaderlist": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": {}
+  },
+  "vk-before-1": {
+   "renderer": "vk",
+   "runtime": ".tmp/runtime/jka-setanimindex-before",
+   "identity": {
+    "fntech3.exe": "f5b93c3d12e5f3452e8b505314efbbf7e6b98a155de630004dd4ad250125e0e6",
+    "fnql_vk_x86.dll": "a5724188203957d4b21369a09a629cf9ad3a51dbf760a8f0ce060faf251f2689",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "map": "mp/siege_hoth",
+   "entityOverride": {
+    "source": ".tmp/jka-setanimindex/siege_hoth-doors.ent",
+    "sha256": "e5a475483b3e5c39657bfe19c55889ce1fc94faa6748d852fc0992fd89bfb83f"
+   },
+   "views": [
+    [
+     "locked-14-15",
+     "5008 -976 -290 270"
+    ],
+    [
+     "locked-14-15-back",
+     "5008 -1424 -290 90"
+    ],
+    [
+     "unlocked-3-4",
+     "4170 -256 -60 180"
+    ],
+    [
+     "unlocked-3-4-back",
+     "3670 -256 -60 0"
+    ]
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "errors": [
+    "ERROR: Jedi Academy cgame unsupported Raven renderer entity flags (type=0, flags=0x80040)",
+    "----- Server Shutdown (Server crashed: Jedi Academy cgame unsupported Raven renderer entity flags (type=0, flags=0x80040)) -----"
+   ],
+   "viewpos": [],
+   "shaderlist": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": {}
+  },
+  "rtx-before-1": {
+   "renderer": "rtx",
+   "runtime": ".tmp/runtime/jka-setanimindex-before",
+   "identity": {
+    "fntech3.exe": "f5b93c3d12e5f3452e8b505314efbbf7e6b98a155de630004dd4ad250125e0e6",
+    "fnql_rtx_x86.dll": "e100cd49028623312fa403a15d52ff5d428b3ee63f35e7c327a15563a573f56b",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "map": "mp/siege_hoth",
+   "entityOverride": {
+    "source": ".tmp/jka-setanimindex/siege_hoth-doors.ent",
+    "sha256": "e5a475483b3e5c39657bfe19c55889ce1fc94faa6748d852fc0992fd89bfb83f"
+   },
+   "views": [
+    [
+     "locked-14-15",
+     "5008 -976 -290 270"
+    ],
+    [
+     "locked-14-15-back",
+     "5008 -1424 -290 90"
+    ],
+    [
+     "unlocked-3-4",
+     "4170 -256 -60 180"
+    ],
+    [
+     "unlocked-3-4-back",
+     "3670 -256 -60 0"
+    ]
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "errors": [
+    "ERROR: Jedi Academy cgame unsupported Raven renderer entity flags (type=0, flags=0x80040)",
+    "----- Server Shutdown (Server crashed: Jedi Academy cgame unsupported Raven renderer entity flags (type=0, flags=0x80040)) -----"
+   ],
+   "viewpos": [],
+   "shaderlist": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": {}
+  },
+  "glx-after-1": {
+   "renderer": "glx",
+   "runtime": ".tmp/runtime/jka-setanimindex",
+   "identity": {
+    "fntech3.exe": "715ceebaee53e448815168736bbfd95352da97ed6a3defb53cc16c137b54d547",
+    "fnql_glx_x86.dll": "69c22a408548a8266b689a230ad86dfb973c78e06446d9c81572a5cab2a8d37f",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "map": "mp/siege_hoth",
+   "entityOverride": {
+    "source": ".tmp/jka-setanimindex/siege_hoth-unlock-noportal.ent",
+    "sha256": "22b2dd9035e053eb1d9524ca976cde2e60dd977f62cbf2664f634436107b3d0a"
+   },
+   "views": [
+    [
+     "locked-14-15",
+     "5008 -976 -290 270"
+    ],
+    [
+     "locked-14-15-back",
+     "5008 -1424 -290 90"
+    ],
+    [
+     "unlocked-3-4",
+     "4170 -256 -60 180"
+    ],
+    [
+     "unlocked-3-4-back",
+     "3670 -256 -60 0"
+    ]
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "errors": [
+    "ERROR: Unsupported jka-mp cgame import 312 (CG_G2_SKINLESSMODEL)"
+   ],
+   "viewpos": [],
+   "shaderlist": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": {},
+   "note": "override without the sky portal only: past the doors, stops on the client game's unserved import 312 (a Ghoul2 general entity)"
+  },
+  "glx-after-2": {
+   "renderer": "glx",
+   "runtime": ".tmp/runtime/jka-setanimindex",
+   "identity": {
+    "fntech3.exe": "715ceebaee53e448815168736bbfd95352da97ed6a3defb53cc16c137b54d547",
+    "fnql_glx_x86.dll": "69c22a408548a8266b689a230ad86dfb973c78e06446d9c81572a5cab2a8d37f",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "map": "mp/siege_hoth",
+   "entityOverride": {
+    "source": ".tmp/jka-setanimindex/siege_hoth-doors.ent",
+    "sha256": "1da3c8960a6bed0e3e21b603728db703c9a66793a06e0dbe9526a4bee0be6310"
+   },
+   "views": [
+    [
+     "locked-14-15",
+     "5008 -976 -290 270"
+    ],
+    [
+     "locked-14-15-back",
+     "5008 -1424 -290 90"
+    ],
+    [
+     "unlocked-3-4",
+     "4170 -256 -60 180"
+    ],
+    [
+     "unlocked-3-4-back",
+     "3670 -256 -60 0"
+    ]
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "errors": [
+    "ERROR: Academy effect effects/env/ion_cannon.efx: effects primitive family is not served yet (CameraShake)",
+    "----- Server Shutdown (Server crashed: Academy effect effects/env/ion_cannon.efx: effects primitive family is not served yet (CameraShake)) -----"
+   ],
+   "viewpos": [],
+   "shaderlist": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": {},
+   "note": "an earlier siege_hoth-doors.ent that still had the ion-cannon fx_runner: stops on its unserved camera shake"
+  },
+  "glx-after-3": {
+   "renderer": "glx",
+   "runtime": ".tmp/runtime/jka-setanimindex",
+   "identity": {
+    "fntech3.exe": "715ceebaee53e448815168736bbfd95352da97ed6a3defb53cc16c137b54d547",
+    "fnql_glx_x86.dll": "69c22a408548a8266b689a230ad86dfb973c78e06446d9c81572a5cab2a8d37f",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "map": "mp/siege_hoth",
+   "entityOverride": {
+    "source": ".tmp/jka-setanimindex/siege_hoth-doors.ent",
+    "sha256": "e5a475483b3e5c39657bfe19c55889ce1fc94faa6748d852fc0992fd89bfb83f"
+   },
+   "views": [
+    [
+     "locked-14-15",
+     "5008 -976 -290 270"
+    ],
+    [
+     "locked-14-15-back",
+     "5008 -1424 -290 90"
+    ],
+    [
+     "unlocked-3-4",
+     "4170 -256 -60 180"
+    ],
+    [
+     "unlocked-3-4-back",
+     "3670 -256 -60 0"
+    ]
+   ],
+   "outcome": "done",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "viewpos": [
+    "maps/mp/siege_hoth.bsp (5008 -1046 -253) : -90",
+    "maps/mp/siege_hoth.bsp (5008 -1350 -253) : 90",
+    "maps/mp/siege_hoth.bsp (4096 -256 -23) : -180",
+    "maps/mp/siege_hoth.bsp (3743 -256 -23) : 0"
+   ],
+   "shaderlist": [
+    "4 L       E gen : textures/hoth/door_02_onoff",
+    "4 L       E gen : textures/hoth/h_door2_onoff",
+    "4 L       E gen : textures/hoth/door_02_onoff",
+    "4 L       E gen : textures/hoth/h_door2_onoff"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": {
+    "jka-door-0-locked-14-15.png": {
+     "sha256": "845889db5bd38c60a8ab4c7b46ed98c3d2fe5fcc40ccf6fc521d4511da56c900",
+     "red": 1228,
+     "green": 0
+    },
+    "jka-door-1-locked-14-15-back.png": {
+     "sha256": "6f93d0b67bdcbc33c2a225f27ebb539564504270f5c137be560ece42320e4ee6",
+     "red": 1111,
+     "green": 0
+    },
+    "jka-door-2-unlocked-3-4.png": {
+     "sha256": "2d0c090a64c96dd322a8c86377f114d2e1d9ee2dd2eda18111e7fdfedb51723d",
+     "red": 0,
+     "green": 12158
+    },
+    "jka-door-3-unlocked-3-4-back.png": {
+     "sha256": "70f18b8f8502e34ff048f6de7f262ed1324a29a2a40a8c649765e9eb37b40b1c",
+     "red": 0,
+     "green": 7396
+    }
+   }
+  },
+  "vk-after-1": {
+   "renderer": "vk",
+   "runtime": ".tmp/runtime/jka-setanimindex",
+   "identity": {
+    "fntech3.exe": "715ceebaee53e448815168736bbfd95352da97ed6a3defb53cc16c137b54d547",
+    "fnql_vk_x86.dll": "d93783873766159e894002b64a5659b80b1b514f3e7dd3a590ac7145a7edd0bc",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "map": "mp/siege_hoth",
+   "entityOverride": {
+    "source": ".tmp/jka-setanimindex/siege_hoth-doors.ent",
+    "sha256": "e5a475483b3e5c39657bfe19c55889ce1fc94faa6748d852fc0992fd89bfb83f"
+   },
+   "views": [
+    [
+     "locked-14-15",
+     "5008 -976 -290 270"
+    ],
+    [
+     "locked-14-15-back",
+     "5008 -1424 -290 90"
+    ],
+    [
+     "unlocked-3-4",
+     "4170 -256 -60 180"
+    ],
+    [
+     "unlocked-3-4-back",
+     "3670 -256 -60 0"
+    ]
+   ],
+   "outcome": "done",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "viewpos": [
+    "maps/mp/siege_hoth.bsp (5008 -1043 -253) : -90",
+    "maps/mp/siege_hoth.bsp (5008 -1350 -253) : 90",
+    "maps/mp/siege_hoth.bsp (4096 -256 -23) : -180",
+    "maps/mp/siege_hoth.bsp (3743 -256 -23) : 0"
+   ],
+   "shaderlist": [
+    "3 L MT(x) E gen : textures/hoth/door_02_onoff",
+    "3 L MT(x) E gen : textures/hoth/h_door2_onoff",
+    "3 L MT(x) E gen : textures/hoth/door_02_onoff",
+    "3 L MT(x) E gen : textures/hoth/h_door2_onoff"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": {
+    "jka-door-0-locked-14-15.png": {
+     "sha256": "767b8cf407ce8c5c2456972121c8e167654db82ba22e4156eaa441af825fd9ee",
+     "red": 1040,
+     "green": 0
+    },
+    "jka-door-1-locked-14-15-back.png": {
+     "sha256": "d678c29511706591b1985a857caf346add0ec852f8aab2b8ac0ff13f4ca04879",
+     "red": 1109,
+     "green": 0
+    },
+    "jka-door-2-unlocked-3-4.png": {
+     "sha256": "48bc9864fa73076130c9c704d7a59e7e7de52d45e4adb76685f7c4d41bfdde41",
+     "red": 0,
+     "green": 11866
+    },
+    "jka-door-3-unlocked-3-4-back.png": {
+     "sha256": "9c36090967bb068fa63e50a008aa4b1bb19468566cd4d3a1e8e99d328bdf2a8a",
+     "red": 0,
+     "green": 7366
+    }
+   }
+  },
+  "rtx-after-1": {
+   "renderer": "rtx",
+   "runtime": ".tmp/runtime/jka-setanimindex",
+   "identity": {
+    "fntech3.exe": "715ceebaee53e448815168736bbfd95352da97ed6a3defb53cc16c137b54d547",
+    "fnql_rtx_x86.dll": "d62ca10375c14f3ca140b2a362819e4f5322c8adeaf22adc0aba1a221f2fa839",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "map": "mp/siege_hoth",
+   "entityOverride": {
+    "source": ".tmp/jka-setanimindex/siege_hoth-doors.ent",
+    "sha256": "e5a475483b3e5c39657bfe19c55889ce1fc94faa6748d852fc0992fd89bfb83f"
+   },
+   "views": [
+    [
+     "locked-14-15",
+     "5008 -976 -290 270"
+    ],
+    [
+     "locked-14-15-back",
+     "5008 -1424 -290 90"
+    ],
+    [
+     "unlocked-3-4",
+     "4170 -256 -60 180"
+    ],
+    [
+     "unlocked-3-4-back",
+     "3670 -256 -60 0"
+    ]
+   ],
+   "outcome": "done",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "viewpos": [
+    "maps/mp/siege_hoth.bsp (5008 -1041 -253) : -90",
+    "maps/mp/siege_hoth.bsp (5008 -1353 -253) : 90",
+    "maps/mp/siege_hoth.bsp (4101 -256 -23) : -180",
+    "maps/mp/siege_hoth.bsp (3735 -256 -23) : 0"
+   ],
+   "shaderlist": [
+    "3 L MT(x) E gen : textures/hoth/door_02_onoff",
+    "3 L MT(x) E gen : textures/hoth/h_door2_onoff",
+    "3 L MT(x) E gen : textures/hoth/door_02_onoff",
+    "3 L MT(x) E gen : textures/hoth/h_door2_onoff"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": {
+    "jka-door-0-locked-14-15.png": {
+     "sha256": "1f604c86eb0459bdc85230bab315651a5da6ef7a80d910b1536d7abaf7437ce7",
+     "red": 1029,
+     "green": 0
+    },
+    "jka-door-1-locked-14-15-back.png": {
+     "sha256": "9d872a4af5f82db63aafd6a34543677062939c1fe095d386f3d092ebffe18eb1",
+     "red": 1100,
+     "green": 0
+    },
+    "jka-door-2-unlocked-3-4.png": {
+     "sha256": "079bfc1d76b2e8a08f0cd12941a7d291117d8bc4f91f63162c31118d17ca912b",
+     "red": 0,
+     "green": 11272
+    },
+    "jka-door-3-unlocked-3-4-back.png": {
+     "sha256": "94e32157e3ef38661bbd4edbf9efee1256b6e6cee7e983c1e092c81eed59f536",
+     "red": 0,
+     "green": 6777
+    }
+   }
+  },
+  "glx-diag-noindex-1": {
+   "renderer": "glx",
+   "runtime": ".tmp/runtime/jka-setanimindex-diag",
+   "identity": {
+    "fntech3.exe": "715ceebaee53e448815168736bbfd95352da97ed6a3defb53cc16c137b54d547",
+    "fnql_glx_x86.dll": "681f2037f41b25db28901a15b53227b78af68197ef80a8e817f13df5d07a08a3",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "map": "mp/siege_hoth",
+   "entityOverride": {
+    "source": ".tmp/jka-setanimindex/siege_hoth-doors.ent",
+    "sha256": "e5a475483b3e5c39657bfe19c55889ce1fc94faa6748d852fc0992fd89bfb83f"
+   },
+   "views": [
+    [
+     "locked-14-15",
+     "5008 -976 -290 270"
+    ],
+    [
+     "locked-14-15-back",
+     "5008 -1424 -290 90"
+    ],
+    [
+     "unlocked-3-4",
+     "4170 -256 -60 180"
+    ],
+    [
+     "unlocked-3-4-back",
+     "3670 -256 -60 0"
+    ]
+   ],
+   "outcome": "done",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "viewpos": [
+    "maps/mp/siege_hoth.bsp (5008 -1045 -253) : -90",
+    "maps/mp/siege_hoth.bsp (5008 -1350 -253) : 90",
+    "maps/mp/siege_hoth.bsp (4096 -256 -23) : -180",
+    "maps/mp/siege_hoth.bsp (3743 -256 -23) : 0"
+   ],
+   "shaderlist": [
+    "4 L       E gen : textures/hoth/door_02_onoff",
+    "4 L       E gen : textures/hoth/h_door2_onoff",
+    "4 L       E gen : textures/hoth/door_02_onoff",
+    "4 L       E gen : textures/hoth/h_door2_onoff"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": {
+    "jka-door-0-locked-14-15.png": {
+     "sha256": "c35f58eb596ee410c7f64b7478102061ea62d424924d4a31b27f533cf49e3a7e",
+     "red": 0,
+     "green": 480
+    },
+    "jka-door-1-locked-14-15-back.png": {
+     "sha256": "8bbfc851f17a0c06dc979b7b3fee15cbf647a26bce2b6f1a24eb6dc9a35ea823",
+     "red": 0,
+     "green": 647
+    },
+    "jka-door-2-unlocked-3-4.png": {
+     "sha256": "9dcb68e66695380912ceadf8238767d891807bc3607c18a5b9e441c9436c8992",
+     "red": 0,
+     "green": 12160
+    },
+    "jka-door-3-unlocked-3-4-back.png": {
+     "sha256": "9d943de21cf560c69c6c62d7874ec731702bd5a5d61444146dc17684b76d3359",
+     "red": 0,
+     "green": 7404
+    }
+   },
+   "note": "control: .tmp/runtime/jka-setanimindex-diag is the after runtime with a GLx DLL whose frame selection ignores setAnimIndex (condition rewritten to setAnimIndex == 2); throwaway, not committed"
+  },
+  "glx-head-portal-1": {
+   "renderer": "glx",
+   "runtime": ".tmp/runtime/jka-setanimindex-head",
+   "identity": {
+    "fntech3.exe": "ee196c496e1cc1337cec6bd0770a592cabda1611ec8e21f05108cec6c77eaad2",
+    "fnql_glx_x86.dll": "7ee00e838eb1b07b45ab38126a20561ad02b542581058ca48305fb8b6480fa60",
+    "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+   },
+   "map": "mp/siege_hoth",
+   "entityOverride": {
+    "source": ".tmp/jka-setanimindex/siege_hoth-doors-portal.ent",
+    "sha256": "ca731505c0a2861f0419f7978fa3cb70d6964f5035fc012dfa08660d886e0924"
+   },
+   "views": [
+    [
+     "locked-14-15",
+     "5008 -976 -290 270"
+    ],
+    [
+     "locked-14-15-back",
+     "5008 -1424 -290 90"
+    ],
+    [
+     "unlocked-3-4",
+     "4170 -256 -60 180"
+    ],
+    [
+     "unlocked-3-4-back",
+     "3670 -256 -60 0"
+    ]
+   ],
+   "outcome": "done",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "viewpos": [
+    "maps/mp/siege_hoth.bsp (5008 -1044 -253) : -90",
+    "maps/mp/siege_hoth.bsp (5008 -1350 -253) : 90",
+    "maps/mp/siege_hoth.bsp (4096 -256 -23) : -180",
+    "maps/mp/siege_hoth.bsp (3743 -256 -23) : 0"
+   ],
+   "shaderlist": [
+    "4 L       E gen : textures/hoth/door_02_onoff",
+    "4 L       E gen : textures/hoth/h_door2_onoff",
+    "4 L       E gen : textures/hoth/door_02_onoff",
+    "4 L       E gen : textures/hoth/h_door2_onoff"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": {
+    "jka-door-0-locked-14-15.png": {
+     "sha256": "833edea8559ab8a2fb6c6350877f67e8918542fb4e396808e5456ea3aaff6c97",
+     "red": 1158,
+     "green": 0
+    },
+    "jka-door-1-locked-14-15-back.png": {
+     "sha256": "0e9a0941553db1753c9276c9dad35d2d55e6b3112843fbb20aa2ba9b04aa5e77",
+     "red": 1117,
+     "green": 0
+    },
+    "jka-door-2-unlocked-3-4.png": {
+     "sha256": "9379a829e24e0701e07b60a9155b00467a1fea1c8bc39fa01a028a549e2c3585",
+     "red": 0,
+     "green": 12182
+    },
+    "jka-door-3-unlocked-3-4-back.png": {
+     "sha256": "521ff06eca472b9ad59e3bd499c52c5600f282c9736e54827454a79d1a1b5a77",
+     "red": 0,
+     "green": 7407
+    }
+   },
+   "note": "runtime = this slice on 77f0ab93 (sky portal and camera shake served); override keeps misc_skyportal and the ion-cannon fx_runner"
+  },
+  "glx-head-unlock-1": {
+   "renderer": "glx",
+   "runtime": ".tmp/runtime/jka-setanimindex-head",
+   "identity": {
+    "fntech3.exe": "ee196c496e1cc1337cec6bd0770a592cabda1611ec8e21f05108cec6c77eaad2",
+    "fnql_glx_x86.dll": "7ee00e838eb1b07b45ab38126a20561ad02b542581058ca48305fb8b6480fa60",
+    "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+   },
+   "map": "mp/siege_hoth",
+   "entityOverride": {
+    "source": ".tmp/jka-setanimindex/siege_hoth-unlock.ent",
+    "sha256": "842e5cb198eb598dc629cd15042abbf5a00f72f45b5da202c0c17ef0ded6e312"
+   },
+   "views": [
+    [
+     "locked-14-15",
+     "5008 -976 -290 270"
+    ],
+    [
+     "locked-14-15-back",
+     "5008 -1424 -290 90"
+    ],
+    [
+     "unlocked-3-4",
+     "4170 -256 -60 180"
+    ],
+    [
+     "unlocked-3-4-back",
+     "3670 -256 -60 0"
+    ]
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "errors": [
+    "ERROR: Unsupported jka-mp cgame import 312 (CG_G2_SKINLESSMODEL)"
+   ],
+   "viewpos": [],
+   "shaderlist": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "captures": {},
+   "note": "runtime = this slice on 77f0ab93; override only adds the trigger_always: stops on the client game's unserved import 312"
+  }
+ },
+ "openBlockers": [
+  "jka-sp: no client-module boundary, so 0x20000 has no adapter yet",
+  "mp/siege_hoth unmodified stops on cgame import 312 (its sky portal and the ion cannon's camera shake, which stopped it at aa0e7049, are served since 77f0ab93 and 8a05e028)",
+  "func_static / func_usable endframe paths not exercised live (no installed MP map uses them with an animated shader)",
+  "no retail renderer capture of the doors"
+ ]
+}

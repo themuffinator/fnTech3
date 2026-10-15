@@ -118,6 +118,14 @@ static VkDescriptorSet R_AnimatedImageDescriptor( const textureBundle_t *bundle 
 	if ( bundle->aliceFrameFromEntity && backEnd.currentEntity ) {
 		index = (short)backEnd.currentEntity->e.alice.frame;
 	}
+	// Jedi Academy's RF_SETANIMINDEX movers name their frame in skinNum
+	// (jamp.exe 0x4ac42f, jasp.exe 0x473026); the one-shot hold and the wrap
+	// below still apply. Retail does not clamp a negative one; Fn shows frame
+	// 0 rather than read before the frames.
+	if ( ( ri.gameId == COM_GAME_JKA_SP || ri.gameId == COM_GAME_JKA_MP ) &&
+		backEnd.currentEntity && backEnd.currentEntity->e.jka.setAnimIndex ) {
+		index = backEnd.currentEntity->e.skinNum;
+	}
 	if ( index < 0 ) {
 		index = 0;
 	}

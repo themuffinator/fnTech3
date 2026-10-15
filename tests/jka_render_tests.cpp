@@ -119,7 +119,17 @@ int main() {
         assert(out.jka.distortion&&out.jka.forceAlpha==((flags&0x400u)?qtrue:qfalse));
         rejectedEntity(4,flags|0x1000u,raven::Status::EntityFlags);
     }
-    entity=original;assert(raven::ReadEntity(entity.data()+3,out)==raven::Status::Ok&&!out.jka.distortion);
+    // RF_SETANIMINDEX (0x80000) crosses as its own field and keeps skinNum,
+    // which names the animMap frame (jka_oneshot_animmap_tests.py).
+    for(uint32_t flags : {0x80000u,0x80400u,0x82000u}) {
+        entity=original;write(entity,4,flags|0x3cfu);write(entity,132,int32_t(-5));
+        assert(raven::ReadEntity(entity.data()+3,out)==raven::Status::Ok&&out.renderfx==0x3cf);
+        assert(out.jka.setAnimIndex&&out.skinNum==-5&&out.jka.distortion==((flags&0x2000u)?qtrue:qfalse));
+        rejectedEntity(4,flags|0x1000u,raven::Status::EntityFlags);
+    }
+    // Its single-player value is not a multiplayer flag.
+    rejectedEntity(4,0x20000u,raven::Status::EntityFlags);
+    entity=original;assert(raven::ReadEntity(entity.data()+3,out)==raven::Status::Ok&&!out.jka.distortion&&!out.jka.setAnimIndex);
     rejectedEntity(48,2,raven::Status::InvalidRecord);
     for(std::size_t offset : {12u,52u,64u,84u,92u,96u,100u,108u,120u,128u})
         for(uint32_t bits : {0x7fc01234u,0x7f800000u,0xff800000u}) rejectedEntity(offset,bits,raven::Status::InvalidRecord);

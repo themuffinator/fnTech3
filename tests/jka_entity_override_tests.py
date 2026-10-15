@@ -113,11 +113,12 @@ int main() {
     auto sprite = Model(0xc00); sprite.reType = 2; sprite.radius = 4;
     assert(Entity(sprite, out) == Status::Ok && out.reType == RT_SPRITE && out.jka.forceAlpha);
     /* Retail's other render flags stay refused by name: node depth, volumetric,
-     * shadow only, forked, tapered, grow, both disintegrations, the animation
-     * index, alpha depth and forced post-render. Distortion (0x2000) crosses
-     * as its own field (jka_entity_refraction_tests.py). */
+     * shadow only, forked, tapered, grow, both disintegrations, alpha depth
+     * and forced post-render. Distortion (0x2000) and the animation index
+     * (0x80000) cross as their own fields (jka_entity_refraction_tests.py,
+     * jka_oneshot_animmap_tests.py). */
     for (int flag : {0x10, 0x20, 0x1000, 0x4000, 0x8000, 0x10000, 0x20000, 0x40000,
-                     0x80000, 0x100000, 0x200000, 0x400000, int(0x80000000u)}) {
+                     0x100000, 0x200000, 0x400000, int(0x80000000u)}) {
         assert(Entity(Model(0xc00 | flag), out) == Status::EntityFlags);
         assert(Entity(Model(flag), out) == Status::EntityFlags);
     }

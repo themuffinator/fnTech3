@@ -2585,7 +2585,24 @@ wrapping. The six `gfx/exp` explosion shaders no longer default. Live on
 the default square drew, then goes dark on the black last frame while its
 particle still lives, in GLx, Vulkan and RTX (Source, Unit, Live subset).
 Retail's `RF_SETANIMINDEX` frame (renderfx `0x80000`, used by the `*_onoff`
-door movers) stays refused by the render adapter. No gate closes.
+door movers) stayed refused by the render adapter until the frame-index
+slice below. No gate closes.
+
+The [frame-index slice](2026-10-15-jka-setanimindex.md) (2026-10-15) serves
+retail's `RF_SETANIMINDEX`. The client game sets renderfx `0x80000` on
+`EF_SHADER_ANIM` movers, with the frame to show in `skinNum`.
+R_BindAnimatedImage then takes that frame instead of the stage's timed one
+(`jamp.exe` `0x4ac42f`; `jasp.exe` `0x473026` tests `0x20000`). The adapter
+carries the flag as `refEntity_t.jka.setAnimIndex`, and all three renderers
+read it for `jka-sp` and `jka-mp` only. A negative frame shows frame 0,
+where retail reads before its frames. The test map is `mp/siege_hoth`, with
+an entity override that leaves out the sky portal and the Ghoul2, NPC and
+ion-cannon entities the map stopped on at the time. There the session
+no longer stops at the first locked door. Locked doors show their red light
+and unlocked ones their green, in GLx, Vulkan and RTX. A control renderer
+that ignores the flag shows the locked doors green (Source, Unit, Live
+subset). `jka-sp` has no client-module boundary to carry its `0x20000` yet.
+No gate closes.
 
 The [entity-refraction slice](2026-10-15-jka-entity-refraction.md)
 (2026-10-15) draws the distortion copies the play-blockers slice left out.

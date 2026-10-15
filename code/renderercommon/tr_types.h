@@ -134,6 +134,8 @@ typedef struct {
 	qboolean forceAlpha;		// retail renderfx 0x400: single-texture stages take its alpha, blended
 	qboolean distortion;		// retail renderfx 0x2000: bends the scene behind it instead of drawing
 								// its stages (code/renderercommon/tr_entity_refraction.h)
+	qboolean setAnimIndex;		// retail renderfx 0x80000 (single player's 0x20000): animMap
+								// stages show frame skinNum, not their timed frame
 	float saberLength;			// RT_JKA_SABER_GLOW: the blade's length along axis[0]
 	float lineWidth;			// RT_JKA_ORIENTEDLINE: its whole width, half either side
 	float lineSTScale;			// RT_JKA_ORIENTEDLINE: the texture's t at oldorigin

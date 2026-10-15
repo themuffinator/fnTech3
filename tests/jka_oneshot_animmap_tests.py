@@ -27,6 +27,7 @@ int QDECL Com_sprintf(char *out,int size,const char *format,...){
  va_list args;va_start(args,format);int n=std::vsnprintf(out,size,format,args);va_end(args);return n;
 }
 #include <algorithm>
+#include <climits>
 #include <cstdlib>
 float Q_atof(const char *text){return (float)std::atof(text);}
 #include "code/renderercommon/tr_jka_shader.h"
@@ -59,7 +60,7 @@ static void vk_update_descriptor(int,VkDescriptorSet){}
 static struct{struct{VkDescriptorSet color_descriptor;}screenMap;}vk;
 static struct{int currenttmu;}glState;
 static struct{image_t *whiteImage,*blackImage;}tr;
-struct Entity{struct{struct{int frame;}alice;}e;};
+struct Entity{struct{struct{int frame;}alice;struct{qboolean setAnimIndex;}jka;int skinNum;}e;};
 static struct{qboolean screenMapDone;struct{struct{qboolean snooperView;}rtcw;}refdef;Entity *currentEntity;}backEnd;
 static struct{double shaderTime;}tess;
 static void Cinematic(int){}
@@ -132,7 +133,41 @@ int main(){
  // Alice's animMapOnce is unchanged beside it.
  bundle.jkaOneShotAnimMap=0;bundle.aliceAnimMapOnce=1;ri.gameId=COM_GAME_ALICE;
  assert(Index(bundle,10.0)==7&&Index(bundle,0.5)==3);
+ bundle.aliceAnimMapOnce=0;
+ // RF_SETANIMINDEX (jka.setAnimIndex): an Academy entity's skinNum names the
+ // frame whatever the time (jamp.exe 0x4ac42f, jasp.exe 0x473026). A one-shot
+ // bundle holds at or past its count; any other wraps. Retail reads before its
+ // frames for a negative one; Fn shows frame 0.
+ Entity mover{};mover.e.jka.setAnimIndex=qtrue;backEnd.currentEntity=&mover;
+ const int skins[]={0,3,7,8,9,17,-1,-9,INT_MAX,INT_MIN};
+ const int skinLooped[]={0,3,7,0,1,1,0,0,7,0};
+ const int skinOnce[]={0,3,7,7,7,7,0,0,7,0};
+ for(comGameId_t id:{COM_GAME_JKA_MP,COM_GAME_JKA_SP}){
+  ri.gameId=id;
+  for(int n=0;n<10;++n){
+   mover.e.skinNum=skins[n];
+   for(double time:{0.0,0.5,10.0}){
+    bundle.jkaOneShotAnimMap=0;assert(Index(bundle,time)==skinLooped[n]);
+    bundle.jkaOneShotAnimMap=1;assert(Index(bundle,time)==skinOnce[n]);
+   }
+  }
+  // Without the flag the entity's skinNum does not choose the frame.
+  mover.e.skinNum=5;mover.e.jka.setAnimIndex=qfalse;
+  bundle.jkaOneShotAnimMap=0;assert(Index(bundle,0.5)==3&&Index(bundle,10.0)==6);
+  mover.e.jka.setAnimIndex=qtrue;
+ }
+ // Only Academy reads the field.
+ mover.e.skinNum=5;
+ for(int id=COM_GAME_AUTO+1;id<COM_GAME_COUNT;++id){
+  ri.gameId=static_cast<comGameId_t>(id);
+  if(ri.gameId==COM_GAME_JKA_SP||ri.gameId==COM_GAME_JKA_MP)continue;
+  bundle.jkaOneShotAnimMap=0;assert(Index(bundle,0.5)==3&&Index(bundle,10.0)==6);
+ }
+ ri.gameId=COM_GAME_JKA_MP;
  bundle.numImageAnimations=1;bundle.jkaOneShotAnimMap=1;assert(Index(bundle,10.0)==0);
+ mover.e.skinNum=4;assert(Index(bundle,0.5)==0);
+ backEnd.currentEntity=nullptr;bundle.numImageAnimations=8;bundle.jkaOneShotAnimMap=0;
+ assert(Index(bundle,0.5)==3);
 }
 '''
 
@@ -178,6 +213,10 @@ class JKAOneShotAnimMapTests(unittest.TestCase):
         header = (ROOT / 'code/renderercommon/tr_jka_shader.h').read_text(encoding='utf-8')
         for address in ('0x4b426c', '0x47a42e', '0x4ac3d0', '0x472fd0'):
             self.assertIn(address, header)
+        types = (ROOT / 'code/renderercommon/tr_types.h').read_text(encoding='utf-8')
+        self.assertIn('qboolean setAnimIndex;', types)
+        adapter = (ROOT / 'code/compat/jka_render_adapter.hpp').read_text(encoding='utf-8')
+        self.assertIn('constexpr uint32_t setAnimIndex = 0x80000u;', adapter)
         self.assertIn('#define MAX_IMAGE_ANIMATIONS_JKA 32', header)
         for renderer in RENDERERS:
             with self.subTest(renderer=renderer):

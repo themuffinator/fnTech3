@@ -111,6 +111,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Jedi Academy one-shot animations](fntech3/2026-10-15-jka-oneshot-animmap.md)
   -- explosion pictures that play once and stop, measured in retail and
   read by every renderer.
+- [Jedi Academy frame-indexed shaders](fntech3/2026-10-15-jka-setanimindex.md)
+  -- door lights whose frame the game sets (`RF_SETANIMINDEX`), measured in
+  retail and drawn by every renderer.
 - [Jedi Academy entity refraction](fntech3/2026-10-15-jka-entity-refraction.md)
   -- the spawn shield's see-through shimmer, measured in retail and drawn
   with fnTech3's liquid refraction in every renderer.
