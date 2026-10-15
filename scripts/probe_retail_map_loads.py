@@ -35,6 +35,11 @@ their maps end.
 
 Run it before and after a loader change with the same arguments, then
 `--compare BEFORE AFTER` lists every map whose outcome or first error changed.
+`--developer` runs each map with `developer 1`, so the warnings an engine
+prints only to developers (a shader keyword it skips, an image it substitutes)
+reach the kept console logs; `scripts/scan_shader_warnings.py` reads them.
+`--then COMMAND` runs a console command once the map has settled and settles
+again, e.g. `finishloadingscreen` to let a Medal of Honor mission start.
 Each finished map is also appended to `rows.jsonl`, and `--resume` continues
 an interrupted run in the same output folder.
 Windows only: windowed on unswitched private desktops, sound, mouse and
@@ -168,7 +173,18 @@ def stop(process):
     process.close()
 
 
-def play(case, client, server, renderer, output, timeout):
+def load_script(case, then=()):
+    """The console script a run executes: load, settle, each `then` command and its settle, then quit."""
+    profile = case['profile']
+    load = f"map {case['name']} ffa" if profile == 'ql' else f"map {case['name']}"
+    settle = 'wait 6000' if profile in MILLISECOND_WAITS else 'wait 120'
+    lines = [load, settle]
+    for command in then:
+        lines += [command, settle]
+    return '\n'.join(lines + [f'echo {LOADED}', 'quit']) + '\n'
+
+
+def play(case, client, server, renderer, output, timeout, developer=False, then=()):
     from windows_private_process import WindowsPrivateProcess
 
     slug = re.sub(r'[^A-Za-z0-9_.-]+', '_', case['label'])
@@ -183,13 +199,12 @@ def play(case, client, server, renderer, output, timeout):
         for name in CONFIGS:
             for suffix in ('.cfg', '_server.cfg'):
                 (folder / (name + suffix)).write_bytes(b'')
-    load = f"map {case['name']} ffa" if profile == 'ql' else f"map {case['name']}"
-    settle = 'wait 6000' if profile in MILLISECOND_WAITS else 'wait 120'
-    (game / 'maploads.cfg').write_text(f'{load}\n{settle}\necho {LOADED}\nquit\n', encoding='utf-8')
+    (game / 'maploads.cfg').write_text(load_script(case, then), encoding='utf-8')
     dedicated = profile in DEDICATED or (profile == 'q3test' and case['basepath'].name in DEDICATED_Q3TEST)
     exe = server if dedicated else client
     variables = dict(com_gameProfile=profile, fs_basepath=str(case['basepath']), fs_homepath=str(home),
-                     fs_game=mod, logfile='2', developer='0', sv_pure='0', bot_enable='0', net_enabled='0',
+                     fs_game=mod, logfile='2', developer='1' if developer else '0', sv_pure='0', bot_enable='0',
+                     net_enabled='0',
                      com_steamIntegration='0', fs_skipWorkshop='1', sv_errorExit='0')
     if dedicated:
         variables['dedicated'] = '1'
@@ -294,6 +309,10 @@ def main():
     parser.add_argument('--output', type=Path)
     parser.add_argument('--resume', action='store_true', help='keep the maps an earlier run in --output finished')
     parser.add_argument('--compare', nargs=2, metavar=('BEFORE', 'AFTER'))
+    parser.add_argument('--developer', action='store_true',
+                        help='run each map with developer 1, keeping developer-only warnings in its log')
+    parser.add_argument('--then', action='append', default=[], metavar='COMMAND',
+                        help='a console command run after the map settles, then settle again (repeatable)')
     args = parser.parse_args()
     if args.compare:
         return compare(*args.compare)
@@ -328,7 +347,7 @@ def main():
         todo = [c for c in todo if c['label'] not in rows]
 
     def one(case):
-        row = play(case, client, server, args.renderer, output, args.timeout)
+        row = play(case, client, server, args.renderer, output, args.timeout, args.developer, args.then)
         with lock:
             rows[case['label']] = row
             with journal.open('a', encoding='utf-8') as out:
@@ -344,7 +363,7 @@ def main():
         counts = by_profile.setdefault(row['profile'], {o: 0 for o in OUTCOMES})
         counts[row['outcome']] += 1
     report = dict(renderer=args.renderer, binaries=binaries, binariesUnchanged=binaries == after,
-                  startedUtc=started, endedUtc=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+                  developer=args.developer, then=args.then, startedUtc=started, endedUtc=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
                   installations={k: str(v) for k, v in installations.items()},
                   sourceCommit=subprocess.run(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True,
                                               capture_output=True).stdout.strip(),

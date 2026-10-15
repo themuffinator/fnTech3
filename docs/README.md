@@ -72,6 +72,9 @@ Release packages include them as web pages in their `manual` folder, built by
 
 ### Game-specific ledgers and records
 
+- [Medal of Honor shader sweep](fntech3/2026-10-15-mohaa-shader-sweep.md)
+  -- every map loaded in developer mode, each shader warning traced to the
+  engine or to 1.00's data, and the engine's own fixed.
 - [October 14 compatibility round](fntech3/2026-10-14-compatibility-round.md)
   -- Medal of Honor's sound fades and cached model definitions, and Jedi
   Academy's saber glow and lines checked against retail's own vertices.

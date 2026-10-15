@@ -2800,6 +2800,17 @@ it (Live subset). The original engine's own timing is inferred from OpenMoHAA
 and `alice.exe` **[I]**. The same round makes the loading bar's cache check
 find model definitions (`TIKI_FindTikiAnim`, Source, Unit). No gate closes.
 
+The [2026-10-15 shader sweep](2026-10-15-mohaa-shader-sweep.md) loads all 54
+maps with `developer 1` in the GL and Vulkan renderers and traces every shader
+warning their logs print. The parser met no keyword it lacks. The client no
+longer looks up Quake III's console, recording icon, cursor and connect-screen
+art, nor the renderers Quake III's `sun`, none of which 1.00 ships, and the
+`cull front` that seven `*_backculled` hedgerows spell out is front-sided
+culling without a warning (Source, Unit, Live subset). The warnings left are
+1.00's own data: images and shaders its scripts, models and client game name
+and no pak holds. What 1.00 drew for the DM loading screens' failed `white`
+mat is open **[I]**. No gate closes.
+
 Medal of Honor: Allied Assault is the tenth title and the fifteenth profile,
 `mohaa`, over one `main/` installation. It runs 2015's engine, a descendant of
 Ritual's and of Quake III's, and fnTech3 serves it through adapters of its own

@@ -2802,6 +2802,15 @@ static qboolean ParseShader( const char **text )
 			{
 				shader.cullType = CT_BACK_SIDED;
 			}
+			// Medal of Honor's foliage scripts spell out the default as the
+			// Quake III shader manual names it, `cull front`, on its
+			// "*_backculled" hedgerows (Pak0 scripts/misc_outside.shader and
+			// wilderness.shader). Quake III and OpenMoHAA warn and keep
+			// front-sided culling, which this keeps without the warning.
+			else if ( ri.gameId == COM_GAME_MOHAA && !Q_stricmp( token, "front" ) )
+			{
+				shader.cullType = CT_FRONT_SIDED;
+			}
 			else
 			{
 				ri.Printf( PRINT_WARNING, "WARNING: invalid cull parm '%s' in shader '%s'\n", token, shader.name );
@@ -5810,7 +5819,10 @@ static void CreateExternalShaders( void ) {
 
 	// Enemy Territory names its sun per map, with a sunshader directive,
 	// and ships no image for the stock one.
-	tr.sunShader = ri.gameId == COM_GAME_WOLFET ? NULL : R_FindShader( "sun", LIGHTMAP_NONE, qtrue );
+	// Medal of Honor defines no "sun" either: its sun is each map's lens
+	// flare (tr_alice.c).
+	tr.sunShader = ri.gameId == COM_GAME_WOLFET || ri.gameId == COM_GAME_MOHAA ? NULL
+		: R_FindShader( "sun", LIGHTMAP_NONE, qtrue );
 }
 
 

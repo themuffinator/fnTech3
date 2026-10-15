@@ -41,5 +41,18 @@ class RetailMapSelectionTests(unittest.TestCase):
         self.assertEqual(probe.select_cases(self.maps), self.maps)
 
 
+class RetailMapLoadScriptTests(unittest.TestCase):
+    def test_a_load_settles_in_the_profiles_own_wait_units(self):
+        self.assertEqual(probe.load_script(dict(profile='mohaa', name='m1l1')),
+                         f'map m1l1\nwait 6000\necho {probe.LOADED}\nquit\n')
+        self.assertEqual(probe.load_script(dict(profile='ql', name='campgrounds')),
+                         f'map campgrounds ffa\nwait 120\necho {probe.LOADED}\nquit\n')
+
+    def test_each_follow_up_command_settles_before_the_next(self):
+        self.assertEqual(probe.load_script(dict(profile='mohaa', name='m1l1'), ['finishloadingscreen', 'cmd coord']),
+                         'map m1l1\nwait 6000\nfinishloadingscreen\nwait 6000\ncmd coord\nwait 6000\n'
+                         f'echo {probe.LOADED}\nquit\n')
+
+
 if __name__ == '__main__':
     unittest.main()

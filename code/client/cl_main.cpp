@@ -5890,15 +5890,26 @@ static void CL_InitRenderer( void ) {
 		cls.whiteShader = re.RegisterShaderNoMip( "*white" );
 		cls.consoleShader = re.RegisterShaderNoMip( "gfx/2d/conback" );
 		cls.cursorShader = 0;
+	} else if ( Com_GameIsMOHAA() ) {
+		// Medal of Honor ships Quake III's character sheet (Pak0
+		// gfx/2d/bigchars) and none of its other client art: its "white" is an
+		// additive sprite (scripts/sprites.shader), its "console" names an
+		// image 1.00 never shipped (gfx/2d/BattleCry.tga, scripts/3dk.shader),
+		// and it has no recording icon or 3_cursor2. The fills and the
+		// console's background are the engine's own white, and the console
+		// draws its own pointer.
+		cls.charSetShader = re.RegisterShader( "gfx/2d/bigchars" );
+		cls.recordShader = 0;
+		cls.whiteShader = CL_MOHAAWhite();
+		cls.consoleShader = cls.whiteShader;
+		cls.cursorShader = 0;
 	} else {
 	// Both Jedi titles supply this half-cell atlas (JK2 MP0x40c32b,
 	// SP0x4093c0); retain Fn HUD and console placement.
 	cls.charSetShader = Com_GameIsSTVEF() || Com_GameIsJKA() || Com_GameIsJK2() ? re.RegisterShaderNoMip( "gfx/2d/charsgrid_med" )
 		: re.RegisterShader( wolfet ? "gfx/2d/consolechars" : rtcwMP ? "gfx/2d/hudchars" : "gfx/2d/bigchars" );
 	cls.recordShader = wolfet || Com_GameIsSTVEF() ? 0 : re.RegisterShaderNoMip( "icons/record" );
-	// Medal of Honor's "white" is an additive sprite (scripts/sprites.shader),
-	// so its fills take the engine's own opaque white instead.
-	cls.whiteShader = Com_GameIsMOHAA() ? CL_MOHAAWhite() : re.RegisterShader( "white" );
+	cls.whiteShader = re.RegisterShader( "white" );
 	// Q3 owns the stock "console" shader. QL's pak00 contains duplicate
 	// definitions with that name, including one referencing absent Q3 images;
 	// only QL needs the uniquely named sidecar alias for its retail variant.

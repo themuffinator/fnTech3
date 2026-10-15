@@ -1209,8 +1209,9 @@ void SCR_Init( void ) {
 	cl_graphshift = Cvar_Get ("graphshift", "0", CVAR_CHEAT);
 	r_debugFontAtlas = Cvar_Get( "r_debugFontAtlas", "0", CVAR_TEMP );
 	// Enemy Territory's UI draws its own connect screen and ships no such art.
-	// Alice has none either: its loading screen is the world map.
-	scr_connectBackground = Com_GameIsWolfET() || Com_GameIsRitual() ? 0
+	// Alice has none either: its loading screen is the world map. Medal of
+	// Honor's menus draw its loading screens, and it ships no such art.
+	scr_connectBackground = Com_GameIsWolfET() || Com_GameIsRitual() || Com_GameIsMOHAA() ? 0
 		: re.RegisterShaderNoMip( "ui/assets/backscreen_smoke" );
 
 	scr_initialized = true;

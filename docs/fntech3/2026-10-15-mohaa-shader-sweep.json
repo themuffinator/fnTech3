@@ -1,0 +1,398 @@
+{
+  "record": "2026-10-15-mohaa-shader-sweep.md",
+  "evidence": [
+    "Source",
+    "Unit",
+    "Live subset"
+  ],
+  "profile": "mohaa",
+  "retail_version": "1.00 US",
+  "full_compatibility": false,
+  "gates_closed": [],
+  "source_commit": "27273055193c2b4c068af0b43bd6545d1f8f611f",
+  "source_state": "git archive export of source_commit; \"after\" adds only this change's hunks. The sun comment in the three tr_shader.c files was reworded after the sweeps, and the MoHAA client-art branch's `cls.consoleLogoShader = 0;` dropped (the field is never set otherwise under this profile, so stays zero); neither changes behaviour, and the dropped line was rebuilt clean",
+  "engine_change_files": [
+    "code/client/cl_main.cpp",
+    "code/client/cl_scrn.cpp",
+    "code/renderer/tr_shader.c",
+    "code/renderervk/tr_shader.c",
+    "code/rendererrtx/tr_shader.c"
+  ],
+  "build": {
+    "platform": "Windows x86",
+    "type": "debugoptimized",
+    "compiler": "MSVC 2022",
+    "strict_warnings": true,
+    "export": ".tmp/mohaa-shaders/export",
+    "runtimes": {
+      "mohaa-shaders-before": {
+        "fntech3.exe": "a7dd4fc66877edf50b98db51b63049b6d9aa0230b34c25a232ee0b202d4f3382",
+        "fnql_glx_x86.dll": "7c29b6161ddd15ff8967dc16024e0c3be7ffba50c1f013e1777d44f5d997a1e9",
+        "fnql_vk_x86.dll": "fd2d987f17b81b51b6d3ef4d3e8dfeea71490a152cbd663083792b02d2a14969",
+        "fnql_rtx_x86.dll": "c1f6f2c13f94e9746b0700eadb17bb46e612782aefe5d011d7b978294c65bb75"
+      },
+      "mohaa-shaders-after": {
+        "fntech3.exe": "15ea582f535eecfdf42948bfdfeab5e57a7fc8f01ba163060832530abf174950",
+        "fnql_glx_x86.dll": "d570ba4c0ec3a51888c4148b2644c003478fad1bb752a3164bec334240675d21",
+        "fnql_vk_x86.dll": "a8211d06dbb2cd78f378b6984a27ac3227ca5f7b3a861dfa8e80d24fa0152275",
+        "fnql_rtx_x86.dll": "a303a3737008977fdb2931f722ad631cd2ab1e2184773621f81a2c06a50d374b"
+      }
+    }
+  },
+  "installation": {
+    "path": "E:\\Games\\Medal of Honor Allied Assault",
+    "read_only": true,
+    "files": {
+      "main/cgamex86.dll": "cb2be40ce4d9248234652d44bbb02c41b0438886b34de56e5de9910f16679c2c",
+      "main/gamex86.dll": "2f37ead1a91aae850dd8cdb29c6b5774864f6ae8654fb79d3593e45d9d3fc55c",
+      "main/Pak0.pk3": "6caf6d93cc996b6895d5015f1be153724e5369b8c063c73e1609578323261df6",
+      "main/Pak1.pk3": "60ed94c185c4f81813aefaf1603b16734e65eb1b931737ae588df84c0a2a4b80",
+      "main/Pak2.pk3": "00133b93d350b5d82ff2d59a7d87fe94dad18147d28b6fd59dd2b5a6c816acce",
+      "main/Pak3.pk3": "1e0eed04b234bae260097813755325d2533bb6082c5fc9e98332aa66c4f4db92",
+      "main/Pak4.pk3": "853cc70610933e83284db95e6144ed3c02d81190065b44aae94ba58ca09f3130",
+      "main/Pak5.pk3": "b6035d8686bed133be76cdee322c37fd4a9814ba88bbce3e91f20571ea7b2a1d"
+    }
+  },
+  "command": "python scripts/probe_retail_map_loads.py --client <runtime>/fntech3.exe --server <runtime>/fntech3.exe --installation \"mohaa=E:/Games/Medal of Honor Allied Assault\" --profiles mohaa --jobs 3 --developer --then finishloadingscreen --renderer <glx|vk> --output <output>; python scripts/scan_shader_warnings.py <output>",
+  "sweeps": {
+    "sweep-before": {
+      "output": ".tmp/mohaa-shaders/sweep-before",
+      "renderer": "glx",
+      "developer": true,
+      "then": [
+        "finishloadingscreen"
+      ],
+      "binaries": {
+        "fntech3.exe": "a7dd4fc66877edf50b98db51b63049b6d9aa0230b34c25a232ee0b202d4f3382",
+        "fnql_glx_x86.dll": "7c29b6161ddd15ff8967dc16024e0c3be7ffba50c1f013e1777d44f5d997a1e9"
+      },
+      "binariesUnchanged": true,
+      "startedUtc": "2026-10-15T08:30:17Z",
+      "endedUtc": "2026-10-15T08:35:01Z",
+      "outcomes": {
+        "loaded": 54,
+        "rejected": 0,
+        "faulted": 0,
+        "fatal": 0,
+        "crashed": 0,
+        "hung": 0
+      },
+      "distinctWarnings": {
+        "default": 17,
+        "image": 7,
+        "keyword": 4,
+        "lightmap": 4,
+        "malformed": 3
+      },
+      "warnings": {
+        "default": {
+          "Shader image unavailable for: cardboard-gib.spr": 2,
+          "Shader image unavailable for: icons/record": 54,
+          "Shader image unavailable for: material27": 1,
+          "Shader image unavailable for: material28": 1,
+          "Shader image unavailable for: material29": 1,
+          "Shader image unavailable for: material30": 1,
+          "Shader image unavailable for: material31": 1,
+          "Shader image unavailable for: menu/art/3_cursor2": 54,
+          "Shader image unavailable for: mg": 4,
+          "Shader image unavailable for: opelhubstill": 2,
+          "Shader image unavailable for: opeltreadstill": 2,
+          "Shader image unavailable for: poopy": 24,
+          "Shader image unavailable for: sun": 54,
+          "Shader image unavailable for: textures/menu/exit": 54,
+          "Shader image unavailable for: textures/misc_outside/nu_grass_set2a_clmp": 1,
+          "Shader image unavailable for: textures/notexture": 6,
+          "Shader image unavailable for: ui/assets/backscreen_smoke": 54
+        },
+        "image": {
+          "WARNING: R_FindImageFile could not find 'gfx/2d/BattleCry.tga' in shader 'console'": 54,
+          "WARNING: R_FindImageFile could not find 'models/fx/muzflash/mg42_starflash.tga' in shader 'mg42_starflash'": 1,
+          "WARNING: R_FindImageFile could not find 'textures/hud/item_uniform.tga' in shader 'textures/hud/item_uniform'": 1,
+          "WARNING: R_FindImageFile could not find 'textures/models/items/hammer.tga' in shader 'hammer'": 1,
+          "WARNING: R_FindImageFile could not find 'textures/sprites/senn_fire1.tga' in shader 'senn_fire1'": 2,
+          "WARNING: R_FindImageFile could not find 'textures/sprites/senn_fire2.tga' in shader 'senn_fire2'": 2,
+          "WARNING: R_FindImageFile could not find 'textures/sprites/white.tga' in shader 'white'": 11
+        },
+        "keyword": {
+          "WARNING: invalid cull parm 'front' in shader 'textures/misc_outside/hedgerowsml_backculled_noclamp'": 6,
+          "WARNING: invalid cull parm 'front' in shader 'textures/wilderness/m3l3hedgerowsml_backculled'": 3,
+          "WARNING: invalid cull parm 'front' in shader 'textures/wilderness/m3l3hedgerowsml_backculled_dark'": 1,
+          "WARNING: invalid cull parm 'front' in shader 'textures/wilderness/m3l3hedgerowsml_backculled_noclamp'": 2
+        },
+        "lightmap": {
+          "WARNING: shader 'textures/common/switchflat_pulse' has lightmap but no lightmap stage!": 1,
+          "WARNING: shader 'textures/misc_outside/nu_grass_set2a_clmp' has lightmap but no lightmap stage!": 1,
+          "WARNING: shader 'textures/misc_outside/water_nodraw' has lightmap but no lightmap stage!": 1,
+          "WARNING: shader 'textures/notexture' has lightmap but no lightmap stage!": 6
+        },
+        "malformed": {
+          "WARNING: nextBundle without an image in shader 'bp_debris2g'": 22,
+          "WARNING: nextBundle without an image in shader 'bp_debris3'": 14,
+          "WARNING: nextBundle without an image in shader 'bp_debris3g'": 22
+        }
+      }
+    },
+    "sweep-before-vk": {
+      "output": ".tmp/mohaa-shaders/sweep-before-vk",
+      "renderer": "vk",
+      "developer": true,
+      "then": [
+        "finishloadingscreen"
+      ],
+      "binaries": {
+        "fntech3.exe": "a7dd4fc66877edf50b98db51b63049b6d9aa0230b34c25a232ee0b202d4f3382",
+        "fnql_vk_x86.dll": "fd2d987f17b81b51b6d3ef4d3e8dfeea71490a152cbd663083792b02d2a14969"
+      },
+      "binariesUnchanged": true,
+      "startedUtc": "2026-10-15T08:40:11Z",
+      "endedUtc": "2026-10-15T08:45:31Z",
+      "outcomes": {
+        "loaded": 54,
+        "rejected": 0,
+        "faulted": 0,
+        "fatal": 0,
+        "crashed": 0,
+        "hung": 0
+      },
+      "distinctWarnings": {
+        "default": 17,
+        "image": 7,
+        "keyword": 4,
+        "lightmap": 4,
+        "malformed": 3
+      },
+      "warnings": {
+        "default": {
+          "Shader image unavailable for: cardboard-gib.spr": 2,
+          "Shader image unavailable for: icons/record": 54,
+          "Shader image unavailable for: material27": 1,
+          "Shader image unavailable for: material28": 1,
+          "Shader image unavailable for: material29": 1,
+          "Shader image unavailable for: material30": 1,
+          "Shader image unavailable for: material31": 1,
+          "Shader image unavailable for: menu/art/3_cursor2": 54,
+          "Shader image unavailable for: mg": 4,
+          "Shader image unavailable for: opelhubstill": 2,
+          "Shader image unavailable for: opeltreadstill": 2,
+          "Shader image unavailable for: poopy": 24,
+          "Shader image unavailable for: sun": 54,
+          "Shader image unavailable for: textures/menu/exit": 54,
+          "Shader image unavailable for: textures/misc_outside/nu_grass_set2a_clmp": 1,
+          "Shader image unavailable for: textures/notexture": 6,
+          "Shader image unavailable for: ui/assets/backscreen_smoke": 54
+        },
+        "image": {
+          "WARNING: R_FindImageFile could not find 'gfx/2d/BattleCry.tga' in shader 'console'": 54,
+          "WARNING: R_FindImageFile could not find 'models/fx/muzflash/mg42_starflash.tga' in shader 'mg42_starflash'": 1,
+          "WARNING: R_FindImageFile could not find 'textures/hud/item_uniform.tga' in shader 'textures/hud/item_uniform'": 1,
+          "WARNING: R_FindImageFile could not find 'textures/models/items/hammer.tga' in shader 'hammer'": 1,
+          "WARNING: R_FindImageFile could not find 'textures/sprites/senn_fire1.tga' in shader 'senn_fire1'": 2,
+          "WARNING: R_FindImageFile could not find 'textures/sprites/senn_fire2.tga' in shader 'senn_fire2'": 2,
+          "WARNING: R_FindImageFile could not find 'textures/sprites/white.tga' in shader 'white'": 11
+        },
+        "keyword": {
+          "WARNING: invalid cull parm 'front' in shader 'textures/misc_outside/hedgerowsml_backculled_noclamp'": 6,
+          "WARNING: invalid cull parm 'front' in shader 'textures/wilderness/m3l3hedgerowsml_backculled'": 3,
+          "WARNING: invalid cull parm 'front' in shader 'textures/wilderness/m3l3hedgerowsml_backculled_dark'": 1,
+          "WARNING: invalid cull parm 'front' in shader 'textures/wilderness/m3l3hedgerowsml_backculled_noclamp'": 2
+        },
+        "lightmap": {
+          "WARNING: shader 'textures/common/switchflat_pulse' has lightmap but no lightmap stage!": 1,
+          "WARNING: shader 'textures/misc_outside/nu_grass_set2a_clmp' has lightmap but no lightmap stage!": 1,
+          "WARNING: shader 'textures/misc_outside/water_nodraw' has lightmap but no lightmap stage!": 1,
+          "WARNING: shader 'textures/notexture' has lightmap but no lightmap stage!": 6
+        },
+        "malformed": {
+          "WARNING: nextBundle without an image in shader 'bp_debris2g'": 22,
+          "WARNING: nextBundle without an image in shader 'bp_debris3'": 14,
+          "WARNING: nextBundle without an image in shader 'bp_debris3g'": 22
+        }
+      }
+    },
+    "sweep-after": {
+      "output": ".tmp/mohaa-shaders/sweep-after",
+      "renderer": "glx",
+      "developer": true,
+      "then": [
+        "finishloadingscreen"
+      ],
+      "binaries": {
+        "fntech3.exe": "15ea582f535eecfdf42948bfdfeab5e57a7fc8f01ba163060832530abf174950",
+        "fnql_glx_x86.dll": "d570ba4c0ec3a51888c4148b2644c003478fad1bb752a3164bec334240675d21"
+      },
+      "binariesUnchanged": true,
+      "startedUtc": "2026-10-15T08:47:36Z",
+      "endedUtc": "2026-10-15T08:52:24Z",
+      "outcomes": {
+        "loaded": 54,
+        "rejected": 0,
+        "faulted": 0,
+        "fatal": 0,
+        "crashed": 0,
+        "hung": 0
+      },
+      "distinctWarnings": {
+        "default": 13,
+        "image": 6,
+        "lightmap": 4,
+        "malformed": 3
+      },
+      "warnings": {
+        "default": {
+          "Shader image unavailable for: cardboard-gib.spr": 2,
+          "Shader image unavailable for: material27": 1,
+          "Shader image unavailable for: material28": 1,
+          "Shader image unavailable for: material29": 1,
+          "Shader image unavailable for: material30": 1,
+          "Shader image unavailable for: material31": 1,
+          "Shader image unavailable for: mg": 4,
+          "Shader image unavailable for: opelhubstill": 2,
+          "Shader image unavailable for: opeltreadstill": 2,
+          "Shader image unavailable for: poopy": 24,
+          "Shader image unavailable for: textures/menu/exit": 54,
+          "Shader image unavailable for: textures/misc_outside/nu_grass_set2a_clmp": 1,
+          "Shader image unavailable for: textures/notexture": 6
+        },
+        "image": {
+          "WARNING: R_FindImageFile could not find 'models/fx/muzflash/mg42_starflash.tga' in shader 'mg42_starflash'": 1,
+          "WARNING: R_FindImageFile could not find 'textures/hud/item_uniform.tga' in shader 'textures/hud/item_uniform'": 1,
+          "WARNING: R_FindImageFile could not find 'textures/models/items/hammer.tga' in shader 'hammer'": 1,
+          "WARNING: R_FindImageFile could not find 'textures/sprites/senn_fire1.tga' in shader 'senn_fire1'": 2,
+          "WARNING: R_FindImageFile could not find 'textures/sprites/senn_fire2.tga' in shader 'senn_fire2'": 2,
+          "WARNING: R_FindImageFile could not find 'textures/sprites/white.tga' in shader 'white'": 11
+        },
+        "lightmap": {
+          "WARNING: shader 'textures/common/switchflat_pulse' has lightmap but no lightmap stage!": 1,
+          "WARNING: shader 'textures/misc_outside/nu_grass_set2a_clmp' has lightmap but no lightmap stage!": 1,
+          "WARNING: shader 'textures/misc_outside/water_nodraw' has lightmap but no lightmap stage!": 1,
+          "WARNING: shader 'textures/notexture' has lightmap but no lightmap stage!": 6
+        },
+        "malformed": {
+          "WARNING: nextBundle without an image in shader 'bp_debris2g'": 22,
+          "WARNING: nextBundle without an image in shader 'bp_debris3'": 14,
+          "WARNING: nextBundle without an image in shader 'bp_debris3g'": 22
+        }
+      }
+    },
+    "sweep-after-vk": {
+      "output": ".tmp/mohaa-shaders/sweep-after-vk",
+      "renderer": "vk",
+      "developer": true,
+      "then": [
+        "finishloadingscreen"
+      ],
+      "binaries": {
+        "fntech3.exe": "15ea582f535eecfdf42948bfdfeab5e57a7fc8f01ba163060832530abf174950",
+        "fnql_vk_x86.dll": "a8211d06dbb2cd78f378b6984a27ac3227ca5f7b3a861dfa8e80d24fa0152275"
+      },
+      "binariesUnchanged": true,
+      "startedUtc": "2026-10-15T08:52:25Z",
+      "endedUtc": "2026-10-15T08:57:25Z",
+      "outcomes": {
+        "loaded": 54,
+        "rejected": 0,
+        "faulted": 0,
+        "fatal": 0,
+        "crashed": 0,
+        "hung": 0
+      },
+      "distinctWarnings": {
+        "default": 13,
+        "image": 6,
+        "lightmap": 4,
+        "malformed": 3
+      },
+      "warnings": {
+        "default": {
+          "Shader image unavailable for: cardboard-gib.spr": 2,
+          "Shader image unavailable for: material27": 1,
+          "Shader image unavailable for: material28": 1,
+          "Shader image unavailable for: material29": 1,
+          "Shader image unavailable for: material30": 1,
+          "Shader image unavailable for: material31": 1,
+          "Shader image unavailable for: mg": 4,
+          "Shader image unavailable for: opelhubstill": 2,
+          "Shader image unavailable for: opeltreadstill": 2,
+          "Shader image unavailable for: poopy": 24,
+          "Shader image unavailable for: textures/menu/exit": 54,
+          "Shader image unavailable for: textures/misc_outside/nu_grass_set2a_clmp": 1,
+          "Shader image unavailable for: textures/notexture": 6
+        },
+        "image": {
+          "WARNING: R_FindImageFile could not find 'models/fx/muzflash/mg42_starflash.tga' in shader 'mg42_starflash'": 1,
+          "WARNING: R_FindImageFile could not find 'textures/hud/item_uniform.tga' in shader 'textures/hud/item_uniform'": 1,
+          "WARNING: R_FindImageFile could not find 'textures/models/items/hammer.tga' in shader 'hammer'": 1,
+          "WARNING: R_FindImageFile could not find 'textures/sprites/senn_fire1.tga' in shader 'senn_fire1'": 2,
+          "WARNING: R_FindImageFile could not find 'textures/sprites/senn_fire2.tga' in shader 'senn_fire2'": 2,
+          "WARNING: R_FindImageFile could not find 'textures/sprites/white.tga' in shader 'white'": 11
+        },
+        "lightmap": {
+          "WARNING: shader 'textures/common/switchflat_pulse' has lightmap but no lightmap stage!": 1,
+          "WARNING: shader 'textures/misc_outside/nu_grass_set2a_clmp' has lightmap but no lightmap stage!": 1,
+          "WARNING: shader 'textures/misc_outside/water_nodraw' has lightmap but no lightmap stage!": 1,
+          "WARNING: shader 'textures/notexture' has lightmap but no lightmap stage!": 6
+        },
+        "malformed": {
+          "WARNING: nextBundle without an image in shader 'bp_debris2g'": 22,
+          "WARNING: nextBundle without an image in shader 'bp_debris3'": 14,
+          "WARNING: nextBundle without an image in shader 'bp_debris3g'": 22
+        }
+      }
+    }
+  },
+  "static_inventory": {
+    "tool": ".tmp/mohaa-shaders/tools/static_scan.py",
+    "scripts": 137,
+    "shaders": 4502,
+    "general_keywords": {
+      "qer_keyword": 5059,
+      "surfaceparm": 3436,
+      "qer_editorimage": 2206,
+      "cull": 1518,
+      "nopicmip": 711,
+      "nomipmaps": 627,
+      "force32bit": 371,
+      "polygonoffset": 235,
+      "deformvertexes": 165,
+      "spritegen": 160,
+      "qer_trans": 92,
+      "q3map_surfacelight": 23,
+      "sort": 23,
+      "skyparms": 15,
+      "qer_nocarve": 10,
+      "tesssize": 9,
+      "spritescale": 8,
+      "nomerge": 7,
+      "portal": 3,
+      "q3map_lightimage": 3,
+      "surfacecolor": 1,
+      "portalsky": 1,
+      "nodraw": 1,
+      "surfacelight": 1,
+      "subdivisions": 1
+    },
+    "stage_keywords": {
+      "map": 5949,
+      "rgbgen": 4735,
+      "blendfunc": 2408,
+      "depthwrite": 1672,
+      "depthfunc": 1130,
+      "clampmap": 753,
+      "nextbundle": 746,
+      "alphagen": 614,
+      "alphafunc": 493,
+      "tcmod": 395,
+      "tcgen": 162,
+      "animmap": 29,
+      "nopicmip": 16,
+      "nodepthtest": 7,
+      "animmapphase": 4,
+      "clampmapy": 3,
+      "alpahfunc": 1
+    },
+    "unhandled_spellings": {
+      "nodraw": "general keyword in textures/misc_outside/regpalm_shadow (scripts/misc_outside.shader:292); no map registers it",
+      "alpahFunc": "stage keyword in seagull (scripts/effects.shader:1072); no map registers it"
+    }
+  }
+}

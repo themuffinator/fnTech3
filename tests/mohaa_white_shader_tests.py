@@ -33,8 +33,9 @@ class MohaaWhiteShaderTests(unittest.TestCase):
         self.assertEqual(len(callers), 1, callers)
         self.assertTrue(callers[0].startswith('cl_main.cpp:'), callers)
         main = (ROOT / 'code/client/cl_main.cpp').read_text(encoding='utf-8', errors='replace')
-        self.assertIn('cls.whiteShader = Com_GameIsMOHAA() ? CL_MOHAAWhite() : re.RegisterShader( "white" );',
-                      main)
+        branch = main[main.index("// Medal of Honor ships Quake III's character sheet"):]
+        branch = branch[:branch.index('} else {')]
+        self.assertIn('cls.whiteShader = CL_MOHAAWhite();', branch)
 
     def test_fades_and_letterbox_draw_with_the_registered_picture(self):
         text = (ROOT / 'code/client/cl_mohaa.cpp').read_text(encoding='utf-8', errors='replace')

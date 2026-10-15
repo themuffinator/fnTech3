@@ -354,7 +354,8 @@ class WolfETRendererWiringTests(unittest.TestCase):
                 self.assertIn('R_CreateWolfETDefaultShading( image );', shader)
                 self.assertIn("!(shader.contentFlags & CONTENTS_FOG ) && !s_wolfetImplicitMap[0] )", shader)
                 self.assertIn('( ri.gameId == COM_GAME_RTCW_MP || ri.gameId == COM_GAME_WOLFET ) && !Q_stricmp( token, "nomipmap" )', shader)
-                self.assertIn('ri.gameId == COM_GAME_WOLFET ? NULL : R_FindShader( "sun", LIGHTMAP_NONE, qtrue )', shader)
+                self.assertIn('ri.gameId == COM_GAME_WOLFET || ri.gameId == COM_GAME_MOHAA ? NULL\n'
+                              '\t\t: R_FindShader( "sun", LIGHTMAP_NONE, qtrue )', shader)
         dialect = read('code/renderercommon/tr_wolfet_shader.h')
         # implicitMask and implicitBlend draw two sided and blend or mask.
         self.assertIn('GLS_DEPTHMASK_TRUE | GLS_ATEST_GE_80', dialect)
