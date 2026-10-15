@@ -13,6 +13,11 @@ General Public License, version 2 or (at your option) any later version.
  * bind.scr and keybind.scr are also read, read-only, when an installation is
  * present. */
 
+#ifdef _MSC_VER
+// x64 /O2 folds the grey fixture's zero delta into RgbToHsv's hue division,
+// which the grey test returns before reaching.
+#pragma warning( disable : 4723 )
+#endif
 #include "../code/compat/alice_menu.hpp"
 #include "../code/compat/alice_picker.hpp"
 #include "alice_pak_reader.hpp"

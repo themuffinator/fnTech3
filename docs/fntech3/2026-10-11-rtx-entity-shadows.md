@@ -160,3 +160,68 @@ tries to build x86-only Jedi Academy ABI tests and fails their pointer/layout
 assertions. The targeted Q3 client and RTX renderer build successfully; this
 task does not change those unrelated ABI tests. Unrelated and concurrent work
 in the shared working tree is preserved.
+
+## The x64 diagnostic build's `all` target (2026-10-15)
+
+The unrelated issue above is settled. Every target of the x64 diagnostic
+configuration was built at `aa0e7049` (`-Dq3-only=true`, client and server,
+all three renderers, `strict-warnings`, MSVC 19.44.35222 for x64, Meson
+1.10.2, `meson compile --ninja-args=-k0`). Thirteen steps failed in twelve
+targets. Only one of them was the Academy layout test; the client and the
+dedicated server failed too:
+
+| Targets | Cause | Change |
+| --- | --- | --- |
+| `fntech3-q3`, `fntech3.ded-q3` | C4312 at `server_stvef_sp_game.hpp:390`: `GAME_CLIENT_THINK`'s 32-bit argument word is cast straight to a `usercmd_t *` | The word is widened through `intptr_t` first. x86 code is unchanged; the native Elite Force SP module never loads on x64. |
+| `fntech3_jka_abi_layout_tests` | The measured table pins `sharedEntity_t` as Academy's x86 modules see it, and its pointer members are wider on x64 | Built only where `fnql_target_is_32bit_x86` holds |
+| `fntech3_alice_ritualfont_tests`, `fntech3_alice_urc_tests`, `fntech3_alice_menu_tests`, `fntech3_alice_screen_tests`, `fntech3_alice_hud_tests`, `fntech3_fakk2_hud_tests`, `fntech3_application_icon_tests` | `code/qcommon/puff.c` was compiled without `common_c_args`, so `q_platform.h` saw no `FNTECH3_Q3_ONLY` and stopped | They pass `common_c_args`, as `fntech3-launcher` and `fntech3_alice_tiki_render_tests` already do |
+| `fntech3_alice_menu_tests` | C4723 at `alice_menu.hpp:58`: x64 `/O2` folds the grey fixture's zero delta into `RgbToHsv`'s hue division, which the grey test returns before reaching | The test disables C4723 |
+| `fntech3_q3_ihv_native_boundary_tests`, `fntech3_q3_ihv_model_tags_tests` | C4127: the boundary's `sizeof(void *) != 4` refusal is constant on x64. Engine sources disable C4127 in `q_shared.h`; these tests do not include it | The tests disable C4127 |
+
+The x64 client recorded above came from `.tmp/meson-q3-rtx-x64`, whose
+`meson-private/cmd_line.txt` adds `cpp_args = /wd4312`; that hid the first
+failure. BUILD.md's documented command adds no such flag: compiled with that
+configuration's own command line, `sv_game.cpp` at `0e99502a` still stops on
+C4312.
+
+Once everything built, the x64 build's 157 test executables failed five times,
+each on an assumption of a 32-bit host or of the Win32 client's name:
+
+| Test | On x64 | Change |
+| --- | --- | --- |
+| `fntech3_jka_sp_game_bridge`, `fntech3_jka_sp_state` | `ServerGameDataView::BindNative` refuses Academy single-player records on a 64-bit host, by design | Built only where `fnql_target_is_32bit_x86` holds |
+| `fntech3_server_game_data` | One check pins Academy multiplayer's 864-byte shared entity | 864 bytes on x86, the record's own size elsewhere |
+| `fntech3_launcher_core` | Expects `fntech3.exe`; this build's client is `fntech3-q3.exe` | Expects the configured name, `FNTECH3_LAUNCHER_CLIENT_NAME` |
+| `fnql_huffman_decoder` | An `INT_MAX` message is refused only where `size * 8` overflows a 32-bit `size_t`; elsewhere its zero length header decodes nothing | Expects the refusal only for a 32-bit `size_t` |
+
+Results, from a `git archive` export of `15b0766f` with these changes and the
+extracted subprojects (`--wrap-mode=nodownload`), under `.tmp/q3-only-x64/`:
+
+- The full x64 configuration builds `all` with no failures. It registers 275
+  tests, Win32's 278 less the three guarded ones. Its 156 test executables
+  give 154 passes, two skips (no OpenAL loopback device; the IHV bridge needs
+  an x86 host) and no failures. Its 115 Python entries are outside this
+  change: under the x64 dev shell 29 fail because their native fixtures target
+  only x86. Twenty-six stop at `q_platform.h`'s 32-bit check and three link
+  i686 objects against the shell's x64 libraries. Win32 pins those fixtures to
+  x86 with its `configurednativearchitecture` test setup, which this
+  configuration lacks.
+- BUILD.md's documented configuration (release, RTX only, no server, static
+  libraries) builds `all`, and the same 156 executables give the same results.
+- Win32, with `win32-dev`'s options and the server added, builds `all` and
+  registers the same 278 tests, commands and suites as `15b0766f` without the
+  change; both were configured to compare. Its 159 test executables give 158
+  passes and one skip (no OpenAL loopback device). On `8a05e028`, with these
+  changes but for the wording of the `server_game_data` check, the 273 Meson
+  entries other than the aggregate pytest one gave 271 passes and two skips,
+  and the full pytest suite 2,755 passes and 131 skips. On `15b0766f`, the 31
+  Python files that read the changed sources, `meson.build` or the records
+  give 743 passes and one skip (no symlink privilege).
+
+The three builds and their test executables were repeated on `8779edb5`
+with the same results.
+
+Nothing here changes a profile gate. The x64 build still cannot load x86
+native modules, so a passing x64 test is no compatibility evidence for the
+profiles that need them. New C++ tests that pin x86 module records need the
+same guard, or the x64 `all` target breaks again.

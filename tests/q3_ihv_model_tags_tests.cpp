@@ -1,4 +1,9 @@
 /* Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later. */
+#ifdef _MSC_VER
+// The metadata refuses 64-bit hosts with a sizeof test, constant there; the
+// engine disables this warning in q_shared.h.
+#pragma warning(disable: 4127)
+#endif
 #include "q3_ihv_model_tag_cases.hpp"
 #include <climits>
 #include <stdexcept>

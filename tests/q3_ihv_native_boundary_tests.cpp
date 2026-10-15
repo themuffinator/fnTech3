@@ -1,4 +1,9 @@
 /* Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later. */
+#ifdef _MSC_VER
+// The boundary refuses 64-bit hosts with sizeof tests, constant there; the
+// engine disables this warning in q_shared.h.
+#pragma warning(disable: 4127)
+#endif
 #include "../code/compat/q3_ihv_native_boundary.hpp"
 #include "../code/compat/q3_ihv_server_clients.hpp"
 #include <array>

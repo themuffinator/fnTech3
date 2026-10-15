@@ -387,7 +387,8 @@ intptr_t QDECL SV_STVEFSPGameEntry( int command, ... ) {
 		game->ClientCommand( arg[0] );
 		break;
 	case GAME_CLIENT_THINK: {
-		auto *source = reinterpret_cast<usercmd_t *>( arg[1] );
+		// A 32-bit argument word: only x86 hosts load this native module.
+		auto *source = reinterpret_cast<usercmd_t *>( static_cast<intptr_t>( arg[1] ) );
 		fntech3_stvef_sp_usercmd_t cmd{};
 		if ( !source || !fntech3::stvef::state::FromInternal( *source, cmd ) ) {
 			Com_Error( ERR_DROP, "Invalid Elite Force SP game command" );

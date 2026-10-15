@@ -450,7 +450,8 @@ void TestArguments()
 #ifdef _WIN32
 	CHECK( DisplayCommand( "C:\\fnTech3\\fntech3.exe", { "+set", "fs_basepath", "C:\\A B" } )
 		== "\"C:\\fnTech3\\fntech3.exe\" +set fs_basepath \"C:\\A B\"" );
-	CHECK( fs::ToUtf8( DefaultEnginePath( "C:\\fnTech3", false ).filename() ) == "fntech3.exe" );
+	// fntech3.exe, or the x64 diagnostic build's fntech3-q3.exe
+	CHECK( fs::ToUtf8( DefaultEnginePath( "C:\\fnTech3", false ).filename() ) == FNTECH3_LAUNCHER_CLIENT_NAME ".exe" );
 #else
 	CHECK( DisplayCommand( "/opt/fn tech3/fntech3", { "+set", "fs_basepath", "/a b/it's" } )
 		== "'/opt/fn tech3/fntech3' +set fs_basepath '/a b/it'\\''s'" );

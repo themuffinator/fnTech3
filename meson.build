@@ -1422,24 +1422,32 @@ if get_option('audio-tests')
   )
 endif
 
-jka_abi_layout_tests = executable('fntech3_jka_abi_layout_tests',
-  'tests/jka_abi_layout_tests.cpp',
-  cpp_args: common_cpp_args,
-)
-test('fntech3_jka_abi_layouts', jka_abi_layout_tests)
+# The measured table pins Academy's records as its 32-bit x86 modules see
+# them, pointer members included, so a 64-bit diagnostic build cannot meet it.
+if fnql_target_is_32bit_x86
+  jka_abi_layout_tests = executable('fntech3_jka_abi_layout_tests',
+    'tests/jka_abi_layout_tests.cpp',
+    cpp_args: common_cpp_args,
+  )
+  test('fntech3_jka_abi_layouts', jka_abi_layout_tests)
+endif
 
 jka_sp_abi_tests = executable('fntech3_jka_sp_abi_tests',
   'tests/jka_sp_abi_tests.cpp', cpp_args: common_cpp_args)
 test('fntech3_jka_sp_abi', jka_sp_abi_tests)
-jka_sp_bridge_tests = executable('fntech3_jka_sp_game_bridge_tests',
-  ['tests/jka_sp_game_bridge_tests.cpp', 'code/server/server_game_data.cpp',
-   'code/compat/game_abi_adapter.c', 'tests/message_drop_trap.c'],
-  c_args: common_c_args, cpp_args: common_cpp_args)
-test('fntech3_jka_sp_game_bridge', jka_sp_bridge_tests)
-jka_sp_state_tests = executable('fntech3_jka_sp_state_tests',
-  ['tests/jka_sp_state_tests.cpp', 'code/server/server_game_data.cpp',
-   'code/compat/game_abi_adapter.c'], c_args: common_c_args, cpp_args: common_cpp_args)
-test('fntech3_jka_sp_state', jka_sp_state_tests)
+# The single-player bridge binds the native module's own records, which
+# ServerGameDataView::BindNative refuses on a 64-bit host.
+if fnql_target_is_32bit_x86
+  jka_sp_bridge_tests = executable('fntech3_jka_sp_game_bridge_tests',
+    ['tests/jka_sp_game_bridge_tests.cpp', 'code/server/server_game_data.cpp',
+     'code/compat/game_abi_adapter.c', 'tests/message_drop_trap.c'],
+    c_args: common_c_args, cpp_args: common_cpp_args)
+  test('fntech3_jka_sp_game_bridge', jka_sp_bridge_tests)
+  jka_sp_state_tests = executable('fntech3_jka_sp_state_tests',
+    ['tests/jka_sp_state_tests.cpp', 'code/server/server_game_data.cpp',
+     'code/compat/game_abi_adapter.c'], c_args: common_c_args, cpp_args: common_cpp_args)
+  test('fntech3_jka_sp_state', jka_sp_state_tests)
+endif
 jka_wire_tests = executable('fntech3_jka_wire_tests',
   'tests/jka_wire_tests.cpp', include_directories: include_directories('code/compat'),
   cpp_args: common_cpp_args)
@@ -1808,6 +1816,7 @@ test('fntech3_alice_sound', alice_sound_tests)
 alice_ritualfont_tests = executable('fntech3_alice_ritualfont_tests',
   ['tests/alice_ritualfont_tests.cpp', 'code/qcommon/puff.c'],
   include_directories: include_directories('code/qcommon'),
+  c_args: common_c_args,
   cpp_args: common_cpp_args,
 )
 test('fntech3_alice_ritualfont', alice_ritualfont_tests)
@@ -1815,6 +1824,7 @@ test('fntech3_alice_ritualfont', alice_ritualfont_tests)
 alice_urc_tests = executable('fntech3_alice_urc_tests',
   ['tests/alice_urc_tests.cpp', 'code/qcommon/puff.c'],
   include_directories: include_directories('code/qcommon'),
+  c_args: common_c_args,
   cpp_args: common_cpp_args,
 )
 test('fntech3_alice_urc', alice_urc_tests)
@@ -1822,6 +1832,7 @@ test('fntech3_alice_urc', alice_urc_tests)
 alice_menu_tests = executable('fntech3_alice_menu_tests',
   ['tests/alice_menu_tests.cpp', 'code/qcommon/puff.c'],
   include_directories: include_directories('code/qcommon'),
+  c_args: common_c_args,
   cpp_args: common_cpp_args,
 )
 test('fntech3_alice_menu', alice_menu_tests)
@@ -1829,6 +1840,7 @@ test('fntech3_alice_menu', alice_menu_tests)
 alice_screen_tests = executable('fntech3_alice_screen_tests',
   ['tests/alice_screen_tests.cpp', 'code/qcommon/puff.c'],
   include_directories: include_directories('code/qcommon'),
+  c_args: common_c_args,
   cpp_args: common_cpp_args,
 )
 test('fntech3_alice_screen', alice_screen_tests)
@@ -1836,6 +1848,7 @@ test('fntech3_alice_screen', alice_screen_tests)
 alice_hud_tests = executable('fntech3_alice_hud_tests',
   ['tests/alice_hud_tests.cpp', 'code/qcommon/puff.c'],
   include_directories: include_directories('code/qcommon'),
+  c_args: common_c_args,
   cpp_args: common_cpp_args,
 )
 test('fntech3_alice_hud', alice_hud_tests)
@@ -1868,6 +1881,7 @@ test('fntech3_fakk2_module_abi', fakk2_module_abi_tests)
 fakk2_hud_tests = executable('fntech3_fakk2_hud_tests',
   ['tests/fakk2_hud_tests.cpp', 'code/qcommon/puff.c'],
   include_directories: include_directories('code/qcommon'),
+  c_args: common_c_args,
   cpp_args: common_cpp_args,
 )
 test('fntech3_fakk2_hud', fakk2_hud_tests)
@@ -2062,6 +2076,7 @@ application_icon_tests = executable('fntech3_application_icon_tests',
   icon_test_sources + ['code/qcommon/game_profile.cpp'],
   include_directories: include_directories('code/qcommon'),
   dependencies: icon_test_deps,
+  c_args: common_c_args,
   cpp_args: icon_test_args,
 )
 test('fntech3_application_icons', application_icon_tests,

@@ -3090,5 +3090,322 @@
       "status": "addressed",
       "disposition": "Internal vertex metadata excludes flagged entities only from shadow visibility; primary/reflected geometry remains. Hardware uses a shadow-specific any-hit SBT group. BODY is excluded from primary rays but remains a shadow caster unless flagged. Software/hardware tests and captures show the shadow disappearing with the flag."
     }
+  ],
+  "followUps": [
+    {
+      "date": "2026-10-15",
+      "section": "The x64 diagnostic build's `all` target (2026-10-15)",
+      "evidenceLevels": [
+        "Source",
+        "Build",
+        "Unit"
+      ],
+      "gatesClosed": [],
+      "workspace": ".tmp/q3-only-x64/",
+      "measuredBefore": {
+        "commit": "aa0e704957191ed73f98740a891a5a3221645338",
+        "configuration": "x64 full",
+        "command": "meson compile -C .tmp/q3-only-x64/build-x64-full -j 6 --ninja-args=-k0",
+        "failedSteps": [
+          "fntech3-q3.exe.p/code_server_sv_game.cpp.obj",
+          "fntech3.ded-q3.exe.p/code_server_sv_game.cpp.obj",
+          "fntech3_jka_abi_layout_tests.exe.p/tests_jka_abi_layout_tests.cpp.obj",
+          "fntech3_alice_ritualfont_tests.exe.p/code_qcommon_puff.c.obj",
+          "fntech3_alice_urc_tests.exe.p/code_qcommon_puff.c.obj",
+          "fntech3_alice_menu_tests.exe.p/code_qcommon_puff.c.obj",
+          "fntech3_alice_screen_tests.exe.p/code_qcommon_puff.c.obj",
+          "fntech3_alice_hud_tests.exe.p/code_qcommon_puff.c.obj",
+          "fntech3_alice_menu_tests.exe.p/tests_alice_menu_tests.cpp.obj",
+          "fntech3_fakk2_hud_tests.exe.p/code_qcommon_puff.c.obj",
+          "fntech3_application_icon_tests.exe.p/code_qcommon_puff.c.obj",
+          "fntech3_q3_ihv_native_boundary_tests.exe.p/tests_q3_ihv_native_boundary_tests.cpp.obj",
+          "fntech3_q3_ihv_model_tags_tests.exe.p/tests_q3_ihv_model_tags_tests.cpp.obj"
+        ],
+        "log": ".tmp/q3-only-x64/compile-x64-full-head.log"
+      },
+      "headCheck": {
+        "commit": "0e99502a",
+        "what": "HEAD's code/server/sv_game.cpp and server_stvef_sp_game.hpp compiled with build-x64-documented's own compile command (.tmp/q3-only-x64/head_svgame_check.py)",
+        "result": "exit 2: server_stvef_sp_game.hpp(390) C4312 'reinterpret_cast': conversion from 'int32_t' to 'usercmd_t *' of greater size"
+      },
+      "earlierX64BuildFlag": ".tmp/meson-q3-rtx-x64/meson-private/cmd_line.txt: cpp_args = /wd4312",
+      "runtimeFailuresBefore": {
+        "log": ".tmp/q3-only-x64/test-x64-native.log",
+        "fntech3_jka_sp_game_bridge": "Invalid Jedi Academy single-player entity allocation: unsupported profile",
+        "fntech3_jka_sp_state": "view.BindNative(COM_GAME_JKA_SP,binding)==GameDataBindError::None, line 45",
+        "fntech3_server_game_data": "Jedi Academy exposes its exact record prefixes",
+        "fntech3_launcher_core": "line 453: DefaultEnginePath filename == \"fntech3.exe\"",
+        "fnql_huffman_decoder": "huffman_decoder_tests.c:157: Huff_Decompress(&msg, 0) == qfalse"
+      },
+      "verifiedAt": "15b0766f343b12e8b96480166cc095e40d95c92e",
+      "toolchain": {
+        "compiler": "MSVC 19.44.35222 (Visual Studio 2022 Community, x64 and x86 dev shells)",
+        "meson": "1.10.2",
+        "ninja": "1.13.0",
+        "python": "3.11.3"
+      },
+      "configurations": [
+        {
+          "name": "x64 full",
+          "buildDirectory": ".tmp/q3-only-x64/build-x64-full",
+          "options": [
+            "-Dq3-only=true",
+            "-Dbuild-client=true",
+            "-Dbuild-server=true",
+            "-Drenderer-dlopen=true",
+            "-Drenderers=glx,vk,rtx",
+            "-Drenderer-default=glx",
+            "-Db_vscrt=static_from_buildtype",
+            "-Dstrict-warnings=true",
+            "-Dzlib:default_library=static",
+            "-Dogg:default_library=static",
+            "-Dbuildtype=debugoptimized",
+            "-Dwrap_mode=nodownload"
+          ],
+          "allTarget": "built",
+          "buildLog": ".tmp/q3-only-x64/compile-x64-full-final.log",
+          "registeredTests": 276,
+          "nativeTests": {
+            "log": ".tmp/q3-only-x64/test-x64-full-final.log",
+            "selected": 156,
+            "ok": 154,
+            "fail": 0,
+            "skipped": 2,
+            "skippedTests": [
+              "fnql_audio_loopback",
+              "fntech3_q3_ihv_game_bridge"
+            ],
+            "failedTests": []
+          },
+          "pythonEntries": {
+            "log": ".tmp/q3-only-x64/test-x64-python-final.log",
+            "selected": 115,
+            "ok": 85,
+            "fail": 29,
+            "skipped": 1,
+            "skippedTests": [
+              "fnql_retail_factory_probe"
+            ],
+            "failedTests": [
+              "fntech3_audio_codec_profile",
+              "fntech3_jka_camera_shake",
+              "fntech3_jka_cgame_attachment",
+              "fntech3_jka_cgame_ghoul2",
+              "fntech3_jka_cgame_render",
+              "fntech3_jka_cgame_tag",
+              "fntech3_jka_cinematic_path",
+              "fntech3_jka_default_skeleton",
+              "fntech3_jka_demo_snapshot",
+              "fntech3_jka_distance_cull",
+              "fntech3_jka_effect_play",
+              "fntech3_jka_effect_sound",
+              "fntech3_jka_framing",
+              "fntech3_jka_mdr_host",
+              "fntech3_jka_music_host",
+              "fntech3_jka_parser_global",
+              "fntech3_jka_particle_dynamics",
+              "fntech3_jka_shader_files",
+              "fntech3_jka_spawn_effect",
+              "fntech3_jka_tails_physics",
+              "fntech3_jka_tga_origin",
+              "fntech3_jka_ui_cvar",
+              "fntech3_jka_ui_ghoul2",
+              "fntech3_jka_ui_metadata",
+              "fntech3_jka_ui_render",
+              "fntech3_jka_weapon_fire",
+              "fntech3_raven_bsp_renderer_dispatch",
+              "fntech3_rtx_transport",
+              "fntech3_runtime_mdr"
+            ],
+            "cause": "native fixtures target only x86: 26 stop at q_platform.h, 3 link i686 objects against the x64 libraries; independent of this change"
+          }
+        },
+        {
+          "name": "x64 documented (BUILD.md)",
+          "buildDirectory": ".tmp/q3-only-x64/build-x64-documented",
+          "options": [
+            "-Dq3-only=true",
+            "-Dbuild-server=false",
+            "-Drenderers=rtx",
+            "-Drenderer-default=rtx",
+            "-Db_vscrt=static_from_buildtype",
+            "-Ddefault_library=static",
+            "-Dstrict-warnings=true",
+            "-Dbuildtype=release",
+            "-Dwrap_mode=nodownload"
+          ],
+          "allTarget": "built",
+          "buildLog": ".tmp/q3-only-x64/compile-x64-documented-final.log",
+          "registeredTests": 276,
+          "nativeTests": {
+            "log": ".tmp/q3-only-x64/test-x64-documented-final.log",
+            "selected": 156,
+            "ok": 154,
+            "fail": 0,
+            "skipped": 2,
+            "skippedTests": [
+              "fnql_audio_loopback",
+              "fntech3_q3_ihv_game_bridge"
+            ],
+            "failedTests": []
+          }
+        },
+        {
+          "name": "Win32",
+          "buildDirectory": ".tmp/q3-only-x64/build-win32",
+          "options": [
+            "-Db_vscrt=static_from_buildtype",
+            "-Dstrict-warnings=true",
+            "-Drenderer-dlopen=true",
+            "-Drenderers=glx,vk,rtx",
+            "-Drenderer-default=glx",
+            "-Dzlib:default_library=static",
+            "-Dogg:default_library=static",
+            "-Dbuild-client=true",
+            "-Dbuild-server=true",
+            "-Dbuildtype=debugoptimized",
+            "-Dwrap_mode=nodownload"
+          ],
+          "allTarget": "built",
+          "buildLog": ".tmp/q3-only-x64/compile-win32-final.log",
+          "registeredTests": 279,
+          "testListWithoutChange": {
+            "identical": true,
+            "tests": 278,
+            "withChange": ".tmp/q3-only-x64/win32-final-mine-tests.json",
+            "withoutChange": ".tmp/q3-only-x64/win32-final-head-tests.json"
+          },
+          "nativeTests": {
+            "log": ".tmp/q3-only-x64/test-win32-native-final.log",
+            "selected": 159,
+            "ok": 158,
+            "fail": 0,
+            "skipped": 1,
+            "skippedTests": [
+              "fnql_audio_loopback"
+            ],
+            "failedTests": []
+          },
+          "targetedPytest": {
+            "log": ".tmp/q3-only-x64/targeted-pytest-final.log",
+            "summary": "743 passed, 1 skipped, 1310 subtests passed in 569.10s (0:09:29)",
+            "files": [
+              "tests/alice_menu_source_tests.py",
+              "tests/alice_snapshot_source_tests.py",
+              "tests/ci_regression_workflow_tests.py",
+              "tests/entity_override_tests.py",
+              "tests/factory_runtime_source_tests.py",
+              "tests/game_icon_assets_tests.py",
+              "tests/generate_docs_tests.py",
+              "tests/glx/glx_runtime_sweep_tests.py",
+              "tests/input_system_source_tests.py",
+              "tests/macos_support_source_tests.py",
+              "tests/mohaa_light_sources_tests.py",
+              "tests/platform_port_safety_tests.py",
+              "tests/player_manual_tests.py",
+              "tests/ql_font_source_tests.py",
+              "tests/release_packaging_tests.py",
+              "tests/release_workflow_tests.py",
+              "tests/renderer_contract_source_tests.py",
+              "tests/rtx_renderer_contract_source_tests.py",
+              "tests/steam_identity_source_tests.py",
+              "tests/steam_provider_source_tests.py",
+              "tests/stvef_sp_cgame_tests.py",
+              "tests/stvef_sp_host_tests.py",
+              "tests/stvef_sp_lipsync_tests.py",
+              "tests/stvef_sp_savegame_tests.py",
+              "tests/stvef_sp_user_move_tests.py",
+              "tests/webpak_source_tests.py",
+              "tests/webui_backend_source_tests.py",
+              "tests/webui_wiring_tests.py",
+              "tests/window_management_source_tests.py",
+              "tests/workshop_source_tests.py",
+              "tests/x86_build_constraints_tests.py"
+            ]
+          },
+          "at8a05e028": {
+            "mesonEntries": {
+              "log": ".tmp/q3-only-x64/win32-suite-meson.log",
+              "selected": 273,
+              "ok": 271,
+              "fail": 0,
+              "skipped": 2,
+              "skippedTests": [
+                "fnql_audio_loopback",
+                "fnql_retail_factory_probe"
+              ],
+              "failedTests": []
+            },
+            "pytest": {
+              "log": ".tmp/q3-only-x64/win32-suite-pytest.log",
+              "summary": "2755 passed, 131 skipped, 66941 subtests passed in 3099.99s (0:51:39)"
+            },
+            "note": "server_game_data check then written inline"
+          }
+        }
+      ],
+      "repeatedAt": {
+        "commit": "8779edb50494ab44a12ffc44eba285f986d84ce3",
+        "what": "incremental build of all three configurations and their native test executables (.tmp/q3-only-x64/final_check.ps1)",
+        "results": {
+          "build-x64-full": {
+            "log": ".tmp/q3-only-x64/test-build-x64-full-8779edb5.log",
+            "selected": 156,
+            "ok": 154,
+            "fail": 0,
+            "skipped": 2,
+            "skippedTests": [
+              "fnql_audio_loopback",
+              "fntech3_q3_ihv_game_bridge"
+            ],
+            "failedTests": []
+          },
+          "build-x64-documented": {
+            "log": ".tmp/q3-only-x64/test-build-x64-documented-8779edb5.log",
+            "selected": 156,
+            "ok": 154,
+            "fail": 0,
+            "skipped": 2,
+            "skippedTests": [
+              "fnql_audio_loopback",
+              "fntech3_q3_ihv_game_bridge"
+            ],
+            "failedTests": []
+          },
+          "build-win32": {
+            "log": ".tmp/q3-only-x64/test-build-win32-8779edb5.log",
+            "selected": 159,
+            "ok": 158,
+            "fail": 0,
+            "skipped": 1,
+            "skippedTests": [
+              "fnql_audio_loopback"
+            ],
+            "failedTests": []
+          }
+        },
+        "buildLogs": [
+          ".tmp/q3-only-x64/compile-build-x64-full-8779edb5.log",
+          ".tmp/q3-only-x64/compile-build-x64-documented-8779edb5.log",
+          ".tmp/q3-only-x64/compile-build-win32-8779edb5.log"
+        ]
+      },
+      "guardedOnX64": [
+        "fntech3_jka_abi_layouts",
+        "fntech3_jka_sp_game_bridge",
+        "fntech3_jka_sp_state"
+      ],
+      "files": [
+        "meson.build",
+        "code/server/server_stvef_sp_game.hpp",
+        "tests/alice_menu_tests.cpp",
+        "tests/huffman_decoder_tests.c",
+        "tests/launcher_core_tests.cpp",
+        "tests/q3_ihv_model_tags_tests.cpp",
+        "tests/q3_ihv_native_boundary_tests.cpp",
+        "tests/server_game_data_tests.cpp"
+      ],
+      "externalCodeIncorporated": false
+    }
   ]
 }

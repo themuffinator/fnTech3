@@ -754,7 +754,10 @@ void TestRTCWRecords( comGameId_t profile, std::int32_t maxClients )
 // rather than reading a Quake III state out of a Jedi Academy record.
 void TestJKARecords()
 {
-	Expect( ServerGameDataView::EntityPrefixBytesForProfile( COM_GAME_JKA_MP ) == 864 &&
+	// Raven's shared entity holds pointers: 864 bytes is the x86 record.
+	const std::size_t jkaEntityBytes = sizeof( void * ) == 4 ? std::size_t{ 864 }
+		: sizeof( fntech3_jka_sharedEntity_t );
+	Expect( ServerGameDataView::EntityPrefixBytesForProfile( COM_GAME_JKA_MP ) == jkaEntityBytes &&
 		ServerGameDataView::PlayerStateBytesForProfile( COM_GAME_JKA_MP ) == 1552,
 		"Jedi Academy exposes its exact record prefixes" );
 	Expect( ServerGameDataView::EntityPrefixBytesForProfile( COM_GAME_JKA_SP ) == 376
