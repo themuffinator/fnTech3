@@ -235,6 +235,10 @@ static qboolean isStaticShader( shader_t *shader )
 	if ( shader->aliceNoStatic )
 		return qfalse;
 
+	// Raven's surface sprites are generated from the CPU triangles
+	if ( shader->numJediSprites )
+		return qfalse;
+
 	if ( shader->numDeforms || shader->numUnfoggedPasses > MAX_VBO_STAGES )
 		return qfalse;
 

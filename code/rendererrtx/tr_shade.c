@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_stvef_alpha.h"
 #include "../renderercommon/tr_jka_entity.h"
 #include "../renderercommon/tr_entity_refraction.h"
+#include "../renderercommon/tr_jedi_sprite_draw.h"
 
 /*
 
@@ -2615,6 +2616,9 @@ void RB_EndSurface( void ) {
 	if ( r_shownormals->integer ) {
 		DrawNormals( input );
 	}
+
+	// Raven's surface sprites over this batch's triangles
+	RB_JediSurfaceSprites();
 
 	// clear shader so we can tell we don't have any unclosed surfaces
 	tess.numIndexes = 0;

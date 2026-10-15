@@ -43,6 +43,7 @@ static	texModInfo_t	texMods[MAX_SHADER_STAGES][TR_MAX_TEXMODS+1]; // reserve one
 #include "../renderercommon/tr_wolfet_shader.h"
 #include "../renderercommon/tr_q3_ihv_stageless.h"
 #include "../renderercommon/tr_jka_shader.h"
+#include "../renderercommon/tr_jedi_sprite_shader.h"
 
 static image_t *R_FindShaderImage( const char *name, imgFlags_t flags ) {
 	flags = R_JKAShaderImageFlags( flags, shader.jkaNoTC );
@@ -1308,6 +1309,14 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 		// stands in for retail's glow buffer.
 		//
 		else if ( !Q_stricmp( token, "glow" ) && ( ri.gameId == COM_GAME_JKA_SP || ri.gameId == COM_GAME_JKA_MP ) )
+		{
+			continue;
+		}
+		//
+		// surfaceSprites and the ss words: Raven's surface sprites
+		// (renderercommon/tr_jedi_sprite_shader.h)
+		//
+		else if ( R_JediParseSpriteStageWord( token, text, stage ) )
 		{
 			continue;
 		}
@@ -3878,6 +3887,9 @@ from the current global working shader
 */
 static shader_t *FinishShader( void ) {
 	int			stage, i, n, m;
+	shaderStage_t	jediSpriteStages[MAX_SHADER_STAGES];
+	int			numJediSprites;
+	shader_t	*finished;
 	qboolean	hasLightmapStage;
 	qboolean	vertexLightmap;
 	qboolean	vertexLightMode;
@@ -4036,6 +4048,9 @@ static shader_t *FinishShader( void ) {
 			shader.sort = SS_OPAQUE;
 		}
 	}
+
+	// Raven's sprite stages draw after the surface, not as its passes
+	stage = R_JediTakeSpriteStages( stage, jediSpriteStages, &numJediSprites );
 
 	// The IHV Test colours its 2D art whatever its stages say.
 	R_Q3IHV2DStageColors();
@@ -4512,7 +4527,9 @@ static shader_t *FinishShader( void ) {
 	// determine which stage iterator function is appropriate
 	ComputeStageIteratorFunc();
 
-	return GeneratePermanentShader();
+	finished = GeneratePermanentShader();
+	R_JediFinishSpriteShaders( finished, jediSpriteStages, numJediSprites );
+	return finished;
 }
 
 //========================================================================================

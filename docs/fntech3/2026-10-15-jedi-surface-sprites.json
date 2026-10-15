@@ -1,0 +1,2176 @@
+{
+ "record": "2026-10-15-jedi-surface-sprites.md",
+ "date": "2026-10-15",
+ "profiles": [
+  "jka-sp",
+  "jka-mp",
+  "jk2-sp",
+  "jk2-mp"
+ ],
+ "unchangedProfiles": "every other profile: neither word is known, the shader still fails as before",
+ "gateChange": "none",
+ "baseCommit": "27cd11668f28d4ec46257810b6c2852d942a2f5b",
+ "implementation": {
+  "files": [
+   "code/renderercommon/tr_jedi_sprite.h",
+   "code/renderercommon/tr_jedi_sprite_shader.h",
+   "code/renderercommon/tr_jedi_sprite_draw.h",
+   "code/renderer/tr_local.h",
+   "code/renderer/tr_shader.c",
+   "code/renderer/tr_shade.c",
+   "code/renderer/tr_vbo.c",
+   "code/renderervk/tr_local.h",
+   "code/renderervk/tr_shader.c",
+   "code/renderervk/tr_shade.c",
+   "code/renderervk/vk_vbo.c",
+   "code/rendererrtx/tr_local.h",
+   "code/rendererrtx/tr_shader.c",
+   "code/rendererrtx/tr_shade.c",
+   "code/rendererrtx/vk_vbo.c"
+  ],
+  "helpers": [
+   "R_JediParseSpriteStageWord",
+   "R_JediParseSurfaceSprites",
+   "R_JediParseSpriteOption",
+   "R_JediTakeSpriteStages",
+   "R_JediFinishSpriteShaders",
+   "RB_JediSurfaceSprites"
+  ],
+  "cvars": {
+   "r_surfaceSprites": "1, archived",
+   "r_surfaceWeather": "0, archived"
+  },
+  "engineBounds": {
+   "lineBuffer": 1024,
+   "paramBuffer": 128,
+   "gridPointsPerTriangle": 65536
+  },
+  "authorship": "independently authored; OpenJK was reference observation only, its random table unused"
+ },
+ "retailIdentities": {
+  "jamp.exe": {
+   "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+   "version": "1.01"
+  },
+  "jasp.exe": {
+   "sha256": "9351a8de230fcd577e2b474889d08f38982450306767a6823dd659482566d6ce",
+   "version": "1.01"
+  },
+  "jk2mp.exe": {
+   "sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a",
+   "version": "1.02a"
+  },
+  "jk2sp.exe": {
+   "sha256": "0d3c635ee5b20ac32fc957e00cf21e65ebc1584112b11f6ae026706dcc0d0e0c",
+   "version": "1.02a"
+  }
+ },
+ "retail": {
+  "parseStage": {
+   "jamp.exe": {
+    "surfaceSprites": "0x4b3fef",
+    "ssPrefix": "0x4b409d",
+    "lineParser": "0x4b2cb0",
+    "optionParser": "0x4b2f80",
+    "record": "stage +0x84 -> 0x48 bytes, hunk, cleared"
+   },
+   "jasp.exe": {
+    "surfaceSprites": "0x47a1a6",
+    "lineParser": "0x478de0",
+    "optionParser": "0x4790d0",
+    "flattened": "0x478e4f (type 5)",
+    "record": "stage +0x84 -> 0x48 bytes"
+   },
+   "jk2mp.exe": {
+    "surfaceSprites": "0x48d712",
+    "ssPrefix": "0x48d7c1",
+    "lineParser": "0x48e510",
+    "optionParser": "0x48e7e0",
+    "record": "stage +0xf0, 0x48 bytes inline (stage 0x138)",
+    "needsNormal": "0x48e7a8 (shader +0xec, read through tess.shader at 0x493dfb)"
+   },
+   "jk2sp.exe": {
+    "surfaceSprites": "0x47d542",
+    "lineParser": "0x47e340",
+    "optionParser": "0x47e610",
+    "record": "stage +0xf0",
+    "needsNormal": "0x47e5d8"
+   }
+  },
+  "recordLayout": {
+   "0x00": "type",
+   "0x04": "width",
+   "0x08": "height",
+   "0x0c": "density",
+   "0x10": "wind",
+   "0x14": "windIdle",
+   "0x18": "fadeDist",
+   "0x1c": "fadeMax",
+   "0x20": "fadeScale",
+   "0x24": "fxAlphaStart",
+   "0x28": "fxAlphaEnd",
+   "0x2c": "fxDuration",
+   "0x30": "vertSkew",
+   "0x34": "variance[2]",
+   "0x3c": "fxGrow[2]",
+   "0x44": "facing"
+  },
+  "types": {
+   "vertical": 1,
+   "oriented": 2,
+   "effect": 3,
+   "weatherfx (ssFXWeather)": 4,
+   "flattened": "5, jasp.exe only"
+  },
+  "facing": {
+   "normal": 0,
+   "ssFaceup": 1,
+   "ssHangdown": 2,
+   "ssAnyangle": 3
+  },
+  "constants": {
+   "zero": [
+    "0x565fac",
+    "0x566110"
+   ],
+   "thirtyTwo": "0x566228",
+   "one": "0x566038",
+   "fadeMaxFactor": "1.33 double at 0x5664c0 (fmul 0x4b2eaa)",
+   "defaultDuration": 1000.0
+  },
+  "parserSummaries": {
+   "jamp": [
+    "0x004b2cd6 str  vertical",
+    "0x004b2cf2 str  oriented",
+    "0x004b2d0e str  effect",
+    "0x004b2d50 cmp  0",
+    "0x004b2d5b test ah&0x41 jp",
+    "0x004b2d62 str  ^3WARNING: invalid width in shader '%s'|",
+    "0x004b2d9e cmp  0",
+    "0x004b2da9 test ah&0x41 jp",
+    "0x004b2db0 str  ^3WARNING: invalid height in shader '%s'|",
+    "0x004b2de8 cmp  0",
+    "0x004b2df3 test ah&0x41 jp",
+    "0x004b2dfa str  ^3WARNING: invalid density in shader '%s'|",
+    "0x004b2e26 str  ^3WARNING: missing surfaceSprites params in shader '%s'|",
+    "0x004b2e4a cmp  32",
+    "0x004b2e55 test ah&5 jp",
+    "0x004b2e66 str  ^3WARNING: invalid fadedist (%f < 32) in shader '%s'|",
+    "0x004b2e79 cmpi dword ptr [esi + 0x84], ebx",
+    "0x004b2ea8 st   +0x0, edi",
+    "0x004b2eaa fmul 1.33",
+    "0x004b2edc st   +0xc, eax",
+    "0x004b2ee9 st   +0x18, edx",
+    "0x004b2ef2 st   +0x1c",
+    "0x004b2efb st   +0x20, ebx",
+    "0x004b2f04 st   +0x10, ebx",
+    "0x004b2f0d st   +0x14, ebx",
+    "0x004b2f16 st   +0x34, ebx",
+    "0x004b2f1f st   +0x38, ebx",
+    "0x004b2f28 st   +0x44, ebx",
+    "0x004b2f31 set  dword ptr [ecx + 0x2c] = 0x447a0000 (1000)",
+    "0x004b2f3e st   +0x3c, ebx",
+    "0x004b2f47 st   +0x40, ebx",
+    "0x004b2f50 set  dword ptr [ecx + 0x24] = 0x3f800000 (1)",
+    "0x004b2f5e st   +0x28, ebx",
+    "0x004b2f6b str  ^3WARNING: invalid type in shader '%s'|",
+    "0x004b2fb7 str  ssFademax",
+    "0x004b2fe0 str  ^3WARNING: missing surfacesprite fademax in shader '%s'|",
+    "0x004b3004 cmp  dword ptr [edi + 0x18]",
+    "0x004b300f test ah&0x41 jp",
+    "0x004b3027 str  ^3WARNING: invalid surfacesprite fademax (%.2f <= fadeDist(%.2f)) in shader '%s'",
+    "0x004b303b st   +0x1c, edx",
+    "0x004b3046 str  ssFadescale",
+    "0x004b306f str  ^3WARNING: missing surfacesprite fadescale in shader '%s'|",
+    "0x004b3096 st   +0x20, edx",
+    "0x004b30a1 str  ssVariance",
+    "0x004b30ce str  ^3WARNING: missing surfacesprite variance width in shader '%s'|",
+    "0x004b30ef cmp  0",
+    "0x004b30fa test ah&5 jp",
+    "0x004b3101 str  ^3WARNING: invalid surfacesprite variance width in shader '%s'|",
+    "0x004b3122 st   +0x34, edx",
+    "0x004b3138 str  ^3WARNING: missing surfacesprite variance height in shader '%s'|",
+    "0x004b3159 cmp  0",
+    "0x004b3164 test ah&5 jp",
+    "0x004b316b str  ^3WARNING: invalid surfacesprite variance height in shader '%s'|",
+    "0x004b3185 st   +0x38, edx",
+    "0x004b3190 str  ssHangdown",
+    "0x004b31b2 str  ^3WARNING: Hangdown facing overrides previous facing in shader '%s'|",
+    "0x004b31c2 st   +0x44, 2",
+    "0x004b31d1 str  ssAnyangle",
+    "0x004b31f3 str  ^3WARNING: Anyangle facing overrides previous facing in shader '%s'|",
+    "0x004b3203 st   +0x44, 3",
+    "0x004b320d str  ssFaceup",
+    "0x004b322f str  ^3WARNING: Faceup facing overrides previous facing in shader '%s'|",
+    "0x004b323f st   +0x44, 1",
+    "0x004b3249 str  ssWind",
+    "0x004b3276 str  ^3WARNING: missing surfacesprite wind in shader '%s'|",
+    "0x004b3297 cmp  0",
+    "0x004b32a2 test ah&5 jp",
+    "0x004b32a9 str  ^3WARNING: invalid surfacesprite wind in shader '%s'|",
+    "0x004b32c3 st   +0x10, ecx",
+    "0x004b32cf cmp  0",
+    "0x004b32da test ah&0x41 jp",
+    "0x004b32e0 st   +0x14, ecx",
+    "0x004b32e6 str  ssWindidle",
+    "0x004b330f str  ^3WARNING: missing surfacesprite windidle in shader '%s'|",
+    "0x004b3330 cmp  0",
+    "0x004b333b test ah&5 jp",
+    "0x004b3342 str  ^3WARNING: invalid surfacesprite windidle in shader '%s'|",
+    "0x004b335c st   +0x14, edx",
+    "0x004b3362 str  ssVertskew",
+    "0x004b338b str  ^3WARNING: missing surfacesprite vertskew in shader '%s'|",
+    "0x004b33ac cmp  0",
+    "0x004b33b7 test ah&5 jp",
+    "0x004b33be str  ^3WARNING: invalid surfacesprite vertskew in shader '%s'|",
+    "0x004b33d8 st   +0x30, edx",
+    "0x004b33de str  ssFXDuration",
+    "0x004b3407 str  ^3WARNING: missing surfacesprite duration in shader '%s'|",
+    "0x004b3428 cmp  0",
+    "0x004b3433 test ah&0x41 jp",
+    "0x004b343a str  ^3WARNING: invalid surfacesprite duration in shader '%s'|",
+    "0x004b3454 st   +0x2c, edx",
+    "0x004b345a str  ssFXGrow",
+    "0x004b3487 str  ^3WARNING: missing surfacesprite grow width in shader '%s'|",
+    "0x004b34a8 cmp  0",
+    "0x004b34b3 test ah&5 jp",
+    "0x004b34ba str  ^3WARNING: invalid surfacesprite grow width in shader '%s'|",
+    "0x004b34db st   +0x3c, edx",
+    "0x004b34f1 str  ^3WARNING: missing surfacesprite grow height in shader '%s'|",
+    "0x004b3512 cmp  0",
+    "0x004b351d test ah&5 jp",
+    "0x004b3524 str  ^3WARNING: invalid surfacesprite grow height in shader '%s'|",
+    "0x004b353e st   +0x40, edx",
+    "0x004b3544 str  ssFXAlphaRange",
+    "0x004b3571 str  ^3WARNING: missing surfacesprite fxalpha start in shader '%s'|",
+    "0x004b3592 cmp  0",
+    "0x004b359d test ah&5 jnp",
+    "0x004b35a7 cmp  1",
+    "0x004b35b2 test ah&0x41 je",
+    "0x004b35c9 st   +0x24, edx",
+    "0x004b35df str  ^3WARNING: missing surfacesprite fxalpha end in shader '%s'|",
+    "0x004b3600 cmp  0",
+    "0x004b360b test ah&5 jnp",
+    "0x004b3611 cmp  1",
+    "0x004b361c test ah&0x41 je",
+    "0x004b3628 st   +0x28, edx",
+    "0x004b3633 str  ^3WARNING: invalid surfacesprite fxalpha end in shader '%s'|",
+    "0x004b3648 str  ^3WARNING: invalid surfacesprite fxalpha start in shader '%s'|",
+    "0x004b3658 str  ssFXWeather",
+    "0x004b366e cmpi dword ptr [edi], 3",
+    "0x004b3678 str  ^3WARNING: weather applied to non-effect surfacesprite in shader '%s'|",
+    "0x004b3688 st   +0x0, 4",
+    "0x004b3697 str  ^3WARNING: invalid optional surfacesprite param '%s' in shader '%s'|"
+   ],
+   "jasp": [
+    "0x00478e04 str  vertical",
+    "0x00478e1d str  oriented",
+    "0x00478e36 str  effect",
+    "0x00478e4f str  flattened",
+    "0x00478e8c cmp  0",
+    "0x00478e9a test ah&0x41 jp",
+    "0x00478ea1 str  WARNING: invalid width in shader '%s'|",
+    "0x00478edc cmp  0",
+    "0x00478eea test ah&0x41 jp",
+    "0x00478ef1 str  WARNING: invalid height in shader '%s'|",
+    "0x00478f28 cmp  0",
+    "0x00478f36 test ah&0x41 jp",
+    "0x00478f3d str  WARNING: invalid density in shader '%s'|",
+    "0x00478f6f str  WARNING: missing surfaceSprites params in shader '%s'|",
+    "0x00478f92 cmp  32",
+    "0x00478fa0 test ah&5 jp",
+    "0x00478fb1 str  WARNING: invalid fadedist (%f < 32) in shader '%s'|",
+    "0x00478fca cmpi dword ptr [esi + 0x84], ebx",
+    "0x00478ff2 st   +0x0, edi",
+    "0x00478ff4 fmul 1.33",
+    "0x0047901e st   +0xc, edx",
+    "0x0047902b st   +0x18, ecx",
+    "0x00479034 st   +0x1c",
+    "0x0047903d st   +0x20, ebx",
+    "0x00479046 st   +0x10, ebx",
+    "0x0047904f st   +0x14, ebx",
+    "0x00479058 st   +0x34, ebx",
+    "0x00479061 st   +0x38, ebx",
+    "0x0047906a st   +0x44, ebx",
+    "0x00479073 set  dword ptr [eax + 0x2c] = 0x447a0000 (1000)",
+    "0x00479080 st   +0x3c, ebx",
+    "0x00479089 st   +0x40, ebx",
+    "0x00479092 set  dword ptr [eax + 0x24] = 0x3f800000 (1)",
+    "0x004790a1 st   +0x28, ebx",
+    "0x004790ae str  WARNING: invalid type in shader '%s'|",
+    "0x004790f3 str  ssFademax",
+    "0x0047911e str  WARNING: missing surfacesprite fademax in shader '%s'|",
+    "0x0047913e cmp  dword ptr [esi + 0x18]",
+    "0x00479149 test ah&0x41 jp",
+    "0x00479162 str  WARNING: invalid surfacesprite fademax (%.2f <= fadeDist(%.2f)) in shader '%s'|",
+    "0x00479171 st   +0x1c",
+    "0x00479176 str  ssFadescale",
+    "0x004791a1 str  WARNING: missing surfacesprite fadescale in shader '%s'|",
+    "0x004791c4 st   +0x20",
+    "0x004791c9 str  ssVariance",
+    "0x004791f8 str  WARNING: missing surfacesprite variance width in shader '%s'|",
+    "0x00479212 cmp  0",
+    "0x00479220 test ah&5 jp",
+    "0x00479229 str  WARNING: invalid surfacesprite variance width in shader '%s'|",
+    "0x00479247 st   +0x34",
+    "0x00479260 str  WARNING: missing surfacesprite variance height in shader '%s'|",
+    "0x0047927a cmp  0",
+    "0x00479288 test ah&5 jp",
+    "0x00479291 str  WARNING: invalid surfacesprite variance height in shader '%s'|",
+    "0x004792ab st   +0x38",
+    "0x004792b0 str  ssHangdown",
+    "0x004792d4 str  WARNING: Hangdown facing overrides previous facing in shader '%s'|",
+    "0x004792e8 st   +0x44, 2",
+    "0x004792f1 str  ssAnyangle",
+    "0x00479315 str  WARNING: Anyangle facing overrides previous facing in shader '%s'|",
+    "0x00479329 st   +0x44, 3",
+    "0x00479332 str  ssFaceup",
+    "0x00479356 str  WARNING: Faceup facing overrides previous facing in shader '%s'|",
+    "0x0047936a st   +0x44, 1",
+    "0x00479373 str  ssWind",
+    "0x004793a2 str  WARNING: missing surfacesprite wind in shader '%s'|",
+    "0x004793bc cmp  0",
+    "0x004793ca test ah&5 jp",
+    "0x004793d3 str  WARNING: invalid surfacesprite wind in shader '%s'|",
+    "0x004793f9 cmp  0",
+    "0x00479404 test ah&0x41 jp",
+    "0x0047940a st   +0x14",
+    "0x0047940f str  ssWindidle",
+    "0x0047943a str  WARNING: missing surfacesprite windidle in shader '%s'|",
+    "0x00479454 cmp  0",
+    "0x00479462 test ah&5 jp",
+    "0x0047946b str  WARNING: invalid surfacesprite windidle in shader '%s'|",
+    "0x00479485 st   +0x14",
+    "0x0047948a str  ssVertskew",
+    "0x004794b5 str  WARNING: missing surfacesprite vertskew in shader '%s'|",
+    "0x004794cf cmp  0",
+    "0x004794dd test ah&5 jp",
+    "0x004794e6 str  WARNING: invalid surfacesprite vertskew in shader '%s'|",
+    "0x00479500 st   +0x30",
+    "0x00479505 str  ssFXDuration",
+    "0x00479530 str  WARNING: missing surfacesprite duration in shader '%s'|",
+    "0x0047954a cmp  0",
+    "0x00479558 test ah&0x41 jp",
+    "0x00479561 str  WARNING: invalid surfacesprite duration in shader '%s'|",
+    "0x0047957b st   +0x2c",
+    "0x00479580 str  ssFXGrow",
+    "0x004795af str  WARNING: missing surfacesprite grow width in shader '%s'|",
+    "0x004795c9 cmp  0",
+    "0x004795d7 test ah&5 jp",
+    "0x004795e0 str  WARNING: invalid surfacesprite grow width in shader '%s'|",
+    "0x004795fe st   +0x3c",
+    "0x00479617 str  WARNING: missing surfacesprite grow height in shader '%s'|",
+    "0x00479631 cmp  0",
+    "0x0047963f test ah&5 jp",
+    "0x00479648 str  WARNING: invalid surfacesprite grow height in shader '%s'|",
+    "0x00479662 st   +0x40",
+    "0x00479667 str  ssFXAlphaRange",
+    "0x00479696 str  WARNING: missing surfacesprite fxalpha start in shader '%s'|",
+    "0x004796b0 cmp  0",
+    "0x004796be test ah&5 jnp",
+    "0x004796c4 cmp  1",
+    "0x004796cf test ah&0x41 je",
+    "0x004796df st   +0x24",
+    "0x004796f8 str  WARNING: missing surfacesprite fxalpha end in shader '%s'|",
+    "0x00479712 cmp  0",
+    "0x00479720 test ah&5 jnp",
+    "0x00479722 cmp  1",
+    "0x0047972d test ah&0x41 je",
+    "0x00479735 st   +0x28",
+    "0x00479741 str  WARNING: invalid surfacesprite fxalpha end in shader '%s'|",
+    "0x0047975c str  WARNING: invalid surfacesprite fxalpha start in shader '%s'|",
+    "0x00479770 str  ssFXWeather",
+    "0x00479788 cmpi dword ptr [esi], 3",
+    "0x00479792 str  WARNING: weather applied to non-effect surfacesprite in shader '%s'|",
+    "0x004797a6 st   +0x0, 4",
+    "0x004797b4 str  WARNING: invalid optional surfacesprite param '%s' in shader '%s'|"
+   ],
+   "jk2mp": [
+    "0x0048e532 str  WARNING: missing surfaceSprites params in shader '%s'|",
+    "0x0048e548 str  vertical",
+    "0x0048e561 str  oriented",
+    "0x0048e57a str  effect",
+    "0x0048e5ae str  WARNING: missing surfaceSprites params in shader '%s'|",
+    "0x0048e5ce cmp  0",
+    "0x0048e5dc test ah&0x41 jp",
+    "0x0048e5e3 str  WARNING: invalid width in shader '%s'|",
+    "0x0048e612 str  WARNING: missing surfaceSprites params in shader '%s'|",
+    "0x0048e632 cmp  0",
+    "0x0048e640 test ah&0x41 jp",
+    "0x0048e647 str  WARNING: invalid height in shader '%s'|",
+    "0x0048e676 str  WARNING: missing surfaceSprites params in shader '%s'|",
+    "0x0048e696 cmp  0",
+    "0x0048e6a4 test ah&0x41 jp",
+    "0x0048e6ab str  WARNING: invalid density in shader '%s'|",
+    "0x0048e6da str  WARNING: missing surfaceSprites params in shader '%s'|",
+    "0x0048e6f6 cmp  32",
+    "0x0048e704 test ah&5 jp",
+    "0x0048e70d str  WARNING: invalid fadedist in shader '%s'|",
+    "0x0048e731 fmul 1.33",
+    "0x0048e73b st   +0xf4, edx",
+    "0x0048e745 st   +0xf0, esi",
+    "0x0048e74b st   +0x10c",
+    "0x0048e751 st   +0x110, ebx",
+    "0x0048e757 st   +0x100, ebx",
+    "0x0048e75d st   +0x104, ebx",
+    "0x0048e763 st   +0x124, ebx",
+    "0x0048e769 st   +0x128, ebx",
+    "0x0048e76f st   +0x134, ebx",
+    "0x0048e775 st   +0x12c, ebx",
+    "0x0048e77b st   +0x130, ebx",
+    "0x0048e781 st   +0x118, ebx",
+    "0x0048e788 st   +0xf8, ecx",
+    "0x0048e78e st   +0xfc, edx",
+    "0x0048e794 set  dword ptr [eax + 0x11c] = 0x447a0000 (1000)",
+    "0x0048e79e set  dword ptr [eax + 0x114] = 0x3f800000 (1)",
+    "0x0048e7bc str  WARNING: invalid type in shader '%s'|",
+    "0x0048e7e5 str  ssFademax",
+    "0x0048e810 str  WARNING: missing surfacesprite fademax in shader '%s'|",
+    "0x0048e82e cmp  dword ptr [ecx + 0x108]",
+    "0x0048e83c test ah&0x41 jp",
+    "0x0048e845 str  WARNING: invalid surfacesprite fademax in shader '%s'|",
+    "0x0048e857 st   +0x10c",
+    "0x0048e85f str  ssFadescale",
+    "0x0048e88a str  WARNING: missing surfacesprite fadescale in shader '%s'|",
+    "0x0048e8a9 st   +0x110",
+    "0x0048e8b1 str  ssVariance",
+    "0x0048e8e0 str  WARNING: missing surfacesprite variance width in shader '%s'|",
+    "0x0048e8f8 cmp  0",
+    "0x0048e906 test ah&5 jp",
+    "0x0048e90f str  WARNING: invalid surfacesprite variance width in shader '%s'|",
+    "0x0048e929 st   +0x124",
+    "0x0048e945 str  WARNING: missing surfacesprite variance height in shader '%s'|",
+    "0x0048e95d cmp  0",
+    "0x0048e96b test ah&5 jp",
+    "0x0048e974 str  WARNING: invalid surfacesprite variance height in shader '%s'|",
+    "0x0048e986 st   +0x128",
+    "0x0048e98e str  ssHangdown",
+    "0x0048e9b3 str  WARNING: Hangdown facing overrides previous facing in shader '%s'|",
+    "0x0048e9c5 st   +0x134, 2",
+    "0x0048e9d1 str  ssAnyangle",
+    "0x0048e9f6 str  WARNING: Anyangle facing overrides previous facing in shader '%s'|",
+    "0x0048ea08 st   +0x134, 3",
+    "0x0048ea14 str  ssFaceup",
+    "0x0048ea39 str  WARNING: Faceup facing overrides previous facing in shader '%s'|",
+    "0x0048ea4b st   +0x134, 1",
+    "0x0048ea57 str  ssWind",
+    "0x0048ea86 str  WARNING: missing surfacesprite wind in shader '%s'|",
+    "0x0048ea9e cmp  0",
+    "0x0048eaac test ah&5 jp",
+    "0x0048eab5 str  WARNING: invalid surfacesprite wind in shader '%s'|",
+    "0x0048eacd st   +0x100",
+    "0x0048ead9 cmp  0",
+    "0x0048eae4 test ah&0x41 jp",
+    "0x0048eaea st   +0x104",
+    "0x0048eaf2 str  ssWindidle",
+    "0x0048eb1d str  WARNING: missing surfacesprite windidle in shader '%s'|",
+    "0x0048eb35 cmp  0",
+    "0x0048eb43 test ah&5 jp",
+    "0x0048eb4c str  WARNING: invalid surfacesprite windidle in shader '%s'|",
+    "0x0048eb62 st   +0x104",
+    "0x0048eb6a str  ssVertskew",
+    "0x0048eb95 str  WARNING: missing surfacesprite vertskew in shader '%s'|",
+    "0x0048ebad cmp  0",
+    "0x0048ebbb test ah&5 jp",
+    "0x0048ebc4 str  WARNING: invalid surfacesprite vertskew in shader '%s'|",
+    "0x0048ebda st   +0x120",
+    "0x0048ebe2 str  ssFXDuration",
+    "0x0048ec0d str  WARNING: missing surfacesprite duration in shader '%s'|",
+    "0x0048ec25 cmp  0",
+    "0x0048ec33 test ah&0x41 jp",
+    "0x0048ec3c str  WARNING: invalid surfacesprite duration in shader '%s'|",
+    "0x0048ec52 st   +0x11c",
+    "0x0048ec5a str  ssFXGrow",
+    "0x0048ec89 str  WARNING: missing surfacesprite grow width in shader '%s'|",
+    "0x0048eca1 cmp  0",
+    "0x0048ecaf test ah&5 jp",
+    "0x0048ecb8 str  WARNING: invalid surfacesprite grow width in shader '%s'|",
+    "0x0048ecd2 st   +0x12c",
+    "0x0048ecee str  WARNING: missing surfacesprite grow height in shader '%s'|",
+    "0x0048ed06 cmp  0",
+    "0x0048ed14 test ah&5 jp",
+    "0x0048ed1d str  WARNING: invalid surfacesprite grow height in shader '%s'|",
+    "0x0048ed2f st   +0x130",
+    "0x0048ed37 str  ssFXAlphaRange",
+    "0x0048ed66 str  WARNING: missing surfacesprite fxalpha start in shader '%s'|",
+    "0x0048ed82 cmp  0",
+    "0x0048ed90 test ah&5 jnp",
+    "0x0048ed9a cmp  1",
+    "0x0048eda5 test ah&0x41 je",
+    "0x0048edb3 st   +0x114",
+    "0x0048edcf str  WARNING: missing surfacesprite fxalpha end in shader '%s'|",
+    "0x0048ede7 cmp  0",
+    "0x0048edf5 test ah&5 jnp",
+    "0x0048edf7 cmp  1",
+    "0x0048ee02 test ah&0x41 je",
+    "0x0048ee04 st   +0x118",
+    "0x0048ee13 str  WARNING: invalid surfacesprite fxalpha end in shader '%s'|",
+    "0x0048ee2a str  WARNING: invalid surfacesprite fxalpha start in shader '%s'|",
+    "0x0048ee3c str  ssFXWeather",
+    "0x0048ee52 cmpi dword ptr [eax + 0xf0], 3",
+    "0x0048ee60 str  WARNING: weather applied to non-effect surfacesprite in shader '%s'|",
+    "0x0048ee72 st   +0xf0, 4",
+    "0x0048ee84 str  WARNING: invalid optional surfacesprite param '%s' in shader '%s'|"
+   ],
+   "jk2sp": [
+    "0x0047e362 str  WARNING: missing surfaceSprites params in shader '%s'|",
+    "0x0047e378 str  vertical",
+    "0x0047e391 str  oriented",
+    "0x0047e3aa str  effect",
+    "0x0047e3de str  WARNING: missing surfaceSprites params in shader '%s'|",
+    "0x0047e3fe cmp  0",
+    "0x0047e40c test ah&0x41 jp",
+    "0x0047e413 str  WARNING: invalid width in shader '%s'|",
+    "0x0047e442 str  WARNING: missing surfaceSprites params in shader '%s'|",
+    "0x0047e462 cmp  0",
+    "0x0047e470 test ah&0x41 jp",
+    "0x0047e477 str  WARNING: invalid height in shader '%s'|",
+    "0x0047e4a6 str  WARNING: missing surfaceSprites params in shader '%s'|",
+    "0x0047e4c6 cmp  0",
+    "0x0047e4d4 test ah&0x41 jp",
+    "0x0047e4db str  WARNING: invalid density in shader '%s'|",
+    "0x0047e50a str  WARNING: missing surfaceSprites params in shader '%s'|",
+    "0x0047e526 cmp  32",
+    "0x0047e534 test ah&5 jp",
+    "0x0047e53d str  WARNING: invalid fadedist in shader '%s'|",
+    "0x0047e561 fmul 1.33",
+    "0x0047e56b st   +0xf4, edx",
+    "0x0047e575 st   +0xf0, esi",
+    "0x0047e57b st   +0x10c",
+    "0x0047e581 st   +0x110, ebx",
+    "0x0047e587 st   +0x100, ebx",
+    "0x0047e58d st   +0x104, ebx",
+    "0x0047e593 st   +0x124, ebx",
+    "0x0047e599 st   +0x128, ebx",
+    "0x0047e59f st   +0x134, ebx",
+    "0x0047e5a5 st   +0x12c, ebx",
+    "0x0047e5ab st   +0x130, ebx",
+    "0x0047e5b1 st   +0x118, ebx",
+    "0x0047e5b8 st   +0xf8, ecx",
+    "0x0047e5be st   +0xfc, edx",
+    "0x0047e5c4 set  dword ptr [eax + 0x11c] = 0x447a0000 (1000)",
+    "0x0047e5ce set  dword ptr [eax + 0x114] = 0x3f800000 (1)",
+    "0x0047e5ec str  WARNING: invalid type in shader '%s'|",
+    "0x0047e615 str  ssFademax",
+    "0x0047e640 str  WARNING: missing surfacesprite fademax in shader '%s'|",
+    "0x0047e65e cmp  dword ptr [ecx + 0x108]",
+    "0x0047e66c test ah&0x41 jp",
+    "0x0047e675 str  WARNING: invalid surfacesprite fademax in shader '%s'|",
+    "0x0047e687 st   +0x10c",
+    "0x0047e68f str  ssFadescale",
+    "0x0047e6ba str  WARNING: missing surfacesprite fadescale in shader '%s'|",
+    "0x0047e6d9 st   +0x110",
+    "0x0047e6e1 str  ssVariance",
+    "0x0047e710 str  WARNING: missing surfacesprite variance width in shader '%s'|",
+    "0x0047e728 cmp  0",
+    "0x0047e736 test ah&5 jp",
+    "0x0047e73f str  WARNING: invalid surfacesprite variance width in shader '%s'|",
+    "0x0047e759 st   +0x124",
+    "0x0047e775 str  WARNING: missing surfacesprite variance height in shader '%s'|",
+    "0x0047e78d cmp  0",
+    "0x0047e79b test ah&5 jp",
+    "0x0047e7a4 str  WARNING: invalid surfacesprite variance height in shader '%s'|",
+    "0x0047e7b6 st   +0x128",
+    "0x0047e7be str  ssHangdown",
+    "0x0047e7e3 str  WARNING: Hangdown facing overrides previous facing in shader '%s'|",
+    "0x0047e7f5 st   +0x134, 2",
+    "0x0047e801 str  ssAnyangle",
+    "0x0047e826 str  WARNING: Anyangle facing overrides previous facing in shader '%s'|",
+    "0x0047e838 st   +0x134, 3",
+    "0x0047e844 str  ssFaceup",
+    "0x0047e869 str  WARNING: Faceup facing overrides previous facing in shader '%s'|",
+    "0x0047e87b st   +0x134, 1",
+    "0x0047e887 str  ssWind",
+    "0x0047e8b6 str  WARNING: missing surfacesprite wind in shader '%s'|",
+    "0x0047e8ce cmp  0",
+    "0x0047e8dc test ah&5 jp",
+    "0x0047e8e5 str  WARNING: invalid surfacesprite wind in shader '%s'|",
+    "0x0047e8fd st   +0x100",
+    "0x0047e909 cmp  0",
+    "0x0047e914 test ah&0x41 jp",
+    "0x0047e91a st   +0x104",
+    "0x0047e922 str  ssWindidle",
+    "0x0047e94d str  WARNING: missing surfacesprite windidle in shader '%s'|",
+    "0x0047e965 cmp  0",
+    "0x0047e973 test ah&5 jp",
+    "0x0047e97c str  WARNING: invalid surfacesprite windidle in shader '%s'|",
+    "0x0047e992 st   +0x104",
+    "0x0047e99a str  ssVertskew",
+    "0x0047e9c5 str  WARNING: missing surfacesprite vertskew in shader '%s'|",
+    "0x0047e9dd cmp  0",
+    "0x0047e9eb test ah&5 jp",
+    "0x0047e9f4 str  WARNING: invalid surfacesprite vertskew in shader '%s'|",
+    "0x0047ea0a st   +0x120",
+    "0x0047ea12 str  ssFXDuration",
+    "0x0047ea3d str  WARNING: missing surfacesprite duration in shader '%s'|",
+    "0x0047ea55 cmp  0",
+    "0x0047ea63 test ah&0x41 jp",
+    "0x0047ea6c str  WARNING: invalid surfacesprite duration in shader '%s'|",
+    "0x0047ea82 st   +0x11c",
+    "0x0047ea8a str  ssFXGrow",
+    "0x0047eab9 str  WARNING: missing surfacesprite grow width in shader '%s'|",
+    "0x0047ead1 cmp  0",
+    "0x0047eadf test ah&5 jp",
+    "0x0047eae8 str  WARNING: invalid surfacesprite grow width in shader '%s'|",
+    "0x0047eb02 st   +0x12c",
+    "0x0047eb1e str  WARNING: missing surfacesprite grow height in shader '%s'|",
+    "0x0047eb36 cmp  0",
+    "0x0047eb44 test ah&5 jp",
+    "0x0047eb4d str  WARNING: invalid surfacesprite grow height in shader '%s'|",
+    "0x0047eb5f st   +0x130",
+    "0x0047eb67 str  ssFXAlphaRange",
+    "0x0047eb96 str  WARNING: missing surfacesprite fxalpha start in shader '%s'|",
+    "0x0047ebb2 cmp  0",
+    "0x0047ebc0 test ah&5 jnp",
+    "0x0047ebca cmp  1",
+    "0x0047ebd5 test ah&0x41 je",
+    "0x0047ebe3 st   +0x114",
+    "0x0047ebff str  WARNING: missing surfacesprite fxalpha end in shader '%s'|",
+    "0x0047ec17 cmp  0",
+    "0x0047ec25 test ah&5 jnp",
+    "0x0047ec27 cmp  1",
+    "0x0047ec32 test ah&0x41 je",
+    "0x0047ec34 st   +0x118",
+    "0x0047ec43 str  WARNING: invalid surfacesprite fxalpha end in shader '%s'|",
+    "0x0047ec5a str  WARNING: invalid surfacesprite fxalpha start in shader '%s'|",
+    "0x0047ec6c str  ssFXWeather",
+    "0x0047ec82 cmpi dword ptr [eax + 0xf0], 3",
+    "0x0047ec90 str  WARNING: weather applied to non-effect surfacesprite in shader '%s'|",
+    "0x0047eca2 st   +0xf0, 4",
+    "0x0047ecb4 str  WARNING: invalid optional surfacesprite param '%s' in shader '%s'|"
+   ]
+  },
+  "drawing": {
+   "passSkip": {
+    "jamp.exe": "0x4aef88",
+    "jk2mp.exe": "0x488dad"
+   },
+   "spritePass": {
+    "jamp.exe": "0x4af474: stages 1..numUnfoggedPasses-1, RB_DrawSurfaceSprites 0x4c0df0",
+    "jk2mp.exe": "0x488667, 0x489b6d, 0x489d7b: stages 1..7 in each iterator"
+   },
+   "cvars": {
+    "r_surfaceSprites": "\"1\" flags 0x100",
+    "r_surfaceWeather": "\"0\" flags 0x100",
+    "r_windSpeed": "0",
+    "r_windAngle": "0",
+    "r_windGust": "0",
+    "r_windDampFactor": "0.1",
+    "r_windPointForce": "0",
+    "r_windPointX": "0",
+    "r_windPointY": "0"
+   },
+   "jampSpriteCode": "0x4be700-0x4c1000; constant census in the record"
+  }
+ },
+ "installed": {
+  "jka": {
+   "definitions": [
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/arioche.shader",
+     "name": "textures/quicktrip/desert1_1",
+     "spriteTypes": [
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/arioche.shader",
+     "name": "textures/quicktrip/desert1_0",
+     "spriteTypes": [
+      "flattened",
+      "flattened",
+      "flattened"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/imperial.shader",
+     "name": "textures/imperial/dp_ground",
+     "spriteTypes": [
+      "flattened"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/jnegretetest.shader",
+     "name": "textures/jnegretetest/water3",
+     "spriteTypes": [
+      "effect"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/metashader.shader",
+     "name": "textures/metashader/s_0",
+     "spriteTypes": [
+      "vertical",
+      "effect"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/metashader.shader",
+     "name": "textures/metashader/s_1",
+     "spriteTypes": [
+      "vertical",
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/metashader.shader",
+     "name": "textures/metashader/s_2",
+     "spriteTypes": [
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/metashader.shader",
+     "name": "textures/metashader/s_0to1",
+     "spriteTypes": [
+      "vertical",
+      "effect",
+      "vertical",
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/metashader.shader",
+     "name": "textures/metashader/s_0to2",
+     "spriteTypes": [
+      "vertical",
+      "effect",
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/metashader.shader",
+     "name": "textures/metashader/s_1to2",
+     "spriteTypes": [
+      "vertical",
+      "vertical",
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/quicktrip.shader",
+     "name": "textures/quicktrip/desert_0",
+     "spriteTypes": [
+      "flattened",
+      "flattened",
+      "flattened"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/rich_rmg.shader",
+     "name": "textures/rmg/desert1_0",
+     "spriteTypes": [
+      "vertical",
+      "vertical",
+      "effect"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/rich_rmg.shader",
+     "name": "textures/rmg/grassy1_1",
+     "spriteTypes": [
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/rich_rmg.shader",
+     "name": "textures/rmg/grassy1_0",
+     "spriteTypes": [
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/rich_rmg.shader",
+     "name": "textures/rmg/jungle_3",
+     "spriteTypes": [
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/rich_rmg.shader",
+     "name": "textures/rmg/jungle_2",
+     "spriteTypes": [
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/sprites.shader",
+     "name": "textures/sprites/ss_raintest",
+     "spriteTypes": [
+      "effect",
+      "effect"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/sprites.shader",
+     "name": "textures/sprites/ss_test2",
+     "spriteTypes": [
+      "oriented",
+      "oriented",
+      "oriented"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/sprites.shader",
+     "name": "textures/sprites/ss_test3",
+     "spriteTypes": [
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/sprites.shader",
+     "name": "textures/sprites/ss_testall",
+     "spriteTypes": [
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/test.shader",
+     "name": "textures/yavin/smooth_rock2_rain",
+     "spriteTypes": [
+      "effect",
+      "effect",
+      "effect"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/test.shader",
+     "name": "textures/system/rainsurf",
+     "spriteTypes": [
+      "effect",
+      "effect",
+      "effect"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/grasspatchy_swampsprite",
+     "spriteTypes": [
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/grasspatchy_reeds",
+     "spriteTypes": [
+      "vertical",
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/grasspatchy_underwater",
+     "spriteTypes": [
+      "vertical",
+      "effect"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/s_rock1_vines",
+     "spriteTypes": [
+      "vertical",
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/water1_2sided",
+     "spriteTypes": [
+      "effect",
+      "effect",
+      "effect"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/grasspatchy_sprite",
+     "spriteTypes": [
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/grasspatchy_sm_sprite",
+     "spriteTypes": [
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/dirtgrasscorner_sprite",
+     "spriteTypes": [
+      "oriented"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/dirtgrassedge_sprite",
+     "spriteTypes": [
+      "oriented"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/dirt1_sprite",
+     "spriteTypes": [
+      "oriented"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/grasspatchy2",
+     "spriteTypes": [
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/swater1_2sided",
+     "spriteTypes": [
+      "effect",
+      "effect",
+      "effect"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/ground_grasssprite",
+     "spriteTypes": [
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/mud_sprites",
+     "spriteTypes": [
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/ground_grasssprite_Phong_vertex",
+     "spriteTypes": [
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/ground_grasssprite_Phong",
+     "spriteTypes": [
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets1.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/mud_sprites_Phong",
+     "spriteTypes": [
+      "vertical"
+     ]
+    }
+   ],
+   "wordShapes": {
+    "surfacesprites/5": 68,
+    "ssfademax/1": 43,
+    "ssvariance/2": 68,
+    "sswind/1": 50,
+    "ssfadescale/1": 25,
+    "ssfxduration/1": 20,
+    "ssfxgrow/2": 20,
+    "ssfxalpharange/2": 18,
+    "ssfxweather/0": 19,
+    "ssfaceup/0": 5,
+    "sshangdown/0": 2,
+    "sswindidle/1": 2
+   },
+   "maps": {
+    "maps/mp/ctf3.bsp": {
+     "pak": "assets0.pk3",
+     "shaders": [
+      "textures/yavin/ground_grasssprite"
+     ]
+    },
+    "maps/t2_dpred.bsp": {
+     "pak": "assets0.pk3",
+     "shaders": [
+      "textures/imperial/dp_ground"
+     ]
+    },
+    "maps/t2_rancor.bsp": {
+     "pak": "assets0.pk3",
+     "shaders": [
+      "textures/quicktrip/desert_0"
+     ]
+    },
+    "maps/t2_trip.bsp": {
+     "pak": "assets0.pk3",
+     "shaders": [
+      "textures/quicktrip/desert_0"
+     ]
+    },
+    "maps/yavin1.bsp": {
+     "pak": "assets0.pk3",
+     "shaders": [
+      "textures/yavin/ground_grasssprite_phong_vertex",
+      "textures/yavin/s_rock1_vines"
+     ]
+    },
+    "maps/yavin1b.bsp": {
+     "pak": "assets0.pk3",
+     "shaders": [
+      "textures/yavin/ground_grasssprite_phong_vertex"
+     ]
+    },
+    "maps/yavin2.bsp": {
+     "pak": "assets0.pk3",
+     "shaders": [
+      "textures/yavin/ground_grasssprite_phong",
+      "textures/yavin/ground_grasssprite_phong_vertex",
+      "textures/yavin/mud_sprites_phong"
+     ]
+    }
+   }
+  },
+  "jk2": {
+   "definitions": [
+    {
+     "pak": "assets0.pk3",
+     "script": "shaders/metashader.shader",
+     "name": "textures/metashader/s_0",
+     "spriteTypes": [
+      "vertical",
+      "effect"
+     ]
+    },
+    {
+     "pak": "assets0.pk3",
+     "script": "shaders/metashader.shader",
+     "name": "textures/metashader/s_1",
+     "spriteTypes": [
+      "vertical",
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets0.pk3",
+     "script": "shaders/metashader.shader",
+     "name": "textures/metashader/s_2",
+     "spriteTypes": [
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets0.pk3",
+     "script": "shaders/metashader.shader",
+     "name": "textures/metashader/s_0to1",
+     "spriteTypes": [
+      "vertical",
+      "effect",
+      "vertical",
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets0.pk3",
+     "script": "shaders/metashader.shader",
+     "name": "textures/metashader/s_0to2",
+     "spriteTypes": [
+      "vertical",
+      "effect",
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets0.pk3",
+     "script": "shaders/metashader.shader",
+     "name": "textures/metashader/s_1to2",
+     "spriteTypes": [
+      "vertical",
+      "vertical",
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets0.pk3",
+     "script": "shaders/sprites.shader",
+     "name": "textures/sprites/ss_raintest",
+     "spriteTypes": [
+      "effect",
+      "effect"
+     ]
+    },
+    {
+     "pak": "assets0.pk3",
+     "script": "shaders/sprites.shader",
+     "name": "textures/sprites/ss_test2",
+     "spriteTypes": [
+      "oriented",
+      "oriented",
+      "oriented"
+     ]
+    },
+    {
+     "pak": "assets0.pk3",
+     "script": "shaders/sprites.shader",
+     "name": "textures/sprites/ss_test3",
+     "spriteTypes": [
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets0.pk3",
+     "script": "shaders/sprites.shader",
+     "name": "textures/sprites/ss_testall",
+     "spriteTypes": [
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets0.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/grasspatchy_swampsprite",
+     "spriteTypes": [
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets0.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/grasspatchy_reeds",
+     "spriteTypes": [
+      "vertical",
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets0.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/grasspatchy_underwater",
+     "spriteTypes": [
+      "vertical",
+      "effect"
+     ]
+    },
+    {
+     "pak": "assets0.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/s_rock1_vines",
+     "spriteTypes": [
+      "vertical",
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets0.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/water1_2sided",
+     "spriteTypes": [
+      "effect",
+      "effect",
+      "effect"
+     ]
+    },
+    {
+     "pak": "assets0.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/grasspatchy_sprite",
+     "spriteTypes": [
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets0.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/grasspatchy_sm_sprite",
+     "spriteTypes": [
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets0.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/dirtgrasscorner_sprite",
+     "spriteTypes": [
+      "oriented"
+     ]
+    },
+    {
+     "pak": "assets0.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/dirtgrassedge_sprite",
+     "spriteTypes": [
+      "oriented"
+     ]
+    },
+    {
+     "pak": "assets0.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/dirt1_sprite",
+     "spriteTypes": [
+      "oriented"
+     ]
+    },
+    {
+     "pak": "assets0.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/grasspatchy2",
+     "spriteTypes": [
+      "vertical"
+     ]
+    },
+    {
+     "pak": "assets0.pk3",
+     "script": "shaders/yavin.shader",
+     "name": "textures/yavin/swater1_2sided",
+     "spriteTypes": [
+      "effect",
+      "effect",
+      "effect"
+     ]
+    }
+   ],
+   "wordShapes": {
+    "surfacesprites/5": 41,
+    "ssvariance/2": 41,
+    "sswind/1": 25,
+    "ssfademax/1": 26,
+    "ssfxduration/1": 12,
+    "ssfxgrow/2": 12,
+    "ssfxalpharange/2": 10,
+    "ssfxweather/0": 11,
+    "ssfadescale/1": 15,
+    "ssfaceup/0": 3,
+    "sshangdown/0": 2,
+    "sswindidle/1": 2
+   },
+   "maps": {
+    "maps/yavin_canyon.bsp": {
+     "pak": "assets0.pk3",
+     "shaders": [
+      "textures/yavin/grasspatchy_swampsprite",
+      "textures/yavin/s_rock1_vines",
+      "textures/yavin/swater1_2sided"
+     ]
+    },
+    "maps/yavin_courtyard.bsp": {
+     "pak": "assets0.pk3",
+     "shaders": [
+      "textures/yavin/dirt1_sprite",
+      "textures/yavin/dirtgrasscorner_sprite",
+      "textures/yavin/dirtgrassedge_sprite",
+      "textures/yavin/grasspatchy_sm_sprite",
+      "textures/yavin/grasspatchy_sprite"
+     ]
+    },
+    "maps/yavin_swamp.bsp": {
+     "pak": "assets0.pk3",
+     "shaders": [
+      "textures/yavin/grasspatchy_swampsprite",
+      "textures/yavin/grasspatchy_underwater",
+      "textures/yavin/s_rock1_vines",
+      "textures/yavin/swater1_2sided",
+      "textures/yavin/water1_2sided"
+     ]
+    },
+    "maps/yavin_temple.bsp": {
+     "pak": "assets0.pk3",
+     "shaders": [
+      "textures/yavin/dirt1_sprite",
+      "textures/yavin/dirtgrasscorner_sprite",
+      "textures/yavin/dirtgrassedge_sprite",
+      "textures/yavin/grasspatchy_sm_sprite",
+      "textures/yavin/grasspatchy_sprite"
+     ]
+    }
+   }
+  }
+ },
+ "parserCensus": {
+  "tool": ".tmp/raven-sun/corpus.py",
+  "before": "export of 27cd11668f28d4ec46257810b6c2852d942a2f5b",
+  "after": "export of 27cd11668f28d4ec46257810b6c2852d942a2f5b plus this slice alone",
+  "results": {
+   "renderer/jka/jka-sp": {
+    "total": 3391,
+    "before": 79,
+    "after": 40,
+    "nowLoading": [
+     "textures/imperial/dp_ground",
+     "textures/jnegretetest/water3",
+     "textures/metashader/s_0",
+     "textures/metashader/s_0to1",
+     "textures/metashader/s_0to2",
+     "textures/metashader/s_1",
+     "textures/metashader/s_1to2",
+     "textures/metashader/s_2",
+     "textures/quicktrip/desert1_0",
+     "textures/quicktrip/desert1_1",
+     "textures/quicktrip/desert_0",
+     "textures/rmg/desert1_0",
+     "textures/rmg/grassy1_0",
+     "textures/rmg/grassy1_1",
+     "textures/rmg/jungle_2",
+     "textures/rmg/jungle_3",
+     "textures/sprites/ss_raintest",
+     "textures/sprites/ss_test2",
+     "textures/sprites/ss_test3",
+     "textures/sprites/ss_testall",
+     "textures/system/rainsurf",
+     "textures/yavin/dirt1_sprite",
+     "textures/yavin/dirtgrasscorner_sprite",
+     "textures/yavin/dirtgrassedge_sprite",
+     "textures/yavin/grasspatchy2",
+     "textures/yavin/grasspatchy_reeds",
+     "textures/yavin/grasspatchy_sm_sprite",
+     "textures/yavin/grasspatchy_sprite",
+     "textures/yavin/grasspatchy_swampsprite",
+     "textures/yavin/grasspatchy_underwater",
+     "textures/yavin/ground_grasssprite",
+     "textures/yavin/ground_grasssprite_Phong",
+     "textures/yavin/ground_grasssprite_Phong_vertex",
+     "textures/yavin/mud_sprites",
+     "textures/yavin/mud_sprites_Phong",
+     "textures/yavin/s_rock1_vines",
+     "textures/yavin/smooth_rock2_rain",
+     "textures/yavin/swater1_2sided",
+     "textures/yavin/water1_2sided"
+    ],
+    "newlyRefused": []
+   },
+   "renderer/jka/jka-mp": {
+    "total": 3391,
+    "before": 79,
+    "after": 40,
+    "nowLoading": [
+     "textures/imperial/dp_ground",
+     "textures/jnegretetest/water3",
+     "textures/metashader/s_0",
+     "textures/metashader/s_0to1",
+     "textures/metashader/s_0to2",
+     "textures/metashader/s_1",
+     "textures/metashader/s_1to2",
+     "textures/metashader/s_2",
+     "textures/quicktrip/desert1_0",
+     "textures/quicktrip/desert1_1",
+     "textures/quicktrip/desert_0",
+     "textures/rmg/desert1_0",
+     "textures/rmg/grassy1_0",
+     "textures/rmg/grassy1_1",
+     "textures/rmg/jungle_2",
+     "textures/rmg/jungle_3",
+     "textures/sprites/ss_raintest",
+     "textures/sprites/ss_test2",
+     "textures/sprites/ss_test3",
+     "textures/sprites/ss_testall",
+     "textures/system/rainsurf",
+     "textures/yavin/dirt1_sprite",
+     "textures/yavin/dirtgrasscorner_sprite",
+     "textures/yavin/dirtgrassedge_sprite",
+     "textures/yavin/grasspatchy2",
+     "textures/yavin/grasspatchy_reeds",
+     "textures/yavin/grasspatchy_sm_sprite",
+     "textures/yavin/grasspatchy_sprite",
+     "textures/yavin/grasspatchy_swampsprite",
+     "textures/yavin/grasspatchy_underwater",
+     "textures/yavin/ground_grasssprite",
+     "textures/yavin/ground_grasssprite_Phong",
+     "textures/yavin/ground_grasssprite_Phong_vertex",
+     "textures/yavin/mud_sprites",
+     "textures/yavin/mud_sprites_Phong",
+     "textures/yavin/s_rock1_vines",
+     "textures/yavin/smooth_rock2_rain",
+     "textures/yavin/swater1_2sided",
+     "textures/yavin/water1_2sided"
+    ],
+    "newlyRefused": []
+   },
+   "renderer/jka/q3": {
+    "total": 3391,
+    "before": 871,
+    "after": 871,
+    "nowLoading": [],
+    "newlyRefused": []
+   },
+   "renderer/jk2/jk2-sp": {
+    "total": 1187,
+    "before": 47,
+    "after": 25,
+    "nowLoading": [
+     "textures/metashader/s_0",
+     "textures/metashader/s_0to1",
+     "textures/metashader/s_0to2",
+     "textures/metashader/s_1",
+     "textures/metashader/s_1to2",
+     "textures/metashader/s_2",
+     "textures/sprites/ss_raintest",
+     "textures/sprites/ss_test2",
+     "textures/sprites/ss_test3",
+     "textures/sprites/ss_testall",
+     "textures/yavin/dirt1_sprite",
+     "textures/yavin/dirtgrasscorner_sprite",
+     "textures/yavin/dirtgrassedge_sprite",
+     "textures/yavin/grasspatchy2",
+     "textures/yavin/grasspatchy_reeds",
+     "textures/yavin/grasspatchy_sm_sprite",
+     "textures/yavin/grasspatchy_sprite",
+     "textures/yavin/grasspatchy_swampsprite",
+     "textures/yavin/grasspatchy_underwater",
+     "textures/yavin/s_rock1_vines",
+     "textures/yavin/swater1_2sided",
+     "textures/yavin/water1_2sided"
+    ],
+    "newlyRefused": []
+   },
+   "renderer/jk2/jk2-mp": {
+    "total": 1187,
+    "before": 47,
+    "after": 25,
+    "nowLoading": [
+     "textures/metashader/s_0",
+     "textures/metashader/s_0to1",
+     "textures/metashader/s_0to2",
+     "textures/metashader/s_1",
+     "textures/metashader/s_1to2",
+     "textures/metashader/s_2",
+     "textures/sprites/ss_raintest",
+     "textures/sprites/ss_test2",
+     "textures/sprites/ss_test3",
+     "textures/sprites/ss_testall",
+     "textures/yavin/dirt1_sprite",
+     "textures/yavin/dirtgrasscorner_sprite",
+     "textures/yavin/dirtgrassedge_sprite",
+     "textures/yavin/grasspatchy2",
+     "textures/yavin/grasspatchy_reeds",
+     "textures/yavin/grasspatchy_sm_sprite",
+     "textures/yavin/grasspatchy_sprite",
+     "textures/yavin/grasspatchy_swampsprite",
+     "textures/yavin/grasspatchy_underwater",
+     "textures/yavin/s_rock1_vines",
+     "textures/yavin/swater1_2sided",
+     "textures/yavin/water1_2sided"
+    ],
+    "newlyRefused": []
+   },
+   "renderer/jk2/q3": {
+    "total": 1187,
+    "before": 90,
+    "after": 90,
+    "nowLoading": [],
+    "newlyRefused": []
+   },
+   "renderervk/jka/jka-sp": {
+    "total": 3391,
+    "before": 79,
+    "after": 40,
+    "nowLoading": [
+     "textures/imperial/dp_ground",
+     "textures/jnegretetest/water3",
+     "textures/metashader/s_0",
+     "textures/metashader/s_0to1",
+     "textures/metashader/s_0to2",
+     "textures/metashader/s_1",
+     "textures/metashader/s_1to2",
+     "textures/metashader/s_2",
+     "textures/quicktrip/desert1_0",
+     "textures/quicktrip/desert1_1",
+     "textures/quicktrip/desert_0",
+     "textures/rmg/desert1_0",
+     "textures/rmg/grassy1_0",
+     "textures/rmg/grassy1_1",
+     "textures/rmg/jungle_2",
+     "textures/rmg/jungle_3",
+     "textures/sprites/ss_raintest",
+     "textures/sprites/ss_test2",
+     "textures/sprites/ss_test3",
+     "textures/sprites/ss_testall",
+     "textures/system/rainsurf",
+     "textures/yavin/dirt1_sprite",
+     "textures/yavin/dirtgrasscorner_sprite",
+     "textures/yavin/dirtgrassedge_sprite",
+     "textures/yavin/grasspatchy2",
+     "textures/yavin/grasspatchy_reeds",
+     "textures/yavin/grasspatchy_sm_sprite",
+     "textures/yavin/grasspatchy_sprite",
+     "textures/yavin/grasspatchy_swampsprite",
+     "textures/yavin/grasspatchy_underwater",
+     "textures/yavin/ground_grasssprite",
+     "textures/yavin/ground_grasssprite_Phong",
+     "textures/yavin/ground_grasssprite_Phong_vertex",
+     "textures/yavin/mud_sprites",
+     "textures/yavin/mud_sprites_Phong",
+     "textures/yavin/s_rock1_vines",
+     "textures/yavin/smooth_rock2_rain",
+     "textures/yavin/swater1_2sided",
+     "textures/yavin/water1_2sided"
+    ],
+    "newlyRefused": []
+   },
+   "renderervk/jka/jka-mp": {
+    "total": 3391,
+    "before": 79,
+    "after": 40,
+    "nowLoading": [
+     "textures/imperial/dp_ground",
+     "textures/jnegretetest/water3",
+     "textures/metashader/s_0",
+     "textures/metashader/s_0to1",
+     "textures/metashader/s_0to2",
+     "textures/metashader/s_1",
+     "textures/metashader/s_1to2",
+     "textures/metashader/s_2",
+     "textures/quicktrip/desert1_0",
+     "textures/quicktrip/desert1_1",
+     "textures/quicktrip/desert_0",
+     "textures/rmg/desert1_0",
+     "textures/rmg/grassy1_0",
+     "textures/rmg/grassy1_1",
+     "textures/rmg/jungle_2",
+     "textures/rmg/jungle_3",
+     "textures/sprites/ss_raintest",
+     "textures/sprites/ss_test2",
+     "textures/sprites/ss_test3",
+     "textures/sprites/ss_testall",
+     "textures/system/rainsurf",
+     "textures/yavin/dirt1_sprite",
+     "textures/yavin/dirtgrasscorner_sprite",
+     "textures/yavin/dirtgrassedge_sprite",
+     "textures/yavin/grasspatchy2",
+     "textures/yavin/grasspatchy_reeds",
+     "textures/yavin/grasspatchy_sm_sprite",
+     "textures/yavin/grasspatchy_sprite",
+     "textures/yavin/grasspatchy_swampsprite",
+     "textures/yavin/grasspatchy_underwater",
+     "textures/yavin/ground_grasssprite",
+     "textures/yavin/ground_grasssprite_Phong",
+     "textures/yavin/ground_grasssprite_Phong_vertex",
+     "textures/yavin/mud_sprites",
+     "textures/yavin/mud_sprites_Phong",
+     "textures/yavin/s_rock1_vines",
+     "textures/yavin/smooth_rock2_rain",
+     "textures/yavin/swater1_2sided",
+     "textures/yavin/water1_2sided"
+    ],
+    "newlyRefused": []
+   },
+   "renderervk/jka/q3": {
+    "total": 3391,
+    "before": 871,
+    "after": 871,
+    "nowLoading": [],
+    "newlyRefused": []
+   },
+   "renderervk/jk2/jk2-sp": {
+    "total": 1187,
+    "before": 47,
+    "after": 25,
+    "nowLoading": [
+     "textures/metashader/s_0",
+     "textures/metashader/s_0to1",
+     "textures/metashader/s_0to2",
+     "textures/metashader/s_1",
+     "textures/metashader/s_1to2",
+     "textures/metashader/s_2",
+     "textures/sprites/ss_raintest",
+     "textures/sprites/ss_test2",
+     "textures/sprites/ss_test3",
+     "textures/sprites/ss_testall",
+     "textures/yavin/dirt1_sprite",
+     "textures/yavin/dirtgrasscorner_sprite",
+     "textures/yavin/dirtgrassedge_sprite",
+     "textures/yavin/grasspatchy2",
+     "textures/yavin/grasspatchy_reeds",
+     "textures/yavin/grasspatchy_sm_sprite",
+     "textures/yavin/grasspatchy_sprite",
+     "textures/yavin/grasspatchy_swampsprite",
+     "textures/yavin/grasspatchy_underwater",
+     "textures/yavin/s_rock1_vines",
+     "textures/yavin/swater1_2sided",
+     "textures/yavin/water1_2sided"
+    ],
+    "newlyRefused": []
+   },
+   "renderervk/jk2/jk2-mp": {
+    "total": 1187,
+    "before": 47,
+    "after": 25,
+    "nowLoading": [
+     "textures/metashader/s_0",
+     "textures/metashader/s_0to1",
+     "textures/metashader/s_0to2",
+     "textures/metashader/s_1",
+     "textures/metashader/s_1to2",
+     "textures/metashader/s_2",
+     "textures/sprites/ss_raintest",
+     "textures/sprites/ss_test2",
+     "textures/sprites/ss_test3",
+     "textures/sprites/ss_testall",
+     "textures/yavin/dirt1_sprite",
+     "textures/yavin/dirtgrasscorner_sprite",
+     "textures/yavin/dirtgrassedge_sprite",
+     "textures/yavin/grasspatchy2",
+     "textures/yavin/grasspatchy_reeds",
+     "textures/yavin/grasspatchy_sm_sprite",
+     "textures/yavin/grasspatchy_sprite",
+     "textures/yavin/grasspatchy_swampsprite",
+     "textures/yavin/grasspatchy_underwater",
+     "textures/yavin/s_rock1_vines",
+     "textures/yavin/swater1_2sided",
+     "textures/yavin/water1_2sided"
+    ],
+    "newlyRefused": []
+   },
+   "renderervk/jk2/q3": {
+    "total": 1187,
+    "before": 90,
+    "after": 90,
+    "nowLoading": [],
+    "newlyRefused": []
+   },
+   "rendererrtx/jka/jka-sp": {
+    "total": 3391,
+    "before": 79,
+    "after": 40,
+    "nowLoading": [
+     "textures/imperial/dp_ground",
+     "textures/jnegretetest/water3",
+     "textures/metashader/s_0",
+     "textures/metashader/s_0to1",
+     "textures/metashader/s_0to2",
+     "textures/metashader/s_1",
+     "textures/metashader/s_1to2",
+     "textures/metashader/s_2",
+     "textures/quicktrip/desert1_0",
+     "textures/quicktrip/desert1_1",
+     "textures/quicktrip/desert_0",
+     "textures/rmg/desert1_0",
+     "textures/rmg/grassy1_0",
+     "textures/rmg/grassy1_1",
+     "textures/rmg/jungle_2",
+     "textures/rmg/jungle_3",
+     "textures/sprites/ss_raintest",
+     "textures/sprites/ss_test2",
+     "textures/sprites/ss_test3",
+     "textures/sprites/ss_testall",
+     "textures/system/rainsurf",
+     "textures/yavin/dirt1_sprite",
+     "textures/yavin/dirtgrasscorner_sprite",
+     "textures/yavin/dirtgrassedge_sprite",
+     "textures/yavin/grasspatchy2",
+     "textures/yavin/grasspatchy_reeds",
+     "textures/yavin/grasspatchy_sm_sprite",
+     "textures/yavin/grasspatchy_sprite",
+     "textures/yavin/grasspatchy_swampsprite",
+     "textures/yavin/grasspatchy_underwater",
+     "textures/yavin/ground_grasssprite",
+     "textures/yavin/ground_grasssprite_Phong",
+     "textures/yavin/ground_grasssprite_Phong_vertex",
+     "textures/yavin/mud_sprites",
+     "textures/yavin/mud_sprites_Phong",
+     "textures/yavin/s_rock1_vines",
+     "textures/yavin/smooth_rock2_rain",
+     "textures/yavin/swater1_2sided",
+     "textures/yavin/water1_2sided"
+    ],
+    "newlyRefused": []
+   },
+   "rendererrtx/jka/jka-mp": {
+    "total": 3391,
+    "before": 79,
+    "after": 40,
+    "nowLoading": [
+     "textures/imperial/dp_ground",
+     "textures/jnegretetest/water3",
+     "textures/metashader/s_0",
+     "textures/metashader/s_0to1",
+     "textures/metashader/s_0to2",
+     "textures/metashader/s_1",
+     "textures/metashader/s_1to2",
+     "textures/metashader/s_2",
+     "textures/quicktrip/desert1_0",
+     "textures/quicktrip/desert1_1",
+     "textures/quicktrip/desert_0",
+     "textures/rmg/desert1_0",
+     "textures/rmg/grassy1_0",
+     "textures/rmg/grassy1_1",
+     "textures/rmg/jungle_2",
+     "textures/rmg/jungle_3",
+     "textures/sprites/ss_raintest",
+     "textures/sprites/ss_test2",
+     "textures/sprites/ss_test3",
+     "textures/sprites/ss_testall",
+     "textures/system/rainsurf",
+     "textures/yavin/dirt1_sprite",
+     "textures/yavin/dirtgrasscorner_sprite",
+     "textures/yavin/dirtgrassedge_sprite",
+     "textures/yavin/grasspatchy2",
+     "textures/yavin/grasspatchy_reeds",
+     "textures/yavin/grasspatchy_sm_sprite",
+     "textures/yavin/grasspatchy_sprite",
+     "textures/yavin/grasspatchy_swampsprite",
+     "textures/yavin/grasspatchy_underwater",
+     "textures/yavin/ground_grasssprite",
+     "textures/yavin/ground_grasssprite_Phong",
+     "textures/yavin/ground_grasssprite_Phong_vertex",
+     "textures/yavin/mud_sprites",
+     "textures/yavin/mud_sprites_Phong",
+     "textures/yavin/s_rock1_vines",
+     "textures/yavin/smooth_rock2_rain",
+     "textures/yavin/swater1_2sided",
+     "textures/yavin/water1_2sided"
+    ],
+    "newlyRefused": []
+   },
+   "rendererrtx/jka/q3": {
+    "total": 3391,
+    "before": 871,
+    "after": 871,
+    "nowLoading": [],
+    "newlyRefused": []
+   },
+   "rendererrtx/jk2/jk2-sp": {
+    "total": 1187,
+    "before": 47,
+    "after": 25,
+    "nowLoading": [
+     "textures/metashader/s_0",
+     "textures/metashader/s_0to1",
+     "textures/metashader/s_0to2",
+     "textures/metashader/s_1",
+     "textures/metashader/s_1to2",
+     "textures/metashader/s_2",
+     "textures/sprites/ss_raintest",
+     "textures/sprites/ss_test2",
+     "textures/sprites/ss_test3",
+     "textures/sprites/ss_testall",
+     "textures/yavin/dirt1_sprite",
+     "textures/yavin/dirtgrasscorner_sprite",
+     "textures/yavin/dirtgrassedge_sprite",
+     "textures/yavin/grasspatchy2",
+     "textures/yavin/grasspatchy_reeds",
+     "textures/yavin/grasspatchy_sm_sprite",
+     "textures/yavin/grasspatchy_sprite",
+     "textures/yavin/grasspatchy_swampsprite",
+     "textures/yavin/grasspatchy_underwater",
+     "textures/yavin/s_rock1_vines",
+     "textures/yavin/swater1_2sided",
+     "textures/yavin/water1_2sided"
+    ],
+    "newlyRefused": []
+   },
+   "rendererrtx/jk2/jk2-mp": {
+    "total": 1187,
+    "before": 47,
+    "after": 25,
+    "nowLoading": [
+     "textures/metashader/s_0",
+     "textures/metashader/s_0to1",
+     "textures/metashader/s_0to2",
+     "textures/metashader/s_1",
+     "textures/metashader/s_1to2",
+     "textures/metashader/s_2",
+     "textures/sprites/ss_raintest",
+     "textures/sprites/ss_test2",
+     "textures/sprites/ss_test3",
+     "textures/sprites/ss_testall",
+     "textures/yavin/dirt1_sprite",
+     "textures/yavin/dirtgrasscorner_sprite",
+     "textures/yavin/dirtgrassedge_sprite",
+     "textures/yavin/grasspatchy2",
+     "textures/yavin/grasspatchy_reeds",
+     "textures/yavin/grasspatchy_sm_sprite",
+     "textures/yavin/grasspatchy_sprite",
+     "textures/yavin/grasspatchy_swampsprite",
+     "textures/yavin/grasspatchy_underwater",
+     "textures/yavin/s_rock1_vines",
+     "textures/yavin/swater1_2sided",
+     "textures/yavin/water1_2sided"
+    ],
+    "newlyRefused": []
+   },
+   "rendererrtx/jk2/q3": {
+    "total": 1187,
+    "before": 90,
+    "after": 90,
+    "nowLoading": [],
+    "newlyRefused": []
+   }
+  }
+ },
+ "runtimeBaseCommit": "b80e6f6e19a35d3f0eb76dd6e5912555019f4136",
+ "runtimes": {
+  "before": {
+   "folder": ".tmp/runtime/surface-sprites-before",
+   "files": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "e0085f7797ba1e830449d15c74ed054f3c86682c3b80322bbc47a6209feef613",
+    "fnql_rtx_x86.dll": "5d5bd28a124b23bcc956e5afe63e1501cae9c877cdb1700cef7e559fe407d394",
+    "fnql_vk_x86.dll": "b394b4be94515b82e138adb380c5aafedbf1e1305dd6a4660abfa27630c62fed",
+    "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f",
+    "fntech3.exe": "828057a9602311b234a6e6dd42f6dff53b63b573fb49812246a0f9fdfe2ba4d1",
+    "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+   }
+  },
+  "after": {
+   "folder": ".tmp/runtime/surface-sprites-after",
+   "files": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "0b7fab383286df3f8e24909c91238b4b74e33af59576167f5193849b2a7ba62f",
+    "fnql_rtx_x86.dll": "c2e7720db991451e3d5cdd6154b0d6776df695757bc382353d2883363ff7f8f2",
+    "fnql_vk_x86.dll": "afae2ab24001893b9cbb768897f64d4449836b8c815f42b1a2e27af93bb60f6b",
+    "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f",
+    "fntech3.exe": "828057a9602311b234a6e6dd42f6dff53b63b573fb49812246a0f9fdfe2ba4d1",
+    "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+   }
+  }
+ },
+ "live": {
+  "harness": ".tmp/surface-sprites/probe.py (copy of .tmp/raven-sun/probe.py)",
+  "view": "mp/ctf3, spectator, setviewpos -1088 -1150 150 90, cl_menuBlur 0, cg_draw2D 0",
+  "runs": {
+   "after-ctf3-glx": {
+    "profile": "jka-mp",
+    "map": "mp/ctf3",
+    "renderer": "glx",
+    "runtime": ".tmp\\runtime\\surface-sprites-after",
+    "identity": {
+     "fntech3.exe": "828057a9602311b234a6e6dd42f6dff53b63b573fb49812246a0f9fdfe2ba4d1",
+     "fnql_glx_x86.dll": "0b7fab383286df3f8e24909c91238b4b74e33af59576167f5193849b2a7ba62f",
+     "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f"
+    },
+    "commands": [
+     "cmd team spectator",
+     "wait 30",
+     "ui_openmenu none",
+     "setviewpos -1088 -1150 150 90"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "sprites-00.png",
+      "sha256": "da5e41e9a1e4e75393fd38ccfbea4843b991fd2d9deaa34e01d24e3b9b1fa68f"
+     },
+     {
+      "name": "sprites-01.png",
+      "sha256": "8908d5bd5f38a271892f4351582c0fa5ac43a01021806288ad1b0f68b6ec1f4e"
+     }
+    ]
+   },
+   "after-ctf3-glx-off": {
+    "profile": "jka-mp",
+    "map": "mp/ctf3",
+    "renderer": "glx",
+    "runtime": ".tmp\\runtime\\surface-sprites-after",
+    "identity": {
+     "fntech3.exe": "828057a9602311b234a6e6dd42f6dff53b63b573fb49812246a0f9fdfe2ba4d1",
+     "fnql_glx_x86.dll": "0b7fab383286df3f8e24909c91238b4b74e33af59576167f5193849b2a7ba62f",
+     "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f"
+    },
+    "commands": [
+     "cmd team spectator",
+     "wait 30",
+     "ui_openmenu none",
+     "setviewpos -1088 -1150 150 90"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "sprites-00.png",
+      "sha256": "ba858cf50acd44f45c4555246efdd1066bec99ca5025a4e09eee134b9b8a9183"
+     },
+     {
+      "name": "sprites-01.png",
+      "sha256": "383e95bdf49a2d1a13ea7178531b883ac36243f53bb81325893b91673d2d06dd"
+     }
+    ]
+   },
+   "after-ctf3-rtx": {
+    "profile": "jka-mp",
+    "map": "mp/ctf3",
+    "renderer": "rtx",
+    "runtime": ".tmp\\runtime\\surface-sprites-after",
+    "identity": {
+     "fntech3.exe": "828057a9602311b234a6e6dd42f6dff53b63b573fb49812246a0f9fdfe2ba4d1",
+     "fnql_rtx_x86.dll": "c2e7720db991451e3d5cdd6154b0d6776df695757bc382353d2883363ff7f8f2",
+     "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f"
+    },
+    "commands": [
+     "cmd team spectator",
+     "wait 30",
+     "ui_openmenu none",
+     "setviewpos -1088 -1150 150 90"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "sprites-00.png",
+      "sha256": "ad5f30baa9405530bcc65778eac5a532143c0ba3760853053ff923ba4773b7c4"
+     },
+     {
+      "name": "sprites-01.png",
+      "sha256": "69e676968137a8d439de42bb6117ee5a8d2ecd15411e8b6692c33d22aa517e28"
+     }
+    ]
+   },
+   "after-ctf3-vk": {
+    "profile": "jka-mp",
+    "map": "mp/ctf3",
+    "renderer": "vk",
+    "runtime": ".tmp\\runtime\\surface-sprites-after",
+    "identity": {
+     "fntech3.exe": "828057a9602311b234a6e6dd42f6dff53b63b573fb49812246a0f9fdfe2ba4d1",
+     "fnql_vk_x86.dll": "afae2ab24001893b9cbb768897f64d4449836b8c815f42b1a2e27af93bb60f6b",
+     "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f"
+    },
+    "commands": [
+     "cmd team spectator",
+     "wait 30",
+     "ui_openmenu none",
+     "setviewpos -1088 -1150 150 90"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "sprites-00.png",
+      "sha256": "77829fcb818d6f22fde6922f4ca9be434d8bdce5e47447bacdbceed15903733f"
+     },
+     {
+      "name": "sprites-01.png",
+      "sha256": "18898c04c7fe331c891260dc8ca5d5b1d23983c1eb916ed91e6ca21843a50bbc"
+     }
+    ]
+   },
+   "before-ctf3-glx": {
+    "profile": "jka-mp",
+    "map": "mp/ctf3",
+    "renderer": "glx",
+    "runtime": ".tmp\\runtime\\surface-sprites-before",
+    "identity": {
+     "fntech3.exe": "828057a9602311b234a6e6dd42f6dff53b63b573fb49812246a0f9fdfe2ba4d1",
+     "fnql_glx_x86.dll": "e0085f7797ba1e830449d15c74ed054f3c86682c3b80322bbc47a6209feef613",
+     "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f"
+    },
+    "commands": [
+     "cmd team spectator",
+     "wait 30",
+     "ui_openmenu none",
+     "setviewpos -1088 -1150 150 90"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "sprites-00.png",
+      "sha256": "397b45be30ab990d1e7509290a9fa78f6d33541e3e6d46e0e5192100e87c5d40"
+     },
+     {
+      "name": "sprites-01.png",
+      "sha256": "827845ba296c6979396d13dc22c32ceb3ee85e8e86c5ae9eff37abf347b24a0a"
+     }
+    ]
+   },
+   "before-ctf3-rtx": {
+    "profile": "jka-mp",
+    "map": "mp/ctf3",
+    "renderer": "rtx",
+    "runtime": ".tmp\\runtime\\surface-sprites-before",
+    "identity": {
+     "fntech3.exe": "828057a9602311b234a6e6dd42f6dff53b63b573fb49812246a0f9fdfe2ba4d1",
+     "fnql_rtx_x86.dll": "5d5bd28a124b23bcc956e5afe63e1501cae9c877cdb1700cef7e559fe407d394",
+     "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f"
+    },
+    "commands": [
+     "cmd team spectator",
+     "wait 30",
+     "ui_openmenu none",
+     "setviewpos -1088 -1150 150 90"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "sprites-00.png",
+      "sha256": "18ec19e64da57a7538534c7cb8c8e2f6163a344008c582d1338b0226c5a87886"
+     },
+     {
+      "name": "sprites-01.png",
+      "sha256": "706fe78de428238251724b0b1fd5a7528b504231c9be31727f69773eec32702e"
+     }
+    ]
+   },
+   "before-ctf3-vk": {
+    "profile": "jka-mp",
+    "map": "mp/ctf3",
+    "renderer": "vk",
+    "runtime": ".tmp\\runtime\\surface-sprites-before",
+    "identity": {
+     "fntech3.exe": "828057a9602311b234a6e6dd42f6dff53b63b573fb49812246a0f9fdfe2ba4d1",
+     "fnql_vk_x86.dll": "b394b4be94515b82e138adb380c5aafedbf1e1305dd6a4660abfa27630c62fed",
+     "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f"
+    },
+    "commands": [
+     "cmd team spectator",
+     "wait 30",
+     "ui_openmenu none",
+     "setviewpos -1088 -1150 150 90"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "sprites-00.png",
+      "sha256": "77fc5558a3b8390158a693b76405abb8f35883f4633909e2bece3e56b2354b9f"
+     },
+     {
+      "name": "sprites-01.png",
+      "sha256": "de13f06aa4f7546a2769f2aa215e67f9773aa86432e7df8587d426b0395bfb56"
+     }
+    ]
+   }
+  },
+  "measure": {
+   "box": [
+    0,
+    300,
+    800,
+    470
+   ],
+   "captures": {
+    "after-ctf3-glx": {
+     "sha256": "8908d5bd5f38a271892f4351582c0fa5ac43a01021806288ad1b0f68b6ec1f4e",
+     "meanRGB": [
+      44.2,
+      51.8,
+      29.8
+     ]
+    },
+    "after-ctf3-glx-off": {
+     "sha256": "383e95bdf49a2d1a13ea7178531b883ac36243f53bb81325893b91673d2d06dd",
+     "meanRGB": [
+      57.0,
+      67.6,
+      39.6
+     ]
+    },
+    "after-ctf3-rtx": {
+     "sha256": "69e676968137a8d439de42bb6117ee5a8d2ecd15411e8b6692c33d22aa517e28",
+     "meanRGB": [
+      43.8,
+      52.7,
+      30.4
+     ]
+    },
+    "after-ctf3-vk": {
+     "sha256": "18898c04c7fe331c891260dc8ca5d5b1d23983c1eb916ed91e6ca21843a50bbc",
+     "meanRGB": [
+      43.9,
+      51.5,
+      29.6
+     ]
+    },
+    "before-ctf3-glx": {
+     "sha256": "827845ba296c6979396d13dc22c32ceb3ee85e8e86c5ae9eff37abf347b24a0a",
+     "meanRGB": [
+      68.3,
+      67.8,
+      60.9
+     ]
+    },
+    "before-ctf3-rtx": {
+     "sha256": "706fe78de428238251724b0b1fd5a7528b504231c9be31727f69773eec32702e",
+     "meanRGB": [
+      76.3,
+      82.2,
+      69.9
+     ]
+    },
+    "before-ctf3-vk": {
+     "sha256": "de13f06aa4f7546a2769f2aa215e67f9773aa86432e7df8587d426b0395bfb56",
+     "meanRGB": [
+      68.3,
+      67.9,
+      60.9
+     ]
+    }
+   },
+   "pairs": {
+    "before-vs-after-glx": 0.3783,
+    "before-vs-after-vk": 0.3814,
+    "before-vs-after-rtx": 0.4864,
+    "after-glx-vs-sprites-off": 0.3262,
+    "after-glx-vs-after-vk": 0.0004
+   }
+  }
+ },
+ "tests": [
+  "tests/jedi_surface_sprite_tests.py"
+ ],
+ "findings": [
+  "alphaFunc GE192 unknown to Fn (45 Academy, 23 Outcast stages); jamp.exe 0x4b24c9, jk2mp.exe 0x48dc60",
+  "global wind needs Academy weather effects, not run by fnTech3",
+  "tests/raven_bsp_shader_flags_tests.py at b80e6f6e imports an uncommitted compiler_support helper"
+ ]
+}

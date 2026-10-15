@@ -2779,6 +2779,20 @@ maps load in the renderers, where 45 were refused. Academy's `kor1` draws in
 GLx, Vulkan and RTX, and `t1_fatal` and `t3_bounty` in GLx (Live subset).
 Animated and switched styles do not reach the renderer yet. No gate closes.
 
+The [surface sprites slice](2026-10-15-jedi-surface-sprites.md)
+(2026-10-15) reads Raven's `surfaceSprites` stage word and its `ss`
+companions as both Academy engines do (`jamp.exe` 1.01 `0x4b3fef`,
+`jasp.exe` 1.01 `0x47a1a6`): the rest of the line goes to the sprite parser,
+a bad or unknown word only warns, and only `jasp.exe` knows `flattened`.
+The sprite stages leave the surface's passes and draw after it from the
+second stage on (`0x4aef88`, `0x4af48f`), as sprites built from its
+triangles through each renderer's own pipeline. Through the production
+parser, all 39 installed sprite definitions now load in GLx, Vulkan and
+RTX, and no other definition changes (Source, Unit). On `mp/ctf3` the grass
+field, which drew as the default image's grid, now grows its grass in all
+three renderers (Live subset). Raven's `alphaFunc GE192`, which the grass
+stage also uses, is still unknown to Fn's parser. No gate closes.
+
 Star Wars Jedi Knight: Jedi Academy is the sixth title, with two mode profiles
 over one `base/` installation: `jka-sp` for Raven's single-player campaign and
 `jka-mp` for multiplayer. The [foundation record](2026-09-21-jka-contracts.md)
@@ -2961,6 +2975,18 @@ Vulkan and RTX, and no other definition changes (Source, Unit).
 `jk2sp.exe`'s `RF_SETANIMINDEX` frame override (`0x4781ee`) is not yet
 served for `jk2-sp`. Nothing has been seen live: the multiplayer client
 still stops at client-game import 300 before a map draws. No gate closes.
+
+The [surface sprites slice](2026-10-15-jedi-surface-sprites.md)
+(2026-10-15) has both Outcast profiles read `surfaceSprites` and its `ss`
+words as `jk2mp.exe` and `jk2sp.exe` do (`0x48d712`, `0x47d542`), with the
+same checks and defaults as Academy's engines and the record kept inside
+the stage (`+0xf0`). The sprites draw from the second stage on
+(`0x48867a`), and the surface asks for normals as retail marks it
+(`0x48e7a8`). Through the production parser, all 22 installed sprite
+definitions now load in GLx, Vulkan and RTX, and no other definition
+changes (Source, Unit). No sprite has been drawn live under Outcast: the
+multiplayer client still stops at client-game import 300, and the maps
+that use them are single player's. No gate closes.
 
 Star Wars Jedi Knight II: Jedi Outcast is the seventh title, with two mode
 profiles over one `base/` installation: `jk2-sp` and `jk2-mp`. Every contract

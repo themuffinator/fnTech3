@@ -94,6 +94,12 @@ historical upstream records, not fnTech3 release history. See the
   Outcast profiles now read Raven's `oneshotanimMap` and `clampanimMap`, as
   the original engines do
   ([record](docs/fntech3/2026-10-15-jk2-animmap-variants.md)).
+- Grow the grass, reeds and splashes of both Jedi games' outdoor ground,
+  such as the grass field on Jedi Academy's `mp/ctf3`, which drew as a black
+  and white grid. Their shaders' `surfaceSprites` stages are now read as the
+  original engines read them and drawn as sprites over the ground in all
+  three renderers; `r_surfaceSprites 0` turns them off
+  ([record](docs/fntech3/2026-10-15-jedi-surface-sprites.md)).
 - Light Jedi Academy's and Jedi Outcast's maps under RTX with their real
   sky and its sun: the path tracer read the maps' surface flags with Quake
   III's values, so ground and walls whose material shares a bit with Quake

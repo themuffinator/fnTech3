@@ -57,6 +57,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_rtcw_fog_view.h"
 #include "../renderercommon/tr_rtcw_world_shader.h"
 #include "../renderercommon/tr_liquid.h"
+#include "../renderercommon/tr_jedi_sprite.h"
 #include "../renderercommon/tr_underwater.h"
 #include "tr_common.h"
 #include "iqm.h"
@@ -502,6 +503,9 @@ typedef struct {
 
 	uint32_t		tessFlags;
 
+	// Raven: the stage's surface-sprite record (tr_jedi_sprite.h)
+	jediSurfaceSprite_t	jediSprite;
+
 } shaderStage_t;
 
 struct shaderCommands_s;
@@ -660,6 +664,11 @@ typedef struct shader_s {
 	waveForm_t	aliceFogGen;
 	float		aliceSubdivisions;
 	qboolean	aliceNoStatic;
+
+	// Raven: the sprite stages drawn after the surface, each its own
+	// shader (renderercommon/tr_jedi_sprite_shader.h)
+	int					numJediSprites;
+	jediSpritePass_t	*jediSprites;
 
 	int		q3test2D;		// Q3Test: this shader's 2D picture shader, once made (tr_q3test_2d.h)
 

@@ -152,6 +152,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Jedi Outcast's one-shot and clamped animations](fntech3/2026-10-15-jk2-animmap-variants.md)
   -- Raven's `oneshotanimMap` and `clampanimMap`, read in both Outcast
   engines, which its explosions and campaign doors use.
+- [Raven's surface sprites](fntech3/2026-10-15-jedi-surface-sprites.md)
+  -- the `surfaceSprites` stages of both Jedi games, read as their engines
+  read them and drawn as grass and splashes over the ground.
 - [Raven's map shader flags](fntech3/2026-10-15-raven-bsp-shader-flags.md)
   -- the surface and content bits in both Jedi games' maps, read with
   Raven's values, so RTX finds each map's real sky and its sun.
