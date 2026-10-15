@@ -138,7 +138,7 @@ static bool CL_JK2UIRenderCall(intptr_t *args, intptr_t &result) {
                 render::Description(status), CL_JK2UIViewInvalidField(source), source.x, source.y, source.width, source.height,
                 static_cast<double>(source.fov_x), static_cast<double>(source.fov_y), static_cast<unsigned>(source.rdflags));
         view.rdflags |= RDF_NOFOVCORRECTION;
-        CL_UIAdjustRefdef(&view);
+        CL_UIAdjustVirtualRefdef(&view);
         CL_JK2UIValidateViewport(view, cls.glconfig.vidHeight);
         re.RenderScene(&view);
         return true;

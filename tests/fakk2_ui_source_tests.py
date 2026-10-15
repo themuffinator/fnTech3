@@ -103,7 +103,7 @@ class Fakk2UiSourceTests(unittest.TestCase):
         allowed = ' '.join(read('code/qcommon/files.c').split('static qboolean FS_RootArchiveAllowsFile(', 1)[1]
                            .split('\n}', 1)[0].split())
         self.assertIn('( ( Com_GameIsQuake3() || Com_GameIsRTCW() || Com_GameIsWolfET() || Com_GameIsSTVEF() '
-                      '|| Com_GameIsRitual() ) &&', allowed)
+                      '|| Com_GameIsRitual() || Com_GameIsJKAMP() ) &&', allowed)
 
     def test_every_label_is_a_fakk_label(self):
         widget = function(self.ui, 'void DrawWidget( Menu &menu, int index, float parentAlpha ) {')

@@ -112,6 +112,9 @@ Release packages include them as web pages in their `manual` folder, built by
   -- Enemy Territory's tactical search queues and update records, and the
   pure gamestate budget of Enemy Territory and Jedi Outcast, read from the
   retail executables.
+- [Jedi HUD and menus on any screen shape](fntech3/2026-10-15-jedi-widescreen-hud.md)
+  -- Raven's virtual 640x480 screen, read in both retail executables, and
+  Jedi Academy's widescreen HUD layout.
 - [October 9 compatibility integration](fntech3/2026-10-09-compatibility-integration.md)
   -- resumed Alice and Elite Force work, shared-tree validation, and probe
   evidence and limits for the combined compatibility slices.

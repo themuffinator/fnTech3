@@ -58,7 +58,7 @@ static int Tag(orientation_t *result,qhandle_t model,int first,int last,float fr
  *result={};for(int n=0;n<3;++n){result->origin[n]=tagResult?float(n+10):0.0f;result->axis[n][n]=1;}
  if(invalidOutput)result->axis[1][2]=BadFloat();return tagResult;
 }
-static void CL_UIAdjustRefdef(refdef_t *value){++adjusted;value->x+=3;value->width+=5;}
+static void CL_UIAdjustVirtualRefdef(refdef_t *value){++adjusted;value->x+=3;value->width+=5;}
 struct Renderer {
  decltype(&Register) RegisterModel,RegisterSkin;decltype(&Clear) ClearScene;
  decltype(&AddEntity) AddRefEntityToScene;decltype(&Polygon) AddPolyToScene;

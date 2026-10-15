@@ -20,15 +20,16 @@ fntech3-pkg.fnz
     ├── rtcw-sp/main/{maps/*.azb,maps/*.lights.json,fntech3-hud.json}
     ├── rtcw-mp/main/{maps/*.azb,maps/*.lights.json,fntech3-hud.json}
     ├── wolfet/etmain/{maps/*.azb,fntech3-hud.json}
-    ├── stvef-sp/baseEF/fntech3-hud.json
-    ├── stvef-mp/baseEF/fntech3-hud.json
+    ├── stvef-sp/baseEF/{maps/*.azb,fntech3-hud.json}
+    ├── stvef-mp/baseEF/{maps/*.azb,fntech3-hud.json}
     ├── alice/base/{maps/*.azb,maps/*.lights.json,fntech3-hud.json}
     ├── fakk2/fakk/{maps/*.azb,maps/*.lights.json,fntech3-hud.json}
+    ├── jka-mp/base/fntech3-hud.json
     └── mohaa/main/maps/{,DM/,obj/,briefing/}{*.azb,*.lights.json}
 ```
 
 `<profile>` is the canonical immutable game profile key: `quake3`,
-`quakelive`, `rtcw-sp`, `rtcw-mp`, `wolfet`, `stvef-sp`, `stvef-mp`, `alice`, `fakk2`, or `mohaa`. Startup aliases such as `q3` and `ql`
+`quakelive`, `rtcw-sp`, `rtcw-mp`, `wolfet`, `stvef-sp`, `stvef-mp`, `alice`, `fakk2`, `mohaa`, or `jka-mp`. Startup aliases such as `q3` and `ql`
 are not package directory names. RTCW SP and MP have separate namespaces
 even though both installations use `main`. They ship audio zones for all
 32 official SP maps (including cinematics and the ending) and 15 official MP maps.
@@ -51,7 +52,8 @@ existing layout; this namespace applies only to engine-owned package assets.
 3. Read only engine-owned sidecars: `maps/*.azb`, `maps/*.fog`,
    `maps/*.lights.json`, `scripts/fnql.shader`, and
    `sound/fnql-weapon-sounds.sndshd`. Every profile with HUD correction --
-   Q3, RTCW, Enemy Territory, Elite Force, Alice and F.A.K.K.2 -- additionally
+   Q3, RTCW, Enemy Territory, Elite Force, Alice, F.A.K.K.2 and Jedi Academy
+   multiplayer -- additionally
    permits the exact `fntech3-hud.json` and legacy `fnq3-hud.json` filenames;
    Quake Live and Medal of Honor, whose modules place their own HUDs, exclude
    these HUD presets. The shader is
@@ -109,7 +111,9 @@ which places its four HUD menus, brings it to 627. Medal of Honor: Allied
 Assault's fifty-four maps add an audio sidecar and a static light file each,
 beside each map in the folder its pak keeps it in (`DM/`, `obj/`,
 `briefing/`), bringing it to 735, and the HUD presets of Alice, Enemy
-Territory and both Elite Force modes bring it to 739. The map files are the shipped
+Territory and both Elite Force modes bring it to 739. Elite Force's 99 maps
+then add an audio sidecar each, bringing it to 838, and Jedi Academy
+multiplayer's HUD preset brings it to 839. The map files are the shipped
 `maps/*.lights.json`; they feed the renderers' static map lights
 (`r_staticLights`), and the package validator reads each one as the
 renderers would. Their generation records --

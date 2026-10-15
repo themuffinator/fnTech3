@@ -34,7 +34,8 @@ static int profile, reads, writes, registrations, commands, draws, liveFiles;
 static void (*reload)();
 static std::array<float, 8> submitted;
 static qhandle_t submittedShader, pictureShader = 17;
-// 0 Q3, 1 QL, 2 RTCW SP, 3 RTCW MP, 4 F.A.K.K.2, 5 ET, 6 EF SP, 7 EF MP, 8 Alice, 9 MoHAA
+// 0 Q3, 1 QL, 2 RTCW SP, 3 RTCW MP, 4 F.A.K.K.2, 5 ET, 6 EF SP, 7 EF MP, 8 Alice, 9 MoHAA,
+// 10 Jedi Academy multiplayer
 // The entity editor, closed: the HUD draws as it always has.
 extern "C" qboolean CL_EntityEditorActive( void ) { return qfalse; }
 int Com_GameIsQuake3() { return profile == 0; }
@@ -42,6 +43,7 @@ int Com_GameIsRTCW() { return profile == 2 || profile == 3; }
 int Com_GameIsWolfET() { return profile == 5; }
 int Com_GameIsSTVEF() { return profile == 6 || profile == 7; }
 int Com_GameIsRitual() { return profile == 4 || profile == 8; }
+int Com_GameIsJKAMP() { return profile == 10; }
 static bool Unsupported() { return profile == 1 || profile == 9; }
 cvar_t *Cvar_Get(const char *name, const char *value, int) {
     ++registrations;
@@ -692,6 +694,61 @@ int main(int argc, char **argv) {
             sample("white",620,350,1,10,2515);
             sample("gfx/2d/hudchars",534,445,8,16,1761.5f); // scoreboard, not ammo
             sample("gfx/2d/hudchars",619,450,8,16,1952.75f); // not a charge bar
+        } else if (profile == 10) {
+            // Jedi Academy draws in Raven's virtual 640x480 screen. Its host
+            // maps that to the screen the game was told it has, the 4:3 frame,
+            // so the points it projects meet the widened view.
+            int frameW = 2560, frameH = 1080;
+            CL_HudModuleScreen(&frameW, &frameH); assert(frameW==1440 && frameH==1080);
+            const auto virtualPic = [](const char *shader, float x, float y, float w, float h) {
+                CL_HudRegisterShaderName(17, shader);
+                CL_HudFromVirtual(&x, &y, &w, &h);
+                CL_HudDrawStretchPic(x, y, w, h, 0.1f, 0.2f, 0.8f, 0.9f, 17);
+            };
+            virtualPic("gfx/hud/hudleft", 0, 368, 112, 112); Expect(0, 828, 252, 252);        // lower left
+            virtualPic("gfx/hud/hudright", 528, 368, 112, 112); Expect(2308, 828, 252, 252);  // lower right
+            virtualPic("models/players/kyle/icon_default", 575, 5, 60, 60);
+            Expect(2413.75f, 11.25f, 135, 135);                                          // leader, top right
+            virtualPic("gfx/2d/crosshairb", 304, 224, 32, 32); Expect(1244, 504, 72, 72);    // crosshair, centred
+            // The dynamic crosshair follows its target into a corner and stays
+            // with the view; the selection bar's last icon stays with its bar.
+            virtualPic("gfx/2d/crosshairb", 600, 440, 24, 24); Expect(1910, 990, 54, 54);
+            virtualPic("gfx/hud/w_icon_blaster", 476, 420, 40, 40); Expect(1631, 945, 90, 90);
+            // A chat line from the left edge, matched by its own left end.
+            CL_HudBeginTextLine(30, 337, 300, 350);
+            virtualPic("fonts/ergoec", 30, 338, 6, 10); Expect(67.5f, 760.5f, 13.5f, 22.5f);
+            CL_HudEndTextLine();
+            // The scoreboard and the loading screen are each one centred 4:3
+            // screen from their first picture, for the rest of that frame.
+            CL_HudBeginFrame();
+            virtualPic("gfx/menus/menu_buttonback.tga", 60, 81, 520, 40); Expect(695, 182.25f, 1170, 90);
+            virtualPic("white", 540, 400, 60, 20); Expect(1775, 900, 135, 45);
+            CL_HudEndFrame(); CL_HudBeginFrame();
+            virtualPic("white", 540, 400, 60, 20); Expect(2335, 900, 135, 45);
+            virtualPic("levelshots/mp/ffa1", 0, 0, 640, 480); Expect(0, 0, 2560, 1080);
+            virtualPic("gfx/hud/mp_levelload", 112, 448, 416, 32); Expect(812, 1008, 936, 72);
+            CL_HudEndFrame();
+            // A string from the font import is one line: each glyph is placed
+            // by the whole string, here a score line reaching into the right HUD.
+            CL_HudBeginTextLine(400, 463, 520, 476);
+            virtualPic("fonts/ergoec", 410, 465, 6, 10); Expect(2042.5f, 1046.25f, 13.5f, 22.5f);
+            CL_HudEndTextLine();
+            virtualPic("fonts/ergoec", 410, 465, 6, 10); Expect(1482.5f, 1046.25f, 13.5f, 22.5f);
+            CL_HudBeginTextLine(1, 2, 0, 3); // an empty string's area places nothing
+            virtualPic("fonts/ergoec", 410, 465, 6, 10); Expect(1482.5f, 1046.25f, 13.5f, 22.5f);
+            CL_HudEndTextLine();
+            refdef_t world{}; world.width=1440; world.height=1080; world.fov_x=80; world.fov_y=64;
+            CL_HudAdjustRefdef(&world); // the full frame fills the screen, widened by the renderer
+            assert(world.x==0 && world.width==2560 && world.height==1080 && !(world.rdflags & RDF_NOFOVCORRECTION));
+            variables["cl_hudAspect"].integer=0;   // retail's stretch of its frame
+            virtualPic("gfx/hud/hudleft", 0, 368, 112, 112); Expect(0, 828, 448, 252);
+            variables["cl_hudAspect"].integer=1;
+            // Without the frame the virtual screen is the real one: same placement.
+            CL_HudResetCGame();
+            virtualPic("gfx/hud/hudleft", 0, 368, 112, 112); Expect(0, 828, 252, 252);
+            variables["cl_hudAspect"].integer=0;
+            virtualPic("gfx/hud/hudleft", 0, 368, 112, 112); Expect(0, 828, 448, 252);
+            variables["cl_hudAspect"].integer=1;
         }
         CL_HudRegisterShaderName(17,"white");
         Picture(0,0,2560,1080); Expect(0,0,2560,1080);
@@ -758,8 +815,9 @@ class HudAspectTests(unittest.TestCase):
                 6: "stvef-sp/baseEF/fntech3-hud.json",
                 7: "stvef-mp/baseEF/fntech3-hud.json",
                 8: "alice/base/fntech3-hud.json",
+                10: "jka-mp/base/fntech3-hud.json",
             }
-            for profile in range(10):
+            for profile in range(11):
                 with self.subTest(profile=profile):
                     output = path / f"dump-{profile}.json"
                     command = [str(executable), str(profile), str(output)]

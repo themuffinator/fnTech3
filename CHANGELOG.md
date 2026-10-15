@@ -44,6 +44,11 @@ historical upstream records, not fnTech3 release history. See the
   messages: a big Enemy Territory map keeps checking players' files instead of
   falling back, and a busy Jedi Outcast server no longer publishes a list its
   players cannot receive ([record](docs/fntech3/2026-10-15-census-small-gaps.md)).
+- Scale Jedi Academy's HUD and both Jedi games' menus to the window. They
+  draw on a 640x480 screen the originals stretched over the window, and had
+  filled only its top-left corner; on a widescreen display Academy's HUD now
+  keeps its shape at the screen's corners, and `cl_menuAspect 1` centres the
+  menus ([record](docs/fntech3/2026-10-15-jedi-widescreen-hud.md)).
 
 ## [0.1.0] - 2026-10-11
 

@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "textRuns": true,
+  "rules": [
+    {
+      "name": "crosshair",
+      "match": { "shader": "gfx/2d/crosshair*" },
+      "align": { "x": "center", "y": "middle" }
+    },
+    {
+      "name": "scoreboard",
+      "match": { "shader": "gfx/menus/menu_buttonback*", "textLike": 0 },
+      "panel": "centered"
+    },
+    {
+      "name": "loading_levelshot",
+      "match": { "shader": "levelshots/*", "textLike": 0 },
+      "mode": "stretch",
+      "panel": "centered"
+    },
+    {
+      "name": "loading_unknown_map",
+      "match": { "shader": "menu/art/unknownmap*", "textLike": 0 },
+      "mode": "stretch",
+      "panel": "centered"
+    },
+    {
+      "name": "votes",
+      "match": { "textLike": 1, "edge": "left", "region": { "x": -1, "y": 40, "w": 12, "h": 80 } },
+      "align": { "x": "left", "y": "top" }
+    },
+    {
+      "name": "chat",
+      "match": { "textLike": 1, "edge": "left", "region": { "x": 26, "y": 200, "w": 10, "h": 280 } },
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "selection_bars",
+      "match": { "region": { "x": 100, "y": 395, "w": 408, "h": 70 } },
+      "align": { "x": "center", "y": "bottom" }
+    },
+    {
+      "name": "left_hud",
+      "match": { "region": { "x": 0, "y": 360, "w": 160, "h": 120 } },
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "left_side",
+      "match": { "region": { "x": 0, "y": 290, "w": 60, "h": 70 } },
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "left_column",
+      "match": { "region": { "x": 0, "y": 0, "w": 140, "h": 290 } },
+      "align": { "x": "left", "y": "top" }
+    },
+    {
+      "name": "right_hud",
+      "match": { "region": { "x": 440, "y": 360, "w": 200, "h": 120 } },
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "right_side",
+      "match": { "region": { "x": 520, "y": 290, "w": 120, "h": 70 } },
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "upper_right_text",
+      "match": { "textLike": 1, "edge": "right", "region": { "x": 600, "y": 0, "w": 44, "h": 290 } },
+      "align": { "x": "right", "y": "top" }
+    },
+    {
+      "name": "upper_right",
+      "match": { "region": { "x": 520, "y": 0, "w": 120, "h": 290 } },
+      "align": { "x": "right", "y": "top" }
+    }
+  ]
+}

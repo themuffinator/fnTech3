@@ -69,6 +69,8 @@ static void CL_UpdateLocalViewLiquidInteraction(const refdef_t *) { ++liquidCall
 static void CL_UpdateUnderwaterView(const refdef_t *) { ++underwaterCalls; }
 static void CL_FlushEnemyHighlightRefEntities(const refdef_t *) { ++flushCalls; }
 static void CL_UIAdjustRefdef(refdef_t *) {}
+static bool CL_UIVirtualScreen() { return Com_GameIsJKA(); } // Mapping runs in ui_viewport_tests.
+static void CL_UIAdjustVirtualRefdef(refdef_t *) {}
 static void CL_HudAdjustRefdef(refdef_t *) {} // Layout runs in hud_aspect_tests.
 static void CL_HudFlushQueue() {}
 static void CL_EntityEditorAdjustView(refdef_t *) {} // The entity editor, closed.

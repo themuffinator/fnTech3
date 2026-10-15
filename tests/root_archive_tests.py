@@ -57,7 +57,8 @@ class RootArchiveTests(unittest.TestCase):
         profiles = [*enumerate(("quake3", "quakelive", "rtcw-sp", "rtcw-mp"), 1),
                     (ids.index("COM_GAME_ALICE"), "alice"), (ids.index("COM_GAME_FAKK2"), "fakk2"),
                     (ids.index("COM_GAME_WOLFET"), "wolfet"), (ids.index("COM_GAME_STVEF_SP"), "stvef-sp"),
-                    (ids.index("COM_GAME_STVEF_MP"), "stvef-mp"), (ids.index("COM_GAME_MOHAA"), "mohaa")]
+                    (ids.index("COM_GAME_STVEF_MP"), "stvef-mp"), (ids.index("COM_GAME_MOHAA"), "mohaa"),
+                    (ids.index("COM_GAME_JKA_SP"), "jka-sp"), (ids.index("COM_GAME_JKA_MP"), "jka-mp")]
         for profile_id, key in profiles:
             with self.subTest(profile=key):
                 result = subprocess.run([str(self.executable), str(profile_id), key],

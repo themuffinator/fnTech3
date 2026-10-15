@@ -835,6 +835,64 @@ static void CL_UIAdjustRefdef( refdef_t *refdef ) {
 }
 
 
+// Raven's menus (Jedi Academy's and Jedi Outcast's) draw in a virtual 640x480
+// screen, which their renderer stretched over the window. They reach the
+// screen stretched as the originals did, or, with cl_menuAspect 1, in the
+// centred 4:3 area the other games' menus take.
+static bool CL_UIVirtualScreen( void ) {
+	return Com_GameIsJKA() || Com_GameIsJK2();
+}
+
+
+static void CL_UIFromVirtual( float *x, float *y, float *w, float *h ) {
+	if ( cl_menuAspect && cl_menuAspect->integer && cls.scale > 0.0f ) {
+		*x = *x * cls.scale + cls.biasX;
+		*y = *y * cls.scale + cls.biasY;
+		*w *= cls.scale;
+		*h *= cls.scale;
+		return;
+	}
+	const float xscale = cls.glconfig.vidWidth / 640.0f;
+	const float yscale = cls.glconfig.vidHeight / 480.0f;
+	*x *= xscale;
+	*y *= yscale;
+	*w *= xscale;
+	*h *= yscale;
+}
+
+
+// A Raven menu places its own 3D views in the window's pixels, scaling its
+// virtual rectangle by the screen it was told it has; stretched, that is
+// already where the rest of the menu is. In the centred 4:3 area the view
+// goes back to its virtual rectangle and moves with the menu.
+static void CL_UIAdjustVirtualRefdef( refdef_t *refdef ) {
+	if ( !refdef || !cl_menuAspect || !cl_menuAspect->integer || !( cls.scale > 0.0f )
+		|| cls.glconfig.vidWidth <= 0 || cls.glconfig.vidHeight <= 0 ) {
+		return;
+	}
+	const float xscale = 640.0f / cls.glconfig.vidWidth;
+	const float yscale = 480.0f / cls.glconfig.vidHeight;
+	float x = static_cast<float>( refdef->x ) * xscale;
+	float y = static_cast<float>( refdef->y ) * yscale;
+	float w = static_cast<float>( refdef->width ) * xscale;
+	float h = static_cast<float>( refdef->height ) * yscale;
+
+	CL_UIFromVirtual( &x, &y, &w, &h );
+
+	const int nextX = RoundToInt( x ), nextY = RoundToInt( y );
+	const int nextWidth = RoundToInt( w ), nextHeight = RoundToInt( h );
+	const int64_t right = int64_t( nextX ) + nextWidth;
+	const int64_t bottom = int64_t( nextY ) + nextHeight;
+	if ( right < INT_MIN || right > INT_MAX || bottom < INT_MIN || bottom > INT_MAX ) {
+		Com_Error( ERR_DROP, "Invalid scaled UI viewport" );
+	}
+	refdef->x = nextX;
+	refdef->y = nextY;
+	refdef->width = nextWidth;
+	refdef->height = nextHeight;
+}
+
+
 /*
 ====================
 VM_ArgPtr
@@ -1654,7 +1712,11 @@ static intptr_t CL_UISystemCalls( intptr_t *args ) {
 		if ( Com_GameIsQuake3() || Com_GameIsSTVEF() || Com_GameIsJKA() ) {
 			refdef.rdflags |= RDF_NOFOVCORRECTION;
 		}
-		CL_UIAdjustRefdef( &refdef );
+		if ( CL_UIVirtualScreen() ) {
+			CL_UIAdjustVirtualRefdef( &refdef );
+		} else {
+			CL_UIAdjustRefdef( &refdef );
+		}
 		re.RenderScene( &refdef );
 		return 0;
 	}
@@ -1681,7 +1743,9 @@ static intptr_t CL_UISystemCalls( intptr_t *args ) {
 		retailConnectBackdrop = SCR_AdjustRetailConnectBackdropUV(
 			args[9], x, y, w, h,
 			&s0, &t0, &s1, &t1 );
-		if ( !retailConnectBackdrop ) {
+		if ( CL_UIVirtualScreen() ) {
+			CL_UIFromVirtual( &x, &y, &w, &h );
+		} else if ( !retailConnectBackdrop ) {
 			CL_UIAdjustStretchPic( &x, &y, &w, &h );
 		}
 		re.DrawStretchPic( x, y, w, h, s0, t0, s1, t1, args[9] );

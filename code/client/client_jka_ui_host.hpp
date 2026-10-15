@@ -35,7 +35,7 @@ static bool CL_JKAUICall( intptr_t *args, intptr_t &operation, intptr_t &result,
 	if ( CL_JKAUIGhoul2Call( args, call, result ) ) return true;
 	if ( CL_JKAFontCall( uivm, args, result, FNTECH3_JKA_UI_R_REGISTERFONT,
 		[]( float x, float y, float w, float h, const fntech3::raven::font::Glyph &glyph, qhandle_t shader ) {
-			CL_UIAdjustStretchPic( &x, &y, &w, &h );
+			CL_UIFromVirtual( &x, &y, &w, &h );
 			re.DrawStretchPic( x, y, w, h, glyph.s, glyph.t, glyph.s2, glyph.t2, shader );
 		} ) ) return true;
 	switch ( call ) {

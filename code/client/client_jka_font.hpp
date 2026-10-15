@@ -2,6 +2,7 @@
 #ifndef FNTECH3_CLIENT_JKA_FONT_HPP
 #define FNTECH3_CLIENT_JKA_FONT_HPP
 #include "../compat/jka_font_format.hpp"
+#include <algorithm>
 #include <array>
 #include <utility>
 #include <vector>
@@ -68,9 +69,12 @@ void CL_JKAFontScale(float scale) {
         Com_Error(ERR_DROP, "Invalid Jedi Academy font scale");
 }
 
-template<class Draw>
-void CL_JKADrawFont(const JKAFont &font, const char *text, float x, float y,
-    const float *rgba, std::uint32_t style, int limit, float scale, Draw draw) {
+/* The glyphs a string lays out, in drawing order, each after the colour it
+ * takes: what CL_JKADrawFont draws and CL_JKAFontArea measures. Invalid
+ * arguments stop before anything is laid out. */
+template<class Draw, class Color>
+void CL_JKALayFont(const JKAFont &font, const char *text, float x, float y,
+    const float *rgba, std::uint32_t style, int limit, float scale, Draw draw, Color setColor) {
     CL_JKAFontScale(scale);
     if (limit < -1 || (style & 0x3f000000u))
         Com_Error(ERR_DROP, "Invalid Jedi Academy font drawing arguments");
@@ -84,11 +88,11 @@ void CL_JKADrawFont(const JKAFont &font, const char *text, float x, float y,
     }
     const float start = x;
     y += (font.metrics.height-font.metrics.descender/2)*scale;
-    re.SetColor(color.data());
+    setColor(color.data());
     for (; *text; ++text) {
         if (fntech3::jka::font::ColorEscape(text)) {
             std::copy_n(g_color_table[ColorIndex(*++text)], 3, color.begin());
-            re.SetColor(color.data());
+            setColor(color.data());
             continue;
         }
         if (*text == '\r') continue;
@@ -100,19 +104,45 @@ void CL_JKADrawFont(const JKAFont &font, const char *text, float x, float y,
             const float left = x+glyph.offset*scale, top = y-glyph.baseline*scale;
             if (style & 0x80000000u) {
                 const float shadow[]{0, 0, 0, color[3]};
-                re.SetColor(shadow);
+                setColor(shadow);
                 draw(left+scale, top+scale, glyph.width*scale, glyph.height*scale, glyph, font.shader);
-                re.SetColor(color.data());
+                setColor(color.data());
             }
             draw(left, top, glyph.width*scale, glyph.height*scale, glyph, font.shader);
         }
         x += advance;
     }
-    re.SetColor(nullptr);
+    setColor(nullptr);
 }
 
 template<class Draw>
-bool CL_JKAFontCall(vm_t *vm, intptr_t *args, intptr_t &result, int first, Draw draw) {
+void CL_JKADrawFont(const JKAFont &font, const char *text, float x, float y,
+    const float *rgba, std::uint32_t style, int limit, float scale, Draw draw) {
+    CL_JKALayFont(font, text, x, y, rgba, style, limit, scale, draw,
+        [](const float *color) { re.SetColor(color); });
+}
+
+/* The area {x1, y1, x2, y2} a string's glyphs cover, shadows included, in the
+ * caller's units; false, with the area untouched, when it lays out none. */
+inline bool CL_JKAFontArea(const JKAFont &font, const char *text, float x, float y,
+    const float *rgba, std::uint32_t style, int limit, float scale, float area[4]) {
+    bool any = false;
+    float x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+    CL_JKALayFont(font, text, x, y, rgba, style, limit, scale,
+        [&](float left, float top, float width, float height, const auto &, qhandle_t) {
+            x1 = any ? (std::min)(x1, left) : left; y1 = any ? (std::min)(y1, top) : top;
+            x2 = any ? (std::max)(x2, left+width) : left+width; y2 = any ? (std::max)(y2, top+height) : top+height;
+            any = true;
+        }, [](const float *) {});
+    if (any) { area[0] = x1; area[1] = y1; area[2] = x2; area[3] = y2; }
+    return any;
+}
+
+/* line(area) is called before a string's glyphs are drawn, with the area they
+ * cover, or an empty one (x2 < x1) when there are none, and line(nullptr)
+ * after them: a host places the string as one line of text. */
+template<class Draw, class Line>
+bool CL_JKAFontCall(vm_t *vm, intptr_t *args, intptr_t &result, int first, Draw draw, Line line) {
     const auto ordinal = args[0]-first;
     if (ordinal < 0 || ordinal > 4) return false;
     result = 0;
@@ -129,9 +159,21 @@ bool CL_JKAFontCall(vm_t *vm, intptr_t *args, intptr_t &result, int first, Draw 
         VM_CHECKBOUNDS(vm, args[4], sizeof(float)*4);
         rgba = static_cast<const float *>(VM_ExplicitArgPtr(vm, args[4]));
     }
-    CL_JKADrawFont(*font, CL_JKAFontText(vm, args[3]), static_cast<float>(args[1]), static_cast<float>(args[2]),
-        rgba, static_cast<std::uint32_t>(args[5]) & 0xff000000u, static_cast<int>(args[6]), scale, draw);
+    const char *text = CL_JKAFontText(vm, args[3]);
+    const float x = static_cast<float>(args[1]), y = static_cast<float>(args[2]);
+    const auto style = static_cast<std::uint32_t>(args[5]) & 0xff000000u;
+    const int limit = static_cast<int>(args[6]);
+    float area[4]{0, 0, -1, -1};
+    CL_JKAFontArea(*font, text, x, y, rgba, style, limit, scale, area);
+    line(static_cast<const float *>(area));
+    CL_JKADrawFont(*font, text, x, y, rgba, style, limit, scale, draw);
+    line(static_cast<const float *>(nullptr));
     return true;
+}
+
+template<class Draw>
+bool CL_JKAFontCall(vm_t *vm, intptr_t *args, intptr_t &result, int first, Draw draw) {
+    return CL_JKAFontCall(vm, args, result, first, draw, [](const float *) {});
 }
 } // namespace
 #endif

@@ -117,9 +117,14 @@ def ui_fixture():
     prelude = prelude.replace('void QDECL Com_Error(errorParm_t, const char *, ...) { throw 7; }',
         'static char lastError[1024]; void QDECL Com_Error(errorParm_t, const char *message, ...) { '
         'va_list args; va_start(args,message); std::vsnprintf(lastError,sizeof(lastError),message,args); va_end(args); throw 7; }')
+    # The production menu helpers below replace the shared prelude's stubs.
+    prelude = prelude.replace('static bool CL_UIVirtualScreen() { return Com_GameIsJKA(); } '
+                              '// Mapping runs in ui_viewport_tests.\n'
+                              'static void CL_UIAdjustVirtualRefdef(refdef_t *) {}\n', '')
     prelude = prelude.replace('static void CL_UIAdjustRefdef(refdef_t *) {}',
         'static cvar_t menuAspect{};static cvar_t *cl_menuAspect=&menuAspect;'
-        'static struct { struct {int vidWidth,vidHeight;} glconfig; float scale,biasX;} cls;')
+        'static struct { struct {int vidWidth,vidHeight;} glconfig; float scale,biasX,biasY;} cls;'
+        'int Com_GameIsJK2() { return profile.id == COM_GAME_JK2_SP || profile.id == COM_GAME_JK2_MP; }')
     # The extracted UI dispatch also contains the point-light case; its
     # transfer/finite checks execute in jka_ui_render_tests. Keep this fixture's
     # scene-only renderer explicit so an unexpected light call fails loudly.
@@ -137,6 +142,9 @@ def ui_fixture():
         cases.append(shared[a:b])
     return prelude + function(shared, 'static void CL_UIAdjustStretchPic(') + '\n' + \
         function(shared, 'static void CL_UIAdjustRefdef(') + '\n' + \
+        function(shared, 'static bool CL_UIVirtualScreen(') + '\n' + \
+        function(shared, 'static void CL_UIFromVirtual(') + '\n' + \
+        function(shared, 'static void CL_UIAdjustVirtualRefdef(') + '\n' + \
         function(host, 'static void *CL_JKAUINativeSpan(') + r'''
 using Call=fntech3::jka::module::Call;
 static void CL_JKAUIRenderQueue(const fntech3_jka_mp_refEntity_t &){Com_Error(ERR_DROP,"Ghoul2 is checked by its dedicated production host");}
@@ -164,11 +172,20 @@ int main(){
  assert(entityCalls==1&&capturedEntity.hModel==19&&capturedEntity.shaderTime.f==1.25f&&!capturedIntegerTime&&checkedBytes==212);
  cls.glconfig.vidWidth=1600;cls.glconfig.vidHeight=900;cls.scale=1.875f;cls.biasX=200;
  fntech3_jka_mp_refdef_t view{};view.x=400;view.y=200;view.width=300;view.height=200;view.fov_x=90;view.fov_y=75;view.rdflags=1;
+ // Raven's menu scales its virtual rectangle (160,106.7 120x106.7) by the
+ // screen; centred 4:3 takes it back to that rectangle, stretched keeps it.
  menuAspect.integer=1;submitUI(Call::UI_R_RENDERSCENE,view);
- assert(sceneCalls==1&&capturedView.x==400&&capturedView.y==200&&capturedView.width==300&&capturedView.height==200&&checkedBytes==384);
+ assert(sceneCalls==1&&capturedView.x==500&&capturedView.y==200&&capturedView.width==225&&capturedView.height==200&&checkedBytes==384);
  assert(capturedView.fov_x==90&&capturedView.fov_y==75&&capturedView.rdflags==(RDF_NOWORLDMODEL|RDF_NOFOVCORRECTION));
  menuAspect.integer=0;submitUI(Call::UI_R_RENDERSCENE,view);
- assert(sceneCalls==2&&capturedView.x==267&&capturedView.y==200&&capturedView.width==400&&capturedView.height==200);
+ assert(sceneCalls==2&&capturedView.x==400&&capturedView.y==200&&capturedView.width==300&&capturedView.height==200);
+ cls.glconfig={1600,1200};cls.scale=2.5f;cls.biasX=0;cls.biasY=0;menuAspect.integer=1;
+ submitUI(Call::UI_R_RENDERSCENE,view); // a 4:3 screen: the same rectangle either way
+ assert(sceneCalls==3&&capturedView.x==400&&capturedView.y==200&&capturedView.width==300&&capturedView.height==200);
+ cls.glconfig={1600,1600};cls.biasY=200;
+ submitUI(Call::UI_R_RENDERSCENE,view); // taller than 4:3: centred top to bottom
+ assert(sceneCalls==4&&capturedView.x==400&&capturedView.y==350&&capturedView.width==300&&capturedView.height==150);
+ cls.glconfig={1600,900};cls.scale=1.875f;cls.biasX=200;cls.biasY=0;menuAspect.integer=0;
  assert(!liquidCalls&&!underwaterCalls&&!flushCalls); // UI follows its menu pipeline
  const auto validView=view;const int scenesBefore=sceneCalls;
  for(int row=0;row<8;++row){

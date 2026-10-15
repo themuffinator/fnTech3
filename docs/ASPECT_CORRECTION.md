@@ -31,14 +31,18 @@ only change the games the table below lists.
 | Return to Castle Wolfenstein, both modes | widened | kept in shape | drawn as the original drew them | always fill the screen; single player adds its own black bars |
 | Enemy Territory | widened | kept in shape, with its full-screen panels as below | drawn as the original drew them | `cl_cinematicAspect` |
 | Elite Force, both modes | widened | kept in shape | `cl_menuAspect` | `cl_cinematicAspect` |
+| Jedi Academy, multiplayer | widened | kept in shape, with its scoreboard as below | `cl_menuAspect` | not checked yet |
+| Jedi Outcast, multiplayer | not drawn yet | not drawn yet | `cl_menuAspect` | not checked yet |
 | Alice | widened | kept in shape | the game's own menus | `cl_cinematicAspect` |
 | F.A.K.K.2 | widened | kept in shape | the game's own menus | `cl_cinematicAspect` |
 | Medal of Honor | widened | the game's own, which fits any screen | the game's own menus | `cl_cinematicAspect` |
 
 The IHV Test has no client, and the Q3Test versions have none of these
-corrections. Jedi Academy widens the view with `r_fovCorrection` in its early
-profile; neither Jedi game has HUD correction, and their pictures
-have not been checked yet.
+corrections. Both Jedi games draw their HUD and menus on a 640x480 screen
+that the original stretched over the window; fnTech3 scales them to your
+window the same way, then applies the settings below. Jedi Outcast's game
+view and HUD are not drawn yet, and neither game's single player gets as far
+as its menus.
 
 ## Field Of View
 
@@ -72,8 +76,9 @@ the centre. Full-screen fades and backgrounds still cover the whole screen,
 and small 3D models in the HUD keep their own view.
 
 fnTech3 brings HUD layouts for Quake III Arena, both modes of Return to Castle
-Wolfenstein, Enemy Territory, both modes of Elite Force, Alice and F.A.K.K.2.
-`cl_hudAspect 0` gives the original stretched HUD.
+Wolfenstein, Enemy Territory, both modes of Elite Force, Jedi Academy
+multiplayer, Alice and F.A.K.K.2. `cl_hudAspect 0` gives the original
+stretched HUD.
 
 **Game notes:**
 
@@ -91,6 +96,11 @@ Wolfenstein, Enemy Territory, both modes of Elite Force, Alice and F.A.K.K.2.
   With `cl_hudAspect 1` it is given a 4:3 screen to draw on, so the brackets
   stay on their targets. The setting takes effect at the next map or
   `vid_restart`.
+- **Jedi Academy's** multiplayer client game is given a 4:3 screen to draw
+  on, as Elite Force single player is, so its crosshair, which follows what
+  you aim at, stays on target. The scoreboard is shown as one centred 4:3
+  screen, and the weapon, force power and item bars stay whole in the middle.
+  Switching `cl_hudAspect` takes full effect at the next map or `vid_restart`.
 - **Alice's** gauges and cards are small 3D models; each keeps its 4:3 size
   at its edge of the screen.
 - **F.A.K.K.2's** HUD is four of the game's own menus -- health, weapons, two
@@ -109,9 +119,11 @@ Wolfenstein, Enemy Territory, both modes of Elite Force, Alice and F.A.K.K.2.
   the default.
 - `cl_cinematicAspect 0`: stretch movies to fill the screen.
 
-`cl_menuAspect` applies to Quake III Arena, Quake Live and both modes of Elite
-Force. Return to Castle Wolfenstein and Enemy Territory draw their menus as
-the originals did, and Alice, F.A.K.K.2 and Medal of Honor draw their own.
+`cl_menuAspect` applies to Quake III Arena, Quake Live, both modes of Elite
+Force and the multiplayer menus of both Jedi games, whose originals stretched
+them; the 3D models in a Jedi menu move with it. Return to Castle Wolfenstein
+and Enemy Territory draw their menus as the originals did, and Alice,
+F.A.K.K.2 and Medal of Honor draw their own.
 Return to Castle Wolfenstein ignores `cl_cinematicAspect`: its movies always
 fill the screen, and single player adds its original black bars.
 
@@ -152,6 +164,7 @@ own rules. These are the layouts fnTech3 brings:
 | Enemy Territory | [`games/wolfet/etmain/fntech3-hud.json`](../pkg/games/wolfet/etmain/fntech3-hud.json) | Stamina, health, head, skills, experience and lives lower left; weapon, ammunition, heat and charge lower right; compass, minimap and the timer, FPS and reinforcement boxes top right; lag meter and objective icon at the right; fireteam overlay top left; a scope's side masks reach the screen's edges. Pop-ups, prompts, chat and centre text stay centred. |
 | Elite Force single player | [`games/stvef-sp/baseEF/fntech3-hud.json`](../pkg/games/stvef-sp/baseEF/fntech3-hud.json) | Health and armour gauges lower left, ammunition gauge lower right; a cutscene's black bars reach the screen's edges; the talking head stays with its talk box. |
 | Elite Force Holomatch | [`games/stvef-mp/baseEF/fntech3-hud.json`](../pkg/games/stvef-mp/baseEF/fntech3-hud.json) | The same gauges, and the score box above the ammunition lower right. |
+| Jedi Academy multiplayer | [`games/jka-mp/base/fntech3-hud.json`](../pkg/games/jka-mp/base/fntech3-hud.json) | Health and armour lower left, with chat above them; force, ammunition, saber style and score lower right; the leader's portrait, team scores and timers top right; votes and holocrons at the left. The crosshair, centre messages and the weapon, force and item bars stay centred, and the scoreboard and loading screen are centred 4:3 screens. Lines of text are never split. |
 | Alice | [`games/alice/base/fntech3-hud.json`](../pkg/games/alice/base/fntech3-hud.json) | Health gauge at the left and mana gauge at the right, centred top to bottom; weapon card lower left, powerup card lower right. |
 | F.A.K.K.2 | [`games/fakk2/fakk/fntech3-hud.json`](../pkg/games/fakk2/fakk/fntech3-hud.json) | Health and water gauge top left; both weapon HUDs, their rings, ammunition and weapon models top right; the boss's health bar at the left, centred as it slides in. |
 
@@ -200,7 +213,9 @@ proportional font is, so they keep their shape. Quake III's rules use both.
 F.A.K.K.2's HUD pictures are matched by their art's names (such as
 `textures/hud/health_gradient`), `white` for a plain fill and
 `gfx/fonts/<font>` for text. Alice's HUD views are matched with `refdef`, at
-their centre's offset from the screen's centre plus (320, 240).
+their centre's offset from the screen's centre plus (320, 240). Jedi
+Academy's text, drawn with its own fonts, has no picture name in a dump:
+match it by its area, and with `textRuns` each string is one line.
 
 **Finding what to match.** Set `cl_hudDump 1` while the HUD is on screen to
 write what it draws -- areas, picture names, 3D views and suggested

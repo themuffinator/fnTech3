@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PRELUDE = r'''
 #include <cassert>
 #include <climits>
+#include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <limits>
@@ -20,7 +21,7 @@ struct Drop {};
 enum { ERR_DROP };
 [[noreturn]] static void Com_Error(int, const char *) { throw Drop{}; }
 struct refdef_t { int x,y,width,height; };
-struct { struct { int vidWidth,vidHeight; } glconfig; float scale,biasX; } cls;
+struct { struct { int vidWidth,vidHeight; } glconfig; float scale,biasX,biasY; } cls;
 struct Cvar { int integer; } aspect;
 static Cvar *cl_menuAspect=&aspect;
 '''
@@ -54,6 +55,19 @@ int main() {
  Reject([&]{CL_UIAdjustRefdef(&view);});assert(!std::memcmp(&view,&before,sizeof(view)));
  cls.scale=std::numeric_limits<float>::denorm_min();
  Reject([&]{CL_UIAdjustRefdef(&view);});assert(!std::memcmp(&view,&before,sizeof(view)));
+ // Raven's menus draw in a virtual 640x480 screen: stretched over the
+ // window as the originals did (0), or in the centred 4:3 area (1).
+ // Fast-math may divide by a reciprocal, so compare within a thousandth.
+ const auto near=[](float a,float b){return std::fabs(a-b)<0.001f;};
+ for(int aspectMode : {0,1}) {
+  aspect.integer=aspectMode;cls.glconfig={1680,720};cls.scale=1.5f;cls.biasX=360;cls.biasY=0;
+  float x=10,y=20,w=100,h=40;CL_UIFromVirtual(&x,&y,&w,&h);
+  if(aspectMode) assert(near(x,375)&&near(y,30)&&near(w,150)&&near(h,60));
+  else assert(near(x,26.25f)&&near(y,30)&&near(w,262.5f)&&near(h,60));
+ }
+ aspect.integer=1;cls.glconfig={900,720};cls.scale=1.40625f;cls.biasX=0;cls.biasY=22.5f;
+ float x=0,y=0,w=640,h=480;CL_UIFromVirtual(&x,&y,&w,&h);
+ assert(near(x,0)&&near(y,22.5f)&&near(w,900)&&near(h,675)); // taller than 4:3: centred top to bottom
 }
 '''
 
@@ -65,7 +79,8 @@ class UIViewportTests(unittest.TestCase):
             self.skipTest('C++ compiler unavailable')
         ui = (ROOT / 'code/client/cl_ui.cpp').read_text()
         source = PRELUDE + '#include <initializer_list>\n'
-        for name in ('static int RoundToInt(', 'static void CL_UIAdjustStretchPic(', 'static void CL_UIAdjustRefdef('):
+        for name in ('static int RoundToInt(', 'static void CL_UIAdjustStretchPic(', 'static void CL_UIAdjustRefdef(',
+                     'static void CL_UIFromVirtual('):
             source += function(ui, name)
         source += CHECKS
         scratch = ROOT / '.tmp/tests/ui-viewport'

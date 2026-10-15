@@ -102,10 +102,17 @@ static bool CL_JKACgameCall(intptr_t *args, intptr_t &operation, intptr_t &resul
     if (CL_JKACgameGhoul2Call(args, call, result)) return true;
     if (CL_JKACgameAmbientCall(args, call, result)) return true;
     if (CL_JKACgameEffectsCall(args, call, result)) return true;
+    // Raven's font draws in the virtual 640x480 screen; each string is placed
+    // by the HUD rules as one line of text.
     if (CL_JKAFontCall(cgvm, args, result, FNTECH3_JKA_CG_R_REGISTERFONT,
         [](float x, float y, float width, float height, const auto &glyph, qhandle_t shader) {
-            if (!CL_CaptureHidesHud()) CL_HudDrawStretchPic(x, y, width, height,
-                glyph.s, glyph.t, glyph.s2, glyph.t2, shader);
+            if (CL_CaptureHidesHud()) return;
+            CL_HudFromVirtual(&x, &y, &width, &height);
+            CL_HudDrawStretchPic(x, y, width, height, glyph.s, glyph.t, glyph.s2, glyph.t2, shader);
+        },
+        [](const float *area) {
+            if (area) CL_HudBeginTextLine(area[0], area[1], area[2], area[3]);
+            else CL_HudEndTextLine();
         })) return true;
     switch (call) {
     case Call::CG_R_CLEARSCENE:
@@ -365,8 +372,21 @@ static bool CL_JKACgameCall(intptr_t *args, intptr_t &operation, intptr_t &resul
         // trajectories. The independent server player is never ticked here.
         return true;
     case Call::CG_GETGLCONFIG:
-        CL_JKAGetGlconfig(cgvm, args[1]);
+        CL_JKAGetGlconfig(cgvm, args[1], true);
         return true;
+    case Call::CG_R_DRAWSTRETCHPIC: {
+        // Retail jamp.exe 1.01 draws 2D through glOrtho(0, 640, 480, 0, 0, 1)
+        // over glViewport(0, 0, vidWidth, vidHeight) (0x48b09c..0x48b0e5): the
+        // client game's pictures are in a virtual 640x480 screen stretched
+        // over the window. Fn's HUD path places them from the pixels of the
+        // screen the game was told it has.
+        if (CL_CaptureHidesHud()) return true;
+        float x = _vmf(args[1]), y = _vmf(args[2]), w = _vmf(args[3]), h = _vmf(args[4]);
+        float s0 = _vmf(args[5]), t0 = _vmf(args[6]), s1 = _vmf(args[7]), t1 = _vmf(args[8]);
+        CL_HudFromVirtual(&x, &y, &w, &h);
+        CL_HudQueueStretchPic(x, y, w, h, s0, t0, s1, t1, static_cast<qhandle_t>(args[9]));
+        return true;
+    }
     case Call::CG_OPENUIMENU: {
         if (sizeof(void *) != sizeof(std::uint32_t) || !CL_UIModuleReady() || !uivm || uivm->index != VM_UI ||
             !uivm->entryPoint || uivm->dllExports)

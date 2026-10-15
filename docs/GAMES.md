@@ -550,6 +550,13 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   as `mp/ctf3`, no longer stop on their first frame: those sounds now play
   where they are, and their occasional calls come at the times the game
   gives ([details](fntech3/2026-10-15-compatibility-round.md#jedi-academy-sets-heard-around-a-point)).
+- **Widescreen:** the HUD and menus fill the window at any size, as the
+  original's do. On a widescreen display the HUD keeps its shape at the
+  screen's corners, the scoreboard is shown as a centred 4:3 screen and the
+  view widens; `cl_hudAspect 0` stretches the HUD as the original did, and
+  `cl_menuAspect 1` keeps the menus in a centred 4:3 area
+  ([Widescreen guide](ASPECT_CORRECTION.md),
+  [details](fntech3/2026-10-15-jedi-widescreen-hud.md)).
 - **Single player:** the original game code starts, then stops on its first
   frame.
 
@@ -573,6 +580,8 @@ client -- its network messages, menus and fonts -- are being built and tested
 on their own. The main menu now draws its text, models and effects with
 corrected fonts; client gameplay is
 still incomplete ([latest audit](fntech3/2026-10-07-jedi-compatibility-round2.md)).
+Its menus fill the window at any size, as the original's do
+([details](fntech3/2026-10-15-jedi-widescreen-hud.md)).
 Single player's game code loads, then stops before the game starts. The
 game's sounds and music, which are MP3 files, now load, and the multiplayer
 menus play their sounds ([details](fntech3/2026-10-08-jk2-mp3-sounds.md)).

@@ -57,6 +57,8 @@ static bool CL_JK2CgameCall( intptr_t *args, intptr_t &operation, intptr_t &resu
 	result = 0;
 	if ( CL_JK2FontCall( cgvm, args, result, 47,
 		[]( float x, float y, float w, float h, const fntech3::jk2::font::Glyph &glyph, qhandle_t shader ) {
+			// Raven's virtual 640x480 screen, stretched as the original drew it.
+			CL_HudFromVirtual( &x, &y, &w, &h );
 			CL_HudDrawStretchPic( x, y, w, h, glyph.s, glyph.t, glyph.s2, glyph.t2, shader );
 		} ) ) return true;
 	switch ( args[0] ) {

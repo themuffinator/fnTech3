@@ -47,7 +47,8 @@ constexpr int kHudMaxScriptBytes = 256 * 1024;
 // screen. QL's and MoHAA's modules place their own HUDs for any screen, even
 // if a config happens to contain these cvars or a legacy HUD script. Alice's
 // and F.A.K.K.2's HUDs are drawn by the engine, which routes them through
-// here.
+// here. Jedi Academy's client game draws in Raven's virtual 640x480 screen,
+// which its host maps first (CL_HudFromVirtual).
 bool hudSupported = false;
 cvar_t *cl_hudAspect = nullptr;
 cvar_t *cl_hudDump = nullptr;
@@ -1286,7 +1287,7 @@ extern "C" void CL_HudReload_f( void ) {
 
 extern "C" void CL_HudInit( void ) {
 	hudSupported = Com_GameIsQuake3() || Com_GameIsRTCW() || Com_GameIsWolfET() || Com_GameIsSTVEF()
-		|| Com_GameIsRitual();
+		|| Com_GameIsRitual() || Com_GameIsJKAMP();
 	cl_hudAspect = nullptr;
 	cl_hudDump = nullptr;
 	if ( !hudSupported ) return;
@@ -1415,6 +1416,47 @@ extern "C" void CL_HudModuleScreen( int *width, int *height ) {
 	hudModuleHeight = frameHeight;
 	*width = frameWidth;
 	*height = frameHeight;
+}
+
+// Raven's client games draw in a virtual 640x480 screen, which their renderer
+// stretched over the screen the game was told it draws on. These are that
+// screen's pixels, the units CL_HudAdjustPic takes from every other game.
+extern "C" void CL_HudFromVirtual( float *x, float *y, float *w, float *h ) {
+	const bool framed = hudSupported && CL_HudModuleFramed();
+	const float xscale = ( framed ? hudModuleWidth : cls.glconfig.vidWidth ) / 640.0f;
+	const float yscale = ( framed ? hudModuleHeight : cls.glconfig.vidHeight ) / 480.0f;
+
+	if ( !x || !y || !w || !h ) {
+		return;
+	}
+	*x *= xscale;
+	*y *= yscale;
+	*w *= xscale;
+	*h *= yscale;
+}
+
+// A string the engine draws for a client game (Raven's font imports) is one
+// line: when the rules place text by line, each of its glyphs is matched by
+// the whole string's area, in the game's 640x480 units. Held glyphs of
+// another line are drawn first, so their colours stay theirs.
+extern "C" void CL_HudBeginTextLine( float x1, float y1, float x2, float y2 ) {
+	CL_HudFlushQueue();
+	hudLineActive = false;
+	CL_HudEnsureRules();
+	if ( !hudSupported || !hudScriptLoaded || !hudTextRuns || !cl_hudAspect || cl_hudAspect->integer <= 0
+		|| !std::isfinite( x1 ) || !std::isfinite( y1 ) || !std::isfinite( x2 ) || !std::isfinite( y2 )
+		|| x2 < x1 || y2 < y1 ) {
+		return;
+	}
+	hudLineActive = true;
+	hudLineX1 = x1;
+	hudLineY1 = y1;
+	hudLineX2 = x2;
+	hudLineY2 = y2;
+}
+
+extern "C" void CL_HudEndTextLine( void ) {
+	hudLineActive = false;
 }
 
 extern "C" void CL_HudAdjustRefdef( refdef_t *refdef ) {

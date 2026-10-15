@@ -855,6 +855,13 @@ void CL_HudQueueStretchPic( float x, float y, float w, float h,
 	float s1, float t1, float s2, float t2, qhandle_t shader );
 void CL_HudQueueColor( const float *rgba );
 void CL_HudFlushQueue( void );
+// Raven's client games draw in a virtual 640x480 screen: from it to the pixels
+// of the screen the game was told it has, which the calls above take.
+void CL_HudFromVirtual( float *x, float *y, float *w, float *h );
+// The area, in 640x480 units, of a string the engine draws for a client game,
+// around the glyphs it draws: the rules place them by the whole string.
+void CL_HudBeginTextLine( float x1, float y1, float x2, float y2 );
+void CL_HudEndTextLine( void );
 
 //
 // cl_entity_editor.cpp -- the in-game entity editor, every profile's

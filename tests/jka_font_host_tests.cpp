@@ -114,6 +114,36 @@ int main() {
     args[0] = 60; args[1] = 1; Float(args, 2, .5f);
     CHECK(CL_JKAFontCall(nullptr, args, result, 57, draw) && result == 7);
     args[0] = 56; CHECK(!CL_JKAFontCall(&vm, args, result, 57, draw));
+    // The area a string covers, shadows included, is what it draws.
+    float area[4]{0, 0, -1, -1};
+    CHECK(CL_JKAFontArea(*font, text, 20, 30, nullptr, 0, -1, .5f, area));
+    CHECK(area[0] == 19.5f && area[1] == 31.f && area[2] == 33.5f && area[3] == 44.f);
+    CHECK(CL_JKAFontArea(*font, text, 20, 30, nullptr, 0x80000000u, -1, .5f, area));
+    CHECK(area[0] == 19.5f && area[1] == 31.f && area[2] == 34.f && area[3] == 44.5f);
+    float untouched[4]{1, 2, 3, 4};
+    CHECK(!CL_JKAFontArea(*font, "\n\r", 20, 30, nullptr, 0, -1, .5f, untouched) && untouched[2] == 3);
+    CHECK(Refuses([&] { CL_JKAFontArea(*font, "A", 0, 0, malformedColor, 0, -1, 1, area); }));
+    // A host hears of the string's area before its glyphs and of its end after them.
+    std::vector<std::string> events;
+    std::vector<float> lineArea;
+    const auto record = [&](float, float, float, float, const auto &, int) { events.push_back("glyph"); };
+    const auto line = [&](const float *bounds) {
+        if (!bounds) { events.push_back("end"); return; }
+        events.push_back(bounds[2] >= bounds[0] ? "begin" : "empty");
+        lineArea.assign(bounds, bounds+4);
+    };
+    intptr_t drawArgs[8]{61, 20, 30, reinterpret_cast<intptr_t>(text), 0, 1, -1};
+    Float(drawArgs, 7, .5f);
+    CHECK(CL_JKAFontCall(&vm, drawArgs, result, 57, record, line));
+    CHECK(events.size() == 6 && events.front() == "begin" && events.back() == "end");
+    CHECK(lineArea.size() == 4 && lineArea[0] == 19.5f && lineArea[3] == 44.f);
+    events.clear();
+    drawArgs[3] = reinterpret_cast<intptr_t>(text)+sizeof(text)-1; // an empty string
+    CHECK(CL_JKAFontCall(&vm, drawArgs, result, 57, record, line));
+    CHECK(events.size() == 2 && events[0] == "empty" && events[1] == "end");
+    events.clear();
+    drawArgs[6] = -2; // refused before the host hears of a line
+    CHECK(Refuses([&] { CL_JKAFontCall(&vm, drawArgs, result, 57, record, line); }) && events.empty());
     CL_JKAFontReset(); CHECK(!CL_JKAFindFont(1));
     return 0;
 }

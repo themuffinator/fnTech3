@@ -201,7 +201,7 @@ static bool CL_JK2UICall( intptr_t *args, intptr_t &operation, intptr_t &result 
 	if ( CL_JK2UIRecordCall( args, result ) ) return true;
 	if ( CL_JK2FontCall( uivm, args, result, 56,
 		[]( float x, float y, float w, float h, const fntech3::jk2::font::Glyph &glyph, qhandle_t shader ) {
-			CL_UIAdjustStretchPic( &x, &y, &w, &h );
+			CL_UIFromVirtual( &x, &y, &w, &h );
 			re.DrawStretchPic( x, y, w, h, glyph.s, glyph.t, glyph.s2, glyph.t2, shader );
 		} ) ) return true;
 	switch ( args[0] ) {

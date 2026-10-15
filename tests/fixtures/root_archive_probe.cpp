@@ -164,7 +164,7 @@ int main(int argc, char **argv) {
     for (const char *path : {"fnq3-hud.json", "fntech3-hud.json"}) {
         archives[appArchive][base + path] = "profile HUD rules";
         const bool supported = Com_GameIsQuake3() || Com_GameIsRTCW() || Com_GameIsWolfET() || Com_GameIsSTVEF()
-            || Com_GameIsRitual();
+            || Com_GameIsRitual() || Com_GameIsJKAMP();
         assert(bool(FS_RootArchiveAllowsFile(path)) == supported);
         assert(FS_ReadFileFromRootArchive(path, nullptr) == (supported ? 17 : -1));
     }
