@@ -1753,16 +1753,30 @@ static void S_AddSTVEFAmbientLoopSounds( void ) {
 ==================
 S_AddJKAAmbientLoopSounds
 
-Jedi Academy's ambient-set loops, each sound one channel spatialized as the
-engine's own loops are, at its merged volume scaled to their level.
+Jedi Academy's ambient-set loops, each sound one channel: each place it is
+heard from spatialized as the engine's own loops are, at its merged volume
+scaled to their level, and the places' sides summed and held at full level,
+as retail's S_AddLoopSounds (0x46b350) sums them.
 ==================
 */
 static void S_AddJKAAmbientLoopSounds( void ) {
+	std::array<bool, fntech3::audio::jka::AmbientLoops::Capacity> merged{};
 	for ( std::size_t i = 0; i < jkaAmbientLoops.Size() && numLoopChannels < MAX_CHANNELS; ++i ) {
+		if ( merged[i] ) continue;
 		const auto &loop = jkaAmbientLoops[i];
 		int left = 0, right = 0;
-		S_SpatializeOrigin( loop.origin.data(), loop.volume * kMasterVolume / fntech3::audio::jka::AmbientLoops::MaxVolume,
-			&left, &right, CHAN_AUTO );
+		for ( std::size_t j = i; j < jkaAmbientLoops.Size(); ++j ) {
+			const auto &place = jkaAmbientLoops[j];
+			if ( place.handle != loop.handle ) continue;
+			merged[j] = true;
+			int placeLeft = 0, placeRight = 0;
+			S_SpatializeOrigin( place.origin.data(), place.volume * kMasterVolume / fntech3::audio::jka::AmbientLoops::MaxVolume,
+				&placeLeft, &placeRight, CHAN_AUTO );
+			left += placeLeft;
+			right += placeRight;
+		}
+		left = ( std::min )( left, kMasterVolume );
+		right = ( std::min )( right, kMasterVolume );
 		if ( !left && !right ) continue;
 		sfx_t *sample = S_KnownSfxAt( loop.handle );
 		sample->lastTimeUsed = s_soundtime;

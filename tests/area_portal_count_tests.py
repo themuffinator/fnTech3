@@ -7,10 +7,12 @@ on: alice.exe (0x004361a0) and F.A.K.K.2 1.02's fakk2.exe (0x0042abb0) print
 that reads developer (0x00438a40, 0x0042d2a0), leave the count below zero and
 flood the areas as after any close; their floods join two areas only over a
 count above zero (0x00436126, 0x0042ab36). Medal of Honor's engine is
-OpenMoHAA's reading of 2015's, which does the same. Both RTCW engines skip a
-close of a portal whose count is zero and flood the areas as after any close
-(WolfSP.exe 0x418489..0x41849a, WolfMP.exe 0x41afa9..0x41afba;
-docs/fntech3/2026-10-08-rtcw-area-portals.md). Both Ritual engines'
+OpenMoHAA's reading of 2015's, which does the same. Both RTCW engines and both
+Enemy Territory 2.60b executables skip a close of a portal whose count is zero
+and flood the areas as after any close (WolfSP.exe 0x418489..0x41849a,
+WolfMP.exe 0x41afa9..0x41afba, etded.exe 0x40c44c..0x40c45d, et.exe
+0x426bdc..0x426bed; docs/fntech3/2026-10-08-rtcw-area-portals.md,
+docs/fntech3/2026-10-15-compatibility-round.md). Both Ritual engines'
 CM_ReadPortalState (0x004362e0, 0x0042acf0) put a saved block back whole, so
 a count below zero survives a save.
 
@@ -128,11 +130,12 @@ int main() {
 	for ( const auto &profile : profiles ) {
 		activeProfile = &profile;
 		/* Ritual's two engines, and Medal of Honor's as OpenMoHAA reads it,
-		 * report a close past zero; RTCW's two modes ignore it; every other
-		 * profile keeps the drop. */
+		 * report a close past zero; RTCW's two modes and Enemy Territory
+		 * ignore it; every other profile keeps the drop. */
 		const bool report = profile.id == COM_GAME_ALICE || profile.id == COM_GAME_FAKK2
 			|| profile.id == COM_GAME_MOHAA;
-		const bool ignore = profile.id == COM_GAME_RTCW_SP || profile.id == COM_GAME_RTCW_MP;
+		const bool ignore = profile.id == COM_GAME_RTCW_SP || profile.id == COM_GAME_RTCW_MP
+			|| profile.id == COM_GAME_WOLFET;
 
 		/* Three areas, portals between 0 and 1 and between 1 and 2. An open
 		 * joins two areas, and the close that answers it parts them. */
@@ -195,7 +198,7 @@ int main() {
 			"and changes nothing" );
 		++runs;
 	}
-	if ( runs != COM_GAME_COUNT - 1 || reporting != 3 || ignoring != 2 ) {
+	if ( runs != COM_GAME_COUNT - 1 || reporting != 3 || ignoring != 3 ) {
 		std::fprintf( stderr, "%d profile runs, %d reporting, %d ignoring\n", runs, reporting, ignoring );
 		return 1;
 	}
@@ -311,7 +314,8 @@ def catalog_source():
     profiles = (ROOT / 'code/qcommon/game_profile.cpp').read_text(encoding='utf-8')
     source = CATALOG_PRELUDE + catalog()
     for signature in ['int Com_GameIsAlice( void )', 'int Com_GameIsFAKK2( void )',
-                      'int Com_GameIsRitual( void )', 'int Com_GameIsMOHAA( void )', 'int Com_GameIsRTCW( void )']:
+                      'int Com_GameIsRitual( void )', 'int Com_GameIsMOHAA( void )', 'int Com_GameIsRTCW( void )',
+                      'int Com_GameIsWolfET( void )']:
         source += '\n' + function(profiles, signature)
     return source + CATALOG_CHECKS
 
@@ -384,8 +388,10 @@ class AreaPortalCountTests(unittest.TestCase):
         self.assertLess(adjust.index('< 0 ) {'), adjust.index('Com_GameIsRitual()'))
         self.assertEqual(adjust.count('Com_Error (ERR_DROP, "CM_AdjustAreaPortalState: negative reference count");'), 1)
         self.assertLess(adjust.index('Com_DPrintf'), adjust.index('CM_FloodAreaConnections ();'))
-        # RTCW's ignored close is decided before any count changes.
-        ignored = adjust.index('} else if ( Com_GameIsRTCW() && !cm.areaPortals[ area2 * cm.numAreas + area1 ] ) {')
+        # RTCW's and Enemy Territory's ignored close is decided before any
+        # count changes.
+        ignored = adjust.index('} else if ( ( Com_GameIsRTCW() || Com_GameIsWolfET() ) '
+                               '&& !cm.areaPortals[ area2 * cm.numAreas + area1 ] ) {')
         self.assertLess(ignored, adjust.index('cm.areaPortals[ area1 * cm.numAreas + area2 ]--;'))
 
 

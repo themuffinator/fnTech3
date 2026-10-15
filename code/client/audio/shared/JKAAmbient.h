@@ -12,10 +12,14 @@
  * 1.01 takes each with the volume its set has faded to, out of 255, the level
  * every one of its loops is otherwise added at (S_AddAmbientLoopingSound
  * 0x46b270, S_AddLoopingSound 0x46b250), keeps 32 loops a frame, and plays
- * the loops of one sound as one channel whose volume is their sum, clamped at
- * 255 (S_AddLoopSounds 0x46b350). Here a loop of a sound already added this
- * frame is merged into it the same way; both backends then render one voice
- * per sound through the engine's own loop path.
+ * the loops of one sound as one channel, each placed from its own origin and
+ * their two sides summed, clamped at 255 (S_AddLoopSounds 0x46b350,
+ * S_SpatializeOrigin 0x46a940). Here a loop of a sound already added this
+ * frame at the same place is merged into it the same way, so a general set's
+ * loops, all at the listener, are one; a set heard around a point (import 51)
+ * keeps a loop of its own where it is. The legacy mixer then sums each
+ * sound's places side by side, and the OpenAL backend renders a voice per
+ * place through the engine's own loop path.
  */
 
 namespace fntech3::audio::jka {
@@ -35,12 +39,12 @@ public:
 	std::size_t Size() const { return count_; }
 	const AmbientLoop &operator[]( std::size_t index ) const { return loops_[index]; }
 
-	/* The index of the loop now holding this sound, or -1 for a loop that is
-	 * silent, has no origin or finds the frame full. */
+	/* The index of the loop now holding this sound at this place, or -1 for a
+	 * loop that is silent, has no origin or finds the frame full. */
 	int Add( const float *origin, int handle, int volume ) {
 		if ( !origin || volume <= 0 ) return -1;
 		for ( std::size_t i = 0; i < count_; ++i ) {
-			if ( loops_[i].handle == handle ) {
+			if ( loops_[i].handle == handle && !std::memcmp( loops_[i].origin.data(), origin, sizeof( loops_[i].origin ) ) ) {
 				loops_[i].volume = ( std::min )( MaxVolume, loops_[i].volume + volume );
 				return static_cast<int>( i );
 			}

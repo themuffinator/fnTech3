@@ -27,6 +27,14 @@ historical upstream records, not fnTech3 release history. See the
   builds them, checked against its own vertices; a recorded match no longer
   stops at the first lit saber
   ([record](docs/fntech3/2026-10-14-compatibility-round.md)).
+- Play Jedi Academy maps whose speakers and effects carry sound sets, such
+  as `mp/ctf3`: the client no longer stops on their first frame, and each
+  set's loop and occasional sounds play where they are, checked against the
+  original engine's own routines
+  ([record](docs/fntech3/2026-10-15-compatibility-round.md)).
+- Let an Enemy Territory level close an area portal that is already shut,
+  as the original executables do, instead of ending the level
+  ([record](docs/fntech3/2026-10-15-compatibility-round.md)).
 
 ## [0.1.0] - 2026-10-11
 

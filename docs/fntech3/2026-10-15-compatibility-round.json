@@ -1,0 +1,904 @@
+{
+ "record": "2026-10-15-compatibility-round.md",
+ "date": "2026-10-15",
+ "gatesClosed": [],
+ "headForLiveRuns": "27273055193c2b4c068af0b43bd6545d1f8f611f",
+ "headForValidation": "599b09af40927c70d2f2a7e153024624539e398e",
+ "platform": "Windows 11 x86 build (MSVC 19.44, meson debugoptimized, strict warnings), Windows x86 runtime",
+ "retail": {
+  "jamp.exe 1.01": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+  "cgamex86.dll 1.01 (base/assets3.pk3 member)": "e5d5525829bfcaf3c0428d87fe804e5a46a75dcf0a141f8288061a3970ff140d",
+  "base/assets3.pk3": "0f542dccb6858fc10a8083ca71f581c9eba93173386e03a9e5e05d3a56118f78",
+  "etded.exe 2.60b": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+  "et.exe 2.60b": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+  "quakelive_steam.exe": "c926fe9f6c851e00b3b9332e88903ad01f28fdd60454873891c0158f5ded1299"
+ },
+ "retailObservations": {
+  "jka": {
+   "cgameImport51": "0x412aae",
+   "AS_AddLocalSet": "0x4684f0",
+   "AS_PlayLocalSet": "0x4680d0",
+   "setLookup": "0x467360",
+   "AddSet": "0x467270",
+   "VectorLength": "0x455e70",
+   "S_AddAmbientLoopingSound": "0x46b270",
+   "S_StartAmbientSound": "0x46aaf0",
+   "S_AddLoopSounds": "0x46b350",
+   "S_SpatializeOrigin": "0x46a940",
+   "nullSound": "0x469ed0",
+   "fadeWrites": [
+    "0x467f5b",
+    "0x468098",
+    "0x4680ae"
+   ],
+   "realtime": "0x8af224",
+   "generator": "0x56e760",
+   "halfRadiusConstant": "0x565f90",
+   "r_DynamicGlowRegistration": "0x4a20d7",
+   "cgameCallSite": "0x300354f4..0x30035530",
+   "cgamePermanentLoop": "0x30035907..0x3003593c"
+  },
+  "wolfet": {
+   "etded.exe": "0x40c44c..0x40c45d",
+   "et.exe": "0x426bdc..0x426bed"
+  },
+  "ql": {
+   "sv_cylinderScaleDefault": "\"1.1f\" at 0x53fce0, pushed at 0x4c66d2 and 0x4e3e60"
+  }
+ },
+ "retailInProcess": {
+  "harness": ".tmp/round-2026-10-15/jka-local-sets/harness.c, run_retail.py",
+  "cases": 118,
+  "loops": 98,
+  "subwaves": 52,
+  "x87ControlWord": "027f",
+  "fixture": "tests/fixtures/jka_local_set_retail.json"
+ },
+ "runtimes": {
+  "before (.tmp/runtime/round-1015-before)": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "5798fec5d6e15d91c9514ddf59a11f38021ebfcf1f3a66ce697fd954a2e7ea3b",
+   "fnql_rtx_x86.dll": "9222f277a8444843a8626d7648a2954e2d7fc0e459d005ac70d2f9ff294f5a86",
+   "fnql_vk_x86.dll": "502a90a0544a5f43e11f76487197e6ce92d3997ae197f46443256e91aebbcd9f",
+   "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+   "fntech3.ded.exe": "c49a1f4b1ae58e87097d223539499ff1690aaaa336967ccaca3a6a16ad44e335",
+   "fntech3.exe": "3d5b09bf4478a64356d2ca91b24f6ff18632bd784d1a908b58ebe64b33c1790a"
+  },
+  "after (.tmp/runtime/round-1015-after)": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "5798fec5d6e15d91c9514ddf59a11f38021ebfcf1f3a66ce697fd954a2e7ea3b",
+   "fnql_rtx_x86.dll": "9222f277a8444843a8626d7648a2954e2d7fc0e459d005ac70d2f9ff294f5a86",
+   "fnql_vk_x86.dll": "502a90a0544a5f43e11f76487197e6ce92d3997ae197f46443256e91aebbcd9f",
+   "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+   "fntech3.ded.exe": "e249bfdedc30f8845731f76e14c8743dde252a564bd73a3e6549c82deb158f58",
+   "fntech3.exe": "3743b6c8eed2ff7fb94e77e6d1846d9e20acb1241056d6c7a4779204c5dcbe8e"
+  },
+  "diagnostic (.tmp/runtime/round-1015-diag; after plus one probe_local log line, not committed)": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "5798fec5d6e15d91c9514ddf59a11f38021ebfcf1f3a66ce697fd954a2e7ea3b",
+   "fnql_rtx_x86.dll": "9222f277a8444843a8626d7648a2954e2d7fc0e459d005ac70d2f9ff294f5a86",
+   "fnql_vk_x86.dll": "502a90a0544a5f43e11f76487197e6ce92d3997ae197f46443256e91aebbcd9f",
+   "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+   "fntech3.ded.exe": "e249bfdedc30f8845731f76e14c8743dde252a564bd73a3e6549c82deb158f58",
+   "fntech3.exe": "e3d0d85525c1084721e6f730a58b0513e9dacbbce600040cda589aa777856676"
+  }
+ },
+ "liveRuns": [
+  {
+   "run": "before-ffa2",
+   "map": "mp/ffa2",
+   "gametype": "0",
+   "sound": "off",
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\round-1015-before",
+   "commands": [
+    "cmd team spectator",
+    "wait 30",
+    "setviewpos -2736 820 130 270"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "errors": [
+    "ERROR: Unsupported jka-mp cgame import 51 (CG_S_ADDLOCALSET)",
+    "----- Server Shutdown (Server crashed: Unsupported jka-mp cgame import 51 (CG_S_ADDLOCALSET)) -----"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 29.8,
+   "executable": "3d5b09bf4478a64356d2ca91b24f6ff18632bd784d1a908b58ebe64b33c1790a",
+   "captures": [],
+   "viewPositions": [],
+   "notes": "HEAD refuses import 51 at the first frame"
+  },
+  {
+   "run": "before-ctf3",
+   "map": "mp/ctf3",
+   "gametype": "8",
+   "sound": "off",
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\round-1015-before",
+   "commands": [
+    "wait 30",
+    "setviewpos 864 -1200 520 90"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "errors": [
+    "ERROR: Unsupported jka-mp cgame import 51 (CG_S_ADDLOCALSET)",
+    "----- Server Shutdown (Server crashed: Unsupported jka-mp cgame import 51 (CG_S_ADDLOCALSET)) -----"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 27.7,
+   "executable": "3d5b09bf4478a64356d2ca91b24f6ff18632bd784d1a908b58ebe64b33c1790a",
+   "captures": [],
+   "viewPositions": [],
+   "notes": "HEAD refuses import 51 at the first frame"
+  },
+  {
+   "run": "after-ffa2",
+   "map": "mp/ffa2",
+   "gametype": "0",
+   "sound": "off",
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\round-1015-after",
+   "commands": [
+    "cmd team spectator",
+    "wait 30",
+    "setviewpos -2736 820 130 270"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "errors": [
+    "ERROR: Academy effect effects/env/small_fire.efx: effects playback requires one registered Fn shader (Particle)"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 28.4,
+   "executable": "3743b6c8eed2ff7fb94e77e6d1846d9e20acb1241056d6c7a4779204c5dcbe8e",
+   "captures": [],
+   "viewPositions": [],
+   "notes": "import 51 served; stops at the torches' fire effect (several shaders)"
+  },
+  {
+   "run": "after-ctf3-sound",
+   "map": "mp/ctf3",
+   "gametype": "8",
+   "sound": "on",
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\round-1015-after",
+   "commands": [
+    "wait 30",
+    "setviewpos 864 -1200 520 90"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 48.5,
+   "executable": "3743b6c8eed2ff7fb94e77e6d1846d9e20acb1241056d6c7a4779204c5dcbe8e",
+   "captures": [
+    "e74e2c62d23462072c5e2a9a31eb1fee06001ca34aeb79833369dc13b303a2fe",
+    "45c747a07b6d81a6c5acb567910e641cdc7e17b8b6faa6f4df0126125a8071d6"
+   ],
+   "viewPositions": [],
+   "notes": "40 OpenAL dumps; bird5 (dump 16) and bird2 (dump 37) on entity 199"
+  },
+  {
+   "run": "after-ctf3-where",
+   "map": "mp/ctf3",
+   "gametype": "8",
+   "sound": "on",
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\round-1015-after",
+   "commands": [
+    "set cl_menuBlur 0",
+    "wait 30",
+    "viewpos",
+    "setviewpos 864 -1200 520 90",
+    "wait 30",
+    "viewpos",
+    "ui_openmenu none"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 13.4,
+   "executable": "3743b6c8eed2ff7fb94e77e6d1846d9e20acb1241056d6c7a4779204c5dcbe8e",
+   "captures": [
+    "0f1ca41f171d30bdbcbe78549fb68a4eff7d5c4e595b0a342a72aa74c355c532"
+   ],
+   "viewPositions": [
+    "(-1320 -2752 252) : 41",
+    "(864 -1133 557) : 90"
+   ],
+   "notes": "view position after the teleport's push"
+  },
+  {
+   "run": "after-ctf3-law",
+   "map": "mp/ctf3",
+   "gametype": "8",
+   "sound": "on",
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\round-1015-after",
+   "commands": [
+    "set cl_menuBlur 0",
+    "ui_openmenu none",
+    "wait 30",
+    "setviewpos 864 -1400 520 90",
+    "wait 240",
+    "viewpos",
+    "echo probe-law far",
+    "s_alDebugDump",
+    "setviewpos 864 -1350 520 90",
+    "wait 240",
+    "viewpos",
+    "echo probe-law middle",
+    "s_alDebugDump",
+    "setviewpos 864 -1250 520 90",
+    "wait 240",
+    "viewpos",
+    "echo probe-law near",
+    "s_alDebugDump"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 20.5,
+   "executable": "3743b6c8eed2ff7fb94e77e6d1846d9e20acb1241056d6c7a4779204c5dcbe8e",
+   "captures": [
+    "8fb5faaa148c80b6b13eb313ea886fcc7cb4fad393829e839a1f0de938af85b2"
+   ],
+   "viewPositions": [
+    "(864 -1400 557) : 90",
+    "(864 -1276 557) : 90",
+    "(864 -1176 557) : 90"
+   ],
+   "notes": "loop voice by distance"
+  },
+  {
+   "run": "after-ctf3-law2",
+   "map": "mp/ctf3",
+   "gametype": "8",
+   "sound": "on",
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\round-1015-after",
+   "commands": [
+    "set cl_menuBlur 0",
+    "ui_openmenu none",
+    "wait 30",
+    "setviewpos 864 -1420 520 90",
+    "wait 240",
+    "viewpos",
+    "echo probe-law a",
+    "s_alDebugDump",
+    "setviewpos 864 -1410 520 90",
+    "wait 240",
+    "viewpos",
+    "echo probe-law b",
+    "s_alDebugDump",
+    "setviewpos 864 -1390 520 90",
+    "wait 240",
+    "viewpos",
+    "echo probe-law c",
+    "s_alDebugDump",
+    "setviewpos 864 -1370 520 90",
+    "wait 240",
+    "viewpos",
+    "echo probe-law d",
+    "s_alDebugDump"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 23.6,
+   "executable": "3743b6c8eed2ff7fb94e77e6d1846d9e20acb1241056d6c7a4779204c5dcbe8e",
+   "captures": [
+    "19a220b3dbd18aae06f49a4f75a3be0b2853c5a9e113aa8d078c947e171cc3dd"
+   ],
+   "viewPositions": [
+    "(864 -1420 557) : 90",
+    "(864 -1410 557) : 90",
+    "(864 -1390 557) : 90",
+    "(864 -1370 557) : 90"
+   ],
+   "notes": "no loop voice at 250 units and beyond"
+  },
+  {
+   "run": "after-ctf3-law3",
+   "map": "mp/ctf3",
+   "gametype": "8",
+   "sound": "on",
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\round-1015-after",
+   "commands": [
+    "set cl_menuBlur 0",
+    "ui_openmenu none",
+    "wait 30",
+    "setviewpos 864 -1340 520 90",
+    "wait 240",
+    "viewpos",
+    "echo probe-law a",
+    "s_alDebugDump",
+    "setviewpos 864 -1300 520 90",
+    "wait 240",
+    "viewpos",
+    "echo probe-law b",
+    "s_alDebugDump",
+    "setviewpos 864 -1250 520 90",
+    "wait 240",
+    "viewpos",
+    "echo probe-law c",
+    "s_alDebugDump",
+    "setviewpos 864 -1200 520 90",
+    "wait 240",
+    "viewpos",
+    "echo probe-law d",
+    "s_alDebugDump"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 23.5,
+   "executable": "3743b6c8eed2ff7fb94e77e6d1846d9e20acb1241056d6c7a4779204c5dcbe8e",
+   "captures": [
+    "40ff6620d7a33b63622b99bd7c7329d8ce9270332f8c0f59fb17a5ce51f79a6b"
+   ],
+   "viewPositions": [
+    "(864 -1266 557) : 90",
+    "(864 -1226 557) : 90",
+    "(864 -1176 557) : 90",
+    "(864 -1126 557) : 90"
+   ],
+   "notes": "loop voice inside the radius"
+  },
+  {
+   "run": "diag-ctf3-calls",
+   "map": "mp/ctf3",
+   "gametype": "8",
+   "sound": "on",
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\round-1015-diag",
+   "commands": [
+    "set cl_menuBlur 0",
+    "ui_openmenu none",
+    "wait 30",
+    "setviewpos 864 -1340 520 90",
+    "wait 240",
+    "viewpos",
+    "set probe_local 1",
+    "wait 3",
+    "set probe_local 0",
+    "s_alDebugDump"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 12.6,
+   "executable": "e3d0d85525c1084721e6f730a58b0513e9dacbbce600040cda589aa777856676",
+   "captures": [
+    "de4693f5eb7b92f3fc1623246ea466935b66857eb052fce63aca38a9c8312e36"
+   ],
+   "viewPositions": [
+    "(864 -1266 557) : 90"
+   ],
+   "notes": "every import 51 call for three frames"
+  },
+  {
+   "run": "diag-siege-hoth",
+   "map": "mp/siege_hoth",
+   "gametype": "7",
+   "sound": "on",
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\round-1015-diag",
+   "commands": [
+    "set cl_menuBlur 0",
+    "ui_openmenu none",
+    "wait 30",
+    "setviewpos -1204 -101 477 90",
+    "wait 240",
+    "viewpos",
+    "set probe_local 1",
+    "wait 2",
+    "set probe_local 0",
+    "s_alDebugDump",
+    "setviewpos -1204 -225 477 90",
+    "wait 240",
+    "viewpos",
+    "set probe_local 1",
+    "wait 2",
+    "set probe_local 0",
+    "s_alDebugDump"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "errors": [
+    "ERROR: Jedi Academy game import G_SIEGEPERSGET (43) is not served yet: its module boundary is still open. Its arrays are bound. See docs/fntech3/COMPATIBILITY.md",
+    "----- Server Shutdown (Server crashed: Jedi Academy game import G_SIEGEPERSGET (43) is not served yet: its module boundary is still open. Its arrays are bound. See docs/fntech3/COMPATIBILITY.md) -----"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 26.6,
+   "executable": "e3d0d85525c1084721e6f730a58b0513e9dacbbce600040cda589aa777856676",
+   "captures": [],
+   "viewPositions": [],
+   "notes": "siege: server refuses game import 43"
+  },
+  {
+   "run": "diag-hoth-ffa",
+   "map": "mp/siege_hoth",
+   "gametype": "0",
+   "sound": "on",
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\round-1015-diag",
+   "commands": [
+    "set cl_menuBlur 0",
+    "cmd team spectator",
+    "ui_openmenu none",
+    "wait 30",
+    "setviewpos -1204 -101 477 90",
+    "wait 240",
+    "viewpos",
+    "set probe_local 1",
+    "wait 2",
+    "set probe_local 0",
+    "s_alDebugDump",
+    "setviewpos -1204 -225 477 90",
+    "wait 240",
+    "viewpos",
+    "set probe_local 1",
+    "wait 2",
+    "set probe_local 0",
+    "s_alDebugDump"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "errors": [
+    "ERROR: Jedi Academy cgame unsupported Raven renderer view flags"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "seconds": 28.2,
+   "executable": "e3d0d85525c1084721e6f730a58b0513e9dacbbce600040cda589aa777856676",
+   "captures": [],
+   "viewPositions": [],
+   "notes": "free-for-all on a siege map: client refuses a view flag"
+  }
+ ],
+ "localSetVoices": {
+  "after-ctf3-law": [
+   [
+    "sound/ambience/yavin/yavin_ext.wav",
+    "157.1",
+    "1.00"
+   ],
+   [
+    "sound/ambience/yavin/yavin_ext.wav",
+    "58.3",
+    "1.00"
+   ]
+  ],
+  "after-ctf3-law2": [],
+  "after-ctf3-law3": [
+   [
+    "sound/ambience/yavin/yavin_ext.wav",
+    "147.0",
+    "1.00"
+   ],
+   [
+    "sound/ambience/yavin/yavin_ext.wav",
+    "107.4",
+    "1.00"
+   ],
+   [
+    "sound/ambience/yavin/yavin_ext.wav",
+    "58.1",
+    "1.00"
+   ],
+   [
+    "sound/ambience/yavin/yavin_ext.wav",
+    "14.6",
+    "1.00"
+   ]
+  ],
+  "diag-ctf3-calls": [
+   [
+    "sound/ambience/yavin/yavin_ext.wav",
+    "147.1",
+    "1.00"
+   ]
+  ]
+ },
+ "diagnosticCalls": [
+  {
+   "frame": 277,
+   "entity": 196,
+   "set": "yavin_exterior",
+   "distance": 2958.2,
+   "volume": 0,
+   "answer": 5125
+  },
+  {
+   "frame": 277,
+   "entity": 198,
+   "set": "yavin_exterior",
+   "distance": 1978.3,
+   "volume": 0,
+   "answer": 5125
+  },
+  {
+   "frame": 277,
+   "entity": 199,
+   "set": "yavin_exterior",
+   "distance": 147.1,
+   "volume": 209,
+   "answer": 5125
+  },
+  {
+   "frame": 277,
+   "entity": 190,
+   "set": "medium_platform",
+   "distance": 4240.5,
+   "volume": 0,
+   "answer": 5125
+  },
+  {
+   "frame": 277,
+   "entity": 192,
+   "set": "yavin_exterior",
+   "distance": 4145.0,
+   "volume": 0,
+   "answer": 5125
+  },
+  {
+   "frame": 277,
+   "entity": 194,
+   "set": "yavin_exterior",
+   "distance": 2159.7,
+   "volume": 0,
+   "answer": 5125
+  },
+  {
+   "frame": 277,
+   "entity": 195,
+   "set": "yavin_exterior",
+   "distance": 3995.2,
+   "volume": 0,
+   "answer": 5125
+  },
+  {
+   "frame": 277,
+   "entity": 196,
+   "set": "yavin_exterior",
+   "distance": 2958.2,
+   "volume": 0,
+   "answer": 5125
+  },
+  {
+   "frame": 277,
+   "entity": 197,
+   "set": "yavin_exterior",
+   "distance": 2772.8,
+   "volume": 0,
+   "answer": 5125
+  },
+  {
+   "frame": 277,
+   "entity": 198,
+   "set": "yavin_exterior",
+   "distance": 1978.3,
+   "volume": 0,
+   "answer": 5125
+  },
+  {
+   "frame": 277,
+   "entity": 199,
+   "set": "yavin_exterior",
+   "distance": 147.1,
+   "volume": 209,
+   "answer": 5125
+  },
+  {
+   "frame": 277,
+   "entity": 201,
+   "set": "medium_platform",
+   "distance": 1175.9,
+   "volume": 0,
+   "answer": 5125
+  },
+  {
+   "frame": 278,
+   "entity": 196,
+   "set": "yavin_exterior",
+   "distance": 2958.2,
+   "volume": 0,
+   "answer": 5141
+  },
+  {
+   "frame": 278,
+   "entity": 198,
+   "set": "yavin_exterior",
+   "distance": 1978.3,
+   "volume": 0,
+   "answer": 5141
+  },
+  {
+   "frame": 278,
+   "entity": 199,
+   "set": "yavin_exterior",
+   "distance": 147.1,
+   "volume": 209,
+   "answer": 5141
+  },
+  {
+   "frame": 278,
+   "entity": 190,
+   "set": "medium_platform",
+   "distance": 4240.5,
+   "volume": 0,
+   "answer": 5141
+  },
+  {
+   "frame": 278,
+   "entity": 192,
+   "set": "yavin_exterior",
+   "distance": 4145.0,
+   "volume": 0,
+   "answer": 5141
+  },
+  {
+   "frame": 278,
+   "entity": 194,
+   "set": "yavin_exterior",
+   "distance": 2159.7,
+   "volume": 0,
+   "answer": 5141
+  },
+  {
+   "frame": 278,
+   "entity": 195,
+   "set": "yavin_exterior",
+   "distance": 3995.2,
+   "volume": 0,
+   "answer": 5141
+  },
+  {
+   "frame": 278,
+   "entity": 196,
+   "set": "yavin_exterior",
+   "distance": 2958.2,
+   "volume": 0,
+   "answer": 5141
+  },
+  {
+   "frame": 278,
+   "entity": 197,
+   "set": "yavin_exterior",
+   "distance": 2772.8,
+   "volume": 0,
+   "answer": 5141
+  },
+  {
+   "frame": 278,
+   "entity": 198,
+   "set": "yavin_exterior",
+   "distance": 1978.3,
+   "volume": 0,
+   "answer": 5141
+  },
+  {
+   "frame": 278,
+   "entity": 199,
+   "set": "yavin_exterior",
+   "distance": 147.1,
+   "volume": 209,
+   "answer": 5141
+  },
+  {
+   "frame": 278,
+   "entity": 201,
+   "set": "medium_platform",
+   "distance": 1175.9,
+   "volume": 0,
+   "answer": 5141
+  },
+  {
+   "frame": 279,
+   "entity": 196,
+   "set": "yavin_exterior",
+   "distance": 2958.2,
+   "volume": 0,
+   "answer": 5157
+  },
+  {
+   "frame": 279,
+   "entity": 198,
+   "set": "yavin_exterior",
+   "distance": 1978.3,
+   "volume": 0,
+   "answer": 5157
+  },
+  {
+   "frame": 279,
+   "entity": 199,
+   "set": "yavin_exterior",
+   "distance": 147.1,
+   "volume": 209,
+   "answer": 5157
+  },
+  {
+   "frame": 279,
+   "entity": 190,
+   "set": "medium_platform",
+   "distance": 4240.5,
+   "volume": 0,
+   "answer": 5157
+  },
+  {
+   "frame": 279,
+   "entity": 192,
+   "set": "yavin_exterior",
+   "distance": 4145.0,
+   "volume": 0,
+   "answer": 5157
+  },
+  {
+   "frame": 279,
+   "entity": 194,
+   "set": "yavin_exterior",
+   "distance": 2159.7,
+   "volume": 0,
+   "answer": 5157
+  },
+  {
+   "frame": 279,
+   "entity": 195,
+   "set": "yavin_exterior",
+   "distance": 3995.2,
+   "volume": 0,
+   "answer": 5157
+  },
+  {
+   "frame": 279,
+   "entity": 196,
+   "set": "yavin_exterior",
+   "distance": 2958.2,
+   "volume": 0,
+   "answer": 5157
+  },
+  {
+   "frame": 279,
+   "entity": 197,
+   "set": "yavin_exterior",
+   "distance": 2772.8,
+   "volume": 0,
+   "answer": 5157
+  },
+  {
+   "frame": 279,
+   "entity": 198,
+   "set": "yavin_exterior",
+   "distance": 1978.3,
+   "volume": 0,
+   "answer": 5157
+  },
+  {
+   "frame": 279,
+   "entity": 199,
+   "set": "yavin_exterior",
+   "distance": 147.1,
+   "volume": 209,
+   "answer": 5157
+  },
+  {
+   "frame": 279,
+   "entity": 201,
+   "set": "medium_platform",
+   "distance": 1175.9,
+   "volume": 0,
+   "answer": 5157
+  }
+ ],
+ "tests": {
+  "targeted": "clean run passes ['13 passed, 124 subtests passed in 36.13s']",
+  "mutations": [
+   "caught: half radius 0.6 (tests/jka_local_set_tests.py)",
+   "caught: no fraction bound (tests/jka_local_set_tests.py)",
+   "caught: float distance (tests/jka_local_set_tests.py)",
+   "caught: loop only when audible (tests/jka_local_set_tests.py)",
+   "caught: answer from the last wave (tests/jka_local_set_tests.py)",
+   "caught: paced by the handed time (tests/jka_local_set_tests.py)",
+   "caught: wave clamped to the loop (tests/jka_local_set_tests.py)",
+   "caught: no volume draw without subwaves (tests/jka_local_set_tests.py)",
+   "caught: scale by the master volume (tests/jka_local_set_tests.py)",
+   "caught: records always 255 (tests/jka_local_set_tests.py)",
+   "caught: dropped set forgotten (tests/jka_local_set_tests.py)",
+   "caught: merge by sound only (tests/jka_ambient_playback_tests.py)",
+   "caught: legacy sides unclamped (tests/jka_local_set_tests.py)",
+   "caught: legacy one place per sound (tests/jka_local_set_tests.py)",
+   "caught: openal takes a kept voice (tests/jka_ambient_playback_tests.py)",
+   "caught: host answers 0 for a missing set (tests/jka_cgame_ambient_tests.py)",
+   "caught: host takes any entity (tests/jka_cgame_ambient_tests.py)",
+   "caught: wave times kept across a sound restart (tests/jka_cgame_ambient_tests.py)",
+   "caught: host uses the record as parsed (tests/jka_cgame_ambient_tests.py)",
+   "caught: ET keeps the drop (tests/area_portal_count_tests.py)",
+   "clean run passes ['13 passed, 124 subtests passed in 36.13s']",
+   "20 of 20 caught"
+  ]
+ },
+ "validation": {
+  "setup": "setup exit 0",
+  "build": "build exit 0",
+  "buildTargets": [
+   "1541",
+   "1541"
+  ],
+  "mesonCount": "266 native tests",
+  "meson": "meson exit 0",
+  "mesonSummary": [
+   "Ok:                264 ",
+   "Fail:              0   ",
+   "Skipped:           2   "
+  ],
+  "pytest": "pytest exit 0",
+  "pytestSummary": "2717 passed, 131 skipped, 66824 subtests passed in 2786.70s (0:46:26)"
+ },
+ "validationAfterHeadMove": {
+  "head": "652efbf0f0a6b74e498d0afaf68826dd03fcbbb1",
+  "build": "build exit 0",
+  "mesonCount": "267 native tests",
+  "meson": "meson exit 0",
+  "mesonSummary": [
+   "Ok:                265 ",
+   "Fail:              0   ",
+   "Skipped:           2   "
+  ],
+  "pytestScope": "tests/jka_*.py, area_portal_count, changelog, generate_docs, release_workflow, version_metadata, player_manual, release_packaging, rtcw_loop_audio",
+  "pytest": "pytest exit 0",
+  "pytestSummary": "211 passed, 1 skipped, 1218 subtests passed in 777.96s (0:12:57)"
+ },
+ "ledgerCorrections": [
+  "Academy client row: voice volume (35) and the first client-game sound (37) are served since the October 7 audit; local sets (51) since this round",
+  "Academy module row: 157 served game imports, not 98",
+  "Academy introduction: retail jamp.exe's server admits fnTech3's client, pure",
+  "Outcast identity row: the client reaches client-game import 300, not UI import 200",
+  "Enemy Territory client row: release builds are no longer blocked",
+  "Alice savegame row: the module is kept for a load or restart of the running level",
+  "Medal of Honor fades and Outcast MP3 paragraphs point to the records that closed them"
+ ],
+ "censusFindings": [
+  "wolfet: Work::Push refuses a record already marked inlist where retail AAS_AvoidDangerArea and AAS_Retreat queue without that check (2026-10-02-wolfet-routing-limits.md)",
+  "jk2-mp: the pure gamestate budget omits Outcast from its own-wire estimate (sv_client.cpp)",
+  "q3-only x64 builds compile the x86-only Academy ABI tests (2026-10-11-rtx-entity-shadows.md)",
+  "rtcw-mp: six top-down TGA warnings; the warning is suppressed only for ET and Jedi",
+  "fakk2: no typed module signature tables beside Alice's",
+  "stvef-mp: sv_fps clamped to 10..125 where retail takes any value from 1",
+  "q3test: retail 1.05 leaves its game's keys out of serverinfo and systeminfo",
+  "fakk2: 34 plain MP3 music files are sized past what reading yields (2026-10-08-mp3-last-frame.md)",
+  "jka-mp: Raven entity types 3, 6, 10 and 11, effect flag words and renderfx flags still refused",
+  "jka-mp: siege game import 43 (G_SIEGEPERSGET); a siege map in FFA refuses a view flag",
+  "jka-mp: effects/env/small_fire.efx particle with several shaders, and the glow stage keyword: served by 652efbf0 (2026-10-15-jka-particle-dynamics.md), whose mp/ffa2 runs carried this round's five import-51 files as a labelled overlay with matching hashes"
+ ]
+}

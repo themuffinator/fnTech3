@@ -526,6 +526,10 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   and a recorded match with a lit saber in it plays to its end, though no
   picture of a blade has been checked yet
   ([details](fntech3/2026-10-14-compatibility-round.md#jedi-academy-saber-glow-and-lines)).
+  Maps whose speakers and torches carry background sounds of their own, such
+  as `mp/ctf3`, no longer stop on their first frame: those sounds now play
+  where they are, and their occasional calls come at the times the game
+  gives ([details](fntech3/2026-10-15-compatibility-round.md#jedi-academy-sets-heard-around-a-point)).
 - **Single player:** the original game code starts, then stops on its first
   frame.
 

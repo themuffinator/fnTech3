@@ -19,7 +19,13 @@
  * sound system does (CL_JKAClearAmbientPlayer from S_Init), whose sound
  * handles the player holds. The loop goes to Fn's ambient-loop path and the
  * subwaves are Fn one-shots on Academy's ambient channel, so the engine's own
- * room, tone and output features apply to both. */
+ * room, tone and output features apply to both.
+ *
+ * Import 51 plays a set around a point, an entity's, through the same
+ * generator (PlayLocal, retail AS_AddLocalSet 0x4684f0): its loop at the point
+ * through the same loop path, placed there by Fn's distance model, and its
+ * subwaves on the entity, paced by the entity's last subwave time, which the
+ * engine keeps; the import answers as retail's does. */
 namespace {
 static_assert(fntech3::jka::ambient::MaxPlayWaves >= fntech3::jka::ambient::MaxWaves);
 struct JKACgameAmbientSounds {
@@ -36,6 +42,9 @@ struct JKACgameAmbientState {
 std::unique_ptr<JKACgameAmbientState> jkaCgameAmbient;
 fntech3::jka::ambient::Player jkaAmbientPlayer;
 std::uint32_t jkaAmbientNextId{};
+// Each entity's last subwave from a set around it (import 51), kept by the
+// engine as the player keeps its slots' (PlayLocal).
+std::array<std::int32_t, MAX_GENTITIES> jkaLocalWaveTimes{};
 
 /* Where the player's loops and waves go. Retail starts a wave on entity 0
  * (0x468402); the world entity keeps it from belonging to whichever player
@@ -45,9 +54,16 @@ struct JKAAmbientSink {
         S_AddJKAAmbientLoopingSound(origin, handle, volume);
     }
     void Wave(const float *origin, int handle, int volume) {
+        EntityWave(origin, ENTITYNUM_WORLD, handle, volume);
+    }
+    /* A set heard around a point starts its subwave on the client game's
+     * entity (S_StartAmbientSound 0x46aaf0). Retail's handle 0 is the silent
+     * "sound/null.wav" its registration starts with (0x469ed0), which Fn has
+     * no need to play. */
+    void EntityWave(const float *origin, int entity, int handle, int volume) {
         if (handle <= 0 || volume <= 0) return; // no registered sound, or silent
         vec3_t at; VectorCopy(origin, at);
-        S_StartSoundVolume(at, ENTITYNUM_WORLD, fntech3::jka::sound::EngineChannel(fntech3::jka::sound::ChanAmbient),
+        S_StartSoundVolume(at, entity, fntech3::jka::sound::EngineChannel(fntech3::jka::sound::ChanAmbient),
             handle, static_cast<float>(volume) / static_cast<float>(fntech3::jka::ambient::MaxSetVolume));
     }
 };
@@ -153,6 +169,47 @@ static bool CL_JKACgameAmbientCall(intptr_t *args, fntech3::jka::module::Call ca
         result = 0;
         return true;
     }
+    case Call::CG_S_ADDLOCALSET: {
+        // Retail 0x412aae hands name, listener, origin, entity and time to
+        // AS_AddLocalSet 0x4684f0, which answers its real time for a name it
+        // does not hold (0x468504) before reading anything else.
+        const auto name = CL_JKACgameAmbientName(args[1]);
+        if (name[0] && !jkaCgameAmbient)
+            Com_Error(ERR_DROP, "Jedi Academy cgame local ambient set has no loaded catalog");
+        const auto *definition = jkaCgameAmbient ? jkaCgameAmbient->catalog.Find(name.data()) : nullptr;
+        if (!definition) {
+            result = cls.realtime;
+            return true;
+        }
+        const auto *listener = static_cast<const float *>(CL_JKACgameSpan(args[2], sizeof(vec3_t)));
+        const auto *origin = static_cast<const float *>(CL_JKACgameSpan(args[3], sizeof(vec3_t)));
+        if (!fntech3::jka::client::FiniteVector(listener) || !fntech3::jka::client::FiniteVector(origin))
+            Com_Error(ERR_DROP, "Invalid Jedi Academy cgame local ambient origin");
+        if (args[4] < 0 || args[4] >= MAX_GENTITIES)
+            Com_Error(ERR_DROP, "Invalid Jedi Academy cgame local ambient entity %ld", static_cast<long>(args[4]));
+        const auto &state = *jkaCgameAmbient;
+        const auto index = std::size_t(definition - state.catalog.Definitions().data());
+        if (index >= state.sounds.size())
+            Com_Error(ERR_DROP, "Jedi Academy cgame ambient handles are not ready");
+        fntech3::jka::ambient::PlaySet set;
+        set.id = state.firstId + static_cast<std::uint32_t>(index);
+        set.loop = state.sounds[index].loop;
+        set.waveCount = definition->waves.size();
+        for (std::size_t wave = 0; wave < set.waveCount; ++wave) set.waves[wave] = state.sounds[index].waves[wave];
+        set.minimumSeconds = definition->minimumSeconds;
+        set.maximumSeconds = definition->maximumSeconds;
+        set.minimumVolume = definition->minimumVolume;
+        set.maximumVolume = definition->maximumVolume;
+        // Any set may be named here, a general or mover set too; it plays at
+        // the volume its own record holds, which the general sets' fades write.
+        set.masterVolume = jkaAmbientPlayer.MasterVolume(set.id);
+        JKAAmbientSink sink;
+        const auto entity = static_cast<std::size_t>(args[4]);
+        result = fntech3::jka::ambient::PlayLocal(set, definition->radius, listener, origin,
+            static_cast<int>(entity), static_cast<std::int32_t>(args[5]), cls.realtime,
+            jkaLocalWaveTimes[entity], jkaAmbientPlayer.Generator(), sink);
+        return true;
+    }
     case Call::CG_AS_ADDPRECACHEENTRY: {
         const auto name = CL_JKACgameAmbientName(args[1]);
         if (!CL_JKACgameAmbientState().catalog.Select(name.data()))
@@ -189,5 +246,6 @@ static bool CL_JKACgameAmbientCall(intptr_t *args, fntech3::jka::module::Call ca
 void CL_JKAClearAmbientPlayer(void) {
     jkaAmbientPlayer.Reset();
     jkaAmbientNextId = 0;
+    jkaLocalWaveTimes.fill(0);
 }
 #endif

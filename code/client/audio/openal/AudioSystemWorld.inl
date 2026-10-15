@@ -1160,9 +1160,11 @@ private:
 	std::array<SoundVoice, MAX_GENTITIES + fntech3::audio::stvef::AmbientLoopFrame::Capacity> loopVoices_;
 	fntech3::audio::rtcw::LoopFrame rtcwLoops_;
 	fntech3::audio::stvef::AmbientLoopFrame stvefAmbientLoops_;
-	// Jedi Academy's ambient-set loops this frame, merged by sound; they take
-	// the same voices after the entities', which no profile shares.
+	// Jedi Academy's ambient-set loops this frame, merged by sound and place;
+	// they take the same voices after the entities', which no profile shares,
+	// each place the voice recorded beside it when it was first added.
 	fntech3::audio::jka::AmbientLoops jkaAmbientLoops_;
+	std::array<int, fntech3::audio::jka::AmbientLoops::Capacity> jkaAmbientLoopSlots_{};
 	fntech3::audio::rtcw::OneShots rtcwOneShots_;
 	std::array<Vec3f, MAX_GENTITIES> entityOrigins_;
 	int listenerNumber_ = 0;
@@ -1483,35 +1485,54 @@ void Q3SoundWorld::AddSTVEFAmbientLoopingSound( const float *origin, sfxHandle_t
 
 /* Jedi Academy's ambient-set loops belong to no entity. A sound keeps the
  * voice it already has, so a loop passing from one set to the next plays on
- * from where it was, and the loops of one sound are one voice at their
- * merged volume (shared/JKAAmbient.h). Everything else -- distance, room,
- * occlusion, tone -- is the engine's own loop rendering. */
+ * from where it was, and the loops of one sound at one place are one voice at
+ * their merged volume (shared/JKAAmbient.h); a set heard around a point gets
+ * a voice of its own there. Everything else -- distance, room, occlusion,
+ * tone -- is the engine's own loop rendering. */
 void Q3SoundWorld::AddJKAAmbientLoopingSound( const float *origin, sfxHandle_t handle,
 	int volume, SoundSample *sample ) {
 	static_assert( fntech3::audio::jka::AmbientLoops::Capacity <= fntech3::audio::stvef::AmbientLoopFrame::Capacity,
 		"Academy's ambient loops use the voices after the entities'" );
 	if ( !sample ) return;
+	const std::size_t before = jkaAmbientLoops_.Size();
 	const int merged = jkaAmbientLoops_.Add( origin, handle, volume );
 	if ( merged < 0 ) return;
 	const auto &loop = jkaAmbientLoops_[merged];
-	// The voice already playing this sound; else an idle one; else one no
-	// loop has kept this frame. An idle voice comes first, so a set's loop
-	// still to be added this frame keeps its own.
-	int slot = -1, idle = -1, stale = -1;
-	for ( std::size_t i = 0; i < fntech3::audio::jka::AmbientLoops::Capacity; ++i ) {
-		const SoundVoice &candidate = loopVoices_[MAX_GENTITIES + i];
-		const int index = static_cast<int>( MAX_GENTITIES + i );
-		if ( candidate.active && candidate.handle == handle ) {
-			slot = index;
-			break;
+	// A place merged into is on the voice it took this frame. A new one takes
+	// the voice already playing this sound that no other place has kept this
+	// frame, the nearest if several; else an idle one; else one no loop has
+	// kept this frame. An idle voice comes first, so a set's loop still to be
+	// added this frame keeps its own.
+	int &slot = jkaAmbientLoopSlots_[static_cast<std::size_t>( merged )];
+	if ( static_cast<std::size_t>( merged ) >= before ) {
+		slot = -1;
+		int idle = -1, stale = -1;
+		float nearest = 0.0f;
+		for ( std::size_t i = 0; i < fntech3::audio::jka::AmbientLoops::Capacity; ++i ) {
+			const SoundVoice &candidate = loopVoices_[MAX_GENTITIES + i];
+			const int index = static_cast<int>( MAX_GENTITIES + i );
+			if ( candidate.active && candidate.handle == handle ) {
+				if ( candidate.refreshedThisFrame ) continue;
+				const float *at = candidate.origin.Data();
+				float distance = 0.0f;
+				for ( int axis = 0; axis < 3; ++axis ) {
+					const float offset = at[axis] - loop.origin[static_cast<std::size_t>( axis )];
+					distance += offset * offset;
+				}
+				if ( slot < 0 || distance < nearest ) {
+					slot = index;
+					nearest = distance;
+				}
+				continue;
+			}
+			if ( !candidate.active ) {
+				if ( idle < 0 ) idle = index;
+			} else if ( !candidate.refreshedThisFrame && stale < 0 ) {
+				stale = index;
+			}
 		}
-		if ( !candidate.active ) {
-			if ( idle < 0 ) idle = index;
-		} else if ( !candidate.refreshedThisFrame && stale < 0 ) {
-			stale = index;
-		}
+		if ( slot < 0 ) slot = idle >= 0 ? idle : stale;
 	}
-	if ( slot < 0 ) slot = idle >= 0 ? idle : stale;
 	if ( slot < 0 ) return;
 	const float velocity[3] = { 0.0f, 0.0f, 0.0f };
 	AddLoopingSound( slot, loop.origin.data(), velocity, handle, sample, qfalse );

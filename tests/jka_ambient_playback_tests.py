@@ -12,7 +12,8 @@ Capstone (docs/fntech3/2026-10-06-jka-ambient-sets.md). The probes here:
   precision on chosen values;
 - run the per-frame loop list both backends share (shared/JKAAmbient.h) and
   the OpenAL world's voice choice, so a loop keeps its voice across a set
-  change and the loops of one sound are one voice;
+  change, the loops of one sound at one place are one voice, and a set heard
+  around a point (import 51) keeps a voice of its own where it is;
 - pin where the host, the sound interface and both backends serve it.
 """
 from pathlib import Path
@@ -324,16 +325,21 @@ int main() {
     AmbientLoops loops;
     const float a[3] = {1, 2, 3}, b[3] = {4, 5, 6};
     assert(loops.Add(a, 7, 200) == 0 && loops.Add(b, 8, 10) == 1);
-    // The loops of one sound merge: their volumes sum, clamped at 255, at the first one's place.
-    assert(loops.Add(b, 7, 100) == 0 && loops[0].volume == 255 && loops[0].origin[0] == 1 && loops.Size() == 2);
+    // The loops of one sound at one place merge: their volumes sum, clamped at 255.
+    assert(loops.Add(a, 7, 100) == 0 && loops[0].volume == 255 && loops[0].origin[0] == 1 && loops.Size() == 2);
+    // The same sound somewhere else is a loop of its own, at its own place.
+    assert(loops.Add(b, 7, 100) == 2 && loops[2].volume == 100 && loops[2].origin[0] == 4 && loops.Size() == 3);
+    assert(loops[0].volume == 255 && loops[0].origin[0] == 1);
     // Silent loops and loops without a place are not added.
-    assert(loops.Add(a, 9, 0) == -1 && loops.Add(a, 9, -3) == -1 && loops.Add(nullptr, 9, 10) == -1 && loops.Size() == 2);
+    assert(loops.Add(a, 9, 0) == -1 && loops.Add(a, 9, -3) == -1 && loops.Add(nullptr, 9, 10) == -1 && loops.Size() == 3);
     for (int handle = 100; loops.Size() < AmbientLoops::Capacity; ++handle) assert(loops.Add(a, handle, 1) >= 0);
     assert(loops.Add(a, 999, 255) == -1);                  // retail keeps 32 a frame
     // Exercise the full-list lookup as a runtime call. GCC 16 misdiagnoses
     // its fully inlined constant version as an array overflow after the fill.
     int (AmbientLoops::*volatile append)(const float *, int, int) = &AmbientLoops::Add;
     assert((loops.*append)(a, 7, 1) == 0 && loops[0].volume == 255); // merging needs no room
+    assert((loops.*append)(b, 7, 5) == 2 && loops[2].volume == 105);
+    assert((loops.*append)(a, 8, 1) == -1);                // a new place does
     loops.Clear();
     assert(loops.Size() == 0 && loops.Add(a, 7, 300) == 0 && loops[0].volume == 255);
     // Both sides are stored floats, including under MinGW x87.
@@ -358,20 +364,28 @@ enum { qfalse, qtrue };
 namespace fntech3::audio::stvef { struct AmbientLoopFrame { static constexpr std::size_t Capacity = 32; }; }
 #include "code/client/audio/shared/JKAAmbient.h"
 struct SoundSample {};
+struct Place {
+    float v[3] = {0, 0, 0};
+    const float *Data() const { return v; }
+    void Set(const float *at) { v[0] = at[0]; v[1] = at[1]; v[2] = at[2]; }
+};
 struct SoundVoice {
     bool active = false; int handle = 0; bool refreshedThisFrame = false;
     float volumeScale = 1.0f; int entnum = 0; bool doppler = true; int starts = 0;
+    Place origin;
 };
 struct Q3SoundWorld {
     std::array<SoundVoice, MAX_GENTITIES + 32> loopVoices_;
     fntech3::audio::jka::AmbientLoops jkaAmbientLoops_;
-    void AddLoopingSound(int slot, const float *, const float *, sfxHandle_t handle, SoundSample *, qboolean) {
+    std::array<int, fntech3::audio::jka::AmbientLoops::Capacity> jkaAmbientLoopSlots_{};
+    void AddLoopingSound(int slot, const float *origin, const float *, sfxHandle_t handle, SoundSample *, qboolean) {
         SoundVoice &voice = loopVoices_[static_cast<std::size_t>(slot)];
         if (!voice.active || voice.handle != handle) {
             const int starts = voice.starts;
             voice = SoundVoice{}; voice.active = true; voice.handle = handle; voice.starts = starts + 1;
         }
         voice.refreshedThisFrame = true;
+        voice.origin.Set(origin);
     }
     void AddJKAAmbientLoopingSound(const float *origin, sfxHandle_t handle, int volume, SoundSample *sample);
     void Frame() {
@@ -385,6 +399,17 @@ struct Q3SoundWorld {
         for (std::size_t i = MAX_GENTITIES; i < loopVoices_.size(); ++i)
             if (loopVoices_[i].active && loopVoices_[i].handle == handle) return &loopVoices_[i];
         return nullptr;
+    }
+    const SoundVoice *VoiceAt(int handle, float x) const {
+        for (std::size_t i = MAX_GENTITIES; i < loopVoices_.size(); ++i)
+            if (loopVoices_[i].active && loopVoices_[i].handle == handle && loopVoices_[i].origin.v[0] == x)
+                return &loopVoices_[i];
+        return nullptr;
+    }
+    int Active() const {
+        int count = 0;
+        for (const SoundVoice &voice : loopVoices_) count += voice.active ? 1 : 0;
+        return count;
     }
 };
 WORLD_FUNCTION
@@ -416,6 +441,29 @@ int main() {
     // A silent loop keeps no voice.
     world.Frame(); world.AddJKAAmbientLoopingSound(at, 12, 0, &sample); world.Kill();
     assert(!world.Voice(12));
+    // A set heard around a point (import 51) keeps a voice of its own where it
+    // is, beside the same sound at the listener.
+    const float there[3] = {500, 2, 3};
+    world.Frame(); world.AddJKAAmbientLoopingSound(at, 12, 255, &sample);
+    world.AddJKAAmbientLoopingSound(there, 12, 51, &sample); world.Kill();
+    const SoundVoice *here = world.VoiceAt(12, 1), *away = world.VoiceAt(12, 500);
+    assert(here && away && here != away && world.Active() == 2);
+    volatile float fifth = 0.2f;
+    assert(here->volumeScale == 1.0f && away->volumeScale == fifth && away->entnum == ENTITYNUM_NONE);
+    const int hereStarts = here->starts, awayStarts = away->starts;
+    // Each place keeps its voice, whichever is added first, and plays on.
+    world.Frame(); world.AddJKAAmbientLoopingSound(there, 12, 51, &sample);
+    world.AddJKAAmbientLoopingSound(at, 12, 255, &sample); world.Kill();
+    assert(world.VoiceAt(12, 1) == here && world.VoiceAt(12, 500) == away);
+    assert(here->starts == hereStarts && away->starts == awayStarts);
+    // A second loop at a place merges into that place's own voice.
+    world.Frame(); world.AddJKAAmbientLoopingSound(there, 12, 51, &sample);
+    world.AddJKAAmbientLoopingSound(at, 12, 255, &sample);
+    world.AddJKAAmbientLoopingSound(there, 12, 51, &sample); world.Kill();
+    assert(away->volumeScale == twoFifths && here->volumeScale == 1.0f && world.Active() == 2);
+    // A place left this frame lets its voice go.
+    world.Frame(); world.AddJKAAmbientLoopingSound(there, 12, 51, &sample); world.Kill();
+    assert(world.VoiceAt(12, 500) == away && !world.VoiceAt(12, 1) && world.Active() == 1);
     std::puts("ok");
     return 0;
 }
@@ -460,7 +508,17 @@ class JKAAmbientPlaybackTests(unittest.TestCase):
         self.assertLess(serve.index('Find(name.data())'), serve.index('CL_JKACgameSpan(args[2]'))
         sink = host[host.index('struct JKAAmbientSink {'):host.index('};', host.index('struct JKAAmbientSink {'))]
         self.assertIn('S_AddJKAAmbientLoopingSound(origin, handle, volume);', sink)
-        self.assertIn('S_StartSoundVolume(at, ENTITYNUM_WORLD, fntech3::jka::sound::EngineChannel(fntech3::jka::sound::ChanAmbient),', sink)
+        self.assertIn('EntityWave(origin, ENTITYNUM_WORLD, handle, volume);', sink)
+        self.assertIn('S_StartSoundVolume(at, entity, fntech3::jka::sound::EngineChannel(fntech3::jka::sound::ChanAmbient),', sink)
+        # Import 51 plays a set around a point through the same player's
+        # generator and the volume the set's own record holds.
+        self.assertIn('FNTECH3_JKA_MODULE_CALL(CGAME, IMPORT, CG_S_ADDLOCALSET, 51)', calls)
+        local = host[host.index('case Call::CG_S_ADDLOCALSET: {'):host.index('case Call::CG_AS_ADDPRECACHEENTRY:')]
+        self.assertIn('fntech3::jka::ambient::PlayLocal(set, definition->radius, listener, origin,', local)
+        self.assertIn('jkaAmbientPlayer.Generator(), sink);', local)
+        self.assertIn('set.masterVolume = jkaAmbientPlayer.MasterVolume(set.id);', local)
+        self.assertIn('result = cls.realtime;', local)
+        self.assertLess(local.index('Find(name.data())'), local.index('CL_JKACgameSpan(args[2]'))
         # The player and the numbering are the engine's, kept across client games.
         clear = function(host, 'static void CL_JKACgameAmbientClear() {')
         self.assertNotIn('jkaAmbientPlayer', clear)
@@ -468,6 +526,8 @@ class JKAAmbientPlaybackTests(unittest.TestCase):
         reset = function(host, 'void CL_JKAClearAmbientPlayer(void) {')
         self.assertIn('jkaAmbientPlayer.Reset();', reset)
         self.assertIn('jkaAmbientNextId = 0;', reset)
+        self.assertIn('jkaLocalWaveTimes.fill(0);', reset)
+        self.assertIn('jkaLocalWaveTimes[entity], jkaAmbientPlayer.Generator(), sink);', local)
         self.assertIn('state.firstId = jkaAmbientNextId;', host)
         self.assertIn('void CL_JKAClearAmbientPlayer( void );', read('code/qcommon/qcommon.h'))
         main = read('code/client/audio/snd_main.cpp')
@@ -484,7 +544,11 @@ class JKAAmbientPlaybackTests(unittest.TestCase):
         loops = function(dma, 'static void S_AddLoopSounds( void ) {')
         self.assertIn('if ( Com_GameIsJKAMP() ) {\n\t\tS_AddJKAAmbientLoopSounds();', loops.replace('\r\n', '\n'))
         mix = function(dma, 'static void S_AddJKAAmbientLoopSounds( void ) {')
-        self.assertIn('loop.volume * kMasterVolume / fntech3::audio::jka::AmbientLoops::MaxVolume', mix)
+        # Each place of a sound spatialized on its own, the sides summed and
+        # held at full level, as retail's S_AddLoopSounds sums them.
+        self.assertIn('place.volume * kMasterVolume / fntech3::audio::jka::AmbientLoops::MaxVolume', mix)
+        self.assertIn('left += placeLeft;', mix)
+        self.assertIn('left = ( std::min )( left, kMasterVolume );', mix)
         # OpenAL: the backend entry and the world's frame list.
         backend = read('code/client/audio/openal/AudioSystemBackend.inl')
         self.assertIn('si->AddJKAAmbientLoopingSound = []', backend)

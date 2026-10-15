@@ -84,6 +84,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Jedi Academy particle dynamics](fntech3/2026-10-15-jka-particle-dynamics.md)
   -- the torch fire on `mp/ffa2`: shader lists, particle motion, curves,
   delays and the `glow` shader keyword, measured in retail.
+- [October 15 compatibility round](fntech3/2026-10-15-compatibility-round.md)
+  -- Jedi Academy's sound sets heard around a point, checked against
+  retail's own routines, and Enemy Territory's close of a shut area portal.
 - [October 9 compatibility integration](fntech3/2026-10-09-compatibility-integration.md)
   -- resumed Alice and Elite Force work, shared-tree validation, and probe
   evidence and limits for the combined compatibility slices.

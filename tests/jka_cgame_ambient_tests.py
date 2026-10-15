@@ -166,8 +166,12 @@ assert(!jkaCgameAmbient&&!jkaCgameSharedBuffer&&jkaFonts.empty());
  absent[1]=0;assert(Invoke(absent)==0&&!jkaCgameAmbient);
  std::array<char,64> invalidName;invalidName.fill('x');
  absent[1]=reinterpret_cast<intptr_t>(invalidName.data());Reject([&]{Invoke(absent);});
- intptr_t unserved[]{51};intptr_t result=29;
- assert(!CL_JKACgameAmbientCall(unserved,fntech3::jka::module::Call::CG_S_ADDLOCALSET,result)&&result==29);
+ // Import 51 answers the real time for a name it does not hold before reading
+ // anything else; a nonempty name needs a loaded catalog, as 48's does.
+ cls.realtime=4321;
+ intptr_t unloaded[]{51,reinterpret_cast<intptr_t>("missing"),-1,-1,-1,0};
+ Reject([&]{Invoke(unloaded);});
+ unloaded[1]=0;assert(Invoke(unloaded)==4321&&!jkaCgameAmbient);
  assert(parsedMessages==3);
  // Import 48 plays a present set through the measured player
  // (jka_ambient_playback_tests.py): its loop at the volume it has faded to,
@@ -198,7 +202,68 @@ assert(!jkaCgameAmbient&&!jkaCgameSharedBuffer&&jkaFonts.empty());
  cls.realtime=27000;assert(Invoke(play)==0);
  assert(looped.size()==2&&looped[0].volume==0&&looped[1].volume==255&&jkaAmbientPlayer.HasOld());
  CL_JKAClearAmbientPlayer();assert(!jkaAmbientPlayer.HasCurrent()&&!jkaAmbientPlayer.HasOld());
- recover=false;CL_JKACgameClear();assert(files.empty());
+ // Import 51 plays a set around a point through the same player's generator
+ // (jka_local_set_tests.py holds it to retail's own results): its loop at the
+ // point at the volume its distance gives, a subwave on the client game's
+ // entity, and the time it answers. Any set may be named, a general one too.
+ add[1]=reinterpret_cast<intptr_t>("local");assert(!Invoke(add));assert(!Invoke(parse));
+ const auto latest=[&](const char *name){for(std::size_t i=registered.size();i-->0;)
+  if(registered[i]==name)return static_cast<int>(101+i);assert(false);return 0;};
+ const int cityHum=latest("sound/city/hum.wav"),cityHorn=latest("sound/city/horn.wav");
+ const int one=latest("sound/zones/one.wav"),two=latest("sound/zones/two.wav");
+ cls.realtime=40000;
+ intptr_t local[]{51,reinterpret_cast<intptr_t>("missing"),-1,-1,-1,0};
+ const std::uint32_t untouched=jkaAmbientPlayer.Generator().state;
+ assert(Invoke(local)==40000&&jkaAmbientPlayer.Generator().state==untouched);
+ local[1]=0;assert(Invoke(local)==40000);
+ local[1]=reinterpret_cast<intptr_t>("OUTDOOR");assert(Invoke(local)==40000); // names match exactly
+ float listener[3]{0,0,0},point[3]{0,0,0};
+ local[1]=reinterpret_cast<intptr_t>("outdoor");local[2]=reinterpret_cast<intptr_t>(listener);
+ local[3]=reinterpret_cast<intptr_t>(point);local[4]=17;local[5]=39000;
+ looped.clear();started.clear();
+ // Entity 17 has had no subwave yet, so one comes at once; the answer is the
+ // handed time, a second ago, short of any time between the set's waves.
+ for(const auto &step:{std::pair<float,int>{0,255},{125,255},{187.5f,127},{250,0},{400,0}}){
+  point[0]=step.first;const std::uint32_t before=jkaAmbientPlayer.Generator().state;
+  assert(Invoke(local)==39000&&jkaAmbientPlayer.Generator().state!=before);
+  assert(looped.back().handle==cityHum&&looped.back().volume==step.second&&looped.back().origin[0]==step.first);
+ }
+ assert(looped.size()==5&&started.size()==1);
+ assert(started[0].handle==cityHorn&&started[0].entity==17&&started[0].origin[0]==0);
+ assert(started[0].channel==fntech3::jka::sound::EngineChannel(fntech3::jka::sound::ChanAmbient));
+ assert(started[0].volume==1.0f);
+ // A handed time past every interval answers the real time, as retail's
+ // does, but the next subwave waits for the entity's own last one.
+ local[5]=10000;assert(Invoke(local)==40000&&started.size()==1);
+ cls.realtime=65000;local[5]=64990;point[0]=10;
+ assert(Invoke(local)==64990&&started.size()==2&&started[1].entity==17&&started[1].origin[0]==10);
+ // A local set without a loop: only its subwaves, at the point, on its entity.
+ local[1]=reinterpret_cast<intptr_t>("local");local[4]=18;started.clear();looped.clear();
+ assert(Invoke(local)==64990&&looped.empty()&&started.size()==1);
+ assert((started[0].handle==one||started[0].handle==two)&&started[0].entity==18);
+ // The set's own record: playing it as the general set fades its volume in,
+ // and the set around a point plays at that level, its subwave scaled by it.
+ intptr_t general[]{48,reinterpret_cast<intptr_t>("outdoor"),reinterpret_cast<intptr_t>(view)};
+ cls.realtime=70000;assert(Invoke(general)==0);
+ cls.realtime=70500;assert(Invoke(general)==0);looped.clear();started.clear();
+ local[1]=reinterpret_cast<intptr_t>("outdoor");local[4]=19;local[5]=70500;point[0]=0;
+ assert(Invoke(local)==70500&&looped.size()==1&&looped[0].volume==127);
+ assert(started.size()==1&&started[0].entity==19&&std::fabs(started[0].volume-127.0f/255.0f)<1e-6f);
+ local[4]=17;
+ // Malformed places and entities are refused, never played; the catalog
+ // stays, so each refusal is the one named.
+ recover=false;looped.clear();started.clear();
+ point[1]=std::nanf("");Reject([&]{Invoke(local);});point[1]=0;
+ {const std::uint32_t infinite=0x7f800000u;std::memcpy(&listener[2],&infinite,sizeof(infinite));}
+ Reject([&]{Invoke(local);});listener[2]=0;
+ for(intptr_t entity:{intptr_t(-1),intptr_t(MAX_GENTITIES)}){local[4]=entity;Reject([&]{Invoke(local);});}
+ local[4]=17;local[3]=0;Reject([&]{Invoke(local);});local[3]=reinterpret_cast<intptr_t>(point);
+ assert(jkaCgameAmbient&&looped.empty()&&started.empty());
+ assert(Invoke(local)==70500&&looped.size()==1);  // and the well-formed call still plays
+ // The entities' subwave times are the engine's, cleared with its sound system.
+ CL_JKAClearAmbientPlayer();started.clear();
+ assert(Invoke(local)==70500&&started.size()==1&&started[0].entity==17);
+ CL_JKACgameClear();assert(files.empty());
 }
 '''
 
