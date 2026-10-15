@@ -6,7 +6,7 @@ import subprocess
 import tempfile
 import unittest
 
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 from jka_cgame_ghoul2_tests import fixture as ghoul2_fixture
 from rtcw_server_world_tests import function
 
@@ -85,7 +85,9 @@ int main(){
   assert(jkaCgameBoneClocks.FrameReady()==(frameProfile==COM_GAME_JKA_MP));
  }
  assert(frameCalls==16&&panelCalls==16&&beginCalls==16&&endCalls==16);
- frameProfile=COM_GAME_JKA_MP;CL_CGameRendering(STEREO_CENTER);assert(Invoke(args)==1);
+ frameProfile=COM_GAME_JKA_MP;CL_CGameRendering(STEREO_CENTER);
+ if(sizeof(void *)!=4){Reject([&]{Invoke(args);});assert(storage==original);return 0;}
+ assert(Invoke(args)==1);
  float matrix[12];std::memcpy(matrix,storage.data()+3,48);
  assert(NearPose(matrix[0],1)&&NearPose(matrix[7],-5)&&NearPose(matrix[11],10));
  // Six native words: opaque owner, name, ignored time, float output,
@@ -240,7 +242,7 @@ class JKACgameBoltTests(unittest.TestCase):
             for extra in ([], ['-O2', '-ffast-math']):
                 # One executable per build: Windows can hold the last one run.
                 executable = folder / ('bolt-fast.exe' if extra else 'bolt.exe')
-                built = subprocess.run([compiler, *compiler_target_args(compiler), '-std=c++17', *extra,
+                built = subprocess.run([compiler, *engine_fixture_args(compiler), '-std=c++17', *extra,
                     '-I', str(ROOT), str(source), '-o', str(executable)], cwd=ROOT,
                     capture_output=True, text=True, timeout=120)
                 self.assertEqual(built.returncode, 0, built.stdout + built.stderr)

@@ -9,7 +9,7 @@ import subprocess
 import tempfile
 import unittest
 
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 from jka_effect_play_tests import fixture as playback_fixture
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -248,9 +248,7 @@ class JKADecalTests(unittest.TestCase):
             for fast in (False, True):
                 with self.subTest(fast_math=fast):
                     executable = directory / (('fast' if fast else 'plain') + ('.exe' if os.name == 'nt' else ''))
-                    target = compiler_target_args(compiler)
-                    if os.name == 'nt' and not target and name == 'kernel':
-                        target = ['-DFNTECH3_Q3_ONLY']
+                    target = engine_fixture_args(compiler)
                     # As in jka_camera_shake_tests: the effects pool's reset
                     # can sit in the import dispatcher's frame under clang.
                     stack = []

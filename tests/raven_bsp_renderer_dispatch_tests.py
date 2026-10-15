@@ -6,7 +6,7 @@ import subprocess
 import tempfile
 import unittest
 
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 from mesh_tag_tests import function
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -87,7 +87,7 @@ class RavenBspRendererDispatchTests(unittest.TestCase):
                         folder = Path(temp); probe = folder / 'probe.cpp'
                         executable = folder / ('probe.exe' if os.name == 'nt' else 'probe')
                         probe.write_text('\n'.join((PRELUDE, normalize, grid, CHECKS)))
-                        compiled = subprocess.run([compiler, *compiler_target_args(compiler), '-std=c++17',
+                        compiled = subprocess.run([compiler, *engine_fixture_args(compiler), '-std=c++17',
                             '-Wall', '-Wextra', '-Werror', *flags, '-I', str(ROOT), str(probe), '-o', str(executable)],
                             cwd=ROOT, capture_output=True, text=True, timeout=60)
                         self.assertEqual(compiled.returncode, 0, compiled.stdout + compiled.stderr)

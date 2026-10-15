@@ -35,7 +35,7 @@ import tempfile
 import unittest
 import zipfile
 
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 
 ROOT = Path(__file__).resolve().parents[1]
 RENDERERS = ('renderer', 'renderervk', 'rendererrtx')
@@ -52,7 +52,7 @@ def compile_and_run(test, source, stdin=None, args=()):
     compiler = shutil.which('clang++') or shutil.which('g++')
     if not compiler:
         test.skipTest('C++17 compiler required')
-    target = compiler_target_args(compiler)
+    target = engine_fixture_args(compiler)
     if os.name != 'nt' and not target:
         target = []
     (ROOT / '.tmp').mkdir(parents=True, exist_ok=True)
@@ -924,7 +924,7 @@ class RitualModelLightTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='ritual-model-lights-', dir=ROOT / '.tmp') as temp:
             cpp, exe = Path(temp) / 'host.cpp', Path(temp) / 'host.exe'
             cpp.write_text(RETAIL_HOST, encoding='utf-8')
-            built = subprocess.run([compiler, *compiler_target_args(compiler), '-std=c++17', '-O2', '-I', str(ROOT),
+            built = subprocess.run([compiler, *engine_fixture_args(compiler), '-std=c++17', '-O2', '-I', str(ROOT),
                                     str(cpp), '-o', str(exe)], cwd=ROOT, capture_output=True, text=True, timeout=120)
             self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
             for pak, version, expected, lights, players in present:

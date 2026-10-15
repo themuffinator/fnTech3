@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -24,7 +24,7 @@ class MdrFormatTests(unittest.TestCase):
                 self.skipTest('Clang C/C++ compiler unavailable')
             with self.subTest(language=language), tempfile.TemporaryDirectory(prefix='mdr-format-', dir=ROOT / '.tmp') as temp:
                 executable = Path(temp) / ('probe.exe' if os.name == 'nt' else 'probe')
-                target = compiler_target_args(compiler) if os.name == 'nt' else ['-m32']
+                target = engine_fixture_args(compiler) if os.name == 'nt' else ['-m32']
                 args = [compiler, *target, *optimization, '-x', language,
                         '-std=' + ('c11' if language == 'c' else 'c++17'),
                         str(ROOT / 'tests/mdr_format_tests.c'), '-o', str(executable)]

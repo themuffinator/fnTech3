@@ -6,7 +6,7 @@ import subprocess
 import tempfile
 import unittest
 
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 from jka_effect_play_tests import fixture as playback_fixture
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -224,9 +224,7 @@ class JKAParticleDynamicsTests(unittest.TestCase):
             for fast in (False, True):
                 with self.subTest(fast_math=fast):
                     executable = directory / (('fast' if fast else 'plain') + ('.exe' if os.name == 'nt' else ''))
-                    target = compiler_target_args(compiler)
-                    if os.name == 'nt' and not target and name == 'kernel':
-                        target = ['-DFNTECH3_Q3_ONLY']
+                    target = engine_fixture_args(compiler)
                     build = subprocess.run([compiler, *target, '-std=c++17', '-O2', '-Werror',
                         '-D_CRT_SECURE_NO_WARNINGS', *(['-ffast-math'] if fast else []), '-I', str(ROOT),
                         str(source), '-o', str(executable)], cwd=ROOT, capture_output=True, text=True, timeout=120)

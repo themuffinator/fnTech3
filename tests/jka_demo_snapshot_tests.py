@@ -6,7 +6,7 @@ import subprocess
 import tempfile
 import unittest
 
-from compiler_support import compiler_target_args
+from compiler_support import compiler_target_args, configured_target_is_windows_x64
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -106,8 +106,10 @@ class JkaDemoSnapshotTests(unittest.TestCase):
         if not compiler:
             self.skipTest("requires a C++17 compiler")
         target = compiler_target_args(compiler)
-        if os.name == "nt" and "clang" in Path(compiler).name.lower() and not target:
-            target = ["--target=i686-pc-windows-msvc"]
+        if os.name == "nt" and not target:
+            target = (["-DFNTECH3_Q3_ONLY"] if configured_target_is_windows_x64()
+                      else ["--target=i686-pc-windows-msvc"] if "clang" in Path(compiler).name.lower()
+                      else [])
         source = (ROOT / "code/client/cl_main.cpp").read_text(encoding="utf-8")
         start = source.index("static void CL_WriteSnapshot( void )")
         writer = source[start:source.index("\n}", start)+2]

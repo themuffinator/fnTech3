@@ -8,7 +8,7 @@ import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 from rtcw_music_fixture import function
 
 def fixture():
@@ -86,7 +86,9 @@ static intptr_t Invoke(intptr_t *args){
 template<class F>static void Reject(F action){bool rejected=false;try{action();}catch(Drop){rejected=true;}assert(rejected);}
 int main(){
  vm_t vm{};vm.entryPoint=reinterpret_cast<decltype(vm.entryPoint)>(1);cgvm=&vm;
- for(int ordinal:{339,340,341}){intptr_t cache[]{ordinal};assert(!Invoke(cache)&&!jkaCgameGhoul2Store);}
+ for(int ordinal:{339,340,341}){intptr_t cache[]{ordinal};
+  if(sizeof(void *)!=4){Reject([&]{Invoke(cache);});assert(!jkaCgameGhoul2Store);continue;}
+  assert(!Invoke(cache)&&!jkaCgameGhoul2Store);}
  auto files=Installed();assets=files.files;
  // The older metadata fixture's arbitrary compressed pool is sufficient for
  // format/ownership checks. Give this animation fixture an authored identity
@@ -508,7 +510,7 @@ class JKACgameGhoul2Tests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=scratch) as folder:
             source=Path(folder)/'cgame.cpp';source.write_text(fixture())
             executable=Path(folder)/('cgame.exe' if os.name=='nt' else 'cgame')
-            build=subprocess.run([compiler,*compiler_target_args(compiler),'-std=c++17','-Wall','-Wextra',
+            build=subprocess.run([compiler,*engine_fixture_args(compiler),'-std=c++17','-Wall','-Wextra',
                 '-Werror','-I',str(ROOT),str(source),'-o',str(executable)],cwd=ROOT,capture_output=True,text=True,timeout=120)
             self.assertEqual(build.returncode,0,build.stdout+build.stderr)
             run=subprocess.run([str(executable)],cwd=ROOT,capture_output=True,text=True,timeout=30)

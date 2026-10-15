@@ -1,7 +1,7 @@
 """Retail-shaped UI diagnostic/key catcher calls, with no platform input I/O."""
 from pathlib import Path
 import os, shutil, subprocess, tempfile, unittest
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 from rtcw_server_world_tests import function
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -80,7 +80,7 @@ class UIEngineMetadataTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=scratch) as folder:
             directory=Path(folder);source=directory/'host.cpp';executable=directory/('host.exe' if os.name=='nt' else 'host')
             source.write_text(fixture())
-            built=subprocess.run([compiler,*compiler_target_args(compiler),'-std=c++17','-O2','-Werror','-D_CRT_SECURE_NO_WARNINGS','-I',str(ROOT),str(source),'-o',str(executable)],cwd=ROOT,capture_output=True,text=True,timeout=120)
+            built=subprocess.run([compiler,*engine_fixture_args(compiler),'-std=c++17','-O2','-Werror','-D_CRT_SECURE_NO_WARNINGS','-I',str(ROOT),str(source),'-o',str(executable)],cwd=ROOT,capture_output=True,text=True,timeout=120)
             self.assertEqual(built.returncode,0,built.stdout+built.stderr)
             run=subprocess.run([str(executable)],cwd=ROOT,capture_output=True,text=True,timeout=30)
             self.assertEqual(run.returncode,0,run.stdout+run.stderr)

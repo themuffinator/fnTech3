@@ -6,7 +6,10 @@ class GlconfigBoundaryTests(unittest.TestCase):
  def test_profile_layout_values_guards_and_output_dimensions(self):
   compiler=shutil.which('clang++') or shutil.which('g++')
   if not compiler:self.skipTest('requires C++ compiler')
-  target=["--target=i686-pc-windows-msvc"] if os.name=="nt" and "clang" in Path(compiler).name else ["-m32"]
+  # An x64 shell builds the fixture as the -Dq3-only=true engine is built.
+  x64=os.name=="nt" and os.environ.get("VSCMD_ARG_TGT_ARCH","").lower()=="x64"
+  target=(["-DFNTECH3_Q3_ONLY"] if x64 else ["--target=i686-pc-windows-msvc"]
+   if os.name=="nt" and "clang" in Path(compiler).name else ["-m32"])
   source=(ROOT/'code/client/cl_cgame.cpp').read_text()
   def function(signature):
    start=source.index(signature);return source[start:source.index('\n}',start)+2]

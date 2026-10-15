@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 import unittest
 
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 from rtcw_server_world_tests import function
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,7 +19,7 @@ class IhvGameLifecycleTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='ihv-lifecycle-', dir=scratch) as folder:
             folder = Path(folder); src = folder/'test.cpp'; exe = folder/'test.exe'
             src.write_text(source, encoding='utf-8')
-            result = subprocess.run([compiler, *compiler_target_args(compiler), '-std=c++17', '-I', str(ROOT),
+            result = subprocess.run([compiler, *engine_fixture_args(compiler), '-std=c++17', '-I', str(ROOT),
                 *defines, str(src), *(str(ROOT/p) for p in sources), '-o', str(exe)], cwd=ROOT,
                 text=True, capture_output=True, timeout=60)
             self.assertEqual(result.returncode, 0, result.stdout+result.stderr)

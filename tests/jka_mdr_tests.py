@@ -4,7 +4,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -21,7 +21,7 @@ class JKAMDRTests(unittest.TestCase):
                 with self.subTest(fast_math=fast):
                     exe = Path(temporary) / ('fast.exe' if fast else 'default.exe')
                     flags = ['-ffast-math'] if fast else []
-                    built = subprocess.run([compiler, *compiler_target_args(compiler), '-std=c++17', '-O2',
+                    built = subprocess.run([compiler, *engine_fixture_args(compiler), '-std=c++17', '-O2',
                         '-Wall', '-Wextra', '-Werror', *flags, '-I', str(ROOT),
                         str(ROOT / 'tests/jka_mdr_tests.cpp'), '-o', str(exe)],
                         cwd=ROOT, capture_output=True, text=True, timeout=120)

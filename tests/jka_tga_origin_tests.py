@@ -7,7 +7,7 @@ import subprocess
 import tempfile
 import unittest
 
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -100,7 +100,7 @@ class JkaTgaOriginTests(unittest.TestCase):
             source = Path(folder) / "tga.cpp"
             executable = Path(folder) / ("tga.exe" if os.name == "nt" else "tga")
             source.write_text(FIXTURE, encoding="utf-8")
-            build = subprocess.run([compiler, *compiler_target_args(compiler), "-std=c++17", "-O2",
+            build = subprocess.run([compiler, *engine_fixture_args(compiler), "-std=c++17", "-O2",
                 "-Wall", "-Wextra", "-Werror", "-Wno-sign-compare", "-I", str(ROOT), str(source),
                 "-o", str(executable)], cwd=ROOT, text=True, capture_output=True, timeout=60)
             self.assertEqual(build.returncode, 0, build.stdout + build.stderr)

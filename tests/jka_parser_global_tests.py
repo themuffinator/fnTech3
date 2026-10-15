@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 from rtcw_server_world_tests import function
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -123,7 +123,7 @@ class GlobalParserTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=scratch) as folder:
             directory=Path(folder);source=directory/'host.cpp';executable=directory/('host.exe' if os.name=='nt' else 'host')
             source.write_text(host_fixture())
-            built=subprocess.run([compiler,*compiler_target_args(compiler),'-std=c++17','-O2','-ffast-math','-Werror','-D_CRT_SECURE_NO_WARNINGS','-I',str(ROOT),str(source),'-o',str(executable)],cwd=ROOT,capture_output=True,text=True,timeout=120)
+            built=subprocess.run([compiler,*engine_fixture_args(compiler),'-std=c++17','-O2','-ffast-math','-Werror','-D_CRT_SECURE_NO_WARNINGS','-I',str(ROOT),str(source),'-o',str(executable)],cwd=ROOT,capture_output=True,text=True,timeout=120)
             self.assertEqual(built.returncode,0,built.stdout+built.stderr)
             run=subprocess.run([str(executable)],cwd=ROOT,capture_output=True,text=True,timeout=30)
             self.assertEqual(run.returncode,0,run.stdout+run.stderr)
@@ -153,7 +153,7 @@ class GlobalParserTests(unittest.TestCase):
             files.update({f'depth{n}.h':f'#include "depth{n+1}.h"\n' for n in range(33)})
             files['depth33.h']='#define LEAK 1\n'
             for name,value in files.items():(directory/name).write_text(value)
-            built=subprocess.run([compiler,*compiler_target_args(compiler),'-std=c++17','-O2','-ffast-math','-Werror','-D_CRT_SECURE_NO_WARNINGS','-DBOTLIB','-I',str(ROOT),str(source),*[str(ROOT/path) for path in SOURCES],'-o',str(executable)],cwd=ROOT,capture_output=True,text=True,timeout=120)
+            built=subprocess.run([compiler,*engine_fixture_args(compiler),'-std=c++17','-O2','-ffast-math','-Werror','-D_CRT_SECURE_NO_WARNINGS','-DBOTLIB','-I',str(ROOT),str(source),*[str(ROOT/path) for path in SOURCES],'-o',str(executable)],cwd=ROOT,capture_output=True,text=True,timeout=120)
             self.assertEqual(built.returncode,0,built.stdout+built.stderr)
             run=subprocess.run([str(executable),str(directory)],cwd=ROOT,capture_output=True,text=True,timeout=30)
             self.assertEqual(run.returncode,0,run.stdout+run.stderr)

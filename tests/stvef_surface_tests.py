@@ -7,7 +7,7 @@ import subprocess
 import tempfile
 import unittest
 
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 from mesh_tag_tests import function
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,7 +19,7 @@ class STVEFSurfaceTests(unittest.TestCase):
         compiler = shutil.which('clang') or shutil.which('gcc')
         if not compiler:
             self.skipTest('C compiler unavailable')
-        target = compiler_target_args(compiler) if os.name == 'nt' else ['-m32']
+        target = engine_fixture_args(compiler) if os.name == 'nt' else ['-m32']
         sanitize = [] if os.name == 'nt' else [
             '-fsanitize=address,undefined,float-cast-overflow', '-fno-sanitize-recover=all']
         math = (ROOT / 'code/qcommon/q_math.c').read_text()

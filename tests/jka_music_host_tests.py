@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 from rtcw_music_fixture import function
 ROOT=Path(__file__).resolve().parents[1]
 def fixture():
@@ -134,7 +134,7 @@ class JKAMusicHostTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=scratch) as folder:
             source=Path(folder)/'music.cpp';source.write_text(fixture())
             binary=Path(folder)/('music.exe' if os.name=='nt' else 'music')
-            result=subprocess.run([compiler,*compiler_target_args(compiler),'-std=c++17','-O2','-ffast-math',
+            result=subprocess.run([compiler,*engine_fixture_args(compiler),'-std=c++17','-O2','-ffast-math',
                 '-Wall','-Wextra','-Werror','-I',str(ROOT),str(source),'-o',str(binary)],
                 cwd=ROOT,text=True,capture_output=True,timeout=120)
             self.assertEqual(result.returncode,0,result.stdout+result.stderr)

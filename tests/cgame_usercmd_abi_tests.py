@@ -6,7 +6,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
-from compiler_support import compiler_target_args
+from compiler_support import compiler_target_args, configured_target_is_windows_x64
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -107,7 +107,8 @@ int main() {
             executable = path / ("trap.exe" if os.name == "nt" else "trap")
             cpp.write_text(fixture, encoding="utf-8")
             command = [compiler, "-std=c++17", "-Wall", "-Wextra", "-Werror"]
-            if os.name == "nt" and "clang" in Path(compiler).name:
+            # Standard headers only: x86 by default, x64 for the -Dq3-only=true build.
+            if os.name == "nt" and "clang" in Path(compiler).name and not configured_target_is_windows_x64():
                 command.append("--target=i686-pc-windows-msvc")
             build = subprocess.run([*command, str(cpp), "-o", str(executable)],
                                    capture_output=True, text=True, timeout=60)

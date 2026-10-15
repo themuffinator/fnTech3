@@ -225,3 +225,54 @@ Nothing here changes a profile gate. The x64 build still cannot load x86
 native modules, so a passing x64 test is no compatibility evidence for the
 profiles that need them. New C++ tests that pin x86 module records need the
 same guard, or the x64 `all` target breaks again.
+
+## The x64 configuration's Python fixtures (2026-10-15)
+
+The 29 Python entries above failed because their fixtures could only be
+built for x86. The same two causes failed 21 more files that only the
+aggregate `fnql_python_source_regressions` entry runs. Under the x64 dev
+shell, these 50 fixtures are now built the way the x64 diagnostic engine is:
+
+| Family | Files | Change |
+| --- | --- | --- |
+| Engine headers, no x64 fallback: `q_platform.h` stopped them | 42 | `compiler_support.engine_fixture_args()`: a Windows compiler with no x86 target gets `-DFNTECH3_Q3_ONLY`, the fallback many fixtures already wrote out for themselves |
+| Forced `--target=i686-pc-windows-msvc` or `-m32`, linked against the shell's x64 libraries | 8 | x86 unless the shell names x64 (`VSCMD_ARG_TGT_ARCH=x64`); then x64, with `FNTECH3_Q3_ONLY` where engine headers are included. ET's profile build adds it to each macro set there. |
+
+Three fixtures then ran on x64 and failed on an assumption of their own,
+not of the engine:
+
+- Academy's cgame Ghoul2 host refuses every Ghoul2 import on a 64-bit
+  host, its cache ordinals 339 to 341 included. The Ghoul2 fixture expected
+  those three to return 0 before its 64-bit branch, and the bolt fixture
+  expected its bolt query to succeed after its frame-clock checks. Both now
+  expect the refusal there.
+- The runtime MDR frame fixture queued 4-byte commands, while the renderer's
+  command walker pads each command to a pointer, 8 bytes on x64. It now
+  queues pointer-sized commands.
+
+Two other approaches were rejected: skipping these fixtures on x64, and
+building them for x86 with x86 libraries. Most already test the 64-bit
+refusal path (`sizeof(void *) != 4`), and an x86 build would only repeat
+Win32's coverage. No Meson test setup was added for x64. A bare shell already
+builds x64 fixtures, and pinning x64 would break a run from an x86 shell.
+Win32 still pins x86 through `configurednativearchitecture`, and
+`meson.build` is unchanged.
+
+Results, from a `git archive` export of `b80e6f6e` with these changes, under
+`.tmp/q3-only-x64/fixture-arch/`:
+
+- x64 configuration, x64 dev shell. `all` builds. Its 273 Meson entries other
+  than the aggregate give 271 passes and three skips: no OpenAL loopback
+  device, the IHV bridge needs an x86 host, and no retail Quake Live. The two
+  that first passed only on a retry, `fntech3_jka_cgame_ghoul2` and
+  `fntech3_jka_cgame_host`, had hit Meson's default timeout while the
+  machine was loaded; each then took under three seconds. The
+  aggregate's content, the whole Python suite under pytest, gives 2,775
+  passes, 134 skips and no failures.
+- x86 dev shell (Win32's fixture target): the 50 changed files pass, as they
+  do at HEAD. Win32 registers the same tests, since `meson.build` is
+  unchanged.
+
+Nothing here changes a profile gate. A passing x64 fixture shows only that
+the diagnostic build's sources compile and refuse x86 module paths as
+intended.

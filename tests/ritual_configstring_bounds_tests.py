@@ -13,7 +13,7 @@ import subprocess
 import tempfile
 import unittest
 
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 from rtcw_server_world_tests import function
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -111,7 +111,7 @@ class RitualConfigstringBoundsTests(unittest.TestCase):
             cpp = Path(folder) / 'probe.cpp'
             cpp.write_text(PRELUDE + bodies + CHECKS, encoding='utf-8')
             binary = Path(folder) / ('probe.exe' if os.name == 'nt' else 'probe')
-            built = subprocess.run([compiler, *compiler_target_args(compiler), '-std=c++17',
+            built = subprocess.run([compiler, *engine_fixture_args(compiler), '-std=c++17',
                                     '-O2', '-Wall', '-Wextra', '-Werror', '-I', str(ROOT),
                                     str(cpp), '-o', str(binary)], cwd=ROOT,
                                    capture_output=True, text=True, timeout=180)

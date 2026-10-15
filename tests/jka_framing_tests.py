@@ -6,7 +6,7 @@ import subprocess
 import tempfile
 import unittest
 
-from compiler_support import compiler_target_args
+from compiler_support import compiler_target_args, configured_target_is_windows_x64
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRATCH = ROOT / '.tmp/jka-compat'
@@ -243,7 +243,7 @@ void ParseControls(msg_t *msg) {
             cpp.write_text(body, encoding='utf-8')
             target = compiler_target_args(compiler)
             if not target and os.name == 'nt':
-                target = ['-m32']
+                target = ['-DFNTECH3_Q3_ONLY'] if configured_target_is_windows_x64() else ['-m32']
             compiler_env = os.environ.copy()
             compiler_env.update(TMP=str(folder), TEMP=str(folder), TMPDIR=str(folder))
             built = subprocess.run([compiler, *target, '-std=c++17', '-D_CRT_SECURE_NO_WARNINGS',

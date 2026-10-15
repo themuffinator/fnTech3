@@ -24,7 +24,7 @@ import subprocess
 import tempfile
 import unittest
 
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 from mesh_tag_tests import function
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -1050,7 +1050,7 @@ class ConsoleNotifyProfileTests(unittest.TestCase):
         compiler = shutil.which('clang++') or shutil.which('g++')
         if not compiler:
             self.skipTest('C++17 compiler required')
-        target = compiler_target_args(compiler)
+        target = engine_fixture_args(compiler)
         if os.name != 'nt':
             target = ['-m32']
         (ROOT / '.tmp').mkdir(exist_ok=True)

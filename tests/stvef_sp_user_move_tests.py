@@ -8,7 +8,7 @@ import subprocess
 import tempfile
 import unittest
 
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 from spawn_view_angle_source_tests import function_body
 import server_user_move_tests as shared
 
@@ -112,7 +112,7 @@ class STVEFSPUserMoveTests(unittest.TestCase):
         compiler = shutil.which('clang++') or shutil.which('g++')
         if not compiler:
             self.skipTest('C++17 compiler unavailable')
-        target = compiler_target_args(compiler)
+        target = engine_fixture_args(compiler)
         sanitizers = [] if os.name == 'nt' else ['-fsanitize=address,undefined', '-fno-sanitize-recover=all']
         temporary_root = ROOT / '.tmp'
         temporary_root.mkdir(exist_ok=True)

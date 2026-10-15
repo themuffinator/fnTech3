@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 from jka_cgame_ghoul2_tests import fixture as ownership_fixture
 from rtcw_music_fixture import function
 
@@ -121,7 +121,7 @@ class JKACgameTagTests(unittest.TestCase):
                 for fast in (False,True):
                     with self.subTest(backend=backend,fast_math=fast):
                         executable=directory/(backend+('fast' if fast else 'plain')+('.exe' if os.name=='nt' else ''))
-                        built=subprocess.run([compiler,*compiler_target_args(compiler),'-std=c++17','-O2','-Werror',
+                        built=subprocess.run([compiler,*engine_fixture_args(compiler),'-std=c++17','-O2','-Werror',
                             '-D_CRT_SECURE_NO_WARNINGS',*(['-ffast-math'] if fast else []),'-I',str(ROOT),str(source),'-o',str(executable)],
                             cwd=ROOT,capture_output=True,text=True,timeout=120)
                         self.assertEqual(built.returncode,0,built.stdout+built.stderr)

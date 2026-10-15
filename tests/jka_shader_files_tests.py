@@ -7,7 +7,7 @@ import subprocess
 import tempfile
 import unittest
 
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 from mesh_tag_tests import function
 from rtcw_shader_text_tests import PRELUDE, tokenizer
 
@@ -155,7 +155,7 @@ class JkaShaderFilesTests(unittest.TestCase):
                         # Vulkan and RTX always admit engine shaderx files.
                         checks = checks.replace("extended=programs;", "extended=programs;programs=true;")
                     fixture.write_text(base + body + checks, encoding="utf-8")
-                    build = subprocess.run([compiler, *compiler_target_args(compiler), "-std=c++17",
+                    build = subprocess.run([compiler, *engine_fixture_args(compiler), "-std=c++17",
                         "-O2", "-I", str(ROOT), str(fixture), "-o", str(executable)], cwd=ROOT,
                         text=True, capture_output=True, timeout=60)
                     self.assertEqual(build.returncode, 0, build.stdout + build.stderr)

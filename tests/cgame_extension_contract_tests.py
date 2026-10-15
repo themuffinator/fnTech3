@@ -183,7 +183,9 @@ class CgameExtensionContractTests(unittest.TestCase):
             else:
                 command = [compiler, "-std=c++17", "-Wall", "-Wextra", "-Werror",
                            "-I" + include, str(cpp), "-o", str(executable)]
-                if os.name == "nt" and "clang" in Path(compiler).name:
+                # x86 by default, x64 for the -Dq3-only=true build.
+                if (os.name == "nt" and "clang" in Path(compiler).name
+                        and os.environ.get("VSCMD_ARG_TGT_ARCH", "").lower() != "x64"):
                     command.append("--target=i686-pc-windows-msvc")
             build = subprocess.run(command, cwd=folder, capture_output=True, text=True, timeout=60)
             self.assertEqual(build.returncode, 0, build.stdout + build.stderr)

@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 
 ROOT = Path(__file__).resolve().parents[1]
 BACKENDS = ('renderer', 'renderervk', 'rendererrtx')
@@ -208,20 +208,21 @@ static void R_ReportUnwrittenScreenshots(int mask,const char *png,const char *tg
     const char *bmp,qboolean level,qboolean cube,int reason) {
     (void)mask;(void)png;(void)tga;(void)jpg;(void)bmp;(void)level;(void)cube;(void)reason;
 }
-#define SKIP(name) static const void *name(const void *p) { return (const int *)p+1; }
+#define NEXT(p) ((const char *)(p)+sizeof(void *))
+#define SKIP(name) static const void *name(const void *p) { return NEXT(p); }
 SKIP(RB_SetColor) SKIP(RB_DrawQuad) SKIP(RB_DrawWolfET2DPolys) SKIP(RB_SetSTVEFScissor)
 SKIP(RB_TakeScreenshotCmd) SKIP(RB_FinishBloom) SKIP(RB_MenuBlur) SKIP(RB_ColorMask)
 SKIP(RB_ClearDepth) SKIP(RB_ClearColor) SKIP(RB_AliceDebugLines)
-static const void *RB_DrawBuffer(const void *p) { assert(!opened);opened=1;++begins;return (const int *)p+1; }
-static const void *RB_StretchPic(const void *p) { assert(opened);++pending;return (const int *)p+1; }
-static const void *RB_DrawSurfs(const void *p) { assert(opened && draws<16);drawn[draws++]=pose;return (const int *)p+1; }
-static const void *RB_SwapBuffers(const void *p) { assert(opened);RB_EndSurface();vk_end_frame();return (const int *)p+1; }
+static const void *RB_DrawBuffer(const void *p) { assert(!opened);opened=1;++begins;return NEXT(p); }
+static const void *RB_StretchPic(const void *p) { assert(opened);++pending;return NEXT(p); }
+static const void *RB_DrawSurfs(const void *p) { assert(opened && draws<16);drawn[draws++]=pose;return NEXT(p); }
+static const void *RB_SwapBuffers(const void *p) { assert(opened);RB_EndSurface();vk_end_frame();return NEXT(p); }
 '''
 
 FRAME_CHECKS = r'''
 static void Queue(int id) {
     renderCommandList_t *list=&storage.commands;assert(list->used+8<(int)sizeof(list->cmds));
-    memcpy(list->cmds+list->used,&id,4);list->used+=4;
+    memcpy(list->cmds+list->used,&id,4);list->used+=(int)sizeof(void *);
 }
 int main(void) {
     tr.registered=qtrue;pose=1;Queue(RC_DRAW_BUFFER);
@@ -238,7 +239,7 @@ int main(void) {
     assert(!opened && begins==2 && ends==2 && waits==1 && draws==3);
     assert(graphEnds==2*EXPECT_GRAPH_ENDS);
     tr.registered=qfalse;Queue(RC_DRAW_BUFFER);R_IssueRuntimeMDRCommands();
-    assert(storage.commands.used==4 && !opened);storage.commands.used=0;
+    assert(storage.commands.used==(int)sizeof(void *) && !opened);storage.commands.used=0;
     tr.registered=qtrue;skipValue.integer=1;Queue(RC_DRAW_BUFFER);R_IssueRuntimeMDRCommands();
     assert(!storage.commands.used && !opened && begins==2);skipValue.integer=0;
     minimized=1;Queue(RC_DRAW_BUFFER);R_IssueRuntimeMDRCommands();assert(!opened && !storage.commands.used);
@@ -279,7 +280,7 @@ class RuntimeMdrTests(unittest.TestCase):
                 executable = path / ('frame.exe' if os.name == 'nt' else 'frame')
                 source.write_text(fixture, encoding='utf-8')
                 args = [compiler, '-std=c11', '-Wall', '-Wextra', '-Werror', '-O2',
-                    *compiler_target_args(compiler), '-I', str(ROOT), str(source), '-o', str(executable)]
+                    *engine_fixture_args(compiler), '-I', str(ROOT), str(source), '-o', str(executable)]
                 with self.subTest(backend=backend):
                     build = subprocess.run(args, cwd=ROOT, text=True, capture_output=True, timeout=60)
                     self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
@@ -329,7 +330,7 @@ class RuntimeMdrTests(unittest.TestCase):
                     executable = path / (name + '.exe' if os.name == 'nt' else name)
                     with self.subTest(backend=backend, fast_math=fast_math):
                         args = [compiler, '-std=c11', '-Wall', '-Wextra', '-Werror', '-O2',
-                            *compiler_target_args(compiler), '-I', str(ROOT), str(source), '-o', str(executable)]
+                            *engine_fixture_args(compiler), '-I', str(ROOT), str(source), '-o', str(executable)]
                         if os.name != 'nt':
                             args.append('-lm')
                         if fast_math:

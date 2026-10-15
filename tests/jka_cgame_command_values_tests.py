@@ -6,7 +6,7 @@ import subprocess
 import tempfile
 import unittest
 
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 from rtcw_server_world_tests import function
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -77,7 +77,7 @@ int main(){
  assert(!empty.raven.forcesel&&!empty.raven.invensel&&empty.raven.generic_cmd==99);
 }
 '''
-        target = compiler_target_args(compiler)
+        target = engine_fixture_args(compiler)
         parent = ROOT / '.tmp/tests/jka-cgame-command-values'
         parent.mkdir(parents=True, exist_ok=True)
         self.assertTrue(parent.resolve().is_relative_to(ROOT.resolve()))

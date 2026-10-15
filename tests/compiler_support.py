@@ -33,3 +33,23 @@ def compiler_target_args(compiler: str) -> list[str]:
         # Meson cross file. Shared engine headers require 32-bit pointers.
         return ["-m32"]
     return []
+
+
+def configured_target_is_windows_x64() -> bool:
+    # The x64 Visual Studio shell that builds and tests the -Dq3-only=true
+    # configuration names x64, as the Win32 configuration's test setup names x86.
+    return os.name == "nt" and os.environ.get("VSCMD_ARG_TGT_ARCH", "").lower() == "x64"
+
+
+def engine_fixture_args(compiler: str) -> list[str]:
+    """Target flags for a fixture that includes the engine's platform headers.
+
+    A Windows compiler with no x86 target builds the fixture as the
+    -Dq3-only=true x64 diagnostic engine is built, so q_platform.h accepts it;
+    a fixture whose host refuses to bind on 64-bit hosts then checks that
+    refusal instead of the x86 path.
+    """
+    target = compiler_target_args(compiler)
+    if not target and os.name == "nt":
+        return ["-DFNTECH3_Q3_ONLY"]
+    return target

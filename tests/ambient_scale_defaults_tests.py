@@ -31,7 +31,7 @@ import subprocess
 import tempfile
 import unittest
 
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 
 ROOT = Path(__file__).resolve().parents[1]
 RENDERERS = ('renderer', 'renderervk', 'rendererrtx')
@@ -160,7 +160,7 @@ def evaluate(renderer, folder):
     c = folder / f'{renderer}_ambient.c'
     exe = folder / f'{renderer}_ambient.exe'
     c.write_text(program, encoding='utf-8')
-    command = [compiler, *compiler_target_args(compiler), '-std=c11', '-w', '-I', str(ROOT), str(c), '-o', str(exe)]
+    command = [compiler, *engine_fixture_args(compiler), '-std=c11', '-w', '-I', str(ROOT), str(c), '-o', str(exe)]
     built = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, timeout=120)
     if built.returncode != 0:
         raise AssertionError(built.stdout + built.stderr)

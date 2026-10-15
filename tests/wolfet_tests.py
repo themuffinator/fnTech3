@@ -64,14 +64,16 @@ class WolfETTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=scratch) as temporary:
             folder = Path(temporary); source = folder/'profile.cpp'; source.write_text(PROFILE)
             options = {'creationflags':subprocess.CREATE_NO_WINDOW} if os.name == 'nt' else {}
-            target = ['--target=i686-pc-windows-msvc'] if os.name == 'nt' and 'clang' in compiler else []
+            x64 = os.name == 'nt' and os.environ.get('VSCMD_ARG_TGT_ARCH', '').lower() == 'x64'
+            target = ['--target=i686-pc-windows-msvc'] if os.name == 'nt' and 'clang' in compiler and not x64 else []
             for index,macros in enumerate(([], ['FNTECH3_RTCW_DEVELOPMENT'], ['FNTECH3_WOLFET_DEVELOPMENT'],
                     ['FNTECH3_WOLFET_DEVELOPMENT','DEDICATED'],
                     ['FNTECH3_WOLFET_DEVELOPMENT','DEDICATED','FNTECH3_Q3_ONLY'])):
                 with self.subTest(macros=macros):
                     executable = folder/(f'profile-{index}.exe' if os.name == 'nt' else f'profile-{index}')
                     build = subprocess.run([compiler,*target,'-std=c++17','-I',str(ROOT),
-                        *['-D'+m for m in macros],str(source),str(ROOT/'code/qcommon/game_profile.cpp'),'-o',str(executable)],
+                        *['-D'+m for m in macros+(['FNTECH3_Q3_ONLY'] if x64 and 'FNTECH3_Q3_ONLY' not in macros else [])],
+                        str(source),str(ROOT/'code/qcommon/game_profile.cpp'),'-o',str(executable)],
                         cwd=ROOT,capture_output=True,text=True,timeout=90)
                     self.assertEqual(build.returncode,0,build.stdout+build.stderr)
                     result = subprocess.run([str(executable)],cwd=ROOT,capture_output=True,text=True,timeout=20,**options)
@@ -86,7 +88,9 @@ class WolfETTests(unittest.TestCase):
         try:
             with tempfile.TemporaryDirectory(dir=messages.TEMP_ROOT) as temporary:
                 folder = Path(temporary)
-                args = SimpleNamespace(cc='clang',cxx='clang++',target='i686-pc-windows-msvc' if os.name == 'nt' else None)
+                x64 = os.name == 'nt' and os.environ.get('VSCMD_ARG_TGT_ARCH', '').lower() == 'x64'
+                args = SimpleNamespace(cc='clang',cxx='clang++',
+                    target='i686-pc-windows-msvc' if os.name == 'nt' and not x64 else None)
                 executable = messages.build(args,None,False,folder)
                 corpus = json.loads((ROOT/'tests/fixtures/wolfet_message_vectors.json').read_text())
                 for case in corpus:

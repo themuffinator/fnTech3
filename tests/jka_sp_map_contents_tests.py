@@ -6,7 +6,7 @@ import subprocess
 import tempfile
 import unittest
 
-from compiler_support import compiler_target_args
+from compiler_support import compiler_target_args, configured_target_is_windows_x64
 from rtcw_server_world_tests import function
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -70,8 +70,10 @@ class JKASPMapContentsTests(unittest.TestCase):
             exe = work / ('probe.exe' if os.name == 'nt' else 'probe')
             cpp.write_text(PRELUDE + actual + CHECKS, encoding='utf-8')
             target = compiler_target_args(compiler)
-            if os.name == 'nt' and 'clang' in Path(compiler).name.lower() and not target:
-                target = ['--target=i686-pc-windows-msvc']
+            if os.name == 'nt' and not target:
+                target = (['-DFNTECH3_Q3_ONLY'] if configured_target_is_windows_x64()
+                          else ['--target=i686-pc-windows-msvc'] if 'clang' in Path(compiler).name.lower()
+                          else [])
             subprocess.run([compiler, *target, '-std=c++17', '-I', str(ROOT), str(cpp),
                             '-o', str(exe)], check=True, cwd=ROOT, capture_output=True, text=True)
             subprocess.run([str(exe)], check=True, cwd=ROOT, capture_output=True, text=True)

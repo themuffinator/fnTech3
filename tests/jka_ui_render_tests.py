@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 from jka_ui_ghoul2_tests import fixture as ownership_fixture
 from rtcw_music_fixture import function
 
@@ -122,7 +122,7 @@ class JKAUIRenderTests(unittest.TestCase):
             source = directory / 'host.cpp'
             executable = directory / ('host.exe' if os.name == 'nt' else 'host')
             source.write_text(fixture())
-            built = subprocess.run([compiler, *compiler_target_args(compiler), '-std=c++17', '-O2', '-ffast-math',
+            built = subprocess.run([compiler, *engine_fixture_args(compiler), '-std=c++17', '-O2', '-ffast-math',
                 '-Werror', '-D_CRT_SECURE_NO_WARNINGS', '-I', str(ROOT), str(source), '-o', str(executable)],
                 cwd=ROOT, capture_output=True, text=True, timeout=120)
             self.assertEqual(built.returncode, 0, built.stdout + built.stderr)

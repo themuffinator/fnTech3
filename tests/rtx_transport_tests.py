@@ -377,7 +377,10 @@ int main() {
             cpp.write_text(fixture, encoding="utf-8")
             command = [compiler, "-std=c++17", "-Wall", "-Wextra", "-Werror", "-Wno-unused-function",
                        "-Wno-unused-const-variable"]
-            if os.name == "nt" and "clang" in Path(compiler).name:
+            # The harness has no engine headers: it follows the configured
+            # target, x86 by default and x64 for the -Dq3-only=true build.
+            if (os.name == "nt" and "clang" in Path(compiler).name
+                    and os.environ.get("VSCMD_ARG_TGT_ARCH", "").lower() != "x64"):
                 command.append("--target=i686-pc-windows-msvc")
             build = subprocess.run([*command, str(cpp), "-o", str(executable)],
                                    capture_output=True, text=True, timeout=60)

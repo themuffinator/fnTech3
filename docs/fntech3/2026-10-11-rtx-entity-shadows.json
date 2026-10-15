@@ -3406,6 +3406,89 @@
         "tests/server_game_data_tests.cpp"
       ],
       "externalCodeIncorporated": false
+    },
+    {
+      "date": "2026-10-15",
+      "section": "The x64 configuration's Python fixtures (2026-10-15)",
+      "evidenceLevels": [
+        "Source",
+        "Build",
+        "Unit"
+      ],
+      "gatesClosed": [],
+      "workspace": ".tmp/q3-only-x64/fixture-arch/",
+      "exportCommit": "b80e6f6e19a35d3f0eb76dd6e5912555019f4136",
+      "toolchain": {
+        "compiler": "MSVC 19.44.35222 (Visual Studio 2022 Community, x64 and x86 dev shells); fixtures: clang 20.1.7",
+        "meson": "1.10.2",
+        "python": "3.11.3"
+      },
+      "policy": "Fixtures that include engine headers build for x64 with -DFNTECH3_Q3_ONLY when a Windows compiler has no x86 target (tests/compiler_support.py engine_fixture_args); fixtures that forced i686 keep x86 unless VSCMD_ARG_TGT_ARCH is x64. No skips and no x64 Meson test setup; meson.build unchanged.",
+      "causesBefore": {
+        "mesonEntries": {
+          "qPlatformCheck": 26,
+          "i686LinkedAgainstX64Libraries": 3
+        },
+        "aggregateOnly": {
+          "qPlatformCheck": 16,
+          "i686LinkedAgainstX64Libraries": 5
+        }
+      },
+      "fixtureAssumptionsFixed": [
+        {
+          "test": "tests/jka_cgame_ghoul2_tests.py",
+          "fix": "cache ordinals 339-341 are refused on a 64-bit host too"
+        },
+        {
+          "test": "tests/jka_cgame_bolt_tests.py",
+          "fix": "after the frame-clock checks the bolt query is refused on a 64-bit host"
+        },
+        {
+          "test": "tests/runtime_mdr_tests.py",
+          "fix": "queued commands are pointer-sized, as the renderer's walker pads them"
+        }
+      ],
+      "results": {
+        "x64": {
+          "build": {
+            "allTarget": "built",
+            "log": ".tmp/q3-only-x64/fixture-arch/compile-x64-b80e6f6e.log"
+          },
+          "mesonEntries": {
+            "log": ".tmp/q3-only-x64/fixture-arch/meson-x64-b80e6f6e.log",
+            "selected": 273,
+            "ok": 271,
+            "fail": 0,
+            "skipped": 3,
+            "skippedTests": [
+              "fnql_audio_loopback",
+              "fntech3_q3_ihv_game_bridge",
+              "fnql_retail_factory_probe"
+            ],
+            "timedOutUnderLoadThenPassed": [
+              "fntech3_jka_cgame_ghoul2",
+              "fntech3_jka_cgame_host"
+            ]
+          },
+          "pytest": {
+            "log": ".tmp/q3-only-x64/fixture-arch/pytest-x64-b80e6f6e.log",
+            "summary": "2775 passed, 134 skipped, 67305 subtests passed in 2788.07s (0:46:28)"
+          }
+        },
+        "x86ChangedFiles": {
+          "logs": [
+            ".tmp/q3-only-x64/fixture-arch/scripts-x86-1.log",
+            ".tmp/q3-only-x64/fixture-arch/retry2-x86.log"
+          ],
+          "files": 50,
+          "result": "all pass"
+        }
+      },
+      "files": [
+        "tests/compiler_support.py",
+        "50 tests/*_tests.py fixtures (.tmp/q3-only-x64/fixture-arch/apply.py lists them)"
+      ],
+      "externalCodeIncorporated": false
     }
   ]
 }

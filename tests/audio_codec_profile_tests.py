@@ -8,7 +8,7 @@ import unittest
 
 ROOT=Path(__file__).resolve().parents[1]
 TASK=ROOT/'.tmp/tests/audio-codec-profile'
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 from rtcw_music_fixture import function
 
 def fixture():
@@ -283,7 +283,7 @@ class AudioCodecProfileTests(unittest.TestCase):
             for enabled in (False,True):
                 exe=output/('codec-'+str(int(enabled))+('.exe' if os.name=='nt' else ''))
                 flags=['-DUSE_CODEC_MP3=1'] if enabled else []
-                command=[compiler,*compiler_target_args(compiler),'-std=c++17',*flags,'-I',str(ROOT),str(src),'-o',str(exe)]
+                command=[compiler,*engine_fixture_args(compiler),'-std=c++17',*flags,'-I',str(ROOT),str(src),'-o',str(exe)]
                 built=subprocess.run(command,cwd=ROOT,text=True,capture_output=True,timeout=90)
                 self.assertEqual(built.returncode,0,built.stdout+built.stderr)
                 ran=subprocess.run([str(exe)],cwd=ROOT,text=True,capture_output=True,timeout=20)

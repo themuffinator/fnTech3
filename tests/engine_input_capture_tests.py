@@ -25,7 +25,7 @@ import subprocess
 import tempfile
 import unittest
 
-from compiler_support import compiler_target_args
+from compiler_support import engine_fixture_args
 
 ROOT = Path(__file__).resolve().parents[1]
 ALICE_ROOT = Path(os.environ.get('FNTECH3_ALICE_ROOT', r'E:\Games\Alice'))
@@ -53,7 +53,7 @@ def build_and_run(test, source, suffix, standard, extra=()):
         path = Path(temp) / ('fixture' + suffix)
         path.write_text(source, encoding='utf-8')
         exe = Path(temp) / ('fixture.exe' if os.name == 'nt' else 'fixture')
-        build = subprocess.run([cc, *compiler_target_args(cc), standard, '-I', str(ROOT), *extra,
+        build = subprocess.run([cc, *engine_fixture_args(cc), standard, '-I', str(ROOT), *extra,
                                 str(path), '-o', str(exe)], capture_output=True, text=True)
         test.assertEqual(build.returncode, 0, build.stdout + build.stderr)
         run = subprocess.run([str(exe)], capture_output=True, text=True, timeout=30)
