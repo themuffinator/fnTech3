@@ -152,6 +152,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Raven's map shader flags](fntech3/2026-10-15-raven-bsp-shader-flags.md)
   -- the surface and content bits in both Jedi games' maps, read with
   Raven's values, so RTX finds each map's real sky and its sun.
+- [Map shader flags of Ritual's and 2015's maps](fntech3/2026-10-15-map-shader-flag-dialects.md)
+  -- the surface flags each engine's map compiler writes, compared, and
+  Alice's, F.A.K.K.2's and Medal of Honor's read with their own values.
 - [Jedi Academy's selection bars and loading screen, live](fntech3/2026-10-15-jka-hud-live-check.md)
   -- the bars and the loading screen checked in captures, each bar's name
   kept with its bar on tall screens, and why the zoom masks are out of reach.

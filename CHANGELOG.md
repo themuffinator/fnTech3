@@ -100,6 +100,11 @@ historical upstream records, not fnTech3 release history. See the
   III's sky were taken for sky, and `mp/ffa3` lost its sun. All three
   renderers now also leave out the hidden patches the original engines skip
   ([record](docs/fntech3/2026-10-15-raven-bsp-shader-flags.md)).
+- Stop RTX from letting light through the stone, metal and wood of Medal of
+  Honor's, F.A.K.K.2's and Alice's maps: their map flags use other values
+  for Quake III's light-filter bits, and each title's own alpha-shadow
+  surfaces now filter the path tracer's light instead
+  ([record](docs/fntech3/2026-10-15-map-shader-flag-dialects.md)).
 - Keep each of Jedi Academy's weapon, Force power and item bars together
   with its name on screens taller than 4:3, where the name was drawn over
   the bar's middle icon. The bars and the loading screen are now checked in

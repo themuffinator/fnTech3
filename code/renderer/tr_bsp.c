@@ -3980,6 +3980,7 @@ Called directly from cgame
 #include "../renderercommon/tr_q3_ihv_model_light_bsp.h"
 #include "../renderercommon/tr_ritual_model_light_bsp.h"
 #include "../renderercommon/tr_raven_bsp_load.h"
+#include "../renderercommon/tr_map_shader_flags.h"
 
 void RE_LoadWorldMap( const char *name ) {
 	int			i;
@@ -4201,6 +4202,8 @@ void RE_LoadWorldMap( const char *name ) {
 		R_LoadWolfETExternalLightmaps( &header->lumps[LUMP_SURFACES] );
 	}
 	R_LoadShaders( &header->lumps[LUMP_SHADERS] );
+	// a map whose compiler wrote other flag values is read in Quake III's
+	R_MapShaderFlagsToFn( bspFormat, s_worldData.shaders, s_worldData.numShaders );
 	R_LoadPlanes( &header->lumps[LUMP_PLANES] );
 	R_LoadFogs( &header->lumps[LUMP_FOGS], &header->lumps[LUMP_BRUSHES], &header->lumps[LUMP_BRUSHSIDES] );
 	R_LoadSurfaces( &header->lumps[LUMP_SURFACES], &header->lumps[LUMP_DRAWVERTS], &header->lumps[LUMP_DRAWINDEXES] );

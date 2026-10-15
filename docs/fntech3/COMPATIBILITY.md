@@ -2966,6 +2966,16 @@ boundary and overflow-safe light styles, and malformed model-light checks in
 strict and fast-math builds. Valid-data presentation uses the shared engine
 features; this does not establish retail gameplay or visual parity.
 
+The [map shader flag dialects slice](2026-10-15-map-shader-flag-dialects.md)
+(2026-10-15) reads Alice's map flags with `alice.exe`'s own values. Its
+infoparm table (`0x5294d0`) keeps sky, nodraw and translucency in Quake III's
+places, but puts `alphashadow` at `0x800` and `wood` at Quake III's
+alphashadow bit, `0x10000`. RTX read the light filters with Quake III's
+values; each renderer now translates the map's surface flags right after
+loading them (Source, Unit). No installed Alice map has a `0x10000` record,
+and its 37 `alphashadow` records now filter the path tracer's light. No
+Alice map was run live for this. No gate closes.
+
 American McGee's Alice is the eighth title and the thirteenth profile,
 `alice`, over one `base/` installation. It is the only supported title outside
 the Quake III line: Alice runs Ritual Entertainment's Heavy Metal: F.A.K.K.2
@@ -3021,6 +3031,16 @@ The [2026-10-02 UberTools round](2026-10-02-ubertools-round.md) adds direct
 1,200-configstring boundary, plus malformed lighting checks shared with Alice.
 Its prior first-level reverse retail-server and save evidence remains limited
 to the scope recorded below; this round does not repeat retail interop.
+
+The [map shader flag dialects slice](2026-10-15-map-shader-flag-dialects.md)
+(2026-10-15) reads F.A.K.K.2's map flags with Alice's values (`alice.exe`
+`0x5294d0`; Ritual's SDK agrees, **[I]** for the encrypted `fakk2.exe`):
+`0x10000` is `wood`, not Quake III's `alphashadow`. RTX had taken 766
+installed wood records for light filters. Each renderer now translates the
+map's surface flags right after loading them (Source, Unit). Under RTX,
+`swamp3` filters the path tracer's light through no triangle where 78,482
+did, and traces 126,005 triangles as opaque where it traced 47,523; its
+captured view, by the water, is unchanged (Live subset). No gate closes.
 
 Heavy Metal: F.A.K.K.2 is the ninth title and the fourteenth profile, `fakk2`,
 over one `fakk/` installation. It runs Ritual's own engine, the parent of
@@ -3151,6 +3171,18 @@ culling without a warning (Source, Unit, Live subset). The warnings left are
 1.00's own data: images and shaders its scripts, models and client game name
 and no pak holds. What 1.00 drew for the DM loading screens' failed `white`
 mat is open **[I]**. No gate closes.
+
+The [map shader flag dialects slice](2026-10-15-map-shader-flag-dialects.md)
+(2026-10-15) reads Medal of Honor's map flags with 2015's values. Taken from
+OpenMoHAA because `MOHAA.exe` is encrypted, and borne out by the maps
+**[I]**: `alphashadow` is `0x200`, while `0x8000` and `0x10000`, Quake
+III's `lightfilter` and `alphashadow`, are its metal and rock. RTX had read
+3,272 metal and 8,413 rock records as light filters. Each renderer now
+translates the map's surface flags right after loading them (Source, Unit).
+Under RTX, `DM/mohdm6` filters the path tracer's light through 386
+triangles, its canopies and fences, where 6,474 did (Live subset). RTX still
+finds no sun for it: 2015 gives the sun in worldspawn (`sundirection`,
+`suncolor`), which the path tracer does not read. No gate closes.
 
 Medal of Honor: Allied Assault is the tenth title and the fifteenth profile,
 `mohaa`, over one `main/` installation. It runs 2015's engine, a descendant of

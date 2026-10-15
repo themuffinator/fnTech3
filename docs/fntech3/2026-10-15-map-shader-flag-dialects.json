@@ -1,0 +1,767 @@
+{
+ "record": "2026-10-15-map-shader-flag-dialects.md",
+ "date": "2026-10-15",
+ "profiles": [
+  "alice",
+  "fakk2",
+  "mohaa"
+ ],
+ "unchangedProfiles": "q3, ql, rtcw-sp, rtcw-mp, wolfet, stvef-sp, stvef-mp, q3-ihv, q3test: R_MapSurfaceFlagsToFn returns their flags unchanged; the Jedi profiles are translated by the RBSP reader (2026-10-15-raven-bsp-shader-flags)",
+ "gateChange": "none",
+ "implementation": {
+  "files": [
+   "code/renderercommon/tr_map_shader_flags.h",
+   "code/renderer/tr_bsp.c",
+   "code/renderervk/tr_bsp.c",
+   "code/rendererrtx/tr_bsp.c"
+  ],
+  "helpers": [
+   "R_MapSurfaceFlagsToFn",
+   "R_MapShaderFlagsToFn"
+  ],
+  "callSite": "RE_LoadWorldMap, right after R_LoadShaders, in all three renderers",
+  "authorship": "independently authored; F.A.K.K.2 SDK and OpenMoHAA surfaceflags.h were reference observation only"
+ },
+ "retailIdentities": {
+  "quake3.exe 1.32": {
+   "size": 909312,
+   "sha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+   "timeDateStamp": "0x3da1eb35"
+  },
+  "quakelive_steam.exe": {
+   "size": 2107904,
+   "sha256": "c926fe9f6c851e00b3b9332e88903ad01f28fdd60454873891c0158f5ded1299",
+   "timeDateStamp": "0x5751f20b"
+  },
+  "WolfSP.exe 1.32": {
+   "size": 1286144,
+   "sha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+   "timeDateStamp": "0x3cd036dd"
+  },
+  "WolfMP.exe 1.4": {
+   "size": 1081344,
+   "sha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+   "timeDateStamp": "0x3dbd5b83"
+  },
+  "et.exe 2.60b": {
+   "size": 1667072,
+   "sha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+   "timeDateStamp": "0x60f7263b"
+  },
+  "stvoy.exe 1.20": {
+   "size": 675840,
+   "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+   "timeDateStamp": "0x3adb539a"
+  },
+  "stvoyHM.exe 1.20": {
+   "size": 925696,
+   "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+   "timeDateStamp": "0x3adde3c8"
+  },
+  "alice.exe": {
+   "size": 2209835,
+   "sha256": "8aa22917b7707f0e1a7c4dbe9a3c38332b1873ae2059174ac5329de26921fc18",
+   "timeDateStamp": "0x3a10caae"
+  }
+ },
+ "infoparmTables": {
+  "quake3.exe 1.32": "0x4d0168",
+  "quakelive_steam.exe": "0x55c650",
+  "WolfSP.exe 1.32": "0x4f2878",
+  "WolfMP.exe 1.4": "0x4f9600",
+  "et.exe 2.60b": "0x596450",
+  "stvoy.exe 1.20": "0x49adf0",
+  "stvoyHM.exe 1.20": "0x4d4a70",
+  "alice.exe": "0x5294d0"
+ },
+ "readBits": {
+  "quake3Lineage": {
+   "sky": "0x4",
+   "nodraw": "0x80",
+   "trans": "0x20000000",
+   "alphashadow": "0x10000",
+   "lightfilter": "0x8000"
+  },
+  "alice.exe": {
+   "sky": "0x4",
+   "nodraw": "0x80",
+   "trans": "0x20000000",
+   "alphashadow": "0x800",
+   "lightfilter": null,
+   "wood": "0x10000",
+   "unused": "0x8000"
+  }
+ },
+ "noInfoparmTable": {
+  "quake3.exe (IHV)": {
+   "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37"
+  },
+  "quake3.exe (Q3Test 1.02)": {
+   "sha256": "86da36081878d5586d5621709f48a7e621db3c24d33fa4b45838b08d01020d4a"
+  },
+  "quake3.exe (Q3Test 1.08)": {
+   "sha256": "89a7dfb431c6738a13e1e44d0c2d76d69107c6e0791a64f6a49830e1a51c547b"
+  }
+ },
+ "notMeasured": {
+  "fakk2.exe": "encrypted; F.A.K.K.2 SDK surfaceflags.h agrees with alice.exe [I]",
+  "MOHAA.exe": "SafeDisc-encrypted; OpenMoHAA surfaceflags.h: alphashadow 0x200, metal 0x8000, rock 0x10000"
+ },
+ "installed": {
+  "alice": {
+   "counts": {
+    "maps": 36,
+    "records": 3969,
+    "nodraw0x80": 344,
+    "nodraw0x80:scriptNoAlphashadow": 255,
+    "trans0x20000000": 429,
+    "sky0x4": 29,
+    "sky0x4:scriptNoAlphashadow": 29,
+    "scriptSkyWithBit": 29,
+    "ownAlphashadow0x800": 37,
+    "ownAlphashadow0x800:scriptSaysAlphashadow": 37,
+    "scriptAlphashadowRecords": 69,
+    "scriptAlphashadowWithOwnBit": 37,
+    "scriptAlphashadowWithoutOwnBit": 32,
+    "scriptSkyWithoutBit": 2
+   },
+   "examples": {
+    "nodraw0x80": [
+     "textures/common/actor",
+     "textures/common/allclip",
+     "textures/common/areaportal",
+     "textures/common/camera",
+     "textures/common/caulk",
+     "textures/common/caulkshadow",
+     "textures/common/clip",
+     "textures/common/hint"
+    ],
+    "sky0x4": [
+     "textures/common/skyportal",
+     "textures/sky/firesky",
+     "textures/sky/km_testsky",
+     "textures/sky/portal_sky",
+     "textures/sky/tearssky"
+    ],
+    "ownAlphashadow0x800": [
+     "textures/glass/rnd_ledm",
+     "textures/metal/wrought01abot",
+     "textures/metal/wrought01amid",
+     "textures/metal/wrought01atop1",
+     "textures/metal/wrought01atop2",
+     "textures/natural/moss3_1"
+    ]
+   }
+  },
+  "fakk2": {
+   "counts": {
+    "maps": 30,
+    "records": 7082,
+    "nodraw0x80": 1876,
+    "nodraw0x80:scriptNoAlphashadow": 1193,
+    "trans0x20000000": 895,
+    "sky0x4": 25,
+    "sky0x4:scriptNoAlphashadow": 24,
+    "scriptSkyWithBit": 24,
+    "q3Alphashadow0x10000": 766,
+    "q3Alphashadow0x10000:scriptNoAlphashadow": 120,
+    "ownAlphashadow0x800": 5,
+    "ownAlphashadow0x800:scriptNoAlphashadow": 5
+   },
+   "examples": {
+    "nodraw0x80": [
+     "textures/blood/bloodmetal",
+     "textures/blood/bloodtrim1",
+     "textures/blood/bloodtrim3",
+     "textures/cemetary/symbol0",
+     "textures/cemetary/symbol5",
+     "textures/cliffs/wa_eden_fastriver",
+     "textures/cliffs/wa_eden_slowriver",
+     "textures/cliffs/wa_slowriver"
+    ],
+    "sky0x4": [
+     "textures/common/skyportal",
+     "textures/eden/sky/morningsky",
+     "textures/eden/sky/stormysky",
+     "textures/sky/cliffsky"
+    ],
+    "q3Alphashadow0x10000": [
+     "textures/common/black",
+     "textures/common/caulk",
+     "textures/creeperpens/edenbarn",
+     "textures/creeperpens/edenbarn2",
+     "textures/creeperpens/edenbarn3",
+     "textures/creeperpens/edenbarnceil",
+     "textures/creeperpens/edenbarnroof",
+     "textures/creeperpens/edenwoodfloor"
+    ],
+    "ownAlphashadow0x800": [
+     "textures/eden/fl_chainfloor"
+    ]
+   }
+  },
+  "mohaa": {
+   "counts": {
+    "maps": 54,
+    "records": 13587,
+    "q3Lightfilter0x8000": 3272,
+    "q3Lightfilter0x8000:scriptNoAlphashadow": 3024,
+    "q3Alphashadow0x10000": 8413,
+    "q3Alphashadow0x10000:scriptNoAlphashadow": 7996,
+    "nodraw0x80": 5563,
+    "nodraw0x80:scriptNoAlphashadow": 5408,
+    "trans0x20000000": 3012,
+    "sky0x4": 70,
+    "sky0x4:scriptNoAlphashadow": 70,
+    "scriptSkyWithBit": 54,
+    "ownAlphashadow0x200": 580,
+    "ownAlphashadow0x200:scriptNoAlphashadow": 206,
+    "ownAlphashadow0x200:scriptSaysAlphashadow": 374,
+    "scriptAlphashadowRecords": 499,
+    "scriptAlphashadowWithOwnBit": 374,
+    "q3Lightfilter0x8000:scriptSaysAlphashadow": 221,
+    "scriptAlphashadowWithoutOwnBit": 125,
+    "q3Alphashadow0x10000:scriptSaysAlphashadow": 97,
+    "nodraw0x80:scriptSaysAlphashadow": 88,
+    "scriptSkyWithoutBit": 7
+   },
+   "examples": {
+    "q3Lightfilter0x8000": [
+     "textures/algiers/afrik_wall1a",
+     "textures/algiers/brick1",
+     "textures/algiers/cliffset_1",
+     "textures/algiers/doccrtset_1b",
+     "textures/algiers/doccrtset_1step",
+     "textures/algiers/jh_corrdoor1a",
+     "textures/algiers/jh_corrdoor1b",
+     "textures/algiers/jh_corrdoor2a"
+    ],
+    "q3Alphashadow0x10000": [
+     "textures/algiers/afrik_wall1a",
+     "textures/algiers/afrik_wall1b",
+     "textures/algiers/afrik_wall1brick",
+     "textures/algiers/afrik_wall1c",
+     "textures/algiers/afrik_wall2des1",
+     "textures/algiers/afrik_wall2fltdrk",
+     "textures/algiers/afrika_floor_set1",
+     "textures/algiers/afrika_floor_set1trm"
+    ],
+    "nodraw0x80": [
+     "textures/algiers/afrik_wall1a",
+     "textures/algiers/afrik_wall1b",
+     "textures/algiers/afrik_wall1brick",
+     "textures/algiers/afrik_wall1c",
+     "textures/algiers/afrik_wall2des1",
+     "textures/algiers/afrik_wall2fltdrk",
+     "textures/algiers/afrika_floor_set1",
+     "textures/algiers/afrika_floor_set1trm"
+    ],
+    "sky0x4": [
+     "textures/common/caulk",
+     "textures/common/caulksky",
+     "textures/sky/africanight",
+     "textures/sky/d-day2",
+     "textures/sky/lighthouse",
+     "textures/sky/m5l2",
+     "textures/sky/mohday1",
+     "textures/sky/mohday2"
+    ],
+    "ownAlphashadow0x200": [
+     "textures/algiers/fort_canopy",
+     "textures/algiers/fort_canopytorn",
+     "textures/algiers/lighthouse_railing",
+     "textures/algiers/railing_natestah",
+     "textures/algiers/tentdsrt",
+     "textures/algiers/tentdsrt_trim",
+     "textures/algiers/window_decor_set1",
+     "textures/central_europe/awning_french_overhang"
+    ]
+   }
+  }
+ },
+ "runtimes": {
+  "before": {
+   "folder": ".tmp/runtime/raven-flags-after",
+   "files": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "d54df6d9897d2582ad5eb8a83e1a85e0a850f4a2bb55a637a5e05ad9ee01f3de",
+    "fnql_rtx_x86.dll": "719783a6df60e266ab7b5a7e7ac9c70fcc2f7176f1c9f0fad0b000c36c8fb04b",
+    "fnql_vk_x86.dll": "588ec60edd3ad1420b35148b2637e6c7affac15899c98184d5344879f444b459",
+    "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f",
+    "fntech3.exe": "2b902627224a7b2ce3d4f01bf4de0fa6a759cc18dde19c13c68ebeb7b006baef",
+    "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+   }
+  },
+  "after": {
+   "folder": ".tmp/runtime/raven-flags-dialect",
+   "files": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "25f3c8dac136c37bc8d852b29a3f543fbcd2156b3457375d2c8f7d344a24715c",
+    "fnql_rtx_x86.dll": "d5972af207f43f615a01e2ba2887199e9be4de6f7b8367eb667bc8087f35fd82",
+    "fnql_vk_x86.dll": "4b8841789ae9096a9c0d2d18976f1ddd87865f2c6bbc2915788a05e299a3cbb1",
+    "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f",
+    "fntech3.exe": "2b902627224a7b2ce3d4f01bf4de0fa6a759cc18dde19c13c68ebeb7b006baef",
+    "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+   }
+  },
+  "base": "f8e1ee980462ccaf1ae86f39ec7e75e5ab4e4885",
+  "note": "both carry the Raven slice's tr_raven_bsp_format.h; after adds tr_map_shader_flags.h and the three call sites; only the renderer libraries differ"
+ },
+ "live": {
+  "runs": [
+   {
+    "run": "mfd-before-mohdm6-rtx",
+    "harness": ".tmp/raven-flags/probe.py",
+    "profile": "mohaa",
+    "map": "dm/mohdm6",
+    "renderer": "rtx",
+    "runtime": ".tmp\\runtime\\raven-flags-after",
+    "identity": {
+     "fntech3.exe": "2b902627224a7b2ce3d4f01bf4de0fa6a759cc18dde19c13c68ebeb7b006baef",
+     "fnql_rtx_x86.dll": "719783a6df60e266ab7b5a7e7ac9c70fcc2f7176f1c9f0fad0b000c36c8fb04b",
+     "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "mohaa",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Medal of Honor Allied Assault",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-flags\\runs\\mfd-before-mohdm6-rtx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "1",
+     "+set",
+     "thereisnomonkey",
+     "1",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "dm/mohdm6"
+    ],
+    "commands": [
+     "finishloadingscreen",
+     "wait 1000",
+     "cmd join_team allies",
+     "wait 1000",
+     "cmd primarydmweapon rifle",
+     "wait 3000",
+     "cmd tele 240 -104 -130",
+     "cmd face 0 315 0"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "raven-flags-00.png",
+      "sha256": "10f7854f06e6573f00f440449be03cf5b50684a2190ca95fac168cdfbcfb6c32"
+     },
+     {
+      "name": "raven-flags-01.png",
+      "sha256": "34bdb2a0da07a5c7f6ac19afcd196f9bc09fc6641af76ca7e2e7d521edd50819"
+     }
+    ],
+    "consoleLines": [
+     "RTX RT: the first sky surface's shader textures/sky/mohday1 has no q3map_sun",
+     "RTX RT: world traced triangles opaque=13233 masked=13936 special=73, casting no q3map shadow 6484, filtering q3map's light 6474, vertices=38461, materials=110"
+    ]
+   },
+   {
+    "run": "mfd-after-mohdm6-rtx",
+    "harness": ".tmp/raven-flags/probe.py",
+    "profile": "mohaa",
+    "map": "dm/mohdm6",
+    "renderer": "rtx",
+    "runtime": ".tmp\\runtime\\raven-flags-dialect",
+    "identity": {
+     "fntech3.exe": "2b902627224a7b2ce3d4f01bf4de0fa6a759cc18dde19c13c68ebeb7b006baef",
+     "fnql_rtx_x86.dll": "d5972af207f43f615a01e2ba2887199e9be4de6f7b8367eb667bc8087f35fd82",
+     "fntech3-pkg.fnz": "24143ddafc0e24f38de456f26c38cbdfcfd6cafa22c5cc5eb63f9bda58a9512f"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "mohaa",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Medal of Honor Allied Assault",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-flags\\runs\\mfd-after-mohdm6-rtx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "1",
+     "+set",
+     "thereisnomonkey",
+     "1",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "dm/mohdm6"
+    ],
+    "commands": [
+     "finishloadingscreen",
+     "wait 1000",
+     "cmd join_team allies",
+     "wait 1000",
+     "cmd primarydmweapon rifle",
+     "wait 3000",
+     "cmd tele 240 -104 -130",
+     "cmd face 0 315 0"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "raven-flags-00.png",
+      "sha256": "09458affed7e7f35d0830d6d379ca1a7bae49a2ab930e39aa7ff34dc6e8e3237"
+     },
+     {
+      "name": "raven-flags-01.png",
+      "sha256": "367b55317a0a67ca38c71f63410dfe06585fdc8bc4517cad7153fc6e0e4b0205"
+     }
+    ],
+    "consoleLines": [
+     "RTX RT: the first sky surface's shader textures/sky/mohday1 has no q3map_sun",
+     "RTX RT: world traced triangles opaque=19697 masked=13554 special=73, casting no q3map shadow 402, filtering q3map's light 386, vertices=38449, materials=110"
+    ]
+   },
+   {
+    "run": "rit-before-swamp3",
+    "harness": "scripts/probe_ritual_client.py",
+    "profile": "fakk2",
+    "map": "swamp3",
+    "renderer": "rtx",
+    "command": [
+     "E:\\Repositories\\fnTech3\\.tmp\\runtime\\raven-flags-after\\fntech3.exe",
+     "+set",
+     "com_gameProfile",
+     "fakk2",
+     "+set",
+     "fs_basepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\fakk2-install\\game",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-flags\\runs\\rit-before-swamp3\\home",
+     "+set",
+     "fs_game",
+     "",
+     "+set",
+     "fs_cdpath",
+     "",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "fs_skipWorkshop",
+     "1",
+     "+set",
+     "cl_webuiEnable",
+     "0",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "logfile",
+     "4",
+     "+set",
+     "net_ip",
+     "127.0.0.1",
+     "+set",
+     "net_port",
+     "0",
+     "+set",
+     "net_enabled",
+     "1",
+     "+set",
+     "developer",
+     "1",
+     "+exec",
+     "ritual-probe.cfg"
+    ],
+    "steps": "devmap swamp3\nwait 12000\nskipcinematic\nwait 3000\nscreenshotPNG rit\nwait 1500\nquit\n",
+    "exitCode": 0,
+    "forcedStop": false,
+    "exeSha256": "2b902627224a7b2ce3d4f01bf4de0fa6a759cc18dde19c13c68ebeb7b006baef",
+    "rendererSha256": "719783a6df60e266ab7b5a7e7ac9c70fcc2f7176f1c9f0fad0b000c36c8fb04b",
+    "installationUnchanged": true,
+    "capture": {
+     "name": "rit.png",
+     "sha256": "809666799f666466de040e49ab912d42396a7c0fab7caf85d4f57c5f60d553b3"
+    },
+    "consoleLines": [
+     "RTX RT: world traced triangles opaque=47523 masked=600 special=0, casting no q3map shadow 80236, filtering q3map's light 78482, vertices=86872, materials=98"
+    ]
+   },
+   {
+    "run": "rit-after-swamp3",
+    "harness": "scripts/probe_ritual_client.py",
+    "profile": "fakk2",
+    "map": "swamp3",
+    "renderer": "rtx",
+    "command": [
+     "E:\\Repositories\\fnTech3\\.tmp\\runtime\\raven-flags-dialect\\fntech3.exe",
+     "+set",
+     "com_gameProfile",
+     "fakk2",
+     "+set",
+     "fs_basepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\fakk2-install\\game",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-flags\\runs\\rit-after-swamp3\\home",
+     "+set",
+     "fs_game",
+     "",
+     "+set",
+     "fs_cdpath",
+     "",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "fs_skipWorkshop",
+     "1",
+     "+set",
+     "cl_webuiEnable",
+     "0",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "logfile",
+     "4",
+     "+set",
+     "net_ip",
+     "127.0.0.1",
+     "+set",
+     "net_port",
+     "0",
+     "+set",
+     "net_enabled",
+     "1",
+     "+set",
+     "developer",
+     "1",
+     "+exec",
+     "ritual-probe.cfg"
+    ],
+    "steps": "devmap swamp3\nwait 12000\nskipcinematic\nwait 3000\nscreenshotPNG rit\nwait 1500\nquit\n",
+    "exitCode": 0,
+    "forcedStop": false,
+    "exeSha256": "2b902627224a7b2ce3d4f01bf4de0fa6a759cc18dde19c13c68ebeb7b006baef",
+    "rendererSha256": "d5972af207f43f615a01e2ba2887199e9be4de6f7b8367eb667bc8087f35fd82",
+    "installationUnchanged": true,
+    "capture": {
+     "name": "rit.png",
+     "sha256": "54e3eb4436f6e575599704ed91b996e6d4531d67c6091e0a65375bfb02b6c05f"
+    },
+    "consoleLines": [
+     "RTX RT: world traced triangles opaque=126005 masked=600 special=0, casting no q3map shadow 1754, filtering q3map's light 0, vertices=86872, materials=98"
+    ]
+   }
+  ],
+  "captures": {
+   "mohdm6": {
+    "before": [
+     88.2,
+     74.4,
+     57.2
+    ],
+    "after": [
+     89.4,
+     75.4,
+     58.0
+    ],
+    "changed": 0.041,
+    "afterRepeat": 0.027
+   },
+   "swamp3": {
+    "before": [
+     34.9,
+     49.5,
+     46.2
+    ],
+    "after": [
+     34.9,
+     49.5,
+     46.2
+    ],
+    "changed": 0.003
+   }
+  }
+ },
+ "tests": {
+  "new": "tests/map_shader_flag_dialects_tests.py (production translation + RTX ShaderForShaderNum per dialect; call site after R_LoadShaders in three renderers)",
+  "build": "export build of all three renderers with strict warnings (/W4 /WX)"
+ }
+}
