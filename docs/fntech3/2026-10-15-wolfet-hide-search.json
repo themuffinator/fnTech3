@@ -1,0 +1,360 @@
+{
+ "record": "2026-10-15-wolfet-hide-search.md",
+ "date": "2026-10-15",
+ "profile": "wolfet",
+ "gatesClosed": [],
+ "settles": {
+  "2026-10-15-census-small-gaps.md \"The hide search still differs (open)\"": "fixed: AAS_WolfETNearestHideArea follows etded.exe 2.60b AAS_NearestHideArea"
+ },
+ "platform": "Windows 11; static disassembly with capstone; clang i686-pc-windows-msvc fixtures; Windows x86 MSVC build (meson debugoptimized, strict warnings)",
+ "retail": {
+  "etded.exe 2.60b (Steam)": {
+   "sha256": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+   "size": 894464,
+   "peTimestamp": "0x60f7269e"
+  },
+  "etmain/qagame_mp_x86.dll 2.60b": {
+   "sha256": "160a6218397865ad61071faa6316053713c03b9be80e5d05c7a5be2cab7f630b",
+   "size": 880640,
+   "peTimestamp": "0x4230a420"
+  },
+  "executed": false,
+  "installationsWritten": false
+ },
+ "referenceObservation": {
+  "source": "id's GPL Enemy Territory source, src/botlib/be_aas_route.c, AAS_NearestHideArea",
+  "use": "read beside the binary; every rule it has is in etded.exe with the same constants, and the binary has no other; no text incorporated"
+ },
+ "retailObservations": {
+  "AAS_NearestHideArea": "0x44a6d0 (Init_AAS_Export 0x437200, export +0x70)",
+  "globals": {
+   "aasworld pointer": "0xcc7888",
+   "frame time (static float)": "0xbebdb8",
+   "step count (static int)": "0xbebdbc"
+  },
+  "aasworldOffsets": {
+   "time": "+0x10",
+   "numareas": "+0xd0",
+   "areasettings": "+0xdc",
+   "reachability": "+0xe4",
+   "arealinkedentities": "+0x11c",
+   "travelflagfortype": "+0x1130",
+   "areaupdate": "+0x11b0",
+   "areatraveltimes": "+0x11c0",
+   "hidetraveltimes": "+0x11d4",
+   "decompressedvis": "+0x11e4",
+   "decompressedvisarea": "+0x11e8",
+   "areavisibility": "+0x11ec",
+   "areawaypoints": "+0x11f0",
+   "game answer per area (1 seen, 2 hidden)": "+0x11f4"
+  },
+  "records": {
+   "aas_reachability_t": "0x2c bytes: areanum +0, start +0xc, end +0x18, traveltype +0x24, traveltime +0x28",
+   "aas_areasettings_t": "0x20 bytes: areaflags +4 (0xa = AREA_LADDER | AREA_DISABLED), numreachableareas +0x14, firstreachablearea +0x18",
+   "aas_routingupdate_t": "0x28 bytes: areanum +4, start +8, tmptraveltime +0x14, areatraveltimes +0x18, inlist +0x1c, next +0x20, prev +0x24",
+   "entity table": "default world [0x4da050]+0x128, 0x94-byte records, valid +0, solid +0x64"
+  },
+  "constants": {
+   "0x4bed50 (double)": 0.1,
+   "0x4c4d54 (float)": 32.0,
+   "0x4c1ac0 (float)": 256.0,
+   "0x4be35c (float)": 0.5,
+   "0x4c7688 (float)": 10.0,
+   "step limit (cmp 0xbb8)": 3000,
+   "occupancy cost (add 0x3e8)": 1000
+  },
+  "callees": {
+   "0x43c120": "AAS_Time (fld [aasworld+0x10])",
+   "0x4600f0": "GetClearedMemory",
+   "0x468c50": "memset",
+   "0x447e40": "AAS_AreaTravelTimeToGoalArea (answer dropped at 0x44a7df)",
+   "0x402f20": "VectorNormalize (returns the length it divides by)",
+   "0x402e90": "VectorLength",
+   "0x402db0": "VectorDistance",
+   "0x402480": "ProjectPointOntoVector",
+   "0x447860": "AAS_AreaContentsTravelFlag",
+   "0x447dd0": "AAS_AreaTravelTime",
+   "0x43c550": "AAS_IsEntityInArea (current world links, default world entities)",
+   "0x447ec0": "AAS_AreaVisible (no visibility: 1; cached row index +0x11e8 starts at 0)",
+   "[0xcc7a20]": "botimport slot 24, BotVisibleFromPos"
+  },
+  "gameVisibilityImport": {
+   "GetBotLibAPI copy": "0x4370f7..0x437109: 0x1b dwords to 0xcc79c0",
+   "engine store": "0x42558e: slot 24 = 0x424c30",
+   "0x424c30": "VM_Call(gvm, 12 = BOT_VISIBLEFROMPOS, 5 arguments) (push 0xc at 0x424c42)",
+   "calls in AAS_NearestHideArea": {
+    "0x44a832": "start: (enemy origin, enemy, origin, source, 0)",
+    "0x44ace3": "candidate: (enemy origin, enemy, area waypoint, source, 0)"
+   }
+  },
+  "order": [
+   "0x44a6db: no area visibility -> 0",
+   "0x44a6f2: negative source -> not source; frame time = 0",
+   "0x44a71b: same frame time and step count >= 3000 -> 0; 0x44a745 new time zeroes the count; 0x44a759 stores the time",
+   "0x44a75f..0x44a7c6: clear or allocate travel times and game answers",
+   "0x44a7df: enemy area -> AAS_AreaTravelTimeToGoalArea(area, origin, enemy area, flags), answer dropped",
+   "0x44a81c: VectorNormalize(enemy - origin)",
+   "0x44a832: game question about the start",
+   "0x44a852..0x44a867: start record area and position; 0x44a86a: area 0 -> 0",
+   "0x44a909, 0x44a921: forbidden travel type or contents -> next link",
+   "0x44a93a: ladder or disabled area -> next link",
+   "0x44a945: the enemy's area -> next link",
+   "0x44a94e..0x44a96d: distance point and |end - point| > limit -> next link (a limit of 0 is not exempt)",
+   "0x44a998: travel time added up, then a step counted",
+   "0x44a9c6: reached before in less time -> next link (equal goes on); 0x44a9cc stores the raw time",
+   "0x44a9d0..0x44a9e9: the best area reached again -> no best; 0x44a9f9: time not under the best -> next link",
+   "0x44aa16..0x44aad8: measured point = projection, or the step end when the projection lies 0.1 beyond both ends on an axis",
+   "0x44ab09..0x44ab1e: enemy > 32 away and point nearer than the enemy and within 256 -> next link",
+   "0x44ab5a..0x44ab84: enemy > 32 away and (end - origin) . direction > distance * 0.5 -> next link",
+   "0x44abd9..0x44ac21: enemy > 32 away and point nearer than the step start -> time += 10 a unit (cvttss2si), next link if not under the best",
+   "0x44ac30..0x44ac42: occupied area -> time += 1000",
+   "0x44ac45..0x44ac67: enemy area, start unseen and area visible from the enemy's -> next link",
+   "0x44ac6d..0x44ac81: time not under the best -> next link",
+   "0x44ac97..0x44ad7b: area with a visibility row the enemy's area does not see: stored answer or game question; hidden -> best",
+   "0x44ad0c..0x44ad19: second step counted; past 3000 -> next link without queuing",
+   "0x44ad21..0x44ad83: record filled and queued unless already queued (0x44ad4d)",
+   "0x44adb3: best area returned once the queue is empty"
+  ],
+  "otherCaller": "0x4365d5 in the bot library test export 0x4364b0, behind bot_testhidepos",
+  "stockGameModule": {
+   "tool": "scripts/scan_game_import_calls.py",
+   "BOTLIB_AAS_NEARESTHIDEAREA (325)": {
+    "callsToImport": 0,
+    "pushesOfImport": 0,
+    "callSites": 122
+   },
+   "control BOTLIB_AAS_POINT_AREA_NUM (308)": {
+    "callsToImport": 1,
+    "sites": [
+     "0x200769ea"
+    ]
+   }
+  }
+ },
+ "inferences": [
+  "The step count carries one search's work into the next: a frame's searches stop being answered once it reaches 3,000, so where retail counts its steps is something a game sees.",
+  "The dropped travel-time query builds the routing cache towards the enemy's area and counts against the frame's routing updates, so it can defer a later route query in the same frame.",
+  "The game's answers last one search; the source area is not marked as reached and can be a candidate."
+ ],
+ "beforeThisChange": [
+  "returned once it had taken 3,000 steps, counting each link before its tests and none at the queue (census)",
+  "entered ladder and disabled areas (census)",
+  "measured the distance limit to the area's waypoint, and only for a positive limit (census)",
+  "refused a step whose measured point lay within 40 units of the enemy (census)",
+  "asked the game nothing about a candidate and kept no store of answers (census)",
+  "set up its start record before asking about the start, refusing area 0 without asking (census)",
+  "had no rule against passing near the enemy or heading more than halfway towards it",
+  "charged an approach to the enemy at any distance",
+  "charged nothing for an occupied area",
+  "skipped an area reached again in equal time and stored a time after its costs",
+  "kept its best area when it reached it again",
+  "made no travel-time query"
+ ],
+ "changes": {
+  "code/botlib/wolfet_routing.hpp": "AAS_WolfETNearestHideArea rebuilt in retail order; ResetHideVisibility, Occupied (AAS_IsEntityInArea) and TruncatedTime (cvttss2si) helpers",
+  "code/botlib/be_aas_def.h": "aas_s::wolfetHideVisibility, a byte an area",
+  "code/botlib/wolfet_visibility.hpp": "AAS_WolfETFreeVisibility frees it",
+  "tests/wolfet_tactical_queue_tests.py": "fifteen hide scenarios over the corridor, nineteen hide mutations, mutations built in parallel and checked to fail in their own scenario"
+ },
+ "kept": [
+  "the engine callback AAS_WolfETCallbacks, which copies each position: no pointer into the game module, and the module never sees botlib storage",
+  "the queue's checked Push (retail reads the mark at 0x44ad4d)"
+ ],
+ "notReproduced": [
+  "record 0's area and position written before area 0 is refused (nothing reads them)",
+  "writes past the records for an area outside the world (fnTech3 refuses it after the start question)",
+  "AAS_AreaVisible answering for area 0 from a stale row buffer before any row is decompressed",
+  "an enemy area outside the world read past the tables (fnTech3: sees nothing)"
+ ],
+ "keptWithoutFixture": {
+  "0.1-unit projection margin": "shortens a measured distance d by under 0.03 / (2 d); any step it can decide lies more than 32 units from the enemy, so under 0.0005 units and 0.005 cost"
+ },
+ "tests": {
+  "file": "tests/wolfet_tactical_queue_tests.py",
+  "world": "nine-area corridor 1-6 along x with branch 2-7-8-9, optional ring link 3-8; every step costs 11",
+  "scenarios": [
+   "enemy beside the source",
+   "frame budget",
+   "past the limit",
+   "ladder and disabled",
+   "distance limit",
+   "area and game visibility",
+   "unseen source",
+   "occupied area",
+   "past the enemy",
+   "halfway to the enemy",
+   "approach cost",
+   "ring",
+   "area 0",
+   "routing cache",
+   "no game"
+  ],
+  "stepCounts": {
+   "corridor, enemy beside the source": {
+    "steps": 24,
+    "searchesPerFrame": 125
+   },
+   "behind a ladder at area 4": {
+    "steps": 17,
+    "searchesPerFrame": 177
+   },
+   "ring, area 8 hidden": {
+    "steps": 22,
+    "searchesPerFrame": 137
+   },
+   "past the limit": "124 x 24 + 2 x 4 = 2,984 steps, then a search passing 3,000 at area 5 still finds area 9"
+  },
+  "mutations": {
+   "ET's update records sized as Quake III's": {
+    "exit": 3,
+    "expectedScenario": null,
+    "failure": "Assertion failed: records(aasworld.areaupdate)==13"
+   },
+   "the danger search refuses a marked record": {
+    "exit": 3,
+    "expectedScenario": null,
+    "failure": "Assertion failed: danger()==5"
+   },
+   "the retreat refuses a marked record": {
+    "exit": 3,
+    "expectedScenario": null,
+    "failure": "Assertion failed: retreat()==4"
+   },
+   "the range search leaves its queue marked": {
+    "exit": 3,
+    "expectedScenario": null,
+    "failure": "Assertion failed: marked()==0"
+   },
+   "the range search queues a marked record": {
+    "exit": 3,
+    "expectedScenario": null,
+    "failure": "Assertion failed: listed(16,&areas)==6&&(areas==std::vector<int>{2,1,3,7,8,9})"
+   },
+   "the hide search trusts the area visibility alone": {
+    "exit": 3,
+    "expectedScenario": "enemy beside the source",
+    "failure": "hide check failed in enemy beside the source: hide(a)==9&&asked==wholeFlood (result 2, runs -1, asked 0)"
+   },
+   "the hide search refuses a step ending within 40 units of the enemy": {
+    "exit": 3,
+    "expectedScenario": "enemy beside the source",
+    "failure": "hide check failed in enemy beside the source: hide(a)==9&&asked==wholeFlood (result 0, runs -1, asked 0)"
+   },
+   "the hide search charges an approach to an enemy beside it": {
+    "exit": 3,
+    "expectedScenario": "enemy beside the source",
+    "failure": "hide check failed in enemy beside the source: hide(a)==9&&asked==wholeFlood (result 9, runs -1, asked 0 2 1 3 7 4 8 5 9 6)"
+   },
+   "the hide search counts each link before its tests and returns once over": {
+    "exit": 3,
+    "expectedScenario": "frame budget",
+    "failure": "hide check failed in frame budget: runs(a)==125 (result 0, runs 188, asked)"
+   },
+   "the hide search returns as soon as its steps run out": {
+    "exit": 3,
+    "expectedScenario": "past the limit",
+    "failure": "hide check failed in past the limit: hide(a)==9&&asked==wholeFlood (result 0, runs 125, asked 0 2 1 3 7 4 8)"
+   },
+   "the hide search counts a step before its tests": {
+    "exit": 3,
+    "expectedScenario": "ladder and disabled",
+    "failure": "hide check failed in ladder and disabled: runs(a)==177 (result 0, runs 167, asked)"
+   },
+   "the hide search passes ladder and disabled areas": {
+    "exit": 3,
+    "expectedScenario": "ladder and disabled",
+    "failure": "hide check failed in ladder and disabled: hide(a)==0&&askedOnly({0,2,1,3,7,8,9}) (result 5, runs 125, asked 0 2 1 3 7 4 8 5)"
+   },
+   "the hide search limits its distance at the area's waypoint": {
+    "exit": 3,
+    "expectedScenario": "distance limit",
+    "failure": "hide check failed in distance limit: hide(a)==0&&askedOnly({0,2,1,3,7,4,8,9}) (result 5, runs 177, asked 0 2 1 3 7 4 8 5)"
+   },
+   "the hide search lets an unseen source step into the enemy area's view": {
+    "exit": 3,
+    "expectedScenario": "unseen source",
+    "failure": "hide check failed in unseen source: hide(a)==0&&askedOnly({0}) (result 5, runs 177, asked 0 5)"
+   },
+   "the hide search charges nothing for an occupied area": {
+    "exit": 3,
+    "expectedScenario": "occupied area",
+    "failure": "hide check failed in occupied area: hide(a)==4&&askedOnly({0,2,1,3,7,4}) (result 7, runs 177, asked 0 2 1 3 7)"
+   },
+   "the hide search counts the searcher as an occupant": {
+    "exit": 3,
+    "expectedScenario": "occupied area",
+    "failure": "hide check failed in occupied area: hide(a)==7&&askedOnly({0,2,1,3,7}) (result 4, runs 177, asked 0 2 1 3 7 4)"
+   },
+   "the hide search lets a step pass beside the enemy": {
+    "exit": 3,
+    "expectedScenario": "past the enemy",
+    "failure": "hide check failed in past the enemy: hide(a)==0 (result 8, runs 177, asked 0 2 1 3 7 4 8 5 6)"
+   },
+   "the hide search lets a step lead more than halfway to the enemy": {
+    "exit": 3,
+    "expectedScenario": "halfway to the enemy",
+    "failure": "hide check failed in halfway to the enemy: hide(a)==0 (result 6, runs 177, asked 0 2 1 3 7 4 8 5 9 6)"
+   },
+   "the hide search charges nothing for coming nearer the enemy": {
+    "exit": 3,
+    "expectedScenario": "approach cost",
+    "failure": "hide check failed in approach cost: hide(a)==9 (result 5, runs 177, asked 0 2 1 3 7 4 8 5)"
+   },
+   "the hide search asks the game again about an area": {
+    "exit": 3,
+    "expectedScenario": "ring",
+    "failure": "hide check failed in ring: hide(a)==0&&askedOnly({0,2,1,3,7,4,8,5,9,6}) (result 0, runs 177, asked 0 2 1 3 7 4 8 8 5 9 6)"
+   },
+   "the hide search skips an area reached again as cheaply": {
+    "exit": 3,
+    "expectedScenario": "ring",
+    "failure": "hide check failed in ring: runs(a)==137 (result 0, runs 143, asked)"
+   },
+   "the hide search keeps its best area when reaching it again": {
+    "exit": 3,
+    "expectedScenario": "ring",
+    "failure": "hide check failed in ring: runs(a)==137 (result 0, runs 143, asked)"
+   },
+   "the hide search refuses area 0 before asking about its start": {
+    "exit": 3,
+    "expectedScenario": "area 0",
+    "failure": "hide check failed in area 0: hide(a)==0&&askedOnly({0}) (result 0, runs 137, asked)"
+   },
+   "the hide search leaves the enemy's routing cache unbuilt": {
+    "exit": 3,
+    "expectedScenario": "routing cache",
+    "failure": "hide check failed in routing cache: hide(a)==0&&aasworld.newestcache&&aasworld.newestcache->areanum==6 (result 0, runs 137, asked 0)"
+   }
+  }
+ },
+ "validation": {
+  "sharedTree": {
+   "productionProbe": "python -m pytest -q tests/wolfet_tactical_queue_tests.py -k follow_etded: passed",
+   "mutations": "python -m pytest -q tests/wolfet_tactical_queue_tests.py -k earlier: 24 subtests passed in 47.9 s (8 parallel builds)",
+   "msvcStrictCompile": "code/botlib/be_aas_route.cpp, be_aas_main.cpp, be_aas_entity.cpp with meson/build/win32-dev's exact /W4 /WX commands into a scratch folder: ok",
+   "structural": "python -m pytest -q tests/wolfet_visibility_tests.py: 8 passed"
+  },
+  "export": {
+   "base": "8a05e028b51e5c722bbd73b16d65dc2c6824e216 plus this record's ten files before a last wording pass (the code differed from the committed blobs only in the hide search's header comment); blob hashes checked against the export's index",
+   "configure": "meson setup build-win32 -Db_vscrt=static_from_buildtype -Dstrict-warnings=true -Drenderer-dlopen=true -Drenderers=glx,vk,rtx -Drenderer-default=glx -Dzlib:default_library=static -Dogg:default_library=static -Dbuild-client=true -Dbuild-server=true --buildtype=debugoptimized --wrap-mode=nodownload",
+   "build": "meson compile -C build-win32 -j 4: 1,543 of 1,543 targets",
+   "native": "meson test --no-rebuild --num-processes 4, the 273 fnTech3 tests other than the pytest wrapper: 267 ok, 2 skipped, 4 timeouts at about 31 s in a row under load (fntech3_audio_codec_profile, fntech3_jka_ui_ghoul2, fntech3_jka_ui_lifecycle, fntech3_jka_shader_files), which passed alone in 0.6 to 16.3 s",
+   "python": "python -m pytest -q -p no:cacheprovider tests: 2,755 passed, 131 skipped (tools not built, retail binaries not configured, no symlink privilege), 66,960 subtests passed, 0 failed, in 54 min 24 s"
+  },
+  "finalHead": {
+   "base": "8779edb50494ab44a12ffc44eba285f986d84ce3 plus the final files, the shared documents built on that same commit; blob hashes checked against the export's index",
+   "msvcStrictCompile": "code/botlib/be_aas_route.cpp, be_aas_main.cpp and be_aas_entity.cpp from the export with meson/build/win32-dev's /W4 /WX commands: ok",
+   "python": "the 63 test files at that commit that read CHANGELOG.md, the ledger, the docs index or the records (generate_docs, changelog, release packaging and workflow among them), with tests/wolfet_tactical_queue_tests.py and tests/wolfet_visibility_tests.py: passed, none failed"
+  },
+  "export2": {
+   "base": "33c75dfd5f5d8e50397ea259b44ef69514b0b320 plus the final code; the shared documents in it were built on a later HEAD (15b0766f) by mistake, which linked a record the export lacked",
+   "build": "meson compile -C build-win32 -j 4: 1,543 of 1,543 targets",
+   "native": "271 ok, 2 skipped, 0 failed of 273",
+   "python": "102 files that build bot-library fixtures or read the documents: 665 passed, 1 skipped; the 12 failures and 8 failed subtests were all generate_docs_tests and release_packaging_tests refusing the link to 2026-10-15-jka-g2-trace.md, which that mixed export lacked"
+  }
+ },
+ "unrelatedObservations": [
+  "fnTech3's VectorNormalize returns the squared length times its reciprocal square root; retail ET's (0x402f20) returns the square root, and the two can differ in the last bit. Other ET paths using the returned length were not checked.",
+  "Quake III's own AAS_NearestHideArea in code/botlib/be_aas_route.cpp stays unreachable."
+ ]
+}

@@ -55,9 +55,11 @@ void AAS_WolfETFreeVisibility( void ) {
 	if ( aasworld.wolfetWaypoints ) FreeMemory( aasworld.wolfetWaypoints );
 	if ( aasworld.wolfetVisibility ) FreeMemory( aasworld.wolfetVisibility );
 	if ( aasworld.wolfetDangerDistance ) FreeMemory( aasworld.wolfetDangerDistance );
+	if ( aasworld.wolfetHideVisibility ) FreeMemory( aasworld.wolfetHideVisibility );
 	aasworld.wolfetWaypoints = nullptr;
 	aasworld.wolfetVisibility = nullptr;
 	aasworld.wolfetDangerDistance = nullptr;
+	aasworld.wolfetHideVisibility = nullptr;
 	aasworld.wolfetVisibilityStride = 0;
 	aasworld.wolfetVisibilityBuilt = qfalse;
 }

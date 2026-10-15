@@ -66,6 +66,11 @@ historical upstream records, not fnTech3 release history. See the
   Academy multiplayer's muzzle flashes and explosions honour it; the other
   games make their shakes inside their own code, out of its reach
   ([record](docs/fntech3/2026-10-15-view-shake.md)).
+- Let Enemy Territory bots find cover as the original server does: a mod's
+  bot hiding from an enemy now skips ladders, keeps clear of the enemy, avoids
+  occupied spots and asks the game whether each spot is really out of sight,
+  within the original's work limit for each frame
+  ([record](docs/fntech3/2026-10-15-wolfet-hide-search.md)).
 - Scale Jedi Academy's HUD and both Jedi games' menus to the window. They
   draw on a 640x480 screen the originals stretched over the window, and had
   filled only its top-left corner; on a widescreen display Academy's HUD now

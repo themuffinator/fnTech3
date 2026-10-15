@@ -127,6 +127,9 @@ Release packages include them as web pages in their `manual` folder, built by
   -- Enemy Territory's tactical search queues and update records, and the
   pure gamestate budget of Enemy Territory and Jedi Outcast, read from the
   retail executables.
+- [Enemy Territory hide search](fntech3/2026-10-15-wolfet-hide-search.md)
+  -- how a bot finds cover from an enemy, read from the retail server and
+  rebuilt step for step.
 - [Pure gamestate budget of Medal of Honor, the IHV Test and Q3Test](fntech3/2026-10-15-pure-budget-own-wires.md)
   -- Medal of Honor's pak-list budget measured on its own gamestate, sounds
   included, and why the IHV Test and Q3Test have none.

@@ -131,7 +131,8 @@ distance limit from the area's waypoint, rejects an endpoint within 40 units of
 the enemy, and asks the game only once, after its start record is set up. The
 original source's other conditions (its 0.1-unit projection margin, its
 approach and occupancy penalties) are source observations not yet checked in
-retail. Matching the hide search is open work.
+retail. Matching the hide search was left open here; the
+[hide-search record](2026-10-15-wolfet-hide-search.md) has since done it.
 
 ## The pure gamestate budget of Jedi Outcast and Enemy Territory
 

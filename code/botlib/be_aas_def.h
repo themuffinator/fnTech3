@@ -333,6 +333,9 @@ struct aas_s
 	// bit matrix is engine storage, never a module or file contract.
 	vec3_t *wolfetWaypoints;
 	unsigned short *wolfetDangerDistance;
+	// What the game answered for each area during one hide search: 0 not
+	// asked, 1 the enemy sees its waypoint, 2 hidden.
+	byte *wolfetHideVisibility;
 	byte *wolfetVisibility;
 	int wolfetVisibilityStride;
 	qboolean wolfetVisibilityBuilt;

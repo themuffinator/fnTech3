@@ -10,11 +10,12 @@
 /* ET's reachability floods over the area waypoints and visibility built by
  * wolfet_visibility.hpp. Each keeps the original's traversal shape: one
  * breadth-first pass over the reachability links, `hidetraveltimes` used as the
- * visited marker rather than a travel time, and the persistent `areaupdate`
- * array as the work list, addressed by area number, so ET sizes it by the
- * world's areas (AAS_InitRoutingUpdate). Observations:
- * docs/fntech3/2026-09-17-wolfet-visibility.md and, for the queue marks,
- * docs/fntech3/2026-10-15-census-small-gaps.md. */
+ * visited marker (the hide search keeps travel times in it), and the persistent
+ * `areaupdate` array as the work list, addressed by area number, so ET sizes it
+ * by the world's areas (AAS_InitRoutingUpdate). Observations:
+ * docs/fntech3/2026-09-17-wolfet-visibility.md, for the queue marks
+ * docs/fntech3/2026-10-15-census-small-gaps.md, and for the hide search
+ * docs/fntech3/2026-10-15-wolfet-hide-search.md. */
 
 namespace fntech3 {
 namespace wolfet {
@@ -108,6 +109,44 @@ inline bool Travelable( const aas_reachability_t &reach, int badflags ) {
 inline bool Blocked( int area ) {
 	const int flags = aasworld.areasettings[area].areaflags;
 	return ( flags & AREA_LADDER ) != 0 || ( flags & AREA_DISABLED ) != 0;
+}
+
+// The hide search keeps the game's answers in a byte per area, cleared at the
+// top of every search (etded.exe 0x44a793..0x44a7c6).
+inline byte *ResetHideVisibility() {
+	if ( !aasworld.wolfetHideVisibility ) {
+		aasworld.wolfetHideVisibility = botlib::ClearedAlloc<byte>( aasworld.numareas );
+	} else {
+		std::fill_n( aasworld.wolfetHideVisibility, aasworld.numareas, static_cast<byte>( 0 ) );
+	}
+	return aasworld.wolfetHideVisibility;
+}
+
+/* AAS_IsEntityInArea as the hide search asks it (0x43c550, called at 0x44ac30
+ * with the searcher and -1 ignored, a number no link carries): a valid, solid
+ * entity linked into the area. The links are the world's own, the entity
+ * records the entity world's. */
+inline bool Occupied( int area, int ignore ) {
+	if ( !aasworld.arealinkedentities ) return false;
+	const aas_t &world = AAS_EntityWorld();
+	int remaining = aasworld.linkheapsize;
+	for ( const aas_link_t *link = aasworld.arealinkedentities[area]; link; link = link->next_ent ) {
+		// More links than the heap holds is a broken list, not an empty area.
+		if ( --remaining < 0 ) return true;
+		const int number = link->entnum;
+		if ( number == ignore || number < 0 || number >= world.maxentities || !world.entities ) continue;
+		const aas_entityinfo_t &info = world.entities[number].i;
+		if ( info.valid && info.solid ) return true;
+	}
+	return false;
+}
+
+// The hide search truncates a time it has added to with cvttss2si (0x44ac05),
+// which gives 0x80000000 for a value int cannot hold, NaN included: those low
+// 16 bits are zero.
+inline unsigned short TruncatedTime( float value ) {
+	if ( !( value >= -2147483648.0f && value < 2147483648.0f ) ) return 0;
+	return static_cast<unsigned short>( static_cast<int>( value ) );
 }
 
 
@@ -376,10 +415,20 @@ int AAS_WolfETAlternativeRouteGoals(vec3_t start, vec3_t goal, int travelflags,
 ===========================================================================
 AAS_WolfETNearestHideArea
 
-Floods outward from the source area and keeps the cheapest area the enemy
-cannot see, penalising candidates that move towards the enemy and rejecting
-those that end too close to it. The original bounds the work per frame and
-lets a negative source number restart that budget; both are reproduced, and an
+The cheapest area the source can reach that the enemy cannot see, searched
+for as retail etded.exe 2.60b's AAS_NearestHideArea (0x44a6d0) does. The
+flood never enters a ladder or disabled area or the enemy's own, nor takes a
+step ending beyond the distance limit. With the enemy more than 32 units from
+the source, a step that passes within 256 units of it, nearer to it than the
+source, is refused, as is one ending more than halfway from the source towards
+it, and a step that comes nearer costs ten time units for each unit gained.
+An occupied area costs 1,000 more, and a source the enemy cannot see at the
+start never steps into the enemy area's view. An area is hidden when the
+enemy's area cannot see it and the game says the enemy cannot see its
+waypoint; the game is asked once an area in a search. Every candidate takes a
+step, and so does every one that reaches the queue: past 3,000 in a frame the
+search queues nothing more but empties its queue, and a later search in that
+frame answers none unless a negative source number restarts the count. An
 absent game callback means no candidate can be proved hidden.
 ===========================================================================
 */
@@ -396,7 +445,7 @@ int AAS_WolfETNearestHideArea( int srcnum, vec3_t origin, int areanum, int enemy
 	if ( !callbacks.available || !callbacks.visible || !callbacks.available() ) return 0;
 
 	if ( srcnum < 0 ) {
-		srcnum = -srcnum - 1;
+		srcnum = ~srcnum; // -srcnum - 1, by retail's not (0x44a6f2)
 		lastTime = 0;
 	}
 	if ( lastTime == AAS_Time() && loopCount >= maxLoops ) return 0;
@@ -404,71 +453,98 @@ int AAS_WolfETNearestHideArea( int srcnum, vec3_t origin, int areanum, int enemy
 	lastTime = AAS_Time();
 
 	if ( !ResetVisited() ) return 0;
+	byte *const seen = ResetHideVisibility();
+	if ( !seen ) return 0;
+
+	// Retail asks for the enemy's travel time and drops the answer (0x44a7df);
+	// the query still builds routing caches and counts the frame's updates.
+	if ( enemyareanum ) AAS_AreaTravelTimeToGoalArea( areanum, origin, enemyareanum, travelflags );
+	vec3_t enemyVec;
+	VectorSubtract( enemyorigin, origin, enemyVec );
+	// Retail's VectorNormalize returns the length it divided by.
+	const float enemyDistance = VectorLength( enemyVec );
+	VectorNormalize( enemyVec );
+	// Asked before the start area is refused (0x44a832, 0x44a86a).
+	const int startVisible = callbacks.visible( enemyorigin, enemynum, origin, srcnum, 0 );
+	const int badflags = ~travelflags;
 
 	Work work;
 	if ( !work.Begin( areanum, origin ) ) return 0;
 
-	vec3_t enemyVec;
-	VectorSubtract( enemyorigin, origin, enemyVec );
-	const float enemyDistance = VectorNormalize( enemyVec );
-	(void)enemyDistance;
-	const int startVisible = callbacks.visible( enemyorigin, enemynum, origin, srcnum, 0 );
-	const int badflags = ~travelflags;
 	int best = 0;
 	unsigned short bestTravel = 0;
-
 	while ( auto *current = work.Pop() ) {
 		int first, links;
 		if ( !Links( current->areanum, first, links ) ) break;
 		for ( int index = 0; index < links; ++index ) {
-			if ( ++loopCount > maxLoops ) return best;
 			const auto &reach = aasworld.reachability[first + index];
 			if ( !Travelable( reach, badflags ) ) continue;
 			const int next = reach.areanum;
-			if ( next == enemyareanum ) continue;
-
-			vec3_t reachStart, reachEnd, projected, toEnemy;
+			if ( Blocked( next ) || next == enemyareanum ) continue;
+			vec3_t reachStart, reachEnd;
 			VectorCopy( reach.start, reachStart );
 			VectorCopy( reach.end, reachEnd );
+			// The limit is measured to where the step ends (0x44a94e).
+			if ( distpos && Distance( reachEnd, distpos ) > maxdist ) continue;
 			unsigned short travel = static_cast<unsigned short>( current->tmptraveltime
 				+ AAS_AreaTravelTime( current->areanum, current->start, reachStart )
 				+ reach.traveltime );
+			++loopCount;
+			// The time is kept before the costs below; an equal one goes on.
+			if ( aasworld.hidetraveltimes[next] && aasworld.hidetraveltimes[next] < travel ) continue;
+			aasworld.hidetraveltimes[next] = travel;
+			// The best area, reached again as cheaply, must earn its place again.
+			if ( best == next ) {
+				best = 0;
+				bestTravel = 0;
+			}
+			if ( bestTravel && travel >= bestTravel ) continue;
 
+			// The step's point nearest the enemy: the enemy's projection onto
+			// it, or the step's end once that lies more than 0.1 past the step.
+			vec3_t projected, toEnemy;
 			AAS_ProjectPointOntoVector( enemyorigin, current->start, reachEnd, projected );
 			int axis = 0;
 			for ( ; axis < 3; ++axis ) {
-				if ( ( projected[axis] > current->start[axis] && projected[axis] > reachEnd[axis] )
-					|| ( projected[axis] < current->start[axis] && projected[axis] < reachEnd[axis] ) ) {
+				if ( ( projected[axis] > current->start[axis] + 0.1 && projected[axis] > reachEnd[axis] + 0.1 )
+					|| ( projected[axis] < current->start[axis] - 0.1 && projected[axis] < reachEnd[axis] - 0.1 ) ) {
 					break;
 				}
 			}
-			if ( axis < 3 ) VectorSubtract( enemyorigin, reachEnd, toEnemy );
-			else VectorSubtract( enemyorigin, projected, toEnemy );
-			const float endDistance = VectorLength( toEnemy );
-			if ( endDistance < 40 ) continue;
-
+			const float *nearest = axis < 3 ? reachEnd : projected;
+			VectorSubtract( enemyorigin, nearest, toEnemy );
+			const float passDistance = VectorLength( toEnemy );
+			const bool distant = enemyDistance > 32;
+			// Never past the enemy, and never more than halfway towards it.
+			if ( distant && passDistance < enemyDistance && passDistance < 256 ) continue;
+			vec3_t step;
+			VectorSubtract( reachEnd, origin, step );
+			if ( distant && DotProduct( step, enemyVec ) > enemyDistance * 0.5f ) continue;
 			vec3_t fromStart;
 			VectorSubtract( enemyorigin, current->start, fromStart );
 			const float startDistance = VectorLength( fromStart );
-			if ( endDistance < startDistance ) {
-				travel = static_cast<unsigned short>( travel + ( startDistance - endDistance ) * 10 );
+			if ( distant && passDistance < startDistance ) {
+				travel = TruncatedTime( static_cast<float>( travel ) + ( startDistance - passDistance ) * 10 );
+				if ( bestTravel && travel >= bestTravel ) continue;
 			}
+			if ( Occupied( next, srcnum ) ) travel = static_cast<unsigned short>( travel + 1000 );
+			if ( enemyareanum && !startVisible && AAS_WolfETAreaVisible( enemyareanum, next ) ) continue;
+			if ( bestTravel && bestTravel <= travel ) continue;
 
-			// A distance limit is measured from the caller's reference point.
-			if ( maxdist > 0 && distpos ) {
-				const float *waypoint = AAS_WolfETWaypoint( next );
-				if ( waypoint && Distance( distpos, waypoint ) > maxdist ) continue;
+			// Only an area with a waypoint sees itself; only such an area
+			// carries visibility to test.
+			if ( AAS_WolfETAreaVisible( next, next ) && !AAS_WolfETAreaVisible( enemyareanum, next ) ) {
+				if ( seen[next] == 2 || ( !seen[next] && !callbacks.visible( enemyorigin, enemynum,
+					aasworld.wolfetWaypoints[next], srcnum, 0 ) ) ) {
+					seen[next] = 2;
+					bestTravel = travel;
+					best = next;
+				} else {
+					seen[next] = 1;
+				}
 			}
-
-			if ( !startVisible && AAS_WolfETAreaVisible( enemyareanum, next ) ) continue;
-			if ( bestTravel && travel >= bestTravel ) continue;
-			if ( aasworld.hidetraveltimes[next] && aasworld.hidetraveltimes[next] <= travel ) continue;
-
-			if ( !AAS_WolfETAreaVisible( enemyareanum, next ) ) {
-				bestTravel = travel;
-				best = next;
-			}
-			aasworld.hidetraveltimes[next] = travel;
+			// Past the limit nothing more is queued, but the queue still empties.
+			if ( loopCount++ > maxLoops ) continue;
 			auto *update = &aasworld.areaupdate[next];
 			update->areanum = next;
 			update->tmptraveltime = travel;
@@ -478,7 +554,6 @@ int AAS_WolfETNearestHideArea( int srcnum, vec3_t origin, int areanum, int enemy
 	}
 	return best;
 }
-
 
 
 /*
