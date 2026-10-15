@@ -104,6 +104,12 @@ cvar_t *Cvar_Get(const char *name,const char *value,int flags){
  if(!std::strcmp(name,"RMG")){index=3;assert(!std::strcmp(value,"0")&&flags==0);}
  assert(index>=0);if(cvarDrop==index+1)Com_Error(ERR_DROP,"cvar failure");return &fxVariables[index];
 }
+// Sound primitives start their sound through the profile's spatial entry.
+struct EffectSound{std::array<float,3> origin;int entity,channel,handle;};
+static std::vector<EffectSound> effectSounds;
+void S_StartJKASound(vec3_t origin,int entity,int channel,sfxHandle_t handle){
+ assert(origin);effectSounds.push_back({{origin[0],origin[1],origin[2]},entity,channel,handle});
+}
 #include "code/client/client_jka_cgame_effects.hpp"
 static fntech3::jka::lightstyle::Store jkaCgameLightStyles;
 static std::vector<int> jkaFonts;

@@ -1,0 +1,629 @@
+{
+ "record": "docs/fntech3/2026-10-15-jka-effect-sound.md",
+ "date": "2026-10-15",
+ "profiles": [
+  "jka-mp"
+ ],
+ "baseHead": "fbde92d4",
+ "claim": "Compatibility slice only; no gate closes.",
+ "platform": "Windows 11, MSVC 2022 x86 (win32-dev options, strict warnings), clang i686-pc-windows-msvc for fixtures",
+ "runtime": {
+  "folder": ".tmp/runtime/jka-effect-sound",
+  "sha256": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "5bf50b6992253c59d6aeaf7a805a21b36ff189eea60fa0deb6598f90edf9e3b8",
+   "fnql_rtx_x86.dll": "f011f439c00914979317feaee33381b815d9bd777debebbf3bc1f7573d81b667",
+   "fnql_vk_x86.dll": "dbac2936fd2673930581fc9eabd2551415e6920bb3a0cc1cb4dbfab4eaa561bf",
+   "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+   "fntech3.exe": "6e7143065681b9171d7db55303d29c382f264ada97efecf6c9d4c93348634785",
+   "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+  },
+  "builtFrom": "git archive of HEAD fbde92d4 with this slice's two code files, configured with win32-dev's options (--wrap-mode=nodownload, strict warnings), meson compile -j 4 in .tmp/jka-sound/export/build; soft_oal.dll is the OpenAL Soft 1.25.2 x86 copy used by earlier probes",
+  "sliceSources": {
+   "code/compat/jka_effect_play.hpp": "bd973366143da1f2541a31be2449111129280273e9fba2a49a443266bd2ab34f",
+   "code/client/client_jka_cgame_effects.hpp": "3aecd5b35b61eeb8ea9f8d34b6729641821b8478dfecddb78025f8e20818514f"
+  }
+ },
+ "retail": {
+  "jamp.exe": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+  "pakMembers": {
+   "assets0.pk3:maps/mp/ffa2.bsp": "31f2213300fa712d1a53e22d26e5d7b93a35d46c7f3e0eba6a8fd399129a8f0d",
+   "assets1.pk3:effects/concussion/muzzle_flash.efx": "39645dd52e34a52e36b4c3aaf5588c7a2e3599c608cc7c3de8d3c203ec632f99",
+   "assets1.pk3:effects/env/rock_smash.efx": "a0f32accb268fb4399ca9006980439c2f0522c40f189e8435002b6da4a80be6c",
+   "assets1.pk3:effects/melee/punch_impact.efx": "62fe20ab5e10713520aec733109653ecb9a4dbdc551394d354c17aca4392d0ee",
+   "assets1.pk3:effects/saber/saber_clash.efx": "5fafda19b480b012545ecdfccc42ecc7ab3f4419cffd8e235f847804b61989f1",
+   "assets1.pk3:effects/sparks/bluesparks_w_sound.efx": "5fc32ede38c53a8e3442d11c20cd7469a4a71ac48e237aa05ed2127f1b9f77d6",
+   "assets1.pk3:effects/thermal/muzzle_flash.efx": "10473d3b483239f0be275f6ffbaece71840307f8aba7d856f03b056316b1ecb4"
+  },
+  "installation": "E:/Games/Jedi Academy (read-only)",
+  "measuredRoutines": {
+   "soundCase": "0x40b0dc..0x40b119 (switch table 0x40b5e8, family 6): portal byte 0x12a4ff0 -> pick 0x405d50, S_StartLocalSound 0x405c70(handle in esi, channel 0) on listener 0xd83140; else pick 0x405d50, S_StartSound 0x46ac60(origin [esp+0x40], ebx 0x3ff ENTITYNUM_NONE, channel 0 CHAN_AUTO, handle eax)",
+   "startSound": "0x46ac60: \"S_StartSound: bad entitynum %i\" (0x55aa40) for a null origin outside 0..0x400; \"S_StartSound: handle %i out of range\" (0x55aa18); also the client game's import 0x412910",
+   "startLocalSound": "0x405c70: \"S_StartLocalSound: handle %i out of range\" (0x55a9c4); calls 0x46ac60 with a null origin",
+   "pick": "0x405d50: zero for an empty list at +0x48; else rand (0x56e760 * 0x343fd + 0x269ec3) >> 17, times count, >> 15",
+   "soundParser": "0x40dad0 (keys sound/sounds, 0x40edf9): S_RegisterSound 0x46a020, appended to the media list at +0x48",
+   "playEffectVolumeRadius": "0x407110 stores its volume and radius at template +0x23c and +0x240 (0x407215, 0x407220); the Sound case reads neither",
+   "flagWords": "flags 0x40d1a0 and spawn flags 0x40d4e0 read \"%s %s %s %s %s %s %s\" (0x565c00); an unknown word clears the result (0x40d79a, 0x40d4bc) and the loop continues; the key loop ignores the result (0x40edc5); \"lessAttenuation\" is not a string in jamp.exe"
+  }
+ },
+ "tests": {
+  "new": [
+   "tests/jka_effect_sound_tests.py (registered in meson.build as fntech3_jka_effect_sound)"
+  ],
+  "updated": [
+   "tests/jka_cgame_effects_tests.py (S_StartJKASound stub)",
+   "tests/jka_spawn_effect_tests.py (an unknown Emitter flag word is read past)"
+  ],
+  "result": "78 passed in the shared tree, and 78 again in a checkout of the commit tree on 2a80a5b8: tests/jka_effect_sound_tests.py, the six other effect test files, fourteen fixtures that read or compile the client-game host, and tests/generate_docs_tests.py; the runtime (built on fbde92d4, whose later commits do not touch these files) compiled with strict warnings"
+ },
+ "sweep": {
+  "tool": ".tmp/jka-sound/sweep/run_sweep.py (both sides built with GROUPS_INERT)",
+  "files": 376,
+  "servedHead": 190,
+  "servedNow": 247,
+  "newlyServed": 57,
+  "newlyServedFiles": [
+   "effects/blaster/deflect.efx",
+   "effects/bowcaster/deflect.efx",
+   "effects/chunks/dustfall.efx",
+   "effects/chunks/r5d2headland.efx",
+   "effects/chunks/rockimpact.efx",
+   "effects/concussion/alt_hit.efx",
+   "effects/concussion/alt_miss.efx",
+   "effects/concussion/altmuzzle_flash.efx",
+   "effects/concussion/muzzle_flash.efx",
+   "effects/demp2/flesh_impact.efx",
+   "effects/detpack/muzzle_flash.efx",
+   "effects/disruptor/flesh_impact.efx",
+   "effects/env/acid_splash.efx",
+   "effects/env/flame_jet.efx",
+   "effects/env/lava_flow2.efx",
+   "effects/env/lava_splash.efx",
+   "effects/env/lava_splurt.efx",
+   "effects/env/med_explode2.efx",
+   "effects/env/rock_smash.efx",
+   "effects/env/sand_dive.efx",
+   "effects/env/sand_move_breach.efx",
+   "effects/env/sand_spray.efx",
+   "effects/env/targ_beam_impact.efx",
+   "effects/env/veryelectric.efx",
+   "effects/env/water_impact.efx",
+   "effects/eweb/flesh_impact.efx",
+   "effects/force/force_touch.efx",
+   "effects/materials/dirt_large.efx",
+   "effects/materials/gravel_large.efx",
+   "effects/materials/mud_large.efx",
+   "effects/materials/sand_large.efx",
+   "effects/materials/snow_large.efx",
+   "effects/melee/kick_impact.efx",
+   "effects/melee/punch_impact.efx",
+   "effects/misc/glass_impact.efx",
+   "effects/mp/drainhit.efx",
+   "effects/noghri_stick/flesh_impact.efx",
+   "effects/repeater/flesh_impact.efx",
+   "effects/saber/boil.efx",
+   "effects/saber/fizz.efx",
+   "effects/saber/saber_clash.efx",
+   "effects/saber/saber_cut.efx",
+   "effects/ships/imp_blastermuzzleflash.efx",
+   "effects/ships/mine_launch.efx",
+   "effects/ships/reb_blastermuzzleflash.efx",
+   "effects/ships/scrape_sparks.efx",
+   "effects/ships/swoop_turbo_start.efx",
+   "effects/ships/vehicle_wake.efx",
+   "effects/sparks/bluesparks_w_sound.efx",
+   "effects/sparks/spark.efx",
+   "effects/sparks/spark_explosion.efx",
+   "effects/thermal/muzzle_flash.efx",
+   "effects/tripmine/muzzle_flash.efx",
+   "effects/turret/hoth_impact.efx",
+   "effects/turret/muzzle_flash.efx",
+   "effects/tusken/hit.efx",
+   "effects/world/acid_fizz.efx"
+  ],
+  "newlyRefused": [],
+  "remainingFirstRefusals": [
+   {
+    "count": 46,
+    "refusal": "REFUSE | CameraShake | effects primitive family is not served yet | CameraShake"
+   },
+   {
+    "count": 21,
+    "refusal": "REFUSE | Light | effects curve controls are not served yet | flags"
+   },
+   {
+    "count": 21,
+    "refusal": "REFUSE | Decal | effects primitive family is not served yet | Decal"
+   },
+   {
+    "count": 20,
+    "refusal": "REFUSE | Emitter | effects media is not served for this primitive family | Emitter"
+   },
+   {
+    "count": 6,
+    "refusal": "REFUSE | Cylinder | effects curve controls are not served yet | flags"
+   },
+   {
+    "count": 3,
+    "refusal": "REFUSE | OrientedParticle | effects flags are not served yet | OrientedParticle"
+   },
+   {
+    "count": 3,
+    "refusal": "REFUSE | Cylinder | effects curve controls are not served yet | parm"
+   },
+   {
+    "count": 2,
+    "refusal": "REFUSE | Cylinder | effects flags are not served yet | Cylinder"
+   },
+   {
+    "count": 2,
+    "refusal": "REFUSE | Cylinder | effects spawn controls are not served yet | Cylinder"
+   },
+   {
+    "count": 2,
+    "refusal": "REFUSE | Flash | effects primitive family is not served yet | Flash"
+   },
+   {
+    "count": 1,
+    "refusal": "REFUSE | Particle | effects flags are not served yet | Particle"
+   },
+   {
+    "count": 1,
+    "refusal": "REFUSE | Line | effects flags are not served yet | Line"
+   },
+   {
+    "count": 1,
+    "refusal": "REFUSE | Cylinder | effects curve controls are not served yet | parms"
+   }
+  ]
+ },
+ "harness": ".tmp/jka-sound/listen.py (from .tmp/jka-tails/listen.py: net_enabled 0, s_initsound 1, OpenAL dumps)",
+ "entityOverrides": {
+  "ffa2-sound.ent": {
+   "sha256": "9bad54a7185d3f6f4f39f495d14402c68db511020dc1b8a00dab8ac2b3bf9cf5"
+  },
+  "ffa2-weapons.ent": {
+   "sha256": "274e46b44373f1e6364f8c9f9b0ea8175461b3420c066a781ede296cd766eb70"
+  }
+ },
+ "runs": {
+  "glx-conc-alt-1": {
+   "renderer": "glx",
+   "map": "mp/ffa2",
+   "extra": [
+    "set cl_menuBlur 0",
+    "ui_openmenu none",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "setviewpos -2014 1536 90 180",
+    "give all",
+    "wait 60",
+    "weapon 15",
+    "wait 90",
+    "echo probe-fire alt",
+    "+altattack",
+    "wait 3",
+    "-altattack",
+    "wait 6",
+    "echo probe-dump 1",
+    "s_alDebugDump",
+    "screenshotPNG jka-sound-fire",
+    "wait 90",
+    "echo probe-fire primary",
+    "+attack",
+    "wait 3",
+    "-attack",
+    "wait 6",
+    "echo probe-dump 2",
+    "s_alDebugDump",
+    "wait 60"
+   ],
+   "entityOverride": null,
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "effectSoundsStarted": 0,
+   "effectPlays": {},
+   "effectVoicesInDumps": [],
+   "captures": [
+    {
+     "name": "jka-sound-00.png",
+     "sha256": "3bb7336997055ef9cfa018ce6f4be7a9c979d84d1bc8f59b6f23ae5b51bde24d"
+    },
+    {
+     "name": "jka-sound-01.png",
+     "sha256": "41e82407b6572ede4d4a895eeb1df50a4a45ea45db5d0a25900667aca8e1ff36"
+    },
+    {
+     "name": "jka-sound-02.png",
+     "sha256": "6d5504c72deb3d5083df9a023b7f73b251dd540af9e73566782960be72a991e1"
+    },
+    {
+     "name": "jka-sound-03.png",
+     "sha256": "c8950c5497ca0bc2f3f99fc6d02e3604f4d81cb8e5c81542c74f8d9eb94fe9c7"
+    },
+    {
+     "name": "jka-sound-fire.png",
+     "sha256": "772a469b6dac09239969639f3f6ae20395b9a000c488130f78f1fe7ec80826ca"
+    }
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  "glx-conc-alt-2": {
+   "renderer": "glx",
+   "map": "mp/ffa2",
+   "extra": [
+    "set cl_menuBlur 0",
+    "ui_openmenu none",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "team free",
+    "wait 240",
+    "give all",
+    "wait 60",
+    "weapon 15",
+    "wait 90",
+    "echo probe-fire alt",
+    "+button7",
+    "wait 3",
+    "-button7",
+    "wait 6",
+    "echo probe-dump 1",
+    "s_alDebugDump",
+    "screenshotPNG jka-sound-fire",
+    "wait 90",
+    "echo probe-fire primary",
+    "+attack",
+    "wait 3",
+    "-attack",
+    "wait 6",
+    "echo probe-dump 2",
+    "s_alDebugDump",
+    "screenshotPNG jka-sound-fire2",
+    "wait 60"
+   ],
+   "entityOverride": null,
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "errors": [
+    "ERROR: Jedi Academy cgame Ghoul2 sparse model-copy destinations are not served yet",
+    "----- Server Shutdown (Server crashed: Jedi Academy cgame Ghoul2 sparse model-copy destinations are not served yet) -----"
+   ],
+   "effectSoundsStarted": 0,
+   "effectPlays": {
+    "effects/mp/spawn.efx": 1
+   },
+   "effectVoicesInDumps": [],
+   "captures": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  "glx-conc-alt-3": {
+   "renderer": "glx",
+   "map": "mp/ffa2",
+   "extra": [
+    "set cl_menuBlur 0",
+    "ui_openmenu none",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "team free",
+    "wait 240",
+    "give weapon_concussion_rifle",
+    "wait 60",
+    "weapon 15",
+    "wait 90",
+    "echo probe-fire alt",
+    "+button7",
+    "wait 3",
+    "-button7",
+    "wait 6",
+    "echo probe-dump 1",
+    "s_alDebugDump",
+    "screenshotPNG jka-sound-fire",
+    "wait 90",
+    "echo probe-fire primary",
+    "+attack",
+    "wait 3",
+    "-attack",
+    "wait 6",
+    "echo probe-dump 2",
+    "s_alDebugDump",
+    "screenshotPNG jka-sound-fire2",
+    "wait 60"
+   ],
+   "entityOverride": null,
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "effectSoundsStarted": 0,
+   "effectPlays": {
+    "effects/mp/spawn.efx": 1
+   },
+   "effectVoicesInDumps": [],
+   "captures": [
+    {
+     "name": "jka-sound-00.png",
+     "sha256": "12e28178c0406bf7d3591de606144cc9ef3ef5acadb7992a43c34a4f61fc536c"
+    },
+    {
+     "name": "jka-sound-01.png",
+     "sha256": "fac0f62a98ab88d21b78abf7e53e5d487c729184f28e82f03c28bf9acb1b968a"
+    },
+    {
+     "name": "jka-sound-02.png",
+     "sha256": "e94dfb428a72795e3d8ce34b50a62d871c17945262ace57ffa19b86992e331f8"
+    },
+    {
+     "name": "jka-sound-fire.png",
+     "sha256": "0224447549fd01862d4b34d829d6df7bc7969015b153767ba4c718276aa36ae4"
+    },
+    {
+     "name": "jka-sound-fire2.png",
+     "sha256": "fb1d64156c29bb2a6adedb9a2c373f56f883de6d542a660f07328f0c61a967be"
+    }
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  "glx-conc-alt-4": {
+   "renderer": "glx",
+   "map": "mp/ffa2",
+   "extra": [
+    "set cl_menuBlur 0",
+    "ui_openmenu none",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "team free",
+    "wait 240",
+    "togglemenu",
+    "wait 20",
+    "give weaponnum 15",
+    "give ammo",
+    "wait 60",
+    "weapon 15",
+    "wait 90",
+    "echo probe-fire alt",
+    "+button7",
+    "wait 3",
+    "-button7",
+    "wait 6",
+    "echo probe-dump 1",
+    "s_alDebugDump",
+    "screenshotPNG jka-sound-fire",
+    "wait 90",
+    "echo probe-fire primary",
+    "+attack",
+    "wait 3",
+    "-attack",
+    "wait 6",
+    "echo probe-dump 2",
+    "s_alDebugDump",
+    "screenshotPNG jka-sound-fire2",
+    "wait 60"
+   ],
+   "entityOverride": null,
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "errors": [
+    "ERROR: Unsupported Jedi Academy native UI export 3 with 3 arguments"
+   ],
+   "effectSoundsStarted": 0,
+   "effectPlays": {
+    "effects/mp/spawn.efx": 1
+   },
+   "effectVoicesInDumps": [],
+   "captures": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  "glx-runners-1": {
+   "renderer": "glx",
+   "map": "mp/ffa2",
+   "extra": [
+    "set cl_menuBlur 0",
+    "ui_openmenu none",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "setviewpos -2014 1536 90 180",
+    "wait 150",
+    "echo probe-dump 1",
+    "s_alDebugDump",
+    "wait 45",
+    "echo probe-dump 2",
+    "s_alDebugDump"
+   ],
+   "entityOverride": {
+    "source": "ffa2-sound.ent",
+    "sha256": "9bad54a7185d3f6f4f39f495d14402c68db511020dc1b8a00dab8ac2b3bf9cf5"
+   },
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "effectSoundsStarted": 11,
+   "effectPlays": {
+    "effects/sparks/bluesparks_w_sound.efx": 9,
+    "effects/env/rock_smash.efx": 3
+   },
+   "effectVoicesInDumps": [
+    "shot ent=1023 mode=3d tone=world/none sample=sound/ambience/spark1.wav dist=123.4 pan=-0.00 wet=0.11",
+    "shot ent=1023 mode=3d tone=world/none sample=sound/effects/stone_drop_large.mp3 dist=155.3 pan=-0.49 wet=0.11",
+    "shot ent=1023 mode=3d tone=world/none sample=sound/effects/stone_explosion.mp3 dist=155.3 pan=-0.49 wet=0.11"
+   ],
+   "captures": [
+    {
+     "name": "jka-sound-00.png",
+     "sha256": "02917b60dea26a1892b18ded177cac7b5dcdad39c1d6b9447836029894812076"
+    },
+    {
+     "name": "jka-sound-01.png",
+     "sha256": "a0312f1f78703563dd7c1073bb342bdffdbae0de2aa881a4402b18b1ef1d494e"
+    },
+    {
+     "name": "jka-sound-02.png",
+     "sha256": "3c3a674245c93d622b242fc7d47865e917e7722b4c4a2cc23482facfb7cc4793"
+    },
+    {
+     "name": "jka-sound-03.png",
+     "sha256": "70d7aa248f8b1d1d6c6f137bd2dd58acc5819c0a32db1e15e54c87e2265c9a2d"
+    }
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  "glx-weapons-1": {
+   "renderer": "glx",
+   "map": "mp/ffa2",
+   "extra": [
+    "set cl_menuBlur 0",
+    "ui_openmenu none",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "setviewpos -2014 1536 90 180",
+    "wait 150",
+    "echo probe-dump 1",
+    "s_alDebugDump",
+    "wait 37",
+    "echo probe-dump 2",
+    "s_alDebugDump",
+    "wait 41",
+    "echo probe-dump 3",
+    "s_alDebugDump"
+   ],
+   "entityOverride": {
+    "source": "ffa2-weapons.ent",
+    "sha256": "274e46b44373f1e6364f8c9f9b0ea8175461b3420c066a781ede296cd766eb70"
+   },
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "effectSoundsStarted": 28,
+   "effectPlays": {
+    "effects/sparks/bluesparks_w_sound.efx": 8,
+    "effects/concussion/muzzle_flash.efx": 7,
+    "effects/thermal/muzzle_flash.efx": 5,
+    "effects/saber/saber_clash.efx": 4,
+    "effects/melee/punch_impact.efx": 4
+   },
+   "effectVoicesInDumps": [
+    "shot ent=1023 mode=3d tone=weapon/highpass sample=sound/weapons/concussion/fire.wav dist=123.2 pan=-0.00 wet=0.11",
+    "shot ent=1023 mode=3d tone=weapon/highpass sample=sound/weapons/saber/saberhitwall2.mp3 dist=142.8 pan=-0.46 wet=0.11",
+    "shot ent=1023 mode=3d tone=weapon/highpass sample=sound/weapons/saber/saberhitwall3.mp3 dist=142.8 pan=-0.46 wet=0.11",
+    "shot ent=1023 mode=3d tone=weapon/highpass sample=sound/weapons/thermal/fire.wav dist=138.8 pan=0.46 wet=0.11",
+    "shot ent=1023 mode=3d tone=world/none sample=sound/ambience/spark1.wav dist=118.2 pan=-0.00 wet=0.10"
+   ],
+   "captures": [
+    {
+     "name": "jka-sound-00.png",
+     "sha256": "efb50b58823f27d4f15db4c57f2841ec7eaa4752770d875d91b50d7466eb5397"
+    },
+    {
+     "name": "jka-sound-01.png",
+     "sha256": "f8fa8d7756ec5389313795ab9714f177d8f7508ff91c6a9a10d28ef96f691754"
+    },
+    {
+     "name": "jka-sound-02.png",
+     "sha256": "cbf61308f4b17deafc93f8a51094bcebc47af87e0708b86bff5e9670e1259b53"
+    },
+    {
+     "name": "jka-sound-03.png",
+     "sha256": "156cd67fa11c157dc4830340103dc65b31b406f8a634e042dc979fe0d5a18c19"
+    }
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  "vk-weapons-1": {
+   "renderer": "vk",
+   "map": "mp/ffa2",
+   "extra": [
+    "set cl_menuBlur 0",
+    "ui_openmenu none",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "setviewpos -2014 1536 90 180",
+    "wait 150",
+    "echo probe-dump 1",
+    "s_alDebugDump",
+    "wait 37",
+    "echo probe-dump 2",
+    "s_alDebugDump",
+    "wait 41",
+    "echo probe-dump 3",
+    "s_alDebugDump"
+   ],
+   "entityOverride": {
+    "source": "ffa2-weapons.ent",
+    "sha256": "274e46b44373f1e6364f8c9f9b0ea8175461b3420c066a781ede296cd766eb70"
+   },
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "errors": [],
+   "effectSoundsStarted": 28,
+   "effectPlays": {
+    "effects/sparks/bluesparks_w_sound.efx": 8,
+    "effects/concussion/muzzle_flash.efx": 7,
+    "effects/thermal/muzzle_flash.efx": 5,
+    "effects/saber/saber_clash.efx": 4,
+    "effects/melee/punch_impact.efx": 4
+   },
+   "effectVoicesInDumps": [
+    "shot ent=1023 mode=3d tone=weapon/highpass sample=sound/weapons/concussion/fire.wav dist=123.2 pan=-0.00 wet=0.11",
+    "shot ent=1023 mode=3d tone=weapon/highpass sample=sound/weapons/melee/punch2.mp3 dist=99.5 pan=-0.00 wet=0.10",
+    "shot ent=1023 mode=3d tone=weapon/highpass sample=sound/weapons/saber/saberhitwall3.mp3 dist=142.8 pan=-0.46 wet=0.11",
+    "shot ent=1023 mode=3d tone=weapon/highpass sample=sound/weapons/thermal/fire.wav dist=138.9 pan=0.46 wet=0.11",
+    "shot ent=1023 mode=3d tone=world/none sample=sound/ambience/spark1.wav dist=118.3 pan=-0.00 wet=0.10"
+   ],
+   "captures": [
+    {
+     "name": "jka-sound-00.png",
+     "sha256": "eade02550b3c26a66b06e3ab96e93d9093801f1c4a414c164b2358379754c9f5"
+    },
+    {
+     "name": "jka-sound-01.png",
+     "sha256": "8a09a337f633b92560b1b20defd4f4294266d5dc559203f386b4f037f49b56c8"
+    },
+    {
+     "name": "jka-sound-02.png",
+     "sha256": "3ec7f81e67e3c23c41e579a9718aa2afa9a3d90f93cf850a67323614531131e8"
+    },
+    {
+     "name": "jka-sound-03.png",
+     "sha256": "692df83f8d393334a15e83fadf7ce927f1392f41ee17335004376319d1f7d279"
+    }
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  }
+ },
+ "scriptedFire": {
+  "outcome": "not reached",
+  "blockers": [
+   "+altattack is not a jka-mp command (cl_input.cpp binds it for Elite Force only); +button7 used",
+   "give all: \"Jedi Academy cgame Ghoul2 sparse model-copy destinations are not served yet\"",
+   "after a join the UI keeps KEYCATCH_UI (0x0002), so every usercmd carries BUTTON_TALK and nothing fires",
+   "togglemenu: \"Unsupported Jedi Academy native UI export 3 with 3 arguments\" (UI key event)"
+  ]
+ }
+}

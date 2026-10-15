@@ -523,6 +523,10 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   Sparks, sprays and dust from the game's effects now fly, trail and
   bounce off the floor, though a few explosion pictures still show as a
   plain grey square ([effect details](fntech3/2026-10-15-jka-tails-and-physics.md)).
+  The game's effects now make their sounds too, from where they happen: a
+  test match has played the concussion rifle's and thermal detonator's
+  muzzle flashes, a saber clash and a punch, though most guns still stop
+  the game when fired ([sound details](fntech3/2026-10-15-jka-effect-sound.md)).
   Longer matches, most other maps and fighting have not been checked yet
   ([spawn effect details](fntech3/2026-10-15-jka-spawn-effect.md)). The
   open-source OpenJK engine's client joins fnTech3's server. A lightsaber's

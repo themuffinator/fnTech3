@@ -21,7 +21,9 @@
  * impact and death effects, spawn shapes and the curves of every moving or
  * segment family follow CTail (0x402e30, 0x4031c0, 0x4033b0), UpdateOrigin
  * (0x401a50), Die (0x401500) and CreateEffect (0x407cea..0x408f29); see
- * docs/fntech3/2026-10-15-jka-tails-and-physics.md. Keys retail's table does
+ * docs/fntech3/2026-10-15-jka-tails-and-physics.md. Sound primitives follow
+ * CreateEffect's Sound case (0x40b0dc..0x40b119); see
+ * docs/fntech3/2026-10-15-jka-effect-sound.md. Keys retail's table does
  * not know are ignored with its warning, as retail does; no unsupported field
  * or primitive is discarded. */
 namespace fntech3::jka::effectplay {
@@ -51,6 +53,9 @@ constexpr float MaxDelay=60000.0f;    // Fn bound on a spawn delay, ms.
 constexpr float TraceDistance=16384.0f; // 0x5664cc
 constexpr int EmitterTick=12;         // 0x403a00: emission walk step, ms.
 constexpr int BoltSegments=16;        // Fn's procedural bolt resolution.
+// The Sound case's entity (0x40b10c: ENTITYNUM_NONE) and channel (0x40b109:
+// CHAN_AUTO) for S_StartSound (0x46ac60).
+constexpr int SoundEntity=0x3ff,SoundChannel=0;
 struct Spec {
     Kind kind{};
     int shader{};
@@ -79,8 +84,14 @@ struct Spec {
     // the impact (+0x58) and death (+0x68) effect lists.
     Range elasticity{},radius{},height{},lengthEnd{1,1},lengthParm{};
     std::vector<int> impacts,deaths;
+    // A Sound's list: the template's media list at +0x48, which the sound
+    // parser (0x40dad0) fills with S_RegisterSound handles.
+    std::vector<int> sounds;
     // Keys and groups retail warns about and reads past (0x40eda1, 0x40eee4).
     std::vector<std::string> ignored;
+    // Flag words retail's parsers (0x40d1a0, 0x40d4e0) do not know: they set
+    // nothing, and the key loop ignores the parser's result (0x40edc5).
+    std::vector<std::string> unknownWords;
 };
 struct Spawn {
     Kind kind{};int shader{},life{50};
@@ -110,6 +121,8 @@ struct Spawn {
     Vector previous{};
     float lengthEnd{},lengthParm{},elasticity{};
     int impact{},death{};
+    // The sound handle a Sound picks (0x405d50): zero for an empty list.
+    int sound{};
 };
 struct Failure { const char *reason{"unsupported effects playback declaration"};const char *field{""}; };
 inline bool Finite(float value) noexcept {
@@ -130,7 +143,8 @@ inline bool Bounded(Range value,float low,float high) noexcept {
 }
 inline bool Served(Kind kind) noexcept {
     return kind==Kind::Particle||kind==Kind::OrientedParticle||kind==Kind::Cylinder||kind==Kind::Line||
-        kind==Kind::Electricity||kind==Kind::Emitter||kind==Kind::Light||kind==Kind::Runner||kind==Kind::Tail;
+        kind==Kind::Electricity||kind==Kind::Emitter||kind==Kind::Light||kind==Kind::Runner||kind==Kind::Tail||
+        kind==Kind::Sound;
 }
 inline bool Visual(Kind kind) noexcept {
     return kind==Kind::Particle||kind==Kind::OrientedParticle||kind==Kind::Cylinder||kind==Kind::Line||
@@ -159,8 +173,10 @@ inline bool RetailKey(const std::string &key) {
     return false;
 }
 // Every word retail names, so an unknown word is distinguished from a known
-// one this subset does not serve. Retail reads at most seven words.
-inline bool FlagWords(const std::string &text,bool spawn,std::uint32_t &bits) {
+// one this subset does not serve. Retail reads at most seven words. An
+// unknown word sets nothing and the words after it still count (0x40d79a,
+// 0x40d4bc); the caller keeps it for diagnostics.
+inline bool FlagWords(const std::string &text,bool spawn,std::uint32_t &bits,std::vector<std::string> *unknown=nullptr) {
     static constexpr std::pair<const char *,std::uint32_t> flags[]{{"usemodel",0x1000000u},{"usebbox",0x4000000u},
         {"usephysics",0x2000000u},{"expensivephysics",0x800000u},{"ghoul2collision",0x2820000u},
         {"ghoul2decals",0x40000u},{"impactkills",0x40000000u},{"impactfx",0x80000000u},{"deathfx",0x20000000u},
@@ -176,7 +192,7 @@ inline bool FlagWords(const std::string &text,bool spawn,std::uint32_t &bits) {
         word=effects::Lower(word);bool known=false;
         if(spawn){for(const auto &entry:spawns)if(word==entry.first){bits|=entry.second;known=true;}}
         else for(const auto &entry:flags)if(word==entry.first){bits|=entry.second;known=true;}
-        if(!known)return false;
+        if(!known){if(!unknown)return false;unknown->push_back(word);}
     }
     return true;
 }
@@ -200,7 +216,17 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
     const bool visual=Visual(spec.kind),segment=spec.kind==Kind::Line||spec.kind==Kind::Electricity;
     const bool emitter=spec.kind==Kind::Emitter,light=spec.kind==Kind::Light,runner=spec.kind==Kind::Runner;
     const bool moving=Moving(spec.kind),curved=Curved(spec.kind),tail=spec.kind==Kind::Tail;
-    if(visual){
+    const bool sound=spec.kind==Kind::Sound;
+    if(sound){
+        // The Sound case (0x40b100) picks from the media list at +0x48, which
+        // only the sound parser (0x40dad0) fills here; any other media would
+        // share that list and be played as a sound.
+        for(const auto &media:primitive.media){
+            if(media.kind!=effects::MediaKind::Sound||media.handle<0)
+                return Refuse(failure,name,"effects media is not served for this primitive family");
+            spec.sounds.push_back(media.handle);
+        }
+    }else if(visual){
         // A shader list: retail picks one handle per spawn (0x405d50 over
         // the template's list at +0x48), and one impact (+0x58) and death
         // (+0x68) effect the same way.
@@ -224,6 +250,7 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
         if(key=="name"||key=="shader"||key=="shaders"||key=="emitfx"||key=="playfx"||key=="origin"||
             key=="count"||key=="life"||key=="delay")continue;
         if(visual&&(key=="impactfx"||key=="deathfx"))continue;
+        if(sound&&(key=="sounds"||key=="sound"))continue;
         // Rotation and its step are stored for every family (+0x104, +0x10c);
         // only particles and oriented particles turn (0x402640).
         if(visual&&(key=="rotation"||key=="rotationdelta"))continue;
@@ -234,7 +261,7 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
         if(visual&&key=="wind")continue;
         // Radius and height shape orgOnSphere and orgOnCylinder spawns
         // (0x40811b..0x40863c) and are inert otherwise.
-        if((visual||emitter||runner)&&(key=="radius"||key=="height"))continue;
+        if((visual||emitter||runner||sound)&&(key=="radius"||key=="height"))continue;
         if(moving&&(key=="velocity"||key=="vel"||key=="acceleration"||key=="accel"||key=="gravity"))continue;
         // "bounce" and "intensity" share one parser (0x40cd90): elasticity,
         // and usePhysics ORed into the flags.
@@ -243,11 +270,15 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
         if(emitter&&(key=="velocity"||key=="vel"||key=="density"||key=="variance"))continue;
         if(key=="flags"||key=="flag"||key=="spawnflags"||key=="spawnflag"){
             const bool spawn=key=="spawnflags"||key=="spawnflag";std::uint32_t bits=0;
-            if(pair.values.size()!=1||!FlagWords(pair.values[0],spawn,bits))
+            if(pair.values.size()!=1||!FlagWords(pair.values[0],spawn,bits,&spec.unknownWords))
                 return Refuse(failure,pair.name.c_str(),"unknown effects flag word");
             (spawn?spec.spawnFlags:spec.flags)|=bits;continue;
         }
         if(!RetailKey(key)){spec.ignored.push_back(pair.name);continue;}
+        // The Sound case reads only its list and the spawn origin; motion is
+        // computed for four other families only (0x40870a), so every other
+        // field retail parses stays in the template unread.
+        if(sound)continue;
         return Refuse(failure,pair.name.c_str(),"effects field is outside the served playback subset");
     }
     // Spawn flags. The origin shapes, cheap origins (0x407cea..0x40863c),
@@ -276,7 +307,7 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
     // Electricity never move and their Die is empty (0x5271f0), so physics,
     // impact and death bits are inert there.
     const std::uint32_t physics=flag::UsePhysics|flag::ExpensivePhysics|flag::ImpactKills|flag::ImpactFx|flag::DeathFx;
-    const std::uint32_t allowed=spec.kind==Kind::Electricity?physics|flag::UseModel|flag::UseBBox|flag::UseAlpha:
+    const std::uint32_t allowed=sound?~0u:spec.kind==Kind::Electricity?physics|flag::UseModel|flag::UseBBox|flag::UseAlpha:
         emitter?flag::UsePhysics|flag::ExpensivePhysics|flag::ImpactKills|flag::EmitFx:
         spec.kind==Kind::Particle?physics|flag::UseAlpha|flag::DepthHack|flag::SetShaderTime:
         (moving||segment)?physics|flag::UseAlpha:0u;
@@ -289,6 +320,7 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
         const bool curve=key=="rgb"||key=="alpha"||key=="size"||key=="size2"||key=="length";
         // Retail prints any other group and reads past it (0x40eee4).
         if(!curve){spec.ignored.push_back(group.name);continue;}
+        if(sound)continue; // Parsed into the template, never read by the Sound case.
         if(emitter||runner||(light&&key!="rgb"&&key!="size"&&key!="alpha")||
             (spec.kind==Kind::Electricity&&key!="rgb"&&key!="size"&&key!="alpha"))
             return Refuse(failure,group.name.c_str(),"effects curve family is not served yet");
@@ -320,6 +352,8 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
     }
     for(const auto &number:primitive.numbers){
         const auto key=effects::Lower(number.name);
+        // A Sound uses its count, delay and spawn origin; nothing else.
+        if(sound&&key!="origin"&&key!="count"&&key!="delay"&&key!="radius"&&key!="height")continue;
         if(key=="origin"||key=="origin2"||key=="rgb/start"||key=="rgb/end"||key=="velocity"||key=="vel"||
             key=="acceleration"||key=="accel"){
             if(number.values.size()!=3&&number.values.size()!=6)return Refuse(failure,number.name.c_str(),"invalid effects vector range");
@@ -643,6 +677,8 @@ inline bool Instantiate(const Spec &spec,const Vector &origin,const Axis &axis,s
         if(!Finite(spawn.velocity))return false;
     }
     if(spec.kind==Kind::Emitter||spec.kind==Kind::Runner)spawn.child=PickChild(spec.children,random);
+    // The Sound case picks one handle per spawn from its list (0x405d50).
+    if(spec.kind==Kind::Sound)spawn.sound=PickChild(spec.sounds,random);
     if(!Finite(spawn.origin))return false;
     for(float value:spawn.origin)if(std::fabs(value)>10000000.0f)return false;
     spawn.previous=spawn.origin;

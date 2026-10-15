@@ -5,6 +5,7 @@
 #include "../compat/jka_client_abi.h"
 #include "../compat/jka_effect_play.hpp"
 #include "../compat/jka_render_adapter.hpp"
+#include "client_jka_sound.hpp"
 #include <algorithm>
 #include <array>
 #include <climits>
@@ -21,7 +22,9 @@
  * their size, colour and alpha curves; delayed spawns wait in an owned
  * schedule created before each normal pass. Tails draw as Fn polygons from
  * their motion; traced particles bounce, play impact effects and die on
- * impact, and death effects play as particles end. Remaining playback controls and
+ * impact, and death effects play as particles end. Sound primitives start
+ * their sound at the spawn origin through Fn's spatial audio (S_StartJKASound,
+ * as the cgame's own S_StartSound import does). Remaining playback controls and
  * primitive families remain named refusals. Registration owns all buffers and
  * partial records across engine ERR_DROP/longjmp recovery. */
 namespace {
@@ -281,6 +284,10 @@ static void CL_JKACgameEffectCompileGraph(JKACgameEffectsState &state,int root) 
                 // Retail prints each key or group it does not know and reads on.
                 for(const auto &ignored:spec.ignored)
                     Com_Printf("Academy effect %s: unknown key %s ignored, as retail does\n",effect.name.file.c_str(),ignored.c_str());
+                // Retail's flag parsers skip a word they do not know without
+                // a message (0x40d79a); Fn names it under fx_debug.
+                if(state.debug&&state.debug->integer)for(const auto &word:spec.unknownWords)
+                    Com_Printf("Academy effect %s: unknown flag word %s read past, as retail does\n",effect.name.file.c_str(),word.c_str());
                 effect.playback.push_back(std::move(spec));
             }
             effect.playable=true;
@@ -318,6 +325,22 @@ static void CL_JKACgameEffectCreate(JKACgameEffectsState &state,int id,std::size
             if(!effectplay::Finite(normal))Com_Error(ERR_DROP,"Invalid Academy effects trace plane");
             CL_JKACgameEffectSpawn(state,spawn.impact,spawn.endpoint,effectplay::NormalAxis(normal),random,depth+1);
         }
+    }
+    if(spawn.kind==effects::Kind::Sound){
+        // CreateEffect's Sound case (0x40b100..0x40b111) hands S_StartSound
+        // (0x46ac60) the spawn origin, ENTITYNUM_NONE, CHAN_AUTO and the
+        // picked handle, with no volume or radius: the cgame's PlayEffect
+        // volume and radius (template +0x23c, +0x240) are never read there.
+        // Fn's spatial path supplies distance, occlusion, EFX and HRTF.
+        // Handle 0 is retail's silent "sound/null.wav" (and Fn's failed
+        // registration), so Fn plays nothing for it.
+        if(spawn.sound>0){
+            vec3_t at;std::memcpy(at,spawn.origin.data(),sizeof(at));
+            S_StartJKASound(at,effectplay::SoundEntity,effectplay::SoundChannel,static_cast<sfxHandle_t>(spawn.sound));
+        }
+        if(state.debug&&state.debug->integer>=2)
+            Com_Printf("Academy FX sound: %d at %d\n",spawn.sound,state.time);
+        return;
     }
     if(spawn.kind==effects::Kind::Runner){
         // The FxRunner plays at its origin and axis, after any spawn shape.

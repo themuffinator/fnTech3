@@ -87,12 +87,14 @@ int main(){
  assert(spec.endpoint[1].first==-12000&&spec.endpoint[1].last==-18000&&spec.chaos.last==3.5f&&spec.life.last==225);
  // A Line now serves traced offsets through the same endpoint path.
  assert(Compile("Line\n{\nshader gfx/own/line\nspawnflags org2fromTrace org2isOffset\norigin2 0 10 0\n}\n",spec));
+ // A flag word retail does not know sets nothing and is read past (0x40d79a).
+ assert(Compile("Emitter\n{\nflags emitFx madeUp\n}\n",spec)&&spec.flags==0x10000000u);
+ assert(spec.unknownWords==(std::vector<std::string>{"madeup"}));
  // Named refusals for controls this subset does not serve.
  for(const char *text:{
   "Emitter\n{\nflags usePhysics impactKills\n}\n",            // retail's cheap point-contents probe
   "Emitter\n{\nflags usePhysics expensivePhysics\n}\n",       // bounce
   "Emitter\n{\nflags emitFx useBBox\n}\n",
-  "Emitter\n{\nflags emitFx madeUp\n}\n",
   "Emitter\n{\nspawnflags randRotAroundFwd\n}\n",
   "Emitter\n{\nacceleration 0 0 10\n}\n",
   "Emitter\n{\nangles 0 90 0\n}\n",
