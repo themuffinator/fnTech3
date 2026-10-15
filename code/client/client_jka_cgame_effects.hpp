@@ -6,6 +6,7 @@
 #include "../compat/jka_effect_play.hpp"
 #include "../compat/jka_render_adapter.hpp"
 #include "client_jka_sound.hpp"
+#include "client_jka_cgame_decals.hpp"
 #include <algorithm>
 #include <array>
 #include <climits>
@@ -26,10 +27,13 @@
  * their sound at the spawn origin through Fn's spatial audio (S_StartJKASound,
  * as the cgame's own S_StartSound import does). CameraShake primitives hand
  * their record to the client game's export 31, whose own view shake Fn then
- * renders. Effects played on an entity (import 268) play at the caller's own
- * axis; bolted ones refuse by name. Remaining playback controls and
- * primitive families remain named refusals. Registration owns all buffers and
- * partial records across engine ERR_DROP/longjmp recovery. */
+ * renders. Decal primitives press their square onto the world through Fn's
+ * mark clipper into the Academy decal pool (client_jka_cgame_decals.hpp),
+ * which Fn's polygon path draws. Effects played on an entity (import 268)
+ * play at the caller's own axis; bolted ones refuse by name. Remaining
+ * playback controls and primitive families remain named refusals.
+ * Registration owns all buffers and partial records across engine
+ * ERR_DROP/longjmp recovery. */
 namespace {
 struct JKACgameEffect {
     fntech3::jka::effects::Name name;
@@ -96,6 +100,9 @@ static void CL_JKACgameEffectClose(JKACgameEffect &effect) {
 }
 static void CL_JKACgameEffectsClear() {
     ++jkaCgameEffectsRevision;jkaCgameEffectsTracing=false;
+    // Retail's decal pool lives in its renderer, which restarts with the
+    // map; Fn's lives as long as the client game.
+    CL_JKACgameDecalsClear();
     if (!jkaCgameEffects) return;
     for (const auto &effect:jkaCgameEffects->effects) CL_JKACgameEffectClose(*effect);
     jkaCgameEffects.reset();
@@ -376,6 +383,17 @@ static void CL_JKACgameEffectCreate(JKACgameEffectsState &state,int id,std::size
             Com_Printf("Academy FX camera shake: %g within %d for %d ms at %d\n",
                 spawn.shakeIntensity*CL_ViewShakeScale(),spawn.shakeRadius,spawn.life,state.time);
         CL_JKACgameEffectCameraShake(spawn);
+        return;
+    }
+    if(spawn.kind==effects::Kind::Decal){
+        // CreateEffect's Decal case (0x40ad33..0x40ad61) hands AddDecalToScene
+        // the picked shader, the spawn origin, the axis's first row, the
+        // rotation, the RGB and alpha starts, alpha fade on, the size as the
+        // radius and temporary off. Its ghoul2Decals call is refused at compile.
+        const float color[4]{spawn.rgbStart[0],spawn.rgbStart[1],spawn.rgbStart[2],spawn.alphaStart};
+        const int fragments=CL_JKACgameDecalAdd(spawn.shader,spawn.origin,spawn.axis[0],spawn.rotation,color,spawn.size);
+        if(state.debug&&state.debug->integer>=2)
+            Com_Printf("Academy FX decal: shader %d radius %g, %d fragments at %d\n",spawn.shader,spawn.size,fragments,state.time);
         return;
     }
     if(spawn.kind==effects::Kind::Runner){

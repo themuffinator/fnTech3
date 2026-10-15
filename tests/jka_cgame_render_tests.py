@@ -80,6 +80,10 @@ static void CL_AddEnemyHighlightRefEntity(const refEntity_t *entity,qboolean int
  assert(!integerTime);++draws;submitted.push_back(*entity);backendPending=true;
 }
 #include "code/client/client_jka_cgame_render.hpp"
+// The decal pool itself runs in jka_decal_tests; here only its two hooks.
+static int decalClears,decalDraws,decalTime=-1;
+static void CL_JKACgameDecalsClear(){++decalClears;}
+static void CL_JKACgameDecalsDraw(int time){++decalDraws;decalTime=time;}
 static bool Dispatch(intptr_t *args,intptr_t &operation,intptr_t &result){
  using namespace fntech3::jka;using module::Call;result=0;
  const auto call=module::Lookup(COM_GAME_JKA_MP,module::Module::CGAME,module::Direction::IMPORT,args[0]);
@@ -160,8 +164,14 @@ int main(){
  for(std::size_t n=0;n<matrices.size();++n)assert(matrices[n]==expected.deformation[n/12][n%12]);
  for(int axis=0;axis<3;++axis)assert(capturedMins[axis]<=capturedMaxs[axis]);
  assert(hudAdjusts==2&&liquidUpdates==2&&underwaterUpdates==2&&highlightFlushes==2);
+ // Every world scene draws the kept decals at its own time.
+ assert(decalDraws==2&&decalTime==99999);
  ClearScene();Queue(record);ClearScene();Render(view);assert(draws==3&&updates==2);
  hiddenHud=true;view.rdflags=1;Queue(record);Render(view);assert(draws==3&&updates==2&&renders==3&&scene::state.pending.empty());
+ // A scene without the world draws none (RDF_NOWORLDMODEL).
+ assert(decalDraws==3);
+ // Import 201 clears the pool and returns zero.
+ {intptr_t args[]{201},operation=-1,result=-1;assert(Dispatch(args,operation,result)&&result==0&&decalClears==1);}
  hiddenHud=false;view.rdflags=0x10;
  // Other profiles do not flush Academy records through this shared scene hook.
  isAcademy=false;Queue(record);Render(view);assert(draws==3&&scene::state.pending.size()==1);

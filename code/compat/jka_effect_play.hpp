@@ -25,9 +25,11 @@
  * CreateEffect's Sound case (0x40b0dc..0x40b119); see
  * docs/fntech3/2026-10-15-jka-effect-sound.md. CameraShake primitives
  * follow CreateEffect's CameraShake case (0x40b2ca..0x40b389); see
- * docs/fntech3/2026-10-15-jka-camera-shake.md. Keys retail's table does
- * not know are ignored with its warning, as retail does; no unsupported field
- * or primitive is discarded. */
+ * docs/fntech3/2026-10-15-jka-camera-shake.md. Decal primitives follow
+ * CreateEffect's Decal case (0x40ac7e..0x40ada4) and the renderer decal pool
+ * it calls (code/compat/jka_decals.hpp); see docs/fntech3/2026-10-15-jka-decal.md.
+ * Keys retail's table does not know are ignored with its warning, as retail
+ * does; no unsupported field or primitive is discarded. */
 namespace fntech3::jka::effectplay {
 using effects::Kind;
 struct Range { float first{},last{}; };
@@ -38,7 +40,7 @@ using Axis=std::array<Vector,3>;
 namespace flag {
 constexpr std::uint32_t UseModel=0x1000000u,UseBBox=0x4000000u,UsePhysics=0x2000000u,
     ExpensivePhysics=0x800000u,ImpactKills=0x40000000u,EmitFx=0x10000000u,UseAlpha=0x8000000u,
-    ImpactFx=0x80000000u,DeathFx=0x20000000u,DepthHack=0x100000u,SetShaderTime=0x400000u;
+    ImpactFx=0x80000000u,DeathFx=0x20000000u,DepthHack=0x100000u,SetShaderTime=0x400000u,Ghoul2Decals=0x40000u;
 constexpr std::uint32_t OrgOnSphere=1u,AxisFromSphere=2u,OrgOnCylinder=4u,Org2FromTrace=0x10u,TraceImpactFx=0x20u,
     Org2IsOffset=0x40u,CheapOrgCalc=0x100u,CheapOrg2Calc=0x200u,AbsoluteVel=0x400u,AbsoluteAccel=0x800u,
     EvenDistribution=0x2000u,ComponentInterpolation=0x4000u,AffectedByWind=0x10000u;
@@ -149,7 +151,7 @@ inline bool Bounded(Range value,float low,float high) noexcept {
 inline bool Served(Kind kind) noexcept {
     return kind==Kind::Particle||kind==Kind::OrientedParticle||kind==Kind::Cylinder||kind==Kind::Line||
         kind==Kind::Electricity||kind==Kind::Emitter||kind==Kind::Light||kind==Kind::Runner||kind==Kind::Tail||
-        kind==Kind::Sound||kind==Kind::CameraShake;
+        kind==Kind::Sound||kind==Kind::CameraShake||kind==Kind::Decal;
 }
 inline bool Visual(Kind kind) noexcept {
     return kind==Kind::Particle||kind==Kind::OrientedParticle||kind==Kind::Cylinder||kind==Kind::Line||
@@ -226,6 +228,12 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
     // intensity and hands them, with the spawn origin, to cgame export 31
     // through 0x40c560; it reads no list and creates no primitive.
     const bool shake=spec.kind==Kind::CameraShake;
+    // The Decal case (0x40ac7e..0x40ada4) draws the size start (+0x1dc), the
+    // alpha start (+0x1c4) and the rotation (+0x104), picks a shader from the
+    // list at +0x48 (0x405d50), and hands them with the spawn origin, the
+    // axis's first row and the shared RGB start (GetRGB 0x406de0) to the
+    // renderer's AddDecalToScene (0x4ab6c0), fading and never temporary.
+    const bool decal=spec.kind==Kind::Decal;
     if(shake){
         // Lists a CameraShake declares are registered by their parsers and
         // never read by its case: inert.
@@ -238,6 +246,16 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
                 return Refuse(failure,name,"effects media is not served for this primitive family");
             spec.sounds.push_back(media.handle);
         }
+    }else if(decal){
+        // The shader parser fills +0x48; any other media would share the
+        // list and be pressed onto the world as a shader.
+        for(const auto &media:primitive.media){
+            if(media.kind!=effects::MediaKind::Shader||media.handle<0)
+                return Refuse(failure,name,"effects playback requires registered Fn shaders");
+            spec.shaders.push_back(media.handle);
+        }
+        if(spec.shaders.empty())return Refuse(failure,name,"effects playback requires registered Fn shaders");
+        spec.shader=spec.shaders.front();
     }else if(visual){
         // A shader list: retail picks one handle per spawn (0x405d50 over
         // the template's list at +0x48), and one impact (+0x58) and death
@@ -273,7 +291,7 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
         if(visual&&key=="wind")continue;
         // Radius and height shape orgOnSphere and orgOnCylinder spawns
         // (0x40811b..0x40863c) and are inert otherwise.
-        if((visual||emitter||runner||sound||shake)&&(key=="radius"||key=="height"))continue;
+        if((visual||emitter||runner||sound||shake||decal)&&(key=="radius"||key=="height"))continue;
         if(shake&&(key=="bounce"||key=="intensity"))continue;
         if(moving&&(key=="velocity"||key=="vel"||key=="acceleration"||key=="accel"||key=="gravity"))continue;
         // "bounce" and "intensity" share one parser (0x40cd90): elasticity,
@@ -291,8 +309,9 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
         // The Sound case reads only its list and the spawn origin; motion is
         // computed for four other families only (0x40870a), so every other
         // field retail parses stays in the template unread. The same holds
-        // for a CameraShake beyond its life, radius and intensity.
-        if(sound||shake)continue;
+        // for a CameraShake beyond its life, radius and intensity, and for a
+        // Decal beyond its rotation and the starts of its curves.
+        if(sound||shake||decal)continue;
         return Refuse(failure,pair.name.c_str(),"effects field is outside the served playback subset");
     }
     // Spawn flags. The origin shapes, cheap origins (0x407cea..0x40863c),
@@ -323,7 +342,12 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
     const std::uint32_t physics=flag::UsePhysics|flag::ExpensivePhysics|flag::ImpactKills|flag::ImpactFx|flag::DeathFx;
     // A Sound or CameraShake reads no flag word: usePhysics, which every
     // installed CameraShake declares and "intensity" ORs in, is inert there.
-    const std::uint32_t allowed=sound||shake?~0u:spec.kind==Kind::Electricity?physics|flag::UseModel|flag::UseBBox|flag::UseAlpha:
+    // A Decal reads one flag, ghoul2Decals (0x40ad70), which asks cgame
+    // export 17 (0x405cc0) to mark the Ghoul2 model the decal lies on. Fn
+    // does not serve that export, so it is refused by name; no other flag
+    // word is read there.
+    if(decal&&(spec.flags&flag::Ghoul2Decals))return Refuse(failure,name,"effects ghoul2Decals is not served yet");
+    const std::uint32_t allowed=sound||shake||decal?~0u:spec.kind==Kind::Electricity?physics|flag::UseModel|flag::UseBBox|flag::UseAlpha:
         emitter?flag::UsePhysics|flag::ExpensivePhysics|flag::ImpactKills|flag::EmitFx:
         spec.kind==Kind::Particle?physics|flag::UseAlpha|flag::DepthHack|flag::SetShaderTime:
         (moving||segment)?physics|flag::UseAlpha:0u;
@@ -337,6 +361,16 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
         // Retail prints any other group and reads past it (0x40eee4).
         if(!curve){spec.ignored.push_back(group.name);continue;}
         if(sound||shake)continue; // Parsed into the template, never read by either case.
+        // A Decal reads only the starts of rgb, alpha and size, through the
+        // number list; its curve words are parsed and never read.
+        if(decal){
+            for(const auto &pair:group.pairs){
+                const auto field=effects::CurveField(pair.name);std::uint32_t bits=0;
+                if((field=="flags"||field=="flag")&&(pair.values.size()!=1||!CurveWords(pair.values[0],bits)))
+                    return Refuse(failure,pair.name.c_str(),"unknown effects curve flag word");
+            }
+            continue;
+        }
         if(emitter||runner||(light&&key!="rgb"&&key!="size"&&key!="alpha")||
             (spec.kind==Kind::Electricity&&key!="rgb"&&key!="size"&&key!="alpha"))
             return Refuse(failure,group.name.c_str(),"effects curve family is not served yet");
@@ -373,6 +407,9 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
         // A CameraShake also uses its life, radius and intensity.
         if(shake&&key!="origin"&&key!="count"&&key!="delay"&&key!="radius"&&key!="height"&&key!="life"&&
             key!="intensity"&&key!="bounce")continue;
+        // A Decal also uses its rotation and the starts of size, alpha and rgb.
+        if(decal&&key!="origin"&&key!="count"&&key!="delay"&&key!="radius"&&key!="height"&&key!="rotation"&&
+            key!="size/start"&&key!="alpha/start"&&key!="rgb/start")continue;
         if(key=="origin"||key=="origin2"||key=="rgb/start"||key=="rgb/end"||key=="velocity"||key=="vel"||
             key=="acceleration"||key=="accel"){
             if(number.values.size()!=3&&number.values.size()!=6)return Refuse(failure,number.name.c_str(),"invalid effects vector range");
@@ -460,6 +497,10 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
             const float least=curved&&key.compare(0,5,"size2")!=0?-16384.0f:0.0f;
             if(!Bounded(value,least,16384))return Refuse(failure,number.name.c_str(),"effects dimensions exceed the Fn bound");
             if(key=="size/start")spec.size=value;
+            // Retail's AddDecalToScene stops the engine on a radius at or
+            // below zero (0x4ab6f9); Fn refuses the declaration instead.
+            if(decal&&key=="size/start"&&!(value.first>0&&value.last>0))
+                return Refuse(failure,number.name.c_str(),"effects decal size must be positive");
             if(key=="size/end")spec.sizeEnd=value;
             if(key=="size2/start")spec.size2=value;
             if(key=="length/start")spec.length=value;

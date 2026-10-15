@@ -524,9 +524,10 @@ class JKAEntityOverrideTests(unittest.TestCase):
         self.assertIn('if ( ent->e.jka.rgbTint || ent->e.jka.forceAlpha || ent->e.jka.distortion ) {',
                       function(tracer, 'static int RT_EntityClass( const trRefEntity_t *ent )'))
 
-    def test_decal_clear_returns_zero_with_no_decal_served(self):
+    def test_decal_clear_empties_the_pool_and_returns_zero(self):
         """Retail 0x412c71 calls the renderer's decal clear and returns 0; Fn
-        never receives an Academy decal (import 205 stays refused by name)."""
+        clears its Academy decal pool, which effects Decal primitives fill
+        (import 205 stays refused by name)."""
         calls = read('code/compat/jka_module_calls.def')
         self.assertIn('FNTECH3_JKA_MODULE_CALL(CGAME, IMPORT, CG_R_CLEARDECALS, 201)', calls)
         self.assertIn('FNTECH3_JKA_MODULE_CALL(CGAME, IMPORT, CG_R_ADDDECALTOSCENE, 205)', calls)
@@ -539,6 +540,8 @@ class JKAEntityOverrideTests(unittest.TestCase):
 #include <cstdint>
 #include <cstdio>
 enum class Call { CG_R_CLEARDECALS = 201, CG_R_ADDDECALTOSCENE = 205 };
+static int clears;
+static void CL_JKACgameDecalsClear() { ++clears; }
 static bool Dispatch(Call call, intptr_t &result) {
     switch (call) {
 ''' + case + r'''
@@ -547,7 +550,7 @@ static bool Dispatch(Call call, intptr_t &result) {
 }
 int main() {
     intptr_t result = 5;
-    assert(Dispatch(Call::CG_R_CLEARDECALS, result) && result == 0);
+    assert(Dispatch(Call::CG_R_CLEARDECALS, result) && result == 0 && clears == 1);
     result = 5;
     assert(!Dispatch(Call::CG_R_ADDDECALTOSCENE, result) && result == 5);
     puts("ok");

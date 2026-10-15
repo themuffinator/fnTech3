@@ -105,6 +105,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Jedi Academy Ghoul2 trace](fntech3/2026-10-15-jka-g2-trace.md)
   -- shots checked against a body's own triangles and the box that stands
   for it, measured in retail's server and compared trace for trace.
+- [Jedi Academy effect decals](fntech3/2026-10-15-jka-decal.md)
+  -- the scorch marks an effect leaves on the world, kept and faded as
+  retail's renderer keeps them and cut by fnTech3's own mark clipper.
 - [View shake scale](fntech3/2026-10-15-view-shake.md)
   -- `cl_viewShake`, the engine's shake strength option, and which games'
   shakes it can reach.

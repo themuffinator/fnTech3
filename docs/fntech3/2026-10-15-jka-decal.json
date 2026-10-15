@@ -1,0 +1,1064 @@
+{
+ "record": "docs/fntech3/2026-10-15-jka-decal.md",
+ "date": "2026-10-15",
+ "profiles": [
+  "jka-mp"
+ ],
+ "baseHead": "80d15494 (runtime .tmp/runtime/jka-decal); tests rerun on an export of 643016c6 plus this slice",
+ "claim": "Compatibility slice only; no gate closes.",
+ "platform": "Windows 11, MSVC 2022 x86 (win32-dev options, strict warnings), clang i686-pc-windows-msvc for fixtures",
+ "runtime": {
+  "folder": ".tmp/runtime/jka-decal",
+  "sha256": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "680ae7b66699c7326464ceae91db05270375b73bfebe200a9d37db0feff63a12",
+   "fnql_vk_x86.dll": "7bcc891d1517326670180725d6d4bf7d2b12db549b747d10681492b4d8de0ad9",
+   "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+   "fntech3.exe": "fecea421652a2b7789aa4de7619032055d675a2e578c8ae51a66418dafa88f41",
+   "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+  },
+  "builtFrom": "git archive of baseHead plus this slice's hunks only (.tmp/jka-decal/blobs.py), configured with win32-dev's options (--wrap-mode=nodownload, strict warnings, debugoptimized, GLx and Vulkan renderers built), meson compile -j 4 in .tmp/jka-decal/export/build; soft_oal.dll is the OpenAL Soft x86 copy used by earlier probes"
+ },
+ "retail": {
+  "installation": "E:/Games/Jedi Academy (read-only)",
+  "jamp.exe": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+  "pakMembers": {
+   "assets1.pk3:effects/bryar/wall_impact.efx": "4e36783398d7082998d06ad3a8353a51a98ee581822b44dbb536bb03a451a36b",
+   "assets1.pk3:effects/mp/test_wall_impact.efx": "4c7ed999245617543f17532548da94f75776bc909cda50dbd2b0ae1173b81416"
+  },
+  "createEffect": "0x407c40",
+  "switchTable": "0x40b5e8",
+  "decalCase": "0x40ac7e",
+  "decalCaseRange": "0x40ac7e..0x40ada4",
+  "templateWords": {
+   "sizeStart": "+0x1dc",
+   "alphaStart": "+0x1c4",
+   "rotation": "+0x104",
+   "media": "+0x48",
+   "flags": "+0x98"
+  },
+  "frameWords": {
+   "origin": "+0x40",
+   "axisForward": "+0x5c",
+   "rgbStart": "+0xa8"
+  },
+  "getRGB": "0x406de0",
+  "addDecalToScene": "0x4ab6c0",
+  "engineSlot": "0x8af084",
+  "rendererSlot": "0x1309bc0",
+  "import205Dispatch": "0x412cc6",
+  "import201Dispatch": "0x412c71",
+  "clearDecals": "0x4ab500",
+  "freeDecal": "0x4ab530",
+  "allocDecal": "0x4ab5b0",
+  "addDecals": "0x4abb20",
+  "addDecalsCaller": "0x4abf32",
+  "sceneTime": "0x4abdfa",
+  "markFragments": "0x4a6cf0",
+  "markcount": {
+   "name": "r_markcount",
+   "default": "100",
+   "flags": "CVAR_ARCHIVE",
+   "registered": "0x4a24fe"
+  },
+  "constants": {
+   "poolRecords": 500,
+   "recordBytes": 280,
+   "types": 2,
+   "maxFragmentPoints": 10,
+   "maxFragments": 128,
+   "maxPoints": 384,
+   "fadeMs": 1000,
+   "projection": -20.0,
+   "texScale": "0.5 / radius",
+   "colour": "_ftol(component * 255)"
+  },
+  "radiusFatal": "0x4ab6f9",
+  "ghoul2Decals": {
+   "flag": "0x40000",
+   "test": "0x40ad70",
+   "writer": "0x405cc0",
+   "record": "{shader, size, start[3], dir[3]}",
+   "export": 17
+  }
+ },
+ "sweep": {
+  "folder": ".tmp/jka-decal/sweep",
+  "files": 376,
+  "head": 290,
+  "tree": 309,
+  "newlyServed": [
+   "effects/atst/wall_impact.efx",
+   "effects/blaster/wall_impact.efx",
+   "effects/bowcaster/bounce_wall.efx",
+   "effects/bryar/wall_impact.efx",
+   "effects/bryar/wall_impact2.efx",
+   "effects/bryar/wall_impact3.efx",
+   "effects/emplaced/wall_impact.efx",
+   "effects/eweb/wall_impact.efx",
+   "effects/explosions/hugeexplosion1.efx",
+   "effects/flechette/flesh_impact.efx",
+   "effects/flechette/ricochet.efx",
+   "effects/flechette/wall_impact.efx",
+   "effects/repeater/wall_impact.efx",
+   "effects/scepter/impact.efx",
+   "effects/ships/reb_blasterimpact.efx",
+   "effects/ships/ship_explosion_mark.efx",
+   "effects/ships/swoop_blasterhit.efx",
+   "effects/turret/wall_impact.efx",
+   "effects/tusken/hitwall.efx"
+  ],
+  "newlyRefused": [],
+  "changedRefusal": [
+   "effects/bowcaster/explosion.efx",
+   "effects/mp/test_wall_impact.efx"
+  ],
+  "treeReasons": [
+   {
+    "count": 23,
+    "refusal": "REFUSE | Emitter | effects media is not served for this primitive family | Emitter"
+   },
+   {
+    "count": 21,
+    "refusal": "REFUSE | Light | effects curve controls are not served yet | flags"
+   },
+   {
+    "count": 6,
+    "refusal": "REFUSE | Cylinder | effects curve controls are not served yet | flags"
+   },
+   {
+    "count": 4,
+    "refusal": "REFUSE | OrientedParticle | effects flags are not served yet | OrientedParticle"
+   },
+   {
+    "count": 3,
+    "refusal": "REFUSE | Cylinder | effects curve controls are not served yet | parm"
+   },
+   {
+    "count": 2,
+    "refusal": "REFUSE | Cylinder | effects flags are not served yet | Cylinder"
+   },
+   {
+    "count": 2,
+    "refusal": "REFUSE | Cylinder | effects spawn controls are not served yet | Cylinder"
+   },
+   {
+    "count": 2,
+    "refusal": "REFUSE | Flash | effects primitive family is not served yet | Flash"
+   },
+   {
+    "count": 1,
+    "refusal": "REFUSE | Particle | effects flags are not served yet | Particle"
+   },
+   {
+    "count": 1,
+    "refusal": "REFUSE | Decal | effects ghoul2Decals is not served yet | Decal"
+   },
+   {
+    "count": 1,
+    "refusal": "REFUSE | Line | effects flags are not served yet | Line"
+   },
+   {
+    "count": 1,
+    "refusal": "REFUSE | Cylinder | effects curve controls are not served yet | parms"
+   }
+  ],
+  "decalPrimitives": {
+   "total": 41,
+   "compiled": 40,
+   "refused": [
+    {
+     "file": "effects/mp/test_wall_impact.efx",
+     "reason": "effects ghoul2Decals is not served yet"
+    }
+   ]
+  }
+ },
+ "live": {
+  "harness": ".tmp/jka-decal/listen.py",
+  "stepsMaker": ".tmp/jka-decal/make_steps.py",
+  "map": "mp/ffa2",
+  "comparison": {
+   "region": [
+    520,
+    420,
+    700,
+    560
+   ],
+   "control": [
+    0,
+    100,
+    400,
+    400
+   ],
+   "glx": {
+    "marked": 69.62,
+    "unmarked": 105.45,
+    "control": [
+     121.53,
+     121.53
+    ]
+   },
+   "vk": {
+    "marked": 66.79,
+    "unmarked": 105.32,
+    "control": [
+     121.25,
+     121.25
+    ]
+   },
+   "capture": "jka-decal-after.png (engine screenshotPNG, 90 frames after timescale 1)"
+  },
+  "runs": [
+   {
+    "run": "glx-slow-1",
+    "renderer": "glx",
+    "markcount": 100,
+    "steps": ".tmp/jka-decal/steps-slow.cfg",
+    "stepsSha256": "30bc93fc76d23826923481c9bb1f258a8a3f1c6b447a62046946228911836cb2",
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\jka-decal\\runs\\glx-slow-1\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "1024",
+     "+set",
+     "r_customHeight",
+     "768",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "1",
+     "+set",
+     "s_muteWhenUnfocused",
+     "0",
+     "+set",
+     "s_muteWhenMinimized",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "cg_thirdPerson",
+     "1",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesound.cfg",
+     "+devmap",
+     "mp/ffa2"
+    ],
+    "extra": [
+     "exec steps.cfg"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "decals": [
+     "Academy FX decal: shader 254 radius 6.7317, 2 fragments at 7559"
+    ],
+    "entityPlays": 18,
+    "cameraShakes": 18,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "jka-decal-after.png",
+      "sha256": "3a2b4eaba417d14fbff7c7e1369c4a9fd35ffc993dbf0ebc64c224b5ead7ff52"
+     },
+     {
+      "name": "jka-decal-fire000.png",
+      "sha256": "bff185371d59f3ef3b5f1cf78c69c39d3d7253d8b906616dd9951534ba3d9e0f"
+     },
+     {
+      "name": "jka-decal-fire060.png",
+      "sha256": "4de8f6e5799d93f26ec763471e9a0377ee39fe415d816a01b328f62b22a00c85"
+     },
+     {
+      "name": "jka-decal-fire120.png",
+      "sha256": "3909ccd6a5ddf03430e48203b42b31fc5adc42d7ba5305ccb17f4170d55a7366"
+     },
+     {
+      "name": "jka-decal-fire140.png",
+      "sha256": "be0080734494c1669797ee96f6c2177083edc97a4f9ae728ba53d34e0c86c033"
+     },
+     {
+      "name": "jka-decal-fire160.png",
+      "sha256": "213102f4543d48db2d638ea2595c3754b5d3f819d4c168049ac03fb3f3fc15c9"
+     },
+     {
+      "name": "jka-decal-fire200.png",
+      "sha256": "350050ecda1d7272000bea2d94ce4bc09354eb5ddf1725630530e7011db62139"
+     },
+     {
+      "name": "jka-decal-fire229.png",
+      "sha256": "b2e962ade30d845cb5f626b3d80dfbb9c845231fa1a106b5c64c11935b758044"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 18.9
+   },
+   {
+    "run": "glx-slow-nomarks-1",
+    "renderer": "glx",
+    "markcount": 0,
+    "steps": ".tmp/jka-decal/steps-slow-nomarks.cfg",
+    "stepsSha256": "876e14f905cc765ad265fa77b1c8e7639105da219309e57d7f8aff579f088025",
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\jka-decal\\runs\\glx-slow-nomarks-1\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "1024",
+     "+set",
+     "r_customHeight",
+     "768",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "1",
+     "+set",
+     "s_muteWhenUnfocused",
+     "0",
+     "+set",
+     "s_muteWhenMinimized",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "cg_thirdPerson",
+     "1",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesound.cfg",
+     "+devmap",
+     "mp/ffa2"
+    ],
+    "extra": [
+     "exec steps.cfg"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "decals": [
+     "Academy FX decal: shader 254 radius 5.63218, 0 fragments at 7150"
+    ],
+    "entityPlays": 18,
+    "cameraShakes": 18,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "jka-decal-after.png",
+      "sha256": "054597bb4edfa049199ec7691771587a3c5732fe5cc389c03d1082bfc5bde2e6"
+     },
+     {
+      "name": "jka-decal-fire000.png",
+      "sha256": "07920b77ae9b17fd4eec54bb8d6793e43a9a1729794138730f6b8f2358e42a76"
+     },
+     {
+      "name": "jka-decal-fire060.png",
+      "sha256": "4f81c49308abc36e6127a886da944ed3db9e6c37c42f3f6ff441538cae519908"
+     },
+     {
+      "name": "jka-decal-fire120.png",
+      "sha256": "cfdfbe0b9be6211d65b46748e787f93b6b947285a9ce82917b60c8910020ef00"
+     },
+     {
+      "name": "jka-decal-fire140.png",
+      "sha256": "65cc6f402155f08beae1817d5aefebc4724dc0f5c7ea12cd2c02cdddf1d4c9f1"
+     },
+     {
+      "name": "jka-decal-fire160.png",
+      "sha256": "108232da579fbb8be51776b8d804517fe05113a41016091454883ac5a24abb57"
+     },
+     {
+      "name": "jka-decal-fire200.png",
+      "sha256": "5421c77b490fbaba94cec8df58358b14ce8acaba7096cad49e68f98a9ea90685"
+     },
+     {
+      "name": "jka-decal-fire229.png",
+      "sha256": "963ca650e3dab4ab06c0a4052aac5463a382b1c4369b2e5496cbf46aa7ab2571"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 18.1
+   },
+   {
+    "run": "glx-wall-1",
+    "renderer": "glx",
+    "markcount": 100,
+    "steps": ".tmp/jka-decal/steps-wall.cfg",
+    "stepsSha256": "496feb618ce2987b6ae990ae92854336490f90b988d097dd5b65552908a97714",
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\jka-decal\\runs\\glx-wall-1\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "1024",
+     "+set",
+     "r_customHeight",
+     "768",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "1",
+     "+set",
+     "s_muteWhenUnfocused",
+     "0",
+     "+set",
+     "s_muteWhenMinimized",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "cg_thirdPerson",
+     "1",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesound.cfg",
+     "+devmap",
+     "mp/ffa2"
+    ],
+    "extra": [
+     "exec steps.cfg"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "decals": [
+     "Academy FX decal: shader 254 radius 6.31317, 1 fragments at 7963"
+    ],
+    "entityPlays": 15,
+    "cameraShakes": 15,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "jka-decal-after.png",
+      "sha256": "c657467342f79d3dd72b3132155cd4cffa1c97b767fd69a95908edffd7abf56c"
+     },
+     {
+      "name": "jka-decal-fire000.png",
+      "sha256": "ac0276c5ad809c50729c23d454f2a54e12cd728aeb97addb3133aa1db6a14251"
+     },
+     {
+      "name": "jka-decal-fire010.png",
+      "sha256": "aff88d9caac7c76df8ea07fc88fd7480f6969a4b359eb78d789a7b2da9d25271"
+     },
+     {
+      "name": "jka-decal-fire020.png",
+      "sha256": "83fb39f0377e16cef30cdfaa5aa0857304f6f8565ae1406d31a900b734e02648"
+     },
+     {
+      "name": "jka-decal-fire040.png",
+      "sha256": "273cc94b3ce26d348725dbd0ab1fb802f6b51e99088b60122b152d84cc69d983"
+     },
+     {
+      "name": "jka-decal-fire060.png",
+      "sha256": "075da6fd55d4059d6c01157e79213e0dc8296677eadc8f2f39f0b8666e754f0e"
+     },
+     {
+      "name": "jka-decal-fire089.png",
+      "sha256": "acb4fe57edbffba03b244e6ad6089206d5dbaa81523cc5ac7d085f59dfc69eda"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 16.7
+   },
+   {
+    "run": "glx-wall-nomarks-1",
+    "renderer": "glx",
+    "markcount": 0,
+    "steps": ".tmp/jka-decal/steps-wall-nomarks.cfg",
+    "stepsSha256": "94e38f352fcddfdb6705f9a0e83ef7de6822a15877a9ddefecabe78eadd0d0f1",
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\jka-decal\\runs\\glx-wall-nomarks-1\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "1024",
+     "+set",
+     "r_customHeight",
+     "768",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "1",
+     "+set",
+     "s_muteWhenUnfocused",
+     "0",
+     "+set",
+     "s_muteWhenMinimized",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "cg_thirdPerson",
+     "1",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesound.cfg",
+     "+devmap",
+     "mp/ffa2"
+    ],
+    "extra": [
+     "exec steps.cfg"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "decals": [
+     "Academy FX decal: shader 254 radius 5.83596, 0 fragments at 7975"
+    ],
+    "entityPlays": 15,
+    "cameraShakes": 15,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "jka-decal-after.png",
+      "sha256": "9f187a0911e834f93c484b6eff85c975e3b2fa286eb0e04111d426722ec55936"
+     },
+     {
+      "name": "jka-decal-fire000.png",
+      "sha256": "0f0a82bf2a750bbab9b104f7a04a1764741b29f7001c85c2be991e32a5c0c0ff"
+     },
+     {
+      "name": "jka-decal-fire010.png",
+      "sha256": "25d390379a39f77cb110f1031895fef47e2ba5fbaef3ab1dd66c96290cc064b5"
+     },
+     {
+      "name": "jka-decal-fire020.png",
+      "sha256": "a6dc58c7e81d0b1529e375332eafcdcb65557abf6a882600a6f14505fcccb8d4"
+     },
+     {
+      "name": "jka-decal-fire040.png",
+      "sha256": "b0e89370e7f8d3b4361a38c6341040ceddc855b97df9586df835329a1de5b0cf"
+     },
+     {
+      "name": "jka-decal-fire060.png",
+      "sha256": "d24b4a927a71416650253a3c4e7a1da6e49fb21768b7dfe794467aeaa459a1de"
+     },
+     {
+      "name": "jka-decal-fire089.png",
+      "sha256": "eae8e2f270ede92d9d36647fa88007f166cc66816d1532e82a2d27ab7cb6d6c2"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 16.1
+   },
+   {
+    "run": "vk-wall-1",
+    "renderer": "vk",
+    "markcount": 100,
+    "steps": ".tmp/jka-decal/steps-wall.cfg",
+    "stepsSha256": "496feb618ce2987b6ae990ae92854336490f90b988d097dd5b65552908a97714",
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\jka-decal\\runs\\vk-wall-1\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "1024",
+     "+set",
+     "r_customHeight",
+     "768",
+     "+set",
+     "cl_renderer",
+     "vk",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "1",
+     "+set",
+     "s_muteWhenUnfocused",
+     "0",
+     "+set",
+     "s_muteWhenMinimized",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "cg_thirdPerson",
+     "1",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesound.cfg",
+     "+devmap",
+     "mp/ffa2"
+    ],
+    "extra": [
+     "exec steps.cfg"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "decals": [
+     "Academy FX decal: shader 254 radius 6.69109, 1 fragments at 7953"
+    ],
+    "entityPlays": 15,
+    "cameraShakes": 15,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "jka-decal-after.png",
+      "sha256": "7ec9caf9d296a90fb007db8edf9fe6f3c175c32570ca7b4bbe2915345df78719"
+     },
+     {
+      "name": "jka-decal-fire000.png",
+      "sha256": "6e45fa688041c2b01c3c4df0c3e4bfb9e4ab31cfd2eae6b9d95e6b60f37a9247"
+     },
+     {
+      "name": "jka-decal-fire010.png",
+      "sha256": "b5324e19e67ade509b03e2a4606af099bbbf5ba28162049116eacb24c957d223"
+     },
+     {
+      "name": "jka-decal-fire020.png",
+      "sha256": "e6d3d1a89ccfdc95c94a304f2d9a9fa2e391b091457933d507a905c85ba81809"
+     },
+     {
+      "name": "jka-decal-fire040.png",
+      "sha256": "845e284f4ca9bc3978d515e9cb5a45fa4685b3a02af27a9d0338fa274d424f80"
+     },
+     {
+      "name": "jka-decal-fire060.png",
+      "sha256": "c906fbb8e57211027390e93f8ef86797a2013b5e8f02a9a0826a930f30682e3c"
+     },
+     {
+      "name": "jka-decal-fire089.png",
+      "sha256": "4b07d7b2b6d41fc2788645492814f53b2b99b67529d4afe77ee1c0b0849f4841"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 15.9
+   },
+   {
+    "run": "vk-wall-nomarks-1",
+    "renderer": "vk",
+    "markcount": 0,
+    "steps": ".tmp/jka-decal/steps-wall-nomarks.cfg",
+    "stepsSha256": "94e38f352fcddfdb6705f9a0e83ef7de6822a15877a9ddefecabe78eadd0d0f1",
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\jka-decal\\runs\\vk-wall-nomarks-1\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "1024",
+     "+set",
+     "r_customHeight",
+     "768",
+     "+set",
+     "cl_renderer",
+     "vk",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "1",
+     "+set",
+     "s_muteWhenUnfocused",
+     "0",
+     "+set",
+     "s_muteWhenMinimized",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "cg_thirdPerson",
+     "1",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesound.cfg",
+     "+devmap",
+     "mp/ffa2"
+    ],
+    "extra": [
+     "exec steps.cfg"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "decals": [
+     "Academy FX decal: shader 254 radius 6.30546, 0 fragments at 7960"
+    ],
+    "entityPlays": 16,
+    "cameraShakes": 16,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "jka-decal-after.png",
+      "sha256": "073d06f8639c2ee1e238bd8065f479efe8b9a045c1aae3e4337e8e20997efa5c"
+     },
+     {
+      "name": "jka-decal-fire000.png",
+      "sha256": "5270206bc4bd5ec0c29680fb888dccc2caaad4317372d71880f1ec7e5de9a761"
+     },
+     {
+      "name": "jka-decal-fire010.png",
+      "sha256": "bb4e122a16b08128705d04b7712f0b45893f75307ac8e108de9a7ed196e05065"
+     },
+     {
+      "name": "jka-decal-fire020.png",
+      "sha256": "918c7dec0dd19d55c5400c4465c79c02a98b79df943b415390e0cdcfffba03c4"
+     },
+     {
+      "name": "jka-decal-fire040.png",
+      "sha256": "7475fc22eadf1c06cc08e8c1055cfde3298c659c2e21742526b033b318ef7df6"
+     },
+     {
+      "name": "jka-decal-fire060.png",
+      "sha256": "9af395039b67dddccb9cf226c6910cedf231b5d3545f95afe425464b8ecfafb4"
+     },
+     {
+      "name": "jka-decal-fire089.png",
+      "sha256": "42cd8875bf15d451cebc5ba39be8db109fd9b8b674afe97918d500411f3d58e7"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 16.1
+   }
+  ]
+ },
+ "tests": [
+  "tests/jka_decal_tests.py (fntech3_jka_decal)",
+  "tests/jka_cgame_effects_tests.py",
+  "tests/jka_cgame_render_tests.py",
+  "tests/jka_entity_override_tests.py (import 201 clears the pool)",
+  "tests/jka_spawn_effect_tests.py (unserved-family example now Flash)"
+ ],
+ "notServed": [
+  "ghoul2Decals flag / client-game export 17",
+  "client-game import 205",
+  "temporary decals",
+  "RTX capture"
+ ]
+}

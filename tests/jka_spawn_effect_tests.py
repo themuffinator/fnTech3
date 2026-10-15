@@ -111,7 +111,7 @@ int main(){
   "Electricity\n{\nshader gfx/own/bolt\nintensity 65\n}\n",
   "Electricity\n{\nshader gfx/own/bolt\nlength\n{\nstart 3\n}\n}\n",
   "Particle\n{\nshader gfx/own/p\ncount 501\n}\n",
-  "Decal\n{\nshader gfx/own/t\n}\n"}){
+  "Flash\n{\nshader gfx/own/t\n}\n"}){                            // a family still unserved
   play::Spec old;old.shader=199;assert(!Compile(text,old,&reason)&&old.shader==199&&reason);
  }
  // Retail count rule (0x4072b1..0x4073ba).
@@ -282,7 +282,7 @@ int main(){
  // An unserved descendant refuses the whole graph before any callback.
  assets["effects/own/badroot.efx"]="Line\n{\nshader gfx/own/line\nspawnflags org2fromTrace\n}\n"
   "FxRunner\n{\nplayfx\n[\nown/badchild\n]\n}\n";
- assets["effects/own/badchild.efx"]="Decal\n{\nshader gfx/own/decal\n}\n";
+ assets["effects/own/badchild.efx"]="Flash\n{\nshader gfx/own/flash\n}\n";
  const auto oldTraces=endpointTraces;args[1]=Register("own/badroot");
  Reject([&]{InvokePlayback(args);});assert(endpointTraces==oldTraces&&Active()==before);
  // A missing light service refuses before submitting anything.

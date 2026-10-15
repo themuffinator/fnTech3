@@ -87,21 +87,24 @@ static qhandle_t RegisterModel(const char *name){
 static void AddEffectEntity(const refEntity_t *,qboolean){assert(false);}
 static void AddEffectPolys(qhandle_t,int,const polyVert_t *,int){assert(false);}
 static void AddEffectLight(const vec3_t,float,float,float,float){assert(false);}
+// Decal fragments are cut by Fn's mark clipper; jka_decal_tests supplies one.
+static int MarkEffectFragments(int,const vec3_t *,const vec3_t,int,vec3_t,int,markFragment_t *){assert(false);return 0;}
 static struct {decltype(&RegisterShader) RegisterShader;decltype(&RegisterModel) RegisterModel;
  decltype(&AddEffectEntity) AddRefEntityToScene;decltype(&AddEffectPolys) AddPolyToScene;
- decltype(&AddEffectLight) AddLightToScene;}
- re{RegisterShader,RegisterModel,AddEffectEntity,AddEffectPolys,AddEffectLight};
+ decltype(&AddEffectLight) AddLightToScene;decltype(&MarkEffectFragments) MarkFragments;}
+ re{RegisterShader,RegisterModel,AddEffectEntity,AddEffectPolys,AddEffectLight,MarkEffectFragments};
 sfxHandle_t S_RegisterSound(const char *name,qboolean compression){
  assert(!compression);sounds.emplace_back(name);if(mediaDrop==3)Com_Error(ERR_DROP,"sound failure");
  return silent?0:static_cast<sfxHandle_t>(300+sounds.size());
 }
-static cvar_t fxVariables[4];
+static cvar_t fxVariables[5];
 cvar_t *Cvar_Get(const char *name,const char *value,int flags){
  int index=-1;++cvarCalls;
  if(!std::strcmp(name,"fx_debug")){index=0;assert(!std::strcmp(value,"0")&&flags==CVAR_TEMP);}
  if(!std::strcmp(name,"fx_countScale")){index=1;assert(!std::strcmp(value,"1")&&flags==CVAR_ARCHIVE);}
  if(!std::strcmp(name,"fx_nearCull")){index=2;assert(!std::strcmp(value,"16")&&flags==CVAR_ARCHIVE);}
  if(!std::strcmp(name,"RMG")){index=3;assert(!std::strcmp(value,"0")&&flags==0);}
+ if(!std::strcmp(name,"r_markcount")){index=4;assert(!std::strcmp(value,"100")&&flags==CVAR_ARCHIVE);}
  assert(index>=0);if(cvarDrop==index+1)Com_Error(ERR_DROP,"cvar failure");return &fxVariables[index];
 }
 // Sound primitives start their sound through the profile's spatial entry.

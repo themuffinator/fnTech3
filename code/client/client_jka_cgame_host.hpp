@@ -120,9 +120,10 @@ static bool CL_JKACgameCall(intptr_t *args, intptr_t &operation, intptr_t &resul
         operation=CG_R_CLEARSCENE;
         return false;
     case Call::CG_R_CLEARDECALS:
-        // Retail 0x412c71 calls only the renderer's decal clear and returns
-        // zero. No Academy decal reaches Fn (import 205 stays refused by
-        // name), so its pool is always empty and there is nothing to clear.
+        // Retail 0x412c71 calls only the renderer's decal clear (0x4ab500)
+        // and returns zero. Effects decals fill Fn's Academy pool; import 205
+        // stays refused by name.
+        CL_JKACgameDecalsClear();
         result = 0;
         return true;
     case Call::CG_R_ADDREFENTITYTOSCENE: {
@@ -147,6 +148,9 @@ static bool CL_JKACgameCall(intptr_t *args, intptr_t &operation, intptr_t &resul
         if (status == render::Status::ViewFlags) Com_Error(ERR_DROP, "Jedi Academy cgame %s 0x%x: %s",
             render::StatusName(status), static_cast<unsigned>(source.rdflags), render::ViewFlagsName(source.rdflags));
         if (status != render::Status::Ok) Com_Error(ERR_DROP, "Jedi Academy cgame %s", render::StatusName(status));
+        // Retail's RE_RenderScene adds every kept decal to a world scene
+        // (0x4abf1f..0x4abf32) at the scene's own time.
+        if (!(value.rdflags & RDF_NOWORLDMODEL)) CL_JKACgameDecalsDraw(value.time);
         operation = CG_R_RENDERSCENE;
         return false; // canonical HUD/capture/liquid/lighting path uses the same adapter
     }

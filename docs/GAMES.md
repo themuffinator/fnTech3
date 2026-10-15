@@ -550,9 +550,13 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   Shots now fly and are checked against a player's actual body, not just the
   box around it, as in the original: a shot through the gap beside an arm
   passes on. A test match has fired the concussion rifle's missile and beam
-  and the Bryar pistol's bolt, though the match still stops when each one
-  hits a wall, at its explosion or scorch mark
+  and the Bryar pistol's bolt, though the concussion rifle's shots still
+  stop the match when they hit a wall, at their explosion
   ([shot details](fntech3/2026-10-15-jka-g2-trace.md)).
+  A Bryar pistol bolt that hits a wall now leaves a scorch mark there, as
+  in the original. The game keeps the last 100 marks; older ones fade
+  away. The `r_markcount` setting changes how many are kept, and `0` turns
+  the marks off ([scorch mark details](fntech3/2026-10-15-jka-decal.md)).
   Longer matches, most other maps and fighting have not been checked yet
   ([spawn effect details](fntech3/2026-10-15-jka-spawn-effect.md)). The
   open-source OpenJK engine's client joins fnTech3's server. A lightsaber's
