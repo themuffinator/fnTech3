@@ -11,12 +11,16 @@ ROOT = Path(__file__).resolve().parents[1]
 HOST = r'''
 #include "code/server/server.h"
 #include "code/server/server_world_bounds.hpp"
+#include "code/compat/rtcw_game_abi.h"
 #include <array>
 #include <cassert>
 #include <iterator>
 #include <vector>
 static comGameId_t profile;
 int Com_GameIsWolfET(){return profile==COM_GAME_WOLFET;}
+int Com_GameIsRTCW(){return profile==COM_GAME_RTCW_SP||profile==COM_GAME_RTCW_MP;}
+int Com_GameIsQuake3(){return profile==COM_GAME_QUAKE3;}
+int Com_GameIsQuakeLive(){return profile==COM_GAME_QUAKELIVE;}
 // Elite Force SP's camera scenes are not driven here.
 int Com_GameIsSTVEFSP(){return profile==COM_GAME_STVEF_SP;}
 int Com_GameIsJKAMP(){return profile==COM_GAME_JKA_MP;}

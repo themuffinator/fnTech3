@@ -130,6 +130,9 @@ Release packages include them as web pages in their `manual` folder, built by
   -- which entities the Jedi servers send each player, permanent ones and
   broadcast masks included, and the level time a map change keeps, checked
   against retail's servers.
+- [Portals seen through portals](fntech3/2026-10-15-snapshot-portal-recursion.md)
+  -- what a server sends through a portal seen through another portal in
+  every game, and RTCW's scripted cameras, checked against retail's servers.
 - [Small gaps from the October 15 census](fntech3/2026-10-15-census-small-gaps.md)
   -- Enemy Territory's tactical search queues and update records, and the
   pure gamestate budget of Enemy Territory and Jedi Outcast, read from the

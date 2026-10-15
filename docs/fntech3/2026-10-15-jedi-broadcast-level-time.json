@@ -2092,7 +2092,7 @@
     "Quake III, RTCW, ET and Holomatch appear to keep one level clock across map changes; fnTech3 restarts an empty server at 0 there. Quake Live not read. Each needs its own measurement.",
     "Retail svs.time advances by ticks; fnTech3 advances it by real time for every profile but Holomatch.",
     "Time wrap: retail 0x70000000 (SV_Shutdown, then map_restart 0); fnTech3 0x78000000 (restart the map).",
-    "Portal recursion: retail jamp.exe, jk2mp.exe and id Quake III 1.32 recurse through nested portals; fnTech3 recurses only from the viewer pass (!portal) in every profile.",
+    "Portal recursion: retail jamp.exe, jk2mp.exe and id Quake III 1.32 recurse through nested portals. Corrected by 2026-10-15-snapshot-portal-recursion.json: fnTech3 already recursed as they do.",
     "Academy random-map distance test and distance cull (0x46107a, 0x46123e) absent in fnTech3.",
     "Academy game import 259 refused in fnTech3; retail serves it, its module never calls it.",
     "SV_CreateBaseline starts at 0 in fnTech3, at 1 in retail; no wire effect."

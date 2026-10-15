@@ -316,9 +316,11 @@ all three.
   past `0x78000000`. Both are 21 days or more away.
 - **Portal recursion.** Retail `jamp.exe`, `jk2mp.exe` and id's Quake III
   1.32 source recurse into a portal seen through another portal, bounded by the
-  already-added test (`0x46139f`, `0x44ff5d`). fnTech3's shared walk, after
-  Quake3e, recurses only from the viewer's own pass (`!portal`), in every
-  profile.
+  already-added test (`0x46139f`, `0x44ff5d`). This said fnTech3 recursed
+  only from the viewer's own pass; it did not. The
+  [portal recursion record](2026-10-15-snapshot-portal-recursion.md) shows
+  fnTech3 already recursed as retail does, and corrects three other
+  differences found there.
 - **Academy's random-map and cull tests.** Retail's walk has a random-map
   distance test and a distance cull (`0x46107a`, `0x46123e`); fnTech3 has
   neither. Not examined further.

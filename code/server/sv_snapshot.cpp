@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "server_alice_snapshot.hpp"
 #include "../qcommon/netchan_safety.hpp"
 #include "../compat/jka_state_adapter.hpp"
+#include "../compat/rtcw_game_abi.h"
 
 #include <algorithm>
 #include <array>
@@ -425,6 +426,11 @@ struct SnapshotEntityNumbers {
 	int clientNum = 0;
 	bool wolfetSelfPortalAdded = false;
 	const int limit = Com_GameIsWolfET() ? MAX_SERVER_SNAPSHOT_ENTITIES : MAX_SNAPSHOT_ENTITIES;
+	// The walk's copies of the record it is reading and of an ET proxy's
+	// target. They live here rather than in the walk's frame, which recurses
+	// once per portal: retail recurses to the last portal entity on 0x40-byte
+	// frames, and a record is about 2 KB.
+	sharedEntity_t entity{}, target{};
 
 	void Add( svEntity_t &svEnt, SnapshotEntityIndex index ) {
 		const bool wolfet = Com_GameIsWolfET() != 0;
@@ -466,7 +472,7 @@ static bool SV_AddWolfETVisibilityTargets( const sharedEntity_t &dummy, Snapshot
 		const auto &state = *svs.currFrame->ents[index];
 		if ( single ? state.number != dummy.s.otherEntityNum :
 			( state.number == dummy.s.number || state.otherEntityNum != dummy.s.number ) ) continue;
-		sharedEntity_t target{};
+		sharedEntity_t &target = numbers.target;
 		if ( !SV_ReadGameEntityByNum( state.number, &target ) ) {
 			Com_Error( ERR_DROP, "Invalid ET visibility entity %i", state.number );
 			return true;
@@ -713,6 +719,16 @@ static void SV_AddAudioReachableEntities( const vec3_t origin, int clientarea, c
 /*
 ===============
 SV_AddEntitiesVisibleFromPoint
+
+`portal` is set in a pass seen from somewhere other than the viewer's eye.
+Every retail engine that shares this walk recurses into a portal seen
+through another portal, bounded only by the already-added test (quake3.exe
+1.32 0x43b972, quakelive_steam.exe 0x4e565d, WolfSP.exe 0x439489, WolfMP.exe
+0x43c749, etded.exe 0x42f8b5, stvoyHM.exe 0x435cc8, stvoy.exe 0x42876f,
+jamp.exe 0x4613a7, jk2mp.exe 0x44ff65), so the depth is at most the number of
+portal entities. Two passes set the flag: RTCW's camera passes, walked like
+any other, and Quake3e's second view (SVF_SELF_PORTAL2), which adds no
+portal's view and no second view of its own.
 ===============
 */
 static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_t *frame,
@@ -725,6 +741,11 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 	int		leafnum;
 	byte	*clientpvs;
 	byte	*bitvector;
+	vec3_t	view;
+	// Read into the numbers' buffer: each recursion below copies the
+	// viewpoint it needs first, and nothing reads the buffer after one.
+	sharedEntity_t &entity = eNums.entity;
+	const bool secondView = portal && !Com_GameIsRTCW();
 
 	// during an error shutdown message we may need to transmit
 	// the shutdown message after the server has shutdown, so
@@ -750,20 +771,31 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 	// the visit state with the snapshot also terminates self-referential portals.
 	if ( Com_GameIsWolfET() && !eNums.wolfetSelfPortalAdded ) {
 		eNums.wolfetSelfPortalAdded = true;
-		sharedEntity_t viewer;
-		if ( !SV_ReadGameEntityByNum( frame->ps.clientNum, &viewer ) ) {
+		if ( !SV_ReadGameEntityByNum( frame->ps.clientNum, &entity ) ) {
 			Com_Error( ERR_DROP, "Invalid ET snapshot viewer %i", frame->ps.clientNum );
 			return;
 		}
-		if ( viewer.r.svFlags & SVF_WOLFET_SELF_PORTAL ) {
+		if ( entity.r.svFlags & SVF_WOLFET_SELF_PORTAL ) {
 			eNums.MarkUnordered();
-			SV_AddEntitiesVisibleFromPoint( viewer.s.origin2, frame, eNums, portal );
+			VectorCopy( entity.s.origin2, view );
+			SV_AddEntitiesVisibleFromPoint( view, frame, eNums, portal );
 		}
 	}
 
-	for ( e = 0 ; e < svs.currFrame->count; e++ ) {
-		sharedEntity_t entity;
+	// An RTCW viewer watching a scripted camera is sent only the portal
+	// entities and what each one's camera sees, which its own pass then adds
+	// through portals as usual (WolfSP.exe 0x4391de..0x43921d, WolfMP.exe
+	// 0x43c49e..0x43c4dd). ET's engine has no such test.
+	bool rtcwCamera = false;
+	if ( Com_GameIsRTCW() && !portal ) {
+		if ( !SV_ReadGameEntityByNum( frame->ps.clientNum, &entity ) ) {
+			Com_Error( ERR_DROP, "%s: invalid client entity %i", __func__, frame->ps.clientNum );
+			return;
+		}
+		rtcwCamera = ( entity.s.eFlags & FNTECH3_RTCW_EF_VIEWING_CAMERA ) != 0;
+	}
 
+	for ( e = 0 ; e < svs.currFrame->count; e++ ) {
 		es = svs.currFrame->ents[ e ];
 		if ( !SV_ReadGameEntityByNum( es->number, &entity ) ) {
 			Com_Error( ERR_DROP, "%s: invalid entity %i", __func__, es->number );
@@ -781,6 +813,16 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 		if ( ( Com_GameIsJKAMP() || Com_GameIsJK2MP() ) && !SV_JediSnapshotBroadcast( es->number,
 			frame->ps.clientNum, &jediBroadcast ) ) continue;
 		if ( svEnt->snapshotCounter == sv.snapshotCounter ) {
+			continue;
+		}
+
+		if ( rtcwCamera ) {
+			if ( entity.r.svFlags & SVF_PORTAL ) {
+				eNums.Add( *svEnt, e );
+				eNums.MarkUnordered();
+				VectorCopy( entity.s.origin2, view );
+				SV_AddEntitiesVisibleFromPoint( view, frame, eNums, true );
+			}
 			continue;
 		}
 
@@ -848,8 +890,11 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 		// add it
 		eNums.Add( *svEnt, e );
 
-		// if it's a portal entity, add everything visible from its camera position
-		if ( entity.r.svFlags & SVF_PORTAL && !portal ) {
+		// if it's a portal entity, add everything visible from its camera
+		// position; only Quake III, Quake Live and the Jedi multiplayer games
+		// carry a range in generic1, and the other profiles' records leave it
+		// 0, as their engines test none
+		if ( entity.r.svFlags & SVF_PORTAL && !secondView ) {
 			if ( entity.s.generic1 ) {
 				vec3_t dir;
 				VectorSubtract(entity.s.origin, origin, dir);
@@ -858,19 +903,23 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 				}
 			}
 			eNums.MarkUnordered();
-			SV_AddEntitiesVisibleFromPoint( entity.s.origin2, frame, eNums, portal );
+			VectorCopy( entity.s.origin2, view );
+			SV_AddEntitiesVisibleFromPoint( view, frame, eNums, portal );
 		}
 	}
 
-	sharedEntity_t clientEntity;
-	if ( !SV_ReadGameEntityByNum( frame->ps.clientNum, &clientEntity ) ) {
+	if ( !SV_ReadGameEntityByNum( frame->ps.clientNum, &entity ) ) {
 		Com_Error( ERR_DROP, "%s: invalid client entity %i",
 			__func__, frame->ps.clientNum );
 		return;
 	}
-	// extension: merge second PVS at clientEntity.r.s.origin2
-	if ( clientEntity.r.svFlags & SVF_SELF_PORTAL2 && !portal ) {
-		SV_AddEntitiesVisibleFromPoint( clientEntity.r.s.origin2, frame, eNums, true );
+	// extension: merge second PVS at entity.r.s.origin2. Only Quake III and
+	// Quake Live publish it (SV_GetValue's SVF_SELF_PORTAL2_Q3E); no retail
+	// walk reads the bit, which other games' modules may use as their own.
+	if ( ( Com_GameIsQuake3() || Com_GameIsQuakeLive() ) &&
+		entity.r.svFlags & SVF_SELF_PORTAL2 && !portal ) {
+		VectorCopy( entity.r.s.origin2, view );
+		SV_AddEntitiesVisibleFromPoint( view, frame, eNums, true );
 		eNums.MarkUnordered();
 	}
 }

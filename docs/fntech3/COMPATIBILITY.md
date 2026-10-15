@@ -1069,6 +1069,18 @@ their game on `svs.time`, which only a shutdown clears. Every other profile
 keeps the inherited per-level clock. Quake III, RTCW, Enemy Territory and
 Holomatch appear to keep one clock too and remain to be measured.
 
+The [portal recursion record](2026-10-15-snapshot-portal-recursion.md)
+reads the snapshot walk of every retail engine that shares fnTech3's: each
+walks a portal seen through another portal, bounded only by its
+already-added test, as fnTech3 already did. It adds RTCW's camera rule in
+`rtcw-sp` and `rtcw-mp` (`WolfSP.exe` `0x4391de`, `WolfMP.exe` `0x43c49e`):
+a viewer watching a scripted camera is sent only the portals and what their
+cameras see. It reads Quake3e's second view (`0x20000`) for `q3` and `ql`
+only, where `jka-mp`, `jk2-mp`, `jka-sp` and `jk2-sp` read it too though no
+retail walk does, and shrinks the walk's recursive frame from 5,948 bytes to
+60 so a chain as deep as retail's fits the stack (Source/Unit; Live in
+`jka-mp` against `jamp.exe`).
+
 ## Evidence vocabulary
 
 | Level | Meaning |

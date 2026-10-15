@@ -271,6 +271,12 @@ enum {
 	FNTECH3_RTCW_SVF_NOTSINGLECLIENT = 0x2000
 };
 
+/* The one entity flag the engines' snapshot walks read: a viewer carrying it
+ * is sent only what its portals show (WolfSP.exe 0x4391de, WolfMP.exe
+ * 0x43c49e). The games set it for a scripted camera; original bg_public.h
+ * names it EF_VIEWING_CAMERA. */
+enum { FNTECH3_RTCW_EF_VIEWING_CAMERA = 0x00040000 };
+
 typedef struct {
 	int32_t trType, trTime, trDuration;
 	float trBase[3], trDelta[3];
