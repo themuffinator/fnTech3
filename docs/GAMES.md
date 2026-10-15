@@ -517,7 +517,9 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   original settings, and an animation that comes to its end no longer
   stops it ([details](fntech3/2026-10-15-jka-play-blockers.md)). The see-through
   shimmer around a newly spawned player is not drawn yet; the shield itself
-  is. Longer matches, other maps and fighting have not been checked yet
+  is. On `mp/ffa2` the wall torches now burn, and a local match there
+  runs to the end ([torch details](fntech3/2026-10-15-jka-particle-dynamics.md)).
+  Longer matches, most other maps and fighting have not been checked yet
   ([spawn effect details](fntech3/2026-10-15-jka-spawn-effect.md)). The
   open-source OpenJK engine's client joins fnTech3's server. A lightsaber's
   glow and bright core are now built exactly as the original builds them,

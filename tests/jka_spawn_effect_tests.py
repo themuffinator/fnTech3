@@ -103,7 +103,7 @@ int main(){
   "Light\n{\nlength\n{\nstart 3\n}\n}\n",
   "FxRunner\n{\nshader gfx/own/runner\n}\n",
   "FxRunner\n{\nemitfx\n[\nown/a\n]\n}\n",
-  "FxRunner\n{\ndelay 5\n}\n",
+  "FxRunner\n{\ndelay 60001\n}\n",                            // beyond the Fn delay bound
   "Electricity\n{\nshader gfx/own/bolt\nflags depthHack\n}\n",
   "Electricity\n{\nshader gfx/own/bolt\nspawnflags org2isOffset\n}\n",
   "Electricity\n{\nshader gfx/own/bolt\nintensity 65\n}\n",

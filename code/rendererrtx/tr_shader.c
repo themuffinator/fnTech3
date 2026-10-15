@@ -1547,6 +1547,16 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 		{
 			stage->depthFragment = qtrue;
 		}
+		//
+		// glow: Jedi Academy marks a stage for its glow pass (jamp.exe
+		// ParseStage 0x4b3fd4, jasp.exe 0x47a188, set the stage's glow byte and
+		// read on). The stage draws as any other; Fn's bloom, where enabled,
+		// stands in for retail's glow buffer.
+		//
+		else if ( !Q_stricmp( token, "glow" ) && ( ri.gameId == COM_GAME_JKA_SP || ri.gameId == COM_GAME_JKA_MP ) )
+		{
+			continue;
+		}
 		else
 		{
 			ri.Printf( PRINT_WARNING, "WARNING: unknown parameter '%s' in shader '%s'\n", token, shader.name );

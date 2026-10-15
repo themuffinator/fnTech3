@@ -1,0 +1,844 @@
+{
+ "record": "docs/fntech3/2026-10-15-jka-particle-dynamics.md",
+ "date": "2026-10-15",
+ "profiles": [
+  "jka-mp"
+ ],
+ "baseHead": "599b09af40927c70d2f2a7e153024624539e398e",
+ "claim": "Compatibility slice only; no gate closes.",
+ "platform": "Windows 11, MSVC 2022 x86 (win32-dev options, strict warnings), clang i686-pc-windows-msvc for fixtures",
+ "runtime": {
+  "folder": ".tmp/runtime/jka-spawn-effect",
+  "sha256": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "68cd2f875e452f56c0253d93d3a1c2be13ed1dae85dbd21207d40fadf16db6ae",
+   "fnql_rtx_x86.dll": "2e9e3e0ae6ac313232a7e080d46909071fc327f109741b2a0271b4640ec18f34",
+   "fnql_vk_x86.dll": "b02ce0559ca4afced796f9d29510ceb0b1495a546888167f8b67747baaa8d4c7",
+   "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+   "fntech3.exe": "c92ac3e3f79ae9e229bbe1ec53cb79224254ab039b85bd485d943d212dcc0197",
+   "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+  },
+  "builtFrom": "git archive of HEAD 599b09af with this slice (jka_effect_play.hpp, client_jka_cgame_effects.hpp, the three tr_shader.c glow branches) and a labelled overlay of another session's uncommitted client-game import 51 (local ambient sets)",
+  "importOverlay": {
+   "code/client/client_jka_cgame_ambient.hpp": "dcdbb83b0ef0c37b4db6af5f27698fe0bbf300c4bfcff53e24c451ce30292df8",
+   "code/compat/jka_ambient_player.hpp": "2327105511637682380b5b06ff71d4b00675504628cd578a633a6477da939558",
+   "code/client/audio/shared/JKAAmbient.h": "b4dd4bfd0288c5db98317eecf13c0e99c6b27dbdbfe25ec2b3d9222868126c28",
+   "code/client/audio/openal/AudioSystemWorld.inl": "a10aafce74ab11ab412335abc2a020274cf2fdf4e57b9282eb5741b4c97cd79d",
+   "code/client/audio/legacy/snd_dma.cpp": "c7bac3229f26df01e22cdacb6c0ba161e59906f7467af380cc3f769146768ab3"
+  },
+  "firstRunExe": "c92ac3e3f79ae9e229bbe1ec53cb79224254ab039b85bd485d943d212dcc0197",
+  "firstRunNote": "glx-ffa2-1 ran the export before the overlay was added"
+ },
+ "retail": {
+  "jamp.exe": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+  "jasp.exe": "9351a8de230fcd577e2b474889d08f38982450306767a6823dd659482566d6ce",
+  "pakMembers": {
+   "assets1.pk3:effects/env/small_fire.efx": "f315309ad7abcbdc69cb528eb416a359809f91a7750d6868cd0b5e26ed77c284",
+   "assets0.pk3:maps/mp/ffa2.bsp": "31f2213300fa712d1a53e22d26e5d7b93a35d46c7f3e0eba6a8fd399129a8f0d",
+   "assets1.pk3:shaders/effects.shader": "8386261beef49dd922c2d8b3c13019d8167eabb5fb3324ba851dcf32f05ec20e",
+   "assets1.pk3:shaders/gfx2.shader": "703339478ee1931b8dcb60b5f4ba2973e39a1e5281bfe64f2158661156026c4b"
+  },
+  "installation": "E:/Games/Jedi Academy (read-only)",
+  "ffa2FxRunners": 28,
+  "measuredRoutines": {
+   "mediaPick": "0x405d50 (list +0x48 shaders, +0x58 impact, +0x68 death, +0x78 emit, +0x88 play; generator 0x56e760)",
+   "keyTable": "0x40e928..0x40edc0 (delay +0x2c, rotation +0x104, rotationDelta +0x10c, acceleration 0x40d810 +0x15c, gravity +0x174)",
+   "cullrange": "0x40eab2: compared, then 0x40eac2 jumps to the key loop end 0x40ee17; PlayEffect test 0x40721b never fires",
+   "curveWords": "0x40cb10: four words ORed; linear 1, random 2, nonlinear 4, wave 8, clamp 12",
+   "scheduler": "0x4073c6..0x40755d (evenDistribution 0x2000, delay < 1 immediate, else new scheduled record)",
+   "addScheduledEffects": "0x407810, then primitive pass 0x40f320 (call at 0x407a5d)",
+   "createEffect": "0x407c40: acceleration 0x408ac1..0x408d73, gravity 0x408e30, late advance 0x408e84..0x408f29",
+   "getRgb": "0x406de0 (rgbComponentInterpolation 0x4000: one fraction)",
+   "fxAddParticle": "0x40f480 (wave parm * 0x5664d8, other parms life*parm*0.01+now)",
+   "particleUpdate": "0x401730 (move 0x401a50, size 0x401e50, rgb 0x402040, alpha 0x402390, rotation 0x402640)",
+   "glowKeyword": "jamp.exe 0x4b3fd4, jasp.exe 0x47a188 (stage byte +0x88)"
+  }
+ },
+ "tests": {
+  "new": "tests/jka_particle_dynamics_tests.py (3 tests; C++ plain and -ffast-math), registered in meson.build",
+  "updated": [
+   "tests/jka_effect_play_tests.py",
+   "tests/jka_line_effect_tests.py",
+   "tests/jka_spawn_effect_tests.py"
+  ],
+  "result": "shared tree, VS x86 shell: the four effect test files, the new file and the four ParseStage fixtures (alice_shader_parse, rtcw_normal_fade, rtcw_shader_material, shader_animation): 22 passed, 63 subtests"
+ },
+ "sweep": {
+  "tool": ".tmp/jka-multishader/sweep/run_sweep.py (per-file, placeholder media handles, children not followed)",
+  "files": 376,
+  "servedHead": 15,
+  "servedNow": 68,
+  "newlyRefused": [],
+  "remainingFirstRefusals": [
+   {
+    "count": 30,
+    "refusal": "REFUSE | Tail | effects primitive family is not served yet | Tail"
+   },
+   {
+    "count": 28,
+    "refusal": "REFUSE | Line | effects curve controls are not served yet | flags"
+   },
+   {
+    "count": 25,
+    "refusal": "REFUSE | Particle | effects field is outside the served playback subset | bounce"
+   },
+   {
+    "count": 24,
+    "refusal": "REFUSE | Line | effects flags are not served yet | Line"
+   },
+   {
+    "count": 21,
+    "refusal": "GROUP | forcefeedback"
+   },
+   {
+    "count": 18,
+    "refusal": "REFUSE | Emitter | effects media is not served for this primitive family | Emitter"
+   },
+   {
+    "count": 17,
+    "refusal": "REFUSE | Sound | effects primitive family is not served yet | Sound"
+   },
+   {
+    "count": 14,
+    "refusal": "REFUSE | Particle | effects flags are not served yet | Particle"
+   },
+   {
+    "count": 14,
+    "refusal": "REFUSE | Particle | effects field is outside the served playback subset | radius"
+   },
+   {
+    "count": 12,
+    "refusal": "REFUSE | Electricity | effects field is outside the served playback subset | bounce"
+   },
+   {
+    "count": 10,
+    "refusal": "REFUSE | Particle | effects spawn controls are not served yet | Particle"
+   },
+   {
+    "count": 9,
+    "refusal": "REFUSE | Particle | effects field is outside the served playback subset | height"
+   },
+   {
+    "count": 8,
+    "refusal": "REFUSE | CameraShake | effects primitive family is not served yet | CameraShake"
+   },
+   {
+    "count": 8,
+    "refusal": "REFUSE | OrientedParticle | effects curve controls are not served yet | flags"
+   },
+   {
+    "count": 8,
+    "refusal": "REFUSE | Particle | effects random curves are not served yet | flags"
+   },
+   {
+    "count": 7,
+    "refusal": "REFUSE | Decal | effects primitive family is not served yet | Decal"
+   },
+   {
+    "count": 6,
+    "refusal": "REFUSE | OrientedParticle | effects field is outside the served playback subset | rotationDelta"
+   },
+   {
+    "count": 6,
+    "refusal": "REFUSE | Line | effects playback requires registered Fn shaders | Line"
+   },
+   {
+    "count": 5,
+    "refusal": "REFUSE | Light | effects curve controls are not served yet | flags"
+   },
+   {
+    "count": 5,
+    "refusal": "REFUSE | Line | effects curve family is not served yet | width"
+   },
+   {
+    "count": 4,
+    "refusal": "GROUP | ForceFeedback"
+   },
+   {
+    "count": 4,
+    "refusal": "REFUSE | Cylinder | effects curve controls are not served yet | flags"
+   },
+   {
+    "count": 3,
+    "refusal": "REFUSE | Cylinder | effects curve controls are not served yet | parm"
+   },
+   {
+    "count": 2,
+    "refusal": "REFUSE | OrientedParticle | effects curve controls are not served yet | parm"
+   },
+   {
+    "count": 2,
+    "refusal": "REFUSE | Cylinder | effects spawn controls are not served yet | Cylinder"
+   },
+   {
+    "count": 2,
+    "refusal": "REFUSE | Particle | effects field is outside the served playback subset | intensity"
+   },
+   {
+    "count": 2,
+    "refusal": "REFUSE | Line | effects spawn controls are not served yet | Line"
+   },
+   {
+    "count": 2,
+    "refusal": "REFUSE | Particle | effects playback requires registered Fn shaders | Particle"
+   },
+   {
+    "count": 2,
+    "refusal": "REFUSE | Particle | effects field is outside the served playback subset | wind"
+   },
+   {
+    "count": 2,
+    "refusal": "REFUSE | OrientedParticle | effects flags are not served yet | OrientedParticle"
+   },
+   {
+    "count": 1,
+    "refusal": "REFUSE | OrientedParticle | effects field is outside the served playback subset | velocity"
+   },
+   {
+    "count": 1,
+    "refusal": "REFUSE | Line | effects line size controls are not served yet | flags"
+   },
+   {
+    "count": 1,
+    "refusal": "REFUSE | Electricity | effects playback requires registered Fn shaders | Electricity"
+   },
+   {
+    "count": 1,
+    "refusal": "REFUSE | Line | effects field is outside the served playback subset | radius"
+   },
+   {
+    "count": 1,
+    "refusal": "REFUSE | Sound | effects primitive family is not served yet | sound"
+   },
+   {
+    "count": 1,
+    "refusal": "REFUSE | Line | effects curve controls are not served yet | parm"
+   },
+   {
+    "count": 1,
+    "refusal": "REFUSE | Particle | effects curve controls are not served yet | parms"
+   },
+   {
+    "count": 1,
+    "refusal": "REFUSE | Cylinder | effects curve controls are not served yet | parms"
+   }
+  ]
+ },
+ "harness": ".tmp/jka-multishader/listen.py (.tmp/jka-emitter/live/listen.py with JKA_MAP)",
+ "baseSettings": [
+  "+set",
+  "com_gameProfile",
+  "jka-mp",
+  "+set",
+  "fs_basepath",
+  "E:\\Games\\Jedi Academy",
+  "+set",
+  "fs_homepath",
+  "E:\\Repositories\\fnTech3\\.tmp\\jka-multishader\\runs\\glx-ffa2-2\\home",
+  "+set",
+  "com_steamIntegration",
+  "0",
+  "+set",
+  "developer",
+  "1",
+  "+set",
+  "logfile",
+  "2",
+  "+set",
+  "net_enabled",
+  "1",
+  "+set",
+  "net_ip",
+  "127.0.0.1",
+  "+set",
+  "r_fullscreen",
+  "0",
+  "+set",
+  "r_mode",
+  "-1",
+  "+set",
+  "r_customWidth",
+  "1024",
+  "+set",
+  "r_customHeight",
+  "768",
+  "+set",
+  "cl_renderer",
+  "glx",
+  "+set",
+  "in_mouse",
+  "0",
+  "+set",
+  "in_joystick",
+  "0",
+  "+set",
+  "in_nograb",
+  "1",
+  "+set",
+  "s_initsound",
+  "0",
+  "+set",
+  "cl_motd",
+  "0",
+  "+set",
+  "com_introplayed",
+  "1",
+  "+set",
+  "com_maxfps",
+  "60",
+  "+set",
+  "com_maxfpsUnfocused",
+  "60",
+  "+set",
+  "com_maxfpsMinimized",
+  "60",
+  "+set",
+  "cg_thirdPerson",
+  "1",
+  "+set",
+  "sv_pure",
+  "0",
+  "+set",
+  "g_gametype",
+  "0",
+  "+exec",
+  "probelisten.cfg",
+  "+devmap",
+  "mp/ffa2"
+ ],
+ "runs": {
+  "glx-ffa2-1": {
+   "renderer": "glx",
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "seconds": 28.3,
+   "commands": [
+    "set cg_renderToTextureFX 0",
+    "set cl_menuBlur 0",
+    "set cg_thirdPersonRange 260",
+    "set cg_thirdPersonPitchOffset -25",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "cmd team free",
+    "ui_openmenu none"
+   ],
+   "errors": [
+    "ERROR: Unsupported jka-mp cgame import 51 (CG_S_ADDLOCALSET)"
+   ],
+   "smallFirePlays": 0,
+   "maxScheduled": null,
+   "scriptedEnd": false,
+   "identity": {
+    "fntech3.exe": "bff2a48147ae437ee4a000fbcf8d6db4e8b67360a4c2deeb54e7281bc8175a23",
+    "fnql_glx_x86.dll": "95a16b892ec3c9e4d9f410e74d2043ec6715a850b55d2c8556fd5969cda9c433",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "captures": {},
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "note": "HEAD export without the import-51 overlay: stops before any torch plays"
+  },
+  "glx-ffa2-2": {
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 17.3,
+   "commands": [
+    "set cg_renderToTextureFX 0",
+    "set cl_menuBlur 0",
+    "set cg_thirdPersonRange 260",
+    "set cg_thirdPersonPitchOffset -25",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "cmd team free",
+    "ui_openmenu none"
+   ],
+   "errors": [],
+   "smallFirePlays": 517,
+   "maxScheduled": 13,
+   "scriptedEnd": true,
+   "identity": {
+    "fntech3.exe": "c92ac3e3f79ae9e229bbe1ec53cb79224254ab039b85bd485d943d212dcc0197",
+    "fnql_glx_x86.dll": "95a16b892ec3c9e4d9f410e74d2043ec6715a850b55d2c8556fd5969cda9c433",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "captures": {
+    "jka-listen-00.png": "1d9b8f72ef7d6f9e202b0e91d9724526885c182d9251947eead69b80a1e5db04",
+    "jka-listen-01.png": "f9d0d7b5554846815018461575f28295fe015ce99c8ed847599a11290ca9ed62",
+    "jka-listen-02.png": "79ee6ba09496df15dd0a9e0b69d5d5b6a4a4e74d93f594aa7bf6a9dd6e9d719f",
+    "jka-listen-03.png": "01d1a33050b508286dede60fe601d9fce267483d4904370cef563dce68f7b278",
+    "jka-listen-04.png": "3cf2a67d7ee2e3ad37c2833bc4ac92807a69852af49df58d2594a27c8b257ed0",
+    "jka-listen-05.png": "8a1f708d30ca8c6f5ce7e4cbb9b26c8368ecc19e26cd5aa8ffb02d85c06a3cf3",
+    "jka-listen-06.png": "c7500c80a4c446b86e182a4e0ec8c10288642066a8425abe002776f4798b4478",
+    "jka-listen-07.png": "969f472c81bc4f7a1107ce32e95c49148c95c16ec9d92dc4a0005008fa3f9cb1"
+   },
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "note": "joined player, before the glow keyword: runs to its scripted end"
+  },
+  "glx-ffa2-torch": {
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 9.8,
+   "commands": [
+    "set cg_renderToTextureFX 0",
+    "set cl_menuBlur 0",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "set cg_drawStatus 0",
+    "cmd team spectator",
+    "wait 30",
+    "setviewpos -2736 1010 170 270"
+   ],
+   "errors": [],
+   "smallFirePlays": 142,
+   "maxScheduled": 8,
+   "scriptedEnd": true,
+   "identity": {
+    "fntech3.exe": "c92ac3e3f79ae9e229bbe1ec53cb79224254ab039b85bd485d943d212dcc0197",
+    "fnql_glx_x86.dll": "95a16b892ec3c9e4d9f410e74d2043ec6715a850b55d2c8556fd5969cda9c433",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "captures": {
+    "jka-listen-00.png": "26903bb1870ffe0b945307ab42b605afba2d26c8c5f7cb1c35d199fcb098c10f",
+    "jka-listen-01.png": "08e77a21d65dcae3c3b806a3f2bd59ccf4b3b7ef2ead957f4c29fb41818f33cb",
+    "jka-listen-02.png": "520b230e509dca80906ae4d4cdee6d17871707d3ccc7cf7459367a454c6f0e8d",
+    "jka-listen-03.png": "cd876e22ff97d50279268d2ad346cb9c8f735dc217b65da5c9d9d57235e34ee6",
+    "jka-listen-04.png": "d63892e48febec18992753dec0d975736d3ea435fd9119dd6c996ec2863152dc",
+    "jka-listen-05.png": "bf1b8e10e1957408222cc040dfe4971a847ab70587ddc6f6ee150d466c93c238"
+   },
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "note": "spectator, team menu left open (not used as evidence of the torch)"
+  },
+  "glx-ffa2-views": {
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 10.3,
+   "commands": [
+    "set cg_renderToTextureFX 0",
+    "set cl_menuBlur 0",
+    "set con_notifytime 0",
+    "cmd team spectator",
+    "wait 30",
+    "ui_openmenu none",
+    "wait 10",
+    "setviewpos -2736 1200 200 270",
+    "wait 40",
+    "screenshotPNG view-a",
+    "setviewpos -2736 600 200 90",
+    "wait 40",
+    "screenshotPNG view-b",
+    "setviewpos -1250 1184 420 180",
+    "wait 40",
+    "screenshotPNG view-c",
+    "setviewpos -1830 1184 420 0",
+    "wait 40",
+    "screenshotPNG view-d",
+    "setviewpos -2585 2300 60 90",
+    "wait 40",
+    "screenshotPNG view-e"
+   ],
+   "errors": [],
+   "smallFirePlays": 0,
+   "maxScheduled": null,
+   "scriptedEnd": true,
+   "identity": {
+    "fntech3.exe": "c92ac3e3f79ae9e229bbe1ec53cb79224254ab039b85bd485d943d212dcc0197",
+    "fnql_glx_x86.dll": "95a16b892ec3c9e4d9f410e74d2043ec6715a850b55d2c8556fd5969cda9c433",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "captures": {
+    "jka-listen-00.png": "55ba1db3d7e20c7fc18805b14bc7ccdd02476ce35eb5b11171f4b6a7b71914c6",
+    "jka-listen-01.png": "84ddcf2025d23d2d70b73c8b9ca7eebf6c2eefbc6a1de8d0ae6e0441caedf040",
+    "view-a.png": "8bf9f6a640f5e1839d145eda4f6cc930547e84ddb80b8e61c28dbe9cba78bdef",
+    "view-b.png": "81cd8f8f965c4b25697bd050d1651f70e46e91c4d41dfa6a9963ad2630f6dfad",
+    "view-c.png": "24ce240402da1753c38f3acf46214e20e0d6bc9d5891a2512987628414650696",
+    "view-d.png": "4c8ecfa5e6c5e5ddb2e80d53cdcf17be9530de19a034cf2a670dfc7327e52725",
+    "view-e.png": "1fa6f18441d339df371084f6afcb4d17d9af9fc08c6c52d84f28f93c2c5f1d68"
+   },
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "note": "spectator views: torch flames draw as default-image squares"
+  },
+  "glx-ffa2-shaders": {
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 8.3,
+   "commands": [
+    "set cg_renderToTextureFX 0",
+    "set cl_menuBlur 0",
+    "set con_notifytime 0",
+    "cmd team spectator",
+    "wait 30",
+    "ui_openmenu none",
+    "wait 10",
+    "setviewpos -2736 1200 200 270",
+    "wait 40",
+    "shaderlist",
+    "imagelist",
+    "screenshotPNG view-a"
+   ],
+   "errors": [],
+   "smallFirePlays": 0,
+   "maxScheduled": null,
+   "scriptedEnd": true,
+   "identity": {
+    "fntech3.exe": "c92ac3e3f79ae9e229bbe1ec53cb79224254ab039b85bd485d943d212dcc0197",
+    "fnql_glx_x86.dll": "95a16b892ec3c9e4d9f410e74d2043ec6715a850b55d2c8556fd5969cda9c433",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "captures": {
+    "jka-listen-00.png": "261fda8bea54f0f1ae913b38b238a662396464f4ddf88a4ba1afc65dfc99ed02",
+    "view-a.png": "27f4676683df82c7bfcc5c48ffcf45f6beb9127ba19fdbffb3165a7e09fc44ee"
+   },
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "note": "shaderlist: gfx/effects/fire2..4 DEFAULTED on the unknown glow keyword"
+  },
+  "glx-ffa2-glow": {
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 8.3,
+   "commands": [
+    "set cg_renderToTextureFX 0",
+    "set cl_menuBlur 0",
+    "set con_notifytime 0",
+    "set fx_debug 2",
+    "cmd team spectator",
+    "wait 30",
+    "ui_openmenu none",
+    "wait 10",
+    "setviewpos -2736 1200 200 270",
+    "wait 40",
+    "shaderlist",
+    "screenshotPNG view-a",
+    "setviewpos -2736 980 230 270",
+    "wait 40",
+    "screenshotPNG view-close"
+   ],
+   "errors": [],
+   "smallFirePlays": 84,
+   "maxScheduled": 8,
+   "scriptedEnd": true,
+   "identity": {
+    "fntech3.exe": "c92ac3e3f79ae9e229bbe1ec53cb79224254ab039b85bd485d943d212dcc0197",
+    "fnql_glx_x86.dll": "68cd2f875e452f56c0253d93d3a1c2be13ed1dae85dbd21207d40fadf16db6ae",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "captures": {
+    "jka-listen-00.png": "84876b055472b30bf9935aa25ba9bd89141171bb128f144a175fbcc9caec6658",
+    "view-a.png": "f297690fa9c2c15688c1e6dfff550f3124c64b5112ef56f472861e79c2d9f464",
+    "view-close.png": "a64a6b4da66119fa54f3fffa5582fe0352e557f00ebe94c7203da71211d404f0"
+   },
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "note": "with glow: shaderlist has no fire shader defaulted, no glow warning"
+  },
+  "glx-ffa2-final": {
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 8.3,
+   "commands": [
+    "set cg_renderToTextureFX 0",
+    "set cl_menuBlur 0",
+    "set con_notifytime 0",
+    "set fx_debug 2",
+    "cmd team spectator",
+    "wait 30",
+    "ui_openmenu none",
+    "wait 10",
+    "setviewpos -2656 880 175 270",
+    "wait 30",
+    "screenshotPNG torch-1",
+    "wait 7",
+    "screenshotPNG torch-2",
+    "wait 7",
+    "screenshotPNG torch-3",
+    "setviewpos -2736 1200 200 270",
+    "wait 30",
+    "screenshotPNG pair"
+   ],
+   "errors": [],
+   "smallFirePlays": 79,
+   "maxScheduled": 8,
+   "scriptedEnd": true,
+   "identity": {
+    "fntech3.exe": "c92ac3e3f79ae9e229bbe1ec53cb79224254ab039b85bd485d943d212dcc0197",
+    "fnql_glx_x86.dll": "68cd2f875e452f56c0253d93d3a1c2be13ed1dae85dbd21207d40fadf16db6ae",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "captures": {
+    "jka-listen-00.png": "ed633c49bf53b4a7273d6a7e79973e0e718285d72a4a51c79a8b7a805259f4fd",
+    "pair.png": "65c1fe6b0b6f87e4ae8871f76c0544335f9e60a40206854b25198320dbc23fb0",
+    "torch-1.png": "1f4074dd993aff49693cf6d029e7d17455a90f5d8b528bae6e9dc70a2ddbf4de",
+    "torch-2.png": "4ea126dfb99a120b6e3614050a50692f22aec60a1cb4103bb6e312dc6fef51d6",
+    "torch-3.png": "d737a0c6dfca06e57ed0236f702a0f9abf74ed12337968de61dab3388827ce09"
+   },
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "note": "with glow: close torch and two-torch captures"
+  },
+  "vk-ffa2-final": {
+   "renderer": "vk",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 8.3,
+   "commands": [
+    "set cg_renderToTextureFX 0",
+    "set cl_menuBlur 0",
+    "set con_notifytime 0",
+    "set fx_debug 2",
+    "cmd team spectator",
+    "wait 30",
+    "ui_openmenu none",
+    "wait 10",
+    "setviewpos -2656 880 175 270",
+    "wait 30",
+    "screenshotPNG torch-1",
+    "wait 7",
+    "screenshotPNG torch-2",
+    "wait 7",
+    "screenshotPNG torch-3",
+    "setviewpos -2736 1200 200 270",
+    "wait 30",
+    "screenshotPNG pair"
+   ],
+   "errors": [],
+   "smallFirePlays": 79,
+   "maxScheduled": 8,
+   "scriptedEnd": true,
+   "identity": {
+    "fntech3.exe": "c92ac3e3f79ae9e229bbe1ec53cb79224254ab039b85bd485d943d212dcc0197",
+    "fnql_vk_x86.dll": "b02ce0559ca4afced796f9d29510ceb0b1495a546888167f8b67747baaa8d4c7",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "captures": {
+    "jka-listen-00.png": "6e9a449a559aba5891416379b61c1dc15f7796992a37a140d2a08b2afcfdea18",
+    "pair.png": "e08a8bf33c5017644743d76312ef955546de99ec8dfc2a18771543cf61e8e60f",
+    "torch-1.png": "264da56d1bd4e071e3b97bbc8213c01e45b9412b6ecbb700ae773b42f2d9c17e",
+    "torch-2.png": "4a534b7a794490b5079f8f66a220a1a3bdc515434527481be3d1087ebba6e432",
+    "torch-3.png": "fa8db75fde1d57b0d85f11859a115c35e7f2f4ed6d09dd81f0ec237832216eec"
+   },
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "note": "with glow: close torch and two-torch captures"
+  },
+  "rtx-ffa2-final": {
+   "renderer": "rtx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 12.2,
+   "commands": [
+    "set cg_renderToTextureFX 0",
+    "set cl_menuBlur 0",
+    "set con_notifytime 0",
+    "set fx_debug 2",
+    "cmd team spectator",
+    "wait 30",
+    "ui_openmenu none",
+    "wait 10",
+    "setviewpos -2656 880 175 270",
+    "wait 30",
+    "screenshotPNG torch-1",
+    "wait 7",
+    "screenshotPNG torch-2",
+    "wait 7",
+    "screenshotPNG torch-3",
+    "setviewpos -2736 1200 200 270",
+    "wait 30",
+    "screenshotPNG pair"
+   ],
+   "errors": [],
+   "smallFirePlays": 136,
+   "maxScheduled": 6,
+   "scriptedEnd": true,
+   "identity": {
+    "fntech3.exe": "c92ac3e3f79ae9e229bbe1ec53cb79224254ab039b85bd485d943d212dcc0197",
+    "fnql_rtx_x86.dll": "2e9e3e0ae6ac313232a7e080d46909071fc327f109741b2a0271b4640ec18f34",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "captures": {
+    "jka-listen-00.png": "9d42b9182964450e62fd842977f22fd33b29560fe5e64d7d6b82317e37055557",
+    "pair.png": "d549d75e41ab5314432b4253f0ef24777295540be41768c47575a03f47e71d6e",
+    "torch-1.png": "d5e738ce53be41bf89525ba59802d6dfa6a6968d0c429a01e0b3b46e39eacfa8",
+    "torch-2.png": "50fafcfe5a1332e0458a32d66cfa40b7fd201380b535337fba669e97aa94d19e",
+    "torch-3.png": "4a1c055737740118057460a7dc71feeffb0c990dd823c7d902dcaefbe37e33f6"
+   },
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "note": "with glow: close torch and two-torch captures; room around the fire much darker, not investigated"
+  },
+  "glx-ffa2-play": {
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 14.3,
+   "commands": [
+    "set cg_renderToTextureFX 0",
+    "set cl_menuBlur 0",
+    "set cg_thirdPersonRange 260",
+    "set cg_thirdPersonPitchOffset -25",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "cmd team free",
+    "ui_openmenu none"
+   ],
+   "errors": [],
+   "smallFirePlays": 222,
+   "maxScheduled": 9,
+   "scriptedEnd": true,
+   "identity": {
+    "fntech3.exe": "c92ac3e3f79ae9e229bbe1ec53cb79224254ab039b85bd485d943d212dcc0197",
+    "fnql_glx_x86.dll": "68cd2f875e452f56c0253d93d3a1c2be13ed1dae85dbd21207d40fadf16db6ae",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "captures": {
+    "jka-listen-00.png": "f82f7253c4478427d53af51968e69959ac03ba63740624c70d9c3840bc6d0f83",
+    "jka-listen-01.png": "730bdd39a3738e42877b6ec9bab26fe5c8237256671fc469ae4589db80c06039",
+    "jka-listen-02.png": "f8cf83560e313c8e7b836e284bca8faa5c958667442e7a430cd5016dd6d41b56",
+    "jka-listen-03.png": "6f060c77a9ed6bcefeee92ecfaf07ceb4a0d7b09f6d2b516c28e9a6d1d7df393",
+    "jka-listen-04.png": "e8d146c17272f194549bbb8063536a192d96459cf418e8423d4dc9f7425df5ab",
+    "jka-listen-05.png": "b3027d2e18472fc013ed60a76ce6242f1eeed3de9e8c86102dc59b168f9847fc"
+   },
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "note": "with glow: joined player runs to its scripted end"
+  },
+  "vk-ffa2-play": {
+   "renderer": "vk",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 13.1,
+   "commands": [
+    "set cg_renderToTextureFX 0",
+    "set cl_menuBlur 0",
+    "set cg_thirdPersonRange 260",
+    "set cg_thirdPersonPitchOffset -25",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "cmd team free",
+    "ui_openmenu none"
+   ],
+   "errors": [],
+   "smallFirePlays": 222,
+   "maxScheduled": 8,
+   "scriptedEnd": true,
+   "identity": {
+    "fntech3.exe": "c92ac3e3f79ae9e229bbe1ec53cb79224254ab039b85bd485d943d212dcc0197",
+    "fnql_vk_x86.dll": "b02ce0559ca4afced796f9d29510ceb0b1495a546888167f8b67747baaa8d4c7",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "captures": {
+    "jka-listen-00.png": "bd6c9f64189b74ac7eda7154eecb97e520e02a1d4813341b40b92a69564e612e",
+    "jka-listen-01.png": "0d396cf739059710bc9a8fc937c2e76c4c459da20df57b2b3ffca19a78bd839f",
+    "jka-listen-02.png": "4a32d2bf354c564847279880c9ac71cb7c46cc7ea9594e13034c4bef54428f5a",
+    "jka-listen-03.png": "fd08c9f0260a4d32f64be7f4a57b9bc0440a4f6fcc66f68c6effdcbfd9e8cc87",
+    "jka-listen-04.png": "4c98a6fb06665f98546ce6b2e8665adeee685fbf3889e6d9a104001e63106db4",
+    "jka-listen-05.png": "248f508160d17369d6a24e5ab729eedff8e8a11b28d7199764c7ae335da6a56d"
+   },
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "note": "with glow: joined player runs to its scripted end"
+  },
+  "rtx-ffa2-play": {
+   "renderer": "rtx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 18.3,
+   "commands": [
+    "set cg_renderToTextureFX 0",
+    "set cl_menuBlur 0",
+    "set cg_thirdPersonRange 260",
+    "set cg_thirdPersonPitchOffset -25",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "cmd team free",
+    "ui_openmenu none"
+   ],
+   "errors": [],
+   "smallFirePlays": 359,
+   "maxScheduled": 9,
+   "scriptedEnd": true,
+   "identity": {
+    "fntech3.exe": "c92ac3e3f79ae9e229bbe1ec53cb79224254ab039b85bd485d943d212dcc0197",
+    "fnql_rtx_x86.dll": "2e9e3e0ae6ac313232a7e080d46909071fc327f109741b2a0271b4640ec18f34",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "captures": {
+    "jka-listen-00.png": "9cfd059e9198c032d679ad55dc903032375320fdb8c320f004ac42cc2527abb7",
+    "jka-listen-01.png": "ac446e28e9e2015d2ed975955e6df12cab2f63c0dcc61af9ec8587af8ad5c2f4",
+    "jka-listen-02.png": "4f94e2788eedeb80ac54d20e101d6e7a4595b994b5df6fa7a184248d488f819d",
+    "jka-listen-03.png": "f5e9150344ad9571ee9883d3b7194342b0efb3126f7234af966c5af535d9b26c",
+    "jka-listen-04.png": "773447f9295872d2e9c15aa35fe2c7c17c198be8ad47b2da9b71d04e91a20176",
+    "jka-listen-05.png": "a9613e286c7aa4f3a87a47a4f1ee0d02de724089fb2ad851b01a51b233142106"
+   },
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "note": "with glow: joined player runs to its scripted end"
+  }
+ },
+ "fnFeatures": {
+  "used": [
+   "Fn sprite path (RT_SPRITE) with Fn shaders, fog, sorting and post-processing",
+   "Fn bloom, where enabled, for glow stages"
+  ],
+  "leftOut": [
+   "retail dynamic-glow buffer: Fn has none beyond bloom"
+  ],
+  "retailExactOption": null
+ },
+ "engineChoices": [
+  "Fn generator for picks and ranges, not retail's sequence",
+  "a paused frame keeps waiting spawns",
+  "schedule bound 8192; beyond it a new delayed spawn is dropped and counted (fx_debug)",
+  "rotation advances on every drawn frame after Fn's near cull"
+ ],
+ "openBlockers": [
+  "no retail comparison capture of a torch",
+  "random curve word, particle physics and non-Particle curve words refuse by name",
+  "Tail, Sound, CameraShake families and bounce/radius/height fields refuse by name",
+  "RTX capture darker around the fire, not investigated"
+ ]
+}

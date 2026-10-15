@@ -17,7 +17,9 @@
  * Context/pool lifecycle and its frame clock are served. Shader-only no-motion
  * particles, cylinders, lines and electricity enter Fn sprites/polygons; lights
  * enter Fn's dynamic lights; emitters move, trace and emit nested effects, and
- * FxRunners play them, inside the owned pool. Remaining playback controls and
+ * FxRunners play them, inside the owned pool. Particles move, rotate and run
+ * their size, colour and alpha curves; delayed spawns wait in an owned
+ * schedule created before each normal pass. Remaining playback controls and
  * primitive families remain named refusals. Registration owns all buffers and
  * partial records across engine ERR_DROP/longjmp recovery. */
 namespace {
@@ -35,6 +37,14 @@ struct JKACgameEffectInstance {
     fntech3::jka::effectplay::Spawn spawn;
     bool active{};
 };
+// A delayed spawn: retail's scheduled record (0x40755d) keeps the template,
+// due time, origin and axis; CreateEffect runs when it falls due.
+struct JKACgameEffectScheduled {
+    int due{}, definition{}, depth{};
+    std::size_t primitive{};
+    fntech3::jka::effectplay::Vector origin{};
+    fntech3::jka::effectplay::Axis axis{};
+};
 struct JKACgameEffectDraw {
     refEntity_t entity{};
     int shader{};
@@ -45,6 +55,8 @@ struct JKACgameEffectDraw {
 };
 // Fn bound on FxRunner/emitter nesting; retail recurses without one.
 constexpr int jkaCgameEffectNesting=8;
+// Fn bound on waiting delayed spawns; retail allocates each without one.
+constexpr std::size_t jkaCgameEffectScheduleBound=8192;
 struct JKACgameEffectsState {
     // Retail's init pool has 1,800 records; the engine owns its own shape.
     std::array<JKACgameEffectInstance,1800> instances{};
@@ -55,6 +67,8 @@ struct JKACgameEffectsState {
     bool initialized{}, frozen{};
     std::uint32_t random{0x4a4b4101u};
     std::vector<std::pair<int,fntech3::jka::effectplay::Spawn>> spawnWork;
+    std::vector<JKACgameEffectScheduled> scheduled,dueWork;
+    std::size_t scheduleDropped{};
     std::vector<std::size_t> slotWork,evictWork;
     std::vector<JKACgameEffectDraw> drawWork;
     cvar_t *debug{}, *countScale{}, *nearCull{};
@@ -88,7 +102,7 @@ static void CL_JKACgameEffectsInit(intptr_t view) {
     view=CL_JKACgameEffectsView(view);
     ++jkaCgameEffectsRevision;
     auto &state=CL_JKACgameEffectsState();
-    if (!state.initialized) state.instances={};
+    if (!state.initialized) {state.instances={};state.scheduled.clear();}
     state.nextFree=0;
     state.debug=Cvar_Get("fx_debug","0",CVAR_TEMP);
     state.countScale=Cvar_Get("fx_countScale","1",CVAR_ARCHIVE);
@@ -128,6 +142,7 @@ static void CL_JKACgameEffectsFree() {
     state.effects.clear();state.lookup.clear();state.pendingName={};
     state.instances={};state.nextFree=0;
     state.spawnWork.clear();state.slotWork.clear();state.evictWork.clear();state.drawWork.clear();
+    state.scheduled.clear();state.dueWork.clear();state.scheduleDropped=0;
     // Retail Free(true) keeps the helper view/clocks and initialized flag.
 }
 static intptr_t CL_JKACgameEffectsRegister(const char *name) {
@@ -259,9 +274,28 @@ static float CL_JKACgameEffectCountScale(const JKACgameEffectsState &state) {
     if(!fntech3::jka::effectplay::Finite(scale))Com_Error(ERR_DROP,"Invalid Academy effects count scale");
     return scale;
 }
-// Retail PlayEffect 0x407110 with CreateEffect 0x407c40: each primitive's
-// count, then every instance immediately (no delay is served). An FxRunner
-// (0x40b11e) plays one of its effects at once, at its origin and axis.
+static void CL_JKACgameEffectSpawn(JKACgameEffectsState &state,int id,const fntech3::jka::effectplay::Vector &origin,
+    const fntech3::jka::effectplay::Axis &axis,std::uint32_t &random,int depth);
+// Retail CreateEffect 0x407c40 for one primitive, late by the given lag. An
+// FxRunner (0x40b11e) plays one of its effects at once, at its origin and axis.
+static void CL_JKACgameEffectCreate(JKACgameEffectsState &state,int id,std::size_t primitive,
+    const fntech3::jka::effectplay::Vector &origin,const fntech3::jka::effectplay::Axis &axis,
+    std::uint32_t &random,int depth,int late)
+{
+    using namespace fntech3::jka;
+    const auto &spec=state.effects[id-1]->playback[primitive];
+    effectplay::Spawn spawn;
+    if(!effectplay::Instantiate(spec,origin,axis,random,spawn,late))Com_Error(ERR_DROP,"Invalid Academy effects spawn result");
+    if(spawn.traceEnd)CL_JKACgameEffectTraceEndpoint(spawn);
+    if(spawn.kind==effects::Kind::Runner){
+        if(spawn.child)CL_JKACgameEffectSpawn(state,spawn.child,spawn.origin,axis,random,depth+1);
+        return;
+    }
+    state.spawnWork.push_back({id,spawn});
+}
+// Retail PlayEffect 0x407110: each primitive's count, then a delay per
+// spawn (0x4073c6). A delay below one creates at once, late by its negation;
+// any other waits in the schedule until it falls due (0x40755d).
 static void CL_JKACgameEffectSpawn(JKACgameEffectsState &state,int id,const fntech3::jka::effectplay::Vector &origin,
     const fntech3::jka::effectplay::Axis &axis,std::uint32_t &random,int depth)
 {
@@ -274,17 +308,16 @@ static void CL_JKACgameEffectSpawn(JKACgameEffectsState &state,int id,const fnte
     if(depth>0&&state.debug&&state.debug->integer>=2)
         Com_Printf("Academy FX nested play: %s at %d\n",effect.name.file.c_str(),state.time);
     const float scale=CL_JKACgameEffectCountScale(state);
-    for(const auto &spec:effect.playback){
+    for(std::size_t primitive=0;primitive<effect.playback.size();++primitive){
+        const auto &spec=effect.playback[primitive];
         const int count=effectplay::Count(spec,scale,random);
         for(int n=0;n<count;++n){
-            effectplay::Spawn spawn;
-            if(!effectplay::Instantiate(spec,origin,axis,random,spawn))Com_Error(ERR_DROP,"Invalid Academy effects spawn result");
-            if(spawn.traceEnd)CL_JKACgameEffectTraceEndpoint(spawn);
-            if(spawn.kind==effects::Kind::Runner){
-                if(spawn.child)CL_JKACgameEffectSpawn(state,spawn.child,spawn.origin,axis,random,depth+1);
-                continue;
-            }
-            state.spawnWork.push_back({id,spawn});
+            const int delay=effectplay::Delay(spec,n,count,random);
+            if(delay<1){CL_JKACgameEffectCreate(state,id,primitive,origin,axis,random,depth,-delay);continue;}
+            if(std::int64_t(state.time)+delay>INT_MAX)Com_Error(ERR_DROP,"Academy effects clock reversal or wrap is not served yet");
+            // Beyond the Fn bound a delayed spawn is dropped and counted.
+            if(state.scheduled.size()>=jkaCgameEffectScheduleBound){++state.scheduleDropped;continue;}
+            state.scheduled.push_back({state.time+delay,id,depth,primitive,origin,axis});
         }
     }
 }
@@ -320,6 +353,26 @@ static void CL_JKACgameEffectPublish(JKACgameEffectsState &state) {
     }
     if(!state.slotWork.empty())state.nextFree=(state.slotWork.back()+1)%state.instances.size();
     state.spawnWork.clear();state.slotWork.clear();
+}
+// Retail AddScheduledEffects 0x407810 creates each due spawn, late by its
+// lag, before the primitive pass. A paused frame keeps them waiting.
+static void CL_JKACgameEffectRunScheduled(JKACgameEffectsState &state) {
+    if(state.frameTime<=0||state.scheduled.empty())return;
+    state.dueWork.clear();
+    std::size_t kept=0;
+    for(std::size_t n=0;n<state.scheduled.size();++n){
+        if(state.scheduled[n].due<=state.time)state.dueWork.push_back(state.scheduled[n]);
+        else state.scheduled[kept++]=state.scheduled[n];
+    }
+    state.scheduled.resize(kept);
+    if(state.dueWork.empty())return;
+    state.spawnWork.clear();state.slotWork.clear();
+    auto random=state.random;
+    for(const auto &entry:state.dueWork)
+        CL_JKACgameEffectCreate(state,entry.definition,entry.primitive,entry.origin,entry.axis,random,entry.depth,state.time-entry.due);
+    state.dueWork.clear();
+    CL_JKACgameEffectPublish(state);
+    state.random=random;
 }
 static void CL_JKACgameEffectPlay(const intptr_t *args) {
     using namespace fntech3::jka;
@@ -357,6 +410,12 @@ static void CL_JKACgameEffectPlay(const intptr_t *args) {
 static void CL_JKACgameEffectAdvance(JKACgameEffectsState &state) {
     using namespace fntech3::jka;
     if(state.frameTime<=0)return;
+    // CParticle::Update 0x401730: a particle created before this frame moves
+    // (0x401a50); usePhysics is not served for particles, so no trace.
+    for(auto &instance:state.instances)
+        if(instance.active&&instance.spawn.kind==effects::Kind::Particle&&instance.startTime<state.time&&
+            !effectplay::ParticleNext(instance.spawn,state.realTime))
+            Com_Error(ERR_DROP,"Invalid Academy effects particle motion");
     std::vector<std::size_t> emitters;
     for(std::size_t n=0;n<state.instances.size();++n)
         if(state.instances[n].active&&state.instances[n].spawn.kind==effects::Kind::Emitter)emitters.push_back(n);
@@ -416,6 +475,7 @@ static void CL_JKACgameEffectDrawScheduled(bool portal) {
     if(portal)return;
     CL_JKACgameEffectRetire(state);
     state.drawWork.clear();
+    CL_JKACgameEffectRunScheduled(state);
     bool active=false;for(const auto &instance:state.instances)active|=instance.active;
     if(!active)return;
     CL_JKACgameEffectAdvance(state);
@@ -426,9 +486,9 @@ static void CL_JKACgameEffectDrawScheduled(bool portal) {
     const float nearDistance=state.nearCull?state.nearCull->value:16.0f;
     if(!effectplay::Finite(nearDistance)||nearDistance<0||nearDistance>4096)Com_Error(ERR_DROP,"Invalid Academy effects near-cull setting");
     effectplay::Vector eye{};std::memcpy(eye.data(),view.vieworg,sizeof(view.vieworg));
-    for(const auto &instance:state.instances){
+    for(auto &instance:state.instances){
         if(!instance.active)continue;
-        const auto &spawn=instance.spawn;
+        auto &spawn=instance.spawn;
         const int age=static_cast<int>(std::int64_t(state.time)-instance.startTime);
         // An emitter without a model draws nothing (0x4038f0); a Light is
         // never culled (0x403f90 has no cull test).
@@ -437,10 +497,15 @@ static void CL_JKACgameEffectDrawScheduled(bool portal) {
         if(spawn.kind!=effects::Kind::Line&&spawn.kind!=effects::Kind::Light&&distance<double(nearDistance)*nearDistance)continue;
         state.drawWork.emplace_back();auto &draw=state.drawWork.back();draw.shader=spawn.shader;
         if(spawn.kind==effects::Kind::Particle){
-            draw.entity.reType=RT_SPRITE;draw.entity.customShader=spawn.shader;draw.entity.radius=spawn.size;draw.entity.rotation=spawn.rotation;
+            // A visible particle updates its curves and rotation, then
+            // draws (0x401a1b..0x401a36).
+            effectplay::Look look;
+            if(!effectplay::ParticleRotate(spawn,state.frameTime)||!effectplay::ParticleLook(spawn,state.time,instance.startTime,look))
+                Com_Error(ERR_DROP,"Invalid Academy effects particle curve");
+            draw.entity.reType=RT_SPRITE;draw.entity.customShader=spawn.shader;draw.entity.radius=look.radius;draw.entity.rotation=spawn.rotation;
             // No FX_SET_SHADER_TIME control is served; retain measured0.
             std::memcpy(draw.entity.origin,spawn.origin.data(),sizeof(vec3_t));
-            std::memcpy(draw.entity.shader.rgba,spawn.color.data(),4);
+            std::memcpy(draw.entity.shader.rgba,look.rgba.data(),4);
         }else if(spawn.kind==effects::Kind::Light){
             // CLight 0x403f50: origin, size curve as radius, RGB. Fn's dynamic
             // light path supplies per-pixel lighting and shadows.
@@ -510,10 +575,11 @@ static void CL_JKACgameEffectDrawScheduled(bool portal) {
     for(const auto &draw:state.drawWork)if(draw.light&&!re.AddLightToScene)
         Com_Error(ERR_DROP,"Academy Fn effects light service is unavailable");
     // Retail fx_debug (0x40f3b2..0x40f40b) prints its active, drawn and
-    // scheduled counts each normal pass; no delayed spawn is served here.
+    // scheduled counts each normal pass.
     if(state.debug&&state.debug->integer){
         int count=0;for(const auto &instance:state.instances)count+=instance.active;
-        Com_Printf("Active    FX: %i\nDrawn     FX: %i\nScheduled FX: %i\n",count,int(state.drawWork.size()),0);
+        Com_Printf("Active    FX: %i\nDrawn     FX: %i\nScheduled FX: %i\n",count,int(state.drawWork.size()),int(state.scheduled.size()));
+        if(state.scheduleDropped)Com_Printf("Dropped   FX: %i (Fn schedule bound)\n",int(state.scheduleDropped));
     }
     for(const auto &draw:state.drawWork){
         if(draw.light)re.AddLightToScene(draw.entity.origin,draw.radius,draw.color[0],draw.color[1],draw.color[2]);

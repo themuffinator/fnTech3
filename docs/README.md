@@ -81,6 +81,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Jedi Academy local play blockers](fntech3/2026-10-15-jka-play-blockers.md)
   -- animation clips that end, and the spawn shield's distortion copy,
   answered as the original engine answers them.
+- [Jedi Academy particle dynamics](fntech3/2026-10-15-jka-particle-dynamics.md)
+  -- the torch fire on `mp/ffa2`: shader lists, particle motion, curves,
+  delays and the `glow` shader keyword, measured in retail.
 - [October 9 compatibility integration](fntech3/2026-10-09-compatibility-integration.md)
   -- resumed Alice and Elite Force work, shared-tree validation, and probe
   evidence and limits for the combined compatibility slices.

@@ -75,7 +75,7 @@ int main(int argc,char**){
  assert(!play::LineSide(invalid,{1,0,0},{0,1,0},side));
  for(const char *extra:{"spawnflags cheapOrg2Calc","spawnflags org2fromTrace traceImpactFx",
   "size\n{\nflags wave linear\n}","size\n{\nparm 10001\nflags wave\n}",
-  "origin2 20000 0 0","count 101","life 0","delay 1","flags depthHack"}){
+  "origin2 20000 0 0","count 101","life 0","delay 60001","flags depthHack"}){
   play::Spec old;old.shader=199;assert(!Compile(head+extra+"\n}\n",old));assert(old.shader==199);
  }
 }
