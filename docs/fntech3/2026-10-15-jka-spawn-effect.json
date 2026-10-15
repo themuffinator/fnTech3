@@ -1,0 +1,427 @@
+{
+ "record": "docs/fntech3/2026-10-15-jka-spawn-effect.md",
+ "date": "2026-10-15",
+ "profiles": [
+  "jka-mp"
+ ],
+ "baseHead": "9a15b30e1bd85fb4ac3edb59a7dcbfa35e35c288",
+ "workingTreeChanges": true,
+ "claim": "Compatibility slice only; no gate closes.",
+ "platform": "Windows 11, MSVC 2022 x86 (meson/build/win32-dev, strict warnings), clang i686-pc-windows-msvc for fixtures",
+ "runtime": {
+  "folder": ".tmp/runtime/jka-spawn-effect",
+  "sha256": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "b04575684b0ef882c0d0cc8831c637fe827b775a7e98bb5b3be10938910baf28",
+   "fnql_rtx_x86.dll": "75dc67e6834bb57f138e39f4f9cab2260b2cd2c4c7fd6545ddc1ff3a32d502df",
+   "fnql_vk_x86.dll": "4be718739546c649926c296781bc683d2b662f529944498e2465f7931e2f8d54",
+   "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+   "fntech3.exe": "2467cd042433820f89e353f4b8dbe6b619532ee7c37e6170bdae85b4546376c7",
+   "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+  },
+  "built_from": "shared working tree (includes other sessions' uncommitted Alice renderer work)",
+  "note": "fntech3.exe was rebuilt after the last source change except the record-name comment in jka_effect_play.hpp"
+ },
+ "retail": {
+  "jamp.exe": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+  "pakMembers": {
+   "assets1.pk3:effects/env/beam_bolts.efx": "15a689e476d0d12f468db66f0d8d03e97a8edade3d5ba29841d48b0cf7e70b62",
+   "assets1.pk3:effects/env/beam_lights.efx": "6e74de9ad70eac63f15aaa9524af05e7d24ab7c00e64e1f8ac57b189c4a3b4f4",
+   "assets1.pk3:effects/mp/itemcone.efx": "9cabb511bb53e39c0a1815bbee9eb290485862b025d3f7f44cf39d8a11b237bd",
+   "assets1.pk3:effects/mp/jedispawn.efx": "dcf54faa3e59434d5b0892265ac51e3b663ad92fcd9a031f741b17328349eb74",
+   "assets1.pk3:effects/mp/spawn.efx": "d1f3a0bbc47fcf82a698a4a80ef374c0684036e82065c1afafafded0cc8cbf8a",
+   "assets3.pk3:cgamex86.dll": "e5d5525829bfcaf3c0428d87fe804e5a46a75dcf0a141f8288061a3970ff140d"
+  },
+  "installation": "E:/Games/Jedi Academy (read-only)",
+  "measuredRoutines": {
+   "primitiveTypes": "0x406a53..0x406ba6",
+   "flags": "0x40d2ad..0x40d4b7",
+   "spawnflags": "0x40d5ed..0x40d78e",
+   "curveFlags": "0x40cb10",
+   "intensity": "0x40cd90 (also ORs usePhysics 0x2000000)",
+   "count": "0x4072b1..0x4073ba",
+   "createEffect": "0x407c40, type switch 0x409887",
+   "velocity": "0x408739..0x4089f0",
+   "tracedEndpoints": "0x408f39..0x4093e2",
+   "fxRunner": "0x40b11e",
+   "light": "0x40b155 -> 0x410960; update 0x403f90; draw 0x403f50; size 0x4040a0",
+   "electricity": "0x40a16e -> 0x40fae0; init 0x402b60; draw 0x402c10; size 0x401e50",
+   "emitter": "0x40a7bc -> 0x410550; update 0x403c30; origin 0x401a50; walk 0x4038f0; angles 0x403e90; vectoangles 0x4435e0",
+   "primitivePass": "0x40f320 (1800 slots, slot search 0x40f2c0)"
+  },
+  "cgameDistortion": {
+   "module": "assets3.pk3:cgamex86.dll",
+   "cvar": "cg_renderToTextureFX default 1",
+   "gates": [
+    "0x3004a719",
+    "0x3004daf5"
+   ],
+   "renderfx0x2400Sites": [
+    "0x3004a98a",
+    "0x3004db31"
+   ]
+  }
+ },
+ "tests": {
+  "new": "tests/jka_spawn_effect_tests.py (3 tests, plain and -ffast-math)",
+  "updated": [
+   "tests/jka_effect_play_tests.py",
+   "tests/jka_line_effect_tests.py",
+   "tests/jka_cgame_effects_tests.py"
+  ],
+  "result": {
+   "export": "HEAD 9a15b30e plus this slice only; 1541 targets built with strict warnings (-j 4)",
+   "mesonSuite": {
+    "ok": 265,
+    "fail": 0,
+    "skipped": 2
+   },
+   "releasePackaging": {
+    "passed": 48,
+    "skipped": 1,
+    "reason": "symlink privilege"
+   },
+   "relatedPython": {
+    "files": 22,
+    "passed": 75,
+    "subtests": 38,
+    "where": [
+     "export",
+     "shared tree"
+    ]
+   }
+  }
+ },
+ "harness": ".tmp/jka-emitter/live/listen.py (copy of .tmp/round-2026-10-14/jka-saber-menu/listen.py with JKA_SHOTS, JKA_SHOT_WAIT, JKA_FIRST_WAIT)",
+ "baseSettings": "com_gameProfile jka-mp, windowed 1024x768, net_ip 127.0.0.1, s_initsound 0, cg_thirdPerson 1, sv_pure 0, g_gametype 0, +devmap mp/ffa1, private desktop, no input",
+ "runs": {
+  "glx-1": {
+   "renderer": "glx",
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "commands": [
+    "cmd team free",
+    "wait 120",
+    "ui_openmenu none"
+   ],
+   "captures": 0,
+   "errors": [
+    "ERROR: Jedi Academy cgame unsupported Raven renderer entity flags (type=0, flags=0x2400)"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "runtimeExe": "b9684e8f02090cb9f06447c339a26d546e0b7029d23cf71911e0eedeb1d09827",
+   "plays": null,
+   "captureSha256": null,
+   "note": "before the distortion workaround: refused on renderfx 0x2400 (the Emitter no longer refuses)"
+  },
+  "glx-2": {
+   "renderer": "glx",
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "commands": [
+    "set cg_renderToTextureFX 0",
+    "cmd team free",
+    "wait 120",
+    "ui_openmenu none"
+   ],
+   "captures": 10,
+   "errors": [
+    "ERROR: Academy cgame bolt pose is outside its served hierarchy/animation boundary (model=models/players/kyle/model.glm, index=0, bolt=6, clock=13522) [bone=0 clip=14651..14653 flags=0x90 speed=1 start=966 blend=966/100 k"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "runtimeExe": "b9684e8f02090cb9f06447c339a26d546e0b7029d23cf71911e0eedeb1d09827",
+   "plays": null,
+   "captureSha256": null,
+   "note": "cg_renderToTextureFX 0: in play, then the Kyle bolt-pose refusal"
+  },
+  "glx-3": {
+   "renderer": "glx",
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "commands": [
+    "set cg_renderToTextureFX 0",
+    "set cl_menuBlur 0",
+    "timescale 0.1",
+    "cmd team free",
+    "ui_openmenu none"
+   ],
+   "captures": 24,
+   "errors": [
+    "ERROR: Academy effects owned lifetime pool is full"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "runtimeExe": "b9684e8f02090cb9f06447c339a26d546e0b7029d23cf71911e0eedeb1d09827",
+   "plays": null,
+   "captureSha256": null,
+   "note": "timescale 0.1, earlier binary: pool exhaustion error, since replaced by eviction"
+  },
+  "glx-diag-1": {
+   "renderer": "glx",
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "commands": [
+    "set cg_renderToTextureFX 0",
+    "set cl_menuBlur 0",
+    "set fx_debug 2",
+    "timescale 0.1",
+    "cmd team free",
+    "ui_openmenu none"
+   ],
+   "captures": 2,
+   "errors": [
+    "ERROR: Academy effects owned lifetime pool is full"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "runtimeExe": "1cef787445680c476d507d819f0e99369be7ce3c9923e0f58f9a3e64d49c8ae3",
+   "plays": {
+    "effects/mp/spawn.efx": 1
+   },
+   "captureSha256": null,
+   "note": "fx_debug 2: effects/mp/itemcone.efx replayed every frame per item filled the pool"
+  },
+  "glx-normal": {
+   "renderer": "glx",
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "commands": [
+    "set cg_renderToTextureFX 0",
+    "set cl_menuBlur 0",
+    "cmd team free",
+    "wait 120",
+    "ui_openmenu none"
+   ],
+   "captures": 10,
+   "errors": [
+    "ERROR: Academy cgame bolt pose is outside its served hierarchy/animation boundary (model=models/players/kyle/model.glm, index=0, bolt=6, clock=13517) [bone=0 clip=14651..14653 flags=0x90 speed=1 start=973 blend=973/100 k"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "runtimeExe": "2467cd042433820f89e353f4b8dbe6b619532ee7c37e6170bdae85b4546376c7",
+   "plays": null,
+   "captureSha256": null,
+   "note": "final binary, normal speed: ten captures in play, then the Kyle bolt-pose refusal"
+  },
+  "glx-evidence": {
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "commands": [
+    "set cg_renderToTextureFX 0",
+    "set cl_menuBlur 0",
+    "set cg_draw2D 0",
+    "set cg_thirdPersonRange 140",
+    "set cg_thirdPersonAngle 180",
+    "set cg_thirdPersonPitchOffset -30",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "timescale 0.1",
+    "cmd team free",
+    "ui_openmenu none"
+   ],
+   "captures": 16,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "runtimeExe": "2467cd042433820f89e353f4b8dbe6b619532ee7c37e6170bdae85b4546376c7",
+   "plays": {
+    "effects/mp/spawn.efx": 1,
+    "nested effects/env/beam_lights.efx": 9,
+    "nested effects/env/beam_bolts.efx": 1
+   },
+   "captureSha256": {
+    "jka-listen-00.png": "3da2cdb13e263ebd8b0330ae16f7a204521386ad126e03023252657c978bffea",
+    "jka-listen-01.png": "296a41d1389a3c8ee1cb99b73f4fd07d9ff35d461d87a41e7a95258b5b8a167e",
+    "jka-listen-02.png": "d8324e89aa7625ba9473f7ac436477bb75dab2173e7a491ae7860d64be05a6d7",
+    "jka-listen-03.png": "41243806e6f8b9f48715efbae70bf80fc5a851604ab53eafd276396f0a057a4d",
+    "jka-listen-04.png": "502166d368e75eecea6330be24e9956acc62b3bd5bf67ab0eb92fc1945e48430",
+    "jka-listen-05.png": "775d6447181af32fc6402464bea3e207a49193cfeb4dfae413a9f532860bc0c8",
+    "jka-listen-06.png": "43115784ebfa9f75b9aa34fdf8e22bbc26d727abe1767c8fd77fcf03b0dddae9",
+    "jka-listen-07.png": "5e7c2a30ad4dbd2f631a7fd71047ad2d426b1059c38c329036a25f80219e16d9",
+    "jka-listen-08.png": "6b9541fa2fad22f21bca35526b2c74e1450eb8ec19561e578253ed1bc6090eeb",
+    "jka-listen-09.png": "ad582fe0c6e002158671aebea1dfc999dea8555fee25fbff9fd100d067296438",
+    "jka-listen-10.png": "4eb1131ed4b7bb5ad7bd9b33e42dca8f337a854a16a567814afac1e33655fbee",
+    "jka-listen-11.png": "5ec80af4dcbd9a35bdd581f05b3484fc31baaab09c14bc408ebabfd44df4499a",
+    "jka-listen-12.png": "6fefa9a52a82bc0af8e8ecc0fb83fabe7eefa40dc8388cd14577539d61b5dffd",
+    "jka-listen-13.png": "6f537b5f49f2d64289f238cee47614474771e7b4402654ced50a5c1bb6f5c09c",
+    "jka-listen-14.png": "2f713c12c6ab06dd6e8ce2113d420dc1f0c4faea02160ca426a536059acaa3f8",
+    "jka-listen-15.png": "c88034a42bdef77356e647d98c88e82a85f3624e5e08cc6dde6b47b0c875c1cc"
+   },
+   "note": "final evidence run"
+  },
+  "vk-evidence": {
+   "renderer": "vk",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "commands": [
+    "set cg_renderToTextureFX 0",
+    "set cl_menuBlur 0",
+    "set cg_draw2D 0",
+    "set cg_thirdPersonRange 140",
+    "set cg_thirdPersonAngle 180",
+    "set cg_thirdPersonPitchOffset -30",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "timescale 0.1",
+    "cmd team free",
+    "ui_openmenu none"
+   ],
+   "captures": 16,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "runtimeExe": "2467cd042433820f89e353f4b8dbe6b619532ee7c37e6170bdae85b4546376c7",
+   "plays": {
+    "effects/mp/spawn.efx": 1,
+    "nested effects/env/beam_lights.efx": 6,
+    "nested effects/env/beam_bolts.efx": 2
+   },
+   "captureSha256": {
+    "jka-listen-00.png": "117e905d2c008a69d9441d50a48187f588bfae69f83217eb220439a5075bbebd",
+    "jka-listen-01.png": "ec5b723ad6bf9fa0bedae385f98426abc9ae2c60e0782f8b418072e3a422b72d",
+    "jka-listen-02.png": "6fcba2c0708f17e9bbdb62d1d6c9d912ded61b96f8a7a8617e83da4a75b5c22e",
+    "jka-listen-03.png": "8d66d0f450c4c3cd5a4ba9696930493ba0346781736e304ce4c0cbc717132f9b",
+    "jka-listen-04.png": "2c27bbdb892c2fd063ee359b2e2c8a20aa09a163d3b22aaf192d3bfc45acb171",
+    "jka-listen-05.png": "e88b3727fa9305d75a3238e9f1cdef6b030c2efaa31e2ef8f53f87e30c9f851e",
+    "jka-listen-06.png": "e5729abe29ad1f539179d6d2aacc76d9e80f58c098d16776b0e8cd94361e13b6",
+    "jka-listen-07.png": "154c5d6073b6a4e9a2262ee041acb042c407acfa69233f0a64a9ad8693ec68eb",
+    "jka-listen-08.png": "f217ce1b86ffe899f6fcbd5900e190b97daf75293c6c070b06877cb9a676503a",
+    "jka-listen-09.png": "4d04f241d11d64feffbfc439a2179a47a9d119918327facafa8d0efab16b3e06",
+    "jka-listen-10.png": "dfc059a409bd8d7a48045b9b198c10a779d6932b2c5c476039edc323ea473539",
+    "jka-listen-11.png": "168eb2e3233534745524d320bc8cc69aaf1e9d70f20f3bb4f79725dda78f9d0c",
+    "jka-listen-12.png": "6112bc766eafb140e631d0b8f1b52fce3486aa45236ddb33a20b89ee4b0ecf4b",
+    "jka-listen-13.png": "a290e8d426ffd3b36dfc1d30369a5a934367d530a4c0a56d054873c823bd1d8a",
+    "jka-listen-14.png": "ef4a0c769a59f3f3306e7f3f3ac6c3ce52bd7baf30a0132267feb5e587cbbc3a",
+    "jka-listen-15.png": "584ad236c5c61f8139f0a9ab7eec983dc4185ad3b9913d951df553a8a7714cc8"
+   },
+   "note": "final evidence run"
+  },
+  "rtx-evidence": {
+   "renderer": "rtx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "commands": [
+    "set cg_renderToTextureFX 0",
+    "set cl_menuBlur 0",
+    "set cg_draw2D 0",
+    "set cg_thirdPersonRange 140",
+    "set cg_thirdPersonAngle 180",
+    "set cg_thirdPersonPitchOffset -30",
+    "set fx_debug 2",
+    "set con_notifytime 0",
+    "timescale 0.1",
+    "cmd team free",
+    "ui_openmenu none"
+   ],
+   "captures": 16,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "runtimeExe": "2467cd042433820f89e353f4b8dbe6b619532ee7c37e6170bdae85b4546376c7",
+   "plays": {
+    "effects/mp/spawn.efx": 1,
+    "nested effects/env/beam_lights.efx": 4
+   },
+   "captureSha256": {
+    "jka-listen-00.png": "f3988b8bc155014d91970d9177a00a960eef339e8bdf6738ed798ca00b783abb",
+    "jka-listen-01.png": "ce36831f58325082d8f713fe8d72d9b1def7d319866450729ddb29e59151b32c",
+    "jka-listen-02.png": "ddf2abbd7e897d9f353c1ced390764517f557ec74807c1747deeb6caff8ae632",
+    "jka-listen-03.png": "38bea8ed34c72b0dd427c5b5e55ff943c6ee557964571bf51f372712bc87f3a9",
+    "jka-listen-04.png": "3a153ed644d4086dee0d31c60e5689bc26c10c0e599a1280a3dffaec4c52c2e0",
+    "jka-listen-05.png": "85949f32fd787332a8fd3b0fa634dfd6aedcc868efe30a2cd6cc951eece14428",
+    "jka-listen-06.png": "b2396a6fc32c4ca1a3f6986d38fe56e48ac3ce608cfbc671fe071e94ed307547",
+    "jka-listen-07.png": "af06cc69f5ee2c21c7646d62184bd3d0a401685ae5d71ec473959996a963acd0",
+    "jka-listen-08.png": "130a54b81644fffa5ab2e92b53003db6f62b71bcb00d8faca9a4ecee98d244f1",
+    "jka-listen-09.png": "91680bfa5e6627e594183134a88f102e8d681b92c6d98ca15ee84b544ad76285",
+    "jka-listen-10.png": "2d02bcb4c064b959be1a088503924fee4a4fef05963d72373e69009cdf9c743b",
+    "jka-listen-11.png": "b3c6deaaa48b93de15d94df7d0ee62d26c9cf3fb51b99920bc6640454b80d4fe",
+    "jka-listen-12.png": "0f0b20faabdec0584094cb7f7a89fe998ec88fa591fe8294b9431ba5d16832a1",
+    "jka-listen-13.png": "991b0d75084034b93aa9613ed6312cfdd1c55446c7a39174ecd4e59a72ec35c7",
+    "jka-listen-14.png": "a8616630601f6265bd556140e1b0521d3c31ea45f4c205dae22fb91eda6a0fcd",
+    "jka-listen-15.png": "a641502fda002aacd7d10c987a3db1b7f20eee0980e2b3cc928324531756cd75"
+   },
+   "note": "final evidence run"
+  },
+  "glx-diag-4": {
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "commands": [
+    "set cg_renderToTextureFX 0",
+    "set cl_menuBlur 0",
+    "set g_spawnInvulnerability 0",
+    "set cg_thirdPersonRange 260",
+    "set cg_thirdPersonPitchOffset -25",
+    "set fx_debug 3",
+    "set con_notifytime 0",
+    "timescale 0.1",
+    "cmd team free",
+    "ui_openmenu none"
+   ],
+   "captures": 12,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "runtimeExe": "a8469d0bead3ba2cfedd9d67aad0c97828d987336e398fe6c126aee6395e9cb6",
+   "plays": {
+    "effects/mp/spawn.efx": 1,
+    "nested effects/env/beam_lights.efx": 7,
+    "nested effects/env/beam_bolts.efx": 2
+   },
+   "captureSha256": null,
+   "note": "diagnostic build with a temporary per-instance trace (not part of the source)"
+  },
+  "glx-tris-1": {
+   "renderer": "glx",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "commands": [
+    "set cg_renderToTextureFX 0",
+    "set cl_menuBlur 0",
+    "set cg_thirdPersonRange 260",
+    "set cg_thirdPersonPitchOffset -25",
+    "set fx_debug 3",
+    "set con_notifytime 0",
+    "set r_showtris 1",
+    "timescale 0.1",
+    "cmd team free",
+    "ui_openmenu none"
+   ],
+   "captures": 4,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "runtimeExe": "a8469d0bead3ba2cfedd9d67aad0c97828d987336e398fe6c126aee6395e9cb6",
+   "plays": {
+    "effects/mp/spawn.efx": 1,
+    "nested effects/env/beam_lights.efx": 4
+   },
+   "captureSha256": null,
+   "note": "diagnostic build, r_showtris 1: Line quads drawn through the player"
+  }
+ },
+ "fnFeatures": {
+  "light": "RE_AddLightToScene (Fn dynamic lights: per-pixel, shadow-eligible) in GLx, Vulkan and RTX",
+  "electricity": "Fn-authored seeded jagged polygon strips (16 segments, two branches when forked) through AddPolyToScene",
+  "emitter": "no draw without a model",
+  "retailExactOption": null
+ },
+ "openBlockers": [
+  "Raven renderfx 0x2000 distortion (invulnerability sphere copy while cg_renderToTextureFX is on)",
+  "Kyle Ghoul2 bolt pose (bone 52, unknown clip) about 12.5 s into play",
+  "no capture isolates Line or Electricity appearance"
+ ]
+}

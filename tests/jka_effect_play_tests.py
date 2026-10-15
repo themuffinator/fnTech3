@@ -95,16 +95,23 @@ int main(){
  std::uint32_t nan=0x7fc00001;std::memcpy(&fxVariables[2].value,&nan,4);Reject([&]{Draw();});fxVariables[2].value=16;
  // Malformed/unsupported declarations refuse before publishing any primitive.
  const auto baseline=Active();
- for(const char *field:{"velocity 1 0 0","count 2","life 0","delay 1"}){
+ for(const char *field:{"velocity 1 0 0","count 101","life 0","delay 1"}){
   assets["effects/own/bad.efx"]=std::string("particle\n{\nshader gfx/own/bad\n")+field+"\n}\n";
   CL_JKACgameEffectsFree();const auto bad=Register("own/bad");args[1]=bad;
   Reject([&]{InvokePlayback(args);});assert(!Active());
  }
  assert(baseline==6);CL_JKACgameEffectsFree();args[1]=Register("own/visual");
  assert(InvokePlayback(args)==0&&Active()==6);
- // Exhaustion never publishes part of the next effect.
+ // A full pool evicts the owned instances nearest their end, as retail's
+ // slot search (0x40f2c0) makes room rather than refusing.
  const auto seed=jkaCgameEffects->instances[0];for(auto &instance:jkaCgameEffects->instances)instance=seed;
- assert(Active()==1800);Reject([&]{InvokePlayback(args);});assert(Active()==1800);
+ for(int n=100;n<106;++n)jkaCgameEffects->instances[n].startTime=599;
+ for(int n=200;n<206;++n)jkaCgameEffects->instances[n].spawn.life=5000;
+ assert(Active()==1800);assert(InvokePlayback(args)==0&&Active()==1800);
+ // The six ending soonest made the room; the long-lived six survive.
+ for(const auto &instance:jkaCgameEffects->instances)assert(instance.active&&instance.startTime==600);
+ for(int n=200;n<206;++n)assert(jkaCgameEffects->instances[n].spawn.life==5000);
+ for(auto &instance:jkaCgameEffects->instances)instance.spawn.life=50;
  Frame(651);Draw();assert(!Active());
  Frame(700);assert(InvokePlayback(args)==0&&Active()==6);
  renderDrop=true;recover=jumpRecovery=true;

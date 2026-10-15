@@ -2373,6 +2373,21 @@ complete installed-effect support. SP flag mirrors now reflect current
 engine flags while isolating Academy's save bit. Renderer text and shared
 UI viewport validation are also hardened. No gate closes.
 
+The [spawn-effect slice](2026-10-15-jka-spawn-effect.md) (2026-10-15)
+serves the installed spawn effect's Emitter and its Light, FxRunner and
+Electricity dependencies, measured in retail `jamp.exe` 1.01 (CreateEffect
+`0x407c40`, the emitter's motion and emission walk `0x403c30`/`0x4038f0`,
+the count rule `0x4072b1`). Lights enter Fn's dynamic lights and bolts are
+Fn-authored polygon strips. A full effects pool now evicts, as retail's
+never refuses. A local `mp/ffa1` join reaches play in GLx, Vulkan and RTX;
+with `timescale 0.1` each runs to its scripted end with the emitter
+climbing, shedding lights and throwing traced bolts, and the teal light is
+visible in the captures (Source, Unit, Live subset). With
+`cg_renderToTextureFX` at its retail default the invulnerability sphere's
+distortion copy (renderfx `0x2000`) still refuses, and at normal speed play
+stops about 12.5 s in on Kyle's Ghoul2 bolt pose. No capture isolates a
+Line's or bolt's appearance. No gate closes.
+
 Star Wars Jedi Knight: Jedi Academy is the sixth title, with two mode profiles
 over one `base/` installation: `jka-sp` for Raven's single-player campaign and
 `jka-mp` for multiplayer. The [foundation record](2026-09-21-jka-contracts.md)

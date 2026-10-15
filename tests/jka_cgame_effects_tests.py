@@ -86,9 +86,11 @@ static qhandle_t RegisterModel(const char *name){
 // call in this registration/lifecycle fixture must fail.
 static void AddEffectEntity(const refEntity_t *,qboolean){assert(false);}
 static void AddEffectPolys(qhandle_t,int,const polyVert_t *,int){assert(false);}
+static void AddEffectLight(const vec3_t,float,float,float,float){assert(false);}
 static struct {decltype(&RegisterShader) RegisterShader;decltype(&RegisterModel) RegisterModel;
- decltype(&AddEffectEntity) AddRefEntityToScene;decltype(&AddEffectPolys) AddPolyToScene;}
- re{RegisterShader,RegisterModel,AddEffectEntity,AddEffectPolys};
+ decltype(&AddEffectEntity) AddRefEntityToScene;decltype(&AddEffectPolys) AddPolyToScene;
+ decltype(&AddEffectLight) AddLightToScene;}
+ re{RegisterShader,RegisterModel,AddEffectEntity,AddEffectPolys,AddEffectLight};
 sfxHandle_t S_RegisterSound(const char *name,qboolean compression){
  assert(!compression);sounds.emplace_back(name);if(mediaDrop==3)Com_Error(ERR_DROP,"sound failure");
  return silent?0:static_cast<sfxHandle_t>(300+sounds.size());
