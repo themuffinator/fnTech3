@@ -32,6 +32,16 @@ typedef struct {
     int32_t skipEntity, mask;
 } fntech3_jka_cgame_trace_t;
 
+/* Retail jamp.exe 0x40c560 writes this shared record for CreateEffect's
+ * CameraShake case (0x40b2ca) then invokes cgame export 31; retail
+ * cgamex86.dll 0x3004281c passes its four fields to the client game's own
+ * view shake (0x30062c70). */
+typedef struct {
+    float origin[3];
+    float intensity;
+    int32_t radius, time;
+} fntech3_jka_cgame_camera_shake_t;
+
 typedef struct {
     int32_t stringOffsets[FNTECH3_JKA_MAX_CONFIGSTRINGS];
     char stringData[FNTECH3_JKA_MAX_GAMESTATE_CHARS];
@@ -105,6 +115,10 @@ static_assert(offsetof(fntech3_jka_cgame_trace_t,maxs)==72);
 static_assert(offsetof(fntech3_jka_cgame_trace_t,end)==84);
 static_assert(offsetof(fntech3_jka_cgame_trace_t,skipEntity)==96);
 static_assert(offsetof(fntech3_jka_cgame_trace_t,mask)==100);
+static_assert(sizeof(fntech3_jka_cgame_camera_shake_t)==24);
+static_assert(offsetof(fntech3_jka_cgame_camera_shake_t,intensity)==12);
+static_assert(offsetof(fntech3_jka_cgame_camera_shake_t,radius)==16);
+static_assert(offsetof(fntech3_jka_cgame_camera_shake_t,time)==20);
 static_assert(sizeof(fntech3_jka_mp_orientation_t) == 48);
 static_assert(offsetof(fntech3_jka_mp_orientation_t, origin) == 0);
 static_assert(offsetof(fntech3_jka_mp_orientation_t, axis) == 12);

@@ -533,6 +533,12 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   mode, and the concussion rifle now plays its muzzle flash and sound when
   fired, though the match still stops when the shot reaches the server
   ([weapon fire details](fntech3/2026-10-15-jka-weapon-fire.md)).
+  Muzzle flashes and explosions now shake your view a little when they go
+  off right beside you, as in the original game: a test match has played
+  the muzzle flashes of eight guns this way. A fired Bryar pistol now shows
+  its whole muzzle flash, though the match still stops when the shot
+  reaches the server, and at once in first-person view
+  ([shake details](fntech3/2026-10-15-jka-camera-shake.md)).
   Longer matches, most other maps and fighting have not been checked yet
   ([spawn effect details](fntech3/2026-10-15-jka-spawn-effect.md)). The
   open-source OpenJK engine's client joins fnTech3's server. A lightsaber's

@@ -1,0 +1,1500 @@
+{
+ "record": "docs/fntech3/2026-10-15-jka-camera-shake.md",
+ "date": "2026-10-15",
+ "profiles": [
+  "jka-mp"
+ ],
+ "baseHead": "750f070f (sweep, main runtime); aa0e7049 (fire runtime); committed on aa0e7049",
+ "claim": "Compatibility slice only; no gate closes.",
+ "platform": "Windows 11, MSVC 2022 x86 (win32-dev options, strict warnings), clang i686-pc-windows-msvc for fixtures",
+ "runtime": {
+  "fireFolder": ".tmp/runtime/jka-camera-shake-fire",
+  "fireSha256": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "fbbec41ca3b35f4e5f16a8a78ee3bd71e5a616fc320203f4e6f4714199591580",
+   "fnql_vk_x86.dll": "4ec5f42afe06448f9116b81563fa75218c49d11b97b6e2fc0d78704fce006784",
+   "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+   "fntech3.exe": "1d81ab1c8502a5e4aa5034c16e477974e17e3b5c6ee0a210cb3b56c720bf2446",
+   "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+  },
+  "fireBuiltFrom": "the same export rebuilt on HEAD aa0e7049 (the weapon-fire slice) plus this slice",
+  "folder": ".tmp/runtime/jka-camera-shake",
+  "sha256": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "defb5e76ce39f616be5703d177039b9495bebb9bf8cb057a0b2efa98f3c3c765",
+   "fnql_vk_x86.dll": "1a5e232d1b5e7377287016feeaa3f56f29c3e94ea510606d820652d0bfe4fdc6",
+   "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+   "fntech3.exe": "a747a9c62b5088cd35b10e056ed7b025f920d50233c8a81639fcf70151008daa",
+   "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+  },
+  "builtFrom": "checkout of a temporary index holding HEAD 750f070f plus this slice (tree 14224415032ef9e5d0ee3117dbacbb14dd5ae6ce), configured with win32-dev's options (--wrap-mode=nodownload, strict warnings, debugoptimized), meson compile -j 4 in .tmp/jka-camshake/export/build; soft_oal.dll is the OpenAL Soft 1.25.2 x86 copy used by earlier probes"
+ },
+ "retail": {
+  "jamp.exe": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+  "pakMembers": {
+   "assets0.pk3:maps/mp/ffa2.bsp": "31f2213300fa712d1a53e22d26e5d7b93a35d46c7f3e0eba6a8fd399129a8f0d",
+   "assets1.pk3:effects/blaster/altmuzzle_flash.efx": "89d74bfa3dde821077f8a47e9e78e988b68f58e481ae92c8275ce7752125f18d",
+   "assets1.pk3:effects/blaster/muzzle_flash.efx": "4462f9a3962f71c8600363e9216dcd0b5280f9818ec4691a4c6243da3e4a2f84",
+   "assets1.pk3:effects/bowcaster/altmuzzle_flash.efx": "26f686c2ad8d18b713026bd5031331b6083ab232e034437ce3b67aae68905a18",
+   "assets1.pk3:effects/bowcaster/muzzle_flash.efx": "e03f5a291d2d531bd2602747e7be646bdb0d37a684126adf5bdcd685ab5e37d1",
+   "assets1.pk3:effects/bryar/altmuzzle_flash.efx": "5f3e457c3ad84fbc8a17afef8631c6aac809f906c8ef35e8ec79785591dc9e72",
+   "assets1.pk3:effects/bryar/muzzle_flash.efx": "7c4c38439009fdcd11c4c47bcb4651d634badec9c6b1ac81d65b150ea8ad9576",
+   "assets1.pk3:effects/concussion/muzzle_flash.efx": "39645dd52e34a52e36b4c3aaf5588c7a2e3599c608cc7c3de8d3c203ec632f99",
+   "assets1.pk3:effects/demp2/altmuzzle_flash.efx": "2fe9e9c5decc663fea36c494dae01b20160d7fa21d99775cba527e90e6340768",
+   "assets1.pk3:effects/demp2/muzzle_flash.efx": "b3e1aec53a680f85b091729e9f3867c70008de13e272129d59ab0dd6262cd271",
+   "assets1.pk3:effects/disruptor/altmuzzle_flash.efx": "966503f05d5d96abcf8dec60a7dd2d805b0e43254ba6fb4f9fc9c2287ed2c8e3",
+   "assets1.pk3:effects/disruptor/muzzle_flash.efx": "abc16fd516d61d786ddef66f56cac15e198c52f561c381326124a1f664376e41",
+   "assets1.pk3:effects/explosions/explosion1.efx": "e779f6b35c1e8a4d32e0c42d286dedcf4ae773b5808ab94dbc63bda9c7b1668c",
+   "assets1.pk3:effects/flechette/altmuzzle_flash.efx": "a06b602f453556a14f414307425ed4d0db5bcc1622c264200cb744a8b0d495c2",
+   "assets1.pk3:effects/flechette/muzzle_flash.efx": "21ede0941b5dfca6c47cc41fabff1f14872970f0ae67d88effc2a7c7214abfb1",
+   "assets1.pk3:effects/repeater/altmuzzle_flash.efx": "b43cd6c5dbcfd1efe99f06c649b534885e4c7e4c362c8d19e87b0a51801b82b6",
+   "assets1.pk3:effects/repeater/muzzle_flash.efx": "81566d72886b1e26914675d1075fa8308801d0ec39887aaec5918a95385f50fc",
+   "assets1.pk3:effects/rocket/altmuzzle_flash.efx": "da2ec65cb547cdfa29ee32f7522582203b2033570cd5e359272492445adabdbb",
+   "assets1.pk3:effects/rocket/muzzle_flash.efx": "464840fd17be06b99b190b80b0d6104f31a0c7dbd59637dc71394d4bacff63cd",
+   "assets2.pk3:cgamex86.dll": "e613f0d0f99f7e4c8f7798d65ec15e299e08a9726b1d3d2c6114682e24e452af",
+   "assets3.pk3:cgamex86.dll": "e5d5525829bfcaf3c0428d87fe804e5a46a75dcf0a141f8288061a3970ff140d"
+  },
+  "installation": "E:/Games/Jedi Academy (read-only)",
+  "measuredRoutines": {
+   "cameraShakeCase": "jamp.exe 0x40b2ca..0x40b389 (switch table 0x40b5e8 indexed by family - 1; CameraShake is family 12, entry 11): life +0x3c/+0x40, radius +0xec/+0xf0, intensity +0x234/+0x238, each drawn by 0x444230 only when its ends differ; life and radius truncated by _ftol 0x539584; intensity kept as a float; 0x40c560(origin [esp+0x40] in ecx; 0x12d0850, intensity, radius, life)",
+   "publish": "jamp.exe 0x40c560: shared buffer [0xb25c98] +0 origin, +0xc intensity, +0x10 radius, +0x14 time; then 0x44ae90 (VM_Call) on cgvm [0x8af0fc] with export 0x1f; ret 0x10",
+   "exportDispatch": "cgamex86.dll vmMain 0x300425a0 table 0x30042854 entry 31 -> 0x3004281c: CG_DoCameraShake 0x30062c70(0x30740800, [+0xc], [+0x10], [+0x14])",
+   "doCameraShake": "cgamex86.dll 0x30062c70: dir = refdef.vieworg (0x306f9f7c) - origin; dist = VectorNormalize 0x30068d60; dist > radius returns; intensity *= 1 - dist/radius (1.0f at 0x3007d114); above 16.0f (0x30086088) it is 16; stores intensity 0x304fe268, duration 0x304fe26c, start = cg.time (0x306f9240) at 0x304fe270",
+   "updateShake": "cgamex86.dll 0x30062990(vieworg, viewangles), called once per frame at 0x30063b9e: duration <= 0 returns; past start + duration clears all three; FOV terms at 0x304fe260/0x304fe264 set to 90 so the factor is 1; scale = 1 - elapsed/duration; three draws ((rand 0x30072a36 & 0x7fff) / 32767 - 0.5) * 2 * intensity * scale added to the origin; two fresh draws added to pitch and yaw; roll receives the third origin draw",
+   "afterShake": "cgamex86.dll S_Respatialize (import 44 via 0x3005e550, called at 0x30063cf7) with the shaken refdef origin and axis; no cvar gates the shake",
+   "viewpos": "cgamex86.dll 0x30022390 prints \"%s (%i %i %i) : %i\" (0x300896b4) from refdef.vieworg and yaw, each truncated"
+  },
+  "muzzleFlashShakes": {
+   "effects/blaster/altmuzzle_flash.efx": "life 50 50 / intensity 0.3 0.4 / radius 60 60",
+   "effects/blaster/muzzle_flash.efx": "life 50 50 / intensity 0.3 0.4 / radius 60 60",
+   "effects/bowcaster/altmuzzle_flash.efx": "life 50 50 / intensity 0.4 0.4 / radius 60 60",
+   "effects/bowcaster/muzzle_flash.efx": "life 50 50 / intensity 0.4 0.4 / radius 60 60",
+   "effects/bryar/altmuzzle_flash.efx": "life 100 100 / intensity 1.4 1.4 / radius 60 60",
+   "effects/bryar/muzzle_flash.efx": "life 50 50 / intensity 0.2 0.3 / radius 60 60",
+   "effects/demp2/altmuzzle_flash.efx": "life 100 100 / intensity 0.5 0.6 / radius 60 60",
+   "effects/demp2/muzzle_flash.efx": "life 70 70 / intensity 0.4 0.5 / radius 60 60",
+   "effects/disruptor/altmuzzle_flash.efx": "life 50 50 / intensity 0.5 0.5 / radius 60 60",
+   "effects/disruptor/muzzle_flash.efx": "life 50 50 / intensity 0.3 0.4 / radius 60 60",
+   "effects/explosions/explosion1.efx": "life 300 400 / intensity 2 4 / radius 200 300",
+   "effects/flechette/altmuzzle_flash.efx": "life 150 150 / intensity 0.9 1.1 / radius 60 60",
+   "effects/flechette/muzzle_flash.efx": "life 100 100 / intensity 0.8 0.9 / radius 60 60",
+   "effects/repeater/altmuzzle_flash.efx": "life 150 200 / intensity 0.9 0.9 / radius 200 200",
+   "effects/repeater/muzzle_flash.efx": "life 50 50 / intensity 0.3 0.4 / radius 60 60",
+   "effects/rocket/altmuzzle_flash.efx": "life 120 120 / intensity 0.9 1.1 / radius 60 60",
+   "effects/rocket/muzzle_flash.efx": "life 150 150 / intensity 1 1.2 / radius 60 60"
+  }
+ },
+ "tests": {
+  "new": [
+   "tests/jka_camera_shake_tests.py (registered in meson.build as fntech3_jka_camera_shake)"
+  ],
+  "updated": [
+   "tests/jka_map_change_export_tests.py (export 31 reached only under jka-mp)",
+   "tests/jka_client_tests.cpp (CG_RAVEN_CAMERA_SHAKE maps to 31 with no arguments)",
+   "tests/jka_sp_vm_export_tests.py (fixture enum gains CG_RAVEN_CAMERA_SHAKE)"
+  ],
+  "result": "Full pytest suite on a checkout of HEAD 750f070f plus this slice (tree before this result was recorded): all passed or skipped for missing retail inputs except tests/mohaa_effect_submission_tests.py, whose temporary-directory cleanup was denied deleting its own fixture exe (PermissionError, a file lock); that file passes when run alone. The export build's fntech3_jka_client_tests and fntech3_jka_abi_layout_tests pass.\nOn the commit's own base, HEAD aa0e7049 (the weapon-fire slice) plus this slice: 15 related Python files (this slice's, the effects host and kernel files, the weapon-fire, ambient, VM export, docs-generation and release-packaging tests) passed 78 tests with 1 skipped for symlink privilege; that export also built fntech3.exe, the GLx and Vulkan renderers and the two Academy C++ tests, which pass."
+ },
+ "sweep": {
+  "tool": ".tmp/jka-camshake/sweep/run_sweep.py (both sides built with GROUPS_INERT); .tmp/jka-camshake/sweep/shake_only.cpp compiles every CameraShake primitive whatever precedes it",
+  "files": 376,
+  "servedHead": 247,
+  "servedNow": 290,
+  "newlyServed": 43,
+  "newlyServedFiles": [
+   "effects/atst/alt_muzzleflash.efx",
+   "effects/atst/main_muzzleflash.efx",
+   "effects/blaster/altmuzzle_flash.efx",
+   "effects/blaster/muzzle_flash.efx",
+   "effects/bowcaster/altmuzzle_flash.efx",
+   "effects/bowcaster/muzzle_flash.efx",
+   "effects/bryar/altmuzzle_flash.efx",
+   "effects/bryar/muzzle_flash.efx",
+   "effects/chunks/rockbreaklg.efx",
+   "effects/chunks/rockbreakmed.efx",
+   "effects/demp2/altmuzzle_flash.efx",
+   "effects/demp2/muzzle_flash.efx",
+   "effects/disruptor/altmuzzle_flash.efx",
+   "effects/disruptor/muzzle_flash.efx",
+   "effects/emplaced/muzzle_flash.efx",
+   "effects/env/ion_cannon.efx",
+   "effects/env/quake_small.efx",
+   "effects/env/quake_smaller.efx",
+   "effects/eweb/muzzle_flash.efx",
+   "effects/explosions/droidexplosion1.efx",
+   "effects/explosions/explosion1.efx",
+   "effects/explosions/explosion1_console.efx",
+   "effects/explosions/explosion2.efx",
+   "effects/flechette/altmuzzle_flash.efx",
+   "effects/flechette/muzzle_flash.efx",
+   "effects/noghri_stick/muzzle_flash.efx",
+   "effects/repeater/altmuzzle_flash.efx",
+   "effects/repeater/muzzle_flash.efx",
+   "effects/rocket/altmuzzle_flash.efx",
+   "effects/rocket/muzzle_flash.efx",
+   "effects/rocket/muzzle_flash2.efx",
+   "effects/ships/conc_muzzleflash.efx",
+   "effects/ships/imp_torpmuzzleflash.efx",
+   "effects/ships/reb_torpmuzzleflash.efx",
+   "effects/ships/sd_explosion.efx",
+   "effects/ships/swoop_blastermuzzleflash.efx",
+   "effects/ships/tiebomber_explosion2.efx",
+   "effects/sparks/spark_light.efx",
+   "effects/stunbaton/flesh_impact.efx",
+   "effects/turret/hoth_muzzle_flash.efx",
+   "effects/turret/turb_muzzle_flash.efx",
+   "effects/tusken/muzzle_flash.efx",
+   "effects/volumetric/t3_rift_steam1.efx"
+  ],
+  "newlyRefused": [],
+  "changedRefusal": [
+   "effects/emplaced/explode.efx",
+   "effects/explosions/hugeexplosion3.efx",
+   "effects/explosions/probeexplosion1.efx"
+  ],
+  "cameraShakePrimitives": "served 73 refused 0",
+  "remainingFirstRefusals": [
+   {
+    "count": 23,
+    "refusal": "REFUSE | Emitter | effects media is not served for this primitive family | Emitter"
+   },
+   {
+    "count": 21,
+    "refusal": "REFUSE | Light | effects curve controls are not served yet | flags"
+   },
+   {
+    "count": 21,
+    "refusal": "REFUSE | Decal | effects primitive family is not served yet | Decal"
+   },
+   {
+    "count": 6,
+    "refusal": "REFUSE | Cylinder | effects curve controls are not served yet | flags"
+   },
+   {
+    "count": 3,
+    "refusal": "REFUSE | OrientedParticle | effects flags are not served yet | OrientedParticle"
+   },
+   {
+    "count": 3,
+    "refusal": "REFUSE | Cylinder | effects curve controls are not served yet | parm"
+   },
+   {
+    "count": 2,
+    "refusal": "REFUSE | Cylinder | effects flags are not served yet | Cylinder"
+   },
+   {
+    "count": 2,
+    "refusal": "REFUSE | Cylinder | effects spawn controls are not served yet | Cylinder"
+   },
+   {
+    "count": 2,
+    "refusal": "REFUSE | Flash | effects primitive family is not served yet | Flash"
+   },
+   {
+    "count": 1,
+    "refusal": "REFUSE | Particle | effects flags are not served yet | Particle"
+   },
+   {
+    "count": 1,
+    "refusal": "REFUSE | Line | effects flags are not served yet | Line"
+   },
+   {
+    "count": 1,
+    "refusal": "REFUSE | Cylinder | effects curve controls are not served yet | parms"
+   }
+  ]
+ },
+ "harness": ".tmp/jka-camshake/listen.py (from .tmp/jka-sound/listen.py: net_enabled 0, own runtime, steps cfg, viewpos and camera-shake log capture); make_steps.py, make_ent.py, viewstats.py, shotshift.py",
+ "view": {
+  "setviewpos": "-2014 1536 90 180",
+  "settledEye": [
+   -2076,
+   1536,
+   127
+  ],
+  "yaw": 180,
+  "firstPerson": true,
+  "runnerArc": "behind the view, -60..60 degrees about +x, delays 300 + 37n ms"
+ },
+ "live": {
+  "identity": {
+   "fntech3.exe": "a747a9c62b5088cd35b10e056ed7b025f920d50233c8a81639fcf70151008daa",
+   "fnql_glx_x86.dll": "defb5e76ce39f616be5703d177039b9495bebb9bf8cb057a0b2efa98f3c3c765",
+   "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+  },
+  "inputs": {
+   "steps-calib.cfg": "9e5484e11df21a7eacfd54663227464cec41545ab78899dedc5236446a7c8c73",
+   "steps-fire.cfg": "eae8ce0de7cc2922ee288581b917d77dc5487423821130f7bc5a98859f3bf344",
+   "steps-fire3p.cfg": "a034c5f2fdebd2bb76b4bb5b09bd2542800cd248684ca45b5c9a9601992fac56",
+   "steps-sample.cfg": "76c1a19f6e1262dfbffc62e3ed9df919cd4fea5973bcfb1774938b6525d3df16",
+   "ffa2-control-near.ent": "06ba7cc904e1e08f60b850eb17087771be9658e12087e5ecc29fb14b3e8c29db",
+   "ffa2-explosion-near.ent": "39858106be314a4740d10d03117b366b07d49ca1f8745655aff93dc0dea4abaf",
+   "ffa2-muzzle-far.ent": "0c99f1444defba2adc360843e8c0f3c28a8ec821baf8c6bbc286c7e193b20996",
+   "ffa2-muzzle-near.ent": "1279eeb0344960be9518b127dcde5f8b3cb12fe5dcdd5b67bcd764ee2986c04c"
+  },
+  "runs": [
+   {
+    "run": "glx-calib-1",
+    "renderer": "glx",
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 12.8,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "entityOverride": null,
+    "extra": [
+     "exec steps.cfg"
+    ],
+    "recordsHandedOver": 0,
+    "firstRecords": [],
+    "viewpos": {
+     "samples": 5,
+     "offEye": 0,
+     "distinct": 1,
+     "spread": [
+      [
+       -2076
+      ],
+      [
+       1536
+      ],
+      [
+       127
+      ]
+     ],
+     "yaws": [
+      -180
+     ],
+     "handedOver": 0,
+     "outcome": "exited",
+     "exit": 0,
+     "errors": [],
+     "common": [
+      [
+       [
+        -2076,
+        1536,
+        127
+       ],
+       5
+      ]
+     ]
+    },
+    "screenshotShift": {
+     "shots": [
+      "jka-shake-00.png",
+      "jka-shake-01.png"
+     ],
+     "againstFirst": [
+      [
+       -0.0,
+       -0.0
+      ]
+     ],
+     "consecutive": [
+      [
+       -0.0,
+       -0.0
+      ]
+     ]
+    },
+    "captures": [
+     {
+      "name": "jka-shake-00.png",
+      "sha256": "a5acaa69cd8549bb92f91dcdcd71b3bd8f0d91cbb802c0eb2cf677a0f44ff281"
+     },
+     {
+      "name": "jka-shake-01.png",
+      "sha256": "7f2834fe5c260f6e3f0c18919107956b9f3f73269125f234bbb79a5857f41b37"
+     }
+    ],
+    "identity": {
+     "fntech3.exe": "a747a9c62b5088cd35b10e056ed7b025f920d50233c8a81639fcf70151008daa",
+     "fnql_glx_x86.dll": "defb5e76ce39f616be5703d177039b9495bebb9bf8cb057a0b2efa98f3c3c765",
+     "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+    },
+    "runtime": ".tmp\\runtime\\jka-camera-shake"
+   },
+   {
+    "run": "glx-near-1",
+    "renderer": "glx",
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 17.3,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "entityOverride": {
+     "source": "ffa2-muzzle-near.ent",
+     "sha256": "1279eeb0344960be9518b127dcde5f8b3cb12fe5dcdd5b67bcd764ee2986c04c"
+    },
+    "extra": [
+     "exec steps.cfg"
+    ],
+    "recordsHandedOver": 14,
+    "firstRecords": [
+     "Academy FX camera shake: 0.28381 within 60 for 50 ms at 1100",
+     "Academy FX camera shake: 1.4 within 60 for 100 ms at 1137",
+     "Academy FX camera shake: 0.332081 within 60 for 50 ms at 1174"
+    ],
+    "viewpos": {
+     "samples": 150,
+     "offEye": 150,
+     "distinct": 46,
+     "spread": [
+      [
+       -2076,
+       -2075,
+       -2074,
+       -2073,
+       -2072,
+       -2071,
+       -2070,
+       -2069,
+       -2068,
+       -2067,
+       -2066,
+       -2065,
+       -2064,
+       -2063,
+       -2062,
+       -2061,
+       -2060,
+       -2059,
+       -2058,
+       -2057,
+       -2056,
+       -2055,
+       -2054,
+       -2053,
+       -2052
+      ],
+      [
+       1535,
+       1536
+      ],
+      [
+       112,
+       113,
+       114,
+       115,
+       116,
+       117,
+       118,
+       119,
+       120,
+       121,
+       122,
+       123,
+       124,
+       125,
+       126,
+       127
+      ]
+     ],
+     "yaws": [
+      -180,
+      -179
+     ],
+     "handedOver": 14,
+     "outcome": "exited",
+     "exit": 0,
+     "errors": [],
+     "common": [
+      [
+       [
+        -2071,
+        1536,
+        127
+       ],
+       9
+      ],
+      [
+       [
+        -2070,
+        1536,
+        127
+       ],
+       8
+      ],
+      [
+       [
+        -2072,
+        1536,
+        127
+       ],
+       8
+      ]
+     ]
+    },
+    "screenshotShift": {
+     "shots": [
+      "jka-shake-00.png",
+      "jka-shake-01.png",
+      "jka-shake-02.png",
+      "jka-shake-03.png",
+      "jka-shake-04.png",
+      "jka-shake-05.png"
+     ],
+     "againstFirst": [
+      [
+       0.05,
+       0.06
+      ],
+      [
+       0.03,
+       0.02
+      ],
+      [
+       -0.07,
+       0.11
+      ],
+      [
+       0.02,
+       0.05
+      ],
+      [
+       0.33,
+       -0.02
+      ]
+     ],
+     "consecutive": [
+      [
+       0.05,
+       0.06
+      ],
+      [
+       -0.01,
+       -0.04
+      ],
+      [
+       -0.11,
+       0.07
+      ],
+      [
+       0.1,
+       -0.04
+      ],
+      [
+       0.42,
+       -0.05
+      ]
+     ]
+    },
+    "captures": [
+     {
+      "name": "jka-shake-00.png",
+      "sha256": "1e96f546f053def7011f820d7aac71e813d3f436498e1ab4580efa4cda0aff36"
+     },
+     {
+      "name": "jka-shake-01.png",
+      "sha256": "7fb9dbb34e70321039cd9b275041f99c39f0f374fad6f794acdcb8b2ad1ed8dd"
+     },
+     {
+      "name": "jka-shake-02.png",
+      "sha256": "f8a9ce0cb2229e479e4363950f8658935cdc1ec61632b628ab40f2071a7765ee"
+     },
+     {
+      "name": "jka-shake-03.png",
+      "sha256": "593dddd7ec774c0bd6d8a9665c508cc00aaece66aea1b152829fe40c82f6961e"
+     },
+     {
+      "name": "jka-shake-04.png",
+      "sha256": "032ca8a0a23c72c3419d8bdb6980819536df7890a65dbd909ebe0afa8d7e1b39"
+     },
+     {
+      "name": "jka-shake-05.png",
+      "sha256": "b165839209354d91cc67a2bd33c9a139a7c86420136bbb516418455622e61121"
+     }
+    ],
+    "identity": {
+     "fntech3.exe": "a747a9c62b5088cd35b10e056ed7b025f920d50233c8a81639fcf70151008daa",
+     "fnql_glx_x86.dll": "defb5e76ce39f616be5703d177039b9495bebb9bf8cb057a0b2efa98f3c3c765",
+     "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+    },
+    "runtime": ".tmp\\runtime\\jka-camera-shake"
+   },
+   {
+    "run": "glx-near-2",
+    "renderer": "glx",
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 22.5,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "entityOverride": {
+     "source": "ffa2-muzzle-near.ent",
+     "sha256": "1279eeb0344960be9518b127dcde5f8b3cb12fe5dcdd5b67bcd764ee2986c04c"
+    },
+    "extra": [
+     "exec steps.cfg"
+    ],
+    "recordsHandedOver": 493,
+    "firstRecords": [
+     "Academy FX camera shake: 0.251485 within 60 for 50 ms at 1105",
+     "Academy FX camera shake: 1.4 within 60 for 100 ms at 1151",
+     "Academy FX camera shake: 0.371883 within 60 for 50 ms at 1183"
+    ],
+    "viewpos": {
+     "samples": 300,
+     "offEye": 300,
+     "distinct": 8,
+     "spread": [
+      [
+       -2072,
+       -2071
+      ],
+      [
+       1535,
+       1536
+      ],
+      [
+       126,
+       127
+      ]
+     ],
+     "yaws": [
+      -180,
+      -179
+     ],
+     "handedOver": 493,
+     "outcome": "exited",
+     "exit": 0,
+     "errors": [],
+     "common": [
+      [
+       [
+        -2072,
+        1536,
+        127
+       ],
+       101
+      ],
+      [
+       [
+        -2072,
+        1535,
+        126
+       ],
+       70
+      ],
+      [
+       [
+        -2072,
+        1535,
+        127
+       ],
+       59
+      ]
+     ]
+    },
+    "screenshotShift": {
+     "shots": [
+      "jka-shake-00.png",
+      "jka-shake-01.png",
+      "jka-shake-02.png",
+      "jka-shake-03.png"
+     ],
+     "againstFirst": [
+      [
+       -0.01,
+       -0.71
+      ],
+      [
+       0.06,
+       -0.07
+      ],
+      [
+       0.34,
+       -0.25
+      ]
+     ],
+     "consecutive": [
+      [
+       -0.01,
+       -0.71
+      ],
+      [
+       0.08,
+       0.31
+      ],
+      [
+       0.2,
+       -0.15
+      ]
+     ]
+    },
+    "captures": [
+     {
+      "name": "jka-shake-00.png",
+      "sha256": "680d54e91ed841d15a25298fab1491de721bd54bd1af510a5da5117e710f1683"
+     },
+     {
+      "name": "jka-shake-01.png",
+      "sha256": "47707a021c52d2511cd46da23d93d24a10532f3d217d7d5e02bd56f777fa78ac"
+     },
+     {
+      "name": "jka-shake-02.png",
+      "sha256": "3e7e24be8409d3b7a4f73f42197718b612292f736df7c2c9872181921d201302"
+     },
+     {
+      "name": "jka-shake-03.png",
+      "sha256": "81c799a4cb43dfe8c81a660587d937fb721f3cc3280d3716b6f9e598a4d350ee"
+     }
+    ],
+    "identity": {
+     "fntech3.exe": "a747a9c62b5088cd35b10e056ed7b025f920d50233c8a81639fcf70151008daa",
+     "fnql_glx_x86.dll": "defb5e76ce39f616be5703d177039b9495bebb9bf8cb057a0b2efa98f3c3c765",
+     "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+    },
+    "runtime": ".tmp\\runtime\\jka-camera-shake"
+   },
+   {
+    "run": "glx-near-3",
+    "renderer": "glx",
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 23.4,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "entityOverride": {
+     "source": "ffa2-muzzle-near.ent",
+     "sha256": "1279eeb0344960be9518b127dcde5f8b3cb12fe5dcdd5b67bcd764ee2986c04c"
+    },
+    "extra": [
+     "exec steps.cfg"
+    ],
+    "recordsHandedOver": 492,
+    "firstRecords": [
+     "Academy FX camera shake: 0.265697 within 60 for 50 ms at 1102",
+     "Academy FX camera shake: 1.4 within 60 for 100 ms at 1150",
+     "Academy FX camera shake: 0.336352 within 60 for 50 ms at 1180"
+    ],
+    "viewpos": {
+     "samples": 300,
+     "offEye": 294,
+     "distinct": 8,
+     "spread": [
+      [
+       -2076,
+       -2075
+      ],
+      [
+       1535,
+       1536
+      ],
+      [
+       126,
+       127
+      ]
+     ],
+     "yaws": [
+      -180,
+      -179
+     ],
+     "handedOver": 492,
+     "outcome": "exited",
+     "exit": 0,
+     "errors": [],
+     "common": [
+      [
+       [
+        -2075,
+        1536,
+        127
+       ],
+       99
+      ],
+      [
+       [
+        -2075,
+        1536,
+        126
+       ],
+       61
+      ],
+      [
+       [
+        -2075,
+        1535,
+        126
+       ],
+       51
+      ]
+     ]
+    },
+    "screenshotShift": {
+     "shots": [
+      "jka-shake-00.png",
+      "jka-shake-01.png",
+      "jka-shake-02.png",
+      "jka-shake-03.png"
+     ],
+     "againstFirst": [
+      [
+       0.13,
+       -0.06
+      ],
+      [
+       0.03,
+       0.03
+      ],
+      [
+       0.03,
+       0.03
+      ]
+     ],
+     "consecutive": [
+      [
+       0.13,
+       -0.06
+      ],
+      [
+       -0.08,
+       0.12
+      ],
+      [
+       -0.0,
+       -0.01
+      ]
+     ]
+    },
+    "captures": [
+     {
+      "name": "jka-shake-00.png",
+      "sha256": "6f3d0ed9a76de2096c16fa2369e0839c96fe59393d8b851cf6cf0edfa3231a16"
+     },
+     {
+      "name": "jka-shake-01.png",
+      "sha256": "b6fc6553cb5fb4c95e068c3422a849be8ab20747fc874cfce1bd16cb0f1e4477"
+     },
+     {
+      "name": "jka-shake-02.png",
+      "sha256": "1cee71718bff4c546032541e8be36b33e279a1a7f2392fe0af2c2c2c2f07d0b4"
+     },
+     {
+      "name": "jka-shake-03.png",
+      "sha256": "8432bbe22c1ef132dbd5861b44b0cbca56d48c370bd4fb4a5220ed0f41c7d2d0"
+     }
+    ],
+    "identity": {
+     "fntech3.exe": "a747a9c62b5088cd35b10e056ed7b025f920d50233c8a81639fcf70151008daa",
+     "fnql_glx_x86.dll": "defb5e76ce39f616be5703d177039b9495bebb9bf8cb057a0b2efa98f3c3c765",
+     "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+    },
+    "runtime": ".tmp\\runtime\\jka-camera-shake"
+   },
+   {
+    "run": "glx-far-2",
+    "renderer": "glx",
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 22.4,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "entityOverride": {
+     "source": "ffa2-muzzle-far.ent",
+     "sha256": "0c99f1444defba2adc360843e8c0f3c28a8ec821baf8c6bbc286c7e193b20996"
+    },
+    "extra": [
+     "exec steps.cfg"
+    ],
+    "recordsHandedOver": 472,
+    "firstRecords": [
+     "Academy FX camera shake: 0.279789 within 60 for 50 ms at 1105",
+     "Academy FX camera shake: 1.4 within 60 for 100 ms at 1137",
+     "Academy FX camera shake: 0.319628 within 60 for 50 ms at 1183"
+    ],
+    "viewpos": {
+     "samples": 300,
+     "offEye": 0,
+     "distinct": 1,
+     "spread": [
+      [
+       -2076
+      ],
+      [
+       1536
+      ],
+      [
+       127
+      ]
+     ],
+     "yaws": [
+      -180
+     ],
+     "handedOver": 472,
+     "outcome": "exited",
+     "exit": 0,
+     "errors": [],
+     "common": [
+      [
+       [
+        -2076,
+        1536,
+        127
+       ],
+       300
+      ]
+     ]
+    },
+    "screenshotShift": {
+     "shots": [
+      "jka-shake-00.png",
+      "jka-shake-01.png",
+      "jka-shake-02.png",
+      "jka-shake-03.png"
+     ],
+     "againstFirst": [
+      [
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       -0.0
+      ],
+      [
+       -0.0,
+       0.0
+      ]
+     ],
+     "consecutive": [
+      [
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       -0.0
+      ],
+      [
+       -0.0,
+       0.0
+      ]
+     ]
+    },
+    "captures": [
+     {
+      "name": "jka-shake-00.png",
+      "sha256": "e9cf0b747b775229b1d208d8daa4533f77cda5d13553e0a15eb40ff0a30c5f18"
+     },
+     {
+      "name": "jka-shake-01.png",
+      "sha256": "cb6742d99d15740b3e9bb2459f27b47220b779f03dd0087267beac6d347db176"
+     },
+     {
+      "name": "jka-shake-02.png",
+      "sha256": "ab53cd569067c3c0a14105be5c2d72d64dbd2e7de8c471f9e8f56b7eca883227"
+     },
+     {
+      "name": "jka-shake-03.png",
+      "sha256": "3e0665c837c1c208024b6844dac9b024621c4b0768f888c0061b3b4277f7b945"
+     }
+    ],
+    "identity": {
+     "fntech3.exe": "a747a9c62b5088cd35b10e056ed7b025f920d50233c8a81639fcf70151008daa",
+     "fnql_glx_x86.dll": "defb5e76ce39f616be5703d177039b9495bebb9bf8cb057a0b2efa98f3c3c765",
+     "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+    },
+    "runtime": ".tmp\\runtime\\jka-camera-shake"
+   },
+   {
+    "run": "glx-control-2",
+    "renderer": "glx",
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 22.5,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "entityOverride": {
+     "source": "ffa2-control-near.ent",
+     "sha256": "06ba7cc904e1e08f60b850eb17087771be9658e12087e5ecc29fb14b3e8c29db"
+    },
+    "extra": [
+     "exec steps.cfg"
+    ],
+    "recordsHandedOver": 0,
+    "firstRecords": [],
+    "viewpos": {
+     "samples": 300,
+     "offEye": 0,
+     "distinct": 1,
+     "spread": [
+      [
+       -2076
+      ],
+      [
+       1536
+      ],
+      [
+       127
+      ]
+     ],
+     "yaws": [
+      -180
+     ],
+     "handedOver": 0,
+     "outcome": "exited",
+     "exit": 0,
+     "errors": [],
+     "common": [
+      [
+       [
+        -2076,
+        1536,
+        127
+       ],
+       300
+      ]
+     ]
+    },
+    "screenshotShift": {
+     "shots": [
+      "jka-shake-00.png",
+      "jka-shake-01.png",
+      "jka-shake-02.png",
+      "jka-shake-03.png"
+     ],
+     "againstFirst": [
+      [
+       -0.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0
+      ],
+      [
+       -0.0,
+       0.0
+      ]
+     ],
+     "consecutive": [
+      [
+       -0.0,
+       0.0
+      ],
+      [
+       0.0,
+       -0.0
+      ],
+      [
+       0.0,
+       0.0
+      ]
+     ]
+    },
+    "captures": [
+     {
+      "name": "jka-shake-00.png",
+      "sha256": "672e8fbf3cc443b4a8202192938cfbb35f16ffc381ecf27efadc021cadd688c5"
+     },
+     {
+      "name": "jka-shake-01.png",
+      "sha256": "b6335f452f0e3685eddda955c84c57c1dc04bbfa3e6aa4958c3ea9db8270c127"
+     },
+     {
+      "name": "jka-shake-02.png",
+      "sha256": "05c1c3773ba57abb1fed68c06de2b42af083fbeb699bb8eefbc2e29b79b8a944"
+     },
+     {
+      "name": "jka-shake-03.png",
+      "sha256": "d12e493a61ddc2d93b7f0d25592b03c43ef880d42beca3154f484f448311717e"
+     }
+    ],
+    "identity": {
+     "fntech3.exe": "a747a9c62b5088cd35b10e056ed7b025f920d50233c8a81639fcf70151008daa",
+     "fnql_glx_x86.dll": "defb5e76ce39f616be5703d177039b9495bebb9bf8cb057a0b2efa98f3c3c765",
+     "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+    },
+    "runtime": ".tmp\\runtime\\jka-camera-shake"
+   },
+   {
+    "run": "vk-near-1",
+    "renderer": "vk",
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 23.0,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "entityOverride": {
+     "source": "ffa2-muzzle-near.ent",
+     "sha256": "1279eeb0344960be9518b127dcde5f8b3cb12fe5dcdd5b67bcd764ee2986c04c"
+    },
+    "extra": [
+     "exec steps.cfg"
+    ],
+    "recordsHandedOver": 491,
+    "firstRecords": [
+     "Academy FX camera shake: 0.251332 within 60 for 50 ms at 1106",
+     "Academy FX camera shake: 1.4 within 60 for 100 ms at 1152",
+     "Academy FX camera shake: 0.324993 within 60 for 50 ms at 1184"
+    ],
+    "viewpos": {
+     "samples": 300,
+     "offEye": 211,
+     "distinct": 10,
+     "spread": [
+      [
+       -2077,
+       -2076,
+       -2075
+      ],
+      [
+       1535,
+       1536
+      ],
+      [
+       126,
+       127
+      ]
+     ],
+     "yaws": [
+      -180,
+      -179
+     ],
+     "handedOver": 491,
+     "outcome": "exited",
+     "exit": 0,
+     "errors": [],
+     "common": [
+      [
+       [
+        -2076,
+        1536,
+        127
+       ],
+       89
+      ],
+      [
+       [
+        -2076,
+        1535,
+        127
+       ],
+       75
+      ],
+      [
+       [
+        -2076,
+        1536,
+        126
+       ],
+       64
+      ]
+     ]
+    },
+    "screenshotShift": {
+     "shots": [
+      "jka-shake-00.png",
+      "jka-shake-01.png",
+      "jka-shake-02.png",
+      "jka-shake-03.png"
+     ],
+     "againstFirst": [
+      [
+       0.39,
+       -0.08
+      ],
+      [
+       0.02,
+       0.03
+      ],
+      [
+       -0.02,
+       0.03
+      ]
+     ],
+     "consecutive": [
+      [
+       0.39,
+       -0.08
+      ],
+      [
+       -0.3,
+       0.13
+      ],
+      [
+       -0.04,
+       -0.0
+      ]
+     ]
+    },
+    "captures": [
+     {
+      "name": "jka-shake-00.png",
+      "sha256": "2307f41849791d278a8a7686f821cd13cabc4902128c529e6a9b8d6c6d8f556c"
+     },
+     {
+      "name": "jka-shake-01.png",
+      "sha256": "e38e3bebc182cbe50a0ecd9d166259de4e3fc61b168aadde896f4dd024e64bd4"
+     },
+     {
+      "name": "jka-shake-02.png",
+      "sha256": "66b872b51ce5171261dcddd57adec3ff155ec134d5b889d876d575c58165e737"
+     },
+     {
+      "name": "jka-shake-03.png",
+      "sha256": "bf90ddcd41d9130edda5fce3cd874add1cf4861bebcb7c05361f02f968de2d07"
+     }
+    ],
+    "identity": {
+     "fntech3.exe": "a747a9c62b5088cd35b10e056ed7b025f920d50233c8a81639fcf70151008daa",
+     "fnql_vk_x86.dll": "1a5e232d1b5e7377287016feeaa3f56f29c3e94ea510606d820652d0bfe4fdc6",
+     "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+    },
+    "runtime": ".tmp\\runtime\\jka-camera-shake"
+   },
+   {
+    "run": "glx-explosion-1",
+    "renderer": "glx",
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 20.3,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "entityOverride": {
+     "source": "ffa2-explosion-near.ent",
+     "sha256": "39858106be314a4740d10d03117b366b07d49ca1f8745655aff93dc0dea4abaf"
+    },
+    "extra": [
+     "exec steps.cfg"
+    ],
+    "recordsHandedOver": 129,
+    "firstRecords": [
+     "Academy FX camera shake: 2.99606 within 299 for 314 ms at 1110",
+     "Academy FX camera shake: 2.1914 within 238 for 356 ms at 1140",
+     "Academy FX camera shake: 2.72467 within 284 for 388 ms at 1188"
+    ],
+    "viewpos": {
+     "samples": 300,
+     "offEye": 282,
+     "distinct": 87,
+     "spread": [
+      [
+       -2078,
+       -2077,
+       -2076,
+       -2075,
+       -2074,
+       -2073
+      ],
+      [
+       1533,
+       1534,
+       1535,
+       1536,
+       1537,
+       1538
+      ],
+      [
+       124,
+       125,
+       126,
+       127,
+       128,
+       129
+      ]
+     ],
+     "yaws": [
+      -182,
+      -181,
+      -180,
+      -179,
+      -178,
+      -177
+     ],
+     "handedOver": 129,
+     "outcome": "exited",
+     "exit": 0,
+     "errors": [],
+     "common": [
+      [
+       [
+        -2076,
+        1536,
+        126
+       ],
+       20
+      ],
+      [
+       [
+        -2076,
+        1536,
+        127
+       ],
+       18
+      ],
+      [
+       [
+        -2076,
+        1535,
+        127
+       ],
+       16
+      ]
+     ]
+    },
+    "screenshotShift": {
+     "shots": [
+      "jka-shake-00.png",
+      "jka-shake-01.png",
+      "jka-shake-02.png",
+      "jka-shake-03.png",
+      "jka-shake-04.png",
+      "jka-shake-05.png"
+     ],
+     "againstFirst": [
+      [
+       0.9,
+       -0.16
+      ],
+      [
+       -0.09,
+       1.07
+      ],
+      [
+       0.79,
+       0.06
+      ],
+      [
+       1.23,
+       -0.99
+      ],
+      [
+       0.79,
+       0.04
+      ]
+     ],
+     "consecutive": [
+      [
+       0.9,
+       -0.16
+      ],
+      [
+       -1.02,
+       1.76
+      ],
+      [
+       0.85,
+       -1.1
+      ],
+      [
+       0.96,
+       -1.65
+      ],
+      [
+       -0.81,
+       1.31
+      ]
+     ]
+    },
+    "captures": [
+     {
+      "name": "jka-shake-00.png",
+      "sha256": "a74e52e6701c659a104ac44871121d9c1c131c0136b95ef2afdb5c02813e55bc"
+     },
+     {
+      "name": "jka-shake-01.png",
+      "sha256": "d36d654e0205481f6db59ce10dd3764223e4cefb1eabf645ac065b5b08f76134"
+     },
+     {
+      "name": "jka-shake-02.png",
+      "sha256": "1b54813036423cb74a1eeacfdad34fbab7df36b30078e22e1a7178f62dcb7778"
+     },
+     {
+      "name": "jka-shake-03.png",
+      "sha256": "4d5ae8707534d655dbdd255ed56fd0fd50517e4060c592eab20d8038c6f87106"
+     },
+     {
+      "name": "jka-shake-04.png",
+      "sha256": "7c0d4114d081d698d0d6e9f558a6c85525e09917bdc7fb962a470727de91aafc"
+     },
+     {
+      "name": "jka-shake-05.png",
+      "sha256": "e41bc4f009468c56383b899bb462418c06dc7ed6d5219ae8562290905b79013f"
+     }
+    ],
+    "identity": {
+     "fntech3.exe": "a747a9c62b5088cd35b10e056ed7b025f920d50233c8a81639fcf70151008daa",
+     "fnql_glx_x86.dll": "defb5e76ce39f616be5703d177039b9495bebb9bf8cb057a0b2efa98f3c3c765",
+     "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+    },
+    "runtime": ".tmp\\runtime\\jka-camera-shake"
+   },
+   {
+    "run": "glx-fire-1",
+    "renderer": "glx",
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "seconds": 38.4,
+    "errors": [
+     "ERROR: Unsupported jka-mp cgame import 268 (CG_FX_PLAY_ENTITY_EFFECT_ID)"
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "entityOverride": null,
+    "extra": [
+     "exec steps.cfg"
+    ],
+    "recordsHandedOver": 0,
+    "firstRecords": [],
+    "viewpos": {
+     "samples": 31,
+     "offEye": 31,
+     "distinct": 1,
+     "spread": [
+      [
+       -3664
+      ],
+      [
+       2768
+      ],
+      [
+       124
+      ]
+     ],
+     "yaws": [
+      -90
+     ],
+     "handedOver": 0,
+     "outcome": "refused",
+     "exit": 1,
+     "errors": [
+      "ERROR: Unsupported jka-mp cgame import 268 (CG_FX_PLAY_ENTITY_EFFECT_ID)"
+     ],
+     "common": [
+      [
+       [
+        -3664,
+        2768,
+        124
+       ],
+       31
+      ]
+     ]
+    },
+    "screenshotShift": null,
+    "captures": [],
+    "identity": {
+     "fntech3.exe": "1d81ab1c8502a5e4aa5034c16e477974e17e3b5c6ee0a210cb3b56c720bf2446",
+     "fnql_glx_x86.dll": "fbbec41ca3b35f4e5f16a8a78ee3bd71e5a616fc320203f4e6f4714199591580",
+     "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+    },
+    "runtime": ".tmp\\runtime\\jka-camera-shake-fire"
+   },
+   {
+    "run": "glx-fire3p-1",
+    "renderer": "glx",
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "seconds": 35.0,
+    "errors": [
+     "ERROR: Jedi Academy game import G_G2TRACE (28) is not served yet: its module boundary is still open. Its arrays are bound. See docs/fntech3/COMPATIBILITY.md",
+     "----- Server Shutdown (Server crashed: Jedi Academy game import G_G2TRACE (28) is not served yet: its module boundary is still open. Its arrays are bound. See docs/fntech3/COMPATIBILITY.md) -----"
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "entityOverride": null,
+    "extra": [
+     "exec steps.cfg"
+    ],
+    "recordsHandedOver": 2,
+    "firstRecords": [
+     "Academy FX camera shake: 0.212731 within 60 for 50 ms at 6892",
+     "Academy FX camera shake: 0.216148 within 60 for 50 ms at 6908"
+    ],
+    "viewpos": {
+     "samples": 33,
+     "offEye": 33,
+     "distinct": 1,
+     "spread": [
+      [
+       -1996
+      ],
+      [
+       2960
+      ],
+      [
+       76
+      ]
+     ],
+     "yaws": [
+      179
+     ],
+     "handedOver": 2,
+     "outcome": "refused",
+     "exit": 1,
+     "errors": [
+      "ERROR: Jedi Academy game import G_G2TRACE (28) is not served yet: its module boundary is still open. Its arrays are bound. See docs/fntech3/COMPATIBILITY.md",
+      "----- Server Shutdown (Server crashed: Jedi Academy game import G_G2TRACE (28) is not served yet: its module boundary is still open. Its arrays are bound. See docs/fntech3/COMPATIBILITY.md) -----"
+     ],
+     "common": [
+      [
+       [
+        -1996,
+        2960,
+        76
+       ],
+       33
+      ]
+     ]
+    },
+    "screenshotShift": null,
+    "captures": [],
+    "identity": {
+     "fntech3.exe": "1d81ab1c8502a5e4aa5034c16e477974e17e3b5c6ee0a210cb3b56c720bf2446",
+     "fnql_glx_x86.dll": "fbbec41ca3b35f4e5f16a8a78ee3bd71e5a616fc320203f4e6f4714199591580",
+     "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+    },
+    "runtime": ".tmp\\runtime\\jka-camera-shake-fire"
+   }
+  ]
+ },
+ "scriptedFire": {
+  "thirdPerson": "glx-fire3p-1: two Bryar shots play bryar/muzzle_flash in full (sound 273, shake records 0.21/0.22 within 60 for 50 ms); the listen server then stops on game import 28 (G_G2TRACE)",
+  "firstPerson": "glx-fire-1: the view weapon muzzle flash stops on client-game import 268 (CG_FX_PLAY_ENTITY_EFFECT_ID)",
+  "steps": [
+   ".tmp/jka-camshake/steps-fire3p.cfg",
+   ".tmp/jka-camshake/steps-fire.cfg"
+  ]
+ }
+}

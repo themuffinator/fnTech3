@@ -96,6 +96,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Jedi Academy weapon fire](fntech3/2026-10-15-jka-weapon-fire.md)
   -- Escape, alternate attack, the button word and the sound mute a local
   player needs to fire, measured in retail Jedi Academy and Jedi Outcast.
+- [Jedi Academy effect camera shake](fntech3/2026-10-15-jka-camera-shake.md)
+  -- the view shake of muzzle flashes and explosions, measured in retail
+  and handed to the game's own camera.
 - [Jedi Academy one-shot animations](fntech3/2026-10-15-jka-oneshot-animmap.md)
   -- explosion pictures that play once and stop, measured in retail and
   read by every renderer.

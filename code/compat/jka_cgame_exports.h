@@ -9,6 +9,8 @@
  * vmMain VA 0x300425a0 branches through 0x30042854. Exports 0..8 consume
  * 3,0,0,3,0,0,2,2,1 arguments; 0 is CG_Init(serverMessage,commandSequence,
  * clientNum). Export 27 (0x3004277d) takes no arguments and sets map-change.
+ * Export 31 (0x3004281c) takes no arguments and reads a camera-shake record
+ * from the shared buffer.
  * Modern canonical chat/HUD exports 9 onward are Raven callbacks with
  * unrelated records and must never pass through by their numeric ordinal.
  * OpenJK 1a6a643427aa347553e9073dac5570b33337c4d9 supplies matching names.
@@ -29,6 +31,7 @@ static inline int FNTech3_JKACgameExportOrdinal(int operation) {
 #undef JKA_CGAME_EXPORT
     case CG_RAVEN_MAP_CHANGE: return FNTECH3_JKA_CG_MAP_CHANGE;
     case CG_RAVEN_TRACE: return FNTECH3_JKA_CG_TRACE;
+    case CG_RAVEN_CAMERA_SHAKE: return FNTECH3_JKA_CG_FX_CAMERASHAKE;
     default: return -1;
     }
 }
@@ -36,7 +39,8 @@ static inline int FNTech3_JKACgameExportArgumentCount(int operation) {
     switch (operation) {
     case CG_INIT: case CG_DRAW_ACTIVE_FRAME: return 3;
     case CG_SHUTDOWN: case CG_CONSOLE_COMMAND: case CG_CROSSHAIR_PLAYER:
-    case CG_LAST_ATTACKER: case CG_RAVEN_MAP_CHANGE: case CG_RAVEN_TRACE: return 0;
+    case CG_LAST_ATTACKER: case CG_RAVEN_MAP_CHANGE: case CG_RAVEN_TRACE:
+    case CG_RAVEN_CAMERA_SHAKE: return 0;
     case CG_KEY_EVENT: case CG_MOUSE_EVENT: return 2;
     case CG_EVENT_HANDLING: return 1;
     default: return -1;

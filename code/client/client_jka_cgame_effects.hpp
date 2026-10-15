@@ -24,7 +24,9 @@
  * their motion; traced particles bounce, play impact effects and die on
  * impact, and death effects play as particles end. Sound primitives start
  * their sound at the spawn origin through Fn's spatial audio (S_StartJKASound,
- * as the cgame's own S_StartSound import does). Remaining playback controls and
+ * as the cgame's own S_StartSound import does). CameraShake primitives hand
+ * their record to the client game's export 31, whose own view shake Fn then
+ * renders. Remaining playback controls and
  * primitive families remain named refusals. Registration owns all buffers and
  * partial records across engine ERR_DROP/longjmp recovery. */
 namespace {
@@ -242,6 +244,30 @@ static fntech3_jka_trace_t CL_JKACgameEffectTrace(const fntech3::jka::effectplay
     }
     return request.result;
 }
+// CreateEffect's CameraShake case (0x40b2ca..0x40b389) hands 0x40c560 the
+// spawn origin, the drawn intensity, and the truncated radius and life; it
+// publishes them to the registered scratch buffer and calls cgame export 31.
+// The retail client game owns the rest (0x3004281c, 0x30062c70): no shake
+// beyond the radius, a linear falloff to it, its clamp of 16, and a shake of
+// its own view origin and angles that decays over the life (0x30062990).
+// That view reaches Fn's renderer, listener and screenshots through the
+// module's own RE_RenderScene and S_Respatialize imports.
+static void CL_JKACgameEffectCameraShake(const fntech3::jka::effectplay::Spawn &spawn) {
+    const auto *owner=jkaCgameEffects.get();
+    const auto revision=jkaCgameEffectsRevision;
+    auto *const module=cgvm;
+    void *const shared=jkaCgameSharedBuffer;
+    void *const destination=CL_JKACgameSpan(reinterpret_cast<intptr_t>(shared),sizeof(fntech3_jka_cgame_camera_shake_t));
+    fntech3_jka_cgame_camera_shake_t record{};
+    std::memcpy(record.origin,spawn.origin.data(),sizeof(record.origin));
+    record.intensity=spawn.shakeIntensity;record.radius=spawn.shakeRadius;record.time=spawn.life;
+    std::memcpy(destination,&record,sizeof(record));
+    jkaCgameEffectsTracing=true;
+    VM_Call(module,0,CG_RAVEN_CAMERA_SHAKE);
+    jkaCgameEffectsTracing=false;
+    if(cgvm!=module||jkaCgameSharedBuffer!=shared||jkaCgameEffects.get()!=owner||jkaCgameEffectsRevision!=revision)
+        Com_Error(ERR_DROP,"Academy effects camera shake changed its owning context");
+}
 static fntech3_jka_trace_t CL_JKACgameEffectTraceEndpoint(fntech3::jka::effectplay::Spawn &spawn) {
     const auto result=CL_JKACgameEffectTrace(spawn.origin,spawn.endpoint);
     for(int n=0;n<3;++n)spawn.endpoint[n]=result.endpos[n];
@@ -340,6 +366,13 @@ static void CL_JKACgameEffectCreate(JKACgameEffectsState &state,int id,std::size
         }
         if(state.debug&&state.debug->integer>=2)
             Com_Printf("Academy FX sound: %d at %d\n",spawn.sound,state.time);
+        return;
+    }
+    if(spawn.kind==effects::Kind::CameraShake){
+        if(state.debug&&state.debug->integer>=2)
+            Com_Printf("Academy FX camera shake: %g within %d for %d ms at %d\n",
+                spawn.shakeIntensity,spawn.shakeRadius,spawn.life,state.time);
+        CL_JKACgameEffectCameraShake(spawn);
         return;
     }
     if(spawn.kind==effects::Kind::Runner){
@@ -721,7 +754,7 @@ static bool CL_JKACgameEffectsCall(intptr_t *args,fntech3::jka::module::Call cal
     if(jkaCgameEffectsTracing)switch(call){
     case Call::CG_FX_PLAY_EFFECT_ID:case Call::CG_FX_ADD_SCHEDULED_EFFECTS:case Call::CG_FX_INIT_SYSTEM:
     case Call::CG_FX_SET_REFDEF:case Call::CG_FX_FREE_SYSTEM:case Call::CG_FX_ADJUST_TIME:case Call::CG_FX_REGISTER_EFFECT:
-        Com_Error(ERR_DROP,"Academy effects trace cannot reenter its effect context");
+        Com_Error(ERR_DROP,"Academy effects trace or camera shake cannot reenter its effect context");
     default:break;
     }
     switch (call) {

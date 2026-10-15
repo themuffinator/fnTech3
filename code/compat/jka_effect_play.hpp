@@ -23,7 +23,9 @@
  * (0x401a50), Die (0x401500) and CreateEffect (0x407cea..0x408f29); see
  * docs/fntech3/2026-10-15-jka-tails-and-physics.md. Sound primitives follow
  * CreateEffect's Sound case (0x40b0dc..0x40b119); see
- * docs/fntech3/2026-10-15-jka-effect-sound.md. Keys retail's table does
+ * docs/fntech3/2026-10-15-jka-effect-sound.md. CameraShake primitives
+ * follow CreateEffect's CameraShake case (0x40b2ca..0x40b389); see
+ * docs/fntech3/2026-10-15-jka-camera-shake.md. Keys retail's table does
  * not know are ignored with its warning, as retail does; no unsupported field
  * or primitive is discarded. */
 namespace fntech3::jka::effectplay {
@@ -123,6 +125,9 @@ struct Spawn {
     int impact{},death{};
     // The sound handle a Sound picks (0x405d50): zero for an empty list.
     int sound{};
+    // A CameraShake's drawn intensity (template +0x234) and radius (+0xec),
+    // truncated to whole units (_ftol 0x539584), as 0x40c560 publishes them.
+    float shakeIntensity{};int shakeRadius{};
 };
 struct Failure { const char *reason{"unsupported effects playback declaration"};const char *field{""}; };
 inline bool Finite(float value) noexcept {
@@ -144,7 +149,7 @@ inline bool Bounded(Range value,float low,float high) noexcept {
 inline bool Served(Kind kind) noexcept {
     return kind==Kind::Particle||kind==Kind::OrientedParticle||kind==Kind::Cylinder||kind==Kind::Line||
         kind==Kind::Electricity||kind==Kind::Emitter||kind==Kind::Light||kind==Kind::Runner||kind==Kind::Tail||
-        kind==Kind::Sound;
+        kind==Kind::Sound||kind==Kind::CameraShake;
 }
 inline bool Visual(Kind kind) noexcept {
     return kind==Kind::Particle||kind==Kind::OrientedParticle||kind==Kind::Cylinder||kind==Kind::Line||
@@ -217,7 +222,14 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
     const bool emitter=spec.kind==Kind::Emitter,light=spec.kind==Kind::Light,runner=spec.kind==Kind::Runner;
     const bool moving=Moving(spec.kind),curved=Curved(spec.kind),tail=spec.kind==Kind::Tail;
     const bool sound=spec.kind==Kind::Sound;
-    if(sound){
+    // The CameraShake case (0x40b2ca..0x40b389) reads the life, radius and
+    // intensity and hands them, with the spawn origin, to cgame export 31
+    // through 0x40c560; it reads no list and creates no primitive.
+    const bool shake=spec.kind==Kind::CameraShake;
+    if(shake){
+        // Lists a CameraShake declares are registered by their parsers and
+        // never read by its case: inert.
+    }else if(sound){
         // The Sound case (0x40b100) picks from the media list at +0x48, which
         // only the sound parser (0x40dad0) fills here; any other media would
         // share that list and be played as a sound.
@@ -261,7 +273,8 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
         if(visual&&key=="wind")continue;
         // Radius and height shape orgOnSphere and orgOnCylinder spawns
         // (0x40811b..0x40863c) and are inert otherwise.
-        if((visual||emitter||runner||sound)&&(key=="radius"||key=="height"))continue;
+        if((visual||emitter||runner||sound||shake)&&(key=="radius"||key=="height"))continue;
+        if(shake&&(key=="bounce"||key=="intensity"))continue;
         if(moving&&(key=="velocity"||key=="vel"||key=="acceleration"||key=="accel"||key=="gravity"))continue;
         // "bounce" and "intensity" share one parser (0x40cd90): elasticity,
         // and usePhysics ORed into the flags.
@@ -277,8 +290,9 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
         if(!RetailKey(key)){spec.ignored.push_back(pair.name);continue;}
         // The Sound case reads only its list and the spawn origin; motion is
         // computed for four other families only (0x40870a), so every other
-        // field retail parses stays in the template unread.
-        if(sound)continue;
+        // field retail parses stays in the template unread. The same holds
+        // for a CameraShake beyond its life, radius and intensity.
+        if(sound||shake)continue;
         return Refuse(failure,pair.name.c_str(),"effects field is outside the served playback subset");
     }
     // Spawn flags. The origin shapes, cheap origins (0x407cea..0x40863c),
@@ -307,7 +321,9 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
     // Electricity never move and their Die is empty (0x5271f0), so physics,
     // impact and death bits are inert there.
     const std::uint32_t physics=flag::UsePhysics|flag::ExpensivePhysics|flag::ImpactKills|flag::ImpactFx|flag::DeathFx;
-    const std::uint32_t allowed=sound?~0u:spec.kind==Kind::Electricity?physics|flag::UseModel|flag::UseBBox|flag::UseAlpha:
+    // A Sound or CameraShake reads no flag word: usePhysics, which every
+    // installed CameraShake declares and "intensity" ORs in, is inert there.
+    const std::uint32_t allowed=sound||shake?~0u:spec.kind==Kind::Electricity?physics|flag::UseModel|flag::UseBBox|flag::UseAlpha:
         emitter?flag::UsePhysics|flag::ExpensivePhysics|flag::ImpactKills|flag::EmitFx:
         spec.kind==Kind::Particle?physics|flag::UseAlpha|flag::DepthHack|flag::SetShaderTime:
         (moving||segment)?physics|flag::UseAlpha:0u;
@@ -320,7 +336,7 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
         const bool curve=key=="rgb"||key=="alpha"||key=="size"||key=="size2"||key=="length";
         // Retail prints any other group and reads past it (0x40eee4).
         if(!curve){spec.ignored.push_back(group.name);continue;}
-        if(sound)continue; // Parsed into the template, never read by the Sound case.
+        if(sound||shake)continue; // Parsed into the template, never read by either case.
         if(emitter||runner||(light&&key!="rgb"&&key!="size"&&key!="alpha")||
             (spec.kind==Kind::Electricity&&key!="rgb"&&key!="size"&&key!="alpha"))
             return Refuse(failure,group.name.c_str(),"effects curve family is not served yet");
@@ -354,6 +370,9 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
         const auto key=effects::Lower(number.name);
         // A Sound uses its count, delay and spawn origin; nothing else.
         if(sound&&key!="origin"&&key!="count"&&key!="delay"&&key!="radius"&&key!="height")continue;
+        // A CameraShake also uses its life, radius and intensity.
+        if(shake&&key!="origin"&&key!="count"&&key!="delay"&&key!="radius"&&key!="height"&&key!="life"&&
+            key!="intensity"&&key!="bounce")continue;
         if(key=="origin"||key=="origin2"||key=="rgb/start"||key=="rgb/end"||key=="velocity"||key=="vel"||
             key=="acceleration"||key=="accel"){
             if(number.values.size()!=3&&number.values.size()!=6)return Refuse(failure,number.name.c_str(),"invalid effects vector range");
@@ -413,6 +432,12 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
             if(spec.kind==Kind::Electricity){
                 if(!Bounded(value,0,64))return Refuse(failure,number.name.c_str(),"effects electricity intensity exceeds the Fn bound");
                 spec.chaos=value;continue;
+            }
+            // A CameraShake's intensity, in view units before the client
+            // game's falloff and its own clamp of 16 (cgamex86 0x30062ce3).
+            if(shake){
+                if(!Bounded(value,-100,100))return Refuse(failure,number.name.c_str(),"effects camera shake intensity exceeds the Fn bound");
+                spec.elasticity=value;continue;
             }
             if(!Bounded(value,-100,100))return Refuse(failure,number.name.c_str(),"effects elasticity exceeds the Fn bound");
             spec.elasticity=value;continue;
@@ -679,6 +704,13 @@ inline bool Instantiate(const Spec &spec,const Vector &origin,const Axis &axis,s
     if(spec.kind==Kind::Emitter||spec.kind==Kind::Runner)spawn.child=PickChild(spec.children,random);
     // The Sound case picks one handle per spawn from its list (0x405d50).
     if(spec.kind==Kind::Sound)spawn.sound=PickChild(spec.sounds,random);
+    // The CameraShake case draws its intensity (+0x234) and radius (+0xec)
+    // after the life, and truncates the radius and life (0x40b2ca..0x40b374).
+    if(spec.kind==Kind::CameraShake){
+        spawn.shakeIntensity=Pick(spec.elasticity,random);
+        spawn.shakeRadius=static_cast<int>(Pick(spec.radius,random));
+        if(!Finite(spawn.shakeIntensity))return false;
+    }
     if(!Finite(spawn.origin))return false;
     for(float value:spawn.origin)if(std::fabs(value)>10000000.0f)return false;
     spawn.previous=spawn.origin;

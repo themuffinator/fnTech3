@@ -461,7 +461,8 @@ typedef enum {
 	CG_WANTSBINDKEYS = 0x10002,
 	CG_MESSAGERECEIVED = 0x10003,
 	CG_RAVEN_MAP_CHANGE = 0x10004, // no payload; Academy's vmMain export 27
-	CG_RAVEN_TRACE = 0x10005 // shared-buffer payload; Academy's vmMain export 15
+	CG_RAVEN_TRACE = 0x10005, // shared-buffer payload; Academy's vmMain export 15
+	CG_RAVEN_CAMERA_SHAKE = 0x10006 // shared-buffer payload; Academy's vmMain export 31
 } cgameEngineExport_t;
 
 // Retail Quake Live native DLL slot order recovered from cgamex86.dll dllEntry().
