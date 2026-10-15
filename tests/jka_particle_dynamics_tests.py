@@ -58,16 +58,16 @@ int main(){
  // Named refusals.
  struct Case{const char *text,*reason;};
  for(const Case &item:std::initializer_list<Case>{
-  {"Particle\n{\nshader gfx/own/p\nalpha\n{\nflags random\n}\n}\n","effects random curves are not served yet"},
+  {"Particle\n{\nshader gfx/own/p\nflags ghoul2Collision\n}\n","effects flags are not served yet"},
   {"Particle\n{\nshader gfx/own/p\nsize\n{\nflags linear sideways\n}\n}\n","unknown effects curve flag word"},
-  {"Particle\n{\nshader gfx/own/p\nflags usePhysics\n}\n","effects flags are not served yet"},
-  {"Particle\n{\nshader gfx/own/p\nflags depthHack\n}\n","effects flags are not served yet"},
+  {"Particle\n{\nshader gfx/own/p\nflags relative\n}\n","effects flags are not served yet"},
+  {"OrientedParticle\n{\nshader gfx/own/p\nflags depthHack\n}\n","effects flags are not served yet"},
   {"Particle\n{\nshader gfx/own/p\ndelay 60001\n}\n","effects spawn delay exceeds the Fn bound"},
   {"Particle\n{\nshader gfx/own/p\ngravity 20000\n}\n","effects gravity exceeds the Fn bound"},
   {"Particle\n{\nshader gfx/own/p\nsound sound/own/s\n}\n","effects playback requires registered Fn shaders"},
   {"Particle\n{\ncount 1\n}\n","effects playback requires registered Fn shaders"},
-  {"Particle\n{\nshader gfx/own/p\nspawnflags orgOnSphere\n}\n","effects spawn controls are not served yet"},
-  {"Line\n{\nshader gfx/own/l\nrgb\n{\nflags linear\n}\n}\n","effects curve controls are not served yet"},
+  {"Particle\n{\nshader gfx/own/p\nspawnflags randRotAroundFwd\n}\n","effects spawn controls are not served yet"},
+  {"Line\n{\nshader gfx/own/l\nlength\n{\nflags linear\n}\n}\n","effects curve controls are not served yet"},
   {"Line\n{\nshader gfx/own/l\nvelocity 1 0 0\n}\n","effects field is outside the served playback subset"},
   {"Emitter\n{\nacceleration 0 0 10\n}\n","effects field is outside the served playback subset"}}){
   play::Spec old;old.shader=199;assert(!Compile(item.text,old,&reason)&&old.shader==199&&!std::strcmp(reason,item.reason));

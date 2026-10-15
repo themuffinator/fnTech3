@@ -95,12 +95,13 @@ sfxHandle_t S_RegisterSound(const char *name,qboolean compression){
  assert(!compression);sounds.emplace_back(name);if(mediaDrop==3)Com_Error(ERR_DROP,"sound failure");
  return silent?0:static_cast<sfxHandle_t>(300+sounds.size());
 }
-static cvar_t fxVariables[3];
+static cvar_t fxVariables[4];
 cvar_t *Cvar_Get(const char *name,const char *value,int flags){
  int index=-1;++cvarCalls;
  if(!std::strcmp(name,"fx_debug")){index=0;assert(!std::strcmp(value,"0")&&flags==CVAR_TEMP);}
  if(!std::strcmp(name,"fx_countScale")){index=1;assert(!std::strcmp(value,"1")&&flags==CVAR_ARCHIVE);}
  if(!std::strcmp(name,"fx_nearCull")){index=2;assert(!std::strcmp(value,"16")&&flags==CVAR_ARCHIVE);}
+ if(!std::strcmp(name,"RMG")){index=3;assert(!std::strcmp(value,"0")&&flags==0);}
  assert(index>=0);if(cvarDrop==index+1)Com_Error(ERR_DROP,"cvar failure");return &fxVariables[index];
 }
 #include "code/client/client_jka_cgame_effects.hpp"
@@ -134,7 +135,7 @@ int main(){
  assert(System(Call::CG_FX_FREE_SYSTEM)==1&&!jkaCgameEffects);
  assert(System(Call::CG_FX_SET_REFDEF)==0&&jkaCgameEffects&&!jkaCgameEffects->initialized);
  assert(System(Call::CG_FX_INIT_SYSTEM)==1&&jkaCgameEffects->initialized&&jkaCgameEffects->view==0);
- assert(initializedMessages==1&&cvarCalls==3&&jkaCgameEffects->debug==&fxVariables[0]);
+ assert(initializedMessages==1&&cvarCalls==4&&jkaCgameEffects->debug==&fxVariables[0]&&jkaCgameEffects->rmg==&fxVariables[3]);
  Reset();
  assert(System(Call::CG_FX_ADJUST_TIME,0)==0&&jkaCgameEffects&&!jkaCgameEffects->initialized&&cvarCalls==0);
  assert(!jkaCgameEffects->time&&!jkaCgameEffects->previousTime&&!jkaCgameEffects->frameTime&&!jkaCgameEffects->realTime);
@@ -195,7 +196,7 @@ assert(!jkaCgameEffects&&!jkaCgameSharedBuffer&&jkaFonts.empty());
  for(const auto &effect:jkaCgameEffects->effects)for(const auto &primitive:effect->definition.primitives)
   for(const auto &media:primitive.media)if(media.kind<=fntech3::jka::effects::MediaKind::Sound)assert(media.handle==0);
  Reset();recover=true;
- for(int failure=1;failure<=3;++failure){Reset();cvarDrop=failure;
+ for(int failure=1;failure<=4;++failure){Reset();cvarDrop=failure;
   Reject([&]{System(Call::CG_FX_INIT_SYSTEM,viewAddress);});assert(!jkaCgameEffects&&files.empty()&&!initializedMessages);}
  Reset();jumpRecovery=true;cvarDrop=2;
  if(!setjmp(recoveryPoint)){System(Call::CG_FX_INIT_SYSTEM,viewAddress);assert(false);}

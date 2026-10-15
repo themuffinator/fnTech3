@@ -17,8 +17,13 @@
  * motion, curves and delays follow retail's media pick (0x405d50), CParticle
  * (0x401730..0x40268e), FX_AddParticle (0x40f480) and the scheduler
  * (0x4073c6..0x40755d, 0x407810); see
- * docs/fntech3/2026-10-15-jka-particle-dynamics.md. No unsupported field or
- * primitive is discarded. */
+ * docs/fntech3/2026-10-15-jka-particle-dynamics.md. Tails, particle physics,
+ * impact and death effects, spawn shapes and the curves of every moving or
+ * segment family follow CTail (0x402e30, 0x4031c0, 0x4033b0), UpdateOrigin
+ * (0x401a50), Die (0x401500) and CreateEffect (0x407cea..0x408f29); see
+ * docs/fntech3/2026-10-15-jka-tails-and-physics.md. Keys retail's table does
+ * not know are ignored with its warning, as retail does; no unsupported field
+ * or primitive is discarded. */
 namespace fntech3::jka::effectplay {
 using effects::Kind;
 struct Range { float first{},last{}; };
@@ -28,14 +33,20 @@ using Axis=std::array<Vector,3>;
 // flags at +0x9c (0x40d5ed..0x40d78e), each word matched without case.
 namespace flag {
 constexpr std::uint32_t UseModel=0x1000000u,UseBBox=0x4000000u,UsePhysics=0x2000000u,
-    ExpensivePhysics=0x800000u,ImpactKills=0x40000000u,EmitFx=0x10000000u,UseAlpha=0x8000000u;
-constexpr std::uint32_t Org2FromTrace=0x10u,Org2IsOffset=0x40u,EvenDistribution=0x2000u,ComponentInterpolation=0x4000u;
+    ExpensivePhysics=0x800000u,ImpactKills=0x40000000u,EmitFx=0x10000000u,UseAlpha=0x8000000u,
+    ImpactFx=0x80000000u,DeathFx=0x20000000u,DepthHack=0x100000u,SetShaderTime=0x400000u;
+constexpr std::uint32_t OrgOnSphere=1u,AxisFromSphere=2u,OrgOnCylinder=4u,Org2FromTrace=0x10u,TraceImpactFx=0x20u,
+    Org2IsOffset=0x40u,CheapOrgCalc=0x100u,CheapOrg2Calc=0x200u,AbsoluteVel=0x400u,AbsoluteAccel=0x800u,
+    EvenDistribution=0x2000u,ComponentInterpolation=0x4000u,AffectedByWind=0x10000u;
 // Curve words (0x40cb10) OR into one nibble per curve: alpha bits 0..3, rgb
-// 4..7, size 8..11 (0x402040, 0x402390, 0x401e50).
+// 4..7, size 8..11, length 12..15 (0x402040, 0x402390, 0x401e50, 0x4031c0).
 constexpr std::uint32_t CurveLinear=1u,CurveRandom=2u,CurveParm=0xcu,CurveNonlinear=4u,CurveWave=8u,CurveClamp=0xcu;
-constexpr int AlphaShift=0,RgbShift=4,SizeShift=8;
+constexpr int AlphaShift=0,RgbShift=4,SizeShift=8,LengthShift=12;
 }
-constexpr int MaxCount=100;           // Fn bound; retail has none.
+// UpdateOrigin's impact test skips surfaces flagged 0x80000 (0x401bff).
+constexpr std::uint32_t NoImpactSurface=0x80000u;
+constexpr std::uint32_t PhysicsMask=0x1001u;    // 0x401b3d, 0x401bab: solid and terrain.
+constexpr int MaxCount=500;           // Fn bound; retail has none.
 constexpr float MaxDelay=60000.0f;    // Fn bound on a spawn delay, ms.
 constexpr float TraceDistance=16384.0f; // 0x5664cc
 constexpr int EmitterTick=12;         // 0x403a00: emission walk step, ms.
@@ -63,6 +74,13 @@ struct Spec {
     Range gravity{},rotationDelta{},alphaEnd{},rgbParm{},alphaParm{};
     std::uint32_t curves{};
     bool traceEnd{},offsetEnd{},sizeWave{},sizeLinear{};
+    // Physics and spawn shapes: elasticity (+0x234, "bounce" or "intensity"),
+    // radius (+0xec), height (+0xf4), the length curve (+0x214, +0x21c), and
+    // the impact (+0x58) and death (+0x68) effect lists.
+    Range elasticity{},radius{},height{},lengthEnd{1,1},lengthParm{};
+    std::vector<int> impacts,deaths;
+    // Keys and groups retail warns about and reads past (0x40eda1, 0x40eee4).
+    std::vector<std::string> ignored;
 };
 struct Spawn {
     Kind kind{};int shader{},life{50};
@@ -86,6 +104,12 @@ struct Spawn {
     float rgbParm{},alphaParm{},sizeParm{};
     std::uint32_t curves{};
     bool traceEnd{},sizeWave{},sizeLinear{};
+    // CTail keeps the last frame's origin (+0x124) and its length curve
+    // (+0x130..+0x138); physics keeps the elasticity (+0x118); impact and
+    // death effects are picked at creation (0x40a0e9, 0x40a0f2).
+    Vector previous{};
+    float lengthEnd{},lengthParm{},elasticity{};
+    int impact{},death{};
 };
 struct Failure { const char *reason{"unsupported effects playback declaration"};const char *field{""}; };
 inline bool Finite(float value) noexcept {
@@ -106,10 +130,33 @@ inline bool Bounded(Range value,float low,float high) noexcept {
 }
 inline bool Served(Kind kind) noexcept {
     return kind==Kind::Particle||kind==Kind::OrientedParticle||kind==Kind::Cylinder||kind==Kind::Line||
-        kind==Kind::Electricity||kind==Kind::Emitter||kind==Kind::Light||kind==Kind::Runner;
+        kind==Kind::Electricity||kind==Kind::Emitter||kind==Kind::Light||kind==Kind::Runner||kind==Kind::Tail;
 }
 inline bool Visual(Kind kind) noexcept {
-    return kind==Kind::Particle||kind==Kind::OrientedParticle||kind==Kind::Cylinder||kind==Kind::Line||kind==Kind::Electricity;
+    return kind==Kind::Particle||kind==Kind::OrientedParticle||kind==Kind::Cylinder||kind==Kind::Line||
+        kind==Kind::Electricity||kind==Kind::Tail;
+}
+// The families whose update runs UpdateOrigin (0x401a50): CParticle
+// (0x401a03), COrientedParticle (0x402aa6) and CTail (0x403170). CreateEffect
+// gives the same three, and Emitter, velocity and the late advance (0x40870a).
+inline bool Moving(Kind kind) noexcept {
+    return kind==Kind::Particle||kind==Kind::OrientedParticle||kind==Kind::Tail;
+}
+// The families whose update runs the particle size, RGB and alpha curves
+// (0x401e50, 0x402040, 0x402390): the moving three, and CLine, whose update
+// CElectricity shares (0x402c80).
+inline bool Curved(Kind kind) noexcept {
+    return Moving(kind)||kind==Kind::Line||kind==Kind::Electricity;
+}
+// Every key retail's primitive table names (0x40e928..0x40edc0). Any other
+// key is printed as unknown and read past (0x40eda1).
+inline bool RetailKey(const std::string &key) {
+    static constexpr const char *table[]{"count","life","delay","cullrange","bounce","intensity","min","max","angle",
+        "angles","angledelta","velocity","vel","acceleration","accel","gravity","density","variance","origin","origin2",
+        "radius","height","wind","rotation","rotationdelta","flags","flag","spawnflags","spawnflag","name",
+        "materialimpact","shaders","shader","models","model","sounds","sound","impactfx","deathfx","emitfx","playfx"};
+    for(const char *name:table)if(key==name)return true;
+    return false;
 }
 // Every word retail names, so an unknown word is distinguished from a known
 // one this subset does not serve. Retail reads at most seven words.
@@ -152,14 +199,17 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
     if(!Served(spec.kind))return Refuse(failure,name,"effects primitive family is not served yet");
     const bool visual=Visual(spec.kind),segment=spec.kind==Kind::Line||spec.kind==Kind::Electricity;
     const bool emitter=spec.kind==Kind::Emitter,light=spec.kind==Kind::Light,runner=spec.kind==Kind::Runner;
-    const bool particle=spec.kind==Kind::Particle;
+    const bool moving=Moving(spec.kind),curved=Curved(spec.kind),tail=spec.kind==Kind::Tail;
     if(visual){
         // A shader list: retail picks one handle per spawn (0x405d50 over
-        // the template's list at +0x48).
+        // the template's list at +0x48), and one impact (+0x58) and death
+        // (+0x68) effect the same way.
         for(const auto &media:primitive.media){
-            if(media.kind!=effects::MediaKind::Shader||media.handle<0)
-                return Refuse(failure,name,"effects playback requires registered Fn shaders");
-            spec.shaders.push_back(media.handle);
+            if(media.handle<0)return Refuse(failure,name,"effects playback requires registered Fn shaders");
+            if(media.kind==effects::MediaKind::Shader)spec.shaders.push_back(media.handle);
+            else if(media.kind==effects::MediaKind::Impact)spec.impacts.push_back(media.handle);
+            else if(media.kind==effects::MediaKind::Death)spec.deaths.push_back(media.handle);
+            else return Refuse(failure,name,"effects playback requires registered Fn shaders");
         }
         if(spec.shaders.empty())return Refuse(failure,name,"effects playback requires registered Fn shaders");
         spec.shader=spec.shaders.front();
@@ -173,69 +223,94 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
         const auto key=effects::Lower(pair.name);
         if(key=="name"||key=="shader"||key=="shaders"||key=="emitfx"||key=="playfx"||key=="origin"||
             key=="count"||key=="life"||key=="delay")continue;
-        if(visual&&key=="rotation")continue;
+        if(visual&&(key=="impactfx"||key=="deathfx"))continue;
+        // Rotation and its step are stored for every family (+0x104, +0x10c);
+        // only particles and oriented particles turn (0x402640).
+        if(visual&&(key=="rotation"||key=="rotationdelta"))continue;
         // Retail parses cullrange and stores nothing (0x40eab2 continues the
         // key loop), so PlayEffect's range test (0x40721b) never applies.
         if(key=="cullrange")continue;
-        if(particle&&(key=="velocity"||key=="vel"||key=="acceleration"||key=="accel"||key=="gravity"||key=="rotationdelta"))continue;
+        // Wind (+0xfc) is read by no multiplayer routine: inert.
+        if(visual&&key=="wind")continue;
+        // Radius and height shape orgOnSphere and orgOnCylinder spawns
+        // (0x40811b..0x40863c) and are inert otherwise.
+        if((visual||emitter||runner)&&(key=="radius"||key=="height"))continue;
+        if(moving&&(key=="velocity"||key=="vel"||key=="acceleration"||key=="accel"||key=="gravity"))continue;
+        // "bounce" and "intensity" share one parser (0x40cd90): elasticity,
+        // and usePhysics ORed into the flags.
+        if((moving||spec.kind==Kind::Electricity)&&(key=="bounce"||key=="intensity"))continue;
         if(segment&&key=="origin2")continue;
-        if(spec.kind==Kind::Electricity&&key=="intensity")continue;
         if(emitter&&(key=="velocity"||key=="vel"||key=="density"||key=="variance"))continue;
-        if(key=="flags"||key=="spawnflags"){
-            const bool spawn=key=="spawnflags";std::uint32_t bits=0;
+        if(key=="flags"||key=="flag"||key=="spawnflags"||key=="spawnflag"){
+            const bool spawn=key=="spawnflags"||key=="spawnflag";std::uint32_t bits=0;
             if(pair.values.size()!=1||!FlagWords(pair.values[0],spawn,bits))
                 return Refuse(failure,pair.name.c_str(),"unknown effects flag word");
             (spawn?spec.spawnFlags:spec.flags)|=bits;continue;
         }
+        if(!RetailKey(key)){spec.ignored.push_back(pair.name);continue;}
         return Refuse(failure,pair.name.c_str(),"effects field is outside the served playback subset");
     }
-    // Spawn flags: org2fromTrace, with org2isOffset, serve the shared Line and
-    // Electricity endpoint path (0x408f39..0x4093e2); evenDistribution
-    // (0x4073c6) and rgbComponentInterpolation (0x406de0) serve every family.
-    // Flags per class below.
-    if(spec.spawnFlags&~((segment?flag::Org2FromTrace|flag::Org2IsOffset:0u)|flag::EvenDistribution|flag::ComponentInterpolation))
-        return Refuse(failure,name,"effects spawn controls are not served yet");
-    if((spec.spawnFlags&flag::Org2IsOffset)&&!(spec.spawnFlags&flag::Org2FromTrace))
-        return Refuse(failure,name,"effects untraced endpoint offsets are not served yet");
-    spec.traceEnd=spec.spawnFlags&flag::Org2FromTrace;spec.offsetEnd=spec.spawnFlags&flag::Org2IsOffset;
-    // Retail's "intensity" (and "bounce") parser ORs usePhysics into the
-    // flags (0x40cdca); for Electricity that word means forked bolts.
-    if(spec.kind==Kind::Electricity)for(const auto &number:primitive.numbers)
-        if(effects::Lower(number.name)=="intensity")spec.flags|=flag::UsePhysics;
-    const std::uint32_t allowed=spec.kind==Kind::Electricity?flag::UseModel|flag::UseBBox|flag::UsePhysics:
-        emitter?flag::UsePhysics|flag::ExpensivePhysics|flag::ImpactKills|flag::EmitFx:particle?flag::UseAlpha:0u;
+    // Spawn flags. The origin shapes, cheap origins (0x407cea..0x40863c),
+    // absolute velocity and acceleration (0x408722..0x408e29),
+    // evenDistribution (0x4073c6) and rgbComponentInterpolation (0x406de0)
+    // run in CreateEffect's shared code; the endpoint flags serve Line and
+    // Electricity (0x408f39..0x4093e2). affectedByWind is read by no
+    // multiplayer routine.
+    const std::uint32_t shared=flag::OrgOnSphere|flag::AxisFromSphere|flag::OrgOnCylinder|flag::CheapOrgCalc|
+        flag::EvenDistribution|flag::ComponentInterpolation|flag::AffectedByWind|
+        ((moving||emitter)?flag::AbsoluteVel|flag::AbsoluteAccel:0u)|
+        (segment?flag::Org2FromTrace|flag::Org2IsOffset|flag::TraceImpactFx|flag::CheapOrg2Calc:0u);
+    if(spec.spawnFlags&~shared)return Refuse(failure,name,"effects spawn controls are not served yet");
+    // org2isOffset is read only on the traced path (0x408f47); without
+    // org2fromTrace it is inert.
+    spec.traceEnd=spec.spawnFlags&flag::Org2FromTrace;spec.offsetEnd=spec.traceEnd&&(spec.spawnFlags&flag::Org2IsOffset);
+    // Retail's "intensity" and "bounce" parser ORs usePhysics into the flags
+    // (0x40cdca); for Electricity that bit means forked bolts.
+    for(const auto &number:primitive.numbers){
+        const auto key=effects::Lower(number.name);
+        if((moving||spec.kind==Kind::Electricity)&&(key=="intensity"||key=="bounce"))spec.flags|=flag::UsePhysics;
+    }
+    // Flags per class. Moving particles serve physics, impact and death
+    // effects (0x401a50, 0x401500); a sprite also serves depthHack and
+    // setShaderTime, which Fn's polygon path cannot carry. A Line and its
+    // Electricity never move and their Die is empty (0x5271f0), so physics,
+    // impact and death bits are inert there.
+    const std::uint32_t physics=flag::UsePhysics|flag::ExpensivePhysics|flag::ImpactKills|flag::ImpactFx|flag::DeathFx;
+    const std::uint32_t allowed=spec.kind==Kind::Electricity?physics|flag::UseModel|flag::UseBBox|flag::UseAlpha:
+        emitter?flag::UsePhysics|flag::ExpensivePhysics|flag::ImpactKills|flag::EmitFx:
+        spec.kind==Kind::Particle?physics|flag::UseAlpha|flag::DepthHack|flag::SetShaderTime:
+        (moving||segment)?physics|flag::UseAlpha:0u;
     if(spec.flags&~allowed)return Refuse(failure,name,"effects flags are not served yet");
-    // Retail's cheap probe (cgame export 9) and bounce (0x401c34) are not served.
+    // Retail's cheap probe (cgame export 9) and bounce (0x401c34) are not served for emitters.
     if(emitter&&(spec.flags&flag::UsePhysics)&&(spec.flags&(flag::ExpensivePhysics|flag::ImpactKills))!=(flag::ExpensivePhysics|flag::ImpactKills))
         return Refuse(failure,name,"effects emitter physics needs expensivePhysics and impactKills");
     for(const auto &group:primitive.declaration.groups){
-        const auto key=effects::Lower(group.name);
+        const auto key=effects::CurveGroup(group.name);
         const bool curve=key=="rgb"||key=="alpha"||key=="size"||key=="size2"||key=="length";
-        if(!curve||emitter||runner||(light&&key!="rgb"&&key!="size"&&key!="alpha")||
+        // Retail prints any other group and reads past it (0x40eee4).
+        if(!curve){spec.ignored.push_back(group.name);continue;}
+        if(emitter||runner||(light&&key!="rgb"&&key!="size"&&key!="alpha")||
             (spec.kind==Kind::Electricity&&key!="rgb"&&key!="size"&&key!="alpha"))
             return Refuse(failure,group.name.c_str(),"effects curve family is not served yet");
         if(!group.groups.empty())return Refuse(failure,group.name.c_str(),"nested effects playback controls are not served yet");
+        // A curve with words: the particle law for the curved families, and
+        // CTail's length (0x4031c0).
+        const bool lawful=(curved&&(key=="rgb"||key=="alpha"||key=="size"))||(tail&&key=="length");
         for(const auto &pair:group.pairs){
-            const auto field=effects::Lower(pair.name);
-            // CParticle curves (0x401e50, 0x402040, 0x402390): parm and flags.
-            if(particle&&(key=="rgb"||key=="alpha"||key=="size")&&(field=="parm"||field=="flags")){
+            const auto field=effects::CurveField(pair.name);
+            if(lawful&&(field=="parm"||field=="flags"||field=="flag")){
                 if(field=="parm")continue;
                 std::uint32_t bits=0;
                 if(pair.values.size()!=1||!CurveWords(pair.values[0],bits))
                     return Refuse(failure,pair.name.c_str(),"unknown effects curve flag word");
-                if(bits&flag::CurveRandom)return Refuse(failure,pair.name.c_str(),"effects random curves are not served yet");
-                spec.curves|=bits<<(key=="alpha"?flag::AlphaShift:key=="rgb"?flag::RgbShift:flag::SizeShift);continue;
+                spec.curves|=bits<<(key=="alpha"?flag::AlphaShift:key=="rgb"?flag::RgbShift:key=="size"?flag::SizeShift:flag::LengthShift);
+                // Line and Electricity keep their measured single-word fields.
+                if(key=="size"&&bits==flag::CurveWave&&spec.kind==Kind::Line)spec.sizeWave=true;
+                if(key=="size"&&bits==flag::CurveLinear&&spec.kind==Kind::Electricity)spec.sizeLinear=true;
+                continue;
             }
-            if(spec.kind==Kind::Line&&key=="size"){
-                if(field=="parm")continue;
-                if(field=="flags"){
-                    if(pair.values.size()!=1||effects::Lower(pair.values[0])!="wave")
-                        return Refuse(failure,pair.name.c_str(),"effects line size controls are not served yet");
-                    spec.sizeWave=true;continue;
-                }
-            }
-            // UpdateSize 0x401e50/0x4040a0: curve flag "linear" (bit 0x100).
-            if((light||spec.kind==Kind::Electricity)&&key=="size"&&field=="flags"){
+            // UpdateSize 0x4040a0: a light's curve flag "linear" (bit 0x100).
+            if(light&&key=="size"&&(field=="flags"||field=="flag")){
                 if(pair.values.size()!=1||effects::Lower(pair.values[0])!="linear")
                     return Refuse(failure,pair.name.c_str(),"effects size controls are not served yet");
                 spec.sizeLinear=true;continue;
@@ -295,28 +370,42 @@ inline bool Compile(const effects::Primitive &primitive,Spec &output,Failure &fa
             if(!Bounded(value,0,16384))return Refuse(failure,number.name.c_str(),"effects emission spacing exceeds the Fn bound");
             (key=="density"?spec.density:spec.variance)=value;continue;
         }
-        if(key=="intensity"){
-            if(!Bounded(value,0,64))return Refuse(failure,number.name.c_str(),"effects electricity intensity exceeds the Fn bound");
-            spec.chaos=value;continue;
+        if(key=="radius"||key=="height"){
+            if(!Bounded(value,-16384,16384))return Refuse(failure,number.name.c_str(),"effects spawn shape exceeds the Fn bound");
+            (key=="radius"?spec.radius:spec.height)=value;continue;
+        }
+        if(key=="wind")continue; // Inert, as above.
+        if(key=="intensity"||key=="bounce"){
+            if(spec.kind==Kind::Electricity){
+                if(!Bounded(value,0,64))return Refuse(failure,number.name.c_str(),"effects electricity intensity exceeds the Fn bound");
+                spec.chaos=value;continue;
+            }
+            if(!Bounded(value,-100,100))return Refuse(failure,number.name.c_str(),"effects elasticity exceeds the Fn bound");
+            spec.elasticity=value;continue;
         }
         if(key=="alpha/start"||key=="alpha/end"){
             if(!Bounded(value,0,1))return Refuse(failure,number.name.c_str(),"effects alpha exceeds the Fn bound");
             (key=="alpha/start"?spec.color[3]:spec.alphaEnd)=value;continue;
         }
-        if(particle&&(key=="rgb/parm"||key=="alpha/parm"||key=="size/parm")){
+        if(curved&&(key=="rgb/parm"||key=="alpha/parm"||key=="size/parm")){
             if(!Bounded(value,-100000,100000))return Refuse(failure,number.name.c_str(),"effects curve parm exceeds the Fn bound");
             (key=="rgb/parm"?spec.rgbParm:key=="alpha/parm"?spec.alphaParm:spec.sizeParm)=value;continue;
         }
-        if(spec.kind==Kind::Line&&key=="size/parm"){
-            if(!Bounded(value,-10000,10000))return Refuse(failure,number.name.c_str(),"effects line wave frequency exceeds the Fn bound");
-            spec.sizeParm=value;continue;
+        if(tail&&key=="length/parm"){
+            if(!Bounded(value,-100000,100000))return Refuse(failure,number.name.c_str(),"effects curve parm exceeds the Fn bound");
+            spec.lengthParm=value;continue;
         }
         if(key=="size/start"||key=="size/end"||key=="size2/start"||key=="size2/end"||key=="length/start"||key=="length/end"){
-            if(!Bounded(value,0,16384))return Refuse(failure,number.name.c_str(),"effects dimensions exceed the Fn bound");
+            // The curved families draw any signed size and length: a negative
+            // tail length points along the motion (0x4033b0).
+            const float least=curved&&key.compare(0,5,"size2")!=0?-16384.0f:0.0f;
+            if(!Bounded(value,least,16384))return Refuse(failure,number.name.c_str(),"effects dimensions exceed the Fn bound");
             if(key=="size/start")spec.size=value;
             if(key=="size/end")spec.sizeEnd=value;
             if(key=="size2/start")spec.size2=value;
-            if(key=="length/start")spec.length=value;continue;
+            if(key=="length/start")spec.length=value;
+            if(key=="length/end")spec.lengthEnd=value;
+            continue;
         }
         return Refuse(failure,number.name.c_str(),"effects numeric field is not served yet");
     }
@@ -385,6 +474,36 @@ inline int Count(const Spec &spec,float scale,std::uint32_t &random) noexcept {
     if(spec.count.first>=1.0f&&count<1)count=1;
     return count;
 }
+/// VectorNormalize (0x443d40) leaves a zero vector zero.
+inline Vector Normalized(const Vector &value) noexcept {
+    const double squared=double(value[0])*value[0]+double(value[1])*value[1]+double(value[2])*value[2];
+    if(!(squared>0))return {0,0,0};
+    const double scale=1.0/std::sqrt(squared);
+    return {static_cast<float>(value[0]*scale),static_cast<float>(value[1]*scale),static_cast<float>(value[2]*scale)};
+}
+inline Vector Cross(const Vector &a,const Vector &b) noexcept {
+    return {a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]};
+}
+// MakeNormalVectors (0x443840): the second row starts as (z, -x, y), is made
+// perpendicular to the forward row and normalized; the third is their cross
+// product. A zero forward gives zero rows, as retail's does.
+inline Axis NormalAxis(const Vector &forward) noexcept {
+    Vector right{forward[2],-forward[0],forward[1]};
+    const float dot=-(forward[0]*right[0]+forward[2]*right[2]+right[1]*forward[1]);
+    for(int n=0;n<3;++n)right[n]+=dot*forward[n];
+    right=Normalized(right);
+    return {forward,right,Cross(right,forward)};
+}
+// Fn's rotation of a point about a unit axis (Rodrigues). Retail's
+// RotatePointAroundVector (0x4433f0) is only ever given a uniformly drawn
+// angle here (0x408515), so any exact rotation spreads spawns the same way.
+inline Vector RotateAround(const Vector &axis,const Vector &point,float degrees) noexcept {
+    const double radians=double(degrees)*3.14159265358979323846/180.0,c=std::cos(radians),s=std::sin(radians);
+    const double dot=double(axis[0])*point[0]+double(axis[1])*point[1]+double(axis[2])*point[2];
+    const Vector cross=Cross(axis,point);Vector result;
+    for(int n=0;n<3;++n)result[n]=static_cast<float>(point[n]*c+cross[n]*s+axis[n]*dot*(1.0-c));
+    return result;
+}
 // Late is how long after its due time a spawn is created (retail CreateEffect's
 // lateTime: the negated delay below one, or the scheduler's lag).
 inline bool Instantiate(const Spec &spec,const Vector &origin,const Axis &axis,std::uint32_t &random,Spawn &output,int late=0) noexcept {
@@ -394,7 +513,45 @@ inline bool Instantiate(const Spec &spec,const Vector &origin,const Axis &axis,s
     if(spec.shaders.size()>1)spawn.shader=PickChild(spec.shaders,random);
     // Retail truncates the sampled lifetime (_ftol 0x539584).
     spawn.life=static_cast<int>(Pick(spec.life,random));if(spawn.life<1)spawn.life=1;
-    for(int n=0;n<3;++n){const float offset=Pick(spec.origin[n],random);for(int component=0;component<3;++component)spawn.origin[component]+=axis[n][component]*offset;}
+    // Origin offsets run along the play axis, or along the world's with
+    // cheapOrgCalc (0x408038..0x4080eb).
+    if(spec.spawnFlags&flag::CheapOrgCalc)for(int n=0;n<3;++n)spawn.origin[n]+=Pick(spec.origin[n],random);
+    else for(int n=0;n<3;++n){const float offset=Pick(spec.origin[n],random);for(int component=0;component<3;++component)spawn.origin[component]+=axis[n][component]*offset;}
+    // Spawn shapes (0x40811b..0x40863c), in world axes: a point on an
+    // ellipsoid of the drawn radius and height, or on a cylinder about the
+    // play axis. axisFromSphere then points the axis out through the spawn,
+    // so velocity and endpoints follow it.
+    Axis ax=axis;
+    if(spec.spawnFlags&(flag::OrgOnSphere|flag::OrgOnCylinder)){
+        Vector shape{};
+        if(spec.spawnFlags&flag::OrgOnSphere){
+            volatile float theta=Pick({0,360},random)*3.1415927f/180.0f,phi=Pick({0,180},random)*3.1415927f/180.0f;
+            const float radius=Pick(spec.radius,random),height=Pick(spec.height,random);
+            const double around=std::sin(double(phi));
+            shape={static_cast<float>(std::sin(double(theta))*around*radius),static_cast<float>(std::cos(double(theta))*around*radius),
+                static_cast<float>(std::cos(double(phi))*height)};
+        }else{
+            // Each component draws the radius, the height and its sign anew
+            // (0x408304..0x408507).
+            Vector point;
+            for(int n=0;n<3;++n)point[n]=Pick(spec.radius,random)*ax[1][n];
+            for(int n=0;n<3;++n){const float height=Pick(spec.height,random);point[n]+=height*Pick({-1,1},random)*0.5f*ax[0][n];}
+            shape=RotateAround(ax[0],point,Pick({0,360},random));
+        }
+        for(int n=0;n<3;++n)spawn.origin[n]+=shape[n];
+        if(spec.spawnFlags&flag::AxisFromSphere){
+            const Vector forward=Normalized(shape);
+            if(spec.spawnFlags&flag::OrgOnSphere)ax=NormalAxis(forward);
+            else{
+                // 0x40856a..0x408638: right is up x forward, unnormalized, up
+                // swapped for world Y when forward is exactly world Z.
+                const Vector up=forward[2]==1.0f?Vector{0,1,0}:Vector{0,0,1};
+                ax[0]=forward;ax[1]=Cross(up,forward);ax[2]=Cross(forward,ax[1]);
+            }
+        }
+        for(const auto &row:ax)if(!Finite(row))return false;
+    }
+    spawn.axis=ax;
     // GetRGB (0x406de0): rgbComponentInterpolation draws one fraction for
     // every colour range, so colours lie on the line between the ends.
     const bool blend=spec.spawnFlags&flag::ComponentInterpolation;
@@ -404,64 +561,78 @@ inline bool Instantiate(const Spec &spec,const Vector &origin,const Axis &axis,s
     for(int n=0;n<4;++n){const float value=n<3?colour(spec.color[n]):Pick(spec.color[n],random);if(!Finite(value)||value<0||value>1)return false;
         if(n<3)spawn.light[n]=spawn.rgbStart[n]=value;else spawn.alphaStart=value;
         spawn.color[n]=static_cast<unsigned char>(value*255.0f);}
-    // All served controls have flags0. Retail0x4025e1..0x402630 treats its
-    // alpha as additive RGB intensity; explicit alpha-channel controls are
-    // outside this subset. Fn quantizes sampled colors at its byte boundary.
-    // A Light (0x403f50) passes its RGB alone; it has no alpha.
+    // The creation colour of the uncurved families. Retail0x4025e1..0x402630
+    // treats its alpha as additive RGB intensity. Fn quantizes sampled colors
+    // at its byte boundary. A Light (0x403f50) passes its RGB alone; it has
+    // no alpha. The curved families draw each frame's look instead.
     const unsigned intensity=spawn.color[3];
     for(int n=0;n<3;++n)spawn.color[n]=static_cast<unsigned char>((unsigned(spawn.color[n])*intensity)>>8);
     spawn.color[3]=255;
     spawn.size=Pick(spec.size,random);spawn.size2=Pick(spec.size2,random);spawn.length=Pick(spec.length,random);spawn.rotation=Pick(spec.rotation,random);
-    if(spec.kind==Kind::Line||spec.kind==Kind::Electricity){
-        spawn.traceEnd=spec.traceEnd;spawn.sizeWave=spec.sizeWave;spawn.endpoint=origin;
-        if(spec.traceEnd){
-            for(int n=0;n<3;++n)spawn.endpoint[n]=spawn.origin[n]+axis[0][n]*TraceDistance;
-            // 0x408f96..0x409317 draws each offset range once per component.
-            if(spec.offsetEnd)for(int row=0;row<3;++row)for(int n=0;n<3;++n)
-                spawn.endpoint[n]+=Pick(spec.endpoint[row],random)*axis[row][n];
-        }else for(int n=0;n<3;++n){
-            const float offset=Pick(spec.endpoint[n],random);
-            for(int component=0;component<3;++component)spawn.endpoint[component]+=axis[n][component]*offset;
-        }
-        if(spec.sizeWave){
-            spawn.sizeEnd=Pick(spec.sizeEnd,random);
-            // Retail0x40fa60 uses this binary32 constant (0x5664d8),
-            // based on 3.14159 rather than a higher-precision pi.
-            spawn.sizeRate=Pick(spec.sizeParm,random)*0.0031415901612490416f;
-            if(!Finite(spawn.sizeEnd)||!Finite(spawn.sizeRate))return false;
-        }
-        if(!Finite(spawn.endpoint))return false;
-        for(float value:spawn.endpoint)if(std::fabs(value)>10000000.0f)return false;
-    }
-    if(spec.kind==Kind::Electricity||spec.kind==Kind::Light){
-        spawn.sizeLinear=spec.sizeLinear;spawn.sizeEnd=Pick(spec.sizeEnd,random);
-        spawn.chaos=Pick(spec.chaos,random);
-        random=random*1664525u+1013904223u;spawn.seed=random;
-    }
-    if(spec.kind==Kind::Emitter){
-        // 0x408739..0x4089f0: one draw per velocity range and component.
-        for(int row=0;row<3;++row)for(int n=0;n<3;++n)spawn.velocity[n]+=Pick(spec.velocity[row],random)*axis[row][n];
-        spawn.axis=AnglesAxis(DirectionAngles(axis[0]));
-        for(const auto &row:spawn.axis)if(!Finite(row))return false;
-        spawn.variance=Pick(spec.variance,random);spawn.density=Pick(spec.density,random);
-        if(!Finite(spawn.velocity))return false;
-    }
-    if(spec.kind==Kind::Particle){
-        // CreateEffect 0x40988e and FX_AddParticle 0x40f480: both colour
-        // ends, alpha and size ends, the parms, the rotation step, then
-        // velocity, acceleration (each range once per component) and gravity
-        // on world Z (0x408e30).
+    if(Curved(spec.kind)){
+        // FX_AddParticle 0x40f480, FX_AddLine 0x40f810, FX_AddTail 0x40fdc0,
+        // FX_AddElectricity 0x40fae0 and FX_AddOrientedParticle 0x410b70
+        // keep both colour ends, the alpha and size ends and the parms.
         for(int n=0;n<3;++n){spawn.rgbEnd[n]=colour(spec.colorEnd[n]);if(!Finite(spawn.rgbEnd[n])||spawn.rgbEnd[n]<0||spawn.rgbEnd[n]>1)return false;}
         spawn.alphaEnd=Pick(spec.alphaEnd,random);spawn.sizeEnd=Pick(spec.sizeEnd,random);
         spawn.rgbParm=Pick(spec.rgbParm,random);spawn.alphaParm=Pick(spec.alphaParm,random);spawn.sizeParm=Pick(spec.sizeParm,random);
         spawn.rotationDelta=Pick(spec.rotationDelta,random);spawn.curves=spec.curves;
-        for(int row=0;row<3;++row)for(int n=0;n<3;++n)spawn.velocity[n]+=Pick(spec.velocity[row],random)*axis[row][n];
-        for(int row=0;row<3;++row)for(int n=0;n<3;++n)spawn.acceleration[n]+=Pick(spec.acceleration[row],random)*axis[row][n];
-        spawn.acceleration[2]+=Pick(spec.gravity,random);
-        if(!Finite(spawn.velocity)||!Finite(spawn.acceleration)||!Finite(spawn.alphaEnd)||!Finite(spawn.sizeEnd)||
-            !Finite(spawn.rgbParm)||!Finite(spawn.alphaParm)||!Finite(spawn.sizeParm)||!Finite(spawn.rotationDelta))return false;
+        spawn.lengthEnd=Pick(spec.lengthEnd,random);spawn.lengthParm=Pick(spec.lengthParm,random);
+        if(!Finite(spawn.alphaEnd)||!Finite(spawn.sizeEnd)||!Finite(spawn.rgbParm)||!Finite(spawn.alphaParm)||
+            !Finite(spawn.sizeParm)||!Finite(spawn.rotationDelta)||!Finite(spawn.lengthEnd)||!Finite(spawn.lengthParm))return false;
     }
-    if(late>0&&(spec.kind==Kind::Particle||spec.kind==Kind::Emitter)){
+    if(spec.kind==Kind::Line||spec.kind==Kind::Electricity){
+        spawn.traceEnd=spec.traceEnd;spawn.sizeWave=spec.sizeWave;spawn.endpoint=origin;
+        const bool cheap=spec.spawnFlags&flag::CheapOrg2Calc;
+        if(spec.traceEnd){
+            for(int n=0;n<3;++n)spawn.endpoint[n]=spawn.origin[n]+ax[0][n]*TraceDistance;
+            // 0x408f96..0x409317 draws each offset range once per component,
+            // along the world's axes with cheapOrg2Calc (0x40922f).
+            if(spec.offsetEnd&&cheap)for(int n=0;n<3;++n)spawn.endpoint[n]+=Pick(spec.endpoint[n],random);
+            else if(spec.offsetEnd)for(int row=0;row<3;++row)for(int n=0;n<3;++n)
+                spawn.endpoint[n]+=Pick(spec.endpoint[row],random)*ax[row][n];
+        }else if(cheap)for(int n=0;n<3;++n)spawn.endpoint[n]+=Pick(spec.endpoint[n],random); // 0x409765
+        else for(int n=0;n<3;++n){
+            const float offset=Pick(spec.endpoint[n],random);
+            for(int component=0;component<3;++component)spawn.endpoint[component]+=ax[n][component]*offset;
+        }
+        // Retail0x40fa60 uses this binary32 constant (0x5664d8), based on
+        // 3.14159 rather than a higher-precision pi.
+        if(spec.sizeWave)spawn.sizeRate=spawn.sizeParm*0.0031415901612490416f;
+        if(!Finite(spawn.sizeRate))return false;
+        if(!Finite(spawn.endpoint))return false;
+        for(float value:spawn.endpoint)if(std::fabs(value)>10000000.0f)return false;
+        // traceImpactFx plays one impact effect where the endpoint trace ends (0x4093d9).
+        if(spec.spawnFlags&flag::TraceImpactFx)spawn.impact=PickChild(spec.impacts,random);
+    }
+    if(spec.kind==Kind::Electricity||spec.kind==Kind::Light){
+        spawn.sizeLinear=spec.sizeLinear;if(spec.kind==Kind::Light)spawn.sizeEnd=Pick(spec.sizeEnd,random);
+        spawn.chaos=Pick(spec.chaos,random);
+        random=random*1664525u+1013904223u;spawn.seed=random;
+    }
+    // Velocity and acceleration (0x408722..0x408e29): each range drawn once
+    // per component, along the axis or, with absoluteVel and absoluteAccel,
+    // the world's; gravity on world Z (0x408e30).
+    const auto motion=[&](const std::array<Range,3> &ranges,bool absolute,Vector &result){
+        if(absolute)for(int n=0;n<3;++n)result[n]+=Pick(ranges[n],random);
+        else for(int row=0;row<3;++row)for(int n=0;n<3;++n)result[n]+=Pick(ranges[row],random)*ax[row][n];
+    };
+    if(spec.kind==Kind::Emitter){
+        motion(spec.velocity,spec.spawnFlags&flag::AbsoluteVel,spawn.velocity);
+        spawn.axis=AnglesAxis(DirectionAngles(ax[0]));
+        for(const auto &row:spawn.axis)if(!Finite(row))return false;
+        spawn.variance=Pick(spec.variance,random);spawn.density=Pick(spec.density,random);
+        if(!Finite(spawn.velocity))return false;
+    }
+    if(Moving(spec.kind)){
+        motion(spec.velocity,spec.spawnFlags&flag::AbsoluteVel,spawn.velocity);
+        motion(spec.acceleration,spec.spawnFlags&flag::AbsoluteAccel,spawn.acceleration);
+        spawn.acceleration[2]+=Pick(spec.gravity,random);
+        spawn.elasticity=Pick(spec.elasticity,random);
+        spawn.impact=PickChild(spec.impacts,random);spawn.death=PickChild(spec.deaths,random);
+        if(!Finite(spawn.velocity)||!Finite(spawn.acceleration)||!Finite(spawn.elasticity))return false;
+    }
+    if(late>0&&(Moving(spec.kind)||spec.kind==Kind::Emitter)){
         // 0x408e84..0x408f29: a late spawn takes the lag's acceleration and
         // moves by (t + t*t/2) times its velocity.
         volatile float seconds=static_cast<float>(late)*0.001f;
@@ -474,6 +645,7 @@ inline bool Instantiate(const Spec &spec,const Vector &origin,const Axis &axis,s
     if(spec.kind==Kind::Emitter||spec.kind==Kind::Runner)spawn.child=PickChild(spec.children,random);
     if(!Finite(spawn.origin))return false;
     for(float value:spawn.origin)if(std::fabs(value)>10000000.0f)return false;
+    spawn.previous=spawn.origin;
     if(!Finite(spawn.size)||!Finite(spawn.size2)||!Finite(spawn.length)||!Finite(spawn.rotation)||
         !Finite(spawn.sizeEnd)||!Finite(spawn.chaos)||!Finite(spawn.density)||!Finite(spawn.variance))return false;
     output=spawn;return true;
@@ -531,17 +703,33 @@ inline float CurvePercent(std::uint32_t nibble,float parm,int now,int start,int 
     }
     return first;
 }
-struct Look { float radius{};std::array<unsigned char,4> rgba{}; };
-// One frame of a particle's size, colour and alpha. UpdateRGB rounds each
-// clamped component times 255 to the nearest byte (fistp) and sets alpha
-// 255; UpdateAlpha clamps, truncates (_ftol 0x539584) and either writes the
-// alpha byte (useAlpha) or scales RGB by alpha/256.
-inline bool ParticleLook(const Spawn &spawn,int now,int start,Look &look) noexcept {
+struct Look { float radius{},length{};std::array<unsigned char,4> rgba{}; };
+// The random curve word scales the value by a fresh draw of 0..32767 over
+// 32768 each update (0x403340..0x40337c; Fn draws from its own generator).
+inline float CurveRandom(std::uint32_t nibble,float percent,std::uint32_t *random) noexcept {
+    if(!(nibble&flag::CurveRandom)||!random)return percent;
+    *random=*random*1664525u+1013904223u;
+    volatile float draw=static_cast<float>(*random>>17);
+    return static_cast<float>(double(draw)*percent/32768.0);
+}
+// One frame of a particle's size, colour and alpha, and a tail's length
+// (0x4031c0, the same law over bits 12..15). UpdateRGB rounds each clamped
+// component times 255 to the nearest byte (fistp) and sets alpha 255;
+// UpdateAlpha clamps, truncates (_ftol 0x539584) and either writes the alpha
+// byte (useAlpha) or scales RGB by alpha/256. A random curve needs a
+// generator.
+inline bool ParticleLook(const Spawn &spawn,int now,int start,Look &look,std::uint32_t *random=nullptr) noexcept {
+    if(!random&&(spawn.curves&0x2222u))return false;
     const auto percent=[&](int shift,float parm){
         const std::uint32_t nibble=(spawn.curves>>shift)&0xfu;
-        return CurvePercent(nibble,CurveParm(nibble,parm,start,spawn.life),now,start,spawn.life);};
+        return CurveRandom(nibble,CurvePercent(nibble,CurveParm(nibble,parm,start,spawn.life),now,start,spawn.life),random);};
     const float size=percent(flag::SizeShift,spawn.sizeParm);
     look.radius=size*spawn.size+(1.0f-size)*spawn.sizeEnd;
+    if(spawn.kind==Kind::Tail){
+        const float length=percent(flag::LengthShift,spawn.lengthParm);
+        look.length=length*spawn.length+(1.0f-length)*spawn.lengthEnd;
+        if(!Finite(look.length))return false;
+    }
     const float rgb=percent(flag::RgbShift,spawn.rgbParm);
     for(int n=0;n<3;++n){
         volatile float value=rgb*spawn.rgbStart[n]+(1.0f-rgb)*spawn.rgbEnd[n];
@@ -560,6 +748,14 @@ inline bool ParticleLook(const Spawn &spawn,int now,int start,Look &look) noexce
     else for(int n=0;n<3;++n)look.rgba[n]=static_cast<unsigned char>((unsigned(look.rgba[n])*byte)>>8);
     return Finite(look.radius);
 }
+// CTail's endpoint (0x4033b0): from the origin back towards last frame's
+// position, by this frame's length. A tail that has not moved has no
+// direction and draws as a point, so Fn skips it.
+inline bool TailEnd(const Spawn &spawn,float length,Vector &end) noexcept {
+    const Vector back=Normalized({spawn.previous[0]-spawn.origin[0],spawn.previous[1]-spawn.origin[1],spawn.previous[2]-spawn.origin[2]});
+    for(int n=0;n<3;++n)end[n]=back[n]*length+spawn.origin[n];
+    return Finite(end)&&(back[0]!=0||back[1]!=0||back[2]!=0);
+}
 // UpdateRotation 0x402640: the angle steps by frameTime * step / 100 and
 // the step decays by frameTime * 0.0007 each update.
 inline bool ParticleRotate(Spawn &spawn,int frameTime) noexcept {
@@ -568,14 +764,69 @@ inline bool ParticleRotate(Spawn &spawn,int frameTime) noexcept {
     spawn.rotationDelta=static_cast<float>((1.0-double(elapsed)*double(0.0007f))*spawn.rotationDelta);
     return Finite(spawn.rotation)&&Finite(spawn.rotationDelta);
 }
-// UpdateOrigin 0x401a50 without physics: velocity takes this frame's
+/// UpdateOrigin 0x401a50 without physics: velocity takes this frame's
 // acceleration first, then the particle moves by it.
-inline bool ParticleNext(Spawn &spawn,float seconds) noexcept {
+inline bool ParticlePredict(Spawn &spawn,float seconds,Vector &next) noexcept {
     for(int n=0;n<3;++n)spawn.velocity[n]=seconds*spawn.acceleration[n]+spawn.velocity[n];
-    for(int n=0;n<3;++n)spawn.origin[n]=seconds*spawn.velocity[n]+spawn.origin[n];
-    if(!Finite(spawn.origin)||!Finite(spawn.velocity))return false;
-    for(float value:spawn.origin)if(std::fabs(value)>10000000.0f)return false;
+    for(int n=0;n<3;++n)next[n]=seconds*spawn.velocity[n]+spawn.origin[n];
+    if(!Finite(next)||!Finite(spawn.velocity))return false;
+    for(float value:next)if(std::fabs(value)>10000000.0f)return false;
     return true;
+}
+inline bool ParticleNext(Spawn &spawn,float seconds) noexcept {
+    Vector next;if(!ParticlePredict(spawn,seconds,next))return false;
+    spawn.origin=next;return true;
+}
+// Whether this frame's step is tested (0x401ab2..0x401b47). Only
+// expensivePhysics always traces; any other usePhysics particle probes the
+// point's contents only while the RMG cvar (0xb43cd0, registered at
+// 0x4386e7) is set, so on ordinary maps it passes through the world.
+inline bool ParticleTraces(const Spawn &spawn,bool rmg) noexcept {
+    return (spawn.flags&flag::UsePhysics)&&((spawn.flags&flag::ExpensivePhysics)||rmg);
+}
+struct Contact {
+    bool allSolid{},startSolid{};float fraction{1};
+    Vector endpos{},normal{};std::uint32_t surfaceFlags{};
+};
+enum class Collision { Moved,Stuck,Bounced,Killed };
+// The traced step (0x401bcb..0x401d76). Starting in solid stops the
+// particle where it is and ends its physics. A hit plays the impact effect
+// unless the surface is flagged no-impact, kills with impactKills, and
+// otherwise reflects the velocity about the plane, scaled by the
+// elasticity, which then halves; below a speed of ten it comes to rest. The
+// particle then sits one unit off the plane.
+inline Collision ParticleCollide(Spawn &spawn,float seconds,const Vector &next,const Contact &contact,bool &impact) noexcept {
+    impact=false;
+    if(contact.allSolid||contact.startSolid){
+        spawn.velocity={};spawn.acceleration={};spawn.flags&=~(flag::UsePhysics|flag::ImpactFx);
+        return Collision::Stuck;
+    }
+    if(!(contact.fraction<1.0f)){spawn.origin=next;return Collision::Moved;}
+    impact=(spawn.flags&flag::ImpactFx)&&!(contact.surfaceFlags&NoImpactSurface);
+    if(spawn.flags&flag::ImpactKills)return Collision::Killed;
+    auto &v=spawn.velocity;const auto &a=spawn.acceleration,&normal=contact.normal;
+    volatile float step=seconds*contact.fraction;
+    v[0]=static_cast<float>(double(step)*a[0]+v[0]);v[1]=static_cast<float>(double(step)*a[1]+v[1]);
+    volatile float z=static_cast<float>(double(step)*a[2]+v[2]);
+    volatile float dot=static_cast<float>((double(z)*normal[2]+double(v[1])*normal[1])+double(v[0])*normal[0]);
+    dot=dot*-2.0f;
+    v[2]=static_cast<float>(double(dot)*normal[2]+z);
+    v[0]=static_cast<float>((double(dot)*normal[0]+v[0])*spawn.elasticity);
+    v[1]=static_cast<float>((double(dot)*normal[1]+v[1])*spawn.elasticity);
+    v[2]=static_cast<float>(double(spawn.elasticity)*v[2]);
+    spawn.elasticity*=0.5f;
+    if(double(v[0])*v[0]+double(v[1])*v[1]+double(v[2])*v[2]<100.0){
+        v={};spawn.acceleration={};spawn.flags&=~(flag::UsePhysics|flag::ImpactFx);
+    }
+    for(int n=0;n<3;++n)spawn.origin[n]=contact.endpos[n]+normal[n];
+    if(!Finite(spawn.origin)||!Finite(v))return Collision::Killed;
+    return Collision::Bounced;
+}
+// Die (0x401500): a death effect plays at the origin, facing a random
+// normal, when a particle reaches its end; never when an impact killed it.
+inline Vector DeathNormal(std::uint32_t &random) noexcept {
+    Vector normal;for(float &value:normal)value=Pick({-1,1},random);
+    return Normalized(normal);
 }
 // Retail scheduler (0x4073c6..0x4074bb): evenDistribution spaces the count
 // over |_ftol(max - min)|, else each spawn draws its delay; both truncate.

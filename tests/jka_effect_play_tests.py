@@ -95,7 +95,7 @@ int main(){
  std::uint32_t nan=0x7fc00001;std::memcpy(&fxVariables[2].value,&nan,4);Reject([&]{Draw();});fxVariables[2].value=16;
  // Malformed/unsupported declarations refuse before publishing any primitive.
  const auto baseline=Active();
- for(const char *field:{"flags usePhysics","count 101","life 0","delay 60001"}){
+ for(const char *field:{"flags relative","count 501","life 0","delay 60001"}){
   assets["effects/own/bad.efx"]=std::string("particle\n{\nshader gfx/own/bad\n")+field+"\n}\n";
   CL_JKACgameEffectsFree();const auto bad=Register("own/bad");args[1]=bad;
   Reject([&]{InvokePlayback(args);});assert(!Active());

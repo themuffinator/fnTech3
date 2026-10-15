@@ -73,9 +73,9 @@ int main(int argc,char**){
  assert(!play::LineSide({0,0,0},{0,0,0},{0,1,0},side));
  unsigned nan=0x7fc00001u;play::Vector invalid{};std::memcpy(invalid.data(),&nan,4);
  assert(!play::LineSide(invalid,{1,0,0},{0,1,0},side));
- for(const char *extra:{"spawnflags cheapOrg2Calc","spawnflags org2fromTrace traceImpactFx",
-  "size\n{\nflags wave linear\n}","size\n{\nparm 10001\nflags wave\n}",
-  "origin2 20000 0 0","count 101","life 0","delay 60001","flags depthHack"}){
+ for(const char *extra:{"spawnflags randRotAroundFwd","flags relative",
+  "size\n{\nflags wave sideways\n}","size\n{\nparm 100001\nflags wave\n}",
+  "origin2 20000 0 0","count 501","life 0","delay 60001","flags depthHack"}){
   play::Spec old;old.shader=199;assert(!Compile(head+extra+"\n}\n",old));assert(old.shader==199);
  }
 }

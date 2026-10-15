@@ -241,6 +241,20 @@ inline bool ResourceKind(std::string_view name, MediaKind &kind) {
     else return false;
     return true;
 }
+// Retail's group parser (jamp.exe 0x40ee34..0x40ef13) reads "width" as size,
+// "width2" as size2 and a "height" group as length; each group reads "parms"
+// as parm (0x40e1be, 0x40e35b, 0x40e4fb, 0x40e69b, 0x40e83b).
+inline std::string CurveGroup(std::string_view name) {
+    auto key = Lower(name);
+    if (key == "width") key = "size";
+    else if (key == "width2") key = "size2";
+    else if (key == "height") key = "length";
+    return key;
+}
+inline std::string CurveField(std::string_view name) {
+    auto field = Lower(name);
+    return field == "parms" ? "parm" : field;
+}
 inline bool ReadPrimitive(Primitive &primitive, Failure &failure) {
     for (const auto &pair : primitive.declaration.pairs) {
         const auto key = Lower(pair.name);
@@ -268,11 +282,11 @@ inline bool ReadPrimitive(Primitive &primitive, Failure &failure) {
         }
     }
     for (const auto &curve : primitive.declaration.groups) {
-        const auto key = Lower(curve.name);
+        const auto key = CurveGroup(curve.name);
         const bool color = key=="rgb";
-        if (!color && key!="alpha" && key!="size" && key!="width" && key!="size2" && key!="width2" && key!="length" && key!="height") continue;
+        if (!color && key!="alpha" && key!="size" && key!="size2" && key!="length") continue;
         for (const auto &pair : curve.pairs) {
-            const auto field = Lower(pair.name);
+            const auto field = CurveField(pair.name);
             if (field!="start" && field!="end" && field!="parm") continue;
             Numeric number;
             const bool vector = color && field!="parm";

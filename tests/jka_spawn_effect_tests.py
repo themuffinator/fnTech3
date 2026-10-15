@@ -93,7 +93,7 @@ int main(){
   "Emitter\n{\nflags usePhysics expensivePhysics\n}\n",       // bounce
   "Emitter\n{\nflags emitFx useBBox\n}\n",
   "Emitter\n{\nflags emitFx madeUp\n}\n",
-  "Emitter\n{\nspawnflags absoluteVel\n}\n",
+  "Emitter\n{\nspawnflags randRotAroundFwd\n}\n",
   "Emitter\n{\nacceleration 0 0 10\n}\n",
   "Emitter\n{\nangles 0 90 0\n}\n",
   "Emitter\n{\nmodel models/own/chunk.md3\n}\n",
@@ -105,11 +105,11 @@ int main(){
   "FxRunner\n{\nemitfx\n[\nown/a\n]\n}\n",
   "FxRunner\n{\ndelay 60001\n}\n",                            // beyond the Fn delay bound
   "Electricity\n{\nshader gfx/own/bolt\nflags depthHack\n}\n",
-  "Electricity\n{\nshader gfx/own/bolt\nspawnflags org2isOffset\n}\n",
+  "Electricity\n{\nshader gfx/own/bolt\nspawnflags orgOnSphere randRotAroundFwd\n}\n",
   "Electricity\n{\nshader gfx/own/bolt\nintensity 65\n}\n",
   "Electricity\n{\nshader gfx/own/bolt\nlength\n{\nstart 3\n}\n}\n",
-  "Particle\n{\nshader gfx/own/p\ncount 101\n}\n",
-  "Tail\n{\nshader gfx/own/t\n}\n"}){
+  "Particle\n{\nshader gfx/own/p\ncount 501\n}\n",
+  "Decal\n{\nshader gfx/own/t\n}\n"}){
   play::Spec old;old.shader=199;assert(!Compile(text,old,&reason)&&old.shader==199&&reason);
  }
  // Retail count rule (0x4072b1..0x4073ba).

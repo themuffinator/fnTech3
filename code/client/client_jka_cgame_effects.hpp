@@ -19,7 +19,9 @@
  * enter Fn's dynamic lights; emitters move, trace and emit nested effects, and
  * FxRunners play them, inside the owned pool. Particles move, rotate and run
  * their size, colour and alpha curves; delayed spawns wait in an owned
- * schedule created before each normal pass. Remaining playback controls and
+ * schedule created before each normal pass. Tails draw as Fn polygons from
+ * their motion; traced particles bounce, play impact effects and die on
+ * impact, and death effects play as particles end. Remaining playback controls and
  * primitive families remain named refusals. Registration owns all buffers and
  * partial records across engine ERR_DROP/longjmp recovery. */
 namespace {
@@ -71,7 +73,9 @@ struct JKACgameEffectsState {
     std::size_t scheduleDropped{};
     std::vector<std::size_t> slotWork,evictWork;
     std::vector<JKACgameEffectDraw> drawWork;
-    cvar_t *debug{}, *countScale{}, *nearCull{};
+    // Death effects of the instances retired this pass: effect and origin.
+    std::vector<std::pair<int,fntech3::jka::effectplay::Vector>> deathWork;
+    cvar_t *debug{}, *countScale{}, *nearCull{}, *rmg{};
     fntech3::jka::effects::Name pendingName;
     std::vector<std::unique_ptr<JKACgameEffect>> effects;
     std::map<std::string,int> lookup;
@@ -107,6 +111,9 @@ static void CL_JKACgameEffectsInit(intptr_t view) {
     state.debug=Cvar_Get("fx_debug","0",CVAR_TEMP);
     state.countScale=Cvar_Get("fx_countScale","1",CVAR_ARCHIVE);
     state.nearCull=Cvar_Get("fx_nearCull","16",CVAR_ARCHIVE);
+    // Retail's engine registers RMG (0x4386e7) and its particles read it
+    // (0x401afc); Fn registers the same name with retail's default.
+    state.rmg=Cvar_Get("RMG","0",0);
     state.time=state.previousTime=state.frameTime=0;
     state.realTime=0.0f;
     state.frozen=false;
@@ -141,7 +148,7 @@ static void CL_JKACgameEffectsFree() {
     for (const auto &effect:state.effects) CL_JKACgameEffectClose(*effect);
     state.effects.clear();state.lookup.clear();state.pendingName={};
     state.instances={};state.nextFree=0;
-    state.spawnWork.clear();state.slotWork.clear();state.evictWork.clear();state.drawWork.clear();
+    state.spawnWork.clear();state.slotWork.clear();state.evictWork.clear();state.drawWork.clear();state.deathWork.clear();
     state.scheduled.clear();state.dueWork.clear();state.scheduleDropped=0;
     // Retail Free(true) keeps the helper view/clocks and initialized flag.
 }
@@ -232,17 +239,25 @@ static fntech3_jka_trace_t CL_JKACgameEffectTrace(const fntech3::jka::effectplay
     }
     return request.result;
 }
-static void CL_JKACgameEffectTraceEndpoint(fntech3::jka::effectplay::Spawn &spawn) {
+static fntech3_jka_trace_t CL_JKACgameEffectTraceEndpoint(fntech3::jka::effectplay::Spawn &spawn) {
     const auto result=CL_JKACgameEffectTrace(spawn.origin,spawn.endpoint);
     for(int n=0;n<3;++n)spawn.endpoint[n]=result.endpos[n];
+    return result;
 }
+// Retail's primitive pass (0x40f34c..0x40f371) kills a primitive past its
+// end with impactKills cleared, so Die (0x401500) plays its death effect;
+// the caller plays the collected deaths.
 static void CL_JKACgameEffectRetire(JKACgameEffectsState &state) {
     for(const auto &instance:state.instances)if(instance.active){
         const std::int64_t age=std::int64_t(state.time)-instance.startTime;
         if(age<0||age>INT32_MAX)Com_Error(ERR_DROP,"Academy effects clock reversal or wrap is not served yet");
     }
-    for(auto &instance:state.instances)if(instance.active&&std::int64_t(state.time)-instance.startTime>instance.spawn.life)
+    for(auto &instance:state.instances)if(instance.active&&std::int64_t(state.time)-instance.startTime>instance.spawn.life){
+        const auto &spawn=instance.spawn;
+        if(fntech3::jka::effectplay::Moving(spawn.kind)&&(spawn.flags&fntech3::jka::effectplay::flag::DeathFx)&&spawn.death)
+            state.deathWork.push_back({spawn.death,spawn.origin});
         instance={};
+    }
 }
 // Compile an effect and every effect it can play before any callback or
 // publication, so an unserved descendant refuses the whole graph honestly.
@@ -257,16 +272,24 @@ static void CL_JKACgameEffectCompileGraph(JKACgameEffectsState &state,int root) 
         if(!effect.ready)continue;
         if(!effect.playable){
             effect.playback.clear();effect.playback.reserve(effect.definition.primitives.size());
-            if(!effect.definition.ignoredGroups.empty())Com_Error(ERR_DROP,"Academy effects playback has unserved declaration groups");
+            // Retail's file parser (0x406a51..0x406c0f) reads past any group
+            // that is not a primitive, such as "forcefeedback", silently.
             for(const auto &primitive:effect.definition.primitives){
                 effectplay::Spec spec;effectplay::Failure failure;
                 if(!effectplay::Compile(primitive,spec,failure))
                     Com_Error(ERR_DROP,"Academy effect %s: %s (%s)",effect.name.file.c_str(),failure.reason,failure.field);
+                // Retail prints each key or group it does not know and reads on.
+                for(const auto &ignored:spec.ignored)
+                    Com_Printf("Academy effect %s: unknown key %s ignored, as retail does\n",effect.name.file.c_str(),ignored.c_str());
                 effect.playback.push_back(std::move(spec));
             }
             effect.playable=true;
         }
-        for(const auto &spec:effect.playback)for(int child:spec.children)pending.push_back(child);
+        for(const auto &spec:effect.playback){
+            for(int child:spec.children)pending.push_back(child);
+            for(int child:spec.impacts)pending.push_back(child);
+            for(int child:spec.deaths)pending.push_back(child);
+        }
     }
 }
 static float CL_JKACgameEffectCountScale(const JKACgameEffectsState &state) {
@@ -286,9 +309,19 @@ static void CL_JKACgameEffectCreate(JKACgameEffectsState &state,int id,std::size
     const auto &spec=state.effects[id-1]->playback[primitive];
     effectplay::Spawn spawn;
     if(!effectplay::Instantiate(spec,origin,axis,random,spawn,late))Com_Error(ERR_DROP,"Invalid Academy effects spawn result");
-    if(spawn.traceEnd)CL_JKACgameEffectTraceEndpoint(spawn);
+    if(spawn.traceEnd){
+        const auto trace=CL_JKACgameEffectTraceEndpoint(spawn);
+        // traceImpactFx (0x4093d9..0x409493) plays the impact effect where
+        // the trace ends, facing its plane, hit or not.
+        if(spawn.impact){
+            effectplay::Vector normal;std::memcpy(normal.data(),trace.plane.normal,sizeof(normal));
+            if(!effectplay::Finite(normal))Com_Error(ERR_DROP,"Invalid Academy effects trace plane");
+            CL_JKACgameEffectSpawn(state,spawn.impact,spawn.endpoint,effectplay::NormalAxis(normal),random,depth+1);
+        }
+    }
     if(spawn.kind==effects::Kind::Runner){
-        if(spawn.child)CL_JKACgameEffectSpawn(state,spawn.child,spawn.origin,axis,random,depth+1);
+        // The FxRunner plays at its origin and axis, after any spawn shape.
+        if(spawn.child)CL_JKACgameEffectSpawn(state,spawn.child,spawn.origin,spawn.axis,random,depth+1);
         return;
     }
     state.spawnWork.push_back({id,spawn});
@@ -354,6 +387,23 @@ static void CL_JKACgameEffectPublish(JKACgameEffectsState &state) {
     if(!state.slotWork.empty())state.nextFree=(state.slotWork.back()+1)%state.instances.size();
     state.spawnWork.clear();state.slotWork.clear();
 }
+// Retire ended instances, then play their death effects (Die 0x401500) at
+// their origins, each facing a random normal.
+static void CL_JKACgameEffectExpire(JKACgameEffectsState &state) {
+    using namespace fntech3::jka;
+    state.deathWork.clear();
+    CL_JKACgameEffectRetire(state);
+    if(state.deathWork.empty())return;
+    state.spawnWork.clear();state.slotWork.clear();
+    auto random=state.random;
+    for(std::size_t n=0;n<state.deathWork.size();++n){
+        const auto death=state.deathWork[n];
+        CL_JKACgameEffectSpawn(state,death.first,death.second,effectplay::NormalAxis(effectplay::DeathNormal(random)),random,1);
+    }
+    state.deathWork.clear();
+    CL_JKACgameEffectPublish(state);
+    state.random=random;
+}
 // Retail AddScheduledEffects 0x407810 creates each due spawn, late by its
 // lag, before the primitive pass. A paused frame keeps them waiting.
 static void CL_JKACgameEffectRunScheduled(JKACgameEffectsState &state) {
@@ -395,7 +445,7 @@ static void CL_JKACgameEffectPlay(const intptr_t *args) {
     // Primary0x40f48b..0x40f49b creates no particle on a paused frame.
     if(!state.frameTime)return;
     if(state.frameTime<0)Com_Error(ERR_DROP,"Academy effects clock reversal or wrap is not served yet");
-    CL_JKACgameEffectRetire(state);
+    CL_JKACgameEffectExpire(state);
     state.spawnWork.clear();state.slotWork.clear();
     auto random=state.random;
     CL_JKACgameEffectSpawn(state,id,origin,axis,random,0);
@@ -407,21 +457,61 @@ static void CL_JKACgameEffectPlay(const intptr_t *args) {
 // expensive physics traces the step; a hit kills it, a solid start stops
 // it), then walks its emissions (0x4038f0). Children join this frame's
 // owned pool. A paused frame advances nothing.
+// The traced step of a moving particle (0x401b4d..0x401bc6): a point probe
+// first unless it is expensive, then the step itself, both through export 15
+// against the client's world and entities.
+static fntech3::jka::effectplay::Contact CL_JKACgameEffectContact(const fntech3::jka::effectplay::Vector &start,
+    const fntech3::jka::effectplay::Vector &end)
+{
+    const auto trace=CL_JKACgameEffectTrace(start,end);
+    fntech3::jka::effectplay::Contact contact;
+    contact.allSolid=trace.allsolid;contact.startSolid=trace.startsolid;contact.fraction=trace.fraction;
+    std::memcpy(contact.endpos.data(),trace.endpos,sizeof(contact.endpos));
+    std::memcpy(contact.normal.data(),trace.plane.normal,sizeof(contact.normal));
+    contact.surfaceFlags=static_cast<std::uint32_t>(trace.surfaceFlags);
+    if(!fntech3::jka::effectplay::Finite(contact.normal))Com_Error(ERR_DROP,"Invalid Academy effects trace plane");
+    return contact;
+}
 static void CL_JKACgameEffectAdvance(JKACgameEffectsState &state) {
     using namespace fntech3::jka;
-    if(state.frameTime<=0)return;
-    // CParticle::Update 0x401730: a particle created before this frame moves
-    // (0x401a50); usePhysics is not served for particles, so no trace.
+    // CTail::Update (0x402e30) keeps this frame's starting origin before it
+    // moves, even on a paused frame, so a still tail has no direction.
     for(auto &instance:state.instances)
-        if(instance.active&&instance.spawn.kind==effects::Kind::Particle&&instance.startTime<state.time&&
-            !effectplay::ParticleNext(instance.spawn,state.realTime))
-            Com_Error(ERR_DROP,"Invalid Academy effects particle motion");
+        if(instance.active&&instance.spawn.kind==effects::Kind::Tail)instance.spawn.previous=instance.spawn.origin;
+    if(state.frameTime<=0)return;
+    state.spawnWork.clear();state.slotWork.clear();
+    auto random=state.random;
+    // CParticle (0x401730), COrientedParticle (0x402770) and CTail (0x402e30):
+    // one created before this frame moves (0x401a50). A traced particle may
+    // stick, bounce, play its impact effect, or die on impact without a
+    // death effect.
+    const bool rmg=state.rmg&&state.rmg->integer;
+    for(auto &instance:state.instances){
+        if(!instance.active||!effectplay::Moving(instance.spawn.kind)||instance.startTime>=state.time)continue;
+        auto &spawn=instance.spawn;effectplay::Vector next;
+        if(!effectplay::ParticlePredict(spawn,state.realTime,next))Com_Error(ERR_DROP,"Invalid Academy effects particle motion");
+        if(!effectplay::ParticleTraces(spawn,rmg)){spawn.origin=next;continue;}
+        if(!(spawn.flags&effectplay::flag::ExpensivePhysics)){
+            // Retail asks export 9 for the point's contents (0x401b33). Fn
+            // asks export 15 for a zero-length trace there, which starts
+            // solid exactly when the point lies in the same mask.
+            const auto probe=CL_JKACgameEffectContact(next,next);
+            if(!probe.startSolid&&!probe.allSolid){spawn.origin=next;continue;}
+        }
+        const auto contact=CL_JKACgameEffectContact(spawn.origin,next);
+        bool impact=false;
+        const auto outcome=effectplay::ParticleCollide(spawn,state.realTime,next,contact,impact);
+        if(impact&&spawn.impact)
+            CL_JKACgameEffectSpawn(state,spawn.impact,contact.endpos,effectplay::NormalAxis(contact.normal),random,1);
+        if(outcome==effectplay::Collision::Killed)instance={};
+    }
     std::vector<std::size_t> emitters;
     for(std::size_t n=0;n<state.instances.size();++n)
         if(state.instances[n].active&&state.instances[n].spawn.kind==effects::Kind::Emitter)emitters.push_back(n);
-    if(emitters.empty())return;
-    state.spawnWork.clear();state.slotWork.clear();
-    auto random=state.random;
+    if(emitters.empty()){
+        if(!state.spawnWork.empty())CL_JKACgameEffectPublish(state);
+        state.random=random;return;
+    }
     for(const auto index:emitters){
         auto &instance=state.instances[index];
         auto &spawn=instance.spawn;
@@ -448,22 +538,22 @@ static void CL_JKACgameEffectAdvance(JKACgameEffectsState &state) {
     state.random=random;
 }
 static void CL_JKACgameEffectVertex(polyVert_t &vertex,const fntech3::jka::effectplay::Spawn &spawn,
-    float along,float side,float up,float s,float t)
+    float along,float side,float up,float s,float t,const std::array<unsigned char,4> &rgba)
 {
     for(int n=0;n<3;++n){
         vertex.xyz[n]=spawn.origin[n]+spawn.axis[0][n]*along+spawn.axis[1][n]*side+spawn.axis[2][n]*up;
         if(!fntech3::jka::effectplay::Finite(vertex.xyz[n]))Com_Error(ERR_DROP,"Invalid Academy effects polygon vertex");
     }
-    vertex.st[0]=s;vertex.st[1]=t;std::memcpy(vertex.modulate.rgba,spawn.color.data(),4);
+    vertex.st[0]=s;vertex.st[1]=t;std::memcpy(vertex.modulate.rgba,rgba.data(),4);
 }
 static void CL_JKACgameEffectSpan(polyVert_t &vertex,const fntech3::jka::effectplay::Vector &point,
-    const fntech3::jka::effectplay::Vector &side,float offset,float s,float t,const fntech3::jka::effectplay::Spawn &spawn)
+    const fntech3::jka::effectplay::Vector &side,float offset,float s,float t,const std::array<unsigned char,4> &rgba)
 {
     for(int component=0;component<3;++component){
         vertex.xyz[component]=point[component]+side[component]*offset;
         if(!fntech3::jka::effectplay::Finite(vertex.xyz[component]))Com_Error(ERR_DROP,"Invalid Academy effects line vertex");
     }
-    vertex.st[0]=s;vertex.st[1]=t;std::memcpy(vertex.modulate.rgba,spawn.color.data(),4);
+    vertex.st[0]=s;vertex.st[1]=t;std::memcpy(vertex.modulate.rgba,rgba.data(),4);
 }
 static void CL_JKACgameEffectDrawScheduled(bool portal) {
     using namespace fntech3::jka;
@@ -473,7 +563,7 @@ static void CL_JKACgameEffectDrawScheduled(bool portal) {
     // No portal-play import is served by this subset. Its portal lane is
     // genuinely empty; normal instances stay owned for the normal pass.
     if(portal)return;
-    CL_JKACgameEffectRetire(state);
+    CL_JKACgameEffectExpire(state);
     state.drawWork.clear();
     CL_JKACgameEffectRunScheduled(state);
     bool active=false;for(const auto &instance:state.instances)active|=instance.active;
@@ -486,6 +576,7 @@ static void CL_JKACgameEffectDrawScheduled(bool portal) {
     const float nearDistance=state.nearCull?state.nearCull->value:16.0f;
     if(!effectplay::Finite(nearDistance)||nearDistance<0||nearDistance>4096)Com_Error(ERR_DROP,"Invalid Academy effects near-cull setting");
     effectplay::Vector eye{};std::memcpy(eye.data(),view.vieworg,sizeof(view.vieworg));
+    auto random=state.random;
     for(auto &instance:state.instances){
         if(!instance.active)continue;
         auto &spawn=instance.spawn;
@@ -496,14 +587,24 @@ static void CL_JKACgameEffectDrawScheduled(bool portal) {
         double distance=0;for(int n=0;n<3;++n){const double delta=double(spawn.origin[n])-view.vieworg[n];distance+=delta*delta;}
         if(spawn.kind!=effects::Kind::Line&&spawn.kind!=effects::Kind::Light&&distance<double(nearDistance)*nearDistance)continue;
         state.drawWork.emplace_back();auto &draw=state.drawWork.back();draw.shader=spawn.shader;
-        if(spawn.kind==effects::Kind::Particle){
-            // A visible particle updates its curves and rotation, then
-            // draws (0x401a1b..0x401a36).
-            effectplay::Look look;
-            if(!effectplay::ParticleRotate(spawn,state.frameTime)||!effectplay::ParticleLook(spawn,state.time,instance.startTime,look))
+        // A visible curved primitive updates its curves (and a particle's
+        // or oriented particle's rotation), then draws (0x401a1b..0x401a36,
+        // 0x402abf..0x402add, 0x403188..0x4031a8, 0x402dc3..0x402dd7).
+        effectplay::Look look;
+        if(effectplay::Curved(spawn.kind)){
+            const bool turns=spawn.kind==effects::Kind::Particle||spawn.kind==effects::Kind::OrientedParticle;
+            if((turns&&!effectplay::ParticleRotate(spawn,state.frameTime))||
+                !effectplay::ParticleLook(spawn,state.time,instance.startTime,look,&random))
                 Com_Error(ERR_DROP,"Invalid Academy effects particle curve");
+        }
+        if(spawn.kind==effects::Kind::Particle){
             draw.entity.reType=RT_SPRITE;draw.entity.customShader=spawn.shader;draw.entity.radius=look.radius;draw.entity.rotation=spawn.rotation;
-            // No FX_SET_SHADER_TIME control is served; retain measured0.
+            // depthHack sets RF_DEPTHHACK (0x401620); setShaderTime starts
+            // the shader's clock at creation, in seconds (0x40f440..0x40f467).
+            if(spawn.flags&effectplay::flag::DepthHack)draw.entity.renderfx|=RF_DEPTHHACK;
+            if(spawn.flags&effectplay::flag::SetShaderTime){
+                volatile float start=static_cast<float>(instance.startTime);draw.entity.shaderTime.f=start*0.001f;
+            }
             std::memcpy(draw.entity.origin,spawn.origin.data(),sizeof(vec3_t));
             std::memcpy(draw.entity.shader.rgba,look.rgba.data(),4);
         }else if(spawn.kind==effects::Kind::Light){
@@ -518,20 +619,23 @@ static void CL_JKACgameEffectDrawScheduled(bool portal) {
             const float cosine=std::cos(radians),sine=std::sin(radians);
             constexpr float x[]{-1,1,1,-1},y[]{-1,-1,1,1};
             for(int n=0;n<4;++n)CL_JKACgameEffectVertex(draw.vertices[n],spawn,0,
-                spawn.size*(x[n]*cosine-y[n]*sine),spawn.size*(x[n]*sine+y[n]*cosine),n==1||n==2?1:0,n>=2?1:0);
-        }else if(spawn.kind==effects::Kind::Line){
-            effectplay::Vector side{};
-            const float radius=effectplay::LineRadius(spawn,age);
+                look.radius*(x[n]*cosine-y[n]*sine),look.radius*(x[n]*sine+y[n]*cosine),n==1||n==2?1:0,n>=2?1:0,look.rgba);
+        }else if(spawn.kind==effects::Kind::Line||spawn.kind==effects::Kind::Tail){
+            // A Line spans its endpoints; a Tail (0x402df0, retail's RT_LINE)
+            // runs from its origin back along its motion by its length.
+            effectplay::Vector side{},end=spawn.endpoint;
+            if(spawn.kind==effects::Kind::Tail&&!effectplay::TailEnd(spawn,look.length,end)){state.drawWork.pop_back();continue;}
+            const float radius=look.radius;
             if(!effectplay::Finite(radius))Com_Error(ERR_DROP,"Invalid Academy effects line width");
-            if(radius==0||!effectplay::LineSide(spawn.origin,spawn.endpoint,eye,side)){state.drawWork.pop_back();continue;}
+            if(radius==0||!effectplay::LineSide(spawn.origin,end,eye,side)){state.drawWork.pop_back();continue;}
             draw.vertices.resize(4);
             for(int n=0;n<4;++n){
-                const auto &point=n<2?spawn.origin:spawn.endpoint;
+                const auto &point=n<2?spawn.origin:end;
                 CL_JKACgameEffectSpan(draw.vertices[n],point,side,(n==0||n==3)?radius:-radius,
-                    n==0||n==3?0.0f:1.0f,n<2?0.0f:1.0f,spawn);
+                    n==0||n==3?0.0f:1.0f,n<2?0.0f:1.0f,look.rgba);
             }
         }else if(spawn.kind==effects::Kind::Electricity){
-            const float radius=effectplay::CurveRadius(spawn,age);
+            const float radius=look.radius;
             if(!effectplay::Finite(radius))Com_Error(ERR_DROP,"Invalid Academy effects electricity width");
             // One camera-facing strip per bolt and branch; each joint faces the
             // eye across its neighbours, so the quads share their edges.
@@ -543,10 +647,10 @@ static void CL_JKACgameEffectDrawScheduled(bool portal) {
                 for(int n=0;n<segments;++n){
                     const float t0=float(n)/total,t1=float(n+1)/total,first=width(n),last=width(n+1);
                     draw.vertices.resize(draw.vertices.size()+4);auto *quad=&draw.vertices[draw.vertices.size()-4];
-                    CL_JKACgameEffectSpan(quad[0],points[n],sides[n],first,0,t0,spawn);
-                    CL_JKACgameEffectSpan(quad[1],points[n],sides[n],-first,1,t0,spawn);
-                    CL_JKACgameEffectSpan(quad[2],points[n+1],sides[n+1],-last,1,t1,spawn);
-                    CL_JKACgameEffectSpan(quad[3],points[n+1],sides[n+1],last,0,t1,spawn);
+                    CL_JKACgameEffectSpan(quad[0],points[n],sides[n],first,0,t0,look.rgba);
+                    CL_JKACgameEffectSpan(quad[1],points[n],sides[n],-first,1,t0,look.rgba);
+                    CL_JKACgameEffectSpan(quad[2],points[n+1],sides[n+1],-last,1,t1,look.rgba);
+                    CL_JKACgameEffectSpan(quad[3],points[n+1],sides[n+1],last,0,t1,look.rgba);
                 }
             };
             effectplay::Bolt points;
@@ -565,13 +669,14 @@ static void CL_JKACgameEffectDrawScheduled(bool portal) {
             for(int n=0;n<segments;++n){
                 const float first=n*0.39269908169872414f,last=(n+1)*0.39269908169872414f;
                 const float c0=std::cos(first),s0=std::sin(first),c1=std::cos(last),s1=std::sin(last);
-                CL_JKACgameEffectVertex(draw.vertices[n*4],spawn,0,spawn.size*c0,spawn.size*s0,float(n)/segments,0);
-                CL_JKACgameEffectVertex(draw.vertices[n*4+1],spawn,0,spawn.size*c1,spawn.size*s1,float(n+1)/segments,0);
-                CL_JKACgameEffectVertex(draw.vertices[n*4+2],spawn,spawn.length,spawn.size2*c1,spawn.size2*s1,float(n+1)/segments,1);
-                CL_JKACgameEffectVertex(draw.vertices[n*4+3],spawn,spawn.length,spawn.size2*c0,spawn.size2*s0,float(n)/segments,1);
+                CL_JKACgameEffectVertex(draw.vertices[n*4],spawn,0,spawn.size*c0,spawn.size*s0,float(n)/segments,0,spawn.color);
+                CL_JKACgameEffectVertex(draw.vertices[n*4+1],spawn,0,spawn.size*c1,spawn.size*s1,float(n+1)/segments,0,spawn.color);
+                CL_JKACgameEffectVertex(draw.vertices[n*4+2],spawn,spawn.length,spawn.size2*c1,spawn.size2*s1,float(n+1)/segments,1,spawn.color);
+                CL_JKACgameEffectVertex(draw.vertices[n*4+3],spawn,spawn.length,spawn.size2*c0,spawn.size2*s0,float(n)/segments,1,spawn.color);
             }
         }else Com_Error(ERR_DROP,"Invalid Academy effects owned primitive family");
     }
+    state.random=random;
     for(const auto &draw:state.drawWork)if(draw.light&&!re.AddLightToScene)
         Com_Error(ERR_DROP,"Academy Fn effects light service is unavailable");
     // Retail fx_debug (0x40f3b2..0x40f40b) prints its active, drawn and
