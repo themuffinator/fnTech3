@@ -1,0 +1,436 @@
+{
+ "record": "docs/fntech3/2026-10-15-view-shake.md",
+ "date": "2026-10-15",
+ "claim": "Engine-owned view-shake scale; Jedi Academy multiplayer honours it, no other profile has an engine crossing. No gate closes.",
+ "cvar": {
+  "name": "cl_viewShake",
+  "default": "1",
+  "range": [
+   "0",
+   "1"
+  ],
+  "type": "float",
+  "flags": "CVAR_ARCHIVE",
+  "factor": "CL_ViewShakeScale(): 1 before registration and for NaN, otherwise held to 0..1",
+  "registered": "code/client/cl_main.cpp CL_Init, beside cl_menuBlur"
+ },
+ "profiles": [
+  {
+   "profile": "jka-mp",
+   "honours": "yes",
+   "evidence": "observed",
+   "crossing": "Effects CameraShake record (24 bytes, intensity at +0xc) in the client game shared buffer, then client-game export 31",
+   "why": "The engine writes the intensity the retail client game shakes its own view by; the host scales it and keeps the call.",
+   "code": "code/client/client_jka_cgame_effects.hpp CL_JKACgameEffectCameraShake"
+  },
+  {
+   "profile": "q3",
+   "honours": "no",
+   "evidence": "observed-and-inferred",
+   "crossing": "none",
+   "why": "The client game computes its damage kick from the player state; no shake crosses an engine boundary and the engine passes the client game refdef through unchanged.",
+   "code": "no shake, earthquake or kick path in code/client, code/qcommon, code/server or the renderers"
+  },
+  {
+   "profile": "q3-ihv",
+   "honours": "no",
+   "evidence": "observed-and-inferred",
+   "crossing": "none",
+   "why": "The client game computes its damage kick from the player state; no shake crosses an engine boundary and the engine passes the client game refdef through unchanged.",
+   "code": "no shake, earthquake or kick path in code/client, code/qcommon, code/server or the renderers"
+  },
+  {
+   "profile": "q3test",
+   "honours": "no",
+   "evidence": "observed-and-inferred",
+   "crossing": "none",
+   "why": "The client game computes its damage kick from the player state; no shake crosses an engine boundary and the engine passes the client game refdef through unchanged.",
+   "code": "no shake, earthquake or kick path in code/client, code/qcommon, code/server or the renderers"
+  },
+  {
+   "profile": "ql",
+   "honours": "no",
+   "evidence": "observed-and-inferred",
+   "crossing": "none",
+   "why": "The client game computes its damage kick from the player state; no shake crosses an engine boundary and the engine passes the client game refdef through unchanged.",
+   "code": "no shake, earthquake or kick path in code/client, code/qcommon, code/server or the renderers"
+  },
+  {
+   "profile": "rtcw-sp",
+   "honours": "no",
+   "evidence": "observed-and-inferred",
+   "crossing": "none",
+   "why": "EV_SHAKE events and server commands set the client game cameraShake inside the module (GPL SDK reference); the engine spline camera has positions, targets, field of view, fades and an end event but no shake.",
+   "code": "code/compat/rtcw_camera.hpp; CG_GETCAMERAINFO"
+  },
+  {
+   "profile": "rtcw-mp",
+   "honours": "no",
+   "evidence": "observed-and-inferred",
+   "crossing": "none",
+   "why": "EV_SHAKE events and server commands set the client game cameraShake inside the module (GPL SDK reference); the engine spline camera has positions, targets, field of view, fades and an end event but no shake.",
+   "code": "code/compat/rtcw_camera.hpp; CG_GETCAMERAINFO"
+  },
+  {
+   "profile": "wolfet",
+   "honours": "no",
+   "evidence": "observed-and-inferred",
+   "crossing": "none",
+   "why": "EV_SHAKE events and server commands set the client game cameraShake inside the module (GPL SDK reference); the engine spline camera has positions, targets, field of view, fades and an end event but no shake.",
+   "code": "code/compat/rtcw_camera.hpp; CG_GETCAMERAINFO"
+  },
+  {
+   "profile": "stvef-sp",
+   "honours": "no",
+   "evidence": "observed-and-inferred",
+   "crossing": "none",
+   "why": "CGCam_Shake lives in the client-game half of the game library (Elite-Reinforce reference). Force feedback imports 34-37 are a device rumble with use_ff and js_ffmult, not a view movement.",
+   "code": "code/client/client_stvef_sp_feedback.hpp"
+  },
+  {
+   "profile": "stvef-mp",
+   "honours": "no",
+   "evidence": "observed-and-inferred",
+   "crossing": "none",
+   "why": "The Holomatch client game makes any shake itself; no shake crosses an engine boundary.",
+   "code": "no shake path in the client or Elite Force compat sources"
+  },
+  {
+   "profile": "jka-sp",
+   "honours": "no",
+   "evidence": "observed-and-inferred",
+   "crossing": "none served",
+   "why": "The single-player client-module boundary is open, so no client game runs; in OpenJK the shake is CGCam_Shake inside the game library.",
+   "code": "code/client/cl_cgame.cpp CL_InitCGame refusal"
+  },
+  {
+   "profile": "jk2-sp",
+   "honours": "no",
+   "evidence": "observed-and-inferred",
+   "crossing": "none served",
+   "why": "The single-player client-module boundary is open, so no client game runs; in OpenJK the shake is CGCam_Shake inside the game library.",
+   "code": "code/client/cl_cgame.cpp CL_InitCGame refusal"
+  },
+  {
+   "profile": "jk2-mp",
+   "honours": "no",
+   "evidence": "observed-and-inferred",
+   "crossing": "not served",
+   "why": "Outcast's effects imports 254-270 refuse by name, so no CameraShake reaches the engine; retail jk2mp.exe probably hosts effects as Academy does (inference), and a future host would scale its record the same way.",
+   "code": "code/client/client_jk2_cgame.hpp"
+  },
+  {
+   "profile": "alice",
+   "honours": "no",
+   "evidence": "observed-and-inferred",
+   "crossing": "player state damage_angles (offset 1028), copied unchanged by CL_AliceGetSnapshot",
+   "why": "The game module writes one field for the level earthquake or the damage kick (F.A.K.K.2 SDK player.cpp) and the client game subtracts it from its view; scaling it would change module-visible snapshot data and the damage flinch together.",
+   "code": "code/compat/alice_game_abi.h; code/client/client_alice_cgame.hpp"
+  },
+  {
+   "profile": "fakk2",
+   "honours": "no",
+   "evidence": "observed-and-inferred",
+   "crossing": "player state damage_angles (offset 1028), copied unchanged by CL_AliceGetSnapshot",
+   "why": "The game module writes one field for the level earthquake or the damage kick (F.A.K.K.2 SDK player.cpp) and the client game subtracts it from its view; scaling it would change module-visible snapshot data and the damage flinch together.",
+   "code": "code/compat/alice_game_abi.h; code/client/client_alice_cgame.hpp"
+  },
+  {
+   "profile": "mohaa",
+   "honours": "no",
+   "evidence": "observed-and-inferred",
+   "crossing": "player state damage_angles (offset 644), delta-coded and copied unchanged into the snapshot",
+   "why": "The game module turns level.earthquake_magnitude into damage_angles (OpenMoHAA) and the client game subtracts it from its view; import 74 get_camera_offset returns zeros and the force-feedback import is null.",
+   "code": "code/compat/mohaa_game_abi.h; code/client/cl_mohaa.cpp"
+  }
+ ],
+ "tests": [
+  "tests/view_shake_tests.py",
+  "tests/jka_camera_shake_tests.py",
+  "tests/jka_cgame_effects_tests.py",
+  "tests/jka_effect_play_tests.py"
+ ],
+ "live": {
+  "baseHead": "8a05e028b51e5c722bbd73b16d65dc2c6824e216",
+  "build": "git archive of baseHead plus this slice, meson debugoptimized, strict warnings, MSVC x86 (.tmp/view-shake/export)",
+  "platform": "Windows 11 x86 build",
+  "profile": "jka-mp",
+  "map": "mp/ffa2",
+  "installation": "E:\\Games\\Jedi Academy (read only)",
+  "harness": ".tmp/view-shake/probe/listen.py (the camera-shake slice probe): private desktop, windowed 1024x768, net_enabled 0, no input, isolated fs_homepath, fx_debug 2 prints each record as handed over",
+  "inputs": {
+   "steps-sample.cfg": "76c1a19f6e1262dfbffc62e3ed9df919cd4fea5973bcfb1774938b6525d3df16",
+   "ffa2-explosion-near.ent": "39858106be314a4740d10d03117b366b07d49ca1f8745655aff93dc0dea4abaf"
+  },
+  "command": "fntech3.exe +set com_gameProfile jka-mp ... +exec probesound.cfg +devmap mp/ffa2, then on activation \"set cl_viewShake <scale>; exec steps.cfg\"",
+  "runs": [
+   {
+    "run": "glx-explosion-scale-1",
+    "cl_viewShake": "1",
+    "renderer": "glx",
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "seconds": 18.6,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "extra": [
+     "set cl_viewShake 1",
+     "exec steps.cfg"
+    ],
+    "recordsHandedOver": 108,
+    "handedOverIntensity": {
+     "min": 2.00895,
+     "max": 3.97075
+    },
+    "viewpos": {
+     "samples": 300,
+     "offEye": 279,
+     "distinct": 82,
+     "largestAxisOffset": 3,
+     "yawRange": [
+      -182,
+      -177
+     ]
+    },
+    "screenshotShift": {
+     "consecutive": [
+      [
+       0.01,
+       -0.98
+      ],
+      [
+       0.81,
+       0.85
+      ],
+      [
+       0.84,
+       -0.05
+      ],
+      [
+       -1.32,
+       0.19
+      ],
+      [
+       1.51,
+       1.16
+      ]
+     ],
+     "largestPixels": 1.9
+    },
+    "captures": [
+     {
+      "name": "jka-shake-00.png",
+      "sha256": "2344ed235bb7238bda212cec3d5ac5d3e7db7d5afc8c740fbf1be8302f1a5525"
+     },
+     {
+      "name": "jka-shake-01.png",
+      "sha256": "9fb6eacc561c5ac06369a76a877564b19ba806dbb0819ffd61933ee469a20fdf"
+     },
+     {
+      "name": "jka-shake-02.png",
+      "sha256": "e99a6a1a17bacb3d2e7d62f2b3600abec8ef7a69ef47dd6253c9cd479f23ab81"
+     },
+     {
+      "name": "jka-shake-03.png",
+      "sha256": "5ae2ea357f197db88a658bd7b659aa9c43f68eb5af63399afbe030916b79ebc2"
+     },
+     {
+      "name": "jka-shake-04.png",
+      "sha256": "b18ddd2a40623e3360be73a5265759e7f26d1d6e382b30d78452f18c138276e8"
+     },
+     {
+      "name": "jka-shake-05.png",
+      "sha256": "3c5d0abd20182f7a524c8a7622d6d743fff4c35ffdd7eeebdcf9c5ae5052b4a9"
+     }
+    ],
+    "identity": {
+     "fntech3.exe": "3fb885e2e777bc40929fae7a83fb944686a794bdebdaa89fbcc73b8700807a44",
+     "fnql_glx_x86.dll": "6685ef8aa7c849fd8be39b244522fdfb2f700fa48d0a34c72fd8f37bdfa49c3e",
+     "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+    }
+   },
+   {
+    "run": "glx-explosion-scale-0p5",
+    "cl_viewShake": "0.5",
+    "renderer": "glx",
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "seconds": 18.2,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "extra": [
+     "set cl_viewShake 0.5",
+     "exec steps.cfg"
+    ],
+    "recordsHandedOver": 109,
+    "handedOverIntensity": {
+     "min": 1.00447,
+     "max": 1.98973
+    },
+    "viewpos": {
+     "samples": 300,
+     "offEye": 246,
+     "distinct": 27,
+     "largestAxisOffset": 2,
+     "yawRange": [
+      -181,
+      -178
+     ]
+    },
+    "screenshotShift": {
+     "consecutive": [
+      [
+       -0.93,
+       0.05
+      ],
+      [
+       0.76,
+       0.0
+      ],
+      [
+       -0.03,
+       -0.74
+      ],
+      [
+       0.03,
+       0.85
+      ],
+      [
+       0.03,
+       -0.73
+      ]
+     ],
+     "largestPixels": 0.93
+    },
+    "captures": [
+     {
+      "name": "jka-shake-00.png",
+      "sha256": "2992b4de707c3c88aafecefbcf06171223430503241757ca20256389b5acf663"
+     },
+     {
+      "name": "jka-shake-01.png",
+      "sha256": "cd5d089fef06027c9cb2be8d93c5de0c57cf7e43f81580470db4c2ab58305bd9"
+     },
+     {
+      "name": "jka-shake-02.png",
+      "sha256": "1141a9740b6f569aefd6c395bc94d7642de2539b5858cbf82dcc5b66d40f8b06"
+     },
+     {
+      "name": "jka-shake-03.png",
+      "sha256": "4b3f238156c3ec9a176dee7b242d895fb5fd1d9dbfd9774609349e1cc473f335"
+     },
+     {
+      "name": "jka-shake-04.png",
+      "sha256": "5aaef56c283bf6c0d9835791afe0940b83f5aaf1b69fedf3ca63f8b640317ab9"
+     },
+     {
+      "name": "jka-shake-05.png",
+      "sha256": "20985886486e9d0530229a59f1520356094a32bde8a346afdbf053dae0810d76"
+     }
+    ],
+    "identity": {
+     "fntech3.exe": "3fb885e2e777bc40929fae7a83fb944686a794bdebdaa89fbcc73b8700807a44",
+     "fnql_glx_x86.dll": "6685ef8aa7c849fd8be39b244522fdfb2f700fa48d0a34c72fd8f37bdfa49c3e",
+     "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+    }
+   },
+   {
+    "run": "glx-explosion-scale-0",
+    "cl_viewShake": "0",
+    "renderer": "glx",
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "seconds": 18.3,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "extra": [
+     "set cl_viewShake 0",
+     "exec steps.cfg"
+    ],
+    "recordsHandedOver": 109,
+    "handedOverIntensity": {
+     "min": 0.0,
+     "max": 0.0
+    },
+    "viewpos": {
+     "samples": 300,
+     "offEye": 0,
+     "distinct": 1,
+     "largestAxisOffset": 0,
+     "yawRange": [
+      -180,
+      -180
+     ]
+    },
+    "screenshotShift": {
+     "consecutive": [
+      [
+       -0.0,
+       0.0
+      ],
+      [
+       0.0,
+       -0.0
+      ],
+      [
+       0.0,
+       0.0
+      ],
+      [
+       -0.0,
+       -0.0
+      ],
+      [
+       -0.0,
+       0.0
+      ]
+     ],
+     "largestPixels": 0.0
+    },
+    "captures": [
+     {
+      "name": "jka-shake-00.png",
+      "sha256": "af913136ab5dcfabd79a5791c64b2498da4111b7a6af76a323738187130f5f2c"
+     },
+     {
+      "name": "jka-shake-01.png",
+      "sha256": "6089c92608110c652e9d1d51a37b8bd357e632fa74f6d150a99c5eed62b0d641"
+     },
+     {
+      "name": "jka-shake-02.png",
+      "sha256": "6f83da1df4059c5bce85c0b03e2ce6da12158c0d6753296ebf70789a77b2ad62"
+     },
+     {
+      "name": "jka-shake-03.png",
+      "sha256": "a8237963bc76e1038fba43116ddf42f6d724091a2c64edf7ce078c4ab6a05eb6"
+     },
+     {
+      "name": "jka-shake-04.png",
+      "sha256": "b59efdb208517732c746a2ff7312f8b337acdc4f8a76a81786277ed90834848f"
+     },
+     {
+      "name": "jka-shake-05.png",
+      "sha256": "fabfc490dfc5eec35e6ac0aa5129e6a3faf3fd9b5b9b38bcd1fddce2be43e0b1"
+     }
+    ],
+    "identity": {
+     "fntech3.exe": "3fb885e2e777bc40929fae7a83fb944686a794bdebdaa89fbcc73b8700807a44",
+     "fnql_glx_x86.dll": "6685ef8aa7c849fd8be39b244522fdfb2f700fa48d0a34c72fd8f37bdfa49c3e",
+     "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+    }
+   }
+  ]
+ }
+}

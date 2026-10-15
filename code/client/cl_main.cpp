@@ -480,6 +480,7 @@ static int cl_demoRecordMessageModificationCount;
 static int cl_drawRecordingModificationCount;
 cvar_t	*cl_menuAspect;
 cvar_t	*cl_menuBlur;
+cvar_t	*cl_viewShake;
 cvar_t	*cl_cinematicAspect;
 cvar_t	*cl_captureActive;
 cvar_t	*cl_playerHighlight;
@@ -716,6 +717,19 @@ qboolean CL_LegacyFraming( void )
 	const netchanWireProfile_t profile = CL_ActiveWireProfile();
 	return ToQboolean( profile != NETCHAN_WIRE_Q3_IHV && profile != NETCHAN_WIRE_Q3TEST_A
 		&& profile != NETCHAN_WIRE_Q3TEST_B && Netchan_WireHasFeature( profile, NETCHAN_FEATURE_RAW_MESSAGES ) != 0 );
+}
+
+/* cl_viewShake scales the view shakes the engine itself hands a game module
+ * (docs/fntech3/2026-10-15-view-shake.md). 1, retail's shake, until the cvar
+ * is registered; anything else is held to 0..1, and a value that is not a
+ * number keeps retail's shake. */
+float CL_ViewShakeScale( void )
+{
+	const float value = cl_viewShake ? cl_viewShake->value : 1.0f;
+	if ( value != value || value >= 1.0f ) {
+		return 1.0f;
+	}
+	return value > 0.0f ? value : 0.0f;
 }
 
 /*
@@ -6936,6 +6950,15 @@ void CL_Init( void ) {
 		"        replaces the sharp frame (1 is the default full soft focus)\n"
 		"Gameplay is never affected; the effect exists only while a menu is open.\n"
 		"The connect screen and the console are not softened." );
+	cl_viewShake = Cvar_Get( "cl_viewShake", "1", CVAR_ARCHIVE );
+	Cvar_CheckRange( cl_viewShake, "0", "1", CV_FLOAT );
+	Cvar_SetDescription( cl_viewShake,
+		"Strength of the view shakes the engine hands a game, such as Jedi Academy's\n"
+		"muzzle flashes and explosions.\n"
+		" 0 - no shake\n"
+		" 0..1 - scales each shake's strength (1 is the default, the game's own shake)\n"
+		"Shakes a game computes entirely inside its own code are not affected;\n"
+		"see the Display guide for which games honour it." );
 	cl_cinematicAspect = Cvar_Get( "cl_cinematicAspect", "1", CVAR_ARCHIVE );
 	Cvar_CheckRange( cl_cinematicAspect, "0", "1", CV_INTEGER );
 	Cvar_SetDescription( cl_cinematicAspect,

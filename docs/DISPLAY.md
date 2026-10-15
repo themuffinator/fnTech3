@@ -791,6 +791,26 @@ seta r_motionBlurStrength "0.25"
 Standing still gives a perfectly sharp picture, very fast turns are capped so
 they never smear badly, and teleporting or a jump in the action resets it.
 
+## View Shake
+
+Some games shake your view for a moment when a gun fires or something
+explodes near you. If that shaking bothers you, turn it down or off.
+
+- `cl_viewShake`: how strong the shake is, from `0` (no shake at all) to
+  `1` (the game's own shake, the default). `0.5` halves it. A change takes
+  effect with the next shake; no restart is needed.
+
+```cfg
+seta cl_viewShake "0"
+```
+
+For now this works in Jedi Academy multiplayer, where muzzle flashes and
+explosions shake your view. The other games work out their shakes entirely
+inside their own game code, where the engine cannot reach them, so this
+setting leaves them as they are. The
+[view shake details](fntech3/2026-10-15-view-shake.md) list every game and
+why.
+
 ## Game-Specific Renderer Settings
 
 Medal of Honor's barrel explosions and other hidden emitters now draw

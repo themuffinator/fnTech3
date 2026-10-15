@@ -539,6 +539,8 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   its whole muzzle flash, though the match still stops when the shot
   reaches the server, and at once in first-person view
   ([shake details](fntech3/2026-10-15-jka-camera-shake.md)).
+  `cl_viewShake` turns that shake down or off
+  ([Graphics guide](DISPLAY.md#view-shake)).
   Longer matches, most other maps and fighting have not been checked yet
   ([spawn effect details](fntech3/2026-10-15-jka-spawn-effect.md)). The
   open-source OpenJK engine's client joins fnTech3's server. A lightsaber's

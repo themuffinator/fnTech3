@@ -110,6 +110,9 @@ static std::vector<EffectSound> effectSounds;
 void S_StartJKASound(vec3_t origin,int entity,int channel,sfxHandle_t handle){
  assert(origin);effectSounds.push_back({{origin[0],origin[1],origin[2]},entity,channel,handle});
 }
+// cl_viewShake's factor; jka_camera_shake_tests sets it.
+static float viewShakeScale=1;
+float CL_ViewShakeScale(){return viewShakeScale;}
 #include "code/client/client_jka_cgame_effects.hpp"
 static fntech3::jka::lightstyle::Store jkaCgameLightStyles;
 static std::vector<int> jkaFonts;

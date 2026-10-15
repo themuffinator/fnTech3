@@ -484,6 +484,7 @@ extern	cvar_t	*cl_drawRecording;
 extern	cvar_t	*cl_demooffset;	// Enemy Territory's alone; null in other profiles
 extern	cvar_t	*cl_menuAspect;
 extern	cvar_t	*cl_menuBlur;
+extern	cvar_t	*cl_viewShake;
 extern	cvar_t	*cl_cinematicAspect;
 extern	cvar_t	*cl_captureActive;
 extern	cvar_t	*cl_playerHighlight;
@@ -569,6 +570,9 @@ void CL_StopRecord_f( void );
 netchanWireProfile_t CL_ActiveWireProfile( void );
 // Elite Force Holomatch's retail protocol-24 framing, live or from a demo.
 qboolean CL_LegacyFraming( void );
+// cl_viewShake as a finite 0..1 factor for view shakes the engine hands a
+// game module; 1 when the cvar is not registered yet.
+float CL_ViewShakeScale( void );
 // Elite Force and both Jedi titles' charsgrid_med use the left half of a cell.
 // The installed atlas is adapted into Fn's diagnostic and console text paths.
 static inline float CL_CharsetCellWidth( void ) {

@@ -132,6 +132,13 @@ int main(){
  // while the particle beside it does.
  Play(blast,10,20,30);
  assert(shakes.size()==1&&Active()==1&&Same(shakes[0],10,20,36,2.5f,200,300));
+ // cl_viewShake scales only the intensity handed over. At 0 the call is
+ // still made, with no strength, so the module's sequence is unchanged.
+ for(const float scale:{0.5f,0.25f,0.0f}){
+  viewShakeScale=scale;shakes.clear();Play(blast,10,20,30);
+  assert(shakes.size()==1&&Same(shakes[0],10,20,36,2.5f*scale,200,300));
+ }
+ viewShakeScale=1;shakes.clear();
  // A delayed shake waits in the schedule and is handed over when it falls due.
  shakes.clear();Frame(2000);Play(late,1,2,3);assert(shakes.empty()&&jkaCgameEffects->scheduled.size()==1);
  Frame(2050);Draw();assert(shakes.empty());

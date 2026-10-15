@@ -44,6 +44,11 @@ historical upstream records, not fnTech3 release history. See the
   messages: a big Enemy Territory map keeps checking players' files instead of
   falling back, and a busy Jedi Outcast server no longer publishes a list its
   players cannot receive ([record](docs/fntech3/2026-10-15-census-small-gaps.md)).
+- Add `cl_viewShake`, from `0` (no shake) to `1` (the game's own shake, the
+  default), to turn down the view shake the engine hands a game. Jedi
+  Academy multiplayer's muzzle flashes and explosions honour it; the other
+  games make their shakes inside their own code, out of its reach
+  ([record](docs/fntech3/2026-10-15-view-shake.md)).
 - Scale Jedi Academy's HUD and both Jedi games' menus to the window. They
   draw on a 640x480 screen the originals stretched over the window, and had
   filled only its top-left corner; on a widescreen display Academy's HUD now

@@ -251,7 +251,9 @@ static fntech3_jka_trace_t CL_JKACgameEffectTrace(const fntech3::jka::effectplay
 // beyond the radius, a linear falloff to it, its clamp of 16, and a shake of
 // its own view origin and angles that decays over the life (0x30062990).
 // That view reaches Fn's renderer, listener and screenshots through the
-// module's own RE_RenderScene and S_Respatialize imports.
+// module's own RE_RenderScene and S_Respatialize imports. cl_viewShake scales
+// the intensity handed over; the call itself is kept at every scale, so the
+// module's own shake state and random draws follow retail's sequence.
 static void CL_JKACgameEffectCameraShake(const fntech3::jka::effectplay::Spawn &spawn) {
     const auto *owner=jkaCgameEffects.get();
     const auto revision=jkaCgameEffectsRevision;
@@ -260,7 +262,7 @@ static void CL_JKACgameEffectCameraShake(const fntech3::jka::effectplay::Spawn &
     void *const destination=CL_JKACgameSpan(reinterpret_cast<intptr_t>(shared),sizeof(fntech3_jka_cgame_camera_shake_t));
     fntech3_jka_cgame_camera_shake_t record{};
     std::memcpy(record.origin,spawn.origin.data(),sizeof(record.origin));
-    record.intensity=spawn.shakeIntensity;record.radius=spawn.shakeRadius;record.time=spawn.life;
+    record.intensity=spawn.shakeIntensity*CL_ViewShakeScale();record.radius=spawn.shakeRadius;record.time=spawn.life;
     std::memcpy(destination,&record,sizeof(record));
     jkaCgameEffectsTracing=true;
     VM_Call(module,0,CG_RAVEN_CAMERA_SHAKE);
@@ -371,7 +373,7 @@ static void CL_JKACgameEffectCreate(JKACgameEffectsState &state,int id,std::size
     if(spawn.kind==effects::Kind::CameraShake){
         if(state.debug&&state.debug->integer>=2)
             Com_Printf("Academy FX camera shake: %g within %d for %d ms at %d\n",
-                spawn.shakeIntensity,spawn.shakeRadius,spawn.life,state.time);
+                spawn.shakeIntensity*CL_ViewShakeScale(),spawn.shakeRadius,spawn.life,state.time);
         CL_JKACgameEffectCameraShake(spawn);
         return;
     }
