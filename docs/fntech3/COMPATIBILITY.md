@@ -2699,6 +2699,22 @@ server sends the entities the game marks as seen from the portal
 parser rejects the general `sun` line of 59 installed shaders, 58 of them
 skies, and defaults them. No gate closes.
 
+The [sun keyword slice](2026-10-15-raven-sun-keyword.md) (2026-10-15) ends
+the grey skies the siege slice found. All four Jedi engines read Raven's
+general `sun` as `q3map_sun` under a second name (`jamp.exe` 1.01
+`0x4b51a1`, `jasp.exe` 1.01 `0x47b312`): six words -- colour, intensity,
+degrees, elevation -- a missing one as 0, and the rest of the line left to
+the keyword loop. Both Academy profiles now read it so, into fnTech3's own
+sky sun, and skip Raven's `lightColor` line as both engines do (`0x4b4e28`,
+`0x47afcc`). Through the production parser, all 59 installed definitions
+with `sun` (58 shaders) and the four with `lightColor` alone now load in
+GLx, Vulkan and RTX, and no other definition changes (Source, Unit). On
+`mp/duel9` the sky now draws in all three renderers, where it was flat grey,
+or black under RTX, and GLx's cascaded shadows and RTX's path tracer take
+its sun. `mp/ctf3`, `mp/duel1`, `mp/duel4`, `mp/ffa2` and `mp/ffa3` list
+their skies as loaded where they were defaulted (Live subset). The other
+profiles still refuse `sun`, as their engines do. No gate closes.
+
 Star Wars Jedi Knight: Jedi Academy is the sixth title, with two mode profiles
 over one `base/` installation: `jka-sp` for Raven's single-player campaign and
 `jka-mp` for multiplayer. The [foundation record](2026-09-21-jka-contracts.md)
@@ -2820,6 +2836,19 @@ through both mixers, and changes language through the setup menu's own
 throughout (Live subset). Single player's voices have unit evidence only, and
 its cinematic voice track and German dismemberment setting remain open. No
 gate closes.
+
+The [sun keyword slice](2026-10-15-raven-sun-keyword.md) (2026-10-15) has
+both Outcast profiles read Raven's general `sun` as `jk2mp.exe` and
+`jk2sp.exe` do (`0x48ccbc`, `0x47cab4`): six words into the sky sun, with
+the rest of the line left to the keyword loop. With it they read `noTC` as
+Academy's profiles do (`0x48c80b`, `0x47c7a9`), and Raven's `lightColor`,
+which `jk2sp.exe` skips (`0x47c701`) and `jk2mp.exe` reads as a bracketed
+vector, failing the shader when it is malformed (`0x48c697`). Through the
+production parser, all 11 installed `sun` skies and 10 more definitions
+with `noTC` now load in GLx, Vulkan and RTX, and no other definition
+changes (Source, Unit). No Outcast sky has been drawn live: the
+multiplayer client still stops at client-game import 300 before a map is
+drawn. No gate closes.
 
 Star Wars Jedi Knight II: Jedi Outcast is the seventh title, with two mode
 profiles over one `base/` installation: `jk2-sp` and `jk2-mp`. Every contract

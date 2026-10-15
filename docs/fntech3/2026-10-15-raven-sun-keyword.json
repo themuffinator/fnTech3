@@ -1,0 +1,5028 @@
+{
+ "record": "2026-10-15-raven-sun-keyword.md",
+ "date": "2026-10-15",
+ "profiles": [
+  "jka-sp",
+  "jka-mp",
+  "jk2-sp",
+  "jk2-mp"
+ ],
+ "unchangedProfiles": "all twelve others: sun, lightColor and noTC still end a shader; q3map_sun keeps its branch",
+ "gateChange": "none",
+ "implementation": {
+  "files": [
+   "code/renderercommon/tr_jka_shader.h",
+   "code/renderer/tr_shader.c",
+   "code/renderervk/tr_shader.c",
+   "code/rendererrtx/tr_shader.c"
+  ],
+  "helpers": [
+   "R_JediShaderProfile",
+   "R_JediSunKeyword",
+   "R_JediSunParms",
+   "R_JediLightColorKeyword",
+   "SkySunFromParms"
+  ],
+  "authorship": "independently authored; OpenJK, OpenAlice and OpenMoHAA were reference observation only"
+ },
+ "retailIdentities": {
+  "jamp.exe": {
+   "size": 1527808,
+   "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+   "timeDateStamp": "0x3faa8a05"
+  },
+  "jasp.exe": {
+   "size": 1236992,
+   "sha256": "9351a8de230fcd577e2b474889d08f38982450306767a6823dd659482566d6ce",
+   "timeDateStamp": "0x3f999a27"
+  },
+  "jk2mp.exe": {
+   "size": 1126400,
+   "sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a",
+   "timeDateStamp": "0x3c832b11"
+  },
+  "jk2sp.exe": {
+   "size": 999482,
+   "sha256": "0d3c635ee5b20ac32fc957e00cf21e65ebc1584112b11f6ae026706dcc0d0e0c",
+   "timeDateStamp": "0x3c840a46"
+  },
+  "stvoy.exe": {
+   "size": 675840,
+   "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+   "timeDateStamp": "0x3adb539a"
+  },
+  "stvoyHM.exe": {
+   "size": 925696,
+   "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+   "timeDateStamp": "0x3adde3c8"
+  },
+  "quake3.exe (1.32, Steam)": {
+   "size": 909312,
+   "sha256": "80b0add0e014b863cf47cab6c997e0a54939236219a56910b7a3eb77dc2d44d4",
+   "timeDateStamp": "0x3da1eb35"
+  },
+  "quake3.exe (IHV)": {
+   "size": 725042,
+   "sha256": "e9fcaa0a5682e7f07d540aacee08cdb77f3ea40190719f5cecf31109a5135d37",
+   "timeDateStamp": "0x36c4a216"
+  },
+  "quakelive_steam.exe": {
+   "size": 2107904,
+   "sha256": "c926fe9f6c851e00b3b9332e88903ad01f28fdd60454873891c0158f5ded1299",
+   "timeDateStamp": "0x5751f20b"
+  },
+  "WolfSP.exe": {
+   "size": 1286144,
+   "sha256": "07d206f61da5c80562ff60d68c645bca349b31adb5d7e0e7f186d61ad46683c7",
+   "timeDateStamp": "0x3cd036dd"
+  },
+  "WolfMP.exe": {
+   "size": 1081344,
+   "sha256": "7cf99a938cf18ed2f5aecd0be542cbae8868959e0cce24b4b6eea08991e321f5",
+   "timeDateStamp": "0x3dbd5b83"
+  },
+  "et.exe": {
+   "size": 1667072,
+   "sha256": "4d1326c5936b61c5f878fc017e4aa0abddf13e008139e31fce2f13d57b26243e",
+   "timeDateStamp": "0x60f7263b"
+  },
+  "quake3.exe (Q3Test 1.02)": {
+   "size": 688180,
+   "sha256": "86da36081878d5586d5621709f48a7e621db3c24d33fa4b45838b08d01020d4a",
+   "timeDateStamp": "0x37228c46"
+  },
+  "quake3.exe (Q3Test 1.03)": {
+   "size": 692276,
+   "sha256": "313ed8d1b71296b834b806b64c0f5929eb5bdd05eb7ce96b9c7fdb7369ecbf79",
+   "timeDateStamp": "0x3727f07d"
+  },
+  "quake3.exe (Q3Test 1.05)": {
+   "size": 696372,
+   "sha256": "05579377e09286d658aef430d6fb45dc6c4fc4578988cea83afa51459768fcf8",
+   "timeDateStamp": "0x3736948c"
+  },
+  "quake3.exe (Q3Test 1.06)": {
+   "size": 651264,
+   "sha256": "a18c714fac103c4634fc08c88b2dd1c7b63720c8ddb8ec0f408e00d7ccb63db3",
+   "timeDateStamp": "0x378fd2ba"
+  },
+  "quake3.exe (Q3Test 1.07)": {
+   "size": 651264,
+   "sha256": "a507b42aa346dd7c67f0fdd33c42e88c3ee144d91bce3dea0a3fb06aa7368962",
+   "timeDateStamp": "0x37940afc"
+  },
+  "quake3.exe (Q3Test 1.08)": {
+   "size": 655360,
+   "sha256": "89a7dfb431c6738a13e1e44d0c2d76d69107c6e0791a64f6a49830e1a51c547b",
+   "timeDateStamp": "0x37a67da7"
+  }
+ },
+ "retailPaks": {
+  "jka": {
+   "assets0.pk3": {
+    "size": 561806019,
+    "sha256": "ffea9e7489bad7175411d122e0652b4272efb67c0e71805d1f4d8058084b5939"
+   },
+   "assets1.pk3": {
+    "size": 652804510,
+    "sha256": "5f196826e226b1115bd46f54697334ca970c8261dd76864c1600179ff38e4c4f"
+   },
+   "assets2.pk3": {
+    "size": 1116384,
+    "sha256": "8f21cdd89afe78fdf916d103117f4b2621c6f4781dee003716057dc705ef98af"
+   },
+   "assets3.pk3": {
+    "size": 9282026,
+    "sha256": "0f542dccb6858fc10a8083ca71f581c9eba93173386e03a9e5e05d3a56118f78"
+   }
+  },
+  "jk2": {
+   "assets0.pk3": {
+    "size": 534984353,
+    "sha256": "e8e466f219bb2faed536021bb0d10aa6b7f5cd687302aa43080da2debdae307c"
+   },
+   "assets1.pk3": {
+    "size": 86950705,
+    "sha256": "c3a9aeaf09c93e57847290e7e5cd6c1a071a560045fa8c5e8c6df3688df841c1"
+   }
+  },
+  "stvef": {
+   "pak0.pk3": {
+    "size": 566234769,
+    "sha256": "44feb77eeec4670975e3c9f6c09b930d73d12e5b586761107d20ec105c03c7ae"
+   },
+   "pak1.pk3": {
+    "size": 6492912,
+    "sha256": "19412051c2e48d0f51c27127f38280d12401afaf53c38e3af4517768641600eb"
+   },
+   "pak2.pk3": {
+    "size": 12408486,
+    "sha256": "8b573723b6827b38974d6da1619f485f4cd66a0ef26d06a3d0135b5e80988e39"
+   },
+   "pak3.pk3": {
+    "size": 88885710,
+    "sha256": "6cdbbdd34276eb52f9a3d9b54a4ac95156f8abeced7eee05f26ffa85b538a175"
+   },
+   "zSTVEFtex.pk3": {
+    "size": 839268276,
+    "sha256": "71f1c273accbcbdc5698128d99840b11505ffab9277444e82c51fb204ae31941"
+   }
+  }
+ },
+ "retail": {
+  "method": "capstone and pefile over the retail executables; string references, then the branches they select",
+  "jamp.exe 1.01": {
+   "sunCompare": "0x4b4dc4",
+   "q3mapSunCompare": "0x4b4ddd",
+   "branch": "0x4b51a1",
+   "compare": "Q_stricmpn(..., 99999) at 0x4446c0",
+   "words": "six COM_ParseExt(text, qfalse) (0x4444d0) + atof (0x52adda)",
+   "sunLight": "0xfe3bb8..0xfe3bc3",
+   "normalize": "VectorNormalize 0x443d40",
+   "radians": "divide by 180.0f (0x565ffc), multiply by pi (0x5661a8)",
+   "cosSin": "0x529824, 0x529994",
+   "sunDirection": "0xfe3bc4..0xfe3bcf",
+   "next": "0x4b52e5, COM_ParseExt(text, qtrue); no rest-of-line skip",
+   "unknownKeyword": "0x4b5344: warning, return 0 (shader defaulted)",
+   "lightColor": "0x4b4e28 -> SkipRestOfLine 0x444640",
+   "surfacelight": "0x4b4dfb/0x4b4e14 -> atoi into 0xfe3bd0",
+   "noTC": "compare 0x4b4f71",
+   "collisionParser": {
+    "start": "0x42e9d0",
+    "sun": "0x42ea8e",
+    "q3map_sun": "0x42eaa7",
+    "branch": "0x42eb3d: six COM_ParseExt(text, 0), nothing kept"
+   }
+  },
+  "jasp.exe 1.01": {
+   "q3mapSunCompare": "0x47aef6",
+   "sunCompare": "0x47af0c",
+   "branch": "0x47b312",
+   "words": "six COM_ParseExt(text, qfalse) (0x422cd0) + atof (0x4df509)",
+   "sunLight": "0xc98ddc..0xc98de7",
+   "normalize": "inline; skipped when the length is not above 0.0001 (0x518718)",
+   "radians": "multiply by 1/180 (0x51882c) and pi (double 0x518840); fcos/fsin inline",
+   "sunDirection": "0xc98de8..0xc98df3",
+   "next": "0x47b453, COM_ParseExt(text, qtrue)",
+   "unknownKeyword": "0x47b2ef: warning, return 0",
+   "lightColor": "0x47afcc -> SkipRestOfLine 0x422f90",
+   "noTC": "0x47b069 -> byte 0xcd3013 (tr_jka_shader.h)",
+   "collisionParser": {
+    "sun": "0x4131a2",
+    "q3map_sun": "0x4131b8",
+    "branch": "0x413244: six COM_ParseExt(text, 0), nothing kept"
+   }
+  },
+  "jk2mp.exe 1.02a": {
+   "parseShader": "0x48c550 (edi = 0 throughout)",
+   "sunCompare": "0x48c63f",
+   "q3mapSunCompare": "0x48c655",
+   "branch": "0x48ccbc",
+   "words": "six COM_ParseExt(text, edi=0) (0x434450) + atof (0x4d62ae)",
+   "sunLight": "0x1a50640..0x1a5064b",
+   "normalize": "VectorNormalize 0x433dd0",
+   "radians": "multiply by 0.0174533 (0x4e45a0); fcos/fsin inline",
+   "sunDirection": "0x1a5064c..0x1a50657",
+   "next": "0x48c5a0, COM_ParseExt(text, 1)",
+   "unknownKeyword": "0x48cdc6: warning, return 0",
+   "lightColor": "0x48c697 -> ParseVector 0x48c0e0 (text, 3, 0x1a88de8 = parse-time shader +0x70); failure returns 0",
+   "finishShader": "0x48f610: when the sky word 0x1a88dfc is set (skyparms, 0x48f386) it copies surfacelight 0x1a88df4 -> 0x1a50658 and lightColor 0x1a88de8 -> 0x1a5065c (OpenJK tr.sunAmbient)",
+   "noTC": "0x48c80b -> [0x1a88e5c] = 1; clampmap 0x48cf33 and animMap frames 0x48d9ff pass (noTC == 0)",
+   "animMapVariants": "clampanimMap 0x48d97b, oneshotanimMap 0x48d98c compared in the animMap branch"
+  },
+  "jk2sp.exe 1.02a": {
+   "q3mapSunCompare": "0x47c651",
+   "sunCompare": "0x47c667",
+   "branch": "0x47cab4",
+   "words": "six COM_ParseExt(text, qfalse) (0x41f470) + atof (0x4b3aa6)",
+   "sunLight": "0x12e402c..0x12e4037",
+   "normalize": "inline; skipped for a length equal to the constant at 0x4c8428",
+   "radians": "multiply by 1/180 (0x4cf3d0) and pi (double 0x4c8c50)",
+   "sunDirection": "0x12e4038..0x12e4043",
+   "next": "0x47c604, COM_ParseExt(text, 1)",
+   "unknownKeyword": "0x47cc16: warning, return 0",
+   "lightColor": "0x47c701 -> SkipRestOfLine 0x41f7c0",
+   "noTC": "0x47c7a9 -> [0x131a02c] = 1; readers 0x47cd63, 0x47d82f"
+  },
+  "others": {
+   "stvoy.exe 1.20": {
+    "q3map_sun": "0x452942",
+    "sunString": "0x45594a, the sun shader lookup after flareShader",
+    "unknownKeyword": "0x452df8"
+   },
+   "stvoyHM.exe 1.20": {
+    "q3map_sun": "0x465828",
+    "sunString": "0x468b88, the sun shader lookup after flareShader",
+    "unknownKeyword": "0x465d79"
+   },
+   "quake3.exe 1.32": {
+    "q3map_sun": "0x464523: six words into 0xc38518.. and 0xc38524.., then 0x4644b8 (loop head, COM_ParseExt(text, 1)); no rest-of-line skip",
+    "sunString": "0x467a61, the sun shader lookup after flareShader"
+   },
+   "quakelive_steam.exe": {
+    "q3map_sun": "0x457330",
+    "sunString": "0x4590d7, the sun shader lookup after flareShader"
+   },
+   "WolfSP.exe": {
+    "q3map_sun": "0x45fc9b",
+    "sunString": "none of its own"
+   },
+   "WolfMP.exe": {
+    "q3map_sun": "0x47360d",
+    "sunString": "none of its own"
+   },
+   "et.exe 2.60b": {
+    "q3map_sun": "0x4b3ecf",
+    "sunString": "none of its own"
+   },
+   "Q3Test": {
+    "q3map_sun": {
+     "1.02": "0x43afc0",
+     "1.03": "0x43b900",
+     "1.05": "0x43bf50",
+     "1.06": "0x438733",
+     "1.07": "0x4387c3",
+     "1.08": "0x439491"
+    },
+    "sunString": {
+     "1.05": "0x43dd92",
+     "1.06": "0x439d29",
+     "1.07": "0x439db9",
+     "1.08": "0x43aa34"
+    }
+   },
+   "IHV quake3.exe": {
+    "q3map_sun": "no string",
+    "sun": "no string",
+    "unknownKeyword": "0x43ace9"
+   },
+   "encrypted": "alice.exe (SafeDisc), fakk2.exe (LaserLock), MOHAA.exe (SafeDisc) cannot be read on disk; OpenAlice's alice.exe decompile and OpenMoHAA's renderer read q3map_sun only (reference observation)"
+  }
+ },
+ "installed": {
+  "q3": {
+   "scripts": 87,
+   "generalLines": {
+    "q3map_sun": 192,
+    "q3map_sunext": 2431
+   },
+   "uniqueShaders": {
+    "q3map_sun": 87,
+    "q3map_sunext": 2059
+   }
+  },
+  "q3-ihv": {
+   "scripts": 26,
+   "generalLines": {},
+   "uniqueShaders": {}
+  },
+  "ql": {
+   "scripts": 147,
+   "generalLines": {
+    "q3map_sun": 133,
+    "q3map_sunext": 45
+   },
+   "uniqueShaders": {
+    "q3map_sun": 133,
+    "q3map_sunext": 45
+   }
+  },
+  "rtcw": {
+   "scripts": 106,
+   "generalLines": {
+    "q3map_sun": 259
+   },
+   "uniqueShaders": {
+    "q3map_sun": 137
+   }
+  },
+  "wolfet": {
+   "scripts": 105,
+   "generalLines": {
+    "q3map_sun": 22
+   },
+   "uniqueShaders": {
+    "q3map_sun": 12
+   }
+  },
+  "stvef": {
+   "scripts": 39,
+   "generalLines": {
+    "q3map_sun": 17
+   },
+   "uniqueShaders": {
+    "q3map_sun": 13
+   }
+  },
+  "jka": {
+   "scripts": 68,
+   "generalLines": {
+    "q3map_sun": 2,
+    "sun": 59
+   },
+   "uniqueShaders": {
+    "q3map_sun": 2,
+    "sun": 58
+   },
+   "sunLines": [
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/fur.shader",
+     "shader": "textures/fur/sky",
+     "keyword": "q3map_sun",
+     "args": "1 .85 0.5 65 -30 60"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/jnegretetest.shader",
+     "shader": "textures/jnegretetest/rancor_sky",
+     "keyword": "sun",
+     "args": "1 0.624712 0.371286 80 75 80"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/jnegretetest.shader",
+     "shader": "textures/jnegretetest/hoth_sky",
+     "keyword": "sun",
+     "args": "1 0.624712 0.371286 80 75 80"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/jnegretetest.shader",
+     "shader": "textures/jnegretetest/sky",
+     "keyword": "q3map_sun",
+     "args": "1 .85 0.5 65 -30 60"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/mp2.shader",
+     "shader": "textures/mp/s_redsky",
+     "keyword": "sun",
+     "args": "1 0.1 0.1 140 140 90"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/mp2.shader",
+     "shader": "textures/mp/s_space",
+     "keyword": "sun",
+     "args": "0.538903 0.6962 1 60 0 35"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/mp2.shader",
+     "shader": "textures/mp/s_fatalsky",
+     "keyword": "sun",
+     "args": "0.874291 1 0.819403 170 25 80"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/mp2.shader",
+     "shader": "textures/mp/s_kor_sky",
+     "keyword": "sun",
+     "args": "0.766119 0.79123 1 175 75 70"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/mp2.shader",
+     "shader": "textures/mp/s_bespin",
+     "keyword": "sun",
+     "args": "1 0.728909 0.624151 60 50 60"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/mp2.shader",
+     "shader": "textures/mp/s_blacksky",
+     "keyword": "sun",
+     "args": "1 1 1 32 90 90"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/mp2.shader",
+     "shader": "textures/mp/s_bountysky",
+     "keyword": "sun",
+     "args": "0.912072 1 0.646675 140 270 60"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/mp2.shader",
+     "shader": "textures/mp/s_hothsky",
+     "keyword": "sun",
+     "args": "0.8 0.8 0.95 160 140 80"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/mp2.shader",
+     "shader": "textures/mp/s_evilsky",
+     "keyword": "sun",
+     "args": "0.9 0.8 0.8 160 35 80"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/mp2.shader",
+     "shader": "textures/mp/s_duel2sky",
+     "keyword": "sun",
+     "args": "0.8 0.8 0.95 160 170 70"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/mp2.shader",
+     "shader": "textures/mp/desert_03",
+     "keyword": "sun",
+     "args": "0.905458 0.97021 1 125 345 85"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/mp3.shader",
+     "shader": "textures/mp/hoth_ctf_sky_top",
+     "keyword": "sun",
+     "args": "1.0 1.0 1.0 100 345 85"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/mp3.shader",
+     "shader": "textures/mp/hoth_ctf_sky_sides",
+     "keyword": "sun",
+     "args": "255 255 255 0 345 85"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/mp3.shader",
+     "shader": "textures/mp/desert_03",
+     "keyword": "sun",
+     "args": "255 255 255 80 345 85"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/mp4.shader",
+     "shader": "textures/mp/h_tatsky",
+     "keyword": "sun",
+     "args": "0.874291 1.000000 0.819403 175 25 70"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/mp4.shader",
+     "shader": "textures/mp/h_tatsky2",
+     "keyword": "sun",
+     "args": "0.874291 1.000000 0.819403 115 25 80"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/mp4.shader",
+     "shader": "textures/mp/h_yavin",
+     "keyword": "sun",
+     "args": "1.000000 0.540000 0.629266 180 120 40"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/mp4.shader",
+     "shader": "textures/mp/h_hevil",
+     "keyword": "sun",
+     "args": "0.62149 0.86476 1.000000 230 300 76"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/rbettenbergtest.shader",
+     "shader": "textures/rbettenbergtest/rbettenbergtest_sky1",
+     "keyword": "sun",
+     "args": "1 0.85 0.85 350 300 60"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/rbettenbergtest.shader",
+     "shader": "textures/rbettenbergtest/tcfoghull",
+     "keyword": "sun",
+     "args": "1 0.85 0.85 350 300 60"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/rbettenbergtest.shader",
+     "shader": "textures/rbettenbergtest/rbettenbergtest_sky_dpredicament",
+     "keyword": "sun",
+     "args": "0.898039 0.898039 1 400 300 50"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/rbettenbergtest.shader",
+     "shader": "textures/rbettenbergtest/rbettenbergtest_sky_hevil",
+     "keyword": "sun",
+     "args": "1 1 1 400 300 50"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/rich_rmg.shader",
+     "shader": "rmg_sky_jungle_morning",
+     "keyword": "sun",
+     "args": "1 0.866667 0.592157 230 270 40"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/rich_rmg.shader",
+     "shader": "rmg_sky_jungle_day",
+     "keyword": "sun",
+     "args": "1 0.866667 0.592157 255 270 55"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/rich_rmg.shader",
+     "shader": "rmg_sky_jungle_night",
+     "keyword": "sun",
+     "args": "0.317647 0.352941 0.509804 40 270 55"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/rich_rmg.shader",
+     "shader": "rmg_sky_desert_morning",
+     "keyword": "sun",
+     "args": "1 0.819608 0.54902 90 270 40"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/rich_rmg.shader",
+     "shader": "rmg_sky_desert_day",
+     "keyword": "sun",
+     "args": "1 0.819608 0.54902 255 270 55"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/rich_rmg.shader",
+     "shader": "rmg_sky_desert_night",
+     "keyword": "sun",
+     "args": "0.317647 0.352941 0.559804 76 270 35"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/rich_rmg.shader",
+     "shader": "rmg_sky_grassyhills_morning",
+     "keyword": "sun",
+     "args": "0.945098 0.945098 0.972549 120 270 40"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/rich_rmg.shader",
+     "shader": "rmg_sky_grassyhills_day",
+     "keyword": "sun",
+     "args": "0.945098 0.972549 0.945098 255 270 55"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/rich_rmg.shader",
+     "shader": "rmg_sky_grassyhills_night",
+     "keyword": "sun",
+     "args": "0.317647 0.452941 0.409804 95 270 35"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/rich_rmg.shader",
+     "shader": "rmg_sky_snowy_morning",
+     "keyword": "sun",
+     "args": "0.843137 0.87451 0.92549 75 270 40"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/rich_rmg.shader",
+     "shader": "rmg_sky_snowy_day",
+     "keyword": "sun",
+     "args": "0.87451 0.87451 0.92549 255 270 55"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/rich_rmg.shader",
+     "shader": "rmg_sky_snowy_night",
+     "keyword": "sun",
+     "args": "0.317647 0.352941 0.509804 75 270 35"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/siege.shader",
+     "shader": "textures/siege/desert",
+     "keyword": "sun",
+     "args": "1 0.98 0.92 100 75 75"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/siege.shader",
+     "shader": "textures/siege/hoth_sky",
+     "keyword": "sun",
+     "args": "1 0.96 0.9 90 90 90"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/normallight",
+     "keyword": "sun",
+     "args": "0.75 0.79 1 250 0 65"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/bluelight",
+     "keyword": "sun",
+     "args": "0.75 0.79 1 130 0 40"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/orangelight",
+     "keyword": "sun",
+     "args": "0.75 0.79 1 250 40 60"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/test",
+     "keyword": "sun",
+     "args": "0.75 0.79 1 50 0 65"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/test3",
+     "keyword": "sun",
+     "args": "0.75 0.79 1 65 46 40"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/right_light",
+     "keyword": "sun",
+     "args": "0.75 0.79 1 65 180 65"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/test4",
+     "keyword": "sun",
+     "args": "1 0.627451 0.258824 100 46 40"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/test5",
+     "keyword": "sun",
+     "args": "1 0.843137 0.54902 130 0 90"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/kejim_light",
+     "keyword": "sun",
+     "args": "1 1 1 200 0 70"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/new_test",
+     "keyword": "sun",
+     "args": "0.75 0.79 1 130 5 40"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/artus_light",
+     "keyword": "sun",
+     "args": "0.75 0.79 1 250 0 65"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/yavin_nodraw",
+     "keyword": "sun",
+     "args": "0.933333 1 0.8 0 0 0"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/hevil",
+     "keyword": "sun",
+     "args": "1 1 1 400 300 50"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/hoth",
+     "keyword": "sun",
+     "args": "255 255 255 355 345 85"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/siege_1",
+     "keyword": "sun",
+     "args": "255 255 255 355 345 85"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/hevil_2",
+     "keyword": "sun",
+     "args": "1 1 1 400 300 50"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/test_korriban1",
+     "keyword": "sun",
+     "args": "1 1 1 450 15 60"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/rail_sun",
+     "keyword": "sun",
+     "args": "1 1 1 355 345 85"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/smsand.shader",
+     "shader": "textures/sandcrawler/smsand",
+     "keyword": "sun",
+     "args": "0.75 0.79 1 40 315 40"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/smsand.shader",
+     "shader": "textures/sandcrawler/d_bay",
+     "keyword": "sun",
+     "args": "0.75 0.79 1 40 315 40"
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/stu.shader",
+     "shader": "textures/stu/kor_sun",
+     "keyword": "sun",
+     "args": "255 255 255 355 345 85"
+    }
+   ],
+   "notSky": [
+    "textures/mp/s_blacksky"
+   ],
+   "intensityZero": [
+    "textures/mp/hoth_ctf_sky_sides",
+    "textures/skies/yavin_nodraw"
+   ],
+   "alsoLightColor": [
+    "rmg_sky_* (12)",
+    "textures/skies/bluelight",
+    "textures/skies/orangelight"
+   ],
+   "lightColorWithoutSun": [
+    "textures/danger/engine_end_rotated",
+    "textures/fogs/fog_grey",
+    "textures/fogs/fog_amber",
+    "textures/rbettenbergtest/rbettenbergtest_light1_dpredicament"
+   ]
+  },
+  "jk2": {
+   "scripts": 29,
+   "generalLines": {
+    "sun": 11
+   },
+   "uniqueShaders": {
+    "sun": 11
+   },
+   "sunLines": [
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/normallight",
+     "keyword": "sun",
+     "args": "0.75 0.79 1 250 0 65"
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/bluelight",
+     "keyword": "sun",
+     "args": "0.75 0.79 1 130 0 40"
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/orangelight",
+     "keyword": "sun",
+     "args": "0.75 0.79 1 250 40 60"
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/test",
+     "keyword": "sun",
+     "args": "0.75 0.79 1 50 0 65"
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/test3",
+     "keyword": "sun",
+     "args": "0.75 0.79 1 65 46 40"
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/right_light",
+     "keyword": "sun",
+     "args": "0.75 0.79 1 65 180 65"
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/test4",
+     "keyword": "sun",
+     "args": "1 0.627451 0.258824 100 46 40"
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/test5",
+     "keyword": "sun",
+     "args": "1 0.843137 0.54902 130 0 90"
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/kejim_light",
+     "keyword": "sun",
+     "args": "1 1 1 200 0 70"
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/new_test",
+     "keyword": "sun",
+     "args": "0.75 0.79 1 130 5 40"
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/skies.shader",
+     "shader": "textures/skies/artus_light",
+     "keyword": "sun",
+     "args": "0.75 0.79 1 250 0 65"
+    }
+   ],
+   "alsoLightColor": [
+    "textures/skies/bluelight",
+    "textures/skies/orangelight"
+   ],
+   "alsoNoTC": [
+    "textures/skies/kejim_light",
+    "textures/skies/new_test"
+   ]
+  },
+  "alice": {
+   "scripts": 52,
+   "generalLines": {
+    "q3map_sun": 4
+   },
+   "uniqueShaders": {
+    "q3map_sun": 4
+   }
+  },
+  "fakk2": {
+   "scripts": 41,
+   "generalLines": {},
+   "uniqueShaders": {}
+  },
+  "mohaa": {
+   "scripts": 139,
+   "generalLines": {},
+   "uniqueShaders": {}
+  },
+  "q3test": {
+   "scripts": 150,
+   "generalLines": {
+    "q3map_sun": 228
+   },
+   "uniqueShaders": {
+    "q3map_sun": 47
+   }
+  },
+  "note": "every pak of each installation, the IHV Test's loose scripts and each Q3Test release's paks; the Steam Quake III folder also holds non-retail paks, whose lines are in the q3 counts (none says sun)"
+ },
+ "mapsNamingSunShaders": {
+  "jka": {
+   "maps/hoth2.bsp": [
+    "textures/skies/hoth"
+   ],
+   "maps/mp/ctf2.bsp": [
+    "textures/mp/hoth_ctf_sky_sides"
+   ],
+   "maps/mp/ctf3.bsp": [
+    "textures/mp/s_fatalsky"
+   ],
+   "maps/mp/duel1.bsp": [
+    "textures/mp/s_bespin"
+   ],
+   "maps/mp/duel4.bsp": [
+    "textures/mp/s_space"
+   ],
+   "maps/mp/duel9.bsp": [
+    "textures/mp/s_hothsky"
+   ],
+   "maps/mp/ffa2.bsp": [
+    "textures/mp/s_kor_sky"
+   ],
+   "maps/mp/ffa3.bsp": [
+    "textures/mp/h_tatsky"
+   ],
+   "maps/mp/ffa4.bsp": [
+    "textures/mp/s_blacksky"
+   ],
+   "maps/mp/siege_hoth.bsp": [
+    "textures/siege/hoth_sky"
+   ],
+   "maps/t1_rail.bsp": [
+    "textures/skies/rail_sun"
+   ],
+   "maps/t3_hevil.bsp": [
+    "textures/skies/hevil_2"
+   ],
+   "maps/t3_rift.bsp": [
+    "textures/skies/artus_light"
+   ],
+   "maps/yavin2.bsp": [
+    "textures/skies/yavin_nodraw"
+   ]
+  },
+  "jk2": {
+   "maps/artus_detention.bsp": [
+    "textures/skies/kejim_light"
+   ],
+   "maps/duel_jedi.bsp": [
+    "textures/skies/artus_light"
+   ]
+  }
+ },
+ "parserCensus": {
+  "method": "tests/alice_shader_parse_tests.py host around each renderer's whole tr_shader.c; every name { ... } definition of the installed scripts, per profile (corpus.py)",
+  "before": "80d15494 export",
+  "after": "80d15494 export with this change",
+  "results": {
+   "renderer/jka/jka-sp": {
+    "definitions": 3391,
+    "refusedBefore": 142,
+    "refusedAfter": 79,
+    "newlyLoading": [
+     "rmg_sky_desert_day",
+     "rmg_sky_desert_morning",
+     "rmg_sky_desert_night",
+     "rmg_sky_grassyhills_day",
+     "rmg_sky_grassyhills_morning",
+     "rmg_sky_grassyhills_night",
+     "rmg_sky_jungle_day",
+     "rmg_sky_jungle_morning",
+     "rmg_sky_jungle_night",
+     "rmg_sky_snowy_day",
+     "rmg_sky_snowy_morning",
+     "rmg_sky_snowy_night",
+     "textures/danger/engine_end_rotated",
+     "textures/fogs/fog_amber",
+     "textures/fogs/fog_grey",
+     "textures/jnegretetest/hoth_sky",
+     "textures/jnegretetest/rancor_sky",
+     "textures/mp/desert_03",
+     "textures/mp/h_hevil",
+     "textures/mp/h_tatsky",
+     "textures/mp/h_tatsky2",
+     "textures/mp/h_yavin",
+     "textures/mp/hoth_ctf_sky_sides",
+     "textures/mp/hoth_ctf_sky_top",
+     "textures/mp/s_bespin",
+     "textures/mp/s_blacksky",
+     "textures/mp/s_bountysky",
+     "textures/mp/s_duel2sky",
+     "textures/mp/s_evilsky",
+     "textures/mp/s_fatalsky",
+     "textures/mp/s_hothsky",
+     "textures/mp/s_kor_sky",
+     "textures/mp/s_redsky",
+     "textures/mp/s_space",
+     "textures/rbettenbergtest/rbettenbergtest_light1_dpredicament",
+     "textures/rbettenbergtest/rbettenbergtest_sky1",
+     "textures/rbettenbergtest/rbettenbergtest_sky_dpredicament",
+     "textures/rbettenbergtest/rbettenbergtest_sky_hevil",
+     "textures/rbettenbergtest/tcfoghull",
+     "textures/sandcrawler/d_bay",
+     "textures/sandcrawler/smsand",
+     "textures/siege/desert",
+     "textures/siege/hoth_sky",
+     "textures/skies/artus_light",
+     "textures/skies/bluelight",
+     "textures/skies/hevil",
+     "textures/skies/hevil_2",
+     "textures/skies/hoth",
+     "textures/skies/kejim_light",
+     "textures/skies/new_test",
+     "textures/skies/normallight",
+     "textures/skies/orangelight",
+     "textures/skies/rail_sun",
+     "textures/skies/right_light",
+     "textures/skies/siege_1",
+     "textures/skies/test",
+     "textures/skies/test3",
+     "textures/skies/test4",
+     "textures/skies/test5",
+     "textures/skies/test_korriban1",
+     "textures/skies/yavin_nodraw",
+     "textures/stu/kor_sun"
+    ],
+    "newlyRefused": [],
+    "reasonChanged": [],
+    "remainingReasons": {
+     "(no stages)": 40,
+     "WARNING: unknown parameter 'surfaceSprites'": 39
+    }
+   },
+   "renderer/jka/jka-mp": {
+    "definitions": 3391,
+    "refusedBefore": 142,
+    "refusedAfter": 79,
+    "newlyLoading": [
+     "rmg_sky_desert_day",
+     "rmg_sky_desert_morning",
+     "rmg_sky_desert_night",
+     "rmg_sky_grassyhills_day",
+     "rmg_sky_grassyhills_morning",
+     "rmg_sky_grassyhills_night",
+     "rmg_sky_jungle_day",
+     "rmg_sky_jungle_morning",
+     "rmg_sky_jungle_night",
+     "rmg_sky_snowy_day",
+     "rmg_sky_snowy_morning",
+     "rmg_sky_snowy_night",
+     "textures/danger/engine_end_rotated",
+     "textures/fogs/fog_amber",
+     "textures/fogs/fog_grey",
+     "textures/jnegretetest/hoth_sky",
+     "textures/jnegretetest/rancor_sky",
+     "textures/mp/desert_03",
+     "textures/mp/h_hevil",
+     "textures/mp/h_tatsky",
+     "textures/mp/h_tatsky2",
+     "textures/mp/h_yavin",
+     "textures/mp/hoth_ctf_sky_sides",
+     "textures/mp/hoth_ctf_sky_top",
+     "textures/mp/s_bespin",
+     "textures/mp/s_blacksky",
+     "textures/mp/s_bountysky",
+     "textures/mp/s_duel2sky",
+     "textures/mp/s_evilsky",
+     "textures/mp/s_fatalsky",
+     "textures/mp/s_hothsky",
+     "textures/mp/s_kor_sky",
+     "textures/mp/s_redsky",
+     "textures/mp/s_space",
+     "textures/rbettenbergtest/rbettenbergtest_light1_dpredicament",
+     "textures/rbettenbergtest/rbettenbergtest_sky1",
+     "textures/rbettenbergtest/rbettenbergtest_sky_dpredicament",
+     "textures/rbettenbergtest/rbettenbergtest_sky_hevil",
+     "textures/rbettenbergtest/tcfoghull",
+     "textures/sandcrawler/d_bay",
+     "textures/sandcrawler/smsand",
+     "textures/siege/desert",
+     "textures/siege/hoth_sky",
+     "textures/skies/artus_light",
+     "textures/skies/bluelight",
+     "textures/skies/hevil",
+     "textures/skies/hevil_2",
+     "textures/skies/hoth",
+     "textures/skies/kejim_light",
+     "textures/skies/new_test",
+     "textures/skies/normallight",
+     "textures/skies/orangelight",
+     "textures/skies/rail_sun",
+     "textures/skies/right_light",
+     "textures/skies/siege_1",
+     "textures/skies/test",
+     "textures/skies/test3",
+     "textures/skies/test4",
+     "textures/skies/test5",
+     "textures/skies/test_korriban1",
+     "textures/skies/yavin_nodraw",
+     "textures/stu/kor_sun"
+    ],
+    "newlyRefused": [],
+    "reasonChanged": [],
+    "remainingReasons": {
+     "(no stages)": 40,
+     "WARNING: unknown parameter 'surfaceSprites'": 39
+    }
+   },
+   "renderer/jka/q3": {
+    "definitions": 3391,
+    "refusedBefore": 871,
+    "refusedAfter": 871,
+    "newlyLoading": [],
+    "newlyRefused": [],
+    "reasonChanged": [],
+    "remainingReasons": {
+     "WARNING: unknown parameter 'glow'": 628,
+     "WARNING: unknown general shader parameter 'notc'": 51,
+     "WARNING: unknown general shader parameter 'sun'": 41,
+     "(no stages)": 40,
+     "WARNING: unknown parameter 'surfaceSprites'": 39,
+     "WARNING: unknown parameter 'oneshotanimMap'": 37,
+     "WARNING: unknown general shader parameter 'lightcolor'": 18,
+     "WARNING: unknown parameter 'oneshotanimmap'": 10,
+     "WARNING: unknown depthfunc 'disable'": 2,
+     "WARNING: unknown parameter 'clampanimMap'": 1,
+     "WARNING: ignoring excess images for 'animMap' (found 10, max is 8)": 1
+    }
+   },
+   "renderer/jk2/jk2-sp": {
+    "definitions": 1187,
+    "refusedBefore": 90,
+    "refusedAfter": 69,
+    "newlyLoading": [
+     "textures/bespin/sky",
+     "textures/bespin/sky_platform",
+     "textures/skies/artus_light",
+     "textures/skies/bespin",
+     "textures/skies/bluelight",
+     "textures/skies/col10",
+     "textures/skies/dm_col1",
+     "textures/skies/ice",
+     "textures/skies/kejim",
+     "textures/skies/kejim_light",
+     "textures/skies/new_test",
+     "textures/skies/normallight",
+     "textures/skies/orangelight",
+     "textures/skies/right_light",
+     "textures/skies/space",
+     "textures/skies/test",
+     "textures/skies/test2",
+     "textures/skies/test3",
+     "textures/skies/test4",
+     "textures/skies/test5",
+     "textures/skies/yavin"
+    ],
+    "newlyRefused": [],
+    "reasonChanged": [],
+    "remainingReasons": {
+     "(no stages)": 25,
+     "WARNING: unknown parameter 'surfaceSprites'": 22,
+     "WARNING: unknown parameter 'oneshotanimMap'": 11,
+     "WARNING: unknown parameter 'oneshotanimmap'": 10,
+     "WARNING: unknown parameter 'clampanimMap'": 1
+    }
+   },
+   "renderer/jk2/jk2-mp": {
+    "definitions": 1187,
+    "refusedBefore": 90,
+    "refusedAfter": 69,
+    "newlyLoading": [
+     "textures/bespin/sky",
+     "textures/bespin/sky_platform",
+     "textures/skies/artus_light",
+     "textures/skies/bespin",
+     "textures/skies/bluelight",
+     "textures/skies/col10",
+     "textures/skies/dm_col1",
+     "textures/skies/ice",
+     "textures/skies/kejim",
+     "textures/skies/kejim_light",
+     "textures/skies/new_test",
+     "textures/skies/normallight",
+     "textures/skies/orangelight",
+     "textures/skies/right_light",
+     "textures/skies/space",
+     "textures/skies/test",
+     "textures/skies/test2",
+     "textures/skies/test3",
+     "textures/skies/test4",
+     "textures/skies/test5",
+     "textures/skies/yavin"
+    ],
+    "newlyRefused": [],
+    "reasonChanged": [],
+    "remainingReasons": {
+     "(no stages)": 25,
+     "WARNING: unknown parameter 'surfaceSprites'": 22,
+     "WARNING: unknown parameter 'oneshotanimMap'": 11,
+     "WARNING: unknown parameter 'oneshotanimmap'": 10,
+     "WARNING: unknown parameter 'clampanimMap'": 1
+    }
+   },
+   "renderer/jk2/q3": {
+    "definitions": 1187,
+    "refusedBefore": 90,
+    "refusedAfter": 90,
+    "newlyLoading": [],
+    "newlyRefused": [],
+    "reasonChanged": [],
+    "remainingReasons": {
+     "(no stages)": 25,
+     "WARNING: unknown parameter 'surfaceSprites'": 22,
+     "WARNING: unknown parameter 'oneshotanimMap'": 11,
+     "WARNING: unknown general shader parameter 'notc'": 10,
+     "WARNING: unknown parameter 'oneshotanimmap'": 10,
+     "WARNING: unknown general shader parameter 'sun'": 9,
+     "WARNING: unknown general shader parameter 'lightcolor'": 2,
+     "WARNING: unknown parameter 'clampanimMap'": 1
+    }
+   },
+   "renderervk/jka/jka-sp": {
+    "definitions": 3391,
+    "refusedBefore": 142,
+    "refusedAfter": 79,
+    "newlyLoading": [
+     "rmg_sky_desert_day",
+     "rmg_sky_desert_morning",
+     "rmg_sky_desert_night",
+     "rmg_sky_grassyhills_day",
+     "rmg_sky_grassyhills_morning",
+     "rmg_sky_grassyhills_night",
+     "rmg_sky_jungle_day",
+     "rmg_sky_jungle_morning",
+     "rmg_sky_jungle_night",
+     "rmg_sky_snowy_day",
+     "rmg_sky_snowy_morning",
+     "rmg_sky_snowy_night",
+     "textures/danger/engine_end_rotated",
+     "textures/fogs/fog_amber",
+     "textures/fogs/fog_grey",
+     "textures/jnegretetest/hoth_sky",
+     "textures/jnegretetest/rancor_sky",
+     "textures/mp/desert_03",
+     "textures/mp/h_hevil",
+     "textures/mp/h_tatsky",
+     "textures/mp/h_tatsky2",
+     "textures/mp/h_yavin",
+     "textures/mp/hoth_ctf_sky_sides",
+     "textures/mp/hoth_ctf_sky_top",
+     "textures/mp/s_bespin",
+     "textures/mp/s_blacksky",
+     "textures/mp/s_bountysky",
+     "textures/mp/s_duel2sky",
+     "textures/mp/s_evilsky",
+     "textures/mp/s_fatalsky",
+     "textures/mp/s_hothsky",
+     "textures/mp/s_kor_sky",
+     "textures/mp/s_redsky",
+     "textures/mp/s_space",
+     "textures/rbettenbergtest/rbettenbergtest_light1_dpredicament",
+     "textures/rbettenbergtest/rbettenbergtest_sky1",
+     "textures/rbettenbergtest/rbettenbergtest_sky_dpredicament",
+     "textures/rbettenbergtest/rbettenbergtest_sky_hevil",
+     "textures/rbettenbergtest/tcfoghull",
+     "textures/sandcrawler/d_bay",
+     "textures/sandcrawler/smsand",
+     "textures/siege/desert",
+     "textures/siege/hoth_sky",
+     "textures/skies/artus_light",
+     "textures/skies/bluelight",
+     "textures/skies/hevil",
+     "textures/skies/hevil_2",
+     "textures/skies/hoth",
+     "textures/skies/kejim_light",
+     "textures/skies/new_test",
+     "textures/skies/normallight",
+     "textures/skies/orangelight",
+     "textures/skies/rail_sun",
+     "textures/skies/right_light",
+     "textures/skies/siege_1",
+     "textures/skies/test",
+     "textures/skies/test3",
+     "textures/skies/test4",
+     "textures/skies/test5",
+     "textures/skies/test_korriban1",
+     "textures/skies/yavin_nodraw",
+     "textures/stu/kor_sun"
+    ],
+    "newlyRefused": [],
+    "reasonChanged": [],
+    "remainingReasons": {
+     "(no stages)": 40,
+     "WARNING: unknown parameter 'surfaceSprites'": 39
+    }
+   },
+   "renderervk/jka/jka-mp": {
+    "definitions": 3391,
+    "refusedBefore": 142,
+    "refusedAfter": 79,
+    "newlyLoading": [
+     "rmg_sky_desert_day",
+     "rmg_sky_desert_morning",
+     "rmg_sky_desert_night",
+     "rmg_sky_grassyhills_day",
+     "rmg_sky_grassyhills_morning",
+     "rmg_sky_grassyhills_night",
+     "rmg_sky_jungle_day",
+     "rmg_sky_jungle_morning",
+     "rmg_sky_jungle_night",
+     "rmg_sky_snowy_day",
+     "rmg_sky_snowy_morning",
+     "rmg_sky_snowy_night",
+     "textures/danger/engine_end_rotated",
+     "textures/fogs/fog_amber",
+     "textures/fogs/fog_grey",
+     "textures/jnegretetest/hoth_sky",
+     "textures/jnegretetest/rancor_sky",
+     "textures/mp/desert_03",
+     "textures/mp/h_hevil",
+     "textures/mp/h_tatsky",
+     "textures/mp/h_tatsky2",
+     "textures/mp/h_yavin",
+     "textures/mp/hoth_ctf_sky_sides",
+     "textures/mp/hoth_ctf_sky_top",
+     "textures/mp/s_bespin",
+     "textures/mp/s_blacksky",
+     "textures/mp/s_bountysky",
+     "textures/mp/s_duel2sky",
+     "textures/mp/s_evilsky",
+     "textures/mp/s_fatalsky",
+     "textures/mp/s_hothsky",
+     "textures/mp/s_kor_sky",
+     "textures/mp/s_redsky",
+     "textures/mp/s_space",
+     "textures/rbettenbergtest/rbettenbergtest_light1_dpredicament",
+     "textures/rbettenbergtest/rbettenbergtest_sky1",
+     "textures/rbettenbergtest/rbettenbergtest_sky_dpredicament",
+     "textures/rbettenbergtest/rbettenbergtest_sky_hevil",
+     "textures/rbettenbergtest/tcfoghull",
+     "textures/sandcrawler/d_bay",
+     "textures/sandcrawler/smsand",
+     "textures/siege/desert",
+     "textures/siege/hoth_sky",
+     "textures/skies/artus_light",
+     "textures/skies/bluelight",
+     "textures/skies/hevil",
+     "textures/skies/hevil_2",
+     "textures/skies/hoth",
+     "textures/skies/kejim_light",
+     "textures/skies/new_test",
+     "textures/skies/normallight",
+     "textures/skies/orangelight",
+     "textures/skies/rail_sun",
+     "textures/skies/right_light",
+     "textures/skies/siege_1",
+     "textures/skies/test",
+     "textures/skies/test3",
+     "textures/skies/test4",
+     "textures/skies/test5",
+     "textures/skies/test_korriban1",
+     "textures/skies/yavin_nodraw",
+     "textures/stu/kor_sun"
+    ],
+    "newlyRefused": [],
+    "reasonChanged": [],
+    "remainingReasons": {
+     "(no stages)": 40,
+     "WARNING: unknown parameter 'surfaceSprites'": 39
+    }
+   },
+   "renderervk/jka/q3": {
+    "definitions": 3391,
+    "refusedBefore": 871,
+    "refusedAfter": 871,
+    "newlyLoading": [],
+    "newlyRefused": [],
+    "reasonChanged": [],
+    "remainingReasons": {
+     "WARNING: unknown parameter 'glow'": 628,
+     "WARNING: unknown general shader parameter 'notc'": 51,
+     "WARNING: unknown general shader parameter 'sun'": 41,
+     "(no stages)": 40,
+     "WARNING: unknown parameter 'surfaceSprites'": 39,
+     "WARNING: unknown parameter 'oneshotanimMap'": 37,
+     "WARNING: unknown general shader parameter 'lightcolor'": 18,
+     "WARNING: unknown parameter 'oneshotanimmap'": 10,
+     "WARNING: unknown depthfunc 'disable'": 2,
+     "WARNING: unknown parameter 'clampanimMap'": 1,
+     "WARNING: ignoring excess images for 'animMap' (found 10, max is 8)": 1
+    }
+   },
+   "renderervk/jk2/jk2-sp": {
+    "definitions": 1187,
+    "refusedBefore": 90,
+    "refusedAfter": 69,
+    "newlyLoading": [
+     "textures/bespin/sky",
+     "textures/bespin/sky_platform",
+     "textures/skies/artus_light",
+     "textures/skies/bespin",
+     "textures/skies/bluelight",
+     "textures/skies/col10",
+     "textures/skies/dm_col1",
+     "textures/skies/ice",
+     "textures/skies/kejim",
+     "textures/skies/kejim_light",
+     "textures/skies/new_test",
+     "textures/skies/normallight",
+     "textures/skies/orangelight",
+     "textures/skies/right_light",
+     "textures/skies/space",
+     "textures/skies/test",
+     "textures/skies/test2",
+     "textures/skies/test3",
+     "textures/skies/test4",
+     "textures/skies/test5",
+     "textures/skies/yavin"
+    ],
+    "newlyRefused": [],
+    "reasonChanged": [],
+    "remainingReasons": {
+     "(no stages)": 25,
+     "WARNING: unknown parameter 'surfaceSprites'": 22,
+     "WARNING: unknown parameter 'oneshotanimMap'": 11,
+     "WARNING: unknown parameter 'oneshotanimmap'": 10,
+     "WARNING: unknown parameter 'clampanimMap'": 1
+    }
+   },
+   "renderervk/jk2/jk2-mp": {
+    "definitions": 1187,
+    "refusedBefore": 90,
+    "refusedAfter": 69,
+    "newlyLoading": [
+     "textures/bespin/sky",
+     "textures/bespin/sky_platform",
+     "textures/skies/artus_light",
+     "textures/skies/bespin",
+     "textures/skies/bluelight",
+     "textures/skies/col10",
+     "textures/skies/dm_col1",
+     "textures/skies/ice",
+     "textures/skies/kejim",
+     "textures/skies/kejim_light",
+     "textures/skies/new_test",
+     "textures/skies/normallight",
+     "textures/skies/orangelight",
+     "textures/skies/right_light",
+     "textures/skies/space",
+     "textures/skies/test",
+     "textures/skies/test2",
+     "textures/skies/test3",
+     "textures/skies/test4",
+     "textures/skies/test5",
+     "textures/skies/yavin"
+    ],
+    "newlyRefused": [],
+    "reasonChanged": [],
+    "remainingReasons": {
+     "(no stages)": 25,
+     "WARNING: unknown parameter 'surfaceSprites'": 22,
+     "WARNING: unknown parameter 'oneshotanimMap'": 11,
+     "WARNING: unknown parameter 'oneshotanimmap'": 10,
+     "WARNING: unknown parameter 'clampanimMap'": 1
+    }
+   },
+   "renderervk/jk2/q3": {
+    "definitions": 1187,
+    "refusedBefore": 90,
+    "refusedAfter": 90,
+    "newlyLoading": [],
+    "newlyRefused": [],
+    "reasonChanged": [],
+    "remainingReasons": {
+     "(no stages)": 25,
+     "WARNING: unknown parameter 'surfaceSprites'": 22,
+     "WARNING: unknown parameter 'oneshotanimMap'": 11,
+     "WARNING: unknown general shader parameter 'notc'": 10,
+     "WARNING: unknown parameter 'oneshotanimmap'": 10,
+     "WARNING: unknown general shader parameter 'sun'": 9,
+     "WARNING: unknown general shader parameter 'lightcolor'": 2,
+     "WARNING: unknown parameter 'clampanimMap'": 1
+    }
+   },
+   "rendererrtx/jka/jka-sp": {
+    "definitions": 3391,
+    "refusedBefore": 142,
+    "refusedAfter": 79,
+    "newlyLoading": [
+     "rmg_sky_desert_day",
+     "rmg_sky_desert_morning",
+     "rmg_sky_desert_night",
+     "rmg_sky_grassyhills_day",
+     "rmg_sky_grassyhills_morning",
+     "rmg_sky_grassyhills_night",
+     "rmg_sky_jungle_day",
+     "rmg_sky_jungle_morning",
+     "rmg_sky_jungle_night",
+     "rmg_sky_snowy_day",
+     "rmg_sky_snowy_morning",
+     "rmg_sky_snowy_night",
+     "textures/danger/engine_end_rotated",
+     "textures/fogs/fog_amber",
+     "textures/fogs/fog_grey",
+     "textures/jnegretetest/hoth_sky",
+     "textures/jnegretetest/rancor_sky",
+     "textures/mp/desert_03",
+     "textures/mp/h_hevil",
+     "textures/mp/h_tatsky",
+     "textures/mp/h_tatsky2",
+     "textures/mp/h_yavin",
+     "textures/mp/hoth_ctf_sky_sides",
+     "textures/mp/hoth_ctf_sky_top",
+     "textures/mp/s_bespin",
+     "textures/mp/s_blacksky",
+     "textures/mp/s_bountysky",
+     "textures/mp/s_duel2sky",
+     "textures/mp/s_evilsky",
+     "textures/mp/s_fatalsky",
+     "textures/mp/s_hothsky",
+     "textures/mp/s_kor_sky",
+     "textures/mp/s_redsky",
+     "textures/mp/s_space",
+     "textures/rbettenbergtest/rbettenbergtest_light1_dpredicament",
+     "textures/rbettenbergtest/rbettenbergtest_sky1",
+     "textures/rbettenbergtest/rbettenbergtest_sky_dpredicament",
+     "textures/rbettenbergtest/rbettenbergtest_sky_hevil",
+     "textures/rbettenbergtest/tcfoghull",
+     "textures/sandcrawler/d_bay",
+     "textures/sandcrawler/smsand",
+     "textures/siege/desert",
+     "textures/siege/hoth_sky",
+     "textures/skies/artus_light",
+     "textures/skies/bluelight",
+     "textures/skies/hevil",
+     "textures/skies/hevil_2",
+     "textures/skies/hoth",
+     "textures/skies/kejim_light",
+     "textures/skies/new_test",
+     "textures/skies/normallight",
+     "textures/skies/orangelight",
+     "textures/skies/rail_sun",
+     "textures/skies/right_light",
+     "textures/skies/siege_1",
+     "textures/skies/test",
+     "textures/skies/test3",
+     "textures/skies/test4",
+     "textures/skies/test5",
+     "textures/skies/test_korriban1",
+     "textures/skies/yavin_nodraw",
+     "textures/stu/kor_sun"
+    ],
+    "newlyRefused": [],
+    "reasonChanged": [],
+    "remainingReasons": {
+     "(no stages)": 40,
+     "WARNING: unknown parameter 'surfaceSprites'": 39
+    }
+   },
+   "rendererrtx/jka/jka-mp": {
+    "definitions": 3391,
+    "refusedBefore": 142,
+    "refusedAfter": 79,
+    "newlyLoading": [
+     "rmg_sky_desert_day",
+     "rmg_sky_desert_morning",
+     "rmg_sky_desert_night",
+     "rmg_sky_grassyhills_day",
+     "rmg_sky_grassyhills_morning",
+     "rmg_sky_grassyhills_night",
+     "rmg_sky_jungle_day",
+     "rmg_sky_jungle_morning",
+     "rmg_sky_jungle_night",
+     "rmg_sky_snowy_day",
+     "rmg_sky_snowy_morning",
+     "rmg_sky_snowy_night",
+     "textures/danger/engine_end_rotated",
+     "textures/fogs/fog_amber",
+     "textures/fogs/fog_grey",
+     "textures/jnegretetest/hoth_sky",
+     "textures/jnegretetest/rancor_sky",
+     "textures/mp/desert_03",
+     "textures/mp/h_hevil",
+     "textures/mp/h_tatsky",
+     "textures/mp/h_tatsky2",
+     "textures/mp/h_yavin",
+     "textures/mp/hoth_ctf_sky_sides",
+     "textures/mp/hoth_ctf_sky_top",
+     "textures/mp/s_bespin",
+     "textures/mp/s_blacksky",
+     "textures/mp/s_bountysky",
+     "textures/mp/s_duel2sky",
+     "textures/mp/s_evilsky",
+     "textures/mp/s_fatalsky",
+     "textures/mp/s_hothsky",
+     "textures/mp/s_kor_sky",
+     "textures/mp/s_redsky",
+     "textures/mp/s_space",
+     "textures/rbettenbergtest/rbettenbergtest_light1_dpredicament",
+     "textures/rbettenbergtest/rbettenbergtest_sky1",
+     "textures/rbettenbergtest/rbettenbergtest_sky_dpredicament",
+     "textures/rbettenbergtest/rbettenbergtest_sky_hevil",
+     "textures/rbettenbergtest/tcfoghull",
+     "textures/sandcrawler/d_bay",
+     "textures/sandcrawler/smsand",
+     "textures/siege/desert",
+     "textures/siege/hoth_sky",
+     "textures/skies/artus_light",
+     "textures/skies/bluelight",
+     "textures/skies/hevil",
+     "textures/skies/hevil_2",
+     "textures/skies/hoth",
+     "textures/skies/kejim_light",
+     "textures/skies/new_test",
+     "textures/skies/normallight",
+     "textures/skies/orangelight",
+     "textures/skies/rail_sun",
+     "textures/skies/right_light",
+     "textures/skies/siege_1",
+     "textures/skies/test",
+     "textures/skies/test3",
+     "textures/skies/test4",
+     "textures/skies/test5",
+     "textures/skies/test_korriban1",
+     "textures/skies/yavin_nodraw",
+     "textures/stu/kor_sun"
+    ],
+    "newlyRefused": [],
+    "reasonChanged": [],
+    "remainingReasons": {
+     "(no stages)": 40,
+     "WARNING: unknown parameter 'surfaceSprites'": 39
+    }
+   },
+   "rendererrtx/jka/q3": {
+    "definitions": 3391,
+    "refusedBefore": 871,
+    "refusedAfter": 871,
+    "newlyLoading": [],
+    "newlyRefused": [],
+    "reasonChanged": [],
+    "remainingReasons": {
+     "WARNING: unknown parameter 'glow'": 628,
+     "WARNING: unknown general shader parameter 'notc'": 51,
+     "WARNING: unknown general shader parameter 'sun'": 41,
+     "(no stages)": 40,
+     "WARNING: unknown parameter 'surfaceSprites'": 39,
+     "WARNING: unknown parameter 'oneshotanimMap'": 37,
+     "WARNING: unknown general shader parameter 'lightcolor'": 18,
+     "WARNING: unknown parameter 'oneshotanimmap'": 10,
+     "WARNING: unknown depthfunc 'disable'": 2,
+     "WARNING: unknown parameter 'clampanimMap'": 1,
+     "WARNING: ignoring excess images for 'animMap' (found 10, max is 8)": 1
+    }
+   },
+   "rendererrtx/jk2/jk2-sp": {
+    "definitions": 1187,
+    "refusedBefore": 90,
+    "refusedAfter": 69,
+    "newlyLoading": [
+     "textures/bespin/sky",
+     "textures/bespin/sky_platform",
+     "textures/skies/artus_light",
+     "textures/skies/bespin",
+     "textures/skies/bluelight",
+     "textures/skies/col10",
+     "textures/skies/dm_col1",
+     "textures/skies/ice",
+     "textures/skies/kejim",
+     "textures/skies/kejim_light",
+     "textures/skies/new_test",
+     "textures/skies/normallight",
+     "textures/skies/orangelight",
+     "textures/skies/right_light",
+     "textures/skies/space",
+     "textures/skies/test",
+     "textures/skies/test2",
+     "textures/skies/test3",
+     "textures/skies/test4",
+     "textures/skies/test5",
+     "textures/skies/yavin"
+    ],
+    "newlyRefused": [],
+    "reasonChanged": [],
+    "remainingReasons": {
+     "(no stages)": 25,
+     "WARNING: unknown parameter 'surfaceSprites'": 22,
+     "WARNING: unknown parameter 'oneshotanimMap'": 11,
+     "WARNING: unknown parameter 'oneshotanimmap'": 10,
+     "WARNING: unknown parameter 'clampanimMap'": 1
+    }
+   },
+   "rendererrtx/jk2/jk2-mp": {
+    "definitions": 1187,
+    "refusedBefore": 90,
+    "refusedAfter": 69,
+    "newlyLoading": [
+     "textures/bespin/sky",
+     "textures/bespin/sky_platform",
+     "textures/skies/artus_light",
+     "textures/skies/bespin",
+     "textures/skies/bluelight",
+     "textures/skies/col10",
+     "textures/skies/dm_col1",
+     "textures/skies/ice",
+     "textures/skies/kejim",
+     "textures/skies/kejim_light",
+     "textures/skies/new_test",
+     "textures/skies/normallight",
+     "textures/skies/orangelight",
+     "textures/skies/right_light",
+     "textures/skies/space",
+     "textures/skies/test",
+     "textures/skies/test2",
+     "textures/skies/test3",
+     "textures/skies/test4",
+     "textures/skies/test5",
+     "textures/skies/yavin"
+    ],
+    "newlyRefused": [],
+    "reasonChanged": [],
+    "remainingReasons": {
+     "(no stages)": 25,
+     "WARNING: unknown parameter 'surfaceSprites'": 22,
+     "WARNING: unknown parameter 'oneshotanimMap'": 11,
+     "WARNING: unknown parameter 'oneshotanimmap'": 10,
+     "WARNING: unknown parameter 'clampanimMap'": 1
+    }
+   },
+   "rendererrtx/jk2/q3": {
+    "definitions": 1187,
+    "refusedBefore": 90,
+    "refusedAfter": 90,
+    "newlyLoading": [],
+    "newlyRefused": [],
+    "reasonChanged": [],
+    "remainingReasons": {
+     "(no stages)": 25,
+     "WARNING: unknown parameter 'surfaceSprites'": 22,
+     "WARNING: unknown parameter 'oneshotanimMap'": 11,
+     "WARNING: unknown general shader parameter 'notc'": 10,
+     "WARNING: unknown parameter 'oneshotanimmap'": 10,
+     "WARNING: unknown general shader parameter 'sun'": 9,
+     "WARNING: unknown general shader parameter 'lightcolor'": 2,
+     "WARNING: unknown parameter 'clampanimMap'": 1
+    }
+   }
+  }
+ },
+ "runtimes": {
+  "before": {
+   "folder": ".tmp/runtime/raven-sun-before",
+   "files": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "7e63fd75a3f9eba1d6c88c7ad17de7cf0aab5584d7bfb05d9c2db13866e6d93e",
+    "fnql_rtx_x86.dll": "c2eddfa69547daa3270c0a28ba846bb29f3e159a9f983546a43b645634b2c954",
+    "fnql_vk_x86.dll": "0c6762c8a76a0be42048e2e02860072ddee3de75999a0c28f3698d755a1c7f93",
+    "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+    "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+    "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+   }
+  },
+  "after": {
+   "folder": ".tmp/runtime/raven-sun-after",
+   "files": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "d3f2ddd79a664804700db2e6a726b83c552e7f0b128cd6c63c18e04e23ee9968",
+    "fnql_rtx_x86.dll": "773597e7af66adad74e14691d766b87314ae3a39b60e258a9cda9a877d9d17fc",
+    "fnql_vk_x86.dll": "84a9b43809dedd0c2d73e0c769d82bbde30423bde085698c240541d53d732748",
+    "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2",
+    "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+    "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+   }
+  },
+  "base": "80d15494e56655f8d859b9e43ca545a5818b0f4f",
+  "note": "built from git archive exports of the base commit (Windows x86, debugoptimized, strict warnings)"
+ },
+ "live": {
+  "probe": "windowed, unswitched private desktop, net_enabled 0, isolated home, spectator, no input; engine screenshotPNG captures; sky patch x 40..300, y 5..60 of 800x600",
+  "duel9": [
+   {
+    "run": "raven-sun-before-duel9-glx",
+    "harness": ".tmp/round-2026-10-15/jka-local-sets/probe_live.py",
+    "renderer": "glx",
+    "side": "before",
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\round-2026-10-15\\jka-local-sets\\runs\\raven-sun-before-duel9-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "s_muteWhenUnfocused",
+     "0",
+     "+set",
+     "s_muteWhenMinimized",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probelocal.cfg",
+     "+devmap",
+     "mp/duel9"
+    ],
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none",
+     "shaderlist"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_glx_x86.dll": "7e63fd75a3f9eba1d6c88c7ad17de7cf0aab5584d7bfb05d9c2db13866e6d93e",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "sunWarning": true,
+    "shaderlist": "DEFAULTED",
+    "rtxSun": [],
+    "rtxLights": [],
+    "captures": {
+     "jka-local-00.png": {
+      "size": [
+       800,
+       600
+      ],
+      "sha256": "2092e260fa785fe8c2eed784663930ae4dbf7536bad069baa350ea863bc4a2b8",
+      "box": [
+       40,
+       5,
+       300,
+       60
+      ],
+      "mean": [
+       82.0,
+       82.0,
+       82.0
+      ],
+      "sd": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "distinct": 1
+     },
+     "jka-local-01.png": {
+      "size": [
+       800,
+       600
+      ],
+      "sha256": "f84e1fd31b46a35169a658efb401d56d57e57506fa588a511ab5eed4ea219fd9",
+      "box": [
+       40,
+       5,
+       300,
+       60
+      ],
+      "mean": [
+       82.0,
+       82.0,
+       82.0
+      ],
+      "sd": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "distinct": 1
+     },
+     "jka-local-02.png": {
+      "size": [
+       800,
+       600
+      ],
+      "sha256": "8343f8e21b2f4147d4e68d7aae1b0e4ec226e344ae7f115277f9cdfb606b0b9b",
+      "box": [
+       40,
+       5,
+       300,
+       60
+      ],
+      "mean": [
+       82.0,
+       82.0,
+       82.0
+      ],
+      "sd": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "distinct": 1
+     }
+    }
+   },
+   {
+    "run": "raven-sun-after-duel9-glx",
+    "harness": ".tmp/round-2026-10-15/jka-local-sets/probe_live.py",
+    "renderer": "glx",
+    "side": "after",
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\round-2026-10-15\\jka-local-sets\\runs\\raven-sun-after-duel9-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "s_muteWhenUnfocused",
+     "0",
+     "+set",
+     "s_muteWhenMinimized",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probelocal.cfg",
+     "+devmap",
+     "mp/duel9"
+    ],
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none",
+     "shaderlist"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_glx_x86.dll": "d3f2ddd79a664804700db2e6a726b83c552e7f0b128cd6c63c18e04e23ee9968",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "sunWarning": false,
+    "shaderlist": "E sky",
+    "rtxSun": [],
+    "rtxLights": [],
+    "captures": {
+     "jka-local-00.png": {
+      "size": [
+       800,
+       600
+      ],
+      "sha256": "ef068d3d75c486d15488718a3ac5d71dcac87a4f3890a6bf0a0ffd22c5ba72b2",
+      "box": [
+       40,
+       5,
+       300,
+       60
+      ],
+      "mean": [
+       127.8,
+       138.9,
+       134.1
+      ],
+      "sd": [
+       7.3,
+       7.0,
+       6.9
+      ],
+      "distinct": 163
+     },
+     "jka-local-01.png": {
+      "size": [
+       800,
+       600
+      ],
+      "sha256": "a09c46bc50ce0bb6bdecbda25ea106606ecf0501a1c5a9020760de4518dfa2a4",
+      "box": [
+       40,
+       5,
+       300,
+       60
+      ],
+      "mean": [
+       127.8,
+       138.9,
+       134.1
+      ],
+      "sd": [
+       7.3,
+       7.0,
+       6.9
+      ],
+      "distinct": 163
+     },
+     "jka-local-02.png": {
+      "size": [
+       800,
+       600
+      ],
+      "sha256": "0ffe116cb99c36fdbf4ccf960eb13cff77b2a7fde2d4091a09d54e19a51b486d",
+      "box": [
+       40,
+       5,
+       300,
+       60
+      ],
+      "mean": [
+       127.8,
+       138.9,
+       134.1
+      ],
+      "sd": [
+       7.3,
+       7.0,
+       6.9
+      ],
+      "distinct": 163
+     }
+    }
+   },
+   {
+    "run": "raven-sun-before-duel9-vk",
+    "harness": ".tmp/round-2026-10-15/jka-local-sets/probe_live.py",
+    "renderer": "vk",
+    "side": "before",
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\round-2026-10-15\\jka-local-sets\\runs\\raven-sun-before-duel9-vk\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "vk",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "s_muteWhenUnfocused",
+     "0",
+     "+set",
+     "s_muteWhenMinimized",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probelocal.cfg",
+     "+devmap",
+     "mp/duel9"
+    ],
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none",
+     "shaderlist"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_vk_x86.dll": "0c6762c8a76a0be42048e2e02860072ddee3de75999a0c28f3698d755a1c7f93",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "sunWarning": true,
+    "shaderlist": "DEFAULTED",
+    "rtxSun": [],
+    "rtxLights": [],
+    "captures": {
+     "jka-local-00.png": {
+      "size": [
+       800,
+       600
+      ],
+      "sha256": "6e93a02066f3763f3c876f656b46e01c54a5764b1754fb3f4d18a50a504f868e",
+      "box": [
+       40,
+       5,
+       300,
+       60
+      ],
+      "mean": [
+       83.0,
+       83.0,
+       83.0
+      ],
+      "sd": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "distinct": 1
+     },
+     "jka-local-01.png": {
+      "size": [
+       800,
+       600
+      ],
+      "sha256": "511e5818ac31688ab832baaabb5cd6873f9e2226ef9f7a83726ff1535c48f0d4",
+      "box": [
+       40,
+       5,
+       300,
+       60
+      ],
+      "mean": [
+       83.0,
+       83.0,
+       83.0
+      ],
+      "sd": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "distinct": 1
+     },
+     "jka-local-02.png": {
+      "size": [
+       800,
+       600
+      ],
+      "sha256": "55541a4a645dd6eeb3db51bdc132e09b472b730202f3800f9356f90f6a6742ac",
+      "box": [
+       40,
+       5,
+       300,
+       60
+      ],
+      "mean": [
+       83.0,
+       83.0,
+       83.0
+      ],
+      "sd": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "distinct": 1
+     }
+    }
+   },
+   {
+    "run": "raven-sun-after-duel9-vk",
+    "harness": ".tmp/round-2026-10-15/jka-local-sets/probe_live.py",
+    "renderer": "vk",
+    "side": "after",
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\round-2026-10-15\\jka-local-sets\\runs\\raven-sun-after-duel9-vk\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "vk",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "s_muteWhenUnfocused",
+     "0",
+     "+set",
+     "s_muteWhenMinimized",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probelocal.cfg",
+     "+devmap",
+     "mp/duel9"
+    ],
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none",
+     "shaderlist"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_vk_x86.dll": "84a9b43809dedd0c2d73e0c769d82bbde30423bde085698c240541d53d732748",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "sunWarning": false,
+    "shaderlist": "E sky",
+    "rtxSun": [],
+    "rtxLights": [],
+    "captures": {
+     "jka-local-00.png": {
+      "size": [
+       800,
+       600
+      ],
+      "sha256": "50c261d90bbfbf53401f506d4ad26130f7aff707b41a46d2c5fbea62cd08b7b5",
+      "box": [
+       40,
+       5,
+       300,
+       60
+      ],
+      "mean": [
+       127.5,
+       138.3,
+       133.5
+      ],
+      "sd": [
+       7.1,
+       7.0,
+       6.9
+      ],
+      "distinct": 441
+     },
+     "jka-local-01.png": {
+      "size": [
+       800,
+       600
+      ],
+      "sha256": "aa7532a065d827ebbf3715475471094f41854a2bfef69cbd117b9ee1ca73892e",
+      "box": [
+       40,
+       5,
+       300,
+       60
+      ],
+      "mean": [
+       127.5,
+       138.3,
+       133.5
+      ],
+      "sd": [
+       7.1,
+       7.0,
+       6.9
+      ],
+      "distinct": 441
+     },
+     "jka-local-02.png": {
+      "size": [
+       800,
+       600
+      ],
+      "sha256": "6c7e1448c41a62bfdb603a3c7f47dfbe14e8860d829f561f957f8a0c6ee6f084",
+      "box": [
+       40,
+       5,
+       300,
+       60
+      ],
+      "mean": [
+       127.5,
+       138.3,
+       133.5
+      ],
+      "sd": [
+       7.1,
+       7.0,
+       6.9
+      ],
+      "distinct": 441
+     }
+    }
+   },
+   {
+    "run": "raven-sun-before-duel9-rtx",
+    "harness": ".tmp/round-2026-10-15/jka-local-sets/probe_live.py",
+    "renderer": "rtx",
+    "side": "before",
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\round-2026-10-15\\jka-local-sets\\runs\\raven-sun-before-duel9-rtx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "s_muteWhenUnfocused",
+     "0",
+     "+set",
+     "s_muteWhenMinimized",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probelocal.cfg",
+     "+devmap",
+     "mp/duel9"
+    ],
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none",
+     "shaderlist"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_rtx_x86.dll": "c2eddfa69547daa3270c0a28ba846bb29f3e159a9f983546a43b645634b2c954",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "sunWarning": true,
+    "shaderlist": "DEFAULTED",
+    "rtxSun": [
+     "^5RTX RT: the first sky surface's shader textures/hoth/snowbiga has no q3map_sun"
+    ],
+    "rtxLights": [
+     "RTX RT: 4 lights (0 point, 4 surface triangles, q3map model), grid 67x57x32 of 128 units, 12 list entries, 105.2 ms"
+    ],
+    "captures": {
+     "jka-local-00.png": {
+      "size": [
+       800,
+       600
+      ],
+      "sha256": "a83f8d5d4eb0d37ead5ae5e71b1a99d606d988e7aff48a61fe6c5b151d400b3e",
+      "box": [
+       40,
+       5,
+       300,
+       60
+      ],
+      "mean": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "sd": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "distinct": 1
+     },
+     "jka-local-01.png": {
+      "size": [
+       800,
+       600
+      ],
+      "sha256": "346cc596ba285d610007ad037ca6dab01da0ba28fe6f02900b377b78b3adf00f",
+      "box": [
+       40,
+       5,
+       300,
+       60
+      ],
+      "mean": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "sd": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "distinct": 1
+     },
+     "jka-local-02.png": {
+      "size": [
+       800,
+       600
+      ],
+      "sha256": "ecfc333ca8cfdf6fde94e23eca6c73b32cba7d92c735ef5115282ae2f7e2a734",
+      "box": [
+       40,
+       5,
+       300,
+       60
+      ],
+      "mean": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "sd": [
+       0.0,
+       0.0,
+       0.0
+      ],
+      "distinct": 1
+     }
+    }
+   },
+   {
+    "run": "raven-sun-after-duel9-rtx",
+    "harness": ".tmp/round-2026-10-15/jka-local-sets/probe_live.py",
+    "renderer": "rtx",
+    "side": "after",
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\round-2026-10-15\\jka-local-sets\\runs\\raven-sun-after-duel9-rtx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "s_muteWhenUnfocused",
+     "0",
+     "+set",
+     "s_muteWhenMinimized",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probelocal.cfg",
+     "+devmap",
+     "mp/duel9"
+    ],
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none",
+     "shaderlist"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_rtx_x86.dll": "773597e7af66adad74e14691d766b87314ae3a39b60e258a9cda9a877d9d17fc",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "sunWarning": false,
+    "shaderlist": "E sky",
+    "rtxSun": [
+     "RTX RT: q3map sun 86.6 86.6 102.9 toward -0.133 0.112 0.985"
+    ],
+    "rtxLights": [
+     "RTX RT: 24 lights (0 point, 24 surface triangles, q3map model), grid 67x57x32 of 128 units, 1569112 list entries, 157.5 ms"
+    ],
+    "captures": {
+     "jka-local-00.png": {
+      "size": [
+       800,
+       600
+      ],
+      "sha256": "0c33cd1fd36fdf00332b1ecc89868a6ce424a408841e5cc427fe461339c77e24",
+      "box": [
+       40,
+       5,
+       300,
+       60
+      ],
+      "mean": [
+       127.4,
+       138.2,
+       133.5
+      ],
+      "sd": [
+       7.1,
+       7.0,
+       6.9
+      ],
+      "distinct": 437
+     },
+     "jka-local-01.png": {
+      "size": [
+       800,
+       600
+      ],
+      "sha256": "353eb6ca37576a1b4fb80ae7691d2026fc4a86c9cdec93bb438f170e4135b01f",
+      "box": [
+       40,
+       5,
+       300,
+       60
+      ],
+      "mean": [
+       127.4,
+       138.2,
+       133.5
+      ],
+      "sd": [
+       7.1,
+       7.0,
+       6.9
+      ],
+      "distinct": 437
+     },
+     "jka-local-02.png": {
+      "size": [
+       800,
+       600
+      ],
+      "sha256": "9468f1c4c3ec2c648daf25ebed2e6785c506e1dba1d5d8939fea332ff53babe6",
+      "box": [
+       40,
+       5,
+       300,
+       60
+      ],
+      "mean": [
+       127.4,
+       138.2,
+       133.5
+      ],
+      "sd": [
+       7.1,
+       7.0,
+       6.9
+      ],
+      "distinct": 437
+     }
+    }
+   }
+  ],
+  "csm": {
+   "csm-before-duel9-glx-debug": {
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-sun\\runs\\csm-before-duel9-glx-debug\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+set",
+     "r_speeds",
+     "4",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/duel9"
+    ],
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none",
+     "set r_csmDebug 1"
+    ],
+    "outcome": "exited",
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_glx_x86.dll": "7e63fd75a3f9eba1d6c88c7ad17de7cf0aab5584d7bfb05d9c2db13866e6d93e",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "planLines": {
+     "csm plan cascades:0 skip no-sky-sun": 390
+    }
+   },
+   "csm-after-duel9-glx": {
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-sun\\runs\\csm-after-duel9-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+set",
+     "r_speeds",
+     "4",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/duel9"
+    ],
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none"
+    ],
+    "outcome": "exited",
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_glx_x86.dll": "d3f2ddd79a664804700db2e6a726b83c552e7f0b128cd6c63c18e04e23ee9968",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "planLines": {
+     "csm shadows sky:textures/mp/s_hothsky cascades:4 res:512 max:2048 lambda:0.65 filter:poisson4 strength:1.00 rbias:8.00 cbias:1.50/1.50/0.50 light-dir:0.13 -0.11 -0.98 to-sun:-0.13 0.11 0.98": 391
+    }
+   }
+  },
+  "academyMaps": [
+   {
+    "map": "mp/ctf2",
+    "side": "before",
+    "run": "jka-before-mp_ctf2-glx",
+    "outcome": "refused",
+    "errors": [
+     "ERROR: Jedi Academy cgame active world-effect commands are not served yet",
+     "----- Server Shutdown (Server crashed: Jedi Academy cgame active world-effect commands are not served yet) -----"
+    ],
+    "captures": 0,
+    "sunShaders": [
+     "textures/mp/hoth_ctf_sky_sides"
+    ],
+    "shaderlist": {
+     "textures/mp/hoth_ctf_sky_sides": null
+    },
+    "unknownGeneral": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-sun\\runs\\jka-before-mp_ctf2-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "8",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/ctf2"
+    ],
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_glx_x86.dll": "7e63fd75a3f9eba1d6c88c7ad17de7cf0aab5584d7bfb05d9c2db13866e6d93e",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "capturesSha256": []
+   },
+   {
+    "map": "mp/ctf2",
+    "side": "after",
+    "run": "jka-after-mp_ctf2-glx",
+    "outcome": "refused",
+    "errors": [
+     "ERROR: Jedi Academy cgame active world-effect commands are not served yet",
+     "----- Server Shutdown (Server crashed: Jedi Academy cgame active world-effect commands are not served yet) -----"
+    ],
+    "captures": 0,
+    "sunShaders": [
+     "textures/mp/hoth_ctf_sky_sides"
+    ],
+    "shaderlist": {
+     "textures/mp/hoth_ctf_sky_sides": null
+    },
+    "unknownGeneral": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-sun\\runs\\jka-after-mp_ctf2-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "8",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/ctf2"
+    ],
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_glx_x86.dll": "d3f2ddd79a664804700db2e6a726b83c552e7f0b128cd6c63c18e04e23ee9968",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "capturesSha256": []
+   },
+   {
+    "map": "mp/ctf3",
+    "side": "before",
+    "run": "jka-before-mp_ctf3-glx",
+    "outcome": "exited",
+    "errors": [],
+    "captures": 3,
+    "sunShaders": [
+     "textures/mp/s_fatalsky"
+    ],
+    "shaderlist": {
+     "textures/mp/s_fatalsky": "DEFAULTED"
+    },
+    "unknownGeneral": [
+     [
+      "sun",
+      "textures/mp/s_fatalsky"
+     ]
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-sun\\runs\\jka-before-mp_ctf3-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "8",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/ctf3"
+    ],
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_glx_x86.dll": "7e63fd75a3f9eba1d6c88c7ad17de7cf0aab5584d7bfb05d9c2db13866e6d93e",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "capturesSha256": [
+     "976854a2a4a98d08f9be71e473f9a8859d728b0a6830f03094e6cf10676700c8",
+     "89c50ce525cf9ad3c51210319b242f16bea0814d38fa5a307b2006bbd65ef5eb",
+     "c271af59ea009f6f73cba03b74e00686c3355e44ec78e06240b3f186e32813b1"
+    ]
+   },
+   {
+    "map": "mp/ctf3",
+    "side": "after",
+    "run": "jka-after-mp_ctf3-glx",
+    "outcome": "exited",
+    "errors": [],
+    "captures": 3,
+    "sunShaders": [
+     "textures/mp/s_fatalsky"
+    ],
+    "shaderlist": {
+     "textures/mp/s_fatalsky": "E sky"
+    },
+    "unknownGeneral": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-sun\\runs\\jka-after-mp_ctf3-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "8",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/ctf3"
+    ],
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_glx_x86.dll": "d3f2ddd79a664804700db2e6a726b83c552e7f0b128cd6c63c18e04e23ee9968",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "capturesSha256": [
+     "d1b194382c136f78f68217069b50ea6939d3ece25b97e3f3dbb144bedb017052",
+     "43d06530a61a864c49c362b340238b9e34c67d67c73d221649ef6046d597eaec",
+     "c0aecb216ca434de3feaca300f5cd13c96b3596543df459a640010ddf907cac2"
+    ]
+   },
+   {
+    "map": "mp/duel1",
+    "side": "before",
+    "run": "jka-before-mp_duel1-glx",
+    "outcome": "exited",
+    "errors": [],
+    "captures": 3,
+    "sunShaders": [
+     "textures/mp/s_bespin"
+    ],
+    "shaderlist": {
+     "textures/mp/s_bespin": "DEFAULTED"
+    },
+    "unknownGeneral": [
+     [
+      "sun",
+      "textures/mp/s_bespin"
+     ]
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-sun\\runs\\jka-before-mp_duel1-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/duel1"
+    ],
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_glx_x86.dll": "7e63fd75a3f9eba1d6c88c7ad17de7cf0aab5584d7bfb05d9c2db13866e6d93e",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "capturesSha256": [
+     "82563e219113f88fbca1e3f420aece983111df9df6a686cdb4d74d72366873cd",
+     "1d1b032c70ecf2489ac2c7e5399a5bec9c98124959c5583cdd7a32eb6d223cc4",
+     "0e15f2bf5e89bcde3b844406e3cbe826e10e291fdcd3f789ea695e1cd1f94f36"
+    ]
+   },
+   {
+    "map": "mp/duel1",
+    "side": "after",
+    "run": "jka-after-mp_duel1-glx",
+    "outcome": "exited",
+    "errors": [],
+    "captures": 3,
+    "sunShaders": [
+     "textures/mp/s_bespin"
+    ],
+    "shaderlist": {
+     "textures/mp/s_bespin": "E sky"
+    },
+    "unknownGeneral": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-sun\\runs\\jka-after-mp_duel1-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/duel1"
+    ],
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_glx_x86.dll": "d3f2ddd79a664804700db2e6a726b83c552e7f0b128cd6c63c18e04e23ee9968",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "capturesSha256": [
+     "2426b9927b02664e440b51969a6fbd3f19073aec483ea320a640e863be4cfffb",
+     "480c3be5014d8e297b1278bd394ad6548f0bb6a5989006665cc52c04fb61bd53",
+     "971e66402503a8069607df92c3998f4b1dba1ad4bf0a4822d0e8679234680489"
+    ]
+   },
+   {
+    "map": "mp/duel4",
+    "side": "before",
+    "run": "jka-before-mp_duel4-glx",
+    "outcome": "exited",
+    "errors": [],
+    "captures": 3,
+    "sunShaders": [
+     "textures/mp/s_space"
+    ],
+    "shaderlist": {
+     "textures/mp/s_space": "DEFAULTED"
+    },
+    "unknownGeneral": [
+     [
+      "sun",
+      "textures/mp/s_space"
+     ]
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-sun\\runs\\jka-before-mp_duel4-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/duel4"
+    ],
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_glx_x86.dll": "7e63fd75a3f9eba1d6c88c7ad17de7cf0aab5584d7bfb05d9c2db13866e6d93e",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "capturesSha256": [
+     "3ef18f332340f4176f94ed14e1237ffeb14f77f97766bff63e19830caad74ee2",
+     "01f4404d038b10b50a02e8a9b649d092378860b177102debc59bea75e044dc6b",
+     "dc0957727bcd5c55265c91ea452bce99f3ee252fa38babf29d764961b60e80f5"
+    ]
+   },
+   {
+    "map": "mp/duel4",
+    "side": "after",
+    "run": "jka-after-mp_duel4-glx",
+    "outcome": "exited",
+    "errors": [],
+    "captures": 3,
+    "sunShaders": [
+     "textures/mp/s_space"
+    ],
+    "shaderlist": {
+     "textures/mp/s_space": "E sky"
+    },
+    "unknownGeneral": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-sun\\runs\\jka-after-mp_duel4-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/duel4"
+    ],
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_glx_x86.dll": "d3f2ddd79a664804700db2e6a726b83c552e7f0b128cd6c63c18e04e23ee9968",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "capturesSha256": [
+     "d323f1087d30c12bf8520db1d0ba767f365a9758c9d9d72768be2b31bf609d54",
+     "80c967bfdcede7d14ff90e46176ae65ce34abd3e4ce1ecc8bd7fc297a38f534b",
+     "b35b72a44e2db1da3bd8dc9ebf2ceb72cf6c8003c19ebf4ca4d251de001ff7ba"
+    ]
+   },
+   {
+    "map": "mp/duel9",
+    "side": "before",
+    "run": "jka-before-mp_duel9-glx",
+    "outcome": "exited",
+    "errors": [],
+    "captures": 3,
+    "sunShaders": [
+     "textures/mp/s_hothsky"
+    ],
+    "shaderlist": {
+     "textures/mp/s_hothsky": "DEFAULTED"
+    },
+    "unknownGeneral": [
+     [
+      "sun",
+      "textures/mp/s_hothsky"
+     ]
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-sun\\runs\\jka-before-mp_duel9-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/duel9"
+    ],
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_glx_x86.dll": "7e63fd75a3f9eba1d6c88c7ad17de7cf0aab5584d7bfb05d9c2db13866e6d93e",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "capturesSha256": [
+     "e3e399a6a43cc50430a5a8f212c2e5ff34f6a49b5654f8a40b95292aefbf4ee9",
+     "df7a9bce9eb7a4715e8c261b2e9e4c0ac44e9c9366e8b389ebe20f86845de062",
+     "c9eb19fedd28fbceabb09e6e884b4a6acf670ec9c04d31055a6beb47b4523683"
+    ]
+   },
+   {
+    "map": "mp/duel9",
+    "side": "after",
+    "run": "jka-after-mp_duel9-glx",
+    "outcome": "exited",
+    "errors": [],
+    "captures": 3,
+    "sunShaders": [
+     "textures/mp/s_hothsky"
+    ],
+    "shaderlist": {
+     "textures/mp/s_hothsky": "E sky"
+    },
+    "unknownGeneral": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-sun\\runs\\jka-after-mp_duel9-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/duel9"
+    ],
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_glx_x86.dll": "d3f2ddd79a664804700db2e6a726b83c552e7f0b128cd6c63c18e04e23ee9968",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "capturesSha256": [
+     "82619f4346a60e2a082bc9ca00ee26350ba3e2c9958183c2b904da9822b5e984",
+     "20666b637ba9b2fa62a3852f2ced2060cb0b59c8ef4adcbdc9b74b46e81f351c",
+     "82619f4346a60e2a082bc9ca00ee26350ba3e2c9958183c2b904da9822b5e984"
+    ]
+   },
+   {
+    "map": "mp/ffa2",
+    "side": "before",
+    "run": "jka-before-mp_ffa2-glx",
+    "outcome": "exited",
+    "errors": [],
+    "captures": 3,
+    "sunShaders": [
+     "textures/mp/s_kor_sky"
+    ],
+    "shaderlist": {
+     "textures/mp/s_kor_sky": "DEFAULTED"
+    },
+    "unknownGeneral": [
+     [
+      "sun",
+      "textures/mp/s_kor_sky"
+     ]
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-sun\\runs\\jka-before-mp_ffa2-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/ffa2"
+    ],
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_glx_x86.dll": "7e63fd75a3f9eba1d6c88c7ad17de7cf0aab5584d7bfb05d9c2db13866e6d93e",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "capturesSha256": [
+     "c7a4e100425a5f0a5823bb6f3aab0c5f95d7dc19c04e613eef5fd913d7de94dd",
+     "132bc2b1799594bfd0a4859c19aa7d99ae0bf739e630ba1539374351873a0200",
+     "fe9f033e532e97540bd2d73c74fea3d3dc3e374f8bcd8c3b15d136e2d7b49dde"
+    ]
+   },
+   {
+    "map": "mp/ffa2",
+    "side": "after",
+    "run": "jka-after-mp_ffa2-glx",
+    "outcome": "exited",
+    "errors": [],
+    "captures": 3,
+    "sunShaders": [
+     "textures/mp/s_kor_sky"
+    ],
+    "shaderlist": {
+     "textures/mp/s_kor_sky": "E sky"
+    },
+    "unknownGeneral": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-sun\\runs\\jka-after-mp_ffa2-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/ffa2"
+    ],
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_glx_x86.dll": "d3f2ddd79a664804700db2e6a726b83c552e7f0b128cd6c63c18e04e23ee9968",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "capturesSha256": [
+     "479e318c92b87ecaf63c1cc15bf9230158a9fd949157fa34cb1b1376f3b22acb",
+     "29322921e7c808a1d63a1e0d266ad8f3de5e2679e13949b161337d2d8c6c553e",
+     "d7049579a7132575f1be86d2601b153c671fcda8a9db430cebcde6cac65a9b23"
+    ]
+   },
+   {
+    "map": "mp/ffa3",
+    "side": "before",
+    "run": "jka-before-mp_ffa3-glx",
+    "outcome": "exited",
+    "errors": [],
+    "captures": 3,
+    "sunShaders": [
+     "textures/mp/h_tatsky"
+    ],
+    "shaderlist": {
+     "textures/mp/h_tatsky": "DEFAULTED"
+    },
+    "unknownGeneral": [
+     [
+      "sun",
+      "textures/mp/h_tatsky"
+     ]
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-sun\\runs\\jka-before-mp_ffa3-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/ffa3"
+    ],
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_glx_x86.dll": "7e63fd75a3f9eba1d6c88c7ad17de7cf0aab5584d7bfb05d9c2db13866e6d93e",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "capturesSha256": [
+     "7e78c576ba3bcc741782780c1425d201ae30d4b28527bf5c169f10627075c44d",
+     "d5bfb9649d8e9173b611c1a169d3a4164b933bf3650eaf6dc71c0b7dcceddd3b",
+     "a165a3038bc171065ec88a321462713179dacad70cc1d799f4e1c849bb17b356"
+    ]
+   },
+   {
+    "map": "mp/ffa3",
+    "side": "after",
+    "run": "jka-after-mp_ffa3-glx",
+    "outcome": "exited",
+    "errors": [],
+    "captures": 3,
+    "sunShaders": [
+     "textures/mp/h_tatsky"
+    ],
+    "shaderlist": {
+     "textures/mp/h_tatsky": "E sky"
+    },
+    "unknownGeneral": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-sun\\runs\\jka-after-mp_ffa3-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/ffa3"
+    ],
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_glx_x86.dll": "d3f2ddd79a664804700db2e6a726b83c552e7f0b128cd6c63c18e04e23ee9968",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "capturesSha256": [
+     "cf9c7e0b2f052c2b7a0f32161b2c703db48073322cb9ee2ad2b9e8def03a3959",
+     "c19c93ac1fb73614115642eb11fc87c01aa8e3189e01510624f712456b3d5ab5",
+     "0482f84aaed2ce9e71a0bfcba7488b8eece92004e4ca768c7c086685c80e07bb"
+    ]
+   },
+   {
+    "map": "mp/ffa4",
+    "side": "before",
+    "run": "jka-before-mp_ffa4-glx",
+    "outcome": "exited",
+    "errors": [],
+    "captures": 3,
+    "sunShaders": [
+     "textures/mp/s_blacksky"
+    ],
+    "shaderlist": {
+     "textures/mp/s_blacksky": "DEFAULTED"
+    },
+    "unknownGeneral": [
+     [
+      "sun",
+      "textures/mp/s_blacksky"
+     ]
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-sun\\runs\\jka-before-mp_ffa4-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/ffa4"
+    ],
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_glx_x86.dll": "7e63fd75a3f9eba1d6c88c7ad17de7cf0aab5584d7bfb05d9c2db13866e6d93e",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "capturesSha256": [
+     "9c06d0ae3012113ef0732a4d9805ca41595d1112cc42140f8d6d23c2ea47a59e",
+     "f8994fcdf1a12d74140c79c22ba85ccc8814cb2d2ef33b1a158509482f622d56",
+     "ce89b599d58373d4a4d694cc3e9fc4ba754c3295cc9c0a0828a47143fd3d034e"
+    ]
+   },
+   {
+    "map": "mp/ffa4",
+    "side": "after",
+    "run": "jka-after-mp_ffa4-glx",
+    "outcome": "exited",
+    "errors": [],
+    "captures": 3,
+    "sunShaders": [
+     "textures/mp/s_blacksky"
+    ],
+    "shaderlist": {
+     "textures/mp/s_blacksky": "E gen"
+    },
+    "unknownGeneral": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-sun\\runs\\jka-after-mp_ffa4-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/ffa4"
+    ],
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_glx_x86.dll": "d3f2ddd79a664804700db2e6a726b83c552e7f0b128cd6c63c18e04e23ee9968",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "capturesSha256": [
+     "b05196ef2b47d6b5d8a85be698ec5c500a634ff5b3dc26e8fa4d1b89a27a2552",
+     "6b096fa2ef32365854bd0e7dcc0ad6afd0b52291448b551a3bad749c831431d2",
+     "42fef006cac3090c091afd70b0c0a4e63254354861e7b9082b3b98f7b9f80c3d"
+    ]
+   },
+   {
+    "map": "mp/siege_hoth",
+    "side": "before",
+    "run": "jka-before-mp_siege_hoth-glx",
+    "outcome": "refused",
+    "errors": [
+     "ERROR: Unsupported jka-mp cgame import 312 (CG_G2_SKINLESSMODEL)",
+     "----- Server Shutdown (Server crashed: Unsupported jka-mp cgame import 312 (CG_G2_SKINLESSMODEL)) -----"
+    ],
+    "captures": 0,
+    "sunShaders": [
+     "textures/siege/hoth_sky"
+    ],
+    "shaderlist": {
+     "textures/siege/hoth_sky": null
+    },
+    "unknownGeneral": [
+     [
+      "sun",
+      "textures/siege/hoth_sky"
+     ]
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-sun\\runs\\jka-before-mp_siege_hoth-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/siege_hoth"
+    ],
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_glx_x86.dll": "7e63fd75a3f9eba1d6c88c7ad17de7cf0aab5584d7bfb05d9c2db13866e6d93e",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "capturesSha256": []
+   },
+   {
+    "map": "mp/siege_hoth",
+    "side": "after",
+    "run": "jka-after-mp_siege_hoth-glx",
+    "outcome": "refused",
+    "errors": [
+     "ERROR: Unsupported jka-mp cgame import 312 (CG_G2_SKINLESSMODEL)",
+     "----- Server Shutdown (Server crashed: Unsupported jka-mp cgame import 312 (CG_G2_SKINLESSMODEL)) -----"
+    ],
+    "captures": 0,
+    "sunShaders": [
+     "textures/siege/hoth_sky"
+    ],
+    "shaderlist": {
+     "textures/siege/hoth_sky": null
+    },
+    "unknownGeneral": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\raven-sun\\runs\\jka-after-mp_siege_hoth-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "0",
+     "+exec",
+     "probesun.cfg",
+     "+devmap",
+     "mp/siege_hoth"
+    ],
+    "identity": {
+     "fntech3.exe": "06587506a6c7611fd19a462fb57e994febbe6fe0b1e583d7a867204106213112",
+     "fnql_glx_x86.dll": "d3f2ddd79a664804700db2e6a726b83c552e7f0b128cd6c63c18e04e23ee9968",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "capturesSha256": []
+   }
+  ],
+  "outcast": [
+   {
+    "run": "jk2-before-duel_jedi-glx",
+    "profile": "jk2-mp",
+    "map": "duel_jedi",
+    "outcome": "refused",
+    "errors": [
+     "ERROR: Unsupported jk2-mp cgame import 300: Jedi Outcast's client service boundary is open."
+    ],
+    "installationUnchanged": true
+   },
+   {
+    "run": "jk2-after-duel_jedi-glx",
+    "profile": "jk2-mp",
+    "map": "duel_jedi",
+    "outcome": "refused",
+    "errors": [
+     "ERROR: Unsupported jk2-mp cgame import 300: Jedi Outcast's client service boundary is open."
+    ],
+    "installationUnchanged": true
+   }
+  ],
+  "notDrawnLive": "Outcast multiplayer stops at client-game import 300 before a map is drawn; both Jedi single-player profiles stop at their module boundary"
+ },
+ "tests": {
+  "new": "tests/raven_sun_keyword_tests.py (2 tests, 3 renderers each)",
+  "updated": "tests/jka_shader_notc_tests.py (Outcast profiles read noTC)",
+  "mutations": {
+   "Outcast dropped from R_JediShaderProfile": "9 failed",
+   "rest of the line skipped (GLx sun branch)": "1 failed",
+   "jk2-mp lightColor skipped (RTX)": "2 failed",
+   "null-text guard removed": "3 failed"
+  }
+ },
+ "findings": [
+  "surfaceSprites stage keyword refuses 39 Academy and 22 Outcast definitions",
+  "Outcast oneshotanimMap (21) and clampanimMap (1) are read under the Academy profiles only",
+  "RTX marks compiled sky by Quake III SURF_SKY (0x4) in Raven BSP flags, whose low five bits are a material (mp/duel9 textures/hoth/snowbiga 0xe); Raven sky is 0x2000 (s_hothsky 0x00182000)",
+  "a general keyword's COM_ParseExt that runs off the shader text leaves it null for COM_ParseComplex and SkipRestOfLine; retail COM_ParseExt accepts null",
+  "Fn's shared q3map_sun branch skips the rest of the line, and after a short line the next one; Quake III 1.32 reads six words and returns to its loop",
+  "s_hothsky's q3map_lightimage textures/skies/hoth_up.tga is in no pak"
+ ]
+}

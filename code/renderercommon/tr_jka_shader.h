@@ -9,15 +9,54 @@
 static qboolean R_JKAShaderProfile( void ) {
 	return ri.gameId == COM_GAME_JKA_SP || ri.gameId == COM_GAME_JKA_MP ? qtrue : qfalse;
 }
+/* Jedi Outcast's engines read noTC the same way: jk2mp.exe 0x48c80b and
+ * jk2sp.exe 0x47c7a9 set the shader's word (0x1a88e5c, 0x131a02c), and
+ * jk2mp.exe's clampmap and animMap requests pass its inverse (0x48cf33,
+ * 0x48d9ff). */
+static qboolean R_JediShaderProfile( void ) {
+	return R_JKAShaderProfile() || ri.gameId == COM_GAME_JK2_SP || ri.gameId == COM_GAME_JK2_MP ? qtrue : qfalse;
+}
 static qboolean R_JKAShaderNoTCDirective( const char *token, qboolean *noTC ) {
-	if ( R_JKAShaderProfile() && !Q_stricmp( token, "noTC" ) ) {
+	if ( R_JediShaderProfile() && !Q_stricmp( token, "noTC" ) ) {
 		*noTC = qtrue;
 		return qtrue;
 	}
 	return qfalse;
 }
 static imgFlags_t R_JKAShaderImageFlags( imgFlags_t flags, qboolean noTC ) {
-	return R_JKAShaderProfile() && noTC ? (imgFlags_t)( flags | IMGFLAG_NO_COMPRESSION ) : flags;
+	return R_JediShaderProfile() && noTC ? (imgFlags_t)( flags | IMGFLAG_NO_COMPRESSION ) : flags;
+}
+/* Raven's general `sun` is q3map_sun under a second name in all four Jedi
+ * engines: jamp.exe 1.01 (0x4b4dc4), jasp.exe 1.01 (0x47af0c), jk2mp.exe
+ * (0x48c63f) and jk2sp.exe (0x47c667) send both words to one branch
+ * (0x4b51a1, 0x47b312, 0x48ccbc, 0x47cab4). It reads exactly six words with
+ * COM_ParseExt( text, qfalse ) and atof, a missing one as 0 -- colour,
+ * intensity, degrees, elevation -- into tr.sunLight and tr.sunDirection, and
+ * leaves the rest of the line to the keyword loop. The renderers take the
+ * six values into their own sky sun. Elite Force and the id engines know
+ * only q3map_sun (record 2026-10-15-raven-sun-keyword). */
+static inline qboolean R_JediSunKeyword( const char *token ) {
+	return R_JediShaderProfile() && ( !Q_stricmp( token, "sun" ) || !Q_stricmp( token, "q3map_sun" ) ) ? qtrue : qfalse;
+}
+static inline void R_JediSunParms( const char **text, float parms[6] ) {
+	int i;
+	for ( i = 0; i < 6; i++ ) {
+		parms[i] = Q_atof( COM_ParseExt( text, qfalse ) );
+	}
+	/* a read that ran off the text leaves it null; retail's next
+	 * COM_ParseExt reads that as "", and the shader fails for want of its
+	 * closing brace, which an empty text gives COM_ParseComplex too */
+	if ( !*text ) {
+		*text = "";
+	}
+}
+/* Raven's lightColor ( r g b ): jk2mp.exe reads it with ParseVector
+ * (0x48c697, 0x48c0e0), so a missing bracket or element fails the shader,
+ * and FinishShader keeps a sky's as tr.sunAmbient (0x48f629); jamp.exe,
+ * jasp.exe and jk2sp.exe skip the line (0x4b4e28, 0x47afcc, 0x47c701).
+ * Nothing in the renderers uses the colour. */
+static inline qboolean R_JediLightColorKeyword( const char *token ) {
+	return R_JediShaderProfile() && !Q_stricmp( token, "lightColor" ) ? qtrue : qfalse;
 }
 /* Retail reads animMap, clampAnimMap and oneShotAnimMap in one ParseStage
  * branch (jamp.exe 0x4b426c, jasp.exe 0x47a42e). clampAnimMap loads its

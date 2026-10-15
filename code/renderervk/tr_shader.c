@@ -2028,10 +2028,10 @@ static void FinishStage( shaderStage_t *stage )
 }
 
 
-static qboolean ParseSkySunParms( const char **text, vec3_t sunColor,
+// colour, intensity, degrees and elevation, as q3map_sun writes them
+static qboolean SkySunFromParms( const float parms[6], vec3_t sunColor,
 	vec3_t sunDirection, vec3_t sunLight, float *sunIntensity )
 {
-	const char *token;
 	vec3_t color;
 	float intensity;
 	float yaw;
@@ -2040,36 +2040,10 @@ static qboolean ParseSkySunParms( const char **text, vec3_t sunColor,
 	float elevationRadians;
 	float maxColor;
 
-	token = COM_ParseExt( text, qfalse );
-	if ( !token[0] ) {
-		return qfalse;
-	}
-	color[0] = Q_atof( token );
-	token = COM_ParseExt( text, qfalse );
-	if ( !token[0] ) {
-		return qfalse;
-	}
-	color[1] = Q_atof( token );
-	token = COM_ParseExt( text, qfalse );
-	if ( !token[0] ) {
-		return qfalse;
-	}
-	color[2] = Q_atof( token );
-	token = COM_ParseExt( text, qfalse );
-	if ( !token[0] ) {
-		return qfalse;
-	}
-	intensity = Q_atof( token );
-	token = COM_ParseExt( text, qfalse );
-	if ( !token[0] ) {
-		return qfalse;
-	}
-	yaw = Q_atof( token );
-	token = COM_ParseExt( text, qfalse );
-	if ( !token[0] ) {
-		return qfalse;
-	}
-	elevation = Q_atof( token );
+	VectorCopy( parms, color );
+	intensity = parms[3];
+	yaw = parms[4];
+	elevation = parms[5];
 
 	maxColor = MAX( color[0], MAX( color[1], color[2] ) );
 	if ( maxColor <= 0.0f || intensity <= 0.0f ) {
@@ -2091,6 +2065,23 @@ static qboolean ParseSkySunParms( const char **text, vec3_t sunColor,
 	sunDirection[2] = sin( elevationRadians );
 	VectorNormalize( sunDirection );
 	return qtrue;
+}
+
+static qboolean ParseSkySunParms( const char **text, vec3_t sunColor,
+	vec3_t sunDirection, vec3_t sunLight, float *sunIntensity )
+{
+	const char *token;
+	float parms[6];
+	int i;
+
+	for ( i = 0; i < 6; i++ ) {
+		token = COM_ParseExt( text, qfalse );
+		if ( !token[0] ) {
+			return qfalse;
+		}
+		parms[i] = Q_atof( token );
+	}
+	return SkySunFromParms( parms, sunColor, sunDirection, sunLight, sunIntensity );
 }
 
 static void ParseQ3MapSurfaceLight( const char **text )
@@ -2305,6 +2296,27 @@ static qboolean ParseShader( const char **text )
 		// skip stuff that only the QuakeEdRadient needs
 		else if ( !Q_stricmpn( token, "qer", 3 ) ) {
 			SkipRestOfLine( text );
+			continue;
+		}
+		// the Jedi games' sun and q3map_sun: six words, the rest of the line
+		// left to this loop (tr_jka_shader.h)
+		else if ( R_JediSunKeyword( token ) ) {
+			float sunParms[6];
+			R_JediSunParms( text, sunParms );
+			if ( SkySunFromParms( sunParms, skySunColor,
+				skySunDirection, skySunLight, &skySunIntensity ) ) {
+				skySunValid = qtrue;
+			}
+			continue;
+		}
+		// the Jedi games' lightColor ( r g b ) (tr_jka_shader.h)
+		else if ( R_JediLightColorKeyword( token ) ) {
+			vec3_t lightColor;
+			if ( ri.gameId != COM_GAME_JK2_MP ) {
+				SkipRestOfLine( text );
+			} else if ( !ParseVector( text, 3, lightColor ) ) {
+				return qfalse;
+			}
 			continue;
 		}
 		// sun parms

@@ -33,7 +33,9 @@ static int HostChecks(void) {
   "{\nnoTC\nskyParms env/sky 512 -\n}\n"
  };
  for(game=COM_GAME_QUAKE3;game<COM_GAME_COUNT;game=(comGameId_t)(game+1)) {
-  const qboolean raven=game==COM_GAME_JKA_SP||game==COM_GAME_JKA_MP;
+   /* both Jedi games: Outcast's engines read noTC as Academy's do
+     (renderercommon/tr_jka_shader.h) */
+  const qboolean raven=game==COM_GAME_JKA_SP||game==COM_GAME_JKA_MP||game==COM_GAME_JK2_SP||game==COM_GAME_JK2_MP;
   for(i=0;i<4;++i) {
    if(!raven) { CHECK(!Parse(game,uncompressed[i]) && !shader.jkaNoTC);continue; }
    CHECK(Parse(game,plain[i]));CHECK(!shader.jkaNoTC);
