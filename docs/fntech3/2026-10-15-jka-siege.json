@@ -1,0 +1,1421 @@
+{
+ "record": "2026-10-15-jka-siege.md",
+ "date": "2026-10-15",
+ "profiles": [
+  "jka-mp"
+ ],
+ "gatesClosed": [],
+ "claim": "Compatibility slice only; no gate closes.",
+ "previousRecord": "2026-10-15-compatibility-round.json",
+ "heads": {
+  "beforeAfterPair": "fbde92d4d31a5821a87c27a8bb23b0ed70a4202f",
+  "finalRuntimeAndSuites": "0e99502a2a11f84eaa926a68cec0ed9a2ae8e3f1"
+ },
+ "platform": "Windows 11, Windows x86 build (MSVC, meson debugoptimized, strict warnings)",
+ "retail": {
+  "jamp.exe 1.01": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+  "base/assets3.pk3:jampgamex86.dll (1.01, stamp 0x3faa87cf)": "b9e5ad492d35a3ec2fc7f6933df42ce9d3b05d3ec437e3bf12243a5d0d690850",
+  "base/assets3.pk3:cgamex86.dll (1.01)": "e5d5525829bfcaf3c0428d87fe804e5a46a75dcf0a141f8288061a3970ff140d",
+  "maps": {
+   "mp/siege_hoth": "77c245169a6cfc34827817191f1d9356ec40f41e8c655a576127316c6c02ffbc",
+   "mp/siege_desert": "1df3401c7d57c85d291397a5217da41ce4718f4a0184347e205ca22f262e79b1",
+   "mp/siege_korriban": "9fbc39ab918b38dfa3a46c5bfdb03a24e66fcda90fb21fd3f78b7943c53081a2",
+   "mp/duel6": "809e34d89b4803501da145a174421c7df95212614c246dafabf4083d502b0e2c",
+   "mp/duel9": "d24e57f38b0f3912da89ad95e241c427a5bf3a98718cff477b95a6089677c8c4"
+  },
+  "tool": "capstone (x86-32) over the PE images; OpenJK 1a6a6434 only to locate routines and names"
+ },
+ "retailObservations": {
+  "siegeRecord": {
+   "observed": {
+    "gameDispatcher": "0x45a660, bound 0x27a, table 0x45d34c",
+    "import42": "0x45ae89: VM_ArgPtr 0x44adf0; three words into 0x12a4d34, 0x12a4d38, 0x12a4d3c; answers 0",
+    "import43": "0x45aeb3: the three words back; answers 0",
+    "nullRecord": "not checked: reads or writes address 0",
+    "storage": "0x12a4d34..0x12a4d3f beside gvm (0x12a4d30), zero-filled data (file data ends 0x573000)",
+    "references": "only the two handlers, whole-.text capstone sweep",
+    "clearsElsewhere": {
+     "SV_ClearServer sv": "0xb934e0..0xc317bc, rep stosd 0x45e73c",
+     "SV_Shutdown svs": "Com_Memset 0xc317c0, 0xa048 bytes, 0x45f406"
+    },
+    "gameWrappers": {
+     "42": "0x200a6330 (push 0x2a)",
+     "43": "0x200a6350 (push 0x2b)"
+    },
+    "gameRecord": "0x20576ed8, 12 bytes",
+    "gameRead": "0x200a1595, gametype 7 and g_siegeTeamSwitch (0x207b170c)",
+    "gameSets": {
+     "clear": [
+      "0x200a1f46",
+      "0x200a1f99",
+      "0x200a21ad"
+     ],
+     "beatTime {1, team, time}": "0x200a1fc4"
+    }
+   }
+  },
+  "skyPortal": {
+   "observed": {
+    "frame": "CG_DrawActiveFrame 0x300639b2: view cleared 0x300634ab (from 0x30063b17), portal scene 0x30063b8c (0x30062390), area mask copied 0x30063c35, world view 0x30063e17 (0x3002de20)",
+    "flags": {
+     "world view |= 0x10": "0x3002df11",
+     "portal scene |= 0x18": "0x30062719",
+     "models = 0x1": "0x30023409",
+     "hyperspace |= 0x5": "0x3006382e",
+     "automap = 0x21": "0x300631a3",
+     "onlyfoghere 0x40 moved": "0x300627ef..0x300627fb (cvar 0x30483578)",
+     "force sight 0x80": "never set by the 1.01 client game"
+    },
+    "renderer": {
+     "latch": "RE_RenderScene 0x4abc90: [0x105361c] = 1 on 0x8 (0x4abe18)",
+     "drawSkybox": "[0x1053618] = flag 0x10 each scene (0x4abe23)",
+     "worldLoadClear": "RE_LoadWorldMap 0x490fc3",
+     "beginView": "RB_BeginDrawingView 0x48a70d: latched views clear no colour; a portal scene clears grey 0.5 only under r_fastsky or without a world",
+     "endSurface": "RB_EndSurface 0x4af5c9..0x4af5e7: other views drop sky-iterator (0x4b9690) surfaces; 0x4af5ef: a portal scene without 0x10 drops all but sky",
+     "skyIterator": "RB_StageIteratorSky 0x4b96ad",
+     "weather": "RB_RenderWorldEffects 0x488ead skips portal scenes",
+     "frameTime": "taken from every scene, the portal included (0x4abdff..0x4abe0c)"
+    },
+    "snapshot": "SV_AddEntitiesVisibleFromPoint: isPortalEnt (+0x108) sent at 0x46105c, after broadcast (0x461011), own entity and named-client (0x46104f) rules, before visibility; no SVF_BROADCASTCLIENTS exclusion in 0x460f70..0x46105c",
+    "gamePortalify": "misc_skyportal spawn 0x20093ca0 (spawn table 0x2010c6f0) schedules 0x20093bc0 at level.time + 1050 (0x20093d80); marks non-client entities and NPCs in PVS with a clear trace (0x20093c67)"
+   },
+   "mapsWithPortals": {
+    "maps": 57,
+    "withPortal": [
+     {
+      "map": "maps/kor2.bsp",
+      "pak": "assets0.pk3",
+      "portals": [
+       {
+        "classname": "misc_skyportal",
+        "origin": "12032 -512 -1488",
+        "_remap": "*;textures/siege/portalsky"
+       }
+      ]
+     },
+     {
+      "map": "maps/mp/duel6.bsp",
+      "pak": "assets0.pk3",
+      "portals": [
+       {
+        "origin": "32 52 -832",
+        "classname": "misc_skyportal"
+       }
+      ]
+     },
+     {
+      "map": "maps/mp/duel9.bsp",
+      "pak": "assets0.pk3",
+      "portals": [
+       {
+        "classname": "misc_skyportal",
+        "origin": "4352 1024 640"
+       }
+      ]
+     },
+     {
+      "map": "maps/mp/siege_hoth.bsp",
+      "pak": "assets0.pk3",
+      "portals": [
+       {
+        "origin": "7424 -128 1160",
+        "classname": "misc_skyportal"
+       }
+      ]
+     },
+     {
+      "map": "maps/t1_danger.bsp",
+      "pak": "assets0.pk3",
+      "portals": [
+       {
+        "origin": "-256 -4904 2992",
+        "classname": "misc_skyportal"
+       }
+      ]
+     },
+     {
+      "map": "maps/t1_sour.bsp",
+      "pak": "assets0.pk3",
+      "portals": [
+       {
+        "origin": "2360 -6048 -64",
+        "classname": "misc_skyportal"
+       }
+      ]
+     },
+     {
+      "map": "maps/t2_rogue.bsp",
+      "pak": "assets0.pk3",
+      "portals": [
+       {
+        "origin": "-3008 -7264 -16",
+        "classname": "misc_skyportal"
+       }
+      ]
+     },
+     {
+      "map": "maps/t3_hevil.bsp",
+      "pak": "assets0.pk3",
+      "portals": [
+       {
+        "classname": "misc_skyportal",
+        "origin": "-192 2688 -928"
+       }
+      ]
+     },
+     {
+      "map": "maps/vjun2.bsp",
+      "pak": "assets0.pk3",
+      "portals": [
+       {
+        "classname": "misc_skyportal",
+        "origin": "314 2722 4312"
+       }
+      ]
+     },
+     {
+      "map": "maps/yavin1.bsp",
+      "pak": "assets0.pk3",
+      "portals": [
+       {
+        "origin": "6176 -2536 608",
+        "classname": "misc_skyportal"
+       }
+      ]
+     },
+     {
+      "map": "maps/yavin1b.bsp",
+      "pak": "assets0.pk3",
+      "portals": [
+       {
+        "origin": "6176 -2536 608",
+        "classname": "misc_skyportal"
+       }
+      ]
+     },
+     {
+      "map": "maps/yavin2.bsp",
+      "pak": "assets0.pk3",
+      "portals": [
+       {
+        "origin": "2624 -5568 -1728",
+        "classname": "misc_skyportal"
+       }
+      ]
+     }
+    ]
+   }
+  }
+ },
+ "syntheticModule": {
+  "source": ".tmp/jka-siege/probe/siege-probe.cpp",
+  "sourceSha256": "3a7032b84ee1ae5ff6e7670084c472d348392e4f2dc24e2fd293e8eae679fc49",
+  "moduleSha256": "f4ff1209c1d079e1d6dd8f0f304cf0e0f1480312038885996927af5fe9094d74",
+  "stages": [
+   "first level",
+   "after map",
+   "after map_restart 0",
+   "after killserver and map"
+  ],
+  "runs": [
+   {
+    "run": "retail-3",
+    "engine": "retail",
+    "command": [
+     "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail\\jamp.exe",
+     "+set",
+     "fs_basepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\jka-siege\\probe\\runs\\retail-3\\home",
+     "+set",
+     "fs_cdpath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_game",
+     "siege-probe",
+     "+set",
+     "dedicated",
+     "1",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "net_ip",
+     "127.0.0.1",
+     "+set",
+     "net_port",
+     "0",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "bot_enable",
+     "0",
+     "+set",
+     "net_enabled",
+     "1",
+     "+map",
+     "mp/ffa1"
+    ],
+    "passed": true,
+    "exitCode": 0,
+    "forcedStop": false,
+    "refusals": [],
+    "markers": [
+     "stage=0 init levelTime=0 restart=0",
+     "stage=0 first get result=0 words=0,0,0 guard=a5a5a5a5,a5a5a5a5",
+     "stage=0 set result=0 words=1,2,345678 unchanged=1",
+     "stage=0 after_set get result=0 words=1,2,345678 guard=a5a5a5a5,a5a5a5a5",
+     "stage=1 init levelTime=5400 restart=0",
+     "stage=1 after_map get result=0 words=1,2,345678 guard=a5a5a5a5,a5a5a5a5",
+     "stage=1 set result=0 words=7,-1,-2147483648 unchanged=1",
+     "stage=1 after_set get result=0 words=7,-1,-2147483648 guard=a5a5a5a5,a5a5a5a5",
+     "stage=2 init levelTime=6550 restart=1",
+     "stage=2 after_map_restart get result=0 words=7,-1,-2147483648 guard=a5a5a5a5,a5a5a5a5",
+     "stage=3 init levelTime=0 restart=0",
+     "stage=3 after_killserver get result=0 words=7,-1,-2147483648 guard=a5a5a5a5,a5a5a5a5",
+     "stage=3 set result=0 words=0,0,0 unchanged=1",
+     "stage=3 after_clear get result=0 words=0,0,0 guard=a5a5a5a5,a5a5a5a5",
+     "COMPLETE"
+    ],
+    "binarySha256": {
+     "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail\\jamp.exe": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+     "E:\\Repositories\\fnTech3\\.tmp\\jka-siege\\probe\\build\\jampgamex86.dll": "f4ff1209c1d079e1d6dd8f0f304cf0e0f1480312038885996927af5fe9094d74"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "sourceCommit": "6bf845bc5efa5858449bb293b7ed7f3c03251a60"
+   },
+   {
+    "run": "before-1",
+    "engine": "fntech3",
+    "command": [
+     "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-siege-before\\fntech3.ded.exe",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\jka-siege\\probe\\runs\\before-1\\home",
+     "+set",
+     "fs_cdpath",
+     "",
+     "+set",
+     "fs_game",
+     "siege-probe",
+     "+set",
+     "dedicated",
+     "1",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "net_ip",
+     "127.0.0.1",
+     "+set",
+     "net_port",
+     "0",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "bot_enable",
+     "0",
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "net_enabled",
+     "0",
+     "+map",
+     "mp/ffa1"
+    ],
+    "passed": false,
+    "exitCode": null,
+    "forcedStop": true,
+    "refusals": [
+     "ERROR: Jedi Academy game import G_SIEGEPERSGET (43) is not served yet: its module boundary is still open. Its arrays are bound. See docs/fntech3/COMPATIBILITY.md",
+     "----- Server Shutdown (Server crashed: Jedi Academy game import G_SIEGEPERSGET (43) is not served yet: its module boundary is still open. Its arrays are bound. See docs/fntech3/COMPATIBILITY.md) -----"
+    ],
+    "markers": [
+     "stage=0 init levelTime=0 restart=0"
+    ],
+    "binarySha256": {
+     "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-siege-before\\fntech3.ded.exe": "72360aa782879ce27e54e00f67e4ec42091febf213a8b52ecf858e272846bee2",
+     "E:\\Repositories\\fnTech3\\.tmp\\jka-siege\\probe\\build\\jampgamex86.dll": "f4ff1209c1d079e1d6dd8f0f304cf0e0f1480312038885996927af5fe9094d74"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "sourceCommit": "6bf845bc5efa5858449bb293b7ed7f3c03251a60"
+   },
+   {
+    "run": "after-1",
+    "engine": "fntech3",
+    "command": [
+     "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-siege-after\\fntech3.ded.exe",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\jka-siege\\probe\\runs\\after-1\\home",
+     "+set",
+     "fs_cdpath",
+     "",
+     "+set",
+     "fs_game",
+     "siege-probe",
+     "+set",
+     "dedicated",
+     "1",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "net_ip",
+     "127.0.0.1",
+     "+set",
+     "net_port",
+     "0",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "bot_enable",
+     "0",
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "net_enabled",
+     "0",
+     "+map",
+     "mp/ffa1"
+    ],
+    "passed": true,
+    "exitCode": 0,
+    "forcedStop": false,
+    "refusals": [],
+    "markers": [
+     "stage=0 init levelTime=0 restart=0",
+     "stage=0 first get result=0 words=0,0,0 guard=a5a5a5a5,a5a5a5a5",
+     "stage=0 set result=0 words=1,2,345678 unchanged=1",
+     "stage=0 after_set get result=0 words=1,2,345678 guard=a5a5a5a5,a5a5a5a5",
+     "stage=1 init levelTime=0 restart=0",
+     "stage=1 after_map get result=0 words=1,2,345678 guard=a5a5a5a5,a5a5a5a5",
+     "stage=1 set result=0 words=7,-1,-2147483648 unchanged=1",
+     "stage=1 after_set get result=0 words=7,-1,-2147483648 guard=a5a5a5a5,a5a5a5a5",
+     "stage=2 init levelTime=500 restart=1",
+     "stage=2 after_map_restart get result=0 words=7,-1,-2147483648 guard=a5a5a5a5,a5a5a5a5",
+     "stage=3 init levelTime=0 restart=0",
+     "stage=3 after_killserver get result=0 words=7,-1,-2147483648 guard=a5a5a5a5,a5a5a5a5",
+     "stage=3 set result=0 words=0,0,0 unchanged=1",
+     "stage=3 after_clear get result=0 words=0,0,0 guard=a5a5a5a5,a5a5a5a5",
+     "COMPLETE"
+    ],
+    "binarySha256": {
+     "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-siege-after\\fntech3.ded.exe": "70c5ae442604ba4631f2c1a8715ed482d58a3abcd75a94c1ebd28ba1ddc14164",
+     "E:\\Repositories\\fnTech3\\.tmp\\jka-siege\\probe\\build\\jampgamex86.dll": "f4ff1209c1d079e1d6dd8f0f304cf0e0f1480312038885996927af5fe9094d74"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "sourceCommit": "6bf845bc5efa5858449bb293b7ed7f3c03251a60",
+    "matchesRetailBesideLevelTimes": true
+   },
+   {
+    "run": "final-1",
+    "engine": "fntech3",
+    "command": [
+     "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-siege-final\\fntech3.ded.exe",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\jka-siege\\probe\\runs\\final-1\\home",
+     "+set",
+     "fs_cdpath",
+     "",
+     "+set",
+     "fs_game",
+     "siege-probe",
+     "+set",
+     "dedicated",
+     "1",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "net_ip",
+     "127.0.0.1",
+     "+set",
+     "net_port",
+     "0",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "bot_enable",
+     "0",
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "net_enabled",
+     "0",
+     "+map",
+     "mp/ffa1"
+    ],
+    "passed": true,
+    "exitCode": 0,
+    "forcedStop": false,
+    "refusals": [],
+    "markers": [
+     "stage=0 init levelTime=0 restart=0",
+     "stage=0 first get result=0 words=0,0,0 guard=a5a5a5a5,a5a5a5a5",
+     "stage=0 set result=0 words=1,2,345678 unchanged=1",
+     "stage=0 after_set get result=0 words=1,2,345678 guard=a5a5a5a5,a5a5a5a5",
+     "stage=1 init levelTime=0 restart=0",
+     "stage=1 after_map get result=0 words=1,2,345678 guard=a5a5a5a5,a5a5a5a5",
+     "stage=1 set result=0 words=7,-1,-2147483648 unchanged=1",
+     "stage=1 after_set get result=0 words=7,-1,-2147483648 guard=a5a5a5a5,a5a5a5a5",
+     "stage=2 init levelTime=600 restart=1",
+     "stage=2 after_map_restart get result=0 words=7,-1,-2147483648 guard=a5a5a5a5,a5a5a5a5",
+     "stage=3 init levelTime=0 restart=0",
+     "stage=3 after_killserver get result=0 words=7,-1,-2147483648 guard=a5a5a5a5,a5a5a5a5",
+     "stage=3 set result=0 words=0,0,0 unchanged=1",
+     "stage=3 after_clear get result=0 words=0,0,0 guard=a5a5a5a5,a5a5a5a5",
+     "COMPLETE"
+    ],
+    "binarySha256": {
+     "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-siege-final\\fntech3.ded.exe": "2df1b8d5abecdce1a81baa7cac53c3551b6d42e610dc5453f70f76ee90659bab",
+     "E:\\Repositories\\fnTech3\\.tmp\\jka-siege\\probe\\build\\jampgamex86.dll": "f4ff1209c1d079e1d6dd8f0f304cf0e0f1480312038885996927af5fe9094d74"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "sourceCommit": "34ecbab5bebd22da9999518575e967ddc41cffa1",
+    "matchesRetailBesideLevelTimes": true
+   }
+  ],
+  "levelTimeDifference": "GAME_INIT level time after a map change: retail 5400 then 6550 after map_restart; fnTech3 0 then 500. Unrelated to the record; not examined."
+ },
+ "fnDesign": {
+  "record": "fntech3_jka_siegePers_t (code/compat/jka_game_abi.h), pinned in jka_wire_layout.def (11 records, 379 members)",
+  "server": "code/server/server_jka_game.hpp: one record per process, untouched by SV_JKAClearGame; imports 42 and 43 copy 12 bytes after VM_CHECKBOUNDS, answer 0; a null record is refused by name",
+  "servedImports": 159,
+  "adapter": "code/compat/jka_render_adapter.hpp: 0x8 with 0x10 -> refdef_t.jka.skyboxPortal; refused flags named with the word",
+  "rule": "code/renderercommon/tr_jka_sky_portal.h: FnJKASkyPortalDrawsSky; latch tr.jkaSkyPortal (cleared by R_Init before each level); other views clear tr.refdef.rtcwFog.drawSky, which RB_StageIteratorSky reads in all three renderers",
+  "fnFeaturesUsed": [
+   "the portal scene is an ordinary Fn world view: lighting, shadows, fog, bloom, static map lights",
+   "RTX: the portal scene is left to raster (skyboxPortalScene); traced views keep raster pixels where rays meet sky",
+   "underwater medium: no client sample at the portal camera, no medium for the portal scene, so the once-per-frame pass takes the eye view",
+   "liquid ripples ignore the portal camera; the entity editor does not take the portal view for the player view"
+  ],
+  "leftOut": [
+   "retail grey clear of a portal scene under r_fastsky (Fn fast sky keeps its own clear)",
+   "weather (not drawn for this profile)",
+   "frame time from the portal scene (no Fn feature of this profile reads it)"
+  ],
+  "snapshot": "code/server/server_jka_snapshot.hpp: isPortalEnt forces the add after the existing broadcast rules"
+ },
+ "tests": {
+  "new": [
+   "tests/jka_siege_persistence_tests.py",
+   "tests/jka_sky_portal_tests.py"
+  ],
+  "changed": [
+   "tests/jka_abi_layout_tests.cpp",
+   "tests/jka_module_refusal_tests.py",
+   "tests/jka_render_tests.cpp",
+   "tests/jka_snapshot_tests.cpp"
+  ],
+  "mutations": {
+   "siegePersistence": "seven mutants, all caught (.tmp/jka-siege/mutate_siege.py)",
+   "skyPortal": "ten mutants and two unmutated controls; all ten caught, controls pass (.tmp/jka-siege/mutate_portal.py)"
+  }
+ },
+ "runtimes": {
+  "before": {
+   "head": "fbde92d4d31a5821a87c27a8bb23b0ed70a4202f",
+   "files": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "e8c850e13198336b24635481e72ac72363140898cc903bc62f059f1f79b86acf",
+    "fnql_rtx_x86.dll": "64fd8be4ea0eb650f7d79e091af5b44f5fdc35a0f7002addd508a71f5e43498c",
+    "fnql_vk_x86.dll": "65ac81cff26c3107900045c9f072a3949792409fb670ca1166c4e166e7e4cc5b",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+    "fntech3.ded.exe": "72360aa782879ce27e54e00f67e4ec42091febf213a8b52ecf858e272846bee2",
+    "fntech3.exe": "b635740bc3eaa4217304a2b6df182af248d464ac62cadbb46ebc5ccfea371090"
+   }
+  },
+  "after": {
+   "head": "fbde92d4d31a5821a87c27a8bb23b0ed70a4202f plus this slice",
+   "files": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "bbc6b712eae36636d4b1ee91a4d7ce089bb24fa92928fa9e02dbf3ff967ab5b3",
+    "fnql_rtx_x86.dll": "b4ab285941aa14a9b9286ee984592d15aa8cb6b28fab8aaf5c4f9430f5f25384",
+    "fnql_vk_x86.dll": "ecad60b06634f81a829bc53b1dc03b50ddb604542fb39ed5cac19448749211e4",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+    "fntech3.ded.exe": "70c5ae442604ba4631f2c1a8715ed482d58a3abcd75a94c1ebd28ba1ddc14164",
+    "fntech3.exe": "4a6db4eb0c8bf0de1a7447c69bd25e71344c6336f54898e7447edc7c0bf69949"
+   }
+  },
+  "final": {
+   "head": "0e99502a2a11f84eaa926a68cec0ed9a2ae8e3f1 plus this slice",
+   "files": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "2f2d58fb207c5541b749b5524795037e209d76c42f59db21fb2a75da62ac2863",
+    "fnql_rtx_x86.dll": "f25ecc42aa617d646e9c48135e3b8c9ec41e686df584caaaf181e24e45b47645",
+    "fnql_vk_x86.dll": "a590647b4f34bf29ef2281ef8051055828fb7e710c5be52ad642c9d94e2349dd",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+    "fntech3.ded.exe": "2df1b8d5abecdce1a81baa7cac53c3551b6d42e610dc5453f70f76ee90659bab",
+    "fntech3.exe": "acf0c839a0f682d37ab2915e5f85de1584f3ab9af331100ccc122d9d0e1a4eb0"
+   }
+  },
+  "diagnostic": {
+   "jka-siege-diagA": "after runtime with a GL renderer whose Academy sky rule is off",
+   "jka-siege-diagB": "after runtime with a GL renderer that draws no portal scene"
+  }
+ },
+ "live": {
+  "conditions": "windowed 800x600, private desktop, net_enabled 0, sound off, spectator, no input, isolated home; .tmp/jka-siege/live/probe_live.py (copied from the round harness)",
+  "before": [
+   {
+    "map": "mp/siege_hoth",
+    "gametype": "7",
+    "renderer": "glx",
+    "runtime": ".tmp\\runtime\\jka-siege-before",
+    "commands": [
+     "set cl_menuBlur 0",
+     "ui_openmenu none"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Jedi Academy game import G_SIEGEPERSGET (43) is not served yet: its module boundary is still open. Its arrays are bound. See docs/fntech3/COMPATIBILITY.md",
+     "----- Server Shutdown (Server crashed: Jedi Academy game import G_SIEGEPERSGET (43) is not served yet: its module boundary is still open. Its arrays are bound. See docs/fntech3/COMPATIBILITY.md) -----"
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "seconds": 27.7,
+    "run": "before-hoth-siege",
+    "executable": "b635740bc3eaa4217304a2b6df182af248d464ac62cadbb46ebc5ccfea371090",
+    "renderer_dll": "e8c850e13198336b24635481e72ac72363140898cc903bc62f059f1f79b86acf",
+    "captures": [],
+    "viewPositions": [],
+    "firstSnapshot": false
+   },
+   {
+    "map": "mp/siege_hoth",
+    "gametype": "0",
+    "renderer": "glx",
+    "runtime": ".tmp\\runtime\\jka-siege-before",
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Jedi Academy cgame unsupported Raven renderer view flags"
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "seconds": 27.7,
+    "run": "before-hoth-ffa",
+    "executable": "b635740bc3eaa4217304a2b6df182af248d464ac62cadbb46ebc5ccfea371090",
+    "renderer_dll": "e8c850e13198336b24635481e72ac72363140898cc903bc62f059f1f79b86acf",
+    "captures": [],
+    "viewPositions": [],
+    "firstSnapshot": true
+   },
+   {
+    "map": "mp/siege_desert",
+    "gametype": "7",
+    "renderer": "glx",
+    "runtime": ".tmp\\runtime\\jka-siege-before",
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Jedi Academy game import G_SIEGEPERSGET (43) is not served yet: its module boundary is still open. Its arrays are bound. See docs/fntech3/COMPATIBILITY.md",
+     "----- Server Shutdown (Server crashed: Jedi Academy game import G_SIEGEPERSGET (43) is not served yet: its module boundary is still open. Its arrays are bound. See docs/fntech3/COMPATIBILITY.md) -----"
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "seconds": 26.1,
+    "run": "before-desert-siege",
+    "executable": "b635740bc3eaa4217304a2b6df182af248d464ac62cadbb46ebc5ccfea371090",
+    "renderer_dll": "e8c850e13198336b24635481e72ac72363140898cc903bc62f059f1f79b86acf",
+    "captures": [],
+    "viewPositions": [],
+    "firstSnapshot": false
+   },
+   {
+    "map": "mp/siege_korriban",
+    "gametype": "7",
+    "renderer": "glx",
+    "runtime": ".tmp\\runtime\\jka-siege-before",
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Jedi Academy game import G_SIEGEPERSGET (43) is not served yet: its module boundary is still open. Its arrays are bound. See docs/fntech3/COMPATIBILITY.md",
+     "----- Server Shutdown (Server crashed: Jedi Academy game import G_SIEGEPERSGET (43) is not served yet: its module boundary is still open. Its arrays are bound. See docs/fntech3/COMPATIBILITY.md) -----"
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "seconds": 26.1,
+    "run": "before-korriban-siege",
+    "executable": "b635740bc3eaa4217304a2b6df182af248d464ac62cadbb46ebc5ccfea371090",
+    "renderer_dll": "e8c850e13198336b24635481e72ac72363140898cc903bc62f059f1f79b86acf",
+    "captures": [],
+    "viewPositions": [],
+    "firstSnapshot": false
+   },
+   {
+    "map": "mp/duel6",
+    "gametype": "0",
+    "renderer": "glx",
+    "runtime": ".tmp\\runtime\\jka-siege-before",
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Jedi Academy cgame unsupported Raven renderer view flags"
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "seconds": 30.6,
+    "run": "before-duel6-ffa",
+    "executable": "b635740bc3eaa4217304a2b6df182af248d464ac62cadbb46ebc5ccfea371090",
+    "renderer_dll": "e8c850e13198336b24635481e72ac72363140898cc903bc62f059f1f79b86acf",
+    "captures": [],
+    "viewPositions": [],
+    "firstSnapshot": true
+   },
+   {
+    "map": "mp/duel9",
+    "gametype": "0",
+    "renderer": "glx",
+    "runtime": ".tmp\\runtime\\jka-siege-before",
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Jedi Academy cgame unsupported Raven renderer view flags"
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "seconds": 28.5,
+    "run": "before-duel9-ffa",
+    "executable": "b635740bc3eaa4217304a2b6df182af248d464ac62cadbb46ebc5ccfea371090",
+    "renderer_dll": "e8c850e13198336b24635481e72ac72363140898cc903bc62f059f1f79b86acf",
+    "captures": [],
+    "viewPositions": [],
+    "firstSnapshot": true
+   }
+  ],
+  "after": [
+   {
+    "map": "mp/siege_hoth",
+    "gametype": "7",
+    "renderer": "glx",
+    "runtime": ".tmp\\runtime\\jka-siege-after",
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Jedi Academy cgame UI menu 11 is not served yet",
+     "----- Server Shutdown (Server crashed: Jedi Academy cgame UI menu 11 is not served yet) -----"
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "seconds": 34.8,
+    "run": "after-hoth-siege",
+    "executable": "4a6db4eb0c8bf0de1a7447c69bd25e71344c6336f54898e7447edc7c0bf69949",
+    "renderer_dll": "bbc6b712eae36636d4b1ee91a4d7ce089bb24fa92928fa9e02dbf3ff967ab5b3",
+    "captures": [],
+    "viewPositions": [],
+    "firstSnapshot": true
+   },
+   {
+    "map": "mp/siege_hoth",
+    "gametype": "0",
+    "renderer": "glx",
+    "runtime": ".tmp\\runtime\\jka-siege-after",
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Jedi Academy cgame unsupported Raven renderer entity flags (type=0, flags=0x80040)"
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "seconds": 27.7,
+    "run": "after-hoth-ffa",
+    "executable": "4a6db4eb0c8bf0de1a7447c69bd25e71344c6336f54898e7447edc7c0bf69949",
+    "renderer_dll": "bbc6b712eae36636d4b1ee91a4d7ce089bb24fa92928fa9e02dbf3ff967ab5b3",
+    "captures": [],
+    "viewPositions": [],
+    "firstSnapshot": true
+   },
+   {
+    "map": "mp/duel9",
+    "gametype": "0",
+    "renderer": "glx",
+    "runtime": ".tmp\\runtime\\jka-siege-after",
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "seconds": 8.7,
+    "run": "after-duel9-ffa",
+    "executable": "4a6db4eb0c8bf0de1a7447c69bd25e71344c6336f54898e7447edc7c0bf69949",
+    "renderer_dll": "bbc6b712eae36636d4b1ee91a4d7ce089bb24fa92928fa9e02dbf3ff967ab5b3",
+    "captures": [
+     "029949864ddfcf7e8f8d9e19cfe1d6237cef87b335412fa90666b2b3c094f95e",
+     "6edd10d6bf4458d0c0d8da5e6700a89a61438782d0da253503d92ec80f856f52"
+    ],
+    "viewPositions": [],
+    "firstSnapshot": true
+   }
+  ],
+  "final": [
+   {
+    "map": "mp/siege_hoth",
+    "gametype": "7",
+    "renderer": "glx",
+    "runtime": ".tmp\\runtime\\jka-siege-final",
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Jedi Academy cgame UI menu 11 is not served yet",
+     "----- Server Shutdown (Server crashed: Jedi Academy cgame UI menu 11 is not served yet) -----"
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "seconds": 30.0,
+    "run": "final-hoth-siege",
+    "executable": "acf0c839a0f682d37ab2915e5f85de1584f3ab9af331100ccc122d9d0e1a4eb0",
+    "renderer_dll": "2f2d58fb207c5541b749b5524795037e209d76c42f59db21fb2a75da62ac2863",
+    "captures": [],
+    "viewPositions": [],
+    "firstSnapshot": true
+   },
+   {
+    "map": "mp/siege_desert",
+    "gametype": "7",
+    "renderer": "glx",
+    "runtime": ".tmp\\runtime\\jka-siege-final",
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Jedi Academy cgame UI menu 11 is not served yet",
+     "----- Server Shutdown (Server crashed: Jedi Academy cgame UI menu 11 is not served yet) -----"
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "seconds": 31.2,
+    "run": "final-desert-siege",
+    "executable": "acf0c839a0f682d37ab2915e5f85de1584f3ab9af331100ccc122d9d0e1a4eb0",
+    "renderer_dll": "2f2d58fb207c5541b749b5524795037e209d76c42f59db21fb2a75da62ac2863",
+    "captures": [],
+    "viewPositions": [],
+    "firstSnapshot": true
+   },
+   {
+    "map": "mp/siege_korriban",
+    "gametype": "7",
+    "renderer": "glx",
+    "runtime": ".tmp\\runtime\\jka-siege-final",
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Jedi Academy cgame UI menu 11 is not served yet",
+     "----- Server Shutdown (Server crashed: Jedi Academy cgame UI menu 11 is not served yet) -----"
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "seconds": 28.7,
+    "run": "final-korriban-siege",
+    "executable": "acf0c839a0f682d37ab2915e5f85de1584f3ab9af331100ccc122d9d0e1a4eb0",
+    "renderer_dll": "2f2d58fb207c5541b749b5524795037e209d76c42f59db21fb2a75da62ac2863",
+    "captures": [],
+    "viewPositions": [],
+    "firstSnapshot": true
+   },
+   {
+    "map": "mp/siege_hoth",
+    "gametype": "0",
+    "renderer": "glx",
+    "runtime": ".tmp\\runtime\\jka-siege-final",
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Jedi Academy cgame unsupported Raven renderer entity flags (type=0, flags=0x80040)"
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "seconds": 27.8,
+    "run": "final-hoth-ffa",
+    "executable": "acf0c839a0f682d37ab2915e5f85de1584f3ab9af331100ccc122d9d0e1a4eb0",
+    "renderer_dll": "2f2d58fb207c5541b749b5524795037e209d76c42f59db21fb2a75da62ac2863",
+    "captures": [],
+    "viewPositions": [],
+    "firstSnapshot": true
+   },
+   {
+    "map": "mp/duel6",
+    "gametype": "0",
+    "renderer": "glx",
+    "runtime": ".tmp\\runtime\\jka-siege-final",
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none",
+     "wait 30",
+     "viewpos"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "seconds": 10.8,
+    "run": "spawn-duel6-glx",
+    "executable": "acf0c839a0f682d37ab2915e5f85de1584f3ab9af331100ccc122d9d0e1a4eb0",
+    "renderer_dll": "2f2d58fb207c5541b749b5524795037e209d76c42f59db21fb2a75da62ac2863",
+    "captures": [
+     "f2519947b06cc23f9302471808106f69fa4b192dab9aa874079ba64e0ceedc1d",
+     "252a01436710b10a954126d0006092f7917be11f38554b4e942c32378cfa0f6b"
+    ],
+    "viewPositions": [
+     "(-2224 0 924) : 0"
+    ],
+    "firstSnapshot": true
+   },
+   {
+    "map": "mp/duel6",
+    "gametype": "0",
+    "renderer": "vk",
+    "runtime": ".tmp\\runtime\\jka-siege-final",
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none",
+     "wait 30",
+     "viewpos"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "seconds": 10.8,
+    "run": "spawn-duel6-vk",
+    "executable": "acf0c839a0f682d37ab2915e5f85de1584f3ab9af331100ccc122d9d0e1a4eb0",
+    "renderer_dll": "a590647b4f34bf29ef2281ef8051055828fb7e710c5be52ad642c9d94e2349dd",
+    "captures": [
+     "60e300f6611d397ce56f8b17c9f4fc928f2273cc080a43b9f7c1b504fcd4670a",
+     "4f228079fa23397d755a777017d7a2480c412ffe9bd484d142cc7ff53e242428"
+    ],
+    "viewPositions": [
+     "(-2224 0 924) : 0"
+    ],
+    "firstSnapshot": true
+   },
+   {
+    "map": "mp/duel6",
+    "gametype": "0",
+    "renderer": "rtx",
+    "runtime": ".tmp\\runtime\\jka-siege-final",
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none",
+     "wait 30",
+     "viewpos"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "seconds": 14.9,
+    "run": "spawn-duel6-rtx",
+    "executable": "acf0c839a0f682d37ab2915e5f85de1584f3ab9af331100ccc122d9d0e1a4eb0",
+    "renderer_dll": "f25ecc42aa617d646e9c48135e3b8c9ec41e686df584caaaf181e24e45b47645",
+    "captures": [
+     "09bfeb1ada071dfc0976d6ea38c7004c770e431c91f18ce652d1c4c51783925c",
+     "b61fa8220ce54e302161ecd3255257a249948ee5f44ac85cca9ab76bc7bb9290"
+    ],
+    "viewPositions": [
+     "(-2224 0 924) : 0"
+    ],
+    "firstSnapshot": true
+   },
+   {
+    "map": "mp/duel9",
+    "gametype": "0",
+    "renderer": "glx",
+    "runtime": ".tmp\\runtime\\jka-siege-final",
+    "commands": [
+     "set cl_menuBlur 0",
+     "cmd team spectator",
+     "ui_openmenu none"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "seconds": 8.8,
+    "run": "final-duel9-glx",
+    "executable": "acf0c839a0f682d37ab2915e5f85de1584f3ab9af331100ccc122d9d0e1a4eb0",
+    "renderer_dll": "2f2d58fb207c5541b749b5524795037e209d76c42f59db21fb2a75da62ac2863",
+    "captures": [
+     "8f27410f344a99f35d5b7fbea9d6c8a6a9f570955ad8d115a39df966f1f9e0eb"
+    ],
+    "viewPositions": [],
+    "firstSnapshot": true
+   }
+  ],
+  "duel6SkyPatch": {
+   "glx": {
+    "meanRGB": [
+     239.3,
+     243.4,
+     247.7
+    ],
+    "stddevRGB": [
+     32.2,
+     26.1,
+     19.1
+    ]
+   },
+   "vk": {
+    "meanRGB": [
+     241.0,
+     244.6,
+     248.4
+    ],
+    "stddevRGB": [
+     30.9,
+     24.9,
+     17.9
+    ]
+   },
+   "rtx": {
+    "meanRGB": [
+     250.3,
+     252.0,
+     253.8
+    ],
+    "stddevRGB": [
+     16.2,
+     11.8,
+     7.3
+    ]
+   }
+  },
+  "mechanism": {
+   "map": "mp/duel6",
+   "view": "(-2224 0 924) : 0, the spectator place",
+   "renderer": "glx",
+   "skyPatch": "pixels 40..300 by 5..60, first capture",
+   "variants": {
+    "rule on (final runtime)": {
+     "run": "spawn-duel6-glx",
+     "renderer_dll": "2f2d58fb207c5541b749b5524795037e209d76c42f59db21fb2a75da62ac2863",
+     "meanRGB": [
+      239.3,
+      243.4,
+      247.7
+     ],
+     "stddevRGB": [
+      32.2,
+      26.1,
+      19.1
+     ]
+    },
+    "rule off (diagnostic A)": {
+     "run": "spawn-duel6-diagA",
+     "renderer_dll": "662a80e5c479a7843076c317bbc5656baae0e1c2e2e961850fe0258b444a7545",
+     "meanRGB": [
+      139.4,
+      147.8,
+      168.1
+     ],
+     "stddevRGB": [
+      28.4,
+      26.2,
+      17.4
+     ]
+    },
+    "portal scene not drawn (diagnostic B)": {
+     "run": "spawn-duel6-diagB",
+     "renderer_dll": "715d6042d2528ea4bb2bfed682a21d6823c54f3642933f151a441205c645596b",
+     "meanRGB": [
+      67.2,
+      81.5,
+      58.9
+     ],
+     "stddevRGB": [
+      71.5,
+      70.5,
+      73.1
+     ]
+    }
+   },
+   "pixelsDifferingOver24": {
+    "rule on vs rule off": {
+     "pixelsOver24": 56602,
+     "bbox": [
+      0,
+      0,
+      800,
+      291
+     ]
+    },
+    "rule on vs no portal scene": {
+     "pixelsOver24": 54951,
+     "bbox": [
+      0,
+      0,
+      800,
+      291
+     ]
+    }
+   },
+   "diagnosticBuild": ".tmp/jka-siege/diag-src (the final export source), GL renderer only, .tmp/jka-siege/diag_variant2.py",
+   "retailCapture": "none: the retail client asks for disc 1 before it connects, a listen server included"
+  }
+ },
+ "duel9Sky": {
+  "observed": "textures/mp/s_hothsky is (DEFAULTED) in shaderlist; its general `sun` line is unknown to the parser, which returns qfalse (code/renderer/tr_shader.c, unknown general shader parameter), so the sky draws as the opaque default image in both views: (82,82,82) with the rule on, off, without the portal scene, under r_fastsky and r_showsky",
+  "installedShadersWithSun": 59,
+  "ofWhichSky": 58,
+  "shaders": [
+   "textures/jnegretetest/rancor_sky",
+   "textures/jnegretetest/hoth_sky",
+   "textures/mp/s_redsky",
+   "textures/mp/s_space",
+   "textures/mp/s_fatalsky",
+   "textures/mp/s_kor_sky",
+   "textures/mp/s_bespin",
+   "textures/mp/s_blacksky",
+   "textures/mp/s_bountysky",
+   "textures/mp/s_hothsky",
+   "textures/mp/s_evilsky",
+   "textures/mp/s_duel2sky",
+   "textures/mp/desert_03",
+   "textures/mp/hoth_ctf_sky_top",
+   "textures/mp/hoth_ctf_sky_sides",
+   "textures/mp/desert_03",
+   "textures/mp/h_tatsky",
+   "textures/mp/h_tatsky2",
+   "textures/mp/h_yavin",
+   "textures/mp/h_hevil",
+   "textures/rbettenbergtest/rbettenbergtest_sky1",
+   "textures/rbettenbergtest/tcfoghull",
+   "textures/rbettenbergtest/rbettenbergtest_sky_dpredicament",
+   "textures/rbettenbergtest/rbettenbergtest_sky_hevil",
+   "rmg_sky_jungle_morning",
+   "rmg_sky_jungle_day",
+   "rmg_sky_jungle_night",
+   "rmg_sky_desert_morning",
+   "rmg_sky_desert_day",
+   "rmg_sky_desert_night",
+   "rmg_sky_grassyhills_morning",
+   "rmg_sky_grassyhills_day",
+   "rmg_sky_grassyhills_night",
+   "rmg_sky_snowy_morning",
+   "rmg_sky_snowy_day",
+   "rmg_sky_snowy_night",
+   "textures/siege/desert",
+   "textures/siege/hoth_sky",
+   "textures/skies/normallight",
+   "textures/skies/bluelight",
+   "textures/skies/orangelight",
+   "textures/skies/test",
+   "textures/skies/test3",
+   "textures/skies/right_light",
+   "textures/skies/test4",
+   "textures/skies/test5",
+   "textures/skies/kejim_light",
+   "textures/skies/new_test",
+   "textures/skies/artus_light",
+   "textures/skies/yavin_nodraw",
+   "textures/skies/hevil",
+   "textures/skies/hoth",
+   "textures/skies/siege_1",
+   "textures/skies/hevil_2",
+   "textures/skies/test_korriban1",
+   "textures/skies/rail_sun",
+   "textures/sandcrawler/smsand",
+   "textures/sandcrawler/d_bay",
+   "textures/stu/kor_sun"
+  ],
+  "reference": "OpenJK rd-vanilla tr_shader.cpp parses sun with q3map_sun (reference observation)"
+ },
+ "nextFrontiers": {
+  "siege (gametype 7), siege_hoth, siege_desert, siege_korriban": "Jedi Academy cgame UI menu 11 is not served yet (UIMENU_CLASSSEL in Raven's enumeration)",
+  "mp/siege_hoth free-for-all": "renderfx 0x80040: 0x80000 is RF_SETANIMINDEX (an animated stage frame from skinNum)"
+ },
+ "validation": {
+  "finalExport": {
+   "head": "34ecbab5bebd22da9999518575e967ddc41cffa1 plus this slice",
+   "build": "Windows x86 developer build (meson debugoptimized, strict warnings, renderers glx,vk,rtx): all 1,541 targets, no warning",
+   "native": {
+    "tests": 269,
+    "ok": 266,
+    "skipped": 2,
+    "failed": 1,
+    "skips": [
+     "fnql_audio_loopback (OpenAL loopback unavailable)",
+     "fnql_retail_factory_probe (no retail Quake Live)"
+    ],
+    "failure": "fnql_rtx_vulkan_safety_source: pinned the RTX portal-scene expression this slice extends; updated with it, then OK"
+   },
+   "python": {
+    "passed": 2747,
+    "skipped": 131,
+    "subtests": 66986,
+    "failed": 1,
+    "seconds": 3061,
+    "failure": "tests/rtx_vulkan_safety_source_tests.py (collected before its update); 10 passed, 30 subtests after"
+   }
+  },
+  "commitTree": {
+   "head": "24bcfb490ed240eab604ff4487398a9b42f3490a plus this slice (the final export advanced; path-for-path equal to the commit tree)",
+   "build": "incremental, 395 steps, no warning",
+   "native": {
+    "tests": 270,
+    "ok": 268,
+    "skipped": 2,
+    "failed": 0
+   },
+   "targeted": "205 test files: those naming a file this slice changes, every Academy test, the tests changed by 750f070f and 24bcfb49, and the documentation and release tests",
+   "python": {
+    "passed": 1095,
+    "skipped": 2,
+    "subtests": 61770,
+    "failed": 0,
+    "skips": [
+     "alice_shader_parse_tests: no F.A.K.K.2 layout in the export",
+     "release_packaging_tests: symlink privilege"
+    ]
+   },
+   "earlier": {
+    "head": "750f070fef82c52229273d85107b512bddad78d5 plus this slice",
+    "passed": 1087,
+    "subtests": 61759,
+    "skipped": 2,
+    "failed": 0
+   }
+  },
+  "advancingWithHead": [
+   {
+    "head": "aa0e704957191ed73f98740a891a5a3221645338",
+    "native": {
+     "tests": 272,
+     "ok": 270,
+     "skipped": 2
+    },
+    "python": {
+     "passed": 185,
+     "subtests": 968,
+     "skipped": 1,
+     "failed": 0
+    }
+   },
+   {
+    "head": "8a05e028",
+    "native": {
+     "tests": 273,
+     "ok": 271,
+     "skipped": 2,
+     "timeoutsPassedOnRerun": [
+      "fntech3_probe_jka_client",
+      "fntech3_jka_distance_cull"
+     ]
+    },
+    "python": {
+     "passed": 189,
+     "subtests": 974,
+     "skipped": 1,
+     "failed": 0
+    }
+   },
+   {
+    "head": "0e99502a",
+    "native": {
+     "tests": 273,
+     "ok": 271,
+     "skipped": 2,
+     "timeoutsPassedOnRerun": [
+      "fntech3_jka_ui_render"
+     ]
+    },
+    "python": {
+     "passed": 234,
+     "subtests": 1004,
+     "skipped": 1,
+     "failed": 0
+    }
+   }
+  ],
+  "commitParent": "33c75dfd: changes none of this slice's code files (CHANGELOG.md, GAMES.md, README.md and the ledger only among its paths)"
+ }
+}

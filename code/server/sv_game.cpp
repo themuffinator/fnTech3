@@ -578,7 +578,8 @@ qboolean SV_JKASnapshotBroadcast( int entityNum, int viewer, qboolean *forced ) 
 		SV_GentityNum( entityNum ) );
 	if ( !entity ) return qfalse;
 	const auto decision = fntech3::jka::snapshot::Broadcast( entityNum, viewer,
-		static_cast<uint32_t>( entity->r.svFlags ), entity->r.broadcastClients );
+		static_cast<uint32_t>( entity->r.svFlags ), entity->r.broadcastClients,
+		entity->s.isPortalEnt != 0 );
 	*forced = decision.forced ? qtrue : qfalse;
 	return decision.admitted ? qtrue : qfalse;
 }

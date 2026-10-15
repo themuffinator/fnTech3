@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_q3_fov.h"
 #include "../renderercommon/tr_muzzle_flash_light.h"
 #include "../renderercommon/tr_rtcw_fog_scene.h"
+#include "../renderercommon/tr_jka_sky_portal.h"
 #include "../renderercommon/tr_wolfet_global_fog_scene.h"
 #include "../renderercommon/tr_rtcw_corona_scene.h"
 #include "../renderercommon/tr_wolfet_decal_scene.h"
@@ -1300,6 +1301,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 	tr.refdef.rdflags = fd->rdflags;
 	tr.refdef.rtcw = fd->rtcw;
 	tr.refdef.skyboxPortalScene = ri.gameId == COM_GAME_WOLFET ? fd->wolfet.skyboxPortal :
+		ri.gameId == COM_GAME_JKA_MP ? fd->jka.skyboxPortal :
 		R_UsesRTCWLighting() ? fd->rtcw.skyboxPortal : qfalse;
 	// American McGee's Alice: far plane, sky portal and keepDepth, as its
 	// RE_RenderScene copies them (alice.exe 0x00491870); one sky portal a scene
@@ -1310,6 +1312,11 @@ void RE_RenderScene( const refdef_t *fd ) {
 	}
 	tr.aliceSkyPortalRendered = qfalse;
 	R_CopyRTCWFogToScene( fd );
+	// Jedi Academy's sky portal: once its scene has been drawn in this
+	// level, the views it is seen from leave their sky to it
+	if ( ri.gameId == COM_GAME_JKA_MP && !FnJKASkyPortalDrawsSky( &tr.jkaSkyPortal, fd ) ) {
+		tr.refdef.rtcwFog.drawSky = qfalse;
+	}
 	R_WolfETAdvanceGlobalFog();
 	R_CopyRTCWCoronasToScene();
 	R_CopyWolfETDecalProjectorsToScene();
@@ -1362,6 +1369,12 @@ void RE_RenderScene( const refdef_t *fd ) {
 	tr.refdef.dlights = &backEndData->dlights[r_firstSceneDlight];
 	R_CopyLiquidInteractionsToRefdef( tr.refdef.time );
 	R_CopyUnderwaterViewToRefdef( tr.refdef.time );
+	// Jedi Academy's sky portal is part of what the eye sees, drawn before
+	// the eye's own view: the medium is composited once, over that view
+	if ( ri.gameId == COM_GAME_JKA_MP && fd->jka.skyboxPortal ) {
+		tr.refdef.underwaterContents = 0;
+		tr.refdef.underwaterStrength = 0.0f;
+	}
 
 	tr.refdef.numPolys = r_numpolys - r_firstScenePoly;
 	tr.refdef.polys = &backEndData->polys[r_firstScenePoly];

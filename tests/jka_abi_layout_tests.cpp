@@ -39,6 +39,7 @@ using entityState_t = fntech3_jka_entityState_t;
 using playerState_t = fntech3_jka_playerState_t;
 using entityShared_t = fntech3_jka_entityShared_t;
 using sharedEntity_t = fntech3_jka_sharedEntity_t;
+using siegePers_t = fntech3_jka_siegePers_t;
 
 #define FNTECH3_JKA_WIRE_RECORD( record, size ) \
 	static_assert( sizeof( record ) == size, #record " is a different size" );
@@ -70,8 +71,8 @@ constexpr int measuredRecords = 0
 #undef FNTECH3_JKA_WIRE_RECORD
 #undef FNTECH3_JKA_WIRE_FIELD
 
-static_assert( measuredRecords == 10, "every shared record is measured" );
-static_assert( measuredFields == 376, "every member of every record is measured" );
+static_assert( measuredRecords == 11, "every shared record is measured" );
+static_assert( measuredFields == 379, "every member of every record is measured" );
 
 /* The records these numbers belong to, kept beside them so a change to one
  * without the other is a build failure rather than a wire defect. */
@@ -80,6 +81,7 @@ static_assert( sizeof( sharedEntity_t ) == 864 && sizeof( entityShared_t ) == 11
 static_assert( sizeof( usercmd_t ) == 28 && sizeof( trajectory_t ) == 36 );
 static_assert( sizeof( forcedata_t ) == 464 && sizeof( vmCvar_t ) == 272 );
 static_assert( sizeof( trace_t ) == 48 && sizeof( cplane_t ) == 20 );
+static_assert( sizeof( siegePers_t ) == 12 );
 
 /* A shared entity is the two halves the engine and the game each own, in that
  * order, with the game's own fields between them. */

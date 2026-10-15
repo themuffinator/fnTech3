@@ -35,6 +35,11 @@ historical upstream records, not fnTech3 release history. See the
 - Let an Enemy Territory level close an area portal that is already shut,
   as the original executables do, instead of ending the level
   ([record](docs/fntech3/2026-10-15-compatibility-round.md)).
+- Start Jedi Academy siege games: the server keeps a round's time to beat for
+  the next round, as the original does, though a siege game still stops when
+  the class menu opens. Maps whose sky shows a distant view of its own, such
+  as `mp/duel6`, now draw that view as the original renderer does
+  ([record](docs/fntech3/2026-10-15-jka-siege.md)).
 - Give Enemy Territory's bot navigation one search record per area, as the
   original server does: when a mod's bots look for cover, a retreat or nearby
   areas, the server no longer writes past the end of those records, and the

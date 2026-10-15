@@ -111,6 +111,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [October 15 compatibility round](fntech3/2026-10-15-compatibility-round.md)
   -- Jedi Academy's sound sets heard around a point, checked against
   retail's own routines, and Enemy Territory's close of a shut area portal.
+- [Jedi Academy siege and sky portals](fntech3/2026-10-15-jka-siege.md)
+  -- siege's round record kept from one level to the next, and the scene a
+  sky portal draws, each checked against retail.
 - [Small gaps from the October 15 census](fntech3/2026-10-15-census-small-gaps.md)
   -- Enemy Territory's tactical search queues and update records, and the
   pure gamestate budget of Enemy Territory and Jedi Outcast, read from the

@@ -35,6 +35,19 @@ static fntech3::nav::Graph jkaNavigation;
  * number is the whole of that call; nothing reads it until snapshots do. */
 static float jkaServerCullDistance = 0.0f;
 
+/* Siege's round record, kept for the game from one level to the next: the
+ * second round of a siege map is another level, and it is how that round
+ * learns the time it must beat. Retail jamp.exe 1.01 keeps the record's three
+ * words in globals of their own beside the game's VM pointer
+ * (0x12a4d34..0x12a4d3f, gvm at 0x12a4d30), in the image's zeroed data.
+ * Nothing in the engine reads, writes or clears them but imports 42 and 43:
+ * not SV_ClearServer's wipe of the level (0xb934e0..0xc317bc, 0x45e73c), not
+ * SV_Shutdown's of the server (0xc317c0..0xc3b808, 0x45f406). So the record
+ * starts zeroed with the process and outlives levels, restarts, shutdowns and
+ * the game module itself; SV_JKAClearGame leaves it alone for that reason.
+ * See docs/fntech3/2026-10-15-jka-siege.md. */
+static fntech3_jka_siegePers_t jkaSiegePersistence{};
+
 /* The clock this title's server poses Ghoul2 bolts at. Retail jamp.exe 1.01's
  * bolt core (0x4dfa00) never reads the time word a module passes: it poses at
  * the engine's own Ghoul2 clock, the client's (0x10bcb78) when that is set
@@ -366,6 +379,25 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		VM_CHECKBOUNDS( gvm, args[1], args[2] );
 		SV_GetServerinfo( static_cast<char *>( pointer( 1 ) ), static_cast<int>( args[2] ) );
 		return true;
+
+	/* The round record's setter and getter (retail 0x45ae89 and 0x45aeb3):
+	 * three words copied each way, unread and unchecked, and 0 answered. The
+	 * retail game hands its own 12-byte record every time, and asks for it
+	 * first as a siege level starts, before any round has set it. Retail reads
+	 * a null record and faults; here it is refused by name, as is a record
+	 * outside the module's memory, before either copy is made. */
+	case Call::G_SIEGEPERSSET:
+	case Call::G_SIEGEPERSGET: {
+		const bool set = call == Call::G_SIEGEPERSSET;
+		if ( !args[1] ) {
+			Com_Error( ERR_DROP, "Jedi Academy siege round record %s was handed no record",
+				set ? "set" : "get" );
+		}
+		VM_CHECKBOUNDS( gvm, args[1], sizeof( fntech3_jka_siegePers_t ) );
+		if ( set ) std::memcpy( &jkaSiegePersistence, pointer( 1 ), sizeof( jkaSiegePersistence ) );
+		else std::memcpy( pointer( 1 ), &jkaSiegePersistence, sizeof( jkaSiegePersistence ) );
+		return true;
+	}
 
 	case Call::G_GET_ENTITY_TOKEN: {
 		const char *token = COM_Parse( &sv.entityParsePoint );

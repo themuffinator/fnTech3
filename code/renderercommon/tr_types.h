@@ -330,6 +330,15 @@ typedef struct {
 // Medal of Honor is named here, not made a Ritual profile.
 #define R_GAME_HAS_RITUAL_VIEW( id ) ( COM_GAME_ID_IS_RITUAL( id ) || ( id ) == COM_GAME_MOHAA )
 
+// Engine-owned Jedi Academy (jka-mp) view state: the scene its client game
+// draws from a level's sky portal (Raven's rdflags 0x8, always with 0x10)
+// before the view it is seen from. Once one has been drawn, the level's other
+// views leave their sky to it, as retail jamp.exe 1.01's renderer does
+// (RE_RenderScene 0x4abe18, RB_EndSurface 0x4af5c9).
+typedef struct {
+	qboolean skyboxPortal;
+} jkaRenderView_t;
+
 typedef struct {
 	int			x, y, width, height;
 	float		fov_x, fov_y;
@@ -349,6 +358,7 @@ typedef struct {
 	rtcwRenderView_t rtcw;
 	wolfetRenderView_t wolfet;
 	aliceRenderView_t alice;
+	jkaRenderView_t jka;
 } refdef_t;
 
 /*

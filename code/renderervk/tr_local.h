@@ -2239,6 +2239,9 @@ typedef struct {
 	qboolean				worldMapLoaded;
 	fnRTCWFogState_t		rtcwFog;
 	qboolean				rtcwSkyPortal;
+	// Jedi Academy: a sky portal's scene has been drawn in this level
+	// (renderercommon/tr_jka_sky_portal.h)
+	qboolean				jkaSkyPortal;
 	// Alice: the `portalsky` surfaces the current view found instead of
 	// drawing them, and whether this scene has drawn its sky portal
 	int						numAliceSkyPortalSurfaces;

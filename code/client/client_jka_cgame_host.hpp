@@ -140,8 +140,12 @@ static bool CL_JKACgameCall(intptr_t *args, intptr_t &operation, intptr_t &resul
         return false; // canonical submission retains the engine's scene features
     }
     case Call::CG_R_RENDERSCENE: {
+        fntech3_jka_mp_refdef_t source;
+        std::memcpy(&source, CL_JKACgameSpan(args[1], sizeof(source)), sizeof(source));
         refdef_t value{};
-        const auto status = render::ReadView(CL_JKACgameSpan(args[1], sizeof(fntech3_jka_mp_refdef_t)), value);
+        const auto status = render::View(source, value);
+        if (status == render::Status::ViewFlags) Com_Error(ERR_DROP, "Jedi Academy cgame %s 0x%x: %s",
+            render::StatusName(status), static_cast<unsigned>(source.rdflags), render::ViewFlagsName(source.rdflags));
         if (status != render::Status::Ok) Com_Error(ERR_DROP, "Jedi Academy cgame %s", render::StatusName(status));
         operation = CG_R_RENDERSCENE;
         return false; // canonical HUD/capture/liquid/lighting path uses the same adapter

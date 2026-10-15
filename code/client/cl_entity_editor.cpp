@@ -4046,10 +4046,11 @@ void CL_EntityEditorAdjustView( refdef_t *refdef )
 	if ( !refdef || ( refdef->rdflags & RDF_NOWORLDMODEL ) ) {
 		return;
 	}
-	/* Enemy Territory's and Return to Castle Wolfenstein's sky portals are
-	 * views of their own, drawn first: they turn with the camera and keep
-	 * their origin */
-	const bool portal = refdef->rtcw.skyboxPortal || refdef->wolfet.skyboxPortal;
+	/* Enemy Territory's, Return to Castle Wolfenstein's and Jedi Academy's
+	 * sky portals are views of their own, drawn first: they turn with the
+	 * camera and keep their origin */
+	const bool portal = refdef->rtcw.skyboxPortal || refdef->wolfet.skyboxPortal ||
+		refdef->jka.skyboxPortal;
 	if ( !portal ) {
 		ViewFromRefdef( *refdef, editor.playerView );
 	}

@@ -241,16 +241,20 @@ class RtxVulkanSafetySourceTests(unittest.TestCase):
                       copy)
 
     def test_a_portal_sky_leaves_the_trace_to_the_view_behind_it(self) -> None:
-        # RTCW's and ET's client games draw a map's portal sky as a scene of
-        # its own, before the view it is seen from, flagging only that scene
-        # RDF_SKYBOXPORTAL (their cg_view.c CG_DrawSkyBoxPortal). The trace
-        # takes one view a frame: the portal sky must not be it.
+        # RTCW's, ET's and Jedi Academy's client games draw a map's portal
+        # sky as a scene of its own, before the view it is seen from, flagging
+        # only that scene RDF_SKYBOXPORTAL (their CG_DrawSkyBoxPortal;
+        # Academy's retail cgamex86.dll 0x30062719). The trace takes one view
+        # a frame: the portal sky must not be it.
         scene = read("code/rendererrtx/tr_scene.c")
         self.assertIn("tr.refdef.skyboxPortalScene = ri.gameId == COM_GAME_WOLFET ? fd->wolfet.skyboxPortal :\n"
+                      "\t\tri.gameId == COM_GAME_JKA_MP ? fd->jka.skyboxPortal :\n"
                       "\t\tR_UsesRTCWLighting() ? fd->rtcw.skyboxPortal : qfalse;", scene)
         adapter = read("code/compat/render_record_adapter.hpp")
         self.assertIn("result.rtcw.skyboxPortal = flags & FNTECH3_RTCW_RDF_SKYBOXPORTAL ? qtrue : qfalse;", adapter)
         self.assertIn("result.wolfet.skyboxPortal = flags & FNTECH3_WOLFET_RDF_SKYBOXPORTAL ? qtrue : qfalse;", adapter)
+        self.assertIn("output.jka.skyboxPortal = (flags & 0x8u) ? qtrue : qfalse;",
+                      read("code/compat/jka_render_adapter.hpp"))
         primary = section(
             self.vk,
             "qboolean vk_rt_primary_view_eligible( void )\n{",

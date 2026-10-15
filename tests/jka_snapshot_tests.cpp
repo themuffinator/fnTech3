@@ -27,4 +27,25 @@ int main() {
         const auto d = Broadcast(entity, 0, 0, selected);
         assert(!d.admitted && !d.forced);
     }
+    // An entity seen from the sky portal (isPortalEnt) is always sent, as
+    // retail jamp.exe 1.01 sends it (0x46105c), whatever the viewer can see;
+    // the flag adds nothing to an entity that was not admitted at all.
+    for (int viewer = 0; viewer < 32; ++viewer) {
+        auto d = Broadcast(100, viewer, 0, empty, true);
+        assert(d.admitted && d.forced);
+        d = Broadcast(100, viewer, 0, empty, false);
+        assert(d.admitted && !d.forced);
+        d = Broadcast(100, viewer, 0, empty);
+        assert(d.admitted && !d.forced);
+        d = Broadcast(100, viewer, 32, empty, true);
+        assert(d.admitted && d.forced);
+    }
+    for (int entity : {-1, 1024}) {
+        const auto d = Broadcast(entity, 0, 0, empty, true);
+        assert(!d.admitted && !d.forced);
+    }
+    for (int viewer : {-1, 32}) {
+        const auto d = Broadcast(100, viewer, 0, empty, true);
+        assert(!d.admitted && !d.forced);
+    }
 }

@@ -127,8 +127,27 @@ inline Status Entity(const fntech3_jka_mp_refEntity_t &source, refEntity_t &dest
     destination = output;
     return Status::Ok;
 }
+/* The view flags the retail 1.01 client game submits (assets3.pk3's
+ * cgamex86.dll): 0x10 on every world view (0x3002df11), 0x18 on its sky
+ * portal's scene (0x30062719), 0x1 and 0x5 on model and hyperspace scenes,
+ * 0x21 on the automap (0x300631a3), and 0x40 on the view a sky portal is seen
+ * from when the level's portal says onlyfoghere (0x300627ef..0x300627fb,
+ * which also clears it from the portal's own scene). It never sets 0x80. A
+ * view this adapter refuses is named by the first flag it does not serve, in
+ * Raven's terms (OpenJK codemp/rd-common/tr_types.h). */
+inline constexpr uint32_t ServedViewFlags = 0x1u | 0x4u | 0x8u | 0x10u;
+inline const char *ViewFlagsName(int32_t rdflags) noexcept {
+    const uint32_t flags = uint32_t(rdflags);
+    if (flags & 0x20u) return "the automap (0x20)";
+    if (flags & 0x40u) return "no global fog in this view (0x40)";
+    if (flags & 0x80u) return "force sight (0x80)";
+    if (flags & ~ServedViewFlags) return "a bit Raven never named";
+    if ((flags & 0x8u) && !(flags & 0x10u)) return "a sky portal's scene without its world (0x8 without 0x10)";
+    return "served";
+}
 inline Status View(const fntech3_jka_mp_refdef_t &source, refdef_t &destination) noexcept {
-    if (uint32_t(source.rdflags) & ~uint32_t(0x1u | 0x4u | 0x10u)) return Status::ViewFlags;
+    const uint32_t flags = uint32_t(source.rdflags);
+    if ((flags & ~ServedViewFlags) || ((flags & 0x8u) && !(flags & 0x10u))) return Status::ViewFlags;
     if (source.x < 0 || source.y < 0 || source.width <= 0 || source.height <= 0 ||
         source.x > INT_MAX - source.width || source.y > INT_MAX - source.height ||
         !Finite(source.fov_x) || !Finite(source.fov_y) || source.fov_x <= 0 || source.fov_x >= 180 ||
@@ -138,10 +157,15 @@ inline Status View(const fntech3_jka_mp_refdef_t &source, refdef_t &destination)
     // malformed module record make it read into the next slot or view field.
     for (const auto &text : source.text)
         if (!std::memchr(text, 0, sizeof(text))) return Status::InvalidRecord;
-    // Raven's normal-view draw-sky request (0x10) enters Fn's regular sky
-    // material/cloud/fog/lighting path, which already draws ordinary skies.
-    // It has no Q3 rdflag alias. Portal scenes (0x08) and other Raven-only
-    // controls remain refused above; no portal state can have been enabled.
+    // Raven's draw-sky request (0x10) enters Fn's regular sky material,
+    // cloud, fog and lighting path, which already draws ordinary skies; it
+    // has no Q3 rdflag alias. A sky portal's scene (0x8, which the retail
+    // client game always sends with 0x10) is a world view of its own from the
+    // portal's camera, drawn before the view it is seen from. It crosses as
+    // refdef_t.jka.skyboxPortal, and the renderers leave the following views'
+    // sky to it (renderercommon/tr_jka_sky_portal.h). Without 0x10 retail's
+    // renderer would draw only that scene's sky surfaces (RB_EndSurface
+    // 0x4af5ef); no retail module asks for it, and it is refused above.
     refdef_t output{};
     output.x = source.x; output.y = source.y; output.width = source.width; output.height = source.height;
     output.fov_x = source.fov_x; output.fov_y = source.fov_y;
@@ -149,6 +173,7 @@ inline Status View(const fntech3_jka_mp_refdef_t &source, refdef_t &destination)
     output.time = source.time;
     if (source.rdflags & 0x1) output.rdflags |= RDF_NOWORLDMODEL;
     if (source.rdflags & 0x4) output.rdflags |= RDF_HYPERSPACE;
+    output.jka.skyboxPortal = (flags & 0x8u) ? qtrue : qfalse;
     Copy(output.areamask, source.areamask); Copy(output.text, source.text);
     // Retail does not consume viewangles/viewContents here. The host obtains
     // its liquid/underwater samples from its own collision and scene hooks.

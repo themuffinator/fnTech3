@@ -395,3 +395,9 @@ FNTECH3_JKA_WIRE_FIELD(sharedEntity_t, combatPoint, 820, 4, 0)
 FNTECH3_JKA_WIRE_FIELD(sharedEntity_t, failedWaypoints, 824, 32, 0)
 FNTECH3_JKA_WIRE_FIELD(sharedEntity_t, failedWaypointCheckTime, 856, 4, 0)
 FNTECH3_JKA_WIRE_FIELD(sharedEntity_t, next_roff_time, 860, 4, 0)
+/* Also the three words retail jamp.exe 1.01 copies for imports 42 and 43
+ * (0x45ae89, 0x45aeb3). */
+FNTECH3_JKA_WIRE_RECORD(siegePers_t, 12)
+FNTECH3_JKA_WIRE_FIELD(siegePers_t, beatingTime, 0, 4, 0)
+FNTECH3_JKA_WIRE_FIELD(siegePers_t, lastTeam, 4, 4, 0)
+FNTECH3_JKA_WIRE_FIELD(siegePers_t, lastTime, 8, 4, 0)

@@ -842,8 +842,9 @@ typedef struct {
 	char		text[MAX_RENDER_STRINGS][MAX_RENDER_STRING_LENGTH];
 	rtcwRenderView_t rtcw;
 	aliceRenderView_t alice;
-	// RTCW's and Enemy Territory's portal sky: a scene their client games
-	// draw before the view it is seen from (their RDF_SKYBOXPORTAL)
+	// RTCW's, Enemy Territory's and Jedi Academy's portal sky: a scene
+	// their client games draw before the view it is seen from (their
+	// RDF_SKYBOXPORTAL)
 	qboolean	skyboxPortalScene;
 	fnRTCWFogFrame_t rtcwFog;
 	int numRTCWCoronas;
@@ -2287,6 +2288,9 @@ typedef struct {
 	qboolean				worldMapLoaded;
 	fnRTCWFogState_t		rtcwFog;
 	qboolean				rtcwSkyPortal;
+	// Jedi Academy: a sky portal's scene has been drawn in this level
+	// (renderercommon/tr_jka_sky_portal.h)
+	qboolean				jkaSkyPortal;
 	// Alice: the `portalsky` surfaces the current view found instead of
 	// drawing them, and whether this scene has drawn its sky portal
 	int						numAliceSkyPortalSurfaces;

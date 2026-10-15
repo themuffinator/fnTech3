@@ -551,6 +551,11 @@ static void CL_UpdateLocalViewLiquidInteraction( const refdef_t *refdef ) {
 	if ( !refdef || ( refdef->rdflags & RDF_NOWORLDMODEL ) ) {
 		return;
 	}
+	// Jedi Academy's sky portal is a scene seen from the portal's own camera,
+	// drawn before the eye's: it is no camera that moves through liquid.
+	if ( refdef->jka.skyboxPortal ) {
+		return;
+	}
 	if ( ( refdef->rdflags & RDF_HYPERSPACE ) || !CL_LiquidOriginValid( refdef->vieworg ) ) {
 		cl_liquidViewTrack.valid = qfalse;
 		return;
@@ -605,6 +610,12 @@ static void CL_UpdateUnderwaterView( const refdef_t *refdef ) {
 	// Cgame submits separate RDF_NOWORLDMODEL scenes for 3D HUD models. Those
 	// carry an unrelated camera and must not disturb the world view's medium.
 	if ( !refdef || ( refdef->rdflags & RDF_NOWORLDMODEL ) ) {
+		return;
+	}
+	// Jedi Academy's sky portal is drawn first, from the portal's camera, as
+	// part of what the eye sees: it takes the eye's medium, sampled for the
+	// eye's own view, rather than one sampled where the portal is.
+	if ( refdef->jka.skyboxPortal ) {
 		return;
 	}
 	// The hyperspace flash replaces the view entirely; leave the last sample in

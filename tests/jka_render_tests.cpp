@@ -163,7 +163,17 @@ int main() {
         view=sourceView;write(view,offset,bad);auto saved=fd;
         assert(raven::ReadView(view.data()+3,fd)==status&&same(saved,fd));
     };
-    for(uint32_t flags : {2u,8u,24u,32u,64u,128u,0xffffffffu}) rejectedView(92,flags,raven::Status::ViewFlags);
+    // A sky portal's scene (0x8) is served as the retail client game sends it,
+    // with its world (0x10), and crosses as its own engine field; without
+    // 0x10, and the automap, no-fog and force-sight flags, stay refused.
+    for(uint32_t flags:{24u,25u,28u,29u}) {
+        view=sourceView;write(view,92,flags);const auto guarded=view;
+        assert(raven::ReadView(view.data()+3,fd)==raven::Status::Ok&&view==guarded);
+        refdef_t expected{};assert(raven::ReadView(sourceView.data()+3,expected)==raven::Status::Ok);
+        expected.rdflags=int(flags&5u);expected.jka.skyboxPortal=qtrue;assert(same(fd,expected));
+    }
+    assert(raven::ReadView(sourceView.data()+3,fd)==raven::Status::Ok&&!fd.jka.skyboxPortal);
+    for(uint32_t flags : {2u,8u,9u,12u,13u,32u,56u,64u,88u,128u,152u,0x100u,0xffffffffu}) rejectedView(92,flags,raven::Status::ViewFlags);
     for(std::size_t offset : {16u,20u,24u,48u,80u}) rejectedView(offset,0x7fc01234u,raven::Status::InvalidRecord);
     for(std::size_t offset : {8u,12u}) rejectedView(offset,0,raven::Status::InvalidRecord);
     rejectedView(0,uint32_t(INT_MAX),raven::Status::InvalidRecord);rejectedView(4,0xffffffffu,raven::Status::InvalidRecord);

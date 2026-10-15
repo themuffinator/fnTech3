@@ -95,7 +95,7 @@ class JKAModuleRefusalTests(unittest.TestCase):
 
         # Every served case returns; none may fall through to another call.
         served = re.findall(r'case Call::(\w+):', source)
-        self.assertEqual(len(served), 157, 'the imports served so far, counted')
+        self.assertEqual(len(served), 159, 'the imports served so far, counted')
         self.assertEqual(len(served), len(set(served)), 'no import is served twice')
 
     def test_navigation_is_answered_only_out_of_the_graph_the_engine_holds(self):

@@ -464,4 +464,14 @@ typedef struct {
 	int32_t next_roff_time;
 } fntech3_jka_sharedEntity_t;
 
+/* Siege's round record, which the game hands the engine to keep from one
+ * level to the next: whether a time is to be beaten, by which team, and the
+ * time. Retail jamp.exe 1.01 copies it as these three words each way
+ * (imports 42 and 43, 0x45ae89 and 0x45aeb3). */
+typedef struct {
+	int32_t beatingTime;
+	int32_t lastTeam;
+	int32_t lastTime;
+} fntech3_jka_siegePers_t;
+
 #endif

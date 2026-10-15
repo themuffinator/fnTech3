@@ -548,6 +548,13 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   and a recorded match with a lit saber in it plays to its end, though no
   picture of a blade has been checked yet
   ([details](fntech3/2026-10-14-compatibility-round.md#jedi-academy-saber-glow-and-lines)).
+  Siege games now start: the server keeps a round's time to beat for the
+  next round, as the original does, though a siege game still stops when
+  the game opens its class menu. Maps whose sky shows a distant view of its
+  own now draw that view where the sky is, as the original does, and
+  `mp/duel6` has been checked ([siege details](fntech3/2026-10-15-jka-siege.md)).
+  `mp/duel9`'s sky still shows plain grey, and `mp/siege_hoth` still stops
+  at a picture the game chooses frame by frame, which is not drawn yet.
   Maps whose speakers and torches carry background sounds of their own, such
   as `mp/ctf3`, no longer stop on their first frame: those sounds now play
   where they are, and their occasional calls come at the times the game
