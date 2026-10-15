@@ -17,7 +17,7 @@ CHECKS = r'''
 int main(){try{
  for(const auto &p:profiles){
   profile=p;
-  Check(CM_BodyContents()==(p.id==COM_GAME_JK2_MP?0x100:0x2000000),"Profile body bit");
+  Check(CM_BodyContents()==(p.id==COM_GAME_JK2_MP||p.id==COM_GAME_JKA_MP?0x100:0x2000000),"Profile body bit");
  }
  for(const auto &p:profiles)if(p.id==COM_GAME_JK2_MP)profile=p;
  Fixture_LoadEmptyWorld();

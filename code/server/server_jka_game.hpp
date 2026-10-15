@@ -9,6 +9,7 @@
 #include "server_jka_icarus.hpp"
 #include "server_jka_actions.hpp"
 #include "server_jka_roff.hpp"
+#include "server_jka_trace.hpp"
 #include "server_world_bounds.hpp"
 #include "../nav/nav_graph.hpp"
 
@@ -544,17 +545,20 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		return true;
 	}
 
-	case Call::G_TRACE: {
-		/* Raven's trap passes two more arguments than Quake III's, a zero and
-		 * a ten, which steer Ghoul2 collision. This is the world trace, which
-		 * has no Ghoul2 in it, so they are recorded here and not acted on;
-		 * G_G2TRACE is where they would mean something. */
+	case Call::G_TRACE:
+	case Call::G_G2TRACE: {
+		/* Both are retail's one server trace (jamp.exe 1.01 0x462920, from
+		 * 0x45abd7 and 0x45ac34): nine words, the last two Ghoul2 flags and a
+		 * level of detail. Import 27 always traces with flags 0 -- its wrapper
+		 * hands a zero and a ten -- so only import 28 reaches the models
+		 * (server_jka_trace.hpp). */
 		trace_t traced{};
-		SV_Trace( &traced, SV_JKAWorldVector( pointer( 2 ), "the trace start" ),
+		SV_JKATrace( traced, SV_JKAWorldVector( pointer( 2 ), "the trace start" ),
 			SV_JKAWorldVector( pointer( 3 ), "the trace mins", true ),
 			SV_JKAWorldVector( pointer( 4 ), "the trace maxs", true ),
 			SV_JKAWorldVector( pointer( 5 ), "the trace end" ), static_cast<int>( args[6] ),
-			static_cast<int>( args[7] ), qfalse );
+			static_cast<int>( args[7] ), call == Call::G_G2TRACE ? static_cast<int>( args[8] ) : 0,
+			static_cast<int>( args[9] ) );
 		fntech3_jka_trace_t external{};
 		if ( !fntech3::jka::state::FromInternal( traced, external ) ) {
 			Com_Error( ERR_DROP, "Jedi Academy cannot be told this trace result" );

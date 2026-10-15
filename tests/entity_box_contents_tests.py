@@ -312,7 +312,7 @@ int main(){
   // contents set, so every way out of that loop is covered.
   for(const auto &catalogProfile:profiles)for(bool forced:{false,true}){
    profile=catalogProfile;
-   const int body=profile.id==COM_GAME_JK2_MP?0x100:CONTENTS_BODY;
+   const int body=profile.id==COM_GAME_JK2_MP||profile.id==COM_GAME_JKA_MP?0x100:CONTENTS_BODY;
    const Event restore{'S',body,body};
    if(forced)profile.entityBoxContentsPolicy=COM_ENTITY_BOX_CONTENTS_ENTITY;
    const bool own=profile.entityBoxContentsPolicy==COM_ENTITY_BOX_CONTENTS_ENTITY;

@@ -1447,6 +1447,9 @@ test('fntech3_jka_wire', jka_wire_tests)
 jka_snapshot_tests = executable('fntech3_jka_snapshot_tests',
   'tests/jka_snapshot_tests.cpp', cpp_args: common_cpp_args)
 test('fntech3_jka_snapshot', jka_snapshot_tests)
+jka_g2_trace_tests = executable('fntech3_jka_g2_trace_tests',
+  'tests/jka_g2_trace_tests.cpp', cpp_args: common_cpp_args)
+test('fntech3_jka_g2_trace', jka_g2_trace_tests)
 jka_ui_tests = executable('fntech3_jka_ui_tests',
   'tests/jka_ui_tests.cpp', cpp_args: common_cpp_args)
 test('fntech3_jka_ui', jka_ui_tests)

@@ -30,7 +30,8 @@ int main(){
  for(unsigned profile=COM_GAME_AUTO;profile<COM_GAME_COUNT;++profile){
   selectedProfile=static_cast<comGameId_t>(profile);
   cm={};
-  const int body=selectedProfile==COM_GAME_JKA_SP||selectedProfile==COM_GAME_JK2_MP ? 0x100 : CONTENTS_BODY;
+  const int body=selectedProfile==COM_GAME_JKA_SP||selectedProfile==COM_GAME_JK2_MP
+   ||selectedProfile==COM_GAME_JKA_MP ? 0x100 : CONTENTS_BODY;
   assert(CM_TotalMapContents()==body);
   cbrush_t brushes[2]{};brushes[0].contents=CONTENTS_SOLID;brushes[1].contents=CONTENTS_WATER;
   cPatch_t patch{};patch.contents=0x40000000;

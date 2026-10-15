@@ -531,16 +531,20 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   After joining from the console, the Player Configuration menu that opens
   closes with Escape or `togglemenu`, `+altattack` fires a weapon's second
   mode, and the concussion rifle now plays its muzzle flash and sound when
-  fired, though the match still stops when the shot reaches the server
-  ([weapon fire details](fntech3/2026-10-15-jka-weapon-fire.md)).
+  fired ([weapon fire details](fntech3/2026-10-15-jka-weapon-fire.md)).
   Muzzle flashes and explosions now shake your view a little when they go
   off right beside you, as in the original game: a test match has played
   the muzzle flashes of eight guns this way. A fired Bryar pistol now shows
-  its whole muzzle flash, though the match still stops when the shot
-  reaches the server, and at once in first-person view
+  its whole muzzle flash, though the match stops at once in first-person view
   ([shake details](fntech3/2026-10-15-jka-camera-shake.md)).
   `cl_viewShake` turns that shake down or off
   ([Graphics guide](DISPLAY.md#view-shake)).
+  Shots now fly and are checked against a player's actual body, not just the
+  box around it, as in the original: a shot through the gap beside an arm
+  passes on. A test match has fired the concussion rifle's missile and beam
+  and the Bryar pistol's bolt, though the match still stops when each one
+  hits a wall, at its explosion or scorch mark
+  ([shot details](fntech3/2026-10-15-jka-g2-trace.md)).
   Longer matches, most other maps and fighting have not been checked yet
   ([spawn effect details](fntech3/2026-10-15-jka-spawn-effect.md)). The
   open-source OpenJK engine's client joins fnTech3's server. A lightsaber's

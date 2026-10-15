@@ -27,6 +27,12 @@ historical upstream records, not fnTech3 release history. See the
   builds them, checked against its own vertices; a recorded match no longer
   stops at the first lit saber
   ([record](docs/fntech3/2026-10-14-compatibility-round.md)).
+- Let Jedi Academy multiplayer's shots hit players: every trace missed a
+  player's box, which carried Quake III's body bit instead of Academy's, and
+  the server's Ghoul2 trace now checks a shot against the body's own
+  triangles as the original does, so a concussion rifle shot no longer stops
+  the match on reaching the server
+  ([record](docs/fntech3/2026-10-15-jka-g2-trace.md)).
 - Play Jedi Academy maps whose speakers and effects carry sound sets, such
   as `mp/ctf3`: the client no longer stops on their first frame, and each
   set's loop and occasional sounds play where they are, checked against the

@@ -1,0 +1,492 @@
+{
+ "record": "docs/fntech3/2026-10-15-jka-g2-trace.md",
+ "date": "2026-10-15",
+ "profiles": [
+  "jka-mp"
+ ],
+ "baseHead": "8a05e028b51e5c722bbd73b16d65dc2c6824e216",
+ "claim": "Compatibility slice only; no gate closes.",
+ "platform": "Windows 11, MSVC 2022 x86 (win32-dev options, strict warnings), clang 20 for fixtures",
+ "runtime": {
+  "folder": ".tmp/runtime/jka-g2trace",
+  "build": "git archive of 8a05e028 with this slice laid over it (.tmp/jka-g2trace/overlay.py), meson -j 4",
+  "sha256": {
+   "fntech3.exe": "005f242e804d894a0cf2717def4657faaa1eb2a029ceb44305b4fc8fb66543bd",
+   "fnql_glx_x86.dll": "9bfa64e11ce2435146486a0e788ecfe7a0397865db5fc6edfaa963139851aaa3",
+   "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+   "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+  }
+ },
+ "retail": {
+  "jamp.exe 1.01": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+  "base/assets3.pk3:jampgamex86.dll": "b9e5ad492d35a3ec2fc7f6933df42ce9d3b05d3ec437e3bf12243a5d0d690850",
+  "method": "capstone + pefile static reading; OpenJK 1a6a643 located routines (reference only)",
+  "dispatch": {
+   "table": "0x45a660, bound 0x27a, jump table 0x45d34c",
+   "import27": "0x45abd7: flags 0, lod = word 10",
+   "import28": "0x45ac34: flags = word 9, lod = word 10",
+   "trace": "0x462920"
+  },
+  "trace": {
+   "missingBox": "vec3_origin 0x12a4f2c",
+   "worldSweep": "CM_BoxTrace 0x435930, capsule 0",
+   "entityWord": "fraction != 1.0 (double 0x566038) -> 1022, else 1023",
+   "earlyOut": "fraction == 0",
+   "box": "start/end + mins/maxs -/+ 1.0 (0x565f74)",
+   "entityLoop": "0x462490"
+  },
+  "entityLoop": {
+   "touchList": "static 0x1308b80, 1024 (0x4624d9)",
+   "passOwner": "0x4624e6..0x462517: ownerNum of the pass, 1023 -> -1; pass record read even for 1023 (0x46251f)",
+   "ownerRules": "0x462583..0x4625e2 (svFlags 0x1000 owner-not-shared; masks 0x1301 and 0x41301; eType 3 missile)",
+   "noShot": "0x4625f9..0x462611 (contents > 0 and 0x200000 for a shot mask)",
+   "clipHandle": "0x461ac0",
+   "boxSweep": "CM_TransformedBoxTrace 0x436010 (bmodel angles only)",
+   "boxRecordZeroed": "0x435990 (entity word 0 after a miss)",
+   "oldTrace": "0x462663: kept when flags & 1",
+   "startSolidNames": "0x4626a8",
+   "ghoul2Step": "0x4626db..0x4628fd",
+   "records": "0x1308780..0x1308b80, 16 x 64 bytes, entity word reset to -1",
+   "radius": "(maxs[0] - mins[0]) / 2.0 (0x566100) unless both are 0; flags & 8 -> at least 1.0",
+   "angles": "(0, yaw, 0): s.apos.trBase[1] (+0x44) below 32, else r.currentAngles[1] (+0x288)",
+   "collisionDetect": "0x4e0170 (records, instance, angles, r.currentOrigin, time 0xc317c4, number, start, end, modelScale +0x224, G2VertSpaceServer 0x10dfd2c, 0, lod, radius)",
+   "vehicleCache": "0x4dfe00 when com_optvehtrace (0xb43cf4, registered \"0\" at 0x438630), eType 13, NPC_class 0x35, m_pVehicle",
+   "hit": "first record naming the entity before a -1; none -> trace = oldTrace; else endpos and plane normal; flags & 4 and entity match -> surfaceFlags = surface index"
+  },
+  "entityOffsets": {
+   "s.number": "0x0",
+   "s.eType": "0x4",
+   "s.eFlags": "0x8 (EF_DEAD 2)",
+   "s.apos.trBase[1]": "0x44",
+   "NPC_class": "0x1dc",
+   "m_pVehicle": "0x218",
+   "ghoul2": "0x21c",
+   "modelScale": "0x224",
+   "r.svFlags": "0x238",
+   "r.bmodel": "0x240",
+   "r.contents": "0x25c",
+   "r.currentOrigin": "0x278",
+   "r.currentAngles": "0x284",
+   "r.ownerNum": "0x294"
+  },
+  "collisionDetect": {
+   "setup": "0x4e0c50",
+   "skeleton": "0x49a050(instance, time, 1, scale): no clock read inside",
+   "worldMatrix": "0x4ec580 into 0xfe2d10, inverse 0x4ec620 into 0xfe2ce0",
+   "vertSpaceReset": "0x4e01d8",
+   "transformModel": "0x4e9ce0",
+   "traceModels": "0x4ec1c0",
+   "count": "0x4e0320..0x4e0389",
+   "sort": "qsort 0x52bc40 (CRT median-of-three, cutoff 8, selection sort 0x52bbd0), order 0x4dfd10"
+  },
+  "traceModels": {
+   "skip": "model index -1 (+0x30), not valid (+0xb0), flags & 1 no collision (+0xa0)",
+   "lodRule": "0x4ee560 per model"
+  },
+  "traceSurfaces": {
+   "function": "0x4ec0a0",
+   "anyFlagSkips": "0x4ec104",
+   "noDescendants": "0x100 (0x4ec172)",
+   "pointRadius": "fabs < 0.1 double 0x565fb0",
+   "segment": "0x4eb1c0 -> 0x4ea120 both faces (push 1, push 1 at 0x4eb234), parallel 1e-10 (0x54e3b4)",
+   "radius": "0x4eb4a0",
+   "returnOnHit": "traceFlags == 2 only (0x4ec13b), never from the server"
+  },
+  "segmentRecord": {
+   "facing": "> 0 -> 1, else 0 (0x4eb2be..0x4eb2c9)",
+   "distance": "sqrt (0x5298d4)"
+  },
+  "boxHull": {
+   "CM_InitBoxHull": "0x428a80",
+   "contents": "0x100 at 0x428abd",
+   "capsuleContents": [
+    "0x434cfa",
+    "0x4350df"
+   ],
+   "SV_LinkEntity": "0x461de0",
+   "solidTest": "r.contents & 0x101 at 0x461e42"
+  },
+  "gameCalls": {
+   "wrapper27": "0x200a6180 (pushes 0 and 10)",
+   "wrapper28": "0x200a61c0",
+   "sites": {
+    "0x200989b6": "flags 0xf",
+    "0x200bb268": "mask 0x1301, flags 0xf",
+    "0x200bb716": "mask 0x1301, flags 0xf",
+    "0x200bd403": "mask 0x1301, flags 7",
+    "0x200d31c5": "mask 0x1301, flags 0xf",
+    "0x200d3dee": "mask 0x1301, flags 0xf"
+   },
+   "lod": "g_g2TraceLod vmCvar 0x207ac100 (integer at 0x207ac10c), registered \"3\""
+  }
+ },
+ "served": [
+  "imports 27 and 28 through code/server/server_jka_trace.hpp (jka-mp)",
+  "code/compat/jka_trace_clip.hpp: retail trace and entity loop as a template",
+  "code/ghoul2/ghoul2_collision.hpp: segment and radius tests, 16 records, retail sort",
+  "CM_BodyContents() 0x100 for jka-mp (box brush, capsule contents, s.solid packing)"
+ ],
+ "refused": [
+  "instance the store never handed out",
+  "present model outside the store pose order",
+  "model without a mesh",
+  "pass entity outside the game records (as before)"
+ ],
+ "notServed": [
+  "effects Flash primitive (client)",
+  "cgame imports 299 and 300",
+  "vehicle transform cache (com_optvehtrace)",
+  "gore"
+ ],
+ "open": [
+  "box sweep plane tie on an exact box edge (trace 20359: retail y plane, fnTech3 x plane)",
+  "a live hit on a body (blocked by cgame import 299)"
+ ],
+ "inference": [
+  "Retail x87 against fnTech3 single precision: within 0.0037 units and 3e-6 in the normal on Kyle",
+  "Posing at sv.time through the store, unsmoothed, as the server bolt path"
+ ],
+ "comparison": {
+  "harness": ".tmp/jka-g2trace/run-probe.py + g2trace-probe.cpp + compare.py + stats.py",
+  "fixtureSourceSha256": "6494644b3ddf27636dcbf30b53ecc858a09c554833a696549d354ded2378bd6f",
+  "module": ".tmp/runtime/jka-retail/g2trace/jampgamex86.dll 545f1da99ba70acada4ebb5515f24fc07ee3b3452875b1b44a5ed888056759ad",
+  "map": "mp/ffa1",
+  "mask": "0x100",
+  "retailRun": {
+   "output": ".tmp/jka-g2trace/retail-5",
+   "passed": true,
+   "exitCode": 0,
+   "command": "jamp.exe +set fs_game g2trace +set dedicated 1 +set net_enabled 1 +set net_ip 127.0.0.1 +map mp/ffa1 (isolated home, private desktop)"
+  },
+  "fntech3Run": {
+   "output": ".tmp/jka-g2trace/fntech3-5",
+   "passed": true,
+   "exitCode": 0,
+   "command": "fntech3.exe +set com_gameProfile jka-mp +set dedicated 1 +set net_enabled 0 +map mp/ffa1 (isolated home, private desktop)"
+  },
+  "summary": {
+   "retail": "retail-5",
+   "other": "fntech3-5",
+   "count": 736,
+   "otherCount": 736,
+   "bitIdentical": 558,
+   "withinTolerance": 735,
+   "maxPosition": 0.003662109375,
+   "maxNormal": 2.6226043701171875e-06,
+   "maxFraction": 0.0,
+   "g2Hits": 181,
+   "g2Restored": 387,
+   "boxOnly": 96
+  },
+  "byCase": {
+   "phase1 call27 flags7 lod3 box0": {
+    "traces": 84,
+    "retailEntityHits": 48,
+    "retailRestoredOrMissed": 36,
+    "bitIdentical": 84,
+    "withinTolerance": 84
+   },
+   "phase1 call28 flags15 lod0 box12": {
+    "traces": 8,
+    "retailEntityHits": 8,
+    "retailRestoredOrMissed": 0,
+    "bitIdentical": 0,
+    "withinTolerance": 8
+   },
+   "phase1 call28 flags15 lod3 box0": {
+    "traces": 8,
+    "retailEntityHits": 8,
+    "retailRestoredOrMissed": 0,
+    "bitIdentical": 0,
+    "withinTolerance": 8
+   },
+   "phase1 call28 flags15 lod3 box3": {
+    "traces": 84,
+    "retailEntityHits": 32,
+    "retailRestoredOrMissed": 52,
+    "bitIdentical": 52,
+    "withinTolerance": 84
+   },
+   "phase1 call28 flags5 lod3 box0": {
+    "traces": 8,
+    "retailEntityHits": 8,
+    "retailRestoredOrMissed": 0,
+    "bitIdentical": 0,
+    "withinTolerance": 8
+   },
+   "phase1 call28 flags7 lod0 box0": {
+    "traces": 84,
+    "retailEntityHits": 17,
+    "retailRestoredOrMissed": 67,
+    "bitIdentical": 67,
+    "withinTolerance": 84
+   },
+   "phase1 call28 flags7 lod3 box0": {
+    "traces": 92,
+    "retailEntityHits": 26,
+    "retailRestoredOrMissed": 66,
+    "bitIdentical": 66,
+    "withinTolerance": 92
+   },
+   "phase2 call27 flags7 lod3 box0": {
+    "traces": 84,
+    "retailEntityHits": 48,
+    "retailRestoredOrMissed": 36,
+    "bitIdentical": 84,
+    "withinTolerance": 84
+   },
+   "phase2 call28 flags15 lod0 box12": {
+    "traces": 8,
+    "retailEntityHits": 8,
+    "retailRestoredOrMissed": 0,
+    "bitIdentical": 0,
+    "withinTolerance": 8
+   },
+   "phase2 call28 flags15 lod3 box0": {
+    "traces": 8,
+    "retailEntityHits": 8,
+    "retailRestoredOrMissed": 0,
+    "bitIdentical": 0,
+    "withinTolerance": 8
+   },
+   "phase2 call28 flags15 lod3 box3": {
+    "traces": 84,
+    "retailEntityHits": 23,
+    "retailRestoredOrMissed": 61,
+    "bitIdentical": 61,
+    "withinTolerance": 84
+   },
+   "phase2 call28 flags5 lod3 box0": {
+    "traces": 8,
+    "retailEntityHits": 7,
+    "retailRestoredOrMissed": 1,
+    "bitIdentical": 4,
+    "withinTolerance": 7
+   },
+   "phase2 call28 flags7 lod0 box0": {
+    "traces": 84,
+    "retailEntityHits": 16,
+    "retailRestoredOrMissed": 68,
+    "bitIdentical": 68,
+    "withinTolerance": 84
+   },
+   "phase2 call28 flags7 lod3 box0": {
+    "traces": 92,
+    "retailEntityHits": 20,
+    "retailRestoredOrMissed": 72,
+    "bitIdentical": 72,
+    "withinTolerance": 92
+   }
+  },
+  "mismatched": [
+   {
+    "id": 20359,
+    "ent": 40,
+    "call": 28,
+    "flags": 5,
+    "lod": 3,
+    "box": 0.0,
+    "retail": {
+     "allsolid": 0,
+     "startsolid": 0,
+     "entity": 40,
+     "fraction": 0.3739583194255829,
+     "endpos": [
+      2559.125,
+      479.125,
+      906.34375
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "dist": 15.0,
+     "typebits": 1,
+     "surfaceFlags": 0,
+     "contents": 256
+    },
+    "other": {
+     "allsolid": 0,
+     "startsolid": 0,
+     "entity": 40,
+     "fraction": 0.3739583194255829,
+     "endpos": [
+      2559.125,
+      479.125,
+      906.34375
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "dist": 15.0,
+     "typebits": 0,
+     "surfaceFlags": 0,
+     "contents": 256
+    }
+   }
+  ],
+  "beforeBodyBit": {
+   "run": "fntech3-2 (box brush contents 0x2000000)",
+   "againstRetail": "retail-4",
+   "withinTolerance": 475,
+   "mismatched": 261,
+   "fnTech3EntityHits": 0
+  }
+ },
+ "live": {
+  "harness": ".tmp/jka-g2trace/listen.py (windowed, private desktop, net_enabled 0, no input)",
+  "env": {
+   "JKA_SHOTS": "8",
+   "JKA_SHOT_WAIT": "4",
+   "JKA_FIRST_WAIT": "2"
+  },
+  "runs": {
+   "glx-alt-1": {
+    "outcome": "refused",
+    "extra": [
+     "set cl_menuBlur 0",
+     "set fx_debug 2",
+     "set con_notifytime 0",
+     "team free",
+     "wait 240",
+     "togglemenu",
+     "wait 20",
+     "give all",
+     "wait 60",
+     "weapon 13",
+     "wait 120",
+     "echo probe-fire alt",
+     "+altattack",
+     "wait 3",
+     "-altattack",
+     "wait 6"
+    ],
+    "errors": [
+     "ERROR: Academy effect effects/concussion/explosion.efx: effects primitive family is not served yet (Flash)"
+    ],
+    "captures": 0,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "renderer": "glx",
+    "map": "mp/ffa2",
+    "fntech3Sha256": "005f242e804d894a0cf2717def4657faaa1eb2a029ceb44305b4fc8fb66543bd",
+    "observed": "altmuzzle_flash.efx and its sound; concussion/alt_ring.efx x15 at 8400; then concussion/explosion.efx refused (Flash)"
+   },
+   "glx-primary-1": {
+    "outcome": "refused",
+    "extra": [
+     "set cl_menuBlur 0",
+     "set fx_debug 2",
+     "set con_notifytime 0",
+     "team free",
+     "wait 240",
+     "togglemenu",
+     "wait 20",
+     "give all",
+     "wait 60",
+     "weapon 13",
+     "wait 120",
+     "echo probe-fire primary",
+     "+attack",
+     "wait 3",
+     "-attack",
+     "wait 6"
+    ],
+    "errors": [
+     "ERROR: Academy effect effects/concussion/explosion.efx: effects primitive family is not served yet (Flash)"
+    ],
+    "captures": 4,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "renderer": "glx",
+    "map": "mp/ffa2",
+    "fntech3Sha256": "005f242e804d894a0cf2717def4657faaa1eb2a029ceb44305b4fc8fb66543bd",
+    "observed": "concussion/shot.efx x11 from 8263 to 8435; 4 engine screenshots; then concussion/explosion.efx refused (Flash)"
+   },
+   "glx-npc-1": {
+    "outcome": "refused",
+    "extra": [
+     "set cl_menuBlur 0",
+     "set fx_debug 2",
+     "set con_notifytime 0",
+     "team free",
+     "wait 240",
+     "togglemenu",
+     "wait 20",
+     "give all",
+     "wait 60",
+     "weapon 13",
+     "wait 60",
+     "npc spawn stormtrooper",
+     "wait 90",
+     "echo probe-fire alt",
+     "+altattack",
+     "wait 3",
+     "-altattack",
+     "wait 6"
+    ],
+    "errors": [
+     "ERROR: Unsupported jka-mp cgame import 299 (CG_G2_COLLISIONDETECT)"
+    ],
+    "captures": 0,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "renderer": "glx",
+    "map": "mp/ffa2",
+    "fntech3Sha256": "005f242e804d894a0cf2717def4657faaa1eb2a029ceb44305b4fc8fb66543bd",
+    "observed": "npc spawn stormtrooper accepted by the server; the client game then calls cgame import 299 (CG_G2_COLLISIONDETECT), refused"
+   },
+   "glx-bryar-1": {
+    "outcome": "refused",
+    "extra": [
+     "set cl_menuBlur 0",
+     "set fx_debug 2",
+     "set con_notifytime 0",
+     "team free",
+     "wait 240",
+     "togglemenu",
+     "wait 20",
+     "give all",
+     "wait 60",
+     "weapon 2",
+     "wait 120",
+     "echo probe-fire primary",
+     "+attack",
+     "wait 3",
+     "-attack",
+     "wait 30"
+    ],
+    "errors": [
+     "ERROR: Academy effect effects/bryar/wall_impact.efx: effects primitive family is not served yet (Decal)"
+    ],
+    "captures": 0,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "renderer": "glx",
+    "map": "mp/ffa2",
+    "fntech3Sha256": "005f242e804d894a0cf2717def4657faaa1eb2a029ceb44305b4fc8fb66543bd",
+    "observed": "bryar/shot.efx x9 from 9416 to 9546; then bryar/wall_impact.efx refused (Decal)"
+   }
+  }
+ },
+ "tests": {
+  "added": [
+   "tests/jka_g2_trace_tests.cpp (meson fntech3_jka_g2_trace; MSVC, clang 20, i686 GCC 13, MinGW)"
+  ],
+  "updated": [
+   "tests/jk2_bot_collision_tests.py",
+   "tests/entity_box_contents_tests.py",
+   "tests/jka_sp_map_contents_tests.py",
+   "tests/jka_module_refusal_tests.py"
+  ],
+  "suites": {
+   "tree": "77f0ab937c8705f5485601547434d31bbb6c835f with this slice (git archive + overlay)",
+   "build": "all targets, meson -j 4, exit 0",
+   "meson": "272 ok, 0 fail, 2 skipped of 274 (fnql_python_source_regressions left out)",
+   "python": "67 files (60 jka_* plus entity_box_contents, jk2_bot_collision, world_owner_trace, generate_docs, collision_model_parity_source, bsp_profile_loader, untrusted_asset_bounds): 183 passed, 406 subtests"
+  }
+ }
+}

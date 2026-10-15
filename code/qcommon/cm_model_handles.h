@@ -31,12 +31,15 @@ version.
  * Outcast 1.02a initializes its box hull with 0x100 (jk2mp.exe 0x420e92),
  * reports that bit for capsule hits (0x425fb3, 0x42633d), and tests 0x101
  * when linking a solid/body entity (0x450315). It is not Q3's BODY bit.
- * Other profiles retain their established behavior; this is JK2 MP evidence.
- * See docs/fntech3/2026-10-07-jk2-bot-combat.md. */
+ * Academy 1.01 does the same: jamp.exe's CM_InitBoxHull (0x428a80) gives
+ * the box brush 0x100 (0x428abd) and capsule hits report it (0x434cfa,
+ * 0x4350df); see docs/fntech3/2026-10-15-jka-g2-trace.md.
+ * Other profiles retain their established behavior; this is JK2 and JKA MP
+ * evidence. See docs/fntech3/2026-10-07-jk2-bot-combat.md. */
 static ID_INLINE int CM_BodyContents( void ) {
 #ifndef BSPC
 	const comGameProfile_t *profile = Com_GameProfile();
-	if ( profile && profile->id == COM_GAME_JK2_MP ) return 0x100;
+	if ( profile && ( profile->id == COM_GAME_JK2_MP || profile->id == COM_GAME_JKA_MP ) ) return 0x100;
 #endif
 	return CONTENTS_BODY;
 }
