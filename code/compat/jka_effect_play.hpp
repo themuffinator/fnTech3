@@ -486,6 +486,24 @@ inline bool Basis(const Vector &forward,Axis &axis) noexcept {
     axis[2]={axis[0][1]*axis[1][2]-axis[0][2]*axis[1][1],axis[0][2]*axis[1][0]-axis[0][0]*axis[1][2],axis[0][0]*axis[1][1]-axis[0][1]*axis[1][0]};
     return Finite(axis[0])&&Finite(axis[1])&&Finite(axis[2]);
 }
+// Client-game import 268 (jamp.exe 0x41346b -> 0x401050) hands PlayEffect
+// (0x407110) the caller's own matrix3_t, which it passes on or copies into a
+// scheduled spawn (0x4075d8..0x40760a) unnormalized. Its bolt word -1 is the
+// unbolted placement every retail call site passes (cgamex86.dll 0x300531a4,
+// 0x30053586, 0x30065a9e, 0x30065ade).
+constexpr int EntityUnbolted=-1;
+// Fn bound on each word of a caller's axis; retail reads any value. A bolt
+// matrix scaled by a model's scale stays far within it.
+constexpr float EntityAxisBound=1024.0f;
+inline bool EntityAxis(const float (&words)[9],Axis &axis) noexcept {
+    Axis value;
+    for(int row=0;row<3;++row)for(int n=0;n<3;++n){
+        const float word=words[row*3+n];
+        if(!Finite(word)||std::fabs(word)>EntityAxisBound)return false;
+        value[row][n]=word;
+    }
+    axis=value;return true;
+}
 // An emitter's axis is rebuilt from angles (0x40a867 vectoangles of the play
 // axis's forward, 0x403e90 AnglesToAxis): roll is zero whatever the caller's.
 inline Vector DirectionAngles(const Vector &forward) noexcept {

@@ -1515,6 +1515,8 @@ test('fntech3_jka_effect_sound', python, args: files('tests/jka_effect_sound_tes
   timeout: jka_test_timeout)
 test('fntech3_jka_camera_shake', python, args: files('tests/jka_camera_shake_tests.py'),
   timeout: jka_test_timeout)
+test('fntech3_jka_entity_effect', python, args: files('tests/jka_entity_effect_tests.py'),
+  timeout: jka_test_timeout)
 test('fntech3_jka_weapon_fire', python, args: files('tests/jka_weapon_fire_tests.py'),
   timeout: jka_test_timeout)
 test('fntech3_jka_oneshot_animmap', python, args: files('tests/jka_oneshot_animmap_tests.py'),

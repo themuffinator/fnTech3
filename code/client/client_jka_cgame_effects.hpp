@@ -26,7 +26,8 @@
  * their sound at the spawn origin through Fn's spatial audio (S_StartJKASound,
  * as the cgame's own S_StartSound import does). CameraShake primitives hand
  * their record to the client game's export 31, whose own view shake Fn then
- * renders. Remaining playback controls and
+ * renders. Effects played on an entity (import 268) play at the caller's own
+ * axis; bolted ones refuse by name. Remaining playback controls and
  * primitive families remain named refusals. Registration owns all buffers and
  * partial records across engine ERR_DROP/longjmp recovery. */
 namespace {
@@ -482,24 +483,41 @@ static void CL_JKACgameEffectRunScheduled(JKACgameEffectsState &state) {
     CL_JKACgameEffectPublish(state);
     state.random=random;
 }
-static void CL_JKACgameEffectPlay(const intptr_t *args) {
+// Import 266 (0x413431 -> 0x406d70) builds the axis from a forward
+// direction; import 268 (0x41346b -> 0x401050) hands PlayEffect the caller's
+// own axis and bolt word, with no Ghoul2 instance and no fxParm. Neither
+// passes the entity number (268's args[5]) on, and the volume and radius
+// PlayEffect stores in the template (+0x23c, +0x240) are read by no served
+// family. A bolt word other than -1 would bolt the spawns to a model:
+// PlayEffect then schedules every spawn (0x4074cb) and AddScheduledEffects
+// asks the client game for the entity (export 11) and Ghoul2 for the bolt
+// (0x40c5a0); no retail call site passes one, and Fn refuses it by name.
+static void CL_JKACgameEffectPlay(const intptr_t *args,bool entity=false) {
     using namespace fntech3::jka;
     CL_JKACgameEffectNative();
     effectplay::Vector origin,forward;
-    std::memcpy(forward.data(),CL_JKACgameSpan(args[3],sizeof(forward)),sizeof(forward));
-    if(!effectplay::Finite(forward))Com_Error(ERR_DROP,"Invalid Academy effects direction");
+    effectplay::Axis axis;
+    if(entity){
+        float words[9];std::memcpy(words,CL_JKACgameSpan(args[3],sizeof(words)),sizeof(words));
+        if(!effectplay::EntityAxis(words,axis))Com_Error(ERR_DROP,"Invalid Academy entity effect axis");
+    }else{
+        std::memcpy(forward.data(),CL_JKACgameSpan(args[3],sizeof(forward)),sizeof(forward));
+        if(!effectplay::Finite(forward))Com_Error(ERR_DROP,"Invalid Academy effects direction");
+    }
     const int id=static_cast<int>(args[1]);
     // The measured core logs a missing/inactive declaration and returns.
     if(!jkaCgameEffects||id<1||id>=int(effects::MaxEffects)||std::size_t(id)>jkaCgameEffects->effects.size()||
         !jkaCgameEffects->effects[id-1]->ready){Com_Printf("Academy effects playback has no owned declaration for ID%d\n",id);return;}
+    if(entity&&static_cast<int>(args[4])!=effectplay::EntityUnbolted)
+        Com_Error(ERR_DROP,"Academy entity effect bolt word %d is not served yet",static_cast<int>(args[4]));
     auto &state=*jkaCgameEffects;const auto &effect=*state.effects[id-1];
     if(!state.initialized||state.time<=0)Com_Error(ERR_DROP,"Academy effects playback requires its initialized positive frame clock");
     std::memcpy(origin.data(),CL_JKACgameSpan(args[2],sizeof(origin)),sizeof(origin));
-    effectplay::Axis axis;
-    if(!effectplay::Finite(origin)||!effectplay::Basis(forward,axis))Com_Error(ERR_DROP,"Invalid Academy effects placement");
+    if(!effectplay::Finite(origin)||(!entity&&!effectplay::Basis(forward,axis)))Com_Error(ERR_DROP,"Invalid Academy effects placement");
     CL_JKACgameEffectCompileGraph(state,id);
     // Fn diagnostic beyond retail's counters: name each played declaration.
-    if(state.debug&&state.debug->integer>=2)Com_Printf("Academy FX play: %s at %d\n",effect.name.file.c_str(),state.time);
+    if(state.debug&&state.debug->integer>=2)
+        Com_Printf("Academy FX %s: %s at %d\n",entity?"entity play":"play",effect.name.file.c_str(),state.time);
     // Primary0x40f48b..0x40f49b creates no particle on a paused frame.
     if(!state.frameTime)return;
     if(state.frameTime<0)Com_Error(ERR_DROP,"Academy effects clock reversal or wrap is not served yet");
@@ -754,13 +772,14 @@ static void CL_JKACgameEffectDrawScheduled(bool portal) {
 static bool CL_JKACgameEffectsCall(intptr_t *args,fntech3::jka::module::Call call,intptr_t &result) {
     using fntech3::jka::module::Call;
     if(jkaCgameEffectsTracing)switch(call){
-    case Call::CG_FX_PLAY_EFFECT_ID:case Call::CG_FX_ADD_SCHEDULED_EFFECTS:case Call::CG_FX_INIT_SYSTEM:
+    case Call::CG_FX_PLAY_EFFECT_ID:case Call::CG_FX_PLAY_ENTITY_EFFECT_ID:case Call::CG_FX_ADD_SCHEDULED_EFFECTS:case Call::CG_FX_INIT_SYSTEM:
     case Call::CG_FX_SET_REFDEF:case Call::CG_FX_FREE_SYSTEM:case Call::CG_FX_ADJUST_TIME:case Call::CG_FX_REGISTER_EFFECT:
         Com_Error(ERR_DROP,"Academy effects trace or camera shake cannot reenter its effect context");
     default:break;
     }
     switch (call) {
     case Call::CG_FX_PLAY_EFFECT_ID:CL_JKACgameEffectPlay(args);result=0;return true;
+    case Call::CG_FX_PLAY_ENTITY_EFFECT_ID:CL_JKACgameEffectPlay(args,true);result=0;return true;
     case Call::CG_FX_ADD_SCHEDULED_EFFECTS:CL_JKACgameEffectDrawScheduled(args[1]!=0);result=0;return true;
     case Call::CG_FX_INIT_SYSTEM:CL_JKACgameEffectsInit(args[1]);result=1;return true;
     case Call::CG_FX_SET_REFDEF:

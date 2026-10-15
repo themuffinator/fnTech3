@@ -99,6 +99,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Jedi Academy effect camera shake](fntech3/2026-10-15-jka-camera-shake.md)
   -- the view shake of muzzle flashes and explosions, measured in retail
   and handed to the game's own camera.
+- [Jedi Academy effects on an entity](fntech3/2026-10-15-jka-entity-effect.md)
+  -- the first-person muzzle flash, played at the weapon's own axis as
+  retail plays it.
 - [Jedi Academy Ghoul2 trace](fntech3/2026-10-15-jka-g2-trace.md)
   -- shots checked against a body's own triangles and the box that stands
   for it, measured in retail's server and compared trace for trace.

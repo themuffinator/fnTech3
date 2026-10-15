@@ -535,8 +535,11 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   Muzzle flashes and explosions now shake your view a little when they go
   off right beside you, as in the original game: a test match has played
   the muzzle flashes of eight guns this way. A fired Bryar pistol now shows
-  its whole muzzle flash, though the match stops at once in first-person view
+  its whole muzzle flash
   ([shake details](fntech3/2026-10-15-jka-camera-shake.md)).
+  The view weapon's muzzle flash now plays in first-person view too, with
+  its sound, light and shake
+  ([first-person flash details](fntech3/2026-10-15-jka-entity-effect.md)).
   `cl_viewShake` turns that shake down or off
   ([Graphics guide](DISPLAY.md#view-shake)).
   Shots now fly and are checked against a player's actual body, not just the
