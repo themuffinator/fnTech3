@@ -124,6 +124,11 @@ historical upstream records, not fnTech3 release history. See the
   with its name on screens taller than 4:3, where the name was drawn over
   the bar's middle icon. The bars and the loading screen are now checked in
   captures ([record](docs/fntech3/2026-10-15-jka-hud-live-check.md)).
+- Let Jedi Academy's binoculars and disruptor rifle zoom in, where they
+  stopped the game. Each sight stretches over the screen with its readouts
+  in place, the disruptor's turning rings follow it, and a zoom sees
+  further into a foggy map, as the original's does
+  ([record](docs/fntech3/2026-10-15-jka-zoom.md)).
 
 ## [0.1.0] - 2026-10-11
 

@@ -8,6 +8,41 @@
       "align": { "x": "center", "y": "middle" }
     },
     {
+      "name": "rocket_lock",
+      "match": { "shader": "gfx/2d/wedge" },
+      "align": { "x": "center", "y": "middle" }
+    },
+    {
+      "name": "rocket_lock_icon",
+      "match": { "shader": "gfx/2d/lock" },
+      "align": { "x": "center", "y": "middle" }
+    },
+    {
+      "name": "binocular_zoom",
+      "match": { "shader": "gfx/2d/bin*" },
+      "mode": "stretch"
+    },
+    {
+      "name": "binocular_numbers",
+      "match": { "shader": "gfx/2d/numbers/c_*", "region": { "x": 40, "y": 372, "w": 480, "h": 18 } },
+      "mode": "stretch"
+    },
+    {
+      "name": "binocular_strip",
+      "match": { "shader": "white", "region": { "x": 130, "y": 376, "w": 430, "h": 14 } },
+      "mode": "stretch"
+    },
+    {
+      "name": "disruptor_zoom",
+      "match": { "shader": "gfx/2d/crop*" },
+      "mode": "stretch"
+    },
+    {
+      "name": "disruptor_ticks",
+      "match": { "shader": "gfx/2d/insertTick" },
+      "mode": "stretch"
+    },
+    {
       "name": "scoreboard",
       "match": { "shader": "gfx/menus/menu_buttonback*", "textLike": 0 },
       "panel": "centered"

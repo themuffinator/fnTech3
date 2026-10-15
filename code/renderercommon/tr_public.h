@@ -269,6 +269,9 @@ typedef struct {
 
 	/* MP world visibility limit; false before load or after shutdown. */
 	qboolean (*GetJKADistanceCull)( float *distance );
+	/* Academy's zoom fog for the loaded world (cgame import 216): 0 keeps the
+	 * world-covering fog, otherwise a ramp ending at distanceCull. */
+	void (*SetJKARangedFog)( float range );
 	/* Optional; no game module sees this table. PREPARE_INPUT may pace the
 	 * next frame, before input polling and the engine's frame clock sample.
 	 * Other events are read-only instrumentation using the monotonic clock. */

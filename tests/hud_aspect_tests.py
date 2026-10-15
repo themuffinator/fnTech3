@@ -735,6 +735,35 @@ int main(int argc, char **argv) {
             virtualPic("menu/art/unknownmap_mp", 0, 0, 640, 480); Expect(0, 0, 2560, 1080);
             virtualPic("gfx/hud/load_tick", 140, 460, 360, 8); Expect(875, 1035, 810, 18);
             CL_HudEndFrame();
+            // A zoom's pieces stay registered with its mask, which stretches over
+            // the screen (live dumps, 2026-10-15-jka-zoom): the binocular window,
+            // number strip, circle, side arrow and top triangle; the disruptor's
+            // insert, ticks and charge bar. By position alone they would split
+            // between centred and left-aligned placements (left_column holds the
+            // circle, left_side the arrow at rest, left_hud the strip's first digits).
+            virtualPic("gfx/2d/binMask", 0, 0, 640, 480); Expect(0, 0, 2560, 1080);
+            virtualPic("gfx/2d/binocularWindow", 34, 48, 570, 362); Expect(136, 108, 2280, 814.5f);
+            virtualPic("gfx/2d/binCircle", 82, 94, 16, 16); Expect(328, 211.5f, 64, 36);
+            virtualPic("gfx/2d/binSideArrow", 4, 282, 16, 16); Expect(16, 634.5f, 64, 36);
+            virtualPic("gfx/2d/binSideArrow", 4, 120, 16, 16); Expect(16, 270, 64, 36);
+            virtualPic("gfx/2d/binTopTri", 330, 60, -26, -30); Expect(1320, 135, -104, -67.5f);
+            virtualPic("white", 212, 367, 200, 40); Expect(848, 825.75f, 800, 90);       // behind the numbers
+            virtualPic("white", 135, 376, 6, 6); Expect(540, 846, 24, 13.5f);            // a tick dot
+            // The strip scrolls with the view's yaw: its last dot and digit reach
+            // x 545 and 521 (cg_draw.c CG_DrawZoomMask), past right_hud's edge.
+            virtualPic("white", 539, 376, 6, 6); Expect(2156, 846, 24, 13.5f);
+            virtualPic("gfx/2d/numbers/c_nine", 497, 374, 24, 14); Expect(1988, 841.5f, 96, 31.5f);
+            virtualPic("gfx/2d/numbers/c_two", 55, 374, 24, 14); Expect(220, 841.5f, 96, 31.5f);
+            virtualPic("gfx/2d/binocularNumOverlay", 212, 367, 200, 28); Expect(848, 825.75f, 800, 63);
+            virtualPic("gfx/2d/cropCircle2", 0, 0, 640, 480); Expect(0, 0, 2560, 1080);
+            virtualPic("gfx/2d/insertTick", 504, 233, 12, 24); Expect(2016, 524.25f, 48, 54);
+            virtualPic("gfx/2d/crop_charge", 257, 435, 134, 34); Expect(1028, 978.75f, 536, 76.5f);
+            // Outside the strip, white and the number font keep their places.
+            virtualPic("white", 540, 400, 60, 20); Expect(2335, 900, 135, 45);
+            virtualPic("gfx/2d/numbers/c_two", 20, 440, 24, 14); Expect(45, 990, 54, 31.5f);
+            // A rocket lock's wedges and lock stay on their target near an edge.
+            virtualPic("gfx/2d/wedge", 20, 100, 20, 20); Expect(605, 225, 45, 45);
+            virtualPic("gfx/2d/lock", 10, 80, 40, 40); Expect(582.5f, 180, 90, 90);
             // A string from the font import is one line: each glyph is placed
             // by the whole string, here a score line reaching into the right HUD.
             CL_HudBeginTextLine(400, 463, 520, 476);
@@ -770,6 +799,10 @@ int main(int argc, char **argv) {
             virtualPic("levelshots/mp/ffa1", 0, 0, 640, 480); Expect(0, 0, 900, 720);
             virtualPic("gfx/hud/load_tick", 140, 460, 360, 8); Expect(196.875f, 669.375f, 506.25f, 11.25f);
             CL_HudEndFrame();
+            // The binocular window and circle stretch with their mask at 5:4 too.
+            virtualPic("gfx/2d/binMask", 0, 0, 640, 480); Expect(0, 0, 900, 720);
+            virtualPic("gfx/2d/binocularWindow", 34, 48, 570, 362); Expect(47.8125f, 72, 801.5625f, 543);
+            virtualPic("gfx/2d/binCircle", 82, 94, 16, 16); Expect(115.3125f, 141, 22.5f, 24);
             CL_HudResetCGame(); Size(2560,1080);
         }
         CL_HudRegisterShaderName(17,"white");

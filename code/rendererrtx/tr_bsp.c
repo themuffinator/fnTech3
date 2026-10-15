@@ -4155,6 +4155,13 @@ qboolean RE_GetJKADistanceCull( float *distance ) {
 	return qtrue;
 }
 
+/* Academy's zoom fog (cgame import 216) belongs to the loaded world, whose
+ * load clears it; retail keeps the word across maps (jamp.exe 0x100d830). */
+void RE_SetJKARangedFog( float range ) {
+	if ( ri.gameId != COM_GAME_JKA_MP || !tr.world || tr.world != &s_worldData || !isfinite( range ) ) return;
+	s_worldData.jkaRangedFog = range;
+}
+
 /*
 =================
 RE_GetEntityToken

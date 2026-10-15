@@ -1503,6 +1503,8 @@ typedef struct {
 
 	char		*entityString;
 	const char	*entityParsePoint;
+	// Academy's zoom fog range (RE_SetJKARangedFog); each world starts at 0.
+	float		jkaRangedFog;
 } world_t;
 
 // One of Medal of Honor's permanent decals (tr_mohaa_world.c).
@@ -2901,6 +2903,7 @@ qboolean RE_GetSkinModel( qhandle_t skin, const char *type, char *name );
 qhandle_t RE_GetShaderFromModel( qhandle_t model, int surface, int withLightmap );
 
 qboolean	RE_GetJKADistanceCull( float *distance );
+void	RE_SetJKARangedFog( float range );
 qboolean	RE_GetEntityToken( char *buffer, int size );
 
 model_t		*R_AllocModel( void );

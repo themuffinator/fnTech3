@@ -136,6 +136,10 @@ its number strip would be centred, the circle at (82,94) would be taken by
 `left_column` or `left_side`. The zoom needs its own captures and rules once
 the client game can draw it.
 
+Update: imports 214, 215 and 216 are now served, and both zooms draw live
+with every piece stretched with its mask at 21:9 and 5:4 under new rules
+([zoom record](2026-10-15-jka-zoom.md)).
+
 ## Presentation
 
 This changes only Academy's HUD rules, which are fnTech3's own presentation
@@ -171,7 +175,8 @@ the commit's test runs are in the companion.
 ## Not covered
 
 - Both zoom masks, while cgame import 216 (and 215 for the disruptor's
-  insert) is refused.
+  insert) was refused. Since served and captured in the
+  [zoom record](2026-10-15-jka-zoom.md).
 - The force bar was seen with three powers. The weapon and inventory bars
   cover the widest extents, x 124 to 528.
 - The loading screen was held by delayed packets from a local server; a

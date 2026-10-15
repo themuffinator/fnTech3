@@ -1,0 +1,1764 @@
+{
+ "record": "2026-10-15-jka-zoom.md",
+ "date": "2026-10-15",
+ "profile": "jka-mp",
+ "platform": "Windows 11, Windows x86 build",
+ "retail": {
+  "executable": {
+   "path": "jamp.exe (1.01)",
+   "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b"
+  },
+  "cgameDispatch": {
+   "function": "0x412160",
+   "ordinalLimit": "0x15e",
+   "byteTable": "0x414638",
+   "jumpTable": "0x4142bc",
+   "handlers": {
+    "214": "0x412e5e",
+    "215": "0x412e98",
+    "216": "0x412ed2"
+   }
+  },
+  "observed": {
+   "214": "pushes argument words 1..10, call [0x8af0a0] (RE_RotatePic 0x491760), returns 0",
+   "215": "pushes argument words 1..10, call [0x8af0a4] (RE_RotatePic2 0x491810), returns 0",
+   "216": "mov [0x100d830], args[1]; returns 0; the only writer of 0x100d830",
+   "refTable": "GetRefAPI 0x4a3230 returns 0x1309b88; 0x2d words copied to 0x8af048 at 0x41defb",
+   "commands": {
+    "RE_RotatePic": "id 3",
+    "RE_RotatePic2": "id 4",
+    "bytes": 44,
+    "layout": "id, shader*, x, y, w, h, s1, t1, s2, t2, angle",
+    "bufferCheck": "dropped unless 0x30 bytes remain (limit 0x40000)",
+    "badHandle": "warning 0x554504, default shader"
+   },
+   "backend": {
+    "dispatch": "0x48c150 (table 0x48c280)",
+    "RB_RotatePic": "0x48b7c0",
+    "RB_RotatePic2": "0x48b8b0",
+    "RB_RotatePic_geometry": "glTranslatef(x + w, y, 0); glRotatef(angle, 0, 0, 1); GL_QUADS (-w,0)(0,0)(0,h)(-w,h) with st (s1,t1)(s2,t1)(s2,t2)(s1,t2)",
+    "RB_RotatePic2_geometry": "glTranslatef(x, y, 0); glRotatef(angle, 0, 0, 1); GL_QUADS (-w/2,-h/2)(w/2,-h/2)(w/2,h/2)(-w/2,h/2), constants 0x5662d0 = -0.5, 0x565f90 = 0.5",
+    "state": "both bind stages[0] image[0] only; RotatePic2 GL_State(stage stateBits) and back to 0x10065, skips a shader with no stage; RotatePic sets no state",
+    "projection": "RB_SetGL2D 0x48b070 when not in 2D (glOrtho 640x480)"
+   },
+   "rangedFog": {
+    "reader": "0x4aed70",
+    "word": "0x100d830",
+    "distanceCull": "0x100d834 (read only here; import 309 0x4132cf reads it too)",
+    "conditions": "tess.fogNum (0x1072b68) nonzero, shader fogPass ([+0x84]), fogNum == world globalFog (+0xbc) or numfogs (+0xb4), r_drawfog->value == 2.0",
+    "zero": "GL_FOG_MODE GL_EXP2 (0x801), GL_FOG_DENSITY = 0x12b3ac8 / depthForOpaque (fog+0x30)",
+    "nonzero": "GL_FOG_MODE GL_LINEAR (0x2601), GL_FOG_START = start, GL_FOG_END = distanceCull",
+    "start": "range < 0: -range; else depthForOpaque, or distanceCull - range when distanceCull - depthForOpaque < range, floored at 16.0 (0x56620c)",
+    "r_drawfog": "Cvar_Get(\"r_drawfog\", \"2\", 0x200) at 0x4a2786, stored 0xfe30dc"
+   },
+   "farClip": "not written by 216"
+  },
+  "clientGame": {
+   "module": "assets3.pk3 cgamex86.dll",
+   "sha256": "e5d5525829bfcaf3c0428d87fe804e5a46a75dcf0a141f8288061a3970ff140d",
+   "trapWrappers": {
+    "214": "0x3005e9f6",
+    "215": "0x3005ea46",
+    "216": "0x3005ea65"
+   },
+   "olderModule": {
+    "module": "assets2.pk3 cgamex86.dll",
+    "sha256": "e613f0d0f99f7e4c8f7798d65ec15e299e08a9726b1d3d2c6114682e24e452af",
+    "trapWrappers": {
+     "214": "0x3005b1e6",
+     "215": "0x3005b236",
+     "216": "0x3005b255"
+    }
+   }
+  },
+  "maps": {
+   "worldCoveringFog": {
+    "mp/ctf2": "textures/mp/hoth_ctf_fog",
+    "mp/ctf4": "textures/mp/roofog",
+    "mp/ffa2": "textures/mp/s_kfog",
+    "mp/ffa4": "textures/mp/s_rift_fog"
+   },
+   "surfacesCarryGlobalFogIndex": true,
+   "fogstartKey": "no installed map sets worldspawn fogstart",
+   "distanceCull": {
+    "mp/ctf2": "1800",
+    "mp/duel5": "3500",
+    "mp/siege_desert": "10240"
+   }
+  }
+ },
+ "reference": {
+  "OpenJK": "1a6a643427aa347553e9073dac5570b33337c4d9",
+  "files": [
+   "codemp/cgame/cg_view.c (R_SetRangedFog: fov_x*64, 0, -cg_linearFogOverride)",
+   "codemp/cgame/cg_draw.c CG_DrawZoomMask, CG_DrawRocketLocking",
+   "codemp/cgame/cg_spawn.c (fogstart)"
+  ],
+  "use": "reference observation of the client game's calls and layout"
+ },
+ "implementation": {
+  "host": "code/client/client_jka_cgame_host.hpp (CL_JKACgameRotatedPic, cases 214/215/216)",
+  "geometry": "code/compat/jka_draw_adapter.hpp",
+  "fog": [
+   "code/renderercommon/tr_jka_ranged_fog.h",
+   "code/renderercommon/tr_jka_ranged_fog_shade.h",
+   "renderer, renderervk, rendererrtx: tr_bsp.c RE_SetJKARangedFog, tr_shade_calc.c RB_CalcFogTexCoords and RB_CalcFogProgramParms, tr_local.h world_t.jkaRangedFog, tr_init.c"
+  ],
+  "refexport": "SetJKARangedFog after GetJKADistanceCull (engine-only table)",
+  "rules": "pkg/games/jka-mp/base/fntech3-hud.json",
+  "fnFeatures": [
+   "HUD rules and placement (CL_HudFromVirtual, CL_HudAdjustPic)",
+   "renderer DrawQuad with full shaders",
+   "fog volume pass (GLx, Vulkan, RTX raster)"
+  ],
+  "retailExactOption": "cl_hudAspect 0 draws the HUD stretched as retail",
+  "deliberateDifferences": [
+   "full shader instead of stage 0 image",
+   "no r_drawfog; applies to Fn volume pass",
+   "range reset per world load",
+   "one-unit ramp where GL linear divided by zero"
+  ]
+ },
+ "runtime": {
+  "base": "30c1286d56b41b03fe019eedb0d7d3b2483f0c23",
+  "build": "git archive export + this slice, meson debugoptimized, strict warnings, renderers glx,vk,rtx",
+  "path": ".tmp/runtime/jka-zoom",
+  "sha256": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "056602f092e6a6cd21974e1eb6672b1f6431a4eb0ad9d846ec712c26c80005d7",
+   "fnql_rtx_x86.dll": "7c5b9bb58b739b023ecdf33a5cec7c703573c6e70848f743af5d60d91db11ab8",
+   "fnql_vk_x86.dll": "b2ff9c18df2a7c2a1dbd4e3a2bc2d636d6341173d02d8b368172d6b35af3c4f6",
+   "fntech3-pkg.fnz": "8fc9981df819f56ec006b75d62c00d5366d950dbb12cd48741897fccc2e13f0d",
+   "fntech3.exe": "61da6eefe05e3a719d0c9a74849e9d91afb5be59d05947e65d3c743e835c01e2"
+  },
+  "firstPackage": "33cf0d30445d6e339d263448c3527632e8ce5361b94ce5b04e9706a67cc9890d"
+ },
+ "harness": ".tmp/jka-hud-verify/probe.py (windowed, private desktop, net_enabled 0, s_initsound 0, no input, screenshotPNG, cl_hudDump)",
+ "runs": [
+  {
+   "run": "zoom-binoculars-1680",
+   "profile": "jka-mp",
+   "mode": "binoculars",
+   "map": "mp/ffa1",
+   "size": "1680x720",
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\jka-zoom",
+   "identity": {
+    "fntech3.exe": "61da6eefe05e3a719d0c9a74849e9d91afb5be59d05947e65d3c743e835c01e2",
+    "fnql_glx_x86.dll": "056602f092e6a6cd21974e1eb6672b1f6431a4eb0ad9d846ec712c26c80005d7",
+    "fntech3-pkg.fnz": "33cf0d30445d6e339d263448c3527632e8ce5361b94ce5b04e9706a67cc9890d"
+   },
+   "command": [
+    "+set",
+    "com_gameProfile",
+    "jka-mp",
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Jedi Academy",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\zoom-binoculars-1680\\home",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "developer",
+    "0",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_enabled",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "-1",
+    "+set",
+    "r_customWidth",
+    "1680",
+    "+set",
+    "r_customHeight",
+    "720",
+    "+set",
+    "cl_renderer",
+    "glx",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "0",
+    "+set",
+    "cl_motd",
+    "0",
+    "+set",
+    "com_introplayed",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+set",
+    "com_maxfpsUnfocused",
+    "60",
+    "+set",
+    "com_maxfpsMinimized",
+    "60",
+    "+set",
+    "sv_pure",
+    "0",
+    "+set",
+    "g_gametype",
+    "0",
+    "+set",
+    "con_notifytime",
+    "-1",
+    "+exec",
+    "probehud.cfg",
+    "+devmap",
+    "mp/ffa1"
+   ],
+   "config": [
+    "set shots \"give all; wait 60; invnext; wait 10; invnext; wait 10; invnext; wait 10; invnext; wait 10; invnext; wait 6; screenshotPNG binsel; wait 120; +button2; wait 6; -button2; wait 90; screenshotPNG binoculars; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 240; togglemenu; wait 60; set cl_menuBlur 0; wait 240; vstr shots\""
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 21.1,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "errors": [],
+   "captures": [
+    {
+     "name": "binoculars.png",
+     "sha256": "fb28d5e43edcfcf625ca2921f93ef7a76fcef5dbb3766a7cc98d800a00f4ce95"
+    },
+    {
+     "name": "binsel.png",
+     "sha256": "503d6ec09914a3fdefc4ab4428c08488302fa77f9881c172f48fe1f2c0ec9720"
+    }
+   ],
+   "hudDump": true,
+   "hudDumpSha256": "801a76c2a296373b4223529ba305a3d364c24c66039be323d514cae3f82ef84f",
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "note": "first rules: strip regions ended at x 480 and 520; a dot centred at x 488 fell to right_hud; regions widened before the zoom2 runs"
+  },
+  {
+   "run": "zoom2-binoculars-1680",
+   "profile": "jka-mp",
+   "mode": "binoculars",
+   "map": "mp/ffa1",
+   "size": "1680x720",
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\jka-zoom",
+   "identity": {
+    "fntech3.exe": "61da6eefe05e3a719d0c9a74849e9d91afb5be59d05947e65d3c743e835c01e2",
+    "fnql_glx_x86.dll": "056602f092e6a6cd21974e1eb6672b1f6431a4eb0ad9d846ec712c26c80005d7",
+    "fntech3-pkg.fnz": "8fc9981df819f56ec006b75d62c00d5366d950dbb12cd48741897fccc2e13f0d"
+   },
+   "command": [
+    "+set",
+    "com_gameProfile",
+    "jka-mp",
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Jedi Academy",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\zoom2-binoculars-1680\\home",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "developer",
+    "0",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_enabled",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "-1",
+    "+set",
+    "r_customWidth",
+    "1680",
+    "+set",
+    "r_customHeight",
+    "720",
+    "+set",
+    "cl_renderer",
+    "glx",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "0",
+    "+set",
+    "cl_motd",
+    "0",
+    "+set",
+    "com_introplayed",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+set",
+    "com_maxfpsUnfocused",
+    "60",
+    "+set",
+    "com_maxfpsMinimized",
+    "60",
+    "+set",
+    "sv_pure",
+    "0",
+    "+set",
+    "g_gametype",
+    "0",
+    "+set",
+    "con_notifytime",
+    "-1",
+    "+exec",
+    "probehud.cfg",
+    "+devmap",
+    "mp/ffa1"
+   ],
+   "config": [
+    "set shots \"give all; wait 60; invnext; wait 10; invnext; wait 10; invnext; wait 10; invnext; wait 10; invnext; wait 6; screenshotPNG binsel; wait 120; +button2; wait 6; -button2; wait 90; screenshotPNG binoculars; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 240; togglemenu; wait 60; set cl_menuBlur 0; wait 240; vstr shots\""
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 19.8,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "errors": [],
+   "captures": [
+    {
+     "name": "binoculars.png",
+     "sha256": "59b5423bd2fff85b5148a337702f32e48f55eca85c18a43bdc0a785313e91e91"
+    },
+    {
+     "name": "binsel.png",
+     "sha256": "c4cdbf83a11fd8900022694171fb282c9fc3e1541f1be1af501038ba7d8748fe"
+    }
+   ],
+   "hudDump": true,
+   "hudDumpSha256": "198695af2d39dffe5dc177a2f0f3b99aa5dd44f55c3cb42600bfe4b99fa09b8c",
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  {
+   "run": "zoom2-binoculars-900",
+   "profile": "jka-mp",
+   "mode": "binoculars",
+   "map": "mp/ffa1",
+   "size": "900x720",
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\jka-zoom",
+   "identity": {
+    "fntech3.exe": "61da6eefe05e3a719d0c9a74849e9d91afb5be59d05947e65d3c743e835c01e2",
+    "fnql_glx_x86.dll": "056602f092e6a6cd21974e1eb6672b1f6431a4eb0ad9d846ec712c26c80005d7",
+    "fntech3-pkg.fnz": "8fc9981df819f56ec006b75d62c00d5366d950dbb12cd48741897fccc2e13f0d"
+   },
+   "command": [
+    "+set",
+    "com_gameProfile",
+    "jka-mp",
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Jedi Academy",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\zoom2-binoculars-900\\home",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "developer",
+    "0",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_enabled",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "-1",
+    "+set",
+    "r_customWidth",
+    "900",
+    "+set",
+    "r_customHeight",
+    "720",
+    "+set",
+    "cl_renderer",
+    "glx",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "0",
+    "+set",
+    "cl_motd",
+    "0",
+    "+set",
+    "com_introplayed",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+set",
+    "com_maxfpsUnfocused",
+    "60",
+    "+set",
+    "com_maxfpsMinimized",
+    "60",
+    "+set",
+    "sv_pure",
+    "0",
+    "+set",
+    "g_gametype",
+    "0",
+    "+set",
+    "con_notifytime",
+    "-1",
+    "+exec",
+    "probehud.cfg",
+    "+devmap",
+    "mp/ffa1"
+   ],
+   "config": [
+    "set shots \"give all; wait 60; invnext; wait 10; invnext; wait 10; invnext; wait 10; invnext; wait 10; invnext; wait 6; screenshotPNG binsel; wait 120; +button2; wait 6; -button2; wait 90; screenshotPNG binoculars; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 240; togglemenu; wait 60; set cl_menuBlur 0; wait 240; vstr shots\""
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 19.3,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "errors": [],
+   "captures": [
+    {
+     "name": "binoculars.png",
+     "sha256": "ed3e51b74c66259f9edea9e9f505f865a8243d68e0aaf63518a519ba2b0b39e7"
+    },
+    {
+     "name": "binsel.png",
+     "sha256": "0c3b0d724e5e821e5c76b08783b605fe3abb7ee0198ffe4001c30a48c61bc5ac"
+    }
+   ],
+   "hudDump": true,
+   "hudDumpSha256": "7eb92401b56a83e76e9a20aad1189356150505231f65174a6c3e5e24c712e855",
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  {
+   "run": "zoom2-disruptor-1680",
+   "profile": "jka-mp",
+   "mode": "disruptor",
+   "map": "mp/ffa1",
+   "size": "1680x720",
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\jka-zoom",
+   "identity": {
+    "fntech3.exe": "61da6eefe05e3a719d0c9a74849e9d91afb5be59d05947e65d3c743e835c01e2",
+    "fnql_glx_x86.dll": "056602f092e6a6cd21974e1eb6672b1f6431a4eb0ad9d846ec712c26c80005d7",
+    "fntech3-pkg.fnz": "8fc9981df819f56ec006b75d62c00d5366d950dbb12cd48741897fccc2e13f0d"
+   },
+   "command": [
+    "+set",
+    "com_gameProfile",
+    "jka-mp",
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Jedi Academy",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\zoom2-disruptor-1680\\home",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "developer",
+    "0",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_enabled",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "-1",
+    "+set",
+    "r_customWidth",
+    "1680",
+    "+set",
+    "r_customHeight",
+    "720",
+    "+set",
+    "cl_renderer",
+    "glx",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "0",
+    "+set",
+    "cl_motd",
+    "0",
+    "+set",
+    "com_introplayed",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+set",
+    "com_maxfpsUnfocused",
+    "60",
+    "+set",
+    "com_maxfpsMinimized",
+    "60",
+    "+set",
+    "sv_pure",
+    "0",
+    "+set",
+    "g_gametype",
+    "0",
+    "+set",
+    "con_notifytime",
+    "-1",
+    "+exec",
+    "probehud.cfg",
+    "+devmap",
+    "mp/ffa1"
+   ],
+   "config": [
+    "set shots \"give all; wait 60; weapon 4; wait 120; +altattack; wait 6; -altattack; wait 90; screenshotPNG disruptor; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 240; togglemenu; wait 60; set cl_menuBlur 0; wait 240; vstr shots\""
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 18.2,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "errors": [],
+   "captures": [
+    {
+     "name": "disruptor.png",
+     "sha256": "7d3a9085ad23d2edc25d98d5d7b4b7b77ed333026ab0afad79fda1ba5968a835"
+    }
+   ],
+   "hudDump": true,
+   "hudDumpSha256": "cdc87a093d8178f8e06bc39beb7382a5b94bd7a2ae47591a783376b417224d59",
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  {
+   "run": "zoom2-disruptor-900",
+   "profile": "jka-mp",
+   "mode": "disruptor",
+   "map": "mp/ffa1",
+   "size": "900x720",
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\jka-zoom",
+   "identity": {
+    "fntech3.exe": "61da6eefe05e3a719d0c9a74849e9d91afb5be59d05947e65d3c743e835c01e2",
+    "fnql_glx_x86.dll": "056602f092e6a6cd21974e1eb6672b1f6431a4eb0ad9d846ec712c26c80005d7",
+    "fntech3-pkg.fnz": "8fc9981df819f56ec006b75d62c00d5366d950dbb12cd48741897fccc2e13f0d"
+   },
+   "command": [
+    "+set",
+    "com_gameProfile",
+    "jka-mp",
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Jedi Academy",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\zoom2-disruptor-900\\home",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "developer",
+    "0",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_enabled",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "-1",
+    "+set",
+    "r_customWidth",
+    "900",
+    "+set",
+    "r_customHeight",
+    "720",
+    "+set",
+    "cl_renderer",
+    "glx",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "0",
+    "+set",
+    "cl_motd",
+    "0",
+    "+set",
+    "com_introplayed",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+set",
+    "com_maxfpsUnfocused",
+    "60",
+    "+set",
+    "com_maxfpsMinimized",
+    "60",
+    "+set",
+    "sv_pure",
+    "0",
+    "+set",
+    "g_gametype",
+    "0",
+    "+set",
+    "con_notifytime",
+    "-1",
+    "+exec",
+    "probehud.cfg",
+    "+devmap",
+    "mp/ffa1"
+   ],
+   "config": [
+    "set shots \"give all; wait 60; weapon 4; wait 120; +altattack; wait 6; -altattack; wait 90; screenshotPNG disruptor; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 240; togglemenu; wait 60; set cl_menuBlur 0; wait 240; vstr shots\""
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 18.7,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "errors": [],
+   "captures": [
+    {
+     "name": "disruptor.png",
+     "sha256": "4beb66c9893684157eac81f05ec88e4ba209b4527c3caa41b3d5a65b0bb99341"
+    }
+   ],
+   "hudDump": true,
+   "hudDumpSha256": "0b950171af17e987a7db2d6ac42a7c7777ae726ea0489467026f802d60aa0c53",
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  {
+   "run": "zoom2-binoculars-ffa4-1680",
+   "profile": "jka-mp",
+   "mode": "binoculars",
+   "map": "mp/ffa4",
+   "size": "1680x720",
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\jka-zoom",
+   "identity": {
+    "fntech3.exe": "61da6eefe05e3a719d0c9a74849e9d91afb5be59d05947e65d3c743e835c01e2",
+    "fnql_glx_x86.dll": "056602f092e6a6cd21974e1eb6672b1f6431a4eb0ad9d846ec712c26c80005d7",
+    "fntech3-pkg.fnz": "8fc9981df819f56ec006b75d62c00d5366d950dbb12cd48741897fccc2e13f0d"
+   },
+   "command": [
+    "+set",
+    "com_gameProfile",
+    "jka-mp",
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Jedi Academy",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\zoom2-binoculars-ffa4-1680\\home",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "developer",
+    "0",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_enabled",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "-1",
+    "+set",
+    "r_customWidth",
+    "1680",
+    "+set",
+    "r_customHeight",
+    "720",
+    "+set",
+    "cl_renderer",
+    "glx",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "0",
+    "+set",
+    "cl_motd",
+    "0",
+    "+set",
+    "com_introplayed",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+set",
+    "com_maxfpsUnfocused",
+    "60",
+    "+set",
+    "com_maxfpsMinimized",
+    "60",
+    "+set",
+    "sv_pure",
+    "0",
+    "+set",
+    "g_gametype",
+    "0",
+    "+set",
+    "con_notifytime",
+    "-1",
+    "+exec",
+    "probehud.cfg",
+    "+devmap",
+    "mp/ffa4"
+   ],
+   "config": [
+    "set shots \"give all; wait 60; invnext; wait 10; invnext; wait 10; invnext; wait 10; invnext; wait 10; invnext; wait 6; screenshotPNG binsel; wait 120; +button2; wait 6; -button2; wait 90; screenshotPNG binoculars; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 240; togglemenu; wait 60; set cl_menuBlur 0; wait 240; vstr shots\""
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 18.8,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "errors": [],
+   "captures": [
+    {
+     "name": "binoculars.png",
+     "sha256": "89b00ade163f41ac9138fe8174afb11a48cb4b99fc32a87deca387d4a2836b76"
+    },
+    {
+     "name": "binsel.png",
+     "sha256": "1c5ebf1dc8e7dcf1c63c00a95a240039acbb69408202a4a213a22802c26ac9b6"
+    }
+   ],
+   "hudDump": true,
+   "hudDumpSha256": "13128b2cc44d41df844cb958fe6e996655e40acb5ea85762173bf7834b6030da",
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  {
+   "run": "zoom2-binoculars-ctf4-1680",
+   "profile": "jka-mp",
+   "mode": "binoculars",
+   "map": "mp/ctf4",
+   "size": "1680x720",
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\jka-zoom",
+   "identity": {
+    "fntech3.exe": "61da6eefe05e3a719d0c9a74849e9d91afb5be59d05947e65d3c743e835c01e2",
+    "fnql_glx_x86.dll": "056602f092e6a6cd21974e1eb6672b1f6431a4eb0ad9d846ec712c26c80005d7",
+    "fntech3-pkg.fnz": "8fc9981df819f56ec006b75d62c00d5366d950dbb12cd48741897fccc2e13f0d"
+   },
+   "command": [
+    "+set",
+    "com_gameProfile",
+    "jka-mp",
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Jedi Academy",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\zoom2-binoculars-ctf4-1680\\home",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "developer",
+    "0",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_enabled",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "-1",
+    "+set",
+    "r_customWidth",
+    "1680",
+    "+set",
+    "r_customHeight",
+    "720",
+    "+set",
+    "cl_renderer",
+    "glx",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "0",
+    "+set",
+    "cl_motd",
+    "0",
+    "+set",
+    "com_introplayed",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+set",
+    "com_maxfpsUnfocused",
+    "60",
+    "+set",
+    "com_maxfpsMinimized",
+    "60",
+    "+set",
+    "sv_pure",
+    "0",
+    "+set",
+    "g_gametype",
+    "0",
+    "+set",
+    "con_notifytime",
+    "-1",
+    "+exec",
+    "probehud.cfg",
+    "+devmap",
+    "mp/ctf4"
+   ],
+   "config": [
+    "set shots \"give all; wait 60; invnext; wait 10; invnext; wait 10; invnext; wait 10; invnext; wait 10; invnext; wait 6; screenshotPNG binsel; wait 120; +button2; wait 6; -button2; wait 90; screenshotPNG binoculars; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 240; togglemenu; wait 60; set cl_menuBlur 0; wait 240; vstr shots\""
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 19.3,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "errors": [],
+   "captures": [
+    {
+     "name": "binoculars.png",
+     "sha256": "103deab01bd145583493452595fbabacddba38db508dcab4f5bb0e22040f6861"
+    },
+    {
+     "name": "binsel.png",
+     "sha256": "79e1b7a9092ca01e417730aa5471664ef4b394019de6a31a4149067cc22ecc8e"
+    }
+   ],
+   "hudDump": true,
+   "hudDumpSha256": "c2efa18127516ab2be500bbb48cc038a1a6413d777f611fb95803ec54e757f58",
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  {
+   "run": "zoom2-binoculars-ctf2-1680",
+   "profile": "jka-mp",
+   "mode": "binoculars",
+   "map": "mp/ctf2",
+   "size": "1680x720",
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\jka-zoom",
+   "identity": {
+    "fntech3.exe": "61da6eefe05e3a719d0c9a74849e9d91afb5be59d05947e65d3c743e835c01e2",
+    "fnql_glx_x86.dll": "056602f092e6a6cd21974e1eb6672b1f6431a4eb0ad9d846ec712c26c80005d7",
+    "fntech3-pkg.fnz": "8fc9981df819f56ec006b75d62c00d5366d950dbb12cd48741897fccc2e13f0d"
+   },
+   "command": [
+    "+set",
+    "com_gameProfile",
+    "jka-mp",
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Jedi Academy",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\zoom2-binoculars-ctf2-1680\\home",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "developer",
+    "0",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_enabled",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "-1",
+    "+set",
+    "r_customWidth",
+    "1680",
+    "+set",
+    "r_customHeight",
+    "720",
+    "+set",
+    "cl_renderer",
+    "glx",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "0",
+    "+set",
+    "cl_motd",
+    "0",
+    "+set",
+    "com_introplayed",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+set",
+    "com_maxfpsUnfocused",
+    "60",
+    "+set",
+    "com_maxfpsMinimized",
+    "60",
+    "+set",
+    "sv_pure",
+    "0",
+    "+set",
+    "g_gametype",
+    "0",
+    "+set",
+    "con_notifytime",
+    "-1",
+    "+exec",
+    "probehud.cfg",
+    "+devmap",
+    "mp/ctf2"
+   ],
+   "config": [
+    "set shots \"give all; wait 60; invnext; wait 10; invnext; wait 10; invnext; wait 10; invnext; wait 10; invnext; wait 6; screenshotPNG binsel; wait 120; +button2; wait 6; -button2; wait 90; screenshotPNG binoculars; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 240; togglemenu; wait 60; set cl_menuBlur 0; wait 240; vstr shots\""
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "seconds": 27.8,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "errors": [
+    "ERROR: Jedi Academy cgame active world-effect commands are not served yet",
+    "----- Server Shutdown (Server crashed: Jedi Academy cgame active world-effect commands are not served yet) -----"
+   ],
+   "captures": [],
+   "hudDump": false,
+   "hudDumpSha256": null,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  {
+   "run": "zoom2-disruptor-ctf2-1680",
+   "profile": "jka-mp",
+   "mode": "disruptor",
+   "map": "mp/ctf2",
+   "size": "1680x720",
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\jka-zoom",
+   "identity": {
+    "fntech3.exe": "61da6eefe05e3a719d0c9a74849e9d91afb5be59d05947e65d3c743e835c01e2",
+    "fnql_glx_x86.dll": "056602f092e6a6cd21974e1eb6672b1f6431a4eb0ad9d846ec712c26c80005d7",
+    "fntech3-pkg.fnz": "8fc9981df819f56ec006b75d62c00d5366d950dbb12cd48741897fccc2e13f0d"
+   },
+   "command": [
+    "+set",
+    "com_gameProfile",
+    "jka-mp",
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Jedi Academy",
+    "+set",
+    "fs_homepath",
+    "E:\\Repositories\\fnTech3\\.tmp\\jka-hud-verify\\runs\\zoom2-disruptor-ctf2-1680\\home",
+    "+set",
+    "com_steamIntegration",
+    "0",
+    "+set",
+    "developer",
+    "0",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "net_enabled",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "-1",
+    "+set",
+    "r_customWidth",
+    "1680",
+    "+set",
+    "r_customHeight",
+    "720",
+    "+set",
+    "cl_renderer",
+    "glx",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "in_joystick",
+    "0",
+    "+set",
+    "in_nograb",
+    "1",
+    "+set",
+    "s_initsound",
+    "0",
+    "+set",
+    "cl_motd",
+    "0",
+    "+set",
+    "com_introplayed",
+    "1",
+    "+set",
+    "com_maxfps",
+    "60",
+    "+set",
+    "com_maxfpsUnfocused",
+    "60",
+    "+set",
+    "com_maxfpsMinimized",
+    "60",
+    "+set",
+    "sv_pure",
+    "0",
+    "+set",
+    "g_gametype",
+    "0",
+    "+set",
+    "con_notifytime",
+    "-1",
+    "+exec",
+    "probehud.cfg",
+    "+devmap",
+    "mp/ctf2"
+   ],
+   "config": [
+    "set shots \"give all; wait 60; weapon 4; wait 120; +altattack; wait 6; -altattack; wait 90; screenshotPNG disruptor; wait 4; set cl_hudDump 1; wait 30; set cl_hudDump 0; wait 10; echo probe-step done; wait 10; quit\"",
+    "set activeAction \"echo probe-step active; team free; wait 240; togglemenu; wait 60; set cl_menuBlur 0; wait 240; vstr shots\""
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forced": true,
+   "seconds": 26.6,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "errors": [
+    "ERROR: Jedi Academy cgame active world-effect commands are not served yet",
+    "----- Server Shutdown (Server crashed: Jedi Academy cgame active world-effect commands are not served yet) -----"
+   ],
+   "captures": [],
+   "hudDump": false,
+   "hudDumpSha256": null,
+   "desktopSwitched": false,
+   "inputInjected": false
+  }
+ ],
+ "zoomPieces": [
+  {
+   "run": "zoom2-binoculars-1680",
+   "shader": "gfx/2d/binMask",
+   "region": {
+    "x": 0.0,
+    "y": 0.0,
+    "w": 640.0,
+    "h": 480.0
+   },
+   "rule": "binocular_zoom",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-1680",
+   "shader": "gfx/2d/binTopTri",
+   "region": {
+    "x": 307.0,
+    "y": 40.0,
+    "w": 26.0,
+    "h": 30.0
+   },
+   "rule": "binocular_zoom",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-1680",
+   "shader": "gfx/2d/binocularWindow",
+   "region": {
+    "x": 34.0,
+    "y": 48.0,
+    "w": 570.0,
+    "h": 362.0
+   },
+   "rule": "binocular_zoom",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-1680",
+   "shader": "gfx/2d/binCircle",
+   "region": {
+    "x": 82.0,
+    "y": 94.0,
+    "w": 16.0,
+    "h": 16.0
+   },
+   "rule": "binocular_zoom",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-1680",
+   "shader": "gfx/2d/binSideArrow",
+   "region": {
+    "x": 4.0,
+    "y": 201.0,
+    "w": 16.0,
+    "h": 16.0
+   },
+   "rule": "binocular_zoom",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-1680",
+   "shader": "gfx/2d/binocularNumOverlay",
+   "region": {
+    "x": 212.0,
+    "y": 367.0,
+    "w": 200.0,
+    "h": 28.0
+   },
+   "rule": "binocular_zoom",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-1680",
+   "shader": "white",
+   "region": {
+    "x": 212.0,
+    "y": 367.0,
+    "w": 200.0,
+    "h": 40.0
+   },
+   "rule": "binocular_strip",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-1680",
+   "shader": "gfx/2d/numbers/c_five",
+   "region": {
+    "x": 155.0,
+    "y": 374.0,
+    "w": 24.0,
+    "h": 14.0
+   },
+   "rule": "binocular_numbers",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-1680",
+   "shader": "gfx/2d/numbers/c_four",
+   "region": {
+    "x": 176.0,
+    "y": 374.0,
+    "w": 24.0,
+    "h": 14.0
+   },
+   "rule": "binocular_numbers",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-1680",
+   "shader": "gfx/2d/numbers/c_zero",
+   "region": {
+    "x": 197.0,
+    "y": 374.0,
+    "w": 24.0,
+    "h": 14.0
+   },
+   "rule": "binocular_numbers",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-1680",
+   "shader": "gfx/2d/numbers/c_five",
+   "region": {
+    "x": 255.0,
+    "y": 374.0,
+    "w": 24.0,
+    "h": 14.0
+   },
+   "rule": "binocular_numbers",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-1680",
+   "shader": "gfx/2d/numbers/c_three",
+   "region": {
+    "x": 276.0,
+    "y": 374.0,
+    "w": 24.0,
+    "h": 14.0
+   },
+   "rule": "binocular_numbers",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-1680",
+   "shader": "gfx/2d/numbers/c_zero",
+   "region": {
+    "x": 297.0,
+    "y": 374.0,
+    "w": 24.0,
+    "h": 14.0
+   },
+   "rule": "binocular_numbers",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-1680",
+   "shader": "gfx/2d/numbers/c_five",
+   "region": {
+    "x": 355.0,
+    "y": 374.0,
+    "w": 24.0,
+    "h": 14.0
+   },
+   "rule": "binocular_numbers",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-1680",
+   "shader": "gfx/2d/numbers/c_two",
+   "region": {
+    "x": 376.0,
+    "y": 374.0,
+    "w": 24.0,
+    "h": 14.0
+   },
+   "rule": "binocular_numbers",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-1680",
+   "shader": "gfx/2d/numbers/c_zero",
+   "region": {
+    "x": 397.0,
+    "y": 374.0,
+    "w": 24.0,
+    "h": 14.0
+   },
+   "rule": "binocular_numbers",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-1680",
+   "shader": "white",
+   "region": {
+    "x": 235.0,
+    "y": 376.0,
+    "w": 6.0,
+    "h": 6.0
+   },
+   "rule": "binocular_strip",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-1680",
+   "shader": "white",
+   "region": {
+    "x": 335.0,
+    "y": 376.0,
+    "w": 6.0,
+    "h": 6.0
+   },
+   "rule": "binocular_strip",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-1680",
+   "shader": "white",
+   "region": {
+    "x": 435.0,
+    "y": 376.0,
+    "w": 6.0,
+    "h": 6.0
+   },
+   "rule": "binocular_strip",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-900",
+   "shader": "gfx/2d/binMask",
+   "region": {
+    "x": 0.0,
+    "y": 0.0,
+    "w": 640.0,
+    "h": 480.0
+   },
+   "rule": "binocular_zoom",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-900",
+   "shader": "gfx/2d/binTopTri",
+   "region": {
+    "x": 307.0,
+    "y": 40.0,
+    "w": 26.0,
+    "h": 30.0
+   },
+   "rule": "binocular_zoom",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-900",
+   "shader": "gfx/2d/binocularWindow",
+   "region": {
+    "x": 34.0,
+    "y": 48.0,
+    "w": 570.0,
+    "h": 362.0
+   },
+   "rule": "binocular_zoom",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-900",
+   "shader": "gfx/2d/binCircle",
+   "region": {
+    "x": 82.0,
+    "y": 94.0,
+    "w": 16.0,
+    "h": 16.0
+   },
+   "rule": "binocular_zoom",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-900",
+   "shader": "gfx/2d/binSideArrow",
+   "region": {
+    "x": 4.0,
+    "y": 201.0,
+    "w": 16.0,
+    "h": 16.0
+   },
+   "rule": "binocular_zoom",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-900",
+   "shader": "gfx/2d/binocularNumOverlay",
+   "region": {
+    "x": 212.0,
+    "y": 367.0,
+    "w": 200.0,
+    "h": 28.0
+   },
+   "rule": "binocular_zoom",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-900",
+   "shader": "white",
+   "region": {
+    "x": 212.0,
+    "y": 367.0,
+    "w": 200.0,
+    "h": 40.0
+   },
+   "rule": "binocular_strip",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-900",
+   "shader": "gfx/2d/numbers/c_five",
+   "region": {
+    "x": 105.0,
+    "y": 374.0,
+    "w": 24.0,
+    "h": 14.0
+   },
+   "rule": "binocular_numbers",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-900",
+   "shader": "gfx/2d/numbers/c_zero",
+   "region": {
+    "x": 126.0,
+    "y": 374.0,
+    "w": 45.0,
+    "h": 14.0
+   },
+   "rule": "binocular_numbers",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-900",
+   "shader": "gfx/2d/numbers/c_four",
+   "region": {
+    "x": 205.0,
+    "y": 374.0,
+    "w": 24.0,
+    "h": 14.0
+   },
+   "rule": "binocular_numbers",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-900",
+   "shader": "gfx/2d/numbers/c_nine",
+   "region": {
+    "x": 226.0,
+    "y": 374.0,
+    "w": 24.0,
+    "h": 14.0
+   },
+   "rule": "binocular_numbers",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-900",
+   "shader": "gfx/2d/numbers/c_zero",
+   "region": {
+    "x": 247.0,
+    "y": 374.0,
+    "w": 24.0,
+    "h": 14.0
+   },
+   "rule": "binocular_numbers",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-900",
+   "shader": "gfx/2d/numbers/c_four",
+   "region": {
+    "x": 305.0,
+    "y": 374.0,
+    "w": 24.0,
+    "h": 14.0
+   },
+   "rule": "binocular_numbers",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-900",
+   "shader": "gfx/2d/numbers/c_eight",
+   "region": {
+    "x": 326.0,
+    "y": 374.0,
+    "w": 24.0,
+    "h": 14.0
+   },
+   "rule": "binocular_numbers",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-900",
+   "shader": "gfx/2d/numbers/c_zero",
+   "region": {
+    "x": 347.0,
+    "y": 374.0,
+    "w": 24.0,
+    "h": 14.0
+   },
+   "rule": "binocular_numbers",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-900",
+   "shader": "gfx/2d/numbers/c_four",
+   "region": {
+    "x": 405.0,
+    "y": 374.0,
+    "w": 24.0,
+    "h": 14.0
+   },
+   "rule": "binocular_numbers",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-900",
+   "shader": "gfx/2d/numbers/c_seven",
+   "region": {
+    "x": 426.0,
+    "y": 374.0,
+    "w": 24.0,
+    "h": 14.0
+   },
+   "rule": "binocular_numbers",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-900",
+   "shader": "gfx/2d/numbers/c_zero",
+   "region": {
+    "x": 447.0,
+    "y": 374.0,
+    "w": 24.0,
+    "h": 14.0
+   },
+   "rule": "binocular_numbers",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-900",
+   "shader": "white",
+   "region": {
+    "x": 185.0,
+    "y": 376.0,
+    "w": 6.0,
+    "h": 6.0
+   },
+   "rule": "binocular_strip",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-900",
+   "shader": "white",
+   "region": {
+    "x": 285.0,
+    "y": 376.0,
+    "w": 6.0,
+    "h": 6.0
+   },
+   "rule": "binocular_strip",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-900",
+   "shader": "white",
+   "region": {
+    "x": 385.0,
+    "y": 376.0,
+    "w": 6.0,
+    "h": 6.0
+   },
+   "rule": "binocular_strip",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-binoculars-900",
+   "shader": "white",
+   "region": {
+    "x": 485.0,
+    "y": 376.0,
+    "w": 6.0,
+    "h": 6.0
+   },
+   "rule": "binocular_strip",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-disruptor-1680",
+   "shader": "gfx/2d/cropCircle",
+   "region": {
+    "x": 0.0,
+    "y": 0.0,
+    "w": 640.0,
+    "h": 480.0
+   },
+   "rule": "disruptor_zoom",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-disruptor-1680",
+   "shader": "gfx/2d/cropCircle2",
+   "region": {
+    "x": 0.0,
+    "y": 0.0,
+    "w": 640.0,
+    "h": 480.0
+   },
+   "rule": "disruptor_zoom",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-disruptor-1680",
+   "shader": "gfx/2d/insertTick",
+   "region": {
+    "x": 361.574,
+    "y": 44.052,
+    "w": 144.608,
+    "h": 147.661
+   },
+   "rule": "disruptor_ticks",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-disruptor-900",
+   "shader": "gfx/2d/cropCircle",
+   "region": {
+    "x": 0.0,
+    "y": 0.0,
+    "w": 640.0,
+    "h": 480.0
+   },
+   "rule": "disruptor_zoom",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-disruptor-900",
+   "shader": "gfx/2d/cropCircle2",
+   "region": {
+    "x": 0.0,
+    "y": 0.0,
+    "w": 640.0,
+    "h": 480.0
+   },
+   "rule": "disruptor_zoom",
+   "mode": "stretch"
+  },
+  {
+   "run": "zoom2-disruptor-900",
+   "shader": "gfx/2d/insertTick",
+   "region": {
+    "x": 361.574,
+    "y": 44.052,
+    "w": 144.608,
+    "h": 147.661
+   },
+   "rule": "disruptor_ticks",
+   "mode": "stretch"
+  }
+ ],
+ "tests": {
+  "fullSuite": {
+   "tree": "git archive f8e1ee98 + this slice (.tmp/jka-zoom/final)",
+   "command": "python -m pytest -q -p no:cacheprovider tests",
+   "result": "2777 passed, 132 skipped, 67485 subtests passed in 3469.90s",
+   "exit": 0
+  },
+  "targeted": {
+   "tests/jka_zoom_tests.py": "5 passed",
+   "tests/hud_aspect_tests.py": "1 passed, 11 subtests",
+   "hudAspectNegativeCheck": "changing the binCircle expectation by one unit fails profile 10"
+  },
+  "build": {
+   "runtime": "30c1286d + slice: fntech3, fnql_glx_x86, fnql_vk_x86, fnql_rtx_x86, package; strict warnings, exit 0",
+   "newBase": "f8e1ee98's changed code files overlaid on the same build dir; fntech3 and the three renderers relinked, exit 0",
+   "commitBase": "b80e6f6e changed code files overlaid on the same build dir; fntech3 and the three renderers relinked, exit 0"
+  },
+  "subsetAtCommitBase": {
+   "tree": "git archive b80e6f6e + this slice (.tmp/jka-zoom/final2)",
+   "files": "186 test files reading a touched file, the docs, or packaging, less raven_bsp_shader_flags_tests.py",
+   "result": "1378 passed, 8 skipped, 63081 subtests passed in 1413.60s",
+   "exit": 0,
+   "excluded": "tests/raven_bsp_shader_flags_tests.py fails to import at b80e6f6e itself: it imports compiler_support.engine_fixture_args, which only an uncommitted working-tree edit defines"
+  }
+ }
+}

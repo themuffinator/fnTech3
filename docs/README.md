@@ -170,6 +170,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Jedi Academy's selection bars and loading screen, live](fntech3/2026-10-15-jka-hud-live-check.md)
   -- the bars and the loading screen checked in captures, each bar's name
   kept with its bar on tall screens, and why the zoom masks are out of reach.
+- [Jedi Academy's zoom](fntech3/2026-10-15-jka-zoom.md)
+  -- the turned pictures and ranged fog the zooms need, measured in
+  `jamp.exe` and served through Fn's HUD and fog, with both zooms captured.
 - [October 9 compatibility integration](fntech3/2026-10-09-compatibility-integration.md)
   -- resumed Alice and Elite Force work, shared-tree validation, and probe
   evidence and limits for the combined compatibility slices.

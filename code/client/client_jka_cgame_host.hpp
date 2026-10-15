@@ -8,6 +8,7 @@
 #include "client_jka_strings.hpp"
 #include "client_jka_sound.hpp"
 #include "../compat/jka_render_adapter.hpp"
+#include "../compat/jka_draw_adapter.hpp"
 #include "../compat/jka_lightstyle.hpp"
 #include "../compat/jka_ui_exports.h"
 #include <climits>
@@ -91,6 +92,27 @@ static void CL_JKACgameTrace(fntech3::jka::module::Call call, const intptr_t *ar
 #include "client_jka_cgame_render.hpp"
 #include "client_jka_cgame_ambient.hpp"
 #include "client_jka_cgame_effects.hpp"
+
+// Raven's turned pictures (imports 214 and 215) in the virtual 640x480 screen.
+// The HUD rules place the picture's unturned rectangle, and its turned corners
+// take that rectangle's placement (jka_draw_adapter.hpp). Fn draws the whole
+// shader; retail's backend bound only its first stage's image.
+static void CL_JKACgameRotatedPic(fntech3::jka::draw::Pivot pivot, const intptr_t *args) {
+    using namespace fntech3::jka::draw;
+    const auto shader = static_cast<qhandle_t>(args[10]);
+    refDrawQuad_t quad{};
+    Rect from;
+    const auto status = RotatedQuad(pivot, _vmf(args[1]), _vmf(args[2]), _vmf(args[3]), _vmf(args[4]),
+        _vmf(args[5]), _vmf(args[6]), _vmf(args[7]), _vmf(args[8]), _vmf(args[9]), shader, quad, from);
+    if (status == Status::Invalid) Com_Error(ERR_DROP, "Invalid Jedi Academy cgame rotated picture");
+    if (status == Status::Empty || CL_CaptureHidesHud()) return;
+    CL_HudFlushQueue();
+    Rect to = from;
+    CL_HudFromVirtual(&to.x, &to.y, &to.w, &to.h);
+    if (!CL_HudAdjustPic(&to.x, &to.y, &to.w, &to.h, shader) || !PlaceQuad(quad, from, to)) return;
+    if (!re.DrawQuad) Com_Error(ERR_DROP, "Academy rotated pictures require an Fn renderer");
+    re.DrawQuad(&quad);
+}
 
 static bool CL_JKACgameCall(intptr_t *args, intptr_t &operation, intptr_t &result) {
     using namespace fntech3::jka;
@@ -393,6 +415,26 @@ static bool CL_JKACgameCall(intptr_t *args, intptr_t &operation, intptr_t &resul
         float s0 = _vmf(args[5]), t0 = _vmf(args[6]), s1 = _vmf(args[7]), t1 = _vmf(args[8]);
         CL_HudFromVirtual(&x, &y, &w, &h);
         CL_HudQueueStretchPic(x, y, w, h, s0, t0, s1, t1, static_cast<qhandle_t>(args[9]));
+        return true;
+    }
+    case Call::CG_R_DRAWROTATEPIC:
+    case Call::CG_R_DRAWROTATEPIC2:
+        // Retail 0x412e5e and 0x412e98 pass the ten words to the renderer's
+        // queue (RE_RotatePic 0x491760, RE_RotatePic2 0x491810) and return 0.
+        // 214 turns about the top-right corner (rocket lock wedges), 215 about
+        // the centre (disruptor insert and ticks, siege radar).
+        CL_JKACgameRotatedPic(call == Call::CG_R_DRAWROTATEPIC ? draw::Pivot::Corner : draw::Pivot::Centre, args);
+        return true;
+    case Call::CG_R_SETRANGEFOG: {
+        // Retail 0x412ed2 stores the float word as the renderer's ranged fog
+        // (0x100d830) and returns 0. The client game sends fov_x * 64 every
+        // zoomed frame, 0 once when it leaves the zoom, and -cg_linearFogOverride
+        // when that is set. Fn's fog volume pass draws the ramp
+        // (tr_jka_ranged_fog.h); the far clip is untouched, as in retail.
+        const float range = _vmf(args[1]);
+        if (!render::Finite(range)) Com_Error(ERR_DROP, "Invalid Academy ranged fog");
+        if (!re.SetJKARangedFog) Com_Error(ERR_DROP, "Academy ranged fog requires an Fn renderer");
+        re.SetJKARangedFog(range);
         return true;
     }
     case Call::CG_OPENUIMENU: {

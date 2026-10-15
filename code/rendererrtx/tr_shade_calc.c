@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "tr_local.h"
 #include "../renderercommon/tr_q3_ihv_fog_render.h"
+#include "../renderercommon/tr_jka_ranged_fog_shade.h"
 #include "../renderercommon/tr_stvef_light.h"
 #include "../renderercommon/tr_stvef_env.h"
 // -EC-: avoid using ri.ftol
@@ -938,6 +939,7 @@ void RB_CalcFogTexCoords( float *st ) {
 	qboolean	eyeOutside;
 	const fog_t		*fog;
 	vec3_t		local;
+	float		fogScale, fogStart;
 	vec4_t		fogDistanceVector, fogDepthVector = {0, 0, 0, 0};
 
 	fog = tr.world->fogs + tess.fogNum;
@@ -949,11 +951,13 @@ void RB_CalcFogTexCoords( float *st ) {
 	fogDistanceVector[2] = -backEnd.or.modelMatrix[10];
 	fogDistanceVector[3] = DotProduct( local, backEnd.viewParms.or.axis[0] );
 
-	// scale the fog vectors based on the fog's thickness
-	fogDistanceVector[0] *= fog->tcScale;
-	fogDistanceVector[1] *= fog->tcScale;
-	fogDistanceVector[2] *= fog->tcScale;
-	fogDistanceVector[3] *= fog->tcScale;
+	// scale the fog vectors based on the fog's thickness, or Academy's
+	// zoom fog ramp beginning at its own distance
+	RB_JKARangedFog( fog, &fogScale, &fogStart );
+	fogDistanceVector[0] *= fogScale;
+	fogDistanceVector[1] *= fogScale;
+	fogDistanceVector[2] *= fogScale;
+	fogDistanceVector[3] = ( fogDistanceVector[3] - fogStart ) * fogScale;
 
 	// rotate the gradient vector for this orientation
 	if ( fog->hasSurface ) {
@@ -1019,6 +1023,7 @@ const fogProgramParms_t *RB_CalcFogProgramParms( void )
 	static fogProgramParms_t parm;
 	const fog_t	*fog;
 	vec3_t		local;
+	float		fogScale, fogStart;
 
 	Com_Memset( parm.fogDepthVector, 0, sizeof( parm.fogDepthVector ) );
 
@@ -1031,11 +1036,13 @@ const fogProgramParms_t *RB_CalcFogProgramParms( void )
 	parm.fogDistanceVector[2] = -backEnd.or.modelMatrix[10];
 	parm.fogDistanceVector[3] = DotProduct( local, backEnd.viewParms.or.axis[0] );
 
-	// scale the fog vectors based on the fog's thickness
-	parm.fogDistanceVector[0] *= fog->tcScale;
-	parm.fogDistanceVector[1] *= fog->tcScale;
-	parm.fogDistanceVector[2] *= fog->tcScale;
-	parm.fogDistanceVector[3] *= fog->tcScale;
+	// scale the fog vectors based on the fog's thickness, or Academy's
+	// zoom fog ramp beginning at its own distance
+	RB_JKARangedFog( fog, &fogScale, &fogStart );
+	parm.fogDistanceVector[0] *= fogScale;
+	parm.fogDistanceVector[1] *= fogScale;
+	parm.fogDistanceVector[2] *= fogScale;
+	parm.fogDistanceVector[3] = ( parm.fogDistanceVector[3] - fogStart ) * fogScale;
 
 	// rotate the gradient vector for this orientation
 	if ( fog->hasSurface ) {
