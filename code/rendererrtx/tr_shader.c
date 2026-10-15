@@ -1134,10 +1134,10 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 		}
 		//
 		// animMap <frequency> <image1> .... <imageN>
-		// Jedi Academy: clampAnimMap and oneShotAnimMap (tr_jka_shader.h)
+		// Jedi Academy and Outcast: clampAnimMap and oneShotAnimMap (tr_jka_shader.h)
 		//
-		else if ( !Q_stricmp( token, "animMap" ) || R_JKAClampAnimMapKeyword( token ) ||
-			R_JKAOneShotAnimMapKeyword( token ) )
+		else if ( !Q_stricmp( token, "animMap" ) || R_JediClampAnimMapKeyword( token ) ||
+			R_JediOneShotAnimMapKeyword( token ) )
 		{
 			int	totalImages = 0;
 			// Ritual's engines keep 64 frames (alice.exe 0x0048c5bc, fakk2.exe
@@ -1146,9 +1146,9 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				R_WolfensteinShaderDialect() ?
 				MAX_IMAGE_ANIMATIONS_RTCW : R_JKAShaderProfile() ? MAX_IMAGE_ANIMATIONS_JKA :
 				MAX_IMAGE_ANIMATIONS_VQ3;
-			const qboolean jkaClamp = R_JKAClampAnimMapKeyword( token );
+			const qboolean jediClamp = R_JediClampAnimMapKeyword( token );
 
-			stage->bundle[aliceStage.bundle].jkaOneShotAnimMap = R_JKAOneShotAnimMapKeyword( token );
+			stage->bundle[aliceStage.bundle].jkaOneShotAnimMap = R_JediOneShotAnimMapKeyword( token );
 			token = COM_ParseExt( text, qfalse );
 			if ( !token[0] )
 			{
@@ -1167,7 +1167,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				}
 				num = stage->bundle[aliceStage.bundle].numImageAnimations;
 				if ( num < maxAnimations ) {
-					imgFlags_t flags = jkaClamp ? IMGFLAG_CLAMPTOEDGE : IMGFLAG_NONE;
+					imgFlags_t flags = jediClamp ? IMGFLAG_CLAMPTOEDGE : IMGFLAG_NONE;
 
 					if (!shader.noMipMaps)
 						flags |= IMGFLAG_MIPMAP;

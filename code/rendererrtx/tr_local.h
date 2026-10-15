@@ -496,8 +496,8 @@ typedef struct {
 	// +0x138 bit 0 and +0x134)
 	unsigned int	aliceAnimMapOnce : 1;
 	unsigned int	aliceFrameFromEntity : 1;
-	// Jedi Academy: `oneShotAnimMap` holds its last frame too (retail
-	// bundle +0x19, renderercommon/tr_jka_shader.h)
+	// Jedi Academy and Outcast: `oneShotAnimMap` holds its last frame too
+	// (Academy's retail bundle +0x19, renderercommon/tr_jka_shader.h)
 	unsigned int	jkaOneShotAnimMap : 1;
 	// Medal of Honor: `animMapPhase`'s head start, in seconds
 	float			mohaaAnimPhase;

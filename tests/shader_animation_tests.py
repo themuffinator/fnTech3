@@ -59,29 +59,35 @@ static void Reset() {
     shader.noMipMaps = shader.noPicMip = shader.noLightScale = 0;
     COM_BeginParseSession("synthetic animation");
 }
-static std::string Animation(int count) {
-    std::string text = "AnImMaP 10";
+static std::string Animation(int count, const char *word = "AnImMaP") {
+    std::string text = std::string(word) + " 10";
     for (int i = 0; i < count; ++i) text += " frame" + std::to_string(i);
     return text + " // keep the next directive\n rgbGen identity\n }\n";
 }
 int main() {
     ri.Printf = Warn;
     for (auto profile : {COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP, COM_GAME_ALICE,
-                         COM_GAME_JKA_SP, COM_GAME_JKA_MP}) {
+                         COM_GAME_JKA_SP, COM_GAME_JKA_MP, COM_GAME_JK2_SP, COM_GAME_JK2_MP}) {
         ri.gameId = profile;
         const bool rtcw = profile == COM_GAME_RTCW_SP || profile == COM_GAME_RTCW_MP;
         const bool academy = profile == COM_GAME_JKA_SP || profile == COM_GAME_JKA_MP;
+        const bool jedi = academy || profile == COM_GAME_JK2_SP || profile == COM_GAME_JK2_MP;
+        // The Jedi engines' oneShotAnimMap keeps animMap's bound (tr_jka_shader.h).
+        const std::vector<const char *> words = jedi ? std::vector<const char *>{"AnImMaP", "oNeShOtAnImMaP"} :
+            std::vector<const char *>{"AnImMaP"};
         for (int extended : {0, 1}) {
             s_extendedShader = extended;
             // Ritual's dialect keeps retail's 64 frames (alice.exe 0x0048c5bc,
             // fakk2.exe 1.02 0x00476e00; F.A.K.K.2's caustics use 47) in a
             // renderer that carries it, as do extended shaders.
-            // Jedi Academy keeps 32 (jamp.exe 0x4b42e4, jasp.exe 0x47a497).
+            // Jedi Academy keeps 32 (jamp.exe 0x4b42e4, jasp.exe 0x47a497),
+            // Jedi Outcast Quake III's 8 (jk2mp.exe 0x48d9ed, jk2sp.exe 0x47d81d).
             const int limit = extended ? 64 : rtcw ? 16 : profile == COM_GAME_ALICE ? ALICE_ANIMATION_LIMIT :
                 academy ? 32 : 8;
+            for (const char *word : words)
             for (int count : {0, 1, 8, 9, 15, 16, 17, 24, 25, 31, 32, 33, 47, 64, 65}) {
                 Reset(); shaderStage_t stage{};
-                auto input = Animation(count); const char *text = input.c_str();
+                auto input = Animation(count, word); const char *text = input.c_str();
                 assert(ParseAnimation(&stage, &text));
                 const int accepted = count < limit ? count : limit;
                 assert(stage.bundle[0].numImageAnimations == accepted);

@@ -58,18 +58,23 @@ static inline void R_JediSunParms( const char **text, float parms[6] ) {
 static inline qboolean R_JediLightColorKeyword( const char *token ) {
 	return R_JediShaderProfile() && !Q_stricmp( token, "lightColor" ) ? qtrue : qfalse;
 }
-/* Retail reads animMap, clampAnimMap and oneShotAnimMap in one ParseStage
- * branch (jamp.exe 0x4b426c, jasp.exe 0x47a42e). clampAnimMap loads its
- * frames clamped (GL_CLAMP), oneShotAnimMap sets the bundle's one-shot byte
- * (stage +0x1d, bundle +0x19), and all three keep up to 32 frames
- * (0x4b42e4, 0x47a497). R_BindAnimatedImage (jamp.exe 0x4ac3d0, jasp.exe
- * 0x472fd0) then holds a one-shot bundle on its last frame instead of
- * wrapping. */
+/* All four Jedi engines read animMap, clampAnimMap and oneShotAnimMap in
+ * one ParseStage branch (jamp.exe 0x4b426c, jasp.exe 0x47a42e, jk2mp.exe
+ * 0x48d97b, jk2sp.exe 0x47d7ab). clampAnimMap loads its frames clamped
+ * (GL_CLAMP: jk2mp.exe 0x48d9f2, jk2sp.exe 0x47d822), oneShotAnimMap sets
+ * the bundle's one-shot byte (Academy's bundle +0x19; Outcast's +0x51 in
+ * jk2mp.exe 0x48d9c7, +0x4d in jk2sp.exe 0x47d7f7), and
+ * R_BindAnimatedImage (jamp.exe 0x4ac3d0, jasp.exe 0x472fd0, jk2mp.exe
+ * 0x488300, jk2sp.exe 0x478180) then holds a one-shot bundle on its last
+ * frame instead of wrapping. Academy's three keep up to 32 frames
+ * (0x4b42e4, 0x47a497); Outcast's keep Quake III's 8 and skip the rest
+ * without a warning (jk2mp.exe 0x48d9ed, jk2sp.exe 0x47d81d). Elite Force
+ * and the id engines know only animMap. */
 #define MAX_IMAGE_ANIMATIONS_JKA 32
-static inline qboolean R_JKAClampAnimMapKeyword( const char *token ) {
-	return R_JKAShaderProfile() && !Q_stricmp( token, "clampAnimMap" ) ? qtrue : qfalse;
+static inline qboolean R_JediClampAnimMapKeyword( const char *token ) {
+	return R_JediShaderProfile() && !Q_stricmp( token, "clampAnimMap" ) ? qtrue : qfalse;
 }
-static inline qboolean R_JKAOneShotAnimMapKeyword( const char *token ) {
-	return R_JKAShaderProfile() && !Q_stricmp( token, "oneShotAnimMap" ) ? qtrue : qfalse;
+static inline qboolean R_JediOneShotAnimMapKeyword( const char *token ) {
+	return R_JediShaderProfile() && !Q_stricmp( token, "oneShotAnimMap" ) ? qtrue : qfalse;
 }
 #endif

@@ -2913,6 +2913,21 @@ The shared RBSP reader now translates both words (Source, Unit). No
 Outcast map has been drawn live: the multiplayer client still stops at
 client-game import 300. No gate closes.
 
+The [animMap variants record](2026-10-15-jk2-animmap-variants.md)
+(2026-10-15) has both Outcast profiles read Raven's `oneshotanimMap` and
+`clampanimMap` stage keywords, which fnTech3 read for Academy alone.
+`jk2mp.exe` and `jk2sp.exe` send both to their `animMap` branch
+(`0x48d97b`, `0x47d7ab`): `clampanimMap` loads its frames clamped,
+`oneshotanimMap` sets a bundle byte on which the animated-image bind holds
+the last frame instead of wrapping (`0x488389`, `0x478225`), and both keep
+Quake III's 8 frames where Academy's keep 32 (`0x48d9ed`, `0x47d81d`).
+Through the production parser, all 22 installed definitions that use them,
+12 campaign doors, panels and screens and 10 explosions, now load in GLx,
+Vulkan and RTX, and no other definition changes (Source, Unit).
+`jk2sp.exe`'s `RF_SETANIMINDEX` frame override (`0x4781ee`) is not yet
+served for `jk2-sp`. Nothing has been seen live: the multiplayer client
+still stops at client-game import 300 before a map draws. No gate closes.
+
 Star Wars Jedi Knight II: Jedi Outcast is the seventh title, with two mode
 profiles over one `base/` installation: `jk2-sp` and `jk2-mp`. Every contract
 below is pinned against a legitimate retail 1.02a installation and its own two

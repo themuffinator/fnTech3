@@ -89,6 +89,11 @@ historical upstream records, not fnTech3 release history. See the
   which the shader parser now reads as the original engines do, along with
   Raven's `lightColor` and Jedi Outcast's `noTC`
   ([record](docs/fntech3/2026-10-15-raven-sun-keyword.md)).
+- Load Jedi Outcast's explosion shaders and the one-shot doors, panels and
+  screens of its campaign, which were drawn with the default image: both
+  Outcast profiles now read Raven's `oneshotanimMap` and `clampanimMap`, as
+  the original engines do
+  ([record](docs/fntech3/2026-10-15-jk2-animmap-variants.md)).
 - Light Jedi Academy's and Jedi Outcast's maps under RTX with their real
   sky and its sun: the path tracer read the maps' surface flags with Quake
   III's values, so ground and walls whose material shares a bit with Quake

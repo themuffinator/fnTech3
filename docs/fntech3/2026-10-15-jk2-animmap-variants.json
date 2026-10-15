@@ -1,0 +1,1418 @@
+{
+ "record": "2026-10-15-jk2-animmap-variants.md",
+ "date": "2026-10-15",
+ "profiles": [
+  "jk2-sp",
+  "jk2-mp"
+ ],
+ "unchangedProfiles": "jka-sp and jka-mp keep their reading and 32-frame bound; every non-Jedi profile still ends the stage at clampAnimMap and oneShotAnimMap",
+ "gateChange": "none",
+ "base": "f8e1ee980462ccaf1ae86f39ec7e75e5ab4e4885",
+ "implementation": {
+  "files": [
+   "code/renderercommon/tr_jka_shader.h",
+   "code/renderer/tr_shader.c",
+   "code/renderervk/tr_shader.c",
+   "code/rendererrtx/tr_shader.c",
+   "code/renderer/tr_shade.c",
+   "code/renderervk/tr_shade.c",
+   "code/rendererrtx/tr_shade.c",
+   "code/renderer/tr_local.h",
+   "code/renderervk/tr_local.h",
+   "code/rendererrtx/tr_local.h"
+  ],
+  "helpers": {
+   "R_JediClampAnimMapKeyword": "was R_JKAClampAnimMapKeyword; R_JediShaderProfile",
+   "R_JediOneShotAnimMapKeyword": "was R_JKAOneShotAnimMapKeyword; R_JediShaderProfile"
+  },
+  "unchanged": "MAX_IMAGE_ANIMATIONS_JKA (32) stays under R_JKAShaderProfile; Outcast keeps MAX_IMAGE_ANIMATIONS_VQ3 (8); the bundle bit keeps the name jkaOneShotAnimMap; tr_shade.c and tr_local.h changed in comments only",
+  "authorship": "independently authored from capstone/pefile reads of the retail executables; no reference port consulted"
+ },
+ "retailIdentities": {
+  "jk2mp.exe": {
+   "size": 1126400,
+   "sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a",
+   "timeDateStamp": "0x3c832b11"
+  },
+  "jk2sp.exe": {
+   "size": 999482,
+   "sha256": "0d3c635ee5b20ac32fc957e00cf21e65ebc1584112b11f6ae026706dcc0d0e0c",
+   "timeDateStamp": "0x3c840a46"
+  },
+  "jamp.exe": {
+   "size": 1527808,
+   "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+   "timeDateStamp": "0x3faa8a05"
+  },
+  "jasp.exe": {
+   "size": 1236992,
+   "sha256": "9351a8de230fcd577e2b474889d08f38982450306767a6823dd659482566d6ce",
+   "timeDateStamp": "0x3f999a27"
+  }
+ },
+ "retail": {
+  "observed": {
+   "jk2mp.exe": {
+    "keywordCompares": {
+     "animMap": "0x48cf79",
+     "clampanimMap": "0x48cf8f",
+     "oneshotanimMap": "0x48cfa5"
+    },
+    "branch": "0x48d97b",
+    "branchCompares": {
+     "clampanimMap": "0x48d97b",
+     "oneshotanimMap": "0x48d98c"
+    },
+    "oneShotByteWrite": {
+     "address": "0x48d9c7",
+     "parserOffset": "0x59",
+     "bundleOffset": "0x51"
+    },
+    "frameBound": {
+     "address": "0x48d9ed",
+     "instruction": "cmp esi, 8; jge (skip, keep parsing)",
+     "frames": 8
+    },
+    "wrap": {
+     "address": "0x48d9f2",
+     "repeat": "0x2901 GL_REPEAT",
+     "clamp": "0x2900 GL_CLAMP"
+    },
+    "noTCInverse": "0x48d9ff (0x1a88e5c)",
+    "imageRequest": "0x48da29 -> 0x47c7b0",
+    "missingSpeedMessage": {
+     "address": "0x48db24",
+     "note": "names 'animMap' when the clamp flag is set, 'clampanimMap' otherwise"
+    },
+    "bindAnimatedImage": "0x488300",
+    "frame": "0x488365: ftol(shaderTime * speed * 1024) >> 10, negative -> 0 (0x488383)",
+    "oneShotHold": "0x488389: bundle +0x51 set and index >= count -> last frame, else index % count",
+    "setAnimIndex": "none"
+   },
+   "jk2sp.exe": {
+    "keywordCompares": {
+     "animMap": "0x47cda9",
+     "clampanimMap": "0x47cdbf",
+     "oneshotanimMap": "0x47cdd5"
+    },
+    "branch": "0x47d7ab",
+    "branchCompares": {
+     "clampanimMap": "0x47d7ab",
+     "oneshotanimMap": "0x47d7bc"
+    },
+    "oneShotByteWrite": {
+     "address": "0x47d7f7",
+     "parserOffset": "0x59",
+     "bundleOffset": "0x4d"
+    },
+    "frameBound": {
+     "address": "0x47d81d",
+     "instruction": "cmp esi, 8; jge (skip, keep parsing)",
+     "frames": 8
+    },
+    "wrap": {
+     "address": "0x47d822",
+     "repeat": "0x2901 GL_REPEAT",
+     "clamp": "0x2900 GL_CLAMP"
+    },
+    "noTCInverse": "0x47d82f (0x131a02c)",
+    "imageRequest": "0x47d859 -> 0x46b580",
+    "missingSpeedMessage": {
+     "address": "0x47d954",
+     "note": "names 'animMap' when the clamp flag is set, 'clampanimMap' otherwise"
+    },
+    "bindAnimatedImage": "0x478180",
+    "frame": "0x478201: ftol(shaderTime * speed * 1024) >> 10, negative -> 0 (0x47821f)",
+    "oneShotHold": "0x478225: bundle +0x4d set and index >= count -> last frame, else index % count",
+    "setAnimIndex": "0x4781ee: currentEntity renderfx & 0x20000 -> index = skinNum (+0x68), no negative clamp; one-shot hold still applies; not served by fnTech3 for jk2-sp"
+   },
+   "academyForComparison": {
+    "branch": {
+     "jamp.exe": "0x4b426c",
+     "jasp.exe": "0x47a42e"
+    },
+    "frameBound": {
+     "jamp.exe": "0x4b42e4 (cmp eax, 0x20)",
+     "jasp.exe": "0x47a497",
+     "frames": 32
+    },
+    "bind": {
+     "jamp.exe": "0x4ac3d0",
+     "jasp.exe": "0x472fd0"
+    },
+    "oneShotHold": {
+     "jamp.exe": "0x4ac46b",
+     "jasp.exe": "0x473058"
+    }
+   }
+  },
+  "inferred": {
+   "bundleOffsets": "jk2mp.exe ParseStage addresses the stage 8 bytes before the bundle (images at +8, count +0x28, speed +0x2c) and the bind the bundle itself (images +0, count +0x20, speed +0x24), so parser +0x59 is bundle +0x51; jk2sp.exe is 12 bytes before it, so +0x59 is +0x4d"
+  },
+  "tools": "capstone + pefile (.tmp/raven-sun/disasm_at.py, find_sub.py; .tmp/jk2-animmap idiv scan)"
+ },
+ "installed": {
+  "jk2": {
+   "stages": 32,
+   "definitions": [
+    "electricalExplosionSlow",
+    "gfx/exp/demp2",
+    "gfx/exp/explosion1",
+    "gfx/exp/explosion1_a",
+    "gfx/exp/explosion2",
+    "gfx/exp/explosion3",
+    "gfx/exp/rocket_explosion",
+    "gfx/exp/slower_rocket_explosion",
+    "gfx/exp/wookie",
+    "surfaceExplosion",
+    "textures/bespin/door01locked",
+    "textures/cairn/door02",
+    "textures/doomgiver/comp_panel",
+    "textures/doomgiver/comp_panel_b",
+    "textures/doomgiver/comp_panel_g",
+    "textures/doomgiver/comp_panel_r",
+    "textures/doomgiver/door_opener",
+    "textures/imp_mine/newdoor1_b",
+    "textures/impdetention/door1c",
+    "textures/impdetention/hangerdoorb",
+    "textures/kejim/blastdoor_onoff",
+    "textures/kejim/powerscreen256"
+   ],
+   "definitionCount": 22,
+   "mostFrames": 8,
+   "stagesOverEight": 0,
+   "stageLines": [
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/bespin.shader",
+     "line": 740,
+     "definition": "textures/bespin/door01locked",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/doomgiver.shader",
+     "line": 70,
+     "definition": "textures/doomgiver/comp_panel",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/doomgiver.shader",
+     "line": 824,
+     "definition": "textures/doomgiver/door_opener",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 6,
+     "definition": "electricalExplosionSlow",
+     "word": "oneshotanimmap",
+     "speed": "6",
+     "frames": 3
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 11,
+     "definition": "electricalExplosionSlow",
+     "word": "oneshotanimmap",
+     "speed": "6",
+     "frames": 3
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 22,
+     "definition": "surfaceExplosion",
+     "word": "oneshotanimmap",
+     "speed": "4",
+     "frames": 3
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 27,
+     "definition": "surfaceExplosion",
+     "word": "oneshotanimmap",
+     "speed": "4",
+     "frames": 3
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 37,
+     "definition": "gfx/exp/rocket_explosion",
+     "word": "oneshotanimmap",
+     "speed": "6",
+     "frames": 8
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 43,
+     "definition": "gfx/exp/rocket_explosion",
+     "word": "oneshotanimmap",
+     "speed": "6",
+     "frames": 7
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 53,
+     "definition": "gfx/exp/slower_rocket_explosion",
+     "word": "oneshotanimmap",
+     "speed": "9",
+     "frames": 8
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 59,
+     "definition": "gfx/exp/slower_rocket_explosion",
+     "word": "oneshotanimmap",
+     "speed": "9",
+     "frames": 7
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 69,
+     "definition": "gfx/exp/explosion1_a",
+     "word": "oneshotanimmap",
+     "speed": "3",
+     "frames": 8
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 76,
+     "definition": "gfx/exp/explosion1_a",
+     "word": "oneshotanimmap",
+     "speed": "3",
+     "frames": 7
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 88,
+     "definition": "gfx/exp/explosion1",
+     "word": "oneshotanimmap",
+     "speed": "7",
+     "frames": 8
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 94,
+     "definition": "gfx/exp/explosion1",
+     "word": "oneshotanimmap",
+     "speed": "7",
+     "frames": 7
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 104,
+     "definition": "gfx/exp/explosion2",
+     "word": "oneshotanimmap",
+     "speed": "6",
+     "frames": 8
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 110,
+     "definition": "gfx/exp/explosion2",
+     "word": "oneshotanimmap",
+     "speed": "6",
+     "frames": 7
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 120,
+     "definition": "gfx/exp/explosion3",
+     "word": "oneshotanimmap",
+     "speed": "6",
+     "frames": 8
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 126,
+     "definition": "gfx/exp/explosion3",
+     "word": "oneshotanimmap",
+     "speed": "6",
+     "frames": 7
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 136,
+     "definition": "gfx/exp/wookie",
+     "word": "oneshotanimmap",
+     "speed": "17",
+     "frames": 7
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 142,
+     "definition": "gfx/exp/wookie",
+     "word": "oneshotanimmap",
+     "speed": "17",
+     "frames": 6
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 152,
+     "definition": "gfx/exp/demp2",
+     "word": "oneshotanimmap",
+     "speed": "17",
+     "frames": 7
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 158,
+     "definition": "gfx/exp/demp2",
+     "word": "oneshotanimmap",
+     "speed": "17",
+     "frames": 6
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/imperial.shader",
+     "line": 177,
+     "definition": "textures/impdetention/door1c",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/imperial.shader",
+     "line": 192,
+     "definition": "textures/impdetention/hangerdoorb",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/imperial.shader",
+     "line": 826,
+     "definition": "textures/kejim/powerscreen256",
+     "word": "oneshotanimMap",
+     "speed": "8",
+     "frames": 8
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/imperial.shader",
+     "line": 1889,
+     "definition": "textures/kejim/blastdoor_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/imperial.shader",
+     "line": 2546,
+     "definition": "textures/doomgiver/comp_panel_r",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 8
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/imperial.shader",
+     "line": 2568,
+     "definition": "textures/doomgiver/comp_panel_g",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 8
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/imperial.shader",
+     "line": 2590,
+     "definition": "textures/doomgiver/comp_panel_b",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 8
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/imperial.shader",
+     "line": 3999,
+     "definition": "textures/imp_mine/newdoor1_b",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets0.pk3",
+     "file": "shaders/imperial.shader",
+     "line": 4302,
+     "definition": "textures/cairn/door02",
+     "word": "clampanimMap",
+     "speed": "2",
+     "frames": 2
+    }
+   ]
+  },
+  "jka": {
+   "stages": 64,
+   "definitions": [
+    "electricalExplosionSlow",
+    "gfx/exp/demp2",
+    "gfx/exp/explosion1",
+    "gfx/exp/explosion1_a",
+    "gfx/exp/explosion2",
+    "gfx/exp/explosion3",
+    "gfx/exp/rocket_explosion",
+    "gfx/exp/slower_rocket_explosion",
+    "gfx/exp/wookie",
+    "models/map_objects/desert/switch3",
+    "models/map_objects/imperial/switch",
+    "models/map_objects/rocky_ruins/switch",
+    "surfaceExplosion",
+    "textures/bespin/door01locked",
+    "textures/bounty/door_onoff",
+    "textures/byss/byss_gate_onoff",
+    "textures/byss/byss_gatedoor_onoff",
+    "textures/byss/byss_switch",
+    "textures/byss/door1",
+    "textures/cairn/door02",
+    "textures/desert/dbay_hud",
+    "textures/desert/door_lrg_onoff",
+    "textures/desert/metalcrust_anim_map",
+    "textures/desert/s_door_1_onoff",
+    "textures/desert/s_door_2_onoff",
+    "textures/desert/s_door_3_onoff",
+    "textures/doomgiver/comp_panel",
+    "textures/doomgiver/comp_panel_b",
+    "textures/doomgiver/comp_panel_g",
+    "textures/doomgiver/comp_panel_r",
+    "textures/doomgiver/door_opener",
+    "textures/factory/cul_door_onoff",
+    "textures/factory/door_onoff",
+    "textures/h_evil/evil_door_basic_onoff",
+    "textures/hoth/door_02_onoff",
+    "textures/hoth/door_04_a_onoff",
+    "textures/hoth/h_door2_onoff",
+    "textures/hoth/h_door_onoff",
+    "textures/imp_mine/newdoor1_b",
+    "textures/impdetention/door1c",
+    "textures/impdetention/hangerdoorb",
+    "textures/imperial/door_1_onoff",
+    "textures/imperial/door_1new_onoff",
+    "textures/imperial/door_2_onoff",
+    "textures/imperial/door_2new_onoff",
+    "textures/kejim/blastdoor_onoff",
+    "textures/kejim/powerscreen256",
+    "textures/vjun/door1_onoff",
+    "textures/vjun/door2_onoff",
+    "textures/vjun/o_door_onoff",
+    "textures/wedge/w_door2_onoff",
+    "textures/wedge/w_door_onoff"
+   ],
+   "definitionCount": 54,
+   "mostFrames": 8,
+   "stagesOverEight": 0,
+   "stageLines": [
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/bespin.shader",
+     "line": 588,
+     "definition": "textures/bespin/door01locked",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/bounty.shader",
+     "line": 70,
+     "definition": "textures/bounty/door_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/byss.shader",
+     "line": 331,
+     "definition": "textures/byss/byss_gate_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/byss.shader",
+     "line": 348,
+     "definition": "textures/byss/byss_gatedoor_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/byss.shader",
+     "line": 365,
+     "definition": "textures/byss/door1",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/byss.shader",
+     "line": 386,
+     "definition": "textures/byss/byss_switch",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/desert.shader",
+     "line": 220,
+     "definition": "textures/desert/dbay_hud",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 4
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/desert.shader",
+     "line": 270,
+     "definition": "textures/desert/s_door_1_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/desert.shader",
+     "line": 287,
+     "definition": "textures/desert/s_door_2_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/desert.shader",
+     "line": 303,
+     "definition": "textures/desert/s_door_3_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/desert.shader",
+     "line": 320,
+     "definition": "textures/desert/door_lrg_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/desert.shader",
+     "line": 1042,
+     "definition": "textures/desert/metalcrust_anim_map",
+     "word": "oneshotanimMap",
+     "speed": "5",
+     "frames": 8
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/desert.shader",
+     "line": 1516,
+     "definition": "models/map_objects/desert/switch3",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/doomgiver.shader",
+     "line": 70,
+     "definition": "textures/doomgiver/comp_panel",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/doomgiver.shader",
+     "line": 862,
+     "definition": "textures/doomgiver/door_opener",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 6,
+     "definition": "electricalExplosionSlow",
+     "word": "oneshotanimmap",
+     "speed": "6",
+     "frames": 3
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 11,
+     "definition": "electricalExplosionSlow",
+     "word": "oneshotanimmap",
+     "speed": "6",
+     "frames": 3
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 22,
+     "definition": "surfaceExplosion",
+     "word": "oneshotanimmap",
+     "speed": "4",
+     "frames": 3
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 27,
+     "definition": "surfaceExplosion",
+     "word": "oneshotanimmap",
+     "speed": "4",
+     "frames": 3
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 37,
+     "definition": "gfx/exp/rocket_explosion",
+     "word": "oneshotanimmap",
+     "speed": "6",
+     "frames": 8
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 43,
+     "definition": "gfx/exp/rocket_explosion",
+     "word": "oneshotanimmap",
+     "speed": "6",
+     "frames": 7
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 53,
+     "definition": "gfx/exp/slower_rocket_explosion",
+     "word": "oneshotanimmap",
+     "speed": "9",
+     "frames": 8
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 59,
+     "definition": "gfx/exp/slower_rocket_explosion",
+     "word": "oneshotanimmap",
+     "speed": "9",
+     "frames": 7
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 69,
+     "definition": "gfx/exp/explosion1_a",
+     "word": "oneshotanimmap",
+     "speed": "3",
+     "frames": 8
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 76,
+     "definition": "gfx/exp/explosion1_a",
+     "word": "oneshotanimmap",
+     "speed": "3",
+     "frames": 7
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 88,
+     "definition": "gfx/exp/explosion1",
+     "word": "oneshotanimmap",
+     "speed": "7",
+     "frames": 8
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 94,
+     "definition": "gfx/exp/explosion1",
+     "word": "oneshotanimmap",
+     "speed": "7",
+     "frames": 7
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 104,
+     "definition": "gfx/exp/explosion2",
+     "word": "oneshotanimmap",
+     "speed": "6",
+     "frames": 8
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 110,
+     "definition": "gfx/exp/explosion2",
+     "word": "oneshotanimmap",
+     "speed": "6",
+     "frames": 7
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 120,
+     "definition": "gfx/exp/explosion3",
+     "word": "oneshotanimmap",
+     "speed": "6",
+     "frames": 8
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 126,
+     "definition": "gfx/exp/explosion3",
+     "word": "oneshotanimmap",
+     "speed": "6",
+     "frames": 7
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 136,
+     "definition": "gfx/exp/wookie",
+     "word": "oneshotanimmap",
+     "speed": "17",
+     "frames": 7
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 142,
+     "definition": "gfx/exp/wookie",
+     "word": "oneshotanimmap",
+     "speed": "17",
+     "frames": 6
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 152,
+     "definition": "gfx/exp/demp2",
+     "word": "oneshotanimmap",
+     "speed": "17",
+     "frames": 7
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/explosions.shader",
+     "line": 158,
+     "definition": "gfx/exp/demp2",
+     "word": "oneshotanimmap",
+     "speed": "17",
+     "frames": 6
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/factory.shader",
+     "line": 567,
+     "definition": "textures/factory/door_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/factory.shader",
+     "line": 584,
+     "definition": "textures/factory/cul_door_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/hiddenevil.shader",
+     "line": 195,
+     "definition": "textures/h_evil/evil_door_basic_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/hoth.shader",
+     "line": 703,
+     "definition": "textures/hoth/h_door_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/hoth.shader",
+     "line": 726,
+     "definition": "textures/hoth/h_door2_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/hoth.shader",
+     "line": 745,
+     "definition": "textures/hoth/door_04_a_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/hoth.shader",
+     "line": 768,
+     "definition": "textures/hoth/door_02_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/imperial.shader",
+     "line": 183,
+     "definition": "textures/impdetention/door1c",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/imperial.shader",
+     "line": 199,
+     "definition": "textures/impdetention/hangerdoorb",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/imperial.shader",
+     "line": 882,
+     "definition": "textures/kejim/powerscreen256",
+     "word": "oneshotanimMap",
+     "speed": "8",
+     "frames": 8
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/imperial.shader",
+     "line": 1781,
+     "definition": "textures/kejim/blastdoor_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/imperial.shader",
+     "line": 2404,
+     "definition": "textures/doomgiver/comp_panel_r",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 8
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/imperial.shader",
+     "line": 2426,
+     "definition": "textures/doomgiver/comp_panel_g",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 8
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/imperial.shader",
+     "line": 2448,
+     "definition": "textures/doomgiver/comp_panel_b",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 8
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/imperial.shader",
+     "line": 3805,
+     "definition": "textures/imp_mine/newdoor1_b",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/imperial.shader",
+     "line": 4112,
+     "definition": "textures/cairn/door02",
+     "word": "clampanimMap",
+     "speed": "2",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/imperial.shader",
+     "line": 5519,
+     "definition": "textures/imperial/door_1_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/imperial.shader",
+     "line": 5536,
+     "definition": "textures/imperial/door_2_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/imperial.shader",
+     "line": 5599,
+     "definition": "textures/imperial/door_1new_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/imperial.shader",
+     "line": 5628,
+     "definition": "textures/imperial/door_2new_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/imperial.shader",
+     "line": 5937,
+     "definition": "models/map_objects/imperial/switch",
+     "word": "clampanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/rocky_ruin.shader",
+     "line": 839,
+     "definition": "models/map_objects/rocky_ruins/switch",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/vjun.shader",
+     "line": 219,
+     "definition": "textures/vjun/door1_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/vjun.shader",
+     "line": 237,
+     "definition": "textures/vjun/door2_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/vjun.shader",
+     "line": 254,
+     "definition": "textures/vjun/o_door_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/vjun.shader",
+     "line": 1055,
+     "definition": "textures/imperial/door_1_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/vjun.shader",
+     "line": 1073,
+     "definition": "textures/imperial/door_2_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/wedge.shader",
+     "line": 36,
+     "definition": "textures/wedge/w_door_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    },
+    {
+     "pak": "assets1.pk3",
+     "file": "shaders/wedge.shader",
+     "line": 273,
+     "definition": "textures/wedge/w_door2_onoff",
+     "word": "oneshotanimMap",
+     "speed": "1",
+     "frames": 2
+    }
+   ]
+  }
+ },
+ "parserCensus": {
+  "method": "tests/alice_shader_parse_tests.py host around each renderer's whole tr_shader.c; every name { ... } definition of the installed scripts, per profile (.tmp/jk2-animmap/corpus.py)",
+  "before": "git archive of f8e1ee98 (code/); 922e725a and b80e6f6e, which followed it, change no parser source",
+  "after": "the same export with this change (overlay.py export)",
+  "commands": [
+   "python .tmp/jk2-animmap/corpus.py before .tmp/jk2-animmap/before",
+   "python .tmp/jk2-animmap/corpus.py after .tmp/jk2-animmap/after"
+  ],
+  "results": {
+   "renderer/jka/jka-sp": {
+    "definitions": 3391,
+    "refusedBefore": 79,
+    "refusedAfter": 79,
+    "newlyLoading": [],
+    "newlyRefused": []
+   },
+   "renderer/jka/jka-mp": {
+    "definitions": 3391,
+    "refusedBefore": 79,
+    "refusedAfter": 79,
+    "newlyLoading": [],
+    "newlyRefused": []
+   },
+   "renderer/jka/q3": {
+    "definitions": 3391,
+    "refusedBefore": 871,
+    "refusedAfter": 871,
+    "newlyLoading": [],
+    "newlyRefused": []
+   },
+   "renderer/jk2/jk2-sp": {
+    "definitions": 1187,
+    "refusedBefore": 69,
+    "refusedAfter": 47,
+    "newlyLoading": [
+     "electricalExplosionSlow",
+     "gfx/exp/demp2",
+     "gfx/exp/explosion1",
+     "gfx/exp/explosion1_a",
+     "gfx/exp/explosion2",
+     "gfx/exp/explosion3",
+     "gfx/exp/rocket_explosion",
+     "gfx/exp/slower_rocket_explosion",
+     "gfx/exp/wookie",
+     "surfaceExplosion",
+     "textures/bespin/door01locked",
+     "textures/cairn/door02",
+     "textures/doomgiver/comp_panel",
+     "textures/doomgiver/comp_panel_b",
+     "textures/doomgiver/comp_panel_g",
+     "textures/doomgiver/comp_panel_r",
+     "textures/doomgiver/door_opener",
+     "textures/imp_mine/newdoor1_b",
+     "textures/impdetention/door1c",
+     "textures/impdetention/hangerdoorb",
+     "textures/kejim/blastdoor_onoff",
+     "textures/kejim/powerscreen256"
+    ],
+    "newlyRefused": []
+   },
+   "renderer/jk2/jk2-mp": {
+    "definitions": 1187,
+    "refusedBefore": 69,
+    "refusedAfter": 47,
+    "newlyLoading": [
+     "electricalExplosionSlow",
+     "gfx/exp/demp2",
+     "gfx/exp/explosion1",
+     "gfx/exp/explosion1_a",
+     "gfx/exp/explosion2",
+     "gfx/exp/explosion3",
+     "gfx/exp/rocket_explosion",
+     "gfx/exp/slower_rocket_explosion",
+     "gfx/exp/wookie",
+     "surfaceExplosion",
+     "textures/bespin/door01locked",
+     "textures/cairn/door02",
+     "textures/doomgiver/comp_panel",
+     "textures/doomgiver/comp_panel_b",
+     "textures/doomgiver/comp_panel_g",
+     "textures/doomgiver/comp_panel_r",
+     "textures/doomgiver/door_opener",
+     "textures/imp_mine/newdoor1_b",
+     "textures/impdetention/door1c",
+     "textures/impdetention/hangerdoorb",
+     "textures/kejim/blastdoor_onoff",
+     "textures/kejim/powerscreen256"
+    ],
+    "newlyRefused": []
+   },
+   "renderer/jk2/q3": {
+    "definitions": 1187,
+    "refusedBefore": 90,
+    "refusedAfter": 90,
+    "newlyLoading": [],
+    "newlyRefused": []
+   },
+   "renderervk/jka/jka-sp": {
+    "definitions": 3391,
+    "refusedBefore": 79,
+    "refusedAfter": 79,
+    "newlyLoading": [],
+    "newlyRefused": []
+   },
+   "renderervk/jka/jka-mp": {
+    "definitions": 3391,
+    "refusedBefore": 79,
+    "refusedAfter": 79,
+    "newlyLoading": [],
+    "newlyRefused": []
+   },
+   "renderervk/jka/q3": {
+    "definitions": 3391,
+    "refusedBefore": 871,
+    "refusedAfter": 871,
+    "newlyLoading": [],
+    "newlyRefused": []
+   },
+   "renderervk/jk2/jk2-sp": {
+    "definitions": 1187,
+    "refusedBefore": 69,
+    "refusedAfter": 47,
+    "newlyLoading": [
+     "electricalExplosionSlow",
+     "gfx/exp/demp2",
+     "gfx/exp/explosion1",
+     "gfx/exp/explosion1_a",
+     "gfx/exp/explosion2",
+     "gfx/exp/explosion3",
+     "gfx/exp/rocket_explosion",
+     "gfx/exp/slower_rocket_explosion",
+     "gfx/exp/wookie",
+     "surfaceExplosion",
+     "textures/bespin/door01locked",
+     "textures/cairn/door02",
+     "textures/doomgiver/comp_panel",
+     "textures/doomgiver/comp_panel_b",
+     "textures/doomgiver/comp_panel_g",
+     "textures/doomgiver/comp_panel_r",
+     "textures/doomgiver/door_opener",
+     "textures/imp_mine/newdoor1_b",
+     "textures/impdetention/door1c",
+     "textures/impdetention/hangerdoorb",
+     "textures/kejim/blastdoor_onoff",
+     "textures/kejim/powerscreen256"
+    ],
+    "newlyRefused": []
+   },
+   "renderervk/jk2/jk2-mp": {
+    "definitions": 1187,
+    "refusedBefore": 69,
+    "refusedAfter": 47,
+    "newlyLoading": [
+     "electricalExplosionSlow",
+     "gfx/exp/demp2",
+     "gfx/exp/explosion1",
+     "gfx/exp/explosion1_a",
+     "gfx/exp/explosion2",
+     "gfx/exp/explosion3",
+     "gfx/exp/rocket_explosion",
+     "gfx/exp/slower_rocket_explosion",
+     "gfx/exp/wookie",
+     "surfaceExplosion",
+     "textures/bespin/door01locked",
+     "textures/cairn/door02",
+     "textures/doomgiver/comp_panel",
+     "textures/doomgiver/comp_panel_b",
+     "textures/doomgiver/comp_panel_g",
+     "textures/doomgiver/comp_panel_r",
+     "textures/doomgiver/door_opener",
+     "textures/imp_mine/newdoor1_b",
+     "textures/impdetention/door1c",
+     "textures/impdetention/hangerdoorb",
+     "textures/kejim/blastdoor_onoff",
+     "textures/kejim/powerscreen256"
+    ],
+    "newlyRefused": []
+   },
+   "renderervk/jk2/q3": {
+    "definitions": 1187,
+    "refusedBefore": 90,
+    "refusedAfter": 90,
+    "newlyLoading": [],
+    "newlyRefused": []
+   },
+   "rendererrtx/jka/jka-sp": {
+    "definitions": 3391,
+    "refusedBefore": 79,
+    "refusedAfter": 79,
+    "newlyLoading": [],
+    "newlyRefused": []
+   },
+   "rendererrtx/jka/jka-mp": {
+    "definitions": 3391,
+    "refusedBefore": 79,
+    "refusedAfter": 79,
+    "newlyLoading": [],
+    "newlyRefused": []
+   },
+   "rendererrtx/jka/q3": {
+    "definitions": 3391,
+    "refusedBefore": 871,
+    "refusedAfter": 871,
+    "newlyLoading": [],
+    "newlyRefused": []
+   },
+   "rendererrtx/jk2/jk2-sp": {
+    "definitions": 1187,
+    "refusedBefore": 69,
+    "refusedAfter": 47,
+    "newlyLoading": [
+     "electricalExplosionSlow",
+     "gfx/exp/demp2",
+     "gfx/exp/explosion1",
+     "gfx/exp/explosion1_a",
+     "gfx/exp/explosion2",
+     "gfx/exp/explosion3",
+     "gfx/exp/rocket_explosion",
+     "gfx/exp/slower_rocket_explosion",
+     "gfx/exp/wookie",
+     "surfaceExplosion",
+     "textures/bespin/door01locked",
+     "textures/cairn/door02",
+     "textures/doomgiver/comp_panel",
+     "textures/doomgiver/comp_panel_b",
+     "textures/doomgiver/comp_panel_g",
+     "textures/doomgiver/comp_panel_r",
+     "textures/doomgiver/door_opener",
+     "textures/imp_mine/newdoor1_b",
+     "textures/impdetention/door1c",
+     "textures/impdetention/hangerdoorb",
+     "textures/kejim/blastdoor_onoff",
+     "textures/kejim/powerscreen256"
+    ],
+    "newlyRefused": []
+   },
+   "rendererrtx/jk2/jk2-mp": {
+    "definitions": 1187,
+    "refusedBefore": 69,
+    "refusedAfter": 47,
+    "newlyLoading": [
+     "electricalExplosionSlow",
+     "gfx/exp/demp2",
+     "gfx/exp/explosion1",
+     "gfx/exp/explosion1_a",
+     "gfx/exp/explosion2",
+     "gfx/exp/explosion3",
+     "gfx/exp/rocket_explosion",
+     "gfx/exp/slower_rocket_explosion",
+     "gfx/exp/wookie",
+     "surfaceExplosion",
+     "textures/bespin/door01locked",
+     "textures/cairn/door02",
+     "textures/doomgiver/comp_panel",
+     "textures/doomgiver/comp_panel_b",
+     "textures/doomgiver/comp_panel_g",
+     "textures/doomgiver/comp_panel_r",
+     "textures/doomgiver/door_opener",
+     "textures/imp_mine/newdoor1_b",
+     "textures/impdetention/door1c",
+     "textures/impdetention/hangerdoorb",
+     "textures/kejim/blastdoor_onoff",
+     "textures/kejim/powerscreen256"
+    ],
+    "newlyRefused": []
+   },
+   "rendererrtx/jk2/q3": {
+    "definitions": 1187,
+    "refusedBefore": 90,
+    "refusedAfter": 90,
+    "newlyLoading": [],
+    "newlyRefused": []
+   }
+  }
+ },
+ "build": {
+  "source": "git archive of f8e1ee98 with this change",
+  "configure": "meson setup --buildtype=debugoptimized -Dstrict-warnings=true -Drenderer-dlopen=true -Drenderers=glx,vk,rtx (MSVC 19.44 x86)",
+  "targets": [
+   "fnql_glx_x86.dll",
+   "fnql_vk_x86.dll",
+   "fnql_rtx_x86.dll"
+  ],
+  "outcome": "built, 0 warnings"
+ },
+ "tests": {
+  "updated": [
+   "tests/jka_oneshot_animmap_tests.py",
+   "tests/shader_animation_tests.py"
+  ],
+  "run": "python -m pytest tests/<27 files that slice tr_shader.c, tr_shade.c or tr_jka_shader.h> tests/jk2_shader_wave_names_tests.py tests/jka_shader_files_tests.py: 181 passed, 30,423 subtests passed",
+  "againstBefore": "the two updated files against the f8e1ee98 tree: 7 failed, 2 passed",
+  "mutations": {
+   "Outcast given 32 frames (R_JediShaderProfile on the bound)": "6 subtests failed",
+   "GLx one-shot hold gated to Academy's profiles": "1 subtest failed"
+  }
+ },
+ "live": "none: the jk2-mp client stops at client-game import 300 before a map draws, and jk2-sp at client import 3; the definitions are parsed, not seen",
+ "findings": [
+  "jk2sp.exe's RF_SETANIMINDEX (0x20000) frame override is not served for jk2-sp",
+  "all four Jedi engines and Quake III take the frame through ftol(time * speed * 1024) >> 10; fnTech3's shared bind truncates time * speed for every profile",
+  "both Outcast engines' missing-speed message names the other keyword (message only)",
+  "Outcast's remaining census refusals: 25 stageless definitions and 22 surfaceSprites stages"
+ ]
+}

@@ -1,4 +1,4 @@
-"""Academy's oneShotAnimMap and clampAnimMap stages in all three renderers."""
+"""The Jedi games' oneShotAnimMap and clampAnimMap stages in all three renderers."""
 from pathlib import Path
 import os
 import shutil
@@ -87,13 +87,16 @@ int main(){
  for(int id=COM_GAME_AUTO+1;id<COM_GAME_COUNT;++id){
   ri.gameId=static_cast<comGameId_t>(id);
   const bool academy=ri.gameId==COM_GAME_JKA_SP||ri.gameId==COM_GAME_JKA_MP;
+  // Outcast's engines read both words too (jk2mp.exe 0x48d97b, jk2sp.exe
+  // 0x47d7ab); Elite Force and the id engines know only animMap.
+  const bool jedi=academy||ri.gameId==COM_GAME_JK2_SP||ri.gameId==COM_GAME_JK2_MP;
   const int plain=std::min(40,academy?32:R_AliceShaderDialect()?64:R_WolfensteinShaderDialect()?16:8);
   shaderStage_t stage{};
   // Retail spells it oneshotanimmap in its scripts; the match ignores case.
   for(const char *word:{"oneShotAnimMap","oneshotanimmap","ONESHOTANIMMAP"}){
    stage={};const std::string line=std::string(word)+" 7"+Frames(8);
-   assert(Parse(stage,line.c_str())==academy);
-   if(academy){
+   assert(Parse(stage,line.c_str())==jedi);
+   if(jedi){
     const textureBundle_t &bundle=stage.bundle[0];
     assert(bundle.jkaOneShotAnimMap&&bundle.numImageAnimations==8&&bundle.imageAnimationSpeed==7.0);
     for(int n=0;n<8;++n)assert(!(seen[n]&IMGFLAG_CLAMPTOEDGE)&&bundle.image[n]==&frames[n]);
@@ -102,10 +105,20 @@ int main(){
    }
   }
   // clampAnimMap loads its frames clamped and loops.
-  stage={};assert(Parse(stage,("clampanimmap 2"+Frames(3)).c_str())==academy);
-  if(academy){
+  stage={};assert(Parse(stage,("clampanimmap 2"+Frames(3)).c_str())==jedi);
+  if(jedi){
    assert(!stage.bundle[0].jkaOneShotAnimMap&&stage.bundle[0].numImageAnimations==3);
    for(int n=0;n<3;++n)assert(seen[n]&IMGFLAG_CLAMPTOEDGE);
+  }
+  // Both words keep the profile's frame bound and load no more: Academy's
+  // 32, Outcast's 8 (jk2mp.exe 0x48d9ed, jk2sp.exe 0x47d81d).
+  if(jedi){
+   for(const char *word:{"oneshotanimMap","clampanimMap"}){
+    stage={};assert(Parse(stage,(std::string(word)+" 4"+Frames(40)).c_str()));
+    assert(stage.bundle[0].numImageAnimations==plain&&loads==plain&&plain==(academy?32:8));
+    assert(bool(stage.bundle[0].jkaOneShotAnimMap)==(word[0]=='o'));
+    for(int n=0;n<plain;++n)assert(bool(seen[n]&IMGFLAG_CLAMPTOEDGE)==(word[0]=='c'));
+   }
   }
   // Plain animMap writes the one-shot bit clear, keeps repeat addressing and
   // the profile's frame bound: Academy's 32, every other profile unchanged.
@@ -114,21 +127,24 @@ int main(){
   assert(!stage.bundle[0].jkaOneShotAnimMap&&stage.bundle[0].numImageAnimations==plain&&loads==plain);
   for(int n=0;n<plain;++n)assert(!(seen[n]&IMGFLAG_CLAMPTOEDGE));
   stage={};assert(!Parse(stage,"oneShotAnimMap")&&stage.bundle[0].numImageAnimations==0);
-  if(academy)assert(stage.bundle[0].jkaOneShotAnimMap);
+  if(jedi)assert(stage.bundle[0].jkaOneShotAnimMap);
   else assert(!stage.bundle[0].jkaOneShotAnimMap);
   assert(!Parse(stage,"animMapOnce 7 a b")&&!Parse(stage,"clampMap a"));
  }
  // Frame selection: frames advance with the stage's shader time; a one-shot
- // bundle then holds its last frame, any other bundle wraps.
- ri.gameId=COM_GAME_JKA_MP;
+ // bundle then holds its last frame, any other bundle wraps, in Academy's
+ // and Outcast's binds alike (jk2mp.exe 0x488389, jk2sp.exe 0x478225).
  textureBundle_t bundle{};bundle.numImageAnimations=8;bundle.imageAnimationSpeed=7;
  for(int n=0;n<8;++n)bundle.image[n]=&frames[n];
  const double times[]={-1.0,0.0,0.1,0.5,1.0,1.15,1.2,10.0,1000.0};
  const int looped[]={0,0,0,3,7,0,0,6,0};
  const int once[]={0,0,0,3,7,7,7,7,7};
- for(int n=0;n<9;++n){
-  bundle.jkaOneShotAnimMap=0;assert(Index(bundle,times[n])==looped[n]);
-  bundle.jkaOneShotAnimMap=1;assert(Index(bundle,times[n])==once[n]);
+ for(comGameId_t id:{COM_GAME_JK2_SP,COM_GAME_JK2_MP,COM_GAME_JKA_MP}){
+  ri.gameId=id;
+  for(int n=0;n<9;++n){
+   bundle.jkaOneShotAnimMap=0;assert(Index(bundle,times[n])==looped[n]);
+   bundle.jkaOneShotAnimMap=1;assert(Index(bundle,times[n])==once[n]);
+  }
  }
  // Alice's animMapOnce is unchanged beside it.
  bundle.jkaOneShotAnimMap=0;bundle.aliceAnimMapOnce=1;ri.gameId=COM_GAME_ALICE;
@@ -211,13 +227,17 @@ class JKAOneShotAnimMapTests(unittest.TestCase):
 
     def test_retail_measurements_stay_named(self):
         header = (ROOT / 'code/renderercommon/tr_jka_shader.h').read_text(encoding='utf-8')
-        for address in ('0x4b426c', '0x47a42e', '0x4ac3d0', '0x472fd0'):
+        for address in ('0x4b426c', '0x47a42e', '0x4ac3d0', '0x472fd0',
+                        '0x48d97b', '0x47d7ab', '0x488300', '0x478180', '0x48d9ed', '0x47d81d'):
             self.assertIn(address, header)
         types = (ROOT / 'code/renderercommon/tr_types.h').read_text(encoding='utf-8')
         self.assertIn('qboolean setAnimIndex;', types)
         adapter = (ROOT / 'code/compat/jka_render_adapter.hpp').read_text(encoding='utf-8')
         self.assertIn('constexpr uint32_t setAnimIndex = 0x80000u;', adapter)
         self.assertIn('#define MAX_IMAGE_ANIMATIONS_JKA 32', header)
+        # both words follow the Jedi profiles; the 32-frame bound stays Academy's
+        self.assertIn('R_JediShaderProfile() && !Q_stricmp( token, "clampAnimMap" )', header)
+        self.assertIn('R_JediShaderProfile() && !Q_stricmp( token, "oneShotAnimMap" )', header)
         for renderer in RENDERERS:
             with self.subTest(renderer=renderer):
                 local = (ROOT / 'code' / renderer / 'tr_local.h').read_text(encoding='utf-8')
