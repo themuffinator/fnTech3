@@ -519,8 +519,10 @@ static void SV_MapRestart_f( void ) {
 	// they don't violate the backwards time check in cl_cgame.c
 	// Q3 stored sv.restartTime, which its refusal above kept zero. ET's can be
 	// a pending restart's time, and snapshots add this offset to sv.time.
+	// Quake Live clears it for every connected client, where a map change has
+	// given each the old level's time (quakelive_steam.exe 0x4de869..0x4de89b).
 	for ( client_t &client : SV_Clients() ) {
-		if ( client.state == CS_PRIMED ) {
+		if ( client.state == CS_PRIMED || ( Com_GameIsQuakeLive() && client.state >= CS_CONNECTED ) ) {
 			client.oldServerTime = 0;
 		}
 	}

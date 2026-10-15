@@ -133,6 +133,10 @@ Release packages include them as web pages in their `manual` folder, built by
   -- which entities the Jedi servers send each player, permanent ones and
   broadcast masks included, and the level time a map change keeps, checked
   against retail's servers.
+- [The level clock across a map change](fntech3/2026-10-15-level-clock.md)
+  -- whether a new level carries on from the last one's time in Quake III,
+  Quake Live, RTCW, Enemy Territory and Holomatch, checked against retail's
+  servers.
 - [Portals seen through portals](fntech3/2026-10-15-snapshot-portal-recursion.md)
   -- what a server sends through a portal seen through another portal in
   every game, and RTCW's scripted cameras, checked against retail's servers.

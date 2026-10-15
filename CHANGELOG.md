@@ -58,6 +58,11 @@ historical upstream records, not fnTech3 release history. See the
   Master, now reaches the players the game names. A new level also keeps
   the game's clock running, as both original servers do
   ([record](docs/fntech3/2026-10-15-jedi-broadcast-level-time.md)).
+- Keep the game's clock running from one level to the next in Quake III,
+  Return to Castle Wolfenstein, Enemy Territory and Elite Force Holomatch
+  servers, as the original servers do, even with no one connected. Quake Live
+  servers start every level's clock again, as the original does, even with
+  players connected ([record](docs/fntech3/2026-10-15-level-clock.md)).
 - Give Enemy Territory's bot navigation one search record per area, as the
   original server does: when a mod's bots look for cover, a retreat or nearby
   areas, the server no longer writes past the end of those records, and the

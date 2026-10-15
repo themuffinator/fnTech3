@@ -19,26 +19,35 @@ enum {
 	FRAME_FIXEDTIME_FLOAT = 512,
 	/* The game runs on the server's own clock (svs.time), which a map change
 	 * keeps and only a shutdown clears: GAME_INIT, the settling frames and
-	 * every snapshot carry on from the last level's time (jamp.exe 1.01 hands
-	 * it to GAME_INIT at 0x45dd50, jk2mp.exe 1.02 at 0x44cf54). Quake3e's
-	 * empty-server reset and sv_levelTimeReset do not apply. See
-	 * docs/fntech3/2026-10-15-jedi-broadcast-level-time.md. */
-	FRAME_KEEP_LEVEL_TIME = 1024
+	 * every snapshot carry on from the last level's time (GAME_INIT takes it
+	 * in quake3.exe 1.32 at 0x438514, WolfSP.exe at 0x435fd5, WolfMP.exe at
+	 * 0x4389d7, etded.exe 2.60b at 0x42bcb8, stvoyHM.exe 1.20 at
+	 * 0x433268, jamp.exe 1.01 at 0x45dd50 and jk2mp.exe 1.02 at 0x44cf54).
+	 * Quake3e's empty-server reset and sv_levelTimeReset do not apply. See
+	 * docs/fntech3/2026-10-15-jedi-broadcast-level-time.md and
+	 * docs/fntech3/2026-10-15-level-clock.md. */
+	FRAME_KEEP_LEVEL_TIME = 1024,
+	/* The level's own clock (sv.time) starts at zero with every level,
+	 * whoever is connected: quakelive_steam.exe hands each connected client
+	 * the old level's time (0x4e35f6), which its snapshots add until the
+	 * client acknowledges the new gamestate (0x4e5185, cleared at 0x4e06ab),
+	 * then clears the clock with the level (0x4e363a). sv_levelTimeReset is
+	 * always on. See docs/fntech3/2026-10-15-level-clock.md. */
+	FRAME_RESET_LEVEL_TIME = 2048
 };
 
 static inline unsigned int Com_ProfileFrameRules( comGameId_t profile ) {
 	switch ( profile ) {
 	case COM_GAME_QUAKE3:
-		return FRAME_RETAIL | FRAME_FIXED_TICK | FRAME_X87_PRODUCT | FRAME_CAMERA_SCALE;
 	case COM_GAME_JK2_MP:
 		return FRAME_RETAIL | FRAME_FIXED_TICK | FRAME_X87_PRODUCT | FRAME_CAMERA_SCALE | FRAME_KEEP_LEVEL_TIME;
 	case COM_GAME_QUAKELIVE:
-		return FRAME_RETAIL | FRAME_X87_PRODUCT | FRAME_CAMERA_SCALE;
+		return FRAME_RETAIL | FRAME_X87_PRODUCT | FRAME_CAMERA_SCALE | FRAME_RESET_LEVEL_TIME;
 	case COM_GAME_RTCW_SP:
 	case COM_GAME_RTCW_MP:
-		return FRAME_RETAIL | FRAME_FIXED_TICK | FRAME_X87_PRODUCT;
+		return FRAME_RETAIL | FRAME_FIXED_TICK | FRAME_X87_PRODUCT | FRAME_KEEP_LEVEL_TIME;
 	case COM_GAME_WOLFET:
-		return FRAME_RETAIL | FRAME_FIXED_TICK;
+		return FRAME_RETAIL | FRAME_FIXED_TICK | FRAME_KEEP_LEVEL_TIME;
 	case COM_GAME_JKA_MP:
 		return FRAME_RETAIL | FRAME_FIXED_TICK | FRAME_X87_PRODUCT | FRAME_CAMERA_SCALE | FRAME_FLOAT_INPUT
 			| FRAME_KEEP_LEVEL_TIME;
@@ -48,6 +57,7 @@ static inline unsigned int Com_ProfileFrameRules( comGameId_t profile ) {
 	case COM_GAME_STVEF_SP:
 		return FRAME_RETAIL | FRAME_FIXED_TICK | FRAME_X87_PRODUCT | FRAME_ALWAYS_FLOOR | FRAME_CINEMATIC_CAP;
 	case COM_GAME_STVEF_MP:
+		return FRAME_RETAIL | FRAME_FIXED_TICK | FRAME_X87_PRODUCT | FRAME_ALWAYS_FLOOR | FRAME_KEEP_LEVEL_TIME;
 	case COM_GAME_ALICE:
 		return FRAME_RETAIL | FRAME_FIXED_TICK | FRAME_X87_PRODUCT | FRAME_ALWAYS_FLOOR;
 	case COM_GAME_QUAKE3_IHV:

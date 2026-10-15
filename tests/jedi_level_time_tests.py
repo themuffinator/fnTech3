@@ -4,10 +4,16 @@ Retail jamp.exe 1.01 and jk2mp.exe 1.02 run their game on the server's own
 clock, svs.time: GAME_INIT takes it (0x45dd50, 0x44cf54), every settling and
 game frame advances it (0x45eb5d, 0x460856; 0x44da8e, 0x44f37f), and only
 SV_Shutdown clears it, so a `map` carries on from the last level's time
-whoever is connected. FRAME_KEEP_LEVEL_TIME says so for those two profiles;
-every other profile keeps Quake3e's rule here: an empty server's map change,
-or sv_levelTimeReset, starts the clock again. This compiles the production
-rule table and SV_SpawnServer's level-time block with SV_ClearServer.
+whoever is connected. So do quake3.exe 1.32 (0x438514), WolfSP.exe
+(0x435fd5), WolfMP.exe (0x4389d7), etded.exe 2.60b (0x42bcb8) and stvoyHM.exe
+1.20 (0x433268). FRAME_KEEP_LEVEL_TIME says so for those seven profiles.
+quakelive_steam.exe clears its level clock with every level, whoever is
+connected, and gives each connected client the old time as an offset
+(0x4e35f6, 0x4e363a): FRAME_RESET_LEVEL_TIME. Every other profile keeps
+Quake3e's rule here: an empty server's map change, or sv_levelTimeReset,
+starts the clock again. This compiles the production rule table and
+SV_SpawnServer's level-time block with SV_ClearServer. See
+docs/fntech3/2026-10-15-level-clock.md.
 """
 # Copyright (C) 2026 fnTech3 contributors. GPL-2.0-or-later.
 from pathlib import Path
@@ -43,7 +49,11 @@ static std::vector<client_t> slots(2);
 static void Spawn(){
 SPAWN_BLOCK
 }
-static bool Kept(comGameId_t id){return id==COM_GAME_JKA_MP||id==COM_GAME_JK2_MP;}
+static bool Kept(comGameId_t id){
+ return id==COM_GAME_QUAKE3||id==COM_GAME_RTCW_SP||id==COM_GAME_RTCW_MP||id==COM_GAME_WOLFET
+  ||id==COM_GAME_STVEF_MP||id==COM_GAME_JKA_MP||id==COM_GAME_JK2_MP;
+}
+static bool Reset(comGameId_t id){return id==COM_GAME_QUAKELIVE;}
 int main(){
  // Every profile's other clock rules stay as they were.
  const unsigned base=FRAME_RETAIL|FRAME_FIXED_TICK|FRAME_X87_PRODUCT;
@@ -67,8 +77,9 @@ int main(){
  for(unsigned n=0;n<COM_GAME_COUNT;++n){
   const comGameId_t id=static_cast<comGameId_t>(n);
   const unsigned rules=Com_ProfileFrameRules(id);
-  assert((rules&~unsigned(FRAME_KEEP_LEVEL_TIME))==before[n]);
+  assert((rules&~unsigned(FRAME_KEEP_LEVEL_TIME|FRAME_RESET_LEVEL_TIME))==before[n]);
   assert(((rules&FRAME_KEEP_LEVEL_TIME)!=0)==Kept(id));
+  assert(((rules&FRAME_RESET_LEVEL_TIME)!=0)==Reset(id));
  }
  svs.clients=slots.data();
  for(unsigned n=1;n<COM_GAME_COUNT;++n){
@@ -82,9 +93,11 @@ int main(){
    Spawn();
    int time=5400,old=0;
    if(!Kept(current.id)){
-    if(reset)time=0;
+    // Quake Live always starts the level again, as sv_levelTimeReset does.
+    const bool resets=reset||Reset(current.id);
+    if(resets)time=0;
     else if(!connected&&!pending)time=0;
-    if(connected&&(reset||ritual))old=reset?5400:time;
+    if(connected&&(resets||ritual))old=resets?5400:time;
    }
    if(sv.time!=time||slots[0].oldServerTime!=old||slots[1].oldServerTime!=0||sv.maxclients!=2){
     std::printf("profile %u reset %d connected %d pending %d: time %d (want %d) old %d (want %d)\n",

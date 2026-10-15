@@ -165,6 +165,10 @@ int main(){
  // ET's pending restart time is still set.
  sv.restartTime=20000;for(int s=0;s<5;++s)slots[s]={s,777};SV_PrimeRestartClocks();
  for(int s=0;s<5;++s)assert(slots[s].oldServerTime==(s==CS_PRIMED?0:777));
+ // Quake Live, whose map change gives every connected client the old level's
+ // time, clears it for each of them (quakelive_steam.exe 0x4de869..0x4de89b).
+ profile=1;for(int s=0;s<5;++s)slots[s]={s,777};SV_PrimeRestartClocks();
+ for(int s=0;s<5;++s)assert(slots[s].oldServerTime==(s>=CS_CONNECTED?0:777));
  reset(2);cvars["savegame_loading"]=2;args={"map_restart","5"};SV_MapRestart_f();assert(!sv.restartTime&&restoreCalls==1);
  // Native IHV uses a full level spawn and never publishes a retail warmup CS.
  reset(5);SV_MapRestart_f();assert(nativeSpawns==1&&!restoreCalls&&configValue.empty());

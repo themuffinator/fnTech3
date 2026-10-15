@@ -555,17 +555,20 @@ void SV_ChangeMaxClients( void ) {
 SV_KeepsLevelTime
 
 Whether the profile's game runs on the server's own clock, which a map change
-keeps and only a shutdown clears (FRAME_KEEP_LEVEL_TIME). The Jedi multiplayer
-engines' does, whoever is connected and whatever sv_levelTimeReset says.
+keeps and only a shutdown clears (FRAME_KEEP_LEVEL_TIME). The retail Quake III,
+RTCW, Enemy Territory, Holomatch and Jedi multiplayer engines' does, whoever is
+connected and whatever sv_levelTimeReset says.
 ================
 */
 static bool SV_KeepsLevelTime( void ) {
 	return ( Com_ProfileFrameRules( Com_GameProfile()->id ) & FRAME_KEEP_LEVEL_TIME ) != 0;
 }
 
-// Whether a map change starts the level clock again (sv_levelTimeReset).
+// Whether a map change starts the level clock again: sv_levelTimeReset, or
+// always in Quake Live's (FRAME_RESET_LEVEL_TIME).
 static bool SV_LevelTimeResets( void ) {
-	return sv_levelTimeReset->integer && !SV_KeepsLevelTime();
+	const unsigned int rules = Com_ProfileFrameRules( Com_GameProfile()->id );
+	return ( sv_levelTimeReset->integer || ( rules & FRAME_RESET_LEVEL_TIME ) ) && !SV_KeepsLevelTime();
 }
 
 
@@ -869,9 +872,10 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	}
 //	Cvar_Set( "nextmap", va("map %s", server) );
 
-	// try to reset level time if server is empty; jamp.exe and jk2mp.exe
-	// carry on from it whoever is connected
-	if ( !sv_levelTimeReset->integer && !sv.restartTime && !SV_KeepsLevelTime() ) {
+	// try to reset level time if server is empty; the retail engines that
+	// keep their clock carry on from it whoever is connected, and Quake Live
+	// starts every level at zero
+	if ( !SV_LevelTimeResets() && !sv.restartTime && !SV_KeepsLevelTime() ) {
 		bool hasConnectedClient = false;
 		for ( const client_t &client : SV_Clients() ) {
 			if ( client.state >= CS_CONNECTED ) {
@@ -888,7 +892,8 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 		// save when the server started for each client already connected
 		// Alice's level clock restarts with every level (at zero, or at a
 		// save's time), so its connected clients carry the old one until they
-		// acknowledge the new gamestate, as they do when sv_levelTimeReset is set.
+		// acknowledge the new gamestate, as they do when sv_levelTimeReset is set
+		// and always in Quake Live (quakelive_steam.exe 0x4e35f0..0x4e3618).
 		if ( client.state >= CS_CONNECTED && ( SV_LevelTimeResets() || Com_GameIsRitual() ) ) {
 			client.oldServerTime = sv.time;
 		} else {

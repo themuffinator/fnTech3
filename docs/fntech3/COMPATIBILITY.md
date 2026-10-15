@@ -1065,9 +1065,22 @@ keeps its separately established rules.
 The [Jedi broadcast and level-time record](2026-10-15-jedi-broadcast-level-time.md)
 adds one clock rule, `FRAME_KEEP_LEVEL_TIME`: in `jka-mp` and `jk2-mp` a map
 change keeps the level time, as `jamp.exe` 1.01 and `jk2mp.exe` 1.02a run
-their game on `svs.time`, which only a shutdown clears. Every other profile
-keeps the inherited per-level clock. Quake III, RTCW, Enemy Territory and
-Holomatch appear to keep one clock too and remain to be measured.
+their game on `svs.time`, which only a shutdown clears. The
+[level clock record](2026-10-15-level-clock.md) settles the other
+multiplayer profiles. `quake3.exe` 1.32, `WolfSP.exe`, `WolfMP.exe`,
+`etded.exe` 2.60b and `stvoyHM.exe` 1.20 also hand `GAME_INIT` a clock that
+only their shutdown clears, so `q3`, `rtcw-sp`, `rtcw-mp`, `wolfet` and
+`stvef-mp` keep it too. A synthetic module's level times through a map
+change, a `map_restart` and a `killserver` now match each retail server's
+marker for marker, where fnTech3 restarted the clock at 0 at an empty
+server's map change (Source, Unit, retail comparison). `quakelive_steam.exe`
+instead clears its level clock with every level, whoever is connected, and
+gives connected clients the old time as an offset (`0x4e35f6`, `0x4e363a`).
+`ql` now does the same through `FRAME_RESET_LEVEL_TIME`, and its
+`map_restart` clears that offset for every connected client (Source, Unit;
+no retail Quake Live server runs here). `jka-sp` and `jk2-sp` remain open:
+their retail engines clear the clock at every spawn, and fnTech3 keeps a
+connected player's time.
 
 The [portal recursion record](2026-10-15-snapshot-portal-recursion.md)
 reads the snapshot walk of every retail engine that shares fnTech3's: each

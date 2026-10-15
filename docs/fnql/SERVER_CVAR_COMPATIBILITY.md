@@ -84,10 +84,14 @@ per-IP limits, Steam secure opt-in, Workshop references, ZMQ, rankings status,
 or the inherited empty-server time-maintenance restart. Retail defaults replace
 only confirmed missing retail owners.
 
-The Jedi multiplayer profiles are the exception for `sv_levelTimeReset` and
-the empty-server level-time reset: their retail engines keep one level clock
-across map changes, so fnTech3 keeps it there whatever the cvar says
-([record](../fntech3/2026-10-15-jedi-broadcast-level-time.md)).
+The profiles whose retail servers were measured are the exception for
+`sv_levelTimeReset` and the empty-server level-time reset. Quake III, both
+RTCW modes, Enemy Territory, Holomatch and the Jedi multiplayer engines keep
+one level clock across map changes, so fnTech3 keeps it there whatever the
+cvar says ([Jedi record](../fntech3/2026-10-15-jedi-broadcast-level-time.md),
+[level clock record](../fntech3/2026-10-15-level-clock.md)). Quake Live's
+starts every level at zero whoever is connected, as if the cvar were always
+set.
 
 ## Regression Gates
 
