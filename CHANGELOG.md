@@ -35,6 +35,15 @@ historical upstream records, not fnTech3 release history. See the
 - Let an Enemy Territory level close an area portal that is already shut,
   as the original executables do, instead of ending the level
   ([record](docs/fntech3/2026-10-15-compatibility-round.md)).
+- Give Enemy Territory's bot navigation one search record per area, as the
+  original server does: when a mod's bots look for cover, a retreat or nearby
+  areas, the server no longer writes past the end of those records, and the
+  danger and retreat searches no longer lose areas to an earlier search
+  ([record](docs/fntech3/2026-10-15-census-small-gaps.md)).
+- Measure the pure server's room for its pak list with the game's own
+  messages: a big Enemy Territory map keeps checking players' files instead of
+  falling back, and a busy Jedi Outcast server no longer publishes a list its
+  players cannot receive ([record](docs/fntech3/2026-10-15-census-small-gaps.md)).
 
 ## [0.1.0] - 2026-10-11
 

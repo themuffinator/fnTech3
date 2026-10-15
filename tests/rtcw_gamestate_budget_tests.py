@@ -20,10 +20,12 @@ class RTCWGamestateBudgetTests(unittest.TestCase):
         # Elite Force Holomatch measures its own raw-bit wire the same way, and
         # so does Alice, whose baselines start from its own null entity. JKA
         # multiplayer also estimates its own wire and game-directory prefix.
+        # Enemy Territory and Jedi Outcast multiplayer measure their own too
+        # (tests/gamestate_budget_wire_tests.py runs the estimate).
         own_wire = re.search(r'const bool ownWire = ([^;]+);', self.body).group(1)
         self.assertEqual(re.findall(r'Com_GameIs\w+\(\)', own_wire),
-                         ['Com_GameIsRTCW()', 'Com_GameIsSTVEFMP()',
-                          'Com_GameIsRitual()', 'Com_GameIsJKAMP()'])
+                         ['Com_GameIsRTCW()', 'Com_GameIsWolfET()', 'Com_GameIsSTVEFMP()',
+                          'Com_GameIsRitual()', 'Com_GameIsJKAMP()', 'Com_GameIsJK2MP()'])
         self.assertIn('MSG_NullEntityStateForWireProfile( &nullstate, wire );', self.body)
         self.assertIn('const netchanWireProfile_t wire = ownWire', self.body)
         self.assertIn('fnql::protocol::FindForProfile( Com_GameProfile()->preferredProtocol,', self.body)

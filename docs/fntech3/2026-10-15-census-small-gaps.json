@@ -1,0 +1,314 @@
+{
+ "record": "2026-10-15-census-small-gaps.md",
+ "date": "2026-10-15",
+ "gatesClosed": [],
+ "censusSource": "2026-10-15-compatibility-round.json censusFindings",
+ "censusEntriesSettled": {
+  "wolfet: Work::Push refuses a record already marked inlist": "fixed: danger and retreat searches queue without the check",
+  "jk2-mp: the pure gamestate budget omits Outcast from its own-wire estimate": "fixed: Outcast measured on its own wire",
+  "stvef-mp: sv_fps clamped to 10..125": "not a gap at HEAD: served by 60d3a85a (2026-10-09-stvef-holomatch-server-clock.md)"
+ },
+ "gapsFoundAndFixed": [
+  "wolfet: AAS_InitRoutingUpdate gave ET Quake III's per-cluster update-record count while its tactical searches index by area number (writes past the array on any multi-cluster map)",
+  "wolfet: ListAreasInRange stopped at its limit with records still queued and marked; retail drains its queue",
+  "wolfet: the pure gamestate budget measured ET as Quake Live inside 16 KiB rather than its own 32 KiB wire"
+ ],
+ "platform": "Windows 11; static disassembly with capstone; Windows x86 MSVC build (meson debugoptimized, strict warnings); clang i686-pc-windows-msvc fixtures",
+ "retail": {
+  "etded.exe 2.60b (Steam)": {
+   "sha256": "7eb606913a56d6901e358a598fb0079120b2730e113a10fc963f90b777580cdf",
+   "size": 894464,
+   "peTimestamp": "0x60f7269e",
+   "versionString": "ET 2.60b"
+  },
+  "jk2mp.exe 1.02a": {
+   "sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a",
+   "size": 1126400,
+   "peTimestamp": "0x3c832b11"
+  },
+  "executed": false,
+  "installationsWritten": false
+ },
+ "retailObservations": {
+  "etded": {
+   "GetBotLibAPI": "0x4370f0",
+   "mismatchedVersionString": "0x4c5fa4",
+   "Init_AAS_Export": "0x437200",
+   "exportSlots": {
+    "+0x58 AAS_FindAttackSpotWithinRange": "0x4491c0",
+    "+0x5c AAS_ListAreasInRange": "0x44a450",
+    "+0x60 AAS_AvoidDangerArea": "0x447f30",
+    "+0x64 AAS_Retreat": "0x44b790",
+    "+0x68 AAS_AlternativeRouteGoals": "0x44c620",
+    "+0x70 AAS_NearestHideArea": "0x44a6d0",
+    "+0x74 AAS_RecordTeamDeathArea": "0x44b640"
+   },
+   "routingUpdateRecord": {
+    "size": "0x28",
+    "areanum": "+0x4",
+    "start": "+0x8",
+    "tmptraveltime": "+0x14",
+    "areatraveltimes": "+0x18",
+    "inlist": "+0x1c",
+    "next": "+0x20",
+    "prev": "+0x24"
+   },
+   "queueSites": {
+    "AAS_AvoidDangerArea": {
+     "queue": "0x448166..0x448182",
+     "readsMark": false,
+     "earlyReturn": "0x44812d cmp ebx,0x3e8; jb 0x4481bc"
+    },
+    "AAS_Retreat": {
+     "queue": "0x44ba85..0x44ba9e",
+     "readsMark": false,
+     "earlyReturn": "0x44ba36"
+    },
+    "AAS_ListAreasInRange": {
+     "queue": "0x44a663..0x44a685",
+     "readsMark": true,
+     "listFull": "0x44a637 cmp ecx,[ebp+0x1c]; jge 0x44a6aa",
+     "continuesFlood": "0x44a6aa..0x44a6b2",
+     "unboundedWrite": "0x44a60e..0x44a634"
+    },
+    "AAS_NearestHideArea": {
+     "queue": "0x44ad4d..0x44ad83",
+     "readsMark": true
+    }
+   },
+   "AAS_InitRoutingUpdate": {
+    "address": "0x44a1d0",
+    "caller": "0x44a0f9",
+    "areaupdateBytes": "numareas * 0x28 (0x44a1ed..0x44a208)",
+    "portalupdateBytes": "(numportals + 1) * 0x28 (0x44a22b..0x44a247)",
+    "allocator": "0x44bb00 -> jmp 0x4600f0 (cleared)"
+   },
+   "hideSearch": {
+    "ladderOrDisabledSkip": "0x44a93a test [areasettings+4], 0xa",
+    "distanceLimitFromReachEnd": "0x44a94e..0x44a96d",
+    "loopStep": "0x44a998 inc [0xbebdbc]",
+    "pastLimitSkipsQueue": "0x44ad19 cmp ecx,0xbb8; jg 0x44ad8a",
+    "visibilityCache": "aasworld+0x11f4, byte values 1 and 2",
+    "gameVisibilityCalls": [
+     "0x44a832 (start)",
+     "0x44ace3 (each new candidate)"
+    ]
+   },
+   "SV_SpawnServerPure": {
+    "pureTest": "0x42d271",
+    "FS_LoadedPakChecksums": "0x4171f0",
+    "sv_paksSet": "0x42d284",
+    "emptyWarning": "0x42d29b",
+    "FS_LoadedPakNames": "0x417240",
+    "sv_pakNamesSet": "0x42d2cc",
+    "budget": null
+   }
+  },
+  "jk2mp": {
+   "SV_SpawnServerPure": {
+    "pureTest": "0x44dbce",
+    "FS_LoadedPakChecksums": "0x42e080",
+    "sv_paksSet": "0x44dbe5",
+    "emptyWarning": "0x44dbf8",
+    "FS_LoadedPakNames": "0x42e0d0",
+    "sv_pakNamesSet": "0x44dc10",
+    "budget": null
+   },
+   "entityFieldOrder": {
+    "modelindex": "47th of 73 (code/compat/jk2_wire_fields.def)"
+   }
+  },
+  "quakeLiveEntityFieldOrder": {
+   "modelindex": "31st of 58 (msg.cpp quakeLiveEntityStateFields)"
+  }
+ },
+ "inferences": [
+  "A mark left by an early danger or retreat return keeps a later range or hide search, or an area cache update reaching the same record, from going on through it; the danger and retreat searches cannot lose an area to it.",
+  "The range search leaves no mark of its own: it queues only unmarked records and its continued flood takes each off its queue.",
+  "fnTech3's pure gamestate budget is an engine policy (from Quake3e), not a retail contract; it must measure the gamestate clients are sent to keep a server from an overflow."
+ ],
+ "changes": {
+  "code/botlib/wolfet_routing.hpp": "Work::Append (unchecked) for AAS_WolfETAvoidDangerArea and AAS_WolfETRetreat; Work::Push keeps the check for the range and hide searches; AAS_WolfETListAreasInRange drains its queue when it stops",
+  "code/botlib/be_aas_route.cpp": "AAS_InitRoutingUpdate gives ET max(largest cluster count, numareas) update records",
+  "code/server/sv_client.cpp": "SV_RemainingGameState measures ET and Jedi Outcast multiplayer on their own wires and limits",
+  "tests/rtcw_gamestate_budget_tests.py": "pins the new own-wire profile list"
+ },
+ "notReproduced": [
+  "retail ListAreasInRange writing past the caller's array and returning a count above its limit"
+ ],
+ "kept": [
+  "marks left by early danger and retreat returns",
+  "travel time inherited from a successor record's last writer"
+ ],
+ "budgetProbe": {
+  "levels": [
+   {
+    "extra": 0,
+    "items": 0,
+    "systemLength": 64
+   },
+   {
+    "extra": 20,
+    "items": 64,
+    "systemLength": 600
+   },
+   {
+    "extra": 60,
+    "items": 300,
+    "systemLength": 1500
+   }
+  ],
+  "freeBytes": {
+   "jk2-mp": {
+    "quakeLiveMeasure": [
+     15449,
+     12983,
+     5933
+    ],
+    "clientGamestate": [
+     15449,
+     12855,
+     5332
+    ]
+   },
+   "wolfet": {
+    "quakeLiveMeasure": [
+     15449,
+     12983,
+     5933
+    ],
+    "clientGamestate": [
+     31833,
+     29268,
+     21852
+    ]
+   },
+   "rtcw-mp": {
+    "estimate": [
+     31833,
+     29268,
+     21852
+    ],
+    "clientGamestate": [
+     31833,
+     29268,
+     21852
+    ]
+   },
+   "jka-mp": {
+    "estimate": [
+     48212,
+     45601,
+     38020
+    ],
+    "clientGamestate": [
+     48212,
+     45601,
+     38020
+    ]
+   },
+   "quakelive": {
+    "estimate": [
+     15449,
+     12983,
+     5933
+    ],
+    "clientGamestate": [
+     15449,
+     12983,
+     5933
+    ]
+   },
+   "quake3": {
+    "estimate": [
+     15449,
+     12983,
+     5933
+    ],
+    "clientGamestate": [
+     15449,
+     12983,
+     5933
+    ]
+   }
+  },
+  "quakeLiveMeasureFailures": "5 of 18 comparisons"
+ },
+ "tests": {
+  "tests/wolfet_tactical_queue_tests.py": {
+   "tests": 2,
+   "mutations": {
+    "ET's update records sized as Quake III's": "Assertion failed: records(aasworld.areaupdate)==13",
+    "the danger search refuses a marked record": "Assertion failed: danger()==5",
+    "the retreat refuses a marked record": "Assertion failed: retreat()==4",
+    "the range search leaves its queue marked": "Assertion failed: marked()==0",
+    "the range search queues a marked record": "Assertion failed: listed(16,&areas)==6&&(areas==std::vector<int>{2,1,3,7,8,9})"
+   }
+  },
+  "tests/gamestate_budget_wire_tests.py": {
+   "tests": 1,
+   "mutation": "ET and Jedi Outcast measured as Quake Live: 5 failures of 18"
+  },
+  "tests/rtcw_gamestate_budget_tests.py": "updated profile list",
+  "sharedTreeTargeted": "20 passed (rtcw_gamestate_budget, jka_framing, wolfet_visibility, wolfet_routing_limits, wolfet_area_routing, rtcw_route_query)",
+  "strictCompile": "be_aas_route.cpp and sv_client.cpp with win32-dev compile_commands (/W4 /WX) into a scratch folder: ok"
+ },
+ "validation": {
+  "head": "fbde92d4d31a5821a87c27a8bb23b0ed70a4202f",
+  "tree": "git archive HEAD plus overlay.py export (the 11 task files)",
+  "configure": "meson setup build-win32 -Db_vscrt=static_from_buildtype -Dstrict-warnings=true -Drenderer-dlopen=true -Drenderers=glx,vk,rtx -Drenderer-default=glx -Dzlib:default_library=static -Dogg:default_library=static -Dbuild-client=true -Dbuild-server=true --buildtype=debugoptimized --wrap-mode=nodownload",
+  "setup": "setup exit 0",
+  "build": "build exit 0",
+  "buildTargets": "1541",
+  "buildCommand": "meson compile -C build-win32 -j 4",
+  "nativeTests": "268 native tests",
+  "nativeCommand": "meson test -C build-win32 --no-rebuild --num-processes 4 <every fnTech3 test but fnql_python_source_regressions>",
+  "native": "meson exit 0",
+  "nativeSummary": [
+   "Ok:                266",
+   "Fail:              0",
+   "Skipped:           2"
+  ],
+  "pytestCommand": "python -m pytest -q -p no:cacheprovider tests",
+  "pytest": "pytest exit 1",
+  "pytestSummary": "1 failed, 2724 passed, 131 skipped, 66840 subtests passed in 2164.24s (0:36:04)",
+  "pytestFailures": [
+   "tests/rtcw_entity_collision_tests.py::RTCWEntityCollisionTests::test_aas_nearest_entity_pass_filter_ties_and_selected_world"
+  ],
+  "followUp": {
+   "rtcwEntityCollisionRerun": {
+    "failure": "tests/rtcw_entity_collision_tests.py::test_aas_nearest_entity_pass_filter_ties_and_selected_world: PermissionError [WinError 5] deleting the finished probe.exe in TemporaryDirectory cleanup; the probe's own assertions had passed",
+    "rerun": "python -m pytest -q -p no:cacheprovider tests/rtcw_entity_collision_tests.py in the same export: 2 passed in 4.90s",
+    "attribution": "Windows file-in-use cleanup race, not this change; the test exercises RTCW AAS entity collision and none of this task's files"
+   },
+   "newHead": {
+    "head": "34ecbab5bebd22da9999518575e967ddc41cffa1",
+    "intervening": [
+     "6bf845bc",
+     "2a80a5b8",
+     "34ecbab5"
+    ],
+    "overlapWithTaskFiles": "docs/README.md and docs/fntech3/COMPATIBILITY.md only; every anchored hunk applied unchanged",
+    "tree": "git archive 34ecbab5 plus overlay.py export (the 11 task files)",
+    "command": "python -m pytest -q -p no:cacheprovider tests/wolfet_tactical_queue_tests.py tests/gamestate_budget_wire_tests.py tests/rtcw_gamestate_budget_tests.py tests/wolfet_visibility_tests.py tests/wolfet_routing_limits_tests.py tests/wolfet_area_routing_tests.py tests/rtcw_route_query_tests.py tests/rtcw_routing_tests.py tests/jka_framing_tests.py tests/server_zombie_snapshot_tests.py tests/release_packaging_tests.py tests/changelog_tests.py tests/generate_docs_tests.py tests/player_manual_tests.py tests/release_workflow_tests.py tests/version_metadata_tests.py tests/steam_identity_source_tests.py",
+    "result": "152 passed, 1 skipped (symlink privilege), 896 subtests passed in 641.27s"
+   }
+  }
+ },
+ "ledgerRows": [
+  "Enemy Territory routing paragraph (stale tactical inlist gap)",
+  "Enemy Territory Module ABI / server memory",
+  "Enemy Territory Filesystem / pure / downloads",
+  "Enemy Territory Dedicated gameplay / snapshots",
+  "Jedi Outcast Filesystem / pure"
+ ],
+ "openItems": [
+  "wolfet: AAS_WolfETNearestHideArea differs from retail 0x44a6d0 (loop limit, ladder/disabled skip, distance limit point, 40-unit rejection, visibility cache and per-candidate game test, callback order)",
+  "mohaa, q3-ihv, q3test: the pure gamestate budget still measures Quake Live; Medal of Honor needs a measure of its own baselines",
+  "q3-only x64 builds compile the x86-only Academy ABI tests (left: other sessions are editing those tests)"
+ ],
+ "unrelatedObservations": [
+  "Quake III's AAS_NearestHideArea (be_aas_route.cpp) indexes update records by area number while Quake III sizes them by cluster; nothing exports or calls it",
+  "jk2mp.exe publishes sv_pakNames when pure (0x44dc10); fnTech3 publishes names only for ET; a retail Outcast client's need for them is untested"
+ ]
+}

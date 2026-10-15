@@ -11,8 +11,10 @@
  * wolfet_visibility.hpp. Each keeps the original's traversal shape: one
  * breadth-first pass over the reachability links, `hidetraveltimes` used as the
  * visited marker rather than a travel time, and the persistent `areaupdate`
- * array as the work list. Observations:
- * docs/fntech3/2026-09-17-wolfet-visibility.md. */
+ * array as the work list, addressed by area number, so ET sizes it by the
+ * world's areas (AAS_InitRoutingUpdate). Observations:
+ * docs/fntech3/2026-09-17-wolfet-visibility.md and, for the queue marks,
+ * docs/fntech3/2026-10-15-census-small-gaps.md. */
 
 namespace fntech3 {
 namespace wolfet {
@@ -48,14 +50,27 @@ struct Work {
 		return update;
 	}
 
+	/* The range and hide searches leave a record that is marked as queued
+	 * where it is (etded.exe 2.60b 0x44a663, 0x44ad4d). */
 	void Push( aas_routingupdate_t *update ) {
 		if ( update->inlist ) return;
+		Append( update );
+	}
+
+	/* The danger and retreat searches queue without looking at the mark
+	 * (0x448166..0x448182, 0x44ba85..0x44ba9e). A search that returned early
+	 * leaves its queue marked, and these two lose no area to that. */
+	void Append( aas_routingupdate_t *update ) {
 		update->next = nullptr;
 		update->prev = end;
 		if ( end ) end->next = update;
 		else start = update;
 		end = update;
 		update->inlist = qtrue;
+	}
+
+	void Drain() {
+		while ( Pop() ) {}
 	}
 };
 
@@ -176,6 +191,10 @@ int AAS_WolfETListAreasInRange( vec3_t srcpos, int srcarea, float range, int tra
 		}
 		if ( count >= maxareas ) break;
 	}
+	/* Retail goes on flooding once the list is full (etded.exe 0x44a63a),
+	 * writing past the caller's array, and so leaves nothing queued. Stopping
+	 * here instead, clear the marks a later search would otherwise see. */
+	work.Drain();
 	return count;
 }
 
@@ -235,7 +254,7 @@ int AAS_WolfETAvoidDangerArea( vec3_t srcpos, int srcarea, vec3_t dangerpos, int
 			/* The original never assigns tmptraveltime here, so a successor
 			 * inherits whatever the shared work record held. Reproducing that
 			 * keeps the same areas reachable within the time limits. */
-			work.Push( update );
+			work.Append( update );
 		}
 	}
 	return best;
@@ -559,7 +578,7 @@ int AAS_WolfETRetreat( int *dangerSpots, int dangerSpotCount, vec3_t srcpos, int
 			auto *update = &aasworld.areaupdate[next];
 			update->areanum = next;
 			VectorCopy( reach.end, update->start );
-			work.Push( update );
+			work.Append( update );
 		}
 	}
 	return best;

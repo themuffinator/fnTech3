@@ -2359,9 +2359,12 @@ int SV_RemainingGameState( void )
 	// size, with its own tables; original RTCW publishes sv_paks unconditionally,
 	// so estimating it as Q3 wrongly dropped big maps to degraded pure.
 	// Alice's gamestate is its own encoding too, with baselines from its own
-	// null entity.
-	const bool ownWire = Com_GameIsRTCW() || Com_GameIsSTVEFMP() || Com_GameIsRitual()
-		|| Com_GameIsJKAMP();
+	// null entity. Enemy Territory's message is RTCW's size with tables of its
+	// own, and Outcast's entity fields come in Raven's order, which costs an
+	// item or mover more than Quake Live's; etded.exe 2.60b (0x0042d271) and
+	// jk2mp.exe 1.02a (0x0044dbce) publish sv_paks unconditionally as well.
+	const bool ownWire = Com_GameIsRTCW() || Com_GameIsWolfET() || Com_GameIsSTVEFMP()
+		|| Com_GameIsRitual() || Com_GameIsJKAMP() || Com_GameIsJK2MP();
 	const netchanWireProfile_t wire = ownWire
 		? fnql::protocol::FindForProfile( Com_GameProfile()->preferredProtocol,
 			Com_GameProfile() )->wireProfile

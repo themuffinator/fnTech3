@@ -965,6 +965,9 @@ static void AAS_InitRoutingUpdate(void)
 			maxreachabilityareas = aasworld.clusters[i].numreachabilityareas;
 		} //end if
 	} //end for
+	//ET's tactical searches (wolfet_routing.hpp) address these records by area
+	//number, and etded.exe 2.60b allocates one for every area (0x0044a1ed)
+	if (Com_GameIsWolfET()) maxreachabilityareas = std::max(maxreachabilityareas, aasworld.numareas);
 	//allocate memory for the routing update fields
 	aasworld.areaupdate = botlib::ClearedAlloc<aas_routingupdate_t>(maxreachabilityareas);
 	//
