@@ -29,6 +29,7 @@ static inline int FNTech3_JKAUIExportOrdinal(int operation) {
 	FNTECH3_JKA_UI_EXPORT(UI_DRAW_CONNECT_SCREEN)
 	FNTECH3_JKA_UI_EXPORT(UI_HASUNIQUECDKEY)
 #undef FNTECH3_JKA_UI_EXPORT
+	case UI_SET_MODULE_MENU: return FNTECH3_JKA_UI_SET_ACTIVE_MENU;
 	default: return -1;
 	}
 }
@@ -38,7 +39,8 @@ static inline int FNTech3_JKAUIExportArgumentCount(int operation) {
 	case UI_GETAPIVERSION: case UI_SHUTDOWN: case UI_IS_FULLSCREEN:
 	case UI_HASUNIQUECDKEY: return 0;
 	case UI_INIT: case UI_REFRESH: case UI_SET_ACTIVE_MENU:
-	case UI_CONSOLE_COMMAND: case UI_DRAW_CONNECT_SCREEN: return 1;
+	case UI_CONSOLE_COMMAND: case UI_DRAW_CONNECT_SCREEN:
+	case UI_SET_MODULE_MENU: return 1;
 	case UI_KEY_EVENT: case UI_MOUSE_EVENT: return 2;
 	default: return -1;
 	}
@@ -66,18 +68,14 @@ static inline int FNTech3_JKAUIMenuToExternal(int menu) {
 	default: return -1;
 	}
 }
-/* A cgame request already carries an Academy menu selector. Adapt it into
- * the existing engine UI dispatcher, which applies its own export whitelist,
- * argument counts and nested-call lifetime tracking. */
-static inline int FNTech3_JKAUIMenuToInternal(int menu) {
-    switch (menu) {
-    case 0: return UIMENU_NONE;
-    case 1: return UIMENU_MAIN;
-    case 2: return UIMENU_INGAME;
-    case 3: return UIMENU_JKA_PLAYERCONFIG;
-    case 4: return UIMENU_TEAM;
-    case 5: return UIMENU_POSTGAME;
-    default: return -1;
-    }
-}
+/* The engine's own menu requests name a menu in its vocabulary and are
+ * translated above. A client game's request already holds a number in the UI
+ * module's vocabulary, so it goes as UI_SET_MODULE_MENU: export 7 with the
+ * number untranslated and unbounded. Retail jamp.exe 1.01 serves cgame import
+ * 238 at 0x413032 as VM_Call(uivm, 7, args[1]) and returns zero. uix86.dll
+ * 1.01's _UI_SetActiveMenu (0x40010de0) opens menus 0 to 11 -- Raven's none,
+ * main, ingame, player, team, end of game, force powers, siege message, siege
+ * objectives, voice chat, close-all and siege class -- and ignores any other
+ * number (unsigned bound 0x40010dfa), as it ignores every number while no
+ * menu is loaded (0x40010de6). */
 #endif

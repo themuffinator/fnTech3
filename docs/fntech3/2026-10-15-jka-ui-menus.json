@@ -1,0 +1,1339 @@
+{
+ "record": "2026-10-15-jka-ui-menus.md",
+ "date": "2026-10-15",
+ "profiles": [
+  "jka-mp"
+ ],
+ "gatesClosed": [],
+ "claim": "Compatibility slice only; no gate closes.",
+ "previousRecord": "2026-10-15-jka-siege.json",
+ "platform": "Windows 11 x64 host, Windows x86 MSVC debugoptimized builds (renderers glx, vk, rtx)",
+ "retail": {
+  "installation": "legitimate retail Jedi Academy 1.01, read-only",
+  "jamp.exe": {
+   "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+   "peTimestamp": "0x3faa8a05",
+   "sizeOfImage": "0xf27000"
+  },
+  "uix86.dll": {
+   "pak": "assets3.pk3",
+   "sha256": "1179892f84f56805457455e0e01dbaab83f524180f2440b0f8157484eb711429",
+   "peTimestamp": "0x3faa8802",
+   "imageBase": "0x40000000"
+  },
+  "cgamex86.dll": {
+   "pak": "assets3.pk3",
+   "sha256": "e5d5525829bfcaf3c0428d87fe804e5a46a75dcf0a141f8288061a3970ff140d",
+   "peTimestamp": "0x3faa87f0",
+   "imageBase": "0x30000000"
+  },
+  "cgamex86.dll 1.00": {
+   "pak": "assets2.pk3 (shadowed by assets3.pk3)",
+   "sha256": "e613f0d0f99f7e4c8f7798d65ec15e299e08a9726b1d3d2c6114682e24e452af"
+  },
+  "uix86.dll 1.00": {
+   "pak": "assets2.pk3 (shadowed by assets3.pk3)",
+   "sha256": "637ad7474d7909c47d38ec6c565eb0265b788f69c235efcad5da7eef11c54a58"
+  },
+  "method": "capstone and pefile (.tmp/jka-ui-menus/tools); OpenJK pinned 1a6a6434 used only to name routines"
+ },
+ "retailObservations": {
+  "engine": {
+   "cgameDispatcher": {
+    "address": "0x412170",
+    "bound": "0x15e",
+    "indexTable": "0x414638",
+    "targetTable": "0x4142bc",
+    "import238Index": 118,
+    "import238Target": "0x413032"
+   },
+   "import238": {
+    "code": [
+     "0x413032 mov edx, [esi+4]",
+     "0x413035 mov eax, [0xb28224]",
+     "0x41303a push edx",
+     "0x41303b push 7",
+     "0x41303d call 0x44ae90",
+     "0x413042 add esp, 8",
+     "0x413045 xor eax, eax"
+    ],
+    "reading": "VM_Call(uivm, 7 = UI_SET_ACTIVE_MENU, args[1]); answers 0; no translation, no bound"
+   },
+   "uivm": {
+    "address": "0xb28224",
+    "created": "CL_InitUI 0x4254c0 stores VM_Create(\"ui\", 0x423f50) at 0x42550c",
+    "cleared": "CL_ShutdownUI 0x4254b4"
+   },
+   "vmCall": {
+    "address": "0x44ae90",
+    "vmIn": "eax",
+    "nullVm": "Com_Error(0 = ERR_FATAL, \"VM_Call with NULL vm\") at 0x44aea0..0x44aea6",
+    "native": "entry point at vm+0x4c called with the call number and 16 words"
+   },
+   "uiExport7Callers": [
+    {
+     "site": "0x41303d",
+     "menu": "args[1]",
+     "what": "client-game import 238"
+    },
+    {
+     "site": "0x41694f",
+     "menu": 0
+    },
+    {
+     "site": "0x418a5d",
+     "menu": 9,
+     "what": "\"voicechat\" command 0x418a50, registered at 0x41af38"
+    },
+    {
+     "site": "0x41c423",
+     "menu": 2,
+     "what": "Escape in a game (CL_KeyEvent 0x41c290)"
+    },
+    {
+     "site": "0x41c448",
+     "menu": 1,
+     "what": "Escape otherwise; ebx = 1 at 0x41c2c2"
+    },
+    {
+     "site": "0x41ceec",
+     "menu": 1
+    },
+    {
+     "site": "0x41d53d",
+     "menu": 0,
+     "what": "disconnect; ebx = 0 at 0x41d4a6"
+    },
+    {
+     "site": "0x41f132",
+     "menu": 1
+    },
+    {
+     "site": "0x422f57",
+     "menu": 1
+    }
+   ],
+   "otherExport7Calls": [
+    "0x419849 (vm in ebp, two words: client game)",
+    "0x45980b, 0x459b32 (gvm 0x12a4d30: game)"
+   ],
+   "sweep": "133 direct calls of VM_Call; 12 push 7 as the call number; 9 load uivm"
+  },
+  "ui": {
+   "vmMain": "0x400178f0",
+   "exportTable": "0x400179a8",
+   "export7": "0x40017966 -> 0x40010de0",
+   "setActiveMenu": {
+    "address": "0x40010de0",
+    "menuCountGuard": "0x40010de6 call 0x40022db0; jle return (no menu loaded: every number ignored)",
+    "bound": "0x40010dfa cmp eax, 0xb; ja return (unsigned: negatives too)",
+    "table": "0x40011008, 12 entries"
+   },
+   "cases": [
+    {
+     "menu": 0,
+     "ravenName": "UIMENU_NONE",
+     "case": "0x40010e0a",
+     "activates": "none",
+     "strings": [
+      "0",
+      "cl_paused"
+     ],
+     "calls": [
+      "Key_GetCatcher",
+      "Key_SetCatcher",
+      "Key_ClearStates",
+      "Cvar_Set",
+      "Menus_CloseAll"
+     ]
+    },
+    {
+     "menu": 1,
+     "ravenName": "UIMENU_MAIN",
+     "case": "0x40010e37",
+     "activates": "main",
+     "strings": [
+      "main",
+      "com_errorMessage",
+      "error_popmenu"
+     ],
+     "calls": [
+      "Key_SetCatcher",
+      "Menus_CloseAll",
+      "Menus_ActivateByName",
+      "Cvar_VariableStringBuffer",
+      "Menus_ActivateByName"
+     ]
+    },
+    {
+     "menu": 2,
+     "ravenName": "UIMENU_INGAME",
+     "case": "0x40010ee1",
+     "activates": "ingame",
+     "strings": [
+      "1",
+      "cl_paused",
+      "ingame"
+     ],
+     "calls": [
+      "Cvar_Set",
+      "Key_SetCatcher",
+      "UI_BuildPlayerList",
+      "Menus_CloseAll",
+      "Menus_ActivateByName"
+     ]
+    },
+    {
+     "menu": 3,
+     "ravenName": "UIMENU_PLAYERCONFIG",
+     "case": "0x40010f15",
+     "activates": "ingame_player",
+     "strings": [
+      "ingame_player"
+     ],
+     "calls": [
+      "Key_SetCatcher",
+      "UI_BuildPlayerList",
+      "Menus_CloseAll",
+      "Menus_ActivateByName",
+      "UpdateForceUsed"
+     ]
+    },
+    {
+     "menu": 4,
+     "ravenName": "UIMENU_TEAM",
+     "case": "0x40010ea6",
+     "activates": "team",
+     "strings": [
+      "team"
+     ],
+     "calls": [
+      "Key_SetCatcher",
+      "Menus_ActivateByName"
+     ]
+    },
+    {
+     "menu": 5,
+     "ravenName": "UIMENU_POSTGAME",
+     "case": "0x40010ec1",
+     "activates": "endofgame",
+     "strings": [
+      "endofgame"
+     ],
+     "calls": [
+      "Key_SetCatcher",
+      "Menus_CloseAll",
+      "Menus_ActivateByName"
+     ]
+    },
+    {
+     "menu": 6,
+     "ravenName": "UIMENU_PLAYERFORCE",
+     "case": "0x40010f3b",
+     "activates": "ingame_playerforce",
+     "strings": [
+      "ingame_playerforce"
+     ],
+     "calls": [
+      "Key_SetCatcher",
+      "UI_BuildPlayerList",
+      "Menus_CloseAll",
+      "Menus_ActivateByName",
+      "UpdateForceUsed"
+     ]
+    },
+    {
+     "menu": 7,
+     "ravenName": "UIMENU_SIEGEMESSAGE",
+     "case": "0x40010f61",
+     "activates": "siege_popmenu",
+     "strings": [
+      "siege_popmenu"
+     ],
+     "calls": [
+      "Key_SetCatcher",
+      "Menus_CloseAll",
+      "Menus_ActivateByName"
+     ]
+    },
+    {
+     "menu": 8,
+     "ravenName": "UIMENU_SIEGEOBJECTIVES",
+     "case": "0x40010f81",
+     "activates": "ingame_siegeobjectives",
+     "strings": [
+      "ingame_siegeobjectives"
+     ],
+     "calls": [
+      "Key_SetCatcher",
+      "Menus_CloseAll",
+      "Menus_ActivateByName"
+     ]
+    },
+    {
+     "menu": 9,
+     "ravenName": "UIMENU_VOICECHAT",
+     "case": "0x40010fa1",
+     "activates": "ingame_voicechat",
+     "strings": [
+      "g_gametype",
+      "ingame_voicechat"
+     ],
+     "calls": [
+      "Cvar_VariableValue",
+      "Key_SetCatcher",
+      "Menus_CloseAll",
+      "Menus_ActivateByName"
+     ],
+     "condition": "g_gametype >= 6.0 (fcomp with the float at 0x40034f24), else nothing"
+    },
+    {
+     "menu": 10,
+     "ravenName": "UIMENU_CLOSEALL",
+     "case": "0x40010fdb",
+     "activates": null,
+     "strings": [],
+     "calls": [
+      "Menus_CloseAll"
+     ]
+    },
+    {
+     "menu": 11,
+     "ravenName": "UIMENU_CLASSSEL",
+     "case": "0x40010fe6",
+     "activates": "ingame_siegeclass",
+     "strings": [
+      "ingame_siegeclass"
+     ],
+     "calls": [
+      "Key_SetCatcher",
+      "Menus_CloseAll",
+      "Menus_ActivateByName"
+     ]
+    }
+   ],
+   "helpers": {
+    "Menus_ActivateByName": "0x40025ec0",
+    "Menus_CloseAll": "0x400234e0",
+    "Key_SetCatcher": "0x40026f40",
+    "Cvar_Set": "0x40026a50",
+    "Cvar_VariableValue": "0x40026a70",
+    "Menu_Count": "0x40022db0"
+   }
+  },
+  "cgame": {
+   "syscall": "0x3009e1bc",
+   "wrapper": "0x3005ed30",
+   "sites": [
+    {
+     "site": "0x30027e12",
+     "menu": 10
+    },
+    {
+     "site": "0x30027e33",
+     "menu": 8
+    },
+    {
+     "site": "0x30027e3e",
+     "menu": 7
+    },
+    {
+     "site": "0x30039ea8",
+     "menu": 3
+    },
+    {
+     "site": "0x3005d15e",
+     "menu": 11
+    },
+    {
+     "site": "0x3005d194",
+     "menu": 3
+    },
+    {
+     "site": "0x3005d23e",
+     "menu": 3
+    }
+   ],
+   "numbersAsked": [
+    3,
+    7,
+    8,
+    10,
+    11
+   ],
+   "version100": {
+    "wrapper": "0x3005b520",
+    "sites": [
+     {
+      "site": "0x30025582",
+      "menu": 10
+     },
+     {
+      "site": "0x300255a3",
+      "menu": 8
+     },
+     {
+      "site": "0x300255ae",
+      "menu": 7
+     },
+     {
+      "site": "0x30036fa5",
+      "menu": 3
+     },
+     {
+      "site": "0x3005994e",
+      "menu": 11
+     },
+     {
+      "site": "0x30059984",
+      "menu": 3
+     },
+     {
+      "site": "0x30059a2e",
+      "menu": 3
+     }
+    ]
+   },
+   "openjkNames": {
+    "10, 8, 7": "CG_DrawSiegeMessage (close-all, then objectives or message)",
+    "11": "server command scl (CG_SiegeClassSelect_f)",
+    "3": "server commands spc and nfr, event EV_GIVE_NEW_RANK"
+   }
+  },
+  "serverTracePassEntity": {
+   "address": "0x4624e6..0x462529",
+   "reading": "compares the pass entity with 1023 only (0x4624f8); any other number, -1 included, reads that record: owner at +0x294 (0x462504) and flags at +0x238 (0x462522); for -1 that is the record before the entity array"
+  }
+ },
+ "fnBefore": {
+  "host": "client_jka_cgame_host.hpp CG_OPENUIMENU mapped args[1] through FNTech3_JKAUIMenuToInternal (0..5 only) and dropped \"Jedi Academy cgame UI menu %ld is not served yet\" for the rest"
+ },
+ "fnDesign": {
+  "request": "UI_SET_MODULE_MENU = 0x10003, an engine-only request beside UI_GET_ACTIVE_MENU, UI_CHECKEXECKEY and UI_WANTSBINDKEYS (code/ui/ui_public.h)",
+  "boundary": "FNTech3_JKAUIExportOrdinal maps it to export 7 and FNTech3_JKAUIExportArgumentCount to one word (code/compat/jka_ui_exports.h); vm.c translates only UI_SET_ACTIVE_MENU, so the number reaches the module unchanged",
+  "host": "CG_OPENUIMENU keeps its guards and calls VM_Call(uivm, 1, UI_SET_MODULE_MENU, args[1]); result 0",
+  "removed": "FNTech3_JKAUIMenuToInternal",
+  "engineRequests": "unchanged: the engine still names menus in its own vocabulary, translated to 0..5",
+  "outOfRange": "forwarded unchanged, as retail forwards them; retail uix86.dll ignores numbers above 11 and negative ones",
+  "partialInitialization": "refused before any module entry: a UI that is not ready (no uivm, UI_INIT unfinished, or an error in progress), not VM_UI, without an entry point, with structured exports, a 64-bit host, or a client game without an entry point. Retail fatals on a null VM and otherwise calls the module, which ignores the number while no menu is loaded.",
+  "presentation": "The menus are the retail UI module's own; Fn draws them through its existing 2D, HUD and menu-aspect paths. No presentation feature is added or left out."
+ },
+ "tests": {
+  "new": [
+   "tests/jka_ui_menu_tests.py: compiles vm.c's Academy UI branch with the production header"
+  ],
+  "changed": [
+   "tests/jka_cgame_host_tests.py: CG_OPENUIMENU forwards 17 numbers unchanged; guards refuse menu 11",
+   "tests/jka_ui_tests.cpp: the module request is export 7 with one word; engine vocabulary 0..5",
+   "tests/jka_sp_vm_export_tests.py: stub of the removed mapping dropped"
+  ],
+  "mutations": [
+   "CAUGHT: vm.c translates the module request like an engine one: pytest fail, jka_ui_tests.cpp pass",
+   "CAUGHT: module request mapped to the console-command export: pytest fail, jka_ui_tests.cpp fail",
+   "CAUGHT: module request loses its argument count: pytest fail, jka_ui_tests.cpp fail",
+   "CAUGHT: host bounds the number again (refuses 6..11): pytest fail, jka_ui_tests.cpp pass",
+   "CAUGHT: host sends the engine-vocabulary request: pytest fail, jka_ui_tests.cpp pass",
+   "CAUGHT: host drops the partial-initialization guard: pytest fail, jka_ui_tests.cpp pass",
+   "6/6 mutations caught"
+  ]
+ },
+ "runtimes": {
+  "jka-ui-menus-before": {
+   "base": "export base 80d15494e56655f8d859b9e43ca545a5818b0f4f (my files identical at 643016c6, which changes only ET botlib, docs and tests)",
+   "fntech3.exe": "ddcc59153c65c26ac4f184f7f025008ba529ca9161a2719af9e8a33e61f22183",
+   "fnql_glx_x86.dll": "cbba9fe1a04d42bb6d3834b1c1349bfce24698d4b911ad6a88dafc94080199f3",
+   "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+  },
+  "jka-ui-menus-after": {
+   "base": "export base 80d15494e56655f8d859b9e43ca545a5818b0f4f + overlay.py blobs",
+   "fntech3.exe": "e3e7b50f45a25742c4ffea4172a0ece4d85e9eeb538a911d5b4606f5571ddd24",
+   "fnql_glx_x86.dll": "cbba9fe1a04d42bb6d3834b1c1349bfce24698d4b911ad6a88dafc94080199f3",
+   "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+  },
+  "firstPair": {
+   "base": "8779edb5 (before: HEAD; after: HEAD + this slice)",
+   "before fntech3.exe": "4c96a832fa59f596702b92e30cbeb77f04320588998bfb2a6c1b6d9504605cc1",
+   "after fntech3.exe": "904b255dd611eaeda978d019ed4350783950e7b0da93d2ebdd23e42e3f522ccf"
+  },
+  "diagnostics": {
+   "base": "8779edb5 + this slice, plus throwaway patches never committed",
+   "jka-ui-menus-diag": {
+    "patch": "trace reads pass entity -1 as none",
+    "fntech3.exe": "079d2f964719b7e7dc161c62eab3021b2a9306991d21bf33c17d1d6f8a524fd5"
+   },
+   "jka-ui-menus-diag2": {
+    "patch": "as diag, and client-game import 215 answered 0 without drawing",
+    "fntech3.exe": "b0930e7d245883d7aba899a7ca6dc4cf622abcfcc290e4e6109ec125daef50c9"
+   },
+   "jka-ui-menus-diag3": {
+    "patch": "as diag2, and client-game import 315 answered 0",
+    "fntech3.exe": "819c6cfc3886fa43a6e642fe03b2b10d7d19d520bfe4df964e408583f038dd35"
+   }
+  }
+ },
+ "live": {
+  "conditions": "windowed 800x600, private unswitched desktop, net_enabled 0, sound off, developer 1, no input injected, engine screenshotPNG captures only, isolated home per run",
+  "harness": ".tmp/round-2026-10-15/jka-local-sets/probe_live.py",
+  "pair": [
+   {
+    "run": "uimenus2-before-siege_hoth",
+    "role": "before",
+    "map": "mp/siege_hoth",
+    "gametype": "7",
+    "runtime": ".tmp/runtime/jka-ui-menus-before",
+    "identity": {
+     "fntech3.exe": "ddcc59153c65c26ac4f184f7f025008ba529ca9161a2719af9e8a33e61f22183",
+     "fnql_glx_x86.dll": "cbba9fe1a04d42bb6d3834b1c1349bfce24698d4b911ad6a88dafc94080199f3",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "consoleCommands": [
+     "set cl_menuBlur 0"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Jedi Academy cgame UI menu 11 is not served yet",
+     "----- Server Shutdown (Server crashed: Jedi Academy cgame UI menu 11 is not served yet) -----"
+    ],
+    "menusRequested": [],
+    "captures": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 30.6
+   },
+   {
+    "run": "uimenus2-after-siege_hoth",
+    "role": "after",
+    "map": "mp/siege_hoth",
+    "gametype": "7",
+    "runtime": ".tmp/runtime/jka-ui-menus-after",
+    "identity": {
+     "fntech3.exe": "e3e7b50f45a25742c4ffea4172a0ece4d85e9eeb538a911d5b4606f5571ddd24",
+     "fnql_glx_x86.dll": "cbba9fe1a04d42bb6d3834b1c1349bfce24698d4b911ad6a88dafc94080199f3",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "consoleCommands": [
+     "set cl_menuBlur 0"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Unsupported jka-mp cgame import 312 (CG_G2_SKINLESSMODEL)",
+     "----- Server Shutdown (Server crashed: Unsupported jka-mp cgame import 312 (CG_G2_SKINLESSMODEL)) -----"
+    ],
+    "menusRequested": [
+     11
+    ],
+    "captures": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 29.7
+   },
+   {
+    "run": "uimenus2-before-siege_desert",
+    "role": "before",
+    "map": "mp/siege_desert",
+    "gametype": "7",
+    "runtime": ".tmp/runtime/jka-ui-menus-before",
+    "identity": {
+     "fntech3.exe": "ddcc59153c65c26ac4f184f7f025008ba529ca9161a2719af9e8a33e61f22183",
+     "fnql_glx_x86.dll": "cbba9fe1a04d42bb6d3834b1c1349bfce24698d4b911ad6a88dafc94080199f3",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "consoleCommands": [
+     "set cl_menuBlur 0"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Jedi Academy cgame UI menu 11 is not served yet",
+     "----- Server Shutdown (Server crashed: Jedi Academy cgame UI menu 11 is not served yet) -----"
+    ],
+    "menusRequested": [],
+    "captures": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 29.8
+   },
+   {
+    "run": "uimenus2-after-siege_desert",
+    "role": "after",
+    "map": "mp/siege_desert",
+    "gametype": "7",
+    "runtime": ".tmp/runtime/jka-ui-menus-after",
+    "identity": {
+     "fntech3.exe": "e3e7b50f45a25742c4ffea4172a0ece4d85e9eeb538a911d5b4606f5571ddd24",
+     "fnql_glx_x86.dll": "cbba9fe1a04d42bb6d3834b1c1349bfce24698d4b911ad6a88dafc94080199f3",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "consoleCommands": [
+     "set cl_menuBlur 0"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Unsupported jka-mp cgame import 312 (CG_G2_SKINLESSMODEL)",
+     "----- Server Shutdown (Server crashed: Unsupported jka-mp cgame import 312 (CG_G2_SKINLESSMODEL)) -----"
+    ],
+    "menusRequested": [
+     11
+    ],
+    "captures": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 28.2
+   },
+   {
+    "run": "uimenus2-before-siege_korriban",
+    "role": "before",
+    "map": "mp/siege_korriban",
+    "gametype": "7",
+    "runtime": ".tmp/runtime/jka-ui-menus-before",
+    "identity": {
+     "fntech3.exe": "ddcc59153c65c26ac4f184f7f025008ba529ca9161a2719af9e8a33e61f22183",
+     "fnql_glx_x86.dll": "cbba9fe1a04d42bb6d3834b1c1349bfce24698d4b911ad6a88dafc94080199f3",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "consoleCommands": [
+     "set cl_menuBlur 0"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Jedi Academy cgame UI menu 11 is not served yet",
+     "----- Server Shutdown (Server crashed: Jedi Academy cgame UI menu 11 is not served yet) -----"
+    ],
+    "menusRequested": [],
+    "captures": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 28.7
+   },
+   {
+    "run": "uimenus2-after-siege_korriban",
+    "role": "after",
+    "map": "mp/siege_korriban",
+    "gametype": "7",
+    "runtime": ".tmp/runtime/jka-ui-menus-after",
+    "identity": {
+     "fntech3.exe": "e3e7b50f45a25742c4ffea4172a0ece4d85e9eeb538a911d5b4606f5571ddd24",
+     "fnql_glx_x86.dll": "cbba9fe1a04d42bb6d3834b1c1349bfce24698d4b911ad6a88dafc94080199f3",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "consoleCommands": [
+     "set cl_menuBlur 0"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "menusRequested": [
+     11
+    ],
+    "captures": [
+     {
+      "name": "jka-local-00.png",
+      "sha256": "8401bc39d5c11778cf38d6b80aa8e60fa48fc5d80617a8b9eb6f41ecacfeeb7c"
+     },
+     {
+      "name": "jka-local-01.png",
+      "sha256": "5be27f513271be5e0a7f53e5fb4bd16960a805e8f29cda6a47bd43b62b3b7b18"
+     },
+     {
+      "name": "jka-local-02.png",
+      "sha256": "8c5b5fe78ebbdd99b75e1e4bb8e2ead5f1ca1206e37087c36e73add5e8bbace0"
+     }
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 10.8
+   },
+   {
+    "run": "uimenus2-before-korriban-teamred",
+    "role": "before",
+    "map": "mp/siege_korriban",
+    "gametype": "7",
+    "runtime": ".tmp/runtime/jka-ui-menus-before",
+    "identity": {
+     "fntech3.exe": "ddcc59153c65c26ac4f184f7f025008ba529ca9161a2719af9e8a33e61f22183",
+     "fnql_glx_x86.dll": "cbba9fe1a04d42bb6d3834b1c1349bfce24698d4b911ad6a88dafc94080199f3",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "consoleCommands": [
+     "set cl_menuBlur 0",
+     "team red"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Jedi Academy cgame UI menu 11 is not served yet",
+     "----- Server Shutdown (Server crashed: Jedi Academy cgame UI menu 11 is not served yet) -----"
+    ],
+    "menusRequested": [],
+    "captures": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 28.7
+   },
+   {
+    "run": "uimenus2-after-korriban-teamred",
+    "role": "after",
+    "map": "mp/siege_korriban",
+    "gametype": "7",
+    "runtime": ".tmp/runtime/jka-ui-menus-after",
+    "identity": {
+     "fntech3.exe": "e3e7b50f45a25742c4ffea4172a0ece4d85e9eeb538a911d5b4606f5571ddd24",
+     "fnql_glx_x86.dll": "cbba9fe1a04d42bb6d3834b1c1349bfce24698d4b911ad6a88dafc94080199f3",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "consoleCommands": [
+     "set cl_menuBlur 0",
+     "team red"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "menusRequested": [
+     11
+    ],
+    "captures": [
+     {
+      "name": "jka-local-00.png",
+      "sha256": "9b1f0591a62c543f0342ec8930561ca96668d4dce82adaa3034d600cb4621403"
+     },
+     {
+      "name": "jka-local-01.png",
+      "sha256": "13c1be4aeb1ce73ab830494d5d9db89bcc0ff1e1aaced5a99eb5457de6a44400"
+     },
+     {
+      "name": "jka-local-02.png",
+      "sha256": "2aef866dc48bbc3d4f5f9c6fed724e6de4dcebc1817d1fe9338f32a2fc723b26"
+     }
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 14.0
+   },
+   {
+    "run": "uimenus2-after-korriban-bot",
+    "role": "after",
+    "map": "mp/siege_korriban",
+    "gametype": "7",
+    "runtime": ".tmp/runtime/jka-ui-menus-after",
+    "identity": {
+     "fntech3.exe": "e3e7b50f45a25742c4ffea4172a0ece4d85e9eeb538a911d5b4606f5571ddd24",
+     "fnql_glx_x86.dll": "cbba9fe1a04d42bb6d3834b1c1349bfce24698d4b911ad6a88dafc94080199f3",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "consoleCommands": [
+     "set cl_menuBlur 0",
+     "team red",
+     "addbot Tavion 1 blue"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Jedi Academy trace cannot read pass entity -1 or the entities it touched"
+    ],
+    "menusRequested": [
+     11
+    ],
+    "captures": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 39.5
+   }
+  ],
+  "firstPair": [
+   {
+    "run": "uimenus-before-siege_hoth",
+    "role": "before",
+    "map": "mp/siege_hoth",
+    "gametype": "7",
+    "runtime": ".tmp/runtime/jka-ui-menus-before",
+    "identity": {
+     "fntech3.exe": "4c96a832fa59f596702b92e30cbeb77f04320588998bfb2a6c1b6d9504605cc1",
+     "fnql_glx_x86.dll": "adf5971cbc5ee9313ff7fdad9cfe99ffbe53771b6327f2914231326b859876d9",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "consoleCommands": [
+     "set cl_menuBlur 0"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Jedi Academy cgame UI menu 11 is not served yet",
+     "----- Server Shutdown (Server crashed: Jedi Academy cgame UI menu 11 is not served yet) -----"
+    ],
+    "menusRequested": [],
+    "captures": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 31.1
+   },
+   {
+    "run": "uimenus-after-siege_hoth",
+    "role": "after",
+    "map": "mp/siege_hoth",
+    "gametype": "7",
+    "runtime": ".tmp/runtime/jka-ui-menus-after",
+    "identity": {
+     "fntech3.exe": "904b255dd611eaeda978d019ed4350783950e7b0da93d2ebdd23e42e3f522ccf",
+     "fnql_glx_x86.dll": "adf5971cbc5ee9313ff7fdad9cfe99ffbe53771b6327f2914231326b859876d9",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "consoleCommands": [
+     "set cl_menuBlur 0"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Jedi Academy cgame unsupported Raven renderer entity flags (type=0, flags=0x80040)"
+    ],
+    "menusRequested": [
+     11
+    ],
+    "captures": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 32.6
+   },
+   {
+    "run": "uimenus-before-siege_desert",
+    "role": "before",
+    "map": "mp/siege_desert",
+    "gametype": "7",
+    "runtime": ".tmp/runtime/jka-ui-menus-before",
+    "identity": {
+     "fntech3.exe": "4c96a832fa59f596702b92e30cbeb77f04320588998bfb2a6c1b6d9504605cc1",
+     "fnql_glx_x86.dll": "adf5971cbc5ee9313ff7fdad9cfe99ffbe53771b6327f2914231326b859876d9",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "consoleCommands": [
+     "set cl_menuBlur 0"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Jedi Academy cgame UI menu 11 is not served yet",
+     "----- Server Shutdown (Server crashed: Jedi Academy cgame UI menu 11 is not served yet) -----"
+    ],
+    "menusRequested": [],
+    "captures": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 31.2
+   },
+   {
+    "run": "uimenus-after-siege_desert",
+    "role": "after",
+    "map": "mp/siege_desert",
+    "gametype": "7",
+    "runtime": ".tmp/runtime/jka-ui-menus-after",
+    "identity": {
+     "fntech3.exe": "904b255dd611eaeda978d019ed4350783950e7b0da93d2ebdd23e42e3f522ccf",
+     "fnql_glx_x86.dll": "adf5971cbc5ee9313ff7fdad9cfe99ffbe53771b6327f2914231326b859876d9",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "consoleCommands": [
+     "set cl_menuBlur 0"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Jedi Academy cgame unsupported Raven renderer entity flags (type=0, flags=0x80040)"
+    ],
+    "menusRequested": [
+     11
+    ],
+    "captures": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 30.4
+   },
+   {
+    "run": "uimenus-before-siege_korriban",
+    "role": "before",
+    "map": "mp/siege_korriban",
+    "gametype": "7",
+    "runtime": ".tmp/runtime/jka-ui-menus-before",
+    "identity": {
+     "fntech3.exe": "4c96a832fa59f596702b92e30cbeb77f04320588998bfb2a6c1b6d9504605cc1",
+     "fnql_glx_x86.dll": "adf5971cbc5ee9313ff7fdad9cfe99ffbe53771b6327f2914231326b859876d9",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "consoleCommands": [
+     "set cl_menuBlur 0"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Jedi Academy cgame UI menu 11 is not served yet",
+     "----- Server Shutdown (Server crashed: Jedi Academy cgame UI menu 11 is not served yet) -----"
+    ],
+    "menusRequested": [],
+    "captures": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 30.7
+   },
+   {
+    "run": "uimenus-after-siege_korriban",
+    "role": "after",
+    "map": "mp/siege_korriban",
+    "gametype": "7",
+    "runtime": ".tmp/runtime/jka-ui-menus-after",
+    "identity": {
+     "fntech3.exe": "904b255dd611eaeda978d019ed4350783950e7b0da93d2ebdd23e42e3f522ccf",
+     "fnql_glx_x86.dll": "adf5971cbc5ee9313ff7fdad9cfe99ffbe53771b6327f2914231326b859876d9",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "consoleCommands": [
+     "set cl_menuBlur 0"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "menusRequested": [
+     11
+    ],
+    "captures": [
+     {
+      "name": "jka-local-00.png",
+      "sha256": "6cb2d49b5b2b5a9901b18a14e470fb622113c8d86b1ea2b70f7bc9644642b4d1"
+     },
+     {
+      "name": "jka-local-01.png",
+      "sha256": "38f6c116b6a72befacb7d4c228dd62611df5c26994a2d2071a7ab801b8dae588"
+     },
+     {
+      "name": "jka-local-02.png",
+      "sha256": "38f6c116b6a72befacb7d4c228dd62611df5c26994a2d2071a7ab801b8dae588"
+     }
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 12.7
+   },
+   {
+    "run": "uimenus-after-korriban-teamred",
+    "role": "after",
+    "map": "mp/siege_korriban",
+    "gametype": "7",
+    "runtime": ".tmp/runtime/jka-ui-menus-after",
+    "identity": {
+     "fntech3.exe": "904b255dd611eaeda978d019ed4350783950e7b0da93d2ebdd23e42e3f522ccf",
+     "fnql_glx_x86.dll": "adf5971cbc5ee9313ff7fdad9cfe99ffbe53771b6327f2914231326b859876d9",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "consoleCommands": [
+     "set cl_menuBlur 0",
+     "team red"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "menusRequested": [
+     11
+    ],
+    "captures": [
+     {
+      "name": "jka-local-00.png",
+      "sha256": "49da36bb8b1738f35c2b0494ae5b013ef4cc319ff1d6e8af984b2520cec59e1c"
+     },
+     {
+      "name": "jka-local-01.png",
+      "sha256": "2a4fb581cb5b1ccdcaceddc8bfc3e1da6ad34ef93289f6980b998f7c6b0c27bc"
+     },
+     {
+      "name": "jka-local-02.png",
+      "sha256": "f31858878e3b41918508ccb30f63c9d4391d8e32aaad3b972eac037f600ea0e7"
+     },
+     {
+      "name": "jka-local-03.png",
+      "sha256": "fbbb3e1b83204f47aa9ed6b6ceee1cdb2c3b9b0876e4ea3df718ef2bc2044853"
+     }
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 15.9
+   },
+   {
+    "run": "uimenus-after-korriban-round",
+    "role": "after",
+    "map": "mp/siege_korriban",
+    "gametype": "7",
+    "runtime": ".tmp/runtime/jka-ui-menus-after",
+    "identity": {
+     "fntech3.exe": "904b255dd611eaeda978d019ed4350783950e7b0da93d2ebdd23e42e3f522ccf",
+     "fnql_glx_x86.dll": "adf5971cbc5ee9313ff7fdad9cfe99ffbe53771b6327f2914231326b859876d9",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "consoleCommands": [
+     "set cl_menuBlur 0",
+     "team red",
+     "addbot Tavion 1 blue"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Jedi Academy trace cannot read pass entity -1 or the entities it touched"
+    ],
+    "menusRequested": [
+     11
+    ],
+    "captures": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 33.9
+   }
+  ],
+  "diagnostic": [
+   {
+    "run": "uimenus-diag-korriban-briefing",
+    "role": "diag",
+    "map": "mp/siege_korriban",
+    "gametype": "7",
+    "runtime": ".tmp/runtime/jka-ui-menus-diag",
+    "identity": {
+     "fntech3.exe": "079d2f964719b7e7dc161c62eab3021b2a9306991d21bf33c17d1d6f8a524fd5",
+     "fnql_glx_x86.dll": "adf5971cbc5ee9313ff7fdad9cfe99ffbe53771b6327f2914231326b859876d9",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "consoleCommands": [
+     "set cl_menuBlur 0",
+     "team red",
+     "addbot Tavion 1 blue",
+     "wait 900",
+     "echo probe-step briefing",
+     "briefing"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Unsupported jka-mp cgame import 215 (CG_R_DRAWROTATEPIC2)",
+     "----- Server Shutdown (Server crashed: Unsupported jka-mp cgame import 215 (CG_R_DRAWROTATEPIC2)) -----"
+    ],
+    "menusRequested": [
+     11
+    ],
+    "captures": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 37.7
+   },
+   {
+    "run": "uimenus-diag2-korriban-briefing",
+    "role": "diag2",
+    "map": "mp/siege_korriban",
+    "gametype": "7",
+    "runtime": ".tmp/runtime/jka-ui-menus-diag2",
+    "identity": {
+     "fntech3.exe": "b0930e7d245883d7aba899a7ca6dc4cf622abcfcc290e4e6109ec125daef50c9",
+     "fnql_glx_x86.dll": "adf5971cbc5ee9313ff7fdad9cfe99ffbe53771b6327f2914231326b859876d9",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "consoleCommands": [
+     "set cl_menuBlur 0",
+     "team red",
+     "addbot Tavion 1 blue",
+     "wait 900",
+     "echo probe-step briefing",
+     "briefing"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Unsupported jka-mp cgame import 315 (CG_G2_CLEARSKINGORE)",
+     "----- Server Shutdown (Server crashed: Unsupported jka-mp cgame import 315 (CG_G2_CLEARSKINGORE)) -----"
+    ],
+    "menusRequested": [
+     11
+    ],
+    "captures": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 45.1
+   },
+   {
+    "run": "uimenus-diag2-korriban-briefing2",
+    "role": "diag2",
+    "map": "mp/siege_korriban",
+    "gametype": "7",
+    "runtime": ".tmp/runtime/jka-ui-menus-diag2",
+    "identity": {
+     "fntech3.exe": "b0930e7d245883d7aba899a7ca6dc4cf622abcfcc290e4e6109ec125daef50c9",
+     "fnql_glx_x86.dll": "adf5971cbc5ee9313ff7fdad9cfe99ffbe53771b6327f2914231326b859876d9",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "consoleCommands": [
+     "team red",
+     "addbot Tavion 1 blue",
+     "wait 300",
+     "briefing",
+     "wait 60",
+     "briefing",
+     "wait 60",
+     "briefing",
+     "wait 60",
+     "briefing",
+     "wait 60",
+     "briefing",
+     "wait 60",
+     "briefing"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "errors": [
+     "ERROR: Unsupported jka-mp cgame import 315 (CG_G2_CLEARSKINGORE)",
+     "----- Server Shutdown (Server crashed: Unsupported jka-mp cgame import 315 (CG_G2_CLEARSKINGORE)) -----"
+    ],
+    "menusRequested": [
+     11,
+     10,
+     8
+    ],
+    "captures": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 46.3
+   },
+   {
+    "run": "uimenus-diag3-korriban-briefing",
+    "role": "diag3",
+    "map": "mp/siege_korriban",
+    "gametype": "7",
+    "runtime": ".tmp/runtime/jka-ui-menus-diag3",
+    "identity": {
+     "fntech3.exe": "819c6cfc3886fa43a6e642fe03b2b10d7d19d520bfe4df964e408583f038dd35",
+     "fnql_glx_x86.dll": "adf5971cbc5ee9313ff7fdad9cfe99ffbe53771b6327f2914231326b859876d9",
+     "fntech3-pkg.fnz": "0e1d982e4a1e9fa2ef955b3c83682a90e008e0fd5a19d4425d82036d49ee2bc2"
+    },
+    "consoleCommands": [
+     "team red",
+     "addbot Tavion 1 blue",
+     "wait 600",
+     "briefing",
+     "wait 60",
+     "briefing"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "menusRequested": [
+     11,
+     10,
+     8,
+     10,
+     8
+    ],
+    "captures": [
+     {
+      "name": "jka-local-00.png",
+      "sha256": "ee217f6685e6063e96915765a317b519e93c36493b362c52b7d396ff2b6374fe"
+     },
+     {
+      "name": "jka-local-01.png",
+      "sha256": "cce1d2dc8dfbfe0be21dcb78a7812f00b3f052ef9065bdbf0f7b4911992fce22"
+     },
+     {
+      "name": "jka-local-02.png",
+      "sha256": "4f1bfb276a6c9c0a3db1952bd19d2e6e4e4afdd5c2c394d4853e29b763071afc"
+     }
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "seconds": 21.5
+   }
+  ]
+ },
+ "nextRefusals": {
+  "mp/siege_hoth": "client-game import 312 (CG_G2_SKINLESSMODEL), after the class menu opens",
+  "mp/siege_desert": "client-game import 312 (CG_G2_SKINLESSMODEL), after the class menu opens",
+  "mp/siege_korriban": "none with one player: the class menu stays open and the round waits for a player on each team; with a bot on the other team the server stops at \"Jedi Academy trace cannot read pass entity -1 or the entities it touched\"",
+  "beyondDiagnostic": [
+   "client-game import 215 (CG_R_DRAWROTATEPIC2) once the round runs",
+   "client-game import 315 (CG_G2_CLEARSKINGORE) on the server command ircg after a respawn"
+  ]
+ },
+ "validation": {
+  "fullRun": {
+   "export": "643016c6 with this slice, advanced path for path to 4782edce and 30c1286d",
+   "build": "Windows x86 debugoptimized, strict warnings (/W4 /WX), all 1,486 targets, no warning; rebuilt with no warning after each advance",
+   "python30c1286d": {
+    "mode": "one pytest process per file, stdin closed, 900 s cap",
+    "topLevel": {
+     "files": 574,
+     "passed": 2462,
+     "failed": 0,
+     "skipped": 17,
+     "subtestsPassed": 67242,
+     "noTests": 7,
+     "notPassed": {}
+    },
+    "subfolders": {
+     "files": 15,
+     "passed": 311,
+     "skipped": 114,
+     "subtestsPassed": 72,
+     "failed": 0
+    },
+    "total": {
+     "passed": 2773,
+     "skipped": 131,
+     "subtestsPassed": 67314,
+     "failed": 0
+    }
+   },
+   "native4782edce": {
+    "tests": 276,
+    "passed": 273,
+    "skipped": [
+     "fnql_audio_loopback",
+     "fnql_retail_factory_probe"
+    ],
+    "failed": {
+     "fntech3_jka_render_host": "fails the same way at 4782edce without this slice (CL_JKACgameDecalsDraw undeclared in its fixture); fixed upstream in b589caf8"
+    }
+   },
+   "stalledRun": "single-process pytest on 4782edce passed 1,417 tests, then blocked in a pipe read (ReadFile via Py_read) with no child process; stopped by hand and replaced by the per-file run"
+  },
+  "commitContent": {
+   "base": "922e725a",
+   "note": "the export advanced path for path to f8e1ee98 and 922e725a with this slice; its content equalled each prospective commit tree (Windows file modes aside)",
+   "build": "rebuilt with no warning",
+   "native": {
+    "tests": 276,
+    "passed": 274,
+    "skipped": [
+     "fnql_audio_loopback",
+     "fnql_retail_factory_probe"
+    ],
+    "failed": 0
+   },
+   "focusedPython": {
+    "files": 162,
+    "passed": 1238,
+    "failed": 0,
+    "skipped": 2,
+    "subtestsPassed": 1501,
+    "noTests": 0,
+    "notPassed": {},
+    "selection": "files reading this slice's code, vm.c, ui_public.h or the documents, the shader parser f8e1ee98 changed, and the tests of f8e1ee98 and 922e725a"
+   },
+   "nativeAtF8e1ee98": {
+    "tests": 276,
+    "passed": 274,
+    "skipped": 2,
+    "failed": 0
+   }
+  },
+  "mutations": "6 of 6 caught, export of 8779edb5 with this slice (mutate-result in .tmp/jka-ui-menus)",
+  "atF5381f0e": {
+   "native": {
+    "tests": 276,
+    "passed": 274,
+    "skipped": 2,
+    "failed": 0
+   },
+   "files": {
+    "files": 100,
+    "passed": 643,
+    "failed": 2,
+    "skipped": 1,
+    "subtestsPassed": 1090,
+    "noTests": 0,
+    "notPassed": {
+     "map_shader_flag_dialects_tests.py": "exit 2",
+     "raven_bsp_shader_flags_tests.py": "exit 2"
+    }
+   },
+   "importFailures": "map_shader_flag_dialects_tests.py and raven_bsp_shader_flags_tests.py import engine_fixture_args, which the committed tests/compiler_support.py lacked; they fail at collection with or without this slice and pass with the shared tree's uncommitted helper (3 passed, 6 subtests)"
+  },
+  "finalStep": {
+   "base": "95f6d6d3",
+   "tree": "d7be0af1 (95f6d6d3 with this slice)",
+   "build": "rebuilt with no warning",
+   "native": {
+    "tests": 276,
+    "passed": 274,
+    "skipped": 2,
+    "failed": 0
+   },
+   "files": {
+    "files": 24,
+    "passed": 164,
+    "failed": 1,
+    "skipped": 1,
+    "subtestsPassed": 227,
+    "noTests": 0,
+    "notPassed": {
+     "raven_bsp_shader_flags_tests.py": "exit 2"
+    }
+   },
+   "note": "raven_bsp_shader_flags_tests.py lacked its engine_fixture_args helper at 95f6d6d3; c45b50d8 committed it. This commit sits on c45b50d8; it and 540fe30e change none of this slice's files."
+  }
+ }
+}

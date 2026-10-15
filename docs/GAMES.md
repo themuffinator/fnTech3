@@ -565,12 +565,16 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   picture of a blade has been checked yet
   ([details](fntech3/2026-10-14-compatibility-round.md#jedi-academy-saber-glow-and-lines)).
   Siege games now start: the server keeps a round's time to beat for the
-  next round, as the original does, though a siege game still stops when
-  the game opens its class menu. Maps whose sky shows a distant view of its
+  next round, as the original does. Maps whose sky shows a distant view of its
   own now draw that view where the sky is, as the original does, and
   `mp/duel6` has been checked ([siege details](fntech3/2026-10-15-jka-siege.md)).
-  `mp/duel9`'s sky still shows plain grey, and `mp/siege_hoth` still stops
-  at a picture the game chooses frame by frame, which is not drawn yet.
+  `mp/duel9`'s sky still shows plain grey. A siege game now opens its class
+  menu when you join. Choosing a class with the mouse has not been checked
+  yet; `team red` or `team blue` at the console joins a side as its first
+  class. A round starts only once both sides have a player, and with a bot
+  on the other side `mp/siege_korriban` still stops while the round counts
+  down. `mp/siege_hoth` and `mp/siege_desert` still stop soon after the
+  menu opens ([class menu details](fntech3/2026-10-15-jka-ui-menus.md)).
   Maps whose speakers and torches carry background sounds of their own, such
   as `mp/ctf3`, no longer stop on their first frame: those sounds now play
   where they are, and their occasional calls come at the times the game

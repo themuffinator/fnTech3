@@ -113,6 +113,7 @@ inline constexpr int ExportOrdinal(int operation) noexcept {
     EXPORT(UI_IS_FULLSCREEN) EXPORT(UI_SET_ACTIVE_MENU) EXPORT(UI_CONSOLE_COMMAND)
     EXPORT(UI_DRAW_CONNECT_SCREEN) EXPORT(UI_HASUNIQUECDKEY)
 #undef EXPORT
+    case UI_SET_MODULE_MENU: return FNTECH3_JKA_UI_SET_ACTIVE_MENU;
     default: return -1;
     }
 }

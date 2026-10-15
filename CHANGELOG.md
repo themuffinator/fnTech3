@@ -46,6 +46,10 @@ historical upstream records, not fnTech3 release history. See the
   the class menu opens. Maps whose sky shows a distant view of its own, such
   as `mp/duel6`, now draw that view as the original renderer does
   ([record](docs/fntech3/2026-10-15-jka-siege.md)).
+- Open Jedi Academy's siege class menu and the game's other menus as the
+  original does: the menu the game asks for now reaches its own menus by
+  the game's number, so a siege game no longer stops when its class menu
+  opens ([record](docs/fntech3/2026-10-15-jka-ui-menus.md)).
 - Send Jedi Academy and Jedi Outcast players what the original servers
   send. A speaker or other fixture that Academy's game marks permanent is no
   longer sent twice, so its sounds are no longer counted twice; an entity

@@ -56,15 +56,29 @@ int Mapping() {
     for (int menu = 0; menu < UIMENU_COUNT; ++menu)
         CHECK(FNTech3_JKAUIMenuToExternal(menu) == ui::MenuToExternal(menu));
     CHECK(FNTech3_JKAUIMenuToExternal(-1) == -1);
-    for (int external = 0; external < 6; ++external) {
-        const int internal = FNTech3_JKAUIMenuToInternal(external);
-        CHECK(internal >= 0 && internal < UIMENU_COUNT);
-        CHECK(FNTech3_JKAUIMenuToExternal(internal) == external);
+    // The engine's own vocabulary names menus 0 to 5, each exactly once.
+    int named[6]{};
+    for (int menu = 0; menu < UIMENU_COUNT; ++menu) {
+        const int external = FNTech3_JKAUIMenuToExternal(menu);
+        CHECK(external >= -1 && external < 6);
+        if (external >= 0) ++named[external];
     }
-    CHECK(FNTech3_JKAUIMenuToInternal(3) == UIMENU_JKA_PLAYERCONFIG);
+    for (const int count : named) CHECK(count == 1);
+    CHECK(FNTech3_JKAUIMenuToExternal(UIMENU_JKA_PLAYERCONFIG) == 3);
     CHECK(UIMENU_JKA_PLAYERCONFIG != UIMENU_NEED_CD);
     CHECK(ui::MenuToExternal(UIMENU_JKA_PLAYERCONFIG) == 3);
-    for (int unsupported : {-1, 6, 11, 12, 999}) CHECK(FNTech3_JKAUIMenuToInternal(unsupported) == -1);
+    // A client game's number is the module's own (retail jamp.exe 0x413032):
+    // export 7 with that one word, never the engine request translated above.
+    static_assert(FNTECH3_JKA_UI_SET_ACTIVE_MENU == 7);
+    static_assert(ui::ExportOrdinal(UI_SET_MODULE_MENU) == FNTECH3_JKA_UI_SET_ACTIVE_MENU);
+    CHECK(FNTech3_JKAUIExportOrdinal(UI_SET_MODULE_MENU) == FNTECH3_JKA_UI_SET_ACTIVE_MENU);
+    CHECK(FNTech3_JKAUIExportArgumentCount(UI_SET_MODULE_MENU) == 1);
+    CHECK(FNTech3_JKAUIForwardedArguments(UI_SET_MODULE_MENU, 1) == 1);
+    for (const int count : {0, 2, 3}) CHECK(FNTech3_JKAUIForwardedArguments(UI_SET_MODULE_MENU, count) == -1);
+    const int moduleMenu = UI_SET_MODULE_MENU;
+    for (const int request : {int(UI_SET_ACTIVE_MENU), int(UI_GET_ACTIVE_MENU), int(UI_CHECKEXECKEY),
+                              int(UI_WANTSBINDKEYS), int(UI_HASUNIQUECDKEY), int(UI_REFRESH_DISPLAY_CONTEXT)})
+        CHECK(moduleMenu != request);
     CHECK(ui::MenuToExternal(UIMENU_MAIN) == 1 && ui::MenuToExternal(UIMENU_TEAM) == 4);
     CHECK(ui::MenuToExternal(UIMENU_POSTGAME) == 5 && ui::MenuToExternal(UIMENU_NEED_CD) == -1);
     CHECK(ui::BrowserSource(0) == AS_LOCAL && ui::BrowserSource(1) == AS_GLOBAL && ui::BrowserSource(2) == AS_FAVORITES);

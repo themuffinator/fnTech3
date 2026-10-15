@@ -2793,6 +2793,29 @@ field, which drew as the default image's grid, now grows its grass in all
 three renderers (Live subset). Raven's `alphaFunc GE192`, which the grass
 stage also uses, is still unknown to Fn's parser. No gate closes.
 
+The [menu slice](2026-10-15-jka-ui-menus.md) (2026-10-15) serves the client
+game's menu requests, which the siege slice above left refused from 6 to
+11. Retail `jamp.exe` 1.01 serves client-game import 238 at `0x413032` as
+`VM_Call(uivm, 7, args[1])` and answers 0: the number is the UI module's
+own, and the engine neither translates nor bounds it. `uix86.dll` 1.01's
+`_UI_SetActiveMenu` (`0x40010de0`) opens menus 0 to 11 and ignores any
+other number, as it ignores every number while no menu is loaded
+(`0x40010dfa`, `0x40010de6`). The 1.01 client game asks for 3, 7, 8, 10 and
+11 from seven call sites; the engine itself sends 0, 1, 2 and 9, the last
+from its `voicechat` command, which fnTech3 does not register. fnTech3 now
+hands the client game's number to export 7 unchanged through an
+engine-only request, `UI_SET_MODULE_MENU`. The engine's own requests keep
+their vocabulary, and a UI that is not ready or not the legacy native
+module is still refused before any call (Source, Unit). Live, all three
+siege maps open the class menu. `mp/siege_korriban` plays on with it, and
+`team red` from the console joins as the team's first class and waits for
+the other team. With a bot on that team the server stops at a trace with
+pass entity -1, which retail compares only with 1023 (`0x4624f8`).
+`mp/siege_hoth` and `mp/siege_desert` stop at client-game import 312
+(`CG_G2_SKINLESSMODEL`). Diagnostic runtimes past the trace stop reached
+imports 215 and 315, and the client game's `briefing` opened menus 10 and
+8 (Live subset). No gate closes.
+
 Star Wars Jedi Knight: Jedi Academy is the sixth title, with two mode profiles
 over one `base/` installation: `jka-sp` for Raven's single-player campaign and
 `jka-mp` for multiplayer. The [foundation record](2026-09-21-jka-contracts.md)

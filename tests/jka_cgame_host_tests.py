@@ -64,11 +64,14 @@ vm_t *cgvm;
 vm_t *uivm;
 static qboolean menuReady=qtrue;
 static qboolean CL_UIModuleReady(){return menuReady;}
-static int menuCalls,lastEngineMenu,lastNativeMenu;
+static int menuCalls,lastModuleExport,lastModuleMenu;
 intptr_t QDECL VM_Call(vm_t *vm,int count,int ordinal,...) {
- assert(vm==uivm&&count==1&&ordinal==UI_SET_ACTIVE_MENU);
- va_list arguments;va_start(arguments,ordinal);lastEngineMenu=va_arg(arguments,int);va_end(arguments);
- lastNativeMenu=FNTech3_JKAUIMenuToExternal(lastEngineMenu);assert(lastNativeMenu>=0);
+ // vm.c's Academy UI branch maps the request with these production functions
+ // and translates only UI_SET_ACTIVE_MENU's engine-vocabulary argument.
+ assert(vm==uivm&&count==1&&ordinal==UI_SET_MODULE_MENU&&ordinal!=UI_SET_ACTIVE_MENU);
+ assert(FNTech3_JKAUIForwardedArguments(ordinal,count)==1);
+ lastModuleExport=FNTech3_JKAUIExportOrdinal(ordinal);
+ va_list arguments;va_start(arguments,ordinal);lastModuleMenu=va_arg(arguments,int);va_end(arguments);
  ++menuCalls;return 99; // The cgame import itself is void and returns zero.
 }
 static fntech3::jka::lightstyle::Store jkaCgameLightStyles;
@@ -160,18 +163,20 @@ int main(){
     }
  intptr_t menuArgs[]{238,3};
  if(sizeof(void *)==4){
-  for(int native=0;native<6;++native){menuArgs[1]=native;
-   assert(invoke(Call::CG_OPENUIMENU,menuArgs)==0&&lastNativeMenu==native);}
-  assert(menuCalls==6&&lastEngineMenu==UIMENU_POSTGAME);
-  for(int native:{-1,6,11,12,INT_MIN,INT_MAX}){menuArgs[1]=native;rejected([&]{invoke(Call::CG_OPENUIMENU,menuArgs);});}
-  assert(menuCalls==6);menuArgs[1]=3;
+  // Retail jamp.exe 0x413032 hands every number to UI export 7 unchanged;
+  // uix86.dll's own switch opens 0..11 and ignores the rest.
+  const int menus[]{0,1,2,3,4,5,6,7,8,9,10,11,12,255,-1,INT_MIN,INT_MAX};
+  for(int native:menus){menuArgs[1]=native;const int before=menuCalls;
+   assert(invoke(Call::CG_OPENUIMENU,menuArgs)==0&&menuCalls==before+1);
+   assert(lastModuleExport==FNTECH3_JKA_UI_SET_ACTIVE_MENU&&lastModuleMenu==native);}
+  const int served=menuCalls;assert(served==int(sizeof(menus)/sizeof(menus[0])));menuArgs[1]=11;
   menuReady=qfalse;rejected([&]{invoke(Call::CG_OPENUIMENU,menuArgs);});menuReady=qtrue;
   uiVm.dllExports=reinterpret_cast<decltype(uiVm.dllExports)>(1);rejected([&]{invoke(Call::CG_OPENUIMENU,menuArgs);});uiVm.dllExports=nullptr;
   uiVm.entryPoint=nullptr;rejected([&]{invoke(Call::CG_OPENUIMENU,menuArgs);});uiVm.entryPoint=reinterpret_cast<decltype(uiVm.entryPoint)>(1);
   uiVm.index=VM_CGAME;rejected([&]{invoke(Call::CG_OPENUIMENU,menuArgs);});uiVm.index=VM_UI;
   uivm=nullptr;rejected([&]{invoke(Call::CG_OPENUIMENU,menuArgs);});uivm=&uiVm;
   vm.entryPoint=nullptr;rejected([&]{invoke(Call::CG_OPENUIMENU,menuArgs);});vm.entryPoint=reinterpret_cast<decltype(vm.entryPoint)>(1);
-  assert(menuCalls==6&&fntech3::jka::cgame::SharedImport(Call::CG_OPENUIMENU)==-1);
+  assert(menuCalls==served&&fntech3::jka::cgame::SharedImport(Call::CG_OPENUIMENU)==-1);
  }else{rejected([&]{invoke(Call::CG_OPENUIMENU,menuArgs);});assert(!menuCalls);}
  auto floatBits=[](float value){std::uint32_t bits;std::memcpy(&bits,&value,4);return static_cast<intptr_t>(bits);};
  intptr_t commandArgs[]{235,257,floatBits(0.5f),0,0,0,-1,258,0};

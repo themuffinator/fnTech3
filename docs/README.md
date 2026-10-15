@@ -126,6 +126,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Jedi Academy siege and sky portals](fntech3/2026-10-15-jka-siege.md)
   -- siege's round record kept from one level to the next, and the scene a
   sky portal draws, each checked against retail.
+- [Jedi Academy menus the client game opens](fntech3/2026-10-15-jka-ui-menus.md)
+  -- siege's class menu and the client game's other menus, handed to the
+  game's own menus by number as retail hands them.
 - [Jedi multiplayer broadcasts and level time](fntech3/2026-10-15-jedi-broadcast-level-time.md)
   -- which entities the Jedi servers send each player, permanent ones and
   broadcast masks included, and the level time a map change keeps, checked

@@ -314,7 +314,11 @@ typedef enum {
 enum { UI_GET_ACTIVE_MENU = 0x10000,
 	/* Enemy Territory asks its UI whether a key runs a bound command, and
 	 * whether the UI is waiting to capture a key for a binding. */
-	UI_CHECKEXECKEY = 0x10001, UI_WANTSBINDKEYS = 0x10002 };
+	UI_CHECKEXECKEY = 0x10001, UI_WANTSBINDKEYS = 0x10002,
+	/* Academy's client game opens a menu by its UI module's own number, which
+	 * reaches the module's set-active-menu export untranslated
+	 * (jka_ui_exports.h). */
+	UI_SET_MODULE_MENU = 0x10003 };
 
 #define SORT_HOST			0
 #define SORT_MAP			1

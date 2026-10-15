@@ -399,11 +399,11 @@ static bool CL_JKACgameCall(intptr_t *args, intptr_t &operation, intptr_t &resul
         if (sizeof(void *) != sizeof(std::uint32_t) || !CL_UIModuleReady() || !uivm || uivm->index != VM_UI ||
             !uivm->entryPoint || uivm->dllExports)
             Com_Error(ERR_DROP, "Jedi Academy cgame menu request requires its x86 legacy native UI");
-        const int menu = FNTech3_JKAUIMenuToInternal(static_cast<int>(args[1]));
-        if (menu < 0)
-            Com_Error(ERR_DROP, "Jedi Academy cgame UI menu %ld is not served yet", static_cast<long>(args[1]));
+        // The number is the UI module's own. It reaches UI export 7 as retail
+        // jamp.exe 1.01 hands it (0x413032): untranslated and unbounded, so the
+        // module's own switch decides (jka_ui_exports.h).
         Com_DPrintf("Academy cgame requested UI menu: %ld\n", static_cast<long>(args[1]));
-        VM_Call(uivm, 1, UI_SET_ACTIVE_MENU, menu);
+        VM_Call(uivm, 1, UI_SET_MODULE_MENU, static_cast<int>(args[1]));
         result = 0;
         return true;
     }
