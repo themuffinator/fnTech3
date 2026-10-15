@@ -88,7 +88,9 @@ void main()
 			sample_uv = uv;
 		vec3 scene = texture(scene_color, sample_uv).rgb;
 		float alpha = liquid_info.x * clamp(liquid_params.z, 0.0, 1.0);
-		out_color = vec4(scene, alpha);
+		/* liquid_reflect.rgb carries the refraction tint here: white for
+		 * liquids, an entity's filter for an entity refraction. */
+		out_color = vec4(scene * liquid_reflect.rgb, alpha);
 	} else {
 		vec3 wave_normal = normalize(normal + vec3(wave_gradient * 0.12, 0.0));
 		float fresnel = 1.0 - abs(dot(wave_normal, view_dir));

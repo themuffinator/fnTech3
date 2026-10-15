@@ -101,7 +101,7 @@ int main() {
         entity=original;assert(raven::ReadEntity(entity.data()+3,out)==raven::Status::Ok);
     }
     for(uint32_t type : {1u,3u,6u,10u,11u,12u,0xffffffffu}) rejectedEntity(0,type,raven::Status::EntityType);
-    for(uint32_t flags : {0x10u,0x20u,0x1000u,0x2000u,0x100000u,0x200000u,0x80000000u}) rejectedEntity(4,flags,raven::Status::EntityFlags);
+    for(uint32_t flags : {0x10u,0x20u,0x1000u,0x100000u,0x200000u,0x80000000u}) rejectedEntity(4,flags,raven::Status::EntityFlags);
     // Academy's forced alpha (0x400) and tint (0x800) cross as their own
     // engine fields, never as Quake III flags (jka_entity_override_tests.py).
     assert(same(out.jka,empty.jka));
@@ -111,7 +111,15 @@ int main() {
         assert(out.jka.forceAlpha==((flags&0x400u)?qtrue:qfalse)&&out.jka.rgbTint==((flags&0x800u)?qtrue:qfalse));
         rejectedEntity(4,flags|0x1000u,raven::Status::EntityFlags);
     }
-    entity=original;assert(raven::ReadEntity(entity.data()+3,out)==raven::Status::Ok);
+    // A distortion copy (0x2000) crosses as its own field too, and casts no
+    // shadow (jka_entity_refraction_tests.py).
+    for(uint32_t flags : {0x2000u,0x2400u,0x2c00u}) {
+        entity=original;write(entity,4,flags|0x38fu);
+        assert(raven::ReadEntity(entity.data()+3,out)==raven::Status::Ok&&out.renderfx==0x3cf);
+        assert(out.jka.distortion&&out.jka.forceAlpha==((flags&0x400u)?qtrue:qfalse));
+        rejectedEntity(4,flags|0x1000u,raven::Status::EntityFlags);
+    }
+    entity=original;assert(raven::ReadEntity(entity.data()+3,out)==raven::Status::Ok&&!out.jka.distortion);
     rejectedEntity(48,2,raven::Status::InvalidRecord);
     for(std::size_t offset : {12u,52u,64u,84u,92u,96u,100u,108u,120u,128u})
         for(uint32_t bits : {0x7fc01234u,0x7f800000u,0xff800000u}) rejectedEntity(offset,bits,raven::Status::InvalidRecord);

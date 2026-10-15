@@ -224,6 +224,7 @@ cvar_t	*r_motionBlurStrength;
 cvar_t	*r_liquid;
 cvar_t	*r_liquidResolution;
 cvar_t	*r_liquidRefraction;
+cvar_t	*r_entityRefraction;
 cvar_t	*r_liquidWarpScale;
 cvar_t	*r_liquidReflection;
 cvar_t	*r_liquidRipples;
@@ -3418,6 +3419,10 @@ static void R_Register( void )
 	ri.Cvar_CheckRange( r_liquidRipples, "0.0", "2.0", CV_FLOAT );
 	ri.Cvar_SetDescription( r_liquidRipples, "Amplitude of visual ripple rings when players or projectiles enter, leave, or move through liquid; 0 disables the impulse feed. Requires r_liquid." );
 	ri.Cvar_SetGroup( r_liquidRipples, CVG_RENDERER );
+	r_entityRefraction = ri.Cvar_Get( "r_entityRefraction", "1.0", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( r_entityRefraction, "0.0", "4.0", CV_FLOAT );
+	ri.Cvar_SetDescription( r_entityRefraction, "Bend strength of the scene behind entities a game draws as refraction only, such as Jedi Academy's spawn shield. 0 leaves them out; turning it on from 0 requires r_fbo 1 and vid_restart." );
+	ri.Cvar_SetGroup( r_entityRefraction, CVG_RENDERER );
 #endif // USE_FBO
 
 	r_dlightBacks = ri.Cvar_Get( "r_dlightBacks", "1", CVAR_ARCHIVE_ND );

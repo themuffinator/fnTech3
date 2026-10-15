@@ -898,9 +898,10 @@ static int RT_EntityClass( const trRefEntity_t *ent )
 		return -1;
 	}
 	// a Jedi Academy entity's own colour or alpha replaces its stages'
-	// (tr_jka_entity.h), which the trace's per-shader materials cannot carry:
-	// raster draws it
-	if ( ent->e.jka.rgbTint || ent->e.jka.forceAlpha ) {
+	// (tr_jka_entity.h), which the trace's per-shader materials cannot carry,
+	// and a distortion copy only refracts what is behind it
+	// (tr_entity_refraction.h): raster draws both
+	if ( ent->e.jka.rgbTint || ent->e.jka.forceAlpha || ent->e.jka.distortion ) {
 		return -1;
 	}
 	model = R_GetModelByHandle( ent->e.hModel );

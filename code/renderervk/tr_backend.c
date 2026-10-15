@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_local.h"
 #include "../renderercommon/tr_stvef_alpha.h"
 #include "../renderercommon/tr_jka_entity.h"
+#include "../renderercommon/tr_entity_refraction.h"
 #include "../renderercommon/tr_rtcw_engine_lights.h"
 
 backEndData_t	*backEndData;
@@ -692,6 +693,29 @@ static void RB_RunScheduledShadowManagerPreMainPasses( drawSurf_t *drawSurfs, in
 #endif
 
 #ifdef USE_VULKAN
+/* Whether the snapshot behind the current distortion copy was captured. */
+static qboolean rb_entityRefractionReady;
+
+qboolean RB_EntityRefractionReady( void )
+{
+	return rb_entityRefractionReady;
+}
+
+/* Whether this view can serve the entity refraction pass at all
+ * (renderercommon/tr_entity_refraction.h). */
+static qboolean RB_EntityRefractionViewActive( void )
+{
+	return vk.fboActive && vk.liquidSnapshot.color_descriptor != VK_NULL_HANDLE &&
+		r_entityRefraction && r_entityRefraction->value > 0.0f &&
+		vk.renderPassIndex == RENDER_PASS_MAIN &&
+		R_LiquidViewportCoversTarget( backEnd.viewParms.viewportX,
+			backEnd.viewParms.viewportY, backEnd.viewParms.viewportWidth,
+			backEnd.viewParms.viewportHeight, glConfig.vidWidth, glConfig.vidHeight ) &&
+		!( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) &&
+		!backEnd.screenshotCubeActive && !backEnd.screenshotCubeFrontPending &&
+		!R_ViewPassIsPortal( &backEnd.viewParms ) && !glConfig.stereoEnabled ? qtrue : qfalse;
+}
+
 static qboolean RB_ShaderNeedsLiquidSnapshot( const shader_t *shader )
 {
 	const shader_t *state;
@@ -780,6 +804,7 @@ static qboolean RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 	qboolean		worldCelOutlineDrawn;
 	qboolean		liquidSnapshotPending;
 	qboolean		liquidDepthPending;
+	int				refractionEntityNum;
 #endif
 	double			originalTime; // -EC-
 
@@ -811,6 +836,8 @@ static qboolean RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 	liquidSnapshotPending = RB_DrawSurfListNeedsLiquidSnapshot( drawSurfs,
 		numDrawSurfs );
 	liquidDepthPending = liquidSnapshotPending;
+	refractionEntityNum = -1;
+	rb_entityRefractionReady = qfalse;
 #endif
 	depthRange = qfalse;
 
@@ -838,6 +865,27 @@ static qboolean RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 			vk_copy_depth_fade();
 			depthFadeSnapshot = qtrue;
 			oldShader = NULL;
+			oldSort = MAX_UINT;
+			oldEntityNum = -1;
+		}
+		/* A distortion copy bends the scene drawn before it. Retail copies
+		 * the screen once per posted entity (jamp.exe 0x48af26); Fn captures
+		 * its snapshot, after the scene depth for the foreground rejection,
+		 * before each such entity's first batch
+		 * (renderercommon/tr_entity_refraction.h). */
+		if ( entityNum != REFENTITYNUM_WORLD && entityNum != refractionEntityNum &&
+			entityNum < backEnd.refdef.num_entities &&
+			R_EntityRefracts( &backEnd.refdef.entities[entityNum] ) ) {
+			RB_EndSurfaceWithSTVEFAlpha();
+			oldShader = NULL;
+			refractionEntityNum = entityNum;
+			rb_entityRefractionReady = qfalse;
+			if ( RB_EntityRefractionViewActive() ) {
+				if ( !vk_depth_fade_ready() ) {
+					vk_copy_depth_fade();
+				}
+				rb_entityRefractionReady = vk_capture_refraction_scene();
+			}
 			oldSort = MAX_UINT;
 			oldEntityNum = -1;
 		}

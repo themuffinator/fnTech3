@@ -320,6 +320,7 @@ void vk_draw_global_fog( void );
 qboolean vk_draw_underwater( void );
 void vk_draw_world_cel_outline( void );
 qboolean vk_capture_liquid_scene( void );
+qboolean vk_capture_refraction_scene( void );
 qboolean vk_liquid_depth_ready( void );
 qboolean vk_depth_fade_supported( void );
 qboolean vk_depth_fade_available( void );

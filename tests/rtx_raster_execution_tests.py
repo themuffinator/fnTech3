@@ -128,7 +128,7 @@ typedef struct {
 } entity_t;
 typedef struct { orientation_t world; } viewParms_t;
 static struct {
-    struct { double floatTime; entity_t entities[4]; } refdef;
+    struct { double floatTime; entity_t entities[4]; int num_entities; } refdef;
     entity_t *currentEntity; viewParms_t viewParms; orientation_t or;
     struct { int c_surfaces; } pc;
 } backEnd;
@@ -157,6 +157,10 @@ static void RB_EndSurfaceWithSTVEFAlpha(void) { RB_EndSurface(); }
 static void RB_BeginSurface(shader_t *shader, int fog) { (void)fog; tess.shader = shader; }
 static void RB_DrawWorldCelOutlineForScene(qboolean *drawn) { *drawn = qtrue; }
 static int vk_capture_liquid_scene(void) { assert(0); return 0; }
+/* no distortion copy in these lists (renderercommon/tr_entity_refraction.h) */
+static int R_EntityRefracts(const entity_t *entity) { (void)entity; return 0; }
+static int vk_capture_refraction_scene(void) { assert(0); return 0; }
+static qboolean rb_entityRefractionReady;
 static void R_RotateForEntity(entity_t *entity, viewParms_t *view, orientation_t *out) {
     (void)entity; *out = view->world;
 }
@@ -168,6 +172,7 @@ static void Draw(surfaceType_t *surface) {
 }
 static void (*rb_surfaceTable[])(surfaceType_t *) = {Draw};
 ''' + flag + '\n' + mode + '\n' + owner + '\n' + fog_overlay + r'''
+static int RB_EntityRefractionViewActive(rbDrawSurfsMode_t mode) { (void)mode; assert(0); return 0; }
 static rtSurfaceOwner_t vk_rt_surface_owner(int entityNum, const shader_t *shader, int fogNum, int surfaceType) {
     (void)fogNum; (void)surfaceType;
     /* this fixture's entity surfaces stay with raster */

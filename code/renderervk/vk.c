@@ -3,6 +3,7 @@
 #include "../renderercommon/tr_menu_blur.h"
 #include "../renderercommon/tr_motion_blur.h"
 #include "../renderercommon/tr_underwater.h"
+#include "../renderercommon/tr_entity_refraction.h"
 
 #if defined (_DEBUG)
 #define USE_VK_VALIDATION
@@ -1719,6 +1720,13 @@ static VkResult vk_create_render_pass2_with_depth_resolve( const VkRenderPassCre
 }
 
 
+/* The scene snapshot serves enhanced liquids and the entity refraction pass
+ * (renderercommon/tr_entity_refraction.h). */
+static qboolean vk_liquid_requested( void )
+{
+	return ( ( r_liquid && r_liquid->integer ) || R_EntityRefractionAllocates() ) ? qtrue : qfalse;
+}
+
 static void vk_create_render_passes( void )
 {
 	VkAttachmentDescription attachments[4]; // color | depth | msaa color | depth resolve
@@ -1739,8 +1747,7 @@ static void vk_create_render_passes( void )
 	depth_format = vk.depth_format;
 	device = vk.device;
 	depthResolveActive = vk_depth_fade_uses_depth_resolve();
-	liquidCaptureActive = ( r_fbo->integer && r_liquid &&
-		r_liquid->integer ) ? qtrue : qfalse;
+	liquidCaptureActive = ( r_fbo->integer && vk_liquid_requested() ) ? qtrue : qfalse;
 
 	if ( r_fbo->integer == 0 )
 	{
@@ -5033,7 +5040,7 @@ static void vk_create_shader_modules( void )
 	SET_OBJECT_NAME( vk.modules.dot_vs, "dot vertex module", VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT );
 	SET_OBJECT_NAME( vk.modules.dot_fs, "dot fragment module", VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT );
 
-	if ( r_liquid && r_liquid->integer ) {
+	if ( vk_liquid_requested() ) {
 		vk.modules.liquid_vs = SHADER_MODULE( liquid_vert_spv );
 		vk.modules.liquid_fs = SHADER_MODULE( liquid_frag_spv );
 		vk.modules.liquid_copy_fs = SHADER_MODULE( liquid_copy_frag_spv );
@@ -5218,8 +5225,9 @@ static void vk_alloc_persistent_pipelines( void )
 #endif // USE_PMLIGHT
 	}
 
-	// Enhanced liquids add a refraction underlay and bounded material sheen.
-	if ( r_liquid && r_liquid->integer ) {
+	// Enhanced liquids add a refraction underlay and bounded material sheen;
+	// entity refraction draws with the same underlay.
+	if ( vk_liquid_requested() ) {
 		int i, j, k;
 
 		Com_Memset( &def, 0, sizeof( def ) );
@@ -5645,7 +5653,7 @@ void vk_update_post_process_pipelines( void )
 			vk_create_post_process_pipeline( 11, glConfig.vidWidth, glConfig.vidHeight );
 			vk_create_post_process_pipeline( 12, glConfig.vidWidth, glConfig.vidHeight );
 		}
-		if ( r_liquid && r_liquid->integer ) {
+		if ( vk_liquid_requested() ) {
 			vk_create_post_process_pipeline( 9,
 				vk.liquidSnapshotWidth, vk.liquidSnapshotHeight );
 		}
@@ -6380,7 +6388,7 @@ static void vk_create_attachments( void )
 				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, qfalse );
 		}
 		vk_create_menu_blur_attachments( usage );
-		if ( r_liquid && r_liquid->integer &&
+		if ( vk_liquid_requested() &&
 			vk.liquidSnapshotWidth > 0 && vk.liquidSnapshotHeight > 0 ) {
 			create_color_attachment( vk.liquidSnapshotWidth, vk.liquidSnapshotHeight,
 				VK_SAMPLE_COUNT_1_BIT, vk.color_format, usage,
@@ -6405,7 +6413,7 @@ static void vk_create_attachments( void )
 			create_color_attachment( glConfig.vidWidth, glConfig.vidHeight, vkSamples, vk.color_format,
 				VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, &vk.msaa_image, &vk.msaa_image_view, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
 				!( r_bloom->integer || ( r_motionBlur && r_motionBlur->integer ) ||
-					( r_liquid && r_liquid->integer ) ) );
+					vk_liquid_requested() ) );
 		}
 
 		// Dedicated post-output capture target keeps screenshots SDR and independent
@@ -6420,7 +6428,7 @@ static void vk_create_attachments( void )
 	create_depth_attachment( glConfig.vidWidth, glConfig.vidHeight, vkSamples, &vk.depth_image, &vk.depth_image_view,
 		( vk.fboActive && ( r_bloom->integer || ( r_motionBlur && r_motionBlur->integer ) ||
 			vk_depth_fade_supported() ||
-			( r_liquid && r_liquid->integer ) ) ) ? qfalse : qtrue );
+			vk_liquid_requested() ) ) ? qfalse : qtrue );
 
 	if ( vk_depth_fade_supported() ) {
 		create_depth_fade_attachment( glConfig.vidWidth, glConfig.vidHeight, &vk.depth_fade_image, &vk.depth_fade_image_view );
@@ -7126,7 +7134,7 @@ void vk_initialize( void )
 	vk.screenMapHeight = MAX( 4, (uint32_t)( glConfig.vidHeight / 16.0f ) );
 
 	vk.liquidSnapshotWidth = vk.liquidSnapshotHeight = 0;
-	if ( r_liquid && r_liquid->integer ) {
+	if ( vk_liquid_requested() ) {
 		const float scale = Com_Clamp( 0.25f, 1.0f,
 			r_liquidResolution ? r_liquidResolution->value : 1.0f );
 
@@ -11444,7 +11452,7 @@ qboolean vk_capture_liquid_scene( void )
 	if ( backEnd.liquidScreenMapDone ) {
 		return qtrue;
 	}
-	if ( !r_liquid || !r_liquid->integer ||
+	if ( !vk_liquid_requested() ||
 		!vk.fboActive || vk.liquid_snapshot_pipeline == VK_NULL_HANDLE ||
 		vk.liquidSnapshot.source_descriptor == VK_NULL_HANDLE ||
 		vk.liquidSnapshot.color_descriptor == VK_NULL_HANDLE ||
@@ -11503,6 +11511,21 @@ qboolean vk_capture_liquid_scene( void )
 }
 
 
+/* The entity refraction pass recaptures the snapshot before each distortion
+ * copy (renderercommon/tr_entity_refraction.h), whatever a liquid took
+ * earlier. A liquid's own pending capture is left as it was. */
+qboolean vk_capture_refraction_scene( void )
+{
+	const qboolean liquidDone = backEnd.liquidScreenMapDone;
+	qboolean captured;
+
+	backEnd.liquidScreenMapDone = qfalse;
+	captured = vk_capture_liquid_scene();
+	backEnd.liquidScreenMapDone = liquidDone;
+	return captured;
+}
+
+
 static qboolean vk_depth_fade_resolve_supported( void )
 {
 	return ( vk.msaaActive && vk.depthStencilResolve ) ? qtrue : qfalse;
@@ -11528,7 +11551,7 @@ static qboolean vk_depth_fade_requested( void )
 	return ( ( r_depthFade && r_depthFade->integer ) || R_CelShadingWorldActive() ||
 		( r_globalFog && r_globalFog->integer ) ||
 		( r_underwater && r_underwater->integer ) ||
-		( r_fbo->integer && r_liquid && r_liquid->integer ) ) ? qtrue : qfalse;
+		( r_fbo->integer && vk_liquid_requested() ) ) ? qtrue : qfalse;
 }
 
 

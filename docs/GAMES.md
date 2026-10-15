@@ -516,8 +516,9 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   and its lightning, and play continues: a local match runs with the
   original settings, and an animation that comes to its end no longer
   stops it ([details](fntech3/2026-10-15-jka-play-blockers.md)). The see-through
-  shimmer around a newly spawned player is not drawn yet; the shield itself
-  is. On `mp/ffa2` the wall torches now burn, and a local match there
+  shimmer around a newly spawned player now bends and tints what is behind
+  it, the way fnTech3's water does
+  ([shimmer details](fntech3/2026-10-15-jka-entity-refraction.md)). On `mp/ffa2` the wall torches now burn, and a local match there
   runs to the end ([torch details](fntech3/2026-10-15-jka-particle-dynamics.md)).
   Sparks, sprays and dust from the game's effects now fly, trail and
   bounce off the floor, though a few explosion pictures still show as a

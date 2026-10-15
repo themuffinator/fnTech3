@@ -13,7 +13,7 @@ layout(set = 0, binding = 0) uniform LiquidUniforms {
 	vec4 liquid_info;                // type scale, impulse count, inverse target height, refraction pass
 	vec4 liquid_impulse[8];          // model-space xyz, expanding ring radius
 	vec4 liquid_amplitude[2];        // eight packed ripple pixel amplitudes
-	vec4 liquid_reflect;             // material sheen color, reflection weight
+	vec4 liquid_reflect;             // sheen color or refraction tint, reflection weight
 	vec4 liquid_depth;               // x: depth reject enabled
 	mat4 liquid_mvp;                 // model space -> clip space for reflection reprojection
 };

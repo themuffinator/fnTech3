@@ -121,22 +121,9 @@ static bool CL_JKACgameCall(intptr_t *args, intptr_t &operation, intptr_t &resul
     case Call::CG_R_ADDREFENTITYTOSCENE: {
         fntech3_jka_mp_refEntity_t source;
         std::memcpy(&source,CL_JKACgameSpan(args[1],sizeof(source)),sizeof(source));
-        // Raven renderfx 0x2000 (distortion): retail's backend copies the
-        // screen behind the entity (jamp.exe 0x48af26) for its refraction
-        // shader ("internal_distortion", 0x4b6e63), so the copy bends the
-        // background and adds no colour. Fn has no entity refraction pass:
-        // the record is validated as an ordinary entity, then not drawn.
-        if (static_cast<std::uint32_t>(source.renderfx) & 0x2000u) {
-            auto plain = source;
-            plain.renderfx = static_cast<decltype(plain.renderfx)>(static_cast<std::uint32_t>(plain.renderfx) & ~0x2000u);
-            plain.ghoul2 = 0;
-            refEntity_t checked{};
-            const auto status = render::Entity(plain, checked);
-            if (status != render::Status::Ok) Com_Error(ERR_DROP, "Jedi Academy cgame distortion %s (type=%d, flags=0x%x)",
-                render::StatusName(status), source.reType, static_cast<unsigned>(source.renderfx));
-            result = 0;
-            return true;
-        }
+        // A distortion copy (renderfx 0x2000) crosses as refEntity_t.jka.
+        // distortion and takes the renderers' entity refraction pass
+        // (renderercommon/tr_entity_refraction.h), Ghoul2 or not.
         if (source.ghoul2) { CL_JKACgameRenderQueue(source); return true; }
         refEntity_t value{};
         const auto status = render::ReadEntity(&source, value);

@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_rtcw_normal_fade.h"
 #include "../renderercommon/tr_stvef_alpha.h"
 #include "../renderercommon/tr_jka_entity.h"
+#include "../renderercommon/tr_entity_refraction.h"
 #include "tr_glx_compat.h"
 
 #ifndef GL_COMBINE
@@ -37,6 +38,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define GL_PRIMARY_COLOR 0x8577
 #define GL_OPERAND0_RGB 0x8590
 #define GL_OPERAND0_ALPHA 0x8598
+#endif
+#ifndef GL_SOURCE1_RGB
+#define GL_SOURCE1_RGB 0x8581
+#endif
+#ifndef GL_OPERAND1_RGB
+#define GL_OPERAND1_RGB 0x8591
 #endif
 
 /*
@@ -2084,13 +2091,16 @@ static void RB_ProjectLiquidVertex( const vec4_t position, vec4_t screen )
 static void RB_LiquidFixedFunctionTexEnv( qboolean enable, qboolean sampleScene )
 {
 	if ( enable ) {
-		/* Refraction takes RGB from the scene copy; the Fresnel pass takes RGB
+		/* Refraction takes RGB from the scene copy times the refraction tint
+		 * in the primary color (white for liquids); the Fresnel pass takes RGB
 		 * from the bounded material tint. Alpha always comes from primary color. */
 		qglTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE );
-		qglTexEnvi( GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE );
+		qglTexEnvi( GL_TEXTURE_ENV, GL_COMBINE_RGB, sampleScene ? GL_MODULATE : GL_REPLACE );
 		qglTexEnvi( GL_TEXTURE_ENV, GL_SOURCE0_RGB,
 			sampleScene ? GL_TEXTURE : GL_PRIMARY_COLOR );
 		qglTexEnvi( GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR );
+		qglTexEnvi( GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_PRIMARY_COLOR );
+		qglTexEnvi( GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR );
 		qglTexEnvi( GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE );
 		qglTexEnvi( GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR );
 		qglTexEnvi( GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA );
@@ -2201,15 +2211,23 @@ static void RB_ComputeLiquidRippleOffsets( const shaderCommands_t *input,
 	}
 }
 
-static void RB_DrawLiquidPass( shaderCommands_t *input, qboolean refractionBase )
+/* refractor: a distortion copy drawn as an entity refraction
+ * (renderercommon/tr_entity_refraction.h), NULL for a liquid. It takes the
+ * refraction underlay alone, opaque, without ripples, with its own bend and
+ * tint. */
+static void RB_DrawLiquidPass( shaderCommands_t *input, qboolean refractionBase,
+	const trRefEntity_t *refractor )
 {
 	rbLiquidRipple_t ripples[LIQUID_MAX_ACTIVE_IMPULSES];
 	const float time = R_LiquidWaveTime( backEnd.refdef.floatTime );
 	const float heightScale = R_LiquidViewHeightScale( backEnd.viewParms.viewportHeight );
 	const float fresnelStrength = r_liquidReflection ? r_liquidReflection->value : 0.0f;
-	const float refractionStrength = r_liquidRefraction ? r_liquidRefraction->value : 1.0f;
-	const float rippleStrength = r_liquidRipples ? r_liquidRipples->value : 0.0f;
-	const float typeScale = R_LiquidContentsReflectionScale( input->liquidContentFlags );
+	const float refractionStrength = refractor ? 1.0f :
+		( r_liquidRefraction ? r_liquidRefraction->value : 1.0f );
+	const float rippleStrength = refractor ? 0.0f :
+		( r_liquidRipples ? r_liquidRipples->value : 0.0f );
+	const float typeScale = refractor ? 1.0f :
+		R_LiquidContentsReflectionScale( input->liquidContentFlags );
 	const float passStrength = Com_Clamp( 0.0f, 1.0f,
 		refractionBase ? refractionStrength : fresnelStrength );
 	/* r_liquidRefraction scales how far the underlay bends the view, not how
@@ -2220,11 +2238,14 @@ static void RB_DrawLiquidPass( shaderCommands_t *input, qboolean refractionBase 
 	const float refractionScale = refractionBase ? passStrength : 1.0f;
 	/* R_LiquidWarpPixels maps the archived cvar through LIQUID_WARP_TO_PIXELS
 	 * and scales it to the active viewport height. */
-	const float warpPixels = R_LiquidWarpPixels( r_liquidWarpScale ? r_liquidWarpScale->value : 0.0f,
-		backEnd.viewParms.viewportHeight ) * refractionScale;
+	const float warpPixels = refractor ?
+		R_EntityRefractionWarpPixels( refractor, backEnd.viewParms.viewportHeight ) :
+		R_LiquidWarpPixels( r_liquidWarpScale ? r_liquidWarpScale->value : 0.0f,
+			backEnd.viewParms.viewportHeight ) * refractionScale;
 	const float passAlpha = refractionBase ? typeScale : ( typeScale * passStrength );
 	const float reflectivity = backEnd.liquidScreenMapDone ? LIQUID_REFLECT_INTENSITY : 0.0f;
 	vec3_t fresnelColor;
+	vec3_t refractionTint;
 	GLboolean previousColorMask[4];
 	qboolean rippleOffsetsReady = qfalse;
 	int rippleCount = 0;
@@ -2239,10 +2260,19 @@ static void RB_DrawLiquidPass( shaderCommands_t *input, qboolean refractionBase 
 	qboolean glxLiquidBound;
 #endif
 
-	if ( !RB_LiquidEffectActive( input ) ||
+	if ( refractor ) {
+		if ( !refractionBase || !RB_EntityRefractionReady() || input->numIndexes <= 0 ||
+			input->numVertexes <= 0 ) {
+			return;
+		}
+		R_EntityRefractionTint( refractor,
+			input->xstages[0] ? input->xstages[0]->rgbGen : CGEN_IDENTITY, refractionTint );
+	} else if ( !RB_LiquidEffectActive( input ) ||
 		( refractionBase && ( !backEnd.liquidScreenMapDone || refractionStrength <= 0.0f ) ) ||
 		( !refractionBase && fresnelStrength <= 0.0f ) ) {
 		return;
+	} else {
+		VectorSet( refractionTint, 1.0f, 1.0f, 1.0f );
 	}
 	R_LiquidContentsFresnelColor( input->liquidContentFlags, fresnelColor );
 
@@ -2298,8 +2328,14 @@ static void RB_DrawLiquidPass( shaderCommands_t *input, qboolean refractionBase 
 		backEnd.viewParms.viewportHeight > 0 ?
 			1.0f / (float)backEnd.viewParms.viewportHeight : 1.0f,
 		FBO_LiquidDepthReady() ? 1.0f : 0.0f, 0.0f );
-	Vector4Set( glxReflect, fresnelColor[0], fresnelColor[1], fresnelColor[2],
-		reflectivity );
+	/* the refraction branch reads its tint where the sheen reads its color */
+	if ( refractionBase ) {
+		Vector4Set( glxReflect, refractionTint[0], refractionTint[1], refractionTint[2],
+			reflectivity );
+	} else {
+		Vector4Set( glxReflect, fresnelColor[0], fresnelColor[1], fresnelColor[2],
+			reflectivity );
+	}
 	for ( i = 0; i < rippleCount; i++ ) {
 		VectorCopy( ripples[i].center, glxImpulses[i] );
 		glxImpulses[i][3] = ripples[i].radius;
@@ -2346,6 +2382,7 @@ static void RB_DrawLiquidPass( shaderCommands_t *input, qboolean refractionBase 
 		arb.reflectivity = reflectivity;
 		arb.depthAvailable = FBO_LiquidDepthReady();
 		VectorCopy( fresnelColor, arb.fresnelColor );
+		VectorCopy( refractionTint, arb.refractionTint );
 
 		GL_ProgramDisable();
 		if ( refractionBase ) {
@@ -2458,9 +2495,9 @@ static void RB_DrawLiquidPass( shaderCommands_t *input, qboolean refractionBase 
 				Com_Clamp( 0.0f, LIQUID_FRESNEL_ALPHA_MAX, LIQUID_FRESNEL_ALPHA_BASE +
 					fresnel * LIQUID_FRESNEL_ALPHA_SPAN );
 		}
-		rb_liquidColors[i].rgba[0] = refractionBase ? 255 : (byte)( fresnelColor[0] * 255.0f + 0.5f );
-		rb_liquidColors[i].rgba[1] = refractionBase ? 255 : (byte)( fresnelColor[1] * 255.0f + 0.5f );
-		rb_liquidColors[i].rgba[2] = refractionBase ? 255 : (byte)( fresnelColor[2] * 255.0f + 0.5f );
+		rb_liquidColors[i].rgba[0] = (byte)( ( refractionBase ? refractionTint[0] : fresnelColor[0] ) * 255.0f + 0.5f );
+		rb_liquidColors[i].rgba[1] = (byte)( ( refractionBase ? refractionTint[1] : fresnelColor[1] ) * 255.0f + 0.5f );
+		rb_liquidColors[i].rgba[2] = (byte)( ( refractionBase ? refractionTint[2] : fresnelColor[2] ) * 255.0f + 0.5f );
 		rb_liquidColors[i].rgba[3] = (byte)( alpha * 255.0f + 0.5f );
 	}
 
@@ -2498,6 +2535,30 @@ static void RB_DrawLiquidPass( shaderCommands_t *input, qboolean refractionBase 
 	GL_ColorMask( previousColorMask[0], previousColorMask[1],
 		previousColorMask[2], previousColorMask[3] );
 }
+
+/* A distortion copy's batch: the refraction underlay alone, two-sided as
+ * retail draws it (jamp.exe 0x4af0cf), and nothing in light or shadow passes
+ * or when the view captured no snapshot for it. */
+static void RB_DrawEntityRefraction( void )
+{
+#ifdef USE_PMLIGHT
+	if ( tess.dlightPass ) {
+		return;
+	}
+#endif
+	if ( RB_JKAShadowPass() || !RB_EntityRefractionReady() ) {
+		return;
+	}
+	GL_ProgramDisable();
+#ifdef USE_VBO
+	VBO_UnBind();
+#endif
+	RB_DeformTessGeometry();
+	GL_Cull( CT_TWO_SIDED );
+	RB_DrawLiquidPass( &tess, qtrue, backEnd.currentEntity );
+	GL_ClientState( 1, CLS_NONE );
+	GL_ClientState( 0, CLS_NONE );
+}
 #endif /* USE_FBO */
 
 
@@ -2509,6 +2570,13 @@ void RB_StageIteratorGeneric( void )
 	const shaderCommands_t *input;
 	shader_t		*shader;
 	qboolean arraysLocked = qfalse;
+
+#ifdef USE_FBO
+	if ( R_EntityRefracts( backEnd.currentEntity ) ) {
+		RB_DrawEntityRefraction();
+		return;
+	}
+#endif
 
 #ifdef USE_PMLIGHT
 	if ( tess.dlightPass )
@@ -2586,7 +2654,7 @@ void RB_StageIteratorGeneric( void )
 	/* Draw the warped captured scene first. Authored translucent stages then tint,
 	 * scroll, and deform that refracted background instead of hiding it. */
 	if ( RB_LiquidEffectActive( input ) ) {
-		RB_DrawLiquidPass( &tess, qtrue );
+		RB_DrawLiquidPass( &tess, qtrue, NULL );
 	}
 #endif
 
@@ -2656,7 +2724,7 @@ void RB_StageIteratorGeneric( void )
 			qglUnlockArraysEXT();
 			arraysLocked = qfalse;
 		}
-		RB_DrawLiquidPass( &tess, qfalse );
+		RB_DrawLiquidPass( &tess, qfalse, NULL );
 	}
 #endif
 

@@ -18,7 +18,9 @@
  *   with source-alpha blending in place of all its own state, so with no
  *   depth write and no alpha test (0x65). Multitexture stages keep theirs.
  * - The surface list holds a forced-alpha entity's surfaces back until the
- *   rest of the view is drawn (0x48aba6), since they write no depth. Fn
+ *   rest of the view is drawn (0x48aba6, mask 0x202400), since they write no
+ *   depth; a distortion copy (0x2000) is held back by the same test, so it
+ *   refracts a finished scene (renderercommon/tr_entity_refraction.h). Fn
  *   draws them after the others in its own sort order; retail draws its
  *   post-render list in reverse and caps it at 128 surfaces.
  *
@@ -72,22 +74,27 @@ static ID_INLINE qboolean RB_JKAStageAlpha( const shaderStage_t *stage, int *alp
 	return qtrue;
 }
 
-/* Whether a sorted surface belongs to a forced-alpha entity of this scene. */
+/* Whether retail's surface list posts an entity: forced alpha or distortion. */
+static ID_INLINE qboolean R_JKAEntityDrawsLast( const trRefEntity_t *entity ) {
+	return entity->e.jka.forceAlpha || entity->e.jka.distortion ? qtrue : qfalse;
+}
+
+/* Whether a sorted surface belongs to a posted entity of this scene. */
 static ID_INLINE qboolean R_JKASurfaceDrawsLast( const drawSurf_t *drawSurf ) {
 	const int entityNum = ( drawSurf->sort >> QSORT_REFENTITYNUM_SHIFT ) & REFENTITYNUM_MASK;
 
 	return entityNum != REFENTITYNUM_WORLD && entityNum < tr.refdef.num_entities &&
-		tr.refdef.entities[entityNum].e.jka.forceAlpha ? qtrue : qfalse;
+		R_JKAEntityDrawsLast( &tr.refdef.entities[entityNum] ) ? qtrue : qfalse;
 }
 
-/* Moves the surfaces forced-alpha entities draw to the end of a sorted list,
+/* Moves the surfaces posted entities draw to the end of a sorted list,
  * keeping the order within both parts. */
 static ID_INLINE void R_JKADeferForcedAlphaSurfaces( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 	drawSurf_t *deferred;
 	int i, kept, count;
 
 	for ( i = 0; i < tr.refdef.num_entities; i++ ) {
-		if ( tr.refdef.entities[i].e.jka.forceAlpha ) {
+		if ( R_JKAEntityDrawsLast( &tr.refdef.entities[i] ) ) {
 			break;
 		}
 	}

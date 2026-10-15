@@ -3,6 +3,7 @@
 #include "tr_glx_compat.h"
 #include "../renderercommon/tr_menu_blur.h"
 #include "../renderercommon/tr_motion_blur.h"
+#include "../renderercommon/tr_entity_refraction.h"
 
 #ifndef GL_RG
 #define GL_RG 0x8227
@@ -2502,6 +2503,7 @@ static const char *liquidRefractionFP = {
 	"PARAM waveDir3 = program.local[5]; \n"
 	"PARAM tune = program.local[6]; \n" /* warp pixels, alpha, distance ref, min atten */
 	"PARAM eyePos = program.local[7]; \n" /* model-space eye xyz, w = depth reject toggle */
+	"PARAM tint = program.local[8]; \n" /* multiplies the bent scene: white for liquids */
 	"PARAM edge = { 16.666667, 3.0, -2.0, 1.0 }; \n"
 	"PARAM bounds = { 0.002, 0.998, 4.0, 0.00003 }; \n"
 	"TEMP uv, baseUv, phase, wave, grad, atten, px, e, s, n, v, base, depth; \n"
@@ -2555,6 +2557,7 @@ static const char *liquidRefractionFP = {
 	"MUL depth.y, depth.y, eyePos.w; \n"
 	"CMP uv.xy, depth.y, baseUv, uv; \n"
 	"TEX base, uv, texture[0], 2D; \n"
+	"MUL base.xyz, base, tint; \n"
 	"MOV base.w, tune.y; \n"
 	"MOV result.color, base; \n"
 	"END \n"
@@ -2915,6 +2918,8 @@ void GL_LiquidProgramEnable( const liquidArbParams_t *lp, qboolean refractionBas
 		qglProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 7,
 			lp->eyePos[0], lp->eyePos[1], lp->eyePos[2],
 			lp->depthAvailable ? 1.0f : 0.0f );
+		qglProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 8,
+			lp->refractionTint[0], lp->refractionTint[1], lp->refractionTint[2], 1.0f );
 	} else {
 		qglProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 6,
 			LIQUID_NORMAL_PERTURB, lp->alphaScale, lp->reflectivity, 0.0f );
@@ -6786,7 +6791,9 @@ void QGL_InitFBO( void )
 
 	w = glConfig.vidWidth;
 	h = glConfig.vidHeight;
-	if ( r_liquid && r_liquid->integer > 0 && r_liquidResolution ) {
+	/* The entity refraction pass samples the same snapshot. */
+	if ( ( ( r_liquid && r_liquid->integer > 0 ) || R_EntityRefractionAllocates() ) &&
+		r_liquidResolution ) {
 		const float scale = Com_Clamp( 0.25f, 1.0f, r_liquidResolution->value );
 		liquidScreenWidth = MAX( 64, (int)( (float)w * scale + 0.5f ) );
 		liquidScreenHeight = MAX( 64, (int)( (float)h * scale + 0.5f ) );

@@ -113,9 +113,10 @@ int main() {
     auto sprite = Model(0xc00); sprite.reType = 2; sprite.radius = 4;
     assert(Entity(sprite, out) == Status::Ok && out.reType == RT_SPRITE && out.jka.forceAlpha);
     /* Retail's other render flags stay refused by name: node depth, volumetric,
-     * shadow only, distortion, forked, tapered, grow, both disintegrations,
-     * the animation index, alpha depth and forced post-render. */
-    for (int flag : {0x10, 0x20, 0x1000, 0x2000, 0x4000, 0x8000, 0x10000, 0x20000, 0x40000,
+     * shadow only, forked, tapered, grow, both disintegrations, the animation
+     * index, alpha depth and forced post-render. Distortion (0x2000) crosses
+     * as its own field (jka_entity_refraction_tests.py). */
+    for (int flag : {0x10, 0x20, 0x1000, 0x4000, 0x8000, 0x10000, 0x20000, 0x40000,
                      0x80000, 0x100000, 0x200000, 0x400000, int(0x80000000u)}) {
         assert(Entity(Model(0xc00 | flag), out) == Status::EntityFlags);
         assert(Entity(Model(flag), out) == Status::EntityFlags);
@@ -337,6 +338,16 @@ int main() {
     R_JKADeferForcedAlphaSurfaces(only, 2); assert(only[0].surface == &ids[9] && only[1].surface == &ids[10]);
     R_JKADeferForcedAlphaSurfaces(only, 0);
     assert(temporaryBlocks == 0);
+    /* A distortion copy is posted by the same test (0x48aba6, mask 0x202400),
+     * so it refracts a finished scene (tr_entity_refraction.h). */
+    entities[1].e.jka.forceAlpha = qfalse; entities[3].e.jka.forceAlpha = qfalse;
+    drawSurf_t posted[3] = {Surf(2, 11), Surf(world, 12), Surf(2, 13)};
+    R_JKADeferForcedAlphaSurfaces(posted, 3);    // a tint alone is not posted
+    assert(posted[0].surface == &ids[11] && posted[1].surface == &ids[12] && posted[2].surface == &ids[13]);
+    entities[2].e.jka.distortion = qtrue;
+    R_JKADeferForcedAlphaSurfaces(posted, 3);
+    assert(posted[0].surface == &ids[12] && posted[1].surface == &ids[11] && posted[2].surface == &ids[13]);
+    assert(temporaryBlocks == 0);
     puts("ok");
     return 0;
 }
@@ -417,11 +428,13 @@ int main() {
 RT_CHECKS = r'''
 int main() {
     /* An entity whose module colours or fades it is left to raster, which
-     * draws it with its overrides; the same entity untouched is traced. */
-    for ( int flag = 0; flag < 3; ++flag ) {
+     * draws it with its overrides, and so is a distortion copy, which raster
+     * refracts; the same entity untouched is traced. */
+    for ( int flag = 0; flag < 4; ++flag ) {
         trRefEntity_t *entity = Model( MOD_MESH );
         entity->e.jka.rgbTint = flag == 1 ? qtrue : qfalse;
         entity->e.jka.forceAlpha = flag == 2 ? qtrue : qfalse;
+        entity->e.jka.distortion = flag == 3 ? qtrue : qfalse;
         if ( flag == 0 ) {
             assert( RT_EntityClass( entity ) == 0 );
             assert( vk_rt_surface_owner( 0, &tracedShader, 0, SF_MD3 ) == RT_SURFACE_TRACED );
@@ -507,7 +520,7 @@ class JKAEntityOverrideTests(unittest.TestCase):
                 self.assertLess(order.index(portal), defer)
                 self.assertLess(defer, order.rindex('R_AddDrawSurfCmd( drawSurfs, numDrawSurfs );'))
         tracer = read('code/rendererrtx/rt/rt_backend.c')
-        self.assertIn('if ( ent->e.jka.rgbTint || ent->e.jka.forceAlpha ) {',
+        self.assertIn('if ( ent->e.jka.rgbTint || ent->e.jka.forceAlpha || ent->e.jka.distortion ) {',
                       function(tracer, 'static int RT_EntityClass( const trRefEntity_t *ent )'))
 
     def test_decal_clear_returns_zero_with_no_decal_served(self):

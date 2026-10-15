@@ -28,6 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_rtcw_normal_fade.h"
 #include "../renderercommon/tr_stvef_alpha.h"
 #include "../renderercommon/tr_jka_entity.h"
+#include "../renderercommon/tr_entity_refraction.h"
 
 /*
 
@@ -2110,24 +2111,41 @@ static qboolean VK_LiquidEffectActive( const shaderCommands_t *input )
 }
 
 
-static void VK_DrawLiquidPass( const shaderCommands_t *input, qboolean refractionBase )
+/* refractor: a distortion copy drawn as an entity refraction
+ * (renderercommon/tr_entity_refraction.h), NULL for a liquid. It takes the
+ * refraction underlay alone, opaque, two-sided, without ripples, with its own
+ * bend and tint. */
+static void VK_DrawLiquidPass( const shaderCommands_t *input, qboolean refractionBase,
+	const trRefEntity_t *refractor )
 {
 	vkUniform_t liquid;
 	vec_t *slots[18];
-	const float rippleStrength = r_liquidRipples ? r_liquidRipples->value : 0.0f;
+	const float rippleStrength = refractor ? 0.0f :
+		( r_liquidRipples ? r_liquidRipples->value : 0.0f );
 	const float heightScale = R_LiquidViewHeightScale( glConfig.vidHeight );
 	vec3_t fresnelColor;
+	vec3_t refractionTint;
 	float liquidMvp[16];
 	int rippleCount = 0;
 	int i;
 	uint32_t pipeline;
 
-	if ( !VK_LiquidEffectActive( input ) ||
+	if ( refractor ) {
+		if ( !refractionBase || !RB_EntityRefractionReady() || input->numIndexes <= 0 ||
+			input->numVertexes <= 0 ) {
+			return;
+		}
+		R_EntityRefractionTint( refractor,
+			input->xstages[0] ? input->xstages[0]->bundle[0].rgbGen : CGEN_IDENTITY,
+			refractionTint );
+	} else if ( !VK_LiquidEffectActive( input ) ||
 		( refractionBase && ( !backEnd.liquidScreenMapDone ||
 			( r_liquidRefraction && r_liquidRefraction->value <= 0.0f ) ) ) ||
 		( !refractionBase && r_liquidReflection &&
 			r_liquidReflection->value <= 0.0f ) ) {
 		return;
+	} else {
+		VectorSet( refractionTint, 1.0f, 1.0f, 1.0f );
 	}
 
 	Com_Memset( &liquid, 0, sizeof( liquid ) );
@@ -2153,16 +2171,18 @@ static void VK_DrawLiquidPass( const shaderCommands_t *input, qboolean refractio
 	slots[17] = liquid.csmAxisZ;
 
 	slots[0][0] = R_LiquidWaveTime( backEnd.refdef.floatTime );
-	slots[0][1] = r_liquidWarpScale ?
+	slots[0][1] = refractor ? R_EntityRefractionWarpPixels( refractor, glConfig.vidHeight ) :
+		r_liquidWarpScale ?
 		R_LiquidWarpPixels( r_liquidWarpScale->value, glConfig.vidHeight ) : 0.0f;
-	slots[0][2] = refractionBase ?
+	/* this shader scales the underlay's opacity by the pass strength */
+	slots[0][2] = refractor ? 1.0f : refractionBase ?
 		( r_liquidRefraction ? Com_Clamp( 0.0f, 1.0f,
 			r_liquidRefraction->value ) : 1.0f ) :
 		( r_liquidReflection ? Com_Clamp( 0.0f, 1.0f,
 			r_liquidReflection->value ) : 0.0f );
 	slots[0][3] = glConfig.vidWidth > 0 ?
 		1.0f / (float)glConfig.vidWidth : 1.0f;
-	slots[1][0] = R_LiquidContentsReflectionScale( input->liquidContentFlags );
+	slots[1][0] = refractor ? 1.0f : R_LiquidContentsReflectionScale( input->liquidContentFlags );
 	slots[1][2] = glConfig.vidHeight > 0 ?
 		1.0f / (float)glConfig.vidHeight : 1.0f;
 	slots[1][3] = refractionBase ? 1.0f : 0.0f;
@@ -2195,7 +2215,8 @@ static void VK_DrawLiquidPass( const shaderCommands_t *input, qboolean refractio
 	slots[1][1] = (float)rippleCount;
 
 	R_LiquidContentsFresnelColor( input->liquidContentFlags, fresnelColor );
-	VectorCopy( fresnelColor, slots[12] );
+	/* the refraction branch reads its tint where the sheen reads its color */
+	VectorCopy( refractionBase ? refractionTint : fresnelColor, slots[12] );
 	slots[12][3] = backEnd.liquidScreenMapDone ?
 		LIQUID_REFLECT_INTENSITY : 0.0f;
 	slots[13][0] = vk_liquid_depth_ready() ? 1.0f : 0.0f;
@@ -2214,13 +2235,37 @@ static void VK_DrawLiquidPass( const shaderCommands_t *input, qboolean refractio
 		vk_liquid_depth_ready() ? vk.liquidDepth.descriptor :
 			VK_NULL_HANDLE );
 
-	pipeline = vk.liquid_pipelines[input->shader->cullType]
-		[input->shader->polygonOffset ? 1 : 0]
+	pipeline = vk.liquid_pipelines[refractor ? CT_TWO_SIDED : input->shader->cullType]
+		[!refractor && input->shader->polygonOffset ? 1 : 0]
 		[backEnd.viewParms.portalView == PV_MIRROR ? 1 : 0];
 	vk_bind_pipeline( pipeline );
 	vk_bind_index();
 	vk_bind_geometry( TESS_XYZ | TESS_NNN );
 	vk_draw_geometry( tess.depthRange, qtrue );
+}
+
+/* A distortion copy's batch: the refraction underlay alone, two-sided as
+ * retail draws it (jamp.exe 0x4af0cf), and nothing in light or shadow passes
+ * or when the view captured no snapshot for it
+ * (renderercommon/tr_entity_refraction.h). */
+static void VK_DrawEntityRefraction( void )
+{
+#ifdef USE_PMLIGHT
+	if ( tess.dlightPass ) {
+		return;
+	}
+#endif
+#ifdef USE_VBO
+	if ( tess.vboIndex != 0 ) {
+		return;
+	}
+#endif
+	if ( RB_JKAShadowPass() || !RB_EntityRefractionReady() ||
+		tess.rtDepthOnly || tess.rtFogOnly) {
+		return;
+	}
+	RB_DeformTessGeometry();
+	VK_DrawLiquidPass( &tess, qtrue, backEnd.currentEntity );
 }
 #endif
 
@@ -2231,6 +2276,13 @@ void RB_StageIteratorGeneric( void )
 	qboolean rebindIndex = qfalse;
 #endif
 	qboolean fogCollapse = qfalse;
+
+#ifdef USE_VULKAN
+	if ( R_EntityRefracts( backEnd.currentEntity ) ) {
+		VK_DrawEntityRefraction();
+		return;
+	}
+#endif
 
 #ifdef USE_VBO
 	if ( tess.vboIndex != 0 ) {
@@ -2281,14 +2333,14 @@ void RB_StageIteratorGeneric( void )
 #endif
 
 #ifdef USE_VULKAN
-	VK_DrawLiquidPass( &tess, qtrue );
+	VK_DrawLiquidPass( &tess, qtrue, NULL );
 #endif
 
 	// call shader function
 	RB_IterateStagesGeneric( &tess, fogCollapse );
 
 #ifdef USE_VULKAN
-	VK_DrawLiquidPass( &tess, qfalse );
+	VK_DrawLiquidPass( &tess, qfalse, NULL );
 #endif
 
 	// now do any dynamic lighting needed

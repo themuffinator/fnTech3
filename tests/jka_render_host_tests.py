@@ -77,14 +77,16 @@ int main(){
  }
  entity.ghoul2=0x12345678;Reject([&]{submit(Call::CG_R_ADDREFENTITYTOSCENE,entity);});entity.ghoul2=0;
  entity.renderfx=0x10;Reject([&]{submit(Call::CG_R_ADDREFENTITYTOSCENE,entity);});entity.renderfx=0;
- // Distortion copies (the spawn shield's 0x2400, also on a Ghoul2 model) are
- // validated and consumed: retail's copy only refracts, and Fn has no pass.
- for(std::uint32_t model:{0u,0x12345678u}){
-  entity.renderfx=0x2400;entity.ghoul2=model;entity.shaderRGBA[3]=100;
-  auto bytes=Unaligned(entity);allowedAddress=reinterpret_cast<uintptr_t>(bytes.get()+1);allowedBytes=sizeof(entity);
-  intptr_t args[]{0,static_cast<intptr_t>(allowedAddress)},operation=-1,result=-1;
-  const int before=entityCalls;assert(JKA(Call::CG_R_ADDREFENTITYTOSCENE,args,operation,result)&&result==0&&operation==-1);
-  assert(entityCalls==before);
+ // Distortion copies (the spawn shield's 0x2400) take the canonical path with
+ // their own engine field, for the renderers' entity refraction pass; a Ghoul2
+ // one goes to the owned queue, which this static fixture refuses.
+ {
+  entity.renderfx=0x2400;entity.shaderRGBA[1]=255;entity.shaderRGBA[3]=100;
+  const int before=entityCalls;submit(Call::CG_R_ADDREFENTITYTOSCENE,entity);
+  assert(entityCalls==before+1&&capturedEntity.jka.distortion&&capturedEntity.jka.forceAlpha);
+  assert((capturedEntity.renderfx&RF_NOSHADOW)&&capturedEntity.shader.rgba[1]==255&&capturedEntity.shader.rgba[3]==100);
+  entity.ghoul2=0x12345678;Reject([&]{submit(Call::CG_R_ADDREFENTITYTOSCENE,entity);});
+  entity.shaderRGBA[1]=0;
  }
  entity.ghoul2=0;entity.renderfx=0x2010;Reject([&]{submit(Call::CG_R_ADDREFENTITYTOSCENE,entity);});
  entity.renderfx=0x2000;entity.reType=6;Reject([&]{submit(Call::CG_R_ADDREFENTITYTOSCENE,entity);});

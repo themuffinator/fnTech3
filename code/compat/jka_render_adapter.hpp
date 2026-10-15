@@ -74,11 +74,15 @@ inline Status Entity(const fntech3_jka_mp_refEntity_t &source, refEntity_t &dest
     default: return Status::EntityType;
     }
     // 0x400 and 0x800 are Academy's own overrides (retail jamp.exe 1.01's
-    // stage iterator, measured in renderercommon/tr_jka_entity.h). They have
-    // no Q3 flag, so they cross as engine-owned refEntity_t.jka fields.
+    // stage iterator, measured in renderercommon/tr_jka_entity.h). 0x2000
+    // marks a distortion copy, which retail draws only as a refraction of
+    // the screen behind it (backend 0x48af26; renderercommon/
+    // tr_entity_refraction.h). None has a Q3 flag, so they cross as
+    // engine-owned refEntity_t.jka fields.
     constexpr uint32_t commonFlags = 0x000fu | 0x00c0u | 0x0300u;
-    constexpr uint32_t forceEntityAlpha = 0x0400u, rgbTint = 0x0800u;
-    if (uint32_t(source.renderfx) & ~(commonFlags | forceEntityAlpha | rgbTint)) return Status::EntityFlags;
+    constexpr uint32_t forceEntityAlpha = 0x0400u, rgbTint = 0x0800u, distortion = 0x2000u;
+    if (uint32_t(source.renderfx) & ~(commonFlags | forceEntityAlpha | rgbTint | distortion))
+        return Status::EntityFlags;
     if ((source.nonNormalizedAxes != 0 && source.nonNormalizedAxes != 1) ||
         !Finite(source.origin) || !Finite(source.oldorigin) || !Finite(source.lightingOrigin) ||
         !Finite(source.shaderTexCoord) || !Finite(source.shadowPlane) ||
@@ -105,6 +109,9 @@ inline Status Entity(const fntech3_jka_mp_refEntity_t &source, refEntity_t &dest
     for (const auto &flag : flags) if (uint32_t(source.renderfx) & flag.external) output.renderfx |= flag.internal;
     output.jka.forceAlpha = (uint32_t(source.renderfx) & forceEntityAlpha) ? qtrue : qfalse;
     output.jka.rgbTint = (uint32_t(source.renderfx) & rgbTint) ? qtrue : qfalse;
+    output.jka.distortion = (uint32_t(source.renderfx) & distortion) ? qtrue : qfalse;
+    // Retail's copy draws only the screen behind it, so it casts no shadow.
+    if (output.jka.distortion) output.renderfx |= RF_NOSHADOW;
     output.hModel = source.hModel;
     Copy(output.axis, source.axis);
     output.nonNormalizedAxes = source.nonNormalizedAxes ? qtrue : qfalse;

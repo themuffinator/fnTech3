@@ -8,6 +8,7 @@
 #include "../renderercommon/tr_q3_ihv_model_surface.h"
 #include "../renderercommon/tr_mesh_material.h"
 #include "../renderercommon/tr_rtcw_fog_gpu.h"
+#include "../renderercommon/tr_entity_refraction.h"
 #include "vk.h"
 #include "rtx_mdr_geometry.h"
 #include "rt/rt_gpu.h"
@@ -199,9 +200,12 @@ static void get_viewport_rect( VkRect2D *r );
 static void vk_begin_global_fog_render_pass( void );
 static void vk_begin_liquid_snapshot_render_pass( void );
 
+/* The scene snapshot serves enhanced liquids and the entity refraction pass
+ * (renderercommon/tr_entity_refraction.h). */
 static qboolean vk_liquid_requested( void )
 {
-	return ( r_liquid && r_liquid->integer > 0 ) ? qtrue : qfalse;
+	return ( ( r_liquid && r_liquid->integer > 0 ) || R_EntityRefractionAllocates() ) ?
+		qtrue : qfalse;
 }
 
 static qboolean vk_depth_fade_requested( void )
@@ -14695,6 +14699,21 @@ qboolean vk_capture_liquid_scene( void )
 		sizeof( vk.cmd->scissor_rect ) );
 	backEnd.liquidScreenMapDone = qtrue;
 	return qtrue;
+}
+
+
+/* The entity refraction pass recaptures the snapshot before each distortion
+ * copy (renderercommon/tr_entity_refraction.h), whatever a liquid took
+ * earlier. A liquid's own pending capture is left as it was. */
+qboolean vk_capture_refraction_scene( void )
+{
+	const qboolean liquidDone = backEnd.liquidScreenMapDone;
+	qboolean captured;
+
+	backEnd.liquidScreenMapDone = qfalse;
+	captured = vk_capture_liquid_scene();
+	backEnd.liquidScreenMapDone = liquidDone;
+	return captured;
 }
 
 void vk_draw_global_fog( void )

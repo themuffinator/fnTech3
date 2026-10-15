@@ -1,0 +1,680 @@
+{
+ "record": "docs/fntech3/2026-10-15-jka-entity-refraction.md",
+ "date": "2026-10-15",
+ "profiles": [
+  "jka-mp"
+ ],
+ "baseHead": "652efbf0f0a6b74e498d0afaf68826dd03fcbbb1",
+ "claim": "Compatibility slice only; no gate closes.",
+ "previousRecord": "2026-10-15-jka-play-blockers.json",
+ "retail": {
+  "jamp.exe": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+  "assets3.pk3:cgamex86.dll": "e5d5525829bfcaf3c0428d87fe804e5a46a75dcf0a141f8288061a3970ff140d",
+  "tool": "capstone (x86-32) over the PE images; OpenJK rd-vanilla as a map only",
+  "observed": {
+   "postList": "0x48aba6: test renderfx, 0x202400 (forced post-render, distortion, forced alpha)",
+   "capture": "0x48af26: renderfx & 0x2000 and entity != last captured; bind screen image 0xfe3254 (0x48af43); radius truncated 0x48af4e; origin projected 0x48a930; x0 = vidWidth - x - r/2, y0 = vidHeight - y - r/2, clamped; glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16 0x805b, x0, y0, r, r, 0) 0x48afe8",
+   "stageIterator": "0x4af083 test ch, 0x20 -> 0x4af0cf binds the screen image in place of the stage image, cull state 2 (two-sided); forced alpha 0x4af172: entity alpha (byte 0x53) on single-texture stages, state 0x65",
+   "markerShader": "0x4b6e63: \"internal_distortion\" (0x554410), sort 14.0, no stages, kept at 0xfe3274 and tested at 0x4af108 for a stencil path; no ARB program",
+   "arbPrograms": "0x547530 (vertex) and 0x547948 (fragment): the glow blur pair only",
+   "cgameCopy": "0x3004d950: shell copy; 0x3004db31 renderfx 0x2400; 0x3004db26 scale 0.5; 0x3004dbab invulnerability colour (0, 255, 0, 100); 0x3004dbbf ysalamiri (255, 255, 0, 100); others alpha 20; 0x3004dc13 radius 256.0; 0x3004dc04..0x3004dc46 origin += viewDir * 40 (toward the camera); 0x3004dc4a customShader \"effects/refract_2\" (0x300908ac); gated on cg_renderToTextureFX (0x3004daf5)",
+   "itemTrail": "0x3004a98a: renderfx 0x2400, white, radius by distance (256/128/64/32)",
+   "shader": "assets1.pk3 shaders/effects.shader effects/refract_2: cull twosided; map $whiteimage; blendFunc GL_SRC_ALPHA GL_SRC_COLOR; rgbGen entity; alphaGen entity; tcMod stretch triangle 2 1 0 0.4"
+  },
+  "inferred": {
+   "appearance": "the background behind a mirrored 256-px square, magnified 1x to 3x on a 2.5 s cycle through the shell texture coordinates, multiplied by the entity colour, at 100/255",
+   "bendPixels": "up to 85 at the square edge; mean about 44 (1 - ln3/2 = 0.45 of the 98-px mean distance from the centre), about 17 at 100/255; estimate, shell UVs not measured",
+   "correction": "the play-blockers record called the copy colourless and 0x4b6e63 an ARB program; the copy is filtered by the entity colour and 0x4b6e63 names a stageless marker"
+  }
+ },
+ "fnDesign": {
+  "field": "refEntity_t.jka.distortion (code/renderercommon/tr_types.h), set by jka_render_adapter.hpp; the copy also takes RF_NOSHADOW",
+  "rules": "code/renderercommon/tr_entity_refraction.h",
+  "cvar": {
+   "name": "r_entityRefraction",
+   "default": "1.0",
+   "range": [
+    "0.0",
+    "4.0"
+   ],
+   "flags": "CVAR_ARCHIVE_ND",
+   "allocation": "jka-mp only, when above 0 at renderer start"
+  },
+  "presence": "forced alpha / 255, else 1",
+  "tint": "1 + (entity colour - 1) * presence when the first stage is rgbGen entity or the 0x800 tint, else white",
+  "warpFraction": 0.2,
+  "warpPixels": "r_entityRefraction * 0.20 * view height * presence, before the wave amplitude and fades",
+  "firstDefault": {
+   "warpFraction": 0.06,
+   "meanShiftAt768": {
+    "glx": 4.41,
+    "vk": 5.94
+   },
+   "runs": [
+    "glx-front-2",
+    "vk-front-2"
+   ]
+  },
+  "capture": "before each distortion entity first batch, colour and depth, in each renderer backend",
+  "draw": "liquid refraction underlay only, opaque, two-sided, no ripples; skipped in light and shadow passes and in views without a snapshot",
+  "programs": {
+   "glxGlsl": "u_Reflect.rgb in the refraction branch",
+   "arb": "program.local[8]",
+   "fixedFunction": "GL_COMBINE_RGB GL_MODULATE with the primary colour",
+   "vulkan": "liquid_reflect.rgb (renderervk and rendererrtx liquid.frag)",
+   "liquids": "tint white"
+  },
+  "spirv": {
+   "glslang": "C:/VulkanSDK/1.4.313.1 glslangValidator",
+   "reproducedBeforeEdit": [
+    "renderervk liquid_frag_spv",
+    "renderervk liquid_vert_spv",
+    "rendererrtx liquid_frag_spv",
+    "rendererrtx liquid_vert_spv"
+   ],
+   "regenerated": [
+    "renderervk liquid_frag_spv 12988 bytes",
+    "rendererrtx liquid_frag_spv 11852 bytes"
+   ]
+  },
+  "rtx": "RT_EntityClass leaves distortion copies to raster; the pass runs in the overlay list after the trace"
+ },
+ "fnFeatures": {
+  "used": [
+   "liquid scene snapshot and r_liquidResolution",
+   "foreground depth rejection",
+   "wave-field displacement in model space with distance, grazing and screen-edge fades",
+   "GLx GLSL, ARB and fixed-function tiers; Vulkan and RTX liquid pipelines"
+  ],
+  "leftOut": {
+   "ripples": "liquid surfaces only",
+   "fresnelSheen": "a shield copy is not a reflecting surface",
+   "partialBlend": "the underlay replaces the background; presence scales the bend"
+  },
+  "notReproduced": "retail mirrored square and texture-coordinate zoom",
+  "retailExactOption": null,
+  "offSwitches": [
+   "cg_renderToTextureFX 0 (retail)",
+   "r_entityRefraction 0"
+  ]
+ },
+ "runtime": {
+  "folder": ".tmp/runtime/jka-refraction",
+  "built_from": "shared working tree on HEAD 652efbf0 (includes other sessions' uncommitted work); meson/build/win32-dev targets fntech3, fnql_glx_x86, fnql_vk_x86, fnql_rtx_x86",
+  "sha256": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "7b6eb531a9054efd5734d0f5b218097c09a75aa13f7a5ae375b4f74f55bcbdcc",
+   "fnql_rtx_x86.dll": "c1b6f132d97aac98718585ffb1d7bfcd9e74584b96c63a0e161a81a3a795034d",
+   "fnql_vk_x86.dll": "78d3297bbea525d114dbae7862eb57415408037cc77615d482d765ef35e47553",
+   "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+   "fntech3.exe": "058ecf8b94ca0a676efc4f8182c64fe1b17e3c2b6db9a5ba968510060240d69e",
+   "soft_oal.dll": "056dc4a6279623f83ee5045fac35c6310cfe653a6fca517dc72541deefafeab7"
+  }
+ },
+ "harness": ".tmp/jka-refraction/live/listen.py <runtime> <run> <renderer> <front|back> 3 1; analysis .tmp/jka-refraction/live/pairdiff.py and shift.py",
+ "baseSettings": "com_gameProfile jka-mp, devmap mp/ffa1, windowed 1024x768, net_ip 127.0.0.1, s_initsound 0, cg_thirdPerson 1, g_gametype 0, sv_pure 0, empty home jampconfig.cfg and jampserver.cfg, private desktop, no input; cg_renderToTextureFX at its default 1",
+ "captureNote": "screenshotPNG lands a few frames after it is issued: pairs 4 frames apart caught both shots after the switch, so the harness waits 12 frames (runs glx-dbg-2, glx-dbg-3)",
+ "diagnostic": "a temporary red tint and REFRDBG prints (removed before the final runs) showed the GLx pass running every frame on the copy (192 indices) and drawing in its footprint",
+ "runs": {
+  "glx-front-final": {
+   "renderer": "glx",
+   "view": "front",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 10.5,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "identity": {
+    "fntech3.exe": "058ecf8b94ca0a676efc4f8182c64fe1b17e3c2b6db9a5ba968510060240d69e",
+    "fnql_glx_x86.dll": "7b6eb531a9054efd5734d0f5b218097c09a75aa13f7a5ae375b4f74f55bcbdcc",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "steps": [
+    "echo probe-step active",
+    "set cl_menuBlur 0",
+    "set con_notifytime 0",
+    "cmd team free",
+    "timescale 0.1",
+    "wait 120",
+    "ui_openmenu none",
+    "set cg_draw2D 0",
+    "set cg_thirdPersonAngle 180",
+    "set cg_thirdPersonRange 110",
+    "set cg_thirdPersonPitchOffset -15",
+    "timescale 0.02",
+    "wait 30",
+    "set r_entityRefraction 0",
+    "wait 12",
+    "screenshotPNG jka-refr-00a",
+    "wait 12",
+    "set r_entityRefraction 1",
+    "wait 12",
+    "screenshotPNG jka-refr-00b",
+    "wait 12",
+    "set r_entityRefraction 0",
+    "wait 12",
+    "screenshotPNG jka-refr-01a",
+    "wait 12",
+    "set r_entityRefraction 1",
+    "wait 12",
+    "screenshotPNG jka-refr-01b",
+    "wait 12",
+    "set r_entityRefraction 0",
+    "wait 12",
+    "screenshotPNG jka-refr-02a",
+    "wait 12",
+    "set r_entityRefraction 1",
+    "wait 12",
+    "screenshotPNG jka-refr-02b",
+    "wait 12",
+    "timescale 1",
+    "echo probe-step done",
+    "wait 30",
+    "quit"
+   ],
+   "pairs": [
+    {
+     "pair": "jka-refr-00",
+     "changedPixels": 107825,
+     "bbox": [
+      339,
+      0,
+      684,
+      767
+     ],
+     "meanDeltaRGB": [
+      -13.21,
+      11.02,
+      -15.04
+     ],
+     "meanShift": 26.97,
+     "medianShift": 26.62,
+     "maxShift": 52.5,
+     "tiles": 20
+    },
+    {
+     "pair": "jka-refr-01",
+     "changedPixels": 82205,
+     "bbox": [
+      286,
+      472,
+      684,
+      767
+     ],
+     "meanDeltaRGB": [
+      -19.8,
+      6.81,
+      -17.1
+     ],
+     "meanShift": 22.76,
+     "medianShift": 31.04,
+     "maxShift": 37.0,
+     "tiles": 26
+    },
+    {
+     "pair": "jka-refr-02",
+     "changedPixels": 82263,
+     "bbox": [
+      339,
+      472,
+      684,
+      767
+     ],
+     "meanDeltaRGB": [
+      -19.88,
+      6.17,
+      -17.22
+     ],
+     "meanShift": 21.3,
+     "medianShift": 28.54,
+     "maxShift": 36.06,
+     "tiles": 28
+    }
+   ],
+   "captureSha256": {
+    "jka-refr-00a.png": "99150a29d51d60a5b21f81a902ad5f9b5e744dbc167ac8f2373379d11f2393ca",
+    "jka-refr-00b.png": "6bcae3cd01c613ba873e3ea7f570f761b355e6bb12347ecb212e852b7f24f0ba",
+    "jka-refr-01a.png": "3cbc3e44d48e84643f4abb1289a35464b4a4acd508501c41aa84647beb947e85",
+    "jka-refr-01b.png": "ea943aff153319bc15c9fad413fcd8c317cf0ccc36a1c082bdd5e7378423f1a8",
+    "jka-refr-02a.png": "e7df9f534196afc80096812f633f0773ec72146533671e5eaaec682acb81e5b3",
+    "jka-refr-02b.png": "328ca615bcea9af4c3cdf33c94d379821defa673a060449fe04c25f4eca86936"
+   }
+  },
+  "vk-front-final": {
+   "renderer": "vk",
+   "view": "front",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 10.1,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "identity": {
+    "fntech3.exe": "058ecf8b94ca0a676efc4f8182c64fe1b17e3c2b6db9a5ba968510060240d69e",
+    "fnql_vk_x86.dll": "78d3297bbea525d114dbae7862eb57415408037cc77615d482d765ef35e47553",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "steps": [
+    "echo probe-step active",
+    "set cl_menuBlur 0",
+    "set con_notifytime 0",
+    "cmd team free",
+    "timescale 0.1",
+    "wait 120",
+    "ui_openmenu none",
+    "set cg_draw2D 0",
+    "set cg_thirdPersonAngle 180",
+    "set cg_thirdPersonRange 110",
+    "set cg_thirdPersonPitchOffset -15",
+    "timescale 0.02",
+    "wait 30",
+    "set r_entityRefraction 0",
+    "wait 12",
+    "screenshotPNG jka-refr-00a",
+    "wait 12",
+    "set r_entityRefraction 1",
+    "wait 12",
+    "screenshotPNG jka-refr-00b",
+    "wait 12",
+    "set r_entityRefraction 0",
+    "wait 12",
+    "screenshotPNG jka-refr-01a",
+    "wait 12",
+    "set r_entityRefraction 1",
+    "wait 12",
+    "screenshotPNG jka-refr-01b",
+    "wait 12",
+    "set r_entityRefraction 0",
+    "wait 12",
+    "screenshotPNG jka-refr-02a",
+    "wait 12",
+    "set r_entityRefraction 1",
+    "wait 12",
+    "screenshotPNG jka-refr-02b",
+    "wait 12",
+    "timescale 1",
+    "echo probe-step done",
+    "wait 30",
+    "quit"
+   ],
+   "pairs": [
+    {
+     "pair": "jka-refr-00",
+     "changedPixels": 106446,
+     "bbox": [
+      339,
+      0,
+      684,
+      767
+     ],
+     "meanDeltaRGB": [
+      -28.51,
+      3.38,
+      -29.44
+     ],
+     "meanShift": 22.74,
+     "medianShift": 20.52,
+     "maxShift": 38.33,
+     "tiles": 21
+    },
+    {
+     "pair": "jka-refr-01",
+     "changedPixels": 84923,
+     "bbox": [
+      339,
+      472,
+      684,
+      767
+     ],
+     "meanDeltaRGB": [
+      -41.39,
+      -2.62,
+      -38.59
+     ],
+     "meanShift": 19.38,
+     "medianShift": 19.92,
+     "maxShift": 37.36,
+     "tiles": 23
+    },
+    {
+     "pair": "jka-refr-02",
+     "changedPixels": 84915,
+     "bbox": [
+      285,
+      472,
+      684,
+      767
+     ],
+     "meanDeltaRGB": [
+      -41.98,
+      -2.53,
+      -37.81
+     ],
+     "meanShift": 19.32,
+     "medianShift": 18.08,
+     "maxShift": 36.4,
+     "tiles": 20
+    }
+   ],
+   "captureSha256": {
+    "jka-refr-00a.png": "e2ef1d23c55c0d3c065e0aa632e1e0b4be118e5427fbb53ededdef89c494a0f8",
+    "jka-refr-00b.png": "32a13302ef8e54c41e0ae31eb80a34e16157c88002cb1864a3c2d88042533906",
+    "jka-refr-01a.png": "6b6c53cd7dd2b0f5b4d9db388c172e58c10cdfb892965d70a5b225a4b1036174",
+    "jka-refr-01b.png": "fdc07feeb85ff823abe1caa7a996d2935a1d901437c9ba263e16874432a23dd3",
+    "jka-refr-02a.png": "71269e7e4f7b5aea1f39b81f37fd9a8876144a5076369561b2e59494abdfe28e",
+    "jka-refr-02b.png": "284489affbd895d86d7d9db65d72e9b9f6922a4a092651fd1f7f1f3f9088e3e0"
+   }
+  },
+  "rtx-front-final": {
+   "renderer": "rtx",
+   "view": "front",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 19.4,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "identity": {
+    "fntech3.exe": "058ecf8b94ca0a676efc4f8182c64fe1b17e3c2b6db9a5ba968510060240d69e",
+    "fnql_rtx_x86.dll": "c1b6f132d97aac98718585ffb1d7bfcd9e74584b96c63a0e161a81a3a795034d",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "steps": [
+    "echo probe-step active",
+    "set cl_menuBlur 0",
+    "set con_notifytime 0",
+    "cmd team free",
+    "timescale 0.1",
+    "wait 120",
+    "ui_openmenu none",
+    "set cg_draw2D 0",
+    "set cg_thirdPersonAngle 180",
+    "set cg_thirdPersonRange 110",
+    "set cg_thirdPersonPitchOffset -15",
+    "timescale 0.02",
+    "wait 30",
+    "set r_entityRefraction 0",
+    "wait 12",
+    "screenshotPNG jka-refr-00a",
+    "wait 12",
+    "set r_entityRefraction 1",
+    "wait 12",
+    "screenshotPNG jka-refr-00b",
+    "wait 12",
+    "set r_entityRefraction 0",
+    "wait 12",
+    "screenshotPNG jka-refr-01a",
+    "wait 12",
+    "set r_entityRefraction 1",
+    "wait 12",
+    "screenshotPNG jka-refr-01b",
+    "wait 12",
+    "set r_entityRefraction 0",
+    "wait 12",
+    "screenshotPNG jka-refr-02a",
+    "wait 12",
+    "set r_entityRefraction 1",
+    "wait 12",
+    "screenshotPNG jka-refr-02b",
+    "wait 12",
+    "timescale 1",
+    "echo probe-step done",
+    "wait 30",
+    "quit"
+   ],
+   "pairs": [
+    {
+     "pair": "jka-refr-00",
+     "changedPixels": 105110,
+     "bbox": [
+      0,
+      0,
+      1023,
+      767
+     ],
+     "meanDeltaRGB": [
+      -16.35,
+      -4.08,
+      -17.26
+     ],
+     "meanShift": 19.03,
+     "medianShift": 19.56,
+     "maxShift": 29.41,
+     "tiles": 18
+    },
+    {
+     "pair": "jka-refr-01",
+     "changedPixels": 105326,
+     "bbox": [
+      0,
+      0,
+      1023,
+      767
+     ],
+     "meanDeltaRGB": [
+      -16.3,
+      -4.2,
+      -17.31
+     ],
+     "meanShift": 17.85,
+     "medianShift": 15.23,
+     "maxShift": 46.04,
+     "tiles": 19
+    },
+    {
+     "pair": "jka-refr-02",
+     "changedPixels": 102375,
+     "bbox": [
+      0,
+      0,
+      1023,
+      767
+     ],
+     "meanDeltaRGB": [
+      -16.45,
+      -3.88,
+      -17.44
+     ],
+     "meanShift": 20.47,
+     "medianShift": 20.75,
+     "maxShift": 34.79,
+     "tiles": 16
+    }
+   ],
+   "captureSha256": {
+    "jka-refr-00a.png": "795ce52e052ceb53f47874d8833584358a288a0372f541b11e8c471961345609",
+    "jka-refr-00b.png": "742dedcd625f47ef0888ddd22791b684a2bd92f1f0fdf09a6ac3e57cdd793a89",
+    "jka-refr-01a.png": "9a6a25d0a91d46d065a96f5baf001d6a02c3838857f5d4effa490f7765adb6b2",
+    "jka-refr-01b.png": "06acbe4f50090137eea5b327dc4cae7da01c11d206e87142b7a3d9573434536d",
+    "jka-refr-02a.png": "4992dda5fd1812ed1322d0fd77e33cf7829033cdfb30ada0bd8285f8878310e8",
+    "jka-refr-02b.png": "24f7c395da57f8c093d7ae670bae1f19f11a8b6222317983e94308f7928450a0"
+   }
+  },
+  "glx-back-final": {
+   "renderer": "glx",
+   "view": "back",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 12.2,
+   "errors": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "identity": {
+    "fntech3.exe": "058ecf8b94ca0a676efc4f8182c64fe1b17e3c2b6db9a5ba968510060240d69e",
+    "fnql_glx_x86.dll": "7b6eb531a9054efd5734d0f5b218097c09a75aa13f7a5ae375b4f74f55bcbdcc",
+    "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f"
+   },
+   "steps": [
+    "echo probe-step active",
+    "set cl_menuBlur 0",
+    "set con_notifytime 0",
+    "cmd team free",
+    "timescale 0.1",
+    "wait 120",
+    "ui_openmenu none",
+    "set cg_draw2D 0",
+    "timescale 0.02",
+    "wait 30",
+    "set r_entityRefraction 0",
+    "wait 12",
+    "screenshotPNG jka-refr-00a",
+    "wait 12",
+    "set r_entityRefraction 1",
+    "wait 12",
+    "screenshotPNG jka-refr-00b",
+    "wait 12",
+    "set r_entityRefraction 0",
+    "wait 12",
+    "screenshotPNG jka-refr-01a",
+    "wait 12",
+    "set r_entityRefraction 1",
+    "wait 12",
+    "screenshotPNG jka-refr-01b",
+    "wait 12",
+    "set r_entityRefraction 0",
+    "wait 12",
+    "screenshotPNG jka-refr-02a",
+    "wait 12",
+    "set r_entityRefraction 1",
+    "wait 12",
+    "screenshotPNG jka-refr-02b",
+    "wait 12",
+    "timescale 1",
+    "echo probe-step done",
+    "wait 30",
+    "quit"
+   ],
+   "pairs": [
+    {
+     "pair": "jka-refr-00",
+     "changedPixels": 294492,
+     "bbox": [
+      0,
+      401,
+      1023,
+      767
+     ],
+     "meanDeltaRGB": [
+      -43.78,
+      -4.63,
+      -48.12
+     ],
+     "meanShift": 30.06,
+     "medianShift": 35.06,
+     "maxShift": 37.85,
+     "tiles": 447
+    },
+    {
+     "pair": "jka-refr-01",
+     "changedPixels": 294003,
+     "bbox": [
+      0,
+      401,
+      1023,
+      767
+     ],
+     "meanDeltaRGB": [
+      -43.82,
+      -4.33,
+      -48.16
+     ],
+     "meanShift": 28.77,
+     "medianShift": 33.14,
+     "maxShift": 36.67,
+     "tiles": 451
+    },
+    {
+     "pair": "jka-refr-02",
+     "changedPixels": 293541,
+     "bbox": [
+      0,
+      401,
+      1023,
+      767
+     ],
+     "meanDeltaRGB": [
+      -43.84,
+      -4.01,
+      -48.18
+     ],
+     "meanShift": 27.52,
+     "medianShift": 31.26,
+     "maxShift": 35.38,
+     "tiles": 451
+    }
+   ],
+   "captureSha256": {
+    "jka-refr-00a.png": "a6344af723df40eb2d7f9e957e3f761e849db6806262791ceca559507d723f32",
+    "jka-refr-00b.png": "4aea7590535f46845b6ac38732066d09085d8fbce242562fe5a54ce3633befbb",
+    "jka-refr-01a.png": "1ebb81859dd0f7503be84713a99e66adb963801b307f419ac4c7c0cb146bcf6c",
+    "jka-refr-01b.png": "35133588b5ba52bc195c4588d99163e0cd71b8a0e37f20a6e60cabe14f9a8580",
+    "jka-refr-02a.png": "a4d679c6a394962abb67f2d03d7e7ae6dec77ce0c29dc68004cff7ba57513277",
+    "jka-refr-02b.png": "35dda3db720a192c42e1ea36763f18a313c1841d4815e42410f4790811cb8e98"
+   }
+  }
+ },
+ "tests": {
+  "new": [
+   "tests/jka_entity_refraction_tests.py"
+  ],
+  "updated": [
+   "tests/jka_render_tests.cpp",
+   "tests/jka_entity_override_tests.py",
+   "tests/jka_render_host_tests.py",
+   "tests/liquid_rendering_source_tests.py",
+   "tests/rtx_raster_execution_tests.py"
+  ],
+  "result": {
+   "firstExport": {
+    "tree": "HEAD 652efbf0 plus this slice only",
+    "build": "all 1,541 Windows x86 targets, strict warnings (/W4 /WX), -j 4, exit 0",
+    "mesonSuite": {
+     "selected": 267,
+     "excluded": "fnql_python_source_regressions (the pytest wrapper)",
+     "ok": 265,
+     "fail": 0,
+     "skipped": 2
+    },
+    "pytest": {
+     "command": "python -m pytest tests -q",
+     "passed": 2726,
+     "skipped": 131,
+     "failed": 0,
+     "subtestsPassed": 66780,
+     "seconds": 2497.87
+    }
+   },
+   "secondExport": {
+    "tree": "HEAD fbde92d4 plus this slice only (the commit's tree)",
+    "build": "all 1,541 targets, strict warnings, -j 4, exit 0",
+    "mesonSuite": {
+     "selected": 268,
+     "ok": 265,
+     "fail": 0,
+     "skipped": 2,
+     "timeout": 1,
+     "timeoutNote": "fntech3_jka_ui_render timed out at 32.9 s under load; rerun alone in the same build: OK in 2.98 s"
+    },
+    "pytestFocused": {
+     "files": 68,
+     "selection": "tests/jka_*_tests.py plus the liquid, RTX raster, override, fog, underwater, Elite Force alpha, IHV entity, docs, player-manual and release-packaging tests",
+     "passed": 317,
+     "skipped": 1,
+     "failed": 0,
+     "subtestsPassed": 1448
+    }
+   },
+   "sharedTree": "before the exports: the affected liquid, RTX, JKA and docs tests passed in the shared tree; every edited engine file compiled with win32-dev's exact commands"
+  }
+ },
+ "open": [
+  "retail mirrored square and texture-coordinate zoom not reproduced (invariant 11); no retail capture taken",
+  "only the invulnerability shell copy captured; item-respawn trail and alpha-20 shells not seen live",
+  "jka-sp not served (its client game stops on its first frame; its own distortion flag is unmeasured)"
+ ]
+}

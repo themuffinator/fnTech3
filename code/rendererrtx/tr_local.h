@@ -2561,6 +2561,8 @@ extern cvar_t	*r_motionBlurStrength;
 extern cvar_t	*r_liquid;
 extern cvar_t	*r_liquidResolution;
 extern cvar_t	*r_liquidRefraction;
+extern cvar_t	*r_entityRefraction;
+qboolean RB_EntityRefractionReady( void );	// tr_backend.c: the snapshot behind this distortion copy
 extern cvar_t	*r_liquidWarpScale;
 extern cvar_t	*r_liquidReflection;
 extern cvar_t	*r_liquidRipples;

@@ -90,6 +90,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Jedi Academy tails and particle physics](fntech3/2026-10-15-jka-tails-and-physics.md)
   -- sparks' tails, bouncing particles, impact and death effects and spawn
   shapes, measured in retail.
+- [Jedi Academy entity refraction](fntech3/2026-10-15-jka-entity-refraction.md)
+  -- the spawn shield's see-through shimmer, measured in retail and drawn
+  with fnTech3's liquid refraction in every renderer.
 - [October 15 compatibility round](fntech3/2026-10-15-compatibility-round.md)
   -- Jedi Academy's sound sets heard around a point, checked against
   retail's own routines, and Enemy Territory's close of a shut area portal.

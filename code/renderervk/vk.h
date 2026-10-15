@@ -398,6 +398,7 @@ qboolean vk_bloom( void );
 qboolean vk_menu_blur( float strength );
 qboolean vk_motion_blur( void );
 qboolean vk_capture_liquid_scene( void );
+qboolean vk_capture_refraction_scene( void );
 void vk_get_liquid_mvp( float *mvp );
 void vk_draw_world_cel_outline( void );
 void vk_draw_global_fog( void );

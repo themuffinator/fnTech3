@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_local.h"
 #include "../renderercommon/tr_stvef_alpha.h"
 #include "../renderercommon/tr_jka_entity.h"
+#include "../renderercommon/tr_entity_refraction.h"
 #include "../renderercommon/tr_rtcw_engine_lights.h"
 #include "tr_glx_compat.h"
 
@@ -849,6 +850,28 @@ static qboolean RB_ShaderNeedsLiquidSnapshot( const shader_t *shader )
 	return qtrue;
 }
 
+/* Whether the snapshot behind the current distortion copy was captured. */
+static qboolean rb_entityRefractionReady;
+
+qboolean RB_EntityRefractionReady( void )
+{
+	return rb_entityRefractionReady;
+}
+
+/* Whether this view can serve the entity refraction pass at all
+ * (renderercommon/tr_entity_refraction.h). */
+static qboolean RB_EntityRefractionViewActive( void )
+{
+	return fboEnabled && FBO_LiquidScreenTexture() &&
+		r_entityRefraction && r_entityRefraction->value > 0.0f &&
+		R_LiquidViewportCoversTarget( backEnd.viewParms.viewportX,
+			backEnd.viewParms.viewportY, backEnd.viewParms.viewportWidth,
+			backEnd.viewParms.viewportHeight, glConfig.vidWidth, glConfig.vidHeight ) &&
+		!( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) &&
+		!backEnd.screenshotCubeActive && !backEnd.screenshotCubeFrontPending &&
+		!R_ViewPassIsPortal( &backEnd.viewParms ) && !glConfig.stereoEnabled ? qtrue : qfalse;
+}
+
 static qboolean RB_DrawSurfListNeedsLiquidSnapshot( drawSurf_t *drawSurfs,
 	int numDrawSurfs )
 {
@@ -903,6 +926,7 @@ static qboolean RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 	qboolean		worldCelOutlineDrawn;
 	qboolean		liquidSnapshotPending;
 	qboolean		liquidDepthPending;
+	int				refractionEntityNum;
 #endif
 	double			originalTime; // -EC-
 
@@ -931,6 +955,8 @@ static qboolean RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 	liquidSnapshotPending = RB_DrawSurfListNeedsLiquidSnapshot( drawSurfs,
 		numDrawSurfs );
 	liquidDepthPending = liquidSnapshotPending;
+	refractionEntityNum = -1;
+	rb_entityRefractionReady = qfalse;
 	FBO_ResetDepthFade();
 #endif
 	depthRange = qfalse;
@@ -966,6 +992,34 @@ static qboolean RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 				oldEntityNum = -1;
 			}
 			depthFadeSnapshot = qtrue;
+		}
+
+		/* A distortion copy bends the scene drawn before it. Retail copies
+		 * the screen once per posted entity (jamp.exe 0x48af26); Fn captures
+		 * its full-view snapshot, and the scene depth for the foreground
+		 * rejection, before each such entity's first batch
+		 * (renderercommon/tr_entity_refraction.h). */
+		if ( entityNum != REFENTITYNUM_WORLD && entityNum != refractionEntityNum &&
+			entityNum < backEnd.refdef.num_entities &&
+			R_EntityRefracts( &backEnd.refdef.entities[entityNum] ) ) {
+			if ( oldShader != NULL ) {
+				RB_EndSurfaceWithSTVEFAlpha();
+				oldShader = NULL;
+			}
+			refractionEntityNum = entityNum;
+			rb_entityRefractionReady = RB_EntityRefractionViewActive() &&
+				FBO_CopyLiquidScreen() ? qtrue : qfalse;
+			if ( rb_entityRefractionReady ) {
+				FBO_CopyLiquidDepth();
+				qglMatrixMode( GL_PROJECTION );
+				qglLoadMatrixf( backEnd.viewParms.projectionMatrix );
+				qglMatrixMode( GL_MODELVIEW );
+				qglLoadMatrixf( backEnd.viewParms.world.modelMatrix );
+				backEnd.projection2D = qfalse;
+				glState.faceCulling = -1;
+			}
+			oldSort = MAX_UINT;
+			oldEntityNum = -1;
 		}
 
 #endif
@@ -1148,6 +1202,15 @@ static qboolean RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 		// which the static world buffer's precomputed colours cannot
 		if ( tess.allowVBO && R_JKAEntityOverrides( backEnd.currentEntity ) ) {
 			tess.allowVBO = qfalse;
+		}
+		if ( tess.allowVBO && R_EntityRefracts( backEnd.currentEntity ) ) {
+			tess.allowVBO = qfalse;
+		}
+#endif
+#ifdef USE_TESS_NEEDS_NORMAL
+		// the refraction pass reads the wave field's surface normals
+		if ( R_EntityRefracts( backEnd.currentEntity ) ) {
+			tess.needsNormal = qtrue;
 		}
 #endif
 

@@ -1032,7 +1032,7 @@ static const char kLiquidFragmentSource[] =
 	"uniform vec4 u_Params;\n"        /* wrapped time, warp pixels, pass strength, +-type scale */
 	"uniform vec4 u_EyeAndCount;\n"   /* model-space eye, active impulse count */
 	"uniform vec4 u_TargetInverse;\n" /* inverse viewport size, depth reject toggle */
-	"uniform vec4 u_Reflect;\n"       /* material sheen color, reflection weight */
+	"uniform vec4 u_Reflect;\n"       /* sheen color or refraction tint, reflection weight */
 	"uniform vec4 u_Impulse[8];\n"    /* model-space xyz, expanding ring radius */
 	"uniform vec4 u_Amplitude[2];\n"  /* eight packed ripple pixel amplitudes */
 	"varying vec4 v_ScreenPosition;\n"
@@ -1104,7 +1104,9 @@ static const char kLiquidFragmentSource[] =
 	 * r_liquidRefraction scales the displacement instead, and reaches the
 	 * shader already folded into the warp pixels and ripple amplitudes. */
 	"        float alpha = typeScale;\n"
-	"        gl_FragColor = vec4(sceneColor, alpha);\n"
+	/* the refraction pass carries its tint in u_Reflect.rgb: white for
+	 * liquids, an entity's filter for an entity refraction */
+	"        gl_FragColor = vec4(sceneColor * u_Reflect.rgb, alpha);\n"
 	"    }\n"
 	"    else\n"
 	"    {\n"

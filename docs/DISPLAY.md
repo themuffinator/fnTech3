@@ -820,6 +820,7 @@ that engine's defaults:
 | Alice and F.A.K.K.2 | `r_ambientScale` | `0.5` | How much background light models get, as in the originals; `0.6` in other games. A cheat. |
 | Quake Live | `r_ambientScale` | `10` | The same, as a player option from `1` to `100`: the Video menu's Ambient Light Scale. Saved in `repconfig.cfg`. |
 | Quake III IHV Test | `r_lerpmodels` | `1` | Smooth model animation. |
+| Jedi Academy multiplayer | `r_entityRefraction` | `1` | How strongly the see-through shimmer round a newly spawned player bends what is behind it, from `0` (not drawn) to `4`. Turning it on from `0` needs `vid_restart`. The game's own `cg_renderToTextureFX 0` also leaves the shimmer out. |
 
 ## When To Use `vid_restart`
 

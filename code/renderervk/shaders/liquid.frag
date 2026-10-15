@@ -6,7 +6,7 @@ layout(set = 0, binding = 0) uniform LiquidUniforms {
 	vec4 liquid_info;                // type scale, impulse count, inverse target height, refraction pass
 	vec4 liquid_impulse[8];          // model-space xyz, expanding ring radius
 	vec4 liquid_amplitude[2];        // eight packed ripple pixel amplitudes
-	vec4 liquid_reflect;             // material sheen color, reflection weight
+	vec4 liquid_reflect;             // sheen color or refraction tint, reflection weight
 	vec4 liquid_depth;               // x: depth reject enabled
 	mat4 liquid_mvp;                 // model space -> clip space for reflection reprojection
 };
@@ -92,7 +92,9 @@ void main()
 		 * r_liquidRefraction scales the displacement instead, and reaches the
 		 * shader already folded into the warp pixels and ripple amplitudes. */
 		float alpha = liquid_info.x;
-		out_color = vec4(scene, alpha);
+		/* liquid_reflect.rgb carries the refraction tint here: white for
+		 * liquids, an entity's filter for an entity refraction. */
+		out_color = vec4(scene * liquid_reflect.rgb, alpha);
 	} else {
 		/* Bounded single-tap screen-space reflection of the immutable pre-
 		 * transparency snapshot; the material sheen color is the fallback

@@ -33,15 +33,17 @@ class LiquidRenderingSourceTests(unittest.TestCase):
         cls.gl_arb = read("code/renderer/tr_arb.c")
 
     def test_refraction_is_drawn_before_authored_stages_in_both_backends(self) -> None:
-        gl_pre = self.gl.index("RB_DrawLiquidPass( &tess, qtrue )")
+        # The third argument is the entity a refraction is drawn for; a
+        # liquid passes none (renderercommon/tr_entity_refraction.h).
+        gl_pre = self.gl.index("RB_DrawLiquidPass( &tess, qtrue, NULL )")
         gl_authored = self.gl.index("RB_IterateStagesGeneric( input )", gl_pre)
-        gl_post = self.gl.index("RB_DrawLiquidPass( &tess, qfalse )", gl_authored)
+        gl_post = self.gl.index("RB_DrawLiquidPass( &tess, qfalse, NULL )", gl_authored)
         self.assertLess(gl_pre, gl_authored)
         self.assertLess(gl_authored, gl_post)
 
-        vk_pre = self.vk.index("VK_DrawLiquidPass( &tess, qtrue )")
+        vk_pre = self.vk.index("VK_DrawLiquidPass( &tess, qtrue, NULL )")
         vk_authored = self.vk.index("RB_IterateStagesGeneric( &tess, fogCollapse )", vk_pre)
-        vk_post = self.vk.index("VK_DrawLiquidPass( &tess, qfalse )", vk_authored)
+        vk_post = self.vk.index("VK_DrawLiquidPass( &tess, qfalse, NULL )", vk_authored)
         self.assertLess(vk_pre, vk_authored)
         self.assertLess(vk_authored, vk_post)
 
@@ -256,7 +258,12 @@ class LiquidRenderingSourceTests(unittest.TestCase):
         vk_requested_body = self.vk_impl[
             vk_requested:self.vk_impl.index("}", vk_requested)
         ]
-        self.assertIn("r_liquid", vk_requested_body)
+        self.assertIn("vk_liquid_requested()", vk_requested_body)
+        # The snapshot serves enhanced liquids and the entity refraction pass.
+        liquid = self.vk_impl.index("static qboolean vk_liquid_requested( void )\n{")
+        liquid_body = self.vk_impl[liquid:self.vk_impl.index("}", liquid)]
+        self.assertIn("r_liquid && r_liquid->integer", liquid_body)
+        self.assertIn("R_EntityRefractionAllocates()", liquid_body)
 
     def test_ripple_ring_shape_is_shared_by_every_backend(self) -> None:
         # The ring expands and its band widens with the *current* radius. The

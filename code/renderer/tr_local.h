@@ -2440,6 +2440,7 @@ extern cvar_t	*r_motionBlurStrength;
 extern cvar_t	*r_liquid;
 extern cvar_t	*r_liquidResolution;
 extern cvar_t	*r_liquidRefraction;
+extern cvar_t	*r_entityRefraction;
 extern cvar_t	*r_liquidWarpScale;
 extern cvar_t	*r_liquidReflection;
 extern cvar_t	*r_liquidRipples;
@@ -3572,6 +3573,7 @@ typedef struct liquidArbParams_s {
 	float	reflectivity;	// screen-space reflection weight, 0 when the snapshot is unavailable
 	qboolean	depthAvailable;	// scene depth copied for waterline rejection
 	vec3_t	fresnelColor;
+	vec3_t	refractionTint;	// multiplies the bent scene: white for liquids, an entity's filter
 } liquidArbParams_t;
 
 qboolean GL_LiquidProgramAvailable( void );
@@ -3579,6 +3581,7 @@ void GL_LiquidProgramEnable( const liquidArbParams_t *params, qboolean refractio
 void FBO_CopyLiquidDepth( void );
 qboolean FBO_LiquidDepthReady( void );
 void FBO_BindLiquidDepthTexture( int texUnit );
+qboolean RB_EntityRefractionReady( void );
 #endif
 
 void QGL_SetRenderScale( qboolean verbose );

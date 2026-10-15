@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_local.h"
 #include "../renderercommon/tr_stvef_alpha.h"
 #include "../renderercommon/tr_jka_entity.h"
+#include "../renderercommon/tr_entity_refraction.h"
 #include "../renderercommon/tr_rtcw_engine_lights.h"
 
 backEndData_t	*backEndData;
@@ -932,6 +933,28 @@ static void RB_DrawWorldCelOutlineForScene( qboolean *drawn )
 	*drawn = qtrue;
 }
 
+/* Whether the snapshot behind the current distortion copy was captured. */
+static qboolean rb_entityRefractionReady;
+
+qboolean RB_EntityRefractionReady( void )
+{
+	return rb_entityRefractionReady;
+}
+
+/* Whether this view can serve the entity refraction pass at all
+ * (renderercommon/tr_entity_refraction.h). In RT composition the copy is
+ * raster's (rt_backend.c) and refracts in the overlay list, after the trace
+ * has produced the scene behind it. */
+static qboolean RB_EntityRefractionViewActive( rbDrawSurfsMode_t mode )
+{
+	return mode != RB_DRAWSURFS_RT_BASE &&
+		vk.fboActive && vk.liquidSnapshot.color_descriptor != VK_NULL_HANDLE &&
+		r_entityRefraction && r_entityRefraction->value > 0.0f &&
+		( vk.renderPassIndex == RENDER_PASS_MAIN ||
+		  vk.renderPassIndex == RENDER_PASS_POST_BLOOM ) &&
+		RB_IsPrimaryFullView() && !glConfig.stereoEnabled ? qtrue : qfalse;
+}
+
 static qboolean RB_ShaderNeedsLiquidSnapshot( const shader_t *shader )
 {
 	const shader_t *state;
@@ -1015,6 +1038,7 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, rbDr
 	qboolean		liquidSnapshotPending;
 	qboolean		liquidDepthPending;
 	qboolean		worldCelOutlineDrawn;
+	int				refractionEntityNum;
 #endif
 	double			originalTime; // -EC-
 
@@ -1040,6 +1064,8 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, rbDr
 	liquidSnapshotPending = RB_DrawSurfListNeedsLiquidSnapshot(
 		drawSurfs, numDrawSurfs, mode );
 	liquidDepthPending = liquidSnapshotPending;
+	refractionEntityNum = -1;
+	rb_entityRefractionReady = qfalse;
 #endif
 	depthRange = qfalse;
 
@@ -1100,6 +1126,22 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, rbDr
 				oldSort = MAX_UINT;
 				oldEntityNum = -1;
 			}
+		}
+		/* A distortion copy bends the scene drawn before it. Retail copies
+		 * the screen once per posted entity (jamp.exe 0x48af26); Fn captures
+		 * its snapshot, with the scene depth for the foreground rejection,
+		 * before each such entity's first batch
+		 * (renderercommon/tr_entity_refraction.h). */
+		if ( entityNum != REFENTITYNUM_WORLD && entityNum != refractionEntityNum &&
+			entityNum < backEnd.refdef.num_entities &&
+			R_EntityRefracts( &backEnd.refdef.entities[entityNum] ) ) {
+			RB_EndSurfaceWithSTVEFAlpha();
+			oldShader = NULL;
+			refractionEntityNum = entityNum;
+			rb_entityRefractionReady = RB_EntityRefractionViewActive( mode ) &&
+				vk_capture_refraction_scene() ? qtrue : qfalse;
+			oldSort = MAX_UINT;
+			oldEntityNum = -1;
 		}
 #endif
 		//
