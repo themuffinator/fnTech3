@@ -527,8 +527,9 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   and explosions now play their fireball pictures once instead of showing a
   plain grey square ([explosion details](fntech3/2026-10-15-jka-oneshot-animmap.md)).
   The lights on Hoth's doors no longer stop the game: a locked door shows
-  red and an unlocked one green. `mp/siege_hoth` itself still stops on
-  other things ([door light details](fntech3/2026-10-15-jka-setanimindex.md)).
+  red and an unlocked one green ([door light details](fntech3/2026-10-15-jka-setanimindex.md)),
+  and `mp/siege_hoth` now plays as a free-for-all
+  ([model skin details](fntech3/2026-10-16-jka-skinless-model.md)).
   The game's effects now make their sounds too, from where they happen: a
   test match has played the concussion rifle's and thermal detonator's
   muzzle flashes, a saber clash and a punch, though most guns still stop
@@ -578,8 +579,11 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   still stops after the bot's third death. Stormtroopers spawned from the
   console stop it as soon as they start fighting
   ([respawn details](fntech3/2026-10-16-jka-clear-skin-gore.md)).
-  `mp/siege_hoth` and `mp/siege_desert` still stop soon after the
-  menu opens ([class menu details](fntech3/2026-10-15-jka-ui-menus.md)).
+  `mp/siege_hoth` and `mp/siege_desert` no longer stop soon after the
+  menu opens; with a bot on the other side they still stop as their
+  round begins
+  ([class menu details](fntech3/2026-10-15-jka-ui-menus.md),
+  [model skin details](fntech3/2026-10-16-jka-skinless-model.md)).
   Maps whose speakers and torches carry background sounds of their own, such
   as `mp/ctf3`, no longer stop on their first frame: those sounds now play
   where they are, and their occasional calls come at the times the game

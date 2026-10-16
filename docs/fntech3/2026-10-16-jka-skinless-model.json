@@ -1,0 +1,844 @@
+{
+ "record": "2026-10-16-jka-skinless-model.md",
+ "date": "2026-10-16",
+ "profiles": [
+  "jka-mp"
+ ],
+ "gatesClosed": [],
+ "claim": "Client-game import 312 (CG_G2_SKINLESSMODEL) is served from the client Ghoul2 store as retail jamp.exe 1.01 answers it; siege_hoth and siege_desert (siege) and siege_hoth (free-for-all) no longer stop there.",
+ "platform": "Windows 11 x86 developer client build (MSVC, strict warnings), exports of d17f578a and of 2e2207e0",
+ "retail": {
+  "jamp.exe": {
+   "version": "1.01",
+   "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b"
+  },
+  "cgamex86.dll": {
+   "version": "1.01",
+   "pak": "assets3.pk3",
+   "timestamp": "0x3faa87f0",
+   "sha256": "e5d5525829bfcaf3c0428d87fe804e5a46a75dcf0a141f8288061a3970ff140d"
+  }
+ },
+ "retailObservations": {
+  "jamp.exe": {
+   "dispatcher": "0x412170",
+   "index": 188,
+   "case": "0x413c84",
+   "recordLookup": {
+    "function": "0x4116e0",
+    "identityDereference": "0x4116e9",
+    "infoArray": "0x4de4b0",
+    "vtable": "0x54e59c",
+    "getSlot": "+0x10",
+    "get": "0x4de3d0",
+    "unknownHandle": "static empty list 0x1300c30 cleared by 0x4e16d0",
+    "recordBytes": "0xc8",
+    "bound": "none"
+   },
+   "test": {
+    "function": "0x4e0740",
+    "setup": "0x4e0b10",
+    "setupFailure": "answers 1 (null record, model index -1 at +0x30, no model, no mdxm, no skeleton)",
+    "ofsSurfHierarchy": "+0x9c",
+    "numSurfaces": "+0x98",
+    "recordStep": "0x90 + 4 * numChildren (+0x8c)",
+    "shaderName": "+0x44",
+    "answer": "0 at the first non-empty shader name, else 1"
+   },
+   "meshLoader": {
+    "function": "0x49acd0",
+    "hierarchyLoop": "0x49ae00..0x49aea8",
+    "writes": "surface name lowercased, trailing _off trimmed",
+    "shaderName": "read only"
+   },
+   "changedModelError": {
+    "string": "0x54e5b0",
+    "level": "ERR_DROP"
+   }
+  },
+  "cgamex86.dll": {
+   "wrapper": "0x3005f530",
+   "sites": [
+    "0x30032957"
+   ],
+   "precedingInit": "0x3005f230 (import 297, all zero)",
+   "askedPlace": 0,
+   "askedWhen": "instance not null after init",
+   "onTrue": "path cut after last \"/\" + \"model_default.skin\" (0x3008aa94) -> import 55 (0x3005e6b0) -> import 298 (0x3005f270) with that skin twice; no \"/\" -> skin 0"
+  }
+ },
+ "installedMeshCensus": {
+  "meshes": 127,
+  "skinless": 65,
+  "skinlessWithModelDefaultSkin": 65,
+  "skinlessFolders": [
+   "models/players/alora",
+   "models/players/alora2",
+   "models/players/assassin_droid",
+   "models/players/bespin_cop",
+   "models/players/boba_fett",
+   "models/players/chewbacca",
+   "models/players/chiss",
+   "models/players/cultist",
+   "models/players/desann",
+   "models/players/galak",
+   "models/players/gonk",
+   "models/players/gran",
+   "models/players/hazardtrooper",
+   "models/players/howler",
+   "models/players/human_merc",
+   "models/players/imperial",
+   "models/players/imperial_worker",
+   "models/players/jan",
+   "models/players/jawa",
+   "models/players/jedi",
+   "models/players/jedi_hf",
+   "models/players/jedi_hm",
+   "models/players/jedi_kdm",
+   "models/players/jedi_rm",
+   "models/players/jedi_tf",
+   "models/players/jedi_zf",
+   "models/players/jeditrainer",
+   "models/players/kyle",
+   "models/players/lando",
+   "models/players/luke",
+   "models/players/marka_ragnos",
+   "models/players/monmothma",
+   "models/players/morgan",
+   "models/players/mutant_rancor",
+   "models/players/noghri",
+   "models/players/prisoner",
+   "models/players/r2d2",
+   "models/players/rancor",
+   "models/players/rax_joris",
+   "models/players/rebel",
+   "models/players/rebel_pilot",
+   "models/players/reborn",
+   "models/players/reborn_new",
+   "models/players/reborn_twin",
+   "models/players/reelo",
+   "models/players/rocks",
+   "models/players/rodian",
+   "models/players/rosh_penin",
+   "models/players/saber_droid",
+   "models/players/saboteur",
+   "models/players/shadowtrooper",
+   "models/players/snowtrooper",
+   "models/players/stormpilot",
+   "models/players/stormtrooper",
+   "models/players/swamptrooper",
+   "models/players/swoop",
+   "models/players/tauntaun",
+   "models/players/tavion",
+   "models/players/tavion_new",
+   "models/players/tie_bomber",
+   "models/players/trandoshan",
+   "models/players/tusken",
+   "models/players/ugnaught",
+   "models/players/wampa",
+   "models/players/weequay"
+  ],
+  "tool": ".tmp/jka-skinless/tools/census.py"
+ },
+ "fnBefore": "Import 312 fell to the default branch: \"Unsupported jka-mp cgame import 312 (CG_G2_SKINLESSMODEL)\".",
+ "fnDesign": {
+  "file": "code/client/client_jka_cgame_ghoul2.hpp",
+  "helper": "CL_JKACgameGhoul2Skinless",
+  "refused": [
+   "null identity (retail faults)",
+   "unknown, foreign or stale identity",
+   "place < 0 or >= Count()",
+   "model without kept mesh bytes",
+   "header surface count differs from the parsed one",
+   "record or child list past the file"
+  ],
+  "emptyPlace": 1
+ },
+ "tests": {
+  "file": "tests/jka_cgame_skinless_model_tests.py",
+  "mutationsFailing": 15
+ },
+ "runtimes": {
+  "base": "d17f578a",
+  "advancedBase": "2e2207e0 (c90b074b and the pass-entity slice)",
+  "after2": ".tmp/runtime/jka-skinless-after2",
+  "diagnostic2": ".tmp/runtime/jka-skinless-diag2",
+  "before": ".tmp/runtime/jka-skinless-before",
+  "after": ".tmp/runtime/jka-skinless-after",
+  "diagnostic": ".tmp/runtime/jka-skinless-diag (after plus one Com_Printf of each import-312 answer)",
+  "commandLine": "probe_live.py <runtime> <run> <map> <gametype> off [commands]"
+ },
+ "live": {
+  "pair": [
+   {
+    "run": "skinless-before-siege_hoth",
+    "map": "mp/siege_hoth",
+    "gametype": "7",
+    "commands": [],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "seconds": 29.4,
+    "errors": [
+     "ERROR: Unsupported jka-mp cgame import 312 (CG_G2_SKINLESSMODEL)",
+     "----- Server Shutdown (Server crashed: Unsupported jka-mp cgame import 312 (CG_G2_SKINLESSMODEL)) -----"
+    ],
+    "probeDone": false,
+    "captures": [],
+    "identity": {
+     "fntech3.exe": "695de307189591ccda0889cc6310147b71565c3692688c578793482d1cb68ff2",
+     "fnql_glx_x86.dll": "653d151e5f6757bc7c905d7122d15cb369f4540a85cdd1f933d95b994ea76031",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   {
+    "run": "skinless-after-siege_hoth",
+    "map": "mp/siege_hoth",
+    "gametype": "7",
+    "commands": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 16.0,
+    "errors": [],
+    "probeDone": true,
+    "captures": [
+     {
+      "name": "jka-local-00.png",
+      "sha256": "a1eac4e20e706f13524afef66bd7b4e1852d38bc12185a682719e9d2a0e37710"
+     },
+     {
+      "name": "jka-local-01.png",
+      "sha256": "5fd28b81bb76865c5560279daed6fc7a70c54a920914a1be44e96a15e88c3d8b"
+     },
+     {
+      "name": "jka-local-02.png",
+      "sha256": "dc769b9e2d369e9b46b4b8e901ca75b6f00086006251dea8de3d8a203da9931b"
+     }
+    ],
+    "identity": {
+     "fntech3.exe": "33e8718a3532b239248ef7bb67b18e67a9dab1da3bed2b7f68efbed832a5840b",
+     "fnql_glx_x86.dll": "653d151e5f6757bc7c905d7122d15cb369f4540a85cdd1f933d95b994ea76031",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   {
+    "run": "skinless-before-siege_desert",
+    "map": "mp/siege_desert",
+    "gametype": "7",
+    "commands": [],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "seconds": 31.6,
+    "errors": [
+     "ERROR: Unsupported jka-mp cgame import 312 (CG_G2_SKINLESSMODEL)",
+     "----- Server Shutdown (Server crashed: Unsupported jka-mp cgame import 312 (CG_G2_SKINLESSMODEL)) -----"
+    ],
+    "probeDone": false,
+    "captures": [],
+    "identity": {
+     "fntech3.exe": "695de307189591ccda0889cc6310147b71565c3692688c578793482d1cb68ff2",
+     "fnql_glx_x86.dll": "653d151e5f6757bc7c905d7122d15cb369f4540a85cdd1f933d95b994ea76031",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   {
+    "run": "skinless-after-siege_desert",
+    "map": "mp/siege_desert",
+    "gametype": "7",
+    "commands": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 11.7,
+    "errors": [],
+    "probeDone": true,
+    "captures": [
+     {
+      "name": "jka-local-00.png",
+      "sha256": "0cd91d78c29e4ecf5af4fac34d7bee994ae94b1bcf919db502425d9bb84debd3"
+     },
+     {
+      "name": "jka-local-01.png",
+      "sha256": "7097051291b8240f773439956ff78bb347cafc8aef035c7703c7967635bbebcf"
+     },
+     {
+      "name": "jka-local-02.png",
+      "sha256": "ecc09ca70244caf753bed866056dfb47f3132b838acbb3110118e7653a6500ee"
+     }
+    ],
+    "identity": {
+     "fntech3.exe": "33e8718a3532b239248ef7bb67b18e67a9dab1da3bed2b7f68efbed832a5840b",
+     "fnql_glx_x86.dll": "653d151e5f6757bc7c905d7122d15cb369f4540a85cdd1f933d95b994ea76031",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   {
+    "run": "skinless-before-siege_hoth-ffa",
+    "map": "mp/siege_hoth",
+    "gametype": "0",
+    "commands": [],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "seconds": 31.1,
+    "errors": [
+     "ERROR: Unsupported jka-mp cgame import 312 (CG_G2_SKINLESSMODEL)",
+     "----- Server Shutdown (Server crashed: Unsupported jka-mp cgame import 312 (CG_G2_SKINLESSMODEL)) -----"
+    ],
+    "probeDone": false,
+    "captures": [],
+    "identity": {
+     "fntech3.exe": "695de307189591ccda0889cc6310147b71565c3692688c578793482d1cb68ff2",
+     "fnql_glx_x86.dll": "653d151e5f6757bc7c905d7122d15cb369f4540a85cdd1f933d95b994ea76031",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   {
+    "run": "skinless-after-siege_hoth-ffa",
+    "map": "mp/siege_hoth",
+    "gametype": "0",
+    "commands": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 11.3,
+    "errors": [],
+    "probeDone": true,
+    "captures": [
+     {
+      "name": "jka-local-00.png",
+      "sha256": "055368bcc19b33ef832fc18240cb3c882413bdc5dcc0e3199ed8216a1f59d861"
+     },
+     {
+      "name": "jka-local-01.png",
+      "sha256": "8de869ec9a8d6490f016aa3f1fdba1017a6ab68fcd6fa9abe730d91c4123ef13"
+     },
+     {
+      "name": "jka-local-02.png",
+      "sha256": "675296915c0725fb508bf10ebc70112f77722c214ad88a1f8f19b963eb857bb8"
+     }
+    ],
+    "identity": {
+     "fntech3.exe": "33e8718a3532b239248ef7bb67b18e67a9dab1da3bed2b7f68efbed832a5840b",
+     "fnql_glx_x86.dll": "653d151e5f6757bc7c905d7122d15cb369f4540a85cdd1f933d95b994ea76031",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false
+   }
+  ],
+  "advanced": [
+   {
+    "run": "skinless-after2-siege_hoth-7",
+    "map": "mp/siege_hoth",
+    "gametype": "7",
+    "commands": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 11.3,
+    "errors": [],
+    "probeDone": true,
+    "captures": [
+     {
+      "name": "jka-local-00.png",
+      "sha256": "b613d867a1f1bddea586b11220f4da904b4e41ce45de8b6d80035f8db9112f39"
+     },
+     {
+      "name": "jka-local-01.png",
+      "sha256": "c8dc3f403c9b6069573e9e636bf1f318391f842463eb5297a13f5cf2c1c74d9f"
+     },
+     {
+      "name": "jka-local-02.png",
+      "sha256": "8a4b97f2c6465ded8fc7ed265302d6d37969e620826bd7ac183561b2609bc5ee"
+     }
+    ],
+    "identity": {
+     "fntech3.exe": "c55a020c43fa35801f1498f212d469056af952830f7d556466042918671706dd",
+     "fnql_glx_x86.dll": "653d151e5f6757bc7c905d7122d15cb369f4540a85cdd1f933d95b994ea76031",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   {
+    "run": "skinless-after2-siege_desert-7",
+    "map": "mp/siege_desert",
+    "gametype": "7",
+    "commands": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 10.2,
+    "errors": [],
+    "probeDone": true,
+    "captures": [
+     {
+      "name": "jka-local-00.png",
+      "sha256": "a77a9243e6af30675390e841cfbf7d98203c77dc7bd739fc9323b8abc13ba389"
+     },
+     {
+      "name": "jka-local-01.png",
+      "sha256": "6b6b40a4bb5d21525a0e7f0f04508bf152fbe03f242b39a03c84fdc30bc50f52"
+     },
+     {
+      "name": "jka-local-02.png",
+      "sha256": "5083e632ecc38273bb013545b351eb7e414a5f9b68eb489aad7e658d7c3f45c0"
+     }
+    ],
+    "identity": {
+     "fntech3.exe": "c55a020c43fa35801f1498f212d469056af952830f7d556466042918671706dd",
+     "fnql_glx_x86.dll": "653d151e5f6757bc7c905d7122d15cb369f4540a85cdd1f933d95b994ea76031",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   {
+    "run": "skinless-after2-siege_hoth-0",
+    "map": "mp/siege_hoth",
+    "gametype": "0",
+    "commands": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 10.2,
+    "errors": [],
+    "probeDone": true,
+    "captures": [
+     {
+      "name": "jka-local-00.png",
+      "sha256": "0c5fd25ef7a13d149cb14f9026a1a8914ab346e1910b04e3567ef0e56220bfb1"
+     },
+     {
+      "name": "jka-local-01.png",
+      "sha256": "ebedbc5074b8dd66b8ed6cdfa7800e6f80729b939e3dfe67e78536c4e0707cd1"
+     },
+     {
+      "name": "jka-local-02.png",
+      "sha256": "7774245eb62a82614fc09425d4edeed6df0f7d95da1b93da4020cb9bea6d7a07"
+     }
+    ],
+    "identity": {
+     "fntech3.exe": "c55a020c43fa35801f1498f212d469056af952830f7d556466042918671706dd",
+     "fnql_glx_x86.dll": "653d151e5f6757bc7c905d7122d15cb369f4540a85cdd1f933d95b994ea76031",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false
+   }
+  ],
+  "diagnostic": [
+   {
+    "run": "skinless-diag-siege_hoth-7",
+    "map": "mp/siege_hoth",
+    "gametype": "7",
+    "commands": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 12.0,
+    "errors": [],
+    "probeDone": true,
+    "captures": [
+     {
+      "name": "jka-local-00.png",
+      "sha256": "d3b6574fa16d9ce700180560724c0194fcb089b2f52df48062ccdb317d317e7b"
+     },
+     {
+      "name": "jka-local-01.png",
+      "sha256": "a9249e9ec014fca02c1ee31479dba03008ba57847e23c3a8842974c8861eb9a9"
+     },
+     {
+      "name": "jka-local-02.png",
+      "sha256": "b3fa3cc16ddc4b8d158893e54b5c22065790220ebd7f9e2e7c3721d011803911"
+     }
+    ],
+    "identity": {
+     "fntech3.exe": "40d5f93a4b3aaf52ea805c20106293f7ccc72376a94eba047d9d6c1172059fb3",
+     "fnql_glx_x86.dll": "653d151e5f6757bc7c905d7122d15cb369f4540a85cdd1f933d95b994ea76031",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "import312Answers": {
+     "models/map_objects/mp/turret_chair.glm place 0 -> 0": 2
+    }
+   },
+   {
+    "run": "skinless-diag-siege_desert-7",
+    "map": "mp/siege_desert",
+    "gametype": "7",
+    "commands": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 12.4,
+    "errors": [],
+    "probeDone": true,
+    "captures": [
+     {
+      "name": "jka-local-00.png",
+      "sha256": "f315a23ef2ce3597cb7ac4b4e8f8dc910c4ad5c21a7f1e1eabdda9b0d3662d87"
+     },
+     {
+      "name": "jka-local-01.png",
+      "sha256": "63f9c502c55b4910a52ad9f5f384e268bed11e4d11528ca404f66b3cdb22c2c1"
+     },
+     {
+      "name": "jka-local-02.png",
+      "sha256": "a77a9243e6af30675390e841cfbf7d98203c77dc7bd739fc9323b8abc13ba389"
+     }
+    ],
+    "identity": {
+     "fntech3.exe": "40d5f93a4b3aaf52ea805c20106293f7ccc72376a94eba047d9d6c1172059fb3",
+     "fnql_glx_x86.dll": "653d151e5f6757bc7c905d7122d15cb369f4540a85cdd1f933d95b994ea76031",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "import312Answers": {
+     "models/map_objects/mp/turret_chair.glm place 0 -> 0": 4
+    }
+   },
+   {
+    "run": "skinless-diag-siege_hoth-0",
+    "map": "mp/siege_hoth",
+    "gametype": "0",
+    "commands": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 11.4,
+    "errors": [],
+    "probeDone": true,
+    "captures": [
+     {
+      "name": "jka-local-00.png",
+      "sha256": "67de4237a62ee122e544e6cf0d3c97816886db5e93532187b4a1574935f00945"
+     },
+     {
+      "name": "jka-local-01.png",
+      "sha256": "602b3a1b69ad83926a582c77cab11583729386a59c3ec68544fe6277ece80bc0"
+     },
+     {
+      "name": "jka-local-02.png",
+      "sha256": "082497852c65e00d857929be62bbd9e227404ab7ded0a42c13dd83ae66602694"
+     }
+    ],
+    "identity": {
+     "fntech3.exe": "40d5f93a4b3aaf52ea805c20106293f7ccc72376a94eba047d9d6c1172059fb3",
+     "fnql_glx_x86.dll": "653d151e5f6757bc7c905d7122d15cb369f4540a85cdd1f933d95b994ea76031",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "import312Answers": {
+     "models/map_objects/mp/turret_chair.glm place 0 -> 0": 2
+    }
+   },
+   {
+    "run": "skinless-diag-siege_hoth-7-teamred",
+    "map": "mp/siege_hoth",
+    "gametype": "7",
+    "commands": [
+     "team red"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 12.9,
+    "errors": [],
+    "probeDone": true,
+    "captures": [
+     {
+      "name": "jka-local-00.png",
+      "sha256": "77acad00e950cc68d5cb62f659a49eb783c5b8f9af3581d88c917ccf41d2402c"
+     },
+     {
+      "name": "jka-local-01.png",
+      "sha256": "d46490c6151a416dfc69182092f46677b71ba67b3017adb48178ea428b9da96d"
+     },
+     {
+      "name": "jka-local-02.png",
+      "sha256": "557c72a654b7eb880b929b55b23a81e0deb3b90ded73d51a644709cb804ae96c"
+     }
+    ],
+    "identity": {
+     "fntech3.exe": "40d5f93a4b3aaf52ea805c20106293f7ccc72376a94eba047d9d6c1172059fb3",
+     "fnql_glx_x86.dll": "653d151e5f6757bc7c905d7122d15cb369f4540a85cdd1f933d95b994ea76031",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "import312Answers": {
+     "models/map_objects/mp/turret_chair.glm place 0 -> 0": 2
+    }
+   },
+   {
+    "run": "skinless-diag-siege_hoth-0-teamfree",
+    "map": "mp/siege_hoth",
+    "gametype": "0",
+    "commands": [
+     "set cl_menuBlur 0",
+     "team free",
+     "wait 120",
+     "ui_openmenu none"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 15.3,
+    "errors": [],
+    "probeDone": true,
+    "captures": [
+     {
+      "name": "jka-local-00.png",
+      "sha256": "2cc174d55d94970157d61168f876762f92a70755a80ccea8ba7498d7e3a3f881"
+     },
+     {
+      "name": "jka-local-01.png",
+      "sha256": "c23335d7c433722492907b6c0a24fd65cc76bd0582a24914077c6971379a87b5"
+     },
+     {
+      "name": "jka-local-02.png",
+      "sha256": "b43e84c986b83de5edef3defbbb1e41c2ba8d9f73ef17f3658e6f7aff6d26c79"
+     }
+    ],
+    "identity": {
+     "fntech3.exe": "40d5f93a4b3aaf52ea805c20106293f7ccc72376a94eba047d9d6c1172059fb3",
+     "fnql_glx_x86.dll": "653d151e5f6757bc7c905d7122d15cb369f4540a85cdd1f933d95b994ea76031",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "import312Answers": {
+     "models/map_objects/mp/turret_chair.glm place 0 -> 0": 2
+    }
+   },
+   {
+    "run": "skinless-diag-siege_hoth-7-bot",
+    "map": "mp/siege_hoth",
+    "gametype": "7",
+    "commands": [
+     "set cl_menuBlur 0",
+     "team red",
+     "addbot Tavion 1 blue"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "seconds": 33.8,
+    "errors": [
+     "ERROR: Jedi Academy trace cannot read pass entity -1 or the entities it touched"
+    ],
+    "probeDone": false,
+    "captures": [],
+    "identity": {
+     "fntech3.exe": "40d5f93a4b3aaf52ea805c20106293f7ccc72376a94eba047d9d6c1172059fb3",
+     "fnql_glx_x86.dll": "653d151e5f6757bc7c905d7122d15cb369f4540a85cdd1f933d95b994ea76031",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "import312Answers": {
+     "models/map_objects/mp/turret_chair.glm place 0 -> 0": 2
+    }
+   },
+   {
+    "run": "skinless-diag2-siege_hoth-7-bot",
+    "map": "mp/siege_hoth",
+    "gametype": "7",
+    "commands": [
+     "set cl_menuBlur 0",
+     "team red",
+     "addbot Tavion 1 blue"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "seconds": 33.8,
+    "errors": [
+     "ERROR: Unsupported jka-mp cgame import 311 (CG_G2_REMOVEGHOUL2MODEL)",
+     "----- Server Shutdown (Server crashed: Unsupported jka-mp cgame import 311 (CG_G2_REMOVEGHOUL2MODEL)) -----"
+    ],
+    "probeDone": false,
+    "captures": [],
+    "identity": {
+     "fntech3.exe": "dbf2b4942e330fc2d2cbd7052a8aaa57ddb3f407b7a6a60756ae2dbd4080d6ca",
+     "fnql_glx_x86.dll": "653d151e5f6757bc7c905d7122d15cb369f4540a85cdd1f933d95b994ea76031",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "import312Answers": {
+     "models/map_objects/mp/turret_chair.glm place 0 -> 0": 2
+    }
+   },
+   {
+    "run": "skinless-diag2-siege_desert-7-bot",
+    "map": "mp/siege_desert",
+    "gametype": "7",
+    "commands": [
+     "set cl_menuBlur 0",
+     "team red",
+     "addbot Tavion 1 blue"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "seconds": 33.2,
+    "errors": [
+     "ERROR: Unsupported jka-mp cgame import 311 (CG_G2_REMOVEGHOUL2MODEL)",
+     "----- Server Shutdown (Server crashed: Unsupported jka-mp cgame import 311 (CG_G2_REMOVEGHOUL2MODEL)) -----"
+    ],
+    "probeDone": false,
+    "captures": [],
+    "identity": {
+     "fntech3.exe": "dbf2b4942e330fc2d2cbd7052a8aaa57ddb3f407b7a6a60756ae2dbd4080d6ca",
+     "fnql_glx_x86.dll": "653d151e5f6757bc7c905d7122d15cb369f4540a85cdd1f933d95b994ea76031",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "import312Answers": {
+     "models/map_objects/mp/turret_chair.glm place 0 -> 0": 4
+    }
+   },
+   {
+    "run": "skinless-diag2-siege_hoth-0-teamfree",
+    "map": "mp/siege_hoth",
+    "gametype": "0",
+    "commands": [
+     "set cl_menuBlur 0",
+     "team free",
+     "wait 120",
+     "ui_openmenu none"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 13.8,
+    "errors": [],
+    "probeDone": true,
+    "captures": [
+     {
+      "name": "jka-local-00.png",
+      "sha256": "00e44e10c21d9b0266536949a7526c02f962828f942ab6b47588fd63703f4495"
+     },
+     {
+      "name": "jka-local-01.png",
+      "sha256": "cdc3076eb6443e5b276f0dca519dc87eed08d577434a7906cb33233a13a8a60e"
+     },
+     {
+      "name": "jka-local-02.png",
+      "sha256": "7f804918c7ed5a69e7e1b6068bb9c578e884feb65dc9adb0af441346c5153dbf"
+     }
+    ],
+    "identity": {
+     "fntech3.exe": "dbf2b4942e330fc2d2cbd7052a8aaa57ddb3f407b7a6a60756ae2dbd4080d6ca",
+     "fnql_glx_x86.dll": "653d151e5f6757bc7c905d7122d15cb369f4540a85cdd1f933d95b994ea76031",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "import312Answers": {
+     "models/map_objects/mp/turret_chair.glm place 0 -> 0": 2
+    }
+   }
+  ]
+ },
+ "validation": {
+  "build": "fntech3, fnql_glx_x86, packages; strict warnings; no warning on d17f578a, c90b074b, 2e2207e0, 35e01aa1, cf68caf1",
+  "runner": "one pytest process per file in the export (.tmp/jka-ui-menus/run_files.py)",
+  "d17f578a": {
+   "files": 85,
+   "tests": 616,
+   "subtests": 1935,
+   "skipped": 1,
+   "failed": 0
+  },
+  "c90b074b": {
+   "files": 89,
+   "tests": 627,
+   "subtests": 2051,
+   "skipped": 1,
+   "failed": 0
+  },
+  "2e2207e0": {
+   "files": 82,
+   "tests": 615,
+   "subtests": 2043,
+   "skipped": 1,
+   "failed": 0
+  },
+  "35e01aa1": {
+   "files": 98,
+   "tests": 670,
+   "subtests": 2069,
+   "skipped": 1,
+   "failed": 0
+  },
+  "cf68caf1 (parent)": {
+   "files": 16,
+   "tests": 120,
+   "subtests": 915,
+   "skipped": 1,
+   "failed": 0
+  },
+  "nativeTests": "none compiles client_jka_cgame_ghoul2.hpp; the engine build does"
+ },
+ "nextRefusals": {
+  "siege_hoth siege with a bot, on d17f578a": "server: \"Jedi Academy trace cannot read pass entity -1 or the entities it touched\"",
+  "siege_hoth and siege_desert siege with a bot, on 2e2207e0": "client: \"Unsupported jka-mp cgame import 311 (CG_G2_REMOVEGHOUL2MODEL)\" as the round begins",
+  "mp/siege_hoth, mp/siege_desert, mp/siege_hoth free-for-all without a bot": "none within the probe"
+ }
+}

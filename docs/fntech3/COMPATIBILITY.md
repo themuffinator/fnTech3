@@ -2882,6 +2882,28 @@ pass entity -1, which retail compares only with 1023 (`0x4624f8`).
 imports 215 and 315, and the client game's `briefing` opened menus 10 and
 8 (Live subset). No gate closes.
 
+The [skinless-model slice](2026-10-16-jka-skinless-model.md) (2026-10-16)
+serves client-game import 312 (`CG_G2_SKINLESSMODEL`), where the menu
+slice's `mp/siege_hoth` and `mp/siege_desert` stopped. Retail `jamp.exe`
+1.01 serves it at `0x413c84`: `0x4116e0` reads the instance through the
+client game's word (a null one faults, `0x4116e9`) and indexes its
+`0xc8`-byte model records with no bound, and `0x4e0740` answers 1 unless
+the model's pointers set up (`0x4e0b10`) and a record of its `.glm`
+surface hierarchy, walked in file order, names a shader (`+0x44`). An empty
+place fails that setup and answers 1. The 1.01 client game asks once, for
+place 0 of a general entity's instance it has just made (`0x30032957`), and
+on 1 sets the folder's `model_default.skin`. 65 of the 127 installed meshes,
+all under `models/players/`, name no shader. fnTech3 now answers from its
+client Ghoul2 store with the same walk, refusing by name a null, unknown or
+stale identity, a place outside the instance and a mesh whose kept bytes do
+not hold the walk (Source, Unit). Live, `mp/siege_hoth` and
+`mp/siege_desert` in siege and `mp/siege_hoth` in a free-for-all play to
+the probe's end; the client game asked only of
+`models/map_objects/mp/turret_chair.glm`, answered 0. With a bot on the
+other team and the pass-entity slice below, the siege round begins on both
+maps and the client stops at import 311 (`CG_G2_REMOVEGHOUL2MODEL`) (Live
+subset). No gate closes.
+
 The [pass-entity slice](2026-10-16-jka-trace-pass-none.md) (2026-10-16)
 serves the trace that stopped `mp/siege_korriban` with a bot. Retail
 `jamp.exe` 1.01 compares the pass entity only with 1023 (`0x4624f8`) and

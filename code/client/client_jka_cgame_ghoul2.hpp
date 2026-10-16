@@ -99,6 +99,35 @@ static std::array<char, MAX_QPATH> CL_JKACgameGhoul2Text(intptr_t address) {
 
 #include "client_jka_cgame_skins.hpp"
 
+/* Retail 312's test, 0x4e0740: true unless the model's pointers set up
+ * (0x4e0b10) and a surface-hierarchy record, walked in file order from
+ * ofsSurfHierarchy by 0x90 plus four bytes per child, names a shader (+0x44).
+ * An empty place (mModelindex -1) fails that setup and answers true. The
+ * loader (0x49ae00..0x49aea8) lowercases names and trims "_off" but only
+ * reads the shader field, so the kept file's bytes are what retail reads. */
+static bool CL_JKACgameGhoul2Skinless(const fntech3::ghoul2::Model *model) {
+    if (!model) return true;
+    namespace format = fntech3::jka::model;
+    if (!model->meshBytes)
+        Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 skinless query has no kept mesh for %s", model->name.c_str());
+    const auto &bytes = *model->meshBytes;
+    const format::Reader reader(bytes.data(), bytes.size());
+    if (model->mesh.numSurfaces < 0 || !reader.Fits(0, format::MeshHeaderBytes)
+        || reader.Int(152) != model->mesh.numSurfaces || reader.Int(156) < 0)
+        Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 skinless query found a changed mesh header in %s", model->name.c_str());
+    auto record = static_cast<std::size_t>(reader.Int(156));
+    for (int surface = 0; surface < model->mesh.numSurfaces; ++surface) {
+        if (!reader.Fits(record, format::SurfHierarchyBytes))
+            Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 skinless query ran past %s", model->name.c_str());
+        if (bytes[record + 68]) return false;
+        const std::int32_t children = reader.Int(record + 140);
+        if (children < 0 || !reader.Fits(record + format::SurfHierarchyBytes, 4, std::size_t(children)))
+            Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 skinless query ran past %s", model->name.c_str());
+        record += format::SurfHierarchyBytes + std::size_t(children) * 4;
+    }
+    return true;
+}
+
 static bool CL_JKACgameGhoul2Call(intptr_t *args, fntech3::jka::module::Call call, intptr_t &result) {
     using fntech3::jka::module::Call;
     switch (call) {
@@ -477,6 +506,22 @@ static bool CL_JKACgameGhoul2Call(intptr_t *args, fntech3::jka::module::Call cal
         if (name.size() >= MAX_QPATH) Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 GLA name exceeds MAX_QPATH");
         void *output = CL_JKACgameSpan(args[3], name.size() + 1);
         std::memcpy(output, name.c_str(), name.size() + 1);
+        return true;
+    }
+    case Call::CG_G2_SKINLESSMODEL: {
+        CL_JKACgameGhoul2Native();
+        // Retail 312:0x413c84 -> 0x4116e0 reads the instance through the
+        // identity itself (a null one faults at 0x4116e9) and indexes its
+        // 0xc8-byte model records with no bound: a place past the end reads
+        // whatever follows, so it is refused rather than invented. The
+        // cgame asks once, place 0 straight after its own init (0x30032957).
+        const auto identity = static_cast<std::uint32_t>(args[1]);
+        if (!identity) Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 skinless query requires a model identity");
+        const auto *instance = CL_JKACgameGhoul2Resolve(identity);
+        if (args[2] < 0 || args[2] >= instance->Count())
+            Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 skinless query of model %ld is outside the instance's %d places",
+                static_cast<long>(args[2]), instance->Count());
+        result = CL_JKACgameGhoul2Skinless(instance->At(static_cast<int>(args[2]))) ? qtrue : qfalse;
         return true;
     }
     default: return false;

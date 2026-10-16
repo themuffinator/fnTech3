@@ -50,6 +50,11 @@ historical upstream records, not fnTech3 release history. See the
   original does: the menu the game asks for now reaches its own menus by
   the game's number, so a siege game no longer stops when its class menu
   opens ([record](docs/fntech3/2026-10-15-jka-ui-menus.md)).
+- Let Jedi Academy's `mp/siege_hoth` and `mp/siege_desert` play past the
+  siege class menu, and `mp/siege_hoth` as a free-for-all: the game's
+  question whether a model needs its folder's default skin is now answered
+  as the original answers it, instead of stopping the game
+  ([record](docs/fntech3/2026-10-16-jka-skinless-model.md)).
 - Let Jedi Academy's siege rounds start with a bot on the other side: the
   bots' ground checks, which ask the server to ignore no one, no longer stop
   the server ([record](docs/fntech3/2026-10-16-jka-trace-pass-none.md)).

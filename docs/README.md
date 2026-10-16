@@ -129,6 +129,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Jedi Academy menus the client game opens](fntech3/2026-10-15-jka-ui-menus.md)
   -- siege's class menu and the client game's other menus, handed to the
   game's own menus by number as retail hands them.
+- [Jedi Academy's skinless-model query](fntech3/2026-10-16-jka-skinless-model.md)
+  -- whether a general entity's model needs its folder's default skin,
+  answered from the client's model store as retail answers it.
 - [Jedi Academy's trace with pass entity -1](fntech3/2026-10-16-jka-trace-pass-none.md)
   -- what retail reads for the game's "ignore nothing" pass entity, and
   why fnTech3 reads it as no pass entity, checked live on a siege round.
