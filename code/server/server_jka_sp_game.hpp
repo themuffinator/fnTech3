@@ -24,6 +24,9 @@
 namespace {
 fntech3_jka_sp_game_import_t jkaSpImports{};
 fntech3_jka_sp_game_export_t *jkaSpGame = nullptr;
+/* The cgame half's vmMain, which retail's snapshot builder and walk ask for
+ * the camera (jasp.exe 0x43ea90 calls it through 0x52c050). */
+vmMainFunc_t jkaSpCgameMain = nullptr;
 bool jkaSpInitialized = false;
 bool jkaSpTempBoxContentsActive = false;
 std::map<std::string, fntech3_jka_sp_cvar_prefix_t> jkaSpCvars;
@@ -45,6 +48,7 @@ void SV_JKASPCleanGhoul2(fntech3_jka_sp_ghoul2_handle_t *handle) { jkaSpGhoul2.C
 
 void SV_JKASPClearGame() {
 	jkaSpGame = nullptr;
+	jkaSpCgameMain = nullptr;
 	jkaSpInitialized = false;
 	/* A collision error can longjmp out of the temporary SP BODY lease. */
 	if (jkaSpTempBoxContentsActive) {
@@ -711,6 +715,7 @@ vm_t *SV_JKASPLoadGame() {
 		Com_Error(ERR_DROP, "Jedi Academy single-player module has no dllEntry"); return nullptr;
 	}
 	reinterpret_cast<dllEntry_t>(entry)(SV_JKASPCgameSyscall);
+	jkaSpCgameMain = reinterpret_cast<vmMainFunc_t>(Sys_LoadFunction(vm->dllHandle, "vmMain"));
 	return vm;
 }
 }

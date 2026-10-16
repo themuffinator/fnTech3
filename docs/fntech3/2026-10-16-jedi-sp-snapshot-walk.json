@@ -1,0 +1,267 @@
+{
+  "record": "2026-10-16-jedi-sp-snapshot-walk.md",
+  "date": "2026-10-16",
+  "profiles": [
+    "jka-sp",
+    "jk2-sp"
+  ],
+  "controls": [
+    "q3",
+    "jka-mp"
+  ],
+  "gatesClosed": [],
+  "claim": "Compatibility slice only; no gate closes. Source and Unit evidence; neither profile builds a client snapshot yet.",
+  "previousRecord": "2026-10-15-snapshot-portal-recursion.json",
+  "method": "capstone + pefile static reading of each retail engine's SV_AddEntitiesVisibleFromPoint (found from its \"FIXING ENT->S.NUMBER\" string), add routine and SV_BuildClientSnapshot; .tmp/portal-recursion/walk.py, dumps .tmp/portal-recursion/jasp.txt and jk2sp.txt. OpenJK 1a6a643427aa347553e9073dac5570b33337c4d9 code/server/sv_snapshot.cpp and code/game headers used only to name routines and flags (reference observation).",
+  "retail": [
+    {
+      "profile": "jka-sp",
+      "binary": {
+        "path": "E:\\Games\\Jedi Academy\\jasp.exe",
+        "sha256": "9351a8de230fcd577e2b474889d08f38982450306767a6823dd659482566d6ce",
+        "timeDateStamp": "0x3f999a27",
+        "bytes": 1236992
+      },
+      "walk": "0x43c710",
+      "add": {
+        "marksFirst": true,
+        "cap": "1024 (0x43c5d6)",
+        "oddCap": "svs.numSnapshotEntities - 1 when sv.snapshotCounter is odd (0x43c5dd..0x43c5ef)",
+        "ring": "512 (0x439bb7)"
+      },
+      "forceSightTest": "0x43c600",
+      "builder": "0x43c970",
+      "cgameCall": "0x43ea90 (vmMain pointer 0x52c050, set at 0x4403a0 beside dllEntry; -1 when absent, 0x43ead1)",
+      "rules": [
+        {
+          "address": "0x43c721",
+          "rule": "nothing when the server is dead"
+        },
+        {
+          "address": "0x43c762",
+          "rule": "Force Sight on only when portal argument == 0 and frame +0x298 (player state +628, forcePowersActive) has bit 0x8000"
+        },
+        {
+          "address": "0x43c7a3",
+          "rule": "skip when not in use (+0x114)"
+        },
+        {
+          "address": "0x43c7a9",
+          "rule": "skip when s.eFlags & 0x80000 (EF_PERMANENT)"
+        },
+        {
+          "address": "0x43c7b6",
+          "rule": "repair s.number to the index, linked or not"
+        },
+        {
+          "address": "0x43c7c9",
+          "rule": "skip when not linked (+0x118)"
+        },
+        {
+          "address": "0x43c7d7",
+          "rule": "skip when svFlags (+0x11c) & SVF_NOCLIENT (1); no other client flag read"
+        },
+        {
+          "address": "0x43c7f1",
+          "rule": "skip when already added"
+        },
+        {
+          "address": "0x43c801",
+          "rule": "add unwalked when SVF_BROADCAST (0x20)"
+        },
+        {
+          "address": "0x43c80a",
+          "rule": "add unwalked when entity 0"
+        },
+        {
+          "address": "0x43c80e",
+          "rule": "add unwalked when s.isPortalEnt (+0x10c)"
+        },
+        {
+          "address": "0x43c82a",
+          "rule": "with Force Sight on, add unwalked when 0x43c600 sees it (level from frame +0x12c4, player state +4768)"
+        },
+        {
+          "address": "0x43c85d",
+          "rule": "area test: areanum (+0x160) then areanum2 (+0x164)"
+        },
+        {
+          "address": "0x43c891",
+          "rule": "cluster test with overflow range (Quake III's)"
+        },
+        {
+          "address": "0x43c91e",
+          "rule": "add"
+        },
+        {
+          "address": "0x43c931",
+          "rule": "SVF_PORTAL (0x40): walk origin2 (+0x68) with portal argument 1 (0x43c939, call 0x43c941); no generic1 range"
+        }
+      ],
+      "forceSight": {
+        "cameraPosition": "vmMain(5) 0x43c613",
+        "cameraAngles": "vmMain(6) 0x43c62a",
+        "target": "currentOrigin +0x158",
+        "forceVisible": "s.eFlags & 0x800000 skips both distance tests (0x43c685)",
+        "close": "distance < 128 sees (0x43c690)",
+        "range": "distance > range unseen (0x43c6a1)",
+        "rangeTable": {
+          "address": "0x527d10",
+          "values": [
+            0,
+            1024,
+            2048,
+            4096,
+            4096,
+            4096
+          ],
+          "indexChecked": false
+        },
+        "threshold": "distance / range * 0.74 + 0.25 (0x43c6d9..0x43c6ed); seen when forward . direction >= threshold or unordered"
+      },
+      "builderRules": [
+        "counter incremented per client snapshot (0x43c97d)",
+        "no entity marked sent first",
+        "viewpoint from vmMain(5) when it answers (0x43c9d3), else origin + viewheight moved by leanofs (player state +60) along the right vector of viewangles rolled by leanofs * 0.5 (0x43c9e3..0x43ca8e)",
+        "viewpoint written to frame and game serverViewOrg (player state +608; 0x43ca94, 0x43cabd)",
+        "walk with portal argument 0 (0x43cadb)"
+      ]
+    },
+    {
+      "profile": "jk2-sp",
+      "binary": {
+        "path": "E:\\Games\\Jedi Outcast\\jk2sp.exe",
+        "sha256": "0d3c635ee5b20ac32fc957e00cf21e65ebc1584112b11f6ae026706dcc0d0e0c",
+        "timeDateStamp": "0x3c840a46",
+        "bytes": 999482
+      },
+      "walk": "0x43a170",
+      "add": {
+        "cap": "1024 (0x43a39e)",
+        "oddCap": "255 (0x43a3a5)",
+        "ring": "256 (0x437092)"
+      },
+      "builder": "0x439f10",
+      "rules": [
+        {
+          "address": "0x43a1f1",
+          "rule": "skip when not in use (+0x100)"
+        },
+        {
+          "address": "0x43a1fd",
+          "rule": "repair s.number, linked or not"
+        },
+        {
+          "address": "0x43a210",
+          "rule": "skip when not linked (+0x104)"
+        },
+        {
+          "address": "0x43a21e",
+          "rule": "skip when svFlags (+0x108) & SVF_NOCLIENT"
+        },
+        {
+          "address": "0x43a242",
+          "rule": "skip when already added"
+        },
+        {
+          "address": "0x43a24e",
+          "rule": "add unwalked when SVF_BROADCAST"
+        },
+        {
+          "address": "0x43a25b",
+          "rule": "add unwalked when entity 0"
+        },
+        {
+          "address": "0x43a263",
+          "rule": "area test"
+        },
+        {
+          "address": "0x43a28f",
+          "rule": "cluster test"
+        },
+        {
+          "address": "0x43a31c",
+          "rule": "add"
+        },
+        {
+          "address": "0x43a32a",
+          "rule": "SVF_PORTAL: walk origin2 with portal argument 1 (0x43a33a); argument never read"
+        }
+      ],
+      "absent": [
+        "eFlags test",
+        "isPortalEnt add",
+        "Force Sight"
+      ],
+      "builderRules": [
+        "counter incremented (0x439f1a)",
+        "no entity marked sent first",
+        "viewpoint from vmMain(5) (0x439f78) else leaning eye (0x439f8a..0x43a037)",
+        "walk with portal argument 0 (0x43a084)"
+      ],
+      "openjkDifference": "OpenJK's JK2_MODE keeps the EF_PERMANENT skip; jk2sp.exe has no eFlags test. Retail followed."
+    }
+  ],
+  "fnTech3Before": {
+    "commit": "9be926ab",
+    "issues": [
+      "multiplayer client-flag tests applied: SP 0x2 SVF_INACTIVE, 0x100 SVF_TRIMODEL, 0x800 SVF_NPC_PRECACHE entities dropped as CLIENTMASK / SINGLECLIENT / NOTSINGLECLIENT",
+      "in-use and permanent tests absent; only linked entities' numbers repaired",
+      "player entity marked sent before the walk, so entity 0 never sent",
+      "isPortalEnt, Force Sight and camera viewpoint absent",
+      "portal passes walked with the flag false",
+      "add cap 256"
+    ]
+  },
+  "changes": {
+    "files": [
+      "code/server/sv_snapshot.cpp",
+      "code/server/server_jedi_sp_snapshot.hpp",
+      "code/server/sv_game.cpp",
+      "code/server/server_jka_sp_game.hpp",
+      "code/server/server.h",
+      "code/qcommon/raven_state.h"
+    ],
+    "walkFrame": "56 bytes of locals (MSVC win32-dev flags, /FAs listing); previous slice measured 60 by S_FRAMEPROC",
+    "engineBounds": [
+      "Force Sight level outside 0..5 has range 0 (retail reads past its table)",
+      "no cgame means no camera (retail answers -1 and reads an unset camera)"
+    ]
+  },
+  "unit": {
+    "test": "tests/jedi_sp_snapshot_walk_tests.py",
+    "cases": 24,
+    "mutationsCaught": 12,
+    "mutations": [
+      "premark",
+      "clientflags",
+      "recursionflag",
+      "inuse",
+      "permanent",
+      "sightallpasses",
+      "entity0",
+      "portalent",
+      "oddlimit",
+      "unlinkedrepair",
+      "camera",
+      "limit"
+    ],
+    "alsoPassing": [
+      "tests/wolfet_snapshot_tests.py",
+      "tests/wolfet_viewpoint_tests.py",
+      "tests/jedi_snapshot_walk_tests.py",
+      "tests/snapshot_portal_chain_tests.py",
+      "tests/stvef_sp_snapshot_tests.py",
+      "tests/stvef_sp_cgame_tests.py",
+      "tests/alice_snapshot_source_tests.py",
+      "tests/jka_sp_game_bridge_tests.cpp (MSVC, win32-dev flags)"
+    ]
+  },
+  "live": null,
+  "remaining": [
+    "jka-sp serves no client or player state; Force Sight fields (player state +628, +4768) need its adapter",
+    "jasp builder lean and serverViewOrg write-back wait for that adapter",
+    "jk2-sp: no COM_GAME_JK2_SP layout in ServerGameDataView; ReadEntityState and in-use read fail; server_jk2_sp_game.hpp stops after Init; no cgame camera hook",
+    "retail even snapshots may overrun their 512/256-state ring; fnTech3 sends them intact"
+  ]
+}

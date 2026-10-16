@@ -12,6 +12,7 @@ HOST = r'''
 #include "code/server/server.h"
 #include "code/server/server_world_bounds.hpp"
 #include "code/compat/rtcw_game_abi.h"
+#include "code/server/server_jedi_sp_snapshot.hpp"
 #include <array>
 #include <cassert>
 #include <iterator>
@@ -25,7 +26,12 @@ int Com_GameIsQuakeLive(){return profile==COM_GAME_QUAKELIVE;}
 int Com_GameIsSTVEFSP(){return profile==COM_GAME_STVEF_SP;}
 int Com_GameIsJKAMP(){return profile==COM_GAME_JKA_MP;}
 int Com_GameIsJK2MP(){return profile==COM_GAME_JK2_MP;}
+int Com_GameIsJKASP(){return profile==COM_GAME_JKA_SP;}
+int Com_GameIsJK2SP(){return profile==COM_GAME_JK2_SP;}
 qboolean SV_JediSnapshotBroadcast(int,int,qboolean*){assert(!"The Jedi games use their own snapshot fixture");return qfalse;}
+qboolean SV_ReadGameEntityInuse(int,qboolean*){assert(!"The Jedi SP games use their own snapshot fixture");return qfalse;}
+qboolean SV_JKASPCameraView(vec3_t,vec3_t){assert(!"The Jedi SP games use their own snapshot fixture");return qfalse;}
+qboolean SV_JKASPForceSightSees(const vec3_t,int,int){assert(!"The Jedi SP games use their own snapshot fixture");return qfalse;}
 qboolean SV_ReadJKAVehicleState(int,playerState_t*){assert(!"JKA uses its own vehicle fixture");return qfalse;}
 qboolean SV_STVEFSPCameraOrigin(vec3_t){return qfalse;}
 server_t sv{};

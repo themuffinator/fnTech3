@@ -212,7 +212,10 @@ typedef struct {
 	 * its delta table names one at a time, where Academy's record carries
 	 * its force block whole and unnamed. The underscore stands for the dot
 	 * in the name its own table gives, so what each one means stays
-	 * checkable against that table. */
+	 * checkable against that table. Academy single player's snapshot walk
+	 * reads fd_forcePowersActive and fd_forcePowerLevel_FP_SEE too, which
+	 * its player record keeps at +628 and +4768 (jasp.exe 0x43c768,
+	 * 0x43c836) and no adapter serves yet. */
 	int saberActive;
 	int usingATST;
 	int atstAltFire;

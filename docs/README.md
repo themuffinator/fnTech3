@@ -140,6 +140,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Portals seen through portals](fntech3/2026-10-15-snapshot-portal-recursion.md)
   -- what a server sends through a portal seen through another portal in
   every game, and RTCW's scripted cameras, checked against retail's servers.
+- [The Jedi single-player snapshot walk](fntech3/2026-10-16-jedi-sp-snapshot-walk.md)
+  -- which entities Jedi Academy's and Jedi Outcast's single-player servers
+  send, Force Sight's included, read from the original engines.
 - [Small gaps from the October 15 census](fntech3/2026-10-15-census-small-gaps.md)
   -- Enemy Territory's tactical search queues and update records, and the
   pure gamestate budget of Enemy Territory and Jedi Outcast, read from the

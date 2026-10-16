@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "server.h"
 #include "server_world_bounds.hpp"
 #include "server_alice_snapshot.hpp"
+#include "server_jedi_sp_snapshot.hpp"
 #include "../qcommon/netchan_safety.hpp"
 #include "../compat/jka_state_adapter.hpp"
 #include "../compat/rtcw_game_abi.h"
@@ -425,7 +426,13 @@ struct SnapshotEntityNumbers {
 	bool unordered = false;
 	int clientNum = 0;
 	bool wolfetSelfPortalAdded = false;
-	const int limit = Com_GameIsWolfET() ? MAX_SERVER_SNAPSHOT_ENTITIES : MAX_SNAPSHOT_ENTITIES;
+	// Raven's single-player engines add up to 1,024 entities, and on an odd
+	// snapshot one fewer than their state ring holds, which the builder sets
+	// (fntech3::jedi::sp::snapshot).
+	const int limit = Com_GameIsWolfET() || Com_GameIsJKASP() || Com_GameIsJK2SP()
+		? MAX_SERVER_SNAPSHOT_ENTITIES : MAX_SNAPSHOT_ENTITIES;
+	int oddLimit = -1;
+	static_assert( MAX_SERVER_SNAPSHOT_ENTITIES == fntech3::jedi::sp::snapshot::kSnapshotEntities );
 	// The walk's copies of the record it is reading and of an ET proxy's
 	// target. They live here rather than in the walk's frame, which recurses
 	// once per portal: retail recurses to the last portal entity on 0x40-byte
@@ -438,7 +445,7 @@ struct SnapshotEntityNumbers {
 		svEnt.snapshotCounter = sv.snapshotCounter;
 
 		// if we are full, silently discard entities
-		if ( count >= limit ) {
+		if ( count >= limit || count == oddLimit ) {
 			return;
 		}
 		if ( wolfet ) {
@@ -520,6 +527,10 @@ SV_EntityPassesSnapshotClientFlags
 */
 static bool SV_EntityPassesSnapshotClientFlags( const sharedEntity_t &entity, int clientNum ) {
 	if ( entity.r.svFlags & SVF_NOCLIENT ) return false;
+	// Raven's single-player walks test no other client flag (jasp.exe
+	// 0x43c7d7, jk2sp.exe 0x43a21e): their games' 0x2, 0x100 and 0x800 are
+	// SVF_INACTIVE, SVF_TRIMODEL and SVF_NPC_PRECACHE
+	if ( Com_GameIsJKASP() || Com_GameIsJK2SP() ) return true;
 	// entities can be flagged to be sent to only one client
 	if ( entity.r.svFlags & SVF_SINGLECLIENT ) {
 		if ( entity.r.singleClient != clientNum ) {
@@ -725,10 +736,18 @@ Every retail engine that shares this walk recurses into a portal seen
 through another portal, bounded only by the already-added test (quake3.exe
 1.32 0x43b972, quakelive_steam.exe 0x4e565d, WolfSP.exe 0x439489, WolfMP.exe
 0x43c749, etded.exe 0x42f8b5, stvoyHM.exe 0x435cc8, stvoy.exe 0x42876f,
-jamp.exe 0x4613a7, jk2mp.exe 0x44ff65), so the depth is at most the number of
-portal entities. Two passes set the flag: RTCW's camera passes, walked like
-any other, and Quake3e's second view (SVF_SELF_PORTAL2), which adds no
-portal's view and no second view of its own.
+jamp.exe 0x4613a7, jk2mp.exe 0x44ff65, jasp.exe 0x43c941, jk2sp.exe 0x43a33a),
+so the depth is at most the number of portal entities. Three passes set the
+flag: RTCW's camera passes, walked like any other; Quake3e's second view
+(SVF_SELF_PORTAL2), which adds no portal's view and no second view of its own;
+and the Jedi single-player games' portal passes, as their engines set it.
+
+Raven's single-player walks (jasp.exe 0x43c710, jk2sp.exe 0x43a170) also
+always send the player's entity 0 (0x43c80a, 0x43a25b); Academy's sends an
+entity seen from the sky portal (0x43c80e) and, in the eye's pass while Force
+Sight is on, anything the power shows (0x43c762, 0x43c82a). They leave out an
+entity not in use, and Academy's a permanent one, which SV_BuildCommonSnapshot
+does for every pass.
 ===============
 */
 static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_t *frame,
@@ -745,7 +764,12 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 	// Read into the numbers' buffer: each recursion below copies the
 	// viewpoint it needs first, and nothing reads the buffer after one.
 	sharedEntity_t &entity = eNums.entity;
-	const bool secondView = portal && !Com_GameIsRTCW();
+	const bool secondView = portal && ( Com_GameIsQuake3() || Com_GameIsQuakeLive() );
+	const bool jediSP = Com_GameIsJKASP() || Com_GameIsJK2SP();
+	// Academy single player's Force Sight, read from the eye's pass only
+	const bool forceSight = Com_GameIsJKASP() && !portal &&
+		( static_cast<std::uint32_t>( frame->ps.raven.fd_forcePowersActive ) &
+		fntech3::jedi::sp::snapshot::kAcademyForceSight );
 
 	// during an error shutdown message we may need to transmit
 	// the shutdown message after the server has shutdown, so
@@ -832,6 +856,15 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 			continue;
 		}
 
+		// so are the Jedi single-player games' player, Academy's sky-portal
+		// entities and, under Force Sight, what the power shows
+		if ( jediSP && ( es->number == 0 || ( Com_GameIsJKASP() && ( entity.s.raven.isPortalEnt ||
+			( forceSight && SV_JKASPForceSightSees( entity.r.currentOrigin, entity.s.eFlags,
+			frame->ps.raven.fd_forcePowerLevel_FP_SEE ) ) ) ) ) ) {
+			eNums.Add( *svEnt, e );
+			continue;
+		}
+
 		if ( SV_GameForcesSnapshotEntity( frame->ps.clientNum, es->number ) ) {
 			eNums.Add( *svEnt, e );
 			continue;
@@ -904,7 +937,7 @@ static void SV_AddEntitiesVisibleFromPoint( const vec3_t origin, clientSnapshot_
 			}
 			eNums.MarkUnordered();
 			VectorCopy( entity.s.origin2, view );
-			SV_AddEntitiesVisibleFromPoint( view, frame, eNums, portal );
+			SV_AddEntitiesVisibleFromPoint( view, frame, eNums, portal || jediSP );
 		}
 	}
 
@@ -983,6 +1016,11 @@ static void SV_BuildCommonSnapshot( void )
 
 	// gather all linked entities
 	if ( sv.state != SS_DEAD ) {
+		// Raven's single-player walks leave out an entity not in use and, in
+		// Academy, a permanent one, then repair the number of what is left,
+		// linked or not (jasp.exe 0x43c7a3, 0x43c7a9, 0x43c7b6; jk2sp.exe
+		// 0x43a1f1, 0x43a1fd). Every pass would test them alike.
+		const bool jediSP = Com_GameIsJKASP() || Com_GameIsJK2SP();
 		for ( int num : SV_Indices( sv.num_entities ) ) {
 			sharedEntity_t entity;
 			if ( !SV_ReadGameEntityByNum( num, &entity ) ) {
@@ -990,8 +1028,20 @@ static void SV_BuildCommonSnapshot( void )
 				return;
 			}
 
+			if ( jediSP ) {
+				qboolean inuse = qfalse;
+				if ( !SV_ReadGameEntityInuse( num, &inuse ) ) {
+					Com_Error( ERR_DROP, "%s: invalid entity %i", __func__, num );
+					return;
+				}
+				if ( !inuse || ( Com_GameIsJKASP() && ( static_cast<std::uint32_t>( entity.s.eFlags ) &
+					fntech3::jedi::sp::snapshot::kAcademyPermanent ) ) ) {
+					continue;
+				}
+			}
+
 			// never send entities that aren't linked in
-			if ( !entity.r.linked ) {
+			if ( !entity.r.linked && !jediSP ) {
 				continue;
 			}
 	
@@ -1002,6 +1052,9 @@ static void SV_BuildCommonSnapshot( void )
 					Com_Error( ERR_DROP, "%s: failed to repair entity %i", __func__, num );
 					return;
 				}
+			}
+			if ( !entity.r.linked ) {
+				continue;
 			}
 
 			// entities can be flagged to explicitly not be sent to the client
@@ -1074,8 +1127,14 @@ static void SV_BuildCommonSnapshot( void )
 // follows another client. Lean uses the playerstate's rolled right vector.
 // Elite Force SP sees from a running camera scene's position, which its cgame
 // supplies, and otherwise from the eye moved by its own lean (stvoy.exe
-// SV_BuildClientSnapshot 0x4283a3).
+// SV_BuildClientSnapshot 0x4283a3). Academy SP sees from the camera position
+// its client game reports, when it reports one (jasp.exe 0x43c9d3); its lean
+// waits for a served player state.
 static void SV_SnapshotViewOrigin( const client_t *client, const playerState_t &state, vec3_t origin ) {
+	if ( Com_GameIsJKASP() && SV_JKASPCameraView( origin, nullptr ) ) {
+		if ( !SV_FiniteWorldVector( origin ) ) Com_Error( ERR_DROP, "Invalid Jedi Academy camera origin" );
+		return;
+	}
 	if ( Com_GameIsSTVEFSP() ) {
 		if ( SV_STVEFSPCameraOrigin( origin ) ) {
 			if ( !SV_FiniteWorldVector( origin ) ) Com_Error( ERR_DROP, "Invalid Elite Force camera origin" );
@@ -1370,10 +1429,19 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 	// SP's cgame visits the player through the packet-entity list to update
 	// animation state shared with its game half. Retail SP includes that
 	// entity when visible (stvoy.exe 0x428330, visibility walk 0x4285a0).
-	// Other profiles regenerate it from playerstate without sending it.
-	if ( !Com_GameIsSTVEFSP() ) {
+	// The Jedi SP walks always send it (jasp.exe 0x43c80a, jk2sp.exe
+	// 0x43a25b). Other profiles regenerate it from playerstate without
+	// sending it.
+	const bool jediSP = Com_GameIsJKASP() || Com_GameIsJK2SP();
+	if ( !Com_GameIsSTVEFSP() && !jediSP ) {
 		svEnt = &sv.svEntities[ clientNum ];
 		svEnt->snapshotCounter = sv.snapshotCounter;
+	}
+	// The Jedi SP engines count every snapshot of the level, and an odd one
+	// holds one fewer entity than their ring of states (jasp.exe 0x43c97d,
+	// 0x43c5dd; jk2sp.exe 0x439f1a, 0x43a3a5).
+	if ( jediSP && ( ++sv.jediSPSnapshotCounter & 1 ) ) {
+		entityNumbers.oddLimit = fntech3::jedi::sp::snapshot::OddSnapshotLimit( Com_GameIsJKASP() != 0 );
 	}
 
 	// find the client's viewpoint

@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "server_cvar_compat.hpp"
 #include "server_game_data.h"
 #include "server_jka_snapshot.hpp"
+#include "server_jedi_sp_snapshot.hpp"
 
 #include "../botlib/botlib.h"
 #include "../qcommon/cm_game_contract.h"
@@ -710,6 +711,20 @@ qboolean SV_WriteGameEntityByNum( int num, const sharedEntity_t *source ) {
 	return SV_WriteGameEntity(
 		static_cast<sharedEntity_t *>( serverGameData.EntityPointer( reference ) ),
 		source );
+}
+
+
+/* The module's in-use word, for the profiles that publish one; the others
+ * have no such member and fail here. */
+qboolean SV_ReadGameEntityInuse( int num, qboolean *inuse ) {
+	fntech3::server::GameEntityRef reference;
+	std::int32_t value = 0;
+	if ( !inuse || !serverGameData.EntityRefAt( num, reference ) ||
+		!serverGameData.GetInuse( reference, value ) ) {
+		return qfalse;
+	}
+	*inuse = value ? qtrue : qfalse;
+	return qtrue;
 }
 
 
@@ -3662,6 +3677,56 @@ qboolean SV_STVEFSPCameraOrigin( vec3_t origin ) {
 	}
 	VectorCopy( camera, origin );
 	return qtrue;
+}
+
+
+/*
+====================
+SV_JKASPCameraView
+
+Academy SP's camera position and, when asked for, its angles, from the cgame
+half of the game library, as retail's snapshot builder and Force Sight test
+ask (jasp.exe 0x43c9d3, 0x43c613, 0x43c62a); false when either is refused.
+Retail's call answers -1 with no cgame (0x43ead1) and then reads a camera it
+never received; here no cgame is no camera.
+====================
+*/
+qboolean SV_JKASPCameraView( vec3_t origin, vec3_t angles ) {
+	namespace snapshot = fntech3::jedi::sp::snapshot;
+	if ( !jkaSpCgameMain ) {
+		return qfalse;
+	}
+	vec3_t camera = { 0, 0, 0 }, turned = { 0, 0, 0 };
+	if ( !jkaSpCgameMain( snapshot::kAcademyCgameCameraPosition, reinterpret_cast<intptr_t>( camera ) ) ) {
+		return qfalse;
+	}
+	if ( angles && !jkaSpCgameMain( snapshot::kAcademyCgameCameraAngles, reinterpret_cast<intptr_t>( turned ) ) ) {
+		return qfalse;
+	}
+	VectorCopy( camera, origin );
+	if ( angles ) {
+		VectorCopy( turned, angles );
+	}
+	return qtrue;
+}
+
+
+/*
+====================
+SV_JKASPForceSightSees
+
+Retail SV_PlayerCanSeeEnt (jasp.exe 0x43c600): whether Force Sight at the
+given level shows an entity at origin from the client game's camera.
+====================
+*/
+qboolean SV_JKASPForceSightSees( const vec3_t origin, int eFlags, int level ) {
+	vec3_t camera, angles, forward;
+	if ( !SV_JKASPCameraView( camera, angles ) ) {
+		return qfalse;
+	}
+	AngleVectors( angles, forward, nullptr, nullptr );
+	return fntech3::jedi::sp::snapshot::ForceSightSees( camera, forward, origin,
+		static_cast<std::uint32_t>( eFlags ), level ) ? qtrue : qfalse;
 }
 
 

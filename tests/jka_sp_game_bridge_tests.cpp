@@ -284,8 +284,12 @@ void VM_Free(vm_t *vm) {
 		}
 	}
 }
+/* The cgame half's vmMain, which the snapshot builder asks for the camera. */
+static intptr_t QDECL CgameMain(int,...) { return 0; }
 void *Sys_LoadFunction(void *library,const char *name) {
-	CHECK(library==syntheticVM.dllHandle&&!std::strcmp(name,"dllEntry"));
+	CHECK(library==syntheticVM.dllHandle);
+	if(!std::strcmp(name,"vmMain")) return reinterpret_cast<void *>(CgameMain);
+	CHECK(!std::strcmp(name,"dllEntry"));
 	return failure==4 ? nullptr : reinterpret_cast<void *>(Entry);
 }
 #include "../code/server/server_jka_sp_game.hpp"
@@ -335,6 +339,7 @@ static struct { uint32_t before;fntech3_jka_sp_trace_t trace;uint32_t after; } c
 static void CandidateTrace() { SV_JKASPTrace(&candidateResult.trace,candidateStart,candidateMins,candidateMaxs,candidateEnd,tracePass,traceMask,traceSelector,0); }
 static void Reset() {
 	SV_JKASPClearGame(); serverGameData.Invalidate(); com_errorEntered=qfalse;
+	CHECK(jkaSpCgameMain==nullptr);
 	vmVars.clear();
 	gvm=nullptr; exports={}; exports.apiversion=8;
 	exports.Init=Init; exports.Shutdown=Shutdown; exports.gentitySize=1252;
@@ -472,6 +477,7 @@ static void PointAndLinkTests(){
 
 int main() {
 	Reset(); CHECK(SV_JKASPLoadGame()==&syntheticVM); CHECK(getterCalls==1&&attached==1&&frees==0);
+	CHECK(jkaSpCgameMain==CgameMain);
 	using Cvar = fntech3_jka_sp_cvar_prefix_t *(*)(const char *,const char *,int);
 	auto get=reinterpret_cast<Cvar>(received->slots[FNTECH3_JKA_SP_IMPORT_cvar]);
 	auto set=reinterpret_cast<void (*)(const char *,const char *)>(received->slots[FNTECH3_JKA_SP_IMPORT_cvar_set]);

@@ -207,8 +207,8 @@ class AliceSnapshotSourceTests(unittest.TestCase):
         numbers = self.snapshot[self.snapshot.index('struct SnapshotEntityNumbers {'):]
         numbers = numbers[:numbers.index('\n};') + 3]
         self.assertNotIn('lice', numbers)
-        self.assertIn('const int limit = Com_GameIsWolfET() ? MAX_SERVER_SNAPSHOT_ENTITIES : MAX_SNAPSHOT_ENTITIES;',
-                      numbers)
+        self.assertIn('const int limit = Com_GameIsWolfET() || Com_GameIsJKASP() || Com_GameIsJK2SP()\n'
+                      '\t\t? MAX_SERVER_SNAPSHOT_ENTITIES : MAX_SNAPSHOT_ENTITIES;', numbers)
         # The module's records stay behind their accessors outside the Alice walk.
         self.assertNotIn('SV_GentityNum(', self.snapshot)
 

@@ -1098,6 +1098,22 @@ dedicated servers in four stages; fnTech3 now sends the same sets, where
 the previous build ignored the flag (Live in `rtcw-mp` and `rtcw-sp`; no
 retail camera scene with a client was played).
 
+The [Jedi single-player snapshot walk record](2026-10-16-jedi-sp-snapshot-walk.md)
+reads the whole walk, add routine and builder of `jasp.exe` 1.01
+(`0x43c710`) and `jk2sp.exe` 1.02a (`0x43a170`) and serves `jka-sp` and
+`jk2-sp` by them. Both skip an entity not in use and repair the number of
+an unlinked one; read no client flag but `SVF_NOCLIENT`, where fnTech3 had
+left out every inactive entity and NPC spawner as Quake III's client-mask
+rules read those bits; always send the player's entity 0, which fnTech3's
+builder had marked sent first; and add up to 1,024 entities, one fewer than
+their 512- or 256-state ring on an odd snapshot. Academy also skips a
+permanent entity (`0x43c7a9`), sends its sky-portal entities (`0x43c80e`),
+and in the eye's pass under Force Sight adds, unwalked, what the power shows
+from the client game's camera (`0x43c762`, `0x43c600`), whose position is
+also its viewpoint (Source, Unit). Neither profile builds a client snapshot
+yet: `jka-sp` serves no client or player state, and `jk2-sp` has no entity
+layout at all, so `ReadEntityState` fails for it. No gate closes.
+
 ## Evidence vocabulary
 
 | Level | Meaning |

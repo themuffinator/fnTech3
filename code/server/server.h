@@ -91,6 +91,7 @@ typedef struct {
 	int				checksumFeed;		// the feed key that we use to compute the pure checksum strings
 	int				checksumFeedServerId; // RTCW MP retains this across fast map restarts
 	int				snapshotCounter;	// incremented for each snapshot built
+	int				jediSPSnapshotCounter;	// Jedi SP: every snapshot of the level, as retail counts
 	int				configstringSequence;	// IHV: bumped by every configstring change (0x41964a)
 	float           timeResidualFraction; // Jedi SP fractional game milliseconds
 	int				timeResidual;		// <= 1000 / sv_frame->value
@@ -692,6 +693,9 @@ int SV_RTCWMPWorldflags( void );
 qboolean	SV_WriteGameEntityByNum( int num, const sharedEntity_t *source );
 qboolean	SV_ReadGameClient( int num, playerState_t *destination );
 qboolean	SV_STVEFSPCameraOrigin( vec3_t origin );
+qboolean	SV_ReadGameEntityInuse( int num, qboolean *inuse );
+qboolean	SV_JKASPCameraView( vec3_t origin, vec3_t angles );
+qboolean	SV_JKASPForceSightSees( const vec3_t origin, int eFlags, int level );
 qboolean	SV_SetGameClientPing( int num, int ping );
 svEntity_t	*SV_SvEntityForGentity( sharedEntity_t *gEnt );
 void		SV_InitGameProgs ( void );
