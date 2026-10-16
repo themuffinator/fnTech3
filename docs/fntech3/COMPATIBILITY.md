@@ -3280,9 +3280,24 @@ III's `lightfilter` and `alphashadow`, are its metal and rock. RTX had read
 3,272 metal and 8,413 rock records as light filters. Each renderer now
 translates the map's surface flags right after loading them (Source, Unit).
 Under RTX, `DM/mohdm6` filters the path tracer's light through 386
-triangles, its canopies and fences, where 6,474 did (Live subset). RTX still
-finds no sun for it: 2015 gives the sun in worldspawn (`sundirection`,
-`suncolor`), which the path tracer does not read. No gate closes.
+triangles, its canopies and fences, where 6,474 did (Live subset). RTX
+still found no sun for it, which the worldspawn sun record below settles. No
+gate closes.
+
+The [worldspawn sun record](2026-10-16-mohaa-worldspawn-sun.md)
+(2026-10-16) gives RTX's path tracer Medal of Honor's sun. No 1.00 shader
+has a `q3map_sun`; 46 of the 54 maps name the sun in worldspawn. Read from
+`gamex86.dll`'s event strings, OpenMoHAA (reference) and the maps'
+lightmaps: `sundirection` is the angles toward the sun, and `suncolor`, or
+`sunlight` under another name, is stored as that colour times the cosine
+(median 0.98 over 405 opposite-wall pairs on 37 maps). `sundiffuse` (1 when
+absent, no more stored above 1) of `sundiffusecolor` is the sky's share
+**[I]**. Under the `mohaa` profile the path tracer now takes that sun and a
+dome of suns that gives an open floor the diffuse sun, in place of
+`RT_FindSun`; every other profile is unchanged (Source, Unit). Under RTX
+`DM/mohdm6` and `m5l1a` print "worldspawn sun" and are sunlit, with the
+lightmaps' shadows, at levels within a quarter of the baked ones; with no
+sun, their sunlit patches were near black (Live subset). No gate closes.
 
 Medal of Honor: Allied Assault is the tenth title and the fifteenth profile,
 `mohaa`, over one `main/` installation. It runs 2015's engine, a descendant of

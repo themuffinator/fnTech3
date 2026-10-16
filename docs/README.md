@@ -168,6 +168,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Map shader flags of Ritual's and 2015's maps](fntech3/2026-10-15-map-shader-flag-dialects.md)
   -- the surface flags each engine's map compiler writes, compared, and
   Alice's, F.A.K.K.2's and Medal of Honor's read with their own values.
+- [Medal of Honor's worldspawn sun](fntech3/2026-10-16-mohaa-worldspawn-sun.md)
+  -- what 2015's sun and sky keys mean, read from the game and its maps'
+  lightmaps, and RTX lighting Medal of Honor's maps with them.
 - [Raven's light styles](fntech3/2026-10-15-raven-light-styles.md)
   -- how both Jedi games add a map's switchable and flickering lights, and
   how every installed map now loads with them.

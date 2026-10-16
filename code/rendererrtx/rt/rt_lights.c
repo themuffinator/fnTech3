@@ -138,6 +138,7 @@ typedef struct {
 	float			sunDeviance;	// q3map_sunExt's spread, radians (0 for none)
 	int				sunSamples;		// ... over this many samples
 	vec3_t			skyLight;		// q3map_skyLight: colour * value, q3map units
+	vec3_t			skyDiffuse;		// Medal of Honor's diffuse sun: an open floor, q3map units
 	int				skyLightIterations;	// its dome's rows + 1 (0 for none)
 	uint32_t		pointLights;
 	uint32_t		triangleLights;
@@ -1690,6 +1691,151 @@ static void RT_FindSun( void )
 }
 
 /*
+Medal of Honor's sun, which its maps give in worldspawn and none of its
+shaders does (docs/fntech3/2026-10-16-mohaa-worldspawn-sun.md): `suncolor`,
+or `sunlight` under its other name, is the light 2015's compiler stored in the
+lightmaps times the cosine to the sun -- a q3map sun's colour times its
+intensity -- and `sundirection` the angles that point toward it. A sun
+without a direction lights nothing; one without a colour takes 70, as 2015's
+renderer does. `sundiffuse` (1 when absent; the lightmaps hold no more for a
+larger one) of `sundiffusecolor` (the sun's colour when absent) is what an
+open level floor stored from the sky. Only the worldspawn's keys count, each
+matched exactly as the renderer matches them, and a repeated key keeps its
+last value.
+*/
+#define RT_MOHAA_SUN_DEFAULT	70.0f
+#define RT_MOHAA_SKY_ITERATIONS	8
+
+typedef struct {
+	vec3_t		light;		// lightmap bytes, facing the sun
+	vec3_t		direction;	// toward the sun
+	vec3_t		diffuse;	// lightmap bytes, an open level floor
+} rtMOHAASun_t;
+
+static qboolean RT_ParseMOHAASun( const char *entities, rtMOHAASun_t *sun )
+{
+	const char *parse = entities;
+	vec3_t color, diffuseColor, angles;
+	float diffuse = 1.0f;
+	qboolean hasDirection = qfalse, hasDiffuseColor = qfalse;
+	const char *token;
+
+	Com_Memset( sun, 0, sizeof( *sun ) );
+	VectorSet( color, RT_MOHAA_SUN_DEFAULT, RT_MOHAA_SUN_DEFAULT, RT_MOHAA_SUN_DEFAULT );
+	VectorClear( diffuseColor );
+	VectorClear( angles );
+	if ( !parse ) {
+		return qfalse;
+	}
+	token = COM_ParseExt( &parse, qtrue );
+	if ( token[0] != '{' ) {
+		return qfalse;
+	}
+	while ( 1 ) {
+		char key[64];
+		vec3_t v;
+		token = COM_ParseExt( &parse, qtrue );
+		if ( !token[0] || token[0] == '}' ) {
+			break;
+		}
+		Q_strncpyz( key, token, sizeof( key ) );
+		token = COM_ParseExt( &parse, qtrue );
+		if ( !token[0] || token[0] == '}' ) {
+			break;
+		}
+		// a value that is not three numbers leaves the sun without that key
+		if ( !strcmp( key, "suncolor" ) || !strcmp( key, "sunlight" ) ) {
+			if ( sscanf( token, "%f %f %f", &v[0], &v[1], &v[2] ) == 3 && RT_Vec3Valid( v, RT_LIGHT_MAX_VALUE ) ) {
+				VectorCopy( v, color );
+			} else {
+				VectorSet( color, RT_MOHAA_SUN_DEFAULT, RT_MOHAA_SUN_DEFAULT, RT_MOHAA_SUN_DEFAULT );
+			}
+		} else if ( !strcmp( key, "sundirection" ) ) {
+			hasDirection = ( sscanf( token, "%f %f %f", &v[0], &v[1], &v[2] ) == 3 && RT_Vec3Valid( v, RT_LIGHT_MAX_COORD ) ) ?
+				qtrue : qfalse;
+			if ( hasDirection ) {
+				VectorCopy( v, angles );
+			}
+		} else if ( !strcmp( key, "sundiffuse" ) ) {
+			diffuse = Q_atof( token );
+		} else if ( !strcmp( key, "sundiffusecolor" ) ) {
+			hasDiffuseColor = ( sscanf( token, "%f %f %f", &v[0], &v[1], &v[2] ) == 3 &&
+				RT_Vec3Valid( v, RT_LIGHT_MAX_VALUE ) ) ? qtrue : qfalse;
+			if ( hasDiffuseColor ) {
+				VectorCopy( v, diffuseColor );
+			}
+		}
+	}
+	if ( !hasDirection ) {
+		return qfalse;
+	}
+	AngleVectors( angles, sun->direction, NULL, NULL );
+	if ( VectorNormalize( sun->direction ) == 0.0f ) {
+		return qfalse;
+	}
+	sun->light[0] = MAX( color[0], 0.0f );
+	sun->light[1] = MAX( color[1], 0.0f );
+	sun->light[2] = MAX( color[2], 0.0f );
+	if ( !RT_FloatValid( diffuse, RT_LIGHT_MAX_VALUE ) ) {
+		diffuse = 0.0f;
+	}
+	diffuse = Com_Clamp( 0.0f, 1.0f, diffuse );
+	if ( hasDiffuseColor ) {
+		sun->diffuse[0] = MAX( diffuseColor[0], 0.0f );
+		sun->diffuse[1] = MAX( diffuseColor[1], 0.0f );
+		sun->diffuse[2] = MAX( diffuseColor[2], 0.0f );
+		VectorScale( sun->diffuse, diffuse, sun->diffuse );
+	} else {
+		VectorScale( sun->light, diffuse, sun->diffuse );
+	}
+	return VectorLengthSquared( sun->light ) > 0.0f || VectorLengthSquared( sun->diffuse ) > 0.0f;
+}
+
+/*
+What a level surface under the whole sky takes of a dome's value: the mean
+sine of its suns' elevations (rt_sample_sky_light's dome), so the dome can
+give that surface what was asked of it.
+*/
+static float RT_SkyDomeFloorShare( int iterations )
+{
+	const int rows = iterations - 1;
+	double sum = 1.0;	// the sun overhead
+	int row;
+
+	for ( row = 0; row < rows; row++ ) {
+		sum += 4.0 * rows * sin( ( 0.5 * M_PI / iterations ) * ( row + 0.5 ) );
+	}
+	return (float)( sum / ( 4.0 * rows * rows + 1.0 ) );
+}
+
+// The worldspawn sun of a Medal of Honor map, and its diffuse sky as a dome
+// of suns (RT_FindSkyLight's) that gives an open floor what it stored, or
+// the emitters' even sky.
+static void RT_FindMOHAASun( void )
+{
+	rtMOHAASun_t sun;
+
+	if ( !tr.world || !RT_ParseMOHAASun( tr.world->entityString, &sun ) ) {
+		ri.Printf( PRINT_DEVELOPER, "RTX RT: the worldspawn names no sun\n" );
+		return;
+	}
+	if ( VectorLengthSquared( sun.light ) > 0.0f ) {
+		VectorCopy( sun.light, s_rtLights.sunLight );
+		VectorCopy( sun.direction, s_rtLights.sunDirection );
+		s_rtLights.sunValid = qtrue;
+	}
+	if ( VectorLengthSquared( sun.diffuse ) > 0.0f ) {
+		// the emitters' even sky asks for it (RT_FindSkyLightColor)
+		VectorCopy( sun.diffuse, s_rtLights.skyDiffuse );
+		if ( s_rtLights.mode != RT_LIGHTING_EMITTERS ) {
+			VectorMA( s_rtLights.skyLight, 1.0f / RT_SkyDomeFloorShare( RT_MOHAA_SKY_ITERATIONS ), sun.diffuse,
+				s_rtLights.skyLight );
+			s_rtLights.skyLightIterations = MAX( s_rtLights.skyLightIterations, RT_MOHAA_SKY_ITERATIONS );
+		}
+	}
+}
+
+/*
 A map whose shaders use what only q3map2 reads was compiled by it, whatever
 its worldspawn says: q3map_sunExt, which id's q3map would not have lit with,
 and q3map_skyLight.
@@ -1799,6 +1945,8 @@ static void RT_FindSkyLightColor( vec4_t out )
 			VectorMA( wanted, shader->rtSkyLightValue * s_rtLights.scale * ( 2.0f / 3.0f ), color, wanted );
 		}
 	}
+	// Medal of Honor's diffuse sun, which its worldspawn asks for
+	VectorMA( wanted, s_rtLights.scale, s_rtLights.skyDiffuse, wanted );
 	luminance = 0.2126f * wanted[0] + 0.7152f * wanted[1] + 0.0722f * wanted[2];
 	if ( !sky || !( luminance > 1e-4f ) || !RT_Vec3Valid( wanted, RT_LIGHT_MAX_VALUE ) ) {
 		return;
@@ -1848,7 +1996,11 @@ static qboolean RT_BuildLights( void )
 		}
 		RT_AddSurfaceLights();
 		RT_AddEmissiveSurfaces();
-		RT_FindSun();
+		if ( ri.gameId == COM_GAME_MOHAA ) {
+			RT_FindMOHAASun();
+		} else {
+			RT_FindSun();
+		}
 		if ( s_rtLights.mode == RT_LIGHTING_LEVEL ) {
 			RT_FindSkyLight();
 		} else {
@@ -1858,7 +2010,11 @@ static qboolean RT_BuildLights( void )
 		RT_AddEntityLights();
 		s_rtLights.lightsStripped = ( s_rtLights.q3map2 && s_rtLights.entityLights == 0 ) ? qtrue : qfalse;
 		RT_AddSurfaceLights();
-		RT_FindSun();
+		if ( ri.gameId == COM_GAME_MOHAA ) {
+			RT_FindMOHAASun();
+		} else {
+			RT_FindSun();
+		}
 		RT_FindSkyLight();
 	}
 	if ( !RT_BuildLightGrid() ) {
@@ -1901,7 +2057,7 @@ static qboolean RT_BuildLights( void )
 	}
 	if ( s_rtLights.sunValid ) {
 		ri.Printf( PRINT_ALL, "RTX RT: %s sun %.1f %.1f %.1f toward %.3f %.3f %.3f\n",
-			s_rtLights.q3map2 ? "q3map2" : "q3map",
+			ri.gameId == COM_GAME_MOHAA ? "worldspawn" : s_rtLights.q3map2 ? "q3map2" : "q3map",
 			s_rtLights.sunLight[0], s_rtLights.sunLight[1], s_rtLights.sunLight[2],
 			s_rtLights.sunDirection[0], s_rtLights.sunDirection[1], s_rtLights.sunDirection[2] );
 		if ( s_rtLights.sunSamples > 1 ) {
@@ -1911,7 +2067,8 @@ static qboolean RT_BuildLights( void )
 	}
 	if ( s_rtLights.skyLightIterations >= 2 ) {
 		const int rows = s_rtLights.skyLightIterations - 1;
-		ri.Printf( PRINT_ALL, "RTX RT: q3map2 sky light %.1f %.1f %.1f from %d suns\n",
+		ri.Printf( PRINT_ALL, "RTX RT: %s sky light %.1f %.1f %.1f from %d suns\n",
+			ri.gameId == COM_GAME_MOHAA ? "worldspawn diffuse" : "q3map2",
 			s_rtLights.skyLight[0], s_rtLights.skyLight[1], s_rtLights.skyLight[2], rows * rows * 4 + 1 );
 	}
 	return qtrue;

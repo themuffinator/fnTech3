@@ -1,0 +1,2324 @@
+{
+ "record": "2026-10-16-mohaa-worldspawn-sun.md",
+ "date": "2026-10-16",
+ "profiles": [
+  "mohaa"
+ ],
+ "unchangedProfiles": "every other profile: RT_BuildLights calls RT_FindSun, unchanged, unless ri.gameId is COM_GAME_MOHAA; RT_FindSkyLightColor adds skyDiffuse, which only RT_FindMOHAASun sets",
+ "gateChange": "none",
+ "implementation": {
+  "files": [
+   "code/rendererrtx/rt/rt_lights.c",
+   "tests/rtx_mohaa_sun_tests.py"
+  ],
+  "functions": [
+   "RT_ParseMOHAASun",
+   "RT_SkyDomeFloorShare",
+   "RT_FindMOHAASun"
+  ],
+  "callSite": "RT_BuildLights, in place of RT_FindSun, both the emitting and the baked branches",
+  "domeIterations": 8,
+  "authorship": "independently authored; OpenMoHAA renderergl1/tr_sphere_shade.cpp R_Sphere_InitLights and fgame/worldspawn.cpp were reference observation only (OpenMoHAA ab43a0def6c4feccedae36fdb58c2e007d7e4c35)"
+ },
+ "retail": {
+  "installation": "E:/Games/Medal of Honor Allied Assault (1.00 US), read only",
+  "gamex86.dll": {
+   "eventStrings": {
+    "0x1ed3a0": [
+     "suncolor",
+     "sunColor",
+     "Set the color of the sun"
+    ],
+    "0x1ed3d4": [
+     "sunlight",
+     "sunlight",
+     "Set whether or not there should be sunlight"
+    ],
+    "0x1ed40c": [
+     "sundirection",
+     "sunlightDirection",
+     "Set the direction of the sunlight"
+    ],
+    "0x1ed66c": [
+     "sundiffuse",
+     "factor",
+     "Sets the fraction of the sunlight to use for diffuse sun"
+    ],
+    "0x1ed6bc": [
+     "sundiffusecolor",
+     "diffusecolor",
+     "Sets an alternate sun color to use for clcing diffuse sun"
+    ],
+    "0x1ed718": [
+     "overbright",
+     null,
+     "When set to non-zero, removes the overbright cutoff of lightmaps"
+    ]
+   }
+  },
+  "MOHAA.exe": "SafeDisc-encrypted; not read",
+  "shaderScripts": {
+   "q3map_sun": 0,
+   "q3map_skyLight": 0,
+   "q3map_surfacelight": 24,
+   "q3map_lightimage": 4
+  }
+ },
+ "worldspawnKeys": {
+  "maps": 54,
+  "keyCounts": {
+   "classname": 54,
+   "ambientlight": 45,
+   "suncolor": 43,
+   "sunflare": 4,
+   "sundirection": 46,
+   "sunlight": 4,
+   "overbright": 5,
+   "sundiffuse": 21,
+   "lightmapdensity": 1,
+   "sunflarename": 29,
+   "light": 2,
+   "ambient": 2,
+   "sundiffusecolor": 8,
+   "_color": 2,
+   "sunflare_inportalsky": 1,
+   "sunangle": 1
+  },
+  "perMap": {
+   "maps/briefing/briefing1.bsp": {
+    "classname": "worldspawn"
+   },
+   "maps/briefing/briefing2.bsp": {
+    "classname": "worldspawn"
+   },
+   "maps/briefing/briefing3.bsp": {
+    "classname": "worldspawn"
+   },
+   "maps/briefing/briefing4.bsp": {
+    "classname": "worldspawn"
+   },
+   "maps/briefing/briefing5.bsp": {
+    "classname": "worldspawn"
+   },
+   "maps/briefing/briefing6.bsp": {
+    "classname": "worldspawn"
+   },
+   "maps/credits.bsp": {
+    "classname": "worldspawn"
+   },
+   "maps/dm/mohdm1.bsp": {
+    "ambientlight": "7.5 7.5 7.5",
+    "suncolor": "65 60 45",
+    "sunflare": "-7980 5388 3396",
+    "sundirection": "320 150 0",
+    "sunlight": "255 243 171",
+    "classname": "worldspawn",
+    "overbright": "all",
+    "sundiffuse": "1.3",
+    "lightmapdensity": "16"
+   },
+   "maps/dm/mohdm2.bsp": {
+    "sundiffuse": "1",
+    "ambientlight": "9 9 9",
+    "sundirection": "315 210 0",
+    "suncolor": "70 70 70",
+    "classname": "worldspawn",
+    "sunflarename": "none"
+   },
+   "maps/dm/mohdm3.bsp": {
+    "classname": "worldspawn",
+    "ambientlight": "7 7 7",
+    "sundirection": "315 250 0",
+    "sunlight": "90 85 65",
+    "sunflare": "-640 -696 940"
+   },
+   "maps/dm/mohdm4.bsp": {
+    "sundiffuse": "1",
+    "sundirection": "315 210 0",
+    "suncolor": "70 70 70",
+    "light": "85",
+    "ambientlight": "8 8 8",
+    "classname": "worldspawn",
+    "sunflarename": "none"
+   },
+   "maps/dm/mohdm5.bsp": {
+    "sunflarename": "none",
+    "sundiffuse": "1",
+    "suncolor": "15 15 20",
+    "ambientlight": "7 7 7",
+    "classname": "worldspawn",
+    "sundirection": "-70 110 0"
+   },
+   "maps/dm/mohdm6.bsp": {
+    "ambientlight": "20 19 18",
+    "sundiffuse": "1",
+    "sundirection": "-90 90 0",
+    "suncolor": "85 85 85",
+    "ambient": "50",
+    "classname": "worldspawn",
+    "sundiffusecolor": "85 85 85"
+   },
+   "maps/dm/mohdm7.bsp": {
+    "sundirection": "-35 130 0",
+    "suncolor": "30 29 30",
+    "ambientlight": "15 15 15",
+    "classname": "worldspawn",
+    "sundiffuse": "1",
+    "sunflarename": "none"
+   },
+   "maps/m1l1.bsp": {
+    "sunflarename": "none",
+    "classname": "worldspawn",
+    "suncolor": "10 15 30",
+    "sundirection": "-30 300 0",
+    "ambientlight": "8 9.2 20"
+   },
+   "maps/m1l2a.bsp": {
+    "ambientlight": "7 7 9",
+    "sunflarename": "none",
+    "sundirection": "-45 75 0",
+    "suncolor": "14 14 16",
+    "classname": "worldspawn",
+    "_color": "1.000000 1.000000 1.000000"
+   },
+   "maps/m1l2b.bsp": {
+    "sunflarename": "none",
+    "classname": "worldspawn",
+    "suncolor": "24 24 26",
+    "sundirection": "-45 75 0",
+    "ambientlight": "5 5 7"
+   },
+   "maps/m1l3a.bsp": {
+    "classname": "worldspawn",
+    "sundirection": "-30 300 0",
+    "suncolor": "30 30 45",
+    "ambientlight": "5 4.8 6",
+    "sunflarename": "none"
+   },
+   "maps/m1l3b.bsp": {
+    "ambientlight": "5 4.8 6",
+    "suncolor": "30 30 45",
+    "sundirection": "-30 300 0",
+    "classname": "worldspawn",
+    "sunflarename": "none"
+   },
+   "maps/m1l3c.bsp": {
+    "ambientlight": "10 10 10",
+    "classname": "worldspawn",
+    "sunlight": "35 34 35",
+    "sundirection": "270 90 0",
+    "sunflarename": "none"
+   },
+   "maps/m2l1.bsp": {
+    "ambientlight": "5 5 5",
+    "classname": "worldspawn",
+    "sundirection": "-28 110 0",
+    "suncolor": "50 45 45",
+    "sundiffusecolor": "95 95 105",
+    "sundiffuse": "3",
+    "sunflarename": "none",
+    "sunflare_inportalsky": "1"
+   },
+   "maps/m2l2a.bsp": {
+    "ambientlight": "10 10 9",
+    "sundiffusecolor": "95 95 105",
+    "suncolor": "100 92 92",
+    "sundirection": "-50 135 0",
+    "classname": "worldspawn"
+   },
+   "maps/m2l2b.bsp": {
+    "ambientlight": "10 10 9",
+    "classname": "worldspawn",
+    "sundirection": "-50 135 0",
+    "suncolor": "100 92 92",
+    "sundiffusecolor": "95 95 105"
+   },
+   "maps/m2l2c.bsp": {
+    "sundiffusecolor": "95 95 105",
+    "suncolor": "100 92 92",
+    "sundirection": "-50 135 0",
+    "classname": "worldspawn",
+    "ambientlight": "10 10 9"
+   },
+   "maps/m2l3.bsp": {
+    "overbright": "all",
+    "sundiffuse": "3",
+    "sundiffusecolor": "95 95 105",
+    "suncolor": "120 107 107",
+    "sundirection": "-28 110 0",
+    "classname": "worldspawn",
+    "ambientlight": "14 14 12"
+   },
+   "maps/m3l1a.bsp": {
+    "overbright": "none",
+    "ambientlight": "10 12 13",
+    "classname": "worldspawn",
+    "suncolor": "85 88 89",
+    "sundirection": "270 360 0",
+    "sundiffuse": "3",
+    "sunflarename": "none"
+   },
+   "maps/m3l1b.bsp": {
+    "overbright": "none",
+    "ambientlight": "7 7 7",
+    "classname": "worldspawn",
+    "suncolor": "45 48 49",
+    "sundirection": "270 360 0",
+    "sundiffuse": "3",
+    "sunflarename": "none"
+   },
+   "maps/m3l2.bsp": {
+    "sundiffuse": "3",
+    "classname": "worldspawn",
+    "sunflare": "4096 -5604 1200",
+    "sundirection": "315 315 0",
+    "sunlight": "90 90 90",
+    "ambientlight": "10 10 10"
+   },
+   "maps/m3l3.bsp": {
+    "ambientlight": "10 10 10",
+    "sundirection": "315 315 0",
+    "classname": "worldspawn",
+    "suncolor": "90 90 90",
+    "sundiffuse": "3"
+   },
+   "maps/m4l0.bsp": {
+    "classname": "worldspawn",
+    "suncolor": "55 48 36",
+    "sundirection": "330 230 0",
+    "ambientlight": "7 6 4.6"
+   },
+   "maps/m4l1.bsp": {
+    "sunflarename": "none",
+    "sundirection": "-35 100 0",
+    "suncolor": "38.8 62.4 88.8",
+    "classname": "worldspawn"
+   },
+   "maps/m4l2.bsp": {
+    "sundirection": "-35 10 0",
+    "classname": "worldspawn",
+    "suncolor": "42 64 95",
+    "sunflarename": "none",
+    "sundiffusecolor": "42 64 95",
+    "ambientlight": "7.75 10.3 15",
+    "sundiffuse": ".4"
+   },
+   "maps/m4l3.bsp": {
+    "ambientlight": "7.75 10.3 15",
+    "sundiffusecolor": "42 64 95",
+    "sundirection": "-35 10 0",
+    "suncolor": "42 64 95",
+    "classname": "worldspawn",
+    "sundiffuse": ".4",
+    "sunflarename": "none"
+   },
+   "maps/m5l1a.bsp": {
+    "sunflarename": "none",
+    "sundirection": "238 210 0",
+    "sundiffuse": "1",
+    "classname": "worldspawn",
+    "suncolor": "90 90 90",
+    "ambientlight": "10 10 10"
+   },
+   "maps/m5l1b.bsp": {
+    "sunflarename": "none",
+    "sundirection": "238 210 0",
+    "sundiffuse": "1",
+    "classname": "worldspawn",
+    "suncolor": "90 90 90",
+    "ambientlight": "10 10 10"
+   },
+   "maps/m5l2a.bsp": {
+    "ambientlight": "8 8 8",
+    "sundiffuse": "1",
+    "sundirection": "238 210 0",
+    "suncolor": "60 60 65",
+    "classname": "worldspawn"
+   },
+   "maps/m5l2b.bsp": {
+    "sundirection": "238 210 0",
+    "suncolor": "60 60 65",
+    "ambientlight": "8 8 8",
+    "sundiffuse": "1",
+    "classname": "worldspawn"
+   },
+   "maps/m5l3.bsp": {
+    "sundirection": "238 210 0",
+    "sunangle": "238 210 0",
+    "sunflare": "-748 1428 1772",
+    "classname": "worldspawn",
+    "ambientlight": "20 20 20",
+    "suncolor": "110 100 90",
+    "sundiffuse": "1"
+   },
+   "maps/m6l1a.bsp": {
+    "sunflarename": "none",
+    "classname": "worldspawn",
+    "suncolor": "25 25 30",
+    "sundirection": "-75 110 0",
+    "ambientlight": "5 5 5"
+   },
+   "maps/m6l1b.bsp": {
+    "sunflarename": "none",
+    "ambientlight": "5 5 5",
+    "sundirection": "-75 110 0",
+    "suncolor": "25 25 30",
+    "classname": "worldspawn"
+   },
+   "maps/m6l1c.bsp": {
+    "sunflarename": "none",
+    "ambientlight": "5 5 5",
+    "sundirection": "-75 110 0",
+    "classname": "worldspawn",
+    "suncolor": "25 25 30"
+   },
+   "maps/m6l2a.bsp": {
+    "ambientlight": "10 10 10",
+    "suncolor": "25 25 30",
+    "sundirection": "-70 110 0",
+    "classname": "worldspawn",
+    "sunflarename": "none"
+   },
+   "maps/m6l2b.bsp": {
+    "suncolor": "15 15 20",
+    "ambientlight": "5 5 5",
+    "classname": "worldspawn",
+    "sundirection": "-70 110 0",
+    "sunflarename": "none"
+   },
+   "maps/m6l3a.bsp": {
+    "sunflarename": "none",
+    "suncolor": "35 35 50",
+    "sundirection": "280 215 0",
+    "classname": "worldspawn",
+    "ambientlight": "7 7 7"
+   },
+   "maps/m6l3b.bsp": {
+    "suncolor": "30 30 45",
+    "sundirection": "280 215 0",
+    "classname": "worldspawn",
+    "ambientlight": "5 5 5"
+   },
+   "maps/m6l3c.bsp": {
+    "suncolor": "30 30 45",
+    "sundirection": "280 215 0",
+    "classname": "worldspawn",
+    "ambientlight": "5 5 5"
+   },
+   "maps/m6l3d.bsp": {
+    "suncolor": "30 30 45",
+    "sundirection": "280 215 0",
+    "classname": "worldspawn",
+    "ambientlight": "5 5 5"
+   },
+   "maps/m6l3e.bsp": {
+    "sunflarename": "none",
+    "ambientlight": "8 8 9",
+    "classname": "worldspawn",
+    "sundirection": "280 215 0",
+    "suncolor": "50 50 65"
+   },
+   "maps/obj/obj_team1.bsp": {
+    "ambientlight": "10 10 10",
+    "sundirection": "335 315 0",
+    "classname": "worldspawn",
+    "suncolor": "70 70 70",
+    "sunflarename": "none"
+   },
+   "maps/obj/obj_team2.bsp": {
+    "ambient": "35",
+    "ambientlight": "5.1 5.1 5.1",
+    "classname": "worldspawn",
+    "suncolor": "70 70 70",
+    "sundirection": "315 90 0",
+    "_color": "1.0 0.9 0.8"
+   },
+   "maps/obj/obj_team3.bsp": {
+    "overbright": "none",
+    "ambientlight": "8 9 10",
+    "classname": "worldspawn",
+    "suncolor": "65 68 69",
+    "sundirection": "320 150 0",
+    "sundiffuse": "1.5",
+    "sunflarename": "none"
+   },
+   "maps/obj/obj_team4.bsp": {
+    "sunflarename": "none",
+    "classname": "worldspawn",
+    "ambientlight": "8 8 8",
+    "light": "85",
+    "suncolor": "70 70 70",
+    "sundirection": "315 210 0",
+    "sundiffuse": "1"
+   },
+   "maps/training.bsp": {
+    "sunflarename": "none",
+    "ambientlight": "9 8 6",
+    "sundirection": "330 70 0",
+    "suncolor": "70 65 60",
+    "classname": "worldspawn"
+   },
+   "maps/void.bsp": {
+    "classname": "worldspawn"
+   }
+  }
+ },
+ "lightmapFit": {
+  "method": "planar lightmapped surfaces grouped by normal; luxel world point lightmapOrigin + s*lightmapVecs[0] + t*lightmapVecs[1]; per normal the 90th percentile of unsaturated luxels (brightest channel < 125); for opposite vertical walls (lit cos >= 0.2, >= 300 luxels each) sunScale = (lit - opposite) / (suncolor * (cos lit - max(0, cos opposite))); shadedWallOverDiffuse = (opposite - ambientlight) / diffuse colour",
+  "scripts": [
+   ".tmp/mohaa-sun/walls.py",
+   ".tmp/mohaa-sun/floors.py",
+   ".tmp/mohaa-sun/normals.py",
+   ".tmp/mohaa-sun/triples.py",
+   ".tmp/mohaa-sun/keys.py"
+  ],
+  "wallPairs": {
+   "pairs": 405,
+   "median": 0.9795512170304587,
+   "p25": 0.785144140943951,
+   "p75": 1.1149548879315705
+  },
+  "mapsUnderOneFifthSaturated": {
+   "maps": 28,
+   "medianOfMedians": 0.994,
+   "p25": 0.837,
+   "p75": 1.045
+  },
+  "perMap": {
+   "maps/dm/mohdm1.bsp": {
+    "pairs": 3,
+    "sunScaleMedian": -0.185,
+    "shadedWallOverDiffuseMedian": 0.356,
+    "sundiffuse": "1.3",
+    "floorSaturatedShare": 0.27
+   },
+   "maps/dm/mohdm2.bsp": {
+    "pairs": 5,
+    "sunScaleMedian": 0.997,
+    "shadedWallOverDiffuseMedian": 0.643,
+    "sundiffuse": "1",
+    "floorSaturatedShare": 0.037
+   },
+   "maps/dm/mohdm3.bsp": {
+    "pairs": 20,
+    "sunScaleMedian": 0.985,
+    "shadedWallOverDiffuseMedian": 0.553,
+    "sundiffuse": null,
+    "floorSaturatedShare": 0.079
+   },
+   "maps/dm/mohdm4.bsp": {
+    "pairs": 28,
+    "sunScaleMedian": 1.026,
+    "shadedWallOverDiffuseMedian": 0.586,
+    "sundiffuse": "1",
+    "floorSaturatedShare": 0.085
+   },
+   "maps/dm/mohdm5.bsp": {
+    "pairs": 1,
+    "sunScaleMedian": 0.956,
+    "shadedWallOverDiffuseMedian": 0.4,
+    "sundiffuse": "1",
+    "floorSaturatedShare": 0.0
+   },
+   "maps/dm/mohdm7.bsp": {
+    "pairs": 5,
+    "sunScaleMedian": 0.661,
+    "shadedWallOverDiffuseMedian": 0.897,
+    "sundiffuse": "1",
+    "floorSaturatedShare": 0.007
+   },
+   "maps/m1l1.bsp": {
+    "pairs": 3,
+    "sunScaleMedian": 1.463,
+    "shadedWallOverDiffuseMedian": 2.053,
+    "sundiffuse": null,
+    "floorSaturatedShare": 0.006
+   },
+   "maps/m1l2a.bsp": {
+    "pairs": 3,
+    "sunScaleMedian": 1.716,
+    "shadedWallOverDiffuseMedian": 1.843,
+    "sundiffuse": null,
+    "floorSaturatedShare": 0.009
+   },
+   "maps/m1l2b.bsp": {
+    "pairs": 3,
+    "sunScaleMedian": -0.361,
+    "shadedWallOverDiffuseMedian": 2.292,
+    "sundiffuse": null,
+    "floorSaturatedShare": 0.076
+   },
+   "maps/m1l3a.bsp": {
+    "pairs": 2,
+    "sunScaleMedian": 0.964,
+    "shadedWallOverDiffuseMedian": 0.523,
+    "sundiffuse": null,
+    "floorSaturatedShare": 0.0
+   },
+   "maps/m1l3b.bsp": {
+    "pairs": 2,
+    "sunScaleMedian": 0.787,
+    "shadedWallOverDiffuseMedian": 1.19,
+    "sundiffuse": null,
+    "floorSaturatedShare": 0.072
+   },
+   "maps/m2l1.bsp": {
+    "pairs": 4,
+    "sunScaleMedian": 0.802,
+    "shadedWallOverDiffuseMedian": 0.421,
+    "sundiffuse": "3",
+    "floorSaturatedShare": 0.01
+   },
+   "maps/m2l2a.bsp": {
+    "pairs": 3,
+    "sunScaleMedian": 0.008,
+    "shadedWallOverDiffuseMedian": 0.547,
+    "sundiffuse": null,
+    "floorSaturatedShare": 0.385
+   },
+   "maps/m2l2b.bsp": {
+    "pairs": 3,
+    "sunScaleMedian": 0.07,
+    "shadedWallOverDiffuseMedian": 0.594,
+    "sundiffuse": null,
+    "floorSaturatedShare": 0.473
+   },
+   "maps/m2l2c.bsp": {
+    "pairs": 3,
+    "sunScaleMedian": 0.129,
+    "shadedWallOverDiffuseMedian": 0.379,
+    "sundiffuse": null,
+    "floorSaturatedShare": 0.394
+   },
+   "maps/m2l3.bsp": {
+    "pairs": 6,
+    "sunScaleMedian": -0.011,
+    "shadedWallOverDiffuseMedian": 0.492,
+    "sundiffuse": "3",
+    "floorSaturatedShare": 0.28
+   },
+   "maps/m3l2.bsp": {
+    "pairs": 17,
+    "sunScaleMedian": 1.033,
+    "shadedWallOverDiffuseMedian": 0.567,
+    "sundiffuse": "3",
+    "floorSaturatedShare": 0.274
+   },
+   "maps/m3l3.bsp": {
+    "pairs": 68,
+    "sunScaleMedian": 0.942,
+    "shadedWallOverDiffuseMedian": 0.589,
+    "sundiffuse": "3",
+    "floorSaturatedShare": 0.322
+   },
+   "maps/m4l0.bsp": {
+    "pairs": 7,
+    "sunScaleMedian": 0.849,
+    "shadedWallOverDiffuseMedian": 0.542,
+    "sundiffuse": null,
+    "floorSaturatedShare": 0.001
+   },
+   "maps/m4l1.bsp": {
+    "pairs": 6,
+    "sunScaleMedian": 0.967,
+    "shadedWallOverDiffuseMedian": 0.617,
+    "sundiffuse": null,
+    "floorSaturatedShare": 0.061
+   },
+   "maps/m4l2.bsp": {
+    "pairs": 24,
+    "sunScaleMedian": 1.029,
+    "shadedWallOverDiffuseMedian": 0.23,
+    "sundiffuse": ".4",
+    "floorSaturatedShare": 0.022
+   },
+   "maps/m4l3.bsp": {
+    "pairs": 9,
+    "sunScaleMedian": 1.08,
+    "shadedWallOverDiffuseMedian": 0.23,
+    "sundiffuse": ".4",
+    "floorSaturatedShare": 0.054
+   },
+   "maps/m5l1a.bsp": {
+    "pairs": 5,
+    "sunScaleMedian": 1.059,
+    "shadedWallOverDiffuseMedian": 0.456,
+    "sundiffuse": "1",
+    "floorSaturatedShare": 0.145
+   },
+   "maps/m5l1b.bsp": {
+    "pairs": 12,
+    "sunScaleMedian": 1.353,
+    "shadedWallOverDiffuseMedian": 0.396,
+    "sundiffuse": "1",
+    "floorSaturatedShare": 0.108
+   },
+   "maps/m5l2a.bsp": {
+    "pairs": 12,
+    "sunScaleMedian": 0.906,
+    "shadedWallOverDiffuseMedian": 0.483,
+    "sundiffuse": "1",
+    "floorSaturatedShare": 0.0
+   },
+   "maps/m5l2b.bsp": {
+    "pairs": 26,
+    "sunScaleMedian": 1.0,
+    "shadedWallOverDiffuseMedian": 0.55,
+    "sundiffuse": "1",
+    "floorSaturatedShare": 0.0
+   },
+   "maps/m5l3.bsp": {
+    "pairs": 11,
+    "sunScaleMedian": 0.979,
+    "shadedWallOverDiffuseMedian": 0.39,
+    "sundiffuse": "1",
+    "floorSaturatedShare": 0.626
+   },
+   "maps/m6l1a.bsp": {
+    "pairs": 9,
+    "sunScaleMedian": 0.297,
+    "shadedWallOverDiffuseMedian": 0.72,
+    "sundiffuse": null,
+    "floorSaturatedShare": 0.0
+   },
+   "maps/m6l1b.bsp": {
+    "pairs": 10,
+    "sunScaleMedian": 1.044,
+    "shadedWallOverDiffuseMedian": 0.52,
+    "sundiffuse": null,
+    "floorSaturatedShare": 0.0
+   },
+   "maps/m6l1c.bsp": {
+    "pairs": 2,
+    "sunScaleMedian": 0.244,
+    "shadedWallOverDiffuseMedian": 2.32,
+    "sundiffuse": null,
+    "floorSaturatedShare": 0.056
+   },
+   "maps/m6l2a.bsp": {
+    "pairs": 6,
+    "sunScaleMedian": 1.09,
+    "shadedWallOverDiffuseMedian": 0.802,
+    "sundiffuse": null,
+    "floorSaturatedShare": 0.0
+   },
+   "maps/m6l2b.bsp": {
+    "pairs": 4,
+    "sunScaleMedian": 0.992,
+    "shadedWallOverDiffuseMedian": 0.667,
+    "sundiffuse": null,
+    "floorSaturatedShare": 0.0
+   },
+   "maps/obj/obj_team1.bsp": {
+    "pairs": 38,
+    "sunScaleMedian": 1.009,
+    "shadedWallOverDiffuseMedian": 0.586,
+    "sundiffuse": null,
+    "floorSaturatedShare": 0.012
+   },
+   "maps/obj/obj_team2.bsp": {
+    "pairs": 3,
+    "sunScaleMedian": 0.379,
+    "shadedWallOverDiffuseMedian": 1.0,
+    "sundiffuse": null,
+    "floorSaturatedShare": 0.069
+   },
+   "maps/obj/obj_team3.bsp": {
+    "pairs": 4,
+    "sunScaleMedian": 0.821,
+    "shadedWallOverDiffuseMedian": 0.75,
+    "sundiffuse": "1.5",
+    "floorSaturatedShare": 0.257
+   },
+   "maps/obj/obj_team4.bsp": {
+    "pairs": 32,
+    "sunScaleMedian": 1.003,
+    "shadedWallOverDiffuseMedian": 0.586,
+    "sundiffuse": "1",
+    "floorSaturatedShare": 0.085
+   },
+   "maps/training.bsp": {
+    "pairs": 6,
+    "sunScaleMedian": 1.047,
+    "shadedWallOverDiffuseMedian": 0.569,
+    "sundiffuse": null,
+    "floorSaturatedShare": 0.008
+   }
+  },
+  "openFloors": {
+   "maps/dm/mohdm1.bsp": {
+    "sundirection": "320 150 0",
+    "suncolor": [
+     255.0,
+     243.0,
+     171.0
+    ],
+    "sundiffuse": 1.3,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.27,
+    "floorP90": [
+     100.0,
+     95.0,
+     70.0
+    ],
+    "restOverDiffuseColor": [
+     -0.28,
+     -0.283,
+     -0.277
+    ]
+   },
+   "maps/dm/mohdm2.bsp": {
+    "sundirection": "315 210 0",
+    "suncolor": [
+     70.0,
+     70.0,
+     70.0
+    ],
+    "sundiffuse": 1.0,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.037,
+    "floorP90": [
+     100.0,
+     100.0,
+     100.0
+    ],
+    "restOverDiffuseColor": [
+     0.593,
+     0.593,
+     0.593
+    ]
+   },
+   "maps/dm/mohdm3.bsp": {
+    "sundirection": "315 250 0",
+    "suncolor": [
+     90.0,
+     85.0,
+     65.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.079,
+    "floorP90": [
+     115.0,
+     109.0,
+     85.0
+    ],
+    "restOverDiffuseColor": [
+     0.493,
+     0.493,
+     0.493
+    ]
+   },
+   "maps/dm/mohdm4.bsp": {
+    "sundirection": "315 210 0",
+    "suncolor": [
+     70.0,
+     70.0,
+     70.0
+    ],
+    "sundiffuse": 1.0,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.085,
+    "floorP90": [
+     108.0,
+     107.0,
+     107.0
+    ],
+    "restOverDiffuseColor": [
+     0.721,
+     0.707,
+     0.707
+    ]
+   },
+   "maps/dm/mohdm5.bsp": {
+    "sundirection": "-70 110 0",
+    "suncolor": [
+     15.0,
+     15.0,
+     20.0
+    ],
+    "sundiffuse": 1.0,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.0,
+    "floorP90": [
+     34.0,
+     33.0,
+     41.0
+    ],
+    "restOverDiffuseColor": [
+     0.86,
+     0.794,
+     0.76
+    ]
+   },
+   "maps/dm/mohdm6.bsp": {
+    "sundirection": "-90 90 0",
+    "suncolor": [
+     85.0,
+     85.0,
+     85.0
+    ],
+    "sundiffuse": 1.0,
+    "sundiffusecolor": [
+     85.0,
+     85.0,
+     85.0
+    ],
+    "saturatedShare": 0.051,
+    "floorP90": [
+     90.0,
+     83.0,
+     76.0
+    ],
+    "restOverDiffuseColor": [
+     -0.176,
+     -0.247,
+     -0.318
+    ]
+   },
+   "maps/dm/mohdm7.bsp": {
+    "sundirection": "-35 130 0",
+    "suncolor": [
+     30.0,
+     29.0,
+     30.0
+    ],
+    "sundiffuse": 1.0,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.007,
+    "floorP90": [
+     56.0,
+     54.0,
+     54.0
+    ],
+    "restOverDiffuseColor": [
+     0.793,
+     0.771,
+     0.726
+    ]
+   },
+   "maps/m1l1.bsp": {
+    "sundirection": "-30 300 0",
+    "suncolor": [
+     10.0,
+     15.0,
+     30.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.006,
+    "floorP90": [
+     53.0,
+     51.0,
+     61.0
+    ],
+    "restOverDiffuseColor": [
+     4.0,
+     2.287,
+     0.867
+    ]
+   },
+   "maps/m1l2a.bsp": {
+    "sundirection": "-45 75 0",
+    "suncolor": [
+     14.0,
+     14.0,
+     16.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.009,
+    "floorP90": [
+     50.0,
+     47.0,
+     44.0
+    ],
+    "restOverDiffuseColor": [
+     2.364,
+     2.15,
+     1.48
+    ]
+   },
+   "maps/m1l2b.bsp": {
+    "sundirection": "-45 75 0",
+    "suncolor": [
+     24.0,
+     24.0,
+     26.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.076,
+    "floorP90": [
+     97.0,
+     89.0,
+     84.0
+    ],
+    "restOverDiffuseColor": [
+     3.126,
+     2.793,
+     2.254
+    ]
+   },
+   "maps/m1l3a.bsp": {
+    "sundirection": "-30 300 0",
+    "suncolor": [
+     30.0,
+     30.0,
+     45.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.0,
+    "floorP90": [
+     49.0,
+     48.0,
+     68.0
+    ],
+    "restOverDiffuseColor": [
+     0.967,
+     0.94,
+     0.878
+    ]
+   },
+   "maps/m1l3b.bsp": {
+    "sundirection": "-30 300 0",
+    "suncolor": [
+     30.0,
+     30.0,
+     45.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.072,
+    "floorP90": [
+     101.0,
+     101.0,
+     110.0
+    ],
+    "restOverDiffuseColor": [
+     2.7,
+     2.707,
+     1.811
+    ]
+   },
+   "maps/m1l3c.bsp": {
+    "sundirection": "270 90 0",
+    "suncolor": [
+     35.0,
+     34.0,
+     35.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.005,
+    "floorP90": [
+     77.0,
+     72.0,
+     71.0
+    ],
+    "restOverDiffuseColor": [
+     0.914,
+     0.824,
+     0.743
+    ]
+   },
+   "maps/m2l1.bsp": {
+    "sundirection": "-28 110 0",
+    "suncolor": [
+     50.0,
+     45.0,
+     45.0
+    ],
+    "sundiffuse": 3.0,
+    "sundiffusecolor": [
+     95.0,
+     95.0,
+     105.0
+    ],
+    "saturatedShare": 0.01,
+    "floorP90": [
+     98.0,
+     95.0,
+     101.0
+    ],
+    "restOverDiffuseColor": [
+     0.732,
+     0.725,
+     0.713
+    ]
+   },
+   "maps/m2l2a.bsp": {
+    "sundirection": "-50 135 0",
+    "suncolor": [
+     100.0,
+     92.0,
+     92.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": [
+     95.0,
+     95.0,
+     105.0
+    ],
+    "saturatedShare": 0.385,
+    "floorP90": [
+     85.0,
+     76.0,
+     62.0
+    ],
+    "restOverDiffuseColor": [
+     -0.017,
+     -0.047,
+     -0.166
+    ]
+   },
+   "maps/m2l2b.bsp": {
+    "sundirection": "-50 135 0",
+    "suncolor": [
+     100.0,
+     92.0,
+     92.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": [
+     95.0,
+     95.0,
+     105.0
+    ],
+    "saturatedShare": 0.473,
+    "floorP90": [
+     85.0,
+     76.0,
+     63.0
+    ],
+    "restOverDiffuseColor": [
+     -0.017,
+     -0.047,
+     -0.157
+    ]
+   },
+   "maps/m2l2c.bsp": {
+    "sundirection": "-50 135 0",
+    "suncolor": [
+     100.0,
+     92.0,
+     92.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": [
+     95.0,
+     95.0,
+     105.0
+    ],
+    "saturatedShare": 0.394,
+    "floorP90": [
+     75.0,
+     68.0,
+     56.0
+    ],
+    "restOverDiffuseColor": [
+     -0.122,
+     -0.131,
+     -0.224
+    ]
+   },
+   "maps/m2l3.bsp": {
+    "sundirection": "-28 110 0",
+    "suncolor": [
+     120.0,
+     107.0,
+     107.0
+    ],
+    "sundiffuse": 3.0,
+    "sundiffusecolor": [
+     95.0,
+     95.0,
+     105.0
+    ],
+    "saturatedShare": 0.28,
+    "floorP90": [
+     89.0,
+     84.0,
+     78.0
+    ],
+    "restOverDiffuseColor": [
+     0.196,
+     0.208,
+     0.15
+    ]
+   },
+   "maps/m3l1a.bsp": {
+    "sundirection": "270 360 0",
+    "suncolor": [
+     85.0,
+     88.0,
+     89.0
+    ],
+    "sundiffuse": 3.0,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.913,
+    "floorP90": [
+     72.0,
+     74.0,
+     75.0
+    ],
+    "restOverDiffuseColor": [
+     -0.271,
+     -0.295,
+     -0.303
+    ]
+   },
+   "maps/m3l1b.bsp": {
+    "sundirection": "270 360 0",
+    "suncolor": [
+     45.0,
+     48.0,
+     49.0
+    ],
+    "sundiffuse": 3.0,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.003,
+    "floorP90": [
+     90.0,
+     96.0,
+     98.0
+    ],
+    "restOverDiffuseColor": [
+     0.844,
+     0.854,
+     0.857
+    ]
+   },
+   "maps/m3l2.bsp": {
+    "sundirection": "315 315 0",
+    "suncolor": [
+     90.0,
+     90.0,
+     90.0
+    ],
+    "sundiffuse": 3.0,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.274,
+    "floorP90": [
+     115.0,
+     115.0,
+     115.0
+    ],
+    "restOverDiffuseColor": [
+     0.46,
+     0.46,
+     0.46
+    ]
+   },
+   "maps/m3l3.bsp": {
+    "sundirection": "315 315 0",
+    "suncolor": [
+     90.0,
+     90.0,
+     90.0
+    ],
+    "sundiffuse": 3.0,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.322,
+    "floorP90": [
+     112.0,
+     112.0,
+     112.0
+    ],
+    "restOverDiffuseColor": [
+     0.426,
+     0.426,
+     0.426
+    ]
+   },
+   "maps/m4l0.bsp": {
+    "sundirection": "330 230 0",
+    "suncolor": [
+     55.0,
+     48.0,
+     36.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.001,
+    "floorP90": [
+     78.0,
+     68.0,
+     51.0
+    ],
+    "restOverDiffuseColor": [
+     0.791,
+     0.792,
+     0.789
+    ]
+   },
+   "maps/m4l1.bsp": {
+    "sundirection": "-35 100 0",
+    "suncolor": [
+     38.8,
+     62.4,
+     88.8
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.061,
+    "floorP90": [
+     53.0,
+     82.0,
+     115.0
+    ],
+    "restOverDiffuseColor": [
+     0.792,
+     0.741,
+     0.721
+    ]
+   },
+   "maps/m4l2.bsp": {
+    "sundirection": "-35 10 0",
+    "suncolor": [
+     42.0,
+     64.0,
+     95.0
+    ],
+    "sundiffuse": 0.4,
+    "sundiffusecolor": [
+     42.0,
+     64.0,
+     95.0
+    ],
+    "saturatedShare": 0.022,
+    "floorP90": [
+     51.0,
+     70.0,
+     101.0
+    ],
+    "restOverDiffuseColor": [
+     0.456,
+     0.359,
+     0.332
+    ]
+   },
+   "maps/m4l3.bsp": {
+    "sundirection": "-35 10 0",
+    "suncolor": [
+     42.0,
+     64.0,
+     95.0
+    ],
+    "sundiffuse": 0.4,
+    "sundiffusecolor": [
+     42.0,
+     64.0,
+     95.0
+    ],
+    "saturatedShare": 0.054,
+    "floorP90": [
+     73.0,
+     81.0,
+     107.0
+    ],
+    "restOverDiffuseColor": [
+     0.98,
+     0.531,
+     0.395
+    ]
+   },
+   "maps/m5l1a.bsp": {
+    "sundirection": "238 210 0",
+    "suncolor": [
+     90.0,
+     90.0,
+     90.0
+    ],
+    "sundiffuse": 1.0,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.145,
+    "floorP90": [
+     113.0,
+     113.0,
+     113.0
+    ],
+    "restOverDiffuseColor": [
+     0.296,
+     0.296,
+     0.296
+    ]
+   },
+   "maps/m5l1b.bsp": {
+    "sundirection": "238 210 0",
+    "suncolor": [
+     90.0,
+     90.0,
+     90.0
+    ],
+    "sundiffuse": 1.0,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.108,
+    "floorP90": [
+     110.0,
+     110.0,
+     110.0
+    ],
+    "restOverDiffuseColor": [
+     0.263,
+     0.263,
+     0.263
+    ]
+   },
+   "maps/m5l2a.bsp": {
+    "sundirection": "238 210 0",
+    "suncolor": [
+     60.0,
+     60.0,
+     65.0
+    ],
+    "sundiffuse": 1.0,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.0,
+    "floorP90": [
+     105.0,
+     105.0,
+     113.0
+    ],
+    "restOverDiffuseColor": [
+     0.769,
+     0.769,
+     0.767
+    ]
+   },
+   "maps/m5l2b.bsp": {
+    "sundirection": "238 210 0",
+    "suncolor": [
+     60.0,
+     60.0,
+     65.0
+    ],
+    "sundiffuse": 1.0,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.0,
+    "floorP90": [
+     109.0,
+     109.0,
+     117.0
+    ],
+    "restOverDiffuseColor": [
+     0.835,
+     0.835,
+     0.829
+    ]
+   },
+   "maps/m5l3.bsp": {
+    "sundirection": "238 210 0",
+    "suncolor": [
+     110.0,
+     100.0,
+     90.0
+    ],
+    "sundiffuse": 1.0,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.626,
+    "floorP90": [
+     80.0,
+     75.0,
+     69.0
+    ],
+    "restOverDiffuseColor": [
+     -0.303,
+     -0.298,
+     -0.304
+    ]
+   },
+   "maps/m6l1a.bsp": {
+    "sundirection": "-75 110 0",
+    "suncolor": [
+     25.0,
+     25.0,
+     30.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.0,
+    "floorP90": [
+     52.0,
+     52.0,
+     62.0
+    ],
+    "restOverDiffuseColor": [
+     0.914,
+     0.914,
+     0.934
+    ]
+   },
+   "maps/m6l1b.bsp": {
+    "sundirection": "-75 110 0",
+    "suncolor": [
+     25.0,
+     25.0,
+     30.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.0,
+    "floorP90": [
+     54.0,
+     54.0,
+     64.0
+    ],
+    "restOverDiffuseColor": [
+     0.994,
+     0.994,
+     1.001
+    ]
+   },
+   "maps/m6l1c.bsp": {
+    "sundirection": "-75 110 0",
+    "suncolor": [
+     25.0,
+     25.0,
+     30.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.056,
+    "floorP90": [
+     76.0,
+     71.0,
+     62.0
+    ],
+    "restOverDiffuseColor": [
+     1.874,
+     1.674,
+     0.934
+    ]
+   },
+   "maps/m6l2a.bsp": {
+    "sundirection": "-70 110 0",
+    "suncolor": [
+     25.0,
+     25.0,
+     30.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.0,
+    "floorP90": [
+     60.0,
+     60.0,
+     65.0
+    ],
+    "restOverDiffuseColor": [
+     1.06,
+     1.06,
+     0.894
+    ]
+   },
+   "maps/m6l2b.bsp": {
+    "sundirection": "-70 110 0",
+    "suncolor": [
+     15.0,
+     15.0,
+     20.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.0,
+    "floorP90": [
+     29.0,
+     29.0,
+     37.0
+    ],
+    "restOverDiffuseColor": [
+     0.66,
+     0.66,
+     0.66
+    ]
+   },
+   "maps/m6l3a.bsp": {
+    "sundirection": "280 215 0",
+    "suncolor": [
+     35.0,
+     35.0,
+     50.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.004,
+    "floorP90": [
+     70.0,
+     68.0,
+     89.0
+    ],
+    "restOverDiffuseColor": [
+     0.815,
+     0.758,
+     0.655
+    ]
+   },
+   "maps/m6l3b.bsp": {
+    "sundirection": "280 215 0",
+    "suncolor": [
+     30.0,
+     30.0,
+     45.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.01,
+    "floorP90": [
+     60.0,
+     53.0,
+     46.0
+    ],
+    "restOverDiffuseColor": [
+     0.849,
+     0.615,
+     -0.074
+    ]
+   },
+   "maps/m6l3c.bsp": {
+    "sundirection": "280 215 0",
+    "suncolor": [
+     30.0,
+     30.0,
+     45.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.014,
+    "floorP90": [
+     64.0,
+     57.0,
+     48.0
+    ],
+    "restOverDiffuseColor": [
+     0.982,
+     0.749,
+     -0.029
+    ]
+   },
+   "maps/m6l3d.bsp": {
+    "sundirection": "280 215 0",
+    "suncolor": [
+     30.0,
+     30.0,
+     45.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.01,
+    "floorP90": [
+     77.0,
+     73.0,
+     67.0
+    ],
+    "restOverDiffuseColor": [
+     1.415,
+     1.282,
+     0.393
+    ]
+   },
+   "maps/m6l3e.bsp": {
+    "sundirection": "280 215 0",
+    "suncolor": [
+     50.0,
+     50.0,
+     65.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.093,
+    "floorP90": [
+     91.0,
+     91.0,
+     117.0
+    ],
+    "restOverDiffuseColor": [
+     0.675,
+     0.675,
+     0.677
+    ]
+   },
+   "maps/obj/obj_team1.bsp": {
+    "sundirection": "335 315 0",
+    "suncolor": [
+     70.0,
+     70.0,
+     70.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.012,
+    "floorP90": [
+     82.0,
+     82.0,
+     81.0
+    ],
+    "restOverDiffuseColor": [
+     0.606,
+     0.606,
+     0.592
+    ]
+   },
+   "maps/obj/obj_team2.bsp": {
+    "sundirection": "315 90 0",
+    "suncolor": [
+     70.0,
+     70.0,
+     70.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.069,
+    "floorP90": [
+     99.0,
+     91.0,
+     82.0
+    ],
+    "restOverDiffuseColor": [
+     0.634,
+     0.52,
+     0.391
+    ]
+   },
+   "maps/obj/obj_team3.bsp": {
+    "sundirection": "320 150 0",
+    "suncolor": [
+     65.0,
+     68.0,
+     69.0
+    ],
+    "sundiffuse": 1.5,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.257,
+    "floorP90": [
+     101.0,
+     105.0,
+     107.0
+    ],
+    "restOverDiffuseColor": [
+     0.788,
+     0.769,
+     0.763
+    ]
+   },
+   "maps/obj/obj_team4.bsp": {
+    "sundirection": "315 210 0",
+    "suncolor": [
+     70.0,
+     70.0,
+     70.0
+    ],
+    "sundiffuse": 1.0,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.085,
+    "floorP90": [
+     108.0,
+     108.0,
+     108.0
+    ],
+    "restOverDiffuseColor": [
+     0.721,
+     0.721,
+     0.721
+    ]
+   },
+   "maps/training.bsp": {
+    "sundirection": "330 70 0",
+    "suncolor": [
+     70.0,
+     65.0,
+     60.0
+    ],
+    "sundiffuse": null,
+    "sundiffusecolor": null,
+    "saturatedShare": 0.008,
+    "floorP90": [
+     101.20000000000073,
+     93.0,
+     85.0
+    ],
+    "restOverDiffuseColor": [
+     0.817,
+     0.808,
+     0.817
+    ]
+   }
+  },
+  "saturation": "DM/mohdm6 sunlit floors 127 126 125: brightest channel stops at 127, hue kept"
+ },
+ "observed": [
+  "no 1.00 shader has q3map_sun or q3map_skyLight",
+  "46 of 54 worldspawns have sundirection; each has suncolor (43) or sunlight (4, DM/mohdm1 both)",
+  "AngleVectors(sundirection) is above the horizon on every map",
+  "opposite-wall pairs: the sun is stored as suncolor * cos (median 0.98 over 405 pairs; 0.99 over 28 maps)",
+  "ambientlight is stored as is (each map's commonest luxel)",
+  "sunlight alone is stored as a colour (DM/mohdm3, m3l2)",
+  "shaded walls keep ~0.55-0.6 of the diffuse colour at sundiffuse absent or 1, 0.23 at 0.4, no more at 1.5 or 3"
+ ],
+ "inferred": [
+  "the compiler sun gives suncolor * cos in lightmap bytes where it sees the sky",
+  "sundiffuse defaults to 1 and is held at 1 or less (clamped or ignored above, unsettled)",
+  "the diffuse sun gives an open level floor sundiffuse * sundiffusecolor (the sun colour without one)",
+  "with both colour keys the later one is the colour, as the renderer reads them"
+ ],
+ "unrelated": "obj/obj_team2 stores ambient 35 * _color 1.0 0.9 0.8 (commonest luxel 35 31 28), not ambientlight 5.1; RTX baked modes 1 and 2 read ambient/_color but not ambientlight",
+ "runtimes": {
+  "exportBase": "dfe1b9d49af822c0cf4ce2bcedfdbe82747e9e85",
+  "before": ".tmp/runtime/mohaa-sun-before (HEAD export, Windows x86 debugoptimized, strict warnings)",
+  "after": ".tmp/runtime/mohaa-sun-after (the same export with this change in rt_lights.c; fnql_rtx_x86.dll relinked)",
+  "probe": ".tmp/mohaa-sun/probe.py: windowed 800x600, private desktop, net_enabled 0, no input, empty home config, thereisnomonkey 1, screenshotPNG",
+  "captureStats": ".tmp/mohaa-sun/stats.py: mean sRGB of fixed patches of the last capture"
+ },
+ "live": [
+  {
+   "run": "after-m5l1a",
+   "profile": "mohaa",
+   "map": "m5l1a",
+   "gametype": "0",
+   "renderer": "rtx",
+   "runtime": ".tmp\\runtime\\mohaa-sun-after",
+   "identity": {
+    "fntech3.exe": "20b04290af5230abf2e29ccef325c75c48b5dd5af293e2a40a21fe23479d9620",
+    "fnql_rtx_x86.dll": "727e570b957d1726ca867f31f26f0ad73b9bd7c1c610663ba065426166302973",
+    "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+   },
+   "commands": [
+    "finishloadingscreen",
+    "wait 4000",
+    "tele -2667 -418 110",
+    "face 25 0 0"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 12.5,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "errors": [],
+   "captures": [
+    {
+     "name": "mohaa-sun-00.png",
+     "sha256": "c67244a856437b6a7af076854075241a790fa23ab2f6063802e8b03951c2e6b7"
+    },
+    {
+     "name": "mohaa-sun-01.png",
+     "sha256": "fba81784e3317c9c487cb95221e163623aec07454c09e49fd26a94f9c96f4d4c"
+    }
+   ],
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "rtxLines": [
+    "RTX RT: 1 lights (1 point, 0 surface triangles, q3map model), grid 90x56x15 of 128 units, 143 list entries, 175.8 ms",
+    "RTX RT: worldspawn sun 90.0 90.0 90.0 toward 0.459 0.265 0.848",
+    "RTX RT: worldspawn diffuse sky light 152.9 152.9 152.9 from 197 suns"
+   ],
+   "captureStats": {
+    "view": [
+     71.4,
+     69.8,
+     66.3
+    ],
+    "sunlitStreet": [
+     96.4,
+     95.7,
+     92.6
+    ],
+    "shadowStreet": [
+     48.7,
+     48.0,
+     46.7
+    ]
+   }
+  },
+  {
+   "run": "after-mohdm6-a",
+   "profile": "mohaa",
+   "map": "dm/mohdm6",
+   "gametype": "1",
+   "renderer": "rtx",
+   "runtime": ".tmp\\runtime\\mohaa-sun-after",
+   "identity": {
+    "fntech3.exe": "20b04290af5230abf2e29ccef325c75c48b5dd5af293e2a40a21fe23479d9620",
+    "fnql_rtx_x86.dll": "727e570b957d1726ca867f31f26f0ad73b9bd7c1c610663ba065426166302973",
+    "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+   },
+   "commands": [
+    "finishloadingscreen",
+    "wait 1000",
+    "cmd join_team allies",
+    "wait 1000",
+    "cmd primarydmweapon rifle",
+    "wait 3000",
+    "cmd tele 554 -455 -150",
+    "cmd face 25 90 0"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 13.9,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "errors": [],
+   "captures": [
+    {
+     "name": "mohaa-sun-00.png",
+     "sha256": "aad399a080ea6f9b969a2e1b38245fed91a7f3bf1ea73ab214c9279f4d02a33a"
+    },
+    {
+     "name": "mohaa-sun-01.png",
+     "sha256": "51664a54e629ef76f2fdf9d2d7f2642f40bd34aab197d3aab6988f0b0407c7ec"
+    }
+   ],
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "rtxLines": [
+    "RTX RT: 293 lights (293 point, 0 surface triangles, q3map model), grid 25x22x13 of 128 units, 152000 list entries, 41.1 ms",
+    "RTX RT: worldspawn sun 85.0 85.0 85.0 toward 0.000 -0.000 1.000",
+    "RTX RT: worldspawn diffuse sky light 144.4 144.4 144.4 from 197 suns"
+   ],
+   "captureStats": {
+    "view": [
+     149.3,
+     128.3,
+     100.6
+    ],
+    "sunlitFloor": [
+     206.7,
+     177.1,
+     137.9
+    ],
+    "wall": [
+     31.4,
+     26.6,
+     19.8
+    ]
+   }
+  },
+  {
+   "run": "after-mohdm6-b",
+   "profile": "mohaa",
+   "map": "dm/mohdm6",
+   "gametype": "1",
+   "renderer": "rtx",
+   "runtime": ".tmp\\runtime\\mohaa-sun-after",
+   "identity": {
+    "fntech3.exe": "20b04290af5230abf2e29ccef325c75c48b5dd5af293e2a40a21fe23479d9620",
+    "fnql_rtx_x86.dll": "727e570b957d1726ca867f31f26f0ad73b9bd7c1c610663ba065426166302973",
+    "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+   },
+   "commands": [
+    "finishloadingscreen",
+    "wait 1000",
+    "cmd join_team allies",
+    "wait 1000",
+    "cmd primarydmweapon rifle",
+    "wait 3000",
+    "cmd tele -891 756 500",
+    "cmd face 30 270 0"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 12.9,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "errors": [],
+   "captures": [
+    {
+     "name": "mohaa-sun-00.png",
+     "sha256": "f8bd638eabceb1c126bef9cb65187fc3cda22a9e50df98b4e61e2a09b3a1c51a"
+    },
+    {
+     "name": "mohaa-sun-01.png",
+     "sha256": "f25efc41e3619244eece0725ad10037ba76e1e00f9027cb0d050e3377a6bedd6"
+    }
+   ],
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "rtxLines": [
+    "RTX RT: 293 lights (293 point, 0 surface triangles, q3map model), grid 25x22x13 of 128 units, 152000 list entries, 34.1 ms",
+    "RTX RT: worldspawn sun 85.0 85.0 85.0 toward 0.000 -0.000 1.000",
+    "RTX RT: worldspawn diffuse sky light 144.4 144.4 144.4 from 197 suns"
+   ],
+   "captureStats": {
+    "view": [
+     65.5,
+     51.8,
+     37.8
+    ],
+    "floor": [
+     87.2,
+     68.4,
+     48.7
+    ],
+    "upper": [
+     4.0,
+     3.0,
+     2.0
+    ]
+   }
+  },
+  {
+   "run": "before-m5l1a",
+   "profile": "mohaa",
+   "map": "m5l1a",
+   "gametype": "0",
+   "renderer": "rtx",
+   "runtime": ".tmp\\runtime\\mohaa-sun-before",
+   "identity": {
+    "fntech3.exe": "20b04290af5230abf2e29ccef325c75c48b5dd5af293e2a40a21fe23479d9620",
+    "fnql_rtx_x86.dll": "ef38109781f7e683527b276c0b88a62a36eda9b190c40406fc418b81075a462a",
+    "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+   },
+   "commands": [
+    "finishloadingscreen",
+    "wait 4000",
+    "tele -2667 -418 110",
+    "face 25 0 0"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 11.8,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "errors": [],
+   "captures": [
+    {
+     "name": "mohaa-sun-00.png",
+     "sha256": "d29fc38597a4a51d3b183300c2fc07b379a0bac86405fc16e70bb993d329df76"
+    },
+    {
+     "name": "mohaa-sun-01.png",
+     "sha256": "085f57c7a5c87be60a81167aa8869074d0c49e50ae37db84c8e41a0de7804811"
+    }
+   ],
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "rtxLines": [
+    "^5RTX RT: the first sky surface's shader textures/sky/m5l2 has no q3map_sun",
+    "RTX RT: 1 lights (1 point, 0 surface triangles, q3map model), grid 90x56x15 of 128 units, 143 list entries, 180.9 ms"
+   ],
+   "captureStats": {
+    "view": [
+     15.5,
+     15.1,
+     15.8
+    ],
+    "sunlitStreet": [
+     12.9,
+     12.7,
+     13.5
+    ],
+    "shadowStreet": [
+     15.5,
+     15.2,
+     16.2
+    ]
+   }
+  },
+  {
+   "run": "before-mohdm6-a",
+   "profile": "mohaa",
+   "map": "dm/mohdm6",
+   "gametype": "1",
+   "renderer": "rtx",
+   "runtime": ".tmp\\runtime\\mohaa-sun-before",
+   "identity": {
+    "fntech3.exe": "20b04290af5230abf2e29ccef325c75c48b5dd5af293e2a40a21fe23479d9620",
+    "fnql_rtx_x86.dll": "ef38109781f7e683527b276c0b88a62a36eda9b190c40406fc418b81075a462a",
+    "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+   },
+   "commands": [
+    "finishloadingscreen",
+    "wait 1000",
+    "cmd join_team allies",
+    "wait 1000",
+    "cmd primarydmweapon rifle",
+    "wait 3000",
+    "cmd tele 554 -455 -150",
+    "cmd face 25 90 0"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 14.0,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "errors": [],
+   "captures": [
+    {
+     "name": "mohaa-sun-00.png",
+     "sha256": "9a283ae64b9876f9807d7a638d6f46113d74ece5e373369bd934b84facf1f7dd"
+    },
+    {
+     "name": "mohaa-sun-01.png",
+     "sha256": "18cd902bb739b4d09d114c2c8ac53cd1e1e05919ec06cb51c6a3047234242c79"
+    }
+   ],
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "rtxLines": [
+    "^5RTX RT: the first sky surface's shader textures/sky/mohday1 has no q3map_sun",
+    "RTX RT: 293 lights (293 point, 0 surface triangles, q3map model), grid 25x22x13 of 128 units, 152000 list entries, 52.0 ms"
+   ],
+   "captureStats": {
+    "view": [
+     153.7,
+     132.1,
+     103.4
+    ],
+    "sunlitFloor": [
+     212.5,
+     182.1,
+     141.5
+    ],
+    "wall": [
+     34.0,
+     28.5,
+     20.7
+    ]
+   }
+  },
+  {
+   "run": "before-mohdm6-b",
+   "profile": "mohaa",
+   "map": "dm/mohdm6",
+   "gametype": "1",
+   "renderer": "rtx",
+   "runtime": ".tmp\\runtime\\mohaa-sun-before",
+   "identity": {
+    "fntech3.exe": "20b04290af5230abf2e29ccef325c75c48b5dd5af293e2a40a21fe23479d9620",
+    "fnql_rtx_x86.dll": "ef38109781f7e683527b276c0b88a62a36eda9b190c40406fc418b81075a462a",
+    "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+   },
+   "commands": [
+    "finishloadingscreen",
+    "wait 1000",
+    "cmd join_team allies",
+    "wait 1000",
+    "cmd primarydmweapon rifle",
+    "wait 3000",
+    "cmd tele -891 756 500",
+    "cmd face 30 270 0"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 12.3,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "errors": [],
+   "captures": [
+    {
+     "name": "mohaa-sun-00.png",
+     "sha256": "a7f3eacd0c56750c5664c34baff45b85b1ebb159b6695e61952a41bfb8c21b06"
+    },
+    {
+     "name": "mohaa-sun-01.png",
+     "sha256": "c2fa577cd532e6285217363e111550048c4420e8f5564dc7f014cbaf29d25726"
+    }
+   ],
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "rtxLines": [
+    "^5RTX RT: the first sky surface's shader textures/sky/mohday1 has no q3map_sun",
+    "RTX RT: 293 lights (293 point, 0 surface triangles, q3map model), grid 25x22x13 of 128 units, 152000 list entries, 33.4 ms"
+   ],
+   "captureStats": {
+    "view": [
+     7.7,
+     6.0,
+     4.3
+    ],
+    "floor": [
+     8.0,
+     5.8,
+     3.6
+    ],
+    "upper": [
+     4.1,
+     2.8,
+     1.8
+    ]
+   }
+  },
+  {
+   "run": "glx-m5l1a",
+   "profile": "mohaa",
+   "map": "m5l1a",
+   "gametype": "0",
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\mohaa-sun-after",
+   "identity": {
+    "fntech3.exe": "20b04290af5230abf2e29ccef325c75c48b5dd5af293e2a40a21fe23479d9620",
+    "fnql_glx_x86.dll": "c0e720765e34f890e7957105f0bbaba1b11655ab5e758b62798bfdf454d638de",
+    "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+   },
+   "commands": [
+    "finishloadingscreen",
+    "wait 4000",
+    "tele -2667 -418 110",
+    "face 25 0 0"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 11.3,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "errors": [],
+   "captures": [
+    {
+     "name": "mohaa-sun-00.png",
+     "sha256": "586f1cbbe14623b12f2f94be6017ce37fcc4caf629fd69efd7b377e40c408d37"
+    },
+    {
+     "name": "mohaa-sun-01.png",
+     "sha256": "3850719eddbf240a5ef09dc93e655f090521bc2933bdff07546215467d1a9015"
+    }
+   ],
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "rtxLines": [],
+   "captureStats": {
+    "view": [
+     58.7,
+     57.4,
+     54.9
+    ],
+    "sunlitStreet": [
+     80.0,
+     79.5,
+     77.5
+    ],
+    "shadowStreet": [
+     37.8,
+     37.4,
+     37.0
+    ]
+   }
+  },
+  {
+   "run": "glx-mohdm6-a",
+   "profile": "mohaa",
+   "map": "dm/mohdm6",
+   "gametype": "1",
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\mohaa-sun-after",
+   "identity": {
+    "fntech3.exe": "20b04290af5230abf2e29ccef325c75c48b5dd5af293e2a40a21fe23479d9620",
+    "fnql_glx_x86.dll": "c0e720765e34f890e7957105f0bbaba1b11655ab5e758b62798bfdf454d638de",
+    "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+   },
+   "commands": [
+    "finishloadingscreen",
+    "wait 1000",
+    "cmd join_team allies",
+    "wait 1000",
+    "cmd primarydmweapon rifle",
+    "wait 3000",
+    "cmd tele 554 -455 -150",
+    "cmd face 25 90 0"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 11.9,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "errors": [],
+   "captures": [
+    {
+     "name": "mohaa-sun-00.png",
+     "sha256": "ebd74330309effa641c4ab25a736ffd5bf8815fc2390cbc3c9d19a610a92ac04"
+    },
+    {
+     "name": "mohaa-sun-01.png",
+     "sha256": "074e7a2743f1074541b766a637f561c561946b1c65507507045d842f3028d6fb"
+    }
+   ],
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "rtxLines": [],
+   "captureStats": {
+    "view": [
+     136.7,
+     118.4,
+     94.2
+    ],
+    "sunlitFloor": [
+     186.4,
+     160.5,
+     126.4
+    ],
+    "wall": [
+     42.2,
+     38.5,
+     32.4
+    ]
+   }
+  },
+  {
+   "run": "glx-mohdm6-b",
+   "profile": "mohaa",
+   "map": "dm/mohdm6",
+   "gametype": "1",
+   "renderer": "glx",
+   "runtime": ".tmp\\runtime\\mohaa-sun-after",
+   "identity": {
+    "fntech3.exe": "20b04290af5230abf2e29ccef325c75c48b5dd5af293e2a40a21fe23479d9620",
+    "fnql_glx_x86.dll": "c0e720765e34f890e7957105f0bbaba1b11655ab5e758b62798bfdf454d638de",
+    "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+   },
+   "commands": [
+    "finishloadingscreen",
+    "wait 1000",
+    "cmd join_team allies",
+    "wait 1000",
+    "cmd primarydmweapon rifle",
+    "wait 3000",
+    "cmd tele -891 756 500",
+    "cmd face 30 270 0"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "seconds": 12.9,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "errors": [],
+   "captures": [
+    {
+     "name": "mohaa-sun-00.png",
+     "sha256": "c8b297776d76141aced5a92972888b500c1ec5391a1fee83b1f66fd681582bbe"
+    },
+    {
+     "name": "mohaa-sun-01.png",
+     "sha256": "d360778b23c03997b46bbffd5217142c0b02c764200c81d57a5b31ee1b874b73"
+    }
+   ],
+   "desktopSwitched": false,
+   "inputInjected": false,
+   "rtxLines": [],
+   "captureStats": {
+    "view": [
+     95.9,
+     78.0,
+     57.8
+    ],
+    "floor": [
+     110.3,
+     87.9,
+     62.7
+    ],
+    "upper": [
+     43.4,
+     32.9,
+     23.0
+    ]
+   }
+  }
+ ]
+}

@@ -31,7 +31,9 @@ themselves, that is still experimental.
 
 Medal of Honor's terrain and static map scenery are traced too; its
 animated characters and props still use normal drawing
-([terrain details](fntech3/2026-10-11-mohaa-rtx-world.md)).
+([terrain details](fntech3/2026-10-11-mohaa-rtx-world.md)). Its outdoor maps
+are lit by the sun and sky each map names, casting the same shadows as the
+game's own lighting ([sun details](fntech3/2026-10-16-mohaa-worldspawn-sun.md)).
 
 ## Turning RTX On
 

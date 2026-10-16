@@ -120,6 +120,11 @@ historical upstream records, not fnTech3 release history. See the
   for Quake III's light-filter bits, and each title's own alpha-shadow
   surfaces now filter the path tracer's light instead
   ([record](docs/fntech3/2026-10-15-map-shader-flag-dialects.md)).
+- Light Medal of Honor's outdoor maps with their sun under RTX. The maps name
+  the sun and the sky's light in their level settings, not in a sky shader,
+  so the path tracer had lit them with no sun; their streets and rooftops
+  now take the sun, the sky and the shadows the game's own lighting shows
+  ([record](docs/fntech3/2026-10-16-mohaa-worldspawn-sun.md)).
 - Load every Jedi Academy and Jedi Outcast map: 45 maps with switchable or
   flickering lights, among them Outcast's `ffa_ns_streets`, stopped with
   "light styles are not served yet". Their extra lights are now added in,
