@@ -64,6 +64,7 @@ using fnql::ToQboolean;
 namespace {
 
 static void CL_JKACgameClear();
+static void CL_JK2CgameClear();
 static bool cl_jkaCgameInitialized = false;
 static bool cl_jk2CgameInitialized = false;
 
@@ -1932,6 +1933,7 @@ void CL_ShutdownCGame( void ) {
 	if ( !cgvm ) {
 		if ( Com_GameIsJK2MP() ) {
 			CL_JK2StringReset( 1 );
+			CL_JK2CgameClear();
 			FS_VM_CloseFiles( H_CGAME );
 		}
 		if (Com_GameIsJKAMP()) {
@@ -1947,7 +1949,10 @@ void CL_ShutdownCGame( void ) {
 	if (callShutdown) VM_Call( cgvm, 0, CG_SHUTDOWN );
 	VM_Free( cgvm );
 	cgvm = nullptr;
-	if ( Com_GameIsJK2MP() ) CL_JK2StringReset( 1 );
+	if ( Com_GameIsJK2MP() ) {
+		CL_JK2StringReset( 1 );
+		CL_JK2CgameClear();
+	}
 	FS_VM_CloseFiles( H_CGAME );
 	if (Com_GameIsJKAMP()) CL_JKACgameClear();
 	if ( Com_GameIsQ3Test() ) {
@@ -2030,8 +2035,10 @@ private:
 #include "client_wolfet_audio_compat.hpp"
 #include "client_stvef_cgame.hpp"
 #include "client_stvef_sp_cgame.hpp"
+#include "client_jk2_cgame_services.hpp"
 #include "client_jk2_cgame.hpp"
 #include "client_jka_cgame_host.hpp"
+#include "client_jk2_cgame_effects.hpp"
 #include "client_alice_cgame.hpp"
 
 static intptr_t CL_CGameTrapForProfile( intptr_t trap ) {
@@ -3935,6 +3942,7 @@ void CL_InitCGame( void ) {
 		Com_Error( ERR_DROP, "jka-sp is not implemented: Jedi Academy's single-player client module boundary is open." );
 	}
 	if ( Com_GameIsJKAMP() ) CL_JKACgameClear();
+	if ( Com_GameIsJK2MP() ) CL_JK2CgameClear();
 
 	Cbuf_NestedReset();
 	CL_ClearEnemyHighlightState();

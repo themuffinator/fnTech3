@@ -1,0 +1,537 @@
+{
+ "record": "2026-10-16-jk2-cgame-services.md",
+ "profile": "jk2-mp",
+ "executable": {
+  "name": "jk2mp.exe",
+  "version": "1.02a",
+  "sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a"
+ },
+ "module": {
+  "pak": "base/assets0.pk3",
+  "file": "vm/cgame.qvm",
+  "pakSha256": "e8e466f219bb2faed536021bb0d10aa6b7f5cd687302aa43080da2debdae307c"
+ },
+ "dispatcher": {
+  "entry": "0x4017a0",
+  "index": "0x4031a0",
+  "jumpTable": "0x402f14"
+ },
+ "records": {
+  "trace": {
+   "bytes": 1080,
+   "copy": "0x426ff8..0x426ffd",
+   "ghoul2CollisionBytes": 1024,
+   "tailAfterWorldTrace": "zero (work area cleared by 0x42a5f0)"
+  },
+  "effectsTrace": {
+   "export": 16,
+   "bytes": 1136,
+   "request": "0x438..0x46c",
+   "skip": -1,
+   "mask": 1,
+   "callers": [
+    "0x4124a3",
+    "0x418075"
+   ]
+  },
+  "impactMark": {
+   "export": 23,
+   "bytes": 52,
+   "writer": "0x418989..0x418a0d"
+  },
+  "usercmdSelections": {
+   "forcesel": 21,
+   "invensel": 22,
+   "writer": "0x4076c0"
+  }
+ },
+ "imports": [
+  {
+   "ordinal": 22,
+   "status": "served",
+   "handler": "0x401a40",
+   "evidence": "CM_TempBoxModel, box (0x401a55 pushes the capsule flag for 23)"
+  },
+  {
+   "ordinal": 23,
+   "status": "served",
+   "handler": "0x401a55",
+   "evidence": "CM_TempBoxModel, capsule"
+  },
+  {
+   "ordinal": 24,
+   "status": "served",
+   "handler": "0x401a7f",
+   "evidence": "point contents 0x424840"
+  },
+  {
+   "ordinal": 25,
+   "status": "served",
+   "handler": "0x401a9e",
+   "evidence": "transformed point contents 0x424910"
+  },
+  {
+   "ordinal": 26,
+   "status": "served",
+   "handler": "0x401ad7",
+   "evidence": "box trace 0x427010; 1080-byte record copied by 0x426a60"
+  },
+  {
+   "ordinal": 27,
+   "status": "served",
+   "handler": "0x401b1b",
+   "evidence": "capsule trace 0x427010"
+  },
+  {
+   "ordinal": 28,
+   "status": "served",
+   "handler": "0x401b76",
+   "evidence": "transformed box trace 0x427050"
+  },
+  {
+   "ordinal": 29,
+   "status": "served",
+   "handler": "0x401b7a",
+   "evidence": "transformed capsule trace 0x427050"
+  },
+  {
+   "ordinal": 30,
+   "status": "served",
+   "handler": "0x401bef",
+   "evidence": "renderer MarkFragments slot 0x9d9ea4"
+  },
+  {
+   "ordinal": 31,
+   "status": "served",
+   "handler": "0x401c3e",
+   "evidence": "S_MuteSound 0x45d200 skips channels below 1"
+  },
+  {
+   "ordinal": 32,
+   "status": "served",
+   "handler": "0x401c56",
+   "evidence": "S_StartSound 0x45d230, nullable origin"
+  },
+  {
+   "ordinal": 33,
+   "status": "shared",
+   "handler": "0x401c7f",
+   "evidence": "S_StartLocalSound 0x45d370"
+  },
+  {
+   "ordinal": 34,
+   "status": "shared",
+   "handler": "0x401c97",
+   "evidence": "S_ClearLoopingSounds 0x45d4a0"
+  },
+  {
+   "ordinal": 35,
+   "status": "shared",
+   "handler": "0x401cab",
+   "evidence": "S_AddLoopingSound 0x45d4f0"
+  },
+  {
+   "ordinal": 36,
+   "status": "shared",
+   "handler": "0x401d23",
+   "evidence": "S_UpdateEntityPosition 0x45db30"
+  },
+  {
+   "ordinal": 37,
+   "status": "shared",
+   "handler": "0x401cdd",
+   "evidence": "S_AddRealLoopingSound 0x45d5f0"
+  },
+  {
+   "ordinal": 38,
+   "status": "shared",
+   "handler": "0x401d0f",
+   "evidence": "S_StopLoopingSound 0x45d480"
+  },
+  {
+   "ordinal": 39,
+   "status": "shared",
+   "handler": "0x401d41",
+   "evidence": "S_Respatialize 0x45db80"
+  },
+  {
+   "ordinal": 40,
+   "status": "served",
+   "handler": "0x401d73",
+   "evidence": "S_RegisterSound 0x45ce20 with the name only"
+  },
+  {
+   "ordinal": 41,
+   "status": "served",
+   "handler": "0x401d8b",
+   "evidence": "S_StartBackgroundTrack 0x45e2c0; a set third word keeps the names only"
+  },
+  {
+   "ordinal": 42,
+   "status": "shared",
+   "handler": "0x401dc0",
+   "evidence": "renderer LoadWorld slot 0x9d9e58"
+  },
+  {
+   "ordinal": 43,
+   "status": "shared",
+   "handler": "0x401ddb",
+   "evidence": "renderer RegisterModel slot 0x9d9e48"
+  },
+  {
+   "ordinal": 44,
+   "status": "shared",
+   "handler": "0x401df4",
+   "evidence": "renderer RegisterSkin slot 0x9d9e4c"
+  },
+  {
+   "ordinal": 45,
+   "status": "shared",
+   "handler": "0x401e0d",
+   "evidence": "renderer RegisterShader slot 0x9d9e50"
+  },
+  {
+   "ordinal": 46,
+   "status": "shared",
+   "handler": "0x401e26",
+   "evidence": "renderer RegisterShaderNoMip slot 0x9d9e54"
+  },
+  {
+   "ordinal": 52,
+   "status": "served",
+   "handler": "0x401eeb",
+   "evidence": "read-character 0x473e50 within the QVM data"
+  },
+  {
+   "ordinal": 200,
+   "status": "shared",
+   "handler": "0x401f04",
+   "evidence": "renderer ClearScene slot 0x9d9e64"
+  },
+  {
+   "ordinal": 201,
+   "status": "shared",
+   "handler": "0x401f12",
+   "evidence": "renderer AddRefEntityToScene slot 0x9d9e68; 212-byte record"
+  },
+  {
+   "ordinal": 202,
+   "status": "served",
+   "handler": "0x401f2d",
+   "evidence": "renderer AddPolyToScene slot 0x9d9e70, one polygon of 24-byte vertices"
+  },
+  {
+   "ordinal": 204,
+   "status": "served",
+   "handler": "0x401f7f",
+   "evidence": "renderer LightForPoint slot 0x9d9e74"
+  },
+  {
+   "ordinal": 205,
+   "status": "served",
+   "handler": "0x401fc2",
+   "evidence": "renderer AddLightToScene slot 0x9d9e78"
+  },
+  {
+   "ordinal": 207,
+   "status": "shared",
+   "handler": "0x40201e",
+   "evidence": "renderer RenderScene slot 0x9d9e80; 368-byte record"
+  },
+  {
+   "ordinal": 208,
+   "status": "shared",
+   "handler": "0x402039",
+   "evidence": "renderer SetColor slot 0x9d9e84"
+  },
+  {
+   "ordinal": 209,
+   "status": "served",
+   "handler": "0x402054",
+   "evidence": "renderer DrawStretchPic slot 0x9d9e88, virtual 640x480 screen"
+  },
+  {
+   "ordinal": 210,
+   "status": "served",
+   "handler": "0x402089",
+   "evidence": "renderer ModelBounds slot 0x9d9eac"
+  },
+  {
+   "ordinal": 211,
+   "status": "served",
+   "handler": "0x4020b8",
+   "evidence": "renderer LerpTag slot 0x9d9ea8; 48-byte orientation"
+  },
+  {
+   "ordinal": 212,
+   "status": "refused",
+   "handler": "0x4020f1",
+   "evidence": "renderer DrawRotatePic slot 0x9d9e8c"
+  },
+  {
+   "ordinal": 213,
+   "status": "refused",
+   "handler": "0x40212a",
+   "evidence": "renderer DrawRotatePic2 slot 0x9d9e90"
+  },
+  {
+   "ordinal": 214,
+   "status": "shared",
+   "handler": "0x4025cc",
+   "evidence": "renderer RemapShader slot 0x9d9ec8"
+  },
+  {
+   "ordinal": 217,
+   "status": "refused",
+   "handler": "0x40263c",
+   "evidence": "renderer GetBModelVerts slot 0x9d9edc"
+  },
+  {
+   "ordinal": 218,
+   "status": "refused",
+   "handler": "0x40266b",
+   "evidence": "effects line 0x41e0b0"
+  },
+  {
+   "ordinal": 226,
+   "status": "served",
+   "handler": "0x402215",
+   "evidence": "command values 0x4011d0: weapon, sensitivity, force and inventory selections"
+  },
+  {
+   "ordinal": 227,
+   "status": "refused",
+   "handler": "0x402235",
+   "evidence": "forced view angle 0x401200"
+  },
+  {
+   "ordinal": 228,
+   "status": "refused",
+   "handler": "0x402253",
+   "evidence": "turn extent 0x401230"
+  },
+  {
+   "ordinal": 229,
+   "status": "served",
+   "handler": "0x40226f",
+   "evidence": "VM_Call( uivm, 7, menu ) 0x43e630"
+  },
+  {
+   "ordinal": 234,
+   "status": "shared",
+   "handler": "0x4022a7",
+   "evidence": "Key_GetCatcher 0x40fb50"
+  },
+  {
+   "ordinal": 235,
+   "status": "shared",
+   "handler": "0x4022b1",
+   "evidence": "Key_SetCatcher 0x40fb60"
+  },
+  {
+   "ordinal": 238,
+   "status": "served",
+   "handler": "0x40243a",
+   "evidence": "botlib +0x200 load source"
+  },
+  {
+   "ordinal": 239,
+   "status": "shared",
+   "handler": "0x40245b",
+   "evidence": "botlib +0x204 free source"
+  },
+  {
+   "ordinal": 240,
+   "status": "served",
+   "handler": "0x402474",
+   "evidence": "botlib +0x208 read token, 1040-byte token record"
+  },
+  {
+   "ordinal": 241,
+   "status": "served",
+   "handler": "0x402499",
+   "evidence": "botlib +0x20c source file and line"
+  },
+  {
+   "ordinal": 246,
+   "status": "shared",
+   "handler": "0x402527",
+   "evidence": "Sys_SnapVector 0x444640"
+  },
+  {
+   "ordinal": 247,
+   "status": "shared",
+   "handler": "0x402541",
+   "evidence": "CIN_PlayCinematic 0x404940"
+  },
+  {
+   "ordinal": 248,
+   "status": "shared",
+   "handler": "0x402570",
+   "evidence": "CIN_StopCinematic 0x4038d0"
+  },
+  {
+   "ordinal": 249,
+   "status": "shared",
+   "handler": "0x402582",
+   "evidence": "CIN_RunCinematic 0x403a60"
+  },
+  {
+   "ordinal": 250,
+   "status": "shared",
+   "handler": "0x402594",
+   "evidence": "CIN_DrawCinematic 0x405570"
+  },
+  {
+   "ordinal": 251,
+   "status": "shared",
+   "handler": "0x4025a8",
+   "evidence": "CIN_SetExtents 0x4054f0"
+  },
+  {
+   "ordinal": 254,
+   "status": "served",
+   "handler": "0x402722",
+   "evidence": "RegisterEffect 0x415f70 through the shared effects engine"
+  },
+  {
+   "ordinal": 256,
+   "status": "served",
+   "handler": "0x402764",
+   "evidence": "PlayEffect by name 0x4173b0: register, then play"
+  },
+  {
+   "ordinal": 259,
+   "status": "served",
+   "handler": "0x4027f8",
+   "evidence": "PlayEffectID 0x4166a0: effect, origin, forward"
+  },
+  {
+   "ordinal": 260,
+   "status": "served",
+   "handler": "0x402826",
+   "evidence": "PlayEntityEffectID 0x416fd0: effect, origin, axes; bolts refused"
+  },
+  {
+   "ordinal": 262,
+   "status": "served",
+   "handler": "0x40287a",
+   "evidence": "AddScheduledEffects 0x417440"
+  },
+  {
+   "ordinal": 263,
+   "status": "served",
+   "handler": "0x402887",
+   "evidence": "FX_Init 0x41d910: free all, fresh clock, returns 1"
+  },
+  {
+   "ordinal": 264,
+   "status": "served",
+   "handler": "0x402891",
+   "evidence": "FX_Free 0x41d8d0 returns 1"
+  },
+  {
+   "ordinal": 265,
+   "status": "served",
+   "handler": "0x40289b",
+   "evidence": "AdjustTime 0x41ac60: time, view origin and axes"
+  },
+  {
+   "ordinal": 266,
+   "status": "refused",
+   "handler": "0x4028c9",
+   "evidence": "direct effect polygon 0x41f270"
+  },
+  {
+   "ordinal": 267,
+   "status": "refused",
+   "handler": "0x402948",
+   "evidence": "direct effect Bezier 0x41f500"
+  },
+  {
+   "ordinal": 268,
+   "status": "refused",
+   "handler": "0x4029b7",
+   "evidence": "direct effect primitive 0x414da0"
+  },
+  {
+   "ordinal": 269,
+   "status": "refused",
+   "handler": "0x4029dc",
+   "evidence": "direct effect sprite 0x41dc60"
+  },
+  {
+   "ordinal": 270,
+   "status": "refused",
+   "handler": "0x402a67",
+   "evidence": "direct effect electricity 0x40ee50"
+  },
+  {
+   "ordinal": 273,
+   "status": "served",
+   "handler": "0x402a88",
+   "evidence": "ROFF clean 0x4357c0, client lane: returns 1"
+  },
+  {
+   "ordinal": 274,
+   "status": "served",
+   "handler": "0x402a9a",
+   "evidence": "ROFF update 0x435a30, client lane: no entries"
+  },
+  {
+   "ordinal": 276,
+   "status": "refused",
+   "handler": "0x402acd",
+   "evidence": "ROFF play 0x4358f0"
+  },
+  {
+   "ordinal": 285,
+   "status": "refused",
+   "handler": "0x402bd6",
+   "evidence": "Ghoul2 InitGhoul2Model 0x4a6e90: the live stop"
+  },
+  {
+   "ordinal": 300,
+   "status": "served",
+   "handler": "0x402ee1",
+   "evidence": "shared buffer address kept at 0x9d9e24"
+  }
+ ],
+ "live": [
+  {
+   "run": "jk2slice-1",
+   "fntech3Sha256": "4125b6833db65bfbfc06b8bfdf586f18b29aafd387b4721c7b79bcee0b29a4e5",
+   "map": "ffa_bespin",
+   "stop": "client-game import 263",
+   "installationUnchanged": true
+  },
+  {
+   "run": "jk2fx-1",
+   "fntech3Sha256": "e1f24dba04d700a86c84c689244971e7d35cd8ab8d6ee1ce9eb011c8c27cc128",
+   "map": "ffa_bespin",
+   "effectsRegistered": 22,
+   "unknownEffectKeys": 0,
+   "stop": "client-game import 285",
+   "installationUnchanged": true
+  },
+  {
+   "run": "jk2final-1",
+   "fntech3Sha256": "5d76ca5de4ad3eca718898e8846d07c33fecc7a950252b5481900ae73f829d7d",
+   "map": "ffa_bespin",
+   "effectsRegistered": 22,
+   "unknownEffectKeys": 0,
+   "base": "d17f578a",
+   "stop": "client-game import 285",
+   "installationUnchanged": true
+  }
+ ],
+ "build": {
+  "base": "d17f578a36490adc0f8c83c9433f8838a7d51538",
+  "platform": "Windows x86 (win32 export build)",
+  "renderer": "glx",
+  "window": "1280x720",
+  "input": "none",
+  "network": "net_enabled 0"
+ },
+ "gatesClosed": []
+}

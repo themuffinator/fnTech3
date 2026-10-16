@@ -1804,7 +1804,8 @@ static void CL_FinishMove( usercmd_t *cmd ) {
 		// to whatever this frame's movement decided.
 		cmd->wolfet.flags = cl.cgameWolfETCommand.flags;
 		cmd->wolfet.identClient = cl.cgameWolfETCommand.identClient;
-	} else if ( Com_GameIsJKAMP() ) {
+	} else if ( Com_GameIsJKAMP() || Com_GameIsJK2MP() ) {
+		// Outcast's CL_FinishMove 0x4076c0 sends the same two low bytes.
 		fntech3::jka::command::selections.Publish( *cmd );
 	}
 

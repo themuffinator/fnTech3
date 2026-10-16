@@ -249,6 +249,16 @@ extern "C" void S_MuteJKASound( int entnum, int channel ) {
 		si.StopEntityChannelSound( entnum, fntech3::jka::sound::EngineChannel( channel ) );
 }
 
+extern "C" void S_MuteJK2Sound( int entnum, int channel ) {
+	if ( !Com_GameIsJK2MP() )
+		Com_Error( ERR_DROP, "Outcast sound requires its selected multiplayer profile" );
+	// Retail jk2mp.exe 0x45d200 returns for a channel below 1 and otherwise
+	// silences the voice 0x45d090 finds playing on that entity and channel.
+	// Outcast's channels are Quake III's, so they reach Fn untranslated.
+	if ( channel < 1 ) return;
+	if ( si.StopEntityChannelSound ) si.StopEntityChannelSound( entnum, channel );
+}
+
 
 /*
 =================

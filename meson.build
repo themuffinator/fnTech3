@@ -1592,7 +1592,8 @@ test('fntech3_jka_mdr', jka_mdr_tests)
 raven_bsp_render_tests = executable('fntech3_raven_bsp_render_tests',
   'tests/raven_bsp_render_tests.cpp', cpp_args: common_cpp_args)
 test('fntech3_raven_bsp_render', raven_bsp_render_tests)
-test('fntech3_jka_distance_cull', python, args: files('tests/jka_distance_cull_tests.py'))
+test('fntech3_jka_distance_cull', python, args: files('tests/jka_distance_cull_tests.py'),
+  timeout: jka_test_timeout)
 test('fntech3_raven_bsp_renderer_dispatch', python, args: files('tests/raven_bsp_renderer_dispatch_tests.py'))
 jka_netchan_tests = executable('fntech3_jka_netchan_tests',
   ['tests/jka_netchan_tests.cpp', 'code/qcommon/net_chan.cpp',
@@ -1643,9 +1644,10 @@ foreach jk2_test : ['handshake', 'client_adapter', 'font', 'message_codec', 'str
   test('fntech3_jk2_' + jk2_test, jk2_test_exe)
 endforeach
 
-test('jk2-sp-host', python, args: files('tests/jk2_sp_host_tests.py'))
-test('fntech3_jk2_bot_collision', python, args: files('tests/jk2_bot_collision_tests.py'))
-test('fntech3_jk2_actions', python, args: files('tests/jk2_actions_tests.py'))
+test('jk2-sp-host', python, args: files('tests/jk2_sp_host_tests.py'), timeout: jka_test_timeout)
+test('fntech3_jk2_bot_collision', python, args: files('tests/jk2_bot_collision_tests.py'),
+  timeout: jka_test_timeout)
+test('fntech3_jk2_actions', python, args: files('tests/jk2_actions_tests.py'), timeout: jka_test_timeout)
 
 nav_graph_tests = executable('fntech3_nav_graph_tests',
   'tests/nav_graph_tests.cpp',

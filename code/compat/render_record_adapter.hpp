@@ -11,6 +11,7 @@
 #include "wolfet_game_abi.h"
 #include "stvef_game_abi.h"
 #include "jka_render_adapter.hpp"
+#include "jk2_render_adapter.hpp"
 #include <cstddef>
 #include <cstring>
 #include <iterator>
@@ -458,6 +459,7 @@ constexpr std::size_t EntityBytes( comGameId_t profile ) noexcept {
 	case COM_GAME_STVEF_MP: return sizeof( fntech3_stvef_mp_refEntity_t );
 	case COM_GAME_STVEF_SP: return sizeof( fntech3_stvef_sp_refEntity_t );
 	case COM_GAME_JKA_MP: return sizeof( fntech3_jka_mp_refEntity_t );
+	case COM_GAME_JK2_MP: return sizeof( fntech3_jk2_mp_refEntity_t );
 	default: return 0;
 	}
 }
@@ -472,6 +474,7 @@ constexpr std::size_t RefdefBytes( comGameId_t profile ) noexcept {
 	case COM_GAME_STVEF_MP:
 	case COM_GAME_STVEF_SP: return sizeof( fntech3_stvef_refdef_t );
 	case COM_GAME_JKA_MP: return sizeof( fntech3_jka_mp_refdef_t );
+	case COM_GAME_JK2_MP: return sizeof( fntech3_jk2_mp_refdef_t );
 	default: return 0;
 	}
 }
@@ -494,6 +497,12 @@ inline bool ReadEntity( comGameId_t profile, const void *source, refEntity_t &de
 		return detail::Read<fntech3_stvef_sp_refEntity_t>( source, destination, detail::STVEFSPEntity );
 	case COM_GAME_JKA_MP:
 		return fntech3::jka::render::ReadEntity( source, destination ) == fntech3::jka::render::Status::Ok;
+	case COM_GAME_JK2_MP: {
+		// Outcast's 212-byte entity, a different contract from Academy's.
+		fntech3_jk2_mp_refEntity_t record;
+		std::memcpy( &record, source, sizeof( record ) );
+		return fntech3::jk2::render::Entity( record, destination ) == fntech3::jk2::render::Status::Ok;
+	}
 	default: return false;
 	}
 }
@@ -525,6 +534,12 @@ inline bool ReadRefdef( comGameId_t profile, const void *source, refdef_t &desti
 		return detail::Read<fntech3_stvef_refdef_t>( source, destination, detail::STVEFRefdef );
 	case COM_GAME_JKA_MP:
 		return fntech3::jka::render::ReadView( source, destination ) == fntech3::jka::render::Status::Ok;
+	case COM_GAME_JK2_MP: {
+		// Outcast's 368-byte view, not Academy's 384-byte record.
+		fntech3_jk2_mp_refdef_t record;
+		std::memcpy( &record, source, sizeof( record ) );
+		return fntech3::jk2::render::View( record, destination ) == fntech3::jk2::render::Status::Ok;
+	}
 	default: return false;
 	}
 }

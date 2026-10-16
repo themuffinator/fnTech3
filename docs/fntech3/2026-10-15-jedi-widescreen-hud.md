@@ -185,9 +185,11 @@ Results are in the companion.
   placed, and each bar's name now goes down with its bar on screens taller
   than 4:3.
 - The disruptor and binocular masks are full-screen pictures and stay
-  stretched across the window, as the original drew them. Not captured: any
-  zoom stops the client at client-game import 216, `CG_R_SETRANGEFOG`, before
-  a mask is drawn ([live check](2026-10-15-jka-hud-live-check.md)).
+  stretched across the window, as the original drew them. The
+  [live check](2026-10-15-jka-hud-live-check.md) found any zoom stopping the
+  client at client-game import 216, `CG_R_SETRANGEFOG`; the
+  [zoom slice](2026-10-15-jka-zoom.md) serves imports 214-216, and both zooms
+  now draw with every piece registered to its stretched mask.
 - The menu cursor in the top-left corner of the play captures is the menu
   module's own: it keeps its key catcher after `ui_openmenu none`, and
   retail releases it only when Escape closes the menus

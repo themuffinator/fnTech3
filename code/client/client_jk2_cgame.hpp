@@ -55,6 +55,11 @@ static intptr_t CL_JK2CgameSharedCall( intptr_t ordinal ) {
 
 static bool CL_JK2CgameCall( intptr_t *args, intptr_t &operation, intptr_t &result ) {
 	result = 0;
+	switch ( CL_JK2CgameServiceCall( args, operation, result ) ) {
+	case JK2CgameService::Handled: return true;
+	case JK2CgameService::Shared: return false;
+	case JK2CgameService::None: break;
+	}
 	if ( CL_JK2FontCall( cgvm, args, result, 47,
 		[]( float x, float y, float w, float h, const fntech3::jk2::font::Glyph &glyph, qhandle_t shader ) {
 			// Raven's virtual 640x480 screen, stretched as the original drew it.

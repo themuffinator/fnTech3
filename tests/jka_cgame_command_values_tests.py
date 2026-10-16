@@ -23,6 +23,7 @@ class JKACgameCommandValuesTests(unittest.TestCase):
 #include "code/client/input_compat.hpp"
 #include "code/client/client_jka_command_values.hpp"
 #include "code/compat/jka_state_adapter.hpp"
+#include "code/compat/jk2_state_adapter.hpp"
 #include <array>
 #include <cassert>
 #include <climits>
@@ -31,6 +32,7 @@ static comGameId_t selected;
 int Com_GameIsRTCW(){return selected==COM_GAME_RTCW_SP||selected==COM_GAME_RTCW_MP;}
 int Com_GameIsWolfET(){return selected==COM_GAME_WOLFET;}
 int Com_GameIsJKAMP(){return selected==COM_GAME_JKA_MP;}
+int Com_GameIsJK2MP(){return selected==COM_GAME_JK2_MP;}
 static struct {
  int cgameUserCmdValue, cgameUserCmdPrimary, cgameUserCmdFov, serverTime;
  float viewangles[3];
@@ -56,15 +58,21 @@ int main(){
     assert(command.weapon==1&&command.weaponPrimary==41&&command.fov==93&&command.serverTime==1001);
     assert(command.buttons==1234&&command.forwardmove==3&&command.rightmove==-4&&command.upmove==5);
     assert(command.raven.generic_cmd==77);
-    if(selected==COM_GAME_JKA_MP){
+    if(selected==COM_GAME_JKA_MP||selected==COM_GAME_JK2_MP){
      assert(command.raven.forcesel==static_cast<unsigned char>(force));
      assert(command.raven.invensel==static_cast<unsigned char>(inventory));
-     fntech3_jka_usercmd_t output{};assert(fntech3::jka::state::FromInternal(command,output));
-     std::array<byte,sizeof(output)+8> bytes;bytes.fill(0xa5);
-     std::memcpy(bytes.data()+3,&output,sizeof(output));
+     // Outcast's record (jk2mp.exe CL_FinishMove 0x4076c0) has Academy's shape.
+     std::array<byte,36> bytes;bytes.fill(0xa5);std::size_t size=0;
+     if(selected==COM_GAME_JKA_MP){
+      fntech3_jka_usercmd_t output{};assert(fntech3::jka::state::FromInternal(command,output));
+      std::memcpy(bytes.data()+3,&output,sizeof(output));size=sizeof(output);
+     }else{
+      fntech3_jk2_usercmd_t output{};assert(fntech3::jk2::state::FromInternal(command,output));
+      std::memcpy(bytes.data()+3,&output,sizeof(output));size=sizeof(output);
+     }
      assert(bytes[3+20]==1&&bytes[3+21]==static_cast<unsigned char>(force));
      assert(bytes[3+22]==static_cast<unsigned char>(inventory)&&bytes[3+23]==77);
-     assert(bytes[2]==0xa5&&bytes[3+sizeof(output)]==0xa5);
+     assert(bytes[2]==0xa5&&bytes[3+size]==0xa5);
     }else assert(command.raven.forcesel==11&&command.raven.invensel==12);
     if(Com_GameIsRTCW())assert(command.rtcw.holdable==3&&command.rtcw.cld==777&&command.rtcw.mpSetup==5&&command.rtcw.identClient==6);
     else assert(command.rtcw.holdable==0&&command.rtcw.cld==0&&command.rtcw.mpSetup==0&&command.rtcw.identClient==0);

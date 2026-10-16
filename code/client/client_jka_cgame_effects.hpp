@@ -93,6 +93,21 @@ struct JKACgameEffectsState {
 std::unique_ptr<JKACgameEffectsState> jkaCgameEffects;
 std::uint64_t jkaCgameEffectsRevision{};
 bool jkaCgameEffectsTracing{};
+// Another title whose client game plays its effects through this engine
+// supplies the operations that reach its own module and view; null keeps
+// Academy's. Outcast's are in client_jk2_cgame_effects.hpp.
+struct RavenEffectsHost {
+    const char *title;
+    void (*playable)();
+    fntech3_jka_trace_t (*trace)(const fntech3::jka::effectplay::Vector &start,const fntech3::jka::effectplay::Vector &end);
+    void (*cameraShake)(const fntech3::jka::effectplay::Spawn &spawn);
+    void (*sound)(const fntech3::jka::effectplay::Vector &origin,sfxHandle_t sound);
+    int (*decal)(qhandle_t shader,const fntech3::jka::effectplay::Vector &origin,const fntech3::jka::effectplay::Vector &direction,
+        float rotation,const float (&color)[4],float radius);
+    fntech3::jka::effectplay::Vector (*eye)();
+};
+const RavenEffectsHost *ravenEffectsHost{};
+static const char *CL_RavenEffectsTitle() {return ravenEffectsHost?ravenEffectsHost->title:"Jedi Academy";}
 static void CL_JKACgameEffectClose(JKACgameEffect &effect) {
     const fileHandle_t file=effect.file;
     effect.file=0;
@@ -132,7 +147,7 @@ static void CL_JKACgameEffectsInit(intptr_t view) {
     state.frozen=false;
     state.view=view;
     state.initialized=true;
-    Com_Printf("Jedi Academy cgame effects context initialized\n");
+    Com_Printf("%s cgame effects context initialized\n",CL_RavenEffectsTitle());
 }
 static void CL_JKACgameEffectsAdjustTime(intptr_t argument) {
     if(argument<INT_MIN || argument>INT_MAX)
@@ -170,14 +185,14 @@ static intptr_t CL_JKACgameEffectsRegister(const char *name) {
     if (!jkaCgameEffects) jkaCgameEffects=std::make_unique<JKACgameEffectsState>();
     auto &state=*jkaCgameEffects;
     if (!ResolveName(name,state.pendingName))
-        Com_Error(ERR_DROP,"Invalid Jedi Academy cgame effect path");
+        Com_Error(ERR_DROP,"Invalid %s cgame effect path",CL_RavenEffectsTitle());
     const auto found=state.lookup.find(state.pendingName.key);
     // Retail publishes the cache identity before recursive resource registration.
     // A dependency cycle refers to the same owned record; only the outer call
     // can return its completed graph to the module.
     if (found!=state.lookup.end()) return found->second;
     if (state.effects.size()>=MaxEffects-1) {
-        Com_Printf("Jedi Academy cgame reached the effect registration bound\n");return 0;
+        Com_Printf("%s cgame reached the effect registration bound\n",CL_RavenEffectsTitle());return 0;
     }
     state.effects.push_back(std::make_unique<JKACgameEffect>());
     auto &effect=*state.effects.back();
@@ -186,19 +201,20 @@ static intptr_t CL_JKACgameEffectsRegister(const char *name) {
     const int length=FS_FOpenFileRead(effect.name.file.c_str(),&effect.file,qfalse);
     if (length<=0 || !effect.file || std::size_t(length)>MaxTextBytes) {
         CL_JKACgameEffectClose(effect);
-        Com_Printf("Jedi Academy cgame effect file missing, empty or outside the engine bound: %s\n",effect.name.file.c_str());
+        Com_Printf("%s cgame effect file missing, empty or outside the engine bound: %s\n",CL_RavenEffectsTitle(),
+            effect.name.file.c_str());
         state.effects.pop_back();return 0;
     }
     effect.bytes.resize(std::size_t(length));
     const int read=FS_Read(effect.bytes.data(),length,effect.file);
     CL_JKACgameEffectClose(effect);
     if (read!=length)
-        Com_Error(ERR_DROP,"Incomplete Jedi Academy cgame effect read: %s",effect.name.file.c_str());
+        Com_Error(ERR_DROP,"Incomplete %s cgame effect read: %s",CL_RavenEffectsTitle(),effect.name.file.c_str());
     Failure failure;
     const bool parsed=Parse(std::string_view(effect.bytes.data(),effect.bytes.size()),effect.definition,failure);
     effect.bytes.clear();
     if (!parsed)
-        Com_Error(ERR_DROP,"Jedi Academy cgame effect %s line %u: %s",effect.name.file.c_str(),
+        Com_Error(ERR_DROP,"%s cgame effect %s line %u: %s",CL_RavenEffectsTitle(),effect.name.file.c_str(),
             static_cast<unsigned>(failure.line),failure.reason);
     state.lookup.emplace(effect.name.key,identity);
     for (auto &primitive:effect.definition.primitives) {
@@ -212,11 +228,12 @@ static intptr_t CL_JKACgameEffectsRegister(const char *name) {
         }
     }
     effect.ready=true;
-    Com_Printf("Jedi Academy cgame effect registered: %s (%u primitives)\n",effect.name.file.c_str(),
+    Com_Printf("%s cgame effect registered: %s (%u primitives)\n",CL_RavenEffectsTitle(),effect.name.file.c_str(),
         static_cast<unsigned>(effect.definition.primitives.size()));
     return identity;
 }
 static void CL_JKACgameEffectNative() {
+    if(ravenEffectsHost){ravenEffectsHost->playable();return;}
     if(sizeof(void*)!=4||!cgvm||!cgvm->entryPoint||cgvm->dllExports||cgvm->index!=VM_CGAME)
         Com_Error(ERR_DROP,"Academy effects playback requires its x86 legacy native cgame");
 }
@@ -224,6 +241,7 @@ static fntech3_jka_trace_t CL_JKACgameEffectTrace(const fntech3::jka::effectplay
     const fntech3::jka::effectplay::Vector &end)
 {
     using namespace fntech3::jka;
+    if(ravenEffectsHost)return ravenEffectsHost->trace(start,end);
     // Retail0x40931f (endpoints) and 0x401130 (emitter physics) publish 104
     // bytes to the registered scratch buffer, then export15 traces against
     // the client's world and entity snapshot.
@@ -316,14 +334,17 @@ static void CL_JKACgameEffectCompileGraph(JKACgameEffectsState &state,int root) 
             for(const auto &primitive:effect.definition.primitives){
                 effectplay::Spec spec;effectplay::Failure failure;
                 if(!effectplay::Compile(primitive,spec,failure))
-                    Com_Error(ERR_DROP,"Academy effect %s: %s (%s)",effect.name.file.c_str(),failure.reason,failure.field);
+                    Com_Error(ERR_DROP,"%s effect %s: %s (%s)",CL_RavenEffectsTitle(),effect.name.file.c_str(),
+                        failure.reason,failure.field);
                 // Retail prints each key or group it does not know and reads on.
                 for(const auto &ignored:spec.ignored)
-                    Com_Printf("Academy effect %s: unknown key %s ignored, as retail does\n",effect.name.file.c_str(),ignored.c_str());
+                    Com_Printf("%s effect %s: unknown key %s ignored, as retail does\n",CL_RavenEffectsTitle(),
+                        effect.name.file.c_str(),ignored.c_str());
                 // Retail's flag parsers skip a word they do not know without
                 // a message (0x40d79a); Fn names it under fx_debug.
                 if(state.debug&&state.debug->integer)for(const auto &word:spec.unknownWords)
-                    Com_Printf("Academy effect %s: unknown flag word %s read past, as retail does\n",effect.name.file.c_str(),word.c_str());
+                    Com_Printf("%s effect %s: unknown flag word %s read past, as retail does\n",CL_RavenEffectsTitle(),
+                        effect.name.file.c_str(),word.c_str());
                 effect.playback.push_back(std::move(spec));
             }
             effect.playable=true;
@@ -370,7 +391,8 @@ static void CL_JKACgameEffectCreate(JKACgameEffectsState &state,int id,std::size
         // Fn's spatial path supplies distance, occlusion, EFX and HRTF.
         // Handle 0 is retail's silent "sound/null.wav" (and Fn's failed
         // registration), so Fn plays nothing for it.
-        if(spawn.sound>0){
+        if(spawn.sound>0&&ravenEffectsHost)ravenEffectsHost->sound(spawn.origin,static_cast<sfxHandle_t>(spawn.sound));
+        else if(spawn.sound>0){
             vec3_t at;std::memcpy(at,spawn.origin.data(),sizeof(at));
             S_StartJKASound(at,effectplay::SoundEntity,effectplay::SoundChannel,static_cast<sfxHandle_t>(spawn.sound));
         }
@@ -382,7 +404,8 @@ static void CL_JKACgameEffectCreate(JKACgameEffectsState &state,int id,std::size
         if(state.debug&&state.debug->integer>=2)
             Com_Printf("Academy FX camera shake: %g within %d for %d ms at %d\n",
                 spawn.shakeIntensity*CL_ViewShakeScale(),spawn.shakeRadius,spawn.life,state.time);
-        CL_JKACgameEffectCameraShake(spawn);
+        if(ravenEffectsHost)ravenEffectsHost->cameraShake(spawn);
+        else CL_JKACgameEffectCameraShake(spawn);
         return;
     }
     if(spawn.kind==effects::Kind::Decal){
@@ -391,7 +414,9 @@ static void CL_JKACgameEffectCreate(JKACgameEffectsState &state,int id,std::size
         // rotation, the RGB and alpha starts, alpha fade on, the size as the
         // radius and temporary off. Its ghoul2Decals call is refused at compile.
         const float color[4]{spawn.rgbStart[0],spawn.rgbStart[1],spawn.rgbStart[2],spawn.alphaStart};
-        const int fragments=CL_JKACgameDecalAdd(spawn.shader,spawn.origin,spawn.axis[0],spawn.rotation,color,spawn.size);
+        const int fragments=ravenEffectsHost
+            ?ravenEffectsHost->decal(spawn.shader,spawn.origin,spawn.axis[0],spawn.rotation,color,spawn.size)
+            :CL_JKACgameDecalAdd(spawn.shader,spawn.origin,spawn.axis[0],spawn.rotation,color,spawn.size);
         if(state.debug&&state.debug->integer>=2)
             Com_Printf("Academy FX decal: shader %d radius %g, %d fragments at %d\n",spawn.shader,spawn.size,fragments,state.time);
         return;
@@ -664,12 +689,16 @@ static void CL_JKACgameEffectDrawScheduled(bool portal) {
     if(!active)return;
     CL_JKACgameEffectAdvance(state);
     if(!re.AddRefEntityToScene||!re.AddPolyToScene)Com_Error(ERR_DROP,"Academy Fn effects renderer is unavailable");
-    refdef_t view{};
-    if(render::ReadView(CL_JKACgameSpan(state.view,sizeof(fntech3_jka_mp_refdef_t)),view)!=render::Status::Ok)
-        Com_Error(ERR_DROP,"Invalid Academy effects borrowed view");
+    effectplay::Vector eye{};
+    if(ravenEffectsHost)eye=ravenEffectsHost->eye();
+    else{
+        refdef_t view{};
+        if(render::ReadView(CL_JKACgameSpan(state.view,sizeof(fntech3_jka_mp_refdef_t)),view)!=render::Status::Ok)
+            Com_Error(ERR_DROP,"Invalid Academy effects borrowed view");
+        std::memcpy(eye.data(),view.vieworg,sizeof(view.vieworg));
+    }
     const float nearDistance=state.nearCull?state.nearCull->value:16.0f;
     if(!effectplay::Finite(nearDistance)||nearDistance<0||nearDistance>4096)Com_Error(ERR_DROP,"Invalid Academy effects near-cull setting");
-    effectplay::Vector eye{};std::memcpy(eye.data(),view.vieworg,sizeof(view.vieworg));
     auto random=state.random;
     for(auto &instance:state.instances){
         if(!instance.active)continue;
@@ -678,7 +707,7 @@ static void CL_JKACgameEffectDrawScheduled(bool portal) {
         // An emitter without a model draws nothing (0x4038f0); a Light is
         // never culled (0x403f90 has no cull test).
         if(spawn.kind==effects::Kind::Emitter)continue;
-        double distance=0;for(int n=0;n<3;++n){const double delta=double(spawn.origin[n])-view.vieworg[n];distance+=delta*delta;}
+        double distance=0;for(int n=0;n<3;++n){const double delta=double(spawn.origin[n])-eye[n];distance+=delta*delta;}
         if(spawn.kind!=effects::Kind::Line&&spawn.kind!=effects::Kind::Light&&distance<double(nearDistance)*nearDistance)continue;
         state.drawWork.emplace_back();auto &draw=state.drawWork.back();draw.shader=spawn.shader;
         // A visible curved primitive updates its curves (and a particle's

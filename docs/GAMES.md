@@ -625,6 +625,9 @@ corrected fonts; client gameplay is
 still incomplete ([latest audit](fntech3/2026-10-07-jedi-compatibility-round2.md)).
 Its menus fill the window at any size, as the original's do
 ([details](fntech3/2026-10-15-jedi-widescreen-hud.md)).
+Starting a multiplayer map now loads the level and its effects, then stops
+before the first picture, where the player models are still to come
+([details](fntech3/2026-10-16-jk2-cgame-services.md)).
 Single player's game code loads, then stops before the game starts. The
 game's sounds and music, which are MP3 files, now load, and the multiplayer
 menus play their sounds ([details](fntech3/2026-10-08-jk2-mp3-sounds.md)).

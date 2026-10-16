@@ -144,6 +144,11 @@ historical upstream records, not fnTech3 release history. See the
   in place, the disruptor's turning rings follow it, and a zoom sees
   further into a foggy map, as the original's does
   ([record](docs/fntech3/2026-10-15-jka-zoom.md)).
+- Take Jedi Outcast's multiplayer client game through its start: where it
+  stopped before any map loaded, it now loads the level and registers its
+  effects, as the original engine serves them. It still stops before the
+  first picture, at the player models, so maps are not drawn yet
+  ([record](docs/fntech3/2026-10-16-jk2-cgame-services.md)).
 
 ## [0.1.0] - 2026-10-11
 

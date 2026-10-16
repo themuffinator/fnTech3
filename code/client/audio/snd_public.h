@@ -73,6 +73,7 @@ int S_JKAVoiceVolume( intptr_t entity );
 /* Academy's S_MuteSound (client game import 36): the entity's sound on that
  * Academy channel ends. */
 void S_MuteJKASound( int entnum, int channel );
+void S_MuteJK2Sound( int entnum, int channel );
 
 void S_StartBackgroundTrack( const char *intro, const char *loop );
 void S_JKAStartBackgroundTrack( const char *intro, const char *loop, qboolean preloadOnly );

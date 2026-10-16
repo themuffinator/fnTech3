@@ -25,13 +25,14 @@ class JKACgameLifecycleTests(unittest.TestCase):
 enum {qfalse=0,CG_SHUTDOWN=1,H_CGAME=2,KEYCATCH_CGAME=8};
 struct VM {};static VM module;static auto *cgvm=&module;
 static bool jka,jk2,cl_jkaCgameInitialized,cl_jk2CgameInitialized,com_errorEntered;
-static int shutdowns,frees,clears,closes,catcher,stringClears;
+static int shutdowns,frees,clears,closes,catcher,stringClears,outcastClears;
 static bool poisonShutdown;
 static char errorText[128];
 static std::jmp_buf recovery;
 static bool Com_GameIsJKAMP(){return jka;}
 static bool Com_GameIsJK2MP(){return jk2;}
 static void CL_JK2StringReset(unsigned owner){assert(owner==1);++stringClears;}
+static void CL_JK2CgameClear(){assert(jk2);++outcastClears;}
 static bool Com_GameIsQ3Test(){return false;}
 static int Key_GetCatcher(){return catcher;}
 static void Key_SetCatcher(int value){catcher=value;}
@@ -51,14 +52,14 @@ static void VertexLighting(int value){assert(!value);}
 static struct {decltype(&VertexLighting) VertexLighting;} re{VertexLighting};
 static void VM_Call(VM *value,int count,int ordinal){
  assert(value==&module&&!count&&ordinal==CG_SHUTDOWN);
- assert(!cl_jkaCgameInitialized&&!cl_jk2CgameInitialized&&!clears&&!stringClears);++shutdowns;
+ assert(!cl_jkaCgameInitialized&&!cl_jk2CgameInitialized&&!clears&&!stringClears&&!outcastClears);++shutdowns;
  if(poisonShutdown)std::memcpy(errorText,"Unsupported jk2-mp cgame import264",sizeof("Unsupported jk2-mp cgame import264"));
 }
 static void VM_Free(VM *value){assert(value==&module);++frees;}
 ''' + function(production,'void CL_ShutdownCGame(') + r'''
 static void Reset(bool game,bool initialized,bool error){
  jka=game;jk2=false;cl_jkaCgameInitialized=initialized;cl_jk2CgameInitialized=false;com_errorEntered=error;
- cgvm=&module;shutdowns=frees=clears=closes=stringClears=0;catcher=15;cls.cgameStarted=1;
+ cgvm=&module;shutdowns=frees=clears=closes=stringClears=outcastClears=0;catcher=15;cls.cgameStarted=1;
  poisonShutdown=false;errorText[0]=0;
 }
 static void ResetOutcast(bool initialized,bool error){
@@ -84,6 +85,11 @@ int main(){
  ResetOutcast(true,false);CL_ShutdownCGame();assert(shutdowns==1&&frees==1&&closes==1&&stringClears==1);
  CL_ShutdownCGame();assert(shutdowns==1&&frees==1&&closes==2&&stringClears==2);
  ResetOutcast(false,false);cgvm=nullptr;CL_ShutdownCGame();assert(!shutdowns&&!frees&&closes==1&&stringClears==1);
+ // Outcast's own client-game state (selections, shared buffer, effects)
+ // goes with its strings, after any module shutdown and on either path.
+ assert(outcastClears==1);
+ ResetOutcast(true,false);CL_ShutdownCGame();assert(shutdowns==1&&outcastClears==1);
+ Reset(true,true,false);CL_ShutdownCGame();assert(!outcastClears);
  // Emulate the engine's error cleanup followed by longjmp. A shutdown
  // reentry would replace the original diagnostic with import264 here.
  for(bool initialized:{false,true}){
@@ -105,6 +111,7 @@ int main(){
             run=subprocess.run([str(executable)],cwd=ROOT,capture_output=True,text=True,timeout=30)
             self.assertEqual(run.returncode,0,run.stdout+run.stderr)
         init=function(production,'void CL_InitCGame(')
+        self.assertLess(init.index('if ( Com_GameIsJK2MP() ) CL_JK2CgameClear();'),init.index('CL_LoadCGameVM('))
         self.assertLess(init.index('cl_jkaCgameInitialized = false;'),init.index('CL_LoadCGameVM('))
         self.assertGreater(init.index('cl_jkaCgameInitialized = Com_GameIsJKAMP();'),
             init.index('VM_Call( cgvm, 3, CG_INIT'))

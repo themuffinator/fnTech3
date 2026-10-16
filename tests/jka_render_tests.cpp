@@ -28,8 +28,23 @@ int main() {
     auto polySaved=vertex;assert(!raven::ReadPolyVertex(nullptr,vertex)&&same(vertex,polySaved));
     assert(fntech3::render::EntityBytes(COM_GAME_JKA_MP)==212);
     assert(fntech3::render::RefdefBytes(COM_GAME_JKA_MP)==384);
-    for(auto profile : {COM_GAME_JKA_SP, COM_GAME_JK2_MP, COM_GAME_JK2_SP}) {
+    // Outcast's multiplayer client game hands its own 212- and 368-byte
+    // records to the shared scene path (2026-10-16-jk2-cgame-services.md).
+    assert(fntech3::render::EntityBytes(COM_GAME_JK2_MP)==212);
+    assert(fntech3::render::RefdefBytes(COM_GAME_JK2_MP)==368);
+    for(auto profile : {COM_GAME_JKA_SP, COM_GAME_JK2_SP}) {
         assert(!fntech3::render::EntityBytes(profile)); assert(!fntech3::render::RefdefBytes(profile));
+    }
+    {
+        std::array<byte,368+7> view{}; view[0]=view[1]=view[2]=view.back()=0xa5;
+        write(view,8,int32_t(640)); write(view,12,int32_t(480)); write(view,16,90.0f); write(view,20,73.75f);
+        for(int n=0;n<3;++n) write(view,36+n*16,1.0f);
+        write(view,72,int32_t(5000)); write(view,76,int32_t(1));
+        refdef_t read{};
+        assert(fntech3::render::ReadRefdef(COM_GAME_JK2_MP,view.data()+3,read));
+        assert(read.width==640&&read.height==480&&read.time==5000&&(read.rdflags&RDF_NOWORLDMODEL));
+        // Academy's sky-portal bits are not Outcast's to send through this path.
+        write(view,76,int32_t(0x18)); assert(!fntech3::render::ReadRefdef(COM_GAME_JK2_MP,view.data()+3,read));
     }
     // Populate physical offsets independently of the frozen declaration. The
     // module record is deliberately unaligned and surrounded by canaries.
@@ -52,6 +67,17 @@ int main() {
     assert(out.shader.rgba[0]==0x11&&out.shader.rgba[3]==0x44&&out.shaderTime.f==1.5f);
     assert(out.shadowPlane==-17&&out.backlerp==0.25f&&out.radius==8&&out.rotation==45);
     refEntity_t empty{}; assert(same(out.rtcw,empty.rtcw)&&same(out.wolfet,empty.wolfet)&&same(out.alice,empty.alice));
+    {
+        // Outcast's record has the same offsets; its adapter serves plain models.
+        refEntity_t outcast{};
+        assert(fntech3::render::ReadEntity(COM_GAME_JK2_MP,original.data()+3,outcast));
+        assert(outcast.reType==RT_MODEL&&outcast.hModel==17&&outcast.origin[2]==23&&outcast.customSkin==19);
+        assert(outcast.frame==4&&outcast.oldframe==3&&outcast.backlerp==0.25f&&outcast.shaderTime.f==1.5f);
+        auto ghoul2=original; write(ghoul2,208,uint32_t(1));
+        assert(!fntech3::render::ReadEntity(COM_GAME_JK2_MP,ghoul2.data()+3,outcast));
+        auto sprite=original; write(sprite,0,int32_t(2));
+        assert(!fntech3::render::ReadEntity(COM_GAME_JK2_MP,sprite.data()+3,outcast));
+    }
     for(auto pair : {std::pair<int,int>{2,RT_SPRITE},{4,RT_BEAM},{7,RT_PORTALSURFACE}}) {
         write(entity,0,int32_t(pair.first)); assert(raven::ReadEntity(entity.data()+3,out)==raven::Status::Ok);
         assert(int(out.reType)==pair.second);
