@@ -1,0 +1,1029 @@
+{
+ "record": "2026-10-16-raven-light-styles-animated.md",
+ "date": "2026-10-16",
+ "gateClosed": false,
+ "evidenceLevels": {
+  "retailImports": "Measured (capstone, pefile)",
+  "colourRules": "Reference observation (OpenJK 1a6a643427aa347553e9073dac5570b33337c4d9)",
+  "recomposition": "Source, Unit",
+  "renderers": "Live subset (jka-mp)"
+ },
+ "retail": {
+  "jamp.exe 1.01": {
+   "getImport": 219,
+   "setImport": 220,
+   "get": "0x4a31d0",
+   "set": "0x4a3200",
+   "colours": "0x1053650",
+   "importTargets": {
+    "219": "0x41326e",
+    "220": "0x41328d"
+   },
+   "refexportCopy": "0x8af048",
+   "refexportOffsets": {
+    "get": "0xa8",
+    "set": "0xac"
+   },
+   "dispatcher": "0x412170 (index 0x414638, targets 0x4142bc)",
+   "whiteAtRInit": "0x4a2cc0 (loop 0x4a2ec4)",
+   "moduleCalls": {
+    "cgamex86.dll (assets3)": {
+     "220": "0x3005eada",
+     "219": "none"
+    }
+   }
+  },
+  "jasp.exe 1.01": {
+   "getImport": 96,
+   "setImport": 97,
+   "get": "0x46a700",
+   "set": "0x46a730",
+   "colours": "0xcb2458",
+   "changedFlags": "0xcb2418",
+   "dispatcher": "0x401530 (table 0x4021b8)",
+   "importTargets": {
+    "96": "0x401e53",
+    "97": "0x401e6b"
+   },
+   "rDebugStyle": {
+    "registered": "0x469e07",
+    "default": "-1",
+    "flags": "0x200 (cheat)",
+    "applied": "0x46e6c2"
+   },
+   "moduleCalls": {
+    "jagamex86.dll": {
+     "97": "wrapper 0x20144480, called from 0x2012a29a",
+     "96": "none"
+    }
+   }
+  },
+  "jk2mp.exe 1.02a": {
+   "getImport": 215,
+   "setImport": 216,
+   "get": "0x480100",
+   "set": "0x480130",
+   "colours": "0x1a66fb8",
+   "dispatcher": "0x4017a0 (bound 300, index 0x4031a0, targets 0x402f14)",
+   "importTargets": {
+    "215": "0x402604",
+    "216": "0x402623"
+   },
+   "refexportCopy": "0x9d9e40 (mov edi at 0x40c539)",
+   "moduleCalls": {
+    "vm/cgame.qvm (assets0)": {
+     "216": 1,
+     "215": 0
+    }
+   }
+  },
+  "jk2sp.exe 1.02a": {
+   "getImport": 86,
+   "setImport": 87,
+   "get": "0x46f8d0",
+   "set": "0x46f900",
+   "colours": "0x12f81c8",
+   "changedFlags": "0x12f8188",
+   "dispatcher": "0x401570 (table 0x401fd0)",
+   "importTargets": {
+    "86": "0x401d3a",
+    "87": "0x401d50"
+   },
+   "rDebugStyle": {
+    "registered": "0x46eac5"
+   },
+   "moduleCalls": {
+    "jk2gamex86.dll": {
+     "87": "wrapper 0x20046070, called from 0x20030eba"
+    }
+   }
+  },
+  "setterRule": "a style of 64 or more stops with a fatal error; the word is stored if it differs"
+ },
+ "build": {
+  "base": "6442621be750191a019889bc3821068f9cd4fdaa",
+  "overlay": [
+   "code/renderercommon/tr_raven_bsp_format.h",
+   "code/renderercommon/tr_raven_light_styles.h",
+   "code/renderercommon/tr_public.h",
+   "code/renderer/tr_bsp.c",
+   "code/renderer/tr_init.c",
+   "code/renderer/tr_local.h",
+   "code/renderer/tr_scene.c",
+   "code/renderer/tr_vbo.c",
+   "code/renderervk/tr_bsp.c",
+   "code/renderervk/tr_init.c",
+   "code/renderervk/tr_local.h",
+   "code/renderervk/tr_scene.c",
+   "code/renderervk/vk_vbo.c",
+   "code/rendererrtx/tr_bsp.c",
+   "code/rendererrtx/tr_init.c",
+   "code/rendererrtx/tr_local.h",
+   "code/rendererrtx/tr_scene.c",
+   "code/rendererrtx/vk_vbo.c",
+   "code/compat/jka_lightstyle.hpp",
+   "code/client/client_jka_cgame_host.hpp",
+   "code/client/client_jk2_cgame.hpp",
+   "tests/raven_bsp_render_tests.cpp",
+   "tests/raven_light_styles_tests.py",
+   "tests/jka_lightstyle_tests.cpp",
+   "tests/jka_cgame_host_tests.py",
+   "tests/bsp_profile_loader_tests.py"
+  ],
+  "configuration": "meson debugoptimized, strict-warnings, renderers glx,vk,rtx, MSVC x86",
+  "binaries": {
+   "fntech3.exe": "ad1fcaf11646201c4437185f22a4bf8cfb10206360d952dacc975bfe46052934",
+   "fnql_glx_x86.dll": "c1463b97bbaf6e7a85046a1660dc34f5e04edd4dc42bf2efc2aa960572d8c739",
+   "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4",
+   "fnql_vk_x86.dll": "0dab4876196e65ddbb02c0db9e0e9a2c36f59f1b92ac41bf5db564bf7fac7849",
+   "fnql_rtx_x86.dll": "1059ef7da97527f2245ae55a0655dcd94cfddf1779baba4cca8cfec250781500"
+  }
+ },
+ "installedMaps": {
+  "installations": {
+   "jka": "E:/Games/Jedi Academy/base",
+   "jk2": "E:/Games/Jedi Outcast/base"
+  },
+  "maps": 98,
+  "allProject": true,
+  "withRecords": 18,
+  "groups": 4399,
+  "vertexSurfaces": 2150,
+  "cells": 54675,
+  "styledPatches": 123,
+  "patchesSharing": 0,
+  "maxBuildMs": 44.69,
+  "maxRecomposeAllMs": 1.37,
+  "whiteAgainEqualsLoadEverywhere": true,
+  "perMap": {
+   "jk2/maps/artus_mine.bsp": {
+    "groups": 603,
+    "texels": 11031,
+    "vertexSurfaces": 10,
+    "cells": 2118,
+    "styledPatches": 0,
+    "patchesSharing": 0,
+    "buildMs": 24.12,
+    "recomposeAllMs": 0.4,
+    "whiteAgainEqualsLoad": true,
+    "styles": "0000000100000001"
+   },
+   "jk2/maps/artus_topside.bsp": {
+    "groups": 18,
+    "texels": 875,
+    "vertexSurfaces": 46,
+    "cells": 1068,
+    "styledPatches": 0,
+    "patchesSharing": 0,
+    "buildMs": 2.28,
+    "recomposeAllMs": 0.03,
+    "whiteAgainEqualsLoad": true,
+    "styles": "0000000300000001"
+   },
+   "jk2/maps/bespin_undercity.bsp": {
+    "groups": 172,
+    "texels": 1818,
+    "vertexSurfaces": 0,
+    "cells": 19,
+    "styledPatches": 0,
+    "patchesSharing": 0,
+    "buildMs": 7.07,
+    "recomposeAllMs": 0.09,
+    "whiteAgainEqualsLoad": true,
+    "styles": "0000000300000001"
+   },
+   "jk2/maps/cairn_dock1.bsp": {
+    "groups": 659,
+    "texels": 44565,
+    "vertexSurfaces": 0,
+    "cells": 7842,
+    "styledPatches": 0,
+    "patchesSharing": 0,
+    "buildMs": 31.05,
+    "recomposeAllMs": 0.89,
+    "whiteAgainEqualsLoad": true,
+    "styles": "0000000700000001"
+   },
+   "jk2/maps/cairn_reactor.bsp": {
+    "groups": 130,
+    "texels": 24088,
+    "vertexSurfaces": 4,
+    "cells": 1256,
+    "styledPatches": 4,
+    "patchesSharing": 0,
+    "buildMs": 16.34,
+    "recomposeAllMs": 0.22,
+    "whiteAgainEqualsLoad": true,
+    "styles": "0000000000000003"
+   },
+   "jk2/maps/doom_shields.bsp": {
+    "groups": 598,
+    "texels": 22136,
+    "vertexSurfaces": 0,
+    "cells": 2622,
+    "styledPatches": 0,
+    "patchesSharing": 0,
+    "buildMs": 17.5,
+    "recomposeAllMs": 0.51,
+    "whiteAgainEqualsLoad": true,
+    "styles": "0000000300000001"
+   },
+   "jk2/maps/ffa_ns_streets.bsp": {
+    "groups": 15,
+    "texels": 3836,
+    "vertexSurfaces": 0,
+    "cells": 11117,
+    "styledPatches": 0,
+    "patchesSharing": 0,
+    "buildMs": 1.82,
+    "recomposeAllMs": 0.06,
+    "whiteAgainEqualsLoad": true,
+    "styles": "0000000000000041"
+   },
+   "jk2/maps/ns_hideout.bsp": {
+    "groups": 631,
+    "texels": 28154,
+    "vertexSurfaces": 13,
+    "cells": 3348,
+    "styledPatches": 0,
+    "patchesSharing": 0,
+    "buildMs": 32.79,
+    "recomposeAllMs": 0.37,
+    "whiteAgainEqualsLoad": true,
+    "styles": "0000003f00000205"
+   },
+   "jk2/maps/ns_starpad.bsp": {
+    "groups": 134,
+    "texels": 7965,
+    "vertexSurfaces": 17,
+    "cells": 3293,
+    "styledPatches": 0,
+    "patchesSharing": 0,
+    "buildMs": 7.79,
+    "recomposeAllMs": 0.21,
+    "whiteAgainEqualsLoad": true,
+    "styles": "0000000000000805"
+   },
+   "jk2/maps/ns_streets.bsp": {
+    "groups": 86,
+    "texels": 2864,
+    "vertexSurfaces": 37,
+    "cells": 2571,
+    "styledPatches": 0,
+    "patchesSharing": 0,
+    "buildMs": 4.76,
+    "recomposeAllMs": 0.07,
+    "whiteAgainEqualsLoad": true,
+    "styles": "0000007f00000041"
+   },
+   "jk2/maps/yavin_courtyard.bsp": {
+    "groups": 1,
+    "texels": 0,
+    "vertexSurfaces": 0,
+    "cells": 0,
+    "styledPatches": 0,
+    "patchesSharing": 0,
+    "buildMs": 1.55,
+    "recomposeAllMs": 0.01,
+    "whiteAgainEqualsLoad": true,
+    "styles": "0000000000000001"
+   },
+   "jk2/maps/yavin_temple.bsp": {
+    "groups": 1,
+    "texels": 0,
+    "vertexSurfaces": 0,
+    "cells": 0,
+    "styledPatches": 0,
+    "patchesSharing": 0,
+    "buildMs": 0.89,
+    "recomposeAllMs": 0.01,
+    "whiteAgainEqualsLoad": true,
+    "styles": "0000000000000001"
+   },
+   "jk2/maps/yavin_trial.bsp": {
+    "groups": 176,
+    "texels": 4773,
+    "vertexSurfaces": 0,
+    "cells": 669,
+    "styledPatches": 0,
+    "patchesSharing": 0,
+    "buildMs": 4.81,
+    "recomposeAllMs": 0.1,
+    "whiteAgainEqualsLoad": true,
+    "styles": "0000000f00000001"
+   },
+   "jka/maps/kor1.bsp": {
+    "groups": 60,
+    "texels": 11752,
+    "vertexSurfaces": 25,
+    "cells": 2008,
+    "styledPatches": 0,
+    "patchesSharing": 0,
+    "buildMs": 5.53,
+    "recomposeAllMs": 0.13,
+    "whiteAgainEqualsLoad": true,
+    "styles": "0000000000000003"
+   },
+   "jka/maps/kor2.bsp": {
+    "groups": 238,
+    "texels": 119931,
+    "vertexSurfaces": 50,
+    "cells": 1058,
+    "styledPatches": 0,
+    "patchesSharing": 0,
+    "buildMs": 15.53,
+    "recomposeAllMs": 0.94,
+    "whiteAgainEqualsLoad": true,
+    "styles": "0000000000000003"
+   },
+   "jka/maps/t1_fatal.bsp": {
+    "groups": 92,
+    "texels": 8974,
+    "vertexSurfaces": 3,
+    "cells": 63,
+    "styledPatches": 0,
+    "patchesSharing": 0,
+    "buildMs": 5.73,
+    "recomposeAllMs": 0.15,
+    "whiteAgainEqualsLoad": true,
+    "styles": "0000000100000001"
+   },
+   "jka/maps/t3_bounty.bsp": {
+    "groups": 707,
+    "texels": 70688,
+    "vertexSurfaces": 1907,
+    "cells": 13971,
+    "styledPatches": 119,
+    "patchesSharing": 0,
+    "buildMs": 44.69,
+    "recomposeAllMs": 1.37,
+    "whiteAgainEqualsLoad": true,
+    "styles": "00001fff00000001"
+   },
+   "jka/maps/t3_stamp.bsp": {
+    "groups": 78,
+    "texels": 30440,
+    "vertexSurfaces": 38,
+    "cells": 1652,
+    "styledPatches": 0,
+    "patchesSharing": 0,
+    "buildMs": 9.26,
+    "recomposeAllMs": 0.42,
+    "whiteAgainEqualsLoad": true,
+    "styles": "0000000300000001"
+   }
+  }
+ },
+ "live": {
+  "view": "kor1, setviewpos -2900 3800 -2860 180; shots after r_debugStyle 1, 0, 1, 0, -1, then five client-game frames, 60 frames apart",
+  "analysis": {
+   "glx": {
+    "whiteVsWhite": {
+     "meanAbs": 0.0,
+     "pixelsOver6": 0,
+     "max": 0
+    },
+    "blackVsBlack": {
+     "meanAbs": 0.0,
+     "pixelsOver6": 0,
+     "max": 0
+    },
+    "whiteVsBlack": {
+     "meanAbs": 0.317,
+     "pixelsOver6": 1128,
+     "max": 258
+    },
+    "clientGameVsWhite": {
+     "meanAbs": 0.03,
+     "pixelsOver6": 1125,
+     "max": 20
+    },
+    "clientGameVsBlack": {
+     "meanAbs": 0.287,
+     "pixelsOver6": 1128,
+     "max": 248
+    },
+    "naturalConsecutive": [
+     {
+      "meanAbs": 0.0,
+      "pixelsOver6": 0,
+      "max": 0
+     },
+     {
+      "meanAbs": 0.016,
+      "pixelsOver6": 573,
+      "max": 14
+     },
+     {
+      "meanAbs": 0.0,
+      "pixelsOver6": 0,
+      "max": 0
+     },
+     {
+      "meanAbs": 0.016,
+      "pixelsOver6": 573,
+      "max": 14
+     },
+     {
+      "meanAbs": 0.016,
+      "pixelsOver6": 573,
+      "max": 14
+     }
+    ],
+    "changedBox": [
+     262,
+     247,
+     726,
+     372
+    ],
+    "strongRegion": [
+     262,
+     349,
+     285,
+     372
+    ],
+    "strongRegionMean": {
+     "white": 79.14,
+     "black": 0.0,
+     "clientGameFrames": [
+      75.79,
+      75.79,
+      79.21,
+      79.21,
+      75.79,
+      79.21
+     ]
+    }
+   },
+   "vk": {
+    "whiteVsWhite": {
+     "meanAbs": 0.0,
+     "pixelsOver6": 0,
+     "max": 0
+    },
+    "blackVsBlack": {
+     "meanAbs": 0.0,
+     "pixelsOver6": 0,
+     "max": 0
+    },
+    "whiteVsBlack": {
+     "meanAbs": 0.292,
+     "pixelsOver6": 1058,
+     "max": 252
+    },
+    "clientGameVsWhite": {
+     "meanAbs": 0.015,
+     "pixelsOver6": 525,
+     "max": 18
+    },
+    "clientGameVsBlack": {
+     "meanAbs": 0.278,
+     "pixelsOver6": 1058,
+     "max": 253
+    },
+    "naturalConsecutive": [
+     {
+      "meanAbs": 0.014,
+      "pixelsOver6": 522,
+      "max": 12
+     },
+     {
+      "meanAbs": 0.017,
+      "pixelsOver6": 537,
+      "max": 12
+     },
+     {
+      "meanAbs": 0.017,
+      "pixelsOver6": 537,
+      "max": 12
+     },
+     {
+      "meanAbs": 0.0,
+      "pixelsOver6": 0,
+      "max": 0
+     },
+     {
+      "meanAbs": 0.0,
+      "pixelsOver6": 0,
+      "max": 0
+     }
+    ],
+    "changedBox": [
+     264,
+     248,
+     721,
+     371
+    ],
+    "strongRegion": [
+     264,
+     349,
+     286,
+     371
+    ],
+    "strongRegionMean": {
+     "white": 105.28,
+     "black": 26.38,
+     "clientGameFrames": [
+      105.34,
+      101.95,
+      105.24,
+      101.95,
+      101.95,
+      101.95
+     ]
+    }
+   },
+   "rtxTraced": {
+    "whiteVsWhite": {
+     "meanAbs": 0.915,
+     "pixelsOver6": 3927,
+     "max": 61
+    },
+    "blackVsBlack": {
+     "meanAbs": 0.853,
+     "pixelsOver6": 3272,
+     "max": 36
+    },
+    "whiteVsBlack": {
+     "meanAbs": 0.851,
+     "pixelsOver6": 2690,
+     "max": 36
+    },
+    "clientGameVsWhite": {
+     "meanAbs": 0.833,
+     "pixelsOver6": 2169,
+     "max": 53
+    },
+    "clientGameVsBlack": {
+     "meanAbs": 0.882,
+     "pixelsOver6": 3292,
+     "max": 38
+    },
+    "naturalConsecutive": [
+     {
+      "meanAbs": 0.873,
+      "pixelsOver6": 3194,
+      "max": 97
+     },
+     {
+      "meanAbs": 0.839,
+      "pixelsOver6": 2827,
+      "max": 96
+     },
+     {
+      "meanAbs": 0.82,
+      "pixelsOver6": 2451,
+      "max": 55
+     },
+     {
+      "meanAbs": 0.84,
+      "pixelsOver6": 2487,
+      "max": 51
+     },
+     {
+      "meanAbs": 0.86,
+      "pixelsOver6": 2966,
+      "max": 51
+     }
+    ],
+    "changedBox": [
+     2,
+     7,
+     799,
+     599
+    ],
+    "strongRegion": [
+     41,
+     111,
+     730,
+     334
+    ],
+    "strongRegionMean": {
+     "white": 27.44,
+     "black": 27.2,
+     "clientGameFrames": [
+      27.13,
+      27.23,
+      27.38,
+      27.21,
+      27.33,
+      27.08
+     ]
+    }
+   },
+   "rtxRaster": {
+    "whiteVsWhite": {
+     "meanAbs": 0.0,
+     "pixelsOver6": 0,
+     "max": 0
+    },
+    "blackVsBlack": {
+     "meanAbs": 0.0,
+     "pixelsOver6": 0,
+     "max": 0
+    },
+    "whiteVsBlack": {
+     "meanAbs": 0.316,
+     "pixelsOver6": 1128,
+     "max": 259
+    },
+    "clientGameVsWhite": {
+     "meanAbs": 0.03,
+     "pixelsOver6": 1121,
+     "max": 20
+    },
+    "clientGameVsBlack": {
+     "meanAbs": 0.287,
+     "pixelsOver6": 1128,
+     "max": 248
+    },
+    "naturalConsecutive": [
+     {
+      "meanAbs": 0.0,
+      "pixelsOver6": 0,
+      "max": 0
+     },
+     {
+      "meanAbs": 0.016,
+      "pixelsOver6": 569,
+      "max": 13
+     },
+     {
+      "meanAbs": 0.001,
+      "pixelsOver6": 0,
+      "max": 2
+     },
+     {
+      "meanAbs": 0.015,
+      "pixelsOver6": 569,
+      "max": 13
+     },
+     {
+      "meanAbs": 0.016,
+      "pixelsOver6": 569,
+      "max": 13
+     }
+    ],
+    "changedBox": [
+     262,
+     247,
+     726,
+     372
+    ],
+    "strongRegion": [
+     262,
+     349,
+     285,
+     372
+    ],
+    "strongRegionMean": {
+     "white": 104.82,
+     "black": 25.94,
+     "clientGameFrames": [
+      101.52,
+      101.52,
+      104.9,
+      104.9,
+      101.52,
+      104.9
+     ]
+    }
+   }
+  },
+  "t3_bounty": {
+   "glx": {
+    "clientGameVsAgain": {
+     "meanAbs": 0.02,
+     "pixelsOver6": 285
+    },
+    "clientGameVsDebugStyle0": {
+     "meanAbs": 33.06,
+     "pixelsOver6": 274846
+    },
+    "clientGameVsDebugStyle32": {
+     "meanAbs": 48.72,
+     "pixelsOver6": 281519
+    }
+   }
+  },
+  "runs": {
+   "kor1-glx-final": {
+    "profile": "jka-mp",
+    "map": "kor1",
+    "renderer": "glx",
+    "identity": {
+     "fntech3.exe": "ad1fcaf11646201c4437185f22a4bf8cfb10206360d952dacc975bfe46052934",
+     "fnql_glx_x86.dll": "c1463b97bbaf6e7a85046a1660dc34f5e04edd4dc42bf2efc2aa960572d8c739",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "commands": [
+     "togglemenu",
+     "cg_draw2D 0",
+     "con_notifytime 0",
+     "setviewpos -2900 3800 -2860 180"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "captures": [
+     {
+      "name": "raven-styles-00.png",
+      "sha256": "0cd75b382680cf599c1719d54eac7bbd1a759a75d2a067bf0b6ee786b81caba2"
+     },
+     {
+      "name": "raven-styles-01.png",
+      "sha256": "c652d684df352d66706f95b39e64c0677ad5bf5a542a025ceefcccac4b3afe4a"
+     },
+     {
+      "name": "raven-styles-02.png",
+      "sha256": "0cd75b382680cf599c1719d54eac7bbd1a759a75d2a067bf0b6ee786b81caba2"
+     },
+     {
+      "name": "raven-styles-03.png",
+      "sha256": "c652d684df352d66706f95b39e64c0677ad5bf5a542a025ceefcccac4b3afe4a"
+     },
+     {
+      "name": "raven-styles-04.png",
+      "sha256": "f3f5ab85e6abe866d6040a8d4dc6ab8fb742facf3dff43e4db5e88dec7738383"
+     },
+     {
+      "name": "raven-styles-05.png",
+      "sha256": "f3f5ab85e6abe866d6040a8d4dc6ab8fb742facf3dff43e4db5e88dec7738383"
+     },
+     {
+      "name": "raven-styles-06.png",
+      "sha256": "f08ac771f6e2ca72f9f79d337aedcba05af151e36db1af487d48d5c89b56de87"
+     },
+     {
+      "name": "raven-styles-07.png",
+      "sha256": "f08ac771f6e2ca72f9f79d337aedcba05af151e36db1af487d48d5c89b56de87"
+     },
+     {
+      "name": "raven-styles-08.png",
+      "sha256": "f3f5ab85e6abe866d6040a8d4dc6ab8fb742facf3dff43e4db5e88dec7738383"
+     },
+     {
+      "name": "raven-styles-09.png",
+      "sha256": "f08ac771f6e2ca72f9f79d337aedcba05af151e36db1af487d48d5c89b56de87"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "arguments": "+set com_gameProfile jka-mp +set fs_basepath \"E:\\Games\\Jedi Academy\" +set fs_homepath <repo>\\.tmp\\raven-styles\\runs\\kor1-glx-final\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +exec probesun.cfg +devmap kor1"
+   },
+   "kor1-vk-final": {
+    "profile": "jka-mp",
+    "map": "kor1",
+    "renderer": "vk",
+    "identity": {
+     "fntech3.exe": "ad1fcaf11646201c4437185f22a4bf8cfb10206360d952dacc975bfe46052934",
+     "fnql_vk_x86.dll": "0dab4876196e65ddbb02c0db9e0e9a2c36f59f1b92ac41bf5db564bf7fac7849",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "commands": [
+     "togglemenu",
+     "cg_draw2D 0",
+     "con_notifytime 0",
+     "setviewpos -2900 3800 -2860 180"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "captures": [
+     {
+      "name": "raven-styles-00.png",
+      "sha256": "65af4de94870f6cc5e61be2bdbb058af5c6335f555ea4a8f20a840dd9761c379"
+     },
+     {
+      "name": "raven-styles-01.png",
+      "sha256": "6b6f0837c2f25573a53bf37f535a283529c636f7ca1a97395ac0fa3e62aa3c8b"
+     },
+     {
+      "name": "raven-styles-02.png",
+      "sha256": "65af4de94870f6cc5e61be2bdbb058af5c6335f555ea4a8f20a840dd9761c379"
+     },
+     {
+      "name": "raven-styles-03.png",
+      "sha256": "6b6f0837c2f25573a53bf37f535a283529c636f7ca1a97395ac0fa3e62aa3c8b"
+     },
+     {
+      "name": "raven-styles-04.png",
+      "sha256": "94257bbfb152b350a2afd6a4370894b714f4afa6f6cd3d542ac3b28e9a07bb5b"
+     },
+     {
+      "name": "raven-styles-05.png",
+      "sha256": "d04d0f66700d46fc502cb38dfb151894bd2fc30eb216f30d91a5c0f2a344b182"
+     },
+     {
+      "name": "raven-styles-06.png",
+      "sha256": "287af5d7c87f0e51202e65170c5c857733c947421966b40af7b83790839875cd"
+     },
+     {
+      "name": "raven-styles-07.png",
+      "sha256": "d04d0f66700d46fc502cb38dfb151894bd2fc30eb216f30d91a5c0f2a344b182"
+     },
+     {
+      "name": "raven-styles-08.png",
+      "sha256": "d04d0f66700d46fc502cb38dfb151894bd2fc30eb216f30d91a5c0f2a344b182"
+     },
+     {
+      "name": "raven-styles-09.png",
+      "sha256": "d04d0f66700d46fc502cb38dfb151894bd2fc30eb216f30d91a5c0f2a344b182"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "arguments": "+set com_gameProfile jka-mp +set fs_basepath \"E:\\Games\\Jedi Academy\" +set fs_homepath <repo>\\.tmp\\raven-styles\\runs\\kor1-vk-final\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer vk +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +exec probesun.cfg +devmap kor1"
+   },
+   "kor1-rtx-final": {
+    "profile": "jka-mp",
+    "map": "kor1",
+    "renderer": "rtx",
+    "identity": {
+     "fntech3.exe": "ad1fcaf11646201c4437185f22a4bf8cfb10206360d952dacc975bfe46052934",
+     "fnql_rtx_x86.dll": "1059ef7da97527f2245ae55a0655dcd94cfddf1779baba4cca8cfec250781500",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "commands": [
+     "togglemenu",
+     "cg_draw2D 0",
+     "con_notifytime 0",
+     "setviewpos -2900 3800 -2860 180"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "captures": [
+     {
+      "name": "raven-styles-00.png",
+      "sha256": "51bb749092a567e1f5b5feeaa95f69a21fc22e58d610394aa24359d331aa63e2"
+     },
+     {
+      "name": "raven-styles-01.png",
+      "sha256": "7aa68fdc4e6f34ae2a103ef03f2c8104080735e2813171d2cd6221173cc885e3"
+     },
+     {
+      "name": "raven-styles-02.png",
+      "sha256": "015beefba77c9677c8d074390db7f71838576bfaae3481f893d6f829351949d6"
+     },
+     {
+      "name": "raven-styles-03.png",
+      "sha256": "ad4fdfdaf4fcfce27127a3baeb9d129239696dbba7d29d2f848b747fd9d34ae9"
+     },
+     {
+      "name": "raven-styles-04.png",
+      "sha256": "ff65768ff8cb084cb40178255020a6650f08aa477a0db7b50d1e735f3fc4d2f6"
+     },
+     {
+      "name": "raven-styles-05.png",
+      "sha256": "c942d819804b0bd64f2615f912cb49ace57eebb303f7392b52e6828b964bc03c"
+     },
+     {
+      "name": "raven-styles-06.png",
+      "sha256": "19e09166dc6e268ea615660c1fc0c42591f97adbfa7f4a3647c6c4ad92c21ca1"
+     },
+     {
+      "name": "raven-styles-07.png",
+      "sha256": "560ac2b8e359d702e3a4a8a2a2c4a28162d6eb16f731e14705d8f6a599c3e39e"
+     },
+     {
+      "name": "raven-styles-08.png",
+      "sha256": "19f34a2f797f537a0c5c5a0cc1e854bb3052d848989bbe849b10de183cbfb675"
+     },
+     {
+      "name": "raven-styles-09.png",
+      "sha256": "72ef47d92a47e5fbc83dfd34f09a1ff0af6dea09d6d0a95cc63fa54711f0b218"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "arguments": "+set com_gameProfile jka-mp +set fs_basepath \"E:\\Games\\Jedi Academy\" +set fs_homepath <repo>\\.tmp\\raven-styles\\runs\\kor1-rtx-final\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer rtx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +exec probesun.cfg +devmap kor1"
+   },
+   "kor1-rtx-final-raster": {
+    "profile": "jka-mp",
+    "map": "kor1",
+    "renderer": "rtx",
+    "identity": {
+     "fntech3.exe": "ad1fcaf11646201c4437185f22a4bf8cfb10206360d952dacc975bfe46052934",
+     "fnql_rtx_x86.dll": "1059ef7da97527f2245ae55a0655dcd94cfddf1779baba4cca8cfec250781500",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "commands": [
+     "togglemenu",
+     "cg_draw2D 0",
+     "con_notifytime 0",
+     "setviewpos -2900 3800 -2860 180"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "captures": [
+     {
+      "name": "raven-styles-00.png",
+      "sha256": "db59f13b1e848aa42855a1781f173c5bcd6b26445b3faf804ae8b5e7659b88cc"
+     },
+     {
+      "name": "raven-styles-01.png",
+      "sha256": "c69e2538ed142371e0b5cb1fae37adcfcd1f1c5dcac1ad4da69cd1c12521564c"
+     },
+     {
+      "name": "raven-styles-02.png",
+      "sha256": "db59f13b1e848aa42855a1781f173c5bcd6b26445b3faf804ae8b5e7659b88cc"
+     },
+     {
+      "name": "raven-styles-03.png",
+      "sha256": "c69e2538ed142371e0b5cb1fae37adcfcd1f1c5dcac1ad4da69cd1c12521564c"
+     },
+     {
+      "name": "raven-styles-04.png",
+      "sha256": "f9281b8a949629bf9d17776ee8f1a887132d9dcaa20be0911d5ceb989e7671a5"
+     },
+     {
+      "name": "raven-styles-05.png",
+      "sha256": "f9281b8a949629bf9d17776ee8f1a887132d9dcaa20be0911d5ceb989e7671a5"
+     },
+     {
+      "name": "raven-styles-06.png",
+      "sha256": "035813582ee910bcf4c78e696e5ee0e1f3b595bb9eab574583100a9565720ca3"
+     },
+     {
+      "name": "raven-styles-07.png",
+      "sha256": "a56c4ffef7d6ab6a4aa92497e3000a3339c05aadab71fcf817e386f4df523b76"
+     },
+     {
+      "name": "raven-styles-08.png",
+      "sha256": "f9281b8a949629bf9d17776ee8f1a887132d9dcaa20be0911d5ceb989e7671a5"
+     },
+     {
+      "name": "raven-styles-09.png",
+      "sha256": "035813582ee910bcf4c78e696e5ee0e1f3b595bb9eab574583100a9565720ca3"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "arguments": "+set com_gameProfile jka-mp +set fs_basepath \"E:\\Games\\Jedi Academy\" +set fs_homepath <repo>\\.tmp\\raven-styles\\runs\\kor1-rtx-final-raster\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer rtx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +set rtx_rt_mode 0 +exec probesun.cfg +devmap kor1"
+   },
+   "t3_bounty-glx-final": {
+    "profile": "jka-mp",
+    "map": "t3_bounty",
+    "renderer": "glx",
+    "identity": {
+     "fntech3.exe": "ad1fcaf11646201c4437185f22a4bf8cfb10206360d952dacc975bfe46052934",
+     "fnql_glx_x86.dll": "c1463b97bbaf6e7a85046a1660dc34f5e04edd4dc42bf2efc2aa960572d8c739",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "commands": [
+     "togglemenu",
+     "cg_draw2D 0",
+     "con_notifytime 0"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "captures": [
+     {
+      "name": "raven-styles-00.png",
+      "sha256": "01f66b4008e6fdc038fac01bdf508d8192d2c186435c3a0cfc197ab1c6cf9afc"
+     },
+     {
+      "name": "raven-styles-01.png",
+      "sha256": "e409f450c645c3f3aa02bc73ed2d1bdd864c8802475baa8e91a7bc04acb7bc1a"
+     },
+     {
+      "name": "raven-styles-02.png",
+      "sha256": "1d3e67ece346c6dfec6826bda064536489ae8a4245f744376fb25ced7dffe6c0"
+     },
+     {
+      "name": "raven-styles-03.png",
+      "sha256": "0f79048749c1d841e30744468d052ab73c9610cec96546008f725a1e3d4d1673"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "arguments": "+set com_gameProfile jka-mp +set fs_basepath \"E:\\Games\\Jedi Academy\" +set fs_homepath <repo>\\.tmp\\raven-styles\\runs\\t3_bounty-glx-final\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set g_gametype 0 +exec probesun.cfg +devmap t3_bounty"
+   }
+  }
+ },
+ "tests": [
+  "tests/raven_bsp_render_tests.cpp",
+  "tests/raven_light_styles_tests.py",
+  "tests/jka_cgame_host_tests.py",
+  "tests/jka_lightstyle_tests.cpp",
+  "tests/bsp_profile_loader_tests.py"
+ ]
+}

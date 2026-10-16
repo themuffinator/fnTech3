@@ -553,7 +553,7 @@ void R_BuildWorldVBO( msurface_t *surf, int surfCount )
 	// initial scan to count surfaces/indexes/vertexes for memory allocation
 	for ( i = 0, sf = surf; i < surfCount; i++, sf++ ) {
 		face = (srfSurfaceFace_t *) sf->data;
-		if ( face->surfaceType == SF_FACE && isStaticShader( sf->shader ) ) {
+		if ( face->surfaceType == SF_FACE && !sf->ravenStyled && isStaticShader( sf->shader ) ) {
 			face->vboItemIndex = ++numStaticSurfaces;
 			numStaticVertexes += face->numPoints;
 			numStaticIndexes += face->numIndices;
@@ -564,7 +564,7 @@ void R_BuildWorldVBO( msurface_t *surf, int surfCount )
 			continue;
 		}
 		tris = (srfTriangles_t *) sf->data;
-		if ( tris->surfaceType == SF_TRIANGLES && isStaticShader( sf->shader ) ) {
+		if ( tris->surfaceType == SF_TRIANGLES && !sf->ravenStyled && isStaticShader( sf->shader ) ) {
 			tris->vboItemIndex = ++numStaticSurfaces;
 			numStaticVertexes += tris->numVerts;
 			numStaticIndexes += tris->numIndexes;
@@ -576,7 +576,7 @@ void R_BuildWorldVBO( msurface_t *surf, int surfCount )
 		}
 #ifdef USE_VBO_GRID
 		grid = (srfGridMesh_t *) sf->data;
-		if ( grid->surfaceType == SF_GRID && isStaticShader( sf->shader ) ) {
+		if ( grid->surfaceType == SF_GRID && !sf->ravenStyled && isStaticShader( sf->shader ) ) {
 			grid->vboItemIndex = ++numStaticSurfaces;
 			RB_SurfaceGridEstimate( grid, &grid->vboExpectVertices, &grid->vboExpectIndices );
 			numStaticVertexes += grid->vboExpectVertices;

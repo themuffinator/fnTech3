@@ -117,6 +117,8 @@ composes every style into the projection the renderers load:
     and 220 keep them in the client) do not reach the renderer, and the
     single-player client games do not run yet. Every style is drawn at
     full, as retail draws a style no game names.
+    The [animated light styles slice](2026-10-16-raven-light-styles-animated.md)
+    (2026-10-16) carries them to the renderers.
   - **Stage order.** Retail adds a later channel's stage after whatever
     stage the lightmap is in. Where a shader puts its lightmap after its
     texture, retail's later channels are not multiplied by the texture,

@@ -16,7 +16,8 @@ int main(){
     assert(store.Set(0,UINT32_C(0x12ffffff))==styles::Status::Ok);
     assert(store.Get(0,color)&&(color==styles::Color{{255,255,255,18}}));
     assert(store.Set(0,UINT32_C(0xffffffff))==styles::Status::Ok);
-    assert(store.Set(0,UINT32_C(0x00fffffe))==styles::Status::Modulation);
-    assert(store.Get(0,color)&&(color==styles::Color{{255,255,255,255}}));
+    // Style zero takes any colour too: the renderer recomposes what it lights.
+    assert(store.Set(0,UINT32_C(0x00fffffe))==styles::Status::Ok);
+    assert(store.Get(0,color)&&(color==styles::Color{{254,255,255,0}}));
     store.Reset();assert(store.Get(63,color)&&(color==styles::Color{{255,255,255,255}}));
 }

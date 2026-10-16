@@ -260,6 +260,7 @@ static void R_LoadWolfETExternalLightmaps(const lump_t *) {}
 static void R_RavenPrepareWorldBuffer(void **, int *, fnRavenBspView_t *, const char *) { assert(false); }
 static void R_RavenKeepWorldRecords(const fnRavenBspView_t *) { assert(false); }
 static void R_LoadRavenLightGrid(const lump_t *) { assert(false); }
+static void R_RavenInitLightStyles(const lump_t *) { assert(false); }
 static cvar_t vertexLight;
 static cvar_t *r_vertexLight = &vertexLight;
 constexpr int GLHW_PERMEDIA2 = 4;

@@ -1506,6 +1506,9 @@ void RE_RenderScene( const refdef_t *fd ) {
 	if (!tr.world && !( fd->rdflags & RDF_NOWORLDMODEL ) ) {
 		ri.Error (ERR_DROP, "R_RenderScene: NULL worldmodel");
 	}
+	if ( !( fd->rdflags & RDF_NOWORLDMODEL ) ) {
+		R_RavenUpdateLightStyles();
+	}
 
 	Com_Memcpy( tr.refdef.text, fd->text, sizeof( tr.refdef.text ) );
 

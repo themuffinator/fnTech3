@@ -103,7 +103,13 @@ static void RecordLight(const vec3_t origin,float radius,float r,float g,float b
 }
 static void AddLight(const vec3_t origin,float radius,float r,float g,float b){RecordLight(origin,radius,r,g,b,0);}
 static void AddAdditiveLight(const vec3_t origin,float radius,float r,float g,float b){RecordLight(origin,radius,r,g,b,1);}
+static int rendererStyleCalls,rendererStyle=-1;
+static std::array<byte,4> rendererStyleColor{};
+static void SetStyle(int style,const byte color[4]){
+ ++rendererStyleCalls;rendererStyle=style;std::memcpy(rendererStyleColor.data(),color,4);
+}
 static struct {decltype(&GetDistance) GetJKADistanceCull=GetDistance;decltype(&GetToken) GetEntityToken=GetToken;
+ decltype(&SetStyle) SetRavenLightStyle=SetStyle;
  decltype(&AddPoly) AddPolyToScene=AddPoly;
  decltype(&AddLight) AddLightToScene=AddLight;
  decltype(&AddAdditiveLight) AddAdditiveLightToScene=AddAdditiveLight;} re;
@@ -382,16 +388,25 @@ int main(){
  assert(invoke(Call::CG_R_SET_LIGHT_STYLE,setStyle)==0);
  assert(invoke(Call::CG_R_GET_LIGHT_STYLE,getStyle)==0);
  assert(styleBytes[3]==5&&styleBytes[4]==19&&styleBytes[5]==127&&styleBytes[6]==129);
+ // The renderer receives the same colour, byte for byte, as retail's does.
+ assert(rendererStyleCalls==1&&rendererStyle==63);
+ assert((rendererStyleColor==std::array<byte,4>{{5,19,127,129}}));
  auto beforeStyle=styleBytes;
  for(int invalid:{-1,64,INT_MIN,INT_MAX}){
   setStyle[1]=invalid;getStyle[1]=invalid;
   rejected([&]{invoke(Call::CG_R_SET_LIGHT_STYLE,setStyle);});
   rejected([&]{invoke(Call::CG_R_GET_LIGHT_STYLE,getStyle);});assert(styleBytes==beforeStyle);
  }
+ assert(rendererStyleCalls==1); // refused indexes reach no renderer
+ // Style zero takes a colour too, and reaches the renderer.
  setStyle[1]=0;setStyle[2]=INT32_C(0x00fffffe);
- rejected([&]{invoke(Call::CG_R_SET_LIGHT_STYLE,setStyle);});
- assert(std::strstr(lastDrop,"cannot apply colored style zero"));
- setStyle[2]=-1;assert(invoke(Call::CG_R_SET_LIGHT_STYLE,setStyle)==0);
+ assert(invoke(Call::CG_R_SET_LIGHT_STYLE,setStyle)==0);
+ assert(rendererStyleCalls==2&&rendererStyle==0&&(rendererStyleColor==std::array<byte,4>{{254,255,255,0}}));
+ // Without an Fn renderer export the client still keeps the colour.
+ re.SetRavenLightStyle=nullptr;setStyle[2]=-1;assert(invoke(Call::CG_R_SET_LIGHT_STYLE,setStyle)==0);
+ re.SetRavenLightStyle=SetStyle;assert(rendererStyleCalls==2);
+ getStyle[1]=0;assert(invoke(Call::CG_R_GET_LIGHT_STYLE,getStyle)==0);
+ for(int i=3;i<7;++i)assert(styleBytes[i]==255);
  getStyle[1]=63;getStyle[2]=0;rejected([&]{invoke(Call::CG_R_GET_LIGHT_STYLE,getStyle);});
  getStyle[2]=intptr_t(std::numeric_limits<std::uintptr_t>::max()-2);
  rejected([&]{invoke(Call::CG_R_GET_LIGHT_STYLE,getStyle);});

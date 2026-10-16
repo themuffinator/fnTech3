@@ -327,10 +327,13 @@ static bool CL_JKACgameCall(intptr_t *args, intptr_t &operation, intptr_t &resul
         if(static_cast<int64_t>(args[2])<INT32_MIN||static_cast<int64_t>(args[2])>UINT32_MAX)
             Com_Error(ERR_DROP,"Invalid Academy light-style color word");
         const auto status=jkaCgameLightStyles.Set(static_cast<int>(args[1]),static_cast<uint32_t>(args[2]));
-        if(status==lightstyle::Status::Modulation)
-            Com_Error(ERR_DROP,"Academy normal-style RBSP rendering cannot apply colored style zero");
         if(status!=lightstyle::Status::Ok)
             Com_Error(ERR_DROP,"Invalid Academy light-style index");
+        // Retail0x41328d hands the word to the renderer's table; Fn's
+        // renderer recomposes the styled light of the loaded world.
+        lightstyle::Color color;
+        if(re.SetRavenLightStyle&&jkaCgameLightStyles.Get(static_cast<int>(args[1]),color))
+            re.SetRavenLightStyle(static_cast<int>(args[1]),color.data());
         return true;
     }
     case Call::CG_GET_ENTITY_TOKEN:

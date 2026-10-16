@@ -1396,6 +1396,7 @@ typedef struct msurface_s {
 	uint64_t			pmShadowMask;	// world surfaces already appended for each dlight this view
 #endif // USE_PMLIGHT
 	surfaceType_t		*data;			// any of srf*_t
+	qboolean			ravenStyled;	// Raven vertex light that follows a light style: no static VBO
 } msurface_t;
 
 
@@ -1493,6 +1494,7 @@ typedef struct {
 	int			lightGridBounds[3];
 	byte		*lightGridData;
 	fnRavenBspView_t ravenBsp; // Original RBSP records and light-array mapping.
+	struct fnRavenStyleWorld_s *ravenStyles; // Light styles that change (tr_raven_bsp_load.h).
 
 
 	int			numClusters;
@@ -2904,6 +2906,9 @@ qhandle_t RE_GetShaderFromModel( qhandle_t model, int surface, int withLightmap 
 
 qboolean	RE_GetJKADistanceCull( float *distance );
 void	RE_SetJKARangedFog( float range );
+// Raven light styles: the client game's colours, applied before each world view.
+void	RE_SetRavenLightStyle( int style, const byte color[4] );
+void	R_RavenUpdateLightStyles( void );
 qboolean	RE_GetEntityToken( char *buffer, int size );
 
 model_t		*R_AllocModel( void );

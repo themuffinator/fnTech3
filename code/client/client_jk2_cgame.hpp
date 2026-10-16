@@ -5,6 +5,7 @@
 #include "../compat/jk2_client_adapter.hpp"
 #include "client_jk2_font.hpp"
 #include "client_jk2_strings.hpp"
+#include "../compat/jka_lightstyle.hpp"
 
 /* The low services were identified by jk2mp.exe's own dispatch targets at
  * 0x4017a0 (index 0x4031a0, jump table 0x402f14). Never fall through by number:
@@ -52,6 +53,11 @@ static intptr_t CL_JK2CgameSharedCall( intptr_t ordinal ) {
 	default: return -1;
 	}
 }
+
+/* jk2mp.exe's light styles: imports 215 (0x40260d) and 216 (0x402623) hand
+ * the style and a pointer or RGBA word to the renderer's GetLightStyle
+ * (0x480100) and SetLightStyle (0x480130), whose 64 words start white. */
+static fntech3::jka::lightstyle::Store jk2CgameLightStyles;
 
 static bool CL_JK2CgameCall( intptr_t *args, intptr_t &operation, intptr_t &result ) {
 	result = 0;
@@ -112,6 +118,24 @@ static bool CL_JK2CgameCall( intptr_t *args, intptr_t &operation, intptr_t &resu
 		usercmd_t source{};
 		result = destination && CL_GetUserCmd( static_cast<int>( args[1] ), &source ) &&
 			fntech3::jk2::state::FromInternal( source, *destination ) ? qtrue : qfalse;
+		return true;
+	}
+	case 215: {
+		fntech3::jka::lightstyle::Color color;
+		if ( args[1] < 0 || args[1] >= fntech3::jka::lightstyle::Count
+				|| !jk2CgameLightStyles.Get( static_cast<int>( args[1] ), color ) )
+			Com_Error( ERR_DROP, "Invalid Jedi Outcast light-style index" );
+		VM_CHECKBOUNDS( cgvm, args[2], color.size() );
+		std::memcpy( VMA(2), color.data(), color.size() );
+		return true;
+	}
+	case 216: {
+		fntech3::jka::lightstyle::Color color;
+		if ( args[1] < 0 || args[1] >= fntech3::jka::lightstyle::Count
+				|| jk2CgameLightStyles.Set( static_cast<int>( args[1] ), static_cast<uint32_t>( args[2] ) )
+				!= fntech3::jka::lightstyle::Status::Ok || !jk2CgameLightStyles.Get( static_cast<int>( args[1] ), color ) )
+			Com_Error( ERR_DROP, "Invalid Jedi Outcast light-style index" );
+		if ( re.SetRavenLightStyle ) re.SetRavenLightStyle( static_cast<int>( args[1] ), color.data() );
 		return true;
 	}
 	default:

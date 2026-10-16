@@ -5,6 +5,7 @@
 #include "../code/renderercommon/tr_raven_bsp_format.h"
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
@@ -331,6 +332,159 @@ static void Styles() {
     std::cout << "Raven RBSP light styles composed PASS\n";
 }
 
+// Styles that change: the records name what each style lights, and
+// recomposing a page where a changed style lights it gives what composing
+// the whole map at the new colours gives.
+static const byte *Page(const fnRavenBspProjection_t &projection) {
+    return static_cast<const byte *>(projection.data)+FN_RavenBspI32(static_cast<const byte *>(projection.data)+8+14*8);
+}
+static void ChangingStyles() {
+    fnRavenBspProjection_t projection, expected; fnRavenBspError_t error; fnRavenBspView_t view;
+    fnRavenBspStyles_t styles;
+    unsigned char colors[FN_RAVEN_BSP_LIGHT_STYLES][4];
+    std::memset(colors,255,sizeof(colors));
+    Bytes file=Fixture();
+    const size_t s=static_cast<size_t>(Offset(file,13)), lightmaps=static_cast<size_t>(Offset(file,14));
+    const float corners[3][2]={{0.5f,0.5f},{4.5f,0.5f},{0.5f,4.5f}};
+    for(int v=0;v<3;++v) { SetUV(file,v,0,corners[v][0],corners[v][1]); SetUV(file,v,1,corners[v][0]+10,corners[v][1]); }
+    for(int y=0;y<128;++y) for(int x=10;x<16;++x) file[lightmaps+49152+static_cast<size_t>(y*128+x)*3]=130;
+    file[s+29]=1;
+    // A second surface on the same page lights an overlapping block with
+    // style 2 from page 1's top-left; a third lights it alike (one group).
+    Bytes surfaces(file.begin()+static_cast<std::ptrdiff_t>(s),file.begin()+static_cast<std::ptrdiff_t>(s)+148);
+    Bytes second=surfaces; second[29]=2; Put(second,12,3);
+    Bytes third=second;
+    surfaces.insert(surfaces.end(),second.begin(),second.end()); surfaces.insert(surfaces.end(),third.begin(),third.end());
+    Bytes vertices(file.begin()+Offset(file,10),file.begin()+Offset(file,10)+3*80);
+    vertices.insert(vertices.end(),vertices.begin(),vertices.begin()+3*80);
+    Lump(file,13,surfaces); Lump(file,10,vertices);
+    Bytes model(40); Float(model,12,128); Put(model,28,3); Lump(file,7,model);
+    for(int v=3;v<6;++v) { SetUV(file,v,0,corners[v-3][0]+2,corners[v-3][1]); SetUV(file,v,1,corners[v-3][0]+2,corners[v-3][1]); }
+    for(int y=0;y<8;++y) for(int x=0;x<8;++x) file[static_cast<size_t>(Offset(file,14))+49152+static_cast<size_t>(y*128+x)*3+1]=90;
+
+    CHECK(FN_RavenBspRead(file.data(),static_cast<int>(file.size()),&view,&error));
+    CHECK(FN_RavenBspBuildStyles(&view,Allocate,&styles,&error));
+    CHECK(styles.numPages==2 && styles.numGroups==2 && styles.pageGroups[0]==0 && styles.pageGroups[1]==2 && styles.pageGroups[2]==2);
+    CHECK(styles.groups[0].surface==0 && styles.groups[0].styles==(uint64_t(1)<<1));
+    CHECK(styles.groups[1].surface==1 && styles.groups[1].styles==(uint64_t(1)<<2));
+    CHECK(styles.styles==((uint64_t(1)<<1)|(uint64_t(1)<<2)) && !styles.numSurfaces && !styles.numCells);
+    CHECK(FN_RavenBspProject(file.data(),static_cast<int>(file.size()),Allocate,&projection,&error));
+    // Every texel a group lists is one its surfaces' light changes at white.
+    int changedTexels=0;
+    for(int texel=0;texel<128*128;++texel)
+        changedTexels+=std::memcmp(Page(projection)+texel*3,file.data()+Offset(file,14)+texel*3,3)!=0;
+    std::set<int> listed(styles.texels,styles.texels+styles.numTexels);
+    CHECK(static_cast<int>(listed.size())==changedTexels && styles.numTexels>static_cast<int>(listed.size()));
+    Bytes pages(Page(projection),Page(projection)+2*49152);
+    // A style nothing on the page uses changes nothing.
+    colors[7][0]=0;
+    CHECK(!FN_RavenBspRecomposePage(&view,&styles,0,uint64_t(1)<<7,colors,pages.data()));
+    CHECK(!FN_RavenBspRecomposePage(&view,&styles,1,~uint64_t(0),colors,pages.data()));
+    CHECK(!FN_RavenBspRecomposePage(&view,&styles,2,~uint64_t(0),colors,pages.data()));
+    CHECK(!std::memcmp(pages.data(),Page(projection),pages.size()));
+    // One style, then the other, then both back: each matches the whole map
+    // composed at those colours, overlaps included.
+    const unsigned char steps[][2][3]={{{128,0,255},{255,255,255}},{{128,0,255},{10,200,30}},{{255,255,255},{0,0,0}},{{255,255,255},{255,255,255}}};
+    for(const auto &step:steps) {
+        const uint64_t changed=(std::memcmp(colors[1],step[0],3)?uint64_t(1)<<1:0)|(std::memcmp(colors[2],step[1],3)?uint64_t(1)<<2:0);
+        std::memcpy(colors[1],step[0],3); std::memcpy(colors[2],step[1],3);
+        CHECK(FN_RavenBspRecomposePage(&view,&styles,0,changed,colors,pages.data()));
+        CHECK(FN_RavenBspProjectStyles(file.data(),static_cast<int>(file.size()),Allocate,colors,&expected,&error));
+        CHECK(!std::memcmp(pages.data(),Page(expected),pages.size()));
+        std::free(expected.data);
+    }
+    CHECK(!std::memcmp(pages.data(),Page(projection),pages.size()));
+    std::free(projection.data);
+
+    // Vertex light: a surface whose vertex channels name a style other than 0.
+    Bytes lit=Fixture(); Put(lit,s+36,0xfffffffd); lit[s+33]=5;
+    CHECK(FN_RavenBspRead(lit.data(),static_cast<int>(lit.size()),&view,&error) && FN_RavenBspBuildStyles(&view,Allocate,&styles,&error));
+    CHECK(styles.numSurfaces==1 && styles.surfaces[0].surface==0 && styles.surfaces[0].styles==((uint64_t(1)<<0)|(uint64_t(1)<<5)));
+    CHECK(!styles.numGroups && styles.styles==styles.surfaces[0].styles);
+    lit[s+33]=255; // the first channel alone, style 0: the map's normal light, not recorded
+    CHECK(FN_RavenBspRead(lit.data(),static_cast<int>(lit.size()),&view,&error) && FN_RavenBspBuildStyles(&view,Allocate,&styles,&error));
+    CHECK(!styles.numSurfaces && !styles.styles);
+    lit[s+32]=9; // a lone switched style: recorded, the map's colour at white, scaled at others
+    CHECK(FN_RavenBspRead(lit.data(),static_cast<int>(lit.size()),&view,&error) && FN_RavenBspBuildStyles(&view,Allocate,&styles,&error));
+    CHECK(styles.numSurfaces==1 && styles.styles==(uint64_t(1)<<9));
+    {
+        const byte *vertex=lit.data()+Offset(lit,10)+2*80, *surface=lit.data()+Offset(lit,13);
+        byte out[4];
+        FN_RavenBspComposeVertexColor(vertex,surface,nullptr,out);
+        CHECK(!std::memcmp(out,vertex+64,4));
+        colors[9][0]=0; colors[9][1]=128; colors[9][2]=255;
+        FN_RavenBspComposeVertexColor(vertex,surface,colors,out);
+        CHECK(out[0]==0 && out[1]==(vertex[65]*128+127)/255 && out[2]==vertex[66] && out[3]==vertex[67]);
+    }
+    // The grid: cells whose row has a style other than 0 (cells 0 and 2 use row 1).
+    Bytes grid=Fixture(); grid[static_cast<size_t>(Offset(grid,15))+30+25]=3;
+    CHECK(FN_RavenBspRead(grid.data(),static_cast<int>(grid.size()),&view,&error) && FN_RavenBspBuildStyles(&view,Allocate,&styles,&error));
+    CHECK(styles.numCells==2 && styles.cells[0]==0 && styles.cells[1]==2 && styles.styles==((uint64_t(1)<<0)|(uint64_t(1)<<3)));
+    grid[static_cast<size_t>(Offset(grid,15))+30+24]=255; // a hole is never recorded
+    CHECK(FN_RavenBspRead(grid.data(),static_cast<int>(grid.size()),&view,&error) && FN_RavenBspBuildStyles(&view,Allocate,&styles,&error));
+    CHECK(!styles.numCells);
+    allocationFail=true; CHECK(!FN_RavenBspBuildStyles(&view,Allocate,&styles,&error) && std::strstr(error.reason,"allocation"));
+    allocationFail=false;
+    CHECK(!FN_RavenBspBuildStyles(nullptr,Allocate,&styles,&error) && !FN_RavenBspBuildStyles(&view,nullptr,&styles,&error));
+
+    // A vertex-lit 3x3 patch with style 5: its control points carry their
+    // patch coordinates in the projection, and it is lit where they lie.
+    Bytes patch=Fixture();
+    Bytes nine(9*80);
+    for(int v=0;v<9;++v) {
+        size_t base=static_cast<size_t>(v)*80;
+        Float(nine,base,static_cast<float>(v%3*64)); Float(nine,base+4,static_cast<float>(v/3*64));
+        Float(nine,base+20,static_cast<float>(v%3)*0.25f); Float(nine,base+24,static_cast<float>(v/3)*0.5f);
+        for(int c=0;c<4;++c) { nine[base+64+static_cast<size_t>(c)]=static_cast<byte>(20*v+c); nine[base+68+static_cast<size_t>(c)]=static_cast<byte>(200-10*v); }
+    }
+    Lump(patch,10,nine);
+    Put(patch,s+8,2); Put(patch,s+16,9); Put(patch,s+24,0); Put(patch,s+36,0xfffffffd);
+    patch[s+33]=5; Put(patch,s+140,3); Put(patch,s+144,3);
+    CHECK(FN_RavenBspRead(patch.data(),static_cast<int>(patch.size()),&view,&error));
+    const byte *record=view.bytes+view.offsets[13];
+    CHECK(FN_RavenBspStyledPatch(record) && FN_RavenBspStyledPatchAt(&view,0));
+    CHECK(FN_RavenBspProject(patch.data(),static_cast<int>(patch.size()),Allocate,&projection,&error));
+    {
+        const byte *projected=static_cast<byte *>(projection.data)+FN_RavenBspI32(static_cast<byte *>(projection.data)+8+10*8);
+        for(int v=0;v<9;++v) {
+            float at[2]; std::memcpy(at,projected+v*44+20,8);
+            CHECK(at[0]==static_cast<float>(v%3)*0.5f && at[1]==static_cast<float>(v/3)*0.5f);
+            // At a control point the patch's colour is that point's own.
+            byte fromPatch[4], fromVertex[4];
+            FN_RavenBspPatchColor(&view,record,at[0],at[1],colors,fromPatch);
+            FN_RavenBspComposeVertexColor(view.bytes+view.offsets[10]+v*80,record,colors,fromVertex);
+            CHECK(!std::memcmp(fromPatch,fromVertex,4));
+            float coords[2]; FN_RavenBspPatchLightmapCoords(&view,record,at[0],at[1],coords);
+            CHECK(std::fabs(coords[0]-static_cast<float>(v%3)*0.25f)<1e-6f && std::fabs(coords[1]-static_cast<float>(v/3)*0.5f)<1e-6f);
+        }
+        // Midway between the first two corners: the curve's own interpolation.
+        byte middle[4]; float coords[2];
+        FN_RavenBspPatchColor(&view,record,0.25f,0.0f,nullptr,middle);
+        FN_RavenBspPatchLightmapCoords(&view,record,0.25f,0.0f,coords);
+        CHECK(std::fabs(coords[0]-0.125f)<1e-6f && coords[1]==0.0f);
+        const int expectRed=((20*0+20*1)/2 * 255 + (200+190)/2 * 255) >> 8;
+        CHECK(std::abs(middle[0]-expectRed)<=2);
+    }
+    CHECK(!std::memcmp(projection.original.bytes,patch.data(),patch.size())); std::free(projection.data);
+    // A patch sharing its control points with another surface keeps them.
+    {
+        Bytes shared=patch; Bytes two(shared.begin()+Offset(shared,13),shared.begin()+Offset(shared,13)+148);
+        Bytes other=two; Put(other,8,1); Put(other,16,3); Put(other,24,3); Put(other,36,0);
+        two.insert(two.end(),other.begin(),other.end()); Lump(shared,13,two);
+        Bytes model2(40); Float(model2,12,128); Put(model2,28,2); Lump(shared,7,model2);
+        CHECK(FN_RavenBspRead(shared.data(),static_cast<int>(shared.size()),&view,&error));
+        CHECK(FN_RavenBspStyledPatch(view.bytes+view.offsets[13]) && !FN_RavenBspStyledPatchAt(&view,0));
+        CHECK(FN_RavenBspProject(shared.data(),static_cast<int>(shared.size()),Allocate,&projection,&error));
+        const byte *projected=static_cast<byte *>(projection.data)+FN_RavenBspI32(static_cast<byte *>(projection.data)+8+10*8);
+        float at[2]; std::memcpy(at,projected+44+20,8); CHECK(at[0]==0.25f && at[1]==0.0f);
+        std::free(projection.data);
+    }
+    // Even or too-small patches, and a lightmapped one, are not styled patches.
+    Bytes narrow=patch; Put(narrow,s+140,1); Put(narrow,s+144,9);
+    CHECK(!FN_RavenBspStyledPatch(narrow.data()+Offset(narrow,13)));
+    std::cout << "Raven RBSP changing light styles recomposed PASS\n";
+}
+
 // Shader records reach the Fn view in Quake III's bits (surfaceflags.h); the
 // Raven side is every retail Jedi engine's infoparm table.
 static void ShaderFlags() {
@@ -412,5 +566,5 @@ int main(int argc,char **argv) {
         std::cout << "ACCEPTED " << out.original.vertices << " " << out.original.surfaces << " " << out.original.gridRows << " " << out.original.gridCells << "\n";
         std::free(out.data); return 0;
     }
-    Unit(); Styles(); ShaderFlags(); return 0;
+    Unit(); Styles(); ChangingStyles(); ShaderFlags(); return 0;
 }

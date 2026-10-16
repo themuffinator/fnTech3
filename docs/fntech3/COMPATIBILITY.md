@@ -2812,6 +2812,26 @@ maps load in the renderers, where 45 were refused. Academy's `kor1` draws in
 GLx, Vulkan and RTX, and `t1_fatal` and `t3_bounty` in GLx (Live subset).
 Animated and switched styles do not reach the renderer yet. No gate closes.
 
+The [animated light styles slice](2026-10-16-raven-light-styles-animated.md)
+(2026-10-16) carries the client game's style colours to the renderers.
+Retail `jamp.exe` 1.01 serves client-game imports 219 and 220 at `0x41326e`
+and `0x41328d` with the renderer's `GetLightStyle` and `SetLightStyle`
+(`0x4a31d0`, `0x4a3200`), which keep 64 colour words that `R_Init` starts
+white; `jasp.exe` serves them as 96 and 97 (`0x46a700`, `0x46a730`), and its
+renderer alone has the cheat `r_debugStyle` (measured). The client now hands
+each colour to a new renderer export, style 0 included. GLx, Vulkan and RTX
+record what each style lights and, before each world view, recompose a
+changed style's lightmap texels, vertex colours and grid cells, re-uploading
+the touched pages of separate or merged lightmaps; styled vertex-lit
+surfaces leave the static vertex buffer, and styled patches are lit where
+their tessellated vertices lie (Source, Unit). Recomposing every styled page
+of the 98 installed maps and back reproduces the load byte for byte. Live
+under `jka-mp`, `kor1`'s lamps lit by style 1 follow the retail client
+game's flicker and go dark at `r_debugStyle 0` in GLx, Vulkan and RTX's
+raster path; RTX's path tracer uses no baked light. `t3_bounty`'s switched
+lights follow in GLx (Live subset). The single-player client games do not
+run yet. No gate closes.
+
 The [surface sprites slice](2026-10-15-jedi-surface-sprites.md)
 (2026-10-15) reads Raven's `surfaceSprites` stage word and its `ss`
 companions as both Academy engines do (`jamp.exe` 1.01 `0x4b3fef`,
@@ -3047,6 +3067,18 @@ refused for light styles, among them the multiplayer `ffa_ns_streets`, and
 one, `yavin_temple`, for 11 flares in a fog the map lacks, now drawn
 unfogged. All 41 now project. No Outcast map has been drawn live: the
 multiplayer client still stops at client-game import 300. No gate closes.
+
+The [animated light styles slice](2026-10-16-raven-light-styles-animated.md)
+(2026-10-16) serves Outcast's style colours too. Retail `jk2mp.exe` 1.02a
+serves client-game imports 215 and 216 (`0x402604`, `0x402623`) with its
+renderer's `GetLightStyle` and `SetLightStyle` (`0x480100`, `0x480130`), and
+`jk2sp.exe` serves them as 86 and 87 (`0x46f8d0`, `0x46f900`); the retail
+`cgame.qvm` calls 216 once and never 215 (measured). The multiplayer client
+now serves both from the store Academy's uses, with retail's bounds, and hands
+each colour to the renderers, which recompose what that style lights as for
+Academy (Source, Unit). No Outcast map has been drawn live with them: a
+local `ffa_bespin` start stops at client-game import 285, Ghoul2, before its
+client game first sets a style. No gate closes.
 
 The [animMap variants record](2026-10-15-jk2-animmap-variants.md)
 (2026-10-15) has both Outcast profiles read Raven's `oneshotanimMap` and

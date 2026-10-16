@@ -133,6 +133,12 @@ historical upstream records, not fnTech3 release history. See the
   so the path tracer had lit them with no sun; their streets and rooftops
   now take the sun, the sky and the shadows the game's own lighting shows
   ([record](docs/fntech3/2026-10-16-mohaa-worldspawn-sun.md)).
+- Let Jedi Academy's flickering and switched lights flicker and switch: the
+  client game's light colours now reach GLx, Vulkan and RTX's raster path,
+  which relight just the parts of the map each light touches. Jedi Outcast's
+  multiplayer client hands its colours over too. `r_debugStyle`, the
+  original single-player renderers' cheat, shows one light at a time
+  ([record](docs/fntech3/2026-10-16-raven-light-styles-animated.md)).
 - Load every Jedi Academy and Jedi Outcast map: 45 maps with switchable or
   flickering lights, among them Outcast's `ffa_ns_streets`, stopped with
   "light styles are not served yet". Their extra lights are now added in,

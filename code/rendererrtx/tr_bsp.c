@@ -4207,6 +4207,7 @@ Called directly from cgame
 #include "../renderercommon/tr_q3_ihv_model_light_bsp.h"
 #include "../renderercommon/tr_ritual_model_light_bsp.h"
 #include "../renderercommon/tr_raven_bsp_load.h"
+#include "../renderercommon/tr_raven_light_styles.h"
 #include "../renderercommon/tr_map_shader_flags.h"
 
 void RE_LoadWorldMap( const char *name ) {
@@ -4468,6 +4469,7 @@ void RE_LoadWorldMap( const char *name ) {
 	}
 	if ( ravenOriginal.bytes ) {
 		R_LoadRavenLightGrid( &header->lumps[LUMP_LIGHTGRID] );
+		R_RavenInitLightStyles( &header->lumps[LUMP_LIGHTMAPS] );
 	} else {
 		R_LoadLightGrid( &header->lumps[LUMP_LIGHTGRID] );
 	}

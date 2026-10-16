@@ -183,6 +183,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Raven's light styles](fntech3/2026-10-15-raven-light-styles.md)
   -- how both Jedi games add a map's switchable and flickering lights, and
   how every installed map now loads with them.
+- [Raven's light styles, animated](fntech3/2026-10-16-raven-light-styles-animated.md)
+  -- the client game's flickering and switched lights reaching all three
+  renderers, and where the four Jedi engines keep their colours.
 - [Jedi Academy's selection bars and loading screen, live](fntech3/2026-10-15-jka-hud-live-check.md)
   -- the bars and the loading screen checked in captures, each bar's name
   kept with its bar on tall screens, and why the zoom masks are out of reach.
