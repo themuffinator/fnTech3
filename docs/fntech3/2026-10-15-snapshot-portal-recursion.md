@@ -176,10 +176,58 @@ with one identical diagnostic case serving import 259 (never committed):
 Entity 62 sits at K and is reached only through both portals. Every run
 exited normally, left the installation unchanged, and pressed no key.
 
+## Live evidence, RTCW camera, 2026-10-16
+
+A second synthetic game module (`.tmp/rtcw-camera/probe/camera-probe.cpp`,
+built once for each mode from one source) asks the same of RTCW's own
+dedicated servers. It allocates a bot, takes three entity origins from the
+map, none of them in another's PVS (V, H and K, on `mp_beach` for `rtcw-mp`
+and `escape1` for `rtcw-sp`), links test entities there, and reads the bot's
+snapshot back through RTCW's import 209 (`BOTLIB_GET_SNAPSHOT_ENTITY`) at its
+120th and 130th game frames. The bot's entity carries `SVF_BOT`, so both
+engines build its snapshot and keep it unsent, and the camera stages set
+`0x40000` in that entity's `s.eFlags`. Entity 60 sits at H and, as a portal,
+shows K; 61 sits at V, where only the eye sees it; 62 sits at K, where only
+the camera sees it; 63 is a broadcast entity.
+
+It ran in retail `WolfMP.exe` and `WolfSP.exe` dedicated servers and in two
+fnTech3 dedicated servers built from `dfe1b9d4`: "after" is that tree, whose
+walk is this slice's (neither file has changed since), and "before" takes
+`sv_snapshot.cpp` and `rtcw_game_abi.h` from this slice's parent. fnTech3
+refuses import 209, which no retail RTCW module calls, so both runtimes carry
+one identical diagnostic case serving it (never committed). Both modes gave
+the same sets in every engine:
+
+| Stage | Retail `WolfMP.exe`, `WolfSP.exe` | fnTech3 before | fnTech3 after |
+| --- | --- | --- | --- |
+| 0: camera; portal 60 at H shows K | 60, 62, 63 | **61**, 63 | 60, 62, 63 |
+| 1: control, camera off | 61, 63 | 61, 63 | 61, 63 |
+| 2: camera; 60 not a portal | none | **61, 63** | none |
+| 3: camera; stage 0 plus portal 64 at K showing V | 60, 61, 62, 63, 64 | **61, 63** | 60, 61, 62, 63, 64 |
+
+With the camera flag, then, retail walks a portal the eye cannot see
+(stage 0), sends neither what the eye sees nor a broadcast entity except
+through a portal's pass (stages 0 and 2), and walks the portals a camera's
+pass reaches as any other pass does, back to the eye's own room (stage 3).
+fnTech3 after matches in every stage of both modes, in two runs each; before
+ignored the flag. The frame-120 and frame-130 sets agree in every run, and
+every run exited normally, left the installation unchanged and had no
+client and no input. Retail `WolfSP.exe` first tries the installation's own
+game library by its bare name, so it ran under cdb with a breakpoint that
+fails that one attempt (`0x441cb4`, a register change; nothing on disk is
+patched), as the [level clock record](2026-10-15-level-clock.md) did. Both
+retail executables first exited at once with code 5, the SteamStub state,
+until Steam was restarted.
+
+The snapshot set is what the client receives, so this is the rule an RTCW
+cutscene's camera relies on; a retail game's own camera scene, with a client
+watching it, was not played.
+
 ## Remaining and unrelated findings
 
-- RTCW's camera rule has static and unit evidence only. A live camera scene
-  needs a client and the game's camera entity.
+- RTCW's camera rule is Live against both retail servers through the
+  synthetic module above (2026-10-16). A retail game's own camera scene,
+  with a client watching it, was not played.
 - Academy's single-player walk has rules fnTech3's shared walk does not:
   `jasp.exe` skips an entity whose `eFlags` has `0x80000` (`0x43c7a9`) and
   has the Force Sight rule above, and OpenJK's `code/server/sv_snapshot.cpp`

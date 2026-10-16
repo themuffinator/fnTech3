@@ -1092,7 +1092,11 @@ cameras see. It reads Quake3e's second view (`0x20000`) for `q3` and `ql`
 only, where `jka-mp`, `jk2-mp`, `jka-sp` and `jk2-sp` read it too though no
 retail walk does, and shrinks the walk's recursive frame from 5,948 bytes to
 60 so a chain as deep as retail's fits the stack (Source/Unit; Live in
-`jka-mp` against `jamp.exe`).
+`jka-mp` against `jamp.exe`). On 2026-10-16 a synthetic module's bot read
+the camera rule's entity sets back from retail `WolfMP.exe` and `WolfSP.exe`
+dedicated servers in four stages; fnTech3 now sends the same sets, where
+the previous build ignored the flag (Live in `rtcw-mp` and `rtcw-sp`; no
+retail camera scene with a client was played).
 
 ## Evidence vocabulary
 
