@@ -571,9 +571,11 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   `mp/duel9`'s sky still shows plain grey. A siege game now opens its class
   menu when you join. Choosing a class with the mouse has not been checked
   yet; `team red` or `team blue` at the console joins a side as its first
-  class. A round starts only once both sides have a player, and with a bot
-  on the other side `mp/siege_korriban` still stops while the round counts
-  down. `mp/siege_hoth` and `mp/siege_desert` still stop soon after the
+  class. A round starts only once both sides have a player. With a bot on
+  the other side `mp/siege_korriban` now plays its round, but still stops
+  after the bot is first killed
+  ([round details](fntech3/2026-10-16-jka-trace-pass-none.md)).
+  `mp/siege_hoth` and `mp/siege_desert` still stop soon after the
   menu opens ([class menu details](fntech3/2026-10-15-jka-ui-menus.md)).
   Maps whose speakers and torches carry background sounds of their own, such
   as `mp/ctf3`, no longer stop on their first frame: those sounds now play

@@ -419,6 +419,36 @@ static void LoopTests()
 		/* An unreadable pass entity is a refusal. */
 		CHECK( !trace::Run( world, out, start, nullptr, nullptr, end, 77, 0x100, 0 ) );
 	}
+	/* -1, the module's "ignore nothing", is no pass entity: everything in
+	 * the way is swept, the things owned by client 0 or by -1 too (retail
+	 * read record -1 and, at g_forceBasedTeams 0, skipped both). Any other
+	 * number outside the records is still refused. */
+	{
+		FakeWorld world;
+		world.touching = { 0, 2, 3, 5 };
+		world.entities[0] = Body( 0, 0.9f );           /* client 0 */
+		world.entities[2] = Body( 2, 0.6f );           /* owned by client 0 */
+		world.entities[2].entity.ownerNum = 0;
+		world.entities[3] = Body( 3, 0.4f );           /* owned by -1 */
+		world.entities[3].entity.ownerNum = -1;
+		world.entities[5] = Body( 5, 0.7f );
+		FakeTrace none, nothing;
+		CHECK( trace::Run( world, none, start, nullptr, nullptr, end, trace::EntityNone, 0x100, 0 ) );
+		const std::vector<int> swept = world.clipped;
+		world.clipped.clear();
+		CHECK( trace::Run( world, nothing, start, nullptr, nullptr, end, trace::PassNothing, 0x100, 0 ) );
+		CHECK( ( world.clipped == std::vector<int>{ 0, 2, 3, 5 } ) && world.clipped == swept );
+		CHECK( nothing.entityNum == 3 && Near( nothing.fraction, 0.4f ) );
+		CHECK( none.entityNum == nothing.entityNum && Near( none.fraction, nothing.fraction ) );
+		world.clipped.clear();
+		CHECK( trace::Run( world, nothing, start, nullptr, nullptr, end, trace::PassNothing,
+			trace::MaskShot, trace::DoGhoul2 ) );
+		CHECK( ( world.clipped == std::vector<int>{ 0, 2, 3, 5 } ) );
+		FakeTrace refused;
+		CHECK( !trace::Run( world, refused, start, nullptr, nullptr, end, -2, 0x100, 0 ) );
+		CHECK( !trace::Run( world, refused, start, nullptr, nullptr, end, trace::MaxEntities, 0x100, 0 ) );
+		CHECK( !trace::Run( world, refused, start, nullptr, nullptr, end, -1024, 0x100, 0 ) );
+	}
 	/* Starting inside an entity names it at once; being wholly inside one
 	 * stops the loop. */
 	{

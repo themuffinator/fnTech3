@@ -30,13 +30,26 @@
  * entity word of its record 0 (the collision model zeroes the record,
  * 0x435990), so entity 0 -- the first client -- is given the Ghoul2 step even
  * when the box missed it. A hit then moves the end of a trace that belongs to
- * whatever it last struck. */
+ * whatever it last struck.
+ *
+ * A pass entity of -1 is read as no pass entity. The retail game module
+ * passes -1 for "ignore nothing" (seven 1.01 sites, MASK_SOLID: the bot
+ * melee and saber ground checks and the seeker drone's line of fire), while
+ * retail's loop compares the pass entity only with 1023 (0x4624f8) and so
+ * reads record -1, the bytes in front of the module's entity array: with the
+ * 1.01 module those are its own cvars, the owner the float bits of
+ * g_forceBasedTeams' value and the flags a tail of g_podiumDist's string.
+ * That is the module's memory layout, not a contract, so -1 is given the one
+ * reading it was written for, as Jedi Outcast's trace does; any other number
+ * outside the game's records is still refused.
+ * See docs/fntech3/2026-10-16-jka-trace-pass-none.md. */
 #include <cstdint>
 #include <cstring>
 
 namespace fntech3::jka::trace {
 inline constexpr int EntityWorld = 1022;
 inline constexpr int EntityNone = 1023;
+inline constexpr int PassNothing = -1;      /* the module's "ignore nothing" */
 inline constexpr int MaxEntities = 1024;   /* the touch list's capacity, 0x4624d9 */
 inline constexpr int MaxClients = 32;      /* 0x462793 */
 inline constexpr std::int32_t OwnerNotShared = 0x1000;  /* r.svFlags */
@@ -108,6 +121,7 @@ bool Run( World &world, Trace &out, const float start[3], const float minsIn[3],
 	const int count = world.Touching( boxmins, boxmaxs, touch, MaxEntities );
 	if ( count < 0 || count > MaxEntities ) return false;
 
+	if ( passEntityNum == PassNothing ) passEntityNum = EntityNone;
 	int passOwnerNum = -1;
 	bool passShared = true;
 	if ( passEntityNum != EntityNone ) {

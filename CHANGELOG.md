@@ -50,6 +50,9 @@ historical upstream records, not fnTech3 release history. See the
   original does: the menu the game asks for now reaches its own menus by
   the game's number, so a siege game no longer stops when its class menu
   opens ([record](docs/fntech3/2026-10-15-jka-ui-menus.md)).
+- Let Jedi Academy's siege rounds start with a bot on the other side: the
+  bots' ground checks, which ask the server to ignore no one, no longer stop
+  the server ([record](docs/fntech3/2026-10-16-jka-trace-pass-none.md)).
 - Send Jedi Academy and Jedi Outcast players what the original servers
   send. A speaker or other fixture that Academy's game marks permanent is no
   longer sent twice, so its sounds are no longer counted twice; an entity

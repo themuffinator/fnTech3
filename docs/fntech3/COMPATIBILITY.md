@@ -2862,6 +2862,24 @@ pass entity -1, which retail compares only with 1023 (`0x4624f8`).
 imports 215 and 315, and the client game's `briefing` opened menus 10 and
 8 (Live subset). No gate closes.
 
+The [pass-entity slice](2026-10-16-jka-trace-pass-none.md) (2026-10-16)
+serves the trace that stopped `mp/siege_korriban` with a bot. Retail
+`jamp.exe` 1.01 compares the pass entity only with 1023 (`0x4624f8`) and
+reads any other number's owner (`+0x294`) and flags (`+0x238`) from the
+game's entity array without a bound. The retail game passes -1 from seven
+`MASK_SOLID` sites in both its 1.00 and 1.01 builds, the bot's melee and
+saber ground checks and the seeker drone's line of fire, so retail reads
+the record in front of `g_entities`: the module's own cvars, the owner the
+float bits of `g_forceBasedTeams` and the flags a tail of `g_podiumDist`'s
+string. At the defaults that skips solid things owned by client 0 or by -1;
+it is the module's memory layout, not a contract. fnTech3 reads -1 as no
+pass entity, as its Outcast trace does, and still refuses every other
+number outside the game's records (Source, Unit). The client game's trace
+imports carry no pass entity. Live, the round now begins and plays about
+40 seconds; when the bot dies the server's `ircg` reaches the client game,
+which stops at client-game import 315 (`CG_G2_CLEARSKINGORE`) (Live
+subset). No gate closes.
+
 Star Wars Jedi Knight: Jedi Academy is the sixth title, with two mode profiles
 over one `base/` installation: `jka-sp` for Raven's single-player campaign and
 `jka-mp` for multiplayer. The [foundation record](2026-09-21-jka-contracts.md)

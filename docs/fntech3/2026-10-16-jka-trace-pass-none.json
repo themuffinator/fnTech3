@@ -1,0 +1,680 @@
+{
+ "record": "2026-10-16-jka-trace-pass-none.md",
+ "date": "2026-10-16",
+ "profiles": [
+  "jka-mp"
+ ],
+ "gatesClosed": [],
+ "claim": "Jedi Academy MP server trace (imports 27 and 28) reads pass entity -1 as no pass entity; other numbers outside the game records remain refused.",
+ "previousRecord": "2026-10-15-jka-ui-menus.md",
+ "platform": "Windows 11 x86 client (MSVC, debugoptimized, strict warnings)",
+ "retail": {
+  "engine": {
+   "file": "jamp.exe",
+   "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+   "version": "1.01"
+  },
+  "modules": [
+   {
+    "module": "base/assets2.pk3:jampgamex86.dll",
+    "build": "1.00",
+    "sha256": "ffbe443b0ac7c19d2c8c5fd8f4249d29fb5d765633892aa90c49a71a244e9822"
+   },
+   {
+    "module": "base/assets3.pk3:jampgamex86.dll",
+    "build": "1.01",
+    "sha256": "b9e5ad492d35a3ec2fc7f6933df42ce9d3b05d3ec437e3bf12243a5d0d690850"
+   }
+  ]
+ },
+ "retailObservations": {
+  "engine": {
+   "entityLoop": "0x462490",
+   "passRead": [
+    "004624e6 mov eax, dword ptr [ebx + 0x38]",
+    "004624e9 mov edx, dword ptr [0xc31798]",
+    "004624ef mov esi, dword ptr [0xc31794]",
+    "004624f5 add esp, 8",
+    "004624f8 cmp eax, 0x3ff",
+    "004624fd je 0x462517",
+    "004624ff mov ecx, eax",
+    "00462501 imul ecx, edx",
+    "00462504 mov ecx, dword ptr [ecx + esi + 0x294]",
+    "0046250b cmp ecx, 0x3ff",
+    "00462511 mov dword ptr [esp + 0x10], ecx",
+    "00462515 jne 0x46251f",
+    "00462517 mov dword ptr [esp + 0x10], 0xffffffff",
+    "0046251f imul eax, edx",
+    "00462522 mov ecx, dword ptr [eax + esi + 0x238]",
+    "00462529 mov edi, 0x1000"
+   ],
+   "passCompare": "0x4624f8 cmp eax, 0x3ff (1023 only)",
+   "ownerRead": "0x462504 [record + 0x294]",
+   "ownerNoneToMinusOne": "0x462517",
+   "flagsRead": "0x462522 [record + 0x238]",
+   "ownerRules": "0x462583..0x4625e2",
+   "cgameImport30": [
+    "00412746 mov edx, dword ptr [esi + 0x14]",
+    "00412749 call 0x44adf0",
+    "0041274e mov edx, dword ptr [esi + 0x10]",
+    "00412751 push eax",
+    "00412752 call 0x44adf0",
+    "00412757 mov edx, dword ptr [esi + 0xc]",
+    "0041275a push eax",
+    "0041275b call 0x44adf0",
+    "00412760 mov edx, dword ptr [esi + 8]",
+    "00412763 push eax",
+    "00412764 call 0x44adf0",
+    "00412769 mov edx, dword ptr [esi + 4]",
+    "0041276c push eax",
+    "0041276d call 0x44adf0",
+    "00412772 mov ecx, dword ptr [esi + 0x1c]",
+    "00412775 mov edx, dword ptr [esi + 0x18]",
+    "00412778 push eax",
+    "00412779 xor eax, eax",
+    "0041277b call 0x435fe0"
+   ],
+   "cgameTraceImports": "30-33 pass a model handle and mask to the collision model (0x435fe0); no pass entity"
+  },
+  "modules": [
+   {
+    "module": "base/assets2.pk3:jampgamex86.dll",
+    "build": "1.00",
+    "sha256": "ffbe443b0ac7c19d2c8c5fd8f4249d29fb5d765633892aa90c49a71a244e9822",
+    "locateGameData": {
+     "wrapper": "0x200a27a0",
+     "sites": [
+      {
+       "site": "0x2008ccc0",
+       "entities": "0x20548e40",
+       "size": "0x5ec"
+      },
+      {
+       "site": "0x200acc72",
+       "entities": "edx",
+       "size": "0x5ec"
+      }
+     ]
+    },
+    "gentities": "0x20548e40",
+    "gentitySize": "0x5ec",
+    "recordMinusOne": "0x20548854",
+    "passReads": {
+     "ownerNum": {
+      "address": "0x20548ae8",
+      "vmCvar": "0x20548ae0",
+      "cvar": "g_forceBasedTeams",
+      "cvarDefault": "0",
+      "reads": "value (float bits)"
+     },
+     "svFlags": {
+      "address": "0x20548a8c",
+      "vmCvar": "0x205489c0",
+      "cvar": "g_podiumDist",
+      "cvarDefault": "80",
+      "reads": "string byte 188"
+     }
+    },
+    "traceWrappers": {
+     "G_TRACE": "0x200a28f0",
+     "G_G2TRACE": "0x200a2930"
+    },
+    "passArguments": {
+     "G_TRACE": {
+      "register": 195,
+      "unresolved": 2,
+      "literal 0x3ff": 27,
+      "literal 0": 2,
+      "literal -1": 7
+     },
+     "G_G2TRACE": {
+      "register": 6
+     }
+    },
+    "passMinusOneSites": [
+     {
+      "site": "0x2003cc9e",
+      "import_": "G_TRACE",
+      "mask": "0x1001"
+     },
+     {
+      "site": "0x2003cd02",
+      "import_": "G_TRACE",
+      "mask": "0x1001"
+     },
+     {
+      "site": "0x2003cdf1",
+      "import_": "G_TRACE",
+      "mask": "0x1001"
+     },
+     {
+      "site": "0x2003cf63",
+      "import_": "G_TRACE",
+      "mask": "0x1001"
+     },
+     {
+      "site": "0x2003cfe4",
+      "import_": "G_TRACE",
+      "mask": "0x1001"
+     },
+     {
+      "site": "0x2003d105",
+      "import_": "G_TRACE",
+      "mask": "0x1001"
+     },
+     {
+      "site": "0x200c3389",
+      "import_": "G_TRACE",
+      "mask": "0x1001"
+     }
+    ]
+   },
+   {
+    "module": "base/assets3.pk3:jampgamex86.dll",
+    "build": "1.01",
+    "sha256": "b9e5ad492d35a3ec2fc7f6933df42ce9d3b05d3ec437e3bf12243a5d0d690850",
+    "locateGameData": {
+     "wrapper": "0x200a6030",
+     "sites": [
+      {
+       "site": "0x20090500",
+       "entities": "0x20630fe0",
+       "size": "0x5ec"
+      },
+      {
+       "site": "0x200b0c72",
+       "entities": "edx",
+       "size": "0x5ec"
+      }
+     ]
+    },
+    "gentities": "0x20630fe0",
+    "gentitySize": "0x5ec",
+    "recordMinusOne": "0x206309f4",
+    "passReads": {
+     "ownerNum": {
+      "address": "0x20630c88",
+      "vmCvar": "0x20630c80",
+      "cvar": "g_forceBasedTeams",
+      "cvarDefault": "0",
+      "reads": "value (float bits)"
+     },
+     "svFlags": {
+      "address": "0x20630c2c",
+      "vmCvar": "0x20630b60",
+      "cvar": "g_podiumDist",
+      "cvarDefault": "80",
+      "reads": "string byte 188"
+     }
+    },
+    "traceWrappers": {
+     "G_TRACE": "0x200a6180",
+     "G_G2TRACE": "0x200a61c0"
+    },
+    "passArguments": {
+     "G_TRACE": {
+      "register": 195,
+      "unresolved": 2,
+      "literal 0x3ff": 27,
+      "literal 0": 2,
+      "literal -1": 7
+     },
+     "G_G2TRACE": {
+      "register": 6
+     }
+    },
+    "passMinusOneSites": [
+     {
+      "site": "0x2003cb3e",
+      "import_": "G_TRACE",
+      "mask": "0x1001"
+     },
+     {
+      "site": "0x2003cba2",
+      "import_": "G_TRACE",
+      "mask": "0x1001"
+     },
+     {
+      "site": "0x2003cc91",
+      "import_": "G_TRACE",
+      "mask": "0x1001"
+     },
+     {
+      "site": "0x2003ce03",
+      "import_": "G_TRACE",
+      "mask": "0x1001"
+     },
+     {
+      "site": "0x2003ce84",
+      "import_": "G_TRACE",
+      "mask": "0x1001"
+     },
+     {
+      "site": "0x2003cfa5",
+      "import_": "G_TRACE",
+      "mask": "0x1001"
+     },
+     {
+      "site": "0x200c74c9",
+      "import_": "G_TRACE",
+      "mask": "0x1001"
+     }
+    ]
+   }
+  ],
+  "openjkNames": {
+   "source": "OpenJK 1a6a643427aa347553e9073dac5570b33337c4d9 codemp/game (reference observation only)",
+   "passMinusOneCallers": [
+    "ai_main.c MeleeCombatHandling (3 ground checks)",
+    "ai_main.c SaberCombatHandling (3 ground checks)",
+    "w_force.c SeekerDroneUpdate (line of fire)"
+   ]
+  }
+ },
+ "inferred": [
+  "Retail reads -1 as a pass record whose owner is the float bits of g_forceBasedTeams (0 at the default) and whose flags are 0 unless g_podiumDist holds more than 188 characters.",
+  "At the defaults retail -1 traces also skip entities owned by -1 and shared entities owned by client 0; fnTech3 sweeps them.",
+  "Register-passed pass numbers are not settled statically."
+ ],
+ "fnBefore": "Run read -1 through World::Read, which refused it; SV_JKATrace stopped the server.",
+ "fnDesign": {
+  "file": "code/compat/jka_trace_clip.hpp",
+  "rule": "PassNothing (-1) -> EntityNone (1023) before the pass read; -2 and below and numbers past the records are still refused by Read."
+ },
+ "tests": {
+  "file": "tests/jka_g2_trace_tests.cpp",
+  "meson": "fntech3_jka_g2_trace",
+  "mutations": {
+   "script": ".tmp/jka-trace-pass/mutate.py",
+   "results": [
+    "production -> exit 0: jka_g2_trace_tests: all passed",
+    "no-mapping -> exit 1: nothing.fraction ) | FAIL E:\\Repositories\\fnTech3\\.tmp\\jka-trace-pass\\unit\\no-mapping\\tests\\jka_g2_trace_tests.cpp:445: trace::Run( world, nothing, start, nullptr, nullptr, end, trace::PassNothing, trace::MaskShot, trace::DoGhoul2 ) | FAIL E:\\Repositories\\fnTech3\\.tmp\\jka-trace-pass\\unit\\no-mapping\\tests\\jka_g2_trace_tests.cpp:446: ( world.clipped == std::vector<int>{ 0, 2, 3, 5 } ) | 6 failure(s)",
+    "any-negative -> exit 1: FAIL E:\\Repositories\\fnTech3\\.tmp\\jka-trace-pass\\unit\\any-negative\\tests\\jka_g2_trace_tests.cpp:448: !trace::Run( world, refused, start, nullptr, nullptr, end, -2, 0x100, 0 ) | FAIL E:\\Repositories\\fnTech3\\.tmp\\jka-trace-pass\\unit\\any-negative\\tests\\jka_g2_trace_tests.cpp:450: !trace::Run( world, refused, start, nullptr, nullptr, end, -1024, 0x100, 0 ) | 2 failure(s)",
+    "pass-as-client-0 -> exit 1: m == 3 && Near( nothing.fraction, 0.4f ) | FAIL E:\\Repositories\\fnTech3\\.tmp\\jka-trace-pass\\unit\\pass-as-client-0\\tests\\jka_g2_trace_tests.cpp:442: none.entityNum == nothing.entityNum && Near( none.fraction, nothing.fraction ) | FAIL E:\\Repositories\\fnTech3\\.tmp\\jka-trace-pass\\unit\\pass-as-client-0\\tests\\jka_g2_trace_tests.cpp:446: ( world.clipped == std::vector<int>{ 0, 2, 3, 5 } ) | 4 failure(s)"
+   ]
+  }
+ },
+ "runtimes": {
+  "base": "d17f578a36490adc0f8c83c9433f8838a7d51538",
+  "export": "git archive of the base, client targets fntech3 fnql_glx_x86 fntech3-pkg.fnz fnql-web.pak",
+  "before": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "7016cb7812e6f2f8e26afdef2fa4102bf6cb9943b1d1ec45d3709433511f9c2f",
+   "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4",
+   "fntech3.exe": "6a13192763bf8cd6b24858acd2efebdc1b4b2d574e347f45f0d73c7556bfd553",
+   "fntech3.pdb": "29cc7bd5227c8de9e31cdbe9ae51c525e8812b251c2ad0d0275e4f8290d5743c"
+  },
+  "after": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "7016cb7812e6f2f8e26afdef2fa4102bf6cb9943b1d1ec45d3709433511f9c2f",
+   "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4",
+   "fntech3.exe": "290b477787b6940b6dfc19d0a06e3228cacce5223d15a50c6b57483bd346ec67",
+   "fntech3.pdb": "e47c51034c88f2e3f3a43b9551d2bafef34fcbe21b1d3a491d28fc6cde1a5d41"
+  },
+  "afterRebuilt": [
+   "code/server/sv_game.cpp (fntech3.exe relinked)"
+  ]
+ },
+ "live": {
+  "probe": ".tmp/round-2026-10-15/jka-local-sets/probe_live.py",
+  "map": "mp/siege_korriban",
+  "gametype": 7,
+  "settings": "windowed 800x600, private desktop, net_enabled 0, sound off, no input, engine screenshotPNG",
+  "runs": {
+   "trace-pass-before-1": {
+    "runtime": ".tmp\\runtime\\jka-trace-pass-before",
+    "identity": {
+     "fntech3.exe": "6a13192763bf8cd6b24858acd2efebdc1b4b2d574e347f45f0d73c7556bfd553",
+     "fnql_glx_x86.dll": "7016cb7812e6f2f8e26afdef2fa4102bf6cb9943b1d1ec45d3709433511f9c2f",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\round-2026-10-15\\jka-local-sets\\runs\\trace-pass-before-1\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "s_muteWhenUnfocused",
+     "0",
+     "+set",
+     "s_muteWhenMinimized",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "7",
+     "+exec",
+     "probelocal.cfg",
+     "+devmap",
+     "mp/siege_korriban"
+    ],
+    "commands": [
+     "team red",
+     "addbot Tavion 1 blue"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "seconds": 34.1,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [
+     "ERROR: Jedi Academy trace cannot read pass entity -1 or the entities it touched"
+    ],
+    "captures": [
+     {
+      "name": "jka-local-00.png",
+      "sha256": "d2d9f006388807202d890187ffbb50e60a957495f51b3904b2f6b596b0d6cee0"
+     },
+     {
+      "name": "jka-local-01.png",
+      "sha256": "e6dcd704263d680d74ae1b9a8c847cbefd30faba2c8de403f87e6ea4ce9c1d93"
+     },
+     {
+      "name": "jka-local-02.png",
+      "sha256": "cc179bdf3cf0e541484fd649e87f5d0a07be59ab18e5dfcaa8ca0ecbd38778f9"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "observed": "Tavion connects; ERROR: Jedi Academy trace cannot read pass entity -1 or the entities it touched"
+   },
+   "trace-pass-after-1": {
+    "runtime": ".tmp\\runtime\\jka-trace-pass-after",
+    "identity": {
+     "fntech3.exe": "290b477787b6940b6dfc19d0a06e3228cacce5223d15a50c6b57483bd346ec67",
+     "fnql_glx_x86.dll": "7016cb7812e6f2f8e26afdef2fa4102bf6cb9943b1d1ec45d3709433511f9c2f",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\round-2026-10-15\\jka-local-sets\\runs\\trace-pass-after-1\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "s_muteWhenUnfocused",
+     "0",
+     "+set",
+     "s_muteWhenMinimized",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "7",
+     "+exec",
+     "probelocal.cfg",
+     "+devmap",
+     "mp/siege_korriban"
+    ],
+    "commands": [
+     "team red",
+     "addbot Tavion 1 blue"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 12.3,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "captures": [
+     {
+      "name": "jka-local-00.png",
+      "sha256": "3aa815eeec50d2496ea0dc727c4aeddaacf284c84e8bb19437bd4514e2e40eb2"
+     },
+     {
+      "name": "jka-local-01.png",
+      "sha256": "7abef7f3d8b142bc288ea0f5f50f6e78bb82b18d9ef3e258bf5375f9a13a4d73"
+     },
+     {
+      "name": "jka-local-02.png",
+      "sha256": "934a44881b30461a88e48f2f81b188f573fd703b3f7d1883bd778e5d32d95280"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "observed": "both enter; cs 293 \"2|900\" then \"0|5950\"; probe-step done; quit"
+   },
+   "trace-pass-after-long-1": {
+    "runtime": ".tmp\\runtime\\jka-trace-pass-after",
+    "identity": {
+     "fntech3.exe": "290b477787b6940b6dfc19d0a06e3228cacce5223d15a50c6b57483bd346ec67",
+     "fnql_glx_x86.dll": "7016cb7812e6f2f8e26afdef2fa4102bf6cb9943b1d1ec45d3709433511f9c2f",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\round-2026-10-15\\jka-local-sets\\runs\\trace-pass-after-long-1\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "s_muteWhenUnfocused",
+     "0",
+     "+set",
+     "s_muteWhenMinimized",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "g_gametype",
+     "7",
+     "+exec",
+     "probelocal.cfg",
+     "+devmap",
+     "mp/siege_korriban"
+    ],
+    "commands": [
+     "team red",
+     "addbot Tavion 1 blue"
+    ],
+    "outcome": "refused",
+    "exit": 1,
+    "forced": true,
+    "seconds": 41.3,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [
+     "ERROR: Unsupported jka-mp cgame import 315 (CG_G2_CLEARSKINGORE)",
+     "----- Server Shutdown (Server crashed: Unsupported jka-mp cgame import 315 (CG_G2_CLEARSKINGORE)) -----"
+    ],
+    "captures": [],
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "observed": "round plays ~40 s; Tavion died; ircg 1 32 0 0; Unsupported jka-mp cgame import 315 (CG_G2_CLEARSKINGORE)"
+   }
+  }
+ },
+ "nextRefusals": [
+  {
+   "map": "mp/siege_korriban",
+   "commands": [
+    "team red",
+    "addbot Tavion 1 blue"
+   ],
+   "stop": "client-game import 315 (CG_G2_CLEARSKINGORE)",
+   "after": "server command ircg 1 32 0 0 following the bot's death"
+  }
+ ]
+}
