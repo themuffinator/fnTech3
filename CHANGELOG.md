@@ -109,6 +109,11 @@ historical upstream records, not fnTech3 release history. See the
   original engines read them and drawn as sprites over the ground in all
   three renderers; `r_surfaceSprites 0` turns them off
   ([record](docs/fntech3/2026-10-15-jedi-surface-sprites.md)).
+- Cut the grass and reeds of both Jedi games cleanly at their edges, as
+  the original engines do. Their shaders' `alphaFunc GE192` was not
+  understood, so each blade drew with soft fringes and its see-through
+  parts hid the grass behind it
+  ([record](docs/fntech3/2026-10-16-jedi-alphafunc-ge192.md)).
 - Light Jedi Academy's and Jedi Outcast's maps under RTX with their real
   sky and its sun: the path tracer read the maps' surface flags with Quake
   III's values, so ground and walls whose material shares a bit with Quake

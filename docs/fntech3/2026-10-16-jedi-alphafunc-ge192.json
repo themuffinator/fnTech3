@@ -1,0 +1,830 @@
+{
+ "record": "2026-10-16-jedi-alphafunc-ge192.md",
+ "date": "2026-10-16",
+ "profiles": [
+  "jka-sp",
+  "jka-mp",
+  "jk2-sp",
+  "jk2-mp"
+ ],
+ "unchangedProfiles": "every other profile: GE192 still warns and the stage has no alpha test, as its engine has no such name",
+ "gateChange": "none",
+ "baseCommit": "dfe1b9d49af822c0cf4ce2bcedfdbe82747e9e85",
+ "implementation": {
+  "files": [
+   "code/renderercommon/tr_jka_shader.h",
+   "code/renderer/tr_shader.c",
+   "code/renderervk/tr_shader.c",
+   "code/rendererrtx/tr_shader.c"
+  ],
+  "helpers": [
+   "R_JediAlphaFuncGE192",
+   "GLS_JEDI_ATEST_GE_C0"
+  ],
+  "stateBits": {
+   "func": 5,
+   "funcName": "greaterequal",
+   "ref": 192,
+   "appliedReference": "192 / 256 = 0.75",
+   "value": "0x5c00000"
+  },
+  "glCpuPath": "FinishShader marks a Jedi stage with GLS_ALICE_ATEST_BITS aliceDynamic and its shader aliceNoStatic",
+  "authorship": "independently authored from the retail binaries; nothing else consulted"
+ },
+ "retailIdentities": {
+  "jamp.exe": {
+   "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+   "version": "1.01"
+  },
+  "jasp.exe": {
+   "sha256": "9351a8de230fcd577e2b474889d08f38982450306767a6823dd659482566d6ce",
+   "version": "1.01"
+  },
+  "jk2mp.exe": {
+   "sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a",
+   "version": "1.02a"
+  },
+  "jk2sp.exe": {
+   "sha256": "0d3c635ee5b20ac32fc957e00cf21e65ebc1584112b11f6ae026706dcc0d0e0c",
+   "version": "1.02a"
+  }
+ },
+ "retail": {
+  "nameToAFunc": {
+   "returns": {
+    "GT0": "0x10000000",
+    "LT128": "0x20000000",
+    "GE128": "0x40000000",
+    "GE192": "0x80000000",
+    "other": "0, after a warning"
+   },
+   "compare": "Q_stricmpn with a 99999 limit (case-insensitive)",
+   "jamp.exe": {
+    "string": "0x555eb8",
+    "reference": "0x4b24cb",
+    "returnGE192": "0x4b24da",
+    "parseStageBranch": "0x4b38fd-0x4b3927"
+   },
+   "jasp.exe": {
+    "string": "0x50cbb0",
+    "reference": "0x4785df",
+    "returnGE192": "0x4785f0"
+   },
+   "jk2mp.exe": {
+    "string": "0x503124",
+    "reference": "0x48dc61",
+    "returnGE192": "0x48dc72"
+   },
+   "jk2sp.exe": {
+    "string": "0x4e4984",
+    "reference": "0x47da91",
+    "returnGE192": "0x47daa2"
+   }
+  },
+  "glState": {
+   "mask": "0xf0000000",
+   "GE192": "glEnable(GL_ALPHA_TEST 0x0bc0); glAlphaFunc(GL_GEQUAL 0x0206, 0x3f400000 = 0.75f)",
+   "GE128": "glAlphaFunc(GL_GEQUAL 0x0206, 0x3f000000 = 0.5f)",
+   "jamp.exe": {
+    "maskTest": "0x48a426",
+    "alphaFuncPush": "0x48a4c2"
+   },
+   "jasp.exe": {
+    "maskTest": "0x454b56",
+    "alphaFuncPush": "0x454bf2"
+   },
+   "jk2mp.exe": {
+    "maskTest": "0x46d33c",
+    "alphaFuncPush": "0x46d3d8"
+   },
+   "jk2sp.exe": {
+    "maskTest": "0x45c35c",
+    "alphaFuncPush": "0x45c3f8"
+   }
+  },
+  "tools": "capstone and pefile (.tmp/jedi-alphafunc/find_ge192.py, find_afunc.py, dis_at.py)"
+ },
+ "installed": {
+  "jka": {
+   "stages": 44,
+   "definitions": 32,
+   "spriteStages": 38,
+   "otherStages": [
+    "models/map_objects/doom/antenna",
+    "textures/bounty/flag",
+    "textures/bounty/flag3",
+    "textures/vjun/grate",
+    "textures/vjun/grate1",
+    "textures/wedge/w_catwalk"
+   ]
+  },
+  "jk2": {
+   "stages": 23,
+   "definitions": 15,
+   "spriteStages": 22,
+   "otherStages": [
+    "models/map_objects/doom/antenna"
+   ]
+  }
+ },
+ "installedNotes": {
+  "jkaCommentedLines": 1,
+  "ctf3Grass": {
+   "shader": "textures/yavin/ground_grasssprite",
+   "image": "gfx/sprites/grass2.tga 512x512",
+   "alphaZero": 0.7753,
+   "alpha1to191": 0.0354,
+   "alpha192up": 0.1893
+  }
+ },
+ "parserCensus": {
+  "tool": ".tmp/jedi-alphafunc/census.py (first warning per definition kept)",
+  "base": "export of dfe1b9d4",
+  "candidate": "the same export with this slice's files alone",
+  "results": {
+   "renderer": {
+    "jka/jka-sp": {
+     "definitions": 3391,
+     "refusedBefore": 40,
+     "refusedAfter": 40,
+     "refusedSetUnchanged": true,
+     "firstWarningsBefore": 190,
+     "firstWarningsAfter": 159,
+     "ge192FirstWarningsBefore": 31,
+     "ge192FirstWarningsAfter": 0,
+     "goneThatWereNotGE192": [],
+     "changed": [],
+     "added": []
+    },
+    "jka/jka-mp": {
+     "definitions": 3391,
+     "refusedBefore": 40,
+     "refusedAfter": 40,
+     "refusedSetUnchanged": true,
+     "firstWarningsBefore": 190,
+     "firstWarningsAfter": 161,
+     "ge192FirstWarningsBefore": 29,
+     "ge192FirstWarningsAfter": 0,
+     "goneThatWereNotGE192": [],
+     "changed": [],
+     "added": []
+    },
+    "jka/q3": {
+     "definitions": 3391,
+     "refusedBefore": 871,
+     "refusedAfter": 871,
+     "refusedSetUnchanged": true,
+     "firstWarningsBefore": 176,
+     "firstWarningsAfter": 176,
+     "ge192FirstWarningsBefore": 6,
+     "ge192FirstWarningsAfter": 6,
+     "goneThatWereNotGE192": [],
+     "changed": [],
+     "added": []
+    },
+    "jk2/jk2-sp": {
+     "definitions": 1187,
+     "refusedBefore": 25,
+     "refusedAfter": 25,
+     "refusedSetUnchanged": true,
+     "firstWarningsBefore": 30,
+     "firstWarningsAfter": 15,
+     "ge192FirstWarningsBefore": 15,
+     "ge192FirstWarningsAfter": 0,
+     "goneThatWereNotGE192": [],
+     "changed": [],
+     "added": []
+    },
+    "jk2/jk2-mp": {
+     "definitions": 1187,
+     "refusedBefore": 25,
+     "refusedAfter": 25,
+     "refusedSetUnchanged": true,
+     "firstWarningsBefore": 30,
+     "firstWarningsAfter": 15,
+     "ge192FirstWarningsBefore": 15,
+     "ge192FirstWarningsAfter": 0,
+     "goneThatWereNotGE192": [],
+     "changed": [],
+     "added": []
+    },
+    "jk2/q3": {
+     "definitions": 1187,
+     "refusedBefore": 90,
+     "refusedAfter": 90,
+     "refusedSetUnchanged": true,
+     "firstWarningsBefore": 24,
+     "firstWarningsAfter": 24,
+     "ge192FirstWarningsBefore": 1,
+     "ge192FirstWarningsAfter": 1,
+     "goneThatWereNotGE192": [],
+     "changed": [],
+     "added": []
+    }
+   },
+   "renderervk": {
+    "jka/jka-sp": {
+     "definitions": 3391,
+     "refusedBefore": 40,
+     "refusedAfter": 40,
+     "refusedSetUnchanged": true,
+     "firstWarningsBefore": 190,
+     "firstWarningsAfter": 159,
+     "ge192FirstWarningsBefore": 31,
+     "ge192FirstWarningsAfter": 0,
+     "goneThatWereNotGE192": [],
+     "changed": [],
+     "added": []
+    },
+    "jka/jka-mp": {
+     "definitions": 3391,
+     "refusedBefore": 40,
+     "refusedAfter": 40,
+     "refusedSetUnchanged": true,
+     "firstWarningsBefore": 190,
+     "firstWarningsAfter": 161,
+     "ge192FirstWarningsBefore": 29,
+     "ge192FirstWarningsAfter": 0,
+     "goneThatWereNotGE192": [],
+     "changed": [],
+     "added": []
+    },
+    "jka/q3": {
+     "definitions": 3391,
+     "refusedBefore": 871,
+     "refusedAfter": 871,
+     "refusedSetUnchanged": true,
+     "firstWarningsBefore": 176,
+     "firstWarningsAfter": 176,
+     "ge192FirstWarningsBefore": 6,
+     "ge192FirstWarningsAfter": 6,
+     "goneThatWereNotGE192": [],
+     "changed": [],
+     "added": []
+    },
+    "jk2/jk2-sp": {
+     "definitions": 1187,
+     "refusedBefore": 25,
+     "refusedAfter": 25,
+     "refusedSetUnchanged": true,
+     "firstWarningsBefore": 30,
+     "firstWarningsAfter": 15,
+     "ge192FirstWarningsBefore": 15,
+     "ge192FirstWarningsAfter": 0,
+     "goneThatWereNotGE192": [],
+     "changed": [],
+     "added": []
+    },
+    "jk2/jk2-mp": {
+     "definitions": 1187,
+     "refusedBefore": 25,
+     "refusedAfter": 25,
+     "refusedSetUnchanged": true,
+     "firstWarningsBefore": 30,
+     "firstWarningsAfter": 15,
+     "ge192FirstWarningsBefore": 15,
+     "ge192FirstWarningsAfter": 0,
+     "goneThatWereNotGE192": [],
+     "changed": [],
+     "added": []
+    },
+    "jk2/q3": {
+     "definitions": 1187,
+     "refusedBefore": 90,
+     "refusedAfter": 90,
+     "refusedSetUnchanged": true,
+     "firstWarningsBefore": 24,
+     "firstWarningsAfter": 24,
+     "ge192FirstWarningsBefore": 1,
+     "ge192FirstWarningsAfter": 1,
+     "goneThatWereNotGE192": [],
+     "changed": [],
+     "added": []
+    }
+   },
+   "rendererrtx": {
+    "jka/jka-sp": {
+     "definitions": 3391,
+     "refusedBefore": 40,
+     "refusedAfter": 40,
+     "refusedSetUnchanged": true,
+     "firstWarningsBefore": 190,
+     "firstWarningsAfter": 159,
+     "ge192FirstWarningsBefore": 31,
+     "ge192FirstWarningsAfter": 0,
+     "goneThatWereNotGE192": [],
+     "changed": [],
+     "added": []
+    },
+    "jka/jka-mp": {
+     "definitions": 3391,
+     "refusedBefore": 40,
+     "refusedAfter": 40,
+     "refusedSetUnchanged": true,
+     "firstWarningsBefore": 190,
+     "firstWarningsAfter": 161,
+     "ge192FirstWarningsBefore": 29,
+     "ge192FirstWarningsAfter": 0,
+     "goneThatWereNotGE192": [],
+     "changed": [],
+     "added": []
+    },
+    "jka/q3": {
+     "definitions": 3391,
+     "refusedBefore": 871,
+     "refusedAfter": 871,
+     "refusedSetUnchanged": true,
+     "firstWarningsBefore": 176,
+     "firstWarningsAfter": 176,
+     "ge192FirstWarningsBefore": 6,
+     "ge192FirstWarningsAfter": 6,
+     "goneThatWereNotGE192": [],
+     "changed": [],
+     "added": []
+    },
+    "jk2/jk2-sp": {
+     "definitions": 1187,
+     "refusedBefore": 25,
+     "refusedAfter": 25,
+     "refusedSetUnchanged": true,
+     "firstWarningsBefore": 30,
+     "firstWarningsAfter": 15,
+     "ge192FirstWarningsBefore": 15,
+     "ge192FirstWarningsAfter": 0,
+     "goneThatWereNotGE192": [],
+     "changed": [],
+     "added": []
+    },
+    "jk2/jk2-mp": {
+     "definitions": 1187,
+     "refusedBefore": 25,
+     "refusedAfter": 25,
+     "refusedSetUnchanged": true,
+     "firstWarningsBefore": 30,
+     "firstWarningsAfter": 15,
+     "ge192FirstWarningsBefore": 15,
+     "ge192FirstWarningsAfter": 0,
+     "goneThatWereNotGE192": [],
+     "changed": [],
+     "added": []
+    },
+    "jk2/q3": {
+     "definitions": 1187,
+     "refusedBefore": 90,
+     "refusedAfter": 90,
+     "refusedSetUnchanged": true,
+     "firstWarningsBefore": 24,
+     "firstWarningsAfter": 24,
+     "ge192FirstWarningsBefore": 1,
+     "ge192FirstWarningsAfter": 1,
+     "goneThatWereNotGE192": [],
+     "changed": [],
+     "added": []
+    }
+   }
+  }
+ },
+ "tests": {
+  "file": "tests/jedi_alphafunc_ge192_tests.py",
+  "tests": 2,
+  "rendererSubtests": 3,
+  "mutations": [
+   "parser at dfe1b9d4: fails",
+   "without the GL FinishShader rule: fails"
+  ]
+ },
+ "runtimeBaseCommit": "dfe1b9d49af822c0cf4ce2bcedfdbe82747e9e85",
+ "runtimes": {
+  "before": {
+   "fntech3.exe": "84a5b1f4d62380af3794dd3e07f0e6dfc1666d114ce1a41f798a1344105e7fbf",
+   "fnql_glx_x86.dll": "28c1b4006941d8191535b7fb4ac9b84a03c7d174c70e9c7afcb64e6232017235",
+   "fnql_vk_x86.dll": "8159aa4f515ad9d512ad4f07c7a6f0e0089f1da7c1ed730cece939731c78b469",
+   "fnql_rtx_x86.dll": "85b289898eb759b381ebd63f3293bd362f5d42f6462537f8ceb278b8b4d35e9a",
+   "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+  },
+  "after": {
+   "fntech3.exe": "84a5b1f4d62380af3794dd3e07f0e6dfc1666d114ce1a41f798a1344105e7fbf",
+   "fnql_glx_x86.dll": "2c0f3d99bcaafbbc44862d2a86794683b8439347a3ce8e8a422cbc4e848ee67a",
+   "fnql_vk_x86.dll": "8201aa087e9886a37b167c6200240a4d85c0133594c4fcb9a42897231136ac3b",
+   "fnql_rtx_x86.dll": "4f721da5dac2171fe959dc9aefa75b9380a0e1efbfa4065d8df2f2d72de32eb2",
+   "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+  }
+ },
+ "live": {
+  "map": "mp/ctf3",
+  "profile": "jka-mp",
+  "view": "setviewpos -1088 -1150 150 90, spectator",
+  "commandTemplate": [
+   "+set",
+   "com_gameProfile",
+   "jka-mp",
+   "+set",
+   "fs_basepath",
+   "E:\\Games\\Jedi Academy",
+   "+set",
+   "fs_homepath",
+   "E:\\Repositories\\fnTech3\\.tmp\\jedi-alphafunc\\runs\\after-ctf3-glx\\home",
+   "+set",
+   "com_steamIntegration",
+   "0",
+   "+set",
+   "developer",
+   "1",
+   "+set",
+   "logfile",
+   "2",
+   "+set",
+   "net_enabled",
+   "0",
+   "+set",
+   "r_fullscreen",
+   "0",
+   "+set",
+   "r_mode",
+   "-1",
+   "+set",
+   "r_customWidth",
+   "800",
+   "+set",
+   "r_customHeight",
+   "600",
+   "+set",
+   "cl_renderer",
+   "glx",
+   "+set",
+   "in_mouse",
+   "0",
+   "+set",
+   "in_joystick",
+   "0",
+   "+set",
+   "in_nograb",
+   "1",
+   "+set",
+   "s_initsound",
+   "0",
+   "+set",
+   "cl_motd",
+   "0",
+   "+set",
+   "com_introplayed",
+   "1",
+   "+set",
+   "com_maxfps",
+   "60",
+   "+set",
+   "com_maxfpsUnfocused",
+   "60",
+   "+set",
+   "com_maxfpsMinimized",
+   "60",
+   "+set",
+   "sv_pure",
+   "0",
+   "+set",
+   "g_gametype",
+   "0",
+   "+set",
+   "cl_menuBlur",
+   "0",
+   "+set",
+   "cg_draw2D",
+   "0",
+   "+exec",
+   "probesun.cfg",
+   "+devmap",
+   "mp/ctf3"
+  ],
+  "runs": {
+   "before-ctf3-glx": {
+    "runtime": ".tmp\\runtime\\jedi-ge192-before",
+    "renderer": "glx",
+    "identity": {
+     "fntech3.exe": "84a5b1f4d62380af3794dd3e07f0e6dfc1666d114ce1a41f798a1344105e7fbf",
+     "fnql_glx_x86.dll": "28c1b4006941d8191535b7fb4ac9b84a03c7d174c70e9c7afcb64e6232017235",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "commands": [
+     "cmd team spectator",
+     "wait 30",
+     "ui_openmenu none",
+     "setviewpos -1088 -1150 150 90"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "ge192Warnings": 1,
+    "captures": [
+     {
+      "name": "sprites-00.png",
+      "sha256": "5f38ef6194d818dfddaf06ee36982c9ae86953f6b53a0b1566c8d0f0cf6ea457"
+     },
+     {
+      "name": "sprites-01.png",
+      "sha256": "55e7eb2a3b54d8fab6a534db5a6f074d11f86391ef425910b93bebaa8839315b"
+     },
+     {
+      "name": "sprites-02.png",
+      "sha256": "482842d7fbb4cbc93f7c4bf640041b0ba936dba8894490de9048e1053a1e7201"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "before-ctf3-vk": {
+    "runtime": ".tmp\\runtime\\jedi-ge192-before",
+    "renderer": "vk",
+    "identity": {
+     "fntech3.exe": "84a5b1f4d62380af3794dd3e07f0e6dfc1666d114ce1a41f798a1344105e7fbf",
+     "fnql_vk_x86.dll": "8159aa4f515ad9d512ad4f07c7a6f0e0089f1da7c1ed730cece939731c78b469",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "commands": [
+     "cmd team spectator",
+     "wait 30",
+     "ui_openmenu none",
+     "setviewpos -1088 -1150 150 90"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "ge192Warnings": 1,
+    "captures": [
+     {
+      "name": "sprites-00.png",
+      "sha256": "943478ab5ff56d5ca8089a493ddc7edeb25f146779c659fba7423e49f25bd16b"
+     },
+     {
+      "name": "sprites-01.png",
+      "sha256": "f71f5bb8b202c18bbfc8cd8a4592de82e8413b3eb30c09a1b9cbf630527a3f75"
+     },
+     {
+      "name": "sprites-02.png",
+      "sha256": "2c88a0c2eab7f34544a285ae1972f8f61c4b4633f8298c1f88e0d33e2617aad0"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "before-ctf3-rtx": {
+    "runtime": ".tmp\\runtime\\jedi-ge192-before",
+    "renderer": "rtx",
+    "identity": {
+     "fntech3.exe": "84a5b1f4d62380af3794dd3e07f0e6dfc1666d114ce1a41f798a1344105e7fbf",
+     "fnql_rtx_x86.dll": "85b289898eb759b381ebd63f3293bd362f5d42f6462537f8ceb278b8b4d35e9a",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "commands": [
+     "cmd team spectator",
+     "wait 30",
+     "ui_openmenu none",
+     "setviewpos -1088 -1150 150 90"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "ge192Warnings": 1,
+    "captures": [
+     {
+      "name": "sprites-00.png",
+      "sha256": "8ea44245bba4b18e5a00a88644d93af45fea572ad0804cadc645469af8041583"
+     },
+     {
+      "name": "sprites-01.png",
+      "sha256": "24a9a981b054ade457f9c5e8d5b7215a290efe19405962b05e7c3b11d3ad3ebb"
+     },
+     {
+      "name": "sprites-02.png",
+      "sha256": "cb209072c7d92f9497c351faf0754df98119d54ab70e2f00f06a119a85923b9b"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "after-ctf3-glx": {
+    "runtime": ".tmp\\runtime\\jedi-ge192-after",
+    "renderer": "glx",
+    "identity": {
+     "fntech3.exe": "84a5b1f4d62380af3794dd3e07f0e6dfc1666d114ce1a41f798a1344105e7fbf",
+     "fnql_glx_x86.dll": "2c0f3d99bcaafbbc44862d2a86794683b8439347a3ce8e8a422cbc4e848ee67a",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "commands": [
+     "cmd team spectator",
+     "wait 30",
+     "ui_openmenu none",
+     "setviewpos -1088 -1150 150 90"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "ge192Warnings": 0,
+    "captures": [
+     {
+      "name": "sprites-00.png",
+      "sha256": "17a97eb8918f8188bfa72dde1d7a5beb29af0d486fc7f51fb67337d70edb2ae2"
+     },
+     {
+      "name": "sprites-01.png",
+      "sha256": "e33eab950f89173d3ac14baa954f6f321047c5c485f266c0d0ed9cb2ccc0c97c"
+     },
+     {
+      "name": "sprites-02.png",
+      "sha256": "c323675f9551d896c010d37fabe3cfde63c8889e1df278c83d93abe09d32a1d4"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "after-ctf3-vk": {
+    "runtime": ".tmp\\runtime\\jedi-ge192-after",
+    "renderer": "vk",
+    "identity": {
+     "fntech3.exe": "84a5b1f4d62380af3794dd3e07f0e6dfc1666d114ce1a41f798a1344105e7fbf",
+     "fnql_vk_x86.dll": "8201aa087e9886a37b167c6200240a4d85c0133594c4fcb9a42897231136ac3b",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "commands": [
+     "cmd team spectator",
+     "wait 30",
+     "ui_openmenu none",
+     "setviewpos -1088 -1150 150 90"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "ge192Warnings": 0,
+    "captures": [
+     {
+      "name": "sprites-00.png",
+      "sha256": "38b5583717ef3c5206ada36a9a88eb23821e4b56670534ae6c159961af3892e3"
+     },
+     {
+      "name": "sprites-01.png",
+      "sha256": "3c17d6bba8f73a27375510d4b91b872f9a7042fc2c73094ca09029645e327002"
+     },
+     {
+      "name": "sprites-02.png",
+      "sha256": "5ad78f0a2bbd8d0a46ef2da68438732e4c28b5be208807c3b2b8dad2f8979b55"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "after-ctf3-rtx": {
+    "runtime": ".tmp\\runtime\\jedi-ge192-after",
+    "renderer": "rtx",
+    "identity": {
+     "fntech3.exe": "84a5b1f4d62380af3794dd3e07f0e6dfc1666d114ce1a41f798a1344105e7fbf",
+     "fnql_rtx_x86.dll": "4f721da5dac2171fe959dc9aefa75b9380a0e1efbfa4065d8df2f2d72de32eb2",
+     "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+    },
+    "commands": [
+     "cmd team spectator",
+     "wait 30",
+     "ui_openmenu none",
+     "setviewpos -1088 -1150 150 90"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "ge192Warnings": 0,
+    "captures": [
+     {
+      "name": "sprites-00.png",
+      "sha256": "a630837f2dad9028be0af35122733f8dc83f02fc97b1c8288a0842fe04a665cf"
+     },
+     {
+      "name": "sprites-01.png",
+      "sha256": "9ada181ae4ab2e0090e4c70359f5dd6c3f2c53b30fa91c7f9b3ce36d23511129"
+     },
+     {
+      "name": "sprites-02.png",
+      "sha256": "161dcb8759047f2e95fe7b0a2956db600fe74f8413a5a82e2f385922ff5be528"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   }
+  },
+  "fieldBand": "800x600 capture, box (0, 290, 620, 430)",
+  "metrics": {
+   "glx": {
+    "noiseBefore": 0.0831,
+    "noiseAfter": 0.1522,
+    "beforeVsAfter": 0.0984,
+    "meanBefore": 41.2,
+    "meanAfter": 46.3,
+    "beforeShots": {
+     "meanLuma": [
+      41.1,
+      41.2,
+      41.1
+     ],
+     "darkBelow20": [
+      0.077,
+      0.076,
+      0.076
+     ]
+    },
+    "afterShots": {
+     "meanLuma": [
+      46.2,
+      46.3,
+      46.4
+     ],
+     "darkBelow20": [
+      0.085,
+      0.085,
+      0.086
+     ]
+    }
+   },
+   "vk": {
+    "noiseBefore": 0.0707,
+    "noiseAfter": 0.1515,
+    "beforeVsAfter": 0.1101,
+    "meanBefore": 40.7,
+    "meanAfter": 47.1,
+    "beforeShots": {
+     "meanLuma": [
+      40.7,
+      40.7,
+      40.7
+     ],
+     "darkBelow20": [
+      0.076,
+      0.075,
+      0.075
+     ]
+    },
+    "afterShots": {
+     "meanLuma": [
+      46.9,
+      47.1,
+      47.1
+     ],
+     "darkBelow20": [
+      0.085,
+      0.084,
+      0.085
+     ]
+    }
+   },
+   "rtx": {
+    "noiseBefore": 0.0824,
+    "noiseAfter": 0.1641,
+    "beforeVsAfter": 0.2598,
+    "meanBefore": 39.8,
+    "meanAfter": 47.0,
+    "beforeShots": {
+     "meanLuma": [
+      39.7,
+      39.8,
+      39.9
+     ],
+     "darkBelow20": [
+      0.131,
+      0.13,
+      0.128
+     ]
+    },
+    "afterShots": {
+     "meanLuma": [
+      46.9,
+      47.0,
+      47.0
+     ],
+     "darkBelow20": [
+      0.143,
+      0.143,
+      0.144
+     ]
+    }
+   },
+   "glxVsVkAfter": 0.0169,
+   "glxVsVkBefore": 0.0094
+  }
+ },
+ "findings": [
+  "Fn's point-light shadow casters, r_shadowCorrectness and RTX tracing test only GLS_ATEST_BITS, so Alice's and GE192 alpha-tested surfaces count as solid there"
+ ]
+}

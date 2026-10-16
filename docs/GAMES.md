@@ -582,6 +582,9 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   The grass field on `mp/ctf3`, drawn as a black and white grid, now grows
   its grass in every renderer; `r_surfaceSprites 0` turns such grass off
   ([grass details](fntech3/2026-10-15-jedi-surface-sprites.md)).
+  The blades now have the clean edges the original gives them, and no
+  longer hide the grass behind them
+  ([edge details](fntech3/2026-10-16-jedi-alphafunc-ge192.md)).
 - **Widescreen:** the HUD and menus fill the window at any size, as the
   original's do. On a widescreen display the HUD keeps its shape at the
   screen's corners, the scoreboard is shown as a centred 4:3 screen and the
@@ -635,6 +638,10 @@ come. See the [Jedi Outcast details](fntech3/COMPATIBILITY.md#jedi-outcast-gate-
 The ground of the Yavin levels, with its grass and reeds, now loads where
 it showed the default picture, though none of it has been seen in a game
 yet ([details](fntech3/2026-10-15-jedi-surface-sprites.md)).
+
+That grass and those reeds are now cut out at their edges as the
+original cuts them, though this too is still to be seen in a game
+([details](fntech3/2026-10-16-jedi-alphafunc-ge192.md)).
 
 ## American McGee's Alice (`alice`)
 

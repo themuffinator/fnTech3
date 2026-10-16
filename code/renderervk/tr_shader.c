@@ -239,6 +239,11 @@ static unsigned NameToAFunc( const char *funcname )
 	{
 		return GLS_ATEST_GE_80;
 	}
+	else if ( R_JediAlphaFuncGE192( funcname ) )
+	{
+		// the Jedi games' GE192 (tr_jka_shader.h)
+		return GLS_JEDI_ATEST_GE_C0;
+	}
 
 	ri.Printf( PRINT_WARNING, "WARNING: invalid alphaFunc name '%s' in shader '%s'\n", funcname, shader.name );
 	return 0;

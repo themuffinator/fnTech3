@@ -236,6 +236,11 @@ static unsigned NameToAFunc( const char *funcname )
 	{
 		return GLS_ATEST_GE_80;
 	}
+	else if ( R_JediAlphaFuncGE192( funcname ) )
+	{
+		// the Jedi games' GE192 (tr_jka_shader.h)
+		return GLS_JEDI_ATEST_GE_C0;
+	}
 
 	ri.Printf( PRINT_WARNING, "WARNING: invalid alphaFunc name '%s' in shader '%s'\n", funcname, shader.name );
 	return 0;
@@ -3900,6 +3905,17 @@ static shader_t *FinishShader( void ) {
 
 	// Alice stages the static world buffers and GLX streaming cannot draw
 	R_AliceFinishShaderStages( shader.numUnfoggedPasses );
+
+	// ... and the Jedi games' GE192 stages, whose comparison-and-reference
+	// alpha test only GL_State applies (tr_jka_shader.h)
+	if ( R_JediShaderProfile() ) {
+		for ( i = 0; i < shader.numUnfoggedPasses; i++ ) {
+			if ( stages[i].stateBits & GLS_ALICE_ATEST_BITS ) {
+				stages[i].aliceDynamic = qtrue;
+				shader.aliceNoStatic = qtrue;
+			}
+		}
+	}
 
 	// determine which stage iterator function is appropriate
 	ComputeStageIteratorFunc();

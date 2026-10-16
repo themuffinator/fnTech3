@@ -2826,6 +2826,19 @@ field, which drew as the default image's grid, now grows its grass in all
 three renderers (Live subset). Raven's `alphaFunc GE192`, which the grass
 stage also uses, is still unknown to Fn's parser. No gate closes.
 
+The [alphaFunc GE192 slice](2026-10-16-jedi-alphafunc-ge192.md)
+(2026-10-16) reads Raven's fourth alpha test as both Academy engines do:
+`NameToAFunc` returns `0x80000000` for `GE192` (`jamp.exe` 1.01
+`0x4b24da`, `jasp.exe` 1.01 `0x4785f0`) and `GL_State` applies it as
+`glAlphaFunc( GL_GEQUAL, 0.75f )` (`0x48a4c2`, `0x454bf2`). `jka-sp` and
+`jka-mp` carry it in Fn's comparison-and-reference alpha test (greater or
+equal, 192 / 256), which the GL renderer draws on its CPU path. Through the
+production parser, the GE192 warning leaves all 32 installed definitions
+that use it in GLx, Vulkan and RTX, and nothing else changes (Source,
+Unit). On `mp/ctf3` the grass blades are now cut cleanly, and the blades'
+transparent parts no longer hide the grass behind them, in all three
+renderers (Live subset). No gate closes.
+
 The [menu slice](2026-10-15-jka-ui-menus.md) (2026-10-15) serves the client
 game's menu requests, which the siege slice above left refused from 6 to
 11. Retail `jamp.exe` 1.01 serves client-game import 238 at `0x413032` as
@@ -3043,6 +3056,15 @@ definitions now load in GLx, Vulkan and RTX, and no other definition
 changes (Source, Unit). No sprite has been drawn live under Outcast: the
 multiplayer client still stops at client-game import 300, and the maps
 that use them are single player's. No gate closes.
+
+The [alphaFunc GE192 slice](2026-10-16-jedi-alphafunc-ge192.md)
+(2026-10-16) has both Outcast profiles read `alphaFunc GE192` as
+`jk2mp.exe` and `jk2sp.exe` do: state bit `0x80000000` (`0x48dc72`,
+`0x47daa2`) and `glAlphaFunc( GL_GEQUAL, 0.75f )` (`0x46d3d8`,
+`0x45c3f8`), carried in Fn's comparison-and-reference alpha test. Through
+the production parser, the warning leaves all 15 installed definitions
+that use it in GLx, Vulkan and RTX, and nothing else changes (Source,
+Unit). Nothing has been seen live under Outcast. No gate closes.
 
 Star Wars Jedi Knight II: Jedi Outcast is the seventh title, with two mode
 profiles over one `base/` installation: `jk2-sp` and `jk2-mp`. Every contract

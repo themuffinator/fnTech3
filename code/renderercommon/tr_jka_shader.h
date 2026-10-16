@@ -77,4 +77,17 @@ static inline qboolean R_JediClampAnimMapKeyword( const char *token ) {
 static inline qboolean R_JediOneShotAnimMapKeyword( const char *token ) {
 	return R_JediShaderProfile() && !Q_stricmp( token, "oneShotAnimMap" ) ? qtrue : qfalse;
 }
+/* Raven's fourth alphaFunc, GE192: all four Jedi engines' NameToAFunc
+ * return state bit 0x80000000 for it (jamp.exe 1.01 0x4b24da, jasp.exe 1.01
+ * 0x4785f0, jk2mp.exe 1.02a 0x48dc72, jk2sp.exe 0x47daa2) beside Quake
+ * III's three, and GL_State turns that bit into
+ * glAlphaFunc( GL_GEQUAL, 0.75f ) (0x48a4c2, 0x454bf2, 0x46d3d8, 0x45c3f8).
+ * fnTech3 carries it in the comparison-and-reference alpha test of Alice's
+ * `alphatest`: greaterequal (5), reference 192, applied as 192 / 256 = 0.75.
+ * Elite Force and the id engines know only the three (record
+ * 2026-10-16-jedi-alphafunc-ge192). */
+#define GLS_JEDI_ATEST_GE_C0 ( ( 5u << GLS_ALICE_ATEST_FUNC_SHIFT ) | ( 192u << GLS_ALICE_ATEST_REF_SHIFT ) )
+static inline qboolean R_JediAlphaFuncGE192( const char *funcname ) {
+	return R_JediShaderProfile() && !Q_stricmp( funcname, "GE192" ) ? qtrue : qfalse;
+}
 #endif

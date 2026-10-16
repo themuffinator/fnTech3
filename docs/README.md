@@ -165,6 +165,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Raven's surface sprites](fntech3/2026-10-15-jedi-surface-sprites.md)
   -- the `surfaceSprites` stages of both Jedi games, read as their engines
   read them and drawn as grass and splashes over the ground.
+- [Raven's alphaFunc GE192](fntech3/2026-10-16-jedi-alphafunc-ge192.md)
+  -- the fourth alpha test of both Jedi games' shaders, read as their
+  engines read it, which cuts the grass blades' edges cleanly.
 - [Raven's map shader flags](fntech3/2026-10-15-raven-bsp-shader-flags.md)
   -- the surface and content bits in both Jedi games' maps, read with
   Raven's values, so RTX finds each map's real sky and its sun.
