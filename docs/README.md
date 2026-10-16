@@ -198,6 +198,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Jedi Academy's skin-gore clear on respawn](fntech3/2026-10-16-jka-clear-skin-gore.md)
   -- client-game import 315 measured in `jamp.exe` and served, so a
   respawn no longer stops the client, with free-for-all and siege runs.
+- [Jedi Academy's surface switch](fntech3/2026-10-16-jka-surface-on-off.md)
+  -- client-game import 321 measured in `jamp.exe`, the call site that runs
+  in a siege match found, and the import served through Fn's skin binding.
 - [October 9 compatibility integration](fntech3/2026-10-09-compatibility-integration.md)
   -- resumed Alice and Elite Force work, shared-tree validation, and probe
   evidence and limits for the combined compatibility slices.

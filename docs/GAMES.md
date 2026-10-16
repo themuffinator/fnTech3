@@ -575,10 +575,11 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   class. A round starts only once both sides have a player. With a bot on
   the other side `mp/siege_korriban` now plays its round
   ([round details](fntech3/2026-10-16-jka-trace-pass-none.md)), and a
-  player or bot who is killed comes back into the match, though the game
-  still stops after the bot's third death. Stormtroopers spawned from the
-  console stop it as soon as they start fighting
-  ([respawn details](fntech3/2026-10-16-jka-clear-skin-gore.md)).
+  player or bot who is killed comes back into the match
+  ([respawn details](fntech3/2026-10-16-jka-clear-skin-gore.md)). The game
+  still stops when a dead player's body starts to fade, and as soon as
+  sabers meet a player or stormtroopers spawned from the console start
+  fighting ([body details](fntech3/2026-10-16-jka-surface-on-off.md)).
   `mp/siege_hoth` and `mp/siege_desert` no longer stop soon after the
   menu opens; with a bot on the other side they still stop as their
   round begins

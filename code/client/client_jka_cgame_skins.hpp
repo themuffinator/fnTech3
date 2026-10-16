@@ -8,6 +8,7 @@
  * geometry is still refused by the cgame adapter; subsequent rendering must
  * consume this same per-model binding through the Fn skeletal paths. */
 struct JKACgameSkinBinding {
+    // Zero when only client-game import 321 has set surfaces on this model.
     int renderSkin{};
     std::map<int,std::uint32_t> overrides;
 };

@@ -163,6 +163,12 @@ historical upstream records, not fnTech3 release history. See the
   the match at the first respawn; fnTech3 keeps no such marks yet, so it
   now checks the player's model and carries on
   ([record](docs/fntech3/2026-10-16-jka-clear-skin-gore.md)).
+- Let Jedi Academy multiplayer games hide and show parts of a model. The
+  game closes a dead player's eyes, and turns off parts of vehicles and
+  other characters, through a request fnTech3 refused, which stopped a
+  siege match soon after a bot's body appeared; it is now served as the
+  original serves it
+  ([record](docs/fntech3/2026-10-16-jka-surface-on-off.md)).
 - Take Jedi Outcast's multiplayer client game through its start: where it
   stopped before any map loaded, it now loads the level and registers its
   effects, as the original engine serves them. It still stops before the

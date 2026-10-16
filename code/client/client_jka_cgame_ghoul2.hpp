@@ -128,6 +128,68 @@ static bool CL_JKACgameGhoul2Skinless(const fntech3::ghoul2::Model *model) {
     return true;
 }
 
+/* Retail 321's surface lookup, 0x4ee5b0: the hierarchy records in file order
+ * from ofsSurfHierarchy (+0x9c), 0x90 bytes plus four per child, each name
+ * (+0) matched with _stricmp (0x539336). The first match answers its index
+ * and its default flags (+0x40); none answers -1. Fn's geometry numbers the
+ * surfaces in the same file order, so the index keys the override its
+ * renderer reads. */
+static int CL_JKACgameGhoul2SurfaceNamed(const fntech3::ghoul2::Model &model, const char *name,
+    std::uint32_t &flags) {
+    namespace format = fntech3::jka::model;
+    if (!model.meshBytes)
+        Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 surface switch has no kept mesh for %s", model.name.c_str());
+    const auto &bytes = *model.meshBytes;
+    const format::Reader reader(bytes.data(), bytes.size());
+    if (model.mesh.numSurfaces < 0 || !reader.Fits(0, format::MeshHeaderBytes)
+        || reader.Int(152) != model.mesh.numSurfaces || reader.Int(156) < 0)
+        Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 surface switch found a changed mesh header in %s", model.name.c_str());
+    auto record = static_cast<std::size_t>(reader.Int(156));
+    for (int surface = 0; surface < model.mesh.numSurfaces; ++surface) {
+        if (!reader.Fits(record, format::SurfHierarchyBytes))
+            Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 surface switch ran past %s", model.name.c_str());
+        const char *stored = reinterpret_cast<const char *>(bytes.data() + record);
+        if (!std::memchr(stored, 0, format::NameBytes))
+            Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 surface switch found an unterminated name in %s", model.name.c_str());
+        if (fntech3::ghoul2::detail::NameEqual(stored, name, fntech3::ghoul2::NameMatch::AsciiFolded)) {
+            flags = reader.Unsigned(record + 64);
+            return surface;
+        }
+        const std::int32_t children = reader.Int(record + 140);
+        if (children < 0 || !reader.Fits(record + format::SurfHierarchyBytes, 4, std::size_t(children)))
+            Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 surface switch ran past %s", model.name.c_str());
+        record += format::SurfHierarchyBytes + std::size_t(children) * 4;
+    }
+    return -1;
+}
+
+/* Retail 0x4ee700 keeps one override list per model (+0x4), shared with the
+ * skin's visibility (0x4ee7e0 clears it, then applies the skin). A surface
+ * already listed (0x4ee610) has OFF (2) and NODESCENDANTS (0x100) replaced
+ * and keeps its other bits; an unlisted one is appended only when that
+ * changes its default flags. Either way the surface then draws with
+ * (current & ~0x102) | (requested & 0x102), which is what Fn's binding keeps:
+ * an entry equal to the default is dropped, as Visibility drops one. */
+static void CL_JKACgameGhoul2SurfaceFlags(std::uint32_t identity, int surface, std::uint32_t defaults,
+    std::uint32_t requested) {
+    const auto key = std::make_pair(identity, 0);
+    std::uint32_t current = defaults;
+    if (jkaCgameSkins) {
+        const auto found = jkaCgameSkins->bindings.find(key);
+        if (found != jkaCgameSkins->bindings.end()) {
+            const auto listed = found->second.overrides.find(surface);
+            if (listed != found->second.overrides.end()) current = listed->second;
+        }
+    }
+    const std::uint32_t selected = (current & ~0x102u) | (requested & 0x102u);
+    if (selected == current) return;
+    auto &binding = CL_JKACgameSkinState().bindings[key];
+    if (selected == defaults) binding.overrides.erase(surface);
+    else binding.overrides[surface] = selected;
+    // A binding with no render skin exists only for these overrides.
+    if (!binding.renderSkin && binding.overrides.empty()) jkaCgameSkins->bindings.erase(key);
+}
+
 static bool CL_JKACgameGhoul2Call(intptr_t *args, fntech3::jka::module::Call call, intptr_t &result) {
     using fntech3::jka::module::Call;
     switch (call) {
@@ -522,6 +584,38 @@ static bool CL_JKACgameGhoul2Call(intptr_t *args, fntech3::jka::module::Call cal
             Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 skinless query of model %ld is outside the instance's %d places",
                 static_cast<long>(args[2]), instance->Count());
         result = CL_JKACgameGhoul2Skinless(instance->At(static_cast<int>(args[2]))) ? qtrue : qfalse;
+        return true;
+    }
+    case Call::CG_G2_SETSURFACEONOFF: {
+        CL_JKACgameGhoul2Native();
+        // Retail 321:0x413d7e hands the identity, the mapped name and the
+        // flags word to 0x4deb70, which takes no model index: it works on
+        // model 0 ([info+4], the first 0xc8-byte record). A null identity or
+        // an instance with no models answers 0 (0x4deb76, 0x496650), and so
+        // does an empty place 0, whose setup (0x4e0b10) fails. Only then is
+        // the name read: a null one faults in _stricmp, so it is refused.
+        // Retail's +0x9c reset forces a mesh rebuild; Fn's renderer reads the
+        // binding every frame. Answers 1 when model 0 has the surface.
+        const auto identity = static_cast<std::uint32_t>(args[1]);
+        result = qfalse;
+        if (!identity) return true;
+        const auto *model = CL_JKACgameGhoul2Resolve(identity)->At(0);
+        if (!model) return true;
+        if (!args[2]) Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 surface switch requires a surface name");
+        std::array<char, MAX_QPATH> name{};
+        for (std::size_t n = 0; n < name.size(); ++n) {
+            if (std::uintptr_t(args[2]) > (std::numeric_limits<std::uintptr_t>::max)() - n)
+                Com_Error(ERR_DROP, "Invalid Jedi Academy cgame Ghoul2 text address");
+            name[n] = *static_cast<const char *>(CL_JKACgameSpan(std::uintptr_t(args[2]) + n, 1));
+            if (!name[n]) break;
+        }
+        // A name of MAX_QPATH characters or more matches no record's.
+        if (name.back()) return true;
+        std::uint32_t defaults = 0;
+        const int surface = CL_JKACgameGhoul2SurfaceNamed(*model, name.data(), defaults);
+        if (surface < 0) return true;
+        CL_JKACgameGhoul2SurfaceFlags(identity, surface, defaults, static_cast<std::uint32_t>(args[3]));
+        result = qtrue;
         return true;
     }
     default: return false;

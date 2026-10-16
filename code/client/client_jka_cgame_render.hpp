@@ -91,7 +91,8 @@ static fntech3::jka::cgame::scene::Runtime &CL_JKACgameRenderGeometry(std::uint3
         if (found!=jkaCgameSkins->bindings.end()) binding=&found->second;
     }
     if (binding) {
-        if (!jkaCgameSkins->definitions.count(binding->renderSkin))
+        // Render skin 0 is a binding holding only import 321's overrides.
+        if (binding->renderSkin && !jkaCgameSkins->definitions.count(binding->renderSkin))
             Com_Error(ERR_DROP,"Academy cgame Ghoul2 visibility skin is stale");
         for (const auto &entry:binding->overrides)
             if (entry.first<0 || std::size_t(entry.first)>=runtime.geometry.surfaces.size())

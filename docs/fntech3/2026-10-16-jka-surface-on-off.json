@@ -1,0 +1,618 @@
+{
+ "record": "2026-10-16-jka-surface-on-off.md",
+ "date": "2026-10-16",
+ "profiles": [
+  "jka-mp"
+ ],
+ "gatesClosed": [],
+ "claim": "Compatibility slice only; no gate closes.",
+ "previousRecord": "2026-10-16-jka-clear-skin-gore.json",
+ "platform": "Windows 11 x64 host, Windows x86 MSVC debugoptimized builds (renderer glx)",
+ "retail": {
+  "installation": "legitimate retail Jedi Academy 1.01, read-only",
+  "jamp.exe": {
+   "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b"
+  },
+  "cgamex86.dll": {
+   "pak": "assets3.pk3",
+   "sha256": "e5d5525829bfcaf3c0428d87fe804e5a46a75dcf0a141f8288061a3970ff140d",
+   "imageBase": "0x30000000",
+   "vmMainRva": "0x425a0"
+  },
+  "method": "capstone and pefile (.tmp/jka-surfaceonoff/tools); OpenJK pinned 1a6a6434 used only to name routines (reference observation, no text incorporated)"
+ },
+ "retailObservations": {
+  "engine": {
+   "cgameDispatcher": "0x412170",
+   "indexTable": "0x414638",
+   "targetTable": "0x4142bc",
+   "import": {
+    "number": 321,
+    "name": "CG_G2_SETSURFACEONOFF",
+    "index": 197,
+    "target": "0x413d7e",
+    "core": "0x4deb70",
+    "nameMapping": "0x44adf0 (null passes through as null)",
+    "arguments": {
+     "1": "Ghoul2 word (eax)",
+     "2": "surface name",
+     "3": "flags word"
+    },
+    "modelIndex": "none: model 0 only ([info+4], first 0xc8-byte record)"
+   },
+   "zeroAnswers": [
+    "null word (0x4deb76)",
+    "instance with no models or invalid handle (0x496650)",
+    "model 0 setup fails (0x4e0b10): empty place (+0x30 == -1) or no mesh",
+    "no mesh header (0x4ee700)",
+    "name in neither the override list nor the hierarchy"
+   ],
+   "onSuccess": "zeroes model +0x9c (mesh frame) then 0x4ee700",
+   "listLookup": {
+    "routine": "0x4ee610",
+    "list": "model +0x4, 0x18-byte entries (flags, surface, 4 words)",
+    "order": "from the end",
+    "skips": [
+     10000,
+     -1
+    ],
+    "names": "mesh offset table at +0xa4, _stricmp 0x539336"
+   },
+   "hierarchyLookup": {
+    "routine": "0x4ee5b0",
+    "start": "mesh +0x9c (ofsSurfHierarchy)",
+    "stride": "0x90 + 4 per child",
+    "names": "_stricmp 0x539336",
+    "defaultFlags": "record +0x40"
+   },
+   "flags": {
+    "mask": "0x102 (OFF 2, NODESCENDANTS 0x100)",
+    "listed": "clear 0x102, OR request & 0x102",
+    "unlisted": "append (0x4eef90) only when the result differs from the default",
+    "answer": 1
+   },
+   "nullName": "faults in _stricmp when model 0 is present",
+   "skinReset": "0x4ee7e0 empties the list (0x4ee80d..0x4ee829) and applies the skin"
+  },
+  "cgame": {
+   "wrapper": "0x3005f610",
+   "callSites": [
+    {
+     "sites": [
+      "0x3003240f",
+      "0x3003242e",
+      "0x30032440"
+     ],
+     "routine": "0x300317e0",
+     "name": "stack buffers",
+     "flags": [
+      "0x0",
+      "0x100",
+      "0x0"
+     ]
+    },
+    {
+     "sites": [
+      "0x30039c8e"
+     ],
+     "routine": "0x30037460",
+     "name": "head_eyes_mouth",
+     "flags": [
+      "0x2"
+     ],
+     "condition": "entity type 15 (cent+4) with a Ghoul2 word holding a model (import 293)"
+    },
+    {
+     "sites": [
+      "0x30046266",
+      "0x300462b5"
+     ],
+     "routine": "0x30045f30",
+     "name": "parsed token lists",
+     "flags": [
+      "0x2",
+      "0x0"
+     ]
+    },
+    {
+     "sites": [
+      "0x30046479",
+      "0x3004648b",
+      "0x3004649d"
+     ],
+     "routine": "0x30045f30",
+     "name": [
+      "torso_rjet",
+      "torso_cjet",
+      "torso_ljet"
+     ],
+     "flags": [
+      "0x100",
+      "0x100",
+      "0x100"
+     ],
+     "condition": "model name is not boba_fett"
+    },
+    {
+     "sites": [
+      "0x30055c0b",
+      "0x30055c33"
+     ],
+     "routine": "0x30055b50",
+     "name": "table 0x30095040 entry",
+     "flags": [
+      "0x100",
+      "0x0"
+     ]
+    }
+   ],
+   "toggleableTable": "0x30095040 (l_arm_key, torso_canister1..3, torso_tube1..6, r_arm, l_arm, torso_shield, torso_galaktorso, torso_collar, r_wing1, r_wing2, l_wing1, l_wing2, r_gear, l_gear, nose, ...); 0x3007f070 debris counts"
+  }
+ },
+ "inferences": [
+  "entity type 15 is ET_BODY and 0x30037460 is CG_Player: it closes a corpse's eyes (OpenJK)",
+  "0x30045f30 is CG_G2AnimEntModelLoad: surfOff/surfOn lists and Boba Fett's jets (OpenJK)",
+  "0x30055b50 updates bgToggleableSurfaces from the server's surface bits (OpenJK)",
+  "0x100 is the client game's TURN_OFF and 0 its TURN_ON (OpenJK)"
+ ],
+ "observedSite": {
+  "run": "surfoff-diag2-korriban-bot",
+  "cgameBase": "0x3d3d0000",
+  "return": "0x3d409c93",
+  "site": "0x30039c8e",
+  "name": "head_eyes_mouth",
+  "flags": "0x2",
+  "answer": 0,
+  "why": "models/players/reborn_new/model.glm (the bot's) has no head_eyes_mouth surface"
+ },
+ "fnTech3": {
+  "before": "import 321 refused by number; surface visibility came only from skins",
+  "now": "served in code/client/client_jka_cgame_ghoul2.hpp: x86 native module required; null word answers 0 without a store; stale or foreign word refused; model 0 only; empty place 0 answers 0 before the name is read; null name refused; names over 63 characters answer 0; mesh walked in file order with ASCII-folded names, bounded; override kept in the model's skin binding (render skin 0 when no skin made it), equal-to-default entries and empty render-skin-0 bindings dropped",
+  "render": "code/client/client_jka_cgame_render.hpp accepts a binding with render skin 0",
+  "presentation": "Fn skeletal renderer materials, lighting and shadows unchanged (invariant 11)"
+ },
+ "unit": {
+  "file": "tests/jka_cgame_surface_on_off_tests.py",
+  "mutations": 22,
+  "result": "production passes; all 22 mutations fail at run time (x86 clang fixture)"
+ },
+ "builds": {
+  "export": ".tmp/jka-surfaceonoff/export (git archive of cf68caf1), advanced path for path to 0d1b7187 for validation",
+  "configuration": "meson debugoptimized, strict-warnings, renderers glx/vk/rtx, client only",
+  "runtimes": {
+   "before": ".tmp/runtime/jka-surfaceonoff-before (cf68caf1)",
+   "after": ".tmp/runtime/jka-surfaceonoff-after (cf68caf1 + this slice)",
+   "diagnostic": ".tmp/runtime/jka-surfaceonoff-diag (after + import-321 and renderfx prints)"
+  }
+ },
+ "probe": {
+  "script": ".tmp/round-2026-10-15/jka-local-sets/probe_live.py",
+  "window": "800x600, r_fullscreen 0",
+  "desktop": "private, unswitched",
+  "net_enabled": 0,
+  "input": "none",
+  "captures": "engine screenshotPNG"
+ },
+ "runs": {
+  "surfoff-before-korriban-bot": {
+   "runtime": ".tmp/runtime/jka-surfaceonoff-before",
+   "identity": {
+    "fntech3.exe": "a20d96b3bc5efac1e405c1c34e27a514841765b824230af18161734eb918cfc9",
+    "fnql_glx_x86.dll": "14f2aebecb3a4a956400ffc921f270b8a7efaa430e49398f814144f871fde3db",
+    "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+   },
+   "map": "mp/siege_korriban",
+   "gametype": "7",
+   "sound": "off",
+   "renderer": "glx",
+   "commands": [
+    "team red",
+    "addbot Tavion 1 blue"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forcedStop": true,
+   "seconds": 76.4,
+   "errors": [
+    "ERROR: Unsupported jka-mp cgame import 321 (CG_G2_SETSURFACEONOFF)",
+    "----- Server Shutdown (Server crashed: Unsupported jka-mp cgame import 321 (CG_G2_SETSURFACEONOFF)) -----"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "events": [
+    "Tavion^7 died.",
+    "^5serverCommand: 34 : ircg 1 32 0 0",
+    "^5serverCommand: 38 : rcg 1",
+    "Tavion^7 died.",
+    "^5serverCommand: 47 : ircg 1 33 0 0",
+    "^5serverCommand: 60 : rcg 1",
+    "ERROR: Unsupported jka-mp cgame import 321 (CG_G2_SETSURFACEONOFF)"
+   ],
+   "captures": []
+  },
+  "surfoff-after-korriban-bot": {
+   "runtime": ".tmp/runtime/jka-surfaceonoff-after",
+   "identity": {
+    "fntech3.exe": "35c7af6daa829d3fc4e98a72280acd17e6f9a6bc1b288fa456ff1401a5a163ea",
+    "fnql_glx_x86.dll": "14f2aebecb3a4a956400ffc921f270b8a7efaa430e49398f814144f871fde3db",
+    "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+   },
+   "map": "mp/siege_korriban",
+   "gametype": "7",
+   "sound": "off",
+   "renderer": "glx",
+   "commands": [
+    "team red",
+    "addbot Tavion 1 blue"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forcedStop": true,
+   "seconds": 74.9,
+   "errors": [
+    "ERROR: Academy cgame unsupported Raven renderer entity flags"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "events": [
+    "Tavion^7 died.",
+    "^5serverCommand: 31 : ircg 1 32 0 0",
+    "^5serverCommand: 38 : rcg 1",
+    "Tavion^7 died.",
+    "^5serverCommand: 45 : ircg 1 33 0 0",
+    "^5serverCommand: 60 : rcg 1",
+    "ERROR: Academy cgame unsupported Raven renderer entity flags"
+   ],
+   "captures": []
+  },
+  "surfoff-diag-korriban-bot": {
+   "runtime": ".tmp/runtime/jka-surfaceonoff-diag",
+   "identity": {
+    "fntech3.exe": "f5de63e0195d1c2217c13cabf06bb9dd6e1f308f29e0b061619c36549aad2585",
+    "fnql_glx_x86.dll": "14f2aebecb3a4a956400ffc921f270b8a7efaa430e49398f814144f871fde3db",
+    "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+   },
+   "map": "mp/siege_korriban",
+   "gametype": "7",
+   "sound": "off",
+   "renderer": "glx",
+   "commands": [
+    "team red",
+    "addbot Tavion 1 blue"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forcedStop": true,
+   "seconds": 39.9,
+   "errors": [
+    "ERROR: Unsupported jka-mp cgame import 299 (CG_G2_COLLISIONDETECT)",
+    "----- Server Shutdown (Server crashed: Unsupported jka-mp cgame import 299 (CG_G2_COLLISIONDETECT)) -----"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "events": [
+    "ERROR: Unsupported jka-mp cgame import 299 (CG_G2_COLLISIONDETECT)"
+   ],
+   "captures": []
+  },
+  "surfoff-diag2-korriban-bot": {
+   "runtime": ".tmp/runtime/jka-surfaceonoff-diag",
+   "identity": {
+    "fntech3.exe": "91655ac324d303aa2f7c98b2b6b268889e59fd408a9673c5b271435e2f37abcf",
+    "fnql_glx_x86.dll": "14f2aebecb3a4a956400ffc921f270b8a7efaa430e49398f814144f871fde3db",
+    "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+   },
+   "map": "mp/siege_korriban",
+   "gametype": "7",
+   "sound": "off",
+   "renderer": "glx",
+   "commands": [
+    "team red",
+    "addbot Tavion 1 blue",
+    "wait 400",
+    "screenshotPNG surfoff-01",
+    "wait 400",
+    "screenshotPNG surfoff-02",
+    "wait 400",
+    "screenshotPNG surfoff-03",
+    "wait 400",
+    "screenshotPNG surfoff-04",
+    "wait 400",
+    "screenshotPNG surfoff-05",
+    "wait 400",
+    "screenshotPNG surfoff-06",
+    "wait 400",
+    "screenshotPNG surfoff-07",
+    "wait 400",
+    "screenshotPNG surfoff-08",
+    "wait 400",
+    "screenshotPNG surfoff-09",
+    "wait 400",
+    "screenshotPNG surfoff-10",
+    "wait 400",
+    "screenshotPNG surfoff-11",
+    "wait 400",
+    "screenshotPNG surfoff-12"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forcedStop": true,
+   "seconds": 75.0,
+   "errors": [
+    "ERROR: Academy cgame unsupported Raven renderer entity flags (renderfx=0x40800, type=0)"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "events": [
+    "Wrote screenshots/surfoff-01.png",
+    "Tavion^7 died.",
+    "Wrote screenshots/surfoff-02.png",
+    "^5serverCommand: 32 : ircg 1 32 0 0",
+    "Wrote screenshots/surfoff-03.png",
+    "^5serverCommand: 38 : rcg 1",
+    "Wrote screenshots/surfoff-04.png",
+    "Tavion^7 died.",
+    "^5serverCommand: 47 : ircg 1 33 0 0",
+    "Wrote screenshots/surfoff-05.png",
+    "Wrote screenshots/surfoff-06.png",
+    "^5serverCommand: 60 : rcg 1",
+    "JKA321 return=0x3d409c93 identity=0x00000056 name=head_eyes_mouth flags=0x2",
+    "Wrote screenshots/surfoff-07.png",
+    "ERROR: Academy cgame unsupported Raven renderer entity flags (renderfx=0x40800, type=0)"
+   ],
+   "captures": [
+    {
+     "name": "surfoff-01.png",
+     "sha256": "13d4f4599a4d70fad7c8c5daaf9ab90d159a7175090753d045390d99cbeab640"
+    },
+    {
+     "name": "surfoff-02.png",
+     "sha256": "00c42627344a92301aef32dd553730f291acfd097c1305ed90c02c234ecb3cf8"
+    },
+    {
+     "name": "surfoff-03.png",
+     "sha256": "3f41716806af18d32aef96faba47255dc539ead35610eb992e94fc0eccd11cf4"
+    },
+    {
+     "name": "surfoff-04.png",
+     "sha256": "a6307e92a3f348b93f99d6f29f1f2f1ab79d62e19a8acebdec94e9f70014c6a9"
+    },
+    {
+     "name": "surfoff-05.png",
+     "sha256": "36cf3e11b35c31b698147276fcb6ff56eca3bf2ab6ff92c85a330147f31534dc"
+    },
+    {
+     "name": "surfoff-06.png",
+     "sha256": "1ca1b0230eebff157813ff272d4c466c691a46dd195d398a9a8d1e12ea553436"
+    },
+    {
+     "name": "surfoff-07.png",
+     "sha256": "0c7c03dc80e11f105fdfc7fe526547ebcf18ec324ac73518e86a853d925792a6"
+    }
+   ]
+  },
+  "surfoff-before2-korriban-shots": {
+   "runtime": ".tmp/runtime/jka-surfaceonoff-before",
+   "identity": {
+    "fntech3.exe": "a20d96b3bc5efac1e405c1c34e27a514841765b824230af18161734eb918cfc9",
+    "fnql_glx_x86.dll": "14f2aebecb3a4a956400ffc921f270b8a7efaa430e49398f814144f871fde3db",
+    "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+   },
+   "map": "mp/siege_korriban",
+   "gametype": "7",
+   "sound": "off",
+   "renderer": "glx",
+   "commands": [
+    "team red",
+    "addbot Tavion 1 blue",
+    "wait 400",
+    "screenshotPNG surfoff-01",
+    "wait 400",
+    "screenshotPNG surfoff-02",
+    "wait 400",
+    "screenshotPNG surfoff-03",
+    "wait 400",
+    "screenshotPNG surfoff-04",
+    "wait 400",
+    "screenshotPNG surfoff-05",
+    "wait 400",
+    "screenshotPNG surfoff-06",
+    "wait 400",
+    "screenshotPNG surfoff-07",
+    "wait 400",
+    "screenshotPNG surfoff-08",
+    "wait 400",
+    "screenshotPNG surfoff-09",
+    "wait 400",
+    "screenshotPNG surfoff-10",
+    "wait 400",
+    "screenshotPNG surfoff-11",
+    "wait 400",
+    "screenshotPNG surfoff-12"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forcedStop": true,
+   "seconds": 78.0,
+   "errors": [
+    "ERROR: Unsupported jka-mp cgame import 321 (CG_G2_SETSURFACEONOFF)",
+    "----- Server Shutdown (Server crashed: Unsupported jka-mp cgame import 321 (CG_G2_SETSURFACEONOFF)) -----"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "events": [
+    "Wrote screenshots/surfoff-01.png",
+    "Wrote screenshots/surfoff-02.png",
+    "Tavion^7 died.",
+    "Wrote screenshots/surfoff-03.png",
+    "^5serverCommand: 38 : ircg 1 32 0 0",
+    "Wrote screenshots/surfoff-04.png",
+    "Wrote screenshots/surfoff-05.png",
+    "Wrote screenshots/surfoff-06.png",
+    "^5serverCommand: 58 : rcg 1",
+    "Tavion^7 died.",
+    "Wrote screenshots/surfoff-07.png",
+    "^5serverCommand: 65 : ircg 1 33 0 0",
+    "ERROR: Unsupported jka-mp cgame import 321 (CG_G2_SETSURFACEONOFF)"
+   ],
+   "captures": [
+    {
+     "name": "surfoff-01.png",
+     "sha256": "aed6c80fc75144f637077cd065e362a7731b00e4e9d5297f6425c07a2dd097af"
+    },
+    {
+     "name": "surfoff-02.png",
+     "sha256": "5c6d05a628f95e8ea2e2dbf1007832b956a513121ce7e8ada649cab6ab4875cd"
+    },
+    {
+     "name": "surfoff-03.png",
+     "sha256": "0f4ab9d83c117aad4124848f9b70dce6065caa4ccdeac80447c000cfd8f241ab"
+    },
+    {
+     "name": "surfoff-04.png",
+     "sha256": "567df5a4ecf190d85068583dedf676a134af57d1c8f548fbe3c6bb632622ee8b"
+    },
+    {
+     "name": "surfoff-05.png",
+     "sha256": "711f29c6ad2db6b4fc544f41748a7de31bbb6255bc95d48d957a8866683fd4f6"
+    },
+    {
+     "name": "surfoff-06.png",
+     "sha256": "2cd346c3b69b2a90eab37aa7cc557a91f7878fb7a3f131e8ee69cdbe4657c4c7"
+    },
+    {
+     "name": "surfoff-07.png",
+     "sha256": "711f29c6ad2db6b4fc544f41748a7de31bbb6255bc95d48d957a8866683fd4f6"
+    }
+   ]
+  },
+  "surfoff-after2-korriban-shots": {
+   "runtime": ".tmp/runtime/jka-surfaceonoff-after",
+   "identity": {
+    "fntech3.exe": "35c7af6daa829d3fc4e98a72280acd17e6f9a6bc1b288fa456ff1401a5a163ea",
+    "fnql_glx_x86.dll": "14f2aebecb3a4a956400ffc921f270b8a7efaa430e49398f814144f871fde3db",
+    "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+   },
+   "map": "mp/siege_korriban",
+   "gametype": "7",
+   "sound": "off",
+   "renderer": "glx",
+   "commands": [
+    "team red",
+    "addbot Tavion 1 blue",
+    "wait 400",
+    "screenshotPNG surfoff-01",
+    "wait 400",
+    "screenshotPNG surfoff-02",
+    "wait 400",
+    "screenshotPNG surfoff-03",
+    "wait 400",
+    "screenshotPNG surfoff-04",
+    "wait 400",
+    "screenshotPNG surfoff-05",
+    "wait 400",
+    "screenshotPNG surfoff-06",
+    "wait 400",
+    "screenshotPNG surfoff-07",
+    "wait 400",
+    "screenshotPNG surfoff-08",
+    "wait 400",
+    "screenshotPNG surfoff-09",
+    "wait 400",
+    "screenshotPNG surfoff-10",
+    "wait 400",
+    "screenshotPNG surfoff-11",
+    "wait 400",
+    "screenshotPNG surfoff-12"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forcedStop": true,
+   "seconds": 69.4,
+   "errors": [
+    "ERROR: Academy cgame unsupported Raven renderer entity flags"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "events": [
+    "Wrote screenshots/surfoff-01.png",
+    "Tavion^7 died.",
+    "^5serverCommand: 27 : ircg 1 32 0 0",
+    "Wrote screenshots/surfoff-02.png",
+    "^5serverCommand: 38 : rcg 1",
+    "Wrote screenshots/surfoff-03.png",
+    "Tavion^7 died.",
+    "^5serverCommand: 44 : ircg 1 33 0 0",
+    "Wrote screenshots/surfoff-04.png",
+    "Wrote screenshots/surfoff-05.png",
+    "Wrote screenshots/surfoff-06.png",
+    "^5serverCommand: 60 : rcg 1",
+    "ERROR: Academy cgame unsupported Raven renderer entity flags"
+   ],
+   "captures": [
+    {
+     "name": "surfoff-01.png",
+     "sha256": "2402ab422fc5a140f4f07df1b35ec7b825d6d01beb0c3b6846acc46d280f60f3"
+    },
+    {
+     "name": "surfoff-02.png",
+     "sha256": "c9216f7cfc649727f6abc8356d8bd07670fb5ce8abfdc2f280c7cfb893bc82fd"
+    },
+    {
+     "name": "surfoff-03.png",
+     "sha256": "0b8dd068c02aa86712e86b883562bec99bf1b6b6da1942a6c74b31999085d572"
+    },
+    {
+     "name": "surfoff-04.png",
+     "sha256": "53634030fd4a5cb5b2955d2777c3eef13fd225d11af2f581fccb70973a79c5d0"
+    },
+    {
+     "name": "surfoff-05.png",
+     "sha256": "0c7c03dc80e11f105fdfc7fe526547ebcf18ec324ac73518e86a853d925792a6"
+    },
+    {
+     "name": "surfoff-06.png",
+     "sha256": "1ca1b0230eebff157813ff272d4c466c691a46dd195d398a9a8d1e12ea553436"
+    }
+   ]
+  }
+ },
+ "nextRefusals": [
+  "mp/siege_korriban with a bot: the corpse's Ghoul2 entity drawn with renderfx 0x40800 (RF_DISINTEGRATE2 0x40000 with the served tint 0x800): \"Academy cgame unsupported Raven renderer entity flags\"",
+  "when the bot fights: client-game import 299 (CG_G2_COLLISIONDETECT)"
+ ],
+ "validation": {
+  "cf68caf1": {
+   "build": "all client targets, strict warnings, no warning",
+   "native": {
+    "ok": 274,
+    "fail": 0,
+    "skipped": 2
+   },
+   "python": {
+    "files": 72,
+    "passed": 250,
+    "subtestsPassed": 1309,
+    "skipped": 1,
+    "failed": 0
+   }
+  },
+  "0d1b718739b1d51a803f451693257d2c0ae55526": {
+   "build": "all client targets, strict warnings, no warning",
+   "native": {
+    "ok": 274,
+    "fail": 0,
+    "skipped": 2
+   },
+   "python": {
+    "files": 75,
+    "passed": 258,
+    "subtestsPassed": 1351,
+    "skipped": 1,
+    "failed": 0
+   }
+  },
+  "skippedNative": "OpenAL loopback, optional Quake Live factory probe",
+  "runner": ".tmp/jka-surfaceonoff/run_files.py, one pytest process per file"
+ }
+}

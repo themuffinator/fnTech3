@@ -2940,6 +2940,25 @@ third death, at import 321 (`CG_G2_SETSURFACEONOFF`). A spawned
 stormtrooper stops the client at import 299 (`CG_G2_COLLISIONDETECT`)
 before any death (Live subset). No gate closes.
 
+The [surface-switch slice](2026-10-16-jka-surface-on-off.md) (2026-10-16)
+serves client-game import 321 (`CG_G2_SETSURFACEONOFF`), which hides and
+shows named parts of a model. Retail `jamp.exe` 1.01 serves it at
+`0x413d7e` through `0x4deb70`, which takes no model index and works on
+model 0 only: a null word, no models or an empty place 0 answer 0. Its core
+`0x4ee700` finds the surface by name with `_stricmp`, in the model's
+override list (`0x4ee610`) or the mesh hierarchy (`0x4ee5b0`), replaces
+only OFF (2) and NODESCENDANTS (0x100), and answers 1; the same list holds
+the skin's visibility, which a render skin resets (`0x4ee7e0`). fnTech3
+keeps the override in the model's skin binding that its renderer already
+reads, with render skin 0 when no skin made it, refuses a stale or foreign
+word and a null name, and answers as retail (Source, Unit). Of the retail
+client game's eleven call sites, the one that runs on
+`mp/siege_korriban` with a bot is the corpse's `head_eyes_mouth` (flags 2,
+`0x30039c8e`); the bot's model has no such surface, so it answers 0. Live,
+the previous build stops there; with this slice the client goes on until
+the corpse is drawn with Raven's `RF_DISINTEGRATE2` (renderfx 0x40000),
+which the render adapter refuses (Live subset). No gate closes.
+
 Star Wars Jedi Knight: Jedi Academy is the sixth title, with two mode profiles
 over one `base/` installation: `jka-sp` for Raven's single-player campaign and
 `jka-mp` for multiplayer. The [foundation record](2026-09-21-jka-contracts.md)
