@@ -572,9 +572,12 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   menu when you join. Choosing a class with the mouse has not been checked
   yet; `team red` or `team blue` at the console joins a side as its first
   class. A round starts only once both sides have a player. With a bot on
-  the other side `mp/siege_korriban` now plays its round, but still stops
-  after the bot is first killed
-  ([round details](fntech3/2026-10-16-jka-trace-pass-none.md)).
+  the other side `mp/siege_korriban` now plays its round
+  ([round details](fntech3/2026-10-16-jka-trace-pass-none.md)), and a
+  player or bot who is killed comes back into the match, though the game
+  still stops after the bot's third death. Stormtroopers spawned from the
+  console stop it as soon as they start fighting
+  ([respawn details](fntech3/2026-10-16-jka-clear-skin-gore.md)).
   `mp/siege_hoth` and `mp/siege_desert` still stop soon after the
   menu opens ([class menu details](fntech3/2026-10-15-jka-ui-menus.md)).
   Maps whose speakers and torches carry background sounds of their own, such

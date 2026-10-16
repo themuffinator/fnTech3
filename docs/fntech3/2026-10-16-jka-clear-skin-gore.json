@@ -1,0 +1,687 @@
+{
+ "record": "2026-10-16-jka-clear-skin-gore.md",
+ "date": "2026-10-16",
+ "profiles": [
+  "jka-mp"
+ ],
+ "gatesClosed": [],
+ "claim": "Compatibility slice only; no gate closes.",
+ "previousRecord": "2026-10-15-jka-ui-menus.json",
+ "platform": "Windows 11 x64 host, Windows x86 MSVC debugoptimized builds (renderer glx)",
+ "retail": {
+  "installation": "legitimate retail Jedi Academy 1.01, read-only",
+  "jamp.exe": {
+   "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b"
+  },
+  "cgamex86.dll": {
+   "pak": "assets3.pk3",
+   "sha256": "e5d5525829bfcaf3c0428d87fe804e5a46a75dcf0a141f8288061a3970ff140d",
+   "imageBase": "0x30000000"
+  },
+  "method": "capstone and pefile (.tmp/jka-cleargore/tools); OpenJK pinned 1a6a6434 used only to name routines"
+ },
+ "retailObservations": {
+  "engine": {
+   "cgameDispatcher": "0x412170",
+   "indexTable": "0x414638",
+   "targetTable": "0x4142bc",
+   "imports": {
+    "313": {
+     "name": "CG_G2_GETNUMGOREMARKS",
+     "index": 189,
+     "target": "0x413c9d",
+     "core": "0x4e07a0"
+    },
+    "314": {
+     "name": "CG_G2_ADDSKINGORE",
+     "index": 190,
+     "target": "0x413cb6",
+     "core": "0x4e08f0"
+    },
+    "315": {
+     "name": "CG_G2_CLEARSKINGORE",
+     "index": 191,
+     "target": "0x413cd5",
+     "core": "0x4e07f0",
+     "answer": 0,
+     "argument": "args[1] in esi, read through at 0x4e07fb (mov ecx,[esi]); null faults",
+     "validity": "Ghoul2 info array 0x4de4b0 [vtable+8]; an invalid handle clears nothing",
+     "walk": "models of 0xc8 bytes, count (end-begin)/200 via 0x51eb851f",
+     "perModel": "if [model+0x4c] then call 0x4e9310(tag) and zero +0x4c",
+     "deleteGoreSet": "0x4e9310: gore-record map 0x12a5048, drop a reference or erase"
+    }
+   }
+  },
+  "cgame": {
+   "wrapper315": "0x3005f590 (push 0x13b at 0x3005f595)",
+   "caller315": "0x3005d938 passes cent+0x21c by value",
+   "ragdollResetBefore": "0x3005d929 import 328 only when cent+0x630 is set",
+   "bodyQueueCopy": "0x3005ce80",
+   "wrapper313": {
+    "address": "0x3005f550",
+    "caller": "0x3004c5a0"
+   },
+   "wrapper314": {
+    "address": "0x3005f570",
+    "caller": "0x3004c6e4"
+   }
+  }
+ },
+ "inferences": [
+  "0x3005d938 is OpenJK's CG_RestoreClientGhoul_f, registered for ircg and rcg; it returns before the import when the entity has no Ghoul2 instance",
+  "the server's respawn sends ircg from CopyToBodyQue, or rcg when no body is copied, so every respawn reaches import 315",
+  "the client game adds gore through import 314 when a hit lands on a player's model (OpenJK CG_AddGhoul2Mark); not reached here"
+ ],
+ "fnTech3": {
+  "before": "import 315 refused by number; the client Ghoul2 store keeps no skin gore (no gore field, imports 313 and 314 unserved)",
+  "now": "import 315 served in code/client/client_jka_cgame_ghoul2.hpp: x86 legacy native module required, a null word refused, any other word must resolve in the client store (stale or foreign refused, no store created), answers 0 and changes nothing"
+ },
+ "unit": {
+  "file": "tests/jka_cgame_clear_skin_gore_tests.py",
+  "mutations": [
+   "no null refusal",
+   "no identity validation",
+   "no native module gate",
+   "nonzero answer",
+   "store made before validation",
+   "clear removes the models",
+   "not served"
+  ],
+  "result": "production passes; all seven mutations fail at run time (x86 clang fixture)"
+ },
+ "builds": {
+  "export": ".tmp/jka-cleargore/export (git archive of d17f578a, later advanced path for path to 2e2207e0)",
+  "configuration": "meson debugoptimized, strict-warnings, renderers glx/vk/rtx, client only; targets fntech3 fnql_glx_x86 fntech3-pkg.fnz fnql-web.pak",
+  "runtimes": ".tmp/runtime/jka-cleargore-before and -after, rebuilt in place for the second pair",
+  "firstPair": {
+   "base": "d17f578a36490adc0f8c83c9433f8838a7d51538",
+   "runs": "cleargore-*",
+   "before": {
+    "fntech3.exe": "92e72d7431ee0e49dd1ad6a163a8785e459856357bddb24ed9463507ad11bac4",
+    "fnql_glx_x86.dll": "414738f1889bd779ee0822d85e58c673e80127b57c0f0887db4d63366edbe1be",
+    "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+   },
+   "after": {
+    "fntech3.exe": "ecfb3ee603f4db4d5827336a707ddafc7a064d2e48a20524976936f82189719c",
+    "fnql_glx_x86.dll": "414738f1889bd779ee0822d85e58c673e80127b57c0f0887db4d63366edbe1be",
+    "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+   },
+   "diagnostic": {
+    "runtime": ".tmp/runtime/jka-cleargore-diag",
+    "patch": "server_jka_trace.hpp reads pass entity -1 as 1023 (never committed)",
+    "fntech3.exe": "f0a81b35220ccf96228c7de60acba0a86b1a6943e3738eed6d2cc3b162f41e0f",
+    "fnql_glx_x86.dll": "414738f1889bd779ee0822d85e58c673e80127b57c0f0887db4d63366edbe1be",
+    "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+   }
+  },
+  "secondPair": {
+   "base": "2e2207e05f5b9c772130a6bb0191c5621b9df3a5",
+   "runs": "cleargore2-*",
+   "before": {
+    "fntech3.exe": "20920aad554242407b52369d12eab97cf60cb4b4536725912103ebd9d8a6fbc5",
+    "fnql_glx_x86.dll": "414738f1889bd779ee0822d85e58c673e80127b57c0f0887db4d63366edbe1be",
+    "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+   },
+   "after": {
+    "fntech3.exe": "1fa5b9b63184ca04af43e771c501ce9024eef423ad502eb42f60a94fe29c4d19",
+    "fnql_glx_x86.dll": "414738f1889bd779ee0822d85e58c673e80127b57c0f0887db4d63366edbe1be",
+    "fntech3-pkg.fnz": "6a273e620a91a168b5a83642f8841f61ddf9454726f8420500f9876ace940cd4"
+   }
+  }
+ },
+ "validation": {
+  "firstExport": {
+   "base": "d17f578a36490adc0f8c83c9433f8838a7d51538",
+   "build": "all targets of the client configuration, strict warnings, no warning",
+   "native": {
+    "ok": 274,
+    "fail": 0,
+    "skipped": 2,
+    "skippedTests": "OpenAL loopback, optional Quake Live factory probe"
+   },
+   "python": {
+    "files": 71,
+    "passed": 248,
+    "subtestsPassed": 1287,
+    "skipped": 1,
+    "failed": 0,
+    "scope": "every tests/jka_*_tests.py file in the export plus changelog, generate_docs, release_packaging, release_workflow, version_metadata and player_manual tests, one file to a process"
+   }
+  },
+  "secondExport": {
+   "base": "2e2207e05f5b9c772130a6bb0191c5621b9df3a5",
+   "build": "advanced path for path, rebuilt all targets with no warning",
+   "native": {
+    "ok": 274,
+    "fail": 0,
+    "skipped": 2
+   },
+   "python": {
+    "files": 71,
+    "passed": 248,
+    "subtestsPassed": 1287,
+    "skipped": 1,
+    "failed": 0
+   }
+  },
+  "thirdExport": {
+   "base": "35e01aa136d01ce25de2fb250c297e1a698518ad",
+   "build": "advanced path for path, rebuilt all targets with no warning",
+   "native": {
+    "ok": 274,
+    "fail": 0,
+    "skipped": 2
+   },
+   "python": {
+    "files": 71,
+    "passed": 248,
+    "subtestsPassed": 1287,
+    "skipped": 1,
+    "failed": 0
+   },
+   "parentOfCommit": true
+  },
+  "unitMutations": "all seven mutations of tests/jka_cgame_clear_skin_gore_tests.py fail at run time in an x86 clang build"
+ },
+ "probe": {
+  "script": ".tmp/round-2026-10-15/jka-local-sets/probe_live.py",
+  "window": "800x600, r_fullscreen 0",
+  "desktop": "private, unswitched",
+  "net_enabled": 0,
+  "input": "none",
+  "captures": "engine screenshotPNG"
+ },
+ "runs": {
+  "cleargore-after-ffa3-bot": {
+   "runtime": ".tmp/runtime/jka-cleargore-after",
+   "map": "mp/ffa3",
+   "gametype": "0",
+   "commands": [
+    "set g_forcerespawn 1",
+    "team free",
+    "wait 180",
+    "togglemenu",
+    "addbot Kyle 2"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forcedStop": false,
+   "errors": [],
+   "captures": [
+    {
+     "name": "jka-local-00.png",
+     "sha256": "8f6e5ef68c6eac0636b562f816fdced3f843ef16864ec76c13c183db96fc9c18"
+    },
+    {
+     "name": "jka-local-01.png",
+     "sha256": "f5359c0e0031386a30dfc69380bf55453aaf97babd6d551b68c1779eb593581c"
+    },
+    {
+     "name": "jka-local-02.png",
+     "sha256": "ae107587e97434b8a06976b949ae5ba4fe5ac30bb52a1c7509d89fdab1919ad7"
+    }
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  "cleargore-after-ffa3-kill": {
+   "runtime": ".tmp/runtime/jka-cleargore-after",
+   "map": "mp/ffa3",
+   "gametype": "0",
+   "commands": [
+    "set g_forcerespawn 1",
+    "kill",
+    "wait 300",
+    "kill"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forcedStop": false,
+   "errors": [],
+   "captures": [
+    {
+     "name": "jka-local-00.png",
+     "sha256": "c91b8a84ae6407c3e6a36447b1c4b78a55fb6c7f5c9a1a7d35f2d5afe59b1755"
+    },
+    {
+     "name": "jka-local-01.png",
+     "sha256": "8350cc5b0309897ea0051f18615c04ccafffbb92545383a58771a2e7d166edc6"
+    },
+    {
+     "name": "jka-local-02.png",
+     "sha256": "e1aa85632a85ac65e2390645e44cb0bed29c5e269e8cce85ecb9d58c4bcc1f6e"
+    }
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  "cleargore-after-ffa3-npc": {
+   "runtime": ".tmp/runtime/jka-cleargore-after",
+   "map": "mp/ffa3",
+   "gametype": "0",
+   "commands": [
+    "set g_forcerespawn 1",
+    "team free",
+    "wait 180",
+    "togglemenu",
+    "npc spawn stormtrooper",
+    "wait 30",
+    "npc spawn stormtrooper"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forcedStop": true,
+   "errors": [
+    "ERROR: Unsupported jka-mp cgame import 299 (CG_G2_COLLISIONDETECT)"
+   ],
+   "captures": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  "cleargore-after-ffa3-tavion": {
+   "runtime": ".tmp/runtime/jka-cleargore-after",
+   "map": "mp/ffa3",
+   "gametype": "0",
+   "commands": [
+    "set g_forcerespawn 1",
+    "team free",
+    "wait 180",
+    "togglemenu",
+    "addbot Tavion 4"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forcedStop": true,
+   "errors": [
+    "ERROR: Jedi Academy trace cannot read pass entity -1 or the entities it touched"
+   ],
+   "captures": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  "cleargore-after-ffa3-teamkill": {
+   "runtime": ".tmp/runtime/jka-cleargore-after",
+   "map": "mp/ffa3",
+   "gametype": "0",
+   "commands": [
+    "set g_forcerespawn 1",
+    "team free",
+    "wait 180",
+    "kill",
+    "wait 300",
+    "kill"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forcedStop": false,
+   "errors": [],
+   "captures": [
+    {
+     "name": "jka-local-00.png",
+     "sha256": "6595a982686979ab4f2489b7eb8f242342fb99181ab913dcd00207c8d9e10b8c"
+    },
+    {
+     "name": "jka-local-01.png",
+     "sha256": "9442958e4ad20af2bebd7f72ea848c3b0d7fcc9242761c96d05308916cdb6640"
+    },
+    {
+     "name": "jka-local-02.png",
+     "sha256": "10cf02f01527b95fe924bdea1e4422e29f96fb67ab2caf78543d61b8eb2f1a46"
+    }
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  "cleargore-after-ffa3-view": {
+   "runtime": ".tmp/runtime/jka-cleargore-after",
+   "map": "mp/ffa3",
+   "gametype": "0",
+   "commands": [
+    "set g_forcerespawn 1",
+    "team free",
+    "wait 180",
+    "togglemenu",
+    "kill",
+    "wait 300",
+    "kill"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forcedStop": false,
+   "errors": [],
+   "captures": [
+    {
+     "name": "jka-local-00.png",
+     "sha256": "820df29156fc5a6a43f22fec68428a333e02c1024ed1a106d13d0a590388bc44"
+    },
+    {
+     "name": "jka-local-01.png",
+     "sha256": "0c83aecf5ef4450d54527e4d151d8af82dda778bdc771279b92afa44cfad4492"
+    },
+    {
+     "name": "jka-local-02.png",
+     "sha256": "68fb11e30a354693b8320a02539a9f68991cb053544bfe6aa6b666c237adba65"
+    }
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  "cleargore-before-ffa3-kill": {
+   "runtime": ".tmp/runtime/jka-cleargore-before",
+   "map": "mp/ffa3",
+   "gametype": "0",
+   "commands": [
+    "set g_forcerespawn 1",
+    "kill",
+    "wait 300",
+    "kill"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forcedStop": false,
+   "errors": [],
+   "captures": [
+    {
+     "name": "jka-local-00.png",
+     "sha256": "9ce5ec88d823f8d7019cf78ee0c3d507510ad7d95738be8b3c6221b1361646ce"
+    },
+    {
+     "name": "jka-local-01.png",
+     "sha256": "a4508600989c03ffba22125c8aba7ed51cc8c3ff2881991d6ba74a6cd1e3e4b8"
+    },
+    {
+     "name": "jka-local-02.png",
+     "sha256": "a6135e04a0a98316e713b17f74c88cd7fc3fe3fbcd4ccb126dfab0d90c60285c"
+    }
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  "cleargore-before-ffa3-teamkill": {
+   "runtime": ".tmp/runtime/jka-cleargore-before",
+   "map": "mp/ffa3",
+   "gametype": "0",
+   "commands": [
+    "set g_forcerespawn 1",
+    "team free",
+    "wait 180",
+    "kill",
+    "wait 300",
+    "kill"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forcedStop": true,
+   "errors": [
+    "ERROR: Unsupported jka-mp cgame import 315 (CG_G2_CLEARSKINGORE)"
+   ],
+   "captures": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  "cleargore-before-ffa3-view": {
+   "runtime": ".tmp/runtime/jka-cleargore-before",
+   "map": "mp/ffa3",
+   "gametype": "0",
+   "commands": [
+    "set g_forcerespawn 1",
+    "team free",
+    "wait 180",
+    "togglemenu",
+    "kill",
+    "wait 300",
+    "kill"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forcedStop": true,
+   "errors": [
+    "ERROR: Unsupported jka-mp cgame import 315 (CG_G2_CLEARSKINGORE)"
+   ],
+   "captures": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  "cleargore-diag-ffa3-npc": {
+   "runtime": ".tmp/runtime/jka-cleargore-diag",
+   "map": "mp/ffa3",
+   "gametype": "0",
+   "commands": [
+    "set g_forcerespawn 1",
+    "team free",
+    "wait 180",
+    "togglemenu",
+    "npc spawn stormtrooper",
+    "wait 30",
+    "npc spawn stormtrooper"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forcedStop": true,
+   "errors": [
+    "ERROR: Unsupported jka-mp cgame import 299 (CG_G2_COLLISIONDETECT)"
+   ],
+   "captures": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  "cleargore-diag-ffa3-tavion": {
+   "runtime": ".tmp/runtime/jka-cleargore-diag",
+   "map": "mp/ffa3",
+   "gametype": "0",
+   "commands": [
+    "set g_forcerespawn 1",
+    "team free",
+    "wait 180",
+    "togglemenu",
+    "addbot Tavion 4"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forcedStop": false,
+   "errors": [],
+   "captures": [
+    {
+     "name": "jka-local-00.png",
+     "sha256": "5b5c547cb0be7d3643440cf5b221cdf7035ea1b1b5857a942099011365eb1d7d"
+    },
+    {
+     "name": "jka-local-01.png",
+     "sha256": "0ccf0a2b660c4a441c5922f92f9bc13d06e1404991eed11ebe879cb866728e59"
+    },
+    {
+     "name": "jka-local-02.png",
+     "sha256": "4726b804fa22a210aa845dfb3b442c3cf0055be14e4285c6f7ba82dcabdf4498"
+    }
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  "cleargore2-after-ffa3-npc": {
+   "runtime": ".tmp/runtime/jka-cleargore-after",
+   "map": "mp/ffa3",
+   "gametype": "0",
+   "commands": [
+    "set g_forcerespawn 1",
+    "team free",
+    "wait 180",
+    "togglemenu",
+    "npc spawn stormtrooper",
+    "wait 30",
+    "npc spawn stormtrooper"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forcedStop": true,
+   "errors": [
+    "ERROR: Unsupported jka-mp cgame import 299 (CG_G2_COLLISIONDETECT)"
+   ],
+   "captures": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  "cleargore2-after-ffa3-tavion": {
+   "runtime": ".tmp/runtime/jka-cleargore-after",
+   "map": "mp/ffa3",
+   "gametype": "0",
+   "commands": [
+    "set g_forcerespawn 1",
+    "team free",
+    "wait 180",
+    "togglemenu",
+    "addbot Tavion 4"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forcedStop": false,
+   "errors": [],
+   "captures": [
+    {
+     "name": "jka-local-00.png",
+     "sha256": "5024de9cd06d41c2d6af47865894fa04b16be8137a5b1144b9862a68e5659219"
+    },
+    {
+     "name": "jka-local-01.png",
+     "sha256": "d9bef77febd2720f138a023f82a415d5eb2ad40b3c0dd2dc43ed12245f1f91bb"
+    },
+    {
+     "name": "jka-local-02.png",
+     "sha256": "bcb7ff13a0fe578abb42f5cfd43e75b742ff3896ef0fdcd30b83d4a51a552daa"
+    }
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  "cleargore2-after-ffa3-view": {
+   "runtime": ".tmp/runtime/jka-cleargore-after",
+   "map": "mp/ffa3",
+   "gametype": "0",
+   "commands": [
+    "set g_forcerespawn 1",
+    "team free",
+    "wait 180",
+    "togglemenu",
+    "kill",
+    "wait 300",
+    "kill"
+   ],
+   "outcome": "exited",
+   "exit": 0,
+   "forcedStop": false,
+   "errors": [],
+   "captures": [
+    {
+     "name": "jka-local-00.png",
+     "sha256": "516e92f3ad3a7f32da1888b143ab43134c500cbc5931ef91a1c5c1eb7ecdb6d4"
+    },
+    {
+     "name": "jka-local-01.png",
+     "sha256": "a0b30a564c815dc5f30a8fdd894eaed221ce4c86446ddd17419a46e96ac3eebe"
+    },
+    {
+     "name": "jka-local-02.png",
+     "sha256": "3b9dc4964528f4770106d02afb4a7bc9817360ef870018e23b80cd4547f29fea"
+    }
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  "cleargore2-after-korriban-bot": {
+   "runtime": ".tmp/runtime/jka-cleargore-after",
+   "map": "mp/siege_korriban",
+   "gametype": "7",
+   "commands": [
+    "team red",
+    "addbot Tavion 1 blue"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forcedStop": true,
+   "errors": [
+    "ERROR: Unsupported jka-mp cgame import 321 (CG_G2_SETSURFACEONOFF)"
+   ],
+   "captures": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  "cleargore2-before-ffa3-view": {
+   "runtime": ".tmp/runtime/jka-cleargore-before",
+   "map": "mp/ffa3",
+   "gametype": "0",
+   "commands": [
+    "set g_forcerespawn 1",
+    "team free",
+    "wait 180",
+    "togglemenu",
+    "kill",
+    "wait 300",
+    "kill"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forcedStop": true,
+   "errors": [
+    "ERROR: Unsupported jka-mp cgame import 315 (CG_G2_CLEARSKINGORE)"
+   ],
+   "captures": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  },
+  "cleargore2-before-korriban-bot": {
+   "runtime": ".tmp/runtime/jka-cleargore-before",
+   "map": "mp/siege_korriban",
+   "gametype": "7",
+   "commands": [
+    "team red",
+    "addbot Tavion 1 blue"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forcedStop": true,
+   "errors": [
+    "ERROR: Unsupported jka-mp cgame import 315 (CG_G2_CLEARSKINGORE)"
+   ],
+   "captures": [],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "desktopSwitched": false,
+   "inputInjected": false
+  }
+ },
+ "nextRefusals": [
+  "mp/siege_korriban with team red and addbot Tavion 1 blue: client-game import 321 (CG_G2_SETSURFACEONOFF) some frames after the bot's third death and its rcg 1; retail cgame wrapper 0x3005f610 has eleven call sites, the one that ran was not identified",
+  "mp/ffa3 with npc spawn stormtrooper: client-game import 299 (CG_G2_COLLISIONDETECT) before any death"
+ ]
+}

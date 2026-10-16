@@ -443,6 +443,18 @@ static bool CL_JKACgameGhoul2Call(intptr_t *args, fntech3::jka::module::Call cal
         result = 0;
         return true;
     }
+    case Call::CG_G2_CLEARSKINGORE: {
+        // Retail 0x413cd5 hands args[1] to 0x4e07f0, which reads the instance
+        // through it (null faults at 0x4e07fb), deletes each model's gore set
+        // (+0x4c, 0x4e9310) and answers 0. Fn's store keeps no skin gore:
+        // imports 313 and 314 are not served, so validation is the whole clear.
+        CL_JKACgameGhoul2Native();
+        const auto identity = static_cast<std::uint32_t>(args[1]);
+        if (!identity) Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 cannot clear skin gore without a model identity");
+        CL_JKACgameGhoul2Resolve(identity);
+        result = 0;
+        return true;
+    }
     case Call::CG_G2_HAVEWEGHOULMODELS:
     case Call::CG_G2_HASGHOUL2MODELONINDEX: {
         CL_JKACgameGhoul2Native();

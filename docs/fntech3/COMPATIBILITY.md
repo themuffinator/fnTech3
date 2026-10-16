@@ -2900,6 +2900,24 @@ imports carry no pass entity. Live, the round now begins and plays about
 which stops at client-game import 315 (`CG_G2_CLEARSKINGORE`) (Live
 subset). No gate closes.
 
+The [skin-gore slice](2026-10-16-jka-clear-skin-gore.md) (2026-10-16)
+serves client-game import 315 (`CG_G2_CLEARSKINGORE`), which the retail
+client game calls on the server's `ircg` or `rcg` after every respawn, so
+the first respawn of any match stopped the client. Retail `jamp.exe` 1.01
+serves it at `0x413cd5` through `0x4e07f0`, which reads the instance
+through the client game's word (a null word faults at `0x4e07fb`), walks
+its 0xc8-byte models, deletes each model's gore set (`+0x4c`, `0x4e9310`)
+and answers 0. fnTech3's client store keeps no skin gore (imports 313 and
+314 are not served), so the import refuses a null, stale or foreign word,
+creates no store, answers 0 and changes nothing (Source, Unit). Live on
+`mp/ffa3`, `team free` and two `kill`s with `g_forcerespawn 1` stop the
+previous build at import 315 after the first `ircg`; with this slice both
+respawns are served. On `mp/siege_korriban` with a bot, its two `ircg`
+and two `rcg` are served and the client stops later, after the bot's
+third death, at import 321 (`CG_G2_SETSURFACEONOFF`). A spawned
+stormtrooper stops the client at import 299 (`CG_G2_COLLISIONDETECT`)
+before any death (Live subset). No gate closes.
+
 Star Wars Jedi Knight: Jedi Academy is the sixth title, with two mode profiles
 over one `base/` installation: `jka-sp` for Raven's single-player campaign and
 `jka-mp` for multiplayer. The [foundation record](2026-09-21-jka-contracts.md)

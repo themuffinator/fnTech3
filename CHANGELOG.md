@@ -153,6 +153,11 @@ historical upstream records, not fnTech3 release history. See the
   in place, the disruptor's turning rings follow it, and a zoom sees
   further into a foggy map, as the original's does
   ([record](docs/fntech3/2026-10-15-jka-zoom.md)).
+- Let Jedi Academy multiplayer players respawn. The game clears the
+  marks hits left on a player's model when they come back, which stopped
+  the match at the first respawn; fnTech3 keeps no such marks yet, so it
+  now checks the player's model and carries on
+  ([record](docs/fntech3/2026-10-16-jka-clear-skin-gore.md)).
 - Take Jedi Outcast's multiplayer client game through its start: where it
   stopped before any map loaded, it now loads the level and registers its
   effects, as the original engine serves them. It still stops before the
