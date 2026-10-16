@@ -31,16 +31,22 @@ namespace {
 // The module address import 300 registered (retail keeps it at 0x9d9e24).
 intptr_t jk2CgameSharedAddress = 0;
 static void CL_JKACgameEffectsClear();
+static void CL_JK2CgameGhoul2Clear();
 
 // Declared beside CL_JKACgameClear in cl_cgame.cpp's own unnamed namespace.
 static void CL_JK2CgameClear() {
 	fntech3::jka::command::selections.Reset();
 	jk2CgameSharedAddress = 0;
 	CL_JKACgameEffectsClear(); // the effects engine Outcast shares (client_jk2_cgame_effects.hpp)
+	CL_JK2CgameGhoul2Clear(); // the client's own model store (client_jk2_cgame_ghoul2.hpp)
 }
 } // namespace
 
 static bool CL_JK2CgameEffectsCall( intptr_t *args, intptr_t &result );
+static bool CL_JK2CgameGhoul2Call( intptr_t *args, intptr_t &result );
+static void CL_JK2CgameGhoul2Queue( const fntech3_jk2_mp_refEntity_t &source );
+static void CL_JK2CgameGhoul2Flush( int time );
+static void CL_JK2CgameGhoul2DropScene();
 
 static void *CL_JK2CgameSpan( intptr_t address, std::size_t bytes ) {
 	if ( !cgvm || !address || bytes > ( std::numeric_limits<std::uintptr_t>::max )() - std::uintptr_t( address ) )
@@ -259,10 +265,17 @@ static JK2CgameService CL_JK2CgameServiceCall( intptr_t *args, intptr_t &operati
 	case 52: // 0x401eeb -> the renderer's read-character 0x473e50.
 		result = CL_JK2CgameReadChar( args[1] );
 		return JK2CgameService::Handled;
-	case 200: operation = CG_R_CLEARSCENE; return JK2CgameService::Shared;
+	case 200:
+		CL_JK2CgameGhoul2DropScene();
+		operation = CG_R_CLEARSCENE;
+		return JK2CgameService::Shared;
 	case 201: { // 0x401f12: one 212-byte entity record (jk2_render_abi.h).
 		fntech3_jk2_mp_refEntity_t source;
 		std::memcpy( &source, CL_JK2CgameSpan( args[1], sizeof( source ) ), sizeof( source ) );
+		if ( source.ghoul2 ) { // posed and drawn with its view (client_jk2_cgame_ghoul2.hpp)
+			CL_JK2CgameGhoul2Queue( source );
+			return JK2CgameService::Handled;
+		}
 		refEntity_t value{};
 		const auto status = fntech3::jk2::render::Entity( source, value );
 		if ( status != fntech3::jk2::render::Status::Ok )
@@ -307,6 +320,9 @@ static JK2CgameService CL_JK2CgameServiceCall( intptr_t *args, intptr_t &operati
 		if ( status != fntech3::jk2::render::Status::Ok )
 			Com_Error( ERR_DROP, "Jedi Outcast cgame %s (flags=0x%x)", fntech3::jk2::render::Description( status ),
 				static_cast<unsigned>( source.rdflags ) );
+		// A capture without the HUD skips a view with no world, as the shared path does.
+		if ( CL_CaptureHidesHud() && ( value.rdflags & RDF_NOWORLDMODEL ) ) CL_JK2CgameGhoul2DropScene();
+		else CL_JK2CgameGhoul2Flush( value.time );
 		operation = CG_R_RENDERSCENE;
 		return JK2CgameService::Shared; // HUD, capture, liquid and lighting paths read it again
 	}
@@ -384,6 +400,9 @@ static JK2CgameService CL_JK2CgameServiceCall( intptr_t *args, intptr_t &operati
 	case 254: case 256: case 259: case 260: case 262: case 263: case 264: case 265:
 	case 266: case 267: case 268: case 269: case 270:
 		return CL_JK2CgameEffectsCall( args, result ) ? JK2CgameService::Handled : JK2CgameService::None;
+	case 278: case 279: case 280: case 281: case 282: case 283: case 284: case 285: case 286: case 287: case 288:
+	case 289: case 290: case 291: case 292: case 293: case 294: case 295: case 296: case 297: case 298: case 299:
+		return CL_JK2CgameGhoul2Call( args, result ) ? JK2CgameService::Handled : JK2CgameService::None;
 	case 212: case 213:
 		Com_Error( ERR_DROP, "Unsupported jk2-mp cgame import %ld: Jedi Outcast's rotated pictures are not served yet",
 			static_cast<long>( args[0] ) );

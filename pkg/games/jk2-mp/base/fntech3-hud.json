@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "textRuns": true,
+  "rules": [
+    {
+      "name": "crosshair",
+      "match": { "shader": "gfx/2d/crosshair*" },
+      "align": { "x": "center", "y": "middle" }
+    },
+    {
+      "name": "rocket_lock",
+      "match": { "shader": "gfx/2d/wedge" },
+      "align": { "x": "center", "y": "middle" }
+    },
+    {
+      "name": "rocket_lock_icon",
+      "match": { "shader": "gfx/2d/lock" },
+      "align": { "x": "center", "y": "middle" }
+    },
+    {
+      "name": "binocular_zoom",
+      "match": { "shader": "gfx/2d/bin*" },
+      "mode": "stretch"
+    },
+    {
+      "name": "disruptor_zoom",
+      "match": { "shader": "gfx/2d/crop*" },
+      "mode": "stretch"
+    },
+    {
+      "name": "scoreboard",
+      "match": { "shader": "gfx/menus/menu_buttonback*", "textLike": 0 },
+      "panel": "centered"
+    },
+    {
+      "name": "loading_levelshot",
+      "match": { "shader": "levelshots/*", "textLike": 0 },
+      "mode": "stretch",
+      "panel": "centered"
+    },
+    {
+      "name": "loading_unknown_map",
+      "match": { "shader": "menu/art/unknownmap*", "textLike": 0 },
+      "mode": "stretch",
+      "panel": "centered"
+    },
+    {
+      "name": "score",
+      "match": { "textLike": 1, "region": { "x": 480, "y": 455, "w": 65, "h": 25 } },
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "selection_names",
+      "match": { "textLike": 1, "region": { "x": 150, "y": 455, "w": 330, "h": 25 } },
+      "align": { "x": "center", "y": "bottom" }
+    },
+    {
+      "name": "left_hud",
+      "match": { "region": { "x": 0, "y": 395, "w": 112, "h": 85 } },
+      "align": { "x": "left", "y": "bottom" }
+    },
+    {
+      "name": "right_hud",
+      "match": { "region": { "x": 528, "y": 395, "w": 112, "h": 85 } },
+      "align": { "x": "right", "y": "bottom" }
+    },
+    {
+      "name": "selection_bars",
+      "match": { "region": { "x": 112, "y": 395, "w": 416, "h": 75 } },
+      "align": { "x": "center", "y": "bottom" }
+    },
+    {
+      "name": "upper_right",
+      "match": { "region": { "x": 520, "y": 0, "w": 120, "h": 120 } },
+      "align": { "x": "right", "y": "top" }
+    }
+  ]
+}

@@ -25,11 +25,12 @@ fntech3-pkg.fnz
     ├── alice/base/{maps/*.azb,maps/*.lights.json,fntech3-hud.json}
     ├── fakk2/fakk/{maps/*.azb,maps/*.lights.json,fntech3-hud.json}
     ├── jka-mp/base/fntech3-hud.json
+    ├── jk2-mp/base/fntech3-hud.json
     └── mohaa/main/maps/{,DM/,obj/,briefing/}{*.azb,*.lights.json}
 ```
 
 `<profile>` is the canonical immutable game profile key: `quake3`,
-`quakelive`, `rtcw-sp`, `rtcw-mp`, `wolfet`, `stvef-sp`, `stvef-mp`, `alice`, `fakk2`, `mohaa`, or `jka-mp`. Startup aliases such as `q3` and `ql`
+`quakelive`, `rtcw-sp`, `rtcw-mp`, `wolfet`, `stvef-sp`, `stvef-mp`, `alice`, `fakk2`, `mohaa`, `jka-mp`, or `jk2-mp`. Startup aliases such as `q3` and `ql`
 are not package directory names. RTCW SP and MP have separate namespaces
 even though both installations use `main`. They ship audio zones for all
 32 official SP maps (including cinematics and the ending) and 15 official MP maps.
@@ -53,7 +54,7 @@ existing layout; this namespace applies only to engine-owned package assets.
    `maps/*.lights.json`, `scripts/fnql.shader`, and
    `sound/fnql-weapon-sounds.sndshd`. Every profile with HUD correction --
    Q3, RTCW, Enemy Territory, Elite Force, Alice, F.A.K.K.2 and Jedi Academy
-   multiplayer -- additionally
+   and Jedi Outcast multiplayer -- additionally
    permits the exact `fntech3-hud.json` and legacy `fnq3-hud.json` filenames;
    Quake Live and Medal of Honor, whose modules place their own HUDs, exclude
    these HUD presets. The shader is
@@ -112,8 +113,9 @@ Assault's fifty-four maps add an audio sidecar and a static light file each,
 beside each map in the folder its pak keeps it in (`DM/`, `obj/`,
 `briefing/`), bringing it to 735, and the HUD presets of Alice, Enemy
 Territory and both Elite Force modes bring it to 739. Elite Force's 99 maps
-then add an audio sidecar each, bringing it to 838, and Jedi Academy
-multiplayer's HUD preset brings it to 839. The map files are the shipped
+then add an audio sidecar each, bringing it to 838, Jedi Academy
+multiplayer's HUD preset brings it to 839, and Jedi Outcast multiplayer's
+brings it to 840. The map files are the shipped
 `maps/*.lights.json`; they feed the renderers' static map lights
 (`r_staticLights`), and the package validator reads each one as the
 renderers would. Their generation records --

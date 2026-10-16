@@ -35,7 +35,7 @@ static void (*reload)();
 static std::array<float, 8> submitted;
 static qhandle_t submittedShader, pictureShader = 17;
 // 0 Q3, 1 QL, 2 RTCW SP, 3 RTCW MP, 4 F.A.K.K.2, 5 ET, 6 EF SP, 7 EF MP, 8 Alice, 9 MoHAA,
-// 10 Jedi Academy multiplayer
+// 10 Jedi Academy multiplayer, 11 Jedi Outcast multiplayer
 // The entity editor, closed: the HUD draws as it always has.
 extern "C" qboolean CL_EntityEditorActive( void ) { return qfalse; }
 int Com_GameIsQuake3() { return profile == 0; }
@@ -44,6 +44,7 @@ int Com_GameIsWolfET() { return profile == 5; }
 int Com_GameIsSTVEF() { return profile == 6 || profile == 7; }
 int Com_GameIsRitual() { return profile == 4 || profile == 8; }
 int Com_GameIsJKAMP() { return profile == 10; }
+int Com_GameIsJK2MP() { return profile == 11; }
 static bool Unsupported() { return profile == 1 || profile == 9; }
 cvar_t *Cvar_Get(const char *name, const char *value, int) {
     ++registrations;
@@ -804,6 +805,37 @@ int main(int argc, char **argv) {
             virtualPic("gfx/2d/binocularWindow", 34, 48, 570, 362); Expect(47.8125f, 72, 801.5625f, 543);
             virtualPic("gfx/2d/binCircle", 82, 94, 16, 16); Expect(115.3125f, 141, 22.5f, 24);
             CL_HudResetCGame(); Size(2560,1080);
+        } else if (profile == 11) {
+            // Jedi Outcast multiplayer draws in the same virtual screen and reads
+            // the same 4:3 frame (cgame import 219). Its own rules hold its HUD's
+            // measured places (2026-10-16 live dumps at 1280x720).
+            int frameW = 2560, frameH = 1080;
+            CL_HudModuleScreen(&frameW, &frameH); assert(frameW==1440 && frameH==1080);
+            const auto virtualPic = [](const char *shader, float x, float y, float w, float h) {
+                CL_HudRegisterShaderName(17, shader);
+                CL_HudFromVirtual(&x, &y, &w, &h);
+                CL_HudDrawStretchPic(x, y, w, h, 0.1f, 0.2f, 0.8f, 0.9f, 17);
+            };
+            virtualPic("gfx/hud/hudleft_innerframe", 0, 400, 80, 80); Expect(0, 900, 180, 180);    // lower left
+            virtualPic("gfx/hud/hudrightframe", 560, 400, 80, 80); Expect(2380, 900, 180, 180);   // lower right
+            virtualPic("gfx/hud/prong_off", 574, 400, -40, 80); Expect(2411.5f, 900, -90, 180);  // its mirrored prong
+            virtualPic("models/players/rebel/icon_default", 575, 5, 60, 60);
+            Expect(2413.75f, 11.25f, 135, 135);                                                  // leader, top right
+            virtualPic("gfx/2d/crosshairb", 308, 228, 24, 24); Expect(1253, 513, 54, 54);        // crosshair, centred
+            virtualPic("gfx/hud/w_icon_blaster", 300, 420, 40, 40); Expect(1235, 945, 90, 90);   // weapon bar, centred
+            // The score sits beside the right dial; the weapon's name under its bar.
+            CL_HudBeginTextLine(494, 462, 540, 472);
+            virtualPic("fonts/hudfont", 494, 462, 8, 10); Expect(2231.5f, 1039.5f, 18, 22.5f);
+            CL_HudEndTextLine();
+            CL_HudBeginTextLine(223, 463, 420, 477);
+            virtualPic("fonts/hudfont", 223, 463, 10, 14); Expect(1061.75f, 1041.75f, 22.5f, 31.5f);
+            CL_HudEndTextLine();
+            // The scoreboard is one centred 4:3 screen from its first picture.
+            CL_HudBeginFrame();
+            virtualPic("gfx/menus/menu_buttonback.tga", 60, 81, 520, 40); Expect(695, 182.25f, 1170, 90);
+            virtualPic("white", 540, 400, 60, 20); Expect(1775, 900, 135, 45);
+            CL_HudEndFrame();
+            CL_HudResetCGame(); Size(2560,1080);
         }
         CL_HudRegisterShaderName(17,"white");
         Picture(0,0,2560,1080); Expect(0,0,2560,1080);
@@ -871,8 +903,9 @@ class HudAspectTests(unittest.TestCase):
                 7: "stvef-mp/baseEF/fntech3-hud.json",
                 8: "alice/base/fntech3-hud.json",
                 10: "jka-mp/base/fntech3-hud.json",
+                11: "jk2-mp/base/fntech3-hud.json",
             }
-            for profile in range(11):
+            for profile in range(12):
                 with self.subTest(profile=profile):
                     output = path / f"dump-{profile}.json"
                     command = [str(executable), str(profile), str(output)]

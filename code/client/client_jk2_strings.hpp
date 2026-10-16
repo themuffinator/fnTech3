@@ -71,6 +71,20 @@ inline qboolean Register(const char *name, unsigned owner, char (&error)[160]) {
 }
 } // namespace fntech3::jk2::hoststrings
 
+/* jk2mp.exe CL_Init (0x40c600) registers these four packages with flag 8 as
+ * soon as it prints its banner (0x40c5c0), before either module loads; the
+ * client game registers none itself (no call site of its import 272), so its
+ * INGAMETEXT and INGAME strings come from here. They stay for the process. */
+inline constexpr unsigned jk2StringEngineOwner = 8;
+inline void CL_JK2StringRegisterEngine() {
+    static const char *const packages[] = {"con_text", "mp_ingame", "mp_svgame", "sp_ingame"};
+    for (const char *name : packages) {
+        char error[160]{};
+        if (!fntech3::jk2::hoststrings::Register(name, jk2StringEngineOwner, error))
+            Com_Printf(S_COLOR_YELLOW "Jedi Outcast string package %s: %s\n", name, error[0] ? error : "not found");
+    }
+}
+
 inline void CL_JK2StringReset(unsigned owner) {
     auto &packages = fntech3::jk2::hoststrings::Storage();
     for (auto it = packages.begin(); it != packages.end();) {

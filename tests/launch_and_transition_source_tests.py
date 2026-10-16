@@ -411,9 +411,10 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
         hud = read_source("code/client/cl_hud.cpp")
         # Every game whose HUD assumes a 4:3 screen; QL's and MoHAA's modules place their own.
         supported = " ".join(hud.split("\n\thudSupported = ", 1)[1].split(";", 1)[0].split())
-        # Jedi Academy multiplayer's comes through Raven's virtual 640x480 screen.
+        # Both Jedi multiplayer games' come through Raven's virtual 640x480 screen.
         self.assertEqual(supported, "Com_GameIsQuake3() || Com_GameIsRTCW() || Com_GameIsWolfET() "
-                                    "|| Com_GameIsSTVEF() || Com_GameIsRitual() || Com_GameIsJKAMP()")
+                                    "|| Com_GameIsSTVEF() || Com_GameIsRitual() || Com_GameIsJKAMP() "
+                                    "|| Com_GameIsJK2MP()")
         self.assertIn("if ( !hudSupported ) return qtrue;", hud)
         self.assertIn("CL_HudQueueStretchPic", cgame)
         self.assertNotIn("cl_hudAspect", main)

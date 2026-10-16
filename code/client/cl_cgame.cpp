@@ -2039,6 +2039,7 @@ private:
 #include "client_jk2_cgame.hpp"
 #include "client_jka_cgame_host.hpp"
 #include "client_jk2_cgame_effects.hpp"
+#include "client_jk2_cgame_ghoul2.hpp"
 #include "client_alice_cgame.hpp"
 
 static intptr_t CL_CGameTrapForProfile( intptr_t trap ) {

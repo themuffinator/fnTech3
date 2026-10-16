@@ -1263,6 +1263,7 @@ root_package_assets = stock_audio_zone_sidecars + stock_global_fog_sidecars + fi
   'pkg/games/stvef-sp/baseEF/fntech3-hud.json',
   'pkg/games/stvef-mp/baseEF/fntech3-hud.json',
   'pkg/games/jka-mp/base/fntech3-hud.json',
+  'pkg/games/jk2-mp/base/fntech3-hud.json',
 )
 stock_q3_assets_result = run_command(python, files('scripts/stock_q3_assets.py'), check: true)
 foreach asset : stock_q3_assets_result.stdout().strip().split('\n')

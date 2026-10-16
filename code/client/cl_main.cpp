@@ -26,6 +26,7 @@ extern "C" {
 }
 
 #include "client_cpp.h"
+#include "client_jk2_strings.hpp"
 #include "client_q3test.h"
 #include "client_q3ihv.h"
 #include "canvas_geometry.hpp"
@@ -6809,6 +6810,7 @@ void CL_Init( void ) {
 	const bool quakeLive = Com_GameIsQuakeLive() != 0;
 
 	Com_Printf( "----- Client Initialization -----\n" );
+	if ( Com_GameIsJK2MP() ) CL_JK2StringRegisterEngine();
 	cl_windowResize.Reset();
 	cl_windowResizeRestart = qfalse;
 	cl_windowModeChange = qfalse;

@@ -494,9 +494,9 @@ class ReleasePackagingTests(unittest.TestCase):
         # Honor: Allied Assault added a zone and a static light file for its 54,
         # 735 before Alice, Enemy Territory and both Elite Force modes added
         # their HUD rules, 739 before Elite Force added a zone file for
-        # each of its 99 maps, and 838 before Jedi Academy multiplayer added
-        # its HUD rules.
-        self.assertEqual(len(required_destinations), 839)
+        # each of its 99 maps, 838 before Jedi Academy multiplayer added its
+        # HUD rules, and 839 before Jedi Outcast multiplayer added its own.
+        self.assertEqual(len(required_destinations), 840)
         self.assertIn("pkg/games/quakelive/baseq3/maps/campgrounds.azb", sources)
         self.assertIn("games/quakelive/baseq3/maps/campgrounds.azb", audio_destinations)
         self.assertIn("games/quakelive/baseq3/maps/campgrounds.fog", fog_destinations)
@@ -606,7 +606,7 @@ class ReleasePackagingTests(unittest.TestCase):
         for profile in ("rtcw-sp", "rtcw-mp"):
             self.assertIn(f"'pkg/games/{profile}/main/fntech3-hud.json'", meson_build)
         for preset in ("fakk2/fakk", "alice/base", "wolfet/etmain", "stvef-sp/baseEF", "stvef-mp/baseEF",
-                       "jka-mp/base"):
+                       "jka-mp/base", "jk2-mp/base"):
             self.assertIn(f"'pkg/games/{preset}/fntech3-hud.json'", meson_build)
         self.assertNotIn("pkg/missionpack/", meson_build)
 

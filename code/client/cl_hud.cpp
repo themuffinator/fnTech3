@@ -1287,7 +1287,7 @@ extern "C" void CL_HudReload_f( void ) {
 
 extern "C" void CL_HudInit( void ) {
 	hudSupported = Com_GameIsQuake3() || Com_GameIsRTCW() || Com_GameIsWolfET() || Com_GameIsSTVEF()
-		|| Com_GameIsRitual() || Com_GameIsJKAMP();
+		|| Com_GameIsRitual() || Com_GameIsJKAMP() || Com_GameIsJK2MP();
 	cl_hudAspect = nullptr;
 	cl_hudDump = nullptr;
 	if ( !hudSupported ) return;

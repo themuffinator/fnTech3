@@ -172,9 +172,12 @@ Results are in the companion.
 
 ## Not covered, and found along the way
 
-- Outcast's HUD: its client game's renderer imports (42-218) are still
-  refused, so it has no HUD to place; its fonts now draw stretched from the
-  virtual screen as the original's do.
+- Outcast's HUD: its client game's renderer imports (42-218) were still
+  refused, so it had no HUD to place; its fonts drew stretched from the
+  virtual screen as the original's do. The
+  [client services](2026-10-16-jk2-cgame-services.md) and
+  [Ghoul2 and HUD](2026-10-16-jk2-cgame-ghoul2.md) slices now draw it, in
+  this layout's 4:3 frame with Outcast's own rules.
 - Neither Jedi single player reaches its menus or client game.
 - At `750f070f`, weapon switching (`weapnext`) stops the client at
   client-game import 36, `CG_S_MUTESOUND`, which is not served there: a

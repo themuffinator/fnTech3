@@ -37,7 +37,14 @@ inline const char *Description(Status status) noexcept {
 inline Status Entity(const fntech3_jk2_mp_refEntity_t &source, refEntity_t &destination) noexcept {
     if (source.ghoul2) return Status::Ghoul2;
     if (source.reType != 0) return Status::EntityType;
-    constexpr uint32_t supportedFlags = 0x000fu | 0x00c0u | 0x0300u;
+    // 0x400 forces the entity's alpha on single-texture stages, blended, as
+    // Academy's does: jk2mp.exe's stage path (0x488e7a..0x488e93) writes the
+    // record's alpha (+0x53) to every vertex and draws with state 0x65.
+    constexpr uint32_t forceEntityAlpha = 0x0400u;
+    // 0x800 reaches nothing: no test or mask in jk2mp.exe's renderer
+    // (0x466000..0x4b0000) carries that bit, so it is accepted and dropped.
+    constexpr uint32_t unread = 0x0800u;
+    constexpr uint32_t supportedFlags = 0x000fu | 0x00c0u | 0x0300u | forceEntityAlpha | unread;
     if (uint32_t(source.renderfx) & ~supportedFlags) return Status::EntityFlags;
     if ((source.nonNormalizedAxes != 0 && source.nonNormalizedAxes != 1) ||
         !Finite(source.origin) || !Finite(source.oldorigin) || !Finite(source.lightingOrigin) ||
@@ -52,6 +59,7 @@ inline Status Entity(const fntech3_jk2_mp_refEntity_t &source, refEntity_t &dest
         {0x40, RF_NOSHADOW}, {0x80, RF_LIGHTING_ORIGIN}, {0x100, RF_SHADOW_PLANE}, {0x200, RF_WRAP_FRAMES}
     };
     for (const auto &flag : flags) if (uint32_t(source.renderfx) & flag.external) next.renderfx |= flag.internal;
+    next.jka.forceAlpha = (uint32_t(source.renderfx) & forceEntityAlpha) ? qtrue : qfalse;
     next.hModel = source.hModel;
     Copy(next.axis, source.axis); Copy(next.origin, source.origin); Copy(next.oldorigin, source.oldorigin);
     Copy(next.lightingOrigin, source.lightingOrigin); next.shadowPlane = source.shadowPlane;

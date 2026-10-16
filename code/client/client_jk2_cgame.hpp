@@ -95,6 +95,17 @@ static bool CL_JK2CgameCall( intptr_t *args, intptr_t &operation, intptr_t &resu
 		VM_CHECKBOUNDS( cgvm, args[1], sizeof( fntech3_jk2_mp_glconfig_t ) );
 		static_assert( sizeof( fntech3_jk2_mp_glconfig_t ) == sizeof( fntech3_q3_glconfig_t ) );
 		CL_CopyQ3Glconfig( VMA(1), &cls.glconfig );
+		/* Told the HUD's 4:3 frame (CL_HudModuleScreen), the client game
+		 * computes a 4:3 view, which the engine widens to the real screen
+		 * while placing its 2D in that frame, as for Academy's
+		 * (client_jka_glconfig.hpp). */
+		fntech3_jk2_mp_glconfig_t record;
+		std::memcpy( &record, VMA(1), sizeof( record ) );
+		int width = record.vidWidth, height = record.vidHeight;
+		CL_HudModuleScreen( &width, &height );
+		record.vidWidth = width;
+		record.vidHeight = height;
+		std::memcpy( VMA(1), &record, sizeof( record ) );
 		return true;
 	}
 	case 220: {

@@ -32,7 +32,7 @@ only change the games the table below lists.
 | Enemy Territory | widened | kept in shape, with its full-screen panels as below | drawn as the original drew them | `cl_cinematicAspect` |
 | Elite Force, both modes | widened | kept in shape | `cl_menuAspect` | `cl_cinematicAspect` |
 | Jedi Academy, multiplayer | widened | kept in shape, with its scoreboard as below | `cl_menuAspect` | not checked yet |
-| Jedi Outcast, multiplayer | not drawn yet | not drawn yet | `cl_menuAspect` | not checked yet |
+| Jedi Outcast, multiplayer | widened | kept in shape, with its scoreboard as below | `cl_menuAspect` | not checked yet |
 | Alice | widened | kept in shape | the game's own menus | `cl_cinematicAspect` |
 | F.A.K.K.2 | widened | kept in shape | the game's own menus | `cl_cinematicAspect` |
 | Medal of Honor | widened | the game's own, which fits any screen | the game's own menus | `cl_cinematicAspect` |
@@ -40,9 +40,8 @@ only change the games the table below lists.
 The IHV Test has no client, and the Q3Test versions have none of these
 corrections. Both Jedi games draw their HUD and menus on a 640x480 screen
 that the original stretched over the window; fnTech3 scales them to your
-window the same way, then applies the settings below. Jedi Outcast's game
-view and HUD are not drawn yet, and neither game's single player gets as far
-as its menus.
+window the same way, then applies the settings below. Neither game's single
+player gets as far as its menus yet.
 
 ## Field Of View
 
@@ -101,6 +100,10 @@ stretched HUD.
   you aim at, stays on target. The scoreboard is shown as one centred 4:3
   screen, and the weapon, force power and item bars stay whole in the middle.
   Switching `cl_hudAspect` takes full effect at the next map or `vid_restart`.
+- **Jedi Outcast's** multiplayer client game is given the same 4:3 screen.
+  Its scoreboard is shown as one centred 4:3 screen, and its weapon bar stays
+  whole in the middle. Its zoom, rocket lock and loading screen have not
+  been checked in a wide window yet.
 - **Alice's** gauges and cards are small 3D models; each keeps its 4:3 size
   at its edge of the screen.
 - **F.A.K.K.2's** HUD is four of the game's own menus -- health, weapons, two
@@ -165,6 +168,7 @@ own rules. These are the layouts fnTech3 brings:
 | Elite Force single player | [`games/stvef-sp/baseEF/fntech3-hud.json`](../pkg/games/stvef-sp/baseEF/fntech3-hud.json) | Health and armour gauges lower left, ammunition gauge lower right; a cutscene's black bars reach the screen's edges; the talking head stays with its talk box. |
 | Elite Force Holomatch | [`games/stvef-mp/baseEF/fntech3-hud.json`](../pkg/games/stvef-mp/baseEF/fntech3-hud.json) | The same gauges, and the score box above the ammunition lower right. |
 | Jedi Academy multiplayer | [`games/jka-mp/base/fntech3-hud.json`](../pkg/games/jka-mp/base/fntech3-hud.json) | Health and armour lower left, with chat above them; force, ammunition, saber style and score lower right; the leader's portrait, team scores and timers top right; votes and holocrons at the left. The crosshair, centre messages and the weapon, force and item bars stay centred, and the scoreboard and loading screen are centred 4:3 screens. Lines of text are never split. |
+| Jedi Outcast multiplayer | [`games/jk2-mp/base/fntech3-hud.json`](../pkg/games/jk2-mp/base/fntech3-hud.json) | Health and armour lower left; force, ammunition and the score lower right; the leader's portrait and name top right. The crosshair and the weapon, force and item bars stay centred, and the scoreboard is a centred 4:3 screen. Lines of text are never split. |
 | Alice | [`games/alice/base/fntech3-hud.json`](../pkg/games/alice/base/fntech3-hud.json) | Health gauge at the left and mana gauge at the right, centred top to bottom; weapon card lower left, powerup card lower right. |
 | F.A.K.K.2 | [`games/fakk2/fakk/fntech3-hud.json`](../pkg/games/fakk2/fakk/fntech3-hud.json) | Health and water gauge top left; both weapon HUDs, their rings, ammunition and weapon models top right; the boss's health bar at the left, centred as it slides in. |
 

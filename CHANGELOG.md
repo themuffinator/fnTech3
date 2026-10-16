@@ -163,6 +163,12 @@ historical upstream records, not fnTech3 release history. See the
   effects, as the original engine serves them. It still stops before the
   first picture, at the player models, so maps are not drawn yet
   ([record](docs/fntech3/2026-10-16-jk2-cgame-services.md)).
+- Draw Jedi Outcast's multiplayer maps: the level, your weapon, the HUD and
+  the scoreboard now draw, the game's messages read its own text where they
+  showed "??", and the HUD keeps its shape in the corners of a wide window,
+  with the scoreboard in the middle, as Jedi Academy's does. Other players
+  and sabers have not been seen in a game yet
+  ([record](docs/fntech3/2026-10-16-jk2-cgame-ghoul2.md)).
 
 ## [0.1.0] - 2026-10-11
 

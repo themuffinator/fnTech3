@@ -97,12 +97,17 @@ static void Check(bool native){
  const auto valid=source;const int beforeReject=calls;
  source.ghoul2=1;Reject(submit);source=valid;
  for(int type:{-1,1,2,4,7,11,12}){source.reType=type;Reject(submit);}source=valid;
- for(int flag:{0x10,0x20,0x400,0x800,INT_MIN}){source.renderfx=flag;Reject(submit);}source=valid;
+ for(int flag:{0x10,0x20,0x1000,INT_MIN}){source.renderfx=flag;Reject(submit);}source=valid;
  source.axis[1][2]=BadFloat();Reject(submit);
  assert(std::strstr(lastError,"entity22:")&&std::strstr(lastError,"field=axis"));source=valid;
  source.backlerp=1.01f;Reject(submit);
  assert(std::strstr(lastError,"field=backlerp")&&std::strstr(lastError,"frame=2/1"));source=valid;
  assert(calls==beforeReject);
+ // The renderer reads 0x400 as forced entity alpha whoever adds the entity;
+ // 0x800 reaches nothing and is dropped (jk2_render_adapter.hpp).
+ source.renderfx=0x400;assert(submit()==0&&entity.jka.forceAlpha&&entity.renderfx==0);
+ source.renderfx=0x800;assert(submit()==0&&!entity.jka.forceAlpha&&entity.renderfx==0);
+ source=valid;assert(submit()==0&&calls==beforeReject+3);
  // Different from Academy: Outcast puts the axis at36 and time at72.
  fntech3_jk2_mp_refdef_t scene{};scene.x=10;scene.y=11;scene.width=320;scene.height=240;
  scene.fov_x=37;scene.fov_y=34;scene.viewaxis[0][0]=scene.viewaxis[1][1]=scene.viewaxis[2][2]=1;

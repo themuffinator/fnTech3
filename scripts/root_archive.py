@@ -23,7 +23,7 @@ ROOT_ARCHIVE_NAME = "fntech3-pkg.fnz"
 PKG_ROOT = ROOT / "pkg"
 # Canonical Com_GameProfile()->key values, never startup aliases or title IDs.
 GAME_PROFILES = ("quake3", "quakelive", "rtcw-sp", "rtcw-mp", "wolfet", "stvef-sp", "stvef-mp", "alice", "fakk2",
-                 "mohaa", "jka-mp")
+                 "mohaa", "jka-mp", "jk2-mp")
 # These paths are relative to games/<canonical profile>/. A title can have
 # multiple game directories (for example quake3/baseq3 and quake3/missionpack).
 PROFILE_REQUIRED_ASSETS = {
@@ -74,6 +74,8 @@ PROFILE_REQUIRED_ASSETS = {
                    for suffix in MOHAA_SIDECAR_SUFFIXES),
     # Jedi Academy multiplayer ships the HUD rules that place its HUD.
     "jka-mp": ("base/fntech3-hud.json",),
+    # And so does Jedi Outcast multiplayer.
+    "jk2-mp": ("base/fntech3-hud.json",),
 }
 DEFAULT_ROOT_ARCHIVE_REQUIRED_ASSETS = [
     (PKG_ROOT / "games" / profile / name, Path("games") / profile / name)

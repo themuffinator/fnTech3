@@ -38,6 +38,9 @@ struct vm_t { std::array<char, 1024> bytes{}; bool overflowProbe = false; int ch
     if (useLongjmp) std::longjmp(failureJump, 1);
     throw std::runtime_error("rejected");
 }
+#define S_COLOR_YELLOW "^3"
+static int printed = 0;
+void Com_Printf(const char *, ...) { ++printed; }
 void VM_CHECKBOUNDS(vm_t *vm, intptr_t at, std::size_t size) {
     if (vm->overflowProbe) {
         ++vm->checks;
@@ -222,6 +225,20 @@ int main(int argc, char **) {
     set(1, "package_exceeding_registry_capacity"); LongjmpRejected(&vm);
     assert(registered.size() == 256);
     CL_JK2StringReset(4);
+    // CL_Init's four packages (jk2mp.exe 0x40c5c0) carry their own owner, so
+    // neither module's reset drops them; a missing one is reported, not fatal.
+    auto ingame = fixture;
+    ingame.replace(ingame.find("ID 250"), 6, "ID 248");
+    ingame.replace(ingame.find("REFERENCE MENUS0"), 16, "REFERENCE INGAMETEXT");
+    files["strip/mp_ingame.sp"] = ingame;
+    printed = 0;
+    CL_JK2StringRegisterEngine();
+    assert(printed == 3 && registered.size() == 1 && registered.count("MP_INGAME"));
+    set(80, "INGAMETEXT_TEST");
+    CL_JK2StringReset(1); CL_JK2StringReset(4);
+    assert(CL_JK2StringText(&vm, 80, 200, 8, true) == qtrue && std::string(vm.bytes.data() + 200).size() == 7);
+    CL_JK2StringRegisterEngine(); assert(registered.size() == 1);
+    CL_JK2StringReset(jk2StringEngineOwner); assert(registered.empty());
     vm.overflowProbe = true; vm.bytes[0] = 'x';
     Rejected([&] { fntech3::jk2::hoststrings::Text(&vm, (std::numeric_limits<intptr_t>::max)()); });
     assert(vm.checks == 1);

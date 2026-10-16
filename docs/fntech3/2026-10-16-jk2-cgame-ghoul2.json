@@ -1,0 +1,238 @@
+{
+ "record": "2026-10-16-jk2-cgame-ghoul2.md",
+ "profile": "jk2-mp",
+ "executable": {
+  "name": "jk2mp.exe",
+  "version": "1.02a",
+  "sha256": "2f08dcf9a089cb66062766f4922fda63a9e553de893c174b497dfefeb7a1577a"
+ },
+ "ghoul2": {
+  "shared": [
+   {
+    "client": 281,
+    "game": 584,
+    "core": "0x4a7890"
+   },
+   {
+    "client": 283,
+    "game": 586,
+    "core": "0x4a7620"
+   },
+   {
+    "client": 284,
+    "game": 587,
+    "core": "0x4a7620"
+   },
+   {
+    "client": 285,
+    "game": 588,
+    "core": "0x4a6e90"
+   },
+   {
+    "client": 286,
+    "game": 599,
+    "core": "0x4a6e00"
+   },
+   {
+    "client": 287,
+    "game": 591,
+    "core": "0x4a7520"
+   },
+   {
+    "client": 288,
+    "game": 592,
+    "core": "0x4a7440"
+   },
+   {
+    "client": 289,
+    "game": 593,
+    "core": "0x4a7d80"
+   },
+   {
+    "client": 291,
+    "game": 595,
+    "core": "0x4a7bf0"
+   },
+   {
+    "client": 292,
+    "game": 596,
+    "core": "0x4a7ce0"
+   },
+   {
+    "client": 295,
+    "game": 589,
+    "core": "0x4a75a0"
+   },
+   {
+    "client": 296,
+    "game": 590,
+    "core": "0x4a75f0"
+   }
+  ],
+  "clientOnly": {
+   "280": "0x4a78d0 returns",
+   "282": "0x4a78e0 matrix column, table 0x4a79bc",
+   "293": "0x4a72a0 model present at index"
+  },
+  "refused": {
+   "294": "model removal 0x4a72e0",
+   "297": "root surface 0x4ac450",
+   "298": "surface visibility 0x4a7240",
+   "299": "new origin 0x4a7dc0"
+  },
+  "initSkin": "0x4a6e90 keeps its fourth word at +0x38 (0x4a7051)"
+ },
+ "drawing": {
+  "adder": "0x478320",
+  "cull": "0x478dc0",
+  "worldMatrix": "0x4abdb0 from angles and origin",
+  "poseTime": "scene time, 0x478704..0x478718",
+  "material": "record customShader +0x4c, else model skin +0x38, else record customSkin +0x88",
+  "notServed": [
+   "model scale other than 1",
+   "bone smoothing 0x478978..0x478a6a",
+   "surface and root-surface overrides"
+  ]
+ },
+ "renderFlags": {
+  "0x400": "forced entity alpha, stage path 0x488e7a..0x488e93, state 0x65",
+  "0x800": "not read anywhere in 0x466000..0x4b0000; accepted and dropped"
+ },
+ "stringPackages": {
+  "registrar": "0x40c5c0 from CL_Init 0x40c600",
+  "flag": 8,
+  "packages": [
+   "con_text",
+   "mp_ingame",
+   "mp_svgame",
+   "sp_ingame"
+  ]
+ },
+ "hud": {
+  "frame": "cgame import 219 reports CL_HudModuleScreen",
+  "rules": "pkg/games/jk2-mp/base/fntech3-hud.json",
+  "regions": {
+   "left_hud": [
+    0,
+    395,
+    112,
+    85
+   ],
+   "right_hud": [
+    528,
+    395,
+    112,
+    85
+   ],
+   "score": [
+    480,
+    455,
+    65,
+    25
+   ],
+   "upper_right": [
+    520,
+    0,
+    120,
+    120
+   ],
+   "selection_bars": [
+    112,
+    395,
+    416,
+    75
+   ],
+   "selection_names": [
+    150,
+    455,
+    330,
+    25
+   ]
+  }
+ },
+ "live": [
+  {
+   "run": "jk2g2b-play-1280",
+   "window": "1280x720",
+   "renderer": "glx",
+   "fntech3Sha256": "534724b66f8d4a903b93c240eefad37e7982b041a1f7d63ddfb04e73fe2ab40e",
+   "outcome": "exited",
+   "exit": 0,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "errors": [],
+   "captures": [
+    {
+     "name": "hud_on.png",
+     "sha256": "df76edac711306a4463104bc7607dcee805a0aa7a00da698400bafe91234ec6e"
+    },
+    {
+     "name": "hud_off.png",
+     "sha256": "830e46bb5674ceeb281764fa4ca230ba0e7bcd6e288fefc782fafeb52f2fbea4"
+    },
+    {
+     "name": "scores.png",
+     "sha256": "de2a73d14d06226b143e9c3419486e046f2590f7a67f6c4afcdb424f659234fb"
+    }
+   ]
+  },
+  {
+   "run": "jk2g2b-play-1680",
+   "window": "1680x720",
+   "renderer": "glx",
+   "fntech3Sha256": "534724b66f8d4a903b93c240eefad37e7982b041a1f7d63ddfb04e73fe2ab40e",
+   "outcome": "exited",
+   "exit": 0,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "errors": [],
+   "captures": [
+    {
+     "name": "hud_on.png",
+     "sha256": "3391b20071fc7e14794a61fd0f1c04d8b9dffc899a9ec7e6f030f66ee8802ebb"
+    },
+    {
+     "name": "hud_off.png",
+     "sha256": "3ebc3187e430546614b979b5e0405c7f9d9d417768c88695f1da831eaa89dd42"
+    },
+    {
+     "name": "scores.png",
+     "sha256": "e0e3f01c81dce1906d3d8b1c7895c422d41ef12b740cfb25114d21d935a0d6f6"
+    }
+   ]
+  },
+  {
+   "run": "jk2g2b-play-960",
+   "window": "960x720",
+   "renderer": "glx",
+   "fntech3Sha256": "534724b66f8d4a903b93c240eefad37e7982b041a1f7d63ddfb04e73fe2ab40e",
+   "outcome": "exited",
+   "exit": 0,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "errors": [],
+   "captures": [
+    {
+     "name": "hud_on.png",
+     "sha256": "7c8f894106eaeef1f4f51465ea5af16b2a3e08ad98e704f520196cc7ecd06f6c"
+    },
+    {
+     "name": "hud_off.png",
+     "sha256": "f4927aa808e0ab0aaf98a5c6084a9b4de9351343a30c45cc1ac20a9fcd68420d"
+    },
+    {
+     "name": "scores.png",
+     "sha256": "5e68975c50160427f0fe1ea800c6254ffb64bada7648522f91f3ce4034c605d4"
+    }
+   ]
+  }
+ ],
+ "build": {
+  "base": "35e01aa136d01ce25de2fb250c297e1a698518ad",
+  "platform": "Windows x86 (win32 export build)",
+  "map": "ffa_bespin",
+  "input": "none; team free and togglemenu from a startup config",
+  "network": "net_enabled 0"
+ },
+ "gatesClosed": []
+}
