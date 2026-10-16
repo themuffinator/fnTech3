@@ -860,6 +860,11 @@ static void CL_UIFromVirtual( float *x, float *y, float *w, float *h ) {
 	*h *= yscale;
 }
 
+// The same placement for the Jedi single-player engines' own menus.
+void CL_UIVirtualToScreen( float *x, float *y, float *w, float *h ) {
+	CL_UIFromVirtual( x, y, w, h );
+}
+
 
 // A Raven menu places its own 3D views in the window's pixels, scaling its
 // virtual rectangle by the screen it was told it has; stretched, that is
@@ -2942,12 +2947,16 @@ static const char *CL_UIModuleLoadFailureMessage( void ) {
 void CL_InitUI( void ) {
 	int		v;
 	vmInterpret_t		interpret;
-	if ( Com_GameProfile()->id == COM_GAME_JK2_SP ) {
-		Com_Error( ERR_DROP, "jk2-sp is not implemented: Jedi Outcast's single-player menu boundary is open." );
-	}
-
-	if ( Com_GameIsJKASP() ) {
-		Com_Error( ERR_DROP, "jka-sp is not implemented: Jedi Academy's single-player engine menu boundary is open." );
+	/* Neither Jedi single-player game ships a menu module: jasp.exe and
+	 * jk2sp.exe run ui/menus.txt's menus themselves, and so does this engine
+	 * (cl_jedi_sp_ui.cpp), hosted in the module's place. */
+	if ( Com_GameIsJKASP() || Com_GameProfile()->id == COM_GAME_JK2_SP ) {
+		uivm = CL_JediSPLoadUI();
+		if ( !uivm ) {
+			Com_Error( ERR_FATAL, "The Jedi single-player menus could not be hosted" );
+		}
+		VM_Call( uivm, 1, UI_INIT, (cls.state >= CA_AUTHORIZING && cls.state < CA_ACTIVE) );
+		return;
 	}
 
 	/* Alice has no menu module to load, which is a contract no other profile

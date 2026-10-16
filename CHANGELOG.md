@@ -180,6 +180,13 @@ historical upstream records, not fnTech3 release history. See the
   with the scoreboard in the middle, as Jedi Academy's does. Other players
   and sabers have not been seen in a game yet
   ([record](docs/fntech3/2026-10-16-jk2-cgame-ghoul2.md)).
+- Open Jedi Academy's and Jedi Outcast's single-player menus. Neither game
+  ships a menu program -- their engines run the menus themselves -- so
+  fnTech3 now does too, from each game's own menu files: the main menu, a new
+  game, loading, controls, setup and quitting all work, and a failed game
+  start shows its reason in the game's own error box. Character creation's
+  lists and models, saved games and the in-game menus are still to come
+  ([record](docs/fntech3/2026-10-16-jedi-sp-menus.md)).
 
 ## [0.1.0] - 2026-10-11
 

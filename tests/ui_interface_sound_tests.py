@@ -435,7 +435,8 @@ class UIInterfaceSoundTests(unittest.TestCase):
         self.assertEqual(callers['S_StartInterfaceSound('], {
             'code/client/audio/snd_main.cpp', 'code/client/audio/snd_public.h', 'code/client/cl_ui.cpp',
             'code/client/client_rtcw_audio_compat.hpp', 'code/client/client_jka_ui_host.hpp',
-            'code/client/client_jk2_ui.hpp', 'code/client/client_stvef_sp_ui.hpp', 'code/client/cl_q3test_ui.cpp'})
+            'code/client/client_jk2_ui.hpp', 'code/client/client_stvef_sp_ui.hpp', 'code/client/cl_q3test_ui.cpp',
+            'code/client/cl_jedi_sp_ui.cpp'})
         self.assertEqual(callers['S_StartWolfETInterfaceSound('], {
             'code/client/audio/snd_main.cpp', 'code/client/audio/snd_public.h',
             'code/client/client_wolfet_audio_compat.hpp'})

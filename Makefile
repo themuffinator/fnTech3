@@ -1276,6 +1276,7 @@ Q3OBJ = \
   $(B)/client/cl_alice_screen.o \
   $(B)/client/cl_alice_ui.o \
   $(B)/client/cl_fakk2_inventory.o \
+  $(B)/client/cl_jedi_sp_ui.o \
   $(B)/client/cl_mohaa.o \
   $(B)/client/cl_mohaa_cgame.o \
   $(B)/client/cl_mohaa_decals.o \

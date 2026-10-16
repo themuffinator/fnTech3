@@ -1,0 +1,1043 @@
+{
+ "record": "2026-10-16-jedi-sp-menus.md",
+ "profiles": [
+  "jka-sp",
+  "jk2-sp"
+ ],
+ "executables": {
+  "jasp.exe": {
+   "version": "1.01",
+   "uiInit": "0x494ae0",
+   "uiImportWords": 66,
+   "mainMenu": "0x49a080",
+   "loadMenus": "0x498640",
+   "consoleCommands": "0x494a20",
+   "textPaint": "0x4951a0",
+   "textStyleTable": "0x495210",
+   "comParseExt": "0x422cd0",
+   "skipWhitespace": "0x422c80"
+  },
+  "jk2sp.exe": {
+   "version": "1.02a",
+   "uiInit": "0x4994b0",
+   "uiImportWords": 70,
+   "uiLoad": "0x49aac0",
+   "menuStrings": "menus0..menus9, flag 4, until one is missing (0x49aae1)",
+   "textPaint": "0x4999d0",
+   "textStyleTable": "0x499a40",
+   "clInitConText": "SP_Register(\"con_text\", 8) at 0x409610"
+  }
+ },
+ "keywordTables": {
+  "jka": [
+   {
+    "address": "0x526090",
+    "stride": 12,
+    "count": 37,
+    "keywords": [
+     "appearanceIncrement",
+     "backcolor",
+     "background",
+     "border",
+     "bordercolor",
+     "borderSize",
+     "cinematic",
+     "descAlignment",
+     "descTextStyle",
+     "desccolor",
+     "descX",
+     "descY",
+     "descScale",
+     "disablecolor",
+     "fadeClamp",
+     "fadeCycle",
+     "fadeAmount",
+     "focuscolor",
+     "font",
+     "forecolor",
+     "fullscreen",
+     "itemDef",
+     "name",
+     "onClose",
+     "onAccept",
+     "onESC",
+     "onOpen",
+     "outlinecolor",
+     "outOfBoundsClick",
+     "ownerdraw",
+     "ownerdrawFlag",
+     "popup",
+     "rect",
+     "soundLoop",
+     "style",
+     "visible",
+     "ignoreescape"
+    ]
+   },
+   {
+    "address": "0x526258",
+    "stride": 8,
+    "count": 33,
+    "keywords": [
+     "activate",
+     "close",
+     "exec",
+     "fadein",
+     "fadeout",
+     "hide",
+     "open",
+     "openGoToMenu",
+     "orbit",
+     "play",
+     "playVoice",
+     "stopVoice",
+     "ffplay",
+     "setasset",
+     "setbackground",
+     "setcolor",
+     "setcvar",
+     "setfocus",
+     "setitemcolor",
+     "setitemflag",
+     "show",
+     "showMenu",
+     "transition",
+     "transition2",
+     "setitembackground",
+     "setitemtext",
+     "setitemrect",
+     "defer",
+     "rundeferred",
+     "delay",
+     "transition3",
+     "incrementfeeder",
+     "decrementfeeder"
+    ]
+   },
+   {
+    "address": "0x526368",
+    "stride": 12,
+    "count": 85,
+    "keywords": [
+     "accept",
+     "selectNext",
+     "selectPrev",
+     "action",
+     "addColorRange",
+     "align",
+     "appearance_slot",
+     "asset_model",
+     "asset_shader",
+     "isCharacter",
+     "isSaber",
+     "isSaber2",
+     "autowrapped",
+     "backcolor",
+     "background",
+     "border",
+     "bordercolor",
+     "bordersize",
+     "cinematic",
+     "columns",
+     "cvar",
+     "cvarFloat",
+     "cvarFloatList",
+     "cvarSubString",
+     "cvarStrList",
+     "cvarTest",
+     "decoration",
+     "desctext",
+     "disableCvar",
+     "doubleclick",
+     "elementheight",
+     "elementtype",
+     "elementwidth",
+     "enableCvar",
+     "feeder",
+     "flag",
+     "focusSound",
+     "focusForce",
+     "font",
+     "forecolor",
+     "group",
+     "hideCvar",
+     "horizontalscroll",
+     "leaveFocus",
+     "maxChars",
+     "maxPaintChars",
+     "model_angle",
+     "model_fovx",
+     "model_fovy",
+     "model_origin",
+     "model_rotation",
+     "model_g2mins",
+     "model_g2maxs",
+     "model_g2skin",
+     "model_g2anim",
+     "mouseEnter",
+     "mouseEnterText",
+     "mouseExit",
+     "mouseExitText",
+     "name",
+     "notselectable",
+     "scrollhidden",
+     "onFocus",
+     "outlinecolor",
+     "ownerdraw",
+     "ownerdrawFlag",
+     "rect",
+     "showCvar",
+     "special",
+     "style",
+     "text",
+     "text2",
+     "text2alignx",
+     "text2aligny",
+     "textalign",
+     "textalignx",
+     "textaligny",
+     "textscale",
+     "textstyle",
+     "type",
+     "visible",
+     "wrapped",
+     "invertyesno",
+     "xoffset",
+     "lineHeight"
+    ]
+   }
+  ],
+  "jk2": [
+   {
+    "address": "0x4eac30",
+    "stride": 12,
+    "count": 34,
+    "keywords": [
+     "appearanceIncrement",
+     "backcolor",
+     "background",
+     "border",
+     "bordercolor",
+     "borderSize",
+     "cinematic",
+     "descAlignment",
+     "desccolor",
+     "descX",
+     "descY",
+     "descScale",
+     "disablecolor",
+     "fadeClamp",
+     "fadeCycle",
+     "fadeAmount",
+     "focuscolor",
+     "font",
+     "forecolor",
+     "fullscreen",
+     "itemDef",
+     "name",
+     "onClose",
+     "onESC",
+     "onOpen",
+     "outlinecolor",
+     "outOfBoundsClick",
+     "ownerdraw",
+     "ownerdrawFlag",
+     "popup",
+     "rect",
+     "soundLoop",
+     "style",
+     "visible"
+    ]
+   },
+   {
+    "address": "0x4eadd8",
+    "stride": 8,
+    "count": 23,
+    "keywords": [
+     "activate",
+     "close",
+     "exec",
+     "fadein",
+     "fadeout",
+     "hide",
+     "open",
+     "openGoToMenu",
+     "orbit",
+     "play",
+     "playlooped",
+     "setasset",
+     "setbackground",
+     "setcolor",
+     "setcvar",
+     "setfocus",
+     "setitemcolor",
+     "setitemflag",
+     "show",
+     "showMenu",
+     "transition",
+     "defer",
+     "rundeferred"
+    ]
+   },
+   {
+    "address": "0x4eae98",
+    "stride": 12,
+    "count": 69,
+    "keywords": [
+     "action",
+     "addColorRange",
+     "align",
+     "appearance_slot",
+     "asset_model",
+     "asset_shader",
+     "autowrapped",
+     "backcolor",
+     "background",
+     "border",
+     "bordercolor",
+     "bordersize",
+     "cinematic",
+     "columns",
+     "cvar",
+     "cvarFloat",
+     "cvarFloatList",
+     "cvarStrList",
+     "cvarTest",
+     "decoration",
+     "desctext",
+     "disableCvar",
+     "doubleclick",
+     "elementheight",
+     "elementtype",
+     "elementwidth",
+     "enableCvar",
+     "feeder",
+     "flag",
+     "focusSound",
+     "font",
+     "forecolor",
+     "group",
+     "hideCvar",
+     "horizontalscroll",
+     "leaveFocus",
+     "maxChars",
+     "maxPaintChars",
+     "model_angle",
+     "model_fovx",
+     "model_fovy",
+     "model_origin",
+     "model_rotation",
+     "mouseEnter",
+     "mouseEnterText",
+     "mouseExit",
+     "mouseExitText",
+     "name",
+     "notselectable",
+     "onFocus",
+     "outlinecolor",
+     "ownerdraw",
+     "ownerdrawFlag",
+     "rect",
+     "showCvar",
+     "special",
+     "style",
+     "text",
+     "text2",
+     "text2alignx",
+     "text2aligny",
+     "textalign",
+     "textalignx",
+     "textaligny",
+     "textscale",
+     "textstyle",
+     "type",
+     "visible",
+     "wrapped"
+    ]
+   }
+  ]
+ },
+ "namedValues": {
+  "styles": {
+   "jasp.exe": "0x526020",
+   "jk2sp.exe": "0x4eabc4",
+   "values": [
+    "WINDOW_STYLE_EMPTY",
+    "WINDOW_STYLE_FILLED",
+    "WINDOW_STYLE_GRADIENT",
+    "WINDOW_STYLE_SHADER",
+    "WINDOW_STYLE_TEAMCOLOR",
+    "WINDOW_STYLE_CINEMATIC"
+   ]
+  },
+  "itemTypes": {
+   "jasp.exe": "0x526040",
+   "jk2sp.exe": "0x4eabe0",
+   "values": [
+    "ITEM_TYPE_TEXT",
+    "ITEM_TYPE_BUTTON",
+    "ITEM_TYPE_RADIOBUTTON",
+    "ITEM_TYPE_CHECKBOX",
+    "ITEM_TYPE_EDITFIELD",
+    "ITEM_TYPE_COMBO",
+    "ITEM_TYPE_LISTBOX",
+    "ITEM_TYPE_MODEL",
+    "ITEM_TYPE_OWNERDRAW",
+    "ITEM_TYPE_NUMERICFIELD",
+    "ITEM_TYPE_SLIDER",
+    "ITEM_TYPE_YESNO",
+    "ITEM_TYPE_MULTI",
+    "ITEM_TYPE_BIND",
+    "ITEM_TYPE_TEXTSCROLL"
+   ],
+   "academyOnly": [
+    "ITEM_TYPE_TEXTSCROLL"
+   ]
+  },
+  "alignments": {
+   "jasp.exe": "0x526080",
+   "jk2sp.exe": "0x4eac1c",
+   "values": [
+    "ITEM_ALIGN_LEFT",
+    "ITEM_ALIGN_CENTER",
+    "ITEM_ALIGN_RIGHT"
+   ]
+  },
+  "itemFlags": {
+   "jasp.exe": "0x526010",
+   "jk2sp.exe": "0x4eabb4",
+   "values": {
+    "WINDOW_INACTIVE": 8
+   }
+  }
+ },
+ "textStyles": {
+  "0": "plain",
+  "1": "plain",
+  "2": "blink 0x40000000",
+  "3": "drop shadow 0x80000000",
+  "4": "drop shadow",
+  "5": "drop shadow",
+  "6": "drop shadow",
+  "other": "plain"
+ },
+ "assetKeywords": {
+  "jasp.exe": [
+   "smallFont",
+   "mediumFont",
+   "bigFont",
+   "gradientbar",
+   "menuEnterSound",
+   "menuExitSound",
+   "itemFocusSound",
+   "itemFocusForce",
+   "menuBuzzSound",
+   "forceChosenSound",
+   "forceUnchosenSound",
+   "datapadmoveRollSound",
+   "datapadmoveJumpSound",
+   "datapadmoveSaberSound1..6",
+   "cursor",
+   "fadeClamp",
+   "fadeCycle",
+   "fadeAmount",
+   "shadowX",
+   "shadowY",
+   "shadowColor",
+   "precacheSound",
+   "focuscolor"
+  ],
+  "jk2sp.exe": [
+   "smallFont",
+   "mediumFont",
+   "bigFont",
+   "stripedFile",
+   "gradientbar",
+   "menuEnterSound",
+   "menuExitSound",
+   "itemFocusSound",
+   "menuBuzzSound",
+   "cursor",
+   "fadeClamp",
+   "fadeCycle",
+   "fadeAmount",
+   "shadowX",
+   "shadowY",
+   "shadowColor",
+   "focuscolor"
+  ]
+ },
+ "installedMenus": {
+  "jka-sp": {
+   "lists": [
+    "ui/menus.txt",
+    "ui/ingame.txt"
+   ],
+   "files": 36,
+   "menus": 36,
+   "items": 1344,
+   "warnings": 0
+  },
+  "jk2-sp": {
+   "lists": [
+    "ui/menus.txt"
+   ],
+   "files": 21,
+   "menus": 21,
+   "items": 757,
+   "warnings": 0
+  }
+ },
+ "live": [
+  {
+   "run": "final-jka-1280",
+   "profile": "jka-sp",
+   "window": "1280x720",
+   "renderer": "glx",
+   "fntech3Sha256": "4119756e01d5f4e185c07ff4b1e012367749f253cf6faa78ed664c75dd110bc3",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "config": [
+    "wait 600",
+    "echo probe-step main",
+    "screenshotPNG main",
+    "wait 30",
+    "set cl_menuAspect 1",
+    "wait 30",
+    "screenshotPNG main_centered",
+    "wait 30",
+    "set cl_menuAspect 0",
+    "wait 10",
+    "ui_openmenu newgamefirstMenu",
+    "wait 90",
+    "screenshotPNG menu_newgamefirstMenu",
+    "wait 20",
+    "ui_openmenu newgameMenu",
+    "wait 90",
+    "screenshotPNG menu_newgameMenu",
+    "wait 20",
+    "ui_openmenu characterMenu",
+    "wait 90",
+    "screenshotPNG menu_characterMenu",
+    "wait 20",
+    "ui_openmenu loadgameMenu",
+    "wait 90",
+    "screenshotPNG menu_loadgameMenu",
+    "wait 20",
+    "ui_openmenu controlsMenu",
+    "wait 90",
+    "screenshotPNG menu_controlsMenu",
+    "wait 20",
+    "ui_openmenu setupMenu",
+    "wait 90",
+    "screenshotPNG menu_setupMenu",
+    "wait 20",
+    "ui_openmenu quitMenu",
+    "wait 90",
+    "screenshotPNG menu_quitMenu",
+    "wait 20",
+    "ui_report",
+    "echo probe-step done",
+    "wait 10",
+    "quit"
+   ],
+   "warnings": [],
+   "captures": [
+    {
+     "name": "main.png",
+     "sha256": "b3cd4f36cf3203aac8ac8f655c50df31693c76d08e897d032699fa51ea2b4bc2"
+    },
+    {
+     "name": "main_centered.png",
+     "sha256": "6953ea96e5f4df11f90dfded0ea69d9c443c9325f7f17de27774f67ff22f5856"
+    },
+    {
+     "name": "menu_newgamefirstMenu.png",
+     "sha256": "35315c1fd061c0cfca8a68fdab8fb56264032d9bd16e7e32ce6d60c80da87f3a"
+    },
+    {
+     "name": "menu_newgameMenu.png",
+     "sha256": "e5527400e6cea985d173ddd0b0d1f599ce10a4d1357b2defcf70d4db71a40022"
+    },
+    {
+     "name": "menu_characterMenu.png",
+     "sha256": "fc174544d930e050206054833ccac777d5824a33f46ef4c03d09195e7923a5f1"
+    },
+    {
+     "name": "menu_loadgameMenu.png",
+     "sha256": "764c9dd09f17ead4aa49b7b57e1163990cc8825ed07cb87e61613beac7a5e76b"
+    },
+    {
+     "name": "menu_controlsMenu.png",
+     "sha256": "89f68bbac098677427f4c4ece979b7b6f4c6a2ca09dec7862daffd4f8bda77b7"
+    },
+    {
+     "name": "menu_setupMenu.png",
+     "sha256": "d971fe80bd459678d9d1f0bd5464339dc64018255c4c9b3c48f75ae91e78832f"
+    },
+    {
+     "name": "menu_quitMenu.png",
+     "sha256": "67a5299f1489294a6dc6820c553407b0f12405d945f537c40cf910d9bb26f098"
+    }
+   ]
+  },
+  {
+   "run": "final-jka-1680",
+   "profile": "jka-sp",
+   "window": "1680x720",
+   "renderer": "glx",
+   "fntech3Sha256": "4119756e01d5f4e185c07ff4b1e012367749f253cf6faa78ed664c75dd110bc3",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "config": [
+    "wait 600",
+    "echo probe-step main",
+    "screenshotPNG main",
+    "wait 30",
+    "set cl_menuAspect 1",
+    "wait 30",
+    "screenshotPNG main_centered",
+    "wait 30",
+    "set cl_menuAspect 0",
+    "wait 10",
+    "ui_openmenu setupMenu",
+    "wait 90",
+    "screenshotPNG menu_setupMenu",
+    "wait 20",
+    "ui_report",
+    "echo probe-step done",
+    "wait 10",
+    "quit"
+   ],
+   "warnings": [],
+   "captures": [
+    {
+     "name": "main.png",
+     "sha256": "19a82778de317bbdc6e86e20c086b7dd06b68a90ee52a7b8d893dd25fac18c12"
+    },
+    {
+     "name": "main_centered.png",
+     "sha256": "69a5fd68d6ea2b2cdab987fc208b7ca4458195a7bfcf12995ca213b265d15b0e"
+    },
+    {
+     "name": "menu_setupMenu.png",
+     "sha256": "8a889e5bbd963cef5620d1d1a200a80c3f36e9274e4a60f960dba492f10e6e08"
+    }
+   ]
+  },
+  {
+   "run": "final-jka-960",
+   "profile": "jka-sp",
+   "window": "960x720",
+   "renderer": "glx",
+   "fntech3Sha256": "4119756e01d5f4e185c07ff4b1e012367749f253cf6faa78ed664c75dd110bc3",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "config": [
+    "wait 600",
+    "echo probe-step main",
+    "screenshotPNG main",
+    "wait 30",
+    "set cl_menuAspect 1",
+    "wait 30",
+    "screenshotPNG main_centered",
+    "wait 30",
+    "set cl_menuAspect 0",
+    "wait 10",
+    "ui_report",
+    "echo probe-step done",
+    "wait 10",
+    "quit"
+   ],
+   "warnings": [],
+   "captures": [
+    {
+     "name": "main.png",
+     "sha256": "12106cb951daaead2ac68c8ce5633bf1d7e389518be3a2692391144086fd9e22"
+    },
+    {
+     "name": "main_centered.png",
+     "sha256": "155fa7beb465697a0d5dec1840160a36b1f2781469e218c9ce075ee313518124"
+    }
+   ]
+  },
+  {
+   "run": "final-jk2-1280",
+   "profile": "jk2-sp",
+   "window": "1280x720",
+   "renderer": "glx",
+   "fntech3Sha256": "4119756e01d5f4e185c07ff4b1e012367749f253cf6faa78ed664c75dd110bc3",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "config": [
+    "wait 600",
+    "echo probe-step main",
+    "screenshotPNG main",
+    "wait 30",
+    "set cl_menuAspect 1",
+    "wait 30",
+    "screenshotPNG main_centered",
+    "wait 30",
+    "set cl_menuAspect 0",
+    "wait 10",
+    "ui_openmenu newgameMenu",
+    "wait 90",
+    "screenshotPNG menu_newgameMenu",
+    "wait 20",
+    "ui_openmenu loadgameMenu",
+    "wait 90",
+    "screenshotPNG menu_loadgameMenu",
+    "wait 20",
+    "ui_openmenu controlsMenu",
+    "wait 90",
+    "screenshotPNG menu_controlsMenu",
+    "wait 20",
+    "ui_openmenu setupMenu",
+    "wait 90",
+    "screenshotPNG menu_setupMenu",
+    "wait 20",
+    "ui_openmenu creditsMenu",
+    "wait 90",
+    "screenshotPNG menu_creditsMenu",
+    "wait 20",
+    "ui_openmenu quitMenu",
+    "wait 90",
+    "screenshotPNG menu_quitMenu",
+    "wait 20",
+    "ui_report",
+    "echo probe-step done",
+    "wait 10",
+    "quit"
+   ],
+   "warnings": [],
+   "captures": [
+    {
+     "name": "main.png",
+     "sha256": "b5aac1c1829d6e330dc523403ddee0f6a10b74a8fda11c9a82ff331152d5b1cf"
+    },
+    {
+     "name": "main_centered.png",
+     "sha256": "d2f3244ad90fe47f44ec0b6bdb2ba19cc1d1ce6a955c7aef07c02779ccf44989"
+    },
+    {
+     "name": "menu_newgameMenu.png",
+     "sha256": "0edc1e6c2de85fee7ae9604ee7f597babd559c625bf751153b0f8255e7173ea4"
+    },
+    {
+     "name": "menu_loadgameMenu.png",
+     "sha256": "1476342ce16e73681de99e1c83552765d4ce98717401ec55bfa3576ca63d18c3"
+    },
+    {
+     "name": "menu_controlsMenu.png",
+     "sha256": "0ab1920bd50db3d9a7439b2ed73fe9a07136b91ae0a3fdcd0d95e2e47bf4c96c"
+    },
+    {
+     "name": "menu_setupMenu.png",
+     "sha256": "a885ca38f9594bd99cd7b534ef6e48291281e68e9a0f97365012f3d6d834c2ab"
+    },
+    {
+     "name": "menu_creditsMenu.png",
+     "sha256": "b73dcead77c6293a44db20d5338f301a73f20575b3ea53e252ad1db5ce9c7170"
+    },
+    {
+     "name": "menu_quitMenu.png",
+     "sha256": "788aab12891af8659c6066f190d906266426fa873564c4f154f40befa7702d1f"
+    }
+   ]
+  },
+  {
+   "run": "final-jk2-1680",
+   "profile": "jk2-sp",
+   "window": "1680x720",
+   "renderer": "glx",
+   "fntech3Sha256": "4119756e01d5f4e185c07ff4b1e012367749f253cf6faa78ed664c75dd110bc3",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "config": [
+    "wait 600",
+    "echo probe-step main",
+    "screenshotPNG main",
+    "wait 30",
+    "set cl_menuAspect 1",
+    "wait 30",
+    "screenshotPNG main_centered",
+    "wait 30",
+    "set cl_menuAspect 0",
+    "wait 10",
+    "ui_report",
+    "echo probe-step done",
+    "wait 10",
+    "quit"
+   ],
+   "warnings": [],
+   "captures": [
+    {
+     "name": "main.png",
+     "sha256": "1ac8e3e404c9c79389035d7da22e19dbd3c76ac6e524de2c096ee14e429a7c37"
+    },
+    {
+     "name": "main_centered.png",
+     "sha256": "4c98f35512f76db8318fed5466bc6290b1745346c16fc901ac0db20f767ec2de"
+    }
+   ]
+  },
+  {
+   "run": "final-jka-error",
+   "profile": "jka-sp",
+   "window": "1280x720",
+   "renderer": "glx",
+   "fntech3Sha256": "4119756e01d5f4e185c07ff4b1e012367749f253cf6faa78ed664c75dd110bc3",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "config": [
+    "wait 600",
+    "echo probe-step main",
+    "screenshotPNG main",
+    "wait 30",
+    "set cl_menuAspect 1",
+    "wait 30",
+    "screenshotPNG main_centered",
+    "wait 30",
+    "set cl_menuAspect 0",
+    "wait 10",
+    "set probe_after_open \"wait 600; screenshotPNG after_error; wait 30; echo probe-step done; wait 10; quit\"",
+    "wait 10",
+    "map yavin1",
+    "ui_report",
+    "echo probe-step done",
+    "wait 10",
+    "quit"
+   ],
+   "warnings": [
+    "ERROR: Jedi Academy single-player import WE_IsShaking (128) is not served yet",
+    "^5WARNING: CM_AddFacetBevels... invalid bevel"
+   ],
+   "captures": [
+    {
+     "name": "main.png",
+     "sha256": "221bdbf445f7a5acf1dc2d243a55fa48cc0b3c97bc88433e4c0abc76f1537e13"
+    },
+    {
+     "name": "main_centered.png",
+     "sha256": "30c9c12513c71bc5c3c7af86e7bdfd065dd97139e2c75e59bc0ce5e94836721b"
+    },
+    {
+     "name": "after_error.png",
+     "sha256": "c27e1f25958a101c54276ce5c0678d528594f4ff86520952cca5f4833ef21a2a"
+    }
+   ]
+  },
+  {
+   "run": "final-jk2-error",
+   "profile": "jk2-sp",
+   "window": "1280x720",
+   "renderer": "glx",
+   "fntech3Sha256": "4119756e01d5f4e185c07ff4b1e012367749f253cf6faa78ed664c75dd110bc3",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "config": [
+    "wait 600",
+    "echo probe-step main",
+    "screenshotPNG main",
+    "wait 30",
+    "set cl_menuAspect 1",
+    "wait 30",
+    "screenshotPNG main_centered",
+    "wait 30",
+    "set cl_menuAspect 0",
+    "wait 10",
+    "set probe_after_open \"wait 600; screenshotPNG after_error; wait 30; echo probe-step done; wait 10; quit\"",
+    "wait 10",
+    "map kejim_post",
+    "ui_report",
+    "echo probe-step done",
+    "wait 10",
+    "quit"
+   ],
+   "warnings": [
+    "ERROR: Jedi Outcast SP client import 3 is not implemented",
+    "^5WARNING: CM_AddFacetBevels... invalid bevel"
+   ],
+   "captures": [
+    {
+     "name": "main.png",
+     "sha256": "099e92a06189b0b76a49669e7f8a55c7b8acc47b86a5eba22b2925106974f076"
+    },
+    {
+     "name": "main_centered.png",
+     "sha256": "f923b51f9de01f591bbc385dd643b8991fb01afada5fceb2ffb3fcdc62c1604a"
+    },
+    {
+     "name": "after_error.png",
+     "sha256": "8786e869adfe23793c4e14d84b281378242feb72e65c426af2083f6311cf0882"
+    }
+   ]
+  },
+  {
+   "run": "final-jka-vk",
+   "profile": "jka-sp",
+   "window": "1280x720",
+   "renderer": "vk",
+   "fntech3Sha256": "4119756e01d5f4e185c07ff4b1e012367749f253cf6faa78ed664c75dd110bc3",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "config": [
+    "wait 600",
+    "echo probe-step main",
+    "screenshotPNG main",
+    "wait 30",
+    "set cl_menuAspect 1",
+    "wait 30",
+    "screenshotPNG main_centered",
+    "wait 30",
+    "set cl_menuAspect 0",
+    "wait 10",
+    "ui_report",
+    "echo probe-step done",
+    "wait 10",
+    "quit"
+   ],
+   "warnings": [],
+   "captures": [
+    {
+     "name": "main.png",
+     "sha256": "79f0cfcdd4bf45030477733e912d7e1e718a22912304ed2c4c7218d05bcd39e2"
+    },
+    {
+     "name": "main_centered.png",
+     "sha256": "06f4ce99aef44f2c774e11f58167d5aa31f1c4e02cb33699ba4f39370e870c2b"
+    }
+   ]
+  },
+  {
+   "run": "final-jka-rtx",
+   "profile": "jka-sp",
+   "window": "1280x720",
+   "renderer": "rtx",
+   "fntech3Sha256": "4119756e01d5f4e185c07ff4b1e012367749f253cf6faa78ed664c75dd110bc3",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "config": [
+    "wait 600",
+    "echo probe-step main",
+    "screenshotPNG main",
+    "wait 30",
+    "set cl_menuAspect 1",
+    "wait 30",
+    "screenshotPNG main_centered",
+    "wait 30",
+    "set cl_menuAspect 0",
+    "wait 10",
+    "ui_report",
+    "echo probe-step done",
+    "wait 10",
+    "quit"
+   ],
+   "warnings": [],
+   "captures": [
+    {
+     "name": "main.png",
+     "sha256": "96dd7081d3c7b712bcfd0542a53c704a162de76ab32f555a9f9b99084a3a02df"
+    },
+    {
+     "name": "main_centered.png",
+     "sha256": "d1448bc2a2a79e1a89db7cfa3ef283ca68a5db954d19d363281d0f311fb7aee1"
+    }
+   ]
+  },
+  {
+   "run": "final-jka-sound",
+   "profile": "jka-sp",
+   "window": "1280x720",
+   "renderer": "glx",
+   "fntech3Sha256": "4119756e01d5f4e185c07ff4b1e012367749f253cf6faa78ed664c75dd110bc3",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "config": [
+    "wait 600",
+    "echo probe-step main",
+    "screenshotPNG main",
+    "wait 30",
+    "set cl_menuAspect 1",
+    "wait 30",
+    "screenshotPNG main_centered",
+    "wait 30",
+    "set cl_menuAspect 0",
+    "wait 10",
+    "ui_openmenu quitMenu",
+    "wait 90",
+    "screenshotPNG menu_quitMenu",
+    "wait 20",
+    "ui_report",
+    "echo probe-step done",
+    "wait 10",
+    "quit"
+   ],
+   "warnings": [
+    "^3WARNING: audio is currently muted by the window focus/minimize settings.",
+    "^3WARNING: the active OpenAL runtime (OpenAL32.dll / Generic Software Compatibility Mode) has no OpenAL Soft extensions; HRTF and parts of the spatial filter se",
+    "^5^3WARNING: Failed to load sound sound/feedback/hit.wav!"
+   ],
+   "captures": [
+    {
+     "name": "main.png",
+     "sha256": "cd669c1d06e624573e818a8e820fdfa115f6ab5a72e5f347652891106c6a9d9e"
+    },
+    {
+     "name": "main_centered.png",
+     "sha256": "7e28f6a74ad81ae4bbb653c02c8afdfabbe60c467687e792b70a2793b6a95580"
+    },
+    {
+     "name": "menu_quitMenu.png",
+     "sha256": "41ccd454b5f6ec96be6f2b9cdc42085d7efdfa0b1abd99839b91afcf4ebe8009"
+    }
+   ]
+  }
+ ],
+ "build": {
+  "base": "0d1b718739b1d51a803f451693257d2c0ae55526",
+  "platform": "Windows x86 (win32 export build)",
+  "input": "none; ui_openmenu and map commands from a start-up config",
+  "network": "net_enabled 0"
+ },
+ "notServed": [
+  "character creation lists and Ghoul2 previews (feeders 16-20, character and saber scripts)",
+  "saved games (savegame gate)",
+  "in-game menus, datapad and loading screen",
+  "menu cinematics (window style 5)",
+  "transition3",
+  "list thumb dragging",
+  "live mouse and key input (synthetic input not asked for)"
+ ],
+ "gatesClosed": []
+}

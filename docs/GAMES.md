@@ -610,8 +610,12 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   with every readout in place, and while zoomed you see further into a
   foggy map, as in the original
   ([details](fntech3/2026-10-15-jka-zoom.md)).
-- **Single player:** the original game code starts, then stops on its first
-  frame.
+- **Single player:** the game's own menus now run -- the main menu, a new
+  game's skill choice, loading, controls, setup and quitting -- but character
+  creation's lists and models are still empty and there are no saved games
+  to load yet. Starting a game runs the original game code, which stops on
+  its first frame; the game's error box then says where
+  ([details](fntech3/2026-10-16-jedi-sp-menus.md)).
 
 The characters speak German, French or Spanish when `s_language` is
 `deutsch`, `francais` or `espanol`, as the game's setup menus set it, and
@@ -639,7 +643,11 @@ Starting a multiplayer map now shows the level, your weapon, the HUD and the
 scoreboard, and the HUD keeps its shape in wide windows; other players,
 sabers and most effects have not been seen in a game yet
 ([details](fntech3/2026-10-16-jk2-cgame-ghoul2.md)).
-Single player's game code loads, then stops before the game starts. The
+Single player's game code loads, then stops before the game starts. Its own
+menus now run -- the main menu, a new game, loading, controls, setup, the
+credits and quitting -- and starting a game shows that stop in the game's
+error box; there are no saved games to load yet
+([details](fntech3/2026-10-16-jedi-sp-menus.md)). The
 game's sounds and music, which are MP3 files, now load, and the multiplayer
 menus play their sounds ([details](fntech3/2026-10-08-jk2-mp3-sounds.md)).
 The characters speak German or French when `s_language` is `deutsch` or

@@ -9,8 +9,9 @@ say what it does not implement rather than invent an answer:
 - single player's measured retail API-8 table is loaded through an isolated
   developer host, whose unavailable imports stop by name; its client/snapshot
   boundary remains refused even if Init returns;
-- single-player client game and its engine-owned menu remain refused while
-  multiplayer loads its measured cgame and UI through bounded adapters.
+- single-player client game remains refused while multiplayer loads its
+  measured cgame and UI through bounded adapters; single player's menus are
+  the engine's own (cl_jedi_sp_ui.cpp), hosted before any module could load.
 
 Returning a made-up value to an unimplemented import is what turned this
 boundary into an access violation before these guards existed.
@@ -25,8 +26,6 @@ ROOT = Path(__file__).resolve().parents[1]
 REFUSED_BEFORE_LOADING = (
     ('code/client/cl_cgame.cpp', 'void CL_InitCGame( void ) {', 'Com_GameIsJKASP()',
      ('VM_Create', 'CL_InitCGameVM')),
-    ('code/client/cl_ui.cpp', 'void CL_InitUI( void ) {', 'Com_GameIsJKASP()',
-     ('VM_Create', 'CL_InitUIVM')),
 )
 
 
@@ -56,28 +55,42 @@ class JKAModuleRefusalTests(unittest.TestCase):
                 self.assertIn('Com_Error', body[where:where + 400],
                               f'{path} must report the open boundary')
                 self.assertIn('is not implemented', body[where:where + 400])
-                if path.endswith('cl_ui.cpp'):
-                    self.assertIn('jka-sp is not implemented', body[where:where + 400])
-                    self.assertIn('single-player engine menu boundary', body[where:where + 400])
-                    self.assertIn('#include "client_jka_ui_host.hpp"', source)
-                    self.assertIn('CL_JKAUICall(', source)
-                    mp_start = body.index('if ( Com_GameIsJKAMP() )')
-                    mp_end = body.index('else if', mp_start)
-                    self.assertIn('VM_Create( VM_UI, CL_UISystemCalls, UI_DllSyscall,', body[mp_start:mp_end])
-                    self.assertIn('VMI_PINNED_NATIVE : VMI_NATIVE', body[mp_start:mp_end])
-                else:
-                    self.assertIn('single-player client module boundary', body[where:where + 400])
-                    self.assertIn('#include "client_jka_cgame_host.hpp"', source)
-                    self.assertIn('CL_JKACgameCall(', source)
-                    load_start = source.index('static vm_t *CL_LoadCGameVM(')
-                    load_body = source[load_start:source.index('\n}', load_start)]
-                    self.assertIn('VM_Create( VM_CGAME, CL_CgameSystemCalls, CL_DllSyscall,', load_body)
-                    self.assertIn('VMI_PINNED_NATIVE : VMI_NATIVE', load_body)
+                self.assertIn('single-player client module boundary', body[where:where + 400])
+                self.assertIn('#include "client_jka_cgame_host.hpp"', source)
+                self.assertIn('CL_JKACgameCall(', source)
+                load_start = source.index('static vm_t *CL_LoadCGameVM(')
+                load_body = source[load_start:source.index('\n}', load_start)]
+                self.assertIn('VM_Create( VM_CGAME, CL_CgameSystemCalls, CL_DllSyscall,', load_body)
+                self.assertIn('VMI_PINNED_NATIVE : VMI_NATIVE', load_body)
 
                 for loader in loaders:
                     found = body.find(loader)
                     if found >= 0:
                         self.assertLess(where, found, f'{path} loads {loader} before refusing')
+
+    def test_single_player_menus_are_the_engines_own(self):
+        # Neither single-player game ships a menu module, so no module may be
+        # looked for: the engine's own menus are hosted first, and the
+        # multiplayer UI still loads its measured module through its adapters.
+        source = (ROOT / 'code/client/cl_ui.cpp').read_text(encoding='utf-8')
+        start = source.index('void CL_InitUI( void ) {')
+        body = source[start:source.index('\n}', start)]
+        guard = body.index('if ( Com_GameIsJKASP() || Com_GameProfile()->id == COM_GAME_JK2_SP ) {')
+        hosted = body.index('uivm = CL_JediSPLoadUI();', guard)
+        self.assertLess(hosted, body.index('return;', hosted))
+        for loader in ('VM_Create(', 'CL_InitUIVM'):
+            found = body.find(loader)
+            if found >= 0:
+                self.assertLess(hosted, found, f'CL_InitUI reaches {loader} before the Jedi menus')
+        self.assertNotIn('is not implemented', body)
+        self.assertIn('#include "client_jka_ui_host.hpp"', source)
+        self.assertIn('CL_JKAUICall(', source)
+        mp_start = body.index('if ( Com_GameIsJKAMP() )')
+        mp_end = body.index('else if', mp_start)
+        self.assertIn('VM_Create( VM_UI, CL_UISystemCalls, UI_DllSyscall,', body[mp_start:mp_end])
+        self.assertIn('VMI_PINNED_NATIVE : VMI_NATIVE', body[mp_start:mp_end])
+        host = (ROOT / 'code/client/cl_jedi_sp_ui.cpp').read_text(encoding='utf-8')
+        self.assertIn('return VM_CreateHosted( VM_UI, Entry );', host)
 
     def test_the_game_dispatcher_names_every_import_it_does_not_serve(self):
         source = (ROOT / 'code/server/server_jka_game.hpp').read_text(encoding='utf-8')

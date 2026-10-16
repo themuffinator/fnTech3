@@ -546,6 +546,11 @@ void CL_AliceWidgetPrint( const char *widget, const char *text );
 // width by height grey TGA at path.
 void CL_AliceSaveshotCommand( void );
 qboolean CL_AliceWriteSaveshot( const char *path, int width, int height );
+// cl_jedi_sp_ui.cpp: the Jedi single-player engines' own menus, hosted as the
+// UI module (neither game ships one), and cl_ui.cpp's placement of a point
+// and size on Raven's virtual 640x480 menu screen.
+vm_t *CL_JediSPLoadUI( void );
+void CL_UIVirtualToScreen( float *x, float *y, float *w, float *h );
 // cl_alice_screen.cpp and cl_alice_ui.cpp: Alice's engine-drawn frame and its
 // engine-side menus, hosted as the UI module.
 void CL_AliceUpdateScreenField( stereoFrame_t stereo );

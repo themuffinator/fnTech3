@@ -129,6 +129,13 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Jedi Academy menus the client game opens](fntech3/2026-10-15-jka-ui-menus.md)
   -- siege's class menu and the client game's other menus, handed to the
   game's own menus by number as retail hands them.
+- [The Jedi single-player menus](fntech3/2026-10-16-jedi-sp-menus.md)
+  -- Jedi Academy's and Jedi Outcast's single-player menus, which their
+  engines run themselves, read and run by fnTech3's engine from each game's
+  own files.
+- [Jedi Outcast's client Ghoul2 and HUD](fntech3/2026-10-16-jk2-cgame-ghoul2.md)
+  -- Outcast multiplayer's client Ghoul2 imports and models, its engine
+  string packages and its HUD placed on wide screens.
 - [Jedi Academy's skinless-model query](fntech3/2026-10-16-jka-skinless-model.md)
   -- whether a general entity's model needs its folder's default skin,
   answered from the client's model store as retail answers it.

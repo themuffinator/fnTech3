@@ -881,7 +881,13 @@ is matched against fnTech3's own inherited renderer code.
   [Jedi Academy foundation record](docs/fntech3/2026-09-21-jka-contracts.md)
   and [protocol and SP bootstrap record](docs/fntech3/2026-10-02-jka-compatibility.md).
   The latter records independent protocol encoders and the measured retail
-  API-8 table, ROFF timing and Ghoul2 animation seed behavior.
+  API-8 table, ROFF timing and Ghoul2 animation seed behavior. Its
+  single-player menu sources (`code/ui`, which also build Jedi Outcast's) were
+  read for how the two engines run their menus -- the order of a menu's
+  scripts, focus, mouse and key handling, and each item type's drawing --
+  and the retail `jasp.exe` and `jk2sp.exe` settle every keyword, named value
+  and text style where the two differ; fnTech3's menu reader and runtime are
+  written independently ([menus record](docs/fntech3/2026-10-16-jedi-sp-menus.md)).
 
 - The American McGee's Alice profile uses facts from the user's legitimate
   retail installation -- its pak identity, its module export tables, and every

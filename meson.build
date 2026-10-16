@@ -333,6 +333,7 @@ client_src = [
   'code/client/cl_fakk2_inventory.cpp',
   'code/client/cl_hud.cpp',
   'code/client/cl_input.cpp',
+  'code/client/cl_jedi_sp_ui.cpp',
   'code/client/cl_jpeg.cpp',
   'code/client/cl_keys.cpp',
   'code/client/cl_main.cpp',

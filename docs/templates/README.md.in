@@ -67,8 +67,8 @@ server and three renderers -- aims to run ten games:
 | Return to Castle Wolfenstein | `rtcw-sp`, `rtcw-mp` | Experimental; available in every build. |
 | Wolfenstein: Enemy Territory | `wolfet` (`et`) | Experimental: available in every build. |
 | Star Trek Voyager: Elite Force | `stvef-sp`, `stvef-mp` | Experimental; available in every build; single player on Windows only. |
-| Star Wars Jedi Knight: Jedi Academy | `jka-sp`, `jka-mp` | Experimental and early: available in every build. A multiplayer server runs, the client joins original servers, and local hosting reaches its player menu and restarts with sound enabled; the campaign, full graphics and complete play are still to come. |
-| Star Wars Jedi Knight II: Jedi Outcast | `jk2-sp`, `jk2-mp` | Experimental and early: available in every build. A multiplayer server runs with tested bot saber combat, and the main menu draws; client gameplay is still incomplete. |
+| Star Wars Jedi Knight: Jedi Academy | `jka-sp`, `jka-mp` | Experimental and early: available in every build. A multiplayer server runs, the client joins original servers, and local hosting reaches its player menu and restarts with sound enabled, and single player's own menus run; the campaign, full graphics and complete play are still to come. |
+| Star Wars Jedi Knight II: Jedi Outcast | `jk2-sp`, `jk2-mp` | Experimental and early: available in every build. A multiplayer server runs with tested bot saber combat, a local multiplayer game draws its level, weapon and HUD, and single player's own menus run; client gameplay is still incomplete. |
 | American McGee's Alice | `alice` | Experimental, Windows: available in every build. |
 | Heavy Metal: F.A.K.K.2 | `fakk2` | Experimental, Windows: available in every build. |
 | Medal of Honor: Allied Assault | `mohaa` | Experimental, Windows: available in every build. RTX traces terrain and static map scenery ([details](docs/fntech3/2026-10-11-mohaa-rtx-world.md)). |
