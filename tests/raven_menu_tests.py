@@ -334,6 +334,21 @@ class EngineMenuSourceTests(unittest.TestCase):
         self.assertIn('va( "menus%d", i ), kOutcastMenuStrings', init)
         self.assertIn('constexpr unsigned kOutcastMenuStrings = 4;', self.host)
 
+    def test_feeder_lists_and_the_binding_prompt_follow_retail(self):
+        # jasp.exe's item parser (0x4a1d76..0x4a1e8b) fills a cvarStrList
+        # feeder on feeder 23 with the installed languages, each shown as
+        # @MENUS_MYLANGUAGE with its name as the value.
+        fill = self.host.split('void FillFeederLists() {', 1)[1].split('\n}', 1)[0]
+        self.assertIn('static_cast<int>( item->special ) == FeederLanguages', fill)
+        self.assertIn('multi.cvarList.push_back( "@MENUS_MYLANGUAGE" );', fill)
+        self.assertIn('multi.cvarStr.push_back( languages[i] );', fill)
+        load = self.host.split('void LoadMenus( const std::string &file, bool reset ) {', 1)[1].split('\n}', 1)[0]
+        self.assertLess(load.index('reader.File( name, text, ui.assets, ui.menus );'), load.index('FillFeederLists();'))
+        # Both engines ask for MENUS_WAITINGFORKEY (jasp.exe 0x4998d1,
+        # jk2sp.exe 0x49bb15), Outcast included.
+        self.assertIn('Localize( "@MENUS_WAITINGFORKEY" )', self.host)
+        self.assertNotIn('MENUS3_WAITINGFORKEY', self.host)
+
     def test_menu_sounds_are_interface_sounds(self):
         play = self.host.split('void PlaySound( sfxHandle_t sfx, int channel ) {', 1)[1].split('\n}', 1)[0]
         self.assertIn('S_StartInterfaceSound( sfx, channel, 1.0f );', play)

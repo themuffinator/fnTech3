@@ -187,6 +187,11 @@ historical upstream records, not fnTech3 release history. See the
   start shows its reason in the game's own error box. Character creation's
   lists and models, saved games and the in-game menus are still to come
   ([record](docs/fntech3/2026-10-16-jedi-sp-menus.md)).
+- Show the text language in Jedi Academy's single-player setup menu, which
+  was blank: the menu now lists the installed languages, as the original
+  does. Both Jedi games' menus have now been driven with clicks and keys
+  through the engine's own test input
+  ([record](docs/fntech3/2026-10-17-jedi-menu-input.md)).
 
 ## [0.1.0] - 2026-10-11
 

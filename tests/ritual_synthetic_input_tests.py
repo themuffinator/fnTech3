@@ -5,8 +5,9 @@ real input without it, so a probe that plays Heavy Metal: F.A.K.K.2 or
 American McGee's Alice queues its keys, characters and mouse motion in the
 engine's own event queue instead (`in_synthesize`). Only a client started
 with `+set in_synthetic 1` accepts them. These checks pin that gate, that the
-command exists under Ritual, Medal of Honor and Wolfenstein profiles (whose mouse
-look its probes turn with it), and how scripts/probe_ritual_client.py turns an
+command exists under Ritual, Medal of Honor, Wolfenstein, Elite Force and Jedi
+profiles (whose menus and mouse look its probes drive), and how
+scripts/probe_ritual_client.py turns an
 --actions script into phases.
 """
 from pathlib import Path
@@ -51,7 +52,8 @@ class SyntheticInputSourceTests(unittest.TestCase):
         # Alice's alt and ctrl bindings stay Ritual's alone.
         common_keys = read('code/qcommon/keys.c')
         self.assertIn('if ( Com_GameIsRitual() ) {\n\t\tCL_AliceInitKeyCommands();\n\t}', common_keys)
-        self.assertIn('if ( Com_GameIsRitual() || Com_GameIsMOHAA() || Com_GameIsRTCW() || Com_GameIsWolfET() || Com_GameIsSTVEF() ) {\n\t\tCL_InitSyntheticInput();\n\t}',
+        self.assertIn('if ( Com_GameIsRitual() || Com_GameIsMOHAA() || Com_GameIsRTCW() || Com_GameIsWolfET() || Com_GameIsSTVEF()\n'
+                      '\t\t|| Com_GameIsJKA() || Com_GameIsJK2() ) {\n\t\tCL_InitSyntheticInput();\n\t}',
                       common_keys)
         self.assertNotIn('in_synthe', function(keys, 'void CL_AliceInitKeyCommands( void ) {'))
         self.assertEqual(keys.count('Cmd_AddCommand( "in_synthesize"'), 1)

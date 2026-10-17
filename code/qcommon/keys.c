@@ -821,9 +821,11 @@ void Com_InitKeyCommands( void )
 	if ( Com_GameIsRitual() ) {
 		CL_AliceInitKeyCommands();
 	}
-	// Isolated probes also need to dismiss Wolfenstein's retail briefings.
-	// The init-only switch still requires explicit startup opt-in.
-	if ( Com_GameIsRitual() || Com_GameIsMOHAA() || Com_GameIsRTCW() || Com_GameIsWolfET() || Com_GameIsSTVEF() ) {
+	// Isolated probes also need to dismiss Wolfenstein's retail briefings
+	// and drive the Jedi games' menus. The init-only switch still requires
+	// explicit startup opt-in.
+	if ( Com_GameIsRitual() || Com_GameIsMOHAA() || Com_GameIsRTCW() || Com_GameIsWolfET() || Com_GameIsSTVEF()
+		|| Com_GameIsJKA() || Com_GameIsJK2() ) {
 		CL_InitSyntheticInput();
 	}
 #endif

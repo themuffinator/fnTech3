@@ -1573,10 +1573,12 @@ void OwnerDrawItem( rm::Item &item, float x, float y, float w, float h, float te
 		break;
 	}
 	case DrawKeyBindStatus:
+		/* Both engines ask for MENUS_WAITINGFORKEY (jasp.exe 0x4998d1,
+		 * jk2sp.exe 0x49bb15), which neither game's string packages have,
+		 * so the prompt is blank there too. */
 		if ( ui.waitingForKey ) {
-			DrawText( x + textX, y + textY, item.textScale, color,
-				Localize( Academy() ? "@MENUS_WAITINGFORKEY" : "@MENUS3_WAITINGFORKEY" ), 0, item.textStyle,
-				item.font );
+			DrawText( x + textX, y + textY, item.textScale, color, Localize( "@MENUS_WAITINGFORKEY" ), 0,
+				item.textStyle, item.font );
 		}
 		break;
 	case DrawSaveShot:
@@ -2677,6 +2679,31 @@ std::string ReadText( const std::string &path ) {
 	return text;
 }
 
+/* `cvarStrList feeder` (jasp.exe's item parser, 0x4a1d76..0x4a1e8b): on
+ * feeder 23 the installed languages, each shown as @MENUS_MYLANGUAGE with
+ * the language's name as its value (SE_GetLanguageName, 0x434f00); on feeder
+ * 16 the player species as @MENUS_<NAME>, which the character menus' lists
+ * fill (not served yet). Retail fills them as the file is read; here, once
+ * the menus are. */
+void FillFeederLists() {
+	for ( auto &menu : ui.menus ) {
+		for ( auto &item : menu->items ) {
+			if ( !item->multi || !item->multi->listFeeder ) continue;
+			rm::Multi &multi = *item->multi;
+			multi.cvarList.clear();
+			multi.cvarStr.clear();
+			if ( Academy() && static_cast<int>( item->special ) == FeederLanguages ) {
+				const int count = CL_JKAStringCount();
+				const auto &languages = fntech3::jka::hoststrings::Storage().languages;
+				for ( int i = 0; i < count && i < static_cast<int>( rm::Reader::kMaxMulti ); ++i ) {
+					multi.cvarList.push_back( "@MENUS_MYLANGUAGE" );
+					multi.cvarStr.push_back( languages[i] );
+				}
+			}
+		}
+	}
+}
+
 void Warn( const rm::Diagnostic &d ) {
 	Com_Printf( S_COLOR_YELLOW "WARNING: %s Line #%d of File '%s'\n", d.message.c_str(), d.line, d.file.c_str() );
 }
@@ -2705,6 +2732,7 @@ void LoadMenus( const std::string &file, bool reset ) {
 		}
 		reader.File( name, text, ui.assets, ui.menus );
 	}
+	FillFeederLists();
 	// Fonts the assets named, each registered once, in order.
 	for ( const auto &font : ui.assets.fonts ) {
 		bool known = false;

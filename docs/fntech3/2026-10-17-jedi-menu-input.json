@@ -1,0 +1,578 @@
+{
+ "record": "2026-10-17-jedi-menu-input.md",
+ "profiles": [
+  "jka-sp",
+  "jk2-sp",
+  "jka-mp",
+  "jk2-mp"
+ ],
+ "approval": "engine in_synthesize for Jedi SP and MP menu probes on a private desktop, no OS input (user, 2026-10-17)",
+ "syntheticInput": {
+  "file": "code/qcommon/keys.c",
+  "switch": "+set in_synthetic 1 (CVAR_INIT)",
+  "profiles": "Ritual, Medal of Honor, RTCW, Enemy Territory, Elite Force, and now the Jedi games"
+ },
+ "fixes": {
+  "languageList": {
+   "source": "jasp.exe item parser 0x4a1d76..0x4a1e8b (feeder 23 at 0x4a1e21)",
+   "entry": "@MENUS_MYLANGUAGE",
+   "value": "SE_GetLanguageName 0x434f00",
+   "multiLayout": {
+    "cvarList": "+0x0",
+    "cvarStr": "+0x100",
+    "cvarValue": "+0x200",
+    "count": "+0x300",
+    "strDef": "+0x304",
+    "limit": 64
+   },
+   "speciesFeeder16": "not served (character creation)"
+  },
+  "bindingPrompt": {
+   "key": "MENUS_WAITINGFORKEY",
+   "jasp.exe": "0x4998d1",
+   "jk2sp.exe": "0x49bb15",
+   "inPackages": false
+  }
+ },
+ "liveResults": {
+  "jka-sp bind": "\"k\" = \"+forward\"; w and uparrow unbound (two-key rule)",
+  "jka-sp crosshair": "cg_drawcrosshair 1 after one click",
+  "jka-sp slider": "s_volume 0.8 -> 0.5",
+  "jk2-sp bind": "\"k\" = \"+forward\"; w and uparrow unbound",
+  "jk2-sp crosshair": "cg_drawcrosshair 1",
+  "jk2-sp text field": "ui_gameDesc \"probe saves\""
+ },
+ "live": [
+  {
+   "run": "input-jka-4",
+   "profile": "jka-sp",
+   "window": "1280x720",
+   "renderer": "glx",
+   "fntech3Sha256": "ca60e96e4e6c5754e7739d80e68e668471f529c5f2989ff194d73855ffc0dc26",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "input": "engine in_synthesize only (approved 2026-10-17); no OS input",
+   "actions": [
+    "wait 600",
+    "shot i00_start",
+    "point 101 224",
+    "wait 30",
+    "shot i01_hover_new",
+    "point 320 360",
+    "wait 20",
+    "shot i02_hover_nothing",
+    "click 521 224",
+    "wait 60",
+    "shot i03_controls",
+    "echo probe-log before-bind",
+    "bind w",
+    "bind k",
+    "click 430 195",
+    "wait 20",
+    "shot i04_bind_waiting",
+    "press k",
+    "wait 20",
+    "shot i05_bound",
+    "echo probe-log after-bind",
+    "bind w",
+    "bind k",
+    "bind uparrow",
+    "press escape",
+    "wait 60",
+    "shot i06_back_main",
+    "click 521 322",
+    "wait 60",
+    "echo probe-log before-crosshair",
+    "cg_drawcrosshair",
+    "click 165 269",
+    "wait 30",
+    "shot i07_options",
+    "click 430 195",
+    "wait 30",
+    "shot i08_crosshair_cycled",
+    "echo probe-log after-crosshair",
+    "cg_drawcrosshair",
+    "press escape",
+    "wait 60",
+    "shot i09_main",
+    "press escape",
+    "wait 60",
+    "shot i10_quit",
+    "click 124 456",
+    "wait 60",
+    "shot i11_main_again",
+    "press downarrow",
+    "wait 20",
+    "shot i12_down1",
+    "press downarrow",
+    "wait 20",
+    "shot i13_down2",
+    "press enter",
+    "wait 60",
+    "shot i14_enter",
+    "press escape",
+    "wait 60",
+    "shot i15_escape"
+   ],
+   "warnings": [],
+   "captures": [
+    {
+     "name": "i00_start.png",
+     "sha256": "221bdbf445f7a5acf1dc2d243a55fa48cc0b3c97bc88433e4c0abc76f1537e13"
+    },
+    {
+     "name": "i01_hover_new.png",
+     "sha256": "3b76d6181ba0f3e7d5a4e6c2f54648800e8353a4fdb701d1cba7a889c63368bb"
+    },
+    {
+     "name": "i02_hover_nothing.png",
+     "sha256": "a601c82f15aedb84279071cf2e1890a33929a3abe5bdb89fbe5167910fb0e363"
+    },
+    {
+     "name": "i03_controls.png",
+     "sha256": "7bb874b59ac36f6b02585d68a166de9215c8d63f33fd7722449ce1568d2ba808"
+    },
+    {
+     "name": "i04_bind_waiting.png",
+     "sha256": "458ad3d57b8c6bd18f35656bc3b5d5705bdca4bc7189157ca3fc1f93da61764b"
+    },
+    {
+     "name": "i05_bound.png",
+     "sha256": "c090e2dbe5eaaacf2933cb137e9024dcdc665db7ba91a82bde816933a4d3b07a"
+    },
+    {
+     "name": "i06_back_main.png",
+     "sha256": "8a6a57055428a1bd726d9a8dde507f1748cb7aacfd6f34549018c41265531723"
+    },
+    {
+     "name": "i07_options.png",
+     "sha256": "ea93153efb7096ca65f6a8a2fd9802a162443de0555309f60982f80f1afb20dd"
+    },
+    {
+     "name": "i08_crosshair_cycled.png",
+     "sha256": "d2c752ac2d0a5f8e48dccf4ec2d7fad4392722592c519459e915f511498b93c1"
+    },
+    {
+     "name": "i09_main.png",
+     "sha256": "1a90163524bede0554ea1ca5d47b5cda3b307fd1c2163a33037419ff813c4a4b"
+    },
+    {
+     "name": "i10_quit.png",
+     "sha256": "9828bbfcaa04c7556fd73e126c2c509348661713dcedc41458a32dd12ba9b610"
+    },
+    {
+     "name": "i11_main_again.png",
+     "sha256": "77dbba595310bc6f61bb7e3d28c0216badb35d95bbaff18a7f4012580aa3663c"
+    },
+    {
+     "name": "i12_down1.png",
+     "sha256": "e53c69528cbf2cd0431f532881f24cb94343fa9d9257314d5068bdc5bcbd20bb"
+    },
+    {
+     "name": "i13_down2.png",
+     "sha256": "5652a663a46cac8bf0aef67b1ff1382243914ab01e5054e0f9ece9eab682b09f"
+    },
+    {
+     "name": "i14_enter.png",
+     "sha256": "a8977433e13ce389eb73946d165f2921f110c478de7a80fdca97f5a0340b0e48"
+    },
+    {
+     "name": "i15_escape.png",
+     "sha256": "53ad319d3d552b2d3a82cb427e867fae93370fc36a9e32baf7a7316344f4a7e2"
+    }
+   ]
+  },
+  {
+   "run": "input-jka-5",
+   "profile": "jka-sp",
+   "window": "1280x720",
+   "renderer": "glx",
+   "fntech3Sha256": "ca60e96e4e6c5754e7739d80e68e668471f529c5f2989ff194d73855ffc0dc26",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "input": "engine in_synthesize only (approved 2026-10-17); no OS input",
+   "actions": [
+    "wait 600",
+    "click 521 322",
+    "wait 60",
+    "click 165 245",
+    "wait 30",
+    "shot s00_sound",
+    "echo probe-log before-slider",
+    "s_volume",
+    "click 506 195",
+    "wait 30",
+    "shot s01_slider",
+    "echo probe-log after-slider",
+    "s_volume",
+    "click 165 293",
+    "wait 30",
+    "shot s02_mods"
+   ],
+   "warnings": [],
+   "captures": [
+    {
+     "name": "s00_sound.png",
+     "sha256": "54debe11d13788686535c5a035f331794a0990e5fdf0fdf653d227fad28c5e12"
+    },
+    {
+     "name": "s01_slider.png",
+     "sha256": "ae0c322c6ee05dd41c8b9f0cf3817b061cd6697d968d1f42fd9083f290dac3c8"
+    },
+    {
+     "name": "s02_mods.png",
+     "sha256": "a8fc4630bc6c80a92c0145eb0fe5ba61ed5f3613b43c9784fb25d8352331f98d"
+    }
+   ]
+  },
+  {
+   "run": "input-jk2-1",
+   "profile": "jk2-sp",
+   "window": "1280x720",
+   "renderer": "glx",
+   "fntech3Sha256": "ca60e96e4e6c5754e7739d80e68e668471f529c5f2989ff194d73855ffc0dc26",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "input": "engine in_synthesize only (approved 2026-10-17); no OS input",
+   "actions": [
+    "wait 600",
+    "shot o00_start",
+    "point 180 127",
+    "wait 30",
+    "shot o01_hover_new",
+    "click 440 127",
+    "wait 60",
+    "click 205 278",
+    "wait 30",
+    "shot o02_controls",
+    "echo probe-log before-bind",
+    "bind w",
+    "bind k",
+    "click 455 181",
+    "wait 20",
+    "shot o03_bind_waiting",
+    "press k",
+    "wait 20",
+    "shot o04_bound",
+    "echo probe-log after-bind",
+    "bind w",
+    "bind k",
+    "bind uparrow",
+    "press escape",
+    "wait 60",
+    "shot o05_back_main",
+    "click 570 127",
+    "wait 60",
+    "echo probe-log before-crosshair",
+    "cg_drawcrosshair",
+    "click 205 278",
+    "wait 30",
+    "shot o06_options",
+    "click 455 181",
+    "wait 30",
+    "shot o07_crosshair",
+    "echo probe-log after-crosshair",
+    "cg_drawcrosshair",
+    "press escape",
+    "wait 60",
+    "press escape",
+    "wait 60",
+    "shot o08_quit",
+    "click 310 456",
+    "wait 60",
+    "shot o09_main_again",
+    "press downarrow",
+    "wait 20",
+    "shot o10_down1",
+    "press downarrow",
+    "wait 20",
+    "shot o11_down2",
+    "press enter",
+    "wait 60",
+    "shot o12_enter"
+   ],
+   "warnings": [],
+   "captures": [
+    {
+     "name": "o00_start.png",
+     "sha256": "ed9611435ddb056eb7a2f218597bc390411a335ef1f1f5b70dc94201f95901fc"
+    },
+    {
+     "name": "o01_hover_new.png",
+     "sha256": "9a99f62efbfda4bc25dcc714e15f38ed420cd75f7f0ebd13e2a66fbde652bfe4"
+    },
+    {
+     "name": "o02_controls.png",
+     "sha256": "6ff1370f085fe285427c7e84960847d87d63a651fc8e93a721b78ff2cfa9741c"
+    },
+    {
+     "name": "o03_bind_waiting.png",
+     "sha256": "d42311a3bb9b628fba273d28ab74164919d2083d529a41c994d349808c0d1185"
+    },
+    {
+     "name": "o04_bound.png",
+     "sha256": "5e434002767b9b0ab9509993dc8ca30b7875cc62951e0fb14dbd36c515eee679"
+    },
+    {
+     "name": "o05_back_main.png",
+     "sha256": "bfe65668f465cd17dae750453cc5d640b1cb8fc035220ac82ec88d6586eb36cc"
+    },
+    {
+     "name": "o06_options.png",
+     "sha256": "3f0c4594b24570861c84ac8779bd8c44af4b6edf560a5fa43ef649895e4ead47"
+    },
+    {
+     "name": "o07_crosshair.png",
+     "sha256": "e91409e376fc688d2de7229327f344f98e3662333929be7478d8a59c02c769dc"
+    },
+    {
+     "name": "o08_quit.png",
+     "sha256": "299e8eaf8cd3ff4d0facd4473a9b687a05aaa547d801dbf520292a8948988e8d"
+    },
+    {
+     "name": "o09_main_again.png",
+     "sha256": "2542af1a72f6e219cc3c666a92cd75dd2b74e24aeb10e68075f1ffab9f39950d"
+    },
+    {
+     "name": "o10_down1.png",
+     "sha256": "aea62643d683dce8bad3fe2d5abbc3ad411056c7605f723dc76837bdf5ec159b"
+    },
+    {
+     "name": "o11_down2.png",
+     "sha256": "78157f353f18aca5993a75c0cefbbb9f9e4fd94864f2930ca89cd4ab484a3d08"
+    },
+    {
+     "name": "o12_enter.png",
+     "sha256": "e8f71de7e3ede55df552a5c785c5c2898b9baf4ee5e60e40c71348ba86eea832"
+    }
+   ]
+  },
+  {
+   "run": "input-jk2-2",
+   "profile": "jk2-sp",
+   "window": "1280x720",
+   "renderer": "glx",
+   "fntech3Sha256": "ca60e96e4e6c5754e7739d80e68e668471f529c5f2989ff194d73855ffc0dc26",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "input": "engine in_synthesize only (approved 2026-10-17); no OS input",
+   "actions": [
+    "wait 600",
+    "ui_openmenu ingamesaveMenu",
+    "wait 60",
+    "shot e00_save_menu",
+    "echo probe-log before-edit",
+    "ui_gameDesc",
+    "click 375 173",
+    "wait 20",
+    "type probe saves",
+    "wait 20",
+    "press backspace",
+    "wait 10",
+    "shot e01_typed",
+    "press enter",
+    "wait 20",
+    "shot e02_entered",
+    "echo probe-log after-edit",
+    "ui_gameDesc"
+   ],
+   "warnings": [],
+   "captures": [
+    {
+     "name": "e00_save_menu.png",
+     "sha256": "3dd39d9fea25afdd5f0a4d053161a24590536fddee51460e687c460a678caef2"
+    },
+    {
+     "name": "e01_typed.png",
+     "sha256": "b03670f144c4ec10bba9a96a10275e704b5b43ca7aad5a053af37fa19e54d94c"
+    },
+    {
+     "name": "e02_entered.png",
+     "sha256": "23479dae10920fba9c4c7bc9d3722df63e6c8fa8b0c88775f7dc50b06aa6a834"
+    }
+   ]
+  },
+  {
+   "run": "input-jkamp-1",
+   "profile": "jka-mp",
+   "window": "1280x720",
+   "renderer": "glx",
+   "fntech3Sha256": "ca60e96e4e6c5754e7739d80e68e668471f529c5f2989ff194d73855ffc0dc26",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "input": "engine in_synthesize only (approved 2026-10-17); no OS input",
+   "actions": [
+    "wait 900",
+    "shot m00_start",
+    "point 101 224",
+    "wait 30",
+    "shot m01_hover_play",
+    "click 521 322",
+    "wait 60",
+    "shot m02_setup",
+    "press escape",
+    "wait 60",
+    "shot m03_escape",
+    "press escape",
+    "wait 60",
+    "shot m04_quit",
+    "press escape",
+    "wait 60",
+    "shot m05_back",
+    "press downarrow",
+    "wait 20",
+    "shot m06_down1",
+    "press downarrow",
+    "wait 20",
+    "shot m07_down2"
+   ],
+   "warnings": [],
+   "captures": [
+    {
+     "name": "m00_start.png",
+     "sha256": "dedd5c863c9be9a23552824736a833365314838b032573fa0460916af60dda15"
+    },
+    {
+     "name": "m01_hover_play.png",
+     "sha256": "e6c3d437c906eca59c6ccbb692ccc266e84b2ca276cc82dec6c584d2a890c45d"
+    },
+    {
+     "name": "m02_setup.png",
+     "sha256": "d3efc98e04a8598914976e24103cd22c630085587ba74abde58f7699535492fc"
+    },
+    {
+     "name": "m03_escape.png",
+     "sha256": "a0e42042925c610535e7518a3979cd10f0f1e453a651dd41d983b6642358a076"
+    },
+    {
+     "name": "m04_quit.png",
+     "sha256": "53ade88c37c3ec2b7bb6ab159fd32032ba9e782bb5a321e0ddae2c663e1e2643"
+    },
+    {
+     "name": "m05_back.png",
+     "sha256": "d5a3d405950481deeaadb9f93da32f3ec48523fc10536f0da912c8b4d8bb3299"
+    },
+    {
+     "name": "m06_down1.png",
+     "sha256": "5c0d68eacd326d993ac7f1eedcc2b258d3197209bd3a68069751102d2f1bdc5d"
+    },
+    {
+     "name": "m07_down2.png",
+     "sha256": "e138bd7e1d5398601711bc08373f9233df371ff85f7969c4ee46f9381d6d06b6"
+    }
+   ]
+  },
+  {
+   "run": "input-jk2mp-1",
+   "profile": "jk2-mp",
+   "window": "1280x720",
+   "renderer": "glx",
+   "fntech3Sha256": "ca60e96e4e6c5754e7739d80e68e668471f529c5f2989ff194d73855ffc0dc26",
+   "outcome": "exited",
+   "exit": 0,
+   "forced": false,
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "input": "engine in_synthesize only (approved 2026-10-17); no OS input",
+   "actions": [
+    "wait 900",
+    "shot n00_start",
+    "point 180 127",
+    "wait 30",
+    "shot n01_hover_play",
+    "click 570 127",
+    "wait 60",
+    "shot n02_setup",
+    "press escape",
+    "wait 60",
+    "shot n03_escape",
+    "press escape",
+    "wait 60",
+    "shot n04_quit",
+    "press escape",
+    "wait 60",
+    "shot n05_back",
+    "press downarrow",
+    "wait 20",
+    "shot n06_down1",
+    "press downarrow",
+    "wait 20",
+    "shot n07_down2"
+   ],
+   "warnings": [
+    "^5^3WARNING: VM tried to set invalid flags 0x200000 on cvar 'ui_cg_shadows'",
+    "^5^3WARNING: VM tried to set invalid flags 0x200000 on cvar 'ui_r_allowExtensions'",
+    "^5^3WARNING: VM tried to set invalid flags 0x200000 on cvar 'ui_r_colorbits'",
+    "^5^3WARNING: VM tried to set invalid flags 0x200000 on cvar 'ui_r_depthbits'",
+    "^5^3WARNING: VM tried to set invalid flags 0x200000 on cvar 'ui_r_detailtextures'",
+    "^5^3WARNING: VM tried to set invalid flags 0x200000 on cvar 'ui_r_ext_compress_textures'",
+    "^5^3WARNING: VM tried to set invalid flags 0x200000 on cvar 'ui_r_fastSky'",
+    "^5^3WARNING: VM tried to set invalid flags 0x200000 on cvar 'ui_r_fullscreen'",
+    "^5^3WARNING: VM tried to set invalid flags 0x200000 on cvar 'ui_r_glCustom'",
+    "^5^3WARNING: VM tried to set invalid flags 0x200000 on cvar 'ui_r_inGameVideo'",
+    "^5^3WARNING: VM tried to set invalid flags 0x200000 on cvar 'ui_r_lodbias'",
+    "^5^3WARNING: VM tried to set invalid flags 0x200000 on cvar 'ui_r_mode'",
+    "^5^3WARNING: VM tried to set invalid flags 0x200000 on cvar 'ui_r_modified'",
+    "^5^3WARNING: VM tried to set invalid flags 0x200000 on cvar 'ui_r_picmip'",
+    "^5^3WARNING: VM tried to set invalid flags 0x200000 on cvar 'ui_r_subdivisions'",
+    "^5^3WARNING: VM tried to set invalid flags 0x200000 on cvar 'ui_r_texturebits'",
+    "^5^3WARNING: VM tried to set invalid flags 0x200000 on cvar 'ui_r_texturemode'"
+   ],
+   "captures": [
+    {
+     "name": "n00_start.png",
+     "sha256": "5388155d0b40d65d561f2d4980b84222248494c2a292a73b0989b999f0a369f3"
+    },
+    {
+     "name": "n01_hover_play.png",
+     "sha256": "02e3343c5a1a7976f140d2be474dd384c28301d0b53c5e0fa9f25e97c3d8d3d7"
+    },
+    {
+     "name": "n02_setup.png",
+     "sha256": "9842f806c3b95962fd3c59b3dbbae4153da648c33af744255da408310267d023"
+    },
+    {
+     "name": "n03_escape.png",
+     "sha256": "854f169e2e8ada0d484ef47c6ba78340f263899a8c57c6442ca8f0b767e187be"
+    },
+    {
+     "name": "n04_quit.png",
+     "sha256": "9b34b98a4ef47343e77bb5dd71fb850038662c2e0cd7d44cc9f1cd30c6c79603"
+    },
+    {
+     "name": "n05_back.png",
+     "sha256": "5a883d26fad8f38d5456c3edadb853c6a86bcf3a3c77da34cd1f647b5df2805b"
+    },
+    {
+     "name": "n06_down1.png",
+     "sha256": "c645ef556318996a68702d54e7cf98ea50173531ba317c21034c71262da6fbe8"
+    },
+    {
+     "name": "n07_down2.png",
+     "sha256": "8712f04bddde029d7c9f47eebccfa467d5cc9ee7b9a0b3bad79d74c1c0632257"
+    }
+   ]
+  }
+ ],
+ "build": {
+  "base": "f47944324312b04e7aed156236c4331f8a1856ca",
+  "platform": "Windows x86 (win32 export build)",
+  "network": "net_enabled 0"
+ },
+ "gatesClosed": []
+}

@@ -133,6 +133,10 @@ Release packages include them as web pages in their `manual` folder, built by
   -- Jedi Academy's and Jedi Outcast's single-player menus, which their
   engines run themselves, read and run by fnTech3's engine from each game's
   own files.
+- [The Jedi menus, clicked and typed](fntech3/2026-10-17-jedi-menu-input.md)
+  -- both Jedi games' single-player menus and multiplayer menu modules
+  driven with the engine's synthetic input, and the language list and
+  binding prompt that run put right.
 - [Jedi Outcast's client Ghoul2 and HUD](fntech3/2026-10-16-jk2-cgame-ghoul2.md)
   -- Outcast multiplayer's client Ghoul2 imports and models, its engine
   string packages and its HUD placed on wide screens.

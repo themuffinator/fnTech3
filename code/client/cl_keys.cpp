@@ -1979,7 +1979,8 @@ void CL_AliceInitKeyCommands( void ) {
 CL_InitSyntheticInput
 
 in_synthesize and its switch, registered beside bind for Ritual, Medal of Honor,
-Wolfenstein and Elite Force profiles, whose probes run without physical input.
+Wolfenstein, Elite Force and Jedi profiles, whose probes run without physical
+input.
 ===================
 */
 void CL_InitSyntheticInput( void ) {
