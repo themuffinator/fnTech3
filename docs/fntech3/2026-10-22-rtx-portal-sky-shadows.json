@@ -3204,5 +3204,617 @@
   "other RTCW portal-sky maps, Jedi Academy mp/siege_hoth and single-player maps not captured",
   "RTX global fog (r_globalFog, off by default) is drawn once a frame on the first full-screen world view, the portal sky, so the main view behind it gets none (read from vk_draw_global_fog's lastFogFrame, not captured)",
   "Existing dynamic-light counter differences not investigated: forest GLx 700 caster surfaces vs Vulkan/RTX 763; mp_village RTX plans 1/16 lights vs GLx 0/16, before and after"
- ]
+ ],
+ "mainIntegration": {
+  "baseCommit": "3e1371b0397d6bce5dd6ebe1d8a22aae5f5c3451",
+  "fixCommit": "863969c6",
+  "testedCommit": "308cef724e9c622219fa10fd8346e97f724ce520",
+  "importedCommits": [
+   "3369bee7b8674584b921d30834ed6b3a992bf1cb",
+   "abacf0f0e5c9fadc5404a7a829e9bdea2943d0fc"
+  ],
+  "scope": "Portal-sky pass fix and regression check, evidence and player guidance. Broader shadow-format work remains separate; main retains its caster eligibility and shading.",
+  "counterScope": "Main has 251 casters and 104 world / 492 entity receivers in this view, matching GLx and Vulkan. Historical shadow-format builds above include expanded MDS/MDC eligibility and baked-receiver rules and have different counts.",
+  "build": {
+   "preset": "meson/build/win32-dev",
+   "platform": "Windows x86, MSVC, debugoptimized, strict-warnings=true",
+   "commands": [
+    ".vscode/build-release.ps1 -Configuration RelWithDebInfo -BuildDir meson/build/win32-dev -Target client -Renderer all",
+    "meson compile -C meson/build/win32-dev fntech3-pkg.fnz",
+    "python scripts/verify_release_layout.py meson/build/win32-dev/fntech3-pkg.fnz"
+   ],
+   "outcome": "Passed; RTX rebuilt, other client products up to date; package layout passed."
+  },
+  "tests": {
+   "pytest": "315 passed, 64089 subtests passed, no skips",
+   "files": [
+    "tests/csm_plan_source_tests.py",
+    "tests/csm_shadow_cache_source_tests.py",
+    "tests/dlight_shadow_bias_tests.py",
+    "tests/dlight_shadow_release_gate_tests.py",
+    "tests/dlight_shadow_stability_tests.py",
+    "tests/dlight_shadow_test_tests.py",
+    "tests/fnq3_bloom_parity_source_tests.py",
+    "tests/macos_support_source_tests.py",
+    "tests/menu_blur_source_tests.py",
+    "tests/personal_shadow_source_tests.py",
+    "tests/q3_ihv_skin_tests.py",
+    "tests/renderer_cvar_compat_source_tests.py",
+    "tests/rtcw_md3_normal_tests.py",
+    "tests/rtcw_mesh_blink_tests.py",
+    "tests/rtx_emitter_lighting_tests.py",
+    "tests/rtx_entity_shadow_tests.py",
+    "tests/rtx_latency_tests.py",
+    "tests/rtx_lifecycle_tests.py",
+    "tests/rtx_lightmap_execution_tests.py",
+    "tests/rtx_raster_feature_parity_source_tests.py",
+    "tests/rtx_renderer_contract_source_tests.py",
+    "tests/rtx_scene_linear_gate_tests.py",
+    "tests/rtx_vulkan_safety_source_tests.py",
+    "tests/runtime_mdr_tests.py",
+    "tests/shadow_correctness_source_tests.py",
+    "tests/shadow_manager_source_tests.py",
+    "tests/shadow_projection_source_tests.py",
+    "tests/stvef_shadow_tests.py",
+    "tests/underwater_view_source_tests.py",
+    "tests/untrusted_asset_bounds_tests.py",
+    "tests/rtx_raster_execution_tests.py",
+    "tests/liquid_rendering_source_tests.py",
+    "tests/global_fog_source_tests.py",
+    "tests/player_manual_tests.py",
+    "tests/generate_docs_tests.py",
+    "tests/changelog_tests.py"
+   ],
+   "csmCacheScript": "Passed"
+  },
+  "conditions": "Windowed 800x600, private desktop not switched, no input or network, isolated writable homes, engine screenshotPNG; four lighting captures then debug capture",
+  "runs": {
+   "rtx": {
+    "run": "merge-main-rtx",
+    "profile": "rtcw-sp",
+    "map": "forest",
+    "renderer": "rtx",
+    "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+    "identity": {
+     "fntech3.exe": "ad64a9c6ec5366ee117e69cb4d8e26e690229e996ee017d91a0a8dbb9b0c3898",
+     "fnql_rtx_x86.dll": "9de49276daa8d36c75b9625bc9f42dbd1b0577ad981249d1199cc229b308f2a0",
+     "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "rtcw-sp",
+     "+set",
+     "fs_basepath",
+     "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\rtcw-rtx-csm\\runs\\merge-main-rtx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+set",
+     "rtx_rt_mode",
+     "0",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "forest"
+    ],
+    "commands": [
+     "give all",
+     "weapon 3",
+     "cg_thirdPerson 1",
+     "wait 180"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmShadowStrength 1"
+     ],
+     [
+      "csmoff",
+      "set r_csmShadowStrength 0"
+     ],
+     [
+      "dloff",
+      "set r_csmShadowStrength 1; set r_dlightShadowStrength 0"
+     ],
+     [
+      "on2",
+      "set r_dlightShadowStrength 0.95"
+     ],
+     [
+      "dbg",
+      "set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 19.0,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "csm": [
+     "csm cascade backend:vulkan index:1 split:193..418 atlas:512,0/512 view:512,0 512x512 api:512,0 512x512 sample-y:inverted clip-y:flipped depth:forward ndc:0..1 clear:1.0 compare:lequal bounds x:-6438..-4292 y:-4718..-3645 z:-4516..-3443 origin:-5055 -6024 505 texel:2.10",
+     "csm cascade backend:vulkan index:2 split:418..818 atlas:1024,0/512 view:1024,0 512x512 api:1024,0 512x512 sample-y:inverted clip-y:flipped depth:forward ndc:0..1 clear:1.0 compare:lequal bounds x:-7299..-3116 y:-5298..-3207 z:-4763..-2671 origin:-4741 -6024 501 texel:4.08",
+     "csm cascade backend:vulkan index:3 split:818..2048 atlas:1536,0/512 view:1536,0 512x512 api:1536,0 512x512 sample-y:inverted clip-y:flipped depth:forward ndc:0..1 clear:1.0 compare:lequal bounds x:-10083..489 y:-7083..-1797 z:-5679..-392 origin:-3924 -6025 490 texel:10.32"
+    ],
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "c9377e2c0b633f6d3b7dbc9386241a7bc976ea2c49b76b9fd955940f5525064b"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "b000ac589e087724546cf3ee40b572d689742b9d7933af850977f54b48f3fd40"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "9cf51b5de210e5648deb9f400b8d273112e5296828e6e239f57010d408969dc9"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "25cbbe8b1a77239534dce2576e6fff14b38bf7ad1737281435a2f527f2675f0f"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "91bfa6a6f56b1c26c6d84f828f57c9b2d7b6f0d15e7de28a653e9ae49d6e2ff1"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "csmSummary": {
+     "casters": 251,
+     "cacheHits": 0,
+     "cacheMisses": 2,
+     "cacheUncacheable": 0,
+     "receiversWorld": 104,
+     "receiversEntity": 492,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": {
+     "planned": 2,
+     "candidates": 5,
+     "renderedLights": 2,
+     "faces": 12,
+     "batches": 31,
+     "draws": 31,
+     "casterSurfaces": 763,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 312843,
+     "darkerFraction": 0.65175625,
+     "repeatStableFraction": 0.8443416666666667,
+     "meanLumaOn": 24.33860931666667,
+     "meanLumaOff": 39.872218679166664
+    }
+   },
+   "glx": {
+    "run": "merge-main-glx",
+    "profile": "rtcw-sp",
+    "map": "forest",
+    "renderer": "glx",
+    "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+    "identity": {
+     "fntech3.exe": "ad64a9c6ec5366ee117e69cb4d8e26e690229e996ee017d91a0a8dbb9b0c3898",
+     "fnql_glx_x86.dll": "36f0a57b73db439037a01d650fe165279251cc9b8efb3255cc534e39a2554129",
+     "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "rtcw-sp",
+     "+set",
+     "fs_basepath",
+     "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\rtcw-rtx-csm\\runs\\merge-main-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "forest"
+    ],
+    "commands": [
+     "give all",
+     "weapon 3",
+     "cg_thirdPerson 1",
+     "wait 180"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmShadowStrength 1"
+     ],
+     [
+      "csmoff",
+      "set r_csmShadowStrength 0"
+     ],
+     [
+      "dloff",
+      "set r_csmShadowStrength 1; set r_dlightShadowStrength 0"
+     ],
+     [
+      "on2",
+      "set r_dlightShadowStrength 0.95"
+     ],
+     [
+      "dbg",
+      "set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 15.9,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "csm": [
+     "csm cascade backend:glx index:1 split:193..418 atlas:512,0/512 view:512,0 512x512 api:512,0 512x512 sample-y:native clip-y:native depth:forward ndc:-1..1 clear:1.0 compare:lequal bounds x:-6438..-4292 y:-4718..-3645 z:-4516..-3443 origin:-5055 -6024 505 texel:2.10",
+     "csm cascade backend:glx index:2 split:418..818 atlas:1024,0/512 view:1024,0 512x512 api:1024,0 512x512 sample-y:native clip-y:native depth:forward ndc:-1..1 clear:1.0 compare:lequal bounds x:-7299..-3116 y:-5298..-3207 z:-4763..-2671 origin:-4741 -6024 501 texel:4.08",
+     "csm cascade backend:glx index:3 split:818..2048 atlas:1536,0/512 view:1536,0 512x512 api:1536,0 512x512 sample-y:native clip-y:native depth:forward ndc:-1..1 clear:1.0 compare:lequal bounds x:-10083..489 y:-7083..-1797 z:-5679..-392 origin:-3924 -6025 490 texel:10.32"
+    ],
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "18273e6e8d65753eadbb773b90d41774dc79ac1b238f7bf624e513dac2124d96"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "351452dd94bce7f7d4b67750d34d808b818ccf72cecb06d1017746bb5f028127"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "ecb02af5cd5ff07a47c26729aae3cd2d9df34d65d4d1f7b6d81c201c24eaf08c"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "2aab92bd0683cad992792a7fbc7c9ed873e350aa3013ab86e910ffa6bc7342ca"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "0a1fdbeaacc18e6b5ae555afcd614d090c607f7c34ecd5f386a23294de1b5c9d"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "csmSummary": {
+     "casters": 251,
+     "cacheHits": 0,
+     "cacheMisses": 2,
+     "cacheUncacheable": 0,
+     "receiversWorld": 104,
+     "receiversEntity": 492,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": {
+     "planned": 2,
+     "candidates": 5,
+     "renderedLights": 2,
+     "faces": 12,
+     "batches": 31,
+     "draws": 31,
+     "casterSurfaces": 700,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 308803,
+     "darkerFraction": 0.6433395833333333,
+     "repeatStableFraction": 0.8435041666666667,
+     "meanLumaOn": 24.177722754166663,
+     "meanLumaOff": 39.46033884583333
+    }
+   },
+   "vk": {
+    "run": "merge-main-vk",
+    "profile": "rtcw-sp",
+    "map": "forest",
+    "renderer": "vk",
+    "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+    "identity": {
+     "fntech3.exe": "ad64a9c6ec5366ee117e69cb4d8e26e690229e996ee017d91a0a8dbb9b0c3898",
+     "fnql_vk_x86.dll": "d8b22a5eea39edb37517fb861a08e2fc5732f0251c46146e98b3c09400d4a27d",
+     "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "rtcw-sp",
+     "+set",
+     "fs_basepath",
+     "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\rtcw-rtx-csm\\runs\\merge-main-vk\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "vk",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "forest"
+    ],
+    "commands": [
+     "give all",
+     "weapon 3",
+     "cg_thirdPerson 1",
+     "wait 180"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmShadowStrength 1"
+     ],
+     [
+      "csmoff",
+      "set r_csmShadowStrength 0"
+     ],
+     [
+      "dloff",
+      "set r_csmShadowStrength 1; set r_dlightShadowStrength 0"
+     ],
+     [
+      "on2",
+      "set r_dlightShadowStrength 0.95"
+     ],
+     [
+      "dbg",
+      "set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 15.9,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "csm": [
+     "csm cascade backend:vulkan index:1 split:193..418 atlas:512,0/512 view:512,0 512x512 api:512,0 512x512 sample-y:inverted clip-y:flipped depth:forward ndc:0..1 clear:1.0 compare:lequal bounds x:-6438..-4292 y:-4718..-3645 z:-4516..-3443 origin:-5055 -6024 505 texel:2.10",
+     "csm cascade backend:vulkan index:2 split:418..818 atlas:1024,0/512 view:1024,0 512x512 api:1024,0 512x512 sample-y:inverted clip-y:flipped depth:forward ndc:0..1 clear:1.0 compare:lequal bounds x:-7299..-3116 y:-5298..-3207 z:-4763..-2671 origin:-4741 -6024 501 texel:4.08",
+     "csm cascade backend:vulkan index:3 split:818..2048 atlas:1536,0/512 view:1536,0 512x512 api:1536,0 512x512 sample-y:inverted clip-y:flipped depth:forward ndc:0..1 clear:1.0 compare:lequal bounds x:-10083..489 y:-7083..-1797 z:-5679..-392 origin:-3924 -6025 490 texel:10.32"
+    ],
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "035d52da5237fe78ac4cebea61e16b665f2b1d19477987f63510e4ec32e5f103"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "d9d9df6e2923492235e49bb6228d5818a1cfec899e1808ad3b4e0498ef313e16"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "7f55afb908ba3164144e0334e4577e6d0312d8aa6f2d61e1fa47e44750bbd295"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "153baecf703b6d0b39c3a21f1b0a6b28bc3f184d9f307e64d23307374b8101ae"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "34e752fd8151c51f8800d3c57d56b4fbcfc534fb199f695f80d090c6d813a74d"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "csmSummary": {
+     "casters": 251,
+     "cacheHits": 0,
+     "cacheMisses": 2,
+     "cacheUncacheable": 0,
+     "receiversWorld": 104,
+     "receiversEntity": 492,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": {
+     "planned": 2,
+     "candidates": 5,
+     "renderedLights": 2,
+     "faces": 12,
+     "batches": 31,
+     "draws": 31,
+     "casterSurfaces": 763,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 312300,
+     "darkerFraction": 0.650625,
+     "repeatStableFraction": 0.8427416666666666,
+     "meanLumaOn": 24.345991075,
+     "meanLumaOff": 39.86686303125
+    }
+   }
+  },
+  "logs": ".tmp/rtcw-rtx-csm/merge-main/",
+  "captures": ".tmp/rtcw-rtx-csm/runs/merge-main-{rtx,glx,vk}/",
+  "unrelated": "No new unrelated failures. Existing GLx versus Vulkan/RTX light-caster counts and the source-inferred global-fog limitation remain recorded."
+ }
 }

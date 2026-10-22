@@ -363,8 +363,8 @@ game.
 - `r_spotShadows`: `1` lets the spotlights of [Static Map Lights](#static-map-lights)
   cast shadows too. Off by default. Restart.
 - `r_csmShadows`: `1` adds shadows from the sun in maps that have one, cast
-  by the world, models and doors. Off by default. GLx and Vulkan only.
-  Restart.
+  by the world, models and doors. Off by default. GLx and Vulkan, and RTX
+  when it draws normally (`rtx_rt_mode 0`). Restart.
 
 Fine-tuning, for odd-looking shadows -- speckles, flicker, or shadows that
 float off their objects: `r_dlightShadowBias` (default `4`),

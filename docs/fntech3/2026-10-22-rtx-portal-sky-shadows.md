@@ -151,6 +151,42 @@ the installations and binaries unchanged.
   passed: 25 tests and 838 subtests. Logs and the audit summary are retained
   under `.tmp/rtcw-rtx-csm/` in both checkouts.
 
+## Main-branch integration
+
+The focused integration was built on `3e1371b0`, with source fix `863969c6`
+and documentation `308cef72`. It carries only the portal-sky pass fix from
+`3369bee7` and the record and guidance from `abacf0f0`. It preserves main's
+existing caster eligibility and shading; the broader shadow-format work
+remains separate. In particular, main does not yet include that branch's
+MDS/MDC sun-shadow eligibility or baked-receiver rules, so the historical
+335 casters / 576 model receivers above are not this build's expected counts.
+
+The existing Windows x86 `meson/build/win32-dev` preset rebuilt the RTX
+renderer with strict warnings. The engine package was rebuilt with Meson's
+`fntech3-pkg.fnz` target and passed `scripts/verify_release_layout.py`.
+The 36 applicable renderer, shadow and documentation test files passed:
+315 tests and 64,089 subtests, with no skips. The script-style CSM cache
+contract check also passed.
+
+Fresh `forest` runs used the same stable executable, windowed 800x600 on a
+private desktop, no input or network, isolated homes and engine
+`screenshotPNG` captures. Debug logging was enabled after the four lighting
+captures. All three runs exited normally, with no reported errors and with
+the installation and binaries unchanged; all 15 capture hashes were checked.
+
+| Renderer | Casters | Receivers: world, model | Shadowed lights, surfaces | Sun shadow | Mean luma on, off |
+| --- | --- | --- | --- | --- | --- |
+| RTX raster | 251 | 104, 492 | 2, 763 | 65.18 % | 24.34, 39.87 |
+| GLx | 251 | 104, 492 | 2, 700 | 64.33 % | 24.18, 39.46 |
+| Vulkan | 251 | 104, 492 | 2, 763 | 65.06 % | 24.35, 39.87 |
+
+The sun-shadow counters agree across all three renderers on all 130 debug
+frames per run. This confirms the pass fix independently of the other
+branch's shading changes. Build/test logs and `runtime-evidence.json` are
+in `.tmp/rtcw-rtx-csm/merge-main/`; the captures and console logs are in
+`.tmp/rtcw-rtx-csm/runs/merge-main-{rtx,glx,vk}/`. The JSON companion's
+`mainIntegration` section records the exact launch arguments and identities.
+
 ## Not covered, and open
 
 - Spot shadows take the same path, but no view here plans one.
