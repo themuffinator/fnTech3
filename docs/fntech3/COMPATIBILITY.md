@@ -810,6 +810,19 @@ are centred 4:3 screens. Unit fixtures replay cg_draw.c's geometry, and
 windowed engine captures at four screen shapes, two clients voting and demo
 playback show every part placed; it is presentation evidence only.
 
+The [widescreen field-of-view record](2026-10-22-fov-correction-all-profiles.md)
+(2026-10-22) registers `r_fovCorrection` under all sixteen profiles. `q3-ihv`,
+`q3test`, `jk2-sp` and `jk2-mp` never had it, so Jedi Outcast multiplayer,
+whose client game is told a 4:3 screen, drew its world stretched 1.33 times at
+16:9. The 4:3 rule now recovers a game's underwater warp -- the shape it derived
+its vertical angle for, and the unwarped horizontal one -- and puts it back
+around the widened pair; ordinary views answer exactly as before. Jedi surface
+sprites measure their range against the game's own field. Unit fixtures run
+every profile in three backend modes, and Outcast's `ffa_bespin` and Q3Test
+1.08's demo, each captured at one view with the correction on and off, keep
+their vertical framing (presentation evidence; Source, Unit, Live subset).
+Zoom masks stretched over the widened world remain open. No gate closes.
+
 The [profile-scoped package update](2026-09-17-profile-packages.md) separates
 engine assets under `games/<profile>/<gamedir>/` in `fntech3-pkg.fnz` and
 incorporates the complete reviewed FnQuake3 package, including Team Arena.

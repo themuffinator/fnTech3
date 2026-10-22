@@ -212,6 +212,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Jedi Academy's surface switch](fntech3/2026-10-16-jka-surface-on-off.md)
   -- client-game import 321 measured in `jamp.exe`, the call site that runs
   in a siege match found, and the import served through Fn's skin binding.
+- [Widescreen field of view in every game](fntech3/2026-10-22-fov-correction-all-profiles.md)
+  -- `r_fovCorrection` in all sixteen profiles, Jedi Outcast's stretched
+  view and the 1999 tests included, keeping the game's underwater sway.
 - [October 9 compatibility integration](fntech3/2026-10-09-compatibility-integration.md)
   -- resumed Alice and Elite Force work, shared-tree validation, and probe
   evidence and limits for the combined compatibility slices.

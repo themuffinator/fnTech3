@@ -422,7 +422,9 @@ class LaunchAndTransitionSourceTests(unittest.TestCase):
         self.assertIn("RDF_NOFOVCORRECTION 0x0002", public)
         fov = read_source("code/renderercommon/tr_q3_fov.h")
         self.assertIn('ri.Cvar_VariableString( "com_gameProfile" )', fov)
-        self.assertIn('!Q_stricmp( profile, "quake3" )', fov)
+        # Every profile registers the correction: no game is gated out of it.
+        self.assertIn('quakeLive = !Q_stricmp( profile, "quakelive" ) ? qtrue : qfalse;\n'
+                      '\t\tcorrection = ri.Cvar_Get( "r_fovCorrection", "1", CVAR_ARCHIVE_ND );', fov)
         # Quake Live's cgame fits its own Hor+ to four shapes; it takes a rule of
         # its own for the rest, never the 4:3 one.
         ql_branch = fov.split('if ( quakeLive ) {\n\t\tR_CorrectQLViewportFov(', 1)[1]

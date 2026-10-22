@@ -640,7 +640,8 @@ still incomplete ([latest audit](fntech3/2026-10-07-jedi-compatibility-round2.md
 Its menus fill the window at any size, as the original's do
 ([details](fntech3/2026-10-15-jedi-widescreen-hud.md)).
 Starting a multiplayer map now shows the level, your weapon, the HUD and the
-scoreboard, and the HUD keeps its shape in wide windows; other players,
+scoreboard, and the HUD keeps its shape in wide windows while the view
+widens ([widescreen details](fntech3/2026-10-22-fov-correction-all-profiles.md)); other players,
 sabers and most effects have not been seen in a game yet
 ([details](fntech3/2026-10-16-jk2-cgame-ghoul2.md)).
 Single player's game code loads, then stops before the game starts. Its own

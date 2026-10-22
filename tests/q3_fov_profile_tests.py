@@ -38,12 +38,9 @@ static const char *Profile(const char *name) {
     ++profileReads;
     return profile;
 }
+/* Every game but Quake Live authors its view for a 4:3 screen. */
 static int Corrected(void) {
-    static const char *const corrected[] = {"quake3", "rtcw-sp", "rtcw-mp", "wolfet", "stvef-sp", "stvef-mp",
-        "alice", "fakk2", "mohaa", "jka-sp", "jka-mp"};
-    for (size_t i = 0; i < sizeof(corrected) / sizeof(corrected[0]); ++i)
-        if (!strcmp(profile, corrected[i])) return 1;
-    return 0;
+    return strcmp(profile, "quakelive") != 0;
 }
 static cvar_t aspectPreset = {0};
 static int presetReads;
@@ -75,18 +72,28 @@ static struct {
 #define Q_stricmp strcmp
 #include "code/renderercommon/tr_q3_fov.h"
 
-static void ExpectFov(refdef_t view, float expectedX, float expectedY) {
-    float x = 90.0f, y = 60.0f;
+#define KEPT -1.0f
+static void ExpectFovFrom(refdef_t view, float inX, float inY, float expectedX, float expectedY) {
+    float x = inX, y = inY;
+    if (expectedY == KEPT) expectedY = inY;
     R_ApplyProfileFovCorrection(&view, &x, &y);
     if (fabsf(x - expectedX) >= 0.0002f || fabsf(y - expectedY) >= 0.0002f) {
         fprintf(stderr, "got %f %f expected %f %f flags %d\n", x, y, expectedX, expectedY, view.rdflags);
         assert(0);
     }
 }
+/* A 90-degree field with the vertical one a Quake III game derives for its
+ * view (CG_CalcFov); Quake Live's cases hand 60 throughout. */
+static int qlInputs;
+static void ExpectFov(refdef_t view, float expectedX, float expectedY) {
+    float y = 60.0f;
+    if (!qlInputs && view.width > 0 && view.height > 0)
+        y = (float)(2.0 * 57.2957795130823208768 * atan((double)view.height / (double)view.width));
+    ExpectFovFrom(view, 90.0f, y, expectedX, expectedY);
+}
 int main(int argc, char **argv) {
     refdef_t view = {1920, 1080, 0};
     float x, y;
-    int flag;
     assert(argc == 2);
     profile = argv[1];
     glConfig.vidWidth = 1920; glConfig.vidHeight = 1080;
@@ -95,6 +102,7 @@ int main(int argc, char **argv) {
     gls.windowWidth = 1920; gls.windowHeight = 1080;
 #endif
     if (!strcmp(profile, "quakelive")) {
+        qlInputs = 1;
         /* Its cgame fits its own view to four shapes: 16:9 on a 16:9 screen is left alone. */
         aspectPreset.integer = 1;
         ExpectFov(view, 90.0f, 60.0f);
@@ -134,24 +142,23 @@ int main(int argc, char **argv) {
         assert(registrations == 1 && presetReads == 1 && profileReads == 1);
         return 0;
     }
-    if (!Corrected()) {
-        for (flag = 0; flag < 16; ++flag) {
-            view.rdflags = flag;
-            ExpectFov(view, 90.0f, 60.0f);
-        }
-        assert(registrations == 0 && profileReads == 1);
-        return 0;
-    }
+    assert(Corrected());
     ExpectFov(view, 106.260205f, 73.739795f);
     assert(registrations == 1 && profileReads == 1);
+    /* The underwater warp keeps its degrees, from a game drawn at the real
+     * 16:9 shape and from one told a 4:3 frame; a pair no small warp
+     * explains is taken as plain. */
+    ExpectFovFrom(view, 90.8f, 57.915507f, 107.060205f, 72.939795f);
+    ExpectFovFrom(view, 89.4f, 74.339795f, 105.660205f, 74.339795f);
+    ExpectFovFrom(view, 90.0f, 30.0f, 106.260205f, 73.739795f);
     view.rdflags = RDF_NOFOVCORRECTION;
-    ExpectFov(view, 90.0f, 60.0f);
+    ExpectFov(view, 90.0f, KEPT);
     view.rdflags = RDF_NOWORLDMODEL;
-    ExpectFov(view, 90.0f, 60.0f); /* HUD and menu model projections. */
+    ExpectFov(view, 90.0f, KEPT); /* HUD and menu model projections. */
     view.rdflags = RDF_HYPERSPACE;
     ExpectFov(view, 106.260205f, 73.739795f); /* Bit 4 is distinct from Q3 bit 2. */
     view.rdflags = 0; enabled.integer = 0;
-    ExpectFov(view, 90.0f, 60.0f);
+    ExpectFov(view, 90.0f, KEPT);
     enabled.integer = 1;
     view.width = glConfig.vidWidth = 2560;
     glConfig.windowAspect = 2560.0f / 1080.0f;
@@ -163,10 +170,10 @@ int main(int argc, char **argv) {
     view.width = glConfig.vidWidth = 1024;
     view.height = glConfig.vidHeight = 768;
     glConfig.windowAspect = 4.0f / 3.0f;
-    ExpectFov(view, 90.0f, 60.0f);
+    ExpectFov(view, 90.0f, KEPT);
     /* A view the game cuts from a 4:3 screen, a letterbox, was authored so. */
     view.height = 576;
-    ExpectFov(view, 90.0f, 60.0f);
+    ExpectFov(view, 90.0f, KEPT);
     /* The same cut of a 16:9 screen keeps its 4:3 framing, widened. */
     view.width = glConfig.vidWidth = 1920;
     view.height = 810; glConfig.vidHeight = 1080;
@@ -179,13 +186,13 @@ int main(int argc, char **argv) {
     ExpectFov(view, 106.260205f, 73.739795f); /* Stretched 4:3 render target. */
 #if defined(USE_FBO) || defined(USE_VULKAN)
     scale.integer = 2;
-    ExpectFov(view, 90.0f, 60.0f); /* Letterbox/pillarbox preserves render aspect. */
+    ExpectFov(view, 90.0f, KEPT); /* Letterbox/pillarbox preserves render aspect. */
     scale.integer = 1;
 #endif
     view.width = -1;
-    ExpectFov(view, 90.0f, 60.0f);
+    ExpectFov(view, 90.0f, KEPT);
     view.width = 1920; view.height = 0;
-    ExpectFov(view, 90.0f, 60.0f);
+    ExpectFov(view, 90.0f, KEPT);
     x = NAN; y = 60.0f;
     R_CorrectQ3ViewportFov(1920, 1080, 1920, 1080, 16.0f/9.0f, qfalse, &x, &y);
     assert(isnan(x) && y == 60.0f);
@@ -231,7 +238,8 @@ class Q3FovProfileTests(unittest.TestCase):
                     build = subprocess.run(command, text=True, capture_output=True, timeout=60)
                     self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
                     for profile in ("quake3", "quakelive", "rtcw-sp", "rtcw-mp", "wolfet", "stvef-sp", "stvef-mp",
-                                    "alice", "fakk2", "mohaa", "jka-sp", "jka-mp", "q3-ihv", "unknown"):
+                                    "alice", "fakk2", "mohaa", "jka-sp", "jka-mp", "jk2-sp", "jk2-mp",
+                                    "q3-ihv", "q3test", "unknown"):
                         result = subprocess.run([str(executable), profile],
                             text=True, capture_output=True, timeout=15)
                         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

@@ -36,12 +36,13 @@ only change the games the table below lists.
 | Alice | widened | kept in shape | the game's own menus | `cl_cinematicAspect` |
 | F.A.K.K.2 | widened | kept in shape | the game's own menus | `cl_cinematicAspect` |
 | Medal of Honor | widened | the game's own, which fits any screen | the game's own menus | `cl_cinematicAspect` |
+| IHV Test and Q3Test | widened | drawn as the original drew it | drawn as the original drew them | as the original drew them |
 
-The IHV Test has no client, and the Q3Test versions have none of these
-corrections. Both Jedi games draw their HUD and menus on a 640x480 screen
-that the original stretched over the window; fnTech3 scales them to your
-window the same way, then applies the settings below. Neither game's single
-player gets as far as its menus yet.
+The IHV Test and the Q3Test versions widen their view like the rest, and
+keep their HUD, menus and movies as the original drew them. Both Jedi games
+draw their HUD and menus on a 640x480 screen that the original stretched over
+the window; fnTech3 scales them to your window the same way, then applies the
+settings below. Neither game's single player shows its levels yet.
 
 ## Field Of View
 
@@ -50,7 +51,8 @@ for 4:3 screens set it for a 4:3 screen. With `r_fovCorrection 1`, fnTech3
 keeps what you can see from top to bottom the same and widens the view to
 fill your screen. A 90-degree view on a 4:3 screen becomes about 106 degrees
 on 16:9, for example. On a 4:3 screen nothing changes, and a view the game
-crops in one direction, such as a letterboxed scene, keeps its shape. All
+crops in one direction, such as a letterboxed scene, keeps its shape. Under
+water the view still sways the way the game sways it. All
 three renderers -- GLx, Vulkan and RTX -- widen the view the same way,
 including when you render at a different resolution.
 

@@ -395,7 +395,10 @@ static void RB_JediSpriteViewSetup( rbJediSpriteView_t *view ) {
 	VectorMA( view->rightVectors[2], 0.5f, view->fwd, view->rightVectors[2] );
 	VectorScale( view->right, 0.985f, view->rightVectors[3] );
 	VectorMA( view->rightVectors[3], -0.174f, view->fwd, view->rightVectors[3] );
-	view->rangeScale = RB_JediSpriteRangeScale( backEnd.refdef.fov_x );
+	/* The game's own field, not the one r_fovCorrection widened for the
+	 * screen: retail measured its zoom against what the game asked for. */
+	view->rangeScale = RB_JediSpriteRangeScale( backEnd.refdef.fovXAuthored > 0.0f
+		? backEnd.refdef.fovXAuthored : backEnd.refdef.fov_x );
 	view->time = (float)backEnd.refdef.time;
 	view->weather = rb_jediSurfaceWeather ? rb_jediSurfaceWeather->value : 0.0f;
 }

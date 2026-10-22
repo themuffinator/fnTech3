@@ -180,8 +180,9 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         self.assertIn("R_ApplyProfileFovCorrection", renderer_sources)
         fov = read("code/renderercommon/tr_q3_fov.h")
         self.assertIn('ri.Cvar_VariableString( "com_gameProfile" )', fov)
-        for profile in ("quake3", "rtcw-sp", "rtcw-mp"):
-            self.assertIn(f'!Q_stricmp( profile, "{profile}" )', fov)
+        # Every profile registers the correction: no game is gated out of it.
+        self.assertIn('quakeLive = !Q_stricmp( profile, "quakelive" ) ? qtrue : qfalse;\n'
+                      '\t\tcorrection = ri.Cvar_Get( "r_fovCorrection", "1", CVAR_ARCHIVE_ND );', fov)
         # Quake Live's cgame fits its own Hor+ to four shapes; it takes a rule of
         # its own for the rest, never the 4:3 one.
         ql_branch = fov.split('if ( quakeLive ) {\n\t\tR_CorrectQLViewportFov(', 1)[1]

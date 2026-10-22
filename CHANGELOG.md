@@ -192,6 +192,12 @@ historical upstream records, not fnTech3 release history. See the
   does. Both Jedi games' menus have now been driven with clicks and keys
   through the engine's own test input
   ([record](docs/fntech3/2026-10-17-jedi-menu-input.md)).
+- Widen the view in every game with `r_fovCorrection 1`. Jedi Outcast's
+  multiplayer world was drawn stretched sideways on wide screens, and the 1999
+  IHV Test and Q3Test versions ignored the setting. Under water the view now
+  sways as the game sways it, and Jedi Academy's grass keeps its distances
+  when you zoom on very wide screens
+  ([record](docs/fntech3/2026-10-22-fov-correction-all-profiles.md)).
 
 ## [0.1.0] - 2026-10-11
 

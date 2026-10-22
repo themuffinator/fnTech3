@@ -173,7 +173,7 @@ static struct {
 static struct {
  struct { orientationr_t or; unsigned passFlags; } viewParms;
  orientationr_t or;
- struct { float fov_x; int time; } refdef;
+ struct { float fov_x, fovXAuthored; int time; } refdef;
  qboolean projection2D;
 } backEnd;
 static struct { cvar_t *(*Cvar_Get)( const char *, const char *, int ); } ri;
@@ -257,7 +257,7 @@ static int Run( float viewDistance ) {
 }
 int main( void ) {
  int i, near, again, far, total, faded;
- backEnd.refdef.fov_x = 90.0f;
+ backEnd.refdef.fov_x = backEnd.refdef.fovXAuthored = 90.0f;
  backEnd.refdef.time = 5000;
  for ( i = 0; i < 3; i++ ) { VectorClear( backEnd.or.axis[i] ); backEnd.or.axis[i][i] = 1.0f; }
  VectorSet( backEnd.viewParms.or.axis[0], 1, 0, 0 );
@@ -295,6 +295,11 @@ int main( void ) {
  total = Run( 1150 );
  faded = total - alphaCount[255];
  assert( total > 0 && total < near && faded > 0 );
+ /* r_fovCorrection widens 90 to 121.3 at 21:9; the fade follows the game's own field */
+ backEnd.refdef.fov_x = 121.284493f;
+ Floor( 0, 1 );
+ assert( Run( 1150 ) == total && total - alphaCount[255] == faded );
+ backEnd.refdef.fov_x = 90.0f;
  /* walls and ceilings take no upright grass; a hanging sprite needs a ceiling */
  Floor( 0, 0.4f );
  assert( Run( 64 ) == 0 );
