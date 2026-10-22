@@ -210,6 +210,12 @@ historical upstream records, not fnTech3 release history. See the
   Wolfenstein's characters cast and take the sun's. Alice, F.A.K.K.2 and
   Medal of Honor, whose levels name their sun themselves, now have one for
   those shadows ([record](docs/fntech3/2026-10-22-fnq-shadow-formats.md)).
+- Light Alice's and F.A.K.K.2's levels with their own sun in RTX's path
+  tracer, which traced them without one, and stop a local game from
+  sometimes hanging at "connecting" after a long map load: the server
+  dropped its own player as silent. Medal of Honor's light grid now reads its
+  sun keys only as the original renderer spells them
+  ([record](docs/fntech3/2026-10-22-fnq-shadow-formats.md)).
 
 ## [0.1.0] - 2026-10-11
 

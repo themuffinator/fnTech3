@@ -424,6 +424,93 @@ class EntitySunTests(unittest.TestCase):
                               planner[:planner.index('\n}\n')])
 
 
+RT_PRELUDE = r'''
+#include <cassert>
+#include <cmath>
+#include <cstdint>
+#include <cstring>
+#include <string>
+#include "code/renderercommon/tr_ritual_model_light.h"
+typedef int qboolean;
+enum { qfalse, qtrue };
+typedef float vec3_t[3];
+typedef union { float f; uint32_t u; } floatint_t;
+#define MAX( a, b ) ( ( a ) > ( b ) ? ( a ) : ( b ) )
+enum { COM_GAME_QUAKE3, COM_GAME_ALICE, COM_GAME_FAKK2, COM_GAME_MOHAA };
+#define COM_GAME_ID_IS_RITUAL( id ) ( ( id ) == COM_GAME_ALICE || ( id ) == COM_GAME_FAKK2 )
+static void Com_Memset( void *p, int v, size_t n ) { std::memset( p, v, n ); }
+#define VectorCopy( a, b ) ( ( b )[0] = ( a )[0], ( b )[1] = ( a )[1], ( b )[2] = ( a )[2] )
+#define VectorClear( v ) ( ( v )[0] = ( v )[1] = ( v )[2] = 0.0f )
+#define VectorLengthSquared( v ) ( ( v )[0] * ( v )[0] + ( v )[1] * ( v )[1] + ( v )[2] * ( v )[2] )
+static float VectorNormalize2( const vec3_t v, vec3_t out ) {
+    const float length = std::sqrt( VectorLengthSquared( v ) );
+    if ( length > 0.0f ) { out[0] = v[0] / length; out[1] = v[1] / length; out[2] = v[2] / length; }
+    else { out[0] = out[1] = out[2] = 0.0f; }
+    return length;
+}
+struct world_t { char *entityString; };
+static struct { world_t *world; } tr;
+static struct { int gameId; } ri;
+static struct { qboolean sunValid, entitySun; vec3_t sunLight, sunDirection; } s_rtLights;
+'''
+
+RT_CHECKS = r'''
+static bool Near( float a, float b ) { return std::fabs( a - b ) < 1e-4f; }
+static bool Find( int game, const char *entities ) {
+    static std::string text;
+    static world_t world;
+    std::memset( &s_rtLights, 0, sizeof( s_rtLights ) );
+    ri.gameId = game;
+    text = entities ? entities : "";
+    world.entityString = entities ? &text[0] : nullptr;
+    tr.world = &world;
+    return RT_FindRitualSun() != qfalse;
+}
+int main() {
+    /* fakkhouse's keys: the sun as given, toward the angles' forward vector */
+    assert( Find( COM_GAME_FAKK2, "{\n\"suncolor\" \"56 56 50\"\n\"sundirection\" \"-65.0 22.5 0\"\n}\n" ) );
+    assert( s_rtLights.sunValid && s_rtLights.entitySun );
+    assert( Near( s_rtLights.sunLight[0], 56.0f ) && Near( s_rtLights.sunLight[2], 50.0f ) );
+    const double p = -65.0 * 3.14159265358979323846 / 180.0, y = 22.5 * 3.14159265358979323846 / 180.0;
+    assert( Near( s_rtLights.sunDirection[0], (float)( std::cos( p ) * std::cos( y ) ) ) );
+    assert( Near( s_rtLights.sunDirection[2], (float)( -std::sin( p ) ) ) );
+    assert( Find( COM_GAME_ALICE, "{\n\"suncolor\" \"224 192 192\"\n\"sundirection\" \"-45 -26.9 0\"\n}\n" ) );
+    /* otto's sun below the horizon, a colour or a direction alone, a black
+     * sun, no text, and every other profile leave the sky's sun to RT_FindSun */
+    assert( !Find( COM_GAME_FAKK2, "{\n\"suncolor\" \"32 33 35\"\n\"sundirection\" \"65.0 -22.5 0.0\"\n}\n" ) );
+    assert( !s_rtLights.sunValid && !s_rtLights.entitySun );
+    assert( !Find( COM_GAME_FAKK2, "{\n\"suncolor\" \"56 56 50\"\n}\n" ) );
+    assert( !Find( COM_GAME_FAKK2, "{\n\"sundirection\" \"-65 22.5 0\"\n}\n" ) );
+    assert( !Find( COM_GAME_FAKK2, "{\n\"suncolor\" \"0 0 0\"\n\"sundirection\" \"-65 22.5 0\"\n}\n" ) );
+    assert( !Find( COM_GAME_ALICE, nullptr ) );
+    assert( !Find( COM_GAME_QUAKE3, "{\n\"suncolor\" \"56 56 50\"\n\"sundirection\" \"-65 22.5 0\"\n}\n" ) );
+    assert( !Find( COM_GAME_MOHAA, "{\n\"suncolor\" \"56 56 50\"\n\"sundirection\" \"-65 22.5 0\"\n}\n" ) );
+    /* a negative channel is no light */
+    assert( Find( COM_GAME_ALICE, "{\n\"suncolor\" \"-20 100 100\"\n\"sundirection\" \"-90 0 0\"\n}\n" ) );
+    assert( s_rtLights.sunLight[0] == 0.0f && Near( s_rtLights.sunDirection[2], 1.0f ) );
+    return 0;
+}
+'''
+
+
+class RTXRitualSunTests(unittest.TestCase):
+    def test_the_path_tracer_takes_the_ritual_entity_sun(self):
+        lights = read('code/rendererrtx/rt/rt_lights.c')
+        defines = '\n'.join(line for line in lights.splitlines() if line.startswith('#define RT_LIGHT_MAX_'))
+        body = '\n'.join((defines, function(lights, 'static qboolean RT_FloatValid( float v, float limit )'),
+                          function(lights, 'static qboolean RT_Vec3Valid( const vec3_t v, float limit )'),
+                          function(lights, 'static qboolean RT_FindRitualSun( void )')))
+        compile_and_run(self, RT_PRELUDE + body + RT_CHECKS, prefix='rtx-ritual-sun-')
+
+    def test_only_the_ritual_profiles_take_it_and_mohaa_keeps_its_own(self):
+        lights = read('code/rendererrtx/rt/rt_lights.c')
+        build = function(lights, 'static qboolean RT_BuildLights( void )')
+        self.assertEqual(build.count('} else if ( !RT_FindRitualSun() ) {\n\t\t\tRT_FindSun();'), 2)
+        self.assertNotIn('RitualModelLight', function(lights, 'static void RT_FindSun( void )'))
+        self.assertIn('if ( !COM_GAME_ID_IS_RITUAL( ri.gameId ) || !tr.world || !tr.world->entityString ) {',
+                      function(lights, 'static qboolean RT_FindRitualSun( void )'))
+
+
 def pak_maps(roots):
     for root in roots:
         for pak in sorted(root.glob('*.pk3')):

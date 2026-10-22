@@ -226,12 +226,14 @@ class RtxMohaaSunTests(unittest.TestCase):
         lights = LIGHTS.read_text(encoding='utf-8')
         self.assertIn('#define RT_MOHAA_SKY_ITERATIONS\t8', lights)
         build = function(lights, 'static qboolean RT_BuildLights( void )')
-        branch = ('if ( ri.gameId == COM_GAME_MOHAA ) {\n\t\t\tRT_FindMOHAASun();\n\t\t} else {\n'
-                  '\t\t\tRT_FindSun();\n\t\t}\n')
+        # Alice's and F.A.K.K.2's entity sun comes first (entity_sun_shadow_tests.py)
+        branch = ('if ( ri.gameId == COM_GAME_MOHAA ) {\n\t\t\tRT_FindMOHAASun();\n'
+                  '\t\t} else if ( !RT_FindRitualSun() ) {\n\t\t\tRT_FindSun();\n\t\t}\n')
         # both the emitting modes and the baked ones
         self.assertEqual(build.count(branch), 2)
         self.assertEqual(build.count('RT_FindSun();'), 2)
-        self.assertIn('ri.gameId == COM_GAME_MOHAA ? "worldspawn" : s_rtLights.q3map2 ? "q3map2" : "q3map",', build)
+        self.assertIn('ri.gameId == COM_GAME_MOHAA ? "worldspawn" : s_rtLights.entitySun ? "entity" :\n'
+                      '\t\t\ts_rtLights.q3map2 ? "q3map2" : "q3map",', build)
         self.assertIn('ri.gameId == COM_GAME_MOHAA ? "worldspawn diffuse" : "q3map2",', build)
         # the emitters' even sky asks for the diffuse sun, zero elsewhere
         sky = function(lights, 'static void RT_FindSkyLightColor(')

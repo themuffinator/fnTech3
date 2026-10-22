@@ -202,29 +202,82 @@ run.
   had a shadowed dynamic light in reach without input, so Enemy Territory's
   and Medal of Honor's dynamic-light casters have source and unit evidence
   only.
-- **Probe stalls.** Two runs stopped before any capture and were run again
-  under a new name: an Alice client (once with each build) that never loaded
-  its client game after the map load restarted its renderer, and an Enemy
-  Territory client that the server set to zombie right after its connect
-  response. Both stalls happened before the first frame of the level, with
-  the same engine executable on both sides.
+- **Probe stalls.** Three runs stopped before any capture and were run again
+  under a new name: two Alice clients (one with each build) and an Enemy
+  Territory one, each set to zombie by the server right after its connect
+  response, before the first frame of the level, with the same engine
+  executable on both sides. The cause is found and fixed under Follow-ups.
 
 The captures, masks and console logs are in `.tmp/fnq-shadows/runs/`
 (`*-final-before`, `*-final-after`); the JSON lists their hashes.
 
-## Unrelated observations
+## Follow-ups
 
-- The sun shadows darken what they cover by a fixed share -- the sun colour
-  scaled to unit length, times `r_csmShadowStrength` -- however bright the
-  sun is, on every profile. [I] On a dim sun such as F.A.K.K.2's `shield`
-  ("11 12 18") that is deeper than the light the sun adds to its lightmaps.
-- RTX's path tracer takes no sun from Alice's and F.A.K.K.2's entity keys
-  (`RT_FindSun` reads sky shaders only; Medal of Honor has `RT_FindMOHAASun`),
-  so those maps trace without a sun.
-- `code/renderercommon/tr_mohaa_world.c` and `code/qcommon/cm_mohaa_lights.c`
-  match Medal of Honor's sun keys without regard to case, where the renderer's
-  flare and shadow reader and OpenMoHAA match them exactly; every installed
-  map writes them in lower case.
-- Alice's listen-server start sometimes stops after the map load's renderer
-  restart (two of seven runs here), and an Enemy Territory local connect once
-  went straight to zombie; see the probe stalls above.
+This slice's first commit found four problems outside its scope. Three are
+fixed here; the fourth stays open.
+
+### RTX's path tracer had no sun on Alice and F.A.K.K.2 maps
+
+`RT_FindSun` reads only a sky shader's `q3map_sun`, and Medal of Honor alone
+had its own reader (`RT_FindMOHAASun`), so every Alice and F.A.K.K.2 map
+traced without a sun. `RT_FindRitualSun` (`code/rendererrtx/rt/rt_lights.c`)
+now gives the tracer the entity sun under the two Ritual profiles, read with
+the same `RitualModelLight_Keys`, refused below the horizon as the shadows
+refuse it, and falls back to `RT_FindSun` for a level that names none. The
+sun is given in lightmap bytes, `suncolor` as is:
+
+- **Observed.** Opposite vertical walls of every Alice and F.A.K.K.2 map with
+  a sun, measured as the Medal of Honor record measured them
+  (`.tmp/fnq-shadows/tools/ritual_walls.py`): the sunward wall is brighter by
+  1.0 to 1.3 times `suncolor` x cos on `fakkhouse` (1.05), `gruff` (1.05),
+  `end` (1.01) and `homes1` (1.26), and by less (0.1 to 0.8) on the cliff,
+  swamp and town maps and on Alice's four, whose lit walls saturate at
+  `suncolor` 223.
+- **[I]** The compiler stored the sun as `suncolor` times the cosine, as
+  2015's did; the low pairs are sunward walls that stand in shade.
+- **Live.** On `fakkhouse` under `cl_renderer rtx` (path traced, the view of
+  the table above), the before runtime logged that the sky shader
+  `textures/eden/sky/morningsky` has no `q3map_sun`; the after one logs "entity
+  sun 56.0 56.0 50.0 toward 0.390 0.162 0.906". The sunlit path's mean sRGB
+  rose from 36.9 25.8 13.7 to 119.8 88.7 52.0, where GLx's baked lightmaps
+  give 100.7 73.1 43.1, and the tree and the buildings cast traced shadows
+  (Julie, a TIKI model, is drawn the normal way and casts none in the
+  trace).
+
+### Medal of Honor's sun keys were matched without regard to case
+
+`code/renderercommon/tr_mohaa_world.c` (the light grid's sun and ambient) and
+`code/qcommon/cm_mohaa_lights.c` (the client game's foot-shadow lights) read
+`suncolor`, `sunlight`, `sundirection` and `ambientlight` with `Q_stricmp`,
+where 2015's renderer, as OpenMoHAA's `R_Sphere_InitLights` reads it, and
+fnTech3's flare and shadow reader match them exactly. Both now match exactly.
+No installed map writes them in another case, so no installed map changes.
+
+### A local client was dropped after a long map load
+
+The two stalled probe runs above were not stalls in the map load. In both
+logs the server answered the client's connect and set the client to zombie
+in the same frame, before the client's first packet; the client then sat
+until its own 200-second timeout ("Server connection timed out.") and
+restarted its renderer at the menu. The rule that drops a just-connected
+client after four seconds of silence (`SV_CheckTimeouts`) measures
+`svs.time`, which fnTech3 advances by real time; [I] the frame after a long
+map load adds the whole load at once, so a client whose connect was stamped
+just before read as four seconds silent. Alice's `grounds1` rebuilds its
+path nodes in every fresh home, a long load. The rule now skips the local
+(loopback) client, which answers from the same process; remote clients and
+every other timeout keep it. With the fix Alice's local start connected in
+6 runs of 6 (it had stalled in 2 of 7) and Enemy Territory's in 3 of 3.
+`tests/rtcw_cast_lifecycle_tests.py` checks that a local client past the
+four seconds is kept.
+
+### Open: the sun shadows darken by a fixed share
+
+The sun shadows darken what they cover by the sun colour scaled to unit
+length, times `r_csmShadowStrength`, however much of a receiver's light the
+sun gives, on every profile. On F.A.K.K.2's `shield`, whose start is a
+lamp-lit room under a roof and whose sun is a faint "11 12 18", turning them
+on darkened 31 % of the frame (mean luma 50.4 to 42.1) and tinted the room,
+which the sun does not light. World surfaces in the world's own shadow are
+shaded twice, once in their lightmaps and again by the cascades. A fix
+changes how every game's sun shadows look and is left for a decision.

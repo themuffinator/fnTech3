@@ -2288,5 +2288,202 @@
    "native": "meson test, every fnTech3 test but the pytest bundle: 274 OK, 0 failed, 2 skipped",
    "pytest": "610 files, one pytest process each, four at a time (2421 s): 598 passed, 9 collect nothing (script-style), 3 failed only in TemporaryDirectory cleanup with WinError 5 on a just-run probe executable (mohaa_effect_submission_tests, server_drop_notice_tests, wolfet_bot_broadcast_tests) and passed when run again alone"
   }
+ },
+ "followUps": {
+  "runtime": {
+   "path": ".tmp/fnq-shadows/runtime/final2 (the export with these follow-ups)",
+   "identities": {
+    "fntech3.exe": "806049c2f90474a429aa0be3b219e39204a584a0e42c9e9abc690d991e1cbfb4",
+    "fnql_glx_x86.dll": "3c859ff42af6ae2509da6728c29b5f4041e9d5e6525df5a6f522b97fd8147ec3",
+    "fnql_vk_x86.dll": "75c19d9cc58869cf945d0ab6b9f47ec5dc934fb85fc52a51b8b2b24bfe9688be",
+    "fnql_rtx_x86.dll": "c435202ee45d812cce88de8b380aaf98c6a5819c4855e6ab40d33fc021381b41"
+   }
+  },
+  "rtxRitualSun": {
+   "function": "RT_FindRitualSun (code/rendererrtx/rt/rt_lights.c)",
+   "wallFit": {
+    "alice": {
+     "summary": {
+      "pairs": 11,
+      "median": 0.429,
+      "p25": 0.289,
+      "p75": 0.559
+     },
+     "perMapMedian": {
+      "maps/grounds1.bsp": -0.15633333333333338,
+      "maps/rchess1.bsp": 0.616,
+      "maps/wchess1.bsp": 0.429,
+      "maps/wchess2.bsp": 0.496
+     }
+    },
+    "fakk2": {
+     "summary": {
+      "pairs": 136,
+      "median": 0.535,
+      "p25": 0.067,
+      "p75": 1.081
+     },
+     "perMapMedian": {
+      "maps/cemetery.bsp": 0.39299999999999996,
+      "maps/cliff1.bsp": 0.8388333333333333,
+      "maps/cliff2.bsp": 0.5305,
+      "maps/creeperpens.bsp": 0.387,
+      "maps/end.bsp": 1.0136666666666667,
+      "maps/fakkhouse.bsp": 1.0526666666666664,
+      "maps/gruff.bsp": 1.053,
+      "maps/gruff_cinema.bsp": 0.6116666666666667,
+      "maps/homes1.bsp": 1.2576666666666667,
+      "maps/homes1_fullvis.bsp": 1.2743333333333333,
+      "maps/homes2evil.bsp": 0.5476666666666667,
+      "maps/homes2good.bsp": 0.804,
+      "maps/landersroost.bsp": 0.58,
+      "maps/otto.bsp": null,
+      "maps/shield.bsp": -5.626333333333334,
+      "maps/swamp2.bsp": 0.1985,
+      "maps/swamp3.bsp": 0.1015,
+      "maps/towncenter_evil.bsp": 0.7203333333333334,
+      "maps/towncenter_good.bsp": 0.7186666666666666,
+      "maps/training.bsp": 0.6136666666666667
+     }
+    }
+   },
+   "wallFitScript": ".tmp/fnq-shadows/tools/ritual_walls.py",
+   "live": {
+    "before": {
+     "outcome": "exited",
+     "exit": 0,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "captures": [
+      {
+       "name": "rt.png",
+       "sha256": "9efb072ee0f89bd8ebb64df11e53ca724b6c19492711b909ceefbf0a2aabc061"
+      },
+      {
+       "name": "rt2.png",
+       "sha256": "eb1437e5043f5641003d5bd8cd6f4d21fbbf079f7c00bac391d7ccb446336d54"
+      }
+     ],
+     "log": "the first sky surface's shader textures/eden/sky/morningsky has no q3map_sun"
+    },
+    "after": {
+     "outcome": "exited",
+     "exit": 0,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "captures": [
+      {
+       "name": "rt.png",
+       "sha256": "697886922badd2d880cc0b7d24436f89957292eff11c8e6176306886cbe220cd"
+      },
+      {
+       "name": "rt2.png",
+       "sha256": "b8094ef5e536a196a66ff32a511b9e939ca2250081d47e86eca473386c60453a"
+      }
+     ],
+     "log": "RTX RT: entity sun 56.0 56.0 50.0 toward 0.390 0.162 0.906"
+    },
+    "sunlitPathMeanSRGB": {
+     "before": [
+      36.9,
+      25.8,
+      13.7
+     ],
+     "after": [
+      119.8,
+      88.7,
+      52.0
+     ],
+     "glxBaked": [
+      100.7,
+      73.1,
+      43.1
+     ]
+    },
+    "wholeFrameMeanSRGB": {
+     "before": [
+      51.0,
+      46.1,
+      39.3
+     ],
+     "after": [
+      95.7,
+      86.7,
+      67.4
+     ],
+     "glxBaked": [
+      91.2,
+      83.6,
+      70.0
+     ]
+    },
+    "map": "fakkhouse",
+    "renderer": "rtx (rtx_rt_mode 2, path traced, compute backend)"
+   }
+  },
+  "mohaaKeyCase": {
+   "files": [
+    "code/renderercommon/tr_mohaa_world.c",
+    "code/qcommon/cm_mohaa_lights.c"
+   ],
+   "keys": [
+    "suncolor",
+    "sunlight",
+    "sundirection",
+    "ambientlight"
+   ],
+   "reference": "OpenMoHAA renderergl1/tr_sphere_shade.cpp R_Sphere_InitLights uses strcmp (reference observation)",
+   "installedMapsChanged": 0
+  },
+  "localConnectDrop": {
+   "file": "code/server/sv_main.cpp SV_CheckTimeouts",
+   "observed": "in the three stalled runs the server set the client to zombie in the frame that answered its connect; the client later printed \"Server connection timed out.\" (cl_timeout 200 s)",
+   "inferred": "svs.time advances by real time and the frame after a long map load adds the whole load, so the just-connected rule (4 s) dropped the local client",
+   "fix": "the just-connected deadline skips NA_LOOPBACK clients",
+   "stalledBefore": {
+    "alice": "2 of 7 runs",
+    "wolfet": "1 of 5 runs"
+   },
+   "after": {
+    "alice": [
+     "exited",
+     "exited",
+     "exited",
+     "exited",
+     "exited",
+     "exited"
+    ],
+    "wolfet": [
+     "exited",
+     "exited",
+     "exited"
+    ]
+   }
+  },
+  "open": {
+   "sunShadowShare": {
+    "observed": "shield (FAKK2) start room, lamp-lit under a roof, sun 11 12 18: r_csmShadows darkened 31.4% of the frame, mean luma 50.44 to 42.09, repeat-stable 99.1%",
+    "run": {
+     "outcome": "exited",
+     "exit": 0,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "7f9e1457fb9c0bf1bddc1d106b04f2738bc3c7bdf074a568fb5c651c87b315a8"
+      },
+      {
+       "name": "off.png",
+       "sha256": "4e445fe2689697aa8b0285f127db1eae3a9e7251549dfb18318c8778f2abdef9"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "919928b5b4fc6b6c02fc3a5cb9b198e1b7858b636e4e93acc2aa32566794ffe6"
+      }
+     ]
+    }
+   }
+  }
  }
 }

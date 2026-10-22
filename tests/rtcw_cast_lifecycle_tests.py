@@ -188,6 +188,14 @@ template<class F> void timeouts(F &f){
   SV_CheckTimeouts();bool kept=sp&&flags&&!absent;
   assert(c.state==(kept?CS_ACTIVE:CS_FREE)&&count("rateDrop")==!kept);
  }
+ // The local client is never dropped by the admission deadline: a long map
+ // load could add more than its four seconds in the frame that answered its
+ // connect. The ordinary timeout still counts.
+ for(int flags:{0,16}){
+  f.reset(flags,false);auto &c=f.client();c.justConnected=qtrue;c.lastPacketTime=svs.time-5000;
+  SV_CheckTimeouts();
+  assert(c.state==CS_ACTIVE&&count("rateDrop")==0&&c.justConnected);
+ }
  // Zombie reclamation and clock correction precede cast checks. An already
  // free slot or expired zombie may retain an unusable old entity pointer.
  for(auto state:{CS_FREE,CS_ZOMBIE}){

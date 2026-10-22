@@ -133,6 +133,7 @@ typedef struct {
 	qboolean		noShaderSun;
 	qboolean		q3map2Shaders;	// the map's shaders use what only q3map2 reads
 	qboolean		sunValid;
+	qboolean		entitySun;		// Alice's or F.A.K.K.2's, from the entity keys
 	vec3_t			sunLight;		// q3map units: colour * intensity
 	vec3_t			sunDirection;	// toward the sun
 	float			sunDeviance;	// q3map_sunExt's spread, radians (0 for none)
@@ -1836,6 +1837,49 @@ static void RT_FindMOHAASun( void )
 }
 
 /*
+Alice's and F.A.K.K.2's sun, which their maps give in their entities and no
+sky of theirs does (docs/fntech3/2026-10-22-fnq-shadow-formats.md):
+`suncolor` and `sundirection` from anywhere in the entity text, the last of
+each winning, as the engines' model light reads them (RitualModelLight_Keys),
+the angles' forward vector pointing toward the sun. [I] Their compiler
+stored the sun as Medal of Honor's did, `suncolor` times the cosine in
+lightmap bytes: between opposite walls the sunward one is brighter by about
+that on `fakkhouse`, `gruff`, `end` and `homes1` (1.0 to 1.3 times it), and
+by less on maps whose sunward walls stand in shade. A sun at or below the
+horizon -- F.A.K.K.2's `otto` -- lights nothing,
+as the sun shadows take none. A level that names no sun keeps its sky's, if
+any (RT_FindSun).
+*/
+static qboolean RT_FindRitualSun( void )
+{
+	ritualModelLights_t keys;
+	vec3_t direction;
+	int i;
+
+	if ( !COM_GAME_ID_IS_RITUAL( ri.gameId ) || !tr.world || !tr.world->entityString ) {
+		return qfalse;
+	}
+	Com_Memset( &keys, 0, sizeof( keys ) );
+	RitualModelLight_Keys( tr.world->entityString, (int)strlen( tr.world->entityString ), &keys );
+	if ( !keys.sun || !RT_Vec3Valid( keys.sunColor, RT_LIGHT_MAX_VALUE ) ||
+		!RT_Vec3Valid( keys.sunDirection, 2.0f ) ||
+		VectorNormalize2( keys.sunDirection, direction ) == 0.0f || !( direction[2] > 0.0f ) ) {
+		return qfalse;
+	}
+	for ( i = 0; i < 3; i++ ) {
+		s_rtLights.sunLight[i] = MAX( keys.sunColor[i], 0.0f );
+	}
+	if ( !( VectorLengthSquared( s_rtLights.sunLight ) > 0.0f ) ) {
+		VectorClear( s_rtLights.sunLight );
+		return qfalse;
+	}
+	VectorCopy( direction, s_rtLights.sunDirection );
+	s_rtLights.sunValid = qtrue;
+	s_rtLights.entitySun = qtrue;
+	return qtrue;
+}
+
+/*
 A map whose shaders use what only q3map2 reads was compiled by it, whatever
 its worldspawn says: q3map_sunExt, which id's q3map would not have lit with,
 and q3map_skyLight.
@@ -1998,7 +2042,7 @@ static qboolean RT_BuildLights( void )
 		RT_AddEmissiveSurfaces();
 		if ( ri.gameId == COM_GAME_MOHAA ) {
 			RT_FindMOHAASun();
-		} else {
+		} else if ( !RT_FindRitualSun() ) {
 			RT_FindSun();
 		}
 		if ( s_rtLights.mode == RT_LIGHTING_LEVEL ) {
@@ -2012,7 +2056,7 @@ static qboolean RT_BuildLights( void )
 		RT_AddSurfaceLights();
 		if ( ri.gameId == COM_GAME_MOHAA ) {
 			RT_FindMOHAASun();
-		} else {
+		} else if ( !RT_FindRitualSun() ) {
 			RT_FindSun();
 		}
 		RT_FindSkyLight();
@@ -2057,7 +2101,8 @@ static qboolean RT_BuildLights( void )
 	}
 	if ( s_rtLights.sunValid ) {
 		ri.Printf( PRINT_ALL, "RTX RT: %s sun %.1f %.1f %.1f toward %.3f %.3f %.3f\n",
-			ri.gameId == COM_GAME_MOHAA ? "worldspawn" : s_rtLights.q3map2 ? "q3map2" : "q3map",
+			ri.gameId == COM_GAME_MOHAA ? "worldspawn" : s_rtLights.entitySun ? "entity" :
+			s_rtLights.q3map2 ? "q3map2" : "q3map",
 			s_rtLights.sunLight[0], s_rtLights.sunLight[1], s_rtLights.sunLight[2],
 			s_rtLights.sunDirection[0], s_rtLights.sunDirection[1], s_rtLights.sunDirection[2] );
 		if ( s_rtLights.sunSamples > 1 ) {
