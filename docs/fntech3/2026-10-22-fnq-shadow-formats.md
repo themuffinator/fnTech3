@@ -148,6 +148,11 @@ still cast no dynamic-light shadow, as for every format.
   Medal of Honor's keys; `rtcw_light_tests.py`, `wolfet_draw_tests.py`,
   `q3_ihv_entity_renderer_tests.py`, `mohaa_permanent_decal_tests.py` and
   `bsp_profile_loader_tests.py` follow the new signatures and formats.
+- A `git archive` of the change's commit (`7a831c15`) built every target
+  with strict warnings; its native tests passed (274, 2 skipped) and 607 of
+  its 610 test files passed, the other three failing only when Windows held
+  a just-run probe executable during temporary-folder cleanup and passing
+  when run again.
 
 ### Live
 

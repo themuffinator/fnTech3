@@ -2280,6 +2280,13 @@
    ],
    "result": "all passed; entity_sun_shadow_tests' installed-map sweeps ran with FNTECH3_FAKK2_ROOT at the laid-down F.A.K.K.2 game: 4 Alice, 19 F.A.K.K.2 and 46 Medal of Honor suns"
   },
-  "rendererBuild": "fnql_glx_x86, fnql_vk_x86 and fnql_rtx_x86 of the export with this change, /W4 /WX: no warnings"
+  "rendererBuild": "fnql_glx_x86, fnql_vk_x86 and fnql_rtx_x86 of the export with this change, /W4 /WX: no warnings",
+  "exportValidation": {
+   "commit": "7a831c15",
+   "tree": "git archive of 7a831c15 with the subprojects extracted, its own git repository, Windows x86 debugoptimized, strict warnings (/W4 /WX), meson -j 4",
+   "build": "all targets built, no warnings",
+   "native": "meson test, every fnTech3 test but the pytest bundle: 274 OK, 0 failed, 2 skipped",
+   "pytest": "610 files, one pytest process each, four at a time (2421 s): 598 passed, 9 collect nothing (script-style), 3 failed only in TemporaryDirectory cleanup with WinError 5 on a just-run probe executable (mohaa_effect_submission_tests, server_drop_notice_tests, wolfet_bot_broadcast_tests) and passed when run again alone"
+  }
  }
 }
