@@ -363,8 +363,11 @@ game.
 - `r_spotShadows`: `1` lets the spotlights of [Static Map Lights](#static-map-lights)
   cast shadows too. Off by default. Restart.
 - `r_csmShadows`: `1` adds shadows from the sun in maps that have one, cast
-  by the world, models and doors. Models -- players, monsters, weapons on
-  the floor -- take every one of them. Walls and floors already carry the
+  by the world, models and doors. Lit models -- players, monsters, weapons
+  on the floor -- receive them while keeping their ambient light and the
+  light of nearby lamps. Artwork drawn at a fixed brightness keeps that
+  appearance. Leaves and fences cast their see-through patterns, and waving
+  materials keep their moving shapes. Walls and floors already carry the
   level's own shadows in their lighting, so they take only the shadows of
   models and doors, only where the sun reaches them, and only as dark as
   the sun's part of their light: a lamp-lit room under a roof stays as the
@@ -372,6 +375,13 @@ game.
   level itself rather than its sky, and fnTech3 takes it from there. Off by
   default. GLx and Vulkan, and RTX when it draws normally (`rtx_rt_mode 0`).
   Restart.
+- `r_csmResolution`: detail in each sun-shadow cascade, from `128` to `4096`.
+  Default `1024`. Higher values use more graphics memory and drawing time;
+  `512` costs less. fnTech3 lowers it if the shadow atlas exceeds the GPU's
+  limits. Restart.
+- `r_csmShadowStrength`: how much of the sun's light a shadow removes, from
+  `0` to `1` (the default). Ambient light is retained. Lower this if you prefer
+  gentler shadows.
 
 Fine-tuning, for odd-looking shadows -- speckles, flicker, or shadows that
 float off their objects: `r_dlightShadowBias` (default `4`),
@@ -385,10 +395,16 @@ Walls, curved surfaces and every game's models cast shadows, from dynamic
 lights and from the sun: Enemy Territory's soldiers and the characters of
 Alice, F.A.K.K.2 and Medal of Honor included. See-through patterns and
 moving surfaces such as waving flags cast none from dynamic lights.
+The [sun-shadow comparison](fntech3/2026-10-22-csm-lighting-fidelity.md)
+records the tested games and remaining limits.
 
 **Original model shadows.** `cg_shadows` is the game's own shadow under
 players, in games that have it: `0` off, `1` a soft blob, `2` sharp shadow
 shapes (these need a stencil buffer, `r_stencilbits 8`, the default), `3` flat black shadows.
+When sun or local-light shadow mapping becomes active, fnTech3 automatically
+sets `cg_shadows` to `0` to prevent overlapping shadows. If shadow mapping is
+disabled or unavailable, it leaves this setting alone. Turning shadow mapping
+off does not restore an earlier value; set `cg_shadows 1` if you want blobs again.
 
 **Game notes:**
 

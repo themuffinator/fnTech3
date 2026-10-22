@@ -649,3 +649,11 @@ No new unrelated failures were found in that integration. The RTX portal
 global-fog limitation and GLx versus Vulkan/RTX dynamic-light caster-count
 differences left open then are now resolved in the
 [portal-fog and caster-parity follow-up](2026-10-22-portal-fog-caster-parity.md).
+
+The later [CSM lighting fidelity comparison](2026-10-22-csm-lighting-fidelity.md)
+refines this record's receiver policy: a diffuse-lit model loses only its
+estimated sunlight, fixed-brightness materials retain their appearance, and
+baked lighting retains the level's authored ambient. It also replaces solid
+tree-card shadows with alpha-tested coverage. The forest tree-bake observation
+above remains valid; the earlier captures and counts describe the earlier
+implementation, not the refined result.

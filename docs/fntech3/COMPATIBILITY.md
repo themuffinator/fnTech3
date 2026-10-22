@@ -59,6 +59,17 @@ contract; RTCW SP additionally requires campaign, AI, and save/load evidence.
 
 ## Status
 
+The [CSM lighting fidelity comparison](2026-10-22-csm-lighting-fidelity.md)
+compares RTCW `forest` with sun shadows disabled and enabled. The shared
+raster policy preserves authored ambient and fixed-brightness materials,
+limits model shadowing to estimated sunlight, respects cutout and deformed
+caster materials, and refreshes runtime Ghoul2 poses. Receiver bounds avoid
+unneeded cascade submissions, and the atlas uses GPU attachment limits
+instead of the legacy image-resampling limit. The record separates cross-game
+runtime observations from source and numerical tests. Successful shadow-map
+publication disables the game's overlapping `cg_shadows` mode. No compatibility
+gate closes.
+
 The [FnQ shadow formats record](2026-10-22-fnq-shadow-formats.md) lets
 Enemy Territory's skeletal meshes and the Alice, F.A.K.K.2 and Medal of Honor
 TIKI models cast fnTech3's dynamic-light shadows, admits those and Return to

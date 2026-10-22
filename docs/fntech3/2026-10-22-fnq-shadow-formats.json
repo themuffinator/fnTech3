@@ -9951,5 +9951,16 @@
    "Vulkan/RTX infinite-plane culling admitted extra face receivers/casters"
   ],
   "preservesHistoricalEvidence": true
+ },
+ "csmLightingFollowup": {
+  "record": "2026-10-22-csm-lighting-fidelity.md",
+  "machineRecord": "2026-10-22-csm-lighting-fidelity.json",
+  "implementationCommit": "47c067ddce250099d17e55d6f48ae58070f41a8b",
+  "preservesHistoricalEvidence": true,
+  "refinements": [
+   "Bound model shadows to estimated sunlight and preserve authored ambient.",
+   "Classify fixed-brightness materials correctly and retain caster alpha coverage.",
+   "Disable cg_shadows after shadow-map publication."
+  ]
  }
 }

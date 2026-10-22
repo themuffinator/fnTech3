@@ -40,9 +40,11 @@ materials still need their own checks; see the [RTX guide](RTX.md#what-you-will-
 Dynamic-light and sun shadows now include Enemy Territory's soldiers and the
 characters of Alice, F.A.K.K.2 and Medal of Honor; Return to Castle
 Wolfenstein's characters also cast and receive sun shadows. Alice, F.A.K.K.2
-and Medal of Honor use the sun specified by each level. See the
-[Display guide](DISPLAY.md#dynamic-lighting-and-shadowing) for settings and
-the known RTCW `forest` limitation in RTX's normal drawing mode.
+and Medal of Honor use the sun specified by each level. Sun shadows preserve
+ambient lighting and fixed-brightness artwork, and follow cutout leaves and
+fences. See the [Display guide](DISPLAY.md#dynamic-lighting-and-shadowing)
+for settings and the [sun-shadow comparison](fntech3/2026-10-22-csm-lighting-fidelity.md)
+for the tested scenes and remaining limits.
 
 **Every game profile is available in every build**, including the normal
 download. **Experimental** means support is incomplete: expect missing features
