@@ -271,6 +271,10 @@ every other timeout keep it. With the fix Alice's local start connected in
 `tests/rtcw_cast_lifecycle_tests.py` checks that a local client past the
 four seconds is kept.
 
+A `git archive` of these follow-ups (`150d6230`) built every target with
+strict warnings; its native tests (274, 2 skipped) and all 610 test files
+passed.
+
 ### Open: the sun shadows darken by a fixed share
 
 The sun shadows darken what they cover by the sun colour scaled to unit

@@ -2484,6 +2484,12 @@
      ]
     }
    }
+  },
+  "exportValidation": {
+   "commit": "150d6230",
+   "build": "all targets, /W4 /WX, no warnings",
+   "native": "274 OK, 0 failed, 2 skipped",
+   "pytest": "610 files, one process each, four at a time (1577 s): 601 passed, 9 collect nothing (script-style), 0 failed"
   }
  }
 }
