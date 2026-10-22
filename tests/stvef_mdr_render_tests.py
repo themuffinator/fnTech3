@@ -76,7 +76,7 @@ struct trRefEntity_t {
         struct { int fullbright, darken; } stvef;
         struct { int active; } q3IHV;
     } e;
-    vec3_t ambientLight, directedLight, lightDir;
+    vec3_t ambientLight, directedLight, lightDir, csmSunLight;
     int ambientLightInt, lightingCalculated;
 };
 struct dlight_t { vec3_t origin, color; float radius; int rtcwShader; };
@@ -90,6 +90,8 @@ static cvar_t *r_ambientScale=&ambient, *r_directedScale=&directed, *r_debugLigh
 static void FnRTCWWorldGridScale(const int *,float *,float *) {}
 static bool R_UsesRTCWLighting() { return false; }
 static void LogLight(const trRefEntity_t *) {}
+// Sun capture is read-only; csm_lighting_tests exercises its separate budget.
+static void R_CSMCaptureEntitySun(trRefEntity_t *) {}
 #define myftol(x) ((int)(x))
 static struct { trRefEntity_t *currentEntity; } backEnd;
 static struct { int numVertexes; float normal[7][4]; } tess;
