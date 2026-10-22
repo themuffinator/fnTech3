@@ -159,6 +159,7 @@ static void S_FadeRTCWAllSounds(float volume,int time){operation=5;fadeVolume=vo
 static void S_ClearLoopingSoundsFrame(){operation=6;}
 static void S_ClearRTCWLoopingSounds(int mode){operation=7;fadeTime=mode;}
 static void S_UpdateEntityPosition(int,const float *){assert(false);}
+static void CL_LiquidFeedEntity(int,const float *){assert(false);}
 static void S_Respatialize(int,const float *,float (*)[3],int){assert(false);}
 static void S_AddRTCWLoopingSound(const float *,const float *,int,int,int){assert(false);}
 static void S_StartRTCWSound(const float *,int,int,int,int){assert(false);}

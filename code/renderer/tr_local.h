@@ -2970,7 +2970,9 @@ qboolean GL_ProgramAvailable( void );
 void GL_ProgramDisable( void );
 void GL_ProgramEnable( void );
 qboolean GL_DepthFadeProgramAvailable( void );
-void GL_DepthFadeProgramEnable( const shader_t *shader );
+// The variant that applies the stage's GL linear fog, measured radially or not.
+qboolean GL_DepthFadeFogProgramAvailable( void );
+void GL_DepthFadeProgramEnable( const shader_t *shader, qboolean fogged, qboolean radial );
 
 #ifdef USE_FBO
 extern qboolean		fboEnabled;
@@ -3557,6 +3559,8 @@ typedef enum {
 #endif
 	SPRITE_FRAGMENT,
 	DEPTH_FADE_FRAGMENT,
+	DEPTH_FADE_FOG_VERTEX,
+	DEPTH_FADE_FOG_FRAGMENT,
 #ifdef USE_FBO
 	LIQUID_VERTEX,
 	LIQUID_REFRACTION_FRAGMENT,

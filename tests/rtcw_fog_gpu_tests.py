@@ -114,8 +114,13 @@ int main(){
   backEnd.refdef.rtcw.snooperView=qtrue;RB_RTCWStageFog(&stage);
   assert(parameters[GL_FOG_START]==(profile==COM_GAME_RTCW_SP?110:10));
   assert(parameters[GL_FOG_END]==(profile==COM_GAME_RTCW_SP?1110:110));
+  // The liquid and depth-fade passes stand aside for this scene fog, and
+  // read which GL fog the stage set.
+  assert(RB_RTCWSceneFog()&&RB_RTCWAppliedFogMode()==1);
   shader.isSky=qtrue;RB_RTCWStageFog(&stage);assert(enabled&&glslColor[3]==2&&parameters[GL_FOG_DENSITY]==0.125f);
+  assert(RB_RTCWAppliedFogMode()==2);
   backEnd.projection2D=qtrue;RB_RTCWStageFog(&stage);RB_RTCWFogToggle(qtrue);assert(!enabled&&glslColor[3]==0);
+  assert(RB_RTCWAppliedFogMode()==0);
  }
  // American McGee's Alice's far plane: linear from the eye to the distance in
  // its colour times identityLight; a sky only when the plane culls; no 2D.
@@ -127,9 +132,13 @@ int main(){
  assert(RB_RTCWHasFog()&&enabled&&glslColor[3]==1&&parameters[GL_FOG_MODE]==GL_LINEAR);
  assert(parameters[GL_FOG_START]==0&&parameters[GL_FOG_END]==1500&&glslParams[3]==1);
  assert(fogColor[0]==0&&fogColor[1]==0.1f&&fogColor[2]==1&&fogColor[3]==1);
+ // The far plane is no scene fog the liquid and depth-fade passes stand
+ // aside for: they take its linear GL fog, measured from the eye.
+ assert(!RB_RTCWSceneFog()&&RB_RTCWAppliedFogMode()==1&&RB_RTCWAppliedFogRadial());
  // A surface taking the far-fog pass draws its stages unfogged; the view
  // keeps its fog for the rest.
  ritualPass=qtrue;RB_RTCWStageFog(&stage);assert(!enabled&&glslColor[3]==0&&RB_RTCWHasFog());
+ assert(RB_RTCWAppliedFogMode()==0);
  ritualPass=qfalse;RB_RTCWStageFog(&stage);assert(enabled&&glslColor[3]==1);
  stage.stateBits=GLS_SRCBLEND_ONE|GLS_DSTBLEND_ONE;RB_RTCWStageFog(&stage);
  assert(enabled&&fogColor[1]==0&&fogColor[2]==0);stage={};

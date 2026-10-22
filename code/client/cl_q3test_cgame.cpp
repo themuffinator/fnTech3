@@ -355,6 +355,7 @@ void QDECL Q3CG_AddLoopingSound( const float *origin, const float *velocity, sfx
 void QDECL Q3CG_UpdateEntityPosition( int entnum, const float *origin ) {
 	if ( entnum < 0 || entnum > 1024 ) Com_Error( ERR_DROP, "S_UpdateEntityPosition: bad entitynum %i", entnum );
 	S_UpdateEntityPosition( entnum, origin );
+	CL_LiquidFeedEntity( entnum, origin );
 }
 void QDECL Q3CG_Respatialize( int entnum, const float *origin, vec3_t axis[3] ) { S_Respatialize( entnum, origin, axis, 0 ); }
 sfxHandle_t QDECL Q3CG_RegisterSound( const char *name ) {
@@ -437,6 +438,7 @@ void QDECL Q3CG_RenderScene( const void *native ) {
 		return;
 	}
 	CL_EntityEditorAdjustView( &fd );
+	CL_LiquidFeedView( &fd );
 	re.RenderScene( &fd );
 }
 void QDECL Q3CG_SetColor( const float *rgba ) { re.SetColor( rgba ); }
@@ -840,6 +842,20 @@ std::string Text( const char *text ) { return Q3TestText( text ); }
 int CvarFlags( int flags ) { return Q3TestCvarFlags( flags ); }
 
 } // namespace fntech3::q3test::client
+
+/* The current frame's 204-byte entities: the number at 0, the type at 4 and
+ * the flags at 8 (fntech3_q3test_entityState_t); the player is the one its
+ * state names. */
+void CL_Q3TestLiquidCensus( clLiquidCensusVisit_t visit ) {
+	if ( !visit || !cl.snap.valid ) return;
+	visit( cl.snap.ps.clientNum, 0, cl.snap.ps.eFlags, qtrue );
+	const auto snap = q3cl::Snapshot( cl.snap.messageNum );
+	if ( !snap ) return;
+	for ( const auto &entity : snap->entities ) {
+		visit( q3wire::EntityNumber( entity ), static_cast<int>( q3wire::Load( entity.data() + 4, 4 ) ),
+			static_cast<int>( q3wire::Load( entity.data() + 8, 4 ) ), qfalse );
+	}
+}
 
 /* Loads and initialises the release's client game (CL_InitCGame, 1.05
  * 0x401280, 1.06 0x401530, 1.08 0x401fc0). */

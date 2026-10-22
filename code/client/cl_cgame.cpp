@@ -184,6 +184,64 @@ static qboolean cl_liquidFeedEnabled;
 static qboolean cl_liquidFeedWasEnabled;
 static int cl_underwaterFeedCheckFrame = INT_MIN;
 static qboolean cl_underwaterFeedEnabled;
+// The medium last reported, for the developer line that names each change.
+static int cl_underwaterLastContents;
+// The entity the census took for the local player: its own samples stand in
+// for the camera's (CL_UpdateLocalViewLiquidInteraction).
+static int cl_liquidLocalEntity = -1;
+
+/*
+ * Each profile's liquids and the entities whose motion disturbs them
+ * (docs/fntech3/2026-10-22-liquid-feeds-all-profiles.md). The collision model
+ * keeps a map's contents bits as its compiler wrote them, so the liquid bits
+ * are the profile's own; the renderers' liquid and underwater records read
+ * Quake III's, which CL_LiquidContents translates to. Bodies take the player
+ * rule, projectiles the projectile rule.
+ */
+struct clLiquidContract_t {
+	int lava, slime, water;		// the profile's own contents bits
+	int teleportBit;			// the eFlags bit an abrupt move toggles
+	std::array<int, 4> bodies;	// entity types that move like players
+	int numBodies;
+	int projectile;				// the projectile entity type, or -1
+};
+
+static const clLiquidContract_t &CL_LiquidContract( void ) {
+	// Quake III's, which RTCW, Enemy Territory, Elite Force, the IHV Test and
+	// Q3Test keep: liquids 8, 16 and 32 (their maps), players type 1,
+	// missiles type 3 and teleports bit 4 (the GPL sources; the IHV and
+	// Q3Test modules' own CG_AddCEntity, fire_rocket and TeleportPlayer).
+	static const clLiquidContract_t quake3 = {
+		CONTENTS_LAVA, CONTENTS_SLIME, CONTENTS_WATER, EF_TELEPORT_BIT, { ET_PLAYER }, 1, ET_MISSILE };
+	// Raven's maps carry lava 0x2, water 0x4 and slime 0x20000 (the retail
+	// Jedi maps; OpenJK surfaceflags.h). Their entity rule is still Quake III's.
+	static const clLiquidContract_t raven = {
+		0x2, 0x20000, 0x4, EF_TELEPORT_BIT, { ET_PLAYER }, 1, ET_MISSILE };
+	// Ritual's client game splashes ET_PLAYER (1) and ET_MODELANIM (0), its
+	// actors and animated projectiles (Alice's cgamex86.dll 0x300228e0,
+	// F.A.K.K.2's 0x30020cb5); its ET_MISSILE is an error there.
+	static const clLiquidContract_t ritual = { 8, 16, 32, 4, { 1, 0 }, 2, -1 };
+	// 2015's splashes ET_PLAYER (3), ET_VEHICLE (2), ET_MODELANIM (1) and
+	// ET_MODELANIM_SKEL (0) (MOHAA's cgamex86.dll 0x30020c26), and errors on
+	// its ET_MISSILE as Ritual's does.
+	static const clLiquidContract_t mohaa = { 8, 16, 32, 4, { 3, 2, 1, 0 }, 4, -1 };
+
+	const comGameProfile_t *profile = Com_GameProfile();
+	switch ( profile ? profile->id : COM_GAME_QUAKE3 ) {
+	case COM_GAME_JKA_SP:
+	case COM_GAME_JKA_MP:
+	case COM_GAME_JK2_SP:
+	case COM_GAME_JK2_MP:
+		return raven;
+	case COM_GAME_ALICE:
+	case COM_GAME_FAKK2:
+		return ritual;
+	case COM_GAME_MOHAA:
+		return mohaa;
+	default:
+		return quake3;
+	}
+}
 
 
 static qboolean CL_CaptureHidesHud( void ) {
@@ -199,8 +257,21 @@ static qboolean CL_LiquidOriginValid( const vec3_t origin ) {
 }
 
 
+// The profile's liquid bits, the mask its collision queries take.
+static int CL_LiquidMask( void ) {
+	const clLiquidContract_t &liquid = CL_LiquidContract();
+	return liquid.lava | liquid.slime | liquid.water;
+}
+
+
+// A point's liquid, in the Quake III bits (MASK_WATER) the renderers read.
 static int CL_LiquidContents( const vec3_t origin ) {
-	return CM_PointContents( origin, 0 ) & MASK_WATER;
+	const clLiquidContract_t &liquid = CL_LiquidContract();
+	const int contents = CM_PointContents( origin, 0 );
+
+	return ( ( contents & liquid.lava ) ? CONTENTS_LAVA : 0 ) |
+		( ( contents & liquid.slime ) ? CONTENTS_SLIME : 0 ) |
+		( ( contents & liquid.water ) ? CONTENTS_WATER : 0 );
 }
 
 
@@ -218,6 +289,8 @@ static void CL_ClearLiquidInteractionState( void ) {
 	CL_ResetLiquidMotionTracks();
 	cl_liquidKindSnapshot = -1;
 	cl_liquidServerCount = -1;
+	cl_liquidLocalEntity = -1;
+	cl_underwaterLastContents = 0;
 	cl_liquidFeedCheckFrame = INT_MIN;
 	cl_liquidFeedEnabled = qfalse;
 	cl_liquidFeedWasEnabled = qfalse;
@@ -250,6 +323,58 @@ static qboolean CL_LiquidInteractionFeedEnabled( void ) {
 }
 
 
+/*
+====================
+CL_LiquidCensusVisit
+
+One entity of the current snapshot, in its profile's own entity type and
+flags, or the local player. Only bodies and projectiles disturb a liquid.
+====================
+*/
+static void CL_LiquidCensusVisit( int number, int eType, int eFlags, qboolean local ) {
+	const clLiquidContract_t &liquid = CL_LiquidContract();
+	liquidInteractionSource_t source;
+	int i;
+
+	if ( number < 0 || number >= MAX_GENTITIES ) {
+		return;
+	}
+	if ( local ) {
+		source = LIQUID_INTERACTION_PLAYER;
+		cl_liquidLocalEntity = number;
+	} else if ( eType == liquid.projectile ) {
+		source = LIQUID_INTERACTION_PROJECTILE;
+	} else {
+		for ( i = 0; i < liquid.numBodies && liquid.bodies[i] != eType; i++ ) {
+		}
+		if ( i == liquid.numBodies ) {
+			return;
+		}
+		source = LIQUID_INTERACTION_PLAYER;
+	}
+
+	clLiquidEntityKind_t &kind = cl_liquidEntityKinds[number];
+	kind.valid = qtrue;
+	kind.source = source;
+	kind.eFlags = eFlags;
+}
+
+
+// The profiles whose snapshots are the engine's own: the local player from the
+// player state, then every entity the frame carries.
+static void CL_LiquidSnapshotCensus( clLiquidCensusVisit_t visit ) {
+	int i;
+
+	visit( cl.snap.ps.clientNum, ET_PLAYER, cl.snap.ps.eFlags, qtrue );
+	for ( i = 0; i < cl.snap.numEntities; i++ ) {
+		const entityState_t *state = &cl.parseEntities[
+			( static_cast<std::uint32_t>( cl.snap.parseEntitiesNum ) + i ) & ( MAX_PARSE_ENTITIES - 1 ) ];
+
+		visit( state->number, state->eType, state->eFlags, qfalse );
+	}
+}
+
+
 static void CL_RebuildLiquidEntityKinds( void ) {
 	int serverCount;
 	int i;
@@ -259,6 +384,7 @@ static void CL_RebuildLiquidEntityKinds( void ) {
 		CL_ResetLiquidMotionTracks();
 		cl_liquidKindSnapshot = -1;
 		cl_liquidServerCount = -1;
+		cl_liquidLocalEntity = -1;
 		return;
 	}
 
@@ -275,31 +401,23 @@ static void CL_RebuildLiquidEntityKinds( void ) {
 	cl_liquidServerCount = serverCount;
 	cl_liquidKindSnapshot = cl.snap.messageNum;
 	cl_liquidEntityKinds.fill( clLiquidEntityKind_t{} );
+	cl_liquidLocalEntity = -1;
 
-	if ( cl.snap.ps.clientNum >= 0 && cl.snap.ps.clientNum < MAX_GENTITIES ) {
-		clLiquidEntityKind_t &kind = cl_liquidEntityKinds[cl.snap.ps.clientNum];
-		kind.valid = qtrue;
-		kind.source = LIQUID_INTERACTION_PLAYER;
-		kind.eFlags = cl.snap.ps.eFlags;
-	}
-
-	for ( i = 0; i < cl.snap.numEntities; i++ ) {
-		const entityState_t *state = &cl.parseEntities[
-			( static_cast<std::uint32_t>( cl.snap.parseEntitiesNum ) + i ) & ( MAX_PARSE_ENTITIES - 1 ) ];
-		clLiquidEntityKind_t *kind;
-
-		if ( state->number < 0 || state->number >= MAX_GENTITIES ) {
-			continue;
-		}
-		if ( state->eType != ET_PLAYER && state->eType != ET_MISSILE ) {
-			continue;
-		}
-
-		kind = &cl_liquidEntityKinds[state->number];
-		kind->valid = qtrue;
-		kind->source = state->eType == ET_PLAYER ?
-			LIQUID_INTERACTION_PLAYER : LIQUID_INTERACTION_PROJECTILE;
-		kind->eFlags = state->eFlags;
+	// Medal of Honor, the IHV Test and Q3Test keep their frames in their own
+	// records; the engine's snapshot mirrors only their timing.
+	switch ( Com_GameProfile() ? Com_GameProfile()->id : COM_GAME_QUAKE3 ) {
+	case COM_GAME_MOHAA:
+		CL_MOHAALiquidCensus( CL_LiquidCensusVisit );
+		break;
+	case COM_GAME_QUAKE3_IHV:
+		CL_Q3IHVLiquidCensus( CL_LiquidCensusVisit );
+		break;
+	case COM_GAME_Q3TEST:
+		CL_Q3TestLiquidCensus( CL_LiquidCensusVisit );
+		break;
+	default:
+		CL_LiquidSnapshotCensus( CL_LiquidCensusVisit );
+		break;
 	}
 
 	for ( i = 0; i < MAX_GENTITIES; i++ ) {
@@ -311,12 +429,13 @@ static void CL_RebuildLiquidEntityKinds( void ) {
 
 
 static qboolean CL_TraceLiquidHit( const vec3_t start, const vec3_t end, vec3_t hit ) {
+	const int mask = CL_LiquidMask();
 	trace_t trace;
 
 	Com_Memset( &trace, 0, sizeof( trace ) );
-	CM_BoxTrace( &trace, start, end, nullptr, nullptr, 0, MASK_WATER, qfalse );
+	CM_BoxTrace( &trace, start, end, nullptr, nullptr, 0, mask, qfalse );
 	if ( trace.startsolid || trace.allsolid || trace.fraction < 0.0f || trace.fraction >= 1.0f ||
-		!( trace.contents & MASK_WATER ) || !CL_LiquidOriginValid( trace.endpos ) ) {
+		!( trace.contents & mask ) || !CL_LiquidOriginValid( trace.endpos ) ) {
 		return qfalse;
 	}
 
@@ -394,6 +513,9 @@ static void CL_EmitLiquidInteraction( const vec3_t origin, float radius, float s
 	interaction.source = source;
 	re.AddLiquidInteractionToScene( &interaction );
 	cl_liquidEmissionCount++;
+	Com_DPrintf( "liquid ripple: %s at %.0f %.0f %.0f, radius %.0f, strength %.2f, time %d\n",
+		source == LIQUID_INTERACTION_PLAYER ? "body" : "projectile", origin[0], origin[1], origin[2],
+		interaction.radius, interaction.strength, time );
 }
 
 
@@ -444,7 +566,7 @@ static void CL_UpdateLiquidMotionTrack( clLiquidMotionTrack_t *track,
 		kLiquidPlayerMaxTrackedSpeed : kLiquidProjectileMaxTrackedSpeed;
 
 	if ( elapsed > kLiquidMaxSampleGapMsec || !std::isfinite( speed ) || speed > maxSpeed ||
-		( ( track->eFlags ^ eFlags ) & EF_TELEPORT_BIT ) ) {
+		( ( track->eFlags ^ eFlags ) & CL_LiquidContract().teleportBit ) ) {
 		CL_SeedLiquidMotionTrack( track, source, origin, time, eFlags );
 		return;
 	}
@@ -536,7 +658,7 @@ static void CL_UpdateLiquidEntityPosition( int entityNum, const vec3_t origin ) 
 
 	CL_UpdateLiquidMotionTrack( &cl_liquidEntityTracks[entityNum], kind->source,
 		origin, cl.serverTime, kind->eFlags );
-	if ( kind->source == LIQUID_INTERACTION_PLAYER && entityNum == cl.snap.ps.clientNum ) {
+	if ( kind->source == LIQUID_INTERACTION_PLAYER && entityNum == cl_liquidLocalEntity ) {
 		cl_liquidLocalPlayerSampleTime = cl.serverTime;
 	}
 }
@@ -554,7 +676,8 @@ static void CL_UpdateLocalViewLiquidInteraction( const refdef_t *refdef ) {
 	}
 	// Jedi Academy's sky portal is a scene seen from the portal's own camera,
 	// drawn before the eye's: it is no camera that moves through liquid.
-	if ( refdef->jka.skyboxPortal ) {
+	// Enemy Territory's and RTCW's are drawn the same way.
+	if ( refdef->jka.skyboxPortal || refdef->wolfet.skyboxPortal || refdef->rtcw.skyboxPortal ) {
 		return;
 	}
 	if ( ( refdef->rdflags & RDF_HYPERSPACE ) || !CL_LiquidOriginValid( refdef->vieworg ) ) {
@@ -615,8 +738,9 @@ static void CL_UpdateUnderwaterView( const refdef_t *refdef ) {
 	}
 	// Jedi Academy's sky portal is drawn first, from the portal's camera, as
 	// part of what the eye sees: it takes the eye's medium, sampled for the
-	// eye's own view, rather than one sampled where the portal is.
-	if ( refdef->jka.skyboxPortal ) {
+	// eye's own view, rather than one sampled where the portal is. Enemy
+	// Territory's and RTCW's are drawn the same way.
+	if ( refdef->jka.skyboxPortal || refdef->wolfet.skyboxPortal || refdef->rtcw.skyboxPortal ) {
 		return;
 	}
 	// The hyperspace flash replaces the view entirely; leave the last sample in
@@ -628,9 +752,49 @@ static void CL_UpdateUnderwaterView( const refdef_t *refdef ) {
 		return;
 	}
 
-	view.contents = CM_PointContents( refdef->vieworg, 0 ) & MASK_WATER;
+	// The profile's liquid bits, handed over as Quake III's MASK_WATER bits.
+	view.contents = CL_LiquidContents( refdef->vieworg );
 	view.time = refdef->time;
+	if ( view.contents != cl_underwaterLastContents ) {
+		Com_DPrintf( "underwater view: medium 0x%x at %.0f %.0f %.0f, time %d\n", view.contents,
+			refdef->vieworg[0], refdef->vieworg[1], refdef->vieworg[2], view.time );
+		cl_underwaterLastContents = view.contents;
+	}
 	re.SetUnderwaterView( &view );
+}
+
+
+/*
+====================
+CL_LiquidFeedView
+
+The scene adapters outside the Quake III client-game path (RTCW, Enemy
+Territory, Alice, F.A.K.K.2, Medal of Honor, the IHV Test and Q3Test) call
+this with the view they are about to render: the underwater view's medium and
+the camera's own ripples, as CG_R_RENDERSCENE feeds them.
+====================
+*/
+void CL_LiquidFeedView( const refdef_t *refdef ) {
+	CL_UpdateLocalViewLiquidInteraction( refdef );
+	CL_UpdateUnderwaterView( refdef );
+}
+
+
+/*
+====================
+CL_LiquidFeedEntity
+
+A snapshot entity's position, from the call that tells the audio where it
+is, as CG_S_UPDATEENTITYPOSITION feeds it.
+====================
+*/
+void CL_LiquidFeedEntity( int entityNum, const vec3_t origin ) {
+	CL_UpdateLiquidEntityPosition( entityNum, origin );
+}
+
+
+qboolean CL_LiquidFeedWantsEntities( void ) {
+	return CL_LiquidInteractionFeedEnabled();
 }
 
 //extern qboolean loadCamera(const char *name);

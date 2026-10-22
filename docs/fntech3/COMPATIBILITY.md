@@ -823,6 +823,18 @@ every profile in three backend modes, and Outcast's `ffa_bespin` and Q3Test
 their vertical framing (presentation evidence; Source, Unit, Live subset).
 Zoom masks stretched over the widened world remain open. No gate closes.
 
+The [liquid feed record](2026-10-22-liquid-feeds-all-profiles.md)
+(2026-10-22) feeds the underwater view and liquid ripples from all sixteen
+profiles, each with its own maps' liquid bits (Raven's differ, so the Jedi
+games are corrected) and its own body and projectile types, read from the
+retail client and game modules where they could be. Windowed engine captures
+show the view going under water, slime or lava in RTCW, Enemy Territory,
+Alice, F.A.K.K.2, Medal of Honor, the IHV Test, Q3Test and Jedi Academy, and
+ripples are logged at each liquid's surface (rings seen in RTCW multiplayer
+and F.A.K.K.2). GLx now keeps enhanced liquids and soft particles under the
+Ritual far plane, as Vulkan and RTX do (presentation evidence; Source, Unit,
+Live subset). No gate closes.
+
 The [profile-scoped package update](2026-09-17-profile-packages.md) separates
 engine assets under `games/<profile>/<gamedir>/` in `fntech3-pkg.fnz` and
 incorporates the complete reviewed FnQuake3 package, including Team Arena.

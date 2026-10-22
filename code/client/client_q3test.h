@@ -41,6 +41,8 @@ void CL_Q3TestInitCGameModule( void );
 void CL_Q3TestShutdownCGame( void );
 void CL_Q3TestCGameConfigstringModified( int index );
 void CL_Q3TestCGameServerCommand( void );
+// cl_cgame.cpp's liquid census: the current frame's entities and player
+void CL_Q3TestLiquidCensus( clLiquidCensusVisit_t visit );
 
 // cl_q3test_ui.cpp: the release's menu module, or 1.05's engine menus
 vm_t *CL_Q3TestLoadUI( void );

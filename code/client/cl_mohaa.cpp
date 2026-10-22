@@ -544,6 +544,25 @@ const PlayerState *CL_MOHAAPlayerState( void ) {
 	return s.snap.valid ? &s.snap.ps : nullptr;
 }
 
+/* The current frame's entities as 1.00 sent them, and the player its state
+ * names, whose own entity the frame leaves out. 1.00's player state keeps no
+ * entity flags. */
+void CL_MOHAALiquidCensus( clLiquidCensusVisit_t visit ) {
+	const State &s = Client();
+
+	if ( !visit || !s.snap.valid ) {
+		return;
+	}
+	visit( s.snap.ps.clientNum, 0, 0, qtrue );
+	if ( s.parseEntitiesNum - s.snap.parseEntitiesNum >= kParseEntities ) {
+		return;
+	}
+	for ( int i = 0; i < s.snap.numEntities; i++ ) {
+		const EntityState &entity = ParseEntity( s.snap.parseEntitiesNum + i );
+		visit( entity.number, entity.eType, entity.eFlags, qfalse );
+	}
+}
+
 /*
 ==================
 CL_MOHAAWriteEyeInfo

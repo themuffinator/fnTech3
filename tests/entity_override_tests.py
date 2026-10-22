@@ -284,8 +284,8 @@ class ClientEditorWiringTests(unittest.TestCase):
             'code/client/client_rtcw_render_compat.hpp': ('CL_HudAdjustRefdef( &view );\n\t\t\tCL_EntityEditorAdjustView( &view );',),
             'code/client/client_wolfet_render_compat.hpp': ('CL_HudAdjustRefdef( &view );\n\t\t\tCL_EntityEditorAdjustView( &view );',),
             'code/client/cl_mohaa_cgame.cpp': ('CL_EntityEditorAdjustView( &view );',),
-            'code/client/client_alice_cgame.hpp': ('CL_EntityEditorAdjustView( &view );\n\tre.RenderScene( &view );',),
-            'code/client/cl_q3test_cgame.cpp': ('CL_EntityEditorAdjustView( &fd );\n\tre.RenderScene( &fd );',),
+            'code/client/client_alice_cgame.hpp': ('CL_EntityEditorAdjustView( &view );\n\tCL_LiquidFeedView( &view );\n\tre.RenderScene( &view );',),
+            'code/client/cl_q3test_cgame.cpp': ('CL_EntityEditorAdjustView( &fd );\n\tCL_LiquidFeedView( &fd );\n\tre.RenderScene( &fd );',),
         }
         for path, needles in sites.items():
             text = read(path).replace('\r\n', '\n')

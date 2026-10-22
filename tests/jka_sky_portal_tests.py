@@ -264,7 +264,10 @@ class JKASkyPortalTests(unittest.TestCase):
                      'static void CL_UpdateLocalViewLiquidInteraction( const refdef_t *refdef ) {'):
             with self.subTest(hook=name):
                 body = function(client, name)
-                self.assertIn('if ( refdef->jka.skyboxPortal ) {\n\t\treturn;\n\t}', body)
+                # Enemy Territory's and RTCW's portal skies are scenes of their
+                # own the same way, and reach these hooks through their adapters.
+                self.assertIn('if ( refdef->jka.skyboxPortal || refdef->wolfet.skyboxPortal || '
+                              'refdef->rtcw.skyboxPortal ) {\n\t\treturn;\n\t}', body)
                 self.assertLess(body.index('RDF_NOWORLDMODEL'), body.index('refdef->jka.skyboxPortal'))
         editor = function(read('code/client/cl_entity_editor.cpp'), 'void CL_EntityEditorAdjustView( refdef_t *refdef )')
         self.assertIn('refdef->jka.skyboxPortal', editor[:editor.index('if ( !portal )')])

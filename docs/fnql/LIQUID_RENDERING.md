@@ -7,10 +7,13 @@ and failed tracing retain this path; see the
 [RTX liquid record](../fntech3/2026-10-11-rtx-liquids.md).
 
 > **fnTech3 note.** Written for FnQL; the liquid effect is available in every
-> fnTech3 game. Its interaction ripples are fed from the Quake III-style
-> client-game path, which Quake III Arena, Quake Live and Elite Force use, and
-> it falls back to the plain path while RTCW's or Enemy Territory's own fog
-> draws. See the [Display Guide](../DISPLAY.md#enhanced-liquids).
+> fnTech3 game, and so are its interaction ripples: the Quake III-style
+> client-game path feeds them, and so does every other game's adapter
+> (`CL_LiquidFeedView`, `CL_LiquidFeedEntity`), each with its own maps' liquid
+> bits and its own body and projectile entity types. It falls back to the
+> plain path while RTCW's or Enemy Territory's own fog draws. See the
+> [Display Guide](../DISPLAY.md#enhanced-liquids) and the
+> [liquid feed record](../fntech3/2026-10-22-liquid-feeds-all-profiles.md).
 
 ## Scope
 
@@ -67,7 +70,7 @@ That depth copy is requested by `r_liquid` itself on both backends, so it is ind
 
 ## Client Visual Impulse Feed
 
-When both the master mode and ripple toggle are active, the engine-side client observes already available rendered entity and local-view motion. It classifies stable `ET_PLAYER` and `ET_MISSILE` positions, samples collision contents, finds liquid entry and exit boundaries, detects fast missile traversals whose two sampled endpoints are both dry, and emits periodic near-surface wakes while an entity moves through a liquid. Sampling rejects implausible motion, teleports, stale gaps, repeated stereo-frame samples, and invalid origins so snapshot discontinuities do not create giant rings.
+When both the master mode and ripple toggle are active, the engine-side client observes already available rendered entity and local-view motion. It classifies stable `ET_PLAYER` and `ET_MISSILE` positions (in fnTech3, each profile's own body and projectile types), samples collision contents, finds liquid entry and exit boundaries, detects fast missile traversals whose two sampled endpoints are both dry, and emits periodic near-surface wakes while an entity moves through a liquid. Sampling rejects implausible motion, teleports, stale gaps, repeated stereo-frame samples, and invalid origins so snapshot discontinuities do not create giant rings.
 
 Impulses cross the renderer export boundary as `liquidInteraction_t` records containing origin, initial radius, strength, time, and player/projectile source. They do not enter `entityState_t`, `playerState_t`, the cgame VM trap ABI, or network snapshots. Each renderer retains at most 16 recent records, coalesces near-duplicate events, supplies at most eight active impulses to a view, and expires each record after 2.4 seconds. The overlay expands and fades those records analytically; there is no persistent height field.
 

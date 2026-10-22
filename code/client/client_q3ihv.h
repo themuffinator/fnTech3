@@ -42,6 +42,8 @@ void CL_Q3IHVCGameServerCommand( void );
 bool CL_Q3IHVCGameFrame( int realtime, bool demo );
 // The weapon the client game last chose (import 61).
 int CL_Q3IHVCGameWeapon( void );
+// cl_cgame.cpp's liquid census: the current frame's entities and player
+void CL_Q3IHVLiquidCensus( clLiquidCensusVisit_t visit );
 
 namespace fntech3::q3ihv::client {
 class ClientData;
