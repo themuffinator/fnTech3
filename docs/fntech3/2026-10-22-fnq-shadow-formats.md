@@ -123,10 +123,10 @@ keeps its sky shader's sun alone.
 Invariant 11: this extends fnTech3's own shadow features -- the cascaded sun
 shadows, the dynamic lights' point and spot shadow atlas and their filters
 -- to each game's own models and its own sun. The games' original shadows
-(`cg_shadows`) are unchanged and remain the retail-exact option. Not done
-here: RTX's path tracer takes Alice's and F.A.K.K.2's sun from no entity
-keys yet (it reads Medal of Honor's), and see-through and deformed surfaces
-still cast no dynamic-light shadow, as for every format.
+(`cg_shadows`) are unchanged and remain the retail-exact option. The initial
+slice did not give RTX's path tracer Alice's and F.A.K.K.2's entity suns;
+the follow-up below adds them. See-through and deformed surfaces still cast
+no dynamic-light shadow, as for every format.
 
 ## Evidence
 
@@ -167,10 +167,10 @@ input, an empty home config and `r_csmShadows 1`, hosting the map with
 The engine's `screenshotPNG` took, a second apart, every shadow on, the sun
 shadows' strength at 0, the dynamic lights' shadow strength at 0, and every
 shadow on again; then `r_csmDebug` and `r_dlightShadowDebug` printed their
-counters for a second. "Sun shadow" is the share of the frame more than 12
-luma darker with the sun's shadows than without, among pixels the repeat
-leaves within 4. The installations and binaries were unchanged after every
-run.
+counters for a second. "Sun shadow" is the share of all frame pixels more
+than 12 luma darker with the sun's shadows than without and whose repeat
+stays within 4 luma. The installations and binaries were unchanged after
+every run.
 
 | Game, map, view | Renderer | Sun, before | Sun, after | Sun-shadow receivers, before / after | Sun shadow, before / after |
 | --- | --- | --- | --- | --- | --- |
@@ -580,10 +580,72 @@ also parses and its file totals agree.
 
 ## Combined main integration
 
-The broader shadow branch (`2cf81276`) is integrated with main's focused
-RTX portal-sky fix (`dc87b267`) and its existing Alice effects and Jedi
+The broader shadow branch (`2cf81276`) is integrated in `6ca834d7` with main's
+focused RTX portal-sky fix (`dc87b267`) and its existing Alice effects and Jedi
 changes. The merge keeps the expanded model casters, entity suns, baked-light
 receiver rules and shared sky-sun units together with the corrected RTX
 pass handling. Player guidance now describes the fixed `forest` behavior;
 the earlier captures and export results above retain their original build
 identities. Compatibility-gate status is unchanged.
+
+The existing Windows x86 `meson/build/win32-dev` preset rebuilt all targets
+with MSVC, `debugoptimized`, strict warnings, client and dedicated server
+enabled, and GLx, Vulkan and RTX. The build exited 0 without compiler
+warnings. The native suite passed 274 tests with no failures and two skips:
+OpenAL loopback was unavailable, and the retail factory probe's default
+Quake Live location was absent. Running that read-only probe with
+`FNQL_RETAIL_QL_PATH` set to the installed copy passed all five tests.
+OpenAL loopback remains untested.
+
+The 54 selected Python files cover every changed test plus the portal-pass,
+Alice effects, Ritual/MOHAA shader, renderer and documentation regressions:
+402 tests and 64,400 subtests passed, with no skips. Three of the selected
+script-style files passed in the native suite; the fourth, the shadow
+projection contract, passed directly. These are integration checks on an
+incremental build; the earlier full-suite export results retain their own
+commit identities.
+
+Fresh runtime checks used the stable executable above, windowed 800x600,
+isolated homes, no network or input, and an unswitched private desktop.
+All 18 runs exited normally, with no reported errors and with the binaries
+and installations unchanged. All 84 engine `screenshotPNG` captures were
+hashed and checked. Sixteen runs exercised the raster paths:
+
+| Map | Renderers | Receivers: world, model, baked | Sun-shadow frame share |
+| --- | --- | --- | --- |
+| RTCW `forest` | GLx / Vulkan / RTX raster | 104, 576, 104 each | 74.05% / 73.64% / 73.47% |
+| ET `oasis` | GLx / Vulkan / RTX raster | 5,025, 104, 5,033 each | 1.07% / 1.13% / 1.11% |
+| F.A.K.K.2 `fakkhouse` | GLx / Vulkan / RTX raster | 622, 112, 658 each | 0.92% / 0.88% / 0.88% |
+| MOHAA `m5l1a` | GLx / Vulkan / RTX raster | 1,609, 328/316/328, 1,753 | 0.91% / 0.92% / 0.96% |
+| Alice `grounds1` | RTX raster | 865, 328, 1,101 | 4.35% |
+| Q3 `q3dm6` | RTX raster | 1,116, 52, 1,116 | 3.45% |
+| Jedi Academy `mp/ffa2` | RTX raster | 172, 80, 172 | 1.70% |
+| F.A.K.K.2 `shield` | RTX raster | 155, 60, 171 | 1.25% |
+
+The measure is the fraction of all frame pixels darker by more than 12
+luma with sun shadows enabled, also requiring the repeat-on frame to stay
+within 4 luma. It controls for some motion; it is not an exact segmentation
+of every shadow. `forest` reports 335 casters and the same receiver counts
+on all 130 debug frames in each renderer. Its MDS body now joins the sun
+shadows while the RTX portal fix keeps the main-view atlas working.
+`shield` retains the room's baked lighting: mean luma is 51.87 with sun
+shadows and 52.60 without, with the remaining darkening on models.
+
+The other two runs used RTX's path tracer (`rtx_rt_mode 2`). Both validated
+an 800x600 primary dispatch on the compute backend; the x86 driver does not
+offer the hardware ray-tracing pipeline. `forest` logs its corrected
+`q3map sun 130.0 104.0 78.0`, and `fakkhouse` its
+`entity sun 56.0 56.0 50.0`. These are smoke checks of the merged paths, not
+new before/after image comparisons or hardware ray-tracing evidence.
+
+Build/test logs, the test-file list, reproducible probe scripts and
+`runtime-evidence.json` are retained under `.tmp/shadow-integration/`;
+captures and console logs are in its `runs/` directory. The JSON companion's
+`combinedMainIntegration` records the exact commands, identities, counters,
+capture hashes and log hashes. Final generated-document, player-manual and
+changelog checks passed: 25 tests and 840 subtests. Disposable runtime homes
+and test scratch were removed after retaining the captures and launch scripts.
+No new unrelated failures were found. The
+separate source-inferred RTX portal global-fog limitation and the existing
+GLx versus Vulkan/RTX dynamic-light caster-count differences remain as
+recorded in the [portal-sky record](2026-10-22-rtx-portal-sky-shadows.md#not-covered-and-open).

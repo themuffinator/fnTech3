@@ -158,12 +158,12 @@ This records the initial focused merge (`dc87b267`), before the broader
 shadow-format work was integrated.
 
 The focused integration was built on `3e1371b0`, with source fix `863969c6`
-and documentation `308cef72`. It carries only the portal-sky pass fix from
-`3369bee7` and the record and guidance from `abacf0f0`. It preserves main's
-existing caster eligibility and shading; the broader shadow-format work
-remains separate. In particular, main does not yet include that branch's
+and documentation `308cef72`. It carried only the portal-sky pass fix from
+`3369bee7` and the record and guidance from `abacf0f0`. It preserved main's
+then-existing caster eligibility and shading; the broader shadow-format
+work remained separate. That build did not include the broader branch's
 MDS/MDC sun-shadow eligibility or baked-receiver rules, so the historical
-335 casters / 576 model receivers above are not this build's expected counts.
+335 casters / 576 model receivers above were not its expected counts.
 
 The existing Windows x86 `meson/build/win32-dev` preset rebuilt the RTX
 renderer with strict warnings. The engine package was rebuilt with Meson's
@@ -190,6 +190,12 @@ branch's shading changes. Build/test logs and `runtime-evidence.json` are
 in `.tmp/rtcw-rtx-csm/merge-main/`; the captures and console logs are in
 `.tmp/rtcw-rtx-csm/runs/merge-main-{rtx,glx,vk}/`. The JSON companion's
 `mainIntegration` section records the exact launch arguments and identities.
+
+The subsequent [combined integration](2026-10-22-fnq-shadow-formats.md#combined-main-integration)
+at `6ca834d7` includes the broader shadow branch. Fresh `forest` runs now
+report 335 casters, 104 world receivers, 576 model receivers and 104 baked
+receivers in all three renderers. The JSON companion preserves the focused
+merge above and points to the combined evidence separately.
 
 ## Not covered, and open
 

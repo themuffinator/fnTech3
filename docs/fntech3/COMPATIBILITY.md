@@ -74,7 +74,10 @@ lightmaps); models take every sun shadow. The
 [final export validation](2026-10-22-fnq-shadow-formats.md#final-export-validation)
 also covers the shared sky-sun units used by the raster paths and RTX's
 path tracer: the build and suites passed after an isolated packaging rerun,
-with environment-dependent skips recorded. No compatibility gate closes.
+with environment-dependent skips recorded. The later
+[combined main integration](2026-10-22-fnq-shadow-formats.md#combined-main-integration)
+also passes its strict build, native and focused regression suites, and 18
+fresh runtime checks alongside the RTX portal-sky fix. No compatibility gate closes.
 
 [RTX shadows behind a portal sky](2026-10-22-rtx-portal-sky-shadows.md)
 lets RTX's raster path draw sun and dynamic-light shadows behind a portal

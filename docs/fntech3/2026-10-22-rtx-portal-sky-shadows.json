@@ -3816,5 +3816,24 @@
   "logs": ".tmp/rtcw-rtx-csm/merge-main/",
   "captures": ".tmp/rtcw-rtx-csm/runs/merge-main-{rtx,glx,vk}/",
   "unrelated": "No new unrelated failures. Existing GLx versus Vulkan/RTX light-caster counts and the source-inferred global-fog limitation remain recorded."
+ },
+ "subsequentBroaderIntegration": {
+  "testedCommit": "6ca834d733ca933732103ce6022bcd8b843eefe0",
+  "record": "2026-10-22-fnq-shadow-formats.md#combined-main-integration",
+  "machineRecord": "2026-10-22-fnq-shadow-formats.json",
+  "section": "combinedMainIntegration",
+  "forestCSM": {
+   "renderers": [
+    "glx",
+    "vk",
+    "rtx raster"
+   ],
+   "casters": 335,
+   "receiversWorld": 104,
+   "receiversEntity": 576,
+   "receiversBaked": 104,
+   "matchingDebugFramesPerRenderer": 130
+  },
+  "preservesHistoricalMainIntegration": true
  }
 }
