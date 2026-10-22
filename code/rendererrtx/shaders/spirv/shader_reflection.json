@@ -230,7 +230,7 @@
       "source": "csm_shadow.frag",
       "stage": "frag",
       "defines": [],
-      "byte_size": 10064,
+      "byte_size": 10288,
       "reflection": {
         "descriptor_bindings": [
           {

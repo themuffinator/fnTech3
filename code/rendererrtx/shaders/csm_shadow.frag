@@ -98,13 +98,16 @@ void main() {
 	}
 	float occlusion = 0.25 * mix(models_only, every_caster, texFactors.y);
 
-	// the sun's share of the baked light, S max(0, N.toSun) / L, held to 0..1;
-	// every caster takes the sun colour's share as it always did
+	// The sun's share of baked light; diffuse models provide their own share.
 	vec3 baked = texture(baked_light_texture, lightmap_st).rgb * baked_color;
 	float normal_length = length(normal);
 	float facing = normal_length > 0.0 ? max(dot(normal, lightVector.xyz) / normal_length, 0.0) : 0.0;
-	vec3 share = clamp(lightColor.rgb * facing / max(baked, vec3(1.0 / 255.0)), 0.0, 1.0);
-	share = max(share, vec3(texFactors.y));
+	vec3 sun = lightColor.rgb * facing;
+	// Overbright conversion can saturate the baked sample. Preserve the
+	// authored ambient/sun ratio even when their sum exceeds that sample.
+	vec3 share = clamp(sun / max(max(baked, fogColor.rgb + sun), vec3(1.0 / 255.0)), 0.0, 1.0);
+	// Models supply their removable sunlight fraction in the colour stream.
+	share = mix(share, baked_color, texFactors.y);
 
 	out_color = vec4(vec3(1.0) - occlusion * csmShadowColor.rgb * share, 1.0);
 }

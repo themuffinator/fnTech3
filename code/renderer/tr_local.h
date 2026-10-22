@@ -171,6 +171,7 @@ typedef struct {
 	vec3_t		ambientLight;	// color normalized to 0-255
 	int			ambientLightInt;	// 32 bit rgba packed
 	vec3_t		directedLight;
+	vec3_t		csmSunLight;	// estimated grid sun before dynamic lights
 #ifdef USE_PMLIGHT
 	vec3_t		shadowLightDir;	// normalized direction towards light
 #endif
@@ -989,6 +990,7 @@ typedef struct {
 	vec3_t		lightColor;
 	vec3_t		directionToSun;
 	vec3_t		sunLightmapColor;	// the sun as the lightmaps hold it, shifted as they are
+	vec3_t		ambientLightmapColor;	// retained ambient, in the same units
 	char		skyShaderName[MAX_QPATH];
 	csmCascadePlan_t cascades[CSM_MAX_CASCADES];
 } csmPlan_t;
@@ -1002,6 +1004,7 @@ typedef struct {
 	vec3_t		light;
 	float		intensity;
 	qboolean	unitColour;	// a sky sun stored at unit-length colour (tr_sky_sun_units.h)
+	vec3_t		ambientLight;	// authored ambient in compiler light units
 } worldSun_t;
 
 #define MAX_STATIC_MAP_LIGHTS 128
@@ -1924,6 +1927,7 @@ int			R_LerpTag( orientation_t *tag, qhandle_t handle, int startFrame, int endFr
 					 float frac, const char *tagName );
 int R_LerpTagEntity( orientation_t *tag, const refEntity_t *entity, const char *name, int first );
 void		R_ModelBounds( qhandle_t handle, vec3_t mins, vec3_t maxs );
+qboolean R_ModelIsRuntimeMDR( qhandle_t handle );
 
 void		R_Modellist_f (void);
 void		R_AdvertisementList_f( void );
@@ -2045,6 +2049,7 @@ typedef struct glstatic_s {
 	int windowHeight;
 	int captureWidth;
 	int captureHeight;
+	int maxRenderTargetSize; // GPU attachments bypass the legacy image resampler
 	int initTime;
 	qboolean deviceSupportsGamma;
 } glstatic_t;

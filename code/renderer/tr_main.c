@@ -972,7 +972,7 @@ static void R_PlanCascadedShadows( void )
 		tr.pc.c_csmSkippedAtlas++;
 		return;
 	}
-	if ( !R_CSMShadowAtlasLayout( cascadeCount, resolution, glConfig.maxTextureSize, &atlasLayout ) ) {
+	if ( !R_CSMShadowAtlasLayout( cascadeCount, resolution, gls.maxRenderTargetSize, &atlasLayout ) ) {
 		tr.pc.c_csmSkippedAtlas++;
 		return;
 	}
@@ -1008,6 +1008,11 @@ static void R_PlanCascadedShadows( void )
 	VectorCopy( lightColor, tr.csm.lightColor );
 	VectorCopy( tr.worldSun.directionToSun, tr.csm.directionToSun );
 	R_CSMSunLightmapColor( tr.csm.sunLightmapColor );
+	{
+		const int bits = r_mapOverBrightBits->integer - tr.overbrightBits;
+		const float scale = (float)ldexp( 1.0, bits < -16 ? -16 : bits > 16 ? 16 : bits ) / 255.0f;
+		VectorScale( tr.worldSun.ambientLight, scale, tr.csm.ambientLightmapColor );
+	}
 	Q_strncpyz( tr.csm.skyShaderName, tr.worldSun.shaderName, sizeof( tr.csm.skyShaderName ) );
 
 	splitNear = zNear;

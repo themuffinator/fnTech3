@@ -1,4 +1,5 @@
 #include "tr_local.h"
+#include "../renderercommon/tr_csm_model_light.h"
 #include "tr_common.h"
 #include "tr_glx_compat.h"
 #include "../renderercommon/tr_menu_blur.h"
@@ -1626,9 +1627,8 @@ void ARB_CSMShadowPass( void )
 	rows[2] = rows[0] - rows[1];
 	rows[3] = 0.0f;
 
-	// renderercommon/tr_csm_receivers.h: a baked receiver takes the models'
-	// shadow by the sun's share of its light, every other the shadow of
-	// every caster by the sun colour, as before
+	// Baked receivers retain authored ambient; diffuse models supply the
+	// estimated sun fraction in their vertex colour stream (shared policy).
 	baked = ( tess.csmReceiverKind == CSM_RECEIVER_LIGHTMAP ||
 		tess.csmReceiverKind == CSM_RECEIVER_VERTEX ) ? qtrue : qfalse;
 	lightmap = tess.csmReceiverKind == CSM_RECEIVER_LIGHTMAP ? tess.csmReceiverLightmap : NULL;
@@ -1642,9 +1642,9 @@ void ARB_CSMShadowPass( void )
 		toSun[1] = DotProduct( tr.csm.directionToSun, backEnd.or.axis[1] );
 		toSun[2] = DotProduct( tr.csm.directionToSun, backEnd.or.axis[2] );
 	} else {
-		shadowColor[0] = tr.csm.lightColor[0] * tr.csm.shadowStrength;
-		shadowColor[1] = tr.csm.lightColor[1] * tr.csm.shadowStrength;
-		shadowColor[2] = tr.csm.lightColor[2] * tr.csm.shadowStrength;
+		shadowColor[0] = tr.csm.shadowStrength;
+		shadowColor[1] = tr.csm.shadowStrength;
+		shadowColor[2] = tr.csm.shadowStrength;
 		VectorClear( sunLight );
 		sunLight[3] = 1.0f;
 		VectorClear( toSun );
@@ -1683,6 +1683,8 @@ void ARB_CSMShadowPass( void )
 	qglProgramLocalParameter4fvARB( GL_FRAGMENT_PROGRAM_ARB, 7, sunLight );
 	qglProgramLocalParameter4fvARB( GL_FRAGMENT_PROGRAM_ARB, 8, toSun );
 	qglProgramLocalParameter4fvARB( GL_FRAGMENT_PROGRAM_ARB, 9, rows );
+	qglProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 10,
+		tr.csm.ambientLightmapColor[0], tr.csm.ambientLightmapColor[1], tr.csm.ambientLightmapColor[2], 0.0f );
 
 	FBO_BindCSMShadowTexture( 1 );
 	qglDisable( GL_TEXTURE_2D );
@@ -1696,7 +1698,15 @@ void ARB_CSMShadowPass( void )
 	} else {
 		tess.svars.texcoordPtr[0] = tess.texCoords[0];
 	}
-	if ( tess.csmReceiverKind == CSM_RECEIVER_VERTEX ) {
+	if ( tess.csmReceiverKind == CSM_RECEIVER_ALL ) {
+		vec3_t localSun;
+		int i;
+		for ( i = 0; i < 3; ++i ) localSun[i] = DotProduct( tr.csm.directionToSun, backEnd.or.axis[i] );
+		VectorNormalize( localSun );
+		for ( i = 0; i < tess.numVertexes; ++i ) {
+			R_CSMModelShadowColor( backEnd.currentEntity, tess.normal[i], localSun, tess.svars.colors[i].rgba );
+		}
+	} else if ( tess.csmReceiverKind == CSM_RECEIVER_VERTEX ) {
 		Com_Memcpy( tess.svars.colors, tess.vertexColors, tess.numVertexes * sizeof( tess.vertexColors[0] ) );
 	} else {
 		Com_Memset( tess.svars.colors, 0xff, tess.numVertexes * sizeof( tess.svars.colors[0] ) );
@@ -1705,12 +1715,10 @@ void ARB_CSMShadowPass( void )
 	GL_State( GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO | GLS_DEPTHFUNC_EQUAL );
 	GL_Cull( CT_TWO_SIDED );
 	GL_ClientState( 1, CLS_NONE );
-	GL_ClientState( 0, CLS_TEXCOORD_ARRAY | CLS_COLOR_ARRAY | ( baked ? CLS_NORMAL_ARRAY : 0 ) );
+	GL_ClientState( 0, CLS_TEXCOORD_ARRAY | CLS_COLOR_ARRAY | CLS_NORMAL_ARRAY );
 	qglTexCoordPointer( 2, GL_FLOAT, 0, tess.svars.texcoordPtr[0] );
 	qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, tess.svars.colors[0].rgba );
-	if ( baked ) {
-		qglNormalPointer( GL_FLOAT, sizeof( tess.normal[0] ), tess.normal );
-	}
+	qglNormalPointer( GL_FLOAT, sizeof( tess.normal[0] ), tess.normal );
 	qglVertexPointer( 3, GL_FLOAT, sizeof( tess.xyz[0] ), tess.xyz );
 	R_DrawElements( tess.numIndexes, tess.indexes );
 	GL_SelectTexture( 1 );
@@ -2086,6 +2094,7 @@ static const char *csmShadowFP = {
 	"PARAM sunLight = program.local[7]; \n"
 	"PARAM toSun = program.local[8]; \n"
 	"PARAM rows = program.local[9]; \n"
+	"PARAM ambientLight = program.local[10]; \n"
 	"PARAM one = { 1.0, 1.0, 1.0, 1.0 }; \n"
 	"PARAM zero = { 0.0, 0.0, 0.0, 0.0 }; \n"
 	"PARAM half = { 0.5, 0.5, 0.5, 0.5 }; \n"
@@ -2205,24 +2214,26 @@ static const char *csmShadowFP = {
 	"MUL occModels, occModels, occWorld; \n"
 	"DP4 factor.y, occModels, quarter; \n"
 	"LRP factor.x, sunLight.w, factor.x, factor.y; \n"
-	// the sun's share of the baked light, S max(0, N.toSun) / L, held to
-	// 0..1; every caster takes the sun colour's share as it always did
+	// Retain authored ambient even in saturated baked light. For diffuse
+	// models, fragment.color is already the removable sunlight fraction.
 	"TEX baked, fragment.texcoord[3], texture[0], 2D; \n"
 	"MUL baked.xyz, baked, fragment.color; \n"
-	"MAX baked.xyz, baked, dim; \n"
-	"RCP share.x, baked.x; \n"
-	"RCP share.y, baked.y; \n"
-	"RCP share.z, baked.z; \n"
 	"DP3 surfNormal.w, fragment.texcoord[2], fragment.texcoord[2]; \n"
 	"ADD surfNormal.w, surfNormal.w, dim.w; \n"
 	"RSQ surfNormal.w, surfNormal.w; \n"
 	"MUL surfNormal.xyz, fragment.texcoord[2], surfNormal.w; \n"
 	"DP3 surfNormal.w, surfNormal, toSun; \n"
 	"MAX surfNormal.w, surfNormal.w, zero.x; \n"
-	"MUL baked.xyz, sunLight, surfNormal.w; \n"
-	"MUL share.xyz, share, baked; \n"
+	"MUL surfNormal.xyz, sunLight, surfNormal.w; \n"
+	"ADD share.xyz, ambientLight, surfNormal; \n"
+	"MAX baked.xyz, baked, share; \n"
+	"MAX baked.xyz, baked, dim; \n"
+	"RCP share.x, baked.x; \n"
+	"RCP share.y, baked.y; \n"
+	"RCP share.z, baked.z; \n"
+	"MUL share.xyz, share, surfNormal; \n"
 	"MIN share.xyz, share, one; \n"
-	"MAX share.xyz, share, sunLight.w; \n"
+	"LRP share.xyz, sunLight.w, fragment.color, share; \n"
 	"MUL share.xyz, share, shadowColor; \n"
 	"MAD factor.xyz, -factor.x, share, one; \n"
 	"MOV factor.w, one.x; \n"
@@ -4192,7 +4203,7 @@ static qboolean FBO_CSMShadowAtlasWanted( csmShadowAtlasLayout_t *layout )
 	return R_CSMShadowAtlasLayout(
 		r_csmCascadeCount ? r_csmCascadeCount->integer : CSM_MAX_CASCADES,
 		r_csmResolution ? r_csmResolution->integer : 1024,
-		glConfig.maxTextureSize, layout );
+		gls.maxRenderTargetSize, layout );
 #else
 	return qfalse;
 #endif

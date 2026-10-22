@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_shade.c
 
 #include "tr_local.h"
+#include "../renderercommon/tr_csm_model_light.h"
 #include "../renderercommon/tr_mohaa_shade.h"
 #include "../renderercommon/tr_q3_ihv_fog_vk.h"
 #include "../renderercommon/tr_ritual_far_fog_render.h"
@@ -1314,6 +1315,12 @@ static uint32_t VK_ShadowCasterPipeline( uint32_t pipeline )
 	vk_get_pipeline_def( pipeline, &def );
 	def.face_culling = tess.csmCasterPass ?
 		CT_TWO_SIDED : tess.shadowCasterCullType;
+	if ( tess.csmCasterPass ) {
+		def.state_bits &= ~( GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS );
+		def.depth_only = qtrue;
+		def.fog_stage = 0;
+		def.depth_fade = 0;
+	}
 	return vk_find_pipeline_ext( 0, &def, qfalse );
 }
 #endif
@@ -1484,6 +1491,9 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 		pStage = tess.xstages[ stage ];
 		if ( !pStage )
 			break;
+#ifdef USE_PMLIGHT
+		if ( tess.csmCasterPass && !( pStage->stateBits & GLS_DEPTHMASK_TRUE ) ) continue;
+#endif
 
 		// Alice's per-draw skips; the stage adds no tessellation flags
 		if ( RB_AliceSkipStage( pStage ) )
@@ -1570,12 +1580,12 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 		} else {
 			pipeline = pStage->vk_pipeline[fog_stage];
 		}
-#ifdef USE_PMLIGHT
-			pipeline = VK_ShadowCasterPipeline( pipeline );
-#endif
 		if ( forced || tinted ) {
 			pipeline = forcedPipeline;
 		}
+#ifdef USE_PMLIGHT
+			pipeline = VK_ShadowCasterPipeline( pipeline );
+#endif
 		if ( tess.rtDepthOnly ) {
 			pipeline = VK_RTDepthPipeline( pipeline );
 		}
@@ -1584,7 +1594,11 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 		vk_bind_geometry( tess_flags );
 		vk_draw_geometry( tess.depthRange, qtrue );
 
-		if ( pStage->depthFragment && !forced && !tess.rtDepthOnly ) {
+		if ( pStage->depthFragment && !forced && !tess.rtDepthOnly
+#ifdef USE_PMLIGHT
+			&& !tess.csmCasterPass
+#endif
+		) {
 			if ( backEnd.viewParms.portalView == PV_MIRROR )
 				pipeline = pStage->vk_mirror_pipeline_df;
 			else
@@ -2007,9 +2021,8 @@ void VK_CSMShadowPass( void )
 	uniform.csmSplitAtlas[2] = (float)( cascadeIndex * cascadeSize ) / (float)atlasWidth;
 	uniform.csmSplitAtlas[3] = (float)cascadeSize / (float)atlasWidth;
 
-	// renderercommon/tr_csm_receivers.h: a baked receiver takes the models'
-	// shadow by the sun's share of its light, every other the shadow of
-	// every caster by the sun colour, as before
+	// Baked receivers retain authored ambient; diffuse models supply the
+	// estimated sun fraction in their vertex colour stream (shared policy).
 	baked = ( tess.csmReceiverKind == CSM_RECEIVER_LIGHTMAP ||
 		tess.csmReceiverKind == CSM_RECEIVER_VERTEX ) ? qtrue : qfalse;
 	lightmap = tess.csmReceiverKind == CSM_RECEIVER_LIGHTMAP ? tess.csmReceiverLightmap : NULL;
@@ -2018,13 +2031,14 @@ void VK_CSMShadowPass( void )
 		uniform.csmShadowColor[1] = tr.csm.shadowStrength;
 		uniform.csmShadowColor[2] = tr.csm.shadowStrength;
 		VectorCopy( tr.csm.sunLightmapColor, uniform.light.color );
+		VectorCopy( tr.csm.ambientLightmapColor, uniform.fogColor );
 		uniform.light.vector[0] = DotProduct( tr.csm.directionToSun, backEnd.or.axis[0] );
 		uniform.light.vector[1] = DotProduct( tr.csm.directionToSun, backEnd.or.axis[1] );
 		uniform.light.vector[2] = DotProduct( tr.csm.directionToSun, backEnd.or.axis[2] );
 	} else {
-		uniform.csmShadowColor[0] = tr.csm.lightColor[0] * tr.csm.shadowStrength;
-		uniform.csmShadowColor[1] = tr.csm.lightColor[1] * tr.csm.shadowStrength;
-		uniform.csmShadowColor[2] = tr.csm.lightColor[2] * tr.csm.shadowStrength;
+		uniform.csmShadowColor[0] = tr.csm.shadowStrength;
+		uniform.csmShadowColor[1] = tr.csm.shadowStrength;
+		uniform.csmShadowColor[2] = tr.csm.shadowStrength;
 		uniform.texFactors[1] = 1.0f;
 	}
 	uniform.csmShadowColor[3] = 0.0f;
@@ -2047,7 +2061,15 @@ void VK_CSMShadowPass( void )
 	} else {
 		tess.svars.texcoordPtr[1] = tess.texCoords[0];
 	}
-	if ( tess.csmReceiverKind == CSM_RECEIVER_VERTEX ) {
+	if ( tess.csmReceiverKind == CSM_RECEIVER_ALL ) {
+		vec3_t toSun;
+		int i;
+		for ( i = 0; i < 3; ++i ) toSun[i] = DotProduct( tr.csm.directionToSun, backEnd.or.axis[i] );
+		VectorNormalize( toSun );
+		for ( i = 0; i < tess.numVertexes; ++i ) {
+			R_CSMModelShadowColor( backEnd.currentEntity, tess.normal[i], toSun, tess.svars.colors[0][i].rgba );
+		}
+	} else if ( tess.csmReceiverKind == CSM_RECEIVER_VERTEX ) {
 		Com_Memcpy( tess.svars.colors[0], tess.vertexColors, tess.numVertexes * sizeof( tess.vertexColors[0] ) );
 	} else {
 		Com_Memset( tess.svars.colors[0], 0xff, tess.numVertexes * sizeof( tess.svars.colors[0][0] ) );
@@ -2588,6 +2610,7 @@ void RB_EndSurface( void ) {
 
 #ifdef USE_PMLIGHT
 	if ( tess.csmShadowPass ) {
+		RB_DeformTessGeometry();
 		VK_CSMShadowPass();
 		tess.csmShadowPass = qfalse;
 		tess.numIndexes = 0;
@@ -2638,6 +2661,10 @@ void RB_EndSurface( void ) {
 	//
 	// call off to shader specific tess end function
 	//
+#ifdef USE_PMLIGHT
+	if ( tess.csmCasterPass ) RB_StageIteratorGeneric();
+	else
+#endif
 	tess.shader->optimalStageIteratorFunc();
 	if ( !tess.rtDepthOnly ) RB_CelOutlineTessEnd();
 

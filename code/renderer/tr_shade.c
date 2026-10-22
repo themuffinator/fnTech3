@@ -1965,6 +1965,9 @@ static void RB_IterateStagesGeneric( const shaderCommands_t *input )
 		pStage = tess.xstages[ stage ];
 		if ( !pStage )
 			break;
+#ifdef USE_PMLIGHT
+		if ( tess.csmCasterPass && !( pStage->stateBits & GLS_DEPTHMASK_TRUE ) ) continue;
+#endif
 
 		if ( RB_AliceSkipStage( pStage ) )
 			continue;
@@ -2834,6 +2837,7 @@ void RB_EndSurface( void ) {
 
 #ifdef USE_PMLIGHT
 	if ( tess.csmShadowPass ) {
+		RB_DeformTessGeometry();
 		ARB_CSMShadowPass();
 		tess.csmShadowPass = qfalse;
 		tess.numIndexes = 0;
@@ -2904,6 +2908,10 @@ void RB_EndSurface( void ) {
 	//
 #ifdef RENDERER_GLX
 	GLX_CompatPushShaderDebugGroup( tess.shader->name, input->numVertexes, input->numIndexes, tess.numPasses );
+#endif
+#ifdef USE_PMLIGHT
+	if ( tess.csmCasterPass ) RB_StageIteratorGeneric();
+	else
 #endif
 	tess.shader->optimalStageIteratorFunc();
 	RB_CelOutlineTessEnd();

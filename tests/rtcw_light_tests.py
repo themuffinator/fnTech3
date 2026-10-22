@@ -433,7 +433,7 @@ struct trRefEntity_t {
         fnQ3IHVEntityState_t q3IHV;
         float hilightIntensity; int entityNum; // Original-reference view, fixture only.
     } e;
-    qboolean lightingCalculated; vec3_t ambientLight,directedLight,lightDir,shadowLightDir; int ambientLightInt;
+    qboolean lightingCalculated; vec3_t ambientLight,directedLight,lightDir,shadowLightDir,csmSunLight; int ambientLightInt;
 };
 static struct { const void *lightGridData; q3IHVModelLightNode_t *q3IHVModelLight; } world;
 static struct { decltype(world) *world; float identityLight; int identityLightByte; vec3_t sunDirection; } tr{&world,1,255,{0,0,1}};
@@ -443,6 +443,9 @@ static cvar_t *r_dlightMode=&mode,*r_shadows=&shadow,*r_debugLight=&debug;
 static bool qglGenProgramsARB=true;
 static int gridCalls,logCalls;
 static void LogLight(trRefEntity_t *) { ++logCalls; }
+// The read-only sunlight snapshot is exercised by csm_lighting_tests.
+// These fixtures compare the existing total model lighting across profiles.
+static void R_CSMCaptureEntitySun(trRefEntity_t *) {}
 static void R_SetupEntityLightingGrid(trRefEntity_t *entity) {
     ++gridCalls; VectorSet(entity->ambientLight,10,20,30); VectorSet(entity->directedLight,40,50,60); VectorSet(entity->lightDir,0,0,1);
 }
@@ -518,6 +521,15 @@ int main() {
         assert(entity.ambientLight[0]==110 && entity.ambientLight[1]==120 && entity.ambientLight[2]==130);
         world.lightGridData=nullptr;
     }
+    // IHV's separate lighting contract cannot inherit a reused entity's sun.
+    ri.gameId=COM_GAME_QUAKE3_IHV;
+    trRefdef_t view{}; view.rdflags=RDF_NOWORLDMODEL;
+    trRefEntity_t entity{}; entity.e.q3IHV.active=qtrue;
+    entity.e.axis[0][0]=entity.e.axis[1][1]=entity.e.axis[2][2]=1;
+    VectorSet(entity.csmSunLight,120,80,40);
+    R_SetupEntityLighting(&view,&entity);
+    assert(entity.lightingCalculated && entity.csmSunLight[0]==0 &&
+           entity.csmSunLight[1]==0 && entity.csmSunLight[2]==0);
 }
 '''
 

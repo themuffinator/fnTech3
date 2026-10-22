@@ -7,16 +7,18 @@
  *
  * The cascade atlas keeps two layers for every cascade: the world's own
  * surfaces (CSM_LAYER_WORLD) and every entity's, brush models among them
- * (CSM_LAYER_MODELS). A model, or a surface its shader lights from the light
- * grid, takes the shadow of either layer, darkened by the sun colour as
- * before (CSM_RECEIVER_ALL).
+ * (CSM_LAYER_MODELS). A surface lit from the light grid takes either layer
+ * (CSM_RECEIVER_ALL), limited to its estimated sunlight. The model policy
+ * in tr_csm_model_light.h preserves ambient and dynamic lighting. A model
+ * is not implicitly lit: its shader must actually request that lighting.
  *
  * A surface whose light is baked, in a lightmap (CSM_RECEIVER_LIGHTMAP) or in
  * its vertex colours (CSM_RECEIVER_VERTEX), already holds the world's shadow:
  * the compiler traced its sun past the level's own brushes and models. It
  * takes only the models' shadow, only where the world layer leaves it in the
  * sun, and only the sun's share of its light, per channel:
- * S x max(0, N . toSun) / L, held to 0..1, where L is its baked light and S
+ * S x max(0, N . toSun) / L, bounded by the authored ambient/sun ratio
+ * when overbright conversion saturates L. L is its baked light and S
  * the sun in the same units. Every profile's compiler stored its sun so, in
  * lightmap bytes: q3map's `q3map_sun` as colour x intensity x cos, 2015's and
  * Ritual's worldspawn suns as `suncolor` x cos, which their lightmaps were
@@ -24,7 +26,7 @@
  * docs/fntech3/2026-10-22-fnq-shadow-formats.md). The renderer shifts S as
  * it shifts the lightmaps (csmPlan_t.sunLightmapColor).
  *
- * A world or brush surface lit by neither -- full bright, a constant or
+ * A surface lit by neither -- full bright, a constant or
  * entity colour -- is not lit by the sun and takes none (CSM_RECEIVER_NONE).
  *
  * Included by a renderer's tr_backend.c after its types. */
@@ -70,10 +72,8 @@ static int R_CSMReceiverKind( const shader_t *shader, qboolean model, const text
 	if ( !shader ) {
 		return CSM_RECEIVER_NONE;
 	}
-	if ( model ) {
-		return CSM_RECEIVER_ALL;
-	}
 
+	if ( shader->remappedShader ) shader = shader->remappedShader;
 	*lightmap = R_CSMReceiverLightmapBundle( shader );
 	if ( *lightmap ) {
 		return CSM_RECEIVER_LIGHTMAP;
@@ -89,10 +89,13 @@ static int R_CSMReceiverKind( const shader_t *shader, qboolean model, const text
 			switch ( R_CSM_RGBGEN( pStage, b ) ) {
 				case CGEN_EXACT_VERTEX:
 				case CGEN_VERTEX:
-				case CGEN_MOHAA_LIGHTING:	/* the map's colours, on the world */
-					return CSM_RECEIVER_VERTEX;
+					if ( !model ) return CSM_RECEIVER_VERTEX;
+					break;
+				case CGEN_MOHAA_LIGHTING:
+					return model ? CSM_RECEIVER_ALL : CSM_RECEIVER_VERTEX;
 				case CGEN_LIGHTING_DIFFUSE:
-					return CSM_RECEIVER_ALL;
+					/* Ritual compiles static models into vertex-lit world triangles. */
+					return !model && COM_GAME_ID_IS_RITUAL( ri.gameId ) ? CSM_RECEIVER_VERTEX : CSM_RECEIVER_ALL;
 				default:
 					break;
 			}

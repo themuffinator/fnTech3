@@ -9022,7 +9022,7 @@ static qboolean vk_csm_shadow_atlas_layout( csmShadowAtlasLayout_t *layout )
 	return R_CSMShadowAtlasLayout(
 		r_csmCascadeCount ? r_csmCascadeCount->integer : CSM_MAX_CASCADES,
 		r_csmResolution ? r_csmResolution->integer : 1024,
-		glConfig.maxTextureSize, layout );
+		gls.maxRenderTargetSize, layout );
 #else
 	(void)layout;
 	return qfalse;
@@ -10083,6 +10083,11 @@ void vk_initialize( void )
 	}
 
 	// fill glConfig information
+
+	// Render targets have dedicated attachments, not resampled image chunks.
+	gls.maxRenderTargetSize = (int)MIN( props.limits.maxImageDimension2D,
+		MIN( MIN( props.limits.maxFramebufferWidth, props.limits.maxFramebufferHeight ),
+		MIN( props.limits.maxViewportDimensions[0], props.limits.maxViewportDimensions[1] ) ) );
 
 	// maxTextureSize must not exceed IMAGE_CHUNK_SIZE
 	maxSize = sqrtf( IMAGE_CHUNK_SIZE / 4 );

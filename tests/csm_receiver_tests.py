@@ -6,7 +6,7 @@ whose lightmap or vertex colours already hold the world's own shadow was
 shaded twice, and a lamp-lit room under a roof darkened by a sun that never
 lit it (F.A.K.K.2's `shield`: 31 % of the frame). Now the atlas keeps the
 world's casters and the entities' in two rows; a model, or a surface lit from
-the light grid, takes either row's shadow as before, while a baked surface
+the light grid, takes only its sunlight fraction from either row, while a baked surface
 takes only the models' shadow, only where the world's row leaves it in the
 sun, scaled per channel by the sun's share of its baked light. See
 docs/fntech3/2026-10-22-fnq-shadow-formats.md, "Sun shadows on baked light".
@@ -88,6 +88,7 @@ def kinds_prelude(renderer):
         '#include <cassert>\n#include <cstring>\n'
         + ('#define USE_VULKAN\n' if vulkan else '')
         + 'typedef int qboolean;\nenum { qfalse, qtrue };\n'
+        + 'static struct { int gameId; } ri = {0};\n#define COM_GAME_ID_IS_RITUAL(id) ((id)==1)\n'
         + defines + '#define NUM_TEXTURE_BUNDLES 2\n'
         + enum(local, 'colorGen_t') + enum(local, 'texCoordGen_t')
         + 'struct image_t { int id; };\n'
@@ -95,7 +96,7 @@ def kinds_prelude(renderer):
         + colour + ' } textureBundle_t;\n'
         + 'typedef struct { qboolean active; textureBundle_t bundle[NUM_TEXTURE_BUNDLES]; ' + stage_colour
         + ' } shaderStage_t;\n'
-        + 'typedef struct { shaderStage_t *stages[MAX_SHADER_STAGES]; } shader_t;\n'
+        + 'typedef struct shader_s { shaderStage_t *stages[MAX_SHADER_STAGES]; shader_s *remappedShader; } shader_t;\n'
         + 'static image_t white{ 0 }, page0{ 1 }, page1{ 2 };\n'
         + 'static struct { image_t *whiteImage; } tr = { &white };\n')
 
@@ -123,9 +124,9 @@ static int Kind( qboolean model, const textureBundle_t **lightmap ) {
 }
 int main() {
     const textureBundle_t *lm;
-    /* a model takes every caster, whatever its shader */
+    /* A vertex-coloured model is not implicitly sun-lit. */
     Reset(); stages[0].active = qtrue; Colour( 0, CGEN_VERTEX );
-    assert( Kind( qtrue, &lm ) == CSM_RECEIVER_ALL && !lm );
+    assert( Kind( qtrue, &lm ) == CSM_RECEIVER_NONE && !lm );
     assert( R_CSMReceiverKind( nullptr, qfalse, &lm ) == CSM_RECEIVER_NONE && !lm );
 
     /* a collapsed diffuse x lightmap stage: the lightmap bundle */
@@ -154,10 +155,20 @@ int main() {
     }
     Reset(); stages[0].active = qtrue; Colour( 0, CGEN_LIGHTING_DIFFUSE );
     assert( Kind( qfalse, &lm ) == CSM_RECEIVER_ALL );
+    assert( Kind( qtrue, &lm ) == CSM_RECEIVER_ALL );
+    ri.gameId=1;
+    assert( Kind( qfalse, &lm ) == CSM_RECEIVER_VERTEX );
+    assert( Kind( qtrue, &lm ) == CSM_RECEIVER_ALL );
+    ri.gameId=0;
+    shader_t original{}; original.remappedShader=&shader;
+    assert( R_CSMReceiverKind( &original, qtrue, &lm ) == CSM_RECEIVER_ALL );
+    Colour( 0, CGEN_IDENTITY );
+    assert( R_CSMReceiverKind( &original, qtrue, &lm ) == CSM_RECEIVER_NONE );
     const colorGen_t unlit[] = { CGEN_IDENTITY, CGEN_IDENTITY_LIGHTING, CGEN_CONST, CGEN_ENTITY, CGEN_WAVEFORM };
     for ( colorGen_t gen : unlit ) {
         Reset(); stages[0].active = qtrue; Colour( 0, gen );
         assert( Kind( qfalse, &lm ) == CSM_RECEIVER_NONE );
+        assert( Kind( qtrue, &lm ) == CSM_RECEIVER_NONE );
     }
     /* a later stage counts; past the first inactive one, nothing does */
     Reset(); stages[0].active = stages[1].active = qtrue; Colour( 0, CGEN_IDENTITY ); Colour( 1, CGEN_EXACT_VERTEX );
@@ -283,6 +294,47 @@ class ReceiverKindTests(unittest.TestCase):
 
 
 class AtlasLayoutTests(unittest.TestCase):
+    def test_allocations_use_gpu_limits_instead_of_image_resampling_limits(self):
+        for renderer in RENDERERS:
+            with self.subTest(renderer=renderer):
+                local = read(f'code/{renderer}/tr_local.h')
+                main = read(f'code/{renderer}/tr_main.c')
+                layout = re.search(r'typedef struct \{[^{}]*\} csmShadowAtlasLayout_t;', local).group(0)
+                defines = ''.join(define(local, n) for n in ('CSM_ATLAS_LAYERS', 'CSM_LAYER_WORLD', 'CSM_LAYER_MODELS'))
+                start = main.index('static int R_ShadowFloorPowerOfTwo( int value )')
+                end = main.index('\n}\n', main.index('qboolean R_CSMShadowAtlasLayout(')) + 3
+                allocator = 'FBO_CSMShadowAtlasWanted' if renderer == 'renderer' else 'vk_csm_shadow_atlas_layout'
+                backend = read(f'code/{renderer}/' + ('tr_arb.c' if renderer == 'renderer' else 'vk.c'))
+                fixture = LAYOUT_PRELUDE + defines + layout + '\n' + main[start:end] + r'''
+#define USE_PMLIGHT
+static struct { int maxTextureSize; } glConfig{2048};
+static struct { int maxRenderTargetSize; } gls{4096};
+static cvar_t enabled{1}, count{4}, resolution{1024}, correctness{0};
+static cvar_t *r_csmShadows=&enabled, *r_csmCascadeCount=&count, *r_csmResolution=&resolution;
+static cvar_t *r_shadowCorrectness=&correctness;
+static qboolean vk_depth_format_sampled_supported() { return qtrue; }
+'''
+                fixture += function(backend, f'static qboolean {allocator}(')
+                fixture += r'''
+int main() {
+    csmShadowAtlasLayout_t layout;
+    assert(ALLOCATOR(&layout));
+    assert(layout.cascadeCount==4 && layout.cascadeSize==1024 && layout.width==4096 && layout.height==2048);
+    // A smaller device still falls back within both attachment dimensions.
+    gls.maxRenderTargetSize=2048;
+    assert(ALLOCATOR(&layout) && layout.cascadeSize==512 && layout.width==2048);
+    gls.maxRenderTargetSize=127;
+    assert(!ALLOCATOR(&layout));
+    gls.maxRenderTargetSize=4096; enabled.integer=0;
+    assert(!ALLOCATOR(&layout));
+    enabled.integer=1; correctness.integer=1;
+    assert(!ALLOCATOR(&layout));
+}
+'''.replace('ALLOCATOR', allocator)
+                compile_and_run(self, fixture)
+                planner = function(main, 'static void R_PlanCascadedShadows( void )')
+                self.assertIn('resolution, gls.maxRenderTargetSize, &atlasLayout', planner)
+
     def test_each_renderers_layout_and_sun_units(self):
         for renderer in RENDERERS:
             with self.subTest(renderer=renderer):
@@ -330,11 +382,12 @@ class BackendSourceTests(unittest.TestCase):
                 order = [
                     'kind = R_CSMReceiverKind( shader, RB_CSMShadowEntityIsModel( entityNum ), &lightmap );',
                     'if ( kind == CSM_RECEIVER_NONE ) {',
-                    '!R_CSMReceiverBatchMatches( kind, lightmap, batchKind, batchLightmap ) ) {',
-                    'RB_BeginSurface( tr.whiteShader, 0 );',
+                    'receiverShader != batchShader',
+                    '!R_CSMReceiverBatchMatches( kind, lightmap, batchKind, batchLightmap )',
+                    'RB_BeginSurface( receiverShader, 0 );',
                     'tess.csmReceiverKind = kind;',
                     'tess.csmReceiverLightmap = lightmap;',
-                    'tess.needsNormal = ( kind != CSM_RECEIVER_ALL );',
+                    'tess.needsNormal = qtrue;',
                     'bakedSurfaces++;',
                     'backEnd.pc.c_csmShadowReceiverBakedSurfaces += bakedSurfaces;',
                 ]
@@ -372,7 +425,7 @@ class BackendSourceTests(unittest.TestCase):
                        'LRP factor.x, sunLight.w, factor.x, factor.y;',
                        'TEX baked, fragment.texcoord[3], texture[0], 2D;',
                        'DP3 surfNormal.w, surfNormal, toSun;', 'MIN share.xyz, share, one;',
-                       'MAX share.xyz, share, sunLight.w;', 'MAD factor.xyz, -factor.x, share, one;'):
+                       'LRP share.xyz, sunLight.w, fragment.color, share;', 'MAD factor.xyz, -factor.x, share, one;'):
             self.assertIn(needle, fp)
         self.assertEqual(fp.count('TEX sample, offset, texture[1], 2D;'), 8)
 
@@ -405,8 +458,8 @@ class BackendSourceTests(unittest.TestCase):
                                'every_caster += max(world, models);',
                                'models_only += models * (1.0 - world);',
                                'float occlusion = 0.25 * mix(models_only, every_caster, texFactors.y);',
-                               'vec3 share = clamp(lightColor.rgb * facing / max(baked, vec3(1.0 / 255.0)), 0.0, 1.0);',
-                               'share = max(share, vec3(texFactors.y));'):
+                               'vec3 share = clamp(sun / max(max(baked, fogColor.rgb + sun), vec3(1.0 / 255.0)), 0.0, 1.0);',
+                               'share = mix(share, baked_color, texFactors.y);'):
                     self.assertIn(needle, frag)
         self.assertEqual(read('code/renderervk/shaders/csm_shadow.frag'),
                          read('code/rendererrtx/shaders/csm_shadow.frag'))

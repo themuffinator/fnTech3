@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_light.c
 
 #include "tr_local.h"
+#include "../renderercommon/tr_csm_model_light.h"
 #include "../compat/alice_render_abi.h"
 #include "../renderercommon/tr_stvef_light.h"
 
@@ -367,6 +368,8 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent ) {
 	}
 	ent->lightingCalculated = qtrue;
 	if ( ri.gameId == COM_GAME_QUAKE3_IHV && ent->e.q3IHV.active ) {
+		/* IHV model lighting has no independent sun contribution. */
+		VectorClear( ent->csmSunLight );
 		R_SetupQ3IHVEntityLighting( refdef, ent );
 		return;
 	}
@@ -418,6 +421,7 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent ) {
 		VectorSet( ent->ambientLight, 245, 245, 245 );
 	}
 
+	R_CSMCaptureEntitySun( ent );
 	//
 	// modify the light by dynamic lights
 	//
@@ -583,6 +587,8 @@ void R_SetupAliceEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent, c
 		ent->ambientLight[2] += tr.identityLight * 32;
 	}
 
+	R_CSMCaptureEntitySun( ent );
+	if ( ent->e.alice.renderfx & FNTECH3_ALICE_RF_FULLBRIGHT ) VectorClear( ent->csmSunLight );
 	//
 	// modify the light by dynamic lights
 	//

@@ -214,6 +214,7 @@ typedef struct {
 	vec3_t		ambientLight;	// color normalized to 0-255
 	int			ambientLightInt;	// 32 bit rgba packed
 	vec3_t		directedLight;
+	vec3_t		csmSunLight;	// estimated grid sun before dynamic lights
 #ifdef USE_PMLIGHT
 	vec3_t		shadowLightDir;	// normalized direction towards light
 #endif
@@ -1144,6 +1145,7 @@ typedef struct {
 	vec3_t		lightColor;
 	vec3_t		directionToSun;
 	vec3_t		sunLightmapColor;	// the sun as the lightmaps hold it, shifted as they are
+	vec3_t		ambientLightmapColor;	// retained ambient, in the same units
 	char		skyShaderName[MAX_QPATH];
 	csmCascadePlan_t cascades[CSM_MAX_CASCADES];
 } csmPlan_t;
@@ -1157,6 +1159,7 @@ typedef struct {
 	vec3_t		light;
 	float		intensity;
 	qboolean	unitColour;	// a sky sun stored at unit-length colour (tr_sky_sun_units.h)
+	vec3_t		ambientLight;	// authored ambient in compiler light units
 } worldSun_t;
 
 /*
@@ -2171,6 +2174,7 @@ typedef struct glstatic_s {
 	int windowHeight;
 	int captureWidth;
 	int captureHeight;
+	int maxRenderTargetSize; // GPU attachments bypass the legacy image resampler
 	int initTime;
 	qboolean deviceSupportsGamma;
 } glstatic_t;

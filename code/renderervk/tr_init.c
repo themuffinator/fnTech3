@@ -503,6 +503,11 @@ static void R_InitExtensions( void )
 	// OpenGL driver constants
 	qglGetIntegerv( GL_MAX_TEXTURE_SIZE, &max_texture_size );
 	glConfig.maxTextureSize = max_texture_size;
+	{
+		GLint viewport[2] = { 0, 0 };
+		qglGetIntegerv( GL_MAX_VIEWPORT_DIMS, viewport );
+		gls.maxRenderTargetSize = MAX( 0, MIN( max_texture_size, MIN( viewport[0], viewport[1] ) ) );
+	}
 
 	// stubbed or broken drivers may have reported 0...
 	if ( glConfig.maxTextureSize <= 0 )

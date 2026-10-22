@@ -250,6 +250,8 @@ static void R_PreLoadFogs(const lump_t *) {}
 static void R_ClearWorldSun() {}
 // The entity sun has its own fixture (entity_sun_shadow_tests).
 static void R_LoadEntitySun() {}
+// CSM ambient parsing is executed by csm_lighting_tests.
+static void R_CSMReadAmbient(const char *, int, vec3_t) {}
 static void R_ClearStaticMapLights() {}
 static void R_ClearSurfaceLightProxies() {}
 static void R_ShutdownAdvertisements() {}
@@ -286,11 +288,11 @@ static struct {
     comGameId_t gameId;
     decltype(&Com_AliceLoadingStage) AliceLoadingStage;
 } ri{Com_Error, Print, FS_ReadFile, FS_FreeFile, Allocate, Z_Free, HunkAlloc, Format};
-static struct World { char name[MAX_QPATH], baseName[MAX_QPATH]; int dataSize; float lightGridSize[3];
+static struct World { char name[MAX_QPATH], baseName[MAX_QPATH]; int dataSize; float lightGridSize[3]; const char *entityString;
     int mohaaFirstDecal, mohaaNumDecals, mohaaFirstTerrain, mohaaNumTerrain;
     int mohaaFirstBuiltSurface, mohaaNumBuiltSurfaces; dshader_t *shaders; int numShaders; } s_worldData;
 static struct { qboolean worldMapLoaded, mapLoading; World *world;
-    fnRTCWWorldShader_t rtcwWorld; void *sunShader; } tr;
+    fnRTCWWorldShader_t rtcwWorld; void *sunShader; struct { vec3_t ambientLight; } worldSun; } tr;
 constexpr int LIGHTMAP_NONE = -1;
 static void *R_FindShader(const char *, int, qboolean) { assert(false); return nullptr; }
 '''

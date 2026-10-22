@@ -199,11 +199,20 @@ struct model_t { int type; } model;
 struct trRefEntity_t { struct { int reType, renderfx, hModel; } e; } entity;
 static struct { struct { int num_entities; trRefEntity_t *entities; } refdef; } backEnd;
 static const model_t *R_GetModelByHandle( int handle ) { return handle == 1 ? &model : nullptr; }
+static bool runtimeMDR;
+static qboolean R_ModelIsRuntimeMDR( int handle ) { return handle == 1 && runtimeMDR; }
 '''
 
 BACKEND_CHECKS = r'''
 int main() {
     shader_t shader{}; shader.sort = SS_OPAQUE;
+    shader_t remap{}; remap.sort=SS_OPAQUE+1;
+    surfaceType_t face=SF_FACE;
+    shader.remappedShader=&remap;
+    assert(!RB_CSMShadowSurfaceAllowed(&shader,&face));
+    remap.sort=SS_OPAQUE;
+    assert(RB_CSMShadowSurfaceAllowed(&shader,&face));
+    shader.remappedShader=nullptr;
     for ( surfaceType_t type : { SF_FACE, SF_GRID, SF_TRIANGLES, SF_MDS, SF_MDC, SF_MD3, SF_MDR, SF_IQM, SF_WOLFET,
             SF_ALICE_TIKI, SF_MOHAA_TIKI } ) {
         assert( RB_DlightShadowCasterAllowed( &shader, &type ) && RB_CSMShadowSurfaceAllowed( &shader, &type ) );
@@ -230,6 +239,11 @@ int main() {
         const bool skeletal = kind == MOD_MDS || kind == MOD_WOLFET_MESH || kind == MOD_ALICE_TIKI ||
             kind == MOD_MOHAA_TIKI;
         assert( !!RB_CSMShadowEntityPoseUnhashed( &entity ) == skeletal );
+        if ( kind == MOD_MDR ) {
+            runtimeMDR = true;
+            assert( RB_CSMShadowEntityPoseUnhashed( &entity ) );
+            runtimeMDR = false;
+        }
     }
     for ( int kind : { MOD_BAD, MOD_WOLFET_SKELETON, MOD_IHV_BEAM, MOD_ALICE_SPRITE } ) {
         model.type = kind;

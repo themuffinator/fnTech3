@@ -703,6 +703,8 @@ static void RB_RenderCSMShadowAtlas( drawSurf_t *drawSurfs, int numDrawSurfs );
 static void RB_RenderDlightShadowAtlas( void );
 static void RB_RenderSpotShadowAtlas( drawSurf_t *drawSurfs, int numDrawSurfs );
 
+#include "../renderercommon/tr_shadow_legacy.h"
+
 static qboolean RB_ShadowManagerPreMainPass( shadowManagerPass_t pass )
 {
 	switch ( pass ) {
@@ -773,6 +775,7 @@ static void RB_RunScheduledShadowManagerPreMainPasses( drawSurf_t *drawSurfs, in
 		}
 		RB_RunScheduledShadowManagerPass( passOrder[i], drawSurfs, numDrawSurfs );
 	}
+	R_DisableLegacyShadowsForShadowMaps( &tr.shadowManager );
 }
 #endif
 
@@ -2585,6 +2588,7 @@ static void RB_DlightShadowCacheInvalidate( const dlight_t *dl,
 }
 
 #include "../renderercommon/tr_csm_receivers.h"
+#include "../renderercommon/tr_csm_casters.h"
 
 typedef struct {
 	qboolean valid;
@@ -2633,8 +2637,8 @@ static qboolean RB_CSMShadowEntityAllowed( int entityNum )
 	}
 }
 
-/* A model takes every sun shadow. A brush model's surfaces are baked like
- * the world's, and their shaders tell them apart (tr_csm_receivers.h). */
+/* A diffuse-lit model can take either atlas row. Brush models have baked
+ * lighting; the material decides receiving policy (tr_csm_receivers.h). */
 static qboolean RB_CSMShadowEntityIsModel( int entityNum )
 {
 	const model_t *model;
@@ -2653,6 +2657,7 @@ static qboolean RB_CSMShadowSurfaceAllowed( const shader_t *shader, const surfac
 	if ( !shader || !surface ) {
 		return qfalse;
 	}
+	if ( shader->remappedShader ) shader = shader->remappedShader;
 	if ( shader->sort != SS_OPAQUE || shader->isSky || shader->polygonOffset ||
 		(shader->surfaceFlags & ( SURF_SKY | SURF_NODLIGHT )) ) {
 		return qfalse;
@@ -2782,6 +2787,8 @@ static qboolean RB_CSMShadowEntityPoseUnhashed( const trRefEntity_t *ent )
 		return qfalse;
 	}
 
+	if ( model->type == MOD_MDR && R_ModelIsRuntimeMDR( ent->e.hModel ) ) return qtrue;
+
 	switch ( model->type ) {
 		case MOD_MDS:
 		case MOD_WOLFET_MESH:
@@ -2846,12 +2853,14 @@ static qboolean RB_CSMShadowCacheSignature( drawSurf_t *drawSurfs, int numDrawSu
 		if ( shader->numDeforms > 0 ) {
 			return qfalse;
 		}
+		if ( !R_CSMCasterMaterialStatic( shader ) ) return qfalse;
 		if ( entityNum != REFENTITYNUM_WORLD &&
 			RB_CSMShadowEntityPoseUnhashed( &backEnd.refdef.entities[entityNum] ) ) {
 			return qfalse;
 		}
 
 		hash = RB_DlightShadowCacheHashUInt( hash, drawSurf->sort );
+		hash = RB_DlightShadowCacheHashPtr( hash, R_CSMCasterShader( shader ) );
 		hash = RB_DlightShadowCacheHashPtr( hash, drawSurf->surface );
 		hash = RB_DlightShadowCacheHashUInt( hash, (unsigned int)entityNum );
 		if ( entityNum != REFENTITYNUM_WORLD ) {
@@ -2991,11 +3000,12 @@ static int RB_RenderCSMShadowCascade( drawSurf_t *drawSurfs, int numDrawSurfs,
 	int surfaces = 0;
 	int i;
 	qboolean surfaceActive = qfalse;
+	shader_t *batchShader = NULL;
 
 	currentEntityNum = -1;
 	for ( i = 0; i < numDrawSurfs; i++ ) {
 		drawSurf_t *drawSurf = &drawSurfs[i];
-		shader_t *shader;
+		shader_t *shader, *casterShader;
 		int entityNum;
 		int fogNum;
 		int dlighted;
@@ -3022,12 +3032,21 @@ static int RB_RenderCSMShadowCascade( drawSurf_t *drawSurfs, int numDrawSurfs,
 			currentEntityNum = entityNum;
 		}
 
-		if ( RB_CSMShadowSurfaceCulledForCascade( drawSurf->surface, &casterOr, cascade ) ) {
+		casterShader = R_CSMCasterShader( shader );
+		if ( !casterShader->numDeforms &&
+			RB_CSMShadowSurfaceCulledForCascade( drawSurf->surface, &casterOr, cascade ) ) {
 			continue;
 		}
 
+		if ( surfaceActive && casterShader != batchShader ) {
+			RB_EndSurface();
+			tess.csmCasterPass = qfalse;
+			surfaceActive = qfalse;
+		}
 		if ( !surfaceActive ) {
-			RB_BeginSurface( tr.defaultShader, 0 );
+			RB_BeginSurface( casterShader, 0 );
+			tess.fogNum = 0;
+			batchShader = casterShader;
 			tess.allowVBO = qfalse;
 			tess.csmCasterPass = qtrue;
 			surfaceActive = qtrue;
@@ -3182,6 +3201,7 @@ static void RB_CSMShadowReceiverPass( drawSurf_t *drawSurfs, int numDrawSurfs )
 
 	for ( cascadeIndex = 0; cascadeIndex < tr.csm.cascadeCount; cascadeIndex++ ) {
 		const textureBundle_t *batchLightmap = NULL;
+		shader_t *batchShader = NULL;
 		int batchKind = CSM_RECEIVER_NONE;
 		int currentEntityNum;
 		int entitySurfaces = 0;
@@ -3195,7 +3215,7 @@ static void RB_CSMShadowReceiverPass( drawSurf_t *drawSurfs, int numDrawSurfs )
 		for ( i = 0; i < numDrawSurfs; i++ ) {
 			drawSurf_t *drawSurf = &drawSurfs[i];
 			const textureBundle_t *lightmap;
-			shader_t *shader;
+			shader_t *shader, *receiverShader;
 			int entityNum;
 			int fogNum;
 			int dlighted;
@@ -3213,6 +3233,8 @@ static void RB_CSMShadowReceiverPass( drawSurf_t *drawSurfs, int numDrawSurfs )
 			if ( kind == CSM_RECEIVER_NONE ) {
 				continue;
 			}
+			receiverShader = shader->remappedShader ? shader->remappedShader : shader;
+			if ( !receiverShader->numDeforms ) receiverShader = tr.whiteShader;
 
 			if ( entityNum != currentEntityNum ) {
 				if ( surfaceActive ) {
@@ -3225,31 +3247,39 @@ static void RB_CSMShadowReceiverPass( drawSurf_t *drawSurfs, int numDrawSurfs )
 				currentEntityNum = entityNum;
 			}
 
-			if ( entityNum == REFENTITYNUM_WORLD &&
+			if ( !r_nocull->integer && !receiverShader->numDeforms ) {
+				vec3_t mins, maxs;
+				if ( RB_DlightShadowSurfaceBounds( drawSurf->surface, mins, maxs ) &&
+					R_CSMBoundsOutsideSplit( mins, maxs, &backEnd.or, &savedViewParms.or,
+						cascade->splitNear, cascade->splitFar ) ) continue;
+			}
+			if ( !receiverShader->numDeforms &&
 				RB_CSMShadowSurfaceCulledForCascade( drawSurf->surface, &backEnd.or, cascade ) ) {
 				continue;
 			}
 
 			if ( surfaceActive &&
-				!R_CSMReceiverBatchMatches( kind, lightmap, batchKind, batchLightmap ) ) {
+				( receiverShader != batchShader ||
+				!R_CSMReceiverBatchMatches( kind, lightmap, batchKind, batchLightmap ) ) ) {
 				RB_EndSurface();
 				tess.csmShadowPass = qfalse;
 				surfaceActive = qfalse;
 			}
 
 			if ( !surfaceActive ) {
-				RB_BeginSurface( tr.whiteShader, 0 );
+				RB_BeginSurface( receiverShader, 0 );
 				tess.allowVBO = qfalse;
 				tess.csmShadowPass = qtrue;
 				tess.csmCascade = cascadeIndex;
 				tess.csmReceiverKind = kind;
 				tess.csmReceiverLightmap = lightmap;
 #ifdef USE_TESS_NEEDS_NORMAL
-				/* a baked receiver's sun share reads its normals */
-				tess.needsNormal = ( kind != CSM_RECEIVER_ALL );
+				/* sunlight share reads the receiver's normals */
+				tess.needsNormal = qtrue;
 #endif
 				batchKind = kind;
 				batchLightmap = lightmap;
+				batchShader = receiverShader;
 				surfaceActive = qtrue;
 			}
 
