@@ -1,0 +1,2520 @@
+{
+ "date": "2026-10-22",
+ "scope": "RTX portal-sky global fog ownership and Vulkan/RTX finite-face light receiver/caster culling",
+ "baseCommit": "29641a0945070c18c56fa17092275608cb8772a8",
+ "implementationCommit": "d3547f6b591b1e239560f72fef39c47c74427e89",
+ "buildIdentityNote": "Before binaries have 6ca834d7 engine sources, identical to base 29641a09. After was built from the base checkout plus the exact code patch later committed as d3547f6b; captures preceded that commit. Source hashes are normalized LF UTF-8. Binary hashes identify the actual tested files.",
+ "sourceSHA256": {
+  "code/rendererrtx/tr_bsp.c": "5633c6813778db02ebb04085da9eaf3d5a556a8f078f14166d409b0ac68e2335",
+  "code/rendererrtx/tr_local.h": "f41bfb2db8bf4e889289f58ac7a2534f4cd4c2cdc203b81c3c036bcfd15603db",
+  "code/rendererrtx/tr_world.c": "ed6d954eb69bb8b62c938411a48348440dc6c396de7fb17935acffea31f87159",
+  "code/rendererrtx/vk.c": "70a41c24f5aaa975dd9f70cc30d30df78366f7680e2209e5e1b5793e5ab97812",
+  "code/renderervk/tr_bsp.c": "2e6b4bce910b5f6d6e07a0808e1c63bc86057d22c47243be81c547e179740bce",
+  "code/renderervk/tr_local.h": "511e0cc54bcd7b7a162e7f59ec7001454e947f79f85a651e6cb7c11269203cf3",
+  "code/renderervk/tr_world.c": "fba665e8deef258046823b453efbc12bff0b7d06023e949f582610c414327583"
+ },
+ "build": {
+  "path": "meson/build/win32-dev",
+  "command": "meson compile -C meson/build/win32-dev -j4",
+  "platform": "Windows x86 / MSVC",
+  "buildtype": "debugoptimized",
+  "strict-warnings": true,
+  "renderers": [
+   "glx",
+   "vk",
+   "rtx"
+  ],
+  "client": true,
+  "server": true,
+  "exit": 0,
+  "compilerWarnings": 0,
+  "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU"
+ },
+ "tests": {
+  "native": {
+   "passed": 275,
+   "failed": 0,
+   "skipped": 1,
+   "skip": "ALC_SOFT_loopback unavailable",
+   "command": "meson test -C meson/build/win32-dev --no-rebuild --num-processes 4 <available fnTech3 suite entries except fnql_python_source_regressions>",
+   "namesFile": ".tmp/portal-fog-casters/native-test-names.txt",
+   "environment": {
+    "FNQL_RETAIL_QL_PATH": "E:\\SteamLibrary\\steamapps\\common\\Quake Live"
+   }
+  },
+  "focused": {
+   "passed": 428,
+   "subtestsPassed": 64418,
+   "failed": 0,
+   "skipped": 0,
+   "command": "python -B -m pytest -q -p no:cacheprovider <files>",
+   "files": [
+    "tests/alice_effect_submission_tests.py",
+    "tests/alice_renderer_parity_tests.py",
+    "tests/bsp_profile_loader_tests.py",
+    "tests/changelog_tests.py",
+    "tests/csm_plan_source_tests.py",
+    "tests/csm_receiver_tests.py",
+    "tests/csm_shadow_cache_source_tests.py",
+    "tests/dlight_shadow_bias_tests.py",
+    "tests/dlight_shadow_release_gate_tests.py",
+    "tests/dlight_shadow_stability_tests.py",
+    "tests/dlight_shadow_test_tests.py",
+    "tests/entity_sun_shadow_tests.py",
+    "tests/fnq3_bloom_parity_source_tests.py",
+    "tests/generate_docs_tests.py",
+    "tests/global_fog_source_tests.py",
+    "tests/liquid_rendering_source_tests.py",
+    "tests/macos_support_source_tests.py",
+    "tests/menu_blur_source_tests.py",
+    "tests/mohaa_light_sources_tests.py",
+    "tests/mohaa_permanent_decal_tests.py",
+    "tests/mohaa_shader_gaps_tests.py",
+    "tests/mohaa_sun_flare_tests.py",
+    "tests/personal_shadow_source_tests.py",
+    "tests/player_manual_tests.py",
+    "tests/q3_ihv_entity_renderer_tests.py",
+    "tests/q3_ihv_skin_tests.py",
+    "tests/raven_bsp_shader_flags_tests.py",
+    "tests/renderer_cvar_compat_source_tests.py",
+    "tests/ritual_shader_gaps_tests.py",
+    "tests/rtcw_cast_lifecycle_tests.py",
+    "tests/rtcw_light_tests.py",
+    "tests/rtcw_md3_normal_tests.py",
+    "tests/rtcw_mesh_blink_tests.py",
+    "tests/rtx_emitter_lighting_tests.py",
+    "tests/rtx_entity_shadow_tests.py",
+    "tests/rtx_latency_tests.py",
+    "tests/rtx_lifecycle_tests.py",
+    "tests/rtx_light_rules_tests.py",
+    "tests/rtx_lightmap_execution_tests.py",
+    "tests/rtx_mohaa_sun_tests.py",
+    "tests/rtx_raster_execution_tests.py",
+    "tests/rtx_raster_feature_parity_source_tests.py",
+    "tests/rtx_renderer_contract_source_tests.py",
+    "tests/rtx_scene_linear_gate_tests.py",
+    "tests/rtx_vulkan_safety_source_tests.py",
+    "tests/runtime_mdr_tests.py",
+    "tests/shadow_correctness_source_tests.py",
+    "tests/shadow_manager_source_tests.py",
+    "tests/shadow_projection_source_tests.py",
+    "tests/sky_sun_units_tests.py",
+    "tests/stvef_shadow_tests.py",
+    "tests/underwater_view_source_tests.py",
+    "tests/untrusted_asset_bounds_tests.py",
+    "tests/wolfet_draw_tests.py",
+    "tests/dlight_face_bounds_tests.py",
+    "tests/rtx_global_fog_view_tests.py",
+    "tests/bsp_index_bounds_tests.py",
+    "tests/rtcw_fog_tests.py",
+    "tests/rtcw_fog_scene_tests.py",
+    "tests/rtcw_fog_gpu_tests.py",
+    "tests/wolfet_global_fog_tests.py"
+   ]
+  },
+  "newRegressionsAndBsp": {
+   "passed": 11,
+   "subtestsPassed": 14,
+   "failed": 0
+  },
+  "scriptStyleShadowProjection": {
+   "command": "python -B tests/shadow_projection_source_tests.py",
+   "exit": 0
+  },
+  "fullRecursivePythonSuiteRerun": false,
+  "documentation": {
+   "command": "python -B -m pytest -q -p no:cacheprovider tests/generate_docs_tests.py tests/player_manual_tests.py tests/changelog_tests.py",
+   "result": "25 passed, 841 subtests passed in 6.16s"
+  }
+ },
+ "runtime": {
+  "runs": [
+   {
+    "name": "forest-glx-before",
+    "group": "baseline",
+    "result": {
+     "run": "forest-glx-before",
+     "profile": "rtcw-sp",
+     "map": "forest",
+     "renderer": "glx",
+     "fogSidecar": "color 0.25 0.4 0.55\ndensity 0.0015\nmode exp2\nstart 64\nopacity 0.8\nsky false",
+     "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+     "identity": {
+      "fntech3.exe": "50f93f4de614286b311512e33a5e77bfa18f9179fb5bb2a5b8e996db22f61693",
+      "fnql_glx_x86.dll": "a3cddc5e5bbacd6e66560cacfab84c4fe5770a8d9c9b0237badbf0ff88c1d723",
+      "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+     },
+     "commands": [
+      "give all",
+      "weapon 3",
+      "cg_thirdPerson 1",
+      "wait 180",
+      "viewpos"
+     ],
+     "shots": [
+      [
+       "on",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "fog",
+       "set r_globalFogStrength 1"
+      ],
+      [
+       "fogoff",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "dloff",
+       "set r_dlightShadowStrength 0"
+      ],
+      [
+       "on2",
+       "set r_dlightShadowStrength 0.95"
+      ],
+      [
+       "dbg",
+       "set r_csmDebug 1; set r_dlightShadowDebug 1"
+      ]
+     ],
+     "outcome": "exited",
+     "exit": 0,
+     "forced": false,
+     "seconds": 17.1,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": [],
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "8f215176fd1bdc65704f14034b365de05a964a8ee13f449d47c468d48ac6c832"
+      },
+      {
+       "name": "fog.png",
+       "sha256": "0cb0573f83832777439b59c7afffdecd05b48fd56d0da96256ba8073cdcde173"
+      },
+      {
+       "name": "fogoff.png",
+       "sha256": "fb8f97334aa50e28d8926241d20929d9107bd180403aa394bc005f7df229d861"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "7c3f4838c1469012aea3e0765372cae8e2903896e624af54dadfcd1f75661a72"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "f05974f79cbc9a822e3d4c81608e94a40ec3a8aed7bec37cfb5f4389b735d537"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "d509186822549cbec7372dee62d647992b7add8a49906152fc8ae75e541bfdd2"
+      }
+     ],
+     "desktopSwitched": false,
+     "inputInjected": false,
+     "commandLine": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe +set com_gameProfile rtcw-sp +set fs_basepath \"E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\" +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\portal-fog-casters\\runs\\forest-glx-before\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set r_csmShadows 1 +set r_globalFog 1 +set r_globalFogStrength 0 +exec probeshadow.cfg +devmap forest"
+    },
+    "consoleSHA256": "2396fd24fb948075a4e963b4a4d72793de45d7933c862adaef10e960d2343689",
+    "view": [
+     "(-5360 -6024 509) : 0"
+    ],
+    "csmSummary": {
+     "casters": 335,
+     "cacheHits": 0,
+     "cacheMisses": 1,
+     "cacheUncacheable": 1,
+     "receiversWorld": 104,
+     "receiversEntity": 576,
+     "receiversBaked": 104,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": {
+     "planned": 2,
+     "candidates": 5,
+     "renderedLights": 2,
+     "faces": 12,
+     "batches": 31,
+     "draws": 31,
+     "casterSurfaces": 700,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "fogMeasure": {
+     "pixels": 364800,
+     "changedPixels": 196000,
+     "changedFraction": 0.5372807017543859,
+     "repeatStableFraction": 0.8768804824561404,
+     "meanLumaOff": 16.631168569078948,
+     "meanLumaFog": 41.119372746710525
+    },
+    "primaryDispatch": [],
+    "loadedFog": [
+     "Global fog: loaded maps/forest.fog (exp2, density 0.001500, start 64.0, opacity 0.80, sky 0)"
+    ],
+    "shutdownWarnings": []
+   },
+   {
+    "name": "forest-vk-before",
+    "group": "baseline",
+    "result": {
+     "run": "forest-vk-before",
+     "profile": "rtcw-sp",
+     "map": "forest",
+     "renderer": "vk",
+     "fogSidecar": "color 0.25 0.4 0.55\ndensity 0.0015\nmode exp2\nstart 64\nopacity 0.8\nsky false",
+     "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+     "identity": {
+      "fntech3.exe": "50f93f4de614286b311512e33a5e77bfa18f9179fb5bb2a5b8e996db22f61693",
+      "fnql_vk_x86.dll": "1f74e9056ee6c1eb9d805bd5a16a9183c3652949573fad0fc79d41464b93e278",
+      "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+     },
+     "commands": [
+      "give all",
+      "weapon 3",
+      "cg_thirdPerson 1",
+      "wait 180",
+      "viewpos"
+     ],
+     "shots": [
+      [
+       "on",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "fog",
+       "set r_globalFogStrength 1"
+      ],
+      [
+       "fogoff",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "dloff",
+       "set r_dlightShadowStrength 0"
+      ],
+      [
+       "on2",
+       "set r_dlightShadowStrength 0.95"
+      ],
+      [
+       "dbg",
+       "set r_csmDebug 1; set r_dlightShadowDebug 1"
+      ]
+     ],
+     "outcome": "exited",
+     "exit": 0,
+     "forced": false,
+     "seconds": 17.5,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": [],
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "9aeaca9e66b366abd9caed26b50be1314a1c66fe61197f855cb33a922b73339e"
+      },
+      {
+       "name": "fog.png",
+       "sha256": "53daa27b940ec4babdd9dd47b4fafbd2d7d1b8501e4217dcc32396d299d95053"
+      },
+      {
+       "name": "fogoff.png",
+       "sha256": "5c2941a11e4188e7ad6a60efc8ccb70423094e7325da8644582cd9b747b9d21a"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "e893dddb7ac3f5ded6450221f226561578462a30e2cbcd07242ec69e9ed8b04e"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "4d96964d0767dcd1d81f8df1808c64810f917f93f75a7107405300458de62df3"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "b5a9debcbb46565bc88a7eda6b0af2b8ddcfb42651873b04a6eaaf7cff10fdc6"
+      }
+     ],
+     "desktopSwitched": false,
+     "inputInjected": false,
+     "commandLine": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe +set com_gameProfile rtcw-sp +set fs_basepath \"E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\" +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\portal-fog-casters\\runs\\forest-vk-before\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer vk +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set r_csmShadows 1 +set r_globalFog 1 +set r_globalFogStrength 0 +exec probeshadow.cfg +devmap forest"
+    },
+    "consoleSHA256": "ddfedba944063d3de2d1576d693131766a68484b11cdda4e21a752bc0228dbc6",
+    "view": [
+     "(-5360 -6024 509) : 0"
+    ],
+    "csmSummary": {
+     "casters": 335,
+     "cacheHits": 0,
+     "cacheMisses": 1,
+     "cacheUncacheable": 1,
+     "receiversWorld": 104,
+     "receiversEntity": 576,
+     "receiversBaked": 104,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": {
+     "planned": 2,
+     "candidates": 5,
+     "renderedLights": 2,
+     "faces": 12,
+     "batches": 31,
+     "draws": 31,
+     "casterSurfaces": 763,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "fogMeasure": {
+     "pixels": 364800,
+     "changedPixels": 62316,
+     "changedFraction": 0.17082236842105264,
+     "repeatStableFraction": 0.879766995614035,
+     "meanLumaOff": 16.802969158442984,
+     "meanLumaFog": 21.12530956140351
+    },
+    "primaryDispatch": [],
+    "loadedFog": [
+     "Global fog: loaded maps/forest.fog (exp2, density 0.001500, start 64.0, opacity 0.80, sky 0)"
+    ],
+    "shutdownWarnings": []
+   },
+   {
+    "name": "forest-rtx-before",
+    "group": "baseline",
+    "result": {
+     "run": "forest-rtx-before",
+     "profile": "rtcw-sp",
+     "map": "forest",
+     "renderer": "rtx",
+     "fogSidecar": "color 0.25 0.4 0.55\ndensity 0.0015\nmode exp2\nstart 64\nopacity 0.8\nsky false",
+     "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+     "identity": {
+      "fntech3.exe": "50f93f4de614286b311512e33a5e77bfa18f9179fb5bb2a5b8e996db22f61693",
+      "fnql_rtx_x86.dll": "e6a21aa2378f73270f8facfe849ab74fbe17ad6cf85893ba2f3bd42e7c2c87c2",
+      "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+     },
+     "commands": [
+      "give all",
+      "weapon 3",
+      "cg_thirdPerson 1",
+      "wait 180",
+      "viewpos"
+     ],
+     "shots": [
+      [
+       "on",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "fog",
+       "set r_globalFogStrength 1"
+      ],
+      [
+       "fogoff",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "dloff",
+       "set r_dlightShadowStrength 0"
+      ],
+      [
+       "on2",
+       "set r_dlightShadowStrength 0.95"
+      ],
+      [
+       "dbg",
+       "set r_csmDebug 1; set r_dlightShadowDebug 1"
+      ]
+     ],
+     "outcome": "exited",
+     "exit": 0,
+     "forced": false,
+     "seconds": 16.9,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": [],
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "6aece8c64f65c1a8140785023d45a46f4eb9749697e14176d5c0972dcdafcfaa"
+      },
+      {
+       "name": "fog.png",
+       "sha256": "c9c5bdb336e4f36a94e0f4d2f70098cf950337689b32cf2aa4d3e8f174f4814d"
+      },
+      {
+       "name": "fogoff.png",
+       "sha256": "1c08f5645689759f8c58edba34134a23404c23c6162cd94e1f1a3349f342e92a"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "f91bae35d6bc626ebb01ce1748315ef0388fd0de33ce569597fc9a190e3e8437"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "356d719ad9b7d35c8e0316627ee4d51d61f67635218913e5ba57c96fdeb64625"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "4954809c0c1f1167fe3c39c48d9920b2fc6c6f90d75b064f3ca449e3968d5c65"
+      }
+     ],
+     "desktopSwitched": false,
+     "inputInjected": false,
+     "commandLine": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe +set com_gameProfile rtcw-sp +set fs_basepath \"E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\" +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\portal-fog-casters\\runs\\forest-rtx-before\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer rtx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set r_csmShadows 1 +set r_globalFog 1 +set r_globalFogStrength 0 +set rtx_rt_mode 0 +exec probeshadow.cfg +devmap forest"
+    },
+    "consoleSHA256": "4c59a98a15fc1aec90790f27e9ecfcf039a7adf69b13b0cdd1cfef3cfb09ec3f",
+    "view": [
+     "(-5360 -6024 509) : 0"
+    ],
+    "csmSummary": {
+     "casters": 335,
+     "cacheHits": 0,
+     "cacheMisses": 1,
+     "cacheUncacheable": 1,
+     "receiversWorld": 104,
+     "receiversEntity": 576,
+     "receiversBaked": 104,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": {
+     "planned": 2,
+     "candidates": 5,
+     "renderedLights": 2,
+     "faces": 12,
+     "batches": 31,
+     "draws": 31,
+     "casterSurfaces": 763,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "fogMeasure": {
+     "pixels": 364800,
+     "changedPixels": 1304,
+     "changedFraction": 0.003574561403508772,
+     "repeatStableFraction": 0.8802165570175439,
+     "meanLumaOff": 16.794878851425437,
+     "meanLumaFog": 16.795119410635966
+    },
+    "primaryDispatch": [],
+    "loadedFog": [
+     "Global fog: loaded maps/forest.fog (exp2, density 0.001500, start 64.0, opacity 0.80, sky 0)"
+    ],
+    "shutdownWarnings": []
+   },
+   {
+    "name": "village-glx-before",
+    "group": "baseline",
+    "result": {
+     "run": "village-glx-before",
+     "profile": "rtcw-mp",
+     "map": "mp_village",
+     "renderer": "glx",
+     "fogSidecar": "color 0.25 0.4 0.55\ndensity 0.0015\nmode exp2\nstart 64\nopacity 0.8\nsky false",
+     "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+     "identity": {
+      "fntech3.exe": "50f93f4de614286b311512e33a5e77bfa18f9179fb5bb2a5b8e996db22f61693",
+      "fnql_glx_x86.dll": "a3cddc5e5bbacd6e66560cacfab84c4fe5770a8d9c9b0237badbf0ff88c1d723",
+      "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+     },
+     "commands": [
+      "wait 300",
+      "cg_thirdPerson 1",
+      "wait 120",
+      "viewpos"
+     ],
+     "shots": [
+      [
+       "on",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "fog",
+       "set r_globalFogStrength 1"
+      ],
+      [
+       "fogoff",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "dloff",
+       "set r_dlightShadowStrength 0"
+      ],
+      [
+       "on2",
+       "set r_dlightShadowStrength 0.95"
+      ],
+      [
+       "dbg",
+       "set r_csmDebug 1; set r_dlightShadowDebug 1"
+      ]
+     ],
+     "outcome": "exited",
+     "exit": 0,
+     "forced": false,
+     "seconds": 20.6,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": [],
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "de11cc48b5b2634d6af0e598411eaa719521cac22cafb4c804d9ee50460eec1e"
+      },
+      {
+       "name": "fog.png",
+       "sha256": "2b9e41a7a727c8596a54e5f25f98a93b2818691ba9b0491148b177de5c89597c"
+      },
+      {
+       "name": "fogoff.png",
+       "sha256": "17ed27cbd1bef75aa0bebff6215dc9e9b93c525c83932b9644c0f4c7509bd22f"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "7874ce26dd040590ab77f9e3e978258514b22fc590eb5165916e68dfccb9be32"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "02709a4b0f376691f7dc3e2fb669161e349b5d5d04906e09e26370d7d71dabc2"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "3ac341a8ef06d1d226724d9eff9b5e3fea30a8b010b9740351a6240473e45435"
+      }
+     ],
+     "desktopSwitched": false,
+     "inputInjected": false,
+     "commandLine": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe +set com_gameProfile rtcw-mp +set fs_basepath \"E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\" +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\portal-fog-casters\\runs\\village-glx-before\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set r_csmShadows 1 +set r_globalFog 1 +set r_globalFogStrength 0 +exec probeshadow.cfg +devmap mp_village"
+    },
+    "consoleSHA256": "463a8f6ae88b8ec860adac506353d24901fdb056671ed0592a3e091e5c83b4ec",
+    "view": [
+     "(-1839 -931 -57) : 125"
+    ],
+    "csmSummary": {
+     "casters": 0,
+     "cacheHits": 1,
+     "cacheMisses": 0,
+     "cacheUncacheable": 0,
+     "receiversWorld": 1655,
+     "receiversEntity": 0,
+     "receiversBaked": 1655,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": {
+     "planned": 0,
+     "candidates": 16,
+     "renderedLights": 0,
+     "faces": 0,
+     "batches": 0,
+     "draws": 0,
+     "casterSurfaces": 0,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "fogMeasure": {
+     "pixels": 364800,
+     "changedPixels": 5184,
+     "changedFraction": 0.014210526315789474,
+     "repeatStableFraction": 0.8877302631578947,
+     "meanLumaOff": 56.617749237938604,
+     "meanLumaFog": 55.86906627192983
+    },
+    "primaryDispatch": [],
+    "loadedFog": [
+     "Global fog: loaded maps/mp_village.fog (exp2, density 0.001500, start 64.0, opacity 0.80, sky 0)"
+    ],
+    "shutdownWarnings": [],
+    "scopeNote": "Caster-plan comparison; no fog correctness claim from this view."
+   },
+   {
+    "name": "village-vk-before",
+    "group": "baseline",
+    "result": {
+     "run": "village-vk-before",
+     "profile": "rtcw-mp",
+     "map": "mp_village",
+     "renderer": "vk",
+     "fogSidecar": "color 0.25 0.4 0.55\ndensity 0.0015\nmode exp2\nstart 64\nopacity 0.8\nsky false",
+     "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+     "identity": {
+      "fntech3.exe": "50f93f4de614286b311512e33a5e77bfa18f9179fb5bb2a5b8e996db22f61693",
+      "fnql_vk_x86.dll": "1f74e9056ee6c1eb9d805bd5a16a9183c3652949573fad0fc79d41464b93e278",
+      "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+     },
+     "commands": [
+      "wait 300",
+      "cg_thirdPerson 1",
+      "wait 120",
+      "viewpos"
+     ],
+     "shots": [
+      [
+       "on",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "fog",
+       "set r_globalFogStrength 1"
+      ],
+      [
+       "fogoff",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "dloff",
+       "set r_dlightShadowStrength 0"
+      ],
+      [
+       "on2",
+       "set r_dlightShadowStrength 0.95"
+      ],
+      [
+       "dbg",
+       "set r_csmDebug 1; set r_dlightShadowDebug 1"
+      ]
+     ],
+     "outcome": "exited",
+     "exit": 0,
+     "forced": false,
+     "seconds": 20.5,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": [],
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "ac4b15ad9dfa1e4c7f51fdd0dfd16270c6a3604224092186d578530fe1b3abf7"
+      },
+      {
+       "name": "fog.png",
+       "sha256": "babfef05a1895a3c19fbb2161250b27eec380182cd9140304da9008af02f457b"
+      },
+      {
+       "name": "fogoff.png",
+       "sha256": "6c9622f24427974b9bb926b2aa92e70516757b10693b5f6f0150939fc7e9bb57"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "5cecaa4ccfe872ca04b7c15a70d9813d8d576dfd570b7ed36585a318852ab597"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "91ebb2f76daa649c76aff44601999c41414020e33fbe8802d3c078598f3c93f6"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "f82d4211c9a3efbec4d961dfb08bac9a94effa755cb70f622da17bf7f2049f06"
+      }
+     ],
+     "desktopSwitched": false,
+     "inputInjected": false,
+     "commandLine": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe +set com_gameProfile rtcw-mp +set fs_basepath \"E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\" +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\portal-fog-casters\\runs\\village-vk-before\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer vk +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set r_csmShadows 1 +set r_globalFog 1 +set r_globalFogStrength 0 +exec probeshadow.cfg +devmap mp_village"
+    },
+    "consoleSHA256": "42c05526fbec1550089673dbdf9895d45839a9c763d513d05e49ec4cc77ac567",
+    "view": [
+     "(-1839 -931 -57) : 125"
+    ],
+    "csmSummary": {
+     "casters": 0,
+     "cacheHits": 0,
+     "cacheMisses": 1,
+     "cacheUncacheable": 0,
+     "receiversWorld": 0,
+     "receiversEntity": 0,
+     "receiversBaked": 0,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": {
+     "planned": 1,
+     "candidates": 16,
+     "renderedLights": 0,
+     "faces": 0,
+     "batches": 0,
+     "draws": 0,
+     "casterSurfaces": 0,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "fogMeasure": {
+     "pixels": 364800,
+     "changedPixels": 5202,
+     "changedFraction": 0.014259868421052632,
+     "repeatStableFraction": 0.888015350877193,
+     "meanLumaOff": 56.7079976754386,
+     "meanLumaFog": 55.95933526315789
+    },
+    "primaryDispatch": [],
+    "loadedFog": [
+     "Global fog: loaded maps/mp_village.fog (exp2, density 0.001500, start 64.0, opacity 0.80, sky 0)"
+    ],
+    "shutdownWarnings": [],
+    "scopeNote": "Caster-plan comparison; no fog correctness claim from this view."
+   },
+   {
+    "name": "village-rtx-before",
+    "group": "baseline",
+    "result": {
+     "run": "village-rtx-before",
+     "profile": "rtcw-mp",
+     "map": "mp_village",
+     "renderer": "rtx",
+     "fogSidecar": "color 0.25 0.4 0.55\ndensity 0.0015\nmode exp2\nstart 64\nopacity 0.8\nsky false",
+     "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+     "identity": {
+      "fntech3.exe": "50f93f4de614286b311512e33a5e77bfa18f9179fb5bb2a5b8e996db22f61693",
+      "fnql_rtx_x86.dll": "e6a21aa2378f73270f8facfe849ab74fbe17ad6cf85893ba2f3bd42e7c2c87c2",
+      "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+     },
+     "commands": [
+      "wait 300",
+      "cg_thirdPerson 1",
+      "wait 120",
+      "viewpos"
+     ],
+     "shots": [
+      [
+       "on",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "fog",
+       "set r_globalFogStrength 1"
+      ],
+      [
+       "fogoff",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "dloff",
+       "set r_dlightShadowStrength 0"
+      ],
+      [
+       "on2",
+       "set r_dlightShadowStrength 0.95"
+      ],
+      [
+       "dbg",
+       "set r_csmDebug 1; set r_dlightShadowDebug 1"
+      ]
+     ],
+     "outcome": "exited",
+     "exit": 0,
+     "forced": false,
+     "seconds": 20.5,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": [],
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "0d82af2191a0df9605c6d99f7e9d9ef7e98214a406713854fb4852a33fb6554a"
+      },
+      {
+       "name": "fog.png",
+       "sha256": "5224703b1683f12a26b01deceab394e57a5e912cfac9134af8016cc8ea60ec0b"
+      },
+      {
+       "name": "fogoff.png",
+       "sha256": "1bba0940374a39008f3b83268c1e287a8c119d9e9fa8d4f26dff9bd815bbc7b9"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "c85051e9df14470a57a80c6df7dbe99569c425028375861acda4d3e72eda5e42"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "b0b45b23abb1ebab5586ced8afb6ffd2a48cc44954ef79c62eb292aac74833fc"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "e92261a8ebc785f04752233064bdaf9e9384afb2d9fb3efc0685603131410fe6"
+      }
+     ],
+     "desktopSwitched": false,
+     "inputInjected": false,
+     "commandLine": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe +set com_gameProfile rtcw-mp +set fs_basepath \"E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\" +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\portal-fog-casters\\runs\\village-rtx-before\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer rtx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set r_csmShadows 1 +set r_globalFog 1 +set r_globalFogStrength 0 +set rtx_rt_mode 0 +exec probeshadow.cfg +devmap mp_village"
+    },
+    "consoleSHA256": "856290dff150f91ac7e0931f4ddbea009cd183a30c304c6e7f7175ac4b4afab6",
+    "view": [
+     "(-1839 -931 -57) : 125"
+    ],
+    "csmSummary": {
+     "casters": 0,
+     "cacheHits": 1,
+     "cacheMisses": 0,
+     "cacheUncacheable": 0,
+     "receiversWorld": 1655,
+     "receiversEntity": 0,
+     "receiversBaked": 1655,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": {
+     "planned": 1,
+     "candidates": 16,
+     "renderedLights": 0,
+     "faces": 0,
+     "batches": 0,
+     "draws": 0,
+     "casterSurfaces": 0,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "fogMeasure": {
+     "pixels": 364800,
+     "changedPixels": 5202,
+     "changedFraction": 0.014259868421052632,
+     "repeatStableFraction": 0.8880180921052632,
+     "meanLumaOff": 56.69710601151316,
+     "meanLumaFog": 55.94858672697369
+    },
+    "primaryDispatch": [],
+    "loadedFog": [
+     "Global fog: loaded maps/mp_village.fog (exp2, density 0.001500, start 64.0, opacity 0.80, sky 0)"
+    ],
+    "shutdownWarnings": [],
+    "scopeNote": "Caster-plan comparison; no fog correctness claim from this view."
+   },
+   {
+    "name": "forest-glx-after",
+    "group": "after",
+    "result": {
+     "run": "forest-glx-after",
+     "profile": "rtcw-sp",
+     "map": "forest",
+     "renderer": "glx",
+     "fogSidecar": "color 0.25 0.4 0.55\ndensity 0.0015\nmode exp2\nstart 64\nopacity 0.8\nsky false",
+     "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+     "identity": {
+      "fntech3.exe": "999a770420be57b76c792bfe2fe6b81503415dea42d6f9844e523daed561dda7",
+      "fnql_glx_x86.dll": "3780049c1c5c0927bcf9907614524f08944ef727b70f94feadb617b7e1c75ef3",
+      "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+     },
+     "commands": [
+      "give all",
+      "weapon 3",
+      "cg_thirdPerson 1",
+      "wait 180",
+      "viewpos"
+     ],
+     "shots": [
+      [
+       "on",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "fog",
+       "set r_globalFogStrength 1"
+      ],
+      [
+       "fogoff",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "dloff",
+       "set r_dlightShadowStrength 0"
+      ],
+      [
+       "on2",
+       "set r_dlightShadowStrength 0.95"
+      ],
+      [
+       "dbg",
+       "set r_csmDebug 1; set r_dlightShadowDebug 1"
+      ]
+     ],
+     "outcome": "exited",
+     "exit": 0,
+     "forced": false,
+     "seconds": 17.3,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": [],
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "8f215176fd1bdc65704f14034b365de05a964a8ee13f449d47c468d48ac6c832"
+      },
+      {
+       "name": "fog.png",
+       "sha256": "c972a4247f5248c2e9c67606660fc3f81047a0d4ee0fa7ef08132580fb5a597b"
+      },
+      {
+       "name": "fogoff.png",
+       "sha256": "2bbc19af6ccca94e21bf2037938996ff8b6aa4afb4393c7c02aa88b57ec1aba5"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "a7d6595a584dbbb6cde2249be797f3f9828ca41c59c2dd9610226a54c05402b5"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "f699f38f0fbaccd8227fb30994910899c5c493b019946b141f926c7795890a63"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "cd8c5ab948236314d657bb87082f010a6ecefda171c287be6084beb68652e214"
+      }
+     ],
+     "desktopSwitched": false,
+     "inputInjected": false,
+     "commandLine": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe +set com_gameProfile rtcw-sp +set fs_basepath \"E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\" +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\portal-fog-casters\\runs\\forest-glx-after\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set r_csmShadows 1 +set r_globalFog 1 +set r_globalFogStrength 0 +exec probeshadow.cfg +devmap forest"
+    },
+    "consoleSHA256": "54876799c46bdf2821792283fb90abf9f6597eac10f4587b56ba50da7374b162",
+    "view": [
+     "(-5360 -6024 509) : 0"
+    ],
+    "csmSummary": {
+     "casters": 335,
+     "cacheHits": 0,
+     "cacheMisses": 1,
+     "cacheUncacheable": 1,
+     "receiversWorld": 104,
+     "receiversEntity": 576,
+     "receiversBaked": 104,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": {
+     "planned": 2,
+     "candidates": 5,
+     "renderedLights": 2,
+     "faces": 12,
+     "batches": 31,
+     "draws": 31,
+     "casterSurfaces": 700,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "fogMeasure": {
+     "pixels": 364800,
+     "changedPixels": 196089,
+     "changedFraction": 0.5375246710526316,
+     "repeatStableFraction": 0.8775246710526315,
+     "meanLumaOff": 16.631168569078948,
+     "meanLumaFog": 41.11660949013157
+    },
+    "fogDisabledBeforeAfter": {
+     "meanAbsoluteLumaDifference": 0.0,
+     "fractionOver12": 0.0
+    },
+    "primaryDispatch": [],
+    "loadedFog": [
+     "Global fog: loaded maps/forest.fog (exp2, density 0.001500, start 64.0, opacity 0.80, sky 0)"
+    ],
+    "shutdownWarnings": []
+   },
+   {
+    "name": "forest-vk-after",
+    "group": "after",
+    "result": {
+     "run": "forest-vk-after",
+     "profile": "rtcw-sp",
+     "map": "forest",
+     "renderer": "vk",
+     "fogSidecar": "color 0.25 0.4 0.55\ndensity 0.0015\nmode exp2\nstart 64\nopacity 0.8\nsky false",
+     "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+     "identity": {
+      "fntech3.exe": "999a770420be57b76c792bfe2fe6b81503415dea42d6f9844e523daed561dda7",
+      "fnql_vk_x86.dll": "1cb0e83ffc34965929944c890387f7bf5516149f638b32554faead76d0fa0278",
+      "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+     },
+     "commands": [
+      "give all",
+      "weapon 3",
+      "cg_thirdPerson 1",
+      "wait 180",
+      "viewpos"
+     ],
+     "shots": [
+      [
+       "on",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "fog",
+       "set r_globalFogStrength 1"
+      ],
+      [
+       "fogoff",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "dloff",
+       "set r_dlightShadowStrength 0"
+      ],
+      [
+       "on2",
+       "set r_dlightShadowStrength 0.95"
+      ],
+      [
+       "dbg",
+       "set r_csmDebug 1; set r_dlightShadowDebug 1"
+      ]
+     ],
+     "outcome": "exited",
+     "exit": 0,
+     "forced": false,
+     "seconds": 16.5,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": [],
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "3e9c04ffe775bf8e0fb27edbbf0fc33e64501364aa5906544af5a24d393810fe"
+      },
+      {
+       "name": "fog.png",
+       "sha256": "0cf1471f69d87002f4af64bc2d60ca70b97671be85f8906a652f479defa67b23"
+      },
+      {
+       "name": "fogoff.png",
+       "sha256": "a48d490af2eabb9421fe25562503600cfe61b12b0cc344857a88058d47f3d605"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "4e2b6d199a6f52ca99462f9d3d79233fac2ec255d52bf9bef7ceb0c2e1fafd20"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "fbf11c02b19c84ac86351230e37eff30b582ea67447ea663807eb0a2c228be3e"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "9ee2467df730b2611831ac156b253fc033172bb400c0390f48573d4a3acc812a"
+      }
+     ],
+     "desktopSwitched": false,
+     "inputInjected": false,
+     "commandLine": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe +set com_gameProfile rtcw-sp +set fs_basepath \"E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\" +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\portal-fog-casters\\runs\\forest-vk-after\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer vk +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set r_csmShadows 1 +set r_globalFog 1 +set r_globalFogStrength 0 +exec probeshadow.cfg +devmap forest"
+    },
+    "consoleSHA256": "96d94be859e3a1d6d88b29804c1f1843231f753c536d3ed4fe0e6161e007fce9",
+    "view": [
+     "(-5360 -6024 509) : 0"
+    ],
+    "csmSummary": {
+     "casters": 335,
+     "cacheHits": 0,
+     "cacheMisses": 1,
+     "cacheUncacheable": 1,
+     "receiversWorld": 104,
+     "receiversEntity": 576,
+     "receiversBaked": 104,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": {
+     "planned": 2,
+     "candidates": 5,
+     "renderedLights": 2,
+     "faces": 12,
+     "batches": 31,
+     "draws": 31,
+     "casterSurfaces": 700,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "fogMeasure": {
+     "pixels": 364800,
+     "changedPixels": 62601,
+     "changedFraction": 0.17160361842105262,
+     "repeatStableFraction": 0.880764802631579,
+     "meanLumaOff": 16.802272875548244,
+     "meanLumaFog": 21.120812510964914
+    },
+    "fogDisabledBeforeAfter": {
+     "meanAbsoluteLumaDifference": 0.12217439692982457,
+     "fractionOver12": 0.000575657894736842
+    },
+    "primaryDispatch": [],
+    "loadedFog": [
+     "Global fog: loaded maps/forest.fog (exp2, density 0.001500, start 64.0, opacity 0.80, sky 0)"
+    ],
+    "shutdownWarnings": []
+   },
+   {
+    "name": "forest-rtx-after",
+    "group": "after",
+    "result": {
+     "run": "forest-rtx-after",
+     "profile": "rtcw-sp",
+     "map": "forest",
+     "renderer": "rtx",
+     "fogSidecar": "color 0.25 0.4 0.55\ndensity 0.0015\nmode exp2\nstart 64\nopacity 0.8\nsky false",
+     "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+     "identity": {
+      "fntech3.exe": "999a770420be57b76c792bfe2fe6b81503415dea42d6f9844e523daed561dda7",
+      "fnql_rtx_x86.dll": "67c1de1e23b2932387ed44ac1f7f52ade79d95ebc99ca8d1a4e9715f37a1ae31",
+      "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+     },
+     "commands": [
+      "give all",
+      "weapon 3",
+      "cg_thirdPerson 1",
+      "wait 180",
+      "viewpos"
+     ],
+     "shots": [
+      [
+       "on",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "fog",
+       "set r_globalFogStrength 1"
+      ],
+      [
+       "fogoff",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "dloff",
+       "set r_dlightShadowStrength 0"
+      ],
+      [
+       "on2",
+       "set r_dlightShadowStrength 0.95"
+      ],
+      [
+       "dbg",
+       "set r_csmDebug 1; set r_dlightShadowDebug 1"
+      ]
+     ],
+     "outcome": "exited",
+     "exit": 0,
+     "forced": false,
+     "seconds": 16.6,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": [],
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "59c30b0fb771323222a30f1d2c3b26c0e2826173dd40b3a32d912149ebe1c29b"
+      },
+      {
+       "name": "fog.png",
+       "sha256": "60e6f627dd52a806aa4dc3e4488847673a99e07983a4c153d2615a069ee713f5"
+      },
+      {
+       "name": "fogoff.png",
+       "sha256": "d6a177493f3c5d4b0b00d05a60ae3cb790328a0ffa70624c457fc36a09f6af0b"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "42b23b8048ade4a35f936df4a7c331453b3bcba67d6afea9d1fa7af263f584bf"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "a5ba7768031937cb5d1f403063e7fe4e120448858d935265ad6703b0d2b0444c"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "babf3f2bea3d8f51e243d136c0f2ac61950803fa5cf503c4900c94b39960664c"
+      }
+     ],
+     "desktopSwitched": false,
+     "inputInjected": false,
+     "commandLine": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe +set com_gameProfile rtcw-sp +set fs_basepath \"E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\" +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\portal-fog-casters\\runs\\forest-rtx-after\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer rtx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set r_csmShadows 1 +set r_globalFog 1 +set r_globalFogStrength 0 +set rtx_rt_mode 0 +exec probeshadow.cfg +devmap forest"
+    },
+    "consoleSHA256": "cd9baa432ef4568a00e1dcb7f7073b204570fe8a959541552887d1ea85693e81",
+    "view": [
+     "(-5360 -6024 509) : 0"
+    ],
+    "csmSummary": {
+     "casters": 335,
+     "cacheHits": 0,
+     "cacheMisses": 1,
+     "cacheUncacheable": 1,
+     "receiversWorld": 104,
+     "receiversEntity": 576,
+     "receiversBaked": 104,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": {
+     "planned": 2,
+     "candidates": 5,
+     "renderedLights": 2,
+     "faces": 12,
+     "batches": 31,
+     "draws": 31,
+     "casterSurfaces": 700,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "fogMeasure": {
+     "pixels": 364800,
+     "changedPixels": 199118,
+     "changedFraction": 0.545827850877193,
+     "repeatStableFraction": 0.88078125,
+     "meanLumaOff": 16.79455796052632,
+     "meanLumaFog": 41.26610434758772
+    },
+    "fogDisabledBeforeAfter": {
+     "meanAbsoluteLumaDifference": 0.05340297971491228,
+     "fractionOver12": 0.00021655701754385966
+    },
+    "primaryDispatch": [],
+    "loadedFog": [
+     "Global fog: loaded maps/forest.fog (exp2, density 0.001500, start 64.0, opacity 0.80, sky 0)"
+    ],
+    "shutdownWarnings": []
+   },
+   {
+    "name": "village-glx-after",
+    "group": "after",
+    "result": {
+     "run": "village-glx-after",
+     "profile": "rtcw-mp",
+     "map": "mp_village",
+     "renderer": "glx",
+     "fogSidecar": "color 0.25 0.4 0.55\ndensity 0.0015\nmode exp2\nstart 64\nopacity 0.8\nsky false",
+     "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+     "identity": {
+      "fntech3.exe": "999a770420be57b76c792bfe2fe6b81503415dea42d6f9844e523daed561dda7",
+      "fnql_glx_x86.dll": "3780049c1c5c0927bcf9907614524f08944ef727b70f94feadb617b7e1c75ef3",
+      "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+     },
+     "commands": [
+      "wait 300",
+      "cg_thirdPerson 1",
+      "wait 120",
+      "viewpos"
+     ],
+     "shots": [
+      [
+       "on",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "fog",
+       "set r_globalFogStrength 1"
+      ],
+      [
+       "fogoff",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "dloff",
+       "set r_dlightShadowStrength 0"
+      ],
+      [
+       "on2",
+       "set r_dlightShadowStrength 0.95"
+      ],
+      [
+       "dbg",
+       "set r_csmDebug 1; set r_dlightShadowDebug 1"
+      ]
+     ],
+     "outcome": "exited",
+     "exit": 0,
+     "forced": false,
+     "seconds": 20.7,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": [],
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "de11cc48b5b2634d6af0e598411eaa719521cac22cafb4c804d9ee50460eec1e"
+      },
+      {
+       "name": "fog.png",
+       "sha256": "721f56831abd250987526d1c4488fc98d680dfca01fd65fc17ad2ff00d7edce1"
+      },
+      {
+       "name": "fogoff.png",
+       "sha256": "41da8a49da090d2657e17e81c49bb7353f1389cf9e919edba3a0f7db6501a310"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "f30c35f01f701967a3dfb1977411380a1097cc8f1c84a70f734aa312835d35a4"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "1407bf50914b2e7ce2e66677785f7f945558bd03450ed23b843d7719830b0903"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "2dbe457ec93fc51f2c7e50b5ee5f72a039f8060a4e1fc8fff44a9d2f06f3a44b"
+      }
+     ],
+     "desktopSwitched": false,
+     "inputInjected": false,
+     "commandLine": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe +set com_gameProfile rtcw-mp +set fs_basepath \"E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\" +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\portal-fog-casters\\runs\\village-glx-after\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer glx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set r_csmShadows 1 +set r_globalFog 1 +set r_globalFogStrength 0 +exec probeshadow.cfg +devmap mp_village"
+    },
+    "consoleSHA256": "0aea66737b21a8bd93eaa6e04b9f751bbe052ad45f8c6007f6a64dfa0eff4daa",
+    "view": [
+     "(-1839 -931 -57) : 125"
+    ],
+    "csmSummary": {
+     "casters": 0,
+     "cacheHits": 1,
+     "cacheMisses": 0,
+     "cacheUncacheable": 0,
+     "receiversWorld": 1655,
+     "receiversEntity": 0,
+     "receiversBaked": 1655,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": {
+     "planned": 0,
+     "candidates": 16,
+     "renderedLights": 0,
+     "faces": 0,
+     "batches": 0,
+     "draws": 0,
+     "casterSurfaces": 0,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "fogMeasure": {
+     "pixels": 364800,
+     "changedPixels": 5184,
+     "changedFraction": 0.014210526315789474,
+     "repeatStableFraction": 0.8877330043859649,
+     "meanLumaOff": 56.617749237938604,
+     "meanLumaFog": 55.86906275767544
+    },
+    "fogDisabledBeforeAfter": {
+     "meanAbsoluteLumaDifference": 0.0,
+     "fractionOver12": 0.0
+    },
+    "primaryDispatch": [],
+    "loadedFog": [
+     "Global fog: loaded maps/mp_village.fog (exp2, density 0.001500, start 64.0, opacity 0.80, sky 0)"
+    ],
+    "shutdownWarnings": [],
+    "scopeNote": "Caster-plan comparison; no fog correctness claim from this view."
+   },
+   {
+    "name": "village-vk-after",
+    "group": "after",
+    "result": {
+     "run": "village-vk-after",
+     "profile": "rtcw-mp",
+     "map": "mp_village",
+     "renderer": "vk",
+     "fogSidecar": "color 0.25 0.4 0.55\ndensity 0.0015\nmode exp2\nstart 64\nopacity 0.8\nsky false",
+     "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+     "identity": {
+      "fntech3.exe": "999a770420be57b76c792bfe2fe6b81503415dea42d6f9844e523daed561dda7",
+      "fnql_vk_x86.dll": "1cb0e83ffc34965929944c890387f7bf5516149f638b32554faead76d0fa0278",
+      "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+     },
+     "commands": [
+      "wait 300",
+      "cg_thirdPerson 1",
+      "wait 120",
+      "viewpos"
+     ],
+     "shots": [
+      [
+       "on",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "fog",
+       "set r_globalFogStrength 1"
+      ],
+      [
+       "fogoff",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "dloff",
+       "set r_dlightShadowStrength 0"
+      ],
+      [
+       "on2",
+       "set r_dlightShadowStrength 0.95"
+      ],
+      [
+       "dbg",
+       "set r_csmDebug 1; set r_dlightShadowDebug 1"
+      ]
+     ],
+     "outcome": "exited",
+     "exit": 0,
+     "forced": false,
+     "seconds": 21.6,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": [],
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "57ab89fdbc3238d1dcfd669562a24a52786f2e9292e3715cbd22a541c664ca7b"
+      },
+      {
+       "name": "fog.png",
+       "sha256": "e0f2bfacd6d4f361d950c01c49a8b3963690484753d9a2e4a5e9a8c9fc212f89"
+      },
+      {
+       "name": "fogoff.png",
+       "sha256": "c3a1956caa8ae8534b258fc60fd1bab77c13af2d3167f2b91fdde36fa56b7540"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "061e5b729dae91931ecf98861b8aa1754ee73097a1c83d73122a1e5471d1c4de"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "00ae15123cf7481efac12b5c1a1fbd79130ea6394067550eed6e1e753a456361"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "98c23f337f9f28cbb2a79b429b6cd43477fba2ded3b99a1716b88b3db369e91d"
+      }
+     ],
+     "desktopSwitched": false,
+     "inputInjected": false,
+     "commandLine": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe +set com_gameProfile rtcw-mp +set fs_basepath \"E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\" +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\portal-fog-casters\\runs\\village-vk-after\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer vk +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set r_csmShadows 1 +set r_globalFog 1 +set r_globalFogStrength 0 +exec probeshadow.cfg +devmap mp_village"
+    },
+    "consoleSHA256": "282f6ceb9c4dd0feae298815c517adacdd5c7ae303c5a9932733e9590c013103",
+    "view": [
+     "(-1839 -931 -57) : 125"
+    ],
+    "csmSummary": {
+     "casters": 0,
+     "cacheHits": 0,
+     "cacheMisses": 1,
+     "cacheUncacheable": 0,
+     "receiversWorld": 0,
+     "receiversEntity": 0,
+     "receiversBaked": 0,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": {
+     "planned": 0,
+     "candidates": 16,
+     "renderedLights": 0,
+     "faces": 0,
+     "batches": 0,
+     "draws": 0,
+     "casterSurfaces": 0,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "fogMeasure": {
+     "pixels": 364800,
+     "changedPixels": 5202,
+     "changedFraction": 0.014259868421052632,
+     "repeatStableFraction": 0.8880180921052632,
+     "meanLumaOff": 56.70799572368421,
+     "meanLumaFog": 55.959333341557006
+    },
+    "fogDisabledBeforeAfter": {
+     "meanAbsoluteLumaDifference": 5.1699561403508844e-06,
+     "fractionOver12": 0.0
+    },
+    "primaryDispatch": [],
+    "loadedFog": [
+     "Global fog: loaded maps/mp_village.fog (exp2, density 0.001500, start 64.0, opacity 0.80, sky 0)"
+    ],
+    "shutdownWarnings": [],
+    "scopeNote": "Caster-plan comparison; no fog correctness claim from this view."
+   },
+   {
+    "name": "village-rtx-after",
+    "group": "after",
+    "result": {
+     "run": "village-rtx-after",
+     "profile": "rtcw-mp",
+     "map": "mp_village",
+     "renderer": "rtx",
+     "fogSidecar": "color 0.25 0.4 0.55\ndensity 0.0015\nmode exp2\nstart 64\nopacity 0.8\nsky false",
+     "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+     "identity": {
+      "fntech3.exe": "999a770420be57b76c792bfe2fe6b81503415dea42d6f9844e523daed561dda7",
+      "fnql_rtx_x86.dll": "67c1de1e23b2932387ed44ac1f7f52ade79d95ebc99ca8d1a4e9715f37a1ae31",
+      "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+     },
+     "commands": [
+      "wait 300",
+      "cg_thirdPerson 1",
+      "wait 120",
+      "viewpos"
+     ],
+     "shots": [
+      [
+       "on",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "fog",
+       "set r_globalFogStrength 1"
+      ],
+      [
+       "fogoff",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "dloff",
+       "set r_dlightShadowStrength 0"
+      ],
+      [
+       "on2",
+       "set r_dlightShadowStrength 0.95"
+      ],
+      [
+       "dbg",
+       "set r_csmDebug 1; set r_dlightShadowDebug 1"
+      ]
+     ],
+     "outcome": "exited",
+     "exit": 0,
+     "forced": false,
+     "seconds": 21.1,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": [],
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "c14a7590369f1ba90d8810e3712c3d04de11cdae5ea609d2c9f093d377d7c217"
+      },
+      {
+       "name": "fog.png",
+       "sha256": "ebf10b128410ba9893bd65921cffbb6b47f0d525a3cc2776663d67ef04d595a0"
+      },
+      {
+       "name": "fogoff.png",
+       "sha256": "04c964238e6a5530a151af85057892a13060929cd59e59d26f92ed0b218db1b8"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "6880932a38081c93b235fecc3e000e974de1ea17e2cfa335baa335e5fd545199"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "ffdd97b661ca968d060158904c8871aa3128419493a0d8521a15c5d535163f2d"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "f7d3e136d7141821779c1179a6d0b674135f583fcb791cd8f60d7a391f0ba1fb"
+      }
+     ],
+     "desktopSwitched": false,
+     "inputInjected": false,
+     "commandLine": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe +set com_gameProfile rtcw-mp +set fs_basepath \"E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\" +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\portal-fog-casters\\runs\\village-rtx-after\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer rtx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set r_csmShadows 1 +set r_globalFog 1 +set r_globalFogStrength 0 +set rtx_rt_mode 0 +exec probeshadow.cfg +devmap mp_village"
+    },
+    "consoleSHA256": "37789e1800685110e8eb2fb06544e2a81152f657ceec3e5517fcdbd85a506ce9",
+    "view": [
+     "(-1839 -931 -57) : 125"
+    ],
+    "csmSummary": {
+     "casters": 0,
+     "cacheHits": 1,
+     "cacheMisses": 0,
+     "cacheUncacheable": 0,
+     "receiversWorld": 1655,
+     "receiversEntity": 0,
+     "receiversBaked": 1655,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": {
+     "planned": 0,
+     "candidates": 16,
+     "renderedLights": 0,
+     "faces": 0,
+     "batches": 0,
+     "draws": 0,
+     "casterSurfaces": 0,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "fogMeasure": {
+     "pixels": 364800,
+     "changedPixels": 5202,
+     "changedFraction": 0.014259868421052632,
+     "repeatStableFraction": 0.888015350877193,
+     "meanLumaOff": 56.69710097587719,
+     "meanLumaFog": 55.94857915844298
+    },
+    "fogDisabledBeforeAfter": {
+     "meanAbsoluteLumaDifference": 1.2157346491228058e-05,
+     "fractionOver12": 0.0
+    },
+    "primaryDispatch": [],
+    "loadedFog": [
+     "Global fog: loaded maps/mp_village.fog (exp2, density 0.001500, start 64.0, opacity 0.80, sky 0)"
+    ],
+    "shutdownWarnings": [],
+    "scopeNote": "Caster-plan comparison; no fog correctness claim from this view."
+   },
+   {
+    "name": "q3-rtx",
+    "group": "extra",
+    "result": {
+     "run": "q3-rtx",
+     "profile": "q3",
+     "map": "q3dm1",
+     "renderer": "rtx",
+     "fogSidecar": "color 0.25 0.4 0.55\ndensity 0.0015\nmode exp2\nstart 64\nopacity 0.8\nsky true",
+     "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+     "identity": {
+      "fntech3.exe": "999a770420be57b76c792bfe2fe6b81503415dea42d6f9844e523daed561dda7",
+      "fnql_rtx_x86.dll": "67c1de1e23b2932387ed44ac1f7f52ade79d95ebc99ca8d1a4e9715f37a1ae31",
+      "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+     },
+     "commands": [
+      "viewpos"
+     ],
+     "shots": [
+      [
+       "on",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "fog",
+       "set r_globalFogStrength 1"
+      ],
+      [
+       "fogoff",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "dbg",
+       "set r_csmDebug 1; set r_dlightShadowDebug 1"
+      ]
+     ],
+     "outcome": "exited",
+     "exit": 0,
+     "forced": false,
+     "seconds": 11.4,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": [],
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "b99325bc6c356e0e659e51b858b5e1eebaa0424839ca9a6ac39a2d59808c0ad7"
+      },
+      {
+       "name": "fog.png",
+       "sha256": "f66e5338dd28f459dabf05483a9d85fac6d1846a1add495899dcc5bdae124148"
+      },
+      {
+       "name": "fogoff.png",
+       "sha256": "a1599c5feaacf679d660ffc22e733d68d1c1543d62f002f2ffd964cd1e8fc098"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "9684349b3f2f9b4999f34dc0ec6f4691149706b68e510e718fdc2eb746513497"
+      }
+     ],
+     "desktopSwitched": false,
+     "inputInjected": false,
+     "commandLine": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe +set com_gameProfile q3 +set fs_basepath \"C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\" +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\portal-fog-casters\\runs\\q3-rtx\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer rtx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set r_csmShadows 1 +set r_globalFog 1 +set r_globalFogStrength 0 +set rtx_rt_mode 0 +exec probeshadow.cfg +devmap q3dm1"
+    },
+    "consoleSHA256": "e8e4d56238609af917b4d5aed25c03f6713d58f8ed92ebeb78697c5f7fe51277",
+    "view": [
+     "(212 2360 65) : 315"
+    ],
+    "csmSummary": {
+     "casters": 1392,
+     "cacheHits": 0,
+     "cacheMisses": 0,
+     "cacheUncacheable": 1,
+     "receiversWorld": 1313,
+     "receiversEntity": 64,
+     "receiversBaked": 1313,
+     "debugFrames": 130,
+     "commonestFrames": 83
+    },
+    "dlightSummary": null,
+    "fogMeasure": {
+     "pixels": 364800,
+     "changedPixels": 76754,
+     "changedFraction": 0.21040021929824562,
+     "repeatStableFraction": 0.8167626096491228,
+     "meanLumaOff": 56.371927497258774,
+     "meanLumaFog": 67.29199751370614
+    },
+    "primaryDispatch": [],
+    "loadedFog": [
+     "Global fog: loaded maps/q3dm1.fog (exp, density 0.000850, start 144.0, opacity 0.30, sky 1)"
+    ],
+    "shutdownWarnings": []
+   },
+   {
+    "name": "ql-rtx",
+    "group": "extra",
+    "result": {
+     "run": "ql-rtx",
+     "profile": "ql",
+     "map": "campgrounds ca",
+     "renderer": "rtx",
+     "fogSidecar": "color 0.25 0.4 0.55\ndensity 0.0015\nmode exp2\nstart 64\nopacity 0.8\nsky true",
+     "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+     "identity": {
+      "fntech3.exe": "999a770420be57b76c792bfe2fe6b81503415dea42d6f9844e523daed561dda7",
+      "fnql_rtx_x86.dll": "67c1de1e23b2932387ed44ac1f7f52ade79d95ebc99ca8d1a4e9715f37a1ae31",
+      "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+     },
+     "commands": [
+      "wait 180",
+      "viewpos"
+     ],
+     "shots": [
+      [
+       "on",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "fog",
+       "set r_globalFogStrength 1"
+      ],
+      [
+       "fogoff",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "dbg",
+       "set r_csmDebug 1; set r_dlightShadowDebug 1"
+      ]
+     ],
+     "outcome": "exited",
+     "exit": 0,
+     "forced": false,
+     "seconds": 14.9,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": [],
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "710b8f4a5623c296aa17b9f403f0af0780f9dc587d3aa5d6094f8ea6834edd1d"
+      },
+      {
+       "name": "fog.png",
+       "sha256": "c011df8369ec0fcc1e48bcc94988cab30e3250f92fc280c069178da11cc642ec"
+      },
+      {
+       "name": "fogoff.png",
+       "sha256": "58e665b6dd4b1afc5f945ad0b0c33aca838a1e03a7c22596635dc2ebdd2680eb"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "215b7b68b9e1dd789a4bfa8916d112f776e494605ba520f5fcdab12d0413828b"
+      }
+     ],
+     "desktopSwitched": false,
+     "inputInjected": false,
+     "commandLine": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe +set com_gameProfile ql +set fs_basepath \"E:\\SteamLibrary\\steamapps\\common\\Quake Live\" +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\portal-fog-casters\\runs\\ql-rtx\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer rtx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set r_csmShadows 1 +set r_globalFog 1 +set r_globalFogStrength 0 +set rtx_rt_mode 0 +exec probeshadow.cfg +devmap campgrounds ca"
+    },
+    "consoleSHA256": "81375e1d489f0221ab410b641eb34e47cb01f1a5e41d778f4ef54953af9465cd",
+    "view": [
+     "(-576 -384 560) : 90"
+    ],
+    "csmSummary": {
+     "casters": 2146,
+     "cacheHits": 0,
+     "cacheMisses": 0,
+     "cacheUncacheable": 1,
+     "receiversWorld": 2135,
+     "receiversEntity": 0,
+     "receiversBaked": 2135,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": null,
+    "fogMeasure": {
+     "pixels": 364800,
+     "changedPixels": 37,
+     "changedFraction": 0.00010142543859649122,
+     "repeatStableFraction": 0.9985581140350878,
+     "meanLumaOff": 23.733465134320177,
+     "meanLumaFog": 25.16629146381579
+    },
+    "primaryDispatch": [],
+    "loadedFog": [
+     "Global fog: loaded maps/campgrounds.fog (exp, density 0.001000, start 224.0, opacity 0.48, sky 1)"
+    ],
+    "shutdownWarnings": [
+     "Hunk_FreeTempMemory: not the final block",
+     "Hunk_FreeTempMemory: not the final block",
+     "Hunk_FreeTempMemory: not the final block",
+     "Hunk_FreeTempMemory: not the final block",
+     "Hunk_FreeTempMemory: not the final block",
+     "Hunk_FreeTempMemory: not the final block"
+    ],
+    "scopeNote": "Map-load/shutdown smoke only: join menu obscures the world; packaged campgrounds.fog overrides the test sidecar. Three Hunk_FreeTempMemory shutdown warnings, exit 0."
+   },
+   {
+    "name": "et-rtx",
+    "group": "extra",
+    "result": {
+     "run": "et-rtx",
+     "profile": "wolfet",
+     "map": "oasis",
+     "renderer": "rtx",
+     "fogSidecar": "color 0.25 0.4 0.55\ndensity 0.0015\nmode exp2\nstart 64\nopacity 0.8\nsky true",
+     "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+     "identity": {
+      "fntech3.exe": "999a770420be57b76c792bfe2fe6b81503415dea42d6f9844e523daed561dda7",
+      "fnql_rtx_x86.dll": "67c1de1e23b2932387ed44ac1f7f52ade79d95ebc99ca8d1a4e9715f37a1ae31",
+      "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+     },
+     "commands": [
+      "wait 300",
+      "viewpos"
+     ],
+     "shots": [
+      [
+       "on",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "fog",
+       "set r_globalFogStrength 1"
+      ],
+      [
+       "fogoff",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "dbg",
+       "set r_csmDebug 1; set r_dlightShadowDebug 1"
+      ]
+     ],
+     "outcome": "exited",
+     "exit": 0,
+     "forced": false,
+     "seconds": 16.5,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": [],
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "4a43337905963b166d826a80b88aa9455b087be8fbc9ccc62f2ebb34714e88a7"
+      },
+      {
+       "name": "fog.png",
+       "sha256": "7e913e80981aad0891171f2207042a54c3d1315f0b78fd3740f40eb354ffc4b9"
+      },
+      {
+       "name": "fogoff.png",
+       "sha256": "7ffa935c70bff394b01ea5054464ffa7f6f87a0cdde7ac1d6c862417221a492b"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "3352190df6de7a558ae9e1a1575f236d276be3a18a3b871ada3c2c199dc12e1b"
+      }
+     ],
+     "desktopSwitched": false,
+     "inputInjected": false,
+     "commandLine": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe +set com_gameProfile wolfet +set fs_basepath \"E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory\" +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\portal-fog-casters\\runs\\et-rtx\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer rtx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set r_csmShadows 1 +set r_globalFog 1 +set r_globalFogStrength 0 +set rtx_rt_mode 0 +exec probeshadow.cfg +devmap oasis"
+    },
+    "consoleSHA256": "ece8c72fd149cd5542ae79044518b48662d051dfb41e823256f424f021bc30ce",
+    "view": [
+     "(2877 1573 -419) : 137"
+    ],
+    "csmSummary": {
+     "casters": 2759,
+     "cacheHits": 0,
+     "cacheMisses": 0,
+     "cacheUncacheable": 1,
+     "receiversWorld": 2716,
+     "receiversEntity": 0,
+     "receiversBaked": 2716,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": null,
+    "fogMeasure": {
+     "pixels": 364800,
+     "changedPixels": 55,
+     "changedFraction": 0.00015076754385964913,
+     "repeatStableFraction": 0.9998190789473684,
+     "meanLumaOff": 137.99223642269737,
+     "meanLumaFog": 137.99327764254386
+    },
+    "primaryDispatch": [],
+    "loadedFog": [
+     "Global fog: loaded maps/oasis.fog (exp2, density 0.001500, start 64.0, opacity 0.80, sky 1)"
+    ],
+    "shutdownWarnings": [],
+    "scopeNote": "Initial join-menu capture; superseded for visual smoke by et-visible."
+   },
+   {
+    "name": "jka-rtx",
+    "group": "extra",
+    "result": {
+     "run": "jka-rtx",
+     "profile": "jka-mp",
+     "map": "mp/duel9",
+     "renderer": "rtx",
+     "fogSidecar": "color 0.25 0.4 0.55\ndensity 0.0015\nmode exp2\nstart 64\nopacity 0.8\nsky true",
+     "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+     "identity": {
+      "fntech3.exe": "999a770420be57b76c792bfe2fe6b81503415dea42d6f9844e523daed561dda7",
+      "fnql_rtx_x86.dll": "67c1de1e23b2932387ed44ac1f7f52ade79d95ebc99ca8d1a4e9715f37a1ae31",
+      "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+     },
+     "commands": [
+      "wait 180",
+      "viewpos"
+     ],
+     "shots": [
+      [
+       "on",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "fog",
+       "set r_globalFogStrength 1"
+      ],
+      [
+       "fogoff",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "dbg",
+       "set r_csmDebug 1; set r_dlightShadowDebug 1"
+      ]
+     ],
+     "outcome": "exited",
+     "exit": 0,
+     "forced": false,
+     "seconds": 13.9,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": [],
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "c41c6d2d5d5dbe44bf7a9eaf8f5d12a4f45153f394f880c52d712a3f75b40b92"
+      },
+      {
+       "name": "fog.png",
+       "sha256": "eb45c3e38e06b46bbd8017aa5e052b449b7853292c2579f34d3c0418fcf15bd8"
+      },
+      {
+       "name": "fogoff.png",
+       "sha256": "0f9f2fab5d0324198048debba43ac3c5cb4d6a6c385a707054fffe93754f711f"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "ea8a16c92fb1956f4908e65c87e0feeadd5607ba51be07cb2a2595b447a3aefa"
+      }
+     ],
+     "desktopSwitched": false,
+     "inputInjected": false,
+     "commandLine": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe +set com_gameProfile jka-mp +set fs_basepath \"E:\\Games\\Jedi Academy\" +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\portal-fog-casters\\runs\\jka-rtx\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer rtx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set r_csmShadows 1 +set r_globalFog 1 +set r_globalFogStrength 0 +set rtx_rt_mode 0 +exec probeshadow.cfg +devmap mp/duel9"
+    },
+    "consoleSHA256": "c58b81ce9573a62e814f883172d71595c0e7ecc1fe8e9de9708b61a142ffed50",
+    "view": [],
+    "csmSummary": {
+     "casters": 572,
+     "cacheHits": 0,
+     "cacheMisses": 2,
+     "cacheUncacheable": 0,
+     "receiversWorld": 572,
+     "receiversEntity": 0,
+     "receiversBaked": 568,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": null,
+    "fogMeasure": {
+     "pixels": 364800,
+     "changedPixels": 0,
+     "changedFraction": 0.0,
+     "repeatStableFraction": 1.0,
+     "meanLumaOff": 61.01512628837718,
+     "meanLumaFog": 61.01512628837718
+    },
+    "primaryDispatch": [],
+    "loadedFog": [],
+    "shutdownWarnings": [
+     "Hunk_FreeTempMemory: not the final block"
+    ],
+    "scopeNote": "Initial player-configuration menu; sidecar was written under mp/ but the loader uses maps/duel9.fog. Superseded by jka-visible."
+   },
+   {
+    "name": "forest-no-depthfade",
+    "group": "extra",
+    "result": {
+     "run": "forest-no-depthfade",
+     "profile": "rtcw-sp",
+     "map": "forest",
+     "renderer": "rtx",
+     "fogSidecar": "color 0.25 0.4 0.55\ndensity 0.0015\nmode exp2\nstart 64\nopacity 0.8\nsky true",
+     "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+     "identity": {
+      "fntech3.exe": "999a770420be57b76c792bfe2fe6b81503415dea42d6f9844e523daed561dda7",
+      "fnql_rtx_x86.dll": "67c1de1e23b2932387ed44ac1f7f52ade79d95ebc99ca8d1a4e9715f37a1ae31",
+      "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+     },
+     "commands": [
+      "give all",
+      "weapon 3",
+      "cg_thirdPerson 1",
+      "wait 180",
+      "viewpos"
+     ],
+     "shots": [
+      [
+       "on",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "fog",
+       "set r_globalFogStrength 1"
+      ],
+      [
+       "fogoff",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "dbg",
+       "set r_csmDebug 1; set r_dlightShadowDebug 1"
+      ]
+     ],
+     "outcome": "exited",
+     "exit": 0,
+     "forced": false,
+     "seconds": 13.4,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": [],
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "c0bf0f1e3599a31b3f93a3afc973b4d270d1397f0c348cc0d3622383b0184308"
+      },
+      {
+       "name": "fog.png",
+       "sha256": "36644073d598f64157dca470295a4c372e8d30d188033c2b822c59fd238d46f9"
+      },
+      {
+       "name": "fogoff.png",
+       "sha256": "f53e40c9594d0f77dc51c89bad7dd28311ffe654ac8dd33a34ad92b58f5a5592"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "e4711f67467754a68c86fa0c9ee3e9e1b9dc3b3e7988ac219b69a6d92f3af6c7"
+      }
+     ],
+     "desktopSwitched": false,
+     "inputInjected": false,
+     "commandLine": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe +set com_gameProfile rtcw-sp +set fs_basepath \"E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\" +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\portal-fog-casters\\runs\\forest-no-depthfade\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer rtx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set r_csmShadows 1 +set r_globalFog 1 +set r_globalFogStrength 0 +set rtx_rt_mode 0 +set r_depthFade 0 +exec probeshadow.cfg +devmap forest"
+    },
+    "consoleSHA256": "1be89cbf3499b6d931004378528b64a4e78c528af865f59243f5cd5bc6dbe1e1",
+    "view": [
+     "(-5360 -6024 509) : 0"
+    ],
+    "csmSummary": {
+     "casters": 335,
+     "cacheHits": 0,
+     "cacheMisses": 1,
+     "cacheUncacheable": 1,
+     "receiversWorld": 104,
+     "receiversEntity": 576,
+     "receiversBaked": 104,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": {
+     "planned": 2,
+     "candidates": 5,
+     "renderedLights": 2,
+     "faces": 12,
+     "batches": 31,
+     "draws": 31,
+     "casterSurfaces": 700,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "fogMeasure": {
+     "pixels": 364800,
+     "changedPixels": 207959,
+     "changedFraction": 0.570063048245614,
+     "repeatStableFraction": 0.8807401315789474,
+     "meanLumaOff": 16.79432269462719,
+     "meanLumaFog": 40.82638830866228
+    },
+    "primaryDispatch": [],
+    "loadedFog": [
+     "Global fog: loaded maps/forest.fog (exp2, density 0.001500, start 64.0, opacity 0.80, sky 1)"
+    ],
+    "shutdownWarnings": [],
+    "scopeNote": "RTX raster main-pass path, depth fade disabled, sky fog enabled."
+   },
+   {
+    "name": "forest-traced",
+    "group": "extra",
+    "result": {
+     "run": "forest-traced",
+     "profile": "rtcw-sp",
+     "map": "forest",
+     "renderer": "rtx",
+     "fogSidecar": "color 0.25 0.4 0.55\ndensity 0.0015\nmode exp2\nstart 64\nopacity 0.8\nsky true",
+     "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+     "identity": {
+      "fntech3.exe": "999a770420be57b76c792bfe2fe6b81503415dea42d6f9844e523daed561dda7",
+      "fnql_rtx_x86.dll": "67c1de1e23b2932387ed44ac1f7f52ade79d95ebc99ca8d1a4e9715f37a1ae31",
+      "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+     },
+     "commands": [
+      "give all",
+      "weapon 3",
+      "cg_thirdPerson 1",
+      "wait 180",
+      "viewpos"
+     ],
+     "shots": [
+      [
+       "on",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "fog",
+       "set r_globalFogStrength 1"
+      ],
+      [
+       "fogoff",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "dbg",
+       "set r_csmDebug 1; set r_dlightShadowDebug 1"
+      ]
+     ],
+     "outcome": "exited",
+     "exit": 0,
+     "forced": false,
+     "seconds": 24.2,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": [],
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "b7b1d4849ee33aa80b65d4fa93ac178d06d3d53253ea4a54772fec08acc6e411"
+      },
+      {
+       "name": "fog.png",
+       "sha256": "f313a1f298b84198f628494b6929cbb81a74041744443950fb598d0a704c3872"
+      },
+      {
+       "name": "fogoff.png",
+       "sha256": "a3661410b8e7c36428e5b82d5b332b4d65b4f289f6f628e50652e41299c9753b"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "3914c64406de85b86df96921d3a4a11d456752f5ebb87ef9092491cc6c9e2c29"
+      }
+     ],
+     "desktopSwitched": false,
+     "inputInjected": false,
+     "commandLine": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe +set com_gameProfile rtcw-sp +set fs_basepath \"E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein\" +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\portal-fog-casters\\runs\\forest-traced\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer rtx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set r_csmShadows 1 +set r_globalFog 1 +set r_globalFogStrength 0 +set rtx_rt_mode 2 +set rtx_rt_debug 1 +exec probeshadow.cfg +devmap forest"
+    },
+    "consoleSHA256": "574faef823e136140d13399b67e34e77dd7f0b872ee07d412db9dc9d433f7486",
+    "view": [
+     "(-5360 -6024 509) : 0"
+    ],
+    "csmSummary": {
+     "casters": 0,
+     "cacheHits": 1,
+     "cacheMisses": 0,
+     "cacheUncacheable": 0,
+     "receiversWorld": 4,
+     "receiversEntity": 0,
+     "receiversBaked": 4,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": {
+     "planned": 2,
+     "candidates": 5,
+     "renderedLights": 2,
+     "faces": 12,
+     "batches": 31,
+     "draws": 31,
+     "casterSurfaces": 700,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "fogMeasure": {
+     "pixels": 364800,
+     "changedPixels": 192165,
+     "changedFraction": 0.5267680921052632,
+     "repeatStableFraction": 0.8981743421052631,
+     "meanLumaOff": 17.135727404057018,
+     "meanLumaFog": 39.171335827850875
+    },
+    "primaryDispatch": [
+     "RTX RT primary dispatch validation: path tracer traced 800x600, composite copied to scene color; shading=native_rt, tracing=compute"
+    ],
+    "loadedFog": [
+     "Global fog: loaded maps/forest.fog (exp2, density 0.001500, start 64.0, opacity 0.80, sky 1)"
+    ],
+    "shutdownWarnings": [],
+    "scopeNote": "Compute path tracer primary dispatch validated; no hardware ray-tracing claim."
+   },
+   {
+    "name": "et-visible",
+    "group": "extra",
+    "result": {
+     "run": "et-visible",
+     "profile": "wolfet",
+     "map": "oasis",
+     "renderer": "rtx",
+     "fogSidecar": "color 0.25 0.4 0.55\ndensity 0.0015\nmode exp2\nstart 64\nopacity 0.8\nsky true",
+     "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+     "identity": {
+      "fntech3.exe": "999a770420be57b76c792bfe2fe6b81503415dea42d6f9844e523daed561dda7",
+      "fnql_rtx_x86.dll": "67c1de1e23b2932387ed44ac1f7f52ade79d95ebc99ca8d1a4e9715f37a1ae31",
+      "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+     },
+     "commands": [
+      "team b 2 8 7",
+      "wait 300",
+      "openlimbomenu",
+      "wait 60",
+      "cg_thirdPerson 1",
+      "wait 120",
+      "viewpos"
+     ],
+     "shots": [
+      [
+       "on",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "fog",
+       "set r_globalFogStrength 1"
+      ],
+      [
+       "fogoff",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "dbg",
+       "set r_csmDebug 1; set r_dlightShadowDebug 1"
+      ]
+     ],
+     "outcome": "exited",
+     "exit": 0,
+     "forced": false,
+     "seconds": 19.1,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": [],
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "e0acd3e3a5b828a9127ebe0f6af58862953abca1590896b0611bd2ad45c18fe4"
+      },
+      {
+       "name": "fog.png",
+       "sha256": "0b54270e4f6cd29b213a7e228ea2f698282081c000b405f14ba645c23878f2eb"
+      },
+      {
+       "name": "fogoff.png",
+       "sha256": "5ce556aee502963b35aaffd8b33d3f83c1ee0ef17f4adbf8613723270a9e6c59"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "52c57a328deae0c9e51c4b4bdcf5ec8b6aaf578138191b1b9044b319efabbf97"
+      }
+     ],
+     "desktopSwitched": false,
+     "inputInjected": false,
+     "commandLine": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe +set com_gameProfile wolfet +set fs_basepath \"E:\\SteamLibrary\\steamapps\\common\\Wolfenstein Enemy Territory\" +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\portal-fog-casters\\runs\\et-visible\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer rtx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set r_csmShadows 1 +set r_globalFog 1 +set r_globalFogStrength 0 +set rtx_rt_mode 0 +set com_hunkmegs 256 +exec probeshadow.cfg +devmap oasis"
+    },
+    "consoleSHA256": "e7462f02ac55b69c1e13cf9547000d3214718a66df197fe853e5c01f3e145973",
+    "view": [
+     "(680 2728 -470) : 0"
+    ],
+    "csmSummary": {
+     "casters": 5131,
+     "cacheHits": 0,
+     "cacheMisses": 0,
+     "cacheUncacheable": 1,
+     "receiversWorld": 5025,
+     "receiversEntity": 104,
+     "receiversBaked": 5033,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": null,
+    "fogMeasure": {
+     "pixels": 364800,
+     "changedPixels": 849,
+     "changedFraction": 0.0023273026315789474,
+     "repeatStableFraction": 0.9581112938596491,
+     "meanLumaOff": 165.67881684210528,
+     "meanLumaFog": 165.75220621710525
+    },
+    "primaryDispatch": [],
+    "loadedFog": [
+     "Global fog: loaded maps/oasis.fog (exp2, density 0.001500, start 64.0, opacity 0.80, sky 1)"
+    ],
+    "shutdownWarnings": [],
+    "scopeNote": "World and player visible; tiny fog-toggle changes do not establish global fog correctness."
+   },
+   {
+    "name": "jka-visible",
+    "group": "extra",
+    "result": {
+     "run": "jka-visible",
+     "profile": "jka-mp",
+     "map": "mp/duel9",
+     "renderer": "rtx",
+     "fogSidecar": "color 0.25 0.4 0.55\ndensity 0.0015\nmode exp2\nstart 64\nopacity 0.8\nsky true",
+     "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+     "identity": {
+      "fntech3.exe": "999a770420be57b76c792bfe2fe6b81503415dea42d6f9844e523daed561dda7",
+      "fnql_rtx_x86.dll": "67c1de1e23b2932387ed44ac1f7f52ade79d95ebc99ca8d1a4e9715f37a1ae31",
+      "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+     },
+     "commands": [
+      "team free",
+      "wait 60",
+      "ui_openmenu none",
+      "wait 60",
+      "cg_thirdPerson 1",
+      "wait 120",
+      "viewpos"
+     ],
+     "shots": [
+      [
+       "on",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "fog",
+       "set r_globalFogStrength 1"
+      ],
+      [
+       "fogoff",
+       "set r_globalFogStrength 0"
+      ],
+      [
+       "dbg",
+       "set r_csmDebug 1; set r_dlightShadowDebug 1"
+      ]
+     ],
+     "outcome": "exited",
+     "exit": 0,
+     "forced": false,
+     "seconds": 14.9,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": [],
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "11548ea227e7f4a12e1ad523babf21f694905e43c1528ed8263ae780155f09b3"
+      },
+      {
+       "name": "fog.png",
+       "sha256": "d31baba2f351e21a2818167bf13cd8a9fcf438c5365ed5c389e4fbeef6858656"
+      },
+      {
+       "name": "fogoff.png",
+       "sha256": "ab48bd20efabcbed49b7dbf19385884bf32add50322598d3ec2b82f97c59274b"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "e503b56ec18674373ac3c61cacf8238c7307508ea2875b92ef543fd3c2c237cb"
+      }
+     ],
+     "desktopSwitched": false,
+     "inputInjected": false,
+     "commandLine": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.exe +set com_gameProfile jka-mp +set fs_basepath \"E:\\Games\\Jedi Academy\" +set fs_homepath E:\\Repositories\\fnTech3\\.tmp\\portal-fog-casters\\runs\\jka-visible\\home +set com_steamIntegration 0 +set developer 1 +set logfile 2 +set net_enabled 0 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set cl_renderer rtx +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set cl_motd 0 +set com_introplayed 1 +set com_maxfps 60 +set com_maxfpsUnfocused 60 +set com_maxfpsMinimized 60 +set sv_pure 0 +set r_csmShadows 1 +set r_globalFog 1 +set r_globalFogStrength 0 +set rtx_rt_mode 0 +set cl_menuBlur 0 +exec probeshadow.cfg +devmap mp/duel9"
+    },
+    "consoleSHA256": "04616c63ca6187a468ef3a1413b171b62b562cec22dd0db7e0c8f80b804af8d6",
+    "view": [],
+    "csmSummary": {
+     "casters": 661,
+     "cacheHits": 0,
+     "cacheMisses": 2,
+     "cacheUncacheable": 0,
+     "receiversWorld": 579,
+     "receiversEntity": 80,
+     "receiversBaked": 563,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": null,
+    "fogMeasure": {
+     "pixels": 364800,
+     "changedPixels": 62535,
+     "changedFraction": 0.17142269736842106,
+     "repeatStableFraction": 1.0,
+     "meanLumaOff": 84.92299413651315,
+     "meanLumaFog": 78.98473474232455
+    },
+    "primaryDispatch": [],
+    "loadedFog": [
+     "Global fog: loaded maps/duel9.fog (exp2, density 0.001500, start 64.0, opacity 0.80, sky 1)"
+    ],
+    "shutdownWarnings": [
+     "Hunk_FreeTempMemory: not the final block"
+    ]
+   }
+  ],
+  "captureCount": 104,
+  "metric": "Image rows 80..535 (364800 pixels), excluding console notifications and bottom HUD. Luma = 0.299 R + 0.587 G + 0.114 B on stored sRGB values. Fog change counts abs(fog - off) > 12 only where the repeat-off differs by <= 4. This is an approximate animation control, not a semantic fog mask. Fog-disabled before/after compares separate runs without a stability mask."
+ },
+ "retainedEvidence": ".tmp/portal-fog-casters/",
+ "unrelatedFindings": [
+  "Standard Vulkan forest fog differs from GLx and corrected RTX both before and after. Shared depth-fade snapshot reuse is a possible cause from source inspection, not a verified diagnosis.",
+  "Quake Live smoke run logs three Hunk_FreeTempMemory: not the final block shutdown warnings and exits successfully; not investigated."
+ ],
+ "limitations": [
+  "No compatibility gate closes",
+  "No hardware ray-tracing proof",
+  "No exhaustive map/profile sweep",
+  "No spot-light allocation proof",
+  "Stereo/partial-view fog remains excluded"
+ ],
+ "cleanup": {
+  "removedFiles": 311,
+  "verifiedTargets": 21,
+  "linksFound": 0,
+  "retainedCaptures": 104,
+  "retainedLaunchScripts": 20
+ },
+ "logsSHA256": {
+  "build.log": "ba5fe7d6c279e3dcf579ab2f0708e64b92b044338b4ba4ca278ed3802d28b219",
+  "regressions.log": "25d5c2f3d9aace7191d815c9966b7c23a2f9f99e353438da373cf3c894cf34aa",
+  "pytest.log": "bbe4857537c986dd9d956b5b5524037d71499539810b6ec727e9bbf063f67d92",
+  "testfiles.txt": "5d18f5a8341d7421afff88b959e94e2a04a572b3747988f1c5fc54e7924ac259",
+  "native.log": "baec29e6d54ba9764d09226168cdebb6a0d4214e8c4b5f914f963e9bd84e1d77",
+  "native-detail.txt": "83bd7a9f29bae397be026fc7e64453057aa5c3816f7da39b2fcc338bb117fc55",
+  "native-detail.json": "a5233edb8bd3821ded1d63a592669c11e4376f60218acf92a952f52ec841402e",
+  "native-test-names.txt": "b61a3ac69f6bb99512d9c6b625737433135b8d2b41f311369f5a6f352410f06d",
+  "baseline.log": "7f27a91718f3fe7672ff8048186ec4d77110160473f9c6125e574066c26f41e9",
+  "after.log": "785d8090e959d175c226bc07ec945809565e3d1864084fe2f5e40f8d4c034385",
+  "extra-runtime.log": "f8cf4af31d1d949063b1c65e1fe2e0083d946e11f8f9454d7a681ca4da1f4657",
+  "visible-runtime.log": "ba04300d70c9450244fcd54c31f87900a40cf67ef46cc19d5dae305437b8a333",
+  "runtime-audit.log": "318ba3f38120104dbbedd03ad3cf2bda7a6038013b7f576776d2e7e56151f279",
+  "runtime-evidence.json": "a7511af54588d5023a051cfee70a65ce8d69b1f9ebcacce75e3ad4efa4ce19ec",
+  "shadow-projection.log": "83b6f40b65b05f88f1f6e3b7883336ae3770e7de6a999566f1b0ad1faa4f14b6",
+  "docs-tests.log": "e177f871c44376e2e04d3e5e6f57101c058db185851a1a75a077afef6ba21b85",
+  "cleanup.json": "a7d39889941f6c299d6f26fa8cfd34e46eae7865f67fcd9ff8c978fcb4245b26",
+  "tools/probe.py": "1b729530e368703e4ed566b373f36bc2eea4d41b23d4eb65d5e53dd2f1dd2790",
+  "tools/baseline.py": "3fcf368a3ca29d533fab1d83a6176ba00f6054012687fee07b77203d80d6223b",
+  "tools/extra_runtime.py": "874d8f8a9f41991ede68ecc5ee8b608bfb5f3dff5fc744af0983ec11abcc6782",
+  "tools/audit_runtime.py": "79e0a8d09c41fa1777adda7a35bc54c79daaefc19d47231c78148c042bea677c",
+  "tools/record_validation.py": "fdda6a4fea705791d7212cc0e30a278037095e67663bd8edce208fe4cf166374",
+  "tools/cleanup.ps1": "d93fefd5f38dd3922acade074bb60788d0413fb032f29ac216793901bb9f2432"
+ }
+}

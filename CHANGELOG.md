@@ -242,6 +242,11 @@ historical upstream records, not fnTech3 release history. See the
   in RTX on levels with a distant sky view, such as Return to Castle
   Wolfenstein's `forest`, where RTX drew neither while OpenGL and Vulkan
   drew both ([record](docs/fntech3/2026-10-22-rtx-portal-sky-shadows.md)).
+- Apply RTX's optional global fog to the world behind a distant sky view,
+  and make Vulkan/RTX reject planar light receivers and shadow casters
+  outside the light's reach, as GLx already does. The recorded forest
+  caster counts now agree across renderers
+  ([record](docs/fntech3/2026-10-22-portal-fog-caster-parity.md)).
 
 ## [0.1.0] - 2026-10-11
 

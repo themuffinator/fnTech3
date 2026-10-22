@@ -645,7 +645,7 @@ captures and console logs are in its `runs/` directory. The JSON companion's
 capture hashes and log hashes. Final generated-document, player-manual and
 changelog checks passed: 25 tests and 840 subtests. Disposable runtime homes
 and test scratch were removed after retaining the captures and launch scripts.
-No new unrelated failures were found. The
-separate source-inferred RTX portal global-fog limitation and the existing
-GLx versus Vulkan/RTX dynamic-light caster-count differences remain as
-recorded in the [portal-sky record](2026-10-22-rtx-portal-sky-shadows.md#not-covered-and-open).
+No new unrelated failures were found in that integration. The RTX portal
+global-fog limitation and GLx versus Vulkan/RTX dynamic-light caster-count
+differences left open then are now resolved in the
+[portal-fog and caster-parity follow-up](2026-10-22-portal-fog-caster-parity.md).

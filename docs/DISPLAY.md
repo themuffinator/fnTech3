@@ -686,6 +686,10 @@ default.
   anti-aliasing off. Restart.
 - `r_globalFogStrength`: how thick it is, from `0` to `1` (the default).
 
+RTX's haze also reaches levels with a distant sky view, including
+Wolfenstein's `forest`
+([details](fntech3/2026-10-22-portal-fog-caster-parity.md)).
+
 A broken or missing fog file only turns the haze off; it never stops the game
 starting. The file format, for map makers, is in
 [Global Fog Sidecars](fnql/GLOBAL_FOG.md).

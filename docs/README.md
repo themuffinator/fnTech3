@@ -240,6 +240,9 @@ Release packages include them as web pages in their `manual` folder, built by
   models, the sun Alice, F.A.K.K.2 and Medal of Honor name in their
   levels, and sun shadows that leave a level's baked shadows alone, with
   before and after captures in each game.
+- [RTX portal fog and light-caster parity](fntech3/2026-10-22-portal-fog-caster-parity.md)
+  -- fog applied to the main view behind a distant sky, and finite-face
+  light culling that makes the recorded GLx, Vulkan and RTX caster counts agree.
 - [October 9 compatibility integration](fntech3/2026-10-09-compatibility-integration.md)
   -- resumed Alice and Elite Force work, shared-tree validation, and probe
   evidence and limits for the combined compatibility slices.

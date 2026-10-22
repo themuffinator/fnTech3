@@ -197,6 +197,16 @@ report 335 casters, 104 world receivers, 576 model receivers and 104 baked
 receivers in all three renderers. The JSON companion preserves the focused
 merge above and points to the combined evidence separately.
 
+## Follow-up resolutions
+
+The [portal-fog and caster-parity follow-up](2026-10-22-portal-fog-caster-parity.md)
+resolves the two issues left by this investigation: RTX now leaves the
+frame's fog pass for the main view, and Vulkan/RTX check finite face bounds
+like GLx. Fresh forest counts are 700 point-light caster surfaces in all
+three renderers, and all plan zero shadow lights in the recorded
+`mp_village` view. Historical measurements above retain their original
+build identities.
+
 ## Not covered, and open
 
 - Spot shadows take the same path, but no view here plans one.
@@ -205,12 +215,3 @@ merge above and points to the combined evidence separately.
   Jedi Outcast's portal sky is not flagged as a scene of its own in RTX
   (`skyboxPortalScene` covers Enemy Territory, Jedi Academy multiplayer and
   RTCW's lighting profiles), so it cannot reach this path that way.
-- Under RTX, behind a portal sky, the global-fog pass is still drawn once a
-  frame on the first full-screen world view. That view is the portal sky
-  (`vk_draw_global_fog`'s `lastFogFrame`), so the main view behind it gets
-  none. `r_globalFog` is off by default, and this was read from the source,
-  not captured.
-- The dynamic-light counts differ between renderers independently of this
-  fix: `forest` has 700 caster surfaces under GLx and 763 under Vulkan/RTX;
-  `mp_village` plans one light out of 16 under RTX and none under GLx.
-  These differences were observed before and after and were not investigated.

@@ -85,6 +85,13 @@ sky, as on Return to Castle Wolfenstein's `forest`, where it drew neither.
 Its sun-shadow receiver counts match GLx and Vulkan in the recorded view.
 No compatibility gate closes.
 
+The [portal-fog and caster-parity follow-up](2026-10-22-portal-fog-caster-parity.md)
+also restores RTX's optional global fog behind that sky and gives Vulkan/RTX
+GLx's finite-face light culling. All three renderers now report 700 point-light
+caster surfaces in `forest` and no planned shadow light in the recorded
+`mp_village` view. The standard Vulkan fog compositor still differs in the
+forest comparison; that separate issue remains open. No gate closes.
+
 The [pure budget record](2026-10-15-pure-budget-own-wires.md) settles the last
 profiles whose pure gamestate budget measured Quake Live's message. Medal
 of Honor's measures its own 48 KiB gamestate: its own baselines, and the 364

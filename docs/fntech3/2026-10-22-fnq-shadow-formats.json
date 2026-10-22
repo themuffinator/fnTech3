@@ -9941,5 +9941,15 @@
    "Existing GLx versus Vulkan/RTX dynamic-light caster-count differences remain",
    "OpenAL loopback unavailable; x86 path tracing exercised compute, not the unavailable hardware ray-tracing pipeline"
   ]
+ },
+ "portalFogAndCasterFollowUp": {
+  "implementationCommit": "d3547f6b591b1e239560f72fef39c47c74427e89",
+  "record": "2026-10-22-portal-fog-caster-parity.md",
+  "machineRecord": "2026-10-22-portal-fog-caster-parity.json",
+  "resolved": [
+   "RTX portal-sky view consumed main-view global fog",
+   "Vulkan/RTX infinite-plane culling admitted extra face receivers/casters"
+  ],
+  "preservesHistoricalEvidence": true
  }
 }

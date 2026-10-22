@@ -65,6 +65,10 @@ levels with a distant sky view, such as `forest`; enable sun shadows with
 `r_csmShadows 1`, then `vid_restart`
 ([details](fntech3/2026-10-22-rtx-portal-sky-shadows.md)).
 
+Optional [global fog](DISPLAY.md#optional-global-fog) also reaches the world
+behind those distant sky views
+([details](fntech3/2026-10-22-portal-fog-caster-parity.md)).
+
 A settings file saved before ray tracing became the default may still say
 `seta rtx_rt_mode "0"`; set `rtx_rt_mode 2` and `vid_restart` to trace.
 
