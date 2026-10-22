@@ -55,6 +55,11 @@ the console says which way RTX is tracing when it starts.
   tracing.
 - `rtx_rt_mode 1` is a developer test mode, not for playing.
 
+Normal drawing now keeps the sun and dynamic-light shadows on Wolfenstein
+levels with a distant sky view, such as `forest`; enable sun shadows with
+`r_csmShadows 1`, then `vid_restart`
+([details](fntech3/2026-10-22-rtx-portal-sky-shadows.md)).
+
 A settings file saved before ray tracing became the default may still say
 `seta rtx_rt_mode "0"`; set `rtx_rt_mode 2` and `vid_restart` to trace.
 
