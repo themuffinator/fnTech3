@@ -1,0 +1,3820 @@
+{
+ "record": "docs/fntech3/2026-10-22-rtx-portal-sky-shadows.md",
+ "date": "2026-10-22",
+ "profiles": [
+  "rtcw-sp",
+  "rtcw-mp",
+  "jka-mp"
+ ],
+ "renderer": "rtx (rtx_rt_mode 0; rtx_rt_mode 2 checked for non-regression)",
+ "claim": "Presentation slice; no gate closes.",
+ "baseCommit": "e1502a80af65f28caaa0d903c719ff419578ed14",
+ "rebasedOnto": "c845803b2049cdd5c8304c1ace809550bc79f359",
+ "platform": "Windows 11, MSVC 2022 x86 (win32-dev options, strict warnings), NVIDIA GeForce RTX 4060 Laptop GPU",
+ "observed": {
+  "forestBefore": "RTX raster: caster:0 cache h/m/u:1/0/1 recv world:4 ent:0 baked:4 on 100 of 100 debug frames; point-light shadows render lights:0 surfs:0",
+  "forestGlxVulkan": "caster:335 cache h/m/u:0/1/1 recv world:104 ent:576 baked:104; 2 shadowed lights (Vulkan 763 caster surfaces, GLx 700)",
+  "depthFadeOff": "with r_depthFade 0 the shadow formats slice's RTX build (runtime/csm-after) reported GLx's counters exactly",
+  "portalSkyMaps": {
+   "rtcwSinglePlayerPaks": {
+    "maps": 32,
+    "withPropsSkyportal": 19,
+    "names": [
+     "baseout",
+     "boss1",
+     "castle",
+     "cutscene1",
+     "cutscene11",
+     "cutscene14",
+     "cutscene19",
+     "cutscene6",
+     "cutscene9",
+     "dam",
+     "end",
+     "escape1",
+     "escape2",
+     "factory",
+     "forest",
+     "sfm",
+     "trainyard",
+     "village1",
+     "village2"
+    ]
+   },
+   "rtcwMultiplayerPaks": {
+    "maps": 15,
+    "withPropsSkyportal": 5,
+    "names": [
+     "mp_castle",
+     "mp_chateau",
+     "mp_dam",
+     "mp_keep",
+     "mp_village"
+    ]
+   },
+   "enemyTerritory": {
+    "maps": 6,
+    "withSkyportal": 0
+   },
+   "jediAcademy": {
+    "maps": 61,
+    "withMiscSkyportal": 12,
+    "names": [
+     "kor2",
+     "mp/duel6",
+     "mp/duel9",
+     "mp/siege_hoth",
+     "t1_danger",
+     "t1_sour",
+     "t2_rogue",
+     "t3_hevil",
+     "vjun2",
+     "yavin1",
+     "yavin1b",
+     "yavin2"
+    ]
+   }
+  }
+ },
+ "inferred": {
+  "cause": "the portal sky is a primary full view drawn before the main view; its first surface sorted after opaque takes the depth-fade snapshot (vk_copy_depth_fade), which RTX resumes in the post-bloom pass (Vulkan resumes the main pass), so the main view begins in RENDER_PASS_POST_BLOOM; vk_begin_{dlight,spot,csm}_shadow_render_pass accepted only RENDER_PASS_MAIN and refused, so the main view had no atlas, no publication and no receivers",
+  "counterReading": "u:1 with caster:0 is the main view's uncacheable sun atlas refused at its begin; h:1 and the 4 receivers are the portal sky scene's, from a cached atlas"
+ },
+ "fix": {
+  "file": "code/rendererrtx/vk.c",
+  "functions": [
+   "vk_begin_dlight_shadow_render_pass",
+   "vk_end_dlight_shadow_render_pass",
+   "vk_begin_spot_shadow_render_pass",
+   "vk_end_spot_shadow_render_pass",
+   "vk_begin_csm_shadow_render_pass",
+   "vk_end_csm_shadow_render_pass"
+  ],
+  "rule": "leave the open scene pass (main or post-bloom), resume the same one, as vk_motion_blur does",
+  "unchanged": [
+   "GLx",
+   "Vulkan",
+   "the path tracer's pass handling"
+  ],
+  "commit": "3369bee7b8674584b921d30834ed6b3a992bf1cb"
+ },
+ "featuresUsed": [
+  "FnQuake3 cascaded sun shadows",
+  "FnQuake3 shadowed dynamic lights"
+ ],
+ "retailExactOption": "none: the original renderers had neither feature",
+ "tests": {
+  "tests/rtx_vulkan_safety_source_tests.py": "11 tests, new test_a_view_after_the_portal_sky_still_takes_its_shadow_atlases: passed",
+  "focused set (35 files reading rendererrtx/vk.c or covering shadows, liquid, fog, bloom)": "309 passed, 1 skipped (entity_sun_shadow_tests.py test_fakk2_maps: laid-down installation not in the worktree), 63285 subtests",
+  "tests/csm_shadow_cache_source_tests.py (script)": "passed",
+  "build": "fnql_rtx_x86 with -Dstrict-warnings=true (/W4 /WX): passed",
+  "documentation and packaging (11 files)": "146 passed, 2 skipped, 135 subtests passed; skips: absent F.A.K.K.2 installation and unavailable Windows symlink privilege",
+  "completion rerun (renderer safety, changelog, generated docs)": "20 passed, 30 subtests passed; script-style CSM cache check passed again",
+  "final player-manual, generated-doc and changelog checks": "25 passed, 838 subtests passed"
+ },
+ "live": {
+  "harness": [
+   ".tmp/rtcw-rtx-csm/tools/probe.py",
+   ".tmp/rtcw-rtx-csm/tools/batch.py",
+   ".tmp/rtcw-rtx-csm/tools/diff.py",
+   ".tmp/rtcw-rtx-csm/tools/companion.py"
+  ],
+  "evidenceCopy": "E:/Repositories/fnTech3/.tmp/rtcw-rtx-csm (runs, captures, tools, evidence.json, forest-renderers.png, test logs, completion-verification.json)",
+  "conditions": "windowed 800x600 on a private desktop, no input, net_enabled 0, s_initsound 0, isolated fs_homepath with empty configs, sv_pure 0, r_csmShadows 1, engine screenshotPNG",
+  "measure": "sunShadowDarkens: share of ALL frame pixels >12 luma darker with r_csmShadowStrength 1 than 0 AND within 4 luma of the on2 repeat; the denominator is the full frame, not only its stable pixels",
+  "runtimes": {
+   "before": {
+    "source": "git archive e1502a80, all client targets",
+    "sha256": {
+     "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+     "fnql_glx_x86.dll": "3fb1c906b1540502a3b086abc66ff55a725037e29b01c856c098b52d97e0f010",
+     "fnql_rtx_x86.dll": "160f8f2c55e357d1058759a493667bbc6237a7368c38f8bf503d0a134278924a",
+     "fnql_vk_x86.dll": "f3f40ba744e39281369921ab5c9931e275dc3dc7dba16200fb8b5d52f76d1aeb",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+     "fntech3.exe": "b2552eaa25995bb489c4e620d251bd40f5bbd49ac8c7ea70b4fd6696fd9d1ab9"
+    }
+   },
+   "after": {
+    "source": "the before build with code/rendererrtx/vk.c of this change, fnql_rtx_x86 relinked",
+    "sha256": {
+     "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+     "fnql_glx_x86.dll": "3fb1c906b1540502a3b086abc66ff55a725037e29b01c856c098b52d97e0f010",
+     "fnql_rtx_x86.dll": "9cd0b60c1e159ba1b3c96be0718320617573f8d1f429c578989e59df31bf4f34",
+     "fnql_vk_x86.dll": "f3f40ba744e39281369921ab5c9931e275dc3dc7dba16200fb8b5d52f76d1aeb",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+     "fntech3.exe": "b2552eaa25995bb489c4e620d251bd40f5bbd49ac8c7ea70b4fd6696fd9d1ab9"
+    }
+   },
+   "rebased": {
+    "source": "the before build with c845803b's renderer sources and this change, three renderers rebuilt",
+    "sha256": {
+     "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+     "fnql_glx_x86.dll": "f42043c68e358e784e3f56b62775efeec5a20d412c0b790096ff60db3261120a",
+     "fnql_rtx_x86.dll": "808f7adaabfe84202d61c02ef58567b4a43afe9ad1a6dcca7777846bbf3259fc",
+     "fnql_vk_x86.dll": "228c9014035b14c5976a0a0d863c9bf1fedd4a785286b85c0fdd0cdf2f3e6e05",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+     "fntech3.exe": "b2552eaa25995bb489c4e620d251bd40f5bbd49ac8c7ea70b4fd6696fd9d1ab9"
+    }
+   },
+   "csm-after": {
+    "source": "the shadow formats slice's frozen runtime (.tmp/fnq-shadows/runtime/csm-after in its worktree), used for the r_depthFade check"
+   }
+  },
+  "runs": {
+   "hyp-repro": {
+    "run": "hyp-repro",
+    "profile": "rtcw-sp",
+    "map": "forest",
+    "renderer": "rtx",
+    "runtime": "csm-after",
+    "identity": {
+     "fntech3.exe": "ababdab11f29db348da9e3f70087a42d212c7638208fe02b615234e4e15fd0e5",
+     "fnql_rtx_x86.dll": "67be3219b5cce3abd9ce350131a1e24370e747eeb53048aab831833a90c846ae",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "rtcw-sp",
+     "+set",
+     "fs_basepath",
+     "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.claude\\worktrees\\stoic-shaw-af895f\\.tmp\\rtcw-rtx-csm\\runs\\hyp-repro\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+set",
+     "rtx_rt_mode",
+     "0",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "forest"
+    ],
+    "steps": [
+     "give all",
+     "weapon 3",
+     "cg_thirdPerson 1",
+     "wait 180"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "0f0273a38541ca38818866b8a316718f33bdbda949288aa2400613b600ec3b63"
+     }
+    ],
+    "csm": {
+     "debugFrames": 130,
+     "commonestFrames": 130,
+     "casters": 0,
+     "cacheHits": 1,
+     "cacheMisses": 0,
+     "cacheUncacheable": 1,
+     "receiversWorld": 4,
+     "receiversEntity": 0,
+     "receiversBaked": 4
+    },
+    "dlight": {
+     "debugFrames": 130,
+     "commonestFrames": 130,
+     "planned": 2,
+     "lightsInView": 5,
+     "renderedLights": 0,
+     "faces": 0,
+     "casterSurfaces": 0
+    }
+   },
+   "hyp-nofade": {
+    "run": "hyp-nofade",
+    "profile": "rtcw-sp",
+    "map": "forest",
+    "renderer": "rtx",
+    "runtime": "csm-after",
+    "identity": {
+     "fntech3.exe": "ababdab11f29db348da9e3f70087a42d212c7638208fe02b615234e4e15fd0e5",
+     "fnql_rtx_x86.dll": "67be3219b5cce3abd9ce350131a1e24370e747eeb53048aab831833a90c846ae",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "rtcw-sp",
+     "+set",
+     "fs_basepath",
+     "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.claude\\worktrees\\stoic-shaw-af895f\\.tmp\\rtcw-rtx-csm\\runs\\hyp-nofade\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+set",
+     "rtx_rt_mode",
+     "0",
+     "+set",
+     "r_depthFade",
+     "0",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "forest"
+    ],
+    "steps": [
+     "give all",
+     "weapon 3",
+     "cg_thirdPerson 1",
+     "wait 180"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "ed0124faca21d1f71fd8d5fb544df17b99f3bbdebd832dad3afe5a08b5df6924"
+     }
+    ],
+    "csm": {
+     "debugFrames": 130,
+     "commonestFrames": 130,
+     "casters": 335,
+     "cacheHits": 0,
+     "cacheMisses": 1,
+     "cacheUncacheable": 1,
+     "receiversWorld": 104,
+     "receiversEntity": 576,
+     "receiversBaked": 104
+    },
+    "dlight": {
+     "debugFrames": 130,
+     "commonestFrames": 130,
+     "planned": 2,
+     "lightsInView": 5,
+     "renderedLights": 2,
+     "faces": 12,
+     "casterSurfaces": 763
+    }
+   },
+   "rtcw-rtx-before": {
+    "run": "rtcw-rtx-before",
+    "profile": "rtcw-sp",
+    "map": "forest",
+    "renderer": "rtx",
+    "runtime": "before",
+    "identity": {
+     "fntech3.exe": "b2552eaa25995bb489c4e620d251bd40f5bbd49ac8c7ea70b4fd6696fd9d1ab9",
+     "fnql_rtx_x86.dll": "160f8f2c55e357d1058759a493667bbc6237a7368c38f8bf503d0a134278924a",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "rtcw-sp",
+     "+set",
+     "fs_basepath",
+     "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.claude\\worktrees\\stoic-shaw-af895f\\.tmp\\rtcw-rtx-csm\\runs\\rtcw-rtx-before\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+set",
+     "rtx_rt_mode",
+     "0",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "forest"
+    ],
+    "steps": [
+     "give all",
+     "weapon 3",
+     "cg_thirdPerson 1",
+     "wait 180"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ],
+     [
+      "csmoff",
+      "set r_csmDebug 0; set r_dlightShadowDebug 0; set r_csmShadowStrength 0"
+     ],
+     [
+      "dloff",
+      "set r_csmShadowStrength 1; set r_dlightShadowStrength 0"
+     ],
+     [
+      "on2",
+      "set r_dlightShadowStrength 0.95"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "4e70df7ed99b61b6fe2bf21ab44d4aadf729364d0b1dc14ecdbbe738099a07f1"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "0b6545adc6106cf0b3ccb2408795eba8159c346097ea7b12fe01f6e81e5fb356"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "0cf0bf295f813614f437efdc2b92869a92885627eb0549447bad5398a9425441"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "3bb56574e4a8771b3bab1848c26f50d41b4eb76d911718a2a683f78e90e9e7ea"
+     }
+    ],
+    "csm": {
+     "debugFrames": 100,
+     "commonestFrames": 100,
+     "casters": 0,
+     "cacheHits": 1,
+     "cacheMisses": 0,
+     "cacheUncacheable": 1,
+     "receiversWorld": 4,
+     "receiversEntity": 0,
+     "receiversBaked": 4
+    },
+    "dlight": {
+     "debugFrames": 100,
+     "commonestFrames": 100,
+     "planned": 2,
+     "lightsInView": 5,
+     "renderedLights": 0,
+     "faces": 0,
+     "casterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 2016,
+     "darkerFraction": 0.0042,
+     "meanLumaOn": 42.44,
+     "meanLumaOff": 42.17,
+     "repeatStableFraction": 0.6707
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 6677,
+     "darkerFraction": 0.0139,
+     "meanLumaOn": 42.44,
+     "meanLumaOff": 42.38,
+     "repeatStableFraction": 0.6707
+    }
+   },
+   "rtcw-rtx-after": {
+    "run": "rtcw-rtx-after",
+    "profile": "rtcw-sp",
+    "map": "forest",
+    "renderer": "rtx",
+    "runtime": "after",
+    "identity": {
+     "fntech3.exe": "b2552eaa25995bb489c4e620d251bd40f5bbd49ac8c7ea70b4fd6696fd9d1ab9",
+     "fnql_rtx_x86.dll": "9cd0b60c1e159ba1b3c96be0718320617573f8d1f429c578989e59df31bf4f34",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "rtcw-sp",
+     "+set",
+     "fs_basepath",
+     "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.claude\\worktrees\\stoic-shaw-af895f\\.tmp\\rtcw-rtx-csm\\runs\\rtcw-rtx-after\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+set",
+     "rtx_rt_mode",
+     "0",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "forest"
+    ],
+    "steps": [
+     "give all",
+     "weapon 3",
+     "cg_thirdPerson 1",
+     "wait 180"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ],
+     [
+      "csmoff",
+      "set r_csmDebug 0; set r_dlightShadowDebug 0; set r_csmShadowStrength 0"
+     ],
+     [
+      "dloff",
+      "set r_csmShadowStrength 1; set r_dlightShadowStrength 0"
+     ],
+     [
+      "on2",
+      "set r_dlightShadowStrength 0.95"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "f8084c36a3ea737229d6a07f2ff661d8fa7185f0b3bb85e2567f205ca4bf4bd8"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "fe49fe1a9c175d2c748975c6727517057bcf96ba62d19409db97806b20467c2c"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "def09100fa1d50a501ddbe8791b9affc2bf028d228644e75cea5622cf60abe1e"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "9d2c6e4261f97fed10f93fc85c5a822381eb6dfcd1e031c1078ee8b500cb2437"
+     }
+    ],
+    "csm": {
+     "debugFrames": 100,
+     "commonestFrames": 100,
+     "casters": 335,
+     "cacheHits": 0,
+     "cacheMisses": 1,
+     "cacheUncacheable": 1,
+     "receiversWorld": 104,
+     "receiversEntity": 576,
+     "receiversBaked": 104
+    },
+    "dlight": {
+     "debugFrames": 100,
+     "commonestFrames": 100,
+     "planned": 2,
+     "lightsInView": 5,
+     "renderedLights": 2,
+     "faces": 12,
+     "casterSurfaces": 763
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 345410,
+     "darkerFraction": 0.7196,
+     "meanLumaOn": 21.73,
+     "meanLumaOff": 42.17,
+     "repeatStableFraction": 0.8768
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 6664,
+     "darkerFraction": 0.0139,
+     "meanLumaOn": 21.73,
+     "meanLumaOff": 21.34,
+     "repeatStableFraction": 0.8768
+    }
+   },
+   "rtcw-glx-after": {
+    "run": "rtcw-glx-after",
+    "profile": "rtcw-sp",
+    "map": "forest",
+    "renderer": "glx",
+    "runtime": "after",
+    "identity": {
+     "fntech3.exe": "b2552eaa25995bb489c4e620d251bd40f5bbd49ac8c7ea70b4fd6696fd9d1ab9",
+     "fnql_glx_x86.dll": "3fb1c906b1540502a3b086abc66ff55a725037e29b01c856c098b52d97e0f010",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "rtcw-sp",
+     "+set",
+     "fs_basepath",
+     "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.claude\\worktrees\\stoic-shaw-af895f\\.tmp\\rtcw-rtx-csm\\runs\\rtcw-glx-after\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "forest"
+    ],
+    "steps": [
+     "give all",
+     "weapon 3",
+     "cg_thirdPerson 1",
+     "wait 180"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ],
+     [
+      "csmoff",
+      "set r_csmDebug 0; set r_dlightShadowDebug 0; set r_csmShadowStrength 0"
+     ],
+     [
+      "dloff",
+      "set r_csmShadowStrength 1; set r_dlightShadowStrength 0"
+     ],
+     [
+      "on2",
+      "set r_dlightShadowStrength 0.95"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "68d1e5b09cd7252a91e252c967f07bf9ef4af25405a7c69c4a5956e6042c9f70"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "85ce98015ec459dd1e2d83346ec3346e9cf431b65c147ca610f40773d6508f73"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "64733aa8ae861e36f30422c7baa6f9d0414c4da07fd9a2624a8b964e80f31877"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "0aef1d903165a837f76324464eceb1f7590c0655cee4c758594b2a76e5b399e5"
+     }
+    ],
+    "csm": {
+     "debugFrames": 100,
+     "commonestFrames": 100,
+     "casters": 335,
+     "cacheHits": 0,
+     "cacheMisses": 1,
+     "cacheUncacheable": 1,
+     "receiversWorld": 104,
+     "receiversEntity": 576,
+     "receiversBaked": 104
+    },
+    "dlight": {
+     "debugFrames": 100,
+     "commonestFrames": 100,
+     "planned": 2,
+     "lightsInView": 5,
+     "renderedLights": 2,
+     "faces": 12,
+     "casterSurfaces": 700
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 348898,
+     "darkerFraction": 0.7269,
+     "meanLumaOn": 21.32,
+     "meanLumaOff": 41.5,
+     "repeatStableFraction": 0.8786
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 6925,
+     "darkerFraction": 0.0144,
+     "meanLumaOn": 21.32,
+     "meanLumaOff": 20.99,
+     "repeatStableFraction": 0.8786
+    }
+   },
+   "rtcw-vk-after": {
+    "run": "rtcw-vk-after",
+    "profile": "rtcw-sp",
+    "map": "forest",
+    "renderer": "vk",
+    "runtime": "after",
+    "identity": {
+     "fntech3.exe": "b2552eaa25995bb489c4e620d251bd40f5bbd49ac8c7ea70b4fd6696fd9d1ab9",
+     "fnql_vk_x86.dll": "f3f40ba744e39281369921ab5c9931e275dc3dc7dba16200fb8b5d52f76d1aeb",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "rtcw-sp",
+     "+set",
+     "fs_basepath",
+     "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.claude\\worktrees\\stoic-shaw-af895f\\.tmp\\rtcw-rtx-csm\\runs\\rtcw-vk-after\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "vk",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "forest"
+    ],
+    "steps": [
+     "give all",
+     "weapon 3",
+     "cg_thirdPerson 1",
+     "wait 180"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ],
+     [
+      "csmoff",
+      "set r_csmDebug 0; set r_dlightShadowDebug 0; set r_csmShadowStrength 0"
+     ],
+     [
+      "dloff",
+      "set r_csmShadowStrength 1; set r_dlightShadowStrength 0"
+     ],
+     [
+      "on2",
+      "set r_dlightShadowStrength 0.95"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "6a5ae26957be039cfda4273fecd0463572f5997deb89e02a302da183b823cf53"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "5d87eca514697eaaafdf082daa3a8dd1187d2593f4a58816751a3e1eb2cbd098"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "40bdfc305b64fa937475cf784fd31fac39ca46117a338d0b138aceb82f5b4ee3"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "d6a02fea9fc481e9a3d779cfd2ea6fd2f671b8841b2eb932adb9d603b02ebc26"
+     }
+    ],
+    "csm": {
+     "debugFrames": 100,
+     "commonestFrames": 100,
+     "casters": 335,
+     "cacheHits": 0,
+     "cacheMisses": 1,
+     "cacheUncacheable": 1,
+     "receiversWorld": 104,
+     "receiversEntity": 576,
+     "receiversBaked": 104
+    },
+    "dlight": {
+     "debugFrames": 100,
+     "commonestFrames": 100,
+     "planned": 2,
+     "lightsInView": 5,
+     "renderedLights": 2,
+     "faces": 12,
+     "casterSurfaces": 763
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 345887,
+     "darkerFraction": 0.7206,
+     "meanLumaOn": 21.74,
+     "meanLumaOff": 42.19,
+     "repeatStableFraction": 0.8783
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 6884,
+     "darkerFraction": 0.0143,
+     "meanLumaOn": 21.74,
+     "meanLumaOff": 21.36,
+     "repeatStableFraction": 0.8783
+    }
+   },
+   "rtcw-rt2-before": {
+    "run": "rtcw-rt2-before",
+    "profile": "rtcw-sp",
+    "map": "forest",
+    "renderer": "rtx",
+    "runtime": "before",
+    "identity": {
+     "fntech3.exe": "b2552eaa25995bb489c4e620d251bd40f5bbd49ac8c7ea70b4fd6696fd9d1ab9",
+     "fnql_rtx_x86.dll": "160f8f2c55e357d1058759a493667bbc6237a7368c38f8bf503d0a134278924a",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "rtcw-sp",
+     "+set",
+     "fs_basepath",
+     "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.claude\\worktrees\\stoic-shaw-af895f\\.tmp\\rtcw-rtx-csm\\runs\\rtcw-rt2-before\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+set",
+     "rtx_rt_mode",
+     "2",
+     "+set",
+     "rtx_rt_perf_timing",
+     "1",
+     "+set",
+     "rtx_rt_debug_as_stats",
+     "2",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "forest"
+    ],
+    "steps": [
+     "give all",
+     "weapon 3",
+     "cg_thirdPerson 1",
+     "wait 180"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmShadowStrength 1"
+     ],
+     [
+      "csmoff",
+      "set r_csmShadowStrength 0"
+     ],
+     [
+      "dbg",
+      "set r_csmShadowStrength 1; set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "e45dc409c1e007348111e24a41a76414dcd27b44256e304934108706d04189b8"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "a5c7d2fc99e6b0269152d2fe9cec30fb97ddad0f0445d31e9ddb9b9a92e5c0c1"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "aa22396d1dc2be4f76caa5be4b786da149c5976c7148605eee64cef54bed45f1"
+     }
+    ],
+    "csm": {
+     "debugFrames": 130,
+     "commonestFrames": 130,
+     "casters": 0,
+     "cacheHits": 1,
+     "cacheMisses": 0,
+     "cacheUncacheable": 0,
+     "receiversWorld": 4,
+     "receiversEntity": 0,
+     "receiversBaked": 4
+    },
+    "dlight": {
+     "debugFrames": 130,
+     "commonestFrames": 130,
+     "planned": 2,
+     "lightsInView": 5,
+     "renderedLights": 0,
+     "faces": 0,
+     "casterSurfaces": 0
+    },
+    "rtTimingReports": 4,
+    "rtViewsLeftToRaster": 0,
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 7339,
+     "darkerFraction": 0.0153,
+     "meanLumaOn": 18.8,
+     "meanLumaOff": 18.42
+    }
+   },
+   "rtcw-rt2-after": {
+    "run": "rtcw-rt2-after",
+    "profile": "rtcw-sp",
+    "map": "forest",
+    "renderer": "rtx",
+    "runtime": "after",
+    "identity": {
+     "fntech3.exe": "b2552eaa25995bb489c4e620d251bd40f5bbd49ac8c7ea70b4fd6696fd9d1ab9",
+     "fnql_rtx_x86.dll": "9cd0b60c1e159ba1b3c96be0718320617573f8d1f429c578989e59df31bf4f34",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "rtcw-sp",
+     "+set",
+     "fs_basepath",
+     "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.claude\\worktrees\\stoic-shaw-af895f\\.tmp\\rtcw-rtx-csm\\runs\\rtcw-rt2-after\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+set",
+     "rtx_rt_mode",
+     "2",
+     "+set",
+     "rtx_rt_perf_timing",
+     "1",
+     "+set",
+     "rtx_rt_debug_as_stats",
+     "2",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "forest"
+    ],
+    "steps": [
+     "give all",
+     "weapon 3",
+     "cg_thirdPerson 1",
+     "wait 180"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmShadowStrength 1"
+     ],
+     [
+      "csmoff",
+      "set r_csmShadowStrength 0"
+     ],
+     [
+      "dbg",
+      "set r_csmShadowStrength 1; set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "d74ed8277c6eb449135517e7a4aa9eec34c89259fc9bb4cf49528423c79be6f0"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "d7708a5a954b1cc71383aba05e728f9815e8e29f193cac43721f65ba602cad4d"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "da8e80c9fd6e18733e3bb059cf9272c21d12ec6f9819183d8d604e8ce39e8838"
+     }
+    ],
+    "csm": {
+     "debugFrames": 130,
+     "commonestFrames": 130,
+     "casters": 0,
+     "cacheHits": 1,
+     "cacheMisses": 0,
+     "cacheUncacheable": 0,
+     "receiversWorld": 4,
+     "receiversEntity": 0,
+     "receiversBaked": 4
+    },
+    "dlight": {
+     "debugFrames": 130,
+     "commonestFrames": 130,
+     "planned": 2,
+     "lightsInView": 5,
+     "renderedLights": 2,
+     "faces": 12,
+     "casterSurfaces": 763
+    },
+    "rtTimingReports": 4,
+    "rtViewsLeftToRaster": 0,
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 7379,
+     "darkerFraction": 0.0154,
+     "meanLumaOn": 18.8,
+     "meanLumaOff": 18.41
+    }
+   },
+   "rtcwmp-rtx-before": {
+    "run": "rtcwmp-rtx-before",
+    "profile": "rtcw-mp",
+    "map": "mp_village",
+    "renderer": "rtx",
+    "runtime": "before",
+    "identity": {
+     "fntech3.exe": "b2552eaa25995bb489c4e620d251bd40f5bbd49ac8c7ea70b4fd6696fd9d1ab9",
+     "fnql_rtx_x86.dll": "160f8f2c55e357d1058759a493667bbc6237a7368c38f8bf503d0a134278924a",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "rtcw-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.claude\\worktrees\\stoic-shaw-af895f\\.tmp\\rtcw-rtx-csm\\runs\\rtcwmp-rtx-before\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+set",
+     "rtx_rt_mode",
+     "0",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "mp_village"
+    ],
+    "steps": [
+     "wait 300",
+     "cg_thirdPerson 1",
+     "wait 120"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ],
+     [
+      "csmoff",
+      "set r_csmDebug 0; set r_dlightShadowDebug 0; set r_csmShadowStrength 0"
+     ],
+     [
+      "dloff",
+      "set r_csmShadowStrength 1; set r_dlightShadowStrength 0"
+     ],
+     [
+      "on2",
+      "set r_dlightShadowStrength 0.95"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "7bd53cb9c126e648f9f64b97bf339b3b4c24a3a8da54fc24aa6351b019b2ffb3"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "9a9acca283429f00fc849dbc4fd4ed28f3b0b71c325587d408d66e729fa1e0c5"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "b9ae671127db87026b986c40caab4137ddb3fc2892d909da21eebbbd4d190d60"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "0f513fc7ad123d90c177c5da35b3eb0445752816df836e0ef1958ce8720ded63"
+     }
+    ],
+    "csm": {
+     "debugFrames": 100,
+     "commonestFrames": 100,
+     "casters": 0,
+     "cacheHits": 0,
+     "cacheMisses": 1,
+     "cacheUncacheable": 0,
+     "receiversWorld": 0,
+     "receiversEntity": 0,
+     "receiversBaked": 0
+    },
+    "dlight": {
+     "debugFrames": 100,
+     "commonestFrames": 100,
+     "planned": 1,
+     "lightsInView": 16,
+     "renderedLights": 0,
+     "faces": 0,
+     "casterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 749,
+     "darkerFraction": 0.0016,
+     "meanLumaOn": 54.76,
+     "meanLumaOff": 54.19,
+     "repeatStableFraction": 0.8967
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 454,
+     "darkerFraction": 0.0009,
+     "meanLumaOn": 54.76,
+     "meanLumaOff": 54.71,
+     "repeatStableFraction": 0.8967
+    }
+   },
+   "rtcwmp-rtx-after": {
+    "run": "rtcwmp-rtx-after",
+    "profile": "rtcw-mp",
+    "map": "mp_village",
+    "renderer": "rtx",
+    "runtime": "after",
+    "identity": {
+     "fntech3.exe": "b2552eaa25995bb489c4e620d251bd40f5bbd49ac8c7ea70b4fd6696fd9d1ab9",
+     "fnql_rtx_x86.dll": "9cd0b60c1e159ba1b3c96be0718320617573f8d1f429c578989e59df31bf4f34",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "rtcw-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.claude\\worktrees\\stoic-shaw-af895f\\.tmp\\rtcw-rtx-csm\\runs\\rtcwmp-rtx-after\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+set",
+     "rtx_rt_mode",
+     "0",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "mp_village"
+    ],
+    "steps": [
+     "wait 300",
+     "cg_thirdPerson 1",
+     "wait 120"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ],
+     [
+      "csmoff",
+      "set r_csmDebug 0; set r_dlightShadowDebug 0; set r_csmShadowStrength 0"
+     ],
+     [
+      "dloff",
+      "set r_csmShadowStrength 1; set r_dlightShadowStrength 0"
+     ],
+     [
+      "on2",
+      "set r_dlightShadowStrength 0.95"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "9b559e8b4585b67243aa51cacd1689fbc0566daf4091275ded4d7c40ab5c2240"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "99d1ce618a039ed3a8c0ef10aecd569ff38cbb22d79acb9d5d8fb7c1d2cef94b"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "42392918d1245a7a1c6c65e90736ba28229f7f45bcf0dc3af4093ff2e9fd1b95"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "765d8a303c41c47141f4ecfbd340a5346766b44d8fb680ac3d8e25be30aea010"
+     }
+    ],
+    "csm": {
+     "debugFrames": 100,
+     "commonestFrames": 100,
+     "casters": 0,
+     "cacheHits": 1,
+     "cacheMisses": 0,
+     "cacheUncacheable": 0,
+     "receiversWorld": 1655,
+     "receiversEntity": 0,
+     "receiversBaked": 1655
+    },
+    "dlight": {
+     "debugFrames": 100,
+     "commonestFrames": 100,
+     "planned": 1,
+     "lightsInView": 16,
+     "renderedLights": 0,
+     "faces": 0,
+     "casterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 749,
+     "darkerFraction": 0.0016,
+     "meanLumaOn": 54.76,
+     "meanLumaOff": 54.19,
+     "repeatStableFraction": 0.8967
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 454,
+     "darkerFraction": 0.0009,
+     "meanLumaOn": 54.76,
+     "meanLumaOff": 54.71,
+     "repeatStableFraction": 0.8967
+    }
+   },
+   "rtcwmp-glx-after": {
+    "run": "rtcwmp-glx-after",
+    "profile": "rtcw-mp",
+    "map": "mp_village",
+    "renderer": "glx",
+    "runtime": "after",
+    "identity": {
+     "fntech3.exe": "b2552eaa25995bb489c4e620d251bd40f5bbd49ac8c7ea70b4fd6696fd9d1ab9",
+     "fnql_glx_x86.dll": "3fb1c906b1540502a3b086abc66ff55a725037e29b01c856c098b52d97e0f010",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "rtcw-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.claude\\worktrees\\stoic-shaw-af895f\\.tmp\\rtcw-rtx-csm\\runs\\rtcwmp-glx-after\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "mp_village"
+    ],
+    "steps": [
+     "wait 300",
+     "cg_thirdPerson 1",
+     "wait 120"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ],
+     [
+      "csmoff",
+      "set r_csmDebug 0; set r_dlightShadowDebug 0; set r_csmShadowStrength 0"
+     ],
+     [
+      "dloff",
+      "set r_csmShadowStrength 1; set r_dlightShadowStrength 0"
+     ],
+     [
+      "on2",
+      "set r_dlightShadowStrength 0.95"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "76a32b7ffa826c02da619a3e0ae7cb0e67c956ec5c24c0d3d06ae425acc49cc6"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "01bcb23efa3d589198461d831d885ca4475a94363b6b37d03b7c2ad96fc674a3"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "20e9bbfa88b1e97b0220d36cb2e006dbf65ac7b3eaf4d79a4dc8ab02aa411e08"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "b5eeafbc1a54aaae8616faa886a29b9282762ab50ca505f63dc8327ed187733f"
+     }
+    ],
+    "csm": {
+     "debugFrames": 100,
+     "commonestFrames": 100,
+     "casters": 0,
+     "cacheHits": 1,
+     "cacheMisses": 0,
+     "cacheUncacheable": 0,
+     "receiversWorld": 1655,
+     "receiversEntity": 0,
+     "receiversBaked": 1655
+    },
+    "dlight": {
+     "debugFrames": 100,
+     "commonestFrames": 100,
+     "planned": 0,
+     "lightsInView": 16,
+     "renderedLights": 0,
+     "faces": 0,
+     "casterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 139,
+     "darkerFraction": 0.0003,
+     "meanLumaOn": 54.47,
+     "meanLumaOff": 54.14,
+     "repeatStableFraction": 0.8925
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 375,
+     "darkerFraction": 0.0008,
+     "meanLumaOn": 54.47,
+     "meanLumaOff": 54.49,
+     "repeatStableFraction": 0.8925
+    }
+   },
+   "jkaduel9-rtx-before": {
+    "run": "jkaduel9-rtx-before",
+    "profile": "jka-mp",
+    "map": "mp/duel9",
+    "renderer": "rtx",
+    "runtime": "before",
+    "identity": {
+     "fntech3.exe": "b2552eaa25995bb489c4e620d251bd40f5bbd49ac8c7ea70b4fd6696fd9d1ab9",
+     "fnql_rtx_x86.dll": "160f8f2c55e357d1058759a493667bbc6237a7368c38f8bf503d0a134278924a",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.claude\\worktrees\\stoic-shaw-af895f\\.tmp\\rtcw-rtx-csm\\runs\\jkaduel9-rtx-before\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+set",
+     "cl_menuBlur",
+     "0",
+     "+set",
+     "rtx_rt_mode",
+     "0",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "mp/duel9"
+    ],
+    "steps": [
+     "team free",
+     "wait 60",
+     "ui_openmenu none",
+     "wait 60",
+     "cg_thirdPerson 1",
+     "wait 120"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ],
+     [
+      "csmoff",
+      "set r_csmDebug 0; set r_dlightShadowDebug 0; set r_csmShadowStrength 0"
+     ],
+     [
+      "dloff",
+      "set r_csmShadowStrength 1; set r_dlightShadowStrength 0"
+     ],
+     [
+      "on2",
+      "set r_dlightShadowStrength 0.95"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "740628e8911693c6adcf3bbc8cbf9255e7bcfb89d54ac3cf1845634884fca7b3"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "3442bf29ac477a30714236a920c2a51516d675484d78ab04ac9949bc8e0ef5b8"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "905890b957cfbbb2dd6100cab11b7fc39f8fcbd174963757694264ce10da94c8"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "ac4c5454a0ffa0c9bc33676366d2e6361d24760c1ea58e7598bdcef0fb19af84"
+     }
+    ],
+    "csm": {
+     "debugFrames": 100,
+     "commonestFrames": 100,
+     "casters": 693,
+     "cacheHits": 0,
+     "cacheMisses": 2,
+     "cacheUncacheable": 0,
+     "receiversWorld": 611,
+     "receiversEntity": 80,
+     "receiversBaked": 607
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 911,
+     "darkerFraction": 0.0019,
+     "meanLumaOn": 163.25,
+     "meanLumaOff": 163.35,
+     "repeatStableFraction": 0.9995
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 17,
+     "darkerFraction": 0.0,
+     "meanLumaOn": 163.25,
+     "meanLumaOff": 163.27,
+     "repeatStableFraction": 0.9995
+    }
+   },
+   "jkaduel9-rtx-after": {
+    "run": "jkaduel9-rtx-after",
+    "profile": "jka-mp",
+    "map": "mp/duel9",
+    "renderer": "rtx",
+    "runtime": "after",
+    "identity": {
+     "fntech3.exe": "b2552eaa25995bb489c4e620d251bd40f5bbd49ac8c7ea70b4fd6696fd9d1ab9",
+     "fnql_rtx_x86.dll": "9cd0b60c1e159ba1b3c96be0718320617573f8d1f429c578989e59df31bf4f34",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.claude\\worktrees\\stoic-shaw-af895f\\.tmp\\rtcw-rtx-csm\\runs\\jkaduel9-rtx-after\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+set",
+     "cl_menuBlur",
+     "0",
+     "+set",
+     "rtx_rt_mode",
+     "0",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "mp/duel9"
+    ],
+    "steps": [
+     "team free",
+     "wait 60",
+     "ui_openmenu none",
+     "wait 60",
+     "cg_thirdPerson 1",
+     "wait 120"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ],
+     [
+      "csmoff",
+      "set r_csmDebug 0; set r_dlightShadowDebug 0; set r_csmShadowStrength 0"
+     ],
+     [
+      "dloff",
+      "set r_csmShadowStrength 1; set r_dlightShadowStrength 0"
+     ],
+     [
+      "on2",
+      "set r_dlightShadowStrength 0.95"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "e5e785ca1a42095471b77ffaae1a3ba1930b204953adf73e13af9df57a229b9e"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "65293854d9bb5f3023e1ca52ca27c9eb66c29f7976c0038cda5b41c7af52a822"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "ee17e37546c90817f57bd02a580381eccd3cefdb1d1f135a62ffa10b459f697a"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "474945e9a54e3db5b9eda136ee19e93c84ea56879174d64fdfb7abb2652d6e56"
+     }
+    ],
+    "csm": {
+     "debugFrames": 100,
+     "commonestFrames": 100,
+     "casters": 655,
+     "cacheHits": 0,
+     "cacheMisses": 2,
+     "cacheUncacheable": 0,
+     "receiversWorld": 574,
+     "receiversEntity": 80,
+     "receiversBaked": 568
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 896,
+     "darkerFraction": 0.0019,
+     "meanLumaOn": 159.88,
+     "meanLumaOff": 159.97,
+     "repeatStableFraction": 0.9995
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 17,
+     "darkerFraction": 0.0,
+     "meanLumaOn": 159.88,
+     "meanLumaOff": 159.89,
+     "repeatStableFraction": 0.9995
+    }
+   },
+   "jkaduel9-glx-after": {
+    "run": "jkaduel9-glx-after",
+    "profile": "jka-mp",
+    "map": "mp/duel9",
+    "renderer": "glx",
+    "runtime": "after",
+    "identity": {
+     "fntech3.exe": "b2552eaa25995bb489c4e620d251bd40f5bbd49ac8c7ea70b4fd6696fd9d1ab9",
+     "fnql_glx_x86.dll": "3fb1c906b1540502a3b086abc66ff55a725037e29b01c856c098b52d97e0f010",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.claude\\worktrees\\stoic-shaw-af895f\\.tmp\\rtcw-rtx-csm\\runs\\jkaduel9-glx-after\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+set",
+     "cl_menuBlur",
+     "0",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "mp/duel9"
+    ],
+    "steps": [
+     "team free",
+     "wait 60",
+     "ui_openmenu none",
+     "wait 60",
+     "cg_thirdPerson 1",
+     "wait 120"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ],
+     [
+      "csmoff",
+      "set r_csmDebug 0; set r_dlightShadowDebug 0; set r_csmShadowStrength 0"
+     ],
+     [
+      "dloff",
+      "set r_csmShadowStrength 1; set r_dlightShadowStrength 0"
+     ],
+     [
+      "on2",
+      "set r_dlightShadowStrength 0.95"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "80456aa3f3833d0a182eb9a233559683ca4abab0424b6cea426f314741115cfe"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "c586ac7d755214fa70feb8711768fb460025dab87a55111a00d6c409aaaa46af"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "6da4be52016aefc444132cae6634f7cba88ba7cbd9413b3526123f8d7eb99e29"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "153ce64ad82884e1d1e77cb19f2791d8dbc1e337bb56dd333ba3c2ca27184377"
+     }
+    ],
+    "csm": {
+     "debugFrames": 100,
+     "commonestFrames": 100,
+     "casters": 655,
+     "cacheHits": 0,
+     "cacheMisses": 2,
+     "cacheUncacheable": 0,
+     "receiversWorld": 574,
+     "receiversEntity": 80,
+     "receiversBaked": 568
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 1020,
+     "darkerFraction": 0.0021,
+     "meanLumaOn": 147.58,
+     "meanLumaOff": 147.68,
+     "repeatStableFraction": 0.9995
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 0,
+     "darkerFraction": 0.0,
+     "meanLumaOn": 147.58,
+     "meanLumaOff": 147.59,
+     "repeatStableFraction": 0.9995
+    }
+   },
+   "jkaduel-rtx-before": {
+    "run": "jkaduel-rtx-before",
+    "profile": "jka-mp",
+    "map": "mp/duel6",
+    "renderer": "rtx",
+    "runtime": "before",
+    "identity": {
+     "fntech3.exe": "b2552eaa25995bb489c4e620d251bd40f5bbd49ac8c7ea70b4fd6696fd9d1ab9",
+     "fnql_rtx_x86.dll": "160f8f2c55e357d1058759a493667bbc6237a7368c38f8bf503d0a134278924a",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.claude\\worktrees\\stoic-shaw-af895f\\.tmp\\rtcw-rtx-csm\\runs\\jkaduel-rtx-before\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+set",
+     "cl_menuBlur",
+     "0",
+     "+set",
+     "rtx_rt_mode",
+     "0",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "mp/duel6"
+    ],
+    "steps": [
+     "team free",
+     "wait 60",
+     "ui_openmenu none",
+     "wait 60",
+     "cg_thirdPerson 1",
+     "wait 120"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ],
+     [
+      "csmoff",
+      "set r_csmDebug 0; set r_dlightShadowDebug 0; set r_csmShadowStrength 0"
+     ],
+     [
+      "dloff",
+      "set r_csmShadowStrength 1; set r_dlightShadowStrength 0"
+     ],
+     [
+      "on2",
+      "set r_dlightShadowStrength 0.95"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "5f87a090e9e88e66c83f21db03c6c5f5030b3ad8c9ced445d32739fd0298cbff"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "ce2a9ab2e778ccaab1175d69542dc6db7a2271e361fdb99e18dc35299b35ba82"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "1481ddb581f2a6a3c1a518c5ccc79f5ea44df1928a11e54a843b7760bad7a834"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "1ef276f71fe3f8f169b83ff063cdf913f973e6b5962681682617721fd354b961"
+     }
+    ],
+    "csmSkipped": {
+     "no-sky-sun": 100
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 134,
+     "darkerFraction": 0.0003,
+     "meanLumaOn": 135.45,
+     "meanLumaOff": 135.38,
+     "repeatStableFraction": 0.92
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 315,
+     "darkerFraction": 0.0007,
+     "meanLumaOn": 135.45,
+     "meanLumaOff": 135.51,
+     "repeatStableFraction": 0.92
+    }
+   },
+   "jkaduel-rtx-after": {
+    "run": "jkaduel-rtx-after",
+    "profile": "jka-mp",
+    "map": "mp/duel6",
+    "renderer": "rtx",
+    "runtime": "after",
+    "identity": {
+     "fntech3.exe": "b2552eaa25995bb489c4e620d251bd40f5bbd49ac8c7ea70b4fd6696fd9d1ab9",
+     "fnql_rtx_x86.dll": "9cd0b60c1e159ba1b3c96be0718320617573f8d1f429c578989e59df31bf4f34",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "jka-mp",
+     "+set",
+     "fs_basepath",
+     "E:\\Games\\Jedi Academy",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.claude\\worktrees\\stoic-shaw-af895f\\.tmp\\rtcw-rtx-csm\\runs\\jkaduel-rtx-after\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+set",
+     "cl_menuBlur",
+     "0",
+     "+set",
+     "rtx_rt_mode",
+     "0",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "mp/duel6"
+    ],
+    "steps": [
+     "team free",
+     "wait 60",
+     "ui_openmenu none",
+     "wait 60",
+     "cg_thirdPerson 1",
+     "wait 120"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ],
+     [
+      "csmoff",
+      "set r_csmDebug 0; set r_dlightShadowDebug 0; set r_csmShadowStrength 0"
+     ],
+     [
+      "dloff",
+      "set r_csmShadowStrength 1; set r_dlightShadowStrength 0"
+     ],
+     [
+      "on2",
+      "set r_dlightShadowStrength 0.95"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "655fdccb70858200543e3986d47e90d913de328c0d093863bf70ca42d98259fd"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "ab57ffb4ae15be44c22ab6f1e194e53d84bdfdbeff633bcf5b251ed5c9230a28"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "76b7cad0eceeed37a879dc2129b9b6599082d64cbc51209e88fe882f8183a10b"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "3fd4a3488a93ae6521b4c0cedcc686efc53c0ce6666cb372259b3979cab52aa2"
+     }
+    ],
+    "csmSkipped": {
+     "no-sky-sun": 100
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 356,
+     "darkerFraction": 0.0007,
+     "meanLumaOn": 110.68,
+     "meanLumaOff": 110.4,
+     "repeatStableFraction": 0.903
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 353,
+     "darkerFraction": 0.0007,
+     "meanLumaOn": 110.68,
+     "meanLumaOff": 110.3,
+     "repeatStableFraction": 0.903
+    }
+   },
+   "rtcw-rtx-rebased-after": {
+    "run": "rtcw-rtx-rebased-after",
+    "profile": "rtcw-sp",
+    "map": "forest",
+    "renderer": "rtx",
+    "runtime": "rebased",
+    "identity": {
+     "fntech3.exe": "b2552eaa25995bb489c4e620d251bd40f5bbd49ac8c7ea70b4fd6696fd9d1ab9",
+     "fnql_rtx_x86.dll": "808f7adaabfe84202d61c02ef58567b4a43afe9ad1a6dcca7777846bbf3259fc",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "rtcw-sp",
+     "+set",
+     "fs_basepath",
+     "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.claude\\worktrees\\stoic-shaw-af895f\\.tmp\\rtcw-rtx-csm\\runs\\rtcw-rtx-rebased-after\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+set",
+     "rtx_rt_mode",
+     "0",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "forest"
+    ],
+    "steps": [
+     "give all",
+     "weapon 3",
+     "cg_thirdPerson 1",
+     "wait 180"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ],
+     [
+      "csmoff",
+      "set r_csmDebug 0; set r_dlightShadowDebug 0; set r_csmShadowStrength 0"
+     ],
+     [
+      "dloff",
+      "set r_csmShadowStrength 1; set r_dlightShadowStrength 0"
+     ],
+     [
+      "on2",
+      "set r_dlightShadowStrength 0.95"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "f443b8b07c1d4e1c8e81138c5fd3a6435f87653cd951f98f99eef77c45e1d468"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "278e59a627511d97734356960b56bbf6a604c7fd9792ae267c9dc01af60f9a29"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "3063652b442015f174315c23952c047aa1bf0da6db7d5f5ffdfa168f87db7091"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "1731c990662cf925acf545073c2597196d9a6149a607265e35a9e5ced6faa239"
+     }
+    ],
+    "csm": {
+     "debugFrames": 100,
+     "commonestFrames": 100,
+     "casters": 335,
+     "cacheHits": 0,
+     "cacheMisses": 1,
+     "cacheUncacheable": 1,
+     "receiversWorld": 104,
+     "receiversEntity": 576,
+     "receiversBaked": 104
+    },
+    "dlight": {
+     "debugFrames": 100,
+     "commonestFrames": 100,
+     "planned": 2,
+     "lightsInView": 5,
+     "renderedLights": 2,
+     "faces": 12,
+     "casterSurfaces": 763
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 346306,
+     "darkerFraction": 0.7215,
+     "meanLumaOn": 21.73,
+     "meanLumaOff": 42.19,
+     "repeatStableFraction": 0.8792
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 6955,
+     "darkerFraction": 0.0145,
+     "meanLumaOn": 21.73,
+     "meanLumaOff": 21.35,
+     "repeatStableFraction": 0.8792
+    }
+   },
+   "rtcw-glx-rebased-after": {
+    "run": "rtcw-glx-rebased-after",
+    "profile": "rtcw-sp",
+    "map": "forest",
+    "renderer": "glx",
+    "runtime": "rebased",
+    "identity": {
+     "fntech3.exe": "b2552eaa25995bb489c4e620d251bd40f5bbd49ac8c7ea70b4fd6696fd9d1ab9",
+     "fnql_glx_x86.dll": "f42043c68e358e784e3f56b62775efeec5a20d412c0b790096ff60db3261120a",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "rtcw-sp",
+     "+set",
+     "fs_basepath",
+     "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.claude\\worktrees\\stoic-shaw-af895f\\.tmp\\rtcw-rtx-csm\\runs\\rtcw-glx-rebased-after\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "forest"
+    ],
+    "steps": [
+     "give all",
+     "weapon 3",
+     "cg_thirdPerson 1",
+     "wait 180"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ],
+     [
+      "csmoff",
+      "set r_csmDebug 0; set r_dlightShadowDebug 0; set r_csmShadowStrength 0"
+     ],
+     [
+      "dloff",
+      "set r_csmShadowStrength 1; set r_dlightShadowStrength 0"
+     ],
+     [
+      "on2",
+      "set r_dlightShadowStrength 0.95"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "errors": [],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "68d1e5b09cd7252a91e252c967f07bf9ef4af25405a7c69c4a5956e6042c9f70"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "7a1000c6be7cc18893c453e292e268129e923752688a6faf5ced5282ef52a3e4"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "8a64e56372bff36605b65a670dc4956a4d9877e0f8ee50c976b6887e837e63df"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "623b75907144903ddd461666232abffbb23d52e17f98f10964ea665b8aec5810"
+     }
+    ],
+    "csm": {
+     "debugFrames": 100,
+     "commonestFrames": 100,
+     "casters": 335,
+     "cacheHits": 0,
+     "cacheMisses": 1,
+     "cacheUncacheable": 1,
+     "receiversWorld": 104,
+     "receiversEntity": 576,
+     "receiversBaked": 104
+    },
+    "dlight": {
+     "debugFrames": 100,
+     "commonestFrames": 100,
+     "planned": 2,
+     "lightsInView": 5,
+     "renderedLights": 2,
+     "faces": 12,
+     "casterSurfaces": 700
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 348888,
+     "darkerFraction": 0.7268,
+     "meanLumaOn": 21.32,
+     "meanLumaOff": 41.5,
+     "repeatStableFraction": 0.8786
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 6910,
+     "darkerFraction": 0.0144,
+     "meanLumaOn": 21.32,
+     "meanLumaOff": 20.99,
+     "repeatStableFraction": 0.8786
+    }
+   }
+  },
+  "afterDarkerThanBefore": {
+   "rtcw-rtx": {
+    "pixels": 480000,
+    "darkerWithShadows": 374908,
+    "darkerFraction": 0.7811,
+    "meanLumaOn": 21.73,
+    "meanLumaOff": 42.44
+   },
+   "rtcw-rt2": {
+    "pixels": 480000,
+    "darkerWithShadows": 30,
+    "darkerFraction": 0.0001,
+    "meanLumaOn": 18.8,
+    "meanLumaOff": 18.8
+   },
+   "rtcwmp-rtx": {
+    "pixels": 480000,
+    "darkerWithShadows": 0,
+    "darkerFraction": 0.0,
+    "meanLumaOn": 54.76,
+    "meanLumaOff": 54.76
+   },
+   "jkaduel9-rtx": {
+    "pixels": 480000,
+    "darkerWithShadows": 127333,
+    "darkerFraction": 0.2653,
+    "meanLumaOn": 159.88,
+    "meanLumaOff": 163.25
+   }
+  },
+  "completionAudit": {
+   "runs": 18,
+   "capturesVerifiedIncludingMainCopy": 64,
+   "sourceMatchesExportIgnoringNewlines": true,
+   "rebasedRendererMatchesBuiltDll": true,
+   "pathTraceComparison": {
+    "pixels": 480000,
+    "anyRgbChangePixels": 16111,
+    "absoluteLumaOver12Pixels": 73,
+    "afterDarkerOver12Pixels": 30,
+    "afterBrighterOver12Pixels": 43,
+    "meanAbsoluteLumaDifference": 0.021280970833333333
+   },
+   "rtcw-rt2-before": {
+    "timingSamples": 4,
+    "fallbackReports": 0
+   },
+   "rtcw-rt2-after": {
+    "timingSamples": 4,
+    "fallbackReports": 0
+   }
+  },
+  "pathTraceComparisonNote": "Four timing samples and zero reported fallbacks per run; 73/480000 pixels differ by more than 12 luma (30 darker, 43 brighter), while 16111 have any RGB difference. afterDarkerThanBefore is a one-sided threshold measure, not total changed pixels."
+ },
+ "open": [
+  "spot shadows take the same path; no view planned one",
+  "other RTCW portal-sky maps, Jedi Academy mp/siege_hoth and single-player maps not captured",
+  "RTX global fog (r_globalFog, off by default) is drawn once a frame on the first full-screen world view, the portal sky, so the main view behind it gets none (read from vk_draw_global_fog's lastFogFrame, not captured)",
+  "Existing dynamic-light counter differences not investigated: forest GLx 700 caster surfaces vs Vulkan/RTX 763; mp_village RTX plans 1/16 lights vs GLx 0/16, before and after"
+ ],
+ "mainIntegration": {
+  "baseCommit": "3e1371b0397d6bce5dd6ebe1d8a22aae5f5c3451",
+  "fixCommit": "863969c6",
+  "testedCommit": "308cef724e9c622219fa10fd8346e97f724ce520",
+  "importedCommits": [
+   "3369bee7b8674584b921d30834ed6b3a992bf1cb",
+   "abacf0f0e5c9fadc5404a7a829e9bdea2943d0fc"
+  ],
+  "scope": "Portal-sky pass fix and regression check, evidence and player guidance. Broader shadow-format work remains separate; main retains its caster eligibility and shading.",
+  "counterScope": "Main has 251 casters and 104 world / 492 entity receivers in this view, matching GLx and Vulkan. Historical shadow-format builds above include expanded MDS/MDC eligibility and baked-receiver rules and have different counts.",
+  "build": {
+   "preset": "meson/build/win32-dev",
+   "platform": "Windows x86, MSVC, debugoptimized, strict-warnings=true",
+   "commands": [
+    ".vscode/build-release.ps1 -Configuration RelWithDebInfo -BuildDir meson/build/win32-dev -Target client -Renderer all",
+    "meson compile -C meson/build/win32-dev fntech3-pkg.fnz",
+    "python scripts/verify_release_layout.py meson/build/win32-dev/fntech3-pkg.fnz"
+   ],
+   "outcome": "Passed; RTX rebuilt, other client products up to date; package layout passed."
+  },
+  "tests": {
+   "pytest": "315 passed, 64089 subtests passed, no skips",
+   "files": [
+    "tests/csm_plan_source_tests.py",
+    "tests/csm_shadow_cache_source_tests.py",
+    "tests/dlight_shadow_bias_tests.py",
+    "tests/dlight_shadow_release_gate_tests.py",
+    "tests/dlight_shadow_stability_tests.py",
+    "tests/dlight_shadow_test_tests.py",
+    "tests/fnq3_bloom_parity_source_tests.py",
+    "tests/macos_support_source_tests.py",
+    "tests/menu_blur_source_tests.py",
+    "tests/personal_shadow_source_tests.py",
+    "tests/q3_ihv_skin_tests.py",
+    "tests/renderer_cvar_compat_source_tests.py",
+    "tests/rtcw_md3_normal_tests.py",
+    "tests/rtcw_mesh_blink_tests.py",
+    "tests/rtx_emitter_lighting_tests.py",
+    "tests/rtx_entity_shadow_tests.py",
+    "tests/rtx_latency_tests.py",
+    "tests/rtx_lifecycle_tests.py",
+    "tests/rtx_lightmap_execution_tests.py",
+    "tests/rtx_raster_feature_parity_source_tests.py",
+    "tests/rtx_renderer_contract_source_tests.py",
+    "tests/rtx_scene_linear_gate_tests.py",
+    "tests/rtx_vulkan_safety_source_tests.py",
+    "tests/runtime_mdr_tests.py",
+    "tests/shadow_correctness_source_tests.py",
+    "tests/shadow_manager_source_tests.py",
+    "tests/shadow_projection_source_tests.py",
+    "tests/stvef_shadow_tests.py",
+    "tests/underwater_view_source_tests.py",
+    "tests/untrusted_asset_bounds_tests.py",
+    "tests/rtx_raster_execution_tests.py",
+    "tests/liquid_rendering_source_tests.py",
+    "tests/global_fog_source_tests.py",
+    "tests/player_manual_tests.py",
+    "tests/generate_docs_tests.py",
+    "tests/changelog_tests.py"
+   ],
+   "csmCacheScript": "Passed"
+  },
+  "conditions": "Windowed 800x600, private desktop not switched, no input or network, isolated writable homes, engine screenshotPNG; four lighting captures then debug capture",
+  "runs": {
+   "rtx": {
+    "run": "merge-main-rtx",
+    "profile": "rtcw-sp",
+    "map": "forest",
+    "renderer": "rtx",
+    "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+    "identity": {
+     "fntech3.exe": "ad64a9c6ec5366ee117e69cb4d8e26e690229e996ee017d91a0a8dbb9b0c3898",
+     "fnql_rtx_x86.dll": "9de49276daa8d36c75b9625bc9f42dbd1b0577ad981249d1199cc229b308f2a0",
+     "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "rtcw-sp",
+     "+set",
+     "fs_basepath",
+     "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\rtcw-rtx-csm\\runs\\merge-main-rtx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+set",
+     "rtx_rt_mode",
+     "0",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "forest"
+    ],
+    "commands": [
+     "give all",
+     "weapon 3",
+     "cg_thirdPerson 1",
+     "wait 180"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmShadowStrength 1"
+     ],
+     [
+      "csmoff",
+      "set r_csmShadowStrength 0"
+     ],
+     [
+      "dloff",
+      "set r_csmShadowStrength 1; set r_dlightShadowStrength 0"
+     ],
+     [
+      "on2",
+      "set r_dlightShadowStrength 0.95"
+     ],
+     [
+      "dbg",
+      "set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 19.0,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "csm": [
+     "csm cascade backend:vulkan index:1 split:193..418 atlas:512,0/512 view:512,0 512x512 api:512,0 512x512 sample-y:inverted clip-y:flipped depth:forward ndc:0..1 clear:1.0 compare:lequal bounds x:-6438..-4292 y:-4718..-3645 z:-4516..-3443 origin:-5055 -6024 505 texel:2.10",
+     "csm cascade backend:vulkan index:2 split:418..818 atlas:1024,0/512 view:1024,0 512x512 api:1024,0 512x512 sample-y:inverted clip-y:flipped depth:forward ndc:0..1 clear:1.0 compare:lequal bounds x:-7299..-3116 y:-5298..-3207 z:-4763..-2671 origin:-4741 -6024 501 texel:4.08",
+     "csm cascade backend:vulkan index:3 split:818..2048 atlas:1536,0/512 view:1536,0 512x512 api:1536,0 512x512 sample-y:inverted clip-y:flipped depth:forward ndc:0..1 clear:1.0 compare:lequal bounds x:-10083..489 y:-7083..-1797 z:-5679..-392 origin:-3924 -6025 490 texel:10.32"
+    ],
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "c9377e2c0b633f6d3b7dbc9386241a7bc976ea2c49b76b9fd955940f5525064b"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "b000ac589e087724546cf3ee40b572d689742b9d7933af850977f54b48f3fd40"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "9cf51b5de210e5648deb9f400b8d273112e5296828e6e239f57010d408969dc9"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "25cbbe8b1a77239534dce2576e6fff14b38bf7ad1737281435a2f527f2675f0f"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "91bfa6a6f56b1c26c6d84f828f57c9b2d7b6f0d15e7de28a653e9ae49d6e2ff1"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "csmSummary": {
+     "casters": 251,
+     "cacheHits": 0,
+     "cacheMisses": 2,
+     "cacheUncacheable": 0,
+     "receiversWorld": 104,
+     "receiversEntity": 492,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": {
+     "planned": 2,
+     "candidates": 5,
+     "renderedLights": 2,
+     "faces": 12,
+     "batches": 31,
+     "draws": 31,
+     "casterSurfaces": 763,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 312843,
+     "darkerFraction": 0.65175625,
+     "repeatStableFraction": 0.8443416666666667,
+     "meanLumaOn": 24.33860931666667,
+     "meanLumaOff": 39.872218679166664
+    }
+   },
+   "glx": {
+    "run": "merge-main-glx",
+    "profile": "rtcw-sp",
+    "map": "forest",
+    "renderer": "glx",
+    "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+    "identity": {
+     "fntech3.exe": "ad64a9c6ec5366ee117e69cb4d8e26e690229e996ee017d91a0a8dbb9b0c3898",
+     "fnql_glx_x86.dll": "36f0a57b73db439037a01d650fe165279251cc9b8efb3255cc534e39a2554129",
+     "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "rtcw-sp",
+     "+set",
+     "fs_basepath",
+     "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\rtcw-rtx-csm\\runs\\merge-main-glx\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "glx",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "forest"
+    ],
+    "commands": [
+     "give all",
+     "weapon 3",
+     "cg_thirdPerson 1",
+     "wait 180"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmShadowStrength 1"
+     ],
+     [
+      "csmoff",
+      "set r_csmShadowStrength 0"
+     ],
+     [
+      "dloff",
+      "set r_csmShadowStrength 1; set r_dlightShadowStrength 0"
+     ],
+     [
+      "on2",
+      "set r_dlightShadowStrength 0.95"
+     ],
+     [
+      "dbg",
+      "set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 15.9,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "csm": [
+     "csm cascade backend:glx index:1 split:193..418 atlas:512,0/512 view:512,0 512x512 api:512,0 512x512 sample-y:native clip-y:native depth:forward ndc:-1..1 clear:1.0 compare:lequal bounds x:-6438..-4292 y:-4718..-3645 z:-4516..-3443 origin:-5055 -6024 505 texel:2.10",
+     "csm cascade backend:glx index:2 split:418..818 atlas:1024,0/512 view:1024,0 512x512 api:1024,0 512x512 sample-y:native clip-y:native depth:forward ndc:-1..1 clear:1.0 compare:lequal bounds x:-7299..-3116 y:-5298..-3207 z:-4763..-2671 origin:-4741 -6024 501 texel:4.08",
+     "csm cascade backend:glx index:3 split:818..2048 atlas:1536,0/512 view:1536,0 512x512 api:1536,0 512x512 sample-y:native clip-y:native depth:forward ndc:-1..1 clear:1.0 compare:lequal bounds x:-10083..489 y:-7083..-1797 z:-5679..-392 origin:-3924 -6025 490 texel:10.32"
+    ],
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "18273e6e8d65753eadbb773b90d41774dc79ac1b238f7bf624e513dac2124d96"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "351452dd94bce7f7d4b67750d34d808b818ccf72cecb06d1017746bb5f028127"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "ecb02af5cd5ff07a47c26729aae3cd2d9df34d65d4d1f7b6d81c201c24eaf08c"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "2aab92bd0683cad992792a7fbc7c9ed873e350aa3013ab86e910ffa6bc7342ca"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "0a1fdbeaacc18e6b5ae555afcd614d090c607f7c34ecd5f386a23294de1b5c9d"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "csmSummary": {
+     "casters": 251,
+     "cacheHits": 0,
+     "cacheMisses": 2,
+     "cacheUncacheable": 0,
+     "receiversWorld": 104,
+     "receiversEntity": 492,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": {
+     "planned": 2,
+     "candidates": 5,
+     "renderedLights": 2,
+     "faces": 12,
+     "batches": 31,
+     "draws": 31,
+     "casterSurfaces": 700,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 308803,
+     "darkerFraction": 0.6433395833333333,
+     "repeatStableFraction": 0.8435041666666667,
+     "meanLumaOn": 24.177722754166663,
+     "meanLumaOff": 39.46033884583333
+    }
+   },
+   "vk": {
+    "run": "merge-main-vk",
+    "profile": "rtcw-sp",
+    "map": "forest",
+    "renderer": "vk",
+    "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+    "identity": {
+     "fntech3.exe": "ad64a9c6ec5366ee117e69cb4d8e26e690229e996ee017d91a0a8dbb9b0c3898",
+     "fnql_vk_x86.dll": "d8b22a5eea39edb37517fb861a08e2fc5732f0251c46146e98b3c09400d4a27d",
+     "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+    },
+    "command": [
+     "+set",
+     "com_gameProfile",
+     "rtcw-sp",
+     "+set",
+     "fs_basepath",
+     "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+     "+set",
+     "fs_homepath",
+     "E:\\Repositories\\fnTech3\\.tmp\\rtcw-rtx-csm\\runs\\merge-main-vk\\home",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_enabled",
+     "0",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "800",
+     "+set",
+     "r_customHeight",
+     "600",
+     "+set",
+     "cl_renderer",
+     "vk",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_introplayed",
+     "1",
+     "+set",
+     "com_maxfps",
+     "60",
+     "+set",
+     "com_maxfpsUnfocused",
+     "60",
+     "+set",
+     "com_maxfpsMinimized",
+     "60",
+     "+set",
+     "sv_pure",
+     "0",
+     "+set",
+     "r_csmShadows",
+     "1",
+     "+exec",
+     "probeshadow.cfg",
+     "+devmap",
+     "forest"
+    ],
+    "commands": [
+     "give all",
+     "weapon 3",
+     "cg_thirdPerson 1",
+     "wait 180"
+    ],
+    "shots": [
+     [
+      "on",
+      "set r_csmShadowStrength 1"
+     ],
+     [
+      "csmoff",
+      "set r_csmShadowStrength 0"
+     ],
+     [
+      "dloff",
+      "set r_csmShadowStrength 1; set r_dlightShadowStrength 0"
+     ],
+     [
+      "on2",
+      "set r_dlightShadowStrength 0.95"
+     ],
+     [
+      "dbg",
+      "set r_csmDebug 1; set r_dlightShadowDebug 1"
+     ]
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 15.9,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "csm": [
+     "csm cascade backend:vulkan index:1 split:193..418 atlas:512,0/512 view:512,0 512x512 api:512,0 512x512 sample-y:inverted clip-y:flipped depth:forward ndc:0..1 clear:1.0 compare:lequal bounds x:-6438..-4292 y:-4718..-3645 z:-4516..-3443 origin:-5055 -6024 505 texel:2.10",
+     "csm cascade backend:vulkan index:2 split:418..818 atlas:1024,0/512 view:1024,0 512x512 api:1024,0 512x512 sample-y:inverted clip-y:flipped depth:forward ndc:0..1 clear:1.0 compare:lequal bounds x:-7299..-3116 y:-5298..-3207 z:-4763..-2671 origin:-4741 -6024 501 texel:4.08",
+     "csm cascade backend:vulkan index:3 split:818..2048 atlas:1536,0/512 view:1536,0 512x512 api:1536,0 512x512 sample-y:inverted clip-y:flipped depth:forward ndc:0..1 clear:1.0 compare:lequal bounds x:-10083..489 y:-7083..-1797 z:-5679..-392 origin:-3924 -6025 490 texel:10.32"
+    ],
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "035d52da5237fe78ac4cebea61e16b665f2b1d19477987f63510e4ec32e5f103"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "d9d9df6e2923492235e49bb6228d5818a1cfec899e1808ad3b4e0498ef313e16"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "7f55afb908ba3164144e0334e4577e6d0312d8aa6f2d61e1fa47e44750bbd295"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "153baecf703b6d0b39c3a21f1b0a6b28bc3f184d9f307e64d23307374b8101ae"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "34e752fd8151c51f8800d3c57d56b4fbcfc534fb199f695f80d090c6d813a74d"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false,
+    "csmSummary": {
+     "casters": 251,
+     "cacheHits": 0,
+     "cacheMisses": 2,
+     "cacheUncacheable": 0,
+     "receiversWorld": 104,
+     "receiversEntity": 492,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "dlightSummary": {
+     "planned": 2,
+     "candidates": 5,
+     "renderedLights": 2,
+     "faces": 12,
+     "batches": 31,
+     "draws": 31,
+     "casterSurfaces": 763,
+     "debugFrames": 130,
+     "commonestFrames": 130
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 312300,
+     "darkerFraction": 0.650625,
+     "repeatStableFraction": 0.8427416666666666,
+     "meanLumaOn": 24.345991075,
+     "meanLumaOff": 39.86686303125
+    }
+   }
+  },
+  "logs": ".tmp/rtcw-rtx-csm/merge-main/",
+  "captures": ".tmp/rtcw-rtx-csm/runs/merge-main-{rtx,glx,vk}/",
+  "unrelated": "No new unrelated failures. Existing GLx versus Vulkan/RTX light-caster counts and the source-inferred global-fog limitation remain recorded."
+ }
+}

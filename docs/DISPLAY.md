@@ -66,8 +66,8 @@ seta r_renderScale "4"
 vid_restart
 ```
 
-**Turn on the eye candy:** glow, water reflections, the underwater view and,
-in GLx and Vulkan, shadows from the sun:
+**Turn on the eye candy:** glow, water reflections, the underwater view and
+shadows from the sun in GLx, Vulkan or RTX's normal drawing mode:
 
 ```cfg
 seta r_bloom "1"
@@ -363,8 +363,8 @@ game.
 - `r_spotShadows`: `1` lets the spotlights of [Static Map Lights](#static-map-lights)
   cast shadows too. Off by default. Restart.
 - `r_csmShadows`: `1` adds shadows from the sun in maps that have one, cast
-  by the world, models and doors. Off by default. GLx and Vulkan only.
-  Restart.
+  by the world, models and doors. Off by default. GLx and Vulkan, and RTX
+  when it draws normally (`rtx_rt_mode 0`). Restart.
 
 Fine-tuning, for odd-looking shadows -- speckles, flicker, or shadows that
 float off their objects: `r_dlightShadowBias` (default `4`),
@@ -392,6 +392,9 @@ shapes (these need a stencil buffer, `r_stencilbits 8`, the default), `3` flat b
   Lights
   the game insists on still show at `r_dynamiclight 0`. Return to Castle
   Wolfenstein's darkening and flame lights never cast shadows.
+  RTX's normal drawing mode (`rtx_rt_mode 0`) now keeps sun and dynamic-light
+  shadows on levels with a distant sky view, such as `forest`
+  ([details](fntech3/2026-10-22-rtx-portal-sky-shadows.md)).
 - **Quake III Arena:** a map made with the IHV Test's fog uses the original
   style, `r_dlightMode 0`, in every renderer.
 

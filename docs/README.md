@@ -231,6 +231,10 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Jedi Academy's skin gore](fntech3/2026-10-17-jka-skin-gore.md)
   -- client-game imports 313 and 314 measured in `jamp.exe` and served: the
   gore splotch, its records, sets and expiry, not yet drawn.
+- [RTX shadows behind a portal sky](fntech3/2026-10-22-rtx-portal-sky-shadows.md)
+  -- why RTX drew no sun or point-light shadows on Wolfenstein's `forest`
+  (its shadow atlases refused the pass a portal sky leaves open), the fix,
+  and captures beside GLx and Vulkan.
 - [October 9 compatibility integration](fntech3/2026-10-09-compatibility-integration.md)
   -- resumed Alice and Elite Force work, shared-tree validation, and probe
   evidence and limits for the combined compatibility slices.

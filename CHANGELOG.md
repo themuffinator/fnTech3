@@ -214,6 +214,11 @@ historical upstream records, not fnTech3 release history. See the
   instead of keeping their first pose
   ([record](docs/fntech3/2026-10-22-jka-g2-collision.md)).
 
+- Draw the sun's shadows (`r_csmShadows 1`) and the dynamic lights' shadows
+  in RTX on levels with a distant sky view, such as Return to Castle
+  Wolfenstein's `forest`, where RTX drew neither while OpenGL and Vulkan
+  drew both ([record](docs/fntech3/2026-10-22-rtx-portal-sky-shadows.md)).
+
 ## [0.1.0] - 2026-10-11
 
 ### Highlights

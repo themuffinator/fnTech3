@@ -59,6 +59,12 @@ contract; RTCW SP additionally requires campaign, AI, and save/load evidence.
 
 ## Status
 
+[RTX shadows behind a portal sky](2026-10-22-rtx-portal-sky-shadows.md)
+lets RTX's raster path draw sun and dynamic-light shadows behind a portal
+sky, as on Return to Castle Wolfenstein's `forest`, where it drew neither.
+Its sun-shadow receiver counts match GLx and Vulkan in the recorded view.
+No compatibility gate closes.
+
 The [pure budget record](2026-10-15-pure-budget-own-wires.md) settles the last
 profiles whose pure gamestate budget measured Quake Live's message. Medal
 of Honor's measures its own 48 KiB gamestate: its own baselines, and the 364
