@@ -577,9 +577,11 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   ([round details](fntech3/2026-10-16-jka-trace-pass-none.md)), and a
   player or bot who is killed comes back into the match
   ([respawn details](fntech3/2026-10-16-jka-clear-skin-gore.md)). The game
-  still stops when a dead player's body starts to fade, and as soon as
-  sabers meet a player or stormtroopers spawned from the console start
-  fighting ([body details](fntech3/2026-10-16-jka-surface-on-off.md)).
+  still stops when a dead player's body starts to fade
+  ([body details](fntech3/2026-10-16-jka-surface-on-off.md)). Stormtroopers
+  spawned from the console now appear, and a hit on a body is checked
+  against the body itself; fights still stop on effects the client cannot
+  draw yet ([collision details](fntech3/2026-10-22-jka-g2-collision.md)).
   `mp/siege_hoth` and `mp/siege_desert` no longer stop soon after the
   menu opens; with a bot on the other side they still stop as their
   round begins

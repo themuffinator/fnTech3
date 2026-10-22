@@ -4,6 +4,7 @@
  * rules, merge and Ghoul2 step, against synthetic meshes and a fake world.
  * See docs/fntech3/2026-10-15-jka-g2-trace.md. */
 #include "../code/ghoul2/ghoul2_collision.hpp"
+#include "../code/ghoul2/ghoul2_instance_collision.hpp"
 #include "../code/compat/jka_trace_clip.hpp"
 
 #include <cmath>
@@ -471,8 +472,101 @@ static void LoopTests()
 	}
 }
 
+/* Imports 606 and 299 hand the module's own records to G2API_CollisionDetect
+ * (0x4e0170): nothing is reset, a free place is entity -1, the leading
+ * records in use are counted and sorted, and a model's override list stands
+ * in for its file's surface flags. */
+static void CollideTests()
+{
+	geometry::DeformedGeometry mesh;
+	mesh.surfaces.push_back( Wall( 0, 10.0f, 1, 0, { 1, 2 } ) );
+	mesh.surfaces.push_back( Wall( 1, 20.0f, 1 ) );
+	mesh.surfaces.push_back( Wall( 2, 30.0f, 1, 0x2 ) );
+	collision::Records records;
+
+	/* A record the caller left in place 0 stays, counted and sorted with the hits. */
+	records[0].entityNum = 77;
+	records[0].distance = 15.0f;
+	int count = collision::Collide( { { 0, &mesh } }, Ray( 0.0f, 40.0f ), records );
+	CHECK( count == 3 );
+	CHECK( records[0].entityNum == 7 && Near( records[0].distance, 10.0f ) );
+	CHECK( records[1].entityNum == 77 && Near( records[1].distance, 15.0f ) );
+	CHECK( records[2].entityNum == 7 && Near( records[2].distance, 20.0f ) && records[3].entityNum == -1 );
+
+	/* One free place among used ones: the first hit takes it, the second finds
+	 * none and stops the walk, and the count runs past it to the end. */
+	for ( auto &record : records ) {
+		record = collision::Record{};
+		record.entityNum = 50;
+		record.distance = 99.0f;
+	}
+	records[1].entityNum = -1;
+	count = collision::Collide( { { 0, &mesh } }, Ray( 0.0f, 40.0f ), records );
+	CHECK( count == collision::MaxRecords );
+	CHECK( records[0].entityNum == 7 && Near( records[0].distance, 10.0f ) && records[0].surfaceIndex == 0 );
+	for ( int i = 1; i < collision::MaxRecords; ++i ) CHECK( records[std::size_t( i )].entityNum == 50 );
+
+	/* A used record before the first free place hides nothing after it from the
+	 * walk, but the count stops at the free place. */
+	for ( auto &record : records ) record = collision::Record{};
+	records[2].entityNum = 60;
+	count = collision::Collide( { { 0, &mesh } }, Ray( 0.0f, 40.0f ), records );
+	CHECK( count == 3 && records[2].entityNum == 7 && Near( records[2].distance, 20.0f ) );
+
+	/* The override list: surface 2 switched on, surface 1 off. */
+	for ( auto &record : records ) record = collision::Record{};
+	collision::SurfaceOverrides overrides{ { 1, 0x2u }, { 2, 0u } };
+	const collision::Model switched{ 0, &mesh, &overrides };
+	count = collision::Collide( { switched }, Ray( 0.0f, 40.0f ), records );
+	CHECK( count == 2 && records[0].surfaceIndex == 0 && records[1].surfaceIndex == 2
+		&& Near( records[1].distance, 30.0f ) );
+	/* 0x100 in an override leaves everything under the surface out too. */
+	overrides = { { 0, 0x100u } };
+	for ( auto &record : records ) record = collision::Record{};
+	CHECK( collision::Collide( { switched }, Ray( 0.0f, 40.0f ), records ) == 0 );
+	/* Detect still resets what it is handed. */
+	records[0].entityNum = 77;
+	CHECK( collision::Detect( { { 0, &mesh } }, Ray( 0.0f, 40.0f ), records ) == 2
+		&& records[0].entityNum == 7 && records[2].entityNum == -1 );
+
+	/* A mesh that cannot be walked leaves every record as it was. */
+	for ( auto &record : records ) record = collision::Record{};
+	records[0].entityNum = 77;
+	collision::Error error = collision::Error::None;
+	CHECK( collision::Collide( { { 0, nullptr } }, Ray( 0.0f, 40.0f ), records, &error ) == 0
+		&& error == collision::Error::Mesh && records[0].entityNum == 77 );
+
+	/* The module's records are retail's bytes, field for field. */
+	unsigned char bytes[1024];
+	for ( std::size_t i = 0; i < sizeof( bytes ); ++i ) bytes[i] = static_cast<unsigned char>( i * 7 );
+	collision::ReadRecords( bytes, records );
+	collision::Records copy = records;
+	unsigned char back[1024] = {};
+	collision::WriteRecords( back, copy );
+	CHECK( std::memcmp( bytes, back, sizeof( bytes ) ) == 0 );
+	int entity = 0;
+	std::memcpy( &entity, bytes + 64 * 3 + 4, sizeof( entity ) );
+	CHECK( records[3].entityNum == entity );
+}
+
+/* A geometry cache follows the store its files came from: each store is told
+ * apart for the life of the process. */
+struct NoFiles final : fntech3::ghoul2::Files {
+	std::size_t Read( const char *, void *, std::size_t ) override { return 0; }
+};
+static void StoreSerialTests()
+{
+	NoFiles files;
+	fntech3::ghoul2::Store first( files ), second( files );
+	CHECK( first.Serial() != 0 && second.Serial() != 0 && first.Serial() != second.Serial() );
+	fntech3::ghoul2::Store third( files );
+	CHECK( third.Serial() != first.Serial() && third.Serial() != second.Serial() );
+}
+
 int main()
 {
+	CollideTests();
+	StoreSerialTests();
 	SegmentTests();
 	CapTests();
 	RadiusTests();

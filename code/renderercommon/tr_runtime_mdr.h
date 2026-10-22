@@ -36,6 +36,12 @@ static qboolean R_IsRuntimeMDR( qhandle_t handle ) {
 	return handle > 0 && handle < MAX_MOD_KNOWN && r_runtimeMdr[handle].ownerNonce &&
 		r_runtimeMdr[handle].generation == r_runtimeMdrGeneration ? qtrue : qfalse;
 }
+/* A runtime MDR's one frame is rewritten in place by every pose update, so
+ * anything caching posed geometry by model, frame and lerp must not cache it. */
+qboolean R_ModelIsRuntimeMDR( qhandle_t handle );
+qboolean R_ModelIsRuntimeMDR( qhandle_t handle ) {
+	return R_IsRuntimeMDR( handle );
+}
 /* Use bits, not isfinite: release renderers enable finite-math optimizations. */
 static qboolean R_RuntimeMDRFinite( const void *address, size_t count ) {
 	const byte *data = (const byte *)address;

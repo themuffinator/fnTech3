@@ -663,6 +663,22 @@ private:
 	void *handle_ = nullptr;
 };
 
+/* The name Jedi Academy's G2API_GetSurfaceName answers (jamp.exe 1.01
+ * 0x4e05d0): the hierarchy name of level 0's surface `number` -- the same
+ * surface, as every mesh this engine loads numbers its levels' surfaces in
+ * hierarchy order -- or none for a number outside the mesh. */
+inline std::string SurfaceNameAt( const Model &entry, int number )
+{
+	if ( number < 0 || number >= entry.mesh.numSurfaces ) return {};
+	if ( std::size_t( number ) < entry.surfaceNames.size() ) return entry.surfaceNames[std::size_t( number )];
+	char name[model::NameBytes + 1] = { 0 };
+	if ( entry.meshBytes ) {
+		model::SurfaceName( entry.meshBytes->data(), entry.meshBytes->size(), entry.mesh, number,
+			name, sizeof( name ) );
+	}
+	return name;
+}
+
 /* Retail's pose and draw order for an instance's models (jamp.exe 1.01
  * 0x498be0, the pinned OpenJK G2_Sort_Models): every present model with no
  * link, by index, then repeatedly every linked model whose parent is in the
@@ -730,6 +746,10 @@ public:
 	}
 	bool ServesAttachments() const { return serveAttachments_; }
 	bool KeepsBuilds() const { return keepBuilds_; }
+	/* Which store this is, for the life of the process. Anything kept from
+	 * this store's files keys on it as well as on their addresses: the files
+	 * live as long as the store (Keep), and a later store may reuse those. */
+	std::uint64_t Serial() const { return serial_; }
 
 	void Clear() { attached_.clear(); live_.clear(); instances_.clear(); fields_.clear(); }
 	std::size_t InstanceCount() const { return instances_.size(); }
@@ -929,6 +949,11 @@ private:
 	const std::vector<unsigned char> *Kept_( const std::string &name ) const;
 
 	Files *files_ = nullptr;
+	std::uint64_t serial_ = NextSerial();
+	static std::uint64_t NextSerial() {
+		static std::atomic<std::uint64_t> next{ 1 };
+		return next++;
+	}
 	bool serveAnimationBlends_ = false;
 	bool serveAttachments_ = false;
 	bool keepBuilds_ = false;

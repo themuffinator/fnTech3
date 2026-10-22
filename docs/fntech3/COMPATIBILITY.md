@@ -2972,6 +2972,26 @@ the previous build stops there; with this slice the client goes on until
 the corpse is drawn with Raven's `RF_DISINTEGRATE2` (renderfx 0x40000),
 which the render adapter refuses (Live subset). No gate closes.
 
+The [Ghoul2 collision slice](2026-10-22-jka-g2-collision.md) (2026-10-22)
+serves game imports 606 and 607 and client-game imports 299 and 300, which
+retail `jamp.exe` 1.01 sends to G2API_CollisionDetect (`0x4e0170`) or its
+cached twin (`0x4dfe00`), and the struck surface's name, game import 629 and
+client-game import 343 (`0x4e05d0`). Unlike the server trace, the routine
+resets none of the module's records: a record whose entity is -1 is free, and
+the leading records in use are counted and sorted. The trace and the new
+imports share one preparation of an instance (posed at the time given, each
+model at its level of detail), and the client walks the surface overrides its
+renderer draws with. A synthetic module calls 606 and 607 488 times in retail
+and in fnTech3's server: 468 agree within 0.0021 units (118 bit for bit), 606
+and 607 agree in every pair in both, and the 20 that differ are radius tests
+whose farthest, ill-conditioned record or an equal-distance tie comes out
+otherwise under x87 arithmetic. All 26 surface names match. Live on
+`mp/ffa2`, a console-spawned stormtrooper, which stopped the client on import
+299, now appears and the client runs on (Source, Unit, Live subset). The path
+tracer no longer keeps a Ghoul2 body's first pose: runtime MDRs skip its
+exact-pose cache. Server surface overrides (609, 612), model removal, ragdoll
+and IK remain refused. No gate closes.
+
 Star Wars Jedi Knight: Jedi Academy is the sixth title, with two mode profiles
 over one `base/` installation: `jka-sp` for Raven's single-player campaign and
 `jka-mp` for multiplayer. The [foundation record](2026-09-21-jka-contracts.md)

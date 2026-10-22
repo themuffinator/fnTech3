@@ -3325,6 +3325,7 @@ RENDERER BACK END FUNCTIONS
 
 void RB_ExecuteRenderCommands( const void *data );
 void RB_ExecuteRuntimeMDRCommands( const void *data );
+qboolean R_ModelIsRuntimeMDR( qhandle_t handle );
 
 /*
 =============================================================

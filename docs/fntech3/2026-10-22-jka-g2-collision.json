@@ -1,0 +1,526 @@
+{
+ "record": "docs/fntech3/2026-10-22-jka-g2-collision.md",
+ "date": "2026-10-22",
+ "profiles": [
+  "jka-mp"
+ ],
+ "baseHead": "1260dd9009688c46e5d06a36fd108d6b1c3bf8bf",
+ "claim": "Compatibility slice only; no gate closes.",
+ "platform": "Windows 11, MSVC 2022 x86 (win32-dev options, strict warnings), clang for fixtures",
+ "retail": {
+  "jamp.exe": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+  "handlers": {
+   "game606": "0x45cde5",
+   "game607": "0x45ce4d",
+   "game629": "0x45d20d",
+   "cgame299": "0x4139ce",
+   "cgame300": "0x413a36",
+   "cgame343": "0x4140ec"
+  },
+  "routines": {
+   "G2API_CollisionDetect": "0x4e0170",
+   "G2API_CollisionDetectCache": "0x4dfe00",
+   "setupModels": "0x4e0c50",
+   "skeletonBuild": "0x49a050",
+   "worldMatrix": "0x4ec580",
+   "transformModel": "0x4e9ce0",
+   "traceModels": "0x4ec1c0",
+   "traceState": "0x4e94e0",
+   "countAndSort": "0x4e0320..0x4e0395",
+   "qsort": "0x52bc40",
+   "modelRecord": "0x4116e0",
+   "getSurfaceName": "0x4e05d0",
+   "setupModel": "0x4e0b10"
+  },
+  "vertexHeaps": {
+   "game": "0x10dfd2c",
+   "cgame": "0x12a4fa0"
+  },
+  "cgameDispatcher": {
+   "entry": "0x412170",
+   "byteTable": "0x414638",
+   "jumpTable": "0x4142bc"
+  },
+  "gameDispatcher": {
+   "entry": "0x45a660",
+   "jumpTable": "0x45d34c"
+  }
+ },
+ "served": {
+  "game": [
+   606,
+   607,
+   629
+  ],
+  "cgame": [
+   299,
+   300,
+   343
+  ],
+  "rtx": "runtime MDR geometry skips the exact-pose cache (R_ModelIsRuntimeMDR)"
+ },
+ "refused": [
+  "null instance",
+  "instance never handed out",
+  "model index outside the instance (629/343)",
+  "model the pose order never reaches",
+  "unreadable mesh",
+  "non-finite vector or radius"
+ ],
+ "comparison": {
+  "harness": ".tmp/jka-g2collide/run-probe.py + g2collide-probe.cpp + compare.py",
+  "fixtureSourceSha256": "3ee6ff4cdeedb4b9dfcdda1096e729e4bd3ed543a180f4ebf6880ba952cce52f",
+  "module": {
+   ".tmp/runtime/jka-retail/g2collide/jampgamex86.dll": "fc0209a1434b82ca2ceabcdcbe2a49f92c47d81b5939955ce63efd67bdc7bb0a"
+  },
+  "map": "mp/ffa1",
+  "retailRun": {
+   "output": ".tmp/jka-g2collide/retail-2",
+   "passed": true,
+   "binarySha256": {
+    "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail\\jamp.exe": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+    "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail\\g2collide\\jampgamex86.dll": "fc0209a1434b82ca2ceabcdcbe2a49f92c47d81b5939955ce63efd67bdc7bb0a"
+   }
+  },
+  "fntech3Run": {
+   "output": ".tmp/jka-g2collide/fntech3-4",
+   "passed": true,
+   "binarySha256": {
+    "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev\\fntech3.ded.exe": "c058429e830285ba1b6be18ee684da3d709dff609d20e1e8126bae8da53657fb",
+    "E:\\Repositories\\fnTech3\\.tmp\\runtime\\jka-retail\\g2collide\\jampgamex86.dll": "fc0209a1434b82ca2ceabcdcbe2a49f92c47d81b5939955ce63efd67bdc7bb0a"
+   },
+   "build": "meson/build/win32-dev: the working tree at 1260dd90 with this slice and other uncommitted work"
+  },
+  "summary": {
+   "calls": 488,
+   "bitIdentical": 118,
+   "withinTolerance": 350,
+   "differ": 20
+  },
+  "hits": {
+   "callsWithHits": 370,
+   "records": 1780
+  },
+  "worstDelta": {
+   "0": 0.0020599365234375,
+   "6": 0.0010986328125,
+   "8": 4.582107067108154e-06,
+   "9": 3.904104232788086e-06,
+   "10": 4.649162292480469e-06,
+   "14": 0.00030587613582611084,
+   "15": 0.00031882524490356445,
+   "7": 0.0020751953125,
+   "5": 0.001220703125
+  },
+  "pairs606vs607": {
+   "retail606eq607": 244,
+   "other606eq607": 244
+  },
+  "differing": [
+   {
+    "id": 20,
+    "meta": [
+     1,
+     1,
+     606
+    ],
+    "case": 1,
+    "kind": "farDistance",
+    "records": [
+     15
+    ],
+    "maxDelta": 0.0052490234375
+   },
+   {
+    "id": 21,
+    "meta": [
+     1,
+     1,
+     607
+    ],
+    "case": 1,
+    "kind": "farDistance",
+    "records": [
+     15
+    ],
+    "maxDelta": 0.0052490234375
+   },
+   {
+    "id": 22,
+    "meta": [
+     1,
+     1,
+     606
+    ],
+    "case": 2,
+    "kind": "farDistance",
+    "records": [
+     15
+    ],
+    "maxDelta": 0.03375244140625
+   },
+   {
+    "id": 23,
+    "meta": [
+     1,
+     1,
+     607
+    ],
+    "case": 2,
+    "kind": "farDistance",
+    "records": [
+     15
+    ],
+    "maxDelta": 0.03375244140625
+   },
+   {
+    "id": 98,
+    "meta": [
+     1,
+     1,
+     606
+    ],
+    "case": 1,
+    "kind": "tieOrder",
+    "records": [
+     9,
+     10
+    ],
+    "maxDelta": 0
+   },
+   {
+    "id": 99,
+    "meta": [
+     1,
+     1,
+     607
+    ],
+    "case": 1,
+    "kind": "tieOrder",
+    "records": [
+     9,
+     10
+    ],
+    "maxDelta": 0
+   },
+   {
+    "id": 144,
+    "meta": [
+     1,
+     40,
+     606
+    ],
+    "case": 11,
+    "kind": "farDistance",
+    "records": [
+     15
+    ],
+    "maxDelta": 0.01580810546875
+   },
+   {
+    "id": 145,
+    "meta": [
+     1,
+     40,
+     607
+    ],
+    "case": 11,
+    "kind": "farDistance",
+    "records": [
+     15
+    ],
+    "maxDelta": 0.01580810546875
+   },
+   {
+    "id": 220,
+    "meta": [
+     1,
+     40,
+     606
+    ],
+    "case": 10,
+    "kind": "farDistance",
+    "records": [
+     15
+    ],
+    "maxDelta": 244.0234375
+   },
+   {
+    "id": 221,
+    "meta": [
+     1,
+     40,
+     607
+    ],
+    "case": 10,
+    "kind": "farDistance",
+    "records": [
+     15
+    ],
+    "maxDelta": 244.0234375
+   },
+   {
+    "id": 290,
+    "meta": [
+     2,
+     1,
+     606
+    ],
+    "case": 1,
+    "kind": "farDistance",
+    "records": [
+     15
+    ],
+    "maxDelta": 94.185546875
+   },
+   {
+    "id": 291,
+    "meta": [
+     2,
+     1,
+     607
+    ],
+    "case": 1,
+    "kind": "farDistance",
+    "records": [
+     15
+    ],
+    "maxDelta": 94.185546875
+   },
+   {
+    "id": 292,
+    "meta": [
+     2,
+     1,
+     606
+    ],
+    "case": 2,
+    "kind": "farDistance",
+    "records": [
+     15
+    ],
+    "maxDelta": 94.185546875
+   },
+   {
+    "id": 293,
+    "meta": [
+     2,
+     1,
+     607
+    ],
+    "case": 2,
+    "kind": "farDistance",
+    "records": [
+     15
+    ],
+    "maxDelta": 94.185546875
+   },
+   {
+    "id": 318,
+    "meta": [
+     2,
+     1,
+     606
+    ],
+    "case": 2,
+    "kind": "farDistance",
+    "records": [
+     15
+    ],
+    "maxDelta": 0.05718994140625
+   },
+   {
+    "id": 319,
+    "meta": [
+     2,
+     1,
+     607
+    ],
+    "case": 2,
+    "kind": "farDistance",
+    "records": [
+     15
+    ],
+    "maxDelta": 0.05718994140625
+   },
+   {
+    "id": 414,
+    "meta": [
+     2,
+     40,
+     606
+    ],
+    "case": 11,
+    "kind": "farDistance",
+    "records": [
+     15
+    ],
+    "maxDelta": 0.016204833984375
+   },
+   {
+    "id": 415,
+    "meta": [
+     2,
+     40,
+     607
+    ],
+    "case": 11,
+    "kind": "farDistance",
+    "records": [
+     15
+    ],
+    "maxDelta": 0.016204833984375
+   },
+   {
+    "id": 464,
+    "meta": [
+     2,
+     40,
+     606
+    ],
+    "case": 10,
+    "kind": "farDistance",
+    "records": [
+     14
+    ],
+    "maxDelta": 0.005218505859375
+   },
+   {
+    "id": 465,
+    "meta": [
+     2,
+     40,
+     607
+    ],
+    "case": 10,
+    "kind": "farDistance",
+    "records": [
+     14
+    ],
+    "maxDelta": 0.005218505859375
+   }
+  ],
+  "surfaceNames": {
+   "surfaces": [
+    -1,
+    0,
+    1,
+    2,
+    3,
+    5,
+    8,
+    13,
+    21,
+    34,
+    50,
+    60,
+    9999
+   ],
+   "answers": 26,
+   "identical": 26
+  },
+  "precisionExperiment": "radius step in double, retail's order: 920 records' low bits changed, 512 of 2292 still bit-identical, same 20 calls differ; reverted"
+ },
+ "live": {
+  "harness": ".tmp/jka-g2collide/listen.py (windowed, private desktop, net_enabled 0, no input)",
+  "runs": {
+   "npc-3": {
+    "map": "mp/ffa2",
+    "extra": [
+     "set cl_menuBlur 0",
+     "set con_notifytime 0",
+     "team free",
+     "wait 240",
+     "togglemenu",
+     "wait 20",
+     "npc spawn stormtrooper",
+     "wait 240"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "errors": [],
+    "captures": [
+     {
+      "name": "jka-sound-00.png",
+      "sha256": "d01d9b8a6b76b33932f6fb53b2e7b2a288039fc68cd5dbfba2611433f21572b8"
+     },
+     {
+      "name": "jka-sound-01.png",
+      "sha256": "bb9a9737465e39358b7871c96099eab649cffb02f16d78215d9cfdcf6edc8f2d"
+     },
+     {
+      "name": "jka-sound-02.png",
+      "sha256": "f7bf9c8df200ef8fd7aa0ed3366b51d19872c5e1baf7e8825f5b5777c67387e3"
+     },
+     {
+      "name": "jka-sound-03.png",
+      "sha256": "205f7129840cc508e69f278f0ae359a2bdb467d2a7bb2404c9284b819c98a860"
+     }
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "identity": {
+     "fntech3.exe": "ad64a9c6ec5366ee117e69cb4d8e26e690229e996ee017d91a0a8dbb9b0c3898",
+     "fnql_glx_x86.dll": "36f0a57b73db439037a01d650fe165279251cc9b8efb3255cc534e39a2554129",
+     "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+    }
+   },
+   "rtx-npc-vis-1": {
+    "map": "mp/ffa2",
+    "renderer": "rtx",
+    "extra": [
+     "set cl_menuBlur 0",
+     "set con_notifytime 0",
+     "team free",
+     "wait 240",
+     "togglemenu",
+     "wait 20",
+     "npc spawn stormtrooper",
+     "wait 200",
+     "set rtx_rt_debug_visualizer 4",
+     "wait 30"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "errors": [],
+    "captures": [
+     {
+      "name": "jka-sound-00.png",
+      "sha256": "31cc0dcc5f18a89c5e7c830e62264cb808d26af66d7e54b334ae17d27a454272"
+     },
+     {
+      "name": "jka-sound-01.png",
+      "sha256": "b0a9afb21a1f57062eb66e306143a22d1373c7de1b58f0df691b513e4e86bd42"
+     },
+     {
+      "name": "jka-sound-02.png",
+      "sha256": "04fcecb470a9f17de2508d2a4b964cec81b67a38f39179e184c523b40723d70b"
+     }
+    ],
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "identity": {
+     "fntech3.exe": "ad64a9c6ec5366ee117e69cb4d8e26e690229e996ee017d91a0a8dbb9b0c3898",
+     "fnql_rtx_x86.dll": "c73796f0ca1c7eb09ff8e168bf89afbceec17bf7b7c2cd2fa06692942d1d48cc",
+     "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+    },
+    "observed": "raw traced view: player and stormtrooper bodies traced, silhouettes differ between captures a second apart; no build without the fix compared"
+   }
+  },
+  "notOfRecord": "npc-1, npc-2 and saber-1 used +attack without the user's per-run permission; their observations are noted in the record but are not evidence"
+ },
+ "tests": {
+  "tests/jka_g2_trace_tests.cpp": "passed (MSVC /W4 /WX)",
+  "tests/rtx_geometry_cache_tests.py": "passed",
+  "tests/jka_module_refusal_tests.py": "163 served game imports"
+ },
+ "open": [
+  "server surface overrides (609, 612, skin visibility)",
+  "model removal (603, 604, 311)",
+  "ragdoll and IK (615, 622, 623; cgame 328-338)",
+  "menus' Ghoul2 imports",
+  "cgame 295",
+  "the cached twin's reuse while the Ghoul2 clock stands",
+  "live saber combat stops on effects import 279 first"
+ ]
+}

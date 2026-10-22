@@ -34,6 +34,8 @@ static struct { int gameId; } ri;
 static struct Cvar { int integer; } skinning={1}, *rtx_rt_iqm_skinning=&skinning;
 static model_t models[100]; static shader_t shaders[100];
 static int extracts, failExtract, failReserve;
+static bool runtimeMdr[100];
+static qboolean R_ModelIsRuntimeMDR(int i) { return i>0 && i<100 && runtimeMdr[i]; }
 static const model_t *R_GetModelByHandle(int i) { return i>0 && i<100 ? &models[i] : nullptr; }
 static void vk_rt_cpu_geometry_free(rtxRtCpuGeometry_t *g) {
     free(g->vertices); free(g->indices); free(g->materials); free(g->materialShaders); memset(g,0,sizeof(*g));
@@ -102,7 +104,16 @@ int main() {
     // Procedural skeletons and IHV bypass until all their pose inputs are keyed.
     models[1].type=MOD_OTHER; before=extracts;
     for(int i=0;i<2;++i) { assert(vk_rt_append_dynamic_model_entity_geometry(&out,&e,nullptr)); Drop(out); }
-    assert(extracts==before+2); RT_GeometryCacheClear(); return 0;
+    assert(extracts==before+2);
+    // A Ghoul2 body is a runtime MDR posed in place at frame 0: every frame extracts.
+    models[1].type=MOD_MDR; runtimeMdr[1]=true; e.e.frame=0; e.e.oldframe=0; e.e.backlerp=0; before=extracts;
+    for(int i=0;i<2;++i) { assert(vk_rt_append_dynamic_model_entity_geometry(&out,&e,nullptr)); Drop(out); }
+    assert(extracts==before+2);
+    // An ordinary MDR with the same key is still cached.
+    runtimeMdr[1]=false; before=extracts;
+    for(int i=0;i<2;++i) { assert(vk_rt_append_dynamic_model_entity_geometry(&out,&e,nullptr)); Drop(out); }
+    assert(extracts==before+1);
+    RT_GeometryCacheClear(); return 0;
 }
 '''
         compile_run(self, source)

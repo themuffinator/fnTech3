@@ -212,6 +212,10 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Jedi Academy's surface switch](fntech3/2026-10-16-jka-surface-on-off.md)
   -- client-game import 321 measured in `jamp.exe`, the call site that runs
   in a siege match found, and the import served through Fn's skin binding.
+- [Jedi Academy's Ghoul2 collision and surface names](fntech3/2026-10-22-jka-g2-collision.md)
+  -- the game's and client game's collision tests and the struck surface's
+  name, measured in `jamp.exe` and compared call for call, and the path
+  tracer's frozen Ghoul2 poses.
 - [Widescreen field of view in every game](fntech3/2026-10-22-fov-correction-all-profiles.md)
   -- `r_fovCorrection` in all sixteen profiles, Jedi Outcast's stretched
   view and the 1999 tests included, keeping the game's underwater sway.

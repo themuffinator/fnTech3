@@ -89,6 +89,7 @@ static void CL_JKACgameTrace(fntech3::jka::module::Call call, const intptr_t *ar
 } // namespace
 
 #include "client_jka_cgame_ghoul2.hpp"
+#include "client_jka_cgame_collision.hpp"
 #include "client_jka_cgame_render.hpp"
 #include "client_jka_cgame_ambient.hpp"
 #include "client_jka_cgame_effects.hpp"
@@ -122,6 +123,7 @@ static bool CL_JKACgameCall(intptr_t *args, intptr_t &operation, intptr_t &resul
     result = 0;
     const auto call = module::Lookup(COM_GAME_JKA_MP, module::Module::CGAME, module::Direction::IMPORT, args[0]);
     if (CL_JKACgameGhoul2Call(args, call, result)) return true;
+    if (CL_JKACgameCollisionCall(args, call, result)) return true;
     if (CL_JKACgameAmbientCall(args, call, result)) return true;
     if (CL_JKACgameEffectsCall(args, call, result)) return true;
     // Raven's font draws in the virtual 640x480 screen; each string is placed

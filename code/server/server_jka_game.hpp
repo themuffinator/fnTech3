@@ -567,6 +567,51 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 		return true;
 	}
 
+	case Call::G_G2_GETSURFACENAME: {
+		/* The name of the surface a collision record names. Retail's handler
+		 * (0x45d20d) reads the instance, a surface number, a model index and
+		 * the game's buffer: 0x4116e0 picks the model's record without a bounds
+		 * check, and 0x4e05d0 answers a name, which is copied whole into the
+		 * buffer. A model its setup refuses (0x4e0b10: one taken away) answers
+		 * an empty name; a surface number outside the mesh prints a warning and
+		 * answers an empty name too. The call answers 0. */
+		const fntech3::ghoul2::Instance *instance = ravenGhoul2.Resolve( pointer( 1 ) );
+		if ( !instance ) {
+			Com_Error( ERR_DROP, "Jedi Academy G_G2_GETSURFACENAME was handed an instance this engine "
+				"never handed out" );
+		}
+		const int modelIndex = static_cast<int>( args[3] );
+		if ( modelIndex < 0 || modelIndex >= instance->Count() ) {
+			Com_Error( ERR_DROP, "Jedi Academy G_G2_GETSURFACENAME: model %d is outside its instance, "
+				"whose records retail reads past", modelIndex );
+		}
+		std::string name;
+		if ( const fntech3::ghoul2::Model *model = instance->At( modelIndex ) ) {
+			const int surface = static_cast<int>( args[2] );
+			if ( surface < 0 || surface >= model->mesh.numSurfaces ) {
+				Com_Printf( "Ghoul2 surface name: %s has no surface %d\n", model->name.c_str(), surface );
+			}
+			name = fntech3::ghoul2::SurfaceNameAt( *model, surface );
+		}
+		VM_CHECKBOUNDS( gvm, args[4], name.size() + 1 );
+		std::memcpy( pointer( 4 ), name.c_str(), name.size() + 1 );
+		return true;
+	}
+
+	case Call::G_G2_COLLISIONDETECT:
+	case Call::G_G2_COLLISIONDETECTCACHE:
+		/* Retail's handlers (0x45cde5, 0x45ce4d) convert the records, the
+		 * five vectors and nothing else: the instance, time, entity number,
+		 * trace flags and level of detail are words, the radius a float's
+		 * bits. Both answer nothing (server_jka_trace.hpp, SV_JKACollide). */
+		VM_CHECKBOUNDS( gvm, args[1], sizeof( fntech3::ghoul2::collision::Records ) );
+		SV_JKACollide( pointer( 1 ), pointer( 2 ), SV_JKAWorldVector( pointer( 3 ), "the collision angles" ),
+			SV_JKAWorldVector( pointer( 4 ), "the collision position" ), static_cast<int>( args[5] ),
+			static_cast<int>( args[6] ), SV_JKAWorldVector( pointer( 7 ), "the collision start" ),
+			SV_JKAWorldVector( pointer( 8 ), "the collision end" ),
+			SV_JKAWorldVector( pointer( 9 ), "the collision scale" ), static_cast<int>( args[11] ), VMF( 12 ) );
+		return true;
+
 	case Call::G_POINT_CONTENTS:
 		result = SV_PointContents( SV_JKAWorldVector( pointer( 1 ), "the point-contents point" ),
 			static_cast<int>( args[2] ) );

@@ -198,6 +198,12 @@ historical upstream records, not fnTech3 release history. See the
   sways as the game sways it, and Jedi Academy's grass keeps its distances
   when you zoom on very wide screens
   ([record](docs/fntech3/2026-10-22-fov-correction-all-profiles.md)).
+- Let Jedi Academy multiplayer check a hit against the body itself on the
+  server and in the client: stormtroopers spawned from the console no longer
+  stop the client, and a hit names the body part it struck, as the original
+  does. Jedi characters now move in the RTX path tracer's view and shadows
+  instead of keeping their first pose
+  ([record](docs/fntech3/2026-10-22-jka-g2-collision.md)).
 
 ## [0.1.0] - 2026-10-11
 

@@ -36,6 +36,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <map>
 #include <utility>
 #include <vector>
 
@@ -68,11 +69,18 @@ struct Record {
 };
 using Records = std::array<Record, MaxRecords>;
 
+/* Surface flags a model holds in place of its file's own, by surface index:
+ * retail's one override list per model (jamp.exe 1.01 0x4ee560 finds a
+ * surface's entry), which a skin and a surface switch both write. */
+using SurfaceOverrides = std::map<int, std::uint32_t>;
+
 /* One model of an instance, deformed for the moment of the trace. `index` is
- * its place in the instance, which a record names. */
+ * its place in the instance, which a record names; `overrides` its override
+ * list, or null for none. */
 struct Model {
 	int index = 0;
 	const geometry::DeformedGeometry *mesh = nullptr;
+	const SurfaceOverrides *overrides = nullptr;
 };
 
 struct Query {
@@ -243,6 +251,7 @@ struct Walk {
 	Vector scale{};
 	Records *records = nullptr;
 	int modelIndex = 0;
+	const SurfaceOverrides *overrides = nullptr;
 	bool stop = false;
 	std::vector<Vector> scaled;
 	std::vector<int> outside;
@@ -350,7 +359,11 @@ struct Walk {
 	void Surfaces( const geometry::DeformedGeometry &mesh, int index ) {
 		if ( stop ) return;
 		const auto &surface = mesh.surfaces[std::size_t( index )];
-		const std::uint32_t flags = surface.metadata.flags;
+		std::uint32_t flags = surface.metadata.flags;
+		if ( overrides ) {
+			const auto listed = overrides->find( int( surface.metadata.index ) );
+			if ( listed != overrides->end() ) flags = listed->second;
+		}
 		if ( !flags ) {
 			scaled.resize( surface.vertices.size() );
 			for ( std::size_t v = 0; v < surface.vertices.size(); ++v ) {
@@ -369,14 +382,17 @@ struct Walk {
 };
 } // namespace detail
 
-/* Trace one instance's models (0x4e0170). Every record is reset first, as the
- * server resets its array before each entity. Returns the number of records
- * filled, sorted nearest first. */
-inline int Detect( const std::vector<Model> &models, const Query &query, Records &records,
+/* Trace one instance's models into records the caller keeps, as
+ * G2API_CollisionDetect (0x4e0170) does for the game's import 606 and the
+ * client game's 299: nothing is reset, a record whose entity is -1 is a free
+ * place, and what the caller left in the others stays. Then the records are
+ * counted from the first up to the first free one, and that many are sorted
+ * nearest first (0x4e0320..0x4e0395); the count is returned. A mesh that
+ * cannot be walked leaves every record as it was. */
+inline int Collide( const std::vector<Model> &models, const Query &query, Records &records,
 	Error *error = nullptr )
 {
 	if ( error ) *error = Error::None;
-	for ( Record &record : records ) record = Record{};
 	detail::Walk walk;
 	walk.query = &query;
 	walk.records = &records;
@@ -405,6 +421,7 @@ inline int Detect( const std::vector<Model> &models, const Query &query, Records
 	}
 	for ( const Model &model : models ) {
 		walk.modelIndex = model.index;
+		walk.overrides = model.overrides;
 		walk.Surfaces( *model.mesh, 0 );
 		if ( walk.stop ) break;
 	}
@@ -412,6 +429,16 @@ inline int Detect( const std::vector<Model> &models, const Query &query, Records
 	while ( count < MaxRecords && records[std::size_t( count )].entityNum != -1 ) ++count;
 	Sort( records.data(), count );
 	return count;
+}
+
+/* Trace one instance's models with every record reset first, as the server
+ * trace resets its array before each entity (0x1308780..0x1308b80). Returns
+ * the number of records filled, sorted nearest first. */
+inline int Detect( const std::vector<Model> &models, const Query &query, Records &records,
+	Error *error = nullptr )
+{
+	for ( Record &record : records ) record = Record{};
+	return Collide( models, query, records, error );
 }
 } // namespace fntech3::ghoul2::collision
 #endif

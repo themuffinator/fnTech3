@@ -39,6 +39,9 @@ static qboolean RT_GeometryKey( const trRefEntity_t *ent, rtGeometryKey_t *key )
 	 * They keep their shared skeletal pose routines until a complete key exists. */
 	if ( !model || ( model->type != MOD_BRUSH && model->type != MOD_MESH &&
 		model->type != MOD_MDR && model->type != MOD_IQM ) ) return qfalse;
+	/* A Raven Ghoul2 body is a runtime MDR: always frame 0, its bones
+	 * rewritten in place each pose, so its key never changes as it moves. */
+	if ( model->type == MOD_MDR && R_ModelIsRuntimeMDR( ent->e.hModel ) ) return qfalse;
 	Com_Memset( key, 0, sizeof( *key ) );
 	key->model = model;
 	key->handle = ent->e.hModel;

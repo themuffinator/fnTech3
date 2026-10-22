@@ -4,23 +4,41 @@
 
 /* Jedi Academy multiplayer's server trace, imports 27 and 28 (see
  * compat/jka_trace_clip.hpp for the routine and ghoul2/ghoul2_collision.hpp
- * for the Ghoul2 test), served from this engine's collision model and the
- * title's own Ghoul2 store. See docs/fntech3/2026-10-15-jka-g2-trace.md. */
+ * for the Ghoul2 test), and its collision imports 606 and 607, served from
+ * this engine's collision model and the title's own Ghoul2 store. See
+ * docs/fntech3/2026-10-15-jka-g2-trace.md and
+ * docs/fntech3/2026-10-22-jka-g2-collision.md. */
 #include "server_raven_assets.hpp"
 #include "../compat/jka_game_abi.h"
 #include "../compat/jka_trace_clip.hpp"
-#include "../ghoul2/ghoul2_collision.hpp"
+#include "../ghoul2/ghoul2_instance_collision.hpp"
 
-#include <map>
-#include <utility>
-#include <vector>
+/* Each mesh at each level of detail a test has used, read once from the
+ * server store's files, which it keeps for the life of the process. */
+static fntech3::ghoul2::collision::GeometryCache jkaTraceGeometry;
 
-/* Each mesh at each level of detail a trace has used, read once. The store
- * keeps the files themselves for the life of the process and never lets one
- * go (Store::Keep), so the key stays good and this grows no further than
- * the store's own files do. */
-static std::map<std::pair<const std::vector<unsigned char> *, int>,
-	fntech3::ghoul2::geometry::Geometry> jkaTraceGeometry;
+/* Why the server could not ready an instance's models, named as each
+ * refusal of the trace and of the collision imports names it. */
+static void SV_JKAGhoul2Unready( const char *what, int number,
+	const fntech3::ghoul2::Instance &instance, const fntech3::ghoul2::collision::Prepared &prepared )
+{
+	using fntech3::ghoul2::collision::Readiness;
+	const fntech3::ghoul2::Model *model = instance.At( prepared.failedModel );
+	switch ( prepared.readiness ) {
+	case Readiness::NoMesh:
+		Com_Error( ERR_DROP, "%s: model %d of entity %d (%s) has no mesh to trace", what,
+			prepared.failedModel, number, model ? model->name.c_str() : "?" );
+		break;
+	case Readiness::Geometry:
+		Com_Error( ERR_DROP, "%s: %s: %s", what, model ? model->name.c_str() : "?",
+			fntech3::ghoul2::geometry::ErrorName( prepared.error ) );
+		break;
+	default:
+		Com_Error( ERR_DROP, "%s: model %d of entity %d is %s", what, prepared.failedModel, number,
+			fntech3::ghoul2::PosingName( prepared.posing ) );
+		break;
+	}
+}
 
 static const fntech3_jka_sharedEntity_t *SV_JKATraceEntity( int number )
 {
@@ -48,58 +66,16 @@ static bool SV_JKATraceGhoul2( const fntech3_jka_sharedEntity_t &entity, int lod
 	}
 	/* Retail's skeleton build (0x49a050) is handed the server's time word
 	 * (0xc317c4) itself, the level time its game frames run at -- not the
-	 * Ghoul2 clock the bolt queries pose at. */
-	std::vector<int> order;
-	std::vector<pose::Palette> palettes;
-	int failed = -1;
-	const Posing posing = store.InstancePalettes( *instance, sv.time, order, palettes, failed );
-	if ( posing != Posing::Served ) {
-		Com_Error( ERR_DROP, "Jedi Academy Ghoul2 trace: model %d of entity %d is %s",
-			failed, number, PosingName( posing ) );
+	 * Ghoul2 clock the bolt queries pose at. Every model is traced in the
+	 * instance's own order (0x4ec1c0), each from the skeleton its build left.
+	 * The server's models hold no surface overrides (import 609 is not
+	 * served), so each walks its file's own flags. */
+	collision::Prepared prepared;
+	if ( !collision::Prepare( store, *instance, sv.time, lod, jkaTraceGeometry,
+		[]( int ) -> const collision::SurfaceOverrides * { return nullptr; }, prepared ) ) {
+		SV_JKAGhoul2Unready( "Jedi Academy Ghoul2 trace", number, *instance, prepared );
 	}
-	/* Retail traces every model in the instance's own order (0x4ec1c0), each
-	 * from the skeleton its build left; a present model the build never
-	 * reaches has no pose of this build to trace, so it is refused. */
-	std::vector<geometry::DeformedGeometry> deformed( std::size_t( instance->Count() ) );
-	std::vector<collision::Model> models;
-	for ( int index = 0; index < instance->Count(); ++index ) {
-		const Model *model = instance->At( index );
-		if ( !model ) continue;
-		std::size_t at = 0;
-		while ( at < order.size() && order[at] != index ) ++at;
-		if ( at == order.size() ) {
-			Com_Error( ERR_DROP, "Jedi Academy Ghoul2 trace: model %d of entity %d is %s",
-				index, number, PosingName( Posing::Unposed ) );
-		}
-		if ( !model->meshBytes || model->mesh.numLODs <= 0 ) {
-			Com_Error( ERR_DROP, "Jedi Academy Ghoul2 trace: model %d of entity %d (%s) has "
-				"no mesh to trace", index, number, model->name.c_str() );
-		}
-		/* G2_DecideTraceLod's rule: the level asked for, raised to the
-		 * model's bias (never set on a server here, so 0) and capped at its
-		 * last level. */
-		int level = lod < 0 ? 0 : lod;
-		if ( level >= model->mesh.numLODs ) level = model->mesh.numLODs - 1;
-		const auto key = std::make_pair( model->meshBytes, level );
-		auto found = jkaTraceGeometry.find( key );
-		if ( found == jkaTraceGeometry.end() ) {
-			geometry::Geometry loaded;
-			const auto error = geometry::Load( model->meshBytes->data(), model->meshBytes->size(),
-				model->skeleton.numBones, level, loaded );
-			if ( error != geometry::Error::None ) {
-				Com_Error( ERR_DROP, "Jedi Academy Ghoul2 trace: %s: %s", model->name.c_str(),
-					geometry::ErrorName( error ) );
-			}
-			found = jkaTraceGeometry.emplace( key, std::move( loaded ) ).first;
-		}
-		const auto error = geometry::Deform( found->second, palettes[at].deformation,
-			deformed[std::size_t( index )] );
-		if ( error != geometry::Error::None ) {
-			Com_Error( ERR_DROP, "Jedi Academy Ghoul2 trace: %s: %s", model->name.c_str(),
-				geometry::ErrorName( error ) );
-		}
-		models.push_back( { index, &deformed[std::size_t( index )] } );
-	}
+	const std::vector<collision::Model> &models = prepared.models;
 	if ( models.empty() ) return false;
 
 	collision::Query query;
@@ -128,6 +104,59 @@ static bool SV_JKATraceGhoul2( const fntech3_jka_sharedEntity_t &entity, int lod
 		hit.normal[axis] = best.normal[std::size_t( axis )];
 	}
 	return true;
+}
+
+/* Game imports 606 and 607 (jamp.exe 1.01 0x45cde5 and 0x45ce4d): the
+ * module's sixteen records, its instance, the angles -- all three, unlike the
+ * trace's yaw alone -- the position, the time to pose at, the entity number
+ * the records name, the ray, the scale, trace flags, the level of detail and
+ * the radius, handed to G2API_CollisionDetect (0x4e0170) or its cached twin
+ * (0x4dfe00). Neither resets the records nor answers anything. A null
+ * instance faults in retail's setup (0x4e0c50 reads through it), so it is
+ * refused; one holding no models fails that setup, which returns at once and
+ * leaves the records untouched. The trace flags reach the walk's state
+ * (0x4e94e0) and change no answer measured (the record above). */
+static void SV_JKACollide( void *recordsAddress, void *ghoul2, const float angles[3],
+	const float position[3], int time, int entityNum, const float start[3], const float end[3],
+	const float scale[3], int lod, float radius )
+{
+	using namespace fntech3::ghoul2;
+	if ( !ghoul2 ) {
+		Com_Error( ERR_DROP, "Jedi Academy Ghoul2 collision was handed no instance" );
+	}
+	Store &store = ravenGhoul2Academy;
+	const Instance *instance = store.Resolve( ghoul2 );
+	if ( !instance ) {
+		Com_Error( ERR_DROP, "Jedi Academy Ghoul2 collision was handed an instance this engine never "
+			"handed out" );
+	}
+	if ( !instance->HoldsAny() ) return;
+	if ( !std::isfinite( radius ) ) {
+		Com_Error( ERR_DROP, "Jedi Academy Ghoul2 collision was handed a radius that is not finite" );
+	}
+	collision::Prepared prepared;
+	if ( !collision::Prepare( store, *instance, time, lod, jkaTraceGeometry,
+		[]( int ) -> const collision::SurfaceOverrides * { return nullptr; }, prepared ) ) {
+		SV_JKAGhoul2Unready( "Jedi Academy Ghoul2 collision", entityNum, *instance, prepared );
+	}
+	collision::Query query;
+	query.entityNum = entityNum;
+	query.radius = radius;
+	for ( int axis = 0; axis < 3; ++axis ) {
+		query.angles[std::size_t( axis )] = angles[axis];
+		query.origin[std::size_t( axis )] = position[axis];
+		query.scale[std::size_t( axis )] = scale[axis];
+		query.start[std::size_t( axis )] = start[axis];
+		query.end[std::size_t( axis )] = end[axis];
+	}
+	collision::Records records;
+	collision::ReadRecords( recordsAddress, records );
+	collision::Error error = collision::Error::None;
+	collision::Collide( prepared.models, query, records, &error );
+	if ( error != collision::Error::None ) {
+		Com_Error( ERR_DROP, "Jedi Academy Ghoul2 collision: entity %d has a mesh it cannot trace", entityNum );
+	}
+	collision::WriteRecords( recordsAddress, records );
 }
 
 class ServerJKATraceWorld {
