@@ -13,7 +13,10 @@ profiles' scene adapters handed their views straight to the renderer, so
 features from every profile, each with its own maps' liquid bits and its own
 entity types, which also corrects the Jedi games' liquid bits, and aligns
 GLx's enhanced liquids and soft particles with Vulkan and RTX under the
-Ritual far-plane fog. The [JSON companion](2026-10-22-liquid-feeds-all-profiles.json)
+Ritual far-plane fog. A follow-up gives the audio the same per-game liquid
+bits, follows Jedi Academy multiplayer's and Holomatch's own entity rules,
+and stops RTCW's player shadows from ending the game under water. The
+[JSON companion](2026-10-22-liquid-feeds-all-profiles.json)
 has the identities, commands and captures. No compatibility gate closes: this
 is presentation.
 
@@ -91,9 +94,54 @@ each was read from the game's own module where one could be read:
   type 6 (`ET_MISSILE`) is the error. OpenMoHAA names the same values and
   bit 4 for teleports, and its `CG_SetEntitySoundPosition` sends carried
   entities with the listener flag as Ritual's does.
+- **Elite Force Holomatch**: its `cgame.qvm`'s `CG_AddCEntity` sends type 3
+  to `CG_Missile` and type 4 (`ET_ALT_MISSILE`) to the same function with its
+  alt-fire argument set (instructions 24425..24444). Its `qagame.qvm` stores
+  types 0 to 3 and 5 to 12 as constants and never 4, so whether the retail
+  game sends an alt-fire missile at all is not shown. Its `TeleportPlayer`
+  toggles bit 4 (instruction 2897).
+- **Jedi Academy multiplayer**: `jampgamex86.dll`'s `TeleportPlayer` sets
+  `PMF_TIME_KNOCKBACK` and then toggles eFlags bit 8 (0x2006af4e; the same
+  pair at 0x200932ef), OpenJK's `EF_TELEPORT_BIT (1<<3)`. `cgamex86.dll`'s
+  `CG_AddCEntity` (0x30035540) draws type 13 (`ET_NPC`) as a Ghoul2
+  humanoid, a body like a player's.
+- **The other Jedi profiles** keep Quake III's rule: Jedi Academy single
+  player's `jagamex86.dll` toggles bit 4 after `PMF_TIME_KNOCKBACK`
+  (0x200d4f7b), Jedi Outcast single player's `jk2gamex86.dll` toggles bit 4
+  (0x2001e6b7, 0x2001e7c3), and Jedi Outcast multiplayer's `jk2mpgame.qvm`
+  toggles bit 4 of the player state's flags after setting
+  `PMF_TIME_KNOCKBACK` (instruction 150620). The single-player games' NPCs
+  are `ET_PLAYER` (OpenJK `NPC_spawn.cpp`).
 
 So Ritual's and 2015's games have no projectile type to follow; their bodies
 are the types their own client games splash.
+
+### The audio's liquid bits
+
+The OpenAL path asks the collision model whether a sound or the listener is
+in a liquid and which contents block a sound
+(`code/client/audio/openal/AudioSystemShared.inl`). It used Quake III's bits
+for every profile: lava 8 and slime 16 as occluders beside solid, and lava,
+slime and water 8, 16 and 32 as liquid. In the Jedi games those bits are fog
+(0x8), player clip (0x10) and monster clip (0x20), so their fog volumes and
+clip brushes muffled sound like a liquid and blocked it like a wall, while
+their real water (0x4), lava (0x2) and slime (0x20000) did neither.
+
+### RTCW's player shadows under water
+
+With RTCW's default blob shadows (`cg_shadows 1`), standing under water in
+single player's `forest` and `dam` could end the game with
+`Non-finite RTCW mark corner`, whatever the liquid settings. A trace of the
+request showed rotation 11, every corner NaN and a zero projection. RTCW
+single player's `CG_PlayerShadow` traces down from the body with
+`MASK_PLAYERSOLID`; when that trace starts in solid it reports a fraction
+below 1 with a zero plane normal, and each shadow part's `CG_ImpactMark`
+builds its corners and projection from that normal (the GPL source,
+`cg_players.c`, `cg_marks.c`). Retail's `R_MarkFragments` returns no
+fragments for such a request: with a zero direction no curve triangle passes
+its facing test, and every face's chop planes are NaN, so
+`R_ChopPolyBehindPlane` finds no point in front and leaves no polygon
+(`tr_marks.c`). fnTech3's adapter dropped the game instead.
 
 ### GLx's fog gate
 
@@ -113,12 +161,26 @@ program in those games.
 - **One liquid contract per profile** (`CL_LiquidContract`,
   `code/client/cl_cgame.cpp`): the profile's lava, slime and water bits, its
   teleport bit, the entity types that move like players and its projectile
-  type. Quake III's serves Quake Live, both RTCW modes, Enemy Territory, both
-  Elite Force modes, the IHV Test and Q3Test; Raven's bits serve the four Jedi
-  profiles, whose entity rule stays Quake III's; Ritual's bodies are types 1
-  and 0, Medal of Honor's 3, 2, 1 and 0, and neither has a projectile.
-  `CL_LiquidContents` translates a point's bits to Quake III's for both
-  renderer records, and the boundary traces take the profile's mask.
+  types. Quake III's rule serves Quake Live, both RTCW modes, Enemy
+  Territory, Elite Force single player, the IHV Test, Q3Test, both Jedi
+  single-player games and Jedi Outcast multiplayer; Holomatch adds type 4 as
+  a projectile; Jedi Academy multiplayer resets on bit 8 and takes type 13 as
+  a body; Ritual's bodies are types 1 and 0, Medal of Honor's 3, 2, 1 and 0,
+  and neither has a projectile. The liquid bits are the collision contract's
+  (`code/qcommon/cm_game_contract.h`): `CM_LiquidMaskForGame` gives Raven's
+  0x2, 0x4 and 0x20000 to the four Jedi profiles and Quake III's to the rest,
+  and `CM_LiquidContentsForGame` translates a point's bits to Quake III's for
+  both renderer records. The boundary traces take the profile's mask.
+- **Audio** takes the same helpers: its occlusion traces and buried-source
+  test block on solid and the profile's opaque liquids
+  (`CM_OpaqueLiquidMaskForGame`: lava and slime), and its in-liquid tests
+  read the profile's liquids. Nothing changes for the twelve profiles that
+  keep Quake III's bits.
+- **RTCW marks** (`code/client/client_rtcw_marks.hpp`): a request with a
+  non-finite corner or projection returns no fragments, as retail's clipper
+  does, before the renderer is asked. The renderer's own entry point still
+  refuses non-finite input, and every fragment it returns is still checked
+  before the module sees it.
 - **The census** that classifies each snapshot's entities reads the
   profile's own frame: the engine's snapshot for the Quake III-family and
   Ritual profiles, Medal of Honor's own frames (`CL_MOHAALiquidCensus`), the
@@ -204,18 +266,32 @@ renderer built from the slice's base commit has not been captured yet, so the
 gate change itself is shown by source and unit tests, not by a before/after
 capture.
 
+**RTCW shadows under water.** Before the marks fix, `forest` with `noclip`
+and `setviewpos 3584 -5120 150 0` and `dam` with `setviewpos 572 -1920 -1350
+0` both ended in `Non-finite RTCW mark corner` at the default `cg_shadows 1`,
+as did one of two `forest` runs without `noclip` at `setviewpos 3584 -5120
+190 0`. With the fix both runs played on under water with no error,
+`forest` in first and third person. The audio change is shown by source and
+unit tests; no Jedi listening capture was taken.
+
 ## Tests
 
 `tests/liquid_interaction_source_tests.py` pins the contract's values per
-profile, the census's three record readers and every adapter's feed calls;
+profile, the census's three record readers, every adapter's feed calls and
+the audio's use of the per-game bits; `tests/collision_game_contract_tests.cpp`
+runs the three liquid helpers for all sixteen profiles;
+`tests/rtcw_marks_tests.py` runs the RTCW marks adapter with a NaN corner and
+a NaN projection and asserts no fragments, no renderer call and no write;
 `tests/underwater_view_source_tests.py` the translated contents;
 `tests/jka_sky_portal_tests.py` the three sky-portal skips;
 `tests/rtcw_fog_gpu_tests.py` runs `tr_rtcw_fog_gl.h` and asserts that the
 Ritual far plane is no scene fog and reports linear GL fog, measured from the
 eye; `tests/rtcw_render_import_tests.py` and `tests/rtcw_spatial_audio_tests.py`
 run RTCW's adapters and check that the client game's scene, not the menus',
-and every entity position reach the feeds with the copied values. Results and
-the export build are in the JSON.
+and every entity position reach the feeds with the copied values. On the
+worktree build every target builds without warnings, the C++ tests and the
+150 affected Python test files pass (detail in the JSON); the `git archive`
+export build and test pass has not been run.
 
 ## Limits and open items
 
@@ -223,9 +299,8 @@ the export build are in the JSON.
   plane in all three renderers; the stages over the underlay keep their fog.
 - Ritual's and 2015's projectiles ripple only as bodies, within a body's
   speed, having no type of their own.
-- The Jedi profiles keep Quake III's entity rule: Jedi Academy multiplayer's
-  teleport bit is 0x8 in Raven's game source and its NPCs are `ET_NPC` (13),
-  neither of which the rule follows yet.
+- Holomatch's type 4 is followed on its client game's evidence alone; no
+  retail game was seen sending it.
 - Rings are seen in captures for RTCW multiplayer and F.A.K.K.2 only; in the
   others the emission is logged at the surface and the ring falls behind the
   body, under fog or in a dark pool.

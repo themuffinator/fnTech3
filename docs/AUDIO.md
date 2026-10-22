@@ -124,7 +124,10 @@ All of this is on by default, and each part can be adjusted on its own.
   `s_alOcclusionStrength`, from `0` to `2` (default `1.0`), sets how much. If
   it sounds too dull, lower the strength rather than turning it off. An
   explosion is judged from just in front of the wall it hits, so a blast you
-  can see is not muffled by the wall it went off against.
+  can see is not muffled by the wall it went off against. Lava and slime
+  between you and a sound muffle it like a wall, each game's own: the Jedi
+  games no longer take their fog and invisible walls for liquids
+  ([liquid feed record](fntech3/2026-10-22-liquid-feeds-all-profiles.md)).
 - **Rooms.** `s_alReverb 1` (the default) adds the echo of the room you are
   in, blending smoothly from room to room. `s_alReverbGain`, from `0` to `2`
   (default `1.0`), sets how much. It needs a sound device with EFX -- OpenAL's

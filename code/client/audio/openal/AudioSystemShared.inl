@@ -48,8 +48,22 @@ constexpr float kHorizonFadeStartFraction = 0.85f;
 constexpr float kOneShotCullMargin = 1.15f;
 constexpr float kLiquidBoundaryOcclusionFloor = 0.55f;
 constexpr int kMaxStreamChunksPerService = 2;
-constexpr int kOcclusionMask = CONTENTS_SOLID | CONTENTS_SLIME | CONTENTS_LAVA;
-constexpr int kLiquidContents = CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA;
+
+// The liquid and occlusion bits are the selected game's own (cm_game_contract.h):
+// Raven's maps, both Jedi games', mark slime, lava and water with other bits
+// than Quake III's, which are Raven's player clip, fog and monster clip.
+static comGameId_t AudioGame() {
+	const comGameProfile_t *profile = Com_GameProfile();
+	return profile ? profile->id : COM_GAME_QUAKE3;
+}
+
+static int OcclusionMask() {
+	return CONTENTS_SOLID | CM_OpaqueLiquidMaskForGame( AudioGame() );
+}
+
+static bool ContentsHoldLiquid( int contents ) {
+	return CM_LiquidContentsForGame( AudioGame(), contents ) != 0;
+}
 
 cvar_t *s_alReverb = nullptr;
 cvar_t *s_alOcclusion = nullptr;
@@ -1338,7 +1352,7 @@ static ProbeResult ProbeEnvironment( const float *origin, const vec3_t dir, floa
 	vec3_t end;
 	vec3_t zero = { 0.0f, 0.0f, 0.0f };
 	VectorMA( origin, maxDistance, dir, end );
-	CM_BoxTrace( &trace, origin, end, zero, zero, 0, kOcclusionMask, qfalse );
+	CM_BoxTrace( &trace, origin, end, zero, zero, 0, OcclusionMask(), qfalse );
 	if ( trace.allsolid ) {
 		result.distance = 0.0f;
 		result.blocked = qtrue;
@@ -1362,7 +1376,7 @@ static EnvironmentState EvaluateListenerEnvironment( const float *listenerOrigin
 	}
 
 	const int contents = CM_PointContents( listenerOrigin, 0 );
-	if ( contents & kLiquidContents ) {
+	if ( ContentsHoldLiquid( contents ) ) {
 		SetEnvironmentPreset( state, 6 );
 		state.underwater = qtrue;
 		return state;
@@ -1437,7 +1451,7 @@ static qboolean TraceBlocked( const float *listenerOrigin, const float *sourceOr
 
 	trace_t trace;
 	vec3_t zero = { 0.0f, 0.0f, 0.0f };
-	CM_BoxTrace( &trace, listenerOrigin, sourceOrigin, zero, zero, 0, kOcclusionMask, qfalse );
+	CM_BoxTrace( &trace, listenerOrigin, sourceOrigin, zero, zero, 0, OcclusionMask(), qfalse );
 	return ( trace.allsolid || trace.startsolid || trace.fraction < 0.999f ) ? qtrue : qfalse;
 }
 
@@ -1449,7 +1463,7 @@ static bool PointInOccludingSolid( const float *origin ) {
 	if ( origin == nullptr || !CollisionWorldReady() ) {
 		return false;
 	}
-	return ( CM_PointContents( origin, 0 ) & kOcclusionMask ) != 0;
+	return ( CM_PointContents( origin, 0 ) & OcclusionMask() ) != 0;
 }
 
 // Weapon impacts and explosions are emitted flush against the surface they hit,
@@ -1589,7 +1603,7 @@ static bool PointInLiquid( const float *origin ) {
 	if ( origin == nullptr || !CollisionWorldReady() ) {
 		return false;
 	}
-	return ( CM_PointContents( origin, 0 ) & kLiquidContents ) != 0;
+	return ContentsHoldLiquid( CM_PointContents( origin, 0 ) );
 }
 
 // Raw listener velocity comes from frame-to-frame position deltas, which spike

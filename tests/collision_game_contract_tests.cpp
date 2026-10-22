@@ -113,6 +113,32 @@ void TestBaselineEmbeddedNulBehavior()
 	CHECK( quakeLiveOutput[sizeof( source )] == '\0' );
 }
 
+void TestLiquidBitsAreProfileOwned()
+{
+	const comGameId_t quake3Family[] = { COM_GAME_QUAKE3, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP,
+		COM_GAME_RTCW_MP, COM_GAME_WOLFET, COM_GAME_STVEF_SP, COM_GAME_STVEF_MP, COM_GAME_QUAKE3_IHV,
+		COM_GAME_ALICE, COM_GAME_FAKK2, COM_GAME_MOHAA, COM_GAME_Q3TEST };
+	const comGameId_t raven[] = { COM_GAME_JKA_SP, COM_GAME_JKA_MP, COM_GAME_JK2_SP, COM_GAME_JK2_MP };
+
+	for ( const comGameId_t game : quake3Family ) {
+		CHECK( CM_LiquidMaskForGame( game ) == ( CONTENTS_LAVA | CONTENTS_SLIME | CONTENTS_WATER ) );
+		CHECK( CM_OpaqueLiquidMaskForGame( game ) == ( CONTENTS_LAVA | CONTENTS_SLIME ) );
+		CHECK( CM_LiquidContentsForGame( game, CONTENTS_WATER | CONTENTS_SOLID | CONTENTS_FOG ) == CONTENTS_WATER );
+		CHECK( CM_LiquidContentsForGame( game, 0x2 | 0x4 | 0x20000 ) == 0 );
+	}
+	for ( const comGameId_t game : raven ) {
+		CHECK( CM_LiquidMaskForGame( game ) == ( 0x2 | 0x4 | 0x20000 ) );
+		CHECK( CM_OpaqueLiquidMaskForGame( game ) == ( 0x2 | 0x20000 ) );
+		// Raven's water, lava and slime become Quake III's...
+		CHECK( CM_LiquidContentsForGame( game, 0x4 ) == CONTENTS_WATER );
+		CHECK( CM_LiquidContentsForGame( game, 0x2 ) == CONTENTS_LAVA );
+		CHECK( CM_LiquidContentsForGame( game, 0x20000 ) == CONTENTS_SLIME );
+		// ...and Quake III's liquid bits, Raven's fog and clips, are none.
+		CHECK( CM_LiquidContentsForGame( game, CONTENTS_LAVA | CONTENTS_SLIME | CONTENTS_WATER ) == 0 );
+		CHECK( CM_LiquidContentsForGame( game, 0x4 | 0x8 ) == CONTENTS_WATER );
+	}
+}
+
 } // namespace
 
 int main()
@@ -120,5 +146,6 @@ int main()
 	TestVerticalCylinderRadiusIsProfileOwned();
 	TestEntityClassnameIsProfileOwned();
 	TestBaselineEmbeddedNulBehavior();
+	TestLiquidBitsAreProfileOwned();
 	return failures == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }

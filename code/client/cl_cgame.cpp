@@ -25,6 +25,7 @@ extern "C" {
 #include "client.h"
 
 #include "../botlib/botlib.h"
+#include "../qcommon/cm_game_contract.h"
 }
 
 #include "client_cpp.h"
@@ -191,48 +192,52 @@ static int cl_underwaterLastContents;
 static int cl_liquidLocalEntity = -1;
 
 /*
- * Each profile's liquids and the entities whose motion disturbs them
- * (docs/fntech3/2026-10-22-liquid-feeds-all-profiles.md). The collision model
- * keeps a map's contents bits as its compiler wrote them, so the liquid bits
- * are the profile's own; the renderers' liquid and underwater records read
- * Quake III's, which CL_LiquidContents translates to. Bodies take the player
+ * Each profile's entities whose motion disturbs a liquid
+ * (docs/fntech3/2026-10-22-liquid-feeds-all-profiles.md); its liquid bits are
+ * the collision contract's (CM_LiquidContentsForGame). Bodies take the player
  * rule, projectiles the projectile rule.
  */
 struct clLiquidContract_t {
-	int lava, slime, water;		// the profile's own contents bits
-	int teleportBit;			// the eFlags bit an abrupt move toggles
-	std::array<int, 4> bodies;	// entity types that move like players
+	int teleportBit;				// the eFlags bit an abrupt move toggles
+	std::array<int, 4> bodies;		// entity types that move like players
 	int numBodies;
-	int projectile;				// the projectile entity type, or -1
+	std::array<int, 2> projectiles;	// projectile entity types
+	int numProjectiles;
 };
 
+static comGameId_t CL_LiquidGame( void ) {
+	const comGameProfile_t *profile = Com_GameProfile();
+	return profile ? profile->id : COM_GAME_QUAKE3;
+}
+
 static const clLiquidContract_t &CL_LiquidContract( void ) {
-	// Quake III's, which RTCW, Enemy Territory, Elite Force, the IHV Test and
-	// Q3Test keep: liquids 8, 16 and 32 (their maps), players type 1,
-	// missiles type 3 and teleports bit 4 (the GPL sources; the IHV and
-	// Q3Test modules' own CG_AddCEntity, fire_rocket and TeleportPlayer).
-	static const clLiquidContract_t quake3 = {
-		CONTENTS_LAVA, CONTENTS_SLIME, CONTENTS_WATER, EF_TELEPORT_BIT, { ET_PLAYER }, 1, ET_MISSILE };
-	// Raven's maps carry lava 0x2, water 0x4 and slime 0x20000 (the retail
-	// Jedi maps; OpenJK surfaceflags.h). Their entity rule is still Quake III's.
-	static const clLiquidContract_t raven = {
-		0x2, 0x20000, 0x4, EF_TELEPORT_BIT, { ET_PLAYER }, 1, ET_MISSILE };
+	// Quake III's, which Quake Live, RTCW, Enemy Territory, Elite Force single
+	// player, the IHV Test, Q3Test, the Jedi single-player games and Jedi
+	// Outcast multiplayer keep: players type 1, missiles type 3 and teleports
+	// bit 4 (the GPL sources; the IHV, Q3Test and Jedi modules' own
+	// CG_AddCEntity, fire_rocket and TeleportPlayer).
+	static const clLiquidContract_t quake3 = { EF_TELEPORT_BIT, { ET_PLAYER }, 1, { ET_MISSILE }, 1 };
+	// Holomatch's client game draws type 4 as an alt-fire missile, type 3's
+	// CG_Missile with its alt flag set (cgame.qvm instructions 24425..24444).
+	static const clLiquidContract_t holomatch = { EF_TELEPORT_BIT, { ET_PLAYER }, 1, { ET_MISSILE, 4 }, 2 };
+	// Jedi Academy multiplayer's NPCs are type 13, drawn as Ghoul2 humanoids
+	// (cgamex86.dll's CG_AddCEntity, 0x30035540), and its TeleportPlayer
+	// toggles eFlags bit 8 (jampgamex86.dll 0x2006af4e; OpenJK bg_public.h).
+	static const clLiquidContract_t academy = { 8, { ET_PLAYER, 13 }, 2, { ET_MISSILE }, 1 };
 	// Ritual's client game splashes ET_PLAYER (1) and ET_MODELANIM (0), its
 	// actors and animated projectiles (Alice's cgamex86.dll 0x300228e0,
 	// F.A.K.K.2's 0x30020cb5); its ET_MISSILE is an error there.
-	static const clLiquidContract_t ritual = { 8, 16, 32, 4, { 1, 0 }, 2, -1 };
+	static const clLiquidContract_t ritual = { 4, { 1, 0 }, 2, { -1 }, 0 };
 	// 2015's splashes ET_PLAYER (3), ET_VEHICLE (2), ET_MODELANIM (1) and
 	// ET_MODELANIM_SKEL (0) (MOHAA's cgamex86.dll 0x30020c26), and errors on
 	// its ET_MISSILE as Ritual's does.
-	static const clLiquidContract_t mohaa = { 8, 16, 32, 4, { 3, 2, 1, 0 }, 4, -1 };
+	static const clLiquidContract_t mohaa = { 4, { 3, 2, 1, 0 }, 4, { -1 }, 0 };
 
-	const comGameProfile_t *profile = Com_GameProfile();
-	switch ( profile ? profile->id : COM_GAME_QUAKE3 ) {
-	case COM_GAME_JKA_SP:
+	switch ( CL_LiquidGame() ) {
+	case COM_GAME_STVEF_MP:
+		return holomatch;
 	case COM_GAME_JKA_MP:
-	case COM_GAME_JK2_SP:
-	case COM_GAME_JK2_MP:
-		return raven;
+		return academy;
 	case COM_GAME_ALICE:
 	case COM_GAME_FAKK2:
 		return ritual;
@@ -259,19 +264,13 @@ static qboolean CL_LiquidOriginValid( const vec3_t origin ) {
 
 // The profile's liquid bits, the mask its collision queries take.
 static int CL_LiquidMask( void ) {
-	const clLiquidContract_t &liquid = CL_LiquidContract();
-	return liquid.lava | liquid.slime | liquid.water;
+	return CM_LiquidMaskForGame( CL_LiquidGame() );
 }
 
 
 // A point's liquid, in the Quake III bits (MASK_WATER) the renderers read.
 static int CL_LiquidContents( const vec3_t origin ) {
-	const clLiquidContract_t &liquid = CL_LiquidContract();
-	const int contents = CM_PointContents( origin, 0 );
-
-	return ( ( contents & liquid.lava ) ? CONTENTS_LAVA : 0 ) |
-		( ( contents & liquid.slime ) ? CONTENTS_SLIME : 0 ) |
-		( ( contents & liquid.water ) ? CONTENTS_WATER : 0 );
+	return CM_LiquidContentsForGame( CL_LiquidGame(), CM_PointContents( origin, 0 ) );
 }
 
 
@@ -342,15 +341,19 @@ static void CL_LiquidCensusVisit( int number, int eType, int eFlags, qboolean lo
 	if ( local ) {
 		source = LIQUID_INTERACTION_PLAYER;
 		cl_liquidLocalEntity = number;
-	} else if ( eType == liquid.projectile ) {
-		source = LIQUID_INTERACTION_PROJECTILE;
 	} else {
-		for ( i = 0; i < liquid.numBodies && liquid.bodies[i] != eType; i++ ) {
+		for ( i = 0; i < liquid.numProjectiles && liquid.projectiles[i] != eType; i++ ) {
 		}
-		if ( i == liquid.numBodies ) {
-			return;
+		if ( i < liquid.numProjectiles ) {
+			source = LIQUID_INTERACTION_PROJECTILE;
+		} else {
+			for ( i = 0; i < liquid.numBodies && liquid.bodies[i] != eType; i++ ) {
+			}
+			if ( i == liquid.numBodies ) {
+				return;
+			}
+			source = LIQUID_INTERACTION_PLAYER;
 		}
-		source = LIQUID_INTERACTION_PLAYER;
 	}
 
 	clLiquidEntityKind_t &kind = cl_liquidEntityKinds[number];

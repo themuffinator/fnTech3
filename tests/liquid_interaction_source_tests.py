@@ -39,7 +39,7 @@ class LiquidInteractionSourceTests(unittest.TestCase):
             "static qboolean CL_TraceLiquidHit",
         )
 
-        self.assertIn("eType == liquid.projectile", classify)
+        self.assertIn("liquid.projectiles[i] != eType", classify)
         self.assertIn("liquid.bodies[i] != eType", classify)
         self.assertIn("visit( cl.snap.ps.clientNum, ET_PLAYER, cl.snap.ps.eFlags, qtrue );", classify)
         self.assertIn("SNAPFLAG_SERVERCOUNT", classify)
@@ -59,22 +59,34 @@ class LiquidInteractionSourceTests(unittest.TestCase):
         )
 
         # Quake III's, and every profile that keeps it.
-        self.assertIn("CONTENTS_LAVA, CONTENTS_SLIME, CONTENTS_WATER, EF_TELEPORT_BIT, { ET_PLAYER }, 1, ET_MISSILE };",
-                      contract)
-        # Raven's maps: lava 0x2, slime 0x20000, water 0x4.
-        self.assertIn("0x2, 0x20000, 0x4, EF_TELEPORT_BIT, { ET_PLAYER }, 1, ET_MISSILE };", contract)
+        self.assertIn("quake3 = { EF_TELEPORT_BIT, { ET_PLAYER }, 1, { ET_MISSILE }, 1 };", contract)
+        # Holomatch's alt-fire missiles are type 4.
+        self.assertIn("holomatch = { EF_TELEPORT_BIT, { ET_PLAYER }, 1, { ET_MISSILE, 4 }, 2 };", contract)
+        # Jedi Academy multiplayer: NPCs type 13, teleports bit 8.
+        self.assertIn("academy = { 8, { ET_PLAYER, 13 }, 2, { ET_MISSILE }, 1 };", contract)
         # Ritual's and 2015's bodies are the ones their client games splash;
         # neither has a projectile type.
-        self.assertIn("ritual = { 8, 16, 32, 4, { 1, 0 }, 2, -1 };", contract)
-        self.assertIn("mohaa = { 8, 16, 32, 4, { 3, 2, 1, 0 }, 4, -1 };", contract)
-        for profile in ("COM_GAME_JKA_SP", "COM_GAME_JKA_MP", "COM_GAME_JK2_SP", "COM_GAME_JK2_MP",
-                        "COM_GAME_ALICE", "COM_GAME_FAKK2", "COM_GAME_MOHAA"):
+        self.assertIn("ritual = { 4, { 1, 0 }, 2, { -1 }, 0 };", contract)
+        self.assertIn("mohaa = { 4, { 3, 2, 1, 0 }, 4, { -1 }, 0 };", contract)
+        for profile in ("COM_GAME_STVEF_MP", "COM_GAME_JKA_MP", "COM_GAME_ALICE", "COM_GAME_FAKK2", "COM_GAME_MOHAA"):
             self.assertIn("case %s:" % profile, contract)
 
-        contents = source_section(self.source, "static int CL_LiquidContents", "static void CL_ResetLiquidMotionTracks")
-        self.assertIn("CM_PointContents( origin, 0 )", contents)
-        for bit in ("liquid.lava ) ? CONTENTS_LAVA", "liquid.slime ) ? CONTENTS_SLIME", "liquid.water ) ? CONTENTS_WATER"):
-            self.assertIn(bit, contents)
+        # The liquid bits are the collision contract's, per profile.
+        contents = source_section(self.source, "static int CL_LiquidMask", "static void CL_ResetLiquidMotionTracks")
+        self.assertIn("CM_LiquidMaskForGame( CL_LiquidGame() )", contents)
+        self.assertIn("CM_LiquidContentsForGame( CL_LiquidGame(), CM_PointContents( origin, 0 ) )", contents)
+        game = (ROOT / "code" / "qcommon" / "cm_game_contract.h").read_text(encoding="utf-8")
+        for expected in ("gameId == COM_GAME_JKA_SP || gameId == COM_GAME_JKA_MP",
+                         "gameId == COM_GAME_JK2_SP || gameId == COM_GAME_JK2_MP",
+                         "0x2 | 0x4 | 0x20000", "( contents & 0x20000 ) ? CONTENTS_SLIME"):
+            self.assertIn(expected, game)
+
+    def test_audio_takes_each_profiles_liquid_and_occlusion_bits(self) -> None:
+        audio = (ROOT / "code" / "client" / "audio" / "openal" / "AudioSystemShared.inl").read_text(encoding="utf-8")
+        self.assertIn("return CONTENTS_SOLID | CM_OpaqueLiquidMaskForGame( AudioGame() );", audio)
+        self.assertIn("return CM_LiquidContentsForGame( AudioGame(), contents ) != 0;", audio)
+        self.assertNotIn("kLiquidContents", audio)
+        self.assertNotIn("kOcclusionMask", audio)
 
     def test_crossings_use_world_liquid_collision_and_reject_teleports(self) -> None:
         motion = source_section(
