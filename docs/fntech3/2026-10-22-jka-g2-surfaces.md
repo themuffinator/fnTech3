@@ -69,11 +69,12 @@ for an empty place, whose setup (`0x4e0b10`) fails.
 A dedicated server reads meshes with a loader of its own (`0x4a8be0`,
 reached from `0x4a8d60`), which keeps every hierarchy name as the file
 writes it. The client's loader (`0x49acd0`) lowercases them and drops a
-trailing `_off` (`0x49adf0..0x49ae4f`), and a listen server's models go
-through it when its client is running (`0x4e0b2b..0x4e0b51`). 1,308 of the
-5,854 surface names in the 127 installed meshes end in `_off`; they are
-off in their files (flags 2). Measured below, the dedicated server knows
-Kyle's surface 50 as `head_cap_torso_off` and not `head_cap_torso`.
+trailing `_off` (`0x49adf0..0x49ae4f`). A model's setup (`0x4e0b2b`) takes
+the server's loader when `dedicated` is set; in another process a further
+test (`0x4de580`, not followed) chooses. 1,308 of the 5,854 surface names in
+the 127 installed meshes end in `_off`; they are off in their files (flags
+2). Measured below, the dedicated server knows Kyle's surface 50 as
+`head_cap_torso_off` and not `head_cap_torso`.
 
 ### Server skins
 
@@ -168,8 +169,9 @@ removed model's geometry, as it did for a cleaned instance.
 ### Retail and fnTech3 side by side
 
 A synthetic game module (`.tmp/jka-g2surface/g2surface-probe.cpp`, no
-gameplay, SHA256 `5f72f756...`) ran on `mp/ffa1` in retail `jamp.exe`
-(dedicated, private desktop) and in fnTech3's dedicated server. It
+gameplay, SHA256 `37e4018f...`) ran on `mp/ffa1` in retail `jamp.exe`
+(dedicated, private desktop) and in the dedicated server built from an
+export of this slice's commit (`816aa758`). It
 registers four skins first, then switches surfaces of Kyle's model 0 through
 fifteen cases (case, flag bits, a parent's NODESCENDANTS, surfaces off in
 their files, unknown, empty and null names, a null instance), applies Kyle's
@@ -209,7 +211,31 @@ the overrides go with a copy and a duplicate, each its own from then on.
 
 A further run with 591 handed render skin 999 ended retail's dedicated
 server with an access violation (exit code `0xC0000005`) straight after
-the call; fnTech3 refuses it.
+the call. The same step in fnTech3's server stops it with "Jedi Academy
+G_G2_SETSKIN was handed render skin 999, which the server never
+registered". The same comparison on the working tree's build before the
+commit gave the same answers.
+
+### Live, siege with a bot, no input
+
+The [skinless-model slice](2026-10-16-jka-skinless-model.md)'s siege run
+(its `.tmp/round-2026-10-15/jka-local-sets/probe_live.py`, copied to
+`.tmp/jka-g2surface/live/` to record a runtime outside the repository;
+windowed 800x600 on a private desktop, no network sockets, sound off, no
+input) ran again with the client built from the same export: `g_gametype
+7`, then `set
+cl_menuBlur 0`, `team red` and `addbot Tavion 1 blue` from the probe's
+config, three engine captures.
+
+| Map | Before (skinless slice) | Now |
+| --- | --- | --- |
+| `mp/siege_hoth` | both players enter, then "Unsupported jka-mp cgame import 311 (CG_G2_REMOVEGHOUL2MODEL)" | both players enter; the client runs to the probe's end and quits normally |
+| `mp/siege_desert` | the same stop | the same as `mp/siege_hoth` |
+
+The captures show the siege objectives and team menu, which the probe does
+not close; they prove only that the client went on drawing. No count of
+import 311's calls was printed. The installation and the binaries were
+unchanged after every run.
 
 ### Unit
 
@@ -232,17 +258,40 @@ the call; fnTech3 refuses it.
   retail handlers and refusals, the stores' options and the trace's lists.
 - `tests/jka_module_refusal_tests.py` counts 167 served game imports.
 
+## Validation
+
+- **Build.** A `git archive` export of `816aa758`, configured as the Windows
+  x86 developer build (debugoptimized, strict warnings, GL, Vulkan and RTX
+  renderers), built all 1,548 targets with no warning.
+- **Native tests.** 277 native tests (all but the entry that runs the whole
+  Python suite): 267 passed and 2 were skipped as usual (OpenAL loopback,
+  the optional Quake Live factory probe). Five timed out while the Python
+  files below ran beside them and passed alone (`fntech3_jka_server_attachment`,
+  `fntech3_jka_render_host`, `fntech3_jka_shader_files`,
+  `fntech3_raven_bsp_renderer_dispatch`, `fnql_platform_port_safety_source`).
+  Three, `fntech3_probe_jka_client`, `_openjk_peer` and `_openjk_demo`,
+  failed only because their scripts ask git for the commit and an export
+  is no repository; their 33 tests pass in the checkout.
+- **Python tests.** One pytest process per file, in the export: the 84
+  files that read the changed headers or the documents, every `jka_*` and
+  `jk2_*` test, and the changelog, generated-docs, player-manual, release
+  and version files, passed 233 tests and 1,451 subtests.
+- The record, ledger, changelog and games page then gained the export
+  runs' results; the changelog, generated-docs and player-manual files pass
+  on that tree.
+
 ## Not served, and open
 
 - Raven's `RF_DISINTEGRATE2` (renderfx 0x40000), which a fading corpse sets,
   is still refused by the render adapter: it needs a distance cut-away in
   Fn's skeletal renderer, and capture evidence for it.
 - Client-game import 324 (`CG_G2_GETSURFACERENDERSTATUS`, three call sites)
-  is not served. The client's surface names are the file's; retail's client
-  loader lowercases them and drops `_off`, which 321, 343 and a client
-  skin's visibility would see.
+  is not served. The client's surface names are the file's. Inferred, not
+  measured: the client game's models load through retail's client loader,
+  which lowercases them and drops `_off`, and 321, 343 and a client skin's
+  visibility would then see those names.
 - Ragdoll and IK (game 615, 622, 623; client game 328 to 338) and the menus'
   Ghoul2 imports remain refused.
-- A listen server's models in retail go through the client's loader, with
-  trimmed names, when its client is running; fnTech3's server keeps its own
-  store and answers as the dedicated server does.
+- Which loader a listen server's models take in retail was not followed
+  (`0x4de580`); fnTech3's server keeps its own store and answers as the
+  dedicated server does.

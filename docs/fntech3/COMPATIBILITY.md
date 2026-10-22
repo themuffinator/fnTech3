@@ -3010,9 +3010,12 @@ applications, 13 removals, 494 surface names and skin handles, and all 163
 collision records within 1.6e-5 units; the one difference is retail's heap
 reusing a freed instance's address, which fnTech3's identities never do
 (Source, Unit). A render skin the server never registered faulted retail's
-dedicated server and is refused. Client-game import 324, client surface
-names with `_off` dropped, `RF_DISINTEGRATE2`, ragdoll and IK remain open.
-No gate closes.
+dedicated server and is refused. Live, a siege round with a bot on
+`mp/siege_hoth` and `mp/siege_desert`, which stopped at client-game import
+311 as the players entered, now runs to the probe's end (Live subset).
+Client-game import 324, whether the client
+game's surface names lose `_off` as the client loader's do, `RF_DISINTEGRATE2`,
+ragdoll and IK remain open. No gate closes.
 
 Star Wars Jedi Knight: Jedi Academy is the sixth title, with two mode profiles
 over one `base/` installation: `jka-sp` for Raven's single-player campaign and

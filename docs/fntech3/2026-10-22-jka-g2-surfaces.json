@@ -57,7 +57,7 @@
    "overrideList": "+0x4 of the 0xc8-byte model record; entries of 0x18 bytes (flags, surface, four words)",
    "switchBits": "0x102 only (0x4ee774); other bits of the surface kept",
    "renderStatus": "-1 for no such name; an ancestor's NODESCENDANTS (by its name, file then list) answers own|2 (0x4eef36); nonzero own file flags answer themselves whatever the list says (0x4eef47); else the listed flags",
-   "serverMeshNames": "kept as written (0x4a8be0); the client loader lowercases and drops a trailing _off (0x49adf0..0x49ae4f)",
+   "serverMeshNames": "kept as written (0x4a8be0), taken when dedicated is set (0x4e0b2b); the client loader lowercases and drops a trailing _off (0x49adf0..0x49ae4f); a non-dedicated process chooses by 0x4de580 (not followed)",
    "skinCaps": "name < 64 bytes (0x4a03a0), 1023 skins (0x4a03e2), 128 surfaces (0x4a028d), surface names cut to 63 bytes",
    "skinRenderOutsideTable": "skin 0 (0x4ee7e3..0x4ee809); faulted retail's dedicated server when measured",
    "removal": "index at or past the places or an empty place answers 0; else the place is emptied, trailing empty places dropped, an instance with none deleted and its field emptied; answers 1",
@@ -134,14 +134,14 @@
  ],
  "comparison": {
   "harness": ".tmp/jka-g2surface/run-probe.py + g2surface-probe.cpp + compare.py",
-  "fixtureSourceSha256": "5f72f756ff283f672d9082f6feb97fc54aae8819bd7ca66fe35857f8fcab16ba",
+  "fixtureSourceSha256": "37e4018fcbcce0726c2d2a57ba8a49f3ba9d0c46e73632c60b50a0ecd770c5aa",
   "module": {
-   ".tmp/runtime/jka-retail/g2surface/jampgamex86.dll": "9eb5ed24b48b30fd26e0c7ae630f0d3ed89ed2204d965210d8bc44f45fba47c1"
+   ".tmp/runtime/jka-retail/g2surface/jampgamex86.dll": "ff1e34a9fa168c2ab6dd4a58af1120beb1a1e5f12faf5a72e0967a360271c91e"
   },
   "map": "mp/ffa1",
   "retailRun": {
-   "output": ".tmp/jka-g2surface/retail-3",
-   "observedAtUTC": "2026-10-22T11:47:27Z",
+   "output": ".tmp/jka-g2surface/retail-4",
+   "observedAtUTC": "2026-10-22T12:37:27Z",
    "passed": true,
    "exitCode": 0,
    "markers": 1007,
@@ -149,13 +149,13 @@
    "binariesUnchanged": true
   },
   "fntech3Run": {
-   "output": ".tmp/jka-g2surface/fntech3-3",
-   "observedAtUTC": "2026-10-22T11:51:08Z",
+   "output": ".tmp/jka-g2surface/fntech3-4",
+   "observedAtUTC": "2026-10-22T12:37:35Z",
    "passed": true,
    "exitCode": 0,
    "markers": 1007,
-   "build": "worktree meson/build/win32-dev at acad7f4c with this slice",
-   "fntech3.ded.exe": "3c906a49d2783007de4d41b16ee7c63a93c564d74da57830190150348d8a7637",
+   "build": "git archive export of 816aa758 (this slice), Windows x86 debugoptimized, strict warnings",
+   "fntech3.ded.exe": "cdf0543597a4215b3051d16d206d6a6121762d7b91f809aabfde68e8745244f8",
    "installationUnchanged": true,
    "binariesUnchanged": true
   },
@@ -182,8 +182,16 @@
    }
   },
   "earlierRuns": {
-   "retail-1 / fntech3-1": "the same probe without the first-skins, copy and duplicate steps: 806 answer lines, the same single difference, 141 records within tolerance",
+   "retail-3 / fntech3-3": "the same comparison with the working tree build before the commit (fixture 5f72f756...): the same 844 lines, the same single difference, 163 records within tolerance",
+   "retail-1 / fntech3-1": "without the first-skins, copy and duplicate steps: 806 answer lines, the same single difference, 141 records within tolerance",
    "retail-2": "with 591 handed render skin 999 last: retail's dedicated server exited 0xC0000005 straight after the call"
+  },
+  "refusalRun": {
+   "output": ".tmp/jka-g2surface/fntech3-refuse-2",
+   "module": ".tmp/runtime/jka-retail/g2surface-refuse/jampgamex86.dll (PROBE_UNKNOWN_SKIN)",
+   "moduleSha256": "655532d169b2202b2eda5d0e8b6e4c37511e738e38e4c4f123327cbe03a2e45c",
+   "fntech3.ded.exe": "cdf0543597a4215b3051d16d206d6a6121762d7b91f809aabfde68e8745244f8",
+   "outcome": "ERROR: Jedi Academy G_G2_SETSKIN was handed render skin 999, which the server never registered"
   }
  },
  "tests": [
@@ -198,6 +206,87 @@
   "client-game import 324 not served",
   "client surface names are the file's; retail's client loader lowercases and drops _off (321, 343, client skins)",
   "ragdoll and IK (game 615, 622, 623; client game 328-338), menus' Ghoul2 imports",
-  "listen-server mesh names (retail's client loader) not modelled"
- ]
+  "which loader a listen server takes in retail (0x4de580) not followed; fnTech3 answers as the dedicated server"
+ ],
+ "live": {
+  "harness": ".tmp/jka-g2surface/live/probe_live.py (copy of .tmp/round-2026-10-15/jka-local-sets/probe_live.py recording a runtime outside the repository)",
+  "runtime": "export of 816aa758",
+  "identity": {
+   "fntech3.exe": "011d13ff673fa50fb60bbd78b13b1ce8671ea4355540c6ae94b7baf18f8a74ba",
+   "fnql_glx_x86.dll": "2d0d1390afa7fef5bd2682b286b066d588ef5b9476ec308a88a795dffcb77ba0",
+   "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+  },
+  "settings": "windowed 800x600, private desktop, net_enabled 0, sound off, no input, g_gametype 7",
+  "commands": [
+   "set cl_menuBlur 0",
+   "team red",
+   "addbot Tavion 1 blue"
+  ],
+  "runs": [
+   {
+    "run": "g2s-siege_hoth-7-bot",
+    "map": "mp/siege_hoth",
+    "outcome": "probe done, exited 0",
+    "seconds": 14.8,
+    "console": [
+     "Padawan entered the game",
+     "Tavion entered the game",
+     "probe-step done"
+    ],
+    "captures": 3,
+    "before": "skinless-diag2-siege_hoth-7-bot stopped at Unsupported jka-mp cgame import 311"
+   },
+   {
+    "run": "g2s-siege_desert-7-bot",
+    "map": "mp/siege_desert",
+    "outcome": "probe done, exited 0",
+    "seconds": 12.4,
+    "console": [
+     "Padawan entered the game",
+     "Tavion entered the game",
+     "probe-step done"
+    ],
+    "captures": 3,
+    "before": "skinless-diag2-siege_desert-7-bot stopped at Unsupported jka-mp cgame import 311"
+   }
+  ],
+  "captureContent": "the siege objectives and team menu, which the probe does not close",
+  "import311Calls": "not counted",
+  "installationUnchanged": true,
+  "binariesUnchanged": true,
+  "desktopSwitched": false,
+  "inputInjected": false
+ },
+ "validation": {
+  "export": "git archive 816aa758, Windows x86 debugoptimized, strict warnings, renderers glx,vk,rtx",
+  "build": "1548 of 1548 targets, no warning",
+  "nativeTests": {
+   "run": 277,
+   "passed": 267,
+   "skipped": [
+    "fnql_audio_loopback",
+    "fnql_retail_factory_probe"
+   ],
+   "timedOutUnderLoadPassedAlone": [
+    "fntech3_jka_server_attachment",
+    "fntech3_jka_render_host",
+    "fntech3_jka_shader_files",
+    "fntech3_raven_bsp_renderer_dispatch",
+    "fnql_platform_port_safety_source"
+   ],
+   "failedOnlyForNoGitRepository": [
+    "fntech3_probe_jka_client",
+    "fntech3_probe_jka_openjk_peer",
+    "fntech3_probe_jka_openjk_demo"
+   ],
+   "thoseInTheCheckout": "33 passed, 23 subtests"
+  },
+  "pythonTests": {
+   "files": 84,
+   "passed": 233,
+   "subtestsPassed": 1451,
+   "failed": 0
+  },
+  "docFollowUp": "changelog, generate_docs and player_manual tests: 25 passed, 838 subtests on the tree with the evidence update"
+ }
 }

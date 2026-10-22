@@ -583,10 +583,11 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   against the body itself; fights still stop on effects the client cannot
   draw yet ([collision details](fntech3/2026-10-22-jka-g2-collision.md)).
   `mp/siege_hoth` and `mp/siege_desert` no longer stop soon after the
-  menu opens; with a bot on the other side they still stop as their
-  round begins
+  menu opens, and with a bot on the other side both players now enter
+  the round instead of stopping there
   ([class menu details](fntech3/2026-10-15-jka-ui-menus.md),
-  [model skin details](fntech3/2026-10-16-jka-skinless-model.md)).
+  [model skin details](fntech3/2026-10-16-jka-skinless-model.md),
+  [model removal details](fntech3/2026-10-22-jka-g2-surfaces.md)).
   Maps whose speakers and torches carry background sounds of their own, such
   as `mp/ctf3`, no longer stop on their first frame: those sounds now play
   where they are, and their occasional calls come at the times the game
