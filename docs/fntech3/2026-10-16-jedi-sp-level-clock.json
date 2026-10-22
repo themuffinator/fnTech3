@@ -1,0 +1,113 @@
+{
+ "record": "2026-10-16-jedi-sp-level-clock.md",
+ "date": "2026-10-16",
+ "profiles": [
+  "jka-sp",
+  "jk2-sp",
+  "stvef-sp"
+ ],
+ "gatesClosed": [],
+ "claim": "Compatibility slice only; no gate closes.",
+ "previousRecord": "2026-10-15-level-clock.json",
+ "platform": "Windows 11, static reading of retail x86 executables; MSVC x86 build",
+ "sourceUse": "Retail jasp.exe and jk2sp.exe read with capstone/pefile (.tmp/level-clock/tools). OpenJK pinned 1a6a643427aa347553e9073dac5570b33337c4d9 used only to name routines and fields (reference observation, no text incorporated).",
+ "retail": {
+  "jasp.exe": {
+   "version": "Jedi Academy 1.01",
+   "path": "E:/Games/Jedi Academy/jasp.exe",
+   "sha256": "9351a8de230fcd577e2b474889d08f38982450306767a6823dd659482566d6ce",
+   "run": false
+  },
+  "jk2sp.exe": {
+   "version": "Jedi Outcast 1.02a",
+   "path": "E:/Games/Jedi Outcast/jk2sp.exe",
+   "sha256": "0d3c635ee5b20ac32fc957e00cf21e65ebc1584112b11f6ae026706dcc0d0e0c",
+   "run": false
+  },
+  "stvoy.exe": {
+   "version": "Elite Force 1.20",
+   "path": "E:/Games/Star Trek Voyager Elite Force/stvoy.exe",
+   "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+   "note": "addresses from the earlier records (0x425a9b clear, 0x425ac9 start at 1000); not re-read here"
+  }
+ },
+ "retailObservations": {
+  "jasp.exe": {
+   "spawnServer": "0x439be0 (Server Initialization banner pushed at 0x439c1b)",
+   "levelBlock": "0xc2a190",
+   "clock": "0xc2a19c (sv.time)",
+   "clear": "rep stosd 0x1721f dwords from 0xc2a190, 0x439d01..0x439d0d",
+   "start": "mov [0xc2a19c], 0x3e8 at 0x439d2e..0x439d35",
+   "ghoul2ServerTime": "0x439d3b call 0x4ce3b0 (eax 0); again after each frame, 0x439de0 and 0x439e89",
+   "gameInit": "SV_InitGameProgs 0x4392a0: sv.time read 0x4398dc, pushed before com_frameTime 0x8916b4; ge->Init call 0x439908",
+   "settlingFrames": "3, RunFrame(sv.time) then +100, 0x439dbd..0x439de6",
+   "clientTimeCounters": "+0x56c, +0x570, +0x574 zeroed 0x439e0c..0x439e29",
+   "lastFrame": "0x439e69..0x439e83",
+   "saveLoad": "spawn call 0x43bab8, then full saves read TIME over sv.time 0x43bac1..0x43bace and TIMR over sv.timeResidual 0x43bad3",
+   "saveWrite": "TIME and TIMR written 0x43b932..0x43b94a",
+   "comFrameTime": "0x8916b4 also stored as sv.serverId at 0x439d8b"
+  },
+  "jk2sp.exe": {
+   "spawnServer": "0x4370b0 (Server Initialization banner pushed at 0x437108)",
+   "levelBlock": "0x126bb18",
+   "clock": "0x126bb24 (sv.time)",
+   "clear": "rep stosd 0x15d07 dwords from 0x126bb18, 0x43721a..0x437226",
+   "start": "mov [0x126bb24], 0x3e8 at 0x437250",
+   "ghoul2ServerTime": "0x43725a call 0x450e70(1000, 0); again after each frame, 0x4372ff and 0x43738b",
+   "gameInit": "0x4368a0: sv.time read 0x436d9c, pushed before com_frameTime 0xa84244; ge->Init call 0x436dc6",
+   "settlingFrames": "3, 0x4372d8..0x437308",
+   "clientTimeCounters": "+0x56c, +0x570, +0x574 zeroed 0x43730f..0x43732c",
+   "lastFrame": "0x43736c..0x437386",
+   "saveLoad": "spawn call 0x43907f, then full saves read TIME over sv.time 0x43908b..0x439098",
+   "saveWrite": "TIME and TIMR written 0x438b96..0x438ba9",
+   "comFrameTime": "0xa84244 also stored as sv.serverId at 0x4372ac"
+  },
+  "levelTimes": {
+   "gameInit": 1000,
+   "settlingFrames": [1000, 1100, 1200],
+   "lastSpawnFrame": 1300,
+   "playBegins": 1400,
+   "dependsOnPreviousLevel": false,
+   "dependsOnConnectedClients": false
+  },
+  "openjkDifference": "OpenJK's SP SV_SpawnServer runs four settling frames; both retail engines run three (fnTech3 already ran three)."
+ },
+ "fnBefore": {
+  "rule": "inherited Quake3e: empty server restarts at 0; a connected client keeps the last level's time unless sv_levelTimeReset",
+  "today": "every spawn is empty (jka-sp refuses GAME_CLIENT_CONNECT, jk2-sp stops after Init): GAME_INIT 0, settling 0/100/200, play from 400"
+ },
+ "fnDesign": [
+  "code/qcommon/profile_frame_time.h: FRAME_LEVEL_TIME_1000 = 4096 for stvef-sp, jka-sp, jk2-sp; other rules unchanged",
+  "code/server/sv_init.cpp: SV_LevelTimeStartsAt1000(); SV_SpawnServer sets sv.time = 1000 before SV_InitGameProgs in place of the Elite Force-only test",
+  "sv_levelTimeReset's client offset unchanged; settling and reconnect frames unchanged"
+ ],
+ "notMatched": {
+  "saveTimeRestore": "no jka-sp/jk2-sp savegame path in fnTech3 yet",
+  "ghoul2ServerTime": "fnTech3's Academy SP Ghoul2 services keep no server clock; SV_JKAGhoul2SetTime serves jka-mp only; not examined",
+  "runtime": "neither Jedi SP profile reaches a map change in fnTech3 yet, and the retail SP engines have no dedicated server; no live comparison"
+ },
+ "tests": {
+  "tests/jedi_level_time_tests.py": "rule table for all 17 ids incl. FRAME_LEVEL_TIME_1000; production spawn clock block + start statement for every profile x sv_levelTimeReset x connected x pending restart; source order clear < start < SV_InitGameProgs",
+  "tests/stvef_sp_host_tests.py": "stand-in SV_LevelTimeStartsAt1000 for its stand-in profiles; GAME_INIT still at 1000 for EF SP"
+ },
+ "mutations": {
+  "script": ".tmp/jedi-sp-clock/mutate.py",
+  "caught": [
+   "jka-sp bit dropped",
+   "both Jedi SP bits dropped",
+   "stvef-sp bit dropped",
+   "start statement made a no-op",
+   "helper reads FRAME_KEEP_LEVEL_TIME instead"
+  ],
+  "notCaught": []
+ },
+ "validation": {
+  "export": "git archive dfe1b9d49af822c0cf4ce2bcedfdbe82747e9e85 plus this slice's blobs (.tmp/jedi-sp-clock/overlay.py export)",
+  "build": "meson setup with win32-dev's options plus build-server, strict warnings, debugoptimized; all 1545 targets built (meson compile -j 4)",
+  "mesonTests": "276 fnTech3 tests without the Python wrapper: 274 ok, 0 fail, 2 environment skips (fnql_audio_loopback, fnql_retail_factory_probe)",
+  "pythonSuite": "one pytest per file over 599 files: 2791 passed, 0 failed, 131 skipped, 67702 subtests passed",
+  "targeted": "jedi_level_time, stvef_sp_host, stvef_frame_time, stvef_sp_cadence, rtcw_match_restart, generate_docs and changelog tests: 22 passed",
+  "strictCompile": "sv_init.cpp, common.c and sv_main.cpp compiled with win32-dev's exact commands in the shared tree",
+  "commitBase": "9be926ab, which differs from the tested base only in another slice's documentation (a portal-recursion record and another COMPATIBILITY.md paragraph); this slice's shared-document hunks are rebuilt on it"
+ }
+}

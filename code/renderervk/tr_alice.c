@@ -531,7 +531,8 @@ void RB_SurfaceAliceSprite( void ) {
 		 * it, with no default (OpenMoHAA's RB_DrawSprite). */
 		scale *= ent->e.mohaa.scale;
 	} else {
-		scale *= ent->e.alice.scale > 0.0f ? ent->e.alice.scale : 1.0f;
+		/* Retail multiplies the submitted scale directly (0x004af4d1). */
+		scale *= ent->e.alice.scale;
 	}
 
 	switch ( sprite->shader->aliceSpriteGen ) {

@@ -571,8 +571,9 @@ void CL_AliceBaseEntity( const fntech3_alice_refEntity_t &from, refEntity_t &to 
  * which retail's surface table dispatches one by one (0x004af410) -- the names
  * are inferred from that order, which is Quake III's own.
  *
- * Every entity is recorded, hidden ones too, because slot 63 finds a parent
- * by number whether or not it is drawn; a hidden one is simply not drawn. */
+ * The client game suppresses hidden network models before this call
+ * (cgamex86.dll 0x300263da). Submitted effects can inherit RF_DONTDRAW;
+ * retail copies them without another visibility test (0x00491650). */
 void QDECL CL_AliceAddRefEntityToScene( const fntech3_alice_refEntity_t *e ) {
 	if ( !e ) {
 		return;
@@ -589,9 +590,6 @@ void QDECL CL_AliceAddRefEntityToScene( const fntech3_alice_refEntity_t *e ) {
 		return;
 	}
 	aliceSceneEntities[aliceNumSceneEntities++] = *e;
-	if ( e->renderfx & FNTECH3_ALICE_RF_DONTDRAW ) {
-		return;
-	}
 
 	refEntity_t ent;
 	CL_AliceBaseEntity( *e, ent );
@@ -599,6 +597,7 @@ void QDECL CL_AliceAddRefEntityToScene( const fntech3_alice_refEntity_t *e ) {
 	case FNTECH3_ALICE_RT_SPRITE:
 		Com_DPrintf( "Sprite being added to entities, should be added to sprite list\n" );
 		ent.reType = RT_ALICE_SPRITE;
+		ent.alice.scale = e->scale;
 		break;
 	case FNTECH3_ALICE_RT_BEAM:
 		ent.reType = RT_BEAM;
@@ -652,20 +651,19 @@ void QDECL CL_AliceAddRefEntityToScene( const fntech3_alice_refEntity_t *e ) {
 	re.AddRefEntityToScene( &ent, qfalse );
 }
 
-/* Slot 58. Retail copies a sprite's model, origin, scale, axis, colour,
- * render flags and shader time into a list of its own and draws each as a
- * quad in world space, with the shader its model names. F.A.K.K.2's engine
- * adds every sprite it is given (fakk2.exe 1.02 RE_AddRefSpriteToScene
- * 0x0047b760 tests no render flag): an emitter's sprites carry the flags of
- * the entity that emits them, and a smokestack is hidden (RF_DONTDRAW) while
- * its smoke draws. */
+/* Slot 58. Both Ritual engines accept sprites from hidden emitters:
+ * Alice's RE_AddRefSpriteToScene (0x00491700..0x004917d2), like F.A.K.K.2's
+ * (1.02, 0x0047b760), copies RF_DONTDRAW without testing it. The client game
+ * already hides network sprites (Alice 0x3002208a), but its particles inherit
+ * the carrier's flags. Rejecting those removes Alice's targeting glow. */
 void QDECL CL_AliceAddRefSpriteToScene( const fntech3_alice_refEntity_t *e ) {
-	if ( !e || ( !Com_GameIsFAKK2() && ( e->renderfx & FNTECH3_ALICE_RF_DONTDRAW ) ) ) {
+	if ( !e ) {
 		return;
 	}
 	refEntity_t ent;
 	CL_AliceBaseEntity( *e, ent );
 	ent.reType = RT_ALICE_SPRITE;
+	ent.alice.scale = e->scale; // zero-sized particles stay zero-sized
 	ent.customShader = 0;
 	re.AddRefEntityToScene( &ent, qfalse );
 }

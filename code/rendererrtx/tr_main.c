@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_main.c -- main control flow for each frame
 
 #include "tr_local.h"
+#include "../renderercommon/tr_alice_sprite_sort.h"
 #include "../renderercommon/tr_q3_ihv_portal.h"
 #include "../renderercommon/tr_jka_distance_cull.h"
 #include "../renderercommon/tr_jka_entity.h"
@@ -3188,6 +3189,7 @@ static void R_SortDrawSurfs( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 
 	// sort the drawsurfs by sort type, then orientation, then shader
 	R_RadixSort( drawSurfs, numDrawSurfs );
+	R_SortAliceSprites( drawSurfs, numDrawSurfs );
 
 	// check for any pass through drawing, which
 	// may cause another view to be rendered first

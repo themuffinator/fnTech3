@@ -118,8 +118,10 @@ either: `textures/misc_outside/regpalm_shadow` has a bare `nodraw` line
 the shader. OpenMoHAA **[O]** treats both alike.
 
 Reusing an image under other wrap or mip flags (`textures/effects/fire_ring.tga`
-on 46 maps) keeps the first load and warns, as OpenMoHAA's image cache
-**[O]** does; it is not a shader gap.
+on 45 maps) keeps the first load and warns, as OpenMoHAA's image cache
+**[O]** does; it is not a shader gap. [Reused images and the picmip
+filter](#reused-images-and-the-picmip-filter-2026-10-15) sorts every such
+report by its cause.
 
 ## Open
 
@@ -131,3 +133,79 @@ on 46 maps) keeps the first load and warns, as OpenMoHAA's image cache
 - The sweeps register what a map loads and its first seconds use; shaders
   registered later in play (an effect a script spawns late, a weapon not yet
   fired) are covered by the static inventory alone.
+
+## Reused images and the picmip filter, 2026-10-15
+
+The [Alice and F.A.K.K.2 sweep](2026-10-15-ritual-shader-sweep.md) found
+that a TIKI surface's own image skipped FnQ3's `r_picmipFilter`, which
+caused most of those titles' "reused image ... with mixed flags" reports,
+and made the filter decide that image's picmip under the two Ritual profiles.
+Medal of Honor's TIKI surfaces reach the same branch
+(`R_FindAliceSurfaceShader`, called from `tr_mohaa.c`), so this sweep's
+reports were sorted by cause.
+
+**Method.** The GL sweep above was repeated on a runtime built from a
+`git archive` export of `aa0e7049` with the Ritual sweep's staged
+`tr_shader.c` hunks, which change nothing under this profile; again with
+`r_picmipFilter 0`; and with a diagnostic copy of that GL renderer, never
+staged, that logged every lookup reaching the branch where the caller chose
+the image's flags, with the name, the filter's verdict and the image found.
+The TIKI files of the six paks and their `models/` includes were read as well.
+
+**Results.** All 54 maps loaded in every run. The logs hold 118 reused-image
+lines on 45 maps, 15 distinct, the same in GL and Vulkan:
+
+| Lines | Distinct | Flags that differ | Source |
+| --- | --- | --- | --- |
+| 60 | 9 | picmip alone (`3 vs 1`) | `r_picmipFilter`'s rule by shader name; none with the filter off |
+| 58 | 6 | wrap or mipmaps | 1.00's scripts treating one image two ways; the same with the filter off |
+| 0 | 0 | -- | A TIKI surface's own image |
+
+Each of the 60 is an image that a world shader under `textures/` names -- a
+script, or a map surface no script defines, as `textures/models/items/v2` in
+`obj_team2` and `textures/models/submodels/sub_bunk` in `m2l2b` -- and that a
+model script with a pathless name, such as `car`, `gasmask`, `static_v2` or
+`Painting_master5`, names too. The filter judges each shader by its own name,
+so the first gets picmip and the second does not.
+`textures/common/reflection1.tga`, the environment map of 56 vehicle, item
+and uniform scripts, makes 42 of them. This is the rule the Ritual record
+leaves open under every profile, and at `r_picmip 0`, the default, it changes
+no image. The filter is FnQ3's own, and OpenMoHAA **[O]** has none, so
+these 60 are fnTech3's own **[I]**.
+
+The 58 others are the data's, and the filter leaves them alone. `fire_ring`
+clamps `textures/effects/fire_ring.tga` in one bundle and wraps it in the
+next (46 lines); `beam` and `opellights` (5), the hedgerow scripts (2) and
+`regpalmsprite` and `regpalmshadow` (1) likewise clamp an image another
+wraps; and a script with `nomipmaps` asks for an image the other scripts
+mip (`miscpieces.tga` 3, `pulse.tga` 1, all on the `m2l2` maps).
+
+None came from a TIKI surface's own image. In the diagnostic run the branch
+ran 32 times on 24 maps, for four names alone -- `poopy`, `mg`,
+`opelhubstill` and `opeltreadstill`, the shaders named after surfaces their
+models leave unshaded (above) -- and found an image for none. The paks agree:
+the 2,898 `surface ... shader` lines of 1.00's 1,378 TIKI files and their
+includes name 1,331 shaders, 1,322 defined by a script and nine that no
+script defines and no image matches. None has a file extension, which is how
+a TIKI names an image, relative to its `path`; every `path` 1.00 sets is
+under `models/`.
+
+**The change.** Under the `mohaa` profile the branch now clears a surface
+image's picmip when the filter refuses it, as for the Ritual profiles. 1.00's
+data never reaches it with an image, so no retail image or report changes:
+the "after" runtime, which adds this hunk alone, prints the same 118 lines in
+GL and Vulkan, and `probe_retail_map_loads.py --compare` finds no map's
+outcome, first error or surface counts changed (0 of 54 in each renderer). A
+TIKI that does name an image file, under `models/` by its `path`, now gets
+picmip as a script there would, not from whichever shader loaded it first.
+Invariant 11: `r_picmipFilter` is FnQ3's image control, now applied to
+Medal of Honor's model images as to every other; no retail-exact option is
+involved.
+
+`tests/mohaa_shader_gaps_tests.py` pins the condition, runs the branch
+through each renderer's real `R_FindShaderInternal` under the profile, and
+checks the TIKI facts above against the installation when it is present;
+`tests/ritual_shader_gaps_tests.py`'s Medal of Honor case and
+`tests/alice_renderer_parity_tests.py` follow the changed line. The
+companion's `picmip_filter_check` holds the builds, the six sweeps and the
+counts.

@@ -6,6 +6,7 @@
 #include "../compat/jka_client_abi.h"
 #include "client_jka_cgame_clock.hpp"
 #include "client_jka_cgame_render_state.hpp"
+#include "client_jka_cgame_gore.hpp"
 #include <array>
 #include <cstdio>
 
@@ -57,9 +58,10 @@ inline void CL_JKACgameGhoul2BeginFrame(int now, bool localServer) {
     jkaCgameBoneClocks.BeginFrame(now, localServer);
 }
 static void CL_JKACgameSkinClear();
+static void CL_JKACgameGoreClear();
 static void CL_JKACgameGhoul2Clear() {
     fntech3::jka::cgame::scene::state.Clear();
-    jkaCgameBoneClocks.ClearFrame();CL_JKACgameSkinClear();jkaCgameGhoul2Store.reset();
+    jkaCgameBoneClocks.ClearFrame();CL_JKACgameSkinClear();CL_JKACgameGoreClear();jkaCgameGhoul2Store.reset();
 }
 
 static fntech3::ghoul2::Store &CL_JKACgameGhoul2Store() {
@@ -98,6 +100,13 @@ static std::array<char, MAX_QPATH> CL_JKACgameGhoul2Text(intptr_t address) {
 }
 
 #include "client_jka_cgame_skins.hpp"
+
+std::unique_ptr<fntech3::jka::cgame::gore::State> jkaCgameGore;
+static void CL_JKACgameGoreClear() { jkaCgameGore.reset(); }
+static fntech3::jka::cgame::gore::State &CL_JKACgameGore() {
+    if (!jkaCgameGore) jkaCgameGore = std::make_unique<fntech3::jka::cgame::gore::State>();
+    return *jkaCgameGore;
+}
 
 /* Retail 312's test, 0x4e0740: true unless the model's pointers set up
  * (0x4e0b10) and a surface-hierarchy record, walked in file order from
@@ -486,7 +495,11 @@ static bool CL_JKACgameGhoul2Call(intptr_t *args, fntech3::jka::module::Call cal
         // (0x4e04b0, served by the store).
         if (CL_JKACgameGhoul2Store().CopyModel(reinterpret_cast<void *>(std::uintptr_t(from)),
             static_cast<int>(args[2]), reinterpret_cast<void *>(std::uintptr_t(to)), index))
+        {
             CL_JKACgameSkinCopyModel(from, static_cast<int>(args[2]), to, index);
+            // 0x4dea40 copies the record's gore-set word (+0x4c) as it is.
+            if (jkaCgameGore) jkaCgameGore->CopyModel(from, static_cast<int>(args[2]), to, index);
+        }
         return true;
     }
     case Call::CG_G2_DUPLICATEGHOUL2INSTANCE: {
@@ -511,6 +524,8 @@ static bool CL_JKACgameGhoul2Call(intptr_t *args, fntech3::jka::module::Call cal
             Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 cannot duplicate its owned model");
         destination = static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(copy));
         CL_JKACgameSkinDuplicateModel(source, destination);
+        // 0x4e03b0 shares each model's gore set with the copy, one reference more.
+        if (jkaCgameGore) jkaCgameGore->Duplicate(source, destination);
         // Publish only after both the actual model records and per-model
         // visibility bindings belong to the new identity. File bytes remain
         // immutable data owned by this same Store, separate from UI/server.
@@ -524,6 +539,8 @@ static bool CL_JKACgameGhoul2Call(intptr_t *args, fntech3::jka::module::Call cal
         std::memcpy(&identity, slot, sizeof(identity));
         CL_JKACgameGhoul2Resolve(identity);
         if (identity) {
+            // Retail clean 0x4de520 clears the instance's gore (0x4e07f0) first.
+            if (jkaCgameGore) jkaCgameGore->Clear(identity);
             void *handle = reinterpret_cast<void *>(std::uintptr_t(identity));
             if (!CL_JKACgameGhoul2Store().Clean(&handle))
                 Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 cleanup failed");
@@ -537,13 +554,134 @@ static bool CL_JKACgameGhoul2Call(intptr_t *args, fntech3::jka::module::Call cal
     case Call::CG_G2_CLEARSKINGORE: {
         // Retail 0x413cd5 hands args[1] to 0x4e07f0, which reads the instance
         // through it (null faults at 0x4e07fb), deletes each model's gore set
-        // (+0x4c, 0x4e9310) and answers 0. Fn's store keeps no skin gore:
-        // imports 313 and 314 are not served, so validation is the whole clear.
+        // (+0x4c, 0x4e9310: one reference, or the set and its records) and
+        // answers 0. Models, skins, bolts and bones stay as they were.
         CL_JKACgameGhoul2Native();
         const auto identity = static_cast<std::uint32_t>(args[1]);
         if (!identity) Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 cannot clear skin gore without a model identity");
         CL_JKACgameGhoul2Resolve(identity);
+        if (jkaCgameGore) jkaCgameGore->Clear(identity);
         result = 0;
+        return true;
+    }
+    case Call::CG_G2_GETNUMGOREMARKS: {
+        CL_JKACgameGhoul2Native();
+        // Retail 313:0x413c9d indexes the instance's 0xc8-byte records through
+        // the identity with no bound (0x4116e0: a null identity faults at
+        // 0x4116e9, a place past the end reads whatever follows), then 0x4e07a0
+        // answers the size (+0x10) of the set its word (+0x4c) names, or 0.
+        const auto identity = static_cast<std::uint32_t>(args[1]);
+        if (!identity) Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 gore count requires a model identity");
+        const auto *instance = CL_JKACgameGhoul2Resolve(identity);
+        if (args[2] < 0 || args[2] >= instance->Count())
+            Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 gore count of model %ld is outside the instance's %d places",
+                static_cast<long>(args[2]), instance->Count());
+        result = jkaCgameGore ? jkaCgameGore->Count(identity, static_cast<int>(args[2])) : 0;
+        return true;
+    }
+    case Call::CG_G2_ADDSKINGORE: {
+        CL_JKACgameGhoul2Native();
+        if (cgvm->index != VM_CGAME) Com_Error(ERR_DROP, "Academy skin gore requires its native cgame context");
+        result = 0;
+        // Retail 314:0x413cb6 maps args[2] (a null one is read at 0x4e08f8)
+        // and hands it with the identity to 0x4e08f0, then answers 0.
+        if (!args[2]) Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 skin gore requires its gore record");
+        namespace gore = fntech3::jka::cgame::gore;
+        gore::Request request;
+        std::memcpy(&request, CL_JKACgameSpan(args[2], sizeof(request)), sizeof(request));
+        for (float value : {request.angles[0], request.angles[1], request.angles[2], request.position[0],
+            request.position[1], request.position[2], request.rayDirection[0], request.rayDirection[1],
+            request.rayDirection[2], request.hitLocation[0], request.hitLocation[1], request.hitLocation[2],
+            request.scale[0], request.scale[1], request.scale[2], request.sSize, request.tSize, request.theta,
+            request.startFraction})
+            if (!fntech3::ghoul2::pose::Finite(value))
+                Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 skin gore record is not finite");
+        // 0x4e08fb..0x4e090b: a shot direction shorter than 0.1 adds nothing.
+        const auto &ray = request.rayDirection;
+        if (std::sqrt(ray[0]*ray[0] + ray[1]*ray[1] + ray[2]*ray[2]) < 0.1f) return true;
+        // Only then is the instance read (0x4e091e).
+        const auto identity = static_cast<std::uint32_t>(args[1]);
+        if (!identity) Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 skin gore requires a model identity");
+        const auto *instance = CL_JKACgameGhoul2Resolve(identity);
+        // Model 0 sets the LODs (0x4e09d1..0x4e0aa3); retail reads its record
+        // and mesh without a check, so an instance without one is refused.
+        const auto *base = instance->At(0);
+        if (!base || !base->meshBytes || base->mesh.numLODs <= 0)
+            Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 skin gore requires a loaded model 0");
+        if (!jkaCgameBoneClocks.FrameReady())
+            Com_Error(ERR_DROP, "Academy skin gore requires a published frame clock");
+        const int now = jkaCgameBoneClocks.Time();
+        // 0x4e091e builds the skeleton; 0x4e0923..0x4e09ba carries the hit
+        // and the shot into the model's own space (G2_GenerateWorldMatrix).
+        const auto inverse = gore::InverseWorld(request.angles, request.position);
+        gore::Trace trace;
+        trace.start = gore::Through(inverse, request.hitLocation, true);
+        trace.direction = gore::Through(inverse, request.rayDirection, false);
+        trace.sSize = request.sSize; trace.tSize = request.tSize; trace.theta = request.theta;
+        trace.shader = request.shader; trace.lifeTime = request.lifeTime; trace.fadeTime = request.fadeOutTime;
+        trace.growDuration = request.growDuration; trace.startFraction = request.startFraction;
+        trace.frontFaces = request.frontFaces != 0; trace.backFaces = request.backFaces != 0;
+        trace.fadeRGB = request.fadeRGB != 0; trace.identity = identity; trace.now = now;
+        auto &state = CL_JKACgameGore();
+        state.ResetPending();
+        // LODs from max(model 0's bias, r_lodbias), kept below its LOD count
+        // and within 0..2, up to min(its LOD count, 3). Fn models carry no
+        // LOD bias of their own (no served import sets one).
+        int first = (std::max)(0, Cvar_VariableIntegerValue("r_lodbias"));
+        if (first >= base->mesh.numLODs) first = base->mesh.numLODs - 1;
+        first = (std::min)(first, 2);
+        const int last = (std::min)(base->mesh.numLODs, 3);
+        // 0x4ec1c6: cg_g2MarksAllModels, made on first use, lets every model
+        // take gore; by default the trace stops after the first it reaches.
+        static cvar_t *allModels;
+        if (!allModels) allModels = Cvar_Get("cg_g2MarksAllModels", "0", 0);
+        const bool everyModel = allModels && allModels->integer;
+        auto &store = CL_JKACgameGhoul2Store();
+        for (int lod = first; lod < last; ++lod) {
+            trace.lod = lod;
+            for (int index = 0; index < instance->Count(); ++index) {
+                const auto *model = instance->At(index);
+                if (!model || lod >= model->mesh.numLODs) continue;
+                if (!model->meshBytes)
+                    Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 skin gore has no kept mesh for %s", model->name.c_str());
+                fntech3::ghoul2::pose::Palette palette;
+                const auto posing = store.LinkedPalette(*instance, index, now, palette);
+                if (posing != fntech3::ghoul2::Posing::Served)
+                    Com_Error(ERR_DROP, "Academy skin gore on model %d is %s", index, fntech3::ghoul2::PosingName(posing));
+                fntech3::ghoul2::geometry::Geometry geometry;
+                auto error = fntech3::ghoul2::geometry::Load(model->meshBytes->data(), model->meshBytes->size(),
+                    model->skeleton.numBones, lod, geometry);
+                fntech3::ghoul2::geometry::DeformedGeometry posed;
+                if (error == fntech3::ghoul2::geometry::Error::None)
+                    error = fntech3::ghoul2::geometry::Deform(geometry, palette.deformation, posed);
+                if (error != fntech3::ghoul2::geometry::Error::None)
+                    Com_Error(ERR_DROP, "Academy skin gore %s", fntech3::ghoul2::geometry::ErrorName(error));
+                // R_TransformEachSurface scales the posed vertices; a zero
+                // component counts as one (G2_TransformModel).
+                float scale[3];
+                for (int axis = 0; axis < 3; ++axis) scale[axis] = request.scale[axis] ? request.scale[axis] : 1.0f;
+                if (scale[0] != 1.0f || scale[1] != 1.0f || scale[2] != 1.0f)
+                    for (auto &surface : posed.surfaces)
+                        for (auto &vertex : surface.vertices)
+                            for (int axis = 0; axis < 3; ++axis) vertex.position[std::size_t(axis)] *= scale[axis];
+                const JKACgameSkinBinding *binding = nullptr;
+                if (jkaCgameSkins) {
+                    const auto found = jkaCgameSkins->bindings.find({identity, index});
+                    if (found != jkaCgameSkins->bindings.end()) binding = &found->second;
+                }
+                trace.model = index;
+                // The trace starts at the model's root surface (+0x40), which
+                // no served import moves from 0.
+                gore::Walk(state, posed, 0, [binding](int surface, std::uint32_t flags) {
+                    if (binding) {
+                        const auto found = binding->overrides.find(surface);
+                        if (found != binding->overrides.end()) return found->second;
+                    }
+                    return flags;
+                }, trace);
+                if (!everyModel) break;
+            }
+        }
         return true;
     }
     case Call::CG_G2_HAVEWEGHOULMODELS:

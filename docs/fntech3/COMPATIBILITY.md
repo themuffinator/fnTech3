@@ -1091,9 +1091,16 @@ instead clears its level clock with every level, whoever is connected, and
 gives connected clients the old time as an offset (`0x4e35f6`, `0x4e363a`).
 `ql` now does the same through `FRAME_RESET_LEVEL_TIME`, and its
 `map_restart` clears that offset for every connected client (Source, Unit;
-no retail Quake Live server runs here). `jka-sp` and `jk2-sp` remain open:
-their retail engines clear the clock at every spawn, and fnTech3 keeps a
-connected player's time.
+no retail Quake Live server runs here). The
+[Jedi single-player level clock record](2026-10-16-jedi-sp-level-clock.md)
+settles `jka-sp` and `jk2-sp`: `jasp.exe` 1.01 and `jk2sp.exe` 1.02a clear
+the level at every spawn and start its clock at 1000, whoever is connected
+(`0x439d35`, `0x437250`), as `stvoy.exe` 1.20 does. fnTech3 started an
+empty server's level at 0 and kept a connected player's time; the three
+single-player profiles now start at 1000 through `FRAME_LEVEL_TIME_1000`
+(Source, Unit; no live comparison, as neither Jedi profile reaches a map
+change yet). A loaded save's own time, which both engines restore after
+the spawn, waits for their savegame path.
 
 The [portal recursion record](2026-10-15-snapshot-portal-recursion.md)
 reads the snapshot walk of every retail engine that shares fnTech3's: each
@@ -2441,10 +2448,16 @@ the multiplayer client game submits -- as retail `jamp.exe`'s
 the 916 vertices retail's own routines drew from 22 synthetic cases, run
 in-process (Source, Unit, retail comparison). The native-server demo that
 stopped at type 5 after 408 snapshots now plays to its end in all three
-renderers, 439 snapshots with deltas (Live subset). That demo draws no 3D view
-once its opening menu closes (no world surfaces in `r_speeds`): its snapshots
-then reach the client flagged `SNAPFLAG_NOT_ACTIVE`, a separate open gap, so no
-capture shows a blade. Types 3, 6, 10 and 11 stay refused. No gate closes.
+renderers, 439 snapshots with deltas (Live subset). Its first 406 snapshots
+were sent while the recorded client was still loading. They carry
+`SNAPFLAG_NOT_ACTIVE`, as retail `jamp.exe`'s server writes them
+(`0x00460c93`), and playback skips them one per frame, as retail's client
+does (`0x00414a20`, `0x00414a90`). The earlier "no 3D view" readings came
+after the demo had ended. Captures inside its 1.6-second active span all
+draw the world, behind the player-configuration menu that the recorded
+client never closed, so no capture shows a blade
+([snapshot-flag record](2026-10-14-jka-demo-snapshot-flags.md); Source,
+Unit, Live subset). Types 3, 6, 10 and 11 stay refused. No gate closes.
 
 The [October 7 audit](2026-10-07-jedi-compatibility-audit.md) corrects the
 shared game/cgame/UI skeletal clock and no-rotation selector, angle timing,
@@ -2845,33 +2858,6 @@ raster path; RTX's path tracer uses no baked light. `t3_bounty`'s switched
 lights follow in GLx (Live subset). The single-player client games do not
 run yet. No gate closes.
 
-The [surface sprites slice](2026-10-15-jedi-surface-sprites.md)
-(2026-10-15) reads Raven's `surfaceSprites` stage word and its `ss`
-companions as both Academy engines do (`jamp.exe` 1.01 `0x4b3fef`,
-`jasp.exe` 1.01 `0x47a1a6`): the rest of the line goes to the sprite parser,
-a bad or unknown word only warns, and only `jasp.exe` knows `flattened`.
-The sprite stages leave the surface's passes and draw after it from the
-second stage on (`0x4aef88`, `0x4af48f`), as sprites built from its
-triangles through each renderer's own pipeline. Through the production
-parser, all 39 installed sprite definitions now load in GLx, Vulkan and
-RTX, and no other definition changes (Source, Unit). On `mp/ctf3` the grass
-field, which drew as the default image's grid, now grows its grass in all
-three renderers (Live subset). Raven's `alphaFunc GE192`, which the grass
-stage also uses, is still unknown to Fn's parser. No gate closes.
-
-The [alphaFunc GE192 slice](2026-10-16-jedi-alphafunc-ge192.md)
-(2026-10-16) reads Raven's fourth alpha test as both Academy engines do:
-`NameToAFunc` returns `0x80000000` for `GE192` (`jamp.exe` 1.01
-`0x4b24da`, `jasp.exe` 1.01 `0x4785f0`) and `GL_State` applies it as
-`glAlphaFunc( GL_GEQUAL, 0.75f )` (`0x48a4c2`, `0x454bf2`). `jka-sp` and
-`jka-mp` carry it in Fn's comparison-and-reference alpha test (greater or
-equal, 192 / 256), which the GL renderer draws on its CPU path. Through the
-production parser, the GE192 warning leaves all 32 installed definitions
-that use it in GLx, Vulkan and RTX, and nothing else changes (Source,
-Unit). On `mp/ctf3` the grass blades are now cut cleanly, and the blades'
-transparent parts no longer hide the grass behind them, in all three
-renderers (Live subset). No gate closes.
-
 The [menu slice](2026-10-15-jka-ui-menus.md) (2026-10-15) serves the client
 game's menu requests, which the siege slice above left refused from 6 to
 11. Retail `jamp.exe` 1.01 serves client-game import 238 at `0x413032` as
@@ -2935,6 +2921,33 @@ imports carry no pass entity. Live, the round now begins and plays about
 which stops at client-game import 315 (`CG_G2_CLEARSKINGORE`) (Live
 subset). No gate closes.
 
+The [surface sprites slice](2026-10-15-jedi-surface-sprites.md)
+(2026-10-15) reads Raven's `surfaceSprites` stage word and its `ss`
+companions as both Academy engines do (`jamp.exe` 1.01 `0x4b3fef`,
+`jasp.exe` 1.01 `0x47a1a6`): the rest of the line goes to the sprite parser,
+a bad or unknown word only warns, and only `jasp.exe` knows `flattened`.
+The sprite stages leave the surface's passes and draw after it from the
+second stage on (`0x4aef88`, `0x4af48f`), as sprites built from its
+triangles through each renderer's own pipeline. Through the production
+parser, all 39 installed sprite definitions now load in GLx, Vulkan and
+RTX, and no other definition changes (Source, Unit). On `mp/ctf3` the grass
+field, which drew as the default image's grid, now grows its grass in all
+three renderers (Live subset). Raven's `alphaFunc GE192`, which the grass
+stage also uses, is still unknown to Fn's parser. No gate closes.
+
+The [alphaFunc GE192 slice](2026-10-16-jedi-alphafunc-ge192.md)
+(2026-10-16) reads Raven's fourth alpha test as both Academy engines do:
+`NameToAFunc` returns `0x80000000` for `GE192` (`jamp.exe` 1.01
+`0x4b24da`, `jasp.exe` 1.01 `0x4785f0`) and `GL_State` applies it as
+`glAlphaFunc( GL_GEQUAL, 0.75f )` (`0x48a4c2`, `0x454bf2`). `jka-sp` and
+`jka-mp` carry it in Fn's comparison-and-reference alpha test (greater or
+equal, 192 / 256), which the GL renderer draws on its CPU path. Through the
+production parser, the GE192 warning leaves all 32 installed definitions
+that use it in GLx, Vulkan and RTX, and nothing else changes (Source,
+Unit). On `mp/ctf3` the grass blades are now cut cleanly, and the blades'
+transparent parts no longer hide the grass behind them, in all three
+renderers (Live subset). No gate closes.
+
 The [skin-gore slice](2026-10-16-jka-clear-skin-gore.md) (2026-10-16)
 serves client-game import 315 (`CG_G2_CLEARSKINGORE`), which the retail
 client game calls on the server's `ircg` or `rcg` after every respawn, so
@@ -2991,6 +3004,26 @@ otherwise under x87 arithmetic. All 26 surface names match. Live on
 tracer no longer keeps a Ghoul2 body's first pose: runtime MDRs skip its
 exact-pose cache. Server surface overrides (609, 612), model removal, ragdoll
 and IK remain refused. No gate closes.
+
+The [skin-gore slice](2026-10-17-jka-skin-gore.md) (2026-10-17) serves
+client-game imports 313 (`CG_G2_GETNUMGOREMARKS`) and 314
+(`CG_G2_ADDSKINGORE`), and makes 315 clear what 314 adds. Retail `jamp.exe`
+1.01 serves 314 at `0x413cb6` through `0x4e08f0`: it poses the instance,
+carries the hit into model space, and for each LOD from
+max(bias, `r_lodbias`), kept within 0..2, below min(LODs, 3) projects a
+splotch onto every surface not switched off (`0x4ea460`), filing one mark per
+surface per call in the model's gore set (`+0x4c`, map `0x12a5048`) with a
+record per tag (map `0x12a5030`, 500 at most, `0x4e9070`). 313 (`0x413c9d`,
+`0x4e07a0`) answers the set's size, which the client game compares with its
+mark limit before adding more (`0x3004c580`). The renderer drops a drawn
+surface's expired marks (`0x498740..0x4989ba`); duplicates share a set by
+reference count and a clean clears it first. fnTech3 keeps the same tables
+and rules in the client game's Ghoul2 layer, poses and skins the model with
+its own Ghoul2 geometry, and expires marks in its render flush (Source,
+Unit). The marks are not drawn yet. Every client-game path to 313 and 314
+first traces through import 299 (`CG_G2_COLLISIONDETECT`), which is not
+served, so live runs do not reach them (Live subset: no change). No gate
+closes.
 
 Star Wars Jedi Knight: Jedi Academy is the sixth title, with two mode profiles
 over one `base/` installation: `jka-sp` for Raven's single-player campaign and
@@ -3242,6 +3275,13 @@ Both Outcast profiles are available in every build under the
 
 ## Alice gate matrix
 
+The [2026-10-12 effects correction](2026-10-12-alice-effects.md) restores
+the targeting glow, accepts effects from hidden carriers, sorts overlapping
+Alice sprites by distance and preserves zero-sized particles across GLx,
+Vulkan and RTX. The old gnome's pipe was exercised with stationary and
+animated fixtures; no separate particle-motion fault was reproduced.
+This adds Source, Unit and Live subset evidence without closing a gate.
+
 The [2026-10-02 UberTools round](2026-10-02-ubertools-round.md) adds native
 observations and production regressions for the 1,328-configstring module
 boundary and overflow-safe light styles, and malformed model-light checks in
@@ -3257,6 +3297,19 @@ values; each renderer now translates the map's surface flags right after
 loading them (Source, Unit). No installed Alice map has a `0x10000` record,
 and its 37 `alphashadow` records now filter the path tracer's light. No
 Alice map was run live for this. No gate closes.
+
+The [2026-10-15 shader sweep](2026-10-15-ritual-shader-sweep.md) loads all 36
+maps, beside F.A.K.K.2's 30, with `developer 1` in the GL and Vulkan
+renderers and traces every shader warning their logs print. The parser met no
+keyword it lacks; the `cull front` three unused scripts write warns as
+`alice.exe` warns. The renderers no longer look up Quake III's `sun`, which
+`alice.exe` never does and Alice does not ship, and a model's own image now
+follows `r_picmipFilter` as its scripts do, ending the mixed-flag image
+reports that skip caused (Source, Unit, Live subset). The warnings left are
+Alice's own data -- the game's `crosshair.spr` and the client game's
+`targeted_outofrange.spr`, whose script and images Alice keeps where no
+engine reads them, and a few names no pak holds -- and the filter's
+per-shader rule, which every profile shares. No gate closes.
 
 American McGee's Alice is the eighth title and the thirteenth profile,
 `alice`, over one `base/` installation. It is the only supported title outside
@@ -3308,6 +3361,11 @@ is Alice evidence.
 
 ## F.A.K.K.2 gate matrix
 
+The [2026-10-12 Alice effects correction](2026-10-12-alice-effects.md)
+also revises the shared Ritual submission and sprite-scale paths. F.A.K.K.2
+keeps its hidden-emitter sprites and existing sorting; native and shared
+regressions plus a windowed first-level scene check are recorded there.
+
 The [2026-10-02 UberTools round](2026-10-02-ubertools-round.md) adds direct
 1.02 executable observations and production regressions for this profile's
 1,200-configstring boundary, plus malformed lighting checks shared with Alice.
@@ -3323,6 +3381,16 @@ map's surface flags right after loading them (Source, Unit). Under RTX,
 `swamp3` filters the path tracer's light through no triangle where 78,482
 did, and traces 126,005 triangles as opaque where it traced 47,523; its
 captured view, by the water, is unchanged (Live subset). No gate closes.
+
+The [2026-10-15 shader sweep](2026-10-15-ritual-shader-sweep.md) loads all 30
+maps with `developer 1` in the GL and Vulkan renderers. The renderers no
+longer look up Quake III's `sun`, which `fakk2.exe` 1.02 never does
+(F.A.K.K.2's `sun` is its sky model's surface), and a model's own image
+follows `r_picmipFilter` as its scripts do, which ends 691 of the 753
+mixed-flag image reports. Retail 1.02's own developer logs of the 30 maps hold
+four shader lines, and fnTech3 prints each on the same map; with
+`r_picmipFilter 0` its image reports are exactly retail's (Source, Unit, Live
+subset). No gate closes.
 
 Heavy Metal: F.A.K.K.2 is the ninth title and the fourteenth profile, `fakk2`,
 over one `fakk/` installation. It runs Ritual's own engine, the parent of
@@ -3480,6 +3548,15 @@ dome of suns that gives an open floor the diffuse sun, in place of
 `DM/mohdm6` and `m5l1a` print "worldspawn sun" and are sunlit, with the
 lightmaps' shadows, at levels within a quarter of the baked ones; with no
 sun, their sunlit patches were near black (Live subset). No gate closes.
+
+The record's [picmip follow-up](2026-10-15-mohaa-shader-sweep.md#reused-images-and-the-picmip-filter-2026-10-15)
+sorts the sweep's 118 mixed-flag image reports by cause: 60 are
+`r_picmipFilter`'s rule by shader name, which every profile shares, and 58
+are 1.00's scripts treating one image two ways. None comes from a model
+surface's own image, which 1.00's TIKI files never name (Source, Live
+subset). The branch that let such an image skip the filter now follows it
+under the `mohaa` profile as under the Ritual ones, changing no 1.00 image or
+report (Source, Unit, Live subset). No gate closes.
 
 Medal of Honor: Allied Assault is the tenth title and the fifteenth profile,
 `mohaa`, over one `main/` installation. It runs 2015's engine, a descendant of

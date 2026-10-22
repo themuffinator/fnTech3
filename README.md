@@ -16,6 +16,7 @@
   <a href="#4-documentation"><img alt="Player Documentation" src="https://img.shields.io/badge/Player-Docs-f59e0b?style=for-the-badge"></a>
   <a href="BUILD.md"><img alt="Build Guide" src="https://img.shields.io/badge/Build-Guide-7c3aed?style=for-the-badge"></a>
   <a href="LICENSE"><img alt="GPL-2.0 License" src="https://img.shields.io/badge/License-GPL--2.0-c2410c?style=for-the-badge"></a>
+  <a href="AGENTS.md"><img alt="Proudly vibecoded" src="assets/docs/img/badge-proudly-vibecoded.svg"></a>
 </p>
 
 *Plays: Quake III Arena, Quake Live, Return to Castle Wolfenstein (SP/MP), Wolfenstein: Enemy Territory, Star Trek Voyager: Elite Force (SP/Holomatch), Star Wars Jedi Knight: Jedi Academy (SP/MP), Star Wars Jedi Knight II: Jedi Outcast (SP/MP), American McGee's Alice, Heavy Metal: F.A.K.K.2, and Medal of Honor: Allied Assault · Base version: `0.1.0` · Current build: `0.1.0`*
@@ -286,3 +287,75 @@ written implementation work; each use is recorded in the credits.
 See [CREDITS.md](CREDITS.md) for pinned source lineage, acknowledgements and
 trademark notices, and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for
 incorporated external implementation data and its license.
+
+## 6. Legal
+
+### Purpose
+
+fnTech3 exists to preserve these games and enhance them for
+modern systems. It keeps legitimately owned copies playable on current
+hardware and operating systems as the original engines age, and adds
+modern features such as widescreen, high-resolution displays, improved
+rendering and audio. It is not a substitute for owning the games, and it is
+not intended to enable piracy or to distribute anyone's game content.
+
+### License
+
+fnTech3 is free software under the
+[GNU General Public License, version 2](LICENSE). The inherited engine code
+and the external code it incorporates are GPL-2.0-or-later, and each file keeps
+its original license header.
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) lists that external code and
+data with its source and license. As the license says, fnTech3
+comes with no warranty.
+
+### Bring your own games
+
+fnTech3 is an engine only. It contains no game data, maps,
+models, sounds or music, no retail game modules (QVMs or DLLs), and no retail
+executables or proprietary runtimes from any supported game. To play, you need
+a legitimate copy of each game installed on your computer.
+fnTech3 reads that installation and never changes it.
+
+### How compatibility is built
+
+The developers of Quake III Arena, Return to Castle Wolfenstein, Enemy
+Territory, Jedi Outcast and Jedi Academy released their engines' source code
+under the GPL. Quake Live, Elite Force's engine, Alice, F.A.K.K.2, Medal of
+Honor: Allied Assault and the 1999 Quake III test builds were never released.
+Support for those games was built by studying legitimately owned retail copies:
+their programs and data, module interfaces, network and demo formats, file
+formats and observable behaviour. The aim is interoperability, so that each
+game's own modules, servers, demos and files work with fnTech3.
+
+This is not a clean-room implementation. The same contributors who examined
+the retail software also wrote fnTech3's code. That code is
+written for fnTech3, and no retail program code is copied into
+it.
+
+Other projects contribute in two ways. Some code is incorporated under a
+compatible license, such as Medal of Honor's model runtime and parts of its
+network, terrain and client code from
+[OpenMoHAA](https://github.com/openmoh/openmohaa) (GPL-2.0-or-later). Other
+projects, including some under licenses that are incompatible with
+fnTech3's or that are not free, are read only for facts: names,
+numbers, layouts and behaviour. No text from them is incorporated.
+[CREDITS.md](CREDITS.md) records every source and how it was used.
+
+### Online services
+
+fnTech3 never fakes Steam sign-in, ownership, Workshop,
+statistics or any other online service. Those features work only when the real
+service answers, and they report failure when it does not.
+
+### Trademarks
+
+fnTech3 is an independent project. It is not affiliated with,
+endorsed by or sponsored by Valve or by any developer, publisher or rights
+holder of the supported games. Quake, Quake III Arena, Quake Live, Return to
+Castle Wolfenstein, Wolfenstein: Enemy Territory, Star Trek: Voyager — Elite
+Force, Star Wars Jedi Knight II: Jedi Outcast, Star Wars Jedi Knight: Jedi
+Academy, American McGee's Alice, Heavy Metal: F.A.K.K.2, Medal of Honor:
+Allied Assault and Steam are trademarks of their respective owners. Game names
+and the remade game icons appear only to identify the games
+fnTech3 works with.

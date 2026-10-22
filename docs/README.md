@@ -75,6 +75,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Medal of Honor shader sweep](fntech3/2026-10-15-mohaa-shader-sweep.md)
   -- every map loaded in developer mode, each shader warning traced to the
   engine or to 1.00's data, and the engine's own fixed.
+- [Alice and F.A.K.K.2 shader sweep](fntech3/2026-10-15-ritual-shader-sweep.md)
+  -- every map of both Ritual titles loaded in developer mode, each shader
+  warning traced to the engine or to the data, and the engine's own fixed.
 - [October 14 compatibility round](fntech3/2026-10-14-compatibility-round.md)
   -- Medal of Honor's sound fades and cached model definitions, and Jedi
   Academy's saber glow and lines checked against retail's own vertices.
@@ -120,12 +123,32 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Jedi Academy entity refraction](fntech3/2026-10-15-jka-entity-refraction.md)
   -- the spawn shield's see-through shimmer, measured in retail and drawn
   with fnTech3's liquid refraction in every renderer.
+- [Jedi Academy server demo snapshot flags](fntech3/2026-10-14-jka-demo-snapshot-flags.md)
+  -- why a server-side demo's loading snapshots show no world, checked
+  against retail's server and playback.
 - [October 15 compatibility round](fntech3/2026-10-15-compatibility-round.md)
   -- Jedi Academy's sound sets heard around a point, checked against
   retail's own routines, and Enemy Territory's close of a shut area portal.
 - [Jedi Academy siege and sky portals](fntech3/2026-10-15-jka-siege.md)
   -- siege's round record kept from one level to the next, and the scene a
   sky portal draws, each checked against retail.
+- [Jedi multiplayer broadcasts and level time](fntech3/2026-10-15-jedi-broadcast-level-time.md)
+  -- which entities the Jedi servers send each player, permanent ones and
+  broadcast masks included, and the level time a map change keeps, checked
+  against retail's servers.
+- [The level clock across a map change](fntech3/2026-10-15-level-clock.md)
+  -- whether a new level carries on from the last one's time in Quake III,
+  Quake Live, RTCW, Enemy Territory and Holomatch, checked against retail's
+  servers.
+- [The Jedi single-player level clock](fntech3/2026-10-16-jedi-sp-level-clock.md)
+  -- the time each Jedi Academy and Jedi Outcast single-player level starts
+  at, read from the original engines.
+- [Portals seen through portals](fntech3/2026-10-15-snapshot-portal-recursion.md)
+  -- what a server sends through a portal seen through another portal in
+  every game, and RTCW's scripted cameras, checked against retail's servers.
+- [The Jedi single-player snapshot walk](fntech3/2026-10-16-jedi-sp-snapshot-walk.md)
+  -- which entities Jedi Academy's and Jedi Outcast's single-player servers
+  send, Force Sight's included, read from the original engines.
 - [Jedi Academy menus the client game opens](fntech3/2026-10-15-jka-ui-menus.md)
   -- siege's class menu and the client game's other menus, handed to the
   game's own menus by number as retail hands them.
@@ -146,20 +169,6 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Jedi Academy's trace with pass entity -1](fntech3/2026-10-16-jka-trace-pass-none.md)
   -- what retail reads for the game's "ignore nothing" pass entity, and
   why fnTech3 reads it as no pass entity, checked live on a siege round.
-- [Jedi multiplayer broadcasts and level time](fntech3/2026-10-15-jedi-broadcast-level-time.md)
-  -- which entities the Jedi servers send each player, permanent ones and
-  broadcast masks included, and the level time a map change keeps, checked
-  against retail's servers.
-- [The level clock across a map change](fntech3/2026-10-15-level-clock.md)
-  -- whether a new level carries on from the last one's time in Quake III,
-  Quake Live, RTCW, Enemy Territory and Holomatch, checked against retail's
-  servers.
-- [Portals seen through portals](fntech3/2026-10-15-snapshot-portal-recursion.md)
-  -- what a server sends through a portal seen through another portal in
-  every game, and RTCW's scripted cameras, checked against retail's servers.
-- [The Jedi single-player snapshot walk](fntech3/2026-10-16-jedi-sp-snapshot-walk.md)
-  -- which entities Jedi Academy's and Jedi Outcast's single-player servers
-  send, Force Sight's included, read from the original engines.
 - [Small gaps from the October 15 census](fntech3/2026-10-15-census-small-gaps.md)
   -- Enemy Territory's tactical search queues and update records, and the
   pure gamestate budget of Enemy Territory and Jedi Outcast, read from the
@@ -176,9 +185,6 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Raven's sun shader keyword](fntech3/2026-10-15-raven-sun-keyword.md)
   -- the `sun` line of both Jedi games' sky shaders, read as their engines
   read it, which ends the grey skies of maps such as `mp/duel9`.
-- [Jedi Outcast's one-shot and clamped animations](fntech3/2026-10-15-jk2-animmap-variants.md)
-  -- Raven's `oneshotanimMap` and `clampanimMap`, read in both Outcast
-  engines, which its explosions and campaign doors use.
 - [Raven's surface sprites](fntech3/2026-10-15-jedi-surface-sprites.md)
   -- the `surfaceSprites` stages of both Jedi games, read as their engines
   read them and drawn as grass and splashes over the ground.
@@ -200,6 +206,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Raven's light styles, animated](fntech3/2026-10-16-raven-light-styles-animated.md)
   -- the client game's flickering and switched lights reaching all three
   renderers, and where the four Jedi engines keep their colours.
+- [Jedi Outcast's one-shot and clamped animations](fntech3/2026-10-15-jk2-animmap-variants.md)
+  -- Raven's `oneshotanimMap` and `clampanimMap`, read in both Outcast
+  engines, which its explosions and campaign doors use.
 - [Jedi Academy's selection bars and loading screen, live](fntech3/2026-10-15-jka-hud-live-check.md)
   -- the bars and the loading screen checked in captures, each bar's name
   kept with its bar on tall screens, and why the zoom masks are out of reach.
@@ -219,6 +228,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Widescreen field of view in every game](fntech3/2026-10-22-fov-correction-all-profiles.md)
   -- `r_fovCorrection` in all sixteen profiles, Jedi Outcast's stretched
   view and the 1999 tests included, keeping the game's underwater sway.
+- [Jedi Academy's skin gore](fntech3/2026-10-17-jka-skin-gore.md)
+  -- client-game imports 313 and 314 measured in `jamp.exe` and served: the
+  gore splotch, its records, sets and expiry, not yet drawn.
 - [October 9 compatibility integration](fntech3/2026-10-09-compatibility-integration.md)
   -- resumed Alice and Elite Force work, shared-tree validation, and probe
   evidence and limits for the combined compatibility slices.

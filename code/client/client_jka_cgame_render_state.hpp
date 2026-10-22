@@ -23,7 +23,8 @@ struct State {
     std::map<Key, Runtime> models;
     std::vector<fntech3_jka_mp_refEntity_t> pending;
     std::vector<refEntity_t> prepared;
-    std::vector<int> visible, traversal, order;
+    // drawn: every surface not switched off (skin gore expires there).
+    std::vector<int> visible, traversal, order, drawn;
     std::vector<fntech3::ghoul2::pose::Palette> palettes;
     std::vector<unsigned char> bytes;
     std::vector<float> bones;

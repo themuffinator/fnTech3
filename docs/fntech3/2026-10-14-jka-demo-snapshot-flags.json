@@ -1,0 +1,129 @@
+{
+  "record": "docs/fntech3/2026-10-14-jka-demo-snapshot-flags.md",
+  "date": "2026-10-14",
+  "profile": "jka-mp",
+  "evidenceLevels": ["Source (retail disassembly)", "Unit", "Live subset"],
+  "gatesClosed": [],
+  "sourceHead": "9a15b30e1bd85fb4ac3edb59a7dcbfa35e35c288",
+  "verdict": "The demo's SNAPFLAG_NOT_ACTIVE snapshots are those retail jamp.exe 1.01 writes for a loading client, and fnTech3's playback skips them as retail's does. The earlier no-3D-view readings were taken after the demo ended. No engine code changed.",
+  "demos": {
+    "server": {
+      "path": ".tmp/jka-compat/maintained-demo-01/capture/demos/server.dm_26",
+      "sha256": "6ca7fbd0750bff3cb9ab310895536ae9601822e6a4422a5bf9dd7987016279d9",
+      "recordCount": 440,
+      "writer": "fnTech3 dedicated server sv_autoRecordDemos, 2026-10-02, OpenJK client peer on mp/ffa1",
+      "summary": {
+        "snapshotCount": 439,
+        "activeSnapshotCount": 33,
+        "notActiveSnapshotCount": 406,
+        "leadingNotActiveCount": 406,
+        "flagCounts": {"4": 33, "6": 406},
+        "firstServerTime": 5350,
+        "lastServerTime": 27800,
+        "firstActiveRecord": 407,
+        "firstActiveServerTime": 26200,
+        "activeSpanMilliseconds": 1600
+      },
+      "loadingSnapshotsDelta": "none (all 406 non-delta)",
+      "firstActiveRecordCommands": "cs 822-834, cs 1131 and 'spc' (opens the player-configuration menu)",
+      "serverConsole": [
+        "Going from CS_CONNECTED to CS_PRIMED",
+        "Server demo recording to base/demos/server/20261002-204651-mp_ffa1-c00-fntech3-jka-maintained-peer",
+        "Going from CS_PRIMED to CS_ACTIVE",
+        "ClientBegin: 0",
+        "clientCommand: ... : 4 : disconnect",
+        "Stopped server demo recording"
+      ]
+    },
+    "client": {
+      "path": ".tmp/jka-compat/maintained-demo-01/capture/demos/client.dm_26",
+      "sha256": "de3308b92b3938ddb53957ce0f5ea2f75e12da83e5e882aab41e513b769364e1",
+      "writer": "OpenJK client record command",
+      "gamestateSequence": 408,
+      "firstSnapshotSequence": 410,
+      "summary": {
+        "snapshotCount": 28,
+        "activeSnapshotCount": 28,
+        "notActiveSnapshotCount": 0,
+        "firstServerTime": 26300,
+        "lastServerTime": 27650,
+        "activeSpanMilliseconds": 1350
+      },
+      "spcCommandRecorded": false
+    }
+  },
+  "retail": {
+    "executable": "E:/Games/Jedi Academy/jamp.exe",
+    "version": "1.01",
+    "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+    "method": "capstone disassembly; nothing executed",
+    "observations": [
+      {"function": "SV_WriteSnapshotToClient", "address": "0x00460bd0", "fact": "flags start from svs.snapFlagServerBit [0x00c317c8]; +1 if rate delayed; at 0x00460c93 +2 (SNAPFLAG_NOT_ACTIVE) when client->state != CS_ACTIVE (4)"},
+      {"function": "SV_WriteSnapshotToClient", "address": "0x00460bfd", "fact": "a non-active client's snapshot has no delta base"},
+      {"function": "CL_SetCGameTime", "address": "0x00414a90", "fact": "while cls.state [0x008af100] is CA_PRIMED (7) and a demo plays, reads one demo message per frame (0x0041cf00), then calls CL_FirstSnapshot on new snapshots"},
+      {"function": "CL_FirstSnapshot", "address": "0x00414a20", "fact": "returns while cl.snap.snapFlags [0x009770d8] & 2; otherwise sets cls.state to CA_ACTIVE (8) and runs activeAction"},
+      {"function": "CL_Record", "address": "0x0041c9d9", "fact": "refuses before cls.state == CA_ACTIVE (8): 'You must be in a level to record'; retail has no server-side recorder"},
+      {"function": "CL_CgameSystemCalls case 238 (CG_OPENUIMENU)", "address": "0x00413032", "fact": "calls the UI's export 7 (set active menu) with the menu argument, no demo-playback check"}
+    ],
+    "scripts": {
+      ".tmp/jka-demo-snapflags/retail_scan.py": "536ac218f00e66048bcbf31fca39174abb7c59e4b58683a0516ccc81b1711c6d",
+      ".tmp/jka-demo-snapflags/find_state_writes.py": "e144456c294316fc2d1c13c517d36245ba523124700b3d2b027719e3403aea0d",
+      ".tmp/jka-demo-snapflags/callers.py": "d24dd53701eddfd9927bb658a031d28a26cf6752b53b8a168c6a004e31782e88"
+    }
+  },
+  "fntech3Source": {
+    "writer": "code/server/sv_snapshot.cpp SV_WriteSnapshotToClient: snapFlags |= SNAPFLAG_NOT_ACTIVE when client->state != CS_ACTIVE",
+    "playback": "code/client/cl_cgame.cpp CL_FirstSnapshot returns on SNAPFLAG_NOT_ACTIVE; CL_SetCGameTime reads one demo message per primed frame",
+    "recorder": "code/server/sv_client.cpp SV_StartDemoRecord at gamestate (CS_PRIMED); SV_RecordDemoMessage writes every snapshot message"
+  },
+  "earlierReadings": {
+    "round": "docs/fntech3/2026-10-14-compatibility-round.md",
+    "probe": ".tmp/round-2026-10-14/jka-demo/server-glx",
+    "finding": "shots 00-01 ran inside the active span (menu over the world); shots 02-28 ran after CL_NextDemo and are black",
+    "menuDiagnostic": ".tmp/round-2026-10-14/jka-demo/server-glx-menudiag: every r_speeds '2/0 shaders/surfs 0 leafs' line follows 'CL_NextDemo' in its console log",
+    "debuggerRead": ".tmp/round-2026-10-14/jka-demo/server-glx-cdb2-peek.txt: serverTime 19350 is record 272, inside the loading stretch"
+  },
+  "liveRun": {
+    "harness": ".tmp/round-2026-10-14/jka-demo/probe_active_span.py",
+    "harnessSha256": "05e69e7936ef6f2af7e6f18b82bcbb0657d1e16f6e7cda2e636e5a10e45acee9",
+    "output": ".tmp/jka-demo-snapflags/active-span-01",
+    "utc": "2026-10-14T22:41:37.793391+00:00",
+    "commandLine": "python .tmp/round-2026-10-14/jka-demo/probe_active_span.py --runtime .tmp/runtime/round-1014-after --origin server --output .tmp/jka-demo-snapflags/active-span-01 --renderer glx --shots 12 --gap 60 --timeout 100 --timescale 0.1",
+    "engineCommand": "fntech3.exe +set fs_basepath \"E:\\Games\\Jedi Academy\" +set fs_homepath <output>\\home +set com_gameProfile jka-mp +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set in_mouse 0 +set in_keyboard 0 +set in_joystick 0 +set in_synthetic 0 +set s_initsound 0 +set net_enabled 0 +set cl_renderer glx +exec jka-openjk-peer.cfg +demo jka-generated.dm_26",
+    "activeAction": "echo FNTECH3_JKA_OWN_DEMO_ACTIVE_SERVER; timescale 0.1; wait 5; vstr shot00",
+    "shot": "echo probe-shot NN; r_speeds 1; wait 2; r_speeds 0; screenshotPNG jka-demo-NN; wait 60; vstr shotNN+1",
+    "binaries": {
+      ".tmp/runtime/round-1014-after/fntech3.exe": "e048d976652c9426bcb488e0aaebe7a9e6c161c56a1e4ec1eb589019cecc1229",
+      ".tmp/runtime/round-1014-after/fnql_glx_x86.dll": "275c1905d942cc118e9226509a2260a9689d12681a2ebb035419c2c1d0baecd5"
+    },
+    "installation": "E:/Games/Jedi Academy (read only, unchanged)",
+    "platform": "Windows 11 x86 client, private desktop, windowed 800x600",
+    "inputInjected": false,
+    "desktopSwitched": false,
+    "networkEnabled": false,
+    "exitCode": 0,
+    "validSnapshotCount": 439,
+    "shotsBeforeEndOfDemo": 12,
+    "rSpeedsRange": {"shaders": [1129, 1157], "surfaces": [5786, 5810], "leafs": [63, 66]},
+    "firstShotRSpeeds": "275/1190 then 295/1295 shaders/surfs, 63 leafs",
+    "captures": "12 engine PNG screenshots, each the mp/ffa1 view behind the player-configuration menu",
+    "demoUnchanged": true,
+    "installationUnchanged": true,
+    "binariesUnchanged": true
+  },
+  "changes": {
+    "scripts/jka_demo_evidence.py": "snapshot_flags() and snapshot_summary(): bounded header reader using the engine's HuffmanDecoderTable; CLI prints the summary",
+    "tests/jka_demo_snapshot_flags_tests.py": "7 tests: symbol round trip, loading/active split with reliable commands, never-active demo, truncation and unterminated commands, writer and CL_FirstSnapshot source pins, local capture split (skipped when absent)",
+    "engine": "none"
+  },
+  "tests": {
+    "command": "python tests/jka_demo_snapshot_flags_tests.py -v; python tests/probe_jka_openjk_demo_tests.py",
+    "result": "7 passed; 8 passed"
+  },
+  "remaining": [
+    "a capture of a drawn saber blade (needs a demo from a client that joins and draws a saber)",
+    "whether fnTech3's server recorder should drop loading snapshots is a product choice; retail has no server recorder",
+    "the soft appearance of the world behind the menu was not examined",
+    "retail playback of this demo was not run"
+  ]
+}

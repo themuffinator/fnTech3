@@ -1,0 +1,884 @@
+{
+  "record": "2026-10-15-ritual-shader-sweep.md",
+  "evidence": [
+    "Source",
+    "Unit",
+    "Live subset"
+  ],
+  "profiles": [
+    "alice",
+    "fakk2"
+  ],
+  "full_compatibility": false,
+  "gates_closed": [],
+  "source_commit": "fbde92d4d31a5821a87c27a8bb23b0ed70a4202f",
+  "source_state": "git archive export of source_commit; \"after\" adds only this change's hunks (.tmp/ritual-shaders/tools/hunks.py). source_commit predates 6bf845bc, whose Medal of Honor condition shares the sun line: the export's sun hunk adds the Ritual condition alone, and the committed line names both. Neither profile under test reaches the Medal of Honor condition",
+  "engine_change_files": [
+    "code/renderer/tr_shader.c",
+    "code/renderervk/tr_shader.c",
+    "code/rendererrtx/tr_shader.c"
+  ],
+  "build": {
+    "platform": "Windows x86",
+    "type": "debugoptimized",
+    "compiler": "MSVC 2022",
+    "strict_warnings": true,
+    "export": ".tmp/ritual-shaders/export",
+    "runtimes": {
+      "ritual-shaders-before": {
+        "fntech3.exe": "9ad7d885c02f86ebf9b5db3053df4406065ccbf675b2afceaee5d085d3a53996",
+        "fnql_glx_x86.dll": "efb1377588640f0e99378470c4799b73bae3f6351373c6f5a95ef462e9dd5a6f",
+        "fnql_rtx_x86.dll": "387e808d3421a6c93bec917270a6eec50197efef095b4db24043f1f5d696c1f4",
+        "fnql_vk_x86.dll": "b8e6fc68aced0eaedc6e33bae6d6472a3fb30ee46625579d9afa3cc9823b386f",
+        "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+        "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493"
+      },
+      "ritual-shaders-after": {
+        "fntech3.exe": "9ad7d885c02f86ebf9b5db3053df4406065ccbf675b2afceaee5d085d3a53996",
+        "fnql_glx_x86.dll": "1794c3917f73d68a2db6775afb4fcc0b959f38351a27981fc07364355f37afe2",
+        "fnql_rtx_x86.dll": "947866db4755409c107d2e86206f45759be48ed9940d84a3964846b3caf83fc0",
+        "fnql_vk_x86.dll": "44a23d21be8db30c5745fca3e37923c79773921754db0f2161ae0037986a238c",
+        "fntech3-pkg.fnz": "277362f7aa850b72e19b7a6892cce4dc645a47e514abfcc251d58b2fa971862f",
+        "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493"
+      }
+    },
+    "note": "fntech3.exe is byte-identical in both runtimes; only the three renderer DLLs differ"
+  },
+  "installations": {
+    "alice": {
+      "path": "E:\\Games\\Alice",
+      "read_only": true,
+      "files": {
+        "alice.exe": "8aa22917b7707f0e1a7c4dbe9a3c38332b1873ae2059174ac5329de26921fc18",
+        "base/cgamex86.dll": "fa70feb1be9883511cf46e1f5556e5c9a2bc52b6b6eecd31a28fa228fa3b443c",
+        "base/fgamex86.dll": "ae5a572728fbb2cbf8935d633ef9e23f023edad986d7dd9ee506d589eb261aea",
+        "base/pak0.pk3": "6a63b59cd627902660bd4261461f904bf984e05891eb749d47bcc7fc8cedda62",
+        "base/pak1_large.pk3": "eac773ca4012842c63738f348d03b2604f6d0798ad26536f7256c659ff7cdfc7",
+        "base/pak1_small.pk3": "25535bbb0dc6da4484b7931e221775aaa9817ad295f8aaed615f975b55c44da0",
+        "base/Pak2.pk3": "936d16c2311613c46b3167772b1c22aac693f96814cd70e3224a110884613864",
+        "base/Pak3.pk3": "a779bf348edcfb1d8711d1aad08537b30cf5794e6f8149168f4ca7a415aab8e4",
+        "base/pak4_english.pk3": "ca30b395f770c0b5676d42b0ab81582f17976b526ed44c137512014a88672121",
+        "base/pak5_dutch.pk3": "ca30b395f770c0b5676d42b0ab81582f17976b526ed44c137512014a88672121"
+      }
+    },
+    "fakk2": {
+      "path": ".tmp/fakk2-install/game",
+      "files": {
+        "fakk/cgamex86.dll": "0ba4dc3e71897cc358e3042a534c88189d677ae64aeafbadfc13cc3477675f3d",
+        "fakk/gamex86.dll": "f7f54f7239718c2cd534e05d4243a6acfdbe1531b2ba7c5ba59bf31c4bc25637",
+        "fakk/pak0.pk3": "c9777e42a32853048d4cc11916d8a5785a56f3533aef41ed84a46916af8da414",
+        "fakk/pak1.pk3": "8b08b576d5eaa780693c6af83f94ced6263f04f70adeaffd6943594290bfec02"
+      }
+    },
+    "fakk2_102_exe": {
+      "path": ".tmp/runtime/fakk2-retail/fakk2.exe",
+      "sha256": "681bc51c3343d01d772c5ae4aae7523ae4547350b243c875156e138043335785",
+      "use": "inspected only (string references); not run"
+    }
+  },
+  "command": "python scripts/probe_retail_map_loads.py --client <runtime>/fntech3.exe --server <runtime>/fntech3.exe --installation alice=E:/Games/Alice --installation fakk2=.tmp/fakk2-install/game --profiles alice,fakk2 --jobs 3 --developer --renderer <glx|vk> --output <output>; python scripts/scan_shader_warnings.py <output>",
+  "filter_zero_command": "python .tmp/ritual-shaders/tools/sweep_with_cvars.py r_picmipFilter=0 -- <the same arguments>",
+  "compare": {
+    "glx": "0 of 66 maps changed",
+    "vk": "0 of 66 maps changed"
+  },
+  "sweeps": {
+    "sweep-before-glx": {
+      "output": ".tmp/ritual-shaders/sweep-before-glx",
+      "runtime": ".tmp/runtime/ritual-shaders-before",
+      "renderer": "glx",
+      "developer": true,
+      "extra_cvars": [],
+      "binaries": {
+        "fntech3.exe": "9ad7d885c02f86ebf9b5db3053df4406065ccbf675b2afceaee5d085d3a53996",
+        "fnql_glx_x86.dll": "efb1377588640f0e99378470c4799b73bae3f6351373c6f5a95ef462e9dd5a6f"
+      },
+      "binariesUnchanged": true,
+      "startedUtc": "2026-10-15T11:34:05Z",
+      "endedUtc": "2026-10-15T11:37:51Z",
+      "outcomes": {
+        "loaded": 66,
+        "rejected": 0,
+        "faulted": 0,
+        "fatal": 0,
+        "crashed": 0,
+        "hung": 0
+      },
+      "profiles": {
+        "alice": {
+          "loaded": 36,
+          "rejected": 0,
+          "faulted": 0,
+          "fatal": 0,
+          "crashed": 0,
+          "hung": 0
+        },
+        "fakk2": {
+          "loaded": 30,
+          "rejected": 0,
+          "faulted": 0,
+          "fatal": 0,
+          "crashed": 0,
+          "hung": 0
+        }
+      },
+      "distinctWarnings": {
+        "default": 6,
+        "lightmap": 4,
+        "other": 1
+      },
+      "warnings": {
+        "default": {
+          "Shader image unavailable for: crosshair": 36,
+          "Shader image unavailable for: sun": 36,
+          "Shader image unavailable for: targeted_outofrange": 36,
+          "Shader image unavailable for: textures/notexture": 2,
+          "Shader image unavailable for: beamshader": 1,
+          "Shader image unavailable for: textures/sky/cliffsky": 1
+        },
+        "lightmap": {
+          "WARNING: shader 'textures/common/vol_light' has lightmap but no lightmap stage!": 2,
+          "WARNING: shader 'textures/notexture' has lightmap but no lightmap stage!": 2,
+          "WARNING: shader 'textures/common/black' has lightmap but no lightmap stage!": 1,
+          "WARNING: shader 'textures/otto/ottoscrew' has lightmap but no lightmap stage!": 1
+        },
+        "other": {
+          "WARNING: reused image textures/detail_shader/detail_smooth01.tga with mixed flags (3 vs 1)": 3
+        }
+      },
+      "reusedImageLines": 800,
+      "reusedImageLinesByProfile": {
+        "alice": 47,
+        "fakk2": 753
+      },
+      "reusedImage": {
+        "WARNING: reused image models/weapons/sword/sword1.tga with mixed flags (3 vs 1)": 90,
+        "WARNING: reused image models/obj/detonator/detonator.tga with mixed flags (1 vs 3)": 30,
+        "WARNING: reused image models/players/newjulie/julie1_skin1.tga with mixed flags (0 vs 2)": 30,
+        "WARNING: reused image models/weapons/sling/sling.tga with mixed flags (3 vs 1)": 30,
+        "WARNING: reused image models/players/newjulie/julie3_skin1.tga with mixed flags (2 vs 0)": 29,
+        "WARNING: reused image models/monster/vymith/vymith.tga with mixed flags (3 vs 1)": 26,
+        "WARNING: reused image textures/metals/envmap_med.tga with mixed flags (3 vs 1)": 25,
+        "WARNING: reused image models/monster/horde/horde1.tga with mixed flags (3 vs 1)": 24,
+        "WARNING: reused image textures/metals/envmap_small6.tga with mixed flags (3 vs 1)": 20,
+        "WARNING: reused image models/ammo/rock/rockammo.tga with mixed flags (1 vs 3)": 17,
+        "WARNING: reused image models/monster/gasyerass2/gasyerass2.tga with mixed flags (3 vs 1)": 16,
+        "WARNING: reused image models/ammo/rock/rockammo.tga with mixed flags (3 vs 1)": 13,
+        "WARNING: reused image models/lever1/skin01.tga with mixed flags (3 vs 1)": 12,
+        "WARNING: reused image models/monster/gasyerass/gasyerass.tga with mixed flags (3 vs 1)": 12,
+        "WARNING: reused image models/monster/flesh/flesh1.tga with mixed flags (3 vs 1)": 10,
+        "WARNING: reused image models/monster/vymith/vymith_blue.tga with mixed flags (3 vs 1)": 10,
+        "WARNING: reused image models/npc/edenmale/generic1c.tga with mixed flags (3 vs 1)": 10,
+        "WARNING: reused image models/obj/plantpot/plantpot with mixed flags (1 vs 3)": 10,
+        "WARNING: reused image models/plants/edentree/edentree/edentree with mixed flags (1 vs 3)": 10,
+        "WARNING: reused image models/plants/edentree/edentree/edentreeleaf with mixed flags (1 vs 3)": 10,
+        "WARNING: reused image models/plants/edentree/edentree/edentreetrunk2 with mixed flags (1 vs 3)": 10,
+        "WARNING: reused image models/npc/edenmale/generic2.tga with mixed flags (3 vs 1)": 9,
+        "WARNING: reused image models/plants/edenplant2/edenplant2 with mixed flags (1 vs 3)": 8,
+        "WARNING: reused image models/plants/edentree/edentree2/edentree2 with mixed flags (1 vs 3)": 8,
+        "WARNING: reused image models/plants/edentree/edentree2/edentreetrunk with mixed flags (1 vs 3)": 8,
+        "WARNING: reused image models/monster/creeper/creeper1.tga with mixed flags (3 vs 1)": 7,
+        "WARNING: reused image models/npc/edenmale/edenmale3.tga with mixed flags (3 vs 1)": 7,
+        "WARNING: reused image models/players/newjulie/julie1_skin5.tga with mixed flags (0 vs 2)": 7,
+        "WARNING: reused image models/players/newjulie/julie3_skin5.tga with mixed flags (2 vs 0)": 7,
+        "WARNING: reused image models/monster/grawlix/grawlix2.tga with mixed flags (1 vs 3)": 6,
+        "WARNING: reused image models/npc/angus/angus2.tga with mixed flags (3 vs 1)": 6,
+        "WARNING: reused image models/obj/lamppost/lamppost with mixed flags (1 vs 3)": 6,
+        "WARNING: reused image models/obj/stack/smokestack with mixed flags (1 vs 3)": 6,
+        "WARNING: reused image models/plants/swbranch1/swbranch1 with mixed flags (1 vs 3)": 6,
+        "WARNING: reused image models/players/newjulie/julie1_skin2.tga with mixed flags (0 vs 2)": 6,
+        "WARNING: reused image models/players/newjulie/julie3_skin2.tga with mixed flags (2 vs 0)": 6,
+        "WARNING: reused image models/characters/mock_turtle/mshell.tga with mixed flags (3 vs 1)": 5,
+        "WARNING: reused image models/monster/vmama/vmama1.tga with mixed flags (3 vs 1)": 5,
+        "WARNING: reused image models/monster/vmama/vmama2.tga with mixed flags (3 vs 1)": 5,
+        "WARNING: reused image models/obj/lanterns/lantern2/lantern2crystal.tga with mixed flags (3 vs 1)": 5,
+        "WARNING: reused image models/plants/tree/treewood with mixed flags (1 vs 3)": 5,
+        "WARNING: reused image models/players/newjulie/julie1_skin3.tga with mixed flags (0 vs 2)": 5,
+        "WARNING: reused image models/players/newjulie/julie3_skin3.tga with mixed flags (2 vs 0)": 5,
+        "WARNING: reused image textures/metals/envmap_small4.tga with mixed flags (3 vs 1)": 5,
+        "WARNING: reused image models/npc/edenmale/generic1b.tga with mixed flags (1 vs 3)": 4,
+        "WARNING: reused image models/npc/edenmale/generic1b.tga with mixed flags (3 vs 1)": 4,
+        "WARNING: reused image models/plants/largemush1/largemush1 with mixed flags (1 vs 3)": 4,
+        "WARNING: reused image models/plants/swplant/swplant1/swplant1 with mixed flags (1 vs 3)": 4,
+        "WARNING: reused image models/plants/swtree/swtree2/deadtree with mixed flags (1 vs 3)": 4,
+        "WARNING: reused image models/plants/treetop/treewood with mixed flags (1 vs 3)": 4,
+        "WARNING: reused image models/players/newjulie/julie1_skin4.tga with mixed flags (0 vs 2)": 4,
+        "WARNING: reused image models/players/newjulie/julie3_skin4.tga with mixed flags (2 vs 0)": 4,
+        "WARNING: reused image textures/effects/reflights.tga with mixed flags (3 vs 1)": 4,
+        "WARNING: reused image models/arc/edenlamp/edenlamp with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image models/characters/jabberspawn/skin01.tga with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image models/monster/recruiter/screenbar.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image models/monster/trangler/tr_flower.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image models/monster/trangler/tr_vine.tga with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image models/monster/tyler/tyler3.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image models/npc/edenfemale/merchant1.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image models/npc/otto/otto_skin4.tga with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image models/npc/otto/otto_skin6.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image models/obj/lamppost/lamppost.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image models/obj/spigot/spigot.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image models/plants/edenbush/edenbush with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image models/plants/edenplant3/edenplant3 with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image models/plants/edenplant3/edenplant3stem with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image models/plants/swamptree1/swamptree1 with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image models/plants/swcattails/swcattails with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image models/plants/swplant/swplant2/swplant2 with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image models/plants/tree/treewood2 with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image models/torch/skin01 with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image textures/detail_shader/detail_smooth01.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image textures/sprites/flare_main.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image models/characters/jabberspawn/skin01.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image models/monster/githhead/ghead1.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image models/npc/angus/angus1.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image models/npc/gruff/gruffskin1.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image models/npc/sister/sisters1.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image models/npc/sister/sisters2.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image models/obj/fountain/edenfount with mixed flags (1 vs 3)": 2,
+        "WARNING: reused image models/obj/fountain/fountholes with mixed flags (1 vs 3)": 2,
+        "WARNING: reused image models/obj/lanterns/lantern1/lantern1.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image models/obj/objects/edenwood1 with mixed flags (1 vs 3)": 2,
+        "WARNING: reused image models/obj/pship/pship1.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image models/obj/statuefem/statuefem1 with mixed flags (1 vs 3)": 2,
+        "WARNING: reused image models/obj/statuefem/statuefem2 with mixed flags (1 vs 3)": 2,
+        "WARNING: reused image models/obj/swcot/swcot.tga with mixed flags (1 vs 3)": 2,
+        "WARNING: reused image models/obj/tikihead/tikihead with mixed flags (1 vs 3)": 2,
+        "WARNING: reused image models/obj/watertank/watertank with mixed flags (1 vs 3)": 2,
+        "WARNING: reused image models/obj/westatue/westat1 with mixed flags (1 vs 3)": 2,
+        "WARNING: reused image models/obj/westatue/westat2 with mixed flags (1 vs 3)": 2,
+        "WARNING: reused image models/plants/smallmush/smallmush3/smallmush3 with mixed flags (1 vs 3)": 2,
+        "WARNING: reused image textures/common/black.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image textures/sprites/ecaus1.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image textures/sprites/ecaus2.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image models/alice/body3.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/characters/mock_turtle/mshell.tga with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/fx/wfall/wfall1.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/fx/wfall/wfall2.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/giant/shroom06/shroom06 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/giant/shroom07/shroom07 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/gibs/tan/skin02.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/levels/fogtemple/fogmush/fogmushtop with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/levels/fogtemple/fogmush/fogtrunk with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/levels/fogtemple/fogmush/fogtrunktop with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/levels/walkdown/signs/dangerrock/dangerpost with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/monster/gasyerass2/gasyerass2.tga with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/monster/grawlix/grawlix1.tga with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/monster/jart/jart.tga with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/monster/spad/armbig/spad_bigarm.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/monster/spad/body/spad_body1.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/npc/edenfemale/random1_1.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/npc/edenfemale/random3_1.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/obj/carts/EdenMetal264x64 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/carts/EdenWood232x32 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/cavehead/cavehead with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/cavehead/cavehead2 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/cheese/CheeseHanging1 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/chicken/ChickenBreast with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/clothes/clothes_battle.tga with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/clothes/clothes_swamp.tga with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/fount/fountain.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/obj/garlic/Garlic with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/ham/ham1 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/ham/ham2 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/hand/hand with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/lanterns/lantern1/lantern1 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/lanterns/lantern1/lanternpost with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/lanterns/lantern2/lantern2crystal with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/lanterns/lantern2/lantern2post with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/lanterns/lantern2/lantern2top with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/lanterns/lantern2/lantern2trim with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/pots/pan3.tga with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/pots/potbottom1 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/skytest/beachland1 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/skytest/beachland2 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/skytest/beachland3 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/skytest/cliffs with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/skytest/cliffs2 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/skytest/clouddome.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/obj/skytest/darkclouds.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/obj/skytest/flatland with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/skytest/mountainside with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/skytest/mounttop with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/skytest/sand with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/spigot/spigot with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/statuefem2/stat2.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/obj/swampskel/swampskel with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/windstat/windstat with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/windstat/windstat.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/obj/wingedfemale/wing with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/wingedfemale/wingfemale with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/plants/puffplant/plantstem with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/plants/puffplant/pufftop with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/plants/smallmush/smallmush2/smallmush2 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/plants/swplant/swplant3/swplant3 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/plants/swtree/swtree3/deadtreeend with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/players/newjulie/julie2_skin1.tga with mixed flags (0 vs 2)": 1,
+        "WARNING: reused image models/players/newjulie/julie3_skin1.tga with mixed flags (0 vs 2)": 1,
+        "WARNING: reused image textures/effects/swirlie_02.tga with mixed flags (0 vs 1)": 1,
+        "WARNING: reused image textures/hud/health.tga with mixed flags (0 vs 4)": 1,
+        "WARNING: reused image textures/special/mcloud2.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image textures/special/mcloud5.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image textures/sprites/rope.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image textures/testliq/top3.tga with mixed flags (3 vs 1)": 1
+      }
+    },
+    "sweep-before-vk": {
+      "output": ".tmp/ritual-shaders/sweep-before-vk",
+      "runtime": ".tmp/runtime/ritual-shaders-before",
+      "renderer": "vk",
+      "developer": true,
+      "extra_cvars": [],
+      "binaries": {
+        "fntech3.exe": "9ad7d885c02f86ebf9b5db3053df4406065ccbf675b2afceaee5d085d3a53996",
+        "fnql_vk_x86.dll": "b8e6fc68aced0eaedc6e33bae6d6472a3fb30ee46625579d9afa3cc9823b386f"
+      },
+      "binariesUnchanged": true,
+      "startedUtc": "2026-10-15T12:52:14Z",
+      "endedUtc": "2026-10-15T12:55:39Z",
+      "outcomes": {
+        "loaded": 66,
+        "rejected": 0,
+        "faulted": 0,
+        "fatal": 0,
+        "crashed": 0,
+        "hung": 0
+      },
+      "profiles": {
+        "alice": {
+          "loaded": 36,
+          "rejected": 0,
+          "faulted": 0,
+          "fatal": 0,
+          "crashed": 0,
+          "hung": 0
+        },
+        "fakk2": {
+          "loaded": 30,
+          "rejected": 0,
+          "faulted": 0,
+          "fatal": 0,
+          "crashed": 0,
+          "hung": 0
+        }
+      },
+      "distinctWarnings": {
+        "default": 6,
+        "lightmap": 4,
+        "other": 1
+      },
+      "warnings": {
+        "default": {
+          "Shader image unavailable for: crosshair": 36,
+          "Shader image unavailable for: sun": 36,
+          "Shader image unavailable for: targeted_outofrange": 36,
+          "Shader image unavailable for: textures/notexture": 2,
+          "Shader image unavailable for: beamshader": 1,
+          "Shader image unavailable for: textures/sky/cliffsky": 1
+        },
+        "lightmap": {
+          "WARNING: shader 'textures/common/vol_light' has lightmap but no lightmap stage!": 2,
+          "WARNING: shader 'textures/notexture' has lightmap but no lightmap stage!": 2,
+          "WARNING: shader 'textures/common/black' has lightmap but no lightmap stage!": 1,
+          "WARNING: shader 'textures/otto/ottoscrew' has lightmap but no lightmap stage!": 1
+        },
+        "other": {
+          "WARNING: reused image textures/detail_shader/detail_smooth01.tga with mixed flags (3 vs 1)": 3
+        }
+      },
+      "reusedImageLines": 800,
+      "reusedImageLinesByProfile": {
+        "alice": 47,
+        "fakk2": 753
+      },
+      "reusedImage": {
+        "WARNING: reused image models/weapons/sword/sword1.tga with mixed flags (3 vs 1)": 90,
+        "WARNING: reused image models/obj/detonator/detonator.tga with mixed flags (1 vs 3)": 30,
+        "WARNING: reused image models/players/newjulie/julie1_skin1.tga with mixed flags (0 vs 2)": 30,
+        "WARNING: reused image models/weapons/sling/sling.tga with mixed flags (3 vs 1)": 30,
+        "WARNING: reused image models/players/newjulie/julie3_skin1.tga with mixed flags (2 vs 0)": 29,
+        "WARNING: reused image models/monster/vymith/vymith.tga with mixed flags (3 vs 1)": 26,
+        "WARNING: reused image textures/metals/envmap_med.tga with mixed flags (3 vs 1)": 25,
+        "WARNING: reused image models/monster/horde/horde1.tga with mixed flags (3 vs 1)": 24,
+        "WARNING: reused image textures/metals/envmap_small6.tga with mixed flags (3 vs 1)": 20,
+        "WARNING: reused image models/ammo/rock/rockammo.tga with mixed flags (1 vs 3)": 17,
+        "WARNING: reused image models/monster/gasyerass2/gasyerass2.tga with mixed flags (3 vs 1)": 16,
+        "WARNING: reused image models/ammo/rock/rockammo.tga with mixed flags (3 vs 1)": 13,
+        "WARNING: reused image models/lever1/skin01.tga with mixed flags (3 vs 1)": 12,
+        "WARNING: reused image models/monster/gasyerass/gasyerass.tga with mixed flags (3 vs 1)": 12,
+        "WARNING: reused image models/monster/flesh/flesh1.tga with mixed flags (3 vs 1)": 10,
+        "WARNING: reused image models/monster/vymith/vymith_blue.tga with mixed flags (3 vs 1)": 10,
+        "WARNING: reused image models/npc/edenmale/generic1c.tga with mixed flags (3 vs 1)": 10,
+        "WARNING: reused image models/obj/plantpot/plantpot with mixed flags (1 vs 3)": 10,
+        "WARNING: reused image models/plants/edentree/edentree/edentree with mixed flags (1 vs 3)": 10,
+        "WARNING: reused image models/plants/edentree/edentree/edentreeleaf with mixed flags (1 vs 3)": 10,
+        "WARNING: reused image models/plants/edentree/edentree/edentreetrunk2 with mixed flags (1 vs 3)": 10,
+        "WARNING: reused image models/npc/edenmale/generic2.tga with mixed flags (3 vs 1)": 9,
+        "WARNING: reused image models/plants/edenplant2/edenplant2 with mixed flags (1 vs 3)": 8,
+        "WARNING: reused image models/plants/edentree/edentree2/edentree2 with mixed flags (1 vs 3)": 8,
+        "WARNING: reused image models/plants/edentree/edentree2/edentreetrunk with mixed flags (1 vs 3)": 8,
+        "WARNING: reused image models/monster/creeper/creeper1.tga with mixed flags (3 vs 1)": 7,
+        "WARNING: reused image models/npc/edenmale/edenmale3.tga with mixed flags (3 vs 1)": 7,
+        "WARNING: reused image models/players/newjulie/julie1_skin5.tga with mixed flags (0 vs 2)": 7,
+        "WARNING: reused image models/players/newjulie/julie3_skin5.tga with mixed flags (2 vs 0)": 7,
+        "WARNING: reused image models/monster/grawlix/grawlix2.tga with mixed flags (1 vs 3)": 6,
+        "WARNING: reused image models/npc/angus/angus2.tga with mixed flags (3 vs 1)": 6,
+        "WARNING: reused image models/obj/lamppost/lamppost with mixed flags (1 vs 3)": 6,
+        "WARNING: reused image models/obj/stack/smokestack with mixed flags (1 vs 3)": 6,
+        "WARNING: reused image models/plants/swbranch1/swbranch1 with mixed flags (1 vs 3)": 6,
+        "WARNING: reused image models/players/newjulie/julie1_skin2.tga with mixed flags (0 vs 2)": 6,
+        "WARNING: reused image models/players/newjulie/julie3_skin2.tga with mixed flags (2 vs 0)": 6,
+        "WARNING: reused image models/characters/mock_turtle/mshell.tga with mixed flags (3 vs 1)": 5,
+        "WARNING: reused image models/monster/vmama/vmama1.tga with mixed flags (3 vs 1)": 5,
+        "WARNING: reused image models/monster/vmama/vmama2.tga with mixed flags (3 vs 1)": 5,
+        "WARNING: reused image models/obj/lanterns/lantern2/lantern2crystal.tga with mixed flags (3 vs 1)": 5,
+        "WARNING: reused image models/plants/tree/treewood with mixed flags (1 vs 3)": 5,
+        "WARNING: reused image models/players/newjulie/julie1_skin3.tga with mixed flags (0 vs 2)": 5,
+        "WARNING: reused image models/players/newjulie/julie3_skin3.tga with mixed flags (2 vs 0)": 5,
+        "WARNING: reused image textures/metals/envmap_small4.tga with mixed flags (3 vs 1)": 5,
+        "WARNING: reused image models/npc/edenmale/generic1b.tga with mixed flags (1 vs 3)": 4,
+        "WARNING: reused image models/npc/edenmale/generic1b.tga with mixed flags (3 vs 1)": 4,
+        "WARNING: reused image models/plants/largemush1/largemush1 with mixed flags (1 vs 3)": 4,
+        "WARNING: reused image models/plants/swplant/swplant1/swplant1 with mixed flags (1 vs 3)": 4,
+        "WARNING: reused image models/plants/swtree/swtree2/deadtree with mixed flags (1 vs 3)": 4,
+        "WARNING: reused image models/plants/treetop/treewood with mixed flags (1 vs 3)": 4,
+        "WARNING: reused image models/players/newjulie/julie1_skin4.tga with mixed flags (0 vs 2)": 4,
+        "WARNING: reused image models/players/newjulie/julie3_skin4.tga with mixed flags (2 vs 0)": 4,
+        "WARNING: reused image textures/effects/reflights.tga with mixed flags (3 vs 1)": 4,
+        "WARNING: reused image models/arc/edenlamp/edenlamp with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image models/characters/jabberspawn/skin01.tga with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image models/monster/recruiter/screenbar.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image models/monster/trangler/tr_flower.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image models/monster/trangler/tr_vine.tga with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image models/monster/tyler/tyler3.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image models/npc/edenfemale/merchant1.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image models/npc/otto/otto_skin4.tga with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image models/npc/otto/otto_skin6.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image models/obj/lamppost/lamppost.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image models/obj/spigot/spigot.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image models/plants/edenbush/edenbush with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image models/plants/edenplant3/edenplant3 with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image models/plants/edenplant3/edenplant3stem with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image models/plants/swamptree1/swamptree1 with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image models/plants/swcattails/swcattails with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image models/plants/swplant/swplant2/swplant2 with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image models/plants/tree/treewood2 with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image models/torch/skin01 with mixed flags (1 vs 3)": 3,
+        "WARNING: reused image textures/detail_shader/detail_smooth01.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image textures/sprites/flare_main.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image models/characters/jabberspawn/skin01.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image models/monster/githhead/ghead1.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image models/npc/angus/angus1.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image models/npc/gruff/gruffskin1.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image models/npc/sister/sisters1.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image models/npc/sister/sisters2.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image models/obj/fountain/edenfount with mixed flags (1 vs 3)": 2,
+        "WARNING: reused image models/obj/fountain/fountholes with mixed flags (1 vs 3)": 2,
+        "WARNING: reused image models/obj/lanterns/lantern1/lantern1.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image models/obj/objects/edenwood1 with mixed flags (1 vs 3)": 2,
+        "WARNING: reused image models/obj/pship/pship1.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image models/obj/statuefem/statuefem1 with mixed flags (1 vs 3)": 2,
+        "WARNING: reused image models/obj/statuefem/statuefem2 with mixed flags (1 vs 3)": 2,
+        "WARNING: reused image models/obj/swcot/swcot.tga with mixed flags (1 vs 3)": 2,
+        "WARNING: reused image models/obj/tikihead/tikihead with mixed flags (1 vs 3)": 2,
+        "WARNING: reused image models/obj/watertank/watertank with mixed flags (1 vs 3)": 2,
+        "WARNING: reused image models/obj/westatue/westat1 with mixed flags (1 vs 3)": 2,
+        "WARNING: reused image models/obj/westatue/westat2 with mixed flags (1 vs 3)": 2,
+        "WARNING: reused image models/plants/smallmush/smallmush3/smallmush3 with mixed flags (1 vs 3)": 2,
+        "WARNING: reused image textures/common/black.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image textures/sprites/ecaus1.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image textures/sprites/ecaus2.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image models/alice/body3.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/characters/mock_turtle/mshell.tga with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/fx/wfall/wfall1.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/fx/wfall/wfall2.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/giant/shroom06/shroom06 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/giant/shroom07/shroom07 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/gibs/tan/skin02.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/levels/fogtemple/fogmush/fogmushtop with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/levels/fogtemple/fogmush/fogtrunk with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/levels/fogtemple/fogmush/fogtrunktop with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/levels/walkdown/signs/dangerrock/dangerpost with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/monster/gasyerass2/gasyerass2.tga with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/monster/grawlix/grawlix1.tga with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/monster/jart/jart.tga with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/monster/spad/armbig/spad_bigarm.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/monster/spad/body/spad_body1.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/npc/edenfemale/random1_1.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/npc/edenfemale/random3_1.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/obj/carts/EdenMetal264x64 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/carts/EdenWood232x32 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/cavehead/cavehead with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/cavehead/cavehead2 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/cheese/CheeseHanging1 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/chicken/ChickenBreast with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/clothes/clothes_battle.tga with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/clothes/clothes_swamp.tga with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/fount/fountain.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/obj/garlic/Garlic with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/ham/ham1 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/ham/ham2 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/hand/hand with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/lanterns/lantern1/lantern1 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/lanterns/lantern1/lanternpost with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/lanterns/lantern2/lantern2crystal with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/lanterns/lantern2/lantern2post with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/lanterns/lantern2/lantern2top with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/lanterns/lantern2/lantern2trim with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/pots/pan3.tga with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/pots/potbottom1 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/skytest/beachland1 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/skytest/beachland2 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/skytest/beachland3 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/skytest/cliffs with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/skytest/cliffs2 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/skytest/clouddome.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/obj/skytest/darkclouds.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/obj/skytest/flatland with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/skytest/mountainside with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/skytest/mounttop with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/skytest/sand with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/spigot/spigot with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/statuefem2/stat2.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/obj/swampskel/swampskel with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/windstat/windstat with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/windstat/windstat.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/obj/wingedfemale/wing with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/obj/wingedfemale/wingfemale with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/plants/puffplant/plantstem with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/plants/puffplant/pufftop with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/plants/smallmush/smallmush2/smallmush2 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/plants/swplant/swplant3/swplant3 with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/plants/swtree/swtree3/deadtreeend with mixed flags (1 vs 3)": 1,
+        "WARNING: reused image models/players/newjulie/julie2_skin1.tga with mixed flags (0 vs 2)": 1,
+        "WARNING: reused image models/players/newjulie/julie3_skin1.tga with mixed flags (0 vs 2)": 1,
+        "WARNING: reused image textures/effects/swirlie_02.tga with mixed flags (0 vs 1)": 1,
+        "WARNING: reused image textures/hud/health.tga with mixed flags (0 vs 4)": 1,
+        "WARNING: reused image textures/special/mcloud2.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image textures/special/mcloud5.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image textures/sprites/rope.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image textures/testliq/top3.tga with mixed flags (3 vs 1)": 1
+      }
+    },
+    "sweep-after-glx": {
+      "output": ".tmp/ritual-shaders/sweep-after-glx",
+      "runtime": ".tmp/runtime/ritual-shaders-after",
+      "renderer": "glx",
+      "developer": true,
+      "extra_cvars": [],
+      "binaries": {
+        "fntech3.exe": "9ad7d885c02f86ebf9b5db3053df4406065ccbf675b2afceaee5d085d3a53996",
+        "fnql_glx_x86.dll": "1794c3917f73d68a2db6775afb4fcc0b959f38351a27981fc07364355f37afe2"
+      },
+      "binariesUnchanged": true,
+      "startedUtc": "2026-10-15T13:01:52Z",
+      "endedUtc": "2026-10-15T13:05:35Z",
+      "outcomes": {
+        "loaded": 66,
+        "rejected": 0,
+        "faulted": 0,
+        "fatal": 0,
+        "crashed": 0,
+        "hung": 0
+      },
+      "profiles": {
+        "alice": {
+          "loaded": 36,
+          "rejected": 0,
+          "faulted": 0,
+          "fatal": 0,
+          "crashed": 0,
+          "hung": 0
+        },
+        "fakk2": {
+          "loaded": 30,
+          "rejected": 0,
+          "faulted": 0,
+          "fatal": 0,
+          "crashed": 0,
+          "hung": 0
+        }
+      },
+      "distinctWarnings": {
+        "lightmap": 4,
+        "default": 5,
+        "other": 1
+      },
+      "warnings": {
+        "lightmap": {
+          "WARNING: shader 'textures/common/vol_light' has lightmap but no lightmap stage!": 2,
+          "WARNING: shader 'textures/notexture' has lightmap but no lightmap stage!": 2,
+          "WARNING: shader 'textures/common/black' has lightmap but no lightmap stage!": 1,
+          "WARNING: shader 'textures/otto/ottoscrew' has lightmap but no lightmap stage!": 1
+        },
+        "default": {
+          "Shader image unavailable for: crosshair": 36,
+          "Shader image unavailable for: targeted_outofrange": 36,
+          "Shader image unavailable for: textures/notexture": 2,
+          "Shader image unavailable for: beamshader": 1,
+          "Shader image unavailable for: textures/sky/cliffsky": 1
+        },
+        "other": {
+          "WARNING: reused image textures/detail_shader/detail_smooth01.tga with mixed flags (3 vs 1)": 3
+        }
+      },
+      "reusedImageLines": 80,
+      "reusedImageLinesByProfile": {
+        "alice": 18,
+        "fakk2": 62
+      },
+      "reusedImage": {
+        "WARNING: reused image textures/metals/envmap_med.tga with mixed flags (3 vs 1)": 25,
+        "WARNING: reused image textures/metals/envmap_small6.tga with mixed flags (3 vs 1)": 20,
+        "WARNING: reused image textures/metals/envmap_small4.tga with mixed flags (3 vs 1)": 5,
+        "WARNING: reused image textures/effects/reflights.tga with mixed flags (3 vs 1)": 4,
+        "WARNING: reused image models/monster/recruiter/screenbar.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image textures/detail_shader/detail_smooth01.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image textures/sprites/flare_main.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image textures/common/black.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image textures/sprites/ecaus1.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image textures/sprites/ecaus2.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image models/fx/wfall/wfall1.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/fx/wfall/wfall2.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/gibs/tan/skin02.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/obj/skytest/clouddome.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/obj/skytest/darkclouds.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image textures/effects/swirlie_02.tga with mixed flags (0 vs 1)": 1,
+        "WARNING: reused image textures/hud/health.tga with mixed flags (0 vs 4)": 1,
+        "WARNING: reused image textures/special/mcloud2.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image textures/special/mcloud5.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image textures/sprites/rope.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image textures/testliq/top3.tga with mixed flags (3 vs 1)": 1
+      }
+    },
+    "sweep-after-vk": {
+      "output": ".tmp/ritual-shaders/sweep-after-vk",
+      "runtime": ".tmp/runtime/ritual-shaders-after",
+      "renderer": "vk",
+      "developer": true,
+      "extra_cvars": [],
+      "binaries": {
+        "fntech3.exe": "9ad7d885c02f86ebf9b5db3053df4406065ccbf675b2afceaee5d085d3a53996",
+        "fnql_vk_x86.dll": "44a23d21be8db30c5745fca3e37923c79773921754db0f2161ae0037986a238c"
+      },
+      "binariesUnchanged": true,
+      "startedUtc": "2026-10-15T13:05:36Z",
+      "endedUtc": "2026-10-15T13:09:04Z",
+      "outcomes": {
+        "loaded": 66,
+        "rejected": 0,
+        "faulted": 0,
+        "fatal": 0,
+        "crashed": 0,
+        "hung": 0
+      },
+      "profiles": {
+        "alice": {
+          "loaded": 36,
+          "rejected": 0,
+          "faulted": 0,
+          "fatal": 0,
+          "crashed": 0,
+          "hung": 0
+        },
+        "fakk2": {
+          "loaded": 30,
+          "rejected": 0,
+          "faulted": 0,
+          "fatal": 0,
+          "crashed": 0,
+          "hung": 0
+        }
+      },
+      "distinctWarnings": {
+        "lightmap": 4,
+        "default": 5,
+        "other": 1
+      },
+      "warnings": {
+        "lightmap": {
+          "WARNING: shader 'textures/common/vol_light' has lightmap but no lightmap stage!": 2,
+          "WARNING: shader 'textures/notexture' has lightmap but no lightmap stage!": 2,
+          "WARNING: shader 'textures/common/black' has lightmap but no lightmap stage!": 1,
+          "WARNING: shader 'textures/otto/ottoscrew' has lightmap but no lightmap stage!": 1
+        },
+        "default": {
+          "Shader image unavailable for: crosshair": 36,
+          "Shader image unavailable for: targeted_outofrange": 36,
+          "Shader image unavailable for: textures/notexture": 2,
+          "Shader image unavailable for: beamshader": 1,
+          "Shader image unavailable for: textures/sky/cliffsky": 1
+        },
+        "other": {
+          "WARNING: reused image textures/detail_shader/detail_smooth01.tga with mixed flags (3 vs 1)": 3
+        }
+      },
+      "reusedImageLines": 80,
+      "reusedImageLinesByProfile": {
+        "alice": 18,
+        "fakk2": 62
+      },
+      "reusedImage": {
+        "WARNING: reused image textures/metals/envmap_med.tga with mixed flags (3 vs 1)": 25,
+        "WARNING: reused image textures/metals/envmap_small6.tga with mixed flags (3 vs 1)": 20,
+        "WARNING: reused image textures/metals/envmap_small4.tga with mixed flags (3 vs 1)": 5,
+        "WARNING: reused image textures/effects/reflights.tga with mixed flags (3 vs 1)": 4,
+        "WARNING: reused image models/monster/recruiter/screenbar.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image textures/detail_shader/detail_smooth01.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image textures/sprites/flare_main.tga with mixed flags (3 vs 1)": 3,
+        "WARNING: reused image textures/common/black.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image textures/sprites/ecaus1.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image textures/sprites/ecaus2.tga with mixed flags (3 vs 1)": 2,
+        "WARNING: reused image models/fx/wfall/wfall1.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/fx/wfall/wfall2.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/gibs/tan/skin02.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/obj/skytest/clouddome.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image models/obj/skytest/darkclouds.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image textures/effects/swirlie_02.tga with mixed flags (0 vs 1)": 1,
+        "WARNING: reused image textures/hud/health.tga with mixed flags (0 vs 4)": 1,
+        "WARNING: reused image textures/special/mcloud2.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image textures/special/mcloud5.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image textures/sprites/rope.tga with mixed flags (3 vs 1)": 1,
+        "WARNING: reused image textures/testliq/top3.tga with mixed flags (3 vs 1)": 1
+      }
+    },
+    "sweep-after-glx-filter0": {
+      "output": ".tmp/ritual-shaders/sweep-after-glx-filter0",
+      "runtime": ".tmp/runtime/ritual-shaders-after",
+      "renderer": "glx",
+      "developer": true,
+      "extra_cvars": [
+        "r_picmipFilter 0"
+      ],
+      "binaries": {
+        "fntech3.exe": "9ad7d885c02f86ebf9b5db3053df4406065ccbf675b2afceaee5d085d3a53996",
+        "fnql_glx_x86.dll": "1794c3917f73d68a2db6775afb4fcc0b959f38351a27981fc07364355f37afe2"
+      },
+      "binariesUnchanged": true,
+      "startedUtc": "2026-10-15T13:13:45Z",
+      "endedUtc": "2026-10-15T13:17:15Z",
+      "outcomes": {
+        "loaded": 66,
+        "rejected": 0,
+        "faulted": 0,
+        "fatal": 0,
+        "crashed": 0,
+        "hung": 0
+      },
+      "profiles": {
+        "alice": {
+          "loaded": 36,
+          "rejected": 0,
+          "faulted": 0,
+          "fatal": 0,
+          "crashed": 0,
+          "hung": 0
+        },
+        "fakk2": {
+          "loaded": 30,
+          "rejected": 0,
+          "faulted": 0,
+          "fatal": 0,
+          "crashed": 0,
+          "hung": 0
+        }
+      },
+      "distinctWarnings": {
+        "lightmap": 4,
+        "default": 5
+      },
+      "warnings": {
+        "lightmap": {
+          "WARNING: shader 'textures/common/vol_light' has lightmap but no lightmap stage!": 2,
+          "WARNING: shader 'textures/notexture' has lightmap but no lightmap stage!": 2,
+          "WARNING: shader 'textures/common/black' has lightmap but no lightmap stage!": 1,
+          "WARNING: shader 'textures/otto/ottoscrew' has lightmap but no lightmap stage!": 1
+        },
+        "default": {
+          "Shader image unavailable for: crosshair": 36,
+          "Shader image unavailable for: targeted_outofrange": 36,
+          "Shader image unavailable for: textures/notexture": 2,
+          "Shader image unavailable for: beamshader": 1,
+          "Shader image unavailable for: textures/sky/cliffsky": 1
+        }
+      },
+      "reusedImageLines": 3,
+      "reusedImageLinesByProfile": {
+        "alice": 1,
+        "fakk2": 2
+      },
+      "reusedImage": {
+        "WARNING: reused image textures/effects/swirlie_02.tga with mixed flags (0 vs 3)": 1,
+        "WARNING: reused image textures/hud/health.tga with mixed flags (0 vs 4)": 1,
+        "WARNING: reused image textures/sprites/rope.tga with mixed flags (3 vs 1)": 1
+      }
+    }
+  },
+  "static_inventory": {
+    "tool": ".tmp/ritual-shaders/tools/corpus.py (tests/alice_shader_parse_tests.py host, GL parser)",
+    "alice": {
+      "definitions": 2162,
+      "failed": 23,
+      "failed_kind": "stageless compiler shaders (nodraw, clip, hint ...)",
+      "warnings": [
+        "invalid cull parm 'front' in powerups/manabase, powerups/healthbase, textures/test/light01"
+      ]
+    },
+    "fakk2": {
+      "definitions": 1347,
+      "failed": 17,
+      "failed_kind": "15 stageless compiler shaders; `crank` (beau.shader) lacks its outer brace, so `map` reads as a general keyword; `textures/aldiewater` (sprites.shader) writes `deform`, a keyword neither engine has (both hold only `deformVertexes`)",
+      "warnings": []
+    }
+  },
+  "retail_observations": {
+    "alice.exe": {
+      "external_shaders": "0x48fc55..0x48fc7e: R_FindShader (0x48afe0) of \"projectionShadow\" and \"flare\", stored at 0xe9d7ac and 0xe9d7b0, then return: no \"sun\"",
+      "sun_shader_field": "0xe9d7b4, between flare (0xe9d7b0) and the lightmap count (0xe9d7b8, compared in R_FindShader at 0x48b011): read once, by the r_drawSun draw (0x4b0b3b, into 0x492790), and never stored",
+      "r_drawSun": "Cvar_Get(\"r_drawSun\", \"0\") at 0x4753da into 0xf01a24, read at 0x4b0a43",
+      "sun": "two references to \"sun\" (0x5290a4), both lens-flare code: 0x4a83f5 compares a section name with it (call 0x44be40) between \"no lensflares defined!\" and \"no full screen blend shader!\"; 0x4a88f0 initialises the global string at 0x9ddda0 with it, beside \"entity\" and \"dlight\". No reference reaches \"q3map_sun\"'s merged tail",
+      "scripts": "FS_ListFiles(\"scripts\", \".shader\") at 0x48f8bb..0x48f8c9: only .shader files load",
+      "cull": "0x48ccb6..0x48cd4c: none/twosided/disable two-sided, back/backside/backsided back-sided, anything else warns (0x526b0c) and keeps the default",
+      "image_reuse": "0x484656..0x4846c5: a name already loaded warns on a different mipmap and picmip (level 1) or wrap mode (level 0) and returns the first image"
+    },
+    "fakk2.exe 1.02": {
+      "r_drawSun": "Cvar_Get(\"r_drawSun\") at 0x461015 into 0xd3cf0c, which no code reads",
+      "sun": "two references to \"sun\" (0x4faf74): 0x48ba95 and 0x48bf90, the same lens-flare compare and initialiser",
+      "cull": "the same strings: no \"front\"",
+      "image_reuse": "the same three reused-image warnings"
+    },
+    "Alice cgamex86.dll": {
+      "targeted_outofrange.spr": "registered at 0x30023ec7 and 0x30023ed7",
+      "beamshader": "the beam default shader name, 0x30014028; the `beamshader` event at 0x3000b6f0 sets another"
+    },
+    "Alice fgamex86.dll": {
+      "crosshair.spr": "the model of an entity it creates for the crosshair, 0x100f9ccb"
+    }
+  },
+  "retail_fakk2_client_logs": {
+    "date": "2026-09-25",
+    "source": ".tmp/fakk2/sweep/<map>/retail/fakk/qconsole.log (harness .tmp/fakk2/sweep/sweep.py)",
+    "exe_sha256": "681bc51c3343d01d772c5ae4aae7523ae4547350b243c875156e138043335785",
+    "command_cvars": [
+      "developer 1",
+      "logfile 2",
+      "r_fullscreen 0",
+      "s_initsound 0",
+      "net_noipx 1"
+    ],
+    "data": "the laid-down game (fs_cdpath) plus the 1.02 patch's fakk/pak2.pk3 in the retail runtime (SHA-256 19730c29bdd2a96e2f4079b754064e8f9702b32b847f723ef0250f105733e387)",
+    "server": "an fnTech3 dedicated server of 2026-09-25 on 127.0.0.1:27991, one map at a time",
+    "maps_active": 30,
+    "shader_lines": {
+      "Couldn't find image for shader textures/sky/cliffsky": [
+        "zoo"
+      ],
+      "WARNING: reused image textures/hud/health.tga with mixed glWrapClampMode parm": [
+        "training"
+      ],
+      "WARNING: reused image textures/sprites/rope.tga with mixed allowPicmip parm": [
+        "fog"
+      ],
+      "WARNING: shader 'textures/otto/ottoscrew' has lightmap but no lightmap stage!": [
+        "blood"
+      ]
+    }
+  }
+}

@@ -2,9 +2,10 @@
 
 Retail jamp.exe 1.01 routes import 315 through 0x413cd5 to 0x4e07f0, which
 reads the instance through the module's identity, deletes each model's gore
-set and answers 0. fnTech3's client store keeps no skin gore, so the import
-validates the identity and changes nothing. The fixture compiles the
-production header (optionally mutated) beside the cgame Ghoul2 fixture.
+set and answers 0. Here no gore is added, so the clear validates the identity
+and leaves models and skins as they were; jka_cgame_skin_gore_tests.py clears
+real gore. The fixture compiles the production header (optionally mutated)
+beside the cgame Ghoul2 fixture.
 """
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -34,27 +35,25 @@ def clear_case(text):
     return start, text.index('\n    }\n', start) + len('\n    }\n')
 
 
+ANCHOR = '        CL_JKACgameGhoul2Resolve(identity);\n        if (jkaCgameGore) jkaCgameGore->Clear(identity);\n        result = 0;'
+
+
+def at_anchor(new):
+    return lambda text: text.replace(ANCHOR, new, 1)
+
+
 MUTATIONS = {
     'no null refusal': lambda text: text.replace(
         '        if (!identity) Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 cannot clear skin gore without a model identity");\n',
         '', 1),
-    'no identity validation': lambda text: text.replace(
-        '        CL_JKACgameGhoul2Resolve(identity);\n        result = 0;',
-        '        result = 0;', 1),
+    'no identity validation': at_anchor('        if (jkaCgameGore) jkaCgameGore->Clear(identity);\n        result = 0;'),
     'no native module gate': lambda text: text[:clear_case(text)[0]] + text[clear_case(text)[0]:].replace(
         '        CL_JKACgameGhoul2Native();\n', '', 1),
-    'nonzero answer': lambda text: text.replace(
-        '        CL_JKACgameGhoul2Resolve(identity);\n        result = 0;',
-        '        CL_JKACgameGhoul2Resolve(identity);\n        result = 1;', 1),
-    'store made before validation': lambda text: text.replace(
-        '        CL_JKACgameGhoul2Resolve(identity);\n        result = 0;',
-        '        CL_JKACgameGhoul2Store();\n        CL_JKACgameGhoul2Resolve(identity);\n        result = 0;', 1),
-    'clear removes the models': lambda text: text.replace(
-        '        CL_JKACgameGhoul2Resolve(identity);\n        result = 0;',
-        '        CL_JKACgameGhoul2Resolve(identity);\n'
+    'nonzero answer': at_anchor(ANCHOR.replace('result = 0;', 'result = 1;')),
+    'store made before validation': at_anchor('        CL_JKACgameGhoul2Store();\n' + ANCHOR),
+    'clear removes the models': at_anchor(ANCHOR.replace('        result = 0;',
         '        { void *handle = reinterpret_cast<void *>(std::uintptr_t(identity));'
-        ' CL_JKACgameGhoul2Store().Clean(&handle); }\n'
-        '        result = 0;', 1),
+        ' CL_JKACgameGhoul2Store().Clean(&handle); }\n        result = 0;')),
     'not served': lambda text: text[:clear_case(text)[0]] + text[clear_case(text)[1]:],
 }
 
@@ -63,7 +62,6 @@ int main(){
 #ifdef _MSC_VER
  _set_abort_behavior(0,_WRITE_ABORT_MSG|_CALL_REPORTFAULT);
 #endif
- using fntech3::jka::module::Lookup;using fntech3::jka::module::Module;using fntech3::jka::module::Direction;
  vm_t vm{};vm.entryPoint=reinterpret_cast<decltype(vm.entryPoint)>(1);cgvm=&vm;
  intptr_t clear[]{315,0};
  // Before any model loads there is no store: neither a null nor an unknown
@@ -94,9 +92,9 @@ int main(){
  assert(foreign.AddModel(&foreignHandle,"models/players/test/model.glm",error)==0);
  clear[1]=static_cast<intptr_t>(reinterpret_cast<std::uintptr_t>(foreignHandle));Reject([&]{Invoke(clear);});
  assert(instance->Count()==2);
- // The store keeps no gore: the imports that would add or count it stay unserved.
- for(int ordinal:{313,314}){intptr_t args[]{ordinal,static_cast<intptr_t>(identity),0};intptr_t unseen=13;
-  assert(!CL_JKACgameGhoul2Call(args,Lookup(COM_GAME_JKA_MP,Module::CGAME,Direction::IMPORT,ordinal),unseen)&&unseen==13);}
+ // No gore was added, so both models count none (import 313). Gore itself
+ // is added, counted and cleared in jka_cgame_skin_gore_tests.py.
+ for(intptr_t place:{0,1}){intptr_t count[]{313,static_cast<intptr_t>(identity),place};assert(Invoke(count)==0);}
  // A cleaned identity is stale, and so is any after the owner is cleared.
  const auto stale=identity;intptr_t clean[]{301,reinterpret_cast<intptr_t>(&identity)};
  assert(!Invoke(clean)&&!identity);clear[1]=stale;Reject([&]{Invoke(clear);});
@@ -142,12 +140,10 @@ class JKACgameClearSkinGoreTests(unittest.TestCase):
         header = (ROOT / HEADER).read_text()
         start, end = clear_case(header)
         case = header[start:end]
-        for fact in ('0x413cd5', '0x4e07f0', '0x4e07fb', '+0x4c', '0x4e9310', '313', '314'):
+        for fact in ('0x413cd5', '0x4e07f0', '0x4e07fb', '+0x4c', '0x4e9310'):
             self.assertIn(fact, case)
         calls = (ROOT / 'code/compat/jka_module_calls.def').read_text()
         self.assertIn('FNTECH3_JKA_MODULE_CALL(CGAME, IMPORT, CG_G2_CLEARSKINGORE, 315)', calls)
-        for name in ('CG_G2_GETNUMGOREMARKS', 'CG_G2_ADDSKINGORE'):
-            self.assertNotIn(f'case Call::{name}', header)
 
     def test_production_clear_and_failing_mutations(self):
         compiler = shutil.which('clang++') or shutil.which('g++')

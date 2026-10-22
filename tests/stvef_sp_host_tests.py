@@ -230,6 +230,9 @@ static int profile, initializedAt, restoreTime, restartMarkers;
 static bool restored;
 static struct { int time, state; } sv;
 static bool Com_GameIsSTVEFSP() { return profile == EF_SP; }
+// Of these profiles only Elite Force SP starts each level at 1000
+// (FRAME_LEVEL_TIME_1000); tests/jedi_level_time_tests.py pins the table.
+static bool SV_LevelTimeStartsAt1000() { return profile == EF_SP; }
 static bool Com_GameIsWolfET() { return profile == ET; }
 // The IHV test, Q3Test and the Ritual engines start their levels their own
 // way, which their own tests cover; none of the profiles here is one.

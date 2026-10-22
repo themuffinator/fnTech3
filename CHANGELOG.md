@@ -46,18 +46,6 @@ historical upstream records, not fnTech3 release history. See the
   the class menu opens. Maps whose sky shows a distant view of its own, such
   as `mp/duel6`, now draw that view as the original renderer does
   ([record](docs/fntech3/2026-10-15-jka-siege.md)).
-- Open Jedi Academy's siege class menu and the game's other menus as the
-  original does: the menu the game asks for now reaches its own menus by
-  the game's number, so a siege game no longer stops when its class menu
-  opens ([record](docs/fntech3/2026-10-15-jka-ui-menus.md)).
-- Let Jedi Academy's `mp/siege_hoth` and `mp/siege_desert` play past the
-  siege class menu, and `mp/siege_hoth` as a free-for-all: the game's
-  question whether a model needs its folder's default skin is now answered
-  as the original answers it, instead of stopping the game
-  ([record](docs/fntech3/2026-10-16-jka-skinless-model.md)).
-- Let Jedi Academy's siege rounds start with a bot on the other side: the
-  bots' ground checks, which ask the server to ignore no one, no longer stop
-  the server ([record](docs/fntech3/2026-10-16-jka-trace-pass-none.md)).
 - Send Jedi Academy and Jedi Outcast players what the original servers
   send. A speaker or other fixture that Academy's game marks permanent is no
   longer sent twice, so its sounds are no longer counted twice; an entity
@@ -71,6 +59,22 @@ historical upstream records, not fnTech3 release history. See the
   servers, as the original servers do, even with no one connected. Quake Live
   servers start every level's clock again, as the original does, even with
   players connected ([record](docs/fntech3/2026-10-15-level-clock.md)).
+- Start every Jedi Academy and Jedi Outcast single-player level's clock at
+  one second, as the original engines and Elite Force's do, instead of at
+  zero or at the last level's time
+  ([record](docs/fntech3/2026-10-16-jedi-sp-level-clock.md)).
+- Open Jedi Academy's siege class menu and the game's other menus as the
+  original does: the menu the game asks for now reaches its own menus by
+  the game's number, so a siege game no longer stops when its class menu
+  opens ([record](docs/fntech3/2026-10-15-jka-ui-menus.md)).
+- Let Jedi Academy's `mp/siege_hoth` and `mp/siege_desert` play past the
+  siege class menu, and `mp/siege_hoth` as a free-for-all: the game's
+  question whether a model needs its folder's default skin is now answered
+  as the original answers it, instead of stopping the game
+  ([record](docs/fntech3/2026-10-16-jka-skinless-model.md)).
+- Let Jedi Academy's siege rounds start with a bot on the other side: the
+  bots' ground checks, which ask the server to ignore no one, no longer stop
+  the server ([record](docs/fntech3/2026-10-16-jka-trace-pass-none.md)).
 - Give Enemy Territory's bot navigation one search record per area, as the
   original server does: when a mod's bots look for cover, a retreat or nearby
   areas, the server no longer writes past the end of those records, and the
@@ -106,11 +110,6 @@ historical upstream records, not fnTech3 release history. See the
   which the shader parser now reads as the original engines do, along with
   Raven's `lightColor` and Jedi Outcast's `noTC`
   ([record](docs/fntech3/2026-10-15-raven-sun-keyword.md)).
-- Load Jedi Outcast's explosion shaders and the one-shot doors, panels and
-  screens of its campaign, which were drawn with the default image: both
-  Outcast profiles now read Raven's `oneshotanimMap` and `clampanimMap`, as
-  the original engines do
-  ([record](docs/fntech3/2026-10-15-jk2-animmap-variants.md)).
 - Grow the grass, reeds and splashes of both Jedi games' outdoor ground,
   such as the grass field on Jedi Academy's `mp/ctf3`, which drew as a black
   and white grid. Their shaders' `surfaceSprites` stages are now read as the
@@ -149,6 +148,11 @@ historical upstream records, not fnTech3 release history. See the
   "light styles are not served yet". Their extra lights are now added in,
   each at full brightness for now
   ([record](docs/fntech3/2026-10-15-raven-light-styles.md)).
+- Load Jedi Outcast's explosion shaders and the one-shot doors, panels and
+  screens of its campaign, which were drawn with the default image: both
+  Outcast profiles now read Raven's `oneshotanimMap` and `clampanimMap`, as
+  the original engines do
+  ([record](docs/fntech3/2026-10-15-jk2-animmap-variants.md)).
 - Keep each of Jedi Academy's weapon, Force power and item bars together
   with its name on screens taller than 4:3, where the name was drawn over
   the bar's middle icon. The bars and the loading screen are now checked in
@@ -169,6 +173,11 @@ historical upstream records, not fnTech3 release history. See the
   siege match soon after a bot's body appeared; it is now served as the
   original serves it
   ([record](docs/fntech3/2026-10-16-jka-surface-on-off.md)).
+- Keep the marks hits leave on Jedi Academy multiplayer models. The game
+  can now add, count and clear them as the original engine does, and they
+  expire on its clock. They are not drawn yet, and a fight still stops
+  before the first mark, where the game checks what a hit touched
+  ([record](docs/fntech3/2026-10-17-jka-skin-gore.md)).
 - Take Jedi Outcast's multiplayer client game through its start: where it
   stopped before any map loaded, it now loads the level and registers its
   effects, as the original engine serves them. It still stops before the

@@ -33,7 +33,15 @@ enum {
 	 * client acknowledges the new gamestate (0x4e5185, cleared at 0x4e06ab),
 	 * then clears the clock with the level (0x4e363a). sv_levelTimeReset is
 	 * always on. See docs/fntech3/2026-10-15-level-clock.md. */
-	FRAME_RESET_LEVEL_TIME = 2048
+	FRAME_RESET_LEVEL_TIME = 2048,
+	/* Raven's single-player engines clear the level, clock included, with
+	 * every spawn and start the new level at 1000, whoever is connected:
+	 * stvoy.exe 1.20 (0x425a9b, 0x425ac9), jasp.exe 1.01 (0x439d0d, 0x439d35)
+	 * and jk2sp.exe 1.02a (0x437226, 0x437250). GAME_INIT takes 1000 and the
+	 * settling frames run at 1000, 1100 and 1200. A full save's own time
+	 * replaces it after the spawn (jasp.exe 0x43bac4, jk2sp.exe 0x43908e).
+	 * See docs/fntech3/2026-10-16-jedi-sp-level-clock.md. */
+	FRAME_LEVEL_TIME_1000 = 4096
 };
 
 static inline unsigned int Com_ProfileFrameRules( comGameId_t profile ) {
@@ -53,9 +61,11 @@ static inline unsigned int Com_ProfileFrameRules( comGameId_t profile ) {
 			| FRAME_KEEP_LEVEL_TIME;
 	case COM_GAME_JKA_SP:
 	case COM_GAME_JK2_SP:
-		return FRAME_RETAIL | FRAME_FIXED_TICK | FRAME_X87_PRODUCT | FRAME_ALWAYS_FLOOR | FRAME_CINEMATIC_CAP | FRAME_FRACTION;
+		return FRAME_RETAIL | FRAME_FIXED_TICK | FRAME_X87_PRODUCT | FRAME_ALWAYS_FLOOR | FRAME_CINEMATIC_CAP | FRAME_FRACTION
+			| FRAME_LEVEL_TIME_1000;
 	case COM_GAME_STVEF_SP:
-		return FRAME_RETAIL | FRAME_FIXED_TICK | FRAME_X87_PRODUCT | FRAME_ALWAYS_FLOOR | FRAME_CINEMATIC_CAP;
+		return FRAME_RETAIL | FRAME_FIXED_TICK | FRAME_X87_PRODUCT | FRAME_ALWAYS_FLOOR | FRAME_CINEMATIC_CAP
+			| FRAME_LEVEL_TIME_1000;
 	case COM_GAME_STVEF_MP:
 		return FRAME_RETAIL | FRAME_FIXED_TICK | FRAME_X87_PRODUCT | FRAME_ALWAYS_FLOOR | FRAME_KEEP_LEVEL_TIME;
 	case COM_GAME_ALICE:

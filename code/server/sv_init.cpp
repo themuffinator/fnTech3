@@ -571,6 +571,13 @@ static bool SV_LevelTimeResets( void ) {
 	return ( sv_levelTimeReset->integer || ( rules & FRAME_RESET_LEVEL_TIME ) ) && !SV_KeepsLevelTime();
 }
 
+// Whether every level starts its clock at 1000, whatever the last level's
+// time and whoever is connected, as Raven's single-player engines do
+// (FRAME_LEVEL_TIME_1000).
+static bool SV_LevelTimeStartsAt1000( void ) {
+	return ( Com_ProfileFrameRules( Com_GameProfile()->id ) & FRAME_LEVEL_TIME_1000 ) != 0;
+}
+
 
 /*
 ================
@@ -969,10 +976,13 @@ void SV_SpawnServer( const char *mapname, qboolean killBots ) {
 	// to load during actual gameplay
 	sv.state = SS_LOADING;
 
-	// Retail Elite Force SP starts each level at 1000 (stvoy.exe 1.20,
-	// 0x425ac9). Its delayed reference tags can truncate a fractional delay
-	// to the initial time; zero means no think and leaves camera tags absent.
-	if ( Com_GameIsSTVEFSP() ) {
+	// Retail Elite Force, Jedi Academy and Jedi Outcast SP start each level at
+	// 1000, whoever is connected (stvoy.exe 1.20 0x425ac9, jasp.exe 1.01
+	// 0x439d35, jk2sp.exe 1.02a 0x437250). They set it right after the clear;
+	// nothing here reads it in between for these profiles. Elite Force's
+	// delayed reference tags can truncate a fractional delay to the initial
+	// time; zero means no think and leaves camera tags absent.
+	if ( SV_LevelTimeStartsAt1000() ) {
 		sv.time = 1000;
 	}
 

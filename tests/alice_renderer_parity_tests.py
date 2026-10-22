@@ -119,10 +119,16 @@ class AliceRendererParityTests(unittest.TestCase):
                 shader = read(renderer, 'tr_shader.c')
                 self.assertEqual(function(shader, 'shader_t *R_FindAliceSurfaceShader('), gl_find)
                 internal = function(shader, 'static shader_t *R_FindShaderInternal(')
-                # the chosen flags replace the raw image's, and only when chosen
+                # the chosen flags replace the raw image's, and only when chosen;
+                # r_picmipFilter may still take picmip away from Ritual's and
+                # Medal of Honor's (ritual_shader_gaps_tests.py)
                 self.assertIn('else if ( rawImageFlags >= 0 )\n\t\t{\n'
                               '\t\t\t// the caller chose the image\'s flags (R_FindAliceSurfaceShader)\n'
-                              '\t\t\tflags = (imgFlags_t)rawImageFlags;\n\t\t}\n\t\telse if (mipRawImage)', internal)
+                              '\t\t\tflags = (imgFlags_t)rawImageFlags;\n', internal)
+                chosen = internal.index('else if ( rawImageFlags >= 0 )')
+                self.assertLess(internal.index('if ( ( COM_GAME_ID_IS_RITUAL( ri.gameId ) || ri.gameId == COM_GAME_MOHAA ) '
+                                               '&& shader.noPicMip ) {', chosen),
+                                internal.index('\t\telse if (mipRawImage)', chosen))
                 self.assertEqual(shader.count('R_FindShaderInternal('), 5)
                 self.assertEqual(shader.count(', -1 );'), 3)
                 self.assertIn('#define ALICE_SURFACE_NOPICMIP\t\t0x200', read(renderer, 'tr_local.h'))

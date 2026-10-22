@@ -1,0 +1,411 @@
+{
+ "record": "2026-10-17-jka-skin-gore.md",
+ "date": "2026-10-17",
+ "profiles": [
+  "jka-mp"
+ ],
+ "gatesClosed": [],
+ "claim": "Compatibility slice only; no gate closes. Marks are kept as data, not drawn.",
+ "previousRecord": "2026-10-16-jka-surface-on-off.json",
+ "platform": "Windows 11 x64 host, Windows x86 MSVC debugoptimized builds (renderer glx)",
+ "retail": {
+  "installation": "legitimate retail Jedi Academy 1.01, read-only",
+  "jamp.exe": {
+   "sha256": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b"
+  },
+  "cgamex86.dll": {
+   "pak": "assets3.pk3",
+   "sha256": "e5d5525829bfcaf3c0428d87fe804e5a46a75dcf0a141f8288061a3970ff140d",
+   "imageBase": "0x30000000"
+  },
+  "method": "capstone and pefile (.tmp/jka-surfaceonoff/tools); OpenJK pinned 1a6a6434 used to name routines and as a map, each step checked in the retail binary (reference observation, no text incorporated)"
+ },
+ "retailObservations": {
+  "imports": {
+   "313": {
+    "name": "CG_G2_GETNUMGOREMARKS",
+    "index": 189,
+    "target": "0x413c9d",
+    "record": "0x4116e0",
+    "core": "0x4e07a0",
+    "answer": "set +0x10 (mark count) of the set named by model +0x4c, else 0",
+    "nullWordFault": "0x4116e9",
+    "placeBound": "none"
+   },
+   "314": {
+    "name": "CG_G2_ADDSKINGORE",
+    "index": 190,
+    "target": "0x413cb6",
+    "core": "0x4e08f0",
+    "answer": 0
+   },
+   "315": {
+    "name": "CG_G2_CLEARSKINGORE",
+    "target": "0x413cd5",
+    "core": "0x4e07f0"
+   }
+  },
+  "add": {
+   "shortShot": "length of +0x20 below 0.1 ([0x5661ec]) adds nothing, before the instance is read",
+   "skeleton": "0x49a050",
+   "worldMatrix": "0x4ec580 (AngleVectors 0x443f50; forward, left, up columns)",
+   "inverse": "0x4ec620",
+   "resetTags": "0x4e91a0 (tag = [0x56ce64], [0x56ce64] += 0x100; start 0x101/0x100)",
+   "firstLod": "max(model 0 +0x44, r_lodbias [0xfe30f4] registered at 0x4a23e5 default \"0\"), below model 0 LOD count, within 0.0..2.0",
+   "lodEnd": "min(model 0 LOD count, 3.0 [0x566270])",
+   "transform": "0x4e9ce0",
+   "trace": "0x4ec1c0",
+   "allModelsCvar": "cg_g2MarksAllModels, made at 0x4ec1c6, default \"0\": stop after first processed model",
+   "walk": "0x4ec0a0 from root surface +0x40; zero flags take gore; 0x100 ends the branch"
+  },
+  "surface": {
+   "routine": "0x4ea460",
+   "basis": "cross with (0,0,1), or (0,1,0) under 0.1 squared",
+   "axes": "T = b1*0.5c/TSize + b2*0.5s/TSize; S = b1*-0.5s/SSize + b2*0.5c/SSize",
+   "vertexStride": "5 floats",
+   "edges": "s>0, s<1, t>0, t<1, no margin",
+   "triangle": "kept unless all corners miss the same edge",
+   "faces": "normal e1 x e2 dotted with the shot: positive needs front faces (+0x58), else back (+0x5c)",
+   "mark": "first surface per call per model: record 0x4e9070, set 0x4e9250 ([0x56ce68] from 1, one reference); shader +0x84, delete time clock ([0x10bcb78] else [0x10bcb74]) + lifetime +0x64 when nonzero, fade +0x68, fadeRGB +0x8c, growth +0x50/+0x54"
+  },
+  "tables": {
+   "records": "0x12a5030, more than 500 (0x1f4) evicts the oldest tag group first",
+   "sets": "0x12a5048, byte reference count +4, marks multimap +8, size +0x10",
+   "deleteSet": "0x4e9310",
+   "duplicate": "0x4e03b0 copies words, adds a reference",
+   "copyModel": "0x4dea40 copies the word, no reference",
+   "clean": "0x4de520 clears gore first"
+  },
+  "renderer": {
+   "range": "0x498740..0x4989ba",
+   "personalModel": "[ebp+0x10] skips",
+   "expiry": "record gone, or delete time reached on the Ghoul2 clock; expired record freed (0x4966a0) but kept in the map"
+  },
+  "cgame": {
+   "wrappers": {
+    "313": "0x3005f550",
+    "314": "0x3005f570"
+   },
+   "caller": "0x3004c580",
+   "limitCvar": "[0x306f056c]",
+   "callers": [
+    "0x30036f80",
+    "0x3004c700",
+    "0x3003d7ed"
+   ],
+   "collisionPath": "0x30056c30/0x30056ba0 -> 0x30056760 -> 0x3004c2d0 -> 0x3005f2a0 (import 299)"
+  }
+ },
+ "inferences": [
+  "0x3004c580 is CG_AddGhoul2Mark and [0x306f056c] cg_ghoul2Marks (OpenJK)",
+  "0x3004c700 is CG_G2MarkEvent and 0x3004c2d0 CG_G2TraceCollide (OpenJK)",
+  "the renderer draws marks as a second pass with the mark shader or gfx/damage/burnmark1, coordinates scaled while growing, faded over the fade time (OpenJK)"
+ ],
+ "fnTech3": {
+  "state": "code/client/client_jka_cgame_gore.hpp",
+  "imports": "code/client/client_jka_cgame_ghoul2.hpp: 313, 314, 315 and the 301/308/309 hooks",
+  "expiry": "code/client/client_jka_cgame_render.hpp flush, every drawn surface, not on RF_THIRD_PERSON",
+  "drawn": false,
+  "differences": [
+   "marks not drawn (runtime MDR slots are never freed)",
+   "expiry before culling and without the portal test",
+   "single-precision arithmetic, not x87",
+   "tables belong to the client game and clear with it"
+  ],
+  "lodBias": "Fn r_lodbias default -2 gives the same first LOD as retail 0"
+ },
+ "unit": {
+  "file": "tests/jka_cgame_skin_gore_tests.py",
+  "mutations": 42,
+  "result": "production passes; all 42 mutations fail at run time (x86 clang fixture)",
+  "updated": [
+   "tests/jka_cgame_clear_skin_gore_tests.py",
+   "tests/jka_cgame_ghoul2_tests.py",
+   "tests/jka_ghoul2_clock_tests.py"
+  ]
+ },
+ "builds": {
+  "export": ".tmp/jka-surfaceonoff/export advanced path for path to f4794432",
+  "runtimes": {
+   "before": ".tmp/runtime/jka-gore-before",
+   "after": ".tmp/runtime/jka-gore-after"
+  }
+ },
+ "probe": {
+  "script": ".tmp/round-2026-10-15/jka-local-sets/probe_live.py",
+  "window": "800x600, r_fullscreen 0",
+  "desktop": "private, unswitched",
+  "net_enabled": 0,
+  "input": "none",
+  "captures": "engine screenshotPNG"
+ },
+ "runs": {
+  "gore-before-korriban-bot": {
+   "runtime": ".tmp/runtime/jka-gore-before",
+   "identity": {
+    "fntech3.exe": "8f40b9a0ffe7cad1c2177531f632a9a1cde902e9b57fa0c82013db15e6eca3cb",
+    "fnql_glx_x86.dll": "14f2aebecb3a4a956400ffc921f270b8a7efaa430e49398f814144f871fde3db",
+    "fntech3-pkg.fnz": "154744062d0b94744333132f0213c94157db8cfeb3eb2b14883e544e7e5b447d"
+   },
+   "map": "mp/siege_korriban",
+   "gametype": "7",
+   "sound": "off",
+   "renderer": "glx",
+   "commands": [
+    "team red",
+    "addbot Tavion 1 blue",
+    "wait 400",
+    "screenshotPNG gore-01",
+    "wait 400",
+    "screenshotPNG gore-02",
+    "wait 400",
+    "screenshotPNG gore-03",
+    "wait 400",
+    "screenshotPNG gore-04",
+    "wait 400",
+    "screenshotPNG gore-05",
+    "wait 400",
+    "screenshotPNG gore-06",
+    "wait 400",
+    "screenshotPNG gore-07",
+    "wait 400",
+    "screenshotPNG gore-08",
+    "wait 400",
+    "screenshotPNG gore-09",
+    "wait 400",
+    "screenshotPNG gore-10",
+    "wait 400",
+    "screenshotPNG gore-11",
+    "wait 400",
+    "screenshotPNG gore-12"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forcedStop": true,
+   "seconds": 71.9,
+   "errors": [
+    "ERROR: Academy cgame unsupported Raven renderer entity flags"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "events": [
+    "Wrote screenshots/gore-01.png",
+    "Tavion^7 died.",
+    "^5serverCommand: 29 : ircg 1 32 0 0",
+    "Wrote screenshots/gore-02.png",
+    "Wrote screenshots/gore-03.png",
+    "^5serverCommand: 38 : rcg 1",
+    "Wrote screenshots/gore-04.png",
+    "Wrote screenshots/gore-05.png",
+    "Wrote screenshots/gore-06.png",
+    "ERROR: Academy cgame unsupported Raven renderer entity flags"
+   ],
+   "captures": [
+    {
+     "name": "gore-01.png",
+     "sha256": "c209b56f23c2b976d3ec9b633b9ff2b323a71cc62af5e9ed8fc9020ebcccd0cc"
+    },
+    {
+     "name": "gore-02.png",
+     "sha256": "5889f218f7ebce3aa883e54cf1d37ed1d4990b8cdcd8635ba995e61a50502e9c"
+    },
+    {
+     "name": "gore-03.png",
+     "sha256": "0f4ab9d83c117aad4124848f9b70dce6065caa4ccdeac80447c000cfd8f241ab"
+    },
+    {
+     "name": "gore-04.png",
+     "sha256": "ef853470fd70827705604b9374d7cce60039b7bab66a298dd446148abed98920"
+    },
+    {
+     "name": "gore-05.png",
+     "sha256": "5c1516965de101269011eb54a524a4ea1bdc67695c45e48dfcc209edc2be32eb"
+    },
+    {
+     "name": "gore-06.png",
+     "sha256": "2cd346c3b69b2a90eab37aa7cc557a91f7878fb7a3f131e8ee69cdbe4657c4c7"
+    }
+   ]
+  },
+  "gore-after-korriban-bot": {
+   "runtime": ".tmp/runtime/jka-gore-after",
+   "identity": {
+    "fntech3.exe": "0498bb5add7dc6da674bab2c740de558314d328e10bf6c0432d2a759568dc481",
+    "fnql_glx_x86.dll": "14f2aebecb3a4a956400ffc921f270b8a7efaa430e49398f814144f871fde3db",
+    "fntech3-pkg.fnz": "154744062d0b94744333132f0213c94157db8cfeb3eb2b14883e544e7e5b447d"
+   },
+   "map": "mp/siege_korriban",
+   "gametype": "7",
+   "sound": "off",
+   "renderer": "glx",
+   "commands": [
+    "team red",
+    "addbot Tavion 1 blue",
+    "wait 400",
+    "screenshotPNG gore-01",
+    "wait 400",
+    "screenshotPNG gore-02",
+    "wait 400",
+    "screenshotPNG gore-03",
+    "wait 400",
+    "screenshotPNG gore-04",
+    "wait 400",
+    "screenshotPNG gore-05",
+    "wait 400",
+    "screenshotPNG gore-06",
+    "wait 400",
+    "screenshotPNG gore-07",
+    "wait 400",
+    "screenshotPNG gore-08",
+    "wait 400",
+    "screenshotPNG gore-09",
+    "wait 400",
+    "screenshotPNG gore-10",
+    "wait 400",
+    "screenshotPNG gore-11",
+    "wait 400",
+    "screenshotPNG gore-12"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forcedStop": true,
+   "seconds": 72.9,
+   "errors": [
+    "ERROR: Academy cgame unsupported Raven renderer entity flags"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "events": [
+    "Wrote screenshots/gore-01.png",
+    "Tavion^7 died.",
+    "^5serverCommand: 29 : ircg 1 32 0 0",
+    "Wrote screenshots/gore-02.png",
+    "^5serverCommand: 38 : rcg 1",
+    "Wrote screenshots/gore-03.png",
+    "Wrote screenshots/gore-04.png",
+    "Wrote screenshots/gore-05.png",
+    "Wrote screenshots/gore-06.png",
+    "ERROR: Academy cgame unsupported Raven renderer entity flags"
+   ],
+   "captures": [
+    {
+     "name": "gore-01.png",
+     "sha256": "503e7607200310f0c1178202cbb8c35c891ba5cfc71cd663472aa3cb404fe713"
+    },
+    {
+     "name": "gore-02.png",
+     "sha256": "a6307e92a3f348b93f99d6f29f1f2f1ab79d62e19a8acebdec94e9f70014c6a9"
+    },
+    {
+     "name": "gore-03.png",
+     "sha256": "3f41716806af18d32aef96faba47255dc539ead35610eb992e94fc0eccd11cf4"
+    },
+    {
+     "name": "gore-04.png",
+     "sha256": "4d12a17cd9840b004fa6d347b251bfea49dabd388f2fc422cb12bc69f731d7aa"
+    },
+    {
+     "name": "gore-05.png",
+     "sha256": "adc5550efc8bc06611aca896b48cc960117256b06f6c202c2f851f26d0228fc3"
+    },
+    {
+     "name": "gore-06.png",
+     "sha256": "2cd346c3b69b2a90eab37aa7cc557a91f7878fb7a3f131e8ee69cdbe4657c4c7"
+    }
+   ]
+  },
+  "gore-before-ffa3-npc": {
+   "runtime": ".tmp/runtime/jka-gore-before",
+   "identity": {
+    "fntech3.exe": "8f40b9a0ffe7cad1c2177531f632a9a1cde902e9b57fa0c82013db15e6eca3cb",
+    "fnql_glx_x86.dll": "14f2aebecb3a4a956400ffc921f270b8a7efaa430e49398f814144f871fde3db",
+    "fntech3-pkg.fnz": "154744062d0b94744333132f0213c94157db8cfeb3eb2b14883e544e7e5b447d"
+   },
+   "map": "mp/ffa3",
+   "gametype": "0",
+   "sound": "off",
+   "renderer": "glx",
+   "commands": [
+    "set g_forcerespawn 1",
+    "team free",
+    "wait 180",
+    "togglemenu",
+    "npc spawn stormtrooper",
+    "wait 30",
+    "npc spawn stormtrooper"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forcedStop": true,
+   "seconds": 30.2,
+   "errors": [
+    "ERROR: Unsupported jka-mp cgame import 299 (CG_G2_COLLISIONDETECT)",
+    "----- Server Shutdown (Server crashed: Unsupported jka-mp cgame import 299 (CG_G2_COLLISIONDETECT)) -----"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "events": [
+    "ERROR: Unsupported jka-mp cgame import 299 (CG_G2_COLLISIONDETECT)"
+   ],
+   "captures": []
+  },
+  "gore-after-ffa3-npc": {
+   "runtime": ".tmp/runtime/jka-gore-after",
+   "identity": {
+    "fntech3.exe": "0498bb5add7dc6da674bab2c740de558314d328e10bf6c0432d2a759568dc481",
+    "fnql_glx_x86.dll": "14f2aebecb3a4a956400ffc921f270b8a7efaa430e49398f814144f871fde3db",
+    "fntech3-pkg.fnz": "154744062d0b94744333132f0213c94157db8cfeb3eb2b14883e544e7e5b447d"
+   },
+   "map": "mp/ffa3",
+   "gametype": "0",
+   "sound": "off",
+   "renderer": "glx",
+   "commands": [
+    "set g_forcerespawn 1",
+    "team free",
+    "wait 180",
+    "togglemenu",
+    "npc spawn stormtrooper",
+    "wait 30",
+    "npc spawn stormtrooper"
+   ],
+   "outcome": "refused",
+   "exit": 1,
+   "forcedStop": true,
+   "seconds": 30.2,
+   "errors": [
+    "ERROR: Unsupported jka-mp cgame import 299 (CG_G2_COLLISIONDETECT)",
+    "----- Server Shutdown (Server crashed: Unsupported jka-mp cgame import 299 (CG_G2_COLLISIONDETECT)) -----"
+   ],
+   "installationUnchanged": true,
+   "binariesUnchanged": true,
+   "events": [
+    "ERROR: Unsupported jka-mp cgame import 299 (CG_G2_COLLISIONDETECT)"
+   ],
+   "captures": []
+  }
+ },
+ "nextRefusals": [
+  "every client-game path to 313/314: import 299 (CG_G2_COLLISIONDETECT)",
+  "siege corpse: renderfx 0x40800 (RF_DISINTEGRATE2)"
+ ],
+ "validation": {
+  "f4794432": {
+   "build": "all client targets, strict warnings, no warning",
+   "native": {
+    "ok": 274,
+    "fail": 0,
+    "skipped": 2
+   },
+   "python": {
+    "files": 76,
+    "passed": 258,
+    "subtestsPassed": 1365,
+    "skipped": 1,
+    "failed": 0
+   }
+  },
+  "skippedNative": "OpenAL loopback, optional Quake Live factory probe",
+  "runner": ".tmp/jka-gore/run_files.py, one pytest per file"
+ }
+}

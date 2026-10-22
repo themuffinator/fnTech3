@@ -1672,7 +1672,7 @@
    "types 3, 6, 10 and 11",
    "authored glow stage keyword",
    "a capture of a drawn blade",
-   "the server demo drawing no 3D view after its menu"
+   "the server demo drawing no 3D view after its menu: resolved as retail-matched loading snapshots read after the demo ended (docs/fntech3/2026-10-14-jka-demo-snapshot-flags.md)"
   ]
  },
  "ledgerCorrections": [

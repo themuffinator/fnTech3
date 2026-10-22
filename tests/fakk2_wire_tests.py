@@ -74,7 +74,7 @@ class Fakk2WireTests(unittest.TestCase):
     def test_fakk2_draws_hidden_emitters_sprites(self):
         sprite = function(read('code/client/client_alice_cgame.hpp'),
                           'void QDECL CL_AliceAddRefSpriteToScene( const fntech3_alice_refEntity_t *e ) {')
-        self.assertIn('( !Com_GameIsFAKK2() && ( e->renderfx & FNTECH3_ALICE_RF_DONTDRAW ) )', sprite)
+        self.assertNotIn('FNTECH3_ALICE_RF_DONTDRAW', sprite)
 
     def test_the_weapon_hud_shows_with_empty_hands(self):
         hud = read('code/compat/fakk2_hud.hpp')

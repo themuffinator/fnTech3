@@ -1042,14 +1042,23 @@ documents the ten-icon rows.
 
 ## Project thanks
 
-Thanks to the Quake, Quake III, Quake Live, Return to Castle Wolfenstein,
-Star Trek Voyager: Elite Force and Jedi Knight communities: players, server administrators, mod authors, mappers, tool authors,
-testers, reverse engineers, and maintainers who keep these games understandable
-and playable.
+Thanks to the Quake, Quake III Arena, Quake Live, Return to Castle
+Wolfenstein, Wolfenstein: Enemy Territory, Star Trek: Voyager — Elite Force,
+Jedi Outcast, Jedi Academy, American McGee's Alice, Heavy Metal: F.A.K.K.2 and
+Medal of Honor: Allied Assault communities: players, server administrators, mod
+authors, mappers, tool authors, testers, reverse engineers, and maintainers who
+keep these games understandable and playable.
 
 ## Trademark note
 
-fnTech3 is independent and is not affiliated with, endorsed by, or sponsored by
-id Software, Bethesda, ZeniMax Media, Valve, Raven Software, Activision or
-Paramount. Quake, Quake III Arena, Quake Live, Return to Castle Wolfenstein,
-Star Trek and Elite Force are trademarks of their respective owners.
+fnTech3 is an independent project. It is not affiliated with, endorsed by, or
+sponsored by Valve or by any developer, publisher or rights holder of the
+supported games, including id Software, Bethesda, ZeniMax Media, Microsoft,
+Raven Software, Activision, Paramount, Lucasfilm, Rogue Entertainment, Ritual
+Entertainment, 2015, Inc., Gathering of Developers, Take-Two Interactive and
+Electronic Arts. Quake, Quake III Arena, Quake Live, Return to Castle
+Wolfenstein, Wolfenstein: Enemy Territory, Star Trek: Voyager — Elite Force,
+Star Wars Jedi Knight II: Jedi Outcast, Star Wars Jedi Knight: Jedi Academy,
+American McGee's Alice, Heavy Metal: F.A.K.K.2, Medal of Honor: Allied Assault
+and Steam are trademarks of their respective owners. Game names and the remade
+game icons appear only to identify the games fnTech3 works with.

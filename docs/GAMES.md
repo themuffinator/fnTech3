@@ -569,7 +569,9 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   next round, as the original does. Maps whose sky shows a distant view of its
   own now draw that view where the sky is, as the original does, and
   `mp/duel6` has been checked ([siege details](fntech3/2026-10-15-jka-siege.md)).
-  `mp/duel9`'s sky still shows plain grey. A siege game now opens its class
+  The skies of `mp/duel9`, `mp/ctf3`, `mp/duel1`, `mp/duel4`, `mp/ffa2` and
+  `mp/ffa3`, which showed plain grey, now draw
+  ([sky details](fntech3/2026-10-15-raven-sun-keyword.md)). A siege game now opens its class
   menu when you join. Choosing a class with the mouse has not been checked
   yet; `team red` or `team blue` at the console joins a side as its first
   class. A round starts only once both sides have a player. With a bot on
@@ -582,6 +584,9 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   spawned from the console now appear, and a hit on a body is checked
   against the body itself; fights still stop on effects the client cannot
   draw yet ([collision details](fntech3/2026-10-22-jka-g2-collision.md)).
+  The marks hits leave on players are now kept and cleared as the
+  original keeps them, but they are not drawn yet, and fights stop before
+  any mark is made ([marks details](fntech3/2026-10-17-jka-skin-gore.md)).
   `mp/siege_hoth` and `mp/siege_desert` no longer stop soon after the
   menu opens; with a bot on the other side they still stop as their
   round begins
@@ -696,6 +701,8 @@ compared with the original's. See the
   `r_overBrightBits` and `r_mapOverBrightBits` start at `0` here, where the
   other games' brighter values would make its levels two to three times too
   bright ([Graphics guide](DISPLAY.md#game-specific-renderer-settings)).
+- The targeting glow is a game effect and needs no extra bloom setting
+  ([effects details](fntech3/2026-10-12-alice-effects.md)).
 - As in the original, `+set config <name>` picks the settings file and names
   your saved games. The original remembered the name for later; fnTech3 uses
   it for the session you name it in.

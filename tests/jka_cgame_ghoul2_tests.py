@@ -36,6 +36,12 @@ struct Drop {}; void QDECL Com_Error(errorParm_t,const char *,...){
  if(jumpRecovery){CL_JKACgameClear();std::longjmp(recovery,1);}throw Drop{};
 }
 static vm_t *cgvm;
+// Skin gore (import 314) reads r_lodbias and makes cg_g2MarksAllModels.
+static cvar_t marksAllModels;static int cvarGets,lodBias;
+cvar_t *Cvar_Get(const char *name,const char *value,int flags){
+ assert(!std::strcmp(name,"cg_g2MarksAllModels")&&!std::strcmp(value,"0")&&!flags);++cvarGets;return &marksAllModels;
+}
+int Cvar_VariableIntegerValue(const char *name){assert(!std::strcmp(name,"r_lodbias"));return lodBias;}
 ''' + models + r'''
 static std::map<std::string,Bytes> assets;
 static std::map<int,std::string> openFiles;

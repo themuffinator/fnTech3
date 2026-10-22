@@ -94,6 +94,7 @@ def client_fixture():
 namespace fntech3::jka::cgame::scene { static Cleanup state; }
 static Cleanup jkaCgameGhoul2Store, skins;
 static void CL_JKACgameSkinClear(){skins.Clear();}
+static void CL_JKACgameGoreClear(){}
 static void CL_JKACgameGhoul2Native(){}
 static struct { int index=VM_CGAME; } vm;
 static auto* cgvm=&vm;

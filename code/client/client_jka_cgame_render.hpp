@@ -98,7 +98,7 @@ static fntech3::jka::cgame::scene::Runtime &CL_JKACgameRenderGeometry(std::uint3
             if (entry.first<0 || std::size_t(entry.first)>=runtime.geometry.surfaces.size())
                 Com_Error(ERR_DROP,"Invalid Academy cgame Ghoul2 visibility surface");
     }
-    state.visible.clear(); state.traversal.clear();
+    state.visible.clear(); state.traversal.clear(); state.drawn.clear();
     for (auto root=runtime.geometry.roots.rbegin();root!=runtime.geometry.roots.rend();++root)
         state.traversal.push_back(*root);
     while (!state.traversal.empty()) {
@@ -111,6 +111,7 @@ static fntech3::jka::cgame::scene::Runtime &CL_JKACgameRenderGeometry(std::uint3
         }
         if (flags&~std::uint32_t(0x103))
             Com_Error(ERR_DROP,"Academy cgame Ghoul2 unsupported surface visibility flags");
+        if (!flags) state.drawn.push_back(surfaceIndex);
         if (!flags && !surface.triangles.empty()) state.visible.push_back(surfaceIndex);
         if (!(flags&0x100))
             for (auto child=surface.metadata.children.rbegin();child!=surface.metadata.children.rend();++child)
@@ -152,6 +153,10 @@ static void CL_JKACgameRenderFlush() {
             const int index=state.order[at];
             const auto &model=*instance.At(index);
             auto &runtime=CL_JKACgameRenderGeometry(source.ghoul2,index,model);
+            // Retail's surface pass (0x498740..0x4989ba) expires a drawn
+            // surface's gore marks, but not on a personal (third-person) model.
+            if (jkaCgameGore && !(source.renderfx & RF_THIRD_PERSON))
+                fntech3::jka::cgame::gore::Expire(*jkaCgameGore,source.ghoul2,index,state.drawn,now);
             if (runtime.visible.empty()) continue;
             const auto &pose=state.palettes[at];
             if (!runtime.handle) {

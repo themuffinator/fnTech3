@@ -394,5 +394,506 @@
       "nodraw": "general keyword in textures/misc_outside/regpalm_shadow (scripts/misc_outside.shader:292); no map registers it",
       "alpahFunc": "stage keyword in seagull (scripts/effects.shader:1072); no map registers it"
     }
+  },
+  "picmip_filter_check": {
+    "section": "2026-10-15-mohaa-shader-sweep.md#reused-images-and-the-picmip-filter-2026-10-15",
+    "question": "Do Medal of Honor TIKI surface images skip r_picmipFilter, as Alice and F.A.K.K.2 ones did (2026-10-15-ritual-shader-sweep.md), and does that cause the sweep's reused-image reports?",
+    "evidence": [
+      "Source",
+      "Unit",
+      "Live subset"
+    ],
+    "gates_closed": [],
+    "source_commit": "aa0e704957191ed73f98740a891a5a3221645338",
+    "source_state": "git archive export of source_commit with the shared index's staged code/{renderer,renderervk,rendererrtx}/tr_shader.c (the Ritual sweep's slice, blobs 41bfb4fa, 5e1ed304, e1cf4b35), whose hunks change nothing under the mohaa profile. \"after\" adds only this change's hunk (.tmp/mohaa-picmip/tools/hunks.py apply); \"diag\" adds only a PRINT_DEVELOPER line after the raw image lookup in the GL renderer (hunks.py diag), never staged",
+    "engine_change_files": [
+      "code/renderer/tr_shader.c",
+      "code/renderervk/tr_shader.c",
+      "code/rendererrtx/tr_shader.c"
+    ],
+    "build": {
+      "platform": "Windows x86",
+      "type": "debugoptimized",
+      "compiler": "MSVC 2022",
+      "strict_warnings": true,
+      "export": ".tmp/mohaa-picmip/export",
+      "note": "renderers are loaded DLLs; the three runtimes share one fntech3.exe",
+      "runtimes": {
+        "mohaa-picmip-before": {
+          "fntech3.exe": "16703da662dd175bed61c95e21a5c23260a741a5994da7f7a5d49d31e0c401a2",
+          "fnql_glx_x86.dll": "4f8a191402c33c9db2446b35ee69d6d687579c48aca1807ac8c06e01f5bdfc4f",
+          "fnql_vk_x86.dll": "5c6961b36c8fc15d27268cdd6a6a1acdc90ca0df0b3f9580a59227b44a8cb1f8",
+          "fnql_rtx_x86.dll": "acde7b2f141941106fa96a02850c3b85720e7da9d1eae776377546b697536d7d"
+        },
+        "mohaa-picmip-diag": {
+          "fntech3.exe": "16703da662dd175bed61c95e21a5c23260a741a5994da7f7a5d49d31e0c401a2",
+          "fnql_glx_x86.dll": "1464cfc181f1c91cb0becd03c96d96c185a732d7278e4b080747f45ab6361bac"
+        },
+        "mohaa-picmip-after": {
+          "fntech3.exe": "16703da662dd175bed61c95e21a5c23260a741a5994da7f7a5d49d31e0c401a2",
+          "fnql_glx_x86.dll": "bb9430f22a30569a1bc0c92f7a36154385181c898d346b8d3d5b9c21c764282b",
+          "fnql_vk_x86.dll": "507189b804e9c71d741c32eeae5d460740287922c9f9763c34d8c00a1ee01bb9",
+          "fnql_rtx_x86.dll": "6d28d4d1c0e536ea3c5006f9ee412b7ebb5cacd7eea7f3c1902e5ef3cbe15ae0"
+        }
+      }
+    },
+    "command": "python scripts/probe_retail_map_loads.py --client <runtime>/fntech3.exe --server <runtime>/fntech3.exe --installation \"mohaa=E:/Games/Medal of Honor Allied Assault\" --profiles mohaa --jobs 3 --developer --then finishloadingscreen --renderer <glx|vk> --output <output>; the filter-0 sweep wraps it in .tmp/ritual-shaders/tools/sweep_with_cvars.py r_picmipFilter=0 --; lines counted by .tmp/mohaa-picmip/tools/reused.py",
+    "sweeps": {
+      "sweep-before-glx": {
+        "output": ".tmp/mohaa-picmip/sweep-before-glx",
+        "runtime": ".tmp/runtime/mohaa-picmip-before",
+        "renderer": "glx",
+        "cvars": {},
+        "developer": true,
+        "then": [
+          "finishloadingscreen"
+        ],
+        "binaries": {
+          "fntech3.exe": "16703da662dd175bed61c95e21a5c23260a741a5994da7f7a5d49d31e0c401a2",
+          "fnql_glx_x86.dll": "4f8a191402c33c9db2446b35ee69d6d687579c48aca1807ac8c06e01f5bdfc4f"
+        },
+        "binariesUnchanged": true,
+        "startedUtc": "2026-10-15T14:50:54Z",
+        "endedUtc": "2026-10-15T14:55:57Z",
+        "outcomes": {
+          "loaded": 54,
+          "rejected": 0,
+          "faulted": 0,
+          "fatal": 0,
+          "crashed": 0,
+          "hung": 0
+        },
+        "reusedImageLines": 118,
+        "mapsWithReusedImageLines": 45,
+        "distinctReusedImageLines": 15,
+        "reusedImages": [
+          {
+            "image": "textures/effects/fire_ring.tga",
+            "first": 5,
+            "later": 1,
+            "lines": 46,
+            "maps": 45
+          },
+          {
+            "image": "textures/common/reflection1.tga",
+            "first": 3,
+            "later": 1,
+            "lines": 42,
+            "maps": 7
+          },
+          {
+            "image": "textures/models/items/pulse.tga",
+            "first": 3,
+            "later": 1,
+            "lines": 8,
+            "maps": 5
+          },
+          {
+            "image": "textures/models/items/beam.tga",
+            "first": 5,
+            "later": 1,
+            "lines": 5,
+            "maps": 5
+          },
+          {
+            "image": "textures/models/submodels/miscpieces.tga",
+            "first": 1,
+            "later": 0,
+            "lines": 3,
+            "maps": 3
+          },
+          {
+            "image": "textures/wilderness/wldrrckset1_1.tga",
+            "first": 3,
+            "later": 1,
+            "lines": 3,
+            "maps": 3
+          },
+          {
+            "image": "textures/misc_outside/hedgerowsml.tga",
+            "first": 1,
+            "later": 5,
+            "lines": 2,
+            "maps": 2
+          },
+          {
+            "image": "textures/models/submodels/sub_env.tga",
+            "first": 3,
+            "later": 1,
+            "lines": 2,
+            "maps": 1
+          },
+          {
+            "image": "textures/MODELS/natural/regpalmsprite.tga",
+            "first": 4,
+            "later": 1,
+            "lines": 1,
+            "maps": 1
+          },
+          {
+            "image": "textures/interior/grand_5.tga",
+            "first": 3,
+            "later": 1,
+            "lines": 1,
+            "maps": 1
+          },
+          {
+            "image": "textures/interior/grand_8.tga",
+            "first": 3,
+            "later": 1,
+            "lines": 1,
+            "maps": 1
+          },
+          {
+            "image": "textures/models/items/pulse.tga",
+            "first": 1,
+            "later": 0,
+            "lines": 1,
+            "maps": 1
+          },
+          {
+            "image": "textures/models/items/v2",
+            "first": 3,
+            "later": 1,
+            "lines": 1,
+            "maps": 1
+          },
+          {
+            "image": "textures/models/submodels/sub_bunk",
+            "first": 3,
+            "later": 1,
+            "lines": 1,
+            "maps": 1
+          },
+          {
+            "image": "textures/test/window_env.tga",
+            "first": 3,
+            "later": 1,
+            "lines": 1,
+            "maps": 1
+          }
+        ]
+      },
+      "sweep-before-glx-filter0": {
+        "output": ".tmp/mohaa-picmip/sweep-before-glx-filter0",
+        "runtime": ".tmp/runtime/mohaa-picmip-before",
+        "renderer": "glx",
+        "cvars": {
+          "r_picmipFilter": "0"
+        },
+        "developer": true,
+        "then": [
+          "finishloadingscreen"
+        ],
+        "binaries": {
+          "fntech3.exe": "16703da662dd175bed61c95e21a5c23260a741a5994da7f7a5d49d31e0c401a2",
+          "fnql_glx_x86.dll": "4f8a191402c33c9db2446b35ee69d6d687579c48aca1807ac8c06e01f5bdfc4f"
+        },
+        "binariesUnchanged": true,
+        "startedUtc": "2026-10-15T14:56:37Z",
+        "endedUtc": "2026-10-15T15:01:48Z",
+        "outcomes": {
+          "loaded": 54,
+          "rejected": 0,
+          "faulted": 0,
+          "fatal": 0,
+          "crashed": 0,
+          "hung": 0
+        },
+        "reusedImageLines": 58,
+        "mapsWithReusedImageLines": 45,
+        "distinctReusedImageLines": 6,
+        "reusedImages": [
+          {
+            "image": "textures/effects/fire_ring.tga",
+            "first": 5,
+            "later": 1,
+            "lines": 46,
+            "maps": 45
+          },
+          {
+            "image": "textures/models/items/beam.tga",
+            "first": 7,
+            "later": 3,
+            "lines": 5,
+            "maps": 5
+          },
+          {
+            "image": "textures/models/submodels/miscpieces.tga",
+            "first": 3,
+            "later": 0,
+            "lines": 3,
+            "maps": 3
+          },
+          {
+            "image": "textures/misc_outside/hedgerowsml.tga",
+            "first": 1,
+            "later": 5,
+            "lines": 2,
+            "maps": 2
+          },
+          {
+            "image": "textures/MODELS/natural/regpalmsprite.tga",
+            "first": 6,
+            "later": 3,
+            "lines": 1,
+            "maps": 1
+          },
+          {
+            "image": "textures/models/items/pulse.tga",
+            "first": 3,
+            "later": 0,
+            "lines": 1,
+            "maps": 1
+          }
+        ]
+      },
+      "sweep-diag-glx": {
+        "output": ".tmp/mohaa-picmip/sweep-diag-glx",
+        "runtime": ".tmp/runtime/mohaa-picmip-diag",
+        "renderer": "glx",
+        "cvars": {},
+        "developer": true,
+        "then": [
+          "finishloadingscreen"
+        ],
+        "binaries": {
+          "fntech3.exe": "16703da662dd175bed61c95e21a5c23260a741a5994da7f7a5d49d31e0c401a2",
+          "fnql_glx_x86.dll": "1464cfc181f1c91cb0becd03c96d96c185a732d7278e4b080747f45ab6361bac"
+        },
+        "binariesUnchanged": true,
+        "startedUtc": "2026-10-15T15:02:13Z",
+        "endedUtc": "2026-10-15T15:07:16Z",
+        "outcomes": {
+          "loaded": 54,
+          "rejected": 0,
+          "faulted": 0,
+          "fatal": 0,
+          "crashed": 0,
+          "hung": 0
+        },
+        "reusedImageLines": 118,
+        "mapsWithReusedImageLines": 45,
+        "distinctReusedImageLines": 15,
+        "reusedImages": "same as sweep-before-glx",
+        "diagnosticLookups": 32,
+        "diagnosticNames": [
+          {
+            "name": "mg",
+            "raw": 3,
+            "filterNoPicMip": 1,
+            "flags": 3,
+            "image": "-",
+            "maps": 4
+          },
+          {
+            "name": "opelhubstill",
+            "raw": 3,
+            "filterNoPicMip": 1,
+            "flags": 3,
+            "image": "-",
+            "maps": 2
+          },
+          {
+            "name": "opeltreadstill",
+            "raw": 3,
+            "filterNoPicMip": 1,
+            "flags": 3,
+            "image": "-",
+            "maps": 2
+          },
+          {
+            "name": "poopy",
+            "raw": 3,
+            "filterNoPicMip": 1,
+            "flags": 3,
+            "image": "-",
+            "maps": 24
+          }
+        ],
+        "diagnosticMaps": 24
+      },
+      "sweep-before-vk": {
+        "output": ".tmp/mohaa-picmip/sweep-before-vk",
+        "runtime": ".tmp/runtime/mohaa-picmip-before",
+        "renderer": "vk",
+        "cvars": {},
+        "developer": true,
+        "then": [
+          "finishloadingscreen"
+        ],
+        "binaries": {
+          "fntech3.exe": "16703da662dd175bed61c95e21a5c23260a741a5994da7f7a5d49d31e0c401a2",
+          "fnql_vk_x86.dll": "5c6961b36c8fc15d27268cdd6a6a1acdc90ca0df0b3f9580a59227b44a8cb1f8"
+        },
+        "binariesUnchanged": true,
+        "startedUtc": "2026-10-15T15:07:23Z",
+        "endedUtc": "2026-10-15T15:12:27Z",
+        "outcomes": {
+          "loaded": 54,
+          "rejected": 0,
+          "faulted": 0,
+          "fatal": 0,
+          "crashed": 0,
+          "hung": 0
+        },
+        "reusedImageLines": 118,
+        "mapsWithReusedImageLines": 45,
+        "distinctReusedImageLines": 15,
+        "reusedImages": "same as sweep-before-glx"
+      },
+      "sweep-after-glx": {
+        "output": ".tmp/mohaa-picmip/sweep-after-glx",
+        "runtime": ".tmp/runtime/mohaa-picmip-after",
+        "renderer": "glx",
+        "cvars": {},
+        "developer": true,
+        "then": [
+          "finishloadingscreen"
+        ],
+        "binaries": {
+          "fntech3.exe": "16703da662dd175bed61c95e21a5c23260a741a5994da7f7a5d49d31e0c401a2",
+          "fnql_glx_x86.dll": "bb9430f22a30569a1bc0c92f7a36154385181c898d346b8d3d5b9c21c764282b"
+        },
+        "binariesUnchanged": true,
+        "startedUtc": "2026-10-15T15:12:29Z",
+        "endedUtc": "2026-10-15T15:17:09Z",
+        "outcomes": {
+          "loaded": 54,
+          "rejected": 0,
+          "faulted": 0,
+          "fatal": 0,
+          "crashed": 0,
+          "hung": 0
+        },
+        "reusedImageLines": 118,
+        "mapsWithReusedImageLines": 45,
+        "distinctReusedImageLines": 15,
+        "reusedImages": "same as sweep-before-glx"
+      },
+      "sweep-after-vk": {
+        "output": ".tmp/mohaa-picmip/sweep-after-vk",
+        "runtime": ".tmp/runtime/mohaa-picmip-after",
+        "renderer": "vk",
+        "cvars": {},
+        "developer": true,
+        "then": [
+          "finishloadingscreen"
+        ],
+        "binaries": {
+          "fntech3.exe": "16703da662dd175bed61c95e21a5c23260a741a5994da7f7a5d49d31e0c401a2",
+          "fnql_vk_x86.dll": "507189b804e9c71d741c32eeae5d460740287922c9f9763c34d8c00a1ee01bb9"
+        },
+        "binariesUnchanged": true,
+        "startedUtc": "2026-10-15T15:17:11Z",
+        "endedUtc": "2026-10-15T15:22:49Z",
+        "outcomes": {
+          "loaded": 54,
+          "rejected": 0,
+          "faulted": 0,
+          "fatal": 0,
+          "crashed": 0,
+          "hung": 0
+        },
+        "reusedImageLines": 118,
+        "mapsWithReusedImageLines": 45,
+        "distinctReusedImageLines": 15,
+        "reusedImages": "same as sweep-before-glx"
+      }
+    },
+    "attribution": {
+      "filter_rule_by_shader_name": {
+        "lines": 60,
+        "distinct": 9,
+        "images": [
+          "textures/common/reflection1.tga",
+          "textures/interior/grand_5.tga",
+          "textures/interior/grand_8.tga",
+          "textures/models/items/pulse.tga",
+          "textures/models/items/v2",
+          "textures/models/submodels/sub_bunk",
+          "textures/models/submodels/sub_env.tga",
+          "textures/test/window_env.tga",
+          "textures/wilderness/wldrrckset1_1.tga"
+        ],
+        "gone_with_r_picmipFilter_0": true,
+        "note": "each image is named by a world shader under textures/ (a script, or a map surface no script defines: textures/models/items/v2 in obj_team2, textures/models/submodels/sub_bunk in m2l2b) and by a model script with a pathless name (car, gasmask, static_v2, Painting_master5); textures/common/reflection1.tga is named by 56 such model scripts and 4 textures/mohtest scripts"
+      },
+      "scripts_treating_one_image_two_ways": {
+        "lines": 58,
+        "distinct": 6,
+        "images": [
+          "textures/MODELS/natural/regpalmsprite.tga",
+          "textures/effects/fire_ring.tga",
+          "textures/misc_outside/hedgerowsml.tga",
+          "textures/models/items/beam.tga",
+          "textures/models/items/pulse.tga",
+          "textures/models/submodels/miscpieces.tga"
+        ],
+        "gone_with_r_picmipFilter_0": false
+      },
+      "tiki_surface_raw_images": {
+        "lines": 0,
+        "diagnostic": "the chosen-flags branch ran 32 times on 24 maps, for 4 names, and found no image"
+      }
+    },
+    "static_tiki": {
+      "tool": "tests/mohaa_shader_gaps_tests.py (mohaa_pak_texts); .tmp/mohaa-picmip/tools/static_tiki.py",
+      "tik_files": 1378,
+      "models_txt_files": 48,
+      "shader_scripts": 137,
+      "script_definitions": 4438,
+      "surface_shader_lines": 2898,
+      "distinct_names": 1331,
+      "names_with_a_script": 1322,
+      "names_without_a_script": [
+        "bh_stone_fastpiece",
+        "circulartable",
+        "enigma",
+        "enigmatext",
+        "grandfathers_clock_pendulum1",
+        "muzmodel_bar",
+        "static_alarmswitch",
+        "static_woodenspoon",
+        "vsssourcetest"
+      ],
+      "unscripted_names_with_an_image": [],
+      "names_with_an_extension": [],
+      "path_command_roots": {
+        "models": 1603
+      }
+    },
+    "compare": {
+      "glx": {
+        "before": ".tmp/mohaa-picmip/sweep-before-glx",
+        "after": ".tmp/mohaa-picmip/sweep-after-glx",
+        "result": "0 of 54 maps changed"
+      },
+      "vk": {
+        "before": ".tmp/mohaa-picmip/sweep-before-vk",
+        "after": ".tmp/mohaa-picmip/sweep-after-vk",
+        "result": "0 of 54 maps changed"
+      }
+    },
+    "shader_warnings": {
+      "glx": {
+        "tool": "scripts/scan_shader_warnings.py",
+        "distinct_before": 26,
+        "distinct_after": 26,
+        "identical": true
+      },
+      "vk": {
+        "tool": "scripts/scan_shader_warnings.py",
+        "distinct_before": 26,
+        "distinct_after": 26,
+        "identical": true
+      },
+      "glx_equals_vk": true
+    },
+    "tests": [
+      "tests/mohaa_shader_gaps_tests.py",
+      "tests/ritual_shader_gaps_tests.py",
+      "tests/alice_renderer_parity_tests.py"
+    ]
   }
 }

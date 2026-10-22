@@ -3601,14 +3601,14 @@ from the current global working shader
 */
 static shader_t *FinishShader( void ) {
 	int			stage, i, n, m;
-	shaderStage_t	jediSpriteStages[MAX_SHADER_STAGES];
-	int			numJediSprites;
-	shader_t	*finished;
 	qboolean	hasLightmapStage;
 	qboolean	vertexLightmap;
 	qboolean	vertexLightMode;
 	qboolean	colorBlend;
 	qboolean	depthMask;
+	shaderStage_t	jediSpriteStages[MAX_SHADER_STAGES];
+	int			numJediSprites;
+	shader_t	*finished;
 
 	hasLightmapStage = qfalse;
 	vertexLightmap = qfalse;
@@ -4235,6 +4235,12 @@ static shader_t *R_FindShaderInternal( const char *name, int lightmapIndex,
 		{
 			// the caller chose the image's flags (R_FindAliceSurfaceShader)
 			flags = (imgFlags_t)rawImageFlags;
+			// r_picmipFilter still decides picmip, as InitShader decided it for
+			// a script naming the same image: a TIKI model's skin would
+			// otherwise keep or lose picmip by whichever shader loaded it first
+			if ( ( COM_GAME_ID_IS_RITUAL( ri.gameId ) || ri.gameId == COM_GAME_MOHAA ) && shader.noPicMip ) {
+				flags = (imgFlags_t)( flags & ~IMGFLAG_PICMIP );
+			}
 		}
 		else if (mipRawImage)
 		{
@@ -4963,9 +4969,11 @@ static void CreateExternalShaders( void ) {
 	// Enemy Territory names its sun per map, with a sunshader directive,
 	// and ships no image for the stock one.
 	// Medal of Honor defines no "sun" either: its sun is each map's lens
-	// flare (tr_alice.c).
-	tr.sunShader = ri.gameId == COM_GAME_WOLFET || ri.gameId == COM_GAME_MOHAA ? NULL
-		: R_FindShader( "sun", LIGHTMAP_NONE, qtrue );
+	// flare (tr_alice.c). Ritual's engines look none up: alice.exe and
+	// fakk2.exe 1.02 name "sun" only as a lens-flare section, Alice ships
+	// no such shader, and F.A.K.K.2's is its sky model's (fx_edensky2.tik).
+	tr.sunShader = ri.gameId == COM_GAME_WOLFET || ri.gameId == COM_GAME_MOHAA ||
+		COM_GAME_ID_IS_RITUAL( ri.gameId ) ? NULL : R_FindShader( "sun", LIGHTMAP_NONE, qtrue );
 }
 
 

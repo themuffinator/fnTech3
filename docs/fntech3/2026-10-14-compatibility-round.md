@@ -154,8 +154,12 @@ a blade, for three separate reasons:
   `cl_paused` changes nothing. A non-invasive debugger read seven seconds
   in found the client's latest snapshot flagged `SNAPFLAG_NOT_ACTIVE`
   (snapFlags 6, server time 19,350), on which a client game draws its
-  information screen instead of the world. Whether fnTech3's server wrote
-  that flag into the demo or its playback sets it is not yet known.
+  information screen instead of the world. The
+  [snapshot-flag record](2026-10-14-jka-demo-snapshot-flags.md) settles
+  this. The flag is on the 406 snapshots sent while the recorded client
+  was loading, as retail's server writes it, and playback skips them as
+  retail's does. The readings above were taken after the demo had ended.
+  Its 1.6-second active span draws the world behind the menu.
 - Joining a local `mp/ffa1` listen game stops, as before, at the spawn
   effect's Emitter primitive.
 - The UI's saber preview first refuses its hilt: a model on the engine's
