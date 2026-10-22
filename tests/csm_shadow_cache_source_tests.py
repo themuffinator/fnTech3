@@ -215,11 +215,12 @@ def check_debug(label: str, path: str, failures: list[str]) -> None:
     debug = section(
         source,
         '"csm shadows sky:%s',
-        "backEnd.pc.c_csmShadowReceiverEntitySurfaces );",
+        "backEnd.pc.c_csmShadowReceiverBakedSurfaces );",
         f"{label} debug print",
         failures,
     )
     require(debug, "cache h/m/u:%i/%i/%i", f"{label} cache debug label", failures)
+    require(debug, "recv world:%i ent:%i baked:%i", f"{label} receiver debug label", failures)
     require(debug, "depth center:%.0f %.0f %.0f %.0f", f"{label} light-depth center debug label", failures)
     require(debug, "depthCenter[0], depthCenter[1], depthCenter[2], depthCenter[3]", f"{label} light-depth center debug args", failures)
     require(debug, "cpu:%ims", f"{label} CSM CPU debug label", failures)
