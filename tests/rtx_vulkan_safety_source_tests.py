@@ -278,6 +278,39 @@ class RtxVulkanSafetySourceTests(unittest.TestCase):
         self.assertIn("!backEnd.refdef.skyboxPortalScene && vk_rt_debug_should_log_skip( &lastRefusedFrame )", report)
         self.assertIn("qboolean	skyboxPortalScene;", read("code/rendererrtx/tr_local.h"))
 
+    def test_a_view_after_the_portal_sky_still_takes_its_shadow_atlases(self) -> None:
+        # the view behind RTCW's portal sky begins in the post-bloom pass the
+        # sky's depth-fade snapshot resumed; its sun, point-light and spot
+        # shadow atlases must leave and resume that pass, not refuse it
+        # (2026-10-22: forest drew no sun shadows under RTX raster)
+        copy = section(self.vk, "void vk_copy_depth_fade( void )", "\n}\n")
+        self.assertIn("vk_begin_post_bloom_render_pass();", copy)
+        scene = section(self.vk, "static renderPass_t vk_shadow_atlas_scene_pass = RENDER_PASS_MAIN;",
+                        "qboolean vk_dlight_shadow_atlas_available( void )")
+        opened = section(scene, "static qboolean vk_shadow_atlas_scene_pass_open( void )", "\n}\n")
+        self.assertIn("if ( vk.renderPassIndex == RENDER_PASS_MAIN ) {\n"
+                      "\t\treturn vk.render_pass.main_load != VK_NULL_HANDLE ? qtrue : qfalse;", opened)
+        self.assertIn("if ( vk.renderPassIndex == RENDER_PASS_POST_BLOOM ) {\n"
+                      "\t\treturn vk.render_pass.post_bloom != VK_NULL_HANDLE ? qtrue : qfalse;", opened)
+        leave = section(scene, "static void vk_shadow_atlas_leave_scene_pass( void )", "\n}\n")
+        self.assertLess(leave.index("vk_shadow_atlas_scene_pass = vk.renderPassIndex;"),
+                        leave.index("vk_end_render_pass();"))
+        resume = section(scene, "static void vk_shadow_atlas_resume_scene_pass( void )", "\n}\n")
+        self.assertIn("if ( vk_shadow_atlas_scene_pass == RENDER_PASS_POST_BLOOM ) {\n"
+                      "\t\tvk_begin_post_bloom_render_pass();\n"
+                      "\t} else {\n"
+                      "\t\tvk_begin_main_render_pass_load();", resume)
+        for kind, index in (("dlight", "RENDER_PASS_DLIGHT_SHADOW"), ("spot", "RENDER_PASS_SPOT_SHADOW"),
+                            ("csm", "RENDER_PASS_CSM_SHADOW")):
+            begin = section(self.vk, f"qboolean vk_begin_{kind}_shadow_render_pass( void )\n{{", "\n}\n")
+            self.assertIn("!vk_shadow_atlas_scene_pass_open() ) {\n\t\treturn qfalse;", begin)
+            self.assertNotIn("vk.renderPassIndex != RENDER_PASS_MAIN", begin)
+            self.assertLess(begin.index("vk_shadow_atlas_leave_scene_pass();"),
+                            begin.index(f"vk.renderPassIndex = {index};"))
+            end = section(self.vk, f"void vk_end_{kind}_shadow_render_pass( void )\n{{", "\n}\n")
+            self.assertIn("vk_end_render_pass();\n\tvk_shadow_atlas_resume_scene_pass();", end)
+            self.assertNotIn("vk_begin_main_render_pass_load();", end)
+
     def test_primary_dispatch_and_output_composition_fail_before_raster_state_is_lost(self) -> None:
         primary = section(
             self.vk,

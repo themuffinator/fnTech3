@@ -14217,6 +14217,42 @@ qboolean vk_depth_fade_available( void )
 		vk_scene_depth_snapshot_available() ) ? qtrue : qfalse;
 }
 
+/*
+ * A shadow atlas interrupts the scene pass and resumes it afterwards. A view
+ * can begin in the post-bloom pass rather than the main one: an earlier
+ * full-screen view of the frame (the portal sky of RTCW, Enemy Territory or
+ * Jedi Academy) whose depth-fade or liquid snapshot resumed the scene there
+ * leaves the view behind it in that pass. Leave and resume whichever of the
+ * two is open, as motion blur does.
+ */
+static renderPass_t vk_shadow_atlas_scene_pass = RENDER_PASS_MAIN;
+
+static qboolean vk_shadow_atlas_scene_pass_open( void )
+{
+	if ( vk.renderPassIndex == RENDER_PASS_MAIN ) {
+		return vk.render_pass.main_load != VK_NULL_HANDLE ? qtrue : qfalse;
+	}
+	if ( vk.renderPassIndex == RENDER_PASS_POST_BLOOM ) {
+		return vk.render_pass.post_bloom != VK_NULL_HANDLE ? qtrue : qfalse;
+	}
+	return qfalse;
+}
+
+static void vk_shadow_atlas_leave_scene_pass( void )
+{
+	vk_shadow_atlas_scene_pass = vk.renderPassIndex;
+	vk_end_render_pass();
+}
+
+static void vk_shadow_atlas_resume_scene_pass( void )
+{
+	if ( vk_shadow_atlas_scene_pass == RENDER_PASS_POST_BLOOM ) {
+		vk_begin_post_bloom_render_pass();
+	} else {
+		vk_begin_main_render_pass_load();
+	}
+}
+
 qboolean vk_dlight_shadow_atlas_available( void )
 {
 	return ( vk.dlight_shadow_image != VK_NULL_HANDLE &&
@@ -14238,12 +14274,11 @@ qboolean vk_begin_dlight_shadow_render_pass( void )
 	if ( !vk_dlight_shadow_atlas_available() ||
 		vk.render_pass.dlight_shadow == VK_NULL_HANDLE ||
 		vk.framebuffers.dlight_shadow == VK_NULL_HANDLE ||
-		vk.render_pass.main_load == VK_NULL_HANDLE ||
-		vk.renderPassIndex != RENDER_PASS_MAIN ) {
+		!vk_shadow_atlas_scene_pass_open() ) {
 		return qfalse;
 	}
 
-	vk_end_render_pass();
+	vk_shadow_atlas_leave_scene_pass();
 	vk.renderPassIndex = RENDER_PASS_DLIGHT_SHADOW;
 	vk.renderWidth = vk.dlight_shadow_atlas_width;
 	vk.renderHeight = vk.dlight_shadow_atlas_height;
@@ -14262,7 +14297,7 @@ void vk_end_dlight_shadow_render_pass( void )
 	}
 
 	vk_end_render_pass();
-	vk_begin_main_render_pass_load();
+	vk_shadow_atlas_resume_scene_pass();
 	vk.dlight_shadow_rendered = qtrue;
 }
 
@@ -14302,12 +14337,11 @@ qboolean vk_begin_spot_shadow_render_pass( void )
 	if ( !vk_spot_shadow_atlas_available() ||
 		vk.render_pass.dlight_shadow == VK_NULL_HANDLE ||
 		vk.framebuffers.spot_shadow == VK_NULL_HANDLE ||
-		vk.render_pass.main_load == VK_NULL_HANDLE ||
-		vk.renderPassIndex != RENDER_PASS_MAIN ) {
+		!vk_shadow_atlas_scene_pass_open() ) {
 		return qfalse;
 	}
 
-	vk_end_render_pass();
+	vk_shadow_atlas_leave_scene_pass();
 	vk.renderPassIndex = RENDER_PASS_SPOT_SHADOW;
 	vk.renderWidth = vk.spot_shadow_atlas_width;
 	vk.renderHeight = vk.spot_shadow_atlas_height;
@@ -14326,7 +14360,7 @@ void vk_end_spot_shadow_render_pass( void )
 	}
 
 	vk_end_render_pass();
-	vk_begin_main_render_pass_load();
+	vk_shadow_atlas_resume_scene_pass();
 	vk.spot_shadow_rendered = qtrue;
 }
 
@@ -14384,12 +14418,11 @@ qboolean vk_begin_csm_shadow_render_pass( void )
 	if ( !vk_csm_shadow_atlas_available() ||
 		vk.render_pass.dlight_shadow == VK_NULL_HANDLE ||
 		vk.framebuffers.csm_shadow == VK_NULL_HANDLE ||
-		vk.render_pass.main_load == VK_NULL_HANDLE ||
-		vk.renderPassIndex != RENDER_PASS_MAIN ) {
+		!vk_shadow_atlas_scene_pass_open() ) {
 		return qfalse;
 	}
 
-	vk_end_render_pass();
+	vk_shadow_atlas_leave_scene_pass();
 	vk.renderPassIndex = RENDER_PASS_CSM_SHADOW;
 	vk.renderWidth = vk.csm_shadow_atlas_width;
 	vk.renderHeight = vk.csm_shadow_atlas_height;
@@ -14408,7 +14441,7 @@ void vk_end_csm_shadow_render_pass( void )
 	}
 
 	vk_end_render_pass();
-	vk_begin_main_render_pass_load();
+	vk_shadow_atlas_resume_scene_pass();
 	vk.csm_shadow_rendered = qtrue;
 }
 
