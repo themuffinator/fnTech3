@@ -533,3 +533,44 @@ channel for them before.
   and that an entity sun keeps its own; `csm_receiver_tests.py`,
   `raven_bsp_shader_flags_tests.py` and
   `rtx_renderer_contract_source_tests.py` follow.
+
+### Final export validation
+
+The validation started for `c845803b2049cdd5c8304c1ace809550bc79f359`
+finished before the session stopped. Its logs were checked on 2026-10-22:
+
+- **Source identity.** The existing archive export at
+  `.tmp/fnq-shadows/export3` was updated to that commit. All 4,605 tracked
+  files match: 1,114 byte for byte and 3,491 after CRLF-to-LF normalization;
+  none are missing or otherwise changed. This was an incremental rebuild
+  of the earlier clean export, not another clean build.
+- **Build.** Windows x86, MSVC, `debugoptimized`, `strict-warnings=true`,
+  client and dedicated server enabled, with GLx, Vulkan and RTX as loadable
+  renderers. The all-target build completed its 82 pending actions with
+  exit 0 and no compiler warnings (`units-build.log`).
+- **Native suite.** 274 passed, none failed, two skipped
+  (`units-native.log`). OpenAL loopback was unavailable; the retail factory
+  probe did not find Quake Live at its configured location. These skips do
+  not establish either runtime gate.
+- **Python suite.** All 612 test files were attempted, four processes at a
+  time: 602 passed, nine contain standalone checks rather than pytest tests,
+  and `release_packaging_tests.py` hit the 1,500-second per-file timeout.
+  Its isolated rerun passed: 48 tests and 22 subtests, with one Windows
+  symlink-privilege skip, in 932.59 seconds. All nine standalone scripts
+  also passed when run directly against the verified export. Thus 603 files
+  passed under pytest and nine passed as scripts; no failure remains after
+  the rerun. The original timeout remains recorded in the pool summary.
+
+Logs are under `.tmp/fnq-shadows/`: `units-build.log`, `units-native.log`,
+`pytest-units/summary.json`, `release-packaging-rerun.log`, and
+`completion/validation.json` with log hashes and the direct-script results.
+The JSON companion carries the same final results under
+`skySunUnits.exportValidation`.
+
+The Games guide and both README templates now describe the expanded model
+shadows; the Display guide also names the separate RTX raster limitation
+on RTCW `forest`. No engine code or compatibility-gate status changed while
+closing this validation record.
+The generated-document and player-manual checks passed after these updates:
+20 tests and 840 subtests (`completion/docs-tests.log`). The record's JSON
+also parses and its file totals agree.

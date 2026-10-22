@@ -6299,6 +6299,153 @@
     "tests/raven_bsp_shader_flags_tests.py",
     "tests/rtx_renderer_contract_source_tests.py"
    ]
+  },
+  "exportValidation": {
+   "commit": "c845803b2049cdd5c8304c1ace809550bc79f359",
+   "verifiedOn": "2026-10-22",
+   "export": ".tmp/fnq-shadows/export3",
+   "sourceIdentity": {
+    "trackedFiles": 4605,
+    "crlfOnly": 3491,
+    "byteIdentical": 1114,
+    "missingOrChanged": [],
+    "normalization": "CRLF to LF only"
+   },
+   "build": {
+    "platform": "Windows x86",
+    "compiler": "MSVC",
+    "buildtype": "debugoptimized",
+    "strictWarnings": true,
+    "client": true,
+    "dedicatedServer": true,
+    "renderers": [
+     "glx",
+     "vk",
+     "rtx"
+    ],
+    "method": "Incremental all-target rebuild of the earlier clean archive export, updated to this commit",
+    "actions": 82,
+    "exit": 0,
+    "compilerWarnings": 0,
+    "log": ".tmp/fnq-shadows/units-build.log"
+   },
+   "native": {
+    "passed": 274,
+    "failed": 0,
+    "skipped": 2,
+    "skipReasons": {
+     "fnql_audio_loopback": "ALC_SOFT_loopback unavailable",
+     "fnql_retail_factory_probe": "Retail Quake Live not found at the configured location"
+    },
+    "exit": 0,
+    "log": ".tmp/fnq-shadows/units-native.log"
+   },
+   "python": {
+    "files": 612,
+    "pool": {
+     "workers": 4,
+     "seconds": 2001,
+     "passedFiles": 602,
+     "uncollectedScriptFiles": 9,
+     "timedOutFiles": [
+      "tests/release_packaging_tests.py"
+     ],
+     "perFileTimeoutSeconds": 1500,
+     "summary": ".tmp/fnq-shadows/pytest-units/summary.json"
+    },
+    "packagingRerun": {
+     "file": "tests/release_packaging_tests.py",
+     "passed": 48,
+     "subtestsPassed": 22,
+     "skipped": 1,
+     "skipReason": "Windows symlink creation privilege unavailable",
+     "seconds": 932.59,
+     "exit": 0,
+     "log": ".tmp/fnq-shadows/release-packaging-rerun.log"
+    },
+    "standaloneScripts": [
+     {
+      "file": "tests/csm_plan_source_tests.py",
+      "exit": 0,
+      "seconds": 0.06,
+      "log": ".tmp/fnq-shadows/completion/csm_plan_source_tests.log"
+     },
+     {
+      "file": "tests/csm_shadow_cache_source_tests.py",
+      "exit": 0,
+      "seconds": 0.08,
+      "log": ".tmp/fnq-shadows/completion/csm_shadow_cache_source_tests.log"
+     },
+     {
+      "file": "tests/glx/glx_header_boundary_tests.py",
+      "exit": 0,
+      "seconds": 0.23,
+      "log": ".tmp/fnq-shadows/completion/glx_header_boundary_tests.log"
+     },
+     {
+      "file": "tests/glx/glx_spot_shadow_source_tests.py",
+      "exit": 0,
+      "seconds": 0.08,
+      "log": ".tmp/fnq-shadows/completion/glx_spot_shadow_source_tests.log"
+     },
+     {
+      "file": "tests/shadow_manager_source_tests.py",
+      "exit": 0,
+      "seconds": 0.06,
+      "log": ".tmp/fnq-shadows/completion/shadow_manager_source_tests.log"
+     },
+     {
+      "file": "tests/shadow_projection_source_tests.py",
+      "exit": 0,
+      "seconds": 0.09,
+      "log": ".tmp/fnq-shadows/completion/shadow_projection_source_tests.log"
+     },
+     {
+      "file": "tests/static_map_lights_source_tests.py",
+      "exit": 0,
+      "seconds": 0.06,
+      "log": ".tmp/fnq-shadows/completion/static_map_lights_source_tests.log"
+     },
+     {
+      "file": "tests/surface_light_proxy_source_tests.py",
+      "exit": 0,
+      "seconds": 0.05,
+      "log": ".tmp/fnq-shadows/completion/surface_light_proxy_source_tests.log"
+     },
+     {
+      "file": "tests/surfacelight_validation_docs_tests.py",
+      "exit": 0,
+      "seconds": 0.08,
+      "log": ".tmp/fnq-shadows/completion/surfacelight_validation_docs_tests.log"
+     }
+    ],
+    "resolvedResults": {
+     "pytestPassedFiles": 603,
+     "directScriptPassedFiles": 9,
+     "remainingFailures": 0
+    }
+   },
+   "audit": ".tmp/fnq-shadows/completion/validation.json",
+   "logSHA256": {
+    "units-build.log": "4aff314add0f59f97bd0d0e13c65646fd00a798427d11052d46ddcdabd1f5b7a",
+    "units-native.log": "169556ee04206e74c67c9959b444e26c1544a46c3b1b47cf8ea9d757dc02e87c",
+    "pytest-units/summary.json": "9df2b36b8934a2e8e50f1e30c98a3114a166fa96af7890e6b0401b8f2f6acdc1",
+    "release-packaging-rerun.log": "4a96f2e04ad8b053f9d1cebcec5767c19c14c0640226ec00450990b89d63b778"
+   },
+   "gateChange": "none",
+   "completionChecks": {
+    "files": [
+     "tests/generate_docs_tests.py",
+     "tests/player_manual_tests.py"
+    ],
+    "passed": 20,
+    "subtestsPassed": 840,
+    "exit": 0,
+    "log": ".tmp/fnq-shadows/completion/docs-tests.log",
+    "logSHA256": "313332b7378b76851a08a39d46dbbb0464ff032ff7f2d760d2cef9b373f9ed95",
+    "json": "parses; source-identity and test-file counts agree",
+    "diffCheck": "passed"
+   }
   }
  }
 }

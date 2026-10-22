@@ -400,6 +400,10 @@ shapes (these need a stencil buffer, `r_stencilbits 8`, the default), `3` flat b
   Lights
   the game insists on still show at `r_dynamiclight 0`. Return to Castle
   Wolfenstein's darkening and flame lights never cast shadows.
+- **Return to Castle Wolfenstein:** sun shadows currently fail on `forest`
+  when RTX draws normally (`rtx_rt_mode 0`). Use GLx or Vulkan for sun
+  shadows on that map; the [shadow record](fntech3/2026-10-22-fnq-shadow-formats.md#unrelated-observations)
+  tracks the issue separately from the path tracer's sun brightness.
 - **Quake III Arena:** a map made with the IHV Test's fog uses the original
   style, `r_dlightMode 0`, in every renderer.
 
