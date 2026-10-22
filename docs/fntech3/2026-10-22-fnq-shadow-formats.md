@@ -391,4 +391,96 @@ apart):
   checks the casters' rows, the receiver passes, GLx's programs and
   parameters, the Vulkan inputs, descriptors and shaders, and that the
   embedded Vulkan SPIR-V is what `glslangValidator` builds from the GLSL.
-  `tests/shadow_projection_source_tests.py` follows the two-row sampling.
+  `tests/shadow_projection_source_tests.py` follows the two-row sampling
+  and `tests/csm_shadow_cache_source_tests.py` the debug line.
+- **Export.** A `git archive` of the change (`dfa14b7e`) built all 1,546
+  targets with strict warnings. Its native tests failed one script,
+  `csm_shadow_cache_source_tests.py`, which pytest does not collect and
+  which still ended its check at the old debug line; `47e7f617` follows
+  the line, and with it the native tests (274, 2 skipped) passed, as did
+  all 611 test files, one pytest each (602; the nine script-style files
+  collect nothing and pass when run directly).
+- **Live.** The *before* runtime is the build of `150d6230` above
+  (`.tmp/fnq-shadows/runtime/csm-before`); the *after* runtime is the same
+  export with this change, whose engine executable and package are the same
+  files and whose three renderer libraries differ (`runtime/csm-after`).
+  Each of the 72 runs is a windowed 800x600 client on a private desktop, as
+  in the table above, with `r_csmShadows 1`, placed by console steps only
+  (`setviewpos` at the spawn point the map's own light grid shows most
+  sunlit, facing the sun, `.tmp/fnq-shadows/tools/sun_spots.py`; `team`
+  joins; `cg_thirdPerson 1`). "Sun shadow" is measured as above. Every run
+  ended without an error, and the installations and binaries were unchanged.
+
+| Game, map | GLx | Vulkan | RTX, `rtx_rt_mode 0` | Receivers after, GLx: world, model, baked |
+| --- | --- | --- | --- | --- |
+| Quake III `q3dm6` | 38.3% to 3.2% | 38.8% to 3.5% | 38.3% to 3.5% | 1,116, 52, 1,116 |
+| Quake Live `hiddenfortress` (`team f`) | 17.2% to 2.4% | 17.3% to 2.6% | 17.6% to 2.4% | 1,149, 44, 1,149 |
+| Elite Force Holomatch `ctf_and1` | 27.9% to 2.2% | 28.7% to 1.2% | 28.5% to 1.3% | 990, 48, 990 |
+| Jedi Academy `mp/ffa2` (`team free`, `ui_openmenu none`) | 21.7% to 1.7% | 21.7% to 1.7% | 21.5% to 1.7% | 173, 80, 173 |
+| Jedi Outcast `duel_jedi`, the spectator's view behind the player menu | 4.7% to 0.0% | 4.7% to 0.0% | 4.7% to 0.0% | 509, 16, 509 |
+| Q3Test 1.08 `q3test2`, a random spawn each run | 0.6% to 0.6% | 0.6% to 0.8% | 0.7% to 0.7% | not printed |
+| Enemy Territory `oasis` | 16.4% to 2.1% | 16.4% to 1.1% | 16.4% to 1.1% | 4,965, 104, 4,973 |
+| Return to Castle Wolfenstein `forest` | 69.0% to 74.7% | 68.2% to 73.5% | 0.7% to 0.7% | 104, 576, 104 |
+| F.A.K.K.2 `fakkhouse`, camera raised | 3.1% to 0.9% | 2.9% to 0.9% | 3.0% to 0.9% | 622, 112, 658 |
+| F.A.K.K.2 `shield`, the lamp-lit start | 31.2% to 1.1% | 31.7% to 1.2% | 31.7% to 1.2% | 155, 60, 171 |
+| Alice `grounds1` | 6.1% to 4.5% | 6.1% to 4.3% | 6.1% to 4.3% | 865, 328, 1,101 |
+| Medal of Honor `m5l1a`, a soldier on the street | 11.3% to 0.9% | 9.9% to 1.0% | 9.9% to 0.9% | 1,609, 288, 1,753 |
+
+- **The world's own shadows.** Before, every view's floors and walls
+  darkened where the level's own walls and roofs stood between them and
+  the sun, though their lightmaps held those shadows already; after, they
+  do not. `shield`'s mean luma with the shadows on went from 42.1 to 50.0
+  (50.4 without them); `q3dm6`'s, under a roof, from 28.4 to 40.5 (44.3).
+- **The models' shadows.** After, what darkens is the models and the
+  ground beside them: the player's or soldier's shadow on the sand, the
+  street, the path and Alice's floor, at the depth of the sun's part of
+  that ground's light. Models still take every shadow: a player under
+  `q3dm6`'s roof is darkened by it.
+- **Return to Castle Wolfenstein's forest got darker,** as it should: its
+  trees are runtime game models (`misc_gamemodel`, 149 of them), so their
+  shadows were never baked. Across 108 trees the terrain's vertex light
+  is the same down-sun of the trunk as up-sun (median luma 92.4 and 93.2
+  at 64 units, level at every distance to 384;
+  `.tmp/fnq-shadows/tools/gamemodel_shadow_bake.py`), and the sun is nearly
+  all of that ground's light, so a tree's shadow now takes nearly all of it
+  where the fixed factor took about 60 %.
+- **Counters.** `baked` counts brush-model surfaces too, so it can exceed
+  `world`. Q3Test draws its status-bar head, a scene without the world,
+  after the view, so `r_csmDebug` reports that scene ("skip no-world")
+  though the view's shadows draw; the run's on/off difference shows them.
+- **Views.** Q3Test's game has no `setviewpos` (it was sent as chat), so
+  its two runs spawned in different places and compare only within each
+  run. Jedi Outcast's multiplayer game has neither `setviewpos` nor a
+  console way past its player menu, and its single player does not reach
+  play in fnTech3 yet ("client import 3 is not implemented"), so its view
+  is the spectator's, behind the menu. The IHV test has no sun.
+
+### Limits
+
+- **Models under a roof.** A model takes the roof's sun shadow although
+  the light grid it is lit from already holds less sun there, as the
+  decision asked; `q3dm6`'s player shows it.
+- **What a compiler baked but the cascades call a model.** A brush model
+  or game model whose shadow a compiler did bake would shade a baked
+  surface twice. Wolfenstein's forest trees are not baked; the record has
+  no evidence for other games' movers either way.
+- **What the world row holds but a compiler did not bake** (id's q3map
+  cast no shadows from patches unless told to): such a surface keeps the
+  sun in its lightmap but takes no model shadow where the world row
+  covers it.
+- **Saturated lightmaps** cap L, so the share reads high there and is held
+  to 1.
+
+### Unrelated observations
+
+- **RTX's raster path drew no sun shadows on Wolfenstein's `forest`**
+  before or after this change: 4 world receivers and no model receivers a
+  frame, where GLx and Vulkan have 104 and 576; Enemy Territory's `oasis`
+  draws them under RTX.
+- **RTX's path tracer scales every sky sun to unit length**
+  (`RT_FindSun`), right for Quake III, the 1999 tests, Elite Force and the
+  Jedi games by the table above, but too dim for Quake Live's and
+  Wolfenstein's suns, whose compilers kept a brightest channel of 1, and by
+  its compiler for Enemy Territory's: by the colour's brightest channel over
+  its length, 42 % dimmer for a white sun and 29 % for `forest`'s
+  "1 0.8 0.6".
