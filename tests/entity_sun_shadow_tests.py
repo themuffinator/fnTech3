@@ -61,6 +61,13 @@ def function(text, signature):
     return text[start:text.index('\n}\n', start) + 3]
 
 
+def sun_reader():
+    """tr_entity_sun.h with the units header it includes beside it."""
+    reader = read('code/renderercommon/tr_entity_sun.h')
+    return reader.replace('#include "tr_sky_sun_units.h"\n',
+                          read('code/renderercommon/tr_sky_sun_units.h') + '\n')
+
+
 def cases(body):
     return set(re.findall(r'case (\w+):', body))
 
@@ -256,6 +263,7 @@ class ShadowBackendTests(unittest.TestCase):
 
 SUN_PRELUDE = r'''
 #include <cassert>
+#include <cctype>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -266,7 +274,19 @@ enum { qfalse, qtrue };
 typedef float vec3_t[3];
 #define MAX_QPATH 64
 #define MAX( a, b ) ( ( a ) > ( b ) ? ( a ) : ( b ) )
-enum { COM_GAME_QUAKE3, COM_GAME_ALICE, COM_GAME_FAKK2, COM_GAME_MOHAA };
+enum { COM_GAME_QUAKE3, COM_GAME_ALICE, COM_GAME_FAKK2, COM_GAME_MOHAA, COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP,
+    COM_GAME_RTCW_MP, COM_GAME_WOLFET };
+#define ID_INLINE inline
+#define ARRAY_LEN( x ) ( sizeof( x ) / sizeof( *( x ) ) )
+static int Q_stricmpn( const char *a, const char *b, int n ) {
+    for ( ; n > 0; a++, b++, n-- ) {
+        const int x = std::tolower( (unsigned char)*a ), y = std::tolower( (unsigned char)*b );
+        if ( x != y ) return x < y ? -1 : 1;
+        if ( !x ) return 0;
+    }
+    return 0;
+}
+static int Q_stricmp( const char *a, const char *b ) { return Q_stricmpn( a, b, 1 << 30 ); }
 #define COM_GAME_ID_IS_RITUAL( id ) ( ( id ) == COM_GAME_ALICE || ( id ) == COM_GAME_FAKK2 )
 static void Com_Memset( void *p, int v, size_t n ) { std::memset( p, v, n ); }
 static void Com_Memcpy( void *d, const void *s, size_t n ) { std::memcpy( d, s, n ); }
@@ -282,7 +302,7 @@ static float VectorNormalize2( const vec3_t v, vec3_t out ) {
     return length;
 }
 struct worldSun_t { qboolean valid; char shaderName[MAX_QPATH]; vec3_t color, directionToSun, lightDirection, light;
-    float intensity; };
+    float intensity; qboolean unitColour; };
 static struct { worldSun_t worldSun; vec3_t sunLight, sunColor, sunDirection; float sunIntensity;
     qboolean sunParmsValid; } tr;
 static struct { char *entityString; } s_worldData;
@@ -393,6 +413,19 @@ int main() {
     mohaaSun = true; mohaaLight[1] = 85.0f;
     Load( COM_GAME_QUAKE3, "{\n\"suncolor\" \"224 192 192\"\n\"sundirection\" \"-45 -26.9 0\"\n}\n" );
     assert( SkySunKept() && SkyDirectionKept() );
+    /* the sky sun's units (tr_sky_sun_units.h): id's q3map at unit length,
+     * q3map2's and Wolfenstein's at a brightest channel of 1 */
+    assert( tr.worldSun.unitColour );
+    Load( COM_GAME_QUAKE3, "{\n\"classname\" \"worldspawn\"\n\"_q3map2_version\" \"2.5.17n\"\n}\n" );
+    assert( SkySunKept() && !tr.worldSun.unitColour );
+    Load( COM_GAME_RTCW_SP, "{\n\"classname\" \"worldspawn\"\n}\n" );
+    assert( SkySunKept() && !tr.worldSun.unitColour );
+    Load( COM_GAME_QUAKE3, nullptr );
+    assert( SkySunKept() && tr.worldSun.unitColour );
+    /* an entity sun is in lightmap units already */
+    Load( COM_GAME_ALICE, "{\n\"classname\" \"worldspawn\"\n\"suncolor\" \"224 192 192\"\n"
+        "\"sundirection\" \"-45 -26.9 0\"\n}\n" );
+    assert( !SkySunKept() && !tr.worldSun.unitColour );
     return 0;
 }
 '''
@@ -400,8 +433,7 @@ int main() {
 
 class EntitySunTests(unittest.TestCase):
     def test_the_reader_takes_each_games_own_keys(self):
-        reader = read('code/renderercommon/tr_entity_sun.h')
-        compile_and_run(self, SUN_PRELUDE + reader + SUN_CHECKS)
+        compile_and_run(self, SUN_PRELUDE + sun_reader() + SUN_CHECKS)
 
     def test_every_renderer_loads_the_sun_after_its_entities(self):
         for renderer in RENDERERS:
@@ -559,8 +591,7 @@ class InstalledMapSunTests(unittest.TestCase):
         if not maps:
             self.skipTest('installation not present')
         stdin = b''.join(b'%d %d\n' % (game, len(entity_text(data))) + entity_text(data) for _, data in maps)
-        reader = read('code/renderercommon/tr_entity_sun.h')
-        out = compile_and_run(self, RITUAL_SWEEP.replace('%READER%', reader), stdin=stdin).splitlines()
+        out = compile_and_run(self, RITUAL_SWEEP.replace('%READER%', sun_reader()), stdin=stdin).splitlines()
         self.assertEqual(len(out), len(maps))
         result = {}
         for (name, data), line in zip(maps, out):

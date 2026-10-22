@@ -21,9 +21,11 @@ def harness():
     lights = (ROOT / "code/rendererrtx/rt/rt_lights.c").read_text(encoding="utf-8")
     material = (ROOT / "code/rendererrtx/rt/rt_material.c").read_text(encoding="utf-8")
     math = (ROOT / "code/qcommon/q_math.c").read_text(encoding="utf-8")
+    shared = (ROOT / "code/qcommon/q_shared.c").read_text(encoding="utf-8")
     source = r'''
 #define _CRT_SECURE_NO_WARNINGS 1
 #include "code/qcommon/q_shared.h"
+#include "code/qcommon/game_profile.h"
 #include "code/qcommon/surfaceflags.h"
 #include <assert.h>
 #include <math.h>
@@ -47,7 +49,7 @@ typedef struct { shader_t *shader; } msurface_t;
 typedef struct { int numsurfaces; msurface_t *surfaces; } world_t;
 static struct { world_t *world; } tr;
 static void Printf( int, const char *, ... ) {}
-static struct { void ( *Printf )( int, const char *, ... ); } ri = { Printf };
+static struct { void ( *Printf )( int, const char *, ... ); int gameId; } ri = { Printf, COM_GAME_QUAKE3 };
 static struct {
     qboolean q3map2, noShaderSun, sunValid;
     vec3_t sunLight, sunDirection;
@@ -58,6 +60,9 @@ static struct {
 } s_rtLights;
 '''
     source += function(math, "vec_t VectorNormalize2( const vec3_t v, vec3_t out)")
+    source += function(shared, "int Q_stricmpn( const char *s1, const char *s2, int n ) {")
+    source += function(shared, "int Q_stricmp( const char *s1, const char *s2 )")
+    source += (ROOT / "code/renderercommon/tr_sky_sun_units.h").read_text(encoding="utf-8")
     source += function(lights, "static qboolean RT_FloatValid( float v, float limit )")
     source += function(lights, "static qboolean RT_Vec3Valid( const vec3_t v, float limit )")
     source += function(material, "static qboolean RT_ShaderIsSky( const shader_t *shader )")
@@ -77,6 +82,7 @@ static void Reset( qboolean q3map2 ) {
     for ( int i = 0; i < 4; ++i ) surfaces[i].shader = &shaders[i];
     s_rtLights.q3map2 = q3map2;
     tr.world = &world;
+    ri.gameId = COM_GAME_QUAKE3;
 }
 // a shader's q3map_sun as the renderer's parser records it: colour scaled so
 // its largest component is 1
@@ -138,6 +144,31 @@ int main() {
     RT_FindSun();
     assert( !s_rtLights.sunValid );
 
+    /* Wolfenstein's own compiler picks id's sun but keeps its largest
+     * component at 1, as its lightmaps show (tr_sky_sun_units.h); so do
+     * Quake Live's and Enemy Territory's maps without q3map2's keys */
+    {
+        const int games[] = { COM_GAME_RTCW_SP, COM_GAME_RTCW_MP, COM_GAME_QUAKELIVE, COM_GAME_WOLFET };
+        for ( int game : games ) {
+            Reset( qfalse );
+            ri.gameId = game;
+            Sun( &shaders[0], 1, 0, 0, 500, 0, 90 );
+            shaders[1].surfaceFlags = SURF_SKY;
+            Sun( &shaders[1], 1, 1, 0.5f, 150, 75, 60 );
+            RT_FindSun();
+            assert( s_rtLights.sunValid && Near( s_rtLights.sunLight, 150, 150, 75 ) );
+        }
+        /* Raven's and id's own keep unit length */
+        const int unit[] = { COM_GAME_QUAKE3, COM_GAME_Q3TEST, COM_GAME_STVEF_MP, COM_GAME_JKA_MP, COM_GAME_JK2_SP };
+        for ( int game : unit ) {
+            Reset( qfalse );
+            ri.gameId = game;
+            shaders[1].surfaceFlags = SURF_SKY;
+            Sun( &shaders[1], 1, 1, 0.5f, 150, 75, 60 );
+            RT_FindSun();
+            assert( s_rtLights.sunValid && Near( s_rtLights.sunLight, 100, 100, 50 ) );
+        }
+    }
     /* q3map2: the first shader with a sun, sky or not, largest component 1 */
     Reset( qtrue );
     Sun( &shaders[1], 2, 1, 0, 100, 0, 30 );

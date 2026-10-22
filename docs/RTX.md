@@ -36,6 +36,9 @@ are lit by the sun and sky each map names, casting the same shadows as the
 game's own lighting ([sun details](fntech3/2026-10-16-mohaa-worldspawn-sun.md)).
 Alice's and F.A.K.K.2's maps are lit by the sun each level names in the
 same way ([details](fntech3/2026-10-22-fnq-shadow-formats.md)).
+Return to Castle Wolfenstein's sun shines as strongly as the maps' own
+lighting had it; before, RTX traced it about a third too dim
+([details](fntech3/2026-10-22-fnq-shadow-formats.md#sky-suns-in-the-path-tracer)).
 
 ## Turning RTX On
 

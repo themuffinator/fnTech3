@@ -24,6 +24,7 @@ NODRAW_TEST = 's_worldData.shaders[ LittleLong( ds->shaderNum ) ].surfaceFlags &
 PRELUDE = r'''
 #define _CRT_SECURE_NO_WARNINGS 1
 #include "code/qcommon/q_shared.h"
+#include "code/qcommon/game_profile.h"
 #include "code/qcommon/qfiles.h"
 #include "code/renderercommon/tr_raven_bsp_format.h"
 #include <assert.h>
@@ -61,12 +62,21 @@ static void Printf( int level, const char *fmt, ... ) {
 }
 static struct {
 	void *(*Hunk_Alloc)( int, ha_pref ); void (*Error)( int, const char *, ... ); void (*Printf)( int, const char *, ... );
-} ri = { HunkAlloc, Error, Printf };
+	int gameId;
+} ri = { HunkAlloc, Error, Printf, COM_GAME_JKA_MP };
 static unsigned int crc32_buffer( const byte *buf, unsigned int len ) { (void)buf; (void)len; return 0; }
 int Q_stricmp( const char *a, const char *b ) {
 	for ( ; tolower( (unsigned char)*a ) == tolower( (unsigned char)*b ); a++, b++ ) if ( !*a ) return 0;
 	return tolower( (unsigned char)*a ) - tolower( (unsigned char)*b );
 }
+int Q_stricmpn( const char *a, const char *b, int n ) {
+	for ( ; n > 0; a++, b++, n-- ) {
+		if ( tolower( (unsigned char)*a ) != tolower( (unsigned char)*b ) ) return tolower( (unsigned char)*a ) - tolower( (unsigned char)*b );
+		if ( !*a ) return 0;
+	}
+	return 0;
+}
+#include "code/renderercommon/tr_sky_sun_units.h"
 #ifdef RTX_CHAIN
 static shader_t defaultShader, parsed[8];
 static int numParsed;

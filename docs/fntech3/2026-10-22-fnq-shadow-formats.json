@@ -5983,7 +5983,7 @@
   },
   "observations": {
    "rtxForestNoSunShadows": "rtx_rt_mode 0 on rtcw-sp forest: recv world 4 ent 0 before and after",
-   "rtxSkySunUnitLength": "RT_FindSun scales every sky sun to unit length; QL/RTCW (and ET by compiler) store brightest channel 1",
+   "rtxSkySunUnitLength": "RT_FindSun scaled Wolfenstein's sky suns to unit length (it kept a brightest channel only for maps it knew for q3map2's); fixed under skySunUnits",
    "q3testDebugScene": "r_csmDebug reports the status-bar head scene drawn after the view (skip no-world)",
    "jk2MenuAndSp": "jk2-mp: no setviewpos, no console way past the player menu; jk2-sp: client import 3 not implemented",
    "rtxReflectionJson": "shader_reflection.json was stale for liquid.frag (11764 vs the embedded 11852) and is regenerated"
@@ -6000,6 +6000,305 @@
    "build": "all 1546 targets, /W4 /WX, no warnings",
    "native": "dfa14b7e: 273 OK, 1 failed (csm_shadow_cache_source_tests.py, fixed by 47e7f617), 2 skipped; with the fix: 274 OK, 0 failed, 2 skipped",
    "pytest": "611 files, one process each, four at a time (1364 s): 602 passed, 9 collect nothing (script-style; each passes run directly), 0 failed"
+  }
+ },
+ "skySunUnits": {
+  "problem": "RT_FindSun scaled a sky sun to unit length unless it knew the map for q3map2's, so Wolfenstein's suns (stored at a brightest channel of 1) traced too dim; the raster took the profile alone, so q3map2-compiled Quake III maps took unit length",
+  "rule": {
+   "file": "code/renderercommon/tr_sky_sun_units.h",
+   "functions": [
+    "R_SkySunQ3map2Key",
+    "R_SkySunEntitiesQ3map2",
+    "R_SkySunUnitLengthColour"
+   ],
+   "unitLength": "id q3map and Raven compilers: q3, q3-ihv, q3test, stvef-sp/mp, jka-sp/mp, jk2-sp/mp, and the Ritual/MoHAA sky suns no installed map has",
+   "brightestChannel": "q3map2-compiled maps (worldspawn keys), ql, rtcw-sp, rtcw-mp, wolfet",
+   "entitySuns": "as given",
+   "raster": "tr.worldSun.unitColour, set in R_LoadEntitySun (tr_entity_sun.h); R_CSMSunLightmapColor reads it",
+   "rtx": "RT_FindSun: R_SkySunUnitLengthColour( ri.gameId, s_rtLights.q3map2 )"
+  },
+  "installedWorldspawns": {
+   "ql": "141 of 149 carry q3map2 keys",
+   "wolfet": "6 of 6",
+   "rtcw": "0 of 50 (_farplanedist is its own)",
+   "q3": "7 of 45, all in third-party paks",
+   "test": "tests/sky_sun_units_tests.py test_installed_maps"
+  },
+  "runtimes": {
+   "before": ".tmp/fnq-shadows/runtime/csm-after (dfa14b7e libraries)",
+   "after": {
+    "path": ".tmp/fnq-shadows/runtime/sunits-after",
+    "fntech3.exe": "ababdab11f29db348da9e3f70087a42d212c7638208fe02b615234e4e15fd0e5",
+    "fnql_glx_x86.dll": "e2c455ea5ecb4a52e41db4504c61e1ee416ce37902a59fdfc4fbba93566cabe6",
+    "fnql_vk_x86.dll": "d605ec5f823f4956eec02541a20dc2854009540d9c780e261f5aa9f781f15737",
+    "fnql_rtx_x86.dll": "34075dc04010a46bdf5b3c480fa8d54e69d0f4b89491d96b4540dc0a4e67330f",
+    "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+   }
+  },
+  "live": [
+   {
+    "view": "rtcw",
+    "profile": "rtcw-sp",
+    "map": "forest",
+    "renderer": "rtx path traced",
+    "before": {
+     "run": "rtcw-rtx-units-before",
+     "outcome": "exited",
+     "errors": 0,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "sunLog": [
+      "RTX RT: q3map sun 91.9 73.5 55.2 toward -0.492 -0.413 0.766"
+     ],
+     "captures": [
+      {
+       "name": "rt.png",
+       "sha256": "991e15e807eaa9c3f88ec66919588669043057d37ead3a31a6551ca58944c1e6"
+      },
+      {
+       "name": "rt2.png",
+       "sha256": "ca183c4d6f2b6e7eda1054c5de1d225770975e63882de2a20c8e3d7734173c4e"
+      }
+     ]
+    },
+    "after": {
+     "run": "rtcw-rtx-units-after",
+     "outcome": "exited",
+     "errors": 0,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "sunLog": [
+      "RTX RT: q3map sun 130.0 104.0 78.0 toward -0.492 -0.413 0.766"
+     ],
+     "captures": [
+      {
+       "name": "rt.png",
+       "sha256": "1948c017c6d8427b3ef77575273095f9db74df2d344b0b267dda2318a642f8df"
+      },
+      {
+       "name": "rt2.png",
+       "sha256": "9ab1e0973501e9fe83e7d18e9b5adcbadd1ee3cb633e6a19116465c53dfadc90"
+      }
+     ]
+    }
+   },
+   {
+    "view": "wolfet",
+    "profile": "wolfet",
+    "map": "oasis",
+    "renderer": "rtx path traced",
+    "before": {
+     "run": "wolfet-rtx-units-before",
+     "outcome": "exited",
+     "errors": 0,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "sunLog": [
+      "RTX RT: q3map2 kept none of the map's light entities; its sky, sun and glowing surfaces light it",
+      "RTX RT: q3map2 sun 135.0 126.0 108.0 toward -0.620 -0.214 0.755"
+     ],
+     "captures": [
+      {
+       "name": "rt.png",
+       "sha256": "33368800ccda67f4fd6eb417757a59f388a0a6e11951a803bc689fc91a2df2f6"
+      },
+      {
+       "name": "rt2.png",
+       "sha256": "55869eb0dbfbdf4323fbfb6d17e90118d1bd227a1ee455ada6282dded99d1112"
+      }
+     ]
+    },
+    "after": {
+     "run": "wolfet-rtx-units-after",
+     "outcome": "exited",
+     "errors": 0,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "sunLog": [
+      "RTX RT: q3map2 kept none of the map's light entities; its sky, sun and glowing surfaces light it",
+      "RTX RT: q3map2 sun 135.0 126.0 108.0 toward -0.620 -0.214 0.755"
+     ],
+     "captures": [
+      {
+       "name": "rt.png",
+       "sha256": "1b4f136f51e47248d4922e19e744b2fca180b6070f05ebbd512fc6768fc805de"
+      },
+      {
+       "name": "rt2.png",
+       "sha256": "b9d41d544c4c137366a1a6cb5ad7bed4373ddd3a2044ddc981e89f7d848a95fa"
+      }
+     ]
+    }
+   },
+   {
+    "view": "ql",
+    "profile": "ql",
+    "map": "hiddenfortress ffa",
+    "renderer": "rtx path traced",
+    "before": {
+     "run": "ql-rtx-units-before",
+     "outcome": "exited",
+     "errors": 0,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "sunLog": [
+      "RTX RT: q3map2 kept none of the map's light entities; its sky, sun and glowing surfaces light it",
+      "RTX RT: q3map2 sun 69.3 81.9 90.0 toward -0.123 0.123 0.985"
+     ],
+     "captures": [
+      {
+       "name": "rt.png",
+       "sha256": "345a217f150f2455f3f4e087e06c443a3ceddf7456591b8a49a43827b634dbca"
+      },
+      {
+       "name": "rt2.png",
+       "sha256": "fc962992d0d490f8bb2658e83bc06268d829487bb6319954ae409b217f7d414c"
+      }
+     ]
+    },
+    "after": {
+     "run": "ql-rtx-units-after",
+     "outcome": "exited",
+     "errors": 0,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "sunLog": [
+      "RTX RT: q3map2 kept none of the map's light entities; its sky, sun and glowing surfaces light it",
+      "RTX RT: q3map2 sun 69.3 81.9 90.0 toward -0.123 0.123 0.985"
+     ],
+     "captures": [
+      {
+       "name": "rt.png",
+       "sha256": "a83687c7685e5055ab08ce614a63fdc35878d0b8419e562b4a97f1a1489cb608"
+      },
+      {
+       "name": "rt2.png",
+       "sha256": "f5328f303a9e746274d74a0228bff34c1e6767fa716ddec44a9bf3332ff214bd"
+      }
+     ]
+    }
+   },
+   {
+    "view": "q3",
+    "profile": "q3",
+    "map": "q3dm6",
+    "renderer": "rtx path traced",
+    "before": {
+     "run": "q3-rtx-units-before",
+     "outcome": "exited",
+     "errors": 0,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "sunLog": [
+      "RTX RT: q3map sun 67.1 80.5 107.3 toward 0.433 0.250 0.866"
+     ],
+     "captures": [
+      {
+       "name": "rt.png",
+       "sha256": "0627c5137f0ebe1a3c6a62d501097b8ff973776c81d368b60a6df1a4f5a634d2"
+      },
+      {
+       "name": "rt2.png",
+       "sha256": "8ab3e486d549795edfc6f494a00ec6a461e14c27b22877996e049d9306d4071e"
+      }
+     ]
+    },
+    "after": {
+     "run": "q3-rtx-units-after",
+     "outcome": "exited",
+     "errors": 0,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "sunLog": [
+      "RTX RT: q3map sun 67.1 80.5 107.3 toward 0.433 0.250 0.866"
+     ],
+     "captures": [
+      {
+       "name": "rt.png",
+       "sha256": "9118e283e29c1dff73a06cb28695b249f1e284e7cac89c6a730c03554361b304"
+      },
+      {
+       "name": "rt2.png",
+       "sha256": "7cfb64a0cb913f1ccb5128270a1e9dad19b6def30befcca2fc8077b0d06bd190"
+      }
+     ]
+    }
+   }
+  ],
+  "forestSunlitPatches": {
+   "mask": "pixels above 40 luma in the before capture, rows 60-519",
+   "pixels": 29816,
+   "beforeMeanSRGB": [
+    85.4,
+    83.0,
+    74.3
+   ],
+   "afterMeanSRGB": [
+    94.2,
+    90.7,
+    78.1
+   ],
+   "linearRatio": 1.117
+  },
+  "frameMeansSRGB": {
+   "rtcw": [
+    [
+     17.1,
+     16.8,
+     15.6
+    ],
+    [
+     18.3,
+     17.9,
+     16.1
+    ]
+   ],
+   "wolfet": [
+    [
+     163.7,
+     145.8,
+     107.8
+    ],
+    [
+     164.2,
+     146.2,
+     107.9
+    ]
+   ],
+   "ql": [
+    [
+     31.0,
+     29.0,
+     24.2
+    ],
+    [
+     31.0,
+     29.0,
+     24.2
+    ]
+   ],
+   "q3": [
+    [
+     43.5,
+     35.2,
+     30.2
+    ],
+    [
+     43.6,
+     35.3,
+     30.3
+    ]
+   ]
+  },
+  "tests": {
+   "new": "tests/sky_sun_units_tests.py",
+   "updated": [
+    "tests/rtx_light_rules_tests.py",
+    "tests/entity_sun_shadow_tests.py",
+    "tests/csm_receiver_tests.py",
+    "tests/raven_bsp_shader_flags_tests.py",
+    "tests/rtx_renderer_contract_source_tests.py"
+   ]
   }
  }
 }

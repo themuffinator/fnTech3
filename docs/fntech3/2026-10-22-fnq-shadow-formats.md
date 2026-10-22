@@ -477,10 +477,59 @@ apart):
   before or after this change: 4 world receivers and no model receivers a
   frame, where GLx and Vulkan have 104 and 576; Enemy Territory's `oasis`
   draws them under RTX.
-- **RTX's path tracer scales every sky sun to unit length**
-  (`RT_FindSun`), right for Quake III, the 1999 tests, Elite Force and the
-  Jedi games by the table above, but too dim for Quake Live's and
-  Wolfenstein's suns, whose compilers kept a brightest channel of 1, and by
-  its compiler for Enemy Territory's: by the colour's brightest channel over
-  its length, 42 % dimmer for a white sun and 29 % for `forest`'s
-  "1 0.8 0.6".
+- **RTX's path tracer scaled Wolfenstein's sky suns to unit length**
+  (`RT_FindSun`), which keeps a brightest channel of 1 only for maps it
+  knows q3map2 compiled. Fixed under
+  [Sky suns in the path tracer](#sky-suns-in-the-path-tracer).
+
+## Sky suns in the path tracer
+
+`RT_FindSun` took a sky sun's colour at unit length unless it knew the map
+for q3map2's, by its worldspawn keys or q3map2-only shader directives. So
+Return to Castle Wolfenstein's suns, which its own compiler stored with a
+brightest channel of 1 (see [The sun's units](#the-suns-units)), were
+traced too dim by the colour's brightest channel over its length: 29 % for
+`forest`'s "1 0.8 0.6". The raster's sun shadows had the opposite gap: they
+took the profile alone, so a Quake III map that q3map2 compiled took unit
+length.
+
+Both now ask one rule (`code/renderercommon/tr_sky_sun_units.h`): unit
+length for id's q3map and Raven's; a brightest channel of 1 for a map
+q3map2 compiled and for the Quake Live, Wolfenstein and Enemy Territory
+profiles. A map is q3map2's when its worldspawn carries a key only q3map2
+writes or reads -- the keys RTX's light parser reads, checked equal by a
+test (`R_SkySunEntitiesQ3map2`). The raster reads them once a level's
+entities load, into `tr.worldSun.unitColour`; RTX keeps its own parse,
+which also knows q3map2's shader directives, and passes its result to the
+rule (`R_SkySunUnitLengthColour`). Entity suns stay as given. The sky suns
+of Alice, F.A.K.K.2 and Medal of Honor, which no installed map has, now
+take id's rule, as their compilers' ancestor; the raster took a brightest
+channel for them before.
+
+- **Observed, installed maps.** Through the production scan
+  (`tests/sky_sun_units_tests.py`): 141 of Quake Live's 149 maps carry
+  q3map2's keys, all 6 of Enemy Territory's, none of Wolfenstein's 50 (its
+  one `_farplanedist` is Wolfenstein's own key), and 7 of the 45 in the
+  Quake III installation, all in third-party paks.
+- **Live, RTX path traced** (its default `rtx_rt_mode`), the views of the
+  table above, before with the libraries of `dfa14b7e` and after with this
+  change (`.tmp/fnq-shadows/runtime/sunits-after`): `forest`'s load log
+  went from "q3map sun 91.9 73.5 55.2" to "130.0 104.0 78.0" (x 1.41), and
+  its sunlit patches (pixels above 40 luma) from mean sRGB 85.4 83.0 74.3 to
+  94.2 90.7 78.1, the exposure adapting. `oasis` ("q3map2 sun 135.0 126.0
+  108.0"), `hiddenfortress` ("q3map2 sun 69.3 81.9 90.0") and `q3dm6` ("q3map
+  sun 67.1 80.5 107.3") logged the same sun before and after, and their
+  frames' means agree within 0.5. Every run ended without an error; the
+  installations and binaries were unchanged.
+- **Tests.** `tests/sky_sun_units_tests.py` compiles the rule and the scan
+  with the production string compares (every profile; q3map2's keys in any
+  case; id's keys and lookalikes; `_farplanedist` by profile; keys outside
+  the worldspawn, values, cut-off, malformed and over-long text), checks the
+  scan's keys against RTX's parser and where the rule is used, and sweeps
+  the installed maps. `rtx_light_rules_tests.py` traces Wolfenstein's,
+  Quake Live's and Enemy Territory's unmarked suns at a brightest channel of
+  1 and Quake III's, Q3Test's, Elite Force's and the Jedi games' at unit
+  length; `entity_sun_shadow_tests.py` checks the units a level's load sets
+  and that an entity sun keeps its own; `csm_receiver_tests.py`,
+  `raven_bsp_shader_flags_tests.py` and
+  `rtx_renderer_contract_source_tests.py` follow.

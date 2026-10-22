@@ -194,8 +194,6 @@ LAYOUT_PRELUDE = r'''
 #include <cassert>
 #include <cmath>
 #include <cstring>
-#include "code/qcommon/game_profile.h"
-static struct { int gameId; } ri;
 typedef int qboolean;
 enum { qfalse, qtrue };
 typedef float vec3_t[3];
@@ -207,7 +205,7 @@ static float Com_Clamp( float min, float max, float value ) { return value < min
 struct cvar_t { int integer; };
 static cvar_t mapOverBright = { 2 };
 static cvar_t *r_mapOverBrightBits = &mapOverBright;
-static struct { int overbrightBits; struct { vec3_t color; vec3_t light; } worldSun; } tr;
+static struct { int overbrightBits; struct { vec3_t color; vec3_t light; qboolean unitColour; } worldSun; } tr;
 '''
 
 LAYOUT_CHECKS = r'''
@@ -228,9 +226,10 @@ int main() {
     assert( !R_CSMShadowAtlasLayout( 1, 128, 255, &layout ) );
     assert( !R_CSMShadowAtlasLayout( 0, 1024, 4096, &layout ) );
 
-    /* the sun shifted as the lightmaps are, over 255: F.A.K.K.2's fakkhouse */
+    /* the sun shifted as the lightmaps are, over 255: F.A.K.K.2's fakkhouse,
+       an entity sun given in lightmap units */
     vec3_t out;
-    ri.gameId = COM_GAME_FAKK2;
+    tr.worldSun.unitColour = qfalse;
     tr.worldSun.color[0] = 1.0f; tr.worldSun.color[1] = 1.0f; tr.worldSun.color[2] = 50.0f / 56.0f;
     tr.worldSun.light[0] = 56.0f; tr.worldSun.light[1] = 56.0f; tr.worldSun.light[2] = 50.0f;
     tr.overbrightBits = 0;
@@ -246,29 +245,22 @@ int main() {
     R_CSMSunLightmapColor( out );
     assert( std::isfinite( out[0] ) && Near( out[0], 56.0f * 65536.0f / 255.0f ) );
 
-    /* id's and Raven's compilers stored the colour at unit length: Quake III's
-       q3dm6, `q3map_sun 0.5 0.6 0.8 150 30 60`, kept as 0.625 0.75 1 x 150 */
+    /* a sky sun its compiler stored at unit length (tr_sky_sun_units.h):
+       Quake III's q3dm6, `q3map_sun 0.5 0.6 0.8 150 30 60`, kept as
+       0.625 0.75 1 x 150 */
     mapOverBright.integer = 1; tr.overbrightBits = 1;
     tr.worldSun.color[0] = 0.625f; tr.worldSun.color[1] = 0.75f; tr.worldSun.color[2] = 1.0f;
     tr.worldSun.light[0] = 93.75f; tr.worldSun.light[1] = 112.5f; tr.worldSun.light[2] = 150.0f;
-    const int unit[] = { COM_GAME_QUAKE3, COM_GAME_QUAKE3_IHV, COM_GAME_Q3TEST, COM_GAME_STVEF_SP,
-                         COM_GAME_STVEF_MP, COM_GAME_JKA_SP, COM_GAME_JKA_MP, COM_GAME_JK2_SP, COM_GAME_JK2_MP };
-    for ( int game : unit ) {
-        ri.gameId = game;
-        R_CSMSunLightmapColor( out );
-        assert( Near( out[0], 0.5f / std::sqrt( 1.25f ) * 150.0f / 255.0f ) );
-        assert( Near( out[2], 0.8f / std::sqrt( 1.25f ) * 150.0f / 255.0f ) );
-    }
-    /* q3map2 and Wolfenstein's: a brightest channel of 1, as kept */
-    const int brightest[] = { COM_GAME_QUAKELIVE, COM_GAME_RTCW_SP, COM_GAME_RTCW_MP, COM_GAME_WOLFET,
-                              COM_GAME_ALICE, COM_GAME_FAKK2, COM_GAME_MOHAA };
-    for ( int game : brightest ) {
-        ri.gameId = game;
-        R_CSMSunLightmapColor( out );
-        assert( Near( out[0], 93.75f / 255.0f ) && Near( out[2], 150.0f / 255.0f ) );
-    }
+    tr.worldSun.unitColour = qtrue;
+    R_CSMSunLightmapColor( out );
+    assert( Near( out[0], 0.5f / std::sqrt( 1.25f ) * 150.0f / 255.0f ) );
+    assert( Near( out[2], 0.8f / std::sqrt( 1.25f ) * 150.0f / 255.0f ) );
+    /* q3map2's and Wolfenstein's: a brightest channel of 1, as kept */
+    tr.worldSun.unitColour = qfalse;
+    R_CSMSunLightmapColor( out );
+    assert( Near( out[0], 93.75f / 255.0f ) && Near( out[2], 150.0f / 255.0f ) );
     /* a colourless sun is left as it is */
-    ri.gameId = COM_GAME_QUAKE3;
+    tr.worldSun.unitColour = qtrue;
     tr.worldSun.color[0] = tr.worldSun.color[1] = tr.worldSun.color[2] = 0.0f;
     R_CSMSunLightmapColor( out );
     assert( Near( out[0], 93.75f / 255.0f ) );

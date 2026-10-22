@@ -7710,6 +7710,7 @@ qboolean vk_alloc_vbo( const byte *vbo_data, int vbo_size )
 // the path tracer: materials, lights, the compute backend's BVHs, acceleration
 // structures, trace, denoiser
 #include "rt/rt_material.c"
+#include "../renderercommon/tr_sky_sun_units.h"
 #include "rt/rt_lights.c"
 #include "rt/rt_bvh.c"
 #include "rt/rt_backend.c"

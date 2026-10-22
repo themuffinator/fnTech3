@@ -223,6 +223,11 @@ historical upstream records, not fnTech3 release history. See the
   every shadow. A lamp-lit room under a roof, as at the start of
   F.A.K.K.2's `shield`, no longer darkens
   ([record](docs/fntech3/2026-10-22-fnq-shadow-formats.md)).
+- Light Return to Castle Wolfenstein's levels in RTX's path tracer with a
+  sun as strong as their own lighting had it; it was traced about a third
+  too dim. The sun shadows read each map's sun the same way, so a Quake III
+  map built with q3map2 is shaded by its sun's real strength
+  ([record](docs/fntech3/2026-10-22-fnq-shadow-formats.md#sky-suns-in-the-path-tracer)).
 
 ## [0.1.0] - 2026-10-11
 

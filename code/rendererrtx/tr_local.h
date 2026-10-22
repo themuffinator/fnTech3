@@ -1156,6 +1156,7 @@ typedef struct {
 	vec3_t		lightDirection;
 	vec3_t		light;
 	float		intensity;
+	qboolean	unitColour;	// a sky sun stored at unit-length colour (tr_sky_sun_units.h)
 } worldSun_t;
 
 /*

@@ -2,6 +2,8 @@
 #ifndef FNTECH3_TR_ENTITY_SUN_H
 #define FNTECH3_TR_ENTITY_SUN_H
 
+#include "tr_sky_sun_units.h"
+
 /* The sun a level gives in its entities rather than in a sky shader, which
  * the renderer's sun shadows (r_csmShadows) then take as they take a
  * `q3map_sun`:
@@ -71,9 +73,15 @@ static void R_SetWorldSunFromEntities( const char *source, const vec3_t light, c
 }
 
 /* After R_LoadEntities, which keeps the entity text and reads Medal of
- * Honor's sun keys. */
+ * Honor's sun keys, and after the sky shader's sun. */
 static void R_LoadEntitySun( void ) {
 	vec3_t light, towardSun;
+
+	/* A sky shader's sun is in the units its compiler stored, which the
+	 * worldspawn's q3map2 keys and the profile tell (tr_sky_sun_units.h);
+	 * an entity sun below replaces it, given in lightmap units already. */
+	tr.worldSun.unitColour = R_SkySunUnitLengthColour( ri.gameId,
+		R_SkySunEntitiesQ3map2( s_worldData.entityString, ri.gameId ) );
 
 	if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) ) {
 		ritualModelLights_t keys;

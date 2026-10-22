@@ -771,42 +771,18 @@ static int R_ShadowFloorPowerOfTwo( int value )
 	return result;
 }
 
-/* Whether the profile's compiler scaled a sky sun's colour to unit length
-   before storing colour x intensity x cos, as id's q3map and Raven's did,
-   rather than to a brightest channel of 1 as the sky-sun parser keeps it
-   (q3map2 for Quake Live and Enemy Territory, and Return to Castle
-   Wolfenstein's compiler, read nearest that). Measured from the shadow
-   edges in the installed maps' lightmaps
-   (docs/fntech3/2026-10-22-fnq-shadow-formats.md). The entity suns of
-   Alice, F.A.K.K.2 and Medal of Honor are stored as given. */
-static qboolean R_CSMSkySunUnitColour( void )
-{
-	switch ( ri.gameId ) {
-		case COM_GAME_QUAKE3:
-		case COM_GAME_QUAKE3_IHV:
-		case COM_GAME_Q3TEST:
-		case COM_GAME_STVEF_SP:
-		case COM_GAME_STVEF_MP:
-		case COM_GAME_JKA_SP:
-		case COM_GAME_JKA_MP:
-		case COM_GAME_JK2_SP:
-		case COM_GAME_JK2_MP:
-			return qtrue;
-		default:
-			return qfalse;
-	}
-}
-
 /* The sun in the units of the map's lightmaps -- the bytes its compiler
    stored, sunLight x cos (renderercommon/tr_csm_receivers.h) -- shifted as
-   R_ColorShiftLightingBytes shifts them, over 255 as a texture reads them. */
+   R_ColorShiftLightingBytes shifts them, over 255 as a texture reads them.
+   A sky sun's colour is at unit length where its compiler stored it so
+   (tr.worldSun.unitColour, renderercommon/tr_sky_sun_units.h). */
 static void R_CSMSunLightmapColor( vec3_t out )
 {
 	const int bits = r_mapOverBrightBits->integer - tr.overbrightBits;
 	const float shift = (float)ldexp( 1.0, bits < -16 ? -16 : bits > 16 ? 16 : bits );
 	float scale = shift / 255.0f;
 
-	if ( R_CSMSkySunUnitColour() ) {
+	if ( tr.worldSun.unitColour ) {
 		const float length = VectorLength( tr.worldSun.color );
 
 		if ( length > 0.0f ) {

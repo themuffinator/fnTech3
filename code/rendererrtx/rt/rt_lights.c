@@ -37,7 +37,9 @@ light.c of id's q3map source release):
 - the sun delivers q3map_sun's colour * intensity * cos where the path to it
   reaches the sky: id's q3map takes it from the first sky surface's shader
   with its colour scaled to unit length, q3map2 from the first shader that
-  has one with its largest colour component scaled to 1 (RT_FindSun), and
+  has one with its largest colour component scaled to 1 (RT_FindSun), as
+  Wolfenstein's own compiler scaled it too (renderercommon/
+  tr_sky_sun_units.h), and
   q3map2's q3map_sunExt spreads it over its deviance in its samples;
 - q3map2's q3map_skyLight spreads its value over a dome of equal suns, each
   lighting a point as the sun does (RT_FindSkyLight);
@@ -1636,7 +1638,10 @@ of the first draw surface whose shader is sky (surfaceparm sky, whatever its
 skyparms), its colour scaled to unit length, and none if that shader has none.
 q3map2 lights with the sun of every draw surface's shader that has one (the
 trace keeps the first), its colour scaled so its largest component is 1,
-unless worldspawn sets _noshadersun.
+unless worldspawn sets _noshadersun. Return to Castle Wolfenstein's compiler
+picks its sun as id's does but keeps the largest component at 1, as its
+lightmaps show; so do Quake Live's and Enemy Territory's maps, all q3map2's
+(R_SkySunUnitLengthColour).
 */
 static void RT_FindSun( void )
 {
@@ -1664,7 +1669,7 @@ static void RT_FindSun( void )
 			return;
 		}
 		VectorCopy( shader->rtSunColor, color );
-		if ( !s_rtLights.q3map2 ) {
+		if ( R_SkySunUnitLengthColour( ri.gameId, s_rtLights.q3map2 ) ) {
 			length = VectorLength( color );
 			if ( !( length > 0.0f ) ) {
 				return;
