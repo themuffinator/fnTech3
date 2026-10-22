@@ -1024,6 +1024,15 @@ typedef struct {
 } viewParms_t;
 
 #define CSM_MAX_CASCADES 4
+// the cascade atlas's rows: the world's own surfaces, then every entity's
+#define CSM_ATLAS_LAYERS 2
+#define CSM_LAYER_WORLD 0
+#define CSM_LAYER_MODELS 1
+// which sun shadows a receiver takes (renderercommon/tr_csm_receivers.h)
+#define CSM_RECEIVER_NONE 0
+#define CSM_RECEIVER_ALL 1
+#define CSM_RECEIVER_LIGHTMAP 2
+#define CSM_RECEIVER_VERTEX 3
 
 typedef enum {
 	SHADOW_FILTER_HARD = 0,
@@ -1134,6 +1143,7 @@ typedef struct {
 	vec3_t		lightDirection;
 	vec3_t		lightColor;
 	vec3_t		directionToSun;
+	vec3_t		sunLightmapColor;	// the sun as the lightmaps hold it, shifted as they are
 	char		skyShaderName[MAX_QPATH];
 	csmCascadePlan_t cascades[CSM_MAX_CASCADES];
 } csmPlan_t;
@@ -2196,6 +2206,7 @@ typedef struct {
 	int		c_csmShadowAtlasMsec;
 	int		c_csmShadowReceiverWorldSurfaces;
 	int		c_csmShadowReceiverEntitySurfaces;
+	int		c_csmShadowReceiverBakedSurfaces;
 #endif
 } backEndCounters_t;
 
@@ -3017,6 +3028,8 @@ typedef struct shaderCommands_s
 	qboolean	csmCasterPass;
 	qboolean	csmShadowPass;
 	int			csmCascade;
+	int			csmReceiverKind;		// CSM_RECEIVER_*
+	const textureBundle_t *csmReceiverLightmap;
 	cullType_t	shadowCasterCullType;
 #endif
 

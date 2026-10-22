@@ -216,6 +216,13 @@ historical upstream records, not fnTech3 release history. See the
   dropped its own player as silent. Medal of Honor's light grid now reads its
   sun keys only as the original renderer spells them
   ([record](docs/fntech3/2026-10-22-fnq-shadow-formats.md)).
+- Stop the sun's shadows (`r_csmShadows 1`) from shading walls and floors a
+  second time. A level's own sun shadows are already in its lighting, so
+  walls and floors now take only the shadows of models and doors, only in
+  the sun, and only as deep as the sun lights them there; models still take
+  every shadow. A lamp-lit room under a roof, as at the start of
+  F.A.K.K.2's `shield`, no longer darkens
+  ([record](docs/fntech3/2026-10-22-fnq-shadow-formats.md)).
 
 ## [0.1.0] - 2026-10-11
 

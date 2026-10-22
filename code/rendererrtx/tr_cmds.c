@@ -490,7 +490,7 @@ static void R_PerformanceCounters( void ) {
 			skyShaderName = csm->skyShaderName[0] ? csm->skyShaderName : "<unknown>";
 
 			ri.Printf( PRINT_ALL,
-				"csm shadows sky:%s cascades:%i res:%i max:%i lambda:%.2f filter:%s strength:%.2f rbias:%.2f cbias:%.2f/%.2f/%.2f light-dir:%.2f %.2f %.2f to-sun:%.2f %.2f %.2f split far:%.0f %.0f %.0f %.0f texel:%.2f %.2f %.2f %.2f depth center:%.0f %.0f %.0f %.0f caster:%i cache h/m/u:%i/%i/%i cpu:%ims recv world:%i ent:%i\n",
+				"csm shadows sky:%s cascades:%i res:%i max:%i lambda:%.2f filter:%s strength:%.2f rbias:%.2f cbias:%.2f/%.2f/%.2f light-dir:%.2f %.2f %.2f to-sun:%.2f %.2f %.2f split far:%.0f %.0f %.0f %.0f texel:%.2f %.2f %.2f %.2f depth center:%.0f %.0f %.0f %.0f caster:%i cache h/m/u:%i/%i/%i cpu:%ims recv world:%i ent:%i baked:%i\n",
 				skyShaderName,
 				tr.pc.c_csmCascades, tr.pc.c_csmResolution, tr.pc.c_csmMaxDistance,
 				csm->splitLambda, R_ShadowFilterModeName( csm->filterMode ),
@@ -507,7 +507,8 @@ static void R_PerformanceCounters( void ) {
 				backEnd.pc.c_csmShadowAtlasCacheUncacheable,
 				backEnd.pc.c_csmShadowAtlasMsec,
 				backEnd.pc.c_csmShadowReceiverWorldSurfaces,
-				backEnd.pc.c_csmShadowReceiverEntitySurfaces );
+				backEnd.pc.c_csmShadowReceiverEntitySurfaces,
+				backEnd.pc.c_csmShadowReceiverBakedSurfaces );
 			R_PrintCSMCascadeDebug( csm, "vulkan", qtrue, qtrue, qtrue, qtrue );
 		} else if ( tr.pc.c_csmSkippedNoWorldRef ) {
 			ri.Printf( PRINT_ALL, "csm plan cascades:0 skip no-world\n" );

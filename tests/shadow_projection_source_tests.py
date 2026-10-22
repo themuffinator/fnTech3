@@ -175,6 +175,8 @@ def check_vulkan_api_shadow_contracts(
         failures,
     )
 
+    # two rows of cascades, the world's lowest in the image (the producer's
+    # viewport Y is layer * cascade size, flipped by the top-left API)
     require_order(
         csm_frag,
         [
@@ -182,8 +184,13 @@ def check_vulkan_api_shadow_contracts(
             "float atlas_x = csmSplitAtlas.z + light_coord.y * csmSplitAtlas.w;",
             "float atlas_x_min = csmSplitAtlas.z + texel.x;",
             "float atlas_x_max = csmSplitAtlas.z + csmSplitAtlas.w - texel.x;",
+            "float row_height = texFactors.x;",
+            "float row_min = 1.0 - row_height + 0.5 * texel.y;",
+            "float row_max = 1.0 - 0.5 * texel.y;",
             "clamp(atlas_x, atlas_x_min, atlas_x_max),",
-            "clamp(1.0 - light_coord.z, texel.y, 1.0 - texel.y));",
+            "clamp(1.0 - light_coord.z * row_height, row_min, row_max));",
+            "tap.y = clamp(tap.y, row_min, row_max);",
+            "texture(csm_shadow_texture, tap - vec2(0.0, row_height)).r",
         ],
         f"{label} CSM receiver atlas mapping",
         failures,
@@ -370,6 +377,8 @@ def main() -> int:
         failures,
     )
 
+    # two rows of cascades, the world's lowest in the image (the producer's
+    # viewport Y is layer * cascade size, flipped by the top-left API)
     require_order(
         vk_csm_frag,
         [
@@ -377,15 +386,28 @@ def main() -> int:
             "float atlas_x = csmSplitAtlas.z + light_coord.y * csmSplitAtlas.w;",
             "float atlas_x_min = csmSplitAtlas.z + texel.x;",
             "float atlas_x_max = csmSplitAtlas.z + csmSplitAtlas.w - texel.x;",
+            "float row_height = texFactors.x;",
+            "float row_min = 1.0 - row_height + 0.5 * texel.y;",
+            "float row_max = 1.0 - 0.5 * texel.y;",
             "clamp(atlas_x, atlas_x_min, atlas_x_max),",
-            "clamp(1.0 - light_coord.z, texel.y, 1.0 - texel.y));",
+            "clamp(1.0 - light_coord.z * row_height, row_min, row_max));",
+            "tap.y = clamp(tap.y, row_min, row_max);",
+            "texture(csm_shadow_texture, tap - vec2(0.0, row_height)).r",
         ],
         "Vulkan CSM receiver atlas mapping",
         failures,
     )
-    require(
+    # GL's origin is bottom-left: the world's row first, the models' above
+    require_order(
         glx_arb,
-        '"MOV uv.y, lightCoord.z; \\n"',
+        [
+            '"MUL uv.y, lightCoord.z, rows.x; \\n"',
+            '"MAX offset.y, offset.y, rows.y; \\n"',
+            '"MIN offset.y, offset.y, rows.z; \\n"',
+            '"SLT occWorld.x, sample.x, receiver.x; \\n"',
+            '"ADD offset.y, offset.y, rows.x; \\n"',
+            '"SLT occModels.x, sample.x, receiver.x; \\n"',
+        ],
         "GLx CSM receiver atlas mapping",
         failures,
     )

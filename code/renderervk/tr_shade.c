@@ -1946,6 +1946,8 @@ static void VK_CSMShadowFilterOffsets( float *inner, float *outer )
 void VK_CSMShadowPass( void )
 {
 	const csmCascadePlan_t *cascade;
+	const textureBundle_t *lightmap;
+	qboolean baked;
 	float filterInner, filterOuter;
 	float extentX, extentY, extentZ;
 	int cascadeIndex;
@@ -2012,10 +2014,29 @@ void VK_CSMShadowPass( void )
 	uniform.csmSplitAtlas[2] = (float)( cascadeIndex * cascadeSize ) / (float)atlasWidth;
 	uniform.csmSplitAtlas[3] = (float)cascadeSize / (float)atlasWidth;
 
-	uniform.csmShadowColor[0] = tr.csm.lightColor[0] * tr.csm.shadowStrength;
-	uniform.csmShadowColor[1] = tr.csm.lightColor[1] * tr.csm.shadowStrength;
-	uniform.csmShadowColor[2] = tr.csm.lightColor[2] * tr.csm.shadowStrength;
+	// renderercommon/tr_csm_receivers.h: a baked receiver takes the models'
+	// shadow by the sun's share of its light, every other the shadow of
+	// every caster by the sun colour, as before
+	baked = ( tess.csmReceiverKind == CSM_RECEIVER_LIGHTMAP ||
+		tess.csmReceiverKind == CSM_RECEIVER_VERTEX ) ? qtrue : qfalse;
+	lightmap = tess.csmReceiverKind == CSM_RECEIVER_LIGHTMAP ? tess.csmReceiverLightmap : NULL;
+	if ( baked ) {
+		uniform.csmShadowColor[0] = tr.csm.shadowStrength;
+		uniform.csmShadowColor[1] = tr.csm.shadowStrength;
+		uniform.csmShadowColor[2] = tr.csm.shadowStrength;
+		VectorCopy( tr.csm.sunLightmapColor, uniform.light.color );
+		uniform.light.vector[0] = DotProduct( tr.csm.directionToSun, backEnd.or.axis[0] );
+		uniform.light.vector[1] = DotProduct( tr.csm.directionToSun, backEnd.or.axis[1] );
+		uniform.light.vector[2] = DotProduct( tr.csm.directionToSun, backEnd.or.axis[2] );
+	} else {
+		uniform.csmShadowColor[0] = tr.csm.lightColor[0] * tr.csm.shadowStrength;
+		uniform.csmShadowColor[1] = tr.csm.lightColor[1] * tr.csm.shadowStrength;
+		uniform.csmShadowColor[2] = tr.csm.lightColor[2] * tr.csm.shadowStrength;
+		uniform.texFactors[1] = 1.0f;
+	}
 	uniform.csmShadowColor[3] = 0.0f;
+	// the world's row of cascades, then the models' (CSM_ATLAS_LAYERS)
+	uniform.texFactors[0] = (float)cascadeSize / (float)atlasHeight;
 
 	VectorCopy( backEnd.viewParms.or.axis[0], uniform.csmView );
 	uniform.csmView[3] = -DotProduct( backEnd.viewParms.or.origin, backEnd.viewParms.or.axis[0] );
@@ -2028,13 +2049,27 @@ void VK_CSMShadowPass( void )
 		return;
 	}
 
+	if ( lightmap ) {
+		R_ComputeTexCoords( 1, lightmap );
+	} else {
+		tess.svars.texcoordPtr[1] = tess.texCoords[0];
+	}
+	if ( tess.csmReceiverKind == CSM_RECEIVER_VERTEX ) {
+		Com_Memcpy( tess.svars.colors[0], tess.vertexColors, tess.numVertexes * sizeof( tess.vertexColors[0] ) );
+	} else {
+		Com_Memset( tess.svars.colors[0], 0xff, tess.numVertexes * sizeof( tess.svars.colors[0][0] ) );
+	}
+
 	vk_material_init( &material );
 	vk_material_set_descriptor( &material, VK_DESC_TEXTURE0, vk_csm_shadow_descriptor() );
+	// the baked light: a lightmap page, else white under the vertex colours
+	vk_material_set_descriptor( &material, VK_DESC_TEXTURE1,
+		lightmap ? lightmap->image[0]->descriptor : tr.whiteImage->descriptor );
 	vk_bind_material( &material );
 
 	vk_bind_pipeline( vk.csm_shadow_pipeline );
 	vk_bind_index();
-	vk_bind_geometry( TESS_XYZ );
+	vk_bind_geometry( TESS_XYZ | TESS_RGBA0 | TESS_ST1 | TESS_NNN );
 	vk_draw_geometry( tess.depthRange, qtrue );
 }
 

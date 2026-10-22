@@ -363,10 +363,14 @@ game.
 - `r_spotShadows`: `1` lets the spotlights of [Static Map Lights](#static-map-lights)
   cast shadows too. Off by default. Restart.
 - `r_csmShadows`: `1` adds shadows from the sun in maps that have one, cast
-  by the world, models and doors, and falling on models as well as walls.
-  Alice, F.A.K.K.2 and Medal of Honor give their sun in the level itself
-  rather than its sky, and fnTech3 takes it from there. Off by default.
-  GLx and Vulkan, and RTX when it draws normally (`rtx_rt_mode 0`).
+  by the world, models and doors. Models -- players, monsters, weapons on
+  the floor -- take every one of them. Walls and floors already carry the
+  level's own shadows in their lighting, so they take only the shadows of
+  models and doors, only where the sun reaches them, and only as dark as
+  the sun's part of their light: a lamp-lit room under a roof stays as the
+  level lit it. Alice, F.A.K.K.2 and Medal of Honor give their sun in the
+  level itself rather than its sky, and fnTech3 takes it from there. Off by
+  default. GLx and Vulkan, and RTX when it draws normally (`rtx_rt_mode 0`).
   Restart.
 
 Fine-tuning, for odd-looking shadows -- speckles, flicker, or shadows that

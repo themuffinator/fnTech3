@@ -214,7 +214,9 @@ The captures, masks and console logs are in `.tmp/fnq-shadows/runs/`
 ## Follow-ups
 
 This slice's first commit found four problems outside its scope. Three are
-fixed here; the fourth stays open.
+fixed here; the fourth, sun shadows that shaded baked light twice, was left
+for a decision and is fixed under
+[Sun shadows on baked light](#sun-shadows-on-baked-light).
 
 ### RTX's path tracer had no sun on Alice and F.A.K.K.2 maps
 
@@ -275,13 +277,118 @@ A `git archive` of these follow-ups (`150d6230`) built every target with
 strict warnings; its native tests (274, 2 skipped) and all 610 test files
 passed.
 
-### Open: the sun shadows darken by a fixed share
+## Sun shadows on baked light
 
-The sun shadows darken what they cover by the sun colour scaled to unit
-length, times `r_csmShadowStrength`, however much of a receiver's light the
-sun gives, on every profile. On F.A.K.K.2's `shield`, whose start is a
-lamp-lit room under a roof and whose sun is a faint "11 12 18", turning them
-on darkened 31 % of the frame (mean luma 50.4 to 42.1) and tinted the room,
-which the sun does not light. World surfaces in the world's own shadow are
-shaded twice, once in their lightmaps and again by the cascades. A fix
-changes how every game's sun shadows look and is left for a decision.
+The follow-ups left one finding for a decision. The sun shadows darkened
+whatever they covered by the sun colour scaled to unit length, times
+`r_csmShadowStrength`, however much of a receiver's light the sun gave, on
+every profile. On F.A.K.K.2's `shield`, whose start is a lamp-lit room under
+a roof and whose sun is a faint "11 12 18", turning them on darkened 31 % of
+the frame (mean luma 50.4 to 42.1) and tinted the room, which the sun does
+not light. A world surface in the world's own shadow was shaded twice, once
+in its lightmap and again by the cascades. The decision: world surfaces
+take only the models' sun shadows, where the world does not already shade
+them, scaled by how much of each surface's light is the sun's; models keep
+every shadow; all three renderers, every game.
+
+### What changed
+
+- **Two rows of cascades.** The atlas is twice as tall
+  (`CSM_ATLAS_LAYERS`, `R_CSMShadowAtlasLayout`; four 1024-texel cascades
+  make a 4096 x 2048 depth texture, and the rows must fit the texture limit
+  too). Each cascade draws the world entity's surfaces into the first row
+  (`CSM_LAYER_WORLD`) and every other entity's, brush models among them,
+  into the second (`RB_BuildCSMShadowView`'s `viewportY = layer *
+  cascadeSize`, `RB_RenderCSMShadowCascade`). The compilers bake the world's
+  own brushes, patches and static models into its lightmaps; a door or a
+  lift moves, so it is a model here.
+- **What a receiver takes** (`code/renderercommon/tr_csm_receivers.h`,
+  shared by the three renderers): a model (any entity but a brush model), or
+  a surface its shader lights from the light grid (`rgbGen
+  lightingDiffuse`), takes either row's shadow by the sun colour as before
+  (`CSM_RECEIVER_ALL`). A world or brush-model surface with a lightmap
+  stage (`CSM_RECEIVER_LIGHTMAP`) or baked vertex colours (`rgbGen vertex`,
+  `exactVertex`, Medal of Honor's map-colour lighting;
+  `CSM_RECEIVER_VERTEX`) takes the models' row only where the world's row
+  leaves it in the sun, per filter tap, and darkens by
+  `r_csmShadowStrength` times the sun's share of its light, per channel:
+  S x max(0, N . toSun) / L, held to 0..1. L is its lightmap texel (through
+  the stage's own texture-coordinate path) or vertex colour; N its
+  interpolated normal; toSun the sun's direction in its entity's frame. A
+  surface lit by neither (full bright, a constant or entity colour) is not
+  lit by the sun and takes nothing. The receiver pass batches by kind and
+  lightmap page.
+- **The sun in lightmap units** (`R_CSMSunLightmapColor`,
+  `csmPlan_t.sunLightmapColor`): the level's sun light, shifted as
+  `R_ColorShiftLightingBytes` shifts the lightmaps and over 255, with the
+  colour at unit length for the profiles whose compiler stored it so (see
+  below).
+- **The passes.** GLx's ARB programs carry the normal, lightmap coordinates
+  and vertex colour, sample both rows (eight taps, each held inside its
+  row) and the lightmap on unit 0 (`ARB_CSMShadowPass`, local parameters 7
+  to 9). Vulkan and RTX's raster path give the CSM pipeline the colour,
+  second texture coordinate and normal inputs and the lightmap in descriptor
+  set 2; `csm_shadow.vert`/`.frag` are rebuilt into both renderers' SPIR-V
+  (RTX's reflection JSON was regenerated with it, which also brought its
+  stale `liquid.frag` size up to date). The rows are mirrored between GL's
+  bottom-left and Vulkan's top-left image origins as the producers' viewports
+  are.
+- **Diagnostics.** `r_csmDebug 1` adds `baked:N`, the baked receivers of
+  the frame, after `recv world:W ent:E`. A tessellation restart keeps the
+  normals a baked receiver asked for (GLx's `needsNormal`).
+
+Invariant 11: this adapts each level's own baked light and sun into
+fnTech3's cascaded shadows. No retail engine of these games drew sun shadow
+maps, so there is no retail presentation to keep beside them.
+
+### The sun's units
+
+The share needs the sun in the units the compiler stored in the
+lightmaps. The Medal of Honor and Ritual records measured theirs:
+`suncolor` x cos, as given. For a sky shader's `q3map_sun` (or Raven's
+`sun`), the step a shadow edge makes across one sun-facing lightmapped
+surface measures it: each planar surface's unsaturated luxels split in two
+by luma, both halves holding 15 % of them, and the step's colour within
+0.995 (cosine) of the sun's hue (`.tmp/fnq-shadows/tools/ibsp_steps.py`,
+read-only). Against the colour scaled to a brightest channel of 1, as
+fnTech3's sky-sun parser keeps it, and against the colour at unit length,
+over the maps whose sun has a colour (a white sun cannot tell the two
+apart):
+
+| Game | Coloured-sun maps | Surfaces | Step / S, brightest channel 1 | Step / S, unit length | Stored |
+| --- | --- | --- | --- | --- | --- |
+| Quake III Arena | 27 | 1,440 | 0.71 | 1.04 | unit length |
+| Q3Test 1.08 | 2 | 95 | 0.71 | 1.07 | unit length |
+| Elite Force | 3 | 229 | 0.65 | 0.95 | unit length |
+| Jedi Academy | 7 | 695 | 0.63 | 0.98 | unit length |
+| Jedi Outcast | 1 | 30 | 0.80 | 1.19 | unit length [I] |
+| Return to Castle Wolfenstein | 35 | 3,608 | 0.88 | 1.19 | brightest channel 1 |
+| Quake Live | 77 | 3,678 | 0.83 | 1.19 | brightest channel 1 |
+
+- **[I]** id's q3map and Raven's scaled the sun colour to unit length,
+  as the Jedi engines' own renderers do with the same line (the
+  [Raven sun record](2026-10-15-raven-sun-keyword.md)); Quake Live's
+  q3map2 and Wolfenstein's compiler kept a brightest channel of 1. Outcast's
+  one coloured map does not decide between the two; it takes Raven's rule.
+  Enemy Territory's maps keep their lightmaps in external images and were
+  not measured; they were compiled with q3map2, whose rule they take. The
+  IHV test's data has no sun.
+- Raven's BSPs and Quake Live's record no lightmap rectangle on their
+  surfaces, so their luxels were found from the vertices' lightmap
+  coordinates.
+- The steps read a little under the stored sun where a shadow's soft edge
+  blurs the two halves, so the nearer rule is taken, not an exact factor.
+
+### Evidence
+
+- **Unit and source.** `tests/csm_receiver_tests.py` compiles the shared
+  receiver rules against each renderer's own enums, for GLx's stage colour
+  and the Vulkan renderers' bundle colour (models, lightmap stages before
+  or after the diffuse one, white and non-lightmap bundles, vertex and
+  map-colour lighting, the light grid, unlit colours, stage order, batch
+  matching); compiles each renderer's atlas layout and sun units (rows,
+  texture limits, shifts, unit length per profile, a colourless sun); and
+  checks the casters' rows, the receiver passes, GLx's programs and
+  parameters, the Vulkan inputs, descriptors and shaders, and that the
+  embedded Vulkan SPIR-V is what `glslangValidator` builds from the GLSL.
+  `tests/shadow_projection_source_tests.py` follows the two-row sampling.

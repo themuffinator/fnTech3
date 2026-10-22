@@ -778,6 +778,51 @@ static int R_ShadowFloorPowerOfTwo( int value )
 	return result;
 }
 
+/* Whether the profile's compiler scaled a sky sun's colour to unit length
+   before storing colour x intensity x cos, as id's q3map and Raven's did,
+   rather than to a brightest channel of 1 as the sky-sun parser keeps it
+   (q3map2 for Quake Live and Enemy Territory, and Return to Castle
+   Wolfenstein's compiler, read nearest that). Measured from the shadow
+   edges in the installed maps' lightmaps
+   (docs/fntech3/2026-10-22-fnq-shadow-formats.md). The entity suns of
+   Alice, F.A.K.K.2 and Medal of Honor are stored as given. */
+static qboolean R_CSMSkySunUnitColour( void )
+{
+	switch ( ri.gameId ) {
+		case COM_GAME_QUAKE3:
+		case COM_GAME_QUAKE3_IHV:
+		case COM_GAME_Q3TEST:
+		case COM_GAME_STVEF_SP:
+		case COM_GAME_STVEF_MP:
+		case COM_GAME_JKA_SP:
+		case COM_GAME_JKA_MP:
+		case COM_GAME_JK2_SP:
+		case COM_GAME_JK2_MP:
+			return qtrue;
+		default:
+			return qfalse;
+	}
+}
+
+/* The sun in the units of the map's lightmaps -- the bytes its compiler
+   stored, sunLight x cos (renderercommon/tr_csm_receivers.h) -- shifted as
+   R_ColorShiftLightingBytes shifts them, over 255 as a texture reads them. */
+static void R_CSMSunLightmapColor( vec3_t out )
+{
+	const int bits = r_mapOverBrightBits->integer - tr.overbrightBits;
+	const float shift = (float)ldexp( 1.0, bits < -16 ? -16 : bits > 16 ? 16 : bits );
+	float scale = shift / 255.0f;
+
+	if ( R_CSMSkySunUnitColour() ) {
+		const float length = VectorLength( tr.worldSun.color );
+
+		if ( length > 0.0f ) {
+			scale /= length;
+		}
+	}
+	VectorScale( tr.worldSun.light, scale, out );
+}
+
 qboolean R_CSMShadowAtlasLayout( int cascadeCount, int requestedCascadeSize, int maxTextureSize,
 	csmShadowAtlasLayout_t *layout )
 {
@@ -795,17 +840,20 @@ qboolean R_CSMShadowAtlasLayout( int cascadeCount, int requestedCascadeSize, int
 	while ( cascadeCount > 1 && cascadeSize * cascadeCount > maxTextureSize ) {
 		cascadeSize >>= 1;
 	}
-	while ( cascadeSize * cascadeCount > maxTextureSize && cascadeSize > 128 ) {
+	while ( ( cascadeSize * cascadeCount > maxTextureSize ||
+			cascadeSize * CSM_ATLAS_LAYERS > maxTextureSize ) && cascadeSize > 128 ) {
 		cascadeSize >>= 1;
 	}
-	if ( cascadeSize < 128 || cascadeSize * cascadeCount > maxTextureSize ) {
+	if ( cascadeSize < 128 || cascadeSize * cascadeCount > maxTextureSize ||
+		cascadeSize * CSM_ATLAS_LAYERS > maxTextureSize ) {
 		return qfalse;
 	}
 
 	layout->cascadeCount = cascadeCount;
 	layout->cascadeSize = cascadeSize;
 	layout->width = cascadeSize * cascadeCount;
-	layout->height = cascadeSize;
+	// one row of cascades for the world's casters, one for the entities'
+	layout->height = cascadeSize * CSM_ATLAS_LAYERS;
 	return qtrue;
 }
 
@@ -1019,6 +1067,7 @@ static void R_PlanCascadedShadows( void )
 	VectorCopy( lightDirection, tr.csm.lightDirection );
 	VectorCopy( lightColor, tr.csm.lightColor );
 	VectorCopy( tr.worldSun.directionToSun, tr.csm.directionToSun );
+	R_CSMSunLightmapColor( tr.csm.sunLightmapColor );
 	Q_strncpyz( tr.csm.skyShaderName, tr.worldSun.shaderName, sizeof( tr.csm.skyShaderName ) );
 
 	splitNear = zNear;
@@ -3049,7 +3098,7 @@ static void R_UpdateShadowManagerSummary( void )
 	manager->csmPlan = tr.csm;
 	if ( manager->csmPlanned ) {
 		manager->csmAtlasWidth = tr.csm.cascadeCount * tr.csm.resolution;
-		manager->csmAtlasHeight = tr.csm.resolution;
+		manager->csmAtlasHeight = tr.csm.resolution * CSM_ATLAS_LAYERS;
 	}
 	R_ShadowManagerPublishCSMAtlas( manager, qfalse, 0 );
 	manager->scheduledPasses = 0;

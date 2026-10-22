@@ -65,8 +65,12 @@ TIKI models cast fnTech3's dynamic-light shadows, admits those and Return to
 Castle Wolfenstein's MDS and MDC models to the cascaded sun shadows as casters
 and receivers, and gives Alice (4 maps), F.A.K.K.2 (19) and Medal of Honor
 (46) a sun for those shadows from their own entity keys, in all three
-renderers. Engine captures before and after cover one view per game. No
-compatibility gate closes.
+renderers. Engine captures before and after cover one view per game. Its
+follow-up keeps the sun shadows off the shadows a level already baked: a
+lightmapped or vertex-lit surface takes only the models' sun shadows, where
+the world leaves it in the sun, scaled by the sun's share of its light in
+the units each game's compiler stored (measured from the installed maps'
+lightmaps); models take every sun shadow. No compatibility gate closes.
 
 The [pure budget record](2026-10-15-pure-budget-own-wires.md) settles the last
 profiles whose pure gamestate budget measured Quake Live's message. Medal
