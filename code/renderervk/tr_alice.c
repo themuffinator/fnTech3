@@ -332,13 +332,19 @@ failing that the byte's low two bits, plus the entity's skin number, choose
 the skin, and a byte with bit 6 set on a surface of several skins draws two
 of them, the pair (byte & 2) + skin number and the one after, which is how a
 surface crossfades between skins. A skin past the surface's last is its first.
+
+With a caster context the surfaces go to that dynamic light's shadow alone,
+the renderer's own, whether or not the view sees the entity: the bounds are
+tested against the light, an entity the view did not pose is posed, and the
+back end draws every shadow face at full detail (RB_SurfaceAliceTiki).
 ==================
 */
-void R_AddAliceTikiSurfaces( trRefEntity_t *ent ) {
+void R_AddAliceTikiSurfaces( trRefEntity_t *ent, dlightShadowCasterContext_t *casterContext ) {
 	const model_t *mod = tr.currentModel;
 	const float entityScale = ent->e.alice.scale > 0.0f ? ent->e.alice.scale : 1.0f;
 	vec3_t bounds[2];
 	qboolean personalModel;
+	qboolean personalShadowCaster;
 	int fogNum, i;
 #ifdef USE_PMLIGHT
 	dlight_t *dlights[ ARRAY_LEN( backEndData->dlights ) ];
@@ -351,25 +357,38 @@ void R_AddAliceTikiSurfaces( trRefEntity_t *ent ) {
 	RA_TikiCheckAnimation( mod->aliceModel, &ent->e.alice, mod->name, ri.Printf );
 
 	personalModel = ( ent->e.renderfx & RF_THIRD_PERSON ) && !R_ViewPassIsPortal( &tr.viewParms );
+	personalShadowCaster = personalModel && !( ent->e.renderfx & ( RF_NOSHADOW | RF_DEPTHHACK ) );
 
 	RA_TikiModelBounds( mod->aliceModel, bounds[0], bounds[1] );
 	VectorScale( bounds[0], entityScale, bounds[0] );
 	VectorScale( bounds[1], entityScale, bounds[1] );
+#ifdef USE_PMLIGHT
+	if ( casterContext ) {
+		if ( R_DlightShadowEntityBoundsCulled( casterContext, ent, bounds[0], bounds[1] ) ) {
+			return;
+		}
+	} else
+#endif
 	if ( R_CullLocalBox( bounds ) == CULL_OUT ) {
 		return;
 	}
 
-	ent->e.alice.bones = NULL;
-	if ( RA_TikiIsSkeletal( mod->aliceModel ) ) {
-		ent->e.alice.bones = RA_TikiPose( mod->aliceModel, &ent->e.alice );
-		if ( !ent->e.alice.bones ) {
-			return;
+	/* A view that drew the entity this frame has posed it already. */
+	if ( !casterContext || !ent->e.alice.bones ) {
+		ent->e.alice.bones = NULL;
+		if ( RA_TikiIsSkeletal( mod->aliceModel ) ) {
+			ent->e.alice.bones = RA_TikiPose( mod->aliceModel, &ent->e.alice );
+			if ( !ent->e.alice.bones ) {
+				return;
+			}
 		}
 	}
 
-	R_AliceTikiLod( ent, mod );
+	if ( !casterContext ) {
+		R_AliceTikiLod( ent, mod );
+	}
 
-	if ( !personalModel || r_shadows->integer > 1 ) {
+	if ( !casterContext && ( !personalModel || r_shadows->integer > 1 ) ) {
 		vec3_t lightOrigin, lightPoint, center;
 		float radius;
 		if ( R_AliceTikiLightOrigin( ent, mod, lightOrigin, lightPoint ) ) {
@@ -386,7 +405,7 @@ void R_AddAliceTikiSurfaces( trRefEntity_t *ent ) {
 	}
 
 #ifdef USE_PMLIGHT
-	if ( !personalModel && R_GetDlightMode() >= 2 ) {
+	if ( !casterContext && !personalModel && R_GetDlightMode() >= 2 ) {
 		R_TransformDlights( tr.viewParms.num_dlights, tr.viewParms.dlights, &tr.or );
 		for ( n = 0; n < tr.viewParms.num_dlights; n++ ) {
 			dlight_t *dl = &tr.viewParms.dlights[ n ];
@@ -395,7 +414,7 @@ void R_AddAliceTikiSurfaces( trRefEntity_t *ent ) {
 	}
 #endif
 
-	fogNum = R_AliceTikiFogNum( ent, RA_TikiModelRadius( mod->aliceModel ) * entityScale );
+	fogNum = casterContext ? 0 : R_AliceTikiFogNum( ent, RA_TikiModelRadius( mod->aliceModel ) * entityScale );
 
 	for ( i = 0; i < mod->numAliceSurfaces; i++ ) {
 		aliceSurface_t *surface = &mod->aliceSurfaces[i];
@@ -420,6 +439,17 @@ void R_AddAliceTikiSurfaces( trRefEntity_t *ent ) {
 			shader = R_AliceSkinShader( surface, ( state & 3 ) + ent->e.skinNum );
 		}
 
+#ifdef USE_PMLIGHT
+		/* A crossfade's second skin and a custom shader's extra pass draw the
+		 * same shape again, so the surface casts once. */
+		if ( casterContext ) {
+			if ( !R_AddDlightShadowEntityCasterSurface( casterContext, &surface->surfaceType, shader ) ) {
+				return;
+			}
+			continue;
+		}
+#endif
+
 		/* Shadows go ahead of the surface, for the shader it is drawn with
 		 * (alice.exe 0x004a6a04..0x004a6aa3): with cg_shadows 2 a stencil
 		 * volume for an opaque surface of an entity flagged both shadow
@@ -440,6 +470,10 @@ void R_AddAliceTikiSurfaces( trRefEntity_t *ent ) {
 			&& ( ent->e.alice.renderfx & FNTECH3_ALICE_RF_SHADOW_PRECISE )
 			&& shader->sort == SS_OPAQUE && tr.projectionShadowShader ) {
 			R_AddDrawSurf( &surface->surfaceType, tr.projectionShadowShader, 0, 0 );
+		}
+		/* The renderer's own sun shadow takes a personal model's too. */
+		if ( personalShadowCaster && shader->sort == SS_OPAQUE ) {
+			R_AddDrawSurfFlags( &surface->surfaceType, shader, fogNum, 0, DSF_SHADOW_CASTER_ONLY );
 		}
 
 		if ( !personalModel ) {
@@ -1068,18 +1102,25 @@ R_Sphere_InitLights [O]): `suncolor` or `sunlight` gives the level a sun,
 for its flare alone, and `sunflarename` the flare's section, "sun" when a
 level with a sun names none. Names are matched exactly. True for a key the
 sun takes.
+
+The sun shadows read the same keys as the path tracer does
+(RT_ParseMOHAASun): the colour 70 in each channel until one parses as three
+numbers, and no sun without a direction that does (R_MOHAAWorldSun).
 ==================
 */
 static struct {
 	qboolean	sun;
 	qboolean	flareDirectionSet;
+	qboolean	directionParsed;
 	vec3_t		direction;
 	vec3_t		flareDirection;
+	vec3_t		color;
 	char		section[MAX_QPATH];
 } mohaaSunKeys;
 
 void R_MOHAABeginSunKeys( void ) {
 	Com_Memset( &mohaaSunKeys, 0, sizeof( mohaaSunKeys ) );
+	VectorSet( mohaaSunKeys.color, 70.0f, 70.0f, 70.0f );
 	R_MOHAASetSunFlare( NULL, NULL );
 }
 
@@ -1087,11 +1128,16 @@ qboolean R_MOHAASunKey( const char *key, const char *value ) {
 	vec3_t angles = { 0.0f, 0.0f, 0.0f };
 
 	if ( !strcmp( key, "suncolor" ) || !strcmp( key, "sunlight" ) ) {
+		if ( sscanf( value, "%f %f %f", &mohaaSunKeys.color[0], &mohaaSunKeys.color[1],
+				&mohaaSunKeys.color[2] ) != 3 ) {
+			VectorSet( mohaaSunKeys.color, 70.0f, 70.0f, 70.0f );
+		}
 		mohaaSunKeys.sun = qtrue;
 		return qtrue;
 	}
 	if ( !strcmp( key, "sundirection" ) ) {
-		(void)sscanf( value, "%f %f %f", &angles[0], &angles[1], &angles[2] );
+		mohaaSunKeys.directionParsed = sscanf( value, "%f %f %f", &angles[0], &angles[1], &angles[2] ) == 3
+			? qtrue : qfalse;
 		AngleVectors( angles, mohaaSunKeys.direction, NULL, NULL );
 		mohaaSunKeys.sun = qtrue;
 		return qtrue;
@@ -1115,6 +1161,17 @@ void R_MOHAAEndSunKeys( void ) {
 	}
 	R_MOHAASetSunFlare( mohaaSunKeys.flareDirectionSet ? mohaaSunKeys.flareDirection : mohaaSunKeys.direction,
 		mohaaSunKeys.section[0] ? mohaaSunKeys.section : "sun" );
+}
+
+/* The level's sun for the sun shadows: its light, in the lightmap bytes
+ * 2015's compiler stored facing it, and the direction toward it. */
+qboolean R_MOHAAWorldSun( vec3_t light, vec3_t towardSun ) {
+	if ( !mohaaSunKeys.sun || !mohaaSunKeys.directionParsed ) {
+		return qfalse;
+	}
+	VectorCopy( mohaaSunKeys.color, light );
+	VectorCopy( mohaaSunKeys.direction, towardSun );
+	return qtrue;
 }
 
 /* Medal of Honor keeps a flaring light's corona size under the same name

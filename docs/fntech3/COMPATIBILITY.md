@@ -59,6 +59,15 @@ contract; RTCW SP additionally requires campaign, AI, and save/load evidence.
 
 ## Status
 
+The [FnQ shadow formats record](2026-10-22-fnq-shadow-formats.md) lets
+Enemy Territory's skeletal meshes and the Alice, F.A.K.K.2 and Medal of Honor
+TIKI models cast fnTech3's dynamic-light shadows, admits those and Return to
+Castle Wolfenstein's MDS and MDC models to the cascaded sun shadows as casters
+and receivers, and gives Alice (4 maps), F.A.K.K.2 (19) and Medal of Honor
+(46) a sun for those shadows from their own entity keys, in all three
+renderers. Engine captures before and after cover one view per game. No
+compatibility gate closes.
+
 The [pure budget record](2026-10-15-pure-budget-own-wires.md) settles the last
 profiles whose pure gamestate budget measured Quake Live's message. Medal
 of Honor's measures its own 48 KiB gamestate: its own baselines, and the 364

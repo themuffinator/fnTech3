@@ -363,7 +363,10 @@ game.
 - `r_spotShadows`: `1` lets the spotlights of [Static Map Lights](#static-map-lights)
   cast shadows too. Off by default. Restart.
 - `r_csmShadows`: `1` adds shadows from the sun in maps that have one, cast
-  by the world, models and doors. Off by default. GLx and Vulkan only.
+  by the world, models and doors, and falling on models as well as walls.
+  Alice, F.A.K.K.2 and Medal of Honor give their sun in the level itself
+  rather than its sky, and fnTech3 takes it from there. Off by default.
+  GLx and Vulkan, and RTX when it draws normally (`rtx_rt_mode 0`).
   Restart.
 
 Fine-tuning, for odd-looking shadows -- speckles, flicker, or shadows that
@@ -374,9 +377,10 @@ if a shadow lacks detail, lower `r_dlightShadowMaxLights` before changing
 these. `r_dlightShadowDebug 1`, or `r_speeds 4`, prints how much detail each
 shadow really gets.
 
-Walls, curved surfaces and most models cast shadows. See-through patterns
-and moving surfaces such as waving flags do not, nor yet do Enemy
-Territory's character models or the models of Alice and F.A.K.K.2.
+Walls, curved surfaces and every game's models cast shadows, from dynamic
+lights and from the sun: Enemy Territory's soldiers and the characters of
+Alice, F.A.K.K.2 and Medal of Honor included. See-through patterns and
+moving surfaces such as waving flags cast none from dynamic lights.
 
 **Original model shadows.** `cg_shadows` is the game's own shadow under
 players, in games that have it: `0` off, `1` a soft blob, `2` sharp shadow

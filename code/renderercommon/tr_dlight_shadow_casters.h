@@ -51,6 +51,9 @@ qboolean R_DlightShadowFrontendCasterAllowed( const shader_t *shader,
 		case SF_MD3:
 		case SF_MDR:
 		case SF_IQM:
+		case SF_WOLFET:
+		case SF_ALICE_TIKI:
+		case SF_MOHAA_TIKI:
 			return qtrue;
 		case SF_GRID:
 			return ( !r_nocurves || !r_nocurves->integer ) ? qtrue : qfalse;
@@ -369,6 +372,15 @@ static qboolean R_CollectDlightShadowEntityCasters(
 			!R_DlightShadowEntityTransformValid( ent ) ) {
 			continue;
 		}
+		// An entity the view would not draw -- a Ritual or Medal of Honor sky
+		// entity outside the sky portal, a portal-only one outside a portal --
+		// casts nothing into it either (R_AddEntitySurfaces).
+		if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) && !R_AliceEntityInView( ent ) ) {
+			continue;
+		}
+		if ( ri.gameId == COM_GAME_MOHAA && !R_MOHAAEntityInView( ent ) ) {
+			continue;
+		}
 
 		model = R_GetModelByHandle( ent->e.hModel );
 		if ( !model ) {
@@ -381,6 +393,9 @@ static qboolean R_CollectDlightShadowEntityCasters(
 			case MOD_MDR:
 			case MOD_IQM:
 			case MOD_BRUSH:
+			case MOD_WOLFET_MESH:
+			case MOD_ALICE_TIKI:
+			case MOD_MOHAA_TIKI:
 				break;
 			default:
 				continue;
@@ -408,6 +423,15 @@ static qboolean R_CollectDlightShadowEntityCasters(
 				break;
 			case MOD_BRUSH:
 				R_AddBrushModelSurfaces( ent, context );
+				break;
+			case MOD_WOLFET_MESH:
+				R_AddWolfETSurfaces( ent, context );
+				break;
+			case MOD_ALICE_TIKI:
+				R_AddAliceTikiSurfaces( ent, context );
+				break;
+			case MOD_MOHAA_TIKI:
+				R_AddMOHAATikiSurfaces( ent, context );
 				break;
 			default:
 				break;

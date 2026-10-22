@@ -1,0 +1,2285 @@
+{
+ "record": "2026-10-22-fnq-shadow-formats.md",
+ "date": "2026-10-22",
+ "profiles": [
+  "wolfet",
+  "rtcw-sp",
+  "rtcw-mp",
+  "alice",
+  "fakk2",
+  "mohaa"
+ ],
+ "unchangedProfiles": "q3, ql, q3-ihv, q3test, stvef-sp, stvef-mp and the four Jedi profiles: their formats already cast; R_LoadEntitySun returns at once for every profile but alice, fakk2 and mohaa",
+ "gateChange": "none",
+ "implementation": {
+  "files": [
+   "code/renderercommon/tr_dlight_shadow_casters.h",
+   "code/renderercommon/tr_wolfet_add_surfaces.h",
+   "code/renderercommon/tr_entity_sun.h",
+   "code/renderer/tr_alice.c",
+   "code/renderer/tr_mohaa.c",
+   "code/renderer/tr_backend.c",
+   "code/renderer/tr_bsp.c",
+   "code/renderer/tr_main.c",
+   "code/renderer/tr_local.h",
+   "code/renderervk/tr_alice.c",
+   "code/renderervk/tr_mohaa.c",
+   "code/renderervk/tr_backend.c",
+   "code/renderervk/tr_bsp.c",
+   "code/renderervk/tr_main.c",
+   "code/renderervk/tr_local.h",
+   "code/rendererrtx/tr_alice.c",
+   "code/rendererrtx/tr_mohaa.c",
+   "code/rendererrtx/tr_backend.c",
+   "code/rendererrtx/tr_bsp.c",
+   "code/rendererrtx/tr_main.c",
+   "code/rendererrtx/tr_local.h"
+  ],
+  "functions": [
+   "R_CollectDlightShadowEntityCasters",
+   "R_DlightShadowFrontendCasterAllowed",
+   "R_AddWolfETSurfaces",
+   "R_WolfETFrameBounds",
+   "R_AddAliceTikiSurfaces",
+   "R_AddMOHAATikiSurfaces",
+   "R_MOHAASunKey",
+   "R_MOHAAWorldSun",
+   "R_LoadEntitySun",
+   "R_SetWorldSunFromEntities",
+   "RB_DlightShadowCasterAllowed",
+   "RB_DlightShadowEntityCasterAllowed",
+   "RB_CSMShadowEntityAllowed",
+   "RB_CSMShadowSurfaceAllowed",
+   "RB_CSMShadowEntityPoseUnhashed"
+  ],
+  "formats": {
+   "surfaces": [
+    "SF_FACE",
+    "SF_GRID",
+    "SF_TRIANGLES",
+    "SF_MDS",
+    "SF_MDC",
+    "SF_MD3",
+    "SF_MDR",
+    "SF_IQM",
+    "SF_WOLFET",
+    "SF_ALICE_TIKI",
+    "SF_MOHAA_TIKI"
+   ],
+   "models": [
+    "MOD_BRUSH",
+    "MOD_MESH",
+    "MOD_MDS",
+    "MOD_MDC",
+    "MOD_MDR",
+    "MOD_IQM",
+    "MOD_WOLFET_MESH",
+    "MOD_ALICE_TIKI",
+    "MOD_MOHAA_TIKI"
+   ],
+   "addedToDlightShadows": [
+    "MOD_WOLFET_MESH",
+    "MOD_ALICE_TIKI",
+    "MOD_MOHAA_TIKI"
+   ],
+   "addedToSunShadows": [
+    "MOD_MDS",
+    "MOD_MDC",
+    "MOD_WOLFET_MESH",
+    "MOD_ALICE_TIKI",
+    "MOD_MOHAA_TIKI"
+   ],
+   "sunCacheRedraws": [
+    "MOD_MDS",
+    "MOD_WOLFET_MESH",
+    "MOD_ALICE_TIKI",
+    "MOD_MOHAA_TIKI"
+   ]
+  },
+  "authorship": "independently authored; the Ritual F.A.K.K.2 SDK FAQ (non-free) and OpenMoHAA were reference observation only"
+ },
+ "retailReaders": {
+  "alice.exe": "0x004ac3b0 reads ambientlight, suncolor and sundirection from anywhere in the entity text",
+  "fakk2.exe 1.02": "0x0048e8d0, the same",
+  "sunTowardForward": "the model light traces toward AngleVectors(sundirection) for sky (alice.exe 0x004aa820, fakk2.exe 0x0048cd50; docs/fntech3/2026-09-25-ritual-model-lights.md)",
+  "mohaa": "docs/fntech3/2026-10-16-mohaa-worldspawn-sun.md"
+ },
+ "installations": {
+  "alice": "E:/Games/Alice (base), read only",
+  "fakk2": ".tmp/fakk2-install/game (fakk) laid down from the retail disc copy, read only",
+  "mohaa": "E:/Games/Medal of Honor Allied Assault (main, 1.00), read only",
+  "wolfet": "E:/SteamLibrary/steamapps/common/Wolfenstein Enemy Territory (etmain), read only",
+  "rtcw-sp": "E:/SteamLibrary/steamapps/common/Return to Castle Wolfenstein (Main), read only"
+ },
+ "sunCensus": {
+  "alice": {
+   "maps": 36,
+   "sundirection": 4,
+   "colour": 4,
+   "sunflare": 0,
+   "shadowSuns": 4,
+   "refused": [],
+   "shaderQ3mapSunLines": [
+    "q3map_sun <red> <green> <blue> <intensity> <degrees> <elevation>",
+    "q3map_sun\t0 0 1 2500\t45 78",
+    "q3map_sun\t0.4 0.4 0.4 300 225 65",
+    "q3map_sun\t.5 .5 .6 768\t45 78",
+    "q3map_sun\t0.4 0.4 .4 1000\t75 25",
+    "q3map_sun\t.56 .4 .33 2500 135 70",
+    "q3map_sun\t1 .6 .3 30000 90 90",
+    "q3map_sun 0.5 0.5 0.5 1000 65 70"
+   ],
+   "perMap": {
+    "maps/grounds1.bsp": {
+     "suncolor": "224 192 192",
+     "sundirection": "-45 -26.9 0",
+     "towardSun": [
+      0.6306,
+      -0.3199,
+      0.7071
+     ]
+    },
+    "maps/rchess1.bsp": {
+     "suncolor": "223 191 191",
+     "sundirection": "-60.0 200.0 0.0",
+     "towardSun": [
+      -0.4698,
+      -0.171,
+      0.866
+     ]
+    },
+    "maps/wchess1.bsp": {
+     "sundirection": "-60.0 200.0 0.0",
+     "suncolor": "223 223 223",
+     "towardSun": [
+      -0.4698,
+      -0.171,
+      0.866
+     ]
+    },
+    "maps/wchess2.bsp": {
+     "sundirection": "-60.0 200.0 0.0",
+     "suncolor": "223 223 223",
+     "towardSun": [
+      -0.4698,
+      -0.171,
+      0.866
+     ]
+    }
+   }
+  },
+  "fakk2": {
+   "maps": 30,
+   "sundirection": 20,
+   "colour": 20,
+   "sunflare": 15,
+   "shadowSuns": 19,
+   "refused": [
+    "maps/otto.bsp"
+   ],
+   "shaderQ3mapSunLines": [],
+   "perMap": {
+    "maps/cemetery.bsp": {
+     "suncolor": "34 26 24",
+     "sundirection": "-60.0 45.0 0",
+     "sunflare": "-108 -80 -540",
+     "towardSun": [
+      0.3536,
+      0.3536,
+      0.866
+     ]
+    },
+    "maps/cliff1.bsp": {
+     "suncolor": "32 33 35",
+     "sundirection": "-65.0 22.5 0",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/cliff2.bsp": {
+     "sundirection": "-65.0 22.5 0",
+     "suncolor": "32 33 35",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/creeperpens.bsp": {
+     "sunflare": "-3888 1600 416",
+     "suncolor": "56 56 50",
+     "sundirection": "-65.0 22.5 0",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/end.bsp": {
+     "sunflare": "-5328 704 1064",
+     "sundirection": "-65.0 22.5 0",
+     "suncolor": "48 48 43",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/fakkhouse.bsp": {
+     "suncolor": "56 56 50",
+     "sundirection": "-65.0 22.5 0",
+     "sunflare": "-952 72 -1280",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/gruff.bsp": {
+     "sunflare": "-164 -1072 228",
+     "sundirection": "-67.5 -135.0 0",
+     "suncolor": "48 48 38",
+     "towardSun": [
+      -0.2706,
+      -0.2706,
+      0.9239
+     ]
+    },
+    "maps/gruff_cinema.bsp": {
+     "suncolor": "48 48 38",
+     "sundirection": "-67.5 -135.0 0",
+     "sunflare": "-164 -1072 228",
+     "towardSun": [
+      -0.2706,
+      -0.2706,
+      0.9239
+     ]
+    },
+    "maps/homes1.bsp": {
+     "sundirection": "-65.0 22.5 0",
+     "suncolor": "56 56 50",
+     "sunflare": "3528 -344 256",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/homes1_fullvis.bsp": {
+     "sundirection": "-65.0 22.5 0",
+     "suncolor": "56 56 50",
+     "sunflare": "3424 -344 160",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/homes2evil.bsp": {
+     "sundirection": "-65.0 22.5 0",
+     "suncolor": "32 33 35",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/homes2good.bsp": {
+     "sunflare": "-1496 2080 224",
+     "sundirection": "-65.0 22.5 0",
+     "suncolor": "56 56 50",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/intro.bsp": {
+     "sunflare": "4940 4476 340"
+    },
+    "maps/landersroost.bsp": {
+     "sundirection": "-65.0 22.5 0",
+     "suncolor": "56 56 50",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/oracle.bsp": {
+     "sunflare": "648 6056 712"
+    },
+    "maps/oracleway.bsp": {
+     "sunflare": "-2540 -4692 636"
+    },
+    "maps/otto.bsp": {
+     "sundirection": "65.0 -22.5 0.0",
+     "suncolor": "32 33 35",
+     "towardSun": [
+      0.3904,
+      -0.1617,
+      -0.9063
+     ]
+    },
+    "maps/shield.bsp": {
+     "sundirection": "-75 22 0",
+     "suncolor": "11 12 18",
+     "sunflare": "-3604 -1180 6308",
+     "towardSun": [
+      0.24,
+      0.097,
+      0.9659
+     ]
+    },
+    "maps/swamp2.bsp": {
+     "suncolor": "39 42 42",
+     "sundirection": "-45.0 135.0 0",
+     "towardSun": [
+      -0.5,
+      0.5,
+      0.7071
+     ]
+    },
+    "maps/swamp3.bsp": {
+     "suncolor": "39 42 42",
+     "sundirection": "-45.0 135.0 0",
+     "towardSun": [
+      -0.5,
+      0.5,
+      0.7071
+     ]
+    },
+    "maps/towncenter_evil.bsp": {
+     "sundirection": "-65.0 22.5 0",
+     "suncolor": "16 16.5 17.5",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/towncenter_good.bsp": {
+     "suncolor": "48 48 43",
+     "sundirection": "-65.0 22.5 0",
+     "sunflare": "-5328 704 1064",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/training.bsp": {
+     "sunflare": "3092 1492 -156",
+     "suncolor": "56 56 50",
+     "sundirection": "-65 22.5 0",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    }
+   }
+  },
+  "mohaa": {
+   "maps": 54,
+   "sundirection": 46,
+   "colour": 46,
+   "sunflare": 4,
+   "shadowSuns": 46,
+   "refused": [],
+   "shaderQ3mapSunLines": [],
+   "perMap": {
+    "maps/DM/mohdm1.bsp": {
+     "suncolor": "65 60 45",
+     "sunflare": "-7980 5388 3396",
+     "sundirection": "320 150 0",
+     "sunlight": "255 243 171",
+     "towardSun": [
+      -0.6634,
+      0.383,
+      0.6428
+     ]
+    },
+    "maps/DM/mohdm2.bsp": {
+     "sundirection": "315 210 0",
+     "suncolor": "70 70 70",
+     "sunflarename": "none",
+     "towardSun": [
+      -0.6124,
+      -0.3536,
+      0.7071
+     ]
+    },
+    "maps/DM/mohdm3.bsp": {
+     "sundirection": "315 250 0",
+     "sunlight": "90 85 65",
+     "sunflare": "-640 -696 940",
+     "towardSun": [
+      -0.2418,
+      -0.6645,
+      0.7071
+     ]
+    },
+    "maps/DM/mohdm4.bsp": {
+     "sundirection": "315 210 0",
+     "suncolor": "70 70 70",
+     "sunflarename": "none",
+     "towardSun": [
+      -0.6124,
+      -0.3536,
+      0.7071
+     ]
+    },
+    "maps/DM/mohdm5.bsp": {
+     "sunflarename": "none",
+     "suncolor": "15 15 20",
+     "sundirection": "-70 110 0",
+     "towardSun": [
+      -0.117,
+      0.3214,
+      0.9397
+     ]
+    },
+    "maps/DM/mohdm6.bsp": {
+     "sundirection": "-90 90 0",
+     "suncolor": "85 85 85",
+     "towardSun": [
+      0.0,
+      0.0,
+      1.0
+     ]
+    },
+    "maps/DM/mohdm7.bsp": {
+     "sundirection": "-35 130 0",
+     "suncolor": "30 29 30",
+     "sunflarename": "none",
+     "towardSun": [
+      -0.5265,
+      0.6275,
+      0.5736
+     ]
+    },
+    "maps/m1l1.bsp": {
+     "sunflarename": "none",
+     "suncolor": "10 15 30",
+     "sundirection": "-30 300 0",
+     "towardSun": [
+      0.433,
+      -0.75,
+      0.5
+     ]
+    },
+    "maps/m1l2a.bsp": {
+     "sunflarename": "none",
+     "sundirection": "-45 75 0",
+     "suncolor": "14 14 16",
+     "towardSun": [
+      0.183,
+      0.683,
+      0.7071
+     ]
+    },
+    "maps/m1l2b.bsp": {
+     "sunflarename": "none",
+     "suncolor": "24 24 26",
+     "sundirection": "-45 75 0",
+     "towardSun": [
+      0.183,
+      0.683,
+      0.7071
+     ]
+    },
+    "maps/m1l3a.bsp": {
+     "sundirection": "-30 300 0",
+     "suncolor": "30 30 45",
+     "sunflarename": "none",
+     "towardSun": [
+      0.433,
+      -0.75,
+      0.5
+     ]
+    },
+    "maps/m1l3b.bsp": {
+     "suncolor": "30 30 45",
+     "sundirection": "-30 300 0",
+     "sunflarename": "none",
+     "towardSun": [
+      0.433,
+      -0.75,
+      0.5
+     ]
+    },
+    "maps/m1l3c.bsp": {
+     "sunlight": "35 34 35",
+     "sundirection": "270 90 0",
+     "sunflarename": "none",
+     "towardSun": [
+      -0.0,
+      -0.0,
+      1.0
+     ]
+    },
+    "maps/m2l1.bsp": {
+     "sundirection": "-28 110 0",
+     "suncolor": "50 45 45",
+     "sunflarename": "none",
+     "towardSun": [
+      -0.302,
+      0.8297,
+      0.4695
+     ]
+    },
+    "maps/m2l2a.bsp": {
+     "suncolor": "100 92 92",
+     "sundirection": "-50 135 0",
+     "towardSun": [
+      -0.4545,
+      0.4545,
+      0.766
+     ]
+    },
+    "maps/m2l2b.bsp": {
+     "sundirection": "-50 135 0",
+     "suncolor": "100 92 92",
+     "towardSun": [
+      -0.4545,
+      0.4545,
+      0.766
+     ]
+    },
+    "maps/m2l2c.bsp": {
+     "suncolor": "100 92 92",
+     "sundirection": "-50 135 0",
+     "towardSun": [
+      -0.4545,
+      0.4545,
+      0.766
+     ]
+    },
+    "maps/m2l3.bsp": {
+     "suncolor": "120 107 107",
+     "sundirection": "-28 110 0",
+     "towardSun": [
+      -0.302,
+      0.8297,
+      0.4695
+     ]
+    },
+    "maps/m3l1a.bsp": {
+     "suncolor": "85 88 89",
+     "sundirection": "270 360 0",
+     "sunflarename": "none",
+     "towardSun": [
+      -0.0,
+      0.0,
+      1.0
+     ]
+    },
+    "maps/m3l1b.bsp": {
+     "suncolor": "45 48 49",
+     "sundirection": "270 360 0",
+     "sunflarename": "none",
+     "towardSun": [
+      -0.0,
+      0.0,
+      1.0
+     ]
+    },
+    "maps/m3l2.bsp": {
+     "sunflare": "4096 -5604 1200",
+     "sundirection": "315 315 0",
+     "sunlight": "90 90 90",
+     "towardSun": [
+      0.5,
+      -0.5,
+      0.7071
+     ]
+    },
+    "maps/m3l3.bsp": {
+     "sundirection": "315 315 0",
+     "suncolor": "90 90 90",
+     "towardSun": [
+      0.5,
+      -0.5,
+      0.7071
+     ]
+    },
+    "maps/m4l0.bsp": {
+     "suncolor": "55 48 36",
+     "sundirection": "330 230 0",
+     "towardSun": [
+      -0.5567,
+      -0.6634,
+      0.5
+     ]
+    },
+    "maps/m4l1.bsp": {
+     "sunflarename": "none",
+     "sundirection": "-35 100 0",
+     "suncolor": "38.8 62.4 88.8",
+     "towardSun": [
+      -0.1422,
+      0.8067,
+      0.5736
+     ]
+    },
+    "maps/m4l2.bsp": {
+     "sundirection": "-35 10 0",
+     "suncolor": "42 64 95",
+     "sunflarename": "none",
+     "towardSun": [
+      0.8067,
+      0.1422,
+      0.5736
+     ]
+    },
+    "maps/m4l3.bsp": {
+     "sundirection": "-35 10 0",
+     "suncolor": "42 64 95",
+     "sunflarename": "none",
+     "towardSun": [
+      0.8067,
+      0.1422,
+      0.5736
+     ]
+    },
+    "maps/m5l1a.bsp": {
+     "sunflarename": "none",
+     "sundirection": "238 210 0",
+     "suncolor": "90 90 90",
+     "towardSun": [
+      0.4589,
+      0.265,
+      0.848
+     ]
+    },
+    "maps/m5l1b.bsp": {
+     "sunflarename": "none",
+     "sundirection": "238 210 0",
+     "suncolor": "90 90 90",
+     "towardSun": [
+      0.4589,
+      0.265,
+      0.848
+     ]
+    },
+    "maps/m5l2a.bsp": {
+     "sundirection": "238 210 0",
+     "suncolor": "60 60 65",
+     "towardSun": [
+      0.4589,
+      0.265,
+      0.848
+     ]
+    },
+    "maps/m5l2b.bsp": {
+     "sundirection": "238 210 0",
+     "suncolor": "60 60 65",
+     "towardSun": [
+      0.4589,
+      0.265,
+      0.848
+     ]
+    },
+    "maps/m5l3.bsp": {
+     "sundirection": "238 210 0",
+     "sunflare": "-748 1428 1772",
+     "suncolor": "110 100 90",
+     "towardSun": [
+      0.4589,
+      0.265,
+      0.848
+     ]
+    },
+    "maps/m6l1a.bsp": {
+     "sunflarename": "none",
+     "suncolor": "25 25 30",
+     "sundirection": "-75 110 0",
+     "towardSun": [
+      -0.0885,
+      0.2432,
+      0.9659
+     ]
+    },
+    "maps/m6l1b.bsp": {
+     "sunflarename": "none",
+     "sundirection": "-75 110 0",
+     "suncolor": "25 25 30",
+     "towardSun": [
+      -0.0885,
+      0.2432,
+      0.9659
+     ]
+    },
+    "maps/m6l1c.bsp": {
+     "sunflarename": "none",
+     "sundirection": "-75 110 0",
+     "suncolor": "25 25 30",
+     "towardSun": [
+      -0.0885,
+      0.2432,
+      0.9659
+     ]
+    },
+    "maps/m6l2a.bsp": {
+     "suncolor": "25 25 30",
+     "sundirection": "-70 110 0",
+     "sunflarename": "none",
+     "towardSun": [
+      -0.117,
+      0.3214,
+      0.9397
+     ]
+    },
+    "maps/m6l2b.bsp": {
+     "suncolor": "15 15 20",
+     "sundirection": "-70 110 0",
+     "sunflarename": "none",
+     "towardSun": [
+      -0.117,
+      0.3214,
+      0.9397
+     ]
+    },
+    "maps/m6l3a.bsp": {
+     "sunflarename": "none",
+     "suncolor": "35 35 50",
+     "sundirection": "280 215 0",
+     "towardSun": [
+      -0.1422,
+      -0.0996,
+      0.9848
+     ]
+    },
+    "maps/m6l3b.bsp": {
+     "suncolor": "30 30 45",
+     "sundirection": "280 215 0",
+     "towardSun": [
+      -0.1422,
+      -0.0996,
+      0.9848
+     ]
+    },
+    "maps/m6l3c.bsp": {
+     "suncolor": "30 30 45",
+     "sundirection": "280 215 0",
+     "towardSun": [
+      -0.1422,
+      -0.0996,
+      0.9848
+     ]
+    },
+    "maps/m6l3d.bsp": {
+     "suncolor": "30 30 45",
+     "sundirection": "280 215 0",
+     "towardSun": [
+      -0.1422,
+      -0.0996,
+      0.9848
+     ]
+    },
+    "maps/m6l3e.bsp": {
+     "sunflarename": "none",
+     "sundirection": "280 215 0",
+     "suncolor": "50 50 65",
+     "towardSun": [
+      -0.1422,
+      -0.0996,
+      0.9848
+     ]
+    },
+    "maps/obj/obj_team1.bsp": {
+     "sundirection": "335 315 0",
+     "suncolor": "70 70 70",
+     "sunflarename": "none",
+     "towardSun": [
+      0.6409,
+      -0.6409,
+      0.4226
+     ]
+    },
+    "maps/obj/obj_team2.bsp": {
+     "suncolor": "70 70 70",
+     "sundirection": "315 90 0",
+     "towardSun": [
+      0.0,
+      0.7071,
+      0.7071
+     ]
+    },
+    "maps/obj/obj_team3.bsp": {
+     "suncolor": "65 68 69",
+     "sundirection": "320 150 0",
+     "sunflarename": "none",
+     "towardSun": [
+      -0.6634,
+      0.383,
+      0.6428
+     ]
+    },
+    "maps/obj/obj_team4.bsp": {
+     "sunflarename": "none",
+     "suncolor": "70 70 70",
+     "sundirection": "315 210 0",
+     "towardSun": [
+      -0.6124,
+      -0.3536,
+      0.7071
+     ]
+    },
+    "maps/training.bsp": {
+     "sunflarename": "none",
+     "sundirection": "330 70 0",
+     "suncolor": "70 65 60",
+     "towardSun": [
+      0.2962,
+      0.8138,
+      0.5
+     ]
+    }
+   }
+  }
+ },
+ "sunCensusScript": ".tmp/fnq-shadows/tools/sun_survey.py",
+ "runtimes": {
+  "exportBase": "acad7f4c21a3fa80d2890accd31ccc5c97f8d594",
+  "before": ".tmp/fnq-shadows/runtime/before (git archive of the base, Windows x86 debugoptimized, strict warnings)",
+  "final": ".tmp/fnq-shadows/runtime/final (the same export with this change; only the renderer DLLs differ)",
+  "identities": {
+   "before": {
+    "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+    "fnql_glx_x86.dll": "4427532c855022dffd067ee6205a39b3c3c268735a4fddfbfc55037747b7c686",
+    "fnql_vk_x86.dll": "c45e54d7b065d3273989fb46d33b450fef2264af11888ce967678cb811db696b",
+    "fnql_rtx_x86.dll": "d317650bf75fa3be004e593c0ca9889ef3ca197ed10c4a78b72f66ff2ad08e76",
+    "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+   },
+   "final": {
+    "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+    "fnql_glx_x86.dll": "8456145772a25ae7e3b2b3d9415084920eeff63c22ee1bee58104e6c7dd96a37",
+    "fnql_vk_x86.dll": "a536a73f21e8cb2e2b5b14faf7d17e29d3e889908b1db1fa7e3b5c03961f1afa",
+    "fnql_rtx_x86.dll": "0b999b8da69d85a1661a630e48892221f1f5fe80d4bd901252b4b4d2070114ce",
+    "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+   }
+  }
+ },
+ "probe": {
+  "scripts": [
+   ".tmp/fnq-shadows/tools/probe.py",
+   ".tmp/fnq-shadows/tools/batch.py",
+   ".tmp/fnq-shadows/tools/diff.py",
+   ".tmp/fnq-shadows/tools/summarize.py"
+  ],
+  "settings": "windowed 800x600 on a private desktop, net_enabled 0, s_initsound 0, no input, an empty home config per run, devmap, r_csmShadows 1 on the command line",
+  "captures": "screenshotPNG: on; csmoff (r_csmShadowStrength 0); dloff (r_dlightShadowStrength 0); on2 (everything on again, the repeat); dbg (r_csmDebug 1 and r_dlightShadowDebug 1 print the counters, after the clean captures)",
+  "measure": "luma darker by more than 12 with shadows on, where on and on2 agree within 4"
+ },
+ "live": [
+  {
+   "prefix": "fakk2b-glx-final",
+   "before": {
+    "run": "fakk2b-glx-final-before",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_glx_x86.dll": "4427532c855022dffd067ee6205a39b3c3c268735a4fddfbfc55037747b7c686",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "6aa1c783e62a049645e4bcc43a96e9400747f50e9b19556aa5a0484baaf43633"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "d9f85ecc2397546df888b566117245427551fa50a9916ac58c08520bcd8682f5"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "670089858b5dc0dd439f477811d673d7f0b498e8923d751af81d4f963d5c8852"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "3d3f29393e0c1c7ba552f34d48b8c845f6bcc302f0829db5d21c94c63d14954f"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "f28ca3dc545be7a0f8fdce5ec6f6608d19affb7f57bf62daade7ca27725028cc"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "skipped": [
+      "csm plan cascades:0 skip no-sky-sun"
+     ]
+    },
+    "dlight": {
+     "frames": 134,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 134
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 2360,
+     "darkerFraction": 0.0049,
+     "meanLumaOn": 84.67,
+     "meanLumaOff": 84.51,
+     "repeatStableFraction": 0.9159
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 2007,
+     "darkerFraction": 0.0042,
+     "meanLumaOn": 84.67,
+     "meanLumaOff": 84.38,
+     "repeatStableFraction": 0.9159
+    }
+   },
+   "after": {
+    "run": "fakk2b-glx-final-after",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_glx_x86.dll": "8456145772a25ae7e3b2b3d9415084920eeff63c22ee1bee58104e6c7dd96a37",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "efa26f8d2fbb2ba7803c03a627c99fa5c1454f6bd90e536073e5943b8c735ee3"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "fd15492f370acdd7b43081245093a62825e705bac99f2b6a7853e9332f6ed379"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "9c66838c64fd2e0fd5c7788e932fe8d5811b815afcbc1aea855120a4be99d4a4"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "930fd924938b822ff4f5eb366e31feaf7f793302319ee0ef7d33e584393bd3cd"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "8ab51920e65c594e16335069b1e1aad0fd799cc165263394693f3d07e7151d69"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "sky": "entities",
+     "toSun": [
+      0.39,
+      0.16,
+      0.91
+     ],
+     "frames": 134,
+     "commonest": {
+      "casters": 722,
+      "receiversWorld": 624,
+      "receiversEntity": 112,
+      "uncacheable": 1,
+      "frames": 131
+     }
+    },
+    "dlight": {
+     "frames": 134,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 134
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 14740,
+     "darkerFraction": 0.0307,
+     "meanLumaOn": 83.62,
+     "meanLumaOff": 84.34,
+     "repeatStableFraction": 0.9166
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 2116,
+     "darkerFraction": 0.0044,
+     "meanLumaOn": 83.62,
+     "meanLumaOff": 83.46,
+     "repeatStableFraction": 0.9166
+    }
+   },
+   "afterDarkerThanBefore": {
+    "pixels": 480000,
+    "darkerWithShadows": 17039,
+    "darkerFraction": 0.0355,
+    "meanLumaOn": 83.62,
+    "meanLumaOff": 84.67
+   }
+  },
+  {
+   "prefix": "alice3-glx-final",
+   "before": {
+    "run": "alice3-glx-final-before",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_glx_x86.dll": "4427532c855022dffd067ee6205a39b3c3c268735a4fddfbfc55037747b7c686",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "f6f377b90f585b1ad6ba1b51f004b274f850485c2aa6c4f74776a9109a0c03c0"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "c8e433fe261e33b0b0330f0e1726f88014967afbad1cd31bdf7fa059fdfe68a6"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "b5cb427ef4ea9db77240ef3fe3e2868d571ffa81051ff080c9b41c811ca1cfb9"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "f9952a54ddc86fd424f1d61be66279bd86315fbc0bf004a0092493d9bfe017a9"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "6bbeb89ebade6594ca53ac9386ee1331e0ebab02c5ab6aaedcb2cc1bbe8d8233"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "skipped": [
+      "csm plan cascades:0 skip no-world"
+     ]
+    },
+    "dlight": {
+     "frames": 135,
+     "commonest": {
+      "planned": 3,
+      "renderedLights": 1,
+      "casterSurfaces": 13,
+      "frames": 82
+     },
+     "maxCasterSurfaces": 94
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 3407,
+     "darkerFraction": 0.0071,
+     "meanLumaOn": 49.9,
+     "meanLumaOff": 48.24,
+     "repeatStableFraction": 0.8126
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 2296,
+     "darkerFraction": 0.0048,
+     "meanLumaOn": 49.9,
+     "meanLumaOff": 46.01,
+     "repeatStableFraction": 0.8126
+    }
+   },
+   "after": {
+    "run": "alice3-glx-final-after",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_glx_x86.dll": "8456145772a25ae7e3b2b3d9415084920eeff63c22ee1bee58104e6c7dd96a37",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "7b12238ccba5dcbbc6e1e7661586cbed63575fcfc73004a75fac89e24dfe5a5b"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "3b68e05146a42a0eebf713a8e9a6a76db8bf0e419f736e2d53e71cf4e36c8a0f"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "8c997f351125ce2248f2974cf02647dcfe66871ec955cdcb06aecba8647b7215"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "d32cab24aec458bafeb2d8a3ae022a4bcb9692927ab02d2e9b1238e235d58152"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "e922936189bac24be80405523f1725b7e649f95dfda84e1c724a9da043a0b072"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "sky": "entities",
+     "toSun": [
+      0.63,
+      -0.32,
+      0.71
+     ],
+     "frames": 135,
+     "commonest": {
+      "casters": 1085,
+      "receiversWorld": 875,
+      "receiversEntity": 328,
+      "uncacheable": 1,
+      "frames": 74
+     }
+    },
+    "dlight": {
+     "frames": 135,
+     "commonest": {
+      "planned": 3,
+      "renderedLights": 2,
+      "casterSurfaces": 232,
+      "frames": 82
+     },
+     "maxCasterSurfaces": 232
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 29323,
+     "darkerFraction": 0.0611,
+     "meanLumaOn": 47.55,
+     "meanLumaOff": 48.19,
+     "repeatStableFraction": 0.8075
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 2364,
+     "darkerFraction": 0.0049,
+     "meanLumaOn": 47.55,
+     "meanLumaOff": 43.64,
+     "repeatStableFraction": 0.8075
+    }
+   },
+   "afterDarkerThanBefore": {
+    "pixels": 480000,
+    "darkerWithShadows": 33586,
+    "darkerFraction": 0.07,
+    "meanLumaOn": 47.55,
+    "meanLumaOff": 49.9
+   }
+  },
+  {
+   "prefix": "mohaa2-glx-final",
+   "before": {
+    "run": "mohaa2-glx-final-before",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_glx_x86.dll": "4427532c855022dffd067ee6205a39b3c3c268735a4fddfbfc55037747b7c686",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "b4ec96154948bad481fb7d57598ee3cc63c495e3ddde634b11cafdb0a0980e20"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "c73bfeb2912b13691753f6f0bd8dbe6233b1fe16c2248fe8730e246f045063f7"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "8e3a719c6ec835abd71795b3ca334780be51f01d9a37201592c0fa347a8fb006"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "abd200f34473e7966a7cc4385c74f67676174906f0dde9f083650a6fe22debb6"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "1dd1a13e2414e22939c5996089b880baf10d47105cd9561a3558861732018bc1"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "skipped": [
+      "csm plan cascades:0 skip no-sky-sun"
+     ]
+    },
+    "dlight": {
+     "frames": 135,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 135
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 418,
+     "darkerFraction": 0.0009,
+     "meanLumaOn": 79.0,
+     "meanLumaOff": 79.04,
+     "repeatStableFraction": 0.9672
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 383,
+     "darkerFraction": 0.0008,
+     "meanLumaOn": 79.0,
+     "meanLumaOff": 79.1,
+     "repeatStableFraction": 0.9672
+    }
+   },
+   "after": {
+    "run": "mohaa2-glx-final-after",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_glx_x86.dll": "8456145772a25ae7e3b2b3d9415084920eeff63c22ee1bee58104e6c7dd96a37",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "12d5e5473e5793db621a12ff45f506c1fd4bba8ed1a38482d24883b133e4ab9f"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "95da79e462eb902db1808caeb950d91d0211023a0835345cac34e360464972a4"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "6821b8c77247394cb1f5faad5c136840d40a3bd0ae4a94317d4b3046cd5f5a69"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "0e5f8d4eff0e6bb0b03b8196564a0bdf0c7766f99d52bc2e2f10878dd89a4419"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "743eec28780101bdaca1e672f349e6e9d33006be75a5648c78aa6bafb936efe2"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "sky": "worldspawn",
+     "toSun": [
+      0.46,
+      0.26,
+      0.85
+     ],
+     "frames": 130,
+     "commonest": {
+      "casters": 1817,
+      "receiversWorld": 1609,
+      "receiversEntity": 316,
+      "uncacheable": 1,
+      "frames": 130
+     }
+    },
+    "dlight": {
+     "frames": 130,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 130
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 54667,
+     "darkerFraction": 0.1139,
+     "meanLumaOn": 75.45,
+     "meanLumaOff": 79.04,
+     "repeatStableFraction": 0.9609
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 585,
+     "darkerFraction": 0.0012,
+     "meanLumaOn": 75.45,
+     "meanLumaOff": 75.53,
+     "repeatStableFraction": 0.9609
+    }
+   },
+   "afterDarkerThanBefore": {
+    "pixels": 480000,
+    "darkerWithShadows": 64693,
+    "darkerFraction": 0.1348,
+    "meanLumaOn": 75.45,
+    "meanLumaOff": 79.0
+   }
+  },
+  {
+   "prefix": "wolfet-glx-final",
+   "before": {
+    "run": "wolfet-glx-final-before",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_glx_x86.dll": "4427532c855022dffd067ee6205a39b3c3c268735a4fddfbfc55037747b7c686",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "3ac654d62622b3076703df3614f4daa0a61a68f7e582c36d38a6ef2c7e50c865"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "8b93a47b265371650970ad7c97f6de67a9fffa9e34151fbae4e9d52d23fdf72f"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "9e97d0ea6de67adbeb720ffba9b923ff51008f4d03014681b80deac2aeecdf9c"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "29d785eff8eac6f1993d96b6e89ead1236c4f467288b8838f7f013878f3a4ad6"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "f5e6b6259ba194a56eb869f3da21e1edf6e37c87d66fc71142a9fbc26f1f6b6e"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "sky": "textures/skies_sd/sd_siwasky",
+     "toSun": [
+      -0.62,
+      -0.21,
+      0.75
+     ],
+     "frames": 130,
+     "commonest": {
+      "casters": 5107,
+      "receiversWorld": 5060,
+      "receiversEntity": 80,
+      "uncacheable": 1,
+      "frames": 130
+     }
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 76251,
+     "darkerFraction": 0.1589,
+     "meanLumaOn": 148.27,
+     "meanLumaOff": 160.19,
+     "repeatStableFraction": 0.9679
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 450,
+     "darkerFraction": 0.0009,
+     "meanLumaOn": 148.27,
+     "meanLumaOff": 148.5,
+     "repeatStableFraction": 0.9679
+    }
+   },
+   "after": {
+    "run": "wolfet-glx-final-after",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_glx_x86.dll": "8456145772a25ae7e3b2b3d9415084920eeff63c22ee1bee58104e6c7dd96a37",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "83d293cc6728705bd8630f1b2551b38f23385bbe19b79091539c6074014a01d0"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "d3fd3f64aa30c2716b26c4b77e3cb549f815a4df5f80703dacb1c3ce2bebbaa6"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "f2ea4b52481c0f9e68df08373c585e69894b8dd69e51be371459d3d33fe51572"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "b8ce8e676da9d2170cc83eb796af9c6933d2b9bc47263a3e808a7f428ea102a6"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "134f669745b838773701b56fb30c2a94a35cde90affd3e3b31574ac0964d4ccc"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "sky": "textures/skies_sd/sd_siwasky",
+     "toSun": [
+      -0.62,
+      -0.21,
+      0.75
+     ],
+     "frames": 130,
+     "commonest": {
+      "casters": 5127,
+      "receiversWorld": 5056,
+      "receiversEntity": 104,
+      "uncacheable": 1,
+      "frames": 130
+     }
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 79242,
+     "darkerFraction": 0.1651,
+     "meanLumaOn": 147.45,
+     "meanLumaOff": 160.12,
+     "repeatStableFraction": 0.956
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 332,
+     "darkerFraction": 0.0007,
+     "meanLumaOn": 147.45,
+     "meanLumaOff": 147.67,
+     "repeatStableFraction": 0.956
+    }
+   },
+   "afterDarkerThanBefore": {
+    "pixels": 480000,
+    "darkerWithShadows": 10593,
+    "darkerFraction": 0.0221,
+    "meanLumaOn": 147.45,
+    "meanLumaOff": 148.27
+   }
+  },
+  {
+   "prefix": "rtcw-glx-final",
+   "before": {
+    "run": "rtcw-glx-final-before",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_glx_x86.dll": "4427532c855022dffd067ee6205a39b3c3c268735a4fddfbfc55037747b7c686",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "77a38672e958a2828096c4b02d668d78dfcc30b592a52f5f54b5bcb66c1916b9"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "d6498371fec64f9f1de41936e121d52cf0e60fe10a4e8626c1be8aa8164f2cb0"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "41d6c79678ab1c508f85772c55a00fdd3a9e6929dae52baa8180760b6773a537"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "4b096d8d5683266c7b915f69e0707afa645147925bc3f4b32feb74acc3f5dac2"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "caa6a35b3894067c6e00991c10f605f79e2d61949bdd1962526f1593596a44c6"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "sky": "textures/skies/sky_forest",
+     "toSun": [
+      -0.49,
+      -0.41,
+      0.77
+     ],
+     "frames": 130,
+     "commonest": {
+      "casters": 251,
+      "receiversWorld": 104,
+      "receiversEntity": 492,
+      "uncacheable": 0,
+      "frames": 130
+     }
+    },
+    "dlight": {
+     "frames": 130,
+     "commonest": {
+      "planned": 2,
+      "renderedLights": 2,
+      "casterSurfaces": 700,
+      "frames": 130
+     },
+     "maxCasterSurfaces": 700
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 333343,
+     "darkerFraction": 0.6945,
+     "meanLumaOn": 24.15,
+     "meanLumaOff": 40.57,
+     "repeatStableFraction": 0.8745
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 1298,
+     "darkerFraction": 0.0027,
+     "meanLumaOn": 24.15,
+     "meanLumaOff": 25.03,
+     "repeatStableFraction": 0.8745
+    }
+   },
+   "after": {
+    "run": "rtcw-glx-final-after",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_glx_x86.dll": "8456145772a25ae7e3b2b3d9415084920eeff63c22ee1bee58104e6c7dd96a37",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "47ec8663edc6b3063c5fdbab2e944f4f25057c8ca38801450315bd0f6284db78"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "8c6f02d3f841b854cb3ef0271f1e262acee1a9ee2da3573984878b64da7239c2"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "0f2450abda7396063e652f7226eb86a276913e5b5599e9add628ff0ba1fd0712"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "9ce90171ebf07bd77b0be811939728db71eedb9f4f37f4d64b681553928de069"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "e8146895379157ea518620e5a2f75cbb9c5b2280c2c08f14419cca5d08909373"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "sky": "textures/skies/sky_forest",
+     "toSun": [
+      -0.49,
+      -0.41,
+      0.77
+     ],
+     "frames": 130,
+     "commonest": {
+      "casters": 335,
+      "receiversWorld": 104,
+      "receiversEntity": 576,
+      "uncacheable": 1,
+      "frames": 130
+     }
+    },
+    "dlight": {
+     "frames": 130,
+     "commonest": {
+      "planned": 2,
+      "renderedLights": 2,
+      "casterSurfaces": 700,
+      "frames": 130
+     },
+     "maxCasterSurfaces": 700
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 346743,
+     "darkerFraction": 0.7224,
+     "meanLumaOn": 22.12,
+     "meanLumaOff": 41.12,
+     "repeatStableFraction": 0.8777
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 746,
+     "darkerFraction": 0.0016,
+     "meanLumaOn": 22.12,
+     "meanLumaOff": 21.77,
+     "repeatStableFraction": 0.8777
+    }
+   },
+   "afterDarkerThanBefore": {
+    "pixels": 480000,
+    "darkerWithShadows": 34574,
+    "darkerFraction": 0.072,
+    "meanLumaOn": 22.12,
+    "meanLumaOff": 24.15
+   }
+  },
+  {
+   "prefix": "fakk2b-vk-final",
+   "before": {
+    "run": "fakk2b-vk-final-before",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_vk_x86.dll": "c45e54d7b065d3273989fb46d33b450fef2264af11888ce967678cb811db696b",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "28dd75d03c9d8c87d4d718c460661db214b93f9552439210e8b7bc77071fbc90"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "c90ecf2af179e3b31b46497d6384ce9fbe378b76fad02052afb501d7cf48a71e"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "4e630200883204897203c073727376c4c9bba7323ecd8b8fbda5ea96da51b181"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "2a26d67e5c720ef07541eaeebc2a0b05d0495cda21d84bd850b256a77ab99bd3"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "985ffe788b6e57e4679baa0c196989a4ecd3f4ec3c9ca387afa9d97f8f30da5f"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "skipped": [
+      "csm plan cascades:0 skip no-sky-sun"
+     ]
+    },
+    "dlight": {
+     "frames": 135,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 135
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 1698,
+     "darkerFraction": 0.0035,
+     "meanLumaOn": 91.43,
+     "meanLumaOff": 90.66,
+     "repeatStableFraction": 0.9057
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 1761,
+     "darkerFraction": 0.0037,
+     "meanLumaOn": 91.43,
+     "meanLumaOff": 90.88,
+     "repeatStableFraction": 0.9057
+    }
+   },
+   "after": {
+    "run": "fakk2b-vk-final-after",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_vk_x86.dll": "a536a73f21e8cb2e2b5b14faf7d17e29d3e889908b1db1fa7e3b5c03961f1afa",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "9eeef21921d7948be3ade24d9d924151e26787cc18b1fa922feb154aa5defb36"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "4b2b8dd92d9bc8cb504bd1c681b1ae6aca490fa3f7e46b675df19d4e5b6a9ae1"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "b06031436974d719636ba0469e0746940119b29b28592cef1714710af8c8adbb"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "462d12fec1be3909aac628fafca541a667c455eb60726584bd2dd7bb0d35e3c5"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "52b1c07429aaa9aad37f09732b539ac79fac663131147f98cf21af27597b9c65"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "sky": "entities",
+     "toSun": [
+      0.39,
+      0.16,
+      0.91
+     ],
+     "frames": 134,
+     "commonest": {
+      "casters": 722,
+      "receiversWorld": 624,
+      "receiversEntity": 112,
+      "uncacheable": 1,
+      "frames": 131
+     }
+    },
+    "dlight": {
+     "frames": 134,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 134
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 14355,
+     "darkerFraction": 0.0299,
+     "meanLumaOn": 90.58,
+     "meanLumaOff": 90.89,
+     "repeatStableFraction": 0.9058
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 1996,
+     "darkerFraction": 0.0042,
+     "meanLumaOn": 90.58,
+     "meanLumaOff": 89.96,
+     "repeatStableFraction": 0.9058
+    }
+   },
+   "afterDarkerThanBefore": {
+    "pixels": 480000,
+    "darkerWithShadows": 16480,
+    "darkerFraction": 0.0343,
+    "meanLumaOn": 90.58,
+    "meanLumaOff": 91.43
+   }
+  },
+  {
+   "prefix": "mohaa2-vk-final",
+   "before": {
+    "run": "mohaa2-vk-final-before",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_vk_x86.dll": "c45e54d7b065d3273989fb46d33b450fef2264af11888ce967678cb811db696b",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "915a349cd12cda1d2b1127b2837121759e0b84ab0432f4f3bb4499708c905c08"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "23fec5c882ee8f67f37e4c939ba80192fead8f245bee8d563f838352f09a7fab"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "f563446bc8357dfd0d8d51c2b833c5e6a84b5750995bec97d849edb4b8e7afdc"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "16e3d86d049b53fb24212a575199d787975560eeb35de26f1e42ab07d634aa06"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "749da79958a126321ad794a17d16d26ddd68f072b527a16761e3255006ee226f"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "skipped": [
+      "csm plan cascades:0 skip no-sky-sun"
+     ]
+    },
+    "dlight": {
+     "frames": 133,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 133
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 412,
+     "darkerFraction": 0.0009,
+     "meanLumaOn": 79.23,
+     "meanLumaOff": 79.27,
+     "repeatStableFraction": 0.9662
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 400,
+     "darkerFraction": 0.0008,
+     "meanLumaOn": 79.23,
+     "meanLumaOff": 79.33,
+     "repeatStableFraction": 0.9662
+    }
+   },
+   "after": {
+    "run": "mohaa2-vk-final-after",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_vk_x86.dll": "a536a73f21e8cb2e2b5b14faf7d17e29d3e889908b1db1fa7e3b5c03961f1afa",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "9c5c4e1cf5e51468ff78c0eefba09c5342f6e1aaeece89498225a90615bc3614"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "b24dbefda131bdc59a76631eb944f08eb9d27f8d18dae7b7f387fe72a9188be3"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "c974e4d6421457f085da387f294ac9dfb2c0e245140b23e1b94a8675c2814355"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "4673be232eac41a3835b4d40d4237e2b050f7eb8cd0b4d13b53883af8ea5ee9e"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "797a5e76da0994800f70251c1efbb06a30e34c3ef55e1e42ca62a85736ea9992"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "sky": "worldspawn",
+     "toSun": [
+      0.46,
+      0.26,
+      0.85
+     ],
+     "frames": 130,
+     "commonest": {
+      "casters": 1817,
+      "receiversWorld": 1609,
+      "receiversEntity": 316,
+      "uncacheable": 1,
+      "frames": 130
+     }
+    },
+    "dlight": {
+     "frames": 130,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 130
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 47787,
+     "darkerFraction": 0.0996,
+     "meanLumaOn": 76.02,
+     "meanLumaOff": 79.28,
+     "repeatStableFraction": 0.9609
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 589,
+     "darkerFraction": 0.0012,
+     "meanLumaOn": 76.02,
+     "meanLumaOff": 76.09,
+     "repeatStableFraction": 0.9609
+    }
+   },
+   "afterDarkerThanBefore": {
+    "pixels": 480000,
+    "darkerWithShadows": 57868,
+    "darkerFraction": 0.1206,
+    "meanLumaOn": 76.02,
+    "meanLumaOff": 79.23
+   }
+  },
+  {
+   "prefix": "fakk2b-rtx-final",
+   "before": {
+    "run": "fakk2b-rtx-final-before",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_rtx_x86.dll": "d317650bf75fa3be004e593c0ca9889ef3ca197ed10c4a78b72f66ff2ad08e76",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "e8c7c48b18d77cae574a6004cf036fbbf2f835416faf157121bd164da2363d30"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "2028fea91eb4e6968ffa2c7dde64d4ede7be28604f43005c037d565afaf9f27a"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "b0d8b059b7fd8659bdb6ff96049e6782ec2bf2bbe08db41f9e6243e160c0ca22"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "3cab4036093fa71d572685fddc8d059eb96965b736a953f1eae3d7a2c848267d"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "3b59933dc53467fb4d371426cdcee613ee3ed808116c0638c9b957a102db087e"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "skipped": [
+      "csm plan cascades:0 skip no-sky-sun"
+     ]
+    },
+    "dlight": {
+     "frames": 135,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 135
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 1659,
+     "darkerFraction": 0.0035,
+     "meanLumaOn": 91.4,
+     "meanLumaOff": 90.65,
+     "repeatStableFraction": 0.9055
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 1767,
+     "darkerFraction": 0.0037,
+     "meanLumaOn": 91.4,
+     "meanLumaOff": 90.89,
+     "repeatStableFraction": 0.9055
+    }
+   },
+   "after": {
+    "run": "fakk2b-rtx-final-after",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_rtx_x86.dll": "0b999b8da69d85a1661a630e48892221f1f5fe80d4bd901252b4b4d2070114ce",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "0bb35a75bebcafe1be8b641b126523677f54263aa177872b8b0537f743deb2d8"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "254421df0da6b9417cbdb8e798dc64f8f7bf148e81574087e0f7ccd94d762e82"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "8f0b82d929acfdb509ac24260f4b592cf80a12b7fd43371c5868731117152371"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "164f81accb425c1b9124bba514ade7d6945e9131617483b4348945876887aeba"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "4b69d0002c6c034c04b522807135a8daef6f5c717e440933d2cfdc963fc17087"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "sky": "entities",
+     "toSun": [
+      0.39,
+      0.16,
+      0.91
+     ],
+     "frames": 133,
+     "commonest": {
+      "casters": 730,
+      "receiversWorld": 624,
+      "receiversEntity": 120,
+      "uncacheable": 1,
+      "frames": 130
+     }
+    },
+    "dlight": {
+     "frames": 133,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 133
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 14370,
+     "darkerFraction": 0.0299,
+     "meanLumaOn": 90.42,
+     "meanLumaOff": 90.73,
+     "repeatStableFraction": 0.9035
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 1828,
+     "darkerFraction": 0.0038,
+     "meanLumaOn": 90.42,
+     "meanLumaOff": 89.87,
+     "repeatStableFraction": 0.9035
+    }
+   },
+   "afterDarkerThanBefore": {
+    "pixels": 480000,
+    "darkerWithShadows": 14505,
+    "darkerFraction": 0.0302,
+    "meanLumaOn": 90.42,
+    "meanLumaOff": 91.4
+   }
+  },
+  {
+   "prefix": "mohaa2-rtx-final",
+   "before": {
+    "run": "mohaa2-rtx-final-before",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_rtx_x86.dll": "d317650bf75fa3be004e593c0ca9889ef3ca197ed10c4a78b72f66ff2ad08e76",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "8dc22ca4aa43d5a24676b1abd8190affcbcd39c3e8392fddc3eca2821dc41081"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "c2f242b77c082546f5654643c326d6667334e96bf979819a9afa23dc3ac2f534"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "5f403eaabd8fb40c9e9a8d9b872c2dec3555a9eafda54428bebe3dc36d2f697e"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "bd9c3cb88f4ebe25b355854a85a21d9ddf513acd35b3dfc0c74f3619b1fe81b0"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "e146772ee0584253fa1569b170f1594f0a516fc05602763a52f73ce56e5490cf"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "skipped": [
+      "csm plan cascades:0 skip no-sky-sun"
+     ]
+    },
+    "dlight": {
+     "frames": 135,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 135
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 496,
+     "darkerFraction": 0.001,
+     "meanLumaOn": 79.35,
+     "meanLumaOff": 78.89,
+     "repeatStableFraction": 0.1309
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 8812,
+     "darkerFraction": 0.0184,
+     "meanLumaOn": 79.35,
+     "meanLumaOff": 79.12,
+     "repeatStableFraction": 0.1309
+    }
+   },
+   "after": {
+    "run": "mohaa2-rtx-final-after",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_rtx_x86.dll": "0b999b8da69d85a1661a630e48892221f1f5fe80d4bd901252b4b4d2070114ce",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "a9033379d64dec4c48c2d38b4d6891dfe3205c7236c26258ae460c7ccbd41bb7"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "24e5acde51517786fe1ecdeff73ac2ec955421ab614bc685628dc9c16ff78486"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "07ccbf81eb1e1b5cf64e17a027350a2d7661fcbca47a32de7ded6d4a4545a212"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "6dde1e01f820b84ce9318af9c7f3f0277d0e0f456cfee3034d933aaaa91ce9f8"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "eb65e937e6d1e3036d098004af89f2094cc313da24d1985e9074abc21dfe2634"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "sky": "worldspawn",
+     "toSun": [
+      0.46,
+      0.26,
+      0.85
+     ],
+     "frames": 130,
+     "commonest": {
+      "casters": 1829,
+      "receiversWorld": 1609,
+      "receiversEntity": 328,
+      "uncacheable": 1,
+      "frames": 130
+     }
+    },
+    "dlight": {
+     "frames": 130,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 130
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 47616,
+     "darkerFraction": 0.0992,
+     "meanLumaOn": 76.02,
+     "meanLumaOff": 79.33,
+     "repeatStableFraction": 0.9609
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 624,
+     "darkerFraction": 0.0013,
+     "meanLumaOn": 76.02,
+     "meanLumaOff": 76.11,
+     "repeatStableFraction": 0.9609
+    }
+   },
+   "afterDarkerThanBefore": {
+    "pixels": 480000,
+    "darkerWithShadows": 58286,
+    "darkerFraction": 0.1214,
+    "meanLumaOn": 76.02,
+    "meanLumaOff": 79.35
+   }
+  }
+ ],
+ "tests": {
+  "focused": {
+   "tree": "the worktree with this change on acad7f4c, Windows, VS 2022 x86 developer shell, clang++",
+   "files": [
+    "tests/entity_sun_shadow_tests.py",
+    "tests/mohaa_sun_flare_tests.py",
+    "tests/rtcw_light_tests.py",
+    "tests/wolfet_draw_tests.py",
+    "tests/q3_ihv_entity_renderer_tests.py",
+    "tests/mohaa_permanent_decal_tests.py",
+    "tests/bsp_profile_loader_tests.py",
+    "tests/alice_renderer_parity_tests.py",
+    "tests/personal_shadow_source_tests.py",
+    "tests/dlight_shadow_stability_tests.py",
+    "tests/shadow_correctness_source_tests.py",
+    "tests/csm_shadow_cache_source_tests.py",
+    "tests/csm_plan_source_tests.py",
+    "tests/jka_distance_cull_tests.py",
+    "tests/rtx_renderer_contract_source_tests.py",
+    "tests/dlight_shadow_bias_tests.py",
+    "tests/ritual_model_lights_tests.py"
+   ],
+   "result": "all passed; entity_sun_shadow_tests' installed-map sweeps ran with FNTECH3_FAKK2_ROOT at the laid-down F.A.K.K.2 game: 4 Alice, 19 F.A.K.K.2 and 46 Medal of Honor suns"
+  },
+  "rendererBuild": "fnql_glx_x86, fnql_vk_x86 and fnql_rtx_x86 of the export with this change, /W4 /WX: no warnings"
+ }
+}

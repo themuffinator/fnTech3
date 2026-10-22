@@ -3350,7 +3350,7 @@ static void R_AddEntitySurfaces( void ) {
 					R_AddMD3Surfaces( ent, NULL );
 					break;
 				case MOD_WOLFET_MESH:
-					R_AddWolfETSurfaces( ent );
+					R_AddWolfETSurfaces( ent, NULL );
 					break;
 				case MOD_WOLFET_SKELETON:
 					// A skeleton owns no surfaces; it poses a mesh, it is not one.
@@ -3365,10 +3365,10 @@ static void R_AddEntitySurfaces( void ) {
 					R_AddBrushModelSurfaces( ent, NULL );
 					break;
 				case MOD_ALICE_TIKI:
-					R_AddAliceTikiSurfaces( ent );
+					R_AddAliceTikiSurfaces( ent, NULL );
 					break;
 				case MOD_MOHAA_TIKI:
-					R_AddMOHAATikiSurfaces( ent );
+					R_AddMOHAATikiSurfaces( ent, NULL );
 					break;
 				case MOD_ALICE_SPRITE:
 					// Retail's model table skips a sprite submitted as a

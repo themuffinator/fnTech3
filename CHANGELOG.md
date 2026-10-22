@@ -204,6 +204,12 @@ historical upstream records, not fnTech3 release history. See the
   does. Jedi characters now move in the RTX path tracer's view and shadows
   instead of keeping their first pose
   ([record](docs/fntech3/2026-10-22-jka-g2-collision.md)).
+- Let every game's models cast fnTech3's shadows. Enemy Territory's soldiers
+  and the characters of Alice, F.A.K.K.2 and Medal of Honor now cast shadows
+  from dynamic lights, and with `r_csmShadows 1` those and Return to Castle
+  Wolfenstein's characters cast and take the sun's. Alice, F.A.K.K.2 and
+  Medal of Honor, whose levels name their sun themselves, now have one for
+  those shadows ([record](docs/fntech3/2026-10-22-fnq-shadow-formats.md)).
 
 ## [0.1.0] - 2026-10-11
 

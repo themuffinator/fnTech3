@@ -169,7 +169,7 @@ class WolfETDrawTests(unittest.TestCase):
             self.assertNotIn('MOD_WOLFET', bounds, name)
             main = source('code/%s/tr_main.c' % name)
             self.assertIn('case MOD_WOLFET_MESH:', main, name)
-            self.assertIn('R_AddWolfETSurfaces( ent );', main, name)
+            self.assertIn('R_AddWolfETSurfaces( ent, NULL );', main, name)
             self.assertIn('case MOD_WOLFET_SKELETON:', main, name)
 
     def test_the_draw_path_carries_no_other_profile(self):

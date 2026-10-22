@@ -155,18 +155,18 @@ static model_t *R_GetModelByHandle(int h){return tr.models[h];}
 // This fixture owns native IHV models; none of its handles owns runtime MDR.
 static qboolean R_IsRuntimeMDR(qhandle_t){return qfalse;}
 static void R_AddMD3Surfaces(trRefEntity_t*,void*){++meshSubmissions;}
-static void R_AddWolfETSurfaces(trRefEntity_t*){assert(0);}
+static void R_AddWolfETSurfaces(trRefEntity_t*,void*){assert(0);}
 static void R_MDRAddAnimSurfaces(trRefEntity_t*,void*){assert(0);}
 static void R_AddIQMSurfaces(trRefEntity_t*,void*){assert(0);}
 static void R_AddBrushModelSurfaces(trRefEntity_t*,void*){assert(0);}
 // American McGee's Alice's model kinds, unreachable under this fixture's profile.
 static qboolean R_LoadAliceTiki(model_t*,const char*){assert(0);return qfalse;}
 static qboolean R_LoadAliceSprite(model_t*,const char*){assert(0);return qfalse;}
-static void R_AddAliceTikiSurfaces(trRefEntity_t*){assert(0);}
+static void R_AddAliceTikiSurfaces(trRefEntity_t*,void*){assert(0);}
 static qboolean R_AliceEntityInView(const trRefEntity_t*){assert(0);return qtrue;}
 static void RB_SurfaceAliceSprite(){assert(0);}
 // Medal of Honor's model kind and sky-entity view test, unreachable here too.
-static void R_AddMOHAATikiSurfaces(trRefEntity_t*){assert(0);}
+static void R_AddMOHAATikiSurfaces(trRefEntity_t*,void*){assert(0);}
 static qboolean R_MOHAAEntityInView(const trRefEntity_t*){assert(0);return qtrue;}
 static void myGlMultMatrix(const float a[16],const float b[16],float out[16]){for(int row=0;row<4;++row)for(int col=0;col<4;++col){out[col*4+row]=0;for(int k=0;k<4;++k)out[col*4+row]+=a[k*4+row]*b[col*4+k];}}
 static void RB_SurfaceSprite(){assert(0);}static void RB_SurfaceSplash(){assert(0);}static void RB_SurfaceRailCore(){assert(0);}static void RB_SurfaceRailRings(){assert(0);}static void RB_SurfaceLightningBolt(){assert(0);}static void RB_SurfaceAxis(){assert(0);}

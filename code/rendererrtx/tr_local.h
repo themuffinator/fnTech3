@@ -2749,16 +2749,16 @@ void R_SwapBuffers( int );
 void R_RenderView( const viewParms_t *parms );
 
 void R_AddMD3Surfaces( trRefEntity_t *e, dlightShadowCasterContext_t *shadowCtx );
-void R_AddWolfETSurfaces( trRefEntity_t *e );
+void R_AddWolfETSurfaces( trRefEntity_t *e, dlightShadowCasterContext_t *shadowCtx );
 qboolean R_LoadAliceTiki( model_t *mod, const char *name );
 qboolean R_LoadAliceSprite( model_t *mod, const char *name );
 void R_AliceModelBounds( const model_t *mod, vec3_t mins, vec3_t maxs );
-void R_AddAliceTikiSurfaces( trRefEntity_t *ent );
+void R_AddAliceTikiSurfaces( trRefEntity_t *ent, dlightShadowCasterContext_t *shadowCtx );
 void RB_SurfaceAliceTiki( void *data );
 // Medal of Honor's TIKI models (tr_mohaa.c).
 qhandle_t RE_RegisterMOHAATiki( const char *name, const void *tiki );
 void R_MOHAAModelBounds( const model_t *mod, vec3_t mins, vec3_t maxs );
-void R_AddMOHAATikiSurfaces( trRefEntity_t *ent );
+void R_AddMOHAATikiSurfaces( trRefEntity_t *ent, dlightShadowCasterContext_t *shadowCtx );
 void RB_SurfaceMOHAATiki( void *data );
 void RB_SurfaceAliceSprite( void );
 int RE_GetAliceTikiHandle( qhandle_t handle );
@@ -2786,6 +2786,7 @@ void R_MOHAASetSunFlare( const vec3_t direction, const char *section );
 void R_MOHAABeginSunKeys( void );
 qboolean R_MOHAASunKey( const char *key, const char *value );
 void R_MOHAAEndSunKeys( void );
+qboolean R_MOHAAWorldSun( vec3_t light, vec3_t towardSun );
 void R_MOHAARegisterLensFlareCvars( void );
 void RE_AddAliceLightToScene( const vec3_t org, float intensity, float r, float g, float b, int type );
 void R_SetupAliceEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent, const vec3_t lightOrigin,

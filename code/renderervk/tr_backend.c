@@ -1946,6 +1946,9 @@ static qboolean RB_DlightShadowCasterAllowed( const shader_t *shader, const surf
 		case SF_MD3:
 		case SF_MDR:
 		case SF_IQM:
+		case SF_WOLFET:
+		case SF_ALICE_TIKI:
+		case SF_MOHAA_TIKI:
 			return qtrue;
 		case SF_GRID:
 			return ( !r_nocurves || !r_nocurves->integer ) ? qtrue : qfalse;
@@ -2290,6 +2293,9 @@ static qboolean RB_DlightShadowEntityCasterAllowed( int entityNum )
 		case MOD_MESH:
 		case MOD_MDR:
 		case MOD_IQM:
+		case MOD_WOLFET_MESH:
+		case MOD_ALICE_TIKI:
+		case MOD_MOHAA_TIKI:
 			return qtrue;
 		default:
 			return qfalse;
@@ -2534,8 +2540,13 @@ static qboolean RB_CSMShadowEntityAllowed( int entityNum )
 	switch ( model->type ) {
 		case MOD_BRUSH:
 		case MOD_MESH:
+		case MOD_MDS:
+		case MOD_MDC:
 		case MOD_MDR:
 		case MOD_IQM:
+		case MOD_WOLFET_MESH:
+		case MOD_ALICE_TIKI:
+		case MOD_MOHAA_TIKI:
 			return qtrue;
 		default:
 			return qfalse;
@@ -2559,9 +2570,14 @@ static qboolean RB_CSMShadowSurfaceAllowed( const shader_t *shader, const surfac
 		case SF_FACE:
 		case SF_GRID:
 		case SF_TRIANGLES:
+		case SF_MDS:
+		case SF_MDC:
 		case SF_MD3:
 		case SF_MDR:
 		case SF_IQM:
+		case SF_WOLFET:
+		case SF_ALICE_TIKI:
+		case SF_MOHAA_TIKI:
 			return qtrue;
 		default:
 			return qfalse;
@@ -2659,6 +2675,29 @@ static float RB_CSMShadowCacheQuantizeDepth( float value, float texelSize )
 	return floorf( value / texelSize );
 }
 
+/* A skeletal model's pose lies in fields this signature does not read --
+ * Return to Castle Wolfenstein's torso frames, Enemy Territory's skeletons, a
+ * TIKI model's animations and bone controllers -- so a frame that shows one
+ * draws the atlas again. */
+static qboolean RB_CSMShadowEntityPoseUnhashed( const trRefEntity_t *ent )
+{
+	const model_t *model = R_GetModelByHandle( ent->e.hModel );
+
+	if ( !model ) {
+		return qfalse;
+	}
+
+	switch ( model->type ) {
+		case MOD_MDS:
+		case MOD_WOLFET_MESH:
+		case MOD_ALICE_TIKI:
+		case MOD_MOHAA_TIKI:
+			return qtrue;
+		default:
+			return qfalse;
+	}
+}
+
 static qboolean RB_CSMShadowCacheSignature( drawSurf_t *drawSurfs, int numDrawSurfs,
 	unsigned int *signature )
 {
@@ -2710,6 +2749,10 @@ static qboolean RB_CSMShadowCacheSignature( drawSurf_t *drawSurfs, int numDrawSu
 			continue;
 		}
 		if ( shader->numDeforms > 0 ) {
+			return qfalse;
+		}
+		if ( entityNum != REFENTITYNUM_WORLD &&
+			RB_CSMShadowEntityPoseUnhashed( &backEnd.refdef.entities[entityNum] ) ) {
 			return qfalse;
 		}
 

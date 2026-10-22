@@ -248,6 +248,8 @@ static void R_RitualModelLightsRead(const byte *, int, const char *) {}
 static void R_RitualModelLightsKeep() {}
 static void R_PreLoadFogs(const lump_t *) {}
 static void R_ClearWorldSun() {}
+// The entity sun has its own fixture (entity_sun_shadow_tests).
+static void R_LoadEntitySun() {}
 static void R_ClearStaticMapLights() {}
 static void R_ClearSurfaceLightProxies() {}
 static void R_ShutdownAdvertisements() {}
