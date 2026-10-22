@@ -204,6 +204,11 @@ historical upstream records, not fnTech3 release history. See the
   does. Jedi characters now move in the RTX path tracer's view and shadows
   instead of keeping their first pose
   ([record](docs/fntech3/2026-10-22-jka-g2-collision.md)).
+- Let Jedi Academy multiplayer hide and show parts of a body on the server,
+  as a lost limb or a character's skin does, so hits pass where a part is
+  hidden, and take models off a body on the server and in the client, as
+  the game does when a weapon or saber changes hands
+  ([record](docs/fntech3/2026-10-22-jka-g2-surfaces.md)).
 
 ## [0.1.0] - 2026-10-11
 

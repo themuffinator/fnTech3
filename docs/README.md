@@ -216,6 +216,10 @@ Release packages include them as web pages in their `manual` folder, built by
   -- the game's and client game's collision tests and the struck surface's
   name, measured in `jamp.exe` and compared call for call, and the path
   tracer's frozen Ghoul2 poses.
+- [Jedi Academy's Ghoul2 surfaces, server skins and model removal](fntech3/2026-10-22-jka-g2-surfaces.md)
+  -- switching a body's surfaces on the server, a server skin's hidden
+  parts, and taking models out of a body, measured in `jamp.exe` and
+  compared answer for answer.
 - [Widescreen field of view in every game](fntech3/2026-10-22-fov-correction-all-profiles.md)
   -- `r_fovCorrection` in all sixteen profiles, Jedi Outcast's stretched
   view and the 1999 tests included, keeping the game's underwater sway.

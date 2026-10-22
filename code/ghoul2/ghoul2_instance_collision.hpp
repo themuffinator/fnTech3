@@ -75,6 +75,18 @@ private:
 	std::map<std::pair<const std::vector<unsigned char> *, int>, geometry::Geometry> meshes_;
 };
 
+/* The override lists a store keeps in its own models (Model::surfaceOverrides,
+ * which Academy's server writes through import 609 and a skin's visibility),
+ * as Prepare's `overrides`: null for a model whose list is empty. Retail's
+ * walk (0x4ec1c0) reads the same list. */
+inline auto StoredOverrides( const Instance &instance )
+{
+	return [&instance]( int index ) -> const SurfaceOverrides * {
+		const ghoul2::Model *model = instance.At( index );
+		return model && !model->surfaceOverrides.empty() ? &model->surfaceOverrides : nullptr;
+	};
+}
+
 /* Why an instance's models could not be made ready. */
 enum class Readiness { Ready, Unposed, NoMesh, Geometry };
 

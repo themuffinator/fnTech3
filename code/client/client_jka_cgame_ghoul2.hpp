@@ -66,8 +66,9 @@ static fntech3::ghoul2::Store &CL_JKACgameGhoul2Store() {
     if (!jkaCgameGhoul2Store)
         // The same retail cores as the server: 0x4df310, 0x4df460, 0x4df820.
         // docs/fntech3/2026-10-07-jka-bone-names.md pins their name matching.
+        // Init 297 fills the first empty place (0x4de5c0), which 311 leaves.
         jkaCgameGhoul2Store = std::make_unique<fntech3::ghoul2::Store>(jkaCgameGhoul2Files,true,true,true,
-            false,fntech3::ghoul2::NameMatch::AsciiFolded);
+            false,fntech3::ghoul2::NameMatch::AsciiFolded,true);
     return *jkaCgameGhoul2Store;
 }
 
@@ -532,6 +533,32 @@ static bool CL_JKACgameGhoul2Call(intptr_t *args, fntech3::jka::module::Call cal
         identity = 0;
         std::memcpy(slot, &identity, sizeof(identity));
         result = 0;
+        return true;
+    }
+    case Call::CG_G2_REMOVEGHOUL2MODEL: {
+        CL_JKACgameGhoul2Native();
+        // Retail 311:0x413c69 maps the identity slot's address and hands it,
+        // with the model index, to the game's own removal core 0x4decc0
+        // (Store::RemoveModel): an index at or past the places, or a place
+        // already empty, answers 0; otherwise the place is emptied, empty
+        // places at the end dropped, and an instance left with none freed and
+        // its slot zeroed. The core reads the instance through the slot, so
+        // an empty slot or a negative index (read before the records) is
+        // refused. The model's visibility binding goes with it.
+        void *slot = CL_JKACgameSpan(args[1], sizeof(std::uint32_t));
+        std::uint32_t identity;
+        std::memcpy(&identity, slot, sizeof(identity));
+        if (!identity) Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 removal was handed an empty model slot");
+        CL_JKACgameGhoul2Resolve(identity);
+        const int modelIndex = static_cast<int>(args[2]);
+        if (modelIndex < 0)
+            Com_Error(ERR_DROP, "Jedi Academy cgame Ghoul2 removal of model %d reads before its records", modelIndex);
+        using Removal = fntech3::ghoul2::Store::Removal;
+        const auto removal = CL_JKACgameGhoul2Store().RemoveModel(slot, sizeof(std::uint32_t), modelIndex);
+        result = removal == Removal::NoModel ? qfalse : qtrue;
+        if (removal == Removal::Deleted) CL_JKACgameSkinCleanModel(identity);
+        else if (removal == Removal::Removed && jkaCgameSkins)
+            jkaCgameSkins->bindings.erase(std::make_pair(identity, modelIndex));
         return true;
     }
     case Call::CG_G2_CLEARSKINGORE: {

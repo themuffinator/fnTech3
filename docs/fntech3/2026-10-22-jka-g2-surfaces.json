@@ -1,0 +1,203 @@
+{
+ "record": "docs/fntech3/2026-10-22-jka-g2-surfaces.md",
+ "date": "2026-10-22",
+ "profiles": [
+  "jka-mp"
+ ],
+ "baseHead": "acad7f4c21a3fa80d2890accd31ccc5c97f8d594",
+ "claim": "Compatibility slice only; no gate closes.",
+ "platform": "Windows 11, MSVC 2022 x86 (win32-dev options, strict warnings), clang for fixtures",
+ "retail": {
+  "jamp.exe": "e8062d3948ff05917b48e47d8eec0ee43bcc6fb03924410712412404ddfee28b",
+  "jampgamex86.dll": {
+   "pak": "assets3.pk3",
+   "sha256": "b9e5ad492d35a3ec2fc7f6933df42ce9d3b05d3ec437e3bf12243a5d0d690850"
+  },
+  "cgamex86.dll": {
+   "pak": "assets3.pk3",
+   "sha256": "e5d5525829bfcaf3c0428d87fe804e5a46a75dcf0a141f8288061a3970ff140d"
+  },
+  "handlers": {
+   "game591": "0x45cbb2",
+   "game603": "0x45cd9a",
+   "game604": "0x45cdb5",
+   "game609": "0x45ced2",
+   "game612": "0x45cf26",
+   "cgame311": "0x413c69"
+  },
+  "cgameDispatch": {
+   "entry": "0x412170",
+   "byteTable": "0x414638",
+   "index311": 187,
+   "jumpTable": "0x4142bc"
+  },
+  "routines": {
+   "setSurfaceOnOffModel0": "0x4deb70",
+   "setSurfaceOnOff": "0x4ee700",
+   "findSurfaceByNameInList": "0x4ee610",
+   "surfaceLegalInFile": "0x4ee5b0",
+   "getSurfaceRenderStatus": "0x4dec00",
+   "isSurfaceRendered": "0x4eee70",
+   "modelRecord": "0x4116e0",
+   "setupModel": "0x4e0b10",
+   "setSkin": "0x4deb50",
+   "setSurfaceOnOffFromSkin": "0x4ee7e0",
+   "registerServerSkin": "0x4a0650",
+   "registerSkin": "0x4a0370",
+   "splitSkins": "0x49ff90",
+   "registerIndividualSkin": "0x4a0160",
+   "skinTokenizer": "0x4a0540",
+   "removeGhoul2Model": "0x4decc0",
+   "removeGhoul2Models": "0x4deea0",
+   "initGhoul2Model": "0x4de5c0",
+   "serverMeshLoader": "0x4a8be0",
+   "clientMeshLoader": "0x49acd0"
+  },
+  "facts": {
+   "overrideList": "+0x4 of the 0xc8-byte model record; entries of 0x18 bytes (flags, surface, four words)",
+   "switchBits": "0x102 only (0x4ee774); other bits of the surface kept",
+   "renderStatus": "-1 for no such name; an ancestor's NODESCENDANTS (by its name, file then list) answers own|2 (0x4eef36); nonzero own file flags answer themselves whatever the list says (0x4eef47); else the listed flags",
+   "serverMeshNames": "kept as written (0x4a8be0); the client loader lowercases and drops a trailing _off (0x49adf0..0x49ae4f)",
+   "skinCaps": "name < 64 bytes (0x4a03a0), 1023 skins (0x4a03e2), 128 surfaces (0x4a028d), surface names cut to 63 bytes",
+   "skinRenderOutsideTable": "skin 0 (0x4ee7e3..0x4ee809); faulted retail's dedicated server when measured",
+   "removal": "index at or past the places or an empty place answers 0; else the place is emptied, trailing empty places dropped, an instance with none deleted and its field emptied; answers 1",
+   "initReuse": "first place whose +0x30 is -1 (0x4de690)"
+  },
+  "callSites": {
+   "jampgamex86.dll": {
+    "syscallPointer": "0x2010cbf0",
+    "wrappers": {
+     "591": "0x200a6da0",
+     "603": "0x200a6f70",
+     "604": "0x200a6f90",
+     "609": "0x200a70a0",
+     "612": "0x200a70c0"
+    },
+    "sites": {
+     "591": 4,
+     "603": 2,
+     "604": 1,
+     "609": 4,
+     "612": 22
+    },
+    "setSkinArguments": "skin and render skin the same server skin (0x200777ed)"
+   },
+   "cgamex86.dll": {
+    "syscallPointer": "0x3009e1bc",
+    "wrappers": {
+     "311": "0x3005f510"
+    },
+    "sites": {
+     "311": 14,
+     "324": 3
+    }
+   }
+  },
+  "installationCensus": {
+   "meshes": 127,
+   "surfaces": 5854,
+   "surfacesEndingOff": 1308,
+   "skins": 305,
+   "skinLinesOffSurfaceRealShader": 3326,
+   "skinLinesOffSurfaceStarOff": 3381,
+   "skinsOver128Lines": 12,
+   "mostSurfacesKept": 101
+  }
+ },
+ "served": {
+  "game": [
+   603,
+   604,
+   609,
+   612
+  ],
+  "gameChanged": {
+   "591": "a nonzero render skin applies the skin's visibility"
+  },
+  "cgame": [
+   311
+  ],
+  "storeOptions": {
+   "ravenGhoul2Academy": "reuseEmptyPlaces",
+   "jkaCgameGhoul2Store": "reuseEmptyPlaces",
+   "ravenGhoul2Outcast": "unchanged"
+  },
+  "collision": "trace (28) and 606/607 read each model's override list (collision::StoredOverrides)"
+ },
+ "refused": [
+  "null or foreign instance (609 with a model there, 612)",
+  "null or foreign field, or no instance in it (603, 604, 311)",
+  "negative model index (603, 311)",
+  "model index outside the instance (612)",
+  "null surface name (609, 612)",
+  "render skin the server never registered (591)"
+ ],
+ "comparison": {
+  "harness": ".tmp/jka-g2surface/run-probe.py + g2surface-probe.cpp + compare.py",
+  "fixtureSourceSha256": "5f72f756ff283f672d9082f6feb97fc54aae8819bd7ca66fe35857f8fcab16ba",
+  "module": {
+   ".tmp/runtime/jka-retail/g2surface/jampgamex86.dll": "9eb5ed24b48b30fd26e0c7ae630f0d3ed89ed2204d965210d8bc44f45fba47c1"
+  },
+  "map": "mp/ffa1",
+  "retailRun": {
+   "output": ".tmp/jka-g2surface/retail-3",
+   "observedAtUTC": "2026-10-22T11:47:27Z",
+   "passed": true,
+   "exitCode": 0,
+   "markers": 1007,
+   "installationUnchanged": true,
+   "binariesUnchanged": true
+  },
+  "fntech3Run": {
+   "output": ".tmp/jka-g2surface/fntech3-3",
+   "observedAtUTC": "2026-10-22T11:51:08Z",
+   "passed": true,
+   "exitCode": 0,
+   "markers": 1007,
+   "build": "worktree meson/build/win32-dev at acad7f4c with this slice",
+   "fntech3.ded.exe": "3c906a49d2783007de4d41b16ee7c63a93c564d74da57830190150348d8a7637",
+   "installationUnchanged": true,
+   "binariesUnchanged": true
+  },
+  "answers": {
+   "lines": 844,
+   "differing": 1,
+   "differingLine": "field label=e2: retail made the new instance at the freed address (heap reuse); fnTech3 never reuses an identity",
+   "import612": 3464,
+   "import609": 24,
+   "import591": 14,
+   "removals603and604": 13,
+   "surfaceNames629": 494,
+   "skinHandles": "1, 2, 1, 3 for blue, menu, blue again, red in both"
+  },
+  "collisions": {
+   "calls": 156,
+   "records": 163,
+   "recordsWithinTolerance": 163,
+   "worstDelta": {
+    "distance": 1.52587890625e-05,
+    "position": 1.52587890625e-05,
+    "normal": 2.132263034582138e-06,
+    "barycentric": 1.5154480934143066e-05
+   }
+  },
+  "earlierRuns": {
+   "retail-1 / fntech3-1": "the same probe without the first-skins, copy and duplicate steps: 806 answer lines, the same single difference, 141 records within tolerance",
+   "retail-2": "with 591 handed render skin 999 last: retail's dedicated server exited 0xC0000005 straight after the call"
+  }
+ },
+ "tests": [
+  "tests/jka_g2_surface_tests.cpp (Meson fntech3_jka_g2_surface)",
+  "tests/raven_ghoul2_server_tests.cpp",
+  "tests/jka_cgame_remove_model_tests.py (8 mutations)",
+  "tests/jka_server_g2_surface_tests.py",
+  "tests/jka_module_refusal_tests.py (167 served game imports)"
+ ],
+ "open": [
+  "RF_DISINTEGRATE2 (renderfx 0x40000) refused by the render adapter",
+  "client-game import 324 not served",
+  "client surface names are the file's; retail's client loader lowercases and drops _off (321, 343, client skins)",
+  "ragdoll and IK (game 615, 622, 623; client game 328-338), menus' Ghoul2 imports",
+  "listen-server mesh names (retail's client loader) not modelled"
+ ]
+}
