@@ -1642,6 +1642,9 @@ typedef struct {
 #ifdef USE_LEGACY_DLIGHTS
 	int			dlightBits;
 #endif
+#if defined( USE_LEGACY_DLIGHTS ) || defined( USE_PMLIGHT )
+	vec3_t		bounds[2];
+#endif
 #ifdef USE_VBO
 	int			vboItemIndex;
 #endif

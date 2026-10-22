@@ -14775,6 +14775,9 @@ void vk_draw_global_fog( void )
 		vk.framebuffers.global_fog == VK_NULL_HANDLE ||
 		vk.depth_sample_descriptor == VK_NULL_HANDLE ||
 		( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) ||
+		/* A full-screen sky portal precedes the world view. Its depth must
+		 * neither fog the world nor consume that view's once-per-frame pass. */
+		backEnd.refdef.skyboxPortalScene ||
 		backEnd.viewParms.portalView != PV_NONE ||
 		backEnd.viewParms.stereoFrame != STEREO_CENTER ||
 		backEnd.viewParms.viewportX != 0 ||

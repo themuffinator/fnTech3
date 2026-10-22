@@ -2137,12 +2137,18 @@ static void ParseFace( const dsurface_t *ds, const drawVert_t *verts, int lumpVe
 	cv->numPoints = numPoints;
 	cv->numIndices = numIndexes;
 	cv->ofsIndices = ofsIndexes;
+#if defined( USE_LEGACY_DLIGHTS ) || defined( USE_PMLIGHT )
+	ClearBounds( cv->bounds[0], cv->bounds[1] );
+#endif
 
 	verts += LittleLong( ds->firstVert );
 	for ( i = 0 ; i < numPoints ; i++ ) {
 		for ( j = 0 ; j < 3 ; j++ ) {
 			cv->points[i][j] = LittleFloat( verts[i].xyz[j] );
 		}
+#if defined( USE_LEGACY_DLIGHTS ) || defined( USE_PMLIGHT )
+		AddPointToBounds( cv->points[i], cv->bounds[0], cv->bounds[1] );
+#endif
 		for ( j = 0 ; j < 2 ; j++ ) {
 			cv->points[i][3+j] = LittleFloat( verts[i].st[j] );
 			cv->points[i][5+j] = LittleFloat( verts[i].lightmap[j] );

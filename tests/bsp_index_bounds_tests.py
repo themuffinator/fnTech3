@@ -995,7 +995,7 @@ int main( void ) {
 '''
 
 
-def renderer_source(renderer):
+def renderer_source(renderer, checks=RENDERER_CHECKS):
     local = read(f'code/{renderer}/tr_local.h')
     bsp = read(f'code/{renderer}/tr_bsp.c')
 
@@ -1017,7 +1017,7 @@ def renderer_source(renderer):
                       'static void ParseTriSurf(', 'static void R_SetParent(', 'static void R_LoadNodesAndLeafs(',
                       'static void R_LoadMarksurfaces(', 'static void R_LoadSubmodels('):
         source += function(bsp, signature)
-    return source + RENDERER_CHECKS
+    return source + checks
 
 
 MOHAA_CHECKS = r'''

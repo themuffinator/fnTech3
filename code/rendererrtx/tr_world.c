@@ -209,7 +209,15 @@ qboolean R_LightCullBounds( const dlight_t* dl, const vec3_t mins, const vec3_t 
 
 static qboolean R_LightCullFace( const srfSurfaceFace_t* face, const dlight_t* dl )
 {
-	float d = DotProduct( dl->transformed, face->plane.normal ) - face->plane.dist;
+	float d;
+
+	/* A light near the infinite plane can still miss the finite face. Use
+	 * the same bounds for receiver and shadow-caster collection as GLx. */
+	if ( R_LightCullBounds( dl, face->bounds[0], face->bounds[1] ) ) {
+		return qtrue;
+	}
+
+	d = DotProduct( dl->transformed, face->plane.normal ) - face->plane.dist;
 	if ( dl->linear )
 	{
 		float d2 = DotProduct( dl->transformed2, face->plane.normal ) - face->plane.dist;
