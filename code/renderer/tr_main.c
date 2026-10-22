@@ -742,6 +742,27 @@ static int R_ShadowFloorPowerOfTwo( int value )
 	return result;
 }
 
+/* The sun in the units of the map's lightmaps -- the bytes its compiler
+   stored, sunLight x cos (renderercommon/tr_csm_receivers.h) -- shifted as
+   R_ColorShiftLightingBytes shifts them, over 255 as a texture reads them.
+   A sky sun's colour is at unit length where its compiler stored it so
+   (tr.worldSun.unitColour, renderercommon/tr_sky_sun_units.h). */
+static void R_CSMSunLightmapColor( vec3_t out )
+{
+	const int bits = r_mapOverBrightBits->integer - tr.overbrightBits;
+	const float shift = (float)ldexp( 1.0, bits < -16 ? -16 : bits > 16 ? 16 : bits );
+	float scale = shift / 255.0f;
+
+	if ( tr.worldSun.unitColour ) {
+		const float length = VectorLength( tr.worldSun.color );
+
+		if ( length > 0.0f ) {
+			scale /= length;
+		}
+	}
+	VectorScale( tr.worldSun.light, scale, out );
+}
+
 qboolean R_CSMShadowAtlasLayout( int cascadeCount, int requestedCascadeSize, int maxTextureSize,
 	csmShadowAtlasLayout_t *layout )
 {
@@ -759,17 +780,20 @@ qboolean R_CSMShadowAtlasLayout( int cascadeCount, int requestedCascadeSize, int
 	while ( cascadeCount > 1 && cascadeSize * cascadeCount > maxTextureSize ) {
 		cascadeSize >>= 1;
 	}
-	while ( cascadeSize * cascadeCount > maxTextureSize && cascadeSize > 128 ) {
+	while ( ( cascadeSize * cascadeCount > maxTextureSize ||
+			cascadeSize * CSM_ATLAS_LAYERS > maxTextureSize ) && cascadeSize > 128 ) {
 		cascadeSize >>= 1;
 	}
-	if ( cascadeSize < 128 || cascadeSize * cascadeCount > maxTextureSize ) {
+	if ( cascadeSize < 128 || cascadeSize * cascadeCount > maxTextureSize ||
+		cascadeSize * CSM_ATLAS_LAYERS > maxTextureSize ) {
 		return qfalse;
 	}
 
 	layout->cascadeCount = cascadeCount;
 	layout->cascadeSize = cascadeSize;
 	layout->width = cascadeSize * cascadeCount;
-	layout->height = cascadeSize;
+	// one row of cascades for the world's casters, one for the entities'
+	layout->height = cascadeSize * CSM_ATLAS_LAYERS;
 	return qtrue;
 }
 
@@ -983,6 +1007,7 @@ static void R_PlanCascadedShadows( void )
 	VectorCopy( lightDirection, tr.csm.lightDirection );
 	VectorCopy( lightColor, tr.csm.lightColor );
 	VectorCopy( tr.worldSun.directionToSun, tr.csm.directionToSun );
+	R_CSMSunLightmapColor( tr.csm.sunLightmapColor );
 	Q_strncpyz( tr.csm.skyShaderName, tr.worldSun.shaderName, sizeof( tr.csm.skyShaderName ) );
 
 	splitNear = zNear;
@@ -2487,7 +2512,7 @@ static void R_UpdateShadowManagerSummary( void )
 	manager->csmPlan = tr.csm;
 	if ( manager->csmPlanned ) {
 		manager->csmAtlasWidth = tr.csm.cascadeCount * tr.csm.resolution;
-		manager->csmAtlasHeight = tr.csm.resolution;
+		manager->csmAtlasHeight = tr.csm.resolution * CSM_ATLAS_LAYERS;
 	}
 	R_ShadowManagerPublishCSMAtlas( manager, qfalse, 0 );
 	manager->scheduledPasses = 0;
@@ -2803,7 +2828,7 @@ static void R_AddEntitySurfaces( void ) {
 					R_AddMD3Surfaces( ent, NULL );
 					break;
 				case MOD_WOLFET_MESH:
-					R_AddWolfETSurfaces( ent );
+					R_AddWolfETSurfaces( ent, NULL );
 					break;
 				case MOD_WOLFET_SKELETON:
 					// A skeleton owns no surfaces; it poses a mesh, it is not one.
@@ -2818,10 +2843,10 @@ static void R_AddEntitySurfaces( void ) {
 					R_AddBrushModelSurfaces( ent, NULL );
 					break;
 				case MOD_ALICE_TIKI:
-					R_AddAliceTikiSurfaces( ent );
+					R_AddAliceTikiSurfaces( ent, NULL );
 					break;
 				case MOD_MOHAA_TIKI:
-					R_AddMOHAATikiSurfaces( ent );
+					R_AddMOHAATikiSurfaces( ent, NULL );
 					break;
 				case MOD_ALICE_SPRITE:
 					// Retail's model table skips a sprite submitted as a

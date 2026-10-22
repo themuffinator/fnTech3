@@ -31,9 +31,15 @@ layout(set = 0, binding = 0) uniform UBO {
 };
 
 layout(location = 0) in vec3 in_position;
+layout(location = 1) in vec4 in_color;
+layout(location = 3) in vec2 in_lightmap_st;
+layout(location = 5) in vec3 in_normal;
 
 layout(location = 0) out vec3 world_pos;
 layout(location = 1) out float view_dist;
+layout(location = 2) out vec3 baked_color;
+layout(location = 3) out vec2 lightmap_st;
+layout(location = 4) out vec3 normal;
 
 out gl_PerVertex {
 	vec4 gl_Position;
@@ -44,5 +50,9 @@ void main() {
 	vec3 wp = vec3(dot(csmModelX, local_pos), dot(csmModelY, local_pos), dot(csmModelZ, local_pos));
 	world_pos = wp;
 	view_dist = dot(csmView.xyz, wp) + csmView.w;
+	// a baked receiver's vertex colour, lightmap coordinates and normal
+	baked_color = in_color.rgb;
+	lightmap_st = in_lightmap_st;
+	normal = in_normal;
 	gl_Position = mvp * local_pos;
 }

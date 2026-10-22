@@ -626,12 +626,14 @@ class RTCWLightTests(unittest.TestCase):
 
     def test_rtcw_models_reach_each_shadow_backend(self):
         prelude=COMMON+r'''
-enum surfaceType_t { SF_BAD, SF_FACE, SF_TRIANGLES, SF_MDS, SF_MDC, SF_MD3, SF_MDR, SF_IQM, SF_GRID };
+enum surfaceType_t { SF_BAD, SF_FACE, SF_TRIANGLES, SF_MDS, SF_MDC, SF_MD3, SF_MDR, SF_IQM, SF_GRID,
+                     SF_WOLFET, SF_ALICE_TIKI, SF_MOHAA_TIKI };
 enum { SS_OPAQUE=3, GLS_ATEST_BITS=7 };
 struct shaderStage_t { unsigned stateBits; };
 struct shader_t { shader_t *remappedShader; int sort,isSky,polygonOffset,numDeforms,surfaceFlags,numUnfoggedPasses; shaderStage_t *stages[2]; };
 static cvar_t curves{}; static cvar_t *r_nocurves=&curves;
-enum { MOD_BAD, MOD_MESH, MOD_MDS, MOD_MDC, MOD_MDR, MOD_IQM, MOD_BRUSH, RT_MODEL,
+enum { MOD_BAD, MOD_MESH, MOD_MDS, MOD_MDC, MOD_MDR, MOD_IQM, MOD_BRUSH,
+       MOD_WOLFET_MESH, MOD_ALICE_TIKI, MOD_MOHAA_TIKI, RT_MODEL,
        REFENTITYNUM_WORLD=1023, RF_NOSHADOW=1, RF_FIRST_PERSON=2, RF_DEPTHHACK=4 };
 struct model_t { int type; } model;
 struct trRefEntity_t { struct { int reType,renderfx,hModel; } e; } entity;
@@ -641,7 +643,8 @@ static const model_t *R_GetModelByHandle(int handle) { return handle==1 ? &model
         checks=r'''
 int main() {
     shader_t shader{}; shader.sort=SS_OPAQUE;
-    for(auto type:{SF_MDS,SF_MDC,SF_MD3,SF_MDR,SF_IQM,SF_FACE,SF_TRIANGLES,SF_GRID}) {
+    for(auto type:{SF_MDS,SF_MDC,SF_MD3,SF_MDR,SF_IQM,SF_FACE,SF_TRIANGLES,SF_GRID,
+                   SF_WOLFET,SF_ALICE_TIKI,SF_MOHAA_TIKI}) {
         assert(RB_DlightShadowCasterAllowed(&shader,&type));
         shaderStage_t alpha{GLS_ATEST_BITS}; shader.stages[0]=&alpha; shader.numUnfoggedPasses=1;
         assert(!RB_DlightShadowCasterAllowed(&shader,&type)); shader.numUnfoggedPasses=0;
@@ -654,7 +657,8 @@ int main() {
     assert(!RB_DlightShadowCasterAllowed(nullptr,&type) && !RB_DlightShadowCasterAllowed(&shader,nullptr));
     entity.e.reType=RT_MODEL; entity.e.hModel=1;
     backEnd.refdef.num_entities=1; backEnd.refdef.entities=&entity;
-    for(int kind:{MOD_MDS,MOD_MDC,MOD_MESH,MOD_MDR,MOD_IQM,MOD_BRUSH}) {
+    for(int kind:{MOD_MDS,MOD_MDC,MOD_MESH,MOD_MDR,MOD_IQM,MOD_BRUSH,
+                  MOD_WOLFET_MESH,MOD_ALICE_TIKI,MOD_MOHAA_TIKI}) {
         model.type=kind; assert(RB_DlightShadowEntityCasterAllowed(0));
         for(int flag:{RF_NOSHADOW,RF_FIRST_PERSON,RF_DEPTHHACK}) {
             entity.e.renderfx=flag; assert(!RB_DlightShadowEntityCasterAllowed(0));

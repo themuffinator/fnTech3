@@ -23,7 +23,7 @@ def function(source, signature):
 
 def sun_keys(source):
     start = source.index('static struct {\n\tqboolean\tsun;')
-    end = source.index('\n}\n', source.index('void R_MOHAAEndSunKeys( void ) {')) + 3
+    end = source.index('\n}\n', source.index('qboolean R_MOHAAWorldSun( vec3_t light, vec3_t towardSun ) {')) + 3
     return source[start:end]
 
 
@@ -46,6 +46,8 @@ enum { qfalse, qtrue };
 #define MAX_QPATH 64
 static void Com_Memset( void *p, int v, size_t n ) { std::memset( p, v, n ); }
 static void Q_strncpyz( char *d, const char *s, int n ) { std::strncpy( d, s, n - 1 ); d[n - 1] = 0; }
+#define VectorSet( v, x, y, z ) ( ( v )[0] = ( x ), ( v )[1] = ( y ), ( v )[2] = ( z ) )
+#define VectorCopy( a, b ) ( ( b )[0] = ( a )[0], ( b )[1] = ( a )[1], ( b )[2] = ( a )[2] )
 static void AngleVectors( const vec3_t angles, vec3_t forward, vec3_t, vec3_t ) {
 	const float p = angles[0] * 3.14159265f / 180.0f, y = angles[1] * 3.14159265f / 180.0f;
 	forward[0] = std::cos( p ) * std::cos( y );
@@ -77,6 +79,11 @@ int main() {
 	R_MOHAAEndSunKeys();
 	assert( calls == 2 && sunSet && sunSection == "sun" );
 	assert( Near( sunDirection[2], 1.0f ) );
+	/* The sun shadows take the same direction, and 70 in each channel for a
+	 * level that names no colour (RT_ParseMOHAASun's rule). */
+	vec3_t light, toward;
+	assert( R_MOHAAWorldSun( light, toward ) );
+	assert( Near( toward[2], 1.0f ) && Near( light[0], 70.0f ) && Near( light[1], 70.0f ) && Near( light[2], 70.0f ) );
 	/* sunflaredirection moves the flare alone, sunflarename picks the
 	 * section, and names are matched exactly. */
 	R_MOHAABeginSunKeys();
@@ -87,6 +94,33 @@ int main() {
 	assert( !R_MOHAASunKey( "SunDirection", "0 0 0" ) );
 	R_MOHAAEndSunKeys();
 	assert( sunSet && sunSection == "sunset1" && Near( sunDirection[0], -1.0f ) );
+	/* The flare's own direction does not move the sun. */
+	assert( R_MOHAAWorldSun( light, toward ) && Near( toward[1], 1.0f ) && Near( light[0], 70.0f ) );
+	/* Either colour key names the colour, the last one given winning
+	 * (DM/mohdm1 names both); one that is not three numbers is 70. */
+	R_MOHAABeginSunKeys();
+	R_MOHAASunKey( "suncolor", "65 60 45" );
+	R_MOHAASunKey( "sunlight", "255 243 171" );
+	R_MOHAASunKey( "sundirection", "-50 120 0" );
+	R_MOHAAEndSunKeys();
+	assert( R_MOHAAWorldSun( light, toward ) );
+	assert( Near( light[0], 255.0f ) && Near( light[1], 243.0f ) && Near( light[2], 171.0f ) && toward[2] > 0.7f );
+	R_MOHAABeginSunKeys();
+	R_MOHAASunKey( "sundirection", "-50 120 0" );
+	R_MOHAASunKey( "suncolor", "12" );
+	R_MOHAAEndSunKeys();
+	assert( R_MOHAAWorldSun( light, toward ) && Near( light[0], 70.0f ) && Near( light[2], 70.0f ) );
+	/* A direction that is not three numbers is no sun to shadow, even after
+	 * one that was; the flare keeps its old reading of it. */
+	R_MOHAABeginSunKeys();
+	R_MOHAASunKey( "sundirection", "-50 120 0" );
+	R_MOHAASunKey( "sundirection", "-50 120" );
+	R_MOHAAEndSunKeys();
+	assert( sunSet && !R_MOHAAWorldSun( light, toward ) );
+	R_MOHAABeginSunKeys();
+	R_MOHAASunKey( "suncolor", "90 90 90" );
+	R_MOHAAEndSunKeys();
+	assert( !R_MOHAAWorldSun( light, toward ) );
 	/* "none" is handed on for the renderer to refuse; a level with no sun
 	 * key leaves the begin's clear standing. */
 	R_MOHAABeginSunKeys();
@@ -99,6 +133,7 @@ int main() {
 	R_MOHAASunKey( "sunflarename", "sun" );
 	R_MOHAAEndSunKeys();
 	assert( calls == 1 && !sunSet );
+	assert( !R_MOHAAWorldSun( light, toward ) );
 	return 0;
 }
 '''

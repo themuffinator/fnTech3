@@ -293,7 +293,7 @@ typedef struct {
 
 /* The worldspawn's lighting keys (OpenMoHAA R_Sphere_InitLights): a sun
  * exists once either its colour or its direction is given, its colour 70
- * until given. */
+ * until given. Names are matched exactly, as 2015's renderer matches them. */
 static void R_MOHAAGridWorldspawn( const char *entities, int length, mohaaGrid_t *grid ) {
 	char *text;
 	const char *p;
@@ -328,12 +328,12 @@ static void R_MOHAAGridWorldspawn( const char *entities, int length, mohaaGrid_t
 		}
 		Q_strncpyz( key, token, sizeof( key ) );
 		token = COM_ParseExt( &p, qtrue );
-		if ( !Q_stricmp( key, "ambientlight" ) ) {
+		if ( !strcmp( key, "ambientlight" ) ) {
 			sscanf( token, "%f %f %f", &grid->ambient[0], &grid->ambient[1], &grid->ambient[2] );
-		} else if ( !Q_stricmp( key, "suncolor" ) || !Q_stricmp( key, "sunlight" ) ) {
+		} else if ( !strcmp( key, "suncolor" ) || !strcmp( key, "sunlight" ) ) {
 			sscanf( token, "%f %f %f", &grid->sunColor[0], &grid->sunColor[1], &grid->sunColor[2] );
 			grid->sun = qtrue;
-		} else if ( !Q_stricmp( key, "sundirection" ) ) {
+		} else if ( !strcmp( key, "sundirection" ) ) {
 			vec3_t angles = { 0.0f, 0.0f, 0.0f };
 			sscanf( token, "%f %f %f", &angles[0], &angles[1], &angles[2] );
 			AngleVectors( angles, grid->sunDirection, NULL, NULL );

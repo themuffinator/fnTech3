@@ -3986,6 +3986,7 @@ Called directly from cgame
 */
 #include "../renderercommon/tr_q3_ihv_model_light_bsp.h"
 #include "../renderercommon/tr_ritual_model_light_bsp.h"
+#include "../renderercommon/tr_entity_sun.h"
 #include "../renderercommon/tr_raven_bsp_load.h"
 #include "../renderercommon/tr_raven_light_styles.h"
 #include "../renderercommon/tr_map_shader_flags.h"
@@ -4224,6 +4225,7 @@ void RE_LoadWorldMap( const char *name ) {
 	}
 	R_LoadVisibility( &header->lumps[LUMP_VISIBILITY] );
 	R_LoadEntities( &header->lumps[LUMP_ENTITIES] );
+	R_LoadEntitySun();
 	if ( bspFormat == COM_GAME_BSP_FAKK ) {
 		/* Alice reads no gridsize key: its light grid loader writes this
 		 * cell as immediates before it touches the lump. F.A.K.K.2's maps

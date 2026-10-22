@@ -685,7 +685,8 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         self.assertIn("!RT_ShaderIsSky( shader )", sun)
         self.assertIn("if ( s_rtLights.noShaderSun ) {", sun)
         self.assertIn("VectorScale( color, 1.0f / length, color );", sun)
-        self.assertLess(sun.index("if ( !s_rtLights.q3map2 ) {"), sun.index("1.0f / length"))
+        self.assertLess(sun.index("if ( R_SkySunUnitLengthColour( ri.gameId, s_rtLights.q3map2 ) ) {"),
+                        sun.index("1.0f / length"))
         self.assertIn("if ( dsh->surfaceFlags & SURF_SKY ) {", bsp)
 
     def test_native_material_ownership_is_conservative_for_retail_content(self) -> None:

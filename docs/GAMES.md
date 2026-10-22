@@ -37,6 +37,13 @@ RTX's new liquid reflections and refraction have been compared on Quake
 III's `q3dm12`. The shared path is available to the other games, whose liquid
 materials still need their own checks; see the [RTX guide](RTX.md#what-you-will-see).
 
+Dynamic-light and sun shadows now include Enemy Territory's soldiers and the
+characters of Alice, F.A.K.K.2 and Medal of Honor; Return to Castle
+Wolfenstein's characters also cast and receive sun shadows. Alice, F.A.K.K.2
+and Medal of Honor use the sun specified by each level. See the
+[Display guide](DISPLAY.md#dynamic-lighting-and-shadowing) for settings and
+the known RTCW `forest` limitation in RTX's normal drawing mode.
+
 **Every game profile is available in every build**, including the normal
 download. **Experimental** means support is incomplete: expect missing features
 and possible crashes, and read the game's section below for what works. No

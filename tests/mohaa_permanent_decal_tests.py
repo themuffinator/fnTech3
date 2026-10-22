@@ -608,7 +608,7 @@ class MohaaPermanentDecalTests(unittest.TestCase):
         for renderer in RENDERERS:
             with self.subTest(renderer=renderer):
                 model = read(f'code/{renderer}/tr_mohaa.c')
-                add = function(model, 'void R_AddMOHAATikiSurfaces( trRefEntity_t *ent ) {')
+                add = function(model, 'void R_AddMOHAATikiSurfaces( trRefEntity_t *ent, dlightShadowCasterContext_t *casterContext ) {')
                 self.assertLess(add.index('R_MOHAAPose( ent, mod )'), add.index('LodMetric('))
                 self.assertIn('if ( !R_ViewPassIsPortal( &tr.viewParms ) || ( ent->e.mohaa.renderfx & '
                               'MOHAA_RF_SKYENTITY ) ) {', add)

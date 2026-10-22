@@ -1,0 +1,6451 @@
+{
+ "record": "2026-10-22-fnq-shadow-formats.md",
+ "date": "2026-10-22",
+ "profiles": [
+  "wolfet",
+  "rtcw-sp",
+  "rtcw-mp",
+  "alice",
+  "fakk2",
+  "mohaa"
+ ],
+ "unchangedProfiles": "q3, ql, q3-ihv, q3test, stvef-sp, stvef-mp and the four Jedi profiles: their formats already cast; R_LoadEntitySun returns at once for every profile but alice, fakk2 and mohaa",
+ "gateChange": "none",
+ "implementation": {
+  "files": [
+   "code/renderercommon/tr_dlight_shadow_casters.h",
+   "code/renderercommon/tr_wolfet_add_surfaces.h",
+   "code/renderercommon/tr_entity_sun.h",
+   "code/renderer/tr_alice.c",
+   "code/renderer/tr_mohaa.c",
+   "code/renderer/tr_backend.c",
+   "code/renderer/tr_bsp.c",
+   "code/renderer/tr_main.c",
+   "code/renderer/tr_local.h",
+   "code/renderervk/tr_alice.c",
+   "code/renderervk/tr_mohaa.c",
+   "code/renderervk/tr_backend.c",
+   "code/renderervk/tr_bsp.c",
+   "code/renderervk/tr_main.c",
+   "code/renderervk/tr_local.h",
+   "code/rendererrtx/tr_alice.c",
+   "code/rendererrtx/tr_mohaa.c",
+   "code/rendererrtx/tr_backend.c",
+   "code/rendererrtx/tr_bsp.c",
+   "code/rendererrtx/tr_main.c",
+   "code/rendererrtx/tr_local.h"
+  ],
+  "functions": [
+   "R_CollectDlightShadowEntityCasters",
+   "R_DlightShadowFrontendCasterAllowed",
+   "R_AddWolfETSurfaces",
+   "R_WolfETFrameBounds",
+   "R_AddAliceTikiSurfaces",
+   "R_AddMOHAATikiSurfaces",
+   "R_MOHAASunKey",
+   "R_MOHAAWorldSun",
+   "R_LoadEntitySun",
+   "R_SetWorldSunFromEntities",
+   "RB_DlightShadowCasterAllowed",
+   "RB_DlightShadowEntityCasterAllowed",
+   "RB_CSMShadowEntityAllowed",
+   "RB_CSMShadowSurfaceAllowed",
+   "RB_CSMShadowEntityPoseUnhashed"
+  ],
+  "formats": {
+   "surfaces": [
+    "SF_FACE",
+    "SF_GRID",
+    "SF_TRIANGLES",
+    "SF_MDS",
+    "SF_MDC",
+    "SF_MD3",
+    "SF_MDR",
+    "SF_IQM",
+    "SF_WOLFET",
+    "SF_ALICE_TIKI",
+    "SF_MOHAA_TIKI"
+   ],
+   "models": [
+    "MOD_BRUSH",
+    "MOD_MESH",
+    "MOD_MDS",
+    "MOD_MDC",
+    "MOD_MDR",
+    "MOD_IQM",
+    "MOD_WOLFET_MESH",
+    "MOD_ALICE_TIKI",
+    "MOD_MOHAA_TIKI"
+   ],
+   "addedToDlightShadows": [
+    "MOD_WOLFET_MESH",
+    "MOD_ALICE_TIKI",
+    "MOD_MOHAA_TIKI"
+   ],
+   "addedToSunShadows": [
+    "MOD_MDS",
+    "MOD_MDC",
+    "MOD_WOLFET_MESH",
+    "MOD_ALICE_TIKI",
+    "MOD_MOHAA_TIKI"
+   ],
+   "sunCacheRedraws": [
+    "MOD_MDS",
+    "MOD_WOLFET_MESH",
+    "MOD_ALICE_TIKI",
+    "MOD_MOHAA_TIKI"
+   ]
+  },
+  "authorship": "independently authored; the Ritual F.A.K.K.2 SDK FAQ (non-free) and OpenMoHAA were reference observation only"
+ },
+ "retailReaders": {
+  "alice.exe": "0x004ac3b0 reads ambientlight, suncolor and sundirection from anywhere in the entity text",
+  "fakk2.exe 1.02": "0x0048e8d0, the same",
+  "sunTowardForward": "the model light traces toward AngleVectors(sundirection) for sky (alice.exe 0x004aa820, fakk2.exe 0x0048cd50; docs/fntech3/2026-09-25-ritual-model-lights.md)",
+  "mohaa": "docs/fntech3/2026-10-16-mohaa-worldspawn-sun.md"
+ },
+ "installations": {
+  "alice": "E:/Games/Alice (base), read only",
+  "fakk2": ".tmp/fakk2-install/game (fakk) laid down from the retail disc copy, read only",
+  "mohaa": "E:/Games/Medal of Honor Allied Assault (main, 1.00), read only",
+  "wolfet": "E:/SteamLibrary/steamapps/common/Wolfenstein Enemy Territory (etmain), read only",
+  "rtcw-sp": "E:/SteamLibrary/steamapps/common/Return to Castle Wolfenstein (Main), read only"
+ },
+ "sunCensus": {
+  "alice": {
+   "maps": 36,
+   "sundirection": 4,
+   "colour": 4,
+   "sunflare": 0,
+   "shadowSuns": 4,
+   "refused": [],
+   "shaderQ3mapSunLines": [
+    "q3map_sun <red> <green> <blue> <intensity> <degrees> <elevation>",
+    "q3map_sun\t0 0 1 2500\t45 78",
+    "q3map_sun\t0.4 0.4 0.4 300 225 65",
+    "q3map_sun\t.5 .5 .6 768\t45 78",
+    "q3map_sun\t0.4 0.4 .4 1000\t75 25",
+    "q3map_sun\t.56 .4 .33 2500 135 70",
+    "q3map_sun\t1 .6 .3 30000 90 90",
+    "q3map_sun 0.5 0.5 0.5 1000 65 70"
+   ],
+   "perMap": {
+    "maps/grounds1.bsp": {
+     "suncolor": "224 192 192",
+     "sundirection": "-45 -26.9 0",
+     "towardSun": [
+      0.6306,
+      -0.3199,
+      0.7071
+     ]
+    },
+    "maps/rchess1.bsp": {
+     "suncolor": "223 191 191",
+     "sundirection": "-60.0 200.0 0.0",
+     "towardSun": [
+      -0.4698,
+      -0.171,
+      0.866
+     ]
+    },
+    "maps/wchess1.bsp": {
+     "sundirection": "-60.0 200.0 0.0",
+     "suncolor": "223 223 223",
+     "towardSun": [
+      -0.4698,
+      -0.171,
+      0.866
+     ]
+    },
+    "maps/wchess2.bsp": {
+     "sundirection": "-60.0 200.0 0.0",
+     "suncolor": "223 223 223",
+     "towardSun": [
+      -0.4698,
+      -0.171,
+      0.866
+     ]
+    }
+   }
+  },
+  "fakk2": {
+   "maps": 30,
+   "sundirection": 20,
+   "colour": 20,
+   "sunflare": 15,
+   "shadowSuns": 19,
+   "refused": [
+    "maps/otto.bsp"
+   ],
+   "shaderQ3mapSunLines": [],
+   "perMap": {
+    "maps/cemetery.bsp": {
+     "suncolor": "34 26 24",
+     "sundirection": "-60.0 45.0 0",
+     "sunflare": "-108 -80 -540",
+     "towardSun": [
+      0.3536,
+      0.3536,
+      0.866
+     ]
+    },
+    "maps/cliff1.bsp": {
+     "suncolor": "32 33 35",
+     "sundirection": "-65.0 22.5 0",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/cliff2.bsp": {
+     "sundirection": "-65.0 22.5 0",
+     "suncolor": "32 33 35",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/creeperpens.bsp": {
+     "sunflare": "-3888 1600 416",
+     "suncolor": "56 56 50",
+     "sundirection": "-65.0 22.5 0",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/end.bsp": {
+     "sunflare": "-5328 704 1064",
+     "sundirection": "-65.0 22.5 0",
+     "suncolor": "48 48 43",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/fakkhouse.bsp": {
+     "suncolor": "56 56 50",
+     "sundirection": "-65.0 22.5 0",
+     "sunflare": "-952 72 -1280",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/gruff.bsp": {
+     "sunflare": "-164 -1072 228",
+     "sundirection": "-67.5 -135.0 0",
+     "suncolor": "48 48 38",
+     "towardSun": [
+      -0.2706,
+      -0.2706,
+      0.9239
+     ]
+    },
+    "maps/gruff_cinema.bsp": {
+     "suncolor": "48 48 38",
+     "sundirection": "-67.5 -135.0 0",
+     "sunflare": "-164 -1072 228",
+     "towardSun": [
+      -0.2706,
+      -0.2706,
+      0.9239
+     ]
+    },
+    "maps/homes1.bsp": {
+     "sundirection": "-65.0 22.5 0",
+     "suncolor": "56 56 50",
+     "sunflare": "3528 -344 256",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/homes1_fullvis.bsp": {
+     "sundirection": "-65.0 22.5 0",
+     "suncolor": "56 56 50",
+     "sunflare": "3424 -344 160",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/homes2evil.bsp": {
+     "sundirection": "-65.0 22.5 0",
+     "suncolor": "32 33 35",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/homes2good.bsp": {
+     "sunflare": "-1496 2080 224",
+     "sundirection": "-65.0 22.5 0",
+     "suncolor": "56 56 50",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/intro.bsp": {
+     "sunflare": "4940 4476 340"
+    },
+    "maps/landersroost.bsp": {
+     "sundirection": "-65.0 22.5 0",
+     "suncolor": "56 56 50",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/oracle.bsp": {
+     "sunflare": "648 6056 712"
+    },
+    "maps/oracleway.bsp": {
+     "sunflare": "-2540 -4692 636"
+    },
+    "maps/otto.bsp": {
+     "sundirection": "65.0 -22.5 0.0",
+     "suncolor": "32 33 35",
+     "towardSun": [
+      0.3904,
+      -0.1617,
+      -0.9063
+     ]
+    },
+    "maps/shield.bsp": {
+     "sundirection": "-75 22 0",
+     "suncolor": "11 12 18",
+     "sunflare": "-3604 -1180 6308",
+     "towardSun": [
+      0.24,
+      0.097,
+      0.9659
+     ]
+    },
+    "maps/swamp2.bsp": {
+     "suncolor": "39 42 42",
+     "sundirection": "-45.0 135.0 0",
+     "towardSun": [
+      -0.5,
+      0.5,
+      0.7071
+     ]
+    },
+    "maps/swamp3.bsp": {
+     "suncolor": "39 42 42",
+     "sundirection": "-45.0 135.0 0",
+     "towardSun": [
+      -0.5,
+      0.5,
+      0.7071
+     ]
+    },
+    "maps/towncenter_evil.bsp": {
+     "sundirection": "-65.0 22.5 0",
+     "suncolor": "16 16.5 17.5",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/towncenter_good.bsp": {
+     "suncolor": "48 48 43",
+     "sundirection": "-65.0 22.5 0",
+     "sunflare": "-5328 704 1064",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    },
+    "maps/training.bsp": {
+     "sunflare": "3092 1492 -156",
+     "suncolor": "56 56 50",
+     "sundirection": "-65 22.5 0",
+     "towardSun": [
+      0.3904,
+      0.1617,
+      0.9063
+     ]
+    }
+   }
+  },
+  "mohaa": {
+   "maps": 54,
+   "sundirection": 46,
+   "colour": 46,
+   "sunflare": 4,
+   "shadowSuns": 46,
+   "refused": [],
+   "shaderQ3mapSunLines": [],
+   "perMap": {
+    "maps/DM/mohdm1.bsp": {
+     "suncolor": "65 60 45",
+     "sunflare": "-7980 5388 3396",
+     "sundirection": "320 150 0",
+     "sunlight": "255 243 171",
+     "towardSun": [
+      -0.6634,
+      0.383,
+      0.6428
+     ]
+    },
+    "maps/DM/mohdm2.bsp": {
+     "sundirection": "315 210 0",
+     "suncolor": "70 70 70",
+     "sunflarename": "none",
+     "towardSun": [
+      -0.6124,
+      -0.3536,
+      0.7071
+     ]
+    },
+    "maps/DM/mohdm3.bsp": {
+     "sundirection": "315 250 0",
+     "sunlight": "90 85 65",
+     "sunflare": "-640 -696 940",
+     "towardSun": [
+      -0.2418,
+      -0.6645,
+      0.7071
+     ]
+    },
+    "maps/DM/mohdm4.bsp": {
+     "sundirection": "315 210 0",
+     "suncolor": "70 70 70",
+     "sunflarename": "none",
+     "towardSun": [
+      -0.6124,
+      -0.3536,
+      0.7071
+     ]
+    },
+    "maps/DM/mohdm5.bsp": {
+     "sunflarename": "none",
+     "suncolor": "15 15 20",
+     "sundirection": "-70 110 0",
+     "towardSun": [
+      -0.117,
+      0.3214,
+      0.9397
+     ]
+    },
+    "maps/DM/mohdm6.bsp": {
+     "sundirection": "-90 90 0",
+     "suncolor": "85 85 85",
+     "towardSun": [
+      0.0,
+      0.0,
+      1.0
+     ]
+    },
+    "maps/DM/mohdm7.bsp": {
+     "sundirection": "-35 130 0",
+     "suncolor": "30 29 30",
+     "sunflarename": "none",
+     "towardSun": [
+      -0.5265,
+      0.6275,
+      0.5736
+     ]
+    },
+    "maps/m1l1.bsp": {
+     "sunflarename": "none",
+     "suncolor": "10 15 30",
+     "sundirection": "-30 300 0",
+     "towardSun": [
+      0.433,
+      -0.75,
+      0.5
+     ]
+    },
+    "maps/m1l2a.bsp": {
+     "sunflarename": "none",
+     "sundirection": "-45 75 0",
+     "suncolor": "14 14 16",
+     "towardSun": [
+      0.183,
+      0.683,
+      0.7071
+     ]
+    },
+    "maps/m1l2b.bsp": {
+     "sunflarename": "none",
+     "suncolor": "24 24 26",
+     "sundirection": "-45 75 0",
+     "towardSun": [
+      0.183,
+      0.683,
+      0.7071
+     ]
+    },
+    "maps/m1l3a.bsp": {
+     "sundirection": "-30 300 0",
+     "suncolor": "30 30 45",
+     "sunflarename": "none",
+     "towardSun": [
+      0.433,
+      -0.75,
+      0.5
+     ]
+    },
+    "maps/m1l3b.bsp": {
+     "suncolor": "30 30 45",
+     "sundirection": "-30 300 0",
+     "sunflarename": "none",
+     "towardSun": [
+      0.433,
+      -0.75,
+      0.5
+     ]
+    },
+    "maps/m1l3c.bsp": {
+     "sunlight": "35 34 35",
+     "sundirection": "270 90 0",
+     "sunflarename": "none",
+     "towardSun": [
+      -0.0,
+      -0.0,
+      1.0
+     ]
+    },
+    "maps/m2l1.bsp": {
+     "sundirection": "-28 110 0",
+     "suncolor": "50 45 45",
+     "sunflarename": "none",
+     "towardSun": [
+      -0.302,
+      0.8297,
+      0.4695
+     ]
+    },
+    "maps/m2l2a.bsp": {
+     "suncolor": "100 92 92",
+     "sundirection": "-50 135 0",
+     "towardSun": [
+      -0.4545,
+      0.4545,
+      0.766
+     ]
+    },
+    "maps/m2l2b.bsp": {
+     "sundirection": "-50 135 0",
+     "suncolor": "100 92 92",
+     "towardSun": [
+      -0.4545,
+      0.4545,
+      0.766
+     ]
+    },
+    "maps/m2l2c.bsp": {
+     "suncolor": "100 92 92",
+     "sundirection": "-50 135 0",
+     "towardSun": [
+      -0.4545,
+      0.4545,
+      0.766
+     ]
+    },
+    "maps/m2l3.bsp": {
+     "suncolor": "120 107 107",
+     "sundirection": "-28 110 0",
+     "towardSun": [
+      -0.302,
+      0.8297,
+      0.4695
+     ]
+    },
+    "maps/m3l1a.bsp": {
+     "suncolor": "85 88 89",
+     "sundirection": "270 360 0",
+     "sunflarename": "none",
+     "towardSun": [
+      -0.0,
+      0.0,
+      1.0
+     ]
+    },
+    "maps/m3l1b.bsp": {
+     "suncolor": "45 48 49",
+     "sundirection": "270 360 0",
+     "sunflarename": "none",
+     "towardSun": [
+      -0.0,
+      0.0,
+      1.0
+     ]
+    },
+    "maps/m3l2.bsp": {
+     "sunflare": "4096 -5604 1200",
+     "sundirection": "315 315 0",
+     "sunlight": "90 90 90",
+     "towardSun": [
+      0.5,
+      -0.5,
+      0.7071
+     ]
+    },
+    "maps/m3l3.bsp": {
+     "sundirection": "315 315 0",
+     "suncolor": "90 90 90",
+     "towardSun": [
+      0.5,
+      -0.5,
+      0.7071
+     ]
+    },
+    "maps/m4l0.bsp": {
+     "suncolor": "55 48 36",
+     "sundirection": "330 230 0",
+     "towardSun": [
+      -0.5567,
+      -0.6634,
+      0.5
+     ]
+    },
+    "maps/m4l1.bsp": {
+     "sunflarename": "none",
+     "sundirection": "-35 100 0",
+     "suncolor": "38.8 62.4 88.8",
+     "towardSun": [
+      -0.1422,
+      0.8067,
+      0.5736
+     ]
+    },
+    "maps/m4l2.bsp": {
+     "sundirection": "-35 10 0",
+     "suncolor": "42 64 95",
+     "sunflarename": "none",
+     "towardSun": [
+      0.8067,
+      0.1422,
+      0.5736
+     ]
+    },
+    "maps/m4l3.bsp": {
+     "sundirection": "-35 10 0",
+     "suncolor": "42 64 95",
+     "sunflarename": "none",
+     "towardSun": [
+      0.8067,
+      0.1422,
+      0.5736
+     ]
+    },
+    "maps/m5l1a.bsp": {
+     "sunflarename": "none",
+     "sundirection": "238 210 0",
+     "suncolor": "90 90 90",
+     "towardSun": [
+      0.4589,
+      0.265,
+      0.848
+     ]
+    },
+    "maps/m5l1b.bsp": {
+     "sunflarename": "none",
+     "sundirection": "238 210 0",
+     "suncolor": "90 90 90",
+     "towardSun": [
+      0.4589,
+      0.265,
+      0.848
+     ]
+    },
+    "maps/m5l2a.bsp": {
+     "sundirection": "238 210 0",
+     "suncolor": "60 60 65",
+     "towardSun": [
+      0.4589,
+      0.265,
+      0.848
+     ]
+    },
+    "maps/m5l2b.bsp": {
+     "sundirection": "238 210 0",
+     "suncolor": "60 60 65",
+     "towardSun": [
+      0.4589,
+      0.265,
+      0.848
+     ]
+    },
+    "maps/m5l3.bsp": {
+     "sundirection": "238 210 0",
+     "sunflare": "-748 1428 1772",
+     "suncolor": "110 100 90",
+     "towardSun": [
+      0.4589,
+      0.265,
+      0.848
+     ]
+    },
+    "maps/m6l1a.bsp": {
+     "sunflarename": "none",
+     "suncolor": "25 25 30",
+     "sundirection": "-75 110 0",
+     "towardSun": [
+      -0.0885,
+      0.2432,
+      0.9659
+     ]
+    },
+    "maps/m6l1b.bsp": {
+     "sunflarename": "none",
+     "sundirection": "-75 110 0",
+     "suncolor": "25 25 30",
+     "towardSun": [
+      -0.0885,
+      0.2432,
+      0.9659
+     ]
+    },
+    "maps/m6l1c.bsp": {
+     "sunflarename": "none",
+     "sundirection": "-75 110 0",
+     "suncolor": "25 25 30",
+     "towardSun": [
+      -0.0885,
+      0.2432,
+      0.9659
+     ]
+    },
+    "maps/m6l2a.bsp": {
+     "suncolor": "25 25 30",
+     "sundirection": "-70 110 0",
+     "sunflarename": "none",
+     "towardSun": [
+      -0.117,
+      0.3214,
+      0.9397
+     ]
+    },
+    "maps/m6l2b.bsp": {
+     "suncolor": "15 15 20",
+     "sundirection": "-70 110 0",
+     "sunflarename": "none",
+     "towardSun": [
+      -0.117,
+      0.3214,
+      0.9397
+     ]
+    },
+    "maps/m6l3a.bsp": {
+     "sunflarename": "none",
+     "suncolor": "35 35 50",
+     "sundirection": "280 215 0",
+     "towardSun": [
+      -0.1422,
+      -0.0996,
+      0.9848
+     ]
+    },
+    "maps/m6l3b.bsp": {
+     "suncolor": "30 30 45",
+     "sundirection": "280 215 0",
+     "towardSun": [
+      -0.1422,
+      -0.0996,
+      0.9848
+     ]
+    },
+    "maps/m6l3c.bsp": {
+     "suncolor": "30 30 45",
+     "sundirection": "280 215 0",
+     "towardSun": [
+      -0.1422,
+      -0.0996,
+      0.9848
+     ]
+    },
+    "maps/m6l3d.bsp": {
+     "suncolor": "30 30 45",
+     "sundirection": "280 215 0",
+     "towardSun": [
+      -0.1422,
+      -0.0996,
+      0.9848
+     ]
+    },
+    "maps/m6l3e.bsp": {
+     "sunflarename": "none",
+     "sundirection": "280 215 0",
+     "suncolor": "50 50 65",
+     "towardSun": [
+      -0.1422,
+      -0.0996,
+      0.9848
+     ]
+    },
+    "maps/obj/obj_team1.bsp": {
+     "sundirection": "335 315 0",
+     "suncolor": "70 70 70",
+     "sunflarename": "none",
+     "towardSun": [
+      0.6409,
+      -0.6409,
+      0.4226
+     ]
+    },
+    "maps/obj/obj_team2.bsp": {
+     "suncolor": "70 70 70",
+     "sundirection": "315 90 0",
+     "towardSun": [
+      0.0,
+      0.7071,
+      0.7071
+     ]
+    },
+    "maps/obj/obj_team3.bsp": {
+     "suncolor": "65 68 69",
+     "sundirection": "320 150 0",
+     "sunflarename": "none",
+     "towardSun": [
+      -0.6634,
+      0.383,
+      0.6428
+     ]
+    },
+    "maps/obj/obj_team4.bsp": {
+     "sunflarename": "none",
+     "suncolor": "70 70 70",
+     "sundirection": "315 210 0",
+     "towardSun": [
+      -0.6124,
+      -0.3536,
+      0.7071
+     ]
+    },
+    "maps/training.bsp": {
+     "sunflarename": "none",
+     "sundirection": "330 70 0",
+     "suncolor": "70 65 60",
+     "towardSun": [
+      0.2962,
+      0.8138,
+      0.5
+     ]
+    }
+   }
+  }
+ },
+ "sunCensusScript": ".tmp/fnq-shadows/tools/sun_survey.py",
+ "runtimes": {
+  "exportBase": "acad7f4c21a3fa80d2890accd31ccc5c97f8d594",
+  "before": ".tmp/fnq-shadows/runtime/before (git archive of the base, Windows x86 debugoptimized, strict warnings)",
+  "final": ".tmp/fnq-shadows/runtime/final (the same export with this change; only the renderer DLLs differ)",
+  "identities": {
+   "before": {
+    "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+    "fnql_glx_x86.dll": "4427532c855022dffd067ee6205a39b3c3c268735a4fddfbfc55037747b7c686",
+    "fnql_vk_x86.dll": "c45e54d7b065d3273989fb46d33b450fef2264af11888ce967678cb811db696b",
+    "fnql_rtx_x86.dll": "d317650bf75fa3be004e593c0ca9889ef3ca197ed10c4a78b72f66ff2ad08e76",
+    "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+   },
+   "final": {
+    "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+    "fnql_glx_x86.dll": "8456145772a25ae7e3b2b3d9415084920eeff63c22ee1bee58104e6c7dd96a37",
+    "fnql_vk_x86.dll": "a536a73f21e8cb2e2b5b14faf7d17e29d3e889908b1db1fa7e3b5c03961f1afa",
+    "fnql_rtx_x86.dll": "0b999b8da69d85a1661a630e48892221f1f5fe80d4bd901252b4b4d2070114ce",
+    "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+   }
+  }
+ },
+ "probe": {
+  "scripts": [
+   ".tmp/fnq-shadows/tools/probe.py",
+   ".tmp/fnq-shadows/tools/batch.py",
+   ".tmp/fnq-shadows/tools/diff.py",
+   ".tmp/fnq-shadows/tools/summarize.py"
+  ],
+  "settings": "windowed 800x600 on a private desktop, net_enabled 0, s_initsound 0, no input, an empty home config per run, devmap, r_csmShadows 1 on the command line",
+  "captures": "screenshotPNG: on; csmoff (r_csmShadowStrength 0); dloff (r_dlightShadowStrength 0); on2 (everything on again, the repeat); dbg (r_csmDebug 1 and r_dlightShadowDebug 1 print the counters, after the clean captures)",
+  "measure": "luma darker by more than 12 with shadows on, where on and on2 agree within 4"
+ },
+ "live": [
+  {
+   "prefix": "fakk2b-glx-final",
+   "before": {
+    "run": "fakk2b-glx-final-before",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_glx_x86.dll": "4427532c855022dffd067ee6205a39b3c3c268735a4fddfbfc55037747b7c686",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "6aa1c783e62a049645e4bcc43a96e9400747f50e9b19556aa5a0484baaf43633"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "d9f85ecc2397546df888b566117245427551fa50a9916ac58c08520bcd8682f5"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "670089858b5dc0dd439f477811d673d7f0b498e8923d751af81d4f963d5c8852"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "3d3f29393e0c1c7ba552f34d48b8c845f6bcc302f0829db5d21c94c63d14954f"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "f28ca3dc545be7a0f8fdce5ec6f6608d19affb7f57bf62daade7ca27725028cc"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "skipped": [
+      "csm plan cascades:0 skip no-sky-sun"
+     ]
+    },
+    "dlight": {
+     "frames": 134,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 134
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 2360,
+     "darkerFraction": 0.0049,
+     "meanLumaOn": 84.67,
+     "meanLumaOff": 84.51,
+     "repeatStableFraction": 0.9159
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 2007,
+     "darkerFraction": 0.0042,
+     "meanLumaOn": 84.67,
+     "meanLumaOff": 84.38,
+     "repeatStableFraction": 0.9159
+    }
+   },
+   "after": {
+    "run": "fakk2b-glx-final-after",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_glx_x86.dll": "8456145772a25ae7e3b2b3d9415084920eeff63c22ee1bee58104e6c7dd96a37",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "efa26f8d2fbb2ba7803c03a627c99fa5c1454f6bd90e536073e5943b8c735ee3"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "fd15492f370acdd7b43081245093a62825e705bac99f2b6a7853e9332f6ed379"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "9c66838c64fd2e0fd5c7788e932fe8d5811b815afcbc1aea855120a4be99d4a4"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "930fd924938b822ff4f5eb366e31feaf7f793302319ee0ef7d33e584393bd3cd"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "8ab51920e65c594e16335069b1e1aad0fd799cc165263394693f3d07e7151d69"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "sky": "entities",
+     "toSun": [
+      0.39,
+      0.16,
+      0.91
+     ],
+     "frames": 134,
+     "commonest": {
+      "casters": 722,
+      "receiversWorld": 624,
+      "receiversEntity": 112,
+      "uncacheable": 1,
+      "frames": 131
+     }
+    },
+    "dlight": {
+     "frames": 134,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 134
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 14740,
+     "darkerFraction": 0.0307,
+     "meanLumaOn": 83.62,
+     "meanLumaOff": 84.34,
+     "repeatStableFraction": 0.9166
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 2116,
+     "darkerFraction": 0.0044,
+     "meanLumaOn": 83.62,
+     "meanLumaOff": 83.46,
+     "repeatStableFraction": 0.9166
+    }
+   },
+   "afterDarkerThanBefore": {
+    "pixels": 480000,
+    "darkerWithShadows": 17039,
+    "darkerFraction": 0.0355,
+    "meanLumaOn": 83.62,
+    "meanLumaOff": 84.67
+   }
+  },
+  {
+   "prefix": "alice3-glx-final",
+   "before": {
+    "run": "alice3-glx-final-before",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_glx_x86.dll": "4427532c855022dffd067ee6205a39b3c3c268735a4fddfbfc55037747b7c686",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "f6f377b90f585b1ad6ba1b51f004b274f850485c2aa6c4f74776a9109a0c03c0"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "c8e433fe261e33b0b0330f0e1726f88014967afbad1cd31bdf7fa059fdfe68a6"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "b5cb427ef4ea9db77240ef3fe3e2868d571ffa81051ff080c9b41c811ca1cfb9"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "f9952a54ddc86fd424f1d61be66279bd86315fbc0bf004a0092493d9bfe017a9"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "6bbeb89ebade6594ca53ac9386ee1331e0ebab02c5ab6aaedcb2cc1bbe8d8233"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "skipped": [
+      "csm plan cascades:0 skip no-world"
+     ]
+    },
+    "dlight": {
+     "frames": 135,
+     "commonest": {
+      "planned": 3,
+      "renderedLights": 1,
+      "casterSurfaces": 13,
+      "frames": 82
+     },
+     "maxCasterSurfaces": 94
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 3407,
+     "darkerFraction": 0.0071,
+     "meanLumaOn": 49.9,
+     "meanLumaOff": 48.24,
+     "repeatStableFraction": 0.8126
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 2296,
+     "darkerFraction": 0.0048,
+     "meanLumaOn": 49.9,
+     "meanLumaOff": 46.01,
+     "repeatStableFraction": 0.8126
+    }
+   },
+   "after": {
+    "run": "alice3-glx-final-after",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_glx_x86.dll": "8456145772a25ae7e3b2b3d9415084920eeff63c22ee1bee58104e6c7dd96a37",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "7b12238ccba5dcbbc6e1e7661586cbed63575fcfc73004a75fac89e24dfe5a5b"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "3b68e05146a42a0eebf713a8e9a6a76db8bf0e419f736e2d53e71cf4e36c8a0f"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "8c997f351125ce2248f2974cf02647dcfe66871ec955cdcb06aecba8647b7215"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "d32cab24aec458bafeb2d8a3ae022a4bcb9692927ab02d2e9b1238e235d58152"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "e922936189bac24be80405523f1725b7e649f95dfda84e1c724a9da043a0b072"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "sky": "entities",
+     "toSun": [
+      0.63,
+      -0.32,
+      0.71
+     ],
+     "frames": 135,
+     "commonest": {
+      "casters": 1085,
+      "receiversWorld": 875,
+      "receiversEntity": 328,
+      "uncacheable": 1,
+      "frames": 74
+     }
+    },
+    "dlight": {
+     "frames": 135,
+     "commonest": {
+      "planned": 3,
+      "renderedLights": 2,
+      "casterSurfaces": 232,
+      "frames": 82
+     },
+     "maxCasterSurfaces": 232
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 29323,
+     "darkerFraction": 0.0611,
+     "meanLumaOn": 47.55,
+     "meanLumaOff": 48.19,
+     "repeatStableFraction": 0.8075
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 2364,
+     "darkerFraction": 0.0049,
+     "meanLumaOn": 47.55,
+     "meanLumaOff": 43.64,
+     "repeatStableFraction": 0.8075
+    }
+   },
+   "afterDarkerThanBefore": {
+    "pixels": 480000,
+    "darkerWithShadows": 33586,
+    "darkerFraction": 0.07,
+    "meanLumaOn": 47.55,
+    "meanLumaOff": 49.9
+   }
+  },
+  {
+   "prefix": "mohaa2-glx-final",
+   "before": {
+    "run": "mohaa2-glx-final-before",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_glx_x86.dll": "4427532c855022dffd067ee6205a39b3c3c268735a4fddfbfc55037747b7c686",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "b4ec96154948bad481fb7d57598ee3cc63c495e3ddde634b11cafdb0a0980e20"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "c73bfeb2912b13691753f6f0bd8dbe6233b1fe16c2248fe8730e246f045063f7"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "8e3a719c6ec835abd71795b3ca334780be51f01d9a37201592c0fa347a8fb006"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "abd200f34473e7966a7cc4385c74f67676174906f0dde9f083650a6fe22debb6"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "1dd1a13e2414e22939c5996089b880baf10d47105cd9561a3558861732018bc1"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "skipped": [
+      "csm plan cascades:0 skip no-sky-sun"
+     ]
+    },
+    "dlight": {
+     "frames": 135,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 135
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 418,
+     "darkerFraction": 0.0009,
+     "meanLumaOn": 79.0,
+     "meanLumaOff": 79.04,
+     "repeatStableFraction": 0.9672
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 383,
+     "darkerFraction": 0.0008,
+     "meanLumaOn": 79.0,
+     "meanLumaOff": 79.1,
+     "repeatStableFraction": 0.9672
+    }
+   },
+   "after": {
+    "run": "mohaa2-glx-final-after",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_glx_x86.dll": "8456145772a25ae7e3b2b3d9415084920eeff63c22ee1bee58104e6c7dd96a37",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "12d5e5473e5793db621a12ff45f506c1fd4bba8ed1a38482d24883b133e4ab9f"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "95da79e462eb902db1808caeb950d91d0211023a0835345cac34e360464972a4"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "6821b8c77247394cb1f5faad5c136840d40a3bd0ae4a94317d4b3046cd5f5a69"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "0e5f8d4eff0e6bb0b03b8196564a0bdf0c7766f99d52bc2e2f10878dd89a4419"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "743eec28780101bdaca1e672f349e6e9d33006be75a5648c78aa6bafb936efe2"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "sky": "worldspawn",
+     "toSun": [
+      0.46,
+      0.26,
+      0.85
+     ],
+     "frames": 130,
+     "commonest": {
+      "casters": 1817,
+      "receiversWorld": 1609,
+      "receiversEntity": 316,
+      "uncacheable": 1,
+      "frames": 130
+     }
+    },
+    "dlight": {
+     "frames": 130,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 130
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 54667,
+     "darkerFraction": 0.1139,
+     "meanLumaOn": 75.45,
+     "meanLumaOff": 79.04,
+     "repeatStableFraction": 0.9609
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 585,
+     "darkerFraction": 0.0012,
+     "meanLumaOn": 75.45,
+     "meanLumaOff": 75.53,
+     "repeatStableFraction": 0.9609
+    }
+   },
+   "afterDarkerThanBefore": {
+    "pixels": 480000,
+    "darkerWithShadows": 64693,
+    "darkerFraction": 0.1348,
+    "meanLumaOn": 75.45,
+    "meanLumaOff": 79.0
+   }
+  },
+  {
+   "prefix": "wolfet-glx-final",
+   "before": {
+    "run": "wolfet-glx-final-before",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_glx_x86.dll": "4427532c855022dffd067ee6205a39b3c3c268735a4fddfbfc55037747b7c686",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "3ac654d62622b3076703df3614f4daa0a61a68f7e582c36d38a6ef2c7e50c865"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "8b93a47b265371650970ad7c97f6de67a9fffa9e34151fbae4e9d52d23fdf72f"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "9e97d0ea6de67adbeb720ffba9b923ff51008f4d03014681b80deac2aeecdf9c"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "29d785eff8eac6f1993d96b6e89ead1236c4f467288b8838f7f013878f3a4ad6"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "f5e6b6259ba194a56eb869f3da21e1edf6e37c87d66fc71142a9fbc26f1f6b6e"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "sky": "textures/skies_sd/sd_siwasky",
+     "toSun": [
+      -0.62,
+      -0.21,
+      0.75
+     ],
+     "frames": 130,
+     "commonest": {
+      "casters": 5107,
+      "receiversWorld": 5060,
+      "receiversEntity": 80,
+      "uncacheable": 1,
+      "frames": 130
+     }
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 76251,
+     "darkerFraction": 0.1589,
+     "meanLumaOn": 148.27,
+     "meanLumaOff": 160.19,
+     "repeatStableFraction": 0.9679
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 450,
+     "darkerFraction": 0.0009,
+     "meanLumaOn": 148.27,
+     "meanLumaOff": 148.5,
+     "repeatStableFraction": 0.9679
+    }
+   },
+   "after": {
+    "run": "wolfet-glx-final-after",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_glx_x86.dll": "8456145772a25ae7e3b2b3d9415084920eeff63c22ee1bee58104e6c7dd96a37",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "83d293cc6728705bd8630f1b2551b38f23385bbe19b79091539c6074014a01d0"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "d3fd3f64aa30c2716b26c4b77e3cb549f815a4df5f80703dacb1c3ce2bebbaa6"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "f2ea4b52481c0f9e68df08373c585e69894b8dd69e51be371459d3d33fe51572"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "b8ce8e676da9d2170cc83eb796af9c6933d2b9bc47263a3e808a7f428ea102a6"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "134f669745b838773701b56fb30c2a94a35cde90affd3e3b31574ac0964d4ccc"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "sky": "textures/skies_sd/sd_siwasky",
+     "toSun": [
+      -0.62,
+      -0.21,
+      0.75
+     ],
+     "frames": 130,
+     "commonest": {
+      "casters": 5127,
+      "receiversWorld": 5056,
+      "receiversEntity": 104,
+      "uncacheable": 1,
+      "frames": 130
+     }
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 79242,
+     "darkerFraction": 0.1651,
+     "meanLumaOn": 147.45,
+     "meanLumaOff": 160.12,
+     "repeatStableFraction": 0.956
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 332,
+     "darkerFraction": 0.0007,
+     "meanLumaOn": 147.45,
+     "meanLumaOff": 147.67,
+     "repeatStableFraction": 0.956
+    }
+   },
+   "afterDarkerThanBefore": {
+    "pixels": 480000,
+    "darkerWithShadows": 10593,
+    "darkerFraction": 0.0221,
+    "meanLumaOn": 147.45,
+    "meanLumaOff": 148.27
+   }
+  },
+  {
+   "prefix": "rtcw-glx-final",
+   "before": {
+    "run": "rtcw-glx-final-before",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_glx_x86.dll": "4427532c855022dffd067ee6205a39b3c3c268735a4fddfbfc55037747b7c686",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "77a38672e958a2828096c4b02d668d78dfcc30b592a52f5f54b5bcb66c1916b9"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "d6498371fec64f9f1de41936e121d52cf0e60fe10a4e8626c1be8aa8164f2cb0"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "41d6c79678ab1c508f85772c55a00fdd3a9e6929dae52baa8180760b6773a537"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "4b096d8d5683266c7b915f69e0707afa645147925bc3f4b32feb74acc3f5dac2"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "caa6a35b3894067c6e00991c10f605f79e2d61949bdd1962526f1593596a44c6"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "sky": "textures/skies/sky_forest",
+     "toSun": [
+      -0.49,
+      -0.41,
+      0.77
+     ],
+     "frames": 130,
+     "commonest": {
+      "casters": 251,
+      "receiversWorld": 104,
+      "receiversEntity": 492,
+      "uncacheable": 0,
+      "frames": 130
+     }
+    },
+    "dlight": {
+     "frames": 130,
+     "commonest": {
+      "planned": 2,
+      "renderedLights": 2,
+      "casterSurfaces": 700,
+      "frames": 130
+     },
+     "maxCasterSurfaces": 700
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 333343,
+     "darkerFraction": 0.6945,
+     "meanLumaOn": 24.15,
+     "meanLumaOff": 40.57,
+     "repeatStableFraction": 0.8745
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 1298,
+     "darkerFraction": 0.0027,
+     "meanLumaOn": 24.15,
+     "meanLumaOff": 25.03,
+     "repeatStableFraction": 0.8745
+    }
+   },
+   "after": {
+    "run": "rtcw-glx-final-after",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_glx_x86.dll": "8456145772a25ae7e3b2b3d9415084920eeff63c22ee1bee58104e6c7dd96a37",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "47ec8663edc6b3063c5fdbab2e944f4f25057c8ca38801450315bd0f6284db78"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "8c6f02d3f841b854cb3ef0271f1e262acee1a9ee2da3573984878b64da7239c2"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "0f2450abda7396063e652f7226eb86a276913e5b5599e9add628ff0ba1fd0712"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "9ce90171ebf07bd77b0be811939728db71eedb9f4f37f4d64b681553928de069"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "e8146895379157ea518620e5a2f75cbb9c5b2280c2c08f14419cca5d08909373"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "sky": "textures/skies/sky_forest",
+     "toSun": [
+      -0.49,
+      -0.41,
+      0.77
+     ],
+     "frames": 130,
+     "commonest": {
+      "casters": 335,
+      "receiversWorld": 104,
+      "receiversEntity": 576,
+      "uncacheable": 1,
+      "frames": 130
+     }
+    },
+    "dlight": {
+     "frames": 130,
+     "commonest": {
+      "planned": 2,
+      "renderedLights": 2,
+      "casterSurfaces": 700,
+      "frames": 130
+     },
+     "maxCasterSurfaces": 700
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 346743,
+     "darkerFraction": 0.7224,
+     "meanLumaOn": 22.12,
+     "meanLumaOff": 41.12,
+     "repeatStableFraction": 0.8777
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 746,
+     "darkerFraction": 0.0016,
+     "meanLumaOn": 22.12,
+     "meanLumaOff": 21.77,
+     "repeatStableFraction": 0.8777
+    }
+   },
+   "afterDarkerThanBefore": {
+    "pixels": 480000,
+    "darkerWithShadows": 34574,
+    "darkerFraction": 0.072,
+    "meanLumaOn": 22.12,
+    "meanLumaOff": 24.15
+   }
+  },
+  {
+   "prefix": "fakk2b-vk-final",
+   "before": {
+    "run": "fakk2b-vk-final-before",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_vk_x86.dll": "c45e54d7b065d3273989fb46d33b450fef2264af11888ce967678cb811db696b",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "28dd75d03c9d8c87d4d718c460661db214b93f9552439210e8b7bc77071fbc90"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "c90ecf2af179e3b31b46497d6384ce9fbe378b76fad02052afb501d7cf48a71e"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "4e630200883204897203c073727376c4c9bba7323ecd8b8fbda5ea96da51b181"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "2a26d67e5c720ef07541eaeebc2a0b05d0495cda21d84bd850b256a77ab99bd3"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "985ffe788b6e57e4679baa0c196989a4ecd3f4ec3c9ca387afa9d97f8f30da5f"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "skipped": [
+      "csm plan cascades:0 skip no-sky-sun"
+     ]
+    },
+    "dlight": {
+     "frames": 135,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 135
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 1698,
+     "darkerFraction": 0.0035,
+     "meanLumaOn": 91.43,
+     "meanLumaOff": 90.66,
+     "repeatStableFraction": 0.9057
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 1761,
+     "darkerFraction": 0.0037,
+     "meanLumaOn": 91.43,
+     "meanLumaOff": 90.88,
+     "repeatStableFraction": 0.9057
+    }
+   },
+   "after": {
+    "run": "fakk2b-vk-final-after",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_vk_x86.dll": "a536a73f21e8cb2e2b5b14faf7d17e29d3e889908b1db1fa7e3b5c03961f1afa",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "9eeef21921d7948be3ade24d9d924151e26787cc18b1fa922feb154aa5defb36"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "4b2b8dd92d9bc8cb504bd1c681b1ae6aca490fa3f7e46b675df19d4e5b6a9ae1"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "b06031436974d719636ba0469e0746940119b29b28592cef1714710af8c8adbb"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "462d12fec1be3909aac628fafca541a667c455eb60726584bd2dd7bb0d35e3c5"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "52b1c07429aaa9aad37f09732b539ac79fac663131147f98cf21af27597b9c65"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "sky": "entities",
+     "toSun": [
+      0.39,
+      0.16,
+      0.91
+     ],
+     "frames": 134,
+     "commonest": {
+      "casters": 722,
+      "receiversWorld": 624,
+      "receiversEntity": 112,
+      "uncacheable": 1,
+      "frames": 131
+     }
+    },
+    "dlight": {
+     "frames": 134,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 134
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 14355,
+     "darkerFraction": 0.0299,
+     "meanLumaOn": 90.58,
+     "meanLumaOff": 90.89,
+     "repeatStableFraction": 0.9058
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 1996,
+     "darkerFraction": 0.0042,
+     "meanLumaOn": 90.58,
+     "meanLumaOff": 89.96,
+     "repeatStableFraction": 0.9058
+    }
+   },
+   "afterDarkerThanBefore": {
+    "pixels": 480000,
+    "darkerWithShadows": 16480,
+    "darkerFraction": 0.0343,
+    "meanLumaOn": 90.58,
+    "meanLumaOff": 91.43
+   }
+  },
+  {
+   "prefix": "mohaa2-vk-final",
+   "before": {
+    "run": "mohaa2-vk-final-before",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_vk_x86.dll": "c45e54d7b065d3273989fb46d33b450fef2264af11888ce967678cb811db696b",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "915a349cd12cda1d2b1127b2837121759e0b84ab0432f4f3bb4499708c905c08"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "23fec5c882ee8f67f37e4c939ba80192fead8f245bee8d563f838352f09a7fab"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "f563446bc8357dfd0d8d51c2b833c5e6a84b5750995bec97d849edb4b8e7afdc"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "16e3d86d049b53fb24212a575199d787975560eeb35de26f1e42ab07d634aa06"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "749da79958a126321ad794a17d16d26ddd68f072b527a16761e3255006ee226f"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "skipped": [
+      "csm plan cascades:0 skip no-sky-sun"
+     ]
+    },
+    "dlight": {
+     "frames": 133,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 133
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 412,
+     "darkerFraction": 0.0009,
+     "meanLumaOn": 79.23,
+     "meanLumaOff": 79.27,
+     "repeatStableFraction": 0.9662
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 400,
+     "darkerFraction": 0.0008,
+     "meanLumaOn": 79.23,
+     "meanLumaOff": 79.33,
+     "repeatStableFraction": 0.9662
+    }
+   },
+   "after": {
+    "run": "mohaa2-vk-final-after",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_vk_x86.dll": "a536a73f21e8cb2e2b5b14faf7d17e29d3e889908b1db1fa7e3b5c03961f1afa",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "9c5c4e1cf5e51468ff78c0eefba09c5342f6e1aaeece89498225a90615bc3614"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "b24dbefda131bdc59a76631eb944f08eb9d27f8d18dae7b7f387fe72a9188be3"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "c974e4d6421457f085da387f294ac9dfb2c0e245140b23e1b94a8675c2814355"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "4673be232eac41a3835b4d40d4237e2b050f7eb8cd0b4d13b53883af8ea5ee9e"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "797a5e76da0994800f70251c1efbb06a30e34c3ef55e1e42ca62a85736ea9992"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "sky": "worldspawn",
+     "toSun": [
+      0.46,
+      0.26,
+      0.85
+     ],
+     "frames": 130,
+     "commonest": {
+      "casters": 1817,
+      "receiversWorld": 1609,
+      "receiversEntity": 316,
+      "uncacheable": 1,
+      "frames": 130
+     }
+    },
+    "dlight": {
+     "frames": 130,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 130
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 47787,
+     "darkerFraction": 0.0996,
+     "meanLumaOn": 76.02,
+     "meanLumaOff": 79.28,
+     "repeatStableFraction": 0.9609
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 589,
+     "darkerFraction": 0.0012,
+     "meanLumaOn": 76.02,
+     "meanLumaOff": 76.09,
+     "repeatStableFraction": 0.9609
+    }
+   },
+   "afterDarkerThanBefore": {
+    "pixels": 480000,
+    "darkerWithShadows": 57868,
+    "darkerFraction": 0.1206,
+    "meanLumaOn": 76.02,
+    "meanLumaOff": 79.23
+   }
+  },
+  {
+   "prefix": "fakk2b-rtx-final",
+   "before": {
+    "run": "fakk2b-rtx-final-before",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_rtx_x86.dll": "d317650bf75fa3be004e593c0ca9889ef3ca197ed10c4a78b72f66ff2ad08e76",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "e8c7c48b18d77cae574a6004cf036fbbf2f835416faf157121bd164da2363d30"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "2028fea91eb4e6968ffa2c7dde64d4ede7be28604f43005c037d565afaf9f27a"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "b0d8b059b7fd8659bdb6ff96049e6782ec2bf2bbe08db41f9e6243e160c0ca22"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "3cab4036093fa71d572685fddc8d059eb96965b736a953f1eae3d7a2c848267d"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "3b59933dc53467fb4d371426cdcee613ee3ed808116c0638c9b957a102db087e"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "skipped": [
+      "csm plan cascades:0 skip no-sky-sun"
+     ]
+    },
+    "dlight": {
+     "frames": 135,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 135
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 1659,
+     "darkerFraction": 0.0035,
+     "meanLumaOn": 91.4,
+     "meanLumaOff": 90.65,
+     "repeatStableFraction": 0.9055
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 1767,
+     "darkerFraction": 0.0037,
+     "meanLumaOn": 91.4,
+     "meanLumaOff": 90.89,
+     "repeatStableFraction": 0.9055
+    }
+   },
+   "after": {
+    "run": "fakk2b-rtx-final-after",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_rtx_x86.dll": "0b999b8da69d85a1661a630e48892221f1f5fe80d4bd901252b4b4d2070114ce",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "0bb35a75bebcafe1be8b641b126523677f54263aa177872b8b0537f743deb2d8"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "254421df0da6b9417cbdb8e798dc64f8f7bf148e81574087e0f7ccd94d762e82"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "8f0b82d929acfdb509ac24260f4b592cf80a12b7fd43371c5868731117152371"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "164f81accb425c1b9124bba514ade7d6945e9131617483b4348945876887aeba"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "4b69d0002c6c034c04b522807135a8daef6f5c717e440933d2cfdc963fc17087"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "sky": "entities",
+     "toSun": [
+      0.39,
+      0.16,
+      0.91
+     ],
+     "frames": 133,
+     "commonest": {
+      "casters": 730,
+      "receiversWorld": 624,
+      "receiversEntity": 120,
+      "uncacheable": 1,
+      "frames": 130
+     }
+    },
+    "dlight": {
+     "frames": 133,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 133
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 14370,
+     "darkerFraction": 0.0299,
+     "meanLumaOn": 90.42,
+     "meanLumaOff": 90.73,
+     "repeatStableFraction": 0.9035
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 1828,
+     "darkerFraction": 0.0038,
+     "meanLumaOn": 90.42,
+     "meanLumaOff": 89.87,
+     "repeatStableFraction": 0.9035
+    }
+   },
+   "afterDarkerThanBefore": {
+    "pixels": 480000,
+    "darkerWithShadows": 14505,
+    "darkerFraction": 0.0302,
+    "meanLumaOn": 90.42,
+    "meanLumaOff": 91.4
+   }
+  },
+  {
+   "prefix": "mohaa2-rtx-final",
+   "before": {
+    "run": "mohaa2-rtx-final-before",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_rtx_x86.dll": "d317650bf75fa3be004e593c0ca9889ef3ca197ed10c4a78b72f66ff2ad08e76",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "8dc22ca4aa43d5a24676b1abd8190affcbcd39c3e8392fddc3eca2821dc41081"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "c2f242b77c082546f5654643c326d6667334e96bf979819a9afa23dc3ac2f534"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "5f403eaabd8fb40c9e9a8d9b872c2dec3555a9eafda54428bebe3dc36d2f697e"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "bd9c3cb88f4ebe25b355854a85a21d9ddf513acd35b3dfc0c74f3619b1fe81b0"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "e146772ee0584253fa1569b170f1594f0a516fc05602763a52f73ce56e5490cf"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "skipped": [
+      "csm plan cascades:0 skip no-sky-sun"
+     ]
+    },
+    "dlight": {
+     "frames": 135,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 135
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 496,
+     "darkerFraction": 0.001,
+     "meanLumaOn": 79.35,
+     "meanLumaOff": 78.89,
+     "repeatStableFraction": 0.1309
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 8812,
+     "darkerFraction": 0.0184,
+     "meanLumaOn": 79.35,
+     "meanLumaOff": 79.12,
+     "repeatStableFraction": 0.1309
+    }
+   },
+   "after": {
+    "run": "mohaa2-rtx-final-after",
+    "outcome": "exited",
+    "exit": 0,
+    "identity": {
+     "fntech3.exe": "0f531cc9bc2f56514fcfd2afa33d43f234187e20c614136f7eb9e12932febf44",
+     "fnql_rtx_x86.dll": "0b999b8da69d85a1661a630e48892221f1f5fe80d4bd901252b4b4d2070114ce",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "captures": [
+     {
+      "name": "on.png",
+      "sha256": "a9033379d64dec4c48c2d38b4d6891dfe3205c7236c26258ae460c7ccbd41bb7"
+     },
+     {
+      "name": "csmoff.png",
+      "sha256": "24e5acde51517786fe1ecdeff73ac2ec955421ab614bc685628dc9c16ff78486"
+     },
+     {
+      "name": "dloff.png",
+      "sha256": "07ccbf81eb1e1b5cf64e17a027350a2d7661fcbca47a32de7ded6d4a4545a212"
+     },
+     {
+      "name": "on2.png",
+      "sha256": "6dde1e01f820b84ce9318af9c7f3f0277d0e0f456cfee3034d933aaaa91ce9f8"
+     },
+     {
+      "name": "dbg.png",
+      "sha256": "eb65e937e6d1e3036d098004af89f2094cc313da24d1985e9074abc21dfe2634"
+     }
+    ],
+    "errors": [],
+    "csm": {
+     "sky": "worldspawn",
+     "toSun": [
+      0.46,
+      0.26,
+      0.85
+     ],
+     "frames": 130,
+     "commonest": {
+      "casters": 1829,
+      "receiversWorld": 1609,
+      "receiversEntity": 328,
+      "uncacheable": 1,
+      "frames": 130
+     }
+    },
+    "dlight": {
+     "frames": 130,
+     "commonest": {
+      "planned": 0,
+      "renderedLights": 0,
+      "casterSurfaces": 0,
+      "frames": 130
+     },
+     "maxCasterSurfaces": 0
+    },
+    "sunShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 47616,
+     "darkerFraction": 0.0992,
+     "meanLumaOn": 76.02,
+     "meanLumaOff": 79.33,
+     "repeatStableFraction": 0.9609
+    },
+    "lightShadowDarkens": {
+     "pixels": 480000,
+     "darkerWithShadows": 624,
+     "darkerFraction": 0.0013,
+     "meanLumaOn": 76.02,
+     "meanLumaOff": 76.11,
+     "repeatStableFraction": 0.9609
+    }
+   },
+   "afterDarkerThanBefore": {
+    "pixels": 480000,
+    "darkerWithShadows": 58286,
+    "darkerFraction": 0.1214,
+    "meanLumaOn": 76.02,
+    "meanLumaOff": 79.35
+   }
+  }
+ ],
+ "tests": {
+  "focused": {
+   "tree": "the worktree with this change on acad7f4c, Windows, VS 2022 x86 developer shell, clang++",
+   "files": [
+    "tests/entity_sun_shadow_tests.py",
+    "tests/mohaa_sun_flare_tests.py",
+    "tests/rtcw_light_tests.py",
+    "tests/wolfet_draw_tests.py",
+    "tests/q3_ihv_entity_renderer_tests.py",
+    "tests/mohaa_permanent_decal_tests.py",
+    "tests/bsp_profile_loader_tests.py",
+    "tests/alice_renderer_parity_tests.py",
+    "tests/personal_shadow_source_tests.py",
+    "tests/dlight_shadow_stability_tests.py",
+    "tests/shadow_correctness_source_tests.py",
+    "tests/csm_shadow_cache_source_tests.py",
+    "tests/csm_plan_source_tests.py",
+    "tests/jka_distance_cull_tests.py",
+    "tests/rtx_renderer_contract_source_tests.py",
+    "tests/dlight_shadow_bias_tests.py",
+    "tests/ritual_model_lights_tests.py"
+   ],
+   "result": "all passed; entity_sun_shadow_tests' installed-map sweeps ran with FNTECH3_FAKK2_ROOT at the laid-down F.A.K.K.2 game: 4 Alice, 19 F.A.K.K.2 and 46 Medal of Honor suns"
+  },
+  "rendererBuild": "fnql_glx_x86, fnql_vk_x86 and fnql_rtx_x86 of the export with this change, /W4 /WX: no warnings",
+  "exportValidation": {
+   "commit": "7a831c15",
+   "tree": "git archive of 7a831c15 with the subprojects extracted, its own git repository, Windows x86 debugoptimized, strict warnings (/W4 /WX), meson -j 4",
+   "build": "all targets built, no warnings",
+   "native": "meson test, every fnTech3 test but the pytest bundle: 274 OK, 0 failed, 2 skipped",
+   "pytest": "610 files, one pytest process each, four at a time (2421 s): 598 passed, 9 collect nothing (script-style), 3 failed only in TemporaryDirectory cleanup with WinError 5 on a just-run probe executable (mohaa_effect_submission_tests, server_drop_notice_tests, wolfet_bot_broadcast_tests) and passed when run again alone"
+  }
+ },
+ "followUps": {
+  "runtime": {
+   "path": ".tmp/fnq-shadows/runtime/final2 (the export with these follow-ups)",
+   "identities": {
+    "fntech3.exe": "806049c2f90474a429aa0be3b219e39204a584a0e42c9e9abc690d991e1cbfb4",
+    "fnql_glx_x86.dll": "3c859ff42af6ae2509da6728c29b5f4041e9d5e6525df5a6f522b97fd8147ec3",
+    "fnql_vk_x86.dll": "75c19d9cc58869cf945d0ab6b9f47ec5dc934fb85fc52a51b8b2b24bfe9688be",
+    "fnql_rtx_x86.dll": "c435202ee45d812cce88de8b380aaf98c6a5819c4855e6ab40d33fc021381b41"
+   }
+  },
+  "rtxRitualSun": {
+   "function": "RT_FindRitualSun (code/rendererrtx/rt/rt_lights.c)",
+   "wallFit": {
+    "alice": {
+     "summary": {
+      "pairs": 11,
+      "median": 0.429,
+      "p25": 0.289,
+      "p75": 0.559
+     },
+     "perMapMedian": {
+      "maps/grounds1.bsp": -0.15633333333333338,
+      "maps/rchess1.bsp": 0.616,
+      "maps/wchess1.bsp": 0.429,
+      "maps/wchess2.bsp": 0.496
+     }
+    },
+    "fakk2": {
+     "summary": {
+      "pairs": 136,
+      "median": 0.535,
+      "p25": 0.067,
+      "p75": 1.081
+     },
+     "perMapMedian": {
+      "maps/cemetery.bsp": 0.39299999999999996,
+      "maps/cliff1.bsp": 0.8388333333333333,
+      "maps/cliff2.bsp": 0.5305,
+      "maps/creeperpens.bsp": 0.387,
+      "maps/end.bsp": 1.0136666666666667,
+      "maps/fakkhouse.bsp": 1.0526666666666664,
+      "maps/gruff.bsp": 1.053,
+      "maps/gruff_cinema.bsp": 0.6116666666666667,
+      "maps/homes1.bsp": 1.2576666666666667,
+      "maps/homes1_fullvis.bsp": 1.2743333333333333,
+      "maps/homes2evil.bsp": 0.5476666666666667,
+      "maps/homes2good.bsp": 0.804,
+      "maps/landersroost.bsp": 0.58,
+      "maps/otto.bsp": null,
+      "maps/shield.bsp": -5.626333333333334,
+      "maps/swamp2.bsp": 0.1985,
+      "maps/swamp3.bsp": 0.1015,
+      "maps/towncenter_evil.bsp": 0.7203333333333334,
+      "maps/towncenter_good.bsp": 0.7186666666666666,
+      "maps/training.bsp": 0.6136666666666667
+     }
+    }
+   },
+   "wallFitScript": ".tmp/fnq-shadows/tools/ritual_walls.py",
+   "live": {
+    "before": {
+     "outcome": "exited",
+     "exit": 0,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "captures": [
+      {
+       "name": "rt.png",
+       "sha256": "9efb072ee0f89bd8ebb64df11e53ca724b6c19492711b909ceefbf0a2aabc061"
+      },
+      {
+       "name": "rt2.png",
+       "sha256": "eb1437e5043f5641003d5bd8cd6f4d21fbbf079f7c00bac391d7ccb446336d54"
+      }
+     ],
+     "log": "the first sky surface's shader textures/eden/sky/morningsky has no q3map_sun"
+    },
+    "after": {
+     "outcome": "exited",
+     "exit": 0,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "captures": [
+      {
+       "name": "rt.png",
+       "sha256": "697886922badd2d880cc0b7d24436f89957292eff11c8e6176306886cbe220cd"
+      },
+      {
+       "name": "rt2.png",
+       "sha256": "b8094ef5e536a196a66ff32a511b9e939ca2250081d47e86eca473386c60453a"
+      }
+     ],
+     "log": "RTX RT: entity sun 56.0 56.0 50.0 toward 0.390 0.162 0.906"
+    },
+    "sunlitPathMeanSRGB": {
+     "before": [
+      36.9,
+      25.8,
+      13.7
+     ],
+     "after": [
+      119.8,
+      88.7,
+      52.0
+     ],
+     "glxBaked": [
+      100.7,
+      73.1,
+      43.1
+     ]
+    },
+    "wholeFrameMeanSRGB": {
+     "before": [
+      51.0,
+      46.1,
+      39.3
+     ],
+     "after": [
+      95.7,
+      86.7,
+      67.4
+     ],
+     "glxBaked": [
+      91.2,
+      83.6,
+      70.0
+     ]
+    },
+    "map": "fakkhouse",
+    "renderer": "rtx (rtx_rt_mode 2, path traced, compute backend)"
+   }
+  },
+  "mohaaKeyCase": {
+   "files": [
+    "code/renderercommon/tr_mohaa_world.c",
+    "code/qcommon/cm_mohaa_lights.c"
+   ],
+   "keys": [
+    "suncolor",
+    "sunlight",
+    "sundirection",
+    "ambientlight"
+   ],
+   "reference": "OpenMoHAA renderergl1/tr_sphere_shade.cpp R_Sphere_InitLights uses strcmp (reference observation)",
+   "installedMapsChanged": 0
+  },
+  "localConnectDrop": {
+   "file": "code/server/sv_main.cpp SV_CheckTimeouts",
+   "observed": "in the three stalled runs the server set the client to zombie in the frame that answered its connect; the client later printed \"Server connection timed out.\" (cl_timeout 200 s)",
+   "inferred": "svs.time advances by real time and the frame after a long map load adds the whole load, so the just-connected rule (4 s) dropped the local client",
+   "fix": "the just-connected deadline skips NA_LOOPBACK clients",
+   "stalledBefore": {
+    "alice": "2 of 7 runs",
+    "wolfet": "1 of 5 runs"
+   },
+   "after": {
+    "alice": [
+     "exited",
+     "exited",
+     "exited",
+     "exited",
+     "exited",
+     "exited"
+    ],
+    "wolfet": [
+     "exited",
+     "exited",
+     "exited"
+    ]
+   }
+  },
+  "open": {
+   "sunShadowShare": {
+    "observed": "shield (FAKK2) start room, lamp-lit under a roof, sun 11 12 18: r_csmShadows darkened 31.4% of the frame, mean luma 50.44 to 42.09, repeat-stable 99.1%",
+    "run": {
+     "outcome": "exited",
+     "exit": 0,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "7f9e1457fb9c0bf1bddc1d106b04f2738bc3c7bdf074a568fb5c651c87b315a8"
+      },
+      {
+       "name": "off.png",
+       "sha256": "4e445fe2689697aa8b0285f127db1eae3a9e7251549dfb18318c8778f2abdef9"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "919928b5b4fc6b6c02fc3a5cb9b198e1b7858b636e4e93acc2aa32566794ffe6"
+      }
+     ]
+    },
+    "resolved": "bakedReceivers"
+   }
+  },
+  "exportValidation": {
+   "commit": "150d6230",
+   "build": "all targets, /W4 /WX, no warnings",
+   "native": "274 OK, 0 failed, 2 skipped",
+   "pytest": "610 files, one process each, four at a time (1577 s): 601 passed, 9 collect nothing (script-style), 0 failed"
+  }
+ },
+ "bakedReceivers": {
+  "decision": "World surfaces take only the models' sun shadows where the world does not already shade them, scaled by how much of each surface's light is the sun's; models keep all shadows. All three renderers, every game.",
+  "profiles": "all sixteen; q3-ihv has no sun, so its shadows stay off",
+  "implementation": {
+   "files": [
+    "code/renderercommon/tr_csm_receivers.h",
+    "code/renderer/tr_arb.c",
+    "code/renderer/tr_backend.c",
+    "code/renderer/tr_cmds.c",
+    "code/renderer/tr_local.h",
+    "code/renderer/tr_main.c",
+    "code/renderer/tr_surface.c",
+    "code/renderervk/tr_backend.c",
+    "code/renderervk/tr_cmds.c",
+    "code/renderervk/tr_local.h",
+    "code/renderervk/tr_main.c",
+    "code/renderervk/tr_shade.c",
+    "code/renderervk/tr_surface.c",
+    "code/renderervk/vk.c",
+    "code/renderervk/shaders/csm_shadow.vert",
+    "code/renderervk/shaders/csm_shadow.frag",
+    "code/renderervk/shaders/spirv/shader_data.c",
+    "code/rendererrtx/tr_backend.c",
+    "code/rendererrtx/tr_cmds.c",
+    "code/rendererrtx/tr_local.h",
+    "code/rendererrtx/tr_main.c",
+    "code/rendererrtx/tr_shade.c",
+    "code/rendererrtx/tr_surface.c",
+    "code/rendererrtx/vk.c",
+    "code/rendererrtx/shaders/csm_shadow.vert",
+    "code/rendererrtx/shaders/csm_shadow.frag",
+    "code/rendererrtx/shaders/spirv/shader_data.c",
+    "code/rendererrtx/shaders/spirv/shader_reflection.json"
+   ],
+   "functions": [
+    "R_CSMReceiverKind",
+    "R_CSMReceiverLightmapBundle",
+    "R_CSMReceiverBatchMatches",
+    "R_CSMSkySunUnitColour",
+    "R_CSMSunLightmapColor",
+    "R_CSMShadowAtlasLayout",
+    "RB_CSMShadowEntityIsModel",
+    "RB_BuildCSMShadowView",
+    "RB_RenderCSMShadowCascade",
+    "RB_RenderCSMShadowAtlas",
+    "RB_CSMShadowReceiverPass",
+    "ARB_CSMShadowPass",
+    "VK_CSMShadowPass"
+   ],
+   "atlas": "CSM_ATLAS_LAYERS 2: row 0 the world entity's casters, row 1 every other entity's",
+   "receivers": {
+    "CSM_RECEIVER_ALL": "models and light-grid surfaces: either row, by the sun colour",
+    "CSM_RECEIVER_LIGHTMAP": "lightmap stage: models' row where the world's row is lit, by r_csmShadowStrength x share",
+    "CSM_RECEIVER_VERTEX": "rgbGen vertex/exactVertex, MoHAA map colours: as lightmap",
+    "CSM_RECEIVER_NONE": "full bright, constant or entity colour: no sun shadow"
+   },
+   "share": "clamp(S x max(0, N . toSun) / max(L, 1/255), 0, 1) per channel",
+   "debug": "r_csmDebug 1 adds baked:N after recv world:W ent:E",
+   "authorship": "independently authored; no external code"
+  },
+  "sunUnits": {
+   "method": "per sun-facing planar lightmapped surface, unsaturated luxels split by luma (2-means), both halves >= 15 %, step hue within 0.995 of the sun colour; step / (S x cos)",
+   "script": ".tmp/fnq-shadows/tools/ibsp_steps.py (rectangles from vertices where a BSP records none)",
+   "coloredSunMaps": {
+    "q3": {
+     "maps": 27,
+     "surfaces": 1440,
+     "brightestChannel": 0.709,
+     "unitLength": 1.037,
+     "rule": "unit length"
+    },
+    "q3test": {
+     "maps": 2,
+     "surfaces": 95,
+     "brightestChannel": 0.713,
+     "unitLength": 1.07,
+     "rule": "unit length"
+    },
+    "stvef": {
+     "maps": 3,
+     "surfaces": 229,
+     "brightestChannel": 0.649,
+     "unitLength": 0.946,
+     "rule": "unit length"
+    },
+    "jka": {
+     "maps": 7,
+     "surfaces": 695,
+     "brightestChannel": 0.628,
+     "unitLength": 0.98,
+     "rule": "unit length"
+    },
+    "jk2": {
+     "maps": 1,
+     "surfaces": 30,
+     "brightestChannel": 0.802,
+     "unitLength": 1.186,
+     "rule": "unit length (inferred from Raven)"
+    },
+    "rtcw": {
+     "maps": 35,
+     "surfaces": 3608,
+     "brightestChannel": 0.884,
+     "unitLength": 1.19,
+     "rule": "brightest channel 1"
+    },
+    "ql": {
+     "maps": 77,
+     "surfaces": 3678,
+     "brightestChannel": 0.827,
+     "unitLength": 1.191,
+     "rule": "brightest channel 1"
+    },
+    "wolfet": "external lightmaps, not measured; q3map2 rule inferred",
+    "q3-ihv": "no sun"
+   },
+   "allSunMaps": {
+    "q3": {
+     "surfaces": 1586,
+     "maps": 29,
+     "median": 0.718,
+     "p25": 0.578,
+     "p75": 0.899,
+     "mapMedians": 0.709
+    },
+    "q3test": {
+     "surfaces": 132,
+     "maps": 3,
+     "median": 0.735,
+     "p25": 0.585,
+     "p75": 0.97,
+     "mapMedians": 0.787
+    },
+    "stvef": {
+     "surfaces": 705,
+     "maps": 7,
+     "median": 0.752,
+     "p25": 0.488,
+     "p75": 0.97,
+     "mapMedians": 0.701
+    },
+    "jk2": {
+     "surfaces": 143,
+     "maps": 2,
+     "median": 0.396,
+     "p25": 0.291,
+     "p75": 0.636,
+     "mapMedians": 0.588
+    },
+    "jka": {
+     "surfaces": 980,
+     "maps": 10,
+     "median": 0.543,
+     "p25": 0.319,
+     "p75": 0.933,
+     "mapMedians": 0.575
+    },
+    "rtcw": {
+     "surfaces": 3608,
+     "maps": 35,
+     "median": 0.881,
+     "p25": 0.727,
+     "p75": 1.1,
+     "mapMedians": 0.884
+    },
+    "wolfet": {
+     "surfaces": 0,
+     "maps": 0
+    },
+    "ql": {
+     "surfaces": 4577,
+     "maps": 89,
+     "median": 0.802,
+     "p25": 0.57,
+     "p75": 1.012,
+     "mapMedians": 0.814
+    }
+   },
+   "entitySuns": "Alice, F.A.K.K.2, Medal of Honor: suncolor x cos as given (earlier wall fits)",
+   "unitLengthProfiles": [
+    "q3",
+    "q3-ihv",
+    "q3test",
+    "stvef-sp",
+    "stvef-mp",
+    "jka-sp",
+    "jka-mp",
+    "jk2-sp",
+    "jk2-mp"
+   ]
+  },
+  "runtimes": {
+   "before": {
+    "path": ".tmp/fnq-shadows/runtime/csm-before",
+    "commit": "150d6230",
+    "fntech3.exe": "ababdab11f29db348da9e3f70087a42d212c7638208fe02b615234e4e15fd0e5",
+    "fnql_glx_x86.dll": "6fb9fcb3a7bccbfe9959e29c3a2ae15aba4d3fcbfd01c9bdeb3c25a2dcf9a35b",
+    "fnql_vk_x86.dll": "82c082887e405fe3df484495c94254122ccfdfdd9fb8ecd03fdd42a2344cba3b",
+    "fnql_rtx_x86.dll": "67ef6c5a7f2e75c236e673ff146de0cd69734b1dc9a12d919fc071df6d1aa7f5",
+    "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+   },
+   "after": {
+    "path": ".tmp/fnq-shadows/runtime/csm-after",
+    "commit": "dfa14b7e (renderer code)",
+    "fntech3.exe": "ababdab11f29db348da9e3f70087a42d212c7638208fe02b615234e4e15fd0e5",
+    "fnql_glx_x86.dll": "b4eef06fa8c1074c6447fab34f2b8813943a5d315ba2821931803df8bfa6f6b2",
+    "fnql_vk_x86.dll": "33593f84cb5e799d94db87e40a38fc08cf9416b12a54afa7633d5e47db926140",
+    "fnql_rtx_x86.dll": "67be3219b5cce3abd9ce350131a1e24370e747eeb53048aab831833a90c846ae",
+    "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+   }
+  },
+  "probe": {
+   "scripts": [
+    ".tmp/fnq-shadows/tools/batch.py",
+    ".tmp/fnq-shadows/tools/probe.py",
+    ".tmp/fnq-shadows/tools/sun_spots.py",
+    ".tmp/fnq-shadows/tools/summarize_matrix.py"
+   ],
+   "settings": "windowed 800x600, private desktop, net_enabled 0, s_initsound 0, no input, empty home configs, r_csmShadows 1; captures on / r_csmShadowStrength 0 / dynamic-light shadows 0 / on again, then r_csmDebug",
+   "measure": "share of the frame > 12 luma darker with the sun shadows, among pixels the repeat keeps within 4",
+   "runs": 72
+  },
+  "live": [
+   {
+    "view": "q3",
+    "profile": "q3",
+    "map": "q3dm6",
+    "steps": "setviewpos -64 -1088 280 30; cg_thirdPerson 1",
+    "renderer": "glx",
+    "before": {
+     "run": "q3-glx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.3833,
+      "meanLumaOn": 28.43,
+      "meanLumaOff": 44.3,
+      "repeatStableFraction": 0.9203
+     },
+     "receivers": {
+      "world": 1120,
+      "entity": 52,
+      "baked": null,
+      "frames": 101
+     },
+     "sky": "textures/skies/xtoxicskytim_q3dm5",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "5cf20cbb68271abfe791331c8e6507fafde8984aff8b19beec4c18565c182df5"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "4221b673fad8087b8f960fa4eb4eb40c5d5d2cacd7556dd84c91365292306218"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "43245d5affde7be085021ca0a032744b12c02a164ee13523697cc2c47c4165e1"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "f9a4a21231f6a517549e46c3ecb94c7e5d15b1dda47852dbeeb0ea78aa1c6739"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "80c4d996f540194eb5c892b3f46d4954207d610c2b590fdbf603a682113f3fad"
+      }
+     ]
+    },
+    "after": {
+     "run": "q3-glx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0317,
+      "meanLumaOn": 40.46,
+      "meanLumaOff": 44.3,
+      "repeatStableFraction": 0.9155
+     },
+     "receivers": {
+      "world": 1116,
+      "entity": 52,
+      "baked": 1116,
+      "frames": 100
+     },
+     "sky": "textures/skies/xtoxicskytim_q3dm5",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "984a1485ed093abb782d88c2f13f60405f1f47a208704450cf30d8c27c3f258b"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "1b975c0ed09cb545580d34258f5570c49850d2f966d27bf75d524dd5a0f70501"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "55c41ab87cc7922147d17c93cbdb5521d5a7ad94c1c101158c2cc613c6e407f8"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "5a268a35a8294ae1c9119dacb9ea2f807d922ae1c02517db4770cf69e440c0e1"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "72d5d9614243a8519165522533da78309c1f54db34fe333c3c6691410c28e5be"
+      }
+     ]
+    }
+   },
+   {
+    "view": "ql",
+    "profile": "ql",
+    "map": "hiddenfortress ffa",
+    "steps": "team f; setviewpos -32 -512 128 135; cg_thirdPerson 1",
+    "renderer": "glx",
+    "before": {
+     "run": "ql-glx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.1718,
+      "meanLumaOn": 48.92,
+      "meanLumaOff": 54.11,
+      "repeatStableFraction": 0.9652
+     },
+     "receivers": {
+      "world": 1149,
+      "entity": 44,
+      "baked": null,
+      "frames": 130
+     },
+     "sky": "textures/skies/meth_clouds",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "0008df78840b6d0e8c3a474d9e2b25a65ddc32c696a7e8ababc6016ba8504fcb"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "871e1973cecf98f75dbc1fbeb8a92039792759e1d9364d4125470b46a98a4ba7"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "470a92e33861430916ba54c20f25b6750f466d61cd06259bc9129fa5fd0e8ee6"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "6fbbb07bd631b6b924f0a135fd2c9cb76c2fce3b2eefa34fe488613a2c7aedf2"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "957e61e3d3c0e6894d5337547ce72dff9bc679f90b3909d969b2efd489ae2dba"
+      }
+     ]
+    },
+    "after": {
+     "run": "ql-glx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0235,
+      "meanLumaOn": 53.14,
+      "meanLumaOff": 54.12,
+      "repeatStableFraction": 0.9653
+     },
+     "receivers": {
+      "world": 1149,
+      "entity": 44,
+      "baked": 1149,
+      "frames": 130
+     },
+     "sky": "textures/skies/meth_clouds",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "fb3728eca02a4c66aaf09505f91af927faad646a2bfd05db5966c9a2e4596464"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "3f263255b89855c3cd419ba7200724c980ead11225b6bf7d958b6cef107625c8"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "9a7e32885cea5be0b662e74e3a4c65c778efee3d2611d61c38fd8d152e996517"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "897758662ef5c610d7af1f56ad067b6e0873c61e42b0d2ff58a6a1a509d3aa1c"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "377bc82846f0c6749dc8cdb528971094d9b0737ead08eff61271123ee80f66f4"
+      }
+     ]
+    }
+   },
+   {
+    "view": "stvef",
+    "profile": "stvef-mp",
+    "map": "ctf_and1",
+    "steps": "g_gametype 0; setviewpos -280 -320 16 65; cg_thirdPerson 1",
+    "renderer": "glx",
+    "before": {
+     "run": "stvef-glx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.2791,
+      "meanLumaOn": 48.84,
+      "meanLumaOff": 61.18,
+      "repeatStableFraction": 0.8813
+     },
+     "receivers": {
+      "world": 990,
+      "entity": 48,
+      "baked": null,
+      "frames": 130
+     },
+     "sky": "textures/holodeck_temple/daysky_light",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "e6bfd9397dd356570835257067d7fc7115fc632e05caeb11a49d9271650aaa33"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "6a3225d443b5e32ddef97d4dd8babd03a3e562b3279db8457dfda03954e10df6"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "79703e69e66a42c373122940c6084dd81a51e5e99043366d92a6dd432232dbdb"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "88946b2f3e6407acbc3a459dbc940ad7f6609b9b0b94551c243d2f7d9f0ccc68"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "ba5878ff6a047075f1c0c79ec552ee9e85032895ae6d7b57140132d48f873d9c"
+      }
+     ]
+    },
+    "after": {
+     "run": "stvef-glx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0222,
+      "meanLumaOn": 60.65,
+      "meanLumaOff": 61.12,
+      "repeatStableFraction": 0.9288
+     },
+     "receivers": {
+      "world": 990,
+      "entity": 48,
+      "baked": 990,
+      "frames": 130
+     },
+     "sky": "textures/holodeck_temple/daysky_light",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "810df6328249b9f00350886d1c916155c2c1ad3ba7cfef681587b1d919fff1ca"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "02997bd684cedbf3e8ba302cf994ca6e81fe3b0553c09a5d40284bd3164a3b34"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "8440d42fdf41301f91a63da466afc2aaa7d0999e78ac657d41295bf45fbd1e26"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "08a95d52dfb9d7112680ee6382988e42919e453f6f4923e5acf2c6865cc3c357"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "18f6b1a64624a1fe3378738febb6983e11103fcfbc4838f6c398ff9722f6eb03"
+      }
+     ]
+    }
+   },
+   {
+    "view": "jka",
+    "profile": "jka-mp",
+    "map": "mp/ffa2",
+    "steps": "team free; ui_openmenu none; setviewpos -768 2528 24 75; cg_thirdPerson 1",
+    "renderer": "glx",
+    "before": {
+     "run": "jka-glx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.2174,
+      "meanLumaOn": 70.07,
+      "meanLumaOff": 82.17,
+      "repeatStableFraction": 0.9996
+     },
+     "receivers": {
+      "world": 174,
+      "entity": 80,
+      "baked": null,
+      "frames": 130
+     },
+     "sky": "textures/mp/s_kor_sky",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "6f64d160090877f36b951e0f1ed1aa6af46624a1041dc614480778b42461e8cf"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "53b79be675a9fa15087ca85982fa55a0ba756e2255fa5be804d59acac9037c7e"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "5c3372f888ae1646803b510e954f9c06120b34da8bc1371eb6ee2a7e63ba7f7e"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "972d1351bfd8c11eb574ef79af298683edd447f47d0beec94e630f177251b895"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "5371acf5473b0689317fe449f87d15f335d5f4b0f12878772c5763a8e7781246"
+      }
+     ]
+    },
+    "after": {
+     "run": "jka-glx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.017,
+      "meanLumaOn": 81.62,
+      "meanLumaOff": 82.11,
+      "repeatStableFraction": 0.9997
+     },
+     "receivers": {
+      "world": 173,
+      "entity": 80,
+      "baked": 173,
+      "frames": 130
+     },
+     "sky": "textures/mp/s_kor_sky",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "15e3e51e0cd7c4d151420748d01264aea25d3fe00778c86b50ff88c82cac969c"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "c197f16c7e5bd4129737f41935064b59d66ab737e4d044b0bb50924cc8cce1f9"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "f0fa15d87b7eab852c09d178d0404c27eac621e5fdc6f7d30f28a7a10702526a"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "4d51377ceb17f8f690f530f1f1c2de22f8ce4f5251d6c45e2b5feab1ff16e00d"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "da86a888063aface62343368777aecc30103f84489eb6e3f452b11dc7420d77e"
+      }
+     ]
+    }
+   },
+   {
+    "view": "jk2",
+    "profile": "jk2-mp",
+    "map": "duel_jedi",
+    "steps": "team free (stays a spectator behind the player menu); cg_thirdPerson 1",
+    "renderer": "glx",
+    "before": {
+     "run": "jk2-glx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0469,
+      "meanLumaOn": 82.92,
+      "meanLumaOff": 85.16,
+      "repeatStableFraction": 0.9856
+     },
+     "receivers": {
+      "world": 527,
+      "entity": 16,
+      "baked": null,
+      "frames": 130
+     },
+     "sky": "textures/skies/artus_light",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "13e6f4d58138336661a394db0d84294ff9b83abcc7c3a93167fe3b2af1484035"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "78df66c1b064ff99d6229c5a5b05603b7772f6de0ca658aadb920fa61be346a7"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "c3e82f7797fa04603631dd5f9d3e3a7446d40c555021c7639ebcae5d09eb0b0c"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "21fafc251c640fe5fe70bd278bab681cafc5dec8599554ce142503996f54302e"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "701e91a279d24d25c5a1447ebd2f36755d14aa52811555a8d3141b2731357dd3"
+      }
+     ]
+    },
+    "after": {
+     "run": "jk2-glx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0003,
+      "meanLumaOn": 85.16,
+      "meanLumaOff": 85.16,
+      "repeatStableFraction": 0.9834
+     },
+     "receivers": {
+      "world": 509,
+      "entity": 16,
+      "baked": 509,
+      "frames": 130
+     },
+     "sky": "textures/skies/artus_light",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "1b13a9713102c8cc0d8dd2f122eb31ae1c3ce501e226462a279cbc14704edb65"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "aea3d2d89532142f6078a75f68b011ed726364e63829fb95204386319ba1bb64"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "b997241a3b5bc06b89cd87034b22b686991594e8832e02c4f9e2b27f82041bf5"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "100d83a614d13a1e8be3b8c10a64533fbb960480fc7b7b9fb8816616e63701e0"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "81e0bf67177dd015a40158dfad334d7372bdc8836994307a4ce45cd1edbe389b"
+      }
+     ]
+    }
+   },
+   {
+    "view": "q3test",
+    "profile": "q3test",
+    "map": "q3test2",
+    "steps": "setviewpos is no command of its game: a random spawn each run",
+    "renderer": "glx",
+    "before": {
+     "run": "q3test-glx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0058,
+      "meanLumaOn": 28.08,
+      "meanLumaOff": 28.61,
+      "repeatStableFraction": 0.9343
+     },
+     "skips": {
+      "no-world": 130
+     },
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "c411fefef3be512d4d5186186cee1404c34be3d8e43131b4658e232b9f2df847"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "1b80f18b158daae34226cef205c7672d0f8714e368ac93103bee0b7c28a28d40"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "48a5671d26806e107662a626542c02cf0a95d6aa27d2cb97a9f7fc9f6a79ab79"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "ff60dfd82f6f4b879097ee40012fa28eacb39558bb71699b2eb07278b7a20165"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "c46ce62ea5bdc5192a9f422f85c8e64c791dc9ac5993e6742fdf1dd5e0b181ab"
+      }
+     ]
+    },
+    "after": {
+     "run": "q3test-glx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0058,
+      "meanLumaOn": 41.69,
+      "meanLumaOff": 42.01,
+      "repeatStableFraction": 0.925
+     },
+     "skips": {
+      "no-world": 130
+     },
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "999920518a457d225469bced655ad3be400a9ac38cf2b7fe68d2b7d06c7e631c"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "bfc5658f228011e2100789c26f9cfaafcaa91723b9bedc6c230b7c30bd70e4ab"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "d0624173711982e9d040cc11a915af09ec69fe1c2462452e5b686365dd918df0"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "89d7d91568f05b0864b64b60907aaefc42c8ffbc6d79c7fa5ce447354f77e02c"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "2c7586dd1d591ce34cef9e087401b1182cfea4e57ee28363b75bb8743866b9f2"
+      }
+     ]
+    }
+   },
+   {
+    "view": "wolfet",
+    "profile": "wolfet",
+    "map": "oasis",
+    "steps": "team b 2 8 7; openlimbomenu; cg_thirdPerson 1",
+    "renderer": "glx",
+    "before": {
+     "run": "wolfet-glx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.1645,
+      "meanLumaOn": 147.79,
+      "meanLumaOff": 160.58,
+      "repeatStableFraction": 0.9642
+     },
+     "receivers": {
+      "world": 5060,
+      "entity": 104,
+      "baked": null,
+      "frames": 130
+     },
+     "sky": "textures/skies_sd/sd_siwasky",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "e31d7ee7096e72c5d5514bb07c6b138350e4886d5b95a5f4bff9629b23cd0aac"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "dfa875a4ebb6c56c0d552d78de2a8894b7fb0854ba8592ddd4bbf068ae86e9bf"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "aa089ebbd55ed2debdac573498d518a7f502ec569c8c120781839d94ae8f0804"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "8e3ff953736d1f4501728c3bfadc7dd5fe4deeebf7923bf3423c8489313c247e"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "b1b0cb3ac232ef70c89190f1d2292f3b3fa725a9d9c6d94154edefe247b1bd02"
+      }
+     ]
+    },
+    "after": {
+     "run": "wolfet-glx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0213,
+      "meanLumaOn": 157.9,
+      "meanLumaOff": 159.33,
+      "repeatStableFraction": 0.9758
+     },
+     "receivers": {
+      "world": 4965,
+      "entity": 104,
+      "baked": 4973,
+      "frames": 130
+     },
+     "sky": "textures/skies_sd/sd_siwasky",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "1c1568304542257518e35b1825c2e3511a16fdec6286b38807f1b6d63ccb7b9e"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "71b4309e17dea190b13d34c1324420960d101ebfe670230c37a8388c967c5c8e"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "bfa667d9d584dbfcbb1a6e8a65f79bb3e0481f70e0baae8a63f9b9272d756cae"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "e7190604a241bf46eb1c5cde6c13ae62fbeea5317de6789c8a1e9825011a6f54"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "7780622f13c5db53c43199dcd06296715feeef06c540b0901324fc7679ca58cf"
+      }
+     ]
+    }
+   },
+   {
+    "view": "rtcw",
+    "profile": "rtcw-sp",
+    "map": "forest",
+    "steps": "give all; weapon 3; cg_thirdPerson 1",
+    "renderer": "glx",
+    "before": {
+     "run": "rtcw-glx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.6896,
+      "meanLumaOn": 21.34,
+      "meanLumaOff": 39.78,
+      "repeatStableFraction": 0.8742
+     },
+     "receivers": {
+      "world": 104,
+      "entity": 576,
+      "baked": null,
+      "frames": 130
+     },
+     "sky": "textures/skies/sky_forest",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "feca6cbd9b54211dc6b641ee5abb68b62149f11d5a025f00fe7a5ef3662774d0"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "a4717614132f7d84ac665bb662738203f68b37b91c76d76a67a0d9a3a6c2016e"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "38e64db9e17a8dbbf14c20d529ec49abd118b1523aab65028e304a70f78e5885"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "5d0e11500e155f0fd5b24e2e9b403002f10560da1175cec9e96c01a321352a5e"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "e16955f01fa0c2ed119e9a8b96ed069cbfc05214e98730805527fa67d1ec621d"
+      }
+     ]
+    },
+    "after": {
+     "run": "rtcw-glx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.7473,
+      "meanLumaOn": 18.66,
+      "meanLumaOff": 39.52,
+      "repeatStableFraction": 0.9085
+     },
+     "receivers": {
+      "world": 104,
+      "entity": 576,
+      "baked": 104,
+      "frames": 130
+     },
+     "sky": "textures/skies/sky_forest",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "6e5add973272f71ee882b4c8d5b732b36fd2a376e9638978e64ce8387a9b3b4a"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "117e863a644ecb675af90219defe30d4b77aa8b43f35e5696d270a6a5fea498a"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "9f7de4e46d0a997979dd4d909a051eb6f5f6109b1b07e8a96e647fbf69a909c1"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "01d81771d3e040dd978819f9dfe4757446f20718e5e724aa477186f029b942f1"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "88d52d2c4ba9eace5d938c04e5fba972ee5d2dd5edbb1437cd1d4492e13a625c"
+      }
+     ]
+    }
+   },
+   {
+    "view": "fakk2b",
+    "profile": "fakk2",
+    "map": "fakkhouse",
+    "steps": "skipcinematic; cg_cameraheight 60; cg_cameradist 200",
+    "renderer": "glx",
+    "before": {
+     "run": "fakk2b-glx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0313,
+      "meanLumaOn": 83.78,
+      "meanLumaOff": 84.5,
+      "repeatStableFraction": 0.9162
+     },
+     "receivers": {
+      "world": 624,
+      "entity": 112,
+      "baked": null,
+      "frames": 134
+     },
+     "sky": "entities",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "39454aca864d8d370e47e3509ba1c9855397db2ef19c38adffa2a24c04cbaedf"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "89c275e0a378482528b6a941052844acf72880fa00c370ef77a36e0edcfb9340"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "51325bc67211a0b2193857169cfff3f8ddba399002f627332352e3bc5ee9c17d"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "e23705a3677e7250077c97b2519b357905f8b61f8d96ec6b9005322229fb0a90"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "1c56516a42a0d27512ce7e1b028e596ac80feb3300e49fb06d74a39e0d066e10"
+      }
+     ]
+    },
+    "after": {
+     "run": "fakk2b-glx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0089,
+      "meanLumaOn": 84.35,
+      "meanLumaOff": 84.34,
+      "repeatStableFraction": 0.9166
+     },
+     "receivers": {
+      "world": 622,
+      "entity": 112,
+      "baked": 658,
+      "frames": 133
+     },
+     "sky": "entities",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "162ee4a17a4ac5c13ba637748fce90f961e1abdae8ace2560cae242540afc085"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "78dcc4143f31d79aae11cbc21e24b6a21f0f1f6c4f1d6d664b255672406c2ee1"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "30ab72cf0f813d39a8ac9381868ca0a2ca1ee4a4fa38e4d18e1dce2361fcde48"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "2afa669fd230b030fa1113ecbe2ea1ee7276abd312aa3de52f2b715a872d28ec"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "6fd0fa5d7ddbb05774877f105f1b1dcc336d3bfd95c452e10cd7033ac4a32682"
+      }
+     ]
+    }
+   },
+   {
+    "view": "shield",
+    "profile": "fakk2",
+    "map": "shield",
+    "steps": "skipcinematic",
+    "renderer": "glx",
+    "before": {
+     "run": "shield-glx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.312,
+      "meanLumaOn": 42.09,
+      "meanLumaOff": 50.44,
+      "repeatStableFraction": 0.9869
+     },
+     "receivers": {
+      "world": 155,
+      "entity": 60,
+      "baked": null,
+      "frames": 136
+     },
+     "sky": "entities",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "794cf155e786b2d7c5b25f7c420ceeb48e809b10a32f819de47dcca35a5d7a57"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "a1699071090b122b00342ed3f08022a34b81a6c26597f913f88ce66d44352712"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "2ea8d11ffe3784cb9bbc32482b3f46ba5fea8a94295631ef5b5a4de2510c864f"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "2525679365ba8d1b64ac20eb273cb1b42f4c66c2c9edee2d4b6f9a61677a20e3"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "f0222f4f0d56dc37ff291bd938cfe1ac706b0576f2571ef22c9a3650cc0bb55f"
+      }
+     ]
+    },
+    "after": {
+     "run": "shield-glx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0113,
+      "meanLumaOn": 49.96,
+      "meanLumaOff": 50.46,
+      "repeatStableFraction": 0.9884
+     },
+     "receivers": {
+      "world": 155,
+      "entity": 60,
+      "baked": 171,
+      "frames": 136
+     },
+     "sky": "entities",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "0e5aecfc299923a9df664e39ecbb2e0727db7c8a10e6cc2c0e42315837d2d698"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "0164e1d7ac8e18209cc9edec267f7239a2dd89493713664501378b7c5016a311"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "6d8251f23ce1d20511353db2a58c614f64ffb7a0667acad3da98d24241d0ad33"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "4aaff8c97d971086373610a1d99ddf6ed3caffa12271297505559f63ffb229b9"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "7d850ebf5feca89c225d7d75b9428bbcd4689dc2a35305091776b92b77acf834"
+      }
+     ]
+    }
+   },
+   {
+    "view": "alice3",
+    "profile": "alice",
+    "map": "grounds1",
+    "steps": "skipcinematic; god; notarget",
+    "renderer": "glx",
+    "before": {
+     "run": "alice3-glx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0607,
+      "meanLumaOn": 47.57,
+      "meanLumaOff": 48.3,
+      "repeatStableFraction": 0.8072
+     },
+     "receivers": {
+      "world": 875,
+      "entity": 328,
+      "baked": null,
+      "frames": 78
+     },
+     "sky": "entities",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "8755283ee10d67d45f252e3907748889c0f516dd4b5dc5183c55f7072fe7f39d"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "01eaaea9c583c7e99bb06a7c1068b45111947a23fab32e74bf0d8fa12fb812c7"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "7463566ef3091880cb20622712bf1ff8ecda7af97e1369ccb0308f954c31dea1"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "7ac7f319f747010906e9e27a329c9aa158bdb2455191ee4b2a9e78460350cd94"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "0c19337b375b46f8ace4279079449619626f3bad3876a32908549a81f0fd7463"
+      }
+     ]
+    },
+    "after": {
+     "run": "alice3-glx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0445,
+      "meanLumaOn": 48.17,
+      "meanLumaOff": 48.25,
+      "repeatStableFraction": 0.8071
+     },
+     "receivers": {
+      "world": 865,
+      "entity": 328,
+      "baked": 1101,
+      "frames": 75
+     },
+     "sky": "entities",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "2d1a1d0abaeb9841dacae1baecd7012b8c92ea29625c755375d41729ef24856e"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "d008fe6c2d934108914ded9955198212eb1937c0aafcc01882f9309182630dd1"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "93a76fac44d699401f6a41c58592d56790c8633354ba59ce40e731b6aa9cd9cb"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "fe612752741412ca5a74850c63ed508f21a389362f70776c0239da2b36c9b81b"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "d0db4482df520e41610b21a3ef3000a285c42b796e92cf5c3afb135257cdf228"
+      }
+     ]
+    }
+   },
+   {
+    "view": "mohaa2",
+    "profile": "mohaa",
+    "map": "m5l1a",
+    "steps": "god; notarget; tele; face; spawn models/human/allied_airborne_soldier.tik",
+    "renderer": "glx",
+    "before": {
+     "run": "mohaa2-glx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.1134,
+      "meanLumaOn": 75.47,
+      "meanLumaOff": 79.11,
+      "repeatStableFraction": 0.9594
+     },
+     "receivers": {
+      "world": 1609,
+      "entity": 328,
+      "baked": null,
+      "frames": 136
+     },
+     "sky": "worldspawn",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "dbb021bc24def9bc61a2c7fcdafa1c35b965bc53532f0962932cd0fbea5ed6bd"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "839244fbbfbf04b7b387cd66ea0806654a2f7af4db1ff9134edd55df9554a963"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "09016079f9d7fc25c802586757824132544bed9c4fe421dee83f7cbc3e808578"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "de59f3b37fd07f87963829d73946da83a8929936186c949b63d53eee05c920f3"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "e75c7bc8edbb81726c97e0865d93f9e1fbad2b9dc4852060831170efdc68bff3"
+      }
+     ]
+    },
+    "after": {
+     "run": "mohaa2-glx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0091,
+      "meanLumaOn": 78.16,
+      "meanLumaOff": 79.05,
+      "repeatStableFraction": 0.9599
+     },
+     "receivers": {
+      "world": 1609,
+      "entity": 288,
+      "baked": 1753,
+      "frames": 137
+     },
+     "sky": "worldspawn",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "fb808c4034878a31d6d88adb8d041dfd4ffbe874d97e17c24e935e7c0aa53eaa"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "fc18198a85d2e8305a34e8a1a7a78825819901f9d8bf61c9830b300ea6900db1"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "414ef873efba0427f1ffd84b5dc8f34f680b2886ec78e8cd77812c363c0d6865"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "6a5f0ffcf8b905842adfdbcaf17b37c2ba3a25f05f8485299863ddbca1dd1527"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "6c09a03a897bfcedcbfacec5255c422ff3d8f257efa62590acb2f2af1f83597f"
+      }
+     ]
+    }
+   },
+   {
+    "view": "q3",
+    "profile": "q3",
+    "map": "q3dm6",
+    "steps": "setviewpos -64 -1088 280 30; cg_thirdPerson 1",
+    "renderer": "vk",
+    "before": {
+     "run": "q3-vk-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.3884,
+      "meanLumaOn": 28.84,
+      "meanLumaOff": 45.13,
+      "repeatStableFraction": 0.9134
+     },
+     "receivers": {
+      "world": 1118,
+      "entity": 52,
+      "baked": null,
+      "frames": 104
+     },
+     "sky": "textures/skies/xtoxicskytim_q3dm5",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "5ca9d1eb18e1e747da3274304002e3a6498ec2cf063692f08fc383524f63b5b2"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "5eed4e66859bf262190e9dc35c208b6759fc5d39acdc53d75828c968ecc8931a"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "b2e9a0bce9cdd1f9d75875224ab7c60c684b8a4bbf843f7fc68f444a5870a2ed"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "3cae654ec88a06d55985af27a87a535abc504340a0292fe5b4a0c92ec002d4d1"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "89a0df79deaacd2b79a91505243a0827a47cf271dd370ffb9fc6346eeeb70de2"
+      }
+     ]
+    },
+    "after": {
+     "run": "q3-vk-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0351,
+      "meanLumaOn": 41.02,
+      "meanLumaOff": 45.16,
+      "repeatStableFraction": 0.9085
+     },
+     "receivers": {
+      "world": 1114,
+      "entity": 52,
+      "baked": 1114,
+      "frames": 104
+     },
+     "sky": "textures/skies/xtoxicskytim_q3dm5",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "75a88a7e00272bf27ea21756b844f18d090fcc1cf2ece28094ec7944ebbf016a"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "cd6b8c66c16e66507e8626414d1bb6b89d9350a711dc8fe88d715481b5970a68"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "c6358714a5d89ae7ea596f1179f6d33233a6041c8c34ce72438e389d82037f59"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "345e292d831669c5eb8d9303200c50e167714e5855962ba9366343606f0d2bc0"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "6d53d44495ef6d1211fc3648facc665aa68d3cf8e6e9d58841f3320f8f706a8b"
+      }
+     ]
+    }
+   },
+   {
+    "view": "ql",
+    "profile": "ql",
+    "map": "hiddenfortress ffa",
+    "steps": "team f; setviewpos -32 -512 128 135; cg_thirdPerson 1",
+    "renderer": "vk",
+    "before": {
+     "run": "ql-vk-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.173,
+      "meanLumaOn": 49.78,
+      "meanLumaOff": 55.85,
+      "repeatStableFraction": 0.9567
+     },
+     "receivers": {
+      "world": 1150,
+      "entity": 44,
+      "baked": null,
+      "frames": 130
+     },
+     "sky": "textures/skies/meth_clouds",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "3afbd692f9b564df07713b78a391dfeeb3f571baa72df3aa639d6eb18c409d44"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "bf446f57acefc82be45ea161913b57ac2142683554119536b6731f12df2f971d"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "896ff0be3838ff605aad0e4ddcf5a2ae8793f28f325a9540a692690c6f17cd51"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "12033a7ffeace325c8199c55d77ed263be08ab4f17eb9cf8e99f8575df826c18"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "b849eb60eafd5eaa2f41041a65c70fb5038bee663bfb8f8ab36b821e4174c5c1"
+      }
+     ]
+    },
+    "after": {
+     "run": "ql-vk-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0257,
+      "meanLumaOn": 54.13,
+      "meanLumaOff": 55.24,
+      "repeatStableFraction": 0.9543
+     },
+     "receivers": {
+      "world": 1152,
+      "entity": 44,
+      "baked": 1152,
+      "frames": 130
+     },
+     "sky": "textures/skies/meth_clouds",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "cab37138d8b09643354fb24f18396e68292c8c33f76876294310cf568837e457"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "3e434c97a38105f0b6b6808968a1acb49879e8fba77f1c8ed393547c4d77629c"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "889be911f3ba587a2e54450148297272eec89c0572290da10a0bc937a072b6d8"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "6481ae8efe7eca0a4f3a5a7e9e94a3ff3aa43f0441730a2154f4acf16c0e9c17"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "a59fb5e442e602f49b8ae3391c310b39117037c278e9f34a37b25a9d5c0dd86a"
+      }
+     ]
+    }
+   },
+   {
+    "view": "stvef",
+    "profile": "stvef-mp",
+    "map": "ctf_and1",
+    "steps": "g_gametype 0; setviewpos -280 -320 16 65; cg_thirdPerson 1",
+    "renderer": "vk",
+    "before": {
+     "run": "stvef-vk-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.2872,
+      "meanLumaOn": 49.85,
+      "meanLumaOff": 62.31,
+      "repeatStableFraction": 0.885
+     },
+     "receivers": {
+      "world": 990,
+      "entity": 48,
+      "baked": null,
+      "frames": 130
+     },
+     "sky": "textures/holodeck_temple/daysky_light",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "6dc8f94dfcd88d637a257f75f31330d7eea9aa6cef50817977ce19b1523e87ef"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "5692649acaa277c070533a2fe98555815635ec671ad6fe98a308823b6debdd3c"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "dbdc3114abc63bee578970df85b756785c4bef9d29b4b73e001cb4274fddf75d"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "43bcd76a07445af3e305a20fec61fdfe49a100bd869a5a35649c4dcf5e9cf702"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "b48818897027698634da201108974b6e2cb1bc6224d55f0b82ecf2409a58d85b"
+      }
+     ]
+    },
+    "after": {
+     "run": "stvef-vk-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0124,
+      "meanLumaOn": 62.03,
+      "meanLumaOff": 62.33,
+      "repeatStableFraction": 0.8849
+     },
+     "receivers": {
+      "world": 990,
+      "entity": 48,
+      "baked": 990,
+      "frames": 130
+     },
+     "sky": "textures/holodeck_temple/daysky_light",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "9b876f889f785cbc4009c707525debd636c83c71ea7aa50a258b4417fcaf2504"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "b9b898e5b9b1a3442dbe0edd519602ba56f9b3bd15c7d6d3b2cf4fd1caf83af1"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "0eea634ad952bca86168ea127f74a133362c286899634ee3c7ba6f9b57b09ed2"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "fcc95404a0395994165a88b3052256a74109f6e51018eaf431725e65d1c7a4bf"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "6db2adb4dae03190111e8c131788fb126c46454dcd34c3db7544bb41f2c32725"
+      }
+     ]
+    }
+   },
+   {
+    "view": "jka",
+    "profile": "jka-mp",
+    "map": "mp/ffa2",
+    "steps": "team free; ui_openmenu none; setviewpos -768 2528 24 75; cg_thirdPerson 1",
+    "renderer": "vk",
+    "before": {
+     "run": "jka-vk-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.2174,
+      "meanLumaOn": 70.32,
+      "meanLumaOff": 82.7,
+      "repeatStableFraction": 0.9995
+     },
+     "receivers": {
+      "world": 174,
+      "entity": 80,
+      "baked": null,
+      "frames": 130
+     },
+     "sky": "textures/mp/s_kor_sky",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "7ea3eaabe14dc519db7a3333aaa00999b4cbc1ee14fe5ebf4829aab661e23d6d"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "95db24825f1804901854380129cfca182cef5f13608f027e93f5038097cb8036"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "786efdcb3c44a2ab9351a10d41bf4d8ec2a915ccd036b15f18df5e8c629c2601"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "a56f6c32f0e11ad2afc4aa4fc39bf558635f9515d383ebdb6283c5fb92808832"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "9e2fdccddc901c4beb91a71a6a49ee5821e81409e99b8ce5ff44ba28f1f2fb50"
+      }
+     ]
+    },
+    "after": {
+     "run": "jka-vk-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0168,
+      "meanLumaOn": 82.78,
+      "meanLumaOff": 83.26,
+      "repeatStableFraction": 0.9996
+     },
+     "receivers": {
+      "world": 173,
+      "entity": 80,
+      "baked": 173,
+      "frames": 130
+     },
+     "sky": "textures/mp/s_kor_sky",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "2a28c1a2e6193b6a96484759fd88be0fdd15856b7ffcd6fdfda8be78b7d57c0e"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "c1d4d7921239f04db0aceef6e7fdc0f11bd20d9676ce10fab07c7b570fdcfaed"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "b163ace19b9924e99a1adece1d24ca7b70090d4548388fc308f3fb60a98f8340"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "059961187d5368ce1ab4750bc62f4a91339dfbbe7dcc3df1304977d31491b6ab"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "b91db7b8aa2dea96f4cf12146b3825d4d12f644d10495e7f652f9d49a47d110b"
+      }
+     ]
+    }
+   },
+   {
+    "view": "jk2",
+    "profile": "jk2-mp",
+    "map": "duel_jedi",
+    "steps": "team free (stays a spectator behind the player menu); cg_thirdPerson 1",
+    "renderer": "vk",
+    "before": {
+     "run": "jk2-vk-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0465,
+      "meanLumaOn": 83.0,
+      "meanLumaOff": 85.17,
+      "repeatStableFraction": 0.9853
+     },
+     "receivers": {
+      "world": 527,
+      "entity": 16,
+      "baked": null,
+      "frames": 130
+     },
+     "sky": "textures/skies/artus_light",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "5f5f21078e57bc1c097c56ad5ab7fb553f4c32311df646fc8a9bfb3c111dc9dc"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "db6a2c30859ab7ecbfe1603ed014f027194e45340359c4e77b4bf28854652d67"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "ee54ef1ba19849562476f09fa74de87815343f4d9d59f4cc583e241df489bce0"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "be9ae6f57446ea3252eedde72cbd808f51e486544a61caad64412d549618c509"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "52daeb6f8c92484ff657f824bffd501565ced9feae8b28fb92e797702df76f13"
+      }
+     ]
+    },
+    "after": {
+     "run": "jk2-vk-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0003,
+      "meanLumaOn": 85.19,
+      "meanLumaOff": 85.2,
+      "repeatStableFraction": 0.9855
+     },
+     "receivers": {
+      "world": 509,
+      "entity": 16,
+      "baked": 509,
+      "frames": 130
+     },
+     "sky": "textures/skies/artus_light",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "13471a5d878fea9e3c2354ce34ba03d5afc56d8b68811b887a71e73d1c9aeca3"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "8a7396033f3957b1f13a12feb7dec7e1a5251df2b800f41b21e2a60c2374c75f"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "402dd63563156ea378612f3ddd10685a963dc24d3486abb1b8d9f46e53cac7a7"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "c4b6498fcb93d2876153883e3fbbaabd64bc43a553096286795ab974210eedb3"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "484c8ed8281cb0aacb26baa64d53ab211b5ae9e901c38ee004373507fd32f391"
+      }
+     ]
+    }
+   },
+   {
+    "view": "q3test",
+    "profile": "q3test",
+    "map": "q3test2",
+    "steps": "setviewpos is no command of its game: a random spawn each run",
+    "renderer": "vk",
+    "before": {
+     "run": "q3test-vk-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0063,
+      "meanLumaOn": 26.0,
+      "meanLumaOff": 26.69,
+      "repeatStableFraction": 0.93
+     },
+     "skips": {
+      "no-world": 130
+     },
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "b0dfa39366c78a702b7270467cbe779c97aa4c3a5079be6974ca4d842d9bb720"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "785c64730f1645a0b233598575e095d82c8a9643c41ed68a18bbcb19ae04682b"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "6821404cfa6999aca8bd42859d2a7770fd5136e0f0f186525ab40db23d6195d7"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "791d7c512e66f60f763fe152bf0319e077096d23f122fcecc4ea14b8d00ab077"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "5690ff819bfbb3e565e3b1c3e1a8e0d0c1200c9baa7606d956d9c5fc7a70fc7d"
+      }
+     ]
+    },
+    "after": {
+     "run": "q3test-vk-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0077,
+      "meanLumaOn": 44.33,
+      "meanLumaOff": 44.62,
+      "repeatStableFraction": 0.9141
+     },
+     "skips": {
+      "no-world": 130
+     },
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "9ab19dd22871ea2929afff3a5b5da5547210681b5ee5a9ab49c6ef287b8dc221"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "ca2a23e0518bc628a0ccccf2798e197cbb44e0524e82924351fd39e9c3ff5672"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "b0910ded6d0cb5c4629b1e8d274b5ce97522db5161f405afd4cdd55772ea13ff"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "d0096bc9a6a78d02fdeecc6f85d832b193290cb5901ba10b6e64e5d1135d2ada"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "bd7c8cade23ea64546d0a96a9751314f4718c7cff44c247d74a26c083306ebcc"
+      }
+     ]
+    }
+   },
+   {
+    "view": "wolfet",
+    "profile": "wolfet",
+    "map": "oasis",
+    "steps": "team b 2 8 7; openlimbomenu; cg_thirdPerson 1",
+    "renderer": "vk",
+    "before": {
+     "run": "wolfet-vk-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.1642,
+      "meanLumaOn": 148.01,
+      "meanLumaOff": 160.75,
+      "repeatStableFraction": 0.9588
+     },
+     "receivers": {
+      "world": 5060,
+      "entity": 104,
+      "baked": null,
+      "frames": 130
+     },
+     "sky": "textures/skies_sd/sd_siwasky",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "55e02dd96338d56b50985a129ecb2a96d2dea696e139eb9fa6d1c066670c0680"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "f5780f9eefe6535abdeef33333278d2e5f63f6f052f661e327eab078d8566341"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "e42ec29cbd6fb2a105d021d59094c626eba0f7ff8fe20645ed21863fcc393fed"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "43c438011e82cce13254a9b30396420822b973339f28d2feddac5784fa58740f"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "b6ef5de2676a78d496940a3d45e9fb8cc579cef3f45e4c48feade68ff713c64e"
+      }
+     ]
+    },
+    "after": {
+     "run": "wolfet-vk-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0109,
+      "meanLumaOn": 158.76,
+      "meanLumaOff": 160.73,
+      "repeatStableFraction": 0.9642
+     },
+     "receivers": {
+      "world": 5025,
+      "entity": 104,
+      "baked": 5033,
+      "frames": 130
+     },
+     "sky": "textures/skies_sd/sd_siwasky",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "8ef1f7d98c25d0d4b33f6426e2d4af7b103fe502cce6b3696e776ba20b9fa083"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "ab28d4624f328c166c1984c411acefa3a7cb58ded96a70ac98fd4aa7df144b41"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "f44d103f28437fa1cb850efd686bc714f0693b6af30c2656d4bbc997ab7c55ab"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "7ce546e989870b54c1dcde66ec6dbce7b447d93889af41205128e9cf7f4e4299"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "3175950c0197b3fa29c55b690e166592212821656c338dd2b2492cd7fbea8195"
+      }
+     ]
+    }
+   },
+   {
+    "view": "rtcw",
+    "profile": "rtcw-sp",
+    "map": "forest",
+    "steps": "give all; weapon 3; cg_thirdPerson 1",
+    "renderer": "vk",
+    "before": {
+     "run": "rtcw-vk-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.6821,
+      "meanLumaOn": 21.64,
+      "meanLumaOff": 39.88,
+      "repeatStableFraction": 0.875
+     },
+     "receivers": {
+      "world": 104,
+      "entity": 576,
+      "baked": null,
+      "frames": 130
+     },
+     "sky": "textures/skies/sky_forest",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "33a95f898d93ad65bf56779a1093c46fe9e32522afd73fd9ae60456e7ffa5b9e"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "5fc3d56c91f7d7c9cda83dc3f4ba8c811a924fb567139ec0ce749700fe123750"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "fda28b001e0a0b5dfb8496a482616bb0aa0cb9c07324588f4f2cd8d6b582f574"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "c7c2ba7aa0763039e908b7a866a2b763b6a3c8224778ebd702770b3208891756"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "aad778a17b781f5d3c8610ff562a7aa33bec58223be2f967d35f4e0f4415d216"
+      }
+     ]
+    },
+    "after": {
+     "run": "rtcw-vk-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.7353,
+      "meanLumaOn": 18.79,
+      "meanLumaOff": 39.88,
+      "repeatStableFraction": 0.9016
+     },
+     "receivers": {
+      "world": 104,
+      "entity": 576,
+      "baked": 104,
+      "frames": 130
+     },
+     "sky": "textures/skies/sky_forest",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "84b34b84762079fadec226bc2b9f651bee6706a540080c9ac23c6b406f86af29"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "1630198284c26fb27e339a457018046b9466e8afa7cf67ccdf05a6f67c655d27"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "9ea2433b2918a69ed569b090ead53fd826546ea2f44fdbe25b6409cde76c9bfb"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "d8a6af2eac3b2afd5efdbdf782d608e3dae68fd2745548c05223e233f81407a6"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "842615f504fa3dcca1a4d4d6f5734d7bbc2e6b3bce6b38ef023042aad692ba55"
+      }
+     ]
+    }
+   },
+   {
+    "view": "fakk2b",
+    "profile": "fakk2",
+    "map": "fakkhouse",
+    "steps": "skipcinematic; cg_cameraheight 60; cg_cameradist 200",
+    "renderer": "vk",
+    "before": {
+     "run": "fakk2b-vk-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0295,
+      "meanLumaOn": 90.54,
+      "meanLumaOff": 90.78,
+      "repeatStableFraction": 0.9045
+     },
+     "receivers": {
+      "world": 624,
+      "entity": 104,
+      "baked": null,
+      "frames": 133
+     },
+     "sky": "entities",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "d4b0fa34e3e6cda0357592e79aeb26829e8875aede7f21d562426fbada5ac530"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "09d9d04377be63b7359eab6ffa03480617901e4d7de45559eec7e16d51bed195"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "571b8b343bc7859037d843b4d2bf732d55f5ab75c3dc39c48b874da543c2a776"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "06ed063eec20c3173865ed0d88a112ab929cf8db754294eaf32a6ddede89664d"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "56a06ec6c74797974cb0321fa8c8084b3a172b195127423cb72d56ba280548d5"
+      }
+     ]
+    },
+    "after": {
+     "run": "fakk2b-vk-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0089,
+      "meanLumaOn": 91.13,
+      "meanLumaOff": 90.77,
+      "repeatStableFraction": 0.9061
+     },
+     "receivers": {
+      "world": 622,
+      "entity": 112,
+      "baked": 658,
+      "frames": 134
+     },
+     "sky": "entities",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "4edd0186f4495ce9ac7cd58909e113d600648bbfb04daeb20f4117f0d59b1c2b"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "141a0d8d33ddecfbf37e213c531f5a3cdc0c53901adeeb139af66e21e9bd0057"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "88b83d9ce3c63ae6b6f45f448d057e1f8dcd46ad0943a4105881c05340efd8d9"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "c3b249f47025a7e2d3fc1a62c4643366ff4cc504509f4563ad8e63695ba0903e"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "fada94353de744c373486c4052809b1421918f3e86e2713082027a90e2b8f94d"
+      }
+     ]
+    }
+   },
+   {
+    "view": "shield",
+    "profile": "fakk2",
+    "map": "shield",
+    "steps": "skipcinematic",
+    "renderer": "vk",
+    "before": {
+     "run": "shield-vk-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.3171,
+      "meanLumaOn": 43.3,
+      "meanLumaOff": 52.58,
+      "repeatStableFraction": 0.9862
+     },
+     "receivers": {
+      "world": 155,
+      "entity": 60,
+      "baked": null,
+      "frames": 136
+     },
+     "sky": "entities",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "57bf507982e152a53f94bc253869042e7b0d1e7f65fb085ca7dea0ea431927d4"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "605109aafacdfb0773910f164e38809d258ac06fd0c5a0b0f2f712df9f07d220"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "f4235022c91cf7451262cf2c4be82e98516a9be79229eb53be0a52b39487640d"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "1fa042069fa676370a1cf4ecf5b2bb0a5f79e3c08482dd8ae865fca64e8dc5ee"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "15723c838b82b40b92937572a695bb1bb8d7520f1fe57bac7c7a6db737876587"
+      }
+     ]
+    },
+    "after": {
+     "run": "shield-vk-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0122,
+      "meanLumaOn": 51.86,
+      "meanLumaOff": 52.59,
+      "repeatStableFraction": 0.9869
+     },
+     "receivers": {
+      "world": 155,
+      "entity": 60,
+      "baked": 171,
+      "frames": 136
+     },
+     "sky": "entities",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "30d4de4f2a31d7c3bec15439534b1b0722b616a6ac8a40809b68c8c71e74da7c"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "d8112bb18a636ba5a6980e90a76e835bdf891e8dcccc6cc311bdcb6a4d159915"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "26a8bc0a147b0d126a3d27b8534f1dbfe8f311131318b193616cb6981bc9c243"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "ceec975484d2cddfd41bb88f0ddfa716fe91da76ce9b5252f26f37fbe2327af9"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "b07ab7f1db27da9b37aaa05d5b8027adcc18cf21e3e41260636dedda45ddd940"
+      }
+     ]
+    }
+   },
+   {
+    "view": "alice3",
+    "profile": "alice",
+    "map": "grounds1",
+    "steps": "skipcinematic; god; notarget",
+    "renderer": "vk",
+    "before": {
+     "run": "alice3-vk-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0607,
+      "meanLumaOn": 63.4,
+      "meanLumaOff": 61.25,
+      "repeatStableFraction": 0.7755
+     },
+     "receivers": {
+      "world": 875,
+      "entity": 328,
+      "baked": null,
+      "frames": 78
+     },
+     "sky": "entities",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "c1399b3ba2457230cb18bae6c847d0f51aadca4cdba204d0ed0540745124201b"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "9ac6902e053169df469b044c06c5ff05c6cc6276ac4f8eec6d1a9a84df7071fa"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "ccc8ed61f4b37b0aded056fbe6f92058c7e576f91c6de9ee815a3d5cb754e26a"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "850cd31a2659693e56fb76b3ebe42a9d7954a557d805a26ed15e4ffc0fd4824a"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "4038524c283c8b34d4ea544f4d9da7e3d1855619f2988561b1c145f7cc0550cc"
+      }
+     ]
+    },
+    "after": {
+     "run": "alice3-vk-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0434,
+      "meanLumaOn": 64.09,
+      "meanLumaOff": 61.12,
+      "repeatStableFraction": 0.7758
+     },
+     "receivers": {
+      "world": 865,
+      "entity": 328,
+      "baked": 1101,
+      "frames": 78
+     },
+     "sky": "entities",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "49774bf53e0d78433d6429a5648ab123cce6a541f62c5ff970db8ea784cdae2e"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "2cb7558f573c4acb432d75729ae8709a7eae03c43eab92561f22d541df9b5bc7"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "fa153c54ecd954127fb84f83bd9100af7d2445b6289d608b59d396c8fc6694a1"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "adbdf0a00f7857e5bc1704f1386c9a035e6ad090fe8f3adf6316e3970bd58f7b"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "c781386514b7315d259719764f90e5daae5d0c508d034bbb8f157cb6e9f9ed53"
+      }
+     ]
+    }
+   },
+   {
+    "view": "mohaa2",
+    "profile": "mohaa",
+    "map": "m5l1a",
+    "steps": "god; notarget; tele; face; spawn models/human/allied_airborne_soldier.tik",
+    "renderer": "vk",
+    "before": {
+     "run": "mohaa2-vk-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.099,
+      "meanLumaOn": 76.03,
+      "meanLumaOff": 79.34,
+      "repeatStableFraction": 0.9599
+     },
+     "receivers": {
+      "world": 1609,
+      "entity": 248,
+      "baked": null,
+      "frames": 134
+     },
+     "sky": "worldspawn",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "2d1a9eda833fd38eb702a60ecc082b1aeddc425070eea9d99c0c623f2ce4c9bf"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "da01a7696fda77c2b0853b4e80e49e604e8fdbcd34ee26e34c994fa763dd7a70"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "dfc7a43b124d135857d192ab3ffd9b0aed40748f51e2546b50a4923b080459eb"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "598b4887fd3e005b7c2f22dede61bd5cdc53135a1bed112ea521eeaefec084b0"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "e6d42591132061b6f67bedb0e3110d34f9a10ea5b4ea85069e1d8491821451f6"
+      }
+     ]
+    },
+    "after": {
+     "run": "mohaa2-vk-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0097,
+      "meanLumaOn": 78.38,
+      "meanLumaOff": 79.34,
+      "repeatStableFraction": 0.9605
+     },
+     "receivers": {
+      "world": 1609,
+      "entity": 288,
+      "baked": 1753,
+      "frames": 136
+     },
+     "sky": "worldspawn",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "804b4e37e8c2f8b44462f1141683eb86eb401178c0abd7ab7993cfb27ead4d6c"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "e71e9f27dc87e2bd431b17feffe35ae54adaea95b1e022f1e02e700deabd6f4a"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "1c6bf313d148ffc04a12f96a1c6cc9f4417709494808b156dea046b857869f22"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "ca8f6a108df389b9e4679d36532794db88915ff54c0da6f60cf1e0aff1ca45c5"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "07fe98aaa5de7a73637fe8b10556f10533c034d62da82b824ec4d1c87bee5f1e"
+      }
+     ]
+    }
+   },
+   {
+    "view": "q3",
+    "profile": "q3",
+    "map": "q3dm6",
+    "steps": "setviewpos -64 -1088 280 30; cg_thirdPerson 1",
+    "renderer": "rtx",
+    "before": {
+     "run": "q3-rtx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.3831,
+      "meanLumaOn": 29.78,
+      "meanLumaOff": 44.98,
+      "repeatStableFraction": 0.911
+     },
+     "receivers": {
+      "world": 1120,
+      "entity": 52,
+      "baked": null,
+      "frames": 101
+     },
+     "sky": "textures/skies/xtoxicskytim_q3dm5",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "3b3b719633d9cf2055ff74928a418f2af17ceef533d2a5f41023c01d856bd08a"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "4ea63d2a6e4851b32ebb91ac4b7a273966f3cd002e055a38a6a9f9769cc6d61e"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "4cc9ef7abae0a86a5b347e65535bfe391bd450486dc81b26900e55c9baec08d9"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "df3e218847355a5ed7f033119f92481f0e191f1d425939d2b5c918082d3889f9"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "89a4f378b16c87e8ad0be921494df543b62fd5a25045417350cdbefbf489449c"
+      }
+     ]
+    },
+    "after": {
+     "run": "q3-rtx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0345,
+      "meanLumaOn": 40.99,
+      "meanLumaOff": 45.12,
+      "repeatStableFraction": 0.9077
+     },
+     "receivers": {
+      "world": 1116,
+      "entity": 52,
+      "baked": 1116,
+      "frames": 100
+     },
+     "sky": "textures/skies/xtoxicskytim_q3dm5",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "f00a3515b4f2289c2d22a0b16a4403c147f7e61094ab87f6f5d6546b4970afd8"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "99ee27eba8d5e86baf273f8d83f0151f4ec19ebaf304bab100f7652e9793ab5c"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "14c9491ebc8dafc2d8f142eadf3df415aca11352ac65fb82572129f1b727f321"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "7e5f4228c75f6f31163fef6bc53caaa3ab9052ab8c5f0dec55652d8de947ea92"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "7e66d359bc1357a74c42a6786b42b6e26c6c0f77f5df7ef6bf94f2b36d48996b"
+      }
+     ]
+    }
+   },
+   {
+    "view": "ql",
+    "profile": "ql",
+    "map": "hiddenfortress ffa",
+    "steps": "team f; setviewpos -32 -512 128 135; cg_thirdPerson 1",
+    "renderer": "rtx",
+    "before": {
+     "run": "ql-rtx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.1763,
+      "meanLumaOn": 49.61,
+      "meanLumaOff": 55.0,
+      "repeatStableFraction": 0.9535
+     },
+     "receivers": {
+      "world": 1149,
+      "entity": 44,
+      "baked": null,
+      "frames": 130
+     },
+     "sky": "textures/skies/meth_clouds",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "325e0c231b61e47287aef98578bea9a68ec80119e4934298590e68a4d5504121"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "a9a602eb8bb098412cacf7a9c2e7c15505a005f589e38e227eeab099c103172f"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "a58a28feab48bc54ee2916402e63bd69ac55551a66080de6b8eee72ee278008b"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "f7202f8ecb6327866c8994ae7f0e6c9d555cefe122ee038abb96c8f66f47ee53"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "ccb0e5d51dedb7c05218e3d4dbc9a4344aecbc28a36960d63d7fd5d1b6730bda"
+      }
+     ]
+    },
+    "after": {
+     "run": "ql-rtx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0235,
+      "meanLumaOn": 53.79,
+      "meanLumaOff": 55.11,
+      "repeatStableFraction": 0.9541
+     },
+     "receivers": {
+      "world": 1149,
+      "entity": 44,
+      "baked": 1149,
+      "frames": 130
+     },
+     "sky": "textures/skies/meth_clouds",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "909560481dc645d05884fc4c13b3b222e1ed4c1e03a5c1d0becb3dc7755fc5e2"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "de25097128c139b63f651451cb1b02dd4fef34a7e6a52ef9b101047a73cf9a5a"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "4f92fec0b3440705abbc7cc4aaa1cd795a234c0b33e182a5a590984b047cd132"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "17c5af600d8ed1865a378f15e98e2d6302e8bb11e968087d77b597881235a51a"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "040db2a5f2f9d3125b3a35e0984307dee250d6651fc45ff6d0411e369485c6de"
+      }
+     ]
+    }
+   },
+   {
+    "view": "stvef",
+    "profile": "stvef-mp",
+    "map": "ctf_and1",
+    "steps": "g_gametype 0; setviewpos -280 -320 16 65; cg_thirdPerson 1",
+    "renderer": "rtx",
+    "before": {
+     "run": "stvef-rtx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.2846,
+      "meanLumaOn": 50.47,
+      "meanLumaOff": 62.29,
+      "repeatStableFraction": 0.8846
+     },
+     "receivers": {
+      "world": 990,
+      "entity": 48,
+      "baked": null,
+      "frames": 130
+     },
+     "sky": "textures/holodeck_temple/daysky_light",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "d0fd03ce1207f5aafe567e8611f3433f4c96ee515c948a7e4c03be03c08c21a0"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "8ed56d09748af6bf61ef9015c49b181a11865b38a7d21f6677377b4da25fe606"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "6892e3c8016c6b14c0791e12d76cd2910961ac0ab9a9f5017a2ee1e72c306258"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "3a80686ad4a095e843078af3401941f335aa95896531fab7ea43e314a0035583"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "c68ad7e215520c76a69da602fdf59852085dbe57fbc1bbb64cc89fe5df341ecf"
+      }
+     ]
+    },
+    "after": {
+     "run": "stvef-rtx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0131,
+      "meanLumaOn": 62.01,
+      "meanLumaOff": 62.29,
+      "repeatStableFraction": 0.8881
+     },
+     "receivers": {
+      "world": 990,
+      "entity": 48,
+      "baked": 990,
+      "frames": 130
+     },
+     "sky": "textures/holodeck_temple/daysky_light",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "72665469fe31a77f67a97ef7e085cdfac97e843635d07d6271f1a77840b5351f"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "de8f9f03134b772ce2597e4e864bca345cabd5d6aa37095736ee7af94d5ae743"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "b552bae860e278b2e0f1830edabda4c2c9a6b0bd5c8a76c9a2f2b38f3505872b"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "27797ceb95e1b9352ff059ac63169ed27e60695ac17e1b8fe9974b96e378af7d"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "507b2936c00a7816e9d40cd564cd564640dae1aad920bfc40dfdf4de178a3ad0"
+      }
+     ]
+    }
+   },
+   {
+    "view": "jka",
+    "profile": "jka-mp",
+    "map": "mp/ffa2",
+    "steps": "team free; ui_openmenu none; setviewpos -768 2528 24 75; cg_thirdPerson 1",
+    "renderer": "rtx",
+    "before": {
+     "run": "jka-rtx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.2153,
+      "meanLumaOn": 70.34,
+      "meanLumaOff": 82.6,
+      "repeatStableFraction": 0.9995
+     },
+     "receivers": {
+      "world": 174,
+      "entity": 80,
+      "baked": null,
+      "frames": 130
+     },
+     "sky": "textures/mp/s_kor_sky",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "3f901416fe44bc03c3ab87b74698fbda3ea4b4918e2e8085bc1edecc7dfe9630"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "f0c38658d0a22b04ee54fd8c2afbe625a58ab6cd2674a35442d5d916ef1abcc2"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "8992920b18c8de5ec4700d2e15ad2ad32250934aafcf1bd6b9b6ece6d5129bcd"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "c543218d3f8084f8c532966ac9ebeefefd1f5014bc506803b32bce1c7cf02d69"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "d636b1021c86417b2fac54e4c5103ceccf987d7dd9b8bbf8da21071b6b4c656c"
+      }
+     ]
+    },
+    "after": {
+     "run": "jka-rtx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0171,
+      "meanLumaOn": 82.2,
+      "meanLumaOff": 82.69,
+      "repeatStableFraction": 0.9998
+     },
+     "receivers": {
+      "world": 172,
+      "entity": 80,
+      "baked": 172,
+      "frames": 130
+     },
+     "sky": "textures/mp/s_kor_sky",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "60bcf019a9b34cb1109dd79122bc814f687369754e8361f11dd0452dbdcf025a"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "98af7bcff36aa2d4390875259ea09956ff0ff9a385f12c1dd801f815b41cf3c7"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "13e4dbdebcc4ca06abd626345e91437c2871be606e3cf348d6e7600d66c77f81"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "f1503ced2e1da489fc2e2879a6c8bff3264023ec7a827129b7d053d8adb872c4"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "99956113008c7c6d98bee2eda9c9ef59fdb59d24fb9049197e0a7ab679d852a3"
+      }
+     ]
+    }
+   },
+   {
+    "view": "jk2",
+    "profile": "jk2-mp",
+    "map": "duel_jedi",
+    "steps": "team free (stays a spectator behind the player menu); cg_thirdPerson 1",
+    "renderer": "rtx",
+    "before": {
+     "run": "jk2-rtx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0465,
+      "meanLumaOn": 82.96,
+      "meanLumaOff": 85.17,
+      "repeatStableFraction": 0.9863
+     },
+     "receivers": {
+      "world": 527,
+      "entity": 16,
+      "baked": null,
+      "frames": 130
+     },
+     "sky": "textures/skies/artus_light",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "452ccab217e01aefadd17e54d42db7930407552c2c48980afaea0ff2fa2814b0"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "8be6b0ca5b5c9d82123974f1ead9d6547b2094c4c9c531073d27ae0b82e8f4c3"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "c7f0ea8764ae1a24d6ca17824cccf0380e2f0f5cba22a7949609c792b47e0de4"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "c3b18aba2d82e71d16d68195140422580802a2900e498eb0bbaaa74ac6b89ea9"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "724b6e802ef5677b923a8febef20cda275edb8bfb354585f2dd3916fc8ff2419"
+      }
+     ]
+    },
+    "after": {
+     "run": "jk2-rtx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0003,
+      "meanLumaOn": 85.17,
+      "meanLumaOff": 85.2,
+      "repeatStableFraction": 0.9832
+     },
+     "receivers": {
+      "world": 509,
+      "entity": 16,
+      "baked": 509,
+      "frames": 130
+     },
+     "sky": "textures/skies/artus_light",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "81aa98d808ae99dfc174b876f7cf43055289d9db6accb12ad411adff6dc385c3"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "e0d43c45aac6805516138c96609cb8c33a4300470e3a193bbaef8dc7d2af2ad4"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "8e3250cee5140384435a3e0a90789c1dc2cf172a846a44980cd06fed223a03ee"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "2d87bb85ad03e669bb45486f0d0de575830a7c36670009cf24184b7e4a2d0bd7"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "751267aa71efca47993a30fc710ef7c05a2b82a2ab7778ca3f042efd119eb645"
+      }
+     ]
+    }
+   },
+   {
+    "view": "q3test",
+    "profile": "q3test",
+    "map": "q3test2",
+    "steps": "setviewpos is no command of its game: a random spawn each run",
+    "renderer": "rtx",
+    "before": {
+     "run": "q3test-rtx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0073,
+      "meanLumaOn": 48.29,
+      "meanLumaOff": 48.82,
+      "repeatStableFraction": 0.9277
+     },
+     "skips": {
+      "no-world": 130
+     },
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "7881792fecd95920bcf42a046154a4f15968e9cabd8d93ea8acc620aee12eab2"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "fee9ef23431290fcc82aa94fa6bd902c92bda0c1bcd64a1ca3901d6ed5c5ccea"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "91ff37e2dc1d3fb5c36ef7ad9b811ffd5438ca1f6082013bdb904ba7d6638c15"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "f3163d27cc3c0059c4750f7b9215c91000aae9af7c0c282fa72b788311eeedde"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "6853566b4cf8660ba4187af94b62b0123f94095975cae597c5907ed9d8127cfc"
+      }
+     ]
+    },
+    "after": {
+     "run": "q3test-rtx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0073,
+      "meanLumaOn": 43.19,
+      "meanLumaOff": 43.47,
+      "repeatStableFraction": 0.9128
+     },
+     "skips": {
+      "no-world": 130
+     },
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "05401483966b119e955bc521ab2382b46abab0feb8da0194b9258aa6bbc08d34"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "28209058769434d17e2c45087f7dc27c5c453b2796ebab628c2740499c25c594"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "d1328835c42eb56d0b935422a3a9faf999bb0b81b609babba5a30ef718c02a18"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "e2e99eff3d3ad6a16333a102f2d51f9e1a7764aea5e99ff0ea84c72597848965"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "1523da84a83832ede47a911c96fe90349e55c01f8ddd7061e597ac3e0ac06dce"
+      }
+     ]
+    }
+   },
+   {
+    "view": "wolfet",
+    "profile": "wolfet",
+    "map": "oasis",
+    "steps": "team b 2 8 7; openlimbomenu; cg_thirdPerson 1",
+    "renderer": "rtx",
+    "before": {
+     "run": "wolfet-rtx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.1643,
+      "meanLumaOn": 147.93,
+      "meanLumaOff": 160.69,
+      "repeatStableFraction": 0.9636
+     },
+     "receivers": {
+      "world": 5060,
+      "entity": 104,
+      "baked": null,
+      "frames": 130
+     },
+     "sky": "textures/skies_sd/sd_siwasky",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "340f7d93fd4bc0356d7a9642053e236d03f3cd75eeb90641e12eab10a06f34a4"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "3015eb9328d83d4646e0a1a9ae8a532fbd5890cb5226988f8abdc941a3421c8d"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "ff0d956033739a8fcff2e85115463fa3a11285d25b41b5b9b8854c626ba8e205"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "2173658f48a40d2bca1c19a6c1742c1760f71664bd3b90bcd191a270cc5cb933"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "cf991a6fb61fb1ddb7194ef3227c213d07b5104044c23c59f019f9e24615fdd1"
+      }
+     ]
+    },
+    "after": {
+     "run": "wolfet-rtx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.011,
+      "meanLumaOn": 158.71,
+      "meanLumaOff": 160.66,
+      "repeatStableFraction": 0.9649
+     },
+     "receivers": {
+      "world": 5025,
+      "entity": 104,
+      "baked": 5033,
+      "frames": 130
+     },
+     "sky": "textures/skies_sd/sd_siwasky",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "31a2a16899cd88b53b8a3ae8505a38218a571d673979230c405a901afa4dadc1"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "08572c75749d2cfa06e7622fd340cdbc820198b6c3f8a394d2f375ae4efbb057"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "0e01a83fb133e085d6b3a61f77d34c70c4508f5203dd409b4e5448e5d00dda31"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "f9cf20374e4ab459e8fe02d2a180bf9dfb0ee26cce7fd31e1159233c8b5dc46c"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "30d7103c633e230196542457e7f15b590e4e540b046445ce67f5b6892a373fdb"
+      }
+     ]
+    }
+   },
+   {
+    "view": "rtcw",
+    "profile": "rtcw-sp",
+    "map": "forest",
+    "steps": "give all; weapon 3; cg_thirdPerson 1",
+    "renderer": "rtx",
+    "before": {
+     "run": "rtcw-rtx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0074,
+      "meanLumaOn": 39.7,
+      "meanLumaOff": 39.87,
+      "repeatStableFraction": 0.6939
+     },
+     "receivers": {
+      "world": 4,
+      "entity": 0,
+      "baked": null,
+      "frames": 130
+     },
+     "sky": "textures/skies/sky_forest",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "66f08868bdd4df556825e483da3a583e5eee0167b0a051833ec0462c6d5580e3"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "be8e740329c2b55f0b35930ac7aba06be036ae77f5f9e4d0eaf7fe78c650d86f"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "2e78e4f91f01a30bd7f1e1a47bcb311aae9575becd4f3da74da2dde04b094666"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "499e383f8a2d3d97eab7f45aad0d8ee440e681b9e26f624090ba5bc726cee308"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "1d3a2936d7cbebbb2eec4d61b5c295a35ac18eaa7b2eb2fe0563297cfdf70cfc"
+      }
+     ]
+    },
+    "after": {
+     "run": "rtcw-rtx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0074,
+      "meanLumaOn": 39.7,
+      "meanLumaOff": 39.87,
+      "repeatStableFraction": 0.6943
+     },
+     "receivers": {
+      "world": 4,
+      "entity": 0,
+      "baked": 4,
+      "frames": 130
+     },
+     "sky": "textures/skies/sky_forest",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "2393d61922d2845d5dcfe9ee32f2d6d9bfcde43fbb276d9796d0096a1867549b"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "b000ac589e087724546cf3ee40b572d689742b9d7933af850977f54b48f3fd40"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "31ab82aa80786ce08079c3ad1dc789ef9f905da98ac9ef35d741f6d93aaa852a"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "3bb56574e4a8771b3bab1848c26f50d41b4eb76d911718a2a683f78e90e9e7ea"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "32414f4bcad8877b5bfe854fc411223167a3a2e55f0069bdca4ef4cb102092f1"
+      }
+     ]
+    }
+   },
+   {
+    "view": "fakk2b",
+    "profile": "fakk2",
+    "map": "fakkhouse",
+    "steps": "skipcinematic; cg_cameraheight 60; cg_cameradist 200",
+    "renderer": "rtx",
+    "before": {
+     "run": "fakk2b-rtx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0299,
+      "meanLumaOn": 90.53,
+      "meanLumaOff": 90.72,
+      "repeatStableFraction": 0.9058
+     },
+     "receivers": {
+      "world": 624,
+      "entity": 120,
+      "baked": null,
+      "frames": 133
+     },
+     "sky": "entities",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "7fe504532f90c055a539ea75a0a7235ea15153eeae54de04913a94c9a74f7f55"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "94ab880a62c4baf23aafbf7651f2a3da9df95d850c60eba9766a12a3eaa71cea"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "23cad8acfd4c97738f378fa76497890111e538d255dca4ef3caf3a63310272fb"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "9d06c5787cefd4587181349f959af1b9cb00c746e6c9cd6e96b5963d5ed2f479"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "8122f6a28ededc8925eebbb36a38df74b3e81dd93beb6469efaf987684fbd945"
+      }
+     ]
+    },
+    "after": {
+     "run": "fakk2b-rtx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.009,
+      "meanLumaOn": 91.13,
+      "meanLumaOff": 90.85,
+      "repeatStableFraction": 0.9052
+     },
+     "receivers": {
+      "world": 622,
+      "entity": 112,
+      "baked": 658,
+      "frames": 133
+     },
+     "sky": "entities",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "4f4f99b44a77c95bb9f0fbedd42772b813f237366b7282bfe31f3fbd2e7c681e"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "90bd62064421d26bd6a7200a984cee52d06f2fcd26253a596ff77593b458e006"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "bf2acf7581dafe0eca5609d0df83315dd06279890c89e807551fc1ab62cff1b8"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "c49239435708d262a54de9cbfbb8175f518233c5aa4a85ee4cb0267ef59f7ea1"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "53790adc2075eaddb7d9bbdad279a44fb7c30ab571816a3f907dc6d6aea9036a"
+      }
+     ]
+    }
+   },
+   {
+    "view": "shield",
+    "profile": "fakk2",
+    "map": "shield",
+    "steps": "skipcinematic",
+    "renderer": "rtx",
+    "before": {
+     "run": "shield-rtx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.3167,
+      "meanLumaOn": 43.32,
+      "meanLumaOff": 52.6,
+      "repeatStableFraction": 0.9847
+     },
+     "receivers": {
+      "world": 155,
+      "entity": 60,
+      "baked": null,
+      "frames": 136
+     },
+     "sky": "entities",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "b0a30ec8428cc8a770b718a7d7dad5f8545a97368aa25e9e37af17595f0d7682"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "c873537dcf106e4a1287667eec3d6dd25e0d87c0a3f3990b3858b9ca60855c44"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "18944fab0b32b0724c21c3770b57c48c7e552ab8450fc3d0ca267c58657143cd"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "d413573dca76e63fba4c0588e46d9c5314233d1372c3be470731eaa38c63a816"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "1d4757fa450143b6bfe3f5a9808a086d729c30d383ad390eee4b68df0ecb826f"
+      }
+     ]
+    },
+    "after": {
+     "run": "shield-rtx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0117,
+      "meanLumaOn": 51.88,
+      "meanLumaOff": 52.59,
+      "repeatStableFraction": 0.9859
+     },
+     "receivers": {
+      "world": 155,
+      "entity": 60,
+      "baked": 171,
+      "frames": 134
+     },
+     "sky": "entities",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "0db3a4fc23d750e843b3a61635840bbde9ad245082ac2c8fbe5d3f7cb67ca58f"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "82abd1c309584725e48f56618e6d8b3a74e3156ee1789a7172776fb767ea0bfd"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "25c534d39c460ce1aaa8ce215bd014bb366e6bab4bcc72f55ac156701e6e69dc"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "4ca79a5e9cc5a58327abb46d9c4b8334373a7b87a8dec5af48be07584d1d7101"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "5a75fe82462cd1329e9c96d95e811f5d3fe0c7ea75e27ef7812a51b8008a9d5a"
+      }
+     ]
+    }
+   },
+   {
+    "view": "alice3",
+    "profile": "alice",
+    "map": "grounds1",
+    "steps": "skipcinematic; god; notarget",
+    "renderer": "rtx",
+    "before": {
+     "run": "alice3-rtx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.061,
+      "meanLumaOn": 63.85,
+      "meanLumaOff": 61.49,
+      "repeatStableFraction": 0.7761
+     },
+     "receivers": {
+      "world": 875,
+      "entity": 328,
+      "baked": null,
+      "frames": 77
+     },
+     "sky": "entities",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "169d239e55b060c47888f7d22385b49a50d62f74ed3bb50670300db4c2aa4414"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "519f9113f928e00c7de9115d6a5f337a890aa76d7b39059f18d087c7f7ca0bef"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "fdb9a6223556c225e47498f0bdcb5c82a0f03742c1c30127d717f8f60eea057c"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "62d683da46b367bcc738d8c721738e2b59ad72b2db2c95a7c1f0774ed7e7093a"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "aca20f1ae79a89a67bff43a5149d4eba7053f938ef911d55330edde28d13cecf"
+      }
+     ]
+    },
+    "after": {
+     "run": "alice3-rtx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.043,
+      "meanLumaOn": 64.47,
+      "meanLumaOff": 61.49,
+      "repeatStableFraction": 0.7738
+     },
+     "receivers": {
+      "world": 865,
+      "entity": 328,
+      "baked": 1101,
+      "frames": 75
+     },
+     "sky": "entities",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "eadce2f29d3712bc85861796f02a179030c311e96efb0b2869338287ecdf3ad3"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "5938ee9ac1706e8fa818db405d6f07e4321fe98e13faf3e021f70dcf9651c741"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "d26e79a995ed30d7acaeaae115c8669845766d941a357ee34b6371742ef5f5b8"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "498b71f0757417240cb1760fe6cd5bc03e00686064ce2bf0ac9c6df1890e908a"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "8e735af9d8cc90a18424d1c7c56e8fdc18f48055ae3a2b4bafb70ad636d427ae"
+      }
+     ]
+    }
+   },
+   {
+    "view": "mohaa2",
+    "profile": "mohaa",
+    "map": "m5l1a",
+    "steps": "god; notarget; tele; face; spawn models/human/allied_airborne_soldier.tik",
+    "renderer": "rtx",
+    "before": {
+     "run": "mohaa2-rtx-m-before",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.0992,
+      "meanLumaOn": 76.02,
+      "meanLumaOff": 79.33,
+      "repeatStableFraction": 0.9606
+     },
+     "receivers": {
+      "world": 1609,
+      "entity": 312,
+      "baked": null,
+      "frames": 134
+     },
+     "sky": "worldspawn",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "37f95cb0e3e1445e1297fa4bd67e142aefe48d7ed2aa67eb3eec52271a98a063"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "1aababe25b22de6a688bb9ba1428b2323cc5ae8c5c3826006b35e0a4a7044d37"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "a7aeb6a5bd1739dc0c5557c1b261b1633e866387e4601f71ab3f9b6e28643815"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "23d3341ca7352f2577a26d3fb24cde325e6db0085012b0a9fa50282aceee4115"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "723cab8a027798044b3ba741c21b20ffa4552bd214821b3827f90a238daa5c87"
+      }
+     ]
+    },
+    "after": {
+     "run": "mohaa2-rtx-m-after",
+     "outcome": "exited",
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "errors": 0,
+     "sunShadow": {
+      "darkerFraction": 0.009,
+      "meanLumaOn": 78.37,
+      "meanLumaOff": 79.25,
+      "repeatStableFraction": 0.9601
+     },
+     "receivers": {
+      "world": 1609,
+      "entity": 312,
+      "baked": 1753,
+      "frames": 133
+     },
+     "sky": "worldspawn",
+     "captures": [
+      {
+       "name": "on.png",
+       "sha256": "b8fe7129d0cf6baca743b87626740121cdc208ca9b5610d0dff538a8f7edb410"
+      },
+      {
+       "name": "csmoff.png",
+       "sha256": "9c418e7d4ceff2e0bda71e2447922a8172ca892c7ee2f633abdcd914a8d4e7b3"
+      },
+      {
+       "name": "dloff.png",
+       "sha256": "e656b2dab987540032a5c1c6b38298f6ce9480cd3ffff3b7523fa44811918e90"
+      },
+      {
+       "name": "on2.png",
+       "sha256": "233de551c52d9d030f5d91e51e0cbcad71ba04ccad7f151d8b55a8f4bf9e0843"
+      },
+      {
+       "name": "dbg.png",
+       "sha256": "fe69239fb07b2ed82bedeebd428555899d381dd32acd6676361ab155cdbcf9e5"
+      }
+     ]
+    }
+   }
+  ],
+  "forestTrees": {
+   "question": "are RTCW forest misc_gamemodel tree shadows baked into the terrain vertex light?",
+   "script": ".tmp/fnq-shadows/tools/gamemodel_shadow_bake.py",
+   "result": {
+    "64": "108 trees, down-sun 92.4 vs up-sun 93.2",
+    "128": "84 trees, 93.5 vs 93.6",
+    "192": "71 trees, 93.6 vs 93.3",
+    "256": "65 trees, 93.2 vs 92.5",
+    "384": "54 trees, 93.8 vs 93.8"
+   },
+   "conclusion": "not baked"
+  },
+  "observations": {
+   "rtxForestNoSunShadows": "rtx_rt_mode 0 on rtcw-sp forest: recv world 4 ent 0 before and after",
+   "rtxSkySunUnitLength": "RT_FindSun scaled Wolfenstein's sky suns to unit length (it kept a brightest channel only for maps it knew for q3map2's); fixed under skySunUnits",
+   "q3testDebugScene": "r_csmDebug reports the status-bar head scene drawn after the view (skip no-world)",
+   "jk2MenuAndSp": "jk2-mp: no setviewpos, no console way past the player menu; jk2-sp: client import 3 not implemented",
+   "rtxReflectionJson": "shader_reflection.json was stale for liquid.frag (11764 vs the embedded 11852) and is regenerated"
+  },
+  "tests": {
+   "new": "tests/csm_receiver_tests.py",
+   "updated": [
+    "tests/shadow_projection_source_tests.py",
+    "tests/csm_shadow_cache_source_tests.py"
+   ]
+  },
+  "exportValidation": {
+   "commit": "dfa14b7e, with 47e7f617's test fix overlaid (its only difference)",
+   "build": "all 1546 targets, /W4 /WX, no warnings",
+   "native": "dfa14b7e: 273 OK, 1 failed (csm_shadow_cache_source_tests.py, fixed by 47e7f617), 2 skipped; with the fix: 274 OK, 0 failed, 2 skipped",
+   "pytest": "611 files, one process each, four at a time (1364 s): 602 passed, 9 collect nothing (script-style; each passes run directly), 0 failed"
+  }
+ },
+ "skySunUnits": {
+  "problem": "RT_FindSun scaled a sky sun to unit length unless it knew the map for q3map2's, so Wolfenstein's suns (stored at a brightest channel of 1) traced too dim; the raster took the profile alone, so q3map2-compiled Quake III maps took unit length",
+  "rule": {
+   "file": "code/renderercommon/tr_sky_sun_units.h",
+   "functions": [
+    "R_SkySunQ3map2Key",
+    "R_SkySunEntitiesQ3map2",
+    "R_SkySunUnitLengthColour"
+   ],
+   "unitLength": "id q3map and Raven compilers: q3, q3-ihv, q3test, stvef-sp/mp, jka-sp/mp, jk2-sp/mp, and the Ritual/MoHAA sky suns no installed map has",
+   "brightestChannel": "q3map2-compiled maps (worldspawn keys), ql, rtcw-sp, rtcw-mp, wolfet",
+   "entitySuns": "as given",
+   "raster": "tr.worldSun.unitColour, set in R_LoadEntitySun (tr_entity_sun.h); R_CSMSunLightmapColor reads it",
+   "rtx": "RT_FindSun: R_SkySunUnitLengthColour( ri.gameId, s_rtLights.q3map2 )"
+  },
+  "installedWorldspawns": {
+   "ql": "141 of 149 carry q3map2 keys",
+   "wolfet": "6 of 6",
+   "rtcw": "0 of 50 (_farplanedist is its own)",
+   "q3": "7 of 45, all in third-party paks",
+   "test": "tests/sky_sun_units_tests.py test_installed_maps"
+  },
+  "runtimes": {
+   "before": ".tmp/fnq-shadows/runtime/csm-after (dfa14b7e libraries)",
+   "after": {
+    "path": ".tmp/fnq-shadows/runtime/sunits-after",
+    "fntech3.exe": "ababdab11f29db348da9e3f70087a42d212c7638208fe02b615234e4e15fd0e5",
+    "fnql_glx_x86.dll": "e2c455ea5ecb4a52e41db4504c61e1ee416ce37902a59fdfc4fbba93566cabe6",
+    "fnql_vk_x86.dll": "d605ec5f823f4956eec02541a20dc2854009540d9c780e261f5aa9f781f15737",
+    "fnql_rtx_x86.dll": "34075dc04010a46bdf5b3c480fa8d54e69d0f4b89491d96b4540dc0a4e67330f",
+    "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+   }
+  },
+  "live": [
+   {
+    "view": "rtcw",
+    "profile": "rtcw-sp",
+    "map": "forest",
+    "renderer": "rtx path traced",
+    "before": {
+     "run": "rtcw-rtx-units-before",
+     "outcome": "exited",
+     "errors": 0,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "sunLog": [
+      "RTX RT: q3map sun 91.9 73.5 55.2 toward -0.492 -0.413 0.766"
+     ],
+     "captures": [
+      {
+       "name": "rt.png",
+       "sha256": "991e15e807eaa9c3f88ec66919588669043057d37ead3a31a6551ca58944c1e6"
+      },
+      {
+       "name": "rt2.png",
+       "sha256": "ca183c4d6f2b6e7eda1054c5de1d225770975e63882de2a20c8e3d7734173c4e"
+      }
+     ]
+    },
+    "after": {
+     "run": "rtcw-rtx-units-after",
+     "outcome": "exited",
+     "errors": 0,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "sunLog": [
+      "RTX RT: q3map sun 130.0 104.0 78.0 toward -0.492 -0.413 0.766"
+     ],
+     "captures": [
+      {
+       "name": "rt.png",
+       "sha256": "1948c017c6d8427b3ef77575273095f9db74df2d344b0b267dda2318a642f8df"
+      },
+      {
+       "name": "rt2.png",
+       "sha256": "9ab1e0973501e9fe83e7d18e9b5adcbadd1ee3cb633e6a19116465c53dfadc90"
+      }
+     ]
+    }
+   },
+   {
+    "view": "wolfet",
+    "profile": "wolfet",
+    "map": "oasis",
+    "renderer": "rtx path traced",
+    "before": {
+     "run": "wolfet-rtx-units-before",
+     "outcome": "exited",
+     "errors": 0,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "sunLog": [
+      "RTX RT: q3map2 kept none of the map's light entities; its sky, sun and glowing surfaces light it",
+      "RTX RT: q3map2 sun 135.0 126.0 108.0 toward -0.620 -0.214 0.755"
+     ],
+     "captures": [
+      {
+       "name": "rt.png",
+       "sha256": "33368800ccda67f4fd6eb417757a59f388a0a6e11951a803bc689fc91a2df2f6"
+      },
+      {
+       "name": "rt2.png",
+       "sha256": "55869eb0dbfbdf4323fbfb6d17e90118d1bd227a1ee455ada6282dded99d1112"
+      }
+     ]
+    },
+    "after": {
+     "run": "wolfet-rtx-units-after",
+     "outcome": "exited",
+     "errors": 0,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "sunLog": [
+      "RTX RT: q3map2 kept none of the map's light entities; its sky, sun and glowing surfaces light it",
+      "RTX RT: q3map2 sun 135.0 126.0 108.0 toward -0.620 -0.214 0.755"
+     ],
+     "captures": [
+      {
+       "name": "rt.png",
+       "sha256": "1b4f136f51e47248d4922e19e744b2fca180b6070f05ebbd512fc6768fc805de"
+      },
+      {
+       "name": "rt2.png",
+       "sha256": "b9d41d544c4c137366a1a6cb5ad7bed4373ddd3a2044ddc981e89f7d848a95fa"
+      }
+     ]
+    }
+   },
+   {
+    "view": "ql",
+    "profile": "ql",
+    "map": "hiddenfortress ffa",
+    "renderer": "rtx path traced",
+    "before": {
+     "run": "ql-rtx-units-before",
+     "outcome": "exited",
+     "errors": 0,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "sunLog": [
+      "RTX RT: q3map2 kept none of the map's light entities; its sky, sun and glowing surfaces light it",
+      "RTX RT: q3map2 sun 69.3 81.9 90.0 toward -0.123 0.123 0.985"
+     ],
+     "captures": [
+      {
+       "name": "rt.png",
+       "sha256": "345a217f150f2455f3f4e087e06c443a3ceddf7456591b8a49a43827b634dbca"
+      },
+      {
+       "name": "rt2.png",
+       "sha256": "fc962992d0d490f8bb2658e83bc06268d829487bb6319954ae409b217f7d414c"
+      }
+     ]
+    },
+    "after": {
+     "run": "ql-rtx-units-after",
+     "outcome": "exited",
+     "errors": 0,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "sunLog": [
+      "RTX RT: q3map2 kept none of the map's light entities; its sky, sun and glowing surfaces light it",
+      "RTX RT: q3map2 sun 69.3 81.9 90.0 toward -0.123 0.123 0.985"
+     ],
+     "captures": [
+      {
+       "name": "rt.png",
+       "sha256": "a83687c7685e5055ab08ce614a63fdc35878d0b8419e562b4a97f1a1489cb608"
+      },
+      {
+       "name": "rt2.png",
+       "sha256": "f5328f303a9e746274d74a0228bff34c1e6767fa716ddec44a9bf3332ff214bd"
+      }
+     ]
+    }
+   },
+   {
+    "view": "q3",
+    "profile": "q3",
+    "map": "q3dm6",
+    "renderer": "rtx path traced",
+    "before": {
+     "run": "q3-rtx-units-before",
+     "outcome": "exited",
+     "errors": 0,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "sunLog": [
+      "RTX RT: q3map sun 67.1 80.5 107.3 toward 0.433 0.250 0.866"
+     ],
+     "captures": [
+      {
+       "name": "rt.png",
+       "sha256": "0627c5137f0ebe1a3c6a62d501097b8ff973776c81d368b60a6df1a4f5a634d2"
+      },
+      {
+       "name": "rt2.png",
+       "sha256": "8ab3e486d549795edfc6f494a00ec6a461e14c27b22877996e049d9306d4071e"
+      }
+     ]
+    },
+    "after": {
+     "run": "q3-rtx-units-after",
+     "outcome": "exited",
+     "errors": 0,
+     "installationUnchanged": true,
+     "binariesUnchanged": true,
+     "sunLog": [
+      "RTX RT: q3map sun 67.1 80.5 107.3 toward 0.433 0.250 0.866"
+     ],
+     "captures": [
+      {
+       "name": "rt.png",
+       "sha256": "9118e283e29c1dff73a06cb28695b249f1e284e7cac89c6a730c03554361b304"
+      },
+      {
+       "name": "rt2.png",
+       "sha256": "7cfb64a0cb913f1ccb5128270a1e9dad19b6def30befcca2fc8077b0d06bd190"
+      }
+     ]
+    }
+   }
+  ],
+  "forestSunlitPatches": {
+   "mask": "pixels above 40 luma in the before capture, rows 60-519",
+   "pixels": 29816,
+   "beforeMeanSRGB": [
+    85.4,
+    83.0,
+    74.3
+   ],
+   "afterMeanSRGB": [
+    94.2,
+    90.7,
+    78.1
+   ],
+   "linearRatio": 1.117
+  },
+  "frameMeansSRGB": {
+   "rtcw": [
+    [
+     17.1,
+     16.8,
+     15.6
+    ],
+    [
+     18.3,
+     17.9,
+     16.1
+    ]
+   ],
+   "wolfet": [
+    [
+     163.7,
+     145.8,
+     107.8
+    ],
+    [
+     164.2,
+     146.2,
+     107.9
+    ]
+   ],
+   "ql": [
+    [
+     31.0,
+     29.0,
+     24.2
+    ],
+    [
+     31.0,
+     29.0,
+     24.2
+    ]
+   ],
+   "q3": [
+    [
+     43.5,
+     35.2,
+     30.2
+    ],
+    [
+     43.6,
+     35.3,
+     30.3
+    ]
+   ]
+  },
+  "tests": {
+   "new": "tests/sky_sun_units_tests.py",
+   "updated": [
+    "tests/rtx_light_rules_tests.py",
+    "tests/entity_sun_shadow_tests.py",
+    "tests/csm_receiver_tests.py",
+    "tests/raven_bsp_shader_flags_tests.py",
+    "tests/rtx_renderer_contract_source_tests.py"
+   ]
+  },
+  "exportValidation": {
+   "commit": "c845803b2049cdd5c8304c1ace809550bc79f359",
+   "verifiedOn": "2026-10-22",
+   "export": ".tmp/fnq-shadows/export3",
+   "sourceIdentity": {
+    "trackedFiles": 4605,
+    "crlfOnly": 3491,
+    "byteIdentical": 1114,
+    "missingOrChanged": [],
+    "normalization": "CRLF to LF only"
+   },
+   "build": {
+    "platform": "Windows x86",
+    "compiler": "MSVC",
+    "buildtype": "debugoptimized",
+    "strictWarnings": true,
+    "client": true,
+    "dedicatedServer": true,
+    "renderers": [
+     "glx",
+     "vk",
+     "rtx"
+    ],
+    "method": "Incremental all-target rebuild of the earlier clean archive export, updated to this commit",
+    "actions": 82,
+    "exit": 0,
+    "compilerWarnings": 0,
+    "log": ".tmp/fnq-shadows/units-build.log"
+   },
+   "native": {
+    "passed": 274,
+    "failed": 0,
+    "skipped": 2,
+    "skipReasons": {
+     "fnql_audio_loopback": "ALC_SOFT_loopback unavailable",
+     "fnql_retail_factory_probe": "Retail Quake Live not found at the configured location"
+    },
+    "exit": 0,
+    "log": ".tmp/fnq-shadows/units-native.log"
+   },
+   "python": {
+    "files": 612,
+    "pool": {
+     "workers": 4,
+     "seconds": 2001,
+     "passedFiles": 602,
+     "uncollectedScriptFiles": 9,
+     "timedOutFiles": [
+      "tests/release_packaging_tests.py"
+     ],
+     "perFileTimeoutSeconds": 1500,
+     "summary": ".tmp/fnq-shadows/pytest-units/summary.json"
+    },
+    "packagingRerun": {
+     "file": "tests/release_packaging_tests.py",
+     "passed": 48,
+     "subtestsPassed": 22,
+     "skipped": 1,
+     "skipReason": "Windows symlink creation privilege unavailable",
+     "seconds": 932.59,
+     "exit": 0,
+     "log": ".tmp/fnq-shadows/release-packaging-rerun.log"
+    },
+    "standaloneScripts": [
+     {
+      "file": "tests/csm_plan_source_tests.py",
+      "exit": 0,
+      "seconds": 0.06,
+      "log": ".tmp/fnq-shadows/completion/csm_plan_source_tests.log"
+     },
+     {
+      "file": "tests/csm_shadow_cache_source_tests.py",
+      "exit": 0,
+      "seconds": 0.08,
+      "log": ".tmp/fnq-shadows/completion/csm_shadow_cache_source_tests.log"
+     },
+     {
+      "file": "tests/glx/glx_header_boundary_tests.py",
+      "exit": 0,
+      "seconds": 0.23,
+      "log": ".tmp/fnq-shadows/completion/glx_header_boundary_tests.log"
+     },
+     {
+      "file": "tests/glx/glx_spot_shadow_source_tests.py",
+      "exit": 0,
+      "seconds": 0.08,
+      "log": ".tmp/fnq-shadows/completion/glx_spot_shadow_source_tests.log"
+     },
+     {
+      "file": "tests/shadow_manager_source_tests.py",
+      "exit": 0,
+      "seconds": 0.06,
+      "log": ".tmp/fnq-shadows/completion/shadow_manager_source_tests.log"
+     },
+     {
+      "file": "tests/shadow_projection_source_tests.py",
+      "exit": 0,
+      "seconds": 0.09,
+      "log": ".tmp/fnq-shadows/completion/shadow_projection_source_tests.log"
+     },
+     {
+      "file": "tests/static_map_lights_source_tests.py",
+      "exit": 0,
+      "seconds": 0.06,
+      "log": ".tmp/fnq-shadows/completion/static_map_lights_source_tests.log"
+     },
+     {
+      "file": "tests/surface_light_proxy_source_tests.py",
+      "exit": 0,
+      "seconds": 0.05,
+      "log": ".tmp/fnq-shadows/completion/surface_light_proxy_source_tests.log"
+     },
+     {
+      "file": "tests/surfacelight_validation_docs_tests.py",
+      "exit": 0,
+      "seconds": 0.08,
+      "log": ".tmp/fnq-shadows/completion/surfacelight_validation_docs_tests.log"
+     }
+    ],
+    "resolvedResults": {
+     "pytestPassedFiles": 603,
+     "directScriptPassedFiles": 9,
+     "remainingFailures": 0
+    }
+   },
+   "audit": ".tmp/fnq-shadows/completion/validation.json",
+   "logSHA256": {
+    "units-build.log": "4aff314add0f59f97bd0d0e13c65646fd00a798427d11052d46ddcdabd1f5b7a",
+    "units-native.log": "169556ee04206e74c67c9959b444e26c1544a46c3b1b47cf8ea9d757dc02e87c",
+    "pytest-units/summary.json": "9df2b36b8934a2e8e50f1e30c98a3114a166fa96af7890e6b0401b8f2f6acdc1",
+    "release-packaging-rerun.log": "4a96f2e04ad8b053f9d1cebcec5767c19c14c0640226ec00450990b89d63b778"
+   },
+   "gateChange": "none",
+   "completionChecks": {
+    "files": [
+     "tests/generate_docs_tests.py",
+     "tests/player_manual_tests.py"
+    ],
+    "passed": 20,
+    "subtestsPassed": 840,
+    "exit": 0,
+    "log": ".tmp/fnq-shadows/completion/docs-tests.log",
+    "logSHA256": "313332b7378b76851a08a39d46dbbb0464ff032ff7f2d760d2cef9b373f9ed95",
+    "json": "parses; source-identity and test-file counts agree",
+    "diffCheck": "passed"
+   }
+  }
+ }
+}

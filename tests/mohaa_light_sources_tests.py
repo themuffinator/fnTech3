@@ -118,6 +118,14 @@ int main( void ) {
 	 * its direction; the next entity's keys are not the world's */
 	assert( cm.mohaaLights->sun && cm.mohaaLights->sunColor[0] == 510.0f && cm.mohaaLights->sunColor[2] == 102.0f );
 	assert( fabsf( cm.mohaaLights->sunDirection[1] - 1.0f ) < 1e-5f );
+	/* names are matched exactly, as 2015's renderer matches them */
+	cm.entityString = (char *)"{\n\"classname\" \"worldspawn\"\n\"SunColor\" \"65 60 45\"\n"
+		"\"SUNDIRECTION\" \"0 90 0\"\n}\n";
+	CMod_LoadMOHAALights( &translation );
+	assert( !cm.mohaaLights->sun && cm.mohaaLights->sunColor[0] == 140.0f );
+	cm.entityString = (char *)"{\n\"classname\" \"worldspawn\"\n\"suncolor\" \"65 60 45\"\n\"sundirection\" \"0 90 0\"\n"
+		"\"sunlight\" \"255 102 51\"\n}\n{\n\"classname\" \"light\"\n\"suncolor\" \"1 2 3\"\n}\n";
+	CMod_LoadMOHAALights( &translation );
 
 	/* in leaf 0 with the sky in reach: the sun, then lights 9 and 0 by
 	 * strength (light 5 at 200 units comes to 18.75); 8 is dark */

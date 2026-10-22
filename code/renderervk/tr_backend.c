@@ -1946,6 +1946,9 @@ static qboolean RB_DlightShadowCasterAllowed( const shader_t *shader, const surf
 		case SF_MD3:
 		case SF_MDR:
 		case SF_IQM:
+		case SF_WOLFET:
+		case SF_ALICE_TIKI:
+		case SF_MOHAA_TIKI:
 			return qtrue;
 		case SF_GRID:
 			return ( !r_nocurves || !r_nocurves->integer ) ? qtrue : qfalse;
@@ -2290,6 +2293,9 @@ static qboolean RB_DlightShadowEntityCasterAllowed( int entityNum )
 		case MOD_MESH:
 		case MOD_MDR:
 		case MOD_IQM:
+		case MOD_WOLFET_MESH:
+		case MOD_ALICE_TIKI:
+		case MOD_MOHAA_TIKI:
 			return qtrue;
 		default:
 			return qfalse;
@@ -2500,6 +2506,8 @@ static void RB_DlightShadowCacheInvalidate( const dlight_t *dl,
 	}
 }
 
+#include "../renderercommon/tr_csm_receivers.h"
+
 typedef struct {
 	qboolean valid;
 	unsigned int generation;
@@ -2534,12 +2542,32 @@ static qboolean RB_CSMShadowEntityAllowed( int entityNum )
 	switch ( model->type ) {
 		case MOD_BRUSH:
 		case MOD_MESH:
+		case MOD_MDS:
+		case MOD_MDC:
 		case MOD_MDR:
 		case MOD_IQM:
+		case MOD_WOLFET_MESH:
+		case MOD_ALICE_TIKI:
+		case MOD_MOHAA_TIKI:
 			return qtrue;
 		default:
 			return qfalse;
 	}
+}
+
+/* A model takes every sun shadow. A brush model's surfaces are baked like
+ * the world's, and their shaders tell them apart (tr_csm_receivers.h). */
+static qboolean RB_CSMShadowEntityIsModel( int entityNum )
+{
+	const model_t *model;
+
+	if ( entityNum == REFENTITYNUM_WORLD || entityNum < 0 ||
+		entityNum >= backEnd.refdef.num_entities ) {
+		return qfalse;
+	}
+
+	model = R_GetModelByHandle( backEnd.refdef.entities[entityNum].e.hModel );
+	return ( model && model->type != MOD_BRUSH ) ? qtrue : qfalse;
 }
 
 static qboolean RB_CSMShadowSurfaceAllowed( const shader_t *shader, const surfaceType_t *surface )
@@ -2559,9 +2587,14 @@ static qboolean RB_CSMShadowSurfaceAllowed( const shader_t *shader, const surfac
 		case SF_FACE:
 		case SF_GRID:
 		case SF_TRIANGLES:
+		case SF_MDS:
+		case SF_MDC:
 		case SF_MD3:
 		case SF_MDR:
 		case SF_IQM:
+		case SF_WOLFET:
+		case SF_ALICE_TIKI:
+		case SF_MOHAA_TIKI:
 			return qtrue;
 		default:
 			return qfalse;
@@ -2659,6 +2692,29 @@ static float RB_CSMShadowCacheQuantizeDepth( float value, float texelSize )
 	return floorf( value / texelSize );
 }
 
+/* A skeletal model's pose lies in fields this signature does not read --
+ * Return to Castle Wolfenstein's torso frames, Enemy Territory's skeletons, a
+ * TIKI model's animations and bone controllers -- so a frame that shows one
+ * draws the atlas again. */
+static qboolean RB_CSMShadowEntityPoseUnhashed( const trRefEntity_t *ent )
+{
+	const model_t *model = R_GetModelByHandle( ent->e.hModel );
+
+	if ( !model ) {
+		return qfalse;
+	}
+
+	switch ( model->type ) {
+		case MOD_MDS:
+		case MOD_WOLFET_MESH:
+		case MOD_ALICE_TIKI:
+		case MOD_MOHAA_TIKI:
+			return qtrue;
+		default:
+			return qfalse;
+	}
+}
+
 static qboolean RB_CSMShadowCacheSignature( drawSurf_t *drawSurfs, int numDrawSurfs,
 	unsigned int *signature )
 {
@@ -2712,6 +2768,10 @@ static qboolean RB_CSMShadowCacheSignature( drawSurf_t *drawSurfs, int numDrawSu
 		if ( shader->numDeforms > 0 ) {
 			return qfalse;
 		}
+		if ( entityNum != REFENTITYNUM_WORLD &&
+			RB_CSMShadowEntityPoseUnhashed( &backEnd.refdef.entities[entityNum] ) ) {
+			return qfalse;
+		}
 
 		hash = RB_DlightShadowCacheHashUInt( hash, drawSurf->sort );
 		hash = RB_DlightShadowCacheHashPtr( hash, drawSurf->surface );
@@ -2751,14 +2811,14 @@ static void RB_SetCSMShadowProjection( const csmCascadePlan_t *cascade, viewParm
 	shadowParms->projectionMatrix[15] = 1.0f;
 }
 
-static void RB_BuildCSMShadowView( int cascadeIndex, viewParms_t *shadowParms )
+static void RB_BuildCSMShadowView( int cascadeIndex, int layer, viewParms_t *shadowParms )
 {
 	const csmCascadePlan_t *cascade = &tr.csm.cascades[cascadeIndex];
 	int cascadeSize = vk_csm_shadow_cascade_size();
 
 	Com_Memset( shadowParms, 0, sizeof( *shadowParms ) );
 	shadowParms->viewportX = cascadeIndex * cascadeSize;
-	shadowParms->viewportY = 0;
+	shadowParms->viewportY = layer * cascadeSize;
 	shadowParms->viewportWidth = cascadeSize;
 	shadowParms->viewportHeight = cascadeSize;
 	shadowParms->scissorX = shadowParms->viewportX;
@@ -2834,7 +2894,7 @@ static void RB_SetCSMShadowEntity( int entityNum, const viewParms_t *viewParms, 
 }
 
 static int RB_RenderCSMShadowCascade( drawSurf_t *drawSurfs, int numDrawSurfs,
-	const csmCascadePlan_t *cascade, double originalTime )
+	const csmCascadePlan_t *cascade, int layer, double originalTime )
 {
 	orientationr_t casterOr;
 	int currentEntityNum;
@@ -2853,6 +2913,10 @@ static int RB_RenderCSMShadowCascade( drawSurf_t *drawSurfs, int numDrawSurfs,
 		R_DecomposeSort( drawSurf->sort, &entityNum, &shader, &fogNum, &dlighted );
 		if ( !RB_CSMShadowEntityAllowed( entityNum ) ||
 			!RB_CSMShadowSurfaceAllowed( shader, drawSurf->surface ) ) {
+			continue;
+		}
+		/* the world's own surfaces in their row, every entity's in the other */
+		if ( ( entityNum == REFENTITYNUM_WORLD ) != ( layer == CSM_LAYER_WORLD ) ) {
 			continue;
 		}
 
@@ -2958,12 +3022,16 @@ static void RB_RenderCSMShadowAtlas( drawSurf_t *drawSurfs, int numDrawSurfs )
 	surfaces = 0;
 
 	for ( cascadeIndex = 0; cascadeIndex < tr.csm.cascadeCount; cascadeIndex++ ) {
-		viewParms_t shadowParms;
+		int layer;
 
-		RB_BuildCSMShadowView( cascadeIndex, &shadowParms );
-		RB_SetCSMShadowView( &shadowParms );
-		surfaces += RB_RenderCSMShadowCascade( drawSurfs, numDrawSurfs,
-			&tr.csm.cascades[cascadeIndex], originalTime );
+		for ( layer = 0; layer < CSM_ATLAS_LAYERS; layer++ ) {
+			viewParms_t shadowParms;
+
+			RB_BuildCSMShadowView( cascadeIndex, layer, &shadowParms );
+			RB_SetCSMShadowView( &shadowParms );
+			surfaces += RB_RenderCSMShadowCascade( drawSurfs, numDrawSurfs,
+				&tr.csm.cascades[cascadeIndex], layer, originalTime );
+		}
 	}
 
 	backEnd.refdef = savedRefdef;
@@ -3016,9 +3084,12 @@ static void RB_CSMShadowReceiverPass( drawSurf_t *drawSurfs, int numDrawSurfs )
 	originalTime = backEnd.refdef.floatTime;
 
 	for ( cascadeIndex = 0; cascadeIndex < tr.csm.cascadeCount; cascadeIndex++ ) {
+		const textureBundle_t *batchLightmap = NULL;
+		int batchKind = CSM_RECEIVER_NONE;
 		int currentEntityNum;
 		int entitySurfaces = 0;
 		int worldSurfaces = 0;
+		int bakedSurfaces = 0;
 		int i;
 		qboolean surfaceActive = qfalse;
 
@@ -3026,10 +3097,12 @@ static void RB_CSMShadowReceiverPass( drawSurf_t *drawSurfs, int numDrawSurfs )
 		currentEntityNum = -1;
 		for ( i = 0; i < numDrawSurfs; i++ ) {
 			drawSurf_t *drawSurf = &drawSurfs[i];
+			const textureBundle_t *lightmap;
 			shader_t *shader;
 			int entityNum;
 			int fogNum;
 			int dlighted;
+			int kind;
 
 			if ( drawSurf->flags & DSF_SHADOW_CASTER_ONLY ) {
 				continue;
@@ -3037,6 +3110,10 @@ static void RB_CSMShadowReceiverPass( drawSurf_t *drawSurfs, int numDrawSurfs )
 			R_DecomposeSort( drawSurf->sort, &entityNum, &shader, &fogNum, &dlighted );
 			if ( !RB_CSMShadowEntityAllowed( entityNum ) ||
 				!RB_CSMShadowSurfaceAllowed( shader, drawSurf->surface ) ) {
+				continue;
+			}
+			kind = R_CSMReceiverKind( shader, RB_CSMShadowEntityIsModel( entityNum ), &lightmap );
+			if ( kind == CSM_RECEIVER_NONE ) {
 				continue;
 			}
 
@@ -3056,11 +3133,26 @@ static void RB_CSMShadowReceiverPass( drawSurf_t *drawSurfs, int numDrawSurfs )
 				continue;
 			}
 
+			if ( surfaceActive &&
+				!R_CSMReceiverBatchMatches( kind, lightmap, batchKind, batchLightmap ) ) {
+				RB_EndSurface();
+				tess.csmShadowPass = qfalse;
+				surfaceActive = qfalse;
+			}
+
 			if ( !surfaceActive ) {
 				RB_BeginSurface( tr.whiteShader, 0 );
 				tess.allowVBO = qfalse;
 				tess.csmShadowPass = qtrue;
 				tess.csmCascade = cascadeIndex;
+				tess.csmReceiverKind = kind;
+				tess.csmReceiverLightmap = lightmap;
+#ifdef USE_TESS_NEEDS_NORMAL
+				/* a baked receiver's sun share reads its normals */
+				tess.needsNormal = ( kind != CSM_RECEIVER_ALL );
+#endif
+				batchKind = kind;
+				batchLightmap = lightmap;
 				surfaceActive = qtrue;
 			}
 
@@ -3069,6 +3161,9 @@ static void RB_CSMShadowReceiverPass( drawSurf_t *drawSurfs, int numDrawSurfs )
 				worldSurfaces++;
 			} else {
 				entitySurfaces++;
+			}
+			if ( kind != CSM_RECEIVER_ALL ) {
+				bakedSurfaces++;
 			}
 		}
 
@@ -3079,6 +3174,7 @@ static void RB_CSMShadowReceiverPass( drawSurf_t *drawSurfs, int numDrawSurfs )
 
 		backEnd.pc.c_csmShadowReceiverWorldSurfaces += worldSurfaces;
 		backEnd.pc.c_csmShadowReceiverEntitySurfaces += entitySurfaces;
+		backEnd.pc.c_csmShadowReceiverBakedSurfaces += bakedSurfaces;
 	}
 
 	backEnd.viewParms = savedViewParms;

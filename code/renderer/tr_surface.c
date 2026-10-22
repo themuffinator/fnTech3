@@ -49,6 +49,9 @@ typedef struct {
 	int csmCascade;
 	cullType_t shadowCasterCullType;
 #endif
+#ifdef USE_TESS_NEEDS_NORMAL
+	int needsNormal;
+#endif
 } rbSurfaceRestartState_t;
 
 static void RB_SaveSurfaceRestartState( rbSurfaceRestartState_t *state ) {
@@ -59,6 +62,10 @@ static void RB_SaveSurfaceRestartState( rbSurfaceRestartState_t *state ) {
 	state->csmCascade = tess.csmCascade;
 	state->shadowCasterCullType = tess.shadowCasterCullType;
 #endif
+#ifdef USE_TESS_NEEDS_NORMAL
+	/* the sun shadows' baked receivers ask for normals their white shader does not */
+	state->needsNormal = tess.needsNormal;
+#endif
 }
 
 static void RB_RestoreSurfaceRestartState( const rbSurfaceRestartState_t *state ) {
@@ -68,6 +75,9 @@ static void RB_RestoreSurfaceRestartState( const rbSurfaceRestartState_t *state 
 	tess.csmShadowPass = state->csmShadowPass;
 	tess.csmCascade = state->csmCascade;
 	tess.shadowCasterCullType = state->shadowCasterCullType;
+#endif
+#ifdef USE_TESS_NEEDS_NORMAL
+	tess.needsNormal = state->needsNormal;
 #endif
 }
 

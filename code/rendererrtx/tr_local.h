@@ -1024,6 +1024,15 @@ typedef struct {
 } viewParms_t;
 
 #define CSM_MAX_CASCADES 4
+// the cascade atlas's rows: the world's own surfaces, then every entity's
+#define CSM_ATLAS_LAYERS 2
+#define CSM_LAYER_WORLD 0
+#define CSM_LAYER_MODELS 1
+// which sun shadows a receiver takes (renderercommon/tr_csm_receivers.h)
+#define CSM_RECEIVER_NONE 0
+#define CSM_RECEIVER_ALL 1
+#define CSM_RECEIVER_LIGHTMAP 2
+#define CSM_RECEIVER_VERTEX 3
 
 typedef enum {
 	SHADOW_FILTER_HARD = 0,
@@ -1134,6 +1143,7 @@ typedef struct {
 	vec3_t		lightDirection;
 	vec3_t		lightColor;
 	vec3_t		directionToSun;
+	vec3_t		sunLightmapColor;	// the sun as the lightmaps hold it, shifted as they are
 	char		skyShaderName[MAX_QPATH];
 	csmCascadePlan_t cascades[CSM_MAX_CASCADES];
 } csmPlan_t;
@@ -1146,6 +1156,7 @@ typedef struct {
 	vec3_t		lightDirection;
 	vec3_t		light;
 	float		intensity;
+	qboolean	unitColour;	// a sky sun stored at unit-length colour (tr_sky_sun_units.h)
 } worldSun_t;
 
 /*
@@ -2196,6 +2207,7 @@ typedef struct {
 	int		c_csmShadowAtlasMsec;
 	int		c_csmShadowReceiverWorldSurfaces;
 	int		c_csmShadowReceiverEntitySurfaces;
+	int		c_csmShadowReceiverBakedSurfaces;
 #endif
 } backEndCounters_t;
 
@@ -2749,16 +2761,16 @@ void R_SwapBuffers( int );
 void R_RenderView( const viewParms_t *parms );
 
 void R_AddMD3Surfaces( trRefEntity_t *e, dlightShadowCasterContext_t *shadowCtx );
-void R_AddWolfETSurfaces( trRefEntity_t *e );
+void R_AddWolfETSurfaces( trRefEntity_t *e, dlightShadowCasterContext_t *shadowCtx );
 qboolean R_LoadAliceTiki( model_t *mod, const char *name );
 qboolean R_LoadAliceSprite( model_t *mod, const char *name );
 void R_AliceModelBounds( const model_t *mod, vec3_t mins, vec3_t maxs );
-void R_AddAliceTikiSurfaces( trRefEntity_t *ent );
+void R_AddAliceTikiSurfaces( trRefEntity_t *ent, dlightShadowCasterContext_t *shadowCtx );
 void RB_SurfaceAliceTiki( void *data );
 // Medal of Honor's TIKI models (tr_mohaa.c).
 qhandle_t RE_RegisterMOHAATiki( const char *name, const void *tiki );
 void R_MOHAAModelBounds( const model_t *mod, vec3_t mins, vec3_t maxs );
-void R_AddMOHAATikiSurfaces( trRefEntity_t *ent );
+void R_AddMOHAATikiSurfaces( trRefEntity_t *ent, dlightShadowCasterContext_t *shadowCtx );
 void RB_SurfaceMOHAATiki( void *data );
 void RB_SurfaceAliceSprite( void );
 int RE_GetAliceTikiHandle( qhandle_t handle );
@@ -2786,6 +2798,7 @@ void R_MOHAASetSunFlare( const vec3_t direction, const char *section );
 void R_MOHAABeginSunKeys( void );
 qboolean R_MOHAASunKey( const char *key, const char *value );
 void R_MOHAAEndSunKeys( void );
+qboolean R_MOHAAWorldSun( vec3_t light, vec3_t towardSun );
 void R_MOHAARegisterLensFlareCvars( void );
 void RE_AddAliceLightToScene( const vec3_t org, float intensity, float r, float g, float b, int type );
 void R_SetupAliceEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent, const vec3_t lightOrigin,
@@ -3016,6 +3029,8 @@ typedef struct shaderCommands_s
 	qboolean	csmCasterPass;
 	qboolean	csmShadowPass;
 	int			csmCascade;
+	int			csmReceiverKind;		// CSM_RECEIVER_*
+	const textureBundle_t *csmReceiverLightmap;
 	cullType_t	shadowCasterCullType;
 #endif
 

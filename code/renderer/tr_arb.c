@@ -1552,6 +1552,9 @@ void ARB_CSMShadowPass( void )
 	vec4_t invExtents;
 	vec4_t splitAtlas;
 	vec4_t shadowColor;
+	vec4_t sunLight, toSun, rows;
+	const textureBundle_t *lightmap;
+	qboolean baked;
 	float filterInner, filterOuter;
 	float extentX, extentY, extentZ;
 	int cascadeIndex;
@@ -1616,10 +1619,38 @@ void ARB_CSMShadowPass( void )
 	splitAtlas[2] = (float)( cascadeIndex * cascadeSize ) / (float)atlasWidth;
 	splitAtlas[3] = (float)cascadeSize / (float)atlasWidth;
 
-	shadowColor[0] = tr.csm.lightColor[0] * tr.csm.shadowStrength;
-	shadowColor[1] = tr.csm.lightColor[1] * tr.csm.shadowStrength;
-	shadowColor[2] = tr.csm.lightColor[2] * tr.csm.shadowStrength;
+	// the world's row of cascades, inset half a texel, then the models'
+	// (CSM_ATLAS_LAYERS)
+	rows[0] = (float)cascadeSize / (float)atlasHeight;
+	rows[1] = 0.5f / (float)atlasHeight;
+	rows[2] = rows[0] - rows[1];
+	rows[3] = 0.0f;
+
+	// renderercommon/tr_csm_receivers.h: a baked receiver takes the models'
+	// shadow by the sun's share of its light, every other the shadow of
+	// every caster by the sun colour, as before
+	baked = ( tess.csmReceiverKind == CSM_RECEIVER_LIGHTMAP ||
+		tess.csmReceiverKind == CSM_RECEIVER_VERTEX ) ? qtrue : qfalse;
+	lightmap = tess.csmReceiverKind == CSM_RECEIVER_LIGHTMAP ? tess.csmReceiverLightmap : NULL;
+	if ( baked ) {
+		shadowColor[0] = tr.csm.shadowStrength;
+		shadowColor[1] = tr.csm.shadowStrength;
+		shadowColor[2] = tr.csm.shadowStrength;
+		VectorCopy( tr.csm.sunLightmapColor, sunLight );
+		sunLight[3] = 0.0f;
+		toSun[0] = DotProduct( tr.csm.directionToSun, backEnd.or.axis[0] );
+		toSun[1] = DotProduct( tr.csm.directionToSun, backEnd.or.axis[1] );
+		toSun[2] = DotProduct( tr.csm.directionToSun, backEnd.or.axis[2] );
+	} else {
+		shadowColor[0] = tr.csm.lightColor[0] * tr.csm.shadowStrength;
+		shadowColor[1] = tr.csm.lightColor[1] * tr.csm.shadowStrength;
+		shadowColor[2] = tr.csm.lightColor[2] * tr.csm.shadowStrength;
+		VectorClear( sunLight );
+		sunLight[3] = 1.0f;
+		VectorClear( toSun );
+	}
 	shadowColor[3] = 0.0f;
+	toSun[3] = 0.0f;
 
 	ARB_CSMShadowFilterOffsets( &filterInner, &filterOuter );
 
@@ -1649,16 +1680,37 @@ void ARB_CSMShadowPass( void )
 	qglProgramLocalParameter4fvARB( GL_FRAGMENT_PROGRAM_ARB, 5, shadowColor );
 	qglProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 6,
 		1.0f / (float)atlasWidth, 1.0f / (float)atlasHeight, filterInner, filterOuter );
+	qglProgramLocalParameter4fvARB( GL_FRAGMENT_PROGRAM_ARB, 7, sunLight );
+	qglProgramLocalParameter4fvARB( GL_FRAGMENT_PROGRAM_ARB, 8, toSun );
+	qglProgramLocalParameter4fvARB( GL_FRAGMENT_PROGRAM_ARB, 9, rows );
 
 	FBO_BindCSMShadowTexture( 1 );
 	qglDisable( GL_TEXTURE_2D );
 	GL_SelectTexture( 0 );
+	// the baked light: a lightmap page, else white under the vertex colours
+	GL_Bind( lightmap ? lightmap->image[0] : tr.whiteImage );
 	qglDisable( GL_TEXTURE_2D );
+
+	if ( lightmap ) {
+		R_ComputeTexCoords( 0, lightmap );
+	} else {
+		tess.svars.texcoordPtr[0] = tess.texCoords[0];
+	}
+	if ( tess.csmReceiverKind == CSM_RECEIVER_VERTEX ) {
+		Com_Memcpy( tess.svars.colors, tess.vertexColors, tess.numVertexes * sizeof( tess.vertexColors[0] ) );
+	} else {
+		Com_Memset( tess.svars.colors, 0xff, tess.numVertexes * sizeof( tess.svars.colors[0] ) );
+	}
 
 	GL_State( GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO | GLS_DEPTHFUNC_EQUAL );
 	GL_Cull( CT_TWO_SIDED );
 	GL_ClientState( 1, CLS_NONE );
-	GL_ClientState( 0, CLS_NONE );
+	GL_ClientState( 0, CLS_TEXCOORD_ARRAY | CLS_COLOR_ARRAY | ( baked ? CLS_NORMAL_ARRAY : 0 ) );
+	qglTexCoordPointer( 2, GL_FLOAT, 0, tess.svars.texcoordPtr[0] );
+	qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, tess.svars.colors[0].rgba );
+	if ( baked ) {
+		qglNormalPointer( GL_FLOAT, sizeof( tess.normal[0] ), tess.normal );
+	}
 	qglVertexPointer( 3, GL_FLOAT, sizeof( tess.xyz[0] ), tess.xyz );
 	R_DrawElements( tess.numIndexes, tess.indexes );
 	GL_SelectTexture( 1 );
@@ -2015,6 +2067,10 @@ static const char *csmShadowVP = {
 	"MOV worldPos.w, 1.0; \n"
 	"MOV world, worldPos; \n"
 	"DP4 viewDist.x, viewForward, worldPos; \n"
+	// a baked receiver's normal, lightmap coordinates and vertex colour
+	"MOV result.texcoord[2], vertex.normal; \n"
+	"MOV result.texcoord[3], vertex.texcoord[0]; \n"
+	"MOV result.color, vertex.color; \n"
 	"END \n"
 };
 
@@ -2027,9 +2083,14 @@ static const char *csmShadowFP = {
 	"PARAM splitAtlas = program.local[4]; \n"
 	"PARAM shadowColor = program.local[5]; \n"
 	"PARAM atlas = program.local[6]; \n"
+	"PARAM sunLight = program.local[7]; \n"
+	"PARAM toSun = program.local[8]; \n"
+	"PARAM rows = program.local[9]; \n"
 	"PARAM one = { 1.0, 1.0, 1.0, 1.0 }; \n"
 	"PARAM zero = { 0.0, 0.0, 0.0, 0.0 }; \n"
 	"PARAM half = { 0.5, 0.5, 0.5, 0.5 }; \n"
+	"PARAM quarter = { 0.25, 0.25, 0.25, 0.25 }; \n"
+	"PARAM dim = { 0.0039215686, 0.0039215686, 0.0039215686, 0.000001 }; \n"
 	"PARAM off0 = { -1.0, -1.0, 0.0, 0.0 }; \n"
 	"PARAM off1 = { 1.0, -1.0, 0.0, 0.0 }; \n"
 	"PARAM off2 = { -1.0, 1.0, 0.0, 0.0 }; \n"
@@ -2041,9 +2102,13 @@ static const char *csmShadowFP = {
 	"TEMP kill; \n"
 	"TEMP receiver; \n"
 	"TEMP sample; \n"
-	"TEMP occ; \n"
+	"TEMP occWorld; \n"
+	"TEMP occModels; \n"
 	"TEMP offset; \n"
 	"TEMP factor; \n"
+	"TEMP baked; \n"
+	"TEMP surfNormal; \n"
+	"TEMP share; \n"
 	"MOV world, fragment.texcoord[0]; \n"
 	"DP3 lightCoord.x, world, axisX; \n"
 	"SUB lightCoord.x, lightCoord.x, axisX.w; \n"
@@ -2071,8 +2136,10 @@ static const char *csmShadowFP = {
 	"MUL mask.x, mask.x, mask.y; \n"
 	"SUB kill.x, mask.x, half.x; \n"
 	"KIL kill.x; \n"
+	// the world's row; each tap stays inside it, and the models' row is
+	// one row height above
 	"MAD uv.x, lightCoord.y, splitAtlas.w, splitAtlas.z; \n"
-	"MOV uv.y, lightCoord.z; \n"
+	"MUL uv.y, lightCoord.z, rows.x; \n"
 	"SUB receiver.x, lightCoord.x, invExtents.w; \n"
 	"MOV offset, off0; \n"
 	"MUL offset.x, offset.x, atlas.w; \n"
@@ -2081,8 +2148,13 @@ static const char *csmShadowFP = {
 	"MUL offset.y, offset.y, atlas.y; \n"
 	"ADD offset.x, offset.x, uv.x; \n"
 	"ADD offset.y, offset.y, uv.y; \n"
+	"MAX offset.y, offset.y, rows.y; \n"
+	"MIN offset.y, offset.y, rows.z; \n"
 	"TEX sample, offset, texture[1], 2D; \n"
-	"SLT occ.x, sample.x, receiver.x; \n"
+	"SLT occWorld.x, sample.x, receiver.x; \n"
+	"ADD offset.y, offset.y, rows.x; \n"
+	"TEX sample, offset, texture[1], 2D; \n"
+	"SLT occModels.x, sample.x, receiver.x; \n"
 	"MOV offset, off1; \n"
 	"MUL offset.x, offset.x, atlas.z; \n"
 	"MUL offset.y, offset.y, atlas.w; \n"
@@ -2090,8 +2162,13 @@ static const char *csmShadowFP = {
 	"MUL offset.y, offset.y, atlas.y; \n"
 	"ADD offset.x, offset.x, uv.x; \n"
 	"ADD offset.y, offset.y, uv.y; \n"
+	"MAX offset.y, offset.y, rows.y; \n"
+	"MIN offset.y, offset.y, rows.z; \n"
 	"TEX sample, offset, texture[1], 2D; \n"
-	"SLT occ.y, sample.x, receiver.x; \n"
+	"SLT occWorld.y, sample.x, receiver.x; \n"
+	"ADD offset.y, offset.y, rows.x; \n"
+	"TEX sample, offset, texture[1], 2D; \n"
+	"SLT occModels.y, sample.x, receiver.x; \n"
 	"MOV offset, off2; \n"
 	"MUL offset.x, offset.x, atlas.z; \n"
 	"MUL offset.y, offset.y, atlas.w; \n"
@@ -2099,8 +2176,13 @@ static const char *csmShadowFP = {
 	"MUL offset.y, offset.y, atlas.y; \n"
 	"ADD offset.x, offset.x, uv.x; \n"
 	"ADD offset.y, offset.y, uv.y; \n"
+	"MAX offset.y, offset.y, rows.y; \n"
+	"MIN offset.y, offset.y, rows.z; \n"
 	"TEX sample, offset, texture[1], 2D; \n"
-	"SLT occ.z, sample.x, receiver.x; \n"
+	"SLT occWorld.z, sample.x, receiver.x; \n"
+	"ADD offset.y, offset.y, rows.x; \n"
+	"TEX sample, offset, texture[1], 2D; \n"
+	"SLT occModels.z, sample.x, receiver.x; \n"
 	"MOV offset, off3; \n"
 	"MUL offset.x, offset.x, atlas.w; \n"
 	"MUL offset.y, offset.y, atlas.z; \n"
@@ -2108,10 +2190,41 @@ static const char *csmShadowFP = {
 	"MUL offset.y, offset.y, atlas.y; \n"
 	"ADD offset.x, offset.x, uv.x; \n"
 	"ADD offset.y, offset.y, uv.y; \n"
+	"MAX offset.y, offset.y, rows.y; \n"
+	"MIN offset.y, offset.y, rows.z; \n"
 	"TEX sample, offset, texture[1], 2D; \n"
-	"SLT occ.w, sample.x, receiver.x; \n"
-	"DP4 occ.x, occ, { 0.25, 0.25, 0.25, 0.25 }; \n"
-	"MAD factor.xyz, -occ.x, shadowColor, one; \n"
+	"SLT occWorld.w, sample.x, receiver.x; \n"
+	"ADD offset.y, offset.y, rows.x; \n"
+	"TEX sample, offset, texture[1], 2D; \n"
+	"SLT occModels.w, sample.x, receiver.x; \n"
+	// every caster: either row's shadow; a baked receiver (sunLight.w 0):
+	// the models' shadow only where the world's leaves it in the sun
+	"MAX factor, occWorld, occModels; \n"
+	"DP4 factor.x, factor, quarter; \n"
+	"SUB occWorld, one, occWorld; \n"
+	"MUL occModels, occModels, occWorld; \n"
+	"DP4 factor.y, occModels, quarter; \n"
+	"LRP factor.x, sunLight.w, factor.x, factor.y; \n"
+	// the sun's share of the baked light, S max(0, N.toSun) / L, held to
+	// 0..1; every caster takes the sun colour's share as it always did
+	"TEX baked, fragment.texcoord[3], texture[0], 2D; \n"
+	"MUL baked.xyz, baked, fragment.color; \n"
+	"MAX baked.xyz, baked, dim; \n"
+	"RCP share.x, baked.x; \n"
+	"RCP share.y, baked.y; \n"
+	"RCP share.z, baked.z; \n"
+	"DP3 surfNormal.w, fragment.texcoord[2], fragment.texcoord[2]; \n"
+	"ADD surfNormal.w, surfNormal.w, dim.w; \n"
+	"RSQ surfNormal.w, surfNormal.w; \n"
+	"MUL surfNormal.xyz, fragment.texcoord[2], surfNormal.w; \n"
+	"DP3 surfNormal.w, surfNormal, toSun; \n"
+	"MAX surfNormal.w, surfNormal.w, zero.x; \n"
+	"MUL baked.xyz, sunLight, surfNormal.w; \n"
+	"MUL share.xyz, share, baked; \n"
+	"MIN share.xyz, share, one; \n"
+	"MAX share.xyz, share, sunLight.w; \n"
+	"MUL share.xyz, share, shadowColor; \n"
+	"MAD factor.xyz, -factor.x, share, one; \n"
 	"MOV factor.w, one.x; \n"
 	"MOV result.color, factor; \n"
 	"END \n"

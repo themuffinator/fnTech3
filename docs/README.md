@@ -235,6 +235,11 @@ Release packages include them as web pages in their `manual` folder, built by
   -- why RTX drew no sun or point-light shadows on Wolfenstein's `forest`
   (its shadow atlases refused the pass a portal sky leaves open), the fix,
   and captures beside GLx and Vulkan.
+- [FnQ shadows for every model format](fntech3/2026-10-22-fnq-shadow-formats.md)
+  -- dynamic-light and sun shadows for Enemy Territory's and the TIKI games'
+  models, the sun Alice, F.A.K.K.2 and Medal of Honor name in their
+  levels, and sun shadows that leave a level's baked shadows alone, with
+  before and after captures in each game.
 - [October 9 compatibility integration](fntech3/2026-10-09-compatibility-integration.md)
   -- resumed Alice and Elite Force work, shared-tree validation, and probe
   evidence and limits for the combined compatibility slices.

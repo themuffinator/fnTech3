@@ -32,11 +32,11 @@ most eight in all, each given as its origin and that measure over 200 times
 its colour, scaled down so no component passes 1. The sun lies 16,384 units
 out along its direction with its colour over 510. The sun's colour and
 direction are the worldspawn's `suncolor` (or `sunlight`) and `sundirection`
-keys, the colour 70 in each component where no key gives one, as 2015's
-renderer takes them, the colour times its overbright multiplier: 2, as
-r_mapOverBrightBits 1 less r_overBrightBits 0, the defaults OpenMoHAA
-registers (tr_init.c, and tr_image.c R_SetColorMappings), which no 1.00
-configuration changes.
+keys, matched exactly, the colour 70 in each component where no key gives
+one, as 2015's renderer takes them, the colour times its overbright
+multiplier: 2, as r_mapOverBrightBits 1 less r_overBrightBits 0, the
+defaults OpenMoHAA registers (tr_init.c, and tr_image.c
+R_SetColorMappings), which no 1.00 configuration changes.
 */
 
 #include "cm_local.h"
@@ -76,13 +76,13 @@ static void CM_MOHAASunKeys( cmMOHAALights_t *lights ) {
 		}
 		Q_strncpyz( key, token, sizeof( key ) );
 		token = COM_ParseExt( &p, qtrue );
-		if ( !Q_stricmp( key, "suncolor" ) || !Q_stricmp( key, "sunlight" ) ) {
+		if ( !strcmp( key, "suncolor" ) || !strcmp( key, "sunlight" ) ) {
 			vec3_t color = { 0.0f, 0.0f, 0.0f };
 			if ( sscanf( token, "%f %f %f", &color[0], &color[1], &color[2] ) == 3 ) {
 				VectorScale( color, MOHAA_SUN_OVERBRIGHT, lights->sunColor );
 				lights->sun = qtrue;
 			}
-		} else if ( !Q_stricmp( key, "sundirection" ) ) {
+		} else if ( !strcmp( key, "sundirection" ) ) {
 			vec3_t angles = { 0.0f, 0.0f, 0.0f };
 			if ( sscanf( token, "%f %f %f", &angles[0], &angles[1], &angles[2] ) == 3 ) {
 				AngleVectors( angles, lights->sunDirection, NULL, NULL );

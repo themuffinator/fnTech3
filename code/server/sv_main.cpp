@@ -1704,7 +1704,14 @@ static void SV_CheckTimeouts( void ) {
 		if ( Com_GameIsRTCWSP() && SV_ClientIsRTCWCastAI( &client ) ) {
 			continue;
 		}
-		if ( client.justConnected && svs.time - client.lastPacketTime > 4000 ) {
+		// The local client answers from this process. svs.time advances by
+		// real time, and the frame after a long map load adds the whole load
+		// at once, so a local client connected just before that time was
+		// added read as four seconds silent and was dropped in the frame that
+		// answered its connect: Alice's and Enemy Territory's listen servers
+		// sometimes never started.
+		if ( client.justConnected && client.netchan.remoteAddress.type != NA_LOOPBACK &&
+			svs.time - client.lastPacketTime > 4000 ) {
 			// for real client 4 seconds is more than enough to respond
 			SVC_RateDropAddress( &client.netchan.remoteAddress, 10, 1000 ); // enforce burst with progressive multiplier
 			SV_DropClient( &client, nullptr ); // drop silently

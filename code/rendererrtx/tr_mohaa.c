@@ -204,14 +204,21 @@ static shader_t *R_MOHAASkinShader( const mohaaSurface_t *surface, int skin ) {
 /*
 ==================
 R_AddMOHAATikiSurfaces
+
+With a caster context the surfaces go to that dynamic light's shadow alone,
+the renderer's own, whether or not the view sees the entity: the bounds are
+tested against the light, and an entity the view did not pose is posed. Its
+detail is the one the main view measured, whole for one it has not measured
+(the client game's entity starts at -1), so every shadow face sees one shape.
 ==================
 */
-void R_AddMOHAATikiSurfaces( trRefEntity_t *ent ) {
+void R_AddMOHAATikiSurfaces( trRefEntity_t *ent, dlightShadowCasterContext_t *casterContext ) {
 	const model_t *mod = tr.currentModel;
 	const float scale = ent->e.mohaa.scale > 0.0f ? ent->e.mohaa.scale : 1.0f;
 	const qboolean customPass = ( ent->e.mohaa.renderfx & MOHAA_RF_CUSTOMSHADERPASS ) ? qtrue : qfalse;
 	vec3_t bounds[2];
 	qboolean personalModel;
+	qboolean personalShadowCaster;
 	int fogNum, i;
 #ifdef USE_PMLIGHT
 	dlight_t *dlights[ ARRAY_LEN( backEndData->dlights ) ];
@@ -223,6 +230,7 @@ void R_AddMOHAATikiSurfaces( trRefEntity_t *ent ) {
 		return;
 	}
 	personalModel = ( ent->e.renderfx & RF_THIRD_PERSON ) && !R_ViewPassIsPortal( &tr.viewParms );
+	personalShadowCaster = personalModel && !( ent->e.renderfx & ( RF_NOSHADOW | RF_DEPTHHACK ) );
 
 	ri.MOHAARender->Bounds( mod->mohaaTiki, scale, bounds[0], bounds[1] );
 	/* A first-person model is never culled. The player's body stands behind
@@ -230,6 +238,13 @@ void R_AddMOHAATikiSurfaces( trRefEntity_t *ent ) {
 	 * bounds fall outside a field wider than retail's 4:3 one
 	 * (the FOV correction) and the arms vanished. OpenMoHAA culls by the posed
 	 * skeleton instead (R_AddSkelSurfaces, reference only). */
+#ifdef USE_PMLIGHT
+	if ( casterContext ) {
+		if ( R_DlightShadowEntityBoundsCulled( casterContext, ent, bounds[0], bounds[1] ) ) {
+			return;
+		}
+	} else
+#endif
 	if ( !( ent->e.renderfx & RF_DEPTHHACK ) && R_CullLocalBox( bounds ) == CULL_OUT ) {
 		return;
 	}
@@ -243,17 +258,19 @@ void R_AddMOHAATikiSurfaces( trRefEntity_t *ent ) {
 	 * is the one the game gave: widened for a wider screen by the correction,
 	 * a model fills the same share of the screen's height as on a 4:3 one,
 	 * and keeps the detail it had there. */
-	if ( !R_ViewPassIsPortal( &tr.viewParms ) || ( ent->e.mohaa.renderfx & MOHAA_RF_SKYENTITY ) ) {
-		ent->e.mohaa.lod = ri.MOHAARender->LodMetric( &ent->e.mohaa.pose, scale, ent->e.origin, ent->e.axis[0],
-			tr.viewParms.or.origin, tr.refdef.fovXAuthored > 0.0f ? tr.refdef.fovXAuthored : tr.viewParms.fovX );
+	if ( !casterContext ) {
+		if ( !R_ViewPassIsPortal( &tr.viewParms ) || ( ent->e.mohaa.renderfx & MOHAA_RF_SKYENTITY ) ) {
+			ent->e.mohaa.lod = ri.MOHAARender->LodMetric( &ent->e.mohaa.pose, scale, ent->e.origin, ent->e.axis[0],
+				tr.viewParms.or.origin, tr.refdef.fovXAuthored > 0.0f ? tr.refdef.fovXAuthored : tr.viewParms.fovX );
+		}
 	}
 
-	if ( !personalModel || r_shadows->integer > 1 ) {
+	if ( !casterContext && ( !personalModel || r_shadows->integer > 1 ) ) {
 		R_SetupEntityLighting( &tr.refdef, ent );
 	}
 
 #ifdef USE_PMLIGHT
-	if ( !personalModel && R_GetDlightMode() >= 2 ) {
+	if ( !casterContext && !personalModel && R_GetDlightMode() >= 2 ) {
 		R_TransformDlights( tr.viewParms.num_dlights, tr.viewParms.dlights, &tr.or );
 		for ( n = 0; n < tr.viewParms.num_dlights; n++ ) {
 			dlight_t *dl = &tr.viewParms.dlights[ n ];
@@ -262,7 +279,7 @@ void R_AddMOHAATikiSurfaces( trRefEntity_t *ent ) {
 	}
 #endif
 
-	fogNum = R_MOHAAFogNum( ent, ri.MOHAARender->Radius( mod->mohaaTiki ) * scale );
+	fogNum = casterContext ? 0 : R_MOHAAFogNum( ent, ri.MOHAARender->Radius( mod->mohaaTiki ) * scale );
 
 	for ( i = 0; i < mod->numMohaaSurfaces; i++ ) {
 		mohaaSurface_t *surface = &mod->mohaaSurfaces[i];
@@ -284,6 +301,21 @@ void R_AddMOHAATikiSurfaces( trRefEntity_t *ent ) {
 			shader = R_MOHAASkinShader( surface, ( state & 3 ) + ent->e.skinNum );
 		}
 
+#ifdef USE_PMLIGHT
+		/* A crossfade's second skin and a custom shader's extra pass draw the
+		 * same shape again, so the surface casts once. */
+		if ( casterContext ) {
+			if ( !R_AddDlightShadowEntityCasterSurface( casterContext, &surface->surfaceType, shader ) ) {
+				return;
+			}
+			continue;
+		}
+#endif
+
+		/* The renderer's own sun shadow takes a personal model's too. */
+		if ( personalShadowCaster && shader->sort == SS_OPAQUE ) {
+			R_AddDrawSurfFlags( &surface->surfaceType, shader, fogNum, 0, DSF_SHADOW_CASTER_ONLY );
+		}
 		if ( !personalModel ) {
 			R_AddDrawSurf( &surface->surfaceType, shader, fogNum, 0 );
 			tr.needScreenMap |= shader->hasScreenMap;

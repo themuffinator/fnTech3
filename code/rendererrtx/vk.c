@@ -7710,6 +7710,7 @@ qboolean vk_alloc_vbo( const byte *vbo_data, int vbo_size )
 // the path tracer: materials, lights, the compute backend's BVHs, acceleration
 // structures, trace, denoiser
 #include "rt/rt_material.c"
+#include "../renderercommon/tr_sky_sun_units.h"
 #include "rt/rt_lights.c"
 #include "rt/rt_bvh.c"
 #include "rt/rt_backend.c"
@@ -12601,7 +12602,13 @@ VkPipeline create_pipeline( const Vk_Pipeline_Def *def, renderPass_t renderPassI
 
 		case TYPE_CSM_SHADOW:
 			push_bind( 0, sizeof( vec4_t ) );					// xyz array
+			push_bind( 1, sizeof( color4ub_t ) );				// baked vertex colours
+			push_bind( 3, sizeof( vec2_t ) );					// lightmap st
+			push_bind( 5, sizeof( vec4_t ) );					// normals
 			push_attr( 0, 0, VK_FORMAT_R32G32B32A32_SFLOAT );
+			push_attr( 1, 1, VK_FORMAT_R8G8B8A8_UNORM );
+			push_attr( 3, 3, VK_FORMAT_R32G32_SFLOAT );
+			push_attr( 5, 5, VK_FORMAT_R32G32B32A32_SFLOAT );
 			break;
 
 		case TYPE_SIGNLE_TEXTURE_DF:

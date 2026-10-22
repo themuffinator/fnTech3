@@ -10,25 +10,29 @@
  * drawn, and an ET mesh has none -- its bounds, its radius and its fog test all
  * come from the skeleton the entity names beside the frame index. */
 
-static inline int R_WolfETCullModel( const trRefEntity_t *ent, vec3_t bounds[] ) {
-	const md3Frame_t *newFrame = R_WolfETEntityFrame( ent->e.wolfet.frameModel, ent->e.frame );
-	const md3Frame_t *oldFrame = R_WolfETEntityFrame( ent->e.wolfet.oldframeModel, ent->e.oldframe );
+/* The two frames' boxes are merged corner for corner, as ET's own culling
+ * does, and the result is then ordered low to high. Every skeleton ET ships
+ * writes the greater corner of a frame's box first, so the merge is the two
+ * boxes' intersection rather than their union -- which is what ET draws
+ * with. Ordering afterwards changes no corner of that box, so the frustum
+ * test sees exactly what ET's does; it only lets the callers that read this
+ * pair as a range, such as the dynamic light test, read it correctly. */
+static inline void R_WolfETFrameBounds( const md3Frame_t *oldFrame, const md3Frame_t *newFrame, vec3_t bounds[] ) {
 	int i;
-	/* A frame this entity cannot name is not drawn at all. */
-	if ( !newFrame || !oldFrame ) return CULL_OUT;
-	/* The two frames' boxes are merged corner for corner, as ET's own culling
-	 * does, and the result is then ordered low to high. Every skeleton ET ships
-	 * writes the greater corner of a frame's box first, so the merge is the two
-	 * boxes' intersection rather than their union -- which is what ET draws
-	 * with. Ordering afterwards changes no corner of that box, so the frustum
-	 * test sees exactly what ET's does; it only lets the callers that read this
-	 * pair as a range, such as the dynamic light test, read it correctly. */
 	for ( i = 0; i < 3; i++ ) {
 		const float first = MIN( oldFrame->bounds[0][i], newFrame->bounds[0][i] );
 		const float second = MAX( oldFrame->bounds[1][i], newFrame->bounds[1][i] );
 		bounds[0][i] = MIN( first, second );
 		bounds[1][i] = MAX( first, second );
 	}
+}
+
+static inline int R_WolfETCullModel( const trRefEntity_t *ent, vec3_t bounds[] ) {
+	const md3Frame_t *newFrame = R_WolfETEntityFrame( ent->e.wolfet.frameModel, ent->e.frame );
+	const md3Frame_t *oldFrame = R_WolfETEntityFrame( ent->e.wolfet.oldframeModel, ent->e.oldframe );
+	/* A frame this entity cannot name is not drawn at all. */
+	if ( !newFrame || !oldFrame ) return CULL_OUT;
+	R_WolfETFrameBounds( oldFrame, newFrame, bounds );
 	if ( !ent->e.nonNormalizedAxes ) {
 		/* One silhouette only when both the index and the skeleton match: the
 		 * same index in two skeletons is two different poses. */
@@ -94,12 +98,17 @@ static inline int R_WolfETComputeFogNum( const trRefEntity_t *ent ) {
 	return 0;
 }
 
-void R_AddWolfETSurfaces( trRefEntity_t *ent ) {
+/* With a caster context, the entity's surfaces go to that dynamic light's
+ * shadow alone, whether or not the view sees the entity: the bounds are
+ * tested against the light, not the frustum, and the back end draws every
+ * shadow face at full detail (RB_WolfETLodFraction). */
+void R_AddWolfETSurfaces( trRefEntity_t *ent, dlightShadowCasterContext_t *casterContext ) {
 	const wolfetMeshModel_t *mesh = tr.currentModel->wolfetMesh;
 	vec3_t bounds[2];
 	uint32_t i;
 	int fogNum;
 	qboolean personalModel;
+	qboolean personalShadowCaster;
 #ifdef USE_PMLIGHT
 	dlight_t *dlights[ ARRAY_LEN( backEndData->dlights ) ];
 	int numDlights = 0;
@@ -110,6 +119,27 @@ void R_AddWolfETSurfaces( trRefEntity_t *ent ) {
 
 	// don't add third_person objects if not in a portal
 	personalModel = (ent->e.renderfx & RF_THIRD_PERSON) && !R_ViewPassIsPortal( &tr.viewParms );
+	personalShadowCaster = personalModel && !(ent->e.renderfx & ( RF_NOSHADOW | RF_DEPTHHACK ));
+
+#ifdef USE_PMLIGHT
+	if ( casterContext ) {
+		const md3Frame_t *newFrame = R_WolfETEntityFrame( ent->e.wolfet.frameModel, ent->e.frame );
+		const md3Frame_t *oldFrame = R_WolfETEntityFrame( ent->e.wolfet.oldframeModel, ent->e.oldframe );
+		if ( !newFrame || !oldFrame ) return;
+		R_WolfETFrameBounds( oldFrame, newFrame, bounds );
+		if ( R_DlightShadowEntityBoundsCulled( casterContext, ent, bounds[0], bounds[1] ) ) return;
+		for ( i = 0; i < mesh->view.numSurfaces; i++ ) {
+			wolfetMeshSurface_t *surface = mesh->surfaces + i;
+			if ( !R_AddDlightShadowEntityCasterSurface( casterContext, &surface->surfaceType,
+				R_WolfETSurfaceShader( &ent->e, surface ) ) ) {
+				return;
+			}
+		}
+		return;
+	}
+#else
+	(void)casterContext;
+#endif
 
 	if ( R_WolfETCullModel( ent, bounds ) == CULL_OUT ) {
 		return;
@@ -137,7 +167,11 @@ void R_AddWolfETSurfaces( trRefEntity_t *ent ) {
 		shader_t *shader = R_WolfETSurfaceShader( &ent->e, surface );
 
 		/* ET queues no stencil or projection shadow for a skeletal mesh; only
-		 * its vertex-animated models cast those. */
+		 * its vertex-animated models cast those. The renderer's own sun
+		 * shadow still takes a personal model's, as for every format. */
+		if ( personalShadowCaster && shader->sort == SS_OPAQUE ) {
+			R_AddDrawSurfFlags( &surface->surfaceType, shader, fogNum, 0, DSF_SHADOW_CASTER_ONLY );
+		}
 		if ( !personalModel ) {
 			R_AddDrawSurf( &surface->surfaceType, shader, fogNum, 0 );
 		}

@@ -12,10 +12,11 @@ the identities, commands, counters and capture hashes. No compatibility gate
 closes: this is presentation.
 
 The original comparisons below were captured on the shadow-format branch,
-which also changes how baked surfaces receive sun shadows. The main-branch
-integration takes only the portal-sky pass fix and its regression check
-(`3369bee7`), plus this record and the player guidance (`abacf0f0`); those
-separate shading changes are not a prerequisite. Historical capture metrics
+which also changes how baked surfaces receive sun shadows. The first
+main-branch integration took only the portal-sky pass fix and its regression
+check (`3369bee7`), plus this record and the player guidance (`abacf0f0`).
+The subsequent [broader integration](2026-10-22-fnq-shadow-formats.md#combined-main-integration)
+adds the shadow-format and baked-light changes. Historical capture metrics
 remain tied to their recorded builds.
 
 ## Observed
@@ -152,6 +153,9 @@ the installations and binaries unchanged.
   under `.tmp/rtcw-rtx-csm/` in both checkouts.
 
 ## Main-branch integration
+
+This records the initial focused merge (`dc87b267`), before the broader
+shadow-format work was integrated.
 
 The focused integration was built on `3e1371b0`, with source fix `863969c6`
 and documentation `308cef72`. It carries only the portal-sky pass fix from

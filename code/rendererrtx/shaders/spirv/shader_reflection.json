@@ -24,7 +24,7 @@
       "source": "csm_shadow.vert",
       "stage": "vert",
       "defines": [],
-      "byte_size": 2964,
+      "byte_size": 3480,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -38,7 +38,7 @@
         ],
         "push_constants": [
           {
-            "name": "id_66",
+            "name": "id_80",
             "size_bytes": 64
           }
         ]
@@ -230,11 +230,11 @@
       "source": "csm_shadow.frag",
       "stage": "frag",
       "defines": [],
-      "byte_size": 8312,
+      "byte_size": 10064,
       "reflection": {
         "descriptor_bindings": [
           {
-            "name": "id_124",
+            "name": "id_28",
             "set": 0,
             "binding": 0,
             "storage_class": "Uniform",
@@ -244,6 +244,14 @@
           {
             "name": "csm_shadow_texture",
             "set": 1,
+            "binding": 0,
+            "storage_class": "UniformConstant",
+            "descriptor_class": "combined_image_sampler",
+            "descriptor_count": 1
+          },
+          {
+            "name": "baked_light_texture",
+            "set": 2,
             "binding": 0,
             "storage_class": "UniformConstant",
             "descriptor_class": "combined_image_sampler",
@@ -364,7 +372,7 @@
       "source": "liquid.frag",
       "stage": "frag",
       "defines": [],
-      "byte_size": 11764,
+      "byte_size": 11852,
       "reflection": {
         "descriptor_bindings": [
           {

@@ -59,6 +59,23 @@ contract; RTCW SP additionally requires campaign, AI, and save/load evidence.
 
 ## Status
 
+The [FnQ shadow formats record](2026-10-22-fnq-shadow-formats.md) lets
+Enemy Territory's skeletal meshes and the Alice, F.A.K.K.2 and Medal of Honor
+TIKI models cast fnTech3's dynamic-light shadows, admits those and Return to
+Castle Wolfenstein's MDS and MDC models to the cascaded sun shadows as casters
+and receivers, and gives Alice (4 maps), F.A.K.K.2 (19) and Medal of Honor
+(46) a sun for those shadows from their own entity keys, in all three
+renderers. Engine captures before and after cover one view per game. Its
+follow-up keeps the sun shadows off the shadows a level already baked: a
+lightmapped or vertex-lit surface takes only the models' sun shadows, where
+the world leaves it in the sun, scaled by the sun's share of its light in
+the units each game's compiler stored (measured from the installed maps'
+lightmaps); models take every sun shadow. The
+[final export validation](2026-10-22-fnq-shadow-formats.md#final-export-validation)
+also covers the shared sky-sun units used by the raster paths and RTX's
+path tracer: the build and suites passed after an isolated packaging rerun,
+with environment-dependent skips recorded. No compatibility gate closes.
+
 [RTX shadows behind a portal sky](2026-10-22-rtx-portal-sky-shadows.md)
 lets RTX's raster path draw sun and dynamic-light shadows behind a portal
 sky, as on Return to Castle Wolfenstein's `forest`, where it drew neither.
