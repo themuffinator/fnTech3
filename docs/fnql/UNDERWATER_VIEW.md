@@ -1,9 +1,12 @@
 # Underwater View
 
-> **fnTech3 note.** Written for FnQL. The submersion feed comes from the Quake
-> III-style client-game path, so the layer works in Quake III Arena, Quake Live
-> and Elite Force; RTCW, Enemy Territory, Alice and F.A.K.K.2 do not send it.
-> See the [Display Guide](../DISPLAY.md#underwater-view).
+> **fnTech3 note.** Written for FnQL. Every fnTech3 profile feeds the layer:
+> the Quake III-style client-game path at `CG_R_RENDERSCENE`, and every other
+> game's scene adapter through `CL_LiquidFeedView` just before it renders.
+> Each samples the eye with its own maps' liquid bits -- Jedi Academy's and
+> Jedi Outcast's differ from Quake III's -- and hands them over as Quake III's.
+> See the [Display Guide](../DISPLAY.md#underwater-view) and the
+> [liquid feed record](../fntech3/2026-10-22-liquid-feeds-all-profiles.md).
 
 ## Scope
 
@@ -17,7 +20,7 @@ Retail Quake Live has no equivalent engine-side layer, and none of the cvars bel
 
 The renderer has no collision model, so it cannot ask what the camera is inside. The engine client samples it instead:
 
-1. At the `CG_R_RENDERSCENE` trap, immediately before forwarding the scene, `CL_UpdateUnderwaterView` samples `CM_PointContents` at `refdef.vieworg` and masks the result with `MASK_WATER`.
+1. At the `CG_R_RENDERSCENE` trap, immediately before forwarding the scene, `CL_UpdateUnderwaterView` samples `CM_PointContents` at `refdef.vieworg` and keeps its liquid bits as `MASK_WATER`'s. (In fnTech3, `CL_LiquidContents` reads the selected profile's own liquid bits and translates them to `MASK_WATER`'s, and the games with scene calls of their own reach the same function through `CL_LiquidFeedView`.)
 2. The sample crosses the renderer export boundary as an `underwaterView_t` record holding only the masked contents and the scene time. It does not enter `entityState_t`, `playerState_t`, the cgame VM trap ABI, or network snapshots.
 3. The renderer stores the most recent record and ages it in `R_CopyUnderwaterViewToRefdef`, which writes a resolved medium and ramp strength into `trRefdef_t` for the backend.
 

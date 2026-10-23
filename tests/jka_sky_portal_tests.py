@@ -27,7 +27,7 @@ from rtcw_server_world_tests import function
 ROOT = Path(__file__).resolve().parents[1]
 RENDERERS = ('renderer', 'renderervk', 'rendererrtx')
 HOOK = "\t// Jedi Academy's sky portal: once its scene has been drawn in this"
-MEDIUM = "\t// Jedi Academy's sky portal is part of what the eye sees, drawn before"
+MEDIUM = "\t// Jedi Academy's, Enemy Territory's and RTCW's sky portals are part of"
 
 
 def read(path):
@@ -188,6 +188,16 @@ int main() {
 		assert( Scene( &portal, 0.5f ) && Scene( &eye, 0.5f ) && !tr.jkaSkyPortal );
 		assert( tr.refdef.underwaterStrength == 0.5f );
 	}
+	// Enemy Territory's and RTCW's portal skies are scenes of their own too:
+	// theirs take no medium, and only under their own profiles.
+	for ( int game : { int( COM_GAME_WOLFET ), int( COM_GAME_RTCW_SP ), int( COM_GAME_RTCW_MP ), int( COM_GAME_QUAKE3 ) } ) {
+		refdef_t own{};
+		own.wolfet.skyboxPortal = own.rtcw.skyboxPortal = qtrue;
+		std::memset( &tr, 0, sizeof( tr ) ); ri.gameId = game;
+		usesRTCWLighting = game == COM_GAME_RTCW_SP || game == COM_GAME_RTCW_MP;
+		Scene( &own, 0.5f );
+		assert( ( tr.refdef.underwaterStrength == 0.0f ) == ( game != COM_GAME_QUAKE3 ) );
+	}
 #ifdef RTX_SCENE
 	// The RTX renderer's path tracer leaves a portal's scene to raster.
 	std::memset( &tr, 0, sizeof( tr ) ); ri.gameId = COM_GAME_JKA_MP; usesRTCWLighting = 0;
@@ -264,7 +274,10 @@ class JKASkyPortalTests(unittest.TestCase):
                      'static void CL_UpdateLocalViewLiquidInteraction( const refdef_t *refdef ) {'):
             with self.subTest(hook=name):
                 body = function(client, name)
-                self.assertIn('if ( refdef->jka.skyboxPortal ) {\n\t\treturn;\n\t}', body)
+                # Enemy Territory's and RTCW's portal skies are scenes of their
+                # own the same way, and reach these hooks through their adapters.
+                self.assertIn('if ( refdef->jka.skyboxPortal || refdef->wolfet.skyboxPortal || '
+                              'refdef->rtcw.skyboxPortal ) {\n\t\treturn;\n\t}', body)
                 self.assertLess(body.index('RDF_NOWORLDMODEL'), body.index('refdef->jka.skyboxPortal'))
         editor = function(read('code/client/cl_entity_editor.cpp'), 'void CL_EntityEditorAdjustView( refdef_t *refdef )')
         self.assertIn('refdef->jka.skyboxPortal', editor[:editor.index('if ( !portal )')])

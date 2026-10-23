@@ -158,4 +158,42 @@ static ID_INLINE int CM_CopyEntityStringForGame(
 	return outputLength;
 }
 
+/*
+ * Each profile's liquid contents bits, as its maps' compiler wrote them. The
+ * collision model keeps a map's bits unchanged, and every liquid shader in
+ * the installed maps carries these: Raven's (both Jedi games) lava 0x2,
+ * water 0x4 and slime 0x20000 (OpenJK surfaceflags.h), every other
+ * profile's Quake III's (docs/fntech3/2026-10-22-liquid-feeds-all-profiles.md).
+ */
+static ID_INLINE qboolean CM_GameHasRavenLiquids( comGameId_t gameId )
+{
+	return ( gameId == COM_GAME_JKA_SP || gameId == COM_GAME_JKA_MP ||
+		gameId == COM_GAME_JK2_SP || gameId == COM_GAME_JK2_MP ) ? qtrue : qfalse;
+}
+
+/* The profile's liquid bits, the mask its collision queries take. */
+static ID_INLINE int CM_LiquidMaskForGame( comGameId_t gameId )
+{
+	return CM_GameHasRavenLiquids( gameId ) ? 0x2 | 0x4 | 0x20000 :
+		CONTENTS_LAVA | CONTENTS_SLIME | CONTENTS_WATER;
+}
+
+/* The profile's slime and lava bits: the liquids sound does not pass. */
+static ID_INLINE int CM_OpaqueLiquidMaskForGame( comGameId_t gameId )
+{
+	return CM_GameHasRavenLiquids( gameId ) ? 0x2 | 0x20000 : CONTENTS_LAVA | CONTENTS_SLIME;
+}
+
+/* A contents value's liquids in Quake III's bits (MASK_WATER's), which the
+ * renderers' liquid and underwater records and the audio read. */
+static ID_INLINE int CM_LiquidContentsForGame( comGameId_t gameId, int contents )
+{
+	if ( !CM_GameHasRavenLiquids( gameId ) ) {
+		return contents & ( CONTENTS_LAVA | CONTENTS_SLIME | CONTENTS_WATER );
+	}
+	return ( ( contents & 0x2 ) ? CONTENTS_LAVA : 0 ) |
+		( ( contents & 0x20000 ) ? CONTENTS_SLIME : 0 ) |
+		( ( contents & 0x4 ) ? CONTENTS_WATER : 0 );
+}
+
 #endif

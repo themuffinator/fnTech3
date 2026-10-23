@@ -167,7 +167,9 @@ class UnderwaterViewFeedTests(unittest.TestCase):
         client = read("code/client/cl_cgame.cpp")
         update = function_body(client, "CL_UpdateUnderwaterView")
 
-        self.assertIn("CM_PointContents( refdef->vieworg, 0 ) & MASK_WATER", update)
+        # The profile's own liquid bits, handed over as Quake III's MASK_WATER
+        # bits (liquid_interaction_source_tests pins the translation).
+        self.assertIn("view.contents = CL_LiquidContents( refdef->vieworg );", update)
         self.assertIn("refdef->rdflags & RDF_NOWORLDMODEL", update)
         self.assertIn("refdef->rdflags & RDF_HYPERSPACE", update)
         self.assertIn("CL_LiquidOriginValid( refdef->vieworg )", update)

@@ -20,6 +20,7 @@ extern "C" {
 #include "../../client.h"
 #include "../codecs/snd_codec.h"
 #include "../../../qcommon/cm_public.h"
+#include "../../../qcommon/cm_game_contract.h"
 }
 
 #include "../../client_cpp.h"

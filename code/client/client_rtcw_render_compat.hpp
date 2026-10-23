@@ -192,6 +192,7 @@ inline bool CL_RTCWRenderCall( vm_t *vm, fntech3::rtcw::module::Call call,
 		if ( call == Call::CG_R_RENDERSCENE ) {
 			CL_HudAdjustRefdef( &view );
 			CL_EntityEditorAdjustView( &view );
+			CL_LiquidFeedView( &view );
 		} else {
 			view.rdflags |= RDF_NOFOVCORRECTION;
 		}

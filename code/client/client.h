@@ -894,6 +894,19 @@ int CL_EntityEditorPointerMask( void );
 // Every profile's scene adapter calls this with a client game's view, just
 // before the renderer draws it: the editor's camera takes its place.
 void CL_EntityEditorAdjustView( refdef_t *refdef );
+
+// The FnQ liquid feeds (cl_cgame.cpp) for scene adapters outside the Quake III
+// client-game path: a view about to be rendered gives the underwater view its
+// medium and the camera its ripples; a snapshot entity's position gives that
+// entity its own. Each takes the profile's liquid bits and entity types.
+void CL_LiquidFeedView( const refdef_t *refdef );
+void CL_LiquidFeedEntity( int entityNum, const vec3_t origin );
+// Whether entity positions are wanted at all this frame (r_liquid and
+// r_liquidRipples), for an adapter that must ask its client game for them.
+qboolean CL_LiquidFeedWantsEntities( void );
+// The current snapshot's entities in a profile's own records, each with its
+// own entity type and flags, and the local player (cl_cgame.cpp's census).
+typedef void ( *clLiquidCensusVisit_t )( int number, int eType, int eFlags, qboolean local );
 // After the menus and before the console.
 void CL_EntityEditorDraw( void );
 // Each renderer start: the editor's pictures, uploaded under the last one, are

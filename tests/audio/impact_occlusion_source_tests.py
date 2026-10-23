@@ -87,7 +87,7 @@ class ImpactOcclusionSourceTests(unittest.TestCase):
             "static void AddOcclusionProbe(",
         )
 
-        self.assertIn("CM_PointContents( origin, 0 ) & kOcclusionMask", solid)
+        self.assertIn("CM_PointContents( origin, 0 ) & OcclusionMask()", solid)
         self.assertIn("-occ::kSurfaceBias", resolve)
         self.assertIn("-occ::kSurfaceEscape", resolve)
         # A source genuinely inside geometry keeps the raw origin so the trace

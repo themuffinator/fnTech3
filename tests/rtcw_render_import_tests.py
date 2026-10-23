@@ -190,6 +190,10 @@ static void CL_HudDrawStretchPic(float x,float y,float w,float h,float s1,float 
 }
 // The entity editor, closed: views pass unchanged and entity tokens are the renderer's.
 static void CL_EntityEditorAdjustView(refdef_t *) {}
+// The liquid feeds see the client game's view as it is rendered, never the menus'.
+static int liquidViews;
+static refdef_t liquidView;
+static void CL_LiquidFeedView(const refdef_t *view) { ++liquidViews; liquidView = *view; }
 static qboolean CL_GetEntityToken(char *output, int capacity) { return re.GetEntityToken(output, capacity); }
 #include "code/client/client_rtcw_render_compat.hpp"
 '''
@@ -454,10 +458,12 @@ template<class E, class V> static void Mode(comGameId_t id) {
         assert(submittedView.x == 17 && submittedView.width == 640 && submittedView.height == 480);
         assert(submittedView.fov_x == 97 && submittedView.time == 12345 && submittedView.rtcw.fog.density == 0.25f);
         assert(!std::memcmp(viewBytes.get() + 1, &view, sizeof(view)));
-        const int previousViews = hudViews;
+        const int previousViews = hudViews, previousLiquid = liquidViews;
         correctHud = true;
         assert(Invoke(module, sceneCall, {Ptr(viewBytes.get() + 1)}) == 0);
         assert(hudViews == previousViews + (cg ? 1 : 0));
+        assert(liquidViews == previousLiquid + (cg ? 1 : 0));
+        assert(!cg || (liquidView.x == 117 && liquidView.rtcw.skyboxPortal && liquidView.time == 12345));
         assert(submittedView.x == (cg ? 117 : 17));
         assert(!std::memcmp(viewBytes.get() + 1, &view, sizeof(view)));
         correctHud = false;

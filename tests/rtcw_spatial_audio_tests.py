@@ -18,6 +18,12 @@ static const void *lastOrigin, *lastAxis;
 static void S_UpdateEntityPosition(int entity,const float *origin){
  operation=7;spatialEntity=entity;std::memcpy(spatialOrigin.data(),origin,12);lastOrigin=origin;
 }
+// The liquid feed takes the same entity and the copied origin (cl_cgame.cpp).
+static int liquidEntity=-1;
+static std::array<float,3> liquidOrigin;
+static void CL_LiquidFeedEntity(int entity,const float *origin){
+ liquidEntity=entity;std::memcpy(liquidOrigin.data(),origin,12);
+}
 static void S_Respatialize(int entity,const float *origin,float axis[3][3],int water){
  operation=8;spatialEntity=entity;spatialWater=water;
  std::memcpy(spatialOrigin.data(),origin,12);std::memcpy(spatialAxis.data(),axis,36);
@@ -46,6 +52,7 @@ int main(){
    intptr_t update[]={0,entity,ptr(13)};
    assert(CL_RTCWAudioCall(&vm,Call::CG_S_UPDATEENTITYPOSITION,update));
    assert(operation==7&&spatialEntity==entity&&!memcmp(origin,spatialOrigin.data(),12));
+   assert(liquidEntity==entity&&!memcmp(origin,liquidOrigin.data(),12));
    assert(lastOrigin!=vm.bytes+13);
    for(int water:{INT_MIN,0,1,INT_MAX}){
     intptr_t listen[]={0,entity,ptr(13),ptr(53),water};
@@ -97,6 +104,7 @@ class RTCWSpatialAudioTests(unittest.TestCase):
     def test_native_and_qvm_positions_and_listener(self):
         prefix = IMPORTS[:IMPORTS.index('#include "code/client/client_rtcw_audio_compat.hpp"')]
         prefix = prefix.replace('static void S_UpdateEntityPosition(int,const float *){assert(false);}', '')
+        prefix = prefix.replace('static void CL_LiquidFeedEntity(int,const float *){assert(false);}', '')
         prefix = prefix.replace('static void S_Respatialize(int,const float *,float (*)[3],int){assert(false);}', '')
         compiler = shutil.which('clang++')
         if not compiler:

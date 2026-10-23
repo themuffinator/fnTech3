@@ -1,0 +1,100 @@
+{
+ "record": "docs/fntech3/2026-10-22-liquid-feeds-all-profiles.md",
+ "date": "2026-10-22",
+ "baseHead": "acad7f4c21a3fa80d2890accd31ccc5c97f8d594",
+ "claim": "Presentation slice; no gate closes.",
+ "profilesNewlyFed": ["rtcw-sp", "rtcw-mp", "wolfet", "alice", "fakk2", "mohaa", "q3-ihv", "q3test"],
+ "profilesCorrected": ["jka-sp", "jka-mp", "jk2-sp", "jk2-mp"],
+ "contract": {
+  "quake3": {"lava": 8, "slime": 16, "water": 32, "teleportBit": 4, "bodies": [1], "projectiles": [3],
+             "profiles": ["quake3", "quakelive", "rtcw-sp", "rtcw-mp", "wolfet", "stvef-sp", "q3-ihv", "q3test"]},
+  "holomatch": {"lava": 8, "slime": 16, "water": 32, "teleportBit": 4, "bodies": [1], "projectiles": [3, 4],
+                "profiles": ["stvef-mp"], "note": "type 4 (ET_ALT_MISSILE) on the client game's evidence; the retail qagame.qvm never stores it as a constant"},
+  "ravenQuake3Rule": {"lava": 2, "slime": 131072, "water": 4, "teleportBit": 4, "bodies": [1], "projectiles": [3],
+                      "profiles": ["jka-sp", "jk2-sp", "jk2-mp"]},
+  "academyMultiplayer": {"lava": 2, "slime": 131072, "water": 4, "teleportBit": 8, "bodies": [1, 13], "projectiles": [3],
+                         "profiles": ["jka-mp"]},
+  "ritual": {"lava": 8, "slime": 16, "water": 32, "teleportBit": 4, "bodies": [1, 0], "projectiles": [],
+             "profiles": ["alice", "fakk2"]},
+  "mohaa": {"lava": 8, "slime": 16, "water": 32, "teleportBit": 4, "bodies": [3, 2, 1, 0], "projectiles": [],
+            "profiles": ["mohaa"]}
+ },
+ "liquidBits": {
+  "helpers": "code/qcommon/cm_game_contract.h CM_LiquidMaskForGame, CM_OpaqueLiquidMaskForGame, CM_LiquidContentsForGame: Raven's bits for jka-*/jk2-*, Quake III's for the rest",
+  "users": ["code/client/cl_cgame.cpp CL_LiquidMask, CL_LiquidContents", "code/client/audio/openal/AudioSystemShared.inl OcclusionMask, ContentsHoldLiquid"]
+ },
+ "moduleEvidence": {
+  "alice cgamex86.dll CG_AddCEntity": "0x300228e0: type 1 CG_Player falls into type 0 CG_Splash + CG_ModelAnim; type 4 error",
+  "fakk2 1.02 cgamex86.dll CG_AddCEntity": "0x30020cb5: same structure",
+  "mohaa cgamex86.dll CG_AddCEntity": "0x30020c26: types 0-3 call CG_Splash 0x30035c0a; type 6 error",
+  "q3test cgame": "case 1 -> function raising 'Bad clientNum on player entity' in 1.05-1.08 (1.08 0x3000e080)",
+  "q3test qagame": "fire_rocket/plasma/grenade store eType 3 (1.08 0x2001234a); TeleportPlayer xor eFlags,4 (1.05 0x20013bb9, 1.06/1.07 0x200109f9, 1.08 0x200111e5)",
+  "ihv cgamex86.dll": "switch 0x10006976, case 1 -> 'Bad client index on entity'; CG_GetEntitySoundOrigin 0x10006af0",
+  "ihv qagamex86.dll": "missiles store type byte 3 at offset 2 (0x2001138f, 0x20011180, 0x20011290); TeleportPlayer xor flags,4 (0x20010625)",
+  "stvef-mp cgame.qvm CG_AddCEntity": "type 3 -> CG_Missile(cent, 0), type 4 -> CG_Missile(cent, 1) (instructions 24425..24444)",
+  "stvef-mp qagame.qvm": "eType constant stores 0-3 and 5-12, never 4; TeleportPlayer BXOR 4 (instruction 2897)",
+  "jka-mp jampgamex86.dll TeleportPlayer": "or [ps+0xc],0x40 (PMF_TIME_KNOCKBACK), then xor eFlags [ps+0x84],8 at 0x2006af4e (also 0x200932ef); OpenJK EF_TELEPORT_BIT (1<<3)",
+  "jka-mp cgamex86.dll CG_AddCEntity": "0x30035540: type 13 (ET_NPC) drawn as a Ghoul2 humanoid",
+  "jka-sp jagamex86.dll": "or [ps+0xc],0x40, then xor eFlags [ps+0x6c],4 at 0x200d4f7b",
+  "jk2-sp jk2gamex86.dll": "xor eFlags [ps+0x6c],4 at 0x2001e6b7 and 0x2001e7c3",
+  "jk2-mp jk2mpgame.qvm": "CONST 64 BOR (PMF_TIME_KNOCKBACK), then ps+108 BXOR 4 (instruction 150620)",
+  "single-player Jedi NPCs": "ET_PLAYER (OpenJK code/game/NPC_spawn.cpp)"
+ },
+ "audio": {
+  "file": "code/client/audio/openal/AudioSystemShared.inl",
+  "before": "kOcclusionMask CONTENTS_SOLID|8|16 and kLiquidContents 8|16|32 for every profile; in jka-*/jk2-* those bits are fog 0x8, player clip 0x10 and monster clip 0x20",
+  "after": "occlusion CONTENTS_SOLID | CM_OpaqueLiquidMaskForGame; in-liquid CM_LiquidContentsForGame; unchanged for the twelve Quake III-bit profiles",
+  "live": "none; source and unit tests"
+ },
+ "rtcwShadowMarks": {
+  "symptom": "rtcw-sp under water at the default cg_shadows 1: ERR_DROP 'Non-finite RTCW mark corner' (forest noclip + setviewpos 3584 -5120 150 0; dam noclip + setviewpos 572 -1920 -1350 0; one of two forest runs without noclip at 3584 -5120 190)",
+  "trace": "rotation 11, maxPoints 1024, maxFragments 384, all four corners NaN, projection 0 0 0",
+  "cause": "CG_PlayerShadow's MASK_PLAYERSOLID trace starting in solid: fraction below 1, zero plane normal, used as CG_ImpactMark's direction (GPL cg_players.c, cg_marks.c)",
+  "retail": "R_MarkFragments: a zero direction fails every grid facing test; NaN chop planes leave R_ChopPolyBehindPlane no point in front for faces; 0 fragments (GPL tr_marks.c)",
+  "fix": "code/client/client_rtcw_marks.hpp returns 0 for a non-finite corner or projection before the renderer",
+  "runsBefore": ["rtcw-sp-nofeed", "rtcw-sp-dam", "rtcw-sp-2", "rtcw-sp-marktrace"],
+  "runsAfter": {"rtcw-sp-shadowfix": "forest under water, first and third person: exited, no error",
+                "rtcw-sp-shadowfix-dam": "dam under water: exited, no error"}
+ },
+ "glxGate": {
+  "before": "RB_LiquidEffectActive and RB_DepthFadeActive stood aside for RB_RTCWHasFog(), which includes the Ritual far plane",
+  "after": "both stand aside only for RTCW/ET scene fog (RB_RTCWSceneFog), as Vulkan and RTX; depth fade under GL linear fog uses DEPTH_FADE_FOG_VERTEX/FRAGMENT (ARB_fog_linear)",
+  "retailDepthFadeShaders": {"alice": 0, "fakk2": 0, "mohaa": 0},
+  "m4l0PondDiff": {"passOnVsOff": 35844, "passOnVsOn": 16306, "pixels": 691200, "threshold": 12},
+  "baseRendererCapture": "not taken"
+ },
+ "live": {
+  "runtime": "worktree build C:\\ft3l (MSVC x86, win32-dev options, strict warnings); exe rebuilt during IHV investigation with temporary trace prints since removed",
+  "harness": ".tmp/liquid-feeds/probe.py, make_ent.py; BSP readers liquid_brushes.py, liquid_surfaces.py, open_water.py (session scratchpad)",
+  "settings": "windowed 960x720, private desktop, net_enabled 0, in_mouse 0, s_initsound 0, glx, developer 1, r_underwater 1, r_liquid 2, r_liquidRipples 2",
+  "runs": {
+   "rtcw-mp-1": {"map": "mp_base", "underwater": "0x20", "captures": ["uw-on", "uw-off"]},
+   "rtcw-mp-2": {"map": "mp_base", "ripples": "crossing z -192 r51 s0.97; wake", "ringVisible": true},
+   "rtcw-sp-3": {"map": "forest", "set": "cg_shadows 0", "underwater": "0x20", "ripples": "crossing z 256"},
+   "rtcw-sp-baseout": {"map": "baseout", "set": "cg_shadows 0", "ripples": "crossing z -192 r46; 2 wakes"},
+   "wolfet-3": {"map": "battery", "underwater": "0x20", "ripples": "crossing z 112; limbo-camera wakes"},
+   "alice-2": {"map": "garden1", "underwater": "0x20", "ripples": "crossing z -448; other bodies' wakes; intro cinematic splash"},
+   "fakk2-1": {"map": "cemetery", "underwater": "0x20", "ripples": "crossing z -392 r44; wake", "ringVisible": true},
+   "mohaa-1": {"map": "m4l0", "set": "thereisnomonkey 1", "underwater": "0x20", "ripples": "crossing z -160 r56 s1.10; 2 more"},
+   "ihv-1": {"map": "km_portal", "entityOverride": "spawn in slime", "underwater": "0x10"},
+   "ihv-8": {"map": "km_portal", "entityOverride": "spawn high over slime channel", "ripples": "camera in r49, out r38"},
+   "q3test-1": {"release": "1.08", "map": "q3tourney", "entityOverride": "spawn in lava", "underwater": "0x8"},
+   "q3test-3": {"release": "1.08", "map": "q3tourney", "ripples": "crossing z -216 r56 s1.10"},
+   "jka-1": {"map": "mp/siege_korriban", "underwater": "0x8 from Raven lava 0x2"}
+  },
+  "installationsUnchanged": true
+ },
+ "unrelatedFindings": [],
+ "resolvedFindings": [
+  "rtcw-sp: blob shadow under water stopped the game with 'Non-finite RTCW mark corner' (rtcwShadowMarks)",
+  "audio: liquid and occlusion bits were Quake III's for every profile (audio)",
+  "stvef-mp: ET_ALT_MISSILE (4) projectiles were not classified for ripples (contract.holomatch)",
+  "jka-mp: teleport bit 8 and ET_NPC 13 bodies were not followed (contract.academyMultiplayer)"
+ ],
+ "tests": {
+  "build": "worktree build C:\\ft3l, every target (MSVC x86, win32-dev options, strict warnings): no warnings",
+  "cpp": "274 of 276 fnTech3 meson tests pass, 2 skipped, none fail (fnql_platform_port_safety_source timed out at 31.6 s under load, passes alone in 8.6 s); fnql_python_source_regressions not run",
+  "python": "150 affected test files, one pytest each: all pass; then generate_docs, player_manual and the release-packaging evidence-link tests: pass",
+  "export": "the git archive export build and test pass has not been run"
+ }
+}

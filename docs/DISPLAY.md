@@ -491,7 +491,8 @@ It works on the Quake III Arena effects fnTech3 knows -- explosions, smoke,
 plasma, bullets, the railgun, the BFG and blood -- and on any game's effects
 whose shader asks for it with `q3map_depthFade <distance> <bias>`. While
 Return to Castle Wolfenstein's or Enemy Territory's own fog is drawing, it is
-skipped. In Vulkan, soft particles switch anti-aliasing off; set
+skipped. Alice's, F.A.K.K.2's and Medal of Honor's distance fog keeps it on,
+and fogs the softened effects like everything else. In Vulkan, soft particles switch anti-aliasing off; set
 `r_depthFade 0` there if you prefer anti-aliasing.
 
 ## Texture Detail
@@ -637,12 +638,15 @@ trick cannot draw safely keep their normal look. The older names
 `r_liquidReflections`, `r_liquidReflectionScale`, `r_liquidWarp`,
 `r_liquidFresnel` and `r_liquidRippleStrength` no longer do anything.
 
-**Game notes:** ripples come from Quake III Arena, Quake Live and Elite Force;
-Return to Castle Wolfenstein, Enemy Territory, Alice and F.A.K.K.2 get the
-shimmer and reflections without them, and the other games have not been
-checked. Return
-to Castle Wolfenstein and Enemy Territory still draw their own water ripples,
-as they always did, and enhanced liquids pause while their fog is drawing.
+**Game notes:** every game makes ripples where you, other players and their
+shots go in and out of the water, and leaves wakes behind anyone moving
+through it. In Alice, F.A.K.K.2 and Medal of Honor the ripples come from the
+people and creatures those games splash, not from shots, which they do not
+mark apart. The IHV Test's ripples for your own player come from your view
+going through the surface. Slime and lava ripple only with `r_liquid 2`, and
+they are the only liquids the IHV Test and Q3Test have. Return to Castle
+Wolfenstein and Enemy Territory still draw their own water ripples too, as they
+always did, and enhanced liquids pause while those two games' fog is drawing.
 How it works is described in [Liquid Rendering](fnql/LIQUID_RENDERING.md).
 
 ## Underwater View
@@ -664,13 +668,10 @@ separately. It only changes the picture, and is off by default.
 - `r_underwaterVignette`: how much the edges darken, from `0` (not at all) to
   `1`. Default `0.35`.
 
-Going in and out fades the effect over a fifth of a second. It works in Quake
-III Arena, Quake Live and Elite Force, whose game code tells fnTech3 when you
-are under the surface; Return to Castle Wolfenstein, Enemy Territory, Alice
-and F.A.K.K.2 do not, so it stays off there, and the other games have not been
-checked. It
-bends what is already on screen rather than drawing a new view, so it adds no
-light shafts or bubbles. How it works is described in
+Going in and out fades the effect over a fifth of a second. It works in every
+game: fnTech3 checks what your view is inside each frame, using the game's own
+map data. It bends what is already on screen rather than drawing a new view,
+so it adds no light shafts or bubbles. How it works is described in
 [Underwater View](fnql/UNDERWATER_VIEW.md).
 
 ```cfg

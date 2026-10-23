@@ -4,6 +4,8 @@
 #include "../renderercommon/tr_rtcw_fog_blend.h"
 
 static fnRTCWFogDraw_t rtcwStageFog;
+/* The GL fog RB_RTCWFogToggle last set: colour[3] is 0 off, 1 linear, 2 exp. */
+static fnRTCWFogDraw_t rtcwAppliedFog;
 
 /* American McGee's Alice's far plane fogs linearly from the eye to its
  * distance in its colour: retail's far-plane fog pass sets alpha to
@@ -44,6 +46,7 @@ void RB_RTCWFogToggle( qboolean enabled ) {
 	vec4_t color;
 	if ( ri.gameId != COM_GAME_RTCW_SP && ri.gameId != COM_GAME_RTCW_MP && !R_GAME_HAS_RITUAL_VIEW( ri.gameId ) ) return;
 	if ( !enabled || backEnd.projection2D ) draw.color[3] = 0;
+	rtcwAppliedFog = draw;
 #ifdef RENDERER_GLX
 	GLX_Renderer_SetRTCWFog( draw.color, draw.params );
 #endif
@@ -92,5 +95,27 @@ qboolean RB_RTCWHasFog( void ) {
 		return RB_AliceFarFogActive();
 	}
 	return backEnd.refdef.rtcwFog.fogEnabled || backEnd.refdef.rtcwFog.skyEnabled ? qtrue : qfalse;
+}
+
+/* RTCW's and Enemy Territory's own scene fog, without the Ritual view's far
+ * plane. The per-fragment liquid and depth-fade passes stand aside for it in
+ * every renderer (Vulkan and RTX test the same two flags); the far plane they
+ * draw under, as Vulkan and RTX do: the liquid pass unfogged, over stages
+ * that are fogged, and the depth fade through its fogged program. */
+static qboolean RB_RTCWSceneFog( void ) {
+	if ( R_GAME_HAS_RITUAL_VIEW( ri.gameId ) ) {
+		return qfalse;
+	}
+	return backEnd.refdef.rtcwFog.fogEnabled || backEnd.refdef.rtcwFog.skyEnabled ? qtrue : qfalse;
+}
+
+/* The GL fog the stage being drawn takes: 0 none, 1 linear, 2 exp. */
+static int RB_RTCWAppliedFogMode( void ) {
+	return (int)rtcwAppliedFog.color[3];
+}
+
+/* Whether that fog measures the eye's distance rather than its depth. */
+static qboolean RB_RTCWAppliedFogRadial( void ) {
+	return rtcwAppliedFog.params[3] > 0.0f ? qtrue : qfalse;
 }
 #endif

@@ -701,8 +701,14 @@ void R_BindAnimatedImage( const textureBundle_t *bundle ) {
 
 static qboolean RB_DepthFadeActive( const shaderStage_t *pStage )
 {
-	/* The optional ARB depth-fade program has no scene-fog variant yet. */
-	return pStage && !RB_RTCWHasFog() &&
+	/* RTCW's and Enemy Territory's scene fog keeps the depth fade out, as in
+	 * Vulkan and RTX (RB_DepthFadeShaderSupported). A stage under GL linear
+	 * fog -- the Ritual view's far plane, which those draw in their stage
+	 * shader -- takes the program's fogged variant; any other GL fog none. */
+	const int fogMode = RB_RTCWAppliedFogMode();
+
+	return pStage && !RB_RTCWSceneFog() &&
+		( fogMode == 0 || ( fogMode == 1 && GL_DepthFadeFogProgramAvailable() ) ) &&
 		!pStage->depthFragment &&
 		tess.shader->dfType > DFT_NONE &&
 		tess.shader->dfType < DFT_TBD &&
@@ -714,9 +720,12 @@ static qboolean RB_DepthFadeActive( const shaderStage_t *pStage )
 
 static void RB_DrawDepthFadeStage( const shaderCommands_t *input )
 {
+	const qboolean fogged = RB_RTCWAppliedFogMode() == 1 ? qtrue : qfalse;
+	const qboolean radial = RB_RTCWAppliedFogRadial();
+
 #ifdef USE_FBO
 	FBO_BindDepthFadeTexture( 1 );
-	GL_DepthFadeProgramEnable( tess.shader );
+	GL_DepthFadeProgramEnable( tess.shader, fogged, radial );
 	R_DrawElements( input->numIndexes, input->indexes );
 	GL_ProgramDisable();
 	GL_SelectTexture( 0 );
@@ -2067,7 +2076,7 @@ static color4ub_t rb_liquidColors[SHADER_MAX_VERTEXES];
 
 static qboolean RB_LiquidEffectActive( const shaderCommands_t *input )
 {
-	return input && input->shader && !RB_RTCWHasFog() && input->numPasses > 0 &&
+	return input && input->shader && !RB_RTCWSceneFog() && input->numPasses > 0 &&
 		input->numIndexes > 0 && input->numVertexes > 0 &&
 		fboEnabled && FBO_LiquidScreenTexture() &&
 		r_liquid && r_liquid->integer > 0 &&
@@ -2291,6 +2300,10 @@ static void RB_DrawLiquidPass( shaderCommands_t *input, qboolean refractionBase,
 	} else {
 		VectorSet( refractionTint, 1.0f, 1.0f, 1.0f );
 	}
+	/* The pass is unfogged on every tier, as Vulkan's and RTX's are: the
+	 * underlay is the already fogged scene, and the fixed-function fallback
+	 * must not take the GL fog the last stage left on (tr_rtcw_fog_gl.h). */
+	RB_RTCWFogToggle( qfalse );
 	R_LiquidContentsFresnelColor( input->liquidContentFlags, fresnelColor );
 
 	/* Ripple rings displace the refraction underlay only; the sheen pass sees

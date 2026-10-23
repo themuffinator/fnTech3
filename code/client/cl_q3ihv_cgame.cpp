@@ -347,6 +347,42 @@ void QDECL IhvAddLoop( const float *origin, const float *velocity, std::uintptr_
 	if ( !origin || !IhvSound( token, sfx ) || ihvcg.loopCount >= MAX_GENTITIES ) return;
 	S_AddLoopingSound( ihvcg.loopCount++, origin, IhvVector( velocity ), sfx );
 }
+/* ---- liquids ----------------------------------------------------------- */
+
+/* A little-endian word of the session's records. */
+std::uint32_t IhvRecordWord( const std::uint8_t *bytes, unsigned size ) {
+	std::uint32_t value = 0;
+	for ( unsigned i = 0; i < size; ++i ) value |= std::uint32_t( bytes[i] ) << ( 8 * i );
+	return value;
+}
+/* Every entity of the current frame (its count and first entity at 340 and
+ * 344 of the 348-byte snapshot), as its 164-byte record: the number a signed
+ * word at 0, the type the byte at 2, the flags the word at 4. */
+template<class Visit> void IhvForEachFrameEntity( Visit visit ) {
+	const ihvcl::ClientData *data = ihvcl::SessionData();
+	const fntech3_q3_ihv_snapshot_t *snapshot = data && data->Ready() ? data->CurrentSnapshot() : nullptr;
+	if ( !snapshot ) return;
+	const std::uint32_t count = IhvRecordWord( snapshot->bytes + 340, 4 ), first = IhvRecordWord( snapshot->bytes + 344, 4 );
+	for ( std::uint32_t i = 0; i < count && i < 1024; ++i ) {
+		fntech3_q3_ihv_entityState_t entity;
+		if ( data->CopyEntity( first + i, &entity, sizeof( entity ) ) != ihvcl::ReadResult::Ok ) continue;
+		visit( static_cast<std::int16_t>( IhvRecordWord( entity.bytes, 2 ) ), static_cast<int>( entity.bytes[2] ),
+			static_cast<int>( IhvRecordWord( entity.bytes + 4, 2 ) ) );
+	}
+}
+/* The module tells where an entity is only through the callback it hands
+ * S_Respatialize, which reads any entity's interpolated origin (0x10006af0,
+ * bounded by 0..1023): the frame's entities take theirs from it. */
+void IhvLiquidPositions( void ( QDECL *position )( int, float * ) ) {
+	if ( !position || !CL_LiquidFeedWantsEntities() ) return;
+	IhvForEachFrameEntity( [position]( int number, int, int ) {
+		if ( number < 0 || number >= MAX_GENTITIES ) return;
+		vec3_t where{};
+		position( number, where );
+		CL_LiquidFeedEntity( number, where );
+	} );
+}
+
 /* The listener, then every sounding entity's position from the module's own
  * callback, as the original walks its channels (0x416200). */
 void QDECL IhvRespatialize( int entity, const float *origin, const float *axis,
@@ -364,6 +400,7 @@ void QDECL IhvRespatialize( int entity, const float *origin, const float *axis,
 		S_UpdateEntityPosition( it->first, where );
 		++it;
 	}
+	IhvLiquidPositions( position );
 }
 void QDECL IhvSoundBegin() { S_BeginRegistration(); }
 std::uintptr_t QDECL IhvRegisterSound( const char *name ) {
@@ -527,6 +564,7 @@ void QDECL IhvRenderScene( const void *native ) {
 	if ( scene.view.flags & 1 ) view.rdflags |= RDF_NOWORLDMODEL;
 	const auto blocked = scene.view.BlockedAreas();
 	std::memcpy( view.areamask, blocked.data(), ( std::min )( sizeof( view.areamask ), blocked.size() ) );
+	CL_LiquidFeedView( &view );
 	re.RenderScene( &view );
 	// The original draws the overlay while gl_polyblend, its renderer's cvar,
 	// is set (0x442716); fnTech3 draws it as the 2D picture it covers, from
@@ -745,6 +783,17 @@ bool CL_Q3IHVCGameFrame( int realtime, bool demo ) {
 	if ( !CL_Q3IHVCGameReady() ) return true;
 	IhvSyncCvars();
 	return IhvExport<int>( 5, realtime, demo ? 1 : 0 ) != 0;
+}
+
+/* The frame's entities with the IHV Test's own types (players 1, missiles 3:
+ * cgamex86.dll's CG_AddCEntity 0x10006976, qagamex86.dll's fire_rocket
+ * 0x2001138f). The player is the listener the module names; while the frame
+ * holds no entity of its own, the camera stands in for it. */
+void CL_Q3IHVLiquidCensus( clLiquidCensusVisit_t visit ) {
+	if ( !visit ) return;
+	IhvForEachFrameEntity( [visit]( int number, int type, int flags ) {
+		visit( number, type, flags, number == ihvcg.listener ? qtrue : qfalse );
+	} );
 }
 
 int CL_Q3IHVCGameWeapon( void ) {

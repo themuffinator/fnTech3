@@ -801,9 +801,15 @@ sfxHandle_t QDECL RegisterSound( const char *name, int streamed ) {
 }
 
 void QDECL UpdateEntity( int entityNumber, const vec3_t origin, const vec3_t velocity, qboolean useListener ) {
-	(void)velocity; (void)useListener;
+	(void)velocity;
 	if ( origin && entityNumber >= 0 && entityNumber < MAX_GENTITIES ) {
 		S_UpdateEntityPosition( entityNumber, origin );
+		/* What the player carries comes with no position of its own, to be
+		 * heard at the listener (OpenMoHAA CG_SetEntitySoundPosition,
+		 * reference only); the rest are where they stand. */
+		if ( !useListener ) {
+			CL_LiquidFeedEntity( entityNumber, origin );
+		}
 	}
 }
 
@@ -1475,6 +1481,7 @@ void QDECL RenderScene( const mohaa::Refdef *fd ) {
 		MOHAA_LodToolFrame( view.vieworg, view.viewaxis, view.fov_x );
 		CL_MOHAADecalsFrame( &view );
 	}
+	CL_LiquidFeedView( &view );
 	re.RenderScene( &view );
 }
 

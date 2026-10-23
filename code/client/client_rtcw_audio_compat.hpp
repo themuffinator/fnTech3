@@ -115,6 +115,7 @@ inline bool CL_RTCWAudioCall( vm_t *vm, fntech3::rtcw::module::Call call, intptr
 		const int entity = CL_RTCWAudioEntity( args[1] );
 		const auto origin = CL_RTCWAudioFloats<3>( vm, args[2] );
 		S_UpdateEntityPosition( entity, origin.data() );
+		CL_LiquidFeedEntity( entity, origin.data() );
 		return true;
 	}
 	case Call::CG_S_RESPATIALIZE: {

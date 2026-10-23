@@ -31,10 +31,16 @@ inline int CL_RTCWMarkFragments( vm_t *vm, const intptr_t *args ) {
 	vec3_t corners[4], projection;
 	std::memcpy( corners, CL_RTCWRenderSpan( vm, args[2], sizeof( corners ) ), sizeof( corners ) );
 	std::memcpy( projection, CL_RTCWRenderSpan( vm, args[3], sizeof( projection ) ), sizeof( projection ) );
+	// A player shadow whose downward trace starts in solid takes the trace's
+	// zero plane normal as its direction, so its corners arrive NaN and its
+	// projection zero. Retail's R_MarkFragments clips that to no fragments: a
+	// zero direction fails every curve facing test, and the NaN chop planes it
+	// builds for faces leave no polygon. Answer it the same way, before the
+	// renderer.
 	for ( const auto &corner : corners ) for ( float value : corner )
-		if ( !FnRTCWMarkFinite( value ) ) Com_Error( ERR_DROP, "Non-finite RTCW mark corner" );
+		if ( !FnRTCWMarkFinite( value ) ) return 0;
 	for ( float value : projection )
-		if ( !FnRTCWMarkFinite( value ) ) Com_Error( ERR_DROP, "Non-finite RTCW mark projection" );
+		if ( !FnRTCWMarkFinite( value ) ) return 0;
 	auto *pointOutput = static_cast<unsigned char *>( CL_RTCWRenderSpan( vm, args[5],
 		static_cast<std::size_t>( maxPoints ) * sizeof( fntech3_rtcw_markPoint_t ) ) );
 	auto *fragmentOutput = static_cast<unsigned char *>( CL_RTCWRenderSpan( vm, args[7],

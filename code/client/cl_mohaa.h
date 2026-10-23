@@ -38,6 +38,9 @@ void CL_MOHAACurrentSnapshotNumber( int *snapshotNumber, int *serverTime );
 int CL_MOHAAServerStartTime( void );
 /* The current snapshot's player state, or null before the first. */
 const fntech3::mohaa::PlayerState *CL_MOHAAPlayerState( void );
+/* cl_cgame.cpp's liquid census: the current frame's entities, in 1.00's own
+ * entity types, and the local player. */
+void CL_MOHAALiquidCensus( clLiquidCensusVisit_t visit );
 
 /* The eye record every move carries, written after the command count, and
  * each command after it. */

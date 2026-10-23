@@ -2597,6 +2597,34 @@ static const char *depthFadeFP = {
 	"END \n"
 };
 
+/* The depth fade under the stage's GL linear fog, the Ritual view's far plane
+ * (tr_rtcw_fog_gl.h): this vertex program hands on the fog coordinate the
+ * fixed-function stage would, the eye's distance (local 0.x 1) or depth
+ * (0), and depthFadeFP compiled with ARB_fog_linear applies the fog the
+ * stage set, colour and range, to its result. */
+static const char *depthFadeFogVP = {
+	"!!ARBvp1.0 \n"
+	"OPTION ARB_position_invariant; \n"
+	"PARAM mv[4] = { state.matrix.modelview }; \n"
+	"PARAM radial = program.local[0]; \n"
+	"PARAM tiny = { 0.000001, 0.0, 0.0, 0.0 }; \n"
+	"TEMP eye, dist; \n"
+	"DP4 eye.x, mv[0], vertex.position; \n"
+	"DP4 eye.y, mv[1], vertex.position; \n"
+	"DP4 eye.z, mv[2], vertex.position; \n"
+	"DP3 dist.x, eye, eye; \n"
+	"MAX dist.x, dist.x, tiny.x; \n"
+	"RSQ dist.y, dist.x; \n"
+	"MUL dist.x, dist.x, dist.y; \n"
+	"ABS dist.z, eye.z; \n"
+	"SUB dist.w, dist.x, dist.z; \n"
+	"MAD result.fogcoord.x, radial.x, dist.w, dist.z; \n"
+	"MOV result.color, vertex.color; \n"
+	"MOV result.texcoord[0], vertex.texcoord; \n"
+	"END \n"
+};
+static qboolean depthFadeFogProgramsCompiled = qfalse;
+
 #ifdef USE_FBO
 static qboolean liquidArbProgramsCompiled = qfalse;
 
@@ -2970,7 +2998,12 @@ qboolean GL_DepthFadeProgramAvailable( void )
 #endif
 }
 
-void GL_DepthFadeProgramEnable( const shader_t *shader )
+qboolean GL_DepthFadeFogProgramAvailable( void )
+{
+	return ( GL_DepthFadeProgramAvailable() && depthFadeFogProgramsCompiled ) ? qtrue : qfalse;
+}
+
+void GL_DepthFadeProgramEnable( const shader_t *shader, qboolean fogged, qboolean radial )
 {
 #ifdef USE_FBO
 	const byte scaleAndBias = r_depthFadeScaleAndBias[shader->dfType];
@@ -2978,7 +3011,7 @@ void GL_DepthFadeProgramEnable( const shader_t *shader )
 	vec4_t bias;
 	int i;
 
-	if ( !GL_DepthFadeProgramAvailable() ) {
+	if ( !GL_DepthFadeProgramAvailable() || ( fogged && !GL_DepthFadeFogProgramAvailable() ) ) {
 		return;
 	}
 
@@ -2987,7 +3020,12 @@ void GL_DepthFadeProgramEnable( const shader_t *shader )
 		bias[i] = ( scaleAndBias & ( 1 << ( i + 4 ) ) ) ? 1.0f : 0.0f;
 	}
 
-	ARB_ProgramEnable( DUMMY_VERTEX, DEPTH_FADE_FRAGMENT );
+	if ( fogged ) {
+		ARB_ProgramEnable( DEPTH_FADE_FOG_VERTEX, DEPTH_FADE_FOG_FRAGMENT );
+		qglProgramLocalParameter4fARB( GL_VERTEX_PROGRAM_ARB, 0, radial ? 1.0f : 0.0f, 0.0f, 0.0f, 0.0f );
+	} else {
+		ARB_ProgramEnable( DUMMY_VERTEX, DEPTH_FADE_FRAGMENT );
+	}
 	qglProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 0,
 		1.0f / (float)glConfig.vidWidth, 1.0f / (float)glConfig.vidHeight, 0.0f, 0.0f );
 	qglProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 1,
@@ -3754,6 +3792,15 @@ qboolean ARB_UpdatePrograms( void )
 
 	if ( !ARB_CompileProgram( Fragment, depthFadeFP, programs[ DEPTH_FADE_FRAGMENT ] ) )
 		return qfalse;
+
+	// optional: without it a stage under GL fog draws without its depth fade
+	{
+		static const char header[] = "!!ARBfp1.0 \n";
+		depthFadeFogProgramsCompiled = !Q_strncmp( depthFadeFP, header, (int)sizeof( header ) - 1 ) &&
+			ARB_CompileProgramInternal( Vertex, depthFadeFogVP, programs[ DEPTH_FADE_FOG_VERTEX ], qfalse ) &&
+			ARB_CompileProgramInternal( Fragment, va( "%sOPTION ARB_fog_linear; \n%s", header,
+				depthFadeFP + sizeof( header ) - 1 ), programs[ DEPTH_FADE_FOG_FRAGMENT ], qfalse ) ? qtrue : qfalse;
+	}
 
 #ifdef USE_FBO
 	liquidArbProgramsCompiled = qfalse;

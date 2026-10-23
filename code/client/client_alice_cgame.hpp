@@ -747,6 +747,7 @@ void QDECL CL_AliceRenderScene( const fntech3_alice_refdef_t *fd ) {
 	}
 	alice.keepDepth = fd->keepDepth ? qtrue : qfalse;
 	CL_EntityEditorAdjustView( &view );
+	CL_LiquidFeedView( &view );
 	re.RenderScene( &view );
 }
 
@@ -1083,6 +1084,12 @@ void QDECL CL_AliceEndSoundRegistration() { S_AliceEndRegistration(); }
 void QDECL CL_AliceUpdateEntity( int entnum, const float *origin, const float *velocity,
 	qboolean useListener ) {
 	S_AliceUpdateEntity( entnum, origin, velocity, useListener );
+	/* What the player carries comes with no position of its own, to be heard
+	 * at the listener (F.A.K.K.2 SDK CG_SetEntitySoundPosition); the rest are
+	 * where they stand. */
+	if ( origin && !useListener ) {
+		CL_LiquidFeedEntity( entnum, origin );
+	}
 }
 void QDECL CL_AliceSetReverb( int type, float level ) { S_AliceSetReverb( type, level ); }
 void QDECL CL_AliceSetGlobalAmbientVolumeLevel( float volume ) {

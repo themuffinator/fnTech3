@@ -174,7 +174,9 @@ int main(){
   args=good;args[6]=INT_MIN;Reject([&]{CL_RTCWMarkFragments(&vm,args.data());});
   args=good;args[7]=args[5]+20;Reject([&]{CL_RTCWMarkFragments(&vm,args.data());});
   args=good;args[2]=-1;Reject([&]{CL_RTCWMarkFragments(&vm,args.data());});
-  args=good;reset();float nan=NAN;memcpy(storage.data()+51,&nan,4);Reject([&]{CL_RTCWMarkFragments(&vm,args.data());});
+  // A NaN corner (a shadow's zero direction) or projection is no fragments, as retail clips it, not a drop.
+  for(int offset:{1,51}){args=good;reset();float nan=NAN;memcpy(storage.data()+offset,&nan,4);const auto saved=storage;const int before=calls;
+   assert(CL_RTCWMarkFragments(&vm,args.data())==0&&calls==before&&allocations==0&&storage==saved);}
   args=good;args[4]=0;args[2]=args[3]=args[5]=args[7]=0;const int before=calls;assert(CL_RTCWMarkFragments(&vm,args.data())==0&&calls==before);
  }
 }

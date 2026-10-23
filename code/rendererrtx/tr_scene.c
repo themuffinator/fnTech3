@@ -1372,9 +1372,12 @@ void RE_RenderScene( const refdef_t *fd ) {
 	tr.refdef.dlights = &backEndData->dlights[r_firstSceneDlight];
 	R_CopyLiquidInteractionsToRefdef( tr.refdef.time );
 	R_CopyUnderwaterViewToRefdef( tr.refdef.time );
-	// Jedi Academy's sky portal is part of what the eye sees, drawn before
-	// the eye's own view: the medium is composited once, over that view
-	if ( ri.gameId == COM_GAME_JKA_MP && fd->jka.skyboxPortal ) {
+	// Jedi Academy's, Enemy Territory's and RTCW's sky portals are part of
+	// what the eye sees, drawn before the eye's own view: the medium is
+	// composited once, over that view
+	if ( ( ri.gameId == COM_GAME_JKA_MP && fd->jka.skyboxPortal ) ||
+		( ri.gameId == COM_GAME_WOLFET && fd->wolfet.skyboxPortal ) ||
+		( ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ) && fd->rtcw.skyboxPortal ) ) {
 		tr.refdef.underwaterContents = 0;
 		tr.refdef.underwaterStrength = 0.0f;
 	}

@@ -130,6 +130,7 @@ inline bool CL_WolfETAudioCall( vm_t *vm, fntech3::wolfet::module::Call call,
 		const int entity = CL_WolfETAudioEntity( args[1] );
 		const auto origin = CL_WolfETAudioFloats<3>( vm, args[2] );
 		S_UpdateEntityPosition( entity, origin.data() );
+		CL_LiquidFeedEntity( entity, origin.data() );
 		return true;
 	}
 	case Call::CG_S_GETVOICEAMPLITUDE:
