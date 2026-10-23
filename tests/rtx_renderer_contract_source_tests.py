@@ -824,7 +824,8 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         candidate = source_section(lighting, "bool rt_light_candidate(", "\n}\n")
         self.assertIn("uint pick = enumerate ? k : min(uint(rand01(stream) * float(total)), total - 1u);", candidate)
         self.assertIn("if (!rt_light_eval(index, P, N, exclude, stream, s)) {", candidate)
-        self.assertIn("proposal = rt_light_proposal_pdf(cell, total, globalShare, index)", candidate)
+        self.assertIn("global ? rt_light_proposal_pdf(cell, total, globalShare, index)", candidate)
+        self.assertLess(candidate.index("if (!(p > 0.0))"), candidate.index("float proposal ="))
         self.assertIn("weight = p / proposal;", candidate)
 
         # a world triangle names the light it emits as; the frame flag follows
@@ -1000,6 +1001,8 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         self.assertIn("pick = (u_frame.flags.w > 0u && (exclude & RT_LIGHT_DYNAMIC) == 0u) ? 1u : 0u;", baked)
         sample = source_section(lighting, "vec3 rt_sample_lights(", "\n}\n")
         self.assertIn("uvec2 cell = dynamicOnly ? uvec2(0u) : rt_light_cell(P + Ng);", sample)
+        # A flash must invalidate quiet history even without a moving blocker.
+        self.assertIn("if (dynamicLight) reactive = 1.0;", sample)
         self.assertIn("rt_sample_lights(P, N, Ng, candidates, exclude, baked, seed, L, found, choice, r.shadowReactive) * share",
                       direct)
 

@@ -18,18 +18,19 @@ float rt_temporal_alpha(float elapsed, float response, float samples)
 		max(average, 1.0 - exp(-min(elapsed, 0.25) / response));
 }
 
-// Clip OLD light to the current compatible neighborhood. Clipping a new
-// sample to old darkness suppresses legitimate light when a caster moves.
-// Frozen-scene accumulation must remain an unbiased running average.
-float rt_temporal_history(float history, float lower, float upper, float elapsed)
+// Only a reactive receiver needs immediate neighborhood clipping. A quiet
+// neighborhood of stochastic samples is not evidence that its old lighting
+// disappeared: clipping it to zero erases rare light samples between hits,
+// producing dark bias and isolated sparkles. Frozen averages never clip.
+float rt_temporal_history(float history, float lower, float upper, float elapsed, bool reactive)
 {
-	return elapsed <= 0.0 ? history : clamp(history, lower, upper);
+	return elapsed <= 0.0 || !reactive ? history : clamp(history, lower, upper);
 }
 
 float rt_temporal_blend(float current, float history, float lower, float upper,
-	float elapsed, float response, float samples)
+	float elapsed, float response, float samples, bool reactive)
 {
-	float old = rt_temporal_history(history, lower, upper, elapsed);
+	float old = rt_temporal_history(history, lower, upper, elapsed, reactive);
 	float alpha = rt_temporal_alpha(elapsed, response, samples);
 	return old + (current - old) * alpha;
 }
@@ -37,6 +38,12 @@ float rt_temporal_blend(float current, float history, float lower, float upper,
 float rt_indirect_sample_alpha(float inverseDensity, float elapsed, float samples)
 {
 	return inverseDensity <= 0.0 ? 0.0 : rt_temporal_alpha(elapsed * inverseDensity, 0.160, samples);
+}
+
+float rt_indirect_variance(float spatialVariance, float residual, float innovation, float alpha)
+{
+	return max(spatialVariance * alpha / max(2.0 - alpha, 1.0),
+		max(residual * residual, innovation * innovation * alpha * alpha));
 }
 
 #endif

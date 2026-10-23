@@ -15,6 +15,7 @@
 #define RT_DENOISE_COMMON_GLSL
 
 #include "rt_signal_packing.glsl"
+#include "rt_denoise_geometry.glsl"
 
 layout(set = 0, binding = 0, rgba16f) uniform image2D u_noisyDiffuse;
 layout(set = 0, binding = 1, rgba16f) uniform image2D u_noisySpecular;
@@ -86,6 +87,28 @@ vec4 read_motion(ivec2 p)
 bool in_trace(ivec2 p)
 {
 	return all(greaterThanEqual(p, ivec2(0))) && all(lessThan(p, ivec2(pc.traceSize.xy)));
+}
+
+vec2 denoise_depth_gradient(uint parity, ivec2 p, vec3 normal, float z)
+{
+	vec2 gradient = vec2(0.0);
+	for (int axis = 0; axis < 2; axis++) {
+		ivec2 offset = axis == 0 ? ivec2(1, 0) : ivec2(0, 1);
+		float delta[2];
+		bool valid[2];
+		for (int side = 0; side < 2; side++) {
+			ivec2 q = p + (side == 0 ? -offset : offset);
+			valid[side] = false;
+			delta[side] = 0.0;
+			if (!in_trace(q) || (imageLoad(u_info[parity], q).r & RT_PIXEL_OWNED) == 0u) continue;
+			vec4 nd = read_normal_depth(parity, q);
+			if (!(nd.z > 0.0) || dot(normal, oct_decode(nd.xy)) < 0.85) continue;
+			delta[side] = (1.0 / nd.z - 1.0 / z) * (side == 0 ? -1.0 : 1.0);
+			valid[side] = true;
+		}
+		gradient[axis] = rt_depth_slope(delta[0], delta[1], valid[0], valid[1]);
+	}
+	return gradient;
 }
 
 vec3 denoised_irradiance(ivec2 p, uint final)

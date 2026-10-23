@@ -39,8 +39,8 @@ static float rand01(uint &seed) { seed=seed*1664525u+1013904223u; return float(s
 struct RtLightSample {vec3 E;};
 static float energy(uint i) { return float(1+i%11); }
 static float luminance(vec3 c) { return c.x; }
-static bool rt_light_eval(uint i,vec3,vec3,uint,uint&,RtLightSample &s) {
-    s.E=vec3(energy(i)); return true;
+static bool rt_light_eval(uint i,vec3,vec3,uint exclude,uint&,RtLightSample &s) {
+    s.E=vec3(exclude==2 ? 0 : energy(i)); return exclude!=1;
 }
 '''
         source += (ROOT / 'code/rendererrtx/shaders/rt_light_proposal.glsl').read_text()
@@ -133,6 +133,18 @@ int main() {
         assert(i==lights+k && weight==energy(i)); exact+=weight;
     }
     assert(exact==energy(lights)+energy(lights+1));
+    // Excluded/backfacing and zero-energy draws must retain zero reservoir
+    // weight with either proposal, including an empty local list.
+    for(uint exclude : {1u,2u}) for(float globalShare : {0.0f,0.25f,1.0f}) {
+        for(uint k=0;k<1000;k++) {
+            uint i; float target=-1,weight=-1; RtLightSample s;
+            rand01(seed);
+            uvec2 cell=globalShare==1 ? uvec2() : uvec2(0,64);
+            uint total=globalShare==1 ? 0 : 66;
+            assert(!rt_light_candidate(vec3(),vec3(),cell,total,false,globalShare,exclude,seed,k,i,s,target,weight));
+            assert(target==0 && weight==0);
+        }
+    }
     std::puts("overflow support, cell continuity and fresh-visibility RIS: PASS");
 }
 '''

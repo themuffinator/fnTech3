@@ -13,10 +13,27 @@ layout(local_size_x = 8, local_size_y = 8) in;
 
 const float kernel[3] = float[3](3.0 / 8.0, 1.0 / 4.0, 1.0 / 16.0);
 
-vec3 blurred_variance(uint src, ivec2 p)
+// An 8x8 group shares a one-pixel halo. The 3x3 variance blur otherwise
+// rereads the same three images nine times per output pixel, per pass.
+const int RT_VARIANCE_TILE = 10;
+shared vec3 s_variance[RT_VARIANCE_TILE * RT_VARIANCE_TILE];
+
+void cache_variance(uint src)
+{
+	ivec2 origin = ivec2(gl_WorkGroupID.xy) * 8 - ivec2(1);
+	for (uint index = gl_LocalInvocationIndex; index < 100u; index += 64u) {
+		ivec2 q = origin + ivec2(int(index) % RT_VARIANCE_TILE, int(index) / RT_VARIANCE_TILE);
+		s_variance[index] = in_trace(q) ? vec3(imageLoad(u_filterDiffuse[src], q).a,
+			imageLoad(u_filterSpecular[src], q).a, imageLoad(u_filterIndirect[src], q).a) : vec3(0.0);
+	}
+	barrier();
+}
+
+vec3 blurred_variance(ivec2 p)
 {
 	// 3x3 Gaussian over the variance, for a steadier edge stop
 	const float g[2] = float[2](1.0 / 4.0, 1.0 / 8.0);
+	ivec2 local = ivec2(gl_LocalInvocationID.xy) + ivec2(1);
 	vec3 sum = vec3(0.0);
 	float wsum = 0.0;
 	for (int dy = -1; dy <= 1; dy++) {
@@ -26,8 +43,7 @@ vec3 blurred_variance(uint src, ivec2 p)
 				continue;
 			}
 			float w = g[abs(dx)] * g[abs(dy)];
-			vec3 v = vec3(imageLoad(u_filterDiffuse[src], q).a,
-				imageLoad(u_filterSpecular[src], q).a, imageLoad(u_filterIndirect[src], q).a);
+			vec3 v = s_variance[(local.y + dy) * RT_VARIANCE_TILE + local.x + dx];
 			sum += v * w;
 			wsum += w;
 		}
@@ -35,17 +51,30 @@ vec3 blurred_variance(uint src, ivec2 p)
 	return sum / max(wsum, 1e-6);
 }
 
+bool rt_direct_filter_support(uint iteration, float reactiveTime, float variance, float mean)
+{
+	if (reactiveTime <= 0.0 || iteration < 2u) return true;
+	// A dynamic caster can be a stationary tree. Its response flag alone
+	// does not make the receiver's sampled light trustworthy. Give uncertain
+	// direct light one more existing pass, while settled shadow edges keep
+	// their narrow support. Relative variance makes this exposure invariant.
+	return iteration == 2u && variance > 0.05 * mean * mean;
+}
+
 void main()
 {
 	ivec2 p = ivec2(gl_GlobalInvocationID.xy);
-	if (!in_trace(p)) {
-		return;
-	}
 	uint cur = pc.state.x & 1u;
 	uint iteration = pc.state.y;
 	int stepSize = int(pc.state.z);
 	uint src = iteration & 1u;
 	uint dst = src ^ 1u;
+	// All invocations must reach the cache barrier, including the lanes
+	// outside a partial edge group and pixels owned by the raster pass.
+	cache_variance(src);
+	if (!in_trace(p)) {
+		return;
+	}
 	uint info = imageLoad(u_info[cur], p).r;
 
 	vec4 cD = imageLoad(u_filterDiffuse[src], p);
@@ -62,14 +91,16 @@ void main()
 	vec4 nd = read_normal_depth(cur, p);
 	vec3 n = oct_decode(nd.xy);
 	float z = nd.z;
+	vec2 depthGradient = denoise_depth_gradient(cur, p, n, z);
 	float lD = denoise_luminance(cD.rgb);
 	float lS = denoise_luminance(cS.rgb);
 	float sigmaL = pc.params.y;
-	vec3 variance = blurred_variance(src, p);
+	vec3 variance = blurred_variance(p);
 	float phiD = sigmaL * sqrt(max(variance.x, 1e-10));
 	float phiS = sigmaL * sqrt(max(variance.y, 1e-10));
 	float phiI = sigmaL * sqrt(max(variance.z, 1e-10));
 	float lI = denoise_luminance(cI.rgb);
+	bool filterDirect = rt_direct_filter_support(iteration, reactiveTime, variance.x, lD);
 	float normalPower = pc.params.z;
 	float depthScale = pc.params.w * float(stepSize) * max(abs(z), 1.0) * 0.01 + 1e-3;
 	uint material = info >> 8u;
@@ -100,7 +131,8 @@ void main()
 			}
 			vec4 qnd = read_normal_depth(cur, q);
 			float wn = pow(max(dot(n, oct_decode(qnd.xy)), 0.0), normalPower);
-			float wz = exp(-abs(z - qnd.z) / depthScale);
+			float depthError = rt_depth_plane_distance(z, qnd.z, dot(depthGradient, vec2(q - p)));
+			float wz = exp(-depthError / depthScale);
 			float k = kernel[abs(dx)] * kernel[abs(dy)];
 			float wGeom = k * wn * wz;
 			if (wGeom <= 1e-6) {
@@ -111,9 +143,7 @@ void main()
 			vec4 qS = imageLoad(u_filterSpecular[src], q);
 			vec4 qI = imageLoad(u_filterIndirect[src], q);
 			float w1 = wGeom * exp(-abs(lD - denoise_luminance(qD.rgb)) / (phiD + 1e-6));
-			// Direct shadows need a small spatial support. The wide passes
-			// reconstruct indirect light and glossy reflections only.
-			if (reactiveTime > 0.0 && iteration >= 2u) w1 = 0.0;
+			if (!filterDirect) w1 = 0.0;
 			// specular also stops at material boundaries: glossiness differs
 			float w2 = ((qinfo >> 8u) == material ? wGeom : 0.0) *
 				exp(-abs(lS - denoise_luminance(qS.rgb)) / (phiS + 1e-6));

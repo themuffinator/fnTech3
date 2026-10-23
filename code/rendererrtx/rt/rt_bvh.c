@@ -10,7 +10,7 @@ Path tracer BVHs for the compute backend
 Without VK_KHR_ray_tracing_pipeline the path tracer traverses bounding volume
 hierarchies of its own (shaders/rt_trace_sw.glsl). Each instance's triangles
 get a binary BVH over their bounds, split by the surface area heuristic over
-twelve bins of the centroids along their widest axis; leaves hold up to four
+twelve bins of the centroids along all three axes; leaves hold up to four
 triangles where splitting pays. A node is 32 bytes (rtBvhNode_t): an interior
 node's children are adjacent, so it names only the left one. Leaves list
 their triangles' corners (rtBvhTri_t) so traversal reads one record per
@@ -278,8 +278,8 @@ static qboolean RT_BvhAppend( rtBvh_t *bvh, const rtxRtPackedVertex_t *vertices,
 		rtBvhNode_t *node = &bvh->nodes[ *nodeOffset + task.node ];
 		const uint32_t n = task.end - task.start;
 		float cmin[3], cmax[3];
-		float extent, scale = 0.0f, bestCost = FLT_MAX;
-		int axis, bestBin = -1;
+		float scale = 0.0f, bestCost = FLT_MAX;
+		int axis = 0, bestBin = -1;
 		uint32_t mid;
 
 		RT_BvhClearBounds( node->bmin, node->bmax );
@@ -300,13 +300,25 @@ static qboolean RT_BvhAppend( rtBvh_t *bvh, const rtxRtPackedVertex_t *vertices,
 			continue;
 		}
 
-		axis = 0;
-		if ( cmax[1] - cmin[1] > cmax[axis] - cmin[axis] ) axis = 1;
-		if ( cmax[2] - cmin[2] > cmax[axis] - cmin[axis] ) axis = 2;
-		extent = cmax[axis] - cmin[axis];
-		if ( task.depth < RT_BVH_MAX_DEPTH && extent > 1e-6f * MAX( 1.0f, fabsf( cmin[axis] ) ) ) {
-			scale = (float)RT_BVH_BINS / extent;
-			bestBin = RT_BvhBestSplit( bvh, task.start, task.end, axis, cmin[axis], scale, &bestCost );
+		if ( task.depth < RT_BVH_MAX_DEPTH ) {
+			int candidate;
+			// The widest axis can leave heavily overlapping child bounds,
+			// especially around long walls and thin foliage. Spend a little
+			// more at build time to reduce every subsequent ray's traversal.
+			for ( candidate = 0; candidate < 3; candidate++ ) {
+				const float extent = cmax[candidate] - cmin[candidate];
+				float candidateCost, candidateScale;
+				int bin;
+				if ( extent <= 1e-6f * MAX( 1.0f, fabsf( cmin[candidate] ) ) ) continue;
+				candidateScale = (float)RT_BVH_BINS / extent;
+				bin = RT_BvhBestSplit( bvh, task.start, task.end, candidate, cmin[candidate], candidateScale, &candidateCost );
+				if ( bin >= 0 && candidateCost < bestCost ) {
+					axis = candidate;
+					scale = candidateScale;
+					bestBin = bin;
+					bestCost = candidateCost;
+				}
+			}
 		}
 
 		// a leaf when no split beats testing every triangle here

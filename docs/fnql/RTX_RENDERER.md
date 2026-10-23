@@ -500,10 +500,30 @@ first-person BODY caster, holds a reactive state for 150 ms. Direct light
 then uses a 35 ms response, independently of the slower indirect response.
 History weights use elapsed time, so lower FPS does not stretch a fixed
 sample count into a long shadow trail. Current compatible neighbours bound
-old history; old dark history never caps newly revealed bright light.
-Variance includes the indirect sample residual. Stationary view and game
+reactive history; quiet stochastic lighting retains its history rather than
+being clipped to black between rare samples. Moving lamps and flashes also
+mark receivers reactive, and moving surfaces keep the fast response. Old dark
+history never caps newly revealed bright light. Indirect variance includes
+both the post-blend residual and the incoming sample's difference from old
+history, so a sparse sample cannot erase its own uncertainty at low FPS.
+Stationary view and game
 clock can still accumulate, but changing geometry, lights or relevant
 settings invalidates that frozen estimate.
+
+Spatial depth stops measure departure from a local reciprocal-depth plane.
+The smaller valid one-sided slope avoids using a foreground/background edge
+as the receiver's slope. Grazing floors can then share light samples without
+relaxing the normal, material or depth-edge checks. The guide is also used for
+the current temporal neighbourhood and sparse indirect reconstruction.
+
+Reactive direct light normally uses the first two spatial iterations. The
+third existing iteration also filters it when blurred variance exceeds 5%
+of squared luminance. This removes isolated samples around model shadows
+without giving settled shadow edges or the widest iterations more support.
+The decision uses relative variance, so changing exposure does not change
+the policy. Temporal response, geometry stops, ray counts and dispatch counts
+are unchanged. The [forest speckle follow-up](../fntech3/2026-10-23-rtx-speckles.md)
+records quality, timing and moving-caster checks.
 
 Motion matching uses stable internal entity IDs where the profile supplies
 them, plus model/part topology and material signatures. Ambiguous duplicate
@@ -529,6 +549,10 @@ Depth/oct-normal and motion are packed into RG32UI images; moment mean and
 standard deviation use RGBA16F. Independent bounce density saves ray work,
 not these full-resolution allocations. Spatial filtering computes the shared
 variance neighbourhood once for all illumination signals.
+An 8 x 8 workgroup now caches the three variance images with a one-pixel
+halo in shared memory. This reduces an interior group's variance reads from
+1,728 to 300 per spatial pass. Partial edge groups participate in the barrier
+before returning; Gaussian weights and image-edge normalization are unchanged.
 
 **Light selection.** Each grid cell retains at most 64 important static
 lights, sorted by ID for binary-search membership. Overflow counts and omitted
@@ -536,6 +560,8 @@ local importance are reported. A global CDF mixes power weighting with a 10%
 uniform floor. The local/global proposal mixture retains nonzero support for
 every static light and includes dynamic lights, with its full PDF in RIS and
 MIS replacement. Cell overflow no longer removes lights from the estimator.
+Candidates with zero target skip proposal-density evaluation; their random
+draws, zero weights and the distribution of contributing samples are unchanged.
 `rtx_rt_light_reuse 1` replays four candidate random streams across nearby
 compatible primary receivers and up to four frames, replacing one stream each
 frame. The remaining candidates, current target/PDF, reservoir selection and
@@ -558,6 +584,18 @@ invalidation clears retained geometry. `RF_NOSHADOW` suppresses shadow rays
 without removing primary or reflected geometry; BODY remains hidden only
 from primary rays. Frequent GPU-read buffers prefer coherent host-visible
 device-local memory, with portable allocation fallback.
+
+Compute BVH builds evaluate the binned surface-area cost on all three axes,
+avoiding overlapping children when the widest centroid axis is a poor split.
+This spends more time building the tree to reduce traversal work in subsequent
+frames. The [RTX quality record](../fntech3/2026-10-22-rtx-quality.md) records the
+bounded `forest` timing and image comparison with ray tracing required.
+Compute traversal also keeps the previously tested entry distance beside each
+deferred node index. A nearer triangle can discard that node without fetching
+and testing its bounds again. Masked materials, first-blocker shadows and
+nearest-hit queries retain their existing rules. The
+[optimization follow-up](../fntech3/2026-10-23-rtx-optimization.md) records the
+paired timing, image and partial-workgroup checks.
 
 **Frame pacing.** `rtx_rt_low_latency 1` waits for at most one GPU frame in
 flight before OS input polling and acquires presentation there too. `2` allows

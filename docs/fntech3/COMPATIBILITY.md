@@ -59,6 +59,19 @@ contract; RTCW SP additionally requires campaign, AI, and save/load evidence.
 
 ## Status
 
+The [RTX quality record](2026-10-22-rtx-quality.md) covers perspective-aware
+denoising, rare-sample history, moving-light response and compute traversal
+improvements. It separates `forest` image and timing measurements from unit
+evidence and the remaining hardware/backend and profile coverage. Ray tracing
+was required in every runtime probe. No compatibility gate closes.
+The [optimization follow-up](2026-10-23-rtx-optimization.md) adds shared variance
+reads and cached compute traversal distances, with Q3 and RTCW runtime checks.
+It preserves the lighting and quality settings and does not extend profile
+or hardware-backend compatibility claims.
+The [forest speckle follow-up](2026-10-23-rtx-speckles.md) adds variance-guided
+direct-light filtering within the existing passes, with required ray tracing
+and unchanged sampling settings. Its evidence closes no compatibility gate.
+
 The [CSM lighting fidelity comparison](2026-10-22-csm-lighting-fidelity.md)
 compares RTCW `forest` with sun shadows disabled and enabled. The shared
 raster policy preserves authored ambient and fixed-brightness materials,

@@ -247,6 +247,15 @@ Release packages include them as web pages in their `manual` folder, built by
 - [RTX portal fog and light-caster parity](fntech3/2026-10-22-portal-fog-caster-parity.md)
   -- fog applied to the main view behind a distant sky, and finite-face
   light culling that makes the recorded GLx, Vulkan and RTX caster counts agree.
+- [RTX speckles and tracing cost](fntech3/2026-10-22-rtx-quality.md)
+  -- slope-aware filtering, stable lighting history, and bounded `forest`
+  quality and timing evidence with ray tracing required.
+- [RTX traversal and filter optimization](fntech3/2026-10-23-rtx-optimization.md)
+  -- cached traversal distances and shared variance reads, with paired
+  ray-traced runtime checks and image-edge coverage.
+- [RTX forest speckle follow-up](fntech3/2026-10-23-rtx-speckles.md)
+  -- variance-guided direct-light filtering, with forest quality, timing
+  and moving-shadow comparisons at unchanged ray counts.
 - [October 9 compatibility integration](fntech3/2026-10-09-compatibility-integration.md)
   -- resumed Alice and Elite Force work, shared-tree validation, and probe
   evidence and limits for the combined compatibility slices.
