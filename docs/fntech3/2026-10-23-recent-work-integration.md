@@ -127,7 +127,10 @@ The two stale renderer fixtures on the starting main were repaired as
 described above; no unresolved test failure was found in the merged engine.
 
 Useful build/test logs, engine captures, probe configs and their metadata are
-retained under `.tmp/merge-recent-work/`. Disposable homes, cached retail
-modules, compiler scratch and the temporary integration worktree are removed
-after the final commit. The existing feature worktrees and other chats'
-investigation output are preserved.
+retained under `.tmp/merge-recent-work/`. Git removed the clean temporary
+integration worktree after verifying that its history was preserved in main
+and its resolved path contained no links. Automatic approval review rejected
+the bulk scratch-file cleanup with "blocked by policy" before it ran, so the
+disposable homes, cached retail modules, compiler scratch and test caches
+remain in the task area. They are ignored and were not committed. The existing
+feature worktrees and other chats' investigation output are preserved.

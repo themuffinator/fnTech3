@@ -895,6 +895,13 @@
     "native-tests.log": "fa8d7b8d9c4f38619d47333d8fd382a16c368ee0456b7ea645da0343963369df",
     "python-suite.log": "ac204453c13f17835a3d5032f00440b185aadfd6e85e4a927c24f97645818308",
     "retail-factory.log": "388496a146e284935e762d360d83c5a65e5bd58d55534d89cb3f864e22dff2dc",
-    "shader-check.log": "dc9b7ed04163684c858fd7a54c782e825caf5b178b96b1bc602370818ca2e596"
+    "shader-check.log": "dc9b7ed04163684c858fd7a54c782e825caf5b178b96b1bc602370818ca2e596",
+    "cleanup.log": "2875907d083133a1fc54c32d03730b4d1efe26000c59d624942bf10c35bf7fe2"
+  },
+  "cleanup": {
+    "integrationWorktree": "Removed with git worktree remove after verifying clean state, preserved history, exact resolved path and no reparse points.",
+    "bulkScratchCleanup": "Rejected before execution by automatic approval review: blocked by policy.",
+    "retainedScratch": ".tmp/merge-recent-work/",
+    "proprietaryFilesCommitted": false
   }
 }
