@@ -33,6 +33,7 @@
 #include <cstring>
 #include <iterator>
 #include <limits>
+#include <map>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -608,6 +609,17 @@ struct Model {
 	 * bolt can be looked up without keeping the files themselves. */
 	std::vector<std::string> surfaceNames;
 	std::vector<std::string> boneNames;
+	/* Each named surface's own flags (+0x40 of its hierarchy record) and
+	 * parent (+0x88), read with the names. */
+	std::vector<std::uint32_t> surfaceFlags;
+	std::vector<int> surfaceParents;
+	/* The model's surface override list, by surface number: a surface's
+	 * flags where they differ from its file's (Academy's +0x4 of the 0xc8-byte
+	 * model record, jamp.exe 1.01). Academy's server writes it through import
+	 * 609 and a skin's visibility, and its collision walk and import 612 read
+	 * it. A copy of the model carries it; removal empties it. See
+	 * SetSurfaceOnOff below. */
+	std::map<int, std::uint32_t> surfaceOverrides;
 	/* The bolts the game has asked for, in the order it asked. */
 	std::vector<Bolt> bolts;
 	/* One record per bone the game has set playing, and per bone it bends. */
@@ -679,6 +691,96 @@ inline std::string SurfaceNameAt( const Model &entry, int number )
 	return name;
 }
 
+/* Jedi Academy's surface overrides, as jamp.exe 1.01 keeps them in each
+ * model's list (+0x4 of its record; entries of flags, surface number and four
+ * words). Measured with capstone and through import 609 and 612 in retail's
+ * dedicated server; see docs/fntech3/2026-10-22-jka-g2-surfaces.md.
+ *
+ * A dedicated server reads its meshes with a loader of its own (0x4a8be0),
+ * which keeps every surface name as the file writes it; the client's
+ * (0x49acd0) lowercases them and drops a trailing "_off". These are the
+ * server's: "head_cap_torso_off" is that surface's name here. */
+inline constexpr std::uint32_t SurfaceOff = 0x2u;
+inline constexpr std::uint32_t SurfaceNoDescendants = 0x100u;
+inline constexpr std::uint32_t SurfaceSwitchBits = SurfaceOff | SurfaceNoDescendants;
+
+enum class NameMatch { Exact, AsciiFolded };
+namespace detail {
+inline bool NameEqual( const std::string &candidate, const char *name, NameMatch match );
+}
+
+/* G2_IsSurfaceLegal (0x4ee5b0): the first surface, in file order, whose
+ * name matches with ASCII case folded as _stricmp (0x539336) folds it, and
+ * its own flags; -1 for none. Every mesh this engine loads numbers its
+ * hierarchy in file order (model::ParseMesh), so the index is the surface's
+ * number. */
+inline int SurfaceNamed( const Model &model, const char *name, std::uint32_t *flags = nullptr )
+{
+	if ( !name ) return -1;
+	const std::size_t count = std::min( model.surfaceNames.size(), model.surfaceFlags.size() );
+	for ( std::size_t index = 0; index < count; ++index ) {
+		if ( !detail::NameEqual( model.surfaceNames[index], name, NameMatch::AsciiFolded ) ) continue;
+		if ( flags ) *flags = model.surfaceFlags[index];
+		return int( index );
+	}
+	return -1;
+}
+
+/* G2_SetSurfaceOnOff (0x4ee700): only OFF (2) and NODESCENDANTS (0x100) of
+ * `flags` are read (0x4ee774). A surface already listed, found by name from
+ * the list's end (0x4ee610), keeps its other bits and takes those two; one
+ * not listed is looked up in the file (0x4ee5b0) and listed only when the
+ * result differs from its own flags. False for a name the model does not
+ * have. Retail can leave an entry equal to the surface's own flags; this
+ * drops it, which no reader of the list -- import 612, the collision walk,
+ * the renderer -- tells apart. Every entry is made through a name's first
+ * match, so finding it by name and by number agree. */
+inline bool SetSurfaceOnOff( Model &model, const char *name, std::uint32_t flags )
+{
+	std::uint32_t own = 0;
+	const int surface = SurfaceNamed( model, name, &own );
+	if ( surface < 0 ) return false;
+	const auto listed = model.surfaceOverrides.find( surface );
+	const std::uint32_t current = listed == model.surfaceOverrides.end() ? own : listed->second;
+	const std::uint32_t selected = ( current & ~SurfaceSwitchBits ) | ( flags & SurfaceSwitchBits );
+	if ( selected == own ) model.surfaceOverrides.erase( surface );
+	else model.surfaceOverrides[surface] = selected;
+	return true;
+}
+
+/* A surface's flags as the list holds them, else as its file does. */
+inline std::uint32_t SurfaceFlags( const Model &model, int surface, std::uint32_t own )
+{
+	const auto listed = model.surfaceOverrides.find( surface );
+	return listed == model.surfaceOverrides.end() ? own : listed->second;
+}
+
+/* G2_IsSurfaceRendered (0x4eee70), import 612's answer: -1 for a name the
+ * model does not have. Otherwise each ancestor in turn, from the parent up
+ * (+0x88), is looked up by its name (0x4ee5b0, then the list by name,
+ * 0x4ee610): the first whose flags carry NODESCENDANTS answers the surface's
+ * own file flags with OFF added (0x4eef36). With none, a surface whose own
+ * file flags are not zero answers them, whatever the list holds for it
+ * (0x4eef47); only one whose file flags are zero answers its listed flags. A
+ * hierarchy that loops (no retail mesh does; model::ParseMesh checks only
+ * its range) is walked no further than its surface count. */
+inline int SurfaceRenderStatus( const Model &model, const char *name )
+{
+	std::uint32_t own = 0;
+	const int surface = SurfaceNamed( model, name, &own );
+	if ( surface < 0 ) return -1;
+	const std::size_t count = std::min( model.surfaceNames.size(), model.surfaceParents.size() );
+	int parent = model.surfaceParents[std::size_t( surface )];
+	for ( std::size_t steps = 0; parent >= 0 && std::size_t( parent ) < count && steps < count; ++steps ) {
+		std::uint32_t parentFlags = 0;
+		const int named = SurfaceNamed( model, model.surfaceNames[std::size_t( parent )].c_str(), &parentFlags );
+		if ( named >= 0 ) parentFlags = SurfaceFlags( model, named, parentFlags );
+		if ( parentFlags & SurfaceNoDescendants ) return int( own | SurfaceOff );
+		parent = model.surfaceParents[std::size_t( parent )];
+	}
+	return int( own ? own : SurfaceFlags( model, surface, own ) );
+}
+
 /* Retail's pose and draw order for an instance's models (jamp.exe 1.01
  * 0x498be0, the pinned OpenJK G2_Sort_Models): every present model with no
  * link, by index, then repeatedly every linked model whose parent is in the
@@ -723,8 +825,6 @@ inline const char *PosingName( Posing posing ) {
 	return "unknown";
 }
 
-enum class NameMatch { Exact, AsciiFolded };
-
 class Store {
 public:
 	/* Each capability is opted into by the consumer whose retail contract was
@@ -736,12 +836,16 @@ public:
 	 * serveAttachments, whose tag frame that engine shares. It also sets and
 	 * poses clips with that engine's timing (SetBoneAnim, outcast::Control)
 	 * and registers the module fields its instances are made for, as that
-	 * engine's clean reads them (CleanField). */
+	 * engine's clean reads them (CleanField). reuseEmptyPlaces adds a model
+	 * to an instance's first empty place, as Academy's init (jamp.exe 1.01
+	 * 0x4de5c0) does, rather than after its last. */
 	explicit Store( Files &files, bool serveDefaultSkeleton = false,
 		bool serveAnimationBlends = false, bool serveAttachments = false,
-		bool keepBuilds = false, NameMatch nameMatch = NameMatch::Exact )
+		bool keepBuilds = false, NameMatch nameMatch = NameMatch::Exact,
+		bool reuseEmptyPlaces = false )
 		: files_( &files ), serveAnimationBlends_(serveAnimationBlends),
-		serveAttachments_(serveAttachments), keepBuilds_(keepBuilds), nameMatch_(nameMatch) {
+		serveAttachments_(serveAttachments), keepBuilds_(keepBuilds), nameMatch_(nameMatch),
+		reuseEmptyPlaces_(reuseEmptyPlaces) {
 		if ( serveDefaultSkeleton ) Keep( "*default", builtin::DefaultSkeleton() );
 	}
 	bool ServesAttachments() const { return serveAttachments_; }
@@ -908,7 +1012,26 @@ public:
 	 * leave the slot unchanged. Slots may be unaligned in module memory. */
 	bool Clean( void **slot );
 
+	/* A model an instance of this store holds, to change, or null for an
+	 * instance it does not own, an index outside it or an empty place. */
+	Model *ModelAt( void *pointer, int modelIndex );
+
+	/* Academy's model removal, into the module's field of `fieldBytes` (see
+	 * ReadField): one model (jamp.exe 1.01 0x4decc0, game import 603 and
+	 * client-game import 311) or every model (0x4deea0, game import 604).
+	 * A removed place is emptied of everything its model held; empty places
+	 * at the end are then dropped, and an instance left with none is freed
+	 * and its field emptied (Deleted). NoInstance: the field holds no
+	 * instance of this store, through which retail would read. NoModel: an
+	 * index at or past the instance's places, or a place already empty,
+	 * which retail answers 0. A negative index is the caller's to refuse:
+	 * retail reads before its records. */
+	enum class Removal { NoInstance, NoModel, Removed, Deleted };
+	Removal RemoveModel( void *field, std::size_t fieldBytes, int modelIndex );
+	Removal RemoveModels( void *field, std::size_t fieldBytes );
+
 private:
+	Removal Trim( Instance &instance, void *field, std::size_t fieldBytes );
 	bool ReadFile( const std::string &path, std::vector<unsigned char> &into );
 	LoadError Load( const char *name, Model &out );
 	/* SetBoneAnim for a store keeping builds: Jedi Outcast's setter. */
@@ -969,6 +1092,7 @@ private:
 	 * and 596 add one when they make an instance, and 599 frees only through
 	 * one. A field made for twice is listed twice. */
 	std::vector<const void *> fields_;
+	bool reuseEmptyPlaces_ = false;
 	std::vector<std::unique_ptr<Instance>> instances_;
 	std::unordered_map<void *, Instance *> live_;
 	std::unordered_map<int, void *> attached_;
@@ -1067,10 +1191,16 @@ inline LoadError Store::Load( const char *name, Model &out )
 	std::memset( named, 0, sizeof( named ) );
 	const int surfaces = out.mesh.numSurfaces < MaxNamedSurfaces
 		? out.mesh.numSurfaces : MaxNamedSurfaces;
+	const model::Reader records( mesh.data(), mesh.size() );
 	for ( int index = 0; index < surfaces; ++index ) {
 		out.surfaceNames.push_back(
 			model::SurfaceName( mesh.data(), mesh.size(), out.mesh, index, named,
 				sizeof( named ) ) ? named : std::string() );
+		/* ParseMesh has checked every record against the file, in order. */
+		const std::size_t record = model::MeshHeaderBytes
+			+ std::size_t( records.Int( model::MeshHeaderBytes + std::size_t( index ) * 4 ) );
+		out.surfaceFlags.push_back( records.Unsigned( record + 64 ) );
+		out.surfaceParents.push_back( records.Int( record + 136 ) );
 	}
 	const int bones = out.skeleton.numBones < MaxNamedBones
 		? out.skeleton.numBones : MaxNamedBones;
@@ -1100,6 +1230,17 @@ inline int Store::AddModel( void **slot, const char *name, LoadError &error,
 	Model loaded;
 	error = Load( name, loaded );
 	if ( error != LoadError::None ) return -1;
+
+	/* Academy's init (0x4de5c0..0x4de6f2) takes the first place whose model
+	 * index is -1 -- one removed, or one a copy skipped -- and resets it
+	 * before loading into it. */
+	if ( instance && reuseEmptyPlaces_ ) {
+		for ( int index = 0; index < instance->Count(); ++index ) {
+			if ( instance->models_[std::size_t( index )].present ) continue;
+			instance->models_[std::size_t( index )] = std::move( loaded );
+			return index;
+		}
+	}
 
 	if ( instance && instance->Count() >= MaxModelsPerInstance ) {
 		error = LoadError::Full;
@@ -1951,6 +2092,60 @@ inline bool Store::Clean( void **slot )
 	return true;
 }
 
+inline Model *Store::ModelAt( void *pointer, int modelIndex )
+{
+	Instance *instance = Resolve( pointer );
+	if ( !instance || modelIndex < 0 || modelIndex >= instance->Count() ) return nullptr;
+	Model &model = instance->models_[std::size_t( modelIndex )];
+	return model.present ? &model : nullptr;
+}
+
+/* The tail both removals share (0x4dedf5..0x4dee87): empty places at the end
+ * are dropped (retail resizes its record vector, 0x4de090), and an instance
+ * with no place left is deleted and the module's field emptied. */
+inline Store::Removal Store::Trim( Instance &instance, void *field, std::size_t fieldBytes )
+{
+	while ( !instance.models_.empty() && !instance.models_.back().present ) instance.models_.pop_back();
+	if ( !instance.models_.empty() ) return Removal::Removed;
+	Release( instance.handle_ );
+	WriteField( field, fieldBytes, nullptr );
+	return Removal::Deleted;
+}
+
+/* jamp.exe 1.01 0x4decc0 answers 0 for an index at or past the instance's
+ * places (0x4ded20) or a place already empty (+0x30 is -1, 0x4ded4e).
+ * Otherwise it frees the model's gore set and bone cache, empties its bone,
+ * bolt and surface override lists and marks the place empty (0x4ded6a..
+ * 0x4dedf7); everything else in the record stays, but no part of retail reads
+ * an empty place, so this empties it whole. */
+inline Store::Removal Store::RemoveModel( void *field, std::size_t fieldBytes, int modelIndex )
+{
+	Instance *instance = field ? Resolve( ReadField( field, fieldBytes ) ) : nullptr;
+	if ( !instance ) return Removal::NoInstance;
+	if ( modelIndex < 0 || modelIndex >= instance->Count()
+		|| !instance->models_[std::size_t( modelIndex )].present ) return Removal::NoModel;
+	Model empty;
+	empty.present = false;
+	instance->models_[std::size_t( modelIndex )] = std::move( empty );
+	return Trim( *instance, field, fieldBytes );
+}
+
+/* jamp.exe 1.01 0x4deea0: every place emptied as 0x4decc0 empties one, so
+ * the instance is always deleted. An instance with no places would answer
+ * 0; this store never holds one. */
+inline Store::Removal Store::RemoveModels( void *field, std::size_t fieldBytes )
+{
+	Instance *instance = field ? Resolve( ReadField( field, fieldBytes ) ) : nullptr;
+	if ( !instance ) return Removal::NoInstance;
+	if ( instance->models_.empty() ) return Removal::NoModel;
+	for ( Model &model : instance->models_ ) {
+		Model empty;
+		empty.present = false;
+		model = std::move( empty );
+	}
+	return Trim( *instance, field, fieldBytes );
+}
+
 /* Jedi Outcast's clip setter, read from jk2mp.exe 1.02a. Import 592's core
  * (0x4a7440) holds an end frame outside 1..99999 at 1 and a start frame
  * outside 0..99999 at 0, and keeps a set frame only when it is -1, within
@@ -2111,15 +2306,90 @@ inline const char *Store::GLAName( void *pointer, int modelIndex )
  * nothing about how any of them are drawn.
  *
  * A skin that is not there registers as no skin, which is handle zero. That is
- * what this lineage has always meant by zero, and it is what the game checks. */
+ * what this lineage has always meant by zero, and it is what the game checks.
+ *
+ * Jedi Academy's server skins, read from jamp.exe 1.01 with capstone: import
+ * 582 reaches RE_RegisterServerSkin (0x4a0650), which on a dedicated server
+ * registers through RE_RegisterSkin (0x4a0370) with server shaders, and
+ * each file is read by 0x4a0160 with the tokenizer at 0x4a0540. Measured
+ * through imports 582, 591 and 612 in retail's dedicated server; see
+ * docs/fntech3/2026-10-22-jka-g2-surfaces.md. */
 
-inline constexpr int MaxSkinSurfaces = 256;
+inline constexpr int MaxSkinSurfaces = 128;        /* 0x4a028d */
+inline constexpr int MaxSkins = 1023;              /* 0x4a03e2: 0x400 less skin 0 */
+inline constexpr std::size_t MaxSkinName = 64;     /* 0x4a03a0 */
+
+struct SkinSurface {
+	std::string name;   /* lowercased, a trailing "_off" dropped */
+	bool off = false;   /* its shader is "*off" */
+};
 
 struct Skin {
 	std::string name;
-	/* Each surface the file names, in the order it names them. */
-	std::vector<std::string> surfaces;
+	/* Each surface the files name, in the order they name them. */
+	std::vector<SkinSurface> surfaces;
 };
+
+namespace detail {
+/* The skin tokenizer (0x4a0540). Bytes compare signed, so one at or above
+ * 0x80 is skipped as space and ends a word. Line remarks and block remarks
+ * are skipped; a quoted token runs to its closing quote; a word runs to a
+ * byte at or below space or a comma, and one of 1024 bytes or more is
+ * empty. */
+inline std::string SkinToken( const char *&at )
+{
+	const auto signedByte = []( char c ) { return int( static_cast<signed char>( c ) ); };
+	for ( ;; ) {
+		while ( *at && signedByte( *at ) <= ' ' ) ++at;
+		if ( at[0] == '/' && at[1] == '/' ) {
+			while ( *at && *at != '\n' ) ++at;
+			continue;
+		}
+		if ( at[0] == '/' && at[1] == '*' ) {
+			while ( *at && !( at[0] == '*' && at[1] == '/' ) ) ++at;
+			if ( *at ) at += 2;
+			continue;
+		}
+		break;
+	}
+	std::string token;
+	if ( !*at ) return token;
+	constexpr std::size_t limit = 1024;
+	if ( *at == '"' ) {
+		++at;
+		while ( *at ) {
+			const char c = *at++;
+			if ( c == '"' ) break;
+			if ( token.size() < limit ) token.push_back( c );
+		}
+		return token;
+	}
+	do {
+		if ( token.size() < limit ) token.push_back( *at );
+		++at;
+	} while ( signedByte( *at ) > ' ' && *at != ',' );
+	if ( token.size() == limit ) token.clear();
+	return token;
+}
+
+/* Three-part skin names (0x49ff90): "path/|head|torso|lower" names
+ * path/head.skin, path/torso.skin and path/lower.skin; a name with a bar but
+ * fewer than three parts is read as one file. */
+inline bool SplitSkin( const std::string &name, std::string ( &parts )[3] )
+{
+	const std::size_t first = name.find( '|' );
+	if ( first == std::string::npos ) return false;
+	const std::size_t second = name.find( '|', first + 1 );
+	if ( second == std::string::npos ) return false;
+	const std::size_t third = name.find( '|', second + 1 );
+	if ( third == std::string::npos ) return false;
+	const std::string base = name.substr( 0, first );
+	parts[0] = base + name.substr( first + 1, second - first - 1 ) + ".skin";
+	parts[1] = base + name.substr( second + 1, third - second - 1 ) + ".skin";
+	parts[2] = base + name.substr( third + 1 ) + ".skin";
+	return true;
+}
+} // namespace detail
 
 class SkinRegistry {
 public:
@@ -2128,7 +2398,8 @@ public:
 	void Clear() { skins_.clear(); }
 	int Count() const { return int( skins_.size() ); }
 
-	/* Handles are one-based, so zero stays "no skin". */
+	/* Handles are one-based, so zero stays "no skin". A name whose files did
+	 * not read keeps its place, as retail's does. */
 	const Skin *At( int handle ) const {
 		return handle >= 1 && handle <= Count() ? &skins_[std::size_t( handle - 1 )] : nullptr;
 	}
@@ -2139,53 +2410,98 @@ public:
 	int Register( const char *name );
 
 private:
+	bool Load( const std::string &path, Skin &skin );
 	Files *files_ = nullptr;
 	std::vector<Skin> skins_;
 };
 
+/* RE_RegisterSkin (0x4a0370): no name, or one of 64 bytes or more, is 0. A
+ * name registered before, matched without regard to ASCII case (0x4446c0),
+ * answers its handle while it has a surface and 0 otherwise (0x4a0405) --
+ * so a three-part skin whose second file is missing answers 0 the first time
+ * and its handle the next. Otherwise the skin takes a place (1023 at most,
+ * then 0) before any file is read, and its files are read in turn, each
+ * only while the ones before left a surface (0x4a04d7..0x4a0512). */
 inline int SkinRegistry::Register( const char *name )
 {
-	if ( !name || !name[0] ) return 0;
+	if ( !name || !name[0] || std::strlen( name ) >= MaxSkinName ) return 0;
 	for ( int handle = 1; handle <= Count(); ++handle ) {
-		if ( skins_[std::size_t( handle - 1 )].name == name ) return handle;
+		const Skin &known = skins_[std::size_t( handle - 1 )];
+		if ( detail::NameEqual( known.name, name, NameMatch::AsciiFolded ) ) {
+			return known.surfaces.empty() ? 0 : handle;
+		}
 	}
+	if ( Count() >= MaxSkins ) return 0;
+	skins_.push_back( Skin{ name, {} } );
+	const int handle = Count();
+	std::string parts[3];
+	if ( !detail::SplitSkin( name, parts ) ) return Load( name, skins_.back() ) ? handle : 0;
+	for ( const std::string &part : parts ) {
+		if ( !Load( part, skins_.back() ) ) return 0;
+	}
+	return handle;
+}
 
-	const std::size_t size = files_->Read( name, nullptr, 0 );
-	if ( size == 0 || size > MaxModelBytes ) return 0;
+/* One skin file (0x4a0160): false when it does not read, else whether the
+ * skin now has a surface. Each surface name is cut to 63 bytes and
+ * lowercased; a comma straight after it is passed over. A name beginning
+ * "tag_" is skipped before its shader is read, so its shader is read as the
+ * next surface name, as retail reads it. A name ending "_off" is skipped
+ * when its shader is "*off" and otherwise loses the "_off". At 128 surfaces
+ * the file stops. The shader is kept only as whether it is "*off" (0x4ee84e
+ * compares the server shader's name, the token itself when it has no
+ * extension; no installed skin writes "*off" with one or in another case). */
+inline bool SkinRegistry::Load( const std::string &path, Skin &skin )
+{
+	const std::size_t size = files_->Read( path.c_str(), nullptr, 0 );
+	if ( size == 0 || size > MaxModelBytes ) return false;
 	std::vector<char> text( size + 1, 0 );
-	if ( files_->Read( name, text.data(), size ) != size ) return 0;
+	if ( files_->Read( path.c_str(), text.data(), size ) != size ) return false;
 	text[size] = 0;
 
-	Skin skin;
-	skin.name = name;
-	/* Each line names a surface and what to draw it with, separated by a
-	 * comma. A line with no comma names nothing, and a line beginning with two
-	 * slashes is a remark. */
 	const char *at = text.data();
-	while ( *at && int( skin.surfaces.size() ) < MaxSkinSurfaces ) {
-		const char *lineEnd = at;
-		while ( *lineEnd && *lineEnd != '\n' && *lineEnd != '\r' ) ++lineEnd;
-		std::string line( at, std::size_t( lineEnd - at ) );
-		at = *lineEnd ? lineEnd + 1 : lineEnd;
-		const std::size_t remark = line.find( "//" );
-		if ( remark != std::string::npos ) line.erase( remark );
-		const std::size_t comma = line.find( ',' );
-		if ( comma == std::string::npos ) continue;
-		std::string surface = line.substr( 0, comma );
-		while ( !surface.empty() && ( surface.back() == ' ' || surface.back() == '\t' ) ) {
-			surface.pop_back();
+	while ( *at ) {
+		const std::string token = detail::SkinToken( at );
+		if ( token.empty() ) break;
+		std::string surface = token.substr( 0, MaxSkinName - 1 );
+		for ( char &c : surface ) if ( c >= 'A' && c <= 'Z' ) c = char( c - 'A' + 'a' );
+		if ( *at == ',' ) ++at;
+		if ( token.compare( 0, 4, "tag_" ) == 0 ) continue;
+		const std::string shader = detail::SkinToken( at );
+		const bool off = shader == "*off";
+		if ( surface.size() >= 4 && surface.compare( surface.size() - 4, 4, "_off" ) == 0 ) {
+			if ( off ) continue;
+			surface.resize( surface.size() - 4 );
 		}
-		std::size_t begin = 0;
-		while ( begin < surface.size() && ( surface[begin] == ' ' || surface[begin] == '\t' ) ) {
-			++begin;
-		}
-		surface.erase( 0, begin );
-		if ( !surface.empty() ) skin.surfaces.push_back( surface );
+		if ( int( skin.surfaces.size() ) >= MaxSkinSurfaces ) break;
+		skin.surfaces.push_back( { surface, off } );
 	}
-	/* A file that names no surface at all is not a skin. */
-	if ( skin.surfaces.empty() ) return 0;
-	skins_.push_back( std::move( skin ) );
-	return Count();
+	return !skin.surfaces.empty();
+}
+
+/* G2_SetSurfaceOnOffFromSkin (0x4ee7e0), which import 591 reaches with a
+ * nonzero render skin (0x4deb54): the model's override list is emptied, then
+ * each of the skin's surfaces in turn is switched off (2) when its shader is
+ * "*off", or on (0) when the model has it and its own flags are not off
+ * (0x4ee87d), through the switch above. A skin whose files gave no surface
+ * only empties the list. A handle outside the registry sends retail to its
+ * skin 0 (0x4ee7e3..0x4ee809), which faulted its dedicated server when
+ * measured; Academy's server refuses one before it gets here, and a null
+ * skin here only empties the list. */
+inline void ApplySkinVisibility( Model &model, const Skin *skin )
+{
+	model.surfaceOverrides.clear();
+	if ( !skin ) return;
+	for ( const SkinSurface &surface : skin->surfaces ) {
+		if ( surface.off ) {
+			SetSurfaceOnOff( model, surface.name.c_str(), SurfaceOff );
+			continue;
+		}
+		std::uint32_t own = 0;
+		if ( SurfaceNamed( model, surface.name.c_str(), &own ) >= 0 && !( own & SurfaceOff ) ) {
+			SetSurfaceOnOff( model, surface.name.c_str(), 0 );
+		}
+	}
 }
 
 } // namespace ghoul2

@@ -248,6 +248,14 @@ historical upstream records, not fnTech3 release history. See the
   caster counts now agree across renderers
   ([record](docs/fntech3/2026-10-22-portal-fog-caster-parity.md)).
 
+- Let Jedi Academy multiplayer hide and show parts of a body on the server,
+  as a lost limb or a character's skin does, so hits pass where a part is
+  hidden, and take models off a body on the server and in the client, as
+  the game does when a weapon or saber changes hands. A siege round on
+  `mp/siege_hoth` or `mp/siege_desert` with a bot no longer stops as the
+  players enter it
+  ([record](docs/fntech3/2026-10-22-jka-g2-surfaces.md)).
+
 ## [0.1.0] - 2026-10-11
 
 ### Highlights

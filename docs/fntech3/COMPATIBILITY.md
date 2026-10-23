@@ -3069,6 +3069,31 @@ first traces through import 299 (`CG_G2_COLLISIONDETECT`), which is not
 served, so live runs do not reach them (Live subset: no change). No gate
 closes.
 
+The [Ghoul2 surfaces slice](2026-10-22-jka-g2-surfaces.md) (2026-10-22)
+gives the server's models retail `jamp.exe` 1.01's surface override list and
+serves game imports 609 (switch a surface of model 0, `0x4ee700`) and 612
+(its render status, `0x4eee70`, whose quirks are kept: an ancestor's
+NODESCENDANTS answers the surface's own flags with OFF, and a surface with
+nonzero file flags answers them whatever its list says). A server skin
+(import 582) is now read as `0x4a0370`/`0x4a0160` read it, and import 591
+with a render skin applies its visibility to the list (`0x4ee7e0`); the
+trace and the collision imports walk the list. The dedicated server keeps
+mesh names as written (`0x4a8be0`), unlike the client's loader, which drops
+`_off`. Model removal is served on both sides -- game 603 and 604 and
+client-game 311 (`0x4decc0`, `0x4deea0`) -- and the init (`0x4de5c0`) fills
+the empty place a removal leaves. A synthetic module run in retail and in
+fnTech3's server agrees on 3,464 render statuses, 24 switches, 14 skin
+applications, 13 removals, 494 surface names and skin handles, and all 163
+collision records within 1.6e-5 units; the one difference is retail's heap
+reusing a freed instance's address, which fnTech3's identities never do
+(Source, Unit). A render skin the server never registered faulted retail's
+dedicated server and is refused. Live, a siege round with a bot on
+`mp/siege_hoth` and `mp/siege_desert`, which stopped at client-game import
+311 as the players entered, now runs to the probe's end (Live subset).
+Client-game import 324, whether the client
+game's surface names lose `_off` as the client loader's do, `RF_DISINTEGRATE2`,
+ragdoll and IK remain open. No gate closes.
+
 Star Wars Jedi Knight: Jedi Academy is the sixth title, with two mode profiles
 over one `base/` installation: `jka-sp` for Raven's single-player campaign and
 `jka-mp` for multiplayer. The [foundation record](2026-09-21-jka-contracts.md)

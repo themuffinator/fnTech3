@@ -121,6 +121,13 @@ struct State {
         const Set *set = word ? FindSet(word) : nullptr;
         return set ? static_cast<int>(set->marks.size()) : 0;
     }
+    /* Removal 0x4decc0 releases this model's set, retaining duplicate references. */
+    void ClearModel(std::uint32_t identity, int index) {
+        const auto found = models.find({identity, index});
+        if (found == models.end()) return;
+        if (found->second) DeleteSet(found->second);
+        models.erase(found);
+    }
     /* 0x4e07f0 (import 315, and first in clean 0x4de520): every place's set. */
     void Clear(std::uint32_t identity) {
         for (auto at = models.lower_bound({identity, INT_MIN}); at != models.end() && at->first.first == identity;) {

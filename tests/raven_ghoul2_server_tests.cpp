@@ -798,19 +798,21 @@ static void CheckIdentityExhaustion()
 	CHECK( !exhausted.Allocate() && !exhausted.Allocate() );
 }
 
-/* A skin is registered for its handle and its surface names, not for how any
- * of it is drawn: that is what a server needs and all it is told. */
+/* A skin is registered for its handle and its surfaces' visibility, not for
+ * how any of it is drawn: that is what a server needs and all it is told. It
+ * is read as Jedi Academy's server reads one (jamp.exe 1.01 0x4a0160): comma
+ * tokens, lowercased names, a trailing "_off" dropped or the line skipped.
+ * tests/jka_g2_surface_tests.cpp checks the rest of the loader. */
 static void CheckSkinsRegister()
 {
 	TestFiles files;
-	files.files["models/players/test/model_default.skin"] = Bytes();
 	const std::string skin =
 		"// a remark\n"
-		"torso,models/players/test/torso.tga\n"
+		"Torso,models/players/test/torso.tga\n"
 		"  l_arm  ,models/players/test/arm.tga\n"
-		"nothing-here\n"
-		"tag_head,\n"
-		"r_arm,models/players/test/arm.tga // trailing remark\n";
+		"head_cap_torso_off,*off\n"
+		"r_leg_cap_hips_off,models/players/test/caps.tga\n"
+		"r_arm,*off // trailing remark\n";
 	files.files["models/players/test/model_default.skin"].assign( skin.begin(), skin.end() );
 
 	fntech3::ghoul2::SkinRegistry skins( files );
@@ -820,27 +822,34 @@ static void CheckSkinsRegister()
 	CHECK( handle == 1 );
 	const fntech3::ghoul2::Skin *registered = skins.At( handle );
 	CHECK( registered && registered->surfaces.size() == 4 );
-	CHECK( registered->surfaces[0] == "torso" );
-	CHECK( registered->surfaces[1] == "l_arm" );   /* its padding is trimmed */
-	CHECK( registered->surfaces[2] == "tag_head" ); /* a tag names a surface too */
-	CHECK( registered->surfaces[3] == "r_arm" );
+	CHECK( registered->surfaces[0].name == "torso" && !registered->surfaces[0].off );
+	/* The space before the comma ends the name; the comma then starts the
+	 * shader token, as retail's tokenizer reads it. */
+	CHECK( registered->surfaces[1].name == "l_arm" && !registered->surfaces[1].off );
+	CHECK( registered->surfaces[2].name == "r_leg_cap_hips" && !registered->surfaces[2].off );
+	CHECK( registered->surfaces[3].name == "r_arm" && registered->surfaces[3].off );
 
 	/* The same skin twice keeps its handle, because a level asks for one skin
-	 * on many entities. */
+	 * on many entities; case does not tell two names apart. */
 	CHECK( skins.Register( "models/players/test/model_default.skin" ) == handle );
+	CHECK( skins.Register( "MODELS/players/test/MODEL_DEFAULT.SKIN" ) == handle );
 	CHECK( skins.Count() == 1 );
 
 	/* Zero means no skin, and it is what everything unusable registers as. */
 	CHECK( skins.At( 0 ) == nullptr && skins.At( 2 ) == nullptr && skins.At( -1 ) == nullptr );
 	CHECK( skins.Register( nullptr ) == 0 );
 	CHECK( skins.Register( "" ) == 0 );
+	CHECK( skins.Count() == 1 );
+	/* A skin whose file is not there takes its place and stays no skin. */
 	CHECK( skins.Register( "models/players/test/absent.skin" ) == 0 );
+	CHECK( skins.Count() == 2 && skins.At( 2 ) && skins.At( 2 )->surfaces.empty() );
+	CHECK( skins.Register( "models/players/test/absent.skin" ) == 0 && skins.Count() == 2 );
 
 	/* A file that names no surface is not a skin. */
-	const std::string empty = "// only a remark\nnothing-here\n";
+	const std::string empty = "// only a remark\n";
 	files.files["models/players/test/empty.skin"].assign( empty.begin(), empty.end() );
 	CHECK( skins.Register( "models/players/test/empty.skin" ) == 0 );
-	CHECK( skins.Count() == 1 );
+	CHECK( skins.Count() == 3 );
 
 	skins.Clear();
 	CHECK( skins.Count() == 0 && skins.At( 1 ) == nullptr );

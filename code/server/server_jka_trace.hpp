@@ -67,12 +67,11 @@ static bool SV_JKATraceGhoul2( const fntech3_jka_sharedEntity_t &entity, int lod
 	/* Retail's skeleton build (0x49a050) is handed the server's time word
 	 * (0xc317c4) itself, the level time its game frames run at -- not the
 	 * Ghoul2 clock the bolt queries pose at. Every model is traced in the
-	 * instance's own order (0x4ec1c0), each from the skeleton its build left.
-	 * The server's models hold no surface overrides (import 609 is not
-	 * served), so each walks its file's own flags. */
+	 * instance's own order (0x4ec1c0), each from the skeleton its build left,
+	 * with the surfaces its override list switched. */
 	collision::Prepared prepared;
 	if ( !collision::Prepare( store, *instance, sv.time, lod, jkaTraceGeometry,
-		[]( int ) -> const collision::SurfaceOverrides * { return nullptr; }, prepared ) ) {
+		collision::StoredOverrides( *instance ), prepared ) ) {
 		SV_JKAGhoul2Unready( "Jedi Academy Ghoul2 trace", number, *instance, prepared );
 	}
 	const std::vector<collision::Model> &models = prepared.models;
@@ -136,7 +135,7 @@ static void SV_JKACollide( void *recordsAddress, void *ghoul2, const float angle
 	}
 	collision::Prepared prepared;
 	if ( !collision::Prepare( store, *instance, time, lod, jkaTraceGeometry,
-		[]( int ) -> const collision::SurfaceOverrides * { return nullptr; }, prepared ) ) {
+		collision::StoredOverrides( *instance ), prepared ) ) {
 		SV_JKAGhoul2Unready( "Jedi Academy Ghoul2 collision", entityNum, *instance, prepared );
 	}
 	collision::Query query;

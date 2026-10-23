@@ -86,9 +86,11 @@ ServerGhoul2Files ravenGhoul2Files;
  * docs/fntech3/2026-10-06-jedi-server-attachments.md and
  * docs/fntech3/2026-10-07-jk2-server-clips.md. */
 /* Both setters and AddBolt fold ASCII case in Academy's shared retail core;
- * measured through its server imports in 2026-10-07-jka-bone-names.md. */
+ * measured through its server imports in 2026-10-07-jka-bone-names.md. Its
+ * init (0x4de5c0) fills an instance's first empty place, which removal
+ * (imports 603 and 604) leaves: 2026-10-22-jka-g2-surfaces.md. */
 fntech3::ghoul2::Store ravenGhoul2Academy( ravenGhoul2Files, true, true, true,
-	false, fntech3::ghoul2::NameMatch::AsciiFolded );
+	false, fntech3::ghoul2::NameMatch::AsciiFolded, true );
 fntech3::ghoul2::Store ravenGhoul2Outcast( ravenGhoul2Files, true, false, true, true );
 fntech3::ghoul2::SkinRegistry ravenSkins( ravenGhoul2Files );
 

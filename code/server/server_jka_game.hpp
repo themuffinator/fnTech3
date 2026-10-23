@@ -673,12 +673,115 @@ static bool SV_JKAGameCall( const intptr_t *args, intptr_t &operation, intptr_t 
 
 	case Call::G_G2_SETSKIN: {
 		/* The game puts a registered skin on one of an instance's models. The
-		 * server keeps the handle; what it stands for is a renderer's business
+		 * server keeps the handle; how it is drawn is a renderer's business
 		 * and no part of this. An instance this engine never handed out is
-		 * refused, not written through. */
+		 * refused, not written through.
+		 *
+		 * Retail's handler (0x45cbb2) hands the model's record, the skin and
+		 * the render skin to 0x4deb50, which keeps the skin and, for a nonzero
+		 * render skin, applies that skin's surface visibility to the model's
+		 * override list (0x4ee7e0, ghoul2::ApplySkinVisibility). The game
+		 * hands the same server skin as both (jampgamex86.dll 0x200777ed). A
+		 * render skin the server never registered sends retail to its skin
+		 * 0, which faulted retail's dedicated server when measured; it is
+		 * refused. */
 		const int customSkin = static_cast<int>( args[3] );
-		result = ravenGhoul2.SetSkin( pointer( 1 ), static_cast<int>( args[2] ),
-			customSkin ) ? 1 : 0;
+		const int renderSkin = static_cast<int>( args[4] );
+		const int modelIndex = static_cast<int>( args[2] );
+		const fntech3::ghoul2::Skin *skin = renderSkin ? ravenSkins.At( renderSkin ) : nullptr;
+		if ( renderSkin && !skin ) {
+			Com_Error( ERR_DROP, "Jedi Academy G_G2_SETSKIN was handed render skin %d, which the server "
+				"never registered", renderSkin );
+		}
+		result = ravenGhoul2.SetSkin( pointer( 1 ), modelIndex, customSkin ) ? 1 : 0;
+		if ( result && skin ) {
+			fntech3::ghoul2::ApplySkinVisibility( *ravenGhoul2.ModelAt( pointer( 1 ), modelIndex ), skin );
+		}
+		return true;
+	}
+
+	case Call::G_G2_SETSURFACEONOFF: {
+		/* Switch a surface of model 0 on or off. Retail's handler (0x45ced2)
+		 * hands the instance word, the name and the flags to 0x4deb70, as the
+		 * client game's 321 does: a null word, an instance with no places or
+		 * an empty place 0 answer 0 before the name is read; then 0x4ee700
+		 * answers 1 for a surface model 0 has and 0 for any other name
+		 * (ghoul2::SetSurfaceOnOff). A null name with a model there faults in
+		 * retail's _stricmp and is refused; so is an instance this engine never
+		 * handed out. The list it changes is read by the collision walk
+		 * (server_jka_trace.hpp) and by 612. */
+		result = 0;
+		if ( !args[1] ) return true;
+		if ( !ravenGhoul2.Resolve( pointer( 1 ) ) ) {
+			Com_Error( ERR_DROP, "Jedi Academy G_G2_SETSURFACEONOFF was handed an instance this engine "
+				"never handed out" );
+		}
+		fntech3::ghoul2::Model *model = ravenGhoul2.ModelAt( pointer( 1 ), 0 );
+		if ( !model ) return true;
+		if ( !args[2] ) Com_Error( ERR_DROP, "Jedi Academy G_G2_SETSURFACEONOFF was handed no surface name" );
+		result = fntech3::ghoul2::SetSurfaceOnOff( *model, text( 2 ),
+			static_cast<std::uint32_t>( args[3] ) ) ? 1 : 0;
+		return true;
+	}
+
+	case Call::G_G2_GETSURFACERENDERSTATUS: {
+		/* A surface's flags as drawn. Retail's handler (0x45cf26) picks the
+		 * model's record with no bounds check (0x4116e0, which reads through
+		 * the instance word) and asks 0x4dec00: -1 for an empty place, whose
+		 * setup fails, and otherwise G2_IsSurfaceRendered (0x4eee70,
+		 * ghoul2::SurfaceRenderStatus): -1 for a name the model does not have,
+		 * else its flags with an ancestor's NODESCENDANTS read in. A null or
+		 * foreign instance, a model index outside the instance's places and a
+		 * null name, all of which retail reads through, are refused. */
+		const fntech3::ghoul2::Instance *instance = ravenGhoul2.Resolve( pointer( 1 ) );
+		if ( !instance ) {
+			Com_Error( ERR_DROP, "Jedi Academy G_G2_GETSURFACERENDERSTATUS was handed an instance this "
+				"engine never handed out" );
+		}
+		const int modelIndex = static_cast<int>( args[2] );
+		if ( modelIndex < 0 || modelIndex >= instance->Count() ) {
+			Com_Error( ERR_DROP, "Jedi Academy G_G2_GETSURFACERENDERSTATUS: model %d is outside its "
+				"instance, whose records retail reads past", modelIndex );
+		}
+		const fntech3::ghoul2::Model *model = instance->At( modelIndex );
+		result = -1;
+		if ( !model ) return true;
+		if ( !args[3] ) Com_Error( ERR_DROP, "Jedi Academy G_G2_GETSURFACERENDERSTATUS was handed no surface name" );
+		result = fntech3::ghoul2::SurfaceRenderStatus( *model, text( 3 ) );
+		return true;
+	}
+
+	case Call::G_G2_REMOVEGHOUL2MODEL:
+	case Call::G_G2_REMOVEGHOUL2MODELS: {
+		/* Take one model, or every model, out of an instance through the
+		 * module's field for it. Retail's handlers (0x45cd9a, 0x45cdb5) map
+		 * the field's address and hand it, with 603's model index, to 0x4decc0
+		 * and 0x4deea0 (ghoul2::Store::RemoveModel and RemoveModels): an index
+		 * at or past the instance's places, or a place already empty, answers
+		 * 0; otherwise the place is emptied, empty places at the end are
+		 * dropped, an instance left with none is freed and the field emptied,
+		 * and the call answers 1. Retail reads through a null field, a null
+		 * instance in it and a negative index; those are refused, as is an
+		 * instance this engine never handed out. */
+		if ( !args[1] ) {
+			Com_Error( ERR_DROP, "Jedi Academy %s was handed no model field",
+				call == Call::G_G2_REMOVEGHOUL2MODEL ? "G_G2_REMOVEGHOUL2MODEL" : "G_G2_REMOVEGHOUL2MODELS" );
+		}
+		VM_CHECKBOUNDS( gvm, args[1], sizeof( void * ) );
+		const int modelIndex = static_cast<int>( args[2] );
+		if ( call == Call::G_G2_REMOVEGHOUL2MODEL && modelIndex < 0 ) {
+			Com_Error( ERR_DROP, "Jedi Academy G_G2_REMOVEGHOUL2MODEL was handed model %d, before its "
+				"instance's records", modelIndex );
+		}
+		using Removal = fntech3::ghoul2::Store::Removal;
+		const Removal removal = call == Call::G_G2_REMOVEGHOUL2MODEL
+			? ravenGhoul2.RemoveModel( pointer( 1 ), sizeof( void * ), modelIndex )
+			: ravenGhoul2.RemoveModels( pointer( 1 ), sizeof( void * ) );
+		if ( removal == Removal::NoInstance ) {
+			Com_Error( ERR_DROP, "Jedi Academy %s: the model field holds no instance this engine handed out",
+				call == Call::G_G2_REMOVEGHOUL2MODEL ? "G_G2_REMOVEGHOUL2MODEL" : "G_G2_REMOVEGHOUL2MODELS" );
+		}
+		result = removal == Removal::NoModel ? 0 : 1;
 		return true;
 	}
 
