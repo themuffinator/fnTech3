@@ -256,6 +256,12 @@ Release packages include them as web pages in their `manual` folder, built by
 - [RTX forest speckle follow-up](fntech3/2026-10-23-rtx-speckles.md)
   -- variance-guided direct-light filtering, with forest quality, timing
   and moving-shadow comparisons at unchanged ray counts.
+- [Liquid feeds for every profile](fntech3/2026-10-22-liquid-feeds-all-profiles.md)
+  -- each game's water, slime, lava and moving entities supplied to the
+  shared underwater effects, ripples and spatial audio.
+- [Completed branch integration](fntech3/2026-10-23-recent-work-integration.md)
+  -- JKA, liquids and RTX together on the CSM baseline, scoped gore cleanup,
+  and combined build, regression and runtime evidence.
 - [October 9 compatibility integration](fntech3/2026-10-09-compatibility-integration.md)
   -- resumed Alice and Elite Force work, shared-tree validation, and probe
   evidence and limits for the combined compatibility slices.

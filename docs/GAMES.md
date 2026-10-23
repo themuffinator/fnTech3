@@ -37,6 +37,12 @@ RTX's new liquid reflections and refraction have been compared on Quake
 III's `q3dm12`. The shared path is available to the other games, whose liquid
 materials still need their own checks; see the [RTX guide](RTX.md#what-you-will-see).
 
+The optional underwater view and ripple effects now use every game's own
+water, slime and lava. They are available in all games; fog and scene limits
+still apply. See the [Display guide](DISPLAY.md#underwater-view) for settings
+and the [liquid checks](fntech3/2026-10-22-liquid-feeds-all-profiles.md) for
+the scenes tested.
+
 Dynamic-light and sun shadows now include Enemy Territory's soldiers and the
 characters of Alice, F.A.K.K.2 and Medal of Honor; Return to Castle
 Wolfenstein's characters also cast and receive sun shadows. Alice, F.A.K.K.2

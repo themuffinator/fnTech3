@@ -59,6 +59,13 @@ contract; RTCW SP additionally requires campaign, AI, and save/load evidence.
 
 ## Status
 
+The [completed branch integration](2026-10-23-recent-work-integration.md)
+combines the JKA model/surface work, profile-aware liquid feeds and completed
+RTX improvements with main's CSM baseline. Model removal now releases only
+that model's gore reference, preserving duplicates and other slots. The record
+separates the combined build, regression and bounded runtime checks from the
+feature records; no compatibility gate closes.
+
 The [RTX quality record](2026-10-22-rtx-quality.md) covers perspective-aware
 denoising, rare-sample history, moving-light response and compute traversal
 improvements. It separates `forest` image and timing measurements from unit

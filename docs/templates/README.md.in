@@ -65,16 +65,20 @@ server and three renderers -- aims to run ten games:
 | --- | --- | --- |
 | Quake III Arena | `quake3` (`q3`) | **Playable** in the normal download, on Windows and Linux. Plays online with 1.32, ioquake3 and the original 1.29 to 1.31 releases, and plays demos back to 1.11 ([versions](docs/GAMES.md#quake-iii-arena-quake3)). RTX liquid reflections and refraction tested on `q3dm12` ([guide](docs/RTX.md#what-you-will-see)). |
 | Quake Live | `quakelive` (`ql`) | **Playable** in the normal download. The client needs Windows, where Quake Live's own game code runs. |
-| Return to Castle Wolfenstein | `rtcw-sp`, `rtcw-mp` | Experimental; available in every build. Characters cast and receive sun shadows; use GLx or Vulkan on `forest` ([shadow notes](docs/DISPLAY.md#dynamic-lighting-and-shadowing)). |
+| Return to Castle Wolfenstein | `rtcw-sp`, `rtcw-mp` | Experimental; available in every build. Characters cast and receive sun shadows in all three renderers ([shadow notes](docs/DISPLAY.md#dynamic-lighting-and-shadowing)). |
 | Wolfenstein: Enemy Territory | `wolfet` (`et`) | Experimental: available in every build. Soldiers support dynamic-light and sun shadows ([guide](docs/DISPLAY.md#dynamic-lighting-and-shadowing)). |
 | Star Trek Voyager: Elite Force | `stvef-sp`, `stvef-mp` | Experimental; available in every build; single player on Windows only. |
-| Star Wars Jedi Knight: Jedi Academy | `jka-sp`, `jka-mp` | Experimental and early: available in every build. A multiplayer server runs, the client joins original servers, and local hosting reaches its player menu and restarts with sound enabled, and single player's own menus run; the campaign, full graphics and complete play are still to come. |
+| Star Wars Jedi Knight: Jedi Academy | `jka-sp`, `jka-mp` | Experimental and early: available in every build. A multiplayer server runs, the client joins original servers, and local hosting reaches its player menu and restarts with sound enabled. Local siege rounds with a bot now pass player entry on `mp/siege_hoth` and `mp/siege_desert` ([record](docs/fntech3/2026-10-22-jka-g2-surfaces.md)). Single player's own menus run; the campaign, full graphics and complete play are still to come. |
 | Star Wars Jedi Knight II: Jedi Outcast | `jk2-sp`, `jk2-mp` | Experimental and early: available in every build. A multiplayer server runs with tested bot saber combat, a local multiplayer game draws its level, weapon and HUD, and single player's own menus run; client gameplay is still incomplete. |
 | American McGee's Alice | `alice` | Experimental, Windows: available in every build. Characters support dynamic-light shadows and each level's own sun ([guide](docs/DISPLAY.md#dynamic-lighting-and-shadowing)). |
 | Heavy Metal: F.A.K.K.2 | `fakk2` | Experimental, Windows: available in every build. Characters support dynamic-light shadows and each level's own sun ([guide](docs/DISPLAY.md#dynamic-lighting-and-shadowing)). |
 | Medal of Honor: Allied Assault | `mohaa` | Experimental, Windows: available in every build. Characters support dynamic-light shadows and each level's own sun ([guide](docs/DISPLAY.md#dynamic-lighting-and-shadowing)). RTX traces terrain and static map scenery ([details](docs/fntech3/2026-10-11-mohaa-rtx-world.md)). |
 | Quake III Arena IHV Test | `q3-ihv` | Experimental, Windows: available in every build. A server that takes original IHV Test players, and a client that plays the test's demo and joins original IHV servers. |
 | Quake III Arena Q3Test 1.02 to 1.08 | `q3test` | Experimental, Windows: available in every build. |
+
+Optional underwater effects and ripples now use each game's own liquid data
+across all sixteen profiles. Fog and scene limits still apply; see the
+[Display guide](docs/DISPLAY.md#underwater-view).
 
 **No game is finished yet.** The [Games Guide](docs/GAMES.md) says plainly
 what works in each one, and the

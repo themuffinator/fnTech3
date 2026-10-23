@@ -479,7 +479,7 @@
         </article>
         <article class="feature-group">
           <h3>Modern visual upgrades</h3>
-          <p>Optional HDR, smoother edges, sharper textures, glow, smooth lights with real shadows, lights for each map's own lamps, motion blur, lens flares, softer smoke, livelier water, an underwater view and atmospheric fog.</p>
+          <p>Optional HDR, smoother edges, sharper textures, glow, smooth lights with real shadows, lights for each map's own lamps, motion blur, lens flares, softer smoke, livelier water, an underwater view and atmospheric fog. Underwater effects and ripples use every game's own liquid data; the <a href="manual/display.html#underwater-view">Display guide</a> explains settings and fog limits.</p>
         </article>
         <article class="feature-group">
           <h3>Improved player visibility</h3>
