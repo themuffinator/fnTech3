@@ -186,7 +186,10 @@ class STVEFForcedAlphaTests(unittest.TestCase):
                 self.assertIn('tess_flags |= TESS_RGBA0;', generic)
                 self.assertIn('pipeline = forcedPipeline;', generic)
                 depth_only = ' && !tess.rtDepthOnly' if renderer == 'rendererrtx' else ''
-                self.assertIn(f'if ( pStage->depthFragment && !forced{depth_only} ) {{', generic)
+                # CSM caster passes also suppress the extra depth-fragment draw.
+                condition = f'if ( pStage->depthFragment && !forced{depth_only}'
+                self.assertRegex(generic, re.escape(condition) +
+                    r'\s+#ifdef USE_PMLIGHT\s+&& !tess\.csmCasterPass\s+#endif\s+\) \{')
 
 
 if __name__ == '__main__':

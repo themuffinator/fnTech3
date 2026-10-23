@@ -464,7 +464,7 @@ struct trRefEntity_t {
 		struct { int renderfx; } alice;
 		color4ub_t shader;
 	} e;
-	qboolean lightingCalculated; vec3_t ambientLight, directedLight, lightDir, shadowLightDir; int ambientLightInt;
+	qboolean lightingCalculated; vec3_t ambientLight, directedLight, lightDir, shadowLightDir, csmSunLight; int ambientLightInt;
 };
 struct mnode_t { int contents; cplane_t *plane; mnode_t *children[2]; };
 #include "code/renderercommon/tr_ritual_model_light.h"
@@ -476,7 +476,8 @@ static model_t tiki = { "models/test.tik" };
 static struct {
 	decltype( world ) *world; float identityLight; int identityLightByte; vec3_t sunDirection; model_t *currentModel;
 	int overbrightBits;
-} tr = { &world, 1, 255, { 0, 0, 1 }, &tiki, 0 };
+	struct { qboolean valid, unitColour; vec3_t directionToSun, color, light; } worldSun;
+} tr = { &world, 1, 255, { 0, 0, 1 }, &tiki, 0, {} };
 static int traces, prints;
 static void Trace( trace_t *t, const vec3_t, const vec3_t, const vec3_t, const vec3_t, clipHandle_t, int, qboolean ) {
 	++traces; memset( t, 0, sizeof( *t ) ); t->fraction = 1.0f;
@@ -487,8 +488,9 @@ static struct {
 	void ( *CM_BoxTrace )( trace_t *, const vec3_t, const vec3_t, const vec3_t, const vec3_t, clipHandle_t, int, qboolean );
 	void ( QDECL *Printf )( printParm_t, const char *, ... );
 } ri = { COM_GAME_ALICE, Trace, Print };
-static cvar_t mode{}, shadow{}, debug{}, compiled{}, compiledDebug{}, mapBits{};
+static cvar_t mode{}, shadow{}, debug{}, compiled{}, compiledDebug{}, mapBits{}, csm{};
 static cvar_t *r_dlightMode = &mode, *r_shadows = &shadow, *r_debugLight = &debug, *r_mapOverBrightBits = &mapBits;
+static cvar_t *r_csmShadows = &csm;
 cvar_t *r_ritualModelLights = &compiled, *r_ritualModelLightsDebug = &compiledDebug;
 static int R_GetDlightMode( void ) { return mode.integer; }
 static int gridCalls, logCalls;
@@ -502,7 +504,15 @@ float VectorNormalize( vec3_t v ) {
 	if ( length ) for ( int axis = 0; axis < 3; ++axis ) v[axis] /= length;
 	return length;
 }
+float VectorNormalize2( const vec3_t in, vec3_t out ) {
+	VectorCopy( in, out );
+	return VectorNormalize( out );
+}
+float Com_Clamp( float low, float high, float value ) {
+	return value < low ? low : value > high ? high : value;
+}
 #define myftol( x ) ( (int)( x ) )
+#include "code/renderercommon/tr_csm_model_light.h"
 #include "code/renderercommon/tr_ritual_model_light_render.h"
 '''
     fixture += function(source, 'void R_SetupAliceEntityLighting(')
@@ -551,6 +561,10 @@ int main() {
 	static const byte grid[8] = { 1, 1, 1, 1, 1, 1, 0, 0 };
 	world.lightGridData = grid;
 	compiled.integer = 1;
+	csm.integer = 1;
+	tr.worldSun.valid = qtrue;
+	VectorSet( tr.worldSun.directionToSun, 1, 0, 0 );
+	VectorSet( tr.worldSun.light, 30, 20, 10 );
 	trRefdef_t view = {};
 	const float localPoint[3] = { 0, 0, 32 };
 	vec3_t point = { 0, 0, 32 };
@@ -566,6 +580,8 @@ int main() {
 	R_SetupAliceEntityLighting( &view, &e, point, localPoint, 0 );
 	assert( gridCalls == 0 && Near( e.directedLight[0], 90, 0.05f ) && Near( e.directedLight[1], 45, 0.05f ) );
 	assert( Near( e.ambientLight[0], 0, 0.05f ) && Near( e.lightDir[0], 1 ) );
+	/* The sun budget is captured without changing the compiled lighting. */
+	assert( Near( e.csmSunLight[0], 30 ) && Near( e.csmSunLight[1], 20 ) && Near( e.csmSunLight[2], 10 ) );
 	assert( traces == 0 );
 	/* turned a quarter to the left, the light is on its right: the model's
 	 * own frame still carries the direction back */
@@ -624,9 +640,11 @@ int main() {
 	assert( gridCalls == 4 );
 	world.ritualModelLights = map;
 	/* a full-bright model keeps the flat light, and so does a view with no world */
+	VectorCopy( tr.sunDirection, tr.worldSun.directionToSun );
 	e = Fresh( 0x200 | FNTECH3_ALICE_RF_FULLBRIGHT );
 	R_SetupAliceEntityLighting( &view, &e, point, localPoint, 0 );
 	assert( gridCalls == 4 && e.ambientLight[0] == 150 && e.directedLight[0] == 150 );
+	assert( e.csmSunLight[0] == 0 && e.csmSunLight[1] == 0 && e.csmSunLight[2] == 0 );
 	view.rdflags = RDF_NOWORLDMODEL;
 	e = Fresh( 0x200 );
 	R_SetupAliceEntityLighting( &view, &e, point, localPoint, 0 );
